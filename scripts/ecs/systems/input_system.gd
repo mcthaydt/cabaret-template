@@ -1,0 +1,55 @@
+extends ECSSystem
+
+class_name InputSystem
+
+const INPUT_TYPE := StringName("InputComponent")
+
+@export var negative_x_action: StringName = StringName("move_left")
+@export var positive_x_action: StringName = StringName("move_right")
+@export var negative_z_action: StringName = StringName("move_forward")
+@export var positive_z_action: StringName = StringName("move_backward")
+@export var jump_action: StringName = StringName("jump")
+
+var _actions_initialized := false
+
+func on_configured() -> void:
+    _ensure_actions()
+
+func process_tick(_delta: float) -> void:
+    _ensure_actions()
+
+    var movement_vector := Input.get_vector(negative_x_action, positive_x_action, negative_z_action, positive_z_action)
+    var jump_pressed := Input.is_action_just_pressed(jump_action)
+
+    for component in get_components(INPUT_TYPE):
+        if component == null:
+            continue
+
+        component.set_move_vector(movement_vector)
+        if jump_pressed:
+            component.set_jump_pressed(true)
+
+func _ensure_actions() -> void:
+    if _actions_initialized:
+        return
+
+    _ensure_action(negative_x_action, [KEY_A, KEY_LEFT])
+    _ensure_action(positive_x_action, [KEY_D, KEY_RIGHT])
+    _ensure_action(negative_z_action, [KEY_W, KEY_UP])
+    _ensure_action(positive_z_action, [KEY_S, KEY_DOWN])
+    _ensure_action(jump_action, [KEY_SPACE])
+
+    _actions_initialized = true
+
+func _ensure_action(action_name: StringName, keys: Array) -> void:
+    if not InputMap.has_action(action_name):
+        InputMap.add_action(action_name)
+
+    var events := InputMap.action_get_events(action_name)
+    if events.size() > 0:
+        return
+
+    for key_code in keys:
+        var event := InputEventKey.new()
+        event.physical_keycode = key_code
+        InputMap.action_add_event(action_name, event)

@@ -1,0 +1,60 @@
+[gd_scene load_steps=10 format=3 uid="uid://cyu3l6we2jq23"]
+
+[ext_resource type="Script" uid="uid://cstnlbygcta3i" path="res://scripts/ecs/components/movement_component.gd" id="1_6m9bm"]
+[ext_resource type="Script" uid="uid://b833lsf5jex23" path="res://scripts/ecs/components/jump_component.gd" id="2_h3hux"]
+[ext_resource type="Script" uid="uid://bs12uwba3rh6o" path="res://scripts/ecs/components/input_component.gd" id="3_2fo1m"]
+[ext_resource type="Script" uid="uid://db7wk78767ida" path="res://scripts/ecs/components/rotate_to_input_component.gd" id="4_4etni"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_6mvan"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6mvan"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.11764706, 0.7372549, 0.4509804, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_yiwtw"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yiwtw"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.08627451, 0.3529412, 0.29803923, 1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_16kfq"]
+
+[node name="Entity" type="Node3D"]
+
+[node name="Player_Body" type="CharacterBody3D" parent="."]
+
+[node name="Body_Mesh" type="CSGMesh3D" parent="Player_Body"]
+mesh = SubResource("CapsuleMesh_6mvan")
+material = SubResource("StandardMaterial3D_6mvan")
+
+[node name="Direction_Mesh" type="MeshInstance3D" parent="Player_Body/Body_Mesh"]
+transform = Transform3D(0.39169633, 0, 0, 0, 0.15378642, 0, 0, 0, 0.36884245, -0.019476414, 0.6069238, -0.4746977)
+mesh = SubResource("BoxMesh_yiwtw")
+surface_material_override/0 = SubResource("StandardMaterial3D_yiwtw")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player_Body"]
+shape = SubResource("CapsuleShape3D_16kfq")
+
+[node name="Components" type="Node" parent="."]
+
+[node name="MovementComponent" type="Node" parent="Components"]
+script = ExtResource("1_6m9bm")
+character_body_path = NodePath("../../Player_Body")
+input_component_path = NodePath("../InputComponent")
+
+[node name="JumpComponent" type="Node" parent="Components"]
+script = ExtResource("2_h3hux")
+character_body_path = NodePath("../../Player_Body")
+input_component_path = NodePath("../InputComponent")
+
+[node name="InputComponent" type="Node" parent="Components"]
+script = ExtResource("3_2fo1m")
+
+[node name="RotateToInputComponent" type="Node" parent="Components"]
+script = ExtResource("4_4etni")
+target_node_path = NodePath("../../Player_Body")
+input_component_path = NodePath("../InputComponent")
