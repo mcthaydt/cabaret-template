@@ -1,0 +1,9 @@
+graph LR
+    Templates["Scene Templates"] --> Components["ECS Components"]
+    Components -->|register| Manager["ECS Manager"]
+    Manager -->|provides lists| Systems["ECS Systems"]
+    Systems -->|process_tick| Bodies["CharacterBody3D Actors"]
+    Systems --> Behaviors["Gameplay Systems<br/>Movement · Jump · Floating · Camera"]
+    Bodies --> Gameplay["Runtime Gameplay"]
+    Tests["GUT Unit Tests"] --> Systems
+    Docs["Documentation & Tooling"] --> Team["Contributors"]

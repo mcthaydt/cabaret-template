@@ -1,0 +1,48 @@
+graph LR
+    PlayerBody["CharacterBody3D Actors"]
+    Raycasts["RayCast3D Nodes"]
+    CameraRig["Camera Rig / Follow Target"]
+
+    subgraph InputSystemFlow ["InputSystem"]
+        InputSystemNode["InputSystem"] --> InputComponentNode["InputComponent"]
+        InputComponentNode --> PlayerBody
+    end
+
+    subgraph MovementSystemFlow ["MovementSystem"]
+        MovementSystemNode["MovementSystem"] --> MovementComponentNode["MovementComponent"]
+        MovementComponentNode --> PlayerBody
+        InputComponentNode --> MovementSystemNode
+    end
+
+    subgraph GravitySystemFlow ["GravitySystem"]
+        GravitySystemNode["GravitySystem"] --> PlayerBody
+        PlayerBody --> GravitySystemNode
+    end
+
+    subgraph JumpSystemFlow ["JumpSystem"]
+        JumpSystemNode["JumpSystem"] --> JumpComponentNode["JumpComponent"]
+        JumpComponentNode --> PlayerBody
+        InputComponentNode --> JumpSystemNode
+        FloatingComponentNode["FloatingComponent"] --> JumpSystemNode
+    end
+
+    subgraph FloatingSystemFlow ["FloatingSystem"]
+        FloatingSystemNode["FloatingSystem"] --> FloatingComponentNode
+        FloatingComponentNode --> PlayerBody
+        FloatingComponentNode --> Raycasts
+        Raycasts --> FloatingSystemNode
+    end
+
+    subgraph CameraSystemFlow ["Camera System"]
+        CameraSystemNode["CameraSystem"] --> CameraRig
+        CameraRig --> PlayerBody
+    end
+
+    TestsNode["GUT Tests"] --> InputSystemNode
+    TestsNode --> MovementSystemNode
+    TestsNode --> GravitySystemNode
+    TestsNode --> JumpSystemNode
+    TestsNode --> FloatingSystemNode
+    TestsNode --> CameraSystemNode
+
+    DocsNode["Docs & Tooling"] --> TestsNode

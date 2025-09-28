@@ -7,6 +7,9 @@
 - `ECSSystem` (`scripts/ecs/ecs_system.gd`) extends `Node`, auto-registers with the manager, and calls `process_tick(delta)` every physics frame. Systems fetch component lists from the manager and implement their behaviour there.
 - Game entities are ordinary scenes (for example `templates/player_template.tscn`) that group the Godot nodes (meshes, bodies, etc.) and attach components under a `Components` node. Systems live elsewhere in the scene tree (see `templates/base_scene_template.tscn`), as long as they share an ancestor with the manager or the `ecs_manager` group.
 - Runtime scenes start from the base template: `Root` holds `Systems`, `Managers`, environment, floor geometry, and a `SpawnPoints` node. When the player template instantiates under `SpawnPoints/PlayerSpawn`, its components auto-register with the manager in the `Managers` branch, and the systems under `Systems` begin processing them immediately.
+- Hovering actors use the `FloatingComponent`/`FloatingSystem` pair: the component holds raycast references plus a tracked support state, while the system samples those rays each physics step, runs a second-order (frequency/ratio) solver to settle height, and updates the component’s "recently supported" flag for downstream systems.
+- Hovering actors use the `FloatingComponent`/`FloatingSystem` pair: the component holds raycast references plus a tracked support state, while the system samples those rays each physics step, runs a second-order (frequency/ratio) solver to settle height, and updates the component’s "recently supported" flag for downstream systems. See `docs/images/project_architecture_overview.mmd` for a high-level view of how templates, components, systems, and tests interact.
+- For system-by-system responsibilities and their data flow, see `docs/images/system_flows.mmd`, which maps each gameplay system to the components and runtime nodes it coordinates.
 
 ## Entity Templates
 
@@ -15,6 +18,7 @@
 - To author a new entity, follow the same structure—add the gameplay nodes, nest a `Components` child, drop in the relevant ECS components, and assign exported node paths using the inspector.
 - Entity scenes can expose their own script for higher-level behaviours (signals, state machines) while letting ECS systems handle movement, rotation, etc.
 - When an entity scene is instanced under a manager-aware parent (such as the base template’s `SpawnPoints`), its components register automatically and begin participating in the running systems.
+- If you need a hovering actor, attach `FloatingComponent`, wire its raycasts, and set the second-order parameters (`hover_frequency`, `damping_ratio`) for the desired response. The component reports recent support, so systems like `JumpSystem` can treat hovering as grounded when appropriate.
 
 ## Creating a Component
 
@@ -27,9 +31,9 @@
 ## Creating a System
 
 1. Derive from `ECSSystem`, add a `class_name`, and define constants for the component types you care about.
-2. Override `process_tick(delta)`. Call `get_components(component_type)` for each component set you need, skip nulls, and implement the per-frame logic. Record intermediate state if multiple components share a node (see `MovementSystem`).
+2. Override `process_tick(delta)`. Call `get_components(component_type)` for each component set you need, skip nulls, and implement the per-frame logic. Record intermediate state if multiple components share a node (see `MovementSystem`). For physics-style systems, prefer working in body space (for example the floating solver projects onto the surface normal) and maintain any shared state on the component so other systems can observe it.
 3. Optionally override `on_configured()` to cache configuration or ensure input mappings when the system registers with the manager (see `InputSystem`).
-4. For physics-driven behaviour, rely on the base `_physics_process` and keep `process_tick` deterministic.
+4. For physics-driven behaviour, rely on the base `_physics_process` and keep `process_tick` deterministic. When designing coupled behaviour (for example jumping while hovering), expose the necessary state via component helpers instead of inspecting raw nodes directly.
 5. Instantiate the system under any node that leads to the shared manager (or add the manager to the `ecs_manager` group) so automatic registration succeeds.
 
 ## Testing New Behaviour
