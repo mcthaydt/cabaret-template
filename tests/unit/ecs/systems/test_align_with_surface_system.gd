@@ -69,6 +69,8 @@ func test_align_system_matches_visual_up_to_body_up_direction() -> void:
 	basis = basis.rotated(Vector3.UP, 0.3)
 	body.global_transform = Transform3D(basis, Vector3.ZERO)
 	visual.global_transform = Transform3D(Basis.IDENTITY, Vector3.ZERO)
+	var original_scale: Vector3 = Vector3(2.0, 1.5, 0.75)
+	visual.scale = original_scale
 
 	system._physics_process(0.016)
 
@@ -76,6 +78,9 @@ func test_align_system_matches_visual_up_to_body_up_direction() -> void:
 	assert_almost_eq(visual_up.x, slope_normal.x, 0.01)
 	assert_almost_eq(visual_up.y, slope_normal.y, 0.01)
 	assert_almost_eq(visual_up.z, slope_normal.z, 0.01)
+	assert_almost_eq(visual.scale.x, original_scale.x, 0.001)
+	assert_almost_eq(visual.scale.y, original_scale.y, 0.001)
+	assert_almost_eq(visual.scale.z, original_scale.z, 0.001)
 
 	await _cleanup(context)
 

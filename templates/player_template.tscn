@@ -30,6 +30,7 @@ albedo_color = Color(0.08627451, 0.3529412, 0.29803923, 1)
 [node name="Player_Body" type="CharacterBody3D" parent="."]
 
 [node name="Body_Mesh" type="CSGMesh3D" parent="Player_Body"]
+transform = Transform3D(1, 0, 0, 0, 0.5518581, 0, 0, 0, 1, 0, -0.3421986, 0)
 mesh = SubResource("CapsuleMesh_6mvan")
 material = SubResource("StandardMaterial3D_6mvan")
 
@@ -44,28 +45,29 @@ shape = SubResource("CapsuleShape3D_16kfq")
 [node name="HoverRays" type="Node3D" parent="Player_Body"]
 
 [node name="Center" type="RayCast3D" parent="Player_Body/HoverRays"]
-target_position = Vector3(0, -2, 0)
+target_position = Vector3(0, -1.5, 0)
 
 [node name="Forward" type="RayCast3D" parent="Player_Body/HoverRays"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.35)
-target_position = Vector3(0, -2, 0)
+target_position = Vector3(0, -1.5, 0)
 
 [node name="Back" type="RayCast3D" parent="Player_Body/HoverRays"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.35)
-target_position = Vector3(0, -2, 0)
+target_position = Vector3(0, -1.5, 0)
 
 [node name="Left" type="RayCast3D" parent="Player_Body/HoverRays"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 0, 0)
-target_position = Vector3(0, -2, 0)
+target_position = Vector3(0, -1.5, 0)
 
 [node name="Right" type="RayCast3D" parent="Player_Body/HoverRays"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0, 0)
-target_position = Vector3(0, -2, 0)
+target_position = Vector3(0, -1.5, 0)
 
 [node name="Components" type="Node" parent="."]
 
 [node name="MovementComponent" type="Node" parent="Components"]
 script = ExtResource("1_6m9bm")
+max_speed = 4.5
 deceleration = 22.0
 character_body_path = NodePath("../../Player_Body")
 input_component_path = NodePath("../InputComponent")

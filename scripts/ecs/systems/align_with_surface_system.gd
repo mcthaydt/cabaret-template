@@ -20,6 +20,8 @@ func process_tick(delta: float) -> void:
 		if body == null or visual == null:
 			continue
 
+		var visual_scale: Vector3 = visual.scale
+
 		if align_component.align_only_when_supported:
 			var tolerance := align_component.recent_support_tolerance
 			if not align_component.has_recent_support(now, tolerance):
@@ -65,6 +67,7 @@ func process_tick(delta: float) -> void:
 
 		var origin := visual.global_transform.origin
 		visual.global_transform = Transform3D(new_basis, origin)
+		visual.scale = visual_scale
 
 func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
 	var normal := plane_normal.normalized()
