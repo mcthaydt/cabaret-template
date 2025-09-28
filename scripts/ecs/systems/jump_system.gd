@@ -5,7 +5,7 @@ class_name JumpSystem
 const JUMP_TYPE := StringName("JumpComponent")
 const FLOATING_TYPE := StringName("FloatingComponent")
 
-func process_tick(delta: float) -> void:
+func process_tick(_delta: float) -> void:
     var now: float = Time.get_ticks_msec() / 1000.0
     var floating_by_body: Dictionary = {}
 

@@ -1,9 +1,10 @@
-[gd_scene load_steps=10 format=3 uid="uid://cyu3l6we2jq23"]
+[gd_scene load_steps=11 format=3 uid="uid://cyu3l6we2jq23"]
 
 [ext_resource type="Script" uid="uid://cstnlbygcta3i" path="res://scripts/ecs/components/movement_component.gd" id="1_6m9bm"]
 [ext_resource type="Script" uid="uid://b833lsf5jex23" path="res://scripts/ecs/components/jump_component.gd" id="2_h3hux"]
 [ext_resource type="Script" uid="uid://bs12uwba3rh6o" path="res://scripts/ecs/components/input_component.gd" id="3_2fo1m"]
 [ext_resource type="Script" uid="uid://db7wk78767ida" path="res://scripts/ecs/components/rotate_to_input_component.gd" id="4_4etni"]
+[ext_resource type="Script" uid="uid://dbnpg30arx0vt" path="res://scripts/ecs/components/floating_component.gd" id="5_f1jtd"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_6mvan"]
 
@@ -39,6 +40,27 @@ surface_material_override/0 = SubResource("StandardMaterial3D_yiwtw")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player_Body"]
 shape = SubResource("CapsuleShape3D_16kfq")
 
+[node name="HoverRays" type="Node3D" parent="Player_Body"]
+
+[node name="Center" type="RayCast3D" parent="Player_Body/HoverRays"]
+target_position = Vector3(0, -2, 0)
+
+[node name="Forward" type="RayCast3D" parent="Player_Body/HoverRays"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.35)
+target_position = Vector3(0, -2, 0)
+
+[node name="Back" type="RayCast3D" parent="Player_Body/HoverRays"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.35)
+target_position = Vector3(0, -2, 0)
+
+[node name="Left" type="RayCast3D" parent="Player_Body/HoverRays"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 0, 0)
+target_position = Vector3(0, -2, 0)
+
+[node name="Right" type="RayCast3D" parent="Player_Body/HoverRays"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0, 0)
+target_position = Vector3(0, -2, 0)
+
 [node name="Components" type="Node" parent="."]
 
 [node name="MovementComponent" type="Node" parent="Components"]
@@ -58,3 +80,8 @@ script = ExtResource("3_2fo1m")
 script = ExtResource("4_4etni")
 target_node_path = NodePath("../../Player_Body")
 input_component_path = NodePath("../InputComponent")
+
+[node name="FloatingComponent" type="Node" parent="Components"]
+script = ExtResource("5_f1jtd")
+character_body_path = NodePath("../../Player_Body")
+raycast_root_path = NodePath("../../Player_Body/HoverRays")
