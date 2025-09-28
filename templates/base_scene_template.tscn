@@ -30,9 +30,14 @@ material_override = SubResource("StandardMaterial3D_q3o1v")
 use_collision = true
 size = Vector3(25, 1, 25)
 
-[node name="CSGBox3D" type="CSGBox3D" parent="SceneObjects"]
+[node name="Block" type="CSGBox3D" parent="SceneObjects"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6780934, 0, 0)
 use_collision = true
+
+[node name="Block2" type="CSGBox3D" parent="SceneObjects"]
+transform = Transform3D(0.89320666, 0.44964638, 0, -0.44964638, 0.89320666, 0, 0, 0, 1, -5.180423, -0.7959937, -0.10645056)
+use_collision = true
+size = Vector3(6.261841, 1, 3.1923828)
 
 [node name="Enviroment" type="Node" parent="."]
 
