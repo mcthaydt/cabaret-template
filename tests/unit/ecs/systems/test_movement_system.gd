@@ -4,18 +4,23 @@ const ECS_MANAGER = preload("res://scripts/ecs/ecs_manager.gd")
 const MovementComponentScript = preload("res://scripts/ecs/components/movement_component.gd")
 const MovementSystemScript = preload("res://scripts/ecs/systems/movement_system.gd")
 const InputComponentScript = preload("res://scripts/ecs/components/input_component.gd")
+const FloatingComponentScript = preload("res://scripts/ecs/components/floating_component.gd")
 
 class FakeBody extends CharacterBody3D:
     var move_called := false
+    var grounded := false
 
     func move_and_slide() -> bool:
         move_called = true
         return super.move_and_slide()
 
+    func is_on_floor() -> bool:
+        return grounded
+
 func _pump() -> void:
     await get_tree().process_frame
 
-func _setup_entity() -> Dictionary:
+func _setup_entity(include_floating := false) -> Dictionary:
     var manager = ECS_MANAGER.new()
     add_child(manager)
     await _pump()
@@ -35,6 +40,14 @@ func _setup_entity() -> Dictionary:
     movement.character_body_path = movement.get_path_to(body)
     movement.input_component_path = movement.get_path_to(input)
 
+    var floating: FloatingComponent = null
+    if include_floating:
+        floating = FloatingComponentScript.new()
+        add_child(floating)
+        await _pump()
+        floating.character_body_path = floating.get_path_to(body)
+        movement.support_component_path = movement.get_path_to(floating)
+
     var system = MovementSystemScript.new()
     add_child(system)
     await _pump()
@@ -45,6 +58,7 @@ func _setup_entity() -> Dictionary:
         "input": input,
         "body": body,
         "system": system,
+        "floating": floating,
     }
 
 func test_movement_system_updates_velocity_towards_input() -> void:
@@ -62,6 +76,102 @@ func test_movement_system_updates_velocity_towards_input() -> void:
     assert_true(body.velocity.x > 0.0)
     assert_true(body.velocity.length() <= movement.max_speed + 0.01)
     assert_true(body.move_called)
+
+    await _cleanup(context)
+
+func test_movement_grounded_friction_reduces_velocity_quickly() -> void:
+    var context := await _setup_entity(true)
+    var movement: MovementComponent = context["movement"]
+    var body: FakeBody = context["body"]
+    var system = context["system"]
+    var floating: FloatingComponent = context["floating"]
+
+    movement.use_second_order_dynamics = false
+    movement.grounded_friction = 40.0
+    movement.air_friction = 5.0
+    movement.strafe_friction_scale = 1.0
+    movement.forward_friction_scale = 1.0
+
+    body.velocity = Vector3(6.0, 0.0, 0.0)
+    var now := Time.get_ticks_msec() / 1000.0
+    floating.update_support_state(true, now)
+
+    system._physics_process(0.1)
+
+    assert_almost_eq(body.velocity.x, 0.0, 0.01)
+    assert_true(movement.get_last_debug_snapshot()["supported"])
+
+    await _cleanup(context)
+
+func test_movement_air_friction_is_gentler_without_support() -> void:
+    var context := await _setup_entity(true)
+    var movement: MovementComponent = context["movement"]
+    var body: FakeBody = context["body"]
+    var system = context["system"]
+    var floating: FloatingComponent = context["floating"]
+
+    movement.use_second_order_dynamics = false
+    movement.grounded_friction = 40.0
+    movement.air_friction = 2.0
+    movement.strafe_friction_scale = 1.0
+    movement.forward_friction_scale = 1.0
+
+    body.velocity = Vector3(6.0, 0.0, 0.0)
+    var now := Time.get_ticks_msec() / 1000.0
+    floating.update_support_state(false, now - 1.0)
+
+    system._physics_process(0.1)
+
+    assert_true(body.velocity.x > 0.5)
+    assert_false(movement.get_last_debug_snapshot()["supported"])
+
+    await _cleanup(context)
+
+func test_second_order_dynamics_dampens_more_when_grounded() -> void:
+    var context := await _setup_entity(true)
+    var movement: MovementComponent = context["movement"]
+    var input = context["input"]
+    var body: FakeBody = context["body"]
+    var system = context["system"]
+    var floating: FloatingComponent = context["floating"]
+
+    movement.use_second_order_dynamics = true
+    movement.response_frequency = 1.0
+    movement.damping_ratio = 0.5
+    movement.grounded_damping_multiplier = 2.0
+    movement.air_damping_multiplier = 0.5
+    movement.max_speed = 10.0
+
+    body.velocity = Vector3.ZERO
+    input.set_move_vector(Vector2.RIGHT)
+
+    var now := Time.get_ticks_msec() / 1000.0
+    floating.update_support_state(true, now)
+
+    system._physics_process(0.1)
+    system._physics_process(0.1)
+
+    var grounded_velocity := body.velocity.x
+    var grounded_debug := movement.get_last_debug_snapshot()
+
+    input.set_move_vector(Vector2.ZERO)
+    floating.update_support_state(false, now)
+    floating.is_supported = false
+    floating._last_support_time = now - (movement.support_grace_time + 0.5)
+
+    # reset for airborne case
+    body.velocity = Vector3.ZERO
+    movement.reset_dynamics_state()
+
+    input.set_move_vector(Vector2.RIGHT)
+
+    system._physics_process(0.1)
+    system._physics_process(0.1)
+
+    var air_velocity := body.velocity.x
+
+    assert_true(abs(grounded_velocity) < abs(air_velocity))
+    assert_true(grounded_debug["supported"])
 
     await _cleanup(context)
 

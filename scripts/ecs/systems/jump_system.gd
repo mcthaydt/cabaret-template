@@ -29,18 +29,55 @@ func process_tick(_delta: float) -> void:
         if input_component == null:
             continue
 
-        var floating_component = floating_by_body.get(body, null)
-        var has_floating_support := false
+        var floating_component: FloatingComponent = floating_by_body.get(body, null) as FloatingComponent
+        var floating_supported_now: bool = false
+        var has_floating_support: bool = false
         if floating_component != null:
+            floating_supported_now = floating_component.is_supported
             has_floating_support = floating_component.has_recent_support(now, component.coyote_time)
 
-        if body.is_on_floor() or has_floating_support:
-            component.mark_on_floor()
+        component.update_vertical_state(body.velocity.y, now)
 
-        if not input_component.consume_jump():
+        var supported_now: bool = body.is_on_floor() or floating_supported_now
+        if supported_now:
+            component.mark_on_floor(now)
+        var support_recent: bool = supported_now or has_floating_support
+
+        var jump_requested: bool = input_component.has_jump_request(component.jump_buffer_time, now)
+        if not jump_requested:
+            component.update_debug_snapshot({
+                "supported": supported_now,
+                "support_recent": support_recent,
+                "requested": false,
+                "performed": false,
+                "has_air_jumps": component.has_air_jumps_remaining(),
+                "recent_apex": component.has_recent_apex(now),
+            })
             continue
 
-        if component.can_jump(now):
-            var velocity = body.velocity
-            velocity.y = component.jump_force
-            body.velocity = velocity
+        if not component.can_jump(now):
+            component.update_debug_snapshot({
+                "supported": supported_now,
+                "support_recent": support_recent,
+                "requested": true,
+                "performed": false,
+                "has_air_jumps": component.has_air_jumps_remaining(),
+                "recent_apex": component.has_recent_apex(now),
+            })
+            continue
+
+        if not input_component.consume_jump_request():
+            continue
+
+        component.on_jump_performed(now, supported_now)
+        var velocity = body.velocity
+        velocity.y = component.jump_force
+        body.velocity = velocity
+        component.update_debug_snapshot({
+            "supported": supported_now,
+            "support_recent": support_recent,
+            "requested": true,
+            "performed": true,
+            "has_air_jumps": component.has_air_jumps_remaining(),
+            "recent_apex": component.has_recent_apex(now),
+        })

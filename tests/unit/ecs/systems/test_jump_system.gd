@@ -97,6 +97,85 @@ func test_jump_system_allows_jump_when_supported_by_floating_component() -> void
 
 	await _cleanup(context)
 
+func test_jump_system_uses_jump_buffer() -> void:
+	var context := await _setup_entity()
+	var jump: JumpComponent = context["jump"]
+	var input: InputComponent = context["input"]
+	var body: FakeBody = context["body"]
+	var system = context["system"]
+
+	jump.jump_buffer_time = 0.25
+	body.velocity = Vector3.ZERO
+	body.grounded = false
+
+	var now := Time.get_ticks_msec() / 1000.0
+	jump.mark_on_floor(now - jump.coyote_time - 1.0)
+
+	input.set_jump_pressed(true)
+
+	system._physics_process(0.016)
+	assert_eq(body.velocity.y, 0.0)
+
+	body.grounded = true
+	jump.mark_on_floor(now)
+	system._physics_process(0.016)
+
+	assert_eq(body.velocity.y, jump.jump_force)
+
+	await _cleanup(context)
+
+func test_jump_respects_max_air_jumps_setting() -> void:
+	var context := await _setup_entity()
+	var jump: JumpComponent = context["jump"]
+	var input: InputComponent = context["input"]
+	var body: FakeBody = context["body"]
+	var system = context["system"]
+
+	jump.max_air_jumps = 0
+	body.velocity = Vector3.ZERO
+	body.grounded = true
+
+	input.set_jump_pressed(true)
+	system._physics_process(0.016)
+
+	assert_eq(body.velocity.y, jump.jump_force)
+
+	body.grounded = false
+	body.velocity = Vector3.ZERO
+	input.set_jump_pressed(true)
+	system._physics_process(0.016)
+
+	assert_eq(body.velocity.y, 0.0)
+
+	await _cleanup(context)
+
+func test_jump_component_tracks_apex_state() -> void:
+	var context := await _setup_entity()
+	var jump: JumpComponent = context["jump"]
+	var input: InputComponent = context["input"]
+	var body: FakeBody = context["body"]
+	var system = context["system"]
+
+	body.velocity = Vector3.ZERO
+	body.grounded = true
+	input.set_jump_pressed(true)
+
+	system._physics_process(0.016)
+
+	assert_false(jump.has_recent_apex(Time.get_ticks_msec() / 1000.0))
+
+	body.grounded = false
+	body.velocity = Vector3(0.0, 0.2, 0.0)
+	system._physics_process(0.016)
+
+	body.velocity = Vector3(0.0, -0.05, 0.0)
+	system._physics_process(0.016)
+
+	var now := Time.get_ticks_msec() / 1000.0
+	assert_true(jump.has_recent_apex(now))
+
+	await _cleanup(context)
+
 func _cleanup(context: Dictionary) -> void:
 	for value in context.values():
 		if value is Node:

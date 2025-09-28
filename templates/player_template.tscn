@@ -69,9 +69,11 @@ script = ExtResource("1_6m9bm")
 deceleration = 22.0
 character_body_path = NodePath("../../Player_Body")
 input_component_path = NodePath("../InputComponent")
+support_component_path = NodePath("../FloatingComponent")
 
 [node name="JumpComponent" type="Node" parent="Components"]
 script = ExtResource("2_h3hux")
+apex_coyote_time = 0.05
 character_body_path = NodePath("../../Player_Body")
 input_component_path = NodePath("../InputComponent")
 
@@ -80,6 +82,7 @@ script = ExtResource("3_2fo1m")
 
 [node name="RotateToInputComponent" type="Node" parent="Components"]
 script = ExtResource("4_4etni")
+use_second_order = true
 target_node_path = NodePath("../../Player_Body")
 input_component_path = NodePath("../InputComponent")
 

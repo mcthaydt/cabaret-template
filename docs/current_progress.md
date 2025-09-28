@@ -21,3 +21,6 @@
 - Captured a project architecture overview diagram (`docs/images/project_architecture_overview.mmd`) to document how templates, components, systems, and tooling fit together.
 - Added a per-system flow reference (`docs/images/system_flows.mmd`) outlining the runtime relationships between each ECS system, its components, and supporting nodes.
 - Recorded these changes and testing notes here; ran the ECS system GUT suite (`/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs`) to confirm all tests pass—Godot logs the success summary before the headless process fails to exit cleanly.
+- Introduced support-aware movement tuning: grounded vs. airborne damping multipliers, axis-specific friction, and state snapshots so designers can see when the spring solver or friction kicks in.
+- Added jump input buffering with precise timestamps, apex detection for coyote extensions, and stricter support-state clearing to eliminate phantom extra jumps when `max_air_jumps` is zero.
+- Reworked rotate-to-input to use a second-order yaw solver clamped by maximum turn speed, preventing overshoot while still smoothing rotations toward the input vector.

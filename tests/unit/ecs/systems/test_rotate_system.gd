@@ -55,6 +55,61 @@ func test_rotate_system_turns_towards_input_direction() -> void:
 
     await _cleanup(context)
 
+func test_rotate_system_uses_second_order_for_smooth_turn() -> void:
+    var context := await _setup_entity()
+    var rotate_component: RotateToInputComponent = context["rotate_component"]
+    var input = context["input"]
+    var body: Node3D = context["body"]
+    var system = context["system"]
+
+    rotate_component.use_second_order = true
+    rotate_component.rotation_frequency = 2.0
+    rotate_component.rotation_damping = 0.7
+    rotate_component.max_turn_speed_degrees = 1080.0
+
+    body.rotation = Vector3.ZERO
+    input.set_move_vector(Vector2.RIGHT)
+
+    system._physics_process(0.1)
+    var first_rotation := body.rotation.y
+
+    system._physics_process(0.1)
+    var second_rotation := body.rotation.y
+
+    var desired_direction := Vector3(input.move_vector.x, 0.0, input.move_vector.y).normalized()
+    var desired_yaw := atan2(-desired_direction.x, -desired_direction.z)
+    var first_error := abs(wrapf(desired_yaw - first_rotation, -PI, PI))
+    var second_error := abs(wrapf(desired_yaw - second_rotation, -PI, PI))
+
+    assert_true(first_rotation < 0.0)
+    assert_true(second_error <= first_error + 0.00001)
+    assert_true(abs(second_rotation) <= PI / 2.0 + 0.00001)
+
+    await _cleanup(context)
+
+func test_rotate_system_resets_second_order_state_without_input() -> void:
+    var context := await _setup_entity()
+    var rotate_component: RotateToInputComponent = context["rotate_component"]
+    var input = context["input"]
+    var body: Node3D = context["body"]
+    var system = context["system"]
+
+    rotate_component.use_second_order = true
+    rotate_component.rotation_frequency = 2.0
+    rotate_component.rotation_damping = 0.7
+
+    body.rotation = Vector3.ZERO
+    input.set_move_vector(Vector2.RIGHT)
+
+    system._physics_process(0.1)
+
+    input.set_move_vector(Vector2.ZERO)
+    system._physics_process(0.1)
+
+    assert_almost_eq(rotate_component.get_rotation_velocity(), 0.0, 0.001)
+
+    await _cleanup(context)
+
 func _cleanup(context: Dictionary) -> void:
     for value in context.values():
         if value is Node:
