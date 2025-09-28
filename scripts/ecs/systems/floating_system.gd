@@ -2,7 +2,7 @@ extends ECSSystem
 
 class_name FloatingSystem
 
-const FLOATING_TYPE := StringName("FloatingComponent")
+const FLOATING_TYPE := StringName('FloatingComponent')
 
 class SupportInfo:
 	var has_hit: bool = false
@@ -11,13 +11,17 @@ class SupportInfo:
 
 func process_tick(delta: float) -> void:
 	var processed: Dictionary = {}
-	var now := Time.get_ticks_msec() / 1000.0
+	var now: float = Time.get_ticks_msec() / 1000.0
 
 	for component in get_components(FLOATING_TYPE):
 		if component == null:
 			continue
 
-		var body = component.get_character_body()
+		var floating_component: FloatingComponent = component as FloatingComponent
+		if floating_component == null:
+			continue
+
+		var body: CharacterBody3D = floating_component.get_character_body()
 		if body == null:
 			continue
 
@@ -25,9 +29,9 @@ func process_tick(delta: float) -> void:
 			continue
 		processed[body] = true
 
-		var rays: Array = component.get_raycast_nodes()
+		var rays: Array = floating_component.get_raycast_nodes()
 		if rays.is_empty():
-			component.update_support_state(false, now)
+			floating_component.update_support_state(false, now)
 			continue
 
 		var support: SupportInfo = _collect_support_data(rays)
@@ -40,19 +44,19 @@ func process_tick(delta: float) -> void:
 			normal = normal.normalized()
 
 			var distance: float = support.distance
-			var height_error: float = component.hover_height - distance
+			var height_error: float = floating_component.hover_height - distance
 			var vel_along_normal: float = velocity.dot(normal)
-			var within_height_tolerance: bool = abs(height_error) <= component.height_tolerance
-			var within_speed_tolerance: bool = abs(vel_along_normal) <= component.settle_speed_tolerance
-			var support_active: bool = vel_along_normal <= component.settle_speed_tolerance and height_error >= -component.height_tolerance
+			var within_height_tolerance: bool = abs(height_error) <= floating_component.height_tolerance
+			var within_speed_tolerance: bool = abs(vel_along_normal) <= floating_component.settle_speed_tolerance
+			var support_active: bool = vel_along_normal <= floating_component.settle_speed_tolerance and height_error >= -floating_component.height_tolerance
 
-			if vel_along_normal > component.settle_speed_tolerance:
+			if vel_along_normal > floating_component.settle_speed_tolerance:
 				pass
 			elif within_height_tolerance and within_speed_tolerance:
 				velocity -= normal * vel_along_normal
 			else:
-				var frequency: float = max(component.hover_frequency, 0.0)
-				var damping_ratio: float = max(component.damping_ratio, 0.0)
+				var frequency: float = max(floating_component.hover_frequency, 0.0)
+				var damping_ratio: float = max(floating_component.damping_ratio, 0.0)
 				if frequency > 0.0:
 					var omega: float = TAU * frequency
 					var accel_along_normal: float = (omega * omega * height_error) - (2.0 * damping_ratio * omega * vel_along_normal)
@@ -62,31 +66,30 @@ func process_tick(delta: float) -> void:
 				else:
 					velocity -= normal * vel_along_normal
 
-			velocity = _clamp_velocity_along_normal(velocity, normal, component.max_down_speed, component.max_up_speed)
+			velocity = _clamp_velocity_along_normal(velocity, normal, floating_component.max_down_speed, floating_component.max_up_speed)
 
-			if component.align_to_normal:
+			if floating_component.align_to_normal:
 				body.up_direction = normal
 
-			component.update_support_state(support_active, now)
+			floating_component.update_support_state(support_active, now)
 		else:
-			velocity.y -= component.fall_gravity * delta
-			velocity.y = clamp(velocity.y, -component.max_down_speed, component.max_up_speed)
-			component.update_support_state(false, now)
+			velocity.y -= floating_component.fall_gravity * delta
+			velocity.y = clamp(velocity.y, -floating_component.max_down_speed, floating_component.max_up_speed)
+			floating_component.update_support_state(false, now)
 
 		body.velocity = velocity
 
 func _collect_support_data(rays: Array) -> SupportInfo:
-	var data := SupportInfo.new()
-
+	var data: SupportInfo = SupportInfo.new()
 	var min_distance: float = INF
 	var normal_sum: Vector3 = Vector3.ZERO
-	var hit_count := 0
+	var hit_count: int = 0
 
 	for ray in rays:
 		if ray == null:
 			continue
 
-		if ray.has_method("force_raycast_update"):
+		if ray.has_method('force_raycast_update'):
 			ray.force_raycast_update()
 
 		if not ray.is_colliding():
@@ -95,7 +98,7 @@ func _collect_support_data(rays: Array) -> SupportInfo:
 		data.has_hit = true
 		hit_count += 1
 
-		var origin: Vector3 = ray.global_transform.origin
+		var origin: Vector3 = (ray as Node3D).global_transform.origin
 		var point: Vector3 = ray.get_collision_point()
 		var distance: float = origin.distance_to(point)
 		if distance < min_distance:

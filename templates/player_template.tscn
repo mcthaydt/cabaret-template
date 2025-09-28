@@ -1,11 +1,13 @@
-[gd_scene load_steps=12 format=3 uid="uid://cyu3l6we2jq23"]
+[gd_scene load_steps=14 format=3 uid="uid://cyu3l6we2jq23"]
 
+[ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://icon.svg" id="1_5osnb"]
 [ext_resource type="Script" uid="uid://cstnlbygcta3i" path="res://scripts/ecs/components/movement_component.gd" id="1_6m9bm"]
 [ext_resource type="Script" uid="uid://b833lsf5jex23" path="res://scripts/ecs/components/jump_component.gd" id="2_h3hux"]
 [ext_resource type="Script" uid="uid://bs12uwba3rh6o" path="res://scripts/ecs/components/input_component.gd" id="3_2fo1m"]
 [ext_resource type="Script" uid="uid://db7wk78767ida" path="res://scripts/ecs/components/rotate_to_input_component.gd" id="4_4etni"]
 [ext_resource type="Script" uid="uid://dbnpg30arx0vt" path="res://scripts/ecs/components/floating_component.gd" id="5_f1jtd"]
 [ext_resource type="Script" uid="uid://chml6n4g2oasr" path="res://scripts/ecs/components/align_with_surface_component.gd" id="6_xa0wx"]
+[ext_resource type="Script" uid="uid://dwp6w662o8blj" path="res://scripts/ecs/components/landing_indicator_component.gd" id="8_weo2m"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_6mvan"]
 
@@ -38,6 +40,10 @@ material = SubResource("StandardMaterial3D_6mvan")
 transform = Transform3D(0.39169633, 0, 0, 0, 0.15378642, 0, 0, 0, 0.36884245, -0.019476414, 0.6069238, -0.4746977)
 mesh = SubResource("BoxMesh_yiwtw")
 surface_material_override/0 = SubResource("StandardMaterial3D_yiwtw")
+
+[node name="GroundIndicator" type="Sprite3D" parent="Player_Body/Body_Mesh"]
+transform = Transform3D(1, 0, 0, 0, -7.920765e-08, -1.8120599, 0, 1, -4.371139e-08, 0, -2.3227184, 0)
+texture = ExtResource("1_5osnb")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player_Body"]
 shape = SubResource("CapsuleShape3D_16kfq")
@@ -98,3 +104,9 @@ script = ExtResource("6_xa0wx")
 character_body_path = NodePath("../../Player_Body")
 visual_alignment_path = NodePath("../../Player_Body/Body_Mesh")
 floating_component_path = NodePath("../FloatingComponent")
+
+[node name="LandingIndicatorComponent" type="Node" parent="Components"]
+script = ExtResource("8_weo2m")
+character_body_path = NodePath("../../Player_Body")
+origin_marker_path = NodePath("../../Player_Body/HoverRays/Center")
+landing_marker_path = NodePath("../../Player_Body/Body_Mesh/GroundIndicator")

@@ -5,6 +5,7 @@ class_name MovementComponent
 const COMPONENT_TYPE := StringName("MovementComponent")
 
 @export var max_speed: float = 6.0
+@export var sprint_speed_multiplier: float = 1.5
 @export var acceleration: float = 20.0
 @export var deceleration: float = 25.0
 @export var use_second_order_dynamics: bool = true

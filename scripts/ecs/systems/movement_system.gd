@@ -29,13 +29,21 @@ func process_tick(delta: float) -> void:
 
 		var input_component = component.get_input_component()
 		var input_vector: Vector2 = Vector2.ZERO
+		var is_sprinting := false
+		var current_max_speed: float = component.max_speed
 		if input_component != null:
 			input_vector = input_component.move_vector
+			is_sprinting = input_component.is_sprinting()
+			if is_sprinting:
+				var sprint_multiplier: float = component.sprint_speed_multiplier
+				if sprint_multiplier <= 0.0:
+					sprint_multiplier = 1.0
+				current_max_speed = component.max_speed * sprint_multiplier
 
 		var has_input: bool = input_vector.length() > 0.0
 		var desired_velocity: Vector3 = Vector3.ZERO
 		if has_input:
-			desired_velocity = _get_desired_velocity(input_vector, component.max_speed)
+			desired_velocity = _get_desired_velocity(input_vector, current_max_speed)
 
 		var support_component: FloatingComponent = component.get_support_component()
 		var support_active: bool = false
@@ -47,6 +55,7 @@ func process_tick(delta: float) -> void:
 		var wants_second_order: bool = component.use_second_order_dynamics and component.response_frequency > 0.0
 		if wants_second_order and has_input:
 			velocity = _apply_second_order_dynamics(component, velocity, desired_velocity, delta, support_active)
+			velocity = _clamp_horizontal_speed(velocity, current_max_speed)
 		else:
 			if has_input:
 				velocity.x = move_toward(velocity.x, desired_velocity.x, component.acceleration * delta)
@@ -59,12 +68,14 @@ func process_tick(delta: float) -> void:
 		if not has_input:
 			velocity = _apply_horizontal_friction(component, velocity, support_active, delta)
 
-		velocity = _clamp_horizontal_speed(velocity, component.max_speed)
+		velocity = _clamp_horizontal_speed(velocity, current_max_speed)
+
 		state.velocity = velocity
 
 		component.update_debug_snapshot({
 			"supported": support_active,
 			"has_input": has_input,
+			"is_sprinting": is_sprinting,
 			"desired_velocity": Vector2(desired_velocity.x, desired_velocity.z),
 			"current_velocity": Vector2(velocity.x, velocity.z),
 			"dynamics_velocity": component.get_horizontal_dynamics_velocity(),

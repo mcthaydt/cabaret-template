@@ -9,6 +9,7 @@ const INPUT_TYPE := StringName("InputComponent")
 @export var negative_z_action: StringName = StringName("move_forward")
 @export var positive_z_action: StringName = StringName("move_backward")
 @export var jump_action: StringName = StringName("jump")
+@export var sprint_action: StringName = StringName("sprint")
 
 var _actions_initialized := false
 
@@ -20,12 +21,14 @@ func process_tick(_delta: float) -> void:
 
     var movement_vector := Input.get_vector(negative_x_action, positive_x_action, negative_z_action, positive_z_action)
     var jump_pressed := Input.is_action_just_pressed(jump_action)
+    var sprint_pressed := Input.is_action_pressed(sprint_action)
 
     for component in get_components(INPUT_TYPE):
         if component == null:
             continue
 
         component.set_move_vector(movement_vector)
+        component.set_sprint_pressed(sprint_pressed)
         if jump_pressed:
             component.set_jump_pressed(true)
 
@@ -38,6 +41,7 @@ func _ensure_actions() -> void:
     _ensure_action(negative_z_action, [KEY_W, KEY_UP])
     _ensure_action(positive_z_action, [KEY_S, KEY_DOWN])
     _ensure_action(jump_action, [KEY_SPACE])
+    _ensure_action(sprint_action, [KEY_SHIFT])
 
     _actions_initialized = true
 

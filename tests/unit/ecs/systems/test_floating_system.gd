@@ -9,9 +9,9 @@ class FakeBody extends CharacterBody3D:
 		up_direction = Vector3.UP
 
 class FakeRayCast extends RayCast3D:
-	var colliding := false
-	var fake_collision_point := Vector3.ZERO
-	var fake_collision_normal := Vector3.UP
+	var colliding: bool = false
+	var fake_collision_point: Vector3 = Vector3.ZERO
+	var fake_collision_normal: Vector3 = Vector3.UP
 
 	func is_colliding() -> bool:
 		return colliding
@@ -28,12 +28,16 @@ class FakeRayCast extends RayCast3D:
 func _pump() -> void:
 	await get_tree().process_frame
 
+func _wait(seconds: float) -> void:
+	var timer: SceneTreeTimer = get_tree().create_timer(seconds)
+	await timer.timeout
+
 func _setup_entity() -> Dictionary:
-	var manager := ECS_MANAGER.new()
+	var manager: ECSManager = ECS_MANAGER.new()
 	add_child(manager)
 	await _pump()
 
-	var component := FLOATING_COMPONENT.new()
+	var component: FloatingComponent = FLOATING_COMPONENT.new()
 	component.hover_height = 1.5
 	component.hover_frequency = 3.5
 	component.damping_ratio = 1.0
@@ -41,27 +45,28 @@ func _setup_entity() -> Dictionary:
 	add_child(component)
 	await _pump()
 
-	var body := FakeBody.new()
+	var body: FakeBody = FakeBody.new()
 	add_child(body)
 	await _pump()
 
 	component.character_body_path = component.get_path_to(body)
 
-	var ray_root := Node3D.new()
+	var ray_root: Node3D = Node3D.new()
 	component.add_child(ray_root)
 	await _pump()
 
-	var ray_a := FakeRayCast.new()
+	var ray_a: FakeRayCast = FakeRayCast.new()
 	ray_root.add_child(ray_a)
 	await _pump()
 
-	var ray_b := FakeRayCast.new()
+	var ray_b: FakeRayCast = FakeRayCast.new()
 	ray_root.add_child(ray_b)
 	await _pump()
 
 	component.raycast_root_path = component.get_path_to(ray_root)
 
-	var system := FLOATING_SYSTEM.new()
+
+	var system: FloatingSystem = FLOATING_SYSTEM.new()
 	add_child(system)
 	await _pump()
 
@@ -75,11 +80,11 @@ func _setup_entity() -> Dictionary:
 	}
 
 func test_floating_system_applies_spring_force_and_aligns_to_surface_normal() -> void:
-	var context := await _setup_entity()
-	var body: FakeBody = context["body"]
-	var ray_a: FakeRayCast = context["ray_a"]
-	var ray_b: FakeRayCast = context["ray_b"]
-	var system = context["system"]
+	var context: Dictionary = await _setup_entity()
+	var body: FakeBody = context["body"] as FakeBody
+	var ray_a: FakeRayCast = context["ray_a"] as FakeRayCast
+	var ray_b: FakeRayCast = context["ray_b"] as FakeRayCast
+	var system: FloatingSystem = context["system"] as FloatingSystem
 
 	ray_a.position = Vector3.ZERO
 	ray_a.colliding = true
@@ -97,7 +102,7 @@ func test_floating_system_applies_spring_force_and_aligns_to_surface_normal() ->
 
 	assert_gt(body.velocity.y, 0.0)
 
-	var expected_normal := (ray_a.fake_collision_normal + ray_b.fake_collision_normal).normalized()
+	var expected_normal: Vector3 = (ray_a.fake_collision_normal + ray_b.fake_collision_normal).normalized()
 	assert_almost_eq(body.up_direction.x, expected_normal.x, 0.01)
 	assert_almost_eq(body.up_direction.y, expected_normal.y, 0.01)
 	assert_almost_eq(body.up_direction.z, expected_normal.z, 0.01)
@@ -105,11 +110,11 @@ func test_floating_system_applies_spring_force_and_aligns_to_surface_normal() ->
 	await _cleanup(context)
 
 func test_floating_system_does_not_push_up_when_above_hover_height() -> void:
-	var context := await _setup_entity()
-	var body: FakeBody = context["body"]
-	var ray_a: FakeRayCast = context["ray_a"]
-	var ray_b: FakeRayCast = context["ray_b"]
-	var system = context["system"]
+	var context: Dictionary = await _setup_entity()
+	var body: FakeBody = context["body"] as FakeBody
+	var ray_a: FakeRayCast = context["ray_a"] as FakeRayCast
+	var ray_b: FakeRayCast = context["ray_b"] as FakeRayCast
+	var system: FloatingSystem = context["system"] as FloatingSystem
 
 	ray_a.colliding = true
 	ray_a.fake_collision_point = Vector3(0.0, -1.8, 0.0)
@@ -126,12 +131,12 @@ func test_floating_system_does_not_push_up_when_above_hover_height() -> void:
 	await _cleanup(context)
 
 func test_floating_system_updates_support_state_based_on_velocity() -> void:
-	var context := await _setup_entity()
-	var body: FakeBody = context["body"]
-	var component = context["component"]
-	var ray_a: FakeRayCast = context["ray_a"]
-	var ray_b: FakeRayCast = context["ray_b"]
-	var system = context["system"]
+	var context: Dictionary = await _setup_entity()
+	var body: FakeBody = context["body"] as FakeBody
+	var component: FloatingComponent = context["component"] as FloatingComponent
+	var ray_a: FakeRayCast = context["ray_a"] as FakeRayCast
+	var ray_b: FakeRayCast = context["ray_b"] as FakeRayCast
+	var system: FloatingSystem = context["system"] as FloatingSystem
 
 	ray_a.colliding = true
 	ray_a.fake_collision_point = Vector3(0.0, -1.5, 0.0)
@@ -154,11 +159,11 @@ func test_floating_system_updates_support_state_based_on_velocity() -> void:
 	await _cleanup(context)
 
 func test_floating_system_does_not_cancel_upward_velocity_during_launch() -> void:
-	var context := await _setup_entity()
-	var body: FakeBody = context["body"]
-	var ray_a: FakeRayCast = context["ray_a"]
-	var ray_b: FakeRayCast = context["ray_b"]
-	var system = context["system"]
+	var context: Dictionary = await _setup_entity()
+	var body: FakeBody = context["body"] as FakeBody
+	var ray_a: FakeRayCast = context["ray_a"] as FakeRayCast
+	var ray_b: FakeRayCast = context["ray_b"] as FakeRayCast
+	var system: FloatingSystem = context["system"] as FloatingSystem
 
 	ray_a.colliding = true
 	ray_a.fake_collision_point = Vector3(0.0, -1.2, 0.0)
@@ -175,10 +180,10 @@ func test_floating_system_does_not_cancel_upward_velocity_during_launch() -> voi
 	await _cleanup(context)
 
 func test_floating_system_applies_fall_gravity_without_hits() -> void:
-	var context := await _setup_entity()
-	var body: FakeBody = context["body"]
-	var component = context["component"]
-	var system = context["system"]
+	var context: Dictionary = await _setup_entity()
+	var body: FakeBody = context["body"] as FakeBody
+	var component: FloatingComponent = context["component"] as FloatingComponent
+	var system: FloatingSystem = context["system"] as FloatingSystem
 
 	component.fall_gravity = 12.0
 	component.max_down_speed = 100.0

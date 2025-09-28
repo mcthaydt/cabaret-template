@@ -7,8 +7,8 @@ const InputComponentScript = preload("res://scripts/ecs/components/input_compone
 const FloatingComponentScript = preload("res://scripts/ecs/components/floating_component.gd")
 
 class FakeBody extends CharacterBody3D:
-    var move_called := false
-    var grounded := false
+    var move_called: bool = false
+    var grounded: bool = false
 
     func move_and_slide() -> bool:
         move_called = true
@@ -20,7 +20,7 @@ class FakeBody extends CharacterBody3D:
 func _pump() -> void:
     await get_tree().process_frame
 
-func _setup_entity(include_floating := false) -> Dictionary:
+func _setup_entity(include_floating: bool = false) -> Dictionary:
     var manager = ECS_MANAGER.new()
     add_child(manager)
     await _pump()
@@ -33,7 +33,7 @@ func _setup_entity(include_floating := false) -> Dictionary:
     add_child(input)
     await _pump()
 
-    var body := FakeBody.new()
+    var body: FakeBody = FakeBody.new()
     add_child(body)
     await _pump()
 
@@ -62,7 +62,7 @@ func _setup_entity(include_floating := false) -> Dictionary:
     }
 
 func test_movement_system_updates_velocity_towards_input() -> void:
-    var context := await _setup_entity()
+    var context: Dictionary = await _setup_entity()
     var movement = context["movement"]
     var input = context["input"]
     var body: FakeBody = context["body"]
@@ -79,8 +79,31 @@ func test_movement_system_updates_velocity_towards_input() -> void:
 
     await _cleanup(context)
 
+func test_movement_system_applies_sprint_multiplier_to_speed() -> void:
+    var context: Dictionary = await _setup_entity()
+    var movement: MovementComponent = context["movement"]
+    var input = context["input"]
+    var body: FakeBody = context["body"]
+    var system = context["system"]
+
+    movement.use_second_order_dynamics = false
+    movement.max_speed = 5.0
+    movement.sprint_speed_multiplier = 2.0
+    movement.acceleration = 100.0
+
+    body.velocity = Vector3.ZERO
+    input.set_move_vector(Vector2.RIGHT)
+    input.set_sprint_pressed(true)
+
+    system._physics_process(0.1)
+
+    assert_almost_eq(body.velocity.x, 10.0, 0.01)
+    assert_true(movement.get_last_debug_snapshot()["is_sprinting"])
+
+    await _cleanup(context)
+
 func test_movement_grounded_friction_reduces_velocity_quickly() -> void:
-    var context := await _setup_entity(true)
+    var context: Dictionary = await _setup_entity(true)
     var movement: MovementComponent = context["movement"]
     var body: FakeBody = context["body"]
     var system = context["system"]
@@ -93,7 +116,7 @@ func test_movement_grounded_friction_reduces_velocity_quickly() -> void:
     movement.forward_friction_scale = 1.0
 
     body.velocity = Vector3(6.0, 0.0, 0.0)
-    var now := Time.get_ticks_msec() / 1000.0
+    var now: float = Time.get_ticks_msec() / 1000.0
     floating.update_support_state(true, now)
 
     system._physics_process(0.1)
@@ -104,7 +127,7 @@ func test_movement_grounded_friction_reduces_velocity_quickly() -> void:
     await _cleanup(context)
 
 func test_movement_air_friction_is_gentler_without_support() -> void:
-    var context := await _setup_entity(true)
+    var context: Dictionary = await _setup_entity(true)
     var movement: MovementComponent = context["movement"]
     var body: FakeBody = context["body"]
     var system = context["system"]
@@ -117,7 +140,7 @@ func test_movement_air_friction_is_gentler_without_support() -> void:
     movement.forward_friction_scale = 1.0
 
     body.velocity = Vector3(6.0, 0.0, 0.0)
-    var now := Time.get_ticks_msec() / 1000.0
+    var now: float = Time.get_ticks_msec() / 1000.0
     floating.update_support_state(false, now - 1.0)
 
     system._physics_process(0.1)
@@ -128,7 +151,7 @@ func test_movement_air_friction_is_gentler_without_support() -> void:
     await _cleanup(context)
 
 func test_second_order_dynamics_dampens_more_when_grounded() -> void:
-    var context := await _setup_entity(true)
+    var context: Dictionary = await _setup_entity(true)
     var movement: MovementComponent = context["movement"]
     var input = context["input"]
     var body: FakeBody = context["body"]
@@ -145,14 +168,14 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
     body.velocity = Vector3.ZERO
     input.set_move_vector(Vector2.RIGHT)
 
-    var now := Time.get_ticks_msec() / 1000.0
+    var now: float = Time.get_ticks_msec() / 1000.0
     floating.update_support_state(true, now)
 
     system._physics_process(0.1)
     system._physics_process(0.1)
 
-    var grounded_velocity := body.velocity.x
-    var grounded_debug := movement.get_last_debug_snapshot()
+    var grounded_velocity: float = body.velocity.x
+    var grounded_debug: Dictionary = movement.get_last_debug_snapshot()
 
     input.set_move_vector(Vector2.ZERO)
     floating.update_support_state(false, now)
@@ -168,7 +191,7 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
     system._physics_process(0.1)
     system._physics_process(0.1)
 
-    var air_velocity := body.velocity.x
+    var air_velocity: float = body.velocity.x
 
     assert_true(abs(grounded_velocity) < abs(air_velocity))
     assert_true(grounded_debug["supported"])
@@ -176,7 +199,7 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
     await _cleanup(context)
 
 func test_movement_system_applies_deceleration_when_no_input() -> void:
-    var context := await _setup_entity()
+    var context: Dictionary = await _setup_entity()
     var input = context["input"]
     var body: FakeBody = context["body"]
     var system = context["system"]
@@ -193,7 +216,7 @@ func test_movement_system_applies_deceleration_when_no_input() -> void:
     await _cleanup(context)
 
 func test_movement_system_second_order_dynamics_response() -> void:
-    var context := await _setup_entity()
+    var context: Dictionary = await _setup_entity()
     var movement = context["movement"]
     var input = context["input"]
     var body: FakeBody = context["body"]
@@ -215,7 +238,7 @@ func test_movement_system_second_order_dynamics_response() -> void:
     await _cleanup(context)
 
 func test_movement_second_order_settles_quickly_after_input_release() -> void:
-    var context := await _setup_entity()
+    var context: Dictionary = await _setup_entity()
     var movement = context["movement"]
     var input = context["input"]
     var body: FakeBody = context["body"]
