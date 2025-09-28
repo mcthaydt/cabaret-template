@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://rygahxanlmio"]
+[gd_scene load_steps=12 format=3 uid="uid://rygahxanlmio"]
 
 [ext_resource type="Script" uid="uid://wpkdybbu36ic" path="res://scripts/ecs/systems/input_system.gd" id="1_pybrx"]
 [ext_resource type="Script" uid="uid://c1qgwbata5i7i" path="res://scripts/ecs/systems/jump_system.gd" id="2_rfthe"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://hdq1lxp4htnw" path="res://scripts/ecs/ecs_manager.gd" id="6_0e7m3"]
 [ext_resource type="Script" uid="uid://dausi45e3hfbi" path="res://scripts/ecs/systems/floating_system.gd" id="6_tnjgn"]
 [ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://templates/player_template.tscn" id="7_4wxy1"]
+[ext_resource type="Script" uid="uid://bcfmpsviubaxf" path="res://scripts/ecs/systems/align_with_surface_system.gd" id="7_awem0"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -71,6 +72,9 @@ script = ExtResource("5_r0a6q")
 
 [node name="Floating_System" type="Node" parent="Systems"]
 script = ExtResource("6_tnjgn")
+
+[node name="Align_With_Surface_System" type="Node" parent="Systems"]
+script = ExtResource("7_awem0")
 
 [node name="Managers" type="Node" parent="."]
 

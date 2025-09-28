@@ -82,6 +82,55 @@ func test_movement_system_applies_deceleration_when_no_input() -> void:
 
     await _cleanup(context)
 
+func test_movement_system_second_order_dynamics_response() -> void:
+    var context := await _setup_entity()
+    var movement = context["movement"]
+    var input = context["input"]
+    var body: FakeBody = context["body"]
+    var system = context["system"]
+
+    movement.use_second_order_dynamics = true
+    movement.response_frequency = 1.0
+    movement.damping_ratio = 0.5
+    movement.max_speed = 10.0
+
+    body.velocity = Vector3.ZERO
+    input.set_move_vector(Vector2.RIGHT)
+
+    system._physics_process(0.1)
+
+    assert_almost_eq(body.velocity.x, 3.9478, 0.01)
+    assert_almost_eq(movement.get_horizontal_dynamics_velocity().x, 39.478, 0.1)
+
+    await _cleanup(context)
+
+func test_movement_second_order_settles_quickly_after_input_release() -> void:
+    var context := await _setup_entity()
+    var movement = context["movement"]
+    var input = context["input"]
+    var body: FakeBody = context["body"]
+    var system = context["system"]
+
+    movement.use_second_order_dynamics = true
+    movement.response_frequency = 1.0
+    movement.damping_ratio = 0.5
+    movement.max_speed = 10.0
+    movement.deceleration = 25.0
+
+    body.velocity = Vector3.ZERO
+    input.set_move_vector(Vector2.RIGHT)
+
+    system._physics_process(0.1)
+
+    input.set_move_vector(Vector2.ZERO)
+
+    system._physics_process(0.1)
+
+    assert_true(body.velocity.x <= 1.5)
+    assert_almost_eq(movement.get_horizontal_dynamics_velocity().x, 0.0, 0.01)
+
+    await _cleanup(context)
+
 func _cleanup(context: Dictionary) -> void:
     for value in context.values():
         if value is Node:
