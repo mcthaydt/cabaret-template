@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/ecs/m_ecs_manager.gd")
 const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
@@ -6,6 +6,7 @@ const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_com
 func _add_manager() -> M_ECSManager:
 	var manager: M_ECSManager = ECS_MANAGER.new()
 	add_child(manager)
+	autofree(manager)
 	return manager
 
 func _pump() -> void:
@@ -18,6 +19,7 @@ func test_floating_component_defaults_and_registration() -> void:
 	var component: C_FloatingComponent = FLOATING_COMPONENT.new()
 	component.settings = RS_FloatingSettings.new()
 	add_child(component)
+	autofree(component)
 	await _pump()
 
 	assert_eq(component.get_component_type(), FLOATING_COMPONENT.COMPONENT_TYPE) 
@@ -34,10 +36,6 @@ func test_floating_component_defaults_and_registration() -> void:
 	var components := manager.get_components(FLOATING_COMPONENT.COMPONENT_TYPE)
 	assert_eq(components, [component])
 
-	component.queue_free()
-	manager.queue_free()
-	await _pump()
-
 func test_floating_component_collects_child_rays() -> void:
 	var manager := _add_manager()
 	await _pump()
@@ -45,6 +43,7 @@ func test_floating_component_collects_child_rays() -> void:
 	var component: C_FloatingComponent = FLOATING_COMPONENT.new()
 	component.settings = RS_FloatingSettings.new()
 	add_child(component)
+	autofree(component)
 	await _pump()
 
 	var ray_root := Node3D.new()
@@ -61,14 +60,11 @@ func test_floating_component_collects_child_rays() -> void:
 	assert_eq(rays.size(), 1)
 	assert_true(rays[0] == ray)
 
-	component.queue_free()
-	manager.queue_free()
-	await _pump()
-
 func test_floating_component_tracks_recent_support_state() -> void:
 	var component: C_FloatingComponent = FLOATING_COMPONENT.new()
 	component.settings = RS_FloatingSettings.new()
 	add_child(component)
+	autofree(component)
 	await _pump()
 
 	var now := Time.get_ticks_msec() / 1000.0
@@ -81,6 +77,3 @@ func test_floating_component_tracks_recent_support_state() -> void:
 	assert_false(component.is_supported)
 	assert_true(component.has_recent_support(now + 0.05, 0.1))
 	assert_false(component.has_recent_support(now + 0.2, 0.1))
-
-	component.queue_free()
-	await _pump()

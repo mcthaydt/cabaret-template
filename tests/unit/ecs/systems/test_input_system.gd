@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const ECS_MANAGER = preload("res://scripts/ecs/m_ecs_manager.gd")
 const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
@@ -44,6 +44,7 @@ func _setup_entity() -> Dictionary:
 
 func test_input_system_updates_move_vector_from_actions() -> void:
 	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
 	var component: C_InputComponent = context["component"] as C_InputComponent
 	var system: S_InputSystem = context["system"] as S_InputSystem
 
@@ -55,10 +56,9 @@ func test_input_system_updates_move_vector_from_actions() -> void:
 	assert_almost_eq(component.move_vector.x, 0.7071, 0.01)
 	assert_almost_eq(component.move_vector.y, -0.7071, 0.01)
 
-	await _cleanup(context)
-
 func test_input_system_sets_jump_flag_on_press() -> void:
 	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
 	var component: C_InputComponent = context["component"] as C_InputComponent
 	var system: S_InputSystem = context["system"] as S_InputSystem
 
@@ -68,10 +68,9 @@ func test_input_system_sets_jump_flag_on_press() -> void:
 
 	assert_true(component.jump_pressed)
 
-	await _cleanup(context)
-
 func test_input_system_sets_sprint_flag_on_press() -> void:
 	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
 	var component: C_InputComponent = context["component"] as C_InputComponent
 	var system: S_InputSystem = context["system"] as S_InputSystem
 
@@ -80,14 +79,6 @@ func test_input_system_sets_sprint_flag_on_press() -> void:
 	system._physics_process(0.016)
 
 	assert_true(component.sprint_pressed)
-
-	await _cleanup(context)
-
-func _cleanup(context: Dictionary) -> void:
-	for value in context.values():
-		if value is Node:
-			value.queue_free()
-	await _pump()
 
 func _ensure_action(action_name: String) -> void:
 	if not InputMap.has_action(action_name):

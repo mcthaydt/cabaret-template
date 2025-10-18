@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/ecs/m_ecs_manager.gd")
 const ALIGN_COMPONENT := preload("res://scripts/ecs/components/c_align_with_surface_component.gd")
@@ -11,6 +11,7 @@ func _pump() -> void:
 func _add_manager() -> M_ECSManager:
 	var manager: M_ECSManager = ECS_MANAGER.new()
 	add_child(manager)
+	autofree(manager)
 	await _pump()
 	return manager
 
@@ -20,6 +21,7 @@ func test_align_with_surface_component_defaults_and_registration() -> void:
 	var component: C_AlignWithSurfaceComponent = ALIGN_COMPONENT.new()
 	component.settings = RS_AlignSettings.new()
 	add_child(component)
+	autofree(component)
 	await _pump()
 
 	assert_eq(component.get_component_type(), ALIGN_COMPONENT.COMPONENT_TYPE)
@@ -31,16 +33,13 @@ func test_align_with_surface_component_defaults_and_registration() -> void:
 	var components := manager.get_components(ALIGN_COMPONENT.COMPONENT_TYPE)
 	assert_true(components.has(component))
 
-	component.queue_free()
-	manager.queue_free()
-	await _pump()
-
 func test_align_with_surface_component_fetches_assigned_nodes() -> void:
 	var manager := await _add_manager()
 
 	var component: C_AlignWithSurfaceComponent = ALIGN_COMPONENT.new()
 	component.settings = RS_AlignSettings.new()
 	add_child(component)
+	autofree(component)
 	await _pump()
 
 	var body := CharacterBody3D.new()
@@ -64,14 +63,11 @@ func test_align_with_surface_component_fetches_assigned_nodes() -> void:
 	assert_true(component.get_visual_node() == mesh)
 	assert_true(component.get_floating_component() == floating)
 
-	component.queue_free()
-	manager.queue_free()
-	await _pump()
-
 func test_align_with_surface_component_delegates_support_check() -> void:
 	var component: C_AlignWithSurfaceComponent = ALIGN_COMPONENT.new()
 	component.settings = RS_AlignSettings.new()
 	add_child(component)
+	autofree(component)
 	await _pump()
 
 	var floating: C_FloatingComponent = FLOATING_COMPONENT.new()
@@ -88,6 +84,3 @@ func test_align_with_surface_component_delegates_support_check() -> void:
 
 	floating.update_support_state(true, now)
 	assert_true(component.has_recent_support(now, 0.1))
-
-	component.queue_free()
-	await _pump()

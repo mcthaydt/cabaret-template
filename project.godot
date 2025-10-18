@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="September25Project"
+config/name="SSA_Rising"
 run/main_scene="uid://rygahxanlmio"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
@@ -23,7 +23,7 @@ window/stretch/mode="viewport"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/godot_mcp/plugin.cfg", "res://addons/gut/plugin.cfg")
+enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 
 [input]
 

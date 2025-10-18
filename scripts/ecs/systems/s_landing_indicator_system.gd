@@ -5,7 +5,7 @@ class_name S_LandingIndicatorSystem
 const COMPONENT_TYPE := StringName("C_LandingIndicatorComponent")
 const UP_VECTOR: Vector3 = Vector3.UP
 
-func process_tick(delta: float) -> void:
+func process_tick(_delta: float) -> void:
 	for base_component in get_components(COMPONENT_TYPE):
 		if base_component == null:
 			continue

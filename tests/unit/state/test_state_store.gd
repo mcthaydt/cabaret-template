@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const STATE_MANAGER := preload("res://scripts/state/m_state_manager.gd")
 const U_SelectorUtils := preload("res://scripts/state/u_selector_utils.gd")
@@ -45,6 +45,7 @@ class OtherReducer:
 func test_register_reducer_initializes_state() -> void:
 	var store: M_StateManager = STATE_MANAGER.new()
 	add_child(store)
+	autofree(store)
 	await get_tree().process_frame
 
 	store.register_reducer(FakeReducer)
@@ -53,12 +54,10 @@ func test_register_reducer_initializes_state() -> void:
 	assert_true(state.has("game"))
 	assert_eq(state["game"]["score"], 0)
 
-	store.queue_free()
-	await get_tree().process_frame
-
 func test_dispatch_updates_state_and_emits_signals() -> void:
 	var store: M_StateManager = STATE_MANAGER.new()
 	add_child(store)
+	autofree(store)
 	await get_tree().process_frame
 
 	store.register_reducer(FakeReducer)
@@ -86,12 +85,11 @@ func test_dispatch_updates_state_and_emits_signals() -> void:
 	assert_eq(states[0]["game"]["score"], 5)
 
 	unsub.call()
-	store.queue_free()
-	await get_tree().process_frame
 
 func test_select_supports_path_and_memoized_selector() -> void:
 	var store: M_StateManager = STATE_MANAGER.new()
 	add_child(store)
+	autofree(store)
 	await get_tree().process_frame
 
 	store.register_reducer(FakeReducer)
@@ -123,12 +121,10 @@ func test_select_supports_path_and_memoized_selector() -> void:
 	assert_true(third_result)
 	assert_eq(compute_calls[0], 2)
 
-	store.queue_free()
-	await get_tree().process_frame
-
 func test_subscribe_returns_callable_that_disconnects() -> void:
 	var store: M_StateManager = STATE_MANAGER.new()
 	add_child(store)
+	autofree(store)
 	await get_tree().process_frame
 
 	store.register_reducer(FakeReducer)
@@ -152,18 +148,17 @@ func test_subscribe_returns_callable_that_disconnects() -> void:
 	})
 	assert_eq(notifications[0], 1)
 
-	store.queue_free()
-	await get_tree().process_frame
-
 func test_state_store_utils_discovers_store_in_hierarchy_and_group() -> void:
 	var store: M_StateManager = STATE_MANAGER.new()
 	add_child(store)
+	autofree(store)
 	await get_tree().process_frame
 
 	store.register_reducer(FakeReducer)
 
 	var child: Node = Node.new()
 	store.add_child(child)
+	autofree(child)
 	await get_tree().process_frame
 
 	var found_from_child: Node = U_StateStoreUtils.get_store(child)
@@ -171,19 +166,16 @@ func test_state_store_utils_discovers_store_in_hierarchy_and_group() -> void:
 
 	var sibling: Node = Node.new()
 	add_child(sibling)
+	autofree(sibling)
 	await get_tree().process_frame
 
 	var found_from_sibling: Node = U_StateStoreUtils.get_store(sibling)
 	assert_eq(found_from_sibling, store)
 
-	child.queue_free()
-	sibling.queue_free()
-	store.queue_free()
-	await get_tree().process_frame
-
 func test_memoized_selector_dependency_tracking_skips_unrelated_changes() -> void:
 	var store: M_StateManager = STATE_MANAGER.new()
 	add_child(store)
+	autofree(store)
 	await get_tree().process_frame
 
 	store.register_reducer(FakeReducer)
@@ -227,6 +219,3 @@ func test_memoized_selector_dependency_tracking_skips_unrelated_changes() -> voi
 	assert_eq(int(metrics["cache_misses"]), 0)
 	assert_eq(int(metrics["dependency_hits"]), 0)
 	assert_eq(int(metrics["dependency_misses"]), 0)
-
-	store.queue_free()
-	await get_tree().process_frame

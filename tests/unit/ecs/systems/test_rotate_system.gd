@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const ECS_MANAGER = preload("res://scripts/ecs/m_ecs_manager.gd")
 const RotateComponentScript = preload("res://scripts/ecs/components/c_rotate_to_input_component.gd")
@@ -43,6 +43,7 @@ func _setup_entity() -> Dictionary:
 
 func test_rotate_system_turns_towards_input_direction() -> void:
     var context := await _setup_entity()
+    autofree_context(context)
     var input: C_InputComponent = context["input"]
     var body: Node3D = context["body"]
     var system: S_RotateToInputSystem = context["system"]
@@ -54,10 +55,9 @@ func test_rotate_system_turns_towards_input_direction() -> void:
 
     assert_true(body.transform != Transform3D.IDENTITY)
 
-    await _cleanup(context)
-
 func test_rotate_system_uses_second_order_for_smooth_turn() -> void:
     var context := await _setup_entity()
+    autofree_context(context)
     var rotate_component: C_RotateToInputComponent = context["rotate_component"]
     var input: C_InputComponent = context["input"]
     var body: Node3D = context["body"]
@@ -86,10 +86,9 @@ func test_rotate_system_uses_second_order_for_smooth_turn() -> void:
     assert_true(second_error <= first_error + 0.00001)
     assert_true(abs(second_rotation) <= PI / 2.0 + 0.00001)
 
-    await _cleanup(context)
-
 func test_rotate_system_resets_second_order_state_without_input() -> void:
     var context := await _setup_entity()
+    autofree_context(context)
     var rotate_component: C_RotateToInputComponent = context["rotate_component"]
     var input: C_InputComponent = context["input"]
     var body: Node3D = context["body"]
@@ -108,11 +107,3 @@ func test_rotate_system_resets_second_order_state_without_input() -> void:
     system._physics_process(0.1)
 
     assert_almost_eq(rotate_component.get_rotation_velocity(), 0.0, 0.001)
-
-    await _cleanup(context)
-
-func _cleanup(context: Dictionary) -> void:
-    for value in context.values():
-        if value is Node:
-            value.queue_free()
-    await _pump()

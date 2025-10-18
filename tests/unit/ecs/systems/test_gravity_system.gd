@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const ECS_MANAGER = preload("res://scripts/ecs/m_ecs_manager.gd")
 const GravitySystemScript = preload("res://scripts/ecs/systems/s_gravity_system.gd")
@@ -43,6 +43,7 @@ func _setup_entity() -> Dictionary:
 
 func test_gravity_system_accelerates_downward_when_not_on_floor() -> void:
     var context := await _setup_entity()
+    autofree_context(context)
     var body: FakeBody = context["body"]
     var system = context["system"]
 
@@ -52,11 +53,3 @@ func test_gravity_system_accelerates_downward_when_not_on_floor() -> void:
     system._physics_process(0.1)
 
     assert_true(body.velocity.y < 0.0)
-
-    await _cleanup(context)
-
-func _cleanup(context: Dictionary) -> void:
-    for value in context.values():
-        if value is Node:
-            value.queue_free()
-    await _pump()

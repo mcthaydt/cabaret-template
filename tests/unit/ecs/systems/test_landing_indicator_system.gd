@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/ecs/m_ecs_manager.gd")
 const LandingIndicatorComponentScript := preload("res://scripts/ecs/components/c_landing_indicator_component.gd")
@@ -103,6 +103,7 @@ func _setup_entity(max_distance: float = 10.0) -> Dictionary:
 
 func test_landing_indicator_projects_to_ground_hit() -> void:
 	var context: Dictionary = await _setup_entity(5.0)
+	autofree_context(context)
 	var component: C_LandingIndicatorComponent = context["component"] as C_LandingIndicatorComponent
 	var body: FakeBody = context["body"] as FakeBody
 	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
@@ -116,10 +117,9 @@ func test_landing_indicator_projects_to_ground_hit() -> void:
 	assert_true(component.get_landing_point().is_equal_approx(Vector3(1.5, 0.0, -0.5)))
 	assert_true(component.get_landing_normal().is_equal_approx(Vector3.UP))
 
-	await _cleanup(context)
-
 func test_landing_indicator_hides_when_no_projection_within_range() -> void:
 	var context: Dictionary = await _setup_entity(0.5)
+	autofree_context(context)
 	var component: C_LandingIndicatorComponent = context["component"] as C_LandingIndicatorComponent
 	var body: FakeBody = context["body"] as FakeBody
 	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
@@ -133,10 +133,9 @@ func test_landing_indicator_hides_when_no_projection_within_range() -> void:
 	assert_false(component.is_indicator_visible())
 	assert_true(component.get_landing_point().is_equal_approx(Vector3.ZERO))
 
-	await _cleanup(context)
-
 func test_landing_indicator_projects_to_ground_plane_when_no_hit() -> void:
 	var context: Dictionary = await _setup_entity(5.0)
+	autofree_context(context)
 	var component: C_LandingIndicatorComponent = context["component"] as C_LandingIndicatorComponent
 	var body: FakeBody = context["body"] as FakeBody
 	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
@@ -150,11 +149,3 @@ func test_landing_indicator_projects_to_ground_plane_when_no_hit() -> void:
 	assert_true(component.is_indicator_visible())
 	assert_true(component.get_landing_point().is_equal_approx(Vector3(0.0, -1.0, 0.0)))
 	assert_true(component.get_landing_normal().is_equal_approx(Vector3.UP))
-
-	await _cleanup(context)
-
-func _cleanup(context: Dictionary) -> void:
-	for value in context.values():
-		if value is Node:
-			value.queue_free()
-	await _pump()

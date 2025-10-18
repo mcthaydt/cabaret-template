@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const U_ReducerUtils: Script = preload("res://scripts/state/u_reducer_utils.gd")
 const U_ActionUtils: Script = preload("res://scripts/state/u_action_utils.gd")

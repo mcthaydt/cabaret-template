@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const ECS_MANAGER = preload("res://scripts/ecs/m_ecs_manager.gd")
 const JumpComponentScript = preload("res://scripts/ecs/components/c_jump_component.gd")
@@ -60,6 +60,7 @@ func _setup_entity(with_floating := false) -> Dictionary:
 
 func test_jump_system_applies_vertical_velocity_when_jump_pressed() -> void:
 	var context := await _setup_entity()
+	autofree_context(context)
 	var jump: C_JumpComponent = context["jump"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
@@ -75,10 +76,9 @@ func test_jump_system_applies_vertical_velocity_when_jump_pressed() -> void:
 	assert_true(body.velocity.y > 0.0)
 	assert_eq(body.velocity.y, jump.settings.jump_force)
 
-	await _cleanup(context)
-
 func test_jump_system_allows_jump_when_supported_by_floating_component() -> void:
 	var context := await _setup_entity(true)
+	autofree_context(context)
 	var jump: C_JumpComponent = context["jump"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
@@ -98,10 +98,9 @@ func test_jump_system_allows_jump_when_supported_by_floating_component() -> void
 	assert_true(body.velocity.y > 0.0)
 	assert_eq(body.velocity.y, jump.settings.jump_force)
 
-	await _cleanup(context)
-
 func test_jump_system_uses_jump_buffer() -> void:
 	var context := await _setup_entity()
+	autofree_context(context)
 	var jump: C_JumpComponent = context["jump"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
@@ -125,10 +124,9 @@ func test_jump_system_uses_jump_buffer() -> void:
 
 	assert_eq(body.velocity.y, jump.settings.jump_force)
 
-	await _cleanup(context)
-
 func test_jump_respects_max_air_jumps_setting() -> void:
 	var context := await _setup_entity()
+	autofree_context(context)
 	var jump: C_JumpComponent = context["jump"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
@@ -150,10 +148,9 @@ func test_jump_respects_max_air_jumps_setting() -> void:
 
 	assert_eq(body.velocity.y, 0.0)
 
-	await _cleanup(context)
-
 func test_jump_component_tracks_apex_state() -> void:
 	var context := await _setup_entity()
+	autofree_context(context)
 	var jump: C_JumpComponent = context["jump"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
@@ -176,11 +173,3 @@ func test_jump_component_tracks_apex_state() -> void:
 
 	var now := Time.get_ticks_msec() / 1000.0
 	assert_true(jump.has_recent_apex(now))
-
-	await _cleanup(context)
-
-func _cleanup(context: Dictionary) -> void:
-	for value in context.values():
-		if value is Node:
-			value.queue_free()
-	await _pump()

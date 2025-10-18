@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const U_StatePersistence: Script = preload("res://scripts/state/u_state_persistence.gd")
 

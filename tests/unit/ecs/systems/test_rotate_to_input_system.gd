@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const ECS_MANAGER = preload("res://scripts/ecs/m_ecs_manager.gd")
 const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
@@ -43,6 +43,7 @@ func _setup_context() -> Dictionary:
 
 func test_rotates_right_input_to_positive_x() -> void:
     var context := await _setup_context()
+    autofree_context(context)
     var input: C_InputComponent = context["input"]
     var target: Node3D = context["target"]
     var system: S_RotateToInputSystem = context["system"]
@@ -53,10 +54,9 @@ func test_rotates_right_input_to_positive_x() -> void:
     var expected := -PI / 2.0
     assert_almost_eq(wrapf(target.rotation.y, -PI, PI), expected, 0.001)
 
-    await _cleanup(context)
-
 func test_rotates_left_input_to_negative_x() -> void:
     var context := await _setup_context()
+    autofree_context(context)
     var input: C_InputComponent = context["input"]
     var target: Node3D = context["target"]
     var system: S_RotateToInputSystem = context["system"]
@@ -66,11 +66,3 @@ func test_rotates_left_input_to_negative_x() -> void:
 
     var expected := PI / 2.0
     assert_almost_eq(wrapf(target.rotation.y, -PI, PI), expected, 0.001)
-
-    await _cleanup(context)
-
-func _cleanup(context: Dictionary) -> void:
-    for value in context.values():
-        if value is Node:
-            value.queue_free()
-    await _pump()

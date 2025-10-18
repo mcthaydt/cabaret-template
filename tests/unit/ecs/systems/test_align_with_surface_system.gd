@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/ecs/m_ecs_manager.gd")
 const ALIGN_COMPONENT := preload("res://scripts/ecs/components/c_align_with_surface_component.gd")
@@ -57,6 +57,7 @@ func _setup_context() -> Dictionary:
 
 func test_align_system_matches_visual_up_to_body_up_direction() -> void:
 	var context := await _setup_context()
+	autofree_context(context)
 	var component = context["component"] as C_AlignWithSurfaceComponent
 	component.settings.align_only_when_supported = false
 	component.settings.smoothing_speed = 0.0
@@ -84,10 +85,9 @@ func test_align_system_matches_visual_up_to_body_up_direction() -> void:
 	assert_almost_eq(visual.scale.y, original_scale.y, 0.001)
 	assert_almost_eq(visual.scale.z, original_scale.z, 0.001)
 
-	await _cleanup(context)
-
 func test_align_system_respects_support_requirement() -> void:
 	var context := await _setup_context()
+	autofree_context(context)
 	var component = context["component"] as C_AlignWithSurfaceComponent
 	component.settings.align_only_when_supported = true
 	component.settings.recent_support_tolerance = 0.1
@@ -118,14 +118,6 @@ func test_align_system_respects_support_requirement() -> void:
 	assert_almost_eq(visual_up.x, slope_normal.x, 0.01)
 	assert_almost_eq(visual_up.y, slope_normal.y, 0.01)
 	assert_almost_eq(visual_up.z, slope_normal.z, 0.01)
-
-	await _cleanup(context)
-
-func _cleanup(context: Dictionary) -> void:
-	for node in context.values():
-		if node is Node:
-			node.queue_free()
-	await _pump()
 
 func assert_vector3_approx_eq(actual: Vector3, expected: Vector3, tolerance: float) -> void:
 	assert_almost_eq(actual.x, expected.x, tolerance)

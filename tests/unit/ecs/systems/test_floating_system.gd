@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/ecs/m_ecs_manager.gd")
 const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
@@ -86,6 +86,7 @@ func _setup_entity() -> Dictionary:
 
 func test_floating_system_applies_spring_force_and_aligns_to_surface_normal() -> void:
 	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
 	var body: FakeBody = context["body"] as FakeBody
 	var ray_a: FakeRayCast = context["ray_a"] as FakeRayCast
 	var ray_b: FakeRayCast = context["ray_b"] as FakeRayCast
@@ -112,10 +113,9 @@ func test_floating_system_applies_spring_force_and_aligns_to_surface_normal() ->
 	assert_almost_eq(body.up_direction.y, expected_normal.y, 0.01)
 	assert_almost_eq(body.up_direction.z, expected_normal.z, 0.01)
 
-	await _cleanup(context)
-
 func test_floating_system_does_not_push_up_when_above_hover_height() -> void:
 	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
 	var body: FakeBody = context["body"] as FakeBody
 	var ray_a: FakeRayCast = context["ray_a"] as FakeRayCast
 	var ray_b: FakeRayCast = context["ray_b"] as FakeRayCast
@@ -133,10 +133,9 @@ func test_floating_system_does_not_push_up_when_above_hover_height() -> void:
 
 	assert_lte(body.velocity.y, 0.001)
 
-	await _cleanup(context)
-
 func test_floating_system_updates_support_state_based_on_velocity() -> void:
 	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
 	var body: FakeBody = context["body"] as FakeBody
 	var component: C_FloatingComponent = context["component"] as C_FloatingComponent
 	var ray_a: FakeRayCast = context["ray_a"] as FakeRayCast
@@ -161,10 +160,9 @@ func test_floating_system_updates_support_state_based_on_velocity() -> void:
 
 	assert_false(component.is_supported)
 
-	await _cleanup(context)
-
 func test_floating_system_does_not_cancel_upward_velocity_during_launch() -> void:
 	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
 	var body: FakeBody = context["body"] as FakeBody
 	var ray_a: FakeRayCast = context["ray_a"] as FakeRayCast
 	var ray_b: FakeRayCast = context["ray_b"] as FakeRayCast
@@ -182,10 +180,9 @@ func test_floating_system_does_not_cancel_upward_velocity_during_launch() -> voi
 
 	assert_gt(body.velocity.y, 7.5)
 
-	await _cleanup(context)
-
 func test_floating_system_applies_fall_gravity_without_hits() -> void:
 	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
 	var body: FakeBody = context["body"] as FakeBody
 	var component: C_FloatingComponent = context["component"] as C_FloatingComponent
 	var system: S_FloatingSystem = context["system"] as S_FloatingSystem
@@ -198,11 +195,3 @@ func test_floating_system_applies_fall_gravity_without_hits() -> void:
 
 	assert_lt(body.velocity.y, 0.0)
 	assert_almost_eq(body.velocity.y, -component.settings.fall_gravity * 0.2, 0.001)
-
-	await _cleanup(context)
-
-func _cleanup(context: Dictionary) -> void:
-	for value in context.values():
-		if value is Node:
-			value.queue_free()
-	await _pump()
