@@ -1,10 +1,10 @@
 extends ECSComponent
 
-class_name AlignWithSurfaceComponent
+class_name C_AlignWithSurfaceComponent
 
-const COMPONENT_TYPE := StringName("AlignWithSurfaceComponent")
+const COMPONENT_TYPE := StringName("C_AlignWithSurfaceComponent")
 
-@export var settings: AlignSettings
+@export var settings: RS_AlignSettings
 @export_node_path("CharacterBody3D") var character_body_path: NodePath
 @export_node_path("Node3D") var visual_alignment_path: NodePath
 @export_node_path("Node") var floating_component_path: NodePath
@@ -14,7 +14,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	if settings == null:
-		push_error("AlignWithSurfaceComponent missing settings; assign an AlignSettings resource.")
+		push_error("C_AlignWithSurfaceComponent missing settings; assign an RS_AlignSettings resource.")
 		set_process(false)
 		set_physics_process(false)
 		return
@@ -33,10 +33,10 @@ func get_visual_node() -> Node3D:
 		return null
 	return get_node_or_null(visual_alignment_path) as Node3D
 
-func get_floating_component() -> FloatingComponent:
+func get_floating_component() -> C_FloatingComponent:
 	if floating_component_path.is_empty():
 		return null
-	return get_node_or_null(floating_component_path) as FloatingComponent
+	return get_node_or_null(floating_component_path) as C_FloatingComponent
 
 func has_recent_support(current_time: float, tolerance: float) -> bool:
 	var floating := get_floating_component()

@@ -1,7 +1,7 @@
 extends GutTest
 
-const ReducerUtils: Script = preload("res://scripts/state/reducer.gd")
-const ActionUtils: Script = preload("res://scripts/state/action.gd")
+const U_ReducerUtils: Script = preload("res://scripts/state/u_reducer_utils.gd")
+const U_ActionUtils: Script = preload("res://scripts/state/u_action_utils.gd")
 
 class CounterReducer:
 	static func get_initial_state() -> Dictionary:
@@ -32,14 +32,14 @@ func test_combine_reducers_returns_root_callable() -> void:
 		StringName("flag"): FlagReducer,
 	}
 
-	var root: Callable = ReducerUtils.combine_reducers(reducers)
+	var root: Callable = U_ReducerUtils.combine_reducers(reducers)
 
 	var initial_state: Dictionary = {
 		StringName("counter"): CounterReducer.get_initial_state(),
 		StringName("flag"): FlagReducer.get_initial_state(),
 	}
 
-	var action: Dictionary = ActionUtils.create_action("counter/increment", 2)
+	var action: Dictionary = U_ActionUtils.create_action("counter/increment", 2)
 	var next_state: Dictionary = root.call(initial_state, action)
 
 	assert_eq(next_state["counter"]["value"], 2)
@@ -54,9 +54,9 @@ func test_combine_reducers_fills_missing_state_with_initial_values() -> void:
 		StringName("flag"): FlagReducer,
 	}
 
-	var root: Callable = ReducerUtils.combine_reducers(reducers)
+	var root: Callable = U_ReducerUtils.combine_reducers(reducers)
 
-	var action: Dictionary = ActionUtils.create_action("flag/set", true)
+	var action: Dictionary = U_ActionUtils.create_action("flag/set", true)
 	var next_state: Dictionary = root.call({}, action)
 
 	assert_eq(next_state["counter"]["value"], 0)

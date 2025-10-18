@@ -17,7 +17,7 @@ A Redux-inspired centralized state management system for Godot 4.5 that provides
 
 ### Why This Architecture?
 
-**Problem Solved**: Current ECSManager handles component registry but provides no global application state management. Systems cannot easily share game state (scores, unlocks), UI state (menus, settings), or session state (saves, preferences) without tight coupling.
+**Problem Solved**: Current M_ECSManager handles component registry but provides no global application state management. Systems cannot easily share game state (scores, unlocks), UI state (menus, settings), or session state (saves, preferences) without tight coupling.
 
 **Architecture Choice**: Redux pattern chosen for:
 - Predictability (all state changes traceable)
@@ -44,16 +44,16 @@ A Redux-inspired centralized state management system for Godot 4.5 that provides
 │                                                                 │
 │  ┌──────────────────┐                                          │
 │  │  Infrastructure  │                                          │
-│  │  ├─ StateStore   │◄────────────────────┐                   │
+│  │  ├─ M_StateManager   │◄────────────────────┐                   │
 │  │  └─ ...          │                      │                   │
 │  └──────────────────┘                      │                   │
 │                                             │                   │
 │  ┌──────────────────┐                      │                   │
 │  │  Systems         │                      │ Discovery         │
-│  │  ├─ ECSManager   │                      │ (get_store)       │
-│  │  ├─ InputSystem  │──────────────────────┤                   │
+│  │  ├─ M_ECSManager   │                      │ (get_store)       │
+│  │  ├─ S_InputSystem  │──────────────────────┤                   │
 │  │  ├─ MovementSys  │──────────────────────┤                   │
-│  │  └─ JumpSystem   │──────────────────────┘                   │
+│  │  └─ S_JumpSystem   │──────────────────────┘                   │
 │  └──────────────────┘                                          │
 │                                                                 │
 │  ┌──────────────────┐                                          │
@@ -64,11 +64,11 @@ A Redux-inspired centralized state management system for Godot 4.5 that provides
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### StateStore Internal Architecture
+### M_StateManager Internal Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                         StateStore                               │
+│                         M_StateManager                               │
 │                                                                  │
 │  State Tree (Dictionary)                                        │
 │  ┌─────────────────────────────────────────────────────────┐   │
@@ -103,7 +103,7 @@ A Redux-inspired centralized state management system for Godot 4.5 that provides
 
 ## 3. Component Breakdown
 
-### 3.1 StateStore (Core)
+### 3.1 M_StateManager (Core)
 
 **Location**: `scripts/state/store.gd`
 
@@ -133,15 +133,15 @@ var _history: Array = []                  # Action history buffer
 3. Systems call `dispatch()` to update state
 4. Subscribers notified via signals
 
-### 3.2 StateStoreUtils (Discovery)
+### 3.2 U_StateStoreUtils (Discovery)
 
 **Location**: `scripts/state/store_utils.gd`
 
-**Responsibility**: Provides static utility for discovering StateStore in scene tree (avoids singletons).
+**Responsibility**: Provides static utility for discovering M_StateManager in scene tree (avoids singletons).
 
 **Key Method**:
 ```gdscript
-static func get_store(from_node: Node) -> StateStore:
+static func get_store(from_node: Node) -> M_StateManager:
 	# Step 1: Search parent hierarchy
 	var current = from_node.get_parent()
 	while current:
@@ -155,14 +155,14 @@ static func get_store(from_node: Node) -> StateStore:
 		return stores[0]
 
 	# Step 3: Fail-fast
-	assert(false, "StateStore not found in scene tree")
+	assert(false, "M_StateManager not found in scene tree")
 	return null
 ```
 
 **Usage**:
 ```gdscript
 # From any system or component
-var store = StateStoreUtils.get_store(self)
+var store = U_StateStoreUtils.get_store(self)
 store.dispatch({"type": "game/add_score", "payload": 100})
 ```
 
@@ -258,9 +258,9 @@ store.dispatch(GameActions.level_up())
 **Naming Convention**: `domain/action_name` (e.g., "game/add_score", "ui/open_menu")
 
 **Action Type Registry**:
-- `ActionUtils.define(domain, action)` normalizes names and records them in a shared registry of `StringName` types.
-- `ActionUtils.create_action(...)` automatically adds ad-hoc types so developer tooling can inspect every action that flows through the store via `ActionUtils.get_registered_types()`.
-- Tests can call `ActionUtils.clear_registry()` to avoid cross-test coupling.
+- `U_ActionUtils.define(domain, action)` normalizes names and records them in a shared registry of `StringName` types.
+- `U_ActionUtils.create_action(...)` automatically adds ad-hoc types so developer tooling can inspect every action that flows through the store via `U_ActionUtils.get_registered_types()`.
+- Tests can call `U_ActionUtils.clear_registry()` to avoid cross-test coupling.
 
 ### 3.5 Selectors (Derived State)
 
@@ -271,7 +271,7 @@ store.dispatch(GameActions.level_up())
 **MemoizedSelector Highlights**:
 - Construct with `MemoizedSelector.new(func(state) -> Variant)`.
 - Chain `.with_dependencies(["game.score"])` to supply dot-paths that act as cache keys independent of `_state_version`.
-- `select(state, state_version, resolver)` (invoked internally by `StateStore.select`) records cache/dependency hits/misses for telemetry.
+- `select(state, state_version, resolver)` (invoked internally by `M_StateManager.select`) records cache/dependency hits/misses for telemetry.
 - `get_metrics()` returns `{cache_hits, cache_misses, dependency_hits, dependency_misses}`; `reset_metrics()` zeroes counters for profiling sessions.
 
 **Usage**:
@@ -363,7 +363,7 @@ static func load_from_file(path: String) -> Dictionary:
 1. System calls store.dispatch(action)
          │
          ▼
-2. StateStore.dispatch():
+2. M_StateManager.dispatch():
    - Deep copy current state
          │
          ▼
@@ -386,10 +386,10 @@ static func load_from_file(path: String) -> Dictionary:
 
 **Example**:
 ```gdscript
-# MovementSystem detects player scored
+# S_MovementSystem detects player scored
 store.dispatch(GameActions.add_score(10))
 
-# StateStore processes:
+# M_StateManager processes:
 # 1. Current state: {game: {score: 90}, ...}
 # 2. GameReducer.reduce() called: score: 90 + 10 = 100
 # 3. New state: {game: {score: 100}, ...}
@@ -405,7 +405,7 @@ System needs state
      │
      ▼
 1. Get store reference
-   var store = StateStoreUtils.get_store(self)
+   var store = U_StateStoreUtils.get_store(self)
      │
      ▼
 2. Select state
@@ -413,7 +413,7 @@ System needs state
    - Memoized: store.select(high_score_selector)
      │
      ▼
-3. StateStore returns value
+3. M_StateManager returns value
    - Simple: Traverse state tree, return value
    - Memoized: Check version, return cached or recompute
      │
@@ -452,18 +452,18 @@ System subscribes
 
 ### 5.1 Discovery Pattern
 
-**How Systems Find StateStore**:
+**How Systems Find M_StateManager**:
 
 ```gdscript
-# In any system (e.g., MovementSystem)
-class_name MovementSystem extends ECSSystem
+# In any system (e.g., S_MovementSystem)
+class_name S_MovementSystem extends ECSSystem
 
-var _store: StateStore = null
+var _store: M_StateManager = null
 
 func _ready():
 	super._ready()  # ECSSystem initialization
-	_store = StateStoreUtils.get_store(self)
-	assert(_store != null, "StateStore required")
+	_store = U_StateStoreUtils.get_store(self)
+	assert(_store != null, "M_StateManager required")
 
 func process_tick(delta: float):
 	var score = _store.select("game.score")
@@ -477,10 +477,10 @@ func process_tick(delta: float):
 
 ### 5.2 ECS System Integration
 
-**Hybrid Approach**: StateStore and ECSManager coexist independently.
+**Hybrid Approach**: M_StateManager and M_ECSManager coexist independently.
 
 ```
-ECSManager (existing)          StateStore (new)
+M_ECSManager (existing)          M_StateManager (new)
      │                              │
      ├─ Component Registry          ├─ Application State
      ├─ System Registry             ├─ Reducers
@@ -488,25 +488,25 @@ ECSManager (existing)          StateStore (new)
            │                              │
            └──────── System ──────────────┘
                       │
-                      ├─ Uses ECSManager for components
-                      └─ Uses StateStore for global state
+                      ├─ Uses M_ECSManager for components
+                      └─ Uses M_StateManager for global state
 ```
 
 **Example System Using Both**:
 ```gdscript
-class_name MovementSystem extends ECSSystem
+class_name S_MovementSystem extends ECSSystem
 
-var _store: StateStore = null
+var _store: M_StateManager = null
 
 func _ready():
-	super._ready()  # Get ECSManager
-	_store = StateStoreUtils.get_store(self)
+	super._ready()  # Get M_ECSManager
+	_store = U_StateStoreUtils.get_store(self)
 
 func process_tick(delta: float):
 	# ECS: Query components
-	var components = get_components("MovementComponent")
+	var components = get_components("C_MovementComponent")
 
-	# StateStore: Get global state
+	# M_StateManager: Get global state
 	var level = _store.select("game.level")
 
 	# Use both: Apply level-based speed modifier
@@ -521,18 +521,18 @@ func process_tick(delta: float):
 ```
 Root (Node3D)
 ├─ Infrastructure
-│  └─ StateStore  ← joins "state_store" group
+│  └─ M_StateManager  ← joins "state_store" group
 ├─ Systems
-│  ├─ ECSManager  ← joins "ecs_manager" group
-│  ├─ InputSystem
-│  └─ MovementSystem
+│  ├─ M_ECSManager  ← joins "ecs_manager" group
+│  ├─ S_InputSystem
+│  └─ S_MovementSystem
 └─ Gameplay
    └─ Player
 ```
 
 **Initialization Order**:
-1. StateStore._ready() → joins group, initializes state
-2. ECSManager._ready() → joins group, initializes registry
+1. M_StateManager._ready() → joins group, initializes state
+2. M_ECSManager._ready() → joins group, initializes registry
 3. Systems._ready() → find managers, initialize
 4. (Order doesn't matter - systems handle null gracefully or assert)
 
@@ -543,10 +543,10 @@ Root (Node3D)
 ### 6.1 Store Initialization Sequence
 
 ```
-1. Scene loads, StateStore node created
+1. Scene loads, M_StateManager node created
          │
          ▼
-2. StateStore._ready() called
+2. M_StateManager._ready() called
    - Check for duplicate instances (self-destruct if found)
    - Join "state_store" group
          │
@@ -569,7 +569,7 @@ Root (Node3D)
 ### 6.2 Reducer Registration
 
 ```gdscript
-# In StateStore._ready() or setup script
+# In M_StateManager._ready() or setup script
 func _ready():
 	# ... duplicate check ...
 	add_to_group("state_store")
@@ -592,13 +592,13 @@ func _ready():
 ### 6.3 System Startup
 
 ```gdscript
-# MovementSystem._ready()
+# S_MovementSystem._ready()
 func _ready():
 	super._ready()  # ECSSystem setup
 
 	# Find store (may be ready or not)
-	var store = StateStoreUtils.get_store(self)
-	assert(store != null, "StateStore required")
+	var store = U_StateStoreUtils.get_store(self)
+	assert(store != null, "M_StateManager required")
 
 	# Subscribe to changes (optional)
 	_unsubscribe = store.subscribe(func(state):
@@ -630,7 +630,7 @@ View/System → Action → Dispatcher → Reducer → New State → View/System
 
 **Signals for Loose Coupling**:
 ```gdscript
-# Publisher (StateStore)
+# Publisher (M_StateManager)
 signal state_changed(state: Dictionary)
 
 # Subscriber (any system)
@@ -644,13 +644,13 @@ store.state_changed.connect(_on_state_changed)
 
 ### 7.3 Locator Pattern (Service Discovery)
 
-**StateStoreUtils provides service location**:
+**U_StateStoreUtils provides service location**:
 ```gdscript
 # Instead of global singleton
-var store = StateStoreUtils.get_store(self)
+var store = U_StateStoreUtils.get_store(self)
 
 # Instead of AutoLoad
-var store = StateStoreUtils.get_store(self)
+var store = U_StateStoreUtils.get_store(self)
 ```
 
 **Benefits**:
@@ -692,11 +692,11 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
          │
          ▼
 2. CoinPickup script:
-   var store = StateStoreUtils.get_store(self)
+   var store = U_StateStoreUtils.get_store(self)
    store.dispatch(GameActions.add_score(10))
          │
          ▼
-3. StateStore.dispatch():
+3. M_StateManager.dispatch():
    - Current state: {game: {score: 90, level: 1}, ...}
    - Deep copy state
          │
@@ -711,7 +711,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
    - (Other reducers also called)
          │
          ▼
-5. Update StateStore:
+5. Update M_StateManager:
    - _state = {game: {score: 100, level: 1}, ...}
    - _state_version = 42 → 43
          │
@@ -738,11 +738,11 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
          │
          ▼
 2. PauseMenu script:
-   var store = StateStoreUtils.get_store(self)
+   var store = U_StateStoreUtils.get_store(self)
    var error = store.save_state("user://savegame.json")
          │
          ▼
-3. StateStore.save_state():
+3. M_StateManager.save_state():
    - Collect persistable slices:
      - GameReducer.get_persistable() → true (include)
      - UiReducer.get_persistable() → false (exclude)
@@ -829,7 +829,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 ### Architecture Highlights
 
 **Components**:
-- StateStore: Central hub
+- M_StateManager: Central hub
 - Reducers: State logic (4 slices: game, ui, ecs, session)
 - Actions: State change requests
 - Selectors: Derived state with memoization

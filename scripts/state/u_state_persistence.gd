@@ -1,5 +1,5 @@
 extends RefCounted
-class_name StatePersistence
+class_name U_StatePersistence
 
 const SAVE_VERSION := 1
 const CHECKSUM_KEY := "checksum"

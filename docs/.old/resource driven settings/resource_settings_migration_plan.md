@@ -5,7 +5,7 @@ This plan describes step‑by‑step phases to migrate ECS components to resourc
 Guiding constraints
 - Tabs for Godot scripts; avoid space tabs.
 - Add explicit types for Variant returns to avoid warnings treated as errors.
-- Movement requires `support_component_path` → `FloatingComponent` for support‑aware tuning.
+- Movement requires `support_component_path` → `C_FloatingComponent` for support‑aware tuning.
 - After a jump, clear/reset support timers to prevent unintended extra jumps.
 - Keep max turn/velocity clamps to prevent overshoot.
 
@@ -32,12 +32,12 @@ Objectives
 
 Actions
 - Add `scripts/ecs/resources/` with the following Resource scripts (class_name provided for inspector convenience):
-  - `movement_settings.gd` → `class_name MovementSettings`
-  - `jump_settings.gd` → `class_name JumpSettings`
-  - `floating_settings.gd` → `class_name FloatingSettings`
-  - `rotate_to_input_settings.gd` → `class_name RotateToInputSettings`
-  - `align_settings.gd` → `class_name AlignSettings`
-  - `landing_indicator_settings.gd` → `class_name LandingIndicatorSettings`
+  - `movement_settings.gd` → `class_name RS_MovementSettings`
+  - `jump_settings.gd` → `class_name RS_JumpSettings`
+  - `floating_settings.gd` → `class_name RS_FloatingSettings`
+  - `rotate_to_input_settings.gd` → `class_name RS_RotateToInputSettings`
+  - `align_settings.gd` → `class_name RS_AlignSettings`
+  - `landing_indicator_settings.gd` → `class_name RS_LandingIndicatorSettings`
 - Ensure explicit types and default values exactly match current component exports.
 - Create default assets under `resources/`:
   - `movement_default.tres`, `jump_default.tres`, `floating_default.tres`, `rotate_default.tres`, `align_default.tres`, `landing_indicator_default.tres`.
@@ -74,7 +74,7 @@ Objectives
 Actions
 - `scripts/ecs/systems/movement_system.gd`
   - Replace all reads to component fields with `component.settings.*`.
-  - Compute `support_active` only via `FloatingComponent` link:
+  - Compute `support_active` only via `C_FloatingComponent` link:
     - `var support_active := false`
     - If `support_component != null`: `support_active = support_component.has_recent_support(now, settings.support_grace_time)`
     - Remove any fallback to `body.is_on_floor()` when calculating support‑aware damping/friction.
@@ -82,7 +82,7 @@ Actions
 - `scripts/ecs/systems/jump_system.gd`
   - Replace uses of `jump_force`, `coyote_time`, `max_air_jumps`, `jump_buffer_time`, `apex_*` with `jump.settings.*`.
   - After a successful jump:
-    - If there’s a `FloatingComponent` for the same body, clear support timers: set `update_support_state(false, now - jump.settings.coyote_time - 0.01)` to ensure `has_recent_support` returns false immediately.
+    - If there’s a `C_FloatingComponent` for the same body, clear support timers: set `update_support_state(false, now - jump.settings.coyote_time - 0.01)` to ensure `has_recent_support` returns false immediately.
 - `scripts/ecs/systems/floating_system.gd`
   - Replace reads with `component.settings.*`; keep clamps and normal alignment logic.
 - `scripts/ecs/systems/rotate_to_input_system.gd`
@@ -112,31 +112,31 @@ Actions (by suite)
   - Verify `get_component_type()` unchanged.
 
 - `tests/unit/ecs/systems/test_movement_system.gd`
-  - For tests requiring grounded damping/friction or grounded multiplier, include a `FloatingComponent` and link it via `movement.support_component_path`.
+  - For tests requiring grounded damping/friction or grounded multiplier, include a `C_FloatingComponent` and link it via `movement.support_component_path`.
   - Use `movement.settings.*` to configure: `max_speed`, `sprint_speed_multiplier`, `acceleration`, `deceleration`, second‑order params, and friction scales.
   - Remove reliance on `body.is_on_floor()` for support: explicitly call `floating.update_support_state(true/false, now)` depending on scenario.
   - Keep numeric expectations (e.g., second‑order step values and clamp tests) as they were; defaults are identical.
 
 - `tests/unit/ecs/systems/test_jump_system.gd`
-  - Assign `jump.settings = JumpSettings.new()` and configure buffer/coyote/apex as needed via settings.
-  - Where needed, set a `FloatingComponent` and link to the same body for support tests.
+  - Assign `jump.settings = RS_JumpSettings.new()` and configure buffer/coyote/apex as needed via settings.
+  - Where needed, set a `C_FloatingComponent` and link to the same body for support tests.
   - Validate jump applies `settings.jump_force` and that support timers are cleared post‑jump (no unintended follow‑up jumps).
 
 - `tests/unit/ecs/systems/test_rotate_to_input_system.gd` and `test_rotate_system.gd`
-  - Assign `component.settings = RotateToInputSettings.new()`; configure second‑order/turn‑speed via settings.
+  - Assign `component.settings = RS_RotateToInputSettings.new()`; configure second‑order/turn‑speed via settings.
   - Keep overshoot clamps expectations unchanged.
 
 - `tests/unit/ecs/systems/test_floating_system.gd`
-  - Assign `component.settings = FloatingSettings.new()` and set hover/ratio/speeds if the test changes them.
+  - Assign `component.settings = RS_FloatingSettings.new()` and set hover/ratio/speeds if the test changes them.
 
 - `tests/unit/ecs/systems/test_align_with_surface_system.gd`
-  - Assign `component.settings = AlignSettings.new()`; use settings to configure `align_only_when_supported`, `recent_support_tolerance`, `smoothing_speed`.
+  - Assign `component.settings = RS_AlignSettings.new()`; use settings to configure `align_only_when_supported`, `recent_support_tolerance`, `smoothing_speed`.
 
 - `tests/unit/ecs/systems/test_landing_indicator_system.gd`
-  - Assign `component.settings = LandingIndicatorSettings.new()` and configure `max_projection_distance`, `ground_plane_height`, etc.
+  - Assign `component.settings = RS_LandingIndicatorSettings.new()` and configure `max_projection_distance`, `ground_plane_height`, etc.
 
 - `tests/unit/ecs/systems/test_gravity_system.gd`
-  - Ensure `MovementComponent` has `movement.settings = MovementSettings.new()` even if gravity doesn’t use settings directly (to satisfy strictness).
+  - Ensure `C_MovementComponent` has `movement.settings = RS_MovementSettings.new()` even if gravity doesn’t use settings directly (to satisfy strictness).
 
 Validation gates (per test file update)
 - After updating each test file, run only that suite to keep feedback tight, then run the full suite:
@@ -182,7 +182,7 @@ Actions
 Exit criteria
 - All unit tests green.
 - No reads from legacy fields; only `settings`.
-- Movement support detection uses `FloatingComponent` only (no `is_on_floor()` fallback).
+- Movement support detection uses `C_FloatingComponent` only (no `is_on_floor()` fallback).
 - Components fail hard if `settings == null`.
 - Templates reference committed default `.tres`.
 

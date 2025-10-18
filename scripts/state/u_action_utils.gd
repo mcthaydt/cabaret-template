@@ -1,5 +1,5 @@
 extends RefCounted
-class_name ActionUtils
+class_name U_ActionUtils
 
 const _SEPARATOR := "/"
 static var _registry: Dictionary = {}

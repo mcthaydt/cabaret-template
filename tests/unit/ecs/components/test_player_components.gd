@@ -1,13 +1,13 @@
 extends GutTest
 
-const ECS_MANAGER := preload("res://scripts/ecs/ecs_manager.gd")
-const MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/movement_component.gd")
-const JUMP_COMPONENT := preload("res://scripts/ecs/components/jump_component.gd")
-const INPUT_COMPONENT := preload("res://scripts/ecs/components/input_component.gd")
-const ROTATE_COMPONENT := preload("res://scripts/ecs/components/rotate_to_input_component.gd")
+const ECS_MANAGER := preload("res://scripts/ecs/m_ecs_manager.gd")
+const MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
+const JUMP_COMPONENT := preload("res://scripts/ecs/components/c_jump_component.gd")
+const INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
+const ROTATE_COMPONENT := preload("res://scripts/ecs/components/c_rotate_to_input_component.gd")
 
-func _add_manager() -> ECS_MANAGER:
-    var manager := ECS_MANAGER.new()
+func _add_manager() -> M_ECSManager:
+    var manager: M_ECSManager = ECS_MANAGER.new()
     add_child(manager)
     return manager
 
@@ -18,8 +18,8 @@ func test_movement_component_defaults_and_registration() -> void:
     var manager := _add_manager()
     await _pump()
 
-    var component := MOVEMENT_COMPONENT.new()
-    component.settings = MovementSettings.new()
+    var component: C_MovementComponent = MOVEMENT_COMPONENT.new()
+    component.settings = RS_MovementSettings.new()
     add_child(component)
     await _pump()
 
@@ -39,8 +39,8 @@ func test_jump_component_defaults_and_registration() -> void:
     var manager := _add_manager()
     await _pump()
 
-    var component := JUMP_COMPONENT.new()
-    component.settings = JumpSettings.new()
+    var component: C_JumpComponent = JUMP_COMPONENT.new()
+    component.settings = RS_JumpSettings.new()
     add_child(component)
     await _pump()
 
@@ -60,7 +60,7 @@ func test_input_component_defaults_and_registration() -> void:
     var manager := _add_manager()
     await _pump()
 
-    var component := INPUT_COMPONENT.new()
+    var component: C_InputComponent = INPUT_COMPONENT.new()
     add_child(component)
     await _pump()
 
@@ -79,8 +79,8 @@ func test_rotate_component_defaults_and_registration() -> void:
     var manager := _add_manager()
     await _pump()
 
-    var component := ROTATE_COMPONENT.new()
-    component.settings = RotateToInputSettings.new()
+    var component: C_RotateToInputComponent = ROTATE_COMPONENT.new()
+    component.settings = RS_RotateToInputSettings.new()
     add_child(component)
     await _pump()
 

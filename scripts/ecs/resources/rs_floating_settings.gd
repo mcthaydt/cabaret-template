@@ -1,6 +1,6 @@
 extends Resource
 
-class_name FloatingSettings
+class_name RS_FloatingSettings
 
 @export var hover_height: float = 1.5
 @export var hover_frequency: float = 3.0
@@ -11,4 +11,3 @@ class_name FloatingSettings
 @export var height_tolerance: float = 0.05
 @export var settle_speed_tolerance: float = 0.1
 @export var align_to_normal: bool = true
-

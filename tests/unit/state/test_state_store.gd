@@ -1,8 +1,8 @@
 extends GutTest
 
-const STATE_STORE := preload("res://scripts/state/store.gd")
-const SELECTOR := preload("res://scripts/state/selector.gd")
-const StateStoreUtils := preload("res://scripts/state/store_utils.gd")
+const STATE_MANAGER := preload("res://scripts/state/m_state_manager.gd")
+const U_SelectorUtils := preload("res://scripts/state/u_selector_utils.gd")
+const U_StateStoreUtils := preload("res://scripts/state/u_state_store_utils.gd")
 
 class FakeReducer:
 	static func get_slice_name() -> StringName:
@@ -43,7 +43,7 @@ class OtherReducer:
 		return updated
 
 func test_register_reducer_initializes_state() -> void:
-	var store: StateStore = STATE_STORE.new()
+	var store: M_StateManager = STATE_MANAGER.new()
 	add_child(store)
 	await get_tree().process_frame
 
@@ -57,7 +57,7 @@ func test_register_reducer_initializes_state() -> void:
 	await get_tree().process_frame
 
 func test_dispatch_updates_state_and_emits_signals() -> void:
-	var store: StateStore = STATE_STORE.new()
+	var store: M_StateManager = STATE_MANAGER.new()
 	add_child(store)
 	await get_tree().process_frame
 
@@ -90,7 +90,7 @@ func test_dispatch_updates_state_and_emits_signals() -> void:
 	await get_tree().process_frame
 
 func test_select_supports_path_and_memoized_selector() -> void:
-	var store: StateStore = STATE_STORE.new()
+	var store: M_StateManager = STATE_MANAGER.new()
 	add_child(store)
 	await get_tree().process_frame
 
@@ -100,7 +100,7 @@ func test_select_supports_path_and_memoized_selector() -> void:
 	assert_eq(score, 0)
 
 	var compute_calls: Array = [0]
-	var MemoizedSelector: GDScript = SELECTOR.MemoizedSelector
+	var MemoizedSelector: GDScript = U_SelectorUtils.MemoizedSelector
 	var selector: RefCounted = MemoizedSelector.new(func(state: Dictionary) -> bool:
 		compute_calls[0] += 1
 		return int(state["game"]["score"]) > 0
@@ -127,7 +127,7 @@ func test_select_supports_path_and_memoized_selector() -> void:
 	await get_tree().process_frame
 
 func test_subscribe_returns_callable_that_disconnects() -> void:
-	var store: StateStore = STATE_STORE.new()
+	var store: M_StateManager = STATE_MANAGER.new()
 	add_child(store)
 	await get_tree().process_frame
 
@@ -156,7 +156,7 @@ func test_subscribe_returns_callable_that_disconnects() -> void:
 	await get_tree().process_frame
 
 func test_state_store_utils_discovers_store_in_hierarchy_and_group() -> void:
-	var store: StateStore = STATE_STORE.new()
+	var store: M_StateManager = STATE_MANAGER.new()
 	add_child(store)
 	await get_tree().process_frame
 
@@ -166,14 +166,14 @@ func test_state_store_utils_discovers_store_in_hierarchy_and_group() -> void:
 	store.add_child(child)
 	await get_tree().process_frame
 
-	var found_from_child: Node = StateStoreUtils.get_store(child)
+	var found_from_child: Node = U_StateStoreUtils.get_store(child)
 	assert_eq(found_from_child, store)
 
 	var sibling: Node = Node.new()
 	add_child(sibling)
 	await get_tree().process_frame
 
-	var found_from_sibling: Node = StateStoreUtils.get_store(sibling)
+	var found_from_sibling: Node = U_StateStoreUtils.get_store(sibling)
 	assert_eq(found_from_sibling, store)
 
 	child.queue_free()
@@ -182,7 +182,7 @@ func test_state_store_utils_discovers_store_in_hierarchy_and_group() -> void:
 	await get_tree().process_frame
 
 func test_memoized_selector_dependency_tracking_skips_unrelated_changes() -> void:
-	var store: StateStore = STATE_STORE.new()
+	var store: M_StateManager = STATE_MANAGER.new()
 	add_child(store)
 	await get_tree().process_frame
 
@@ -190,7 +190,7 @@ func test_memoized_selector_dependency_tracking_skips_unrelated_changes() -> voi
 	store.register_reducer(OtherReducer)
 
 	var compute_calls: Array = [0]
-	var MemoizedSelector: GDScript = SELECTOR.MemoizedSelector
+	var MemoizedSelector: GDScript = U_SelectorUtils.MemoizedSelector
 	var selector: RefCounted = MemoizedSelector.new(func(state: Dictionary) -> int:
 		compute_calls[0] += 1
 		return int(state["game"]["score"])

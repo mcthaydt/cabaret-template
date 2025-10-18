@@ -1,5 +1,5 @@
 extends RefCounted
-class_name ReducerUtils
+class_name U_ReducerUtils
 
 static func combine_reducers(reducers: Dictionary) -> Callable:
 	var slice_names: Array = reducers.keys()

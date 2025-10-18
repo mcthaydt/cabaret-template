@@ -1,8 +1,8 @@
 extends GutTest
 
-const ECS_MANAGER = preload("res://scripts/ecs/ecs_manager.gd")
-const InputComponentScript = preload("res://scripts/ecs/components/input_component.gd")
-const InputSystemScript = preload("res://scripts/ecs/systems/input_system.gd")
+const ECS_MANAGER = preload("res://scripts/ecs/m_ecs_manager.gd")
+const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
+const InputSystemScript = preload("res://scripts/ecs/systems/s_input_system.gd")
 
 func before_all() -> void:
 	_ensure_action("move_left")
@@ -28,7 +28,7 @@ func _setup_entity() -> Dictionary:
 	add_child(manager)
 	await _pump()
 
-	var component = InputComponentScript.new()
+	var component: C_InputComponent = InputComponentScript.new()
 	add_child(component)
 	await _pump()
 
@@ -44,8 +44,8 @@ func _setup_entity() -> Dictionary:
 
 func test_input_system_updates_move_vector_from_actions() -> void:
 	var context: Dictionary = await _setup_entity()
-	var component: InputComponent = context["component"] as InputComponent
-	var system: InputSystem = context["system"] as InputSystem
+	var component: C_InputComponent = context["component"] as C_InputComponent
+	var system: S_InputSystem = context["system"] as S_InputSystem
 
 	Input.action_press("move_right")
 	Input.action_press("move_forward")
@@ -59,8 +59,8 @@ func test_input_system_updates_move_vector_from_actions() -> void:
 
 func test_input_system_sets_jump_flag_on_press() -> void:
 	var context: Dictionary = await _setup_entity()
-	var component: InputComponent = context["component"] as InputComponent
-	var system: InputSystem = context["system"] as InputSystem
+	var component: C_InputComponent = context["component"] as C_InputComponent
+	var system: S_InputSystem = context["system"] as S_InputSystem
 
 	Input.action_press("jump")
 
@@ -72,8 +72,8 @@ func test_input_system_sets_jump_flag_on_press() -> void:
 
 func test_input_system_sets_sprint_flag_on_press() -> void:
 	var context: Dictionary = await _setup_entity()
-	var component: InputComponent = context["component"] as InputComponent
-	var system: InputSystem = context["system"] as InputSystem
+	var component: C_InputComponent = context["component"] as C_InputComponent
+	var system: S_InputSystem = context["system"] as S_InputSystem
 
 	Input.action_press("sprint")
 

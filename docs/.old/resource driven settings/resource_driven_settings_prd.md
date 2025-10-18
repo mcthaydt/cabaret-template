@@ -25,12 +25,12 @@ Move all tunable gameplay parameters from ECS components into dedicated Resource
 
 ## Architecture
 - Add typed Resource scripts under `scripts/ecs/resources/`:
-  - `MovementSettings`, `JumpSettings`, `FloatingSettings`, `RotateToInputSettings`, `AlignSettings`, `LandingIndicatorSettings`.
+  - `RS_MovementSettings`, `RS_JumpSettings`, `RS_FloatingSettings`, `RS_RotateToInputSettings`, `RS_AlignSettings`, `RS_LandingIndicatorSettings`.
 - Replace component per-field exports with `settings` and keep ephemeral state (e.g., dynamics/rotation velocities, debug snapshots) in components.
 - Strictness: Fail hard if `settings == null`. Each component validates in `_ready()` and will assert or error-out and disable processing when settings are missing. Scenes and tests must assign settings (either default `.tres` or `XxxSettings.new()`).
 
 ### Component Changes (field mapping → settings)
-- MovementComponent
+- C_MovementComponent
   - max_speed, sprint_speed_multiplier, acceleration, deceleration
   - use_second_order_dynamics, response_frequency, damping_ratio
   - grounded_damping_multiplier, air_damping_multiplier
@@ -38,77 +38,77 @@ Move all tunable gameplay parameters from ECS components into dedicated Resource
   - support_grace_time
   - Keep NodePaths: `character_body_path`, `input_component_path`, `support_component_path`.
 
-- JumpComponent
+- C_JumpComponent
   - jump_force, coyote_time, max_air_jumps, jump_buffer_time
   - apex_coyote_time, apex_velocity_threshold
   - Keep NodePaths: `character_body_path`, `input_component_path`.
 
-- FloatingComponent
+- C_FloatingComponent
   - hover_height, hover_frequency, damping_ratio
   - max_up_speed, max_down_speed, fall_gravity
   - height_tolerance, settle_speed_tolerance, align_to_normal
   - Keep NodePaths: `character_body_path`, `raycast_root_path`.
 
-- RotateToInputComponent
+- RotateToC_InputComponent
   - turn_speed_degrees, max_turn_speed_degrees
   - use_second_order, rotation_frequency, rotation_damping
   - Keep NodePaths: `target_node_path`, `input_component_path`.
 
-- AlignWithSurfaceComponent
+- C_AlignWithSurfaceComponent
   - smoothing_speed, align_only_when_supported, recent_support_tolerance
   - fallback_up_direction
   - Keep NodePaths: `character_body_path`, `visual_alignment_path`, `floating_component_path`.
 
-- LandingIndicatorComponent
+- C_LandingIndicatorComponent
   - indicator_height_offset, ground_plane_height, max_projection_distance
   - Keep NodePaths: `character_body_path`, `origin_marker_path`, `landing_marker_path`.
 
 ### Systems Adjustments
-- MovementSystem
+- S_MovementSystem
   - Read all tuning from `movement.settings`.
-  - Support-aware damping/friction uses `FloatingComponent.has_recent_support(now, movement.settings.support_grace_time)`.
-  - Remove `is_on_floor()` fallback entirely for support-aware tuning. If no `FloatingComponent` is linked, treat as unsupported (air coefficients apply) regardless of body floor state.
+  - Support-aware damping/friction uses `C_FloatingComponent.has_recent_support(now, movement.settings.support_grace_time)`.
+  - Remove `is_on_floor()` fallback entirely for support-aware tuning. If no `C_FloatingComponent` is linked, treat as unsupported (air coefficients apply) regardless of body floor state.
 
-- JumpSystem
+- S_JumpSystem
   - Read buffer/coyote/force/apex values from `jump.settings`.
-  - After a jump, clear support timers: if a `FloatingComponent` is associated with the same body, mark it as not supported with a timestamp older than `coyote_time` to avoid unintended extra jumps.
+  - After a jump, clear support timers: if a `C_FloatingComponent` is associated with the same body, mark it as not supported with a timestamp older than `coyote_time` to avoid unintended extra jumps.
 
-- FloatingSystem, RotateToInputSystem, AlignWithSurfaceSystem, LandingIndicatorSystem
+- S_FloatingSystem, RotateToS_InputSystem, S_AlignWithSurfaceSystem, S_LandingIndicatorSystem
   - Replace all field reads with `component.settings.*`; preserve existing clamps and second‑order dynamics behaviour.
 
-- GravitySystem, InputSystem
+- S_GravitySystem, S_InputSystem
   - No changes required for this pass (optional future: move to resources).
 
 ## Resource Definitions
-- MovementSettings
+- RS_MovementSettings
   - max_speed, sprint_speed_multiplier, acceleration, deceleration
   - use_second_order_dynamics, response_frequency, damping_ratio
   - grounded_damping_multiplier, air_damping_multiplier
   - grounded_friction, air_friction, strafe_friction_scale, forward_friction_scale
   - support_grace_time
 
-- JumpSettings
+- RS_JumpSettings
   - jump_force, coyote_time, max_air_jumps, jump_buffer_time
   - apex_coyote_time, apex_velocity_threshold
 
-- FloatingSettings
+- RS_FloatingSettings
   - hover_height, hover_frequency, damping_ratio
   - max_up_speed, max_down_speed, fall_gravity
   - height_tolerance, settle_speed_tolerance, align_to_normal
 
-- RotateToInputSettings
+- RS_RotateToInputSettings
   - turn_speed_degrees, max_turn_speed_degrees
   - use_second_order, rotation_frequency, rotation_damping
 
-- AlignSettings
+- RS_AlignSettings
   - smoothing_speed, align_only_when_supported, recent_support_tolerance
   - fallback_up_direction
 
-- LandingIndicatorSettings
+- RS_LandingIndicatorSettings
   - indicator_height_offset, ground_plane_height, max_projection_distance
 
 ## Behavioural Notes
-- Movement support detection requires a `FloatingComponent` link; this ensures support-aware damping/friction are truly contact-driven.
+- Movement support detection requires a `C_FloatingComponent` link; this ensures support-aware damping/friction are truly contact-driven.
 - After jumping, support grace is cleared to prevent unintended buffered/coyote jumps.
 - Keep existing max speed/turn clamps to avoid overshoot in movement/rotation tests.
 
@@ -131,7 +131,7 @@ Move all tunable gameplay parameters from ECS components into dedicated Resource
 ## Migration
 - Scenes: assign appropriate default settings `.tres` to each component instance.
 - Code/tests: replace `component.foo` with `component.settings.foo`.
-- Movement: link `support_component_path` to a `FloatingComponent` where grounded-specific tuning is desired.
+- Movement: link `support_component_path` to a `C_FloatingComponent` where grounded-specific tuning is desired.
 
 ## Risks & Mitigations
 - Scene breakage due to removed fields: ship defaults and provide migration notes.

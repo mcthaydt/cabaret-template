@@ -18,12 +18,12 @@ Key User Stories:
 
 Constraints:
 - Performance: Dispatch latency under 5ms at 60fps, selector computation under 0.1ms
-- Integration: Hybrid mode with existing ECSManager (preserve current architecture)
+- Integration: Hybrid mode with existing M_ECSManager (preserve current architecture)
 - Testing: 90%+ code coverage with GUT framework
 - Immutability: Reducers must return new state dictionaries
 
 High-Level Architecture:
-StateStore extends Node with state tree (Dictionary), reducers (Array[Callable]), middleware (Array[Callable]), subscribers (Array[Callable]), history buffer (Array[Action]), and selectors (Dictionary). StateStore joins "state_store" group for discovery via scene tree search (matching ECSManager pattern). Integration via ECS bridge middleware allows systems to dispatch actions and subscribe to state changes.
+M_StateManager extends Node with state tree (Dictionary), reducers (Array[Callable]), middleware (Array[Callable]), subscribers (Array[Callable]), history buffer (Array[Action]), and selectors (Dictionary). M_StateManager joins "state_store" group for discovery via scene tree search (matching M_ECSManager pattern). Integration via ECS bridge middleware allows systems to dispatch actions and subscribe to state changes.
 
 ---
 
@@ -46,10 +46,10 @@ Planned Batches:
 Story Point Breakdown:
 
 Epic 1 – Core Store Infrastructure (8 points)
-- Story 1.1: Implement StateStore class with dispatch/subscribe/select (3 points)
+- Story 1.1: Implement M_StateManager class with dispatch/subscribe/select (3 points)
 - Story 1.2: Create reducer registration and combination system (2 points)
 - Story 1.3: Build action creator helpers and validation (2 points)
-- Story 1.4: Implement store discovery utility class (StateStoreUtils) (1 point)
+- Story 1.4: Implement store discovery utility class (U_StateStoreUtils) (1 point)
 
 Epic 2 – ECS Integration (5 points)
 - Story 2.1: Create ECS bridge middleware (2 points)
@@ -106,7 +106,7 @@ IMPLEMENTATION DECISIONS SUMMARY:
 5. Memoization: State version counter (_state_version incremented on dispatch)
 6. Persistence: hash() builtin for checksum, per-reducer persistable flag
 7. Testing: 90%+ coverage, test fail-fast paths (assert crashes)
-8. Tests: Use real StateStore instances (integration-style), no mocking
+8. Tests: Use real M_StateManager instances (integration-style), no mocking
 
 Step 1 – Design State Schema
 
@@ -144,7 +144,7 @@ Create scripts/state/store.gd:
   - signal action_dispatched(action: Dictionary)
 
 - [x] Implement _ready() lifecycle:
-  - Check for duplicate StateStore instances (CRITICAL DESIGN DECISION #1)
+  - Check for duplicate M_StateManager instances (CRITICAL DESIGN DECISION #1)
   - If another exists, push_error and queue_free()
   - Otherwise, add_to_group("state_store")
   - Initialize default state from reducers (call get_initial_state() on each)
@@ -200,7 +200,7 @@ Create scripts/state/reducer.gd:
 
 Create scripts/state/store_utils.gd:
 - [x] Class with only static methods (no instantiation)
-- [x] Define get_store(from_node: Node) -> StateStore:
+- [x] Define get_store(from_node: Node) -> M_StateManager:
   - Step 1: Search parent hierarchy
     - Walk up from from_node using get_parent()
     - Check each node with has_method("dispatch") and has_method("subscribe")
@@ -209,11 +209,11 @@ Create scripts/state/store_utils.gd:
     - Get nodes in "state_store" group via from_node.get_tree().get_nodes_in_group("state_store")
     - Return first node in array if exists
   - Step 3: FATAL ERROR (DECISION #2: Fail-fast null safety)
-    - assert(false, "StateStore not found in scene tree. Add StateStore node to /Infrastructure/ branch.")
+    - assert(false, "M_StateManager not found in scene tree. Add M_StateManager node to /Infrastructure/ branch.")
     - Return null (unreachable after assert)
 - Optional: Add caching dictionary to avoid repeated searches (static var _cache: Dictionary)
 
-Update StateStore._ready():
+Update M_StateManager._ready():
 - Join "state_store" group via add_to_group("state_store")
 - Ensures discovery via scene tree group works
 
@@ -241,7 +241,7 @@ Create scripts/state/persistence.gd (IMPLEMENTATION DETAIL #6: Simple hash() che
   - Call deserialize_state(contents)
   - Return state Dictionary or empty Dictionary on failure
 
-Add persistence methods to StateStore:
+Add persistence methods to M_StateManager:
 - save_state(path: String) -> Error:
   - Collect persistable reducers by calling reducer.get_persistable()
   - Call persistence.save_to_file with current state and persistable list (DECISION #8)
@@ -265,7 +265,7 @@ Create scripts/state/selector.gd:
   - Method: invalidate() -> void
     - Set _last_version = -1  # Force recompute on next select
 
-Add select method to StateStore:
+Add select method to M_StateManager:
 - select(path: String) -> Variant
   - Parse dot-notation path (e.g., "game.score")
   - Traverse state tree using bracket access
@@ -330,7 +330,7 @@ Create tests/unit/state/test_store.gd:
 - Test get_state returns deep copy (immutability - DECISION #3)
 - Test multiple reducers combine correctly
 - Test initial state loaded on _ready
-- Test multiple StateStore instances self-destruct (DECISION #1)
+- Test multiple M_StateManager instances self-destruct (DECISION #1)
 - Test reducer errors crash application (DECISION #10)
 
 Create tests/unit/state/test_store_utils.gd:
@@ -368,7 +368,7 @@ Verify all P0 features implemented:
 - Unit tests passing
 
 Run integration smoke test:
-- Create test scene with StateStore
+- Create test scene with M_StateManager
 - Dispatch 100 actions
 - Save state to file
 - Load state from file
@@ -386,13 +386,13 @@ Goal: Integrate store with ECS architecture and add developer tooling
 Step 1 – Load Current Codebase Context
 
 Review batch 1 implementation:
-- StateStore API surface
+- M_StateManager API surface
 - Reducer composition approach
 - Persistence whitelist system
 - Selector memoization strategy
 
 Review existing ECS architecture:
-- ECSManager component/system registry
+- M_ECSManager component/system registry
 - System base class structure
 - Component lifecycle (_ready, registered signal)
 - Manager discovery pattern (scene tree search, group membership)
@@ -403,33 +403,33 @@ Create scripts/state/middleware/ecs_bridge_middleware.gd:
 - Define middleware(store, next: Callable, action: Dictionary) -> void
   - Call next(action) to continue chain
   - Check if action type matches "ecs/*" namespace
-  - If match, notify ECSManager
+  - If match, notify M_ECSManager
   - Trigger relevant system callbacks
 
 Add ECS-specific actions:
-- "ecs/component_registered" – dispatched when component added to ECSManager
+- "ecs/component_registered" – dispatched when component added to M_ECSManager
 - "ecs/component_unregistered" – dispatched when component removed
 - "ecs/system_process_tick" – dispatched every physics frame (optional)
 
-Integrate with ECSManager:
-- In ECSManager.register_component(), dispatch action to store
-- In ECSManager.unregister_component(), dispatch action to store
-- Subscribe ECSManager to store state changes affecting "ecs" slice
+Integrate with M_ECSManager:
+- In M_ECSManager.register_component(), dispatch action to store
+- In M_ECSManager.unregister_component(), dispatch action to store
+- Subscribe M_ECSManager to store state changes affecting "ecs" slice
 
 Step 3 – Add Store Access to ECS Systems
 
 Modify scripts/ecs/ecs_system.gd:
-- Add get_store() -> StateStore method
-  - Call StateStoreUtils.get_store(self)
+- Add get_store() -> M_StateManager method
+  - Call U_StateStoreUtils.get_store(self)
   - Cache result in _store property
   - Return cached instance
 - Add optional on_store_state_changed(state: Dictionary) callback
   - Systems can override to react to global state changes
 
 Update 2-3 existing systems to demonstrate store usage:
-- MovementSystem: Read game.score to modify movement speed based on level
-- JumpSystem: Dispatch "game/jump_performed" action for analytics
-- InputSystem: Read ui.active_menu to disable input when menu open
+- S_MovementSystem: Read game.score to modify movement speed based on level
+- S_JumpSystem: Dispatch "game/jump_performed" action for analytics
+- S_InputSystem: Read ui.active_menu to disable input when menu open
 
 Step 4 – Implement Middleware Infrastructure
 
@@ -439,7 +439,7 @@ Create scripts/state/middleware.gd:
   - Return enhanced dispatch function
   - Each middleware can: intercept, transform, or block actions
 
-Modify StateStore.dispatch():
+Modify M_StateManager.dispatch():
 - Replace direct reducer calls with middleware chain
 - Final middleware in chain calls reducers
 - Middleware receive: store reference, next function, action
@@ -456,14 +456,14 @@ Create scripts/state/middleware/persistence_middleware.gd:
   - If action marked as "persistable", trigger auto-save
   - Debounce saves (max 1 save per second)
 
-Add middleware registration to StateStore:
+Add middleware registration to M_StateManager:
 - use_middleware(middleware: Callable) -> void
   - Add to _middleware array
   - Rebuild dispatch chain
 
 Step 5 – Implement Time-Travel Debugging
 
-Add history tracking to StateStore:
+Add history tracking to M_StateManager:
 - Property: _history: Array[Dictionary] (stores actions)
 - Property: _state_snapshots: Array[Dictionary] (stores states)
 - Property: _history_index: int (current position in history)
@@ -475,7 +475,7 @@ Modify dispatch() to record history:
 - Take state snapshot after reducer application
 - Trim history if exceeds _max_history_size (FIFO)
 
-Add time-travel methods to StateStore:
+Add time-travel methods to M_StateManager:
 - enable_time_travel(enabled: bool) -> void
   - Toggle history recording
 - step_backward() -> void
@@ -505,13 +505,13 @@ Step 6 – Implement Async Thunk Support
 Create scripts/state/thunk.gd:
 - Define Thunk class
   - Property: _func: Callable (async function)
-  - Method: execute(store: StateStore) -> void
+  - Method: execute(store: M_StateManager) -> void
     - Call _func with store.dispatch and store.get_state as parameters
     - Support await for async operations
 - Define create_thunk(func: Callable) -> Thunk
   - Factory function for thunks
 
-Modify StateStore.dispatch():
+Modify M_StateManager.dispatch():
 - Check if action is Thunk instance
 - If Thunk, call thunk.execute(self)
 - Otherwise, proceed with normal dispatch
@@ -529,7 +529,7 @@ Create tests/unit/state/test_middleware.gd:
 - Test logger middleware produces output
 
 Create tests/unit/state/test_ecs_integration.gd:
-- Test ECSManager dispatches actions to store
+- Test M_ECSManager dispatches actions to store
 - Test systems can access store via get_store()
 - Test systems receive state change notifications
 - Test state updates don't break existing ECS functionality
@@ -554,7 +554,7 @@ Step 8 – Merge Batch 2
 
 Verify all P1 features implemented:
 - Middleware composition working
-- ECS integration bidirectional (store ↔ ECSManager)
+- ECS integration bidirectional (store ↔ M_ECSManager)
 - Time-travel debugging functional
 - Async thunks supported
 
@@ -633,7 +633,7 @@ Add inline documentation:
 
 Create tutorial video script outline:
 - Introduction to Redux patterns
-- Setting up StateStore in Godot scene
+- Setting up M_StateManager in Godot scene
 - Creating actions and reducers
 - Integrating with ECS systems
 - Using time-travel debugging
@@ -685,7 +685,7 @@ Combine all three batches into cohesive codebase:
 File tree verification:
 
 scripts/state/
-├── store.gd (StateStore class)
+├── store.gd (M_StateManager class)
 ├── store_utils.gd (static get_store discovery)
 ├── action.gd (action creators)
 ├── reducer.gd (reducer utilities)
@@ -720,7 +720,7 @@ Epic 1 – Core Store Infrastructure:
 Epic 2 – ECS Integration:
 ✓ Systems can select state from store
 ✓ Subscribed systems notified on state changes
-✓ ECSManager dispatches actions to store
+✓ M_ECSManager dispatches actions to store
 
 Epic 3 – Time-Travel Debugging:
 ✓ Can step backward/forward through 100+ actions
@@ -797,7 +797,7 @@ Pre-deployment verification:
 
 Infrastructure:
 ✓ All files in correct directory structure
-✓ StateStore node added to scene tree and joins "state_store" group
+✓ M_StateManager node added to scene tree and joins "state_store" group
 ✓ No hardcoded paths (use res:// protocol)
 ✓ All resources marked as preload where appropriate
 

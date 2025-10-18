@@ -1,10 +1,10 @@
 extends ECSComponent
 
-class_name FloatingComponent
+class_name C_FloatingComponent
 
-const COMPONENT_TYPE := StringName('FloatingComponent')
+const COMPONENT_TYPE := StringName("C_FloatingComponent")
 
-@export var settings: FloatingSettings
+@export var settings: RS_FloatingSettings
 @export_node_path('CharacterBody3D') var character_body_path: NodePath
 @export_node_path('Node3D') var raycast_root_path: NodePath
 
@@ -16,7 +16,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	if settings == null:
-		push_error("FloatingComponent missing settings; assign a FloatingSettings resource.")
+		push_error("C_FloatingComponent missing settings; assign an RS_FloatingSettings resource.")
 		set_process(false)
 		set_physics_process(false)
 		return

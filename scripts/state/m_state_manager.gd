@@ -1,10 +1,10 @@
 extends Node
-class_name StateStore
+class_name M_StateManager
 
 signal state_changed(state: Dictionary)
 signal action_dispatched(action: Dictionary)
 
-const SELECTOR := preload("res://scripts/state/selector.gd")
+const SELECTOR := preload("res://scripts/state/u_selector_utils.gd")
 
 var _state: Dictionary = {}
 var _reducers: Dictionary = {}
@@ -18,7 +18,7 @@ var _persistable_slices: Array[StringName] = []
 func _ready() -> void:
 	var existing: Array = get_tree().get_nodes_in_group("state_store")
 	if existing.size() > 0:
-		push_error("FATAL: Multiple StateStore instances detected. Only one allowed per scene tree.")
+		push_error("FATAL: Multiple M_StateManager instances detected. Only one allowed per scene tree.")
 		queue_free()
 		return
 	add_to_group("state_store")

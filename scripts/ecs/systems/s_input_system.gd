@@ -1,8 +1,8 @@
 extends ECSSystem
 
-class_name InputSystem
+class_name S_InputSystem
 
-const INPUT_TYPE := StringName("InputComponent")
+const INPUT_TYPE := StringName("C_InputComponent")
 
 @export var negative_x_action: StringName = StringName("move_left")
 @export var positive_x_action: StringName = StringName("move_right")
@@ -27,10 +27,14 @@ func process_tick(_delta: float) -> void:
         if component == null:
             continue
 
-        component.set_move_vector(movement_vector)
-        component.set_sprint_pressed(sprint_pressed)
+        var input_component: C_InputComponent = component as C_InputComponent
+        if input_component == null:
+            continue
+
+        input_component.set_move_vector(movement_vector)
+        input_component.set_sprint_pressed(sprint_pressed)
         if jump_pressed:
-            component.set_jump_pressed(true)
+            input_component.set_jump_pressed(true)
 
 func _ensure_actions() -> void:
     if _actions_initialized:

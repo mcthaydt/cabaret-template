@@ -1,13 +1,13 @@
 extends GutTest
 
-const ECS_MANAGER := preload("res://scripts/ecs/ecs_manager.gd")
+const ECS_MANAGER := preload("res://scripts/ecs/m_ecs_manager.gd")
 const ECS_COMPONENT := preload("res://scripts/ecs/ecs_component.gd")
 const ECS_SYSTEM := preload("res://scripts/ecs/ecs_system.gd")
 const PLAYER_SCENE := preload("res://templates/player_template.tscn")
 const BASE_SCENE := preload("res://templates/base_scene_template.tscn")
 
 class FakeComponent extends ECS_COMPONENT:
-    const TYPE := StringName("FakeComponent")
+    const TYPE := StringName("C_FakeComponent")
 
     func _init():
         component_type = TYPE
@@ -37,7 +37,7 @@ func _on_component_registered(received_manager, received_component) -> void:
     assert_eq(received_component, _expected_component)
 
 func test_component_auto_registers_with_manager_on_ready() -> void:
-    var manager := ECS_MANAGER.new()
+    var manager: M_ECSManager = ECS_MANAGER.new()
     add_child(manager)
     await get_tree().process_frame
 
@@ -53,7 +53,7 @@ func test_component_auto_registers_with_manager_on_ready() -> void:
     await get_tree().process_frame
 
 func test_system_auto_registers_with_manager_on_ready() -> void:
-    var manager := ECS_MANAGER.new()
+    var manager: M_ECSManager = ECS_MANAGER.new()
     add_child(manager)
     await get_tree().process_frame
 
@@ -70,7 +70,7 @@ func test_system_auto_registers_with_manager_on_ready() -> void:
     await get_tree().process_frame
 
 func test_register_component_adds_to_lookup() -> void:
-    var manager := ECS_MANAGER.new()
+    var manager: M_ECSManager = ECS_MANAGER.new()
     add_child(manager)
 
     var component := FakeComponent.new()
@@ -86,7 +86,7 @@ func test_register_component_adds_to_lookup() -> void:
     await get_tree().process_frame
 
 func test_register_component_emits_signals() -> void:
-    var manager := ECS_MANAGER.new()
+    var manager: M_ECSManager = ECS_MANAGER.new()
     add_child(manager)
 
     var component := FakeComponent.new()
@@ -113,7 +113,7 @@ func test_register_component_emits_signals() -> void:
     await get_tree().process_frame
 
 func test_register_system_configures_and_queries_components() -> void:
-    var manager := ECS_MANAGER.new()
+    var manager: M_ECSManager = ECS_MANAGER.new()
     add_child(manager)
 
     var component := FakeComponent.new()
@@ -132,7 +132,7 @@ func test_register_system_configures_and_queries_components() -> void:
     await get_tree().process_frame
 
 func test_player_template_components_register_with_manager() -> void:
-    var manager := ECS_MANAGER.new()
+    var manager: M_ECSManager = ECS_MANAGER.new()
     add_child(manager)
     await get_tree().process_frame
 
@@ -141,10 +141,10 @@ func test_player_template_components_register_with_manager() -> void:
     await get_tree().process_frame
 
     var expected_types := [
-        StringName("MovementComponent"),
-        StringName("JumpComponent"),
-        StringName("InputComponent"),
-        StringName("RotateToInputComponent"),
+        StringName("C_MovementComponent"),
+        StringName("C_JumpComponent"),
+        StringName("C_InputComponent"),
+        StringName("C_RotateToInputComponent"),
     ]
 
     for component_type in expected_types:
@@ -160,7 +160,7 @@ func test_base_scene_systems_register_with_manager() -> void:
     add_child(scene)
     await get_tree().process_frame
 
-    var manager := scene.get_node("Managers/ECS_Manager")
+    var manager: M_ECSManager = scene.get_node("Managers/M_ECSManager") as M_ECSManager
     assert_not_null(manager)
 
     var systems: Array = manager.get_systems()

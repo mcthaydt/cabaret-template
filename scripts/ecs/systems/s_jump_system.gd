@@ -1,9 +1,9 @@
 extends ECSSystem
 
-class_name JumpSystem
+class_name S_JumpSystem
 
-const JUMP_TYPE := StringName("JumpComponent")
-const FLOATING_TYPE := StringName("FloatingComponent")
+const JUMP_TYPE := StringName("C_JumpComponent")
+const FLOATING_TYPE := StringName("C_FloatingComponent")
 
 func process_tick(_delta: float) -> void:
     var now: float = Time.get_ticks_msec() / 1000.0
@@ -29,7 +29,7 @@ func process_tick(_delta: float) -> void:
         if input_component == null:
             continue
 
-        var floating_component: FloatingComponent = floating_by_body.get(body, null) as FloatingComponent
+        var floating_component: C_FloatingComponent = floating_by_body.get(body, null) as C_FloatingComponent
         var floating_supported_now: bool = false
         var has_floating_support: bool = false
         if floating_component != null:

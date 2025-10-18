@@ -1,10 +1,10 @@
 extends ECSComponent
 
-class_name JumpComponent
+class_name C_JumpComponent
 
-const COMPONENT_TYPE := StringName("JumpComponent")
+const COMPONENT_TYPE := StringName("C_JumpComponent")
 
-@export var settings: JumpSettings
+@export var settings: RS_JumpSettings
 @export_node_path("CharacterBody3D") var character_body_path: NodePath
 @export_node_path("Node") var input_component_path: NodePath
 
@@ -20,7 +20,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	if settings == null:
-		push_error("JumpComponent missing settings; assign a JumpSettings resource.")
+		push_error("C_JumpComponent missing settings; assign an RS_JumpSettings resource.")
 		set_process(false)
 		set_physics_process(false)
 		return
@@ -70,10 +70,10 @@ func get_character_body() -> CharacterBody3D:
 		return null
 	return get_node_or_null(character_body_path)
 
-func get_input_component():
+func get_input_component() -> C_InputComponent:
 	if input_component_path.is_empty():
 		return null
-	return get_node_or_null(input_component_path)
+	return get_node_or_null(input_component_path) as C_InputComponent
 
 func update_debug_snapshot(snapshot: Dictionary) -> void:
 	_debug_snapshot = snapshot.duplicate(true)

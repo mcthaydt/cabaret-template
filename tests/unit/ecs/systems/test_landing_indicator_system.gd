@@ -1,8 +1,8 @@
 extends GutTest
 
-const ECS_MANAGER := preload('res://scripts/ecs/ecs_manager.gd')
-const LandingIndicatorComponentScript := preload('res://scripts/ecs/components/landing_indicator_component.gd')
-const LandingIndicatorSystemScript := preload('res://scripts/ecs/systems/landing_indicator_system.gd')
+const ECS_MANAGER := preload("res://scripts/ecs/m_ecs_manager.gd")
+const LandingIndicatorComponentScript := preload("res://scripts/ecs/components/c_landing_indicator_component.gd")
+const LandingIndicatorSystemScript := preload("res://scripts/ecs/systems/s_landing_indicator_system.gd")
 
 class FakeSpaceState extends Object:
 	var has_hit: bool = false
@@ -32,7 +32,7 @@ class FakeWorld3D extends Object:
 	var direct_space_state: Object
 
 	func _get(property: StringName):
-		if property == StringName('direct_space_state'):
+		if property == StringName("direct_space_state"):
 			return direct_space_state
 		return null
 
@@ -60,12 +60,12 @@ func _pump() -> void:
 	await get_tree().process_frame
 
 func _setup_entity(max_distance: float = 10.0) -> Dictionary:
-	var manager: ECSManager = ECS_MANAGER.new()
+	var manager: M_ECSManager = ECS_MANAGER.new()
 	add_child(manager)
 	await _pump()
 
-	var component: LandingIndicatorComponent = LandingIndicatorComponentScript.new()
-	component.settings = LandingIndicatorSettings.new()
+	var component: C_LandingIndicatorComponent = LandingIndicatorComponentScript.new()
+	component.settings = RS_LandingIndicatorSettings.new()
 	component.settings.max_projection_distance = max_distance
 	component.settings.ground_plane_height = 0.0
 	add_child(component)
@@ -88,24 +88,24 @@ func _setup_entity(max_distance: float = 10.0) -> Dictionary:
 	await _pump()
 	component.landing_marker_path = component.get_path_to(landing_marker)
 
-	var system: LandingIndicatorSystem = LandingIndicatorSystemScript.new()
+	var system: S_LandingIndicatorSystem = LandingIndicatorSystemScript.new()
 	add_child(system)
 	await _pump()
 
 	return {
-		'manager': manager,
-		'component': component,
-		'body': body,
-		'system': system,
-		'origin_marker': origin_marker,
-		'landing_marker': landing_marker,
+		"manager": manager,
+		"component": component,
+		"body": body,
+		"system": system,
+		"origin_marker": origin_marker,
+		"landing_marker": landing_marker,
 	}
 
 func test_landing_indicator_projects_to_ground_hit() -> void:
 	var context: Dictionary = await _setup_entity(5.0)
-	var component: LandingIndicatorComponent = context['component'] as LandingIndicatorComponent
-	var body: FakeBody = context['body'] as FakeBody
-	var system: LandingIndicatorSystem = context['system'] as LandingIndicatorSystem
+	var component: C_LandingIndicatorComponent = context["component"] as C_LandingIndicatorComponent
+	var body: FakeBody = context["body"] as FakeBody
+	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
 
 	body.global_position = Vector3(1.5, 2.0, -0.5)
 	body.set_raycast_hit(Vector3(1.5, 0.0, -0.5), Vector3.UP)
@@ -120,9 +120,9 @@ func test_landing_indicator_projects_to_ground_hit() -> void:
 
 func test_landing_indicator_hides_when_no_projection_within_range() -> void:
 	var context: Dictionary = await _setup_entity(0.5)
-	var component: LandingIndicatorComponent = context['component'] as LandingIndicatorComponent
-	var body: FakeBody = context['body'] as FakeBody
-	var system: LandingIndicatorSystem = context['system'] as LandingIndicatorSystem
+	var component: C_LandingIndicatorComponent = context["component"] as C_LandingIndicatorComponent
+	var body: FakeBody = context["body"] as FakeBody
+	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
 
 	body.global_position = Vector3(0.0, 2.0, 0.0)
 	body.clear_raycast_hit()
@@ -137,9 +137,9 @@ func test_landing_indicator_hides_when_no_projection_within_range() -> void:
 
 func test_landing_indicator_projects_to_ground_plane_when_no_hit() -> void:
 	var context: Dictionary = await _setup_entity(5.0)
-	var component: LandingIndicatorComponent = context['component'] as LandingIndicatorComponent
-	var body: FakeBody = context['body'] as FakeBody
-	var system: LandingIndicatorSystem = context['system'] as LandingIndicatorSystem
+	var component: C_LandingIndicatorComponent = context["component"] as C_LandingIndicatorComponent
+	var body: FakeBody = context["body"] as FakeBody
+	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
 
 	body.global_position = Vector3(0.0, 1.0, 0.0)
 	body.clear_raycast_hit()

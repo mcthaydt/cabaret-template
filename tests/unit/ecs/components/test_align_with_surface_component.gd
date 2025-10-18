@@ -1,15 +1,15 @@
 extends GutTest
 
-const ECS_MANAGER := preload("res://scripts/ecs/ecs_manager.gd")
-const ALIGN_COMPONENT := preload("res://scripts/ecs/components/align_with_surface_component.gd")
-const FLOATING_COMPONENT := preload("res://scripts/ecs/components/floating_component.gd")
+const ECS_MANAGER := preload("res://scripts/ecs/m_ecs_manager.gd")
+const ALIGN_COMPONENT := preload("res://scripts/ecs/components/c_align_with_surface_component.gd")
+const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 
 
 func _pump() -> void:
 	await get_tree().process_frame
 
-func _add_manager() -> ECS_MANAGER:
-	var manager := ECS_MANAGER.new()
+func _add_manager() -> M_ECSManager:
+	var manager: M_ECSManager = ECS_MANAGER.new()
 	add_child(manager)
 	await _pump()
 	return manager
@@ -17,8 +17,8 @@ func _add_manager() -> ECS_MANAGER:
 func test_align_with_surface_component_defaults_and_registration() -> void:
 	var manager := await _add_manager()
 
-	var component := ALIGN_COMPONENT.new()
-	component.settings = AlignSettings.new()
+	var component: C_AlignWithSurfaceComponent = ALIGN_COMPONENT.new()
+	component.settings = RS_AlignSettings.new()
 	add_child(component)
 	await _pump()
 
@@ -38,8 +38,8 @@ func test_align_with_surface_component_defaults_and_registration() -> void:
 func test_align_with_surface_component_fetches_assigned_nodes() -> void:
 	var manager := await _add_manager()
 
-	var component := ALIGN_COMPONENT.new()
-	component.settings = AlignSettings.new()
+	var component: C_AlignWithSurfaceComponent = ALIGN_COMPONENT.new()
+	component.settings = RS_AlignSettings.new()
 	add_child(component)
 	await _pump()
 
@@ -51,8 +51,8 @@ func test_align_with_surface_component_fetches_assigned_nodes() -> void:
 	body.add_child(mesh)
 	await _pump()
 
-	var floating := FLOATING_COMPONENT.new()
-	floating.settings = FloatingSettings.new()
+	var floating: C_FloatingComponent = FLOATING_COMPONENT.new()
+	floating.settings = RS_FloatingSettings.new()
 	component.add_child(floating)
 	await _pump()
 
@@ -69,13 +69,13 @@ func test_align_with_surface_component_fetches_assigned_nodes() -> void:
 	await _pump()
 
 func test_align_with_surface_component_delegates_support_check() -> void:
-	var component := ALIGN_COMPONENT.new()
-	component.settings = AlignSettings.new()
+	var component: C_AlignWithSurfaceComponent = ALIGN_COMPONENT.new()
+	component.settings = RS_AlignSettings.new()
 	add_child(component)
 	await _pump()
 
-	var floating := FLOATING_COMPONENT.new()
-	floating.settings = FloatingSettings.new()
+	var floating: C_FloatingComponent = FLOATING_COMPONENT.new()
+	floating.settings = RS_FloatingSettings.new()
 	component.add_child(floating)
 	await _pump()
 

@@ -1,10 +1,10 @@
 extends GutTest
 
-const ECS_MANAGER = preload("res://scripts/ecs/ecs_manager.gd")
-const MovementComponentScript = preload("res://scripts/ecs/components/movement_component.gd")
-const MovementSystemScript = preload("res://scripts/ecs/systems/movement_system.gd")
-const InputComponentScript = preload("res://scripts/ecs/components/input_component.gd")
-const FloatingComponentScript = preload("res://scripts/ecs/components/floating_component.gd")
+const ECS_MANAGER = preload("res://scripts/ecs/m_ecs_manager.gd")
+const MovementComponentScript = preload("res://scripts/ecs/components/c_movement_component.gd")
+const MovementSystemScript = preload("res://scripts/ecs/systems/s_movement_system.gd")
+const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
+const FloatingComponentScript = preload("res://scripts/ecs/components/c_floating_component.gd")
 
 class FakeBody extends CharacterBody3D:
 	var move_called: bool = false
@@ -28,7 +28,7 @@ func _setup_entity(include_floating: bool = false) -> Dictionary:
 	await _pump()
 
 	var movement = MovementComponentScript.new()
-	movement.settings = MovementSettings.new()
+	movement.settings = RS_MovementSettings.new()
 	add_child(movement)
 	await _pump()
 
@@ -43,10 +43,10 @@ func _setup_entity(include_floating: bool = false) -> Dictionary:
 	movement.character_body_path = movement.get_path_to(body)
 	movement.input_component_path = movement.get_path_to(input)
 
-	var floating: FloatingComponent = null
+	var floating: C_FloatingComponent = null
 	if include_floating:
 		floating = FloatingComponentScript.new()
-		floating.settings = FloatingSettings.new()
+		floating.settings = RS_FloatingSettings.new()
 		add_child(floating)
 		await _pump()
 		floating.character_body_path = floating.get_path_to(body)
@@ -85,7 +85,7 @@ func test_movement_system_updates_velocity_towards_input() -> void:
 
 func test_movement_system_applies_sprint_multiplier_to_speed() -> void:
 	var context: Dictionary = await _setup_entity()
-	var movement: MovementComponent = context["movement"]
+	var movement: C_MovementComponent = context["movement"]
 	var input = context["input"]
 	var body: FakeBody = context["body"]
 	var system = context["system"]
@@ -108,10 +108,10 @@ func test_movement_system_applies_sprint_multiplier_to_speed() -> void:
 
 func test_movement_grounded_friction_reduces_velocity_quickly() -> void:
 	var context: Dictionary = await _setup_entity(true)
-	var movement: MovementComponent = context["movement"]
+	var movement: C_MovementComponent = context["movement"]
 	var body: FakeBody = context["body"]
 	var system = context["system"]
-	var floating: FloatingComponent = context["floating"]
+	var floating: C_FloatingComponent = context["floating"]
 
 	movement.settings.use_second_order_dynamics = false
 	movement.settings.grounded_friction = 40.0
@@ -132,10 +132,10 @@ func test_movement_grounded_friction_reduces_velocity_quickly() -> void:
 
 func test_movement_air_friction_is_gentler_without_support() -> void:
 	var context: Dictionary = await _setup_entity(true)
-	var movement: MovementComponent = context["movement"]
+	var movement: C_MovementComponent = context["movement"]
 	var body: FakeBody = context["body"]
 	var system = context["system"]
-	var floating: FloatingComponent = context["floating"]
+	var floating: C_FloatingComponent = context["floating"]
 
 	movement.settings.use_second_order_dynamics = false
 	movement.settings.grounded_friction = 40.0
@@ -156,11 +156,11 @@ func test_movement_air_friction_is_gentler_without_support() -> void:
 
 func test_second_order_dynamics_dampens_more_when_grounded() -> void:
 	var context: Dictionary = await _setup_entity(true)
-	var movement: MovementComponent = context["movement"]
+	var movement: C_MovementComponent = context["movement"]
 	var input = context["input"]
 	var body: FakeBody = context["body"]
 	var system = context["system"]
-	var floating: FloatingComponent = context["floating"]
+	var floating: C_FloatingComponent = context["floating"]
 
 	movement.settings.use_second_order_dynamics = true
 	movement.settings.response_frequency = 1.0

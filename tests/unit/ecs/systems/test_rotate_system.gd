@@ -1,9 +1,9 @@
 extends GutTest
 
-const ECS_MANAGER = preload("res://scripts/ecs/ecs_manager.gd")
-const RotateComponentScript = preload("res://scripts/ecs/components/rotate_to_input_component.gd")
-const InputComponentScript = preload("res://scripts/ecs/components/input_component.gd")
-const RotateSystemScript = preload("res://scripts/ecs/systems/rotate_to_input_system.gd")
+const ECS_MANAGER = preload("res://scripts/ecs/m_ecs_manager.gd")
+const RotateComponentScript = preload("res://scripts/ecs/components/c_rotate_to_input_component.gd")
+const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
+const RotateSystemScript = preload("res://scripts/ecs/systems/s_rotate_to_input_system.gd")
 
 func _pump() -> void:
     await get_tree().process_frame
@@ -13,12 +13,12 @@ func _setup_entity() -> Dictionary:
     add_child(manager)
     await _pump()
 
-    var rotate_component = RotateComponentScript.new()
-    rotate_component.settings = RotateToInputSettings.new()
+    var rotate_component: C_RotateToInputComponent = RotateComponentScript.new()
+    rotate_component.settings = RS_RotateToInputSettings.new()
     add_child(rotate_component)
     await _pump()
 
-    var input = InputComponentScript.new()
+    var input: C_InputComponent = InputComponentScript.new()
     add_child(input)
     await _pump()
 
@@ -29,7 +29,7 @@ func _setup_entity() -> Dictionary:
     rotate_component.target_node_path = rotate_component.get_path_to(body)
     rotate_component.input_component_path = rotate_component.get_path_to(input)
 
-    var system = RotateSystemScript.new()
+    var system: S_RotateToInputSystem = RotateSystemScript.new()
     add_child(system)
     await _pump()
 
@@ -43,9 +43,9 @@ func _setup_entity() -> Dictionary:
 
 func test_rotate_system_turns_towards_input_direction() -> void:
     var context := await _setup_entity()
-    var input = context["input"]
+    var input: C_InputComponent = context["input"]
     var body: Node3D = context["body"]
-    var system = context["system"]
+    var system: S_RotateToInputSystem = context["system"]
 
     body.transform = Transform3D.IDENTITY
     input.set_move_vector(Vector2.RIGHT)
@@ -58,10 +58,10 @@ func test_rotate_system_turns_towards_input_direction() -> void:
 
 func test_rotate_system_uses_second_order_for_smooth_turn() -> void:
     var context := await _setup_entity()
-    var rotate_component: RotateToInputComponent = context["rotate_component"]
-    var input = context["input"]
+    var rotate_component: C_RotateToInputComponent = context["rotate_component"]
+    var input: C_InputComponent = context["input"]
     var body: Node3D = context["body"]
-    var system = context["system"]
+    var system: S_RotateToInputSystem = context["system"]
 
     rotate_component.settings.use_second_order = true
     rotate_component.settings.rotation_frequency = 2.0
@@ -90,10 +90,10 @@ func test_rotate_system_uses_second_order_for_smooth_turn() -> void:
 
 func test_rotate_system_resets_second_order_state_without_input() -> void:
     var context := await _setup_entity()
-    var rotate_component: RotateToInputComponent = context["rotate_component"]
-    var input = context["input"]
+    var rotate_component: C_RotateToInputComponent = context["rotate_component"]
+    var input: C_InputComponent = context["input"]
     var body: Node3D = context["body"]
-    var system = context["system"]
+    var system: S_RotateToInputSystem = context["system"]
 
     rotate_component.settings.use_second_order = true
     rotate_component.settings.rotation_frequency = 2.0

@@ -1,9 +1,9 @@
 extends GutTest
 
-const ECS_MANAGER := preload("res://scripts/ecs/ecs_manager.gd")
-const ALIGN_COMPONENT := preload("res://scripts/ecs/components/align_with_surface_component.gd")
-const ALIGN_SYSTEM := preload("res://scripts/ecs/systems/align_with_surface_system.gd")
-const FLOATING_COMPONENT := preload("res://scripts/ecs/components/floating_component.gd")
+const ECS_MANAGER := preload("res://scripts/ecs/m_ecs_manager.gd")
+const ALIGN_COMPONENT := preload("res://scripts/ecs/components/c_align_with_surface_component.gd")
+const ALIGN_SYSTEM := preload("res://scripts/ecs/systems/s_align_with_surface_system.gd")
+const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 
 class FakeBody extends CharacterBody3D:
 	func _init() -> void:
@@ -20,8 +20,8 @@ func _setup_context() -> Dictionary:
 	add_child(manager)
 	await _pump()
 
-	var component := ALIGN_COMPONENT.new()
-	component.settings = AlignSettings.new()
+	var component: C_AlignWithSurfaceComponent = ALIGN_COMPONENT.new()
+	component.settings = RS_AlignSettings.new()
 	add_child(component)
 	await _pump()
 
@@ -33,8 +33,8 @@ func _setup_context() -> Dictionary:
 	body.add_child(visual)
 	await _pump()
 
-	var floating := FLOATING_COMPONENT.new()
-	floating.settings = FloatingSettings.new()
+	var floating: C_FloatingComponent = FLOATING_COMPONENT.new()
+	floating.settings = RS_FloatingSettings.new()
 	component.add_child(floating)
 	await _pump()
 
@@ -42,7 +42,7 @@ func _setup_context() -> Dictionary:
 	component.visual_alignment_path = component.get_path_to(visual)
 	component.floating_component_path = component.get_path_to(floating)
 
-	var system := ALIGN_SYSTEM.new()
+	var system: S_AlignWithSurfaceSystem = ALIGN_SYSTEM.new()
 	add_child(system)
 	await _pump()
 
@@ -57,13 +57,13 @@ func _setup_context() -> Dictionary:
 
 func test_align_system_matches_visual_up_to_body_up_direction() -> void:
 	var context := await _setup_context()
-	var component = context["component"] as AlignWithSurfaceComponent
+	var component = context["component"] as C_AlignWithSurfaceComponent
 	component.settings.align_only_when_supported = false
 	component.settings.smoothing_speed = 0.0
 
 	var body = context["body"] as FakeBody
 	var visual = context["visual"] as FakeVisual
-	var system = context["system"] as AlignWithSurfaceSystem
+	var system = context["system"] as S_AlignWithSurfaceSystem
 
 	var slope_normal := Vector3(0.0, 0.8660254, 0.5).normalized()
 	body.up_direction = slope_normal
@@ -88,15 +88,15 @@ func test_align_system_matches_visual_up_to_body_up_direction() -> void:
 
 func test_align_system_respects_support_requirement() -> void:
 	var context := await _setup_context()
-	var component = context["component"] as AlignWithSurfaceComponent
+	var component = context["component"] as C_AlignWithSurfaceComponent
 	component.settings.align_only_when_supported = true
 	component.settings.recent_support_tolerance = 0.1
 	component.settings.smoothing_speed = 0.0
 
 	var body = context["body"] as FakeBody
 	var visual = context["visual"] as FakeVisual
-	var floating = context["floating"] as FloatingComponent
-	var system = context["system"] as AlignWithSurfaceSystem
+	var floating = context["floating"] as C_FloatingComponent
+	var system = context["system"] as S_AlignWithSurfaceSystem
 
 	var initial_basis: Basis = visual.global_transform.basis
 	var slope_normal := Vector3(0.2, 0.9, 0.4).normalized()

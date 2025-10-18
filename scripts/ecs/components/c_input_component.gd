@@ -1,8 +1,8 @@
 extends ECSComponent
 
-class_name InputComponent
+class_name C_InputComponent
 
-const COMPONENT_TYPE := StringName("InputComponent")
+const COMPONENT_TYPE := StringName("C_InputComponent")
 
 var move_vector: Vector2 = Vector2.ZERO
 var jump_pressed: bool = false

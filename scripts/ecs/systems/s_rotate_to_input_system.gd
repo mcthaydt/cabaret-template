@@ -1,8 +1,8 @@
 extends ECSSystem
 
-class_name RotateToInputSystem
+class_name S_RotateToInputSystem
 
-const ROTATE_TYPE := StringName("RotateToInputComponent")
+const ROTATE_TYPE := StringName("C_RotateToInputComponent")
 
 func process_tick(delta: float) -> void:
 	for component in get_components(ROTATE_TYPE):
@@ -47,7 +47,7 @@ func _move_toward_angle(current: float, target: float, max_delta: float) -> floa
 		return target
 	return current + clamp(difference, -max_delta, max_delta)
 
-func _apply_second_order_rotation(component: RotateToInputComponent, target: Node3D, desired_yaw: float, delta: float, max_delta: float) -> void:
+func _apply_second_order_rotation(component: C_RotateToInputComponent, target: Node3D, desired_yaw: float, delta: float, max_delta: float) -> void:
 	var current_rotation := target.rotation
 	var current_yaw := current_rotation.y
 	var error := wrapf(desired_yaw - current_yaw, -PI, PI)

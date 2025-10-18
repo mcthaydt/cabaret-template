@@ -1,6 +1,6 @@
 extends Resource
 
-class_name MovementSettings
+class_name RS_MovementSettings
 
 @export var max_speed: float = 6.0
 @export var sprint_speed_multiplier: float = 1.5
@@ -16,4 +16,3 @@ class_name MovementSettings
 @export var strafe_friction_scale: float = 1.0
 @export var forward_friction_scale: float = 1.0
 @export var support_grace_time: float = 0.25
-

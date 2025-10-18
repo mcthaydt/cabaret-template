@@ -1,8 +1,8 @@
 extends ECSSystem
 
-class_name FloatingSystem
+class_name S_FloatingSystem
 
-const FLOATING_TYPE := StringName('FloatingComponent')
+const FLOATING_TYPE := StringName("C_FloatingComponent")
 
 class SupportInfo:
 	var has_hit: bool = false
@@ -17,7 +17,7 @@ func process_tick(delta: float) -> void:
 		if component == null:
 			continue
 
-		var floating_component: FloatingComponent = component as FloatingComponent
+		var floating_component: C_FloatingComponent = component as C_FloatingComponent
 		if floating_component == null:
 			continue
 

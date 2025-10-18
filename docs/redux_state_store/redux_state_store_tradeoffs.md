@@ -7,14 +7,14 @@
 ## Overview
 
 **What We're Building**: A centralized, Redux-inspired state management system with:
-- Single StateStore node in scene tree (no AutoLoad/singleton)
+- Single M_StateManager node in scene tree (no AutoLoad/singleton)
 - Immutable state updates via actions and reducers
 - Time-travel debugging capability
 - Normalized state structure
 - Fail-fast error handling
 - Per-reducer persistence control
 
-**Why We're Considering It**: Current ECSManager handles component registry but provides no global application state management (scores, UI state, sessions, saves).
+**Why We're Considering It**: Current M_ECSManager handles component registry but provides no global application state management (scores, UI state, sessions, saves).
 
 ---
 
@@ -169,7 +169,7 @@
 
 **✗ Initial Setup Time**
 - 2000+ lines of code to implement (store, utils, middleware, reducers, tests)
-- Scene setup (add StateStore node to all scenes)
+- Scene setup (add M_StateManager node to all scenes)
 - Migration effort (convert existing code to use store)
 - Learning time for team
 

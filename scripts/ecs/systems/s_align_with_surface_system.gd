@@ -1,8 +1,8 @@
 extends ECSSystem
 
-class_name AlignWithSurfaceSystem
+class_name S_AlignWithSurfaceSystem
 
-const ALIGN_TYPE := StringName("AlignWithSurfaceComponent")
+const ALIGN_TYPE := StringName("C_AlignWithSurfaceComponent")
 
 func process_tick(delta: float) -> void:
 	var now := Time.get_ticks_msec() / 1000.0
@@ -11,7 +11,7 @@ func process_tick(delta: float) -> void:
 		if component == null:
 			continue
 
-		var align_component: AlignWithSurfaceComponent = component as AlignWithSurfaceComponent
+		var align_component: C_AlignWithSurfaceComponent = component as C_AlignWithSurfaceComponent
 		if align_component == null:
 			continue
 

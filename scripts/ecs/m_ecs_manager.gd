@@ -1,12 +1,12 @@
 extends Node
 
-class_name ECSManager
+class_name M_ECSManager
 
-signal component_added(component_type, component)
-signal component_removed(component_type, component)
+signal component_added(component_type: StringName, component: ECSComponent)
+signal component_removed(component_type: StringName, component: ECSComponent)
 
 var _components: Dictionary = {}
-var _systems: Array = []
+var _systems: Array[ECSSystem] = []
 
 func _ready() -> void:
     add_to_group("ecs_manager")
@@ -15,7 +15,7 @@ func _exit_tree() -> void:
     if is_in_group("ecs_manager"):
         remove_from_group("ecs_manager")
 
-func register_component(component) -> void:
+func register_component(component: ECSComponent) -> void:
     if component == null:
         push_warning("Attempted to register a null component")
         return
@@ -33,7 +33,7 @@ func register_component(component) -> void:
     component.on_registered(self)
     component_added.emit(type_name, component)
 
-func unregister_component(component) -> void:
+func unregister_component(component: ECSComponent) -> void:
     if component == null:
         return
 
@@ -59,7 +59,7 @@ func get_components(component_type: StringName) -> Array:
 func get_systems() -> Array:
     return _systems.duplicate()
 
-func register_system(system) -> void:
+func register_system(system: ECSSystem) -> void:
     if system == null:
         push_warning("Attempted to register a null system")
         return

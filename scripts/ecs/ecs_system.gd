@@ -2,19 +2,19 @@ extends Node
 
 class_name ECSSystem
 
-var _manager: Node
+var _manager: M_ECSManager
 
 func _ready() -> void:
     call_deferred("_register_with_manager")
 
-func configure(manager: Node) -> void:
+func configure(manager: M_ECSManager) -> void:
     _manager = manager
     on_configured()
 
 func on_configured() -> void:
     pass
 
-func get_manager() -> Node:
+func get_manager() -> M_ECSManager:
     return _manager
 
 func get_components(component_type: StringName) -> Array:
@@ -37,11 +37,11 @@ func _register_with_manager() -> void:
         return
     manager.register_system(self)
 
-func _locate_manager() -> Node:
+func _locate_manager() -> M_ECSManager:
     var current := get_parent()
     while current != null:
         if current.has_method("register_component") and current.has_method("register_system"):
-            return current
+            return current as M_ECSManager
         current = current.get_parent()
 
     var tree := get_tree()
@@ -52,4 +52,4 @@ func _locate_manager() -> Node:
     if managers.is_empty():
         return null
 
-    return managers[0]
+    return managers[0] as M_ECSManager

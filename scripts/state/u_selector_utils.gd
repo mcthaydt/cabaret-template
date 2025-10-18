@@ -1,5 +1,7 @@
 extends RefCounted
 
+class_name U_SelectorUtils
+
 class MemoizedSelector extends RefCounted:
 	var _selector_func: Callable
 	var _last_version: int = -1

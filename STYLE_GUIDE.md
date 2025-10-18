@@ -350,7 +350,7 @@ This plan covers the complete refactoring of existing code to match the new nami
 - [ ] `floating_system.gd` → `s_floating_system.gd`
   - Update class name to `S_FloatingSystem`
 - [ ] `rotate_to_input_system.gd` → `s_rotate_to_input_system.gd`
-  - Update class name to `S_RotateToInputSystem`
+  - Update class name to `S_RotateToS_InputSystem`
 - [ ] `align_with_surface_system.gd` → `s_align_with_surface_system.gd`
   - Update class name to `S_AlignWithSurfaceSystem`
 - [ ] `landing_indicator_system.gd` → `s_landing_indicator_system.gd`
@@ -369,7 +369,7 @@ This plan covers the complete refactoring of existing code to match the new nami
 - [ ] `floating_component.gd` → `c_floating_component.gd`
   - Update class name to `C_FloatingComponent`
 - [ ] `rotate_to_input_component.gd` → `c_rotate_to_input_component.gd`
-  - Update class name to `C_RotateToInputComponent`
+  - Update class name to `C_RotateToC_InputComponent`
 - [ ] `align_with_surface_component.gd` → `c_align_with_surface_component.gd`
   - Update class name to `C_AlignWithSurfaceComponent`
 - [ ] `landing_indicator_component.gd` → `c_landing_indicator_component.gd`
@@ -408,7 +408,7 @@ This plan covers the complete refactoring of existing code to match the new nami
 
 ### Phase 7: Update References in Code
 - [ ] Update all `@export` NodePath references
-- [ ] Update all type checking (e.g., `component is MovementComponent` → `component is C_MovementComponent`)
+- [ ] Update all type checking (e.g., `component is C_MovementComponent` → `component is C_MovementComponent`)
 - [ ] Update all StringName constants for component/system types
 - [ ] Update scene files (.tscn) if they reference scripts
 - [ ] Search for hardcoded string references
@@ -518,7 +518,7 @@ Always use StringName with the full prefixed class name:
 const COMPONENT_TYPE := StringName("C_MovementComponent")
 
 # Bad
-const COMPONENT_TYPE := StringName("MovementComponent")
+const COMPONENT_TYPE := StringName("C_MovementComponent")
 const COMPONENT_TYPE := "C_MovementComponent"  # Not a StringName
 ```
 
@@ -530,7 +530,7 @@ var movement_component: C_MovementComponent
 var ecs_manager: M_ECSManager
 
 # Bad
-var movement_component: MovementComponent
+var movement_component: C_MovementComponent
 ```
 
 ### Exporting Properties
@@ -573,7 +573,7 @@ var c_movement: C_MovementComponent
 ### Q: What about auto-loaded singletons?
 **A:** Autoload singleton names in Project Settings should match the class name:
 - Class: `M_ECSManager`
-- Autoload name: `M_ECSManager` or `ECSManager` (your choice)
+- Autoload name: `M_ECSManager` or `M_ECSManager` (your choice)
 
 ### Q: Should test class names have prefixes?
 **A:** No, test classes follow the pattern `TestS_MovementSystem` or similar. The file has `test_` prefix.
@@ -582,7 +582,7 @@ var c_movement: C_MovementComponent
 **A:** Discuss with the team. Most classes should fit into one of the existing categories. If truly needed, propose a new prefix.
 
 ### Q: Can I abbreviate long names?
-**A:** Prefer clarity over brevity. `S_RotateToInputSystem` is better than `S_R2ISystem`.
+**A:** Prefer clarity over brevity. `S_RotateToS_InputSystem` is better than `S_R2ISystem`.
 
 ---
 

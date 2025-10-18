@@ -1,8 +1,8 @@
 extends GutTest
 
-const ECS_MANAGER = preload("res://scripts/ecs/ecs_manager.gd")
-const GravitySystemScript = preload("res://scripts/ecs/systems/gravity_system.gd")
-const MovementComponentScript = preload("res://scripts/ecs/components/movement_component.gd")
+const ECS_MANAGER = preload("res://scripts/ecs/m_ecs_manager.gd")
+const GravitySystemScript = preload("res://scripts/ecs/systems/s_gravity_system.gd")
+const MovementComponentScript = preload("res://scripts/ecs/components/c_movement_component.gd")
 
 class FakeBody extends CharacterBody3D:
     var grounded := false
@@ -23,8 +23,8 @@ func _setup_entity() -> Dictionary:
     add_child(body)
     await _pump()
 
-    var movement = MovementComponentScript.new()
-    movement.settings = MovementSettings.new()
+    var movement: C_MovementComponent = MovementComponentScript.new()
+    movement.settings = RS_MovementSettings.new()
     add_child(movement)
     await _pump()
 

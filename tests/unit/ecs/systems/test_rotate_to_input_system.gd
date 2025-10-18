@@ -1,9 +1,9 @@
 extends GutTest
 
-const ECS_MANAGER = preload("res://scripts/ecs/ecs_manager.gd")
-const InputComponentScript = preload("res://scripts/ecs/components/input_component.gd")
-const RotateComponentScript = preload("res://scripts/ecs/components/rotate_to_input_component.gd")
-const RotateSystemScript = preload("res://scripts/ecs/systems/rotate_to_input_system.gd")
+const ECS_MANAGER = preload("res://scripts/ecs/m_ecs_manager.gd")
+const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
+const RotateComponentScript = preload("res://scripts/ecs/components/c_rotate_to_input_component.gd")
+const RotateSystemScript = preload("res://scripts/ecs/systems/s_rotate_to_input_system.gd")
 
 func _pump() -> void:
     await get_tree().process_frame
@@ -13,7 +13,7 @@ func _setup_context() -> Dictionary:
     add_child(manager)
     await _pump()
 
-    var input = InputComponentScript.new()
+    var input: C_InputComponent = InputComponentScript.new()
     add_child(input)
     await _pump()
 
@@ -21,15 +21,15 @@ func _setup_context() -> Dictionary:
     add_child(target)
     await _pump()
 
-    var component = RotateComponentScript.new()
-    component.settings = RotateToInputSettings.new()
+    var component: C_RotateToInputComponent = RotateComponentScript.new()
+    component.settings = RS_RotateToInputSettings.new()
     add_child(component)
     await _pump()
 
     component.target_node_path = component.get_path_to(target)
     component.input_component_path = component.get_path_to(input)
 
-    var system = RotateSystemScript.new()
+    var system: S_RotateToInputSystem = RotateSystemScript.new()
     add_child(system)
     await _pump()
 
@@ -43,9 +43,9 @@ func _setup_context() -> Dictionary:
 
 func test_rotates_right_input_to_positive_x() -> void:
     var context := await _setup_context()
-    var input: InputComponent = context["input"]
+    var input: C_InputComponent = context["input"]
     var target: Node3D = context["target"]
-    var system: RotateToInputSystem = context["system"]
+    var system: S_RotateToInputSystem = context["system"]
 
     input.set_move_vector(Vector2.RIGHT)
     system._physics_process(1.0)
@@ -57,9 +57,9 @@ func test_rotates_right_input_to_positive_x() -> void:
 
 func test_rotates_left_input_to_negative_x() -> void:
     var context := await _setup_context()
-    var input: InputComponent = context["input"]
+    var input: C_InputComponent = context["input"]
     var target: Node3D = context["target"]
-    var system: RotateToInputSystem = context["system"]
+    var system: S_RotateToInputSystem = context["system"]
 
     input.set_move_vector(Vector2.LEFT)
     system._physics_process(1.0)

@@ -1,10 +1,10 @@
 extends ECSComponent
 
-class_name RotateToInputComponent
+class_name C_RotateToInputComponent
 
-const COMPONENT_TYPE := StringName("RotateToInputComponent")
+const COMPONENT_TYPE := StringName("C_RotateToInputComponent")
 
-@export var settings: RotateToInputSettings
+@export var settings: RS_RotateToInputSettings
 @export_node_path("Node3D") var target_node_path: NodePath
 @export_node_path("Node") var input_component_path: NodePath
 
@@ -15,7 +15,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	if settings == null:
-		push_error("RotateToInputComponent missing settings; assign a RotateToInputSettings resource.")
+		push_error("C_RotateToInputComponent missing settings; assign an RS_RotateToInputSettings resource.")
 		set_process(false)
 		set_physics_process(false)
 		return
@@ -26,10 +26,10 @@ func get_target_node() -> Node3D:
 		return null
 	return get_node_or_null(target_node_path)
 
-func get_input_component():
+func get_input_component() -> C_InputComponent:
 	if input_component_path.is_empty():
 		return null
-	return get_node_or_null(input_component_path)
+	return get_node_or_null(input_component_path) as C_InputComponent
 
 func set_rotation_velocity(value: float) -> void:
 	_rotation_velocity = value

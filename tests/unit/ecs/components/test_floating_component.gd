@@ -1,10 +1,10 @@
 extends GutTest
 
-const ECS_MANAGER := preload("res://scripts/ecs/ecs_manager.gd")
-const FLOATING_COMPONENT := preload("res://scripts/ecs/components/floating_component.gd")
+const ECS_MANAGER := preload("res://scripts/ecs/m_ecs_manager.gd")
+const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 
-func _add_manager() -> ECS_MANAGER:
-	var manager := ECS_MANAGER.new()
+func _add_manager() -> M_ECSManager:
+	var manager: M_ECSManager = ECS_MANAGER.new()
 	add_child(manager)
 	return manager
 
@@ -15,8 +15,8 @@ func test_floating_component_defaults_and_registration() -> void:
 	var manager := _add_manager()
 	await _pump()
 
-	var component := FLOATING_COMPONENT.new()
-	component.settings = FloatingSettings.new()
+	var component: C_FloatingComponent = FLOATING_COMPONENT.new()
+	component.settings = RS_FloatingSettings.new()
 	add_child(component)
 	await _pump()
 
@@ -42,8 +42,8 @@ func test_floating_component_collects_child_rays() -> void:
 	var manager := _add_manager()
 	await _pump()
 
-	var component := FLOATING_COMPONENT.new()
-	component.settings = FloatingSettings.new()
+	var component: C_FloatingComponent = FLOATING_COMPONENT.new()
+	component.settings = RS_FloatingSettings.new()
 	add_child(component)
 	await _pump()
 
@@ -66,8 +66,8 @@ func test_floating_component_collects_child_rays() -> void:
 	await _pump()
 
 func test_floating_component_tracks_recent_support_state() -> void:
-	var component := FLOATING_COMPONENT.new()
-	component.settings = FloatingSettings.new()
+	var component: C_FloatingComponent = FLOATING_COMPONENT.new()
+	component.settings = RS_FloatingSettings.new()
 	add_child(component)
 	await _pump()
 

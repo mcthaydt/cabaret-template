@@ -1,13 +1,13 @@
 extends ECSComponent
 
-class_name LandingIndicatorComponent
+class_name C_LandingIndicatorComponent
 
-const COMPONENT_TYPE := StringName('LandingIndicatorComponent')
+const COMPONENT_TYPE := StringName("C_LandingIndicatorComponent")
 
-@export var settings: LandingIndicatorSettings
-@export_node_path('CharacterBody3D') var character_body_path: NodePath
-@export_node_path('Node3D') var origin_marker_path: NodePath
-@export_node_path('Node3D') var landing_marker_path: NodePath
+@export var settings: RS_LandingIndicatorSettings
+@export_node_path("CharacterBody3D") var character_body_path: NodePath
+@export_node_path("Node3D") var origin_marker_path: NodePath
+@export_node_path("Node3D") var landing_marker_path: NodePath
 
 var _indicator_visible: bool = false
 var _landing_point: Vector3 = Vector3.ZERO
@@ -18,7 +18,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	if settings == null:
-		push_error("LandingIndicatorComponent missing settings; assign a LandingIndicatorSettings resource.")
+		push_error("C_LandingIndicatorComponent missing settings; assign an RS_LandingIndicatorSettings resource.")
 		set_process(false)
 		set_physics_process(false)
 		return
@@ -79,7 +79,7 @@ func _set_marker_global_position(marker: Node3D, position: Vector3) -> void:
 	if marker.is_inside_tree():
 		marker.global_position = position
 	else:
-		marker.set_deferred('global_position', position)
+		marker.set_deferred("global_position", position)
 
 func _set_marker_visibility(marker: Node3D, visible: bool) -> void:
 	if marker == null:
@@ -87,4 +87,4 @@ func _set_marker_visibility(marker: Node3D, visible: bool) -> void:
 	if marker.is_inside_tree():
 		marker.visible = visible
 	else:
-		marker.set_deferred('visible', visible)
+		marker.set_deferred("visible", visible)

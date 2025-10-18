@@ -1,10 +1,10 @@
 extends ECSComponent
 
-class_name MovementComponent
+class_name C_MovementComponent
 
-const COMPONENT_TYPE := StringName("MovementComponent")
+const COMPONENT_TYPE := StringName("C_MovementComponent")
 
-@export var settings: MovementSettings
+@export var settings: RS_MovementSettings
 @export_node_path("CharacterBody3D") var character_body_path: NodePath
 @export_node_path("Node") var input_component_path: NodePath
 @export_node_path("Node") var support_component_path: NodePath
@@ -17,7 +17,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	if settings == null:
-		push_error("MovementComponent missing settings; assign a MovementSettings resource.")
+		push_error("C_MovementComponent missing settings; assign an RS_MovementSettings resource.")
 		set_process(false)
 		set_physics_process(false)
 		return
@@ -28,15 +28,15 @@ func get_character_body() -> CharacterBody3D:
 		return null
 	return get_node_or_null(character_body_path)
 
-func get_input_component():
+func get_input_component() -> C_InputComponent:
 	if input_component_path.is_empty():
 		return null
-	return get_node_or_null(input_component_path)
+	return get_node_or_null(input_component_path) as C_InputComponent
 
-func get_support_component() -> FloatingComponent:
+func get_support_component() -> C_FloatingComponent:
 	if support_component_path.is_empty():
 		return null
-	return get_node_or_null(support_component_path) as FloatingComponent
+	return get_node_or_null(support_component_path) as C_FloatingComponent
 
 func get_horizontal_dynamics_velocity() -> Vector2:
 	return _horizontal_dynamics_velocity

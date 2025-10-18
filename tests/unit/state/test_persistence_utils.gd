@@ -1,6 +1,6 @@
 extends GutTest
 
-const Persistence: Script = preload("res://scripts/state/persistence.gd")
+const U_StatePersistence: Script = preload("res://scripts/state/u_state_persistence.gd")
 
 func test_serialize_state_filters_to_persistable_slices() -> void:
 	var state: Dictionary = {
@@ -10,7 +10,7 @@ func test_serialize_state_filters_to_persistable_slices() -> void:
 	}
 
 	var slices: Array[StringName] = [StringName("game"), StringName("session")]
-	var json: String = Persistence.serialize_state(state, slices)
+	var json: String = U_StatePersistence.serialize_state(state, slices)
 	var parsed_variant: Variant = JSON.parse_string(json)
 	assert_true(typeof(parsed_variant) == TYPE_DICTIONARY)
 	var parsed: Dictionary = parsed_variant
@@ -30,8 +30,8 @@ func test_deserialize_state_validates_checksum() -> void:
 		StringName("game"): {"score": 15},
 	}
 	var slices: Array[StringName] = [StringName("game")]
-	var json: String = Persistence.serialize_state(state, slices)
-	var loaded: Dictionary = Persistence.deserialize_state(json)
+	var json: String = U_StatePersistence.serialize_state(state, slices)
+	var loaded: Dictionary = U_StatePersistence.deserialize_state(json)
 
 	assert_true(loaded.has(StringName("game")))
 	assert_eq(int(loaded[StringName("game")]["score"]), 15)
@@ -41,13 +41,13 @@ func test_deserialize_state_returns_null_on_corruption() -> void:
 		StringName("game"): {"score": 15},
 	}
 	var slices: Array[StringName] = [StringName("game")]
-	var json: String = Persistence.serialize_state(state, slices)
+	var json: String = U_StatePersistence.serialize_state(state, slices)
 	var parsed_variant: Variant = JSON.parse_string(json)
 	var parsed: Dictionary = parsed_variant
 	parsed["data"][StringName("game")]["score"] = 1
 	var tampered: String = JSON.stringify(parsed)
 
-	var result: Dictionary = Persistence.deserialize_state(tampered)
+	var result: Dictionary = U_StatePersistence.deserialize_state(tampered)
 	assert_eq(result, {})
 
 func test_save_and_load_state_round_trip() -> void:
@@ -57,10 +57,10 @@ func test_save_and_load_state_round_trip() -> void:
 		StringName("session"): {"slot": 3},
 	}
 	var slices: Array[StringName] = [StringName("game"), StringName("session")]
-	var err: int = Persistence.save_to_file(path, state, slices)
+	var err: int = U_StatePersistence.save_to_file(path, state, slices)
 	assert_eq(err, OK)
 
-	var loaded: Dictionary = Persistence.load_from_file(path)
+	var loaded: Dictionary = U_StatePersistence.load_from_file(path)
 	assert_eq(int(loaded[StringName("game")]["score"]), 7)
 	assert_eq(int(loaded[StringName("session")]["slot"]), 3)
 
@@ -71,7 +71,7 @@ func test_load_from_file_returns_empty_when_missing() -> void:
 	if FileAccess.file_exists(path):
 		_remove_file(path)
 
-	var loaded: Dictionary = Persistence.load_from_file(path)
+	var loaded: Dictionary = U_StatePersistence.load_from_file(path)
 	assert_eq(loaded, {})
 
 func _remove_file(path: String) -> void:

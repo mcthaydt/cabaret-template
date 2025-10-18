@@ -1,9 +1,9 @@
 extends ECSSystem
 
-class_name GravitySystem
+class_name S_GravitySystem
 
 @export var gravity: float = 30.0
-const MOVEMENT_TYPE := StringName("MovementComponent")
+const MOVEMENT_TYPE := StringName("C_MovementComponent")
 
 func process_tick(delta: float) -> void:
     var processed := {}

@@ -1,8 +1,8 @@
 extends ECSSystem
 
-class_name MovementSystem
+class_name S_MovementSystem
 
-const MOVEMENT_TYPE := StringName("MovementComponent")
+const MOVEMENT_TYPE := StringName("C_MovementComponent")
 
 func process_tick(delta: float) -> void:
 	var body_state := {}
@@ -45,7 +45,7 @@ func process_tick(delta: float) -> void:
 		if has_input:
 			desired_velocity = _get_desired_velocity(input_vector, current_max_speed)
 
-		var support_component: FloatingComponent = component.get_support_component()
+		var support_component: C_FloatingComponent = component.get_support_component()
 		var support_active: bool = false
 		if support_component != null:
 			support_active = support_component.has_recent_support(current_time, component.settings.support_grace_time)
@@ -99,7 +99,7 @@ func _clamp_horizontal_speed(velocity: Vector3, max_speed: float) -> Vector3:
 		velocity.z = horizontal.z
 	return velocity
 
-func _apply_second_order_dynamics(component: MovementComponent, velocity: Vector3, desired_velocity: Vector3, delta: float, support_active: bool) -> Vector3:
+func _apply_second_order_dynamics(component: C_MovementComponent, velocity: Vector3, desired_velocity: Vector3, delta: float, support_active: bool) -> Vector3:
 	var frequency: float = max(component.settings.response_frequency, 0.0)
 	if frequency <= 0.0:
 		component.reset_dynamics_state()
@@ -125,7 +125,7 @@ func _apply_second_order_dynamics(component: MovementComponent, velocity: Vector
 	velocity.z = current_horizontal.y
 	return velocity
 
-func _apply_horizontal_friction(component: MovementComponent, velocity: Vector3, support_active: bool, delta: float) -> Vector3:
+func _apply_horizontal_friction(component: C_MovementComponent, velocity: Vector3, support_active: bool, delta: float) -> Vector3:
 	var base_friction: float = component.settings.grounded_friction if support_active else component.settings.air_friction
 	if base_friction <= 0.0:
 		return velocity
