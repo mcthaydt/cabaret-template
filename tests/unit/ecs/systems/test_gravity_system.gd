@@ -23,6 +23,7 @@ func _setup_entity() -> Dictionary:
     await _pump()
 
     var movement = MovementComponentScript.new()
+    movement.settings = MovementSettings.new()
     add_child(movement)
     await _pump()
 

@@ -34,7 +34,7 @@ func process_tick(_delta: float) -> void:
         var has_floating_support: bool = false
         if floating_component != null:
             floating_supported_now = floating_component.is_supported
-            has_floating_support = floating_component.has_recent_support(now, component.coyote_time)
+            has_floating_support = floating_component.has_recent_support(now, component.settings.coyote_time)
 
         component.update_vertical_state(body.velocity.y, now)
 
@@ -43,7 +43,7 @@ func process_tick(_delta: float) -> void:
             component.mark_on_floor(now)
         var support_recent: bool = supported_now or has_floating_support
 
-        var jump_requested: bool = input_component.has_jump_request(component.jump_buffer_time, now)
+        var jump_requested: bool = input_component.has_jump_request(component.settings.jump_buffer_time, now)
         if not jump_requested:
             component.update_debug_snapshot({
                 "supported": supported_now,
@@ -71,8 +71,10 @@ func process_tick(_delta: float) -> void:
 
         component.on_jump_performed(now, supported_now)
         var velocity = body.velocity
-        velocity.y = component.jump_force
+        velocity.y = component.settings.jump_force
         body.velocity = velocity
+        if floating_component != null:
+            floating_component.reset_recent_support(now, component.settings.coyote_time)
         component.update_debug_snapshot({
             "supported": supported_now,
             "support_recent": support_recent,

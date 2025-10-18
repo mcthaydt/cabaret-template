@@ -44,19 +44,19 @@ func process_tick(delta: float) -> void:
 			normal = normal.normalized()
 
 			var distance: float = support.distance
-			var height_error: float = floating_component.hover_height - distance
+			var height_error: float = floating_component.settings.hover_height - distance
 			var vel_along_normal: float = velocity.dot(normal)
-			var within_height_tolerance: bool = abs(height_error) <= floating_component.height_tolerance
-			var within_speed_tolerance: bool = abs(vel_along_normal) <= floating_component.settle_speed_tolerance
-			var support_active: bool = vel_along_normal <= floating_component.settle_speed_tolerance and height_error >= -floating_component.height_tolerance
+			var within_height_tolerance: bool = abs(height_error) <= floating_component.settings.height_tolerance
+			var within_speed_tolerance: bool = abs(vel_along_normal) <= floating_component.settings.settle_speed_tolerance
+			var support_active: bool = vel_along_normal <= floating_component.settings.settle_speed_tolerance and height_error >= -floating_component.settings.height_tolerance
 
-			if vel_along_normal > floating_component.settle_speed_tolerance:
+			if vel_along_normal > floating_component.settings.settle_speed_tolerance:
 				pass
 			elif within_height_tolerance and within_speed_tolerance:
 				velocity -= normal * vel_along_normal
 			else:
-				var frequency: float = max(floating_component.hover_frequency, 0.0)
-				var damping_ratio: float = max(floating_component.damping_ratio, 0.0)
+				var frequency: float = max(floating_component.settings.hover_frequency, 0.0)
+				var damping_ratio: float = max(floating_component.settings.damping_ratio, 0.0)
 				if frequency > 0.0:
 					var omega: float = TAU * frequency
 					var accel_along_normal: float = (omega * omega * height_error) - (2.0 * damping_ratio * omega * vel_along_normal)
@@ -66,15 +66,15 @@ func process_tick(delta: float) -> void:
 				else:
 					velocity -= normal * vel_along_normal
 
-			velocity = _clamp_velocity_along_normal(velocity, normal, floating_component.max_down_speed, floating_component.max_up_speed)
+			velocity = _clamp_velocity_along_normal(velocity, normal, floating_component.settings.max_down_speed, floating_component.settings.max_up_speed)
 
-			if floating_component.align_to_normal:
+			if floating_component.settings.align_to_normal:
 				body.up_direction = normal
 
 			floating_component.update_support_state(support_active, now)
 		else:
-			velocity.y -= floating_component.fall_gravity * delta
-			velocity.y = clamp(velocity.y, -floating_component.max_down_speed, floating_component.max_up_speed)
+			velocity.y -= floating_component.settings.fall_gravity * delta
+			velocity.y = clamp(velocity.y, -floating_component.settings.max_down_speed, floating_component.settings.max_up_speed)
 			floating_component.update_support_state(false, now)
 
 		body.velocity = velocity

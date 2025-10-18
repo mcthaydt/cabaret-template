@@ -32,7 +32,7 @@ func process_tick(delta: float) -> void:
 			component.set_landing_data(Vector3.ZERO, UP_VECTOR, false)
 
 func _project_to_ground(component: LandingIndicatorComponent, body: CharacterBody3D, origin_position: Vector3) -> Dictionary:
-	var max_distance: float = max(component.max_projection_distance, 0.0)
+	var max_distance: float = max(component.settings.max_projection_distance, 0.0)
 	if max_distance <= 0.0:
 		return _build_projection_result(false, Vector3.ZERO, UP_VECTOR)
 
@@ -42,7 +42,7 @@ func _project_to_ground(component: LandingIndicatorComponent, body: CharacterBod
 		if not hit.is_empty():
 			return _build_projection_result(true, hit['point'], hit['normal'])
 
-	var plane_hit: Dictionary = _project_to_plane(origin_position, component.ground_plane_height, max_distance)
+	var plane_hit: Dictionary = _project_to_plane(origin_position, component.settings.ground_plane_height, max_distance)
 	if not plane_hit.is_empty():
 		return _build_projection_result(true, plane_hit['point'], plane_hit['normal'])
 

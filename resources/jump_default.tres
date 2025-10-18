@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/ecs/resources/jump_settings.gd" id="1_0"]
+
+[resource]
+script = ExtResource("1_0")
+jump_force = 12.0
+coyote_time = 0.15
+max_air_jumps = 0
+jump_buffer_time = 0.15
+apex_coyote_time = 0.1
+apex_velocity_threshold = 0.1
+

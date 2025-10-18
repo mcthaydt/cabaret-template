@@ -14,6 +14,7 @@ func _setup_entity() -> Dictionary:
     await _pump()
 
     var rotate_component = RotateComponentScript.new()
+    rotate_component.settings = RotateToInputSettings.new()
     add_child(rotate_component)
     await _pump()
 
@@ -62,10 +63,10 @@ func test_rotate_system_uses_second_order_for_smooth_turn() -> void:
     var body: Node3D = context["body"]
     var system = context["system"]
 
-    rotate_component.use_second_order = true
-    rotate_component.rotation_frequency = 2.0
-    rotate_component.rotation_damping = 0.7
-    rotate_component.max_turn_speed_degrees = 1080.0
+    rotate_component.settings.use_second_order = true
+    rotate_component.settings.rotation_frequency = 2.0
+    rotate_component.settings.rotation_damping = 0.7
+    rotate_component.settings.max_turn_speed_degrees = 1080.0
 
     body.rotation = Vector3.ZERO
     input.set_move_vector(Vector2.RIGHT)
@@ -94,9 +95,9 @@ func test_rotate_system_resets_second_order_state_without_input() -> void:
     var body: Node3D = context["body"]
     var system = context["system"]
 
-    rotate_component.use_second_order = true
-    rotate_component.rotation_frequency = 2.0
-    rotate_component.rotation_damping = 0.7
+    rotate_component.settings.use_second_order = true
+    rotate_component.settings.rotation_frequency = 2.0
+    rotate_component.settings.rotation_damping = 0.7
 
     body.rotation = Vector3.ZERO
     input.set_move_vector(Vector2.RIGHT)

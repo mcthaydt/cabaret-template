@@ -38,10 +38,11 @@ func _setup_entity() -> Dictionary:
 	await _pump()
 
 	var component: FloatingComponent = FLOATING_COMPONENT.new()
-	component.hover_height = 1.5
-	component.hover_frequency = 3.5
-	component.damping_ratio = 1.0
-	component.align_to_normal = true
+	component.settings = FloatingSettings.new()
+	component.settings.hover_height = 1.5
+	component.settings.hover_frequency = 3.5
+	component.settings.damping_ratio = 1.0
+	component.settings.align_to_normal = true
 	add_child(component)
 	await _pump()
 
@@ -185,14 +186,14 @@ func test_floating_system_applies_fall_gravity_without_hits() -> void:
 	var component: FloatingComponent = context["component"] as FloatingComponent
 	var system: FloatingSystem = context["system"] as FloatingSystem
 
-	component.fall_gravity = 12.0
-	component.max_down_speed = 100.0
+	component.settings.fall_gravity = 12.0
+	component.settings.max_down_speed = 100.0
 	body.velocity = Vector3.ZERO
 
 	system._physics_process(0.2)
 
 	assert_lt(body.velocity.y, 0.0)
-	assert_almost_eq(body.velocity.y, -component.fall_gravity * 0.2, 0.001)
+	assert_almost_eq(body.velocity.y, -component.settings.fall_gravity * 0.2, 0.001)
 
 	await _cleanup(context)
 

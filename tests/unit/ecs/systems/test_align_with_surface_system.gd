@@ -21,6 +21,7 @@ func _setup_context() -> Dictionary:
 	await _pump()
 
 	var component := ALIGN_COMPONENT.new()
+	component.settings = AlignSettings.new()
 	add_child(component)
 	await _pump()
 
@@ -33,6 +34,7 @@ func _setup_context() -> Dictionary:
 	await _pump()
 
 	var floating := FLOATING_COMPONENT.new()
+	floating.settings = FloatingSettings.new()
 	component.add_child(floating)
 	await _pump()
 
@@ -56,8 +58,8 @@ func _setup_context() -> Dictionary:
 func test_align_system_matches_visual_up_to_body_up_direction() -> void:
 	var context := await _setup_context()
 	var component = context["component"] as AlignWithSurfaceComponent
-	component.align_only_when_supported = false
-	component.smoothing_speed = 0.0
+	component.settings.align_only_when_supported = false
+	component.settings.smoothing_speed = 0.0
 
 	var body = context["body"] as FakeBody
 	var visual = context["visual"] as FakeVisual
@@ -87,9 +89,9 @@ func test_align_system_matches_visual_up_to_body_up_direction() -> void:
 func test_align_system_respects_support_requirement() -> void:
 	var context := await _setup_context()
 	var component = context["component"] as AlignWithSurfaceComponent
-	component.align_only_when_supported = true
-	component.recent_support_tolerance = 0.1
-	component.smoothing_speed = 0.0
+	component.settings.align_only_when_supported = true
+	component.settings.recent_support_tolerance = 0.1
+	component.settings.smoothing_speed = 0.0
 
 	var body = context["body"] as FakeBody
 	var visual = context["visual"] as FakeVisual

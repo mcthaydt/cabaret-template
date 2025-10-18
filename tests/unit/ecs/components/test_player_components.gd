@@ -19,13 +19,14 @@ func test_movement_component_defaults_and_registration() -> void:
     await _pump()
 
     var component := MOVEMENT_COMPONENT.new()
+    component.settings = MovementSettings.new()
     add_child(component)
     await _pump()
 
     assert_eq(component.get_component_type(), MOVEMENT_COMPONENT.COMPONENT_TYPE)
-    assert_eq(component.max_speed, 6.0)
-    assert_eq(component.acceleration, 20.0)
-    assert_eq(component.deceleration, 25.0)
+    assert_eq(component.settings.max_speed, 6.0)
+    assert_eq(component.settings.acceleration, 20.0)
+    assert_eq(component.settings.deceleration, 25.0)
 
     var components := manager.get_components(MOVEMENT_COMPONENT.COMPONENT_TYPE)
     assert_eq(components, [component])
@@ -39,13 +40,14 @@ func test_jump_component_defaults_and_registration() -> void:
     await _pump()
 
     var component := JUMP_COMPONENT.new()
+    component.settings = JumpSettings.new()
     add_child(component)
     await _pump()
 
     assert_eq(component.get_component_type(), JUMP_COMPONENT.COMPONENT_TYPE)
-    assert_eq(component.jump_force, 12.0)
-    assert_eq(component.coyote_time, 0.15)
-    assert_eq(component.max_air_jumps, 0)
+    assert_eq(component.settings.jump_force, 12.0)
+    assert_eq(component.settings.coyote_time, 0.15)
+    assert_eq(component.settings.max_air_jumps, 0)
 
     var components := manager.get_components(JUMP_COMPONENT.COMPONENT_TYPE)
     assert_eq(components, [component])
@@ -78,11 +80,12 @@ func test_rotate_component_defaults_and_registration() -> void:
     await _pump()
 
     var component := ROTATE_COMPONENT.new()
+    component.settings = RotateToInputSettings.new()
     add_child(component)
     await _pump()
 
     assert_eq(component.get_component_type(), ROTATE_COMPONENT.COMPONENT_TYPE)
-    assert_eq(component.turn_speed_degrees, 720.0)
+    assert_eq(component.settings.turn_speed_degrees, 720.0)
 
     var components := manager.get_components(ROTATE_COMPONENT.COMPONENT_TYPE)
     assert_eq(components, [component])

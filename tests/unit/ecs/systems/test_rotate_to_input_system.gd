@@ -22,6 +22,7 @@ func _setup_context() -> Dictionary:
     await _pump()
 
     var component = RotateComponentScript.new()
+    component.settings = RotateToInputSettings.new()
     add_child(component)
     await _pump()
 

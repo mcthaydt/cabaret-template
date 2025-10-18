@@ -1,0 +1,10 @@
+[gd_resource type="Resource" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/ecs/resources/landing_indicator_settings.gd" id="1_0"]
+
+[resource]
+script = ExtResource("1_0")
+indicator_height_offset = 0.05
+ground_plane_height = 0.0
+max_projection_distance = 10.0
+

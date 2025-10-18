@@ -29,12 +29,12 @@ func process_tick(delta: float) -> void:
 
 		var desired_yaw = atan2(-desired_direction.x, -desired_direction.z)
 		var current_rotation = target.rotation
-		var max_turn: float = component.max_turn_speed_degrees
+		var max_turn: float = component.settings.max_turn_speed_degrees
 		if max_turn <= 0.0:
-			max_turn = component.get_turn_speed_degrees()
+			max_turn = component.settings.turn_speed_degrees
 		var max_delta = deg_to_rad(max_turn) * delta
 
-		if component.use_second_order and component.rotation_frequency > 0.0:
+		if component.settings.use_second_order and component.settings.rotation_frequency > 0.0:
 			_apply_second_order_rotation(component, target, desired_yaw, delta, max_delta)
 		else:
 			current_rotation.y = _move_toward_angle(current_rotation.y, desired_yaw, max_delta)
@@ -51,12 +51,12 @@ func _apply_second_order_rotation(component: RotateToInputComponent, target: Nod
 	var current_rotation := target.rotation
 	var current_yaw := current_rotation.y
 	var error := wrapf(desired_yaw - current_yaw, -PI, PI)
-	var omega: float = TAU * component.rotation_frequency
+	var omega: float = TAU * component.settings.rotation_frequency
 	if omega <= 0.0:
 		component.reset_rotation_state()
 		return
 
-	var damping: float = max(component.rotation_damping, 0.0)
+	var damping: float = max(component.settings.rotation_damping, 0.0)
 	var velocity: float = component.get_rotation_velocity()
 	var accel: float = (omega * omega * error) - (2.0 * damping * omega * velocity)
 	velocity += accel * delta

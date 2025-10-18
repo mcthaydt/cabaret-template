@@ -16,17 +16,18 @@ func test_floating_component_defaults_and_registration() -> void:
 	await _pump()
 
 	var component := FLOATING_COMPONENT.new()
+	component.settings = FloatingSettings.new()
 	add_child(component)
 	await _pump()
 
 	assert_eq(component.get_component_type(), FLOATING_COMPONENT.COMPONENT_TYPE) 
-	assert_almost_eq(component.hover_height, 1.5, 0.001)
-	assert_almost_eq(component.hover_frequency, 3.0, 0.001)
-	assert_almost_eq(component.damping_ratio, 1.0, 0.001)
-	assert_almost_eq(component.max_up_speed, 20.0, 0.001)
-	assert_almost_eq(component.max_down_speed, 30.0, 0.001)
-	assert_almost_eq(component.fall_gravity, 30.0, 0.001)
-	assert_true(component.align_to_normal)
+	assert_almost_eq(component.settings.hover_height, 1.5, 0.001)
+	assert_almost_eq(component.settings.hover_frequency, 3.0, 0.001)
+	assert_almost_eq(component.settings.damping_ratio, 1.0, 0.001)
+	assert_almost_eq(component.settings.max_up_speed, 20.0, 0.001)
+	assert_almost_eq(component.settings.max_down_speed, 30.0, 0.001)
+	assert_almost_eq(component.settings.fall_gravity, 30.0, 0.001)
+	assert_true(component.settings.align_to_normal)
 	assert_false(component.is_supported)
 	assert_false(component.has_recent_support(Time.get_ticks_msec() / 1000.0, 0.01))
 
@@ -42,6 +43,7 @@ func test_floating_component_collects_child_rays() -> void:
 	await _pump()
 
 	var component := FLOATING_COMPONENT.new()
+	component.settings = FloatingSettings.new()
 	add_child(component)
 	await _pump()
 
@@ -65,6 +67,7 @@ func test_floating_component_collects_child_rays() -> void:
 
 func test_floating_component_tracks_recent_support_state() -> void:
 	var component := FLOATING_COMPONENT.new()
+	component.settings = FloatingSettings.new()
 	add_child(component)
 	await _pump()
 

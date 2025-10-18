@@ -4,15 +4,7 @@ class_name FloatingComponent
 
 const COMPONENT_TYPE := StringName('FloatingComponent')
 
-@export var hover_height: float = 1.5
-@export var hover_frequency: float = 3.0
-@export var damping_ratio: float = 1.0
-@export var max_up_speed: float = 20.0
-@export var max_down_speed: float = 30.0
-@export var fall_gravity: float = 30.0
-@export var height_tolerance: float = 0.05
-@export var settle_speed_tolerance: float = 0.1
-@export var align_to_normal: bool = true
+@export var settings: FloatingSettings
 @export_node_path('CharacterBody3D') var character_body_path: NodePath
 @export_node_path('Node3D') var raycast_root_path: NodePath
 
@@ -21,6 +13,14 @@ var _last_support_time: float = -INF
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
+
+func _ready() -> void:
+	if settings == null:
+		push_error("FloatingComponent missing settings; assign a FloatingSettings resource.")
+		set_process(false)
+		set_physics_process(false)
+		return
+	super._ready()
 
 func get_character_body() -> CharacterBody3D:
 	if character_body_path.is_empty():
@@ -51,6 +51,10 @@ func update_support_state(supported: bool, current_time: float) -> void:
 	is_supported = supported
 	if supported:
 		_last_support_time = current_time
+
+func reset_recent_support(current_time: float, grace_time: float) -> void:
+	is_supported = false
+	_last_support_time = current_time - grace_time - 0.01
 
 func has_recent_support(current_time: float, tolerance: float) -> bool:
 	if is_supported:

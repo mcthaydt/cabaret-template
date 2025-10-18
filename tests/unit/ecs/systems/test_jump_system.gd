@@ -21,6 +21,7 @@ func _setup_entity(with_floating := false) -> Dictionary:
 	await _pump()
 
 	var jump_component = JumpComponentScript.new()
+	jump_component.settings = JumpSettings.new()
 	add_child(jump_component)
 	await _pump()
 
@@ -38,6 +39,7 @@ func _setup_entity(with_floating := false) -> Dictionary:
 	var floating_component: FloatingComponent = null
 	if with_floating:
 		floating_component = FloatingComponentScript.new()
+		floating_component.settings = FloatingSettings.new()
 		add_child(floating_component)
 		await _pump()
 		floating_component.character_body_path = floating_component.get_path_to(body)
@@ -70,7 +72,7 @@ func test_jump_system_applies_vertical_velocity_when_jump_pressed() -> void:
 	system._physics_process(0.016)
 
 	assert_true(body.velocity.y > 0.0)
-	assert_eq(body.velocity.y, jump.jump_force)
+	assert_eq(body.velocity.y, jump.settings.jump_force)
 
 	await _cleanup(context)
 
@@ -93,7 +95,7 @@ func test_jump_system_allows_jump_when_supported_by_floating_component() -> void
 	system._physics_process(0.016)
 
 	assert_true(body.velocity.y > 0.0)
-	assert_eq(body.velocity.y, jump.jump_force)
+	assert_eq(body.velocity.y, jump.settings.jump_force)
 
 	await _cleanup(context)
 
@@ -104,12 +106,12 @@ func test_jump_system_uses_jump_buffer() -> void:
 	var body: FakeBody = context["body"]
 	var system = context["system"]
 
-	jump.jump_buffer_time = 0.25
+	jump.settings.jump_buffer_time = 0.25
 	body.velocity = Vector3.ZERO
 	body.grounded = false
 
 	var now := Time.get_ticks_msec() / 1000.0
-	jump.mark_on_floor(now - jump.coyote_time - 1.0)
+	jump.mark_on_floor(now - jump.settings.coyote_time - 1.0)
 
 	input.set_jump_pressed(true)
 
@@ -120,7 +122,7 @@ func test_jump_system_uses_jump_buffer() -> void:
 	jump.mark_on_floor(now)
 	system._physics_process(0.016)
 
-	assert_eq(body.velocity.y, jump.jump_force)
+	assert_eq(body.velocity.y, jump.settings.jump_force)
 
 	await _cleanup(context)
 
@@ -131,14 +133,14 @@ func test_jump_respects_max_air_jumps_setting() -> void:
 	var body: FakeBody = context["body"]
 	var system = context["system"]
 
-	jump.max_air_jumps = 0
+	jump.settings.max_air_jumps = 0
 	body.velocity = Vector3.ZERO
 	body.grounded = true
 
 	input.set_jump_pressed(true)
 	system._physics_process(0.016)
 
-	assert_eq(body.velocity.y, jump.jump_force)
+	assert_eq(body.velocity.y, jump.settings.jump_force)
 
 	body.grounded = false
 	body.velocity = Vector3.ZERO

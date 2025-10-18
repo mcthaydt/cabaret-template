@@ -22,14 +22,14 @@ func process_tick(delta: float) -> void:
 
 		var visual_scale: Vector3 = visual.scale
 
-		if align_component.align_only_when_supported:
-			var tolerance := align_component.recent_support_tolerance
+		if align_component.settings.align_only_when_supported:
+			var tolerance := align_component.settings.recent_support_tolerance
 			if not align_component.has_recent_support(now, tolerance):
 				continue
 
 		var target_up := body.up_direction.normalized()
 		if target_up.length() == 0.0:
-			target_up = align_component.fallback_up_direction.normalized()
+			target_up = align_component.settings.fallback_up_direction.normalized()
 		if target_up.length() == 0.0:
 			target_up = Vector3.UP
 
@@ -54,7 +54,7 @@ func process_tick(delta: float) -> void:
 		var target_basis := Basis(target_right, target_up, -target_forward).orthonormalized()
 		var current_basis := visual.global_transform.basis.orthonormalized()
 
-		var smoothing: float = max(align_component.smoothing_speed, 0.0)
+		var smoothing: float = max(align_component.settings.smoothing_speed, 0.0)
 		var new_basis: Basis
 		if smoothing <= 0.0:
 			new_basis = target_basis

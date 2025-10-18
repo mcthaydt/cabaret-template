@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=2]
+
+[ext_resource type="Script" path="res://scripts/ecs/resources/floating_settings.gd" id="1_0"]
+
+[resource]
+script = ExtResource("1_0")
+hover_height = 1.5
+hover_frequency = 3.0
+damping_ratio = 1.0
+max_up_speed = 20.0
+max_down_speed = 30.0
+fall_gravity = 30.0
+height_tolerance = 0.05
+settle_speed_tolerance = 0.1
+align_to_normal = true
+

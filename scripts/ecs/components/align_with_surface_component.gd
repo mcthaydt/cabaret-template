@@ -4,17 +4,21 @@ class_name AlignWithSurfaceComponent
 
 const COMPONENT_TYPE := StringName("AlignWithSurfaceComponent")
 
+@export var settings: AlignSettings
 @export_node_path("CharacterBody3D") var character_body_path: NodePath
 @export_node_path("Node3D") var visual_alignment_path: NodePath
 @export_node_path("Node") var floating_component_path: NodePath
 
-@export var smoothing_speed: float = 12.0
-@export var align_only_when_supported: bool = true
-@export var recent_support_tolerance: float = 0.2
-@export var fallback_up_direction: Vector3 = Vector3.UP
-
 func _init() -> void:
 	component_type = COMPONENT_TYPE
+
+func _ready() -> void:
+	if settings == null:
+		push_error("AlignWithSurfaceComponent missing settings; assign an AlignSettings resource.")
+		set_process(false)
+		set_physics_process(false)
+		return
+	super._ready()
 
 func get_component_type() -> StringName:
 	return component_type

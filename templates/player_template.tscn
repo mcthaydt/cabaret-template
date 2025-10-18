@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://cyu3l6we2jq23"]
+[gd_scene load_steps=20 format=3 uid="uid://cyu3l6we2jq23"]
 
 [ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://icon.svg" id="1_5osnb"]
 [ext_resource type="Script" uid="uid://cstnlbygcta3i" path="res://scripts/ecs/components/movement_component.gd" id="1_6m9bm"]
@@ -8,6 +8,12 @@
 [ext_resource type="Script" uid="uid://dbnpg30arx0vt" path="res://scripts/ecs/components/floating_component.gd" id="5_f1jtd"]
 [ext_resource type="Script" uid="uid://chml6n4g2oasr" path="res://scripts/ecs/components/align_with_surface_component.gd" id="6_xa0wx"]
 [ext_resource type="Script" uid="uid://dwp6w662o8blj" path="res://scripts/ecs/components/landing_indicator_component.gd" id="8_weo2m"]
+[ext_resource type="Resource" path="res://resources/movement_default.tres" id="9_mov"]
+[ext_resource type="Resource" path="res://resources/jump_default.tres" id="10_jump"]
+[ext_resource type="Resource" path="res://resources/rotate_default.tres" id="11_rot"]
+[ext_resource type="Resource" path="res://resources/floating_default.tres" id="12_float"]
+[ext_resource type="Resource" path="res://resources/align_default.tres" id="13_align"]
+[ext_resource type="Resource" path="res://resources/landing_indicator_default.tres" id="14_land"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_6mvan"]
 
@@ -73,15 +79,14 @@ target_position = Vector3(0, -1.5, 0)
 
 [node name="MovementComponent" type="Node" parent="Components"]
 script = ExtResource("1_6m9bm")
-max_speed = 4.5
-deceleration = 22.0
+settings = ExtResource("9_mov")
 character_body_path = NodePath("../../Player_Body")
 input_component_path = NodePath("../InputComponent")
 support_component_path = NodePath("../FloatingComponent")
 
 [node name="JumpComponent" type="Node" parent="Components"]
 script = ExtResource("2_h3hux")
-apex_coyote_time = 0.05
+settings = ExtResource("10_jump")
 character_body_path = NodePath("../../Player_Body")
 input_component_path = NodePath("../InputComponent")
 
@@ -90,23 +95,26 @@ script = ExtResource("3_2fo1m")
 
 [node name="RotateToInputComponent" type="Node" parent="Components"]
 script = ExtResource("4_4etni")
-use_second_order = true
+settings = ExtResource("11_rot")
 target_node_path = NodePath("../../Player_Body")
 input_component_path = NodePath("../InputComponent")
 
 [node name="FloatingComponent" type="Node" parent="Components"]
 script = ExtResource("5_f1jtd")
+settings = ExtResource("12_float")
 character_body_path = NodePath("../../Player_Body")
 raycast_root_path = NodePath("../../Player_Body/HoverRays")
 
 [node name="AlignWithSurfaceComponent" type="Node" parent="Components"]
 script = ExtResource("6_xa0wx")
+settings = ExtResource("13_align")
 character_body_path = NodePath("../../Player_Body")
 visual_alignment_path = NodePath("../../Player_Body/Body_Mesh")
 floating_component_path = NodePath("../FloatingComponent")
 
 [node name="LandingIndicatorComponent" type="Node" parent="Components"]
 script = ExtResource("8_weo2m")
+settings = ExtResource("14_land")
 character_body_path = NodePath("../../Player_Body")
 origin_marker_path = NodePath("../../Player_Body/HoverRays/Center")
 landing_marker_path = NodePath("../../Player_Body/Body_Mesh/GroundIndicator")

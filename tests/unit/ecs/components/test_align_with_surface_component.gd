@@ -18,14 +18,15 @@ func test_align_with_surface_component_defaults_and_registration() -> void:
 	var manager := await _add_manager()
 
 	var component := ALIGN_COMPONENT.new()
+	component.settings = AlignSettings.new()
 	add_child(component)
 	await _pump()
 
 	assert_eq(component.get_component_type(), ALIGN_COMPONENT.COMPONENT_TYPE)
-	assert_almost_eq(component.smoothing_speed, 12.0, 0.001)
-	assert_true(component.align_only_when_supported)
-	assert_almost_eq(component.recent_support_tolerance, 0.2, 0.001)
-	assert_eq(component.fallback_up_direction, Vector3.UP)
+	assert_almost_eq(component.settings.smoothing_speed, 12.0, 0.001)
+	assert_true(component.settings.align_only_when_supported)
+	assert_almost_eq(component.settings.recent_support_tolerance, 0.2, 0.001)
+	assert_eq(component.settings.fallback_up_direction, Vector3.UP)
 
 	var components := manager.get_components(ALIGN_COMPONENT.COMPONENT_TYPE)
 	assert_true(components.has(component))
@@ -38,6 +39,7 @@ func test_align_with_surface_component_fetches_assigned_nodes() -> void:
 	var manager := await _add_manager()
 
 	var component := ALIGN_COMPONENT.new()
+	component.settings = AlignSettings.new()
 	add_child(component)
 	await _pump()
 
@@ -50,6 +52,7 @@ func test_align_with_surface_component_fetches_assigned_nodes() -> void:
 	await _pump()
 
 	var floating := FLOATING_COMPONENT.new()
+	floating.settings = FloatingSettings.new()
 	component.add_child(floating)
 	await _pump()
 
@@ -67,10 +70,12 @@ func test_align_with_surface_component_fetches_assigned_nodes() -> void:
 
 func test_align_with_surface_component_delegates_support_check() -> void:
 	var component := ALIGN_COMPONENT.new()
+	component.settings = AlignSettings.new()
 	add_child(component)
 	await _pump()
 
 	var floating := FLOATING_COMPONENT.new()
+	floating.settings = FloatingSettings.new()
 	component.add_child(floating)
 	await _pump()
 

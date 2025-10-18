@@ -64,8 +64,9 @@ func _setup_entity(max_distance: float = 10.0) -> Dictionary:
 	await _pump()
 
 	var component: LandingIndicatorComponent = LandingIndicatorComponentScript.new()
-	component.max_projection_distance = max_distance
-	component.ground_plane_height = 0.0
+	component.settings = LandingIndicatorSettings.new()
+	component.settings.max_projection_distance = max_distance
+	component.settings.ground_plane_height = 0.0
 	add_child(component)
 	await _pump()
 
@@ -124,7 +125,7 @@ func test_landing_indicator_hides_when_no_projection_within_range() -> void:
 
 	body.global_position = Vector3(0.0, 2.0, 0.0)
 	body.clear_raycast_hit()
-	component.ground_plane_height = 0.0
+	component.settings.ground_plane_height = 0.0
 
 	system._physics_process(0.016)
 
@@ -141,7 +142,7 @@ func test_landing_indicator_projects_to_ground_plane_when_no_hit() -> void:
 
 	body.global_position = Vector3(0.0, 1.0, 0.0)
 	body.clear_raycast_hit()
-	component.ground_plane_height = -1.0
+	component.settings.ground_plane_height = -1.0
 
 	system._physics_process(0.016)
 

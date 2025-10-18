@@ -4,9 +4,7 @@ class_name LandingIndicatorComponent
 
 const COMPONENT_TYPE := StringName('LandingIndicatorComponent')
 
-@export var indicator_height_offset: float = 0.05
-@export var ground_plane_height: float = 0.0
-@export var max_projection_distance: float = 10.0
+@export var settings: LandingIndicatorSettings
 @export_node_path('CharacterBody3D') var character_body_path: NodePath
 @export_node_path('Node3D') var origin_marker_path: NodePath
 @export_node_path('Node3D') var landing_marker_path: NodePath
@@ -17,6 +15,14 @@ var _landing_normal: Vector3 = Vector3.UP
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
+
+func _ready() -> void:
+	if settings == null:
+		push_error("LandingIndicatorComponent missing settings; assign a LandingIndicatorSettings resource.")
+		set_process(false)
+		set_physics_process(false)
+		return
+	super._ready()
 
 func get_character_body() -> CharacterBody3D:
 	if character_body_path.is_empty():
@@ -48,7 +54,8 @@ func set_landing_data(point: Vector3, normal: Vector3, visible: bool) -> void:
 		final_normal = Vector3.UP
 	final_normal = final_normal.normalized()
 	var landing_marker: Node3D = get_landing_marker()
-	_set_marker_global_position(landing_marker, point + final_normal * indicator_height_offset)
+	var height_offset: float = settings.indicator_height_offset if settings != null else 0.05
+	_set_marker_global_position(landing_marker, point + final_normal * height_offset)
 
 func is_indicator_visible() -> bool:
 	return _indicator_visible

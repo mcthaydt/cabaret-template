@@ -30,15 +30,15 @@ func process_tick(delta: float) -> void:
 		var input_component = component.get_input_component()
 		var input_vector: Vector2 = Vector2.ZERO
 		var is_sprinting := false
-		var current_max_speed: float = component.max_speed
+		var current_max_speed: float = component.settings.max_speed
 		if input_component != null:
 			input_vector = input_component.move_vector
 			is_sprinting = input_component.is_sprinting()
 			if is_sprinting:
-				var sprint_multiplier: float = component.sprint_speed_multiplier
+				var sprint_multiplier: float = component.settings.sprint_speed_multiplier
 				if sprint_multiplier <= 0.0:
 					sprint_multiplier = 1.0
-				current_max_speed = component.max_speed * sprint_multiplier
+				current_max_speed = component.settings.max_speed * sprint_multiplier
 
 		var has_input: bool = input_vector.length() > 0.0
 		var desired_velocity: Vector3 = Vector3.ZERO
@@ -48,21 +48,19 @@ func process_tick(delta: float) -> void:
 		var support_component: FloatingComponent = component.get_support_component()
 		var support_active: bool = false
 		if support_component != null:
-			support_active = support_component.has_recent_support(current_time, component.support_grace_time)
-		elif body.has_method("is_on_floor") and body.is_on_floor():
-			support_active = true
+			support_active = support_component.has_recent_support(current_time, component.settings.support_grace_time)
 
-		var wants_second_order: bool = component.use_second_order_dynamics and component.response_frequency > 0.0
+		var wants_second_order: bool = component.settings.use_second_order_dynamics and component.settings.response_frequency > 0.0
 		if wants_second_order and has_input:
 			velocity = _apply_second_order_dynamics(component, velocity, desired_velocity, delta, support_active)
 			velocity = _clamp_horizontal_speed(velocity, current_max_speed)
 		else:
 			if has_input:
-				velocity.x = move_toward(velocity.x, desired_velocity.x, component.acceleration * delta)
-				velocity.z = move_toward(velocity.z, desired_velocity.z, component.acceleration * delta)
+				velocity.x = move_toward(velocity.x, desired_velocity.x, component.settings.acceleration * delta)
+				velocity.z = move_toward(velocity.z, desired_velocity.z, component.settings.acceleration * delta)
 			else:
-				velocity.x = move_toward(velocity.x, 0.0, component.deceleration * delta)
-				velocity.z = move_toward(velocity.z, 0.0, component.deceleration * delta)
+				velocity.x = move_toward(velocity.x, 0.0, component.settings.deceleration * delta)
+				velocity.z = move_toward(velocity.z, 0.0, component.settings.deceleration * delta)
 			component.reset_dynamics_state()
 
 		if not has_input:
@@ -102,13 +100,13 @@ func _clamp_horizontal_speed(velocity: Vector3, max_speed: float) -> Vector3:
 	return velocity
 
 func _apply_second_order_dynamics(component: MovementComponent, velocity: Vector3, desired_velocity: Vector3, delta: float, support_active: bool) -> Vector3:
-	var frequency: float = max(component.response_frequency, 0.0)
+	var frequency: float = max(component.settings.response_frequency, 0.0)
 	if frequency <= 0.0:
 		component.reset_dynamics_state()
 		return velocity
 
-	var damping_base: float = max(component.damping_ratio, 0.0)
-	var damping_multiplier: float = component.grounded_damping_multiplier if support_active else component.air_damping_multiplier
+	var damping_base: float = max(component.settings.damping_ratio, 0.0)
+	var damping_multiplier: float = component.settings.grounded_damping_multiplier if support_active else component.settings.air_damping_multiplier
 	var damping: float = damping_base * damping_multiplier
 	var omega: float = TAU * frequency
 	if omega <= 0.0:
@@ -128,12 +126,12 @@ func _apply_second_order_dynamics(component: MovementComponent, velocity: Vector
 	return velocity
 
 func _apply_horizontal_friction(component: MovementComponent, velocity: Vector3, support_active: bool, delta: float) -> Vector3:
-	var base_friction: float = component.grounded_friction if support_active else component.air_friction
+	var base_friction: float = component.settings.grounded_friction if support_active else component.settings.air_friction
 	if base_friction <= 0.0:
 		return velocity
 
-	var strafe_friction: float = max(base_friction * component.strafe_friction_scale, 0.0)
-	var forward_friction: float = max(base_friction * component.forward_friction_scale, 0.0)
+	var strafe_friction: float = max(base_friction * component.settings.strafe_friction_scale, 0.0)
+	var forward_friction: float = max(base_friction * component.settings.forward_friction_scale, 0.0)
 
 	velocity.x = move_toward(velocity.x, 0.0, strafe_friction * delta)
 	velocity.z = move_toward(velocity.z, 0.0, forward_friction * delta)
