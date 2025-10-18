@@ -35,7 +35,7 @@ func test_align_with_surface_component_defaults_and_registration() -> void:
 	await _pump()
 
 func test_align_with_surface_component_fetches_assigned_nodes() -> void:
-	await _add_manager()
+	var manager := await _add_manager()
 
 	var component := ALIGN_COMPONENT.new()
 	add_child(component)
@@ -62,6 +62,7 @@ func test_align_with_surface_component_fetches_assigned_nodes() -> void:
 	assert_true(component.get_floating_component() == floating)
 
 	component.queue_free()
+	manager.queue_free()
 	await _pump()
 
 func test_align_with_surface_component_delegates_support_check() -> void:
