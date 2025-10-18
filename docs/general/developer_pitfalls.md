@@ -1,0 +1,9 @@
+# Developer Pitfalls
+
+- **Mock overrides need warning suppression**: Gut tests that subclass engine nodes often stub methods like `is_on_floor()` or `move_and_slide()`. Godot 4 treats these as warnings, and our CI escalates warnings to errors. Add `@warning_ignore("native_method_override")` to those stubs to keep tests loading.
+- **Always add explicit types when pulling Variants**: Helpers such as `InputComponent.get_move_vector()` or `Time.get_ticks_msec()` return Variants. Define locals with `: Vector2`, `: float`, etc., instead of relying on inference, otherwise the parser fails with "typed as Variant" errors.
+- **Annotate Callable results**: `Callable.call()` and similar helpers also return Variants. When reducers or action handlers return dictionaries, capture them with explicit types (e.g., `var next_state: Dictionary = root.call(...)`) so tests load without Variant inference errors.
+- **Respect tab indentation in scripts**: Godot scripts under `res://` expect tabs. Mixing spaces causes parse errors that look unrelated to the actual change, so configure your editor accordingly before editing `.gd` files.
+- **Keep component paths consistent**: Systems expect their components to point at the correct nodes (e.g., `MovementComponent.support_component_path` must reference a `FloatingComponent`). Missing links silently disable behaviour and break tests.
+- **Reset support timers after jumps**: When modifying jump logic, remember to clear support/apex timers just like `JumpComponent.on_jump_performed()` does. Forgetting this can enable double jumps that tests catch.
+- **Second-order tuning must respect clamped limits**: While tweaking response/damping values, verify they still honour `max_turn_speed_degrees` and `max_speed`. Oversight here reintroduces overshoot regressions covered by rotation/movement tests.

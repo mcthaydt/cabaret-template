@@ -46,6 +46,7 @@ class FakeBody extends CharacterBody3D:
 		_fake_world = FakeWorld3D.new()
 		_fake_world.direct_space_state = _space_state
 
+	@warning_ignore("native_method_override")
 	func get_world_3d():
 		return _fake_world
 

@@ -1,15 +1,86 @@
 # Agents Notes
 
-## Documentation
-- Current progress snapshot: `docs/current_progress.md`
-- ECS architecture & workflow: `docs/implementation_details.md`
+## Start Here
+
+- Project type: Godot 4.5 (GDScript). Two core areas:
+  - `scripts/ecs`: Lightweight ECS built on Nodes (components + systems + manager).
+  - `scripts/state`: Redux-like state store utilities (actions, reducers, selectors, persistence).
+- Scenes and resources:
+  - `templates/`: Base scene and player scene that wire components/systems together.
+  - `resources/`: Default `*Settings.tres` for component configs; update when adding new exported fields.
+- Documentation to consult (do not duplicate here):
+  - State store: `docs/redux_state_store/*`
+  - General pitfalls: `docs/general/developer_pitfalls.md`
+
+## Repo Map (essentials)
+
+- `scripts/ecs/ecs_manager.gd`: Registers components/systems; exposes `get_components(StringName)` and emits component signals.
+- `scripts/ecs/ecs_component.gd`: Base for components. Auto-registers with manager; exposes `get_snapshot()` hook.
+- `scripts/ecs/ecs_system.gd`: Base for systems. Implement `process_tick(delta)`; runs via `_physics_process`.
+- `scripts/ecs/components/*`: Gameplay components with `@export` NodePaths and typed getters.
+- `scripts/ecs/systems/*`: Systems that query components by `StringName` and operate per-physics tick.
+- `scripts/ecs/resources/*`: `Resource` classes holding tunables consumed by components/systems.
+- `scripts/state/*`: `StateStore`, `ReducerUtils`, `ActionUtils`, selectors, and persistence helpers.
+- `tests/unit/*`: GUT test suites split into `ecs` and `state`.
+
+## ECS Guidelines
+
+- Components
+  - Extend `ECSComponent`; define `const COMPONENT_TYPE := StringName("YourComponent")` and set `component_type = COMPONENT_TYPE` in `_init()`.
+  - Prefer `@export` NodePaths with typed getters that use `get_node_or_null(...) as Type` and return `null` on empty paths.
+  - Keep null-safe call sites; systems assume absent paths disable behavior rather than error.
+  - If you expose debug state, copy via `snapshot.duplicate(true)` to avoid aliasing.
+- Systems
+  - Extend `ECSSystem`; implement `process_tick(delta)` (invoked from `_physics_process`).
+  - Query with `get_components(StringName)`, dedupe per-body where needed, and clamp/guard values (see movement/rotation/floating examples).
+  - Auto-discovers `ECSManager` via parent traversal or `ecs_manager` group; no manual wiring needed.
+- Manager
+  - Ensure exactly one `ECSManager` in-scene. It auto-adds to `ecs_manager` group on `_ready()`.
+  - Emits `component_added`/`component_removed` and calls `component.on_registered(self)`.
+
+## State Store Guidelines
+
+- Reducers are static classes with:
+  - `get_slice_name() -> StringName`, `get_initial_state() -> Dictionary`, optional `get_persistable() -> bool`, and `reduce(state, action) -> Dictionary`.
+  - Do not mutate input state; return new dictionaries using `duplicate(true)` where needed.
+- Actions and selectors
+  - Use `ActionUtils.create_action(type, payload)` so `type` becomes a `StringName` and shape stays consistent.
+  - For expensive derivations, wrap a lambda with `selector.gd`’s `MemoizedSelector` to cache on state version.
+- Store usage
+  - Add a single `StateStore` node to the tree (it joins `state_store` group). Discover from any node via `StateStoreUtils.get_store(node)`.
+  - To persist, get `store.get_state()` and pass along with `persistable_slices` to `StatePersistence.serialize_state(...)`; restore with `deserialize_state(...)`.
+  - For full architecture/tradeoffs/PRD, see `docs/redux_state_store/*`.
+
+## Conventions and Gotchas
+
+- GDScript typing
+  - Annotate locals receiving Variants (e.g., from `Callable.call()`, `JSON.parse_string`, `Time.get_ticks_msec()` calc). Prefer explicit `: float`, `: int`, `: Dictionary`, etc.
+  - Use `StringName` for action/component identifiers; keep constants like `const MOVEMENT_TYPE := StringName("MovementComponent")`.
+- Copy semantics
+  - Use `.duplicate(true)` for deep copies of `Dictionary`/`Array` before mutating; the codebase relies on immutability patterns both in ECS snapshots and state.
+- Scenes and NodePaths
+  - Wire `@export` NodePaths in scenes; missing paths intentionally short-circuit behavior in systems. See `templates/player_template.tscn` for patterns.
+- Resources
+  - New exported fields in `*Settings.gd` require updating default `.tres` under `resources/` and any scene using them.
+- Tabs and warnings
+  - Keep tab indentation in `.gd` files; tests use native method stubs on engine classes—suppress with `@warning_ignore("native_method_override")` where applicable (details in `docs/general/developer_pitfalls.md`).
 
 ## Test Commands
-- GUT unit tests: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs`
 
-## Things To Remember
-- Godot scripts in this repo expect tab indentation; mixing spaces triggers parse errors.
-- Add explicit type annotations (`: bool`, `: Vector3`, etc.) whenever values come from Variant-returning helpers to avoid warnings treated as errors.
-- `MovementComponent.support_component_path` should point at a `FloatingComponent` so support-aware damping/friction works; missing links quietly disable the new tuning.
-- After a jump, clear or reset support timers (see `JumpComponent.on_jump_performed`) to prevent unintended extra jumps—tests rely on this behaviour.
-- When tweaking second-order parameters, keep max turn/velocity clamps in mind so you don’t reintroduce overshoot in rotation or movement tests.
+- Run ECS tests
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs`
+- Run State Store tests
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/state`
+- Notes
+  - Tests commonly `await get_tree().process_frame` after adding nodes to allow auto-registration with `ECSManager` before assertions.
+  - When stubbing engine methods in tests (e.g., `is_on_floor`, `move_and_slide`), include `@warning_ignore("native_method_override")`.
+
+## Quick How-Tos (non-duplicative)
+
+- Add a new ECS Component
+  - Create `scripts/ecs/components/your_component.gd` extending `ECSComponent` with `COMPONENT_TYPE` and exported NodePaths; add typed getters; update a scene to wire paths.
+- Add a new ECS System
+  - Create `scripts/ecs/systems/your_system.gd` extending `ECSSystem`; implement `process_tick(delta)`; query with your component’s `StringName`; drop the node under a running scene—auto-configured.
+- Add a state slice
+  - Define a reducer class with required static methods; in-scene, call `StateStore.register_reducer(YourReducer)` during initialization.
+

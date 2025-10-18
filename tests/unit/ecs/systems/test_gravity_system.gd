@@ -7,6 +7,7 @@ const MovementComponentScript = preload("res://scripts/ecs/components/movement_c
 class FakeBody extends CharacterBody3D:
     var grounded := false
 
+    @warning_ignore("native_method_override")
     func is_on_floor() -> bool:
         return grounded
 

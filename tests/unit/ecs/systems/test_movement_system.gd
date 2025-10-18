@@ -10,10 +10,12 @@ class FakeBody extends CharacterBody3D:
 	var move_called: bool = false
 	var grounded: bool = false
 
+	@warning_ignore("native_method_override")
 	func move_and_slide() -> bool:
 		move_called = true
 		return super.move_and_slide()
 
+	@warning_ignore("native_method_override")
 	func is_on_floor() -> bool:
 		return grounded
 

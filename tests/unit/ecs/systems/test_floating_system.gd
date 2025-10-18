@@ -13,15 +13,19 @@ class FakeRayCast extends RayCast3D:
 	var fake_collision_point: Vector3 = Vector3.ZERO
 	var fake_collision_normal: Vector3 = Vector3.UP
 
+	@warning_ignore("native_method_override")
 	func is_colliding() -> bool:
 		return colliding
 
+	@warning_ignore("native_method_override")
 	func get_collision_point() -> Vector3:
 		return fake_collision_point
 
+	@warning_ignore("native_method_override")
 	func get_collision_normal() -> Vector3:
 		return fake_collision_normal
 
+	@warning_ignore("native_method_override")
 	func force_raycast_update() -> void:
 		pass
 

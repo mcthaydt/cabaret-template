@@ -77,10 +77,10 @@ func test_rotate_system_uses_second_order_for_smooth_turn() -> void:
     system._physics_process(0.1)
     var second_rotation := body.rotation.y
 
-    var desired_direction := Vector3(input.move_vector.x, 0.0, input.move_vector.y).normalized()
-    var desired_yaw := atan2(-desired_direction.x, -desired_direction.z)
-    var first_error := abs(wrapf(desired_yaw - first_rotation, -PI, PI))
-    var second_error := abs(wrapf(desired_yaw - second_rotation, -PI, PI))
+    var desired_direction: Vector3 = Vector3(input.move_vector.x, 0.0, input.move_vector.y).normalized()
+    var desired_yaw: float = atan2(-desired_direction.x, -desired_direction.z)
+    var first_error: float = abs(wrapf(desired_yaw - first_rotation, -PI, PI))
+    var second_error: float = abs(wrapf(desired_yaw - second_rotation, -PI, PI))
 
     assert_true(first_rotation < 0.0)
     assert_true(second_error <= first_error + 0.00001)

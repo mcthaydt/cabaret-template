@@ -9,6 +9,7 @@ const FloatingComponentScript = preload("res://scripts/ecs/components/floating_c
 class FakeBody extends CharacterBody3D:
 	var grounded := true
 
+	@warning_ignore("native_method_override")
 	func is_on_floor() -> bool:
 		return grounded
 

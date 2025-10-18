@@ -257,45 +257,41 @@ store.dispatch(GameActions.level_up())
 
 **Naming Convention**: `domain/action_name` (e.g., "game/add_score", "ui/open_menu")
 
+**Action Type Registry**:
+- `ActionUtils.define(domain, action)` normalizes names and records them in a shared registry of `StringName` types.
+- `ActionUtils.create_action(...)` automatically adds ad-hoc types so developer tooling can inspect every action that flows through the store via `ActionUtils.get_registered_types()`.
+- Tests can call `ActionUtils.clear_registry()` to avoid cross-test coupling.
+
 ### 3.5 Selectors (Derived State)
 
 **Location**: `scripts/state/selector.gd`
 
 **Responsibility**: Efficiently compute derived state with memoization (caching).
 
-**MemoizedSelector Class**:
-```gdscript
-class MemoizedSelector:
-	var _selector_func: Callable
-	var _last_version: int = -1
-	var _cached_result: Variant
-
-	func _init(selector_func: Callable):
-		_selector_func = selector_func
-
-	func select(state: Dictionary, state_version: int) -> Variant:
-		if state_version != _last_version:
-			_cached_result = _selector_func.call(state)
-			_last_version = state_version
-		return _cached_result
-```
+**MemoizedSelector Highlights**:
+- Construct with `MemoizedSelector.new(func(state) -> Variant)`.
+- Chain `.with_dependencies(["game.score"])` to supply dot-paths that act as cache keys independent of `_state_version`.
+- `select(state, state_version, resolver)` (invoked internally by `StateStore.select`) records cache/dependency hits/misses for telemetry.
+- `get_metrics()` returns `{cache_hits, cache_misses, dependency_hits, dependency_misses}`; `reset_metrics()` zeroes counters for profiling sessions.
 
 **Usage**:
 ```gdscript
-# Create memoized selector
-var high_score_selector = MemoizedSelector.new(func(state):
-	return state["game"]["score"] > state["game"]["high_score"]
-)
+var score_selector := MemoizedSelector
+	.new(func(state): return int(state["game"]["score"]))
+	.with_dependencies(["game.score"])
 
-# Use selector (cached if state version unchanged)
-if store.select(high_score_selector):
-	print("New high score!")
+var score := store.select(score_selector) # miss -> metrics.cache_misses += 1
+score = store.select(score_selector)      # hit  -> metrics.cache_hits  += 1
 
-# Or simple path selection
-var score = store.select("game.score")
+var metrics := score_selector.get_metrics()
+print("Selector cache hits", metrics.cache_hits)
+score_selector.reset_metrics()
+
+# Simple path selection still supported
+var ui_menu := store.select("ui.active_menu")
 ```
 
-**Why Memoization?**: Avoid expensive recomputation on every frame. Selector only recalculates when state version changes.
+**Why Memoization?**: Avoid expensive recomputation on every frame. Dependency-aware selectors make caching resilient to unrelated state churn, while metrics provide guardrails for tuning and instrumentation.
 
 ### 3.6 Persistence (Save/Load)
 
@@ -305,23 +301,42 @@ var score = store.select("game.score")
 
 **Key Functions**:
 ```gdscript
-static func serialize_state(state: Dictionary, persistable_slices: Array[StringName]) -> String:
-	# Filter to persistable slices only
-	var filtered_state = {}
-	for slice_name in persistable_slices:
-		filtered_state[slice_name] = state[slice_name]
-
-	# Create save structure with checksum
-	var data = {"version": 1, "data": filtered_state}
-	var json = JSON.stringify(data)
-	var checksum = hash(json)
-	var save_data = {"checksum": checksum, "version": 1, "data": filtered_state}
-	return JSON.stringify(save_data)
+static func serialize_state(state: Dictionary, slices: Array[StringName]) -> String:
+	var filtered := _filter_state(state, slices)
+	var checksum_seed := _build_checksum_seed(SAVE_VERSION, filtered)
+	return JSON.stringify({
+		"checksum": hash(checksum_seed),
+		"version": SAVE_VERSION,
+		"data": filtered,
+	})
 
 static func deserialize_state(json_str: String) -> Dictionary:
-	var parsed = JSON.parse_string(json_str)
-	# Verify checksum...
-	return parsed["data"]
+	if json_str.is_empty():
+		return {}
+	var parsed: Dictionary = JSON.parse_string(json_str)
+	if !_verify_checksum(parsed):
+		print("State Persistence: Checksum mismatch")
+		return {}
+	return (parsed["data"] as Dictionary).duplicate(true)
+
+static func save_to_file(path: String, state: Dictionary, slices: Array[StringName]) -> Error:
+	var serialized := serialize_state(state, slices)
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		return FileAccess.get_open_error()
+	file.store_string(serialized)
+	file.close()
+	return OK
+
+static func load_from_file(path: String) -> Dictionary:
+	if !FileAccess.file_exists(path):
+		return {}
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return {}
+	var contents := file.get_as_text()
+	file.close()
+	return deserialize_state(contents)
 ```
 
 **Save Format**:
@@ -336,7 +351,7 @@ static func deserialize_state(json_str: String) -> Dictionary:
 }
 ```
 
-**Note**: Only persistable slices saved (GameReducer.get_persistable() == true).
+**Note**: Only persistable slices saved (GameReducer.get_persistable() == true). Checksum seeds normalize Dictionary keys and array ordering to guarantee deterministic hashing across platforms.
 
 ---
 
