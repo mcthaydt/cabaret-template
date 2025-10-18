@@ -90,52 +90,92 @@ Testing & Documentation (8 points)
 Story Points: 21
 Goal: Establish core Redux architecture with persistence and efficient state reading
 
+SCOPE: Batch 1 ONLY - Stop after tests are green for review before Batch 2
+
+IMPLEMENTATION DECISIONS SUMMARY:
+1. Target: Godot 4.5, GDScript with tab indentation and type annotations
+2. Actions: Dictionary with bracket access (action["type"], action["payload"])
+3. Reducers: Dictionary of slice reducers (keyed by slice name), auto-detect via get_slice_name()
+4. Notifications: Godot signals (state_changed, action_dispatched) with subscribe() wrapper
+5. Memoization: State version counter (_state_version incremented on dispatch)
+6. Persistence: hash() builtin for checksum, per-reducer persistable flag
+7. Testing: 90%+ coverage, test fail-fast paths (assert crashes)
+8. Tests: Use real StateStore instances (integration-style), no mocking
+
 Step 1 – Design State Schema
 
-Create state tree structure:
+Create state tree structure (Dictionary of slices):
 - game: {score: int, level: int, unlocks: Array}
 - ui: {active_menu: String, settings: Dictionary}
 - ecs: {component_registry: Dictionary, system_state: Dictionary}
 - session: {player_prefs: Dictionary, save_slot: int}
 
-Define action schema format: {type: StringName, payload: Variant}
-Plan reducer signatures: func(state: Dictionary, action: Dictionary) -> Dictionary
+Define action schema format (Dictionary with bracket access):
+{
+	"type": StringName("game/add_score"),  # Namespaced action type
+	"payload": 100  # Optional payload (any Variant)
+}
+
+Plan reducer interface (all reducers must implement):
+- static func get_slice_name() -> StringName  # Returns "game", "ui", etc.
+- static func get_initial_state() -> Dictionary
+- static func get_persistable() -> bool
+- static func reduce(state: Dictionary, action: Dictionary) -> Dictionary
 
 Step 2 – Implement Core Store Infrastructure
 
 Create scripts/state/store.gd:
 - Extend Node class
-- Add _state: Dictionary (state tree)
-- Add _reducers: Array[Callable]
-- Add _subscribers: Array[Callable]
+- Add _state: Dictionary = {}  # Key: slice name, Value: slice state
+- Add _reducers: Dictionary = {}  # Key: slice name (StringName), Value: reducer object
+- Add _state_version: int = 0  # Incremented on each dispatch for memoization
 - Add _time_travel_enabled: bool = false
 - Add _history: Array = []
 - Add _history_index: int = -1
+
+- Define signals (IMPLEMENTATION DETAIL #4: Signals with subscribe wrapper):
+  - signal state_changed(state: Dictionary)
+  - signal action_dispatched(action: Dictionary)
 
 - Implement _ready() lifecycle:
   - Check for duplicate StateStore instances (CRITICAL DESIGN DECISION #1)
   - If another exists, push_error and queue_free()
   - Otherwise, add_to_group("state_store")
-  - Initialize default state from reducers
+  - Initialize default state from reducers (call get_initial_state() on each)
+
+- Implement register_reducer(reducer_class) -> void:
+  - Call reducer_class.get_slice_name() to get slice name
+  - Store in _reducers Dictionary: _reducers[slice_name] = reducer_class
+  - Initialize state slice: _state[slice_name] = reducer_class.get_initial_state()
 
 - Implement dispatch(action: Dictionary) -> void:
   - Deep copy current state: var new_state = _state.duplicate(true)  (DECISION #3: Safety over speed)
-  - Iterate through reducers (no error handling - let crashes happen per DECISION #10)
+  - Iterate through _reducers Dictionary (IMPLEMENTATION DETAIL #3: Dictionary of slice reducers):
+    for slice_name in _reducers:
+      var reducer = _reducers[slice_name]
+      new_state[slice_name] = reducer.reduce(new_state[slice_name], action)
+  - No error handling - let crashes happen per DECISION #10
   - Record to history if time-travel enabled (DECISION #6)
   - Update _state reference
-  - Notify subscribers
+  - Increment _state_version (IMPLEMENTATION DETAIL #5: State version counter)
+  - Emit signals: action_dispatched.emit(action), state_changed.emit(_state)
 
 - Implement subscribe(callback: Callable) -> Callable:
-  - Add callback to subscribers array
-  - Return unsubscribe function
+  - Wrapper around signals: state_changed.connect(callback)
+  - Return unsubscribe function: func(): state_changed.disconnect(callback)
 
 - Implement get_state() -> Dictionary:
   - Return _state.duplicate(true)  # Deep copy for immutability (DECISION #3)
 
 - Implement select(path: String) -> Variant:
-  - Parse dot-notation path (e.g., "game.score")
-  - Traverse state tree and return value
+  - Parse dot-notation path (e.g., "game.score" or "game[score]")
+  - Traverse state tree using bracket access: _state["game"]["score"]
+  - Return value or null if path invalid
   - Fast read-only access (optimization for DECISION #3)
+
+- Implement select(selector: MemoizedSelector) -> Variant:
+  - Call selector.select(_state, _state_version)
+  - Selector uses version counter for cache invalidation
 
 - Implement enable_time_travel(enabled: bool, max_history_size: int = 1000) -> void:
   - Set _time_travel_enabled flag (DECISION #6: Opt-in)
@@ -173,22 +213,31 @@ Update StateStore._ready():
 
 Step 3 – Implement State Persistence
 
-Create scripts/state/persistence.gd:
-- Define serialize_state(state: Dictionary, persistable_reducers: Array[String]) -> String
+Create scripts/state/persistence.gd (IMPLEMENTATION DETAIL #6: Simple hash() checksum):
+- Define serialize_state(state: Dictionary, persistable_reducers: Array[StringName]) -> String
   - Filter state to only include slices from persistable_reducers (DECISION #8)
+  - Create data structure: {"version": 1, "data": filtered_state}
   - Convert to JSON string
-  - Add checksum for validation
-- Define deserialize_state(json: String) -> Dictionary
-  - Validate checksum
-  - Parse JSON to Dictionary
-  - Return null on error with detailed error message
-- Define save_to_file(path: String, state: Dictionary, persistable_reducers: Array) -> Error
+  - Compute checksum: var checksum = hash(json_string)
+  - Create save structure: {"checksum": checksum, "version": 1, "data": filtered_state}
+  - Return JSON.stringify(save_structure)
+
+- Define deserialize_state(json_str: String) -> Dictionary
+  - Parse JSON: var parsed = JSON.parse_string(json_str)
+  - Extract stored_checksum from parsed["checksum"]
+  - Recreate data JSON: JSON.stringify({"version": parsed["version"], "data": parsed["data"]})
+  - Compute checksum: var computed_checksum = hash(data_json)
+  - Validate: if stored_checksum != computed_checksum, push_error and return {}
+  - Return parsed["data"]
+
+- Define save_to_file(path: String, state: Dictionary, persistable_reducers: Array[StringName]) -> Error
   - Serialize state (only persistable slices)
-  - Write to file using FileAccess
+  - Write to file using FileAccess.open(path, FileAccess.WRITE)
   - Return OK or error code
+
 - Define load_from_file(path: String) -> Dictionary
-  - Read file contents
-  - Deserialize and validate
+  - Read file contents using FileAccess.open(path, FileAccess.READ)
+  - Call deserialize_state(contents)
   - Return state Dictionary or empty Dictionary on failure
 
 Add persistence methods to StateStore:
@@ -203,26 +252,25 @@ Add persistence methods to StateStore:
 Step 4 – Implement Selectors & Memoization
 
 Create scripts/state/selector.gd:
-- Define MemoizedSelector class
+- Define MemoizedSelector class (IMPLEMENTATION DETAIL #5: State version counter)
   - Property: _selector_func: Callable
-  - Property: _last_state_hash: int
+  - Property: _last_version: int = -1  # Last state version seen
   - Property: _cached_result: Variant
-  - Method: select(state: Dictionary) -> Variant
-    - Compute state hash
-    - If hash matches _last_state_hash, return _cached_result
-    - Otherwise, compute _selector_func(state)
-    - Cache result and hash
-    - Return new result
+  - Method: select(state: Dictionary, state_version: int) -> Variant
+    - If state_version != _last_version:
+      - Compute _selector_func(state)
+      - Cache result and version
+    - Return cached _cached_result
   - Method: invalidate() -> void
-    - Clear cache
+    - Set _last_version = -1  # Force recompute on next select
 
 Add select method to StateStore:
 - select(path: String) -> Variant
   - Parse dot-notation path (e.g., "game.score")
-  - Traverse state tree
+  - Traverse state tree using bracket access
   - Return value or null if path invalid
 - select(selector: MemoizedSelector) -> Variant
-  - Call selector.select(get_state())
+  - Call selector.select(_state, _state_version)  # Pass version for cache invalidation
   - Return result
 
 Step 5 – Create Built-in Reducers

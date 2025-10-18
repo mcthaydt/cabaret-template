@@ -1,0 +1,867 @@
+# Redux-Inspired State Store: Architecture Guide
+
+**Purpose**: Comprehensive guide to understanding the architecture, components, and data flow of the state management system.
+
+---
+
+## 1. Overview
+
+### What Is This System?
+
+A Redux-inspired centralized state management system for Godot 4.5 that provides:
+- **Single source of truth** for application state (game progress, UI, session data)
+- **Predictable state updates** through actions and reducers
+- **Time-travel debugging** capability
+- **Persistence** with per-reducer control
+- **No singletons** - uses scene tree node discovery pattern
+
+### Why This Architecture?
+
+**Problem Solved**: Current ECSManager handles component registry but provides no global application state management. Systems cannot easily share game state (scores, unlocks), UI state (menus, settings), or session state (saves, preferences) without tight coupling.
+
+**Architecture Choice**: Redux pattern chosen for:
+- Predictability (all state changes traceable)
+- Debuggability (time-travel through action history)
+- Testability (pure reducer functions)
+- Scalability (decoupled systems)
+- Familiarity (proven pattern from web development)
+
+### Core Principles
+
+1. **Single State Tree**: All application state in one Dictionary
+2. **Immutable Updates**: State never mutated, always replaced
+3. **Unidirectional Data Flow**: Action → Reducer → New State → Subscribers
+4. **Pure Reducers**: No side effects, same input = same output
+5. **Fail-Fast**: Errors caught immediately, not silently
+
+---
+
+## 2. High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Scene Tree                              │
+│                                                                 │
+│  ┌──────────────────┐                                          │
+│  │  Infrastructure  │                                          │
+│  │  ├─ StateStore   │◄────────────────────┐                   │
+│  │  └─ ...          │                      │                   │
+│  └──────────────────┘                      │                   │
+│                                             │                   │
+│  ┌──────────────────┐                      │                   │
+│  │  Systems         │                      │ Discovery         │
+│  │  ├─ ECSManager   │                      │ (get_store)       │
+│  │  ├─ InputSystem  │──────────────────────┤                   │
+│  │  ├─ MovementSys  │──────────────────────┤                   │
+│  │  └─ JumpSystem   │──────────────────────┘                   │
+│  └──────────────────┘                                          │
+│                                                                 │
+│  ┌──────────────────┐                                          │
+│  │  Gameplay        │                                          │
+│  │  ├─ Player       │                                          │
+│  │  └─ Environment  │                                          │
+│  └──────────────────┘                                          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### StateStore Internal Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                         StateStore                               │
+│                                                                  │
+│  State Tree (Dictionary)                                        │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ {                                                         │   │
+│  │   "game": {score: 0, level: 1, unlocks: []},            │   │
+│  │   "ui": {active_menu: "", settings: {}},                 │   │
+│  │   "ecs": {component_registry: {}, system_state: {}},     │   │
+│  │   "session": {player_prefs: {}, save_slot: 0}           │   │
+│  │ }                                                         │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
+│  Reducers (Dictionary)                                          │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ {                                                         │   │
+│  │   "game": GameReducer,                                   │   │
+│  │   "ui": UiReducer,                                       │   │
+│  │   "ecs": EcsReducer,                                     │   │
+│  │   "session": SessionReducer                              │   │
+│  │ }                                                         │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                  │
+│  Version Counter: _state_version = 42                           │
+│  History Buffer: _history = [action1, action2, ...]            │
+│                                                                  │
+│  Signals:                                                        │
+│    - state_changed(state: Dictionary)                           │
+│    - action_dispatched(action: Dictionary)                      │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 3. Component Breakdown
+
+### 3.1 StateStore (Core)
+
+**Location**: `scripts/state/store.gd`
+
+**Responsibility**: Central hub that manages state tree, coordinates reducers, and notifies subscribers.
+
+**Key Properties**:
+```gdscript
+var _state: Dictionary = {}               # Current application state
+var _reducers: Dictionary = {}            # Registered slice reducers
+var _state_version: int = 0               # Incremented on each dispatch
+var _time_travel_enabled: bool = false    # Opt-in time-travel
+var _history: Array = []                  # Action history buffer
+```
+
+**Key Methods**:
+- `register_reducer(reducer_class)` - Register a slice reducer
+- `dispatch(action: Dictionary)` - Apply action to state
+- `get_state() -> Dictionary` - Get deep copy of current state
+- `select(path: String) -> Variant` - Get specific state value
+- `select(selector: MemoizedSelector) -> Variant` - Get derived state
+- `subscribe(callback: Callable) -> Callable` - Subscribe to changes
+- `enable_time_travel(enabled: bool)` - Enable/disable history tracking
+
+**Lifecycle**:
+1. `_ready()`: Check for duplicates, join "state_store" group, initialize state
+2. Reducers registered via `register_reducer()`
+3. Systems call `dispatch()` to update state
+4. Subscribers notified via signals
+
+### 3.2 StateStoreUtils (Discovery)
+
+**Location**: `scripts/state/store_utils.gd`
+
+**Responsibility**: Provides static utility for discovering StateStore in scene tree (avoids singletons).
+
+**Key Method**:
+```gdscript
+static func get_store(from_node: Node) -> StateStore:
+	# Step 1: Search parent hierarchy
+	var current = from_node.get_parent()
+	while current:
+		if current.has_method("dispatch") and current.has_method("subscribe"):
+			return current
+		current = current.get_parent()
+
+	# Step 2: Search scene tree group
+	var stores = from_node.get_tree().get_nodes_in_group("state_store")
+	if stores.size() > 0:
+		return stores[0]
+
+	# Step 3: Fail-fast
+	assert(false, "StateStore not found in scene tree")
+	return null
+```
+
+**Usage**:
+```gdscript
+# From any system or component
+var store = StateStoreUtils.get_store(self)
+store.dispatch({"type": "game/add_score", "payload": 100})
+```
+
+### 3.3 Reducers (State Logic)
+
+**Location**: `scripts/state/reducers/*.gd`
+
+**Responsibility**: Pure functions that compute new state based on current state and action.
+
+**Interface** (all reducers must implement):
+```gdscript
+class_name GameReducer
+
+static func get_slice_name() -> StringName:
+	return "game"  # State slice this reducer manages
+
+static func get_initial_state() -> Dictionary:
+	return {"score": 0, "level": 1, "unlocks": []}  # Default state
+
+static func get_persistable() -> bool:
+	return true  # Should this slice be saved to disk?
+
+static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
+	match action["type"]:
+		"game/add_score":
+			var new_state = state.duplicate(true)
+			new_state["score"] += action["payload"]
+			return new_state
+		"game/level_up":
+			var new_state = state.duplicate(true)
+			new_state["level"] += 1
+			return new_state
+		_:
+			return state  # Unknown action, return unchanged
+```
+
+**Built-In Reducers**:
+1. **GameReducer** (`game_reducer.gd`) - Game progress (persistable)
+2. **UiReducer** (`ui_reducer.gd`) - UI state (transient)
+3. **EcsReducer** (`ecs_reducer.gd`) - ECS runtime (transient)
+4. **SessionReducer** (`session_reducer.gd`) - Session data (persistable)
+
+**Rules**:
+- Must be pure (no side effects, no I/O)
+- Must return new state (never mutate input)
+- Must handle unknown actions (return state unchanged)
+
+### 3.4 Actions (State Changes)
+
+**Location**: `scripts/state/actions/*.gd`
+
+**Responsibility**: Factory functions that create action Dictionaries.
+
+**Format**:
+```gdscript
+# Action structure
+{
+	"type": StringName("game/add_score"),  # Namespaced action type
+	"payload": 100  # Optional data (any Variant)
+}
+```
+
+**Action Creators**:
+```gdscript
+# scripts/state/actions/game_actions.gd
+class_name GameActions
+
+static func add_score(amount: int) -> Dictionary:
+	return {
+		"type": StringName("game/add_score"),
+		"payload": amount
+	}
+
+static func level_up() -> Dictionary:
+	return {
+		"type": StringName("game/level_up"),
+		"payload": null
+	}
+
+static func unlock(item_id: String) -> Dictionary:
+	return {
+		"type": StringName("game/unlock"),
+		"payload": item_id
+	}
+```
+
+**Usage**:
+```gdscript
+store.dispatch(GameActions.add_score(100))
+store.dispatch(GameActions.level_up())
+```
+
+**Naming Convention**: `domain/action_name` (e.g., "game/add_score", "ui/open_menu")
+
+### 3.5 Selectors (Derived State)
+
+**Location**: `scripts/state/selector.gd`
+
+**Responsibility**: Efficiently compute derived state with memoization (caching).
+
+**MemoizedSelector Class**:
+```gdscript
+class MemoizedSelector:
+	var _selector_func: Callable
+	var _last_version: int = -1
+	var _cached_result: Variant
+
+	func _init(selector_func: Callable):
+		_selector_func = selector_func
+
+	func select(state: Dictionary, state_version: int) -> Variant:
+		if state_version != _last_version:
+			_cached_result = _selector_func.call(state)
+			_last_version = state_version
+		return _cached_result
+```
+
+**Usage**:
+```gdscript
+# Create memoized selector
+var high_score_selector = MemoizedSelector.new(func(state):
+	return state["game"]["score"] > state["game"]["high_score"]
+)
+
+# Use selector (cached if state version unchanged)
+if store.select(high_score_selector):
+	print("New high score!")
+
+# Or simple path selection
+var score = store.select("game.score")
+```
+
+**Why Memoization?**: Avoid expensive recomputation on every frame. Selector only recalculates when state version changes.
+
+### 3.6 Persistence (Save/Load)
+
+**Location**: `scripts/state/persistence.gd`
+
+**Responsibility**: Serialize/deserialize state with checksum validation.
+
+**Key Functions**:
+```gdscript
+static func serialize_state(state: Dictionary, persistable_slices: Array[StringName]) -> String:
+	# Filter to persistable slices only
+	var filtered_state = {}
+	for slice_name in persistable_slices:
+		filtered_state[slice_name] = state[slice_name]
+
+	# Create save structure with checksum
+	var data = {"version": 1, "data": filtered_state}
+	var json = JSON.stringify(data)
+	var checksum = hash(json)
+	var save_data = {"checksum": checksum, "version": 1, "data": filtered_state}
+	return JSON.stringify(save_data)
+
+static func deserialize_state(json_str: String) -> Dictionary:
+	var parsed = JSON.parse_string(json_str)
+	# Verify checksum...
+	return parsed["data"]
+```
+
+**Save Format**:
+```json
+{
+	"checksum": 1234567890,
+	"version": 1,
+	"data": {
+		"game": {"score": 100, "level": 2},
+		"session": {"player_prefs": {"volume": 0.8}}
+	}
+}
+```
+
+**Note**: Only persistable slices saved (GameReducer.get_persistable() == true).
+
+---
+
+## 4. Data Flow
+
+### 4.1 Action Dispatch Flow
+
+```
+1. System calls store.dispatch(action)
+         │
+         ▼
+2. StateStore.dispatch():
+   - Deep copy current state
+         │
+         ▼
+3. For each slice in _reducers:
+   - Call reducer.reduce(slice_state, action)
+   - Update new_state[slice_name]
+         │
+         ▼
+4. Replace _state with new_state
+   Increment _state_version
+         │
+         ▼
+5. Emit signals:
+   - action_dispatched(action)
+   - state_changed(_state)
+         │
+         ▼
+6. Subscribers notified
+```
+
+**Example**:
+```gdscript
+# MovementSystem detects player scored
+store.dispatch(GameActions.add_score(10))
+
+# StateStore processes:
+# 1. Current state: {game: {score: 90}, ...}
+# 2. GameReducer.reduce() called: score: 90 + 10 = 100
+# 3. New state: {game: {score: 100}, ...}
+# 4. _state_version: 41 → 42
+# 5. Signals emitted
+# 6. HUD system receives state_changed, updates UI
+```
+
+### 4.2 State Query Flow
+
+```
+System needs state
+     │
+     ▼
+1. Get store reference
+   var store = StateStoreUtils.get_store(self)
+     │
+     ▼
+2. Select state
+   - Simple: store.select("game.score")
+   - Memoized: store.select(high_score_selector)
+     │
+     ▼
+3. StateStore returns value
+   - Simple: Traverse state tree, return value
+   - Memoized: Check version, return cached or recompute
+     │
+     ▼
+4. System uses value
+```
+
+### 4.3 Subscription Flow
+
+```
+System subscribes
+     │
+     ▼
+1. store.subscribe(callback)
+   - Internally: state_changed.connect(callback)
+   - Returns: unsubscribe function
+     │
+     ▼
+2. System stores unsubscribe function
+     │
+     ▼
+3. On every dispatch:
+   - state_changed signal emitted
+   - callback(new_state) invoked
+     │
+     ▼
+4. System reacts to state change
+     │
+     ▼
+5. (Optional) Later: unsubscribe.call()
+```
+
+---
+
+## 5. Integration Points
+
+### 5.1 Discovery Pattern
+
+**How Systems Find StateStore**:
+
+```gdscript
+# In any system (e.g., MovementSystem)
+class_name MovementSystem extends ECSSystem
+
+var _store: StateStore = null
+
+func _ready():
+	super._ready()  # ECSSystem initialization
+	_store = StateStoreUtils.get_store(self)
+	assert(_store != null, "StateStore required")
+
+func process_tick(delta: float):
+	var score = _store.select("game.score")
+	# Use score to modify behavior...
+```
+
+**Discovery Algorithm**:
+1. Search parent hierarchy for node with `dispatch()` and `subscribe()` methods
+2. Fall back to scene tree group "state_store"
+3. Assert/crash if not found (fail-fast)
+
+### 5.2 ECS System Integration
+
+**Hybrid Approach**: StateStore and ECSManager coexist independently.
+
+```
+ECSManager (existing)          StateStore (new)
+     │                              │
+     ├─ Component Registry          ├─ Application State
+     ├─ System Registry             ├─ Reducers
+     └─ Component Queries           └─ Action Dispatch
+           │                              │
+           └──────── System ──────────────┘
+                      │
+                      ├─ Uses ECSManager for components
+                      └─ Uses StateStore for global state
+```
+
+**Example System Using Both**:
+```gdscript
+class_name MovementSystem extends ECSSystem
+
+var _store: StateStore = null
+
+func _ready():
+	super._ready()  # Get ECSManager
+	_store = StateStoreUtils.get_store(self)
+
+func process_tick(delta: float):
+	# ECS: Query components
+	var components = get_components("MovementComponent")
+
+	# StateStore: Get global state
+	var level = _store.select("game.level")
+
+	# Use both: Apply level-based speed modifier
+	for component in components:
+		var speed = component.base_speed * (1.0 + level * 0.1)
+		# ...
+```
+
+### 5.3 Scene Setup
+
+**Scene Hierarchy**:
+```
+Root (Node3D)
+├─ Infrastructure
+│  └─ StateStore  ← joins "state_store" group
+├─ Systems
+│  ├─ ECSManager  ← joins "ecs_manager" group
+│  ├─ InputSystem
+│  └─ MovementSystem
+└─ Gameplay
+   └─ Player
+```
+
+**Initialization Order**:
+1. StateStore._ready() → joins group, initializes state
+2. ECSManager._ready() → joins group, initializes registry
+3. Systems._ready() → find managers, initialize
+4. (Order doesn't matter - systems handle null gracefully or assert)
+
+---
+
+## 6. Lifecycle & Initialization
+
+### 6.1 Store Initialization Sequence
+
+```
+1. Scene loads, StateStore node created
+         │
+         ▼
+2. StateStore._ready() called
+   - Check for duplicate instances (self-destruct if found)
+   - Join "state_store" group
+         │
+         ▼
+3. Reducers registered (externally or in _ready)
+   store.register_reducer(GameReducer)
+   store.register_reducer(UiReducer)
+   store.register_reducer(EcsReducer)
+   store.register_reducer(SessionReducer)
+         │
+         ▼
+4. For each reducer:
+   - Call reducer.get_initial_state()
+   - Initialize _state[slice_name] = initial_state
+         │
+         ▼
+5. Store ready, systems can now dispatch actions
+```
+
+### 6.2 Reducer Registration
+
+```gdscript
+# In StateStore._ready() or setup script
+func _ready():
+	# ... duplicate check ...
+	add_to_group("state_store")
+
+	# Register reducers
+	register_reducer(GameReducer)
+	register_reducer(UiReducer)
+	register_reducer(EcsReducer)
+	register_reducer(SessionReducer)
+
+	# State now initialized:
+	# _state = {
+	#   "game": {score: 0, level: 1, unlocks: []},
+	#   "ui": {active_menu: "", settings: {}},
+	#   "ecs": {component_registry: {}, system_state: {}},
+	#   "session": {player_prefs: {}, save_slot: 0}
+	# }
+```
+
+### 6.3 System Startup
+
+```gdscript
+# MovementSystem._ready()
+func _ready():
+	super._ready()  # ECSSystem setup
+
+	# Find store (may be ready or not)
+	var store = StateStoreUtils.get_store(self)
+	assert(store != null, "StateStore required")
+
+	# Subscribe to changes (optional)
+	_unsubscribe = store.subscribe(func(state):
+		_on_state_changed(state)
+	)
+
+	# Ready to dispatch actions
+```
+
+---
+
+## 7. Key Patterns
+
+### 7.1 Redux Pattern (Predictable State Management)
+
+**Unidirectional Data Flow**:
+```
+View/System → Action → Dispatcher → Reducer → New State → View/System
+     ▲                                                          │
+     └──────────────────────────────────────────────────────────┘
+```
+
+**Benefits**:
+- Predictable (action always produces same state change)
+- Traceable (can log all actions)
+- Testable (reducers are pure functions)
+
+### 7.2 Observer Pattern (Pub/Sub)
+
+**Signals for Loose Coupling**:
+```gdscript
+# Publisher (StateStore)
+signal state_changed(state: Dictionary)
+
+# Subscriber (any system)
+store.state_changed.connect(_on_state_changed)
+```
+
+**Benefits**:
+- Systems don't need references to each other
+- Easy to add/remove subscribers
+- Decoupled architecture
+
+### 7.3 Locator Pattern (Service Discovery)
+
+**StateStoreUtils provides service location**:
+```gdscript
+# Instead of global singleton
+var store = StateStoreUtils.get_store(self)
+
+# Instead of AutoLoad
+var store = StateStoreUtils.get_store(self)
+```
+
+**Benefits**:
+- No global state
+- Testable (can inject mock store)
+- Scene-scoped (store exists in scene tree)
+
+### 7.4 Immutability Pattern (Safe State Updates)
+
+**Always create new state**:
+```gdscript
+# ✓ CORRECT
+static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
+	var new_state = state.duplicate(true)  # Deep copy
+	new_state["score"] += action["payload"]
+	return new_state
+
+# ✗ WRONG (mutation)
+static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
+	state["score"] += action["payload"]  # Mutates input!
+	return state
+```
+
+**Benefits**:
+- Prevents accidental state corruption
+- Enables time-travel (can keep state history)
+- Thread-safe (future multiplayer)
+
+---
+
+## 8. Example Flows
+
+### 8.1 User Scores Points (Complete Flow)
+
+**Scenario**: Player collects coin, score increases from 90 to 100, HUD updates.
+
+```
+1. Player collision with coin detected
+         │
+         ▼
+2. CoinPickup script:
+   var store = StateStoreUtils.get_store(self)
+   store.dispatch(GameActions.add_score(10))
+         │
+         ▼
+3. StateStore.dispatch():
+   - Current state: {game: {score: 90, level: 1}, ...}
+   - Deep copy state
+         │
+         ▼
+4. Iterate reducers:
+   - GameReducer.reduce(state["game"], action):
+     - Matches "game/add_score"
+     - new_state["score"] = 90 + 10 = 100
+     - Returns new_state
+   - UiReducer.reduce(state["ui"], action):
+     - No match, returns state unchanged
+   - (Other reducers also called)
+         │
+         ▼
+5. Update StateStore:
+   - _state = {game: {score: 100, level: 1}, ...}
+   - _state_version = 42 → 43
+         │
+         ▼
+6. Emit signals:
+   - action_dispatched.emit(action)
+   - state_changed.emit(_state)
+         │
+         ▼
+7. HUD system (subscribed):
+   func _on_state_changed(state):
+     _score_label.text = str(state["game"]["score"])
+         │
+         ▼
+8. HUD displays "Score: 100"
+```
+
+### 8.2 Saving Game State
+
+**Scenario**: Player pauses, clicks "Save Game", progress saved to disk.
+
+```
+1. UI button pressed
+         │
+         ▼
+2. PauseMenu script:
+   var store = StateStoreUtils.get_store(self)
+   var error = store.save_state("user://savegame.json")
+         │
+         ▼
+3. StateStore.save_state():
+   - Collect persistable slices:
+     - GameReducer.get_persistable() → true (include)
+     - UiReducer.get_persistable() → false (exclude)
+     - EcsReducer.get_persistable() → false (exclude)
+     - SessionReducer.get_persistable() → true (include)
+   - persistable_slices = ["game", "session"]
+         │
+         ▼
+4. Persistence.serialize_state():
+   - Filter state: {game: {...}, session: {...}}
+   - Convert to JSON
+   - Compute checksum: hash(json)
+   - Create save structure:
+     {
+       "checksum": 1234567890,
+       "version": 1,
+       "data": {
+         "game": {score: 100, level: 1, unlocks: []},
+         "session": {player_prefs: {}, save_slot: 0}
+       }
+     }
+         │
+         ▼
+5. Write to file:
+   - FileAccess.open("user://savegame.json", WRITE)
+   - file.store_string(json)
+         │
+         ▼
+6. Return OK to caller
+         │
+         ▼
+7. PauseMenu displays "Game Saved!"
+```
+
+### 8.3 Time-Travel Debugging Session
+
+**Scenario**: Bug occurs at action #500, developer replays to investigate.
+
+```
+1. Developer enables time-travel:
+   store.enable_time_travel(true)
+         │
+         ▼
+2. Gameplay continues:
+   - Every dispatch records to _history[]
+   - Every state stored to _state_snapshots[]
+         │
+         ▼
+3. Bug occurs at action #500
+   - store._history.size() == 500
+   - store._state_version == 500
+         │
+         ▼
+4. Developer pauses, opens DevTools panel
+   - Inspect _history[499]: {type: "game/add_score", payload: -10}
+   - Suspicious: negative score?
+         │
+         ▼
+5. Step backward:
+   store.step_backward()  # _history_index = 499 → 498
+   - Restore _state_snapshots[498]
+   - Emit state_changed
+         │
+         ▼
+6. Inspect state at action #498:
+   - state["game"]["score"] == 95  # Score was 95
+         │
+         ▼
+7. Step forward:
+   store.step_forward()  # _history_index = 498 → 499
+   - Restore _state_snapshots[499]
+   - Score now 85 (95 + -10)
+         │
+         ▼
+8. Bug found: CoinPickup dispatched negative score
+   - Fix: Change to positive value
+   - Disable time-travel: store.enable_time_travel(false)
+```
+
+---
+
+## 9. Summary
+
+### Architecture Highlights
+
+**Components**:
+- StateStore: Central hub
+- Reducers: State logic (4 slices: game, ui, ecs, session)
+- Actions: State change requests
+- Selectors: Derived state with memoization
+- Persistence: Save/load with checksum
+
+**Patterns**:
+- Redux: Predictable state updates
+- Observer: Pub/sub via signals
+- Locator: Service discovery without singletons
+- Immutability: Safe state updates
+
+**Data Flow**:
+1. System dispatches action
+2. Reducers compute new state
+3. State version incremented
+4. Subscribers notified
+5. Systems react to changes
+
+**Integration**:
+- Hybrid with ECS: Both coexist independently
+- Discovery: Scene tree search, no AutoLoad
+- Fail-fast: Missing store crashes immediately
+
+### When to Use Each Component
+
+**dispatch()**: When you need to change state
+**select()**: When you need to read specific state value
+**select(selector)**: When you need derived state repeatedly (use memoization)
+**subscribe()**: When you need to react to state changes
+**save_state()**: When you need to persist progress
+**enable_time_travel()**: When you need to debug state bugs
+
+### Architecture Trade-offs
+
+**What You Gain**:
+- Predictability and traceability
+- Powerful debugging (time-travel)
+- Testability (pure reducers)
+- Decoupling (systems don't depend on each other)
+
+**What You Pay**:
+- Complexity (boilerplate for actions/reducers)
+- Performance (~3-5ms per dispatch)
+- Learning curve (Redux concepts)
+
+**Verdict**: Worth it for complex state, not for simple projects.
+
+---
+
+**Next Steps**: See the PRD for requirements, Plan for implementation steps, and Trade-offs document for detailed cost/benefit analysis.

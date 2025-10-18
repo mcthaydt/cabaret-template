@@ -507,6 +507,260 @@ store.enable_time_travel(true, max_history_size = 500)  # Reduce memory footprin
 
 ---
 
+## Implementation Details (Batch 1 Specification)
+
+This section provides technical implementation details for developers implementing Batch 1 (MVP).
+
+### 1. Target Platform
+
+**Godot Version**: 4.5 (confirmed from project.godot)
+- Must be compatible with Godot 4.5 Forward Plus renderer
+- Use GDScript features available in 4.5 only
+
+### 2. Action Format
+
+**Structure**: Standard GDScript Dictionary
+
+```gdscript
+# Action shape
+{
+	"type": StringName("game/add_score"),  # Action type (namespaced)
+	"payload": 100  # Optional payload (any Variant)
+}
+
+# Access pattern (bracket notation required)
+var action_type = action["type"]
+var payload = action["payload"]
+
+# DO NOT use dot notation (not supported on Dictionary)
+# var action_type = action.type  # ✗ WRONG
+```
+
+**Rationale**: Keep it simple. No custom classes. Standard Dictionary with bracket access works everywhere.
+
+### 3. Reducer Architecture
+
+**Pattern**: Dictionary of slice reducers (keyed by state slice name)
+
+**Store Structure**:
+```gdscript
+# In StateStore
+var _reducers: Dictionary = {}  # Key: StringName (slice name), Value: Object (reducer)
+var _state: Dictionary = {}  # Key: StringName (slice name), Value: Dictionary (slice state)
+```
+
+**Reducer Interface** (every reducer must implement):
+```gdscript
+# Example: game_reducer.gd
+class_name GameReducer
+
+static func get_slice_name() -> StringName:
+	return "game"  # State slice key
+
+static func get_initial_state() -> Dictionary:
+	return {
+		"score": 0,
+		"level": 1,
+		"unlocks": []
+	}
+
+static func get_persistable() -> bool:
+	return true  # Save this slice to disk
+
+static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
+	match action["type"]:
+		"game/add_score":
+			var new_state = state.duplicate(true)
+			new_state["score"] += action["payload"]
+			return new_state
+		"game/level_up":
+			var new_state = state.duplicate(true)
+			new_state["level"] += 1
+			return new_state
+		_:
+			return state
+```
+
+**Reducer Registration** (auto-detect pattern):
+```gdscript
+# In StateStore or setup code
+store.register_reducer(GameReducer)  # Calls get_slice_name() internally
+store.register_reducer(UiReducer)
+store.register_reducer(EcsReducer)
+store.register_reducer(SessionReducer)
+```
+
+**Dispatch Logic**:
+```gdscript
+# In StateStore.dispatch()
+func dispatch(action: Dictionary) -> void:
+	var new_state = _state.duplicate(true)
+
+	for slice_name in _reducers:
+		var reducer = _reducers[slice_name]
+		# Each reducer only sees its own slice
+		new_state[slice_name] = reducer.reduce(new_state[slice_name], action)
+
+	_state = new_state
+	_state_version += 1  # Increment for memoization
+	state_changed.emit(_state)  # Notify subscribers
+```
+
+**Rationale**: Clean separation of concerns. Each reducer owns its slice. Easy to implement per-reducer persistence.
+
+### 4. State Change Notifications
+
+**Pattern**: Godot signals with subscribe() wrapper
+
+**Signals**:
+```gdscript
+# In StateStore
+signal state_changed(state: Dictionary)
+signal action_dispatched(action: Dictionary)
+```
+
+**Subscribe API** (convenience wrapper):
+```gdscript
+func subscribe(callback: Callable) -> Callable:
+	state_changed.connect(callback)
+	# Return unsubscribe function
+	return func(): state_changed.disconnect(callback)
+
+# Usage
+var unsubscribe = store.subscribe(func(state):
+	print("State changed: ", state["game"]["score"])
+)
+# Later: unsubscribe.call()
+```
+
+**Rationale**: Native Godot patterns (signals) with Redux-style subscribe API for convenience.
+
+### 5. Selector Memoization
+
+**Pattern**: State version counter (fast invalidation)
+
+**Implementation**:
+```gdscript
+# In StateStore
+var _state_version: int = 0  # Incremented on every dispatch
+
+# In MemoizedSelector
+class MemoizedSelector:
+	var _selector_func: Callable
+	var _last_version: int = -1
+	var _cached_result: Variant
+
+	func select(state: Dictionary, state_version: int) -> Variant:
+		if state_version != _last_version:
+			_cached_result = _selector_func.call(state)
+			_last_version = state_version
+		return _cached_result
+
+# In StateStore.select()
+func select(selector: MemoizedSelector) -> Variant:
+	return selector.select(_state, _state_version)
+```
+
+**Rationale**: Version counter comparison is O(1) vs deep hash O(n). Simple and fast.
+
+### 6. Persistence
+
+**Checksum**: Simple hash() builtin
+
+**Format**:
+```json
+{
+	"checksum": 1234567890,
+	"version": 1,
+	"data": {
+		"game": {"score": 100},
+		"session": {"player_prefs": {}}
+	}
+}
+```
+
+**Implementation**:
+```gdscript
+# In persistence.gd
+static func serialize_state(state: Dictionary, persistable_slices: Array[StringName]) -> String:
+	# Filter to persistable slices only
+	var filtered_state = {}
+	for slice_name in persistable_slices:
+		filtered_state[slice_name] = state[slice_name]
+
+	var data = {"version": 1, "data": filtered_state}
+	var json = JSON.stringify(data)
+	var checksum = hash(json)
+
+	var save_data = {"checksum": checksum, "version": 1, "data": filtered_state}
+	return JSON.stringify(save_data)
+
+static func deserialize_state(json_str: String) -> Dictionary:
+	var parsed = JSON.parse_string(json_str)
+	if parsed == null:
+		push_error("Invalid JSON")
+		return {}
+
+	# Verify checksum
+	var stored_checksum = parsed["checksum"]
+	var data_json = JSON.stringify({"version": parsed["version"], "data": parsed["data"]})
+	var computed_checksum = hash(data_json)
+
+	if stored_checksum != computed_checksum:
+		push_error("Checksum mismatch - corrupted save file")
+		return {}
+
+	return parsed["data"]
+```
+
+**Rationale**: hash() is fast, built-in, good enough for detecting corruption.
+
+### 7. Code Style
+
+**Indentation**: Tab characters only (project standard)
+**Naming**: snake_case for functions/variables, PascalCase for classes
+**Type Annotations**: Required for all public APIs
+
+```gdscript
+# Good
+func dispatch(action: Dictionary) -> void:
+	var new_state: Dictionary = _state.duplicate(true)
+	_state_version += 1
+
+# Bad (no types)
+func dispatch(action):
+	var new_state = _state.duplicate(true)
+```
+
+### 8. Testing Requirements
+
+**Coverage**: 90%+ for scripts/state/* module
+
+**Fail-Fast Testing**: Must test error paths
+- Test StateStoreUtils.get_store() asserts when store missing
+- Test reducer errors crash application
+- Test multiple StateStore instances self-destruct
+
+**Test Pattern**:
+```gdscript
+extends GutTest
+
+func test_missing_store_crashes():
+	# Create node tree without StateStore
+	var node = Node.new()
+	add_child(node)
+
+	# Expect assertion failure
+	# (GUT provides assert_signal_emitted or similar)
+	# This will crash in production, validate in test environment
+```
+
+**Batch 1 Scope**: Core store + persistence + selectors + tests ONLY
+- Stop after Batch 1 is green
+- Review before proceeding to Batch 2
+
+---
+
 ## Risks & Mitigation
 
 ### Risk 1: Performance Overhead
