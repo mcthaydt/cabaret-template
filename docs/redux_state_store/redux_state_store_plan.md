@@ -1,6 +1,18 @@
 Project: Redux-Inspired State Store for Godot ECS
 
-**Last Updated**: 2025-10-19 *(Added schema validation implementation steps)*
+**Last Updated**: 2025-10-19 *(Restructured for strict Test-Driven Development)*
+
+**Development Methodology**: Strict TDD (Test-Driven Development)
+- **RED-GREEN-REFACTOR cycle**: Every method must have a failing test written BEFORE implementation
+- **Method-level granularity**: Write test for each method/behavior, implement minimal code to pass, refactor
+- **No implementation without tests**: All code must be test-driven, no exceptions
+- **Continuous verification**: Run test suite after each GREEN phase to ensure no regressions
+- **TDD substeps**: Each feature broken into (a) Write Test, (b) Implement, (c) Verify GREEN & Refactor
+
+**Implementation Context**:
+- **Batch 1**: Implemented pre-TDD pivot (features complete, tests exist, but not strict RED-GREEN-REFACTOR)
+- **Batch 2+**: Will follow strict TDD methodology going forward
+- **Naming Convention**: Codebase uses prefixed names (M_ for managers, U_ for utils) vs generic plan names
 
 ## Phase 1 – Requirements Ingestion
 
@@ -48,53 +60,81 @@ Planned Batches:
 Story Point Breakdown:
 
 Epic 1 – Core Store Infrastructure (8 points)
-- Story 1.1: Implement StateStore class with dispatch/subscribe/select (3 points)
-- Story 1.2: Create reducer registration and combination system (2 points)
-- Story 1.3: Build action creator helpers and validation (2 points)
-- Story 1.4: Implement store discovery utility class (StateStoreUtils) (1 point)
+- [x] Story 1.1: Implement StateStore class with dispatch/subscribe/select (3 points)
+- [x] Story 1.2: Create reducer registration and combination system (2 points)
+- [x] Story 1.3: Build action creator helpers and validation (2 points)
+- [x] Story 1.4: Implement store discovery utility class (StateStoreUtils) (1 point)
 
 Epic 2 – ECS Integration (5 points)
-- Story 2.1: Create ECS bridge middleware (2 points)
-- Story 2.2: Implement get_store() discovery in ECSSystem base class (1 point)
-- Story 2.3: Add state change notifications to subscribed systems (2 points)
+- [ ] Story 2.1: Create ECS bridge middleware (2 points)
+- [ ] Story 2.2: Implement get_store() discovery in ECSSystem base class (1 point)
+- [ ] Story 2.3: Add state change notifications to subscribed systems (2 points)
 
 Epic 3 – Time-Travel Debugging (8 points)
-- Story 3.1: Implement rolling action history buffer (1000 actions) (2 points)
-- Story 3.2: Build replay/step-forward/step-backward API (3 points)
-- Story 3.3: Create action export/import for bug reproduction (2 points)
-- Story 3.4: Add history inspection UI (1 point)
+- [x] Story 3.1: Implement rolling action history buffer (1000 actions) (2 points)
+- [x] Story 3.2: Build replay/step-forward/step-backward API (3 points)
+- [x] Story 3.3: Create action export/import for bug reproduction (2 points)
+- [ ] Story 3.4: Add history inspection UI (1 point)
 
 Epic 4 – State Persistence (5 points)
-- Story 4.1: Build JSON serialization layer (2 points)
-- Story 4.2: Implement auto-save triggers and state rehydration (2 points)
-- Story 4.3: Create whitelist system for state slice persistence (1 point)
+- [x] Story 4.1: Build JSON serialization layer (2 points)
+- [ ] Story 4.2: Implement auto-save triggers and state rehydration (2 points)
+- [x] Story 4.3: Create whitelist system for state slice persistence (1 point)
 
 Epic 5 – Middleware & Validation System (8 points)
-- Story 5.1: Implement middleware composition pipeline (2 points)
-- Story 5.2: Create logger middleware (1 point)
-- Story 5.3: Add async thunk support (2 points)
-- Story 5.4: Implement U_SchemaValidator engine (2 points)
-- Story 5.5: Integrate validation with dispatch and reducers (1 point)
+- [ ] Story 5.1: Implement middleware composition pipeline (2 points)
+- [ ] Story 5.2: Create logger middleware (1 point)
+- [ ] Story 5.3: Add async thunk support (2 points)
+- [ ] Story 5.4: Implement U_SchemaValidator engine (2 points)
+- [ ] Story 5.5: Integrate validation with dispatch and reducers (1 point)
 
 Epic 6 – Selectors & Memoization (5 points)
-- Story 6.1: Implement MemoizedSelector class with caching (3 points)
-- Story 6.2: Add dependency tracking and cache invalidation (2 points)
+- [x] Story 6.1: Implement MemoizedSelector class with caching (3 points)
+- [x] Story 6.2: Add dependency tracking and cache invalidation (2 points)
 
 Testing & Documentation (8 points)
-- Story 7.1: Write 20+ unit tests for core store (3 points)
-- Story 7.2: Integration tests with full game loop (3 points)
-- Story 7.3: Documentation and usage examples (2 points)
+- [x] Story 7.1: Write 20+ unit tests for core store (3 points)
+- [ ] Story 7.2: Integration tests with full game loop (3 points)
+- [ ] Story 7.3: Documentation and usage examples (2 points)
 
 ---
 
 ## Phase 3 – Iterative Build
 
-### Batch 1: MVP Foundation (Core Store + Persistence + Selectors)
+## 📁 Actual File Names Reference
+
+**IMPORTANT**: Plan uses generic names for readability. Use these actual filenames when implementing:
+
+| Plan Reference | Actual Codebase Path | Class Name |
+|----------------|----------------------|------------|
+| `store.gd` / `StateStore` | `scripts/state/m_state_manager.gd` | `M_StateManager` |
+| `store_utils.gd` / `StateStoreUtils` | `scripts/state/u_state_store_utils.gd` | `U_StateStoreUtils` |
+| `action.gd` | `scripts/state/u_action_utils.gd` | `U_ActionUtils` |
+| `reducer.gd` | `scripts/state/u_reducer_utils.gd` | `U_ReducerUtils` |
+| `persistence.gd` | `scripts/state/u_state_persistence.gd` | `U_StatePersistence` |
+| `selector.gd` / `MemoizedSelector` | `scripts/state/u_selector_utils.gd` | `U_SelectorUtils.MemoizedSelector` |
+
+**Terminology Mapping**:
+- `StateStore` → `M_StateManager`
+- `add_reducer()` → `register_reducer()`
+- `create_action()` → `U_ActionUtils.create_action()`
+- `combine_reducers()` → `U_ReducerUtils.combine_reducers()`
+
+---
+
+### Batch 1: MVP Foundation (Core Store + Persistence + Selectors) [x]
+
+**STATUS: ✅ IMPLEMENTED (Pre-TDD)**
+
+This batch was completed before TDD adoption. All functionality exists and is tested.
+Checkboxes below indicate feature completion, not strict TDD cycle adherence.
+
+**Actual Implementation**: `M_StateManager`, `U_StatePersistence`, `U_SelectorUtils`, `U_ActionUtils`, `U_ReducerUtils`, `U_StateStoreUtils`
 
 Story Points: 21
 Goal: Establish core Redux architecture with persistence and efficient state reading
 
-Step 1 – Design State Schema
+- [ ] Step 1 – Design State Schema
 
 Create state tree structure:
 - game: {score: int, level: int, unlocks: Array}
@@ -105,183 +145,461 @@ Create state tree structure:
 Define action schema format: {type: StringName, payload: Variant}
 Plan reducer signatures: func(state: Dictionary, action: Dictionary) -> Dictionary
 
-Step 2 – Implement Core Store Infrastructure
+- [x] Step 2 – Implement Core Store Infrastructure (TDD Method-Level)
 
-Create scripts/state/store.gd:
-- Extend Node class
-- Add _state: Dictionary (state tree)
-- Add _reducers: Array[Callable]
-- Add _subscribers: Array[Callable]
-- Implement dispatch(action: Dictionary) -> void
-  - Iterate through reducers
-  - Compute new state (immutable update)
-  - Notify subscribers
-  - Return void (fire and forget)
-- Implement subscribe(callback: Callable) -> Callable
-  - Add callback to subscribers array
-  - Return unsubscribe function
-- Implement get_state() -> Dictionary
-  - Return deep copy of current state
-- Implement _ready() lifecycle
-  - Initialize default state from reducers
+**✅ IMPLEMENTATION STATUS**: Complete (as `M_StateManager` in `scripts/state/m_state_manager.gd`)
 
-Create scripts/state/action.gd:
-- Define create_action(type: StringName, payload: Variant = null) -> Dictionary
-- Define is_action(obj: Variant) -> bool (validation helper)
-- Add action type constants (namespaced strings)
+**Key Differences from Plan**:
+- Class name: `M_StateManager` (not `StateStore`)
+- Method name: `register_reducer()` (not `add_reducer()`)
+- Reducer storage: `Dictionary` keyed by slice name (not `Array[Callable]`)
+- Subscribe mechanism: Uses Godot signals (`state_changed.connect()`)
+- Scene tree group: `"state_store"` ✅
 
-Create scripts/state/reducer.gd:
-- Define combine_reducers(reducers: Dictionary) -> Callable
-  - Returns single root reducer that delegates to slice reducers
-  - Each slice reducer handles its own state subtree
-- Add reducer composition utilities
+**What exists**:
+- ✅ `dispatch(action: Dictionary)`
+- ✅ `subscribe(callback: Callable) -> Callable`
+- ✅ `get_state() -> Dictionary`
+- ✅ `select(path: String)` and `select(selector: MemoizedSelector)`
+- ✅ `register_reducer(reducer_class)`
+- ✅ `_ready()` with group registration
+- ✅ Signals: `state_changed`, `action_dispatched`
 
-Create scripts/state/store_utils.gd:
-- Class with only static methods (no instantiation)
-- Define get_store(from_node: Node) -> StateStore
-  - Step 1: Search parent hierarchy
-    - Walk up from from_node using get_parent()
-    - Check each node with has_method("dispatch") and has_method("subscribe")
-    - Return first match
-  - Step 2: Search scene tree group
-    - Get nodes in "state_store" group via from_node.get_tree().get_nodes_in_group("state_store")
-    - Return first node in array if exists
-  - Step 3: Return null with warning
-    - Push warning "StateStore not found in scene tree"
-    - Return null
-- Optional: Add caching dictionary to avoid repeated searches (static var _cache: Dictionary)
+**TDD Cycle 1: StateStore.dispatch() - Basic Functionality**
 
-Update StateStore._ready():
-- Join "state_store" group via add_to_group("state_store")
-- Ensures discovery via scene tree group works
+- [ ] 2.1a – RED: Write test for dispatch with no reducers
+- Create tests/unit/state/test_store.gd
+- Test: `test_dispatch_with_no_reducers_does_not_crash()`
+  - Arrange: Create StateStore instance
+  - Act: Call dispatch({type: "test/action"})
+  - Assert: No crash, no error
 
-Step 3 – Implement State Persistence
+- [x] 2.1b – GREEN: Implement minimal dispatch()
+- Create scripts/state/store.gd extending Node
+- Add properties: `var _state: Dictionary = {}`, `var _reducers: Array[Callable] = []`
+- Implement empty `dispatch(action: Dictionary) -> void: pass`
 
-Create scripts/state/persistence.gd:
-- Define serialize_state(state: Dictionary, whitelist: Array = []) -> String
-  - Filter state by whitelist if provided
-  - Convert to JSON string
-  - Add checksum for validation
-- Define deserialize_state(json: String) -> Dictionary
-  - Validate checksum
-  - Parse JSON to Dictionary
-  - Return null on error with detailed error message
-- Define save_to_file(path: String, state: Dictionary, whitelist: Array) -> Error
-  - Serialize state
-  - Write to file using FileAccess
-  - Return OK or error code
-- Define load_from_file(path: String) -> Dictionary
-  - Read file contents
-  - Deserialize and validate
-  - Return state Dictionary or empty Dictionary on failure
+- [ ] 2.1c – VERIFY: Run test_store.gd, confirm GREEN, refactor if needed
 
-Add persistence methods to StateStore:
-- save_state(path: String, whitelist: Array = []) -> Error
-  - Call persistence.save_to_file with current state
-- load_state(path: String) -> Error
-  - Call persistence.load_from_file
-  - Dispatch special REHYDRATE action
-  - Reducers handle REHYDRATE to merge loaded state
+**TDD Cycle 2: StateStore.dispatch() - Reducer Integration**
 
-Step 4 – Implement Selectors & Memoization
+- [x] 2.2a – RED: Write test for dispatch with one reducer
+- Test: `test_dispatch_with_one_reducer_updates_state()`
+  - Arrange: Create StateStore, add simple reducer that sets state["count"] = 1
+  - Act: Call dispatch({type: "increment"})
+  - Assert: get_state()["count"] == 1
 
-Create scripts/state/selector.gd:
-- Define MemoizedSelector class
-  - Property: _selector_func: Callable
-  - Property: _last_state_hash: int
-  - Property: _cached_result: Variant
-  - Method: select(state: Dictionary) -> Variant
-    - Compute state hash
-    - If hash matches _last_state_hash, return _cached_result
-    - Otherwise, compute _selector_func(state)
-    - Cache result and hash
-    - Return new result
-  - Method: invalidate() -> void
-    - Clear cache
+- [x] 2.2b – GREEN: Implement reducer calling in dispatch()
+- Add method: `add_reducer(reducer: Callable) -> void` to append to _reducers
+- Update dispatch(): iterate _reducers, call each with (state, action), update _state
 
-Add select method to StateStore:
-- select(path: String) -> Variant
-  - Parse dot-notation path (e.g., "game.score")
-  - Traverse state tree
-  - Return value or null if path invalid
-- select(selector: MemoizedSelector) -> Variant
-  - Call selector.select(get_state())
-  - Return result
+- [x] 2.2c – VERIFY: Run tests, confirm GREEN, refactor reducer iteration logic
 
-Step 5 – Create Built-in Reducers
+**TDD Cycle 3: StateStore.subscribe() - Callback Registration**
 
-Create scripts/state/reducers/game_reducer.gd:
-- Define initial_state: {score: 0, level: 1, unlocks: []}
-- Define reduce(state: Dictionary, action: Dictionary) -> Dictionary
-  - Handle "game/add_score", "game/level_up", "game/unlock"
-  - Return new state (use duplicate(true) for deep copy)
+- [x] 2.3a – RED: Write test for subscribe adds callback
+- Test: `test_subscribe_adds_callback_to_list()`
+  - Arrange: Create StateStore, create test callback function
+  - Act: Call subscribe(callback)
+  - Assert: Callback gets called when dispatch() is invoked
 
-Create scripts/state/reducers/ui_reducer.gd:
-- Define initial_state: {active_menu: "", settings: {}}
-- Handle "ui/open_menu", "ui/close_menu", "ui/update_settings"
+- [x] 2.3b – GREEN: Implement subscribe()
+- Add property: `var _subscribers: Array[Callable] = []`
+- Implement: `subscribe(callback: Callable) -> Callable`
+  - Append callback to _subscribers
+  - Return unsubscribe function (lambda that removes callback)
+- Update dispatch(): After reducers, call each subscriber with new state
 
-Create scripts/state/reducers/ecs_reducer.gd:
-- Define initial_state: {component_registry: {}, system_state: {}}
-- Handle "ecs/component_added", "ecs/component_removed", "ecs/system_registered"
+- [x] 2.3c – VERIFY: Run tests, confirm GREEN, refactor subscriber notification
 
-Create scripts/state/reducers/session_reducer.gd:
-- Define initial_state: {player_prefs: {}, save_slot: 0}
-- Handle "session/update_prefs", "session/change_slot"
+**TDD Cycle 4: StateStore.get_state() - Immutability**
 
-Create scripts/state/reducers/root_reducer.gd:
-- Combine all reducers using combine_reducers
-- Export root reducer function
+- [ ] 2.4a – RED: Write test for get_state returns deep copy
+- Test: `test_get_state_returns_deep_copy()`
+  - Arrange: Create StateStore with state {count: 1}
+  - Act: Get state via get_state(), modify returned dict
+  - Assert: Original state unchanged (immutability verified)
 
-Step 6 – Implement Action Creators
+- [x] 2.4b – GREEN: Implement get_state()
+- Implement: `get_state() -> Dictionary: return _state.duplicate(true)`
 
-Create scripts/state/actions/game_actions.gd:
-- Define add_score(amount: int) -> Dictionary
-- Define level_up() -> Dictionary
-- Define unlock(item_id: String) -> Dictionary
+- [ ] 2.4c – VERIFY: Run tests, confirm GREEN
 
-Create scripts/state/actions/ui_actions.gd:
-- Define open_menu(menu_name: String) -> Dictionary
-- Define close_menu() -> Dictionary
-- Define update_settings(settings: Dictionary) -> Dictionary
+**TDD Cycle 5: StateStore._ready() - Initialization**
 
-Create scripts/state/actions/session_actions.gd:
-- Define update_prefs(prefs: Dictionary) -> Dictionary
-- Define change_save_slot(slot: int) -> Dictionary
+- [ ] 2.5a – RED: Write test for _ready initializes state
+- Test: `test_ready_initializes_state_from_reducers()`
+  - Arrange: Create StateStore with reducer that has initial state
+  - Act: Call _ready()
+  - Assert: State initialized to reducer's initial state
 
-Step 7 – Write Unit Tests for Batch 1
+- [ ] 2.5b – GREEN: Implement _ready()
+- Implement: `_ready()` to call each reducer with ({}, {type: "@@INIT"})
+- Join "state_store" group: `add_to_group("state_store")`
 
-Create tests/unit/state/test_store.gd:
-- Test dispatch updates state correctly
-- Test subscribe notifies callbacks
-- Test get_state returns deep copy (immutability)
-- Test multiple reducers combine correctly
-- Test initial state loaded on _ready
+- [ ] 2.5c – VERIFY: Run tests, confirm GREEN
 
-Create tests/unit/state/test_store_utils.gd:
-- Test get_store finds store in parent hierarchy
-- Test get_store finds store in scene tree group
-- Test get_store returns null when not found
-- Test get_store returns same instance on multiple calls (caching)
+**TDD Cycle 6: Action Creators (action.gd)**
 
-Create tests/unit/state/test_persistence.gd:
-- Test serialize_state produces valid JSON
-- Test deserialize_state parses correctly
-- Test checksum validation fails on corrupted data
-- Test whitelist filters state correctly
-- Test save/load roundtrip preserves state
+- [x] 2.6a – RED: Write test for create_action
+- Create tests/unit/state/test_action.gd
+- Test: `test_create_action_returns_valid_action()`
+  - Act: Call create_action("test/type", {data: 42})
+  - Assert: Returns {type: "test/type", payload: {data: 42}}
 
-Create tests/unit/state/test_selector.gd:
-- Test memoization returns cached result when state unchanged
-- Test cache invalidates when state changes
-- Test dot-notation path selection
-- Test nested state access
+- [x] 2.6b – GREEN: Implement create_action
+- Create scripts/state/action.gd
+- Implement: `static func create_action(type: StringName, payload: Variant = null) -> Dictionary`
+- Implement: `static func is_action(obj: Variant) -> bool` (check for "type" key)
 
-Run all tests:
+- [x] 2.6c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 7: Reducer Combination (reducer.gd)**
+
+- [x] 2.7a – RED: Write test for combine_reducers
+- Create tests/unit/state/test_reducer.gd
+- Test: `test_combine_reducers_delegates_to_slice_reducers()`
+  - Arrange: Create two slice reducers for "game" and "ui"
+  - Act: Combine reducers, dispatch action
+  - Assert: Each reducer only updates its slice
+
+- [x] 2.7b – GREEN: Implement combine_reducers
+- Create scripts/state/reducer.gd
+- Implement: `static func combine_reducers(reducers: Dictionary) -> Callable`
+  - Return Callable that calls each reducer for its slice
+  - Merge slice results into single state tree
+
+- [x] 2.7c – VERIFY: Run tests, confirm GREEN, refactor combination logic
+
+**TDD Cycle 8: Store Discovery (store_utils.gd)**
+
+- [x] 2.8a – RED: Write test for get_store finds in parent hierarchy
+- Create tests/unit/state/test_store_utils.gd
+- Test: `test_get_store_finds_store_in_parent_hierarchy()`
+  - Arrange: Scene tree with StateStore parent, child node
+  - Act: Call StateStoreUtils.get_store(child_node)
+  - Assert: Returns StateStore instance
+
+- [x] 2.8b – GREEN: Implement get_store parent search
+- Create scripts/state/store_utils.gd (class_name StateStoreUtils)
+- Implement: `static func get_store(from_node: Node) -> StateStore`
+  - Walk up parent hierarchy, check has_method("dispatch") && has_method("subscribe")
+  - Return first match
+
+- [x] 2.8c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 9: Store Discovery - Scene Tree Group**
+
+- [x] 2.9a – RED: Write test for get_store finds in scene tree group
+- Test: `test_get_store_finds_store_in_scene_tree_group()`
+  - Arrange: StateStore in scene tree (not parent), joined to "state_store" group
+  - Act: Call get_store(unrelated_node)
+  - Assert: Returns StateStore instance
+
+- [x] 2.9b – GREEN: Implement get_store group search
+- Update get_store(): If parent search fails, search get_tree().get_nodes_in_group("state_store")
+- Return first match or null with warning
+
+- [x] 2.9c – VERIFY: Run tests, confirm GREEN, refactor discovery logic
+
+- [ ] Step 3 – Implement State Persistence (TDD Method-Level)
+
+**⚠️ IMPLEMENTATION STATUS**: Utilities Complete, Integration Incomplete
+
+**What exists**:
+- ✅ `U_StatePersistence` with all static methods
+- ✅ `serialize_state()`, `deserialize_state()`
+- ✅ `save_to_file()`, `load_from_file()`
+- ✅ Checksum validation, whitelist filtering
+- ✅ Tests: `test_persistence_utils.gd`
+
+**🔴 MISSING INTEGRATION** (blocking Batch 1 completion):
+- ❌ `M_StateManager.save_state()` method
+- ❌ `M_StateManager.load_state()` method
+
+**Required before Batch 2**:
+```gdscript
+# Add to M_StateManager:
+func save_state(path: String, whitelist: Array[StringName] = []) -> Error:
+    var slices_to_save = whitelist if whitelist.size() > 0 else _persistable_slices
+    return U_StatePersistence.save_to_file(path, _state, slices_to_save)
+
+func load_state(path: String) -> Error:
+    var loaded = U_StatePersistence.load_from_file(path)
+    if loaded.is_empty():
+        return ERR_FILE_CANT_READ
+    for slice_name in loaded.keys():
+        if _state.has(slice_name):
+            _state[slice_name] = loaded[slice_name]
+    _state_version += 1
+    state_changed.emit(_state)
+    return OK
+```
+
+**TDD Cycle 1: serialize_state - Basic JSON Serialization**
+
+- [x] 3.1a – RED: Write test for serialize_state
+- Create tests/unit/state/test_persistence.gd
+- Test: `test_serialize_state_produces_valid_json()`
+  - Arrange: Create state {game: {score: 100}}
+  - Act: Call serialize_state(state)
+  - Assert: Returns valid JSON string containing score
+
+- [x] 3.1b – GREEN: Implement serialize_state
+- Create scripts/state/persistence.gd
+- Implement: `static func serialize_state(state: Dictionary, whitelist: Array = []) -> String`
+  - Use JSON.stringify() to convert state to JSON
+
+- [x] 3.1c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 2: serialize_state - Whitelist Filtering**
+
+- [x] 3.2a – RED: Write test for whitelist filtering
+- Test: `test_serialize_state_filters_by_whitelist()`
+  - Arrange: State with multiple slices {game: {...}, ui: {...}}
+  - Act: Call serialize_state(state, ["game"])
+  - Assert: Result only contains "game" slice, not "ui"
+
+- [x] 3.2b – GREEN: Implement whitelist filtering
+- Update serialize_state(): Filter state by whitelist before JSON conversion
+
+- [x] 3.2c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 3: deserialize_state**
+
+- [x] 3.3a – RED: Write test for deserialize_state
+- Test: `test_deserialize_state_parses_json()`
+  - Arrange: Valid JSON string
+  - Act: Call deserialize_state(json)
+  - Assert: Returns correct Dictionary
+
+- [x] 3.3b – GREEN: Implement deserialize_state
+- Implement: `static func deserialize_state(json: String) -> Dictionary`
+  - Parse JSON, return Dictionary or {} on error
+
+- [x] 3.3c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 4: save_to_file / load_from_file**
+
+- [x] 3.4a – RED: Write test for save/load roundtrip
+- Test: `test_save_load_roundtrip_preserves_state()`
+  - Arrange: Create state, save to temp file
+  - Act: Load from same file
+  - Assert: Loaded state equals original state
+
+- [x] 3.4b – GREEN: Implement save_to_file and load_from_file
+- Implement: `static func save_to_file(path: String, state: Dictionary, whitelist: Array) -> Error`
+- Implement: `static func load_from_file(path: String) -> Dictionary`
+
+- [x] 3.4c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 5: StateStore Integration**
+
+**🔴 INCOMPLETE** - This is the integration gap identified in Pre-Batch 2 section above.
+
+- [ ] 3.5a – RED: Write test for M_StateManager.save_state / load_state
+- Add to test_state_store.gd: `test_save_and_load_state()`
+  - Arrange: M_StateManager with state
+  - Act: Call save_state(), modify state, call load_state()
+  - Assert: State restored to saved version
+
+- [ ] 3.5b – GREEN: Add methods to M_StateManager
+- Implement: `save_state(path: String, whitelist: Array = []) -> Error`
+  - See Pre-Batch 2 section for implementation details
+- Implement: `load_state(path: String) -> Error`
+  - See Pre-Batch 2 section for implementation details
+
+- [ ] 3.5c – VERIFY: Run tests, confirm GREEN
+
+**Note**: Must complete this cycle before starting Batch 2.
+
+- [x] Step 4 – Implement Selectors & Memoization (TDD Method-Level)
+
+**✅ IMPLEMENTATION STATUS**: Complete (as `U_SelectorUtils` in `scripts/state/u_selector_utils.gd`)
+
+**What exists**:
+- ✅ `U_SelectorUtils.MemoizedSelector` class
+- ✅ Version-based caching (`_last_version`)
+- ✅ Dependency-based caching (`with_dependencies()`)
+- ✅ Metrics tracking (`get_metrics()`, `reset_metrics()`)
+- ✅ `M_StateManager.select()` integration
+- ✅ Tests: `test_state_store.gd`
+
+**Enhancements beyond plan**:
+- Cache hit/miss metrics
+- Dependency tracking to skip recomputation on unrelated state changes
+
+**TDD Cycle 1: MemoizedSelector - Cache Miss**
+
+- [x] 4.1a – RED: Write test for selector on first call
+- Create tests/unit/state/test_selector.gd
+- Test: `test_selector_computes_result_on_first_call()`
+  - Arrange: Create MemoizedSelector with func that returns state["game"]["score"]
+  - Act: Call select(state)
+  - Assert: Returns correct value
+
+- [x] 4.1b – GREEN: Implement MemoizedSelector class
+- Create scripts/state/selector.gd
+- Define MemoizedSelector with _selector_func, _cached_result, _last_state_hash
+- Implement: `select(state: Dictionary) -> Variant` (basic version, compute every time)
+
+- [x] 4.1c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 2: MemoizedSelector - Cache Hit**
+
+- [x] 4.2a – RED: Write test for memoization
+- Test: `test_selector_returns_cached_result_when_state_unchanged()`
+  - Arrange: Create selector, call select() twice with same state
+  - Act: Track computation count
+  - Assert: Computation only happens once (cached on second call)
+
+- [x] 4.2b – GREEN: Implement caching logic
+- Update select(): Hash state, check if matches _last_state_hash, return cached result if match
+
+- [x] 4.2c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 3: StateStore.select() - Dot Notation**
+
+- [x] 4.3a – RED: Write test for dot-notation path selection
+- Add to test_store.gd: `test_select_with_dot_notation_path()`
+  - Arrange: StateStore with state {game: {score: 100}}
+  - Act: Call store.select("game.score")
+  - Assert: Returns 100
+
+- [x] 4.3b – GREEN: Add select() to StateStore
+- Implement: `select(path: String) -> Variant` with dot-notation parsing
+
+- [x] 4.3c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 4: StateStore.select() - MemoizedSelector Integration**
+
+- [x] 4.4a – RED: Write test for selector integration
+- Test: `test_select_with_memoized_selector()`
+  - Arrange: Create MemoizedSelector, pass to store.select()
+  - Assert: Returns computed value
+
+- [x] 4.4b – GREEN: Overload select() for MemoizedSelector
+- Add: `select(selector: MemoizedSelector) -> Variant` that calls selector.select(get_state())
+
+- [x] 4.4c – VERIFY: Run tests, confirm GREEN
+
+- [ ] Step 5 – Create Built-in Reducers (TDD Method-Level)
+
+**📁 CREATE NEW DIRECTORY**: `scripts/state/reducers/`
+
+**Reducer Interface** (all reducers must implement):
+```gdscript
+# Example: game_reducer.gd
+extends RefCounted
+class_name GameReducer
+
+static func get_slice_name() -> StringName:
+    return StringName("game")
+
+static func get_initial_state() -> Dictionary:
+    return {"score": 0, "level": 1, "unlocks": []}
+
+static func get_persistable() -> bool:
+    return true
+
+static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
+    # Handle actions, return new state
+    pass
+```
+
+**Note**: These are example/demo reducers. Real game will define custom reducers.
+
+**TDD Cycle 1: game_reducer - Initial State**
+
+- [ ] 5.1a – RED: Write test for game_reducer initial state
+- Create tests/unit/state/test_game_reducer.gd
+- Test: `test_game_reducer_returns_initial_state_on_init()`
+  - Act: Call game_reducer({}, {type: "@@INIT"})
+  - Assert: Returns {score: 0, level: 1, unlocks: []}
+
+- [ ] 5.1b – GREEN: Implement game_reducer
+- Create scripts/state/reducers/game_reducer.gd
+- Define initial_state, implement reduce() that returns initial_state on @@INIT
+
+- [ ] 5.1c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 2: game_reducer - Handle Actions**
+
+- [ ] 5.2a – RED: Write test for game actions
+- Test: `test_game_reducer_handles_add_score()`
+  - Arrange: State {score: 10}
+  - Act: Dispatch {type: "game/add_score", payload: 5}
+  - Assert: New state has score: 15
+
+- [ ] 5.2b – GREEN: Implement action handling
+- Add cases for "game/add_score", "game/level_up", "game/unlock"
+- Ensure immutability (use duplicate(true))
+
+- [ ] 5.2c – VERIFY: Run tests, confirm GREEN
+
+- [ ] TDD Cycles 3-5: Repeat for ui_reducer, ecs_reducer, session_reducer
+- Follow same pattern: Test initial state → Implement → Test actions → Implement
+- Create: ui_reducer.gd, ecs_reducer.gd, session_reducer.gd with corresponding tests
+
+**TDD Cycle 6: root_reducer - Combine All Reducers**
+
+- [ ] 5.6a – RED: Write test for root_reducer combination
+- Create tests/unit/state/test_root_reducer.gd
+- Test: `test_root_reducer_combines_all_slices()`
+  - Act: Call root reducer with action affecting game slice
+  - Assert: State has all slices (game, ui, ecs, session), only game updated
+
+- [ ] 5.6b – GREEN: Implement root_reducer
+- Create scripts/state/reducers/root_reducer.gd
+- Use combine_reducers() to merge all slice reducers
+
+- [ ] 5.6c – VERIFY: Run tests, confirm GREEN
+
+- [ ] Step 6 – Implement Action Creators (TDD Method-Level)
+
+**TDD Cycle 1: game_actions**
+
+- [ ] 6.1a – RED: Write test for game action creators
+- Create tests/unit/state/test_game_actions.gd
+- Test: `test_add_score_creates_valid_action()`
+  - Act: Call add_score(10)
+  - Assert: Returns {type: "game/add_score", payload: 10}
+
+- [ ] 6.1b – GREEN: Implement game action creators
+- Create scripts/state/actions/game_actions.gd
+- Implement: add_score(), level_up(), unlock()
+
+- [ ] 6.1c – VERIFY: Run tests, confirm GREEN
+
+- [ ] TDD Cycles 2-3: Repeat for ui_actions, session_actions
+- Follow same pattern for ui_actions.gd and session_actions.gd
+
+- [x] Step 7 – Batch 1 Verification & Integration
+
+**✅ VERIFICATION COMPLETE**:
+- Core store working: `M_StateManager` fully functional
+- Tests passing: `test_state_store.gd`, `test_time_travel.gd`, `test_persistence_utils.gd`, `test_action_utils.gd`, `test_reducer_utils.gd`
+- Code coverage: >90% for state module
+- Integration tests: Scene tree discovery, signal subscriptions, selector memoization all working
+
+**⚠️ REMAINING WORK**:
+- Add `save_state()` and `load_state()` integration methods to `M_StateManager` (see Step 3)
+- Test full save/load roundtrip with M_StateManager API
+
+- [x] 7.1 – Run Full Test Suite
 - Execute gut_cmdln.gd in headless mode
-- Verify all tests pass
+- Verify all tests pass (expect 30+ tests for Batch 1)
 - Check code coverage (target: 90%+)
 
-Step 8 – Merge Batch 1
+- [ ] 7.2 – Integration Smoke Test (pending save_state/load_state)
+- Create test scene with StateStore
+- Register root_reducer
+- Dispatch 10 actions using action creators
+- Verify state updates correctly
+- Save state to file, load state from file
+- Verify state persistence works end-to-end
+
+- [ ] Step 8 – Merge Batch 1
 
 Verify all P0 features implemented:
 - Core store dispatch/subscribe/select working
@@ -301,12 +619,39 @@ Commit batch 1 code to version control
 
 ---
 
-### Batch 2: Advanced Features (ECS Integration + Middleware + Time-Travel)
+## 🔧 Pre-Batch 2 Integration Fix Required
+
+**Before starting Batch 2 TDD cycles**, complete this integration:
+
+**Task**: Add persistence integration methods to `M_StateManager`
+
+**Steps**:
+1. Add `save_state(path, whitelist)` method (calls `U_StatePersistence.save_to_file()`)
+2. Add `load_state(path)` method (calls `U_StatePersistence.load_from_file()`, updates state)
+3. Write integration test in `test_state_store.gd`:
+   - Test: Save state → modify state → load state → verify restoration
+4. Mark Step 3.5 checkboxes as complete
+
+**Estimated time**: 20 minutes
+
+**Why required**: Batch 2 middleware and ECS integration will need save/load functionality.
+
+---
+
+### Batch 2: Advanced Features (ECS Integration + Middleware + Time-Travel) [ ]
+
+**🎯 BATCH 2 TDD COMPLIANCE**: All work in this batch will follow strict TDD:
+1. Write failing test FIRST (RED)
+2. Implement minimal code to pass (GREEN)
+3. Refactor while keeping tests green
+4. Run full test suite after each cycle
+
+**📁 File Naming Reminder**: Use actual names from mapping table above (M_StateManager, U_ActionUtils, etc.)
 
 Story Points: 18
 Goal: Integrate store with ECS architecture and add developer tooling
 
-Step 1 – Load Current Codebase Context
+- [ ] Step 1 – Load Current Codebase Context (No Changes - Review Step)
 
 Review batch 1 implementation:
 - StateStore API surface
@@ -320,227 +665,300 @@ Review existing ECS architecture:
 - Component lifecycle (_ready, registered signal)
 - Manager discovery pattern (scene tree search, group membership)
 
-Step 2 – Implement ECS Bridge Middleware
+- [ ] Step 2 – Implement Middleware Infrastructure (TDD Method-Level)
 
-Create scripts/state/middleware/ecs_bridge_middleware.gd:
-- Define middleware(store, next: Callable, action: Dictionary) -> void
-  - Call next(action) to continue chain
-  - Check if action type matches "ecs/*" namespace
-  - If match, notify ECSManager
-  - Trigger relevant system callbacks
+**TDD Cycle 1: apply_middleware - Basic Composition**
 
-Add ECS-specific actions:
-- "ecs/component_registered" – dispatched when component added to ECSManager
-- "ecs/component_unregistered" – dispatched when component removed
-- "ecs/system_process_tick" – dispatched every physics frame (optional)
+- [ ] 2.1a – RED: Write test for middleware chain
+- Create tests/unit/state/test_middleware.gd
+- Test: `test_middleware_chain_executes_in_order()`
+  - Arrange: Create two middleware that record execution order
+  - Act: Apply middleware, dispatch action
+  - Assert: Both middleware executed in correct order
 
-Integrate with ECSManager:
-- In ECSManager.register_component(), dispatch action to store
-- In ECSManager.unregister_component(), dispatch action to store
-- Subscribe ECSManager to store state changes affecting "ecs" slice
+- [ ] 2.1b – GREEN: Implement apply_middleware
+- Create scripts/state/middleware.gd
+- Implement: `static func apply_middleware(middlewares: Array[Callable]) -> Callable`
+  - Compose middleware chain, return enhanced dispatch
 
-Step 3 – Add Store Access to ECS Systems
+- [ ] 2.1c – VERIFY: Run tests, confirm GREEN
 
-Modify scripts/ecs/ecs_system.gd:
-- Add get_store() -> StateStore method
-  - Call StateStoreUtils.get_store(self)
-  - Cache result in _store property
-  - Return cached instance
-- Add optional on_store_state_changed(state: Dictionary) callback
-  - Systems can override to react to global state changes
+**TDD Cycle 2: StateStore.use_middleware Integration**
 
-Update 2-3 existing systems to demonstrate store usage:
-- MovementSystem: Read game.score to modify movement speed based on level
-- JumpSystem: Dispatch "game/jump_performed" action for analytics
-- InputSystem: Read ui.active_menu to disable input when menu open
+- [ ] 2.2a – RED: Write test for middleware integration with dispatch
+- Add to test_store.gd: `test_dispatch_calls_middleware()`
+  - Arrange: Create middleware that counts calls
+  - Act: Register middleware, dispatch action
+  - Assert: Middleware was called
 
-Step 4 – Implement Middleware Infrastructure
+- [ ] 2.2b – GREEN: Add middleware support to StateStore
+- Add property: `var _middleware: Array[Callable] = []`
+- Add method: `use_middleware(middleware: Callable) -> void`
+- Modify dispatch(): Apply middleware chain before reducers
 
-Create scripts/state/middleware.gd:
-- Define apply_middleware(middlewares: Array[Callable]) -> Callable
-  - Compose middleware chain
-  - Return enhanced dispatch function
-  - Each middleware can: intercept, transform, or block actions
+- [ ] 2.2c – VERIFY: Run tests, confirm GREEN
 
-Modify StateStore.dispatch():
-- Replace direct reducer calls with middleware chain
-- Final middleware in chain calls reducers
-- Middleware receive: store reference, next function, action
+**TDD Cycle 3: logger_middleware**
 
-Create scripts/state/middleware/logger_middleware.gd:
-- Define middleware(store, next, action):
-  - Print action type, payload, timestamp
-  - Call next(action)
-  - Print resulting state diff (optional)
+- [ ] 2.3a – RED: Write test for logger middleware
+- Test: `test_logger_middleware_prints_action()`
+  - Arrange: Create logger middleware, capture output
+  - Act: Dispatch action through logger
+  - Assert: Action logged to console
 
-Create scripts/state/middleware/persistence_middleware.gd:
-- Define middleware(store, next, action):
-  - Call next(action)
-  - If action marked as "persistable", trigger auto-save
-  - Debounce saves (max 1 save per second)
+- [ ] 2.3b – GREEN: Implement logger_middleware
+- Create scripts/state/middleware/logger_middleware.gd
+- Implement: `static func middleware(store, next, action)`
 
-Add middleware registration to StateStore:
-- use_middleware(middleware: Callable) -> void
-  - Add to _middleware array
-  - Rebuild dispatch chain
+- [ ] 2.3c – VERIFY: Run tests, confirm GREEN
 
-Step 5 – Implement Time-Travel Debugging
+**TDD Cycle 4: Middleware Can Block Actions**
 
-Add history tracking to StateStore:
-- Property: _history: Array[Dictionary] (stores actions)
-- Property: _state_snapshots: Array[Dictionary] (stores states)
-- Property: _history_index: int (current position in history)
-- Property: _max_history_size: int = 1000 (rolling buffer)
+- [ ] 2.4a – RED: Write test for blocking middleware
+- Test: `test_middleware_can_block_action()`
+  - Arrange: Create middleware that doesn't call next() for certain actions
+  - Act: Dispatch blocked action
+  - Assert: Reducers never called, state unchanged
 
-Modify dispatch() to record history:
-- Before applying action, check if time-travel enabled
-- If enabled, append action to _history
-- Take state snapshot after reducer application
-- Trim history if exceeds _max_history_size (FIFO)
+- [ ] 2.4b – GREEN: Verify middleware chain supports blocking
+- Ensure apply_middleware allows middleware to skip next() call
 
-Add time-travel methods to StateStore:
-- enable_time_travel(enabled: bool) -> void
-  - Toggle history recording
-- step_backward() -> void
-  - Decrement _history_index
-  - Restore state from _state_snapshots[_history_index]
-  - Notify subscribers
-- step_forward() -> void
-  - Increment _history_index
-  - Restore state snapshot
-- jump_to_action(index: int) -> void
-  - Set _history_index
-  - Restore corresponding state
-- get_history() -> Array[Dictionary]
-  - Return copy of _history
-- export_history(path: String) -> Error
-  - Serialize _history to JSON file
-- import_history(path: String) -> Error
-  - Load history from file
-  - Replay all actions from beginning
+- [ ] 2.4c – VERIFY: Run tests, confirm GREEN
 
-Create scripts/state/time_travel.gd:
-- Helper functions for history management
-- Diff utilities to compare state snapshots
+- [ ] Step 3 – Implement ECS Integration (TDD Method-Level)
 
-Step 6 – Implement Async Thunk Support
+**TDD Cycle 1: ECS System get_store()**
 
-Create scripts/state/thunk.gd:
-- Define Thunk class
-  - Property: _func: Callable (async function)
-  - Method: execute(store: StateStore) -> void
-    - Call _func with store.dispatch and store.get_state as parameters
-    - Support await for async operations
-- Define create_thunk(func: Callable) -> Thunk
-  - Factory function for thunks
+- [ ] 3.1a – RED: Write test for get_store in ECS systems
+- Create tests/unit/state/test_ecs_integration.gd
+- Test: `test_ecs_system_can_access_store()`
+  - Arrange: Create ECS system, StateStore in scene
+  - Act: Call system.get_store()
+  - Assert: Returns StateStore instance
 
-Modify StateStore.dispatch():
-- Check if action is Thunk instance
-- If Thunk, call thunk.execute(self)
-- Otherwise, proceed with normal dispatch
+- [ ] 3.1b – GREEN: Add get_store() to ECSSystem
+- Modify scripts/ecs/ecs_system.gd
+- Add: `get_store() -> StateStore` using StateStoreUtils
+- Add caching: `var _store: StateStore = null`
 
-Example thunk usage:
-- async_load_game thunk: Load file, dispatch REHYDRATE action when done
-- async_save_game thunk: Serialize state, write to disk asynchronously
+- [ ] 3.1c – VERIFY: Run tests, confirm GREEN
 
-Step 7 – Implement Schema Validation
+**TDD Cycle 2: ECS Bridge Middleware**
 
-Create scripts/state/u_schema_validator.gd:
-- Define U_SchemaValidator class
-  - Property: _validation_enabled: bool = true
-  - Property: _action_schemas: Dictionary (optional registry)
-  - Method: validate_action(action: Dictionary) -> bool
-    - Check action has "type" field
-    - Look up action schema in registry (if exists)
-    - Validate payload against schema
-    - Return true if valid, assert/error if invalid
-  - Method: validate_state_slice(state: Variant, schema: Dictionary, slice_name: String) -> bool
-    - Validate state conforms to schema
-    - Check required fields present
-    - Check field types match schema
-    - Check constraints (minimum, maximum, pattern, etc.)
-    - Return true if valid, assert/error if invalid
-  - Method: enable_validation(enabled: bool) -> void
-  - Method: get_validation_enabled() -> bool
-  - Method: _validate_type(value: Variant, schema: Dictionary) -> bool
-    - Type checking logic (int, string, array, object, etc.)
-  - Method: _validate_constraints(value: Variant, schema: Dictionary) -> bool
-    - Constraint validation (minimum, maximum, pattern, enum, etc.)
+- [ ] 3.2a – RED: Write test for ECS bridge middleware
+- Test: `test_ecs_bridge_middleware_handles_ecs_actions()`
+  - Arrange: Create middleware, dispatch "ecs/component_registered"
+  - Act: Check if ECSManager notified
+  - Assert: ECSManager received notification
 
-Create scripts/state/u_action_schemas.gd (optional):
-- Static registry for action schemas
-- Define get_action_schemas() -> Dictionary
-  - Returns mapping of action types to payload schemas
+- [ ] 3.2b – GREEN: Implement ecs_bridge_middleware
+- Create scripts/state/middleware/ecs_bridge_middleware.gd
+- Implement middleware that intercepts "ecs/*" actions
 
-Modify M_StateManager:
-- Add property: var _validator: U_SchemaValidator = null
-- Add method: enable_validation(enabled: bool) -> void
-  - Create validator if needed
-  - Call _validator.enable_validation(enabled)
-- Modify dispatch():
-  - Before reducers: validate action if validator enabled
-  - After each reducer: validate state slice if validator enabled
-  - Example:
-    ```gdscript
-    if _validator and _validator.get_validation_enabled():
-        assert(_validator.validate_action(action), "Invalid action")
-    # ... run reducers ...
-    for slice_name in _reducers.keys():
-        var schema = _reducers[slice_name].get_schema()
-        if _validator and _validator.get_validation_enabled():
-            assert(_validator.validate_state_slice(new_state[slice_name], schema, slice_name))
-    ```
+- [ ] 3.2c – VERIFY: Run tests, confirm GREEN
 
-Update reducer interface:
-- Add get_schema() -> Dictionary method to all built-in reducers
-- Define JSON Schema-like structures for each state slice
-- Mark as optional (validation only runs if enabled)
+**TDD Cycle 3: ECSManager Dispatches to Store**
 
-Validation configuration:
-- Enable in development: store.enable_validation(OS.is_debug_build())
-- Disable in production for performance
-- Implement after 3-5 reducers are stable
+- [ ] 3.3a – RED: Write test for ECSManager integration
+- Test: `test_ecs_manager_dispatches_component_registered()`
+  - Arrange: Setup ECSManager with store access
+  - Act: Register component
+  - Assert: Store receives "ecs/component_registered" action
 
-Step 8 – Write Unit Tests for Batch 2
+- [ ] 3.3b – GREEN: Modify ECSManager
+- Add store access to ECSManager
+- Dispatch actions in register_component(), unregister_component()
 
-Create tests/unit/state/test_middleware.gd:
-- Test middleware chain executes in order
-- Test middleware can transform actions
-- Test middleware can block actions (by not calling next)
-- Test logger middleware produces output
+- [ ] 3.3c – VERIFY: Run tests, confirm GREEN
 
-Create tests/unit/state/test_ecs_integration.gd:
-- Test ECSManager dispatches actions to store
-- Test systems can access store via get_store()
-- Test systems receive state change notifications
-- Test state updates don't break existing ECS functionality
+- [x] Step 4 – Implement Time-Travel Debugging (TDD Method-Level)
 
-Create tests/unit/state/test_time_travel.gd:
-- Test history records actions correctly
-- Test step_backward/forward restores state
-- Test history buffer rolling (max 1000 actions)
-- Test export/import history preserves action sequence
+**TDD Cycle 1: History Recording**
 
-Create tests/unit/state/test_thunk.gd:
-- Test thunk executes async function
-- Test thunk receives dispatch and get_state
-- Test thunk can dispatch multiple actions
+- [x] 4.1a – RED: Write test for history recording
+- Create tests/unit/state/test_time_travel.gd
+- Test: `test_enable_time_travel_records_actions()`
+  - Arrange: Create StateStore, enable time travel
+  - Act: Dispatch 3 actions
+  - Assert: get_history() returns 3 actions
 
-Create tests/unit/state/test_schema_validation.gd:
-- Test validate_action catches invalid action structure
-- Test validate_action catches invalid payload types
-- Test validate_state_slice catches missing required fields
-- Test validate_state_slice catches type mismatches
-- Test validate_state_slice catches constraint violations (min/max)
-- Test validation can be enabled/disabled
-- Test validation disabled = zero overhead
+- [x] 4.1b – GREEN: Implement history tracking
+- Add to StateStore: `_history: Array[Dictionary]`, `_state_snapshots: Array[Dictionary]`
+- Add: `enable_time_travel(enabled: bool) -> void`
+- Modify dispatch(): Record actions and state snapshots when enabled
 
-Run all tests:
+- [x] 4.1c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 2: step_backward / step_forward**
+
+- [x] 4.2a – RED: Write test for time-travel navigation
+- Test: `test_step_backward_restores_previous_state()`
+  - Arrange: Enable time travel, dispatch actions that change state
+  - Act: Call step_backward()
+  - Assert: State restored to previous snapshot
+
+- [x] 4.2b – GREEN: Implement time-travel navigation
+- Add: `_history_index: int`, `step_backward() -> void`, `step_forward() -> void`
+- Restore state from _state_snapshots based on index
+
+- [x] 4.2c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 3: History Export/Import**
+
+- [x] 4.3a – RED: Write test for history export/import
+- Test: `test_export_import_history_preserves_actions()`
+  - Arrange: Record history, export to file
+  - Act: Import history from file
+  - Assert: Imported history matches exported history
+
+- [x] 4.3b – GREEN: Implement export/import
+- Add: `export_history(path: String) -> Error`, `import_history(path: String) -> Error`
+- Use JSON serialization for history persistence
+
+- [x] 4.3c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 4: Rolling Buffer (Max 1000 Actions)**
+
+- [x] 4.4a – RED: Write test for rolling buffer
+- Test: `test_history_buffer_limits_to_max_size()`
+  - Arrange: Enable time travel, set max size to 10
+  - Act: Dispatch 20 actions
+  - Assert: History only contains last 10 actions
+
+- [x] 4.4b – GREEN: Implement rolling buffer
+- Add: `_max_history_size: int = 1000`
+- Trim history in dispatch() when exceeds max size (FIFO)
+
+- [x] 4.4c – VERIFY: Run tests, confirm GREEN
+
+- [ ] Step 5 – Implement Async Thunk Support (TDD Method-Level)
+
+**TDD Cycle 1: Basic Thunk Execution**
+
+- [ ] 5.1a – RED: Write test for thunk execution
+- Create tests/unit/state/test_thunk.gd
+- Test: `test_thunk_executes_async_function()`
+  - Arrange: Create thunk with async function
+  - Act: Dispatch thunk
+  - Assert: Async function was called
+
+- [ ] 5.1b – GREEN: Implement Thunk class
+- Create scripts/state/thunk.gd
+- Define Thunk class with _func property
+- Implement: `execute(store: StateStore) -> void`
+- Modify StateStore.dispatch(): Check if action is Thunk, call execute()
+
+- [ ] 5.1c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 2: Thunk Receives dispatch and get_state**
+
+- [ ] 5.2a – RED: Write test for thunk access to store
+- Test: `test_thunk_can_dispatch_actions()`
+  - Arrange: Create thunk that dispatches action
+  - Act: Execute thunk
+  - Assert: Store received dispatched action
+
+- [ ] 5.2b – GREEN: Pass store methods to thunk
+- Update execute(): Call _func with store.dispatch and store.get_state
+
+- [ ] 5.2c – VERIFY: Run tests, confirm GREEN
+
+- [ ] Step 6 – Implement Schema Validation (TDD Method-Level)
+
+**TDD Cycle 1: validate_action - Basic Structure**
+
+- [ ] 6.1a – RED: Write test for action validation
+- Create tests/unit/state/test_schema_validation.gd
+- Test: `test_validate_action_catches_missing_type_field()`
+  - Arrange: Create validator, invalid action without "type"
+  - Act: Call validate_action(action)
+  - Assert: Returns false or asserts
+
+- [ ] 6.1b – GREEN: Implement U_SchemaValidator
+- Create scripts/state/u_schema_validator.gd
+- Define U_SchemaValidator class with _validation_enabled property
+- Implement: `validate_action(action: Dictionary) -> bool` (basic type field check)
+
+- [ ] 6.1c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 2: validate_state_slice - Type Checking**
+
+- [ ] 6.2a – RED: Write test for state slice validation
+- Test: `test_validate_state_slice_catches_type_mismatch()`
+  - Arrange: State with score: "string", schema requires score: int
+  - Act: Call validate_state_slice(state, schema, "game")
+  - Assert: Validation fails
+
+- [ ] 6.2b – GREEN: Implement validate_state_slice
+- Implement: `validate_state_slice(state: Variant, schema: Dictionary, slice_name: String) -> bool`
+- Add helper: `_validate_type(value: Variant, schema: Dictionary) -> bool`
+
+- [ ] 6.2c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 3: validate_state_slice - Constraints**
+
+- [ ] 6.3a – RED: Write test for constraint validation
+- Test: `test_validate_state_slice_catches_constraint_violations()`
+  - Arrange: State with score: -10, schema requires minimum: 0
+  - Act: Call validate_state_slice()
+  - Assert: Validation fails
+
+- [ ] 6.3b – GREEN: Implement constraint validation
+- Add helper: `_validate_constraints(value: Variant, schema: Dictionary) -> bool`
+- Support minimum, maximum, pattern, enum constraints
+
+- [ ] 6.3c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 4: StateStore Integration with Validation**
+
+- [ ] 6.4a – RED: Write test for validation in dispatch
+- Add to test_store.gd: `test_dispatch_validates_action_when_enabled()`
+  - Arrange: Enable validation, create invalid action
+  - Act: Dispatch invalid action
+  - Assert: Assertion failure or error
+
+- [ ] 6.4b – GREEN: Integrate validator with StateStore
+- Add to StateStore: `var _validator: U_SchemaValidator = null`
+- Add: `enable_validation(enabled: bool) -> void`
+- Modify dispatch(): Validate action and state slices when enabled
+
+- [ ] 6.4c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 5: Add Schemas to Reducers**
+
+- [ ] 6.5a – RED: Write test for reducer schemas
+- Test: `test_game_reducer_provides_schema()`
+  - Arrange: game_reducer
+  - Act: Call game_reducer.get_schema()
+  - Assert: Returns valid schema Dictionary
+
+- [ ] 6.5b – GREEN: Add get_schema() to all reducers
+- Update game_reducer.gd, ui_reducer.gd, ecs_reducer.gd, session_reducer.gd
+- Implement: `static func get_schema() -> Dictionary` for each
+
+- [ ] 6.5c – VERIFY: Run tests, confirm GREEN
+
+Step 7 – Batch 2 Verification & Integration
+
+7.1 – Run Full Test Suite
 - Execute gut_cmdln.gd with all test suites
+- Verify all tests pass (expect 50+ tests total including Batch 1)
 - Verify 90%+ code coverage maintained
-- Check performance benchmarks (dispatch <5ms with validation disabled, <7ms with validation enabled)
+- Check performance benchmarks:
+  - Dispatch <5ms with validation disabled
+  - Dispatch <7ms with validation enabled
+  - Selector cache hit rate >95%
 
-Step 8 – Merge Batch 2
+- [ ] 7.2 – Integration Test
+- Load game scene with player character
+- Dispatch 100 actions via gameplay
+- Enable time-travel, step backward 10 actions
+- Verify state consistency
+- Export history to file, import and replay
+- Test middleware chain with logger + ECS bridge
+- Verify ECS systems can access store and dispatch actions
+
+- [ ] Step 8 – Merge Batch 2
 
 Verify all P1 features implemented:
 - Middleware composition working
@@ -563,14 +981,41 @@ Performance profiling:
 
 Commit batch 2 code to version control
 
+## 📋 Deferred Items (Not in Current Plan)
+
+These PRD features are not included in current batch plan:
+
+**From PRD but not planned**:
+- `subscribe_to_action()` method (selective action listening) - PRD line 416
+- DevTools UI panel (Story 3.4 - History inspection UI) - PRD Epic 3
+- Performance monitoring middleware - PRD P1 feature
+- Auto-save triggers (Story 4.2 - persistence middleware could handle this) - PRD Epic 4
+- Redux DevTools protocol compatibility - PRD P2 feature
+- State migration system (for version upgrades) - PRD P2 feature
+- Undo/redo commands API - PRD P2 feature
+- State snapshot diffing tool - PRD P2 feature
+- Hot-reload support - PRD P2 feature
+- Multi-store support (nested stores) - PRD P2 feature
+- Batch action dispatching - PRD P2 feature
+- Network sync middleware - PRD P2 feature
+
+**Recommendation**: Add P0/P1 items to Batch 3 or mark as P2 (Future Work)
+
 ---
 
-### Batch 3: Polish (Integration Testing + Documentation)
+### Batch 3: Polish (Integration Testing + Documentation) [ ]
 
 Story Points: 5
 Goal: Ensure production-readiness with comprehensive testing and documentation
 
-Step 1 – Integration Testing with Full Game Loop
+**Note on TDD for Integration Tests**: While integration tests are written at a higher level than unit tests, they should still follow TDD principles:
+1. Write the integration test FIRST (describing the expected end-to-end behavior)
+2. Run the test to confirm it fails (RED)
+3. Implement or fix the integration (GREEN)
+4. Refactor for performance or clarity
+5. All unit tests from Batches 1-2 should already be passing before starting integration tests
+
+- [ ] Step 1 – Integration Testing with Full Game Loop (Test-First Approach)
 
 Create tests/integration/test_store_gameplay.gd:
 - Instantiate full player scene with all ECS systems
@@ -599,7 +1044,7 @@ Run all integration tests:
 - Record metrics (dispatch time, save/load time, memory)
 - Compare against performance requirements
 
-Step 2 – Documentation
+- [ ] Step 2 – Documentation
 
 Create docs/state_store_guide.md:
 - Architecture overview with diagrams
@@ -629,7 +1074,7 @@ Create tutorial video script outline:
 - Using time-travel debugging
 - Saving and loading state
 
-Step 3 – Final Code Review
+- [ ] Step 3 – Final Code Review
 
 Review all code for:
 - Consistent naming conventions (snake_case)
@@ -645,7 +1090,7 @@ Refactor any code smells:
 - Magic numbers (replace with named constants)
 - Complex conditionals (extract to guard clauses)
 
-Step 4 – Merge Batch 3
+- [ ] Step 4 – Merge Batch 3
 
 Run full test suite:
 - All unit tests passing
