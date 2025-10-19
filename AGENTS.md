@@ -47,8 +47,8 @@
   - Use `U_ActionUtils.create_action(type, payload)` so `type` becomes a `StringName` and shape stays consistent.
   - For expensive derivations, wrap a lambda with `U_SelectorUtils.MemoizedSelector` to cache on state version.
 - Store usage
-  - Add a single `M_StateManager` node to the tree (it joins `state_store` group). Discover from any node via `U_U_StateStoreUtils.get_store(node)`.
-  - To persist, get `store.get_state()` and pass along with `persistable_slices` to `U_StatePersistence.serialize_state(...)`; restore with `deserialize_state(...)`.
+  - Add a single `M_StateManager` node to the tree (it joins `state_store` group). Discover from any node via `U_StateStoreUtils.get_store(node)`.
+  - To persist, use `store.save_state(path[, whitelist])`; restore using `store.load_state(path)`.
   - For full architecture/tradeoffs/PRD, see `docs/redux_state_store/*`.
 
 ## Conventions and Gotchas

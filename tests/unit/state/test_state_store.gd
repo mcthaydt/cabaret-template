@@ -12,7 +12,7 @@ class FakeReducer:
 		return {"score": 0}
 
 	static func get_persistable() -> bool:
-		return false
+		return true
 
 	static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 		var action_type: StringName = action.get("type", StringName(""))
@@ -40,6 +40,25 @@ class OtherReducer:
 		var updated := state.duplicate(true)
 		if action.get("type", StringName("")) == StringName("other/toggle"):
 			updated["flag"] = !bool(updated.get("flag", false))
+		return updated
+
+class PersistedReducer:
+	static func get_slice_name() -> StringName:
+		return StringName("session")
+
+	static func get_initial_state() -> Dictionary:
+		return {"value": 0}
+
+	static func get_persistable() -> bool:
+		return true
+
+	static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
+		var updated := state.duplicate(true)
+		match action.get("type", StringName("")):
+			StringName("session/set_value"):
+				updated["value"] = int(action.get("payload", 0))
+			StringName("session/clear"):
+				updated["value"] = 0
 		return updated
 
 func test_register_reducer_initializes_state() -> void:
@@ -219,3 +238,150 @@ func test_memoized_selector_dependency_tracking_skips_unrelated_changes() -> voi
 	assert_eq(int(metrics["cache_misses"]), 0)
 	assert_eq(int(metrics["dependency_hits"]), 0)
 	assert_eq(int(metrics["dependency_misses"]), 0)
+
+func test_save_and_load_state_round_trip() -> void:
+	var store: M_StateManager = STATE_MANAGER.new()
+	add_child(store)
+	autofree(store)
+	await get_tree().process_frame
+
+	store.register_reducer(PersistedReducer)
+	store.register_reducer(FakeReducer)
+
+	store.dispatch({
+		"type": StringName("session/set_value"),
+		"payload": 12,
+	})
+	store.dispatch({
+		"type": StringName("game/add_score"),
+		"payload": 4,
+	})
+
+	var path := "user://state_manager_save.json"
+	var save_err: Error = store.save_state(path)
+	assert_eq(save_err, OK)
+
+	store.dispatch({
+		"type": StringName("session/set_value"),
+		"payload": 99,
+	})
+	store.dispatch({
+		"type": StringName("game/reset_score"),
+	})
+
+	var load_err: Error = store.load_state(path)
+	assert_eq(load_err, OK)
+
+	var state: Dictionary = store.get_state()
+	assert_eq(int(state[StringName("session")]["value"]), 12)
+	assert_eq(int(state[StringName("game")]["score"]), 4)
+
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)
+
+func test_save_state_allows_whitelist_override() -> void:
+	var store: M_StateManager = STATE_MANAGER.new()
+	add_child(store)
+	autofree(store)
+	await get_tree().process_frame
+
+	store.register_reducer(PersistedReducer)
+	store.register_reducer(FakeReducer)
+
+	store.dispatch({
+		"type": StringName("session/set_value"),
+		"payload": 8,
+	})
+	store.dispatch({
+		"type": StringName("game/add_score"),
+		"payload": 3,
+	})
+
+	var path := "user://state_manager_whitelist.json"
+	var save_err: Error = store.save_state(path, [StringName("game")])
+	assert_eq(save_err, OK)
+
+	store.dispatch({
+		"type": StringName("session/set_value"),
+		"payload": 42,
+	})
+	store.dispatch({
+		"type": StringName("game/add_score"),
+		"payload": 7,
+	})
+
+	var load_err: Error = store.load_state(path)
+	assert_eq(load_err, OK)
+
+	var state: Dictionary = store.get_state()
+	assert_eq(int(state[StringName("game")]["score"]), 3)
+	assert_eq(int(state[StringName("session")]["value"]), 42)
+
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)
+
+func test_dispatch_with_no_reducers_does_not_crash() -> void:
+	var store: M_StateManager = STATE_MANAGER.new()
+	add_child(store)
+	autofree(store)
+	await get_tree().process_frame
+
+	# No reducers registered
+	var notifications: Array = []
+	var unsubscribe: Callable = store.subscribe(func(state: Dictionary) -> void:
+		notifications.append(state.duplicate(true))
+	)
+
+	# Should not crash or error
+	store.dispatch({
+		"type": StringName("test/action"),
+	})
+
+	# Assert a state_changed signal was emitted with empty state
+	assert_eq(notifications.size(), 1)
+	assert_true((notifications[0] as Dictionary).is_empty())
+
+	unsubscribe.call()
+
+func test_get_state_returns_deep_copy() -> void:
+	var store: M_StateManager = STATE_MANAGER.new()
+	add_child(store)
+	autofree(store)
+	await get_tree().process_frame
+
+	store.register_reducer(FakeReducer)
+
+	# Set nested value in store state
+	store.dispatch({
+		"type": StringName("game/add_score"),
+		"payload": 1,
+	})
+
+	# Get a copy and mutate it (both top-level and nested)
+	var snapshot: Dictionary = store.get_state()
+	assert_eq(int(snapshot[StringName("game")]["score"]), 1)
+	snapshot[StringName("extra_key")] = 123
+	var game_slice: Dictionary = snapshot[StringName("game")]
+	game_slice["score"] = 999
+	snapshot[StringName("game")] = game_slice
+
+	# Fetch state again; original store must be unchanged
+	var after: Dictionary = store.get_state()
+	assert_false(after.has(StringName("extra_key")))
+	assert_eq(int(after[StringName("game")]["score"]), 1)
+
+func test_ready_initializes_state_from_reducers() -> void:
+	var store: M_StateManager = STATE_MANAGER.new()
+	# Register reducer before the node is added to the scene
+	store.register_reducer(FakeReducer)
+
+	add_child(store)
+	autofree(store)
+	await get_tree().process_frame
+
+	# _ready should have run; state should reflect reducer initial state
+	var state: Dictionary = store.get_state()
+	assert_true(state.has(StringName("game")))
+	assert_eq(int(state[StringName("game")]["score"]), 0)
+	# And the store should be discoverable via group
+	assert_true(store.is_in_group("state_store"))

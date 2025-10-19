@@ -5,6 +5,7 @@ signal state_changed(state: Dictionary)
 signal action_dispatched(action: Dictionary)
 
 const SELECTOR := preload("res://scripts/state/u_selector_utils.gd")
+const PERSISTENCE := preload("res://scripts/state/u_state_persistence.gd")
 
 var _state: Dictionary = {}
 var _reducers: Dictionary = {}
@@ -22,6 +23,23 @@ func _ready() -> void:
 		queue_free()
 		return
 	add_to_group("state_store")
+
+	# Initialize any missing reducer slices using an @@INIT action
+	var changed: bool = false
+	for slice_name in _reducers.keys():
+		if !_state.has(slice_name):
+			var reducer: Variant = _reducers[slice_name]
+			var init_result: Variant = reducer.reduce({}, {"type": StringName("@@INIT")})
+			match typeof(init_result):
+				TYPE_DICTIONARY, TYPE_ARRAY:
+					_state[slice_name] = init_result.duplicate(true)
+				_:
+					_state[slice_name] = init_result
+			changed = true
+
+	if changed:
+		_state_version += 1
+		state_changed.emit(_state)
 
 func register_reducer(reducer_class) -> void:
 	assert(reducer_class != null, "Reducer class must not be null")
@@ -54,6 +72,38 @@ func dispatch(action: Dictionary) -> void:
 
 	action_dispatched.emit(action)
 	state_changed.emit(_state)
+
+func save_state(path: String, whitelist: Array[StringName] = []) -> Error:
+	var slices_to_save: Array[StringName] = whitelist
+	if slices_to_save.is_empty():
+		slices_to_save = _persistable_slices
+	return PERSISTENCE.save_to_file(path, _state, slices_to_save)
+
+func load_state(path: String) -> Error:
+	var loaded: Dictionary = PERSISTENCE.load_from_file(path)
+	if loaded.is_empty():
+		return ERR_FILE_CANT_READ
+
+	var next_state: Dictionary = _state.duplicate(true)
+	var changed: bool = false
+	for slice_name in loaded.keys():
+		if !_state.has(slice_name):
+			continue
+		var slice_value: Variant = loaded[slice_name]
+		match typeof(slice_value):
+			TYPE_DICTIONARY, TYPE_ARRAY:
+				next_state[slice_name] = slice_value.duplicate(true)
+			_:
+				next_state[slice_name] = slice_value
+		changed = true
+
+	if not changed:
+		return ERR_FILE_CANT_READ
+
+	_state = next_state
+	_state_version += 1
+	state_changed.emit(_state)
+	return OK
 
 func subscribe(callback: Callable) -> Callable:
 	var err := state_changed.connect(callback)

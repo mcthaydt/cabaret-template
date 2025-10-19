@@ -346,13 +346,14 @@ store.enable_time_travel(true)
 The notebook is already organized, so saving is simple:
 
 ```gdscript
-# Save the entire game state
-var state = store.get_state()
-U_StatePersistence.save_to_file("user://savegame.json", state, ["game", "session"])
+# Save persistable slices (e.g., game + session)
+var err = store.save_state("user://savegame.json")
 
-# Load it back later
-var loaded_state = U_StatePersistence.load_from_file("user://savegame.json")
-store.dispatch(U_ActionUtils.create_action("REHYDRATE", loaded_state))
+# Or only save selected slices
+var err2 = store.save_state("user://savegame.json", [StringName("game"), StringName("session")])
+
+# Load it back later (rehydrates store state)
+var err3 = store.load_state("user://savegame.json")
 ```
 
 ### 5. Systems Don't Need to Know About Each Other
@@ -681,13 +682,14 @@ unsubscribe.call()
 ### How to Save/Load
 
 ```gdscript
-# Save (only saves persistable slices)
-var state = store.get_state()
-U_StatePersistence.save_to_file("user://save.json", state, store._persistable_slices)
+# Save (persists reducers marked persistable)
+var err = store.save_state("user://save.json")
 
-# Load
-var loaded = U_StatePersistence.load_from_file("user://save.json")
-store.dispatch(U_ActionUtils.create_action("REHYDRATE", loaded))
+# Optional: whitelist specific slices
+var err2 = store.save_state("user://save.json", [StringName("game")])
+
+# Load (rehydrates state and emits state_changed)
+var err3 = store.load_state("user://save.json")
 ```
 
 ### Action Naming Convention

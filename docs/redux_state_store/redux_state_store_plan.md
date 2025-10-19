@@ -3,6 +3,7 @@ Project: Redux-Inspired State Store for Godot ECS
 **Last Updated**: 2025-10-19 *(Restructured for strict Test-Driven Development)*
 
 **Development Methodology**: Strict TDD (Test-Driven Development)
+
 - **RED-GREEN-REFACTOR cycle**: Every method must have a failing test written BEFORE implementation
 - **Method-level granularity**: Write test for each method/behavior, implement minimal code to pass, refactor
 - **No implementation without tests**: All code must be test-driven, no exceptions
@@ -10,9 +11,10 @@ Project: Redux-Inspired State Store for Godot ECS
 - **TDD substeps**: Each feature broken into (a) Write Test, (b) Implement, (c) Verify GREEN & Refactor
 
 **Implementation Context**:
+
 - **Batch 1**: Implemented pre-TDD pivot (features complete, tests exist, but not strict RED-GREEN-REFACTOR)
 - **Batch 2+**: Will follow strict TDD methodology going forward
-- **Naming Convention**: Codebase uses prefixed names (M_ for managers, U_ for utils) vs generic plan names
+- **Naming Convention**: Codebase uses prefixed names (M_for managers, U_ for utils) vs generic plan names
 
 ## Phase 1 – Requirements Ingestion
 
@@ -23,6 +25,7 @@ Product Vision:
 A centralized, Redux-inspired state store that provides global state access across all game systems without singletons. The store will manage game state (scores, levels, unlocks), UI state (menus, settings), ECS runtime state (component/system state), and session state (save/load, player preferences).
 
 Key User Stories:
+
 - Epic 1: Core Store Infrastructure – Dispatch actions through central store for predictable state updates
 - Epic 2: ECS Integration – Read/write state through store to access global game state without singletons
 - Epic 3: Time-Travel Debugging – Replay action history to debug complex state bugs
@@ -31,6 +34,7 @@ Key User Stories:
 - Epic 6: Selectors & Memoization – Compute derived state efficiently without recalculation on every frame
 
 Constraints:
+
 - Performance: Dispatch latency under 5ms at 60fps, selector computation under 0.1ms
 - Integration: Hybrid mode with existing ECSManager (preserve current architecture)
 - Testing: 90%+ code coverage with GUT framework
@@ -60,28 +64,34 @@ Planned Batches:
 Story Point Breakdown:
 
 Epic 1 – Core Store Infrastructure (8 points)
+
 - [x] Story 1.1: Implement StateStore class with dispatch/subscribe/select (3 points)
 - [x] Story 1.2: Create reducer registration and combination system (2 points)
 - [x] Story 1.3: Build action creator helpers and validation (2 points)
 - [x] Story 1.4: Implement store discovery utility class (StateStoreUtils) (1 point)
 
 Epic 2 – ECS Integration (5 points)
+
 - [ ] Story 2.1: Create ECS bridge middleware (2 points)
 - [ ] Story 2.2: Implement get_store() discovery in ECSSystem base class (1 point)
 - [ ] Story 2.3: Add state change notifications to subscribed systems (2 points)
 
 Epic 3 – Time-Travel Debugging (8 points)
+
 - [x] Story 3.1: Implement rolling action history buffer (1000 actions) (2 points)
 - [x] Story 3.2: Build replay/step-forward/step-backward API (3 points)
 - [x] Story 3.3: Create action export/import for bug reproduction (2 points)
 - [ ] Story 3.4: Add history inspection UI (1 point)
 
 Epic 4 – State Persistence (5 points)
+
 - [x] Story 4.1: Build JSON serialization layer (2 points)
 - [ ] Story 4.2: Implement auto-save triggers and state rehydration (2 points)
+  - Note: Rehydration supported via `M_StateManager.load_state()`; auto-save triggers will be implemented via middleware in Batch 2 (see Step 2, TDD Cycle 5)
 - [x] Story 4.3: Create whitelist system for state slice persistence (1 point)
 
 Epic 5 – Middleware & Validation System (8 points)
+
 - [ ] Story 5.1: Implement middleware composition pipeline (2 points)
 - [ ] Story 5.2: Create logger middleware (1 point)
 - [ ] Story 5.3: Add async thunk support (2 points)
@@ -89,10 +99,12 @@ Epic 5 – Middleware & Validation System (8 points)
 - [ ] Story 5.5: Integrate validation with dispatch and reducers (1 point)
 
 Epic 6 – Selectors & Memoization (5 points)
+
 - [x] Story 6.1: Implement MemoizedSelector class with caching (3 points)
 - [x] Story 6.2: Add dependency tracking and cache invalidation (2 points)
 
 Testing & Documentation (8 points)
+
 - [x] Story 7.1: Write 20+ unit tests for core store (3 points)
 - [ ] Story 7.2: Integration tests with full game loop (3 points)
 - [ ] Story 7.3: Documentation and usage examples (2 points)
@@ -115,6 +127,7 @@ Testing & Documentation (8 points)
 | `selector.gd` / `MemoizedSelector` | `scripts/state/u_selector_utils.gd` | `U_SelectorUtils.MemoizedSelector` |
 
 **Terminology Mapping**:
+
 - `StateStore` → `M_StateManager`
 - `add_reducer()` → `register_reducer()`
 - `create_action()` → `U_ActionUtils.create_action()`
@@ -134,9 +147,10 @@ Checkboxes below indicate feature completion, not strict TDD cycle adherence.
 Story Points: 21
 Goal: Establish core Redux architecture with persistence and efficient state reading
 
-- [ ] Step 1 – Design State Schema
+- [x] Step 1 – Design State Schema
 
 Create state tree structure:
+
 - game: {score: int, level: int, unlocks: Array}
 - ui: {active_menu: String, settings: Dictionary}
 - ecs: {component_registry: Dictionary, system_state: Dictionary}
@@ -145,11 +159,14 @@ Create state tree structure:
 Define action schema format: {type: StringName, payload: Variant}
 Plan reducer signatures: func(state: Dictionary, action: Dictionary) -> Dictionary
 
+Note: Schema is codified by built-in reducers (`GameReducer`, `UiReducer`, `EcsReducer`, `SessionReducer`) and documented in PRD. Initial state is provided via each reducer's `get_initial_state()`.
+
 - [x] Step 2 – Implement Core Store Infrastructure (TDD Method-Level)
 
 **✅ IMPLEMENTATION STATUS**: Complete (as `M_StateManager` in `scripts/state/m_state_manager.gd`)
 
 **Key Differences from Plan**:
+
 - Class name: `M_StateManager` (not `StateStore`)
 - Method name: `register_reducer()` (not `add_reducer()`)
 - Reducer storage: `Dictionary` keyed by slice name (not `Array[Callable]`)
@@ -157,6 +174,7 @@ Plan reducer signatures: func(state: Dictionary, action: Dictionary) -> Dictiona
 - Scene tree group: `"state_store"` ✅
 
 **What exists**:
+
 - ✅ `dispatch(action: Dictionary)`
 - ✅ `subscribe(callback: Callable) -> Callable`
 - ✅ `get_state() -> Dictionary`
@@ -167,8 +185,8 @@ Plan reducer signatures: func(state: Dictionary, action: Dictionary) -> Dictiona
 
 **TDD Cycle 1: StateStore.dispatch() - Basic Functionality**
 
-- [ ] 2.1a – RED: Write test for dispatch with no reducers
-- Create tests/unit/state/test_store.gd
+- [x] 2.1a – RED: Write test for dispatch with no reducers
+- Add to tests/unit/state/test_state_store.gd
 - Test: `test_dispatch_with_no_reducers_does_not_crash()`
   - Arrange: Create StateStore instance
   - Act: Call dispatch({type: "test/action"})
@@ -179,7 +197,7 @@ Plan reducer signatures: func(state: Dictionary, action: Dictionary) -> Dictiona
 - Add properties: `var _state: Dictionary = {}`, `var _reducers: Array[Callable] = []`
 - Implement empty `dispatch(action: Dictionary) -> void: pass`
 
-- [ ] 2.1c – VERIFY: Run test_store.gd, confirm GREEN, refactor if needed
+- [x] 2.1c – VERIFY: Run test_store.gd, confirm GREEN, refactor if needed
 
 **TDD Cycle 2: StateStore.dispatch() - Reducer Integration**
 
@@ -191,7 +209,7 @@ Plan reducer signatures: func(state: Dictionary, action: Dictionary) -> Dictiona
 
 - [x] 2.2b – GREEN: Implement reducer calling in dispatch()
 - Add method: `add_reducer(reducer: Callable) -> void` to append to _reducers
-- Update dispatch(): iterate _reducers, call each with (state, action), update _state
+- Update dispatch(): iterate _reducers, call each with (state, action), update_state
 
 - [x] 2.2c – VERIFY: Run tests, confirm GREEN, refactor reducer iteration logic
 
@@ -214,30 +232,29 @@ Plan reducer signatures: func(state: Dictionary, action: Dictionary) -> Dictiona
 
 **TDD Cycle 4: StateStore.get_state() - Immutability**
 
-- [ ] 2.4a – RED: Write test for get_state returns deep copy
-- Test: `test_get_state_returns_deep_copy()`
-  - Arrange: Create StateStore with state {count: 1}
-  - Act: Get state via get_state(), modify returned dict
-  - Assert: Original state unchanged (immutability verified)
+- [x] 2.4a – RED: Write test for get_state returns deep copy
+- Test added: `tests/unit/state/test_state_store.gd::test_get_state_returns_deep_copy`
+  - Arrange: Create StateStore, set nested value via reducer
+  - Act: Get state via get_state(), modify returned dict (top-level and nested)
+  - Assert: Original store state unchanged (immutability verified)
 
 - [x] 2.4b – GREEN: Implement get_state()
 - Implement: `get_state() -> Dictionary: return _state.duplicate(true)`
 
-- [ ] 2.4c – VERIFY: Run tests, confirm GREEN
+- [x] 2.4c – VERIFY: Run tests, confirm GREEN
 
 **TDD Cycle 5: StateStore._ready() - Initialization**
 
-- [ ] 2.5a – RED: Write test for _ready initializes state
-- Test: `test_ready_initializes_state_from_reducers()`
-  - Arrange: Create StateStore with reducer that has initial state
-  - Act: Call _ready()
-  - Assert: State initialized to reducer's initial state
+- [x] 2.5a – RED: Write test for _ready initializes state
+- Test added: `test_ready_initializes_state_from_reducers()` in `tests/unit/state/test_state_store.gd`
+  - Arrange: Create StateStore and register reducer before node enters tree
+  - Act: Add to scene (engine calls _ready)
+  - Assert: State initialized to reducer's initial state and store joined `state_store` group
 
-- [ ] 2.5b – GREEN: Implement _ready()
-- Implement: `_ready()` to call each reducer with ({}, {type: "@@INIT"})
-- Join "state_store" group: `add_to_group("state_store")`
+- [x] 2.5b – GREEN: Implement _ready()
+- Behavior: `_ready()` ensures single instance, joins `state_store`, and initializes any missing reducer slices via `reduce({}, {type: "@@INIT"})`
 
-- [ ] 2.5c – VERIFY: Run tests, confirm GREEN
+- [x] 2.5c – VERIFY: Run tests, confirm GREEN
 
 **TDD Cycle 6: Action Creators (action.gd)**
 
@@ -302,39 +319,20 @@ Plan reducer signatures: func(state: Dictionary, action: Dictionary) -> Dictiona
 
 - [x] 2.9c – VERIFY: Run tests, confirm GREEN, refactor discovery logic
 
-- [ ] Step 3 – Implement State Persistence (TDD Method-Level)
+- [x] Step 3 – Implement State Persistence (TDD Method-Level)
 
-**⚠️ IMPLEMENTATION STATUS**: Utilities Complete, Integration Incomplete
+**✅ IMPLEMENTATION STATUS**: Complete (utilities and store integration)
 
 **What exists**:
+
 - ✅ `U_StatePersistence` with all static methods
 - ✅ `serialize_state()`, `deserialize_state()`
 - ✅ `save_to_file()`, `load_from_file()`
 - ✅ Checksum validation, whitelist filtering
-- ✅ Tests: `test_persistence_utils.gd`
+- ✅ `M_StateManager.save_state()` and `M_StateManager.load_state()` integration
+- ✅ Tests: `test_persistence_utils.gd`, store roundtrip tests in `test_state_store.gd`
 
-**🔴 MISSING INTEGRATION** (blocking Batch 1 completion):
-- ❌ `M_StateManager.save_state()` method
-- ❌ `M_StateManager.load_state()` method
-
-**Required before Batch 2**:
-```gdscript
-# Add to M_StateManager:
-func save_state(path: String, whitelist: Array[StringName] = []) -> Error:
-    var slices_to_save = whitelist if whitelist.size() > 0 else _persistable_slices
-    return U_StatePersistence.save_to_file(path, _state, slices_to_save)
-
-func load_state(path: String) -> Error:
-    var loaded = U_StatePersistence.load_from_file(path)
-    if loaded.is_empty():
-        return ERR_FILE_CANT_READ
-    for slice_name in loaded.keys():
-        if _state.has(slice_name):
-            _state[slice_name] = loaded[slice_name]
-    _state_version += 1
-    state_changed.emit(_state)
-    return OK
-```
+Note: Story 4.2 (Auto-save triggers) remains pending; rehydration is provided via `M_StateManager.load_state()`.
 
 **TDD Cycle 1: serialize_state - Basic JSON Serialization**
 
@@ -395,29 +393,31 @@ func load_state(path: String) -> Error:
 
 **TDD Cycle 5: StateStore Integration**
 
-**🔴 INCOMPLETE** - This is the integration gap identified in Pre-Batch 2 section above.
+**✅ COMPLETE** - Persistence flow tested through `M_StateManager`.
 
-- [ ] 3.5a – RED: Write test for M_StateManager.save_state / load_state
-- Add to test_state_store.gd: `test_save_and_load_state()`
-  - Arrange: M_StateManager with state
-  - Act: Call save_state(), modify state, call load_state()
-  - Assert: State restored to saved version
+- [x] 3.5a – RED: Write test for M_StateManager.save_state / load_state
+  - Added to `tests/unit/state/test_state_store.gd`: `test_save_and_load_state_round_trip` and `test_save_state_allows_whitelist_override`
+    - Arrange: Manager registering persistable reducers
+    - Act: Save current state, mutate, reload via API
+    - Assert: State restored for persisted slices, whitelist respected
 
-- [ ] 3.5b – GREEN: Add methods to M_StateManager
-- Implement: `save_state(path: String, whitelist: Array = []) -> Error`
-  - See Pre-Batch 2 section for implementation details
-- Implement: `load_state(path: String) -> Error`
-  - See Pre-Batch 2 section for implementation details
+- [x] 3.5b – GREEN: Add methods to M_StateManager
+  - Implemented: `save_state(path: String, whitelist: Array = []) -> Error`
+    - Delegates to `U_StatePersistence.save_to_file`, defaults to reducer whitelist
+  - Implemented: `load_state(path: String) -> Error`
+    - Loads persisted data, deep copies slices, emits `state_changed`
 
-- [ ] 3.5c – VERIFY: Run tests, confirm GREEN
+- [x] 3.5c – VERIFY: Run tests, confirm GREEN
+	- State unit suite passes headless (`gut_cmdln.gd -gdir=res://tests/unit/state`)
 
-**Note**: Must complete this cycle before starting Batch 2.
+
 
 - [x] Step 4 – Implement Selectors & Memoization (TDD Method-Level)
 
 **✅ IMPLEMENTATION STATUS**: Complete (as `U_SelectorUtils` in `scripts/state/u_selector_utils.gd`)
 
 **What exists**:
+
 - ✅ `U_SelectorUtils.MemoizedSelector` class
 - ✅ Version-based caching (`_last_version`)
 - ✅ Dependency-based caching (`with_dependencies()`)
@@ -426,6 +426,7 @@ func load_state(path: String) -> Error:
 - ✅ Tests: `test_state_store.gd`
 
 **Enhancements beyond plan**:
+
 - Cache hit/miss metrics
 - Dependency tracking to skip recomputation on unrelated state changes
 
@@ -483,11 +484,12 @@ func load_state(path: String) -> Error:
 
 - [x] 4.4c – VERIFY: Run tests, confirm GREEN
 
-- [ ] Step 5 – Create Built-in Reducers (TDD Method-Level)
+- [x] Step 5 – Create Built-in Reducers (TDD Method-Level)
 
 **📁 CREATE NEW DIRECTORY**: `scripts/state/reducers/`
 
 **Reducer Interface** (all reducers must implement):
+
 ```gdscript
 # Example: game_reducer.gd
 extends RefCounted
@@ -511,97 +513,79 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 
 **TDD Cycle 1: game_reducer - Initial State**
 
-- [ ] 5.1a – RED: Write test for game_reducer initial state
-- Create tests/unit/state/test_game_reducer.gd
-- Test: `test_game_reducer_returns_initial_state_on_init()`
-  - Act: Call game_reducer({}, {type: "@@INIT"})
-  - Assert: Returns {score: 0, level: 1, unlocks: []}
+- [x] 5.1a – RED: Write test for game_reducer initial state
+  - Added `tests/unit/state/test_game_reducer.gd::test_game_reducer_returns_initial_state_on_init`
+  - Exercise: `GameReducer.reduce({}, @@INIT)` returns `{score:0, level:1, unlocks: []}`
 
-- [ ] 5.1b – GREEN: Implement game_reducer
-- Create scripts/state/reducers/game_reducer.gd
-- Define initial_state, implement reduce() that returns initial_state on @@INIT
+- [x] 5.1b – GREEN: Implement game_reducer
+  - Created `scripts/state/reducers/game_reducer.gd` with normalization helpers
 
-- [ ] 5.1c – VERIFY: Run tests, confirm GREEN
+- [x] 5.1c – VERIFY: Run tests, confirm GREEN
 
 **TDD Cycle 2: game_reducer - Handle Actions**
 
-- [ ] 5.2a – RED: Write test for game actions
-- Test: `test_game_reducer_handles_add_score()`
-  - Arrange: State {score: 10}
-  - Act: Dispatch {type: "game/add_score", payload: 5}
-  - Assert: New state has score: 15
+- [x] 5.2a – RED: Write test for game actions
+  - `test_game_reducer_handles_add_score` + `test_game_reducer_handles_unlock_action_without_duplicates`
 
-- [ ] 5.2b – GREEN: Implement action handling
-- Add cases for "game/add_score", "game/level_up", "game/unlock"
-- Ensure immutability (use duplicate(true))
+- [x] 5.2b – GREEN: Implement action handling
+  - Added support for `game/add_score`, `game/set_score`, `game/level_up`, `game/unlock`
 
-- [ ] 5.2c – VERIFY: Run tests, confirm GREEN
+- [x] 5.2c – VERIFY: Run tests, confirm GREEN
 
-- [ ] TDD Cycles 3-5: Repeat for ui_reducer, ecs_reducer, session_reducer
-- Follow same pattern: Test initial state → Implement → Test actions → Implement
-- Create: ui_reducer.gd, ecs_reducer.gd, session_reducer.gd with corresponding tests
+- [x] TDD Cycles 3-5: Repeat for ui_reducer, ecs_reducer, session_reducer
+  - Tests: `tests/unit/state/test_ui_reducer.gd`, `test_ecs_reducer.gd`, `test_session_reducer.gd`
+  - Implementations: `scripts/state/reducers/ui_reducer.gd`, `ecs_reducer.gd`, `session_reducer.gd`
 
 **TDD Cycle 6: root_reducer - Combine All Reducers**
 
-- [ ] 5.6a – RED: Write test for root_reducer combination
-- Create tests/unit/state/test_root_reducer.gd
-- Test: `test_root_reducer_combines_all_slices()`
-  - Act: Call root reducer with action affecting game slice
-  - Assert: State has all slices (game, ui, ecs, session), only game updated
+- [x] 5.6a – RED: Write test for root_reducer combination
+  - `tests/unit/state/test_root_reducer.gd::test_root_reducer_updates_only_target_slice`
 
-- [ ] 5.6b – GREEN: Implement root_reducer
-- Create scripts/state/reducers/root_reducer.gd
-- Use combine_reducers() to merge all slice reducers
+- [x] 5.6b – GREEN: Implement root_reducer
+  - Added `scripts/state/reducers/root_reducer.gd` leveraging `U_ReducerUtils.combine_reducers`
 
-- [ ] 5.6c – VERIFY: Run tests, confirm GREEN
+- [x] 5.6c – VERIFY: Run tests, confirm GREEN
 
-- [ ] Step 6 – Implement Action Creators (TDD Method-Level)
+- [x] Step 6 – Implement Action Creators (TDD Method-Level)
 
 **TDD Cycle 1: game_actions**
 
-- [ ] 6.1a – RED: Write test for game action creators
-- Create tests/unit/state/test_game_actions.gd
-- Test: `test_add_score_creates_valid_action()`
-  - Act: Call add_score(10)
-  - Assert: Returns {type: "game/add_score", payload: 10}
+- [x] 6.1a – RED: Write test for game action creators
+  - `tests/unit/state/test_game_actions.gd`
 
-- [ ] 6.1b – GREEN: Implement game action creators
-- Create scripts/state/actions/game_actions.gd
-- Implement: add_score(), level_up(), unlock()
+- [x] 6.1b – GREEN: Implement game action creators
+  - `scripts/state/actions/game_actions.gd`
 
-- [ ] 6.1c – VERIFY: Run tests, confirm GREEN
+- [x] 6.1c – VERIFY: Run tests, confirm GREEN
 
-- [ ] TDD Cycles 2-3: Repeat for ui_actions, session_actions
-- Follow same pattern for ui_actions.gd and session_actions.gd
+- [x] TDD Cycles 2-3: Repeat for ui_actions, session_actions
+  - Tests: `tests/unit/state/test_ui_actions.gd`, `test_session_actions.gd`
+  - Implementations: `scripts/state/actions/ui_actions.gd`, `session_actions.gd`
 
 - [x] Step 7 – Batch 1 Verification & Integration
 
 **✅ VERIFICATION COMPLETE**:
+
 - Core store working: `M_StateManager` fully functional
 - Tests passing: `test_state_store.gd`, `test_time_travel.gd`, `test_persistence_utils.gd`, `test_action_utils.gd`, `test_reducer_utils.gd`
 - Code coverage: >90% for state module
 - Integration tests: Scene tree discovery, signal subscriptions, selector memoization all working
-
-**⚠️ REMAINING WORK**:
-- Add `save_state()` and `load_state()` integration methods to `M_StateManager` (see Step 3)
-- Test full save/load roundtrip with M_StateManager API
 
 - [x] 7.1 – Run Full Test Suite
 - Execute gut_cmdln.gd in headless mode
 - Verify all tests pass (expect 30+ tests for Batch 1)
 - Check code coverage (target: 90%+)
 
-- [ ] 7.2 – Integration Smoke Test (pending save_state/load_state)
-- Create test scene with StateStore
-- Register root_reducer
-- Dispatch 10 actions using action creators
-- Verify state updates correctly
-- Save state to file, load state from file
-- Verify state persistence works end-to-end
+- [x] 7.2 – Integration Smoke Test
+- Added `tests/unit/state/test_state_store_integration.gd`
+- Registers slice reducers, dispatches actions via action creators
+- Saves to disk, mutates state, reloads, and validates restoration
+- Confirms non-persistable slices (UI/ECS) revert to defaults on load while game/session persist
 
-- [ ] Step 8 – Merge Batch 1
+- [x] Step 8 – Merge Batch 1
 
 Verify all P0 features implemented:
+
 - Core store dispatch/subscribe/select working
 - Reducers registered and combining correctly
 - Persistence save/load functional
@@ -609,38 +593,21 @@ Verify all P0 features implemented:
 - Unit tests passing
 
 Run integration smoke test:
+
 - Create test scene with StateStore
 - Dispatch 100 actions
 - Save state to file
 - Load state from file
 - Verify state integrity
 
-Commit batch 1 code to version control
-
----
-
-## 🔧 Pre-Batch 2 Integration Fix Required
-
-**Before starting Batch 2 TDD cycles**, complete this integration:
-
-**Task**: Add persistence integration methods to `M_StateManager`
-
-**Steps**:
-1. Add `save_state(path, whitelist)` method (calls `U_StatePersistence.save_to_file()`)
-2. Add `load_state(path)` method (calls `U_StatePersistence.load_from_file()`, updates state)
-3. Write integration test in `test_state_store.gd`:
-   - Test: Save state → modify state → load state → verify restoration
-4. Mark Step 3.5 checkboxes as complete
-
-**Estimated time**: 20 minutes
-
-**Why required**: Batch 2 middleware and ECS integration will need save/load functionality.
+- Commit batch 1 code to version control
 
 ---
 
 ### Batch 2: Advanced Features (ECS Integration + Middleware + Time-Travel) [ ]
 
 **🎯 BATCH 2 TDD COMPLIANCE**: All work in this batch will follow strict TDD:
+
 1. Write failing test FIRST (RED)
 2. Implement minimal code to pass (GREEN)
 3. Refactor while keeping tests green
@@ -654,12 +621,14 @@ Goal: Integrate store with ECS architecture and add developer tooling
 - [ ] Step 1 – Load Current Codebase Context (No Changes - Review Step)
 
 Review batch 1 implementation:
+
 - StateStore API surface
 - Reducer composition approach
 - Persistence whitelist system
 - Selector memoization strategy
 
 Review existing ECS architecture:
+
 - ECSManager component/system registry
 - System base class structure
 - Component lifecycle (_ready, registered signal)
@@ -724,6 +693,50 @@ Review existing ECS architecture:
 - Ensure apply_middleware allows middleware to skip next() call
 
 - [ ] 2.4c – VERIFY: Run tests, confirm GREEN
+
+**TDD Cycle 5: Auto-save Middleware (Implements Story 4.2)**
+
+- [ ] 2.5a – RED: Auto-save on action count
+  - Test: `test_auto_save_after_n_actions_writes_file()`
+    - Arrange: Register `auto_save_middleware` configured with `{path, on_action_count: 3}`
+    - Act: Dispatch 3 actions
+    - Assert: Save file exists; load_state() restores to current store state
+
+- [ ] 2.5b – GREEN: Implement action-count trigger
+  - Provide `scripts/state/middleware/auto_save_middleware.gd`
+  - Count `action_dispatched` via middleware chain; call `store.save_state(path, whitelist)` on threshold
+
+- [ ] 2.5c – VERIFY: Run tests, confirm GREEN
+
+- [ ] 2.5d – RED: Auto-save on time interval
+  - Test: `test_auto_save_interval_ms_writes_file()`
+    - Arrange: Register middleware with `{path, on_time_interval_ms: 50}`
+    - Act: Advance time or tick a mocked Timer
+    - Assert: Save file exists; load_state() restores
+
+- [ ] 2.5e – GREEN: Implement Timer-based trigger
+  - Use an internal lightweight timer object or tick via middleware state; avoid Node coupling
+
+- [ ] 2.5f – VERIFY: Run tests, confirm GREEN
+
+- [ ] 2.5g – RED: Whitelist respected in auto-save
+  - Test: `test_auto_save_respects_whitelist()`
+    - Arrange: Configure whitelist `['game']`
+    - Act: Mutate both `game` and `session`; trigger auto-save
+    - Assert: Loaded state only affects `game` slice
+
+- [ ] 2.5h – GREEN: Whitelist support
+  - Pass configured whitelist to `store.save_state()` during triggers
+
+- [ ] 2.5i – RED: Disable stops further saves
+  - Test: `test_disable_auto_save_stops_writes()`
+    - Arrange: Unregister middleware / set `enabled: false`
+    - Act: Dispatch actions or wait interval
+    - Assert: No further writes
+
+- [ ] 2.5j – GREEN: Implement disable/teardown semantics
+
+- [ ] 2.5k – VERIFY: Run tests, confirm GREEN
 
 - [ ] Step 3 – Implement ECS Integration (TDD Method-Level)
 
@@ -876,7 +889,7 @@ Review existing ECS architecture:
 
 - [ ] 6.1b – GREEN: Implement U_SchemaValidator
 - Create scripts/state/u_schema_validator.gd
-- Define U_SchemaValidator class with _validation_enabled property
+- Define U_SchemaValidator class with_validation_enabled property
 - Implement: `validate_action(action: Dictionary) -> bool` (basic type field check)
 
 - [ ] 6.1c – VERIFY: Run tests, confirm GREEN
@@ -941,6 +954,7 @@ Review existing ECS architecture:
 Step 7 – Batch 2 Verification & Integration
 
 7.1 – Run Full Test Suite
+
 - Execute gut_cmdln.gd with all test suites
 - Verify all tests pass (expect 50+ tests total including Batch 1)
 - Verify 90%+ code coverage maintained
@@ -961,12 +975,14 @@ Step 7 – Batch 2 Verification & Integration
 - [ ] Step 8 – Merge Batch 2
 
 Verify all P1 features implemented:
+
 - Middleware composition working
 - ECS integration bidirectional (store ↔ ECSManager)
 - Time-travel debugging functional
 - Async thunks supported
 
 Run integration test:
+
 - Load game scene with player character
 - Dispatch 1000 actions via gameplay
 - Enable time-travel, step backward 100 actions
@@ -975,6 +991,7 @@ Run integration test:
 - Verify state consistency
 
 Performance profiling:
+
 - Measure dispatch latency (target: <5ms at 60fps)
 - Measure selector cache hit rate (target: >95%)
 - Measure memory usage of history buffer
@@ -986,6 +1003,7 @@ Commit batch 2 code to version control
 These PRD features are not included in current batch plan:
 
 **From PRD but not planned**:
+
 - `subscribe_to_action()` method (selective action listening) - PRD line 416
 - DevTools UI panel (Story 3.4 - History inspection UI) - PRD Epic 3
 - Performance monitoring middleware - PRD P1 feature
@@ -1009,6 +1027,7 @@ Story Points: 5
 Goal: Ensure production-readiness with comprehensive testing and documentation
 
 **Note on TDD for Integration Tests**: While integration tests are written at a higher level than unit tests, they should still follow TDD principles:
+
 1. Write the integration test FIRST (describing the expected end-to-end behavior)
 2. Run the test to confirm it fails (RED)
 3. Implement or fix the integration (GREEN)
@@ -1018,6 +1037,7 @@ Goal: Ensure production-readiness with comprehensive testing and documentation
 - [ ] Step 1 – Integration Testing with Full Game Loop (Test-First Approach)
 
 Create tests/integration/test_store_gameplay.gd:
+
 - Instantiate full player scene with all ECS systems
 - Run 60-second simulated gameplay (3600 frames)
 - Dispatch 500+ actions (movement, jumps, score updates, UI changes)
@@ -1026,6 +1046,7 @@ Create tests/integration/test_store_gameplay.gd:
 - Measure performance metrics
 
 Create tests/integration/test_store_persistence_stress.gd:
+
 - Create large state tree (5MB+)
 - Save to disk
 - Verify save time <100ms
@@ -1034,12 +1055,14 @@ Create tests/integration/test_store_persistence_stress.gd:
 - Test with corrupted save file (should gracefully fail)
 
 Create tests/integration/test_store_performance.gd:
+
 - Benchmark dispatch with 0, 5, 10 middleware
 - Benchmark memoized selector cache hits vs. misses
 - Test state tree with 1000+ keys
 - Verify memory usage stays under 10MB
 
 Run all integration tests:
+
 - Execute in full Godot environment (not headless)
 - Record metrics (dispatch time, save/load time, memory)
 - Compare against performance requirements
@@ -1047,6 +1070,7 @@ Run all integration tests:
 - [ ] Step 2 – Documentation
 
 Create docs/state_store_guide.md:
+
 - Architecture overview with diagrams
 - Quick start guide (5-minute setup)
 - API reference (all public methods)
@@ -1055,6 +1079,7 @@ Create docs/state_store_guide.md:
 - Troubleshooting common issues
 
 Create docs/state_store_examples.gd:
+
 - Example 1: Simple counter with store
 - Example 2: Save/load game progress
 - Example 3: Time-travel debugging session
@@ -1062,11 +1087,13 @@ Create docs/state_store_examples.gd:
 - Example 5: Async thunk for loading remote data
 
 Add inline documentation:
+
 - GDScript docstrings for all public methods
 - Code comments explaining non-obvious logic
 - Type hints for all parameters and return values
 
 Create tutorial video script outline:
+
 - Introduction to Redux patterns
 - Setting up StateStore in Godot scene
 - Creating actions and reducers
@@ -1077,6 +1104,7 @@ Create tutorial video script outline:
 - [ ] Step 3 – Final Code Review
 
 Review all code for:
+
 - Consistent naming conventions (snake_case)
 - Tab indentation (project standard)
 - Type annotations on all public APIs
@@ -1085,6 +1113,7 @@ Review all code for:
 - Null safety checks
 
 Refactor any code smells:
+
 - Long methods (split if >50 lines)
 - Duplicate logic (extract to helpers)
 - Magic numbers (replace with named constants)
@@ -1093,12 +1122,14 @@ Refactor any code smells:
 - [ ] Step 4 – Merge Batch 3
 
 Run full test suite:
+
 - All unit tests passing
 - All integration tests passing
 - Performance benchmarks met
 - Code coverage >90%
 
 Generate test report:
+
 - Total tests: 50+
 - Pass rate: 100%
 - Code coverage: 92%
@@ -1113,6 +1144,7 @@ Commit batch 3 code to version control
 ### Step 1: Merge All Batches
 
 Combine all three batches into cohesive codebase:
+
 - Verify no merge conflicts
 - Run full regression test suite
 - Check all dependencies resolved
@@ -1182,17 +1214,20 @@ Epic 6 – Selectors & Memoization:
 ### Step 3: Performance Optimization
 
 Run profiler on full game loop:
+
 - Identify bottlenecks in dispatch chain
 - Optimize hot paths (state deep copy, reducer iteration)
 - Consider object pooling for action dictionaries
 
 Optimization strategies applied:
+
 - Cache state hash for memoization comparisons
 - Lazy-load middleware (only instantiate when used)
 - Batch state change notifications (collect subscribers, notify once)
 - Use shallow copy where possible (only deep copy modified slices)
 
 Final performance metrics:
+
 - Dispatch latency: 3.2ms average (target: <5ms) ✓
 - Selector cache hits: 97% (target: >95%) ✓
 - State tree size: 8MB (target: <10MB) ✓
@@ -1201,6 +1236,7 @@ Final performance metrics:
 ### Step 4: Resolve Residual Issues
 
 Known issues from testing:
+
 - Issue 1: Time-travel breaks with async thunks (thunks not serializable)
   - Resolution: Disable time-travel when thunks dispatched, log warning
 - Issue 2: Deep state trees slow down memoization hashing
@@ -1214,16 +1250,19 @@ No blocking bugs remain
 ### Step 5: Update Documentation
 
 Finalize docs/state_store_guide.md:
+
 - Add performance optimization section
 - Include migration guide from singleton patterns
 - Add FAQ section with common questions
 - Include changelog for future updates
 
 Create public API documentation:
+
 - Godot class reference XML for editor integration
 - Markdown API docs for GitHub/web
 
 Add README.md to scripts/state/ directory:
+
 - Quick overview of state management system
 - Links to full documentation
 - Installation and setup instructions
@@ -1269,6 +1308,7 @@ Status: READY FOR PRODUCTION
 The Redux-inspired state store is now fully implemented and integrated with the existing ECS architecture. All PRD requirements met, all tests passing, all documentation complete.
 
 Key achievements:
+
 - 44 story points delivered across 3 batches
 - Zero critical bugs
 - Performance targets exceeded
@@ -1276,6 +1316,7 @@ Key achievements:
 - Comprehensive documentation
 
 Next steps:
+
 - Enable store in main game scene
 - Monitor performance in production
 - Gather developer feedback
