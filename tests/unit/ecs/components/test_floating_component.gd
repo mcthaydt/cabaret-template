@@ -28,7 +28,7 @@ func test_floating_component_defaults_and_registration() -> void:
 	assert_almost_eq(component.settings.damping_ratio, 1.0, 0.001)
 	assert_almost_eq(component.settings.max_up_speed, 20.0, 0.001)
 	assert_almost_eq(component.settings.max_down_speed, 30.0, 0.001)
-	assert_almost_eq(component.settings.fall_gravity, 30.0, 0.001)
+	assert_almost_eq(component.settings.fall_gravity, 60.0, 0.001)
 	assert_true(component.settings.align_to_normal)
 	assert_false(component.is_supported)
 	assert_false(component.has_recent_support(Time.get_ticks_msec() / 1000.0, 0.01))
