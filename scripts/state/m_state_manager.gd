@@ -108,3 +108,181 @@ func _record_history(action: Dictionary, new_state: Dictionary) -> void:
 	if _history.size() > _max_history_size:
 		_history.pop_front()
 	_history_index = _history.size() - 1
+
+func get_history() -> Array:
+	var results: Array = []
+	for entry in _history:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var action_variant: Variant = entry.get("action", {})
+		var state_variant: Variant = entry.get("state", {})
+		var action_copy: Dictionary = {}
+		if typeof(action_variant) == TYPE_DICTIONARY:
+			action_copy = action_variant.duplicate(true)
+		var state_copy: Variant
+		match typeof(state_variant):
+			TYPE_DICTIONARY, TYPE_ARRAY:
+				state_copy = state_variant.duplicate(true)
+			_:
+				state_copy = state_variant
+		results.append({
+			"action": action_copy,
+			"state": state_copy,
+		})
+	return results
+
+func step_backward() -> void:
+	if not _time_travel_enabled:
+		return
+	if _history.is_empty():
+		return
+	if _history_index <= 0:
+		return
+	_history_index -= 1
+	_restore_state_from_history(_history_index)
+
+func step_forward() -> void:
+	if not _time_travel_enabled:
+		return
+	if _history.is_empty():
+		return
+	if _history_index < 0:
+		return
+	if _history_index >= _history.size() - 1:
+		return
+	_history_index += 1
+	_restore_state_from_history(_history_index)
+
+func jump_to_action(index: int) -> void:
+	if not _time_travel_enabled:
+		return
+	if _history.is_empty():
+		return
+	if index < 0 or index >= _history.size():
+		return
+	if index == _history_index:
+		return
+	_history_index = index
+	_restore_state_from_history(_history_index)
+
+func export_history(path: String) -> Error:
+	var serializable: Array = []
+	for entry in _history:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var action_variant: Variant = entry.get("action", {})
+		var state_variant: Variant = entry.get("state", {})
+		var serialized_action: Dictionary = {}
+		if typeof(action_variant) == TYPE_DICTIONARY:
+			var type_value: String = str(action_variant.get("type", ""))
+			if type_value != "":
+				serialized_action["type"] = type_value
+			if action_variant.has("payload"):
+				var payload_variant: Variant = action_variant["payload"]
+				match typeof(payload_variant):
+					TYPE_DICTIONARY, TYPE_ARRAY:
+						serialized_action["payload"] = payload_variant.duplicate(true)
+					_:
+						serialized_action["payload"] = payload_variant
+			else:
+				serialized_action["payload"] = null
+		var serialized_state: Variant
+		match typeof(state_variant):
+			TYPE_DICTIONARY, TYPE_ARRAY:
+				serialized_state = state_variant.duplicate(true)
+			_:
+				serialized_state = state_variant
+		serializable.append({
+			"action": serialized_action,
+			"state": serialized_state,
+		})
+
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		return FileAccess.get_open_error()
+	file.store_string(JSON.stringify(serializable))
+	file.close()
+	return OK
+
+func import_history(path: String) -> Error:
+	if !FileAccess.file_exists(path):
+		return ERR_FILE_NOT_FOUND
+
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return FileAccess.get_open_error()
+	var contents: String = file.get_as_text()
+	file.close()
+
+	var parsed_variant: Variant = JSON.parse_string(contents)
+	if typeof(parsed_variant) != TYPE_ARRAY:
+		push_error("Time Travel: History file must contain an Array.")
+		return ERR_PARSE_ERROR
+
+	var entries: Array = parsed_variant
+	var normalized_actions: Array = []
+	for entry in entries:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var action_variant: Variant = entry.get("action")
+		if typeof(action_variant) != TYPE_DICTIONARY:
+			continue
+		if !action_variant.has("type"):
+			continue
+		var type_string: String = str(action_variant.get("type", ""))
+		if type_string.is_empty():
+			continue
+		var normalized_action: Dictionary = {
+			"type": StringName(type_string),
+			"payload": null,
+		}
+		if action_variant.has("payload"):
+			var payload_variant: Variant = action_variant["payload"]
+			match typeof(payload_variant):
+				TYPE_DICTIONARY, TYPE_ARRAY:
+					normalized_action["payload"] = payload_variant.duplicate(true)
+				_:
+					normalized_action["payload"] = payload_variant
+		normalized_actions.append(normalized_action)
+
+	var previous_max: int = _max_history_size
+	enable_time_travel(false)
+	_reset_state_to_initial()
+	enable_time_travel(true, previous_max)
+
+	for action in normalized_actions:
+		dispatch(action)
+
+	return OK
+
+func _restore_state_from_history(index: int) -> void:
+	if index < 0 or index >= _history.size():
+		return
+	var entry: Variant = _history[index]
+	if typeof(entry) != TYPE_DICTIONARY:
+		return
+	var state_variant: Variant = entry.get("state", {})
+	if typeof(state_variant) != TYPE_DICTIONARY:
+		return
+	_apply_restored_state(state_variant)
+
+func _apply_restored_state(target_state: Dictionary) -> void:
+	_state = target_state.duplicate(true)
+	_state_version += 1
+	state_changed.emit(_state)
+
+func _reset_state_to_initial() -> void:
+	var initial_state: Dictionary = {}
+	for slice_name in _reducers.keys():
+		var reducer: Variant = _reducers[slice_name]
+		var initial_variant: Variant = {}
+		if reducer.has_method("get_initial_state"):
+			initial_variant = reducer.get_initial_state()
+		match typeof(initial_variant):
+			TYPE_DICTIONARY, TYPE_ARRAY:
+				initial_state[slice_name] = initial_variant.duplicate(true)
+			_:
+				initial_state[slice_name] = {}
+	_state = initial_state
+	_state_version += 1
+	state_changed.emit(_state)

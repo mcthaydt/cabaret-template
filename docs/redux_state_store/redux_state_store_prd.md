@@ -1,6 +1,6 @@
 # Redux-Inspired State Store PRD
 
-**Owner**: Development Team | **Updated**: 2025-10-18
+**Owner**: Development Team | **Updated**: 2025-10-19 *(Added schema validation)*
 
 ## Summary
 
@@ -55,13 +55,16 @@
   - Given a saved game file, when loading, then store rehydrates to previous state
   - Given sensitive data (settings), when saving, then only whitelisted state slices are persisted
 
-#### Epic 5: Middleware System
+#### Epic 5: Middleware & Validation System
 
-- **Story**: As a developer, I want to intercept actions so that I can add logging, validation, and async operations
+- **Story**: As a developer, I want to intercept actions and validate state so that I can add logging, validation, and async operations
 - **Acceptance Criteria**:
   - Given registered middleware, when action dispatches, then middleware chain executes in order
   - Given a logging middleware, when any action fires, then it logs action type, payload, and timestamp
   - Given async middleware, when dispatching, then it can perform side effects (API calls, file I/O)
+  - Given schema validation enabled, when action is invalid, then dispatch fails with descriptive error
+  - Given schema validation enabled, when reducer returns invalid state, then state update fails with error
+  - Given schema validation disabled, when actions dispatch, then no performance overhead from validation
 
 #### Epic 6: Selectors & Memoization
 
@@ -157,6 +160,8 @@ scripts/state/
 ├── middleware.gd             # Middleware helpers (apply_middleware)
 ├── selector.gd               # MemoizedSelector class
 ├── persistence.gd            # Save/load serialization
+├── u_schema_validator.gd     # Schema validation engine
+├── u_action_schemas.gd       # Action schema registry
 ├── reducers/                 # Built-in reducers
 │   ├── game_reducer.gd
 │   ├── ui_reducer.gd
@@ -184,6 +189,7 @@ scripts/state/
 
 - **Immutability**: Reducers must return new state dictionaries (enforce in tests)
 - **Type Safety**: Actions validated against registered action schemas
+- **Schema Validation**: JSON Schema-like validation for action payloads and state structure (configurable, added 2025-10-19)
 - **Save File Validation**: Checksum verification on load to prevent corruption
 - **Whitelist Persistence**: Only approved state slices saved to disk (no sensitive data leaks)
 
@@ -240,6 +246,14 @@ scripts/state/
 - Logger middleware (debug output)
 - Performance monitoring middleware
 - Async thunk support
+
+**Schema Validation**
+- U_SchemaValidator implementation
+- Action schema validation (before dispatch)
+- State slice validation (after reducers)
+- Configurable enable/disable
+- Performance optimization (skip when disabled)
+- Implement after 3-5 stable reducers
 
 **Time-Travel Debugging**
 - Action history buffer (rolling 1000 actions)
@@ -335,6 +349,26 @@ store.dispatch(action)
 
 ```gdscript
 # game_reducer.gd
+static func get_slice_name() -> StringName:
+	return "game"
+
+static func get_initial_state() -> Dictionary:
+	return {"score": 0, "level": 1, "unlocks": []}
+
+static func get_persistable() -> bool:
+	return true
+
+static func get_schema() -> Dictionary:
+	return {
+		"type": "object",
+		"properties": {
+			"score": {"type": "int", "minimum": 0},
+			"level": {"type": "int", "minimum": 1},
+			"unlocks": {"type": "array"}
+		},
+		"required": ["score", "level", "unlocks"]
+	}
+
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	match action.type:
 		"game/add_score":
@@ -382,6 +416,19 @@ store.subscribe(func(state):
 store.subscribe_to_action("game/add_score", func(action):
 	print("Added score: ", action.payload)
 )
+```
+
+### Configuring Schema Validation
+
+```gdscript
+# In M_StateManager setup or _ready()
+func _ready():
+	# Enable validation in development, disable in production
+	enable_validation(OS.is_debug_build())
+
+	# Or enable/disable explicitly
+	enable_validation(true)  # Enable validation
+	enable_validation(false) # Disable validation
 ```
 
 ---

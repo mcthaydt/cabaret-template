@@ -10,10 +10,10 @@
 [ext_resource type="Script" uid="uid://dwp6w662o8blj" path="res://scripts/ecs/components/c_landing_indicator_component.gd" id="8_weo2m"]
 [ext_resource type="Resource" path="res://resources/movement_default.tres" id="9_mov"]
 [ext_resource type="Resource" path="res://resources/jump_default.tres" id="10_jump"]
-[ext_resource type="Resource" path="res://resources/rotate_default.tres" id="11_rot"]
-[ext_resource type="Resource" path="res://resources/floating_default.tres" id="12_float"]
+[ext_resource type="Resource" uid="uid://dtjqohqt1rl7s" path="res://resources/rotate_default.tres" id="11_rot"]
+[ext_resource type="Resource" uid="uid://boa7uhyoi17xk" path="res://resources/floating_default.tres" id="12_float"]
 [ext_resource type="Resource" path="res://resources/align_default.tres" id="13_align"]
-[ext_resource type="Resource" path="res://resources/landing_indicator_default.tres" id="14_land"]
+[ext_resource type="Resource" uid="uid://cwvcfu1vgo7vr" path="res://resources/landing_indicator_default.tres" id="14_land"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_6mvan"]
 

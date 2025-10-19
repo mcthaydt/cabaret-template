@@ -1,21 +1,7 @@
-[gd_resource type="Resource" load_steps=2]
+[gd_resource type="Resource" script_class="RS_MovementSettings" load_steps=2 format=3 uid="uid://biqv1v05phrab"]
 
-[ext_resource type="Script" path="res://scripts/ecs/resources/rs_movement_settings.gd" id="1_0"]
+[ext_resource type="Script" uid="uid://dpikeu40aqml4" path="res://scripts/ecs/resources/rs_movement_settings.gd" id="1_0"]
 
 [resource]
 script = ExtResource("1_0")
-max_speed = 6.0
-sprint_speed_multiplier = 1.5
-acceleration = 20.0
-deceleration = 25.0
-use_second_order_dynamics = true
-response_frequency = 1.0
-damping_ratio = 0.5
-grounded_damping_multiplier = 1.5
-air_damping_multiplier = 0.75
-grounded_friction = 30.0
-air_friction = 5.0
-strafe_friction_scale = 1.0
-forward_friction_scale = 1.0
-support_grace_time = 0.25
-
+air_control_scale = 0.6

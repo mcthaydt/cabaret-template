@@ -2,6 +2,8 @@
 
 **Purpose**: A simple, friendly guide to understanding how our state management system works.
 
+**Last Updated**: 2025-10-19 *(Added schema validation)*
+
 ---
 
 ## What Is It? (The Simple Version)
@@ -149,6 +151,40 @@ var score_selector = MemoizedSelector.new(
 var score = store.select(score_selector)  # Calculates once
 var score_again = store.select(score_selector)  # Uses cached answer!
 ```
+
+### 6. Schemas - The Quality Checklist
+
+Schemas are like **quality checklists** that make sure everything is correct.
+
+Think of it like this: When you fill out a form at school, there are rules:
+- Name must be text (not a number)
+- Age must be a number (not "banana")
+- Grade must be between 1 and 12
+
+Schemas do the same thing for your state! They check:
+- Is the score a number? (not text)
+- Is the score positive? (not negative)
+- Are all the required fields there?
+
+**Example schema:**
+```gdscript
+static func get_schema() -> Dictionary:
+	return {
+		"type": "object",
+		"properties": {
+			"score": {"type": "int", "minimum": 0},  # Score must be a positive number
+			"name": {"type": "string"},  # Name must be text
+			"level": {"type": "int", "minimum": 1}  # Level must be 1 or higher
+		},
+		"required": ["score", "name", "level"]  # All three are required
+	}
+```
+
+**When do you add schemas?**
+After you have 3-5 reducers working well. Think of it like adding spell-check after you've written a few chapters - it helps catch mistakes before your game gets too complex!
+
+**Do you have to use schemas?**
+No! They're optional. But they're really helpful for catching bugs early, especially if you're working with other developers.
 
 ---
 
@@ -395,6 +431,16 @@ static func get_initial_state() -> Dictionary:
 static func get_persistable() -> bool:
 	return true  # Should this be saved to disk?
 
+static func get_schema() -> Dictionary:
+	return {
+		"type": "object",
+		"properties": {
+			"value": {"type": "int"},
+			"items": {"type": "array", "items": {"type": "string"}}
+		},
+		"required": ["value", "items"]
+	}
+
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	match action["type"]:
 		"my_slice/set_value":
@@ -627,6 +673,9 @@ Don't use it for:
 ### Q: What if I forget to use `.duplicate(true)` in my reducer?
 **A:** Your game might work at first, but you'll get weird bugs where changing state in one place affects another. Always duplicate!
 
+### Q: When should I add schemas to my reducers?
+**A:** Add them after your first 3-5 reducers are working well! Schemas are like spell-check for your code - they catch mistakes early. If you're working with other developers or your state is getting complex, schemas are super helpful. But for simple projects, you can skip them.
+
 ### Q: How do I debug if something's wrong?
 **A:**
 1. Enable time-travel: `store.enable_time_travel(true)`
@@ -651,6 +700,7 @@ The Redux State Store is like a **shared notebook** that:
 - **Actions**: Request forms to make changes
 - **Reducers**: Rules for how to make changes
 - **Selectors**: Quick lookups
+- **Schemas**: Quality checklists (optional, add after 3-5 reducers work)
 
 **The Pattern:**
 1. Something happens in your game

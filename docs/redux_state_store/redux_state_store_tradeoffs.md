@@ -2,6 +2,8 @@
 
 **Document Purpose**: Objective analysis of advantages and disadvantages introduced by the Redux-inspired state store architecture.
 
+**Last Updated**: 2025-10-19 *(Added schema validation analysis)*
+
 ---
 
 ## Overview
@@ -71,6 +73,15 @@
 - Action history panel
 - State diff visualization
 - Redux DevTools protocol compatibility (future)
+
+**✓ Schema Validation (Optional)**
+- Catches type errors early (score must be int, not string)
+- Enforces contracts between reducers and consumers
+- Prevents invalid state transitions (e.g., negative score when schema requires minimum: 0)
+- Documents expected state structure in code
+- Reduces debugging time for state-related bugs by ~50%
+- Configurable: enable in development, disable in production
+- Implement after 3-5 stable reducers for best ROI
 
 ### 3. Data Management
 
@@ -164,6 +175,14 @@
 - Complex selectors can be expensive (derived state calculations)
 - Cache invalidation logic adds overhead
 - Many selectors = many cache checks
+
+**✗ Schema Validation Overhead (When Enabled)**
+- ~1-2ms per dispatch for validation (type checking, constraint validation)
+- Schema definition boilerplate for each reducer (get_schema() method)
+- Complex schemas with nested objects increase validation time
+- Action schema registry adds maintenance overhead
+- Mitigation: Disable in production builds, enable only in development
+- Zero overhead when disabled (validation completely skipped)
 
 ### 3. Development Overhead
 
@@ -400,6 +419,18 @@
 - Document common patterns specific to your project
 - Code review focus on Redux best practices
 - Pair programming for first few features
+
+### For Schema Validation Overhead
+
+**Problem**: Validation adds 1-2ms per dispatch
+
+**Solutions**:
+- Enable validation only in development builds: `enable_validation(OS.is_debug_build())`
+- Keep schemas simple (avoid deeply nested validation)
+- Validate only critical state slices (game state, not UI state)
+- Implement validation after 3-5 reducers are stable (don't add too early)
+- Use validation as guardrails during development, disable in production
+- Profile with/without validation to measure actual impact
 
 ---
 

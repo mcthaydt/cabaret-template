@@ -1,5 +1,7 @@
 Project: Redux-Inspired State Store for Godot ECS
 
+**Last Updated**: 2025-10-19 *(Added schema validation implementation steps)*
+
 ## Phase 1 – Requirements Ingestion
 
 Loaded PRD from docs/redux_state_store_prd.md
@@ -13,7 +15,7 @@ Key User Stories:
 - Epic 2: ECS Integration – Read/write state through store to access global game state without singletons
 - Epic 3: Time-Travel Debugging – Replay action history to debug complex state bugs
 - Epic 4: State Persistence – Auto-save game progress for session resumption
-- Epic 5: Middleware System – Intercept actions for logging, validation, and async operations
+- Epic 5: Middleware & Validation System – Intercept actions for logging, validation, and async operations; validate state structure
 - Epic 6: Selectors & Memoization – Compute derived state efficiently without recalculation on every frame
 
 Constraints:
@@ -67,10 +69,12 @@ Epic 4 – State Persistence (5 points)
 - Story 4.2: Implement auto-save triggers and state rehydration (2 points)
 - Story 4.3: Create whitelist system for state slice persistence (1 point)
 
-Epic 5 – Middleware System (5 points)
+Epic 5 – Middleware & Validation System (8 points)
 - Story 5.1: Implement middleware composition pipeline (2 points)
 - Story 5.2: Create logger middleware (1 point)
 - Story 5.3: Add async thunk support (2 points)
+- Story 5.4: Implement U_SchemaValidator engine (2 points)
+- Story 5.5: Integrate validation with dispatch and reducers (1 point)
 
 Epic 6 – Selectors & Memoization (5 points)
 - Story 6.1: Implement MemoizedSelector class with caching (3 points)
@@ -439,7 +443,65 @@ Example thunk usage:
 - async_load_game thunk: Load file, dispatch REHYDRATE action when done
 - async_save_game thunk: Serialize state, write to disk asynchronously
 
-Step 7 – Write Unit Tests for Batch 2
+Step 7 – Implement Schema Validation
+
+Create scripts/state/u_schema_validator.gd:
+- Define U_SchemaValidator class
+  - Property: _validation_enabled: bool = true
+  - Property: _action_schemas: Dictionary (optional registry)
+  - Method: validate_action(action: Dictionary) -> bool
+    - Check action has "type" field
+    - Look up action schema in registry (if exists)
+    - Validate payload against schema
+    - Return true if valid, assert/error if invalid
+  - Method: validate_state_slice(state: Variant, schema: Dictionary, slice_name: String) -> bool
+    - Validate state conforms to schema
+    - Check required fields present
+    - Check field types match schema
+    - Check constraints (minimum, maximum, pattern, etc.)
+    - Return true if valid, assert/error if invalid
+  - Method: enable_validation(enabled: bool) -> void
+  - Method: get_validation_enabled() -> bool
+  - Method: _validate_type(value: Variant, schema: Dictionary) -> bool
+    - Type checking logic (int, string, array, object, etc.)
+  - Method: _validate_constraints(value: Variant, schema: Dictionary) -> bool
+    - Constraint validation (minimum, maximum, pattern, enum, etc.)
+
+Create scripts/state/u_action_schemas.gd (optional):
+- Static registry for action schemas
+- Define get_action_schemas() -> Dictionary
+  - Returns mapping of action types to payload schemas
+
+Modify M_StateManager:
+- Add property: var _validator: U_SchemaValidator = null
+- Add method: enable_validation(enabled: bool) -> void
+  - Create validator if needed
+  - Call _validator.enable_validation(enabled)
+- Modify dispatch():
+  - Before reducers: validate action if validator enabled
+  - After each reducer: validate state slice if validator enabled
+  - Example:
+    ```gdscript
+    if _validator and _validator.get_validation_enabled():
+        assert(_validator.validate_action(action), "Invalid action")
+    # ... run reducers ...
+    for slice_name in _reducers.keys():
+        var schema = _reducers[slice_name].get_schema()
+        if _validator and _validator.get_validation_enabled():
+            assert(_validator.validate_state_slice(new_state[slice_name], schema, slice_name))
+    ```
+
+Update reducer interface:
+- Add get_schema() -> Dictionary method to all built-in reducers
+- Define JSON Schema-like structures for each state slice
+- Mark as optional (validation only runs if enabled)
+
+Validation configuration:
+- Enable in development: store.enable_validation(OS.is_debug_build())
+- Disable in production for performance
+- Implement after 3-5 reducers are stable
+
+Step 8 – Write Unit Tests for Batch 2
 
 Create tests/unit/state/test_middleware.gd:
 - Test middleware chain executes in order
@@ -464,10 +526,19 @@ Create tests/unit/state/test_thunk.gd:
 - Test thunk receives dispatch and get_state
 - Test thunk can dispatch multiple actions
 
+Create tests/unit/state/test_schema_validation.gd:
+- Test validate_action catches invalid action structure
+- Test validate_action catches invalid payload types
+- Test validate_state_slice catches missing required fields
+- Test validate_state_slice catches type mismatches
+- Test validate_state_slice catches constraint violations (min/max)
+- Test validation can be enabled/disabled
+- Test validation disabled = zero overhead
+
 Run all tests:
 - Execute gut_cmdln.gd with all test suites
 - Verify 90%+ code coverage maintained
-- Check performance benchmarks (dispatch <5ms)
+- Check performance benchmarks (dispatch <5ms with validation disabled, <7ms with validation enabled)
 
 Step 8 – Merge Batch 2
 
@@ -613,6 +684,8 @@ scripts/state/
 ├── persistence.gd (save/load)
 ├── time_travel.gd (history utilities)
 ├── thunk.gd (async actions)
+├── u_schema_validator.gd (schema validation engine)
+├── u_action_schemas.gd (action schema registry)
 ├── reducers/
 │   ├── game_reducer.gd
 │   ├── ui_reducer.gd

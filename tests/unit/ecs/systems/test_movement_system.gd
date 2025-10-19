@@ -165,6 +165,19 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
 	movement.settings.grounded_damping_multiplier = 2.0
 	movement.settings.air_damping_multiplier = 0.5
 	movement.settings.max_speed = 10.0
+	# Ensure equal target magnitude in air and ground to isolate damping
+	movement.settings.air_control_scale = 1.0
+
+	# Debug: capture key settings that influence second-order vs air control
+	print("[LOG][SOD Grounded vs Air] settings: freq=%.2f damping=%.2f g_mul=%.2f air_mul=%.2f air_control=%.2f max_speed=%.2f support_grace=%.2f" % [
+		movement.settings.response_frequency,
+		movement.settings.damping_ratio,
+		movement.settings.grounded_damping_multiplier,
+		movement.settings.air_damping_multiplier,
+		movement.settings.air_control_scale,
+		movement.settings.max_speed,
+		movement.settings.support_grace_time,
+	])
 
 	body.velocity = Vector3.ZERO
 	input.set_move_vector(Vector2.RIGHT)
@@ -176,7 +189,14 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
 	system._physics_process(0.1)
 
 	var grounded_velocity: float = body.velocity.x
+	var grounded_dyn: Vector2 = movement.get_horizontal_dynamics_velocity()
 	var grounded_debug: Dictionary = movement.get_last_debug_snapshot()
+	print("[LOG][SOD] grounded: vel=%.4f dyn_vel=%.4f supported=%s desired=%.2f" % [
+		grounded_velocity,
+		grounded_dyn.x,
+		str(grounded_debug.get("supported", null)),
+		(grounded_debug.get("desired_velocity", Vector2.ZERO) as Vector2).x,
+	])
 
 	input.set_move_vector(Vector2.ZERO)
 	floating.update_support_state(false, now)
@@ -193,6 +213,17 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
 	system._physics_process(0.1)
 
 	var air_velocity: float = body.velocity.x
+	var air_dyn: Vector2 = movement.get_horizontal_dynamics_velocity()
+	var air_debug: Dictionary = movement.get_last_debug_snapshot()
+	var expected_air_desired: float = movement.settings.max_speed * max(movement.settings.air_control_scale, 0.0)
+	print("[LOG][SOD] air: vel=%.4f dyn_vel=%.4f supported=%s desired=%.2f expected_adjusted_target=%.2f" % [
+		air_velocity,
+		air_dyn.x,
+		str(air_debug.get("supported", null)),
+		(air_debug.get("desired_velocity", Vector2.ZERO) as Vector2).x,
+		expected_air_desired,
+	])
+	print("[LOG][SOD] compare: grounded|%.4f| vs air|%.4f|" % [grounded_velocity, air_velocity])
 
 	assert_true(abs(grounded_velocity) < abs(air_velocity))
 	assert_true(grounded_debug["supported"])
