@@ -38,7 +38,10 @@ func _project_to_ground(component: C_LandingIndicatorComponent, body: CharacterB
 
 	var space_state: Object = _extract_space_state(body)
 	if space_state != null and space_state.has_method("intersect_ray"):
-		var hit: Dictionary = _cast_down_ray(space_state, body, origin_position, max_distance)
+		var start_lift: float = 0.0
+		if component.settings != null:
+			start_lift = max(component.settings.ray_origin_lift, 0.0)
+		var hit: Dictionary = _cast_down_ray(space_state, body, origin_position, max_distance, start_lift)
 		if not hit.is_empty():
 			return _build_projection_result(true, hit["point"], hit["normal"])
 
@@ -48,12 +51,17 @@ func _project_to_ground(component: C_LandingIndicatorComponent, body: CharacterB
 
 	return _build_projection_result(false, Vector3.ZERO, UP_VECTOR)
 
-func _cast_down_ray(space_state: Object, body: CharacterBody3D, origin_position: Vector3, max_distance: float) -> Dictionary:
+
+func _cast_down_ray(space_state: Object, body: CharacterBody3D, origin_position: Vector3, max_distance: float, start_lift: float) -> Dictionary:
+	var start: Vector3 = origin_position + Vector3.UP * start_lift
 	var target_position: Vector3 = origin_position + Vector3.DOWN * max_distance
-	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(origin_position, target_position)
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(start, target_position)
 	var exclude: Array = []
 	exclude.append(body.get_rid())
 	query.exclude = exclude
+	# Prefer bodies only for ground checks
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
 	var result_variant: Variant = space_state.call("intersect_ray", query)
 	if not (result_variant is Dictionary):
 		return {}

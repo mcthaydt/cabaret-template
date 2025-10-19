@@ -5,7 +5,7 @@
 ## Summary
 
 - **Vision**: A centralized, Redux-inspired state store that provides global state access across all game systems without singletons
-- **Problem**: Current M_ECSManager is registry-only; no centralized application state for game progression, UI, saves, or cross-system communication. Teams avoid singletons but need global state access.
+- **Problem**: Current ECSManager is registry-only; no centralized application state for game progression, UI, saves, or cross-system communication. Teams avoid singletons but need global state access.
 - **Success**: 100% of systems can access game/UI/session state through store actions with <5ms dispatch latency at 60fps
 - **Timeline**: Completing today
 
@@ -35,9 +35,9 @@
 
 - **Story**: As an ECS system, I want to read/write state through the store so that I can access global game state without singletons
 - **Acceptance Criteria**:
-  - Given a S_MovementSystem, when player score changes, then it can select score from store state
+  - Given a MovementSystem, when player score changes, then it can select score from store state
   - Given a store action dispatch, when state changes affect components, then subscribed systems receive notifications
-  - Given M_ECSManager, when components register, then store is notified via middleware
+  - Given ECSManager, when components register, then store is notified via middleware
 
 #### Epic 3: Time-Travel Debugging
 
@@ -79,9 +79,9 @@
 - Static utility class (`scripts/state/store_utils.gd`) for store discovery from any node
 - Action dispatch system with type-safe action creators
 - Reducer registration and state tree management
-- Store discovery pattern matching M_ECSManager (parent hierarchy + scene tree group)
+- Store discovery pattern matching ECSManager (parent hierarchy + scene tree group)
 - Basic subscription system (subscribe to state changes)
-- Integration with existing M_ECSManager (hybrid mode)
+- Integration with existing ECSManager (hybrid mode)
 - Automatic JSON serialization for save/load
 - Basic selector API for reading state
 - Unit tests with GUT framework
@@ -113,7 +113,7 @@
 ### Architecture
 
 ```
-M_StateManager (Node in scene tree, discovered via "state_store" group)
+StateStore (Node in scene tree, discovered via "state_store" group)
 ├─ State Tree (Dictionary)
 │  ├─ game: {score, level, unlocks}
 │  ├─ ui: {active_menu, settings}
@@ -125,13 +125,13 @@ M_StateManager (Node in scene tree, discovered via "state_store" group)
 ├─ History (Array[Action]) [time-travel]
 └─ Selectors (Dictionary[StringName, MemoizedSelector])
 
-Discovery Pattern (matches M_ECSManager):
+Discovery Pattern (matches ECSManager):
 - Components/Systems search parent hierarchy for node with get_store() method
 - Fall back to scene tree group "state_store"
 - Use duck-typing via has_method("dispatch") check
 
 Integration Points:
-- M_ECSManager subscribes to store state changes
+- ECSManager subscribes to store state changes
 - Systems can dispatch actions via get_store().dispatch()
 - Components can select state via get_store().select()
 - Store middleware can trigger ECS system updates
@@ -139,8 +139,8 @@ Integration Points:
 
 #### Key Classes
 
-1. **M_StateManager** (extends Node): Core store with dispatch/subscribe/select, joins "state_store" group for discovery
-2. **U_StateStoreUtils** (static class): Provides `get_store(from_node: Node)` for discovering M_StateManager in scene tree
+1. **StateStore** (extends Node): Core store with dispatch/subscribe/select, joins "state_store" group for discovery
+2. **StateStoreUtils** (static class): Provides `get_store(from_node: Node)` for discovering StateStore in scene tree
 3. **Action** (GDScript Dictionary): `{type: StringName, payload: Variant}`
 4. **Reducer** (Callable): `func (state: Dictionary, action: Action) -> Dictionary`
 5. **Middleware** (Callable): `func (store, next: Callable, action: Action)`
@@ -150,7 +150,7 @@ Integration Points:
 
 ```
 scripts/state/
-├── store.gd                  # Core M_StateManager class
+├── store.gd                  # Core StateStore class
 ├── store_utils.gd            # Static utilities (get_store discovery)
 ├── action.gd                 # Action helpers (create_action, is_action)
 ├── reducer.gd                # Reducer utilities (combine_reducers)
@@ -213,7 +213,7 @@ scripts/state/
 ### Phase 1: MVP (Core Functionality)
 
 **Core Store + Actions/Reducers**
-- Implement M_StateManager class with dispatch/subscribe
+- Implement StateStore class with dispatch/subscribe
 - Create reducer registration system
 - Build action creator helpers
 - Integrate StoreManager AutoLoad
@@ -263,504 +263,6 @@ scripts/state/
   - Unit testing with GUT
 - **Commitment**: Full implementation today
 
-## Critical Design Decisions
-
-This section documents key architectural choices that define how the M_StateManager system behaves.
-
-### 1. Single Store Enforcement (Strict)
-
-**Decision**: Only one M_StateManager instance allowed per scene tree. Multiple instances will self-destruct.
-
-**Implementation**:
-```gdscript
-# In M_StateManager._ready()
-func _ready():
-	var existing = get_tree().get_nodes_in_group("state_store")
-	if existing.size() > 0 and existing[0] != self:
-		push_error("FATAL: Multiple M_StateManager instances detected. Only one allowed per scene tree.")
-		queue_free()
-		return
-	add_to_group("state_store")
-	_initialize_state()
-```
-
-**Rationale**: Prevents state fragmentation and developer confusion. Single source of truth.
-
-### 2. Null Safety Policy (Fail-Fast)
-
-**Decision**: Missing M_StateManager is a fatal error. Systems must assert store exists.
-
-**Implementation**:
-```gdscript
-# In any system or component
-func _ready():
-	var store = U_StateStoreUtils.get_store(self)
-	assert(store != null, "M_StateManager not found in scene tree. Add M_StateManager node to scene.")
-	_store = store
-```
-
-**Rationale**: Catches configuration errors immediately rather than failing silently. Developers know exactly what's wrong.
-
-### 3. State Access Performance (Safety Over Speed)
-
-**Decision**: Always return deep copy of state via duplicate(true). Prevents accidental mutations.
-
-**Implementation**:
-```gdscript
-# In M_StateManager
-func get_state() -> Dictionary:
-	return _state.duplicate(true)  # Deep copy for safety
-```
-
-**Performance Impact**: ~1ms for 10MB state tree. Trade-off accepted for correctness.
-
-**Optimization**: Use select() for specific values instead of get_state() for full tree:
-```gdscript
-var score = store.select("game.score")  # Fast path: direct value access
-```
-
-### 4. State Structure (Normalized Redux-Style)
-
-**Decision**: Flat state structure with entity IDs. Maximum 3-4 levels of nesting.
-
-**Recommended Pattern**:
-```gdscript
-{
-	"entities": {
-		"players": {
-			"player_1": {"health": 100, "inventory_id": "inv_1"}
-		},
-		"inventories": {
-			"inv_1": {"items": ["item_sword", "item_shield"]}
-		}
-	},
-	"game": {
-		"score": 0,
-		"level": 1
-	},
-	"ui": {
-		"active_menu": "main"
-	}
-}
-```
-
-**Anti-Pattern (Avoid)**:
-```gdscript
-{
-	"game": {
-		"players": {
-			"player_1": {
-				"inventory": {  # Embedded instead of referenced
-					"items": {
-						"item_1": {  # Too deeply nested
-							"properties": {"damage": 10}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-```
-
-**Rationale**: Flat structure enables fast selectors, avoids duplication, simplifies updates.
-
-### 5. Scene Hierarchy Placement
-
-**Decision**: M_StateManager placed in separate /Infrastructure branch, isolated from ECS and gameplay nodes.
-
-**Scene Structure**:
-```
-Root
-├─ Infrastructure
-│  └─ M_StateManager  (joins "state_store" group)
-├─ Gameplay
-│  ├─ Player
-│  └─ Environment
-└─ Systems
-   └─ M_ECSManager  (joins "ecs_manager" group)
-```
-
-**Rationale**: Clearly separates infrastructure from gameplay logic. Easy to locate and manage.
-
-### 6. Time-Travel Debugging (Opt-In)
-
-**Decision**: Time-travel disabled by default. Explicit opt-in required.
-
-**Usage**:
-```gdscript
-# Enable time-travel for debugging session
-var store = U_StateStoreUtils.get_store(self)
-store.enable_time_travel(true)  # Starts recording history
-
-# Later: step through history
-store.step_backward()  # Undo last action
-store.step_forward()   # Redo
-```
-
-**Memory Impact**: ~10MB for 1000 actions (configurable). Only allocate when needed.
-
-**Rationale**: Saves memory in normal gameplay, enables powerful debugging when requested.
-
-### 7. Testing Strategy (Integration-Style)
-
-**Decision**: All tests use real M_StateManager instances. No mocking.
-
-**Test Pattern**:
-```gdscript
-# In test_movement_system.gd
-func test_score_affects_movement():
-	var store = M_StateManager.new()
-	add_child(store)  # Makes it discoverable
-
-	var system = S_MovementSystem.new()
-	add_child(system)
-
-	store.dispatch(GameActions.set_score(100))
-	system.process_tick(1.0)
-
-	assert_eq(system.speed_multiplier, 1.5)  # Score boosts speed
-```
-
-**Rationale**: Integration tests catch real issues. Mocks hide integration bugs.
-
-### 8. Persistence Control (Per-Reducer)
-
-**Decision**: Reducers declare persistence via `.persistable` metadata property.
-
-**Implementation**:
-```gdscript
-# In game_reducer.gd
-static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
-	# Reducer logic...
-	pass
-
-static func get_persistable() -> bool:
-	return true  # This reducer's state will be saved
-
-# In ui_reducer.gd (transient state)
-static func get_persistable() -> bool:
-	return false  # UI state not saved (e.g., active menu)
-```
-
-**Save/Load**:
-```gdscript
-# M_StateManager filters by persistable flag
-store.save_state("user://savegame.json")  # Only saves persistable reducers
-```
-
-**Rationale**: Fine-grained control. Some state is session-only (UI), some persists (game progress).
-
-### 9. Initialization Timing (Strict)
-
-**Decision**: Calling get_store() before M_StateManager is ready is a fatal error.
-
-**Implementation**:
-```gdscript
-# U_StateStoreUtils.get_store()
-static func get_store(from_node: Node) -> M_StateManager:
-	# Search logic...
-	if store == null:
-		assert(false, "M_StateManager not found. Ensure M_StateManager node exists in scene tree before accessing.")
-	return store
-```
-
-**Recommendation**: Add M_StateManager to base scene template to ensure it's always present.
-
-**Rationale**: Fail-fast catches setup errors during development, not in production.
-
-### 10. Reducer Error Handling (Fail-Fast)
-
-**Decision**: Errors in reducers crash the application immediately.
-
-**Implementation**:
-```gdscript
-# In M_StateManager.dispatch()
-func dispatch(action: Dictionary) -> void:
-	var new_state = _state.duplicate(true)
-
-	for reducer in _reducers:
-		# No try/catch - let errors propagate and crash
-		new_state = reducer.call(new_state, action)
-
-	_state = new_state
-	_notify_subscribers()
-```
-
-**Rationale**: Reducers must be pure and predictable. Errors indicate bugs that must be fixed immediately.
-
-### 11. History Buffer Configuration
-
-**Decision**: Configurable history size (default 1000 actions), only allocated when time-travel enabled.
-
-**Configuration**:
-```gdscript
-store.enable_time_travel(true, max_history_size = 500)  # Reduce memory footprint
-```
-
-**Memory Calculation**:
-- 100 actions: ~1MB
-- 500 actions: ~5MB
-- 1000 actions: ~10MB (default)
-
-**Rationale**: Allows tuning memory usage based on debugging needs vs. constraints.
-
----
-
-## Implementation Details (Batch 1 Specification)
-
-This section provides technical implementation details for developers implementing Batch 1 (MVP).
-
-### 1. Target Platform
-
-**Godot Version**: 4.5 (confirmed from project.godot)
-- Must be compatible with Godot 4.5 Forward Plus renderer
-- Use GDScript features available in 4.5 only
-
-### 2. Action Format
-
-**Structure**: Standard GDScript Dictionary
-
-```gdscript
-# Action shape
-{
-	"type": StringName("game/add_score"),  # Action type (namespaced)
-	"payload": 100  # Optional payload (any Variant)
-}
-
-# Access pattern (bracket notation required)
-var action_type = action["type"]
-var payload = action["payload"]
-
-# DO NOT use dot notation (not supported on Dictionary)
-# var action_type = action.type  # ✗ WRONG
-```
-
-**Rationale**: Keep it simple. No custom classes. Standard Dictionary with bracket access works everywhere.
-
-### 3. Reducer Architecture
-
-**Pattern**: Dictionary of slice reducers (keyed by state slice name)
-
-**Store Structure**:
-```gdscript
-# In M_StateManager
-var _reducers: Dictionary = {}  # Key: StringName (slice name), Value: Object (reducer)
-var _state: Dictionary = {}  # Key: StringName (slice name), Value: Dictionary (slice state)
-```
-
-**Reducer Interface** (every reducer must implement):
-```gdscript
-# Example: game_reducer.gd
-class_name GameReducer
-
-static func get_slice_name() -> StringName:
-	return "game"  # State slice key
-
-static func get_initial_state() -> Dictionary:
-	return {
-		"score": 0,
-		"level": 1,
-		"unlocks": []
-	}
-
-static func get_persistable() -> bool:
-	return true  # Save this slice to disk
-
-static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
-	match action["type"]:
-		"game/add_score":
-			var new_state = state.duplicate(true)
-			new_state["score"] += action["payload"]
-			return new_state
-		"game/level_up":
-			var new_state = state.duplicate(true)
-			new_state["level"] += 1
-			return new_state
-		_:
-			return state
-```
-
-**Reducer Registration** (auto-detect pattern):
-```gdscript
-# In M_StateManager or setup code
-store.register_reducer(GameReducer)  # Calls get_slice_name() internally
-store.register_reducer(UiReducer)
-store.register_reducer(EcsReducer)
-store.register_reducer(SessionReducer)
-```
-
-**Dispatch Logic**:
-```gdscript
-# In M_StateManager.dispatch()
-func dispatch(action: Dictionary) -> void:
-	var new_state = _state.duplicate(true)
-
-	for slice_name in _reducers:
-		var reducer = _reducers[slice_name]
-		# Each reducer only sees its own slice
-		new_state[slice_name] = reducer.reduce(new_state[slice_name], action)
-
-	_state = new_state
-	_state_version += 1  # Increment for memoization
-	state_changed.emit(_state)  # Notify subscribers
-```
-
-**Rationale**: Clean separation of concerns. Each reducer owns its slice. Easy to implement per-reducer persistence.
-
-### 4. State Change Notifications
-
-**Pattern**: Godot signals with subscribe() wrapper
-
-**Signals**:
-```gdscript
-# In M_StateManager
-signal state_changed(state: Dictionary)
-signal action_dispatched(action: Dictionary)
-```
-
-**Subscribe API** (convenience wrapper):
-```gdscript
-func subscribe(callback: Callable) -> Callable:
-	state_changed.connect(callback)
-	# Return unsubscribe function
-	return func(): state_changed.disconnect(callback)
-
-# Usage
-var unsubscribe = store.subscribe(func(state):
-	print("State changed: ", state["game"]["score"])
-)
-# Later: unsubscribe.call()
-```
-
-**Rationale**: Native Godot patterns (signals) with Redux-style subscribe API for convenience.
-
-### 5. Selector Memoization
-
-**Pattern**: State version counter (fast invalidation)
-
-**Implementation**:
-```gdscript
-# In M_StateManager
-var _state_version: int = 0  # Incremented on every dispatch
-
-# In MemoizedSelector
-class MemoizedSelector:
-	var _selector_func: Callable
-	var _last_version: int = -1
-	var _cached_result: Variant
-
-	func select(state: Dictionary, state_version: int) -> Variant:
-		if state_version != _last_version:
-			_cached_result = _selector_func.call(state)
-			_last_version = state_version
-		return _cached_result
-
-# In M_StateManager.select()
-func select(selector: MemoizedSelector) -> Variant:
-	return selector.select(_state, _state_version)
-```
-
-**Rationale**: Version counter comparison is O(1) vs deep hash O(n). Simple and fast.
-
-### 6. Persistence
-
-**Checksum**: Simple hash() builtin
-
-**Format**:
-```json
-{
-	"checksum": 1234567890,
-	"version": 1,
-	"data": {
-		"game": {"score": 100},
-		"session": {"player_prefs": {}}
-	}
-}
-```
-
-**Implementation**:
-```gdscript
-# In persistence.gd
-static func serialize_state(state: Dictionary, persistable_slices: Array[StringName]) -> String:
-	# Filter to persistable slices only
-	var filtered_state = {}
-	for slice_name in persistable_slices:
-		filtered_state[slice_name] = state[slice_name]
-
-	var data = {"version": 1, "data": filtered_state}
-	var json = JSON.stringify(data)
-	var checksum = hash(json)
-
-	var save_data = {"checksum": checksum, "version": 1, "data": filtered_state}
-	return JSON.stringify(save_data)
-
-static func deserialize_state(json_str: String) -> Dictionary:
-	var parsed = JSON.parse_string(json_str)
-	if parsed == null:
-		push_error("Invalid JSON")
-		return {}
-
-	# Verify checksum
-	var stored_checksum = parsed["checksum"]
-	var data_json = JSON.stringify({"version": parsed["version"], "data": parsed["data"]})
-	var computed_checksum = hash(data_json)
-
-	if stored_checksum != computed_checksum:
-		push_error("Checksum mismatch - corrupted save file")
-		return {}
-
-	return parsed["data"]
-```
-
-**Rationale**: hash() is fast, built-in, good enough for detecting corruption.
-
-### 7. Code Style
-
-**Indentation**: Tab characters only (project standard)
-**Naming**: snake_case for functions/variables, PascalCase for classes
-**Type Annotations**: Required for all public APIs
-
-```gdscript
-# Good
-func dispatch(action: Dictionary) -> void:
-	var new_state: Dictionary = _state.duplicate(true)
-	_state_version += 1
-
-# Bad (no types)
-func dispatch(action):
-	var new_state = _state.duplicate(true)
-```
-
-### 8. Testing Requirements
-
-**Coverage**: 90%+ for scripts/state/* module
-
-**Fail-Fast Testing**: Must test error paths
-- Test U_StateStoreUtils.get_store() asserts when store missing
-- Test reducer errors crash application
-- Test multiple M_StateManager instances self-destruct
-
-**Test Pattern**:
-```gdscript
-extends GutTest
-
-func test_missing_store_crashes():
-	# Create node tree without M_StateManager
-	var node = Node.new()
-	add_child(node)
-
-	# Expect assertion failure
-	# (GUT provides assert_signal_emitted or similar)
-	# This will crash in production, validate in test environment
-```
-
-**Batch 1 Scope**: Core store + persistence + selectors + tests ONLY
-- Stop after Batch 1 is green
-- Review before proceeding to Batch 2
-
----
-
 ## Risks & Mitigation
 
 ### Risk 1: Performance Overhead
@@ -774,9 +276,9 @@ func test_missing_store_crashes():
 
 ### Risk 2: Migration Complexity
 
-- **Impact**: Integrating with existing M_ECSManager could break working systems
+- **Impact**: Integrating with existing ECSManager could break working systems
 - **Mitigation**:
-  - Hybrid approach preserves M_ECSManager
+  - Hybrid approach preserves ECSManager
   - Incremental migration (system by system)
   - Comprehensive regression tests
   - Feature flag for rollback
@@ -806,7 +308,7 @@ func test_missing_store_crashes():
 ✓ **Problem quantified**: Systems cannot access game/UI/session state; no singleton alternative
 ✓ **Requirements testable**: All ACs have measurable outcomes (dispatch time, cache hits, coverage)
 ✓ **Success measurable**: Primary KPIs with clear targets
-✓ **Technically feasible**: Similar to existing M_ECSManager pattern, proven Redux architecture
+✓ **Technically feasible**: Similar to existing ECSManager pattern, proven Redux architecture
 
 ---
 
@@ -816,7 +318,7 @@ func test_missing_store_crashes():
 
 ```gdscript
 # From any system, component, or UI node
-var store = U_StateStoreUtils.get_store(self)
+var store = StateStoreUtils.get_store(self)
 
 # Dispatch a simple action
 store.dispatch({
@@ -851,7 +353,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 
 ```gdscript
 # From a system
-var store = U_StateStoreUtils.get_store(self)
+var store = StateStoreUtils.get_store(self)
 
 # Direct selection
 var score = store.select("game.score")
@@ -869,7 +371,7 @@ if store.select(high_score_selector):
 
 ```gdscript
 # Get store reference
-var store = U_StateStoreUtils.get_store(self)
+var store = StateStoreUtils.get_store(self)
 
 # Subscribe to state changes
 store.subscribe(func(state):

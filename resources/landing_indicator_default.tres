@@ -7,4 +7,7 @@ script = ExtResource("1_0")
 indicator_height_offset = 0.05
 ground_plane_height = 0.0
 max_projection_distance = 10.0
-
+ray_origin_lift = 0.15
+align_to_hit_normal = true
+normal_axis = 2
+normal_axis_positive = false

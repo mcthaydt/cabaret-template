@@ -18,12 +18,12 @@ Key User Stories:
 
 Constraints:
 - Performance: Dispatch latency under 5ms at 60fps, selector computation under 0.1ms
-- Integration: Hybrid mode with existing M_ECSManager (preserve current architecture)
+- Integration: Hybrid mode with existing ECSManager (preserve current architecture)
 - Testing: 90%+ code coverage with GUT framework
 - Immutability: Reducers must return new state dictionaries
 
 High-Level Architecture:
-M_StateManager extends Node with state tree (Dictionary), reducers (Array[Callable]), middleware (Array[Callable]), subscribers (Array[Callable]), history buffer (Array[Action]), and selectors (Dictionary). M_StateManager joins "state_store" group for discovery via scene tree search (matching M_ECSManager pattern). Integration via ECS bridge middleware allows systems to dispatch actions and subscribe to state changes.
+StateStore extends Node with state tree (Dictionary), reducers (Array[Callable]), middleware (Array[Callable]), subscribers (Array[Callable]), history buffer (Array[Action]), and selectors (Dictionary). StateStore joins "state_store" group for discovery via scene tree search (matching ECSManager pattern). Integration via ECS bridge middleware allows systems to dispatch actions and subscribe to state changes.
 
 ---
 
@@ -46,10 +46,10 @@ Planned Batches:
 Story Point Breakdown:
 
 Epic 1 – Core Store Infrastructure (8 points)
-- Story 1.1: Implement M_StateManager class with dispatch/subscribe/select (3 points)
+- Story 1.1: Implement StateStore class with dispatch/subscribe/select (3 points)
 - Story 1.2: Create reducer registration and combination system (2 points)
 - Story 1.3: Build action creator helpers and validation (2 points)
-- Story 1.4: Implement store discovery utility class (U_StateStoreUtils) (1 point)
+- Story 1.4: Implement store discovery utility class (StateStoreUtils) (1 point)
 
 Epic 2 – ECS Integration (5 points)
 - Story 2.1: Create ECS bridge middleware (2 points)
@@ -90,117 +90,51 @@ Testing & Documentation (8 points)
 Story Points: 21
 Goal: Establish core Redux architecture with persistence and efficient state reading
 
-SCOPE: Batch 1 ONLY - Stop after tests are green for review before Batch 2
-
-Batch Progress (current iteration)
-- Completed: Core store (`store.gd`, `store_utils.gd`, `selector.gd`), helper utilities (`action.gd`, `reducer.gd`), and persistence primitives (`persistence.gd`) with corresponding GUT coverage under `tests/unit/state`
-- Verified: `gut_cmdln` run against `res://tests/unit/state`
-- Outstanding in Batch 1 scope: none – Batch 1 ready for Batch 2 hand-off
-- Next focus: kick off Batch 2 (middleware pipeline + ECS bridge integration)
-
-IMPLEMENTATION DECISIONS SUMMARY:
-1. Target: Godot 4.5, GDScript with tab indentation and type annotations
-2. Actions: Dictionary with bracket access (action["type"], action["payload"])
-3. Reducers: Dictionary of slice reducers (keyed by slice name), auto-detect via get_slice_name()
-4. Notifications: Godot signals (state_changed, action_dispatched) with subscribe() wrapper
-5. Memoization: State version counter (_state_version incremented on dispatch)
-6. Persistence: hash() builtin for checksum, per-reducer persistable flag
-7. Testing: 90%+ coverage, test fail-fast paths (assert crashes)
-8. Tests: Use real M_StateManager instances (integration-style), no mocking
-
 Step 1 – Design State Schema
 
-Create state tree structure (Dictionary of slices):
+Create state tree structure:
 - game: {score: int, level: int, unlocks: Array}
 - ui: {active_menu: String, settings: Dictionary}
 - ecs: {component_registry: Dictionary, system_state: Dictionary}
 - session: {player_prefs: Dictionary, save_slot: int}
 
-Define action schema format (Dictionary with bracket access):
-{
-	"type": StringName("game/add_score"),  # Namespaced action type
-	"payload": 100  # Optional payload (any Variant)
-}
-
-Plan reducer interface (all reducers must implement):
-- static func get_slice_name() -> StringName  # Returns "game", "ui", etc.
-- static func get_initial_state() -> Dictionary
-- static func get_persistable() -> bool
-- static func reduce(state: Dictionary, action: Dictionary) -> Dictionary
+Define action schema format: {type: StringName, payload: Variant}
+Plan reducer signatures: func(state: Dictionary, action: Dictionary) -> Dictionary
 
 Step 2 – Implement Core Store Infrastructure
 
 Create scripts/state/store.gd:
-- [x] Extend Node class
-- [x] Add _state: Dictionary = {}  # Key: slice name, Value: slice state
-- [x] Add _reducers: Dictionary = {}  # Key: slice name (StringName), Value: reducer object
-- [x] Add _state_version: int = 0  # Incremented on each dispatch for memoization
-- [x] Add _time_travel_enabled: bool = false
-- [x] Add _history: Array = []
-- [x] Add _history_index: int = -1
-
-- [x] Define signals (IMPLEMENTATION DETAIL #4: Signals with subscribe wrapper):
-  - signal state_changed(state: Dictionary)
-  - signal action_dispatched(action: Dictionary)
-
-- [x] Implement _ready() lifecycle:
-  - Check for duplicate M_StateManager instances (CRITICAL DESIGN DECISION #1)
-  - If another exists, push_error and queue_free()
-  - Otherwise, add_to_group("state_store")
-  - Initialize default state from reducers (call get_initial_state() on each)
-
-- [x] Implement register_reducer(reducer_class) -> void:
-  - Call reducer_class.get_slice_name() to get slice name
-  - Store in _reducers Dictionary: _reducers[slice_name] = reducer_class
-  - Initialize state slice: _state[slice_name] = reducer_class.get_initial_state()
-
-- [x] Implement dispatch(action: Dictionary) -> void:
-  - Deep copy current state: var new_state = _state.duplicate(true)  (DECISION #3: Safety over speed)
-  - Iterate through _reducers Dictionary (IMPLEMENTATION DETAIL #3: Dictionary of slice reducers):
-    for slice_name in _reducers:
-      var reducer = _reducers[slice_name]
-      new_state[slice_name] = reducer.reduce(new_state[slice_name], action)
-  - No error handling - let crashes happen per DECISION #10
-  - Record to history if time-travel enabled (DECISION #6)
-  - Update _state reference
-  - Increment _state_version (IMPLEMENTATION DETAIL #5: State version counter)
-  - Emit signals: action_dispatched.emit(action), state_changed.emit(_state)
-
-- [x] Implement subscribe(callback: Callable) -> Callable:
-  - Wrapper around signals: state_changed.connect(callback)
-  - Return unsubscribe function: func(): state_changed.disconnect(callback)
-
-- [x] Implement get_state() -> Dictionary:
-  - Return _state.duplicate(true)  # Deep copy for immutability (DECISION #3)
-
-- [x] Implement select(path: String) -> Variant:
-  - Parse dot-notation path (e.g., "game.score" or "game[score]")
-  - Traverse state tree using bracket access: _state["game"]["score"]
-  - Return value or null if path invalid
-  - Fast read-only access (optimization for DECISION #3)
-
-- [x] Implement select(selector: MemoizedSelector) -> Variant:
-  - Call selector.select(_state, _state_version)
-  - Selector uses version counter for cache invalidation
-
-- [x] Implement enable_time_travel(enabled: bool, max_history_size: int = 1000) -> void:
-  - Set _time_travel_enabled flag (DECISION #6: Opt-in)
-  - Allocate _history buffer if enabling
+- Extend Node class
+- Add _state: Dictionary (state tree)
+- Add _reducers: Array[Callable]
+- Add _subscribers: Array[Callable]
+- Implement dispatch(action: Dictionary) -> void
+  - Iterate through reducers
+  - Compute new state (immutable update)
+  - Notify subscribers
+  - Return void (fire and forget)
+- Implement subscribe(callback: Callable) -> Callable
+  - Add callback to subscribers array
+  - Return unsubscribe function
+- Implement get_state() -> Dictionary
+  - Return deep copy of current state
+- Implement _ready() lifecycle
+  - Initialize default state from reducers
 
 Create scripts/state/action.gd:
-- [x] Define create_action(type: StringName, payload: Variant = null) -> Dictionary
-- [x] Define is_action(obj: Variant) -> bool (validation helper)
-- [x] Add action type constants (namespaced strings)
+- Define create_action(type: StringName, payload: Variant = null) -> Dictionary
+- Define is_action(obj: Variant) -> bool (validation helper)
+- Add action type constants (namespaced strings)
 
 Create scripts/state/reducer.gd:
-- [x] Define combine_reducers(reducers: Dictionary) -> Callable
+- Define combine_reducers(reducers: Dictionary) -> Callable
   - Returns single root reducer that delegates to slice reducers
   - Each slice reducer handles its own state subtree
-- [x] Add reducer composition utilities (collect_initial_state implemented for bootstrapping)
+- Add reducer composition utilities
 
 Create scripts/state/store_utils.gd:
-- [x] Class with only static methods (no instantiation)
-- [x] Define get_store(from_node: Node) -> M_StateManager:
+- Class with only static methods (no instantiation)
+- Define get_store(from_node: Node) -> StateStore
   - Step 1: Search parent hierarchy
     - Walk up from from_node using get_parent()
     - Check each node with has_method("dispatch") and has_method("subscribe")
@@ -208,44 +142,39 @@ Create scripts/state/store_utils.gd:
   - Step 2: Search scene tree group
     - Get nodes in "state_store" group via from_node.get_tree().get_nodes_in_group("state_store")
     - Return first node in array if exists
-  - Step 3: FATAL ERROR (DECISION #2: Fail-fast null safety)
-    - assert(false, "M_StateManager not found in scene tree. Add M_StateManager node to /Infrastructure/ branch.")
-    - Return null (unreachable after assert)
+  - Step 3: Return null with warning
+    - Push warning "StateStore not found in scene tree"
+    - Return null
 - Optional: Add caching dictionary to avoid repeated searches (static var _cache: Dictionary)
 
-Update M_StateManager._ready():
+Update StateStore._ready():
 - Join "state_store" group via add_to_group("state_store")
 - Ensures discovery via scene tree group works
 
 Step 3 – Implement State Persistence
 
-Create scripts/state/persistence.gd (IMPLEMENTATION DETAIL #6: Simple hash() checksum):
-- [x] Define serialize_state(state: Dictionary, persistable_reducers: Array[StringName]) -> String
-  - Filter state slices using reducer whitelist (DECISION #8)
-  - Normalize data deterministically (sorted keys, array order) before hashing
-  - Compute checksum using stable seed: `"version|normalized_state"`
-  - Return JSON payload `{checksum, version, data}` with deep-copied slices
-
-- [x] Define deserialize_state(json_str: String) -> Dictionary
-  - Parse JSON structure and validate required keys/types
-  - Recompute deterministic checksum seed; return `{}` on mismatch (tamper-safe)
-  - Deep-duplicate data Dictionary before returning to preserve immutability
-
-- [x] Define save_to_file(path: String, state: Dictionary, persistable_reducers: Array[StringName]) -> Error
-  - Serialize state (only persistable slices)
-  - Write to file using FileAccess.open(path, FileAccess.WRITE)
+Create scripts/state/persistence.gd:
+- Define serialize_state(state: Dictionary, whitelist: Array = []) -> String
+  - Filter state by whitelist if provided
+  - Convert to JSON string
+  - Add checksum for validation
+- Define deserialize_state(json: String) -> Dictionary
+  - Validate checksum
+  - Parse JSON to Dictionary
+  - Return null on error with detailed error message
+- Define save_to_file(path: String, state: Dictionary, whitelist: Array) -> Error
+  - Serialize state
+  - Write to file using FileAccess
   - Return OK or error code
-
 - Define load_from_file(path: String) -> Dictionary
-  - Read file contents using FileAccess.open(path, FileAccess.READ)
-  - Call deserialize_state(contents)
+  - Read file contents
+  - Deserialize and validate
   - Return state Dictionary or empty Dictionary on failure
 
-Add persistence methods to M_StateManager:
-- save_state(path: String) -> Error:
-  - Collect persistable reducers by calling reducer.get_persistable()
-  - Call persistence.save_to_file with current state and persistable list (DECISION #8)
-- load_state(path: String) -> Error:
+Add persistence methods to StateStore:
+- save_state(path: String, whitelist: Array = []) -> Error
+  - Call persistence.save_to_file with current state
+- load_state(path: String) -> Error
   - Call persistence.load_from_file
   - Dispatch special REHYDRATE action
   - Reducers handle REHYDRATE to merge loaded state
@@ -253,25 +182,26 @@ Add persistence methods to M_StateManager:
 Step 4 – Implement Selectors & Memoization
 
 Create scripts/state/selector.gd:
-- Define MemoizedSelector class (IMPLEMENTATION DETAIL #5: State version counter)
+- Define MemoizedSelector class
   - Property: _selector_func: Callable
-  - Property: _last_version: int = -1  # Last state version seen
+  - Property: _last_state_hash: int
   - Property: _cached_result: Variant
-  - Method: select(state: Dictionary, state_version: int) -> Variant
-    - If state_version != _last_version:
-      - Compute _selector_func(state)
-      - Cache result and version
-    - Return cached _cached_result
+  - Method: select(state: Dictionary) -> Variant
+    - Compute state hash
+    - If hash matches _last_state_hash, return _cached_result
+    - Otherwise, compute _selector_func(state)
+    - Cache result and hash
+    - Return new result
   - Method: invalidate() -> void
-    - Set _last_version = -1  # Force recompute on next select
+    - Clear cache
 
-Add select method to M_StateManager:
+Add select method to StateStore:
 - select(path: String) -> Variant
   - Parse dot-notation path (e.g., "game.score")
-  - Traverse state tree using bracket access
+  - Traverse state tree
   - Return value or null if path invalid
 - select(selector: MemoizedSelector) -> Variant
-  - Call selector.select(_state, _state_version)  # Pass version for cache invalidation
+  - Call selector.select(get_state())
   - Return result
 
 Step 5 – Create Built-in Reducers
@@ -281,26 +211,18 @@ Create scripts/state/reducers/game_reducer.gd:
 - Define reduce(state: Dictionary, action: Dictionary) -> Dictionary
   - Handle "game/add_score", "game/level_up", "game/unlock"
   - Return new state (use duplicate(true) for deep copy)
-- Define get_persistable() -> bool:
-  - return true  # Game state persists between sessions (DECISION #8)
 
 Create scripts/state/reducers/ui_reducer.gd:
 - Define initial_state: {active_menu: "", settings: {}}
 - Handle "ui/open_menu", "ui/close_menu", "ui/update_settings"
-- Define get_persistable() -> bool:
-  - return false  # UI state is transient (DECISION #8)
 
 Create scripts/state/reducers/ecs_reducer.gd:
 - Define initial_state: {component_registry: {}, system_state: {}}
 - Handle "ecs/component_added", "ecs/component_removed", "ecs/system_registered"
-- Define get_persistable() -> bool:
-  - return false  # ECS runtime state is transient (DECISION #8)
 
 Create scripts/state/reducers/session_reducer.gd:
 - Define initial_state: {player_prefs: {}, save_slot: 0}
 - Handle "session/update_prefs", "session/change_slot"
-- Define get_persistable() -> bool:
-  - return true  # Session data persists (DECISION #8)
 
 Create scripts/state/reducers/root_reducer.gd:
 - Combine all reducers using combine_reducers
@@ -327,25 +249,22 @@ Step 7 – Write Unit Tests for Batch 1
 Create tests/unit/state/test_store.gd:
 - Test dispatch updates state correctly
 - Test subscribe notifies callbacks
-- Test get_state returns deep copy (immutability - DECISION #3)
+- Test get_state returns deep copy (immutability)
 - Test multiple reducers combine correctly
 - Test initial state loaded on _ready
-- Test multiple M_StateManager instances self-destruct (DECISION #1)
-- Test reducer errors crash application (DECISION #10)
 
 Create tests/unit/state/test_store_utils.gd:
 - Test get_store finds store in parent hierarchy
 - Test get_store finds store in scene tree group
-- Test get_store asserts/crashes when not found (DECISION #2 & #9)
+- Test get_store returns null when not found
 - Test get_store returns same instance on multiple calls (caching)
 
 Create tests/unit/state/test_persistence.gd:
 - Test serialize_state produces valid JSON
 - Test deserialize_state parses correctly
 - Test checksum validation fails on corrupted data
-- Test per-reducer persistable flag filters state correctly (DECISION #8)
-- Test only game_reducer and session_reducer state saved (ui_reducer excluded)
-- Test save/load roundtrip preserves persistable state
+- Test whitelist filters state correctly
+- Test save/load roundtrip preserves state
 
 Create tests/unit/state/test_selector.gd:
 - Test memoization returns cached result when state unchanged
@@ -368,7 +287,7 @@ Verify all P0 features implemented:
 - Unit tests passing
 
 Run integration smoke test:
-- Create test scene with M_StateManager
+- Create test scene with StateStore
 - Dispatch 100 actions
 - Save state to file
 - Load state from file
@@ -386,13 +305,13 @@ Goal: Integrate store with ECS architecture and add developer tooling
 Step 1 – Load Current Codebase Context
 
 Review batch 1 implementation:
-- M_StateManager API surface
+- StateStore API surface
 - Reducer composition approach
 - Persistence whitelist system
 - Selector memoization strategy
 
 Review existing ECS architecture:
-- M_ECSManager component/system registry
+- ECSManager component/system registry
 - System base class structure
 - Component lifecycle (_ready, registered signal)
 - Manager discovery pattern (scene tree search, group membership)
@@ -403,33 +322,33 @@ Create scripts/state/middleware/ecs_bridge_middleware.gd:
 - Define middleware(store, next: Callable, action: Dictionary) -> void
   - Call next(action) to continue chain
   - Check if action type matches "ecs/*" namespace
-  - If match, notify M_ECSManager
+  - If match, notify ECSManager
   - Trigger relevant system callbacks
 
 Add ECS-specific actions:
-- "ecs/component_registered" – dispatched when component added to M_ECSManager
+- "ecs/component_registered" – dispatched when component added to ECSManager
 - "ecs/component_unregistered" – dispatched when component removed
 - "ecs/system_process_tick" – dispatched every physics frame (optional)
 
-Integrate with M_ECSManager:
-- In M_ECSManager.register_component(), dispatch action to store
-- In M_ECSManager.unregister_component(), dispatch action to store
-- Subscribe M_ECSManager to store state changes affecting "ecs" slice
+Integrate with ECSManager:
+- In ECSManager.register_component(), dispatch action to store
+- In ECSManager.unregister_component(), dispatch action to store
+- Subscribe ECSManager to store state changes affecting "ecs" slice
 
 Step 3 – Add Store Access to ECS Systems
 
 Modify scripts/ecs/ecs_system.gd:
-- Add get_store() -> M_StateManager method
-  - Call U_StateStoreUtils.get_store(self)
+- Add get_store() -> StateStore method
+  - Call StateStoreUtils.get_store(self)
   - Cache result in _store property
   - Return cached instance
 - Add optional on_store_state_changed(state: Dictionary) callback
   - Systems can override to react to global state changes
 
 Update 2-3 existing systems to demonstrate store usage:
-- S_MovementSystem: Read game.score to modify movement speed based on level
-- S_JumpSystem: Dispatch "game/jump_performed" action for analytics
-- S_InputSystem: Read ui.active_menu to disable input when menu open
+- MovementSystem: Read game.score to modify movement speed based on level
+- JumpSystem: Dispatch "game/jump_performed" action for analytics
+- InputSystem: Read ui.active_menu to disable input when menu open
 
 Step 4 – Implement Middleware Infrastructure
 
@@ -439,7 +358,7 @@ Create scripts/state/middleware.gd:
   - Return enhanced dispatch function
   - Each middleware can: intercept, transform, or block actions
 
-Modify M_StateManager.dispatch():
+Modify StateStore.dispatch():
 - Replace direct reducer calls with middleware chain
 - Final middleware in chain calls reducers
 - Middleware receive: store reference, next function, action
@@ -456,14 +375,14 @@ Create scripts/state/middleware/persistence_middleware.gd:
   - If action marked as "persistable", trigger auto-save
   - Debounce saves (max 1 save per second)
 
-Add middleware registration to M_StateManager:
+Add middleware registration to StateStore:
 - use_middleware(middleware: Callable) -> void
   - Add to _middleware array
   - Rebuild dispatch chain
 
 Step 5 – Implement Time-Travel Debugging
 
-Add history tracking to M_StateManager:
+Add history tracking to StateStore:
 - Property: _history: Array[Dictionary] (stores actions)
 - Property: _state_snapshots: Array[Dictionary] (stores states)
 - Property: _history_index: int (current position in history)
@@ -475,7 +394,7 @@ Modify dispatch() to record history:
 - Take state snapshot after reducer application
 - Trim history if exceeds _max_history_size (FIFO)
 
-Add time-travel methods to M_StateManager:
+Add time-travel methods to StateStore:
 - enable_time_travel(enabled: bool) -> void
   - Toggle history recording
 - step_backward() -> void
@@ -505,13 +424,13 @@ Step 6 – Implement Async Thunk Support
 Create scripts/state/thunk.gd:
 - Define Thunk class
   - Property: _func: Callable (async function)
-  - Method: execute(store: M_StateManager) -> void
+  - Method: execute(store: StateStore) -> void
     - Call _func with store.dispatch and store.get_state as parameters
     - Support await for async operations
 - Define create_thunk(func: Callable) -> Thunk
   - Factory function for thunks
 
-Modify M_StateManager.dispatch():
+Modify StateStore.dispatch():
 - Check if action is Thunk instance
 - If Thunk, call thunk.execute(self)
 - Otherwise, proceed with normal dispatch
@@ -529,7 +448,7 @@ Create tests/unit/state/test_middleware.gd:
 - Test logger middleware produces output
 
 Create tests/unit/state/test_ecs_integration.gd:
-- Test M_ECSManager dispatches actions to store
+- Test ECSManager dispatches actions to store
 - Test systems can access store via get_store()
 - Test systems receive state change notifications
 - Test state updates don't break existing ECS functionality
@@ -554,7 +473,7 @@ Step 8 – Merge Batch 2
 
 Verify all P1 features implemented:
 - Middleware composition working
-- ECS integration bidirectional (store ↔ M_ECSManager)
+- ECS integration bidirectional (store ↔ ECSManager)
 - Time-travel debugging functional
 - Async thunks supported
 
@@ -633,7 +552,7 @@ Add inline documentation:
 
 Create tutorial video script outline:
 - Introduction to Redux patterns
-- Setting up M_StateManager in Godot scene
+- Setting up StateStore in Godot scene
 - Creating actions and reducers
 - Integrating with ECS systems
 - Using time-travel debugging
@@ -685,7 +604,7 @@ Combine all three batches into cohesive codebase:
 File tree verification:
 
 scripts/state/
-├── store.gd (M_StateManager class)
+├── store.gd (StateStore class)
 ├── store_utils.gd (static get_store discovery)
 ├── action.gd (action creators)
 ├── reducer.gd (reducer utilities)
@@ -720,7 +639,7 @@ Epic 1 – Core Store Infrastructure:
 Epic 2 – ECS Integration:
 ✓ Systems can select state from store
 ✓ Subscribed systems notified on state changes
-✓ M_ECSManager dispatches actions to store
+✓ ECSManager dispatches actions to store
 
 Epic 3 – Time-Travel Debugging:
 ✓ Can step backward/forward through 100+ actions
@@ -797,7 +716,7 @@ Pre-deployment verification:
 
 Infrastructure:
 ✓ All files in correct directory structure
-✓ M_StateManager node added to scene tree and joins "state_store" group
+✓ StateStore node added to scene tree and joins "state_store" group
 ✓ No hardcoded paths (use res:// protocol)
 ✓ All resources marked as preload where appropriate
 

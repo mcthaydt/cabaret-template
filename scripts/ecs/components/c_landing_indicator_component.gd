@@ -55,7 +55,64 @@ func set_landing_data(point: Vector3, normal: Vector3, visible: bool) -> void:
 	final_normal = final_normal.normalized()
 	var landing_marker: Node3D = get_landing_marker()
 	var height_offset: float = settings.indicator_height_offset if settings != null else 0.05
-	_set_marker_global_position(landing_marker, point + final_normal * height_offset)
+	if landing_marker != null:
+		# Optionally align the marker's chosen axis to the hit normal
+		if settings != null and settings.align_to_hit_normal:
+			var basis_current: Basis = landing_marker.global_transform.basis.orthonormalized()
+			var n: Vector3 = final_normal
+			var hint: Vector3 = Vector3.FORWARD
+			# Avoid parallel hint
+			if abs(n.dot(hint)) > 0.95:
+				hint = Vector3.RIGHT
+			# Build orthonormal frame around n
+			var x_axis: Vector3
+			var y_axis: Vector3
+			var z_axis: Vector3
+			# A tangent perpendicular to n
+			var tangent: Vector3 = (hint - n * hint.dot(n))
+			if tangent.length() < 1e-3:
+				tangent = n.cross(Vector3.UP)
+			tangent = tangent.normalized()
+			var binormal: Vector3 = n.cross(tangent).normalized()
+			# Assign basis columns so that chosen axis aligns to n
+			var axis_index: int = settings.normal_axis if settings != null else 2
+			var axis_positive: bool = settings.normal_axis_positive if settings != null else false
+			match axis_index:
+				0:
+					# X axis aligns to +/-n
+					x_axis = (n if axis_positive else -n)
+					# Maintain right-handedness: x × y = z
+					y_axis = binormal
+					z_axis = x_axis.cross(y_axis).normalized()
+				1:
+					# Y axis aligns to +/-n
+					y_axis = (n if axis_positive else -n)
+					x_axis = tangent
+					z_axis = x_axis.cross(y_axis).normalized()
+				2:
+					# Z axis aligns to +/-n
+					z_axis = (n if axis_positive else -n)
+					x_axis = tangent
+					y_axis = z_axis.cross(x_axis).normalized()
+			# Orthonormalize to be safe
+			var target_basis: Basis = Basis(x_axis.normalized(), y_axis.normalized(), z_axis.normalized()).orthonormalized()
+			var origin: Vector3 = landing_marker.global_transform.origin
+			var old_scale: Vector3 = landing_marker.scale
+			landing_marker.global_transform = Transform3D(target_basis, origin)
+			landing_marker.scale = old_scale
+
+		# With alignment, offset along the true surface normal is sufficient
+		var required_offset: float = height_offset
+		if settings == null or not settings.align_to_hit_normal:
+			# Ensure at least height_offset clearance along the marker's own up direction when not aligning
+			var marker_up: Vector3 = landing_marker.global_transform.basis.y
+			if marker_up.length() > 0.0:
+				marker_up = marker_up.normalized()
+				var alignment: float = marker_up.dot(final_normal)
+				var min_dot: float = 0.3
+				var denom: float = clamp(abs(alignment), min_dot, 1.0)
+				required_offset = height_offset / denom
+		_set_marker_global_position(landing_marker, point + final_normal * required_offset)
 
 func is_indicator_visible() -> bool:
 	return _indicator_visible
