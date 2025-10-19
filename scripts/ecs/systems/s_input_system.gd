@@ -10,6 +10,7 @@ const INPUT_TYPE := StringName("C_InputComponent")
 @export var positive_z_action: StringName = StringName("move_backward")
 @export var jump_action: StringName = StringName("jump")
 @export var sprint_action: StringName = StringName("sprint")
+@export var input_deadzone: float = 0.15
 
 var _actions_initialized := false
 
@@ -20,6 +21,9 @@ func process_tick(_delta: float) -> void:
     _ensure_actions()
 
     var movement_vector := Input.get_vector(negative_x_action, positive_x_action, negative_z_action, positive_z_action)
+    var mv_len := movement_vector.length()
+    if mv_len > 0.0 and mv_len < input_deadzone:
+        movement_vector = Vector2.ZERO
     var jump_pressed := Input.is_action_just_pressed(jump_action)
     var sprint_pressed := Input.is_action_pressed(sprint_action)
 

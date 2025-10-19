@@ -8,6 +8,7 @@ const COMPONENT_TYPE := StringName("C_MovementComponent")
 @export_node_path("CharacterBody3D") var character_body_path: NodePath
 @export_node_path("Node") var input_component_path: NodePath
 @export_node_path("Node") var support_component_path: NodePath
+@export_node_path("Camera3D") var camera_node_path: NodePath
 
 var _horizontal_dynamics_velocity: Vector2 = Vector2.ZERO
 var _last_debug_snapshot: Dictionary = {}
@@ -37,6 +38,11 @@ func get_support_component() -> C_FloatingComponent:
 	if support_component_path.is_empty():
 		return null
 	return get_node_or_null(support_component_path) as C_FloatingComponent
+
+func get_camera_node() -> Camera3D:
+	if camera_node_path.is_empty():
+		return null
+	return get_node_or_null(camera_node_path) as Camera3D
 
 func get_horizontal_dynamics_velocity() -> Vector2:
 	return _horizontal_dynamics_velocity

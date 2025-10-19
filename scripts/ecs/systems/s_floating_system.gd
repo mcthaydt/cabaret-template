@@ -43,6 +43,11 @@ func process_tick(delta: float) -> void:
 				normal = Vector3.UP
 			normal = normal.normalized()
 
+			# Record the last support normal for downstream systems (e.g., movement slope checks)
+			floating_component.set_last_support_normal(normal, now)
+
+
+
 			var distance: float = support.distance
 			var height_error: float = floating_component.settings.hover_height - distance
 			var vel_along_normal: float = velocity.dot(normal)

@@ -1,13 +1,6 @@
-[gd_resource type="Resource" load_steps=2]
+[gd_resource type="Resource" script_class="RS_LandingIndicatorSettings" load_steps=2 format=3 uid="uid://cwvcfu1vgo7vr"]
 
-[ext_resource type="Script" path="res://scripts/ecs/resources/rs_landing_indicator_settings.gd" id="1_0"]
+[ext_resource type="Script" uid="uid://cnn33x0yg6mhl" path="res://scripts/ecs/resources/rs_landing_indicator_settings.gd" id="1_0"]
 
 [resource]
 script = ExtResource("1_0")
-indicator_height_offset = 0.05
-ground_plane_height = 0.0
-max_projection_distance = 10.0
-ray_origin_lift = 0.15
-align_to_hit_normal = true
-normal_axis = 2
-normal_axis_positive = false

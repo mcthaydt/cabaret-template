@@ -16,3 +16,5 @@ class_name RS_MovementSettings
 @export var strafe_friction_scale: float = 1.0
 @export var forward_friction_scale: float = 1.0
 @export var support_grace_time: float = 0.25
+@export var air_control_scale: float = 0.3
+@export var slope_limit_degrees: float = 50.0

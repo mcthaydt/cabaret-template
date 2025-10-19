@@ -9,7 +9,9 @@ const COMPONENT_TYPE := StringName("C_FloatingComponent")
 @export_node_path('Node3D') var raycast_root_path: NodePath
 
 var is_supported: bool = false
-var _last_support_time: float = -INF
+var _last_support_time: float = - INF
+var _last_support_normal: Vector3 = Vector3.UP
+var _last_support_normal_time: float = - INF
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
@@ -60,3 +62,15 @@ func has_recent_support(current_time: float, tolerance: float) -> bool:
 	if is_supported:
 		return true
 	return current_time - _last_support_time <= tolerance
+
+func set_last_support_normal(normal: Vector3, current_time: float) -> void:
+	if normal.length() > 0.0:
+		_last_support_normal = normal.normalized()
+		_last_support_normal_time = current_time
+
+func get_recent_support_normal(current_time: float, tolerance: float) -> Vector3:
+	if _last_support_normal_time == - INF:
+		return Vector3.ZERO
+	if current_time - _last_support_normal_time <= tolerance:
+		return _last_support_normal
+	return Vector3.ZERO
