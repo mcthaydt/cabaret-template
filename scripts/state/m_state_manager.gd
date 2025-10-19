@@ -6,6 +6,8 @@ signal action_dispatched(action: Dictionary)
 
 const SELECTOR := preload("res://scripts/state/u_selector_utils.gd")
 const PERSISTENCE := preload("res://scripts/state/u_state_persistence.gd")
+const CONSTANTS := preload("res://scripts/state/state_constants.gd")
+const STATE_UTILS := preload("res://scripts/state/u_state_utils.gd")
 
 var _state: Dictionary = {}
 var _reducers: Dictionary = {}
@@ -17,24 +19,20 @@ var _max_history_size: int = 1000
 var _persistable_slices: Array[StringName] = []
 
 func _ready() -> void:
-	var existing: Array = get_tree().get_nodes_in_group("state_store")
+	var existing: Array = get_tree().get_nodes_in_group(CONSTANTS.STATE_STORE_GROUP)
 	if existing.size() > 0:
 		push_error("FATAL: Multiple M_StateManager instances detected. Only one allowed per scene tree.")
 		queue_free()
 		return
-	add_to_group("state_store")
+	add_to_group(CONSTANTS.STATE_STORE_GROUP)
 
 	# Initialize any missing reducer slices using an @@INIT action
 	var changed: bool = false
 	for slice_name in _reducers.keys():
 		if !_state.has(slice_name):
 			var reducer: Variant = _reducers[slice_name]
-			var init_result: Variant = reducer.reduce({}, {"type": StringName("@@INIT")})
-			match typeof(init_result):
-				TYPE_DICTIONARY, TYPE_ARRAY:
-					_state[slice_name] = init_result.duplicate(true)
-				_:
-					_state[slice_name] = init_result
+			var init_result: Variant = reducer.reduce({}, {"type": CONSTANTS.INIT_ACTION})
+			_state[slice_name] = STATE_UTILS.safe_duplicate(init_result)
 			changed = true
 
 	if changed:
@@ -49,7 +47,7 @@ func register_reducer(reducer_class) -> void:
 	_reducers[slice_name] = reducer_class
 
 	var initial_state: Dictionary = reducer_class.get_initial_state()
-	_state[slice_name] = initial_state.duplicate(true)
+	_state[slice_name] = STATE_UTILS.safe_duplicate(initial_state)
 
 	if reducer_class.get_persistable():
 		_persistable_slices.append(slice_name)
@@ -90,11 +88,7 @@ func load_state(path: String) -> Error:
 		if !_state.has(slice_name):
 			continue
 		var slice_value: Variant = loaded[slice_name]
-		match typeof(slice_value):
-			TYPE_DICTIONARY, TYPE_ARRAY:
-				next_state[slice_name] = slice_value.duplicate(true)
-			_:
-				next_state[slice_name] = slice_value
+		next_state[slice_name] = STATE_UTILS.safe_duplicate(slice_value)
 		changed = true
 
 	if not changed:
@@ -126,14 +120,12 @@ func select(target) -> Variant:
 	return null
 
 func enable_time_travel(enabled: bool, max_history_size: int = 1000) -> void:
+	# Always clear history when toggling time travel state
+	_history.clear()
+	_history_index = -1
+
 	_time_travel_enabled = enabled
 	_max_history_size = max_history_size
-	if not enabled:
-		_history.clear()
-		_history_index = -1
-	else:
-		_history.clear()
-		_history_index = -1
 
 func _select_path(path: String) -> Variant:
 	return _select_path_from_state(_state, path)
@@ -152,8 +144,8 @@ func _record_history(action: Dictionary, new_state: Dictionary) -> void:
 	if _history_index >= 0 and _history_index < _history.size() - 1:
 		_history = _history.slice(0, _history_index + 1)
 	_history.append({
-		"action": action.duplicate(true),
-		"state": new_state.duplicate(true),
+		"action": STATE_UTILS.safe_duplicate(action),
+		"state": STATE_UTILS.safe_duplicate(new_state),
 	})
 	if _history.size() > _max_history_size:
 		_history.pop_front()
@@ -166,18 +158,9 @@ func get_history() -> Array:
 			continue
 		var action_variant: Variant = entry.get("action", {})
 		var state_variant: Variant = entry.get("state", {})
-		var action_copy: Dictionary = {}
-		if typeof(action_variant) == TYPE_DICTIONARY:
-			action_copy = action_variant.duplicate(true)
-		var state_copy: Variant
-		match typeof(state_variant):
-			TYPE_DICTIONARY, TYPE_ARRAY:
-				state_copy = state_variant.duplicate(true)
-			_:
-				state_copy = state_variant
 		results.append({
-			"action": action_copy,
-			"state": state_copy,
+			"action": STATE_UTILS.safe_duplicate(action_variant),
+			"state": STATE_UTILS.safe_duplicate(state_variant),
 		})
 	return results
 
@@ -228,20 +211,10 @@ func export_history(path: String) -> Error:
 			if type_value != "":
 				serialized_action["type"] = type_value
 			if action_variant.has("payload"):
-				var payload_variant: Variant = action_variant["payload"]
-				match typeof(payload_variant):
-					TYPE_DICTIONARY, TYPE_ARRAY:
-						serialized_action["payload"] = payload_variant.duplicate(true)
-					_:
-						serialized_action["payload"] = payload_variant
+				serialized_action["payload"] = STATE_UTILS.safe_duplicate(action_variant["payload"])
 			else:
 				serialized_action["payload"] = null
-		var serialized_state: Variant
-		match typeof(state_variant):
-			TYPE_DICTIONARY, TYPE_ARRAY:
-				serialized_state = state_variant.duplicate(true)
-			_:
-				serialized_state = state_variant
+		var serialized_state: Variant = STATE_UTILS.safe_duplicate(state_variant)
 		serializable.append({
 			"action": serialized_action,
 			"state": serialized_state,
@@ -279,20 +252,15 @@ func import_history(path: String) -> Error:
 			continue
 		if !action_variant.has("type"):
 			continue
-		var type_string: String = str(action_variant.get("type", ""))
-		if type_string.is_empty():
+		var action_type_str: String = str(action_variant.get("type", ""))
+		if action_type_str.is_empty():
 			continue
 		var normalized_action: Dictionary = {
-			"type": StringName(type_string),
+			"type": StringName(action_type_str),
 			"payload": null,
 		}
 		if action_variant.has("payload"):
-			var payload_variant: Variant = action_variant["payload"]
-			match typeof(payload_variant):
-				TYPE_DICTIONARY, TYPE_ARRAY:
-					normalized_action["payload"] = payload_variant.duplicate(true)
-				_:
-					normalized_action["payload"] = payload_variant
+			normalized_action["payload"] = STATE_UTILS.safe_duplicate(action_variant["payload"])
 		normalized_actions.append(normalized_action)
 
 	var previous_max: int = _max_history_size
@@ -317,7 +285,7 @@ func _restore_state_from_history(index: int) -> void:
 	_apply_restored_state(state_variant)
 
 func _apply_restored_state(target_state: Dictionary) -> void:
-	_state = target_state.duplicate(true)
+	_state = STATE_UTILS.safe_duplicate(target_state)
 	_state_version += 1
 	state_changed.emit(_state)
 
@@ -328,11 +296,10 @@ func _reset_state_to_initial() -> void:
 		var initial_variant: Variant = {}
 		if reducer.has_method("get_initial_state"):
 			initial_variant = reducer.get_initial_state()
-		match typeof(initial_variant):
-			TYPE_DICTIONARY, TYPE_ARRAY:
-				initial_state[slice_name] = initial_variant.duplicate(true)
-			_:
-				initial_state[slice_name] = {}
+		if typeof(initial_variant) == TYPE_DICTIONARY:
+			initial_state[slice_name] = STATE_UTILS.safe_duplicate(initial_variant)
+		else:
+			initial_state[slice_name] = {}
 	_state = initial_state
 	_state_version += 1
 	state_changed.emit(_state)

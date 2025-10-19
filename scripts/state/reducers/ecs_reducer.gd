@@ -2,6 +2,9 @@ extends RefCounted
 
 class_name EcsReducer
 
+const CONSTANTS := preload("res://scripts/state/state_constants.gd")
+const STATE_UTILS := preload("res://scripts/state/u_state_utils.gd")
+
 static func get_slice_name() -> StringName:
 	return StringName("ecs")
 
@@ -20,7 +23,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	var action_type: StringName = action.get("type", StringName(""))
 
 	match action_type:
-		StringName("@@INIT"):
+		CONSTANTS.INIT_ACTION:
 			return get_initial_state()
 		StringName("ecs/register_component"):
 			return _apply_register_component(normalized, action)
@@ -37,15 +40,17 @@ static func _normalize_state(state: Dictionary) -> Dictionary:
 	if typeof(state) != TYPE_DICTIONARY or state.is_empty():
 		return get_initial_state()
 
+	var components_dict: Variant = STATE_UTILS.safe_duplicate(state.get("components", {}))
+	var systems_dict: Variant = STATE_UTILS.safe_duplicate(state.get("systems", {}))
 	return {
-		"components": _duplicate_dictionary(state.get("components", {})),
-		"systems": _duplicate_dictionary(state.get("systems", {})),
+		"components": components_dict if typeof(components_dict) == TYPE_DICTIONARY else {},
+		"systems": systems_dict if typeof(systems_dict) == TYPE_DICTIONARY else {},
 		"dirty": bool(state.get("dirty", false)),
 	}
 
 static func _apply_register_component(state: Dictionary, action: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
-	var components: Dictionary = next.get("components", {}).duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
+	var components: Dictionary = STATE_UTILS.safe_duplicate(next.get("components", {}))
 	var payload_variant: Variant = action.get("payload", {})
 	if typeof(payload_variant) != TYPE_DICTIONARY:
 		next["components"] = components
@@ -55,15 +60,15 @@ static func _apply_register_component(state: Dictionary, action: Dictionary) -> 
 	if id_value == null:
 		next["components"] = components
 		return next
-	var component_data: Dictionary = payload.duplicate(true)
+	var component_data: Dictionary = STATE_UTILS.safe_duplicate(payload)
 	components[id_value] = component_data
 	next["components"] = components
 	next["dirty"] = true
 	return next
 
 static func _apply_unregister_component(state: Dictionary, action: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
-	var components: Dictionary = next.get("components", {}).duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
+	var components: Dictionary = STATE_UTILS.safe_duplicate(next.get("components", {}))
 	var id_value: Variant = action.get("payload")
 	if id_value == null:
 		next["components"] = components
@@ -74,8 +79,8 @@ static func _apply_unregister_component(state: Dictionary, action: Dictionary) -
 	return next
 
 static func _apply_register_system(state: Dictionary, action: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
-	var systems: Dictionary = next.get("systems", {}).duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
+	var systems: Dictionary = STATE_UTILS.safe_duplicate(next.get("systems", {}))
 	var payload_variant: Variant = action.get("payload", {})
 	if typeof(payload_variant) != TYPE_DICTIONARY:
 		next["systems"] = systems
@@ -85,17 +90,12 @@ static func _apply_register_system(state: Dictionary, action: Dictionary) -> Dic
 	if system_name == null:
 		next["systems"] = systems
 		return next
-	systems[system_name] = payload.duplicate(true)
+	systems[system_name] = STATE_UTILS.safe_duplicate(payload)
 	next["systems"] = systems
 	next["dirty"] = true
 	return next
 
 static func _apply_clear_dirty(state: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
 	next["dirty"] = false
 	return next
-
-static func _duplicate_dictionary(value: Variant) -> Dictionary:
-	if typeof(value) == TYPE_DICTIONARY:
-		return (value as Dictionary).duplicate(true)
-	return {}

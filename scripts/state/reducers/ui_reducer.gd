@@ -2,6 +2,9 @@ extends RefCounted
 
 class_name UiReducer
 
+const CONSTANTS := preload("res://scripts/state/state_constants.gd")
+const STATE_UTILS := preload("res://scripts/state/u_state_utils.gd")
+
 static func get_slice_name() -> StringName:
 	return StringName("ui")
 
@@ -20,7 +23,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	var action_type: StringName = action.get("type", StringName(""))
 
 	match action_type:
-		StringName("@@INIT"):
+		CONSTANTS.INIT_ACTION:
 			return get_initial_state()
 		StringName("ui/open_menu"):
 			return _apply_open_menu(normalized, action)
@@ -40,11 +43,11 @@ static func _normalize_state(state: Dictionary) -> Dictionary:
 
 	var history_copy: Array = []
 	if typeof(history_variant) == TYPE_ARRAY:
-		history_copy = (history_variant as Array).duplicate(true)
+		history_copy = STATE_UTILS.safe_duplicate(history_variant)
 
 	var settings_copy: Dictionary = {}
 	if typeof(settings_variant) == TYPE_DICTIONARY:
-		settings_copy = (settings_variant as Dictionary).duplicate(true)
+		settings_copy = STATE_UTILS.safe_duplicate(settings_variant)
 
 	return {
 		"active_menu": state.get("active_menu", StringName("")),
@@ -53,11 +56,11 @@ static func _normalize_state(state: Dictionary) -> Dictionary:
 	}
 
 static func _apply_open_menu(state: Dictionary, action: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
 	var menu_variant: Variant = action.get("payload", StringName(""))
 	var menu_name: StringName = menu_variant if typeof(menu_variant) == TYPE_STRING_NAME else StringName(str(menu_variant))
 	next["active_menu"] = menu_name
-	var history: Array = next.get("history", []).duplicate(true)
+	var history: Array = STATE_UTILS.safe_duplicate(next.get("history", []))
 	if !history.is_empty() and history.back() == menu_name:
 		next["history"] = history
 		return next
@@ -66,13 +69,13 @@ static func _apply_open_menu(state: Dictionary, action: Dictionary) -> Dictionar
 	return next
 
 static func _apply_close_menu(state: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
 	next["active_menu"] = StringName("")
 	return next
 
 static func _apply_set_setting(state: Dictionary, action: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
-	var settings: Dictionary = next.get("settings", {}).duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
+	var settings: Dictionary = STATE_UTILS.safe_duplicate(next.get("settings", {}))
 	var payload_variant: Variant = action.get("payload", {})
 	if typeof(payload_variant) != TYPE_DICTIONARY:
 		next["settings"] = settings

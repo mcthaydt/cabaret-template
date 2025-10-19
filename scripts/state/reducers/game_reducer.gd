@@ -2,6 +2,9 @@ extends RefCounted
 
 class_name GameReducer
 
+const CONSTANTS := preload("res://scripts/state/state_constants.gd")
+const STATE_UTILS := preload("res://scripts/state/u_state_utils.gd")
+
 static func get_slice_name() -> StringName:
 	return StringName("game")
 
@@ -20,7 +23,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	var action_type: StringName = action.get("type", StringName(""))
 
 	match action_type:
-		StringName("@@INIT"):
+		CONSTANTS.INIT_ACTION:
 			return get_initial_state()
 		StringName("game/add_score"):
 			return _apply_add_score(normalized, action)
@@ -45,32 +48,32 @@ static func _normalize_state(state: Dictionary) -> Dictionary:
 
 	var unlocks_variant: Variant = state.get("unlocks", [])
 	if typeof(unlocks_variant) == TYPE_ARRAY:
-		normalized["unlocks"] = (unlocks_variant as Array).duplicate(true)
+		normalized["unlocks"] = STATE_UTILS.safe_duplicate(unlocks_variant)
 	else:
 		normalized["unlocks"] = []
 
 	return normalized
 
 static func _apply_add_score(state: Dictionary, action: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
 	var delta: int = int(action.get("payload", 0))
 	next["score"] = int(next.get("score", 0)) + delta
 	return next
 
 static func _apply_set_score(state: Dictionary, action: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
 	next["score"] = int(action.get("payload", 0))
 	return next
 
 static func _apply_level_up(state: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
 	next["level"] = int(next.get("level", 1)) + 1
 	return next
 
 static func _apply_unlock(state: Dictionary, action: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
 	var unlocks: Array = next.get("unlocks", [])
-	var updated_unlocks: Array = unlocks.duplicate(true)
+	var updated_unlocks: Array = STATE_UTILS.safe_duplicate(unlocks)
 	var item_variant: Variant = action.get("payload")
 	if item_variant == null:
 		return next

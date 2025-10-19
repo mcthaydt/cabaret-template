@@ -2,6 +2,9 @@ extends RefCounted
 
 class_name SessionReducer
 
+const CONSTANTS := preload("res://scripts/state/state_constants.gd")
+const STATE_UTILS := preload("res://scripts/state/u_state_utils.gd")
+
 static func get_slice_name() -> StringName:
 	return StringName("session")
 
@@ -20,7 +23,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	var action_type: StringName = action.get("type", StringName(""))
 
 	match action_type:
-		StringName("@@INIT"):
+		CONSTANTS.INIT_ACTION:
 			return get_initial_state()
 		StringName("session/set_slot"):
 			return _apply_set_slot(normalized, action)
@@ -37,25 +40,26 @@ static func _normalize_state(state: Dictionary) -> Dictionary:
 	if typeof(state) != TYPE_DICTIONARY or state.is_empty():
 		return get_initial_state()
 
+	var flags_dict: Variant = STATE_UTILS.safe_duplicate(state.get("flags", {}))
 	return {
 		"slot": int(state.get("slot", 0)),
 		"last_saved_tick": int(state.get("last_saved_tick", 0)),
-		"flags": _duplicate_dictionary(state.get("flags", {})),
+		"flags": flags_dict if typeof(flags_dict) == TYPE_DICTIONARY else {},
 	}
 
 static func _apply_set_slot(state: Dictionary, action: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
 	next["slot"] = int(action.get("payload", 0))
 	return next
 
 static func _apply_set_last_saved_tick(state: Dictionary, action: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
 	next["last_saved_tick"] = int(action.get("payload", 0))
 	return next
 
 static func _apply_set_flag(state: Dictionary, action: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
-	var flags: Dictionary = next.get("flags", {}).duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
+	var flags: Dictionary = STATE_UTILS.safe_duplicate(next.get("flags", {}))
 	var payload_variant: Variant = action.get("payload", {})
 	if typeof(payload_variant) != TYPE_DICTIONARY:
 		next["flags"] = flags
@@ -71,15 +75,10 @@ static func _apply_set_flag(state: Dictionary, action: Dictionary) -> Dictionary
 	return next
 
 static func _apply_clear_flag(state: Dictionary, action: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
-	var flags: Dictionary = next.get("flags", {}).duplicate(true)
+	var next: Dictionary = STATE_UTILS.safe_duplicate(state)
+	var flags: Dictionary = STATE_UTILS.safe_duplicate(next.get("flags", {}))
 	var key_variant: Variant = action.get("payload")
 	if key_variant != null:
 		flags.erase(key_variant)
 	next["flags"] = flags
 	return next
-
-static func _duplicate_dictionary(value: Variant) -> Dictionary:
-	if typeof(value) == TYPE_DICTIONARY:
-		return (value as Dictionary).duplicate(true)
-	return {}

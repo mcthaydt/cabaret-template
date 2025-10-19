@@ -1,6 +1,8 @@
 extends RefCounted
 class_name U_StatePersistence
 
+const STATE_UTILS := preload("res://scripts/state/u_state_utils.gd")
+
 const SAVE_VERSION := 1
 const CHECKSUM_KEY := "checksum"
 const VERSION_KEY := "version"
@@ -10,11 +12,7 @@ static func serialize_state(state: Dictionary, persistable_slices: Array[StringN
 	var filtered: Dictionary = {}
 	for slice_name in persistable_slices:
 		if state.has(slice_name):
-			var slice_value: Variant = state[slice_name]
-			if typeof(slice_value) == TYPE_DICTIONARY or typeof(slice_value) == TYPE_ARRAY:
-				filtered[slice_name] = slice_value.duplicate(true)
-			else:
-				filtered[slice_name] = slice_value
+			filtered[slice_name] = STATE_UTILS.safe_duplicate(state[slice_name])
 
 	var checksum_seed: String = _build_checksum_seed(SAVE_VERSION, filtered)
 	var checksum: int = hash(checksum_seed)
@@ -58,7 +56,7 @@ static func deserialize_state(json_str: String) -> Dictionary:
 		print("State Persistence: Checksum mismatch")
 		return {}
 
-	return data.duplicate(true)
+	return STATE_UTILS.safe_duplicate(data)
 
 static func save_to_file(path: String, state: Dictionary, persistable_slices: Array[StringName]) -> Error:
 	var serialized: String = serialize_state(state, persistable_slices)
