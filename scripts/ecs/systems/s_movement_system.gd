@@ -7,7 +7,7 @@ const MOVEMENT_TYPE := StringName("C_MovementComponent")
 func process_tick(delta: float) -> void:
 	var body_state := {}
 	var bodies := []
-	var current_time := Time.get_ticks_msec() / 1000.0
+	var current_time := ECS_UTILS.get_current_time()
 
 	for component in get_components(MOVEMENT_TYPE):
 		if component == null:

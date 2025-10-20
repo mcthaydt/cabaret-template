@@ -3,6 +3,7 @@ extends BaseTest
 const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const ALIGN_COMPONENT := preload("res://scripts/ecs/components/c_align_with_surface_component.gd")
 const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
+const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
 
 func _pump() -> void:
@@ -77,7 +78,7 @@ func test_align_with_surface_component_delegates_support_check() -> void:
 
 	component.floating_component_path = component.get_path_to(floating)
 
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := ECS_UTILS.get_current_time()
 	floating.update_support_state(false, now)
 
 	assert_false(component.has_recent_support(now, 0.1))

@@ -5,7 +5,7 @@ class_name S_AlignWithSurfaceSystem
 const ALIGN_TYPE := StringName("C_AlignWithSurfaceComponent")
 
 func process_tick(delta: float) -> void:
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := ECS_UTILS.get_current_time()
 
 	for component in get_components(ALIGN_TYPE):
 		if component == null:

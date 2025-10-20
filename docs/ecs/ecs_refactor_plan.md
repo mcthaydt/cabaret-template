@@ -70,7 +70,7 @@ Story Point Breakdown:
 Epic 1 – Code Quality Refactors (15 points)
 
 - [x] Story 1.1: Extract manager discovery utility (U_ECSUtils.get_manager()) (2 points) — Implemented `scripts/utils/u_ecs_utils.gd`, updated base classes, and added `tests/unit/ecs/test_u_ecs_utils.gd` (GUT `-gselect=test_u_ecs_utils -gexit` green)
-- [ ] Story 1.2: Extract time utilities (U_ECSUtils.get_current_time()) (1 point)
+- [x] Story 1.2: Extract time utilities (U_ECSUtils.get_current_time()) (1 point) — Added `get_current_time()` helper, refactored components/systems/tests, full ECS suite passing with `-gexit`
 - [ ] Story 1.3: Extract settings validation pattern (ECSComponent._validate_required_settings()) (3 points)
 - [ ] Story 1.4: Extract body mapping helper (U_ECSUtils.map_components_by_body()) (3 points)
 - [ ] Story 1.5: Add null filtering to M_ECSManager.get_components() (2 points)
@@ -140,7 +140,7 @@ Testing & Documentation (7 points)
 
 ### Batch 1: Code Quality Refactors [15 points]
 
-**STATUS**: 🔵 Not Started
+**STATUS**: 🟢 In Progress (Stories 1.1–1.2 complete; continuing through Epic 1)
 
 Story Points: 15
 Goal: Eliminate code duplication, improve maintainability, lay foundation for query system
@@ -149,66 +149,66 @@ Goal: Eliminate code duplication, improve maintainability, lay foundation for qu
 
 ---
 
-- [ ] Step 1 – Extract Manager Discovery Utility
+- [x] Step 1 – Extract Manager Discovery Utility
 
 **TDD Cycle 1: U_ECSUtils.get_manager() - Parent Hierarchy Search**
 
-- [ ] 1.1a – RED: Write test for get_manager finds in parent hierarchy
+- [x] 1.1a – RED: Write test for get_manager finds in parent hierarchy
 - Create `tests/unit/ecs/test_u_ecs_utils.gd` (NOTE: Test file uses U_ prefix to match class name)
 - Test: `test_get_manager_finds_manager_in_parent_hierarchy()`
   - Arrange: Scene tree with M_ECSManager parent, child system node
   - Act: Call U_ECSUtils.get_manager(child_node)
   - Assert: Returns M_ECSManager instance
 
-- [ ] 1.1b – GREEN: Implement get_manager parent search
+- [x] 1.1b – GREEN: Implement get_manager parent search
 - Create `scripts/utils/u_ecs_utils.gd` (class_name U_ECSUtils)
 - Implement: `static func get_manager(from_node: Node) -> M_ECSManager`
   - Walk up parent hierarchy
   - Check has_method("register_component") && has_method("get_components") (NOTE: Batch 1 uses "get_components" check; will update to "query_entities" in Batch 2)
   - Return first match
 
-- [ ] 1.1c – VERIFY: Run tests, confirm GREEN
+- [x] 1.1c – VERIFY: Run tests, confirm GREEN
 
 **TDD Cycle 2: U_ECSUtils.get_manager() - Scene Tree Group Fallback**
 
-- [ ] 1.2a – RED: Write test for get_manager finds in scene tree group
+- [x] 1.2a – RED: Write test for get_manager finds in scene tree group
 - Test: `test_get_manager_finds_manager_in_scene_tree_group()`
   - Arrange: M_ECSManager in scene tree (not parent), joined to "ecs_manager" group
   - Act: Call get_manager(unrelated_node)
   - Assert: Returns M_ECSManager instance
 
-- [ ] 1.2b – GREEN: Implement group search fallback
+- [x] 1.2b – GREEN: Implement group search fallback
 - Update get_manager(): If parent search fails, search get_tree().get_nodes_in_group("ecs_manager")
 - Return first match or null with warning
 
-- [ ] 1.2c – VERIFY: Run tests, confirm GREEN
+- [x] 1.2c – VERIFY: Run tests, confirm GREEN
 
 **Refactor Existing Systems (Test-After)**
 
-- [ ] 1.3 – Update all systems to use U_ECSUtils.get_manager()
+- [x] 1.3 – Update all systems to use U_ECSUtils.get_manager()
 - Replace duplicate manager discovery code in S_InputSystem, S_MovementSystem, etc.
 - Run existing system tests to verify no regressions
 
 ---
 
-- [ ] Step 2 – Extract Time Utilities
+- [x] Step 2 – Extract Time Utilities
 
 **TDD Cycle 1: U_ECSUtils.get_current_time()**
 
-- [ ] 2.1a – RED: Write test for get_current_time
+- [x] 2.1a – RED: Write test for get_current_time
 - Add to test_u_ecs_utils.gd: `test_get_current_time_returns_seconds()`
   - Act: Call U_ECSUtils.get_current_time()
   - Assert: Returns float > 0, in seconds (not milliseconds)
 
-- [ ] 2.1b – GREEN: Implement get_current_time
+- [x] 2.1b – GREEN: Implement get_current_time
 - Add to u_ecs_utils.gd: `static func get_current_time() -> float`
-  - Return Time.get_ticks_msec() / 1000.0
+  - Return float(Time.get_ticks_msec()) / 1000.0
 
-- [ ] 2.1c – VERIFY: Run tests, confirm GREEN
+- [x] 2.1c – VERIFY: Run tests, confirm GREEN
 
 **Refactor Existing Systems (Test-After)**
 
-- [ ] 2.2 – Update all systems to use U_ECSUtils.get_current_time()
+- [x] 2.2 – Update all systems to use U_ECSUtils.get_current_time() — Refactored `C_InputComponent` and S_* systems plus ECS unit tests to call the utility (full ECS suite green)
 - Replace 6+ occurrences of Time.get_ticks_msec() / 1000.0
 - Run existing tests to verify no regressions
 
@@ -970,7 +970,7 @@ static func publish(event_name: StringName, payload: Variant = null) -> void:
     var event = {
         "name": event_name,
         "payload": payload,
-        "timestamp": Time.get_ticks_msec()
+        "timestamp": U_ECSUtils.get_current_time()
     }
     _event_history.append(event)
     if _event_history.size() > _max_history_size:

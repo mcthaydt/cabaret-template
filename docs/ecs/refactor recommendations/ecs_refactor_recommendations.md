@@ -323,52 +323,30 @@ func _component_ready() -> void:
 
 ### 4. Create Time Utility Helper
 
-**Location**: `Time.get_ticks_msec() / 1000.0` repeated in 3+ systems
+**Location**: `Time.get_ticks_msec() / 1000.0` repeated across ECS systems/components
 
-**Problem**: Same time conversion scattered across systems.
+**Status**: ✅ Completed (2025-10-21) — `U_ECSUtils.get_current_time()` centralizes the conversion; ECS suites updated
 
-**Current Code**:
+**Implemented Utility**:
 ```gdscript
-# In S_JumpSystem (lines multiple)
-var current_time := Time.get_ticks_msec() / 1000.0
-
-# In S_FloatingSystem (similar)
-var current_time := Time.get_ticks_msec() / 1000.0
-
-# In S_GravitySystem (similar)
-var current_time := Time.get_ticks_msec() / 1000.0
+# scripts/utils/u_ecs_utils.gd
+static func get_current_time() -> float:
+	return float(Time.get_ticks_msec()) / 1000.0
 ```
 
-**Solution**: Add to `ECSSystem` base class
-
-```gdscript
-# In scripts/ecs/ecs_system.gd (add to base class)
-
-func _get_current_time() -> float:
-    """
-    Returns current game time in seconds.
-    Centralized for easy time scaling/debugging.
-    """
-    return Time.get_ticks_msec() / 1000.0
-```
-
-**Updated Systems**:
-```gdscript
-# In systems
-func process_tick(delta: float) -> void:
-    var current_time := _get_current_time()
-    # Use current_time...
-```
+**Adopted In**:
+- `C_InputComponent` (jump buffering timestamps)
+- `S_JumpSystem`, `S_MovementSystem`, `S_FloatingSystem`, `S_AlignWithSurfaceSystem`
+- ECS unit tests (movement, jump, floating, align) via helper preload
 
 **Benefits**:
-- DRY principle (6+ occurrences → 1 method)
-- Easy to add time scaling later (slow-mo, fast-forward)
-- Consistent time source across systems
-- Self-documenting (method name explains unit)
+- DRY principle (6+ occurrences → 1 helper)
+- Consistent second-based time source across ECS features
+- Easy hook for future time-scaling or instrumentation
 
-**Risk**: Very Low - simple wrapper
-
-**Test Strategy**: Existing tests pass unchanged
+**Verification**:
+- Added `test_get_current_time_returns_seconds()` in `tests/unit/ecs/test_u_ecs_utils.gd`
+- Full ECS test suite passing via `gut_cmdln.gd ... -gexit`
 
 ---
 

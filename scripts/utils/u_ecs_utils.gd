@@ -23,3 +23,5 @@ static func get_manager(from_node: Node) -> Node:
 
 	return null
 
+static func get_current_time() -> float:
+	return float(Time.get_ticks_msec()) / 1000.0

@@ -4,6 +4,7 @@ const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const ALIGN_COMPONENT := preload("res://scripts/ecs/components/c_align_with_surface_component.gd")
 const ALIGN_SYSTEM := preload("res://scripts/ecs/systems/s_align_with_surface_system.gd")
 const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
+const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
 class FakeBody extends CharacterBody3D:
 	func _init() -> void:
@@ -102,7 +103,7 @@ func test_align_system_respects_support_requirement() -> void:
 	var slope_normal := Vector3(0.2, 0.9, 0.4).normalized()
 	body.up_direction = slope_normal
 
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := ECS_UTILS.get_current_time()
 	floating.update_support_state(false, now - 1.0)
 
 	system._physics_process(0.016)

@@ -5,6 +5,7 @@ const JumpComponentScript = preload("res://scripts/ecs/components/c_jump_compone
 const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
 const JumpSystemScript = preload("res://scripts/ecs/systems/s_jump_system.gd")
 const FloatingComponentScript = preload("res://scripts/ecs/components/c_floating_component.gd")
+const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
 class FakeBody extends CharacterBody3D:
 	var grounded := true
@@ -88,7 +89,7 @@ func test_jump_system_allows_jump_when_supported_by_floating_component() -> void
 	body.velocity = Vector3.ZERO
 	body.grounded = false
 
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := ECS_UTILS.get_current_time()
 	floating.update_support_state(true, now)
 
 	input.set_jump_pressed(true)
@@ -110,7 +111,7 @@ func test_jump_system_uses_jump_buffer() -> void:
 	body.velocity = Vector3.ZERO
 	body.grounded = false
 
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := ECS_UTILS.get_current_time()
 	jump.mark_on_floor(now - jump.settings.coyote_time - 1.0)
 
 	input.set_jump_pressed(true)
@@ -162,7 +163,7 @@ func test_jump_component_tracks_apex_state() -> void:
 
 	system._physics_process(0.016)
 
-	assert_false(jump.has_recent_apex(Time.get_ticks_msec() / 1000.0))
+	assert_false(jump.has_recent_apex(ECS_UTILS.get_current_time()))
 
 	body.grounded = false
 	body.velocity = Vector3(0.0, 0.2, 0.0)
@@ -171,5 +172,5 @@ func test_jump_component_tracks_apex_state() -> void:
 	body.velocity = Vector3(0.0, -0.05, 0.0)
 	system._physics_process(0.016)
 
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := ECS_UTILS.get_current_time()
 	assert_true(jump.has_recent_apex(now))

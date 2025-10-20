@@ -5,6 +5,7 @@ const MovementComponentScript = preload("res://scripts/ecs/components/c_movement
 const MovementSystemScript = preload("res://scripts/ecs/systems/s_movement_system.gd")
 const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
 const FloatingComponentScript = preload("res://scripts/ecs/components/c_floating_component.gd")
+const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
 class FakeBody extends CharacterBody3D:
 	var move_called: bool = false
@@ -119,7 +120,7 @@ func test_movement_grounded_friction_reduces_velocity_quickly() -> void:
 	movement.settings.forward_friction_scale = 1.0
 
 	body.velocity = Vector3(6.0, 0.0, 0.0)
-	var now: float = Time.get_ticks_msec() / 1000.0
+	var now: float = ECS_UTILS.get_current_time()
 	floating.update_support_state(true, now)
 
 	system._physics_process(0.1)
@@ -142,7 +143,7 @@ func test_movement_air_friction_is_gentler_without_support() -> void:
 	movement.settings.forward_friction_scale = 1.0
 
 	body.velocity = Vector3(6.0, 0.0, 0.0)
-	var now: float = Time.get_ticks_msec() / 1000.0
+	var now: float = ECS_UTILS.get_current_time()
 	floating.update_support_state(false, now - 1.0)
 
 	system._physics_process(0.1)
@@ -171,7 +172,7 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
 	body.velocity = Vector3.ZERO
 	input.set_move_vector(Vector2.RIGHT)
 
-	var now: float = Time.get_ticks_msec() / 1000.0
+	var now: float = ECS_UTILS.get_current_time()
 	floating.update_support_state(true, now)
 
 	system._physics_process(0.1)

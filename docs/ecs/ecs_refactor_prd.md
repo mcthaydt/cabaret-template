@@ -8,7 +8,7 @@
 - **Problem**: Current ECS implementation blocks emergent gameplay with single-component queries, tight NodePath coupling between components, no event system for cross-system communication, and manual system execution ordering
 - **Success**: 100% of systems use multi-component queries, zero NodePath cross-references between components, <1ms query performance at 60fps, emergent gameplay interactions working (e.g., jump → dust particles → environmental reaction)
 - **Timeline**: 2-3 weeks for complete refactor across 4 batches
-- **Progress** (current): Story 1.1 complete — `U_ECSUtils.get_manager()` lives in `scripts/utils/u_ecs_utils.gd`, base classes refactored, `tests/unit/ecs/test_u_ecs_utils.gd` passing via GUT `-gexit`
+- **Progress** (current): Stories 1.1–1.2 complete — `U_ECSUtils.get_manager()` + `get_current_time()` live in `scripts/utils/u_ecs_utils.gd`, base classes/systems/components refactored, ECS + utility tests passing via GUT `-gexit`
 
 ## Requirements
 
@@ -373,7 +373,7 @@ static func publish(event_name: StringName, payload: Variant = null) -> void:
     var event = {
         "name": event_name,
         "payload": payload,
-        "timestamp": Time.get_ticks_msec()
+        "timestamp": U_ECSUtils.get_current_time()
     }
     _event_history.append(event)
     if _event_history.size() > _max_history_size:
@@ -465,7 +465,7 @@ static func get_manager(from_node: Node) -> M_ECSManager:
 
 static func get_current_time() -> float:
     """Get current game time in seconds"""
-    return Time.get_ticks_msec() / 1000.0
+    return float(Time.get_ticks_msec()) / 1000.0
 
 static func map_components_by_body(
     manager: M_ECSManager,
@@ -494,7 +494,7 @@ scripts/ecs/
 ├── u_ecs_utils.gd             # NEW: Shared utilities
 ├── components/                # Component implementations (existing)
 │   ├── c_movement_component.gd        # MODIFIED: Remove NodePath exports
-│   ├── c_input_component.gd           # Unchanged
+│   ├── c_input_component.gd           # MODIFIED: Uses U_ECSUtils.get_current_time()
 │   ├── c_jump_component.gd            # MODIFIED: Remove NodePath exports
 │   ├── c_floating_component.gd        # Unchanged
 │   ├── c_align_with_surface_component.gd  # Unchanged
@@ -932,7 +932,8 @@ func process_tick(delta: float) -> void:
                 "entity": body,
                 "velocity": body.velocity,
                 "position": body.global_position,
-                "jump_force": jump_comp.jump_velocity
+                "jump_force": jump_comp.jump_velocity,
+                "timestamp": U_ECSUtils.get_current_time()
             })
 
 # scripts/ecs/systems/s_particle_system.gd

@@ -2,6 +2,7 @@ extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
+const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
 func _add_manager() -> M_ECSManager:
 	var manager: M_ECSManager = ECS_MANAGER.new()
@@ -31,7 +32,7 @@ func test_floating_component_defaults_and_registration() -> void:
 	assert_almost_eq(component.settings.fall_gravity, 60.0, 0.001)
 	assert_true(component.settings.align_to_normal)
 	assert_false(component.is_supported)
-	assert_false(component.has_recent_support(Time.get_ticks_msec() / 1000.0, 0.01))
+	assert_false(component.has_recent_support(ECS_UTILS.get_current_time(), 0.01))
 
 	var components := manager.get_components(FLOATING_COMPONENT.COMPONENT_TYPE)
 	assert_eq(components, [component])
@@ -67,7 +68,7 @@ func test_floating_component_tracks_recent_support_state() -> void:
 	autofree(component)
 	await _pump()
 
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := ECS_UTILS.get_current_time()
 
 	component.update_support_state(true, now)
 	assert_true(component.is_supported)

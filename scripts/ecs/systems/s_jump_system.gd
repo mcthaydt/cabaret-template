@@ -6,7 +6,7 @@ const JUMP_TYPE := StringName("C_JumpComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 
 func process_tick(_delta: float) -> void:
-    var now: float = Time.get_ticks_msec() / 1000.0
+    var now: float = ECS_UTILS.get_current_time()
     var floating_by_body: Dictionary = {}
 
     for floating in get_components(FLOATING_TYPE):

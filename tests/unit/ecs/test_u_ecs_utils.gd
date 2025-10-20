@@ -41,3 +41,11 @@ func test_get_manager_returns_null_when_manager_missing() -> void:
 	var located := ECS_UTILS.get_manager(subject)
 	assert_null(located)
 
+func test_get_current_time_returns_seconds() -> void:
+	var before: float = float(Time.get_ticks_msec()) / 1000.0
+	var current_time: float = ECS_UTILS.get_current_time()
+	var after: float = float(Time.get_ticks_msec()) / 1000.0
+
+	assert_eq(typeof(current_time), TYPE_FLOAT)
+	assert_true(current_time >= before)
+	assert_true(current_time <= after)

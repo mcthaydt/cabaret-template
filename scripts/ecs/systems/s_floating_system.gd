@@ -11,7 +11,7 @@ class SupportInfo:
 
 func process_tick(delta: float) -> void:
 	var processed: Dictionary = {}
-	var now: float = Time.get_ticks_msec() / 1000.0
+	var now: float = ECS_UTILS.get_current_time()
 
 	for component in get_components(FLOATING_TYPE):
 		if component == null:

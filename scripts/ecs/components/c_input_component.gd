@@ -20,7 +20,7 @@ func set_jump_pressed(pressed: bool) -> void:
 	jump_pressed = pressed
 	if pressed:
 		_jump_requested = true
-		_last_jump_press_time = Time.get_ticks_msec() / 1000.0
+		_last_jump_press_time = ECS_UTILS.get_current_time()
 
 func set_sprint_pressed(pressed: bool) -> void:
 	sprint_pressed = pressed
