@@ -18,14 +18,14 @@ var _debug_snapshot: Dictionary = {}
 func _init() -> void:
 	component_type = COMPONENT_TYPE
 
-func _ready() -> void:
+func _validate_required_settings() -> bool:
 	if settings == null:
 		push_error("C_JumpComponent missing settings; assign an RS_JumpSettings resource.")
-		set_process(false)
-		set_physics_process(false)
-		return
+		return false
+	return true
+
+func _on_required_settings_ready() -> void:
 	_air_jumps_remaining = settings.max_air_jumps
-	super._ready()
 
 func mark_on_floor(current_time: float) -> void:
 	_last_on_floor_time = current_time

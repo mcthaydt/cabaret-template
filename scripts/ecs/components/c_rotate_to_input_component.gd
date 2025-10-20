@@ -13,13 +13,11 @@ var _rotation_velocity: float = 0.0
 func _init() -> void:
 	component_type = COMPONENT_TYPE
 
-func _ready() -> void:
+func _validate_required_settings() -> bool:
 	if settings == null:
 		push_error("C_RotateToInputComponent missing settings; assign an RS_RotateToInputSettings resource.")
-		set_process(false)
-		set_physics_process(false)
-		return
-	super._ready()
+		return false
+	return true
 
 func get_target_node() -> Node3D:
 	if target_node_path.is_empty():

@@ -30,6 +30,7 @@
 
 - Components
   - Extend `ECSComponent`; define `const COMPONENT_TYPE := StringName("YourComponent")` and set `component_type = COMPONENT_TYPE` in `_init()`.
+  - Enforce required settings/resources by overriding `_validate_required_settings()` (call `push_error(...)` and return `false` to abort registration); use `_on_required_settings_ready()` for post-validation setup.
   - Prefer `@export` NodePaths with typed getters that use `get_node_or_null(...) as Type` and return `null` on empty paths.
   - Keep null-safe call sites; systems assume absent paths disable behavior rather than error.
   - If you expose debug state, copy via `snapshot.duplicate(true)` to avoid aliasing.

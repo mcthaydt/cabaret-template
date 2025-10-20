@@ -18,6 +18,10 @@ var _component_type: StringName = &""
 func _ready() -> void:
 	if _component_type == &"":
 		_component_type = StringName(get_name())
+	if not _validate_required_settings():
+		_on_required_settings_missing()
+		return
+	_on_required_settings_ready()
 	call_deferred("_register_with_manager")
 
 func get_component_type() -> StringName:
@@ -39,3 +43,12 @@ func _register_with_manager() -> void:
 		return
 	manager.register_component(self)
 
+func _validate_required_settings() -> bool:
+	return true
+
+func _on_required_settings_ready() -> void:
+	pass
+
+func _on_required_settings_missing() -> void:
+	set_process(false)
+	set_physics_process(false)

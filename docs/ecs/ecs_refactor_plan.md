@@ -71,7 +71,7 @@ Epic 1 – Code Quality Refactors (15 points)
 
 - [x] Story 1.1: Extract manager discovery utility (U_ECSUtils.get_manager()) (2 points) — Implemented `scripts/utils/u_ecs_utils.gd`, updated base classes, and added `tests/unit/ecs/test_u_ecs_utils.gd` (GUT `-gselect=test_u_ecs_utils -gexit` green)
 - [x] Story 1.2: Extract time utilities (U_ECSUtils.get_current_time()) (1 point) — Added `get_current_time()` helper, refactored components/systems/tests, full ECS suite passing with `-gexit`
-- [ ] Story 1.3: Extract settings validation pattern (ECSComponent._validate_required_settings()) (3 points)
+- [x] Story 1.3: Extract settings validation pattern (ECSComponent._validate_required_settings()) (3 points) — Added validation hooks to base component, migrated settings-based components, new `tests/unit/ecs/test_ecs_component.gd` coverage
 - [ ] Story 1.4: Extract body mapping helper (U_ECSUtils.map_components_by_body()) (3 points)
 - [ ] Story 1.5: Add null filtering to M_ECSManager.get_components() (2 points)
 - [ ] Story 1.6: Update all systems to use U_ECSUtils (4 points)
@@ -140,7 +140,7 @@ Testing & Documentation (7 points)
 
 ### Batch 1: Code Quality Refactors [15 points]
 
-**STATUS**: 🟢 In Progress (Stories 1.1–1.2 complete; continuing through Epic 1)
+**STATUS**: 🟢 In Progress (Stories 1.1–1.3 complete; continuing through Epic 1)
 
 Story Points: 15
 Goal: Eliminate code duplication, improve maintainability, lay foundation for query system
@@ -314,11 +314,11 @@ static func get_active_camera(from_node: Node) -> Camera3D:
 
 ---
 
-- [ ] Step 3 – Extract Settings Validation Pattern
+- [x] Step 3 – Extract Settings Validation Pattern
 
 **TDD Cycle 1: ECSComponent._validate_required_settings() - Base Implementation**
 
-- [ ] 3.1a – RED: Write test for settings validation hook
+- [x] 3.1a – RED: Write test for settings validation hook
 - Create `tests/unit/ecs/test_ecs_component.gd`
 - Test: `test_validate_required_settings_hook_called_in_ready()`
   - Arrange: Create test component extending ECSComponent
@@ -326,34 +326,34 @@ static func get_active_camera(from_node: Node) -> Camera3D:
   - Act: Add component to scene (trigger _ready)
   - Assert: Component NOT registered (validation failed)
 
-- [ ] 3.1b – GREEN: Implement validation hook in ECSComponent
+- [x] 3.1b – GREEN: Implement validation hook in ECSComponent
 - Modify `scripts/ecs/ecs_component.gd`
 - Add: `func _validate_required_settings() -> bool: return true` (default: pass)
 - Modify _ready(): Call _validate_required_settings() before registration
 - If validation fails, push_error() and skip registration
 
-- [ ] 3.1c – VERIFY: Run tests, confirm GREEN
+- [x] 3.1c – VERIFY: Run tests, confirm GREEN — `gut_cmdln.gd … -gselect=test_ecs_component -gexit`
 
 **TDD Cycle 2: Concrete Component Validation**
 
-- [ ] 3.2a – RED: Write test for C_JumpComponent settings validation
+- [x] 3.2a – RED: Write test for C_JumpComponent settings validation
 - Test: `test_jump_component_validates_required_settings()`
   - Arrange: C_JumpComponent with null settings.jump_force
   - Act: Add to scene
   - Assert: Error logged, component not registered
 
-- [ ] 3.2b – GREEN: Implement _validate_required_settings in C_JumpComponent
+- [x] 3.2b – GREEN: Implement _validate_required_settings in C_JumpComponent
 - Override _validate_required_settings() to check settings != null
 - Check critical fields (jump_force, coyote_time, etc.)
 
-- [ ] 3.2c – VERIFY: Run tests, confirm GREEN
+- [x] 3.2c – VERIFY: Run tests, confirm GREEN — Added `assert_push_error` expectation, suite green
 
 **Refactor Existing Components (Test-After)**
 
-- [ ] 3.3 – Migrate all components to use _validate_required_settings()
+- [x] 3.3 – Migrate all components to use _validate_required_settings()
 - Update C_MovementComponent, C_FloatingComponent, C_RotateToInputComponent, etc.
 - Remove duplicate validation code from _ready()
-- Run existing component tests to verify no regressions
+- Run existing component tests to verify no regressions (`gut_cmdln.gd … -gdir=res://tests/unit/ecs -gexit`)
 
 ---
 

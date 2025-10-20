@@ -12,13 +12,11 @@ const COMPONENT_TYPE := StringName("C_AlignWithSurfaceComponent")
 func _init() -> void:
 	component_type = COMPONENT_TYPE
 
-func _ready() -> void:
+func _validate_required_settings() -> bool:
 	if settings == null:
 		push_error("C_AlignWithSurfaceComponent missing settings; assign an RS_AlignSettings resource.")
-		set_process(false)
-		set_physics_process(false)
-		return
-	super._ready()
+		return false
+	return true
 
 func get_component_type() -> StringName:
 	return component_type

@@ -16,13 +16,11 @@ var _last_support_normal_time: float = - INF
 func _init() -> void:
 	component_type = COMPONENT_TYPE
 
-func _ready() -> void:
+func _validate_required_settings() -> bool:
 	if settings == null:
 		push_error("C_FloatingComponent missing settings; assign an RS_FloatingSettings resource.")
-		set_process(false)
-		set_physics_process(false)
-		return
-	super._ready()
+		return false
+	return true
 
 func get_character_body() -> CharacterBody3D:
 	if character_body_path.is_empty():

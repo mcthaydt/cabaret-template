@@ -8,7 +8,7 @@
 - **Problem**: Current ECS implementation blocks emergent gameplay with single-component queries, tight NodePath coupling between components, no event system for cross-system communication, and manual system execution ordering
 - **Success**: 100% of systems use multi-component queries, zero NodePath cross-references between components, <1ms query performance at 60fps, emergent gameplay interactions working (e.g., jump → dust particles → environmental reaction)
 - **Timeline**: 2-3 weeks for complete refactor across 4 batches
-- **Progress** (current): Stories 1.1–1.2 complete — `U_ECSUtils.get_manager()` + `get_current_time()` live in `scripts/utils/u_ecs_utils.gd`, base classes/systems/components refactored, ECS + utility tests passing via GUT `-gexit`
+- **Progress** (current): Stories 1.1–1.3 complete — `U_ECSUtils.get_manager()`/`get_current_time()` shipped, `_validate_required_settings()` hook added to `ECSComponent`, settings-based components migrated, new `test_ecs_component.gd` plus full ECS suite passing via GUT `-gexit`
 
 ## Requirements
 
