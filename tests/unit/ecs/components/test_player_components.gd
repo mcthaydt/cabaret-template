@@ -19,9 +19,14 @@ func test_movement_component_defaults_and_registration() -> void:
 	var manager := _add_manager()
 	await _pump()
 
+	var entity := Node.new()
+	entity.name = "E_TestEntity"
+	add_child(entity)
+	autofree(entity)
+
 	var component: C_MovementComponent = MOVEMENT_COMPONENT.new()
 	component.settings = RS_MovementSettings.new()
-	add_child(component)
+	entity.add_child(component)
 	autofree(component)
 	await _pump()
 
@@ -37,9 +42,14 @@ func test_jump_component_defaults_and_registration() -> void:
 	var manager := _add_manager()
 	await _pump()
 
+	var entity := Node.new()
+	entity.name = "E_TestEntity"
+	add_child(entity)
+	autofree(entity)
+
 	var component: C_JumpComponent = JUMP_COMPONENT.new()
 	component.settings = RS_JumpSettings.new()
-	add_child(component)
+	entity.add_child(component)
 	autofree(component)
 	await _pump()
 
@@ -55,8 +65,13 @@ func test_input_component_defaults_and_registration() -> void:
 	var manager := _add_manager()
 	await _pump()
 
+	var entity := Node.new()
+	entity.name = "E_TestEntity"
+	add_child(entity)
+	autofree(entity)
+
 	var component: C_InputComponent = INPUT_COMPONENT.new()
-	add_child(component)
+	entity.add_child(component)
 	autofree(component)
 	await _pump()
 
@@ -71,9 +86,14 @@ func test_rotate_component_defaults_and_registration() -> void:
 	var manager := _add_manager()
 	await _pump()
 
+	var entity := Node.new()
+	entity.name = "E_TestEntity"
+	add_child(entity)
+	autofree(entity)
+
 	var component: C_RotateToInputComponent = ROTATE_COMPONENT.new()
 	component.settings = RS_RotateToInputSettings.new()
-	add_child(component)
+	entity.add_child(component)
 	autofree(component)
 	await _pump()
 

@@ -19,9 +19,14 @@ func _add_manager() -> M_ECSManager:
 func test_align_with_surface_component_defaults_and_registration() -> void:
 	var manager := await _add_manager()
 
+	var entity := Node.new()
+	entity.name = "E_TestEntity"
+	add_child(entity)
+	autofree(entity)
+
 	var component: C_AlignWithSurfaceComponent = ALIGN_COMPONENT.new()
 	component.settings = RS_AlignSettings.new()
-	add_child(component)
+	entity.add_child(component)
 	autofree(component)
 	await _pump()
 
@@ -37,9 +42,14 @@ func test_align_with_surface_component_defaults_and_registration() -> void:
 func test_align_with_surface_component_fetches_assigned_nodes() -> void:
 	var manager := await _add_manager()
 
+	var entity := Node.new()
+	entity.name = "E_TestEntity"
+	add_child(entity)
+	autofree(entity)
+
 	var component: C_AlignWithSurfaceComponent = ALIGN_COMPONENT.new()
 	component.settings = RS_AlignSettings.new()
-	add_child(component)
+	entity.add_child(component)
 	autofree(component)
 	await _pump()
 
@@ -65,9 +75,14 @@ func test_align_with_surface_component_fetches_assigned_nodes() -> void:
 	assert_true(component.get_floating_component() == floating)
 
 func test_align_with_surface_component_delegates_support_check() -> void:
+	var entity := Node.new()
+	entity.name = "E_TestEntity"
+	add_child(entity)
+	autofree(entity)
+
 	var component: C_AlignWithSurfaceComponent = ALIGN_COMPONENT.new()
 	component.settings = RS_AlignSettings.new()
-	add_child(component)
+	entity.add_child(component)
 	autofree(component)
 	await _pump()
 

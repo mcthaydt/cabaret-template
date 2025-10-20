@@ -17,9 +17,14 @@ func test_floating_component_defaults_and_registration() -> void:
 	var manager := _add_manager()
 	await _pump()
 
+	var entity := Node.new()
+	entity.name = "E_TestEntity"
+	add_child(entity)
+	autofree(entity)
+
 	var component: C_FloatingComponent = FLOATING_COMPONENT.new()
 	component.settings = RS_FloatingSettings.new()
-	add_child(component)
+	entity.add_child(component)
 	autofree(component)
 	await _pump()
 
@@ -41,9 +46,14 @@ func test_floating_component_collects_child_rays() -> void:
 	var manager := _add_manager()
 	await _pump()
 
+	var entity := Node.new()
+	entity.name = "E_TestEntity"
+	add_child(entity)
+	autofree(entity)
+
 	var component: C_FloatingComponent = FLOATING_COMPONENT.new()
 	component.settings = RS_FloatingSettings.new()
-	add_child(component)
+	entity.add_child(component)
 	autofree(component)
 	await _pump()
 

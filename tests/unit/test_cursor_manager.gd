@@ -46,8 +46,10 @@ func test_toggle_cursor_locks_and_hides_when_unlocked() -> void:
 
 	# First toggle to unlock/show
 	manager.toggle_cursor()
+	await get_tree().process_frame
 	# Second toggle should lock/hide
 	manager.toggle_cursor()
+	await get_tree().process_frame
 
 	assert_true(manager.is_cursor_locked(), "Cursor should be locked after second toggle")
 	assert_false(manager.is_cursor_visible(), "Cursor should be hidden after second toggle")
