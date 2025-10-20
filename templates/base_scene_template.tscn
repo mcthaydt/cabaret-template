@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://rygahxanlmio"]
+[gd_scene load_steps=15 format=3 uid="uid://rygahxanlmio"]
 
 [ext_resource type="Script" uid="uid://c3ksqt7h7cg6v" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
 [ext_resource type="Script" uid="uid://cxd4yycmngxnu" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
@@ -11,7 +11,7 @@
 [ext_resource type="Script" uid="uid://cev7x8twqwfhr" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
 [ext_resource type="Script" uid="uid://csicrrjo31foo" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
 [ext_resource type="Script" uid="uid://c0w4t05n5u2wd" path="res://scripts/managers/m_state_manager.gd" id="9_state"]
-[ext_resource type="Script" path="res://scripts/managers/m_cursor_manager.gd" id="10_cursor"]
+[ext_resource type="Script" uid="uid://cqotnyjj28vrp" path="res://scripts/managers/m_cursor_manager.gd" id="10_cursor"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
