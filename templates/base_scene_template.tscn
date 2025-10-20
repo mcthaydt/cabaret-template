@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://cev7x8twqwfhr" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
 [ext_resource type="Script" uid="uid://csicrrjo31foo" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
 [ext_resource type="Script" uid="uid://c0w4t05n5u2wd" path="res://scripts/managers/m_state_manager.gd" id="9_state"]
+[ext_resource type="Script" path="res://scripts/managers/m_cursor_manager.gd" id="10_cursor"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -93,7 +94,7 @@ script = ExtResource("6_0e7m3")
 script = ExtResource("9_state")
 
 [node name="M_CursorManager" type="Node" parent="Managers"]
-script = ExtResource("6_0e7m3")
+script = ExtResource("10_cursor")
 
 [node name="Entities" type="Node" parent="."]
 
@@ -104,5 +105,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3755507, 0)
 
 [node name="E_Player" parent="Entities/E_SpawnPoints/E_PlayerSpawn" instance=ExtResource("7_4wxy1")]
 
-[node name="E_PlayerCamera" type="Camera3D" parent="Entities"]
+[node name="E_PlayerCamera" type="Camera3D" parent="Entities" groups=["main_camera"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.93, 4.55)
+current = true
