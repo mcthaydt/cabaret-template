@@ -1,5 +1,5 @@
+@icon("res://editor_icons/system.svg")
 extends ECSSystem
-
 class_name S_RotateToInputSystem
 
 const ROTATE_TYPE := StringName("C_RotateToInputComponent")

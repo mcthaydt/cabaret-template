@@ -1,11 +1,6 @@
-[gd_resource type="Resource" load_steps=2]
+[gd_resource type="Resource" script_class="RS_AlignSettings" load_steps=2 format=3 uid="uid://br8n2abjmhiyf"]
 
-[ext_resource type="Script" path="res://scripts/ecs/resources/rs_align_settings.gd" id="1_0"]
+[ext_resource type="Script" uid="uid://drx3ut0b35t2m" path="res://scripts/ecs/resources/rs_align_settings.gd" id="1_0"]
 
 [resource]
 script = ExtResource("1_0")
-smoothing_speed = 12.0
-align_only_when_supported = true
-recent_support_tolerance = 0.2
-fallback_up_direction = Vector3(0, 1, 0)
-

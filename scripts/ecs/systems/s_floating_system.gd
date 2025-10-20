@@ -1,5 +1,5 @@
+@icon("res://editor_icons/system.svg")
 extends ECSSystem
-
 class_name S_FloatingSystem
 
 const FLOATING_TYPE := StringName("C_FloatingComponent")

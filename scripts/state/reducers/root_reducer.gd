@@ -1,5 +1,5 @@
+@icon("res://editor_icons/reducer.svg")
 extends RefCounted
-
 class_name RootReducer
 
 const U_REDUCER_UTILS := preload("res://scripts/state/u_reducer_utils.gd")

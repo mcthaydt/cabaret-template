@@ -1,5 +1,5 @@
+@icon("res://editor_icons/reducer.svg")
 extends RefCounted
-
 class_name SessionReducer
 
 const CONSTANTS := preload("res://scripts/state/state_constants.gd")

@@ -1,5 +1,5 @@
+@icon("res://editor_icons/system.svg")
 extends ECSSystem
-
 class_name S_GravitySystem
 
 @export var gravity: float = 30.0

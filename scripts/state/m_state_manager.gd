@@ -1,3 +1,4 @@
+@icon("res://editor_icons/manager.svg")
 extends Node
 class_name M_StateManager
 

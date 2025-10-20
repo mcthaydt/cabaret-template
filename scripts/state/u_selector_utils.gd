@@ -1,5 +1,5 @@
+@icon("res://editor_icons/utility.svg")
 extends RefCounted
-
 class_name U_SelectorUtils
 
 class MemoizedSelector extends RefCounted:

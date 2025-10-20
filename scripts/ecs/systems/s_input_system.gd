@@ -1,5 +1,5 @@
+@icon("res://editor_icons/system.svg")
 extends ECSSystem
-
 class_name S_InputSystem
 
 const INPUT_TYPE := StringName("C_InputComponent")

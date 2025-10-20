@@ -1,5 +1,5 @@
+@icon("res://editor_icons/system.svg")
 extends ECSSystem
-
 class_name S_JumpSystem
 
 const JUMP_TYPE := StringName("C_JumpComponent")

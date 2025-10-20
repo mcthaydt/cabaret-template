@@ -1,5 +1,5 @@
+@icon("res://editor_icons/action.svg")
 extends RefCounted
-
 class_name UiActions
 
 const ACTION_UTILS := preload("res://scripts/state/u_action_utils.gd")
