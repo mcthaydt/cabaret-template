@@ -8,17 +8,7 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 
 func process_tick(delta: float) -> void:
     var processed := {}
-    var floating_by_body: Dictionary = {}
-
-    # Collect bodies that have a floating component so the floating system
-    # owns vertical motion (prevents double gravity).
-    for floating in get_components(FLOATING_TYPE):
-        if floating == null:
-            continue
-        var floating_body = floating.get_character_body()
-        if floating_body == null:
-            continue
-        floating_by_body[floating_body] = true
+    var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(get_manager(), FLOATING_TYPE)
 
     for component in get_components(MOVEMENT_TYPE):
         if component == null:

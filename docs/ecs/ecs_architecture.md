@@ -649,8 +649,12 @@ func process_tick(delta: float) -> void:
 **Processing** (lines 21-102):
 ```gdscript
 func process_tick(delta: float) -> void:
+    var now := U_ECSUtils.get_current_time()
     # Build body → floating_component map (to check if entity is floating)
-    var floating_by_body := _build_floating_map()
+    var floating_by_body := U_ECSUtils.map_components_by_body(
+        get_manager(),
+        C_FloatingComponent.COMPONENT_TYPE
+    )
 
     var jump_components = get_components(C_JumpComponent.COMPONENT_TYPE)
 
@@ -665,33 +669,14 @@ func process_tick(delta: float) -> void:
         if body == null or input_comp == null or raycast == null:
             continue
 
-        # Skip if entity is floating
-        if floating_by_body.has(body):
-            continue
-
-        # Update grounded state
-        var is_grounded := raycast.is_colliding()
-        if is_grounded:
-            jump_comp.time_since_grounded = 0.0
-        else:
-            jump_comp.time_since_grounded += delta
-
-        # Update jump buffer
-        if input_comp.jump_just_pressed:
-            jump_comp.time_since_jump_pressed = 0.0
-        else:
-            jump_comp.time_since_jump_pressed += delta
-
-        # Check if can jump (coyote time + jump buffer)
-        var can_jump := (
-            jump_comp.time_since_grounded < jump_comp.coyote_time
-            and jump_comp.time_since_jump_pressed < jump_comp.jump_buffer_time
-        )
-
-        # Apply jump
-        if can_jump:
-            body.velocity.y = jump_comp.jump_velocity
-            jump_comp.time_since_jump_pressed = 999.0  # Consume jump
+        # Floating state lookups reuse helper map
+        var floating_comp := floating_by_body.get(body, null) as C_FloatingComponent
+        var floating_supported := false
+        var has_recent_support := false
+        if floating_comp != null:
+            floating_supported = floating_comp.is_supported
+            has_recent_support = floating_comp.has_recent_support(now, jump_comp.settings.coyote_time)
+        # ...
 ```
 
 **Features**:
@@ -709,7 +694,10 @@ func process_tick(delta: float) -> void:
 ```gdscript
 func process_tick(delta: float) -> void:
     # Build body → floating_component map
-    var floating_by_body := _build_floating_map()
+    var floating_by_body := U_ECSUtils.map_components_by_body(
+        get_manager(),
+        C_FloatingComponent.COMPONENT_TYPE
+    )
 
     var movement_components = get_components(C_MovementComponent.COMPONENT_TYPE)
 
@@ -1600,19 +1588,7 @@ func get_input_component() -> C_InputComponent:
 
 ### 8.6 Manual Body Deduplication
 
-**Problem**: Multiple systems create `processed: Dictionary = {}` to prevent double-processing.
-
-**Example** (S_JumpSystem, S_GravitySystem):
-```gdscript
-var floating_by_body: Dictionary = {}
-for floating in get_components(C_FloatingComponent.COMPONENT_TYPE):
-    var body = floating.get_character_body()
-    floating_by_body[body] = floating
-```
-
-**Impact**: Low (works, just verbose).
-
-**Solution**: Extract helper class `BodyTracker` or improve query system.
+**Resolution**: Shared helper `U_ECSUtils.map_components_by_body()` builds the mapping once, removing duplicate loops across systems.
 
 ---
 

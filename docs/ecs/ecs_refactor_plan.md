@@ -72,7 +72,7 @@ Epic 1 – Code Quality Refactors (15 points)
 - [x] Story 1.1: Extract manager discovery utility (U_ECSUtils.get_manager()) (2 points) — Implemented `scripts/utils/u_ecs_utils.gd`, updated base classes, and added `tests/unit/ecs/test_u_ecs_utils.gd` (GUT `-gselect=test_u_ecs_utils -gexit` green)
 - [x] Story 1.2: Extract time utilities (U_ECSUtils.get_current_time()) (1 point) — Added `get_current_time()` helper, refactored components/systems/tests, full ECS suite passing with `-gexit`
 - [x] Story 1.3: Extract settings validation pattern (ECSComponent._validate_required_settings()) (3 points) — Added validation hooks to base component, migrated settings-based components, new `tests/unit/ecs/test_ecs_component.gd` coverage
-- [ ] Story 1.4: Extract body mapping helper (U_ECSUtils.map_components_by_body()) (3 points)
+- [x] Story 1.4: Extract body mapping helper (U_ECSUtils.map_components_by_body()) (3 points) — Added helper + tests, refactored S_JumpSystem & S_GravitySystem to reuse it
 - [ ] Story 1.5: Add null filtering to M_ECSManager.get_components() (2 points)
 - [ ] Story 1.6: Update all systems to use U_ECSUtils (4 points)
 
@@ -357,39 +357,45 @@ static func get_active_camera(from_node: Node) -> Camera3D:
 
 ---
 
-- [ ] Step 4 – Extract Body Mapping Helper
+- [x] Step 4 – Extract Body Mapping Helper
 
 **TDD Cycle 1: U_ECSUtils.map_components_by_body()**
 
-- [ ] 4.1a – RED: Write test for body mapping
+- [x] 4.1a – RED: Write test for body mapping
 - Add to test_u_ecs_utils.gd: `test_map_components_by_body_creates_dictionary()`
   - Arrange: M_ECSManager with 3 C_FloatingComponents on different CharacterBody3D nodes
   - Act: Call U_ECSUtils.map_components_by_body(manager, C_FloatingComponent.COMPONENT_TYPE)
   - Assert: Returns Dictionary with 3 entries {CharacterBody3D: Component}
 
-- [ ] 4.1b – GREEN: Implement map_components_by_body
+- [x] 4.1b – GREEN: Implement map_components_by_body
 - Add to u_ecs_utils.gd:
 ```gdscript
 static func map_components_by_body(
     manager: M_ECSManager,
     component_type: StringName
 ) -> Dictionary:
-    var result = {}
-    for component in manager.get_components(component_type):
-        if component == null: continue
-        var body = component.get_character_body()
+    var result: Dictionary = {}
+    if manager == null:
+        return result
+    for entry in manager.get_components(component_type):
+        var component: ECSComponent = entry as ECSComponent
+        if component == null:
+            continue
+        if not component.has_method("get_character_body"):
+            continue
+        var body: Node = component.get_character_body()
         if body != null:
             result[body] = component
     return result
 ```
 
-- [ ] 4.1c – VERIFY: Run tests, confirm GREEN
+- [x] 4.1c – VERIFY: Run tests, confirm GREEN — `gut_cmdln.gd … -gselect=test_u_ecs_utils -gexit`
 
 **Refactor Existing Systems (Test-After)**
 
-- [ ] 4.2 – Update S_JumpSystem and S_GravitySystem to use map_components_by_body()
+- [x] 4.2 – Update S_JumpSystem and S_GravitySystem to use map_components_by_body()
 - Replace duplicate _build_floating_map() code
-- Run existing tests to verify no regressions
+- Run existing tests to verify no regressions (`gut_cmdln.gd … -gdir=res://tests/unit/ecs -gexit`)
 
 ---
 

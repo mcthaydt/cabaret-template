@@ -25,3 +25,24 @@ static func get_manager(from_node: Node) -> Node:
 
 static func get_current_time() -> float:
 	return float(Time.get_ticks_msec()) / 1000.0
+
+static func map_components_by_body(manager: M_ECSManager, component_type: StringName) -> Dictionary:
+	var result: Dictionary = {}
+	if manager == null:
+		return result
+
+	var components: Array = manager.get_components(component_type)
+	for entry in components:
+		var ecs_component: ECSComponent = entry as ECSComponent
+		if ecs_component == null:
+			continue
+		if not ecs_component.has_method("get_character_body"):
+			continue
+
+		var body: Node = ecs_component.get_character_body()
+		if body == null:
+			continue
+
+		result[body] = ecs_component
+
+	return result

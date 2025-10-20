@@ -7,15 +7,7 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 
 func process_tick(_delta: float) -> void:
     var now: float = ECS_UTILS.get_current_time()
-    var floating_by_body: Dictionary = {}
-
-    for floating in get_components(FLOATING_TYPE):
-        if floating == null:
-            continue
-        var floating_body = floating.get_character_body()
-        if floating_body == null:
-            continue
-        floating_by_body[floating_body] = floating
+    var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(get_manager(), FLOATING_TYPE)
 
     for component in get_components(JUMP_TYPE):
         if component == null:

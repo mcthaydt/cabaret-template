@@ -358,64 +358,14 @@ Consider after Tier 1 complete. Smaller impact but still valuable.
 
 ### 5. Extract Body Deduplication Pattern
 
-**Location**: S_JumpSystem (lines 10-18), S_GravitySystem (lines 11-21)
+**Status**: ✅ Completed (2025-10-21) — `U_ECSUtils.map_components_by_body()` deduplicates floating-component lookups, adopted by jump/gravity systems
 
-**Problem**: Both systems build `floating_by_body` dictionary to prevent double-processing.
-
-**Current Pattern**:
-```gdscript
-# In S_JumpSystem and S_GravitySystem (nearly identical)
-func process_tick(delta: float) -> void:
-    var floating_by_body: Dictionary = {}
-    for floating in get_components(C_FloatingComponent.COMPONENT_TYPE):
-        if floating == null:
-            continue
-        var floating_body := floating.get_character_body()
-        if floating_body != null:
-            floating_by_body[floating_body] = floating
-
-    # Use floating_by_body to check if entity is floating...
-```
-
-**Solution**: Create helper class in `ECSSystem`
-
-```gdscript
-# In scripts/ecs/ecs_system.gd (add nested class)
-
-class ComponentByBodyMap:
-    """Helper for mapping components to their character bodies."""
-
-    var _map: Dictionary = {}
-
-    func add(component, body_getter: Callable) -> void:
-        """Add component to map using its body as key."""
-        if component == null:
-            return
-        var body = body_getter.call(component)
-        if body != null:
-            _map[body] = component
-
-    func has(body) -> bool:
-        """Check if body has a mapped component."""
-        return _map.has(body)
-
-    func get_component(body):
-        """Get component for given body, or null."""
-        return _map.get(body, null)
-
-# Helper method in ECSSystem base
-func _map_components_by_body(component_type: StringName, body_getter: Callable) -> ComponentByBodyMap:
-    """
-    Creates a mapping of components to their character bodies.
-    Useful for systems that need to check if entities have certain components.
-    """
-    var mapper := ComponentByBodyMap.new()
-    for component in get_components(component_type):
-        mapper.add(component, body_getter)
-    return mapper
-```
-
-**Updated Systems**:
+**Summary**:
+- Added `map_components_by_body(manager, component_type)` to `U_ECSUtils`
+- Provides reusable body → component dictionary
+- S_JumpSystem and S_GravitySystem now call the helper instead of manual loops
+- Coverage added via `test_map_components_by_body_groups_components()` in `tests/unit/ecs/test_u_ecs_utils.gd`
+- Full ECS suite passes (`gut_cmdln.gd … -gdir=res://tests/unit/ecs -gexit`)
 ```gdscript
 # In S_JumpSystem (simplified)
 func process_tick(delta: float) -> void:

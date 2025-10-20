@@ -37,6 +37,7 @@
 - Systems
   - Extend `ECSSystem`; implement `process_tick(delta)` (invoked from `_physics_process`).
   - Query with `get_components(StringName)`, dedupe per-body where needed, and clamp/guard values (see movement/rotation/floating examples).
+  - Use `U_ECSUtils.map_components_by_body()` when multiple systems need shared body→component dictionaries (avoids duplicate loops).
   - Auto-discovers `M_ECSManager` via parent traversal or `ecs_manager` group; no manual wiring needed.
 - Manager
   - Ensure exactly one `M_ECSManager` in-scene. It auto-adds to `ecs_manager` group on `_ready()`.
