@@ -22,17 +22,23 @@ func _setup_entity(with_floating := false) -> Dictionary:
 	add_child(manager)
 	await _pump()
 
+	var entity := Node.new()
+	entity.name = "E_TestJumpEntity"
+	manager.add_child(entity)
+	autofree(entity)
+	await _pump()
+
 	var jump_component: C_JumpComponent = JumpComponentScript.new()
 	jump_component.settings = RS_JumpSettings.new()
-	add_child(jump_component)
+	entity.add_child(jump_component)
 	await _pump()
 
 	var input = InputComponentScript.new()
-	add_child(input)
+	entity.add_child(input)
 	await _pump()
 
 	var body := FakeBody.new()
-	add_child(body)
+	entity.add_child(body)
 	await _pump()
 
 	jump_component.character_body_path = jump_component.get_path_to(body)
@@ -42,12 +48,12 @@ func _setup_entity(with_floating := false) -> Dictionary:
 	if with_floating:
 		floating_component = FloatingComponentScript.new()
 		floating_component.settings = RS_FloatingSettings.new()
-		add_child(floating_component)
+		entity.add_child(floating_component)
 		await _pump()
 		floating_component.character_body_path = floating_component.get_path_to(body)
 
 	var system: S_JumpSystem = JumpSystemScript.new()
-	add_child(system)
+	manager.add_child(system)
 	await _pump()
 
 	return {
@@ -174,3 +180,20 @@ func test_jump_component_tracks_apex_state() -> void:
 
 	var now := ECS_UTILS.get_current_time()
 	assert_true(jump.has_recent_apex(now))
+
+func test_jump_system_handles_missing_input_nodepath_via_queries() -> void:
+	var context := await _setup_entity()
+	autofree_context(context)
+	var jump: C_JumpComponent = context["jump"]
+	var input: C_InputComponent = context["input"]
+	var body: FakeBody = context["body"]
+	var system: S_JumpSystem = context["system"]
+
+	jump.input_component_path = NodePath()
+	body.velocity = Vector3.ZERO
+	body.grounded = true
+	input.set_jump_pressed(true)
+
+	system._physics_process(0.016)
+
+	assert_eq(body.velocity.y, jump.settings.jump_force)

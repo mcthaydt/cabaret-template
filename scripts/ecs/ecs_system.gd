@@ -27,6 +27,13 @@ func get_components(component_type: StringName) -> Array:
 	var components: Array = _manager.get_components(component_type)
 	return components.duplicate()
 
+func query_entities(required: Array[StringName], optional: Array[StringName] = []) -> Array:
+	if _manager == null:
+		return []
+	if not _manager.has_method("query_entities"):
+		return []
+	return _manager.query_entities(required, optional)
+
 func process_tick(_delta: float) -> void:
 	pass
 
@@ -38,4 +45,3 @@ func _register_with_manager() -> void:
 	if manager == null:
 		return
 	manager.register_system(self)
-

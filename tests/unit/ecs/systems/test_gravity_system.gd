@@ -19,19 +19,25 @@ func _setup_entity() -> Dictionary:
     add_child(manager)
     await _pump()
 
+    var entity := Node.new()
+    entity.name = "E_GravityTest"
+    manager.add_child(entity)
+    autofree(entity)
+    await _pump()
+
     var body := FakeBody.new()
-    add_child(body)
+    entity.add_child(body)
     await _pump()
 
     var movement: C_MovementComponent = MovementComponentScript.new()
     movement.settings = RS_MovementSettings.new()
-    add_child(movement)
+    entity.add_child(movement)
     await _pump()
 
     movement.character_body_path = movement.get_path_to(body)
 
     var system = GravitySystemScript.new()
-    add_child(system)
+    manager.add_child(system)
     await _pump()
 
     return {

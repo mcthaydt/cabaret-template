@@ -3,14 +3,36 @@ extends ECSSystem
 class_name S_MovementSystem
 
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
+const INPUT_TYPE := StringName("C_InputComponent")
+const FLOATING_TYPE := StringName("C_FloatingComponent")
 
 func process_tick(delta: float) -> void:
+	var manager := get_manager()
+	if manager == null:
+		return
+
 	var body_state := {}
 	var bodies := []
 	var current_time := ECS_UTILS.get_current_time()
 
-	for component in get_components(MOVEMENT_TYPE):
-		var body = component.get_character_body()
+	# Pull every entity that has movement + input; floating is optional for support checks.
+	var entities: Array = manager.query_entities(
+		[
+			MOVEMENT_TYPE,
+			INPUT_TYPE,
+		],
+		[
+			FLOATING_TYPE,
+		]
+	)
+
+	for entity_query in entities:
+		var movement_component: C_MovementComponent = entity_query.get_component(MOVEMENT_TYPE)
+		var input_component: C_InputComponent = entity_query.get_component(INPUT_TYPE)
+		if movement_component == null or input_component == null:
+			continue
+
+		var body: CharacterBody3D = movement_component.get_character_body()
 		if body == null:
 			continue
 
@@ -24,24 +46,19 @@ func process_tick(delta: float) -> void:
 
 		var velocity: Vector3 = state.velocity
 
-		var input_component = component.get_input_component()
-		var input_vector: Vector2 = Vector2.ZERO
-		var is_sprinting := false
-		var current_max_speed: float = component.settings.max_speed
-		if input_component != null:
-			input_vector = input_component.move_vector
-			is_sprinting = input_component.is_sprinting()
-			if is_sprinting:
-				var sprint_multiplier: float = component.settings.sprint_speed_multiplier
-				if sprint_multiplier <= 0.0:
-					sprint_multiplier = 1.0
-				current_max_speed = component.settings.max_speed * sprint_multiplier
+		var input_vector: Vector2 = input_component.move_vector
+		var is_sprinting := input_component.is_sprinting()
+		var current_max_speed: float = movement_component.settings.max_speed
+		if is_sprinting:
+			var sprint_multiplier: float = movement_component.settings.sprint_speed_multiplier
+			if sprint_multiplier <= 0.0:
+				sprint_multiplier = 1.0
+			current_max_speed = movement_component.settings.max_speed * sprint_multiplier
 
 		var has_input: bool = input_vector.length() > 0.0
 		var desired_velocity: Vector3 = Vector3.ZERO
 		if has_input:
-			# If a camera is provided, transform input into camera-relative world-space on the XZ plane
-			var camera: Camera3D = component.get_camera_node()
+			var camera: Camera3D = movement_component.get_camera_node()
 			if camera == null and has_node("/"):
 				var vp := get_viewport()
 				if vp != null and vp.has_method("get_camera_3d"):
@@ -69,17 +86,18 @@ func process_tick(delta: float) -> void:
 			else:
 				desired_velocity = _get_desired_velocity(input_vector, current_max_speed)
 
-		var support_component: C_FloatingComponent = component.get_support_component()
+		var floating_component: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
+		if floating_component == null:
+			floating_component = movement_component.get_support_component()
+
 		var support_active: bool = false
-		if support_component != null:
-			support_active = support_component.has_recent_support(current_time, component.settings.support_grace_time)
+		if floating_component != null:
+			support_active = floating_component.has_recent_support(current_time, movement_component.settings.support_grace_time)
 
-		# Air control and slope scaling
 		var accel_scale: float = 1.0
-		if support_component != null and not support_active:
-			accel_scale *= max(component.settings.air_control_scale, 0.0)
+		if floating_component != null and not support_active:
+			accel_scale *= max(movement_component.settings.air_control_scale, 0.0)
 
-		# Determine an effective surface normal for slope checks
 		var up_dir2: Vector3 = body.up_direction
 		if up_dir2.length() == 0.0:
 			up_dir2 = Vector3.UP
@@ -89,45 +107,45 @@ func process_tick(delta: float) -> void:
 				var floor_n: Variant = body.call("get_floor_normal")
 				if floor_n is Vector3 and (floor_n as Vector3).length() > 0.0:
 					effective_normal = (floor_n as Vector3).normalized()
-		elif support_component != null:
-			var recent_n: Vector3 = support_component.get_recent_support_normal(current_time, component.settings.support_grace_time)
+		elif floating_component != null:
+			var recent_n: Vector3 = floating_component.get_recent_support_normal(current_time, movement_component.settings.support_grace_time)
 			if recent_n.length() > 0.0:
 				effective_normal = recent_n.normalized()
 
-		if effective_normal.length() > 0.0 and component.settings.slope_limit_degrees > 0.0:
+		if effective_normal.length() > 0.0 and movement_component.settings.slope_limit_degrees > 0.0:
 			var dot_up: float = clamp(effective_normal.dot(up_dir2), -1.0, 1.0)
 			var angle_deg: float = rad_to_deg(acos(dot_up))
-			if angle_deg > component.settings.slope_limit_degrees:
+			if angle_deg > movement_component.settings.slope_limit_degrees:
 				accel_scale *= clamp(dot_up, 0.0, 1.0)
 
-		var wants_second_order: bool = component.settings.use_second_order_dynamics and component.settings.response_frequency > 0.0
+		var wants_second_order: bool = movement_component.settings.use_second_order_dynamics and movement_component.settings.response_frequency > 0.0
 		if wants_second_order and has_input:
 			var desired_adjusted := desired_velocity * accel_scale
-			velocity = _apply_second_order_dynamics(component, velocity, desired_adjusted, delta, support_active)
+			velocity = _apply_second_order_dynamics(movement_component, velocity, desired_adjusted, delta, support_active)
 			velocity = _clamp_horizontal_speed(velocity, current_max_speed)
 		else:
 			if has_input:
-				velocity.x = move_toward(velocity.x, desired_velocity.x, component.settings.acceleration * accel_scale * delta)
-				velocity.z = move_toward(velocity.z, desired_velocity.z, component.settings.acceleration * accel_scale * delta)
+				velocity.x = move_toward(velocity.x, desired_velocity.x, movement_component.settings.acceleration * accel_scale * delta)
+				velocity.z = move_toward(velocity.z, desired_velocity.z, movement_component.settings.acceleration * accel_scale * delta)
 			else:
-				velocity.x = move_toward(velocity.x, 0.0, component.settings.deceleration * delta)
-				velocity.z = move_toward(velocity.z, 0.0, component.settings.deceleration * delta)
-			component.reset_dynamics_state()
+				velocity.x = move_toward(velocity.x, 0.0, movement_component.settings.deceleration * delta)
+				velocity.z = move_toward(velocity.z, 0.0, movement_component.settings.deceleration * delta)
+			movement_component.reset_dynamics_state()
 
 		if not has_input:
-			velocity = _apply_horizontal_friction(component, velocity, support_active, delta)
+			velocity = _apply_horizontal_friction(movement_component, velocity, support_active, delta)
 
 		velocity = _clamp_horizontal_speed(velocity, current_max_speed)
 
 		state.velocity = velocity
 
-		component.update_debug_snapshot({
+		movement_component.update_debug_snapshot({
 			"supported": support_active,
 			"has_input": has_input,
 			"is_sprinting": is_sprinting,
 			"desired_velocity": Vector2(desired_velocity.x, desired_velocity.z),
 			"current_velocity": Vector2(velocity.x, velocity.z),
-			"dynamics_velocity": component.get_horizontal_dynamics_velocity(),
+			"dynamics_velocity": movement_component.get_horizontal_dynamics_velocity(),
 		})
 
 	for body in bodies:

@@ -28,17 +28,23 @@ func _setup_entity(include_floating: bool = false) -> Dictionary:
 	add_child(manager)
 	await _pump()
 
+	var entity := Node.new()
+	entity.name = "E_TestMovementEntity"
+	manager.add_child(entity)
+	autofree(entity)
+	await _pump()
+
 	var movement = MovementComponentScript.new()
 	movement.settings = RS_MovementSettings.new()
-	add_child(movement)
+	entity.add_child(movement)
 	await _pump()
 
 	var input = InputComponentScript.new()
-	add_child(input)
+	entity.add_child(input)
 	await _pump()
 
 	var body: FakeBody = FakeBody.new()
-	add_child(body)
+	entity.add_child(body)
 	await _pump()
 
 	movement.character_body_path = movement.get_path_to(body)
@@ -48,13 +54,13 @@ func _setup_entity(include_floating: bool = false) -> Dictionary:
 	if include_floating:
 		floating = FloatingComponentScript.new()
 		floating.settings = RS_FloatingSettings.new()
-		add_child(floating)
+		entity.add_child(floating)
 		await _pump()
 		floating.character_body_path = floating.get_path_to(body)
 		movement.support_component_path = movement.get_path_to(floating)
 
 	var system = MovementSystemScript.new()
-	add_child(system)
+	manager.add_child(system)
 	await _pump()
 
 	return {
@@ -266,3 +272,20 @@ func test_movement_second_order_settles_quickly_after_input_release() -> void:
 
 	assert_true(body.velocity.x <= 1.5)
 	assert_almost_eq(movement.get_horizontal_dynamics_velocity().x, 0.0, 0.01)
+
+func test_movement_system_still_processes_without_input_nodepath_via_queries() -> void:
+	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
+	var movement: C_MovementComponent = context["movement"]
+	var input: C_InputComponent = context["input"]
+	var body: FakeBody = context["body"]
+	var system = context["system"]
+
+	movement.input_component_path = NodePath()
+
+	body.velocity = Vector3.ZERO
+	input.set_move_vector(Vector2.RIGHT)
+
+	system._physics_process(0.1)
+
+	assert_true(body.velocity.x > 0.0, "Movement System should use query_entities to retrieve input component when NodePath is missing.")

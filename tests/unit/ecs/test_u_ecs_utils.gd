@@ -67,9 +67,14 @@ func test_map_components_by_body_groups_components() -> void:
 		autofree(body)
 		bodies.append(body)
 
+		var entity := Node.new()
+		entity.name = "E_Floating_%d" % i
+		add_child(entity)
+		autofree(entity)
+
 		var floating := FLOATING_COMPONENT.new()
 		floating.settings = FLOATING_SETTINGS.new()
-		add_child(floating)
+		entity.add_child(floating)
 		autofree(floating)
 
 		floating.character_body_path = floating.get_path_to(body)

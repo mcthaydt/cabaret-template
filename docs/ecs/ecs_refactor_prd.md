@@ -1,6 +1,6 @@
 # ECS Architecture Refactor PRD
 
-**Owner**: Development Team | **Updated**: 2025-10-20
+**Owner**: Development Team | **Updated**: 2025-10-21
 
 ## Summary
 
@@ -8,7 +8,7 @@
 - **Problem**: Current ECS implementation blocks emergent gameplay with single-component queries, tight NodePath coupling between components, no event system for cross-system communication, and manual system execution ordering
 - **Success**: 100% of systems use multi-component queries, zero NodePath cross-references between components, <1ms query performance at 60fps, emergent gameplay interactions working (e.g., jump → dust particles → environmental reaction)
 - **Timeline**: 2-3 weeks for complete refactor across 4 batches
-- **Progress** (current): Stories 1.1–1.6 complete — `U_ECSUtils` centralizes manager/time/body helpers, `_validate_required_settings()` enforces component setup, `M_ECSManager.get_components()` prunes nulls, all systems consume the shared utilities; ECS suites passing via GUT `-gexit`
+- **Progress** (current): Stories 1.1–2.6 complete — `U_ECSUtils` centralizes manager/time/body helpers, `_validate_required_settings()` enforces component setup, `M_ECSManager.get_components()` prunes nulls, all systems consume the shared utilities, `EntityQuery` now wraps entity/component results, `M_ECSManager` tracks entity-to-component maps via `get_components_for_entity()`, `query_entities()` returns `EntityQuery` results for required/optional component sets, `S_MovementSystem`/`S_JumpSystem` consume those queries, and query caching keeps repeated lookups under budget (`tests/unit/ecs/test_ecs_manager.gd` via GUT `-gselect=test_ecs_manager -gexit`)
 
 ## Requirements
 

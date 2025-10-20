@@ -21,9 +21,15 @@ func _setup_context() -> Dictionary:
 	add_child(manager)
 	await _pump()
 
+	var entity := Node.new()
+	entity.name = "E_AlignTest"
+	manager.add_child(entity)
+	autofree(entity)
+	await _pump()
+
 	var component: C_AlignWithSurfaceComponent = ALIGN_COMPONENT.new()
 	component.settings = RS_AlignSettings.new()
-	add_child(component)
+	entity.add_child(component)
 	await _pump()
 
 	var body := FakeBody.new()
@@ -44,7 +50,7 @@ func _setup_context() -> Dictionary:
 	component.floating_component_path = component.get_path_to(floating)
 
 	var system: S_AlignWithSurfaceSystem = ALIGN_SYSTEM.new()
-	add_child(system)
+	manager.add_child(system)
 	await _pump()
 
 	return {

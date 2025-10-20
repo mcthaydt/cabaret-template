@@ -28,12 +28,18 @@ func _setup_entity() -> Dictionary:
 	add_child(manager)
 	await _pump()
 
+	var entity := Node.new()
+	entity.name = "E_InputTest"
+	manager.add_child(entity)
+	autofree(entity)
+	await _pump()
+
 	var component: C_InputComponent = InputComponentScript.new()
-	add_child(component)
+	entity.add_child(component)
 	await _pump()
 
 	var system = InputSystemScript.new()
-	add_child(system)
+	manager.add_child(system)
 	await _pump()
 
 	return {

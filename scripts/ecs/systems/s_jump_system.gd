@@ -3,22 +3,40 @@ extends ECSSystem
 class_name S_JumpSystem
 
 const JUMP_TYPE := StringName("C_JumpComponent")
+const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 
 func process_tick(_delta: float) -> void:
-	var now: float = ECS_UTILS.get_current_time()
-	var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(get_manager(), FLOATING_TYPE)
+	var manager := get_manager()
+	if manager == null:
+		return
 
-	for component in get_components(JUMP_TYPE):
+	var now: float = ECS_UTILS.get_current_time()
+	# Jump requires input; floating is optional to extend support windows.
+	var entities: Array = manager.query_entities(
+		[
+			JUMP_TYPE,
+			INPUT_TYPE,
+		],
+		[
+			FLOATING_TYPE,
+		]
+	)
+	var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, FLOATING_TYPE)
+
+	for entity_query in entities:
+		var component: C_JumpComponent = entity_query.get_component(JUMP_TYPE)
+		var input_component: C_InputComponent = entity_query.get_component(INPUT_TYPE)
+		if component == null or input_component == null:
+			continue
+
 		var body = component.get_character_body()
 		if body == null:
 			continue
 
-		var input_component = component.get_input_component()
-		if input_component == null:
-			continue
-
-		var floating_component: C_FloatingComponent = floating_by_body.get(body, null) as C_FloatingComponent
+		var floating_component: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
+		if floating_component == null:
+			floating_component = floating_by_body.get(body, null) as C_FloatingComponent
 		var floating_supported_now: bool = false
 		var has_floating_support: bool = false
 		if floating_component != null:

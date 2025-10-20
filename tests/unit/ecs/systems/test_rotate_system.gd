@@ -13,24 +13,30 @@ func _setup_entity() -> Dictionary:
     add_child(manager)
     await _pump()
 
+    var entity := Node.new()
+    entity.name = "E_RotateTest"
+    manager.add_child(entity)
+    autofree(entity)
+    await _pump()
+
     var rotate_component: C_RotateToInputComponent = RotateComponentScript.new()
     rotate_component.settings = RS_RotateToInputSettings.new()
-    add_child(rotate_component)
+    entity.add_child(rotate_component)
     await _pump()
 
     var input: C_InputComponent = InputComponentScript.new()
-    add_child(input)
+    entity.add_child(input)
     await _pump()
 
     var body := Node3D.new()
-    add_child(body)
+    entity.add_child(body)
     await _pump()
 
     rotate_component.target_node_path = rotate_component.get_path_to(body)
     rotate_component.input_component_path = rotate_component.get_path_to(input)
 
     var system: S_RotateToInputSystem = RotateSystemScript.new()
-    add_child(system)
+    manager.add_child(system)
     await _pump()
 
     return {

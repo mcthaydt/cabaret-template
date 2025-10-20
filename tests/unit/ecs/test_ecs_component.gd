@@ -42,6 +42,13 @@ func _spawn_manager() -> M_ECSManager:
 	autofree(manager)
 	return manager
 
+func _spawn_entity(name: String = "E_TestEntity") -> Node:
+	var entity := Node.new()
+	entity.name = name
+	add_child(entity)
+	autofree(entity)
+	return entity
+
 func _await_frame() -> void:
 	await get_tree().process_frame
 
@@ -49,8 +56,10 @@ func test_validation_failure_prevents_registration() -> void:
 	var manager := _spawn_manager()
 	await _await_frame()
 
+	var entity := _spawn_entity("E_InvalidHost")
+
 	var component := TestInvalidComponent.new()
-	manager.add_child(component)
+	entity.add_child(component)
 	autofree(component)
 	await _await_frame()
 
@@ -65,8 +74,10 @@ func test_validation_success_registers_component() -> void:
 	var manager := _spawn_manager()
 	await _await_frame()
 
+	var entity := _spawn_entity("E_ValidHost")
+
 	var component := TestValidComponent.new()
-	manager.add_child(component)
+	entity.add_child(component)
 	autofree(component)
 	await _await_frame()
 
@@ -79,8 +90,10 @@ func test_jump_component_requires_settings() -> void:
 	var manager := _spawn_manager()
 	await _await_frame()
 
+	var entity := _spawn_entity("E_JumpMissingSettings")
+
 	var jump := JUMP_COMPONENT.new()
-	manager.add_child(jump)
+	entity.add_child(jump)
 	autofree(jump)
 	await _await_frame()
 	assert_push_error("C_JumpComponent missing settings")
@@ -92,9 +105,11 @@ func test_jump_component_initializes_air_jump_count_on_validation() -> void:
 	var manager := _spawn_manager()
 	await _await_frame()
 
+	var entity := _spawn_entity("E_JumpValid")
+
 	var jump := JUMP_COMPONENT.new()
 	jump.settings = JUMP_SETTINGS.new()
-	manager.add_child(jump)
+	entity.add_child(jump)
 	autofree(jump)
 	await _await_frame()
 

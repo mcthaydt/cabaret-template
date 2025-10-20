@@ -85,36 +85,43 @@ func _setup_entity(max_distance: float = 10.0) -> Dictionary:
 	add_child(manager)
 	await _pump()
 
+	var entity := Node.new()
+	entity.name = "E_LandingIndicatorTest"
+	manager.add_child(entity)
+	autofree(entity)
+	await _pump()
+
 	var component: C_LandingIndicatorComponent = LandingIndicatorComponentScript.new()
 	component.settings = RS_LandingIndicatorSettings.new()
 	component.settings.max_projection_distance = max_distance
 	component.settings.ground_plane_height = 0.0
-	add_child(component)
+	entity.add_child(component)
 	await _pump()
 
 	var body: FakeBody = FakeBody.new()
-	add_child(body)
+	entity.add_child(body)
 	await _pump()
 	body.global_position = Vector3.ZERO
 	component.character_body_path = component.get_path_to(body)
 
 	var origin_marker: Node3D = Node3D.new()
-	add_child(origin_marker)
+	entity.add_child(origin_marker)
 	await _pump()
 	component.origin_marker_path = component.get_path_to(origin_marker)
 
 	var landing_marker: Node3D = Node3D.new()
 	landing_marker.visible = false
-	add_child(landing_marker)
+	entity.add_child(landing_marker)
 	await _pump()
 	component.landing_marker_path = component.get_path_to(landing_marker)
 
 	var system: S_LandingIndicatorSystem = TestLandingIndicatorSystem.new()
-	add_child(system)
+	manager.add_child(system)
 	await _pump()
 
 	return {
 		"manager": manager,
+		"entity": entity,
 		"component": component,
 		"body": body,
 		"system": system,
@@ -286,13 +293,15 @@ func test_landing_indicator_logs_when_visual_up_differs_from_hit_normal() -> voi
 	var body: FakeBody = context["body"] as FakeBody
 	var landing_system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
 	var marker: Node3D = context["landing_marker"] as Node3D
+	var entity: Node = context["entity"] as Node
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	# Create a visual and align component/system that will rotate the visual regardless of support
 	var align_component: C_AlignWithSurfaceComponent = ALIGN_COMPONENT.new()
 	align_component.settings = RS_AlignSettings.new()
 	align_component.settings.align_only_when_supported = false
 	align_component.settings.smoothing_speed = 0.0
-	add_child(align_component)
+	entity.add_child(align_component)
 	# Ensure this extra node is cleaned up after the test
 	autofree(align_component)
 	await _pump()
@@ -312,7 +321,7 @@ func test_landing_indicator_logs_when_visual_up_differs_from_hit_normal() -> voi
 	align_component.visual_alignment_path = align_component.get_path_to(visual)
 
 	var align_system: S_AlignWithSurfaceSystem = ALIGN_SYSTEM.new()
-	add_child(align_system)
+	manager.add_child(align_system)
 	# Ensure this extra system node is cleaned up after the test
 	autofree(align_system)
 	await _pump()

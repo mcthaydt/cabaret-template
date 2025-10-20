@@ -41,17 +41,23 @@ func _setup_entity() -> Dictionary:
 	add_child(manager)
 	await _pump()
 
+	var entity := Node.new()
+	entity.name = "E_FloatingTest"
+	manager.add_child(entity)
+	autofree(entity)
+	await _pump()
+
 	var component: C_FloatingComponent = FLOATING_COMPONENT.new()
 	component.settings = RS_FloatingSettings.new()
 	component.settings.hover_height = 1.5
 	component.settings.hover_frequency = 3.5
 	component.settings.damping_ratio = 1.0
 	component.settings.align_to_normal = true
-	add_child(component)
+	entity.add_child(component)
 	await _pump()
 
 	var body: FakeBody = FakeBody.new()
-	add_child(body)
+	entity.add_child(body)
 	await _pump()
 
 	component.character_body_path = component.get_path_to(body)
@@ -72,7 +78,7 @@ func _setup_entity() -> Dictionary:
 
 
 	var system: S_FloatingSystem = FLOATING_SYSTEM.new()
-	add_child(system)
+	manager.add_child(system)
 	await _pump()
 
 	return {

@@ -56,7 +56,7 @@ func set_landing_data(point: Vector3, normal: Vector3, visible: bool) -> void:
 	if landing_marker != null:
 		# Optionally align the marker's chosen axis to the hit normal
 		if settings != null and settings.align_to_hit_normal:
-			var basis_current: Basis = landing_marker.global_transform.basis.orthonormalized()
+			var _basis_current: Basis = landing_marker.global_transform.basis.orthonormalized()
 			var n: Vector3 = final_normal
 			var hint: Vector3 = Vector3.FORWARD
 			# Avoid parallel hint

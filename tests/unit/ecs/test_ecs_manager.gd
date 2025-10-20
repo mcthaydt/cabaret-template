@@ -21,6 +21,24 @@ class FakeSystem extends ECS_SYSTEM:
 	func process_tick(_delta: float) -> void:
 		observed_components = get_components(FakeComponent.TYPE)
 
+class QueryMovementComponent extends ECS_COMPONENT:
+	const TYPE := StringName("C_QueryMovementComponent")
+
+	func _init() -> void:
+		component_type = TYPE
+
+class QueryInputComponent extends ECS_COMPONENT:
+	const TYPE := StringName("C_QueryInputComponent")
+
+	func _init() -> void:
+		component_type = TYPE
+
+class QueryFloatingComponent extends ECS_COMPONENT:
+	const TYPE := StringName("C_QueryFloatingComponent")
+
+	func _init() -> void:
+		component_type = TYPE
+
 var _expected_component
 var _expected_manager
 var _added_calls := 0
@@ -42,8 +60,13 @@ func test_component_auto_registers_with_manager_on_ready() -> void:
 	autofree(manager)
 	await get_tree().process_frame
 
+	var entity := Node.new()
+	entity.name = "E_TestEntity"
+	add_child(entity)
+	autofree(entity)
+
 	var component := FakeComponent.new()
-	add_child(component)
+	entity.add_child(component)
 	autofree(component)
 	await get_tree().process_frame
 
@@ -70,7 +93,13 @@ func test_register_component_adds_to_lookup() -> void:
 	add_child(manager)
 	autofree(manager)
 
+	var entity := Node.new()
+	entity.name = "E_ManualRegister"
+	add_child(entity)
+	autofree(entity)
+
 	var component := FakeComponent.new()
+	entity.add_child(component)
 	autofree(component)
 	manager.register_component(component)
 
@@ -84,7 +113,13 @@ func test_register_component_emits_signals() -> void:
 	add_child(manager)
 	autofree(manager)
 
+	var entity := Node.new()
+	entity.name = "E_SignalEntity"
+	add_child(entity)
+	autofree(entity)
+
 	var component := FakeComponent.new()
+	entity.add_child(component)
 	autofree(component)
 	_expected_component = component
 	_expected_manager = manager
@@ -109,7 +144,13 @@ func test_register_system_configures_and_queries_components() -> void:
 	add_child(manager)
 	autofree(manager)
 
+	var entity := Node.new()
+	entity.name = "E_SystemEntity"
+	add_child(entity)
+	autofree(entity)
+
 	var component := FakeComponent.new()
+	entity.add_child(component)
 	autofree(component)
 	manager.register_component(component)
 
@@ -126,7 +167,13 @@ func test_get_components_filters_null_entries() -> void:
 	add_child(manager)
 	autofree(manager)
 
+	var entity := Node.new()
+	entity.name = "E_FilterEntity"
+	add_child(entity)
+	autofree(entity)
+
 	var component := FakeComponent.new()
+	entity.add_child(component)
 	autofree(component)
 	manager.register_component(component)
 
@@ -173,3 +220,253 @@ func test_base_scene_systems_register_with_manager() -> void:
 
 	var systems: Array = manager.get_systems()
 	assert_true(systems.size() >= 1, "Expected systems to auto-register in base scene")
+
+func test_register_component_tracks_entity_components() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var entity := Node.new()
+	entity.name = "E_TestEntity"
+	add_child(entity)
+	autofree(entity)
+
+	var component := FakeComponent.new()
+	component.name = "C_FakeComponent"
+	entity.add_child(component)
+	autofree(component)
+
+	manager.register_component(component)
+
+	var tracked: Dictionary = manager.get_components_for_entity(entity)
+	assert_true(tracked.has(FakeComponent.TYPE))
+	assert_eq(tracked[FakeComponent.TYPE], component)
+
+func test_unregister_component_removes_entity_tracking() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var entity := Node.new()
+	entity.name = "E_Tracked"
+	add_child(entity)
+	autofree(entity)
+
+	var component := FakeComponent.new()
+	component.name = "C_FakeComponent"
+	entity.add_child(component)
+	autofree(component)
+
+	manager.register_component(component)
+	var tracked_before: Dictionary = manager.get_components_for_entity(entity)
+	assert_true(tracked_before.has(FakeComponent.TYPE))
+
+	manager.unregister_component(component)
+
+	var tracked_after: Dictionary = manager.get_components_for_entity(entity)
+	assert_false(tracked_after.has(FakeComponent.TYPE))
+	assert_true(tracked_after.is_empty())
+
+func test_register_component_without_entity_logs_error() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var container := Node.new()
+	container.name = "Container"
+	add_child(container)
+	autofree(container)
+
+	var component := FakeComponent.new()
+	component.name = "C_FakeComponent"
+	container.add_child(component)
+	autofree(component)
+
+	manager.register_component(component)
+	assert_push_error("M_ECSManager: Component C_FakeComponent has no entity root ancestor")
+
+	var tracked: Dictionary = manager.get_components_for_entity(container)
+	assert_true(tracked.is_empty())
+
+func _spawn_query_entity(
+	manager: M_ECSManager,
+	name: String,
+	include_movement: bool,
+	include_input: bool = false,
+	include_floating: bool = false
+) -> Dictionary:
+	var entity := Node.new()
+	entity.name = name
+	add_child(entity)
+	autofree(entity)
+
+	var components: Dictionary = {}
+
+	if include_movement:
+		var movement := QueryMovementComponent.new()
+		entity.add_child(movement)
+		autofree(movement)
+		manager.register_component(movement)
+		components[QueryMovementComponent.TYPE] = movement
+
+	if include_input:
+		var input := QueryInputComponent.new()
+		entity.add_child(input)
+		autofree(input)
+		manager.register_component(input)
+		components[QueryInputComponent.TYPE] = input
+
+	if include_floating:
+		var floating := QueryFloatingComponent.new()
+		entity.add_child(floating)
+		autofree(floating)
+		manager.register_component(floating)
+		components[QueryFloatingComponent.TYPE] = floating
+
+	return {
+		"entity": entity,
+		"components": components,
+	}
+
+func test_query_entities_with_single_required_component() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var entity_a := _spawn_query_entity(manager, "E_QuerySingleA", true)
+	var entity_b := _spawn_query_entity(manager, "E_QuerySingleB", true, true)
+	var entity_c := _spawn_query_entity(manager, "E_QuerySingleC", true, false, true)
+	_spawn_query_entity(manager, "E_QuerySingleD", false, true)
+
+	var results: Array = manager.query_entities([QueryMovementComponent.TYPE])
+	assert_eq(results.size(), 3)
+
+	var expected := {
+		entity_a["entity"]: entity_a["components"][QueryMovementComponent.TYPE],
+		entity_b["entity"]: entity_b["components"][QueryMovementComponent.TYPE],
+		entity_c["entity"]: entity_c["components"][QueryMovementComponent.TYPE],
+	}
+
+	for query in results:
+		var entity: Node = query.entity
+		assert_true(expected.has(entity), "Unexpected entity returned from query")
+		var movement: ECSComponent = query.get_component(QueryMovementComponent.TYPE)
+		assert_eq(movement, expected[entity])
+		expected.erase(entity)
+
+	assert_true(expected.is_empty())
+
+func test_query_entities_with_multiple_required_components() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var entity_a := _spawn_query_entity(manager, "E_QueryMultiA", true, true)
+	_spawn_query_entity(manager, "E_QueryMultiB", true)
+	var entity_c := _spawn_query_entity(manager, "E_QueryMultiC", true, true, true)
+
+	var results: Array = manager.query_entities([
+		QueryMovementComponent.TYPE,
+		QueryInputComponent.TYPE,
+	])
+
+	assert_eq(results.size(), 2)
+
+	var expected_entities := {
+		entity_a["entity"]: true,
+		entity_c["entity"]: true,
+	}
+
+	for query in results:
+		var entity: Node = query.entity
+		assert_true(expected_entities.has(entity))
+		assert_not_null(query.get_component(QueryMovementComponent.TYPE))
+		assert_not_null(query.get_component(QueryInputComponent.TYPE))
+		assert_false(query.has_component(QueryFloatingComponent.TYPE))
+		expected_entities.erase(entity)
+
+	assert_true(expected_entities.is_empty())
+
+func test_query_entities_with_optional_components() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var entity_a := _spawn_query_entity(manager, "E_QueryOptionalA", true, true)
+	var entity_b := _spawn_query_entity(manager, "E_QueryOptionalB", true, true, true)
+
+	var results: Array = manager.query_entities(
+		[
+			QueryMovementComponent.TYPE,
+			QueryInputComponent.TYPE,
+		],
+		[
+			QueryFloatingComponent.TYPE,
+		]
+	)
+
+	assert_eq(results.size(), 2)
+
+	var entities_with_optional: Array = []
+	for query in results:
+		assert_not_null(query.get_component(QueryMovementComponent.TYPE))
+		assert_not_null(query.get_component(QueryInputComponent.TYPE))
+
+		if query.has_component(QueryFloatingComponent.TYPE):
+			entities_with_optional.append(query.entity)
+			var expected_component: ECSComponent = entity_b["components"][QueryFloatingComponent.TYPE]
+			assert_eq(query.get_component(QueryFloatingComponent.TYPE), expected_component)
+		else:
+			assert_eq(query.entity, entity_a["entity"])
+
+	assert_eq(entities_with_optional.size(), 1)
+	assert_true(entities_with_optional.has(entity_b["entity"]))
+
+func test_query_entities_reuses_entity_queries_from_cache() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var entity_a := _spawn_query_entity(manager, "E_CacheA", true, true)
+
+	var first: Array = manager.query_entities([
+		QueryMovementComponent.TYPE,
+		QueryInputComponent.TYPE,
+	])
+	var second: Array = manager.query_entities([
+		QueryMovementComponent.TYPE,
+		QueryInputComponent.TYPE,
+	])
+
+	assert_eq(first.size(), 1)
+	assert_eq(second.size(), 1)
+	assert_true(first[0] == second[0])
+
+func test_query_entities_cache_invalidates_when_new_entity_registered() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var entity_a := _spawn_query_entity(manager, "E_CacheInvalidateA", true, true)
+
+	var initial: Array = manager.query_entities([
+		QueryMovementComponent.TYPE,
+		QueryInputComponent.TYPE,
+	])
+	assert_eq(initial.size(), 1)
+
+	var entity_b := _spawn_query_entity(manager, "E_CacheInvalidateB", true, true)
+
+	var subsequent: Array = manager.query_entities([
+		QueryMovementComponent.TYPE,
+		QueryInputComponent.TYPE,
+	])
+
+	assert_eq(subsequent.size(), 2)
+	var found_new := false
+	for query in subsequent:
+		if query.entity == entity_b["entity"]:
+			found_new = true
+			break
+
+	assert_true(found_new)

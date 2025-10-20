@@ -1,6 +1,6 @@
 # ECS Architecture Refactor Plan
 
-**Last Updated**: 2025-10-20
+**Last Updated**: 2025-10-21
 
 **Development Methodology**: Test-First Development (New Features) + Test-After (Refactors)
 
@@ -78,12 +78,12 @@ Epic 1 – Code Quality Refactors (15 points)
 
 Epic 2 – Multi-Component Query System (18 points)
 
-- [ ] Story 2.1: Implement EntityQuery class (3 points)
-- [ ] Story 2.2: Implement entity-component tracking in M_ECSManager (4 points)
-- [ ] Story 2.3: Implement M_ECSManager.query_entities() (5 points)
-- [ ] Story 2.4: Migrate S_MovementSystem to query-based approach (2 points)
-- [ ] Story 2.5: Migrate S_JumpSystem to query-based approach (2 points)
-- [ ] Story 2.6: Performance optimization and caching (2 points)
+- [x] Story 2.1: Implement EntityQuery class (3 points) — Added `scripts/ecs/entity_query.gd` with encapsulated component accessors and coverage via `tests/unit/ecs/test_entity_query.gd` (GUT `-gselect=test_entity_query -gexit`)
+- [x] Story 2.2: Implement entity-component tracking in M_ECSManager (4 points) — Introduced `_entity_component_map`, entity lookup helpers, and `get_components_for_entity()` with regression coverage in `tests/unit/ecs/test_ecs_manager.gd` (GUT `-gselect=test_ecs_manager -gexit`)
+- [x] Story 2.3: Implement M_ECSManager.query_entities() (5 points) — Added multi-component query API backed by entity tracking, plus new GUT coverage for required/optional component combinations in `tests/unit/ecs/test_ecs_manager.gd` (GUT `-gselect=test_ecs_manager -gexit`)
+- [x] Story 2.4: Migrate S_MovementSystem to query-based approach (2 points) — Refactored `s_movement_system.gd` to consume `query_entities()` and optional floating components; strengthened coverage with `tests/unit/ecs/systems/test_movement_system.gd` (GUT `-gselect=test_movement_system -gexit`)
+- [x] Story 2.5: Migrate S_JumpSystem to query-based approach (2 points) — S_JumpSystem now queries jump/input pairs with optional floating support; tests updated to use entity roots and include a NodePath-less scenario (`tests/unit/ecs/systems/test_jump_system.gd`, GUT `-gselect=test_jump_system -gexit`)
+- [x] Story 2.6: Performance optimization and caching (2 points) — Added query result caching with automatic invalidation in `M_ECSManager`; new manager tests cover reuse and invalidation (`tests/unit/ecs/test_ecs_manager.gd`, GUT `-gselect=test_ecs_manager -gexit`)
 
 Epic 3 – Event Bus System (8 points)
 
@@ -546,41 +546,43 @@ func has_component(type: StringName) -> bool:
 
 **TDD Cycle 1: Entity-Component Map - Registration**
 
-- [ ] 2.1a – RED: Write test for entity-component map on registration
-- Add to test_m_ecs_manager.gd: `test_register_component_updates_entity_map()`
+- [x] 2.1a – RED: Write test for entity-component map on registration
+- Added to `tests/unit/ecs/test_ecs_manager.gd`: `test_register_component_tracks_entity_components()`
   - Arrange: M_ECSManager, E_* root node (scene organization) with C_MovementComponent
   - Act: Register C_MovementComponent
   - Assert: Manager's entity map has entry {E_* root: {"C_MovementComponent": component}}
 
-- [ ] 2.1b – GREEN: Implement entity-component tracking on registration
-- Modify `scripts/managers/m_ecs_manager.gd`
-- Add property: `var _entity_component_map: Dictionary = {}`  # Node → Dictionary[StringName, Component]
-- Update register_component():
+- [x] 2.1b – GREEN: Implement entity-component tracking on registration
+- Modified `scripts/managers/m_ecs_manager.gd`
+- Added property: `_entity_component_map`  (Node → Dictionary[StringName, ECSComponent]) plus entity metadata helpers
+- Updated `register_component()`:
 ```gdscript
 func register_component(component: ECSComponent) -> void:
-    var component_type = component.COMPONENT_TYPE
+    if component == null:
+        push_warning("Attempted to register a null component")
+        return
 
-    # Existing: Add to type-based registry
-    if not _components.has(component_type):
-        _components[component_type] = []
-    _components[component_type].append(component)
+    var type_name: StringName = component.get_component_type()
+    if not _components.has(type_name):
+        _components[type_name] = []
 
-    # NEW: Add to entity-component map
-    var entity = _get_entity_for_component(component)
-    if entity != null:
-        if not _entity_component_map.has(entity):
-            _entity_component_map[entity] = {}
-        _entity_component_map[entity][component_type] = component
+    var existing: Array = _components[type_name]
+    if existing.has(component):
+        return
 
-    registered.emit(component)
+    existing.append(component)
+    _track_component(component, type_name)
+
+    component.on_registered(self)
+    component_added.emit(type_name, component)
 ```
 
-- [ ] 2.1c – VERIFY: Run tests, confirm GREEN
+- [x] 2.1c – VERIFY: Run tests, confirm GREEN (`/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gselect=test_ecs_manager -gexit`)
 
 **TDD Cycle 2: Entity Detection Helper**
 
-- [ ] 2.2a – RED: Write test for _get_entity_for_component
-- Test: `test_get_entity_for_component_finds_e_root_parent()`
+- [x] 2.2a – RED: Write test for _get_entity_for_component
+- Covered via `test_register_component_tracks_entity_components()` (positive path) and `test_register_component_without_entity_logs_error()` (negative path)
   - Arrange: E_* root node → Components (Node) → C_MovementComponent
   - Act: Call _get_entity_for_component(movement_component)
   - Assert: Returns E_* root node
@@ -602,193 +604,73 @@ func _get_entity_for_component(component: ECSComponent) -> Node:
         current = current.get_parent()
 
     # Strict mode: Error if no E_* root found
-    push_error("ECSManager: Component %s has no E_* root parent. Components must be under E_* scene organization nodes." % component.name)
+    push_error("M_ECSManager: Component %s has no entity root ancestor" % component.name)
     return null
 ```
 
-- [ ] 2.2c – VERIFY: Run tests, confirm GREEN
+- [x] 2.2c – VERIFY: Run tests, confirm GREEN (`-gselect=test_ecs_manager -gexit`)
 
 **TDD Cycle 3: Entity-Component Map - Unregistration**
 
-- [ ] 2.3a – RED: Write test for entity-component map on unregistration
-- Test: `test_unregister_component_removes_from_entity_map()`
+- [x] 2.3a – RED: Write test for entity-component map on unregistration
+- Added to `tests/unit/ecs/test_ecs_manager.gd`: `test_unregister_component_removes_entity_tracking()`
   - Arrange: Registered component in entity map
   - Act: Unregister component
   - Assert: Component removed from entity map
 
-- [ ] 2.3b – GREEN: Update unregister_component
-- Modify unregister_component() to also remove from _entity_component_map
+- [x] 2.3b – GREEN: Update unregister_component
+- Updated `unregister_component()` to call `_untrack_component()` and clear empty entity entries
 
-- [ ] 2.3c – VERIFY: Run tests, confirm GREEN
+- [x] 2.3c – VERIFY: Run tests, confirm GREEN (`-gselect=test_ecs_manager -gexit`)
 
----
+- Aligned existing ECS test fixtures (`test_ecs_component.gd`, `test_u_ecs_utils.gd`) with the new E_* entity root requirement so auto-registration remains valid.
 
-- [ ] Step 3 – Implement M_ECSManager.query_entities()
+
+- [x] Step 3 – Implement M_ECSManager.query_entities()
 
 **TDD Cycle 1: query_entities() - Single Required Component**
 
-- [ ] 3.1a – RED: Write test for single required component query
-- Test: `test_query_entities_with_single_required_component()`
-  - Arrange: 3 entities with C_MovementComponent, 2 entities without
-  - Act: Call query_entities([C_MovementComponent.COMPONENT_TYPE])
-  - Assert: Returns 3 EntityQuery objects
-
-- [ ] 3.1b – GREEN: Implement basic query_entities
-- Add to m_ecs_manager.gd:
-```gdscript
-func query_entities(
-    required: Array[StringName],
-    optional: Array[StringName] = []
-) -> Array[EntityQuery]:
-    var results: Array[EntityQuery] = []
-
-    # For single required component, iterate entities with that component
-    if required.size() == 1:
-        var component_type = required[0]
-        for component in get_components(component_type):
-            var entity = _get_entity_for_component(component)
-            if entity == null: continue
-
-            var entity_components = {}
-            entity_components[component_type] = component
-
-            var query = EntityQuery.new(entity, entity_components)
-            results.append(query)
-
-    return results
-```
-
-- [ ] 3.1c – VERIFY: Run tests, confirm GREEN
+- [x] 3.1a – RED: Added `test_query_entities_with_single_required_component()` in `tests/unit/ecs/test_ecs_manager.gd`, introducing lightweight mock components (`QueryMovementComponent`, `_spawn_query_entity()` helper) to outline the expected results.
+- [x] 3.1b – GREEN: Implemented `query_entities()` in `scripts/managers/m_ecs_manager.gd`, including `_get_smallest_component_type()` selection and entity de-duplication via `_entity_component_map`.
+- [x] 3.1c – VERIFY: `Godot --headless ... -gselect=test_ecs_manager -gexit`
 
 **TDD Cycle 2: query_entities() - Multiple Required Components**
 
-- [ ] 3.2a – RED: Write test for multiple required components
-- Test: `test_query_entities_with_multiple_required_components()`
-  - Arrange:
-    - Entity 1: C_Movement + C_Input
-    - Entity 2: C_Movement only
-    - Entity 3: C_Movement + C_Input + C_Floating
-  - Act: Call query_entities([C_MovementComponent.COMPONENT_TYPE, C_InputComponent.COMPONENT_TYPE])
-  - Assert: Returns 2 EntityQuery objects (Entity 1 and Entity 3, NOT Entity 2)
-
-- [ ] 3.2b – GREEN: Implement multi-component query
-- Update query_entities() to handle multiple required components:
-```gdscript
-func query_entities(
-    required: Array[StringName],
-    optional: Array[StringName] = []
-) -> Array[EntityQuery]:
-    var results: Array[EntityQuery] = []
-
-    # Start with smallest component set for performance
-    var smallest_type = _get_smallest_component_set(required)
-    var candidate_components = get_components(smallest_type)
-
-    for component in candidate_components:
-        var entity = _get_entity_for_component(component)
-        if entity == null: continue
-
-        # Check if entity has ALL required components
-        if not _entity_component_map.has(entity):
-            continue
-
-        var entity_comps = _entity_component_map[entity]
-        var has_all_required = true
-        for req_type in required:
-            if not entity_comps.has(req_type):
-                has_all_required = false
-                break
-
-        if not has_all_required:
-            continue
-
-        # Build component dictionary for EntityQuery
-        var query_components = {}
-        for req_type in required:
-            query_components[req_type] = entity_comps[req_type]
-
-        var query = EntityQuery.new(entity, query_components)
-        results.append(query)
-
-    return results
-
-func _get_smallest_component_set(types: Array[StringName]) -> StringName:
-    """Return component type with fewest instances (optimization)"""
-    var smallest_type = types[0]
-    var smallest_count = get_components(smallest_type).size()
-
-    for type in types:
-        var count = get_components(type).size()
-        if count < smallest_count:
-            smallest_count = count
-            smallest_type = type
-
-    return smallest_type
-```
-
-- [ ] 3.2c – VERIFY: Run tests, confirm GREEN
+- [x] 3.2a – RED: Extended the manager test suite with `test_query_entities_with_multiple_required_components()` to ensure entities missing any required component are excluded.
+- [x] 3.2b – GREEN: Expanded `query_entities()` to validate all required component types per entity before creating an `EntityQuery`.
+- [x] 3.2c – VERIFY: `-gselect=test_ecs_manager -gexit`
 
 **TDD Cycle 3: query_entities() - Optional Components**
 
-- [ ] 3.3a – RED: Write test for optional components
-- Test: `test_query_entities_with_optional_components()`
-  - Arrange:
-    - Entity 1: C_Movement + C_Input
-    - Entity 2: C_Movement + C_Input + C_Floating
-  - Act: Call query_entities([C_Movement, C_Input], [C_Floating])
-  - Assert: Returns 2 EntityQuery objects
-    - Entity 1: has_component(C_Floating) == false
-    - Entity 2: has_component(C_Floating) == true
+- [x] 3.3a – RED: Added `test_query_entities_with_optional_components()` to assert optional components populate the query when requested while remaining absent otherwise.
+- [x] 3.3b – GREEN: Updated `query_entities()` to merge optional components into the returned snapshot when present.
+- [x] 3.3c – VERIFY: `-gselect=test_ecs_manager -gexit`; confirmed broader coverage with the full ECS suite (`-gdir=res://tests/unit/ecs -gexit`)
 
-- [ ] 3.3b – GREEN: Implement optional component handling
-- Update query_entities() to include optional components in EntityQuery:
-```gdscript
-# After building required components...
-for opt_type in optional:
-    if entity_comps.has(opt_type):
-        query_components[opt_type] = entity_comps[opt_type]
-```
+**Notes**
 
-- [ ] 3.3c – VERIFY: Run tests, confirm GREEN
+- Added `_spawn_query_entity()` helper in `test_ecs_manager.gd` so future query scenarios can be composed quickly with named `E_*` entities.
+- Caching/perf optimisations remain open (tracked under Story 2.6 / Step 3.4).
 
 **TDD Cycle 4: Performance - Query Caching (Optional)**
 
-- [ ] 3.4a – RED: Write test for query performance
-- Test: `test_query_entities_performance_under_1ms()`
-  - Arrange: 100 entities with 7 components each
-  - Act: Call query_entities([C_Movement, C_Input]) 60 times (simulate 1 second at 60fps)
-  - Assert: Average query time <1ms
+- [x] 3.4a – RED: Augmented `tests/unit/ecs/test_ecs_manager.gd` with cache-focused cases (`test_query_entities_reuses_entity_queries_from_cache`, `test_query_entities_cache_invalidates_when_new_entity_registered`).
+- [x] 3.4b – GREEN: Implemented `_query_cache` within `M_ECSManager`, including canonical cache keys and invalidation hooks in `_track_component`, `_untrack_component`, and entity removal logic.
+- [x] 3.4c – VERIFY: `Godot --headless ... -gdir=res://tests/unit/ecs -gselect=test_ecs_manager -gexit`; validated against full ECS suites to ensure no regressions.
 
-- [ ] 3.4b – GREEN: Optimize query_entities if needed
-- Profile query execution
-- Add caching if performance target not met
+**Notes**
 
-- [ ] 3.4c – VERIFY: Run tests, confirm GREEN
+- System unit tests now register components under `E_*` entity roots to ensure compatibility with entity-component tracking and cache invalidation.
+- Query caching returns shared `EntityQuery` instances via shallowly duplicated arrays, preventing repeated allocations while preserving caller isolation.
 
 ---
 
-- [ ] Step 3.5 – Add query_entities() Passthrough to ECSSystem
+- [x] Step 3.5 – Add query_entities() Passthrough to ECSSystem
 
 **TDD Cycle 1: ECSSystem.query_entities() Convenience Method**
 
-- [ ] 3.5a – RED: Write test for passthrough
-- Add to `tests/unit/ecs/test_ecs_system.gd`: `test_query_entities_passthrough()`
-  - Arrange: Test system extending ECSSystem, M_ECSManager with registered components
-  - Act: Call system.query_entities([C_Movement])
-  - Assert: Returns same result as manager.query_entities([C_Movement])
-
-- [ ] 3.5b – GREEN: Implement passthrough in ECSSystem
-- Modify `scripts/ecs/ecs_system.gd`:
-```gdscript
-func query_entities(
-    required: Array[StringName],
-    optional: Array[StringName] = []
-) -> Array[EntityQuery]:
-    """Convenience method - delegates to manager's query_entities"""
-    return get_manager().query_entities(required, optional)
-```
-
-- [ ] 3.5c – VERIFY: Run tests, confirm GREEN
+- [x] 3.5a – RED: Added `tests/unit/ecs/test_ecs_system.gd` with `test_query_entities_passthrough_matches_manager_results()` to assert systems receive identical results when calling the convenience method.
+- [x] 3.5b – GREEN: Implemented `query_entities()` passthrough in `scripts/ecs/ecs_system.gd`, defending against missing managers.
+- [x] 3.5c – VERIFY: `Godot --headless ... -gdir=res://tests/unit/ecs -gselect=test_ecs_system -gexit`; full ECS suite remains green.
 
 **Rationale**: Systems can now call `query_entities([...])` directly instead of `get_manager().query_entities([...])`. Reduces boilerplate, consistent with existing `get_components()` pattern.
 
@@ -798,64 +680,19 @@ func query_entities(
 
 **TDD Cycle 1: Update S_MovementSystem to use query_entities()**
 
-- [ ] 4.1a – RED: Write test for S_MovementSystem with queries
-- Modify existing `tests/unit/ecs/test_s_movement_system.gd`
-- Test: `test_movement_system_uses_query_entities()`
-  - Arrange: Scene with entity having C_Movement + C_Input
-  - Act: Call system.process_tick(delta)
-  - Assert: System processes entity correctly (no errors, movement applied)
-
-- [ ] 4.1b – GREEN: Refactor S_MovementSystem
-- Modify `scripts/ecs/systems/s_movement_system.gd`:
-```gdscript
-# BEFORE:
-func process_tick(delta: float) -> void:
-    var movement_components = get_components(C_MovementComponent.COMPONENT_TYPE)
-    for movement_comp in movement_components:
-        var input_comp = movement_comp.get_input_component()  # NodePath lookup
-        if input_comp == null: continue
-        # ...
-
-# AFTER:
-func process_tick(delta: float) -> void:
-    var entities = query_entities(
-        [C_MovementComponent.COMPONENT_TYPE, C_InputComponent.COMPONENT_TYPE],
-        [C_FloatingComponent.COMPONENT_TYPE]
-    )
-
-    for entity in entities:
-        var movement_comp = entity.get_component(C_MovementComponent.COMPONENT_TYPE)
-        var input_comp = entity.get_component(C_InputComponent.COMPONENT_TYPE)
-        var body = entity.entity
-
-        # Optional floating check
-        var is_supported = entity.has_component(C_FloatingComponent.COMPONENT_TYPE)
-
-        # Process movement...
-```
-
-- [ ] 4.1c – VERIFY: Run tests, confirm GREEN
-- Run ALL S_MovementSystem tests (existing + new)
-- Verify no regressions
+- [x] 4.1a – RED: Augmented `tests/unit/ecs/systems/test_movement_system.gd` so components live under `E_*` roots and added `test_movement_system_still_processes_without_input_nodepath_via_queries()` (fails until NodePath coupling is removed).
+- [x] 4.1b – GREEN: Refactored `scripts/ecs/systems/s_movement_system.gd` to gather movement/input pairs via `query_entities()` with optional floating support and fallbacks.
+- [x] 4.1c – VERIFY: `Godot --headless ... -gdir=res://tests/unit/ecs/systems -gselect=test_movement_system -gexit`, and full ECS suite `-gdir=res://tests/unit/ecs -gexit` remained green.
 
 ---
 
-- [ ] Step 5 – Migrate S_JumpSystem to Query-Based Approach
+- [x] Step 5 – Migrate S_JumpSystem to Query-Based Approach
 
 **TDD Cycle 1: Update S_JumpSystem to use query_entities()**
 
-- [ ] 5.1a – RED: Write test for S_JumpSystem with queries
-- Modify `tests/unit/ecs/test_s_jump_system.gd`
-- Test: `test_jump_system_uses_query_entities()`
-  - Arrange: Scene with entity having C_Jump + C_Input
-  - Act: Call system.process_tick(delta)
-  - Assert: System processes jump correctly
-
-- [ ] 5.1b – GREEN: Refactor S_JumpSystem
-- Modify `scripts/ecs/systems/s_jump_system.gd` to use query_entities()
-- Remove _build_floating_map() (use optional component check instead)
-
-- [ ] 5.1c – VERIFY: Run tests, confirm GREEN
+- [x] 5.1a – RED: Updated `tests/unit/ecs/systems/test_jump_system.gd` to register components under an `E_*` entity and added `test_jump_system_handles_missing_input_nodepath_via_queries()` to enforce query-based lookup.
+- [x] 5.1b – GREEN: Refactored `scripts/ecs/systems/s_jump_system.gd` to query jump/input pairs with optional floating support, falling back to `map_components_by_body()` only when the optional component is absent.
+- [x] 5.1c – VERIFY: `Godot --headless ... -gdir=res://tests/unit/ecs/systems -gselect=test_jump_system -gexit` plus the full ECS suite.
 
 ---
 
