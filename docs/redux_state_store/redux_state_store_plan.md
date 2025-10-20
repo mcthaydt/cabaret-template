@@ -119,7 +119,7 @@ Testing & Documentation (8 points)
 
 | Plan Reference | Actual Codebase Path | Class Name |
 |----------------|----------------------|------------|
-| `store.gd` / `StateStore` | `scripts/state/m_state_manager.gd` | `M_StateManager` |
+| `store.gd` / `StateStore` | `scripts/managers/m_state_manager.gd` | `M_StateManager` |
 | `store_utils.gd` / `StateStoreUtils` | `scripts/state/u_state_store_utils.gd` | `U_StateStoreUtils` |
 | `action.gd` | `scripts/state/u_action_utils.gd` | `U_ActionUtils` |
 | `reducer.gd` | `scripts/state/u_reducer_utils.gd` | `U_ReducerUtils` |
@@ -163,7 +163,7 @@ Note: Schema is codified by built-in reducers (`GameReducer`, `UiReducer`, `EcsR
 
 - [x] Step 2 – Implement Core Store Infrastructure (TDD Method-Level)
 
-**✅ IMPLEMENTATION STATUS**: Complete (as `M_StateManager` in `scripts/state/m_state_manager.gd`)
+**✅ IMPLEMENTATION STATUS**: Complete (as `M_StateManager` in `scripts/managers/m_state_manager.gd`)
 
 **Key Differences from Plan**:
 

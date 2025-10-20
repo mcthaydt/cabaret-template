@@ -1,7 +1,7 @@
 [gd_scene load_steps=20 format=3 uid="uid://cyu3l6we2jq23"]
 
-[ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://icon.svg" id="1_5osnb"]
 [ext_resource type="Script" uid="uid://d36j5mo07i17x" path="res://scripts/ecs/components/c_movement_component.gd" id="1_6m9bm"]
+[ext_resource type="Texture2D" uid="uid://dm23qd3lalkrv" path="res://textures/tex_shadow_blob.png" id="1_m3alx"]
 [ext_resource type="Script" uid="uid://cldnaejkg7ra7" path="res://scripts/ecs/components/c_jump_component.gd" id="2_h3hux"]
 [ext_resource type="Script" uid="uid://cumipnxuxkm8f" path="res://scripts/ecs/components/c_input_component.gd" id="3_2fo1m"]
 [ext_resource type="Script" uid="uid://d02wpwm34v7kw" path="res://scripts/ecs/components/c_rotate_to_input_component.gd" id="4_4etni"]
@@ -9,10 +9,10 @@
 [ext_resource type="Script" uid="uid://bs586pbw4m8tl" path="res://scripts/ecs/components/c_align_with_surface_component.gd" id="6_xa0wx"]
 [ext_resource type="Script" uid="uid://citmvsgdb06yp" path="res://scripts/ecs/components/c_landing_indicator_component.gd" id="8_weo2m"]
 [ext_resource type="Resource" uid="uid://biqv1v05phrab" path="res://resources/movement_default.tres" id="9_mov"]
-[ext_resource type="Resource" path="res://resources/jump_default.tres" id="10_jump"]
+[ext_resource type="Resource" uid="uid://d3rd1yrnw18bj" path="res://resources/jump_default.tres" id="10_jump"]
 [ext_resource type="Resource" uid="uid://dtjqohqt1rl7s" path="res://resources/rotate_default.tres" id="11_rot"]
 [ext_resource type="Resource" uid="uid://boa7uhyoi17xk" path="res://resources/floating_default.tres" id="12_float"]
-[ext_resource type="Resource" path="res://resources/align_default.tres" id="13_align"]
+[ext_resource type="Resource" uid="uid://br8n2abjmhiyf" path="res://resources/align_default.tres" id="13_align"]
 [ext_resource type="Resource" uid="uid://cwvcfu1vgo7vr" path="res://resources/landing_indicator_default.tres" id="14_land"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_6mvan"]
@@ -48,8 +48,9 @@ mesh = SubResource("BoxMesh_yiwtw")
 surface_material_override/0 = SubResource("StandardMaterial3D_yiwtw")
 
 [node name="GroundIndicator" type="Sprite3D" parent="Player_Body/Body_Mesh"]
-transform = Transform3D(1, 0, 0, 0, -7.920765e-08, -1.8120599, 0, 1, -4.371139e-08, 0, -2.3227184, 0)
-texture = ExtResource("1_5osnb")
+transform = Transform3D(0.2, 0, 0, 0, -8.742278e-09, -0.2, 0, 0.2, -8.742278e-09, 0, -2.3227184, 0)
+modulate = Color(1, 1, 1, 0.49803922)
+texture = ExtResource("1_m3alx")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player_Body"]
 shape = SubResource("CapsuleShape3D_16kfq")

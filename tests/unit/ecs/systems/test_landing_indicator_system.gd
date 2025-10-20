@@ -1,6 +1,6 @@
 extends BaseTest
 
-const ECS_MANAGER := preload("res://scripts/ecs/m_ecs_manager.gd")
+const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const LandingIndicatorComponentScript := preload("res://scripts/ecs/components/c_landing_indicator_component.gd")
 const LandingIndicatorSystemScript := preload("res://scripts/ecs/systems/s_landing_indicator_system.gd")
 const ALIGN_COMPONENT := preload("res://scripts/ecs/components/c_align_with_surface_component.gd")

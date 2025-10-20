@@ -5,12 +5,12 @@
 [ext_resource type="Script" uid="uid://c7f8tpfqd0320" path="res://scripts/ecs/systems/s_gravity_system.gd" id="3_xnqit"]
 [ext_resource type="Script" uid="uid://bcpm6jeqaxtbi" path="res://scripts/ecs/systems/s_movement_system.gd" id="4_vry44"]
 [ext_resource type="Script" uid="uid://ba0wm6iff21wh" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
-[ext_resource type="Script" uid="uid://c61q5e2mic2il" path="res://scripts/ecs/m_ecs_manager.gd" id="6_0e7m3"]
+[ext_resource type="Script" uid="uid://cqbu6uhtc7ieg" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
 [ext_resource type="Script" uid="uid://6vckjdv5o1m7" path="res://scripts/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
 [ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://templates/player_template.tscn" id="7_4wxy1"]
 [ext_resource type="Script" uid="uid://cev7x8twqwfhr" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
 [ext_resource type="Script" uid="uid://csicrrjo31foo" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
-[ext_resource type="Script" uid="uid://dw5m3jyqdsurj" path="res://scripts/state/m_state_manager.gd" id="9_state"]
+[ext_resource type="Script" uid="uid://c0w4t05n5u2wd" path="res://scripts/managers/m_state_manager.gd" id="9_state"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -91,6 +91,9 @@ script = ExtResource("6_0e7m3")
 
 [node name="M_StateManager" type="Node" parent="Managers"]
 script = ExtResource("9_state")
+
+[node name="M_CursorManager" type="Node" parent="Managers"]
+script = ExtResource("6_0e7m3")
 
 [node name="Entities" type="Node" parent="."]
 

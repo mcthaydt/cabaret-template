@@ -14,7 +14,7 @@
 
 ## Repo Map (essentials)
 
-- `scripts/ecs/m_ecs_manager.gd`: Registers components/systems; exposes `get_components(StringName)` and emits component signals.
+- `scripts/managers/m_ecs_manager.gd`: Registers components/systems; exposes `get_components(StringName)` and emits component signals.
 - `scripts/ecs/ecs_component.gd`: Base for components. Auto-registers with manager; exposes `get_snapshot()` hook.
 - `scripts/ecs/ecs_system.gd`: Base for systems. Implement `process_tick(delta)`; runs via `_physics_process`.
 - `scripts/ecs/components/*`: Gameplay components with `@export` NodePaths and typed getters.

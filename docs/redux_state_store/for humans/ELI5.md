@@ -52,7 +52,7 @@ Think of this as the librarian who manages the shared notebook.
 - Tells everyone when something changes
 - Remembers the history (for time-travel debugging)
 
-**Where it lives:** `scripts/state/m_state_manager.gd`
+**Where it lives:** `scripts/managers/m_state_manager.gd`
 
 **How to find it:**
 

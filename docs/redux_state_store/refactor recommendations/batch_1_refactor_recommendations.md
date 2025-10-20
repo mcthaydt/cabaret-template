@@ -159,7 +159,7 @@ match action_type:
 
 #### 3. Simplify `enable_time_travel()` Logic
 
-**Location**: `scripts/state/m_state_manager.gd`, Lines 128-136
+**Location**: `scripts/managers/m_state_manager.gd`, Lines 128-136
 
 **Problem**: Redundant cleanup logic in both branches
 ```gdscript
@@ -198,7 +198,7 @@ func enable_time_travel(enabled: bool, max_history_size: int = 1000) -> void:
 
 #### 4. Extract History Entry Serialization Helpers
 
-**Location**: `scripts/state/m_state_manager.gd`
+**Location**: `scripts/managers/m_state_manager.gd`
 
 **Problem**: Similar action/state deep-copy logic repeated in 3 methods:
 - `get_history()`: Lines 164-182 (18 lines)

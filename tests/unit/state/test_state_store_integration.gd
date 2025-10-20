@@ -1,6 +1,6 @@
 extends BaseTest
 
-const STATE_MANAGER := preload("res://scripts/state/m_state_manager.gd")
+const STATE_MANAGER := preload("res://scripts/managers/m_state_manager.gd")
 const GameReducer := preload("res://scripts/state/reducers/game_reducer.gd")
 const UiReducer := preload("res://scripts/state/reducers/ui_reducer.gd")
 const EcsReducer := preload("res://scripts/state/reducers/ecs_reducer.gd")

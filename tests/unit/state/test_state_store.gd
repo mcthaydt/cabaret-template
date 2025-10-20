@@ -1,6 +1,6 @@
 extends BaseTest
 
-const STATE_MANAGER := preload("res://scripts/state/m_state_manager.gd")
+const STATE_MANAGER := preload("res://scripts/managers/m_state_manager.gd")
 const U_SelectorUtils := preload("res://scripts/state/u_selector_utils.gd")
 const U_StateStoreUtils := preload("res://scripts/state/u_state_store_utils.gd")
 

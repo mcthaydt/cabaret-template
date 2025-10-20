@@ -182,7 +182,7 @@ extends Resource
 
 ### Manager Example
 
-**File:** `scripts/ecs/m_ecs_manager.gd`
+**File:** `scripts/managers/m_ecs_manager.gd`
 
 ```gdscript
 class_name M_ECSManager

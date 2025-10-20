@@ -1,6 +1,6 @@
 extends BaseTest
 
-const ECS_MANAGER = preload("res://scripts/ecs/m_ecs_manager.gd")
+const ECS_MANAGER = preload("res://scripts/managers/m_ecs_manager.gd")
 const JumpComponentScript = preload("res://scripts/ecs/components/c_jump_component.gd")
 const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
 const JumpSystemScript = preload("res://scripts/ecs/systems/s_jump_system.gd")

@@ -1,6 +1,6 @@
 extends BaseTest
 
-const ECS_MANAGER := preload("res://scripts/ecs/m_ecs_manager.gd")
+const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const ALIGN_COMPONENT := preload("res://scripts/ecs/components/c_align_with_surface_component.gd")
 const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 

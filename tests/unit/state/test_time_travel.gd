@@ -1,6 +1,6 @@
 extends BaseTest
 
-const STATE_MANAGER := preload("res://scripts/state/m_state_manager.gd")
+const STATE_MANAGER := preload("res://scripts/managers/m_state_manager.gd")
 
 class ScoreReducer:
 	static func get_slice_name() -> StringName:
