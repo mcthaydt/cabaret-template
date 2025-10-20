@@ -8,6 +8,7 @@
 - **Problem**: Current ECS implementation blocks emergent gameplay with single-component queries, tight NodePath coupling between components, no event system for cross-system communication, and manual system execution ordering
 - **Success**: 100% of systems use multi-component queries, zero NodePath cross-references between components, <1ms query performance at 60fps, emergent gameplay interactions working (e.g., jump → dust particles → environmental reaction)
 - **Timeline**: 2-3 weeks for complete refactor across 4 batches
+- **Progress** (current): Story 1.1 complete — `U_ECSUtils.get_manager()` lives in `scripts/utils/u_ecs_utils.gd`, base classes refactored, `tests/unit/ecs/test_u_ecs_utils.gd` passing via GUT `-gexit`
 
 ## Requirements
 
@@ -442,7 +443,7 @@ func query_entities(
 #### 4. U_ECSUtils (New Utility Class)
 
 ```gdscript
-# scripts/ecs/u_ecs_utils.gd
+# scripts/utils/u_ecs_utils.gd
 class_name U_ECSUtils
 
 static func get_manager(from_node: Node) -> M_ECSManager:

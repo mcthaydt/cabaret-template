@@ -10,7 +10,10 @@
   - `resources/`: Default `*Settings.tres` for component configs; update when adding new exported fields.
 - Documentation to consult (do not duplicate here):
   - State store: `docs/redux_state_store/*`
-  - General pitfalls: `docs/general/developer_pitfalls.md`
+  - General pitfalls: `docs/general/DEV_PITFALLS.md`
+- Before adding or modifying code, re-read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md` to stay aligned with testing and formatting requirements.
+- Keep project planning docs current: whenever a story advances, update the relevant plan and PRD documents immediately so written guidance matches the implementation state.
+- Commit at the end of each completed story (or logical, test-green milestone) so every commit represents a verified state.
 
 ## Repo Map (essentials)
 
@@ -68,9 +71,10 @@
 ## Test Commands
 
 - Run ECS tests
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs`
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit`
 - Run State Store tests
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/state`
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/state -gexit`
+- Always include `-gexit` when running GUT via the command line so the runner terminates cleanly; without it the process hangs and triggers harness timeouts.
 - Notes
   - Tests commonly `await get_tree().process_frame` after adding nodes to allow auto-registration with `M_ECSManager` before assertions.
   - When stubbing engine methods in tests (e.g., `is_on_floor`, `move_and_slide`), include `@warning_ignore("native_method_override")`.

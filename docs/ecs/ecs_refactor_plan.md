@@ -69,7 +69,7 @@ Story Point Breakdown:
 
 Epic 1 – Code Quality Refactors (15 points)
 
-- [ ] Story 1.1: Extract manager discovery utility (U_ECSUtils.get_manager()) (2 points)
+- [x] Story 1.1: Extract manager discovery utility (U_ECSUtils.get_manager()) (2 points) — Implemented `scripts/utils/u_ecs_utils.gd`, updated base classes, and added `tests/unit/ecs/test_u_ecs_utils.gd` (GUT `-gselect=test_u_ecs_utils -gexit` green)
 - [ ] Story 1.2: Extract time utilities (U_ECSUtils.get_current_time()) (1 point)
 - [ ] Story 1.3: Extract settings validation pattern (ECSComponent._validate_required_settings()) (3 points)
 - [ ] Story 1.4: Extract body mapping helper (U_ECSUtils.map_components_by_body()) (3 points)
@@ -124,7 +124,7 @@ Testing & Documentation (7 points)
 | `M_ECSManager` | `scripts/managers/m_ecs_manager.gd` | `M_ECSManager` |
 | `ECSSystem` | `scripts/ecs/ecs_system.gd` | `ECSSystem` |
 | `ECSComponent` | `scripts/ecs/ecs_component.gd` | `ECSComponent` |
-| `U_ECSUtils` (NEW) | `scripts/ecs/u_ecs_utils.gd` | `U_ECSUtils` |
+| `U_ECSUtils` (NEW) | `scripts/utils/u_ecs_utils.gd` | `U_ECSUtils` |
 | `EntityQuery` (NEW) | `scripts/ecs/entity_query.gd` | `EntityQuery` |
 | `ECSEventBus` (NEW) | `scripts/ecs/ecs_event_bus.gd` | `ECSEventBus` |
 | Systems | `scripts/ecs/systems/s_*_system.gd` | `S_*System` |
@@ -161,7 +161,7 @@ Goal: Eliminate code duplication, improve maintainability, lay foundation for qu
   - Assert: Returns M_ECSManager instance
 
 - [ ] 1.1b – GREEN: Implement get_manager parent search
-- Create `scripts/ecs/u_ecs_utils.gd` (class_name U_ECSUtils)
+- Create `scripts/utils/u_ecs_utils.gd` (class_name U_ECSUtils)
 - Implement: `static func get_manager(from_node: Node) -> M_ECSManager`
   - Walk up parent hierarchy
   - Check has_method("register_component") && has_method("get_components") (NOTE: Batch 1 uses "get_components" check; will update to "query_entities" in Batch 2)
@@ -845,7 +845,7 @@ func process_tick(delta: float) -> void:
 **Refactor: Update manager discovery check**
 
 - [ ] 6.0 – Update U_ECSUtils.get_manager() to check for query_entities
-- Modify `scripts/ecs/u_ecs_utils.gd`:
+- Modify `scripts/utils/u_ecs_utils.gd`:
   - Change check from has_method("get_components") to has_method("query_entities")
   - This ensures managers are properly identified after query system is implemented
 - Run U_ECSUtils tests to verify no regressions
