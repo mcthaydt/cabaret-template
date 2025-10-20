@@ -165,8 +165,8 @@ var _systems: Array[ECSSystem] = []
 ```gdscript
 # Lines 51-53
 # Returns all components of given type
-# Systems call this to query components
-# Returns empty array if type not found
+# Prunes null entries from internal storage before returning
+# Systems call this to query components; returns empty array if type not found
 ```
 
 #### `_ready() -> void`

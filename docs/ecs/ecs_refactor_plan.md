@@ -73,7 +73,7 @@ Epic 1 – Code Quality Refactors (15 points)
 - [x] Story 1.2: Extract time utilities (U_ECSUtils.get_current_time()) (1 point) — Added `get_current_time()` helper, refactored components/systems/tests, full ECS suite passing with `-gexit`
 - [x] Story 1.3: Extract settings validation pattern (ECSComponent._validate_required_settings()) (3 points) — Added validation hooks to base component, migrated settings-based components, new `tests/unit/ecs/test_ecs_component.gd` coverage
 - [x] Story 1.4: Extract body mapping helper (U_ECSUtils.map_components_by_body()) (3 points) — Added helper + tests, refactored S_JumpSystem & S_GravitySystem to reuse it
-- [ ] Story 1.5: Add null filtering to M_ECSManager.get_components() (2 points)
+- [x] Story 1.5: Add null filtering to M_ECSManager.get_components() (2 points) — get_components now removes null entries, covered by updated manager tests
 - [ ] Story 1.6: Update all systems to use U_ECSUtils (4 points)
 
 Epic 2 – Multi-Component Query System (18 points)
@@ -399,28 +399,41 @@ static func map_components_by_body(
 
 ---
 
-- [ ] Step 5 – Add Null Filtering to M_ECSManager
+- [x] Step 5 – Add Null Filtering to M_ECSManager
 
 **TDD Cycle 1: M_ECSManager.get_components() - Null Filtering**
 
-- [ ] 5.1a – RED: Write test for null filtering
+- [x] 5.1a – RED: Write test for null filtering
 - Create `tests/unit/ecs/test_m_ecs_manager.gd` (NOTE: Test file uses M_ prefix to match class name)
 - Test: `test_get_components_filters_nulls()`
   - Arrange: Manager with components, manually inject null into _components array
   - Act: Call get_components(C_MovementComponent.COMPONENT_TYPE)
   - Assert: Returned array contains no nulls
 
-- [ ] 5.1b – GREEN: Implement null filtering
+- [x] 5.1b – GREEN: Implement null filtering
 - Modify `scripts/managers/m_ecs_manager.gd`
 - Update get_components(): Filter out null before returning
 ```gdscript
 func get_components(component_type: StringName) -> Array:
     if not _components.has(component_type):
         return []
-    return _components[component_type].filter(func(c): return c != null)
+
+    var existing: Array = _components[component_type]
+    var filtered: Array = []
+    for entry in existing:
+        if entry != null:
+            filtered.append(entry)
+
+    if filtered.size() != existing.size():
+        if filtered.is_empty():
+            _components.erase(component_type)
+            return []
+        _components[component_type] = filtered
+
+    return filtered.duplicate()
 ```
 
-- [ ] 5.1c – VERIFY: Run tests, confirm GREEN
+- [x] 5.1c – VERIFY: Run tests, confirm GREEN — `gut_cmdln.gd … -gselect=test_ecs_manager -gexit`
 
 **Refactor Existing Systems (Test-After)**
 

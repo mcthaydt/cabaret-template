@@ -121,6 +121,25 @@ func test_register_system_configures_and_queries_components() -> void:
 
 	assert_eq(system.observed_components, [component])
 
+func test_get_components_filters_null_entries() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var component := FakeComponent.new()
+	autofree(component)
+	manager.register_component(component)
+
+	# Inject a null entry to simulate improper cleanup
+	var stored: Array = manager._components[FakeComponent.TYPE]
+	stored.append(null)
+
+	var result: Array = manager.get_components(FakeComponent.TYPE)
+	assert_eq(result, [component])
+
+	var cleaned: Array = manager._components.get(FakeComponent.TYPE, [])
+	assert_eq(cleaned, [component])
+
 func test_player_template_components_register_with_manager() -> void:
 	var manager: M_ECSManager = ECS_MANAGER.new()
 	add_child(manager)

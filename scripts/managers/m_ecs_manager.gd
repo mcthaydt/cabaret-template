@@ -54,7 +54,19 @@ func unregister_component(component: ECSComponent) -> void:
 func get_components(component_type: StringName) -> Array:
     if not _components.has(component_type):
         return []
-    return _components[component_type].duplicate()
+    var existing: Array = _components[component_type]
+    var filtered: Array = []
+    for entry in existing:
+        if entry != null:
+            filtered.append(entry)
+
+    if filtered.size() != existing.size():
+        if filtered.is_empty():
+            _components.erase(component_type)
+            return []
+        _components[component_type] = filtered
+
+    return filtered.duplicate()
 
 func get_systems() -> Array:
     return _systems.duplicate()

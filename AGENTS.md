@@ -42,6 +42,7 @@
 - Manager
   - Ensure exactly one `M_ECSManager` in-scene. It auto-adds to `ecs_manager` group on `_ready()`.
   - Emits `component_added`/`component_removed` and calls `component.on_registered(self)`.
+  - `get_components()` strips out null entries automatically; only guard for missing components when logic truly requires it.
 
 ## State Store Guidelines
 
