@@ -14,9 +14,6 @@ func process_tick(delta: float) -> void:
 	var now: float = ECS_UTILS.get_current_time()
 
 	for component in get_components(FLOATING_TYPE):
-		if component == null:
-			continue
-
 		var floating_component: C_FloatingComponent = component as C_FloatingComponent
 		if floating_component == null:
 			continue

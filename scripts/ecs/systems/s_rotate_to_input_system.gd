@@ -6,9 +6,6 @@ const ROTATE_TYPE := StringName("C_RotateToInputComponent")
 
 func process_tick(delta: float) -> void:
 	for component in get_components(ROTATE_TYPE):
-		if component == null:
-			continue
-
 		var target = component.get_target_node()
 		if target == null:
 			continue

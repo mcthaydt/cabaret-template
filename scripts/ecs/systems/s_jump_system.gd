@@ -9,13 +9,10 @@ func process_tick(_delta: float) -> void:
     var now: float = ECS_UTILS.get_current_time()
     var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(get_manager(), FLOATING_TYPE)
 
-    for component in get_components(JUMP_TYPE):
-        if component == null:
-            continue
-
-        var body = component.get_character_body()
-        if body == null:
-            continue
+	for component in get_components(JUMP_TYPE):
+		var body = component.get_character_body()
+		if body == null:
+			continue
 
         var input_component = component.get_input_component()
         if input_component == null:

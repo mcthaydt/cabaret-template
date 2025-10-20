@@ -8,9 +8,6 @@ func process_tick(delta: float) -> void:
 	var now := ECS_UTILS.get_current_time()
 
 	for component in get_components(ALIGN_TYPE):
-		if component == null:
-			continue
-
 		var align_component: C_AlignWithSurfaceComponent = component as C_AlignWithSurfaceComponent
 		if align_component == null:
 			continue

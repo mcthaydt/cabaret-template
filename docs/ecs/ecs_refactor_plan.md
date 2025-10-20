@@ -74,7 +74,7 @@ Epic 1 – Code Quality Refactors (15 points)
 - [x] Story 1.3: Extract settings validation pattern (ECSComponent._validate_required_settings()) (3 points) — Added validation hooks to base component, migrated settings-based components, new `tests/unit/ecs/test_ecs_component.gd` coverage
 - [x] Story 1.4: Extract body mapping helper (U_ECSUtils.map_components_by_body()) (3 points) — Added helper + tests, refactored S_JumpSystem & S_GravitySystem to reuse it
 - [x] Story 1.5: Add null filtering to M_ECSManager.get_components() (2 points) — get_components now removes null entries, covered by updated manager tests
-- [ ] Story 1.6: Update all systems to use U_ECSUtils (4 points)
+- [x] Story 1.6: Update all systems to use U_ECSUtils (4 points) — Systems now rely on shared helpers (time, body maps, null-free get_components) with redundant checks removed
 
 Epic 2 – Multi-Component Query System (18 points)
 
@@ -437,9 +437,9 @@ func get_components(component_type: StringName) -> Array:
 
 **Refactor Existing Systems (Test-After)**
 
-- [ ] 5.2 – Remove null checks from all systems
+- [x] 5.2 – Remove null checks from all systems
 - Systems now trust get_components() returns no nulls
-- Run existing tests to verify no regressions
+- Run existing tests to verify no regressions (`gut_cmdln.gd … -gdir=res://tests/unit/ecs -gexit`)
 
 ---
 

@@ -28,9 +28,6 @@ func process_tick(_delta: float) -> void:
     var sprint_pressed := Input.is_action_pressed(sprint_action)
 
     for component in get_components(INPUT_TYPE):
-        if component == null:
-            continue
-
         var input_component: C_InputComponent = component as C_InputComponent
         if input_component == null:
             continue

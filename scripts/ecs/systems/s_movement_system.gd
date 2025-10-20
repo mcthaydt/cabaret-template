@@ -10,9 +10,6 @@ func process_tick(delta: float) -> void:
 	var current_time := ECS_UTILS.get_current_time()
 
 	for component in get_components(MOVEMENT_TYPE):
-		if component == null:
-			continue
-
 		var body = component.get_character_body()
 		if body == null:
 			continue

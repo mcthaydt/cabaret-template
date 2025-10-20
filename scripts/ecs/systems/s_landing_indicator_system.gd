@@ -7,9 +7,6 @@ const UP_VECTOR: Vector3 = Vector3.UP
 
 func process_tick(_delta: float) -> void:
 	for base_component in get_components(COMPONENT_TYPE):
-		if base_component == null:
-			continue
-
 		var component: C_LandingIndicatorComponent = base_component as C_LandingIndicatorComponent
 		if component == null:
 			continue
