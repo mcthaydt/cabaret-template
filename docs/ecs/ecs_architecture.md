@@ -1544,7 +1544,7 @@ func get_input_component() -> C_InputComponent:
 
 **Solution**: See `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md` → Event Bus
 
-**Status Update (Stories 3.1–3.3)**: Implemented the static `ECSEventBus` (`scripts/ecs/ecs_event_bus.gd`) with publish/subscribe APIs, a rolling 1,000-event history (`get_event_history()`, `set_history_limit()`, `clear_history()`), and wired `S_JumpSystem` to emit `entity_jumped` events carrying body/input/floating context to downstream systems.
+**Status Update (Stories 3.1–3.4)**: Implemented the static `ECSEventBus` (`scripts/ecs/ecs_event_bus.gd`) with publish/subscribe APIs, a rolling 1,000-event history (`get_event_history()`, `set_history_limit()`, `clear_history()`), wired `S_JumpSystem` to emit `entity_jumped` events, and added sample subscribers (`S_JumpParticlesSystem`, `S_JumpSoundSystem`) that react to the payload for VFX/SFX hand-offs.
 
 ---
 
