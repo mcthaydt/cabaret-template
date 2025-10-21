@@ -86,7 +86,6 @@ settings = ExtResource("9_mov")
 script = ExtResource("2_h3hux")
 settings = ExtResource("10_jump")
 character_body_path = NodePath("../../Player_Body")
-input_component_path = NodePath("../C_InputComponent")
 
 [node name="C_InputComponent" type="Node" parent="Components"]
 script = ExtResource("3_2fo1m")

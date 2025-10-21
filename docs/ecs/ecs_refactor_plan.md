@@ -95,7 +95,7 @@ Epic 3 – Event Bus System (8 points)
 Epic 4 – Component Decoupling (7 points)
 
 - [x] Story 4.1: Remove NodePath exports from C_MovementComponent (1 point) — Movement component now auto-discovers its CharacterBody3D and relies on query-based lookups for peer components
-- [ ] Story 4.2: Remove NodePath exports from C_JumpComponent (1 point)
+- [x] Story 4.2: Remove NodePath exports from C_JumpComponent (1 point) — Jump component now relies on entity queries for input detection while keeping only body NodePath wiring
 - [ ] Story 4.3: Migrate remaining systems to query-based (3 points)
 - [ ] Story 4.4: Update scene templates (player_template.tscn) (2 points)
 
@@ -953,9 +953,11 @@ if can_jump:
 
 **Refactor (Test-After): Update C_JumpComponent**
 
-- [ ] 4.2 – Remove component→component NodePath exports from C_JumpComponent
-- Delete only component→component NodePath exports and getter methods
-- Keep any NodePaths to bodies/raycasts
+- [x] 4.2 – Remove component→component NodePath exports from C_JumpComponent
+- **DELETE**: `@export_node_path("C_InputComponent") var input_component_path: NodePath`
+- **DELETE**: `func get_input_component()`
+- **KEEP**: Body/raycast NodePaths (component still references its CharacterBody3D)
+- **UPDATE**: Tests now expect jump component to register without manual wiring and expose no input-related properties
 - Run existing tests
 
 **Refactor (Test-After): Update Remaining Components**

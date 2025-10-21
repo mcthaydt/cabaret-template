@@ -156,7 +156,6 @@ func _setup_entities() -> void:
 		components_root.add_child(landing_component)
 
 		jump_component.character_body_path = jump_component.get_path_to(body)
-		jump_component.input_component_path = jump_component.get_path_to(input_component)
 
 		floating_component.character_body_path = floating_component.get_path_to(body)
 		floating_component.raycast_root_path = floating_component.get_path_to(ray_root)

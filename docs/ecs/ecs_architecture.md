@@ -368,23 +368,23 @@ var _last_debug_snapshot: Dictionary = {}
 
 **Data**:
 ```gdscript
-@export var jump_velocity: float = 5.0
-@export var coyote_time: float = 0.1
-@export var jump_buffer_time: float = 0.1
-@export var gravity_scale: float = 1.0
-@export_node_path("Node") var ground_check_raycast_path: NodePath
-@export_node_path("Node") var character_body_path: NodePath
-@export_node_path("Node") var input_component_path: NodePath  # Cross-reference
+@export var settings: RS_JumpSettings
+@export_node_path("CharacterBody3D") var character_body_path: NodePath
 ```
 
 **Runtime State** (not @exported):
 ```gdscript
-var time_since_grounded: float = 0.0
-var time_since_jump_pressed: float = 999.0
+var _last_on_floor_time: float = -INF
+var _air_jumps_remaining: int = 0
+var _last_jump_time: float = -INF
+var _last_apex_time: float = -INF
+var _last_vertical_velocity: float = 0.0
+var _debug_snapshot: Dictionary = {}
 ```
 
 **Used By**:
 - `S_JumpSystem` - Implements coyote time, jump buffering, applies jump velocity
+	- Resolves related components via `query_entities()` instead of NodePath cross-references
 
 ---
 
@@ -596,46 +596,16 @@ func process_tick(_delta: float) -> void:
 
 **Purpose**: Applies movement based on input, handles acceleration/friction
 
-**Processing** (lines 32-62):
-```gdscript
-func process_tick(delta: float) -> void:
-    var movement_components = get_components(C_MovementComponent.COMPONENT_TYPE)
+**Processing**:
+1. Query the manager for entities containing `C_MovementComponent` + `C_InputComponent` (with optional `C_FloatingComponent` for support checks).
+2. For each entity:
+   - Resolve the `CharacterBody3D` via `C_MovementComponent.get_character_body()` (auto-discovered at runtime).
+   - Read sprint/input state, compute desired velocity using camera-relative vectors (`U_ECSUtils.get_active_camera()` fallback).
+   - Apply second-order dynamics or acceleration/deceleration depending on settings and support state.
+   - Apply friction when idle, clamp horizontal speed, and update debug snapshot.
+3. After iterating, write velocities back to each body and invoke `move_and_slide()`.
 
-    for movement_comp in movement_components:
-        if movement_comp == null:
-            continue
-
-        var body := movement_comp.get_character_body()
-        var input_comp := movement_comp.get_input_component()
-
-        if body == null or input_comp == null:
-            continue
-
-        # Calculate target velocity from input
-        var input_dir := Vector3(input_comp.input_vector.x, 0, input_comp.input_vector.y)
-        var target_velocity := input_dir * movement_comp.max_speed
-
-        # Apply acceleration or friction
-        if input_dir.length() > 0.01:
-            movement_comp.velocity = movement_comp.velocity.lerp(
-                target_velocity,
-                movement_comp.acceleration * delta
-            )
-        else:
-            movement_comp.velocity = movement_comp.velocity.lerp(
-                Vector3.ZERO,
-                movement_comp.friction * delta
-            )
-
-        # Apply velocity to body
-        body.velocity = movement_comp.velocity
-        body.move_and_slide()
-
-        # Sync velocity back to component
-        movement_comp.velocity = body.velocity
-```
-
-**Dependencies**: Requires `C_InputComponent` and `C_MovementComponent` on same entity
+**Dependencies**: Entities must provide both `C_MovementComponent` and `C_InputComponent`; floating support is optional.
 
 ---
 
@@ -643,43 +613,19 @@ func process_tick(delta: float) -> void:
 
 **Purpose**: Implements jump logic with coyote time and jump buffering
 
-**Processing** (lines 21-102):
-```gdscript
-func process_tick(delta: float) -> void:
-    var now := U_ECSUtils.get_current_time()
-    # Build body → floating_component map (to check if entity is floating)
-    var floating_by_body := U_ECSUtils.map_components_by_body(
-        get_manager(),
-        C_FloatingComponent.COMPONENT_TYPE
-    )
-
-    var jump_components = get_components(C_JumpComponent.COMPONENT_TYPE)
-
-    for jump_comp in jump_components:
-        if jump_comp == null:
-            continue
-
-        var body := jump_comp.get_character_body()
-        var input_comp := jump_comp.get_input_component()
-        var raycast := jump_comp.get_ground_check_raycast()
-
-        if body == null or input_comp == null or raycast == null:
-            continue
-
-        # Floating state lookups reuse helper map
-        var floating_comp := floating_by_body.get(body, null) as C_FloatingComponent
-        var floating_supported := false
-        var has_recent_support := false
-        if floating_comp != null:
-            floating_supported = floating_comp.is_supported
-            has_recent_support = floating_comp.has_recent_support(now, jump_comp.settings.coyote_time)
-        # ...
-```
+**Processing**:
+1. Query the manager for entities with `C_JumpComponent` + `C_InputComponent` (optional `C_FloatingComponent`).
+2. Build a body→floating map for entities where floating isn’t part of the query result.
+3. For each entity query:
+   - Resolve the body from the jump component.
+   - Pull jump intent from the input component and check grounded/floating support windows.
+   - Apply jump buffering, coyote time, and air-jump limits.
+   - When a jump resolves, consume the input request, update debug snapshot, adjust velocities, and publish the `entity_jumped` event.
 
 **Features**:
-- **Coyote Time**: Can jump shortly after leaving ground
-- **Jump Buffering**: Jump input registered before landing still triggers
-- **Floating Check**: Entities with `C_FloatingComponent` can't jump
+- **Coyote Time**: Jump shortly after losing support.
+- **Jump Buffering**: Stored jump input triggers when support returns.
+- **Event Integration**: Publishes `entity_jumped` with full payload for particles, audio, etc.
 
 ---
 
@@ -934,8 +880,8 @@ Main Scene (Node)
 2. Add entity node (e.g., `CharacterBody3D`)
 3. Add components as children of entity
 4. Configure component @export properties in inspector:
-   - Set `character_body_path` to `..` (parent)
-   - Set cross-component paths (e.g., `input_component_path`)
+   - Set `character_body_path` (and other same-entity NodePaths like raycasts) where required
+   - No cross-component NodePath wiring needed for movement/jump; systems join components via queries
 5. Add system nodes to scene (anywhere in tree)
 6. Systems automatically discover manager on scene load
 

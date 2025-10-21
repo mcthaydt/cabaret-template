@@ -43,8 +43,6 @@ func _setup_entity(with_floating := false) -> Dictionary:
 	await _pump()
 
 	jump_component.character_body_path = jump_component.get_path_to(body)
-	jump_component.input_component_path = jump_component.get_path_to(input)
-
 	var floating_component: C_FloatingComponent = null
 	if with_floating:
 		floating_component = FloatingComponentScript.new()
@@ -182,7 +180,22 @@ func test_jump_component_tracks_apex_state() -> void:
 	var now := ECS_UTILS.get_current_time()
 	assert_true(jump.has_recent_apex(now))
 
-func test_jump_system_handles_missing_input_nodepath_via_queries() -> void:
+func test_jump_component_avoids_input_nodepath_exports() -> void:
+	var jump_component: C_JumpComponent = JumpComponentScript.new()
+	jump_component.settings = RS_JumpSettings.new()
+	add_child(jump_component)
+	autofree(jump_component)
+	await _pump()
+
+	var has_input_property := false
+	for property in jump_component.get_property_list():
+		if property.name == "input_component_path":
+			has_input_property = true
+			break
+	assert_false(has_input_property, "C_JumpComponent should not expose input_component_path.")
+	assert_false(jump_component.has_method("get_input_component"), "C_JumpComponent should not provide get_input_component().")
+
+func test_jump_system_processes_without_manual_wiring() -> void:
 	var context := await _setup_entity()
 	autofree_context(context)
 	var jump: C_JumpComponent = context["jump"]
@@ -190,7 +203,6 @@ func test_jump_system_handles_missing_input_nodepath_via_queries() -> void:
 	var body: FakeBody = context["body"]
 	var system: S_JumpSystem = context["system"]
 
-	jump.input_component_path = NodePath()
 	body.velocity = Vector3.ZERO
 	body.grounded = true
 	input.set_jump_pressed(true)

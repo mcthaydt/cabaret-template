@@ -8,7 +8,7 @@
 - **Problem**: Current ECS implementation blocks emergent gameplay with single-component queries, tight NodePath coupling between components, no event system for cross-system communication, and manual system execution ordering
 - **Success**: 100% of systems use multi-component queries, zero NodePath cross-references between components, <1ms query performance at 60fps, emergent gameplay interactions working (e.g., jump → dust particles → environmental reaction)
 - **Timeline**: 2-3 weeks for complete refactor across 4 batches
-- **Progress** (current): Stories 1.1–2.6 complete — `U_ECSUtils` centralizes manager/time/body helpers, `_validate_required_settings()` enforces component setup, `M_ECSManager.get_components()` prunes nulls, all systems consume the shared utilities, `EntityQuery` now wraps entity/component results, `M_ECSManager` tracks entity-to-component maps via `get_components_for_entity()`, `query_entities()` returns `EntityQuery` results for required/optional component sets, `S_MovementSystem`/`S_JumpSystem` consume those queries, query caching keeps repeated lookups under budget (`tests/unit/ecs/test_ecs_manager.gd` via GUT `-gselect=test_ecs_manager -gexit`), Story 3.1 delivered the static `ECSEventBus` publish/subscribe API with timestamped payloads, Story 3.2 added the rolling event history buffer with debugging helpers (`get_event_history()`, `set_history_limit()`, `clear_history()`), Story 3.3 now publishes `entity_jumped` events from `S_JumpSystem` with full context (entity/body, input, floating support, velocity) backed by `tests/unit/ecs/systems/test_jump_system.gd` (GUT `-gdir=res://tests/unit/ecs/systems -gselect=test_jump_system -gexit`), Story 3.4 introduced `S_JumpParticlesSystem`/`S_JumpSoundSystem` sample subscribers to demonstrate cross-system reactions (validated via `tests/unit/ecs/systems/test_jump_event_subscribers.gd`, GUT `-gdir=res://tests/unit/ecs/systems -gselect=test_jump_event_subscribers -gexit`), Step 2.5 shipped the cross-tree reference utilities (`get_singleton_from_group`, `get_nodes_from_group`, `get_active_camera`) with coverage in `tests/unit/ecs/test_u_ecs_utils.gd` and updated movement camera resolution (`tests/unit/ecs/systems/test_movement_system.gd`), Step 6 completed Batch 1 verification (full ECS suite: 43/43 tests green, integration smoke test covering base scene wiring, performance baseline of 2.96 ms/frame across 120 simulated frames with 100 entities × 7 components), and Story 4.1 decoupled `C_MovementComponent` by removing component NodePath exports, auto-discovering the entity `CharacterBody3D`, and relying solely on query-based lookups for peer components.
+- **Progress** (current): Stories 1.1–2.6 complete — `U_ECSUtils` centralizes manager/time/body helpers, `_validate_required_settings()` enforces component setup, `M_ECSManager.get_components()` prunes nulls, all systems consume the shared utilities, `EntityQuery` now wraps entity/component results, `M_ECSManager` tracks entity-to-component maps via `get_components_for_entity()`, `query_entities()` returns `EntityQuery` results for required/optional component sets, `S_MovementSystem`/`S_JumpSystem` consume those queries, query caching keeps repeated lookups under budget (`tests/unit/ecs/test_ecs_manager.gd` via GUT `-gselect=test_ecs_manager -gexit`), Story 3.1 delivered the static `ECSEventBus` publish/subscribe API with timestamped payloads, Story 3.2 added the rolling event history buffer with debugging helpers (`get_event_history()`, `set_history_limit()`, `clear_history()`), Story 3.3 now publishes `entity_jumped` events from `S_JumpSystem` with full context (entity/body, input, floating support, velocity) backed by `tests/unit/ecs/systems/test_jump_system.gd` (GUT `-gdir=res://tests/unit/ecs/systems -gselect=test_jump_system -gexit`), Story 3.4 introduced `S_JumpParticlesSystem`/`S_JumpSoundSystem` sample subscribers to demonstrate cross-system reactions (validated via `tests/unit/ecs/systems/test_jump_event_subscribers.gd`, GUT `-gdir=res://tests/unit/ecs/systems -gselect=test_jump_event_subscribers -gexit`), Step 2.5 shipped the cross-tree reference utilities (`get_singleton_from_group`, `get_nodes_from_group`, `get_active_camera`) with coverage in `tests/unit/ecs/test_u_ecs_utils.gd` and updated movement camera resolution (`tests/unit/ecs/systems/test_movement_system.gd`), Step 6 completed Batch 1 verification (full ECS suite: 43/43 tests green, integration smoke test covering base scene wiring, performance baseline of 2.96 ms/frame across 120 simulated frames with 100 entities × 7 components), Story 4.1 decoupled `C_MovementComponent` by removing component NodePath exports, auto-discovering the entity `CharacterBody3D`, and relying solely on query-based lookups for peer components, and Story 4.2 removed the jump component's input NodePath, shifting `S_JumpSystem` fully onto query-derived relationships while keeping body wiring in-scene.
 
 ## Requirements
 
@@ -131,11 +131,11 @@ func _on_entity_jumped(event_data: Dictionary):
 **Before/After**:
 ```gdscript
 # BEFORE (C_MovementComponent - tightly coupled):
-@export_node_path("C_InputComponent") var input_component_path: NodePath
+## Removed in Story 4.2: input resolved via query_entities(), no NodePath export
 @export_node_path("C_FloatingComponent") var support_component_path: NodePath
 
 func get_input_component() -> C_InputComponent:
-    return get_node_or_null(input_component_path)
+    # Removed in Story 4.2
 
 # AFTER (C_MovementComponent - decoupled):
 # No NodePath exports!
@@ -569,11 +569,11 @@ scripts/ecs/
 
 **Before** (`c_movement_component.gd`):
 ```gdscript
-@export_node_path("C_InputComponent") var input_component_path: NodePath
+## Removed in Story 4.2: input resolved via query_entities(), no NodePath export
 @export_node_path("C_FloatingComponent") var support_component_path: NodePath
 
 func get_input_component() -> C_InputComponent:
-    return get_node_or_null(input_component_path)
+    # Removed in Story 4.2
 
 func get_support_component() -> C_FloatingComponent:
     return get_node_or_null(support_component_path)
@@ -641,7 +641,7 @@ func process_tick(delta: float) -> void:
 **Before** (inspector shows NodePath exports):
 ```
 [node name="C_MovementComponent" parent="Components"]
-input_component_path = NodePath("../C_InputComponent")          # Manual wiring!
+## Story 4.2 removed this wiring; input is discovered via queries
 support_component_path = NodePath("../C_FloatingComponent")     # Manual wiring!
 ```
 
@@ -865,11 +865,11 @@ support_component_path = NodePath("../C_FloatingComponent")     # Manual wiring!
 
 ```gdscript
 # scripts/ecs/components/c_movement_component.gd
-@export_node_path("C_InputComponent") var input_component_path: NodePath
+## Removed in Story 4.2: input resolved via query_entities(), no NodePath export
 @export_node_path("C_FloatingComponent") var support_component_path: NodePath
 
 func get_input_component() -> C_InputComponent:
-    return get_node_or_null(input_component_path)
+    # Removed in Story 4.2
 
 # scripts/ecs/systems/s_movement_system.gd
 func process_tick(delta: float) -> void:

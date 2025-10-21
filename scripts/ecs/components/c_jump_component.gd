@@ -6,7 +6,6 @@ const COMPONENT_TYPE := StringName("C_JumpComponent")
 
 @export var settings: RS_JumpSettings
 @export_node_path("CharacterBody3D") var character_body_path: NodePath
-@export_node_path("Node") var input_component_path: NodePath
 
 var _last_on_floor_time: float = -INF
 var _air_jumps_remaining: int = 0
@@ -69,11 +68,6 @@ func get_character_body() -> CharacterBody3D:
 	if character_body_path.is_empty():
 		return null
 	return get_node_or_null(character_body_path)
-
-func get_input_component() -> C_InputComponent:
-	if input_component_path.is_empty():
-		return null
-	return get_node_or_null(input_component_path) as C_InputComponent
 
 func update_debug_snapshot(snapshot: Dictionary) -> void:
 	_debug_snapshot = snapshot.duplicate(true)
