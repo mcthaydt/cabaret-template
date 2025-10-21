@@ -6,8 +6,14 @@ const COMPONENT_TYPE := StringName("C_LandingIndicatorComponent")
 const UP_VECTOR: Vector3 = Vector3.UP
 
 func process_tick(_delta: float) -> void:
-	for base_component in get_components(COMPONENT_TYPE):
-		var component: C_LandingIndicatorComponent = base_component as C_LandingIndicatorComponent
+	var manager := get_manager()
+	if manager == null:
+		return
+
+	var entities := manager.query_entities([COMPONENT_TYPE])
+
+	for entity_query in entities:
+		var component: C_LandingIndicatorComponent = entity_query.get_component(COMPONENT_TYPE)
 		if component == null:
 			continue
 

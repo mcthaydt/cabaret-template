@@ -33,7 +33,7 @@ func _setup_context() -> Dictionary:
     await _pump()
 
     component.target_node_path = component.get_path_to(target)
-    component.input_component_path = component.get_path_to(input)
+    component.input_component_path = NodePath()
 
     var system: S_RotateToInputSystem = RotateSystemScript.new()
     manager.add_child(system)

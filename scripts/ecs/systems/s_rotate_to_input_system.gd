@@ -3,33 +3,51 @@ extends ECSSystem
 class_name S_RotateToInputSystem
 
 const ROTATE_TYPE := StringName("C_RotateToInputComponent")
+const INPUT_TYPE := StringName("C_InputComponent")
 
 func process_tick(delta: float) -> void:
-	for component in get_components(ROTATE_TYPE):
-		var target = component.get_target_node()
+	var manager := get_manager()
+	if manager == null:
+		return
+
+	var entities := manager.query_entities(
+		[
+			ROTATE_TYPE,
+			INPUT_TYPE,
+		]
+	)
+
+	for entity_query in entities:
+		var component: C_RotateToInputComponent = entity_query.get_component(ROTATE_TYPE)
+		if component == null:
+			continue
+
+		var target := component.get_target_node()
 		if target == null:
 			continue
 
-		var input_component = component.get_input_component()
+		var input_component: C_InputComponent = entity_query.get_component(INPUT_TYPE)
+		if input_component == null:
+			input_component = component.get_input_component()
 		if input_component == null:
 			continue
 
-		var move_vector = input_component.move_vector
+		var move_vector := input_component.move_vector
 		if move_vector.length() == 0.0:
 			component.reset_rotation_state()
 			continue
 
-		var desired_direction = Vector3(move_vector.x, 0.0, move_vector.y)
+		var desired_direction := Vector3(move_vector.x, 0.0, move_vector.y)
 		if desired_direction.length() == 0.0:
 			continue
 		desired_direction = desired_direction.normalized()
 
-		var desired_yaw = atan2(-desired_direction.x, -desired_direction.z)
-		var current_rotation = target.rotation
+		var desired_yaw := atan2(-desired_direction.x, -desired_direction.z)
+		var current_rotation := target.rotation
 		var max_turn: float = component.settings.max_turn_speed_degrees
 		if max_turn <= 0.0:
 			max_turn = component.settings.turn_speed_degrees
-		var max_delta = deg_to_rad(max_turn) * delta
+		var max_delta := deg_to_rad(max_turn) * delta
 
 		if component.settings.use_second_order and component.settings.rotation_frequency > 0.0:
 			_apply_second_order_rotation(component, target, desired_yaw, delta, max_delta)

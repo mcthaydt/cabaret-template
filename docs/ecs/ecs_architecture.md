@@ -633,35 +633,13 @@ func process_tick(_delta: float) -> void:
 
 **Purpose**: Applies gravity to movement components (unless floating)
 
-**Processing** (lines 23-53):
-```gdscript
-func process_tick(delta: float) -> void:
-    # Build body → floating_component map
-    var floating_by_body := U_ECSUtils.map_components_by_body(
-        get_manager(),
-        C_FloatingComponent.COMPONENT_TYPE
-    )
+**Processing**:
+1. Query the manager for entities containing a `C_MovementComponent` (optionally a `C_FloatingComponent`).
+2. Deduplicate bodies so that gravity is applied at most once per `CharacterBody3D`.
+3. Skip entities that are managed by floating components or already grounded.
+4. Subtract gravity from the body’s vertical velocity and write the result back.
 
-    var movement_components = get_components(C_MovementComponent.COMPONENT_TYPE)
-
-    for movement_comp in movement_components:
-        if movement_comp == null:
-            continue
-
-        var body := movement_comp.get_character_body()
-        if body == null:
-            continue
-
-        # Skip if entity is floating
-        if floating_by_body.has(body):
-            continue
-
-        # Apply gravity
-        movement_comp.velocity.y += GRAVITY * delta
-        body.velocity = movement_comp.velocity
-```
-
-**Interaction with Floating**: If entity has active floating component, gravity is disabled
+**Interaction with Floating**: Entities with an attached floating component are skipped (fallback mapping via `U_ECSUtils.map_components_by_body()` supports legacy wiring).
 
 ---
 
@@ -669,48 +647,14 @@ func process_tick(delta: float) -> void:
 
 **Purpose**: Maintains entity at specified height above ground using spring physics
 
-**Processing** (lines 22-93):
-```gdscript
-func process_tick(delta: float) -> void:
-    var floating_components = get_components(C_FloatingComponent.COMPONENT_TYPE)
+**Processing**:
+1. Query entities that expose `C_FloatingComponent`.
+2. Deduplicate per body (supports setups with multiple floating modules on the same entity).
+3. Aggregate raycast hits to compute average surface normal and closest distance.
+4. When support exists, apply critically-damped spring dynamics toward the desired hover height, clamp velocities, optionally align the body’s up vector, and update support metadata.
+5. When no support is found, apply configured fall gravity while clamping vertical velocity.
 
-    for floating_comp in floating_components:
-        if floating_comp == null or not floating_comp.floating_enabled:
-            continue
-
-        var body := floating_comp.get_character_body()
-        var raycast := floating_comp.get_ground_check_raycast()
-
-        if body == null or raycast == null:
-            continue
-
-        if not raycast.is_colliding():
-            continue
-
-        # Calculate spring force
-        var distance_to_ground := raycast.get_collision_point().distance_to(body.global_position)
-        var height_error := floating_comp.floating_height - distance_to_ground
-
-        # Spring force = k * x - d * v
-        var spring_force := (
-            height_error * floating_comp.floating_spring_strength
-            - body.velocity.y * floating_comp.floating_damping
-        )
-
-        # Apply force
-        body.velocity.y += spring_force * delta
-        body.move_and_slide()
-
-        # Debug snapshot
-        floating_comp._debug_snapshot = {
-            "distance_to_ground": distance_to_ground,
-            "height_error": height_error,
-            "spring_force": spring_force,
-            "velocity_y": body.velocity.y,
-        }
-```
-
-**Physics**: Implements spring-damper system for smooth floating
+**Physics**: Implements a spring-damper system for smooth floating and ground alignment.
 
 ---
 
@@ -718,34 +662,12 @@ func process_tick(delta: float) -> void:
 
 **Purpose**: Rotates entity to face input direction
 
-**Processing** (lines 10-37):
-```gdscript
-func process_tick(delta: float) -> void:
-    var rotate_components = get_components(C_RotateToInputComponent.COMPONENT_TYPE)
-
-    for rotate_comp in rotate_components:
-        if rotate_comp == null:
-            continue
-
-        var body := rotate_comp.get_character_body()
-        var input_comp := rotate_comp.get_input_component()
-
-        if body == null or input_comp == null:
-            continue
-
-        if input_comp.input_vector.length() < 0.01:
-            continue
-
-        # Calculate target direction
-        var input_dir := Vector3(input_comp.input_vector.x, 0, input_comp.input_vector.y)
-        var target_rotation := atan2(input_dir.x, input_dir.z)
-
-        # Lerp current rotation to target
-        var current_rotation := body.rotation.y
-        var new_rotation := lerp_angle(current_rotation, target_rotation, rotate_comp.rotation_speed * delta)
-
-        body.rotation.y = new_rotation
-```
+**Processing**:
+1. Query entities containing both `C_RotateToInputComponent` and `C_InputComponent`.
+2. Resolve the target node to rotate (still supplied via the component’s NodePath).
+3. Read movement input from the queried `C_InputComponent` (NodePath lookup retained as fallback).
+4. Convert the 2D input vector to a desired yaw and clamp turn rate using either second-order dynamics or simple angular acceleration.
+5. Persist rotation velocity state on the component when using the second-order path.
 
 ---
 
@@ -1380,9 +1302,10 @@ func process_tick(delta: float) -> void:
    └─ Result: Character moves right at 4 m/s (accelerating toward 5 m/s)
 
 3. S_RotateToInputSystem._process(delta)
-   ├─ Queries: get_components(C_RotateToInputComponent.COMPONENT_TYPE)
-   ├─ For each rotate_comp:
-   │   ├─ var input_comp = rotate_comp.get_input_component()
+   ├─ Queries: manager.query_entities([C_RotateToInputComponent.COMPONENT_TYPE, C_InputComponent.COMPONENT_TYPE])
+   ├─ For each entity query:
+   │   ├─ rotate_comp = query.get_component(C_RotateToInputComponent.COMPONENT_TYPE)
+   │   ├─ input_comp = query.get_component(C_InputComponent.COMPONENT_TYPE)
    │   ├─ var body = rotate_comp.get_character_body()
    │   │
    │   ├─ Calculate: input_dir = Vector3(1, 0, 0)
@@ -1403,7 +1326,7 @@ func process_tick(delta: float) -> void:
 [Physics Tick]
 
 1. S_FloatingSystem._physics_process(delta)
-   ├─ Queries: get_components(C_FloatingComponent.COMPONENT_TYPE)
+   ├─ Queries: manager.query_entities([C_FloatingComponent.COMPONENT_TYPE])
    ├─ For each floating_comp:
    │   ├─ Check: floating_comp.floating_enabled → true
    │   ├─ var raycast = floating_comp.get_ground_check_raycast()

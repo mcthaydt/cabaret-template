@@ -972,25 +972,19 @@ if can_jump:
 
 **Refactor: S_GravitySystem**
 
-- [ ] 5.1 – Update S_GravitySystem to use query_entities()
-- Replace get_components() and _build_floating_map()
-- Use query with optional C_FloatingComponent
-- Run tests
+- [x] 5.1 – Update S_GravitySystem to use query_entities() — Movement entities now come from a required/optional query with floating fallback for legacy wiring; tests cover floating opt-out.
 
 **Refactor: S_FloatingSystem**
 
-- [ ] 5.2 – Update S_FloatingSystem to use query_entities()
-- Run tests
+- [x] 5.2 – Update S_FloatingSystem to use query_entities() — System iterates query results and deduplicates per body before applying spring dynamics.
 
 **Refactor: S_RotateToInputSystem**
 
-- [ ] 5.3 – Update S_RotateToInputSystem to use query_entities()
-- Run tests
+- [x] 5.3 – Update S_RotateToInputSystem to use query_entities() — Input component retrieved from query with NodePath fallback; tests exercise NodePath-free setup.
 
 **Refactor: S_AlignWithSurfaceSystem, S_LandingIndicatorSystem**
 
-- [ ] 5.4 – Update remaining systems to use query_entities()
-- Run tests
+- [x] 5.4 – Update remaining systems to use query_entities() — Align and landing indicator now resolve components via entity queries with optional floating context.
 
 ---
 

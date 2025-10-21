@@ -3,12 +3,25 @@ extends ECSSystem
 class_name S_AlignWithSurfaceSystem
 
 const ALIGN_TYPE := StringName("C_AlignWithSurfaceComponent")
+const FLOATING_TYPE := StringName("C_FloatingComponent")
 
 func process_tick(delta: float) -> void:
-	var now := ECS_UTILS.get_current_time()
+	var manager := get_manager()
+	if manager == null:
+		return
 
-	for component in get_components(ALIGN_TYPE):
-		var align_component: C_AlignWithSurfaceComponent = component as C_AlignWithSurfaceComponent
+	var now := ECS_UTILS.get_current_time()
+	var entities := manager.query_entities(
+		[
+			ALIGN_TYPE,
+		],
+		[
+			FLOATING_TYPE,
+		]
+	)
+
+	for entity_query in entities:
+		var align_component: C_AlignWithSurfaceComponent = entity_query.get_component(ALIGN_TYPE)
 		if align_component == null:
 			continue
 
@@ -21,7 +34,13 @@ func process_tick(delta: float) -> void:
 
 		if align_component.settings.align_only_when_supported:
 			var tolerance := align_component.settings.recent_support_tolerance
-			if not align_component.has_recent_support(now, tolerance):
+			var floating_component: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
+			var has_support := false
+			if floating_component != null:
+				has_support = floating_component.has_recent_support(now, tolerance)
+			else:
+				has_support = align_component.has_recent_support(now, tolerance)
+			if not has_support:
 				continue
 
 		var target_up := body.up_direction.normalized()

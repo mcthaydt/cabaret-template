@@ -10,11 +10,16 @@ class SupportInfo:
 	var normal: Vector3 = Vector3.ZERO
 
 func process_tick(delta: float) -> void:
+	var manager := get_manager()
+	if manager == null:
+		return
+
 	var processed: Dictionary = {}
 	var now: float = ECS_UTILS.get_current_time()
+	var entities := manager.query_entities([FLOATING_TYPE])
 
-	for component in get_components(FLOATING_TYPE):
-		var floating_component: C_FloatingComponent = component as C_FloatingComponent
+	for entity_query in entities:
+		var floating_component: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
 		if floating_component == null:
 			continue
 

@@ -3,6 +3,8 @@ extends BaseTest
 const ECS_MANAGER = preload("res://scripts/managers/m_ecs_manager.gd")
 const GravitySystemScript = preload("res://scripts/ecs/systems/s_gravity_system.gd")
 const MovementComponentScript = preload("res://scripts/ecs/components/c_movement_component.gd")
+const FloatingComponentScript = preload("res://scripts/ecs/components/c_floating_component.gd")
+const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
 class FakeBody extends CharacterBody3D:
     var grounded := false
@@ -34,8 +36,6 @@ func _setup_entity() -> Dictionary:
     entity.add_child(movement)
     await _pump()
 
-    movement.character_body_path = movement.get_path_to(body)
-
     var system = GravitySystemScript.new()
     manager.add_child(system)
     await _pump()
@@ -59,3 +59,41 @@ func test_gravity_system_accelerates_downward_when_not_on_floor() -> void:
     system._physics_process(0.1)
 
     assert_true(body.velocity.y < 0.0)
+
+func test_gravity_system_skips_entities_with_floating_component() -> void:
+    var manager: M_ECSManager = ECS_MANAGER.new()
+    add_child(manager)
+    await _pump()
+
+    var entity := Node.new()
+    entity.name = "E_GravityFloatingTest"
+    manager.add_child(entity)
+    autofree(entity)
+    await _pump()
+
+    var body := FakeBody.new()
+    entity.add_child(body)
+    await _pump()
+
+    var movement: C_MovementComponent = MovementComponentScript.new()
+    movement.settings = RS_MovementSettings.new()
+    entity.add_child(movement)
+    await _pump()
+
+    var floating: C_FloatingComponent = FloatingComponentScript.new()
+    floating.settings = RS_FloatingSettings.new()
+    entity.add_child(floating)
+    await _pump()
+    floating.character_body_path = floating.get_path_to(body)
+
+    var system := GravitySystemScript.new()
+    manager.add_child(system)
+    await _pump()
+
+    body.velocity = Vector3.ZERO
+    body.grounded = false
+    floating.update_support_state(true, ECS_UTILS.get_current_time())
+
+    system._physics_process(0.1)
+
+    assert_almost_eq(body.velocity.y, 0.0, 0.0001)
