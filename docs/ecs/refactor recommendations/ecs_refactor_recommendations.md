@@ -1139,75 +1139,32 @@ var movement = C_MovementComponent.new()
 
 ## Tier 4: System Execution Ordering
 
-**Impact**: ⭐⭐ (Medium)
-**Effort**: 1 day
-**Risk**: Low
-**Priority**: After Tier 2-3
+**Status**: ✅ Delivered in Stories 5.1–5.3.
 
-### Problem
+### Summary
 
-Systems execute in scene tree order (undefined).
+- `ECSSystem` exposes `@export var execution_priority: int` clamped to `0–1000`.
+- `M_ECSManager` owns the physics tick, keeps a cached priority-sorted array, and re-sorts whenever a system’s priority changes (`mark_systems_dirty()`).
+- Systems only run their `_physics_process` when unmanaged (keeps backwards compatibility for isolated tests).
 
-**Current**: Must manually arrange nodes in scene tree:
-```
-Scene
-├─ S_InputSystem  ← Must be first
-├─ S_MovementSystem  ← Must be after input
-├─ S_JumpSystem
-└─ S_GravitySystem
-```
+### Priority Conventions
 
-### Solution: Explicit Execution Order
+| Band | Purpose | Example Systems |
+|------|---------|-----------------|
+| `0–9` | Input capture / sensor sampling | `S_InputSystem` |
+| `10–39` | Pre-physics state prep (timers, caches) | future anticipation systems |
+| `40–69` | Core forces & motion | `S_JumpSystem`, `S_GravitySystem`, `S_MovementSystem` |
+| `70–109` | Post-motion adjustments | `S_FloatingSystem`, `S_RotateToInputSystem`, `S_AlignWithSurfaceSystem` |
+| `110–199` | Feedback & UX layers | `S_LandingIndicatorSystem`, VFX/SFX responders |
+| `200+` | Diagnostics / analytics / experiments | profiling hooks, debug overlays |
 
-**Add to ECSSystem**:
-```gdscript
-# scripts/ecs/ecs_system.gd
-@export var execution_order: int = 0  # Lower = earlier
-@export var execution_group: StringName = "default"
-```
+Leave gaps so new systems can slot in without renumbering.
 
-**M_ECSManager sorts systems**:
-```gdscript
-func _ready():
-    # ... existing code ...
+### Validation & Tooling
 
-    # Sort systems by execution order
-    _systems.sort_custom(func(a, b):
-        if a.execution_group != b.execution_group:
-            return _group_priority(a.execution_group) < _group_priority(b.execution_group)
-        return a.execution_order < b.execution_order
-    )
-
-func _group_priority(group: StringName) -> int:
-    match group:
-        "pre_physics": return 0
-        "physics": return 1
-        "post_physics": return 2
-        "render": return 3
-        _: return 1  # Default to physics
-```
-
-**Set execution order in systems**:
-```gdscript
-# S_InputSystem
-@export var execution_order: int = 0
-@export var execution_group: StringName = "pre_physics"
-
-# S_MovementSystem
-@export var execution_order: int = 100
-@export var execution_group: StringName = "physics"
-
-# S_AnimationSystem
-@export var execution_order: int = 0
-@export var execution_group: StringName = "render"
-```
-
-### Benefits
-
-- **Explicit**: Clear what order systems run
-- **Documented**: Order visible in inspector
-- **Grouped**: Physics vs rendering clearly separated
-- **Flexible**: Easy to insert new systems
+- `tests/unit/ecs/test_ecs_manager.gd` ensures execution order respects priorities and tie-breaking.
+- `tests/unit/ecs/systems/test_landing_indicator_system.gd` covers mixed-priority interactions.
+- Future enhancement: optional debug overlay or log stream that prints the executed order each frame.
 
 ---
 

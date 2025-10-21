@@ -71,10 +71,10 @@ Scene Tree
 │  │   ├─ "C_MovementComponent" → [component1, component2, ...]
 │  │   ├─ "C_InputComponent" → [component3, ...]
 │  │   └─ ...
-│  ├─ _systems: Array[ECSSystem]
-│  │   ├─ S_InputSystem (order: 0)
-│  │   ├─ S_MovementSystem (order: 100)
-│  │   ├─ S_JumpSystem (order: 50)
+│  ├─ _systems: Array[ECSSystem] (sorted by execution_priority)
+│  │   ├─ S_InputSystem (priority: 0)
+│  │   ├─ S_JumpSystem (priority: 40)
+│  │   ├─ S_MovementSystem (priority: 50)
 │  │   └─ ...
 │  └─ Signals: registered(component), unregistered(component)
 │
@@ -113,9 +113,9 @@ Scene Tree
      ↓
 [4] Systems._ready() → locate manager → cache reference
      ↓
-[5] Game Loop: Godot calls _physics_process(delta) on all systems
+[5] Game Loop: Godot calls M_ECSManager._physics_process(delta)
      ↓
-[6] Each System: _physics_process(delta) → process_tick(delta)
+[6] Manager keeps systems sorted by execution_priority and calls system.process_tick(delta)
      ├─ get_components(COMPONENT_TYPE) → query manager
      ├─ for component in components:
      │   ├─ Read component data
@@ -697,17 +697,19 @@ func process_tick(_delta: float) -> void:
 ### 4.2 System Query Flow
 
 ```
-[1] System._physics_process(delta) called
+[1] M_ECSManager._physics_process(delta) selects the next system in priority order
          ↓
-[2] var entities = manager.query_entities(required_types, optional_types)
+[2] system.process_tick(delta) runs
          ↓
-[3] Manager assembles EntityQuery results from entity→component map
+[3] var entities = system.query_entities(required_types, optional_types)
          ↓
-[4] Returns Array[EntityQuery] (each holds entity + component dictionary)
+[4] Manager assembles EntityQuery results from entity→component map
          ↓
-[5] System iterates entity queries
+[5] Returns Array[EntityQuery] (each holds entity + component dictionary)
+         ↓
+[6] System iterates entity queries
          │
-         ├─ for query in entities:
+[6a] for query in entities:
          │      ├─ var movement = query.get_component(C_MovementComponent.COMPONENT_TYPE)
          │      ├─ Optional: var floating = query.get_component(C_FloatingComponent.COMPONENT_TYPE)
          │      ├─ Apply logic using resolved components
@@ -716,33 +718,43 @@ func process_tick(_delta: float) -> void:
          └─ Continue next frame
 ```
 
-### 4.3 Cross-Component Reference Resolution
+### 4.3 Entity Query Resolution
 
-**Problem**: Systems need to match components on the same entity.
+**Goal**: Allow systems to operate on sets of components that coexist on the same entity without manual NodePath wiring.
 
-**Current Pattern**: Components store `NodePath` to other components
+**Pattern**:
+- Components register with the manager using their `COMPONENT_TYPE`.
+- `M_ECSManager` maintains an entity→component map keyed by the closest ancestor whose name starts with `E_`.
+- Systems call `query_entities(required_types, optional_types)` to retrieve `EntityQuery` objects.
 
-**Example** (S_MovementSystem):
-```
-[1] Get all C_MovementComponents
-         ↓
-[2] For each movement_comp:
-         ↓
-[3] Call movement_comp.get_input_component()
-         │
-         ├─ if input_component_path.is_empty(): return null
-         ├─ return get_node_or_null(input_component_path) as C_InputComponent
-         │
-         └─ Returns input component or null
-         ↓
-[4] Check if input_comp != null
-         ↓
-[5] Read input_comp.input_vector
-         ↓
-[6] Apply to movement_comp.velocity
+**EntityQuery Structure**:
+```gdscript
+class_name EntityQuery
+
+var entity: Node  # Entity root (e.g., E_Player)
+var components: Dictionary[StringName, ECSComponent]
+
+func get_component(component_type: StringName) -> ECSComponent:
+    return components.get(component_type)
 ```
 
-**Limitation**: This creates tight coupling between components. See [§8 Current Limitations](#8-current-limitations).
+**Usage** (S_MovementSystem):
+```
+[1] required := [C_MovementComponent.COMPONENT_TYPE, C_InputComponent.COMPONENT_TYPE]
+[2] optional := [C_FloatingComponent.COMPONENT_TYPE]
+[3] for query in manager.query_entities(required, optional):
+         ├─ movement := query.get_component(C_MovementComponent.COMPONENT_TYPE)
+         ├─ input := query.get_component(C_InputComponent.COMPONENT_TYPE)
+         ├─ floating := query.get_component(C_FloatingComponent.COMPONENT_TYPE)  # May be null
+         └─ Apply movement logic using resolved components
+```
+
+**Benefits**:
+- No cross-component NodePath exports.
+- Optional components seamlessly handled (null when absent).
+- Systems can share helper maps via `U_ECSUtils.map_components_by_body()` without re-querying.
+
+**Scene-Only NodePaths**: Components still export NodePaths for non-component dependencies (e.g., raycasts, meshes). These references remain within the owning entity and do not participate in entity queries.
 
 ### 4.4 Component Unregistration Flow
 
@@ -1196,6 +1208,38 @@ func process_tick(delta: float) -> void:
 
 ---
 
+### 6.8 Priority-Sorted System Scheduling
+
+**What changed**: Every system exposes `@export var execution_priority: int` (clamped to `0–1000`). `M_ECSManager` keeps a cached, priority-sorted list and drives systems from its own `_physics_process`. Individual systems only run their `_physics_process` when unmanaged (useful for isolated testing scenarios).
+
+**Scheduling rules**:
+- Lower numbers execute earlier within the same physics frame.
+- Ties fall back to registration order, guaranteeing deterministic behaviour across loads.
+- Updating `execution_priority` at runtime calls `M_ECSManager.mark_systems_dirty()`, forcing a re-sort before the next tick.
+- Priorities are editor-visible so scene authors can reason about ordering without checking code.
+
+**Recommended bands** (leave gaps so future systems can slot in without renumbering):
+- `0–9` Input capture and sensor sampling (`S_InputSystem`).
+- `10–39` Pre-physics state derivation (input buffering, timers, cache warm-up).
+- `40–69` Core motion & forces (`S_JumpSystem`, `S_GravitySystem`, `S_MovementSystem`).
+- `70–109` Post-motion adjustments (`S_FloatingSystem`, `S_RotateToInputSystem`, `S_AlignWithSurfaceSystem`).
+- `110–199` Feedback layers (`S_LandingIndicatorSystem`, VFX/audio responders).
+- `200+` Diagnostics, analytics, and experimental systems that must never block gameplay.
+
+**Example**:
+```gdscript
+func _ready() -> void:
+	execution_priority = 50  # Movement runs after input (0) but before alignment (90)
+```
+
+**Verification**:
+- `tests/unit/ecs/test_ecs_manager.gd` asserts priority order execution using a log of invoked systems.
+- `tests/unit/ecs/systems/test_landing_indicator_system.gd` covers mixed-priority scenarios to ensure deterministic ordering when multiple systems act on the same entity.
+
+See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status notes and migration guidance.
+
+---
+
 ## 7. Example Flows
 
 ### 7.1 Player Jump (Complete Flow)
@@ -1363,102 +1407,69 @@ func process_tick(delta: float) -> void:
 
 ## 8. Current Limitations
 
-### 8.1 No Multi-Component Queries
+### 8.1 Multi-Component Queries (Stories 2.1–2.6)
 
-**Problem**: Systems can only query one component type at a time.
+**Status**: ✅ Delivered. `M_ECSManager.query_entities(required, optional)` now powers every gameplay system.
 
-**Current Workaround** (manual cross-referencing):
-```gdscript
-# S_MovementSystem must manually match components
-var movement_components = get_components(C_MovementComponent.COMPONENT_TYPE)
-var input_components = get_components(C_InputComponent.COMPONENT_TYPE)
+**Highlights**:
+- Returns `Array[EntityQuery]`, each providing the entity root and a dictionary of resolved components.
+- Optional components are supported; missing entries resolve to `null`.
+- The manager caches an entity→component map so repeated queries avoid walking the scene tree.
+- `U_ECSUtils.map_components_by_body()` supplements queries when systems need body-level deduplication.
 
-for movement_comp in movement_components:
-    var input_comp = movement_comp.get_input_component()  # Manual lookup
-    if input_comp != null:
-        # Apply logic
-```
-
-**Desired API**:
-```gdscript
-# Query entities with BOTH components
-var entities = query_entities([C_MovementComponent.COMPONENT_TYPE, C_InputComponent.COMPONENT_TYPE])
-
-for entity in entities:
-    var movement_comp = entity.get_component(C_MovementComponent.COMPONENT_TYPE)
-    var input_comp = entity.get_component(C_InputComponent.COMPONENT_TYPE)
-    # Both guaranteed non-null
-```
-
-**Impact**: **Critical for scalability**. Current approach doesn't scale beyond 2-3 component queries.
-
-**Solution**: See `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md` → Query System
+**Migration Notes**:
+- Remove NodePath links between components; rely on queries to co-locate data.
+- In tests, `await get_tree().process_frame` after spawning manager + components before calling `query_entities()` to allow deferred registration to complete.
 
 ---
 
-### 8.2 Tight Component Coupling
+### 8.2 Component Coupling (Stories 4.1–4.4)
 
-**Problem**: Components store `NodePath` to other specific components.
+**Status**: ✅ Delivered. Components no longer reference each other through NodePaths; systems stitch data together via entity queries.
 
-**Example**:
-```gdscript
-# C_MovementComponent "knows" about C_InputComponent
-@export_node_path("Node") var input_component_path: NodePath
+**Highlights**:
+- Movement, jump, rotate-to-input, and align-with-surface components auto-discover their entity’s `CharacterBody3D` and expose typed getters.
+- Cross-component relationships live entirely in systems (`S_MovementSystem`, `S_JumpSystem`, etc.), eliminating hidden dependencies inside components.
+- Scenes wire only scene-graph resources (meshes, raycasts, markers). Component-to-component wiring is forbidden and enforced by validation hooks.
 
-func get_input_component() -> C_InputComponent:
-    return get_node_or_null(input_component_path) as C_InputComponent
-```
-
-**Issues**:
-- Can't swap input sources (player input vs AI input) without changing component
-- Hard to create new movement types that use different inputs
-- Components aren't truly composable
-
-**Desired Pattern**: Systems wire components together, components don't know about each other.
-
-**Solution**: See `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md` → Decouple Components
+**Migration Notes**:
+- Remove legacy `*_component_path` exports from existing scenes (use the updated templates for reference).
+- Tests constructing components in isolation should rely on helper factories that create minimal entity trees to satisfy auto-discovery requirements.
 
 ---
 
-### 8.3 No Event System
+### 8.3 Event Bus System (Stories 3.1–3.4)
 
-**Problem**: Systems can't communicate events without signals or direct coupling.
+**Status**: ✅ Delivered. `ECSEventBus` provides publish/subscribe semantics with a rolling history buffer for debugging.
 
-**Current State**: Only 2 signals total:
-- `M_ECSManager.registered(component)`
-- `M_ECSManager.unregistered(component)`
+**Highlights**:
+- `ECSEventBus.publish(event_type: StringName, payload: Dictionary)` timestamps every event.
+- Subscribers register callable handlers and receive events in the order they were fired.
+- History buffer defaults to 1,000 events and is configurable (`set_history_limit()`).
+- Sample systems (`S_JumpParticlesSystem`, `S_JumpSoundSystem`) demonstrate decoupled reactions to `entity_jumped`.
 
-**Missing**: Domain events like:
-- `entity_jumped` → Animation system plays jump animation
-- `entity_landed` → Sound system plays landing sound
-- `entity_damaged` → VFX system spawns damage particles
-
-**Impact**: **Blocks emergent gameplay**. Can't implement systemic interactions without hardcoding.
-
-**Solution**: See `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md` → Event Bus
-
-**Status Update (Stories 3.1–3.4)**: Implemented the static `ECSEventBus` (`scripts/ecs/ecs_event_bus.gd`) with publish/subscribe APIs, a rolling 1,000-event history (`get_event_history()`, `set_history_limit()`, `clear_history()`), wired `S_JumpSystem` to emit `entity_jumped` events, and added sample subscribers (`S_JumpParticlesSystem`, `S_JumpSoundSystem`) that react to the payload for VFX/SFX hand-offs.
+**Migration Notes**:
+- Replace ad-hoc signal wiring between systems with event bus topics.
+- Be mindful of payload size: keep dictionaries lean (<1 KB) to avoid ballooning the history buffer.
 
 ---
 
-### 8.4 No System Execution Ordering
+### 8.4 System Execution Ordering (Stories 5.1–5.3)
 
-**Problem**: Systems execute in scene tree order (undefined in code).
+**Status**: ✅ Delivered. Systems no longer rely on scene-tree placement; `M_ECSManager` sorts them by `execution_priority` every time the order changes.
 
-**Current**: Relies on manual scene ordering (must remember to place S_InputSystem before S_MovementSystem).
+**Highlights**:
+- `execution_priority` is exported on `ECSSystem`, clamped to `0–1000`, and visible in the inspector.
+- Lower values run earlier; registration order breaks ties.
+- `M_ECSManager.mark_systems_dirty()` is invoked whenever a system’s priority changes, so the next physics tick re-sorts the cache.
+- Recommended priority bands are documented in [§6.8](#68-priority-sorted-system-scheduling).
 
-**Desired**:
-```gdscript
-# In system definition
-@export var execution_order: int = 0  # S_InputSystem = 0
-@export var execution_group: StringName = "gameplay"
+**Migration Notes**:
+- Update existing scenes to set priorities explicitly (e.g., Input = 0, Jump ≈ 40, Movement ≈ 50, Alignment ≈ 90).
+- Remove legacy per-system `_physics_process` calls in tests; instead, tick the manager (`manager._physics_process(delta)`).
+- When adding a new system, pick a value that leaves at least five unused slots above and below for future insertions.
 
-# Manager sorts systems by order automatically
-```
-
-**Impact**: Medium. Works for current simple systems, will break with more systems.
-
-**Solution**: See `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md` → System Ordering
+**Next Steps**: Add optional debug instrumentation that prints the executed order in-editor when a developer flag is enabled (tracked separately).
 
 ---
 
@@ -1503,38 +1514,34 @@ func get_input_component() -> C_InputComponent:
 
 **Implemented**:
 - Component/system base classes with lifecycle management
-- Type-based component queries
-- Manager discovery pattern (parent walk + scene tree group)
-- Auto-registration/unregistration
-- Cross-component NodePath references
-- Settings resource integration
-- Debug snapshots for components
+- Manager discovery utilities (`U_ECSUtils.get_manager`, group helpers)
+- Auto-registration/unregistration with validation hooks
+- Multi-component entity queries with optional component support
+- EntityQuery caching + body deduplication helpers
+- Event bus (`ECSEventBus`) with rolling history buffer
+- Priority-sorted system scheduling via `execution_priority`
+- Settings resources and deep-copy snapshots for debugging
+- Decoupled component architecture (no cross-component NodePaths)
+- Query-driven systems: movement, jump, gravity, floating, rotate-to-input, align-to-surface, landing indicator
 
-**Additional Systems/Components** (exist but detailed docs pending refactor):
-- S_AlignWithSurfaceSystem - Smoothly aligns visual mesh with ground normals
-- S_LandingIndicatorSystem - Projects landing point indicator during jumps
-- C_LandingIndicatorComponent - Manages landing visualization data
-
-**Not Implemented** (see [§8](#8-current-limitations)):
-- Multi-component queries
-- Event bus for system communication
-- System execution ordering
-- Entity ID abstraction
-- Component tags for categories
+**Not Implemented (Yet)** (see [§8](#8-current-limitations)):
+- Explicit entity ID abstraction
+- Component tag/indexing layer
+- Optional execution-order visualiser/debug overlay
 
 ### 9.3 Next Steps
 
 **For Production Use**:
-1. **Implement query system** (highest impact for scalability)
-2. **Add event bus** (enables emergent gameplay)
-3. **Decouple components** (remove cross-component NodePaths)
-4. **System ordering** (explicit execution order)
+1. Introduce stable entity identifiers and persistence hooks.
+2. Add a component tagging/indexing layer for coarse-grained queries.
+3. Ship optional execution-order tooling (debug overlays or logging toggles).
+4. Refresh scene templates/tutorials to highlight priority conventions.
 
 **For Code Quality**:
-1. Extract duplicate helper patterns (see refactor recommendations)
-2. Standardize null-safety checks
-3. Add comprehensive API documentation
-4. Create tutorial scenes/examples
+1. Extend the automated API docs for query helpers and priority scheduling.
+2. Add soak/performance benchmarks that churn priorities at runtime.
+3. Expand unit coverage for event-driven responder systems (particles, audio, camera shake).
+4. Continue enforcing deep-copy semantics for shared dictionaries/arrays.
 
 ### 9.4 Related Documentation
 

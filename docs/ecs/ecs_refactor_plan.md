@@ -103,7 +103,7 @@ Epic 5 – System Execution Ordering (5 points)
 
 - [x] Story 5.1: Add execution_priority to ECSSystem base class (2 points) — Added exported `execution_priority` (clamped 0–1000) to `ECSSystem`, notifying the manager on change with coverage in `tests/unit/ecs/test_ecs_system.gd`
 - [x] Story 5.2: Implement system sorting in M_ECSManager (2 points) — `M_ECSManager` now disables per-system physics ticks, sorts `_systems` by `execution_priority`, and drives execution via its own `_physics_process`; regression suites updated to call `manager._physics_process` and new priority-order test added in `tests/unit/ecs/test_ecs_manager.gd`
-- [ ] Story 5.3: Document system priority conventions (1 point)
+- [x] Story 5.3: Document system priority conventions (1 point) — Updated `ecs_architecture.md`, `ecs_refactor_recommendations.md`, and planning docs with priority bands, scheduling rules, and hand-off guidance.
 
 Testing & Documentation (7 points)
 
@@ -1134,12 +1134,14 @@ func _sort_systems() -> void:
 
 **Documentation: System Priority Conventions**
 
-- [ ] 1.3 – Document system priority ranges
-- Add to `docs/ecs/ecs_architecture.md`:
-  - 0-19: Input/Pre-processing (S_InputSystem = 0)
-  - 20-79: Game Logic (S_MovementSystem = 50, S_JumpSystem = 50, S_GravitySystem = 60)
-  - 80-99: Post-processing (S_RotateToInputSystem = 80, S_AlignWithSurfaceSystem = 85)
-  - 100+: Effects/Rendering (S_ParticleSystem = 100, S_SoundSystem = 100)
+- [x] 1.3 – Document system priority ranges
+- Added to `docs/ecs/ecs_architecture.md` and `ecs_refactor_recommendations.md`:
+  - `0–9`: Input/Pre-physics sampling (`S_InputSystem`)
+  - `10–39`: Pre-physics derivation (buffer/timer upkeep)
+  - `40–69`: Core motion & forces (`S_JumpSystem`, `S_MovementSystem`, `S_GravitySystem`)
+  - `70–109`: Post-motion adjustments (`S_FloatingSystem`, `S_RotateToInputSystem`, `S_AlignWithSurfaceSystem`)
+  - `110–199`: Feedback/UX (`S_LandingIndicatorSystem`, future VFX/SFX responders)
+  - `200+`: Diagnostics/instrumentation (future tooling)
 
 ---
 
@@ -1345,10 +1347,10 @@ No blocking bugs remain
 
 Finalize all documentation:
 
-- [ ] `docs/ecs/ecs_architecture.md` updated with query/event/ordering sections
+- [x] `docs/ecs/ecs_architecture.md` updated with query/event/ordering sections
 - [ ] `docs/ecs/for humans/ecs_ELI5.md` updated with query examples
 - [ ] `docs/ecs/scene_migration_guide.md` created with step-by-step guide
-- [ ] `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md` marked completed items
+- [x] `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md` marked completed items
 - [ ] Add API documentation for EntityQuery, ECSEventBus, U_ECSUtils
 
 ### Step 6: Deployment Readiness Checklist
