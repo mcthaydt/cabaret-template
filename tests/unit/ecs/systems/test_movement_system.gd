@@ -47,9 +47,6 @@ func _setup_entity(include_floating: bool = false) -> Dictionary:
 	entity.add_child(body)
 	await _pump()
 
-	movement.character_body_path = movement.get_path_to(body)
-	movement.input_component_path = movement.get_path_to(input)
-
 	var floating: C_FloatingComponent = null
 	if include_floating:
 		floating = FloatingComponentScript.new()
@@ -57,7 +54,6 @@ func _setup_entity(include_floating: bool = false) -> Dictionary:
 		entity.add_child(floating)
 		await _pump()
 		floating.character_body_path = floating.get_path_to(body)
-		movement.support_component_path = movement.get_path_to(floating)
 
 	var system = MovementSystemScript.new()
 	manager.add_child(system)
@@ -75,10 +71,12 @@ func _setup_entity(include_floating: bool = false) -> Dictionary:
 func test_movement_system_updates_velocity_towards_input() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)
-	var movement = context["movement"]
-	var input = context["input"]
+	var movement: C_MovementComponent = context["movement"]
+	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system = context["system"]
+	var system: S_MovementSystem = context["system"]
+
+	assert_eq(movement.get_character_body(), body)
 
 	body.velocity = Vector3.ZERO
 	input.set_move_vector(Vector2.RIGHT)
@@ -93,9 +91,9 @@ func test_movement_system_applies_sprint_multiplier_to_speed() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)
 	var movement: C_MovementComponent = context["movement"]
-	var input = context["input"]
+	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system = context["system"]
+	var system: S_MovementSystem = context["system"]
 
 	movement.settings.use_second_order_dynamics = false
 	movement.settings.max_speed = 5.0
@@ -116,7 +114,7 @@ func test_movement_grounded_friction_reduces_velocity_quickly() -> void:
 	autofree_context(context)
 	var movement: C_MovementComponent = context["movement"]
 	var body: FakeBody = context["body"]
-	var system = context["system"]
+	var system: S_MovementSystem = context["system"]
 	var floating: C_FloatingComponent = context["floating"]
 
 	movement.settings.use_second_order_dynamics = false
@@ -139,7 +137,7 @@ func test_movement_air_friction_is_gentler_without_support() -> void:
 	autofree_context(context)
 	var movement: C_MovementComponent = context["movement"]
 	var body: FakeBody = context["body"]
-	var system = context["system"]
+	var system: S_MovementSystem = context["system"]
 	var floating: C_FloatingComponent = context["floating"]
 
 	movement.settings.use_second_order_dynamics = false
@@ -161,9 +159,9 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
 	var context: Dictionary = await _setup_entity(true)
 	autofree_context(context)
 	var movement: C_MovementComponent = context["movement"]
-	var input = context["input"]
+	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system = context["system"]
+	var system: S_MovementSystem = context["system"]
 	var floating: C_FloatingComponent = context["floating"]
 
 	movement.settings.use_second_order_dynamics = true
@@ -213,9 +211,9 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
 func test_movement_system_applies_deceleration_when_no_input() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)
-	var input = context["input"]
+	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system = context["system"]
+	var system: S_MovementSystem = context["system"]
 
 	body.velocity = Vector3(5, 0, 0)
 	input.set_move_vector(Vector2.ZERO)
@@ -229,10 +227,10 @@ func test_movement_system_applies_deceleration_when_no_input() -> void:
 func test_movement_system_second_order_dynamics_response() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)
-	var movement = context["movement"]
-	var input = context["input"]
+	var movement: C_MovementComponent = context["movement"]
+	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system = context["system"]
+	var system: S_MovementSystem = context["system"]
 
 	movement.settings.use_second_order_dynamics = true
 	movement.settings.response_frequency = 1.0
@@ -250,10 +248,10 @@ func test_movement_system_second_order_dynamics_response() -> void:
 func test_movement_second_order_settles_quickly_after_input_release() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)
-	var movement = context["movement"]
-	var input = context["input"]
+	var movement: C_MovementComponent = context["movement"]
+	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system = context["system"]
+	var system: S_MovementSystem = context["system"]
 
 	movement.settings.use_second_order_dynamics = true
 	movement.settings.response_frequency = 1.0
@@ -273,19 +271,17 @@ func test_movement_second_order_settles_quickly_after_input_release() -> void:
 	assert_true(body.velocity.x <= 1.5)
 	assert_almost_eq(movement.get_horizontal_dynamics_velocity().x, 0.0, 0.01)
 
-func test_movement_system_still_processes_without_input_nodepath_via_queries() -> void:
+func test_movement_system_processes_without_manual_wiring() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)
 	var movement: C_MovementComponent = context["movement"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system = context["system"]
-
-	movement.input_component_path = NodePath()
+	var system: S_MovementSystem = context["system"]
 
 	body.velocity = Vector3.ZERO
 	input.set_move_vector(Vector2.RIGHT)
 
 	system._physics_process(0.1)
 
-	assert_true(body.velocity.x > 0.0, "Movement System should use query_entities to retrieve input component when NodePath is missing.")
+	assert_true(body.velocity.x > 0.0, "Movement System should use query_entities to retrieve input component without manual wiring.")

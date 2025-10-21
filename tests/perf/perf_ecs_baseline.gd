@@ -155,10 +155,6 @@ func _setup_entities() -> void:
 		landing_component.settings = RS_LANDING.new()
 		components_root.add_child(landing_component)
 
-		movement_component.character_body_path = movement_component.get_path_to(body)
-		movement_component.input_component_path = movement_component.get_path_to(input_component)
-		movement_component.support_component_path = movement_component.get_path_to(floating_component)
-
 		jump_component.character_body_path = jump_component.get_path_to(body)
 		jump_component.input_component_path = jump_component.get_path_to(input_component)
 

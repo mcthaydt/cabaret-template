@@ -325,24 +325,21 @@ func process_tick(delta: float) -> void:
 
 **Data**:
 ```gdscript
-@export var velocity: Vector3 = Vector3.ZERO
-@export var max_speed: float = 5.0
-@export var acceleration: float = 50.0
-@export var friction: float = 20.0
-@export_node_path("Node") var character_body_path: NodePath
-@export_node_path("Node") var input_component_path: NodePath  # Cross-reference
-@export_node_path("Node") var support_component_path: NodePath  # Cross-reference
+@export var settings: RS_MovementSettings
+var _horizontal_dynamics_velocity: Vector2 = Vector2.ZERO
+var _last_debug_snapshot: Dictionary = {}
 ```
 
-**Methods**:
-- `get_character_body() -> CharacterBody3D` - Resolves NodePath to entity
-- `get_input_component() -> C_InputComponent` - Resolves cross-reference
-- `get_support_component()` - Returns floating component if present
+**Runtime Behavior**:
+- `get_character_body() -> CharacterBody3D` — Walks up to the `E_*` entity root and auto-discovers the first `CharacterBody3D` in its subtree (cached between calls).
+- `get_horizontal_dynamics_velocity()` / `set_horizontal_dynamics_velocity(value)` — Track the second-order dynamics state used by `S_MovementSystem`.
+- `reset_dynamics_state()` — Clears the cached dynamics velocity when switching back to direct acceleration.
+- `update_debug_snapshot(snapshot)` — Stores a deep copy for inspector overlays and unit tests.
 
 **Used By**:
-- `S_MovementSystem` - Applies velocity to character body
-- `S_GravitySystem` - Modifies velocity.y
-- `S_FloatingSystem` - Overrides velocity when floating
+- `S_MovementSystem` — Applies input-driven movement and second-order dynamics.
+- `S_GravitySystem` — Modifies vertical velocity.
+- `S_FloatingSystem` — Applies air-control modifiers based on support state.
 
 ---
 
@@ -1027,7 +1024,7 @@ func test_movement_system_applies_velocity():
     add_child(body)
 
     var movement_comp = C_MovementComponent.new()
-    movement_comp.character_body_path = movement_comp.get_path_to(body)
+    movement_comp.settings = RS_MovementSettings.new()
     body.add_child(movement_comp)
     await get_tree().process_frame
 
@@ -1035,8 +1032,6 @@ func test_movement_system_applies_velocity():
     input_comp.input_vector = Vector2(1, 0)
     body.add_child(input_comp)
     await get_tree().process_frame
-
-    movement_comp.input_component_path = movement_comp.get_path_to(input_comp)
 
     var system = S_MovementSystem.new()
     add_child(system)

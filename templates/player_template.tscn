@@ -81,9 +81,6 @@ target_position = Vector3(0, -1.5, 0)
 [node name="C_MovementComponent" type="Node" parent="Components"]
 script = ExtResource("1_6m9bm")
 settings = ExtResource("9_mov")
-character_body_path = NodePath("../../Player_Body")
-input_component_path = NodePath("../C_InputComponent")
-support_component_path = NodePath("../C_FloatingComponent")
 
 [node name="C_JumpComponent" type="Node" parent="Components"]
 script = ExtResource("2_h3hux")

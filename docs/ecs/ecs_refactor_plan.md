@@ -94,7 +94,7 @@ Epic 3 – Event Bus System (8 points)
 
 Epic 4 – Component Decoupling (7 points)
 
-- [ ] Story 4.1: Remove NodePath exports from C_MovementComponent (1 point)
+- [x] Story 4.1: Remove NodePath exports from C_MovementComponent (1 point) — Movement component now auto-discovers its CharacterBody3D and relies on query-based lookups for peer components
 - [ ] Story 4.2: Remove NodePath exports from C_JumpComponent (1 point)
 - [ ] Story 4.3: Migrate remaining systems to query-based (3 points)
 - [ ] Story 4.4: Update scene templates (player_template.tscn) (2 points)
@@ -937,19 +937,18 @@ if can_jump:
 - [ ] Step 4 – Remove Component→Component NodePath Exports
 
 **IMPORTANT SCOPE CLARIFICATION**:
-- **REMOVE**: Only component→component NodePath cross-references (e.g., C_Movement → C_Input)
-- **KEEP**: NodePaths to CharacterBody3D, RayCast3D, and other scene nodes **within same entity subtree**
+- **REMOVE**: Component→component NodePath cross-references (e.g., C_Movement → C_Input).
+- **AUTO-DISCOVER**: Movement now resolves its `CharacterBody3D` (and camera fallback) at runtime; other components still keep NodePaths to CharacterBody3D, RayCast3D, and other same-entity scene nodes until their stories land.
 - **CROSS-TREE**: Cross-tree references (camera in different scene, managers, spawn points) use **runtime discovery via groups** (U_ECSUtils.get_singleton_from_group(), get_nodes_from_group(), get_active_camera())
 - **Rationale**: Query system solves component coupling; NodePaths work for same-subtree nodes; cross-tree needs runtime discovery (player_template can't NodePath to base_scene_template camera)
 
 **Refactor (Test-After): Update C_MovementComponent**
 
-- [ ] 4.1 – Remove component→component NodePath exports from C_MovementComponent
+- [x] 4.1 – Remove component→component NodePath exports from C_MovementComponent
 - **DELETE**: `@export_node_path("C_InputComponent") var input_component_path: NodePath`
 - **DELETE**: `@export_node_path("C_FloatingComponent") var support_component_path: NodePath`
 - **DELETE**: `func get_input_component()`, `func get_support_component()`
-- **KEEP**: `camera_node_path` (optional same-subtree override; S_MovementSystem uses U_ECSUtils.get_active_camera() as fallback for cross-tree case)
-- **KEEP**: Any NodePaths to CharacterBody3D or other scene nodes within same subtree
+- **UPDATE**: Movement component now auto-discovers its `CharacterBody3D` (no `character_body_path`) and relies on `U_ECSUtils.get_active_camera()` for camera context instead of `camera_node_path`
 - Run existing tests: All should still pass (systems use queries now)
 
 **Refactor (Test-After): Update C_JumpComponent**

@@ -58,9 +58,7 @@ func process_tick(delta: float) -> void:
 		var has_input: bool = input_vector.length() > 0.0
 		var desired_velocity: Vector3 = Vector3.ZERO
 		if has_input:
-			var camera: Camera3D = movement_component.get_camera_node()
-			if camera == null:
-				camera = ECS_UTILS.get_active_camera(self)
+			var camera: Camera3D = ECS_UTILS.get_active_camera(self)
 			if camera != null:
 				var up_dir: Vector3 = (body.up_direction if body != null else Vector3.UP)
 				if up_dir.length() == 0.0:
@@ -84,8 +82,6 @@ func process_tick(delta: float) -> void:
 				desired_velocity = _get_desired_velocity(input_vector, current_max_speed)
 
 		var floating_component: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
-		if floating_component == null:
-			floating_component = movement_component.get_support_component()
 
 		var support_active: bool = false
 		if floating_component != null:
