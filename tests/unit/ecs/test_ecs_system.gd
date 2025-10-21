@@ -52,7 +52,7 @@ func test_query_entities_passthrough_matches_manager_results() -> void:
 	var manager: M_ECSManager = context["manager"]
 	var system: QueryPassthroughSystem = context["system"]
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	var expected: Array = manager.query_entities([QueryComponent.TYPE])
 	assert_eq(system.captured.size(), expected.size())

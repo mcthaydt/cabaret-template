@@ -74,14 +74,14 @@ func test_movement_system_updates_velocity_towards_input() -> void:
 	var movement: C_MovementComponent = context["movement"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system: S_MovementSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	assert_eq(movement.get_character_body(), body)
 
 	body.velocity = Vector3.ZERO
 	input.set_move_vector(Vector2.RIGHT)
 
-	system._physics_process(0.1)
+	manager._physics_process(0.1)
 
 	assert_true(body.velocity.x > 0.0)
 	assert_true(body.velocity.length() <= movement.settings.max_speed + 0.01)
@@ -93,7 +93,7 @@ func test_movement_system_applies_sprint_multiplier_to_speed() -> void:
 	var movement: C_MovementComponent = context["movement"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system: S_MovementSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	movement.settings.use_second_order_dynamics = false
 	movement.settings.max_speed = 5.0
@@ -104,7 +104,7 @@ func test_movement_system_applies_sprint_multiplier_to_speed() -> void:
 	input.set_move_vector(Vector2.RIGHT)
 	input.set_sprint_pressed(true)
 
-	system._physics_process(0.1)
+	manager._physics_process(0.1)
 
 	assert_almost_eq(body.velocity.x, 10.0, 0.01)
 	assert_true(movement.get_last_debug_snapshot()["is_sprinting"])
@@ -114,7 +114,7 @@ func test_movement_grounded_friction_reduces_velocity_quickly() -> void:
 	autofree_context(context)
 	var movement: C_MovementComponent = context["movement"]
 	var body: FakeBody = context["body"]
-	var system: S_MovementSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 	var floating: C_FloatingComponent = context["floating"]
 
 	movement.settings.use_second_order_dynamics = false
@@ -127,7 +127,7 @@ func test_movement_grounded_friction_reduces_velocity_quickly() -> void:
 	var now: float = ECS_UTILS.get_current_time()
 	floating.update_support_state(true, now)
 
-	system._physics_process(0.1)
+	manager._physics_process(0.1)
 
 	assert_almost_eq(body.velocity.x, 0.0, 0.01)
 	assert_true(movement.get_last_debug_snapshot()["supported"])
@@ -137,7 +137,7 @@ func test_movement_air_friction_is_gentler_without_support() -> void:
 	autofree_context(context)
 	var movement: C_MovementComponent = context["movement"]
 	var body: FakeBody = context["body"]
-	var system: S_MovementSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 	var floating: C_FloatingComponent = context["floating"]
 
 	movement.settings.use_second_order_dynamics = false
@@ -150,7 +150,7 @@ func test_movement_air_friction_is_gentler_without_support() -> void:
 	var now: float = ECS_UTILS.get_current_time()
 	floating.update_support_state(false, now - 1.0)
 
-	system._physics_process(0.1)
+	manager._physics_process(0.1)
 
 	assert_true(body.velocity.x > 0.5)
 	assert_false(movement.get_last_debug_snapshot()["supported"])
@@ -161,7 +161,7 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
 	var movement: C_MovementComponent = context["movement"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system: S_MovementSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 	var floating: C_FloatingComponent = context["floating"]
 
 	movement.settings.use_second_order_dynamics = true
@@ -179,8 +179,8 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
 	var now: float = ECS_UTILS.get_current_time()
 	floating.update_support_state(true, now)
 
-	system._physics_process(0.1)
-	system._physics_process(0.1)
+	manager._physics_process(0.1)
+	manager._physics_process(0.1)
 
 	var grounded_velocity: float = body.velocity.x
 	var grounded_dyn: Vector2 = movement.get_horizontal_dynamics_velocity()
@@ -197,8 +197,8 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
 
 	input.set_move_vector(Vector2.RIGHT)
 
-	system._physics_process(0.1)
-	system._physics_process(0.1)
+	manager._physics_process(0.1)
+	manager._physics_process(0.1)
 
 	var air_velocity: float = body.velocity.x
 	var air_dyn: Vector2 = movement.get_horizontal_dynamics_velocity()
@@ -213,12 +213,12 @@ func test_movement_system_applies_deceleration_when_no_input() -> void:
 	autofree_context(context)
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system: S_MovementSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	body.velocity = Vector3(5, 0, 0)
 	input.set_move_vector(Vector2.ZERO)
 
-	system._physics_process(0.1)
+	manager._physics_process(0.1)
 
 	assert_true(body.velocity.x < 5.0)
 	assert_true(body.velocity.x >= 0.0)
@@ -230,7 +230,7 @@ func test_movement_system_second_order_dynamics_response() -> void:
 	var movement: C_MovementComponent = context["movement"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system: S_MovementSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	movement.settings.use_second_order_dynamics = true
 	movement.settings.response_frequency = 1.0
@@ -240,7 +240,7 @@ func test_movement_system_second_order_dynamics_response() -> void:
 	body.velocity = Vector3.ZERO
 	input.set_move_vector(Vector2.RIGHT)
 
-	system._physics_process(0.1)
+	manager._physics_process(0.1)
 
 	assert_almost_eq(body.velocity.x, 3.9478, 0.01)
 	assert_almost_eq(movement.get_horizontal_dynamics_velocity().x, 39.478, 0.1)
@@ -251,7 +251,7 @@ func test_movement_second_order_settles_quickly_after_input_release() -> void:
 	var movement: C_MovementComponent = context["movement"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system: S_MovementSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	movement.settings.use_second_order_dynamics = true
 	movement.settings.response_frequency = 1.0
@@ -262,11 +262,11 @@ func test_movement_second_order_settles_quickly_after_input_release() -> void:
 	body.velocity = Vector3.ZERO
 	input.set_move_vector(Vector2.RIGHT)
 
-	system._physics_process(0.1)
+	manager._physics_process(0.1)
 
 	input.set_move_vector(Vector2.ZERO)
 
-	system._physics_process(0.1)
+	manager._physics_process(0.1)
 
 	assert_true(body.velocity.x <= 1.5)
 	assert_almost_eq(movement.get_horizontal_dynamics_velocity().x, 0.0, 0.01)
@@ -277,11 +277,11 @@ func test_movement_system_processes_without_manual_wiring() -> void:
 	var movement: C_MovementComponent = context["movement"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system: S_MovementSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	body.velocity = Vector3.ZERO
 	input.set_move_vector(Vector2.RIGHT)
 
-	system._physics_process(0.1)
+	manager._physics_process(0.1)
 
 	assert_true(body.velocity.x > 0.0, "Movement System should use query_entities to retrieve input component without manual wiring.")

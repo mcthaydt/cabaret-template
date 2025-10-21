@@ -51,12 +51,12 @@ func test_rotate_system_turns_towards_input_direction() -> void:
     autofree_context(context)
     var input: C_InputComponent = context["input"]
     var body: Node3D = context["body"]
-    var system: S_RotateToInputSystem = context["system"]
+    var manager: M_ECSManager = context["manager"]
 
     body.transform = Transform3D.IDENTITY
     input.set_move_vector(Vector2.RIGHT)
 
-    system._physics_process(0.1)
+    manager._physics_process(0.1)
 
     assert_true(body.transform != Transform3D.IDENTITY)
 
@@ -66,7 +66,7 @@ func test_rotate_system_uses_second_order_for_smooth_turn() -> void:
     var rotate_component: C_RotateToInputComponent = context["rotate_component"]
     var input: C_InputComponent = context["input"]
     var body: Node3D = context["body"]
-    var system: S_RotateToInputSystem = context["system"]
+    var manager: M_ECSManager = context["manager"]
 
     rotate_component.settings.use_second_order = true
     rotate_component.settings.rotation_frequency = 2.0
@@ -76,10 +76,10 @@ func test_rotate_system_uses_second_order_for_smooth_turn() -> void:
     body.rotation = Vector3.ZERO
     input.set_move_vector(Vector2.RIGHT)
 
-    system._physics_process(0.1)
+    manager._physics_process(0.1)
     var first_rotation := body.rotation.y
 
-    system._physics_process(0.1)
+    manager._physics_process(0.1)
     var second_rotation := body.rotation.y
 
     var desired_direction: Vector3 = Vector3(input.move_vector.x, 0.0, input.move_vector.y).normalized()
@@ -97,7 +97,7 @@ func test_rotate_system_resets_second_order_state_without_input() -> void:
     var rotate_component: C_RotateToInputComponent = context["rotate_component"]
     var input: C_InputComponent = context["input"]
     var body: Node3D = context["body"]
-    var system: S_RotateToInputSystem = context["system"]
+    var manager: M_ECSManager = context["manager"]
 
     rotate_component.settings.use_second_order = true
     rotate_component.settings.rotation_frequency = 2.0
@@ -106,9 +106,9 @@ func test_rotate_system_resets_second_order_state_without_input() -> void:
     body.rotation = Vector3.ZERO
     input.set_move_vector(Vector2.RIGHT)
 
-    system._physics_process(0.1)
+    manager._physics_process(0.1)
 
     input.set_move_vector(Vector2.ZERO)
-    system._physics_process(0.1)
+    manager._physics_process(0.1)
 
     assert_almost_eq(rotate_component.get_rotation_velocity(), 0.0, 0.001)

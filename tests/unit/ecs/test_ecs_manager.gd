@@ -21,6 +21,20 @@ class FakeSystem extends ECS_SYSTEM:
 	func process_tick(_delta: float) -> void:
 		observed_components = get_components(FakeComponent.TYPE)
 
+class PrioritySystem extends ECS_SYSTEM:
+	var label: String = ""
+	var log: Array = []
+
+	func configure_for_test(name: String, priority: int, target_log: Array) -> void:
+		label = name
+		execution_priority = priority
+		log = target_log
+
+	func process_tick(_delta: float) -> void:
+		if log == null:
+			return
+		log.append(label)
+
 class QueryMovementComponent extends ECS_COMPONENT:
 	const TYPE := StringName("C_QueryMovementComponent")
 
@@ -158,9 +172,36 @@ func test_register_system_configures_and_queries_components() -> void:
 	autofree(system)
 	manager.register_system(system)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_eq(system.observed_components, [component])
+
+func test_systems_execute_in_execution_priority_order() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var execution_log: Array = []
+
+	var late_system := PrioritySystem.new()
+	autofree(late_system)
+	late_system.configure_for_test("late", 100, execution_log)
+
+	var early_system := PrioritySystem.new()
+	autofree(early_system)
+	early_system.configure_for_test("early", 0, execution_log)
+
+	var mid_system := PrioritySystem.new()
+	autofree(mid_system)
+	mid_system.configure_for_test("mid", 50, execution_log)
+
+	manager.register_system(late_system)
+	manager.register_system(early_system)
+	manager.register_system(mid_system)
+
+	manager._physics_process(0.016)
+
+	assert_eq(execution_log, ["early", "mid", "late"])
 
 func test_get_components_filters_null_entries() -> void:
 	var manager: M_ECSManager = ECS_MANAGER.new()

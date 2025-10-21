@@ -134,12 +134,12 @@ func test_landing_indicator_projects_to_ground_hit() -> void:
 	autofree_context(context)
 	var component: C_LandingIndicatorComponent = context["component"] as C_LandingIndicatorComponent
 	var body: FakeBody = context["body"] as FakeBody
-	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	body.global_position = Vector3(1.5, 2.0, -0.5)
 	body.set_raycast_hit(Vector3(1.5, 0.0, -0.5), Vector3.UP)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 	await _pump()
 
 	assert_true(component.is_indicator_visible())
@@ -154,14 +154,14 @@ func test_indicator_aligns_negative_z_axis_to_hit_normal_by_default() -> void:
 	component.settings.normal_axis = 2
 	component.settings.normal_axis_positive = false
 	var body: FakeBody = context["body"] as FakeBody
-	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 	var marker: Node3D = context["landing_marker"] as Node3D
 
 	body.global_position = Vector3(0.5, 1.0, -0.25)
 	var hit_normal: Vector3 = Vector3(0.0, 0.6, 0.8).normalized()
 	body.set_raycast_hit(Vector3.ZERO, hit_normal)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	var basis := marker.global_transform.basis
 	assert_true(basis.z.is_equal_approx(-hit_normal))
@@ -176,14 +176,14 @@ func test_indicator_aligns_positive_y_axis_to_hit_normal_when_configured() -> vo
 	component.settings.normal_axis = 1
 	component.settings.normal_axis_positive = true
 	var body: FakeBody = context["body"] as FakeBody
-	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 	var marker: Node3D = context["landing_marker"] as Node3D
 
 	body.global_position = Vector3(-0.5, 2.0, 0.5)
 	var hit_normal: Vector3 = Vector3(0.25, 0.9, 0.35).normalized()
 	body.set_raycast_hit(Vector3.ZERO, hit_normal)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	var basis := marker.global_transform.basis
 	assert_true(basis.y.is_equal_approx(hit_normal))
@@ -196,12 +196,12 @@ func test_ground_ray_uses_origin_lift() -> void:
 	var component: C_LandingIndicatorComponent = context["component"] as C_LandingIndicatorComponent
 	component.settings.ray_origin_lift = 0.3
 	var body: FakeBody = context["body"] as FakeBody
-	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	body.global_position = Vector3(2.0, 3.0, -1.0)
 	body.set_raycast_hit(Vector3(2.0, 0.0, -1.0), Vector3.UP)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	var expected_from := body.global_position + Vector3.UP * component.settings.ray_origin_lift
 	var expected_to := body.global_position + Vector3.DOWN * component.settings.max_projection_distance
@@ -215,7 +215,7 @@ func test_minimum_clearance_without_alignment_matches_indicator_height_offset() 
 	component.settings.align_to_hit_normal = false
 	component.settings.indicator_height_offset = 0.05
 	var body: FakeBody = context["body"] as FakeBody
-	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 	var marker: Node3D = context["landing_marker"] as Node3D
 
 	body.global_position = Vector3(0.0, 1.0, 0.0)
@@ -223,7 +223,7 @@ func test_minimum_clearance_without_alignment_matches_indicator_height_offset() 
 	var slope_normal := Vector3(0.0, 1.0, 1.0).normalized() # 45 degrees
 	body.set_raycast_hit(hit_point, slope_normal)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	var displacement: Vector3 = marker.global_position - hit_point
 	var marker_up: Vector3 = marker.global_transform.basis.y.normalized()
@@ -239,7 +239,7 @@ func test_landing_indicator_debug_logs_on_slope_raycast_and_plane_fallback() -> 
 	autofree_context(context)
 	var component: C_LandingIndicatorComponent = context["component"] as C_LandingIndicatorComponent
 	var body: FakeBody = context["body"] as FakeBody
-	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 	var marker: Node3D = context["landing_marker"] as Node3D
 
 	# Part 1: Simulate a ramp hit with a 45-degree slope facing +Z
@@ -248,7 +248,7 @@ func test_landing_indicator_debug_logs_on_slope_raycast_and_plane_fallback() -> 
 	var hit_point: Vector3 = Vector3(0.0, 0.0, 0.0)
 	body.set_raycast_hit(hit_point, slope_normal)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	var visible1 := component.is_indicator_visible()
 	var point1 := component.get_landing_point()
@@ -270,7 +270,7 @@ func test_landing_indicator_debug_logs_on_slope_raycast_and_plane_fallback() -> 
 	body.clear_raycast_hit()
 	component.settings.ground_plane_height = -0.25
 	body.global_position = Vector3(0.0, 0.5, 0.0)
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	var visible2 := component.is_indicator_visible()
 	var point2 := component.get_landing_point()
@@ -295,6 +295,7 @@ func test_landing_indicator_logs_when_visual_up_differs_from_hit_normal() -> voi
 	var marker: Node3D = context["landing_marker"] as Node3D
 	var entity: Node = context["entity"] as Node
 	var manager: M_ECSManager = context["manager"] as M_ECSManager
+	landing_system.execution_priority = 90
 
 	# Create a visual and align component/system that will rotate the visual regardless of support
 	var align_component: C_AlignWithSurfaceComponent = ALIGN_COMPONENT.new()
@@ -321,6 +322,7 @@ func test_landing_indicator_logs_when_visual_up_differs_from_hit_normal() -> voi
 	align_component.visual_alignment_path = align_component.get_path_to(visual)
 
 	var align_system: S_AlignWithSurfaceSystem = ALIGN_SYSTEM.new()
+	align_system.execution_priority = 80
 	manager.add_child(align_system)
 	# Ensure this extra system node is cleaned up after the test
 	autofree(align_system)
@@ -335,8 +337,7 @@ func test_landing_indicator_logs_when_visual_up_differs_from_hit_normal() -> voi
 	body.up_direction = align_up
 
 	# First align the visual, then compute landing indicator
-	align_system._physics_process(0.016)
-	landing_system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	var visible := component.is_indicator_visible()
 	var point := component.get_landing_point()
@@ -358,13 +359,13 @@ func test_landing_indicator_hides_when_no_projection_within_range() -> void:
 	autofree_context(context)
 	var component: C_LandingIndicatorComponent = context["component"] as C_LandingIndicatorComponent
 	var body: FakeBody = context["body"] as FakeBody
-	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	body.global_position = Vector3(0.0, 2.0, 0.0)
 	body.clear_raycast_hit()
 	component.settings.ground_plane_height = 0.0
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_false(component.is_indicator_visible())
 	assert_true(component.get_landing_point().is_equal_approx(Vector3.ZERO))
@@ -374,13 +375,13 @@ func test_landing_indicator_projects_to_ground_plane_when_no_hit() -> void:
 	autofree_context(context)
 	var component: C_LandingIndicatorComponent = context["component"] as C_LandingIndicatorComponent
 	var body: FakeBody = context["body"] as FakeBody
-	var system: S_LandingIndicatorSystem = context["system"] as S_LandingIndicatorSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	body.global_position = Vector3(0.0, 1.0, 0.0)
 	body.clear_raycast_hit()
 	component.settings.ground_plane_height = -1.0
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_true(component.is_indicator_visible())
 	assert_true(component.get_landing_point().is_equal_approx(Vector3(0.0, -1.0, 0.0)))

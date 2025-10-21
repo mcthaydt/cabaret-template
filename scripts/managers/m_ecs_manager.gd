@@ -10,11 +10,14 @@ const META_ENTITY_TRACKED := StringName("_ecs_tracked_entity")
 
 var _components: Dictionary = {}
 var _systems: Array[ECSSystem] = []
+var _sorted_systems: Array[ECSSystem] = []
+var _systems_dirty: bool = true
 var _entity_component_map: Dictionary = {}
 var _query_cache: Dictionary = {}
 
 func _ready() -> void:
 	add_to_group("ecs_manager")
+	set_physics_process(true)
 
 func _exit_tree() -> void:
 	if is_in_group("ecs_manager"):
@@ -78,7 +81,8 @@ func get_components(component_type: StringName) -> Array:
 	return filtered.duplicate()
 
 func get_systems() -> Array:
-	return _systems.duplicate()
+	_ensure_systems_sorted()
+	return _sorted_systems.duplicate()
 
 func get_components_for_entity(entity: Node) -> Dictionary:
 	if entity == null:
@@ -97,6 +101,9 @@ func register_system(system: ECSSystem) -> void:
 
 	_systems.append(system)
 	system.configure(self)
+	if system.has_method("set_physics_process"):
+		system.set_physics_process(false)
+	mark_systems_dirty()
 
 func query_entities(required: Array[StringName], optional: Array[StringName] = []) -> Array:
 	var results: Array[EntityQuery] = []
@@ -255,3 +262,49 @@ func _invalidate_query_cache() -> void:
 	if _query_cache.is_empty():
 		return
 	_query_cache.clear()
+
+func mark_systems_dirty() -> void:
+	_systems_dirty = true
+
+func _ensure_systems_sorted() -> void:
+	if not _systems_dirty:
+		return
+	_sort_systems()
+	_systems_dirty = false
+
+func _sort_systems() -> void:
+	var valid_systems: Array[ECSSystem] = []
+	for system in _systems:
+		if system == null:
+			continue
+		if not is_instance_valid(system):
+			continue
+		valid_systems.append(system)
+	_systems = valid_systems
+	_sorted_systems = valid_systems.duplicate()
+	_sorted_systems.sort_custom(Callable(self, "_compare_system_priority"))
+
+func _compare_system_priority(a: ECSSystem, b: ECSSystem) -> bool:
+	var priority_a: int = a.execution_priority
+	var priority_b: int = b.execution_priority
+	if priority_a == priority_b:
+		return a.get_instance_id() < b.get_instance_id()
+	return priority_a < priority_b
+
+func _physics_process(delta: float) -> void:
+	_ensure_systems_sorted()
+	if _sorted_systems.is_empty():
+		return
+
+	var needs_cleanup := false
+	for system in _sorted_systems:
+		if system == null:
+			needs_cleanup = true
+			continue
+		if not is_instance_valid(system):
+			needs_cleanup = true
+			continue
+		system.process_tick(delta)
+
+	if needs_cleanup:
+		mark_systems_dirty()

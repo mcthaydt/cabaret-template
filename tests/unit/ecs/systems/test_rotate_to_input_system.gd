@@ -51,10 +51,10 @@ func test_rotates_right_input_to_positive_x() -> void:
 	autofree_context(context)
 	var input: C_InputComponent = context["input"]
 	var target: Node3D = context["target"]
-	var system: S_RotateToInputSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	input.set_move_vector(Vector2.RIGHT)
-	system._physics_process(1.0)
+	manager._physics_process(1.0)
 
 	var expected := -PI / 2.0
 	assert_almost_eq(wrapf(target.rotation.y, -PI, PI), expected, 0.001)
@@ -64,10 +64,10 @@ func test_rotates_left_input_to_negative_x() -> void:
 	autofree_context(context)
 	var input: C_InputComponent = context["input"]
 	var target: Node3D = context["target"]
-	var system: S_RotateToInputSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	input.set_move_vector(Vector2.LEFT)
-	system._physics_process(1.0)
+	manager._physics_process(1.0)
 
 	var expected := PI / 2.0
 	assert_almost_eq(wrapf(target.rotation.y, -PI, PI), expected, 0.001)

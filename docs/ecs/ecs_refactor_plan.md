@@ -101,8 +101,8 @@ Epic 4 – Component Decoupling (7 points)
 
 Epic 5 – System Execution Ordering (5 points)
 
-- [x] Story 5.1: Add execution_priority to ECSSystem base class (2 points) — Added `@export var execution_priority: int = 0` to `ECSSystem`, exposing priorities in the editor with unit coverage in `tests/unit/ecs/test_ecs_system.gd`
-- [ ] Story 5.2: Implement system sorting in M_ECSManager (2 points)
+- [x] Story 5.1: Add execution_priority to ECSSystem base class (2 points) — Added exported `execution_priority` (clamped 0–1000) to `ECSSystem`, notifying the manager on change with coverage in `tests/unit/ecs/test_ecs_system.gd`
+- [x] Story 5.2: Implement system sorting in M_ECSManager (2 points) — `M_ECSManager` now disables per-system physics ticks, sorts `_systems` by `execution_priority`, and drives execution via its own `_physics_process`; regression suites updated to call `manager._physics_process` and new priority-order test added in `tests/unit/ecs/test_ecs_manager.gd`
 - [ ] Story 5.3: Document system priority conventions (1 point)
 
 Testing & Documentation (7 points)
@@ -525,7 +525,7 @@ func _init(p_entity: Node, p_components: Dictionary):
     components = p_components
 ```
 
-- [ ] 1.1c – VERIFY: Run tests, confirm GREEN
+- [x] 1.1c – VERIFY: Run tests, confirm GREEN
 
 **TDD Cycle 2: EntityQuery.get_component()**
 
@@ -802,7 +802,7 @@ static func unsubscribe(event_name: StringName, callback: Callable) -> void:
         _subscribers[event_name].erase(callback)
 ```
 
-- [ ] 1.1c – VERIFY: Run tests, confirm GREEN
+- [x] 1.1c – VERIFY: Run tests, confirm GREEN
 
 **TDD Cycle 2: ECSEventBus - Multiple Subscribers**
 
@@ -1043,77 +1043,94 @@ Goal: Explicit system execution order, debug tools, migration guide, documentati
 
 ---
 
-- [ ] Step 1 – Implement System Execution Priority
+- [x] Step 1 – Implement System Execution Priority
 
 **TDD Cycle 1: Add execution_priority to ECSSystem**
 
-- [ ] 1.1a – RED: Write test for execution_priority property
+- [x] 1.1a – RED: Write test for execution_priority property
 - Create `tests/unit/ecs/test_ecs_system.gd`
 - Test: `test_system_has_execution_priority_property()`
   - Arrange: Create test system extending ECSSystem
   - Act: Set execution_priority = 50
   - Assert: Property value == 50
 
-- [ ] 1.1b – GREEN: Add execution_priority to ECSSystem
+- [x] 1.1b – GREEN: Add execution_priority to ECSSystem
 - Modify `scripts/ecs/ecs_system.gd`:
 ```gdscript
-@export var execution_priority: int = 100  # Lower = earlier
+var _execution_priority: int = 0
+
+@export var execution_priority: int:
+	get:
+		return _execution_priority
+	set(value):
+		var clamped := clampi(value, 0, 1000)
+		if _execution_priority == clamped:
+			return
+		_execution_priority = clamped
+		_notify_manager_priority_changed()
 ```
 
 - [ ] 1.1c – VERIFY: Run tests, confirm GREEN
 
 **TDD Cycle 2: M_ECSManager sorts systems by priority**
 
-- [ ] 1.2a – RED: Write test for system sorting
+- [x] 1.2a – RED: Write test for system sorting
 - Add to test_m_ecs_manager.gd: `test_systems_execute_in_priority_order()`
   - Arrange: 3 systems with priorities 100, 0, 50
   - Act: Call manager._physics_process(delta)
   - Assert: Systems executed in order: 0, 50, 100
 
-- [ ] 1.2b – GREEN: Implement system sorting and manager-driven execution
+- [x] 1.2b – GREEN: Implement system sorting and manager-driven execution
 - Modify `scripts/managers/m_ecs_manager.gd`:
 ```gdscript
 var _sorted_systems: Array[ECSSystem] = []
-var _systems_dirty: bool = false
+var _systems_dirty: bool = true
 
 func register_system(system: ECSSystem) -> void:
-    _systems.append(system)
-    _systems_dirty = true
+	if system == null or _systems.has(system):
+		return
+	_systems.append(system)
+	system.configure(self)
+	system.set_physics_process(false)
+	mark_systems_dirty()
 
 func _physics_process(delta: float) -> void:
-    if _systems_dirty:
-        _sort_systems()
-        _systems_dirty = false
-
-    for system in _sorted_systems:
-        system.process_tick(delta)
+	_ensure_systems_sorted()
+	for system in _sorted_systems:
+		if system == null or not is_instance_valid(system):
+			mark_systems_dirty()
+			continue
+		system.process_tick(delta)
 
 func _sort_systems() -> void:
-    _sorted_systems = _systems.duplicate()
-    _sorted_systems.sort_custom(func(a, b): return a.execution_priority < b.execution_priority)
+	var valid: Array[ECSSystem] = []
+	for system in _systems:
+		if system != null and is_instance_valid(system):
+			valid.append(system)
+	_systems = valid
+	_sorted_systems = valid.duplicate()
+	_sorted_systems.sort_custom(Callable(self, "_compare_system_priority"))
 ```
 
 - Modify `scripts/ecs/ecs_system.gd`:
-  - **IMPORTANT**: Disable the base `_physics_process()` method that calls `process_tick()`
-  - M_ECSManager will now drive all system execution via its own `_physics_process()`
-  - Comment out or remove the `_physics_process()` in ECSSystem base class to prevent double execution
-  - Systems should only implement `process_tick()`, not `_physics_process()`
+  - Call `_notify_manager_priority_changed()` inside `configure()` so registration marks the sort order dirty
+  - Guard `_physics_process()` to only invoke `process_tick()` when `_manager` is `null` (manager disables physics stepping with `set_physics_process(false)`)
 
 **Test Migration Strategy**:
-- [ ] 1.2b-i – Update existing system tests in-place (do NOT create duplicate test suites)
+- [x] 1.2b-i – Update existing system tests in-place (do NOT create duplicate test suites)
   - Modify test setup to use manager-driven execution
   - **BEFORE**: Tests called `system._physics_process(delta)` directly
   - **AFTER**: Tests call `manager._physics_process(delta)` which drives all systems
   - Ensure all test scenes have E_* root nodes for entity organization
   - Update tests one system at a time, verify GREEN after each update
 
-- [ ] 1.2b-ii – Verification checklist for each system test migration:
+- [x] 1.2b-ii – Verification checklist for each system test migration:
   - ✓ Test scene has E_* root node (entity organization)
   - ✓ Test calls `manager._physics_process(delta)` instead of `system._physics_process(delta)`
   - ✓ All test assertions still pass
   - ✓ No double-execution (system executes exactly once per frame)
 
-- [ ] 1.2c – VERIFY: Run tests, confirm GREEN
+- [x] 1.2c – VERIFY: Run tests, confirm GREEN
 
 **Documentation: System Priority Conventions**
 

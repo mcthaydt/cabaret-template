@@ -51,12 +51,12 @@ func test_gravity_system_accelerates_downward_when_not_on_floor() -> void:
     var context := await _setup_entity()
     autofree_context(context)
     var body: FakeBody = context["body"]
-    var system = context["system"]
 
     body.velocity = Vector3.ZERO
     body.grounded = false
 
-    system._physics_process(0.1)
+    var manager: M_ECSManager = context["manager"]
+    manager._physics_process(0.1)
 
     assert_true(body.velocity.y < 0.0)
 
@@ -94,6 +94,6 @@ func test_gravity_system_skips_entities_with_floating_component() -> void:
     body.grounded = false
     floating.update_support_state(true, ECS_UTILS.get_current_time())
 
-    system._physics_process(0.1)
+    manager._physics_process(0.1)
 
     assert_almost_eq(body.velocity.y, 0.0, 0.0001)

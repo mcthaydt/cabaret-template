@@ -71,7 +71,7 @@ func test_align_system_matches_visual_up_to_body_up_direction() -> void:
 
 	var body = context["body"] as FakeBody
 	var visual = context["visual"] as FakeVisual
-	var system = context["system"] as S_AlignWithSurfaceSystem
+	var manager := context["manager"] as M_ECSManager
 
 	var slope_normal := Vector3(0.0, 0.8660254, 0.5).normalized()
 	body.up_direction = slope_normal
@@ -82,7 +82,7 @@ func test_align_system_matches_visual_up_to_body_up_direction() -> void:
 	var original_scale: Vector3 = Vector3(2.0, 1.5, 0.75)
 	visual.scale = original_scale
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	var visual_up: Vector3 = visual.global_transform.basis.y.normalized()
 	assert_almost_eq(visual_up.x, slope_normal.x, 0.01)
@@ -103,7 +103,7 @@ func test_align_system_respects_support_requirement() -> void:
 	var body = context["body"] as FakeBody
 	var visual = context["visual"] as FakeVisual
 	var floating = context["floating"] as C_FloatingComponent
-	var system = context["system"] as S_AlignWithSurfaceSystem
+	var manager := context["manager"] as M_ECSManager
 
 	var initial_basis: Basis = visual.global_transform.basis
 	var slope_normal := Vector3(0.2, 0.9, 0.4).normalized()
@@ -112,14 +112,14 @@ func test_align_system_respects_support_requirement() -> void:
 	var now := ECS_UTILS.get_current_time()
 	floating.update_support_state(false, now - 1.0)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	var after_no_support: Basis = visual.global_transform.basis
 	assert_vector3_approx_eq(after_no_support.y, initial_basis.y, 0.001)
 
 	floating.update_support_state(true, now)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	var visual_up: Vector3 = visual.global_transform.basis.y.normalized()
 	assert_almost_eq(visual_up.x, slope_normal.x, 0.01)

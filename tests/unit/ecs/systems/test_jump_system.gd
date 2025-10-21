@@ -70,14 +70,14 @@ func test_jump_system_applies_vertical_velocity_when_jump_pressed() -> void:
 	var jump: C_JumpComponent = context["jump"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system: S_JumpSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	body.velocity = Vector3.ZERO
 	body.grounded = true
 
 	input.set_jump_pressed(true)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_true(body.velocity.y > 0.0)
 	assert_eq(body.velocity.y, jump.settings.jump_force)
@@ -89,7 +89,7 @@ func test_jump_system_allows_jump_when_supported_by_floating_component() -> void
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
 	var floating: C_FloatingComponent = context["floating"]
-	var system: S_JumpSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	body.velocity = Vector3.ZERO
 	body.grounded = false
@@ -99,7 +99,7 @@ func test_jump_system_allows_jump_when_supported_by_floating_component() -> void
 
 	input.set_jump_pressed(true)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_true(body.velocity.y > 0.0)
 	assert_eq(body.velocity.y, jump.settings.jump_force)
@@ -110,7 +110,7 @@ func test_jump_system_uses_jump_buffer() -> void:
 	var jump: C_JumpComponent = context["jump"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system: S_JumpSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	jump.settings.jump_buffer_time = 0.25
 	body.velocity = Vector3.ZERO
@@ -121,12 +121,12 @@ func test_jump_system_uses_jump_buffer() -> void:
 
 	input.set_jump_pressed(true)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 	assert_eq(body.velocity.y, 0.0)
 
 	body.grounded = true
 	jump.mark_on_floor(now)
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_eq(body.velocity.y, jump.settings.jump_force)
 
@@ -136,21 +136,21 @@ func test_jump_respects_max_air_jumps_setting() -> void:
 	var jump: C_JumpComponent = context["jump"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system: S_JumpSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	jump.settings.max_air_jumps = 0
 	body.velocity = Vector3.ZERO
 	body.grounded = true
 
 	input.set_jump_pressed(true)
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_eq(body.velocity.y, jump.settings.jump_force)
 
 	body.grounded = false
 	body.velocity = Vector3.ZERO
 	input.set_jump_pressed(true)
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_eq(body.velocity.y, 0.0)
 
@@ -160,22 +160,22 @@ func test_jump_component_tracks_apex_state() -> void:
 	var jump: C_JumpComponent = context["jump"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system: S_JumpSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	body.velocity = Vector3.ZERO
 	body.grounded = true
 	input.set_jump_pressed(true)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_false(jump.has_recent_apex(ECS_UTILS.get_current_time()))
 
 	body.grounded = false
 	body.velocity = Vector3(0.0, 0.2, 0.0)
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	body.velocity = Vector3(0.0, -0.05, 0.0)
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	var now := ECS_UTILS.get_current_time()
 	assert_true(jump.has_recent_apex(now))
@@ -201,13 +201,13 @@ func test_jump_system_processes_without_manual_wiring() -> void:
 	var jump: C_JumpComponent = context["jump"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system: S_JumpSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	body.velocity = Vector3.ZERO
 	body.grounded = true
 	input.set_jump_pressed(true)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_eq(body.velocity.y, jump.settings.jump_force)
 
@@ -218,7 +218,7 @@ func test_jump_system_publishes_entity_jumped_event() -> void:
 	var jump: C_JumpComponent = context["jump"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
-	var system: S_JumpSystem = context["system"]
+	var manager: M_ECSManager = context["manager"]
 
 	body.velocity = Vector3.ZERO
 	body.grounded = true
@@ -233,7 +233,7 @@ func test_jump_system_publishes_entity_jumped_event() -> void:
 
 	input.set_jump_pressed(true)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	unsubscribe.call()
 

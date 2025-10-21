@@ -52,12 +52,12 @@ func test_input_system_updates_move_vector_from_actions() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)
 	var component: C_InputComponent = context["component"] as C_InputComponent
-	var system: S_InputSystem = context["system"] as S_InputSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	Input.action_press("move_right")
 	Input.action_press("move_forward")
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_almost_eq(component.move_vector.x, 0.7071, 0.01)
 	assert_almost_eq(component.move_vector.y, -0.7071, 0.01)
@@ -66,11 +66,11 @@ func test_input_system_sets_jump_flag_on_press() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)
 	var component: C_InputComponent = context["component"] as C_InputComponent
-	var system: S_InputSystem = context["system"] as S_InputSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	Input.action_press("jump")
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_true(component.jump_pressed)
 
@@ -78,11 +78,11 @@ func test_input_system_sets_sprint_flag_on_press() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)
 	var component: C_InputComponent = context["component"] as C_InputComponent
-	var system: S_InputSystem = context["system"] as S_InputSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	Input.action_press("sprint")
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_true(component.sprint_pressed)
 

@@ -96,7 +96,7 @@ func test_floating_system_applies_spring_force_and_aligns_to_surface_normal() ->
 	var body: FakeBody = context["body"] as FakeBody
 	var ray_a: FakeRayCast = context["ray_a"] as FakeRayCast
 	var ray_b: FakeRayCast = context["ray_b"] as FakeRayCast
-	var system: S_FloatingSystem = context["system"] as S_FloatingSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	ray_a.position = Vector3.ZERO
 	ray_a.colliding = true
@@ -110,7 +110,7 @@ func test_floating_system_applies_spring_force_and_aligns_to_surface_normal() ->
 
 	body.velocity = Vector3.ZERO
 
-	system._physics_process(0.1)
+	manager._physics_process(0.1)
 
 	assert_gt(body.velocity.y, 0.0)
 
@@ -125,7 +125,7 @@ func test_floating_system_does_not_push_up_when_above_hover_height() -> void:
 	var body: FakeBody = context["body"] as FakeBody
 	var ray_a: FakeRayCast = context["ray_a"] as FakeRayCast
 	var ray_b: FakeRayCast = context["ray_b"] as FakeRayCast
-	var system: S_FloatingSystem = context["system"] as S_FloatingSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	ray_a.colliding = true
 	ray_a.fake_collision_point = Vector3(0.0, -1.8, 0.0)
@@ -135,7 +135,7 @@ func test_floating_system_does_not_push_up_when_above_hover_height() -> void:
 
 	body.velocity = Vector3.ZERO
 
-	system._physics_process(0.1)
+	manager._physics_process(0.1)
 
 	assert_lte(body.velocity.y, 0.001)
 
@@ -146,7 +146,7 @@ func test_floating_system_updates_support_state_based_on_velocity() -> void:
 	var component: C_FloatingComponent = context["component"] as C_FloatingComponent
 	var ray_a: FakeRayCast = context["ray_a"] as FakeRayCast
 	var ray_b: FakeRayCast = context["ray_b"] as FakeRayCast
-	var system: S_FloatingSystem = context["system"] as S_FloatingSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	ray_a.colliding = true
 	ray_a.fake_collision_point = Vector3(0.0, -1.5, 0.0)
@@ -156,13 +156,13 @@ func test_floating_system_updates_support_state_based_on_velocity() -> void:
 
 	body.velocity = Vector3.ZERO
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_true(component.is_supported)
 
 	body.velocity = Vector3(0.0, 6.0, 0.0)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_false(component.is_supported)
 
@@ -172,7 +172,7 @@ func test_floating_system_does_not_cancel_upward_velocity_during_launch() -> voi
 	var body: FakeBody = context["body"] as FakeBody
 	var ray_a: FakeRayCast = context["ray_a"] as FakeRayCast
 	var ray_b: FakeRayCast = context["ray_b"] as FakeRayCast
-	var system: S_FloatingSystem = context["system"] as S_FloatingSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	ray_a.colliding = true
 	ray_a.fake_collision_point = Vector3(0.0, -1.2, 0.0)
@@ -182,7 +182,7 @@ func test_floating_system_does_not_cancel_upward_velocity_during_launch() -> voi
 
 	body.velocity = Vector3(0.0, 8.0, 0.0)
 
-	system._physics_process(0.016)
+	manager._physics_process(0.016)
 
 	assert_gt(body.velocity.y, 7.5)
 
@@ -191,13 +191,13 @@ func test_floating_system_applies_fall_gravity_without_hits() -> void:
 	autofree_context(context)
 	var body: FakeBody = context["body"] as FakeBody
 	var component: C_FloatingComponent = context["component"] as C_FloatingComponent
-	var system: S_FloatingSystem = context["system"] as S_FloatingSystem
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	component.settings.fall_gravity = 12.0
 	component.settings.max_down_speed = 100.0
 	body.velocity = Vector3.ZERO
 
-	system._physics_process(0.2)
+	manager._physics_process(0.2)
 
 	assert_lt(body.velocity.y, 0.0)
 	assert_almost_eq(body.velocity.y, -component.settings.fall_gravity * 0.2, 0.001)
