@@ -140,7 +140,7 @@ Testing & Documentation (7 points)
 
 ### Batch 1: Code Quality Refactors [15 points]
 
-**STATUS**: 🟢 In Progress (Stories 1.1–1.3 complete; continuing through Epic 1)
+**STATUS**: ✅ Complete (All Stories 1.1–1.6 complete; verified via full test suite, integration tests, and performance baseline)
 
 Story Points: 15
 Goal: Eliminate code duplication, improve maintainability, lay foundation for query system
