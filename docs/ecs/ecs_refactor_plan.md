@@ -87,7 +87,7 @@ Epic 2 – Multi-Component Query System (18 points)
 
 Epic 3 – Event Bus System (8 points)
 
-- [ ] Story 3.1: Implement ECSEventBus singleton (4 points)
+- [x] Story 3.1: Implement ECSEventBus static class (4 points) — Added `scripts/ecs/ecs_event_bus.gd` with `subscribe()`, `publish()`, `unsubscribe()`, `clear()`, `reset()` leveraging `U_ECSUtils.get_current_time()`; covered by new `tests/unit/ecs/test_ecs_event_bus.gd` (GUT `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
 - [ ] Story 3.2: Add event history buffer and debugging (2 points)
 - [ ] Story 3.3: Integrate event publication in S_JumpSystem (1 point)
 - [ ] Story 3.4: Create sample event subscribers (particles, sound) (1 point)
