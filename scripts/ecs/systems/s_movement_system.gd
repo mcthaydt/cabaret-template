@@ -75,7 +75,8 @@ func process_tick(delta: float) -> void:
 				if cam_right.length() == 0.0:
 					cam_right = cam_forward.cross(up_dir)
 				cam_right = cam_right.normalized()
-				var desired_dir: Vector3 = (cam_right * input_vector.x) + (cam_forward * input_vector.y)
+				var forward_input: float = -input_vector.y
+				var desired_dir: Vector3 = (cam_right * input_vector.x) + (cam_forward * forward_input)
 				if desired_dir.length() > 0.0:
 					desired_dir = desired_dir.normalized()
 				desired_velocity = desired_dir * current_max_speed
