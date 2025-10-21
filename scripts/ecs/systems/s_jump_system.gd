@@ -5,6 +5,7 @@ class_name S_JumpSystem
 const JUMP_TYPE := StringName("C_JumpComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
+const EVENT_ENTITY_JUMPED := StringName("entity_jumped")
 
 func process_tick(_delta: float) -> void:
 	var manager := get_manager()
@@ -90,3 +91,18 @@ func process_tick(_delta: float) -> void:
 			"has_air_jumps": component.has_air_jumps_remaining(),
 			"recent_apex": component.has_recent_apex(now),
 		})
+
+		var event_payload: Dictionary = {
+			"entity": body,
+			"jump_component": component,
+			"input_component": input_component,
+			"floating_component": floating_component,
+			"velocity": body.velocity,
+			"position": body.global_position,
+			"jump_time": now,
+			"supported": supported_now,
+			"support_recent": support_recent,
+			"air_jumps_remaining": component.has_air_jumps_remaining(),
+			"jump_force": component.settings.jump_force if component.settings != null else 0.0,
+		}
+		ECSEventBus.publish(EVENT_ENTITY_JUMPED, event_payload)

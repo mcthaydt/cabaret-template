@@ -89,7 +89,7 @@ Epic 3 – Event Bus System (8 points)
 
 - [x] Story 3.1: Implement ECSEventBus static class (4 points) — Added `scripts/ecs/ecs_event_bus.gd` with `subscribe()`, `publish()`, `unsubscribe()`, `clear()`, `reset()` leveraging `U_ECSUtils.get_current_time()`; covered by new `tests/unit/ecs/test_ecs_event_bus.gd` (GUT `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
 - [x] Story 3.2: Add event history buffer and debugging (2 points) — `ECSEventBus` now tracks a rolling 1,000 event history with `get_event_history()`, `clear_history()`, and `set_history_limit()` helpers; payloads are deep-copied and stored with `name`/`timestamp` metadata and covered by new GUT specs (`tests/unit/ecs/test_ecs_event_bus.gd`, `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
-- [ ] Story 3.3: Integrate event publication in S_JumpSystem (1 point)
+- [x] Story 3.3: Integrate event publication in S_JumpSystem (1 point) — `S_JumpSystem` now emits `entity_jumped` events with body/component context (entity, input, floating support, velocity, jump_time, support flags); enforced via `tests/unit/ecs/systems/test_jump_system.gd` (GUT `-gdir=res://tests/unit/ecs/systems -gselect=test_jump_system -gexit`)
 - [ ] Story 3.4: Create sample event subscribers (particles, sound) (1 point)
 
 Epic 4 – Component Decoupling (7 points)

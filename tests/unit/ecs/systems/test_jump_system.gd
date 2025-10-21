@@ -5,6 +5,7 @@ const JumpComponentScript = preload("res://scripts/ecs/components/c_jump_compone
 const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
 const JumpSystemScript = preload("res://scripts/ecs/systems/s_jump_system.gd")
 const FloatingComponentScript = preload("res://scripts/ecs/components/c_floating_component.gd")
+const EventBus := preload("res://scripts/ecs/ecs_event_bus.gd")
 const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
 class FakeBody extends CharacterBody3D:
@@ -197,3 +198,42 @@ func test_jump_system_handles_missing_input_nodepath_via_queries() -> void:
 	system._physics_process(0.016)
 
 	assert_eq(body.velocity.y, jump.settings.jump_force)
+
+func test_jump_system_publishes_entity_jumped_event() -> void:
+	EventBus.reset()
+	var context := await _setup_entity()
+	autofree_context(context)
+	var jump: C_JumpComponent = context["jump"]
+	var input: C_InputComponent = context["input"]
+	var body: FakeBody = context["body"]
+	var system: S_JumpSystem = context["system"]
+
+	body.velocity = Vector3.ZERO
+	body.grounded = true
+
+	var received_events: Array = []
+	var event_name := StringName("entity_jumped")
+	var unsubscribe: Callable = EventBus.subscribe(
+		event_name,
+		func(event_data: Dictionary) -> void:
+			received_events.append(event_data)
+	)
+
+	input.set_jump_pressed(true)
+
+	system._physics_process(0.016)
+
+	unsubscribe.call()
+
+	assert_eq(received_events.size(), 1)
+	var event_data: Dictionary = received_events[0]
+	assert_eq(event_data.get("name"), event_name)
+	assert_true(event_data.has("timestamp"))
+	assert_true(event_data["timestamp"] is float)
+
+	var payload: Dictionary = event_data.get("payload")
+	assert_eq(payload.get("entity"), body)
+	assert_eq(payload.get("jump_component"), jump)
+	assert_eq(payload.get("input_component"), input)
+	assert_eq(payload.get("velocity"), body.velocity)
+	EventBus.reset()
