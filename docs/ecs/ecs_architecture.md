@@ -1197,18 +1197,45 @@ base_scene_template.tscn
 
 ```gdscript
 # For singletons (one instance per scene)
-static func get_singleton_from_group(from_node: Node, group_name: String) -> Node:
+static func get_singleton_from_group(
+        from_node: Node,
+        group_name: StringName,
+        warn_on_missing: bool = true) -> Node:
     """Get first node from group (managers, main camera, main player, etc.)"""
-    var nodes = from_node.get_tree().get_nodes_in_group(group_name)
-    if nodes.size() > 0:
+    if from_node == null:
+        return null
+    var tree := from_node.get_tree()
+    if tree == null:
+        return null
+    var nodes: Array = tree.get_nodes_in_group(group_name)
+    if not nodes.is_empty():
         return nodes[0]
-    push_warning("U_ECSUtils: No node found in group '%s'" % group_name)
+    if warn_on_missing:
+        push_warning("U_ECSUtils: No node found in group '%s'" % String(group_name))
     return null
 
 # For collections (multiple instances)
-static func get_nodes_from_group(from_node: Node, group_name: String) -> Array:
+static func get_nodes_from_group(from_node: Node, group_name: StringName) -> Array:
     """Get all nodes from group (spawn points, enemies, collectibles, etc.)"""
-    return from_node.get_tree().get_nodes_in_group(group_name)
+    if from_node == null:
+        return []
+    var tree := from_node.get_tree()
+    if tree == null:
+        return []
+    var nodes: Array = tree.get_nodes_in_group(group_name)
+    return nodes.duplicate()
+
+# Specialized helper for cameras
+static func get_active_camera(from_node: Node) -> Camera3D:
+    """Resolve the active gameplay camera without relying on NodePaths."""
+    if from_node == null:
+        return null
+    var viewport := from_node.get_viewport()
+    if viewport != null:
+        var camera := viewport.get_camera_3d()
+        if camera != null:
+            return camera
+    return get_singleton_from_group(from_node, StringName("main_camera"), false) as Camera3D
 ```
 
 #### 2. Standard Group Naming Convention
@@ -1247,28 +1274,38 @@ static func get_nodes_from_group(from_node: Node, group_name: String) -> Array:
 # Camera helper (Godot API + group fallback)
 static func get_active_camera(from_node: Node) -> Camera3D:
     """Get active camera (cross-tree safe)"""
+    if from_node == null:
+        return null
     # Priority 1: Viewport's active camera (Godot's native "current" camera)
-    var viewport = from_node.get_viewport()
-    if viewport:
-        var cam = viewport.get_camera_3d()
-        if cam:
+    var viewport := from_node.get_viewport()
+    if viewport != null:
+        var cam := viewport.get_camera_3d()
+        if cam != null:
             return cam
-
     # Priority 2: Fallback to "main_camera" group
-    return get_singleton_from_group(from_node, "main_camera") as Camera3D
+    return get_singleton_from_group(from_node, StringName("main_camera"), false) as Camera3D
 
 # Manager helper (parent hierarchy + group fallback)
 static func get_manager(from_node: Node) -> M_ECSManager:
     """Get ECS manager (same-tree optimization + cross-tree fallback)"""
+    if from_node == null:
+        return null
     # Priority 1: Parent hierarchy (faster for same-tree)
-    var current = from_node.get_parent()
-    while current:
+    var current := from_node.get_parent()
+    while current != null:
         if current.has_method("query_entities"):
-            return current
+            return current as M_ECSManager
         current = current.get_parent()
 
     # Priority 2: Fallback to group
-    return get_singleton_from_group(from_node, "ecs_manager") as M_ECSManager
+    return get_singleton_from_group(from_node, StringName("ecs_manager"), false) as M_ECSManager
+
+# Testing hook (capture warnings in unit tests)
+static func set_warning_handler(handler: Callable) -> void:
+    _warning_handler = handler
+
+static func reset_warning_handler() -> void:
+    _warning_handler = Callable()
 ```
 
 #### 5. Example: Camera Access with Override Pattern
@@ -1287,7 +1324,7 @@ func process_tick(delta: float) -> void:
         if movement_comp.camera_node_path:
             camera = movement_comp.get_node_or_null(movement_comp.camera_node_path)
         if not camera:
-            camera = U_ECSUtils.get_active_camera(movement_comp)  # Cross-tree safe!
+            camera = U_ECSUtils.get_active_camera(self)  # Cross-tree safe!
 
         if camera:
             # Use camera for movement rotation/aiming...

@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://rygahxanlmio"]
+[gd_scene load_steps=16 format=3 uid="uid://rygahxanlmio"]
 
 [ext_resource type="Script" uid="uid://c3ksqt7h7cg6v" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
 [ext_resource type="Script" uid="uid://cxd4yycmngxnu" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
@@ -19,6 +19,11 @@ diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.43137255, 0.15294118, 0.15294118, 1)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_748a2"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+
 [sub_resource type="Environment" id="Environment_q3o1v"]
 background_mode = 1
 background_color = Color(0.3019608, 0.60784316, 0.9019608, 1)
@@ -33,20 +38,24 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
 material_override = SubResource("StandardMaterial3D_q3o1v")
 use_collision = true
 size = Vector3(25, 1, 25)
+material = SubResource("StandardMaterial3D_748a2")
 
 [node name="SO_Block" type="CSGBox3D" parent="SceneObjects"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6780934, -0.77378076, 0)
 use_collision = true
+material = SubResource("StandardMaterial3D_748a2")
 
 [node name="SO_Block2" type="CSGBox3D" parent="SceneObjects"]
 transform = Transform3D(0.89320666, 0.44964638, 0, -0.44964638, 0.89320666, 0, 0, 0, 1, -5.180423, -0.7959937, -0.10645056)
 use_collision = true
 size = Vector3(6.261841, 1, 3.1923828)
+material = SubResource("StandardMaterial3D_748a2")
 
 [node name="SO_Block3" type="CSGBox3D" parent="SceneObjects"]
 transform = Transform3D(0.99974185, -0.022722274, 0, 0.022722274, 0.99974185, 0, 0, 0, 1, -5.180423, 0.09107876, -3.1731567)
 use_collision = true
 size = Vector3(6.261841, 1, 3.1923828)
+material = SubResource("StandardMaterial3D_748a2")
 
 [node name="Enviroment" type="Node" parent="."]
 

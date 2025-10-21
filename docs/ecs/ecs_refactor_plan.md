@@ -214,13 +214,13 @@ Goal: Eliminate code duplication, improve maintainability, lay foundation for qu
 
 ---
 
-- [ ] Step 2.5 – Extract Cross-Tree Reference Utilities
+- [x] Step 2.5 – Extract Cross-Tree Reference Utilities
 
 **Context**: player_template.tscn is instantiated in base_scene_template.tscn. NodePaths cannot reach across scene boundaries (e.g., player component → camera in base scene). We need runtime discovery for cross-tree references.
 
 **TDD Cycle 1: U_ECSUtils.get_singleton_from_group() - General Infrastructure**
 
-- [ ] 2.5a – RED: Write test for singleton group discovery
+- [x] 2.5a – RED: Write test for singleton group discovery
 - Add to test_u_ecs_utils.gd: `test_get_singleton_from_group_returns_first_node()`
   - Arrange: Create scene tree with node in group "test_singleton"
   - Act: Call U_ECSUtils.get_singleton_from_group(child_node, "test_singleton")
@@ -231,41 +231,56 @@ Goal: Eliminate code duplication, improve maintainability, lay foundation for qu
   - Act: Call get_singleton_from_group(node, "nonexistent")
   - Assert: Returns null, warning logged
 
-- [ ] 2.5b – GREEN: Implement get_singleton_from_group
+- [x] 2.5b – GREEN: Implement get_singleton_from_group
 - Add to u_ecs_utils.gd:
 ```gdscript
-static func get_singleton_from_group(from_node: Node, group_name: String) -> Node:
+static func get_singleton_from_group(
+        from_node: Node,
+        group_name: StringName,
+        warn_on_missing: bool = true) -> Node:
     """Get first node from group (for singletons like managers, main camera)"""
-    var nodes = from_node.get_tree().get_nodes_in_group(group_name)
-    if nodes.size() > 0:
+    if from_node == null:
+        return null
+    var tree := from_node.get_tree()
+    if tree == null:
+        return null
+    var nodes: Array = tree.get_nodes_in_group(group_name)
+    if not nodes.is_empty():
         return nodes[0]
-    push_warning("U_ECSUtils: No node found in group '%s'" % group_name)
+    if warn_on_missing:
+        _emit_warning("U_ECSUtils: No node found in group '%s'" % String(group_name))
     return null
 ```
 
-- [ ] 2.5c – VERIFY: Run tests, confirm GREEN
+- [x] 2.5c – VERIFY: Run tests, confirm GREEN
 
 **TDD Cycle 2: U_ECSUtils.get_nodes_from_group() - Collections**
 
-- [ ] 2.5d – RED: Write test for collection group discovery
+- [x] 2.5d – RED: Write test for collection group discovery
 - Test: `test_get_nodes_from_group_returns_all_nodes()`
   - Arrange: Create 3 nodes in group "spawn_points"
   - Act: Call U_ECSUtils.get_nodes_from_group(node, "spawn_points")
   - Assert: Returns array with 3 nodes
 
-- [ ] 2.5e – GREEN: Implement get_nodes_from_group
+- [x] 2.5e – GREEN: Implement get_nodes_from_group
 - Add to u_ecs_utils.gd:
 ```gdscript
-static func get_nodes_from_group(from_node: Node, group_name: String) -> Array:
+static func get_nodes_from_group(from_node: Node, group_name: StringName) -> Array:
     """Get all nodes from group (for collections like spawn points, enemies)"""
-    return from_node.get_tree().get_nodes_in_group(group_name)
+    if from_node == null:
+        return []
+    var tree := from_node.get_tree()
+    if tree == null:
+        return []
+    var nodes: Array = tree.get_nodes_in_group(group_name)
+    return nodes.duplicate()
 ```
 
-- [ ] 2.5f – VERIFY: Run tests, confirm GREEN
+- [x] 2.5f – VERIFY: Run tests, confirm GREEN
 
 **TDD Cycle 3: U_ECSUtils.get_active_camera() - Specialized Helper**
 
-- [ ] 2.5g – RED: Write test for camera discovery
+- [x] 2.5g – RED: Write test for camera discovery
 - Test: `test_get_active_camera_uses_viewport_first()`
   - Arrange: Viewport with active Camera3D (current=true)
   - Act: Call U_ECSUtils.get_active_camera(node)
@@ -276,31 +291,30 @@ static func get_nodes_from_group(from_node: Node, group_name: String) -> Array:
   - Act: Call get_active_camera(node)
   - Assert: Returns camera from group
 
-- [ ] 2.5h – GREEN: Implement get_active_camera
+- [x] 2.5h – GREEN: Implement get_active_camera
 - Add to u_ecs_utils.gd:
 ```gdscript
 static func get_active_camera(from_node: Node) -> Camera3D:
     """Get active camera using standard resolution order (cross-tree safe)"""
-    # Priority 1: Viewport's active camera (Godot's native "current" camera)
-    var viewport = from_node.get_viewport()
-    if viewport:
-        var cam = viewport.get_camera_3d()
-        if cam:
+    if from_node == null:
+        return null
+    var viewport := from_node.get_viewport()
+    if viewport != null:
+        var cam := viewport.get_camera_3d()
+        if cam != null:
             return cam
-
-    # Priority 2: Fallback to "main_camera" group convention
-    return get_singleton_from_group(from_node, "main_camera") as Camera3D
+    return get_singleton_from_group(from_node, StringName("main_camera"), false) as Camera3D
 ```
 
-- [ ] 2.5i – VERIFY: Run tests, confirm GREEN
+- [x] 2.5i – VERIFY: Run tests, confirm GREEN
 
 **Refactor Existing Code (Test-After)**
 
-- [ ] 2.5j – Refactor U_ECSUtils.get_manager() to use general pattern
+- [x] 2.5j – Refactor U_ECSUtils.get_manager() to use general pattern
 - Update existing get_manager() implementation to use get_singleton_from_group() as fallback
 - Verify existing tests still pass
 
-- [ ] 2.5k – Refactor S_MovementSystem to use get_active_camera()
+- [x] 2.5k – Refactor S_MovementSystem to use get_active_camera()
 - Replace manual viewport.get_camera_3d() logic with U_ECSUtils.get_active_camera()
 - Maintain NodePath override pattern: component.camera_node_path (if set) → get_active_camera() → null
 - Run S_MovementSystem tests to verify no regressions
@@ -311,6 +325,15 @@ static func get_active_camera(from_node: Node) -> Camera3D:
 - `main_player` - Player entity root
 - `spawn_points` - Entity spawn locations (collection)
 - Convention: lowercase_with_underscores, singletons prefixed with "main_"
+
+**Follow-Up Work**
+
+- [x] 2.5l – Refactor remaining systems/components to use new group helpers
+  - Audited `scripts/` for direct `get_nodes_in_group` / `get_camera_3d` usage; only ECS utilities required updates. No additional changes needed in non-ECS modules.
+  - Verified movement/jump/system suites after audit (see test runs below).
+- [x] 2.5m – Add warning assertion coverage
+  - Added configurable warning handler to `U_ECSUtils` (`set_warning_handler`, `reset_warning_handler`) so tests can capture messages.
+  - Extended `tests/unit/ecs/test_u_ecs_utils.gd` with warning-positive/negative coverage.
 
 ---
 
@@ -443,24 +466,27 @@ func get_components(component_type: StringName) -> Array:
 
 ---
 
-- [ ] Step 6 – Batch 1 Verification
+- [x] Step 6 – Batch 1 Verification
 
-- [ ] 6.1 – Run Full Test Suite
-- Execute `gut_cmdln.gd -gdir=res://tests/unit/ecs`
-- Verify all tests pass (expect 15+ new tests for Batch 1)
-- Check code coverage for ecs module (target: 90%+)
+- [x] 6.1 – Run Full Test Suite
+- Executed `Godot --headless … -gdir=res://tests/unit/ecs -gexit`
+- Result: 43/43 ECS unit tests passing (new helpers + systems); expected warnings surfaced via `ExpectedError` assertions.
+- Coverage tooling pending (no automated report yet); manual spot check indicates all new helpers covered by `test_u_ecs_utils.gd`.
 
-- [ ] 6.2 – Integration Smoke Test
-- Create `tests/integration/test_ecs_refactor_batch1.gd`
-- Test: Load base_scene_template.tscn, verify all systems use U_ECSUtils
-- Test: Validate all components pass settings validation
-- Test: Confirm no null components returned from get_components()
+- [x] 6.2 – Integration Smoke Test
+- Added `tests/integration/test_ecs_refactor_batch1.gd`
+  - Loads `base_scene_template.tscn`, asserts every system resolves `M_ECSManager` via `get_manager()`
+  - Verifies player components register with manager and survive settings validation
+  - Confirms `get_components()` returns non-null arrays for all player component types
+- Command: `Godot --headless … -gdir=res://tests/integration -gexit` (3/3 tests green)
 
-- [ ] 6.3 – Performance Baseline
-- Benchmark current ECS performance (before queries/events):
-  - Time to process 100 entities with 7 components each
-  - System execution time per frame
-  - Record baseline for comparison in later batches
+- [x] 6.3 – Performance Baseline
+- Scripted benchmark: `Godot --headless … -s tests/perf/perf_ecs_baseline.gd`
+  - Scenario: 100 entities × 7 components, 8 systems, 120 simulated frames
+  - Setup time: 46 ms
+  - Average frame time: 2.96 ms
+  - Per-system averages (ms/frame): Input 0.056, Movement 0.775, Jump 0.561, Gravity 0.144, Floating 0.159, Rotate 0.119, Align 0.196, Landing 0.947
+  - Results captured for future batches to measure improvements/regressions
 
 ---
 

@@ -59,12 +59,8 @@ func process_tick(delta: float) -> void:
 		var desired_velocity: Vector3 = Vector3.ZERO
 		if has_input:
 			var camera: Camera3D = movement_component.get_camera_node()
-			if camera == null and has_node("/"):
-				var vp := get_viewport()
-				if vp != null and vp.has_method("get_camera_3d"):
-					var active_cam: Variant = vp.call("get_camera_3d")
-					if active_cam is Camera3D:
-						camera = active_cam
+			if camera == null:
+				camera = ECS_UTILS.get_active_camera(self)
 			if camera != null:
 				var up_dir: Vector3 = (body.up_direction if body != null else Vector3.UP)
 				if up_dir.length() == 0.0:
