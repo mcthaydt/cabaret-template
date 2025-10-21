@@ -28,8 +28,6 @@ func process_tick(delta: float) -> void:
 
 		var input_component: C_InputComponent = entity_query.get_component(INPUT_TYPE)
 		if input_component == null:
-			input_component = component.get_input_component()
-		if input_component == null:
 			continue
 
 		var move_vector := input_component.move_vector

@@ -94,7 +94,6 @@ script = ExtResource("3_2fo1m")
 script = ExtResource("4_4etni")
 settings = ExtResource("11_rot")
 target_node_path = NodePath("../../Player_Body")
-input_component_path = NodePath("../C_InputComponent")
 
 [node name="C_FloatingComponent" type="Node" parent="Components"]
 script = ExtResource("5_f1jtd")
@@ -107,7 +106,6 @@ script = ExtResource("6_xa0wx")
 settings = ExtResource("13_align")
 character_body_path = NodePath("../../Player_Body")
 visual_alignment_path = NodePath("../../Player_Body/Body_Mesh")
-floating_component_path = NodePath("../C_FloatingComponent")
 
 [node name="C_LandingIndicatorComponent" type="Node" parent="Components"]
 script = ExtResource("8_weo2m")

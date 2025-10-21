@@ -44,10 +44,10 @@ func _setup_context() -> Dictionary:
 	floating.settings = RS_FloatingSettings.new()
 	component.add_child(floating)
 	await _pump()
+	floating.character_body_path = floating.get_path_to(body)
 
 	component.character_body_path = component.get_path_to(body)
 	component.visual_alignment_path = component.get_path_to(visual)
-	component.floating_component_path = component.get_path_to(floating)
 
 	var system: S_AlignWithSurfaceSystem = ALIGN_SYSTEM.new()
 	manager.add_child(system)

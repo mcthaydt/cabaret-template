@@ -7,7 +7,6 @@ const COMPONENT_TYPE := StringName("C_AlignWithSurfaceComponent")
 @export var settings: RS_AlignSettings
 @export_node_path("CharacterBody3D") var character_body_path: NodePath
 @export_node_path("Node3D") var visual_alignment_path: NodePath
-@export_node_path("Node") var floating_component_path: NodePath
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
@@ -30,14 +29,3 @@ func get_visual_node() -> Node3D:
 	if visual_alignment_path.is_empty():
 		return null
 	return get_node_or_null(visual_alignment_path) as Node3D
-
-func get_floating_component() -> C_FloatingComponent:
-	if floating_component_path.is_empty():
-		return null
-	return get_node_or_null(floating_component_path) as C_FloatingComponent
-
-func has_recent_support(current_time: float, tolerance: float) -> bool:
-	var floating := get_floating_component()
-	if floating == null:
-		return false
-	return floating.has_recent_support(current_time, tolerance)

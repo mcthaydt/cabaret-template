@@ -96,8 +96,8 @@ Epic 4 – Component Decoupling (7 points)
 
 - [x] Story 4.1: Remove NodePath exports from C_MovementComponent (1 point) — Movement component now auto-discovers its CharacterBody3D and relies on query-based lookups for peer components
 - [x] Story 4.2: Remove NodePath exports from C_JumpComponent (1 point) — Jump component now relies on entity queries for input detection while keeping only body NodePath wiring
-- [ ] Story 4.3: Migrate remaining systems to query-based (3 points)
-- [ ] Story 4.4: Update scene templates (player_template.tscn) (2 points)
+- [x] Story 4.3: Migrate remaining systems to query-based (3 points) — Gravity, floating, rotation, align, and landing indicator systems now query entities instead of iterating raw component lists
+- [x] Story 4.4: Update scene templates (player_template.tscn) (2 points) — Template/perf fixtures no longer assign deprecated rotate/align NodePaths; scenes rely on query-driven discovery.
 
 Epic 5 – System Execution Ordering (5 points)
 
@@ -962,9 +962,14 @@ if can_jump:
 
 **Refactor (Test-After): Update Remaining Components**
 
-- [ ] 4.3 – Remove component→component NodePath exports from C_RotateToInputComponent, C_LandingIndicatorComponent
-- Apply same scoping: remove only component→component references
-- Run existing tests
+- [x] 4.3 – Remove component→component NodePath exports from C_RotateToInputComponent and C_AlignWithSurfaceComponent
+- **DELETE**: Rotate/align input & floating NodePath exports (systems now resolve peers via entity queries)
+- **KEEP**: Scene-node NodePaths (targets, visuals, markers) remain for editor wiring
+- Tests assert properties are absent and systems function without manual wiring
+
+- [x] 4.4 – Update scene templates (player_template.tscn) and supporting harnesses
+- **UPDATE**: Removed deprecated rotate/align NodePath assignments; perf harness and systems tests cover query-based discovery
+- **VERIFY**: ECS system suite exercises rotate/align/landing flows without manual wiring
 
 ---
 
@@ -1138,28 +1143,6 @@ func _sort_systems() -> void:
 - Verify bottom panel appears
 - Verify real-time query/event updates
 - Verify "Copy Event History" exports to JSON
-
----
-
-- [ ] Step 3 – Create Migration Guide
-
-**Documentation: Scene Migration Guide**
-
-- [ ] 3.1 – Create `docs/ecs/scene_migration_guide.md`
-- Include:
-  - Step-by-step checklist
-  - Before/after screenshots
-  - Common pitfalls and solutions
-  - Video tutorial link (record later)
-
-**Example Migration Walkthrough**
-
-- [ ] 3.2 – Record video tutorial
-- Show: Opening player_template.tscn
-- Show: Inspecting component (NodePath exports visible but ignored)
-- Show: Saving scene (exports disappear)
-- Show: Testing in game (verify works)
-- Publish to YouTube/project wiki
 
 ---
 

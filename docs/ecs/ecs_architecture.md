@@ -392,13 +392,9 @@ var _debug_snapshot: Dictionary = {}
 
 **Data**:
 ```gdscript
-@export var floating_enabled: bool = true
-@export var floating_height: float = 1.0
-@export var floating_spring_strength: float = 10.0
-@export var floating_damping: float = 0.5
-@export_node_path("Node") var ground_check_raycast_path: NodePath
-@export_node_path("Node") var character_body_path: NodePath
-@export var settings: FloatingSettings  # Optional settings resource
+@export var settings: RS_FloatingSettings
+@export_node_path("CharacterBody3D") var character_body_path: NodePath
+@export_node_path("Node3D") var raycast_root_path: NodePath
 ```
 
 **Runtime State**:
@@ -416,10 +412,9 @@ var _debug_snapshot: Dictionary = {}  # For debugging
 
 **Data**:
 ```gdscript
-@export var align_enabled: bool = true
-@export var align_speed: float = 5.0
-@export_node_path("Node") var ground_check_raycast_path: NodePath
-@export_node_path("Node") var character_body_path: NodePath
+@export var settings: RS_AlignSettings
+@export_node_path("CharacterBody3D") var character_body_path: NodePath
+@export_node_path("Node3D") var visual_alignment_path: NodePath
 ```
 
 **Used By**:
@@ -431,9 +426,8 @@ var _debug_snapshot: Dictionary = {}  # For debugging
 
 **Data**:
 ```gdscript
-@export var rotation_speed: float = 10.0
-@export_node_path("Node") var character_body_path: NodePath
-@export_node_path("Node") var input_component_path: NodePath
+@export var settings: RS_RotateToInputSettings
+@export_node_path("Node3D") var target_node_path: NodePath
 ```
 
 **Used By**:
@@ -705,20 +699,18 @@ func process_tick(_delta: float) -> void:
 ```
 [1] System._physics_process(delta) called
          ↓
-[2] var components = get_components(C_MovementComponent.COMPONENT_TYPE)
+[2] var entities = manager.query_entities(required_types, optional_types)
          ↓
-[3] get_components() → _manager.get_components()
+[3] Manager assembles EntityQuery results from entity→component map
          ↓
-[4] Manager looks up _components[component_type]
+[4] Returns Array[EntityQuery] (each holds entity + component dictionary)
          ↓
-[5] Returns Array[ECSComponent] (may be empty)
-         ↓
-[6] System iterates array
+[5] System iterates entity queries
          │
-         ├─ for component in components:
-         │      ├─ Check component != null
-         │      ├─ Read component data (component.velocity)
-         │      ├─ Apply logic
+         ├─ for query in entities:
+         │      ├─ var movement = query.get_component(C_MovementComponent.COMPONENT_TYPE)
+         │      ├─ Optional: var floating = query.get_component(C_FloatingComponent.COMPONENT_TYPE)
+         │      ├─ Apply logic using resolved components
          │      └─ Write component data or call entity methods
          │
          └─ Continue next frame

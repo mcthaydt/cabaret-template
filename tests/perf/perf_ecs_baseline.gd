@@ -161,11 +161,9 @@ func _setup_entities() -> void:
 		floating_component.raycast_root_path = floating_component.get_path_to(ray_root)
 
 		rotate_component.target_node_path = rotate_component.get_path_to(visual)
-		rotate_component.input_component_path = rotate_component.get_path_to(input_component)
 
 		align_component.character_body_path = align_component.get_path_to(body)
 		align_component.visual_alignment_path = align_component.get_path_to(visual)
-		align_component.floating_component_path = align_component.get_path_to(floating_component)
 
 		landing_component.character_body_path = landing_component.get_path_to(body)
 		landing_component.origin_marker_path = landing_component.get_path_to(origin_marker)

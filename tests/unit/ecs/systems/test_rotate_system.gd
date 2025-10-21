@@ -33,7 +33,6 @@ func _setup_entity() -> Dictionary:
     await _pump()
 
     rotate_component.target_node_path = rotate_component.get_path_to(body)
-    rotate_component.input_component_path = rotate_component.get_path_to(input)
 
     var system: S_RotateToInputSystem = RotateSystemScript.new()
     manager.add_child(system)
