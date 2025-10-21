@@ -101,7 +101,7 @@ Epic 4 – Component Decoupling (7 points)
 
 Epic 5 – System Execution Ordering (5 points)
 
-- [ ] Story 5.1: Add execution_priority to ECSSystem base class (2 points)
+- [x] Story 5.1: Add execution_priority to ECSSystem base class (2 points) — Added `@export var execution_priority: int = 0` to `ECSSystem`, exposing priorities in the editor with unit coverage in `tests/unit/ecs/test_ecs_system.gd`
 - [ ] Story 5.2: Implement system sorting in M_ECSManager (2 points)
 - [ ] Story 5.3: Document system priority conventions (1 point)
 

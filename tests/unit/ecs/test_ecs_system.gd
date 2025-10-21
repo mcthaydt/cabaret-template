@@ -58,3 +58,22 @@ func test_query_entities_passthrough_matches_manager_results() -> void:
 	assert_eq(system.captured.size(), expected.size())
 	if expected.size() > 0:
 		assert_true(system.captured[0] == expected[0])
+
+func test_execution_priority_defaults_to_zero_and_is_exported() -> void:
+	var system := ECS_SYSTEM.new()
+	add_child(system)
+	autofree(system)
+
+	assert_eq(system.execution_priority, 0, "ECSSystem should default execution_priority to zero")
+
+	var property_info: Dictionary = {}
+	for info in system.get_property_list():
+		var name: String = info.get("name", "")
+		if name == "execution_priority":
+			property_info = info
+			break
+
+	assert_false(property_info.is_empty(), "execution_priority should be exported for editor configuration")
+
+	var usage: int = property_info.get("usage", 0)
+	assert_true((usage & PROPERTY_USAGE_EDITOR) != 0, "execution_priority should be visible in the editor")
