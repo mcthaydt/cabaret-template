@@ -1544,7 +1544,7 @@ func get_input_component() -> C_InputComponent:
 
 **Solution**: See `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md` → Event Bus
 
-**Status Update (Story 3.1)**: Implemented foundational static `ECSEventBus` (`scripts/ecs/ecs_event_bus.gd`) providing publish/subscribe APIs with timestamped payloads; event history buffer and system integrations land in Stories 3.2–3.4.
+**Status Update (Stories 3.1–3.2)**: Implemented the static `ECSEventBus` (`scripts/ecs/ecs_event_bus.gd`) with publish/subscribe APIs plus a rolling 1,000-event history (accessible via `get_event_history()`, `set_history_limit()`, `clear_history()`), setting the stage for upcoming system integrations in Stories 3.3–3.4.
 
 ---
 

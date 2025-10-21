@@ -88,7 +88,7 @@ Epic 2 – Multi-Component Query System (18 points)
 Epic 3 – Event Bus System (8 points)
 
 - [x] Story 3.1: Implement ECSEventBus static class (4 points) — Added `scripts/ecs/ecs_event_bus.gd` with `subscribe()`, `publish()`, `unsubscribe()`, `clear()`, `reset()` leveraging `U_ECSUtils.get_current_time()`; covered by new `tests/unit/ecs/test_ecs_event_bus.gd` (GUT `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
-- [ ] Story 3.2: Add event history buffer and debugging (2 points)
+- [x] Story 3.2: Add event history buffer and debugging (2 points) — `ECSEventBus` now tracks a rolling 1,000 event history with `get_event_history()`, `clear_history()`, and `set_history_limit()` helpers; payloads are deep-copied and stored with `name`/`timestamp` metadata and covered by new GUT specs (`tests/unit/ecs/test_ecs_event_bus.gd`, `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
 - [ ] Story 3.3: Integrate event publication in S_JumpSystem (1 point)
 - [ ] Story 3.4: Create sample event subscribers (particles, sound) (1 point)
 
@@ -823,22 +823,41 @@ static var _event_history: Array[Dictionary] = []
 static var _max_history_size: int = 1000
 
 static func publish(event_name: StringName, payload: Variant = null) -> void:
-    var event = {
+    var event: Dictionary = {
         "name": event_name,
-        "payload": payload,
+        "payload": _duplicate_payload(payload),
         "timestamp": U_ECSUtils.get_current_time()
     }
-    _event_history.append(event)
-    if _event_history.size() > _max_history_size:
-        _event_history.pop_front()
+    _append_to_history(event)
 
-    # Notify subscribers...
     if _subscribers.has(event_name):
         for callback in _subscribers[event_name]:
-            callback.call(payload)
+            callback.call(event)
 
 static func get_event_history() -> Array[Dictionary]:
-    return _event_history.duplicate()
+    return _event_history.duplicate(true)
+
+static func clear_history() -> void:
+    _event_history.clear()
+
+static func set_history_limit(limit: int) -> void:
+    _max_history_size = max(limit, 1)
+    _trim_history()
+
+static func _append_to_history(event: Dictionary) -> void:
+    _event_history.append(event.duplicate(true))
+    _trim_history()
+
+static func _trim_history() -> void:
+    while _event_history.size() > _max_history_size:
+        _event_history.pop_front()
+
+static func _duplicate_payload(payload: Variant) -> Variant:
+    if payload is Dictionary:
+        return payload.duplicate(true)
+    if payload is Array:
+        return payload.duplicate(true)
+    return payload
 ```
 
 - [ ] 2.1c – VERIFY: Run tests, confirm GREEN

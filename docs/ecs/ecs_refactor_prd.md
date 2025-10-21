@@ -8,7 +8,7 @@
 - **Problem**: Current ECS implementation blocks emergent gameplay with single-component queries, tight NodePath coupling between components, no event system for cross-system communication, and manual system execution ordering
 - **Success**: 100% of systems use multi-component queries, zero NodePath cross-references between components, <1ms query performance at 60fps, emergent gameplay interactions working (e.g., jump → dust particles → environmental reaction)
 - **Timeline**: 2-3 weeks for complete refactor across 4 batches
-- **Progress** (current): Stories 1.1–2.6 complete — `U_ECSUtils` centralizes manager/time/body helpers, `_validate_required_settings()` enforces component setup, `M_ECSManager.get_components()` prunes nulls, all systems consume the shared utilities, `EntityQuery` now wraps entity/component results, `M_ECSManager` tracks entity-to-component maps via `get_components_for_entity()`, `query_entities()` returns `EntityQuery` results for required/optional component sets, `S_MovementSystem`/`S_JumpSystem` consume those queries, query caching keeps repeated lookups under budget (`tests/unit/ecs/test_ecs_manager.gd` via GUT `-gselect=test_ecs_manager -gexit`), and Story 3.1 delivered the static `ECSEventBus` publish/subscribe API with timestamped payloads plus dedicated coverage (`scripts/ecs/ecs_event_bus.gd`, `tests/unit/ecs/test_ecs_event_bus.gd`, GUT `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
+- **Progress** (current): Stories 1.1–2.6 complete — `U_ECSUtils` centralizes manager/time/body helpers, `_validate_required_settings()` enforces component setup, `M_ECSManager.get_components()` prunes nulls, all systems consume the shared utilities, `EntityQuery` now wraps entity/component results, `M_ECSManager` tracks entity-to-component maps via `get_components_for_entity()`, `query_entities()` returns `EntityQuery` results for required/optional component sets, `S_MovementSystem`/`S_JumpSystem` consume those queries, query caching keeps repeated lookups under budget (`tests/unit/ecs/test_ecs_manager.gd` via GUT `-gselect=test_ecs_manager -gexit`), Story 3.1 delivered the static `ECSEventBus` publish/subscribe API with timestamped payloads, and Story 3.2 added the rolling event history buffer with debugging helpers (`get_event_history()`, `set_history_limit()`, `clear_history()`) validated via `tests/unit/ecs/test_ecs_event_bus.gd` (GUT `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
 
 ## Requirements
 
@@ -277,7 +277,9 @@ ECSEventBus (purely static class - no Node, no scene tree):
 ├─ static publish(event_name: StringName, payload: Variant)
 ├─ static subscribe(event_name: StringName, callback: Callable) → Callable
 ├─ static unsubscribe(event_name: StringName, callback: Callable)
-└─ static get_event_history() → Array[Dictionary]
+├─ static get_event_history() → Array[Dictionary]
+├─ static clear_history() -> void
+└─ static set_history_limit(limit: int) -> void
 
 Systems Query Pattern (new):
 - S_MovementSystem queries ["C_MovementComponent", "C_InputComponent"]
@@ -370,18 +372,16 @@ static var _max_history_size: int = 1000
 
 static func publish(event_name: StringName, payload: Variant = null) -> void:
     """Publish event to all subscribers"""
-    var event = {
+    var event: Dictionary = {
         "name": event_name,
-        "payload": payload,
+        "payload": _duplicate_payload(payload),
         "timestamp": U_ECSUtils.get_current_time()
     }
-    _event_history.append(event)
-    if _event_history.size() > _max_history_size:
-        _event_history.pop_front()
+    _append_to_history(event)
 
     if _subscribers.has(event_name):
         for callback in _subscribers[event_name]:
-            callback.call(payload)
+            callback.call(event)
 
 static func subscribe(event_name: StringName, callback: Callable) -> Callable:
     """Subscribe to event, returns unsubscribe function"""
@@ -398,7 +398,29 @@ static func unsubscribe(event_name: StringName, callback: Callable) -> void:
 
 static func get_event_history() -> Array[Dictionary]:
     """Get recent event history for debugging"""
-    return _event_history.duplicate()
+    return _event_history.duplicate(true)
+
+static func clear_history() -> void:
+    _event_history.clear()
+
+static func set_history_limit(limit: int) -> void:
+    _max_history_size = max(limit, 1)
+    _trim_history()
+
+static func _append_to_history(event: Dictionary) -> void:
+    _event_history.append(event.duplicate(true))
+    _trim_history()
+
+static func _trim_history() -> void:
+    while _event_history.size() > _max_history_size:
+        _event_history.pop_front()
+
+static func _duplicate_payload(payload: Variant) -> Variant:
+    if payload is Dictionary:
+        return payload.duplicate(true)
+    if payload is Array:
+        return payload.duplicate(true)
+    return payload
 ```
 
 #### 3. M_ECSManager (Enhanced)
