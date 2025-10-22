@@ -9,7 +9,7 @@ Stories 1.1–5.3 are complete. Before you dive into the Testing & Documentati
    - `docs/general/DEV_PITFALLS.md`
    - `docs/general/STYLE_GUIDE.md`
 2. Review planning status:
-   - `docs/ecs/ecs_refactor_plan.md` (next up: Batch 4 Step 2 – debug the ECS debugger tooling | it's not detecting any systems and the queries tab is stuck on locating ECS manager, and no events captured;)
+   - `docs/ecs/ecs_refactor_plan.md` (next up: Batch 4 Step 2 – build the ECS debugger tooling)
    - `docs/ecs/ecs_refactor_prd.md` (progress summary now includes Stories 1.1–5.3)
    - `docs/ecs/ecs_architecture.md` (§6.8 priority scheduling, §8 status recap) and `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md`
 3. Familiarize yourself with the updated baseline:
