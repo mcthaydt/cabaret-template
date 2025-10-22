@@ -23,7 +23,7 @@ window/stretch/mode="viewport"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+enabled=PackedStringArray("res://addons/ecs_debugger/plugin.cfg", "res://addons/gut/plugin.cfg")
 
 [file_customization]
 

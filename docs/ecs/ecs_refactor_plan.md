@@ -1050,7 +1050,7 @@ var _execution_priority: int = 0
 		_notify_manager_priority_changed()
 ```
 
-- [ ] 1.1c – VERIFY: Run tests, confirm GREEN
+- [x] 1.1c – VERIFY: Run tests, confirm GREEN
 
 **TDD Cycle 2: M_ECSManager sorts systems by priority**
 
