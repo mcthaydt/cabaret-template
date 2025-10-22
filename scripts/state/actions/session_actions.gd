@@ -1,4 +1,4 @@
-@icon("res://editor_icons/action.svg")
+@icon("res://resources/editor_icons/action.svg")
 extends RefCounted
 class_name SessionActions
 

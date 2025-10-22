@@ -24,3 +24,10 @@ func autofree_all(nodes: Array) -> void:
 	for node in nodes:
 		if node is Node:
 			auto_free.add_queue_free(node)
+
+## Locate the primary player entity within the base scene hierarchy.
+func get_player_root(scene: Node) -> Node:
+	var entities: Node = scene.get_node_or_null("Entities")
+	if entities == null:
+		return null
+	return entities.find_child("E_Player", true, false)

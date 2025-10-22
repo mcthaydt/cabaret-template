@@ -1,4 +1,4 @@
-@icon("res://editor_icons/system.svg")
+@icon("res://resources/editor_icons/system.svg")
 extends ECSSystem
 class_name S_AlignWithSurfaceSystem
 

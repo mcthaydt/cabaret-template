@@ -1,4 +1,4 @@
-@icon("res://editor_icons/component.svg")
+@icon("res://resources/editor_icons/component.svg")
 extends ECSComponent
 class_name C_LandingIndicatorComponent
 

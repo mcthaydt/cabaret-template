@@ -7,7 +7,7 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 
 const MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const MOVEMENT_SETTINGS := preload("res://resources/movement_default.tres")
+const MOVEMENT_SETTINGS := preload("res://resources/settings/movement_default.tres")
 
 func _setup_scene() -> Dictionary:
 	await get_tree().process_frame
@@ -18,7 +18,10 @@ func _setup_scene() -> Dictionary:
 	await get_tree().process_frame
 
 	var manager: M_ECSManager = scene.get_node("Managers/M_ECSManager") as M_ECSManager
-	var components_root := scene.get_node("Entities/E_SpawnPoints/E_PlayerSpawn/E_Player/Components")
+	var player_root: Node = get_player_root(scene)
+	assert_not_null(player_root, "Base scene should expose the E_Player entity")
+
+	var components_root: Node = player_root.get_node("Components")
 
 	var player_components := {}
 	for child in components_root.get_children():

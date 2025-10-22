@@ -1,4 +1,4 @@
-@icon("res://editor_icons/utility.svg")
+@icon("res://resources/editor_icons/utility.svg")
 extends RefCounted
 class_name U_StateStoreUtils
 

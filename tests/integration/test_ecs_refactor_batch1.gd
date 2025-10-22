@@ -41,8 +41,11 @@ func test_base_scene_components_register_with_manager() -> void:
 	var scene: Node = context["scene"]
 	var manager: M_ECSManager = context["manager"]
 
-	var components_root := scene.get_node("Entities/E_SpawnPoints/E_PlayerSpawn/E_Player/Components")
-	assert_not_null(components_root)
+	var player_root: Node = get_player_root(scene)
+	assert_not_null(player_root, "Base scene should expose the E_Player entity")
+
+	var components_root: Node = player_root.get_node("Components")
+	assert_not_null(components_root, "Player entity should expose a Components container")
 
 	for child in components_root.get_children():
 		assert_true(child is ECS_COMPONENT, "Component node %s should extend ECSComponent" % child.name)

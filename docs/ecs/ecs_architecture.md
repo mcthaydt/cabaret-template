@@ -197,7 +197,7 @@ var _systems: Array[ECSSystem] = []
 **Editor Customization**:
 All components use the `@icon` decorator for visual organization in the Godot editor:
 ```gdscript
-@icon("res://editor_icons/component.svg")
+@icon("res://resources/editor_icons/component.svg")
 extends ECSComponent
 class_name C_MovementComponent
 ```
@@ -265,7 +265,7 @@ Component destroyed
 **Editor Customization**:
 All systems use the `@icon` decorator for visual organization in the Godot editor:
 ```gdscript
-@icon("res://editor_icons/system.svg")
+@icon("res://resources/editor_icons/system.svg")
 extends ECSSystem
 class_name S_MovementSystem
 ```

@@ -20,9 +20,11 @@ func _setup_scene() -> Dictionary:
 	await get_tree().process_frame
 
 	var manager: M_ECSManager = scene.get_node("Managers/M_ECSManager") as M_ECSManager
-	var player_root := scene.get_node("Entities/E_SpawnPoints/E_PlayerSpawn/E_Player") as Node
+	var player_root: Node = get_player_root(scene)
+	assert_not_null(player_root, "Base scene should expose the E_Player entity")
+
 	var body := player_root.get_node("Player_Body") as CharacterBody3D
-	var components_root := player_root.get_node("Components")
+	var components_root: Node = player_root.get_node("Components")
 
 	var components := {}
 	for child in components_root.get_children():

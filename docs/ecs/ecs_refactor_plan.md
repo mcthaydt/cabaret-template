@@ -1125,11 +1125,11 @@ func _sort_systems() -> void:
 
 ---
 
-- [x] Step 2 – Create Debug Tools
+- [ ] Step 2 – Create Debug Tools
 
 **Editor Plugin: ECS Debugger**
 
-- [x] 2.1 – Create `addons/ecs_debugger/` plugin
+- [ ] 2.1 – Create `addons/ecs_debugger/` plugin
   - Implemented `T_ECSDebuggerPanel` with dedicated tabs for queries, events, and system ordering
   - Queries tab streams `M_ECSManager.get_query_metrics()` into a live `Tree` (call counts, cache hit rate, durations)
   - Events tab supports substring filtering, pretty-printed payloads, and clipboard export via `U_ECSDebugDataSource.serialize_event_history`
@@ -1139,7 +1139,7 @@ func _sort_systems() -> void:
 
 **Integration with Godot Editor**
 
-- [x] 2.2 – Test debug tools in editor
+- [ ] 2.2 – Test debug tools in editor
   - `P_ECSDebuggerPlugin` registers the panel in the bottom dock and cleans up on unload
   - Manual smoke: opened player template, observed live query/event refresh and system toggles pausing ticks
   - Clipboard export spot-checked against filtered history to confirm JSON fidelity

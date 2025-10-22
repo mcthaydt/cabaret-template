@@ -1,4 +1,4 @@
-@icon("res://editor_icons/manager.svg")
+@icon("res://resources/editor_icons/manager.svg")
 extends Node
 class_name M_CursorManager
 

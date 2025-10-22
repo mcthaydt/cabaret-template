@@ -1,4 +1,4 @@
-@icon("res://editor_icons/reducer.svg")
+@icon("res://resources/editor_icons/reducer.svg")
 extends RefCounted
 class_name RootReducer
 
