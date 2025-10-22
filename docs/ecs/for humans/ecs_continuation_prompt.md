@@ -1,17 +1,17 @@
 # ECS Refactor – Quick Start for Humans
 
-## Picking Up After System Priority Rollout
+## Picking Up After Priority Documentation
 
-Stories 1.1–5.2 are complete. Before you tackle the remaining System Execution Ordering work:
+Stories 1.1–5.3 are complete. Before you dive into the Testing & Documentation batch:
 
 1. Re-read the quick guidance docs:
    - `AGENTS.md`
    - `docs/general/DEV_PITFALLS.md`
    - `docs/general/STYLE_GUIDE.md`
 2. Review planning status:
-   - `docs/ecs/ecs_refactor_plan.md` (next up: Story 5.3 – document system priority conventions)
-   - `docs/ecs/ecs_refactor_prd.md` (progress summary now includes Stories 1.1–5.2)
-   - `docs/ecs/ecs_architecture.md` and `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md`
+   - `docs/ecs/ecs_refactor_plan.md` (next up: Batch 4 Step 2 – ship the ECS debugger tooling)
+   - `docs/ecs/ecs_refactor_prd.md` (progress summary now includes Stories 1.1–5.3)
+   - `docs/ecs/ecs_architecture.md` (§6.8 priority scheduling, §8 status recap) and `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md`
 3. Familiarize yourself with the updated baseline:
    - `scripts/utils/u_ecs_utils.gd` and `scripts/managers/m_ecs_manager.gd` (shared manager helpers, entity query caching, priority-sorted system execution inside `_physics_process`)
    - `scripts/ecs/ecs_system.gd` (exported, clamped `execution_priority` with manager notifications; systems only self-tick when unmanaged)
@@ -20,7 +20,7 @@ Stories 1.1–5.2 are complete. Before you tackle the remaining System Executi
    - `scripts/ecs/systems/` gravity, floating, rotate-to-input, align-with-surface, and landing indicator systems (all rely on `query_entities()` with optional components)
    - `templates/player_template.tscn` & `tests/perf/perf_ecs_baseline.gd` (query-driven wiring, no manual Component NodePaths)
    - Tests: updated suites under `tests/unit/ecs/components/` and `tests/unit/ecs/systems/` (movement, gravity, floating, rotate, align, landing, jump) now drive behaviour via `manager._physics_process(...)`
-4. Continue with Story 5.3 using strict RED→GREEN→REFACTOR TDD. Run GUT with `-gexit`, update plan/PRD/docs after each story, and keep commits atomic per story.
+4. Continue with Story 6.1 using strict RED→GREEN→REFACTOR TDD. Target fresh coverage for manager queries (`test_ecs_manager.gd`) and cache edges; run GUT with `-gexit`, update plan/PRD/docs after each story, and keep commits atomic per story.
 
 ## Friendly Resources
 

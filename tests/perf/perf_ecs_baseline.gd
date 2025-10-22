@@ -173,14 +173,17 @@ func _simulate_frames() -> Dictionary:
 	var total_time_usec: int = 0
 	var system_time_totals: Dictionary = {}
 
-	for system in _systems:
+	for system in _manager.get_systems():
 		system_time_totals[system.name] = 0
+
+	var delta := 0.016
 
 	for _i in range(FRAMES_TO_SIMULATE):
 		var frame_start := Time.get_ticks_usec()
-		for system in _systems:
+		var systems := _manager.get_systems()
+		for system in systems:
 			var system_start := Time.get_ticks_usec()
-			system._physics_process(0.016)
+			system.process_tick(delta)
 			system_time_totals[system.name] += Time.get_ticks_usec() - system_start
 		total_time_usec += Time.get_ticks_usec() - frame_start
 
