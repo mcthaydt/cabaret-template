@@ -13,7 +13,7 @@ config_version=5
 config/name="SSA_Rising"
 run/main_scene="uid://rygahxanlmio"
 config/features=PackedStringArray("4.5", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://assets/textures/tex_icon.svg"
 
 [display]
 
@@ -24,6 +24,19 @@ window/stretch/mode="viewport"
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+
+[file_customization]
+
+folder_colors={
+"res://addons/": "gray",
+"res://assets/": "green",
+"res://docs/": "red",
+"res://editor_icons/": "blue",
+"res://resources/": "blue",
+"res://scripts/": "blue",
+"res://templates/": "green",
+"res://tests/": "red"
+}
 
 [input]
 

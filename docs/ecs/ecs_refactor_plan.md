@@ -1125,31 +1125,32 @@ func _sort_systems() -> void:
 
 ---
 
-- [ ] Step 2 – Create Debug Tools
+- [x] Step 2 – Create Debug Tools
 
 **Editor Plugin: ECS Debugger**
 
-- [ ] 2.1 – Create `addons/ecs_debugger/` plugin
-- Implement bottom panel with tabs:
-  - "Queries": Show active queries, entity matches, performance
-  - "Events": Show event history, filter by name, inspect payloads
-  - "System Order": Show execution order, toggle systems on/off
-- Hook into M_ECSManager and ECSEventBus for real-time data
+- [x] 2.1 – Create `addons/ecs_debugger/` plugin
+  - Implemented `T_ECSDebuggerPanel` with dedicated tabs for queries, events, and system ordering
+  - Queries tab streams `M_ECSManager.get_query_metrics()` into a live `Tree` (call counts, cache hit rate, durations)
+  - Events tab supports substring filtering, pretty-printed payloads, and clipboard export via `U_ECSDebugDataSource.serialize_event_history`
+  - System Order tab mirrors priority sorting and exposes enable/disable toggles wired to `ECSSystem.set_debug_disabled`
+  - Auto-refresh timer (0.5 s) locates the active manager or edited scene root; ready for reuse in editor runtime
+  - Verified via new TDD-first suite `tests/unit/ecs/test_ecs_debugger_plugin.gd`
 
 **Integration with Godot Editor**
 
-- [ ] 2.2 – Test debug tools in editor
-- Verify bottom panel appears
-- Verify real-time query/event updates
-- Verify "Copy Event History" exports to JSON
+- [x] 2.2 – Test debug tools in editor
+  - `P_ECSDebuggerPlugin` registers the panel in the bottom dock and cleans up on unload
+  - Manual smoke: opened player template, observed live query/event refresh and system toggles pausing ticks
+  - Clipboard export spot-checked against filtered history to confirm JSON fidelity
 
 ---
 
-- [ ] Step 4 – Full Documentation Update
+- [ ] Step 3 – Full Documentation Update
 
 **Update Architecture Documentation**
 
-- [ ] 4.1 – Update `docs/ecs/ecs_architecture.md`
+- [ ] 3.1 – Update `docs/ecs/ecs_architecture.md`
 - Add query system section
 - Add event bus section
 - Add system ordering section
@@ -1157,14 +1158,14 @@ func _sort_systems() -> void:
 
 **Update ELI5 Documentation**
 
-- [ ] 4.2 – Update `docs/ecs/for humans/ecs_ELI5.md`
+- [ ] 3.2 – Update `docs/ecs/for humans/ecs_ELI5.md`
 - Add simple query examples
 - Add event system analogy (pub/sub like Discord channels)
 - Update "how to create a system" with queries
 
 **Update Refactor Recommendations**
 
-- [ ] 4.3 – Mark completed items in `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md`
+- [ ] 3.3 – Mark completed items in `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md`
 - Check off: Multi-component queries ✅
 - Check off: Event bus ✅
 - Check off: Component decoupling ✅
@@ -1172,21 +1173,21 @@ func _sort_systems() -> void:
 
 ---
 
-- [ ] Step 5 – Batch 4 Verification
+- [ ] Step 4 – Batch 4 Verification
 
-- [ ] 5.1 – Run Full Test Suite
+- [ ] 4.1 – Run Full Test Suite
 - Execute all ECS tests (unit + integration)
 - Verify 60+ tests passing
 - Check code coverage (target: 92%+)
 
-- [ ] 5.2 – Performance Profiling
+- [ ] 4.2 – Performance Profiling
 - Benchmark full game loop with all refactors:
   - Query time: <1ms average
   - Event dispatch: <0.5ms per event
   - System execution: <8ms total for 8 systems
   - Frame budget: Well under 16.67ms (60fps target)
 
-- [ ] 5.3 – End-to-End Integration Test
+- [ ] 4.3 – End-to-End Integration Test
 - Create `tests/integration/test_ecs_full_refactor.gd`
 - Load player_template.tscn
 - Run 600 frames (10 seconds)

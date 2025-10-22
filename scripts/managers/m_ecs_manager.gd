@@ -5,6 +5,7 @@ class_name M_ECSManager
 signal component_added(component_type: StringName, component: ECSComponent)
 signal component_removed(component_type: StringName, component: ECSComponent)
 
+const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 const META_ENTITY_ROOT := StringName("_ecs_entity_root")
 const META_ENTITY_TRACKED := StringName("_ecs_tracked_entity")
 
@@ -14,6 +15,8 @@ var _sorted_systems: Array[ECSSystem] = []
 var _systems_dirty: bool = true
 var _entity_component_map: Dictionary = {}
 var _query_cache: Dictionary = {}
+var _query_metrics: Dictionary = {}
+var _time_provider: Callable = Callable(U_ECS_UTILS, "get_current_time")
 
 func _ready() -> void:
 	add_to_group("ecs_manager")
@@ -91,6 +94,36 @@ func get_components_for_entity(entity: Node) -> Dictionary:
 		return {}
 	return (_entity_component_map[entity] as Dictionary).duplicate(true)
 
+func set_time_provider(provider: Callable) -> void:
+	if provider == Callable():
+		_time_provider = Callable(U_ECS_UTILS, "get_current_time")
+		return
+	if not provider.is_valid():
+		_time_provider = Callable(U_ECS_UTILS, "get_current_time")
+		return
+	_time_provider = provider
+
+func reset_time_provider() -> void:
+	_time_provider = Callable(U_ECS_UTILS, "get_current_time")
+
+func get_query_metrics() -> Array:
+	var metrics: Array = []
+	for entry in _query_metrics.values():
+		var metric: Dictionary = {
+			"id": entry.get("id", ""),
+			"required": _duplicate_string_names(entry.get("required", [])),
+			"optional": _duplicate_string_names(entry.get("optional", [])),
+			"total_calls": int(entry.get("total_calls", 0)),
+			"cache_hits": int(entry.get("cache_hits", 0)),
+			"last_duration": float(entry.get("last_duration", 0.0)),
+			"last_result_count": int(entry.get("last_result_count", 0)),
+			"last_run_time": float(entry.get("last_run_time", 0.0)),
+		}
+		metrics.append(metric)
+	if metrics.size() > 1:
+		metrics.sort_custom(Callable(self, "_compare_query_metrics"))
+	return metrics
+
 func register_system(system: ECSSystem) -> void:
 	if system == null:
 		push_warning("Attempted to register a null system")
@@ -116,11 +149,18 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
 		return results
 
 	var key := _make_query_cache_key(required, optional)
+	var start_time: float = _get_current_time()
+
 	if _query_cache.has(key):
-		return _duplicate_query_results(_query_cache[key])
+		var cached_results: Array = _query_cache[key]
+		_record_query_metrics(key, required, optional, cached_results.size(), 0.0, true, start_time)
+		return _duplicate_query_results(cached_results)
 
 	var candidate_components := get_components(candidate_type)
 	if candidate_components.is_empty():
+		var no_result_time: float = _get_current_time()
+		var no_result_duration: float = max(no_result_time - start_time, 0.0)
+		_record_query_metrics(key, required, optional, 0, no_result_duration, false, no_result_time)
 		return results
 
 	var seen_entities: Dictionary = {}
@@ -156,6 +196,9 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
 		seen_entities[entity] = true
 
 	_query_cache[key] = results
+	var end_time: float = _get_current_time()
+	var duration: float = max(end_time - start_time, 0.0)
+	_record_query_metrics(key, required, optional, results.size(), duration, false, end_time)
 
 	return results.duplicate()
 
@@ -258,6 +301,70 @@ func _make_query_cache_key(required: Array, optional: Array) -> String:
 func _duplicate_query_results(results: Array) -> Array:
 	return results.duplicate()
 
+func _record_query_metrics(
+	key: String,
+	required: Array[StringName],
+	optional: Array[StringName],
+	result_count: int,
+	duration: float,
+	was_cache_hit: bool,
+	timestamp: float
+) -> void:
+	var metrics: Dictionary = _query_metrics.get(key, {
+		"id": key,
+		"required": [],
+		"optional": [],
+		"total_calls": 0,
+		"cache_hits": 0,
+		"last_duration": 0.0,
+		"last_result_count": 0,
+		"last_run_time": 0.0,
+	}) as Dictionary
+
+	var required_copy: Array[StringName] = _duplicate_string_names(required)
+	required_copy.sort()
+	var optional_copy: Array[StringName] = _duplicate_string_names(optional)
+	optional_copy.sort()
+
+	var total_calls: int = int(metrics.get("total_calls", 0)) + 1
+	var cache_hits: int = int(metrics.get("cache_hits", 0))
+	if was_cache_hit:
+		cache_hits += 1
+
+	metrics["id"] = key
+	metrics["required"] = required_copy
+	metrics["optional"] = optional_copy
+	metrics["total_calls"] = total_calls
+	metrics["cache_hits"] = cache_hits
+	metrics["last_duration"] = max(duration, 0.0)
+	metrics["last_result_count"] = result_count
+	metrics["last_run_time"] = timestamp
+
+	_query_metrics[key] = metrics
+
+func _duplicate_string_names(source: Variant) -> Array:
+	var result: Array[StringName] = []
+	if source is Array:
+		for entry in source:
+			result.append(StringName(entry))
+	elif source is PackedStringArray:
+		for entry in source:
+			result.append(StringName(entry))
+	return result
+
+func _compare_query_metrics(a: Dictionary, b: Dictionary) -> bool:
+	var time_a: float = float(a.get("last_run_time", 0.0))
+	var time_b: float = float(b.get("last_run_time", 0.0))
+	if is_equal_approx(time_a, time_b):
+		return String(a.get("id", "")) < String(b.get("id", ""))
+	return time_a > time_b
+
+func _get_current_time() -> float:
+	if _time_provider != Callable() and _time_provider.is_valid():
+		var value: Variant = _time_provider.call()
+		return float(value)
+	return U_ECS_UTILS.get_current_time()
+
 func _invalidate_query_cache() -> void:
 	if _query_cache.is_empty():
 		return
@@ -303,6 +410,8 @@ func _physics_process(delta: float) -> void:
 			continue
 		if not is_instance_valid(system):
 			needs_cleanup = true
+			continue
+		if system.is_debug_disabled():
 			continue
 		system.process_tick(delta)
 

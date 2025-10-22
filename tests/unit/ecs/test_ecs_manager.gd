@@ -35,6 +35,12 @@ class PrioritySystem extends ECS_SYSTEM:
 			return
 		log.append(label)
 
+class DebugToggleSystem extends ECS_SYSTEM:
+	var tick_count: int = 0
+
+	func process_tick(_delta: float) -> void:
+		tick_count += 1
+
 class QueryMovementComponent extends ECS_COMPONENT:
 	const TYPE := StringName("C_QueryMovementComponent")
 
@@ -511,3 +517,77 @@ func test_query_entities_cache_invalidates_when_new_entity_registered() -> void:
 			break
 
 	assert_true(found_new)
+
+func test_query_metrics_capture_results_and_cache_hits() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var required: Array[StringName] = [
+		QueryMovementComponent.TYPE,
+		QueryInputComponent.TYPE,
+	]
+
+	manager.set_time_provider(_create_time_provider([
+		1.0, 1.1, 2.0, 2.1,
+	]))
+
+	_spawn_query_entity(manager, "E_DebugMetrics", true, true)
+
+	var first: Array = manager.query_entities(required)
+	assert_eq(first.size(), 1)
+
+	var second: Array = manager.query_entities(required)
+	assert_eq(second.size(), 1)
+
+	var metrics: Array = manager.get_query_metrics()
+	assert_eq(metrics.size(), 1)
+
+	var entry: Dictionary = metrics[0]
+	var recorded_required: Array = entry["required"]
+	recorded_required.sort()
+	var expected_required: Array = required.duplicate()
+	expected_required.sort()
+	assert_eq(recorded_required, expected_required)
+
+	var optional_components: Array = entry["optional"]
+	assert_true(optional_components.is_empty())
+
+	assert_eq(entry["total_calls"], 2)
+	assert_eq(entry["cache_hits"], 1)
+	assert_eq(entry["last_result_count"], 1)
+
+	var last_duration: float = entry["last_duration"]
+	assert_true(last_duration >= 0.0)
+
+	var last_run_time: float = entry["last_run_time"]
+	assert_true(last_run_time >= 2.0)
+
+func test_debug_disabling_system_skips_process_tick() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var system := DebugToggleSystem.new()
+	autofree(system)
+	manager.register_system(system)
+
+	manager._physics_process(0.016)
+	assert_eq(system.tick_count, 1)
+
+	system.set_debug_disabled(true)
+	manager._physics_process(0.016)
+	assert_eq(system.tick_count, 1)
+
+	system.set_debug_disabled(false)
+	manager._physics_process(0.016)
+	assert_eq(system.tick_count, 2)
+
+func _create_time_provider(sequence: Array) -> Callable:
+	var remaining: Array = sequence.duplicate()
+	var last_value := 0.0
+	return func() -> float:
+		if remaining.is_empty():
+			return last_value
+		last_value = float(remaining.pop_front())
+		return last_value

@@ -6,6 +6,7 @@ const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
 var _manager: M_ECSManager
 var _execution_priority: int = 0
+var _debug_disabled: bool = false
 
 @export var execution_priority: int:
 	get:
@@ -45,6 +46,12 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
 	if not _manager.has_method("query_entities"):
 		return []
 	return _manager.query_entities(required, optional)
+
+func set_debug_disabled(disabled: bool) -> void:
+	_debug_disabled = disabled
+
+func is_debug_disabled() -> bool:
+	return _debug_disabled
 
 func process_tick(_delta: float) -> void:
 	pass

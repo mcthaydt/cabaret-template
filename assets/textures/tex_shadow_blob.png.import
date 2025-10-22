@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dm23qd3lalkrv"
-path.s3tc="res://.godot/imported/tex_shadow_blob.png-d5e2af0b36f786e8f0a2f666fef50089.s3tc.ctex"
+path.s3tc="res://.godot/imported/tex_shadow_blob.png-b8a06f521e48c0a4f7a0be4050bbb316.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://textures/tex_shadow_blob.png"
-dest_files=["res://.godot/imported/tex_shadow_blob.png-d5e2af0b36f786e8f0a2f666fef50089.s3tc.ctex"]
+source_file="res://assets/textures/tex_shadow_blob.png"
+dest_files=["res://.godot/imported/tex_shadow_blob.png-b8a06f521e48c0a4f7a0be4050bbb316.s3tc.ctex"]
 
 [params]
 
