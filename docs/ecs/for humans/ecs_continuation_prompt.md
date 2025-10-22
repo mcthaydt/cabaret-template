@@ -20,7 +20,7 @@ Stories 1.1–5.3 are complete. Before you dive into the Testing & Documentati
    - `scripts/ecs/systems/` gravity, floating, rotate-to-input, align-with-surface, and landing indicator systems (all rely on `query_entities()` with optional components)
    - `templates/player_template.tscn` & `tests/perf/perf_ecs_baseline.gd` (query-driven wiring, no manual Component NodePaths)
    - Tests: updated suites under `tests/unit/ecs/components/` and `tests/unit/ecs/systems/` (movement, gravity, floating, rotate, align, landing, jump) now drive behaviour via `manager._physics_process(...)`
-4. Continue with Story 6.1 using strict RED→GREEN→REFACTOR TDD. Target fresh coverage for manager queries (`test_ecs_manager.gd`) and cache edges; run GUT with `-gexit`, update plan/PRD/docs after each story, and keep commits atomic per story.
+4. Continue with Batch 4 Step 2 (ECS debugger tooling). Prototype the editor plugin with RED→GREEN→REFACTOR discipline, keep GUT runs (`-gexit`) green, and update plan/PRD/docs at each milestone.
 
 ## Friendly Resources
 

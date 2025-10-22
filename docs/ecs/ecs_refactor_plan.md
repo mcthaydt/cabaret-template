@@ -747,11 +747,6 @@ func _get_entity_for_component(component: ECSComponent) -> Node:
   - Result: Setup 34 ms, average frame 2.6391 ms (120 frames). Per-system averages (ms/frame): Input 0.0407, Movement 0.6590, Jump 0.4492, Gravity 0.1707, Floating 0.1645, Rotate 0.1179, Align 0.1680, Landing 0.8656.
   - Query-based pipeline stays within Batch 1 budget (<3 ms/frame) while avoiding NodePath couplings.
 
-- [ ] 7.3 – Performance Comparison
-- Compare to Batch 1 baseline:
-  - Query-based systems should be ~same performance or better
-  - Reduced null checks = faster execution
-
 ---
 
 ### Batch 3: Event Bus + Component Decoupling [15 points]
@@ -885,20 +880,13 @@ static func _duplicate_payload(payload: Variant) -> Variant:
     return payload
 ```
 
-- [ ] 2.1c – VERIFY: Run tests, confirm GREEN
+- [x] 2.1c – VERIFY: Run tests, confirm GREEN (`Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
 
 **TDD Cycle 2: Event History - Rolling Buffer**
 
-- [ ] 2.2a – RED: Write test for rolling buffer
-- Test: `test_event_history_limits_to_max_size()`
-  - Arrange: Set _max_history_size = 10
-  - Act: Publish 20 events
-  - Assert: get_event_history() size == 10, oldest events removed
-
-- [ ] 2.2b – GREEN: Verify rolling buffer works
-- Test should pass with existing implementation
-
-- [ ] 2.2c – VERIFY: Run tests, confirm GREEN
+- [x] 2.2a – RED: Write test for rolling buffer — Added `test_event_history_enforces_maximum_size()` to `tests/unit/ecs/test_ecs_event_bus.gd` (sets history limit to 3, publishes 5 events, asserts only the newest 3 remain).
+- [x] 2.2b – GREEN: Existing `_trim_history()` logic satisfied the RED test without further code changes.
+- [x] 2.2c – VERIFY: Same GUT invocation as above confirms the buffer limit behaviour.
 
 ---
 
