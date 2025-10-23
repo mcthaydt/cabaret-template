@@ -24,7 +24,7 @@ We use a **prefix + suffix** naming convention that provides:
 | **Components** | `C_` | `Component` | `C_MovementComponent` |
 | **Managers** | `M_` | `Manager` | `M_ECSManager` |
 | **Resources/Settings** | `RS_` | `Settings` | `RS_MovementSettings` |
-| **Utilities** | `U_` | `Utils` | `U_ActionUtils` |
+| **Utilities** | `U_` | `Utils` | `U_ECSUtils` |
 | **Scenes** | `SC_` | `Scene` | `SC_PlayerScene` |
 | **Shaders** | `SH_` | `Shader` | `SH_WaterShader` |
 | **Tools** | `T_` | `Tool` | `T_LevelEditorTool` |
@@ -206,7 +206,7 @@ func get_components(type: StringName) -> Array:
 **File:** `scripts/state/u_action_utils.gd`
 
 ```gdscript
-class_name U_ActionUtils
+class_name U_ECSUtils
 
 static func create_action(type: StringName, payload: Variant = null) -> Dictionary:
     return {
@@ -279,9 +279,9 @@ func _exit_tree() -> void:
 |--------|---------|---------|----------|
 | `S_` | **System** | ECS systems that process entities each frame | `S_MovementSystem`, `S_GravitySystem` |
 | `C_` | **Component** | ECS components that hold entity data | `C_MovementComponent`, `C_JumpComponent` |
-| `M_` | **Manager** | Singleton/autoload managers that orchestrate systems | `M_ECSManager`, `M_StateManager` |
+| `M_` | **Manager** | Manager nodes that coordinate subsystems | `M_ECSManager`, `M_CursorManager` |
 | `RS_` | **Resource/Settings** | Godot Resource classes for configuration | `RS_MovementSettings`, `RS_JumpSettings` |
-| `U_` | **Utility** | Static helper classes with utility functions | `U_ActionUtils`, `U_ReducerUtils` |
+| `U_` | **Utility** | Static helper classes with utility functions | `U_ECSUtils`, `U_InputUtils` |
 | `SC_` | **Scene** | Scene-specific scripts attached to scene roots | `SC_PlayerScene`, `SC_MainMenuScene` |
 | `SH_` | **Shader** | Custom shader scripts | `SH_WaterShader`, `SH_ToonShader` |
 | `T_` | **Tool** | Editor tool scripts (@tool annotation) | `T_LevelEditorTool`, `T_AssetImporter` |
@@ -393,18 +393,6 @@ This plan covers the complete refactoring of existing code to match the new nami
 - [ ] `ecs_manager.gd` → `m_ecs_manager.gd`
   - Update class name to `M_ECSManager`
   - Update all references in systems and components
-
-### Phase 6: Rename State Utilities (5 files)
-- [ ] `store.gd` → `m_state_manager.gd`
-  - Update class name to `M_StateManager`
-- [ ] `action_utils.gd` → `u_action_utils.gd`
-  - Update class name to `U_ActionUtils`
-- [ ] `reducer_utils.gd` → `u_reducer_utils.gd`
-  - Update class name to `U_ReducerUtils`
-- [ ] `store_utils.gd` → `u_store_utils.gd`
-  - Update class name to `U_StoreUtils`
-- [ ] `selector.gd` → `u_selector_utils.gd`
-  - Update class name to `U_SelectorUtils`
 
 ### Phase 7: Update References in Code
 - [ ] Update all `@export` NodePath references

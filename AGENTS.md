@@ -2,14 +2,12 @@
 
 ## Start Here
 
-- Project type: Godot 4.5 (GDScript). Two core areas:
+- Project type: Godot 4.5 (GDScript). Core area:
   - `scripts/ecs`: Lightweight ECS built on Nodes (components + systems + manager).
-  - `scripts/state`: Redux-like state store utilities (actions, reducers, selectors, persistence).
 - Scenes and resources:
   - `templates/`: Base scene and player scene that wire components/systems together.
   - `resources/`: Default `*Settings.tres` for component configs; update when adding new exported fields.
 - Documentation to consult (do not duplicate here):
-  - State store: `docs/redux_state_store/*`
   - General pitfalls: `docs/general/DEV_PITFALLS.md`
 - Before adding or modifying code, re-read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md` to stay aligned with testing and formatting requirements.
 - Keep project planning docs current: whenever a story advances, update the relevant plan and PRD documents immediately so written guidance matches the implementation state.
@@ -24,8 +22,7 @@
 - `scripts/ecs/components/*`: Gameplay components with `@export` NodePaths and typed getters.
 - `scripts/ecs/systems/*`: Systems that query components by `StringName` and operate per-physics tick.
 - `scripts/ecs/resources/*`: `Resource` classes holding tunables consumed by components/systems.
-- `scripts/state/*`: `M_StateManager`, `U_ReducerUtils`, `U_ActionUtils`, selectors, and persistence helpers.
-- `tests/unit/*`: GUT test suites split into `ecs` and `state`.
+- `tests/unit/*`: GUT test suites for ECS.
 
 ## ECS Guidelines
 
@@ -44,19 +41,6 @@
   - Ensure exactly one `M_ECSManager` in-scene. It auto-adds to `ecs_manager` group on `_ready()`.
   - Emits `component_added`/`component_removed` and calls `component.on_registered(self)`.
   - `get_components()` strips out null entries automatically; only guard for missing components when logic truly requires it.
-
-## State Store Guidelines
-
-- Reducers are static classes with:
-  - `get_slice_name() -> StringName`, `get_initial_state() -> Dictionary`, optional `get_persistable() -> bool`, and `reduce(state, action) -> Dictionary`.
-  - Do not mutate input state; return new dictionaries using `duplicate(true)` where needed.
-- Actions and selectors
-  - Use `U_ActionUtils.create_action(type, payload)` so `type` becomes a `StringName` and shape stays consistent.
-  - For expensive derivations, wrap a lambda with `U_SelectorUtils.MemoizedSelector` to cache on state version.
-- Store usage
-  - Add a single `M_StateManager` node to the tree (it joins `state_store` group). Discover from any node via `U_StateStoreUtils.get_store(node)`.
-  - To persist, use `store.save_state(path[, whitelist])`; restore using `store.load_state(path)`.
-  - For full architecture/tradeoffs/PRD, see `docs/redux_state_store/*`.
 
 ## Conventions and Gotchas
 
@@ -78,8 +62,6 @@
 
 - Run ECS tests
   - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit`
-- Run State Store tests
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/state -gexit`
 - Always include `-gexit` when running GUT via the command line so the runner terminates cleanly; without it the process hangs and triggers harness timeouts.
 - Notes
   - Tests commonly `await get_tree().process_frame` after adding nodes to allow auto-registration with `M_ECSManager` before assertions.
@@ -91,5 +73,3 @@
   - Create `scripts/ecs/components/c_your_component.gd` extending `ECSComponent` with `COMPONENT_TYPE` and exported NodePaths; add typed getters; update a scene to wire paths.
 - Add a new ECS System
   - Create `scripts/ecs/systems/s_your_system.gd` extending `ECSSystem`; implement `process_tick(delta)`; query with your component’s `StringName`; drop the node under a running scene—auto-configured.
-- Add a state slice
-  - Define a reducer class with required static methods; in-scene, call `M_StateManager.register_reducer(YourReducer)` during initialization.

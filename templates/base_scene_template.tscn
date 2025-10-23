@@ -14,7 +14,6 @@
 [ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://templates/player_template.tscn" id="7_4wxy1"]
 [ext_resource type="Script" uid="uid://cev7x8twqwfhr" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
 [ext_resource type="Script" uid="uid://csicrrjo31foo" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
-[ext_resource type="Script" uid="uid://c0w4t05n5u2wd" path="res://scripts/managers/m_state_manager.gd" id="9_state"]
 [ext_resource type="Script" uid="uid://cqotnyjj28vrp" path="res://scripts/managers/m_cursor_manager.gd" id="10_cursor"]
 [ext_resource type="Script" uid="uid://e35ihkaq5ot2" path="res://scripts/scene_structure/managers_group.gd" id="12_klon2"]
 [ext_resource type="Script" uid="uid://dvti1x3i4avbj" path="res://scripts/scene_structure/entities_group.gd" id="16_8qi87"]
@@ -118,9 +117,6 @@ script = ExtResource("12_klon2")
 
 [node name="M_ECSManager" type="Node" parent="Managers"]
 script = ExtResource("6_0e7m3")
-
-[node name="M_StateManager" type="Node" parent="Managers"]
-script = ExtResource("9_state")
 
 [node name="M_CursorManager" type="Node" parent="Managers"]
 script = ExtResource("10_cursor")
