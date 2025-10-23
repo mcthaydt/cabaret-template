@@ -83,27 +83,35 @@ script = ExtResource("3_ph0bl")
 
 [node name="S_InputSystem" type="Node" parent="Systems"]
 script = ExtResource("1_pybrx")
+execution_priority = 0
 
 [node name="S_JumpSystem" type="Node" parent="Systems"]
 script = ExtResource("2_rfthe")
+execution_priority = 40
 
 [node name="S_GravitySystem" type="Node" parent="Systems"]
 script = ExtResource("3_xnqit")
+execution_priority = 60
 
 [node name="S_MovementSystem" type="Node" parent="Systems"]
 script = ExtResource("4_vry44")
+execution_priority = 50
 
 [node name="S_RotateToInputSystem" type="Node" parent="Systems"]
 script = ExtResource("5_r0a6q")
+execution_priority = 80
 
 [node name="S_FloatingSystem" type="Node" parent="Systems"]
 script = ExtResource("6_tnjgn")
+execution_priority = 70
 
 [node name="S_AlignWithSurfaceSystem" type="Node" parent="Systems"]
 script = ExtResource("7_awem0")
+execution_priority = 90
 
 [node name="S_LandingIndicatorSystem" type="Node" parent="Systems"]
 script = ExtResource("8_ey5t3")
+execution_priority = 110
 
 [node name="Managers" type="Node" parent="."]
 script = ExtResource("12_klon2")
