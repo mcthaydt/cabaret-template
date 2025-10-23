@@ -6,6 +6,7 @@ const JUMP_TYPE := StringName("C_JumpComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 const EVENT_ENTITY_JUMPED := StringName("entity_jumped")
+const EVENT_ENTITY_LANDED := StringName("entity_landed")
 
 func process_tick(_delta: float) -> void:
 	var manager := get_manager()
@@ -50,6 +51,19 @@ func process_tick(_delta: float) -> void:
 		if supported_now:
 			component.mark_on_floor(now)
 		var support_recent: bool = supported_now or has_floating_support
+
+		# Check for landing transition (airborne -> grounded)
+		if component.check_landing_transition(supported_now):
+			var landing_payload: Dictionary = {
+				"entity": body,
+				"jump_component": component,
+				"floating_component": floating_component,
+				"velocity": body.velocity,
+				"position": body.global_position,
+				"landing_time": now,
+				"vertical_velocity": body.velocity.y,
+			}
+			ECSEventBus.publish(EVENT_ENTITY_LANDED, landing_payload)
 
 		var jump_requested: bool = input_component.has_jump_request(component.settings.jump_buffer_time, now)
 		if not jump_requested:

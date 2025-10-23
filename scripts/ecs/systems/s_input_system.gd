@@ -27,8 +27,9 @@ func process_tick(_delta: float) -> void:
     var jump_pressed := Input.is_action_just_pressed(jump_action)
     var sprint_pressed := Input.is_action_pressed(sprint_action)
 
-    for component in get_components(INPUT_TYPE):
-        var input_component: C_InputComponent = component as C_InputComponent
+    var entities := query_entities([INPUT_TYPE])
+    for entity_query in entities:
+        var input_component: C_InputComponent = entity_query.get_component(INPUT_TYPE)
         if input_component == null:
             continue
 

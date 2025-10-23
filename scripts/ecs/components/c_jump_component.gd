@@ -12,6 +12,7 @@ var _air_jumps_remaining: int = 0
 var _last_jump_time: float = -INF
 var _last_apex_time: float = -INF
 var _last_vertical_velocity: float = 0.0
+var _was_airborne: bool = false
 var _debug_snapshot: Dictionary = {}
 
 func _init() -> void:
@@ -30,6 +31,17 @@ func mark_on_floor(current_time: float) -> void:
 	_last_on_floor_time = current_time
 	if settings != null:
 		_air_jumps_remaining = settings.max_air_jumps
+
+func is_airborne() -> bool:
+	return _was_airborne
+
+func set_airborne(airborne: bool) -> void:
+	_was_airborne = airborne
+
+func check_landing_transition(grounded_now: bool) -> bool:
+	var just_landed := _was_airborne and grounded_now
+	_was_airborne = not grounded_now
+	return just_landed
 
 func can_jump(current_time: float) -> bool:
 	var body := get_character_body()

@@ -92,7 +92,14 @@ func test_entity_jumped_event_notifies_subscribers() -> void:
 	assert_true(payload.get("jump_force", 0.0) > 0.0)
 
 	var history := EVENT_BUS.get_event_history()
-	assert_eq(history.size(), 1, "Event history should record the jump event")
+	assert_true(history.size() >= 1, "Event history should record at least the jump event")
+
+	# Count jump events in history
+	var jump_event_count := 0
+	for event in history:
+		if event.get("name") == EVENT_NAME:
+			jump_event_count += 1
+	assert_eq(jump_event_count, 1, "Event history should record exactly one jump event")
 
 	assert_eq(particles.spawn_requests.size(), 1, "Particles system should enqueue a spawn request")
 	assert_eq(sound.play_requests.size(), 1, "Sound system should enqueue a play request")
