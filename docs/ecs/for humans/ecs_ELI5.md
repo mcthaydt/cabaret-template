@@ -2,7 +2,7 @@
 
 **Purpose**: A simple, friendly guide to understanding how our ECS (Entity-Component-System) works.
 
-**Last Updated**: 2025-10-20
+**Last Updated**: 2025-10-23
 
 ---
 
@@ -359,54 +359,61 @@ const COMPONENT_TYPE := StringName("C_MyNewComponent")
 extends ECSSystem
 class_name S_MyNewSystem
 
-func process_tick(delta: float) -> void:
-    # Find all components of your type
-    var my_components = get_components(C_MyNewComponent.COMPONENT_TYPE)
+@export var execution_priority: int = 100  # Lower = earlier execution
 
-    # Process each component
-    for component in my_components:
-        if component == null:
-            continue
+func process_tick(delta: float) -> void:
+    # Modern approach: Query entities with multiple components
+    var entities = query_entities(
+        [C_MyNewComponent.COMPONENT_TYPE],  # Required components
+        []  # Optional components
+    )
+
+    # Process each entity
+    for entity_query in entities:
+        var my_component = entity_query.get_component(C_MyNewComponent.COMPONENT_TYPE)
 
         # Do something with the component
-        if component.my_enabled:
-            component.my_value += 1.0 * delta
+        if my_component.my_enabled:
+            my_component.my_value += 1.0 * delta
 ```
 
 **Step 2: Add to scene**
 1. Add S_MyNewSystem node to your main scene (anywhere in tree)
-2. System automatically finds manager
-3. System can now query components!
+2. Set `execution_priority` in inspector (lower numbers run first)
+3. System automatically finds manager and registers!
+4. System can now query components!
 
-### Pattern 3: Components Finding Each Other
+### Pattern 3: Components Working Together (Query-Based)
 
-**Current Pattern** (uses NodePaths):
-```gdscript
-# In C_MovementComponent
-@export_node_path("Node") var input_component_path: NodePath
-
-func get_input_component() -> C_InputComponent:
-    if input_component_path.is_empty():
-        return null
-    return get_node_or_null(input_component_path) as C_InputComponent
-```
-
-**In the inspector:**
-1. Click on `input_component_path`
-2. Click "Assign" button
-3. Select the C_InputComponent node
-4. Done!
+**Modern Pattern**: Systems use queries to find components that belong to the same entity.
 
 **In systems:**
 ```gdscript
-# S_MovementSystem can now use this
-var movement_comp = # ... found from manager
-var input_comp = movement_comp.get_input_component()
+# S_MovementSystem - Query entities with BOTH Movement AND Input
+func process_tick(delta: float) -> void:
+    var entities = query_entities(
+        [C_MovementComponent.COMPONENT_TYPE, C_InputComponent.COMPONENT_TYPE],  # Both required
+        [C_FloatingComponent.COMPONENT_TYPE]  # Optional floating
+    )
 
-if input_comp != null:
-    # Use input to move
-    movement_comp.velocity = input_comp.input_vector * movement_comp.max_speed
+    for entity_query in entities:
+        var movement_comp = entity_query.get_component(C_MovementComponent.COMPONENT_TYPE)
+        var input_comp = entity_query.get_component(C_InputComponent.COMPONENT_TYPE)
+        var floating_comp = entity_query.get_component(C_FloatingComponent.COMPONENT_TYPE)  # May be null
+
+        # All required components guaranteed non-null!
+        movement_comp.velocity = input_comp.input_vector * movement_comp.max_speed
+
+        # Optional components need null check
+        if floating_comp != null:
+            # Apply floating modifier...
 ```
+
+**Benefits:**
+- No manual wiring in inspector!
+- Systems automatically find related components
+- Easy to add optional components
+- Components stay decoupled (no NodePath cross-references)
 
 ### Pattern 4: Settings Resources
 
@@ -439,6 +446,83 @@ func _ready():
 3. Set values in inspector
 4. Save as "floating_settings.tres"
 5. Drag .tres file to component's `settings` property
+
+### Pattern 5: Event-Driven Communication (Like Discord Channels!)
+
+**Analogy**: Think of the Event Bus like Discord channels:
+- Systems can "post messages" to channels (publish events)
+- Other systems can "listen" to channels (subscribe to events)
+- Systems don't need to know WHO is listening, they just broadcast
+
+**Publishing Events** (in S_JumpSystem):
+```gdscript
+func process_tick(delta: float) -> void:
+    # ... jump logic ...
+
+    if player_jumped:
+        # Broadcast to the "entity_jumped" channel
+        ECSEventBus.publish("entity_jumped", {
+            "entity": body,
+            "velocity": jump_velocity,
+            "position": body.global_position
+        })
+```
+
+**Subscribing to Events** (in S_ParticleSystem):
+```gdscript
+func _ready():
+    super._ready()
+
+    # Listen to the "entity_jumped" channel
+    ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
+
+func _on_entity_jumped(event_data: Dictionary):
+    # Someone jumped! Spawn particles!
+    var position = event_data["position"]
+    spawn_dust_particles(position)
+```
+
+**Why This Is Cool:**
+```gdscript
+# When player jumps, ALL these happen automatically:
+# - ParticleSystem spawns dust particles
+# - SoundSystem plays jump sound
+# - CameraSystem adds screen shake
+# - AnimationSystem plays jump animation
+
+# JumpSystem doesn't know about ANY of these!
+# Just publishes "entity_jumped" and everyone reacts!
+```
+
+**The Discord Analogy:**
+```
+Discord Server: "GameEvents"
+├─ #entity-jumped channel
+│  ├─ ParticleSystem is listening 👂
+│  ├─ SoundSystem is listening 👂
+│  ├─ CameraSystem is listening 👂
+│  └─ AnimationSystem is listening 👂
+│
+├─ #entity-landed channel
+│  ├─ SoundSystem is listening 👂
+│  └─ ParticleSystem is listening 👂
+│
+└─ #entity-damaged channel
+   ├─ HealthSystem is listening 👂
+   ├─ VFXSystem is listening 👂
+   └─ UISystem is listening 👂
+
+When JumpSystem posts to #entity-jumped:
+→ Everyone listening gets the message!
+→ No one needs to know who else is listening!
+→ Easy to add new listeners later!
+```
+
+**Benefits:**
+- ✅ Systems don't need to know about each other
+- ✅ Easy to add new reactions (just subscribe)
+- ✅ No tight coupling between systems
+- ✅ Emergent gameplay (fire + water = extinguish, never hardcoded!)
 
 ---
 
@@ -629,16 +713,22 @@ func process_tick(delta):
 var manager = get_tree().get_nodes_in_group("ecs_manager")[0]
 ```
 
-### How to Query Components
+### How to Query Components (Modern Approach)
 
 ```gdscript
-# In a system:
-var movement_components = get_components(C_MovementComponent.COMPONENT_TYPE)
+# In a system - Query entities with multiple components:
+var entities = query_entities(
+    [C_MovementComponent.COMPONENT_TYPE, C_InputComponent.COMPONENT_TYPE],  # Required
+    [C_FloatingComponent.COMPONENT_TYPE]  # Optional
+)
 
-for component in movement_components:
-    if component == null:
-        continue
-    # Use component...
+for entity_query in entities:
+    var movement = entity_query.get_component(C_MovementComponent.COMPONENT_TYPE)
+    var input = entity_query.get_component(C_InputComponent.COMPONENT_TYPE)
+    var floating = entity_query.get_component(C_FloatingComponent.COMPONENT_TYPE)  # May be null
+
+    # All required components guaranteed non-null!
+    # Use components...
 ```
 
 ### How to Access Component Data
@@ -654,16 +744,25 @@ var current_velocity = component.velocity
 component.velocity = Vector3(1, 0, 0)
 ```
 
-### How to Find Related Components
+### How to Publish and Subscribe to Events
 
 ```gdscript
-# In a system:
-var movement_comp = # ... found from manager
-var input_comp = movement_comp.get_input_component()
+# Publishing (in any system):
+ECSEventBus.publish("entity_jumped", {
+    "entity": body,
+    "velocity": velocity,
+    "position": body.global_position
+})
 
-if input_comp != null:
-    # Use both components together
-    movement_comp.velocity = input_comp.input_vector * movement_comp.max_speed
+# Subscribing (usually in _ready):
+func _ready():
+    super._ready()
+    ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
+
+func _on_entity_jumped(event_data: Dictionary):
+    var entity = event_data["entity"]
+    var position = event_data["position"]
+    # React to the event...
 ```
 
 ### Component Naming Convention
@@ -717,7 +816,7 @@ Don't use ECS for:
 ### Q: What if I need to access a component from another component?
 
 **A:** You don't! Components should NEVER talk to each other directly. Instead:
-1. Systems read from multiple components
+1. Systems query entities with multiple components
 2. Systems coordinate the interaction
 3. Systems write results back to components
 
@@ -726,15 +825,20 @@ Don't use ECS for:
 # WRONG - Component talking to component
 # In C_MovementComponent:
 func process_tick(delta):
-    var input_comp = get_input_component()
+    var input_comp = get_input_component()  # Components shouldn't know about each other!
     velocity = input_comp.input_vector * max_speed  # NO!
 
-# RIGHT - System coordinates
+# RIGHT - System queries and coordinates
 # In S_MovementSystem:
 func process_tick(delta):
-    var movement_comp = # ...
-    var input_comp = movement_comp.get_input_component()
-    movement_comp.velocity = input_comp.input_vector * movement_comp.max_speed  # YES!
+    var entities = query_entities(
+        [C_MovementComponent.COMPONENT_TYPE, C_InputComponent.COMPONENT_TYPE]
+    )
+
+    for entity_query in entities:
+        var movement = entity_query.get_component(C_MovementComponent.COMPONENT_TYPE)
+        var input = entity_query.get_component(C_InputComponent.COMPONENT_TYPE)
+        movement.velocity = input.input_vector * movement.max_speed  # YES!
 ```
 
 ### Q: Can I have multiple systems processing the same component?
@@ -750,11 +854,20 @@ All three systems work with `C_MovementComponent.velocity`!
 
 ### Q: What if my system needs to run in a specific order?
 
-**A:** Currently, you control order by scene tree position:
-1. Add systems to scene in the order you want them to run
-2. Top systems run first, bottom systems run last
+**A:** Use the `execution_priority` property! Lower numbers run first:
 
-**Better solution (not implemented yet):** See the refactor recommendations for system execution ordering.
+```gdscript
+# In your system
+@export var execution_priority: int = 50  # Lower = earlier
+
+# Recommended priority bands:
+# 0-9:     Input capture (S_InputSystem)
+# 40-69:   Core motion (S_JumpSystem, S_MovementSystem)
+# 70-109:  Post-motion (S_FloatingSystem, S_RotateToInputSystem)
+# 110-199: Feedback (S_LandingIndicatorSystem)
+```
+
+The manager automatically runs systems in priority order every frame!
 
 ### Q: How do I debug ECS?
 
@@ -795,7 +908,8 @@ ECS is like **LEGO for game code**:
 1. Create components (data pieces)
 2. Create systems (logic processors)
 3. Add components to entities in scene
-4. Systems automatically process components every frame
+4. Systems query entities and process them every frame
+5. Systems publish events for cross-system communication
 
 **Benefits:**
 - ✅ Mix and match features like LEGO
@@ -803,13 +917,16 @@ ECS is like **LEGO for game code**:
 - ✅ Easy to add features (new component + system)
 - ✅ Easy to remove features (delete component)
 - ✅ Easy to understand (clear separation)
+- ✅ Emergent gameplay (systems react to events)
 
 **Remember:**
 - Components = Data only (no logic!)
 - Systems = Logic only (no state!)
 - Components register automatically
-- Systems query every frame
+- Systems query entities with multiple components
+- Systems communicate via events (pub/sub)
 - One manager per scene
+- Execution priority controls system order
 
 ---
 
