@@ -1,6 +1,6 @@
 # ECS Debugger Plugin PRD
 
-**Owner**: Development Team | **Updated**: 2025-10-22
+**Owner**: Development Team | **Updated**: 2025-10-23
 
 ## Summary
 
@@ -8,7 +8,8 @@
 - **Problem**: Developers have zero runtime visibility into ECS internals—query performance is a black box, events fire invisibly, system execution order is unclear, and debugging requires manual print statements scattered across dozens of files
 - **Success**: Developers can identify slow queries in <30 seconds via cache hit rate metrics, trace event chains through filtered history, temporarily disable systems for isolated testing, and export event logs for bug reproduction
 - **Timeline**: 2 weeks for complete implementation across 8 phases (TDD-first data layer, 3 specialized tabs, editor integration, testing, documentation)
-- **Progress** (current): Not started—planning complete, architecture documented, implementation plan reviewed and approved
+- **Progress** (current): Not started—planning complete, architecture documented, implementation plan reviewed and approved. **2025-10-23 status**: First build attempt failed and was rolled back; implementation work must restart from scratch.
+- **Decision (2025-10-23)**: Project de-scoped after rollback; this PRD is retained for reference if the effort is revived.
 
 ## Requirements
 

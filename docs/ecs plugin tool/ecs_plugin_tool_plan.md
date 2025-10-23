@@ -2,6 +2,8 @@
 
 **Overall Progress:** `0%`
 
+**Latest Update (2025-10-23):** ❌ First implementation attempt failed during integration; repository reverted to pre-plugin state. The ECS debugger plugin has been **de-scoped indefinitely**—the remaining tasks are archived for historical reference only.
+
 ---
 
 ## Class Names & File Structure

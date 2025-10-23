@@ -1,6 +1,6 @@
 # ECS Debugger Plugin Architecture Documentation
 
-**Owner**: Development Team | **Last Updated**: 2025-10-22
+**Owner**: Development Team | **Last Updated**: 2025-10-23 (Shelved)
 
 ---
 
@@ -21,6 +21,8 @@
 ## 1. Overview
 
 ### 1.1 What Is This System?
+
+> **Status (2025-10-23):** Implementation has been cancelled. The description below reflects the original design for reference.
 
 The ECS Debugger Plugin is an **EditorPlugin-based debugging tool** that provides real-time visibility into the ECS architecture's runtime state. This project implements a **bottom-panel UI** that streams live data from `M_ECSManager`, `ECSEventBus`, and `ECSSystem` instances.
 

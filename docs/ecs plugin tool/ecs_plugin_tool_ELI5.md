@@ -2,7 +2,9 @@
 
 **Purpose**: A simple, friendly guide to understanding and using the ECS Debugger Plugin.
 
-**Last Updated**: 2025-10-22
+**Last Updated**: 2025-10-23 (Shelved)
+
+> **Status Notice (2025-10-23):** The ECS debugger plugin project has been de-scoped. This ELI5 guide reflects the original vision and is kept for archival purposes.
 
 ---
 

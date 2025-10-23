@@ -1,7 +1,9 @@
 # ECS Debugger Usage Guide
 
-**Version:** 1.0
-**Last Updated:** 2025-10-22
+**Version:** 0.1 (Shelved Draft)
+**Last Updated:** 2025-10-23
+
+> **Status Notice (2025-10-23):** The ECS debugger tooling has been de-scoped. This guide remains as an aspirational reference only; ignore installation/usage steps until the project is reactivated.
 
 ---
 

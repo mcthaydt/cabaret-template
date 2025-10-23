@@ -1,6 +1,6 @@
 # ECS Architecture Refactor Plan
 
-**Last Updated**: 2025-10-21
+**Last Updated**: 2025-10-23 (Debugger tooling de-scoped)
 
 **Development Methodology**: Test-First Development (New Features) + Test-After (Refactors)
 
@@ -1014,7 +1014,7 @@ if can_jump:
 
 ### Batch 4: System Ordering + Polish [7 points]
 
-**STATUS**: 🟡 In Progress
+**STATUS**: 🚫 De-scoped (System ordering delivered; ECS debugger tooling cancelled after failed attempt)
 
 Story Points: 7
 Goal: Explicit system execution order, debug tools, migration guide, documentation
@@ -1127,22 +1127,22 @@ func _sort_systems() -> void:
 
 - [ ] Step 2 – Create Debug Tools
 
+**STATUS UPDATE (2025-10-23)**: ❌ ECS debugger plugin effort failed and has been formally cancelled. Tasks below are preserved for historical context but are not scheduled for delivery.
+
 **Editor Plugin: ECS Debugger**
 
-- [ ] 2.1 – Create `addons/ecs_debugger/` plugin
-  - Implemented `T_ECSDebuggerPanel` with dedicated tabs for queries, events, and system ordering
-  - Queries tab streams `M_ECSManager.get_query_metrics()` into a live `Tree` (call counts, cache hit rate, durations)
-  - Events tab supports substring filtering, pretty-printed payloads, and clipboard export via `U_ECSDebugDataSource.serialize_event_history`
-  - System Order tab mirrors priority sorting and exposes enable/disable toggles wired to `ECSSystem.set_debug_disabled`
-  - Auto-refresh timer (0.5 s) locates the active manager or edited scene root; ready for reuse in editor runtime
-  - Verified via new TDD-first suite `tests/unit/ecs/test_ecs_debugger_plugin.gd`
+- [ ] 2.1 – Create `addons/ecs_debugger/` plugin *(cancelled)*
+  - Deferred scope: `T_ECSDebuggerPanel` with queries/events/system tabs
+  - Deferred scope: Live streaming of `M_ECSManager.get_query_metrics()`
+  - Deferred scope: Event filtering/export (`U_ECSDebugDataSource.serialize_event_history`)
+  - Deferred scope: Priority mirroring and debug disable toggles
+  - Deferred scope: Auto-refresh timer + TDD coverage via `tests/unit/ecs/test_ecs_debugger_plugin.gd`
 
 **Integration with Godot Editor**
 
-- [ ] 2.2 – Test debug tools in editor
-  - `P_ECSDebuggerPlugin` registers the panel in the bottom dock and cleans up on unload
-  - Manual smoke: opened player template, observed live query/event refresh and system toggles pausing ticks
-  - Clipboard export spot-checked against filtered history to confirm JSON fidelity
+- [ ] 2.2 – Test debug tools in editor *(cancelled)*
+  - Deferred scope: `P_ECSDebuggerPlugin` dock registration / cleanup
+  - Deferred scope: Editor smoke tests and clipboard export validation
 
 ---
 
