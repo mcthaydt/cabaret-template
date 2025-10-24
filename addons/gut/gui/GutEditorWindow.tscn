@@ -1,6 +1,6 @@
 [gd_scene load_steps=10 format=3 uid="uid://dnnvwlplf1km7"]
 
-[ext_resource type="Script" uid="uid://crp2af6k4nmf5" path="res://addons/gut/gui/GutEditorWindow.gd" id="1_qevl3"]
+[ext_resource type="Script" uid="uid://b2mufsshukt83" path="res://addons/gut/gui/GutEditorWindow.gd" id="1_qevl3"]
 [ext_resource type="Texture2D" uid="uid://ljc2viafngwd" path="res://addons/gut/images/HSplitContainer.svg" id="2_xw0o2"]
 [ext_resource type="Texture2D" uid="uid://bhew20crsywxr" path="res://addons/gut/images/VSplitContainer.svg" id="3_fqfwy"]
 
