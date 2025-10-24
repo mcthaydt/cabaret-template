@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RS_FloatingSettings" load_steps=2 format=3 uid="uid://boa7uhyoi17xk"]
+[gd_resource type="Resource" script_class="RS_FloatingSettings" load_steps=2 format=3 uid="uid://c0ka0i1askexa"]
 
 [ext_resource type="Script" uid="uid://biedn8thdmp82" path="res://scripts/ecs/resources/rs_floating_settings.gd" id="1_0"]
 

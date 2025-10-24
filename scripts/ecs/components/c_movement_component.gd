@@ -41,18 +41,10 @@ func get_last_debug_snapshot() -> Dictionary:
 	return _last_debug_snapshot.duplicate(true)
 
 func _locate_character_body() -> CharacterBody3D:
-	var entity := _get_entity_root()
+	var entity := ECS_UTILS.find_entity_root(self)
 	if entity == null:
 		return null
 	return _find_character_body_recursive(entity)
-
-func _get_entity_root() -> Node:
-	var current: Node = self
-	while current != null:
-		if current.name.begins_with("E_"):
-			return current
-		current = current.get_parent()
-	return null
 
 func _find_character_body_recursive(node: Node) -> CharacterBody3D:
 	if node is CharacterBody3D:

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RS_MovementSettings" load_steps=2 format=3 uid="uid://biqv1v05phrab"]
+[gd_resource type="Resource" script_class="RS_MovementSettings" load_steps=2 format=3 uid="uid://86yp0ka600um"]
 
 [ext_resource type="Script" uid="uid://dpikeu40aqml4" path="res://scripts/ecs/resources/rs_movement_settings.gd" id="1_0"]
 

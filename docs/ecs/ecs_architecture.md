@@ -186,6 +186,11 @@ var _systems: Array[ECSSystem] = []
   1. Parent hierarchy walk (check `has_method("register_component")`)
   2. Fallback to `get_tree().get_nodes_in_group("ecs_manager")[0]`
 
+**Query Cache & Metrics**:
+- `M_ECSManager` memoizes `query_entities()` responses by required/optional signature to short-circuit repeat calls.
+- Instrumentation is controlled via the `query_metrics_enabled` export; disabling it clears any recorded stats and skips future tracking.
+- When metrics are enabled the manager only retains the most recent entries up to `query_metrics_capacity`. Call `clear_query_metrics()` when you need a fresh baseline during profiling sessions.
+
 ---
 
 ### 3.2 ECSComponent (Base Class)
@@ -930,6 +935,11 @@ func test_movement_system_applies_velocity():
 - No need for separate entity ID system
 
 **Trade-off**: Entities must be in scene tree (can't have "abstract" entities).
+
+**Entity Identification Contract**:
+- Attach `scripts/ecs/base_entity.gd` to every gameplay entity root. The script tags the node via `_ecs_entity_root` metadata, so component discovery becomes deterministic without relying on naming.
+- Legacy prefixes (`E_`) and the optional `ecs_entity` group remain as fallbacks; enable the `add_legacy_group` export if you need to interop with older scenes during migration.
+- The manager caches discovered roots via `_ecs_entity_root` metadata on the node chain, so reparenting or renaming should continue to satisfy the script/prefix contract to avoid stale lookups.
 
 ### 6.2 Auto-Registration
 

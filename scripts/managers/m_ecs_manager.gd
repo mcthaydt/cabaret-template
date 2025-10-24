@@ -8,6 +8,8 @@ signal component_removed(component_type: StringName, component: ECSComponent)
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 const META_ENTITY_ROOT := StringName("_ecs_entity_root")
 const META_ENTITY_TRACKED := StringName("_ecs_tracked_entity")
+const PROJECT_SETTING_QUERY_METRICS_ENABLED := "ecs/debug/query_metrics_enabled"
+const PROJECT_SETTING_QUERY_METRICS_CAPACITY := "ecs/debug/query_metrics_capacity"
 
 var _components: Dictionary = {}
 var _systems: Array[ECSSystem] = []
@@ -17,14 +19,52 @@ var _entity_component_map: Dictionary = {}
 var _query_cache: Dictionary = {}
 var _query_metrics: Dictionary = {}
 var _time_provider: Callable = Callable(U_ECS_UTILS, "get_current_time")
+var _query_metrics_enabled: bool = true
+var _query_metrics_capacity: int = 64
+
+@export var query_metrics_enabled: bool:
+	get:
+		return _query_metrics_enabled
+	set(value):
+		if _query_metrics_enabled == value:
+			return
+		_query_metrics_enabled = value
+		if not _query_metrics_enabled:
+			clear_query_metrics()
+
+@export var query_metrics_capacity: int:
+	get:
+		return _query_metrics_capacity
+	set(value):
+		var clamped: int = max(value, 0)
+		if _query_metrics_capacity == clamped:
+			return
+		_query_metrics_capacity = clamped
+		_enforce_query_metric_capacity()
 
 func _ready() -> void:
 	add_to_group("ecs_manager")
 	set_physics_process(true)
+	_initialize_query_metric_settings()
 
 func _exit_tree() -> void:
 	if is_in_group("ecs_manager"):
 		remove_from_group("ecs_manager")
+
+func _initialize_query_metric_settings() -> void:
+	var default_enabled: bool = OS.is_debug_build() or Engine.is_editor_hint()
+	var configured_enabled: bool = default_enabled
+	if ProjectSettings.has_setting(PROJECT_SETTING_QUERY_METRICS_ENABLED):
+		var stored_enabled: Variant = ProjectSettings.get_setting(PROJECT_SETTING_QUERY_METRICS_ENABLED, default_enabled)
+		if stored_enabled is bool:
+			configured_enabled = stored_enabled
+		elif typeof(stored_enabled) == TYPE_INT:
+			configured_enabled = bool(stored_enabled)
+	query_metrics_enabled = configured_enabled
+
+	if ProjectSettings.has_setting(PROJECT_SETTING_QUERY_METRICS_CAPACITY):
+		var stored_capacity: int = int(ProjectSettings.get_setting(PROJECT_SETTING_QUERY_METRICS_CAPACITY, _query_metrics_capacity))
+		query_metrics_capacity = stored_capacity
 
 func register_component(component: ECSComponent) -> void:
 	if component == null:
@@ -107,6 +147,8 @@ func reset_time_provider() -> void:
 	_time_provider = Callable(U_ECS_UTILS, "get_current_time")
 
 func get_query_metrics() -> Array:
+	if not _query_metrics_enabled:
+		return []
 	var metrics: Array = []
 	for entry in _query_metrics.values():
 		var metric: Dictionary = {
@@ -123,6 +165,17 @@ func get_query_metrics() -> Array:
 	if metrics.size() > 1:
 		metrics.sort_custom(Callable(self, "_compare_query_metrics"))
 	return metrics
+
+func clear_query_metrics() -> void:
+	if _query_metrics.is_empty():
+		return
+	_query_metrics.clear()
+
+func set_query_metrics_enabled_runtime(enabled: bool) -> void:
+	query_metrics_enabled = enabled
+
+func set_query_metrics_capacity_runtime(capacity: int) -> void:
+	query_metrics_capacity = capacity
 
 func register_system(system: ECSSystem) -> void:
 	if system == null:
@@ -246,12 +299,11 @@ func _untrack_component(component: ECSComponent, type_name: StringName) -> void:
 	_invalidate_query_cache()
 
 func _get_entity_for_component(component: ECSComponent, warn_on_missing: bool = true) -> Node:
-	var current := component.get_parent()
-	while current != null:
-		if current.name.begins_with("E_"):
-			return current
-		current = current.get_parent()
-
+	if component == null:
+		return null
+	var entity := U_ECS_UTILS.find_entity_root(component)
+	if entity != null:
+		return entity
 	if warn_on_missing:
 		push_error("M_ECSManager: Component %s has no entity root ancestor" % component.name)
 	return null
@@ -310,6 +362,9 @@ func _record_query_metrics(
 	was_cache_hit: bool,
 	timestamp: float
 ) -> void:
+	if not _query_metrics_enabled:
+		return
+
 	var metrics: Dictionary = _query_metrics.get(key, {
 		"id": key,
 		"required": [],
@@ -341,6 +396,7 @@ func _record_query_metrics(
 	metrics["last_run_time"] = timestamp
 
 	_query_metrics[key] = metrics
+	_enforce_query_metric_capacity()
 
 func _duplicate_string_names(source: Variant) -> Array:
 	var result: Array[StringName] = []
@@ -357,6 +413,31 @@ func _compare_query_metrics(a: Dictionary, b: Dictionary) -> bool:
 	var time_b: float = float(b.get("last_run_time", 0.0))
 	if is_equal_approx(time_a, time_b):
 		return String(a.get("id", "")) < String(b.get("id", ""))
+	return time_a > time_b
+
+func _enforce_query_metric_capacity() -> void:
+	if _query_metrics_capacity <= 0:
+		return
+	if _query_metrics.size() <= _query_metrics_capacity:
+		return
+
+	var keys: Array[String] = []
+	for raw_key in _query_metrics.keys():
+		keys.append(String(raw_key))
+	keys.sort_custom(Callable(self, "_compare_metric_keys_by_recency"))
+
+	for index in range(_query_metrics_capacity, keys.size()):
+		var key: String = keys[index]
+		if _query_metrics.has(key):
+			_query_metrics.erase(key)
+
+func _compare_metric_keys_by_recency(a: String, b: String) -> bool:
+	var data_a: Dictionary = _query_metrics.get(a, {})
+	var data_b: Dictionary = _query_metrics.get(b, {})
+	var time_a: float = float(data_a.get("last_run_time", 0.0))
+	var time_b: float = float(data_b.get("last_run_time", 0.0))
+	if is_equal_approx(time_a, time_b):
+		return String(a) < String(b)
 	return time_a > time_b
 
 func _get_current_time() -> float:

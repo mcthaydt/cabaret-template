@@ -3,6 +3,7 @@ extends Node
 class_name ECSSystem
 
 const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+static var _missing_manager_method_warnings: Dictionary = {}
 
 var _manager: M_ECSManager
 var _execution_priority: int = 0
@@ -36,6 +37,7 @@ func get_components(component_type: StringName) -> Array:
 	if _manager == null:
 		return []
 	if not _manager.has_method("get_components"):
+		_warn_missing_manager_method("get_components")
 		return []
 	var components: Array = _manager.get_components(component_type)
 	return components.duplicate()
@@ -44,6 +46,7 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
 	if _manager == null:
 		return []
 	if not _manager.has_method("query_entities"):
+		_warn_missing_manager_method("query_entities")
 		return []
 	return _manager.query_entities(required, optional)
 
@@ -73,3 +76,26 @@ func _notify_manager_priority_changed() -> void:
 	if not _manager.has_method("mark_systems_dirty"):
 		return
 	_manager.mark_systems_dirty()
+
+func _warn_missing_manager_method(method_name: String) -> void:
+	if _manager == null:
+		return
+	if not is_instance_valid(_manager):
+		return
+	if not OS.is_debug_build() and not Engine.is_editor_hint():
+		return
+
+	var key := "%s:%d" % [method_name, _manager.get_instance_id()]
+	if _missing_manager_method_warnings.has(key):
+		return
+	_missing_manager_method_warnings[key] = true
+
+	var identifier := String(_manager.name)
+	if _manager.is_inside_tree():
+		identifier = String(_manager.get_path())
+
+	push_warning("ECSSystem: Manager '%s' is missing required method '%s' (requested by system '%s')." % [
+		String(identifier),
+		method_name,
+		String(name),
+	])

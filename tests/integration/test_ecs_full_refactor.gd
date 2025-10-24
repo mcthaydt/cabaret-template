@@ -12,11 +12,13 @@ extends GutTest
 ## This test runs 600 frames (10 seconds at 60fps) simulating real gameplay.
 
 var manager: M_ECSManager
+var scene_root: Node
 var player_entity: Node
 var input_comp: C_InputComponent
 var movement_comp: C_MovementComponent
 var jump_comp: C_JumpComponent
 var floating_comp: C_FloatingComponent
+var _unsubscribe_jump: Callable = Callable()
 
 ## Track events published during test
 var events_received: Array[Dictionary] = []
@@ -25,13 +27,23 @@ func before_each():
 	# Reset event tracking
 	events_received.clear()
 	ECSEventBus.clear_history()
+	scene_root = null
+	manager = null
+	player_entity = null
+	_unsubscribe_jump = Callable()
 
 func after_each():
+	if _unsubscribe_jump != Callable() and _unsubscribe_jump.is_valid():
+		_unsubscribe_jump.call()
+		_unsubscribe_jump = Callable()
 	# Clean up
 	if manager != null and is_instance_valid(manager):
 		manager.queue_free()
 	if player_entity != null and is_instance_valid(player_entity):
 		player_entity.queue_free()
+	if scene_root != null and is_instance_valid(scene_root):
+		scene_root.queue_free()
+	scene_root = null
 
 func test_full_ecs_refactor_600_frame_simulation():
 	# ========================================
@@ -39,18 +51,19 @@ func test_full_ecs_refactor_600_frame_simulation():
 	# ========================================
 
 	# Load base scene with everything configured
-	var base_scene_template = load("res://templates/base_scene_template.tscn")
-	var scene = base_scene_template.instantiate()
-	add_child(scene)
+	var base_scene_template := load("res://templates/base_scene_template.tscn")
+	scene_root = base_scene_template.instantiate()
+	add_child(scene_root)
+	autofree(scene_root)
 	await get_tree().process_frame
 	await get_tree().process_frame
 
 	# Find manager
-	manager = scene.get_node("Managers/M_ECSManager") as M_ECSManager
+	manager = scene_root.get_node("Managers/M_ECSManager") as M_ECSManager
 	assert_not_null(manager, "Manager should exist in base scene")
 
 	# Subscribe to events
-	ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
+	_unsubscribe_jump = ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
 
 	# Wait for components to register
 	await get_tree().process_frame

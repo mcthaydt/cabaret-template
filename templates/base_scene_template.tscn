@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://rygahxanlmio"]
+[gd_scene load_steps=22 format=3 uid="uid://rygahxanlmio"]
 
 [ext_resource type="Script" uid="uid://cvvele4boybm4" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://c3ksqt7h7cg6v" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -82,7 +82,6 @@ script = ExtResource("3_ph0bl")
 
 [node name="S_InputSystem" type="Node" parent="Systems"]
 script = ExtResource("1_pybrx")
-execution_priority = 0
 
 [node name="S_JumpSystem" type="Node" parent="Systems"]
 script = ExtResource("2_rfthe")
@@ -127,15 +126,12 @@ script = ExtResource("16_8qi87")
 [node name="E_SpawnPoints" type="Node3D" parent="Entities"]
 script = ExtResource("16_8qi87")
 
-[node name="E_CameraSpawn" type="Node3D" parent="Entities/E_SpawnPoints"]
-script = ExtResource("16_8qi87")
-
 [node name="E_PlayerSpawn" type="Node3D" parent="Entities/E_SpawnPoints"]
+
+[node name="E_CameraSpawn" type="Node3D" parent="Entities/E_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
-script = ExtResource("16_8qi87")
 
 [node name="E_Player" parent="Entities" instance=ExtResource("7_4wxy1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3755507, 0)
 
-[node name="E_Camera" parent="Entities" instance=ExtResource("19_ph0bl")]
+[node name="E_CameraRoot" parent="Entities" instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)

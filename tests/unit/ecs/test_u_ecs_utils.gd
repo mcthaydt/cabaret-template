@@ -50,6 +50,52 @@ func test_get_manager_returns_null_when_manager_missing() -> void:
 	var located := ECS_UTILS.get_manager(subject)
 	assert_null(located)
 
+func test_find_entity_root_detects_base_entity() -> void:
+	var entity_script := load("res://scripts/ecs/base_entity.gd")
+	var entity := entity_script.new() as Node3D
+	entity.name = "E_Base"
+	add_child(entity)
+	autofree(entity)
+
+	var component := Node.new()
+	entity.add_child(component)
+	autofree(component)
+	await get_tree().process_frame
+
+	var located := ECS_UTILS.find_entity_root(component)
+	assert_eq(located, entity)
+	assert_true(component.has_meta(StringName("_ecs_entity_root")))
+
+func test_find_entity_root_falls_back_to_prefix() -> void:
+	var entity := Node3D.new()
+	entity.name = "E_Prefixed"
+	add_child(entity)
+	autofree(entity)
+
+	var component := Node.new()
+	entity.add_child(component)
+	autofree(component)
+
+	var located := ECS_UTILS.find_entity_root(component)
+	assert_eq(located, entity)
+
+func test_find_entity_root_warns_when_missing() -> void:
+	var warnings: Array = []
+	ECS_UTILS.set_warning_handler(
+		func(message: String) -> void:
+			warnings.append(message)
+	)
+
+	var orphan := Node.new()
+	add_child(orphan)
+	autofree(orphan)
+
+	var located := ECS_UTILS.find_entity_root(orphan, true)
+	assert_null(located)
+	assert_false(warnings.is_empty())
+	var warning_text := String(warnings[0])
+	assert_true(warning_text.find("no ECS entity root") != -1)
+
 func test_get_current_time_returns_seconds() -> void:
 	var before: float = float(Time.get_ticks_msec()) / 1000.0
 	var current_time: float = ECS_UTILS.get_current_time()
