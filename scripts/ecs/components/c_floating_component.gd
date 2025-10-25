@@ -8,10 +8,16 @@ const COMPONENT_TYPE := StringName("C_FloatingComponent")
 @export_node_path('CharacterBody3D') var character_body_path: NodePath
 @export_node_path('Node3D') var raycast_root_path: NodePath
 
+## Raw physics support state (instant, can flicker from spring oscillations)
 var is_supported: bool = false
 var _last_support_time: float = - INF
 var _last_support_normal: Vector3 = Vector3.UP
 var _last_support_normal_time: float = - INF
+
+## Stable ground state (filtered with hysteresis to ignore bounces)
+var grounded_stable: bool = false
+var _consecutive_grounded_frames: int = 0
+var _consecutive_airborne_frames: int = 0
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
@@ -55,6 +61,10 @@ func update_support_state(supported: bool, current_time: float) -> void:
 func reset_recent_support(current_time: float, grace_time: float) -> void:
 	is_supported = false
 	_last_support_time = current_time - grace_time - 0.01
+	# Also reset stable state when jumping
+	grounded_stable = false
+	_consecutive_grounded_frames = 0
+	_consecutive_airborne_frames = 0
 
 func has_recent_support(current_time: float, tolerance: float) -> bool:
 	if is_supported:
@@ -72,3 +82,21 @@ func get_recent_support_normal(current_time: float, tolerance: float) -> Vector3
 	if current_time - _last_support_normal_time <= tolerance:
 		return _last_support_normal
 	return Vector3.ZERO
+
+## Update stable ground state with hysteresis to filter spring oscillations
+## Requires consecutive frames of same state before transitioning
+func update_stable_ground_state(current_support: bool, frames_required: int) -> void:
+	if current_support:
+		_consecutive_grounded_frames += 1
+		_consecutive_airborne_frames = 0
+
+		# Transition to stable grounded after N consecutive grounded frames
+		if not grounded_stable and _consecutive_grounded_frames >= frames_required:
+			grounded_stable = true
+	else:
+		_consecutive_airborne_frames += 1
+		_consecutive_grounded_frames = 0
+
+		# Transition to stable airborne after N consecutive airborne frames
+		if grounded_stable and _consecutive_airborne_frames >= frames_required:
+			grounded_stable = false

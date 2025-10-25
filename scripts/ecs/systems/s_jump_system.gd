@@ -40,50 +40,26 @@ func process_tick(_delta: float) -> void:
 		if floating_component == null:
 			floating_component = floating_by_body.get(body, null) as C_FloatingComponent
 		var floating_supported_now: bool = false
+		var floating_stable_grounded: bool = false
 		var has_floating_support: bool = false
 		if floating_component != null:
 			floating_supported_now = floating_component.is_supported
+			floating_stable_grounded = floating_component.grounded_stable
 			has_floating_support = floating_component.has_recent_support(now, component.settings.coyote_time)
 
 		component.update_vertical_state(body.velocity.y, now)
 
-		var supported_now: bool = body.is_on_floor() or floating_supported_now
+		# Lenient support for jump detection (includes coyote time for better feel)
+		var is_on_floor_raw: bool = body.is_on_floor()
+		var supported_now: bool = is_on_floor_raw or floating_supported_now
 		if supported_now:
 			component.mark_on_floor(now)
 		var support_recent: bool = supported_now or has_floating_support
 
 		# Check for landing transition (airborne -> grounded)
-		# Use recent support to avoid flicker-induced false landings on ramps.
-		if component.check_landing_transition(support_recent, now):
-			# Guard against ramp flicker: require a minimal downward speed unless
-			# we were clearly airborne for a bit (e.g., real fall landing).
-			var vy: float = body.velocity.y
-			var min_down_v: float = -1.5
-			var allow_by_duration: bool = false
-			var airborne_dur: float = 0.0
-			if component.has_method("get_airborne_duration"):
-				airborne_dur = component.get_airborne_duration(now)
-				allow_by_duration = airborne_dur >= 0.1
-			# If we're not moving downward fast enough and didn't spend meaningful time in air, skip.
-			if vy > min_down_v and not allow_by_duration:
-				if OS.is_debug_build():
-					var on_floor_dbg: bool = body.is_on_floor()
-					print("[land-skip] vy_gate t=", String.num(now, 3), " vy=", String.num(vy, 2), " air=", String.num(airborne_dur, 3), " on_floor=", on_floor_dbg, " float=", floating_supported_now)
-				continue
-
-			if OS.is_debug_build():
-				var on_floor_dbg2: bool = body.is_on_floor()
-				var slope_deg: float = -1.0
-				if on_floor_dbg2 and body.has_method("get_floor_normal"):
-					var floor_n_v: Variant = body.call("get_floor_normal")
-					if floor_n_v is Vector3:
-						var up_dir: Vector3 = body.up_direction
-						if up_dir.length() == 0.0:
-							up_dir = Vector3.UP
-						var dot_up: float = clamp((floor_n_v as Vector3).normalized().dot(up_dir.normalized()), -1.0, 1.0)
-						slope_deg = rad_to_deg(acos(dot_up))
-				print("[land] t=", String.num(now, 3), " vy=", String.num(vy, 2), " air=", String.num(airborne_dur, 3), " on_floor=", on_floor_dbg2, " float=", floating_supported_now, " slope=", String.num(slope_deg, 1))
-
+		# Use immediate support with fall distance filter (no hysteresis delay)
+		var current_height: float = body.global_position.y
+		if component.check_landing_transition(supported_now, now, current_height):
 			var landing_payload: Dictionary = {
 				"entity": body,
 				"jump_component": component,
@@ -127,6 +103,13 @@ func process_tick(_delta: float) -> void:
 		body.velocity = velocity
 		if floating_component != null:
 			floating_component.reset_recent_support(now, component.settings.coyote_time)
+
+		# Debug: jump performed
+		if OS.is_debug_build():
+			print("════════════════════════════════════════════════════")
+			print("[JUMP] t=", String.num(now, 3), " entity=", body.name, " force=", component.settings.jump_force)
+			print("════════════════════════════════════════════════════")
+
 		component.update_debug_snapshot({
 			"supported": supported_now,
 			"support_recent": support_recent,
