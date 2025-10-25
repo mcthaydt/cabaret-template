@@ -2,11 +2,12 @@ extends BaseTest
 
 const BASE_SCENE := preload("res://templates/base_scene_template.tscn")
 const EVENT_BUS := preload("res://scripts/ecs/ecs_event_bus.gd")
-const PARTICLE_SYSTEM := preload("res://scripts/ecs/systems/s_jump_particles_system.gd")
-const SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_jump_sound_system.gd")
+const JUMP_PARTICLE_SYSTEM := preload("res://scripts/ecs/systems/s_jump_particles_system.gd")
+const JUMP_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_jump_sound_system.gd")
 const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
-const EVENT_NAME := StringName("entity_jumped")
+const EVENT_JUMPED := StringName("entity_jumped")
+const EVENT_LANDED := StringName("entity_landed")
 
 func before_each() -> void:
 	EVENT_BUS.reset()
@@ -46,14 +47,14 @@ func test_entity_jumped_event_notifies_subscribers() -> void:
 	var scene: Node = context["scene"]
 
 	# Get existing systems from the scene instead of creating new ones
-	var particles: S_JumpParticlesSystem = scene.get_node("Systems/S_JumpParticlesSystem") as S_JumpParticlesSystem
-	var sound: S_JumpSoundSystem = scene.get_node("Systems/S_JumpSoundSystem") as S_JumpSoundSystem
+	var particles = scene.get_node("Systems/S_JumpParticlesSystem")
+	var sound = scene.get_node("Systems/S_JumpSoundSystem")
 	assert_not_null(particles, "Scene should have S_JumpParticlesSystem")
 	assert_not_null(sound, "Scene should have S_JumpSoundSystem")
 
 	var captured_events: Array = []
 	var unsubscribe: Callable = EVENT_BUS.subscribe(
-		EVENT_NAME,
+		EVENT_JUMPED,
 		func(event_data: Dictionary) -> void:
 			captured_events.append(event_data)
 	)
@@ -70,7 +71,7 @@ func test_entity_jumped_event_notifies_subscribers() -> void:
 	# Subscribe BEFORE jump to capture request data when event fires
 	# Requests are queued synchronously during event publication, then cleared by process_tick
 	var check_sub: Callable = EVENT_BUS.subscribe(
-		EVENT_NAME,
+		EVENT_JUMPED,
 		func(_event_data: Dictionary) -> void:
 			# Capture DURING event publication (before systems' process_tick clears the requests)
 			if particles.spawn_requests.size() >= 1:
@@ -120,7 +121,7 @@ func test_entity_jumped_event_notifies_subscribers() -> void:
 
 	assert_eq(captured_events.size(), 1, "Exactly one jump event should be captured")
 	var event_data: Dictionary = captured_events[0]
-	assert_eq(event_data.get("name"), EVENT_NAME)
+	assert_eq(event_data.get("name"), EVENT_JUMPED)
 
 	var payload: Dictionary = event_data.get("payload")
 	assert_not_null(payload)
@@ -135,6 +136,76 @@ func test_entity_jumped_event_notifies_subscribers() -> void:
 	# Count jump events in history
 	var jump_event_count := 0
 	for event in history:
-		if event.get("name") == EVENT_NAME:
+		if event.get("name") == EVENT_JUMPED:
 			jump_event_count += 1
 	assert_eq(jump_event_count, 1, "Event history should record exactly one jump event")
+
+func test_entity_landed_event_publishes_event() -> void:
+	var context := await _setup_scene()
+	autofree_context(context)
+	var manager: M_ECSManager = context["manager"]
+	var body: CharacterBody3D = context["body"]
+	var components: Dictionary = context["components"]
+	var scene: Node = context["scene"]
+
+	var captured_events: Array = []
+	var unsubscribe: Callable = EVENT_BUS.subscribe(
+		EVENT_LANDED,
+		func(event_data: Dictionary) -> void:
+			captured_events.append(event_data)
+	)
+
+	var jump_component: C_JumpComponent = components[StringName("C_JumpComponent")]
+	var floating_component: C_FloatingComponent = components.get(StringName("C_FloatingComponent"), null)
+
+	# Set entity in the air (not supported) with downward velocity
+	var now := ECS_UTILS.get_current_time()
+	if floating_component != null:
+		floating_component.update_support_state(false, now)
+	body.velocity = Vector3(0, -5, 0)  # Falling downward
+
+	# Move entity off the ground to ensure it's truly airborne
+	body.global_position = Vector3(0, 5, 0)
+
+	# First physics tick (entity is in air)
+	manager._physics_process(1.0 / 60.0)
+	await get_tree().process_frame
+
+	# Wait to ensure we're outside any cooldown window
+	await get_tree().create_timer(0.15).timeout
+
+	# Now mark entity as landing (becomes supported)
+	body.global_position = Vector3(0, 0, 0)  # Back on ground
+	var landing_time := ECS_UTILS.get_current_time()
+	jump_component.mark_on_floor(landing_time)
+	if floating_component != null:
+		floating_component.update_support_state(true, landing_time)
+
+	# Second physics tick triggers landing detection
+	manager._physics_process(1.0 / 60.0)
+
+	await get_tree().process_frame
+
+	unsubscribe.call()
+
+	assert_eq(captured_events.size(), 1, "Exactly one landing event should be captured")
+	if captured_events.size() == 0:
+		return  # Early exit if no events captured to avoid crash
+	var event_data: Dictionary = captured_events[0]
+	assert_eq(event_data.get("name"), EVENT_LANDED)
+
+	var payload: Dictionary = event_data.get("payload")
+	assert_not_null(payload)
+	assert_eq(payload.get("entity"), body)
+	assert_eq(payload.get("jump_component"), jump_component)
+	assert_eq(payload.get("floating_component"), floating_component)
+
+	var history := EVENT_BUS.get_event_history()
+	assert_true(history.size() >= 1, "Event history should record at least the landing event")
+
+	# Count landing events in history
+	var landing_event_count := 0
+	for event in history:
+		if event.get("name") == EVENT_LANDED:
+			landing_event_count += 1
+	assert_eq(landing_event_count, 1, "Event history should record exactly one landing event")

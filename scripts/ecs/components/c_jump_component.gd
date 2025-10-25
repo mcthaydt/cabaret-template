@@ -13,6 +13,8 @@ var _last_jump_time: float = -INF
 var _last_apex_time: float = -INF
 var _last_vertical_velocity: float = 0.0
 var _was_airborne: bool = false
+var _last_landing_time: float = -INF
+var _airborne_since_time: float = -INF
 var _debug_snapshot: Dictionary = {}
 
 func _init() -> void:
@@ -38,9 +40,36 @@ func is_airborne() -> bool:
 func set_airborne(airborne: bool) -> void:
 	_was_airborne = airborne
 
-func check_landing_transition(grounded_now: bool) -> bool:
-	var just_landed := _was_airborne and grounded_now
+func check_landing_transition(grounded_now: bool, current_time: float) -> bool:
+	var was_airborne := _was_airborne
+	var just_landed := was_airborne and grounded_now
 	_was_airborne = not grounded_now
+
+	# Track when we became airborne to guard against instant false landings
+	if _was_airborne and not was_airborne:
+		_airborne_since_time = current_time
+
+	# Prevent duplicate landing events with 0.1s cooldown
+	if just_landed and (current_time - _last_landing_time) < 0.1:
+		if OS.is_debug_build():
+			var dt_cool: float = current_time - _last_landing_time
+			print("[land-block] cooldown dt=", String.num(dt_cool, 3))
+		return false
+
+	# Require a minimal airborne duration before considering a landing
+	if just_landed:
+		var min_airborne_time: float = 0.02
+		var airborne_dt: float = 0.0
+		if _airborne_since_time != -INF:
+			airborne_dt = current_time - _airborne_since_time
+		if _airborne_since_time == -INF or airborne_dt < min_airborne_time:
+			if OS.is_debug_build():
+				print("[land-block] min_airborne dt=", String.num(airborne_dt, 3))
+			return false
+		_last_landing_time = current_time
+		if OS.is_debug_build():
+			print("[land-ok] airborne dt=", String.num(airborne_dt, 3))
+
 	return just_landed
 
 func can_jump(current_time: float) -> bool:
@@ -86,3 +115,8 @@ func update_debug_snapshot(snapshot: Dictionary) -> void:
 
 func get_debug_snapshot() -> Dictionary:
 	return _debug_snapshot.duplicate(true)
+
+func get_airborne_duration(current_time: float) -> float:
+	if _airborne_since_time == -INF:
+		return 0.0
+	return max(current_time - _airborne_since_time, 0.0)

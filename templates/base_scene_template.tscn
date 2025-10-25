@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://rygahxanlmio"]
+[gd_scene load_steps=27 format=3 uid="uid://rygahxanlmio"]
 
 [ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://bbovcvnujbnj3" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -88,7 +88,7 @@ script = ExtResource("1_pybrx")
 
 [node name="S_JumpSystem" type="Node" parent="Systems"]
 script = ExtResource("2_rfthe")
-execution_priority = 40
+execution_priority = 75
 
 [node name="S_GravitySystem" type="Node" parent="Systems"]
 script = ExtResource("3_xnqit")
@@ -123,6 +123,7 @@ execution_priority = 120
 script = ExtResource("9_jump_sound")
 execution_priority = 121
 
+
 [node name="Managers" type="Node" parent="."]
 script = ExtResource("12_klon2")
 
@@ -144,6 +145,7 @@ script = ExtResource("16_8qi87")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
 
 [node name="E_Player" parent="Entities" instance=ExtResource("7_4wxy1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.728201, 1.9733102, 0)
 
 [node name="E_CameraRoot" parent="Entities" instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)

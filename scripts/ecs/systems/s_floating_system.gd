@@ -33,6 +33,8 @@ func process_tick(delta: float) -> void:
 
 		var rays: Array = floating_component.get_raycast_nodes()
 		if rays.is_empty():
+			if OS.is_debug_build() and floating_component.is_supported:
+				print("[float] t=", String.num(now, 3), " active=false no_rays")
 			floating_component.update_support_state(false, now)
 			continue
 
@@ -78,10 +80,23 @@ func process_tick(delta: float) -> void:
 			if floating_component.settings.align_to_normal:
 				body.up_direction = normal
 
+			if OS.is_debug_build():
+				var prev_supported: bool = floating_component.is_supported
+				if prev_supported != support_active:
+					print(
+						"[float] t=", String.num(now, 3),
+						" active=", support_active,
+						" dist=", String.num(support.distance, 3),
+						" velN=", String.num(vel_along_normal, 2),
+						" withinH=", within_height_tolerance,
+						" withinV=", within_speed_tolerance
+					)
 			floating_component.update_support_state(support_active, now)
 		else:
 			velocity.y -= floating_component.settings.fall_gravity * delta
 			velocity.y = clamp(velocity.y, -floating_component.settings.max_down_speed, floating_component.settings.max_up_speed)
+			if OS.is_debug_build() and floating_component.is_supported:
+				print("[float] t=", String.num(now, 3), " active=false no_hit vy=", String.num(velocity.y, 2))
 			floating_component.update_support_state(false, now)
 
 		body.velocity = velocity

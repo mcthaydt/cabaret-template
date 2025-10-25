@@ -53,7 +53,37 @@ func process_tick(_delta: float) -> void:
 		var support_recent: bool = supported_now or has_floating_support
 
 		# Check for landing transition (airborne -> grounded)
-		if component.check_landing_transition(supported_now):
+		# Use recent support to avoid flicker-induced false landings on ramps.
+		if component.check_landing_transition(support_recent, now):
+			# Guard against ramp flicker: require a minimal downward speed unless
+			# we were clearly airborne for a bit (e.g., real fall landing).
+			var vy: float = body.velocity.y
+			var min_down_v: float = -1.5
+			var allow_by_duration: bool = false
+			var airborne_dur: float = 0.0
+			if component.has_method("get_airborne_duration"):
+				airborne_dur = component.get_airborne_duration(now)
+				allow_by_duration = airborne_dur >= 0.1
+			# If we're not moving downward fast enough and didn't spend meaningful time in air, skip.
+			if vy > min_down_v and not allow_by_duration:
+				if OS.is_debug_build():
+					var on_floor_dbg: bool = body.is_on_floor()
+					print("[land-skip] vy_gate t=", String.num(now, 3), " vy=", String.num(vy, 2), " air=", String.num(airborne_dur, 3), " on_floor=", on_floor_dbg, " float=", floating_supported_now)
+				continue
+
+			if OS.is_debug_build():
+				var on_floor_dbg2: bool = body.is_on_floor()
+				var slope_deg: float = -1.0
+				if on_floor_dbg2 and body.has_method("get_floor_normal"):
+					var floor_n_v: Variant = body.call("get_floor_normal")
+					if floor_n_v is Vector3:
+						var up_dir: Vector3 = body.up_direction
+						if up_dir.length() == 0.0:
+							up_dir = Vector3.UP
+						var dot_up: float = clamp((floor_n_v as Vector3).normalized().dot(up_dir.normalized()), -1.0, 1.0)
+						slope_deg = rad_to_deg(acos(dot_up))
+				print("[land] t=", String.num(now, 3), " vy=", String.num(vy, 2), " air=", String.num(airborne_dur, 3), " on_floor=", on_floor_dbg2, " float=", floating_supported_now, " slope=", String.num(slope_deg, 1))
+
 			var landing_payload: Dictionary = {
 				"entity": body,
 				"jump_component": component,
