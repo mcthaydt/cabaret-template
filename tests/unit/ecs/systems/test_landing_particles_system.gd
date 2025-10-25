@@ -138,9 +138,9 @@ func test_process_tick_clears_spawn_requests_after_processing() -> void:
 
 # Spawn Offset Tests
 
-func test_default_spawn_offset_is_zero() -> void:
+func test_default_spawn_offset_is_down() -> void:
 	var settings := SETTINGS.new()
-	assert_eq(settings.spawn_offset, Vector3.ZERO, "Default spawn_offset should be Vector3.ZERO for landing")
+	assert_eq(settings.spawn_offset, Vector3.DOWN, "Default spawn_offset should be Vector3.DOWN (spawns at feet)")
 
 # Effects Container Tests
 # Note: Container creation requires current_scene, tested in integration tests
