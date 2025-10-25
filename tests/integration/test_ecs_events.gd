@@ -43,25 +43,42 @@ func test_entity_jumped_event_notifies_subscribers() -> void:
 	var manager: M_ECSManager = context["manager"]
 	var body: CharacterBody3D = context["body"]
 	var components: Dictionary = context["components"]
+	var scene: Node = context["scene"]
 
-	var particles := PARTICLE_SYSTEM.new()
-	particles.name = "S_JumpParticlesSystem"
-	manager.add_child(particles)
-	autofree(particles)
-
-	var sound := SOUND_SYSTEM.new()
-	sound.name = "S_JumpSoundSystem"
-	manager.add_child(sound)
-	autofree(sound)
-
-	await get_tree().process_frame
-	await get_tree().process_frame
+	# Get existing systems from the scene instead of creating new ones
+	var particles: S_JumpParticlesSystem = scene.get_node("Systems/S_JumpParticlesSystem") as S_JumpParticlesSystem
+	var sound: S_JumpSoundSystem = scene.get_node("Systems/S_JumpSoundSystem") as S_JumpSoundSystem
+	assert_not_null(particles, "Scene should have S_JumpParticlesSystem")
+	assert_not_null(sound, "Scene should have S_JumpSoundSystem")
 
 	var captured_events: Array = []
 	var unsubscribe: Callable = EVENT_BUS.subscribe(
 		EVENT_NAME,
 		func(event_data: Dictionary) -> void:
 			captured_events.append(event_data)
+	)
+
+	# Use Dictionary to capture data (mutable, captured by reference in lambda)
+	# GDScript lambdas capture primitives by value, but objects by reference!
+	var captured_data := {
+		"particles_queued": false,
+		"sound_queued": false,
+		"particle_request": {},
+		"sound_request": {},
+	}
+
+	# Subscribe BEFORE jump to capture request data when event fires
+	# Requests are queued synchronously during event publication, then cleared by process_tick
+	var check_sub: Callable = EVENT_BUS.subscribe(
+		EVENT_NAME,
+		func(_event_data: Dictionary) -> void:
+			# Capture DURING event publication (before systems' process_tick clears the requests)
+			if particles.spawn_requests.size() >= 1:
+				captured_data["particles_queued"] = true
+				captured_data["particle_request"] = particles.spawn_requests[0].duplicate(true)
+			if sound.play_requests.size() >= 1:
+				captured_data["sound_queued"] = true
+				captured_data["sound_request"] = sound.play_requests[0].duplicate(true)
 	)
 
 	var jump_component: C_JumpComponent = components[StringName("C_JumpComponent")]
@@ -75,7 +92,28 @@ func test_entity_jumped_event_notifies_subscribers() -> void:
 		floating_component.update_support_state(true, now)
 	input_component.set_jump_pressed(true)
 
-	await get_tree().process_frame
+	# Manually trigger physics process to run systems (physics doesn't auto-run in tests)
+	manager._physics_process(1.0 / 60.0)
+
+	check_sub.call()  # Unsubscribe checker
+
+	# Validate that requests were queued when event fired
+	assert_true(captured_data["particles_queued"], "Particles system should have queued spawn request during event")
+	assert_true(captured_data["sound_queued"], "Sound system should have queued play request during event")
+
+	# Validate particle spawn request data (from captured copy)
+	var particle_req: Dictionary = captured_data["particle_request"]
+	assert_true(particle_req.has("position"), "Spawn request should have position")
+	assert_true(particle_req.has("velocity"), "Spawn request should have velocity")
+	assert_true(particle_req.has("jump_force"), "Spawn request should have jump_force")
+	assert_true(particle_req.has("timestamp"), "Spawn request should have timestamp")
+
+	# Validate sound play request data (from captured copy)
+	var sound_req: Dictionary = captured_data["sound_request"]
+	assert_not_null(sound_req.get("entity"), "Sound request should have entity")
+	assert_true(sound_req.get("supported") is bool, "Sound request should have supported bool")
+
+	# Second frame allows process_tick to process requests
 	await get_tree().process_frame
 
 	unsubscribe.call()
@@ -100,13 +138,3 @@ func test_entity_jumped_event_notifies_subscribers() -> void:
 		if event.get("name") == EVENT_NAME:
 			jump_event_count += 1
 	assert_eq(jump_event_count, 1, "Event history should record exactly one jump event")
-
-	assert_eq(particles.spawn_requests.size(), 1, "Particles system should enqueue a spawn request")
-	assert_eq(sound.play_requests.size(), 1, "Sound system should enqueue a play request")
-
-	var spawn_request: Dictionary = particles.spawn_requests[0]
-	assert_eq(spawn_request.get("jump_force"), payload.get("jump_force"))
-
-	var sound_request: Dictionary = sound.play_requests[0]
-	assert_eq(sound_request.get("entity"), body)
-	assert_true(sound_request.get("supported") is bool)

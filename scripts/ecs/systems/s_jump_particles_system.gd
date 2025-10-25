@@ -39,7 +39,7 @@ func process_tick(_delta: float) -> void:
 	# Spawn particles for each request
 	for request in spawn_requests:
 		var position: Vector3 = request.get("position", Vector3.ZERO)
-		_spawn_jump_particles(position - (Vector3.UP * 1), container)
+		_spawn_jump_particles(position, container)
 
 	# Clear processed requests
 	spawn_requests.clear()
@@ -131,7 +131,8 @@ func _spawn_jump_particles(position: Vector3, container: Node3D) -> void:
 	container.add_child(particles)
 
 	# Set position after adding to tree (required for global_position to work)
-	particles.global_position = position
+	# Apply spawn_offset from settings to adjust particle position
+	particles.global_position = position + settings.spawn_offset
 
 	# FIX: Defer emission by 2 frames to work around Godot bug with one_shot particles
 	# GPU particle buffer needs time to initialize before emitting
