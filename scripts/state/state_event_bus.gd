@@ -1,10 +1,11 @@
 extends RefCounted
-class_name ECSEventBus
+class_name StateStoreEventBus
 
-## Event bus for ECS domain.
+## Event bus for state store domain.
 ##
-## Provides isolated event infrastructure for ECS systems and components,
-## separate from state store event domain. Delegates to EventBusBase instance.
+## Provides isolated event infrastructure for state management,
+## separate from ECS event domain. Uses static API delegating to
+## private instance for clean separation.
 
 const EventBusBase := preload("res://scripts/events/event_bus_base.gd")
 
@@ -15,15 +16,15 @@ static func _get_instance() -> EventBusBase:
 		_instance = EventBusBase.new()
 	return _instance
 
-## Subscribe to an ECS event. Returns unsubscribe callable.
+## Subscribe to a state event. Returns unsubscribe callable.
 static func subscribe(event_name: StringName, callback: Callable) -> Callable:
 	return _get_instance().subscribe(event_name, callback)
 
-## Unsubscribe from an ECS event.
+## Unsubscribe from a state event.
 static func unsubscribe(event_name: StringName, callback: Callable) -> void:
 	_get_instance().unsubscribe(event_name, callback)
 
-## Publish an ECS event to all subscribers.
+## Publish a state event to all subscribers.
 static func publish(event_name: StringName, payload: Variant = null) -> void:
 	_get_instance().publish(event_name, payload)
 
@@ -36,7 +37,7 @@ static func clear_history() -> void:
 	_get_instance().clear_history()
 
 ## Reset bus to initial state (clear subscribers and history).
-## CRITICAL: Call this in before_each() for ECS tests to prevent subscription leaks.
+## CRITICAL: Call this in before_each() for state tests to prevent subscription leaks.
 static func reset() -> void:
 	if _instance != null:
 		_instance.reset()
