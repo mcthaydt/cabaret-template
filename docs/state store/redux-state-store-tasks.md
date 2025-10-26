@@ -357,37 +357,37 @@ func after_each():
 
 **⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests
 
-- [ ] T141 [P] [US1d] 📝 TEST: Update `tests/unit/state/test_u_gameplay_actions.gd` with new action creator tests
-- [ ] T142 [P] [US1d] 📝 TEST: Write test `test_update_health_action_creator()`
-- [ ] T143 [P] [US1d] 📝 TEST: Write test `test_update_score_action_creator()`
-- [ ] T144 [P] [US1d] 📝 TEST: Write test `test_set_level_action_creator()`
-- [ ] T145 [P] [US1d] 📝 TEST: Write test `test_all_action_creators_return_typed_dictionary()`
-- [ ] T146 [P] [US1d] 📝 TEST: Update `tests/unit/state/test_gameplay_slice_reducers.gd` with new reducer tests
-- [ ] T147 [P] [US1d] 📝 TEST: Write test `test_update_health_reducer()`
-- [ ] T148 [P] [US1d] 📝 TEST: Write test `test_update_score_reducer()`
-- [ ] T149 [P] [US1d] 📝 TEST: Write test `test_set_level_reducer()`
-- [ ] T150 [US1d] 📝 RUN TESTS: Verify all US1d tests FAIL (no implementation yet)
+- [x] T141 [P] [US1d] 📝 TEST: Update `tests/unit/state/test_u_gameplay_actions.gd` with new action creator tests
+- [x] T142 [P] [US1d] 📝 TEST: Write test `test_update_health_action_creator()`
+- [x] T143 [P] [US1d] 📝 TEST: Write test `test_update_score_action_creator()`
+- [x] T144 [P] [US1d] 📝 TEST: Write test `test_set_level_action_creator()`
+- [x] T145 [P] [US1d] 📝 TEST: Write test `test_all_action_creators_return_typed_dictionary()`
+- [x] T146 [P] [US1d] 📝 TEST: Update `tests/unit/state/test_gameplay_slice_reducers.gd` with new reducer tests
+- [x] T147 [P] [US1d] 📝 TEST: Write test `test_update_health_reducer()`
+- [x] T148 [P] [US1d] 📝 TEST: Write test `test_update_score_reducer()`
+- [x] T149 [P] [US1d] 📝 TEST: Write test `test_set_level_reducer()`
+- [x] T150 [US1d] 📝 RUN TESTS: Verify all US1d tests FAIL (no implementation yet)
 
 ### Implementation for User Story 1d
 
 **Action Creators:**
 
-- [ ] T151 [P] [US1d] Add constants to u_gameplay_actions.gd: `ACTION_UPDATE_HEALTH`, `ACTION_UPDATE_SCORE`, `ACTION_SET_LEVEL`
-- [ ] T152 [P] [US1d] Implement `static func update_health(health: int) -> Dictionary` with explicit `: Dictionary` return type
-- [ ] T153 [P] [US1d] Implement `static func update_score(score: int) -> Dictionary`
-- [ ] T154 [P] [US1d] Implement `static func set_level(level: int) -> Dictionary`
-- [ ] T155 [US1d] Update _static_init() to register new action types with ActionRegistry
+- [x] T151 [P] [US1d] Add constants to u_gameplay_actions.gd: `ACTION_UPDATE_HEALTH`, `ACTION_UPDATE_SCORE`, `ACTION_SET_LEVEL`
+- [x] T152 [P] [US1d] Implement `static func update_health(health: int) -> Dictionary` with explicit `: Dictionary` return type
+- [x] T153 [P] [US1d] Implement `static func update_score(score: int) -> Dictionary`
+- [x] T154 [P] [US1d] Implement `static func set_level(level: int) -> Dictionary`
+- [x] T155 [US1d] Update _static_init() to register new action types with ActionRegistry
 
 **Reducers:**
 
-- [ ] T156 [P] [US1d] Add case ACTION_UPDATE_HEALTH to GameplayReducer.reduce()
-- [ ] T157 [P] [US1d] Add case ACTION_UPDATE_SCORE to GameplayReducer.reduce()
-- [ ] T158 [P] [US1d] Add case ACTION_SET_LEVEL to GameplayReducer.reduce()
-- [ ] T159 [US1d] Ensure all cases use .duplicate(true) for immutability
+- [x] T156 [P] [US1d] Add case ACTION_UPDATE_HEALTH to GameplayReducer.reduce()
+- [x] T157 [P] [US1d] Add case ACTION_UPDATE_SCORE to GameplayReducer.reduce()
+- [x] T158 [P] [US1d] Add case ACTION_SET_LEVEL to GameplayReducer.reduce()
+- [x] T159 [US1d] Ensure all cases use .duplicate(true) for immutability
 
 **Test & Validation:**
 
-- [ ] T160 [US1d] 📝 RUN TESTS: Verify all US1d tests now PASS
+- [x] T160 [US1d] 📝 RUN TESTS: Verify all US1d tests now PASS
 - [ ] T161 [US1d] Update test scene `scenes/debug/state_test_us1d.tscn` to dispatch all new actions
 - [ ] T162 [US1d] 🎮 IN-GAME TEST: Run test scene, verify health/score/level update correctly in state
 - [ ] T163 [US1d] Commit US1d: "Expand gameplay actions with health, score, level"

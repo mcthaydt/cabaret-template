@@ -92,3 +92,32 @@ func test_initial_state_loads_from_resource() -> void:
 	assert_eq(gameplay_slice.get("health"), 75, "Health should match resource")
 	assert_eq(gameplay_slice.get("score"), 500, "Score should match resource")
 	assert_eq(gameplay_slice.get("paused"), false, "Paused should match resource")
+
+## Phase 1d: New reducer tests
+
+func test_update_health_reducer() -> void:
+	var state: Dictionary = {"health": 100, "score": 0, "level": 1, "paused": false}
+	var action: Dictionary = U_GameplayActions.update_health(50)
+	
+	var result: Dictionary = GameplayReducer.reduce(state, action)
+	
+	assert_eq(result["health"], 50, "Health should update to 50")
+	assert_eq(state["health"], 100, "Original state should remain unchanged")
+
+func test_update_score_reducer() -> void:
+	var state: Dictionary = {"health": 100, "score": 0, "level": 1, "paused": false}
+	var action: Dictionary = U_GameplayActions.update_score(1500)
+	
+	var result: Dictionary = GameplayReducer.reduce(state, action)
+	
+	assert_eq(result["score"], 1500, "Score should update to 1500")
+	assert_eq(state["score"], 0, "Original state should remain unchanged")
+
+func test_set_level_reducer() -> void:
+	var state: Dictionary = {"health": 100, "score": 0, "level": 1, "paused": false}
+	var action: Dictionary = U_GameplayActions.set_level(5)
+	
+	var result: Dictionary = GameplayReducer.reduce(state, action)
+	
+	assert_eq(result["level"], 5, "Level should update to 5")
+	assert_eq(state["level"], 1, "Original state should remain unchanged")
