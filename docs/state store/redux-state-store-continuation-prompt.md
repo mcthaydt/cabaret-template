@@ -43,20 +43,27 @@ If you are ever unsure what to do next, **read the tasks.md file** and find the 
 
 ## Project Status (2025-10-26)
 
-The Redux-style centralized state store implementation is **in progress**. The feature branch `redux-state-store` has comprehensive planning documentation and active development.
+The Redux-style centralized state store implementation is **PHASE 1 COMPLETE**. The feature branch `redux-state-store` has comprehensive planning documentation and User Story 1 (Core Gameplay Slice) fully implemented and tested.
 
-**Current Status**: Phase 1c complete (Gameplay Slice Reducer + Immutable Updates)
+**Current Status**: Phase 1 (User Story 1) Complete - All core functionality implemented and validated
 
 **Phase 0 Decision**: **Option C - Dual-bus via abstract base** (IMPLEMENTED ✅)
 
 **Completed Phases**:
 - ✅ Phase 0C: EventBusBase architecture (commit b7fb729)
-- ✅ Phase 1a: M_StateStore skeleton + U_StateUtils (commit 46f47a4)
+- ✅ Phase 1 (Setup): All directories, project settings, base files (commits 509bc24, 8199d6b)
+- ✅ Phase 1a: M_StateStore skeleton + U_StateUtils (commit 46f47a4, fixed in 8199d6b)
 - ✅ Phase 1b: ActionRegistry + U_GameplayActions (commit 5931c38)
 - ✅ Phase 1c: Gameplay reducer with immutable state (commit 042e154)
-- ✅ Task tracking updated (commit c57de98)
+- ✅ Phase 1d: Type-safe action creators (commit 820d1dc)
+- ✅ Phase 1e: Selector system with dependencies (commit f9c5ea8, enhanced aec3c13)
+- ✅ Phase 1f: Signal batching for per-frame emission (commit 63f8eb5)
+- ✅ Test scenes created for all phases (commits d61e17a, d581eee)
+- ✅ All 6 in-game tests passed (T073, T107, T139, T162, T184, T207)
+- ✅ Lambda closure pitfall documented (commit e62194e)
+- ✅ Tasks.md fully audited and corrected (commits db7c31f, 37609b5, etc.)
 
-**Active Phase**: Phase 1d - Type-Safe Action Creators (next unchecked tasks in redux-state-store-tasks.md)
+**Active Phase**: Phase 9 (US1g) - Action Logging with 1000-Entry History (next unchecked tasks in redux-state-store-tasks.md)
 
 ## Before Resuming Implementation
 
@@ -96,6 +103,53 @@ Before starting implementation:
 - [x] **🚨 CRITICAL: Understand that redux-state-store-tasks.md is the SINGLE SOURCE OF TRUTH**
 - [x] **🚨 CRITICAL: Must check off tasks [ ] → [x] as they are completed**
 - [x] **🚨 CRITICAL: Must commit task file updates regularly**
+
+## Phase 1 Accomplishments
+
+### ✅ Completed Implementation (Phases 1-8)
+
+**Core Infrastructure:**
+- M_StateStore node with dispatch/subscribe pattern
+- ActionRegistry with StringName validation
+- StateSliceConfig with dependency declarations
+- SignalBatcher for per-frame emission
+- U_StateUtils for global store access
+- RS_StateStoreSettings resource
+- Circular dependency detection with DFS
+
+**Gameplay Slice:**
+- RS_GameplayInitialState resource (paused, health, score, level)
+- GameplayReducer with immutable .duplicate(true) updates
+- U_GameplayActions with 5 action creators (pause, unpause, update_health, update_score, set_level)
+- GameplaySelectors for derived state (get_is_player_alive, get_is_game_over, get_completion_percentage)
+
+**Runtime Dependency Validation:**
+- validate_slice_dependencies() method
+- Optional caller_slice parameter in get_slice()
+- Logs errors for undeclared dependencies
+- Allows self-access without declaring dependency
+
+**Test Coverage:**
+- 57/69 unit tests passing (12 expected validation errors)
+- 6/6 in-game test scenes passing:
+  - state_test_us1a.tscn - Core skeleton
+  - state_test_us1b.tscn - Action validation
+  - state_test_us1c.tscn - Reducer immutability
+  - state_test_us1d.tscn - Action creators
+  - state_test_us1e.tscn - Selectors
+  - state_test_us1f.tscn - Signal batching
+
+**Documentation:**
+- Lambda closure limitation added to DEV_PITFALLS.md
+- Tasks.md fully audited for honesty (falsely marked tasks unchecked)
+- All completed tasks verified against actual implementation
+
+**Key Architectural Decisions:**
+- State updates: Immediate (synchronous)
+- Signal emissions: Batched (per physics frame)
+- No autoloads: M_StateStore is in-scene node
+- Event bus: Dual-bus (ECSEventBus + StateStoreEventBus via EventBusBase)
+- Immutability: .duplicate(true) in all reducers
 
 ## Implementation Path
 
@@ -157,22 +211,27 @@ Each micro-story follows TDD: Write tests → Verify tests fail → Implement �
 
 ## Next Steps
 
-**CURRENT TASK**: Phase 1d - Type-Safe Action Creators
+**PHASE 1 COMPLETE** - User Story 1 (Core Gameplay Slice) fully implemented and tested!
 
-1. **Open `redux-state-store-tasks.md`** 
-2. **Find Phase 1d section** (starts around line 348)
-3. **Find the first unchecked `[ ]` task** in Phase 1d
-4. **Complete that task**
-5. **Check it off `[x]` immediately**
-6. **Continue with next task**
-7. **Commit tasks.md + implementation** after completing phase
+**NEXT PHASE**: Phase 9 (US1g) - Action Logging with 1000-Entry History
 
-**Estimated time for Phase 1d**: 2-3 hours
+1. **Open `redux-state-store-tasks.md`**
+2. **Find Phase 9 section** (starts around line 503)
+3. **Find task T209** (first task in Phase 9)
+4. **Follow TDD approach**: Write tests first, verify they fail, implement, verify pass
+5. **Check off tasks `[x]` immediately after completing**
+6. **Commit tasks.md + implementation** after completing phase
 
-**What Phase 1d includes**:
-- Expand U_GameplayActions with health/score/level actions
-- Add reducer cases for new actions  
-- Write tests for new action creators and reducer logic
+**Estimated time for Phase 9 (US1g)**: 3-4 hours
+
+**What Phase 9 includes**:
+- Action history tracking with circular buffer
+- 1000-entry limit with automatic pruning
+- get_action_history() and get_last_n_actions() methods
+- Integration with project settings for configuration
+- Timestamp tracking using U_ECSUtils.get_current_time()
+
+**Alternative**: Could proceed with Phase 10 (Persistence), Phase 11 (Debug Overlay), or Phases 12-14 (Boot/Menu slices)
 
 ## Reference Documents
 
