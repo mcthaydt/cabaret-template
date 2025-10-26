@@ -441,7 +441,7 @@ func after_each():
 - [x] T182 [US1e] 📝 RUN TESTS: Verify all US1e tests now PASS
 - [x] T183 [US1e] Update test scene `scenes/debug/state_test_us1e.tscn` to call selectors via GameplaySelectors and print results
 - [x] T184 [US1e] 🎮 IN-GAME TEST: Run test scene, verify selectors compute derived state correctly
-- [ ] T185 [US1e] Commit US1e: "Add selector system with dependency declarations"
+- [x] T185 [US1e] Commit US1e: "Add selector system with dependency declarations" - Committed phases 1c-1e together (77% test pass rate)
 
 **Checkpoint**: Selectors provide derived state computation with explicit cross-slice dependency management
 
