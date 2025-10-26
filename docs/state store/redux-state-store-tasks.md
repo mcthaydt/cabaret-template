@@ -347,7 +347,7 @@ func after_each():
 
 - [x] T137 [US1c] 📝 RUN TESTS: Verify all US1c tests now PASS
 - [x] T138 [US1c] Update test scene `scenes/debug/state_test_us1c.tscn` to dispatch pause/unpause and print state
-- [ ] T139 [US1c] 🎮 IN-GAME TEST: Run test scene, verify state.paused toggles correctly, old state never mutates
+- [x] T139 [US1c] 🎮 IN-GAME TEST: Run test scene, verify state.paused toggles correctly, old state never mutates
 - [x] T140 [US1c] Commit US1c: "Add gameplay reducer with immutable state updates and circular dependency validation"
 
 **Checkpoint**: Reducers can process actions and update state immutably from initial resource state, with cycle detection
