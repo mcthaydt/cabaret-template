@@ -390,7 +390,7 @@ func after_each():
 - [x] T160 [US1d] 📝 RUN TESTS: Verify all US1d tests now PASS
 - [ ] T161 [US1d] Update test scene `scenes/debug/state_test_us1d.tscn` to dispatch all new actions
 - [ ] T162 [US1d] 🎮 IN-GAME TEST: Run test scene, verify health/score/level update correctly in state
-- [ ] T163 [US1d] Commit US1d: "Expand gameplay actions with health, score, level"
+- [x] T163 [US1d] Commit US1d: "Expand gameplay actions with health, score, level"
 
 **Checkpoint**: Full gameplay action suite available with type safety and reducer implementations
 
