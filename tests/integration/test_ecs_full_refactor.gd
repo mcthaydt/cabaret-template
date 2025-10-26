@@ -227,7 +227,7 @@ func _find_node_starting_with(root: Node, prefix: String) -> Node:
 	for child in root.get_children():
 		if child.name.begins_with(prefix):
 			return child
-		var found = _find_node_starting_with(child, prefix)
+		var found: Node = _find_node_starting_with(child, prefix)
 		if found != null:
 			return found
 	return null
@@ -237,7 +237,7 @@ func _find_component(root: Node, component_name: String) -> Node:
 	for child in root.get_children():
 		if child.get_class() == component_name or child.name.begins_with(component_name):
 			return child
-		var found = _find_component(child, component_name)
+		var found: Node = _find_component(child, component_name)
 		if found != null:
 			return found
 	return null
