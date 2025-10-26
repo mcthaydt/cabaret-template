@@ -12,11 +12,13 @@ Before doing ANYTHING else, read this requirement:
 4. **Commit the updated tasks.md** regularly (every 5-10 tasks, or at phase boundaries)
 5. **NEVER work on a task that isn't in the tasks.md file**
 6. **NEVER skip tasks** - follow them in order unless marked [P] (parallel-safe)
+7. **🚨 AFTER COMPLETING EACH PHASE: Update THIS continuation prompt** with new status, commits, and next phase
 
 **Why this matters:**
 - The task list is the SINGLE SOURCE OF TRUTH for what needs to be done
 - TodoWrite is for session memory only - tasks.md is the permanent record
 - Checking off tasks as you go prevents duplicate work and context loss
+- Updating this prompt after each phase keeps status synchronized
 - This was explicitly requested and previously ignored - DO NOT IGNORE IT AGAIN
 
 **Workflow example:**
@@ -27,6 +29,12 @@ Before doing ANYTHING else, read this requirement:
 4. Edit tasks.md: Change [ ] to [x] for T035
 5. Continue to T036, repeat
 6. After completing several tasks, commit tasks.md with implementation
+7. After completing a phase (e.g., Phase 1a), update THIS FILE:
+   - Update "Current Status" section
+   - Add completed phase to "Completed Phases" list
+   - Update "Active Phase" to next phase
+   - Update "Next Steps" section
+   - Commit the updated continuation prompt
 ```
 
 If you are ever unsure what to do next, **read the tasks.md file** and find the next `[ ]` checkbox.
