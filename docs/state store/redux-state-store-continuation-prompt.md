@@ -1,5 +1,38 @@
 # Redux State Store – Continuation Guide
 
+## 🚨 CRITICAL WORKFLOW REQUIREMENT 🚨
+
+**YOU MUST FOLLOW `redux-state-store-tasks.md` LINE BY LINE**
+
+Before doing ANYTHING else, read this requirement:
+
+1. **ALWAYS open `redux-state-store-tasks.md` FIRST** before starting any work
+2. **Find the next unchecked task `[ ]` in sequence** - do NOT skip around
+3. **Check off the task `[x]` IMMEDIATELY after completing it** - use the Edit tool
+4. **Commit the updated tasks.md** regularly (every 5-10 tasks, or at phase boundaries)
+5. **NEVER work on a task that isn't in the tasks.md file**
+6. **NEVER skip tasks** - follow them in order unless marked [P] (parallel-safe)
+
+**Why this matters:**
+- The task list is the SINGLE SOURCE OF TRUTH for what needs to be done
+- TodoWrite is for session memory only - tasks.md is the permanent record
+- Checking off tasks as you go prevents duplicate work and context loss
+- This was explicitly requested and previously ignored - DO NOT IGNORE IT AGAIN
+
+**Workflow example:**
+```
+1. Read redux-state-store-tasks.md
+2. Find next unchecked task: [ ] T035 Create test_m_state_store.gd
+3. Complete the task: Create the file
+4. Edit tasks.md: Change [ ] to [x] for T035
+5. Continue to T036, repeat
+6. After completing several tasks, commit tasks.md with implementation
+```
+
+If you are ever unsure what to do next, **read the tasks.md file** and find the next `[ ]` checkbox.
+
+---
+
 ## Project Status (2025-10-26)
 
 The Redux-style centralized state store implementation is **in progress**. The feature branch `redux-state-store` has comprehensive planning documentation and active development.
@@ -17,19 +50,15 @@ The Redux-style centralized state store implementation is **in progress**. The f
 
 ## Before Resuming Implementation
 
-1. **Re-read the quick guidance docs**:
+1. **🚨 FIRST: Open `redux-state-store-tasks.md`**:
+   - This is your ONLY work queue
+   - Find the next `[ ]` checkbox
+   - Do NOT proceed without reading the tasks file
+
+2. **Re-read the quick guidance docs**:
    - `AGENTS.md` - Commit strategy, testing requirements, repo map
    - `docs/general/DEV_PITFALLS.md` - GDScript typing, GUT patterns, common pitfalls
    - `docs/general/STYLE_GUIDE.md` - Naming conventions, file structure, code standards
-
-2. **CRITICAL WORKFLOW PRACTICE - TODO Tracking**:
-   - **ALWAYS call TodoWrite() at the start of each phase** to create task list
-   - **Update status in parallel with implementation**:
-     - Mark "in_progress" when starting a task
-     - Mark "completed" immediately when task finishes
-     - Update after creating each file, after tests pass, before commits
-   - **Benefits**: Real-time progress visibility, prevents context loss, enables quick resumption
-   - **Example**: `TodoWrite: Mark "Create ActionRegistry" as in_progress → Create file → TodoWrite: Mark completed`
 
 3. **Review state store planning material**:
    - `docs/state store/redux-state-store-prd.md` (v2.0) - Feature specification and requirements
@@ -54,7 +83,9 @@ Before starting implementation:
 - [x] Read the Prerequisites section in the implementation plan
 - [x] Review the Architectural Decisions (MANDATORY READING)
 - [x] Understand the MVP strategy
-- [x] **Understand TODO tracking workflow** (update in parallel with work)
+- [x] **🚨 CRITICAL: Understand that redux-state-store-tasks.md is the SINGLE SOURCE OF TRUTH**
+- [x] **🚨 CRITICAL: Must check off tasks [ ] → [x] as they are completed**
+- [x] **🚨 CRITICAL: Must commit task file updates regularly**
 
 ## Implementation Path
 
