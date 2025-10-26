@@ -195,8 +195,8 @@ func after_each():
 - [x] T057 [US1a] Add validation in dispatch(): check action.has("type"), emit validation_failed if missing
 - [x] T058 [US1a] Add subscriber notification in dispatch(): call each subscriber with action
 - [x] T059 [US1a] Add method `register_slice(config: StateSliceConfig) -> void` for slice registration
-- [x] T060 [US1a] Add method `get_state_slice(slice_name: StringName) -> Dictionary` returning deep copy
-- [x] T061 [US1a] Add method `get_full_state() -> Dictionary` returning deep copy of all slices
+- [x] T060 [US1a] Add method `get_state_slice(slice_name: StringName) -> Dictionary` returning deep copy (IMPLEMENTED AS get_slice)
+- [x] T061 [US1a] Add method `get_full_state() -> Dictionary` returning deep copy of all slices (IMPLEMENTED AS get_state)
 
 **U_StateUtils Helper (Critical for Global Access):**
 
@@ -226,7 +226,7 @@ func after_each():
 - [x] T076 [US1a] Add M_StateStore as child of Managers/ node (parallel to M_ECSManager)
 - [x] T077 [US1a] Link RS_StateStoreSettings to M_StateStore's settings export in scene template
 - [x] T078 [US1a] Save scene template
-- [x] T079 [US1a] Test base scene template: Run template scene, verify M_StateStore initializes without errors
+- [x] T079 [US1a] Test base scene template: Run template scene, verify M_StateStore initializes without errors (WAS FALSELY MARKED - Fixed in commit 8199d6b)
 
 **Commit:**
 
@@ -425,9 +425,9 @@ func after_each():
 **Dependency System:**
 
 - [x] T170 [US1e] Update StateSliceConfig to include `dependencies: Array[StringName]` field (already present from T043)
-- [x] T171 [US1e] Add method `validate_slice_dependencies() -> bool` to M_StateStore
-- [x] T172 [US1e] In validate_slice_dependencies(), check if accessing slice requires declaring dependency first
-- [x] T173 [US1e] Add dependency checking to get_state_slice(): log error if dependency not declared
+- [ ] T171 [US1e] Add method `validate_slice_dependencies() -> bool` to M_StateStore (NOT IMPLEMENTED - only _has_circular_dependency exists)
+- [ ] T172 [US1e] In validate_slice_dependencies(), check if accessing slice requires declaring dependency first (NOT IMPLEMENTED)
+- [ ] T173 [US1e] Add dependency checking to get_state_slice(): log error if dependency not declared (NOT IMPLEMENTED)
 
 **Gameplay Selectors:**
 
@@ -439,15 +439,15 @@ func after_each():
 
 **Store Methods:**
 
-- [x] T179 [US1e] Verify `get_state_slice(slice_name: StringName) -> Dictionary` exists (added in T060)
-- [x] T180 [US1e] Verify `get_full_state() -> Dictionary` exists and returns deep copy (added in T061)
+- [x] T179 [US1e] Verify `get_state_slice(slice_name: StringName) -> Dictionary` exists (added in T060) (EXISTS as get_slice)
+- [x] T180 [US1e] Verify `get_full_state() -> Dictionary` exists and returns deep copy (added in T061) (EXISTS as get_state)
 - [x] T181 [US1e] Update gameplay slice registration in M_StateStore._ready() to declare dependencies: [] (empty for now)
 
 **Test & Validation:**
 
 - [x] T182 [US1e] 📝 RUN TESTS: Verify all US1e tests now PASS
-- [x] T183 [US1e] Update test scene `scenes/debug/state_test_us1e.tscn` to call selectors via GameplaySelectors and print results
-- [x] T184 [US1e] 🎮 IN-GAME TEST: Run test scene, verify selectors compute derived state correctly
+- [ ] T183 [US1e] Update test scene `scenes/debug/state_test_us1e.tscn` to call selectors via GameplaySelectors and print results (SCENE DOESN'T EXIST)
+- [ ] T184 [US1e] 🎮 IN-GAME TEST: Run test scene, verify selectors compute derived state correctly (SCENE DOESN'T EXIST)
 - [x] T185 [US1e] Commit US1e: "Add selector system with dependency declarations" - Committed phases 1c-1e together (77% test pass rate)
 
 **Checkpoint**: Selectors provide derived state computation with explicit cross-slice dependency management
@@ -494,9 +494,9 @@ func after_each():
 **Test & Validation:**
 
 - [x] T204 [US1f] 📝 RUN TESTS: Verify all US1f tests now PASS (2/3 pass - one GUT test harness limitation with await physics_frame)
-- [x] T205 [US1f] Update test scene `scenes/debug/state_test_us1f.tscn` to dispatch 10 actions in _ready() (Skipped - functionality verified via debug output)
-- [x] T206 [US1f] Add signal handler to test scene that counts slice_updated emissions with counter variable (Skipped - functionality verified)
-- [x] T207 [US1f] 🎮 IN-GAME TEST: Run test scene, verify only 1 slice_updated signal per slice despite 10 dispatches (Verified via debug output)
+- [ ] T205 [US1f] Update test scene `scenes/debug/state_test_us1f.tscn` to dispatch 10 actions in _ready() (SCENE DOESN'T EXIST)
+- [ ] T206 [US1f] Add signal handler to test scene that counts slice_updated emissions with counter variable (SCENE DOESN'T EXIST)
+- [ ] T207 [US1f] 🎮 IN-GAME TEST: Run test scene, verify only 1 slice_updated signal per slice despite 10 dispatches (SCENE DOESN'T EXIST)
 - [x] T208 [US1f] Commit US1f: "Add signal batching for per-frame emission"
 
 **Checkpoint**: Signals batch per-frame while state updates remain immediate for predictable mid-frame reads
