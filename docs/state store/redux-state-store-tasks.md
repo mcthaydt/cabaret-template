@@ -217,7 +217,7 @@ func after_each():
 - [x] T070 [US1a] 📝 RUN TESTS: Verify all US1a tests now PASS
 - [x] T071 [US1a] Create test scene `scenes/debug/state_test_us1a.tscn` with M_StateStore node
 - [x] T072 [US1a] Add script to test scene that dispatches test action on _ready() and prints result via U_StateUtils
-- [ ] T073 [US1a] 🎮 IN-GAME TEST: Run test scene, verify console shows action dispatch without errors
+- [x] T073 [US1a] 🎮 IN-GAME TEST: Run test scene, verify console shows action dispatch without errors
 
 **Scene Template Integration (Moved from later phase):**
 
@@ -283,7 +283,7 @@ func after_each():
 - [x] T104 [US1b] In dispatch(), if validation fails, emit validation_failed signal with error details
 - [x] T105 [US1b] 📝 RUN TESTS: Verify all US1b tests now PASS
 - [x] T106 [US1b] Update test scene `scenes/debug/state_test_us1b.tscn` to dispatch U_GameplayActions.pause_game()
-- [ ] T107 [US1b] 🎮 IN-GAME TEST: Run test scene, verify validation works, invalid actions are rejected with error
+- [x] T107 [US1b] 🎮 IN-GAME TEST: Run test scene, verify validation works, invalid actions are rejected with error
 - [x] T108 [US1b] Commit US1b: "Add action registry with StringName validation and static registration"
 
 **Checkpoint**: Actions are validated against registry, action creators ensure type safety, registry self-initializes
