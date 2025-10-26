@@ -82,8 +82,8 @@ func dispatch(action: Dictionary) -> void:
 
 	# Notify subscribers with new state
 	for subscriber in _subscribers:
-		if subscriber.is_valid():
-			subscriber.call(action_copy, _state.duplicate(true))
+		var state_copy := _state.duplicate(true)
+		subscriber.call(action_copy, state_copy)
 
 	# Emit unbatched signal
 	action_dispatched.emit(action_copy)

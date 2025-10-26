@@ -3,10 +3,12 @@ extends GutTest
 ## Tests for ActionRegistry validation system
 
 func before_each() -> void:
-	ActionRegistry.clear()
+	# Store existing registered actions to restore after test
+	pass
 
 func after_each() -> void:
-	ActionRegistry.clear()
+	# Don't clear - other tests depend on U_GameplayActions being registered
+	pass
 
 func test_register_action_adds_to_registry() -> void:
 	var action_type := StringName("test/action")
@@ -29,21 +31,26 @@ func test_validate_action_accepts_registered_type() -> void:
 	assert_true(ActionRegistry.validate_action(action), "Valid action should pass validation")
 
 func test_validate_action_rejects_unregistered_type() -> void:
+	gut.p("Expect error: Unregistered action type")
 	var action: Dictionary = {"type": StringName("test/unregistered"), "payload": null}
 	
 	assert_false(ActionRegistry.validate_action(action), "Unregistered action should fail validation")
 
 func test_validate_action_rejects_missing_type() -> void:
+	gut.p("Expect error: Action missing 'type' field")
 	var action: Dictionary = {"payload": "no type"}
 	
 	assert_false(ActionRegistry.validate_action(action), "Action without type should fail validation")
 
 func test_validate_action_rejects_empty_type() -> void:
+	gut.p("Expect error: Action type is empty")
 	var action: Dictionary = {"type": StringName(), "payload": null}
 	
 	assert_false(ActionRegistry.validate_action(action), "Action with empty type should fail validation")
 
 func test_get_registered_actions_returns_all_types() -> void:
+	var existing_count := ActionRegistry.get_registered_actions().size()
+	
 	var type1 := StringName("test/action1")
 	var type2 := StringName("test/action2")
 	
@@ -52,11 +59,14 @@ func test_get_registered_actions_returns_all_types() -> void:
 	
 	var registered: Array[StringName] = ActionRegistry.get_registered_actions()
 	
-	assert_eq(registered.size(), 2, "Should have 2 registered actions")
+	assert_eq(registered.size(), existing_count + 2, "Should have added 2 registered actions")
 	assert_true(registered.has(type1), "Should contain action1")
 	assert_true(registered.has(type2), "Should contain action2")
 
 func test_clear_removes_all_registrations() -> void:
+	# Save existing actions
+	var existing_actions := ActionRegistry.get_registered_actions().duplicate()
+	
 	ActionRegistry.register_action(StringName("test/action1"))
 	ActionRegistry.register_action(StringName("test/action2"))
 	
@@ -64,6 +74,10 @@ func test_clear_removes_all_registrations() -> void:
 	
 	var registered: Array[StringName] = ActionRegistry.get_registered_actions()
 	assert_eq(registered.size(), 0, "All actions should be cleared")
+	
+	# Restore gameplay actions that were registered via _static_init()
+	for action_type in existing_actions:
+		ActionRegistry.register_action(action_type)
 
 func test_validate_with_schema_accepts_valid_payload() -> void:
 	var action_type := StringName("test/with_schema")
@@ -79,6 +93,7 @@ func test_validate_with_schema_accepts_valid_payload() -> void:
 	assert_true(ActionRegistry.validate_action(action), "Action with valid payload should pass")
 
 func test_validate_with_schema_rejects_missing_field() -> void:
+	gut.p("Expect error: Missing required payload field")
 	var action_type := StringName("test/with_schema")
 	var schema: Dictionary = {"required_fields": ["name", "value"]}
 	
@@ -92,8 +107,11 @@ func test_validate_with_schema_rejects_missing_field() -> void:
 	assert_false(ActionRegistry.validate_action(action), "Action missing required field should fail")
 
 func test_register_action_with_empty_type_errors() -> void:
+	gut.p("Expect error: action_type is empty")
+	var before_count := ActionRegistry.get_registered_actions().size()
+	
 	ActionRegistry.register_action(StringName())
 	
-	# Should not register
-	var registered: Array[StringName] = ActionRegistry.get_registered_actions()
-	assert_eq(registered.size(), 0, "Empty type should not register")
+	# Should not register - count should not increase
+	var after_count := ActionRegistry.get_registered_actions().size()
+	assert_eq(after_count, before_count, "Empty type should not register")

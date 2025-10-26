@@ -33,8 +33,19 @@ static func get_store(node: Node) -> M_StateStore:
 ## Benchmark a callable and return elapsed time in milliseconds
 ## Useful for profiling state operations
 static func benchmark(name: String, callable: Callable) -> float:
+	if not callable.is_valid():
+		push_warning("U_StateUtils.benchmark: Invalid callable")
+		return 0.0
+		
 	var start: int = Time.get_ticks_usec()
-	callable.call()
+	
+	# Call with no arguments
+	if callable.get_argument_count() == 0:
+		callable.call()
+	else:
+		push_warning("U_StateUtils.benchmark: Callable expects arguments, calling with empty array")
+		callable.callv([])
+		
 	var end: int = Time.get_ticks_usec()
 	var elapsed_ms: float = (end - start) / 1000.0
 	if OS.is_debug_build():

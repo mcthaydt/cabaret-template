@@ -11,7 +11,6 @@ func before_each() -> void:
 	StateStoreEventBus.reset()
 
 	store = M_StateStore.new()
-	autofree(store)
 	add_child(store)
 	await get_tree().process_frame  # Deferred registration
 
@@ -29,6 +28,9 @@ func test_store_adds_to_state_store_group() -> void:
 	assert_true(store.is_in_group("state_store"), "Store should be in 'state_store' group")
 
 func test_dispatch_notifies_subscribers() -> void:
+	# Register test action
+	ActionRegistry.register_action(StringName("test/action"))
+	
 	var callback_called := false
 	var received_action: Dictionary = {}
 	var received_state: Dictionary = {}
@@ -51,6 +53,9 @@ func test_dispatch_notifies_subscribers() -> void:
 	assert_eq(received_action.get("payload").get("data"), "test", "Callback should receive payload")
 
 func test_dispatch_emits_action_dispatched_signal() -> void:
+	# Register test action
+	ActionRegistry.register_action(StringName("test/signal"))
+	
 	var signal_emitted := false
 	var signal_action: Dictionary = {}
 
@@ -68,6 +73,7 @@ func test_dispatch_emits_action_dispatched_signal() -> void:
 	assert_eq(signal_action.get("type"), StringName("test/signal"), "Signal should carry action")
 
 func test_dispatch_rejects_action_without_type() -> void:
+	gut.p("Expect error: Action missing 'type' field")
 	var validation_error := ""
 
 	store.validation_failed.connect(func(_action: Dictionary, error: String) -> void:
@@ -80,6 +86,10 @@ func test_dispatch_rejects_action_without_type() -> void:
 	assert_eq(validation_error, "Action missing 'type' field", "Should emit validation_failed")
 
 func test_unsubscribe_removes_callback() -> void:
+	# Register test actions
+	ActionRegistry.register_action(StringName("test1"))
+	ActionRegistry.register_action(StringName("test2"))
+	
 	var callback_count := 0
 
 	var callback := func(_action: Dictionary, _state: Dictionary) -> void:
@@ -128,10 +138,12 @@ func test_register_slice_adds_to_state() -> void:
 	assert_eq(gameplay_slice.get("score"), 0, "Slice should have initial state")
 
 func test_settings_defaults_when_null() -> void:
+	gut.p("Expect warning: No settings assigned, using defaults")
 	var store_no_settings := M_StateStore.new()
-	autofree(store_no_settings)
 	add_child(store_no_settings)
 	await get_tree().process_frame
 
 	assert_not_null(store_no_settings.settings, "Should create default settings")
 	assert_eq(store_no_settings.settings.max_history_size, 1000, "Default history size should be 1000")
+	
+	store_no_settings.queue_free()

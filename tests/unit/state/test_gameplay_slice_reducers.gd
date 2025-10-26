@@ -75,7 +75,6 @@ func test_pause_unpause_toggle_sequence() -> void:
 ## Test initial state loads from resource
 func test_initial_state_loads_from_resource() -> void:
 	var store := M_StateStore.new()
-	autofree(store)
 	
 	# Create and assign initial state
 	var initial_state := RS_GameplayInitialState.new()
@@ -92,6 +91,8 @@ func test_initial_state_loads_from_resource() -> void:
 	assert_eq(gameplay_slice.get("health"), 75, "Health should match resource")
 	assert_eq(gameplay_slice.get("score"), 500, "Score should match resource")
 	assert_eq(gameplay_slice.get("paused"), false, "Paused should match resource")
+	
+	store.queue_free()
 
 ## Phase 1d: New reducer tests
 

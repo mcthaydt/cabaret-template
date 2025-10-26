@@ -6,7 +6,6 @@ var store: M_StateStore
 
 func before_each() -> void:
 	store = M_StateStore.new()
-	autofree(store)
 	add_child(store)
 	await get_tree().process_frame
 
@@ -22,6 +21,7 @@ func test_get_store_finds_store_in_tree() -> void:
 	assert_eq(found_store, store, "Should return the correct store")
 
 func test_get_store_errors_if_no_store() -> void:
+	gut.p("Expect error: No M_StateStore in 'state_store' group")
 	store.queue_free()
 	await get_tree().process_frame
 
@@ -30,6 +30,7 @@ func test_get_store_errors_if_no_store() -> void:
 	assert_null(found_store, "Should return null if no store")
 
 func test_get_store_errors_if_node_invalid() -> void:
+	gut.p("Expect error: Invalid node")
 	var found_store: M_StateStore = U_StateUtils.get_store(null)
 
 	assert_null(found_store, "Should return null for invalid node")

@@ -406,41 +406,41 @@ func after_each():
 
 **⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests
 
-- [ ] T164 [P] [US1e] 📝 TEST: Create `tests/unit/state/test_state_selectors.gd` (include bus reset in `before_each()`)
-- [ ] T165 [P] [US1e] 📝 TEST: Write test `test_get_is_player_alive_returns_false_when_health_zero()`
-- [ ] T166 [P] [US1e] 📝 TEST: Write test `test_get_is_player_alive_returns_true_when_health_positive()`
-- [ ] T167 [P] [US1e] 📝 TEST: Write test `test_get_is_game_over_computes_from_objectives()`
-- [ ] T168 [P] [US1e] 📝 TEST: Write test `test_selector_without_declared_dependency_logs_error()`
-- [ ] T169 [US1e] 📝 RUN TESTS: Verify all US1e tests FAIL (no implementation yet)
+- [x] T164 [P] [US1e] 📝 TEST: Create `tests/unit/state/test_state_selectors.gd` (include bus reset in `before_each()`)
+- [x] T165 [P] [US1e] 📝 TEST: Write test `test_get_is_player_alive_returns_false_when_health_zero()`
+- [x] T166 [P] [US1e] 📝 TEST: Write test `test_get_is_player_alive_returns_true_when_health_positive()`
+- [x] T167 [P] [US1e] 📝 TEST: Write test `test_get_is_game_over_computes_from_objectives()`
+- [x] T168 [P] [US1e] 📝 TEST: Write test `test_selector_without_declared_dependency_logs_error()`
+- [x] T169 [US1e] 📝 RUN TESTS: Verify all US1e tests FAIL (no implementation yet)
 
 ### Implementation for User Story 1e
 
 **Dependency System:**
 
-- [ ] T170 [US1e] Update StateSliceConfig to include `dependencies: Array[StringName]` field (already present from T043)
-- [ ] T171 [US1e] Add method `validate_slice_dependencies() -> bool` to M_StateStore
-- [ ] T172 [US1e] In validate_slice_dependencies(), check if accessing slice requires declaring dependency first
-- [ ] T173 [US1e] Add dependency checking to get_state_slice(): log error if dependency not declared
+- [x] T170 [US1e] Update StateSliceConfig to include `dependencies: Array[StringName]` field (already present from T043)
+- [x] T171 [US1e] Add method `validate_slice_dependencies() -> bool` to M_StateStore
+- [x] T172 [US1e] In validate_slice_dependencies(), check if accessing slice requires declaring dependency first
+- [x] T173 [US1e] Add dependency checking to get_state_slice(): log error if dependency not declared
 
 **Gameplay Selectors:**
 
-- [ ] T174 [P] [US1e] Create `scripts/state/selectors/gameplay_selectors.gd` as class_name GameplaySelectors
-- [ ] T175 [US1e] Implement `static func get_is_player_alive(state: Dictionary) -> bool` (returns state.health > 0)
-- [ ] T176 [US1e] Implement `static func get_is_game_over(state: Dictionary) -> bool` (check objectives if present)
-- [ ] T177 [US1e] Implement `static func get_completion_percentage(state: Dictionary) -> float` (compute from objectives)
-- [ ] T178 [US1e] Add doc comments explaining: "Selectors are pure functions. Pass full state from M_StateStore.get_full_state()"
+- [x] T174 [P] [US1e] Create `scripts/state/selectors/gameplay_selectors.gd` as class_name GameplaySelectors
+- [x] T175 [US1e] Implement `static func get_is_player_alive(state: Dictionary) -> bool` (returns state.health > 0)
+- [x] T176 [US1e] Implement `static func get_is_game_over(state: Dictionary) -> bool` (check objectives if present)
+- [x] T177 [US1e] Implement `static func get_completion_percentage(state: Dictionary) -> float` (compute from objectives)
+- [x] T178 [US1e] Add doc comments explaining: "Selectors are pure functions. Pass full state from M_StateStore.get_full_state()"
 
 **Store Methods:**
 
-- [ ] T179 [US1e] Verify `get_state_slice(slice_name: StringName) -> Dictionary` exists (added in T060)
-- [ ] T180 [US1e] Verify `get_full_state() -> Dictionary` exists and returns deep copy (added in T061)
-- [ ] T181 [US1e] Update gameplay slice registration in M_StateStore._ready() to declare dependencies: [] (empty for now)
+- [x] T179 [US1e] Verify `get_state_slice(slice_name: StringName) -> Dictionary` exists (added in T060)
+- [x] T180 [US1e] Verify `get_full_state() -> Dictionary` exists and returns deep copy (added in T061)
+- [x] T181 [US1e] Update gameplay slice registration in M_StateStore._ready() to declare dependencies: [] (empty for now)
 
 **Test & Validation:**
 
-- [ ] T182 [US1e] 📝 RUN TESTS: Verify all US1e tests now PASS
-- [ ] T183 [US1e] Update test scene `scenes/debug/state_test_us1e.tscn` to call selectors via GameplaySelectors and print results
-- [ ] T184 [US1e] 🎮 IN-GAME TEST: Run test scene, verify selectors compute derived state correctly
+- [x] T182 [US1e] 📝 RUN TESTS: Verify all US1e tests now PASS
+- [x] T183 [US1e] Update test scene `scenes/debug/state_test_us1e.tscn` to call selectors via GameplaySelectors and print results
+- [x] T184 [US1e] 🎮 IN-GAME TEST: Run test scene, verify selectors compute derived state correctly
 - [ ] T185 [US1e] Commit US1e: "Add selector system with dependency declarations"
 
 **Checkpoint**: Selectors provide derived state computation with explicit cross-slice dependency management
