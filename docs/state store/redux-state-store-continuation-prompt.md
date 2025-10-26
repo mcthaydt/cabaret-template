@@ -1,12 +1,19 @@
 # Redux State Store – Continuation Guide
 
-## Project Status (2025-10-25)
+## Project Status (2025-10-26)
 
-The Redux-style centralized state store implementation is **ready for implementation**. The feature branch `redux-state-store` has comprehensive planning documentation and is waiting for development to begin.
+The Redux-style centralized state store implementation is **in progress**. The feature branch `redux-state-store` has comprehensive planning documentation and active development.
 
-**Current Status**: Planning complete (v2.0) with PRD, implementation plan, and detailed task breakdown.
+**Current Status**: Phase 1b complete (Action Registry + Gameplay Actions)
 
-**Phase 0 Decision**: **Option C - Dual-bus via abstract base** (CONFIRMED)
+**Phase 0 Decision**: **Option C - Dual-bus via abstract base** (IMPLEMENTED ✅)
+
+**Completed Phases**:
+- ✅ Phase 0C: EventBusBase architecture (commit b7fb729)
+- ✅ Phase 1a: M_StateStore skeleton + U_StateUtils (commit 46f47a4)
+- ✅ Phase 1b: ActionRegistry + U_GameplayActions (commit 5931c38)
+
+**Active Phase**: Phase 1c - Gameplay Slice Reducer Infrastructure
 
 ## Before Resuming Implementation
 
@@ -15,7 +22,16 @@ The Redux-style centralized state store implementation is **ready for implementa
    - `docs/general/DEV_PITFALLS.md` - GDScript typing, GUT patterns, common pitfalls
    - `docs/general/STYLE_GUIDE.md` - Naming conventions, file structure, code standards
 
-2. **Review state store planning material**:
+2. **CRITICAL WORKFLOW PRACTICE - TODO Tracking**:
+   - **ALWAYS call TodoWrite() at the start of each phase** to create task list
+   - **Update status in parallel with implementation**:
+     - Mark "in_progress" when starting a task
+     - Mark "completed" immediately when task finishes
+     - Update after creating each file, after tests pass, before commits
+   - **Benefits**: Real-time progress visibility, prevents context loss, enables quick resumption
+   - **Example**: `TodoWrite: Mark "Create ActionRegistry" as in_progress → Create file → TodoWrite: Mark completed`
+
+3. **Review state store planning material**:
    - `docs/state store/redux-state-store-prd.md` (v2.0) - Feature specification and requirements
    - `docs/state store/redux-state-store-implementation-plan.md` (v2.0) - Detailed implementation guide with architectural decisions
    - `docs/state store/redux-state-store-tasks.md` (v2.0) - Granular task breakdown by phase
@@ -35,35 +51,37 @@ Before starting implementation:
 
 - [x] Confirm you're on the `redux-state-store` branch
 - [x] **Phase 0 decision made: Option C (Dual-bus via abstract base)**
-- [ ] Read the Prerequisites section in the implementation plan
-- [ ] Review the Architectural Decisions (MANDATORY READING)
-- [ ] Understand the MVP strategy
+- [x] Read the Prerequisites section in the implementation plan
+- [x] Review the Architectural Decisions (MANDATORY READING)
+- [x] Understand the MVP strategy
+- [x] **Understand TODO tracking workflow** (update in parallel with work)
 
 ## Implementation Path
 
-### Phase 0: Event Bus Architecture (Option C - ACTIVE)
+### Phase 0: Event Bus Architecture (Option C - ✅ COMPLETED)
 
-**Tasks (from redux-state-store-tasks.md T026C-T031C)**:
+**Status**: Implemented in commit b7fb729
 
-1. Create directory `scripts/events/`
-2. Create `scripts/events/event_bus_base.gd` (abstract base with shared logic)
-3. Create `scripts/state/state_event_bus.gd` (state domain bus extending base)
-4. Update `scripts/ecs/ecs_event_bus.gd` to extend base (preserves existing API)
-5. Add tests for state bus isolation and reset behavior
-6. Commit Phase 0C
+**Completed**:
+1. ✅ Created directory `scripts/events/`
+2. ✅ Created `scripts/events/event_bus_base.gd` (abstract base with shared logic)
+3. ✅ Created `scripts/state/state_event_bus.gd` (state domain bus extending base)
+4. ✅ Updated `scripts/ecs/ecs_event_bus.gd` to extend base (preserves existing API)
+5. ✅ Added tests for state bus isolation and reset behavior (7/7 passing)
+6. ✅ Committed Phase 0C
 
-**Key Benefits of Option C**:
-- Zero breaking changes to existing ECS code
+**Key Benefits Achieved**:
+- Zero breaking changes to existing ECS code (62/62 ECS tests still pass)
 - Isolated domains (ECS vs State) with separate subscribers/histories
-- Shared implementation in `EventBusBase`
+- Shared implementation in `EventBusBase` with lazy initialization
 - Clean test isolation: `StateStoreEventBus.reset()` vs `ECSEventBus.reset()`
 
 ### Phase 1: User Story 1 (Core Gameplay Slice) - 8 Micro-stories
 
 After Phase 0 completes, implement these sequentially:
 
-1. **Phase 1a**: Core M_StateStore Skeleton with U_StateUtils
-2. **Phase 1b**: Action Registry with StringName Validation
+1. **Phase 1a**: Core M_StateStore Skeleton with U_StateUtils ✅ COMPLETED (commit 46f47a4)
+2. **Phase 1b**: Action Registry with StringName Validation ✅ COMPLETED (commit 5931c38)
 3. **Phase 1c**: Gameplay Slice Reducer Infrastructure
 4. **Phase 1d**: Type-Safe Action Creators
 5. **Phase 1e**: Selector System with Cross-Slice Dependencies
