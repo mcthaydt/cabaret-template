@@ -43,6 +43,7 @@ func test_validate_slice_dependencies_returns_false_for_invalid_dependency() -> 
 	store.register_slice(config)
 	
 	var result := store.validate_slice_dependencies()
+	assert_push_error("declares dependency on unregistered slice")
 	assert_false(result, "Should return false when dependency doesn't exist")
 
 ## Test that get_slice logs error when accessing undeclared dependency
@@ -60,6 +61,7 @@ func test_get_slice_logs_error_for_undeclared_dependency() -> void:
 	
 	# Access slice_a from slice_b context (should log error)
 	var _state := store.get_slice(StringName("slice_a"), StringName("slice_b"))
+	assert_push_error("without declaring dependency")
 	
 	# The error is logged via push_error, we just verify no crash
 	pass_test("get_slice should log error but not crash")

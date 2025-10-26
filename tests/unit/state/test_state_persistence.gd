@@ -110,6 +110,8 @@ func test_transient_fields_excluded_from_save() -> void:
 	assert_eq(test_slice.get("persistent_value"), 100, "Persistent value should match")
 
 func test_godot_types_serialize_and_deserialize_correctly() -> void:
+	gut.p("Expect warning: No settings assigned, using defaults")
+	
 	# Create a test slice with various Godot types
 	var config := StateSliceConfig.new(StringName("types_slice"))
 	config.initial_state = {
@@ -182,10 +184,10 @@ func test_godot_types_serialize_and_deserialize_correctly() -> void:
 
 func test_load_nonexistent_file_returns_error() -> void:
 	var result: Error = store.load_state("user://nonexistent_file.json")
-	
+	assert_push_error("File does not exist")
 	assert_ne(result, OK, "Loading nonexistent file should return error")
 
 func test_save_to_invalid_path_returns_error() -> void:
 	var result: Error = store.save_state("/invalid/path/that/does/not/exist/file.json")
-	
+	assert_push_error("Failed to open file for writing")
 	assert_ne(result, OK, "Saving to invalid path should return error")

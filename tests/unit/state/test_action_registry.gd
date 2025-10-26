@@ -37,16 +37,18 @@ func test_validate_action_rejects_unregistered_type() -> void:
 	assert_false(ActionRegistry.validate_action(action), "Unregistered action should fail validation")
 
 func test_validate_action_rejects_missing_type() -> void:
-	gut.p("Expect error: Action missing 'type' field")
 	var action: Dictionary = {"payload": "no type"}
 	
-	assert_false(ActionRegistry.validate_action(action), "Action without type should fail validation")
+	var result := ActionRegistry.validate_action(action)
+	assert_push_error("Action missing 'type' field")
+	assert_false(result, "Action without type should fail validation")
 
 func test_validate_action_rejects_empty_type() -> void:
-	gut.p("Expect error: Action type is empty")
 	var action: Dictionary = {"type": StringName(), "payload": null}
 	
-	assert_false(ActionRegistry.validate_action(action), "Action with empty type should fail validation")
+	var result := ActionRegistry.validate_action(action)
+	assert_push_error("Action type is empty")
+	assert_false(result, "Action with empty type should fail validation")
 
 func test_get_registered_actions_returns_all_types() -> void:
 	var existing_count := ActionRegistry.get_registered_actions().size()
@@ -93,7 +95,6 @@ func test_validate_with_schema_accepts_valid_payload() -> void:
 	assert_true(ActionRegistry.validate_action(action), "Action with valid payload should pass")
 
 func test_validate_with_schema_rejects_missing_field() -> void:
-	gut.p("Expect error: Missing required payload field")
 	var action_type := StringName("test/with_schema")
 	var schema: Dictionary = {"required_fields": ["name", "value"]}
 	
@@ -104,13 +105,15 @@ func test_validate_with_schema_rejects_missing_field() -> void:
 		"payload": {"name": "test"}  # Missing 'value'
 	}
 	
-	assert_false(ActionRegistry.validate_action(action), "Action missing required field should fail")
+	var result := ActionRegistry.validate_action(action)
+	assert_push_error("Missing required payload field")
+	assert_false(result, "Action missing required field should fail")
 
 func test_register_action_with_empty_type_errors() -> void:
-	gut.p("Expect error: action_type is empty")
 	var before_count := ActionRegistry.get_registered_actions().size()
 	
 	ActionRegistry.register_action(StringName())
+	assert_push_error("action_type is empty")
 	
 	# Should not register - count should not increase
 	var after_count := ActionRegistry.get_registered_actions().size()

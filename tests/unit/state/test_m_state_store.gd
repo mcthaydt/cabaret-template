@@ -154,6 +154,7 @@ func test_register_slice_adds_to_state() -> void:
 
 func test_settings_defaults_when_null() -> void:
 	gut.p("Expect warning: No settings assigned, using defaults")
+	
 	var store_no_settings := M_StateStore.new()
 	add_child(store_no_settings)
 	await get_tree().process_frame
@@ -319,6 +320,8 @@ func test_history_includes_state_after_snapshot() -> void:
 	assert_eq(current_state["gameplay"]["health"], 75, "Current state should show health=75")
 
 func test_history_respects_project_setting_state_debug_history_size() -> void:
+	gut.p("Expect warning: No settings assigned, using defaults")
+	
 	# Create a store that should read from project settings
 	# We'll create a custom store and set the project setting
 	var original_setting: Variant = null

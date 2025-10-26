@@ -23,18 +23,16 @@ func test_get_store_finds_store_in_tree() -> void:
 	assert_eq(found_store, store, "Should return the correct store")
 
 func test_get_store_errors_if_no_store() -> void:
-	gut.p("Expect error: No M_StateStore in 'state_store' group")
 	store.queue_free()
 	await get_tree().process_frame
 
 	var found_store: M_StateStore = U_StateUtils.get_store(self)
-
+	assert_push_error("No M_StateStore")
 	assert_null(found_store, "Should return null if no store")
 
 func test_get_store_errors_if_node_invalid() -> void:
-	gut.p("Expect error: Invalid node")
 	var found_store: M_StateStore = U_StateUtils.get_store(null)
-
+	assert_push_error("Invalid node")
 	assert_null(found_store, "Should return null for invalid node")
 
 func test_benchmark_measures_time() -> void:

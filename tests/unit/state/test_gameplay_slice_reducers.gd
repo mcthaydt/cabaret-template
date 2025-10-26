@@ -3,12 +3,15 @@ extends GutTest
 ## Tests for GameplayReducer pure functions
 
 const StateStoreEventBus := preload("res://scripts/state/state_event_bus.gd")
+const StateHandoff := preload("res://scripts/state/state_handoff.gd")
 
 func before_each() -> void:
 	StateStoreEventBus.reset()
+	StateHandoff.clear_all()  # Clear any state from previous tests
 
 func after_each() -> void:
 	StateStoreEventBus.reset()
+	StateHandoff.clear_all()
 
 ## Test that reducer is a pure function (same inputs = same outputs)
 func test_reducer_is_pure_function() -> void:
@@ -74,6 +77,8 @@ func test_pause_unpause_toggle_sequence() -> void:
 
 ## Test initial state loads from resource
 func test_initial_state_loads_from_resource() -> void:
+	gut.p("Expect warning: No settings assigned, using defaults")
+	
 	var store := M_StateStore.new()
 	
 	# Create and assign initial state
