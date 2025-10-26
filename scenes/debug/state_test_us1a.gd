@@ -28,6 +28,8 @@ func _ready() -> void:
 		print("✓ PASS: Subscriber received action: ", action.get("type"))
 	)
 	
+	print("Subscriber registered, unsubscribe callable valid:", unsubscribe.is_valid())
+	
 	# Test 3: Dispatch test action
 	var test_action := {
 		"type": StringName("test/action"),
@@ -36,8 +38,16 @@ func _ready() -> void:
 	
 	# Register test action to avoid validation errors
 	ActionRegistry.register_action(StringName("test/action"), {})
+	print("Action registered, is_registered:", ActionRegistry.is_registered(StringName("test/action")))
 	
+	# Connect to validation_failed signal to see if validation fails
+	store.validation_failed.connect(func(action: Dictionary, error: String) -> void:
+		push_error("Action validation failed: ", error)
+	)
+	
+	print("Dispatching action:", test_action)
 	store.dispatch(test_action)
+	print("After dispatch, action_received:", action_received)
 	
 	# Verify dispatch worked
 	if action_received.is_empty():
