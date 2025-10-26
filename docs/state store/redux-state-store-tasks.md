@@ -59,13 +59,13 @@ This is a Godot 4.5 project with the following structure:
 
 ### Directory Structure
 
-- [ ] T001 [P] Create directory `scripts/state/` for core state files
+- [x] T001 [P] Create directory `scripts/state/` for core state files
 - [ ] T002 [P] Create directory `scripts/state/reducers/` for reducer functions
 - [ ] T003 [P] Create directory `scripts/state/selectors/` for selector utilities
-- [ ] T004 [P] Create directory `scripts/state/resources/` for Resource class scripts
-- [ ] T005 [P] Create directory `resources/state/` for .tres resource files
+- [x] T004 [P] Create directory `scripts/state/resources/` for Resource class scripts
+- [x] T005 [P] Create directory `resources/state/` for .tres resource files
 - [ ] T006 [P] Create directory `scenes/debug/` for debug overlay scenes
-- [ ] T007 [P] Create directory `tests/unit/state/` for state unit tests
+- [x] T007 [P] Create directory `tests/unit/state/` for state unit tests
 - [ ] T008 [P] Create directory `tests/unit/state/integration/` for integration tests
 
 ### Project Settings Configuration
@@ -158,47 +158,47 @@ func after_each():
     store = null
 ```
 
-- [ ] T035 [P] [US1a] 📝 TEST: Create `tests/unit/state/test_m_state_store.gd` extending GutTest with test template above
-- [ ] T036 [P] [US1a] 📝 TEST: Write test `test_store_instantiates_as_node()` - verify M_StateStore extends Node
-- [ ] T037 [P] [US1a] 📝 TEST: Write test `test_store_adds_to_state_store_group()` - verify group membership
-- [ ] T038 [P] [US1a] 📝 TEST: Write test `test_dispatch_notifies_subscribers()` - verify callback receives action
-- [ ] T039 [P] [US1a] 📝 TEST: Write test `test_dispatch_emits_action_dispatched_signal()` - verify signal emission
-- [ ] T040 [P] [US1a] 📝 TEST: Write test `test_dispatch_rejects_action_without_type()` - verify validation
-- [ ] T041 [P] [US1a] 📝 TEST: Write test `test_u_state_utils_finds_store_by_group()` - verify U_StateUtils.get_store()
-- [ ] T042 [US1a] 📝 RUN TESTS: Verify all US1a tests FAIL (no implementation yet)
+- [x] T035 [P] [US1a] 📝 TEST: Create `tests/unit/state/test_m_state_store.gd` extending GutTest with test template above
+- [x] T036 [P] [US1a] 📝 TEST: Write test `test_store_instantiates_as_node()` - verify M_StateStore extends Node
+- [x] T037 [P] [US1a] 📝 TEST: Write test `test_store_adds_to_state_store_group()` - verify group membership
+- [x] T038 [P] [US1a] 📝 TEST: Write test `test_dispatch_notifies_subscribers()` - verify callback receives action
+- [x] T039 [P] [US1a] 📝 TEST: Write test `test_dispatch_emits_action_dispatched_signal()` - verify signal emission
+- [x] T040 [P] [US1a] 📝 TEST: Write test `test_dispatch_rejects_action_without_type()` - verify validation
+- [x] T041 [P] [US1a] 📝 TEST: Write test `test_u_state_utils_finds_store_by_group()` - verify U_StateUtils.get_store()
+- [x] T042 [US1a] 📝 RUN TESTS: Verify all US1a tests FAIL (no implementation yet)
 
 ### Implementation for User Story 1a
 
 **Core Store Infrastructure:**
 
-- [ ] T043 [P] [US1a] Create `scripts/state/state_slice_config.gd` with structure: slice_name (StringName), reducer (Callable), initial_state (Dictionary), dependencies (Array[StringName]), transient_fields (Array[StringName])
-- [ ] T044 [P] [US1a] Create `scripts/state/resources/rs_state_store_settings.gd` extending Resource
-- [ ] T045 [US1a] Add @export properties to RS_StateStoreSettings: max_history_size (int, default 1000), enable_debug (bool), enable_time_travel (bool), performance_monitoring (bool)
-- [ ] T046 [US1a] Add method `to_dictionary() -> Dictionary` to RS_StateStoreSettings for serialization
-- [ ] T047 [US1a] Create default resource `resources/state/default_state_store_settings.tres` with defaults
-- [ ] T048 [US1a] Create `scripts/state/m_state_store.gd` extending Node with class_name M_StateStore
+- [x] T043 [P] [US1a] Create `scripts/state/state_slice_config.gd` with structure: slice_name (StringName), reducer (Callable), initial_state (Dictionary), dependencies (Array[StringName]), transient_fields (Array[StringName])
+- [x] T044 [P] [US1a] Create `scripts/state/resources/rs_state_store_settings.gd` extending Resource
+- [x] T045 [US1a] Add @export properties to RS_StateStoreSettings: max_history_size (int, default 1000), enable_debug (bool), enable_time_travel (bool), performance_monitoring (bool)
+- [x] T046 [US1a] Add method `to_dictionary() -> Dictionary` to RS_StateStoreSettings for serialization
+- [x] T047 [US1a] Create default resource `resources/state/default_state_store_settings.tres` with defaults
+- [x] T048 [US1a] Create `scripts/state/m_state_store.gd` extending Node with class_name M_StateStore
 - [ ] T049 [US1a] Add @icon annotation: `@icon("res://resources/editor_icons/state_store.svg")` (create icon later if needed)
-- [ ] T050 [US1a] Add @export to M_StateStore: `@export var settings: RS_StateStoreSettings`
-- [ ] T051 [US1a] Add signals to M_StateStore: `state_changed(action: Dictionary, new_state: Dictionary)`, `slice_updated(slice_name: StringName, slice_state: Dictionary)`, `action_dispatched(action: Dictionary)`, `validation_failed(action: Dictionary, error: String)`
-- [ ] T052 [US1a] Add private vars to M_StateStore: `_state: Dictionary = {}`, `_subscribers: Array[Callable] = []`, `_slice_configs: Dictionary = {}` (slice_name -> StateSliceConfig)
-- [ ] T053 [US1a] Implement `_ready()` in M_StateStore: add_to_group("state_store"), validate settings exist
-- [ ] T054 [US1a] Implement `dispatch(action: Dictionary) -> void` with basic action.type validation
-- [ ] T055 [US1a] Implement `subscribe(callback: Callable) -> void` to add callback to _subscribers array
-- [ ] T056 [US1a] Implement `unsubscribe(callback: Callable) -> void` to remove callback from _subscribers array
-- [ ] T057 [US1a] Add validation in dispatch(): check action.has("type"), emit validation_failed if missing
-- [ ] T058 [US1a] Add subscriber notification in dispatch(): call each subscriber with action
-- [ ] T059 [US1a] Add method `register_slice(config: StateSliceConfig) -> void` for slice registration
-- [ ] T060 [US1a] Add method `get_state_slice(slice_name: StringName) -> Dictionary` returning deep copy
-- [ ] T061 [US1a] Add method `get_full_state() -> Dictionary` returning deep copy of all slices
+- [x] T050 [US1a] Add @export to M_StateStore: `@export var settings: RS_StateStoreSettings`
+- [x] T051 [US1a] Add signals to M_StateStore: `state_changed(action: Dictionary, new_state: Dictionary)`, `slice_updated(slice_name: StringName, slice_state: Dictionary)`, `action_dispatched(action: Dictionary)`, `validation_failed(action: Dictionary, error: String)`
+- [x] T052 [US1a] Add private vars to M_StateStore: `_state: Dictionary = {}`, `_subscribers: Array[Callable] = []`, `_slice_configs: Dictionary = {}` (slice_name -> StateSliceConfig)
+- [x] T053 [US1a] Implement `_ready()` in M_StateStore: add_to_group("state_store"), validate settings exist
+- [x] T054 [US1a] Implement `dispatch(action: Dictionary) -> void` with basic action.type validation
+- [x] T055 [US1a] Implement `subscribe(callback: Callable) -> void` to add callback to _subscribers array
+- [x] T056 [US1a] Implement `unsubscribe(callback: Callable) -> void` to remove callback from _subscribers array
+- [x] T057 [US1a] Add validation in dispatch(): check action.has("type"), emit validation_failed if missing
+- [x] T058 [US1a] Add subscriber notification in dispatch(): call each subscriber with action
+- [x] T059 [US1a] Add method `register_slice(config: StateSliceConfig) -> void` for slice registration
+- [x] T060 [US1a] Add method `get_state_slice(slice_name: StringName) -> Dictionary` returning deep copy
+- [x] T061 [US1a] Add method `get_full_state() -> Dictionary` returning deep copy of all slices
 
 **U_StateUtils Helper (Critical for Global Access):**
 
-- [ ] T062 [P] [US1a] Create `scripts/state/u_state_utils.gd` with class_name U_StateUtils
-- [ ] T063 [US1a] Implement `static func get_store(node: Node) -> M_StateStore` using get_tree().get_nodes_in_group("state_store") pattern
-- [ ] T064 [US1a] Add null/validation checks in get_store(): verify node valid, tree exists, group not empty
-- [ ] T065 [US1a] Add warning if multiple stores found in group (unexpected state)
-- [ ] T066 [US1a] Implement `static func benchmark(name: String, callable: Callable) -> float` using Time.get_ticks_usec() for performance profiling
-- [ ] T067 [US1a] Add debug print in benchmark() if OS.is_debug_build() to log timing
+- [x] T062 [P] [US1a] Create `scripts/state/u_state_utils.gd` with class_name U_StateUtils
+- [x] T063 [US1a] Implement `static func get_store(node: Node) -> M_StateStore` using get_tree().get_nodes_in_group("state_store") pattern
+- [x] T064 [US1a] Add null/validation checks in get_store(): verify node valid, tree exists, group not empty
+- [x] T065 [US1a] Add warning if multiple stores found in group (unexpected state)
+- [x] T066 [US1a] Implement `static func benchmark(name: String, callable: Callable) -> float` using Time.get_ticks_usec() for performance profiling
+- [x] T067 [US1a] Add debug print in benchmark() if OS.is_debug_build() to log timing
 
 **Subscriber Lifecycle Documentation:**
 
@@ -207,23 +207,23 @@ func after_each():
 
 **Test Execution:**
 
-- [ ] T070 [US1a] 📝 RUN TESTS: Verify all US1a tests now PASS
+- [x] T070 [US1a] 📝 RUN TESTS: Verify all US1a tests now PASS
 - [ ] T071 [US1a] Create test scene `scenes/debug/state_test_us1a.tscn` with M_StateStore node
 - [ ] T072 [US1a] Add script to test scene that dispatches test action on _ready() and prints result via U_StateUtils
 - [ ] T073 [US1a] 🎮 IN-GAME TEST: Run test scene, verify console shows action dispatch without errors
 
 **Scene Template Integration (Moved from later phase):**
 
-- [ ] T074 [US1a] Open `templates/base_scene_template.tscn` in Godot editor
-- [ ] T075 [US1a] Find existing `Managers/` node (should contain M_ECSManager)
-- [ ] T076 [US1a] Add M_StateStore as child of Managers/ node (parallel to M_ECSManager)
-- [ ] T077 [US1a] Link RS_StateStoreSettings to M_StateStore's settings export in scene template
-- [ ] T078 [US1a] Save scene template
-- [ ] T079 [US1a] Test base scene template: Run template scene, verify M_StateStore initializes without errors
+- [x] T074 [US1a] Open `templates/base_scene_template.tscn` in Godot editor
+- [x] T075 [US1a] Find existing `Managers/` node (should contain M_ECSManager)
+- [x] T076 [US1a] Add M_StateStore as child of Managers/ node (parallel to M_ECSManager)
+- [x] T077 [US1a] Link RS_StateStoreSettings to M_StateStore's settings export in scene template
+- [x] T078 [US1a] Save scene template
+- [x] T079 [US1a] Test base scene template: Run template scene, verify M_StateStore initializes without errors
 
 **Commit:**
 
-- [ ] T080 [US1a] Commit US1a: "Add core M_StateStore skeleton with U_StateUtils, RS_StateStoreSettings, and scene integration"
+- [x] T080 [US1a] Commit US1a: "Add core M_StateStore skeleton with U_StateUtils, RS_StateStoreSettings, and scene integration"
 
 **Checkpoint**: M_StateStore can be instantiated, accessed via U_StateUtils, accepts subscriptions, and dispatches actions
 
@@ -239,45 +239,45 @@ func after_each():
 
 **⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests (use `ECSEventBus.reset()` in ECS tests)
 
-- [ ] T081 [P] [US1b] 📝 TEST: Create `tests/unit/state/test_action_registry.gd` (include bus reset in `before_each()`)
-- [ ] T082 [P] [US1b] 📝 TEST: Write test `test_register_action_type_adds_to_registry()`
-- [ ] T083 [P] [US1b] 📝 TEST: Write test `test_validate_action_accepts_registered_type()`
-- [ ] T084 [P] [US1b] 📝 TEST: Write test `test_validate_action_rejects_unregistered_type()`
-- [ ] T085 [P] [US1b] 📝 TEST: Create `tests/unit/state/test_u_gameplay_actions.gd` (include bus reset in `before_each()`)
-- [ ] T086 [P] [US1b] 📝 TEST: Write test `test_pause_game_action_creator_returns_correct_structure()`
-- [ ] T087 [P] [US1b] 📝 TEST: Write test `test_action_type_is_string_name_not_string()`
-- [ ] T088 [US1b] 📝 RUN TESTS: Verify all US1b tests FAIL (no implementation yet)
+- [x] T081 [P] [US1b] 📝 TEST: Create `tests/unit/state/test_action_registry.gd` (include bus reset in `before_each()`)
+- [x] T082 [P] [US1b] 📝 TEST: Write test `test_register_action_type_adds_to_registry()`
+- [x] T083 [P] [US1b] 📝 TEST: Write test `test_validate_action_accepts_registered_type()`
+- [x] T084 [P] [US1b] 📝 TEST: Write test `test_validate_action_rejects_unregistered_type()`
+- [x] T085 [P] [US1b] 📝 TEST: Create `tests/unit/state/test_u_gameplay_actions.gd` (include bus reset in `before_each()`)
+- [x] T086 [P] [US1b] 📝 TEST: Write test `test_pause_game_action_creator_returns_correct_structure()`
+- [x] T087 [P] [US1b] 📝 TEST: Write test `test_action_type_is_string_name_not_string()`
+- [x] T088 [US1b] 📝 RUN TESTS: Verify all US1b tests FAIL (no implementation yet)
 
 ### Implementation for User Story 1b
 
 **ActionRegistry (Static Class with Static Initializer):**
 
-- [ ] T089 [P] [US1b] Create `scripts/state/action_registry.gd` as class_name ActionRegistry
-- [ ] T090 [US1b] Add static var `_registered_actions: Dictionary = {}` (action_type -> schema)
-- [ ] T091 [US1b] Implement `static func register_action(action_type: StringName, schema: Dictionary) -> void`
-- [ ] T092 [US1b] Implement `static func is_registered(action_type: StringName) -> bool`
-- [ ] T093 [US1b] Implement `static func validate_action(action: Dictionary) -> bool` with schema checking
-- [ ] T094 [US1b] Add `static func get_registered_actions() -> Array[StringName]` for debugging
-- [ ] T095 [US1b] Add doc comment clarifying: "ActionRegistry is a static class. Actions registered at static initialization time or in M_StateStore._ready()"
+- [x] T089 [P] [US1b] Create `scripts/state/action_registry.gd` as class_name ActionRegistry
+- [x] T090 [US1b] Add static var `_registered_actions: Dictionary = {}` (action_type -> schema)
+- [x] T091 [US1b] Implement `static func register_action(action_type: StringName, schema: Dictionary) -> void`
+- [x] T092 [US1b] Implement `static func is_registered(action_type: StringName) -> bool`
+- [x] T093 [US1b] Implement `static func validate_action(action: Dictionary) -> bool` with schema checking
+- [x] T094 [US1b] Add `static func get_registered_actions() -> Array[StringName]` for debugging
+- [x] T095 [US1b] Add doc comment clarifying: "ActionRegistry is a static class. Actions registered at static initialization time or in M_StateStore._ready()"
 
 **Gameplay Action Creators:**
 
-- [ ] T096 [P] [US1b] Create `scripts/state/u_gameplay_actions.gd` as class_name U_GameplayActions
-- [ ] T097 [US1b] Add StringName constants: `const ACTION_PAUSE_GAME := StringName("gameplay/pause")`, `const ACTION_UNPAUSE_GAME := StringName("gameplay/unpause")`
-- [ ] T098 [US1b] Implement `static func pause_game() -> Dictionary` returning {"type": ACTION_PAUSE_GAME, "payload": null}
-- [ ] T099 [US1b] Implement `static func unpause_game() -> Dictionary` returning {"type": ACTION_UNPAUSE_GAME, "payload": null}
-- [ ] T100 [US1b] Add explicit type annotation `: Dictionary` to all action creator return values
-- [ ] T101 [US1b] Add static initializer `static func _static_init():` that registers actions with ActionRegistry
-- [ ] T102 [US1b] In _static_init(), call ActionRegistry.register_action() for PAUSE and UNPAUSE
+- [x] T096 [P] [US1b] Create `scripts/state/u_gameplay_actions.gd` as class_name U_GameplayActions
+- [x] T097 [US1b] Add StringName constants: `const ACTION_PAUSE_GAME := StringName("gameplay/pause")`, `const ACTION_UNPAUSE_GAME := StringName("gameplay/unpause")`
+- [x] T098 [US1b] Implement `static func pause_game() -> Dictionary` returning {"type": ACTION_PAUSE_GAME, "payload": null}
+- [x] T099 [US1b] Implement `static func unpause_game() -> Dictionary` returning {"type": ACTION_UNPAUSE_GAME, "payload": null}
+- [x] T100 [US1b] Add explicit type annotation `: Dictionary` to all action creator return values
+- [x] T101 [US1b] Add static initializer `static func _static_init():` that registers actions with ActionRegistry
+- [x] T102 [US1b] In _static_init(), call ActionRegistry.register_action() for PAUSE and UNPAUSE
 
 **Store Integration:**
 
-- [ ] T103 [US1b] Update M_StateStore.dispatch() to call ActionRegistry.validate_action() before processing
-- [ ] T104 [US1b] In dispatch(), if validation fails, emit validation_failed signal with error details
-- [ ] T105 [US1b] 📝 RUN TESTS: Verify all US1b tests now PASS
+- [x] T103 [US1b] Update M_StateStore.dispatch() to call ActionRegistry.validate_action() before processing
+- [x] T104 [US1b] In dispatch(), if validation fails, emit validation_failed signal with error details
+- [x] T105 [US1b] 📝 RUN TESTS: Verify all US1b tests now PASS
 - [ ] T106 [US1b] Update test scene `scenes/debug/state_test_us1b.tscn` to dispatch U_GameplayActions.pause_game()
 - [ ] T107 [US1b] 🎮 IN-GAME TEST: Run test scene, verify validation works, invalid actions are rejected with error
-- [ ] T108 [US1b] Commit US1b: "Add action registry with StringName validation and static registration"
+- [x] T108 [US1b] Commit US1b: "Add action registry with StringName validation and static registration"
 
 **Checkpoint**: Actions are validated against registry, action creators ensure type safety, registry self-initializes
 
@@ -293,42 +293,42 @@ func after_each():
 
 **⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests
 
-- [ ] T109 [P] [US1c] 📝 TEST: Create `tests/unit/state/test_gameplay_slice_reducers.gd` (include bus reset in `before_each()`)
-- [ ] T110 [P] [US1c] 📝 TEST: Write test `test_reducer_is_pure_function()` - same input produces same output
-- [ ] T111 [P] [US1c] 📝 TEST: Write test `test_reducer_does_not_mutate_original_state()` - verify immutability
-- [ ] T112 [P] [US1c] 📝 TEST: Write test `test_pause_action_sets_paused_to_true()`
-- [ ] T113 [P] [US1c] 📝 TEST: Write test `test_unpause_action_sets_paused_to_false()`
-- [ ] T114 [P] [US1c] 📝 TEST: Write test `test_initial_state_loads_from_resource()`
-- [ ] T115 [US1c] 📝 RUN TESTS: Verify all US1c tests FAIL (no implementation yet)
+- [x] T109 [P] [US1c] 📝 TEST: Create `tests/unit/state/test_gameplay_slice_reducers.gd` (include bus reset in `before_each()`)
+- [x] T110 [P] [US1c] 📝 TEST: Write test `test_reducer_is_pure_function()` - same input produces same output
+- [x] T111 [P] [US1c] 📝 TEST: Write test `test_reducer_does_not_mutate_original_state()` - verify immutability
+- [x] T112 [P] [US1c] 📝 TEST: Write test `test_pause_action_sets_paused_to_true()`
+- [x] T113 [P] [US1c] 📝 TEST: Write test `test_unpause_action_sets_paused_to_false()`
+- [x] T114 [P] [US1c] 📝 TEST: Write test `test_initial_state_loads_from_resource()`
+- [x] T115 [US1c] 📝 RUN TESTS: Verify all US1c tests FAIL (no implementation yet)
 
 ### Implementation for User Story 1c
 
 **Initial State Resource:**
 
-- [ ] T116 [P] [US1c] Create `scripts/state/resources/rs_gameplay_initial_state.gd` extending Resource with class_name RS_GameplayInitialState
-- [ ] T117 [US1c] Add @export properties: paused (bool, default false), health (int, default 100), score (int, default 0), level (int, default 1)
-- [ ] T118 [US1c] Add `func to_dictionary() -> Dictionary` method returning all @export properties as Dictionary
-- [ ] T119 [US1c] Create default resource file `resources/state/default_gameplay_initial_state.tres`
-- [ ] T120 [US1c] Set default values in .tres via Godot editor: paused=false, health=100, score=0, level=1
+- [x] T116 [P] [US1c] Create `scripts/state/resources/rs_gameplay_initial_state.gd` extending Resource with class_name RS_GameplayInitialState
+- [x] T117 [US1c] Add @export properties: paused (bool, default false), health (int, default 100), score (int, default 0), level (int, default 1)
+- [x] T118 [US1c] Add `func to_dictionary() -> Dictionary` method returning all @export properties as Dictionary
+- [x] T119 [US1c] Create default resource file `resources/state/default_gameplay_initial_state.tres`
+- [x] T120 [US1c] Set default values in .tres via Godot editor: paused=false, health=100, score=0, level=1
 
 **Gameplay Reducer:**
 
-- [ ] T121 [P] [US1c] Create `scripts/state/reducers/gameplay_reducer.gd` as class_name GameplayReducer
-- [ ] T122 [US1c] Implement `static func reduce(state: Dictionary, action: Dictionary) -> Dictionary`
-- [ ] T123 [US1c] Add match statement on action.type with case U_GameplayActions.ACTION_PAUSE_GAME
-- [ ] T124 [US1c] In PAUSE case: `var new_state = state.duplicate(true); new_state.paused = true; return new_state`
-- [ ] T125 [US1c] Add case U_GameplayActions.ACTION_UNPAUSE_GAME with paused=false
-- [ ] T126 [US1c] Add default case: `return state` (no change for unknown actions)
-- [ ] T127 [US1c] Add doc comment: "All reducers are pure functions. NEVER mutate state directly. Always use .duplicate(true)."
+- [x] T121 [P] [US1c] Create `scripts/state/reducers/gameplay_reducer.gd` as class_name GameplayReducer
+- [x] T122 [US1c] Implement `static func reduce(state: Dictionary, action: Dictionary) -> Dictionary`
+- [x] T123 [US1c] Add match statement on action.type with case U_GameplayActions.ACTION_PAUSE_GAME
+- [x] T124 [US1c] In PAUSE case: `var new_state = state.duplicate(true); new_state.paused = true; return new_state`
+- [x] T125 [US1c] Add case U_GameplayActions.ACTION_UNPAUSE_GAME with paused=false
+- [x] T126 [US1c] Add default case: `return state` (no change for unknown actions)
+- [x] T127 [US1c] Add doc comment: "All reducers are pure functions. NEVER mutate state directly. Always use .duplicate(true)."
 
 **Store Integration:**
 
-- [ ] T128 [US1c] Update StateSliceConfig to include `reducer: Callable` field
-- [ ] T129 [US1c] Add `@export var gameplay_initial_state: RS_GameplayInitialState` to M_StateStore
-- [ ] T130 [US1c] Update M_StateStore._ready() to register gameplay slice using register_slice()
-- [ ] T131 [US1c] In _ready(), create StateSliceConfig for gameplay with: slice_name="gameplay", reducer=GameplayReducer.reduce, initial_state=gameplay_initial_state.to_dictionary()
-- [ ] T132 [US1c] Update M_StateStore.dispatch() to look up slice config, call reducer with current state and action
-- [ ] T133 [US1c] In dispatch(), store new state returned by reducer using .duplicate(true)
+- [x] T128 [US1c] Update StateSliceConfig to include `reducer: Callable` field
+- [x] T129 [US1c] Add `@export var gameplay_initial_state: RS_GameplayInitialState` to M_StateStore
+- [x] T130 [US1c] Update M_StateStore._ready() to register gameplay slice using register_slice()
+- [x] T131 [US1c] In _ready(), create StateSliceConfig for gameplay with: slice_name="gameplay", reducer=GameplayReducer.reduce, initial_state=gameplay_initial_state.to_dictionary()
+- [x] T132 [US1c] Update M_StateStore.dispatch() to look up slice config, call reducer with current state and action
+- [x] T133 [US1c] In dispatch(), store new state returned by reducer using .duplicate(true)
 - [ ] T134 [US1c] Add circular dependency validation in register_slice(): build dependency graph, detect cycles with DFS, push_error() if cycle found
 
 **Slice Registration Flow Documentation:**
@@ -338,10 +338,10 @@ func after_each():
 
 **Test & Validation:**
 
-- [ ] T137 [US1c] 📝 RUN TESTS: Verify all US1c tests now PASS
+- [x] T137 [US1c] 📝 RUN TESTS: Verify all US1c tests now PASS
 - [ ] T138 [US1c] Update test scene `scenes/debug/state_test_us1c.tscn` to dispatch pause/unpause and print state
 - [ ] T139 [US1c] 🎮 IN-GAME TEST: Run test scene, verify state.paused toggles correctly, old state never mutates
-- [ ] T140 [US1c] Commit US1c: "Add gameplay reducer with immutable state updates and circular dependency validation"
+- [x] T140 [US1c] Commit US1c: "Add gameplay reducer with immutable state updates and circular dependency validation"
 
 **Checkpoint**: Reducers can process actions and update state immutably from initial resource state, with cycle detection
 
@@ -1137,9 +1137,9 @@ From PRD, feature is complete when:
 
 **Approach**: Add a shared abstract base and two concrete buses (ECS + State) without breaking existing ECS API
 
-- [ ] T026C [Phase0-C] Create directory `scripts/events/`
-- [ ] T027C [Phase0-C] Create `scripts/events/event_bus_base.gd` (abstract) with subscribe/unsubscribe/publish/reset/history and defensive payload duplication
-- [ ] T028C [Phase0-C] Create `scripts/state/state_event_bus.gd` that extends base and exposes static API delegating to a private instance
-- [ ] T029C [Phase0-C] Update `scripts/ecs/ecs_event_bus.gd` to extend base and delegate its static API to a private instance (no external API changes)
-- [ ] T030C [Phase0-C] 📝 TEST: Add `tests/unit/state/test_state_event_bus.gd` to verify isolation and reset behavior
-- [ ] T031C [Phase0-C] Commit Phase 0C: "Add EventBusBase and StateStoreEventBus; delegate ECSEventBus to base"
+- [x] T026C [Phase0-C] Create directory `scripts/events/`
+- [x] T027C [Phase0-C] Create `scripts/events/event_bus_base.gd` (abstract) with subscribe/unsubscribe/publish/reset/history and defensive payload duplication
+- [x] T028C [Phase0-C] Create `scripts/state/state_event_bus.gd` that extends base and exposes static API delegating to a private instance
+- [x] T029C [Phase0-C] Update `scripts/ecs/ecs_event_bus.gd` to extend base and delegate its static API to a private instance (no external API changes)
+- [x] T030C [Phase0-C] 📝 TEST: Add `tests/unit/state/test_state_event_bus.gd` to verify isolation and reset behavior
+- [x] T031C [Phase0-C] Commit Phase 0C: "Add EventBusBase and StateStoreEventBus; delegate ECSEventBus to base"
