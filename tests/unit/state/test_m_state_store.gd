@@ -185,6 +185,7 @@ func test_multiple_dispatches_emit_single_slice_updated_signal_per_frame() -> vo
 	
 	# Wait for physics frame to flush batched signals
 	await get_tree().physics_frame
+	await get_tree().process_frame  # Ensure signal emission completes
 	
 	# Should have emitted exactly once per slice despite 10 dispatches
 	assert_eq(slice_updated_count, 1, "Should emit only 1 signal per slice per frame")
