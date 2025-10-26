@@ -34,6 +34,11 @@ func _ready() -> void:
 	add_to_group("state_store")
 	_initialize_settings()
 	_initialize_slices()
+	
+	# Validate all slice dependencies after registration
+	if not validate_slice_dependencies():
+		push_warning("M_StateStore: Some slice dependencies are invalid")
+	
 	_signal_batcher = SignalBatcher.new()
 	set_physics_process(true)  # Enable physics processing for signal batching
 
@@ -146,7 +151,18 @@ func get_state() -> Dictionary:
 	return _state.duplicate(true)
 
 ## Get specific slice state (deep copy)
-func get_slice(slice_name: StringName) -> Dictionary:
+##
+## Optional caller_slice parameter enables dependency validation:
+## If provided, checks that caller_slice has declared slice_name as a dependency.
+## Logs error if accessing undeclared dependency.
+func get_slice(slice_name: StringName, caller_slice: StringName = StringName()) -> Dictionary:
+	# Validate dependencies if caller is specified
+	if caller_slice != StringName():
+		var caller_config: StateSliceConfig = _slice_configs.get(caller_slice)
+		if caller_config != null:
+			if not caller_config.dependencies.has(slice_name) and caller_slice != slice_name:
+				push_error("M_StateStore.get_slice: Slice '", caller_slice, "' accessing '", slice_name, "' without declaring dependency")
+	
 	return _state.get(slice_name, {}).duplicate(true)
 
 ## Register a state slice with its configuration
@@ -182,6 +198,25 @@ func register_slice(config: StateSliceConfig) -> void:
 
 	if OS.is_debug_build() and settings.enable_debug_logging:
 		print("[STATE] Registered slice: ", config.slice_name)
+
+## Validate that all declared slice dependencies exist and are valid
+##
+## Returns true if all dependencies are valid, false otherwise.
+## Checks that:
+## - All declared dependencies point to registered slices
+## - No circular dependencies exist (already checked at registration)
+func validate_slice_dependencies() -> bool:
+	var all_valid := true
+	
+	for slice_name in _slice_configs:
+		var config: StateSliceConfig = _slice_configs[slice_name]
+		
+		for dep in config.dependencies:
+			if not _slice_configs.has(dep):
+				push_error("M_StateStore: Slice '", slice_name, "' declares dependency on unregistered slice '", dep, "'")
+				all_valid = false
+	
+	return all_valid
 
 ## Check for circular dependencies using depth-first search
 func _has_circular_dependency(slice_name: StringName, dependencies: Array[StringName], visited: Dictionary = {}, rec_stack: Dictionary = {}) -> bool:

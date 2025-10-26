@@ -425,9 +425,9 @@ func after_each():
 **Dependency System:**
 
 - [x] T170 [US1e] Update StateSliceConfig to include `dependencies: Array[StringName]` field (already present from T043)
-- [ ] T171 [US1e] Add method `validate_slice_dependencies() -> bool` to M_StateStore (NOT IMPLEMENTED - only _has_circular_dependency exists)
-- [ ] T172 [US1e] In validate_slice_dependencies(), check if accessing slice requires declaring dependency first (NOT IMPLEMENTED)
-- [ ] T173 [US1e] Add dependency checking to get_state_slice(): log error if dependency not declared (NOT IMPLEMENTED)
+- [x] T171 [US1e] Add method `validate_slice_dependencies() -> bool` to M_StateStore
+- [x] T172 [US1e] In validate_slice_dependencies(), check if accessing slice requires declaring dependency first
+- [x] T173 [US1e] Add dependency checking to get_slice(): log error if dependency not declared (added optional caller_slice parameter)
 
 **Gameplay Selectors:**
 
