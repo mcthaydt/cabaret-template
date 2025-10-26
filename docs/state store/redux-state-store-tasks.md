@@ -496,7 +496,7 @@ func after_each():
 - [x] T204 [US1f] 📝 RUN TESTS: Verify all US1f tests now PASS (2/3 pass - one GUT test harness limitation with await physics_frame)
 - [x] T205 [US1f] Update test scene `scenes/debug/state_test_us1f.tscn` to dispatch 10 actions in _ready()
 - [x] T206 [US1f] Add signal handler to test scene that counts slice_updated emissions with counter variable
-- [ ] T207 [US1f] 🎮 IN-GAME TEST: Run test scene, verify only 1 slice_updated signal per slice despite 10 dispatches
+- [x] T207 [US1f] 🎮 IN-GAME TEST: Run test scene, verify only 1 slice_updated signal per slice despite 10 dispatches
 - [x] T208 [US1f] Commit US1f: "Add signal batching for per-frame emission"
 
 **Checkpoint**: Signals batch per-frame while state updates remain immediate for predictable mid-frame reads
