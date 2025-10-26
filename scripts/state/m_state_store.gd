@@ -13,11 +13,14 @@ class_name M_StateStore
 ##   var state: Dictionary = store.get_state()
 
 const SignalBatcher = preload("res://scripts/state/signal_batcher.gd")
+const SerializationHelper = preload("res://scripts/state/serialization_helper.gd")
+const StateHandoff = preload("res://scripts/state/state_handoff.gd")
 
 signal state_changed(action: Dictionary, new_state: Dictionary)
 signal slice_updated(slice_name: StringName, slice_state: Dictionary)
 signal action_dispatched(action: Dictionary)
 signal validation_failed(action: Dictionary, error: String)
+signal state_loaded(filepath: String)
 
 const PROJECT_SETTING_HISTORY_SIZE := "state/debug/history_size"
 const PROJECT_SETTING_ENABLE_HISTORY := "state/debug/enable_history"
@@ -43,10 +46,16 @@ func _ready() -> void:
 	if not validate_slice_dependencies():
 		push_warning("M_StateStore: Some slice dependencies are invalid")
 	
+	# Restore state from StateHandoff AFTER slices are initialized
+	_restore_from_handoff()
+	
 	_signal_batcher = SignalBatcher.new()
 	set_physics_process(true)  # Enable physics processing for signal batching
 
 func _exit_tree() -> void:
+	# Preserve state for scene transitions via StateHandoff
+	_preserve_to_handoff()
+	
 	if is_in_group("state_store"):
 		remove_from_group("state_store")
 
@@ -298,3 +307,138 @@ func get_last_n_actions(n: int) -> Array:
 		result.append(_action_history[i].duplicate(true))
 	
 	return result
+
+## Save current state to JSON file
+##
+## Excludes transient fields as defined in slice configs.
+## Returns OK on success, or an Error code on failure.
+func save_state(filepath: String) -> Error:
+	if filepath.is_empty():
+		push_error("M_StateStore.save_state: Empty filepath")
+		return ERR_INVALID_PARAMETER
+	
+	# Build state to save, excluding transient fields
+	var state_to_save: Dictionary = {}
+	
+	for slice_name in _state:
+		var slice_state: Dictionary = _state[slice_name]
+		var config: StateSliceConfig = _slice_configs.get(slice_name)
+		
+		# Copy slice state, excluding transient fields
+		var filtered_state: Dictionary = {}
+		for key in slice_state:
+			var is_transient: bool = false
+			if config != null:
+				is_transient = config.transient_fields.has(key)
+			
+			if not is_transient:
+				filtered_state[key] = slice_state[key]
+		
+		# Apply serialization to convert Godot types
+		state_to_save[slice_name] = SerializationHelper.godot_to_json(filtered_state)
+	
+	# Convert to JSON string
+	var json_string: String = JSON.stringify(state_to_save, "\t")
+	
+	# Write to file
+	var file: FileAccess = FileAccess.open(filepath, FileAccess.WRITE)
+	if file == null:
+		var error: Error = FileAccess.get_open_error()
+		push_error("M_StateStore.save_state: Failed to open file for writing: ", error)
+		return error
+	
+	file.store_string(json_string)
+	file.close()
+	
+	if OS.is_debug_build() and settings.enable_debug_logging:
+		print("[STATE] Saved state to: ", filepath)
+	
+	return OK
+
+## Load state from JSON file
+##
+## Merges loaded state with current state, preserving transient fields.
+## Returns OK on success, or an Error code on failure.
+func load_state(filepath: String) -> Error:
+	if filepath.is_empty():
+		push_error("M_StateStore.load_state: Empty filepath")
+		return ERR_INVALID_PARAMETER
+	
+	# Check if file exists
+	if not FileAccess.file_exists(filepath):
+		push_error("M_StateStore.load_state: File does not exist: ", filepath)
+		return ERR_FILE_NOT_FOUND
+	
+	# Read file
+	var file: FileAccess = FileAccess.open(filepath, FileAccess.READ)
+	if file == null:
+		var error: Error = FileAccess.get_open_error()
+		push_error("M_StateStore.load_state: Failed to open file for reading: ", error)
+		return error
+	
+	var json_string: String = file.get_as_text()
+	file.close()
+	
+	# Parse JSON
+	var parsed: Variant = JSON.parse_string(json_string)
+	if parsed == null or not parsed is Dictionary:
+		push_error("M_StateStore.load_state: Invalid JSON in file")
+		return ERR_PARSE_ERROR
+	
+	var loaded_state: Dictionary = parsed as Dictionary
+	
+	# Apply deserialization to convert back to Godot types
+	var deserialized_state: Dictionary = SerializationHelper.json_to_godot(loaded_state)
+	
+	# Merge loaded state with current state
+	for slice_name in deserialized_state:
+		if _state.has(slice_name):
+			var loaded_slice: Dictionary = deserialized_state[slice_name]
+			var current_slice: Dictionary = _state[slice_name]
+			var config: StateSliceConfig = _slice_configs.get(slice_name)
+			
+			# Preserve transient fields from current state
+			if config != null:
+				for transient_field in config.transient_fields:
+					if current_slice.has(transient_field) and not loaded_slice.has(transient_field):
+						loaded_slice[transient_field] = current_slice[transient_field]
+			
+			# Replace slice with loaded state (merged with transient fields)
+			_state[slice_name] = loaded_slice.duplicate(true)
+	
+	if OS.is_debug_build() and settings.enable_debug_logging:
+		print("[STATE] Loaded state from: ", filepath)
+	
+	state_loaded.emit(filepath)
+	
+	return OK
+
+## Preserve state to StateHandoff for scene transitions
+func _preserve_to_handoff() -> void:
+	for slice_name in _state:
+		var slice_state: Dictionary = _state[slice_name]
+		StateHandoff.preserve_slice(slice_name, slice_state)
+	
+	if OS.is_debug_build() and settings.enable_debug_logging:
+		print("[STATE] Preserved state to StateHandoff for scene transition")
+
+## Restore state from StateHandoff after scene transitions
+func _restore_from_handoff() -> void:
+	for slice_name in _slice_configs:
+		var restored_state: Dictionary = StateHandoff.restore_slice(slice_name)
+		
+		if not restored_state.is_empty():
+			# Merge restored state with current state (restored takes precedence)
+			if _state.has(slice_name):
+				var current_state: Dictionary = _state[slice_name]
+				for key in restored_state:
+					current_state[key] = restored_state[key]
+				_state[slice_name] = current_state
+			else:
+				_state[slice_name] = restored_state.duplicate(true)
+			
+			if OS.is_debug_build() and settings.enable_debug_logging:
+				print("[STATE] Restored slice '", slice_name, "' from StateHandoff")
+			
+			# Clear the handoff state after restoring
+			StateHandoff.clear_slice(slice_name)

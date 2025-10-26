@@ -8,6 +8,13 @@ class_name StateSliceConfig
 
 @export var slice_name: StringName = StringName()
 @export var dependencies: Array[StringName] = []
+
+## Fields marked transient will not be saved to disk.
+##
+## Use for cache, temporary UI state, derived values, or any data that
+## should not persist across save/load cycles.
+##
+## Example: ["cached_calculations", "ui_scroll_position", "temp_filter"]
 @export var transient_fields: Array[StringName] = []
 
 var reducer: Callable = Callable()
