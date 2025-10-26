@@ -37,7 +37,7 @@ If you are ever unsure what to do next, **read the tasks.md file** and find the 
 
 The Redux-style centralized state store implementation is **in progress**. The feature branch `redux-state-store` has comprehensive planning documentation and active development.
 
-**Current Status**: Phase 1b complete (Action Registry + Gameplay Actions)
+**Current Status**: Phase 1c complete (Gameplay Slice Reducer + Immutable Updates)
 
 **Phase 0 Decision**: **Option C - Dual-bus via abstract base** (IMPLEMENTED ✅)
 
@@ -45,8 +45,10 @@ The Redux-style centralized state store implementation is **in progress**. The f
 - ✅ Phase 0C: EventBusBase architecture (commit b7fb729)
 - ✅ Phase 1a: M_StateStore skeleton + U_StateUtils (commit 46f47a4)
 - ✅ Phase 1b: ActionRegistry + U_GameplayActions (commit 5931c38)
+- ✅ Phase 1c: Gameplay reducer with immutable state (commit 042e154)
+- ✅ Task tracking updated (commit c57de98)
 
-**Active Phase**: Phase 1c - Gameplay Slice Reducer Infrastructure
+**Active Phase**: Phase 1d - Type-Safe Action Creators (next unchecked tasks in redux-state-store-tasks.md)
 
 ## Before Resuming Implementation
 
@@ -113,7 +115,7 @@ After Phase 0 completes, implement these sequentially:
 
 1. **Phase 1a**: Core M_StateStore Skeleton with U_StateUtils ✅ COMPLETED (commit 46f47a4)
 2. **Phase 1b**: Action Registry with StringName Validation ✅ COMPLETED (commit 5931c38)
-3. **Phase 1c**: Gameplay Slice Reducer Infrastructure
+3. **Phase 1c**: Gameplay Slice Reducer Infrastructure ✅ COMPLETED (commit 042e154)
 4. **Phase 1d**: Type-Safe Action Creators
 5. **Phase 1e**: Selector System with Cross-Slice Dependencies
 6. **Phase 1f**: Signal Emission with Per-Frame Batching
@@ -147,21 +149,22 @@ Each micro-story follows TDD: Write tests → Verify tests fail → Implement �
 
 ## Next Steps
 
-1. **Start Phase 0 (Option C)** (1-2 hours estimated):
-   - Create `EventBusBase` abstract class
-   - Create `StateStoreEventBus` concrete implementation
-   - Update `ECSEventBus` to extend base
-   - Write tests for bus isolation
-   - Run ALL tests (state + ECS) to verify no regressions
-   - Commit when green
+**CURRENT TASK**: Phase 1d - Type-Safe Action Creators
 
-2. **Start Phase 1a** (4 hours estimated):
-   - Create M_StateStore skeleton
-   - Create U_StateUtils helper
-   - Update base_scene_template.tscn
-   - Write tests, commit when green
+1. **Open `redux-state-store-tasks.md`** 
+2. **Find Phase 1d section** (starts around line 348)
+3. **Find the first unchecked `[ ]` task** in Phase 1d
+4. **Complete that task**
+5. **Check it off `[x]` immediately**
+6. **Continue with next task**
+7. **Commit tasks.md + implementation** after completing phase
 
-3. **Continue through Phases 1b-1h** sequentially (1-2 days total)
+**Estimated time for Phase 1d**: 2-3 hours
+
+**What Phase 1d includes**:
+- Expand U_GameplayActions with health/score/level actions
+- Add reducer cases for new actions  
+- Write tests for new action creators and reducer logic
 
 ## Reference Documents
 
