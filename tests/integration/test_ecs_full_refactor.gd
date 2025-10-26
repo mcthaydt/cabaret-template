@@ -136,8 +136,8 @@ func test_full_ecs_refactor_600_frame_simulation():
 		avg_frame_time += ft
 	avg_frame_time /= frame_times.size()
 
-	var max_frame_time := frame_times.max()
-	var min_frame_time := frame_times.min()
+	var max_frame_time: float = frame_times.max()
+	var min_frame_time: float = frame_times.min()
 
 	gut.p("=== Performance Metrics (600 frames) ===")
 	gut.p("Total time: %d ms" % total_time)
