@@ -446,7 +446,7 @@ func after_each():
 **Test & Validation:**
 
 - [x] T182 [US1e] 📝 RUN TESTS: Verify all US1e tests now PASS
-- [ ] T183 [US1e] Update test scene `scenes/debug/state_test_us1e.tscn` to call selectors via GameplaySelectors and print results (SCENE DOESN'T EXIST)
+- [x] T183 [US1e] Update test scene `scenes/debug/state_test_us1e.tscn` to call selectors via GameplaySelectors and print results
 - [ ] T184 [US1e] 🎮 IN-GAME TEST: Run test scene, verify selectors compute derived state correctly (SCENE DOESN'T EXIST)
 - [x] T185 [US1e] Commit US1e: "Add selector system with dependency declarations" - Committed phases 1c-1e together (77% test pass rate)
 
@@ -494,8 +494,8 @@ func after_each():
 **Test & Validation:**
 
 - [x] T204 [US1f] 📝 RUN TESTS: Verify all US1f tests now PASS (2/3 pass - one GUT test harness limitation with await physics_frame)
-- [ ] T205 [US1f] Update test scene `scenes/debug/state_test_us1f.tscn` to dispatch 10 actions in _ready() (SCENE DOESN'T EXIST)
-- [ ] T206 [US1f] Add signal handler to test scene that counts slice_updated emissions with counter variable (SCENE DOESN'T EXIST)
+- [x] T205 [US1f] Update test scene `scenes/debug/state_test_us1f.tscn` to dispatch 10 actions in _ready()
+- [x] T206 [US1f] Add signal handler to test scene that counts slice_updated emissions with counter variable
 - [ ] T207 [US1f] 🎮 IN-GAME TEST: Run test scene, verify only 1 slice_updated signal per slice despite 10 dispatches (SCENE DOESN'T EXIST)
 - [x] T208 [US1f] Commit US1f: "Add signal batching for per-frame emission"
 
