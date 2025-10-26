@@ -52,13 +52,18 @@ func _initialize_slices() -> void:
 
 ## Dispatch an action to update state
 func dispatch(action: Dictionary) -> void:
-	# Basic validation
-	if not action.has("type"):
-		push_error("M_StateStore.dispatch: Action missing 'type' field")
-		validation_failed.emit(action, "Action missing 'type' field")
+	# Validate action using ActionRegistry
+	if not ActionRegistry.validate_action(action):
+		var error_msg: String = "Action validation failed"
+		if not action.has("type"):
+			error_msg = "Action missing 'type' field"
+		elif not ActionRegistry.is_registered(action.get("type")):
+			error_msg = "Unregistered action type: %s" % action.get("type")
+		
+		validation_failed.emit(action, error_msg)
 		return
 
-	# For now, just log and notify subscribers
+	# Log action in debug mode
 	if OS.is_debug_build() and settings.enable_debug_logging:
 		print("[STATE] Action dispatched: ", action.get("type"))
 
