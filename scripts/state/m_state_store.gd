@@ -20,6 +20,7 @@ signal action_dispatched(action: Dictionary)
 signal validation_failed(action: Dictionary, error: String)
 
 const PROJECT_SETTING_HISTORY_SIZE := "state/debug/history_size"
+const PROJECT_SETTING_ENABLE_HISTORY := "state/debug/enable_history"
 const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 
 @export var settings: RS_StateStoreSettings
@@ -29,6 +30,9 @@ var _state: Dictionary = {}
 var _subscribers: Array[Callable] = []
 var _slice_configs: Dictionary = {}
 var _signal_batcher: SignalBatcher = null
+var _action_history: Array = []
+var _max_history_size: int = 1000
+var _enable_history: bool = true
 
 func _ready() -> void:
 	add_to_group("state_store")
@@ -63,6 +67,15 @@ func _initialize_settings() -> void:
 		var history_size: int = ProjectSettings.get_setting(PROJECT_SETTING_HISTORY_SIZE, 1000)
 		if settings.max_history_size != history_size:
 			settings.max_history_size = history_size
+	
+	# Apply history settings to instance variables
+	_max_history_size = settings.max_history_size
+	
+	# Check if history is enabled
+	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_HISTORY):
+		_enable_history = ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_HISTORY, true)
+	else:
+		_enable_history = true  # Default to enabled in debug builds
 
 func _initialize_slices() -> void:
 	# Register gameplay slice if initial state provided
@@ -93,6 +106,10 @@ func dispatch(action: Dictionary) -> void:
 
 	# Process action through reducers to update state
 	_apply_reducers(action)
+
+	# Record action in history AFTER reducer runs (includes state_after)
+	if _enable_history:
+		_record_action_in_history(action)
 
 	# Create deep copy of action for subscribers
 	var action_copy: Dictionary = action.duplicate(true)
@@ -235,3 +252,49 @@ func _has_circular_dependency(slice_name: StringName, dependencies: Array[String
 
 	rec_stack[slice_name] = false
 	return false
+
+## Record action in history with timestamp and state snapshot
+func _record_action_in_history(action: Dictionary) -> void:
+	var timestamp: float = U_ECSUtils.get_current_time()
+	var state_snapshot: Dictionary = _state.duplicate(true)
+	
+	var history_entry: Dictionary = {
+		"action": action.duplicate(true),
+		"timestamp": timestamp,
+		"state_after": state_snapshot
+	}
+	
+	_action_history.append(history_entry)
+	
+	# Prune oldest entries if exceeding max size (circular buffer)
+	while _action_history.size() > _max_history_size:
+		_action_history.remove_at(0)
+
+## Get complete action history (deep copy)
+##
+## Returns array of history entries with format:
+##   {action: Dictionary, timestamp: float, state_after: Dictionary}
+##
+## History is limited to max_history_size entries (circular buffer).
+func get_action_history() -> Array:
+	return _action_history.duplicate(true)
+
+## Get last N actions from history (deep copy)
+##
+## Returns the most recent N action history entries.
+## If N exceeds history size, returns all available entries.
+func get_last_n_actions(n: int) -> Array:
+	if n <= 0:
+		return []
+	
+	var history_size: int = _action_history.size()
+	if n >= history_size:
+		return _action_history.duplicate(true)
+	
+	# Get last n entries
+	var start_index: int = history_size - n
+	var result: Array = []
+	for i in range(start_index, history_size):
+		result.append(_action_history[i].duplicate(true))
+	
+	return result

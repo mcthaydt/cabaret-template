@@ -215,3 +215,131 @@ func test_signal_batching_overhead_less_than_0_05ms() -> void:
 	# Total overhead should be minimal (less than 0.05ms per action on average)
 	var per_action_ms: float = elapsed / 100.0
 	assert_lt(per_action_ms, 0.05, "Signal batching overhead should be < 0.05ms per action")
+
+## Phase 1g: Action History Tests
+
+func test_action_history_records_actions_with_timestamps() -> void:
+	# Dispatch a few actions
+	store.dispatch(U_GameplayActions.pause_game())
+	store.dispatch(U_GameplayActions.update_score(100))
+	store.dispatch(U_GameplayActions.update_health(80))
+	
+	var history: Array = store.get_action_history()
+	
+	assert_eq(history.size(), 3, "History should contain 3 actions")
+	
+	# Check first entry structure
+	var first_entry: Dictionary = history[0]
+	assert_true(first_entry.has("action"), "History entry should have 'action' field")
+	assert_true(first_entry.has("timestamp"), "History entry should have 'timestamp' field")
+	assert_true(first_entry.has("state_after"), "History entry should have 'state_after' field")
+	
+	# Check action type
+	assert_eq(first_entry["action"]["type"], U_GameplayActions.ACTION_PAUSE_GAME, "First action should be pause")
+	
+	# Check timestamp is a number
+	assert_true(first_entry["timestamp"] is float or first_entry["timestamp"] is int, "Timestamp should be a number")
+	
+	# Check state_after is a Dictionary
+	assert_true(first_entry["state_after"] is Dictionary, "state_after should be a Dictionary")
+
+func test_get_last_n_actions_returns_correct_count() -> void:
+	# Dispatch 10 actions
+	for i in 10:
+		store.dispatch(U_GameplayActions.update_score(i * 10))
+	
+	var last_5: Array = store.get_last_n_actions(5)
+	assert_eq(last_5.size(), 5, "Should return last 5 actions")
+	
+	# Check they are the most recent actions
+	var last_entry: Dictionary = last_5[last_5.size() - 1]
+	var gameplay_state: Dictionary = last_entry["state_after"]["gameplay"]
+	assert_eq(gameplay_state["score"], 90, "Last action should have score=90 (index 9)")
+	
+	# Test requesting more than available
+	var last_20: Array = store.get_last_n_actions(20)
+	assert_eq(last_20.size(), 10, "Should return only 10 actions when requesting 20")
+	
+	# Test requesting 0
+	var last_0: Array = store.get_last_n_actions(0)
+	assert_eq(last_0.size(), 0, "Should return empty array for n=0")
+
+func test_history_prunes_oldest_when_exceeding_1000_entries() -> void:
+	# This test will dispatch 1001 actions and verify the oldest is pruned
+	# To speed this up, we'll use a custom store with smaller history size
+	
+	# Save and clear project setting so our test settings aren't overridden
+	var original_setting: Variant = null
+	if ProjectSettings.has_setting("state/debug/history_size"):
+		original_setting = ProjectSettings.get_setting("state/debug/history_size")
+		ProjectSettings.clear("state/debug/history_size")
+	
+	var test_store := M_StateStore.new()
+	test_store.settings = RS_StateStoreSettings.new()
+	test_store.settings.max_history_size = 10  # Small size for testing
+	test_store.gameplay_initial_state = RS_GameplayInitialState.new()
+	add_child(test_store)
+	await get_tree().process_frame
+	
+	# Dispatch 11 actions (exceeds max of 10)
+	for i in 11:
+		test_store.dispatch(U_GameplayActions.update_score(i))
+	
+	var history: Array = test_store.get_action_history()
+	assert_eq(history.size(), 10, "History should be pruned to max size of 10")
+	
+	# The oldest (score=0) should be gone, newest should be score=10
+	var oldest_entry: Dictionary = history[0]
+	var oldest_state: Dictionary = oldest_entry["state_after"]["gameplay"]
+	assert_eq(oldest_state["score"], 1, "Oldest entry should be score=1 (score=0 was pruned)")
+	
+	var newest_entry: Dictionary = history[history.size() - 1]
+	var newest_state: Dictionary = newest_entry["state_after"]["gameplay"]
+	assert_eq(newest_state["score"], 10, "Newest entry should be score=10")
+	
+	# Cleanup: restore original setting
+	if original_setting != null:
+		ProjectSettings.set_setting("state/debug/history_size", original_setting)
+	
+	test_store.queue_free()
+
+func test_history_includes_state_after_snapshot() -> void:
+	# Dispatch action and check state_after matches actual state
+	store.dispatch(U_GameplayActions.update_health(75))
+	
+	var history: Array = store.get_action_history()
+	assert_eq(history.size(), 1, "Should have 1 history entry")
+	
+	var entry: Dictionary = history[0]
+	var state_after: Dictionary = entry["state_after"]
+	var current_state: Dictionary = store.get_state()
+	
+	# State after should match current state
+	assert_eq(state_after["gameplay"]["health"], 75, "state_after should show health=75")
+	assert_eq(current_state["gameplay"]["health"], 75, "Current state should show health=75")
+
+func test_history_respects_project_setting_state_debug_history_size() -> void:
+	# Create a store that should read from project settings
+	# We'll create a custom store and set the project setting
+	var original_setting: Variant = null
+	if ProjectSettings.has_setting("state/debug/history_size"):
+		original_setting = ProjectSettings.get_setting("state/debug/history_size")
+	
+	# Set project setting to 5
+	ProjectSettings.set_setting("state/debug/history_size", 5)
+	
+	var test_store := M_StateStore.new()
+	test_store.gameplay_initial_state = RS_GameplayInitialState.new()
+	add_child(test_store)
+	await get_tree().process_frame
+	
+	# The store should have read the project setting
+	assert_eq(test_store.settings.max_history_size, 5, "Store should read history_size from project setting")
+	
+	# Cleanup: restore original setting
+	if original_setting != null:
+		ProjectSettings.set_setting("state/debug/history_size", original_setting)
+	else:
+		ProjectSettings.clear("state/debug/history_size")
+	
+	test_store.queue_free()
