@@ -60,24 +60,24 @@ This is a Godot 4.5 project with the following structure:
 ### Directory Structure
 
 - [x] T001 [P] Create directory `scripts/state/` for core state files
-- [ ] T002 [P] Create directory `scripts/state/reducers/` for reducer functions
-- [ ] T003 [P] Create directory `scripts/state/selectors/` for selector utilities
+- [x] T002 [P] Create directory `scripts/state/reducers/` for reducer functions
+- [x] T003 [P] Create directory `scripts/state/selectors/` for selector utilities
 - [x] T004 [P] Create directory `scripts/state/resources/` for Resource class scripts
 - [x] T005 [P] Create directory `resources/state/` for .tres resource files
-- [ ] T006 [P] Create directory `scenes/debug/` for debug overlay scenes
+- [x] T006 [P] Create directory `scenes/debug/` for debug overlay scenes
 - [x] T007 [P] Create directory `tests/unit/state/` for state unit tests
-- [ ] T008 [P] Create directory `tests/unit/state/integration/` for integration tests
+- [x] T008 [P] Create directory `tests/unit/state/integration/` for integration tests
 
 ### Project Settings Configuration
 
-- [ ] T009 [P] Add project setting `state/debug/enable_history` (type: bool, default: true)
-- [ ] T010 [P] Add project setting `state/debug/history_size` (type: int, default: 1000, range: 100-10000)
-- [ ] T011 [P] Add project setting `state/debug/enable_debug_overlay` (type: bool, default: true for debug builds, false for release)
-- [ ] T012 [P] Add input action `toggle_debug_overlay` mapped to F3 key in Project Settings → Input Map
+- [x] T009 [P] Add project setting `state/debug/enable_history` (type: bool, default: true)
+- [x] T010 [P] Add project setting `state/debug/history_size` (type: int, default: 1000, range: 100-10000)
+- [x] T011 [P] Add project setting `state/debug/enable_debug_overlay` (type: bool, default: true for debug builds, false for release)
+- [x] T012 [P] Add input action `toggle_debug_overlay` mapped to F3 key in Project Settings → Input Map
 
 ### Initial Files
 
-- [ ] T013 [P] Create file `scripts/state/state_action_types.gd` with StringName constants skeleton (empty for now, will be populated per slice)
+- [x] T013 [P] Create file `scripts/state/state_action_types.gd` with StringName constants skeleton (empty for now, will be populated per slice)
 
 **Checkpoint**: Directory structure ready, project settings configured - can now work on foundational and user story tasks
 
@@ -87,44 +87,51 @@ This is a Godot 4.5 project with the following structure:
 
 **Purpose**: Event bus refactor that MUST be resolved before ANY user story implementation
 
+**⚠️ DECISION MADE**: Option C (Dual-Bus via Abstract Base) was chosen and implemented in commit b7fb729
+- Created `EventBusBase` abstract class with shared logic
+- Created `StateStoreEventBus` extending base for state domain
+- Refactored `ECSEventBus` to extend base while preserving API
+- All tests pass (7/7 state, 62/62 ECS)
+- Options A and B below are marked N/A since Option C was implemented
+
 **⚠️ CRITICAL DECISION POINT**: Attempt event bus refactor or use fallback approach?
 
-### Option A: Event Bus Refactor (Single bus with namespacing, 1-day time box)
+### Option A: Event Bus Refactor (Single bus with namespacing, 1-day time box) - N/A (Option C used)
 
 **If successful**: Unified event system from the start, cleaner architecture
 **If fails**: Switch to Option B after 1 day (use rollback tasks below)
 
-- [ ] T014 [Phase0-A] Read existing `scripts/ecs/ecs_event_bus.gd` to understand current API
-- [ ] T015 [Phase0-A] Create backup: Copy `scripts/ecs/ecs_event_bus.gd` to `scripts/ecs/ecs_event_bus.gd.backup`
-- [ ] T016 [Phase0-A] Create new `scripts/event_bus.gd` with namespace support ("ecs/*", "state/*" prefixes)
-- [ ] T017 [Phase0-A] Implement backward-compatible publish/subscribe in `scripts/event_bus.gd`
-- [ ] T018 [Phase0-A] Add `reset()` method to `scripts/event_bus.gd` for test isolation (clears all subscriptions)
-- [ ] T019 [Phase0-A] (No autoloads) — skip autoload configuration; use static class pattern
-- [ ] T020 [Phase0-A] Update `scripts/ecs/systems/s_jump_system.gd` to use `EventBus` instead of `ECSEventBus`
-- [ ] T021 [Phase0-A] Find all files using `ECSEventBus` via grep: `grep -r "ECSEventBus" scripts/ tests/`
-- [ ] T022 [Phase0-A] Update all found files to use `EventBus` instead of `ECSEventBus`
-- [ ] T023 [Phase0-A] Run existing ECS tests: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit`
-- [ ] T024 [Phase0-A] Fix any ECS test failures from EventBus refactor
-- [ ] T025 [Phase0-A] Commit Phase 0A: "Refactor ecs_event_bus to unified event_bus with namespacing"
+- [N/A] T014 [Phase0-A] Read existing `scripts/ecs/ecs_event_bus.gd` to understand current API
+- [N/A] T015 [Phase0-A] Create backup: Copy `scripts/ecs/ecs_event_bus.gd` to `scripts/ecs/ecs_event_bus.gd.backup`
+- [N/A] T016 [Phase0-A] Create new `scripts/event_bus.gd` with namespace support ("ecs/*", "state/*" prefixes)
+- [N/A] T017 [Phase0-A] Implement backward-compatible publish/subscribe in `scripts/event_bus.gd`
+- [N/A] T018 [Phase0-A] Add `reset()` method to `scripts/event_bus.gd` for test isolation (clears all subscriptions)
+- [N/A] T019 [Phase0-A] (No autoloads) — skip autoload configuration; use static class pattern
+- [N/A] T020 [Phase0-A] Update `scripts/ecs/systems/s_jump_system.gd` to use `EventBus` instead of `ECSEventBus`
+- [N/A] T021 [Phase0-A] Find all files using `ECSEventBus` via grep: `grep -r "ECSEventBus" scripts/ tests/`
+- [N/A] T022 [Phase0-A] Update all found files to use `EventBus` instead of `ECSEventBus`
+- [N/A] T023 [Phase0-A] Run existing ECS tests: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit`
+- [N/A] T024 [Phase0-A] Fix any ECS test failures from EventBus refactor
+- [N/A] T025 [Phase0-A] Commit Phase 0A: "Refactor ecs_event_bus to unified event_bus with namespacing"
 
-### Option A Rollback (If Phase 0A fails after 1 day)
+### Option A Rollback (If Phase 0A fails after 1 day) - N/A (Option C used)
 
 **Execute these if switching from Option A to Option B mid-refactor:**
 
-- [ ] T026 [Phase0-A-Rollback] Restore backup: `mv scripts/ecs/ecs_event_bus.gd.backup scripts/ecs/ecs_event_bus.gd`
-- [ ] T027 [Phase0-A-Rollback] Delete incomplete event_bus.gd: `rm scripts/event_bus.gd`
-- [ ] T028 [Phase0-A-Rollback] (No autoloads) — not applicable
-- [ ] T029 [Phase0-A-Rollback] Revert any modified files: `git restore scripts/ tests/`
-- [ ] T030 [Phase0-A-Rollback] Verify rollback: Run ECS tests to confirm all pass
-- [ ] T031 [Phase0-A-Rollback] Proceed with Option B tasks below
+- [N/A] T026 [Phase0-A-Rollback] Restore backup: `mv scripts/ecs/ecs_event_bus.gd.backup scripts/ecs/ecs_event_bus.gd`
+- [N/A] T027 [Phase0-A-Rollback] Delete incomplete event_bus.gd: `rm scripts/event_bus.gd`
+- [N/A] T028 [Phase0-A-Rollback] (No autoloads) — not applicable
+- [N/A] T029 [Phase0-A-Rollback] Revert any modified files: `git restore scripts/ tests/`
+- [N/A] T030 [Phase0-A-Rollback] Verify rollback: Run ECS tests to confirm all pass
+- [N/A] T031 [Phase0-A-Rollback] Proceed with Option B tasks below
 
-### Option B: Fallback (If Option A fails or exceeds 1 day)
+### Option B: Fallback (If Option A fails or exceeds 1 day) - N/A (Option C used)
 
 **Approach**: Use direct signals on M_StateStore initially, defer event bus integration to a later phase
 
-- [ ] T032 [Phase0-B] Document decision at top of this file under a "Phase 0 Decision" note: "Using direct signals, EventBus integration deferred to Phase 15"
-- [ ] T033 [Phase0-B] Note in M_StateStore implementation comments: "TODO: Integrate with EventBus in Phase 15"
-- [ ] T034 [Phase0-B] Proceed with US1a using direct Godot signals instead of EventBus.publish()
+- [N/A] T032 [Phase0-B] Document decision at top of this file under a "Phase 0 Decision" note: "Using direct signals, EventBus integration deferred to Phase 15"
+- [N/A] T033 [Phase0-B] Note in M_StateStore implementation comments: "TODO: Integrate with EventBus in Phase 15"
+- [N/A] T034 [Phase0-B] Proceed with US1a using direct Godot signals instead of EventBus.publish()
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -177,7 +184,7 @@ func after_each():
 - [x] T046 [US1a] Add method `to_dictionary() -> Dictionary` to RS_StateStoreSettings for serialization
 - [x] T047 [US1a] Create default resource `resources/state/default_state_store_settings.tres` with defaults
 - [x] T048 [US1a] Create `scripts/state/m_state_store.gd` extending Node with class_name M_StateStore
-- [ ] T049 [US1a] Add @icon annotation: `@icon("res://resources/editor_icons/state_store.svg")` (create icon later if needed)
+- [x] T049 [US1a] Add @icon annotation: `@icon("res://resources/editor_icons/state_store.svg")` (create icon later if needed)
 - [x] T050 [US1a] Add @export to M_StateStore: `@export var settings: RS_StateStoreSettings`
 - [x] T051 [US1a] Add signals to M_StateStore: `state_changed(action: Dictionary, new_state: Dictionary)`, `slice_updated(slice_name: StringName, slice_state: Dictionary)`, `action_dispatched(action: Dictionary)`, `validation_failed(action: Dictionary, error: String)`
 - [x] T052 [US1a] Add private vars to M_StateStore: `_state: Dictionary = {}`, `_subscribers: Array[Callable] = []`, `_slice_configs: Dictionary = {}` (slice_name -> StateSliceConfig)
@@ -202,14 +209,14 @@ func after_each():
 
 **Subscriber Lifecycle Documentation:**
 
-- [ ] T068 [US1a] Add doc comment to subscribe() explaining: "Subscribers persist until explicitly unsubscribed. ECS systems should cache store reference and unsubscribe in _exit_tree() to prevent leaks."
-- [ ] T069 [US1a] Add example in comment showing proper subscription lifecycle pattern
+- [x] T068 [US1a] Add doc comment to subscribe() explaining: "Subscribers persist until explicitly unsubscribed. ECS systems should cache store reference and unsubscribe in _exit_tree() to prevent leaks."
+- [x] T069 [US1a] Add example in comment showing proper subscription lifecycle pattern
 
 **Test Execution:**
 
 - [x] T070 [US1a] 📝 RUN TESTS: Verify all US1a tests now PASS
-- [ ] T071 [US1a] Create test scene `scenes/debug/state_test_us1a.tscn` with M_StateStore node
-- [ ] T072 [US1a] Add script to test scene that dispatches test action on _ready() and prints result via U_StateUtils
+- [x] T071 [US1a] Create test scene `scenes/debug/state_test_us1a.tscn` with M_StateStore node
+- [x] T072 [US1a] Add script to test scene that dispatches test action on _ready() and prints result via U_StateUtils
 - [ ] T073 [US1a] 🎮 IN-GAME TEST: Run test scene, verify console shows action dispatch without errors
 
 **Scene Template Integration (Moved from later phase):**
@@ -275,7 +282,7 @@ func after_each():
 - [x] T103 [US1b] Update M_StateStore.dispatch() to call ActionRegistry.validate_action() before processing
 - [x] T104 [US1b] In dispatch(), if validation fails, emit validation_failed signal with error details
 - [x] T105 [US1b] 📝 RUN TESTS: Verify all US1b tests now PASS
-- [ ] T106 [US1b] Update test scene `scenes/debug/state_test_us1b.tscn` to dispatch U_GameplayActions.pause_game()
+- [x] T106 [US1b] Update test scene `scenes/debug/state_test_us1b.tscn` to dispatch U_GameplayActions.pause_game()
 - [ ] T107 [US1b] 🎮 IN-GAME TEST: Run test scene, verify validation works, invalid actions are rejected with error
 - [x] T108 [US1b] Commit US1b: "Add action registry with StringName validation and static registration"
 
@@ -329,17 +336,17 @@ func after_each():
 - [x] T131 [US1c] In _ready(), create StateSliceConfig for gameplay with: slice_name="gameplay", reducer=GameplayReducer.reduce, initial_state=gameplay_initial_state.to_dictionary()
 - [x] T132 [US1c] Update M_StateStore.dispatch() to look up slice config, call reducer with current state and action
 - [x] T133 [US1c] In dispatch(), store new state returned by reducer using .duplicate(true)
-- [ ] T134 [US1c] Add circular dependency validation in register_slice(): build dependency graph, detect cycles with DFS, push_error() if cycle found
+- [x] T134 [US1c] Add circular dependency validation in register_slice(): build dependency graph, detect cycles with DFS, push_error() if cycle found
 
 **Slice Registration Flow Documentation:**
 
-- [ ] T135 [US1c] Add doc comment to register_slice() explaining: "Slices register via M_StateStore._ready() using @export resources. Each slice needs: RS_*InitialState resource, *_reducer.gd static class, StateSliceConfig in register_slice() call"
-- [ ] T136 [US1c] Add comment showing example registration pattern in M_StateStore._ready()
+- [x] T135 [US1c] Add doc comment to register_slice() explaining: "Slices register via M_StateStore._ready() using @export resources. Each slice needs: RS_*InitialState resource, *_reducer.gd static class, StateSliceConfig in register_slice() call"
+- [x] T136 [US1c] Add comment showing example registration pattern in M_StateStore._ready()
 
 **Test & Validation:**
 
 - [x] T137 [US1c] 📝 RUN TESTS: Verify all US1c tests now PASS
-- [ ] T138 [US1c] Update test scene `scenes/debug/state_test_us1c.tscn` to dispatch pause/unpause and print state
+- [x] T138 [US1c] Update test scene `scenes/debug/state_test_us1c.tscn` to dispatch pause/unpause and print state
 - [ ] T139 [US1c] 🎮 IN-GAME TEST: Run test scene, verify state.paused toggles correctly, old state never mutates
 - [x] T140 [US1c] Commit US1c: "Add gameplay reducer with immutable state updates and circular dependency validation"
 
@@ -388,7 +395,7 @@ func after_each():
 **Test & Validation:**
 
 - [x] T160 [US1d] 📝 RUN TESTS: Verify all US1d tests now PASS
-- [ ] T161 [US1d] Update test scene `scenes/debug/state_test_us1d.tscn` to dispatch all new actions
+- [x] T161 [US1d] Update test scene `scenes/debug/state_test_us1d.tscn` to dispatch all new actions
 - [ ] T162 [US1d] 🎮 IN-GAME TEST: Run test scene, verify health/score/level update correctly in state
 - [x] T163 [US1d] Commit US1d: "Expand gameplay actions with health, score, level"
 

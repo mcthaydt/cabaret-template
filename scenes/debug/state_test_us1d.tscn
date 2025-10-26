@@ -1,0 +1,7 @@
+[gd_scene load_steps=3 format=3 uid="uid://ckm8p5qx3nrtw"]
+
+[ext_resource type="PackedScene" uid="uid://rygahxanlmio" path="res://templates/base_scene_template.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scenes/debug/state_test_us1d.gd" id="2_script"]
+
+[node name="StateTestUS1d" instance=ExtResource("1_base")]
+script = ExtResource("2_script")

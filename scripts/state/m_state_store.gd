@@ -150,6 +150,19 @@ func get_slice(slice_name: StringName) -> Dictionary:
 	return _state.get(slice_name, {}).duplicate(true)
 
 ## Register a state slice with its configuration
+##
+## Slices register via M_StateStore._ready() using @export resources.
+## Each slice needs:
+##   - RS_*InitialState resource (e.g., RS_GameplayInitialState)
+##   - *_reducer.gd static class (e.g., GameplayReducer)
+##   - StateSliceConfig in register_slice() call
+##
+## Example registration pattern:
+##   var gameplay_config := StateSliceConfig.new(StringName("gameplay"))
+##   gameplay_config.reducer = Callable(GameplayReducer, "reduce")
+##   gameplay_config.initial_state = gameplay_initial_state.to_dictionary()
+##   gameplay_config.dependencies = []  # Other slices this slice depends on
+##   register_slice(gameplay_config)
 func register_slice(config: StateSliceConfig) -> void:
 	if config == null:
 		push_error("M_StateStore.register_slice: Config is null")
@@ -159,8 +172,31 @@ func register_slice(config: StateSliceConfig) -> void:
 		push_error("M_StateStore.register_slice: Slice name is empty")
 		return
 
+	# Validate circular dependencies
+	if _has_circular_dependency(config.slice_name, config.dependencies):
+		push_error("M_StateStore.register_slice: Circular dependency detected for slice '", config.slice_name, "'")
+		return
+
 	_slice_configs[config.slice_name] = config
 	_state[config.slice_name] = config.initial_state.duplicate(true)
 
 	if OS.is_debug_build() and settings.enable_debug_logging:
 		print("[STATE] Registered slice: ", config.slice_name)
+
+## Check for circular dependencies using depth-first search
+func _has_circular_dependency(slice_name: StringName, dependencies: Array[StringName], visited: Dictionary = {}, rec_stack: Dictionary = {}) -> bool:
+	visited[slice_name] = true
+	rec_stack[slice_name] = true
+
+	for dep in dependencies:
+		if not visited.get(dep, false):
+			var dep_config: StateSliceConfig = _slice_configs.get(dep)
+			if dep_config != null:
+				if _has_circular_dependency(dep, dep_config.dependencies, visited, rec_stack):
+					return true
+		elif rec_stack.get(dep, false):
+			# Found a back edge, circular dependency detected
+			return true
+
+	rec_stack[slice_name] = false
+	return false
