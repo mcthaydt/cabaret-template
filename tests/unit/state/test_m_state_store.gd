@@ -5,10 +5,26 @@ extends GutTest
 const StateStoreEventBus := preload("res://scripts/state/state_event_bus.gd")
 
 var store: M_StateStore
+var callback_called: bool = false
+var received_action: Dictionary = {}
+var received_state: Dictionary = {}
+var signal_emitted: bool = false
+var signal_action: Dictionary = {}
+var validation_error: String = ""
+var callback_count: int = 0
 
 func before_each() -> void:
 	# CRITICAL: Reset state bus between tests to prevent subscription leaks
 	StateStoreEventBus.reset()
+	
+	# Reset test variables
+	callback_called = false
+	received_action = {}
+	received_state = {}
+	signal_emitted = false
+	signal_action = {}
+	validation_error = ""
+	callback_count = 0
 
 	store = M_StateStore.new()
 	add_child(store)
@@ -30,10 +46,6 @@ func test_store_adds_to_state_store_group() -> void:
 func test_dispatch_notifies_subscribers() -> void:
 	# Register test action
 	ActionRegistry.register_action(StringName("test/action"))
-	
-	var callback_called := false
-	var received_action: Dictionary = {}
-	var received_state: Dictionary = {}
 
 	var callback := func(action: Dictionary, state: Dictionary) -> void:
 		callback_called = true
@@ -55,9 +67,6 @@ func test_dispatch_notifies_subscribers() -> void:
 func test_dispatch_emits_action_dispatched_signal() -> void:
 	# Register test action
 	ActionRegistry.register_action(StringName("test/signal"))
-	
-	var signal_emitted := false
-	var signal_action: Dictionary = {}
 
 	store.action_dispatched.connect(func(action: Dictionary) -> void:
 		signal_emitted = true
@@ -74,7 +83,6 @@ func test_dispatch_emits_action_dispatched_signal() -> void:
 
 func test_dispatch_rejects_action_without_type() -> void:
 	gut.p("Expect error: Action missing 'type' field")
-	var validation_error := ""
 
 	store.validation_failed.connect(func(_action: Dictionary, error: String) -> void:
 		validation_error = error
@@ -82,6 +90,8 @@ func test_dispatch_rejects_action_without_type() -> void:
 
 	var invalid_action: Dictionary = {"payload": "no type"}
 	store.dispatch(invalid_action)
+	
+	await get_tree().process_frame
 
 	assert_eq(validation_error, "Action missing 'type' field", "Should emit validation_failed")
 
@@ -89,8 +99,6 @@ func test_unsubscribe_removes_callback() -> void:
 	# Register test actions
 	ActionRegistry.register_action(StringName("test1"))
 	ActionRegistry.register_action(StringName("test2"))
-	
-	var callback_count := 0
 
 	var callback := func(_action: Dictionary, _state: Dictionary) -> void:
 		callback_count += 1
