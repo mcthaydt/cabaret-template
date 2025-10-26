@@ -12,6 +12,8 @@ class_name M_StateStore
 ##   store.dispatch(U_GameplayActions.pause_game())
 ##   var state: Dictionary = store.get_state()
 
+const SignalBatcher = preload("res://scripts/state/signal_batcher.gd")
+
 signal state_changed(action: Dictionary, new_state: Dictionary)
 signal slice_updated(slice_name: StringName, slice_state: Dictionary)
 signal action_dispatched(action: Dictionary)
@@ -26,15 +28,25 @@ const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 var _state: Dictionary = {}
 var _subscribers: Array[Callable] = []
 var _slice_configs: Dictionary = {}
+var _signal_batcher: SignalBatcher = null
 
 func _ready() -> void:
 	add_to_group("state_store")
 	_initialize_settings()
 	_initialize_slices()
+	_signal_batcher = SignalBatcher.new()
+	set_physics_process(true)  # Enable physics processing for signal batching
 
 func _exit_tree() -> void:
 	if is_in_group("state_store"):
 		remove_from_group("state_store")
+
+func _physics_process(_delta: float) -> void:
+	# Flush batched signals once per physics frame
+	if _signal_batcher != null:
+		_signal_batcher.flush(func(slice_name: StringName, slice_state: Dictionary) -> void:
+			slice_updated.emit(slice_name, slice_state)
+		)
 
 func _initialize_settings() -> void:
 	if settings == null:
@@ -89,6 +101,7 @@ func dispatch(action: Dictionary) -> void:
 	action_dispatched.emit(action_copy)
 
 ## Apply reducers to update state based on action
+## State updates are IMMEDIATE (synchronous), signal emissions are batched (per-frame)
 func _apply_reducers(action: Dictionary) -> void:
 	for slice_name in _slice_configs:
 		var config: StateSliceConfig = _slice_configs[slice_name]
@@ -99,7 +112,12 @@ func _apply_reducers(action: Dictionary) -> void:
 		var next_slice_state: Variant = config.reducer.call(current_slice_state, action)
 		
 		if next_slice_state is Dictionary:
-			_state[slice_name] = (next_slice_state as Dictionary).duplicate(true)
+			var new_slice_state := (next_slice_state as Dictionary).duplicate(true)
+			_state[slice_name] = new_slice_state
+			
+			# Mark slice as dirty for batched signal emission
+			if _signal_batcher != null:
+				_signal_batcher.mark_slice_dirty(slice_name, new_slice_state)
 
 ## Subscribe to state changes
 ## Returns unsubscribe callable

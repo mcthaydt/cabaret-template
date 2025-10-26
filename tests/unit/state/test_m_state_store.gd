@@ -12,6 +12,8 @@ var signal_emitted: bool = false
 var signal_action: Dictionary = {}
 var validation_error: String = ""
 var callback_count: int = 0
+var slice_updated_count: int = 0
+var last_slice_name: StringName = StringName()
 
 func before_each() -> void:
 	# CRITICAL: Reset state bus between tests to prevent subscription leaks
@@ -25,8 +27,13 @@ func before_each() -> void:
 	signal_action = {}
 	validation_error = ""
 	callback_count = 0
+	slice_updated_count = 0
+	last_slice_name = StringName()
 
 	store = M_StateStore.new()
+	# Set up initial state for testing
+	var initial_state := RS_GameplayInitialState.new()
+	store.gameplay_initial_state = initial_state
 	add_child(store)
 	await get_tree().process_frame  # Deferred registration
 
@@ -155,3 +162,55 @@ func test_settings_defaults_when_null() -> void:
 	assert_eq(store_no_settings.settings.max_history_size, 1000, "Default history size should be 1000")
 	
 	store_no_settings.queue_free()
+
+## Phase 1f: Signal Batching Tests
+
+func test_multiple_dispatches_emit_single_slice_updated_signal_per_frame() -> void:
+	store.slice_updated.connect(func(slice_name: StringName, _slice_state: Dictionary) -> void:
+		slice_updated_count += 1
+		last_slice_name = slice_name
+	)
+	
+	# Dispatch multiple actions that actually change state
+	for i in 10:
+		var action: Dictionary = U_GameplayActions.update_score(i * 10)
+		store.dispatch(action)
+	
+	# Signal should not have fired yet (batched)
+	assert_eq(slice_updated_count, 0, "Signal should be batched, not immediate")
+	
+	# State should be updated immediately though
+	var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
+	assert_eq(gameplay_state.get("score"), 90, "State should update immediately (10th action sets score to 90)")
+	
+	# Wait for physics frame to flush batched signals
+	await get_tree().physics_frame
+	
+	# Should have emitted exactly once per slice despite 10 dispatches
+	assert_eq(slice_updated_count, 1, "Should emit only 1 signal per slice per frame")
+	assert_eq(last_slice_name, StringName("gameplay"), "Should emit for gameplay slice")
+
+func test_state_reads_immediately_after_dispatch_show_new_state() -> void:
+	# State updates should be synchronous, not batched
+	ActionRegistry.register_action(StringName("test/immediate"))
+	
+	# Dispatch action that would update state
+	var action: Dictionary = {"type": U_GameplayActions.ACTION_PAUSE_GAME, "payload": null}
+	store.dispatch(action)
+	
+	# State should be updated IMMEDIATELY, not waiting for physics frame
+	var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
+	assert_true(gameplay_state.get("paused", false), "State should update immediately, before signal batching")
+
+func test_signal_batching_overhead_less_than_0_05ms() -> void:
+	ActionRegistry.register_action(StringName("test/perf"))
+	
+	var elapsed: float = U_StateUtils.benchmark("signal_batching", func() -> void:
+		# Dispatch 100 actions
+		for i in 100:
+			store.dispatch({"type": StringName("test/perf"), "payload": {"i": i}})
+	)
+	
+	# Total overhead should be minimal (less than 0.05ms per action on average)
+	var per_action_ms: float = elapsed / 100.0
+	assert_lt(per_action_ms, 0.05, "Signal batching overhead should be < 0.05ms per action")
