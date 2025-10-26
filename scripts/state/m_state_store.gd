@@ -21,6 +21,7 @@ const PROJECT_SETTING_HISTORY_SIZE := "state/debug/history_size"
 const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 
 @export var settings: RS_StateStoreSettings
+@export var gameplay_initial_state: RS_GameplayInitialState
 
 var _state: Dictionary = {}
 var _subscribers: Array[Callable] = []
@@ -47,8 +48,14 @@ func _initialize_settings() -> void:
 			settings.max_history_size = history_size
 
 func _initialize_slices() -> void:
-	# Placeholder - will add slice initialization in Phase 1c
-	pass
+	# Register gameplay slice if initial state provided
+	if gameplay_initial_state != null:
+		var gameplay_config := StateSliceConfig.new(StringName("gameplay"))
+		gameplay_config.reducer = Callable(GameplayReducer, "reduce")
+		gameplay_config.initial_state = gameplay_initial_state.to_dictionary()
+		gameplay_config.dependencies = []
+		gameplay_config.transient_fields = []
+		register_slice(gameplay_config)
 
 ## Dispatch an action to update state
 func dispatch(action: Dictionary) -> void:
@@ -67,16 +74,32 @@ func dispatch(action: Dictionary) -> void:
 	if OS.is_debug_build() and settings.enable_debug_logging:
 		print("[STATE] Action dispatched: ", action.get("type"))
 
+	# Process action through reducers to update state
+	_apply_reducers(action)
+
 	# Create deep copy of action for subscribers
 	var action_copy: Dictionary = action.duplicate(true)
 
-	# Notify subscribers
+	# Notify subscribers with new state
 	for subscriber in _subscribers:
 		if subscriber.is_valid():
 			subscriber.call(action_copy, _state.duplicate(true))
 
 	# Emit unbatched signal
 	action_dispatched.emit(action_copy)
+
+## Apply reducers to update state based on action
+func _apply_reducers(action: Dictionary) -> void:
+	for slice_name in _slice_configs:
+		var config: StateSliceConfig = _slice_configs[slice_name]
+		if config.reducer == Callable() or not config.reducer.is_valid():
+			continue
+		
+		var current_slice_state: Dictionary = _state.get(slice_name, {})
+		var next_slice_state: Variant = config.reducer.call(current_slice_state, action)
+		
+		if next_slice_state is Dictionary:
+			_state[slice_name] = (next_slice_state as Dictionary).duplicate(true)
 
 ## Subscribe to state changes
 ## Returns unsubscribe callable
