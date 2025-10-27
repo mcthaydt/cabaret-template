@@ -6,6 +6,8 @@ class_name GameplayReducer
 ## All reducers are pure functions. NEVER mutate state directly. Always use .duplicate(true).
 ## Reducers process actions and return new state. Unrecognized actions return state unchanged.
 
+const U_TransitionActions := preload("res://scripts/state/u_transition_actions.gd")
+
 ## Reduce gameplay state based on dispatched action
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	var action_type: Variant = action.get("type")
@@ -51,6 +53,20 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			var payload: Dictionary = action.get("payload", {})
 			var points: int = payload.get("points", 0)
 			new_state.score += points
+			return new_state
+		
+		U_TransitionActions.ACTION_TRANSITION_TO_GAMEPLAY:
+			# Apply menu config to gameplay state
+			var new_state: Dictionary = state.duplicate(true)
+			var payload: Dictionary = action.get("payload", {})
+			var config: Dictionary = payload.get("config", {})
+			
+			# Apply character and difficulty from menu config
+			if config.has("character"):
+				new_state["character"] = config.get("character")
+			if config.has("difficulty"):
+				new_state["difficulty"] = config.get("difficulty")
+			
 			return new_state
 		
 		_:
