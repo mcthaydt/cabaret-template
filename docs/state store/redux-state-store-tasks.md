@@ -721,70 +721,70 @@ func after_each():
 
 **⚠️ REMINDER**: Include appropriate reset in `before_each()` - `StateStoreEventBus.reset()` for state tests, `ECSEventBus.reset()` for ECS tests
 
-- [ ] T298 [P] [PoC] 📝 TEST: Create `tests/unit/integration/test_poc_pause_system.gd` with both bus resets
-- [ ] T299 [P] [PoC] 📝 TEST: Write test `test_pause_system_dispatches_pause_action()`
-- [ ] T300 [P] [PoC] 📝 TEST: Write test `test_pause_system_reads_pause_state_from_store()`
-- [ ] T301 [P] [PoC] 📝 TEST: Write test `test_movement_disabled_when_paused()`
-- [ ] T302 [P] [PoC] 📝 TEST: Create `tests/unit/integration/test_poc_health_system.gd`
-- [ ] T303 [P] [PoC] 📝 TEST: Write test `test_health_system_dispatches_damage_action()`
-- [ ] T304 [P] [PoC] 📝 TEST: Write test `test_health_decreases_over_time()`
-- [ ] T305 [P] [PoC] 📝 TEST: Write test `test_death_at_zero_health()`
-- [ ] T306 [PoC] 📝 RUN TESTS: Verify all PoC tests FAIL (no implementation yet)
+- [x] T298 [P] [PoC] 📝 TEST: Create `tests/unit/integration/test_poc_pause_system.gd` with both bus resets
+- [x] T299 [P] [PoC] 📝 TEST: Write test `test_pause_system_dispatches_pause_action()`
+- [x] T300 [P] [PoC] 📝 TEST: Write test `test_pause_system_reads_pause_state_from_store()`
+- [x] T301 [P] [PoC] 📝 TEST: Write test `test_movement_disabled_when_paused()`
+- [x] T302 [P] [PoC] 📝 TEST: Create `tests/unit/integration/test_poc_health_system.gd`
+- [x] T303 [P] [PoC] 📝 TEST: Write test `test_health_system_dispatches_damage_action()`
+- [x] T304 [P] [PoC] 📝 TEST: Write test `test_health_decreases_over_time()`
+- [x] T305 [P] [PoC] 📝 TEST: Write test `test_death_at_zero_health()`
+- [x] T306 [PoC] 📝 RUN TESTS: Verify all PoC tests FAIL (no implementation yet)
 
 ### Implementation for Proof-of-Concept
 
 **System 1: Pause System (State Store Manages Pause State)**
 
-- [ ] T307 [P] [PoC] Create `scripts/ecs/systems/s_pause_system.gd` extending ECSSystem
-- [ ] T308 [PoC] In S_PauseSystem._ready(), get M_StateStore via U_StateUtils.get_store()
-- [ ] T309 [PoC] Implement `_unhandled_input(event)` in S_PauseSystem: detect ESC key (or pause action)
-- [ ] T310 [PoC] On ESC press: check current pause state via GameplaySelectors.get_is_paused()
-- [ ] T311 [PoC] If not paused: dispatch U_GameplayActions.pause_game(), if paused: dispatch U_GameplayActions.unpause_game()
-- [ ] T312 [PoC] Subscribe to M_StateStore.slice_updated signal for "gameplay" slice
-- [ ] T313 [PoC] On slice update: read paused state, emit PauseSystem-specific signal for other systems
-- [ ] T314 [PoC] Update S_MovementSystem: in process_system(), check GameplaySelectors.get_is_paused(), return early if paused
-- [ ] T315 [PoC] Update S_JumpSystem: check pause state, skip processing if paused
-- [ ] T316 [PoC] Add S_PauseSystem to base_scene_template.tscn in Systems node
+- [x] T307 [P] [PoC] Create `scripts/ecs/systems/s_pause_system.gd` extending ECSSystem
+- [x] T308 [PoC] In S_PauseSystem._ready(), get M_StateStore via U_StateUtils.get_store()
+- [x] T309 [PoC] Implement `_unhandled_input(event)` in S_PauseSystem: detect ESC key (or pause action)
+- [x] T310 [PoC] On ESC press: check current pause state via GameplaySelectors.get_is_paused()
+- [x] T311 [PoC] If not paused: dispatch U_GameplayActions.pause_game(), if paused: dispatch U_GameplayActions.unpause_game()
+- [x] T312 [PoC] Subscribe to M_StateStore.slice_updated signal for "gameplay" slice
+- [x] T313 [PoC] On slice update: read paused state, emit PauseSystem-specific signal for other systems
+- [x] T314 [PoC] Update S_MovementSystem: in process_system(), check GameplaySelectors.get_is_paused(), return early if paused
+- [x] T315 [PoC] Update S_JumpSystem: check pause state, skip processing if paused
+- [x] T316 [PoC] Add S_PauseSystem to base_scene_template.tscn in Systems node
 
 **System 2: Simple Health System (Damage Over Time)**
 
-- [ ] T317 [P] [PoC] Extend U_GameplayActions with `take_damage(amount: int)` action creator
-- [ ] T318 [PoC] Register ACTION_TAKE_DAMAGE in U_GameplayActions._static_init()
-- [ ] T319 [PoC] Update GameplayReducer.reduce() with ACTION_TAKE_DAMAGE case: `new_state.health -= amount`
-- [ ] T320 [PoC] Add selector: `GameplaySelectors.get_current_health(state) -> int`
-- [ ] T321 [P] [PoC] Create `scripts/ecs/systems/s_health_system.gd` extending ECSSystem
-- [ ] T322 [PoC] In S_HealthSystem, get M_StateStore reference via U_StateUtils.get_store()
-- [ ] T323 [PoC] Implement Timer-based damage: every 5 seconds, dispatch `U_GameplayActions.take_damage(10)`
-- [ ] T324 [PoC] Check health via GameplaySelectors.get_current_health(): if <= 0, emit death signal
-- [ ] T325 [PoC] Add S_HealthSystem to base_scene_template.tscn in Systems node
+- [x] T317 [P] [PoC] Extend U_GameplayActions with `take_damage(amount: int)` action creator
+- [x] T318 [PoC] Register ACTION_TAKE_DAMAGE in U_GameplayActions._static_init()
+- [x] T319 [PoC] Update GameplayReducer.reduce() with ACTION_TAKE_DAMAGE case: `new_state.health -= amount`
+- [x] T320 [PoC] Add selector: `GameplaySelectors.get_current_health(state) -> int`
+- [x] T321 [P] [PoC] Create `scripts/ecs/systems/s_health_system.gd` extending ECSSystem
+- [x] T322 [PoC] In S_HealthSystem, get M_StateStore reference via U_StateUtils.get_store()
+- [x] T323 [PoC] Implement Timer-based damage: every 5 seconds, dispatch `U_GameplayActions.take_damage(10)`
+- [x] T324 [PoC] Check health via GameplaySelectors.get_current_health(): if <= 0, emit death signal
+- [x] T325 [PoC] Add S_HealthSystem to base_scene_template.tscn in Systems node
 
 **System 3: Simple Score System (Score on Jump)**
 
-- [ ] T326 [P] [PoC] Extend U_GameplayActions with `add_score(points: int)` action creator
-- [ ] T327 [PoC] Register ACTION_ADD_SCORE in U_GameplayActions._static_init()
-- [ ] T328 [PoC] Update GameplayReducer.reduce() with ACTION_ADD_SCORE case: `new_state.score += points`
-- [ ] T329 [PoC] Update S_JumpSystem: on successful jump, dispatch `U_GameplayActions.add_score(10)`
-- [ ] T330 [PoC] Add selector: `GameplaySelectors.get_current_score(state) -> int`
+- [x] T326 [P] [PoC] Extend U_GameplayActions with `add_score(points: int)` action creator
+- [x] T327 [PoC] Register ACTION_ADD_SCORE in U_GameplayActions._static_init()
+- [x] T328 [PoC] Update GameplayReducer.reduce() with ACTION_ADD_SCORE case: `new_state.score += points`
+- [x] T329 [PoC] Update S_JumpSystem: on successful jump, dispatch `U_GameplayActions.add_score(10)`
+- [x] T330 [PoC] Add selector: `GameplaySelectors.get_current_score(state) -> int`
 
 **Simple UI (Read from State Store)**
 
-- [ ] T331 [P] [PoC] Create `scenes/ui/hud_overlay.tscn` with CanvasLayer
-- [ ] T332 [PoC] Add Label nodes for: Health, Score, Pause status
-- [ ] T333 [P] [PoC] Create `scenes/ui/hud_overlay.gd` script
-- [ ] T334 [PoC] In HUD script _ready(), get M_StateStore via U_StateUtils.get_store()
-- [ ] T335 [PoC] Subscribe to M_StateStore.slice_updated signal for "gameplay" slice
-- [ ] T336 [PoC] On slice update: read health/score/paused via GameplaySelectors, update Labels
-- [ ] T337 [PoC] Add HUD to base_scene_template.tscn as child of Main root
+- [x] T331 [P] [PoC] Create `scenes/ui/hud_overlay.tscn` with CanvasLayer
+- [x] T332 [PoC] Add Label nodes for: Health, Score, Pause status
+- [x] T333 [P] [PoC] Create `scenes/ui/hud_overlay.gd` script
+- [x] T334 [PoC] In HUD script _ready(), get M_StateStore via U_StateUtils.get_store()
+- [x] T335 [PoC] Subscribe to M_StateStore.slice_updated signal for "gameplay" slice
+- [x] T336 [PoC] On slice update: read health/score/paused via GameplaySelectors, update Labels
+- [x] T337 [PoC] Add HUD to base_scene_template.tscn as child of Main root
 
 **Test & Validation:**
 
-- [ ] T338 [PoC] 📝 RUN TESTS: Verify all PoC tests now PASS
-- [ ] T339 [PoC] 🎮 IN-GAME TEST: Run game, verify health decreases over time, displayed in UI
-- [ ] T340 [PoC] 🎮 IN-GAME TEST: Press ESC, verify game pauses, movement stops, UI shows "PAUSED"
-- [ ] T341 [PoC] 🎮 IN-GAME TEST: Jump multiple times, verify score increases, displayed in UI
-- [ ] T342 [PoC] 🎮 IN-GAME TEST: Wait for health to reach 0, verify death signal emitted
-- [ ] T343 [PoC] 🎮 IN-GAME TEST: Save state with F1, reload scene, load state, verify health/score persist
-- [ ] T344 [PoC] Commit PoC: "Add proof-of-concept integration: pause, health, score systems with state store"
+- [x] T338 [PoC] 📝 RUN TESTS: Verify all PoC tests now PASS
+- [x] T339 [PoC] 🎮 IN-GAME TEST: Run game, verify health decreases over time, displayed in UI
+- [x] T340 [PoC] 🎮 IN-GAME TEST: Press ESC, verify game pauses, movement stops, UI shows "PAUSED"
+- [x] T341 [PoC] 🎮 IN-GAME TEST: Jump multiple times, verify score increases, displayed in UI
+- [x] T342 [PoC] 🎮 IN-GAME TEST: Wait for health to reach 0, verify death signal emitted
+- [x] T343 [PoC] 🎮 IN-GAME TEST: Save state with F1, reload scene, load state, verify health/score persist
+- [x] T344 [PoC] Commit PoC: "Add proof-of-concept integration: pause, health, score systems with state store"
 
 **Checkpoint**: State store validated with real gameplay systems; architecture proven; concrete integration patterns established
 
