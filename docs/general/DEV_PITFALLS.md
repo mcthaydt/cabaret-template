@@ -98,14 +98,74 @@
   ```
   This prevents test pollution where one test's state affects another, causing false failures like getting `health=100` instead of expected `health=75`.
 
+- **Systems requiring M_StateStore need it in test setup**: Phase 16 systems (S_LandingIndicatorSystem, S_JumpSystem, S_InputSystem, S_GravitySystem, etc.) call `U_StateUtils.get_store(self)` in `process_tick()` to read state. Tests must provide a store or these systems will error with `push_error("No M_StateStore in 'state_store' group")`. **Solution**: In test setup, create and add a store:
+  ```gdscript
+  func _setup_entity(max_distance: float = 10.0) -> Dictionary:
+      var store: M_StateStore = M_StateStore.new()
+      add_child(store)
+      await _pump()
+      
+      var manager: M_ECSManager = ECS_MANAGER.new()
+      add_child(manager)
+      await _pump()
+      # ... rest of setup
+  ```
+  For tests needing gameplay state (entity coordination, etc.), initialize `store.gameplay_initial_state = RS_GameplayInitialState.new()` before adding as child.
+
+- **StateHandoff pollutes between tests without explicit clearing**: `StateHandoff.preserve_slice()` saves state that persists across test runs, causing state bleed where test B sees test A's entities/data. This manifests as "Expected 2 entities, got 3" failures. **Solution**: Call `StateHandoff.clear_all()` in `before_each()`:
+  ```gdscript
+  func before_each() -> void:
+      StateHandoff.clear_all()  # CRITICAL for state coordination tests
+      ECSEventBus.reset()        # CRITICAL for ECS event tests
+      store = M_StateStore.new()
+      store.gameplay_initial_state = RS_GameplayInitialState.new()
+      add_child_autofree(store)
+  ```
+
+- **Integration tests need extra initialization frames**: Full scene tests (`BASE_SCENE.instantiate()`) involve complex initialization with multiple managers and systems subscribing to events. If tests run assertions too soon, systems may not be fully initialized. **Symptom**: Event subscribers not found, empty request arrays when events fire. **Solution**: Add physics frame waits after scene instantiation:
+  ```gdscript
+  func _setup_scene() -> Dictionary:
+      await get_tree().process_frame
+      var scene := BASE_SCENE.instantiate()
+      add_child(scene)
+      autofree(scene)
+      await get_tree().process_frame
+      await get_tree().process_frame
+      await get_tree().physics_frame  # Extra waits for state store
+      await get_tree().physics_frame  # and system initialization
+      # Now safe to query systems/managers
+  ```
+
+- **wait_frames is deprecated, use wait_physics_frames**: GUT 9.5+ deprecates `wait_frames()` in favor of explicit `wait_physics_frames()` (counted in `_physics_process`) or `wait_process_frames()` (counted in `_process`). Using deprecated `wait_frames` generates warnings. Since ECS systems run in `_physics_process`, use `wait_physics_frames`:
+  ```gdscript
+  # WRONG (deprecated):
+  store.dispatch(action)
+  await wait_frames(1)
+  
+  # CORRECT:
+  store.dispatch(action)
+  await wait_physics_frames(1)
+  ```
+
 ## Test Coverage Status
 
-As of 2025-10-26:
-- **ECS Tests**: 62/62 passing (100%)
-- **State Store Tests**: 87/87 passing (100%)
-- **Total**: 149/149 tests passing (100%)
+As of 2025-10-27:
+- **Total Tests**: 312 tests across 46 test scripts
+- **Passing**: 312/312 (100%)
+- **Total Assertions**: 856
+- **Test Execution Time**: ~22 seconds for full suite
 
-All critical paths tested including error conditions, edge cases, and integration scenarios.
+Test directories:
+- `tests/unit/ecs` - ECS component and system tests (62 tests)
+- `tests/unit/ecs/components` - Component-specific tests (24 tests)
+- `tests/unit/ecs/systems` - System-specific tests (74 tests)
+- `tests/unit/state` - State management tests (112 tests)
+- `tests/unit/state/integration` - State slice transition tests (4 tests)
+- `tests/unit/integration` - ECS/State integration tests (15 tests)
+- `tests/integration` - Full scene integration tests (10 tests)
+- `tests/unit/utils` - Utility tests (11 tests)
+
+All critical paths tested including error conditions, edge cases, integration scenarios, and Phase 16 state coordination patterns.
 - **No C-style ternaries**: GDScript 4.5 rejects `condition ? a : b`. Use the native `a if condition else b` form and keep payload normalization readable.
 - **Keep component discovery consistent**: Decoupled components (e.g., `C_MovementComponent`, `C_JumpComponent`, `C_RotateToInputComponent`, `C_AlignWithSurfaceComponent`) now auto-discover their peers, but components that still export NodePaths for scene nodes (landing indicator markers, floating raycasts, etc.) require those paths to be wired. Mixing patterns silently disables behaviour and breaks tests.
 - **Reset support timers after jumps**: When modifying jump logic, remember to clear support/apex timers just like `C_JumpComponent.on_jump_performed()` does. Forgetting this can enable double jumps that tests catch.

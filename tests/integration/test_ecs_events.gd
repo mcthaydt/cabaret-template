@@ -11,6 +11,8 @@ const EVENT_LANDED := StringName("entity_landed")
 
 func before_each() -> void:
 	EVENT_BUS.reset()
+	# Clear state handoff to prevent interference between tests
+	StateHandoff.clear_all()
 
 func after_each() -> void:
 	pass
@@ -22,6 +24,9 @@ func _setup_scene() -> Dictionary:
 	autofree(scene)
 	await get_tree().process_frame
 	await get_tree().process_frame
+	# Extra wait for state store and systems to fully initialize
+	await get_tree().physics_frame
+	await get_tree().physics_frame
 
 	var manager: M_ECSManager = scene.get_node("Managers/M_ECSManager") as M_ECSManager
 	var player_root: Node = get_player_root(scene)

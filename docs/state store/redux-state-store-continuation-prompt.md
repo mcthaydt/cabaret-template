@@ -3,6 +3,8 @@
 ## 🚨 CRITICAL WORKFLOW REQUIREMENT 🚨
 
 **YOU MUST FOLLOW `redux-state-store-tasks.md` LINE BY LINE**
+**YOU MUST READ `DEV_PITFALLS.md` LINE BY LINE**
+**YOU MUST READ `STYLE_GUIDE.md` LINE BY LINE**
 
 Before doing ANYTHING else, read this requirement:
 

@@ -81,6 +81,11 @@ func _pump() -> void:
 	await get_tree().process_frame
 
 func _setup_entity(max_distance: float = 10.0) -> Dictionary:
+	# Add state store for the landing indicator system (Phase 16)
+	var store: M_StateStore = M_StateStore.new()
+	add_child(store)
+	await _pump()
+	
 	var manager: M_ECSManager = ECS_MANAGER.new()
 	add_child(manager)
 	await _pump()
@@ -120,6 +125,7 @@ func _setup_entity(max_distance: float = 10.0) -> Dictionary:
 	await _pump()
 
 	return {
+		"store": store,
 		"manager": manager,
 		"entity": entity,
 		"component": component,

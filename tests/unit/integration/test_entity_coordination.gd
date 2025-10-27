@@ -8,9 +8,14 @@ extends GutTest
 var store: M_StateStore
 
 func before_each() -> void:
+	# Clear any state handoff from previous tests
+	StateHandoff.clear_all()
+	
 	store = M_StateStore.new()
+	# Initialize gameplay slice with initial state
+	store.gameplay_initial_state = RS_GameplayInitialState.new()
 	add_child_autofree(store)
-	await wait_frames(2)
+	await wait_physics_frames(2)
 
 func after_each() -> void:
 	store = null
@@ -23,7 +28,7 @@ func test_update_entity_snapshot():
 		"entity_type": "player"
 	})
 	store.dispatch(action)
-	await wait_frames(1)
+	await wait_physics_frames(1)
 	
 	var state = store.get_state()
 	var entities = state.get("gameplay", {}).get("entities", {})
@@ -142,7 +147,7 @@ func test_get_entities_within_radius():
 		"position": Vector3(50, 0, 0),  # 50 units away
 		"entity_type": "enemy"
 	}))
-	await wait_frames(1)
+	await wait_physics_frames(1)
 	
 	var state = store.get_state()
 	var nearby = EntitySelectors.get_entities_within_radius(state, Vector3.ZERO, 10.0)
@@ -179,7 +184,7 @@ func test_entity_physics_convenience():
 		true                    # is_moving
 	)
 	store.dispatch(action)
-	await wait_frames(1)
+	await wait_physics_frames(1)
 	
 	var state = store.get_state()
 	var player = EntitySelectors.get_entity(state, "player")
