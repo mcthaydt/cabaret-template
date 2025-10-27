@@ -43,38 +43,36 @@ If you are ever unsure what to do next, **read the tasks.md file** and find the 
 
 ## Project Status (2025-10-27)
 
-The Redux-style centralized state store implementation is **PHASES 1-11 COMPLETE**. The feature branch `redux-state-store` has comprehensive planning documentation, User Story 1 (Core Gameplay Slice + Action History + Persistence) fully implemented, proof-of-concept integration validated, and User Story 2 (Debug Overlay) complete with 100% test pass rate.
+The Redux-style centralized state store implementation is **PHASES 1-15 COMPLETE**. The feature branch `redux-state-store` has comprehensive planning documentation, all User Stories (US1-US5) fully implemented with boot/menu/gameplay slices, state transitions working, and complete documentation with usage guide.
 
-**Current Status**: Phases 1-11 Complete - Core infrastructure + Proof-of-Concept + Debug Overlay validated and working
+**Current Status**: Phases 1-15 Complete - Full infrastructure + All slices + Documentation complete, ready for Phase 16 (Full Project Integration)
 
 **Phase 0 Decision**: **Option C - Dual-bus via abstract base** (IMPLEMENTED ✅)
 
 **Completed Phases**:
 - ✅ Phase 0C: EventBusBase architecture (commit b7fb729)
 - ✅ Phase 1 (Setup): All directories, project settings, base files
-- ✅ Phase 3 (US1a): M_StateStore skeleton + U_StateUtils (commit 77e6618)
-- ✅ Phase 4 (US1b): ActionRegistry + U_GameplayActions (commit 45cde3c)
-- ✅ Phase 5 (US1c): Gameplay reducer with immutable state (commit 8e1e42d)
-- ✅ Phase 6 (US1d): Type-safe action creators (commit 8e1e42d)
-- ✅ Phase 7 (US1e): Selector system with dependencies (commit 8e1e42d)
-- ✅ Phase 8 (US1f): Signal batching for per-frame emission (commit c198ece)
-- ✅ Phase 9 (US1g): Action history with circular buffer (commit 7c562ec)
-- ✅ Phase 10 (US1h): Persistence + StateHandoff (commit 20ecc64)
-- ✅ Test fixes: 100% pass rate achieved (commits 077e66b, 5d12444)
-- ✅ Documentation: Testing patterns + coverage (commit ac64f5c)
-- ✅ Tasks.md updated with current status (commit 18d7bed)
-- ✅ Phase 10.5: Proof-of-Concept Integration (commits 8df79e0 → 0e0c843, tasks marked 0326e70)
-- ✅ Phase 11 (US2): Debug Overlay with F3 toggle (commits 47dcae7, 4391e43, 05a252e)
-- ✅ Bug Fixes: Jump race condition, pause system coverage (commits 3369a56, 977fb3d, 45fe0f9, 9403011)
+- ✅ Phase 3-10 (US1a-US1h): Core gameplay slice (complete state store infrastructure)
+- ✅ Phase 10.5: Proof-of-Concept Integration (S_PauseSystem, S_HealthSystem, HUD)
+- ✅ Phase 11 (US2): Debug Overlay with F3 toggle
+- ✅ Phase 12 (US3): Boot slice with loading progress state (commit 0b60fc0)
+- ✅ Phase 13 (US4): Menu slice with navigation and configuration (commit 27fd503)
+- ✅ Phase 14 (US5): State transitions with data handoff (commit 6c2629c)
+- ✅ Phase 15 (Documentation): PRD updated, comprehensive usage guide (commit 6d24f60)
+- ✅ Bug Fixes: Manual UIDs, missing resource links, cursor locking, HUD input blocking, pause handling
 
 **Test Coverage**: 
-- **150/153 tests passing (98%)**
-- 88/91 state store tests (97% - 3 intentional pending placeholders in debug overlay)
-- 62/62 ECS tests (100%)
-- All in-game test scenes passing
+- **104/107 tests passing (97.2%)**
+- Boot slice: 7/7 ✅
+- Menu slice: 9/9 ✅
+- Gameplay slice: 12/12 ✅
+- Transitions: 4/4 ✅
+- Core store: 68/68 ✅
+- Debug overlay: 1/4 (3 pending placeholders)
+- **All in-game tests verified**: T355 (boot), T381 (menu), T402/T403 (transitions)
 - Debug overlay functional (F3 toggle)
 
-**Active Phase**: None - Phase 11 complete, ready for Phase 12+ (Boot/Menu slices) or gameplay expansion
+**Active Phase**: Phase 16 - Full Project Integration (integrate state store with ALL systems and managers)
 
 **Recent Bug Fixes**:
 - ✅ Jump input blocked after landing (race condition with position resets)
@@ -366,125 +364,81 @@ All gameplay systems now respect pause state:
 
 ## Next Steps
 
-**PHASES 1-11 COMPLETE** - Core infrastructure + Proof-of-Concept + Debug Overlay validated! 🎉
+**PHASES 1-15 COMPLETE** - Full infrastructure + All slices + Documentation complete! 🎉
 
 **CURRENT SITUATION**:
-- ✅ State store fully functional: dispatch, reducers, selectors, history, persistence
-- ✅ Tests passing (150/153 - 98%, 3 intentional pending placeholders)
-- ✅ **INTEGRATED WITH GAME** - State store proven to work with ECS systems
-- ✅ Pause, health, score systems using state store with full pause coverage
-- ✅ Reactive HUD reading from GameplaySelectors
-- ✅ **F3 debug overlay** - Live state inspection and action history viewer
-- ✅ Integration patterns documented in DEV_PITFALLS.md
-- ✅ **Bug fixes complete** - Jump race condition, pause system coverage
+- ✅ Complete state store: Boot/Menu/Gameplay slices with transitions
+- ✅ Tests passing (104/107 - 97.2%)
+- ✅ All in-game tests verified (T355, T381, T402, T403)
+- ✅ Comprehensive usage guide created (797 lines, 10 sections)
+- ✅ Action naming conventions documented
+- ✅ PRD updated to "Implementation Complete"
+- ✅ Debug tools working (F3 overlay)
+- ✅ Bug fixes documented in DEV_PITFALLS.md
 
-**CHOOSE YOUR PATH**:
+**IMMEDIATE NEXT STEP: Phase 16 - Full Project Integration**
 
-### Option A: Continue Infrastructure (Phase 12+) ⭐ RECOMMENDED
+### Phase 16: Full Project Integration ⭐ USER REQUESTED
 
-Build the remaining User Stories to complete the full state management system:
+**Goal**: Integrate state store throughout the ENTIRE project - all 15 systems, 2 managers, and UI components use state store for complete centralized state management.
 
-**Phase 12 (US3): Boot Slice** (Tasks T330-T356)
-- Boot state management (loading, error, ready states)
-- Boot reducer + actions + selectors
-- Scene transition support via StateHandoff
-- Estimated: 2-3 hours
+**Why Phase 16**:
+- User explicitly requested: "I want everything in the project to use the new state not just 2 systems"
+- Current status: Only S_PauseSystem and S_HealthSystem + HUD use state store
+- 13 systems and 1 manager still need integration
+- This achieves true centralized state management across the entire game
 
-**Phase 13 (US4): Menu Slice** (Tasks T357-T382)
-- Menu navigation state (main menu, settings, pause menu)
-- Menu reducer + actions + selectors
-- Integration with S_PauseSystem
-- Estimated: 2-3 hours
+**Systems to Integrate (15 total)**:
 
-**Phase 14 (US5): State Transitions** (Tasks T383-T404)
-- Boot → Menu → Gameplay flow
-- Clean state handoff between scenes
-- Error handling and recovery
-- Estimated: 2-3 hours
+1. ✅ S_PauseSystem - Already integrated (Phase 10.5)
+2. ✅ S_HealthSystem - Already integrated (Phase 10.5)
+3. **S_InputSystem** - Dispatch input state to store
+4. **S_MovementSystem** - Read movement params from state
+5. **S_RotateToInputSystem** - Read rotation input from state
+6. **S_JumpSystem** - Read jump state from state
+7. **S_GravitySystem** - Read gravity modifiers from state
+8. **S_AlignWithSurfaceSystem** - Read alignment settings from state
+9. **S_FloatingSystem** - Read floating state from state
+10. **S_LandingIndicatorSystem** - Read indicator visibility from state
+11. **S_JumpParticlesSystem** - Read particle settings from state
+12. **S_LandingParticlesSystem** - Read particle settings from state
+13. **S_JumpSoundSystem** - Read audio settings from state
 
-**Phase 15: Polish & Documentation** (Tasks T405-T448)
-- Usage guide with integration patterns
-- Performance benchmarks
-- Migration guide for existing systems
-- Complete example scenes
-- Estimated: 3-4 hours
+**Managers to Integrate (2 total)**:
 
-**Total Remaining**: ~9-12 hours to complete full infrastructure
+14. **M_CursorManager** - Read cursor mode from state
+15. **M_ECSManager** - Coordinate with state for pause/time scale
 
-**Benefits**:
-- Complete state management system ready for any game feature
-- Consistent patterns for all state needs (boot/menu/gameplay)
-- Debug tools already available (F3 overlay)
-- Clean architecture for future development
+**UI to Integrate**:
 
-**Start Here**: Open `redux-state-store-tasks.md`, find Phase 12 (Task T330), begin with boot slice
+16. ✅ HUD Overlay - Already subscribes (Phase 10.5)
+17. Future menu UI - Will use menu slice directly
 
-### Option B: Expand Gameplay Features
+**Tasks**: See Phase 16 section in `redux-state-store-tasks.md` (Tasks T449-T500)
 
-Use state store with real gameplay systems:
-
-**Potential Features**:
-- Collision-based damage system (integrate with S_HealthSystem)
-- Collectible items for score (coins, gems, powerups)
-- Level progression (load/save current level)
-- Inventory system (items, equipment)
-- Enemy AI state management
-- Save/load game system with multiple slots
+**Estimated Time**: 6-8 hours for complete project integration
 
 **Benefits**:
-- Immediate game value
-- Validates architecture with complex real-world usage
-- Discovers edge cases and patterns
-- Builds gameplay faster
+- True centralized state management (single source of truth)
+- All game systems coordinated through state
+- Complete debug visibility (F3 overlay shows everything)
+- Consistent patterns throughout codebase
+- Easy to add new features (just add state and dispatch)
 
-**Drawbacks**:
-- Deviates from planned infrastructure
-- Debug overlay would still be useful for troubleshooting
-- Boot/Menu management deferred
+**Implementation Strategy**:
+1. Start with high-impact systems (S_InputSystem, S_MovementSystem, S_JumpSystem)
+2. Progress to environmental systems (S_GravitySystem, S_FloatingSystem)
+3. Integrate visual/audio systems (particles, sounds)
+4. Integrate managers last (M_CursorManager, M_ECSManager)
+5. Comprehensive testing after each integration
+6. Update usage guide with real patterns from integrated systems
 
-**Start Here**: Choose a gameplay feature and design how it integrates with state store
-
-### Option C: Documentation & Examples
-
-Polish the PoC and create comprehensive integration guide:
-
-**Tasks**:
-- Document S_PauseSystem pattern (system + cursor + state coordination)
-- Document S_HealthSystem pattern (timer-based with pause support)
-- Document HUD pattern (reactive UI from selectors)
-- Create migration guide (converting existing systems to use state)
-- Performance benchmarking (state updates, signal batching overhead)
-- Add more integration tests for PoC systems
-
-**Benefits**:
-- Makes state store accessible to other developers
-- Clear patterns for future integrations
-- Performance baselines established
-- Production-ready documentation
-
-**Drawbacks**:
-- Delays feature development
-- Infrastructure still incomplete (no debug overlay, boot/menu)
-
-**Start Here**: Create `docs/state store/integration-guide.md` with PoC patterns
-
-### Recommendation: Option A (Continue Infrastructure) ⭐
-
-**Reasoning**:
-1. Architecture is proven (Phase 10.5 validates it works)
-2. Only ~9-12 hours to complete remaining infrastructure
-3. Debug overlay already complete (helps with future debugging)
-4. Boot/Menu slices needed for complete game flow
-5. Better to finish infrastructure now while patterns are fresh
-
-**Immediate Next Step**:
-1. Open `redux-state-store-tasks.md`
-2. Find Phase 12 section (Boot Slice)
-3. Start with Task T330 (first boot slice task)
-4. Follow TDD approach as before
+**Start Here**:
+1. 🚨 Open `redux-state-store-tasks.md`
+2. Find Phase 16 section (will be added next)
+3. Start with Task T449 (first integration task)
+4. Follow the established patterns from S_PauseSystem/S_HealthSystem
 5. Check off tasks and commit regularly
-
-The state store is validated, has working debug tools, and ready to be completed! 🚀
 
 ## Reference Documents
 
