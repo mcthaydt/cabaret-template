@@ -14,6 +14,9 @@ var _is_paused: bool = false
 func _ready() -> void:
 	super._ready()
 	
+	# Wait for tree to be fully ready (M_StateStore needs to add itself to group)
+	await get_tree().process_frame
+	
 	# Get reference to state store
 	_store = U_StateUtils.get_store(self)
 	

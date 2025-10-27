@@ -1,13 +1,8 @@
 [gd_resource type="Resource" script_class="RS_StateStoreSettings" load_steps=2 format=3 uid="uid://dw7q8jxqvhgwf"]
 
-[ext_resource type="Script" path="res://scripts/state/resources/rs_state_store_settings.gd" id="1_state_settings"]
+[ext_resource type="Script" uid="uid://tjfqy78ts7db" path="res://scripts/state/resources/rs_state_store_settings.gd" id="1_state_settings"]
 
 [resource]
 script = ExtResource("1_state_settings")
-max_history_size = 1000
-enable_history = true
-enable_signal_batching = true
-enable_persistence = true
-auto_save_interval = 60.0
 enable_debug_logging = true
 enable_debug_overlay = true

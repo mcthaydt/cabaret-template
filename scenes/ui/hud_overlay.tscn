@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c8v4h1sdtyhps"]
 
-[ext_resource type="Script" path="res://scenes/ui/hud_overlay.gd" id="1_hud"]
+[ext_resource type="Script" uid="uid://bc8x2rq25giy1" path="res://scenes/ui/hud_overlay.gd" id="1_hud"]
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -34,4 +34,3 @@ text = "Score: 0"
 [node name="PauseLabel" type="Label" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = ""

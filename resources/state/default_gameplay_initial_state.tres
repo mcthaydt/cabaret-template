@@ -1,10 +1,6 @@
-[gd_resource type="Resource" script_class="RS_GameplayInitialState" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_GameplayInitialState" load_steps=2 format=3 uid="uid://uygy4iikdf74"]
 
-[ext_resource type="Script" path="res://scripts/state/resources/rs_gameplay_initial_state.gd" id="1_default"]
+[ext_resource type="Script" uid="uid://cv4oscqm4m5h" path="res://scripts/state/resources/rs_gameplay_initial_state.gd" id="1_default"]
 
 [resource]
 script = ExtResource("1_default")
-paused = false
-health = 100
-score = 0
-level = 1
