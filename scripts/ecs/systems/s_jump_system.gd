@@ -59,8 +59,6 @@ func process_tick(_delta: float) -> void:
 		# Lenient support for jump detection (includes coyote time for better feel)
 		var is_on_floor_raw: bool = body.is_on_floor()
 		var supported_now: bool = is_on_floor_raw or floating_supported_now
-		if supported_now:
-			component.mark_on_floor(now)
 		var support_recent: bool = supported_now or has_floating_support
 
 		# Check for landing transition (airborne -> grounded)
@@ -77,6 +75,12 @@ func process_tick(_delta: float) -> void:
 				"vertical_velocity": body.velocity.y,
 			}
 			ECSEventBus.publish(EVENT_ENTITY_LANDED, landing_payload)
+		
+		# Mark on floor AFTER landing event to avoid race condition:
+		# Landing event may trigger position resets that temporarily invalidate is_on_floor()
+		# By marking after the event, we ensure jump checks use correct post-reset floor state
+		if supported_now:
+			component.mark_on_floor(now)
 
 		var jump_requested: bool = input_component.has_jump_request(component.settings.jump_buffer_time, now)
 		if not jump_requested:
