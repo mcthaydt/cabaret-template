@@ -111,12 +111,6 @@ func process_tick(_delta: float) -> void:
 		if floating_component != null:
 			floating_component.reset_recent_support(now, component.settings.coyote_time)
 
-		# Debug: jump performed
-		if OS.is_debug_build():
-			print("════════════════════════════════════════════════════")
-			print("[JUMP] t=", String.num(now, 3), " entity=", body.name, " force=", component.settings.jump_force)
-			print("════════════════════════════════════════════════════")
-
 		component.update_debug_snapshot({
 			"supported": supported_now,
 			"support_recent": support_recent,
