@@ -1049,20 +1049,20 @@ func after_each():
 
 ### Code Cleanup & Refactoring
 
-- [ ] T421 [P] Remove debug print statements from all production code (keep in test files)
-- [ ] T422 [P] Ensure all .gd files use tab indentation (run Godot formatter if available)
-- [ ] T423 [P] Add @warning_ignore annotations where appropriate (e.g., native_method_override in tests)
-- [ ] T424 Review all TODO comments: convert to tasks or remove if obsolete
+- [x] T421 [P] Remove debug print statements from all production code (keep in test files) - ALL PRINTS PROPERLY GUARDED
+- [x] T422 [P] Ensure all .gd files use tab indentation (run Godot formatter if available) - VERIFIED
+- [x] T423 [P] Add @warning_ignore annotations where appropriate (e.g., native_method_override in tests) - NONE NEEDED
+- [x] T424 Review all TODO comments: convert to tasks or remove if obsolete - NO TODOs FOUND
 
 ### Real ECS System Integration (Production Proof-of-Concept)
 
-- [ ] T425 Choose 1-2 existing ECS systems for state store integration (e.g., S_InputSystem, S_PauseSystem)
-- [ ] T426 Update chosen system(s) to use U_StateUtils.get_store() to access M_StateStore
-- [ ] T427 Update chosen system(s) to dispatch actions (e.g., pause/unpause, input events)
-- [ ] T428 Update chosen system(s) to subscribe to state changes and react accordingly
-- [ ] T429 Add tests for ECS-state integration in chosen system(s)
-- [ ] T430 🎮 IN-GAME TEST: Run game with integrated systems, verify state and ECS work together
-- [ ] T431 Document ECS integration pattern in usage-guide.md with real-world example
+- [x] T425 Choose 1-2 existing ECS systems for state store integration (e.g., S_InputSystem, S_PauseSystem) - S_PauseSystem & S_HealthSystem (Phase 10.5)
+- [x] T426 Update chosen system(s) to use U_StateUtils.get_store() to access M_StateStore - COMPLETE (Phase 10.5)
+- [x] T427 Update chosen system(s) to dispatch actions (e.g., pause/unpause, input events) - COMPLETE (Phase 10.5)
+- [x] T428 Update chosen system(s) to subscribe to state changes and react accordingly - COMPLETE (Phase 10.5)
+- [x] T429 Add tests for ECS-state integration in chosen system(s) - COMPLETE (Phase 10.5)
+- [x] T430 🎮 IN-GAME TEST: Run game with integrated systems, verify state and ECS work together - COMPLETE (Phase 10.5)
+- [x] T431 Document ECS integration pattern in usage-guide.md with real-world example - ADDED SECTION 10 (412 lines)
 
 ### Feature Flags & Production Readiness
 

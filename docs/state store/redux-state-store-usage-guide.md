@@ -791,4 +791,417 @@ const ACTION_TRANSITION_TO_GAMEPLAY := StringName("transition/to_gameplay")
 
 ---
 
+## 10. ECS Integration Patterns
+
+The state store integrates seamlessly with ECS systems. This section demonstrates real-world patterns from S_PauseSystem and S_HealthSystem.
+
+### 10.1 Basic Integration Pattern
+
+**Step 1**: Get store reference in `_ready()`:
+
+```gdscript
+extends ECSSystem
+class_name S_YourSystem
+
+var _store: M_StateStore = null
+
+func _ready() -> void:
+	super._ready()
+	
+	# CRITICAL: Wait one frame for M_StateStore to register in group
+	await get_tree().process_frame
+	
+	# Get store reference
+	_store = U_StateUtils.get_store(self)
+	
+	if not _store:
+		push_error("S_YourSystem: Could not find M_StateStore")
+		return
+```
+
+**Why `await get_tree().process_frame`?**
+- M_StateStore registers itself in its `_ready()` which runs concurrently with systems
+- Without the await, `get_store()` might execute before M_StateStore has added itself to the group
+- See `docs/general/DEV_PITFALLS.md` for more details
+
+**Step 2**: Subscribe to state changes:
+
+```gdscript
+func _ready() -> void:
+	# ... get store ...
+	
+	# Subscribe to specific slice
+	_store.slice_updated.connect(_on_slice_updated)
+	
+	# Read initial state
+	var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
+	_update_from_state(gameplay_state)
+
+func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
+	if slice_name == StringName("gameplay"):
+		_update_from_state(slice_state)
+
+func _update_from_state(state: Dictionary) -> void:
+	# Use selectors to extract specific values
+	var is_paused: bool = GameplaySelectors.get_is_paused(state)
+	# ... react to state ...
+```
+
+**Step 3**: Dispatch actions:
+
+```gdscript
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("some_action"):
+		# Dispatch action to modify state
+		_store.dispatch(U_GameplayActions.some_action(data))
+```
+
+**Step 4**: Clean up in `_exit_tree()`:
+
+```gdscript
+func _exit_tree() -> void:
+	# Unsubscribe to prevent memory leaks
+	if _store and _store.slice_updated.is_connected(_on_slice_updated):
+		_store.slice_updated.disconnect(_on_slice_updated)
+```
+
+### 10.2 Real Example: S_PauseSystem
+
+**Full implementation** (`scripts/ecs/systems/s_pause_system.gd`):
+
+```gdscript
+@icon("res://resources/editor_icons/system.svg")
+extends ECSSystem
+class_name S_PauseSystem
+
+signal pause_state_changed(is_paused: bool)
+
+var _store: M_StateStore = null
+var _cursor_manager: M_CursorManager = null
+var _is_paused: bool = false
+
+func _ready() -> void:
+	super._ready()
+	await get_tree().process_frame
+	
+	_store = U_StateUtils.get_store(self)
+	if not _store:
+		push_error("S_PauseSystem: Could not find M_StateStore")
+		return
+	
+	# Optional: Get cursor manager for UX coordination
+	var cursor_managers: Array[Node] = get_tree().get_nodes_in_group("cursor_manager")
+	if cursor_managers.size() > 0:
+		_cursor_manager = cursor_managers[0] as M_CursorManager
+	
+	# Subscribe to state changes
+	_store.slice_updated.connect(_on_slice_updated)
+	
+	# Read initial state
+	var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
+	_is_paused = GameplaySelectors.get_is_paused(gameplay_state)
+
+func _exit_tree() -> void:
+	if _store and _store.slice_updated.is_connected(_on_slice_updated):
+		_store.slice_updated.disconnect(_on_slice_updated)
+
+func _input(event: InputEvent) -> void:
+	if not _store:
+		return
+	
+	# Handle pause toggle
+	if event.is_action_pressed("pause"):
+		toggle_pause()
+		get_viewport().set_input_as_handled()
+
+func toggle_pause() -> void:
+	if not _store:
+		return
+	
+	# Read current state via selector
+	var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
+	var is_currently_paused: bool = GameplaySelectors.get_is_paused(gameplay_state)
+	
+	# Dispatch action to toggle
+	if is_currently_paused:
+		_store.dispatch(U_GameplayActions.unpause_game())
+		if _cursor_manager:
+			_cursor_manager.set_cursor_state(true, false)  # Lock cursor
+	else:
+		_store.dispatch(U_GameplayActions.pause_game())
+		if _cursor_manager:
+			_cursor_manager.set_cursor_state(false, true)  # Unlock cursor
+
+func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
+	if slice_name != StringName("gameplay"):
+		return
+	
+	# Read new pause state
+	var new_paused: bool = GameplaySelectors.get_is_paused(slice_state)
+	
+	if new_paused != _is_paused:
+		_is_paused = new_paused
+		pause_state_changed.emit(_is_paused)
+```
+
+**Key patterns demonstrated:**
+1. **Await pattern**: Wait one frame before getting store
+2. **Selector usage**: Use `GameplaySelectors` to extract specific state
+3. **Action dispatch**: Dispatch actions to modify state
+4. **Subscription**: React to state changes via `slice_updated` signal
+5. **Cleanup**: Disconnect signals in `_exit_tree()`
+6. **Coordination**: Optionally coordinate with other managers (cursor)
+
+### 10.3 Real Example: S_HealthSystem
+
+**Simplified implementation** (`scripts/ecs/systems/s_health_system.gd`):
+
+```gdscript
+@icon("res://resources/editor_icons/system.svg")
+extends ECSSystem
+class_name S_HealthSystem
+
+signal player_death
+
+var _store: M_StateStore = null
+var _damage_timer: Timer = null
+
+func _ready() -> void:
+	super._ready()
+	await get_tree().process_frame
+	
+	_store = U_StateUtils.get_store(self)
+	if not _store:
+		push_error("S_HealthSystem: Could not find M_StateStore")
+		return
+	
+	# Subscribe to state changes
+	_store.slice_updated.connect(_on_slice_updated)
+	
+	# Create timer for periodic damage (demo purposes)
+	_damage_timer = Timer.new()
+	_damage_timer.wait_time = 5.0
+	_damage_timer.timeout.connect(_on_damage_timer_timeout)
+	add_child(_damage_timer)
+	_damage_timer.start()
+
+func _exit_tree() -> void:
+	if _store and _store.slice_updated.is_connected(_on_slice_updated):
+		_store.slice_updated.disconnect(_on_slice_updated)
+
+func _on_damage_timer_timeout() -> void:
+	# Check if game is paused
+	var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
+	if GameplaySelectors.get_is_paused(gameplay_state):
+		return  # Don't apply damage while paused
+	
+	# Dispatch damage action
+	_store.dispatch(U_GameplayActions.take_damage(10))
+
+func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
+	if slice_name != StringName("gameplay"):
+		return
+	
+	# Check for player death
+	var health: int = GameplaySelectors.get_current_health(slice_state)
+	if health <= 0:
+		player_death.emit()
+```
+
+**Key patterns demonstrated:**
+1. **Pause awareness**: Check pause state before processing
+2. **Timer integration**: Dispatch actions on timer events
+3. **Health tracking**: React to health changes via selector
+4. **Death detection**: Emit system-specific signals based on state
+
+### 10.4 Respecting Pause State
+
+**All systems should check pause state before processing:**
+
+```gdscript
+func process_tick(delta: float) -> void:
+	# Get pause state
+	var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
+	if GameplaySelectors.get_is_paused(gameplay_state):
+		return  # Skip processing while paused
+	
+	# Normal processing...
+```
+
+**Systems that respect pause:**
+- S_MovementSystem
+- S_JumpSystem
+- S_RotateToInputSystem
+- S_GravitySystem
+- S_InputSystem
+- S_HealthSystem
+
+### 10.5 UI Integration Example
+
+**HUD that reacts to state** (`scenes/ui/hud_overlay.gd`):
+
+```gdscript
+extends CanvasLayer
+
+@onready var health_label: Label = %HealthLabel
+@onready var score_label: Label = %ScoreLabel
+@onready var pause_label: Label = %PauseLabel
+
+var _store: M_StateStore = null
+
+func _ready() -> void:
+	await get_tree().process_frame
+	
+	_store = U_StateUtils.get_store(self)
+	if not _store:
+		push_error("HUD: Could not find M_StateStore")
+		return
+	
+	# Subscribe to gameplay slice
+	_store.slice_updated.connect(_on_slice_updated)
+	
+	# Initial update
+	_update_ui(_store.get_slice(StringName("gameplay")))
+
+func _exit_tree() -> void:
+	if _store and _store.slice_updated.is_connected(_on_slice_updated):
+		_store.slice_updated.disconnect(_on_slice_updated)
+
+func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
+	if slice_name == StringName("gameplay"):
+		_update_ui(slice_state)
+
+func _update_ui(state: Dictionary) -> void:
+	# Use selectors to get values
+	health_label.text = "Health: %d" % GameplaySelectors.get_current_health(state)
+	score_label.text = "Score: %d" % GameplaySelectors.get_current_score(state)
+	
+	var is_paused: bool = GameplaySelectors.get_is_paused(state)
+	pause_label.visible = is_paused
+	pause_label.text = "[PAUSED]"
+```
+
+**Benefits of state-driven UI:**
+- UI automatically updates when state changes
+- No need to manually call update methods
+- Single source of truth for all UI elements
+- Easy to add new UI elements (just subscribe)
+
+### 10.6 Testing ECS Integration
+
+**Unit test example** (`tests/unit/integration/test_poc_pause_system.gd`):
+
+```gdscript
+extends GutTest
+
+var store: M_StateStore
+var pause_system: S_PauseSystem
+
+func before_each() -> void:
+	StateStoreEventBus.reset()
+	ECSEventBus.reset()
+	
+	# Create store
+	store = M_StateStore.new()
+	add_child(store)
+	
+	# Create pause system
+	pause_system = S_PauseSystem.new()
+	add_child(pause_system)
+	
+	await get_tree().process_frame
+
+func test_pause_system_dispatches_pause_action() -> void:
+	# Initial state should be unpaused
+	var state: Dictionary = store.get_slice(StringName("gameplay"))
+	assert_false(GameplaySelectors.get_is_paused(state))
+	
+	# Toggle pause
+	pause_system.toggle_pause()
+	await get_tree().process_frame
+	
+	# State should now be paused
+	state = store.get_slice(StringName("gameplay"))
+	assert_true(GameplaySelectors.get_is_paused(state))
+```
+
+### 10.7 Common Pitfalls
+
+**❌ DON'T: Access store without await**
+```gdscript
+func _ready() -> void:
+	_store = U_StateUtils.get_store(self)  # WRONG - may be null
+```
+
+**✅ DO: Wait one frame**
+```gdscript
+func _ready() -> void:
+	await get_tree().process_frame
+	_store = U_StateUtils.get_store(self)  # CORRECT
+```
+
+---
+
+**❌ DON'T: Forget to unsubscribe**
+```gdscript
+func _exit_tree() -> void:
+	pass  # WRONG - memory leak
+```
+
+**✅ DO: Always disconnect**
+```gdscript
+func _exit_tree() -> void:
+	if _store and _store.slice_updated.is_connected(_on_slice_updated):
+		_store.slice_updated.disconnect(_on_slice_updated)
+```
+
+---
+
+**❌ DON'T: Mutate state directly**
+```gdscript
+func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
+	slice_state["health"] = 100  # WRONG - mutates copy, no effect
+```
+
+**✅ DO: Dispatch actions**
+```gdscript
+func heal_player() -> void:
+	_store.dispatch(U_GameplayActions.update_health(100))  # CORRECT
+```
+
+---
+
+**❌ DON'T: Process during pause without checking**
+```gdscript
+func process_tick(delta: float) -> void:
+	apply_damage()  # WRONG - runs even when paused
+```
+
+**✅ DO: Check pause state**
+```gdscript
+func process_tick(delta: float) -> void:
+	var state: Dictionary = _store.get_slice(StringName("gameplay"))
+	if GameplaySelectors.get_is_paused(state):
+		return
+	apply_damage()  # CORRECT
+```
+
+### 10.8 Integration Checklist
+
+When integrating a new system with state store:
+
+- [ ] Add `await get_tree().process_frame` before `get_store()`
+- [ ] Store reference in instance variable
+- [ ] Check for null store and push_error if missing
+- [ ] Subscribe to relevant slice via `slice_updated.connect()`
+- [ ] Read initial state after subscribing
+- [ ] Use selectors to extract values (don't access dict directly)
+- [ ] Dispatch actions to modify state (never mutate)
+- [ ] Disconnect signals in `_exit_tree()`
+- [ ] Respect pause state in `process_tick()`
+- [ ] Add unit tests for integration
+- [ ] Test in-game to verify behavior
+
+---
+
 **Questions?** Check the PRD or inspect working examples in `scenes/debug/state_test_*.gd`
