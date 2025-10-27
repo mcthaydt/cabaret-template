@@ -15,7 +15,7 @@ func _ready() -> void:
 	
 	print("[DEBUG] Found M_StateStore, subscribing to state changes...")
 	
-	# Subscribe to all actions (subscribers receive no arguments in this implementation)
+	# Subscribe to all actions (subscribers receive action and state)
 	_store.subscribe(_on_action_dispatched)
 	
 	# Subscribe to slice updates
@@ -28,12 +28,10 @@ func _ready() -> void:
 	var state: Dictionary = _store.get_slice(StringName("gameplay"))
 	print("[DEBUG] Initial pause state: ", GameplaySelectors.get_is_paused(state))
 
-func _on_action_dispatched() -> void:
-	# Subscribers don't receive action as parameter
-	# But we can check the state after dispatch
-	if _store:
-		var state: Dictionary = _store.get_slice(StringName("gameplay"))
-		print("[DEBUG] Action dispatched -> Pause state now: ", GameplaySelectors.get_is_paused(state))
+func _on_action_dispatched(action: Dictionary, state: Dictionary) -> void:
+	# Subscribers receive action and full state
+	var gameplay_state: Dictionary = state.get("gameplay", {})
+	print("[DEBUG] Action dispatched: ", action.get("type"), " -> Pause state now: ", GameplaySelectors.get_is_paused(gameplay_state))
 
 func _on_action_signal(action: Dictionary) -> void:
 	print("[DEBUG] Action signal: ", action.get("type"))
