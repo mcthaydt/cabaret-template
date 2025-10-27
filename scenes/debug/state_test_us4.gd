@@ -9,6 +9,9 @@ extends Node
 var store: M_StateStore
 
 func _ready() -> void:
+	# Unlock cursor for UI interaction (test scene needs mouse)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	
 	# Wait for store to be ready
 	await get_tree().process_frame
 	

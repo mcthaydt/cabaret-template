@@ -12,6 +12,9 @@ var current_step := 0
 var flow_log: Array[String] = []
 
 func _ready() -> void:
+	# Unlock cursor for UI interaction (test scene needs mouse)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	
 	# Wait for store to be ready
 	await get_tree().process_frame
 	
