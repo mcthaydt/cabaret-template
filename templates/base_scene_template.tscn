@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://rygahxanlmio"]
+[gd_scene load_steps=33 format=3 uid="uid://rygahxanlmio"]
 
 [ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
 [ext_resource type="Resource" uid="uid://uygy4iikdf74" path="res://resources/state/default_gameplay_initial_state.tres" id="1_gameplay_state"]
@@ -29,7 +29,6 @@
 [ext_resource type="Script" uid="uid://d0n2a3p3tkdq0" path="res://scripts/scene_structure/managers_group.gd" id="12_klon2"]
 [ext_resource type="Script" uid="uid://mm82rwglfuba" path="res://scripts/scene_structure/entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/camera_template.tscn" id="19_ph0bl"]
-[ext_resource type="Script" uid="uid://bvo1nh7tinlpo" path="res://scenes/debug/pause_debug.gd" id="30_o3org"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -177,6 +176,3 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
 
 [node name="HUD" parent="." instance=ExtResource("11_hud")]
-
-[node name="Pause Debug" type="Node" parent="."]
-script = ExtResource("30_o3org")
