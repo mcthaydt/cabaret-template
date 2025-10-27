@@ -805,52 +805,52 @@ func after_each():
 
 **⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests
 
-- [ ] T298 [P] [US2] 📝 TEST: Create `tests/unit/state/test_sc_state_debug_overlay.gd` (include bus reset in `before_each()`)
-- [ ] T299 [P] [US2] 📝 TEST: Write test `test_debug_overlay_instantiates_without_errors()`
-- [ ] T300 [P] [US2] 📝 TEST: Write test `test_debug_overlay_displays_current_state()`
-- [ ] T301 [P] [US2] 📝 TEST: Write test `test_debug_overlay_displays_action_history()`
-- [ ] T302 [P] [US2] 📝 TEST: Write test `test_debug_overlay_toggles_with_input_action()`
-- [ ] T303 [US2] 📝 RUN TESTS: Verify all US2 tests FAIL (no implementation yet)
+- [x] T298 [P] [US2] 📝 TEST: Create `tests/unit/state/test_sc_state_debug_overlay.gd` (include bus reset in `before_each()`)
+- [x] T299 [P] [US2] 📝 TEST: Write test `test_debug_overlay_instantiates_without_errors()`
+- [x] T300 [P] [US2] 📝 TEST: Write test `test_debug_overlay_displays_current_state()`
+- [x] T301 [P] [US2] 📝 TEST: Write test `test_debug_overlay_displays_action_history()`
+- [x] T302 [P] [US2] 📝 TEST: Write test `test_debug_overlay_toggles_with_input_action()`
+- [x] T303 [US2] 📝 RUN TESTS: Verify all US2 tests FAIL (no implementation yet)
 
 ### Implementation for User Story 2
 
 **Debug Overlay Scene & Script:**
 
-- [ ] T304 [P] [US2] Create `scenes/debug/sc_state_debug_overlay.tscn` with Control root node (CanvasLayer for always-on-top)
-- [ ] T305 [P] [US2] Create `scenes/debug/sc_state_debug_overlay.gd` script with class_name SC_StateDebugOverlay
-- [ ] T306 [US2] Add UI layout: CanvasLayer → MarginContainer → VBoxContainer with state panel and history panel
-- [ ] T307 [US2] Add Label node for current state display (uses JSON.stringify() with indent for formatting)
-- [ ] T308 [US2] Add ItemList node for action history display (shows last 20 actions)
-- [ ] T309 [US2] Add RichTextLabel for action detail view (shows before/after state diff)
-- [ ] T310 [US2] Style overlay: semi-transparent dark background (Color(0, 0, 0, 0.8)), readable monospace font
+- [x] T304 [P] [US2] Create `scenes/debug/sc_state_debug_overlay.tscn` with Control root node (CanvasLayer for always-on-top)
+- [x] T305 [P] [US2] Create `scenes/debug/sc_state_debug_overlay.gd` script with class_name SC_StateDebugOverlay
+- [x] T306 [US2] Add UI layout: CanvasLayer → MarginContainer → VBoxContainer with state panel and history panel
+- [x] T307 [US2] Add Label node for current state display (uses JSON.stringify() with indent for formatting)
+- [x] T308 [US2] Add ItemList node for action history display (shows last 20 actions)
+- [x] T309 [US2] Add RichTextLabel for action detail view (shows before/after state diff)
+- [x] T310 [US2] Style overlay: semi-transparent dark background (Color(0, 0, 0, 0.8)), readable monospace font
 
 **Overlay Logic:**
 
-- [ ] T311 [US2] Implement `_ready()` in overlay script: use U_StateUtils.get_store() to find M_StateStore
-- [ ] T312 [US2] Store reference to M_StateStore in instance var: `_store: M_StateStore`
-- [ ] T313 [US2] Subscribe to M_StateStore.action_dispatched signal in _ready()
-- [ ] T314 [US2] Implement `_process(delta)` in overlay script: update state display every frame via _store.get_full_state()
-- [ ] T315 [US2] Implement action history update: on action_dispatched, add to ItemList (limit to 20 entries)
-- [ ] T316 [US2] Implement action detail view: on ItemList item selected, show action details and state diff
-- [ ] T317 [US2] Implement `_exit_tree()`: unsubscribe from M_StateStore signals to prevent leaks
+- [x] T311 [US2] Implement `_ready()` in overlay script: use U_StateUtils.get_store() to find M_StateStore
+- [x] T312 [US2] Store reference to M_StateStore in instance var: `_store: M_StateStore`
+- [x] T313 [US2] Subscribe to M_StateStore.action_dispatched signal in _ready()
+- [x] T314 [US2] Implement `_process(delta)` in overlay script: update state display every frame via _store.get_full_state()
+- [x] T315 [US2] Implement action history update: on action_dispatched, add to ItemList (limit to 20 entries)
+- [x] T316 [US2] Implement action detail view: on ItemList item selected, show action details and state diff
+- [x] T317 [US2] Implement `_exit_tree()`: unsubscribe from M_StateStore signals to prevent leaks
 
 **Toggle Mechanism (M_StateStore._input()):**
 
-- [ ] T318 [US2] Add `_input(event: InputEvent)` to M_StateStore
-- [ ] T319 [US2] Check if Input.is_action_just_pressed("toggle_debug_overlay") (F3 key from T012)
-- [ ] T320 [US2] Check project setting "state/debug/enable_debug_overlay" - if false, return early
-- [ ] T321 [US2] If no overlay exists: instantiate SC_StateDebugOverlay scene, add to tree, store reference
-- [ ] T322 [US2] If overlay exists: call queue_free() on overlay, clear reference
-- [ ] T323 [US2] Add doc comment: "Debug overlay spawns on F3 key. Controlled by M_StateStore._input() for easy access to store reference."
+- [x] T318 [US2] Add `_input(event: InputEvent)` to M_StateStore
+- [x] T319 [US2] Check if Input.is_action_just_pressed("toggle_debug_overlay") (F3 key from T012)
+- [x] T320 [US2] Check project setting "state/debug/enable_debug_overlay" - if false, return early
+- [x] T321 [US2] If no overlay exists: instantiate SC_StateDebugOverlay scene, add to tree, store reference
+- [x] T322 [US2] If overlay exists: call queue_free() on overlay, clear reference
+- [x] T323 [US2] Add doc comment: "Debug overlay spawns on F3 key. Controlled by M_StateStore._input() for easy access to store reference."
 
 **Test & Validation:**
 
-- [ ] T324 [US2] 📝 RUN TESTS: Verify all US2 tests now PASS
-- [ ] T325 [US2] 🎮 IN-GAME TEST: Run game, press F3, verify overlay appears with current state
-- [ ] T326 [US2] 🎮 IN-GAME TEST: Dispatch actions, verify history updates in overlay
-- [ ] T327 [US2] 🎮 IN-GAME TEST: Click action in history, verify detail view shows before/after state diff
-- [ ] T328 [US2] 🎮 IN-GAME TEST: Press F3 again, verify overlay despawns cleanly
-- [ ] T329 [US2] Commit US2: "Add state debug overlay with F3 toggle via M_StateStore._input()"
+- [x] T324 [US2] 📝 RUN TESTS: Verify all US2 tests now PASS
+- [x] T325 [US2] 🎮 IN-GAME TEST: Run game, press F3, verify overlay appears with current state
+- [x] T326 [US2] 🎮 IN-GAME TEST: Dispatch actions, verify history updates in overlay
+- [x] T327 [US2] 🎮 IN-GAME TEST: Click action in history, verify detail view shows before/after state diff
+- [x] T328 [US2] 🎮 IN-GAME TEST: Press F3 again, verify overlay despawns cleanly
+- [x] T329 [US2] Commit US2: "Add state debug overlay with F3 toggle via M_StateStore._input()"
 
 **Checkpoint**: Debug overlay provides live state inspection and action history during development
 
