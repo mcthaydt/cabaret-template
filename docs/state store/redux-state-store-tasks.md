@@ -1169,10 +1169,10 @@ func after_each():
 - [x] T490 📝 TEST: Test entity coordination pattern - COVERED in test_entity_coordination
 - [x] T491 Run all state tests: verify no regressions - 112/112 PASSING (100%)
 - [x] T492 Run all ECS tests: verify systems still work - 62/62 PASSING (100%)
-- [ ] T493 🎮 IN-GAME TEST: Play game for 5 minutes, verify all systems work
-- [ ] T494 🎮 IN-GAME TEST: Toggle pause (ESC), verify all systems respect pause
-- [ ] T495 🎮 IN-GAME TEST: Open debug overlay (F3), verify entity snapshots visible
-- [ ] T496 🎮 IN-GAME TEST: Test input lag - verify no perceptible delay from state indirection
+- [x] T493 🎮 IN-GAME TEST: Play game for 5 minutes, verify all systems work
+- [x] T494 🎮 IN-GAME TEST: Toggle pause (ESC), verify all systems respect pause
+- [x] T495 🎮 IN-GAME TEST: Open debug overlay (F3), verify entity snapshots visible
+- [x] T496 🎮 IN-GAME TEST: Test input lag - verify no perceptible delay from state indirection
 
 ### Documentation & Completion
 
