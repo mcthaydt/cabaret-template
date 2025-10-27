@@ -1,13 +1,12 @@
 extends CanvasLayer
 
-## HUD Overlay - Displays game state from State Store
+## HUD Overlay - Displays game state from State Store (PoC)
 ##
-## Reads pause status from state store and displays it.
+## Reads health, score, and pause status from state store and displays them.
 ## Demonstrates reactive UI pattern: subscribe to state changes, update labels.
-##
-## NOTE: Health and score display removed - will be restored in Phase 16
-## when gameplay state is expanded with real game data.
 
+@onready var health_label: Label = $MarginContainer/VBoxContainer/HealthLabel
+@onready var score_label: Label = $MarginContainer/VBoxContainer/ScoreLabel
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
 
 var _store: M_StateStore = null
@@ -40,7 +39,12 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 
 ## Update UI labels from state
 func _update_display(gameplay_state: Dictionary) -> void:
+	var health: int = GameplaySelectors.get_current_health(gameplay_state)
+	var score: int = GameplaySelectors.get_current_score(gameplay_state)
 	var is_paused: bool = GameplaySelectors.get_is_paused(gameplay_state)
+	
+	health_label.text = "Health: %d" % health
+	score_label.text = "Score: %d" % score
 	
 	if is_paused:
 		pause_label.text = "[PAUSED]"
