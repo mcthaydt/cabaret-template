@@ -19,6 +19,13 @@ func on_configured() -> void:
 
 func process_tick(_delta: float) -> void:
 	_ensure_actions()
+	
+	# Skip input capture if game is paused
+	var store: M_StateStore = U_StateUtils.get_store(self)
+	if store:
+		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
+		if GameplaySelectors.get_is_paused(gameplay_state):
+			return
 
 	var movement_vector := Input.get_vector(negative_x_action, positive_x_action, negative_z_action, positive_z_action)
 	var mv_len := movement_vector.length()
