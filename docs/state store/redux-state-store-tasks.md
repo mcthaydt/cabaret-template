@@ -960,7 +960,7 @@ func after_each():
 - [x] T378 [US4] 📝 RUN TESTS: Verify all US4 tests now PASS
 - [x] T379 [US4] Create test scene `scenes/debug/state_test_us4.tscn` with simple menu UI
 - [x] T380 [US4] Add Button nodes that dispatch menu navigation actions
-- [ ] T381 [US4] 🎮 IN-GAME TEST: Run test scene, click buttons, verify state reflects screen changes
+- [x] T381 [US4] 🎮 IN-GAME TEST: Run test scene, click buttons, verify state reflects screen changes
 - [x] T382 [US4] Commit US4: "Add menu slice navigation state"
 
 **Checkpoint**: Menu slice enables UI-driven state changes and bridges boot→gameplay transitions
@@ -1010,8 +1010,8 @@ func after_each():
 - [x] T399 [US5] 📝 RUN TESTS: Verify all US5 tests now PASS
 - [x] T400 [US5] Create comprehensive test scene `scenes/debug/state_test_us5_full_flow.tscn`
 - [x] T401 [US5] Add script simulating: boot → menu navigation → gameplay start → return to menu
-- [ ] T402 [US5] 🎮 IN-GAME TEST: Run test scene through complete flow, verify all transitions work
-- [ ] T403 [US5] 🎮 IN-GAME TEST: Verify state handoff works correctly (menu config → gameplay)
+- [x] T402 [US5] 🎮 IN-GAME TEST: Run test scene through complete flow, verify all transitions work
+- [x] T403 [US5] 🎮 IN-GAME TEST: Verify state handoff works correctly (menu config → gameplay)
 - [x] T404 [US5] Commit US5: "Add complete state transition flows with validation"
 
 **Checkpoint**: All three slices work together with clean transitions and data handoff
