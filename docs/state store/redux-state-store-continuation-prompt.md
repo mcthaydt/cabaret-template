@@ -41,11 +41,16 @@ If you are ever unsure what to do next, **read the tasks.md file** and find the 
 
 ---
 
-## Project Status (2025-10-27)
+## Project Status (2025-10-27 - Updated)
 
 The Redux-style centralized state store implementation is **PHASES 1-15 COMPLETE**. The feature branch `redux-state-store` has comprehensive planning documentation, all User Stories (US1-US5) fully implemented with boot/menu/gameplay slices, state transitions working, and complete documentation with usage guide.
 
-**Current Status**: Phases 1-15 Complete - Full infrastructure + All slices + Documentation complete, ready for Phase 16 (Full Project Integration)
+**Current Status**: Phases 1-15 Complete - Full infrastructure + All slices + Documentation complete. Mock data restored for test stability. Phase 16.5 plan added. Ready for Phase 16 (Full Project Integration).
+
+**Recent Updates** (2025-10-27):
+- ✅ Reverted commit c3258b0 to restore mock data (commit 5390c25)
+- ✅ Added Phase 16.5 plan for future mock data removal (commit d06aeab)
+- ✅ Tests restored to passing: 104/107 (97.2%)
 
 **Phase 0 Decision**: **Option C - Dual-bus via abstract base** (IMPLEMENTED ✅)
 
@@ -435,10 +440,51 @@ All gameplay systems now respect pause state:
 
 **Start Here**:
 1. 🚨 Open `redux-state-store-tasks.md`
-2. Find Phase 16 section (will be added next)
+2. Find Phase 16 section (Tasks T449-T500)
 3. Start with Task T449 (first integration task)
 4. Follow the established patterns from S_PauseSystem/S_HealthSystem
 5. Check off tasks and commit regularly
+
+### Phase 16.5: Mock Data Removal ⏳ FUTURE WORK
+
+**Goal**: Remove test-only mock data once real gameplay systems exist to replace them.
+
+**⚠️ DO NOT EXECUTE YET - Prerequisites not met!**
+
+**Current Situation**:
+- Mock data (health, score, level, character, difficulty, save files) restored in commit 5390c25
+- Tests depend on this mock data to validate state store functionality
+- Mock data serves as placeholder until real gameplay systems are built
+
+**Prerequisites for Phase 16.5** (NONE currently exist):
+- ❌ Real health system (not just state mock)
+- ❌ Real score/points system tracking actual gameplay
+- ❌ Real level/progression system
+- ❌ Character selection system
+- ❌ Difficulty system
+- ❌ Save/load system reading from actual gameplay state
+
+**When to Execute Phase 16.5**:
+- ONLY after building real gameplay features (enemies, collectibles, progression, etc.)
+- When tests can validate actual game systems instead of artificial data
+- When mock fields in state become obsolete
+
+**Tasks**: See Phase 16.5 section in `redux-state-store-tasks.md` (Tasks T501-T553)
+
+**What Phase 16.5 Does**:
+1. Audits state to identify test-only vs production-used fields
+2. Refactors tests to use real gameplay systems
+3. Removes obsolete action creators, reducers, selectors
+4. Cleans up initial state resources
+5. Updates documentation to reflect production-only patterns
+
+**Estimated Timeline**: Execute Phase 16.5 after building health/score/progression systems (likely Phase 17+ or separate feature branch)
+
+**Why Mock Data Was Restored**:
+- Premature removal in commit c3258b0 broke tests
+- Tests need something to validate against
+- State store architecture is proven, but needs real data sources
+- Better to have working tests with mock data than broken tests with no data
 
 ## Reference Documents
 
