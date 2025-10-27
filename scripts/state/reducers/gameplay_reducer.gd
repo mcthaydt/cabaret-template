@@ -116,7 +116,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			return new_state
 		
 		# Phase 16: Entity Coordination Pattern
-		"gameplay/UPDATE_ENTITY_SNAPSHOT":
+		U_EntityActions.ACTION_UPDATE_ENTITY_SNAPSHOT:
 			var new_state: Dictionary = state.duplicate(true)
 			var payload: Dictionary = action.get("payload", {})
 			var entity_id: String = payload.get("entity_id", "")
@@ -140,7 +140,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			
 			return new_state
 		
-		"gameplay/REMOVE_ENTITY":
+		U_EntityActions.ACTION_REMOVE_ENTITY:
 			var new_state: Dictionary = state.duplicate(true)
 			var payload: Dictionary = action.get("payload", {})
 			var entity_id: String = payload.get("entity_id", "")
