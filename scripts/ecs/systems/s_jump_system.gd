@@ -78,9 +78,13 @@ func process_tick(_delta: float) -> void:
 			}
 			ECSEventBus.publish(EVENT_ENTITY_LANDED, landing_payload)
 			
-			# Phase 16: Dispatch floor state to state store
+			# Phase 16: Update entity snapshot with floor state (Entity Coordination Pattern)
 			if store:
-				store.dispatch(U_PhysicsActions.update_floor_state(true))
+				var entity_id: String = _get_entity_id(body)
+				if not entity_id.is_empty():
+					store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, {
+						"is_on_floor": true
+					}))
 		
 		# Mark on floor AFTER landing event to avoid race condition:
 		# Landing event may trigger position resets that temporarily invalidate is_on_floor()
@@ -121,9 +125,13 @@ func process_tick(_delta: float) -> void:
 		if floating_component != null:
 			floating_component.reset_recent_support(now, component.settings.coyote_time)
 		
-		# Phase 16: Dispatch floor state to state store (leaving ground)
+		# Phase 16: Update entity snapshot with floor state (Entity Coordination Pattern)
 		if store:
-			store.dispatch(U_PhysicsActions.update_floor_state(false))
+			var entity_id: String = _get_entity_id(body)
+			if not entity_id.is_empty():
+				store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, {
+					"is_on_floor": false
+				}))
 
 		component.update_debug_snapshot({
 			"supported": supported_now,
@@ -152,3 +160,9 @@ func process_tick(_delta: float) -> void:
 		# Award points for jumping (PoC integration with state store)
 		if store:
 			store.dispatch(U_GameplayActions.add_score(10))
+
+## Phase 16: Get entity ID from body for state coordination
+func _get_entity_id(body: Node) -> String:
+	if body.has_meta("entity_id"):
+		return body.get_meta("entity_id")
+	return body.name

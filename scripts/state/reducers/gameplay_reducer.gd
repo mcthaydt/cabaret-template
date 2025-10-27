@@ -89,41 +89,11 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			new_state.jump_just_pressed = payload.get("jump_just_pressed", false)
 			return new_state
 		
-		# Phase 16: Physics actions
+		# Phase 16: Global settings
 		"gameplay/UPDATE_GRAVITY_SCALE":
 			var new_state: Dictionary = state.duplicate(true)
 			var payload: Dictionary = action.get("payload", {})
 			new_state.gravity_scale = payload.get("gravity_scale", 1.0)
-			return new_state
-		
-		"gameplay/UPDATE_FLOOR_STATE":
-			var new_state: Dictionary = state.duplicate(true)
-			var payload: Dictionary = action.get("payload", {})
-			new_state.is_on_floor = payload.get("is_on_floor", false)
-			return new_state
-		
-		"gameplay/UPDATE_VELOCITY":
-			var new_state: Dictionary = state.duplicate(true)
-			var payload: Dictionary = action.get("payload", {})
-			new_state.velocity = payload.get("velocity", Vector3.ZERO)
-			return new_state
-		
-		"gameplay/UPDATE_POSITION":
-			var new_state: Dictionary = state.duplicate(true)
-			var payload: Dictionary = action.get("payload", {})
-			new_state.position = payload.get("position", Vector3.ZERO)
-			return new_state
-		
-		"gameplay/UPDATE_ROTATION":
-			var new_state: Dictionary = state.duplicate(true)
-			var payload: Dictionary = action.get("payload", {})
-			new_state.rotation = payload.get("rotation", Vector3.ZERO)
-			return new_state
-		
-		"gameplay/UPDATE_IS_MOVING":
-			var new_state: Dictionary = state.duplicate(true)
-			var payload: Dictionary = action.get("payload", {})
-			new_state.is_moving = payload.get("is_moving", false)
 			return new_state
 		
 		# Phase 16: Visual actions
@@ -143,6 +113,42 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			var new_state: Dictionary = state.duplicate(true)
 			var payload: Dictionary = action.get("payload", {})
 			new_state.audio_settings = payload.get("audio_settings", {}).duplicate(true)
+			return new_state
+		
+		# Phase 16: Entity Coordination Pattern
+		"gameplay/UPDATE_ENTITY_SNAPSHOT":
+			var new_state: Dictionary = state.duplicate(true)
+			var payload: Dictionary = action.get("payload", {})
+			var entity_id: String = payload.get("entity_id", "")
+			var snapshot: Dictionary = payload.get("snapshot", {})
+			
+			if entity_id.is_empty():
+				return state
+			
+			# Ensure entities dict exists
+			if not new_state.has("entities"):
+				new_state["entities"] = {}
+			
+			# Merge snapshot into entity data (preserves existing fields)
+			if new_state["entities"].has(entity_id):
+				var existing: Dictionary = new_state["entities"][entity_id].duplicate(true)
+				for key in snapshot.keys():
+					existing[key] = snapshot[key]
+				new_state["entities"][entity_id] = existing
+			else:
+				new_state["entities"][entity_id] = snapshot.duplicate(true)
+			
+			return new_state
+		
+		"gameplay/REMOVE_ENTITY":
+			var new_state: Dictionary = state.duplicate(true)
+			var payload: Dictionary = action.get("payload", {})
+			var entity_id: String = payload.get("entity_id", "")
+			
+			if not entity_id.is_empty() and new_state.has("entities"):
+				if new_state["entities"].has(entity_id):
+					new_state["entities"].erase(entity_id)
+			
 			return new_state
 		
 		_:

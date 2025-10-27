@@ -156,14 +156,22 @@ func process_tick(delta: float) -> void:
 		if body.has_method("move_and_slide"):
 			body.move_and_slide()
 	
-	# Phase 16: Dispatch velocity and position to state store
+	# Phase 16: Dispatch entity snapshots to state store (Entity Coordination Pattern)
 	if store and bodies.size() > 0:
-		# Dispatch for the first body (player)
-		var player_body: CharacterBody3D = bodies[0]
-		store.dispatch(U_PhysicsActions.update_velocity(player_body.velocity))
-		store.dispatch(U_PhysicsActions.update_position(player_body.global_position))
-		var is_moving: bool = Vector2(player_body.velocity.x, player_body.velocity.z).length() > 0.1
-		store.dispatch(U_PhysicsActions.update_is_moving(is_moving))
+		for body in bodies:
+			var entity_id: String = _get_entity_id(body)
+			if entity_id.is_empty():
+				continue
+			
+			var is_moving: bool = Vector2(body.velocity.x, body.velocity.z).length() > 0.1
+			var snapshot: Dictionary = {
+				"position": body.global_position,
+				"velocity": body.velocity,
+				"rotation": body.rotation,
+				"is_moving": is_moving,
+				"entity_type": _get_entity_type(body)
+			}
+			store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
 
 func _get_desired_velocity(input_vector: Vector2, max_speed: float) -> Vector3:
 	var normalized = input_vector
@@ -223,3 +231,25 @@ func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
 		return Vector3.ZERO
 	n = n.normalized()
 	return vector - n * vector.dot(n)
+
+## Phase 16: Get entity ID from body for state coordination
+func _get_entity_id(body: Node) -> String:
+	# Use metadata if available
+	if body.has_meta("entity_id"):
+		return body.get_meta("entity_id")
+	# Fallback to node name
+	return body.name
+
+## Phase 16: Get entity type from body
+func _get_entity_type(body: Node) -> String:
+	if body.has_meta("entity_type"):
+		return body.get_meta("entity_type")
+	# Infer from node name
+	var name_lower: String = body.name.to_lower()
+	if "player" in name_lower:
+		return "player"
+	elif "enemy" in name_lower:
+		return "enemy"
+	elif "npc" in name_lower:
+		return "npc"
+	return "unknown"

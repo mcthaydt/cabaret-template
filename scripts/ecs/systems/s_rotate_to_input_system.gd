@@ -63,9 +63,13 @@ func process_tick(delta: float) -> void:
 			target.rotation = current_rotation
 			component.reset_rotation_state()
 		
-		# Phase 16: Dispatch rotation to state store
+		# Phase 16: Update entity snapshot with rotation (Entity Coordination Pattern)
 		if store:
-			store.dispatch(U_PhysicsActions.update_rotation(target.rotation))
+			var entity_id: String = _get_entity_id(target)
+			if not entity_id.is_empty():
+				store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, {
+					"rotation": target.rotation
+				}))
 
 func _move_toward_angle(current: float, target: float, max_delta: float) -> float:
 	var difference = wrapf(target - current, -PI, PI)
@@ -99,3 +103,9 @@ func _apply_second_order_rotation(component: C_RotateToInputComponent, target: N
 	component.set_rotation_velocity(velocity)
 	current_rotation.y = wrapf(current_yaw, -PI, PI)
 	target.rotation = current_rotation
+
+## Phase 16: Get entity ID from node for state coordination
+func _get_entity_id(node: Node) -> String:
+	if node.has_meta("entity_id"):
+		return node.get_meta("entity_id")
+	return node.name
