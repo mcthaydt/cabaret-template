@@ -47,7 +47,6 @@ func _exit_tree() -> void:
 	# Clean up subscriptions
 	if _store and _store.slice_updated.is_connected(_on_slice_updated):
 		_store.slice_updated.disconnect(_on_slice_updated)
-	super._exit_tree()
 
 ## Timer callback - apply periodic damage
 func _on_damage_timer_timeout() -> void:
