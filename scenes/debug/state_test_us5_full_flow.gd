@@ -15,6 +15,9 @@ func _ready() -> void:
 	# Unlock cursor for UI interaction (test scene needs mouse)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
+	# Make sure UI can receive input (not paused)
+	$UI.process_mode = Node.PROCESS_MODE_ALWAYS
+	
 	# Wait for store to be ready
 	await get_tree().process_frame
 	
@@ -22,6 +25,10 @@ func _ready() -> void:
 	if not store:
 		print("[TEST] ERROR: Could not find M_StateStore")
 		return
+	
+	# Unpause the game in case it starts paused
+	if store:
+		store.dispatch(U_GameplayActions.unpause())
 	
 	print("[TEST] Full flow test scene starting...")
 	
