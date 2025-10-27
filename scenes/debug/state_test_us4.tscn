@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://bmdxh3j7u4vu7"]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scenes/debug/state_test_us4.gd" id="1_menu_test"]
 [ext_resource type="PackedScene" path="res://templates/base_scene_template.tscn" id="2_base"]

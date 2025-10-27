@@ -1,5 +1,22 @@
 # Developer Pitfalls
 
+## Godot Scene UIDs
+
+- **Never manually specify UIDs in .tscn files**: When creating scene files programmatically or via text editing, do NOT include `uid://` lines in the scene file. Godot automatically generates and manages UIDs when you save scenes in the editor. Manually-specified UIDs will cause "Unrecognized UID" errors because Godot's UID registry doesn't know about them. **Solution**: Let Godot generate UIDs by either:
+  - Creating scenes in the Godot editor and saving normally
+  - Creating scene files without the `uid=` parameter in the header line
+  - Opening manually-created scenes in the editor and re-saving to generate proper UIDs
+  
+  Example of WRONG approach:
+  ```
+  [gd_scene load_steps=3 format=3 uid="uid://cjxbw8u5jn7nn"]  # DON'T DO THIS
+  ```
+  
+  Example of CORRECT approach:
+  ```
+  [gd_scene load_steps=3 format=3]  # Let Godot add UID when you save in editor
+  ```
+
 ## GDScript Language Pitfalls
 
 - **Lambda closures cannot reassign outer scope variables**: GDScript lambdas capture variables by reference but **cannot reassign them**. Writing `var x = 1; var f = func(): x = 2` will not modify the outer `x`. **Solution**: Use mutable containers like Arrays or Dictionaries. Example: `var result: Array = []; var callback = func(val): result.append(val)`. This commonly occurs when capturing action results in subscriber callbacks or signal handlers. See `state_test_us1a.gd` for a real-world example where `var action_received: Array = []` works but `var action_received: Dictionary = {}` does not.
