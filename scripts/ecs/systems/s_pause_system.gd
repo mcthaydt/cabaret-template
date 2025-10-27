@@ -3,8 +3,10 @@ class_name S_PauseSystem
 
 ## Pause System - Manages game pause state via State Store
 ##
-## Handles ESC key to toggle pause, reads pause state from store,
+## Handles P key to toggle pause, reads pause state from store,
 ## emits signals for other systems to react to pause changes.
+##
+## Note: ESC is used by M_CursorManager for cursor lock/visibility.
 
 signal pause_state_changed(is_paused: bool)
 
@@ -40,10 +42,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not _store:
 		return
 	
-	# Check for ESC key press (pause toggle)
+	# Check for P key press (pause toggle)
+	# Note: ESC is used by M_CursorManager
 	if event is InputEventKey:
 		var key_event := event as InputEventKey
-		if key_event.pressed and key_event.keycode == KEY_ESCAPE:
+		if key_event.pressed and key_event.keycode == KEY_P:
 			toggle_pause()
 			get_viewport().set_input_as_handled()
 

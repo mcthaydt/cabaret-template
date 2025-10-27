@@ -7,6 +7,19 @@
 - **Annotate Callable results**: `Callable.call()` and similar helpers also return Variants. When reducers or action handlers return dictionaries, capture them with explicit types (e.g., `var next_state: Dictionary = root.call(...)`) so tests load without Variant inference errors.
 - **Respect tab indentation in scripts**: Godot scripts under `res://` expect tabs. Mixing spaces causes parse errors that look unrelated to the actual change, so configure your editor accordingly before editing `.gd` files.
 
+## State Store Integration Pitfalls
+
+- **System initialization race condition**: Systems that access M_StateStore in `_ready()` must use `await get_tree().process_frame` BEFORE calling `U_StateUtils.get_store()`. The store adds itself to the "state_store" group in its own `_ready()`, so other nodes' `_ready()` methods run concurrently. Without the await, systems will fail to find the store. Example:
+  ```gdscript
+  func _ready() -> void:
+      super._ready()
+      await get_tree().process_frame  # CRITICAL: Wait for store to register
+      _store = U_StateUtils.get_store(self)
+  ```
+  Systems that get the store in `process_tick()` don't need this await since process_tick runs after all _ready() calls complete.
+
+- **Input action conflicts**: Multiple systems can consume the same input. M_CursorManager uses ESC to toggle cursor lock/visibility and calls `set_input_as_handled()`, preventing other systems from receiving the ESC key. Design systems to use unique keys or check input priority. In the PoC, pause was changed from ESC to P key to avoid conflict with cursor manager.
+
 ## GUT Testing Pitfalls
 
 - **Expected errors must use assert_push_error() AFTER the action**: When testing code that intentionally triggers `push_error()`, call `assert_push_error("error pattern")` immediately AFTER the action that causes the error, not before. Example:
