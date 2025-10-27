@@ -13,11 +13,6 @@ const U_EntityActions := preload("res://scripts/state/actions/u_entity_actions.g
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	var action_type: Variant = action.get("type")
 	
-	if OS.is_debug_build():
-		var action_str = str(action_type)
-		if action_str.contains("UPDATE") or action_str.contains("ENTITY"):
-			print("[GameplayReducer] reduce() called, action_type: ", action_type)
-	
 	match action_type:
 		U_GameplayActions.ACTION_PAUSE_GAME:
 			var new_state: Dictionary = state.duplicate(true)
@@ -123,19 +118,12 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 		
 		# Phase 16: Entity Coordination Pattern
 		U_EntityActions.ACTION_UPDATE_ENTITY_SNAPSHOT:
-			if OS.is_debug_build():
-				print("[GameplayReducer] UPDATE_ENTITY_SNAPSHOT received")
 			var new_state: Dictionary = state.duplicate(true)
 			var payload: Dictionary = action.get("payload", {})
 			var entity_id: String = payload.get("entity_id", "")
 			var snapshot: Dictionary = payload.get("snapshot", {})
 			
-			if OS.is_debug_build():
-				print("[GameplayReducer] entity_id: ", entity_id, ", snapshot: ", snapshot)
-			
 			if entity_id.is_empty():
-				if OS.is_debug_build():
-					print("[GameplayReducer] entity_id is empty, returning state unchanged")
 				return state
 			
 			# Ensure entities dict exists
