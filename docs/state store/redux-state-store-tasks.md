@@ -866,47 +866,47 @@ func after_each():
 
 **⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests (use `ECSEventBus.reset()` in ECS tests)
 
-- [ ] T330 [P] [US3] 📝 TEST: Create `tests/unit/state/test_boot_slice_reducers.gd` (include bus reset in `before_each()`)
-- [ ] T331 [P] [US3] 📝 TEST: Write test `test_boot_slice_initializes_with_loading_0_percent()`
-- [ ] T332 [P] [US3] 📝 TEST: Write test `test_update_loading_progress_updates_percentage()`
-- [ ] T333 [P] [US3] 📝 TEST: Write test `test_boot_error_sets_error_state_and_message()`
-- [ ] T334 [P] [US3] 📝 TEST: Write test `test_boot_complete_transitions_to_ready_state()`
-- [ ] T335 [US3] 📝 RUN TESTS: Verify all US3 tests FAIL (no implementation yet)
+- [x] T330 [P] [US3] 📝 TEST: Create `tests/unit/state/test_boot_slice_reducers.gd` (include bus reset in `before_each()`)
+- [x] T331 [P] [US3] 📝 TEST: Write test `test_boot_slice_initializes_with_loading_0_percent()`
+- [x] T332 [P] [US3] 📝 TEST: Write test `test_update_loading_progress_updates_percentage()`
+- [x] T333 [P] [US3] 📝 TEST: Write test `test_boot_error_sets_error_state_and_message()`
+- [x] T334 [P] [US3] 📝 TEST: Write test `test_boot_complete_transitions_to_ready_state()`
+- [x] T335 [US3] 📝 RUN TESTS: Verify all US3 tests FAIL (no implementation yet)
 
 ### Implementation for User Story 3
 
 **Initial State & Actions:**
 
-- [ ] T336 [P] [US3] Create `scripts/state/resources/rs_boot_initial_state.gd` extending Resource
-- [ ] T337 [US3] Add @export properties: loading_progress (float, 0.0-1.0), phase (String), error_message (String), is_ready (bool)
-- [ ] T338 [US3] Add `to_dictionary() -> Dictionary` method
-- [ ] T339 [US3] Create default resource `resources/state/default_boot_initial_state.tres` with defaults
-- [ ] T340 [P] [US3] Create `scripts/state/u_boot_actions.gd` as class_name U_BootActions
-- [ ] T341 [US3] Add constants: ACTION_UPDATE_LOADING_PROGRESS, ACTION_BOOT_ERROR, ACTION_BOOT_COMPLETE
-- [ ] T342 [US3] Implement action creators with explicit `: Dictionary` return types
-- [ ] T343 [US3] Add _static_init() to register actions with ActionRegistry
+- [x] T336 [P] [US3] Create `scripts/state/resources/rs_boot_initial_state.gd` extending Resource
+- [x] T337 [US3] Add @export properties: loading_progress (float, 0.0-1.0), phase (String), error_message (String), is_ready (bool)
+- [x] T338 [US3] Add `to_dictionary() -> Dictionary` method
+- [x] T339 [US3] Create default resource `resources/state/default_boot_initial_state.tres` with defaults
+- [x] T340 [P] [US3] Create `scripts/state/u_boot_actions.gd` as class_name U_BootActions
+- [x] T341 [US3] Add constants: ACTION_UPDATE_LOADING_PROGRESS, ACTION_BOOT_ERROR, ACTION_BOOT_COMPLETE
+- [x] T342 [US3] Implement action creators with explicit `: Dictionary` return types
+- [x] T343 [US3] Add _static_init() to register actions with ActionRegistry
 
 **Boot Reducer & Selectors:**
 
-- [ ] T344 [P] [US3] Create `scripts/state/reducers/boot_reducer.gd` as class_name BootReducer
-- [ ] T345 [US3] Implement `static func reduce(state: Dictionary, action: Dictionary) -> Dictionary`
-- [ ] T346 [US3] Add cases for all boot actions using .duplicate(true) for immutability
-- [ ] T347 [P] [US3] Create `scripts/state/selectors/boot_selectors.gd` as class_name BootSelectors
-- [ ] T348 [US3] Implement selectors: get_is_boot_complete(), get_loading_progress(), get_boot_error()
+- [x] T344 [P] [US3] Create `scripts/state/reducers/boot_reducer.gd` as class_name BootReducer
+- [x] T345 [US3] Implement `static func reduce(state: Dictionary, action: Dictionary) -> Dictionary`
+- [x] T346 [US3] Add cases for all boot actions using .duplicate(true) for immutability
+- [x] T347 [P] [US3] Create `scripts/state/selectors/boot_selectors.gd` as class_name BootSelectors
+- [x] T348 [US3] Implement selectors: get_is_boot_complete(), get_loading_progress(), get_boot_error()
 
 **Store Integration:**
 
-- [ ] T349 [US3] Add `@export var boot_initial_state: RS_BootInitialState` to M_StateStore
-- [ ] T350 [US3] Update M_StateStore._ready() to register boot slice with BootReducer.reduce
-- [ ] T351 [US3] Add boot slice to base_scene_template.tscn: link RS_BootInitialState export
+- [x] T349 [US3] Add `@export var boot_initial_state: RS_BootInitialState` to M_StateStore
+- [x] T350 [US3] Update M_StateStore._ready() to register boot slice with BootReducer.reduce
+- [x] T351 [US3] Add boot slice to base_scene_template.tscn: link RS_BootInitialState export
 
 **Test & Validation:**
 
-- [ ] T352 [US3] 📝 RUN TESTS: Verify all US3 tests now PASS
-- [ ] T353 [US3] Create test scene `scenes/debug/state_test_us3.tscn` simulating boot sequence
-- [ ] T354 [US3] Add script that dispatches boot actions with Timer delays to simulate loading
-- [ ] T355 [US3] 🎮 IN-GAME TEST: Run test scene, verify loading progress updates, boot completes
-- [ ] T356 [US3] Commit US3: "Add boot slice state management"
+- [x] T352 [US3] 📝 RUN TESTS: Verify all US3 tests now PASS
+- [x] T353 [US3] Create test scene `scenes/debug/state_test_us3.tscn` simulating boot sequence
+- [x] T354 [US3] Add script that dispatches boot actions with Timer delays to simulate loading
+- [x] T355 [US3] 🎮 IN-GAME TEST: Run test scene, verify loading progress updates, boot completes
+- [x] T356 [US3] Commit US3: "Add boot slice state management"
 
 **Checkpoint**: Boot slice provides predictable initialization state tracking
 

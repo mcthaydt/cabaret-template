@@ -16,6 +16,8 @@ class_name M_StateStore
 const SignalBatcher = preload("res://scripts/state/signal_batcher.gd")
 const SerializationHelper = preload("res://scripts/state/serialization_helper.gd")
 const StateHandoff = preload("res://scripts/state/state_handoff.gd")
+const BootReducer = preload("res://scripts/state/reducers/boot_reducer.gd")
+const RS_BootInitialState = preload("res://scripts/state/resources/rs_boot_initial_state.gd")
 
 signal state_changed(action: Dictionary, new_state: Dictionary)
 signal slice_updated(slice_name: StringName, slice_state: Dictionary)
@@ -28,6 +30,7 @@ const PROJECT_SETTING_ENABLE_HISTORY := "state/debug/enable_history"
 const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 
 @export var settings: RS_StateStoreSettings
+@export var boot_initial_state: RS_BootInitialState
 @export var gameplay_initial_state: RS_GameplayInitialState
 
 var _state: Dictionary = {}
@@ -112,6 +115,15 @@ func _initialize_settings() -> void:
 		_enable_history = true  # Default to enabled in debug builds
 
 func _initialize_slices() -> void:
+	# Register boot slice if initial state provided
+	if boot_initial_state != null:
+		var boot_config := StateSliceConfig.new(StringName("boot"))
+		boot_config.reducer = Callable(BootReducer, "reduce")
+		boot_config.initial_state = boot_initial_state.to_dictionary()
+		boot_config.dependencies = []
+		boot_config.transient_fields = []
+		register_slice(boot_config)
+	
 	# Register gameplay slice if initial state provided
 	if gameplay_initial_state != null:
 		var gameplay_config := StateSliceConfig.new(StringName("gameplay"))
