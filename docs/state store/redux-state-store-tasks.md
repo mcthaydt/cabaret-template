@@ -1041,11 +1041,11 @@ func after_each():
 
 ### Testing & Validation
 
-- [ ] T416 Run complete state store test suite: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/state -gexit`
-- [ ] T417 Verify all tests pass with no memory leaks (check GUT output for leaked instances)
-- [ ] T418 Run ECS tests to ensure no regressions: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit`
-- [ ] T419 Create smoke test scene `scenes/debug/state_smoke_test.tscn` that exercises all slices and actions
-- [ ] T420 Run smoke test in editor, verify no errors or warnings in console
+- [x] T416 Run complete state store test suite: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/state -gexit`
+- [x] T417 Verify all tests pass with no memory leaks (check GUT output for leaked instances)
+- [x] T418 Run ECS tests to ensure no regressions: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit`
+- [x] T419 Create smoke test scene `scenes/debug/state_smoke_test.tscn` that exercises all slices and actions
+- [x] T420 Run smoke test in editor, verify no errors or warnings in console
 
 ### Code Cleanup & Refactoring
 
