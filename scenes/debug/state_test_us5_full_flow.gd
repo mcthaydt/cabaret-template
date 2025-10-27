@@ -28,7 +28,7 @@ func _ready() -> void:
 	
 	# Unpause the game in case it starts paused
 	if store:
-		store.dispatch(U_GameplayActions.unpause())
+		store.dispatch(U_GameplayActions.unpause_game())
 	
 	print("[TEST] Full flow test scene starting...")
 	

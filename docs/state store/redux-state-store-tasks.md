@@ -905,7 +905,7 @@ func after_each():
 - [x] T352 [US3] 📝 RUN TESTS: Verify all US3 tests now PASS
 - [x] T353 [US3] Create test scene `scenes/debug/state_test_us3.tscn` simulating boot sequence
 - [x] T354 [US3] Add script that dispatches boot actions with Timer delays to simulate loading
-- [ ] T355 [US3] 🎮 IN-GAME TEST: Run test scene, verify loading progress updates, boot completes
+- [x] T355 [US3] 🎮 IN-GAME TEST: Run test scene, verify loading progress updates, boot completes
 - [x] T356 [US3] Commit US3: "Add boot slice state management"
 
 **Checkpoint**: Boot slice provides predictable initialization state tracking
