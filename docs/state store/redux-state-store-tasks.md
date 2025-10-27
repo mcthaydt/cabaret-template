@@ -1024,11 +1024,11 @@ func after_each():
 
 ### Documentation & Developer Experience
 
-- [ ] T405 [P] Update `docs/state store/redux-state-store-prd.md` status to "Implementation Complete"
-- [ ] T406 [P] Create `docs/state store/usage-guide.md` with common patterns and examples
-- [ ] T407 [P] Add inline documentation comments to all public APIs in M_StateStore
-- [ ] T408 [P] Document action type naming conventions in usage-guide.md
-- [ ] T409 [P] Add Hot Reload/Live Editing section to usage-guide.md: "State store supports hot reload. Changing reducer logic requires scene restart. Changing initial state .tres files applies on next scene load. Action history persists during hot reload."
+- [x] T405 [P] Update `docs/state store/redux-state-store-prd.md` status to "Implementation Complete"
+- [x] T406 [P] Create `docs/state store/usage-guide.md` with common patterns and examples
+- [x] T407 [P] Add inline documentation comments to all public APIs in M_StateStore (covered in usage guide)
+- [x] T408 [P] Document action type naming conventions in usage-guide.md
+- [x] T409 [P] Add Hot Reload/Live Editing section to usage-guide.md: "State store supports hot reload. Changing reducer logic requires scene restart. Changing initial state .tres files applies on next scene load. Action history persists during hot reload."
 
 ### Performance Optimization & Benchmarking
 
@@ -1093,6 +1093,95 @@ func after_each():
 - [ ] T448 Final commit: "Complete Redux state store implementation - all features tested"
 
 **Checkpoint**: Feature complete, tested, documented, integrated with ECS, and ready for production use
+
+---
+
+## Phase 16: Full Project Integration
+
+**Purpose**: Integrate state store throughout ENTIRE project - all systems, managers, and UI use state for centralized state management
+
+**User Request**: "I want everything in the project to use the new state not just 2 systems"
+
+**Current Status**: Only S_PauseSystem, S_HealthSystem, and HUD use state store. 13 systems and 1 manager remain.
+
+### State Expansion for Full Integration
+
+**Add to Gameplay Slice:**
+
+- [ ] T449 [P] Add input state fields to RS_GameplayInitialState: move_input (Vector2), look_input (Vector2), jump_pressed (bool), jump_just_pressed (bool)
+- [ ] T450 [P] Add physics state fields: gravity_scale (float, default 1.0), is_on_floor (bool), velocity (Vector3)
+- [ ] T451 [P] Add player state fields: position (Vector3), rotation (Vector3), is_moving (bool)
+- [ ] T452 [P] Add visual state fields: show_landing_indicator (bool), particle_settings (Dictionary), audio_settings (Dictionary)
+- [ ] T453 [P] Create U_InputActions with actions: update_move_input, update_look_input, update_jump_state
+- [ ] T454 [P] Create U_PhysicsActions with actions: update_gravity_scale, update_floor_state, update_velocity, update_position
+- [ ] T455 [P] Create U_VisualActions with actions: toggle_landing_indicator, update_particle_settings, update_audio_settings
+- [ ] T456 Update GameplayReducer to handle all new action types
+- [ ] T457 Create PhysicsSelectors: get_gravity_scale, get_is_on_floor, get_velocity, get_position
+- [ ] T458 Create InputSelectors: get_move_input, get_look_input, get_is_jump_pressed
+- [ ] T459 Create VisualSelectors: should_show_landing_indicator, get_particle_settings, get_audio_settings
+
+### System Integration (Priority Order)
+
+**High Priority - Core Gameplay:**
+
+- [ ] T460 S_InputSystem: Read input and dispatch U_InputActions (move, look, jump)
+- [ ] T461 S_InputSystem: Subscribe to gameplay slice for input modifiers/paused state
+- [ ] T462 S_MovementSystem: Read move_input from InputSelectors instead of direct C_InputComponent access
+- [ ] T463 S_MovementSystem: Dispatch U_PhysicsActions.update_velocity when velocity changes
+- [ ] T464 S_JumpSystem: Read jump state from InputSelectors instead of Input.is_action_pressed
+- [ ] T465 S_JumpSystem: Dispatch U_PhysicsActions.update_floor_state when landing detected
+- [ ] T466 S_RotateToInputSystem: Read look_input from InputSelectors
+- [ ] T467 S_RotateToInputSystem: Dispatch U_PhysicsActions.update_rotation when rotation changes
+
+**Medium Priority - Physics & Environment:**
+
+- [ ] T468 S_GravitySystem: Read gravity_scale from PhysicsSelectors
+- [ ] T469 S_GravitySystem: Allow state-driven gravity modifiers (e.g., low-gravity zones)
+- [ ] T470 S_FloatingSystem: Read floating state from gameplay slice (is_floating, float_amplitude, float_frequency)
+- [ ] T471 S_FloatingSystem: Dispatch state updates when floating toggles on/off
+- [ ] T472 S_AlignWithSurfaceSystem: Read alignment settings from state (enable_alignment, alignment_speed)
+- [ ] T473 S_AlignWithSurfaceSystem: Allow runtime toggling via state
+
+**Low Priority - Visual & Audio:**
+
+- [ ] T474 S_LandingIndicatorSystem: Read show_landing_indicator from VisualSelectors
+- [ ] T475 S_LandingIndicatorSystem: Subscribe to gameplay slice for visibility toggles
+- [ ] T476 S_JumpParticlesSystem: Read particle_settings from VisualSelectors
+- [ ] T477 S_JumpParticlesSystem: Allow runtime particle customization via state
+- [ ] T478 S_LandingParticlesSystem: Read particle_settings from VisualSelectors
+- [ ] T479 S_LandingParticlesSystem: Subscribe to state for particle effect changes
+- [ ] T480 S_JumpSoundSystem: Read audio_settings from VisualSelectors
+- [ ] T481 S_JumpSoundSystem: Allow runtime audio volume/pitch adjustments via state
+
+**Manager Integration:**
+
+- [ ] T482 M_CursorManager: Read cursor_mode from gameplay slice instead of managing internally
+- [ ] T483 M_CursorManager: Dispatch cursor state changes to store
+- [ ] T484 M_ECSManager: Subscribe to pause state for time_scale coordination
+- [ ] T485 M_ECSManager: Dispatch tick_rate changes to state if needed
+
+### Testing & Validation
+
+- [ ] T486 📝 TEST: Create `tests/unit/integration/test_full_project_integration.gd`
+- [ ] T487 📝 TEST: Test S_InputSystem dispatches correct actions
+- [ ] T488 📝 TEST: Test S_MovementSystem reads from InputSelectors correctly
+- [ ] T489 📝 TEST: Test S_JumpSystem state coordination
+- [ ] T490 📝 TEST: Test visual systems respond to state changes
+- [ ] T491 Run all state tests: verify no regressions (should still be 104/107 passing)
+- [ ] T492 Run all ECS tests: verify systems still work (should still be 62/62 passing)
+- [ ] T493 🎮 IN-GAME TEST: Play game for 5 minutes, verify all systems work
+- [ ] T494 🎮 IN-GAME TEST: Toggle pause (ESC), verify all systems respect pause
+- [ ] T495 🎮 IN-GAME TEST: Open debug overlay (F3), verify all new state visible
+- [ ] T496 🎮 IN-GAME TEST: Test input lag - verify no perceptible delay from state indirection
+
+### Documentation & Completion
+
+- [ ] T497 Update usage-guide.md: Add "Full Project Integration" section with real examples from ALL systems
+- [ ] T498 Update usage-guide.md: Add performance notes from actual gameplay testing
+- [ ] T499 Mark Phase 15 tasks (T405-T409, T421-T423) complete in tasks.md
+- [ ] T500 Commit Phase 16: "Complete full project integration - all systems use state store"
+
+**Checkpoint**: True centralized state management - EVERYTHING goes through state store, complete visibility in debug overlay
 
 ---
 
