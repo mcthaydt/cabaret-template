@@ -7,7 +7,7 @@ class_name U_EntityActions
 ## Components = source of truth, State = coordination layer
 ## See: redux-state-store-entity-coordination-pattern.md
 
-const ActionRegistry = preload("res://scripts/state/core/action_registry.gd")
+const ActionRegistry = preload("res://scripts/state/action_registry.gd")
 
 ## Update entity snapshot in state (for coordination/visibility)
 ## entity_id: Unique identifier (e.g., "player", "enemy_goblin_1")

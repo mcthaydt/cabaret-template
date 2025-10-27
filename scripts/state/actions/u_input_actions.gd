@@ -6,7 +6,7 @@ class_name U_InputActions
 ## Phase 16: Created for full project integration
 ## Used by S_InputSystem to dispatch input state changes
 
-const ActionRegistry = preload("res://scripts/state/core/action_registry.gd")
+const ActionRegistry = preload("res://scripts/state/action_registry.gd")
 
 ## Update move input (WASD or analog stick)
 static func update_move_input(move_input: Vector2) -> Dictionary:

@@ -1076,11 +1076,11 @@ func after_each():
 
 **⚠️ ONLY IF FALLBACK (Option B) WAS USED IN PHASE 2:**
 
-- [ ] T437 [Phase15-EventBus] Revisit event bus refactor: attempt Phase 0A tasks again
-- [ ] T438 [Phase15-Event Integration] Refactor M_StateStore signaling to also publish via `StateStoreEventBus.publish()` (keep direct signals if desirable)
-- [ ] T439 [Phase15-Event Integration] Ensure state tests use `StateStoreEventBus.reset()` in `before_each()`; ECS tests use `ECSEventBus.reset()`
-- [ ] T440 [Phase15-EventBus] Test EventBus refactor with full state store test suite
-- [ ] T441 [Phase15-EventBus] Commit: "Integrate M_StateStore with unified EventBus"
+- [N/A] T437 [Phase15-EventBus] Revisit event bus refactor: attempt Phase 0A tasks again
+- [N/A] T438 [Phase15-Event Integration] Refactor M_StateStore signaling to also publish via `StateStoreEventBus.publish()` (keep direct signals if desirable)
+- [N/A] T439 [Phase15-Event Integration] Ensure state tests use `StateStoreEventBus.reset()` in `before_each()`; ECS tests use `ECSEventBus.reset()`
+- [N/A] T440 [Phase15-EventBus] Test EventBus refactor with full state store test suite
+- [N/A] T441 [Phase15-EventBus] Commit: "Integrate M_StateStore with unified EventBus"
 
 ### Final Validation
 
