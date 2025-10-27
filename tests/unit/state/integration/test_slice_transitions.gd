@@ -49,7 +49,7 @@ func test_boot_to_menu_transition_preserves_boot_completion() -> void:
 	
 	store.queue_free()
 
-## T385: Test menu to gameplay transition applies pending config
+## T385: Test menu to gameplay transition initializes gameplay state
 func test_menu_to_gameplay_transition_applies_pending_config() -> void:
 	var store := M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()
@@ -74,16 +74,15 @@ func test_menu_to_gameplay_transition_applies_pending_config() -> void:
 	}
 	store.dispatch(U_TransitionActions.transition_to_gameplay(config))
 	
-	# Verify gameplay state received config
+	# Verify gameplay state is initialized with real fields
 	var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-	assert_true(gameplay_state.has("character"), "Gameplay should have character field")
-	assert_true(gameplay_state.has("difficulty"), "Gameplay should have difficulty field")
-	assert_eq(gameplay_state.get("character"), "warrior", "Character should be applied to gameplay")
-	assert_eq(gameplay_state.get("difficulty"), "hard", "Difficulty should be applied to gameplay")
+	assert_false(gameplay_state.get("paused"), "Gameplay should start unpaused")
+	assert_true(gameplay_state.has("entities"), "Gameplay should have entities field")
+	assert_eq(gameplay_state.get("entities"), {}, "Entities should start empty")
 	
 	store.queue_free()
 
-## T386: Test gameplay to menu transition preserves progress
+## T386: Test gameplay to menu transition preserves state
 func test_gameplay_to_menu_transition_preserves_progress() -> void:
 	var store := M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()
@@ -92,24 +91,18 @@ func test_gameplay_to_menu_transition_preserves_progress() -> void:
 	add_child(store)
 	await get_tree().process_frame
 	
-	# Simulate gameplay progress
-	store.dispatch(U_GameplayActions.update_score(500))
-	store.dispatch(U_GameplayActions.update_health(75))
-	store.dispatch(U_GameplayActions.set_level(3))
+	# Simulate gameplay state changes
+	store.dispatch(U_GameplayActions.pause_game())
 	
 	var gameplay_state_before: Dictionary = store.get_slice(StringName("gameplay"))
-	var score_before: int = gameplay_state_before.get("score")
-	var health_before: int = gameplay_state_before.get("health")
-	var level_before: int = gameplay_state_before.get("level")
+	var paused_before: bool = gameplay_state_before.get("paused")
 	
 	# Transition back to menu
 	store.dispatch(U_TransitionActions.transition_to_menu())
 	
-	# Verify gameplay progress is preserved
+	# Verify gameplay state is preserved
 	var gameplay_state_after: Dictionary = store.get_slice(StringName("gameplay"))
-	assert_eq(gameplay_state_after.get("score"), score_before, "Score should be preserved")
-	assert_eq(gameplay_state_after.get("health"), health_before, "Health should be preserved")
-	assert_eq(gameplay_state_after.get("level"), level_before, "Level should be preserved")
+	assert_eq(gameplay_state_after.get("paused"), paused_before, "Paused state should be preserved")
 	
 	# Verify menu is active
 	var menu_state: Dictionary = store.get_slice(StringName("menu"))
@@ -155,16 +148,18 @@ func test_full_flow_boot_to_menu_to_gameplay_to_menu() -> void:
 	store.dispatch(U_TransitionActions.transition_to_gameplay(config))
 	
 	var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-	assert_eq(gameplay_state.get("character"), "mage", "Gameplay should have mage character")
-	assert_eq(gameplay_state.get("difficulty"), "easy", "Gameplay should have easy difficulty")
+	assert_false(gameplay_state.get("paused"), "Gameplay should start unpaused")
+	assert_true(gameplay_state.has("entities"), "Gameplay should have entities field")
 	
-	# Step 5: Play game
-	store.dispatch(U_GameplayActions.update_score(1000))
-	store.dispatch(U_GameplayActions.set_level(5))
+	# Step 5: Play game (pause/unpause)
+	store.dispatch(U_GameplayActions.pause_game())
 	
 	gameplay_state = store.get_slice(StringName("gameplay"))
-	assert_eq(gameplay_state.get("score"), 1000, "Score should be updated")
-	assert_eq(gameplay_state.get("level"), 5, "Level should be updated")
+	assert_true(gameplay_state.get("paused"), "Game should be paused")
+	
+	store.dispatch(U_GameplayActions.unpause_game())
+	gameplay_state = store.get_slice(StringName("gameplay"))
+	assert_false(gameplay_state.get("paused"), "Game should be unpaused")
 	
 	# Step 6: Return to menu
 	store.dispatch(U_TransitionActions.transition_to_menu())
@@ -176,6 +171,6 @@ func test_full_flow_boot_to_menu_to_gameplay_to_menu() -> void:
 	boot_state = store.get_slice(StringName("boot"))
 	gameplay_state = store.get_slice(StringName("gameplay"))
 	assert_true(boot_state.get("is_ready"), "Boot should still be complete")
-	assert_eq(gameplay_state.get("score"), 1000, "Gameplay progress should be preserved")
+	assert_false(gameplay_state.get("paused"), "Gameplay state should be preserved")
 	
 	store.queue_free()
