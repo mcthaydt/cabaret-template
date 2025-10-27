@@ -17,6 +17,29 @@
   [gd_scene load_steps=3 format=3]  # Let Godot add UID when you save in editor
   ```
 
+## Godot UI Pitfalls
+
+- **Full-screen overlay containers block input by default**: When creating HUD overlays or full-screen UI containers (using `anchors_preset = 15`), the container will block ALL mouse input to UI elements below it, even if the container's children only occupy a small portion of the screen. This happens because Control nodes use `mouse_filter = MOUSE_FILTER_STOP` (value 0) by default, which intercepts and stops mouse events from propagating.
+  
+  **Problem**: A MarginContainer covering the entire screen for a HUD overlay will prevent clicks from reaching buttons or UI elements below it, even though the HUD content (health/score labels) only appears in the corner.
+  
+  **Solution**: Set `mouse_filter = 2` (MOUSE_FILTER_IGNORE) on full-screen containers that should display information without blocking interaction:
+  ```gdscript
+  # In .tscn file:
+  [node name="MarginContainer" type="MarginContainer" parent="."]
+  anchors_preset = 15
+  anchor_right = 1.0
+  anchor_bottom = 1.0
+  mouse_filter = 2  # MOUSE_FILTER_IGNORE - lets clicks pass through
+  ```
+  
+  **When to use each mouse_filter mode:**
+  - `MOUSE_FILTER_STOP` (0 - default): Block mouse events (use for clickable buttons, interactive panels)
+  - `MOUSE_FILTER_PASS` (1): Receive mouse events but let them continue to nodes below
+  - `MOUSE_FILTER_IGNORE` (2): Completely ignore mouse events (use for non-interactive overlays, info displays)
+  
+  **Real example**: `scenes/ui/hud_overlay.tscn` uses a full-screen MarginContainer to provide consistent margins for HUD elements. Without `mouse_filter = 2`, it blocked all clicks to test scene buttons below it, even though the HUD labels only occupied the top-left corner.
+
 ## GDScript Language Pitfalls
 
 - **Lambda closures cannot reassign outer scope variables**: GDScript lambdas capture variables by reference but **cannot reassign them**. Writing `var x = 1; var f = func(): x = 2` will not modify the outer `x`. **Solution**: Use mutable containers like Arrays or Dictionaries. Example: `var result: Array = []; var callback = func(val): result.append(val)`. This commonly occurs when capturing action results in subscriber callbacks or signal handlers. See `state_test_us1a.gd` for a real-world example where `var action_received: Array = []` works but `var action_received: Dictionary = {}` does not.
