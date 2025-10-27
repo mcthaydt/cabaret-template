@@ -2,6 +2,8 @@
 extends ECSSystem
 class_name S_RotateToInputSystem
 
+## Phase 16: Dispatches rotation to state store
+
 const ROTATE_TYPE := StringName("C_RotateToInputComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 
@@ -60,6 +62,10 @@ func process_tick(delta: float) -> void:
 			current_rotation.y = _move_toward_angle(current_rotation.y, desired_yaw, max_delta)
 			target.rotation = current_rotation
 			component.reset_rotation_state()
+		
+		# Phase 16: Dispatch rotation to state store
+		if store:
+			store.dispatch(U_PhysicsActions.update_rotation(target.rotation))
 
 func _move_toward_angle(current: float, target: float, max_delta: float) -> float:
 	var difference = wrapf(target - current, -PI, PI)

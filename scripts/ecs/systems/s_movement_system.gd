@@ -2,6 +2,8 @@
 extends ECSSystem
 class_name S_MovementSystem
 
+## Phase 16: Dispatches velocity to state store
+
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
@@ -153,6 +155,15 @@ func process_tick(delta: float) -> void:
 		body.velocity = final_velocity
 		if body.has_method("move_and_slide"):
 			body.move_and_slide()
+	
+	# Phase 16: Dispatch velocity and position to state store
+	if store and bodies.size() > 0:
+		# Dispatch for the first body (player)
+		var player_body: CharacterBody3D = bodies[0]
+		store.dispatch(U_PhysicsActions.update_velocity(player_body.velocity))
+		store.dispatch(U_PhysicsActions.update_position(player_body.global_position))
+		var is_moving: bool = Vector2(player_body.velocity.x, player_body.velocity.z).length() > 0.1
+		store.dispatch(U_PhysicsActions.update_is_moving(is_moving))
 
 func _get_desired_velocity(input_vector: Vector2, max_speed: float) -> Vector3:
 	var normalized = input_vector

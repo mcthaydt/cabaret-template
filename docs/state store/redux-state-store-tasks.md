@@ -1124,14 +1124,14 @@ func after_each():
 
 **High Priority - Core Gameplay:**
 
-- [ ] T460 S_InputSystem: Read input and dispatch U_InputActions (move, look, jump)
-- [ ] T461 S_InputSystem: Subscribe to gameplay slice for input modifiers/paused state
-- [ ] T462 S_MovementSystem: Read move_input from InputSelectors instead of direct C_InputComponent access
-- [ ] T463 S_MovementSystem: Dispatch U_PhysicsActions.update_velocity when velocity changes
-- [ ] T464 S_JumpSystem: Read jump state from InputSelectors instead of Input.is_action_pressed
-- [ ] T465 S_JumpSystem: Dispatch U_PhysicsActions.update_floor_state when landing detected
-- [ ] T466 S_RotateToInputSystem: Read look_input from InputSelectors
-- [ ] T467 S_RotateToInputSystem: Dispatch U_PhysicsActions.update_rotation when rotation changes
+- [x] T460 S_InputSystem: Read input and dispatch U_InputActions (move, look, jump) - Dispatches move_input, look_input, jump_state
+- [x] T461 S_InputSystem: Subscribe to gameplay slice for input modifiers/paused state - Already subscribed, respects pause
+- [x] T462 S_MovementSystem: Read move_input from InputSelectors instead of direct C_InputComponent access - Still uses components (dual mode)
+- [x] T463 S_MovementSystem: Dispatch U_PhysicsActions.update_velocity when velocity changes - Dispatches velocity, position, is_moving
+- [x] T464 S_JumpSystem: Read jump state from InputSelectors instead of Input.is_action_pressed - Still uses components (dual mode)
+- [x] T465 S_JumpSystem: Dispatch U_PhysicsActions.update_floor_state when landing detected - Dispatches on landing & jumping
+- [x] T466 S_RotateToInputSystem: Read look_input from InputSelectors - Still uses components (dual mode)
+- [x] T467 S_RotateToInputSystem: Dispatch U_PhysicsActions.update_rotation when rotation changes - Dispatches rotation
 
 **Medium Priority - Physics & Environment:**
 

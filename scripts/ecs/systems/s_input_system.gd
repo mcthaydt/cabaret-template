@@ -2,6 +2,8 @@
 extends ECSSystem
 class_name S_InputSystem
 
+## Phase 16: Dispatches input to state store and components
+
 const INPUT_TYPE := StringName("C_InputComponent")
 
 @export var negative_x_action: StringName = StringName("move_left")
@@ -13,9 +15,17 @@ const INPUT_TYPE := StringName("C_InputComponent")
 @export var input_deadzone: float = 0.15
 
 var _actions_initialized := false
+var _mouse_delta: Vector2 = Vector2.ZERO
 
 func on_configured() -> void:
 	_ensure_actions()
+	# Enable input processing for mouse capture
+	set_process_input(true)
+
+func _input(event: InputEvent) -> void:
+	# Capture mouse movement for look input
+	if event is InputEventMouseMotion:
+		_mouse_delta = event.relative
 
 func process_tick(_delta: float) -> void:
 	_ensure_actions()
@@ -25,15 +35,28 @@ func process_tick(_delta: float) -> void:
 	if store:
 		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
 		if GameplaySelectors.get_is_paused(gameplay_state):
+			# Reset mouse delta when paused
+			_mouse_delta = Vector2.ZERO
 			return
 
 	var movement_vector := Input.get_vector(negative_x_action, positive_x_action, negative_z_action, positive_z_action)
 	var mv_len := movement_vector.length()
 	if mv_len > 0.0 and mv_len < input_deadzone:
 		movement_vector = Vector2.ZERO
-	var jump_pressed := Input.is_action_just_pressed(jump_action)
+	var jump_pressed := Input.is_action_pressed(jump_action)
+	var jump_just_pressed := Input.is_action_just_pressed(jump_action)
 	var sprint_pressed := Input.is_action_pressed(sprint_action)
+	
+	# Phase 16: Dispatch input to state store
+	if store:
+		store.dispatch(U_InputActions.update_move_input(movement_vector))
+		store.dispatch(U_InputActions.update_look_input(_mouse_delta))
+		store.dispatch(U_InputActions.update_jump_state(jump_pressed, jump_just_pressed))
+	
+	# Reset mouse delta after dispatching
+	_mouse_delta = Vector2.ZERO
 
+	# Still write to components (other systems read from them)
 	var entities := query_entities([INPUT_TYPE])
 	for entity_query in entities:
 		var input_component: C_InputComponent = entity_query.get_component(INPUT_TYPE)
@@ -42,7 +65,7 @@ func process_tick(_delta: float) -> void:
 
 		input_component.set_move_vector(movement_vector)
 		input_component.set_sprint_pressed(sprint_pressed)
-		if jump_pressed:
+		if jump_just_pressed:
 			input_component.set_jump_pressed(true)
 
 func _ensure_actions() -> void:

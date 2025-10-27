@@ -2,6 +2,8 @@
 extends ECSSystem
 class_name S_JumpSystem
 
+## Phase 16: Dispatches floor state to state store
+
 const JUMP_TYPE := StringName("C_JumpComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
@@ -75,6 +77,10 @@ func process_tick(_delta: float) -> void:
 				"vertical_velocity": body.velocity.y,
 			}
 			ECSEventBus.publish(EVENT_ENTITY_LANDED, landing_payload)
+			
+			# Phase 16: Dispatch floor state to state store
+			if store:
+				store.dispatch(U_PhysicsActions.update_floor_state(true))
 		
 		# Mark on floor AFTER landing event to avoid race condition:
 		# Landing event may trigger position resets that temporarily invalidate is_on_floor()
@@ -114,6 +120,10 @@ func process_tick(_delta: float) -> void:
 		body.velocity = velocity
 		if floating_component != null:
 			floating_component.reset_recent_support(now, component.settings.coyote_time)
+		
+		# Phase 16: Dispatch floor state to state store (leaving ground)
+		if store:
+			store.dispatch(U_PhysicsActions.update_floor_state(false))
 
 		component.update_debug_snapshot({
 			"supported": supported_now,
