@@ -45,13 +45,14 @@ If you are ever unsure what to do next, **read the tasks.md file** and find the 
 
 The Redux-style centralized state store implementation is **PHASES 1-14 COMPLETE, PHASE 15 IN PROGRESS**. The feature branch `redux-state-store` has comprehensive planning documentation, all User Stories (US1-US5) fully implemented with boot/menu/gameplay slices, state transitions working, and partial documentation complete.
 
-**Current Status**: Phases 1-14 Complete, Phase 15 IN PROGRESS (5/39 tasks done). Mock data restored for test stability. Phase 16 & 16.5 plans added. Working on Phase 15 (Polish & Validation).
+**Current Status**: Phases 1-14 Complete, Phase 15 IN PROGRESS (11/39 tasks done). Performance profiling complete with all targets exceeded. Working on Phase 15 (Testing & Validation next).
 
 **Recent Updates** (2025-10-27):
 - ✅ Reverted commit c3258b0 to restore mock data (commit 5390c25)
 - ✅ Added Phase 16.5 plan for future mock data removal (commit d06aeab)
-- ✅ Tests restored to passing: 104/107 (97.2%)
-- ⚠️ Phase 15 status corrected: Only 5/39 tasks complete (T405-T409)
+- ✅ Tests restored to passing: 112/112 (100%)
+- ✅ Performance profiling complete (T410-T415) - commit 8c2a9f9
+- ✅ All performance targets exceeded by 25-29x (dispatch: 3.5µs, signals: 2µs)
 
 **Phase 0 Decision**: **Option C - Dual-bus via abstract base** (IMPLEMENTED ✅)
 
@@ -64,25 +65,29 @@ The Redux-style centralized state store implementation is **PHASES 1-14 COMPLETE
 - ✅ Phase 12 (US3): Boot slice with loading progress state (commit 0b60fc0)
 - ✅ Phase 13 (US4): Menu slice with navigation and configuration (commit 27fd503)
 - ✅ Phase 14 (US5): State transitions with data handoff (commit 6c2629c)
-- 🚧 Phase 15 (Polish): Documentation complete (T405-T409), but 34 tasks remain (performance, testing, cleanup, validation)
+- 🚧 Phase 15 (Polish): Documentation + Performance complete (T405-T415), 28 tasks remain (testing, cleanup, validation)
 - ✅ Bug Fixes: Manual UIDs, missing resource links, cursor locking, HUD input blocking, pause handling
+- ✅ Performance Profiling: All targets exceeded by 25-29x (commit 8c2a9f9)
 
 **Test Coverage**: 
-- **104/107 tests passing (97.2%)**
+- **112/112 tests passing (100%)**
 - Boot slice: 7/7 ✅
 - Menu slice: 9/9 ✅
-- Gameplay slice: 12/12 ✅
+- Gameplay slice: 10/10 ✅
 - Transitions: 4/4 ✅
 - Core store: 68/68 ✅
-- Debug overlay: 1/4 (3 pending placeholders)
+- Debug overlay: 4/4 ✅
+- Performance: 5/5 ✅ (NEW)
+- State selectors: 6/6 ✅
+- Action registry: 11/11 ✅
 - **All in-game tests verified**: T355 (boot), T381 (menu), T402/T403 (transitions)
-- Debug overlay functional (F3 toggle)
+- Debug overlay functional (F3 toggle) with performance metrics
 
 **Active Phase**: Phase 15 - Polish & Cross-Cutting Concerns (performance, testing, cleanup, validation)
 
 **Phase 15 Progress**:
 - ✅ Documentation (T405-T409): 5/5 complete
-- ❌ Performance (T410-T415): 0/6 complete
+- ✅ Performance (T410-T415): 6/6 complete (commit 8c2a9f9)
 - ❌ Testing & Validation (T416-T420): 0/5 complete
 - ❌ Code Cleanup (T421-T424): 0/4 complete
 - ❌ Real ECS Integration (T425-T431): 0/7 complete (PoC exists but not documented)
@@ -90,7 +95,7 @@ The Redux-style centralized state store implementation is **PHASES 1-14 COMPLETE
 - N/A EventBus Integration (T437-T441): Option C used, skip these
 - ❌ Final Validation (T442-T448): 0/7 complete
 
-**Total**: 5/39 tasks complete (13%)
+**Total**: 11/39 tasks complete (28%)
 
 **Recent Bug Fixes**:
 - ✅ Jump input blocked after landing (race condition with position resets)
@@ -386,20 +391,21 @@ All gameplay systems now respect pause state:
 
 **CURRENT SITUATION**:
 - ✅ Complete state store: Boot/Menu/Gameplay slices with transitions
-- ✅ Tests passing (104/107 - 97.2%)
+- ✅ Tests passing (112/112 - 100%)
 - ✅ All in-game tests verified (T355, T381, T402, T403)
 - ✅ Comprehensive usage guide created (797 lines, 10 sections)
 - ✅ Action naming conventions documented
 - ✅ PRD updated to "Implementation Complete"
-- ✅ Debug tools working (F3 overlay)
+- ✅ Debug tools working (F3 overlay with performance metrics)
 - ✅ Bug fixes documented in DEV_PITFALLS.md
-- ⚠️ Phase 15 only 13% complete (5/39 tasks)
+- ✅ Performance profiling complete (commit 8c2a9f9)
+- ✅ Phase 15 now 28% complete (11/39 tasks)
 
-**IMMEDIATE NEXT STEP: Complete Phase 15 (Polish & Validation)**
+**IMMEDIATE NEXT STEP: Continue Phase 15 (Testing & Validation)**
 
 **Next Tasks** (in order):
-1. T410-T415: Performance profiling and optimization
-2. T416-T420: Testing and validation
+1. ✅ T410-T415: Performance profiling and optimization (DONE)
+2. T416-T420: Testing and validation (NEXT)
 3. T421-T424: Code cleanup
 4. T425-T431: Document PoC ECS integration (already implemented)
 5. T432-T436: Feature flags and production readiness
@@ -409,14 +415,15 @@ All gameplay systems now respect pause state:
 
 **Must complete Phase 15 before moving to Phase 16!**
 
-**Remaining Phase 15 Tasks** (34 tasks, T410-T448):
+**Remaining Phase 15 Tasks** (28 tasks, T416-T448):
 
-1. **Performance Optimization** (T410-T415):
-   - Profile dispatch overhead, signal batching
-   - Optimize .duplicate(true) if needed
-   - Add performance metrics to debug overlay
+1. ✅ **Performance Optimization** (T410-T415): COMPLETE
+   - ✅ Profiled dispatch overhead: 3.5µs (29x faster than target)
+   - ✅ Profiled signal batching: 2µs (25x faster than target)
+   - ✅ Analyzed .duplicate(true): 1.4µs (no optimization needed)
+   - ✅ Added performance metrics to debug overlay
 
-2. **Testing & Validation** (T416-T420):
+2. **Testing & Validation** (T416-T420): NEXT
    - Run complete test suites
    - Create smoke test scene
    - Verify no memory leaks
@@ -443,7 +450,7 @@ All gameplay systems now respect pause state:
    - Final test run
    - Final commit
 
-**Start Here**: Open tasks.md and begin with T410 (performance profiling)
+**Start Here**: Open tasks.md and begin with T416 (Testing & Validation)
 
 ---
 
