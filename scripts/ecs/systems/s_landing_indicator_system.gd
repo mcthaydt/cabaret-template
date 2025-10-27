@@ -2,10 +2,18 @@
 extends ECSSystem
 class_name S_LandingIndicatorSystem
 
+## Phase 16: Reads show_landing_indicator from state
+
 const COMPONENT_TYPE := StringName("C_LandingIndicatorComponent")
 const UP_VECTOR: Vector3 = Vector3.UP
 
 func process_tick(_delta: float) -> void:
+	# Phase 16: Check if landing indicator is enabled in state
+	var store: M_StateStore = U_StateUtils.get_store(self)
+	var should_show: bool = true
+	if store:
+		should_show = VisualSelectors.should_show_landing_indicator(store.get_state())
+	
 	var manager := get_manager()
 	if manager == null:
 		return
@@ -19,6 +27,11 @@ func process_tick(_delta: float) -> void:
 
 		var body: CharacterBody3D = component.get_character_body()
 		if body == null:
+			component.set_landing_data(Vector3.ZERO, UP_VECTOR, false)
+			continue
+
+		# Phase 16: Respect state-driven visibility
+		if not should_show:
 			component.set_landing_data(Vector3.ZERO, UP_VECTOR, false)
 			continue
 
