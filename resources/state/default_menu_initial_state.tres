@@ -5,6 +5,3 @@
 [resource]
 script = ExtResource("1_menu")
 active_screen = "main_menu"
-pending_character = ""
-pending_difficulty = ""
-available_saves = []

@@ -18,24 +18,6 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			new_state["active_screen"] = payload.get("screen_name", "main_menu")
 			return new_state
 		
-		U_MenuActions.ACTION_SELECT_CHARACTER:
-			var new_state: Dictionary = state.duplicate(true)
-			var payload: Dictionary = action.get("payload", {})
-			new_state["pending_character"] = payload.get("character_id", "")
-			return new_state
-		
-		U_MenuActions.ACTION_SELECT_DIFFICULTY:
-			var new_state: Dictionary = state.duplicate(true)
-			var payload: Dictionary = action.get("payload", {})
-			new_state["pending_difficulty"] = payload.get("difficulty", "")
-			return new_state
-		
-		U_MenuActions.ACTION_LOAD_SAVE_FILES:
-			var new_state: Dictionary = state.duplicate(true)
-			var payload: Dictionary = action.get("payload", {})
-			new_state["available_saves"] = payload.get("save_files", []).duplicate()
-			return new_state
-		
 		_:
 			# Unknown action - return state unchanged
 			return state

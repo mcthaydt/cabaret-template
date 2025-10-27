@@ -139,6 +139,5 @@ func process_tick(_delta: float) -> void:
 		}
 		ECSEventBus.publish(EVENT_ENTITY_JUMPED, event_payload)
 		
-		# Award points for jumping (PoC integration with state store)
-		if store:
-			store.dispatch(U_GameplayActions.add_score(10))
+		# NOTE: Score state removed - no longer dispatching add_score action
+		# Will be restored in Phase 16 when score is re-added to state

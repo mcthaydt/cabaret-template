@@ -41,9 +41,8 @@ func _ready() -> void:
 	add_child(_damage_timer)
 	_damage_timer.start()
 	
-	# Read initial health state
-	var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
-	_is_alive = GameplaySelectors.get_is_player_alive(gameplay_state)
+	# NOTE: Health state removed - initialization disabled until Phase 16
+	_is_alive = true
 
 func _exit_tree() -> void:
 	# Clean up subscriptions
@@ -52,34 +51,16 @@ func _exit_tree() -> void:
 
 ## Timer callback - apply periodic damage
 func _on_damage_timer_timeout() -> void:
-	if not _store or not _is_alive:
-		return
-	
-	# Don't apply damage if paused
-	var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
-	if GameplaySelectors.get_is_paused(gameplay_state):
-		return
-	
-	# Apply damage
-	_store.dispatch(U_GameplayActions.take_damage(DAMAGE_AMOUNT))
+	# NOTE: Health state removed - this system is now a placeholder for Phase 16 integration
+	# When health is re-added in Phase 16, restore damage logic here
+	pass
 
 ## Handle state store slice updates
 func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
-	if slice_name != StringName("gameplay"):
-		return
-	
-	var was_alive: bool = _is_alive
-	_is_alive = GameplaySelectors.get_is_player_alive(slice_state)
-	
-	# Detect death transition
-	if was_alive and not _is_alive:
-		_on_player_died(slice_state)
+	# NOTE: Health state removed - this handler is now a placeholder for Phase 16 integration
+	pass
 
 ## Handle player death
 func _on_player_died(gameplay_state: Dictionary) -> void:
-	# Stop damage timer
-	if _damage_timer:
-		_damage_timer.stop()
-	
-	# Emit death signal
-	player_died.emit()
+	# NOTE: Health state removed - death detection disabled until Phase 16
+	pass
