@@ -78,6 +78,11 @@ pause={
 
 [state]
 
+# Redux state store settings
+# For RELEASE builds: Set debug/* to false in export preset to disable:
+# - Action history tracking (saves memory)
+# - Debug overlay toggle (F3 key)
+# - Debug logging output
 debug/enable_history=true
 debug/history_size=1000
 debug/enable_debug_overlay=true
