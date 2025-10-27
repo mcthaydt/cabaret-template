@@ -3,6 +3,9 @@ extends ECSSystem
 class_name S_FloatingSystem
 
 const FLOATING_TYPE := StringName("C_FloatingComponent")
+## Number of consecutive frames required to transition stable ground state
+## 4 frames ≈ 67ms at 60fps, filters spring oscillations (~50ms) while staying responsive
+const STABLE_GROUND_FRAMES_REQUIRED := 4
 
 class SupportInfo:
 	var has_hit: bool = false
@@ -34,6 +37,7 @@ func process_tick(delta: float) -> void:
 		var rays: Array = floating_component.get_raycast_nodes()
 		if rays.is_empty():
 			floating_component.update_support_state(false, now)
+			floating_component.update_stable_ground_state(false, STABLE_GROUND_FRAMES_REQUIRED)
 			continue
 
 		var support: SupportInfo = _collect_support_data(rays)
@@ -79,10 +83,12 @@ func process_tick(delta: float) -> void:
 				body.up_direction = normal
 
 			floating_component.update_support_state(support_active, now)
+			floating_component.update_stable_ground_state(support_active, STABLE_GROUND_FRAMES_REQUIRED)
 		else:
 			velocity.y -= floating_component.settings.fall_gravity * delta
 			velocity.y = clamp(velocity.y, -floating_component.settings.max_down_speed, floating_component.settings.max_up_speed)
 			floating_component.update_support_state(false, now)
+			floating_component.update_stable_ground_state(false, STABLE_GROUND_FRAMES_REQUIRED)
 
 		body.velocity = velocity
 

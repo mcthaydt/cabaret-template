@@ -1,46 +1,69 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends "res://scripts/ecs/event_vfx_system.gd"
 class_name S_JumpParticlesSystem
 
-const EVENT_NAME := StringName("entity_jumped")
-const EVENT_BUS := preload("res://scripts/ecs/ecs_event_bus.gd")
+const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_jump_particles_settings.gd")
+const PARTICLE_SPAWNER := preload("res://scripts/utils/u_particle_spawner.gd")
 
-var spawn_requests: Array = []
+@export var settings: SETTINGS_TYPE
 
-var _unsubscribe_callable: Callable = Callable()
+## Alias for EventVFXSystem.requests to maintain backward compatibility
+var spawn_requests: Array:
+	get:
+		return requests
 
-func _ready() -> void:
-	super._ready()
-	_subscribe()
+func get_event_name() -> StringName:
+	return StringName("entity_jumped")
 
-func _exit_tree() -> void:
-	_unsubscribe()
-	spawn_requests.clear()
-
-func process_tick(_delta: float) -> void:
-	pass
-
-func _subscribe() -> void:
-	_unsubscribe()
-	spawn_requests.clear()
-	_unsubscribe_callable = EVENT_BUS.subscribe(EVENT_NAME, Callable(self, "_on_entity_jumped"))
-
-func _unsubscribe() -> void:
-	if _unsubscribe_callable != Callable():
-		_unsubscribe_callable.call()
-		_unsubscribe_callable = Callable()
-
-func _on_entity_jumped(event_data: Dictionary) -> void:
-	var payload := _extract_payload(event_data)
-	var request := {
+func create_request_from_payload(payload: Dictionary) -> Dictionary:
+	return {
 		"position": payload.get("position", Vector3.ZERO),
 		"velocity": payload.get("velocity", Vector3.ZERO),
-		"timestamp": event_data.get("timestamp", 0.0),
 		"jump_force": payload.get("jump_force", 0.0),
 	}
-	spawn_requests.append(request.duplicate(true))
 
-func _extract_payload(event_data: Dictionary) -> Dictionary:
-	if event_data.has("payload") and event_data["payload"] is Dictionary:
-		return event_data["payload"]
-	return {}
+func process_tick(_delta: float) -> void:
+	# Early exit if disabled or no settings
+	if settings == null or not settings.enabled:
+		requests.clear()
+		return
+
+	# Nothing to process
+	if requests.size() == 0:
+		return
+
+	# Get or create the effects container
+	var container := PARTICLE_SPAWNER.get_or_create_effects_container(get_tree())
+	if container == null:
+		requests.clear()
+		return
+
+	# Create spawner and config
+	var spawner := PARTICLE_SPAWNER.new()
+	var config := _create_particle_config()
+
+	# Spawn particles for each request
+	for request in requests:
+		var position: Vector3 = request.get("position", Vector3.ZERO)
+		spawner.spawn_particles(position, container, config, self)
+
+	# Clear processed requests
+	requests.clear()
+
+func _create_particle_config() -> PARTICLE_SPAWNER.ParticleConfig:
+	return PARTICLE_SPAWNER.ParticleConfig.new(
+		settings.emission_count,
+		settings.particle_lifetime,
+		settings.particle_scale,
+		settings.spread_angle,
+		settings.initial_velocity,
+		settings.spawn_offset,
+		settings.particle_material
+	)
+
+# Helper methods required by ParticleSpawner for deferred activation
+func _u_particle_spawner_activate_frame1(particles: GPUParticles3D) -> void:
+	PARTICLE_SPAWNER.activate_particles_frame2(particles, self)
+
+func _u_particle_spawner_activate_frame2(particles: GPUParticles3D) -> void:
+	PARTICLE_SPAWNER.activate_particles_final(particles)

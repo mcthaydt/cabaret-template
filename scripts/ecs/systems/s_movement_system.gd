@@ -2,11 +2,20 @@
 extends ECSSystem
 class_name S_MovementSystem
 
+## Phase 16: Dispatches velocity to state store
+
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 
 func process_tick(delta: float) -> void:
+	# Skip processing if game is paused
+	var store: M_StateStore = U_StateUtils.get_store(self)
+	if store:
+		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
+		if GameplaySelectors.get_is_paused(gameplay_state):
+			return
+	
 	var manager := get_manager()
 	if manager == null:
 		return
@@ -146,6 +155,23 @@ func process_tick(delta: float) -> void:
 		body.velocity = final_velocity
 		if body.has_method("move_and_slide"):
 			body.move_and_slide()
+	
+	# Phase 16: Dispatch entity snapshots to state store (Entity Coordination Pattern)
+	if store and bodies.size() > 0:
+		for body in bodies:
+			var entity_id: String = _get_entity_id(body)
+			if entity_id.is_empty():
+				continue
+			
+			var is_moving: bool = Vector2(body.velocity.x, body.velocity.z).length() > 0.1
+			var snapshot: Dictionary = {
+				"position": body.global_position,
+				"velocity": body.velocity,
+				"rotation": body.rotation,
+				"is_moving": is_moving,
+				"entity_type": _get_entity_type(body)
+			}
+			store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
 
 func _get_desired_velocity(input_vector: Vector2, max_speed: float) -> Vector3:
 	var normalized = input_vector
@@ -205,3 +231,25 @@ func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
 		return Vector3.ZERO
 	n = n.normalized()
 	return vector - n * vector.dot(n)
+
+## Phase 16: Get entity ID from body for state coordination
+func _get_entity_id(body: Node) -> String:
+	# Use metadata if available
+	if body.has_meta("entity_id"):
+		return body.get_meta("entity_id")
+	# Fallback to node name
+	return body.name
+
+## Phase 16: Get entity type from body
+func _get_entity_type(body: Node) -> String:
+	if body.has_meta("entity_type"):
+		return body.get_meta("entity_type")
+	# Infer from node name
+	var name_lower: String = body.name.to_lower()
+	if "player" in name_lower:
+		return "player"
+	elif "enemy" in name_lower:
+		return "enemy"
+	elif "npc" in name_lower:
+		return "npc"
+	return "unknown"

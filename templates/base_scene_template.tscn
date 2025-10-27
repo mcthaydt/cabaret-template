@@ -1,22 +1,34 @@
-[gd_scene load_steps=22 format=3 uid="uid://rygahxanlmio"]
+[gd_scene load_steps=34 format=3 uid="uid://rygahxanlmio"]
 
-[ext_resource type="Script" uid="uid://cvvele4boybm4" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
-[ext_resource type="Script" uid="uid://c3ksqt7h7cg6v" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
-[ext_resource type="Script" uid="uid://o763cgyky2o" path="res://scripts/scene_structure/environment_group.gd" id="2_8soux"]
-[ext_resource type="Script" uid="uid://dn4ku5dvupom6" path="res://scripts/scene_structure/scene_objects_group.gd" id="2_ph0bl"]
-[ext_resource type="Script" uid="uid://cxd4yycmngxnu" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
-[ext_resource type="Script" uid="uid://x1aivseqobm0" path="res://scripts/scene_structure/systems_group.gd" id="3_ph0bl"]
-[ext_resource type="Script" uid="uid://c7f8tpfqd0320" path="res://scripts/ecs/systems/s_gravity_system.gd" id="3_xnqit"]
-[ext_resource type="Script" uid="uid://bcpm6jeqaxtbi" path="res://scripts/ecs/systems/s_movement_system.gd" id="4_vry44"]
-[ext_resource type="Script" uid="uid://ba0wm6iff21wh" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
-[ext_resource type="Script" uid="uid://cqbu6uhtc7ieg" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
-[ext_resource type="Script" uid="uid://6vckjdv5o1m7" path="res://scripts/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
+[ext_resource type="Resource" path="res://resources/state/default_boot_initial_state.tres" id="1_boot_state"]
+[ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
+[ext_resource type="Resource" uid="uid://uygy4iikdf74" path="res://resources/state/default_gameplay_initial_state.tres" id="1_gameplay_state"]
+[ext_resource type="Resource" path="res://resources/state/default_menu_initial_state.tres" id="1_menu_state"]
+[ext_resource type="Script" uid="uid://bbovcvnujbnj3" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
+[ext_resource type="Resource" uid="uid://dw7q8jxqvhgwf" path="res://resources/state/default_state_store_settings.tres" id="1_state_settings"]
+[ext_resource type="Script" uid="uid://dog624m744wa4" path="res://scripts/state/m_state_store.gd" id="1_state_store"]
+[ext_resource type="Script" uid="uid://chju2smrof3yc" path="res://scripts/scene_structure/environment_group.gd" id="2_8soux"]
+[ext_resource type="Script" uid="uid://biqa541wtn26y" path="res://scripts/scene_structure/scene_objects_group.gd" id="2_ph0bl"]
+[ext_resource type="Script" uid="uid://pfqmo0e48jlo" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
+[ext_resource type="Script" uid="uid://bgnsh0o3wra1n" path="res://scripts/scene_structure/systems_group.gd" id="3_ph0bl"]
+[ext_resource type="Script" uid="uid://stjin1lq2sly" path="res://scripts/ecs/systems/s_gravity_system.gd" id="3_xnqit"]
+[ext_resource type="Script" uid="uid://rs0c1nihjtjv" path="res://scripts/ecs/systems/s_movement_system.gd" id="4_vry44"]
+[ext_resource type="Script" uid="uid://de612gn1alhu" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
+[ext_resource type="Script" uid="uid://d3viwme3cvkeh" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
+[ext_resource type="Script" uid="uid://crolaluxasrr1" path="res://scripts/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
 [ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://templates/player_template.tscn" id="7_4wxy1"]
-[ext_resource type="Script" uid="uid://cev7x8twqwfhr" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
-[ext_resource type="Script" uid="uid://csicrrjo31foo" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
-[ext_resource type="Script" uid="uid://cqotnyjj28vrp" path="res://scripts/managers/m_cursor_manager.gd" id="10_cursor"]
-[ext_resource type="Script" uid="uid://e35ihkaq5ot2" path="res://scripts/scene_structure/managers_group.gd" id="12_klon2"]
-[ext_resource type="Script" uid="uid://dvti1x3i4avbj" path="res://scripts/scene_structure/entities_group.gd" id="16_8qi87"]
+[ext_resource type="Script" uid="uid://bl83n4tcxatcm" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
+[ext_resource type="Script" uid="uid://b3elt7u6s7lm6" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
+[ext_resource type="Script" uid="uid://b0gp4g45vfgs0" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
+[ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/settings/jump_particles_default.tres" id="9_jump_particles_settings"]
+[ext_resource type="Script" uid="uid://cqxyfp4wvohnb" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
+[ext_resource type="Script" uid="uid://x30wlbvmhmiu" path="res://scripts/ecs/systems/s_pause_system.gd" id="9_pause"]
+[ext_resource type="Script" uid="uid://3mg2o7kqih67" path="res://scripts/managers/m_cursor_manager.gd" id="10_cursor"]
+[ext_resource type="Script" uid="uid://c0es6y2cw780d" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
+[ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/settings/landing_particles_default.tres" id="10_landing_particles_settings"]
+[ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/hud_overlay.tscn" id="11_hud"]
+[ext_resource type="Script" uid="uid://d0n2a3p3tkdq0" path="res://scripts/scene_structure/managers_group.gd" id="12_klon2"]
+[ext_resource type="Script" uid="uid://mm82rwglfuba" path="res://scripts/scene_structure/entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/camera_template.tscn" id="19_ph0bl"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
@@ -85,7 +97,7 @@ script = ExtResource("1_pybrx")
 
 [node name="S_JumpSystem" type="Node" parent="Systems"]
 script = ExtResource("2_rfthe")
-execution_priority = 40
+execution_priority = 75
 
 [node name="S_GravitySystem" type="Node" parent="Systems"]
 script = ExtResource("3_xnqit")
@@ -111,6 +123,24 @@ execution_priority = 90
 script = ExtResource("8_ey5t3")
 execution_priority = 110
 
+[node name="S_JumpParticlesSystem" type="Node" parent="Systems"]
+script = ExtResource("9_jump_particles")
+settings = ExtResource("9_jump_particles_settings")
+execution_priority = 120
+
+[node name="S_JumpSoundSystem" type="Node" parent="Systems"]
+script = ExtResource("9_jump_sound")
+execution_priority = 121
+
+[node name="S_LandingParticlesSystem" type="Node" parent="Systems"]
+script = ExtResource("10_landing_particles")
+settings = ExtResource("10_landing_particles_settings")
+execution_priority = 122
+
+[node name="S_PauseSystem" type="Node" parent="Systems"]
+script = ExtResource("9_pause")
+execution_priority = 5
+
 [node name="Managers" type="Node" parent="."]
 script = ExtResource("12_klon2")
 
@@ -119,6 +149,13 @@ script = ExtResource("6_0e7m3")
 
 [node name="M_CursorManager" type="Node" parent="Managers"]
 script = ExtResource("10_cursor")
+
+[node name="M_StateStore" type="Node" parent="Managers"]
+script = ExtResource("1_state_store")
+settings = ExtResource("1_state_settings")
+boot_initial_state = ExtResource("1_boot_state")
+menu_initial_state = ExtResource("1_menu_state")
+gameplay_initial_state = ExtResource("1_gameplay_state")
 
 [node name="Entities" type="Node" parent="."]
 script = ExtResource("16_8qi87")
@@ -132,6 +169,9 @@ script = ExtResource("16_8qi87")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
 
 [node name="E_Player" parent="Entities" instance=ExtResource("7_4wxy1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
 
 [node name="E_CameraRoot" parent="Entities" instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
+
+[node name="HUD" parent="." instance=ExtResource("11_hud")]

@@ -13,6 +13,9 @@ var _last_jump_time: float = -INF
 var _last_apex_time: float = -INF
 var _last_vertical_velocity: float = 0.0
 var _was_airborne: bool = false
+var _last_landing_time: float = -INF
+var _airborne_since_time: float = -INF
+var _airborne_peak_height: float = -INF
 var _debug_snapshot: Dictionary = {}
 
 func _init() -> void:
@@ -38,9 +41,49 @@ func is_airborne() -> bool:
 func set_airborne(airborne: bool) -> void:
 	_was_airborne = airborne
 
-func check_landing_transition(grounded_now: bool) -> bool:
-	var just_landed := _was_airborne and grounded_now
+func check_landing_transition(grounded_now: bool, current_time: float, current_height: float) -> bool:
+	var was_airborne := _was_airborne
+	var just_landed := was_airborne and grounded_now
+
+	# Track peak height during airborne period
+	if _was_airborne:
+		if _airborne_peak_height == -INF:
+			_airborne_peak_height = current_height
+		else:
+			_airborne_peak_height = max(_airborne_peak_height, current_height)
+
 	_was_airborne = not grounded_now
+
+	# Track when we became airborne to guard against instant false landings
+	if _was_airborne and not was_airborne:
+		_airborne_since_time = current_time
+		_airborne_peak_height = current_height  # Reset peak on takeoff
+
+	# Prevent duplicate landing events with 0.1s cooldown
+	if just_landed and (current_time - _last_landing_time) < 0.1:
+		return false
+
+	# Require a minimal airborne duration before considering a landing
+	if just_landed:
+		var min_airborne_time: float = 0.02
+		var airborne_dt: float = 0.0
+		if _airborne_since_time != -INF:
+			airborne_dt = current_time - _airborne_since_time
+		if _airborne_since_time == -INF or airborne_dt < min_airborne_time:
+			return false
+
+		# Require significant fall distance to filter ramp bounces
+		var fall_distance: float = 0.0
+		if _airborne_peak_height != -INF:
+			fall_distance = _airborne_peak_height - current_height
+
+		var min_fall_height: float = settings.min_landing_fall_height if settings != null else 0.5
+		if fall_distance < min_fall_height:
+			return false
+
+		_last_landing_time = current_time
+		_airborne_peak_height = -INF  # Reset peak after landing
+
 	return just_landed
 
 func can_jump(current_time: float) -> bool:
@@ -86,3 +129,8 @@ func update_debug_snapshot(snapshot: Dictionary) -> void:
 
 func get_debug_snapshot() -> Dictionary:
 	return _debug_snapshot.duplicate(true)
+
+func get_airborne_duration(current_time: float) -> float:
+	if _airborne_since_time == -INF:
+		return 0.0
+	return max(current_time - _airborne_since_time, 0.0)

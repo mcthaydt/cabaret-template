@@ -136,8 +136,8 @@ func test_full_ecs_refactor_600_frame_simulation():
 		avg_frame_time += ft
 	avg_frame_time /= frame_times.size()
 
-	var max_frame_time := frame_times.max()
-	var min_frame_time := frame_times.min()
+	var max_frame_time: float = frame_times.max()
+	var min_frame_time: float = frame_times.min()
 
 	gut.p("=== Performance Metrics (600 frames) ===")
 	gut.p("Total time: %d ms" % total_time)
@@ -227,7 +227,7 @@ func _find_node_starting_with(root: Node, prefix: String) -> Node:
 	for child in root.get_children():
 		if child.name.begins_with(prefix):
 			return child
-		var found = _find_node_starting_with(child, prefix)
+		var found: Node = _find_node_starting_with(child, prefix)
 		if found != null:
 			return found
 	return null
@@ -237,7 +237,7 @@ func _find_component(root: Node, component_name: String) -> Node:
 	for child in root.get_children():
 		if child.get_class() == component_name or child.name.begins_with(component_name):
 			return child
-		var found = _find_component(child, component_name)
+		var found: Node = _find_component(child, component_name)
 		if found != null:
 			return found
 	return null

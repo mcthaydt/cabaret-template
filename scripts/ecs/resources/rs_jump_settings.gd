@@ -8,3 +8,6 @@ class_name RS_JumpSettings
 @export var jump_buffer_time: float = 0.15
 @export var apex_coyote_time: float = 0.1
 @export var apex_velocity_threshold: float = 0.1
+
+## Minimum vertical distance required for a landing event to fire (filters ramp bounces)
+@export var min_landing_fall_height: float = 0.5

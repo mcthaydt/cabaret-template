@@ -17,6 +17,14 @@ func _pump() -> void:
 	await get_tree().process_frame
 
 func _setup_entity() -> Dictionary:
+	# Create M_StateStore first (required by systems)
+	var store := M_StateStore.new()
+	store.settings = RS_StateStoreSettings.new()
+	store.gameplay_initial_state = RS_GameplayInitialState.new()
+	add_child(store)
+	autofree(store)
+	await _pump()
+	
 	var manager = ECS_MANAGER.new()
 	add_child(manager)
 	await _pump()
@@ -41,6 +49,7 @@ func _setup_entity() -> Dictionary:
 	await _pump()
 
 	return {
+		"store": store,
 		"manager": manager,
 		"body": body,
 		"movement": movement,
@@ -61,6 +70,14 @@ func test_gravity_system_accelerates_downward_when_not_on_floor() -> void:
 	assert_true(body.velocity.y < 0.0)
 
 func test_gravity_system_skips_entities_with_floating_component() -> void:
+	# Create M_StateStore first (required by systems)
+	var store := M_StateStore.new()
+	store.settings = RS_StateStoreSettings.new()
+	store.gameplay_initial_state = RS_GameplayInitialState.new()
+	add_child(store)
+	autofree(store)
+	await _pump()
+	
 	var manager: M_ECSManager = ECS_MANAGER.new()
 	add_child(manager)
 	autofree(manager)

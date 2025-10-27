@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="RS_StateStoreSettings" load_steps=2 format=3 uid="uid://dw7q8jxqvhgwf"]
+
+[ext_resource type="Script" uid="uid://tjfqy78ts7db" path="res://scripts/state/resources/rs_state_store_settings.gd" id="1_state_settings"]
+
+[resource]
+script = ExtResource("1_state_settings")
+enable_debug_logging = true
+enable_debug_overlay = true
