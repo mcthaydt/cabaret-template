@@ -49,39 +49,31 @@ func _exit_tree() -> void:
 
 func _input(event: InputEvent) -> void:
 	if not _store:
-		print("[PAUSE_SYSTEM] ERROR: No store reference!")
 		return
 	
 	# Check for "pause" input action (toggle pause + cursor management)
+	# Uses _input() instead of _unhandled_input() to process before M_CursorManager
 	if event.is_action_pressed("pause"):
-		print("[PAUSE_SYSTEM] Pause input received, calling toggle_pause()")
 		toggle_pause()
 		get_viewport().set_input_as_handled()
 
 ## Toggle pause state via state store
 func toggle_pause() -> void:
-	print("[PAUSE_SYSTEM] toggle_pause() called")
-	
 	if not _store:
-		print("[PAUSE_SYSTEM] ERROR: No store in toggle_pause!")
 		return
 	
 	# Get current pause state
 	var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
 	var is_currently_paused: bool = GameplaySelectors.get_is_paused(gameplay_state)
 	
-	print("[PAUSE_SYSTEM] Current pause state: ", is_currently_paused)
-	
 	# Dispatch opposite action and update cursor
 	if is_currently_paused:
 		# Unpause: lock cursor for gameplay
-		print("[PAUSE_SYSTEM] Dispatching UNPAUSE")
 		_store.dispatch(U_GameplayActions.unpause_game())
 		if _cursor_manager:
 			_cursor_manager.set_cursor_state(true, false)  # locked, hidden
 	else:
 		# Pause: unlock cursor for UI interaction
-		print("[PAUSE_SYSTEM] Dispatching PAUSE")
 		_store.dispatch(U_GameplayActions.pause_game())
 		if _cursor_manager:
 			_cursor_manager.set_cursor_state(false, true)  # unlocked, visible

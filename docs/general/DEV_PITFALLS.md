@@ -18,7 +18,7 @@
   ```
   Systems that get the store in `process_tick()` don't need this await since process_tick runs after all _ready() calls complete.
 
-- **Input action conflicts**: Multiple systems can consume the same input. Be mindful of `set_input_as_handled()` calls that prevent other systems from receiving input. In the PoC, S_PauseSystem handles ESC before M_CursorManager (via `_unhandled_input` priority) and also manages cursor state directly, so pausing unlocks cursor and unpausing locks it.
+- **Input processing order matters**: Godot processes input in a specific order: `_input()` → `_gui_input()` → `_unhandled_input()`. If one system calls `set_input_as_handled()` in `_unhandled_input()`, other systems using `_unhandled_input()` may never see the input. **Solution**: Systems that need priority access to input should use `_input()` instead of `_unhandled_input()`. Example: S_PauseSystem uses `_input()` to process pause before M_CursorManager (which uses `_unhandled_input()`) can consume it. Both call `set_input_as_handled()` to prevent further propagation.
 
 ## GUT Testing Pitfalls
 
