@@ -156,10 +156,6 @@ func process_tick(_delta: float) -> void:
 			"jump_force": component.settings.jump_force if component.settings != null else 0.0,
 		}
 		ECSEventBus.publish(EVENT_ENTITY_JUMPED, event_payload)
-		
-		# Award points for jumping (PoC integration with state store)
-		if store:
-			store.dispatch(U_GameplayActions.add_score(10))
 
 ## Phase 16: Get entity ID from body for state coordination
 func _get_entity_id(body: Node) -> String:

@@ -1221,30 +1221,30 @@ func after_each():
 
 **Health System Tests:**
 
-- [ ] T506 [P] [P16.5] 📝 TEST: Refactor `tests/unit/integration/test_poc_health_system.gd` to use real health component/system
-- [ ] T507 [P] [P16.5] 📝 TEST: Remove mock health value tests, replace with actual damage/healing tests
-- [ ] T508 [P] [P16.5] 📝 TEST: Add tests for real death conditions (e.g., enemy collision, fall damage)
-- [ ] T509 [P] [P16.5] 📝 TEST: Verify health persistence through save/load with real game state
+- [N/A] T506 [P] [P16.5] 📝 TEST: Refactor `tests/unit/integration/test_poc_health_system.gd` to use real health component/system - File deleted (PoC only)
+- [N/A] T507 [P] [P16.5] 📝 TEST: Remove mock health value tests, replace with actual damage/healing tests - No real health system exists
+- [N/A] T508 [P] [P16.5] 📝 TEST: Add tests for real death conditions (e.g., enemy collision, fall damage) - No real health system exists
+- [N/A] T509 [P] [P16.5] 📝 TEST: Verify health persistence through save/load with real game state - No real health system exists
 
 **Score System Tests:**
 
-- [ ] T510 [P] [P16.5] 📝 TEST: Refactor score tests to use real scoring events (collectibles, enemy defeats, etc.)
-- [ ] T511 [P] [P16.5] 📝 TEST: Remove mock score increment tests, add tests for actual score triggers
-- [ ] T512 [P] [P16.5] 📝 TEST: Add tests for score multipliers, combo systems (if applicable)
-- [ ] T513 [P] [P16.5] 📝 TEST: Verify score persistence and high score tracking
+- [N/A] T510 [P] [P16.5] 📝 TEST: Refactor score tests to use real scoring events (collectibles, enemy defeats, etc.) - No real score system exists
+- [N/A] T511 [P] [P16.5] 📝 TEST: Remove mock score increment tests, add tests for actual score triggers - No real score system exists
+- [N/A] T512 [P] [P16.5] 📝 TEST: Add tests for score multipliers, combo systems (if applicable) - No real score system exists
+- [N/A] T513 [P] [P16.5] 📝 TEST: Verify score persistence and high score tracking - No real score system exists
 
 **Level/Progression Tests:**
 
-- [ ] T514 [P] [P16.5] 📝 TEST: Replace mock level tests with real progression system tests
-- [ ] T515 [P] [P16.5] 📝 TEST: Add tests for level transitions, unlock conditions
-- [ ] T516 [P] [P16.5] 📝 TEST: Test level state persistence across sessions
+- [N/A] T514 [P] [P16.5] 📝 TEST: Replace mock level tests with real progression system tests - No real progression system exists
+- [N/A] T515 [P] [P16.5] 📝 TEST: Add tests for level transitions, unlock conditions - No real progression system exists
+- [N/A] T516 [P] [P16.5] 📝 TEST: Test level state persistence across sessions - No real progression system exists
 
 **Menu System Tests:**
 
-- [ ] T517 [P] [P16.5] 📝 TEST: Replace mock character selection tests with real character system
-- [ ] T518 [P] [P16.5] 📝 TEST: Replace mock difficulty tests with real difficulty system
-- [ ] T519 [P] [P16.5] 📝 TEST: Replace mock save file tests with real save/load system
-- [ ] T520 [P16.5] 📝 RUN TESTS: Verify all refactored tests PASS with real systems
+- [N/A] T517 [P] [P16.5] 📝 TEST: Replace mock character selection tests with real character system - No real character system exists
+- [N/A] T518 [P] [P16.5] 📝 TEST: Replace mock difficulty tests with real difficulty system - No real difficulty system exists
+- [N/A] T519 [P] [P16.5] 📝 TEST: Replace mock save file tests with real save/load system - No real save system exists
+- [N/A] T520 [P16.5] 📝 RUN TESTS: Verify all refactored tests PASS with real systems - No systems to test
 
 ### Remove Mock Data from State
 
@@ -1258,18 +1258,18 @@ func after_each():
 
 **Menu Slice Cleanup:**
 
-- [ ] T526 [P16.5] Remove mock fields from RS_MenuInitialState: pending_character, pending_difficulty, available_saves (if replaced)
-- [ ] T527 [P16.5] Remove test-only action creators from U_MenuActions: select_character, select_difficulty, load_save_files (keep if used)
-- [ ] T528 [P16.5] Remove test-only reducer cases from MenuReducer for removed actions
-- [ ] T529 [P16.5] Remove test-only selectors from MenuSelectors (keep if used by real systems)
-- [ ] T530 [P16.5] Update default_menu_initial_state.tres to remove mock fields
+- [N/A] T526 [P16.5] Remove mock fields from RS_MenuInitialState: pending_character, pending_difficulty, available_saves (if replaced) - These are planned production features, not mock data
+- [N/A] T527 [P16.5] Remove test-only action creators from U_MenuActions: select_character, select_difficulty, load_save_files (keep if used) - These are planned production features
+- [N/A] T528 [P16.5] Remove test-only reducer cases from MenuReducer for removed actions - No actions removed from menu slice
+- [N/A] T529 [P16.5] Remove test-only selectors from MenuSelectors (keep if used by real systems) - No selectors removed from menu slice
+- [N/A] T530 [P16.5] Update default_menu_initial_state.tres to remove mock fields - No fields removed
 
 **System Integration Cleanup:**
 
-- [ ] T531 [P16.5] Update S_HealthSystem to remove references to mock health if using real health component
-- [ ] T532 [P16.5] Update S_JumpSystem to remove mock score dispatch if using real score system
-- [ ] T533 [P16.5] Update HUD overlay to use real game data instead of mock selectors
-- [ ] T534 [P16.5] Remove PoC test scenes that were only for mock data validation
+- [x] T531 [P16.5] Update S_HealthSystem to remove references to mock health if using real health component - Deleted entire file (PoC only)
+- [x] T532 [P16.5] Update S_JumpSystem to remove mock score dispatch if using real score system - Removed add_score dispatch
+- [x] T533 [P16.5] Update HUD overlay to use real game data instead of mock selectors - Removed health/score display, kept pause indicator
+- [x] T534 [P16.5] Remove PoC test scenes that were only for mock data validation - Deleted 6 test scene scripts, refactored smoke test
 
 ### Test Suite Validation
 
@@ -1284,11 +1284,11 @@ func after_each():
 
 ### Documentation Updates
 
-- [ ] T543 [P] [P16.5] Update usage-guide.md: Remove examples using mock data
-- [ ] T544 [P] [P16.5] Update usage-guide.md: Add examples using real game systems
-- [ ] T545 [P] [P16.5] Update redux-state-store-prd.md: Mark mock data removal complete
-- [ ] T546 [P] [P16.5] Create migration guide: "Migrating from Mock to Real Data" in docs/state store/
-- [ ] T547 [P16.5] Document patterns for future system integration without mocks
+- [x] T543 [P] [P16.5] Update usage-guide.md: Remove examples using mock data - All mock examples replaced
+- [x] T544 [P] [P16.5] Update usage-guide.md: Add examples using real game systems - Added pause/entity examples throughout
+- [x] T545 [P] [P16.5] Update redux-state-store-prd.md: Mark mock data removal complete - Version 3.1, Phase 16.5 section added
+- [x] T546 [P] [P16.5] Create migration guide: "Migrating from Mock to Real Data" in docs/state store/ - Created mock-to-real-data-migration.md
+- [x] T547 [P16.5] Document patterns for future system integration without mocks - Covered in migration guide
 
 ### Final Validation & Commit
 

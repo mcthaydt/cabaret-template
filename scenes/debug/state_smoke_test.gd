@@ -161,55 +161,28 @@ func _test_gameplay_slice() -> void:
 		return
 	_pass("Unpause works")
 	
-	# Update health
-	store.dispatch(U_GameplayActions.update_health(75))
+	# Test entity snapshots (Entity Coordination Pattern)
+	store.dispatch(U_EntityActions.update_entity_snapshot("player", {
+		"position": Vector3(10, 5, 10),
+		"velocity": Vector3(2, 0, 0),
+		"is_on_floor": true
+	}))
 	await get_tree().process_frame
 	
 	gameplay_state = store.get_slice(StringName("gameplay"))
-	if gameplay_state.get("health", 0) != 75:
-		_fail("Health update not working")
+	var entities: Dictionary = gameplay_state.get("entities", {})
+	if not entities.has("player"):
+		_fail("Entity snapshot not stored")
 		return
-	_pass("Health updates work")
+	_pass("Entity snapshot works")
 	
-	# Update score
-	store.dispatch(U_GameplayActions.update_score(1000))
-	await get_tree().process_frame
-	
-	gameplay_state = store.get_slice(StringName("gameplay"))
-	if gameplay_state.get("score", 0) != 1000:
-		_fail("Score update not working")
+	# Test entity position retrieval
+	var player_data: Dictionary = entities.get("player", {})
+	var player_pos: Vector3 = player_data.get("position", Vector3.ZERO)
+	if player_pos != Vector3(10, 5, 10):
+		_fail("Entity position not correct")
 		return
-	_pass("Score updates work")
-	
-	# Set level
-	store.dispatch(U_GameplayActions.set_level(3))
-	await get_tree().process_frame
-	
-	gameplay_state = store.get_slice(StringName("gameplay"))
-	if gameplay_state.get("level", 0) != 3:
-		_fail("Level set not working")
-		return
-	_pass("Level setting works")
-	
-	# Take damage
-	store.dispatch(U_GameplayActions.take_damage(25))
-	await get_tree().process_frame
-	
-	gameplay_state = store.get_slice(StringName("gameplay"))
-	if gameplay_state.get("health", 0) != 50:  # 75 - 25
-		_fail("Take damage not working")
-		return
-	_pass("Take damage works")
-	
-	# Add score
-	store.dispatch(U_GameplayActions.add_score(500))
-	await get_tree().process_frame
-	
-	gameplay_state = store.get_slice(StringName("gameplay"))
-	if gameplay_state.get("score", 0) != 1500:  # 1000 + 500
-		_fail("Add score not working")
-		return
-	_pass("Add score works")
+	_pass("Entity data retrieval works")
 
 ## Test state transitions
 func _test_state_transitions() -> void:
@@ -235,8 +208,7 @@ func _test_persistence() -> void:
 	print("\n--- Testing Persistence ---")
 	
 	# Set some state
-	store.dispatch(U_GameplayActions.update_health(42))
-	store.dispatch(U_GameplayActions.update_score(9999))
+	store.dispatch(U_GameplayActions.pause_game())
 	await get_tree().process_frame
 	
 	# Save
@@ -248,8 +220,7 @@ func _test_persistence() -> void:
 	_pass("State saved successfully")
 	
 	# Modify state
-	store.dispatch(U_GameplayActions.update_health(10))
-	store.dispatch(U_GameplayActions.update_score(0))
+	store.dispatch(U_GameplayActions.unpause_game())
 	await get_tree().process_frame
 	
 	# Load
@@ -261,11 +232,8 @@ func _test_persistence() -> void:
 	
 	# Verify loaded values
 	var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-	if gameplay_state.get("health", 0) != 42:
-		_fail("Loaded health incorrect: %d" % gameplay_state.get("health", 0))
-		return
-	if gameplay_state.get("score", 0) != 9999:
-		_fail("Loaded score incorrect: %d" % gameplay_state.get("score", 0))
+	if not gameplay_state.get("paused", false):
+		_fail("Loaded pause state incorrect")
 		return
 	_pass("State persistence verified")
 	
@@ -282,7 +250,8 @@ func _test_performance() -> void:
 	
 	# Dispatch 100 actions
 	for i in range(100):
-		store.dispatch(U_GameplayActions.update_score(i))
+		var action: Dictionary = U_GameplayActions.pause_game() if i % 2 == 0 else U_GameplayActions.unpause_game()
+		store.dispatch(action)
 	
 	await get_tree().process_frame
 	

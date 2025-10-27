@@ -3,9 +3,24 @@
 **Feature Branch**: `redux-state-store`
 **Created**: 2025-10-25
 **Last Updated**: 2025-10-27
-**Version**: 3.0
-**Status**: Implementation Complete - All Core Features Tested and Validated
+**Version**: 3.1
+**Status**: Production Ready - Mock Data Removed, All Tests Passing (Phase 16.5 Complete)
 **Input**: User description: "I want to build out a centralized state store inspired by redux toolkit with boot/menu/gameplay slices for our state foundation"
+
+## Recent Updates
+
+### Phase 16.5 (2025-10-27): Mock Data Removal
+**Status**: Complete ✅
+
+Removed all test-only mock data from production state structure:
+- **Removed fields**: `health`, `score`, `level` from `RS_GameplayInitialState`
+- **Removed actions**: `update_health()`, `update_score()`, `set_level()`, `take_damage()`, `add_score()`
+- **Removed selectors**: `get_current_health()`, `get_current_score()`, `get_is_player_alive()`, `get_is_game_over()`, `get_completion_percentage()`
+- **Removed systems**: `S_HealthSystem` (PoC only)
+- **Removed tests**: `test_poc_health_system.gd` and 6 visual test scenes
+- **Refactored**: All remaining tests and documentation to use production data (pause/unpause, entity snapshots)
+
+Production state now contains only real fields used by actual game systems. See `docs/state store/mock-data-removal-plan.md` for details.
 
 ## Architecture & Integration
 

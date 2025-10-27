@@ -41,8 +41,8 @@ func _ready() -> void:
 
 ```gdscript
 # Dispatch an action to update state
-store.dispatch(U_GameplayActions.update_health(80))
-store.dispatch(U_GameplayActions.add_score(100))
+store.dispatch(U_GameplayActions.pause_game())
+store.dispatch(U_EntityActions.update_entity_snapshot("player", {"position": Vector3(10, 5, 0)}))
 store.dispatch(U_MenuActions.navigate_to_screen("settings"))
 ```
 
@@ -51,11 +51,11 @@ store.dispatch(U_MenuActions.navigate_to_screen("settings"))
 ```gdscript
 # Get entire slice
 var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-var health: int = gameplay_state.get("health", 100)
+var is_paused: bool = gameplay_state.get("paused", false)
 
 # Use selectors for derived state
-var is_low_health: bool = GameplaySelectors.is_low_health(gameplay_state)
-var is_game_over: bool = GameplaySelectors.is_game_over(gameplay_state)
+var player_pos: Vector3 = EntitySelectors.get_player_position(gameplay_state)
+var is_paused: bool = GameplaySelectors.get_is_paused(gameplay_state)
 ```
 
 ### Subscribing to Changes
@@ -76,8 +76,8 @@ func _on_state_changed(action: Dictionary, new_state: Dictionary) -> void:
     
     # Read updated state
     var gameplay: Dictionary = new_state.get("gameplay", {})
-    var health: int = gameplay.get("health", 0)
-    _update_health_bar(health)
+    var is_paused: bool = gameplay.get("paused", false)
+    _update_pause_indicator(is_paused)
 
 func _exit_tree() -> void:
     # Clean up subscription
@@ -109,8 +109,8 @@ Actions are plain dictionaries describing state changes:
 
 ```gdscript
 {
-    "type": StringName("gameplay/update_health"),
-    "payload": {"health": 80}
+    "type": StringName("gameplay/pause"),
+    "payload": null
 }
 ```
 
@@ -118,10 +118,10 @@ Actions are plain dictionaries describing state changes:
 
 ```gdscript
 # CORRECT
-store.dispatch(U_GameplayActions.update_health(80))
+store.dispatch(U_GameplayActions.pause_game())
 
 # WRONG - fragile, no type checking
-store.dispatch({"type": "gameplay/update_health", "payload": {"health": 80}})
+store.dispatch({"type": "gameplay/pause", "payload": null})
 ```
 
 ### Reducers
@@ -229,10 +229,11 @@ func process_tick(_delta: float) -> void:
     
     # Sync component to state
     var current_state: Dictionary = _store.get_slice(StringName("gameplay"))
-    var state_health: int = GameplaySelectors.get_health(current_state)
+    var state_paused: bool = GameplaySelectors.get_is_paused(current_state)
     
-    if health_comp.current_health != state_health:
-        _store.dispatch(U_GameplayActions.update_health(health_comp.current_health))
+    # Example: Sync component state with store
+    if should_pause and not state_paused:
+        _store.dispatch(U_GameplayActions.pause_game())
 ```
 
 ### Pattern 3: State-Driven System Behavior
@@ -422,10 +423,13 @@ func process_tick(_delta: float) -> void:
     
     # Detect health changes and dispatch
     var state: Dictionary = _store.get_slice(StringName("gameplay"))
-    var state_health: int = GameplaySelectors.get_health(state)
+    var entities: Dictionary = state.get("entities", {})
     
-    if health_comp.current_health != state_health:
-        _store.dispatch(U_GameplayActions.update_health(health_comp.current_health))
+    # Dispatch entity snapshot to state
+    _store.dispatch(U_EntityActions.update_entity_snapshot("player", {
+        "position": body.global_position,
+        "velocity": body.velocity
+    }))
 ```
 
 ---
@@ -442,30 +446,30 @@ func before_each() -> void:
     ActionRegistry._registered_actions.clear()
     U_GameplayActions._static_init()
 
-func test_take_damage_reduces_health() -> void:
-    # GIVEN state with 100 health
-    var state: Dictionary = {"health": 100, "score": 0}
+func test_pause_sets_paused_true() -> void:
+    # GIVEN state with paused = false
+    var state: Dictionary = {"paused": false, "entities": {}}
     
-    # WHEN take_damage action for 20 damage
-    var action: Dictionary = U_GameplayActions.take_damage(20)
+    # WHEN pause action dispatched
+    var action: Dictionary = U_GameplayActions.pause_game()
     var next: Dictionary = GameplayReducer.reduce(state, action)
     
-    # THEN health reduced by 20
-    assert_eq(next.get("health"), 80)
+    # THEN paused = true
+    assert_eq(next.get("paused"), true)
     
     # AND original state unchanged
-    assert_eq(state.get("health"), 100)
+    assert_eq(state.get("paused"), false)
 
 func test_health_cannot_go_negative() -> void:
-    # GIVEN state with 10 health
-    var state: Dictionary = {"health": 10}
+    # GIVEN paused state
+    var state: Dictionary = {"paused": true}
     
-    # WHEN take_damage for 50 (more than current)
-    var action: Dictionary = U_GameplayActions.take_damage(50)
+    # WHEN unpause action dispatched
+    var action: Dictionary = U_GameplayActions.unpause_game()
     var next: Dictionary = GameplayReducer.reduce(state, action)
     
-    # THEN health clamped to 0
-    assert_eq(next.get("health"), 0)
+    # THEN paused = false
+    assert_eq(next.get("paused"), false)
 ```
 
 ### Selector Tests
@@ -510,8 +514,8 @@ func test_full_store_integration() -> void:
     store._initialize()
     
     # WHEN dispatching actions
-    store.dispatch(U_GameplayActions.take_damage(20))
-    store.dispatch(U_GameplayActions.add_score(100))
+    store.dispatch(U_GameplayActions.pause_game())
+    store.dispatch(U_EntityActions.update_entity_snapshot("player", {}))
     
     # THEN state updates correctly
     var state: Dictionary = store.get_slice(StringName("gameplay"))
@@ -566,7 +570,8 @@ for action_entry in history:
 var start_time: int = Time.get_ticks_usec()
 
 for i in range(1000):
-    store.dispatch(U_GameplayActions.add_score(1))
+    var action: Dictionary = U_GameplayActions.pause_game() if i % 2 == 0 else U_GameplayActions.unpause_game()
+    store.dispatch(action)
 
 var elapsed_ms: float = (Time.get_ticks_usec() - start_time) / 1000.0
 var avg_per_dispatch: float = elapsed_ms / 1000.0
@@ -647,10 +652,10 @@ var is_low: bool = state.get("health", 0) < 30
 ### Tip 3: Batch Related Actions
 
 ```gdscript
-# AVOID - multiple dispatches
-store.dispatch(U_GameplayActions.update_health(health))
-store.dispatch(U_GameplayActions.update_score(score))
-store.dispatch(U_GameplayActions.set_level(level))
+# AVOID - multiple dispatches for same entity
+store.dispatch(U_EntityActions.update_entity_snapshot("player", {"position": pos}))
+store.dispatch(U_EntityActions.update_entity_snapshot("player", {"velocity": vel}))
+store.dispatch(U_EntityActions.update_entity_snapshot("player", {"rotation": rot}))
 
 # BETTER - single compound action (if frequently used together)
 const ACTION_UPDATE_PLAYER_STATS := StringName("gameplay/update_player_stats")
@@ -746,23 +751,23 @@ Follow these conventions for consistent action naming:
 # Verb: update, set, add, remove, toggle, navigate, etc.
 # Noun: health, score, screen, character, etc.
 
-const ACTION_UPDATE_HEALTH := StringName("gameplay/update_health")
-const ACTION_ADD_SCORE := StringName("gameplay/add_score")
+const ACTION_PAUSE_GAME := StringName("gameplay/pause")
+const ACTION_UPDATE_ENTITY_SNAPSHOT := StringName("gameplay/UPDATE_ENTITY_SNAPSHOT")
 const ACTION_NAVIGATE_TO_SCREEN := StringName("menu/navigate_to_screen")
 const ACTION_TRANSITION_TO_GAMEPLAY := StringName("transition/to_gameplay")
 ```
 
 ### Examples by Pattern
 
-**Update (set to new value)**:
-- `gameplay/update_health`
-- `gameplay/update_score`
-- `menu/update_difficulty`
+**Toggle (change boolean)**:
+- `gameplay/pause`
+- `gameplay/unpause`
+- `menu/toggle_setting`
 
-**Add/Remove (modify by delta)**:
-- `gameplay/add_score`
-- `gameplay/take_damage`
-- `menu/add_save_file`
+**Update (set new snapshot/value)**:
+- `gameplay/UPDATE_ENTITY_SNAPSHOT`
+- `menu/navigate_to_screen`
+- `boot/update_loading_progress`
 
 **Set (explicit assignment)**:
 - `gameplay/set_level`
@@ -995,17 +1000,19 @@ func _on_damage_timer_timeout() -> void:
 	if GameplaySelectors.get_is_paused(gameplay_state):
 		return  # Don't apply damage while paused
 	
-	# Dispatch damage action
-	_store.dispatch(U_GameplayActions.take_damage(10))
+	# Dispatch pause action (example of system using state)
+	if not _is_paused and should_pause:
+		_store.dispatch(U_GameplayActions.pause_game())
 
 func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 	if slice_name != StringName("gameplay"):
 		return
 	
-	# Check for player death
-	var health: int = GameplaySelectors.get_current_health(slice_state)
-	if health <= 0:
-		player_death.emit()
+	# Check for pause state change
+	var is_paused: bool = GameplaySelectors.get_is_paused(slice_state)
+	if is_paused != _is_paused:
+		_is_paused = is_paused
+		pause_changed.emit(is_paused)
 ```
 
 **Key patterns demonstrated:**
@@ -1073,11 +1080,12 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 
 func _update_ui(state: Dictionary) -> void:
 	# Use selectors to get values
-	health_label.text = "Health: %d" % GameplaySelectors.get_current_health(state)
-	score_label.text = "Score: %d" % GameplaySelectors.get_current_score(state)
-	
 	var is_paused: bool = GameplaySelectors.get_is_paused(state)
 	pause_label.visible = is_paused
+	
+	# Get entity data if available
+	var player_pos: Vector3 = EntitySelectors.get_player_position(state)
+	position_label.text = "Position: %v" % player_pos
 	pause_label.text = "[PAUSED]"
 ```
 
@@ -1165,8 +1173,8 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 
 **✅ DO: Dispatch actions**
 ```gdscript
-func heal_player() -> void:
-	_store.dispatch(U_GameplayActions.update_health(100))  # CORRECT
+func toggle_pause() -> void:
+	_store.dispatch(U_GameplayActions.pause_game())  # CORRECT
 ```
 
 ---
