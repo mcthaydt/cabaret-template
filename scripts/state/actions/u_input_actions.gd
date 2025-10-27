@@ -1,4 +1,4 @@
-extends Node
+extends RefCounted
 class_name U_InputActions
 
 ## Input action creators for gameplay slice
@@ -6,23 +6,40 @@ class_name U_InputActions
 ## Phase 16: Created for full project integration
 ## Used by S_InputSystem to dispatch input state changes
 
-const ActionRegistry = preload("res://scripts/state/action_registry.gd")
+const ACTION_UPDATE_MOVE_INPUT := StringName("gameplay/UPDATE_MOVE_INPUT")
+const ACTION_UPDATE_LOOK_INPUT := StringName("gameplay/UPDATE_LOOK_INPUT")
+const ACTION_UPDATE_JUMP_STATE := StringName("gameplay/UPDATE_JUMP_STATE")
+
+## Static initializer - register actions
+static func _static_init() -> void:
+	ActionRegistry.register_action(ACTION_UPDATE_MOVE_INPUT)
+	ActionRegistry.register_action(ACTION_UPDATE_LOOK_INPUT)
+	ActionRegistry.register_action(ACTION_UPDATE_JUMP_STATE)
 
 ## Update move input (WASD or analog stick)
 static func update_move_input(move_input: Vector2) -> Dictionary:
-	return ActionRegistry.create_action("gameplay/UPDATE_MOVE_INPUT", {
-		"move_input": move_input
-	})
+	return {
+		"type": ACTION_UPDATE_MOVE_INPUT,
+		"payload": {
+			"move_input": move_input
+		}
+	}
 
 ## Update look input (mouse or right stick)
 static func update_look_input(look_input: Vector2) -> Dictionary:
-	return ActionRegistry.create_action("gameplay/UPDATE_LOOK_INPUT", {
-		"look_input": look_input
-	})
+	return {
+		"type": ACTION_UPDATE_LOOK_INPUT,
+		"payload": {
+			"look_input": look_input
+		}
+	}
 
 ## Update jump state (pressed, just_pressed)
 static func update_jump_state(jump_pressed: bool, jump_just_pressed: bool) -> Dictionary:
-	return ActionRegistry.create_action("gameplay/UPDATE_JUMP_STATE", {
-		"jump_pressed": jump_pressed,
-		"jump_just_pressed": jump_just_pressed
-	})
+	return {
+		"type": ACTION_UPDATE_JUMP_STATE,
+		"payload": {
+			"jump_pressed": jump_pressed,
+			"jump_just_pressed": jump_just_pressed
+		}
+	}
