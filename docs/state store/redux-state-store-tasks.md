@@ -1185,6 +1185,124 @@ func after_each():
 
 ---
 
+## Phase 16.5: Remove Mock Data and Update Tests with Real Data
+
+**Purpose**: Replace test-only mock data with real gameplay data and refactor tests to use actual game systems
+
+**Current Status**: Mock fields (health, score, level, character, difficulty, save files) exist only for testing but aren't used in production gameplay. Tests rely on these mock fields but should use real game data once actual systems exist.
+
+**Rationale**: 
+- Mock data was restored in revert commit to fix broken tests
+- Once real gameplay systems exist (health, score, enemies, etc.), mock data becomes obsolete
+- Tests should validate actual game systems, not artificial test data
+- Cleaner state structure with only production-relevant fields
+
+### Phase 16.5 Prerequisites
+
+**⚠️ IMPORTANT**: Only execute Phase 16.5 AFTER these systems exist in production:
+- Real health system (not just state mock)
+- Real score/points system tracking actual gameplay
+- Real level/progression system
+- Character selection system (if applicable)
+- Difficulty system (if applicable)
+- Save/load system reading from actual gameplay state
+
+**DO NOT execute Phase 16.5 if these systems don't exist yet - tests will have nothing real to test against!**
+
+### Identify Mock vs Real Data
+
+- [ ] T501 [P] [P16.5] Audit RS_GameplayInitialState: identify which fields are test-only vs production-used
+- [ ] T502 [P] [P16.5] Audit RS_MenuInitialState: identify which fields are test-only vs production-used
+- [ ] T503 [P] [P16.5] Audit U_GameplayActions: identify which action creators are test-only
+- [ ] T504 [P] [P16.5] Audit U_MenuActions: identify which action creators are test-only
+- [ ] T505 [P16.5] Document findings in `docs/state store/mock-data-removal-plan.md`
+
+### Refactor Tests to Use Real Systems
+
+**Health System Tests:**
+
+- [ ] T506 [P] [P16.5] 📝 TEST: Refactor `tests/unit/integration/test_poc_health_system.gd` to use real health component/system
+- [ ] T507 [P] [P16.5] 📝 TEST: Remove mock health value tests, replace with actual damage/healing tests
+- [ ] T508 [P] [P16.5] 📝 TEST: Add tests for real death conditions (e.g., enemy collision, fall damage)
+- [ ] T509 [P] [P16.5] 📝 TEST: Verify health persistence through save/load with real game state
+
+**Score System Tests:**
+
+- [ ] T510 [P] [P16.5] 📝 TEST: Refactor score tests to use real scoring events (collectibles, enemy defeats, etc.)
+- [ ] T511 [P] [P16.5] 📝 TEST: Remove mock score increment tests, add tests for actual score triggers
+- [ ] T512 [P] [P16.5] 📝 TEST: Add tests for score multipliers, combo systems (if applicable)
+- [ ] T513 [P] [P16.5] 📝 TEST: Verify score persistence and high score tracking
+
+**Level/Progression Tests:**
+
+- [ ] T514 [P] [P16.5] 📝 TEST: Replace mock level tests with real progression system tests
+- [ ] T515 [P] [P16.5] 📝 TEST: Add tests for level transitions, unlock conditions
+- [ ] T516 [P] [P16.5] 📝 TEST: Test level state persistence across sessions
+
+**Menu System Tests:**
+
+- [ ] T517 [P] [P16.5] 📝 TEST: Replace mock character selection tests with real character system
+- [ ] T518 [P] [P16.5] 📝 TEST: Replace mock difficulty tests with real difficulty system
+- [ ] T519 [P] [P16.5] 📝 TEST: Replace mock save file tests with real save/load system
+- [ ] T520 [P16.5] 📝 RUN TESTS: Verify all refactored tests PASS with real systems
+
+### Remove Mock Data from State
+
+**Gameplay Slice Cleanup:**
+
+- [ ] T521 [P16.5] Remove mock fields from RS_GameplayInitialState: health, score, level (if replaced by real systems)
+- [ ] T522 [P16.5] Remove test-only action creators from U_GameplayActions: update_health, update_score, set_level (keep if used by real systems)
+- [ ] T523 [P16.5] Remove test-only reducer cases from GameplayReducer for removed actions
+- [ ] T524 [P16.5] Remove test-only selectors from GameplaySelectors: get_current_health, get_current_score (keep if used by real systems)
+- [ ] T525 [P16.5] Update default_gameplay_initial_state.tres to remove mock fields
+
+**Menu Slice Cleanup:**
+
+- [ ] T526 [P16.5] Remove mock fields from RS_MenuInitialState: pending_character, pending_difficulty, available_saves (if replaced)
+- [ ] T527 [P16.5] Remove test-only action creators from U_MenuActions: select_character, select_difficulty, load_save_files (keep if used)
+- [ ] T528 [P16.5] Remove test-only reducer cases from MenuReducer for removed actions
+- [ ] T529 [P16.5] Remove test-only selectors from MenuSelectors (keep if used by real systems)
+- [ ] T530 [P16.5] Update default_menu_initial_state.tres to remove mock fields
+
+**System Integration Cleanup:**
+
+- [ ] T531 [P16.5] Update S_HealthSystem to remove references to mock health if using real health component
+- [ ] T532 [P16.5] Update S_JumpSystem to remove mock score dispatch if using real score system
+- [ ] T533 [P16.5] Update HUD overlay to use real game data instead of mock selectors
+- [ ] T534 [P16.5] Remove PoC test scenes that were only for mock data validation
+
+### Test Suite Validation
+
+- [ ] T535 [P16.5] 📝 RUN TESTS: Run full state test suite, verify no mock data dependencies remain
+- [ ] T536 [P16.5] 📝 RUN TESTS: Run ECS test suite, verify no regressions
+- [ ] T537 [P16.5] 📝 RUN TESTS: Verify test coverage remains high (aim for 100% of real systems)
+- [ ] T538 [P16.5] 🎮 IN-GAME TEST: Play game for 10 minutes, verify all systems work without mock data
+- [ ] T539 [P16.5] 🎮 IN-GAME TEST: Test health damage from real sources (enemies, hazards)
+- [ ] T540 [P16.5] 🎮 IN-GAME TEST: Test score increases from real gameplay actions
+- [ ] T541 [P16.5] 🎮 IN-GAME TEST: Test level progression and unlocks
+- [ ] T542 [P16.5] 🎮 IN-GAME TEST: Test menu navigation with real character/difficulty selection
+
+### Documentation Updates
+
+- [ ] T543 [P] [P16.5] Update usage-guide.md: Remove examples using mock data
+- [ ] T544 [P] [P16.5] Update usage-guide.md: Add examples using real game systems
+- [ ] T545 [P] [P16.5] Update redux-state-store-prd.md: Mark mock data removal complete
+- [ ] T546 [P] [P16.5] Create migration guide: "Migrating from Mock to Real Data" in docs/state store/
+- [ ] T547 [P16.5] Document patterns for future system integration without mocks
+
+### Final Validation & Commit
+
+- [ ] T548 [P16.5] Compare state structure before/after: verify only test-only fields removed
+- [ ] T549 [P16.5] Verify all production gameplay features still work
+- [ ] T550 [P16.5] Verify debug overlay shows real data, not placeholder values
+- [ ] T551 [P16.5] Run performance benchmarks: verify no regression from real data
+- [ ] T552 [P16.5] Final test run: all state tests pass with real data
+- [ ] T553 [P16.5] Commit Phase 16.5: "Remove mock data and update tests with real gameplay systems"
+
+**Checkpoint**: State store uses only production-relevant data; tests validate real game systems; no test-only artifacts remain
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
@@ -1201,6 +1319,10 @@ func after_each():
 6. **User Story 4 (Phase 13)**: Depends on US1 completion (can run parallel with US2/US3)
 7. **User Story 5 (Phase 14)**: Depends on US1, US3, US4 completion
 8. **Polish (Phase 15)**: Depends on all desired user stories being complete
+9. **Full Project Integration (Phase 16)**: Depends on Phase 15 completion; integrates state store into ALL project systems
+10. **Mock Data Removal (Phase 16.5)**: Depends on Phase 16 completion AND real gameplay systems existing
+   - ⚠️ DO NOT execute until real health, score, progression, menu systems exist in production
+   - Tests must have real systems to validate against
 
 ### Parallelization Opportunities
 
@@ -1268,8 +1390,10 @@ Following AGENTS.md guidance:
   - 1 for Phase 0 (event bus decision)
   - 8 for User Story 1 phases (US1a-US1h)
   - 1 each for US2, US3, US4, US5
-  - 1 final commit for Phase 15 polish
-  - **Total: ~14 commits**
+  - 1 for Phase 15 polish
+  - 1 for Phase 16 full project integration
+  - 1 for Phase 16.5 mock data removal (when ready)
+  - **Total: ~16 commits**
 
 ---
 
