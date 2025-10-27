@@ -43,14 +43,15 @@ If you are ever unsure what to do next, **read the tasks.md file** and find the 
 
 ## Project Status (2025-10-27 - Updated)
 
-The Redux-style centralized state store implementation is **PHASES 1-15 COMPLETE**. The feature branch `redux-state-store` has comprehensive planning documentation, all User Stories (US1-US5) fully implemented with boot/menu/gameplay slices, state transitions working, and complete documentation with usage guide.
+The Redux-style centralized state store implementation is **PHASES 1-14 COMPLETE, PHASE 15 IN PROGRESS**. The feature branch `redux-state-store` has comprehensive planning documentation, all User Stories (US1-US5) fully implemented with boot/menu/gameplay slices, state transitions working, and partial documentation complete.
 
-**Current Status**: Phases 1-15 Complete - Full infrastructure + All slices + Documentation complete. Mock data restored for test stability. Phase 16.5 plan added. Ready for Phase 16 (Full Project Integration).
+**Current Status**: Phases 1-14 Complete, Phase 15 IN PROGRESS (5/39 tasks done). Mock data restored for test stability. Phase 16 & 16.5 plans added. Working on Phase 15 (Polish & Validation).
 
 **Recent Updates** (2025-10-27):
 - ✅ Reverted commit c3258b0 to restore mock data (commit 5390c25)
 - ✅ Added Phase 16.5 plan for future mock data removal (commit d06aeab)
 - ✅ Tests restored to passing: 104/107 (97.2%)
+- ⚠️ Phase 15 status corrected: Only 5/39 tasks complete (T405-T409)
 
 **Phase 0 Decision**: **Option C - Dual-bus via abstract base** (IMPLEMENTED ✅)
 
@@ -63,7 +64,7 @@ The Redux-style centralized state store implementation is **PHASES 1-15 COMPLETE
 - ✅ Phase 12 (US3): Boot slice with loading progress state (commit 0b60fc0)
 - ✅ Phase 13 (US4): Menu slice with navigation and configuration (commit 27fd503)
 - ✅ Phase 14 (US5): State transitions with data handoff (commit 6c2629c)
-- ✅ Phase 15 (Documentation): PRD updated, comprehensive usage guide (commit 6d24f60)
+- 🚧 Phase 15 (Polish): Documentation complete (T405-T409), but 34 tasks remain (performance, testing, cleanup, validation)
 - ✅ Bug Fixes: Manual UIDs, missing resource links, cursor locking, HUD input blocking, pause handling
 
 **Test Coverage**: 
@@ -77,7 +78,19 @@ The Redux-style centralized state store implementation is **PHASES 1-15 COMPLETE
 - **All in-game tests verified**: T355 (boot), T381 (menu), T402/T403 (transitions)
 - Debug overlay functional (F3 toggle)
 
-**Active Phase**: Phase 16 - Full Project Integration (integrate state store with ALL systems and managers)
+**Active Phase**: Phase 15 - Polish & Cross-Cutting Concerns (performance, testing, cleanup, validation)
+
+**Phase 15 Progress**:
+- ✅ Documentation (T405-T409): 5/5 complete
+- ❌ Performance (T410-T415): 0/6 complete
+- ❌ Testing & Validation (T416-T420): 0/5 complete
+- ❌ Code Cleanup (T421-T424): 0/4 complete
+- ❌ Real ECS Integration (T425-T431): 0/7 complete (PoC exists but not documented)
+- ❌ Feature Flags (T432-T436): 0/5 complete
+- N/A EventBus Integration (T437-T441): Option C used, skip these
+- ❌ Final Validation (T442-T448): 0/7 complete
+
+**Total**: 5/39 tasks complete (13%)
 
 **Recent Bug Fixes**:
 - ✅ Jump input blocked after landing (race condition with position resets)
@@ -369,7 +382,7 @@ All gameplay systems now respect pause state:
 
 ## Next Steps
 
-**PHASES 1-15 COMPLETE** - Full infrastructure + All slices + Documentation complete! 🎉
+**PHASES 1-14 COMPLETE, PHASE 15 IN PROGRESS** - Infrastructure done, slices working, partial polish complete.
 
 **CURRENT SITUATION**:
 - ✅ Complete state store: Boot/Menu/Gameplay slices with transitions
@@ -380,10 +393,61 @@ All gameplay systems now respect pause state:
 - ✅ PRD updated to "Implementation Complete"
 - ✅ Debug tools working (F3 overlay)
 - ✅ Bug fixes documented in DEV_PITFALLS.md
+- ⚠️ Phase 15 only 13% complete (5/39 tasks)
 
-**IMMEDIATE NEXT STEP: Phase 16 - Full Project Integration**
+**IMMEDIATE NEXT STEP: Complete Phase 15 (Polish & Validation)**
 
-### Phase 16: Full Project Integration ⭐ USER REQUESTED
+**Next Tasks** (in order):
+1. T410-T415: Performance profiling and optimization
+2. T416-T420: Testing and validation
+3. T421-T424: Code cleanup
+4. T425-T431: Document PoC ECS integration (already implemented)
+5. T432-T436: Feature flags and production readiness
+6. T442-T448: Final validation and commit
+
+### Phase 15: Remaining Work ⚠️ CURRENT PRIORITY
+
+**Must complete Phase 15 before moving to Phase 16!**
+
+**Remaining Phase 15 Tasks** (34 tasks, T410-T448):
+
+1. **Performance Optimization** (T410-T415):
+   - Profile dispatch overhead, signal batching
+   - Optimize .duplicate(true) if needed
+   - Add performance metrics to debug overlay
+
+2. **Testing & Validation** (T416-T420):
+   - Run complete test suites
+   - Create smoke test scene
+   - Verify no memory leaks
+
+3. **Code Cleanup** (T421-T424):
+   - Remove debug prints
+   - Fix indentation
+   - Add @warning_ignore annotations
+   - Review TODO comments
+
+4. **Document ECS Integration** (T425-T431):
+   - PoC already exists (S_PauseSystem, S_HealthSystem)
+   - Need to document patterns in usage-guide.md
+   - Add integration examples
+
+5. **Feature Flags** (T432-T436):
+   - Verify project settings work
+   - Test export mode disables debug features
+   - Add production build comments
+
+6. **Final Validation** (T442-T448):
+   - Complete in-game testing
+   - Review PRD success criteria
+   - Final test run
+   - Final commit
+
+**Start Here**: Open tasks.md and begin with T410 (performance profiling)
+
+---
+
+### Phase 16: Full Project Integration ⏳ FUTURE WORK
 
 **Goal**: Integrate state store throughout the ENTIRE project - all 15 systems, 2 managers, and UI components use state store for complete centralized state management.
 
