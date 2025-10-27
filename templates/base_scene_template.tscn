@@ -4,6 +4,8 @@
 [ext_resource type="Resource" uid="uid://uygy4iikdf74" path="res://resources/state/default_gameplay_initial_state.tres" id="1_gameplay_state"]
 [ext_resource type="Script" uid="uid://bbovcvnujbnj3" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
 [ext_resource type="Resource" uid="uid://dw7q8jxqvhgwf" path="res://resources/state/default_state_store_settings.tres" id="1_state_settings"]
+[ext_resource type="Resource" path="res://resources/state/default_boot_initial_state.tres" id="1_boot_state"]
+[ext_resource type="Resource" path="res://resources/state/default_menu_initial_state.tres" id="1_menu_state"]
 [ext_resource type="Script" uid="uid://dog624m744wa4" path="res://scripts/state/m_state_store.gd" id="1_state_store"]
 [ext_resource type="Script" uid="uid://chju2smrof3yc" path="res://scripts/scene_structure/environment_group.gd" id="2_8soux"]
 [ext_resource type="Script" uid="uid://biqa541wtn26y" path="res://scripts/scene_structure/scene_objects_group.gd" id="2_ph0bl"]
@@ -156,6 +158,8 @@ script = ExtResource("10_cursor")
 [node name="M_StateStore" type="Node" parent="Managers"]
 script = ExtResource("1_state_store")
 settings = ExtResource("1_state_settings")
+boot_initial_state = ExtResource("1_boot_state")
+menu_initial_state = ExtResource("1_menu_state")
 gameplay_initial_state = ExtResource("1_gameplay_state")
 
 [node name="Entities" type="Node" parent="."]
