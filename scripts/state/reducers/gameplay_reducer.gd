@@ -39,6 +39,20 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			new_state.level = payload.get("level", state.get("level", 1))
 			return new_state
 		
+		U_GameplayActions.ACTION_TAKE_DAMAGE:
+			var new_state: Dictionary = state.duplicate(true)
+			var payload: Dictionary = action.get("payload", {})
+			var damage: int = payload.get("amount", 0)
+			new_state.health = max(0, new_state.health - damage)  # Don't go below 0
+			return new_state
+		
+		U_GameplayActions.ACTION_ADD_SCORE:
+			var new_state: Dictionary = state.duplicate(true)
+			var payload: Dictionary = action.get("payload", {})
+			var points: int = payload.get("points", 0)
+			new_state.score += points
+			return new_state
+		
 		_:
 			# Unknown action - return state unchanged
 			return state

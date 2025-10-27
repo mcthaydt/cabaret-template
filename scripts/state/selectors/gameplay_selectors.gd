@@ -38,3 +38,15 @@ static func get_completion_percentage(gameplay_state: Dictionary) -> float:
 	
 	# Clamp to 0.0-1.0 range
 	return clampf(completion, 0.0, 1.0)
+
+## Get whether game is currently paused
+static func get_is_paused(gameplay_state: Dictionary) -> bool:
+	return gameplay_state.get("paused", false)
+
+## Get current player health
+static func get_current_health(gameplay_state: Dictionary) -> int:
+	return gameplay_state.get("health", 0)
+
+## Get current player score
+static func get_current_score(gameplay_state: Dictionary) -> int:
+	return gameplay_state.get("score", 0)
