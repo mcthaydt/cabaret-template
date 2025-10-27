@@ -9,6 +9,13 @@ const EVENT_ENTITY_JUMPED := StringName("entity_jumped")
 const EVENT_ENTITY_LANDED := StringName("entity_landed")
 
 func process_tick(_delta: float) -> void:
+	# Skip processing if game is paused
+	var store: M_StateStore = U_StateUtils.get_store(self)
+	if store:
+		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
+		if GameplaySelectors.get_is_paused(gameplay_state):
+			return
+	
 	var manager := get_manager()
 	if manager == null:
 		return
@@ -133,3 +140,7 @@ func process_tick(_delta: float) -> void:
 			"jump_force": component.settings.jump_force if component.settings != null else 0.0,
 		}
 		ECSEventBus.publish(EVENT_ENTITY_JUMPED, event_payload)
+		
+		# Award points for jumping (PoC integration with state store)
+		if store:
+			store.dispatch(U_GameplayActions.add_score(10))

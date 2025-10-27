@@ -7,6 +7,13 @@ const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 
 func process_tick(delta: float) -> void:
+	# Skip processing if game is paused
+	var store: M_StateStore = U_StateUtils.get_store(self)
+	if store:
+		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
+		if GameplaySelectors.get_is_paused(gameplay_state):
+			return
+	
 	var manager := get_manager()
 	if manager == null:
 		return
