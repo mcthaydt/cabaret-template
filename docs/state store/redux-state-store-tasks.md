@@ -922,46 +922,46 @@ func after_each():
 
 **⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests
 
-- [ ] T357 [P] [US4] 📝 TEST: Create `tests/unit/state/test_menu_slice_reducers.gd` (include bus reset in `before_each()`)
-- [ ] T358 [P] [US4] 📝 TEST: Write test `test_navigate_to_screen_updates_active_screen()`
-- [ ] T359 [P] [US4] 📝 TEST: Write test `test_select_character_stores_pending_config()`
-- [ ] T360 [P] [US4] 📝 TEST: Write test `test_select_difficulty_stores_pending_config()`
-- [ ] T361 [P] [US4] 📝 TEST: Write test `test_load_save_files_populates_save_list()`
-- [ ] T362 [US4] 📝 RUN TESTS: Verify all US4 tests FAIL (no implementation yet)
+- [x] T357 [P] [US4] 📝 TEST: Create `tests/unit/state/test_menu_slice_reducers.gd` (include bus reset in `before_each()`)
+- [x] T358 [P] [US4] 📝 TEST: Write test `test_navigate_to_screen_updates_active_screen()`
+- [x] T359 [P] [US4] 📝 TEST: Write test `test_select_character_stores_pending_config()`
+- [x] T360 [P] [US4] 📝 TEST: Write test `test_select_difficulty_stores_pending_config()`
+- [x] T361 [P] [US4] 📝 TEST: Write test `test_load_save_files_populates_save_list()`
+- [x] T362 [US4] 📝 RUN TESTS: Verify all US4 tests FAIL (no implementation yet)
 
 ### Implementation for User Story 4
 
 **Initial State & Actions:**
 
-- [ ] T363 [P] [US4] Create `scripts/state/resources/rs_menu_initial_state.gd` extending Resource
-- [ ] T364 [US4] Add @export properties: active_screen (String), pending_character (String), pending_difficulty (String), available_saves (Array)
-- [ ] T365 [US4] Add `to_dictionary() -> Dictionary` method
-- [ ] T366 [US4] Create default resource `resources/state/default_menu_initial_state.tres`
-- [ ] T367 [P] [US4] Create `scripts/state/u_menu_actions.gd` as class_name U_MenuActions
-- [ ] T368 [US4] Add constants: ACTION_NAVIGATE_TO_SCREEN, ACTION_SELECT_CHARACTER, ACTION_SELECT_DIFFICULTY, ACTION_LOAD_SAVE_FILES
-- [ ] T369 [US4] Implement action creators with `: Dictionary` return types
-- [ ] T370 [US4] Add _static_init() to register actions
+- [x] T363 [P] [US4] Create `scripts/state/resources/rs_menu_initial_state.gd` extending Resource
+- [x] T364 [US4] Add @export properties: active_screen (String), pending_character (String), pending_difficulty (String), available_saves (Array)
+- [x] T365 [US4] Add `to_dictionary() -> Dictionary` method
+- [x] T366 [US4] Create default resource `resources/state/default_menu_initial_state.tres`
+- [x] T367 [P] [US4] Create `scripts/state/u_menu_actions.gd` as class_name U_MenuActions
+- [x] T368 [US4] Add constants: ACTION_NAVIGATE_TO_SCREEN, ACTION_SELECT_CHARACTER, ACTION_SELECT_DIFFICULTY, ACTION_LOAD_SAVE_FILES
+- [x] T369 [US4] Implement action creators with `: Dictionary` return types
+- [x] T370 [US4] Add _static_init() to register actions
 
 **Menu Reducer & Selectors:**
 
-- [ ] T371 [P] [US4] Create `scripts/state/reducers/menu_reducer.gd` as class_name MenuReducer
-- [ ] T372 [US4] Implement `static func reduce()` with cases for all menu actions
-- [ ] T373 [P] [US4] Create `scripts/state/selectors/menu_selectors.gd` as class_name MenuSelectors
-- [ ] T374 [US4] Implement selectors: get_active_screen(), get_pending_game_config(), get_available_saves()
+- [x] T371 [P] [US4] Create `scripts/state/reducers/menu_reducer.gd` as class_name MenuReducer
+- [x] T372 [US4] Implement `static func reduce()` with cases for all menu actions
+- [x] T373 [P] [US4] Create `scripts/state/selectors/menu_selectors.gd` as class_name MenuSelectors
+- [x] T374 [US4] Implement selectors: get_active_screen(), get_pending_game_config(), get_available_saves()
 
 **Store Integration:**
 
-- [ ] T375 [US4] Add `@export var menu_initial_state: RS_MenuInitialState` to M_StateStore
-- [ ] T376 [US4] Update M_StateStore._ready() to register menu slice
-- [ ] T377 [US4] Add menu slice to base_scene_template.tscn: link RS_MenuInitialState export
+- [x] T375 [US4] Add `@export var menu_initial_state: RS_MenuInitialState` to M_StateStore
+- [x] T376 [US4] Update M_StateStore._ready() to register menu slice
+- [x] T377 [US4] Add menu slice to base_scene_template.tscn: link RS_MenuInitialState export
 
 **Test & Validation:**
 
-- [ ] T378 [US4] 📝 RUN TESTS: Verify all US4 tests now PASS
-- [ ] T379 [US4] Create test scene `scenes/debug/state_test_us4.tscn` with simple menu UI
-- [ ] T380 [US4] Add Button nodes that dispatch menu navigation actions
-- [ ] T381 [US4] 🎮 IN-GAME TEST: Run test scene, click buttons, verify state reflects screen changes
-- [ ] T382 [US4] Commit US4: "Add menu slice navigation state"
+- [x] T378 [US4] 📝 RUN TESTS: Verify all US4 tests now PASS
+- [x] T379 [US4] Create test scene `scenes/debug/state_test_us4.tscn` with simple menu UI
+- [x] T380 [US4] Add Button nodes that dispatch menu navigation actions
+- [x] T381 [US4] 🎮 IN-GAME TEST: Run test scene, click buttons, verify state reflects screen changes
+- [x] T382 [US4] Commit US4: "Add menu slice navigation state"
 
 **Checkpoint**: Menu slice enables UI-driven state changes and bridges boot→gameplay transitions
 

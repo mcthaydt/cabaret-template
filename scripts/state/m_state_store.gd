@@ -17,7 +17,9 @@ const SignalBatcher = preload("res://scripts/state/signal_batcher.gd")
 const SerializationHelper = preload("res://scripts/state/serialization_helper.gd")
 const StateHandoff = preload("res://scripts/state/state_handoff.gd")
 const BootReducer = preload("res://scripts/state/reducers/boot_reducer.gd")
+const MenuReducer = preload("res://scripts/state/reducers/menu_reducer.gd")
 const RS_BootInitialState = preload("res://scripts/state/resources/rs_boot_initial_state.gd")
+const RS_MenuInitialState = preload("res://scripts/state/resources/rs_menu_initial_state.gd")
 
 signal state_changed(action: Dictionary, new_state: Dictionary)
 signal slice_updated(slice_name: StringName, slice_state: Dictionary)
@@ -31,6 +33,7 @@ const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 
 @export var settings: RS_StateStoreSettings
 @export var boot_initial_state: RS_BootInitialState
+@export var menu_initial_state: RS_MenuInitialState
 @export var gameplay_initial_state: RS_GameplayInitialState
 
 var _state: Dictionary = {}
@@ -123,6 +126,15 @@ func _initialize_slices() -> void:
 		boot_config.dependencies = []
 		boot_config.transient_fields = []
 		register_slice(boot_config)
+	
+	# Register menu slice if initial state provided
+	if menu_initial_state != null:
+		var menu_config := StateSliceConfig.new(StringName("menu"))
+		menu_config.reducer = Callable(MenuReducer, "reduce")
+		menu_config.initial_state = menu_initial_state.to_dictionary()
+		menu_config.dependencies = []
+		menu_config.transient_fields = []
+		register_slice(menu_config)
 	
 	# Register gameplay slice if initial state provided
 	if gameplay_initial_state != null:
