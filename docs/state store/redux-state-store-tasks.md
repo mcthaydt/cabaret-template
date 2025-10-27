@@ -1108,17 +1108,17 @@ func after_each():
 
 **Add to Gameplay Slice:**
 
-- [ ] T449 [P] Add input state fields to RS_GameplayInitialState: move_input (Vector2), look_input (Vector2), jump_pressed (bool), jump_just_pressed (bool)
-- [ ] T450 [P] Add physics state fields: gravity_scale (float, default 1.0), is_on_floor (bool), velocity (Vector3)
-- [ ] T451 [P] Add player state fields: position (Vector3), rotation (Vector3), is_moving (bool)
-- [ ] T452 [P] Add visual state fields: show_landing_indicator (bool), particle_settings (Dictionary), audio_settings (Dictionary)
-- [ ] T453 [P] Create U_InputActions with actions: update_move_input, update_look_input, update_jump_state
-- [ ] T454 [P] Create U_PhysicsActions with actions: update_gravity_scale, update_floor_state, update_velocity, update_position
-- [ ] T455 [P] Create U_VisualActions with actions: toggle_landing_indicator, update_particle_settings, update_audio_settings
-- [ ] T456 Update GameplayReducer to handle all new action types
-- [ ] T457 Create PhysicsSelectors: get_gravity_scale, get_is_on_floor, get_velocity, get_position
-- [ ] T458 Create InputSelectors: get_move_input, get_look_input, get_is_jump_pressed
-- [ ] T459 Create VisualSelectors: should_show_landing_indicator, get_particle_settings, get_audio_settings
+- [x] T449 [P] Add input state fields to RS_GameplayInitialState: move_input (Vector2), look_input (Vector2), jump_pressed (bool), jump_just_pressed (bool)
+- [x] T450 [P] Add physics state fields: gravity_scale (float, default 1.0), is_on_floor (bool), velocity (Vector3)
+- [x] T451 [P] Add player state fields: position (Vector3), rotation (Vector3), is_moving (bool)
+- [x] T452 [P] Add visual state fields: show_landing_indicator (bool), particle_settings (Dictionary), audio_settings (Dictionary)
+- [x] T453 [P] Create U_InputActions with actions: update_move_input, update_look_input, update_jump_state
+- [x] T454 [P] Create U_PhysicsActions with actions: update_gravity_scale, update_floor_state, update_velocity, update_position
+- [x] T455 [P] Create U_VisualActions with actions: toggle_landing_indicator, update_particle_settings, update_audio_settings
+- [x] T456 Update GameplayReducer to handle all new action types
+- [x] T457 Create PhysicsSelectors: get_gravity_scale, get_is_on_floor, get_velocity, get_position
+- [x] T458 Create InputSelectors: get_move_input, get_look_input, get_is_jump_pressed
+- [x] T459 Create VisualSelectors: should_show_landing_indicator, get_particle_settings, get_audio_settings
 
 ### System Integration (Priority Order)
 
