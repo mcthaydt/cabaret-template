@@ -45,6 +45,12 @@ var _max_history_size: int = 1000
 var _enable_history: bool = true
 var _debug_overlay: CanvasLayer = null
 
+# Performance tracking (T414)
+var _perf_dispatch_count: int = 0
+var _perf_total_dispatch_time_us: int = 0  # microseconds
+var _perf_signal_emit_count: int = 0
+var _perf_last_dispatch_time_us: int = 0
+
 func _ready() -> void:
 	add_to_group("state_store")
 	_initialize_settings()
@@ -72,6 +78,7 @@ func _physics_process(_delta: float) -> void:
 	if _signal_batcher != null:
 		_signal_batcher.flush(func(slice_name: StringName, slice_state: Dictionary) -> void:
 			slice_updated.emit(slice_name, slice_state)
+			_perf_signal_emit_count += 1  # Track signal emissions
 		)
 
 ## Handle input for debug overlay toggle (F3 key)
@@ -147,6 +154,9 @@ func _initialize_slices() -> void:
 
 ## Dispatch an action to update state
 func dispatch(action: Dictionary) -> void:
+	# Performance tracking start
+	var perf_start: int = Time.get_ticks_usec()
+	
 	# Validate action using ActionRegistry
 	if not ActionRegistry.validate_action(action):
 		var error_msg: String = "Action validation failed"
@@ -175,6 +185,12 @@ func dispatch(action: Dictionary) -> void:
 
 	# Emit unbatched signal
 	action_dispatched.emit(action_copy)
+	
+	# Performance tracking end
+	var perf_end: int = Time.get_ticks_usec()
+	_perf_last_dispatch_time_us = perf_end - perf_start
+	_perf_total_dispatch_time_us += _perf_last_dispatch_time_us
+	_perf_dispatch_count += 1
 
 ## Apply reducers to update state based on action
 ## State updates are IMMEDIATE (synchronous), signal emissions are batched (per-frame)
@@ -487,3 +503,31 @@ func _restore_from_handoff() -> void:
 			
 			# Clear the handoff state after restoring
 			StateHandoff.clear_slice(slice_name)
+
+## Get performance metrics (T414)
+##
+## Returns dictionary with:
+##   - dispatch_count: Total number of actions dispatched
+##   - avg_dispatch_time_ms: Average dispatch time in milliseconds
+##   - last_dispatch_time_ms: Last dispatch time in milliseconds
+##   - signal_emit_count: Total number of signals emitted
+func get_performance_metrics() -> Dictionary:
+	var avg_time_ms: float = 0.0
+	if _perf_dispatch_count > 0:
+		avg_time_ms = (_perf_total_dispatch_time_us / _perf_dispatch_count) / 1000.0
+	
+	var last_time_ms: float = _perf_last_dispatch_time_us / 1000.0
+	
+	return {
+		"dispatch_count": _perf_dispatch_count,
+		"avg_dispatch_time_ms": avg_time_ms,
+		"last_dispatch_time_ms": last_time_ms,
+		"signal_emit_count": _perf_signal_emit_count
+	}
+
+## Reset performance metrics (useful for profiling specific sections)
+func reset_performance_metrics() -> void:
+	_perf_dispatch_count = 0
+	_perf_total_dispatch_time_us = 0
+	_perf_signal_emit_count = 0
+	_perf_last_dispatch_time_us = 0

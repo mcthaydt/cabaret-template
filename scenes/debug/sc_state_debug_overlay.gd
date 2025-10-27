@@ -13,6 +13,7 @@ class_name SC_StateDebugOverlay
 @onready var state_label: Label = %StateLabel
 @onready var history_list: ItemList = %HistoryList
 @onready var detail_label: RichTextLabel = %DetailLabel
+@onready var perf_label: Label = %PerfLabel
 
 var _store: M_StateStore
 var _history_entries: Array = []
@@ -45,6 +46,9 @@ func _exit_tree() -> void:
 func _process(_delta: float) -> void:
 	# Update state display every frame
 	_update_state_display()
+	
+	# Update performance metrics display (T414)
+	_update_performance_display()
 
 func _update_state_display() -> void:
 	if not _store or not is_instance_valid(_store):
@@ -87,3 +91,18 @@ func _display_action_detail(action: Dictionary) -> void:
 	detail_text += "[b]Payload:[/b] %s\n" % JSON.stringify(action.get("payload", {}), "\t", false)
 	
 	detail_label.text = detail_text
+
+## T414: Update performance metrics display
+func _update_performance_display() -> void:
+	if not perf_label or not _store or not is_instance_valid(_store):
+		return
+	
+	var metrics: Dictionary = _store.get_performance_metrics()
+	
+	var perf_text: String = "=== PERFORMANCE METRICS ===\n"
+	perf_text += "Dispatches: %d\n" % metrics.get("dispatch_count", 0)
+	perf_text += "Avg Time: %.6f ms\n" % metrics.get("avg_dispatch_time_ms", 0.0)
+	perf_text += "Last Time: %.6f ms\n" % metrics.get("last_dispatch_time_ms", 0.0)
+	perf_text += "Signals: %d" % metrics.get("signal_emit_count", 0)
+	
+	perf_label.text = perf_text

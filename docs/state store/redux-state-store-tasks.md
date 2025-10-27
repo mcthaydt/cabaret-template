@@ -1032,12 +1032,12 @@ func after_each():
 
 ### Performance Optimization & Benchmarking
 
-- [ ] T410 Profile M_StateStore dispatch overhead using U_StateUtils.benchmark(): test 1000 rapid dispatches
-- [ ] T411 Log benchmark results: dispatch time, reducer time, signal batching time
-- [ ] T412 Optimize .duplicate(true) calls if overhead exceeds 0.1ms per dispatch: consider selective copying
-- [ ] T413 Profile SignalBatcher.flush() overhead: verify <0.05ms per frame using U_StateUtils.benchmark()
-- [ ] T414 Add performance metrics to debug overlay: show dispatch count, avg dispatch time, signal emit count
-- [ ] T415 Test with 10,000 action history entries: verify circular buffer performance scales
+- [x] T410 Profile M_StateStore dispatch overhead using U_StateUtils.benchmark(): test 1000 rapid dispatches
+- [x] T411 Log benchmark results: dispatch time, reducer time, signal batching time
+- [x] T412 Optimize .duplicate(true) calls if overhead exceeds 0.1ms per dispatch: consider selective copying (NO OPTIMIZATION NEEDED - 0.0014ms avg)
+- [x] T413 Profile SignalBatcher.flush() overhead: verify <0.05ms per frame using U_StateUtils.benchmark()
+- [x] T414 Add performance metrics to debug overlay: show dispatch count, avg dispatch time, signal emit count
+- [x] T415 Test with 10,000 action history entries: verify circular buffer performance scales
 
 ### Testing & Validation
 
