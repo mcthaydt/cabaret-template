@@ -47,7 +47,7 @@ func _exit_tree() -> void:
 	if _store and _store.slice_updated.is_connected(_on_slice_updated):
 		_store.slice_updated.disconnect(_on_slice_updated)
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not _store:
 		print("[PAUSE_SYSTEM] ERROR: No store reference!")
 		return
