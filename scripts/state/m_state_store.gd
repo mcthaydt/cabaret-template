@@ -108,10 +108,6 @@ func dispatch(action: Dictionary) -> void:
 		validation_failed.emit(action, error_msg)
 		return
 
-	# Log action in debug mode
-	if OS.is_debug_build() and settings.enable_debug_logging:
-		print("[STATE] Action dispatched: ", action.get("type"))
-
 	# Process action through reducers to update state
 	_apply_reducers(action)
 
