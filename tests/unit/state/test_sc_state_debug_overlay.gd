@@ -51,7 +51,7 @@ func test_debug_overlay_displays_current_state():
 	await get_tree().process_frame
 	
 	# Dispatch action to change state
-	store.dispatch({"type": "gameplay/update_health", "payload": {"health": 75}})
+	store.dispatch(U_GameplayActions.pause_game())
 	await get_tree().process_frame
 	
 	# Wait for overlay to process and update display
@@ -76,11 +76,11 @@ func test_debug_overlay_displays_action_history():
 	await get_tree().process_frame
 	
 	# Dispatch multiple actions
-	store.dispatch({"type": "gameplay/update_health", "payload": {"health": 90}})
+	store.dispatch(U_GameplayActions.pause_game())
 	await get_tree().process_frame
-	store.dispatch({"type": "gameplay/update_health", "payload": {"health": 80}})
+	store.dispatch(U_GameplayActions.unpause_game())
 	await get_tree().process_frame
-	store.dispatch({"type": "gameplay/update_health", "payload": {"health": 70}})
+	store.dispatch(U_GameplayActions.pause_game())
 	await get_tree().process_frame
 	
 	# Get history list
@@ -91,13 +91,13 @@ func test_debug_overlay_displays_action_history():
 	assert_gte(history_list.item_count, 3, "History should contain at least 3 actions")
 	
 	# Verify action types are displayed
-	var found_set_health := false
+	var found_pause_action := false
 	for i in range(history_list.item_count):
 		var item_text := history_list.get_item_text(i)
-		if item_text.contains("update_health"):
-			found_set_health = true
+		if item_text.contains("pause"):
+			found_pause_action = true
 			break
-	assert_true(found_set_health, "History should display 'update_health' actions")
+	assert_true(found_pause_action, "History should display 'pause' actions")
 
 ## Test: Debug overlay toggles with input action
 func test_debug_overlay_toggles_with_input_action():

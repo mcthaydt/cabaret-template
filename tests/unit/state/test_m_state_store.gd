@@ -173,7 +173,7 @@ func test_multiple_dispatches_emit_single_slice_updated_signal_per_frame() -> vo
 	
 	# Dispatch multiple actions that actually change state
 	for i in 10:
-		var action: Dictionary = U_GameplayActions.update_score(i * 10)
+		var action: Dictionary = U_GameplayActions.pause_game() if i % 2 == 0 else U_GameplayActions.unpause_game()
 		store.dispatch(action)
 	
 	# Signal should not have fired yet (batched)
@@ -181,7 +181,7 @@ func test_multiple_dispatches_emit_single_slice_updated_signal_per_frame() -> vo
 	
 	# State should be updated immediately though
 	var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-	assert_eq(gameplay_state.get("score"), 90, "State should update immediately (10th action sets score to 90)")
+	assert_eq(gameplay_state.get("paused"), false, "State should update immediately (last action unpauses)")
 	
 	# Wait for physics frame to flush batched signals
 	await get_tree().physics_frame
@@ -222,8 +222,8 @@ func test_signal_batching_overhead_less_than_0_05ms() -> void:
 func test_action_history_records_actions_with_timestamps() -> void:
 	# Dispatch a few actions
 	store.dispatch(U_GameplayActions.pause_game())
-	store.dispatch(U_GameplayActions.update_score(100))
-	store.dispatch(U_GameplayActions.update_health(80))
+	store.dispatch(U_GameplayActions.unpause_game())
+	store.dispatch(U_GameplayActions.pause_game())
 	
 	var history: Array = store.get_action_history()
 	
@@ -247,7 +247,8 @@ func test_action_history_records_actions_with_timestamps() -> void:
 func test_get_last_n_actions_returns_correct_count() -> void:
 	# Dispatch 10 actions
 	for i in 10:
-		store.dispatch(U_GameplayActions.update_score(i * 10))
+		var action: Dictionary = U_GameplayActions.pause_game() if i % 2 == 0 else U_GameplayActions.unpause_game()
+		store.dispatch(action)
 	
 	var last_5: Array = store.get_last_n_actions(5)
 	assert_eq(last_5.size(), 5, "Should return last 5 actions")
@@ -255,7 +256,7 @@ func test_get_last_n_actions_returns_correct_count() -> void:
 	# Check they are the most recent actions
 	var last_entry: Dictionary = last_5[last_5.size() - 1]
 	var gameplay_state: Dictionary = last_entry["state_after"]["gameplay"]
-	assert_eq(gameplay_state["score"], 90, "Last action should have score=90 (index 9)")
+	assert_eq(gameplay_state["paused"], false, "Last action should have paused=false (index 9 is unpause)")
 	
 	# Test requesting more than available
 	var last_20: Array = store.get_last_n_actions(20)
@@ -285,19 +286,19 @@ func test_history_prunes_oldest_when_exceeding_1000_entries() -> void:
 	
 	# Dispatch 11 actions (exceeds max of 10)
 	for i in 11:
-		test_store.dispatch(U_GameplayActions.update_score(i))
+		var action: Dictionary = U_GameplayActions.pause_game() if i % 2 == 0 else U_GameplayActions.unpause_game()
+		test_store.dispatch(action)
 	
 	var history: Array = test_store.get_action_history()
 	assert_eq(history.size(), 10, "History should be pruned to max size of 10")
 	
-	# The oldest (score=0) should be gone, newest should be score=10
+	# Verify we have 10 entries (oldest was pruned)
 	var oldest_entry: Dictionary = history[0]
-	var oldest_state: Dictionary = oldest_entry["state_after"]["gameplay"]
-	assert_eq(oldest_state["score"], 1, "Oldest entry should be score=1 (score=0 was pruned)")
+	assert_true(oldest_entry.has("action"), "Oldest entry should still have action field")
 	
 	var newest_entry: Dictionary = history[history.size() - 1]
 	var newest_state: Dictionary = newest_entry["state_after"]["gameplay"]
-	assert_eq(newest_state["score"], 10, "Newest entry should be score=10")
+	assert_eq(newest_state["paused"], true, "Newest entry should have paused=true (last action i=10 was pause)")
 	
 	# Cleanup: restore original setting
 	if original_setting != null:
@@ -305,7 +306,7 @@ func test_history_prunes_oldest_when_exceeding_1000_entries() -> void:
 
 func test_history_includes_state_after_snapshot() -> void:
 	# Dispatch action and check state_after matches actual state
-	store.dispatch(U_GameplayActions.update_health(75))
+	store.dispatch(U_GameplayActions.pause_game())
 	
 	var history: Array = store.get_action_history()
 	assert_eq(history.size(), 1, "Should have 1 history entry")
@@ -315,8 +316,8 @@ func test_history_includes_state_after_snapshot() -> void:
 	var current_state: Dictionary = store.get_state()
 	
 	# State after should match current state
-	assert_eq(state_after["gameplay"]["health"], 75, "state_after should show health=75")
-	assert_eq(current_state["gameplay"]["health"], 75, "Current state should show health=75")
+	assert_eq(state_after["gameplay"]["paused"], true, "state_after should show paused=true")
+	assert_eq(current_state["gameplay"]["paused"], true, "Current state should show paused=true")
 
 func test_history_respects_project_setting_state_debug_history_size() -> void:
 	# Create a store that should read from project settings

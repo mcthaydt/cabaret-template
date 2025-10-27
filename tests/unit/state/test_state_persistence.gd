@@ -32,8 +32,7 @@ func after_each() -> void:
 
 func test_save_state_creates_valid_json_file() -> void:
 	# Dispatch some actions to create state
-	store.dispatch(U_GameplayActions.update_health(75))
-	store.dispatch(U_GameplayActions.update_score(250))
+	store.dispatch(U_GameplayActions.pause_game())
 	
 	# Save state
 	var save_result: Error = store.save_state(test_save_path)
@@ -56,30 +55,25 @@ func test_save_state_creates_valid_json_file() -> void:
 
 func test_load_state_restores_data_correctly() -> void:
 	# Set up initial state
-	store.dispatch(U_GameplayActions.update_health(80))
-	store.dispatch(U_GameplayActions.update_score(300))
-	store.dispatch(U_GameplayActions.set_level(5))
+	store.dispatch(U_GameplayActions.pause_game())
 	
 	# Save state
 	var save_result: Error = store.save_state(test_save_path)
 	assert_eq(save_result, OK, "Save should succeed")
 	
 	# Modify state
-	store.dispatch(U_GameplayActions.update_health(10))
-	store.dispatch(U_GameplayActions.update_score(0))
+	store.dispatch(U_GameplayActions.unpause_game())
 	
 	var before_load: Dictionary = store.get_slice(StringName("gameplay"))
-	assert_eq(before_load.get("health"), 10, "State should be modified before load")
+	assert_eq(before_load.get("paused"), false, "State should be modified before load")
 	
 	# Load saved state
 	var load_result: Error = store.load_state(test_save_path)
 	assert_eq(load_result, OK, "Load should succeed")
 	
-	# Verify state was restored (JSON loads numbers as floats, so cast to int)
+	# Verify state was restored
 	var after_load: Dictionary = store.get_slice(StringName("gameplay"))
-	assert_eq(int(after_load.get("health")), 80, "Health should be restored")
-	assert_eq(int(after_load.get("score")), 300, "Score should be restored")
-	assert_eq(int(after_load.get("level")), 5, "Level should be restored")
+	assert_eq(after_load.get("paused"), true, "Paused state should be restored")
 
 func test_transient_fields_excluded_from_save() -> void:
 	# Create a custom slice with transient fields

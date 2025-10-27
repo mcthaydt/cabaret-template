@@ -26,7 +26,8 @@ func test_dispatch_1000_actions_overhead() -> void:
 	# Profile 1000 rapid dispatches
 	var elapsed_ms: float = U_StateUtils.benchmark("1000 Rapid Dispatches", func() -> void:
 		for i in range(1000):
-			store.dispatch(U_GameplayActions.update_health(100 - i))
+			var action: Dictionary = U_GameplayActions.pause_game() if i % 2 == 0 else U_GameplayActions.unpause_game()
+			store.dispatch(action)
 	)
 	
 	# Calculate average per dispatch
@@ -60,7 +61,7 @@ func test_profile_dispatch_components() -> void:
 	for i in range(num_iterations):
 		var current_state: Dictionary = store.get_slice(StringName("gameplay"))
 		var start: int = Time.get_ticks_usec()
-		var _new_state: Dictionary = GameplayReducer.reduce(current_state, U_GameplayActions.update_health(50))
+		var _new_state: Dictionary = GameplayReducer.reduce(current_state, U_GameplayActions.pause_game())
 		var end: int = Time.get_ticks_usec()
 		reducer_times.append((end - start) / 1000.0)
 	
@@ -69,7 +70,8 @@ func test_profile_dispatch_components() -> void:
 	# 3. Measure signal batching overhead
 	# Dispatch multiple actions, then measure flush time
 	for i in range(10):
-		store.dispatch(U_GameplayActions.update_score(i))
+		var action: Dictionary = U_GameplayActions.pause_game() if i % 2 == 0 else U_GameplayActions.unpause_game()
+		store.dispatch(action)
 	
 	var flush_time: float = U_StateUtils.benchmark("Signal Batch Flush", func() -> void:
 		store._physics_process(0.016)  # Simulate one frame
@@ -137,8 +139,10 @@ func test_duplicate_overhead() -> void:
 func test_signal_batcher_flush_overhead() -> void:
 	# Dispatch many actions to create dirty slices
 	for i in range(100):
-		store.dispatch(U_GameplayActions.update_health(100 - i))
-		store.dispatch(U_GameplayActions.update_score(i * 10))
+		var action1: Dictionary = U_GameplayActions.pause_game()
+		var action2: Dictionary = U_GameplayActions.unpause_game()
+		store.dispatch(action1)
+		store.dispatch(action2)
 	
 	# Measure flush time
 	var flush_time: float = U_StateUtils.benchmark("SignalBatcher Flush (100 actions)", func() -> void:
@@ -168,7 +172,8 @@ func test_large_action_history_performance() -> void:
 	# Dispatch 10,000 actions
 	var elapsed_ms: float = U_StateUtils.benchmark("10000 Actions with History", func() -> void:
 		for i in range(10000):
-			large_store.dispatch(U_GameplayActions.update_health(i % 100))
+			var action: Dictionary = U_GameplayActions.pause_game() if i % 2 == 0 else U_GameplayActions.unpause_game()
+			large_store.dispatch(action)
 	)
 	
 	var avg_per_dispatch: float = elapsed_ms / 10000.0

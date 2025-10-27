@@ -14,9 +14,6 @@ class_name RS_GameplayInitialState
 
 # Core gameplay state (writable)
 @export var paused: bool = false
-@export var health: int = 100
-@export var score: int = 0
-@export var level: int = 1
 
 # Player input state (writable - single player)
 @export var move_input: Vector2 = Vector2.ZERO
@@ -47,9 +44,6 @@ func to_dictionary() -> Dictionary:
 	return {
 		# Core gameplay (writable)
 		"paused": paused,
-		"health": health,
-		"score": score,
-		"level": level,
 		# Player input (writable)
 		"move_input": move_input,
 		"look_input": look_input,
