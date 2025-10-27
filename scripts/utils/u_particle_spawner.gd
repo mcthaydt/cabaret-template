@@ -168,16 +168,18 @@ static func get_or_create_effects_container(tree: SceneTree) -> Node3D:
 	if containers.size() > 0:
 		return containers[0] as Node3D
 
+	# Check if we have a valid scene to add container to BEFORE creating it
+	var current_scene: Node = tree.current_scene
+	if current_scene == null:
+		# Don't create container if we have nowhere to add it
+		# This prevents orphaned nodes in test environments
+		return null
+
 	# Create new container
 	var container := Node3D.new()
 	container.name = "EffectsContainer"
 	container.add_to_group("effects_container")
 
 	# Add to current scene root
-	var current_scene: Node = tree.current_scene
-	if current_scene == null:
-		# Silently return null - this is expected in test environments
-		return null
-
 	current_scene.add_child(container)
 	return container

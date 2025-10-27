@@ -35,11 +35,11 @@ func before_each() -> void:
 	var initial_state := RS_GameplayInitialState.new()
 	store.gameplay_initial_state = initial_state
 	add_child(store)
+	autofree(store)  # Use autofree for proper cleanup
 	await get_tree().process_frame  # Deferred registration
 
 func after_each() -> void:
-	if store and is_instance_valid(store):
-		store.queue_free()
+	# Cleanup handled by autofree
 	store = null
 	StateStoreEventBus.reset()
 
@@ -157,12 +157,11 @@ func test_settings_defaults_when_null() -> void:
 	# This prevents the warning since we're intentionally testing the null case
 	store_no_settings.settings = null
 	add_child(store_no_settings)
+	autofree(store_no_settings)  # Use autofree for proper cleanup
 	await get_tree().process_frame
 
 	assert_not_null(store_no_settings.settings, "Should create default settings")
 	assert_eq(store_no_settings.settings.max_history_size, 1000, "Default history size should be 1000")
-	
-	store_no_settings.queue_free()
 
 ## Phase 1f: Signal Batching Tests
 
@@ -281,6 +280,7 @@ func test_history_prunes_oldest_when_exceeding_1000_entries() -> void:
 	test_store.settings.max_history_size = 10  # Small size for testing
 	test_store.gameplay_initial_state = RS_GameplayInitialState.new()
 	add_child(test_store)
+	autofree(test_store)  # Use autofree for proper cleanup
 	await get_tree().process_frame
 	
 	# Dispatch 11 actions (exceeds max of 10)
@@ -302,8 +302,6 @@ func test_history_prunes_oldest_when_exceeding_1000_entries() -> void:
 	# Cleanup: restore original setting
 	if original_setting != null:
 		ProjectSettings.set_setting("state/debug/history_size", original_setting)
-	
-	test_store.queue_free()
 
 func test_history_includes_state_after_snapshot() -> void:
 	# Dispatch action and check state_after matches actual state
@@ -335,6 +333,7 @@ func test_history_respects_project_setting_state_debug_history_size() -> void:
 	test_store.settings = null
 	test_store.gameplay_initial_state = RS_GameplayInitialState.new()
 	add_child(test_store)
+	autofree(test_store)  # Use autofree for proper cleanup
 	await get_tree().process_frame
 	
 	# The store should have read the project setting
@@ -345,5 +344,3 @@ func test_history_respects_project_setting_state_debug_history_size() -> void:
 		ProjectSettings.set_setting("state/debug/history_size", original_setting)
 	else:
 		ProjectSettings.clear("state/debug/history_size")
-	
-	test_store.queue_free()

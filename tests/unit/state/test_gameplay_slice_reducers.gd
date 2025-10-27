@@ -90,6 +90,7 @@ func test_initial_state_loads_from_resource() -> void:
 	store.settings = RS_StateStoreSettings.new()
 	
 	add_child(store)
+	autofree(store)  # Use autofree for proper cleanup
 	await get_tree().process_frame
 	
 	# Check that gameplay slice initialized with resource values
@@ -97,8 +98,6 @@ func test_initial_state_loads_from_resource() -> void:
 	assert_eq(gameplay_slice.get("health"), 75, "Health should match resource")
 	assert_eq(gameplay_slice.get("score"), 500, "Score should match resource")
 	assert_eq(gameplay_slice.get("paused"), false, "Paused should match resource")
-	
-	store.queue_free()
 
 ## Phase 1d: New reducer tests
 

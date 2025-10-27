@@ -109,11 +109,10 @@ func test_initial_state_loads_from_resource() -> void:
 	store.settings = RS_StateStoreSettings.new()
 	
 	add_child(store)
+	autofree(store)  # Use autofree for proper cleanup
 	await get_tree().process_frame
 	
 	# Check that menu slice initialized with resource values
 	var menu_slice: Dictionary = store.get_slice(StringName("menu"))
 	assert_eq(menu_slice.get("active_screen"), "options", "Active screen should match resource")
 	assert_eq(menu_slice.get("pending_character"), "mage", "Pending character should match resource")
-	
-	store.queue_free()

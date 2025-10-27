@@ -12,6 +12,9 @@ const EVENT_LANDED := StringName("entity_landed")
 func before_each() -> void:
 	EVENT_BUS.reset()
 
+func after_each() -> void:
+	pass
+
 func _setup_scene() -> Dictionary:
 	await get_tree().process_frame
 	var scene := BASE_SCENE.instantiate()
@@ -95,7 +98,7 @@ func test_entity_jumped_event_notifies_subscribers() -> void:
 
 	# Manually trigger physics process to run systems (physics doesn't auto-run in tests)
 	manager._physics_process(1.0 / 60.0)
-
+	
 	check_sub.call()  # Unsubscribe checker
 
 	# Validate that requests were queued when event fired

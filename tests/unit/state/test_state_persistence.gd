@@ -13,6 +13,7 @@ func before_each() -> void:
 	store = M_StateStore.new()
 	store.gameplay_initial_state = RS_GameplayInitialState.new()
 	add_child(store)
+	autofree(store)  # Use autofree for proper cleanup
 	await get_tree().process_frame
 	
 	# Clean up any existing test save file
@@ -20,8 +21,7 @@ func before_each() -> void:
 		DirAccess.remove_absolute(test_save_path)
 
 func after_each() -> void:
-	if store and is_instance_valid(store):
-		store.queue_free()
+	# Cleanup handled by autofree
 	store = null
 	
 	# Clean up test save file
@@ -75,11 +75,11 @@ func test_load_state_restores_data_correctly() -> void:
 	var load_result: Error = store.load_state(test_save_path)
 	assert_eq(load_result, OK, "Load should succeed")
 	
-	# Verify state was restored
+	# Verify state was restored (JSON loads numbers as floats, so cast to int)
 	var after_load: Dictionary = store.get_slice(StringName("gameplay"))
-	assert_eq(after_load.get("health"), 80, "Health should be restored")
-	assert_eq(after_load.get("score"), 300, "Score should be restored")
-	assert_eq(after_load.get("level"), 5, "Level should be restored")
+	assert_eq(int(after_load.get("health")), 80, "Health should be restored")
+	assert_eq(int(after_load.get("score")), 300, "Score should be restored")
+	assert_eq(int(after_load.get("level")), 5, "Level should be restored")
 
 func test_transient_fields_excluded_from_save() -> void:
 	# Create a custom slice with transient fields
@@ -107,7 +107,7 @@ func test_transient_fields_excluded_from_save() -> void:
 	
 	assert_true(test_slice.has("persistent_value"), "Persistent field should be saved")
 	assert_false(test_slice.has("transient_cache"), "Transient field should be excluded")
-	assert_eq(test_slice.get("persistent_value"), 100, "Persistent value should match")
+	assert_eq(int(test_slice.get("persistent_value")), 100, "Persistent value should match")
 
 func test_godot_types_serialize_and_deserialize_correctly() -> void:
 	# Create a test slice with various Godot types
@@ -135,6 +135,7 @@ func test_godot_types_serialize_and_deserialize_correctly() -> void:
 	new_store.gameplay_initial_state = RS_GameplayInitialState.new()
 	new_store.settings = RS_StateStoreSettings.new()  # Prevent warning
 	add_child(new_store)
+	autofree(new_store)  # Use autofree for proper cleanup
 	await get_tree().process_frame
 	
 	# Register same slice structure in new store
@@ -169,17 +170,15 @@ func test_godot_types_serialize_and_deserialize_correctly() -> void:
 		assert_almost_eq((loaded_color as Color).r, 1.0, 0.001, "Color.r should match")
 		assert_almost_eq((loaded_color as Color).g, 0.5, 0.001, "Color.g should match")
 	
-	# Check primitive types
+	# Check primitive types (JSON loads numbers as floats, so cast int_field)
 	assert_eq(loaded_slice.get("string_field"), "test string", "String should match")
-	assert_eq(loaded_slice.get("int_field"), 42, "Int should match")
+	assert_eq(int(loaded_slice.get("int_field")), 42, "Int should match")
 	assert_almost_eq(loaded_slice.get("float_field", 0.0), 3.14, 0.001, "Float should match")
 	assert_eq(loaded_slice.get("bool_field"), true, "Bool should match")
 	
 	# Check nested dict
 	var nested: Dictionary = loaded_slice.get("nested_dict", {})
 	assert_eq(nested.get("inner"), "value", "Nested dict should match")
-	
-	new_store.queue_free()
 
 func test_load_nonexistent_file_returns_error() -> void:
 	var result: Error = store.load_state("user://nonexistent_file.json")

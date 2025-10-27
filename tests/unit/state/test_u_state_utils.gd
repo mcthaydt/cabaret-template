@@ -8,12 +8,12 @@ var benchmark_ran: bool = false
 func before_each() -> void:
 	store = M_StateStore.new()
 	add_child(store)
+	autofree(store)  # Use autofree for proper cleanup
 	await get_tree().process_frame
 	benchmark_ran = false
 
 func after_each() -> void:
-	if store and is_instance_valid(store):
-		store.queue_free()
+	# Cleanup handled by autofree
 	store = null
 
 func test_get_store_finds_store_in_tree() -> void:
@@ -23,7 +23,8 @@ func test_get_store_finds_store_in_tree() -> void:
 	assert_eq(found_store, store, "Should return the correct store")
 
 func test_get_store_errors_if_no_store() -> void:
-	store.queue_free()
+	# Remove store from group to simulate absence (don't queue_free as it's autofreed)
+	store.remove_from_group("state_store")
 	await get_tree().process_frame
 
 	var found_store: M_StateStore = U_StateUtils.get_store(self)

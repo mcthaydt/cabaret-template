@@ -18,6 +18,9 @@ var _store: M_StateStore
 var _history_entries: Array = []
 
 func _ready() -> void:
+	# Add to group for test detection
+	add_to_group("state_debug_overlay")
+	
 	# Wait for scene tree to be fully ready
 	await get_tree().process_frame
 	
