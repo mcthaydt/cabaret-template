@@ -88,12 +88,6 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 	if new_paused != _is_paused:
 		_is_paused = new_paused
 		pause_state_changed.emit(_is_paused)
-		
-		# Log pause state change
-		if _is_paused:
-			print("[PAUSE] Game paused")
-		else:
-			print("[PAUSE] Game unpaused")
 
 ## Check if game is currently paused (for other systems)
 func is_paused() -> bool:

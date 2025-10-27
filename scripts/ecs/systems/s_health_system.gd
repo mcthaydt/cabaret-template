@@ -43,8 +43,6 @@ func _ready() -> void:
 	# Read initial health state
 	var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
 	_is_alive = GameplaySelectors.get_is_player_alive(gameplay_state)
-	
-	print("[HEALTH] Health system initialized - damage every %d seconds" % DAMAGE_INTERVAL)
 
 func _exit_tree() -> void:
 	# Clean up subscriptions
@@ -63,9 +61,6 @@ func _on_damage_timer_timeout() -> void:
 	
 	# Apply damage
 	_store.dispatch(U_GameplayActions.take_damage(DAMAGE_AMOUNT))
-	
-	var new_health: int = GameplaySelectors.get_current_health(gameplay_state)
-	print("[HEALTH] Damage applied - current health: %d" % new_health)
 
 ## Handle state store slice updates
 func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
@@ -81,9 +76,6 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 
 ## Handle player death
 func _on_player_died(gameplay_state: Dictionary) -> void:
-	var health: int = GameplaySelectors.get_current_health(gameplay_state)
-	print("[HEALTH] Player died! Final health: %d" % health)
-	
 	# Stop damage timer
 	if _damage_timer:
 		_damage_timer.stop()
