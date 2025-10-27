@@ -2,11 +2,13 @@
 extends Node
 class_name M_CursorManager
 
-## Manages cursor visibility and lock state with ESC key toggle support
+## Manages cursor visibility and lock state with "pause" input action toggle
 ##
 ## This manager provides a simple interface for controlling the mouse cursor's
-## visibility and lock state. Press ESC to toggle between locked/hidden (gameplay)
-## and unlocked/visible (menu) modes.
+## visibility and lock state. Press the "pause" action to toggle between 
+## locked/hidden (gameplay) and unlocked/visible (menu) modes.
+##
+## Requires "pause" input action in Project Settings → Input Map.
 
 signal cursor_state_changed(locked: bool, visible: bool)
 
@@ -25,11 +27,10 @@ func _exit_tree() -> void:
 		remove_from_group("cursor_manager")
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey:
-		var key_event := event as InputEventKey
-		if key_event.pressed and key_event.keycode == KEY_ESCAPE:
-			toggle_cursor()
-			get_viewport().set_input_as_handled()
+	# Check for "pause" input action to toggle cursor
+	if event.is_action_pressed("pause"):
+		toggle_cursor()
+		get_viewport().set_input_as_handled()
 
 ## Toggles cursor between locked/hidden and unlocked/visible states
 func toggle_cursor() -> void:
