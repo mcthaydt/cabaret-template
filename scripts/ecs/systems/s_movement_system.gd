@@ -6,35 +6,13 @@ const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 
-var _store: M_StateStore = null
-var _is_paused: bool = false
-
-func _ready() -> void:
-	super._ready()
-	
-	# Get store reference and subscribe to pause state changes
-	await get_tree().process_frame
-	_store = U_StateUtils.get_store(self)
-	if _store:
-		_store.slice_updated.connect(_on_slice_updated)
-		
-		# Initialize pause state
-		var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
-		_is_paused = GameplaySelectors.get_is_paused(gameplay_state)
-
-func _exit_tree() -> void:
-	if _store and _store.slice_updated.is_connected(_on_slice_updated):
-		_store.slice_updated.disconnect(_on_slice_updated)
-	super._exit_tree()
-
-func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
-	if slice_name == StringName("gameplay"):
-		_is_paused = GameplaySelectors.get_is_paused(slice_state)
-
 func process_tick(delta: float) -> void:
-	# Skip processing if game is paused (cached state, no lookups!)
-	if _is_paused:
-		return
+	# Skip processing if game is paused
+	var store: M_StateStore = U_StateUtils.get_store(self)
+	if store:
+		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
+		if GameplaySelectors.get_is_paused(gameplay_state):
+			return
 	
 	var manager := get_manager()
 	if manager == null:
