@@ -1,4 +1,5 @@
 @icon("res://resources/editor_icons/manager.svg")
+
 extends Node
 class_name M_StateStore
 
@@ -36,6 +37,7 @@ var _signal_batcher: SignalBatcher = null
 var _action_history: Array = []
 var _max_history_size: int = 1000
 var _enable_history: bool = true
+var _debug_overlay: CanvasLayer = null
 
 func _ready() -> void:
 	add_to_group("state_store")
@@ -65,6 +67,30 @@ func _physics_process(_delta: float) -> void:
 		_signal_batcher.flush(func(slice_name: StringName, slice_state: Dictionary) -> void:
 			slice_updated.emit(slice_name, slice_state)
 		)
+
+## Handle input for debug overlay toggle (F3 key)
+##
+## Debug overlay spawns on F3 key press, controlled by M_StateStore._input()
+## for easy access to store reference without needing global state.
+func _input(event: InputEvent) -> void:
+	# Check if debug overlay is enabled via project settings
+	const PROJECT_SETTING_ENABLE_DEBUG_OVERLAY := "state/debug/enable_debug_overlay"
+	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_DEBUG_OVERLAY):
+		if not ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_DEBUG_OVERLAY, true):
+			return  # Debug overlay disabled in project settings
+	
+	# Toggle debug overlay with F3 key
+	if Input.is_action_just_pressed("toggle_debug_overlay"):
+		if _debug_overlay == null or not is_instance_valid(_debug_overlay):
+			# Spawn debug overlay
+			var overlay_scene := load("res://scenes/debug/sc_state_debug_overlay.tscn")
+			if overlay_scene:
+				_debug_overlay = overlay_scene.instantiate()
+				add_child(_debug_overlay)
+		else:
+			# Despawn debug overlay
+			_debug_overlay.queue_free()
+			_debug_overlay = null
 
 func _initialize_settings() -> void:
 	if settings == null:
