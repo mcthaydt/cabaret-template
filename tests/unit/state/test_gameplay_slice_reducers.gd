@@ -77,8 +77,6 @@ func test_pause_unpause_toggle_sequence() -> void:
 
 ## Test initial state loads from resource
 func test_initial_state_loads_from_resource() -> void:
-	gut.p("Expect warning: No settings assigned, using defaults")
-	
 	var store := M_StateStore.new()
 	
 	# Create and assign initial state
@@ -87,6 +85,9 @@ func test_initial_state_loads_from_resource() -> void:
 	initial_state.score = 500
 	initial_state.paused = false
 	store.gameplay_initial_state = initial_state
+	
+	# Explicitly assign settings to prevent warning
+	store.settings = RS_StateStoreSettings.new()
 	
 	add_child(store)
 	await get_tree().process_frame

@@ -68,7 +68,6 @@ func _physics_process(_delta: float) -> void:
 
 func _initialize_settings() -> void:
 	if settings == null:
-		push_warning("M_StateStore: No settings assigned, using defaults")
 		settings = RS_StateStoreSettings.new()
 
 	# Load from project settings if available

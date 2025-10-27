@@ -110,8 +110,6 @@ func test_transient_fields_excluded_from_save() -> void:
 	assert_eq(test_slice.get("persistent_value"), 100, "Persistent value should match")
 
 func test_godot_types_serialize_and_deserialize_correctly() -> void:
-	gut.p("Expect warning: No settings assigned, using defaults")
-	
 	# Create a test slice with various Godot types
 	var config := StateSliceConfig.new(StringName("types_slice"))
 	config.initial_state = {
@@ -135,6 +133,7 @@ func test_godot_types_serialize_and_deserialize_correctly() -> void:
 	# Create new store and load
 	var new_store := M_StateStore.new()
 	new_store.gameplay_initial_state = RS_GameplayInitialState.new()
+	new_store.settings = RS_StateStoreSettings.new()  # Prevent warning
 	add_child(new_store)
 	await get_tree().process_frame
 	

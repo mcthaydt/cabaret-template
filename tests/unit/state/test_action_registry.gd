@@ -31,10 +31,11 @@ func test_validate_action_accepts_registered_type() -> void:
 	assert_true(ActionRegistry.validate_action(action), "Valid action should pass validation")
 
 func test_validate_action_rejects_unregistered_type() -> void:
-	gut.p("Expect error: Unregistered action type")
 	var action: Dictionary = {"type": StringName("test/unregistered"), "payload": null}
 	
-	assert_false(ActionRegistry.validate_action(action), "Unregistered action should fail validation")
+	var result := ActionRegistry.validate_action(action)
+	assert_push_error("Unregistered action type")
+	assert_false(result, "Unregistered action should fail validation")
 
 func test_validate_action_rejects_missing_type() -> void:
 	var action: Dictionary = {"payload": "no type"}
