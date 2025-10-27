@@ -18,7 +18,7 @@
   ```
   Systems that get the store in `process_tick()` don't need this await since process_tick runs after all _ready() calls complete.
 
-- **Input action conflicts**: Multiple systems can consume the same input. M_CursorManager uses ESC to toggle cursor lock/visibility and calls `set_input_as_handled()`, preventing other systems from receiving the ESC key. Design systems to use unique keys or check input priority. In the PoC, pause was changed from ESC to P key to avoid conflict with cursor manager.
+- **Input action conflicts**: Multiple systems can consume the same input. Be mindful of `set_input_as_handled()` calls that prevent other systems from receiving input. In the PoC, S_PauseSystem handles ESC before M_CursorManager (via `_unhandled_input` priority) and also manages cursor state directly, so pausing unlocks cursor and unpausing locks it.
 
 ## GUT Testing Pitfalls
 
