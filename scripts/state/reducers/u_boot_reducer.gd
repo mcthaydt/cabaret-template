@@ -1,5 +1,5 @@
 extends RefCounted
-class_name BootReducer
+class_name U_BootReducer
 
 ## Reducer for boot state slice
 ##

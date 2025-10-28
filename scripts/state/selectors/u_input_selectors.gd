@@ -1,5 +1,5 @@
 extends RefCounted
-class_name InputSelectors
+class_name U_InputSelectors
 
 ## Input state selectors for gameplay slice
 ##

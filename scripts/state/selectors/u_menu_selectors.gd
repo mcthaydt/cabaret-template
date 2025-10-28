@@ -1,5 +1,5 @@
 extends RefCounted
-class_name MenuSelectors
+class_name U_MenuSelectors
 
 ## Selectors for menu state slice
 ##

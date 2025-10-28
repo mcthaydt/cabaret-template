@@ -1,5 +1,5 @@
 extends RefCounted
-class_name SerializationHelper
+class_name U_SerializationHelper
 
 ## Helper for serializing Godot types to/from JSON
 ##

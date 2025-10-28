@@ -52,7 +52,7 @@ func test_store_adds_to_state_store_group() -> void:
 
 func test_dispatch_notifies_subscribers() -> void:
 	# Register test action
-	ActionRegistry.register_action(StringName("test/action"))
+	U_ActionRegistry.register_action(StringName("test/action"))
 
 	var callback := func(action: Dictionary, state: Dictionary) -> void:
 		callback_called = true
@@ -73,7 +73,7 @@ func test_dispatch_notifies_subscribers() -> void:
 
 func test_dispatch_emits_action_dispatched_signal() -> void:
 	# Register test action
-	ActionRegistry.register_action(StringName("test/signal"))
+	U_ActionRegistry.register_action(StringName("test/signal"))
 
 	store.action_dispatched.connect(func(action: Dictionary) -> void:
 		signal_emitted = true
@@ -103,8 +103,8 @@ func test_dispatch_rejects_action_without_type() -> void:
 
 func test_unsubscribe_removes_callback() -> void:
 	# Register test actions
-	ActionRegistry.register_action(StringName("test1"))
-	ActionRegistry.register_action(StringName("test2"))
+	U_ActionRegistry.register_action(StringName("test1"))
+	U_ActionRegistry.register_action(StringName("test2"))
 
 	var callback := func(_action: Dictionary, _state: Dictionary) -> void:
 		callback_count += 1
@@ -193,7 +193,7 @@ func test_multiple_dispatches_emit_single_slice_updated_signal_per_frame() -> vo
 
 func test_state_reads_immediately_after_dispatch_show_new_state() -> void:
 	# State updates should be synchronous, not batched
-	ActionRegistry.register_action(StringName("test/immediate"))
+	U_ActionRegistry.register_action(StringName("test/immediate"))
 	
 	# Dispatch action that would update state
 	var action: Dictionary = {"type": U_GameplayActions.ACTION_PAUSE_GAME, "payload": null}
@@ -204,7 +204,7 @@ func test_state_reads_immediately_after_dispatch_show_new_state() -> void:
 	assert_true(gameplay_state.get("paused", false), "State should update immediately, before signal batching")
 
 func test_signal_batching_overhead_less_than_0_05ms() -> void:
-	ActionRegistry.register_action(StringName("test/perf"))
+	U_ActionRegistry.register_action(StringName("test/perf"))
 	
 	var elapsed: float = U_StateUtils.benchmark("signal_batching", func() -> void:
 		# Dispatch 100 actions

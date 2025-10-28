@@ -13,7 +13,7 @@ func process_tick(delta: float) -> void:
 	var store: M_StateStore = U_StateUtils.get_store(self)
 	if store:
 		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-		if GameplaySelectors.get_is_paused(gameplay_state):
+		if U_GameplaySelectors.get_is_paused(gameplay_state):
 			return
 	
 	var manager := get_manager()
@@ -56,7 +56,7 @@ func process_tick(delta: float) -> void:
 		# Phase 16: Apply gravity_scale from state (for low-gravity zones, etc.)
 		var gravity_scale: float = 1.0
 		if store:
-			gravity_scale = PhysicsSelectors.get_gravity_scale(store.get_state())
+			gravity_scale = U_PhysicsSelectors.get_gravity_scale(store.get_state())
 		
 		var velocity := body.velocity
 		velocity.y -= gravity * gravity_scale * delta

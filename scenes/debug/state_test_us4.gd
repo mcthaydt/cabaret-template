@@ -65,10 +65,10 @@ func _on_menu_slice_updated(slice_name: StringName, _slice_state: Dictionary) ->
 func _update_display() -> void:
 	var menu_state: Dictionary = store.get_slice(StringName("menu"))
 	
-	var active_screen: String = MenuSelectors.get_active_screen(menu_state)
-	var pending_char: String = MenuSelectors.get_pending_character(menu_state)
-	var pending_diff: String = MenuSelectors.get_pending_difficulty(menu_state)
-	var is_config_complete: bool = MenuSelectors.is_game_config_complete(menu_state)
+	var active_screen: String = U_MenuSelectors.get_active_screen(menu_state)
+	var pending_char: String = U_MenuSelectors.get_pending_character(menu_state)
+	var pending_diff: String = U_MenuSelectors.get_pending_difficulty(menu_state)
+	var is_config_complete: bool = U_MenuSelectors.is_game_config_complete(menu_state)
 	
 	var display_text := "Menu State:\n\n"
 	display_text += "Active Screen: %s\n\n" % active_screen

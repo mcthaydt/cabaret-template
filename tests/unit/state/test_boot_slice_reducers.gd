@@ -3,10 +3,10 @@ extends GutTest
 ## Tests for BootReducer pure functions
 
 const StateStoreEventBus := preload("res://scripts/state/state_event_bus.gd")
-const StateHandoff := preload("res://scripts/state/state_handoff.gd")
+const StateHandoff := preload("res://scripts/state/u_state_handoff.gd")
 const RS_BootInitialState := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
 const U_BootActions := preload("res://scripts/state/u_boot_actions.gd")
-const BootReducer := preload("res://scripts/state/reducers/boot_reducer.gd")
+const BootReducer := preload("res://scripts/state/reducers/u_boot_reducer.gd")
 
 func before_each() -> void:
 	StateStoreEventBus.reset()

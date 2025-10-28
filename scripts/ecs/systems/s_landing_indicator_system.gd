@@ -12,7 +12,7 @@ func process_tick(_delta: float) -> void:
 	var store: M_StateStore = U_StateUtils.get_store(self)
 	var should_show: bool = true
 	if store:
-		should_show = VisualSelectors.should_show_landing_indicator(store.get_state())
+		should_show = U_VisualSelectors.should_show_landing_indicator(store.get_state())
 	
 	var manager := get_manager()
 	if manager == null:

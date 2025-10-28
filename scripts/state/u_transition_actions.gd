@@ -12,9 +12,9 @@ const ACTION_TRANSITION_TO_BOOT := StringName("transition/to_boot")
 
 ## Static initializer - automatically registers actions
 static func _static_init() -> void:
-	ActionRegistry.register_action(ACTION_TRANSITION_TO_MENU)
-	ActionRegistry.register_action(ACTION_TRANSITION_TO_GAMEPLAY)
-	ActionRegistry.register_action(ACTION_TRANSITION_TO_BOOT)
+	U_ActionRegistry.register_action(ACTION_TRANSITION_TO_MENU)
+	U_ActionRegistry.register_action(ACTION_TRANSITION_TO_GAMEPLAY)
+	U_ActionRegistry.register_action(ACTION_TRANSITION_TO_BOOT)
 
 ## Transition to menu (from boot or gameplay)
 static func transition_to_menu() -> Dictionary:

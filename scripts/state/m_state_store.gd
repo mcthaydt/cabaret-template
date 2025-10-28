@@ -14,11 +14,11 @@ class_name M_StateStore
 ##   var state: Dictionary = store.get_state()
 
 const SignalBatcher = preload("res://scripts/state/signal_batcher.gd")
-const SerializationHelper = preload("res://scripts/state/serialization_helper.gd")
-const StateHandoff = preload("res://scripts/state/state_handoff.gd")
-const BootReducer = preload("res://scripts/state/reducers/boot_reducer.gd")
-const MenuReducer = preload("res://scripts/state/reducers/menu_reducer.gd")
-const GameplayReducer = preload("res://scripts/state/reducers/gameplay_reducer.gd")
+const SerializationHelper = preload("res://scripts/state/u_serialization_helper.gd")
+const StateHandoff = preload("res://scripts/state/u_state_handoff.gd")
+const BootReducer = preload("res://scripts/state/reducers/u_boot_reducer.gd")
+const MenuReducer = preload("res://scripts/state/reducers/u_menu_reducer.gd")
+const GameplayReducer = preload("res://scripts/state/reducers/u_gameplay_reducer.gd")
 const RS_BootInitialState = preload("res://scripts/state/resources/rs_boot_initial_state.gd")
 const RS_MenuInitialState = preload("res://scripts/state/resources/rs_menu_initial_state.gd")
 
@@ -159,11 +159,11 @@ func dispatch(action: Dictionary) -> void:
 	var perf_start: int = Time.get_ticks_usec()
 	
 	# Validate action using ActionRegistry
-	if not ActionRegistry.validate_action(action):
+	if not U_ActionRegistry.validate_action(action):
 		var error_msg: String = "Action validation failed"
 		if not action.has("type"):
 			error_msg = "Action missing 'type' field"
-		elif not ActionRegistry.is_registered(action.get("type")):
+		elif not U_ActionRegistry.is_registered(action.get("type")):
 			error_msg = "Unregistered action type: %s" % action.get("type")
 		
 		validation_failed.emit(action, error_msg)

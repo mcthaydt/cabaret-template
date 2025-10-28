@@ -3,10 +3,10 @@ extends GutTest
 ## Tests for MenuReducer pure functions
 
 const StateStoreEventBus := preload("res://scripts/state/state_event_bus.gd")
-const StateHandoff := preload("res://scripts/state/state_handoff.gd")
+const StateHandoff := preload("res://scripts/state/u_state_handoff.gd")
 const RS_MenuInitialState := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
 const U_MenuActions := preload("res://scripts/state/u_menu_actions.gd")
-const MenuReducer := preload("res://scripts/state/reducers/menu_reducer.gd")
+const MenuReducer := preload("res://scripts/state/reducers/u_menu_reducer.gd")
 
 func before_each() -> void:
 	StateStoreEventBus.reset()

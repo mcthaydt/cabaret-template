@@ -12,9 +12,9 @@ const ACTION_UPDATE_JUMP_STATE := StringName("gameplay/UPDATE_JUMP_STATE")
 
 ## Static initializer - register actions
 static func _static_init() -> void:
-	ActionRegistry.register_action(ACTION_UPDATE_MOVE_INPUT)
-	ActionRegistry.register_action(ACTION_UPDATE_LOOK_INPUT)
-	ActionRegistry.register_action(ACTION_UPDATE_JUMP_STATE)
+	U_ActionRegistry.register_action(ACTION_UPDATE_MOVE_INPUT)
+	U_ActionRegistry.register_action(ACTION_UPDATE_LOOK_INPUT)
+	U_ActionRegistry.register_action(ACTION_UPDATE_JUMP_STATE)
 
 ## Update move input (WASD or analog stick)
 static func update_move_input(move_input: Vector2) -> Dictionary:

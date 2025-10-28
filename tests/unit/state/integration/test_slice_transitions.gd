@@ -3,7 +3,7 @@ extends GutTest
 ## Integration tests for state slice transitions
 
 const StateStoreEventBus := preload("res://scripts/state/state_event_bus.gd")
-const StateHandoff := preload("res://scripts/state/state_handoff.gd")
+const StateHandoff := preload("res://scripts/state/u_state_handoff.gd")
 const U_TransitionActions := preload("res://scripts/state/u_transition_actions.gd")
 const U_BootActions := preload("res://scripts/state/u_boot_actions.gd")
 const U_MenuActions := preload("res://scripts/state/u_menu_actions.gd")

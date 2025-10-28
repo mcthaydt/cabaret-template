@@ -1,5 +1,5 @@
 extends RefCounted
-class_name ActionRegistry
+class_name U_ActionRegistry
 
 ## Static action type registry for validation
 ##
@@ -12,7 +12,7 @@ static var _registered_actions: Dictionary = {}
 ## Schema can define required payload fields for validation
 static func register_action(action_type: StringName, schema: Dictionary = {}) -> void:
 	if action_type == StringName():
-		push_error("ActionRegistry.register_action: action_type is empty")
+		push_error("U_ActionRegistry.register_action: action_type is empty")
 		return
 	
 	_registered_actions[action_type] = schema
@@ -28,16 +28,16 @@ static func is_registered(action_type: StringName) -> bool:
 ## Returns true if valid, false otherwise
 static func validate_action(action: Dictionary) -> bool:
 	if not action.has("type"):
-		push_error("ActionRegistry.validate_action: Action missing 'type' field")
+		push_error("U_ActionRegistry.validate_action: Action missing 'type' field")
 		return false
 	
 	var action_type: StringName = action.get("type")
 	if action_type == StringName():
-		push_error("ActionRegistry.validate_action: Action type is empty")
+		push_error("U_ActionRegistry.validate_action: Action type is empty")
 		return false
 	
 	if not is_registered(action_type):
-		push_error("ActionRegistry.validate_action: Unregistered action type: ", action_type)
+		push_error("U_ActionRegistry.validate_action: Unregistered action type: ", action_type)
 		return false
 	
 	# Optional: validate payload schema if defined

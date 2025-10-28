@@ -1,5 +1,5 @@
 extends RefCounted
-class_name GameplaySelectors
+class_name U_GameplaySelectors
 
 ## Gameplay state slice selectors
 ##

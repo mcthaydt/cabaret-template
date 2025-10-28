@@ -63,7 +63,7 @@ func test_pause_system_reads_pause_state_from_store() -> void:
 	await get_tree().process_frame
 	
 	# Verify pause system reflects the state
-	var is_paused: bool = GameplaySelectors.get_is_paused(store.get_slice(StringName("gameplay")))
+	var is_paused: bool = U_GameplaySelectors.get_is_paused(store.get_slice(StringName("gameplay")))
 	assert_true(is_paused, "Game should be paused")
 	assert_true(pause_system.is_paused(), "Pause system should reflect paused state")
 
@@ -85,7 +85,7 @@ func test_movement_disabled_when_paused() -> void:
 	
 	# Verify pause state is accessible for systems to check
 	var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-	var is_paused: bool = GameplaySelectors.get_is_paused(gameplay_state)
+	var is_paused: bool = U_GameplaySelectors.get_is_paused(gameplay_state)
 	assert_true(is_paused, "Gameplay state should indicate paused")
 	
 	# Movement/jump/input systems already check this state in their process_tick

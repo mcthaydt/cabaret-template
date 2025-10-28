@@ -34,7 +34,7 @@ func process_tick(_delta: float) -> void:
 	var store: M_StateStore = U_StateUtils.get_store(self)
 	if store:
 		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-		if GameplaySelectors.get_is_paused(gameplay_state):
+		if U_GameplaySelectors.get_is_paused(gameplay_state):
 			# Reset mouse delta when paused
 			_mouse_delta = Vector2.ZERO
 			return

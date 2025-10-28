@@ -13,10 +13,10 @@ const ACTION_LOAD_SAVE_FILES := StringName("menu/load_save_files")
 
 ## Static initializer - automatically registers actions
 static func _static_init() -> void:
-	ActionRegistry.register_action(ACTION_NAVIGATE_TO_SCREEN)
-	ActionRegistry.register_action(ACTION_SELECT_CHARACTER)
-	ActionRegistry.register_action(ACTION_SELECT_DIFFICULTY)
-	ActionRegistry.register_action(ACTION_LOAD_SAVE_FILES)
+	U_ActionRegistry.register_action(ACTION_NAVIGATE_TO_SCREEN)
+	U_ActionRegistry.register_action(ACTION_SELECT_CHARACTER)
+	U_ActionRegistry.register_action(ACTION_SELECT_DIFFICULTY)
+	U_ActionRegistry.register_action(ACTION_LOAD_SAVE_FILES)
 
 ## Navigate to a menu screen
 static func navigate_to_screen(screen_name: String) -> Dictionary:

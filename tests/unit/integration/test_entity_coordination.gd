@@ -54,7 +54,7 @@ func test_merge_entity_snapshot():
 	await wait_frames(1)
 	
 	var state = store.get_state()
-	var player = EntitySelectors.get_entity(state, "player")
+	var player = U_EntitySelectors.get_entity(state, "player")
 	assert_eq(player["position"], Vector3(10, 20, 30), "Position should be updated")
 	assert_eq(player["health"], 100, "Health should be preserved")
 	assert_eq(player["entity_type"], "player", "Entity type should be preserved")
@@ -76,7 +76,7 @@ func test_multiple_entities():
 	await wait_frames(1)
 	
 	var state = store.get_state()
-	var all_entities = EntitySelectors.get_all_entities(state)
+	var all_entities = U_EntitySelectors.get_all_entities(state)
 	assert_eq(all_entities.size(), 3, "Should have 3 entities")
 	assert_true(all_entities.has("player"), "Should have player")
 	assert_true(all_entities.has("enemy_1"), "Should have enemy_1")
@@ -96,13 +96,13 @@ func test_entity_selectors():
 	await wait_frames(1)
 	
 	var state = store.get_state()
-	assert_eq(EntitySelectors.get_entity_position(state, "player"), Vector3(1, 2, 3))
-	assert_eq(EntitySelectors.get_entity_velocity(state, "player"), Vector3(4, 5, 6))
-	assert_eq(EntitySelectors.get_entity_rotation(state, "player"), Vector3(0, 1.57, 0))
-	assert_true(EntitySelectors.is_entity_on_floor(state, "player"))
-	assert_true(EntitySelectors.is_entity_moving(state, "player"))
-	assert_eq(EntitySelectors.get_entity_type(state, "player"), "player")
-	assert_eq(EntitySelectors.get_entity_health(state, "player"), 100)
+	assert_eq(U_EntitySelectors.get_entity_position(state, "player"), Vector3(1, 2, 3))
+	assert_eq(U_EntitySelectors.get_entity_velocity(state, "player"), Vector3(4, 5, 6))
+	assert_eq(U_EntitySelectors.get_entity_rotation(state, "player"), Vector3(0, 1.57, 0))
+	assert_true(U_EntitySelectors.is_entity_on_floor(state, "player"))
+	assert_true(U_EntitySelectors.is_entity_moving(state, "player"))
+	assert_eq(U_EntitySelectors.get_entity_type(state, "player"), "player")
+	assert_eq(U_EntitySelectors.get_entity_health(state, "player"), 100)
 
 ## Test get entities by type
 func test_get_entities_by_type():
@@ -113,10 +113,10 @@ func test_get_entities_by_type():
 	await wait_frames(1)
 	
 	var state = store.get_state()
-	var enemies = EntitySelectors.get_entities_by_type(state, "enemy")
+	var enemies = U_EntitySelectors.get_entities_by_type(state, "enemy")
 	assert_eq(enemies.size(), 2, "Should have 2 enemies")
 	
-	var npcs = EntitySelectors.get_entities_by_type(state, "npc")
+	var npcs = U_EntitySelectors.get_entities_by_type(state, "npc")
 	assert_eq(npcs.size(), 1, "Should have 1 NPC")
 
 ## Test player convenience selectors
@@ -129,9 +129,9 @@ func test_player_convenience_selectors():
 	await wait_frames(1)
 	
 	var state = store.get_state()
-	assert_eq(EntitySelectors.get_player_entity_id(state), "player")
-	assert_eq(EntitySelectors.get_player_position(state), Vector3(5, 10, 15))
-	assert_eq(EntitySelectors.get_player_velocity(state), Vector3(1, 0, 1))
+	assert_eq(U_EntitySelectors.get_player_entity_id(state), "player")
+	assert_eq(U_EntitySelectors.get_player_position(state), Vector3(5, 10, 15))
+	assert_eq(U_EntitySelectors.get_player_velocity(state), Vector3(1, 0, 1))
 
 ## Test get entities within radius
 func test_get_entities_within_radius():
@@ -150,10 +150,10 @@ func test_get_entities_within_radius():
 	await wait_physics_frames(1)
 	
 	var state = store.get_state()
-	var nearby = EntitySelectors.get_entities_within_radius(state, Vector3.ZERO, 10.0)
+	var nearby = U_EntitySelectors.get_entities_within_radius(state, Vector3.ZERO, 10.0)
 	assert_eq(nearby.size(), 2, "Should find player + close enemy within 10 units")
 	
-	var very_close = EntitySelectors.get_entities_within_radius(state, Vector3.ZERO, 3.0)
+	var very_close = U_EntitySelectors.get_entities_within_radius(state, Vector3.ZERO, 3.0)
 	assert_eq(very_close.size(), 1, "Should only find player within 3 units")
 
 ## Test remove entity
@@ -165,13 +165,13 @@ func test_remove_entity():
 	await wait_frames(1)
 	
 	var state = store.get_state()
-	assert_true(EntitySelectors.get_all_entities(state).has("temp_entity"), "Entity should exist")
+	assert_true(U_EntitySelectors.get_all_entities(state).has("temp_entity"), "Entity should exist")
 	
 	store.dispatch(U_EntityActions.remove_entity("temp_entity"))
 	await wait_frames(1)
 	
 	state = store.get_state()
-	assert_false(EntitySelectors.get_all_entities(state).has("temp_entity"), "Entity should be removed")
+	assert_false(U_EntitySelectors.get_all_entities(state).has("temp_entity"), "Entity should be removed")
 
 ## Test entity physics convenience method
 func test_entity_physics_convenience():
@@ -187,7 +187,7 @@ func test_entity_physics_convenience():
 	await wait_physics_frames(1)
 	
 	var state = store.get_state()
-	var player = EntitySelectors.get_entity(state, "player")
+	var player = U_EntitySelectors.get_entity(state, "player")
 	assert_eq(player["position"], Vector3(1, 2, 3))
 	assert_eq(player["velocity"], Vector3(4, 5, 6))
 	assert_eq(player["rotation"], Vector3(0, 1.57, 0))

@@ -37,7 +37,7 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 
 ## Update UI labels from state
 func _update_display(gameplay_state: Dictionary) -> void:
-	var is_paused: bool = GameplaySelectors.get_is_paused(gameplay_state)
+	var is_paused: bool = U_GameplaySelectors.get_is_paused(gameplay_state)
 	
 	if is_paused:
 		pause_label.text = "[PAUSED]"

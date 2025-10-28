@@ -1,5 +1,5 @@
 extends RefCounted
-class_name StateHandoff
+class_name U_StateHandoff
 
 ## StateHandoff preserves state across scene changes without autoloads.
 ##

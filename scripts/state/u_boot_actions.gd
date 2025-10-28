@@ -12,9 +12,9 @@ const ACTION_BOOT_COMPLETE := StringName("boot/complete")
 
 ## Static initializer - automatically registers actions
 static func _static_init() -> void:
-	ActionRegistry.register_action(ACTION_UPDATE_LOADING_PROGRESS)
-	ActionRegistry.register_action(ACTION_BOOT_ERROR)
-	ActionRegistry.register_action(ACTION_BOOT_COMPLETE)
+	U_ActionRegistry.register_action(ACTION_UPDATE_LOADING_PROGRESS)
+	U_ActionRegistry.register_action(ACTION_BOOT_ERROR)
+	U_ActionRegistry.register_action(ACTION_BOOT_COMPLETE)
 
 ## Update loading progress (0.0 to 1.0)
 static func update_loading_progress(progress: float) -> Dictionary:

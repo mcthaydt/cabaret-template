@@ -1,5 +1,5 @@
 extends RefCounted
-class_name PhysicsSelectors
+class_name U_PhysicsSelectors
 
 ## Global physics settings selectors
 ##

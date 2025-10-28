@@ -1,5 +1,5 @@
 extends RefCounted
-class_name GameplayReducer
+class_name U_GameplayReducer
 
 ## Gameplay state slice reducer
 ##

@@ -1,5 +1,5 @@
 extends RefCounted
-class_name MenuReducer
+class_name U_MenuReducer
 
 ## Reducer for menu state slice
 ##

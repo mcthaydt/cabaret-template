@@ -36,7 +36,7 @@ func _ready() -> void:
 	}
 	
 	# Register test action to avoid validation errors
-	ActionRegistry.register_action(StringName("test/action"), {})
+	U_ActionRegistry.register_action(StringName("test/action"), {})
 	
 	store.dispatch(test_action)
 	

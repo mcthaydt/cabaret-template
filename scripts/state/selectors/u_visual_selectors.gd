@@ -1,5 +1,5 @@
 extends RefCounted
-class_name VisualSelectors
+class_name U_VisualSelectors
 
 ## Visual/audio state selectors for gameplay slice
 ##

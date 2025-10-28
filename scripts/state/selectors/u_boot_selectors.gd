@@ -1,5 +1,5 @@
 extends RefCounted
-class_name BootSelectors
+class_name U_BootSelectors
 
 ## Selectors for boot state slice
 ##

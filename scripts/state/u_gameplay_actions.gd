@@ -11,8 +11,8 @@ const ACTION_UNPAUSE_GAME := StringName("gameplay/unpause")
 
 ## Static initializer - automatically registers actions
 static func _static_init() -> void:
-	ActionRegistry.register_action(ACTION_PAUSE_GAME)
-	ActionRegistry.register_action(ACTION_UNPAUSE_GAME)
+	U_ActionRegistry.register_action(ACTION_PAUSE_GAME)
+	U_ActionRegistry.register_action(ACTION_UNPAUSE_GAME)
 
 ## Create a pause game action
 static func pause_game() -> Dictionary:

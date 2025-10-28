@@ -41,7 +41,7 @@ func _ready() -> void:
 	
 	# Read initial pause state
 	var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
-	_is_paused = GameplaySelectors.get_is_paused(gameplay_state)
+	_is_paused = U_GameplaySelectors.get_is_paused(gameplay_state)
 
 func _exit_tree() -> void:
 	# Clean up subscriptions
@@ -65,7 +65,7 @@ func toggle_pause() -> void:
 	
 	# Get current pause state
 	var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
-	var is_currently_paused: bool = GameplaySelectors.get_is_paused(gameplay_state)
+	var is_currently_paused: bool = U_GameplaySelectors.get_is_paused(gameplay_state)
 	
 	# Dispatch opposite action and update cursor
 	if is_currently_paused:
@@ -84,7 +84,7 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 	if slice_name != StringName("gameplay"):
 		return
 	
-	var new_paused: bool = GameplaySelectors.get_is_paused(slice_state)
+	var new_paused: bool = U_GameplaySelectors.get_is_paused(slice_state)
 	
 	# Only emit if state changed
 	if new_paused != _is_paused:

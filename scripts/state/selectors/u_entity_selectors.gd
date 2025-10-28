@@ -1,5 +1,5 @@
 extends RefCounted
-class_name EntitySelectors
+class_name U_EntitySelectors
 
 ## Entity coordination selectors
 ##
