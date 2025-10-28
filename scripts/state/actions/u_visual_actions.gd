@@ -6,7 +6,7 @@ class_name U_VisualActions
 ## Phase 16: Created for full project integration
 ## Used by visual/audio systems to dispatch settings changes
 
-const ActionRegistry = preload("res://scripts/state/core/action_registry.gd")
+const ActionRegistry = preload("res://scripts/state/u_action_registry.gd")
 
 ## Toggle landing indicator visibility
 static func toggle_landing_indicator(visible: bool) -> Dictionary:

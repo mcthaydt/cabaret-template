@@ -61,7 +61,7 @@ func test_profile_dispatch_components() -> void:
 	for i in range(num_iterations):
 		var current_state: Dictionary = store.get_slice(StringName("gameplay"))
 		var start: int = Time.get_ticks_usec()
-		var _new_state: Dictionary = GameplayReducer.reduce(current_state, U_GameplayActions.pause_game())
+		var _new_state: Dictionary = U_GameplayReducer.reduce(current_state, U_GameplayActions.pause_game())
 		var end: int = Time.get_ticks_usec()
 		reducer_times.append((end - start) / 1000.0)
 	

@@ -12,7 +12,7 @@ const EVENT_LANDED := StringName("entity_landed")
 func before_each() -> void:
 	EVENT_BUS.reset()
 	# Clear state handoff to prevent interference between tests
-	StateHandoff.clear_all()
+	U_StateHandoff.clear_all()
 
 func after_each() -> void:
 	pass
@@ -55,8 +55,9 @@ func test_entity_jumped_event_notifies_subscribers() -> void:
 	var scene: Node = context["scene"]
 
 	# Get existing systems from the scene instead of creating new ones
-	var particles = scene.get_node("Systems/S_JumpParticlesSystem")
-	var sound = scene.get_node("Systems/S_JumpSoundSystem")
+	# Systems are now organized in category groups (Feedback contains VFX/audio systems)
+	var particles = scene.get_node("Systems/Feedback/S_JumpParticlesSystem")
+	var sound = scene.get_node("Systems/Feedback/S_JumpSoundSystem")
 	assert_not_null(particles, "Scene should have S_JumpParticlesSystem")
 	assert_not_null(sound, "Scene should have S_JumpSoundSystem")
 

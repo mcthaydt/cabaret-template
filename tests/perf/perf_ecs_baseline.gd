@@ -33,7 +33,7 @@ const RS_LANDING := preload("res://scripts/ecs/resources/rs_landing_indicator_se
 
 var _origin: Node
 var _manager: M_ECSManager
-var _systems: Array[ECSSystem] = []
+var _systems: Array[BaseECSSystem] = []
 
 func _initialize() -> void:
 	call_deferred("_run_baseline")
@@ -82,7 +82,7 @@ func _setup_manager_and_systems() -> void:
 	]
 
 	for spec in system_specs:
-		var system: ECSSystem = spec["instance"]
+		var system: BaseECSSystem = spec["instance"]
 		system.name = spec["name"]
 		_systems.append(system)
 		_manager.add_child(system)

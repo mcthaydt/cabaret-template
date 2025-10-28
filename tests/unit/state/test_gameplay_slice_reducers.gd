@@ -18,8 +18,8 @@ func test_reducer_is_pure_function() -> void:
 	var state: Dictionary = {"paused": false, "entities": {}}
 	var action: Dictionary = U_GameplayActions.pause_game()
 	
-	var result1: Dictionary = GameplayReducer.reduce(state, action)
-	var result2: Dictionary = GameplayReducer.reduce(state, action)
+	var result1: Dictionary = U_GameplayReducer.reduce(state, action)
+	var result2: Dictionary = U_GameplayReducer.reduce(state, action)
 	
 	assert_eq(result1, result2, "Same inputs should produce same outputs (pure function)")
 
@@ -28,7 +28,7 @@ func test_reducer_does_not_mutate_original_state() -> void:
 	var original_state: Dictionary = {"paused": false, "entities": {}}
 	var action: Dictionary = U_GameplayActions.pause_game()
 	
-	var _new_state: Dictionary = GameplayReducer.reduce(original_state, action)
+	var _new_state: Dictionary = U_GameplayReducer.reduce(original_state, action)
 	
 	assert_eq(original_state["paused"], false, "Original state should remain unchanged")
 	assert_eq(original_state.has("entities"), true, "Original state fields should remain unchanged")
@@ -38,7 +38,7 @@ func test_pause_action_sets_paused_to_true() -> void:
 	var state: Dictionary = {"paused": false}
 	var action: Dictionary = U_GameplayActions.pause_game()
 	
-	var result: Dictionary = GameplayReducer.reduce(state, action)
+	var result: Dictionary = U_GameplayReducer.reduce(state, action)
 	
 	assert_eq(result["paused"], true, "Pause action should set paused to true")
 
@@ -47,7 +47,7 @@ func test_unpause_action_sets_paused_to_false() -> void:
 	var state: Dictionary = {"paused": true}
 	var action: Dictionary = U_GameplayActions.unpause_game()
 	
-	var result: Dictionary = GameplayReducer.reduce(state, action)
+	var result: Dictionary = U_GameplayReducer.reduce(state, action)
 	
 	assert_eq(result["paused"], false, "Unpause action should set paused to false")
 
@@ -56,7 +56,7 @@ func test_unknown_action_returns_state_unchanged() -> void:
 	var state: Dictionary = {"paused": false, "entities": {}}
 	var unknown_action: Dictionary = {"type": StringName("unknown/action"), "payload": null}
 	
-	var result: Dictionary = GameplayReducer.reduce(state, unknown_action)
+	var result: Dictionary = U_GameplayReducer.reduce(state, unknown_action)
 	
 	assert_eq(result, state, "Unknown action should return state unchanged")
 
@@ -65,11 +65,11 @@ func test_pause_unpause_toggle_sequence() -> void:
 	var state: Dictionary = {"paused": false}
 	
 	# Pause
-	var paused_state: Dictionary = GameplayReducer.reduce(state, U_GameplayActions.pause_game())
+	var paused_state: Dictionary = U_GameplayReducer.reduce(state, U_GameplayActions.pause_game())
 	assert_eq(paused_state["paused"], true, "Should be paused")
 	
 	# Unpause
-	var unpaused_state: Dictionary = GameplayReducer.reduce(paused_state, U_GameplayActions.unpause_game())
+	var unpaused_state: Dictionary = U_GameplayReducer.reduce(paused_state, U_GameplayActions.unpause_game())
 	assert_eq(unpaused_state["paused"], false, "Should be unpaused")
 	
 	# Original unchanged

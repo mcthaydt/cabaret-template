@@ -19,6 +19,13 @@ func _setup_base_scene() -> Dictionary:
 		"manager": manager,
 	}
 
+func _collect_systems_recursive(node: Node, systems: Array[BaseECSSystem]) -> void:
+	for child in node.get_children():
+		if child is BaseECSSystem:
+			systems.append(child)
+		# Recursively search children (for category groups)
+		_collect_systems_recursive(child, systems)
+
 func test_base_scene_systems_register_with_manager() -> void:
 	var context := await _setup_base_scene()
 	autofree_context(context)
@@ -30,10 +37,14 @@ func test_base_scene_systems_register_with_manager() -> void:
 	var systems_root := scene.get_node("Systems")
 	assert_not_null(systems_root)
 
-	for child in systems_root.get_children():
-		assert_true(child is ECS_SYSTEM, "System node %s should extend ECSSystem" % child.name)
-		var system: ECSSystem = child
-		assert_eq(system.get_manager(), manager, "System %s must resolve M_ECSManager via U_ECSUtils" % child.name)
+	# Recursively find all systems (they may be nested in category groups)
+	var all_systems: Array[BaseECSSystem] = []
+	_collect_systems_recursive(systems_root, all_systems)
+
+	assert_true(all_systems.size() > 0, "Should have at least one system")
+
+	for system in all_systems:
+		assert_eq(system.get_manager(), manager, "System %s must resolve M_ECSManager via U_ECSUtils" % system.name)
 
 func test_base_scene_components_register_with_manager() -> void:
 	var context := await _setup_base_scene()

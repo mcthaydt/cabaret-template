@@ -9,7 +9,7 @@ var store: M_StateStore
 
 func before_each() -> void:
 	# Clear any state handoff from previous tests
-	StateHandoff.clear_all()
+	U_StateHandoff.clear_all()
 	
 	store = M_StateStore.new()
 	# Initialize gameplay slice with initial state
