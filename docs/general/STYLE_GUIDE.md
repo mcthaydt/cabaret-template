@@ -24,7 +24,7 @@ We use a **prefix + suffix** naming convention that provides:
 | **Components** | `C_` | `Component` | `C_MovementComponent` |
 | **Managers** | `M_` | `Manager` | `M_ECSManager` |
 | **Resources/Settings** | `RS_` | `Settings` | `RS_MovementSettings` |
-| **Utilities** | `U_` | `Utils` | `U_ECSUtils` |
+| **Utilities** | `U_` | `Utils` / `*` | `U_ECSUtils`, `U_BootSelectors` |
 | **Scenes** | `SC_` | `Scene` | `SC_PlayerScene` |
 | **Shaders** | `SH_` | `Shader` | `SH_WaterShader` |
 | **Tools** | `T_` | `Tool` | `T_LevelEditorTool` |
@@ -291,11 +291,14 @@ func _exit_tree() -> void:
 
 ## Special Cases & Exceptions
 
-### Base Classes (No Prefix)
-Abstract or base classes that define interfaces should NOT have prefixes:
-- `BaseECSSystem` - Base class for all systems
-- `BaseECSComponent` - Base class for all components
-- `Resource` - Godot built-in
+### Base Classes (Base Prefix)
+Abstract or base classes that define interfaces use the `Base` prefix to clearly distinguish them from concrete implementations:
+- `BaseECSSystem` - Base class for all systems (extends Node)
+- `BaseECSComponent` - Base class for all components (extends Node)
+- `BaseECSEntity` - Base class for entities (extends Node3D)
+- `BaseEventVFXSystem` - Base class for event-driven VFX systems (extends BaseECSSystem)
+
+**Rationale:** The `Base` prefix makes it immediately clear that a class is abstract/foundational and should be extended rather than instantiated directly.
 
 ### Godot Built-ins (No Prefix)
 Never prefix Godot's built-in classes:
@@ -309,11 +312,27 @@ Never prefix Godot's built-in classes:
 - Only apply our conventions to code we create
 - When referencing addon code, use their naming conventions
 
+### State Management Utilities
+State management classes (selectors, reducers, and helpers) all use the `U_` prefix since they're static utility classes:
+
+**Selectors** (compute derived state):
+- `U_BootSelectors`, `U_GameplaySelectors`, `U_MenuSelectors`
+- `U_EntitySelectors`, `U_InputSelectors`, `U_PhysicsSelectors`, `U_VisualSelectors`
+
+**Reducers** (pure state update functions):
+- `U_BootReducer`, `U_GameplayReducer`, `U_MenuReducer`
+
+**Helpers** (state utilities):
+- `U_ActionRegistry`, `U_SerializationHelper`, `U_StateHandoff`
+
+**Rationale:** All state management utilities contain only static methods with no instance state, making them functionally equivalent to other utility classes like `U_ECSUtils`.
+
 ### Test Files
 Test files use `test_` prefix followed by the class being tested:
 - `test_s_movement_system.gd`
 - `test_c_movement_component.gd`
 - `test_m_ecs_manager.gd`
+- `test_u_gameplay_selectors.gd`
 
 ### Scene Files (.tscn)
 Scene files use descriptive snake_case names without prefixes:

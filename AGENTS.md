@@ -42,6 +42,25 @@
   - Emits `component_added`/`component_removed` and calls `component.on_registered(self)`.
   - `get_components()` strips out null entries automatically; only guard for missing components when logic truly requires it.
 
+## Scene Organization
+
+- Node tree structure: See `docs/scene_organization/SCENE_ORGANIZATION_GUIDE.md`
+- Templates: `templates/base_scene_template.tscn` (reference implementation)
+- Marker scripts: `scripts/scene_structure/*` (11 total) provide visual organization
+- Systems organized by category: Core / Physics / Movement / Feedback
+- Naming: Node names use prefixes matching their script types (E_, S_, C_, M_, SO_, Env_)
+
+## Naming Conventions Quick Reference
+
+- **Base classes:** `Base*` prefix (e.g., `BaseECSSystem`, `BaseECSComponent`, `BaseECSEntity`, `BaseEventVFXSystem`)
+- **Utilities:** `U_*` prefix (e.g., `U_ECSUtils`, `U_BootSelectors`, `U_GameplayReducer`, `U_ActionRegistry`)
+- **Managers:** `M_*` prefix (e.g., `M_ECSManager`, `M_StateStore`)
+- **Components:** `C_*` prefix (e.g., `C_MovementComponent`, `C_JumpComponent`)
+- **Systems:** `S_*` prefix (e.g., `S_GravitySystem`, `S_MovementSystem`)
+- **Resources:** `RS_*` prefix (e.g., `RS_JumpSettings`, `RS_MovementSettings`)
+- **Entities:** `E_*` prefix (e.g., `E_Player`, `E_CameraRoot`)
+- **Scene Objects:** `SO_*` prefix (e.g., `SO_Floor`, `SO_Block`)
+
 ## Conventions and Gotchas
 
 - GDScript typing
