@@ -1,0 +1,632 @@
+# Tasks: Scene Manager System
+
+**Input**: Design documents from `/docs/scene_manager/`
+**Prerequisites**: scene-manager-plan.md (required), scene-manager-prd.md (required)
+
+**Tests**: Tests are REQUIRED for this feature - TDD approach mandated throughout.
+
+**Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
+
+## Format: `[ID] [P?] [Story] Description`
+
+- **[P]**: Can run in parallel (different files, no dependencies)
+- **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
+- Include exact file paths in descriptions
+
+## Task Numbering Note
+
+**Intentional "Backwards" Numbering**: Phase 5 starts at T101, Phase 6 uses T080-T100. This is because US4 (Pause) and US3 (Area Transitions) were reordered after initial task numbering. Task IDs were kept to maintain traceability with the original plan. Execute in phase order, not numerical order.
+
+- **Execution Order**: Phase 0 (R001-R031) → Phase 1 (T001-T002) → Phase 2 (T003-T024) → Phase 3 (T025-T067) → Phase 4 (T068-T079) → **Phase 5 (T101-T128)** → **Phase 6 (T080-T100)** → Phase 7 (T129-T144) → Phase 8 (T145-T161) → Phase 9 (T162-T177) → Phase 10 (T178-T206)
+
+---
+
+## Phase 0: Research & Architecture Validation (CRITICAL GATE)
+
+**Purpose**: Validate architectural decisions and prototype scene restructuring before committing to implementation
+
+**⚠️ DECISION GATE**: This phase MUST be completed and approved before Phase 1. If prototype fails or restructuring too risky, STOP and reconsider architecture.
+
+### Research & Documentation
+
+- [ ] R001 [P] Research Godot 4.5 scene transition patterns and document in docs/scene_manager/research.md
+- [ ] R002 [P] Research AsyncLoading pattern (ResourceLoader.load_threaded_*) and document usage in docs/scene_manager/research.md
+- [ ] R003 [P] Research process_mode behavior during SceneTree.paused state in docs/scene_manager/research.md
+- [ ] R004 [P] Research CanvasLayer overlay interaction with paused scene tree in docs/scene_manager/research.md
+- [ ] R005 [P] Document Godot 4.5 scene lifecycle during load/unload in docs/scene_manager/research.md
+- [ ] R006 Create data model schema for scene state slice in docs/scene_manager/data-model.md
+- [ ] R007 [P] Document SceneRegistry structure with door pairings in docs/scene_manager/data-model.md
+- [ ] R008 [P] Document TransitionEffect interface in docs/scene_manager/data-model.md
+- [ ] R009 [P] Document action/reducer signatures in docs/scene_manager/data-model.md
+- [ ] R010 [P] Document integration points (ActionRegistry, StateSliceConfig, SignalBatcher) in docs/scene_manager/data-model.md
+
+### Critical Prototypes
+
+- [ ] R011 [PROTOTYPE] Create minimal scenes/root_prototype.tscn with M_StateStore and M_CursorManager
+- [ ] R012 [PROTOTYPE] Create ActiveSceneContainer node in root_prototype.tscn
+- [ ] R013 [PROTOTYPE] Write script to load templates/base_scene_template.tscn as child of ActiveSceneContainer
+- [ ] R014 [PROTOTYPE] Validate ECS still works in prototype (player moves, components register)
+- [ ] R015 [PROTOTYPE] Validate Redux still works in prototype (state updates, actions dispatch)
+- [ ] R016 [PROTOTYPE] Test unload/reload of base_scene_template.tscn without crashes
+- [ ] R017 [PROTOTYPE] Measure scene load time for baseline performance comparison
+- [ ] R018 [PROTOTYPE] Create camera blending test scene with two Camera3D nodes
+- [ ] R019 [PROTOTYPE] Implement Tween-based interpolation for global_position, global_rotation, fov
+- [ ] R020 [PROTOTYPE] Validate camera blending is smooth (no jitter) over 0.5s duration
+- [ ] R021 [PROTOTYPE] Document camera blending implementation pattern in docs/scene_manager/research.md
+
+### Safety Checks
+
+- [ ] R022 Review M_StateStore._initialize_slices() method structure
+- [ ] R023 Plan scene slice registration location in _initialize_slices()
+- [ ] R024 Validate adding scene slice won't break existing boot/menu/gameplay slices
+- [ ] R025 Check ActionRegistry can handle scene action registration
+- [ ] R026 Document M_StateStore integration plan in docs/scene_manager/data-model.md
+
+### Performance Baseline
+
+- [ ] R027 [P] Measure time to load base_scene_template.tscn from blank scene
+- [ ] R028 [P] Measure time to reload base_scene_template.tscn (hot reload)
+- [ ] R029 [P] Measure memory usage before/after scene load
+- [ ] R030 Document performance baseline results in docs/scene_manager/research.md
+- [ ] R031 Validate performance targets achievable (< 0.5s UI, < 3s gameplay)
+
+**Checkpoint**: All prototypes must pass validation. Decision gate questions:
+1. Does scene restructuring break ECS or Redux? (If yes, STOP)
+2. Can we achieve performance targets? (If no, adjust or STOP)
+3. Is camera blending feasible? (If too complex, descope or STOP)
+4. Is M_StateStore modification safe? (If risky, consider alternative)
+
+---
+
+## Phase 1: Setup (Shared Infrastructure)
+
+**Purpose**: Project initialization and basic structure
+
+- [ ] T001 Run ALL existing tests to establish baseline (expect ~314 test methods passing)
+- [ ] T002 Document current test baseline count in commit message
+
+---
+
+## Phase 2: Foundational (Blocking Prerequisites)
+
+**Purpose**: Scene restructuring that MUST be complete before ANY user story can be implemented
+
+**⚠️ CRITICAL**: No user story work can begin until this phase is complete
+
+### Root Scene Creation
+
+- [ ] T003 Create scenes/root.tscn with base Node
+- [ ] T004 [P] Add M_StateStore to root.tscn (with boot/menu/gameplay/scene slices configured)
+- [ ] T005 [P] Add M_CursorManager to root.tscn
+- [ ] T006 [P] Add M_SceneManager stub node to root.tscn
+- [ ] T007 [P] Add ActiveSceneContainer (Node type) to root.tscn
+- [ ] T008 [P] Add UIOverlayStack (CanvasLayer, process_mode = PROCESS_MODE_ALWAYS) to root.tscn
+- [ ] T009 [P] Add TransitionOverlay (CanvasLayer with ColorRect) to root.tscn
+- [ ] T010 [P] Add LoadingOverlay (CanvasLayer, initially hidden) to root.tscn
+
+### Gameplay Scene Extraction
+
+- [ ] T011 Duplicate templates/base_scene_template.tscn → scenes/gameplay/gameplay_base.tscn
+- [ ] T012 Remove M_StateStore from gameplay_base.tscn (stays in root)
+- [ ] T013 Remove M_CursorManager from gameplay_base.tscn (stays in root)
+- [ ] T014 Keep M_ECSManager in gameplay_base.tscn (per-scene pattern)
+- [ ] T015 Keep Systems, Entities, SceneObjects, Environment in gameplay_base.tscn
+- [ ] T016 Update HUD to find M_StateStore via U_StateUtils.get_store() (may need await)
+
+### Integration Validation
+
+- [ ] T017 Create test script in root.tscn to load gameplay_base.tscn into ActiveSceneContainer
+- [ ] T018 Run game from root.tscn and validate ECS works (player moves, components register)
+- [ ] T019 Validate Redux works (state updates, HUD updates)
+- [ ] T020 Run ALL ~314 tests and verify no regressions from baseline
+- [ ] T021 Fix any test failures before proceeding (BLOCKER if tests fail)
+
+### Main Scene Switch
+
+- [ ] T022 Update project.godot: run/main_scene to point to root.tscn UID
+- [ ] T023 Launch game and validate no regressions
+- [ ] T024 Validate debug overlay (F3) still works
+
+**Checkpoint**: Foundation ready - scene restructuring complete, all tests passing, ready for user story implementation
+
+---
+
+## Phase 3: User Story 1 - Basic Scene Transitions (Priority: P1) 🎯 MVP
+
+**Goal**: Players can navigate from main menu to gameplay and back with clean scene loading/unloading
+
+**Independent Test**: Launch game → Main Menu → "Play" → Gameplay → ESC to pause → "Return to Menu" → Main Menu
+
+### Tests for User Story 1 (TDD - Write FIRST, watch fail)
+
+- [ ] T025 [P] [US1] Write unit test for scene_reducer.gd in tests/unit/scene_manager/test_scene_reducer.gd
+- [ ] T026 [P] [US1] Write unit test for SceneRegistry in tests/unit/scene_manager/test_scene_registry.gd
+- [ ] T027 [P] [US1] Write unit test for M_SceneManager in tests/unit/scene_manager/test_m_scene_manager.gd
+- [ ] T028 [P] [US1] Write unit test for transition effects in tests/unit/scene_manager/test_transitions.gd
+- [ ] T029 [P] [US1] Write integration test for basic transitions in tests/integration/scene_manager/test_basic_transitions.gd
+
+### Implementation for User Story 1
+
+- [ ] T030 [P] [US1] Create scripts/state/resources/rs_scene_initial_state.gd (scene slice initial state resource)
+- [ ] T031 [P] [US1] Create scripts/state/reducers/scene_reducer.gd (handles scene actions)
+- [ ] T032 [US1] Create scripts/state/u_scene_actions.gd with ActionRegistry registration in _static_init()
+- [ ] T033 [US1] Modify scripts/managers/m_state_store.gd: add @export var scene_initial_state: RS_SceneInitialState and register in _initialize_slices() (FR-112)
+- [ ] T034 [US1] Run unit tests for scene slice and verify they pass
+- [ ] T035 [US1] Test transient fields (is_transitioning) excluded from save_state()
+- [ ] T036 [US1] Validate ALL ~314 existing tests still pass (no regressions)
+- [ ] T037 [P] [US1] Create scripts/scene_management/scene_registry.gd static class
+- [ ] T038 [P] [US1] Define scene metadata in SceneRegistry (paths, types, transitions, preload priority)
+- [ ] T039 [P] [US1] Define door pairing structure in SceneRegistry
+- [ ] T040 [P] [US1] Implement SceneRegistry.validate_door_pairings() method
+- [ ] T041 [US1] Add "gameplay_base", "main_menu", "settings_menu" to SceneRegistry
+- [ ] T042 [US1] Run unit tests for SceneRegistry and verify they pass
+- [ ] T042.5 [US1] Add SceneRegistry.validate_door_pairings() call to M_SceneManager._ready() and log any validation errors
+- [ ] T043 [US1] Create scripts/managers/m_scene_manager.gd node
+- [ ] T044 [US1] Implement M_SceneManager._ready(): add to "scene_manager" group, find M_StateStore
+- [ ] T045 [US1] Implement transition queue with priority system (CRITICAL > HIGH > NORMAL)
+- [ ] T046 [US1] Implement M_SceneManager.transition_to_scene(scene_id, transition_type, priority)
+- [ ] T047 [US1] Implement scene loading via ResourceLoader (sync for now)
+- [ ] T048 [US1] Implement scene removal from ActiveSceneContainer (triggers StateHandoff preservation)
+- [ ] T049 [US1] Implement scene addition to ActiveSceneContainer (triggers StateHandoff restoration)
+- [ ] T050 [US1] Implement subscribe to scene slice updates via M_StateStore.subscribe()
+- [ ] T051 [US1] Run unit tests for M_SceneManager (including queue priority) and verify they pass
+- [ ] T052 [P] [US1] Create scripts/scene_management/transitions/transition_effect.gd base class
+- [ ] T053 [P] [US1] Create scripts/scene_management/transitions/instant_transition.gd
+- [ ] T054 [P] [US1] Create scripts/scene_management/transitions/fade_transition.gd with Tween
+- [ ] T055 [US1] Implement input blocking during transitions (set_input_as_handled)
+- [ ] T056 [US1] Update TransitionOverlay in root.tscn (ColorRect with modulate.a = 0)
+- [ ] T057 [US1] Integrate transition effects with M_SceneManager.transition_to_scene()
+- [ ] T058 [US1] Run unit tests for transition effects (including input blocking) and verify they pass
+- [ ] T059 [P] [US1] Create scenes/ui/main_menu.tscn (minimal: Label + Button to settings)
+- [ ] T060 [P] [US1] Create scenes/ui/settings_menu.tscn (minimal: Label + Button to main)
+- [ ] T061 [US1] Add main_menu and settings_menu to SceneRegistry with correct paths and scene_ids
+- [ ] T062 [US1] Verify UI scenes do NOT have M_ECSManager (UI scenes only)
+
+### Integration Tests for User Story 1
+
+- [ ] T063 [US1] Run test_basic_transitions.gd (load main_menu → settings → back)
+- [ ] T064 [US1] Assert scene slice state updated correctly in test_basic_transitions.gd
+- [ ] T065 [US1] Validate ALL tests pass (~314 existing + new scene manager tests)
+- [ ] T066 [US1] Manual test: Launch game → main menu → settings → back to main → gameplay_base
+- [ ] T067 [US1] Validate debug overlay (F3) still works during transitions
+
+**Checkpoint**: User Story 1 complete - basic scene transitions working, all tests passing
+
+---
+
+## Phase 4: User Story 2 - Persistent Game State (Priority: P1) 🎯 MVP
+
+**Goal**: Player state, progress, and settings persist across scene transitions
+
+**Independent Test**: Start new game → Modify player state → Transition to interior → Verify state persists → Return to menu → Load game → Verify all state restored
+
+### Tests for User Story 2 (TDD - Write FIRST, watch fail)
+
+- [ ] T068 [P] [US2] Write integration test for state persistence in tests/integration/scene_manager/test_state_persistence.gd
+
+### Implementation for User Story 2
+
+- [ ] T069 [US2] Verify gameplay slice in M_StateStore tracks player state (health, inventory, position)
+- [ ] T070 [US2] Verify StateHandoff preserves gameplay slice across scene transitions
+- [ ] T071 [US2] Test: Modify gameplay state in gameplay_base.tscn
+- [ ] T072 [US2] Test: Transition to menu scene
+- [ ] T073 [US2] Test: Transition back to gameplay_base.tscn
+- [ ] T074 [US2] Assert: Gameplay state preserved (health, inventory, position values match)
+
+### Integration Tests for User Story 2
+
+- [ ] T075 [US2] Run test_state_persistence.gd and verify all assertions pass
+- [ ] T076 [US2] Test: Save game to disk via M_StateStore.save_state()
+- [ ] T077 [US2] Test: Reload game from disk via M_StateStore.load_state()
+- [ ] T078 [US2] Assert: Player state restored correctly from save file
+- [ ] T079 [US2] Manual test: Play → collect item → transition → verify item persists → save → reload → verify item still present
+
+**Checkpoint**: User Story 2 complete - state persists across all transitions, save/load working
+
+---
+
+## Phase 5: User Story 4 - Pause System (Priority: P2) ⚡ MOVED UP
+
+**Goal**: Players can pause gameplay at any time and access pause menu options
+
+**Independent Test**: Start gameplay → Press ESC → Pause menu loads, gameplay frozen → Select "Resume" → Gameplay resumes exactly where stopped
+
+**Why moved up**: Simpler than US3 (no ECS components), validates restructuring works before tackling complex door triggers
+
+**Note on Scene History**: Tasks T109-T114 implement scene history navigation (UI breadcrumbs for menu → settings → back). This is placed in Phase 5 (not Phase 2 as mentioned in plan) because it's part of the pause/overlay system functionality and depends on the scene stack implementation.
+
+### Tests for User Story 4 (TDD - Write FIRST, watch fail)
+
+- [ ] T101 [P] [US4] Write integration test for pause system in tests/integration/scene_manager/test_pause_system.gd
+
+### Implementation for User Story 4
+
+- [ ] T102 [US4] Extend M_SceneManager with push_overlay(scene_id) method
+- [ ] T103 [US4] Extend M_SceneManager with pop_overlay() method
+- [ ] T104 [US4] Implement UIOverlayStack management (add/remove children)
+- [ ] T105 [US4] Sync scene_slice.scene_stack with UIOverlayStack state
+- [ ] T106 [US4] Dispatch U_SceneActions.push_overlay() when overlay added
+- [ ] T107 [US4] Dispatch U_SceneActions.pop_overlay() when overlay removed
+- [ ] T108 [US4] Write unit tests for overlay stack management
+- [ ] T109 [US4] Extend M_SceneManager with scene history tracking (UI history stack separate from scene_stack)
+- [ ] T110 [US4] Implement go_back() function for UI navigation
+- [ ] T111 [US4] Add history metadata to scene transitions (is_history_enabled field)
+- [ ] T112 [US4] UI scenes automatically track history (menu, settings)
+- [ ] T113 [US4] Gameplay scenes explicitly disable history (FR-078)
+- [ ] T114 [US4] Test: menu → settings → gameplay → back() returns to settings (not menu)
+- [ ] T115 [US4] Create scenes/ui/pause_menu.tscn with Resume/Settings/Quit buttons
+- [ ] T116 [US4] Add pause_menu to SceneRegistry
+- [ ] T117 [US4] Implement pause trigger in M_SceneManager (listen for ESC input)
+- [ ] T118 [US4] Set get_tree().paused = true when pause overlay pushed
+- [ ] T119 [US4] Call M_CursorManager.set_cursor_visible(true) on pause
+- [ ] T120 [US4] Call M_CursorManager.set_cursor_visible(false) on unpause
+- [ ] T121 [US4] Set get_tree().paused = false when pause overlay popped
+- [ ] T122 [US4] Configure process_mode for pause-aware nodes (PROCESS_MODE_PAUSABLE vs PROCESS_MODE_ALWAYS)
+
+### Integration Tests for User Story 4
+
+- [ ] T123 [US4] Run test_pause_system.gd and verify all pause scenarios work
+- [ ] T124 [US4] Test: Pause during gameplay → assert get_tree().paused == true
+- [ ] T125 [US4] Test: Verify ECS systems stop processing during pause
+- [ ] T126 [US4] Test: Unpause → assert gameplay resumes exactly (no state drift, no time advancement)
+- [ ] T127 [US4] Test: Nested pause (gameplay → pause → settings → back through stack)
+- [ ] T128 [US4] Manual test: Pause mid-air, verify player position unchanged on unpause
+
+**Checkpoint**: User Story 4 complete - pause system working, restructuring validated with tests passing
+
+🎯 **MAJOR MILESTONE**: Core playable loop complete (menu → gameplay → pause → resume). All tests passing after restructuring.
+
+---
+
+## Phase 6: User Story 3 - Area Transitions (Exterior ↔ Interior) (Priority: P2) ⚡ MOVED DOWN
+
+**Goal**: Players can seamlessly transition between gameplay areas using doors and zone triggers
+
+**Independent Test**: Load gameplay → Walk to door → Door transition plays → Interior loads with correct spawn → Exit door → Return to exterior at correct location
+
+**Why moved down**: Complex ECS integration (new components/systems), tackled after simpler features validate restructuring
+
+### Tests for User Story 3 (TDD - Write FIRST, watch fail)
+
+- [ ] T080 [P] [US3] Write integration test for area transitions in tests/integration/scene_manager/test_area_transitions.gd
+
+### Implementation for User Story 3
+
+- [ ] T081 [P] [US3] Create scripts/ecs/components/c_scene_trigger_component.gd (door_id, target, spawn_point, trigger_mode, cooldown)
+- [ ] T082 [P] [US3] Create scripts/ecs/systems/s_scene_trigger_system.gd (collision detection, input handling)
+- [ ] T083 [US3] Extend SceneRegistry with door pairing definitions (bidirectional)
+- [ ] T084 [US3] Implement C_SceneTriggerComponent Area3D collision detection (_on_body_entered/_on_body_exited)
+- [ ] T085 [US3] Implement S_SceneTriggerSystem interaction input handling (Interact mode)
+- [ ] T086 [US3] Implement S_SceneTriggerSystem auto-trigger for Auto mode
+- [ ] T087 [US3] Dispatch U_GameplayActions.set_target_spawn_point() before transition
+- [ ] T088 [US3] Dispatch U_SceneActions.transition_to() from trigger system
+- [ ] T089 [P] [US3] Create scenes/gameplay/exterior_template.tscn with M_ECSManager
+- [ ] T090 [P] [US3] Create scenes/gameplay/interior_template.tscn with M_ECSManager
+- [ ] T091 [US3] Add door trigger Area3D with C_SceneTriggerComponent to exterior_template.tscn
+- [ ] T092 [US3] Add exit door trigger Area3D with C_SceneTriggerComponent to interior_template.tscn
+- [ ] T093 [US3] Add spawn point markers (Node3D with unique names) to both templates
+- [ ] T094 [US3] Update SceneRegistry with door pairings for exterior ↔ interior
+- [ ] T095 [US3] Implement M_SceneManager spawn point restoration on scene load
+
+### Integration Tests for User Story 3
+
+- [ ] T096 [US3] Run test_area_transitions.gd and verify all door pairings work
+- [ ] T097 [US3] Test: Enter door in exterior → assert interior loads at correct spawn point
+- [ ] T098 [US3] Test: Exit door in interior → assert exterior loads at correct spawn point
+- [ ] T099 [US3] Manual test: exterior → door → interior → exit → exterior (verify player position correct)
+- [ ] T100 [US3] Validate area state persistence (enemy positions, collected items preserved)
+
+**Checkpoint**: User Story 3 complete - area transitions working with correct spawn points
+
+---
+
+## Phase 7: User Story 5 - Scene Transition Effects (Priority: P3)
+
+**Goal**: Scene transitions use appropriate visual effects based on transition type
+
+**Independent Test**: Configure different scene pairs with different transition types → Trigger each → Verify correct effect plays
+
+### Tests for User Story 5 (TDD - Write FIRST, watch fail)
+
+- [ ] T129 [P] [US5] Write integration test for transition effects in tests/integration/scene_manager/test_transition_effects.gd
+
+### Implementation for User Story 5
+
+- [ ] T130 [P] [US5] Create scenes/ui/loading_screen.tscn with ProgressBar
+- [ ] T131 [P] [US5] Create scripts/scene_management/transitions/loading_screen_transition.gd
+- [ ] T132 [US5] Implement LoadingScreenTransition.update_progress(progress) for ProgressBar
+- [ ] T133 [US5] Add LoadingOverlay reference in root.tscn
+- [ ] T134 [US5] Integrate loading_screen_transition with M_SceneManager
+- [ ] T135 [US5] Implement transition type selection based on SceneRegistry metadata
+- [ ] T136 [US5] Implement custom transition override per scene pair
+- [ ] T137 [US5] Test: Instant transition for UI menu → UI menu
+- [ ] T138 [US5] Test: Fade transition for menu → gameplay
+- [ ] T139 [US5] Test: Loading screen for large scene loads (> 3s)
+
+### Integration Tests for User Story 5
+
+- [ ] T140 [US5] Run test_transition_effects.gd and verify all effect types work
+- [ ] T141 [US5] Test: Fade effect plays smoothly (no jarring cuts)
+- [ ] T142 [US5] Test: Loading screen appears when load duration exceeds threshold
+- [ ] T143 [US5] Test: Instant transition has no unnecessary delay
+- [ ] T144 [US5] Manual test: Verify all transition types feel polished
+
+**Checkpoint**: User Story 5 complete - transition effects working and polished
+
+---
+
+## Phase 8: User Story 6 - Scene Preloading & Performance (Priority: P3)
+
+**Goal**: System intelligently preloads scenes to minimize wait times while managing memory
+
+**Independent Test**: Monitor memory → Launch game → Verify UI scenes preloaded → Transition to gameplay → Verify on-demand load → Memory stays within bounds
+
+### Tests for User Story 6 (TDD - Write FIRST, watch fail)
+
+- [ ] T145 [P] [US6] Write integration test for scene preloading in tests/integration/scene_manager/test_scene_preloading.gd
+
+### Implementation for User Story 6
+
+- [ ] T146 [US6] Implement async scene loading via ResourceLoader.load_threaded_request()
+- [ ] T147 [US6] Implement ResourceLoader.load_threaded_get_status() polling
+- [ ] T148 [US6] Implement ResourceLoader.load_threaded_get() for final scene retrieval
+- [ ] T149 [US6] Implement preload on startup for high-priority scenes (priority >= 10)
+- [ ] T150 [US6] Use SceneRegistry.get_preloadable_scenes() to identify preload candidates
+- [ ] T151 [US6] Implement on-demand loading for gameplay scenes (priority < 10)
+- [ ] T152 [US6] Implement scene cache management (Dictionary of preloaded PackedScenes)
+- [ ] T153 [US6] Implement memory management (unload unused scenes when memory pressure detected)
+- [ ] T154 [US6] Implement preload hints for next likely scene (background loading)
+- [ ] T155 [US6] Test: Main Menu, Settings, Pause preloaded at startup
+
+### Integration Tests for User Story 6
+
+- [ ] T156 [US6] Run test_scene_preloading.gd and verify preload behavior
+- [ ] T157 [US6] Test: UI scenes transition < 0.5s (preloaded)
+- [ ] T158 [US6] Test: Gameplay scenes transition < 3s (on-demand)
+- [ ] T159 [US6] Measure memory usage across 20+ transitions (no leaks)
+- [ ] T160 [US6] Test: Memory pressure triggers unload of unused scenes
+- [ ] T161 [US6] Manual test: Monitor performance metrics during gameplay loop
+
+**Checkpoint**: User Story 6 complete - preloading working, performance targets met, memory stable
+
+---
+
+## Phase 9: User Story 7 - Win/Lose End-Game Flow (Priority: P3)
+
+**Goal**: Game properly handles end-game scenarios with appropriate screens and navigation
+
+**Independent Test**: Trigger death → Game Over screen → "Retry" → Gameplay restarts. Trigger victory → Victory screen → "Continue" proceeds. Complete game → Credits → Return to menu
+
+### Tests for User Story 7 (TDD - Write FIRST, watch fail)
+
+- [ ] T162 [P] [US7] Write integration test for end-game flows in tests/integration/scene_manager/test_endgame_flows.gd
+
+### Implementation for User Story 7
+
+- [ ] T163 [P] [US7] Create scenes/ui/game_over.tscn with Retry/Menu buttons
+- [ ] T164 [P] [US7] Create scenes/ui/victory.tscn with Continue/Menu buttons
+- [ ] T165 [P] [US7] Create scenes/ui/credits.tscn with scrolling text
+- [ ] T166 [US7] Add game_over, victory, credits to SceneRegistry
+- [ ] T167 [US7] Implement retry functionality (reload gameplay from last checkpoint)
+- [ ] T168 [US7] Implement continue functionality (load next area/level)
+- [ ] T169 [US7] Implement credits auto-return to main menu after completion
+- [ ] T170 [US7] Test: Death condition triggers game_over scene
+- [ ] T171 [US7] Test: Victory condition triggers victory scene
+- [ ] T172 [US7] Test: Game completion triggers credits scene
+
+### Integration Tests for User Story 7
+
+- [ ] T173 [US7] Run test_endgame_flows.gd and verify all end-game scenarios
+- [ ] T174 [US7] Test: Game Over → Retry → Gameplay restarts from checkpoint
+- [ ] T175 [US7] Test: Victory → Continue → Next area loads
+- [ ] T176 [US7] Test: Credits → Auto-return to Main Menu
+- [ ] T177 [US7] Manual test: Trigger all end-game scenarios in-game
+
+**Checkpoint**: User Story 7 complete - end-game flows working with proper navigation
+
+---
+
+## Phase 10: Polish & Cross-Cutting Concerns
+
+**Purpose**: Improvements that affect multiple user stories
+
+### Camera Blending
+
+- [ ] T178 [P] Implement camera position blending between old and new scene cameras
+- [ ] T179 [P] Implement camera rotation blending using Tween
+- [ ] T180 [P] Implement camera FOV blending
+- [ ] T181 Add dedicated transition camera to M_SceneManager for blending
+- [ ] T182 Test camera transitions are smooth (no jitter, no pop)
+- [ ] T182.5 Integrate camera blending with FadeTransition to blend during fade-in (FR-074: parallel with fade effect)
+
+### Edge Case Testing
+
+- [ ] T183 [P] Write tests/integration/scene_manager/test_edge_cases.gd
+- [ ] T184 Test: Scene loading fails (missing file) → fallback to main menu
+- [ ] T185 Test: Transition during transition → priority queue handles correctly
+- [ ] T186 Test: Corrupted save file → warn player, offer new game
+- [ ] T187 Test: Pause during transition → transition completes first
+- [ ] T188 Test: Low memory scenario → unload non-essential scenes
+- [ ] T189 Test: Door trigger while player in air → validate grounded state
+- [ ] T190 Test: Transition from within physics frame → defer to next frame
+- [ ] T191 Test: Unsaved progress on quit → trigger auto-save
+
+### Documentation & Testing
+
+- [ ] T192 [P] Create docs/scene_manager/quickstart.md usage guide
+- [ ] T193 [P] Update AGENTS.md with Scene Manager patterns
+- [ ] T194 [P] Update docs/general/DEV_PITFALLS.md with scene-specific pitfalls
+- [ ] T195 Run full test suite (ALL tests must pass)
+- [ ] T196 Manual test: Full game loop (menu → gameplay → pause → end → menu)
+- [ ] T197 Validate all 112 functional requirements implemented
+- [ ] T198 Validate all 22 success criteria met
+- [ ] T199 Performance validation: UI < 0.5s, gameplay < 3s, large loads < 5s
+- [ ] T200 Memory validation: Stable across 20+ transitions (no leaks)
+
+### Code Cleanup
+
+- [ ] T201 Code review: Ensure all code follows AGENTS.md patterns
+- [ ] T202 Code review: Ensure all code follows docs/general/STYLE_GUIDE.md
+- [ ] T203 Remove debug print statements
+- [ ] T204 Remove commented-out code
+- [ ] T205 Verify all TODOs resolved or documented
+- [ ] T206 Run static analysis (if available)
+
+---
+
+## Dependencies & Execution Order
+
+### Phase Dependencies
+
+- **Phase 0 (Research)**: No dependencies - can start immediately
+- **Phase 1 (Setup)**: Depends on Phase 0 approval - BLOCKS everything
+- **Phase 2 (Foundational)**: Depends on Phase 1 - BLOCKS all user stories
+- **Phase 3 (US1)**: Depends on Phase 2 completion
+- **Phase 4 (US2)**: Depends on Phase 3 completion (needs basic transitions)
+- **Phase 5 (US4)**: Depends on Phase 3 completion (needs scene stack) ⚡ MOVED UP
+- **Phase 6 (US3)**: Depends on Phase 5 completion (validates restructuring first) ⚡ MOVED DOWN
+- **Phase 7 (US5)**: Depends on Phase 3 completion (extends transitions)
+- **Phase 8 (US6)**: Depends on Phase 3 completion (extends loading)
+- **Phase 9 (US7)**: Depends on Phase 3 completion (uses transitions)
+- **Phase 10 (Polish)**: Depends on all user stories being complete
+
+### User Story Dependencies
+
+- **User Story 1 (US1)**: MUST complete first (foundation for all others)
+- **User Story 2 (US2)**: Can start after US1 (requires basic transitions)
+- **User Story 4 (US4)**: Can start after US1+US2 (requires scene stack) ⚡ DO THIS BEFORE US3
+- **User Story 3 (US3)**: Can start after US4 (complex ECS, do after simpler features validate) ⚡ DO THIS AFTER US4
+- **User Stories 5-7**: Can start in parallel after US1+US2 complete
+
+**Execution Order**: US1 → US2 → **US4** → US3 → US5/US6/US7 (parallel)
+
+### Within Each Phase
+
+- Research tasks (R001-R010): All can run in parallel
+- Prototype tasks (R011-R021): Some parallel, validation sequential
+- Setup tasks (T001-T002): Sequential
+- Foundational tasks: Some parallel (T004-T010), validation sequential
+- User story tasks: Tests must be written FIRST, then implementation
+- Polish tasks: Most can run in parallel
+
+### Parallel Opportunities
+
+**Phase 0 - Research (5 tasks in parallel)**:
+```bash
+Task: R001, R002, R003, R004, R005 (all research can run concurrently)
+Task: R007, R008, R009, R010 (all data-model docs can run concurrently)
+```
+
+**Phase 2 - Root Scene Setup (7 tasks in parallel)**:
+```bash
+Task: T004, T005, T006, T007, T008, T009, T010 (all nodes can be added concurrently)
+```
+
+**Phase 3 - User Story 1 Tests (5 tasks in parallel)**:
+```bash
+Task: T025, T026, T027, T028, T029 (all test files can be written concurrently)
+```
+
+**Phase 3 - User Story 1 State Slice (3 tasks in parallel)**:
+```bash
+Task: T030, T031, T037 (initial state, reducer, and registry can be created concurrently)
+```
+
+**Phase 3 - User Story 1 Transitions (3 tasks in parallel)**:
+```bash
+Task: T052, T053, T054 (transition classes can be created concurrently)
+```
+
+**Phase 3 - User Story 1 UI Scenes (2 tasks in parallel)**:
+```bash
+Task: T059, T060 (main_menu and settings_menu can be created concurrently)
+```
+
+**Phase 6 - User Story 3 Components (2 tasks in parallel)**:
+```bash
+Task: T081, T082 (component and system can be created concurrently)
+Task: T089, T090 (exterior and interior templates can be created concurrently)
+```
+
+**Phase 7 - User Story 5 Loading Screen (2 tasks in parallel)**:
+```bash
+Task: T130, T131 (loading_screen scene and transition script can be created concurrently)
+```
+
+**Phase 9 - User Story 7 End-Game Scenes (3 tasks in parallel)**:
+```bash
+Task: T163, T164, T165 (all end-game scenes can be created concurrently)
+```
+
+**Phase 10 - Camera Blending (3 tasks in parallel)**:
+```bash
+Task: T178, T179, T180 (position, rotation, FOV blending can be implemented concurrently)
+```
+
+**Phase 10 - Documentation (3 tasks in parallel)**:
+```bash
+Task: T192, T193, T194 (all documentation updates can run concurrently)
+```
+
+---
+
+## Implementation Strategy
+
+### MVP First (Phase 0-5 Now Includes Pause)
+
+1. Complete Phase 0: Research & Validation (GATE)
+2. Complete Phase 1: Setup
+3. Complete Phase 2: Foundational Scene Restructuring (CRITICAL)
+4. Complete Phase 3: User Story 1 (Basic Transitions)
+5. Complete Phase 4: User Story 2 (State Persistence)
+6. Complete Phase 5: User Story 4 (Pause System) ⚡ MOVED UP
+7. **STOP and VALIDATE**: Core playable loop complete with pause, all tests passing
+
+### Incremental Delivery (Reordered for Risk Management)
+
+1. Foundation (Phase 0-2) → All tests passing
+2. Add US1+US2 → Test independently → Deploy/Demo (Basic MVP)
+3. Add US4 → Test independently → **Validate restructuring with simpler feature** ⚡
+4. Add US3 → Test independently → Deploy/Demo (Area transitions - complex ECS)
+5. Add US5-7 → Test independently → Deploy/Demo (Polish)
+6. Each story adds value without breaking previous stories
+
+**Why US4 before US3**: US4 (pause) is simpler and validates the restructuring before tackling complex ECS integration (US3 door triggers).
+
+### Parallel Team Strategy
+
+With multiple developers (after Phase 5 complete):
+- Developer A: User Story 3 (Area Transitions)
+- Developer B: User Story 5 (Transition Effects)
+- Developer C: User Story 6 (Preloading)
+
+Stories complete and integrate independently.
+
+---
+
+## Notes
+
+- **[P] tasks**: Different files, no dependencies, can run in parallel
+- **[Story] label**: Maps task to specific user story for traceability
+- **TDD Required**: Write tests FIRST, watch them FAIL, then implement
+- **Each user story**: Independently completable and testable
+- **Commit**: After each test-green milestone or logical group
+- **Stop at any checkpoint**: Validate story independently
+- **Phase 0 is CRITICAL GATE**: Must validate before proceeding to implementation
+- **Phase 2 BLOCKS all user stories**: Scene restructuring must complete first
+- **Avoid**: Vague tasks, same file conflicts, cross-story dependencies that break independence
+
+---
+
+## Critical Reminders
+
+1. **ALL ~314 existing tests must pass** after Phase 2 (no regressions)
+2. **TDD is mandatory** - write tests first, watch them fail, then implement
+3. **Phase 0 Decision Gate** - must approve before Phase 1
+4. **Scene restructuring is HIGH RISK** - careful validation required
+5. **Commit discipline** - never commit with failing tests
+6. **Manual testing required** - automated tests don't catch everything
+7. **Edge cases must be tested** - 8 scenarios from PRD
+8. **Performance targets must be met** - measure and validate
+9. **Memory leaks must be prevented** - monitor across transitions
+10. **Documentation is not optional** - keep docs updated throughout
