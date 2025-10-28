@@ -8,6 +8,13 @@ class_name U_ActionRegistry
 
 static var _registered_actions: Dictionary = {}
 
+## Create an action with the given type and payload
+static func create_action(type: StringName, payload: Variant = null) -> Dictionary:
+	return {
+		"type": type,
+		"payload": payload
+	}
+
 ## Register an action type with optional schema
 ## Schema can define required payload fields for validation
 static func register_action(action_type: StringName, schema: Dictionary = {}) -> void:
@@ -16,9 +23,6 @@ static func register_action(action_type: StringName, schema: Dictionary = {}) ->
 		return
 	
 	_registered_actions[action_type] = schema
-	
-	if OS.is_debug_build():
-		print("[ActionRegistry] Registered action: ", action_type)
 
 ## Check if an action type is registered
 static func is_registered(action_type: StringName) -> bool:

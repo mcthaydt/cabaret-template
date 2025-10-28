@@ -284,9 +284,6 @@ func register_slice(config: StateSliceConfig) -> void:
 	_slice_configs[config.slice_name] = config
 	_state[config.slice_name] = config.initial_state.duplicate(true)
 
-	if OS.is_debug_build() and settings.enable_debug_logging:
-		print("[STATE] Registered slice: ", config.slice_name)
-
 ## Validate that all declared slice dependencies exist and are valid
 ##
 ## Returns true if all dependencies are valid, false otherwise.

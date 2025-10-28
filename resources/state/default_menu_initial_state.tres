@@ -1,10 +1,6 @@
-[gd_resource type="Resource" script_class="RS_MenuInitialState" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_MenuInitialState" load_steps=2 format=3 uid="uid://b26lupnu6qot0"]
 
-[ext_resource type="Script" path="res://scripts/state/resources/rs_menu_initial_state.gd" id="1_menu"]
+[ext_resource type="Script" uid="uid://cvc1uat01u84w" path="res://scripts/state/resources/rs_menu_initial_state.gd" id="1_menu"]
 
 [resource]
 script = ExtResource("1_menu")
-active_screen = "main_menu"
-pending_character = ""
-pending_difficulty = ""
-available_saves = []

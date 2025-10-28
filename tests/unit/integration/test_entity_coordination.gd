@@ -45,13 +45,13 @@ func test_merge_entity_snapshot():
 		"health": 100,
 		"entity_type": "player"
 	}))
-	await wait_frames(1)
+	await wait_physics_frames(1)
 	
 	# Second snapshot (only updates position)
 	store.dispatch(U_EntityActions.update_entity_snapshot("player", {
 		"position": Vector3(10, 20, 30)
 	}))
-	await wait_frames(1)
+	await wait_physics_frames(1)
 	
 	var state = store.get_state()
 	var player = U_EntitySelectors.get_entity(state, "player")
@@ -73,7 +73,7 @@ func test_multiple_entities():
 		"position": Vector3(-10, 0, -10),
 		"entity_type": "enemy"
 	}))
-	await wait_frames(1)
+	await wait_physics_frames(1)
 	
 	var state = store.get_state()
 	var all_entities = U_EntitySelectors.get_all_entities(state)
@@ -93,7 +93,7 @@ func test_entity_selectors():
 		"entity_type": "player",
 		"health": 100
 	}))
-	await wait_frames(1)
+	await wait_physics_frames(1)
 	
 	var state = store.get_state()
 	assert_eq(U_EntitySelectors.get_entity_position(state, "player"), Vector3(1, 2, 3))
@@ -110,7 +110,7 @@ func test_get_entities_by_type():
 	store.dispatch(U_EntityActions.update_entity_snapshot("enemy_1", {"entity_type": "enemy"}))
 	store.dispatch(U_EntityActions.update_entity_snapshot("enemy_2", {"entity_type": "enemy"}))
 	store.dispatch(U_EntityActions.update_entity_snapshot("npc_1", {"entity_type": "npc"}))
-	await wait_frames(1)
+	await wait_physics_frames(1)
 	
 	var state = store.get_state()
 	var enemies = U_EntitySelectors.get_entities_by_type(state, "enemy")
@@ -126,7 +126,7 @@ func test_player_convenience_selectors():
 		"velocity": Vector3(1, 0, 1),
 		"entity_type": "player"
 	}))
-	await wait_frames(1)
+	await wait_physics_frames(1)
 	
 	var state = store.get_state()
 	assert_eq(U_EntitySelectors.get_player_entity_id(state), "player")
@@ -162,13 +162,13 @@ func test_remove_entity():
 		"position": Vector3(1, 2, 3),
 		"entity_type": "temp"
 	}))
-	await wait_frames(1)
+	await wait_physics_frames(1)
 	
 	var state = store.get_state()
 	assert_true(U_EntitySelectors.get_all_entities(state).has("temp_entity"), "Entity should exist")
 	
 	store.dispatch(U_EntityActions.remove_entity("temp_entity"))
-	await wait_frames(1)
+	await wait_physics_frames(1)
 	
 	state = store.get_state()
 	assert_false(U_EntitySelectors.get_all_entities(state).has("temp_entity"), "Entity should be removed")
