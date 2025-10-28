@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_InputSystem
 
 ## Phase 16: Dispatches input to state store and components

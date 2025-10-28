@@ -40,7 +40,7 @@ Implement a centralized Redux-style state management system for the Godot 4.5 ga
 
 **Primary Dependencies**:
 - GUT (Godot Unit Test) framework for testing
-- Existing ECS system (`M_ECSManager`, `ECSComponent`, `ECSSystem`)
+- Existing ECS system (`M_ECSManager`, `BaseECSComponent`, `BaseECSSystem`)
 - Existing `ecs_event_bus.gd` (kept for ECS domain)
 - U_ECSUtils pattern for utilities
 
@@ -1362,7 +1362,7 @@ static func select_is_out_of_ammo(state: Dictionary) -> bool:
 
 ```gdscript
 # scripts/ecs/systems/s_movement_system.gd
-extends ECSSystem
+extends BaseECSSystem
 class_name S_MovementSystem
 
 var _state_store: M_StateStore
@@ -1487,7 +1487,7 @@ Complete working examples showing how ECS systems integrate with the state store
 ```gdscript
 # scripts/ecs/systems/s_movement_system.gd
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_MovementSystem
 
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
@@ -1559,7 +1559,7 @@ func _on_state_changed(action: Dictionary, new_state: Dictionary) -> void:
 ```gdscript
 # scripts/ecs/systems/s_input_system.gd
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_InputSystem
 
 const INPUT_TYPE := StringName("C_InputComponent")

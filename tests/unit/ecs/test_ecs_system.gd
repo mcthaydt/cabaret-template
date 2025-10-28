@@ -4,13 +4,13 @@ const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const ECS_SYSTEM := preload("res://scripts/ecs/ecs_system.gd")
 const ECS_COMPONENT := preload("res://scripts/ecs/ecs_component.gd")
 
-class QueryComponent extends ECS_COMPONENT:
+class QueryComponent extends BaseECSComponent:
 	const TYPE := StringName("C_QueryComponent")
 
 	func _init() -> void:
 		component_type = TYPE
 
-class QueryPassthroughSystem extends ECS_SYSTEM:
+class QueryPassthroughSystem extends BaseECSSystem:
 	var captured: Array = []
 
 	func process_tick(_delta: float) -> void:

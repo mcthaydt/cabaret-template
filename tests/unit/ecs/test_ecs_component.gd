@@ -5,7 +5,7 @@ const ECS_COMPONENT := preload("res://scripts/ecs/ecs_component.gd")
 const JUMP_COMPONENT := preload("res://scripts/ecs/components/c_jump_component.gd")
 const JUMP_SETTINGS := preload("res://scripts/ecs/resources/rs_jump_settings.gd")
 
-class TestInvalidComponent extends ECS_COMPONENT:
+class TestInvalidComponent extends BaseECSComponent:
 	const TYPE := StringName("C_TestInvalidComponent")
 	var validated: bool = false
 	var missing_called: bool = false
@@ -21,7 +21,7 @@ class TestInvalidComponent extends ECS_COMPONENT:
 		missing_called = true
 		super._on_required_settings_missing()
 
-class TestValidComponent extends ECS_COMPONENT:
+class TestValidComponent extends BaseECSComponent:
 	const TYPE := StringName("C_TestValidComponent")
 	var validated: bool = false
 	var ready_called: bool = false

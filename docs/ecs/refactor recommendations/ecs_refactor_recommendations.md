@@ -171,7 +171,7 @@ func get_character_body() -> CharacterBody3D:
 # And so on...
 ```
 
-**Solution**: Add helper to `ECSComponent` base class
+**Solution**: Add helper to `BaseECSComponent` base class
 
 ```gdscript
 # In scripts/ecs/ecs_component.gd (add to base class)
@@ -252,7 +252,7 @@ func _ready() -> void:
     super._ready()  # Register with manager
 ```
 
-**Solution**: Create base validation pattern in `ECSComponent`
+**Solution**: Create base validation pattern in `BaseECSComponent`
 
 ```gdscript
 # In scripts/ecs/ecs_component.gd (add to base class)
@@ -413,7 +413,7 @@ func process_tick(delta: float) -> void:
 
 **Problem**: If other components want debugging, they'll duplicate this pattern.
 
-**Solution**: Add to `ECSComponent` base class
+**Solution**: Add to `BaseECSComponent` base class
 
 ```gdscript
 # In scripts/ecs/ecs_component.gd (add to base)
@@ -618,9 +618,9 @@ var floatings = get_components(C_FloatingComponent.COMPONENT_TYPE)
 # scripts/managers/m_ecs_manager.gd
 
 # New property: track which components belong to same entity
-var _entity_to_components: Dictionary = {}  # Entity (Node) → Array[ECSComponent]
+var _entity_to_components: Dictionary = {}  # Entity (Node) → Array[BaseECSComponent]
 
-func register_component(component: ECSComponent) -> void:
+func register_component(component: BaseECSComponent) -> void:
     # Existing registration logic...
     var component_type := component.COMPONENT_TYPE
     if not _components.has(component_type):
@@ -636,7 +636,7 @@ func register_component(component: ECSComponent) -> void:
 
     registered.emit(component)
 
-func _get_entity_from_component(component: ECSComponent) -> Node:
+func _get_entity_from_component(component: BaseECSComponent) -> Node:
     """
     Gets the entity (parent node) for a component.
     Typically the CharacterBody3D parent.
@@ -1062,7 +1062,7 @@ func get_input_component() -> C_InputComponent:
 ```gdscript
 # C_MovementComponent (cleaned up)
 class_name C_MovementComponent
-extends ECSComponent
+extends BaseECSComponent
 
 const COMPONENT_TYPE := StringName("C_MovementComponent")
 
@@ -1154,7 +1154,7 @@ var movement = C_MovementComponent.new()
 
 ### Summary
 
-- `ECSSystem` exposes `@export var execution_priority: int` clamped to `0–1000`.
+- `BaseECSSystem` exposes `@export var execution_priority: int` clamped to `0–1000`.
 - `M_ECSManager` owns the physics tick, keeps a cached priority-sorted array, and re-sorts whenever a system’s priority changes (`mark_systems_dirty()`).
 - Systems only run their `_physics_process` when unmanaged (keeps backwards compatibility for isolated tests).
 

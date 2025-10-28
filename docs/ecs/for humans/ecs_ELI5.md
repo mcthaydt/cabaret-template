@@ -326,7 +326,7 @@ func _ready():
 **Step 1: Create the file**
 ```gdscript
 # scripts/ecs/components/c_my_new_component.gd
-extends ECSComponent
+extends BaseECSComponent
 class_name C_MyNewComponent
 
 const COMPONENT_TYPE := StringName("C_MyNewComponent")
@@ -356,7 +356,7 @@ const COMPONENT_TYPE := StringName("C_MyNewComponent")
 **Step 1: Create the file**
 ```gdscript
 # scripts/ecs/systems/s_my_new_system.gd
-extends ECSSystem
+extends BaseECSSystem
 class_name S_MyNewSystem
 
 @export var execution_priority: int = 100  # Lower = earlier execution

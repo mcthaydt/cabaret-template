@@ -207,7 +207,7 @@ func _exit_tree() -> void:
 
 ```gdscript
 # System updates state based on entity changes
-extends ECSSystem
+extends BaseECSSystem
 
 var _store: M_StateStore
 
@@ -240,7 +240,7 @@ func process_tick(_delta: float) -> void:
 
 ```gdscript
 # System reacts to state changes
-extends ECSSystem
+extends BaseECSSystem
 
 var _store: M_StateStore
 var _is_paused: bool = false
@@ -385,7 +385,7 @@ Use state store as the **single source of truth**, with ECS components as implem
 
 ```gdscript
 # S_HealthSystem.gd - syncs components to state
-extends ECSSystem
+extends BaseECSSystem
 
 var _store: M_StateStore
 
@@ -805,7 +805,7 @@ The state store integrates seamlessly with ECS systems. This section demonstrate
 **Step 1**: Get store reference in `_ready()`:
 
 ```gdscript
-extends ECSSystem
+extends BaseECSSystem
 class_name S_YourSystem
 
 var _store: M_StateStore = null
@@ -876,7 +876,7 @@ func _exit_tree() -> void:
 
 ```gdscript
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_PauseSystem
 
 signal pause_state_changed(is_paused: bool)
@@ -963,7 +963,7 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 
 ```gdscript
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_HealthSystem
 
 signal player_death

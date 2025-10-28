@@ -626,7 +626,7 @@ static func serialize_payload(payload: Variant) -> Variant:
 
 **Fallback (Script Path Parsing):**
 ```gdscript
-static func derive_system_name(system: ECSSystem) -> String:
+static func derive_system_name(system: BaseECSSystem) -> String:
     # Try get_class() first
     var class_name = system.get_class()
     if class_name != "GDScript":  # GDScript is the default for scripts without class_name
@@ -764,7 +764,7 @@ Systems will appear here once added to the manager.
 - ✅ `ECSSystem.is_debug_disabled()` - Returns current disabled state
 - ✅ `ECSEventBus.get_event_history()` - Returns Array of event Dictionaries
 - ✅ `ECSEventBus.clear_history()` - Clears event history
-- ✅ `M_ECSManager.get_systems()` - Returns Array[ECSSystem]
+- ✅ `M_ECSManager.get_systems()` - Returns Array[BaseECSSystem]
 - ✅ GUT testing framework (`addons/gut/`, `-gselect` pattern)
 - ✅ U_ECSUtils pattern (static methods, RefCounted, push_warning())
 
@@ -775,7 +775,7 @@ Systems will appear here once added to the manager.
 **Script Path Extraction:**
 ```gdscript
 # Get stable identifier for system persistence
-var system: ECSSystem = ...
+var system: BaseECSSystem = ...
 var script_path: String = system.get_script().resource_path
 # Example: "res://scripts/ecs/systems/s_input_system.gd"
 ```

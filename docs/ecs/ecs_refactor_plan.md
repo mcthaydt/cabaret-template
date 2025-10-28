@@ -101,7 +101,7 @@ Epic 4 – Component Decoupling (7 points)
 
 Epic 5 – System Execution Ordering (5 points)
 
-- [x] Story 5.1: Add execution_priority to ECSSystem base class (2 points) — Added exported `execution_priority` (clamped 0–1000) to `ECSSystem`, notifying the manager on change with coverage in `tests/unit/ecs/test_ecs_system.gd`
+- [x] Story 5.1: Add execution_priority to ECSSystem base class (2 points) — Added exported `execution_priority` (clamped 0–1000) to `BaseECSSystem`, notifying the manager on change with coverage in `tests/unit/ecs/test_ecs_system.gd`
 - [x] Story 5.2: Implement system sorting in M_ECSManager (2 points) — `M_ECSManager` now disables per-system physics ticks, sorts `_systems` by `execution_priority`, and drives execution via its own `_physics_process`; regression suites updated to call `manager._physics_process` and new priority-order test added in `tests/unit/ecs/test_ecs_manager.gd`
 - [x] Story 5.3: Document system priority conventions (1 point) — Updated `ecs_architecture.md`, `ecs_refactor_recommendations.md`, and planning docs with priority bands, scheduling rules, and hand-off guidance.
 
@@ -122,8 +122,8 @@ Testing & Documentation (7 points)
 | Plan Reference | Actual Codebase Path | Class Name |
 |----------------|----------------------|------------|
 | `M_ECSManager` | `scripts/managers/m_ecs_manager.gd` | `M_ECSManager` |
-| `ECSSystem` | `scripts/ecs/ecs_system.gd` | `ECSSystem` |
-| `ECSComponent` | `scripts/ecs/ecs_component.gd` | `ECSComponent` |
+| `BaseECSSystem` | `scripts/ecs/ecs_system.gd` | `BaseECSSystem` |
+| `BaseECSComponent` | `scripts/ecs/ecs_component.gd` | `BaseECSComponent` |
 | `U_ECSUtils` (NEW) | `scripts/utils/u_ecs_utils.gd` | `U_ECSUtils` |
 | `EntityQuery` (NEW) | `scripts/ecs/entity_query.gd` | `EntityQuery` |
 | `ECSEventBus` (NEW) | `scripts/ecs/ecs_event_bus.gd` | `ECSEventBus` |
@@ -339,7 +339,7 @@ static func get_active_camera(from_node: Node) -> Camera3D:
 
 - [x] Step 3 – Extract Settings Validation Pattern
 
-**TDD Cycle 1: ECSComponent._validate_required_settings() - Base Implementation**
+**TDD Cycle 1: BaseECSComponent._validate_required_settings() - Base Implementation**
 
 - [x] 3.1a – RED: Write test for settings validation hook
 - Create `tests/unit/ecs/test_ecs_component.gd`
@@ -401,7 +401,7 @@ static func map_components_by_body(
     if manager == null:
         return result
     for entry in manager.get_components(component_type):
-        var component: ECSComponent = entry as ECSComponent
+        var component: BaseECSComponent = entry as ECSComponent
         if component == null:
             continue
         if not component.has_method("get_character_body"):
@@ -583,7 +583,7 @@ func has_component(type: StringName) -> bool:
 - Added property: `_entity_component_map`  (Node → Dictionary[StringName, ECSComponent]) plus entity metadata helpers
 - Updated `register_component()`:
 ```gdscript
-func register_component(component: ECSComponent) -> void:
+func register_component(component: BaseECSComponent) -> void:
     if component == null:
         push_warning("Attempted to register a null component")
         return
@@ -620,7 +620,7 @@ func register_component(component: ECSComponent) -> void:
 - [x] 2.2b – GREEN: Implement _get_entity_for_component
 - Add helper to m_ecs_manager.gd:
 ```gdscript
-func _get_entity_for_component(component: ECSComponent) -> Node:
+func _get_entity_for_component(component: BaseECSComponent) -> Node:
     """Find the E_* root node for this component (strict - asserts if not found)"""
     var current = component.get_parent()
     while current != null:
@@ -692,7 +692,7 @@ func _get_entity_for_component(component: ECSComponent) -> Node:
 
 - [x] Step 3.5 – Add query_entities() Passthrough to ECSSystem
 
-**TDD Cycle 1: ECSSystem.query_entities() Convenience Method**
+**TDD Cycle 1: BaseECSSystem.query_entities() Convenience Method**
 
 - [x] 3.5a – RED: Added `tests/unit/ecs/test_ecs_system.gd` with `test_query_entities_passthrough_matches_manager_results()` to assert systems receive identical results when calling the convenience method.
 - [x] 3.5b – GREEN: Implemented `query_entities()` passthrough in `scripts/ecs/ecs_system.gd`, defending against missing managers.
@@ -1063,10 +1063,10 @@ var _execution_priority: int = 0
 - [x] 1.2b – GREEN: Implement system sorting and manager-driven execution
 - Modify `scripts/managers/m_ecs_manager.gd`:
 ```gdscript
-var _sorted_systems: Array[ECSSystem] = []
+var _sorted_systems: Array[BaseECSSystem] = []
 var _systems_dirty: bool = true
 
-func register_system(system: ECSSystem) -> void:
+func register_system(system: BaseECSSystem) -> void:
 	if system == null or _systems.has(system):
 		return
 	_systems.append(system)
@@ -1083,7 +1083,7 @@ func _physics_process(delta: float) -> void:
 		system.process_tick(delta)
 
 func _sort_systems() -> void:
-	var valid: Array[ECSSystem] = []
+	var valid: Array[BaseECSSystem] = []
 	for system in _systems:
 		if system != null and is_instance_valid(system):
 			valid.append(system)

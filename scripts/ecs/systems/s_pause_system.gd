@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_PauseSystem
 
 ## Pause System - Manages game pause state via State Store

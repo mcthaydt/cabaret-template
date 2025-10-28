@@ -67,11 +67,11 @@ Scene Tree
 │  └─ C_FloatingComponent (data: floating_enabled, floating_height)
 │
 ├─ M_ECSManager (Centralized Registry)
-│  ├─ _components: Dictionary[StringName, Array[ECSComponent]]
+│  ├─ _components: Dictionary[StringName, Array[BaseECSComponent]]
 │  │   ├─ "C_MovementComponent" → [component1, component2, ...]
 │  │   ├─ "C_InputComponent" → [component3, ...]
 │  │   └─ ...
-│  ├─ _systems: Array[ECSSystem] (sorted by execution_priority)
+│  ├─ _systems: Array[BaseECSSystem] (sorted by execution_priority)
 │  │   ├─ S_InputSystem (priority: 0)
 │  │   ├─ S_JumpSystem (priority: 40)
 │  │   ├─ S_MovementSystem (priority: 50)
@@ -138,13 +138,13 @@ Scene Tree
 
 **Key Properties**:
 ```gdscript
-var _components: Dictionary = {}  # StringName → Array[ECSComponent]
-var _systems: Array[ECSSystem] = []
+var _components: Dictionary = {}  # StringName → Array[BaseECSComponent]
+var _systems: Array[BaseECSSystem] = []
 ```
 
 **Key Methods**:
 
-#### `register_component(component: ECSComponent) -> void`
+#### `register_component(component: BaseECSComponent) -> void`
 ```gdscript
 # Lines 18-31
 # Called automatically by components on _ready()
@@ -153,7 +153,7 @@ var _systems: Array[ECSSystem] = []
 # Asserts if component is null or has no COMPONENT_TYPE
 ```
 
-#### `unregister_component(component: ECSComponent) -> void`
+#### `unregister_component(component: BaseECSComponent) -> void`
 ```gdscript
 # Lines 33-49
 # Called automatically on component exit_tree
@@ -177,8 +177,8 @@ var _systems: Array[ECSSystem] = []
 ```
 
 **Signals**:
-- `registered(component: ECSComponent)` - Fired when component registers
-- `unregistered(component: ECSComponent)` - Fired when component unregisters
+- `registered(component: BaseECSComponent)` - Fired when component registers
+- `unregistered(component: BaseECSComponent)` - Fired when component unregisters
 
 **Discovery Pattern**:
 - Joins `"ecs_manager"` scene tree group on `_ready()`
@@ -203,7 +203,7 @@ var _systems: Array[ECSSystem] = []
 All components use the `@icon` decorator for visual organization in the Godot editor:
 ```gdscript
 @icon("res://resources/editor_icons/component.svg")
-extends ECSComponent
+extends BaseECSComponent
 class_name C_MovementComponent
 ```
 This displays a custom icon in the scene tree and inspector for easy identification.
@@ -271,7 +271,7 @@ Component destroyed
 All systems use the `@icon` decorator for visual organization in the Godot editor:
 ```gdscript
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_MovementSystem
 ```
 This displays a custom icon in the scene tree and inspector for easy identification.
@@ -1469,7 +1469,7 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 **Status**: ✅ Delivered. Systems no longer rely on scene-tree placement; `M_ECSManager` sorts them by `execution_priority` every time the order changes.
 
 **Highlights**:
-- `execution_priority` is exported on `ECSSystem`, clamped to `0–1000`, and visible in the inspector.
+- `execution_priority` is exported on `BaseECSSystem`, clamped to `0–1000`, and visible in the inspector.
 - Lower values run earlier; registration order breaks ties.
 - `M_ECSManager.mark_systems_dirty()` is invoked whenever a system’s priority changes, so the next physics tick re-sorts the cache.
 - Recommended priority bands are documented in [§6.8](#68-priority-sorted-system-scheduling).

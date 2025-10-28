@@ -5,7 +5,7 @@ const ECS_COMPONENT := preload("res://scripts/ecs/ecs_component.gd")
 
 const OPTIONAL_TYPE := StringName("C_OptionalComponent")
 
-class TestComponent extends ECS_COMPONENT:
+class TestComponent extends BaseECSComponent:
 	const COMPONENT_TYPE := StringName("C_TestComponent")
 
 	func _init() -> void:
@@ -22,7 +22,7 @@ func test_get_component_returns_component_for_required_type() -> void:
 		TestComponent.COMPONENT_TYPE: component,
 	}
 
-	var retrieved: ECSComponent = query.get_component(TestComponent.COMPONENT_TYPE)
+	var retrieved: BaseECSComponent = query.get_component(TestComponent.COMPONENT_TYPE)
 	assert_eq(retrieved, component)
 
 func test_has_component_detects_optional_component() -> void:

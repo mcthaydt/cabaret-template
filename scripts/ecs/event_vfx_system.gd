@@ -1,6 +1,6 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
-class_name EventVFXSystem
+extends BaseECSSystem
+class_name BaseEventVFXSystem
 
 ## Base class for VFX systems that respond to ECS events
 ##

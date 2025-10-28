@@ -1,6 +1,6 @@
 extends Node
 
-class_name ECSSystem
+class_name BaseECSSystem
 
 const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 static var _missing_manager_method_warnings: Dictionary = {}
@@ -94,7 +94,7 @@ func _warn_missing_manager_method(method_name: String) -> void:
 	if _manager.is_inside_tree():
 		identifier = String(_manager.get_path())
 
-	push_warning("ECSSystem: Manager '%s' is missing required method '%s' (requested by system '%s')." % [
+	push_warning("BaseECSSystem: Manager '%s' is missing required method '%s' (requested by system '%s')." % [
 		String(identifier),
 		method_name,
 		String(name),

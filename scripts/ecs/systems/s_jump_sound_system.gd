@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/system.svg")
-extends "res://scripts/ecs/event_vfx_system.gd"
+extends BaseEventVFXSystem
 class_name S_JumpSoundSystem
 
 ## Alias for EventVFXSystem.requests to maintain backward compatibility

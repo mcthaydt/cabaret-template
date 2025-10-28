@@ -29,7 +29,7 @@ We use a **prefix + suffix** naming convention that provides:
 | **Shaders** | `SH_` | `Shader` | `SH_WaterShader` |
 | **Tools** | `T_` | `Tool` | `T_LevelEditorTool` |
 | **Plugins** | `P_` | `Plugin` | `P_CustomPlugin` |
-| **Base Classes** | *(none)* | descriptive | `ECSSystem`, `ECSComponent` |
+| **Base Classes** | *(none)* | descriptive | `BaseECSSystem`, `BaseECSComponent` |
 
 ### File Names: `prefix_snake_case_suffix.gd`
 
@@ -113,7 +113,7 @@ tests/
 
 ```gdscript
 class_name S_MovementSystem
-extends ECSSystem
+extends BaseECSSystem
 
 const SYSTEM_TYPE := StringName("S_MovementSystem")
 const MOVEMENT_COMPONENT := StringName("C_MovementComponent")
@@ -140,7 +140,7 @@ func _process_movement(component: C_MovementComponent, delta: float) -> void:
 
 ```gdscript
 class_name C_MovementComponent
-extends ECSComponent
+extends BaseECSComponent
 
 const COMPONENT_TYPE := StringName("C_MovementComponent")
 
@@ -189,9 +189,9 @@ class_name M_ECSManager
 extends Node
 
 var _components: Dictionary = {}
-var _systems: Array[ECSSystem] = []
+var _systems: Array[BaseECSSystem] = []
 
-func register_component(component: ECSComponent) -> void:
+func register_component(component: BaseECSComponent) -> void:
     var type = component.component_type
     if not _components.has(type):
         _components[type] = []
@@ -293,8 +293,8 @@ func _exit_tree() -> void:
 
 ### Base Classes (No Prefix)
 Abstract or base classes that define interfaces should NOT have prefixes:
-- `ECSSystem` - Base class for all systems
-- `ECSComponent` - Base class for all components
+- `BaseECSSystem` - Base class for all systems
+- `BaseECSComponent` - Base class for all components
 - `Resource` - Godot built-in
 
 ### Godot Built-ins (No Prefix)

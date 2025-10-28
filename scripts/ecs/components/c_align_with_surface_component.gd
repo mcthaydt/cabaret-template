@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/component.svg")
-extends ECSComponent
+extends BaseECSComponent
 class_name C_AlignWithSurfaceComponent
 
 const COMPONENT_TYPE := StringName("C_AlignWithSurfaceComponent")

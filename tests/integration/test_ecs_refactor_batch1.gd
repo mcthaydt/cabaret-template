@@ -49,7 +49,7 @@ func test_base_scene_components_register_with_manager() -> void:
 
 	for child in components_root.get_children():
 		assert_true(child is ECS_COMPONENT, "Component node %s should extend ECSComponent" % child.name)
-		var component: ECSComponent = child
+		var component: BaseECSComponent = child
 		var registered: Array = manager.get_components(component.get_component_type())
 		assert_true(registered.has(component), "Manager should own component %s" % child.name)
 

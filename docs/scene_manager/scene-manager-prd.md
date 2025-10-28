@@ -1182,7 +1182,7 @@ func get_duration() -> float:
 ### Example 10: Scene Trigger Component
 
 ```gdscript
-extends ECSComponent
+extends BaseECSComponent
 class_name C_SceneTriggerComponent
 
 ## Component for entities that trigger scene transitions
@@ -1291,7 +1291,7 @@ func trigger_transition() -> void:
 ### Example 11: Scene Trigger System
 
 ```gdscript
-extends ECSSystem
+extends BaseECSSystem
 class_name S_SceneTriggerSystem
 
 ## System that processes scene trigger components

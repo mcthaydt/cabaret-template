@@ -31,8 +31,8 @@ All core ECS architectural elements are **fully implemented and operational**:
 | Component | Status | Location | Notes |
 |-----------|--------|----------|-------|
 | **M_ECSManager** | ✅ Complete | `scripts/managers/m_ecs_manager.gd` | 482 lines, full query system, caching, metrics |
-| **ECSComponent** | ✅ Complete | `scripts/ecs/ecs_component.gd` | Base class with validation hooks |
-| **ECSSystem** | ✅ Complete | `scripts/ecs/ecs_system.gd` | Priority-based execution, query API |
+| **BaseECSComponent** | ✅ Complete | `scripts/ecs/ecs_component.gd` | Base class with validation hooks |
+| **BaseECSSystem** | ✅ Complete | `scripts/ecs/ecs_system.gd` | Priority-based execution, query API |
 | **EntityQuery** | ✅ Complete | `scripts/ecs/entity_query.gd` | Query result wrapper with type safety |
 | **ECSEventBus** | ✅ Complete | `scripts/ecs/ecs_event_bus.gd` | Pub/sub with history buffer |
 | **BaseEntity** | ✅ Complete | `scripts/ecs/base_entity.gd` | Entity root marker |
@@ -53,7 +53,7 @@ All 7 gameplay components are **fully implemented**:
 | **C_LandingIndicatorComponent** | Ground projection | RS_LandingIndicatorSettings | ✅ Complete |
 
 **Key Features**:
-- ✅ All components extend `ECSComponent` base class
+- ✅ All components extend `BaseECSComponent` base class
 - ✅ All use `component_type` constant (StringName)
 - ✅ Settings validation via `_validate_required_settings()`
 - ✅ Auto-registration with manager
@@ -80,7 +80,7 @@ All 12 systems are **fully implemented and tested**:
 | **S_PauseSystem** | 200 | Pause handling | ✅ | ✅ Reads/writes pause state |
 
 **Key Features**:
-- ✅ All systems extend `ECSSystem` base class
+- ✅ All systems extend `BaseECSSystem` base class
 - ✅ Priority-based execution order (0-1000 range)
 - ✅ All use `query_entities()` for multi-component queries
 - ✅ Event-driven subscribers for cross-system communication
@@ -428,8 +428,8 @@ tests/
 **Base Class Usage**:
 | File | Extends | COMPONENT_TYPE/Priority | Status |
 |------|---------|------------------------|--------|
-| All components | `ECSComponent` | ✅ `COMPONENT_TYPE` constant | ✅ |
-| All systems | `ECSSystem` | ✅ `execution_priority` export | ✅ |
+| All components | `BaseECSComponent` | ✅ `COMPONENT_TYPE` constant | ✅ |
+| All systems | `BaseECSSystem` | ✅ `execution_priority` export | ✅ |
 | All resources | `Resource` | ✅ `@export` properties | ✅ |
 
 **Icon Decorators**:

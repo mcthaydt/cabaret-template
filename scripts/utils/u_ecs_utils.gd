@@ -69,7 +69,7 @@ static func map_components_by_body(manager: M_ECSManager, component_type: String
 
 	var components: Array = manager.get_components(component_type)
 	for entry in components:
-		var ecs_component: ECSComponent = entry as ECSComponent
+		var ecs_component: BaseECSComponent = entry as BaseECSComponent
 		if ecs_component == null:
 			continue
 		if not ecs_component.has_method("get_character_body"):

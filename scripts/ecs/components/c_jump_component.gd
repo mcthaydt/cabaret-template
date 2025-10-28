@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/component.svg")
-extends ECSComponent
+extends BaseECSComponent
 class_name C_JumpComponent
 
 const COMPONENT_TYPE := StringName("C_JumpComponent")

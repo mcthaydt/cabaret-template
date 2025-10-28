@@ -6,7 +6,7 @@ const ECS_SYSTEM := preload("res://scripts/ecs/ecs_system.gd")
 const PLAYER_SCENE := preload("res://templates/player_template.tscn")
 const BASE_SCENE := preload("res://templates/base_scene_template.tscn")
 
-class FakeComponent extends ECS_COMPONENT:
+class FakeComponent extends BaseECSComponent:
 	const TYPE := StringName("C_FakeComponent")
 
 	func _init():
@@ -15,13 +15,13 @@ class FakeComponent extends ECS_COMPONENT:
 	func get_snapshot() -> Dictionary:
 		return {"id": 42}
 
-class FakeSystem extends ECS_SYSTEM:
+class FakeSystem extends BaseECSSystem:
 	var observed_components: Array = []
 
 	func process_tick(_delta: float) -> void:
 		observed_components = get_components(FakeComponent.TYPE)
 
-class PrioritySystem extends ECS_SYSTEM:
+class PrioritySystem extends BaseECSSystem:
 	var label: String = ""
 	var log: Array = []
 
@@ -35,25 +35,25 @@ class PrioritySystem extends ECS_SYSTEM:
 			return
 		log.append(label)
 
-class DebugToggleSystem extends ECS_SYSTEM:
+class DebugToggleSystem extends BaseECSSystem:
 	var tick_count: int = 0
 
 	func process_tick(_delta: float) -> void:
 		tick_count += 1
 
-class QueryMovementComponent extends ECS_COMPONENT:
+class QueryMovementComponent extends BaseECSComponent:
 	const TYPE := StringName("C_QueryMovementComponent")
 
 	func _init() -> void:
 		component_type = TYPE
 
-class QueryInputComponent extends ECS_COMPONENT:
+class QueryInputComponent extends BaseECSComponent:
 	const TYPE := StringName("C_QueryInputComponent")
 
 	func _init() -> void:
 		component_type = TYPE
 
-class QueryFloatingComponent extends ECS_COMPONENT:
+class QueryFloatingComponent extends BaseECSComponent:
 	const TYPE := StringName("C_QueryFloatingComponent")
 
 	func _init() -> void:
@@ -397,7 +397,7 @@ func test_query_entities_with_single_required_component() -> void:
 	for query in results:
 		var entity: Node = query.entity
 		assert_true(expected.has(entity), "Unexpected entity returned from query")
-		var movement: ECSComponent = query.get_component(QueryMovementComponent.TYPE)
+		var movement: BaseECSComponent = query.get_component(QueryMovementComponent.TYPE)
 		assert_eq(movement, expected[entity])
 		expected.erase(entity)
 
@@ -461,7 +461,7 @@ func test_query_entities_with_optional_components() -> void:
 
 		if query.has_component(QueryFloatingComponent.TYPE):
 			entities_with_optional.append(query.entity)
-			var expected_component: ECSComponent = entity_b["components"][QueryFloatingComponent.TYPE]
+			var expected_component: BaseECSComponent = entity_b["components"][QueryFloatingComponent.TYPE]
 			assert_eq(query.get_component(QueryFloatingComponent.TYPE), expected_component)
 		else:
 			assert_eq(query.entity, entity_a["entity"])

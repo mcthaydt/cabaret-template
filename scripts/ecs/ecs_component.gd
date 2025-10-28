@@ -1,10 +1,10 @@
 extends Node
 
-class_name ECSComponent
+class_name BaseECSComponent
 
 const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
-signal registered(manager: M_ECSManager, component: ECSComponent)
+signal registered(manager: M_ECSManager, component: BaseECSComponent)
 
 var _manager: M_ECSManager
 var _component_type: StringName = &""

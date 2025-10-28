@@ -24,7 +24,7 @@
 
 > **Status (2025-10-23):** Implementation has been cancelled. The description below reflects the original design for reference.
 
-The ECS Debugger Plugin is an **EditorPlugin-based debugging tool** that provides real-time visibility into the ECS architecture's runtime state. This project implements a **bottom-panel UI** that streams live data from `M_ECSManager`, `ECSEventBus`, and `ECSSystem` instances.
+The ECS Debugger Plugin is an **EditorPlugin-based debugging tool** that provides real-time visibility into the ECS architecture's runtime state. This project implements a **bottom-panel UI** that streams live data from `M_ECSManager`, `ECSEventBus`, and `BaseECSSystem` instances.
 
 Key capabilities:
 
@@ -740,7 +740,7 @@ func get_query_metrics() -> Array
 
 # System list (scripts/managers/m_ecs_manager.gd:86)
 func get_systems() -> Array
-# Returns: Array[ECSSystem] (already sorted by priority)
+# Returns: Array[BaseECSSystem] (already sorted by priority)
 ```
 
 **Data Format**:
@@ -1198,7 +1198,7 @@ static func serialize_event_history(events: Array) -> String:
 **Implementation**:
 
 ```gdscript
-static func derive_system_name(system: ECSSystem) -> String:
+static func derive_system_name(system: BaseECSSystem) -> String:
     # Try get_class() first
     var class_name = system.get_class()
     if class_name != "GDScript":  # "GDScript" means no class_name declared

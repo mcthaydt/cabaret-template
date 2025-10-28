@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_JumpSystem
 
 ## Phase 16: Dispatches floor state to state store

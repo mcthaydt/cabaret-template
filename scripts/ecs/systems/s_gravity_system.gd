@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_GravitySystem
 
 ## Phase 16: Reads gravity_scale from state for zone-based modifiers

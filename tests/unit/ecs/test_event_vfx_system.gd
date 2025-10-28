@@ -20,7 +20,7 @@ func _spawn_manager() -> M_ECSManager:
 
 ## Test concrete implementation of EventVFXSystem
 class TestVFXSystem:
-	extends EVENT_VFX_SYSTEM
+	extends BaseEventVFXSystem
 
 	var event_name: StringName = StringName()
 	var request_builder: Callable = Callable()
@@ -38,7 +38,7 @@ class TestVFXSystem:
 func test_system_extends_ecs_system() -> void:
 	var system := TestVFXSystem.new()
 	autofree(system)
-	assert_true(system is ECSSystem, "EventVFXSystem should extend ECSSystem")
+	assert_true(system is BaseECSSystem, "EventVFXSystem should extend ECSSystem")
 
 func test_get_event_name_returns_empty_in_base_class() -> void:
 	var system := TestVFXSystem.new()

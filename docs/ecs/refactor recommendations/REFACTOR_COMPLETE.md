@@ -134,7 +134,7 @@ func _on_entity_jumped(data: Dictionary):
 
 **System Priority:**
 ```gdscript
-extends ECSSystem
+extends BaseECSSystem
 
 @export var execution_priority: int = 50  # Lower = earlier
 
