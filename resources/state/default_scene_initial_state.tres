@@ -1,11 +1,6 @@
-[gd_resource type="Resource" script_class="RS_SceneInitialState" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_SceneInitialState" load_steps=2 format=3 uid="uid://com8t6o2gcr03"]
 
-[ext_resource type="Script" path="res://scripts/state/resources/rs_scene_initial_state.gd" id="1_scene_state"]
+[ext_resource type="Script" uid="uid://gym4i0mkrwin" path="res://scripts/state/resources/rs_scene_initial_state.gd" id="1_scene_state"]
 
 [resource]
 script = ExtResource("1_scene_state")
-current_scene_id = &""
-scene_stack = Array[StringName]([])
-is_transitioning = false
-transition_type = ""
-previous_scene_id = &""

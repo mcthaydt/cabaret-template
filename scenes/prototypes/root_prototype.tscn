@@ -1,12 +1,12 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=8 format=3 uid="uid://bjwvct7gp277c"]
 
-[ext_resource type="Script" path="res://scripts/state/m_state_store.gd" id="1_state_store"]
-[ext_resource type="Resource" path="res://resources/state/default_state_store_settings.tres" id="1_state_settings"]
-[ext_resource type="Resource" path="res://resources/state/default_boot_initial_state.tres" id="1_boot_state"]
-[ext_resource type="Resource" path="res://resources/state/default_menu_initial_state.tres" id="1_menu_state"]
-[ext_resource type="Resource" path="res://resources/state/default_gameplay_initial_state.tres" id="1_gameplay_state"]
-[ext_resource type="Script" path="res://scripts/prototypes/prototype_scene_restructuring.gd" id="1_prototype_script"]
-[ext_resource type="Script" path="res://scripts/managers/m_cursor_manager.gd" id="2_cursor_manager"]
+[ext_resource type="Resource" uid="uid://dq08aopcfbjyp" path="res://resources/state/default_boot_initial_state.tres" id="1_boot_state"]
+[ext_resource type="Resource" uid="uid://uygy4iikdf74" path="res://resources/state/default_gameplay_initial_state.tres" id="1_gameplay_state"]
+[ext_resource type="Resource" uid="uid://b26lupnu6qot0" path="res://resources/state/default_menu_initial_state.tres" id="1_menu_state"]
+[ext_resource type="Script" uid="uid://dswfhja87mcpg" path="res://scripts/prototypes/prototype_scene_restructuring.gd" id="1_prototype_script"]
+[ext_resource type="Resource" uid="uid://dw7q8jxqvhgwf" path="res://resources/state/default_state_store_settings.tres" id="1_state_settings"]
+[ext_resource type="Script" uid="uid://dog624m744wa4" path="res://scripts/state/m_state_store.gd" id="1_state_store"]
+[ext_resource type="Script" uid="uid://3mg2o7kqih67" path="res://scripts/managers/m_cursor_manager.gd" id="2_cursor_manager"]
 
 [node name="Root" type="Node"]
 

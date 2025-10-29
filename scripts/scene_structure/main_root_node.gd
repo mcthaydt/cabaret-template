@@ -1,4 +1,4 @@
 @icon("res://resources/editor_icons/main_root.svg")
-extends Node3D
+extends Node
 
 ## Marker script that gives the Main scene root a dedicated editor icon.
