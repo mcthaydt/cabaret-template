@@ -76,13 +76,13 @@ This guide directs you to implement the Scene Manager feature by following the t
 
 ---
 
-## 🚧 Phase 3: User Story 1 - Basic Scene Transitions - IN PROGRESS (10/43 tasks)
+## 🚧 Phase 3: User Story 1 - Basic Scene Transitions - IN PROGRESS (12/43 tasks)
 
-**Status**: Tests written, scene state slice implemented and validated
+**Status**: Scene state slice validated, transient fields working, no regressions
 **Date Started**: 2025-10-28
-**Current Task**: T035 - Test transient fields excluded from save_state
+**Current Task**: T037 - Create SceneRegistry static class
 
-**Completed (10/43 tasks) - 23%**:
+**Completed (12/43 tasks) - 28%**:
 - ✅ T025-T029: All unit and integration tests written (TDD approach)
   * test_scene_reducer.gd: 10 tests
   * test_scene_registry.gd: 18 tests
@@ -94,16 +94,18 @@ This guide directs you to implement the Scene Manager feature by following the t
 - ✅ T032: U_SceneActions created with ActionRegistry integration
 - ✅ T033: M_StateStore modified to register scene slice with transient fields
 - ✅ T034: Scene reducer tests passing (10/10 ✅)
+- ✅ T035: Transient fields test added (is_transitioning, transition_type excluded from saves)
+- ✅ T036: All existing tests validated (223/223 passing - no regressions)
 
 **Key Achievements**:
 - Scene state slice architecture established
-- Transient fields configured (`is_transitioning`, `transition_type`)
+- Transient fields configured and validated (`is_transitioning`, `transition_type`)
 - Scene reducer follows immutable Redux patterns
 - Action creators properly registered with ActionRegistry
 - TDD discipline maintained throughout
+- No regressions: 213 unit + 10 integration = 223 total tests passing
 
-**Remaining Work (33 tasks)**:
-- T035-T036: Validate transient fields and existing tests
+**Remaining Work (31 tasks)**:
 - T037-T042: Implement SceneRegistry with scene metadata
 - T043-T051: Implement M_SceneManager core functionality
 - T052-T058: Implement transition effects (instant, fade)
@@ -112,12 +114,14 @@ This guide directs you to implement the Scene Manager feature by following the t
 
 **Test Status**:
 - Scene reducer: 10/10 passing ✅
+- Scene persistence: 1/1 new test passing ✅
+- All existing tests: 223/223 passing ✅
 - SceneRegistry: 0/18 (dependencies not implemented)
 - M_SceneManager: 0/23 (dependencies not implemented)
 - Transitions: 0/21 (dependencies not implemented)
 - Integration: 0/15 (dependencies not implemented)
 
-**Next Steps**: Validate existing 212 tests still pass, then implement SceneRegistry
+**Next Steps**: Implement SceneRegistry static class with scene metadata
 
 ---
 

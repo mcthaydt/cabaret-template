@@ -171,8 +171,8 @@
 - [x] T032 [US1] Create scripts/state/u_scene_actions.gd with ActionRegistry registration in _static_init() - **COMPLETE** (4 actions registered)
 - [x] T033 [US1] Modify scripts/managers/m_state_store.gd: add @export var scene_initial_state: RS_SceneInitialState and register in _initialize_slices() (FR-112) - **COMPLETE** (transient fields configured)
 - [x] T034 [US1] Run unit tests for scene slice and verify they pass - **COMPLETE** (10/10 tests passing ✅)
-- [ ] T035 [US1] Test transient fields (is_transitioning) excluded from save_state()
-- [ ] T036 [US1] Validate ALL ~212 existing tests still pass (no regressions)
+- [x] T035 [US1] Test transient fields (is_transitioning) excluded from save_state() - **COMPLETE** (test added to test_state_persistence.gd, verifies is_transitioning and transition_type excluded)
+- [x] T036 [US1] Validate ALL ~212 existing tests still pass (no regressions) - **COMPLETE** (213/213 unit + 10/10 integration = 223/223 passing ✅)
 - [ ] T037 [P] [US1] Create scripts/scene_management/scene_registry.gd static class
 - [ ] T038 [P] [US1] Define scene metadata in SceneRegistry (paths, types, transitions, preload priority)
 - [ ] T039 [P] [US1] Define door pairing structure in SceneRegistry
