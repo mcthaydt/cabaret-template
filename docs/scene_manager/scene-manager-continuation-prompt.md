@@ -5,7 +5,7 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager`
-**Status**: ✅ Phase 0 & Phase 1 Complete - Ready for Phase 2
+**Status**: ✅ Phase 0, Phase 1 & Phase 2 Complete - Ready for Phase 3
 
 ---
 
@@ -34,12 +34,45 @@ This guide directs you to implement the Scene Manager feature by following the t
 ## ✅ Phase 1: Setup - COMPLETE (2/2 tasks)
 
 **Status**: Baseline tests established successfully
+**Commit**: 6f7107f
 
 **Completed (2/2 tasks) - 100%**:
 - ✅ T001: All existing tests run successfully - 212 automated GUT tests passing
 - ✅ T002: Test baseline documented in commit 6f7107f
 
-**Next Phase**: Begin Phase 2 (Foundational Scene Restructuring) - T003-T024
+---
+
+## ✅ Phase 2: Foundational Scene Restructuring - COMPLETE (22/22 tasks)
+
+**Status**: All Phase 2 tasks completed successfully
+**Commits**: a2b84b9 (implementation) + 22efa65 (documentation)
+**Date**: 2025-10-28
+
+**Completed (22/22 tasks) - 100%**:
+- ✅ T003-T010: Root scene created with all persistent managers and containers
+- ✅ T011-T016: Gameplay scene extracted from base_scene_template.tscn
+- ✅ T017-T021: Integration validated (ECS, Redux, all 212 tests passing)
+- ✅ T022-T024: Main scene switched to root.tscn, game launches successfully
+
+**Key Achievements**:
+- Root scene architecture established: `scenes/root.tscn` with persistent managers
+- Gameplay scene template created: `scenes/gameplay/gameplay_base.tscn`
+- HUD already using `U_StateUtils.get_store()` pattern (no changes needed)
+- All 212 existing tests passing (no regressions):
+  * Cursor Manager: 13/13 ✅
+  * ECS: 62/62 ✅
+  * State: 104/104 ✅
+  * Utils: 11/11 ✅
+  * Unit/Integration: 12/12 ✅
+  * Integration: 10/10 ✅
+- Documentation updated: AGENTS.md, DEV_PITFALLS.md, scene-manager-tasks.md
+
+**Architecture Changes**:
+- `scenes/root.tscn`: Persistent managers (M_StateStore, M_CursorManager, M_SceneManager stub)
+- `scenes/gameplay/gameplay_base.tscn`: Per-scene M_ECSManager, Systems, Entities, Environment
+- Project main scene: `res://scenes/root.tscn`
+
+**Next Phase**: Begin Phase 3 (User Story 1 - Basic Scene Transitions) - T025-T067
 
 See `docs/scene_manager/general/research.md` for detailed findings.
 
@@ -116,8 +149,8 @@ Additional tracking requirements:
 
 ## Critical Notes
 
-- **Phase 0 & Phase 1 complete**: Research validated, baseline tests established (212 GUT tests passing)
-- **Phase 2 is high risk**: Scene restructuring affects the entire project - all ~212 existing tests must continue passing
+- **Phase 0, Phase 1 & Phase 2 complete**: Research validated, baseline tests established, root scene architecture implemented
+- **Phase 3 begins User Story 1**: Basic scene transitions with M_SceneManager implementation
 - **No autoloads**: Use scene-tree-based discovery patterns
 - **TDD is mandatory**: Write tests before implementation
 - **Immutable state**: Always use `.duplicate(true)` in reducers
@@ -132,11 +165,17 @@ Due to risk management reordering, Phase 5 (T101-T128) comes before Phase 6 (T08
 
 ## Getting Started
 
-**Current Phase**: Phase 2 (Foundational Scene Restructuring)
+**Current Phase**: Phase 3 (User Story 1 - Basic Scene Transitions)
 
-Begin with Phase 2 by reading the detailed requirements in:
+Begin with Phase 3 by reading the detailed requirements in:
 
-- `scene-manager-plan.md` (Phase 2 section)
-- `scene-manager-tasks.md` (T003-T024)
+- `scene-manager-plan.md` (Phase 3 section)
+- `scene-manager-tasks.md` (T025-T067)
+- `scene-manager-prd.md` (User Story 1)
 
-**⚠️ CRITICAL**: Phase 2 restructures the entire project architecture. All existing tests must pass after each major change.
+**⚠️ IMPORTANT**: Phase 3 implements the first user story - basic scene transitions. This includes:
+- Scene state slice and reducer
+- SceneRegistry for scene metadata
+- M_SceneManager core functionality (transition_to, get_current_scene)
+- Transition effects (instant, fade)
+- Basic UI scenes (main menu, settings)

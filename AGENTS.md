@@ -11,6 +11,12 @@
   - General pitfalls: `docs/general/DEV_PITFALLS.md`
 - Before adding or modifying code, re-read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md` to stay aligned with testing and formatting requirements.
 - Keep project planning docs current: whenever a story advances, update the relevant plan and PRD documents immediately so written guidance matches the implementation state.
+- **MANDATORY: Update continuation prompt and tasks checklist after EVERY phase**: When completing a phase (e.g., Phase 2 of Scene Manager), you MUST:
+  1. Update the continuation prompt file (e.g., `docs/scene_manager/scene-manager-continuation-prompt.md`) with current status
+  2. Update the tasks file (e.g., `docs/scene_manager/scene-manager-tasks.md`) to mark completed tasks with [x] and add completion notes
+  3. Update AGENTS.md with new patterns/architecture (if applicable)
+  4. Update DEV_PITFALLS.md with new pitfalls discovered (if applicable)
+  5. Commit documentation updates separately from implementation
 - Commit at the end of each completed story (or logical, test-green milestone) so every commit represents a verified state.
 - Make a git commit whenever a feature, refactor, or documentation update moves the needle forward; keep commits focused and validated. Skipping required commits is a blocker—treat the guidance as non-optional.
 

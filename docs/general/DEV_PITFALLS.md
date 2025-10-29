@@ -147,6 +147,21 @@
   await wait_physics_frames(1)
   ```
 
+## Documentation and Planning Pitfalls
+
+- **MANDATORY: Update continuation prompt and tasks after EVERY phase**: Failing to update planning documentation after completing a phase creates confusion for future work sessions. After completing ANY phase of ANY feature:
+  1. Update the continuation prompt file with current status and what's next
+  2. Update the tasks file to mark completed tasks [x] with completion notes
+  3. Update AGENTS.md if new patterns/architecture were introduced
+  4. Update DEV_PITFALLS.md if new pitfalls were discovered
+  5. Commit documentation separately with clear message
+
+  **Why this matters**: The continuation prompt is the first thing read when resuming work. Stale status causes wasted time re-assessing progress and can lead to duplicate work or missed dependencies.
+
+  **Example**: After completing Scene Manager Phase 2, the continuation prompt MUST be updated from "Ready for Phase 2" to "Phase 2 Complete - Ready for Phase 3", and tasks.md must show all T003-T024 marked [x] with test results.
+
+- **Always commit documentation updates separately from implementation**: Documentation changes (AGENTS.md, DEV_PITFALLS.md, continuation prompts, task lists) should be in their own commit after the implementation commit. This makes it easier to review documentation changes and revert them independently if needed.
+
 ## Scene Manager Pitfalls (Phase 2+)
 
 - **Root scene architecture is mandatory**: As of Phase 2, the project uses a root scene pattern where `scenes/root.tscn` persists throughout the session. DO NOT create gameplay scenes with M_StateStore or M_CursorManager - these managers live ONLY in root.tscn. Each gameplay scene should have its own M_ECSManager instance.
