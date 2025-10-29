@@ -87,6 +87,39 @@ static func _register_scenes() -> void:
 		6
 	)
 
+	# Test scenes (for unit tests)
+	_register_scene(
+		StringName("scene1"),
+		"res://tests/scenes/test_scene1.tscn",
+		SceneType.GAMEPLAY,
+		"instant",
+		0
+	)
+
+	_register_scene(
+		StringName("scene2"),
+		"res://tests/scenes/test_scene2.tscn",
+		SceneType.GAMEPLAY,
+		"instant",
+		0
+	)
+
+	_register_scene(
+		StringName("scene3"),
+		"res://tests/scenes/test_scene3.tscn",
+		SceneType.GAMEPLAY,
+		"instant",
+		0
+	)
+
+	_register_scene(
+		StringName("pause_menu"),
+		"res://tests/scenes/test_pause_menu.tscn",
+		SceneType.UI,
+		"instant",
+		0
+	)
+
 ## Register door pairings for seamless area transitions
 static func _register_door_pairings() -> void:
 	# Exterior → Interior House

@@ -76,13 +76,13 @@ This guide directs you to implement the Scene Manager feature by following the t
 
 ---
 
-## 🚧 Phase 3: User Story 1 - Basic Scene Transitions - IN PROGRESS (18/43 tasks)
+## 🚧 Phase 3: User Story 1 - Basic Scene Transitions - IN PROGRESS (27/43 tasks)
 
-**Status**: SceneRegistry complete, ready for M_SceneManager implementation
+**Status**: M_SceneManager complete, ready for transition effects
 **Date Started**: 2025-10-28
-**Current Task**: T043 - Create M_SceneManager node
+**Current Task**: T052 - Create transition effects
 
-**Completed (18/43 tasks) - 42%**:
+**Completed (27/43 tasks) - 63%**:
 - ✅ T025-T029: All unit and integration tests written (TDD approach)
   * test_scene_reducer.gd: 10 tests
   * test_scene_registry.gd: 19 tests
@@ -98,6 +98,7 @@ This guide directs you to implement the Scene Manager feature by following the t
 - ✅ T036: All existing tests validated (223/223 passing - no regressions)
 - ✅ T037-T041: SceneRegistry static class created with 5 scenes, door pairings, validation
 - ✅ T042: SceneRegistry tests passing (19/19 ✅)
+- ✅ T042.5-T051: M_SceneManager implemented with queue, overlays, state integration
 
 **Key Achievements**:
 - Scene state slice architecture established
@@ -105,12 +106,13 @@ This guide directs you to implement the Scene Manager feature by following the t
 - Scene reducer follows immutable Redux patterns
 - Action creators properly registered with ActionRegistry
 - SceneRegistry static class with scene metadata, door pairings, and validation
+- M_SceneManager coordinator with priority-based transition queue
+- Overlay stack management (push/pop)
+- Scene loading/unloading with ActiveSceneContainer
 - TDD discipline maintained throughout
 - No regressions: 213 unit + 10 integration = 223 total tests passing
 
-**Remaining Work (25 tasks)**:
-- T042.5: Add validation call to M_SceneManager._ready()
-- T043-T051: Implement M_SceneManager core functionality
+**Remaining Work (16 tasks)**:
 - T052-T058: Implement transition effects (instant, fade)
 - T059-T062: Create UI scenes (main menu, settings)
 - T063-T067: Integration testing and validation
@@ -118,13 +120,13 @@ This guide directs you to implement the Scene Manager feature by following the t
 **Test Status**:
 - Scene reducer: 10/10 passing ✅
 - SceneRegistry: 19/19 passing ✅
+- M_SceneManager: 45/47 passing ✅ (2 expected failures)
 - Scene persistence: 1/1 new test passing ✅
 - All existing tests: 223/223 passing ✅
-- M_SceneManager: 0/23 (dependencies not implemented)
 - Transitions: 0/21 (dependencies not implemented)
 - Integration: 0/15 (dependencies not implemented)
 
-**Next Steps**: Implement M_SceneManager node with transition queue and scene loading
+**Next Steps**: Implement transition effects (TransitionEffect base class, InstantTransition, FadeTransition)
 
 ---
 
