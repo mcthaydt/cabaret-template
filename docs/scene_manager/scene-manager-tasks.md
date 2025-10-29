@@ -29,46 +29,46 @@
 
 ### Research & Documentation
 
-- [ ] R001 [P] Research Godot 4.5 scene transition patterns and document in docs/scene_manager/research.md
-- [ ] R002 [P] Research AsyncLoading pattern (ResourceLoader.load_threaded_*) and document usage in docs/scene_manager/research.md
-- [ ] R003 [P] Research process_mode behavior during SceneTree.paused state in docs/scene_manager/research.md
-- [ ] R004 [P] Research CanvasLayer overlay interaction with paused scene tree in docs/scene_manager/research.md
-- [ ] R005 [P] Document Godot 4.5 scene lifecycle during load/unload in docs/scene_manager/research.md
-- [ ] R006 Create data model schema for scene state slice in docs/scene_manager/data-model.md
-- [ ] R007 [P] Document SceneRegistry structure with door pairings in docs/scene_manager/data-model.md
-- [ ] R008 [P] Document TransitionEffect interface in docs/scene_manager/data-model.md
-- [ ] R009 [P] Document action/reducer signatures in docs/scene_manager/data-model.md
-- [ ] R010 [P] Document integration points (ActionRegistry, StateSliceConfig, SignalBatcher) in docs/scene_manager/data-model.md
+- [x] R001 [P] Research Godot 4.5 scene transition patterns and document in docs/scene_manager/research.md
+- [x] R002 [P] Research AsyncLoading pattern (ResourceLoader.load_threaded_*) and document usage in docs/scene_manager/research.md
+- [x] R003 [P] Research process_mode behavior during SceneTree.paused state in docs/scene_manager/research.md
+- [x] R004 [P] Research CanvasLayer overlay interaction with paused scene tree in docs/scene_manager/research.md
+- [x] R005 [P] Document Godot 4.5 scene lifecycle during load/unload in docs/scene_manager/research.md
+- [x] R006 Create data model schema for scene state slice in docs/scene_manager/data-model.md
+- [x] R007 [P] Document SceneRegistry structure with door pairings in docs/scene_manager/data-model.md
+- [x] R008 [P] Document TransitionEffect interface in docs/scene_manager/data-model.md
+- [x] R009 [P] Document action/reducer signatures in docs/scene_manager/data-model.md
+- [x] R010 [P] Document integration points (ActionRegistry, StateSliceConfig, SignalBatcher) in docs/scene_manager/data-model.md
 
 ### Critical Prototypes
 
-- [ ] R011 [PROTOTYPE] Create minimal scenes/root_prototype.tscn with M_StateStore and M_CursorManager
-- [ ] R012 [PROTOTYPE] Create ActiveSceneContainer node in root_prototype.tscn
-- [ ] R013 [PROTOTYPE] Write script to load templates/base_scene_template.tscn as child of ActiveSceneContainer
-- [ ] R014 [PROTOTYPE] Validate ECS still works in prototype (player moves, components register)
-- [ ] R015 [PROTOTYPE] Validate Redux still works in prototype (state updates, actions dispatch)
-- [ ] R016 [PROTOTYPE] Test unload/reload of base_scene_template.tscn without crashes
-- [ ] R017 [PROTOTYPE] Measure scene load time for baseline performance comparison
-- [ ] R018 [PROTOTYPE] Create camera blending test scene with two Camera3D nodes
-- [ ] R019 [PROTOTYPE] Implement Tween-based interpolation for global_position, global_rotation, fov
-- [ ] R020 [PROTOTYPE] Validate camera blending is smooth (no jitter) over 0.5s duration
-- [ ] R021 [PROTOTYPE] Document camera blending implementation pattern in docs/scene_manager/research.md
+- [x] R011 [PROTOTYPE] Create minimal scenes/root_prototype.tscn with M_StateStore ~~and M_CursorManager~~ - **Note: M_CursorManager not included, deferred to Phase 2**
+- [x] R012 [PROTOTYPE] Create ActiveSceneContainer node in root_prototype.tscn
+- [x] R013 [PROTOTYPE] Write script to load templates/base_scene_template.tscn as child of ActiveSceneContainer
+- [x] R014 [PROTOTYPE] Validate ECS still works in prototype (player moves, components register)
+- [x] R015 [PROTOTYPE] Validate Redux still works in prototype (state updates, actions dispatch)
+- [x] R016 [PROTOTYPE] Test unload/reload of base_scene_template.tscn without crashes
+- [x] R017 [PROTOTYPE] Measure scene load time for baseline performance comparison - **98ms load, 1ms reload**
+- [~] R018 [PROTOTYPE] Create camera blending test scene with two Camera3D nodes - **DEFERRED to Phase 10 (research confirms feasibility)**
+- [~] R019 [PROTOTYPE] Implement Tween-based interpolation for global_position, global_rotation, fov - **DEFERRED to Phase 10**
+- [~] R020 [PROTOTYPE] Validate camera blending is smooth (no jitter) over 0.5s duration - **DEFERRED to Phase 10**
+- [~] R021 [PROTOTYPE] Document camera blending implementation pattern in docs/scene_manager/research.md - **DEFERRED to Phase 10**
 
 ### Safety Checks
 
-- [ ] R022 Review M_StateStore._initialize_slices() method structure
-- [ ] R023 Plan scene slice registration location in _initialize_slices()
-- [ ] R024 Validate adding scene slice won't break existing boot/menu/gameplay slices
-- [ ] R025 Check ActionRegistry can handle scene action registration
-- [ ] R026 Document M_StateStore integration plan in docs/scene_manager/data-model.md
+- [x] R022 Review M_StateStore._initialize_slices() method structure
+- [x] R023 Plan scene slice registration location in _initialize_slices()
+- [x] R024 Validate adding scene slice won't break existing boot/menu/gameplay slices
+- [x] R025 Check ActionRegistry can handle scene action registration
+- [x] R026 Document M_StateStore integration plan in docs/scene_manager/data-model.md
 
 ### Performance Baseline
 
-- [ ] R027 [P] Measure time to load base_scene_template.tscn from blank scene
-- [ ] R028 [P] Measure time to reload base_scene_template.tscn (hot reload)
-- [ ] R029 [P] Measure memory usage before/after scene load
-- [ ] R030 Document performance baseline results in docs/scene_manager/research.md
-- [ ] R031 Validate performance targets achievable (< 0.5s UI, < 3s gameplay)
+- [x] R027 [P] Measure time to load base_scene_template.tscn from blank scene - **98ms**
+- [x] R028 [P] Measure time to reload base_scene_template.tscn (hot reload) - **1ms**
+- [~] R029 [P] Measure memory usage before/after scene load - **Qualitative only: no leaks detected**
+- [x] R030 Document performance baseline results in docs/scene_manager/research.md
+- [x] R031 Validate performance targets achievable (< 0.5s UI, < 3s gameplay) - **YES: 98ms << 500ms target**
 
 **Checkpoint**: All prototypes must pass validation. Decision gate questions:
 1. Does scene restructuring break ECS or Redux? (If yes, STOP)
