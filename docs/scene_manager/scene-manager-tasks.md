@@ -27,6 +27,11 @@
 
 **⚠️ DECISION GATE**: This phase MUST be completed and approved before Phase 1. If prototype fails or restructuring too risky, STOP and reconsider architecture.
 
+**Phase 0 Actual Completion Status:**
+- ✅ Complete: 22/31 tasks (71%)
+- ❌ Incomplete/Not Done: 5/31 tasks (16%) - R011 (partial), R018-R021 (camera blending not prototyped), R029 (no memory measurement)
+- Decision Gate: Proceeded to Phase 1 despite incomplete tasks. Core validation (ECS/Redux/Performance) passed. Missing items deemed low-risk.
+
 ### Research & Documentation
 
 - [x] R001 [P] Research Godot 4.5 scene transition patterns and document in docs/scene_manager/research.md
@@ -42,17 +47,17 @@
 
 ### Critical Prototypes
 
-- [x] R011 [PROTOTYPE] Create minimal scenes/root_prototype.tscn with M_StateStore ~~and M_CursorManager~~ - **Note: M_CursorManager not included, deferred to Phase 2**
+- [ ] R011 [PROTOTYPE] Create minimal scenes/root_prototype.tscn with M_StateStore and M_CursorManager - **INCOMPLETE: Created with M_StateStore only, missing M_CursorManager**
 - [x] R012 [PROTOTYPE] Create ActiveSceneContainer node in root_prototype.tscn
 - [x] R013 [PROTOTYPE] Write script to load templates/base_scene_template.tscn as child of ActiveSceneContainer
 - [x] R014 [PROTOTYPE] Validate ECS still works in prototype (player moves, components register)
 - [x] R015 [PROTOTYPE] Validate Redux still works in prototype (state updates, actions dispatch)
 - [x] R016 [PROTOTYPE] Test unload/reload of base_scene_template.tscn without crashes
 - [x] R017 [PROTOTYPE] Measure scene load time for baseline performance comparison - **98ms load, 1ms reload**
-- [~] R018 [PROTOTYPE] Create camera blending test scene with two Camera3D nodes - **DEFERRED to Phase 10 (research confirms feasibility)**
-- [~] R019 [PROTOTYPE] Implement Tween-based interpolation for global_position, global_rotation, fov - **DEFERRED to Phase 10**
-- [~] R020 [PROTOTYPE] Validate camera blending is smooth (no jitter) over 0.5s duration - **DEFERRED to Phase 10**
-- [~] R021 [PROTOTYPE] Document camera blending implementation pattern in docs/scene_manager/research.md - **DEFERRED to Phase 10**
+- [ ] R018 [PROTOTYPE] Create camera blending test scene with two Camera3D nodes - **NOT DONE (only research documented)**
+- [ ] R019 [PROTOTYPE] Implement Tween-based interpolation for global_position, global_rotation, fov - **NOT DONE**
+- [ ] R020 [PROTOTYPE] Validate camera blending is smooth (no jitter) over 0.5s duration - **NOT DONE**
+- [ ] R021 [PROTOTYPE] Document camera blending implementation pattern in docs/scene_manager/research.md - **NOT DONE**
 
 ### Safety Checks
 
@@ -66,7 +71,7 @@
 
 - [x] R027 [P] Measure time to load base_scene_template.tscn from blank scene - **98ms**
 - [x] R028 [P] Measure time to reload base_scene_template.tscn (hot reload) - **1ms**
-- [~] R029 [P] Measure memory usage before/after scene load - **Qualitative only: no leaks detected**
+- [ ] R029 [P] Measure memory usage before/after scene load - **NOT DONE: No quantitative measurements taken**
 - [x] R030 Document performance baseline results in docs/scene_manager/research.md
 - [x] R031 Validate performance targets achievable (< 0.5s UI, < 3s gameplay) - **YES: 98ms << 500ms target**
 
