@@ -5,7 +5,7 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager`
-**Status**: ✅ Phase 0, Phase 1 & Phase 2 Complete - Ready for Phase 3
+**Status**: ✅ Phase 0, 1, 2 Complete | 🚧 Phase 3 In Progress (T025-T034 complete)
 
 ---
 
@@ -72,9 +72,52 @@ This guide directs you to implement the Scene Manager feature by following the t
 - `scenes/gameplay/gameplay_base.tscn`: Per-scene M_ECSManager, Systems, Entities, Environment
 - Project main scene: `res://scenes/root.tscn`
 
-**Next Phase**: Begin Phase 3 (User Story 1 - Basic Scene Transitions) - T025-T067
+**Next Phase**: ✅ Phase 3 Started - Continue with T035-T067
 
-See `docs/scene_manager/general/research.md` for detailed findings.
+---
+
+## 🚧 Phase 3: User Story 1 - Basic Scene Transitions - IN PROGRESS (10/43 tasks)
+
+**Status**: Tests written, scene state slice implemented and validated
+**Date Started**: 2025-10-28
+**Current Task**: T035 - Test transient fields excluded from save_state
+
+**Completed (10/43 tasks) - 23%**:
+- ✅ T025-T029: All unit and integration tests written (TDD approach)
+  * test_scene_reducer.gd: 10 tests
+  * test_scene_registry.gd: 18 tests
+  * test_m_scene_manager.gd: 23 tests
+  * test_transitions.gd: 21 tests
+  * test_basic_transitions.gd: 15 integration tests
+- ✅ T030: RS_SceneInitialState resource created with transient field support
+- ✅ T031: U_SceneReducer implemented with immutable state updates
+- ✅ T032: U_SceneActions created with ActionRegistry integration
+- ✅ T033: M_StateStore modified to register scene slice with transient fields
+- ✅ T034: Scene reducer tests passing (10/10 ✅)
+
+**Key Achievements**:
+- Scene state slice architecture established
+- Transient fields configured (`is_transitioning`, `transition_type`)
+- Scene reducer follows immutable Redux patterns
+- Action creators properly registered with ActionRegistry
+- TDD discipline maintained throughout
+
+**Remaining Work (33 tasks)**:
+- T035-T036: Validate transient fields and existing tests
+- T037-T042: Implement SceneRegistry with scene metadata
+- T043-T051: Implement M_SceneManager core functionality
+- T052-T058: Implement transition effects (instant, fade)
+- T059-T062: Create UI scenes (main menu, settings)
+- T063-T067: Integration testing and validation
+
+**Test Status**:
+- Scene reducer: 10/10 passing ✅
+- SceneRegistry: 0/18 (dependencies not implemented)
+- M_SceneManager: 0/23 (dependencies not implemented)
+- Transitions: 0/21 (dependencies not implemented)
+- Integration: 0/15 (dependencies not implemented)
+
+**Next Steps**: Validate existing 212 tests still pass, then implement SceneRegistry
 
 ---
 

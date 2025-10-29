@@ -158,21 +158,21 @@
 
 ### Tests for User Story 1 (TDD - Write FIRST, watch fail)
 
-- [ ] T025 [P] [US1] Write unit test for scene_reducer.gd in tests/unit/scene_manager/test_scene_reducer.gd
-- [ ] T026 [P] [US1] Write unit test for SceneRegistry in tests/unit/scene_manager/test_scene_registry.gd
-- [ ] T027 [P] [US1] Write unit test for M_SceneManager in tests/unit/scene_manager/test_m_scene_manager.gd
-- [ ] T028 [P] [US1] Write unit test for transition effects in tests/unit/scene_manager/test_transitions.gd
-- [ ] T029 [P] [US1] Write integration test for basic transitions in tests/integration/scene_manager/test_basic_transitions.gd
+- [x] T025 [P] [US1] Write unit test for scene_reducer.gd in tests/unit/scene_manager/test_scene_reducer.gd - **COMPLETE** (10 tests written)
+- [x] T026 [P] [US1] Write unit test for SceneRegistry in tests/unit/scene_manager/test_scene_registry.gd - **COMPLETE** (18 tests written)
+- [x] T027 [P] [US1] Write unit test for M_SceneManager in tests/unit/scene_manager/test_m_scene_manager.gd - **COMPLETE** (23 tests written)
+- [x] T028 [P] [US1] Write unit test for transition effects in tests/unit/scene_manager/test_transitions.gd - **COMPLETE** (21 tests written)
+- [x] T029 [P] [US1] Write integration test for basic transitions in tests/integration/scene_manager/test_basic_transitions.gd - **COMPLETE** (15 tests written)
 
 ### Implementation for User Story 1
 
-- [ ] T030 [P] [US1] Create scripts/state/resources/rs_scene_initial_state.gd (scene slice initial state resource)
-- [ ] T031 [P] [US1] Create scripts/state/reducers/scene_reducer.gd (handles scene actions)
-- [ ] T032 [US1] Create scripts/state/u_scene_actions.gd with ActionRegistry registration in _static_init()
-- [ ] T033 [US1] Modify scripts/managers/m_state_store.gd: add @export var scene_initial_state: RS_SceneInitialState and register in _initialize_slices() (FR-112)
-- [ ] T034 [US1] Run unit tests for scene slice and verify they pass
+- [x] T030 [P] [US1] Create scripts/state/resources/rs_scene_initial_state.gd (scene slice initial state resource) - **COMPLETE**
+- [x] T031 [P] [US1] Create scripts/state/reducers/scene_reducer.gd (handles scene actions) - **COMPLETE** (U_SceneReducer with immutable updates)
+- [x] T032 [US1] Create scripts/state/u_scene_actions.gd with ActionRegistry registration in _static_init() - **COMPLETE** (4 actions registered)
+- [x] T033 [US1] Modify scripts/managers/m_state_store.gd: add @export var scene_initial_state: RS_SceneInitialState and register in _initialize_slices() (FR-112) - **COMPLETE** (transient fields configured)
+- [x] T034 [US1] Run unit tests for scene slice and verify they pass - **COMPLETE** (10/10 tests passing ✅)
 - [ ] T035 [US1] Test transient fields (is_transitioning) excluded from save_state()
-- [ ] T036 [US1] Validate ALL ~314 existing tests still pass (no regressions)
+- [ ] T036 [US1] Validate ALL ~212 existing tests still pass (no regressions)
 - [ ] T037 [P] [US1] Create scripts/scene_management/scene_registry.gd static class
 - [ ] T038 [P] [US1] Define scene metadata in SceneRegistry (paths, types, transitions, preload priority)
 - [ ] T039 [P] [US1] Define door pairing structure in SceneRegistry
