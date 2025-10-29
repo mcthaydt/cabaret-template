@@ -10,6 +10,8 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 const EVENT_ENTITY_JUMPED := StringName("entity_jumped")
 const EVENT_ENTITY_LANDED := StringName("entity_landed")
 
+@export var debug_logs_enabled: bool = false
+
 func process_tick(_delta: float) -> void:
 	# Skip processing if game is paused
 	var store: M_StateStore = U_StateUtils.get_store(self)
@@ -77,6 +79,8 @@ func process_tick(_delta: float) -> void:
 				"vertical_velocity": body.velocity.y,
 			}
 			ECSEventBus.publish(EVENT_ENTITY_LANDED, landing_payload)
+			if debug_logs_enabled:
+				print("[Jump] %s landed vY=%.3f supported_now=%s" % [str(body.name), float(body.velocity.y), str(supported_now)])
 			
 			# Phase 16: Update entity snapshot with floor state (Entity Coordination Pattern)
 			if store:
@@ -102,6 +106,14 @@ func process_tick(_delta: float) -> void:
 				"has_air_jumps": component.has_air_jumps_remaining(),
 				"recent_apex": component.has_recent_apex(now),
 			})
+			if debug_logs_enabled and Input.is_action_just_pressed(StringName("jump")):
+				print("[Jump] %s request missed: buffered?=%s buffer=%.2fs supported_now=%s support_recent=%s" % [
+					str(body.name),
+					"no",  # we only log when request not registered via buffer
+					float(component.settings.jump_buffer_time),
+					str(supported_now),
+					str(support_recent)
+				])
 			continue
 
 		if not component.can_jump(now):
@@ -113,6 +125,17 @@ func process_tick(_delta: float) -> void:
 				"has_air_jumps": component.has_air_jumps_remaining(),
 				"recent_apex": component.has_recent_apex(now),
 			})
+			if debug_logs_enabled:
+				var reason := ""
+				if not support_recent and not component.has_air_jumps_remaining():
+					reason = "no support, coyote expired, no air jumps"
+				elif not support_recent and component.has_air_jumps_remaining():
+					reason = "no support, coyote expired, using air jumps later"
+				else:
+					reason = "unknown gating"
+				print("[Jump] %s suppressed: %s (on_floor=%s float_now=%s float_recent=%s)" % [
+					str(body.name), reason, str(is_on_floor_raw), str(floating_supported_now), str(has_floating_support)
+				])
 			continue
 
 		if not input_component.consume_jump_request():
@@ -124,6 +147,10 @@ func process_tick(_delta: float) -> void:
 		body.velocity = velocity
 		if floating_component != null:
 			floating_component.reset_recent_support(now, component.settings.coyote_time)
+		if debug_logs_enabled:
+			print("[Jump] %s JUMP performed force=%.2f supported_now=%s support_recent=%s" % [
+				str(body.name), float(component.settings.jump_force), str(supported_now), str(support_recent)
+			])
 		
 		# Phase 16: Update entity snapshot with floor state (Entity Coordination Pattern)
 		if store:
