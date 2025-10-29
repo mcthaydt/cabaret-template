@@ -19,8 +19,10 @@ const StateHandoff = preload("res://scripts/state/u_state_handoff.gd")
 const BootReducer = preload("res://scripts/state/reducers/u_boot_reducer.gd")
 const MenuReducer = preload("res://scripts/state/reducers/u_menu_reducer.gd")
 const GameplayReducer = preload("res://scripts/state/reducers/u_gameplay_reducer.gd")
+const SceneReducer = preload("res://scripts/state/reducers/u_scene_reducer.gd")
 const RS_BootInitialState = preload("res://scripts/state/resources/rs_boot_initial_state.gd")
 const RS_MenuInitialState = preload("res://scripts/state/resources/rs_menu_initial_state.gd")
+const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 
 signal state_changed(action: Dictionary, new_state: Dictionary)
 signal slice_updated(slice_name: StringName, slice_state: Dictionary)
@@ -36,6 +38,7 @@ const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 @export var boot_initial_state: RS_BootInitialState
 @export var menu_initial_state: RS_MenuInitialState
 @export var gameplay_initial_state: RS_GameplayInitialState
+@export var scene_initial_state: RS_SceneInitialState
 
 var _state: Dictionary = {}
 var _subscribers: Array[Callable] = []
@@ -152,6 +155,15 @@ func _initialize_slices() -> void:
 		gameplay_config.dependencies = []
 		gameplay_config.transient_fields = []
 		register_slice(gameplay_config)
+
+	# Register scene slice if initial state provided
+	if scene_initial_state != null:
+		var scene_config := StateSliceConfig.new(StringName("scene"))
+		scene_config.reducer = Callable(SceneReducer, "reduce")
+		scene_config.initial_state = scene_initial_state.to_dictionary()
+		scene_config.dependencies = []
+		scene_config.transient_fields = ["is_transitioning", "transition_type"]  # Don't persist transition state
+		register_slice(scene_config)
 
 ## Dispatch an action to update state
 func dispatch(action: Dictionary) -> void:

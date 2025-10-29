@@ -1,31 +1,33 @@
-[gd_scene load_steps=6 format=3 uid="uid://ccv3ylnj0qbnm"]
+[gd_scene load_steps=7 format=3 uid="uid://ccv3ylnj0qbnm"]
 
 [ext_resource type="Resource" path="res://resources/state/default_boot_initial_state.tres" id="1_boot_state"]
 [ext_resource type="Resource" uid="uid://uygy4iikdf74" path="res://resources/state/default_gameplay_initial_state.tres" id="2_gameplay_state"]
 [ext_resource type="Resource" path="res://resources/state/default_menu_initial_state.tres" id="3_menu_state"]
 [ext_resource type="Resource" uid="uid://dw7q8jxqvhgwf" path="res://resources/state/default_state_store_settings.tres" id="4_state_settings"]
-[ext_resource type="Script" uid="uid://dog624m744wa4" path="res://scripts/state/m_state_store.gd" id="5_state_store"]
-[ext_resource type="Script" uid="uid://3mg2o7kqih67" path="res://scripts/managers/m_cursor_manager.gd" id="6_cursor"]
-[ext_resource type="Script" path="res://scripts/test_root_loader.gd" id="7_test_loader"]
+[ext_resource type="Resource" path="res://resources/state/default_scene_initial_state.tres" id="5_scene_state"]
+[ext_resource type="Script" uid="uid://dog624m744wa4" path="res://scripts/state/m_state_store.gd" id="6_state_store"]
+[ext_resource type="Script" uid="uid://3mg2o7kqih67" path="res://scripts/managers/m_cursor_manager.gd" id="7_cursor"]
+[ext_resource type="Script" path="res://scripts/test_root_loader.gd" id="8_test_loader"]
 
 [node name="Root" type="Node"]
 
 [node name="Managers" type="Node" parent="."]
 
 [node name="M_StateStore" type="Node" parent="Managers"]
-script = ExtResource("5_state_store")
+script = ExtResource("6_state_store")
 settings = ExtResource("4_state_settings")
 boot_initial_state = ExtResource("1_boot_state")
 menu_initial_state = ExtResource("3_menu_state")
 gameplay_initial_state = ExtResource("2_gameplay_state")
+scene_initial_state = ExtResource("5_scene_state")
 
 [node name="M_CursorManager" type="Node" parent="Managers"]
-script = ExtResource("6_cursor")
+script = ExtResource("7_cursor")
 
 [node name="M_SceneManager" type="Node" parent="Managers"]
 
 [node name="TestRootLoader" type="Node" parent="Managers"]
-script = ExtResource("7_test_loader")
+script = ExtResource("8_test_loader")
 
 [node name="ActiveSceneContainer" type="Node" parent="."]
 
