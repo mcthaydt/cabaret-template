@@ -17,12 +17,16 @@
 ## Repo Map (essentials)
 
 - `scripts/managers/m_ecs_manager.gd`: Registers components/systems; exposes `get_components(StringName)` and emits component signals.
+- `scripts/managers/m_scene_manager.gd`: Scene transition coordinator (Phase 3+); manages ActiveSceneContainer.
+- `scripts/state/m_state_store.gd`: Redux store; adds to "state_store" group for discovery via `U_StateUtils.get_store()`.
 - `scripts/ecs/ecs_component.gd`: Base for components. Auto-registers with manager; exposes `get_snapshot()` hook.
 - `scripts/ecs/ecs_system.gd`: Base for systems. Implement `process_tick(delta)`; runs via `_physics_process`.
 - `scripts/ecs/components/*`: Gameplay components with `@export` NodePaths and typed getters.
 - `scripts/ecs/systems/*`: Systems that query components by `StringName` and operate per-physics tick.
 - `scripts/ecs/resources/*`: `Resource` classes holding tunables consumed by components/systems.
-- `tests/unit/*`: GUT test suites for ECS.
+- `scenes/root.tscn`: Main scene (persistent managers + containers).
+- `scenes/gameplay/*`: Gameplay scenes (dynamic loading, own M_ECSManager).
+- `tests/unit/*`: GUT test suites for ECS and state management.
 
 ## ECS Guidelines
 
@@ -44,8 +48,16 @@
 
 ## Scene Organization
 
+- **Root scene pattern (NEW - Phase 2)**: `scenes/root.tscn` persists throughout session
+  - Persistent managers: `M_StateStore`, `M_CursorManager`, `M_SceneManager`
+  - Scene containers: `ActiveSceneContainer`, `UIOverlayStack`, `TransitionOverlay`, `LoadingOverlay`
+  - Gameplay scenes load/unload as children of `ActiveSceneContainer`
+- **Gameplay scenes**: Each has own `M_ECSManager` instance
+  - Example: `scenes/gameplay/gameplay_base.tscn`
+  - Contains: Systems, Entities, SceneObjects, Environment
+  - HUD uses `U_StateUtils.get_store(self)` to find M_StateStore via "state_store" group
 - Node tree structure: See `docs/scene_organization/SCENE_ORGANIZATION_GUIDE.md`
-- Templates: `templates/base_scene_template.tscn` (reference implementation)
+- Templates: `templates/base_scene_template.tscn` (legacy reference), `templates/player_template.tscn`
 - Marker scripts: `scripts/scene_structure/*` (11 total) provide visual organization
 - Systems organized by category: Core / Physics / Movement / Feedback
 - Naming: Node names use prefixes matching their script types (E_, S_, C_, M_, SO_, Env_)
@@ -91,4 +103,12 @@
 - Add a new ECS Component
   - Create `scripts/ecs/components/c_your_component.gd` extending `ECSComponent` with `COMPONENT_TYPE` and exported NodePaths; add typed getters; update a scene to wire paths.
 - Add a new ECS System
-  - Create `scripts/ecs/systems/s_your_system.gd` extending `ECSSystem`; implement `process_tick(delta)`; query with your component’s `StringName`; drop the node under a running scene—auto-configured.
+  - Create `scripts/ecs/systems/s_your_system.gd` extending `ECSSystem`; implement `process_tick(delta)`; query with your component's `StringName`; drop the node under a running scene—auto-configured.
+- Find M_StateStore from any node
+  - Use `U_StateUtils.get_store(self)` to find the store via "state_store" group.
+  - In `_ready()`: add `await get_tree().process_frame` BEFORE calling `get_store()` to avoid race conditions.
+  - In `process_tick()`: no await needed (store already registered).
+- Create a new gameplay scene
+  - Duplicate `scenes/gameplay/gameplay_base.tscn` as starting point.
+  - Keep M_ECSManager + Systems + Entities + Environment structure.
+  - Do NOT add M_StateStore or M_CursorManager (they live in root.tscn).

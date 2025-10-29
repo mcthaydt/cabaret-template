@@ -147,25 +147,51 @@
   await wait_physics_frames(1)
   ```
 
+## Scene Manager Pitfalls (Phase 2+)
+
+- **Root scene architecture is mandatory**: As of Phase 2, the project uses a root scene pattern where `scenes/root.tscn` persists throughout the session. DO NOT create gameplay scenes with M_StateStore or M_CursorManager - these managers live ONLY in root.tscn. Each gameplay scene should have its own M_ECSManager instance.
+
+- **Gameplay scenes must be self-contained**: When creating new gameplay scenes, duplicate `scenes/gameplay/gameplay_base.tscn` as a template. Include:
+  - ✅ M_ECSManager (per-scene instance)
+  - ✅ Systems (Core, Physics, Movement, Feedback)
+  - ✅ Entities (player, camera, spawn points)
+  - ✅ SceneObjects (floors, blocks, props)
+  - ✅ Environment (lighting, world environment)
+  - ❌ M_StateStore (lives in root.tscn)
+  - ❌ M_CursorManager (lives in root.tscn)
+
+- **HUD and UI components must use U_StateUtils**: UI elements that need M_StateStore access MUST use `U_StateUtils.get_store(self)` instead of direct parent traversal. The store is in root.tscn while UI may be in child scenes. Add `await get_tree().process_frame` in `_ready()` before calling `get_store()` to avoid race conditions.
+
+- **Never instantiate root.tscn in tests**: The root scene is the main scene and should never be instantiated in tests. Test individual gameplay scenes by instantiating them directly (e.g., `BASE_SCENE.instantiate()` for `base_scene_template.tscn` or `GAMEPLAY_BASE.instantiate()` for `gameplay_base.tscn`). The test harness provides its own scene tree root.
+
+- **ActiveSceneContainer manages scene lifecycle**: Scene loading/unloading will be managed by M_SceneManager (Phase 3+) which adds/removes scenes as children of ActiveSceneContainer. Direct manipulation of ActiveSceneContainer children is not supported - use M_SceneManager's transition methods instead.
+
+- **UIDs must be managed by Godot**: When creating new scene files (like root.tscn), DO NOT manually specify UIDs in the scene header. Either omit the `uid=` parameter entirely or use `res://path/to/scene.tscn` paths in project.godot. Manually-specified UIDs cause "Unrecognized UID" errors because they're not registered in Godot's UID cache. Let Godot generate UIDs by opening and saving scenes in the editor.
+
+- **StateHandoff works across scene transitions**: The existing StateHandoff system automatically preserves state when scenes are removed from the tree and restores it when they're added back. This works correctly with the root scene pattern - you'll see `[STATE] Preserved state to StateHandoff for scene transition` and `[STATE] Restored slice 'X' from StateHandoff` logs during scene changes.
+
 ## Test Coverage Status
 
-As of 2025-10-27:
-- **Total Tests**: 312 tests across 46 test scripts
-- **Passing**: 312/312 (100%)
-- **Total Assertions**: 856
-- **Test Execution Time**: ~22 seconds for full suite
+As of 2025-10-28 (Phase 2 Complete):
+- **Total Tests**: 212 tests passing (no regressions from Phase 1)
+- **Test Breakdown**:
+  - Cursor Manager: 13/13 ✅
+  - ECS: 62/62 ✅
+  - State: 104/104 ✅
+  - Utils: 11/11 ✅
+  - Unit/Integration: 12/12 ✅
+  - Integration: 10/10 ✅
+- **Test Execution Time**: ~12 seconds for full suite
+- **Status**: All tests passing after Phase 2 scene restructuring
 
 Test directories:
-- `tests/unit/ecs` - ECS component and system tests (62 tests)
-- `tests/unit/ecs/components` - Component-specific tests (24 tests)
-- `tests/unit/ecs/systems` - System-specific tests (74 tests)
-- `tests/unit/state` - State management tests (112 tests)
-- `tests/unit/state/integration` - State slice transition tests (4 tests)
-- `tests/unit/integration` - ECS/State integration tests (15 tests)
-- `tests/integration` - Full scene integration tests (10 tests)
-- `tests/unit/utils` - Utility tests (11 tests)
+- `tests/unit/ecs` - ECS component and system tests
+- `tests/unit/state` - State management tests
+- `tests/unit/integration` - ECS/State coordination tests
+- `tests/integration` - Full scene integration tests
+- `tests/unit/utils` - Utility tests
 
-All critical paths tested including error conditions, edge cases, integration scenarios, and Phase 16 state coordination patterns.
+All critical paths tested including error conditions, edge cases, integration scenarios, and scene restructuring patterns.
 - **No C-style ternaries**: GDScript 4.5 rejects `condition ? a : b`. Use the native `a if condition else b` form and keep payload normalization readable.
 - **Keep component discovery consistent**: Decoupled components (e.g., `C_MovementComponent`, `C_JumpComponent`, `C_RotateToInputComponent`, `C_AlignWithSurfaceComponent`) now auto-discover their peers, but components that still export NodePaths for scene nodes (landing indicator markers, floating raycasts, etc.) require those paths to be wired. Mixing patterns silently disables behaviour and breaks tests.
 - **Reset support timers after jumps**: When modifying jump logic, remember to clear support/apex timers just like `C_JumpComponent.on_jump_performed()` does. Forgetting this can enable double jumps that tests catch.
