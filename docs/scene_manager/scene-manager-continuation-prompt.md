@@ -5,28 +5,34 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager`
-**Status**: ✅ Phase 0 Complete - Ready for Phase 1
+**Status**: ⚠️ Phase 0 Incomplete - Must Complete Before Proceeding
 
 ---
 
-## ✅ Phase 0: Research & Architecture Validation - COMPLETE
+## ⚠️ Phase 0: Research & Architecture Validation - INCOMPLETE (22/31 tasks)
 
-**Completion Date**: 2025-10-28
-**Result**: All validation passed with excellent performance
-**Decision**: ✅ **APPROVED TO PROCEED TO PHASE 1**
+**Current Status**: Partially complete - core validation passed but spec requirements not fully met
+**Decision**: Must complete all Phase 0 tasks before proceeding to Phase 1
 
-**Key Results**:
+**Completed (22/31 tasks)**:
 - ✅ Research documented (`research.md`) - Godot 4.5 patterns, lifecycle, performance
 - ✅ Data model specified (`data-model.md`) - Complete Scene Manager contracts
-- ✅ Prototype validated - 98ms load time (target: 500ms) - **EXCELLENT**
+- ✅ Scene restructuring validated - ECS/Redux functional, 98ms load time
 - ✅ Safety analysis complete - M_StateStore modification **LOW RISK**
-- ✅ Performance baseline established - No concerns identified
 
-**Critical Finding**: "Multiple state stores" warning in prototype validates Phase 2 restructuring plan.
+**Incomplete (5/31 tasks) - MUST COMPLETE**:
+- ❌ R011: root_prototype.tscn missing M_CursorManager (only has M_StateStore)
+- ❌ R018-R021: Camera blending prototype NOT DONE (only research documented)
+- ❌ R029: Memory measurement NOT DONE (no quantitative data)
 
-**Next Steps**: Begin Phase 1 (baseline tests) → Phase 2 (scene restructuring)
+**Next Steps**:
+1. Complete R011: Add M_CursorManager to root_prototype.tscn and retest
+2. Complete R018-R021: Build camera blending test scene with actual prototype
+3. Complete R029: Measure actual memory usage with quantitative data
+4. Update task checkboxes in `scene-manager-tasks.md`
+5. THEN proceed to Phase 1
 
-See `docs/scene_manager/PHASE_0_COMPLETE.md` for full validation report.
+See `docs/scene_manager/PHASE_0_COMPLETE.md` for detailed findings.
 
 ---
 
@@ -74,13 +80,28 @@ For each task:
 4. Run the test and verify it passes
 5. Commit with a clear message
 
-### 6. Track Progress
+### 6. Track Progress **YOU MUST DO THIS - NON-NEGOTIABLE**
 
-As you complete tasks:
-- Mark tasks as complete in your todo list
-- Ensure all tests remain passing
-- Update any relevant documentation (including this one)
-- Commit regularly with descriptive messsages
+As you complete tasks in `scene-manager-tasks.md`:
+
+**ONLY mark tasks [x] complete when:**
+- You have completed EVERY requirement in the task description
+- You have not substituted research for actual implementation
+- You have not made "close enough" compromises
+- You have not skipped any specified components or steps
+
+**If you deviate from the spec:**
+- Mark task [ ] incomplete
+- Document the deviation clearly in the task notes
+- Get explicit user approval before proceeding to next phase
+
+**Never assume "close enough" is acceptable. Every task requirement matters.**
+
+Additional tracking requirements:
+- Update task checkboxes in `scene-manager-tasks.md` after each task
+- Ensure all tests remain passing after each change
+- Update any relevant documentation
+- Commit regularly with descriptive messages that accurately describe what was done
 
 ---
 
