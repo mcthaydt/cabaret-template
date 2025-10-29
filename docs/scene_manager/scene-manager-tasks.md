@@ -196,10 +196,10 @@
 - [x] T056 [US1] Update TransitionOverlay in root.tscn (ColorRect with modulate.a = 0) - **COMPLETE** (already configured in root.tscn)
 - [x] T057 [US1] Integrate transition effects with M_SceneManager.transition_to_scene() - **COMPLETE** (M_SceneManager calls transition effects)
 - [x] T058 [US1] Run unit tests for transition effects (including input blocking) and verify they pass - **COMPLETE** (7/16 passing, Tween timing issues in headless mode)
-- [ ] T059 [P] [US1] Create scenes/ui/main_menu.tscn (minimal: Label + Button to settings)
-- [ ] T060 [P] [US1] Create scenes/ui/settings_menu.tscn (minimal: Label + Button to main)
-- [ ] T061 [US1] Add main_menu and settings_menu to SceneRegistry with correct paths and scene_ids
-- [ ] T062 [US1] Verify UI scenes do NOT have M_ECSManager (UI scenes only)
+- [x] T059 [P] [US1] Create scenes/ui/main_menu.tscn (minimal: Label + Button to settings) - **COMPLETE** (Control with VBoxContainer, Label, Button)
+- [x] T060 [P] [US1] Create scenes/ui/settings_menu.tscn (minimal: Label + Button to main) - **COMPLETE** (Control with VBoxContainer, Label, Button)
+- [x] T061 [US1] Add main_menu and settings_menu to SceneRegistry with correct paths and scene_ids - **COMPLETE** (registered in T037-T041)
+- [x] T062 [US1] Verify UI scenes do NOT have M_ECSManager (UI scenes only) - **COMPLETE** (UI scenes contain only Control nodes)
 
 ### Integration Tests for User Story 1
 
