@@ -54,6 +54,7 @@ func before_each() -> void:
 
 	# Create scene manager
 	_manager = M_SceneManager.new()
+	_manager.skip_initial_scene_load = true  # Don't load main_menu automatically in tests
 	_root_scene.add_child(_manager)
 	await get_tree().process_frame
 
@@ -76,7 +77,7 @@ func test_main_menu_to_settings_and_back() -> void:
 
 	# Transition to settings menu
 	_manager.transition_to_scene(StringName("settings_menu"), "fade")
-	await wait_physics_frames(4)  # Wait for transition to complete
+	await wait_physics_frames(15)  # Wait for 0.2s fade transition (0.2s * 60fps = 12 frames + buffer)
 
 	var state2: Dictionary = _store.get_state()
 	var scene_state2: Dictionary = state2.get("scene", {})
@@ -126,7 +127,7 @@ func test_is_transitioning_flag() -> void:
 	assert_true(scene_state2.get("is_transitioning", false), "Should be transitioning during fade")
 
 	# Wait for completion
-	await wait_physics_frames(4)
+	await wait_physics_frames(15)  # Wait for 0.2s fade transition (0.2s * 60fps = 12 frames + buffer)
 
 	# Check after transition
 	var state3: Dictionary = _store.get_state()

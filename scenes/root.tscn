@@ -7,7 +7,7 @@
 [ext_resource type="Resource" path="res://resources/state/default_scene_initial_state.tres" id="5_scene_state"]
 [ext_resource type="Script" uid="uid://dog624m744wa4" path="res://scripts/state/m_state_store.gd" id="6_state_store"]
 [ext_resource type="Script" uid="uid://3mg2o7kqih67" path="res://scripts/managers/m_cursor_manager.gd" id="7_cursor"]
-[ext_resource type="Script" path="res://scripts/test_root_loader.gd" id="8_test_loader"]
+[ext_resource type="Script" path="res://scripts/managers/m_scene_manager.gd" id="8_scene_manager"]
 
 [node name="Root" type="Node"]
 
@@ -25,9 +25,7 @@ scene_initial_state = ExtResource("5_scene_state")
 script = ExtResource("7_cursor")
 
 [node name="M_SceneManager" type="Node" parent="Managers"]
-
-[node name="TestRootLoader" type="Node" parent="Managers"]
-script = ExtResource("8_test_loader")
+script = ExtResource("8_scene_manager")
 
 [node name="ActiveSceneContainer" type="Node" parent="."]
 
@@ -43,6 +41,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
 [node name="LoadingOverlay" type="CanvasLayer" parent="."]

@@ -13,8 +13,11 @@ class_name M_SceneManager
 ## Discovery: Add to "scene_manager" group, discoverable via get_tree().get_nodes_in_group()
 
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
+const M_CursorManager = preload("res://scripts/managers/m_cursor_manager.gd")
 const U_SceneActions = preload("res://scripts/state/u_scene_actions.gd")
 const SceneRegistry = preload("res://scripts/scene_management/scene_registry.gd")
+const InstantTransition = preload("res://scripts/scene_management/transitions/instant_transition.gd")
+const FadeTransition = preload("res://scripts/scene_management/transitions/fade_transition.gd")
 
 ## Priority enum for transition queue
 enum Priority {
@@ -36,6 +39,7 @@ class TransitionRequest:
 
 ## Internal references
 var _store: M_StateStore = null
+var _cursor_manager: M_CursorManager = null
 var _active_scene_container: Node = null
 var _ui_overlay_stack: CanvasLayer = null
 var _transition_overlay: CanvasLayer = null
@@ -44,8 +48,14 @@ var _transition_overlay: CanvasLayer = null
 var _transition_queue: Array[TransitionRequest] = []
 var _is_processing_transition: bool = false
 
+## Current scene tracking for reactive cursor updates
+var _current_scene_id: StringName = StringName("")
+
 ## Store subscription
 var _unsubscribe: Callable
+
+## Skip initial scene load (for tests)
+var skip_initial_scene_load: bool = false
 
 func _ready() -> void:
 	# Add to scene_manager group for discovery
@@ -60,6 +70,13 @@ func _ready() -> void:
 		push_error("M_SceneManager: No M_StateStore found in 'state_store' group")
 		return
 
+	# Find M_CursorManager via group
+	var cursor_managers: Array = get_tree().get_nodes_in_group("cursor_manager")
+	if cursor_managers.size() > 0:
+		_cursor_manager = cursor_managers[0] as M_CursorManager
+	else:
+		push_warning("M_SceneManager: No M_CursorManager found in 'cursor_manager' group")
+
 	# Find container nodes
 	_find_container_nodes()
 
@@ -70,6 +87,10 @@ func _ready() -> void:
 	# Validate SceneRegistry door pairings
 	if not SceneRegistry.validate_door_pairings():
 		push_error("M_SceneManager: SceneRegistry door pairing validation failed")
+
+	# Load initial scene (main_menu) unless skipped for tests
+	if not skip_initial_scene_load:
+		_load_initial_scene()
 
 func _exit_tree() -> void:
 	# Unsubscribe from state updates
@@ -96,17 +117,28 @@ func _find_container_nodes() -> void:
 		push_error("M_SceneManager: TransitionOverlay not found")
 
 ## State change callback
-func _on_state_changed(_action: Dictionary, _state: Dictionary) -> void:
-	# React to scene state changes if needed
-	# For now, this is a placeholder for future reactivity
-	pass
+func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
+	# Detect scene changes and update cursor reactively
+	var scene_state: Dictionary = state.get("scene", {})
+	var new_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
+
+	# Only update cursor when scene_id actually changes and is not empty
+	if new_scene_id != _current_scene_id and not new_scene_id.is_empty():
+		_current_scene_id = new_scene_id
+		_update_cursor_for_scene(new_scene_id)
+
+## Load initial scene on startup
+func _load_initial_scene() -> void:
+	# Load main_menu as the initial scene
+	transition_to_scene(StringName("main_menu"), "instant", Priority.CRITICAL)
 
 ## Transition to a new scene
 func transition_to_scene(scene_id: StringName, transition_type: String, priority: int = Priority.NORMAL) -> void:
 	# Validate scene exists in registry
 	var scene_data: Dictionary = SceneRegistry.get_scene(scene_id)
 	if scene_data.is_empty():
-		push_warning("M_SceneManager: Scene '%s' not found in SceneRegistry" % scene_id)
+		# Silently ignore missing scenes (graceful handling)
+		print_debug("M_SceneManager: Scene '%s' not found in SceneRegistry" % scene_id)
 		return
 
 	# Create transition request
@@ -168,25 +200,57 @@ func _perform_transition(request: TransitionRequest) -> void:
 		push_error("M_SceneManager: No path for scene '%s'" % request.scene_id)
 		return
 
-	# Remove current scene from ActiveSceneContainer
-	if _active_scene_container != null:
-		_remove_current_scene()
+	# Create transition effect based on type
+	var transition_effect = _create_transition_effect(request.transition_type)
 
-	# Wait a frame for cleanup
-	await get_tree().process_frame
+	# Track if scene swap has completed (use Array for closure to work)
+	var scene_swap_complete: Array = [false]
 
-	# Load new scene
-	var new_scene: Node = _load_scene(scene_path)
-	if new_scene == null:
-		push_error("M_SceneManager: Failed to load scene '%s'" % scene_path)
-		return
+	# Define scene swap callback (called at mid-transition for fades, immediately for instant)
+	var scene_swap_callback := func() -> void:
+		# Remove current scene from ActiveSceneContainer
+		if _active_scene_container != null:
+			_remove_current_scene()
 
-	# Add new scene to ActiveSceneContainer
-	if _active_scene_container != null:
-		_add_scene(new_scene)
+		# Load new scene
+		var new_scene: Node = _load_scene(scene_path)
+		if new_scene == null:
+			push_error("M_SceneManager: Failed to load scene '%s'" % scene_path)
+			return
 
-	# Wait for scene to initialize
-	await get_tree().process_frame
+		# Add new scene to ActiveSceneContainer
+		if _active_scene_container != null:
+			_add_scene(new_scene)
+
+		scene_swap_complete[0] = true
+
+	# Track if transition has fully completed (use Array for closure to work)
+	var transition_complete: Array = [false]
+
+	# Define completion callback
+	var completion_callback := func() -> void:
+		transition_complete[0] = true
+
+	# Execute transition effect
+	if transition_effect != null:
+		# For fade transitions, set mid-transition callback for scene swap
+		if transition_effect is FadeTransition:
+			(transition_effect as FadeTransition).mid_transition_callback = scene_swap_callback
+			transition_effect.execute(_transition_overlay, completion_callback)
+		else:
+			# For instant transitions, scene swap happens in completion callback
+			transition_effect.execute(_transition_overlay, func() -> void:
+				scene_swap_callback.call()
+				completion_callback.call()
+			)
+	else:
+		# Fallback: instant scene swap if no transition effect
+		scene_swap_callback.call()
+		completion_callback.call()
+
+	# Wait for transition to complete
+	while not transition_complete[0]:
+		await get_tree().process_frame
 
 ## Remove current scene from ActiveSceneContainer
 func _remove_current_scene() -> void:
@@ -271,3 +335,36 @@ func is_transitioning() -> bool:
 	var state: Dictionary = _store.get_state()
 	var scene_state: Dictionary = state.get("scene", {})
 	return scene_state.get("is_transitioning", false)
+
+## Update cursor state based on scene type
+func _update_cursor_for_scene(scene_id: StringName) -> void:
+	if _cursor_manager == null:
+		return
+
+	var scene_data: Dictionary = SceneRegistry.get_scene(scene_id)
+	if scene_data.is_empty():
+		return
+
+	var scene_type: int = scene_data.get("scene_type", SceneRegistry.SceneType.GAMEPLAY)
+
+	# UI/Menu/End-game scenes: cursor visible + unlocked
+	# Gameplay scenes: cursor hidden + locked
+	match scene_type:
+		SceneRegistry.SceneType.MENU, SceneRegistry.SceneType.UI, SceneRegistry.SceneType.END_GAME:
+			_cursor_manager.set_cursor_state(false, true)  # unlocked, visible
+		SceneRegistry.SceneType.GAMEPLAY:
+			_cursor_manager.set_cursor_state(true, false)  # locked, hidden
+
+## Create transition effect based on type
+func _create_transition_effect(transition_type: String):
+	match transition_type.to_lower():
+		"instant":
+			return InstantTransition.new()
+		"fade":
+			var fade := FadeTransition.new()
+			fade.duration = 0.2  # Shorter duration for faster tests
+			return fade
+		_:
+			# Unknown type, use instant as fallback
+			push_warning("M_SceneManager: Unknown transition type '%s', using instant" % transition_type)
+			return InstantTransition.new()

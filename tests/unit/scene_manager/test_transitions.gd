@@ -38,14 +38,14 @@ func test_transition_effect_has_required_methods() -> void:
 func test_instant_transition_completes_immediately() -> void:
 	var instant := InstantTransition.new()
 
-	var completed: bool = false
+	var completed: Array = [false]  # Use array for closure to work
 	var callback := func() -> void:
-		completed = true
+		completed[0] = true
 
 	instant.execute(_transition_overlay, callback)
 	await get_tree().process_frame
 
-	assert_true(completed, "InstantTransition should complete immediately")
+	assert_true(completed[0], "InstantTransition should complete immediately")
 
 ## Test InstantTransition duration is zero
 func test_instant_transition_duration_is_zero() -> void:
@@ -69,9 +69,9 @@ func test_fade_transition_sequence() -> void:
 	var fade := FadeTransition.new()
 	fade.duration = 0.3  # Shorter for faster tests
 
-	var completed: bool = false
+	var completed: Array = [false]  # Use array for closure to work
 	var callback := func() -> void:
-		completed = true
+		completed[0] = true
 
 	# Initial alpha should be 0
 	assert_almost_eq(_color_rect.modulate.a, 0.0, 0.01, "Should start transparent")
@@ -85,7 +85,7 @@ func test_fade_transition_sequence() -> void:
 	# Wait for fade in to complete
 	await wait_seconds(0.25)
 	assert_almost_eq(_color_rect.modulate.a, 0.0, 0.1, "Should fade back to transparent")
-	assert_true(completed, "Should call completion callback")
+	assert_true(completed[0], "Should call completion callback")
 
 ## Test FadeTransition respects color setting
 func test_fade_transition_color() -> void:
@@ -107,9 +107,9 @@ func test_transition_blocks_input() -> void:
 	var fade := FadeTransition.new()
 	fade.duration = 0.2
 
-	var completed: bool = false
+	var completed: Array = [false]  # Use array for closure to work
 	var callback := func() -> void:
-		completed = true
+		completed[0] = true
 
 	# Execute transition
 	fade.execute(_transition_overlay, callback)
@@ -122,31 +122,31 @@ func test_transition_blocks_input() -> void:
 	assert_true(true, "Transition should block input during execution")
 
 	await wait_seconds(0.2)
-	assert_true(completed, "Transition should complete")
+	assert_true(completed[0], "Transition should complete")
 
 ## Test FadeTransition with mid-transition callback
 func test_fade_transition_mid_callback() -> void:
 	var fade := FadeTransition.new()
 	fade.duration = 0.2
 
-	var mid_callback_called: bool = false
-	var completion_callback_called: bool = false
+	var mid_callback_called: Array = [false]  # Use array for closure to work
+	var completion_callback_called: Array = [false]  # Use array for closure to work
 
 	fade.mid_transition_callback = func() -> void:
-		mid_callback_called = true
+		mid_callback_called[0] = true
 
 	var completion_callback := func() -> void:
-		completion_callback_called = true
+		completion_callback_called[0] = true
 
 	fade.execute(_transition_overlay, completion_callback)
 
 	# Wait for mid-point (fade out complete)
 	await wait_seconds(0.11)
-	assert_true(mid_callback_called, "Mid-transition callback should be called when fully faded out")
+	assert_true(mid_callback_called[0], "Mid-transition callback should be called when fully faded out")
 
 	# Wait for completion
 	await wait_seconds(0.15)
-	assert_true(completion_callback_called, "Completion callback should be called")
+	assert_true(completion_callback_called[0], "Completion callback should be called")
 
 ## Test TransitionEffect cleanup
 func test_transition_cleans_up_tween() -> void:
@@ -171,18 +171,18 @@ func test_multiple_transitions_queued() -> void:
 	var fade2 := FadeTransition.new()
 	fade2.duration = 0.1
 
-	var completed1: bool = false
-	var completed2: bool = false
+	var completed1: Array = [false]  # Use array for closure to work
+	var completed2: Array = [false]  # Use array for closure to work
 
-	fade1.execute(_transition_overlay, func() -> void: completed1 = true)
+	fade1.execute(_transition_overlay, func() -> void: completed1[0] = true)
 
 	# Try to execute second transition immediately (should be queued or blocked)
-	fade2.execute(_transition_overlay, func() -> void: completed2 = true)
+	fade2.execute(_transition_overlay, func() -> void: completed2[0] = true)
 
 	await wait_seconds(0.25)
 
 	# Both should eventually complete
-	assert_true(completed1, "First transition should complete")
+	assert_true(completed1[0], "First transition should complete")
 	# Note: Second transition behavior depends on implementation
 
 ## Test FadeTransition with zero duration
@@ -190,13 +190,13 @@ func test_fade_transition_zero_duration() -> void:
 	var fade := FadeTransition.new()
 	fade.duration = 0.0
 
-	var completed: bool = false
-	fade.execute(_transition_overlay, func() -> void: completed = true)
+	var completed: Array = [false]  # Use array for closure to work
+	fade.execute(_transition_overlay, func() -> void: completed[0] = true)
 
 	await get_tree().process_frame
 
 	# Should complete immediately with zero duration
-	assert_true(completed, "Zero duration fade should complete immediately")
+	assert_true(completed[0], "Zero duration fade should complete immediately")
 
 ## Test TransitionEffect error handling
 func test_transition_with_null_overlay() -> void:
@@ -257,22 +257,22 @@ func test_fade_transition_easing() -> void:
 	fade.easing_type = Tween.EASE_IN_OUT
 	fade.transition_type = Tween.TRANS_CUBIC
 
-	var completed: bool = false
-	fade.execute(_transition_overlay, func() -> void: completed = true)
+	var completed: Array = [false]  # Use array for closure to work
+	fade.execute(_transition_overlay, func() -> void: completed[0] = true)
 
 	await wait_seconds(0.25)
 
-	assert_true(completed, "Should complete with custom easing")
+	assert_true(completed[0], "Should complete with custom easing")
 
 ## Test InstantTransition with scene swap
 func test_instant_transition_scene_swap_timing() -> void:
 	var instant := InstantTransition.new()
 
-	var scene_swapped: bool = false
+	var scene_swapped: Array = [false]  # Use array for closure to work
 	var callback := func() -> void:
-		scene_swapped = true
+		scene_swapped[0] = true
 
 	instant.execute(_transition_overlay, callback)
 
 	# Should call callback immediately (within same frame)
-	assert_true(scene_swapped, "InstantTransition should allow immediate scene swap")
+	assert_true(scene_swapped[0], "InstantTransition should allow immediate scene swap")

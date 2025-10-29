@@ -10,7 +10,7 @@ class_name InstantTransition
 ## Calls the completion callback immediately (synchronous).
 func execute(_overlay: CanvasLayer, callback: Callable) -> void:
 	# Call callback immediately for instant scene swap
-	if callback != null and callback.is_valid():
+	if callback != Callable():
 		callback.call()
 
 ## Get duration (always 0.0 for instant transitions)

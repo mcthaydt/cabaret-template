@@ -39,17 +39,15 @@ var _tween: Tween = null
 ## @param callback: Callable to invoke when transition completes
 func execute(overlay: CanvasLayer, callback: Callable) -> void:
 	if overlay == null:
-		push_warning("FadeTransition: overlay is null, skipping transition")
-		if callback != null and callback.is_valid():
-			callback.call()
+		print_debug("FadeTransition: overlay is null, skipping transition")
+		callback.call()
 		return
 
 	# Find TransitionColorRect
 	var color_rect: ColorRect = _find_color_rect(overlay)
 	if color_rect == null:
 		push_error("FadeTransition: TransitionColorRect not found in overlay")
-		if callback != null and callback.is_valid():
-			callback.call()
+		callback.call()
 		return
 
 	# Set fade color
@@ -58,10 +56,9 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 	# Handle zero duration
 	if duration <= 0.0:
 		# Instant transition - call callbacks immediately
-		if mid_transition_callback != null and mid_transition_callback.is_valid():
+		if mid_transition_callback != Callable():
 			mid_transition_callback.call()
-		if callback != null and callback.is_valid():
-			callback.call()
+		callback.call()
 		return
 
 	# Create Tween
@@ -77,7 +74,7 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 
 	# Mid-point callback
 	_tween.tween_callback(func() -> void:
-		if mid_transition_callback != null and mid_transition_callback.is_valid():
+		if mid_transition_callback != Callable():
 			mid_transition_callback.call()
 	)
 
@@ -87,8 +84,7 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 	# Completion callback
 	_tween.tween_callback(func() -> void:
 		_cleanup_tween()
-		if callback != null and callback.is_valid():
-			callback.call()
+		callback.call()
 	)
 
 ## Find TransitionColorRect in overlay

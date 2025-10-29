@@ -1,6 +1,9 @@
-[gd_scene format=3]
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_main_menu_script"]
 
 [node name="MainMenu" type="Control"]
+script = ExtResource("1_main_menu_script")
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -26,6 +29,10 @@ grow_vertical = 2
 layout_mode = 2
 text = "Main Menu"
 horizontal_alignment = 1
+
+[node name="PlayButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Play"
 
 [node name="SettingsButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2

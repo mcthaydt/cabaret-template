@@ -44,6 +44,7 @@ func before_each() -> void:
 
 	# Create scene manager
 	_manager = M_SceneManager.new()
+	_manager.skip_initial_scene_load = true  # Don't load main_menu automatically in tests
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 

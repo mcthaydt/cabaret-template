@@ -42,7 +42,29 @@
 
 ## GDScript Language Pitfalls
 
-- **Lambda closures cannot reassign outer scope variables**: GDScript lambdas capture variables by reference but **cannot reassign them**. Writing `var x = 1; var f = func(): x = 2` will not modify the outer `x`. **Solution**: Use mutable containers like Arrays or Dictionaries. Example: `var result: Array = []; var callback = func(val): result.append(val)`. This commonly occurs when capturing action results in subscriber callbacks or signal handlers. See `state_test_us1a.gd` for a real-world example where `var action_received: Array = []` works but `var action_received: Dictionary = {}` does not.
+- **Lambda closures cannot reassign primitive variables**: GDScript lambdas capture variables but **cannot reassign primitive types** (bool, int, float). Writing `var completed = false; var callback = func(): completed = true` will NOT modify the outer `completed` variable - the callback will set a local copy instead. **Solution**: Wrap primitives in mutable containers like Arrays. Example:
+  ```gdscript
+  # WRONG - closure doesn't modify outer variable:
+  var completed: bool = false
+  var callback := func() -> void:
+      completed = true  # Sets local copy, NOT outer variable
+  callback.call()
+  assert_true(completed)  # FAILS - still false!
+
+  # CORRECT - use Array wrapper:
+  var completed: Array = [false]
+  var callback := func() -> void:
+      completed[0] = true  # Modifies array element
+  callback.call()
+  assert_true(completed[0])  # PASSES
+  ```
+  This commonly occurs in:
+  - Test callbacks waiting for async operations to complete
+  - Transition effects with completion callbacks
+  - Action result capture in subscriber callbacks
+  - Signal handlers needing to set flags
+
+  See `test_transitions.gd` for examples where all boolean flags use `Array = [false]` pattern to work with closures.
 - **Always add explicit types when pulling Variants**: Helpers such as `C_InputComponent.get_move_vector()` or `Time.get_ticks_msec()` return Variants. Define locals with `: Vector2`, `: float`, etc., instead of relying on inference, otherwise the parser fails with "typed as Variant" errors.
 - **Annotate Callable results**: `Callable.call()` and similar helpers also return Variants. When reducers or action handlers return dictionaries, capture them with explicit types (e.g., `var next_state: Dictionary = root.call(...)`) so tests load without Variant inference errors.
 - **Respect tab indentation in scripts**: Godot scripts under `res://` expect tabs. Mixing spaces causes parse errors that look unrelated to the actual change, so configure your editor accordingly before editing `.gd` files.
@@ -83,7 +105,22 @@
 
 - **Mock overrides need warning suppression**: GUT tests that subclass engine nodes often stub methods like `is_on_floor()` or `move_and_slide()`. Godot 4 treats these as warnings, and our CI escalates warnings to errors. Add `@warning_ignore("native_method_override")` to those stubs to keep tests loading.
 
-- **Always register fixtures with GUT autofree**: Every node you instantiate in a test (managers, entities, components, fake bodies, etc.) must be queued through `autofree()`/`autofree_context()` so the runner releases them. Forgetting this leaks children and leaves failing cleanup warnings even when assertions pass.
+- **Always register fixtures with GUT autofree**: Every node you instantiate in a test (managers, entities, components, fake bodies, etc.) must be registered with GUT's autofree system. Use `add_child_autofree(node)` instead of `add_child(node)` + `queue_free()`. GUT will automatically free these nodes after each test completes. Forgetting this leaks children and shows "Test script has N unfreed children" warnings even when assertions pass. Example:
+  ```gdscript
+  # WRONG - causes memory leaks:
+  func test_something() -> void:
+      var store := M_StateStore.new()
+      add_child(store)
+      # ... test logic ...
+      store.queue_free()  # Too late - test completes before queue processes
+
+  # CORRECT - GUT frees after test:
+  func test_something() -> void:
+      var store := M_StateStore.new()
+      add_child_autofree(store)  # GUT tracks and frees this
+      # ... test logic ...
+      # No manual cleanup needed
+  ```
 
 - **Clear static state between tests**: Static classes (like `StateHandoff`, `ActionRegistry`) retain state across tests. Always call reset/clear methods in `before_each()` and `after_each()`:
   ```gdscript
@@ -185,10 +222,36 @@
 
 - **StateHandoff works across scene transitions**: The existing StateHandoff system automatically preserves state when scenes are removed from the tree and restores it when they're added back. This works correctly with the root scene pattern - you'll see `[STATE] Preserved state to StateHandoff for scene transition` and `[STATE] Restored slice 'X' from StateHandoff` logs during scene changes.
 
+- **M_SceneManager automatically manages cursor state**: As of Phase 3, M_SceneManager automatically sets cursor visibility based on scene type when scenes load:
+  - **UI/Menu/End-game scenes**: Cursor is visible and unlocked (for button clicks)
+  - **Gameplay scenes**: Cursor is locked and hidden (for first-person controls)
+
+  DO NOT manually call `M_CursorManager.set_cursor_state()` in scene scripts unless you have a specific override requirement. The automatic management happens in `M_SceneManager._update_cursor_for_scene()` which is called after every scene transition. This prevents the common pitfall of loading a menu scene with a locked cursor (making buttons unclickable) or loading gameplay with a visible cursor (breaking immersion).
+
+- **Transition callbacks MUST use Array wrappers for primitive flags**: When implementing transition effects or any async callbacks in M_SceneManager, use Arrays for boolean/primitive flags due to GDScript closure limitations. Example from `M_SceneManager._perform_transition()`:
+  ```gdscript
+  # WRONG - closures won't modify these:
+  var transition_complete: bool = false
+  var completion_callback := func() -> void:
+      transition_complete = true  # Won't modify outer variable!
+
+  # CORRECT - use Array wrapper:
+  var transition_complete: Array = [false]
+  var completion_callback := func() -> void:
+      transition_complete[0] = true  # Modifies array element
+
+  # Wait for transition
+  while not transition_complete[0]:  # Check array element
+      await get_tree().process_frame
+  ```
+  Without Array wrappers, transitions will never complete because the `while` loop checks a flag that the callback can't modify, causing infinite loops or test timeouts.
+
+- **Fade transitions need adequate wait time in tests**: FadeTransition duration defaults to 0.2 seconds. Tests using fade transitions must wait at least 15 physics frames (0.25s at 60fps) for completion. Waiting only 4 frames (0.067s) will cause assertions to run before transitions complete, resulting in `is_transitioning` still being true or `current_scene_id` not yet updated. Use `await wait_physics_frames(15)` after fade transitions in tests.
+
 ## Test Coverage Status
 
-As of 2025-10-28 (Phase 2 Complete):
-- **Total Tests**: 212 tests passing (no regressions from Phase 1)
+As of 2025-10-28 (Phase 3 In Progress):
+- **Total Tests**: 288+ tests passing (76 new scene manager tests added)
 - **Test Breakdown**:
   - Cursor Manager: 13/13 ✅
   - ECS: 62/62 ✅
@@ -196,8 +259,14 @@ As of 2025-10-28 (Phase 2 Complete):
   - Utils: 11/11 ✅
   - Unit/Integration: 12/12 ✅
   - Integration: 10/10 ✅
-- **Test Execution Time**: ~12 seconds for full suite
-- **Status**: All tests passing after Phase 2 scene restructuring
+  - **Scene Manager (NEW)**:
+    - Integration: 13/13 ✅
+    - M_SceneManager: 23/23 ✅
+    - SceneRegistry: 19/19 ✅
+    - Scene Reducer: 10/10 ✅
+    - Transition Effects: 16/16 ✅
+- **Test Execution Time**: ~17 seconds for full suite
+- **Status**: All tests passing after Phase 3 scene manager implementation
 
 Test directories:
 - `tests/unit/ecs` - ECS component and system tests
