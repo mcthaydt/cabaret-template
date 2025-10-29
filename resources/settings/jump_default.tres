@@ -4,3 +4,6 @@
 
 [resource]
 script = ExtResource("1_0")
+## Tuned for edge cases near block corners
+coyote_time = 0.28
+jump_buffer_time = 0.28
