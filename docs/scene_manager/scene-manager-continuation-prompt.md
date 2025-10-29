@@ -5,7 +5,7 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager`
-**Status**: ✅ Phase 0 Complete - Ready for Phase 1
+**Status**: ✅ Phase 0 & Phase 1 Complete - Ready for Phase 2
 
 ---
 
@@ -29,7 +29,17 @@ This guide directs you to implement the Scene Manager feature by following the t
 - Camera blending: Smooth Tween-based interpolation validated (0.5s duration)
 - M_StateStore modification: LOW RISK (additive changes only)
 
-**Next Phase**: Begin Phase 1 (Setup) → Phase 2 (Foundational Scene Restructuring)
+---
+
+## ✅ Phase 1: Setup - COMPLETE (2/2 tasks)
+
+**Status**: Baseline tests established successfully
+
+**Completed (2/2 tasks) - 100%**:
+- ✅ T001: All existing tests run successfully - 212 automated GUT tests passing
+- ✅ T002: Test baseline documented in commit 6f7107f
+
+**Next Phase**: Begin Phase 2 (Foundational Scene Restructuring) - T003-T024
 
 See `docs/scene_manager/general/research.md` for detailed findings.
 
@@ -106,8 +116,8 @@ Additional tracking requirements:
 
 ## Critical Notes
 
-- **Phase 0 is a decision gate**: Complete all research and validation before proceeding to implementation
-- **Phase 2 is high risk**: Scene restructuring affects the entire project - all ~314 existing tests must continue passing
+- **Phase 0 & Phase 1 complete**: Research validated, baseline tests established (212 GUT tests passing)
+- **Phase 2 is high risk**: Scene restructuring affects the entire project - all ~212 existing tests must continue passing
 - **No autoloads**: Use scene-tree-based discovery patterns
 - **TDD is mandatory**: Write tests before implementation
 - **Immutable state**: Always use `.duplicate(true)` in reducers
@@ -122,8 +132,11 @@ Due to risk management reordering, Phase 5 (T101-T128) comes before Phase 6 (T08
 
 ## Getting Started
 
-Begin with Phase 0 by reading the detailed requirements in:
-- `scene-manager-plan.md` (Phase 0 section)
-- `scene-manager-tasks.md` (R001-R031)
+**Current Phase**: Phase 2 (Foundational Scene Restructuring)
 
-Then proceed sequentially through each phase and task.
+Begin with Phase 2 by reading the detailed requirements in:
+
+- `scene-manager-plan.md` (Phase 2 section)
+- `scene-manager-tasks.md` (T003-T024)
+
+**⚠️ CRITICAL**: Phase 2 restructures the entire project architecture. All existing tests must pass after each major change.
