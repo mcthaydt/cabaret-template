@@ -52,6 +52,11 @@ func _ready() -> void:
 	# Wait a frame for store to initialize
 	await get_tree().process_frame
 
+	# Measure baseline memory (R029)
+	var memory_before_load_bytes: int = OS.get_static_memory_usage()
+	var memory_before_load_mb: float = memory_before_load_bytes / 1024.0 / 1024.0
+	print("\n[PROTOTYPE] Memory baseline: ", "%.2f" % memory_before_load_mb, " MB")
+
 	# Test 1: Load base_scene_template as child
 	print("\n[PROTOTYPE] Test 1: Loading base_scene_template.tscn...")
 	var load_start_time_ms: int = Time.get_ticks_msec()
@@ -72,6 +77,12 @@ func _ready() -> void:
 	# Wait for scene to fully initialize (ECS registration)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
+
+	# Measure memory after load (R029)
+	var memory_after_load_bytes: int = OS.get_static_memory_usage()
+	var memory_after_load_mb: float = memory_after_load_bytes / 1024.0 / 1024.0
+	var memory_increase_mb: float = memory_after_load_mb - memory_before_load_mb
+	print("[PROTOTYPE] Memory after load: ", "%.2f" % memory_after_load_mb, " MB (+", "%.2f" % memory_increase_mb, " MB)")
 
 	# Test 2: Validate ECS works
 	print("\n[PROTOTYPE] Test 2: Validating ECS Manager...")
@@ -115,7 +126,12 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
+	# Measure memory after unload (R029)
+	var memory_after_unload_bytes: int = OS.get_static_memory_usage()
+	var memory_after_unload_mb: float = memory_after_unload_bytes / 1024.0 / 1024.0
+	var memory_freed_mb: float = memory_after_load_mb - memory_after_unload_mb
 	print("[PROTOTYPE] Scene unloaded successfully")
+	print("[PROTOTYPE] Memory after unload: ", "%.2f" % memory_after_unload_mb, " MB (freed ", "%.2f" % memory_freed_mb, " MB)")
 
 	# Reload
 	var reload_start_time_ms: int = Time.get_ticks_msec()
@@ -139,6 +155,21 @@ func _ready() -> void:
 
 	print("[PROTOTYPE] ECS Manager functional after reload")
 
+	# Measure memory after reload (R029)
+	var memory_after_reload_bytes: int = OS.get_static_memory_usage()
+	var memory_after_reload_mb: float = memory_after_reload_bytes / 1024.0 / 1024.0
+	var memory_peak_bytes: int = OS.get_static_memory_peak_usage()
+	var memory_peak_mb: float = memory_peak_bytes / 1024.0 / 1024.0
+	print("[PROTOTYPE] Memory after reload: ", "%.2f" % memory_after_reload_mb, " MB")
+	print("[PROTOTYPE] Memory peak usage: ", "%.2f" % memory_peak_mb, " MB")
+
+	# Check for memory leaks
+	var memory_leak_mb: float = memory_after_unload_mb - memory_before_load_mb
+	if abs(memory_leak_mb) < 1.0:
+		print("[PROTOTYPE] ✓ No significant memory leak detected (", "%.2f" % memory_leak_mb, " MB)")
+	else:
+		print("[PROTOTYPE] ⚠ Possible memory leak: ", "%.2f" % memory_leak_mb, " MB after unload")
+
 	# Results Summary
 	print("\n" + "=".repeat(60))
 	print("[PROTOTYPE] VALIDATION COMPLETE")
@@ -148,6 +179,12 @@ func _ready() -> void:
 	print("✓ Redux state preserved across scene transitions")
 	print("✓ Scene load time: ", load_duration_ms, " ms (baseline for R027)")
 	print("✓ Scene reload time: ", reload_duration_ms, " ms (hot reload)")
+	print("✓ Memory usage (R029):")
+	print("  - Baseline: ", "%.2f" % memory_before_load_mb, " MB")
+	print("  - After load: ", "%.2f" % memory_after_load_mb, " MB (+", "%.2f" % memory_increase_mb, " MB)")
+	print("  - After unload: ", "%.2f" % memory_after_unload_mb, " MB")
+	print("  - After reload: ", "%.2f" % memory_after_reload_mb, " MB")
+	print("  - Peak usage: ", "%.2f" % memory_peak_mb, " MB")
 	print("=".repeat(60))
 
 	# R031 validation: Check if performance targets achievable

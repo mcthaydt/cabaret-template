@@ -1,0 +1,49 @@
+[gd_scene load_steps=3 format=3 uid="uid://dtmxqtns6y8yp"]
+
+[ext_resource type="Script" path="res://scripts/prototypes/prototype_camera_blending.gd" id="1_camera_blend_script"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_1"]
+
+[node name="CameraBlendTest" type="Node3D"]
+script = ExtResource("1_camera_blend_script")
+camera_a = NodePath("CameraA")
+camera_b = NodePath("CameraB")
+blend_camera = NodePath("BlendCamera")
+blend_duration = 0.5
+
+[node name="CameraA" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, -5, 3, 5)
+fov = 70.0
+
+[node name="CameraB" type="Camera3D" parent="."]
+transform = Transform3D(-0.707107, 0.353553, -0.612372, 0, 0.866025, 0.5, 0.707107, 0.353553, -0.612372, 5, 4, 3)
+fov = 90.0
+
+[node name="BlendCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, -5, 3, 5)
+current = true
+fov = 70.0
+
+[node name="SceneReference" type="Node3D" parent="."]
+
+[node name="OriginCube" type="MeshInstance3D" parent="SceneReference"]
+mesh = SubResource("BoxMesh_1")
+
+[node name="Cube2" type="MeshInstance3D" parent="SceneReference"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 0)
+mesh = SubResource("BoxMesh_1")
+
+[node name="Cube3" type="MeshInstance3D" parent="SceneReference"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 0)
+mesh = SubResource("BoxMesh_1")
+
+[node name="Cube4" type="MeshInstance3D" parent="SceneReference"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
+mesh = SubResource("BoxMesh_1")
+
+[node name="Cube5" type="MeshInstance3D" parent="SceneReference"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3)
+mesh = SubResource("BoxMesh_1")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 5, 0)
