@@ -1,0 +1,22 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/state/m_state_store.gd" id="1_state_store"]
+[ext_resource type="Resource" path="res://resources/state/default_state_store_settings.tres" id="1_state_settings"]
+[ext_resource type="Resource" path="res://resources/state/default_boot_initial_state.tres" id="1_boot_state"]
+[ext_resource type="Resource" path="res://resources/state/default_menu_initial_state.tres" id="1_menu_state"]
+[ext_resource type="Resource" path="res://resources/state/default_gameplay_initial_state.tres" id="1_gameplay_state"]
+[ext_resource type="Script" path="res://scripts/prototypes/prototype_scene_restructuring.gd" id="1_prototype_script"]
+
+[node name="Root" type="Node"]
+
+[node name="M_StateStore" type="Node" parent="."]
+script = ExtResource("1_state_store")
+settings = ExtResource("1_state_settings")
+boot_initial_state = ExtResource("1_boot_state")
+menu_initial_state = ExtResource("1_menu_state")
+gameplay_initial_state = ExtResource("1_gameplay_state")
+
+[node name="ActiveSceneContainer" type="Node" parent="."]
+
+[node name="PrototypeTest" type="Node" parent="."]
+script = ExtResource("1_prototype_script")
