@@ -173,12 +173,12 @@
 - [x] T034 [US1] Run unit tests for scene slice and verify they pass - **COMPLETE** (10/10 tests passing ✅)
 - [x] T035 [US1] Test transient fields (is_transitioning) excluded from save_state() - **COMPLETE** (test added to test_state_persistence.gd, verifies is_transitioning and transition_type excluded)
 - [x] T036 [US1] Validate ALL ~212 existing tests still pass (no regressions) - **COMPLETE** (213/213 unit + 10/10 integration = 223/223 passing ✅)
-- [ ] T037 [P] [US1] Create scripts/scene_management/scene_registry.gd static class
-- [ ] T038 [P] [US1] Define scene metadata in SceneRegistry (paths, types, transitions, preload priority)
-- [ ] T039 [P] [US1] Define door pairing structure in SceneRegistry
-- [ ] T040 [P] [US1] Implement SceneRegistry.validate_door_pairings() method
-- [ ] T041 [US1] Add "gameplay_base", "main_menu", "settings_menu" to SceneRegistry
-- [ ] T042 [US1] Run unit tests for SceneRegistry and verify they pass
+- [x] T037 [P] [US1] Create scripts/scene_management/scene_registry.gd static class - **COMPLETE** (SceneType enum, scene metadata, door pairings)
+- [x] T038 [P] [US1] Define scene metadata in SceneRegistry (paths, types, transitions, preload priority) - **COMPLETE** (5 scenes registered)
+- [x] T039 [P] [US1] Define door pairing structure in SceneRegistry - **COMPLETE** (exterior ↔ interior_house pairings)
+- [x] T040 [P] [US1] Implement SceneRegistry.validate_door_pairings() method - **COMPLETE** (validates target scenes exist)
+- [x] T041 [US1] Add "gameplay_base", "main_menu", "settings_menu" to SceneRegistry - **COMPLETE** (all 3 scenes registered with metadata)
+- [x] T042 [US1] Run unit tests for SceneRegistry and verify they pass - **COMPLETE** (19/19 tests passing ✅)
 - [ ] T042.5 [US1] Add SceneRegistry.validate_door_pairings() call to M_SceneManager._ready() and log any validation errors
 - [ ] T043 [US1] Create scripts/managers/m_scene_manager.gd node
 - [ ] T044 [US1] Implement M_SceneManager._ready(): add to "scene_manager" group, find M_StateStore

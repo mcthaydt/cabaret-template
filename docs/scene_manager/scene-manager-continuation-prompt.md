@@ -76,16 +76,16 @@ This guide directs you to implement the Scene Manager feature by following the t
 
 ---
 
-## 🚧 Phase 3: User Story 1 - Basic Scene Transitions - IN PROGRESS (12/43 tasks)
+## 🚧 Phase 3: User Story 1 - Basic Scene Transitions - IN PROGRESS (18/43 tasks)
 
-**Status**: Scene state slice validated, transient fields working, no regressions
+**Status**: SceneRegistry complete, ready for M_SceneManager implementation
 **Date Started**: 2025-10-28
-**Current Task**: T037 - Create SceneRegistry static class
+**Current Task**: T043 - Create M_SceneManager node
 
-**Completed (12/43 tasks) - 28%**:
+**Completed (18/43 tasks) - 42%**:
 - ✅ T025-T029: All unit and integration tests written (TDD approach)
   * test_scene_reducer.gd: 10 tests
-  * test_scene_registry.gd: 18 tests
+  * test_scene_registry.gd: 19 tests
   * test_m_scene_manager.gd: 23 tests
   * test_transitions.gd: 21 tests
   * test_basic_transitions.gd: 15 integration tests
@@ -96,17 +96,20 @@ This guide directs you to implement the Scene Manager feature by following the t
 - ✅ T034: Scene reducer tests passing (10/10 ✅)
 - ✅ T035: Transient fields test added (is_transitioning, transition_type excluded from saves)
 - ✅ T036: All existing tests validated (223/223 passing - no regressions)
+- ✅ T037-T041: SceneRegistry static class created with 5 scenes, door pairings, validation
+- ✅ T042: SceneRegistry tests passing (19/19 ✅)
 
 **Key Achievements**:
 - Scene state slice architecture established
 - Transient fields configured and validated (`is_transitioning`, `transition_type`)
 - Scene reducer follows immutable Redux patterns
 - Action creators properly registered with ActionRegistry
+- SceneRegistry static class with scene metadata, door pairings, and validation
 - TDD discipline maintained throughout
 - No regressions: 213 unit + 10 integration = 223 total tests passing
 
-**Remaining Work (31 tasks)**:
-- T037-T042: Implement SceneRegistry with scene metadata
+**Remaining Work (25 tasks)**:
+- T042.5: Add validation call to M_SceneManager._ready()
 - T043-T051: Implement M_SceneManager core functionality
 - T052-T058: Implement transition effects (instant, fade)
 - T059-T062: Create UI scenes (main menu, settings)
@@ -114,14 +117,14 @@ This guide directs you to implement the Scene Manager feature by following the t
 
 **Test Status**:
 - Scene reducer: 10/10 passing ✅
+- SceneRegistry: 19/19 passing ✅
 - Scene persistence: 1/1 new test passing ✅
 - All existing tests: 223/223 passing ✅
-- SceneRegistry: 0/18 (dependencies not implemented)
 - M_SceneManager: 0/23 (dependencies not implemented)
 - Transitions: 0/21 (dependencies not implemented)
 - Integration: 0/15 (dependencies not implemented)
 
-**Next Steps**: Implement SceneRegistry static class with scene metadata
+**Next Steps**: Implement M_SceneManager node with transition queue and scene loading
 
 ---
 
