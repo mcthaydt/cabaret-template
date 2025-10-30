@@ -15,7 +15,7 @@ class_name M_SceneManager
 
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const M_CursorManager = preload("res://scripts/managers/m_cursor_manager.gd")
-const U_SceneActions = preload("res://scripts/state/u_scene_actions.gd")
+const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
 const SceneRegistry = preload("res://scripts/scene_management/scene_registry.gd")
 const InstantTransition = preload("res://scripts/scene_management/transitions/instant_transition.gd")
 const FadeTransition = preload("res://scripts/scene_management/transitions/fade_transition.gd")

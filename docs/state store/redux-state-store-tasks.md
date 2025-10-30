@@ -200,7 +200,7 @@ func after_each():
 
 **U_StateUtils Helper (Critical for Global Access):**
 
-- [x] T062 [P] [US1a] Create `scripts/state/u_state_utils.gd` with class_name U_StateUtils
+- [x] T062 [P] [US1a] Create `scripts/state/utils/u_state_utils.gd` with class_name U_StateUtils
 - [x] T063 [US1a] Implement `static func get_store(node: Node) -> M_StateStore` using get_tree().get_nodes_in_group("state_store") pattern
 - [x] T064 [US1a] Add null/validation checks in get_store(): verify node valid, tree exists, group not empty
 - [x] T065 [US1a] Add warning if multiple stores found in group (unexpected state)
@@ -259,7 +259,7 @@ func after_each():
 
 **ActionRegistry (Static Class with Static Initializer):**
 
-- [x] T089 [P] [US1b] Create `scripts/state/action_registry.gd` as class_name ActionRegistry
+- [x] T089 [P] [US1b] Create `scripts/state/utils/u_action_registry.gd` as class_name U_ActionRegistry
 - [x] T090 [US1b] Add static var `_registered_actions: Dictionary = {}` (action_type -> schema)
 - [x] T091 [US1b] Implement `static func register_action(action_type: StringName, schema: Dictionary) -> void`
 - [x] T092 [US1b] Implement `static func is_registered(action_type: StringName) -> bool`
@@ -269,7 +269,7 @@ func after_each():
 
 **Gameplay Action Creators:**
 
-- [x] T096 [P] [US1b] Create `scripts/state/u_gameplay_actions.gd` as class_name U_GameplayActions
+- [x] T096 [P] [US1b] Create `scripts/state/actions/u_gameplay_actions.gd` as class_name U_GameplayActions
 - [x] T097 [US1b] Add StringName constants: `const ACTION_PAUSE_GAME := StringName("gameplay/pause")`, `const ACTION_UNPAUSE_GAME := StringName("gameplay/unpause")`
 - [x] T098 [US1b] Implement `static func pause_game() -> Dictionary` returning {"type": ACTION_PAUSE_GAME, "payload": null}
 - [x] T099 [US1b] Implement `static func unpause_game() -> Dictionary` returning {"type": ACTION_UNPAUSE_GAME, "payload": null}
@@ -320,7 +320,7 @@ func after_each():
 
 **Gameplay Reducer:**
 
-- [x] T121 [P] [US1c] Create `scripts/state/reducers/gameplay_reducer.gd` as class_name GameplayReducer
+- [x] T121 [P] [US1c] Create `scripts/state/reducers/u_gameplay_reducer.gd` as class_name U_GameplayReducer
 - [x] T122 [US1c] Implement `static func reduce(state: Dictionary, action: Dictionary) -> Dictionary`
 - [x] T123 [US1c] Add match statement on action.type with case U_GameplayActions.ACTION_PAUSE_GAME
 - [x] T124 [US1c] In PAUSE case: `var new_state = state.duplicate(true); new_state.paused = true; return new_state`
@@ -431,7 +431,7 @@ func after_each():
 
 **Gameplay Selectors:**
 
-- [x] T174 [P] [US1e] Create `scripts/state/selectors/gameplay_selectors.gd` as class_name GameplaySelectors
+- [x] T174 [P] [US1e] Create `scripts/state/selectors/u_gameplay_selectors.gd` as class_name GameplaySelectors
 - [x] T175 [US1e] Implement `static func get_is_player_alive(state: Dictionary) -> bool` (returns state.health > 0)
 - [x] T176 [US1e] Implement `static func get_is_game_over(state: Dictionary) -> bool` (check objectives if present)
 - [x] T177 [US1e] Implement `static func get_completion_percentage(state: Dictionary) -> float` (compute from objectives)
@@ -474,7 +474,7 @@ func after_each():
 
 **Signal Batcher:**
 
-- [x] T191 [P] [US1f] Create `scripts/state/signal_batcher.gd` as class_name SignalBatcher extending RefCounted
+- [x] T191 [P] [US1f] Create `scripts/state/utils/signal_batcher.gd` as class_name SignalBatcher extending RefCounted
 - [x] T192 [US1f] Add private var `_pending_slice_updates: Dictionary = {}` (slice_name -> latest_state)
 - [x] T193 [US1f] Implement `func mark_slice_dirty(slice_name: StringName, slice_state: Dictionary) -> void`
 - [x] T194 [US1f] In mark_slice_dirty(), store slice_state in _pending_slice_updates (overwrite if already exists)
@@ -574,7 +574,7 @@ func after_each():
 
 **SerializationHelper (Comprehensive Godot Type Support):**
 
-- [x] T242 [P] [US1h] Create `scripts/state/serialization_helper.gd` as class_name SerializationHelper
+- [x] T242 [P] [US1h] Create `scripts/state/utils/u_serialization_helper.gd` as class_name U_SerializationHelper
 - [x] T243 [US1h] Implement `static func godot_to_json(value: Variant) -> Variant` with type checking
 - [x] T244 [US1h] In godot_to_json(), handle Vector2: return {"x": v.x, "y": v.y, "_type": "Vector2"}
 - [x] T245 [US1h] In godot_to_json(), handle Vector3: return {"x": v.x, "y": v.y, "z": v.z, "_type": "Vector3"}
@@ -618,7 +618,7 @@ func after_each():
 
 **State Handoff Utility (No Autoloads, Scene Transitions):**
 
-- [x] T277 [P] [US1h] Create `scripts/state/state_handoff.gd` (class_name StateHandoff) as static utility (no autoload)
+- [x] T277 [P] [US1h] Create `scripts/state/utils/u_state_handoff.gd` (class_name U_StateHandoff) as static utility (no autoload)
 - [x] T278 [US1h] Add static var `_preserved_slices: Dictionary = {}` (slice_name -> slice_state)
 - [x] T279 [US1h] Implement `static func preserve_slice(slice_name: StringName, slice_state: Dictionary) -> void`
 - [x] T280 [US1h] In preserve_slice(), store `slice_state.duplicate(true)` in `_preserved_slices`
@@ -881,17 +881,17 @@ func after_each():
 - [x] T337 [US3] Add @export properties: loading_progress (float, 0.0-1.0), phase (String), error_message (String), is_ready (bool)
 - [x] T338 [US3] Add `to_dictionary() -> Dictionary` method
 - [x] T339 [US3] Create default resource `resources/state/default_boot_initial_state.tres` with defaults
-- [x] T340 [P] [US3] Create `scripts/state/u_boot_actions.gd` as class_name U_BootActions
+- [x] T340 [P] [US3] Create `scripts/state/actions/u_boot_actions.gd` as class_name U_BootActions
 - [x] T341 [US3] Add constants: ACTION_UPDATE_LOADING_PROGRESS, ACTION_BOOT_ERROR, ACTION_BOOT_COMPLETE
 - [x] T342 [US3] Implement action creators with explicit `: Dictionary` return types
 - [x] T343 [US3] Add _static_init() to register actions with ActionRegistry
 
 **Boot Reducer & Selectors:**
 
-- [x] T344 [P] [US3] Create `scripts/state/reducers/boot_reducer.gd` as class_name BootReducer
+- [x] T344 [P] [US3] Create `scripts/state/reducers/u_boot_reducer.gd` as class_name U_BootReducer
 - [x] T345 [US3] Implement `static func reduce(state: Dictionary, action: Dictionary) -> Dictionary`
 - [x] T346 [US3] Add cases for all boot actions using .duplicate(true) for immutability
-- [x] T347 [P] [US3] Create `scripts/state/selectors/boot_selectors.gd` as class_name BootSelectors
+- [x] T347 [P] [US3] Create `scripts/state/selectors/u_boot_selectors.gd` as class_name BootSelectors
 - [x] T348 [US3] Implement selectors: get_is_boot_complete(), get_loading_progress(), get_boot_error()
 
 **Store Integration:**
@@ -937,16 +937,16 @@ func after_each():
 - [x] T364 [US4] Add @export properties: active_screen (String), pending_character (String), pending_difficulty (String), available_saves (Array)
 - [x] T365 [US4] Add `to_dictionary() -> Dictionary` method
 - [x] T366 [US4] Create default resource `resources/state/default_menu_initial_state.tres`
-- [x] T367 [P] [US4] Create `scripts/state/u_menu_actions.gd` as class_name U_MenuActions
+- [x] T367 [P] [US4] Create `scripts/state/actions/u_menu_actions.gd` as class_name U_MenuActions
 - [x] T368 [US4] Add constants: ACTION_NAVIGATE_TO_SCREEN, ACTION_SELECT_CHARACTER, ACTION_SELECT_DIFFICULTY, ACTION_LOAD_SAVE_FILES
 - [x] T369 [US4] Implement action creators with `: Dictionary` return types
 - [x] T370 [US4] Add _static_init() to register actions
 
 **Menu Reducer & Selectors:**
 
-- [x] T371 [P] [US4] Create `scripts/state/reducers/menu_reducer.gd` as class_name MenuReducer
+- [x] T371 [P] [US4] Create `scripts/state/reducers/u_menu_reducer.gd` as class_name U_MenuReducer
 - [x] T372 [US4] Implement `static func reduce()` with cases for all menu actions
-- [x] T373 [P] [US4] Create `scripts/state/selectors/menu_selectors.gd` as class_name MenuSelectors
+- [x] T373 [P] [US4] Create `scripts/state/selectors/u_menu_selectors.gd` as class_name MenuSelectors
 - [x] T374 [US4] Implement selectors: get_active_screen(), get_pending_game_config(), get_available_saves()
 
 **Store Integration:**
@@ -988,7 +988,7 @@ func after_each():
 
 **Transition Actions:**
 
-- [x] T389 [P] [US5] Create `scripts/state/u_transition_actions.gd` as class_name U_TransitionActions
+- [x] T389 [P] [US5] Create `scripts/state/actions/u_transition_actions.gd` as class_name U_TransitionActions
 - [x] T390 [US5] Add constants: ACTION_TRANSITION_TO_MENU, ACTION_TRANSITION_TO_GAMEPLAY, ACTION_TRANSITION_TO_BOOT
 - [x] T391 [US5] Implement action creators with data handoff payloads (e.g., menu config passed to gameplay)
 - [x] T392 [US5] Register transition actions in ActionRegistry

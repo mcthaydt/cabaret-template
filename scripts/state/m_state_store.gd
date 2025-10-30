@@ -13,9 +13,9 @@ class_name M_StateStore
 ##   store.dispatch(U_GameplayActions.pause_game())
 ##   var state: Dictionary = store.get_state()
 
-const SignalBatcher = preload("res://scripts/state/signal_batcher.gd")
-const SerializationHelper = preload("res://scripts/state/u_serialization_helper.gd")
-const StateHandoff = preload("res://scripts/state/u_state_handoff.gd")
+const SignalBatcher = preload("res://scripts/state/utils/signal_batcher.gd")
+const SerializationHelper = preload("res://scripts/state/utils/u_serialization_helper.gd")
+const StateHandoff = preload("res://scripts/state/utils/u_state_handoff.gd")
 const BootReducer = preload("res://scripts/state/reducers/u_boot_reducer.gd")
 const MenuReducer = preload("res://scripts/state/reducers/u_menu_reducer.gd")
 const GameplayReducer = preload("res://scripts/state/reducers/u_gameplay_reducer.gd")

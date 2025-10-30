@@ -159,8 +159,8 @@ scripts/state/resources/                      # .gd scripts ONLY
 
 **Implementation** (no autoload):
 ```gdscript
-# scripts/state/state_handoff.gd
-class_name StateHandoff
+# scripts/state/utils/u_state_handoff.gd
+class_name U_StateHandoff
 
 static var _preserved_slices: Dictionary = {}
 
@@ -192,7 +192,7 @@ static func clear_all() -> void:
 
 **Implementation**:
 ```gdscript
-# scripts/state/u_state_utils.gd
+# scripts/state/utils/u_state_utils.gd
 class_name U_StateUtils
 
 static func get_store(node: Node) -> M_StateStore:
@@ -374,27 +374,39 @@ docs/state store/
 ```
 scripts/state/                                # NEW DIRECTORY
 ├── m_state_store.gd                          # Core store manager (Node)
-├── state_handoff.gd                          # Static handoff utility (no autoload)
+├── utils/u_state_handoff.gd                          # Static handoff utility (no autoload)
 ├── action_registry.gd                        # Action type validation
 ├── signal_batcher.gd                         # Per-frame signal batching
-├── serialization_helper.gd                   # Godot type ↔ JSON conversion
 ├── state_slice_config.gd                     # Slice metadata (plain class)
 │
-├── u_state_utils.gd                          # State utility functions (NEW)
+├── utils/                                    # Shared utilities
+│   ├── u_state_utils.gd                      # State utility functions (NEW)
+│   ├── u_action_registry.gd                  # Action type validation
+│   ├── u_serialization_helper.gd             # Godot type ↔ JSON conversion
+│   ├── u_state_handoff.gd                    # Cross-scene state preservation
+│   └── signal_batcher.gd                     # Per-frame signal batching
 │
-├── u_gameplay_actions.gd                     # Gameplay action creators
-├── u_boot_actions.gd                         # Boot action creators
-├── u_menu_actions.gd                         # Menu action creators
+├── actions/                                  # Action creator modules
+│   ├── u_gameplay_actions.gd                 # Gameplay action creators
+│   ├── u_boot_actions.gd                     # Boot action creators
+│   ├── u_menu_actions.gd                     # Menu action creators
+│   ├── u_scene_actions.gd                    # Scene transition actions
+│   └── u_transition_actions.gd               # Transition helpers
 │
-├── reducers/                                 # NEW SUBDIRECTORY
-│   ├── gameplay_reducer.gd                   # Gameplay slice reducer
-│   ├── boot_reducer.gd                       # Boot slice reducer
-│   └── menu_reducer.gd                       # Menu slice reducer
+├── reducers/                                 # Pure reducers per slice
+│   ├── u_gameplay_reducer.gd                 # Gameplay slice reducer
+│   ├── u_boot_reducer.gd                     # Boot slice reducer
+│   ├── u_menu_reducer.gd                     # Menu slice reducer
+│   └── u_scene_reducer.gd                    # Scene slice reducer
 │
-├── selectors/                                # NEW SUBDIRECTORY
-│   ├── gameplay_selectors.gd                 # Gameplay derived state
-│   ├── boot_selectors.gd                     # Boot derived state
-│   └── menu_selectors.gd                     # Menu derived state
+├── selectors/                                # Derived state helpers
+│   ├── u_gameplay_selectors.gd               # Gameplay derived state
+│   ├── u_boot_selectors.gd                   # Boot derived state
+│   ├── u_menu_selectors.gd                   # Menu derived state
+│   ├── u_entity_selectors.gd                 # Entity derived state
+│   ├── u_input_selectors.gd                  # Input derived state
+│   ├── u_physics_selectors.gd                # Physics derived state
+│   └── u_visual_selectors.gd                 # Visual derived state
 │
 └── resources/                                # .gd scripts for Resources
     ├── rs_gameplay_initial_state.gd
@@ -479,7 +491,7 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 
 **Files Created**:
 - `scripts/state/m_state_store.gd` (store skeleton)
-- `scripts/state/u_state_utils.gd` (access helper - NEW)
+- `scripts/state/utils/u_state_utils.gd` (access helper - NEW)
 - `scripts/state/state_slice_config.gd` (slice metadata)
 - `scripts/state/resources/rs_state_store_settings.gd` (store config)
 - `resources/state/default_state_store_settings.tres` (default config)
@@ -515,7 +527,7 @@ signal validation_failed(action: Dictionary, error: String)
 const PROJECT_SETTING_HISTORY_SIZE := "state/debug/history_size"
 const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 
-const U_STATE_UTILS := preload("res://scripts/state/u_state_utils.gd")
+const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 
 @export var settings: RS_StateStoreSettings
 
@@ -594,7 +606,7 @@ func _exit_tree() -> void:
 **Implementation**: U_StateUtils
 
 ```gdscript
-# scripts/state/u_state_utils.gd
+# scripts/state/utils/u_state_utils.gd
 class_name U_StateUtils
 
 ## Utility functions for state management (similar to U_ECSUtils)
@@ -815,8 +827,8 @@ func test_benchmark_measures_time():
 **Objective**: Implement save/load with JSON serialization, Godot type conversion, selective persistence, save slot management, metadata, and validation.
 
 **Files Created**:
-- `scripts/state/serialization_helper.gd`
-- `scripts/state/state_handoff.gd` (static utility — no autoload)
+- `scripts/state/utils/u_serialization_helper.gd`
+- `scripts/state/utils/u_state_handoff.gd` (static utility — no autoload)
 - `tests/unit/state/test_state_persistence.gd`
 
 **Files Modified**:
@@ -826,8 +838,8 @@ func test_benchmark_measures_time():
 **Implementation**: StateHandoff (No autoload)
 
 ```gdscript
-# scripts/state/state_handoff.gd
-class_name StateHandoff
+# scripts/state/utils/u_state_handoff.gd
+class_name U_StateHandoff
 
 ## Static utility that preserves state between scene changes
 ## without using autoloads.
@@ -1040,8 +1052,8 @@ func _ready() -> void:
 **Implementation**: SerializationHelper
 
 ```gdscript
-# scripts/state/serialization_helper.gd
-class_name SerializationHelper
+# scripts/state/utils/u_serialization_helper.gd
+class_name U_SerializationHelper
 
 ## Utility for converting Godot types to/from JSON-compatible structures
 
@@ -1263,7 +1275,7 @@ These step-by-step workflows guide you through common development tasks. **Use t
 **Step 1: Add Action Constant & Creator** (5 min)
 
 ```gdscript
-# scripts/state/u_gameplay_actions.gd
+# scripts/state/actions/u_gameplay_actions.gd
 const ACTION_UPDATE_AMMO := StringName("gameplay/update_ammo")
 
 static func update_ammo(ammo: int) -> Dictionary:
@@ -1298,7 +1310,7 @@ Open `resources/state/default_gameplay_initial_state.tres` in Godot, set `defaul
 **Step 4: Add Reducer Case** (3 min)
 
 ```gdscript
-# scripts/state/reducers/gameplay_reducer.gd
+# scripts/state/reducers/u_gameplay_reducer.gd
 static func reduce(current_state: Dictionary, action: Dictionary) -> Dictionary:
 	var next_state: Dictionary = current_state.duplicate(true)
 
@@ -1332,7 +1344,7 @@ Run tests: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s 
 **Step 6 (Optional): Add Selector** (5 min)
 
 ```gdscript
-# scripts/state/selectors/gameplay_selectors.gd
+# scripts/state/selectors/u_gameplay_selectors.gd
 static func select_ammo(state: Dictionary) -> int:
 	var gameplay: Dictionary = state.get("gameplay", {})
 	return gameplay.get("ammo", 0)
@@ -1637,7 +1649,7 @@ func _on_state_changed(action: Dictionary, new_state: Dictionary) -> void:
 		_show_game_over_screen()
 
 # OR: Use reducer to handle derived state
-# In gameplay_reducer.gd:
+# In u_gameplay_reducer.gd:
 static func reduce(current_state: Dictionary, action: Dictionary) -> Dictionary:
 	var next_state: Dictionary = current_state.duplicate(true)
 
@@ -1666,7 +1678,7 @@ How to debug state issues **before** Phase 2 debug overlay exists.
 ### Technique 1: Print Statements in Reducer
 
 ```gdscript
-# scripts/state/reducers/gameplay_reducer.gd
+# scripts/state/reducers/u_gameplay_reducer.gd
 static func reduce(current_state: Dictionary, action: Dictionary) -> Dictionary:
 	if OS.is_debug_build():
 		print("════════════════════════════════════════")

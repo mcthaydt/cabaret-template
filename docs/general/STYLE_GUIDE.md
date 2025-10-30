@@ -39,7 +39,7 @@ We use a **prefix + suffix** naming convention that provides:
 | **Components** | `c_*_component.gd` | `c_movement_component.gd` |
 | **Managers** | `m_*_manager.gd` | `m_ecs_manager.gd` |
 | **Resources** | `rs_*_settings.gd` | `rs_movement_settings.gd` |
-| **Utilities** | `u_*_utils.gd` | `u_action_utils.gd` |
+| **Utilities** | `u_*_utils.gd` | `utils/u_action_registry.gd` |
 | **Scene Scripts** | `sc_*_scene.gd` | `sc_player_scene.gd` |
 | **Shaders** | `sh_*_shader.gdshader` | `sh_water_shader.gdshader` |
 | **Tools** | `t_*_tool.gd` | `t_level_editor_tool.gd` |
@@ -203,7 +203,7 @@ func get_components(type: StringName) -> Array:
 
 ### Utility Example
 
-**File:** `scripts/state/u_action_utils.gd`
+**File:** `scripts/state/utils/u_action_registry.gd`
 
 ```gdscript
 class_name U_ECSUtils

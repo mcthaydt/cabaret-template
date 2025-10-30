@@ -144,11 +144,11 @@ scripts/
 │
 ├── state/
 │   ├── m_state_store.gd       # MODIFIED: Register scene slice (FR-112)
-│   ├── state_handoff.gd       # Existing - State preservation utility
+│   ├── utils/u_state_handoff.gd       # Existing - State preservation utility
 │   ├── u_scene_actions.gd     # NEW - Scene action creators
 │   ├── /actions/              # Existing directory for action creators
 │   ├── /reducers/
-│   │   └── scene_reducer.gd   # NEW - Scene slice reducer
+│   │   └── u_scene_reducer.gd   # NEW - Scene slice reducer
 │   └── /resources/
 │       └── rs_scene_initial_state.gd  # NEW - Scene slice initial state
 │
@@ -441,8 +441,8 @@ Before implementing Scene Manager, must restructure existing scenes:
 5. **Scene State Slice Setup** (2-3 hours) - TDD REQUIRED
    - **Test First**: Write `tests/unit/scene_manager/test_scene_reducer.gd`
    - Create `scripts/state/resources/rs_scene_initial_state.gd`
-   - Create `scripts/state/reducers/scene_reducer.gd`
-   - Create `scripts/state/u_scene_actions.gd` with ActionRegistry registration in `_static_init()`
+   - Create `scripts/state/reducers/u_scene_reducer.gd`
+   - Create `scripts/state/actions/u_scene_actions.gd` with ActionRegistry registration in `_static_init()`
    - Modify `M_StateStore._initialize_slices()` to register scene slice (FR-112)
    - **Test Pass**: Unit tests for scene slice pass
    - **Test**: Verify transient fields (is_transitioning) excluded from save_state()

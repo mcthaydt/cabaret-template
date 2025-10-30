@@ -313,7 +313,7 @@ extends Resource
 ### Step 2: Add Action Creator
 
 ```gdscript
-# scripts/state/u_gameplay_actions.gd
+# scripts/state/actions/u_gameplay_actions.gd
 const ACTION_UPDATE_COMBO := StringName("gameplay/update_combo")
 
 static func _static_init() -> void:
@@ -347,7 +347,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 ### Step 4: Add Selector (if needed)
 
 ```gdscript
-# scripts/state/selectors/gameplay_selectors.gd
+# scripts/state/selectors/u_gameplay_selectors.gd
 static func get_combo(state: Dictionary) -> int:
     return state.get("combo", 0)
 

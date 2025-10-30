@@ -151,7 +151,7 @@ This guide directs you to implement the Scene Manager feature by following the t
 
 ### 3. Understand Existing Architecture
 - `scripts/managers/m_state_store.gd` - Redux store (will be modified to add scene slice)
-- `scripts/state/state_handoff.gd` - State preservation utility
+- `scripts/state/utils/u_state_handoff.gd` - State preservation utility
 - `scripts/managers/m_ecs_manager.gd` - Per-scene ECS manager pattern
 - `templates/base_scene_template.tscn` - Current main scene (will be restructured)
 

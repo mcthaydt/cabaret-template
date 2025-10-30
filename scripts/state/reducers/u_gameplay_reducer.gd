@@ -6,7 +6,7 @@ class_name U_GameplayReducer
 ## All reducers are pure functions. NEVER mutate state directly. Always use .duplicate(true).
 ## Reducers process actions and return new state. Unrecognized actions return state unchanged.
 
-const U_TransitionActions := preload("res://scripts/state/u_transition_actions.gd")
+const U_TransitionActions := preload("res://scripts/state/actions/u_transition_actions.gd")
 const U_EntityActions := preload("res://scripts/state/actions/u_entity_actions.gd")
 
 ## Reduce gameplay state based on dispatched action

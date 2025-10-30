@@ -6,7 +6,7 @@ class_name U_BootReducer
 ## Pure function that takes current state and action, returns new state.
 ## NEVER mutates state directly - always uses .duplicate(true) for immutability.
 
-const U_BootActions := preload("res://scripts/state/u_boot_actions.gd")
+const U_BootActions := preload("res://scripts/state/actions/u_boot_actions.gd")
 
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	var action_type: StringName = action.get("type", StringName())

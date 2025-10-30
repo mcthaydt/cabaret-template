@@ -6,7 +6,7 @@ extends GutTest
 ## Tests follow TDD discipline: written BEFORE implementation.
 
 const U_SceneReducer = preload("res://scripts/state/reducers/u_scene_reducer.gd")
-const U_SceneActions = preload("res://scripts/state/u_scene_actions.gd")
+const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
 
 ## Test initial state structure
 func test_initial_state_has_required_fields() -> void:

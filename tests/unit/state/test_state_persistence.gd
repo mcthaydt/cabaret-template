@@ -4,7 +4,7 @@ extends GutTest
 
 const StateStoreEventBus := preload("res://scripts/state/state_event_bus.gd")
 const RS_SceneInitialState := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
-const U_SceneActions := preload("res://scripts/state/u_scene_actions.gd")
+const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd")
 
 var store: M_StateStore
 var test_save_path: String = "user://test_state_save.json"

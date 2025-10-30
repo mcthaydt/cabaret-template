@@ -104,13 +104,13 @@ Files that need refactoring:
 - `resources/state/default_gameplay_initial_state.tres` - Update to match
 
 **Actions:**
-- `scripts/state/u_gameplay_actions.gd` - Remove 5 mock actions
+- `scripts/state/actions/u_gameplay_actions.gd` - Remove 5 mock actions
 
 **Reducers:**
 - `scripts/state/reducers/gameplay_reducer.gd` - Remove 5 mock cases
 
 **Selectors:**
-- `scripts/state/selectors/gameplay_selectors.gd` - Remove 5 mock selectors
+- `scripts/state/selectors/u_gameplay_selectors.gd` - Remove 5 mock selectors
 
 **Systems:**
 - `scripts/ecs/systems/s_health_system.gd` - Currently uses mock actions (may need to remove or refactor)

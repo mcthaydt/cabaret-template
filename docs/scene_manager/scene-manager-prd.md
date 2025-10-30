@@ -625,12 +625,11 @@ These questions remain open for future iteration:
     m_state_store.gd            # EXISTING - Redux state store
 
   /state/
-    state_handoff.gd            # EXISTING - State preservation utility
-    u_scene_actions.gd          # NEW - Scene action creators (slice-level)
+    utils/u_state_handoff.gd    # EXISTING - State preservation utility
     /actions/
-      # Sub-domain actions (u_entity_actions.gd, u_input_actions.gd, etc.)
+      u_scene_actions.gd        # NEW - Scene action creators (slice-level)
     /reducers/
-      scene_reducer.gd          # NEW - Scene slice reducer
+      u_scene_reducer.gd        # NEW - Scene slice reducer
     /resources/
       rs_scene_initial_state.gd # NEW - Scene slice initial state
 
@@ -767,7 +766,7 @@ class_name SceneReducer
 ## Pure function that takes current state and action, returns new state.
 ## NEVER mutates state directly - always uses .duplicate(true) for immutability.
 
-const U_SceneActions := preload("res://scripts/state/u_scene_actions.gd")
+const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd")
 
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
     var action_type: StringName = action.get("type", StringName())
@@ -822,10 +821,10 @@ Add scene slice registration to `m_state_store.gd`:
 @export var gameplay_initial_state: RS_GameplayInitialState
 @export var scene_initial_state: RS_SceneInitialState  # NEW
 
-const BootReducer = preload("res://scripts/state/reducers/boot_reducer.gd")
-const MenuReducer = preload("res://scripts/state/reducers/menu_reducer.gd")
-const GameplayReducer = preload("res://scripts/state/reducers/gameplay_reducer.gd")
-const SceneReducer = preload("res://scripts/state/reducers/scene_reducer.gd")  # NEW
+const BootReducer = preload("res://scripts/state/reducers/u_boot_reducer.gd")
+const MenuReducer = preload("res://scripts/state/reducers/u_menu_reducer.gd")
+const GameplayReducer = preload("res://scripts/state/reducers/u_gameplay_reducer.gd")
+const SceneReducer = preload("res://scripts/state/reducers/u_scene_reducer.gd")  # NEW
 
 func _initialize_slices() -> void:
     # ... existing boot, menu, gameplay registrations ...
@@ -1327,7 +1326,7 @@ func process_tick(delta: float) -> void:
 
 - `/docs/ecs/ecs_architecture.md` - Existing ECS system design
 - `/scripts/state/m_state_store.gd` - Existing Redux state store implementation
-- `/scripts/state/state_handoff.gd` - Existing state preservation utility
+- `/scripts/state/utils/u_state_handoff.gd` - Existing state preservation utility
 - `/docs/scene_manager/INTEGRATION_SUMMARY.md` - Integration details with existing systems
 - `/AGENTS.md` - Project quick reference
 

@@ -349,7 +349,7 @@ if scene_initial_state != null:
 
 **Change 3: Add Preload** (after line 23):
 ```gdscript
-const SceneReducer = preload("res://scripts/state/reducers/scene_reducer.gd")
+const SceneReducer = preload("res://scripts/state/reducers/u_scene_reducer.gd")
 const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 ```
 

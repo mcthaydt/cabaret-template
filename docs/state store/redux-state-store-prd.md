@@ -61,7 +61,7 @@ All state management code follows the project's prefix+suffix naming conventions
 | Component | Class Name | File Name | Example |
 |-----------|------------|-----------|---------|
 | State Store | `M_StateStore` | `m_state_store.gd` | Manager pattern |
-| Action Creators | `U_GameplayActions` | `u_gameplay_actions.gd` | Utility pattern (suffix "Actions" permitted) |
+| Action Creators | `U_GameplayActions` | `actions/u_gameplay_actions.gd` | Utility pattern (suffix "Actions" permitted) |
 | Initial State | `RS_GameplayInitialState` | `rs_gameplay_initial_state.gd` | Resource pattern |
 | Debug Overlay | `SC_StateDebugOverlay` | `sc_state_debug_overlay.gd` | Scene pattern |
 | Tests | `TestMStateStore` | `test_m_state_store.gd` | Test pattern |
@@ -114,19 +114,26 @@ This feature will create the following new files:
 - `scripts/state/state_event_bus.gd` - Concrete state store event bus (uses base)
 
 ### Action Creators (Utilities)
-- `scripts/state/u_gameplay_actions.gd` - Gameplay action creators
-- `scripts/state/u_boot_actions.gd` - Boot sequence action creators
-- `scripts/state/u_menu_actions.gd` - Menu navigation action creators
+- `scripts/state/actions/u_gameplay_actions.gd` - Gameplay action creators
+- `scripts/state/actions/u_boot_actions.gd` - Boot sequence action creators
+- `scripts/state/actions/u_menu_actions.gd` - Menu navigation action creators
+- `scripts/state/actions/u_scene_actions.gd` - Scene transition action creators
+- `scripts/state/actions/u_transition_actions.gd` - Cross-scene transition helpers
 
 ### Reducers
-- `scripts/state/reducers/gameplay_reducer.gd` - Gameplay slice reducer
-- `scripts/state/reducers/boot_reducer.gd` - Boot slice reducer
-- `scripts/state/reducers/menu_reducer.gd` - Menu slice reducer
+- `scripts/state/reducers/u_gameplay_reducer.gd` - Gameplay slice reducer
+- `scripts/state/reducers/u_boot_reducer.gd` - Boot slice reducer
+- `scripts/state/reducers/u_menu_reducer.gd` - Menu slice reducer
+- `scripts/state/reducers/u_scene_reducer.gd` - Scene management slice reducer
 
 ### Selectors
-- `scripts/state/selectors/gameplay_selectors.gd` - Gameplay state selectors
-- `scripts/state/selectors/boot_selectors.gd` - Boot state selectors
-- `scripts/state/selectors/menu_selectors.gd` - Menu state selectors
+- `scripts/state/selectors/u_gameplay_selectors.gd` - Gameplay state selectors
+- `scripts/state/selectors/u_boot_selectors.gd` - Boot state selectors
+- `scripts/state/selectors/u_menu_selectors.gd` - Menu state selectors
+- `scripts/state/selectors/u_entity_selectors.gd` - Entity-derived selectors
+- `scripts/state/selectors/u_input_selectors.gd` - Input-derived selectors
+- `scripts/state/selectors/u_visual_selectors.gd` - Visual feedback selectors
+- `scripts/state/selectors/u_physics_selectors.gd` - Physics integration selectors
 
 ### Initial State Resources
 - `scripts/state/resources/rs_gameplay_initial_state.gd` (+.tres) - Gameplay default state
@@ -135,9 +142,10 @@ This feature will create the following new files:
 - `scripts/state/resources/rs_state_store_settings.gd` (+.tres) - Store config (history size, debug mode, etc.)
 
 ### Support Systems
-- `scripts/state/action_registry.gd` - Action type validation system
-- `scripts/state/signal_batcher.gd` - Per-frame signal batching
-- `scripts/state/serialization_helper.gd` - Godot type ↔ JSON conversion
+- `scripts/state/utils/u_action_registry.gd` - Action type validation system
+- `scripts/state/utils/signal_batcher.gd` - Per-frame signal batching
+- `scripts/state/utils/u_serialization_helper.gd` - Godot type ↔ JSON conversion
+- `scripts/state/utils/u_state_handoff.gd` - Cross-scene state preservation
 - `scripts/state/state_slice_config.gd` - Slice metadata (dependencies, transient fields)
 
 ### Debug Tools
@@ -189,8 +197,8 @@ Developer creates a fully-functional gameplay state slice demonstrating all Redu
 **Objective**: Implement action type validation using `StringName` constants and runtime payload checking.
 
 **Deliverables**:
-- `scripts/state/action_registry.gd` - Action type registry and validator
-- `scripts/state/u_gameplay_actions.gd` - Action creator utilities with constants
+- `scripts/state/utils/u_action_registry.gd` - Action type registry and validator
+- `scripts/state/actions/u_gameplay_actions.gd` - Action creator utilities with constants
 - Action validation in `M_StateStore.dispatch()`
 - `tests/unit/state/test_u_gameplay_actions.gd` - Action creator tests
 
@@ -242,7 +250,7 @@ Developer creates a fully-functional gameplay state slice demonstrating all Redu
 **Objective**: Implement selector infrastructure for derived state computation with explicit slice dependency declarations.
 
 **Deliverables**:
-- `scripts/state/selectors/gameplay_selectors.gd` - Selector utility functions
+- `scripts/state/selectors/u_gameplay_selectors.gd` - Selector utility functions
 - Dependency declaration in `StateSliceConfig`
 - Selectors: `get_is_player_alive()`, `get_is_game_over()`, `get_completion_percentage()`, etc.
 - `tests/unit/state/test_state_selectors.gd` - Selector computation tests
@@ -259,7 +267,7 @@ Developer creates a fully-functional gameplay state slice demonstrating all Redu
 **Objective**: Implement hybrid timing system - immediate state updates but batched signal emission using physics frame.
 
 **Deliverables**:
-- `scripts/state/signal_batcher.gd` - Per-frame signal batching system
+- `scripts/state/utils/signal_batcher.gd` - Per-frame signal batching system
 - Integration with `M_StateStore._physics_process()`
 - Signals: `state_changed(action, new_state)`, `slice_updated(slice_name, slice_state)`
 - Signal batching tests
@@ -294,7 +302,7 @@ Developer creates a fully-functional gameplay state slice demonstrating all Redu
 **Objective**: Implement save/load system with JSON serialization, Godot type conversion, and selective field persistence.
 
 **Deliverables**:
-- `scripts/state/serialization_helper.gd` - Godot type ↔ JSON conversion (Vector3 → {x,y,z}, etc.)
+- `scripts/state/utils/u_serialization_helper.gd` - Godot type ↔ JSON conversion (Vector3 → {x,y,z}, etc.)
 - Transient field marking in `StateSliceConfig`
 - `save_state(filepath)` and `load_state(filepath)` methods
 - `tests/unit/state/test_state_persistence.gd` - Save/load round-trip tests

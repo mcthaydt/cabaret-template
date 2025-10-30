@@ -26,7 +26,7 @@ The redux-state-store implementation has been audited for completeness, consiste
 ### ✅ All Tests Passing: 178/178 (100%)
 
 **State Tests: 104/104 ✅**
-- test_action_registry.gd: 11/11
+- test_utils/u_action_registry.gd: 11/11
 - test_boot_slice_reducers.gd: 7/7
 - test_gameplay_slice_reducers.gd: 7/7
 - test_m_state_store.gd: 18/18
@@ -34,11 +34,11 @@ The redux-state-store implementation has been audited for completeness, consiste
 - test_sc_state_debug_overlay.gd: 4/4
 - test_slice_dependencies.gd: 6/6
 - test_state_event_bus.gd: 7/7
-- test_state_handoff.gd: 7/7
+- test_utils/u_state_handoff.gd: 7/7
 - test_state_performance.gd: 5/5
 - test_state_persistence.gd: 6/6
 - test_state_selectors.gd: 5/5
-- test_u_gameplay_actions.gd: 7/7
+- test_actions/u_gameplay_actions.gd: 7/7
 - test_u_state_utils.gd: 5/5
 
 **Integration Tests: 12/12 ✅**
@@ -541,12 +541,12 @@ Time:              6.526s
 ## Appendix B: File Inventory
 
 **State System Files** (30 total):
-- Core: m_state_store.gd, state_event_bus.gd, state_slice_config.gd, state_handoff.gd
-- Actions: u_boot_actions.gd, u_menu_actions.gd, u_gameplay_actions.gd, u_transition_actions.gd, u_entity_actions.gd, u_input_actions.gd, u_visual_actions.gd
-- Reducers: boot_reducer.gd, menu_reducer.gd, gameplay_reducer.gd
-- Selectors: boot_selectors.gd, menu_selectors.gd, gameplay_selectors.gd, entity_selectors.gd, input_selectors.gd, physics_selectors.gd, visual_selectors.gd
-- Resources: rs_boot_initial_state.gd, rs_menu_initial_state.gd, rs_gameplay_initial_state.gd, rs_state_store_settings.gd
-- Utils: u_state_utils.gd, action_registry.gd, signal_batcher.gd, serialization_helper.gd, state_action_types.gd
+- Core: scripts/state/m_state_store.gd, scripts/state/state_event_bus.gd, scripts/state/state_slice_config.gd, scripts/state/utils/u_state_handoff.gd
+- Actions: scripts/state/actions/u_boot_actions.gd, scripts/state/actions/u_menu_actions.gd, scripts/state/actions/u_gameplay_actions.gd, scripts/state/actions/u_transition_actions.gd, scripts/state/actions/u_entity_actions.gd, scripts/state/actions/u_input_actions.gd, scripts/state/actions/u_visual_actions.gd
+- Reducers: scripts/state/reducers/u_boot_reducer.gd, scripts/state/reducers/u_menu_reducer.gd, scripts/state/reducers/u_gameplay_reducer.gd, scripts/state/reducers/u_scene_reducer.gd
+- Selectors: scripts/state/selectors/u_boot_selectors.gd, scripts/state/selectors/u_menu_selectors.gd, scripts/state/selectors/u_gameplay_selectors.gd, scripts/state/selectors/u_entity_selectors.gd, scripts/state/selectors/u_input_selectors.gd, scripts/state/selectors/u_physics_selectors.gd, scripts/state/selectors/u_visual_selectors.gd
+- Resources: scripts/state/resources/rs_boot_initial_state.gd, scripts/state/resources/rs_menu_initial_state.gd, scripts/state/resources/rs_gameplay_initial_state.gd, scripts/state/resources/rs_state_store_settings.gd
+- Utils: scripts/state/utils/u_state_utils.gd, scripts/state/utils/u_action_registry.gd, scripts/state/utils/signal_batcher.gd, scripts/state/utils/u_serialization_helper.gd, scripts/state/state_action_types.gd
 
 **Test Files** (14 state + 2 integration = 16 total)
 
