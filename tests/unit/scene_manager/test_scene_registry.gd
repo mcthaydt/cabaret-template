@@ -1,23 +1,23 @@
 extends GutTest
 
-## Unit tests for SceneRegistry static class
+## Unit tests for U_SceneRegistry static class
 ##
 ## Tests scene metadata management and door pairing validation.
 ## Tests follow TDD discipline: written BEFORE implementation.
 
-const SceneRegistry = preload("res://scripts/scene_management/scene_registry.gd")
+const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
 
 func before_each() -> void:
-	# SceneRegistry is static, no setup needed
+	# U_SceneRegistry is static, no setup needed
 	pass
 
 func after_each() -> void:
-	# SceneRegistry is static, no teardown needed
+	# U_SceneRegistry is static, no teardown needed
 	pass
 
 ## Test scene metadata structure
 func test_get_scene_returns_metadata() -> void:
-	var scene_data: Dictionary = SceneRegistry.get_scene(StringName("gameplay_base"))
+	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("gameplay_base"))
 
 	assert_not_null(scene_data, "Should return scene data")
 	assert_true(scene_data.has("scene_id"), "Should have scene_id")
@@ -28,27 +28,27 @@ func test_get_scene_returns_metadata() -> void:
 
 ## Test scene types enum
 func test_scene_types_defined() -> void:
-	assert_eq(SceneRegistry.SceneType.MENU, 0, "MENU type should be 0")
-	assert_eq(SceneRegistry.SceneType.GAMEPLAY, 1, "GAMEPLAY type should be 1")
-	assert_eq(SceneRegistry.SceneType.UI, 2, "UI type should be 2")
-	assert_eq(SceneRegistry.SceneType.END_GAME, 3, "END_GAME type should be 3")
+	assert_eq(U_SceneRegistry.SceneType.MENU, 0, "MENU type should be 0")
+	assert_eq(U_SceneRegistry.SceneType.GAMEPLAY, 1, "GAMEPLAY type should be 1")
+	assert_eq(U_SceneRegistry.SceneType.UI, 2, "UI type should be 2")
+	assert_eq(U_SceneRegistry.SceneType.END_GAME, 3, "END_GAME type should be 3")
 
 ## Test getting scene by ID
 func test_get_scene_with_valid_id() -> void:
-	var scene_data: Dictionary = SceneRegistry.get_scene(StringName("main_menu"))
+	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("main_menu"))
 
 	assert_not_null(scene_data, "Should return data for valid scene ID")
 	assert_eq(scene_data["scene_id"], StringName("main_menu"), "Should return correct scene_id")
 
 ## Test getting scene with invalid ID
 func test_get_scene_with_invalid_id() -> void:
-	var scene_data: Dictionary = SceneRegistry.get_scene(StringName("nonexistent_scene"))
+	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("nonexistent_scene"))
 
 	assert_eq(scene_data.size(), 0, "Should return empty dict for invalid scene ID")
 
 ## Test get_scene_path convenience method
 func test_get_scene_path() -> void:
-	var path: String = SceneRegistry.get_scene_path(StringName("gameplay_base"))
+	var path: String = U_SceneRegistry.get_scene_path(StringName("gameplay_base"))
 
 	assert_not_null(path, "Should return path for valid scene")
 	assert_true(path.begins_with("res://scenes/"), "Path should start with res://scenes/")
@@ -56,19 +56,19 @@ func test_get_scene_path() -> void:
 
 ## Test get_scene_type convenience method
 func test_get_scene_type() -> void:
-	var scene_type: int = SceneRegistry.get_scene_type(StringName("gameplay_base"))
+	var scene_type: int = U_SceneRegistry.get_scene_type(StringName("gameplay_base"))
 
-	assert_eq(scene_type, SceneRegistry.SceneType.GAMEPLAY, "Should return correct scene type")
+	assert_eq(scene_type, U_SceneRegistry.SceneType.GAMEPLAY, "Should return correct scene type")
 
 ## Test get_default_transition convenience method
 func test_get_default_transition() -> void:
-	var transition: String = SceneRegistry.get_default_transition(StringName("gameplay_base"))
+	var transition: String = U_SceneRegistry.get_default_transition(StringName("gameplay_base"))
 
 	assert_true(transition in ["instant", "fade", "loading"], "Should return valid transition type")
 
 ## Test door pairing structure
 func test_get_door_exit_returns_metadata() -> void:
-	var exit_data: Dictionary = SceneRegistry.get_door_exit(
+	var exit_data: Dictionary = U_SceneRegistry.get_door_exit(
 		StringName("exterior"),
 		StringName("door_to_house")
 	)
@@ -80,7 +80,7 @@ func test_get_door_exit_returns_metadata() -> void:
 
 ## Test door pairing - entering interior
 func test_door_pairing_exterior_to_interior() -> void:
-	var exit_data: Dictionary = SceneRegistry.get_door_exit(
+	var exit_data: Dictionary = U_SceneRegistry.get_door_exit(
 		StringName("exterior"),
 		StringName("door_to_house")
 	)
@@ -90,7 +90,7 @@ func test_door_pairing_exterior_to_interior() -> void:
 
 ## Test door pairing - exiting interior
 func test_door_pairing_interior_to_exterior() -> void:
-	var exit_data: Dictionary = SceneRegistry.get_door_exit(
+	var exit_data: Dictionary = U_SceneRegistry.get_door_exit(
 		StringName("interior_house"),
 		StringName("door_to_exterior")
 	)
@@ -100,7 +100,7 @@ func test_door_pairing_interior_to_exterior() -> void:
 
 ## Test invalid door ID returns empty dict
 func test_invalid_door_id_returns_empty() -> void:
-	var exit_data: Dictionary = SceneRegistry.get_door_exit(
+	var exit_data: Dictionary = U_SceneRegistry.get_door_exit(
 		StringName("exterior"),
 		StringName("nonexistent_door")
 	)
@@ -109,7 +109,7 @@ func test_invalid_door_id_returns_empty() -> void:
 
 ## Test validate_door_pairings method
 func test_validate_door_pairings_returns_true_for_valid_config() -> void:
-	var result: bool = SceneRegistry.validate_door_pairings()
+	var result: bool = U_SceneRegistry.validate_door_pairings()
 
 	assert_true(result, "Should return true for valid door pairings")
 
@@ -118,12 +118,12 @@ func test_validation_detects_missing_return_door() -> void:
 	# This test assumes there's a way to test validation without breaking the static data
 	# In practice, this would require a test-only validation mode or injectable data
 	# For now, we just test that the method exists and can be called
-	var result: bool = SceneRegistry.validate_door_pairings()
+	var result: bool = U_SceneRegistry.validate_door_pairings()
 	assert_true(result is bool, "validate_door_pairings should return a bool")
 
 ## Test get_all_scenes returns all registered scenes
 func test_get_all_scenes() -> void:
-	var all_scenes: Array = SceneRegistry.get_all_scenes()
+	var all_scenes: Array = U_SceneRegistry.get_all_scenes()
 
 	assert_gt(all_scenes.size(), 0, "Should return at least one scene")
 	for scene_data in all_scenes:
@@ -132,15 +132,15 @@ func test_get_all_scenes() -> void:
 
 ## Test get_scenes_by_type
 func test_get_scenes_by_type() -> void:
-	var gameplay_scenes: Array = SceneRegistry.get_scenes_by_type(SceneRegistry.SceneType.GAMEPLAY)
+	var gameplay_scenes: Array = U_SceneRegistry.get_scenes_by_type(U_SceneRegistry.SceneType.GAMEPLAY)
 
 	assert_gt(gameplay_scenes.size(), 0, "Should return at least one gameplay scene")
 	for scene_data in gameplay_scenes:
-		assert_eq(scene_data["scene_type"], SceneRegistry.SceneType.GAMEPLAY, "All scenes should be GAMEPLAY type")
+		assert_eq(scene_data["scene_type"], U_SceneRegistry.SceneType.GAMEPLAY, "All scenes should be GAMEPLAY type")
 
 ## Test preload priority values
 func test_preload_priorities_are_valid() -> void:
-	var all_scenes: Array = SceneRegistry.get_all_scenes()
+	var all_scenes: Array = U_SceneRegistry.get_all_scenes()
 
 	for scene_data in all_scenes:
 		var priority: int = scene_data["preload_priority"]
@@ -148,21 +148,21 @@ func test_preload_priorities_are_valid() -> void:
 
 ## Test main_menu scene exists
 func test_main_menu_scene_registered() -> void:
-	var scene_data: Dictionary = SceneRegistry.get_scene(StringName("main_menu"))
+	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("main_menu"))
 
 	assert_false(scene_data.is_empty(), "main_menu should be registered")
-	assert_eq(scene_data["scene_type"], SceneRegistry.SceneType.MENU, "main_menu should be MENU type")
+	assert_eq(scene_data["scene_type"], U_SceneRegistry.SceneType.MENU, "main_menu should be MENU type")
 
 ## Test gameplay_base scene exists
 func test_gameplay_base_scene_registered() -> void:
-	var scene_data: Dictionary = SceneRegistry.get_scene(StringName("gameplay_base"))
+	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("gameplay_base"))
 
 	assert_false(scene_data.is_empty(), "gameplay_base should be registered")
-	assert_eq(scene_data["scene_type"], SceneRegistry.SceneType.GAMEPLAY, "gameplay_base should be GAMEPLAY type")
+	assert_eq(scene_data["scene_type"], U_SceneRegistry.SceneType.GAMEPLAY, "gameplay_base should be GAMEPLAY type")
 
 ## Test settings_menu scene exists
 func test_settings_menu_scene_registered() -> void:
-	var scene_data: Dictionary = SceneRegistry.get_scene(StringName("settings_menu"))
+	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("settings_menu"))
 
 	assert_false(scene_data.is_empty(), "settings_menu should be registered")
-	assert_eq(scene_data["scene_type"], SceneRegistry.SceneType.UI, "settings_menu should be UI type")
+	assert_eq(scene_data["scene_type"], U_SceneRegistry.SceneType.UI, "settings_menu should be UI type")

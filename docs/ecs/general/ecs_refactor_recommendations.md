@@ -879,9 +879,9 @@ Systems can't communicate events without:
 
 **Create Global Event Bus**:
 ```gdscript
-# scripts/ecs/ecs_event_bus.gd
+# scripts/ecs/u_ecs_event_bus.gd
 extends Node
-class_name ECSEventBus
+class_name U_ECSEventBus
 
 signal event_emitted(event_name: StringName, data: Dictionary)
 
@@ -928,7 +928,7 @@ func clear_subscribers(event_name: StringName = &"") -> void:
 ```
 
 **Add as AutoLoad**:
-- Project Settings → AutoLoad → Add `ecs_event_bus.gd` as `ECSEvents`
+- Project Settings → AutoLoad → Add `u_ecs_event_bus.gd` as `ECSEvents`
 
 ### System Integration
 
@@ -1006,7 +1006,7 @@ ECSEvents.subscribe("entity_entered_water", func(data):
 
 ### Migration Path
 
-1. **Add ECSEventBus as AutoLoad**
+1. **Add U_ECSEventBus as AutoLoad**
 2. **Start with one system** (e.g., JumpSystem emits "entity_jumped")
 3. **Add reactive systems** (AnimationSystem, SoundSystem listen)
 4. **Gradually migrate** other systems to emit/listen for events
@@ -1311,7 +1311,7 @@ gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit
 ## Phase 3: Event Bus (1 week)
 
 **Week 3**:
-- Day 1: Implement ECSEventBus
+- Day 1: Implement U_ECSEventBus
 - Day 2: Add to S_JumpSystem (emit "entity_jumped")
 - Day 3: Create reactive systems (animation, sound)
 - Day 4-5: Migrate additional systems

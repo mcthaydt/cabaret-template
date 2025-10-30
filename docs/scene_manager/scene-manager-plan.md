@@ -34,7 +34,7 @@ The Scene Manager system provides centralized scene flow control for a Zelda: Oc
 - Scene state slice tracks current_scene_id, scene_stack, is_transitioning
 - Root scene pattern: root.tscn persists throughout session, scenes load into ActiveSceneContainer
 - Per-scene M_ECSManager (existing pattern) with StateHandoff for gameplay state preservation
-- SceneRegistry (static class) defines scene metadata and door pairings
+- U_SceneRegistry (static class) defines scene metadata and door pairings
 - ECS integration via C_SceneTriggerComponent and S_SceneTriggerSystem
 
 ## Technical Context
@@ -116,7 +116,7 @@ docs/scene_manager/
 ├── scene-manager-plan.md       # This file (implementation plan)
 ├── scene-manager-prd.md        # Feature specification (v2.3 - complete)
 ├── research.md                 # Phase 0 output (architectural research)
-├── data-model.md               # Phase 1 output (scene slice, SceneRegistry)
+├── data-model.md               # Phase 1 output (scene slice, U_SceneRegistry)
 ├── quickstart.md               # Phase 1 output (usage guide for Scene Manager)
 └── contracts/                  # Phase 1 output (API contracts for M_SceneManager)
 ```
@@ -153,9 +153,9 @@ scripts/
 │       └── rs_scene_initial_state.gd  # NEW - Scene slice initial state
 │
 ├── scene_management/          # NEW directory
-│   ├── scene_registry.gd      # NEW - Static class for scene metadata
+│   ├── u_scene_registry.gd      # NEW - Static class for scene metadata
 │   └── /transitions/          # NEW directory
-│       ├── transition_effect.gd        # NEW - Base transition interface
+│       ├── base_transition_effect.gd        # NEW - Base transition interface
 │       ├── instant_transition.gd       # NEW - Instant transition
 │       ├── fade_transition.gd          # NEW - Fade effect
 │       └── loading_screen_transition.gd # NEW - Loading screen
@@ -194,7 +194,7 @@ tests/
 │
 └── unit/
     └── scene_manager/
-        ├── test_scene_registry.gd         # NEW - SceneRegistry tests
+        ├── test_scene_registry.gd         # NEW - U_SceneRegistry tests
         ├── test_scene_reducer.gd          # NEW - SceneReducer tests
         ├── test_u_scene_actions.gd        # NEW - Action creator tests
         └── test_m_scene_manager.gd        # NEW - M_SceneManager tests
@@ -326,10 +326,10 @@ Create `docs/scene_manager/research.md` covering:
 
 Create `docs/scene_manager/data-model.md` covering:
 - Scene state slice schema
-- SceneRegistry structure with door pairings
-- TransitionEffect interface
+- U_SceneRegistry structure with door pairings
+- BaseTransitionEffect interface
 - Action/reducer signatures
-- Integration points (ActionRegistry, StateSliceConfig, SignalBatcher)
+- Integration points (ActionRegistry, RS_StateSliceConfig, U_SignalBatcher)
 
 **Part 2: Critical Prototypes** (3-5 hours) - MUST VALIDATE
 
@@ -448,9 +448,9 @@ Before implementing Scene Manager, must restructure existing scenes:
    - **Test**: Verify transient fields (is_transitioning) excluded from save_state()
    - **Validate**: All ~314 existing tests still pass (no regressions)
 
-6. **SceneRegistry** (1-2 hours) - TDD REQUIRED
+6. **U_SceneRegistry** (1-2 hours) - TDD REQUIRED
    - **Test First**: Write `tests/unit/scene_manager/test_scene_registry.gd`
-   - Create `scripts/scene_management/scene_registry.gd` static class
+   - Create `scripts/scene_management/u_scene_registry.gd` static class
    - Define scene metadata (paths, types, transitions, preload priority)
    - Define door pairing structure
    - Implement validation methods (`validate_door_pairings()`)
@@ -477,7 +477,7 @@ Before implementing Scene Manager, must restructure existing scenes:
 
 8. **Transition Effects** (2-3 hours) - TDD REQUIRED
    - **Test First**: Write `tests/unit/scene_manager/test_transitions.gd`
-   - Create `scripts/scene_management/transitions/transition_effect.gd` base class
+   - Create `scripts/scene_management/transitions/base_transition_effect.gd` base class
    - Implement `scripts/scene_management/transitions/instant_transition.gd`
    - Implement `scripts/scene_management/transitions/fade_transition.gd` with Tween
    - **Input Blocking**: Block input during transition (set_input_as_handled() in fade)
@@ -488,7 +488,7 @@ Before implementing Scene Manager, must restructure existing scenes:
 9. **Basic UI Scenes** (1-2 hours)
    - Create `scenes/ui/main_menu.tscn` (minimal: Label + Button to settings)
    - Create `scenes/ui/settings_menu.tscn` (minimal: Label + Button to main)
-   - Add to SceneRegistry with correct paths and scene_ids
+   - Add to U_SceneRegistry with correct paths and scene_ids
    - **Important**: These scenes do NOT have M_ECSManager (UI scenes, not gameplay)
 
 10. **Integration Testing** (2-3 hours) - CRITICAL
@@ -522,7 +522,7 @@ Before implementing Scene Manager, must restructure existing scenes:
 - [ ] **M_SceneManager functional**: Can load/unload scenes via dispatch with priority queue
 - [ ] **Fade transitions**: Work smoothly, no visual glitches, input blocked during transition
 - [ ] **State persistence**: Gameplay state survives menu transitions (via StateHandoff)
-- [ ] **New tests passing**: Scene slice, SceneRegistry, M_SceneManager, transitions, edge cases
+- [ ] **New tests passing**: Scene slice, U_SceneRegistry, M_SceneManager, transitions, edge cases
 - [ ] **Manual test**: menu → settings → menu → gameplay_base (with F3 debug overlay working)
 - [ ] **Integration validation**: HUD updates, player moves, pause works in restructured scenes
 - [ ] **Edge cases**: All 8 edge case scenarios tested and handled
@@ -533,7 +533,7 @@ Before implementing Scene Manager, must restructure existing scenes:
 - Commit 3: Integration validated (restructuring working, ~314 tests passing)
 - Commit 4: Main scene switched to root.tscn
 - Commit 5: Scene slice + actions + reducer (with tests, transient field test)
-- Commit 6: SceneRegistry (with tests)
+- Commit 6: U_SceneRegistry (with tests)
 - Commit 7: M_SceneManager core with priority queue (with tests)
 - Commit 8: Transition effects with input blocking (with tests)
 - Commit 9: UI scenes + integration tests
@@ -578,7 +578,7 @@ Before implementing Scene Manager, must restructure existing scenes:
 3. **Area Transition Components** (2-3 hours)
    - Create `C_SceneTriggerComponent` (door_id, target, spawn_point)
    - Create `S_SceneTriggerSystem` (collision detection, input handling)
-   - Extend SceneRegistry with door pairings
+   - Extend U_SceneRegistry with door pairings
    - Implement spawn point restoration
 
 4. **Gameplay Scenes** (1-2 hours)
@@ -699,13 +699,13 @@ static func _static_init() -> void:
     ActionRegistry.register_action(ACTION_POP_OVERLAY)
 ```
 
-### StateSliceConfig for Scene Slice
+### RS_StateSliceConfig for Scene Slice
 
 In `M_StateStore._initialize_slices()`:
 
 ```gdscript
 if scene_initial_state != null:
-    var scene_config := StateSliceConfig.new(StringName("scene"))
+    var scene_config := RS_StateSliceConfig.new(StringName("scene"))
     scene_config.reducer = Callable(SceneReducer, "reduce")
     scene_config.initial_state = scene_initial_state.to_dictionary()
     scene_config.dependencies = []  # No dependencies
@@ -715,7 +715,7 @@ if scene_initial_state != null:
 
 ### Signal Batching
 
-Scene transitions emit via `StateStoreEventBus` (batched per-frame). Systems can subscribe:
+Scene transitions emit via `U_StateEventBus` (batched per-frame). Systems can subscribe:
 
 ```gdscript
 func _ready() -> void:

@@ -30,10 +30,10 @@ Phase 0 validated the Scene Manager architecture through comprehensive research,
 
 **Complete specifications for**:
 - Scene state slice schema (3 fields: current_scene_id, scene_stack, is_transitioning)
-- SceneRegistry structure with scene metadata and door pairings
-- TransitionEffect interface (Instant, Fade, LoadingScreen)
+- U_SceneRegistry structure with scene metadata and door pairings
+- BaseTransitionEffect interface (Instant, Fade, LoadingScreen)
 - Action/reducer signatures (U_SceneActions, SceneReducer)
-- Integration points (ActionRegistry, StateSliceConfig, SignalBatcher)
+- Integration points (ActionRegistry, RS_StateSliceConfig, U_SignalBatcher)
 
 **Result**: Clear implementation contracts for all Scene Manager components.
 

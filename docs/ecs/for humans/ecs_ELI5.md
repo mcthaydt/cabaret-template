@@ -461,7 +461,7 @@ func process_tick(delta: float) -> void:
 
     if player_jumped:
         # Broadcast to the "entity_jumped" channel
-        ECSEventBus.publish("entity_jumped", {
+        U_ECSEventBus.publish("entity_jumped", {
             "entity": body,
             "velocity": jump_velocity,
             "position": body.global_position
@@ -474,7 +474,7 @@ func _ready():
     super._ready()
 
     # Listen to the "entity_jumped" channel
-    ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
+    U_ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
 
 func _on_entity_jumped(event_data: Dictionary):
     # Someone jumped! Spawn particles!
@@ -748,7 +748,7 @@ component.velocity = Vector3(1, 0, 0)
 
 ```gdscript
 # Publishing (in any system):
-ECSEventBus.publish("entity_jumped", {
+U_ECSEventBus.publish("entity_jumped", {
     "entity": body,
     "velocity": velocity,
     "position": body.global_position
@@ -757,7 +757,7 @@ ECSEventBus.publish("entity_jumped", {
 # Subscribing (usually in _ready):
 func _ready():
     super._ready()
-    ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
+    U_ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
 
 func _on_entity_jumped(event_data: Dictionary):
     var entity = event_data["entity"]

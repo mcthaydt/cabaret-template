@@ -1,5 +1,5 @@
 extends RefCounted
-class_name StateStoreEventBus
+class_name U_StateEventBus
 
 ## Event bus for state store domain.
 ##
@@ -7,13 +7,13 @@ class_name StateStoreEventBus
 ## separate from ECS event domain. Uses static API delegating to
 ## private instance for clean separation.
 
-const EventBusBase := preload("res://scripts/events/event_bus_base.gd")
+const EVENT_BUS_BASE := preload("res://scripts/events/event_bus_base.gd")
 
 static var _instance: EventBusBase = null
 
 static func _get_instance() -> EventBusBase:
 	if _instance == null:
-		_instance = EventBusBase.new()
+		_instance = EVENT_BUS_BASE.new()
 	return _instance
 
 ## Subscribe to a state event. Returns unsubscribe callable.

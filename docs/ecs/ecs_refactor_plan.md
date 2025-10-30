@@ -44,7 +44,7 @@ Constraints:
 - Godot Editor: Provide migration guide and debug tools for inspector workflow
 
 High-Level Architecture:
-M_ECSManager enhanced with query_entities(required, optional) returning Array[EntityQuery]. EntityQuery wraps entity (Node) + components (Dictionary). ECSEventBus singleton handles pub/sub with event history. Systems use queries instead of manual NodePath cross-references. Components become pure data containers (no @export_node_path). System execution ordered by priority (@export var execution_priority).
+M_ECSManager enhanced with query_entities(required, optional) returning Array[EntityQuery]. EntityQuery wraps entity (Node) + components (Dictionary). U_ECSEventBus singleton handles pub/sub with event history. Systems use queries instead of manual NodePath cross-references. Components become pure data containers (no @export_node_path). System execution ordered by priority (@export var execution_priority).
 
 ---
 
@@ -87,8 +87,8 @@ Epic 2 – Multi-Component Query System (18 points)
 
 Epic 3 – Event Bus System (8 points)
 
-- [x] Story 3.1: Implement ECSEventBus static class (4 points) — Added `scripts/ecs/ecs_event_bus.gd` with `subscribe()`, `publish()`, `unsubscribe()`, `clear()`, `reset()` leveraging `U_ECSUtils.get_current_time()`; covered by new `tests/unit/ecs/test_ecs_event_bus.gd` (GUT `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
-- [x] Story 3.2: Add event history buffer and debugging (2 points) — `ECSEventBus` now tracks a rolling 1,000 event history with `get_event_history()`, `clear_history()`, and `set_history_limit()` helpers; payloads are deep-copied and stored with `name`/`timestamp` metadata and covered by new GUT specs (`tests/unit/ecs/test_ecs_event_bus.gd`, `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
+- [x] Story 3.1: Implement U_ECSEventBus static class (4 points) — Added `scripts/ecs/u_ecs_event_bus.gd` with `subscribe()`, `publish()`, `unsubscribe()`, `clear()`, `reset()` leveraging `U_ECSUtils.get_current_time()`; covered by new `tests/unit/ecs/test_ecs_event_bus.gd` (GUT `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
+- [x] Story 3.2: Add event history buffer and debugging (2 points) — `U_ECSEventBus` now tracks a rolling 1,000 event history with `get_event_history()`, `clear_history()`, and `set_history_limit()` helpers; payloads are deep-copied and stored with `name`/`timestamp` metadata and covered by new GUT specs (`tests/unit/ecs/test_ecs_event_bus.gd`, `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
 - [x] Story 3.3: Integrate event publication in S_JumpSystem (1 point) — `S_JumpSystem` now emits `entity_jumped` events with body/component context (entity, input, floating support, velocity, jump_time, support flags); enforced via `tests/unit/ecs/systems/test_jump_system.gd` (GUT `-gdir=res://tests/unit/ecs/systems -gselect=test_jump_system -gexit`)
 - [x] Story 3.4: Create sample event subscribers (particles, sound) (1 point) — Added `S_JumpParticlesSystem` and `S_JumpSoundSystem` listeners that capture spawn/audio requests from `entity_jumped` events; covered by new `tests/unit/ecs/systems/test_jump_event_subscribers.gd` (GUT `-gdir=res://tests/unit/ecs/systems -gselect=test_jump_event_subscribers -gexit`)
 
@@ -126,14 +126,14 @@ Testing & Documentation (7 points)
 | `BaseECSComponent` | `scripts/ecs/ecs_component.gd` | `BaseECSComponent` |
 | `U_ECSUtils` (NEW) | `scripts/utils/u_ecs_utils.gd` | `U_ECSUtils` |
 | `EntityQuery` (NEW) | `scripts/ecs/entity_query.gd` | `EntityQuery` |
-| `ECSEventBus` (NEW) | `scripts/ecs/ecs_event_bus.gd` | `ECSEventBus` |
+| `U_ECSEventBus` (NEW) | `scripts/ecs/u_ecs_event_bus.gd` | `U_ECSEventBus` |
 | Systems | `scripts/ecs/systems/s_*_system.gd` | `S_*System` |
 | Components | `scripts/ecs/components/c_*_component.gd` | `C_*Component` |
 
 **Terminology Mapping**:
 - `get_components()` → existing API (unchanged)
 - `query_entities()` → NEW API (multi-component queries)
-- `ECSEventBus.publish()` → NEW API (event system)
+- `U_ECSEventBus.publish()` → NEW API (event system)
 - `execution_priority` → NEW property on systems
 
 ---
@@ -760,22 +760,22 @@ Goal: Implement event system for cross-system communication, remove NodePath cou
 
 ---
 
-- [x] Step 1 – Implement ECSEventBus Singleton
+- [x] Step 1 – Implement U_ECSEventBus Singleton
 
-**TDD Cycle 1: ECSEventBus - Basic Pub/Sub**
+**TDD Cycle 1: U_ECSEventBus - Basic Pub/Sub**
 
 - [x] 1.1a – RED: Write test for event publication
 - Create `tests/unit/ecs/test_ecs_event_bus.gd`
 - Test: `test_publish_event_notifies_subscribers()`
-  - Arrange: ECSEventBus, subscribe to "test_event"
+  - Arrange: U_ECSEventBus, subscribe to "test_event"
   - Act: Publish "test_event" with payload {data: 42}
   - Assert: Subscriber callback called with payload
 
-- [x] 1.1b – GREEN: Implement ECSEventBus as purely static class (NOT a Node, NOT in scene tree)
-- Create `scripts/ecs/ecs_event_bus.gd`:
+- [x] 1.1b – GREEN: Implement U_ECSEventBus as purely static class (NOT a Node, NOT in scene tree)
+- Create `scripts/ecs/u_ecs_event_bus.gd`:
 ```gdscript
 # Purely static class (NOT a Node, NOT in scene tree)
-class_name ECSEventBus
+class_name U_ECSEventBus
 
 static var _subscribers: Dictionary = {}  # StringName → Array[Callable]
 
@@ -798,7 +798,7 @@ static func unsubscribe(event_name: StringName, callback: Callable) -> void:
 
 - [x] 1.1c – VERIFY: Run tests, confirm GREEN
 
-**TDD Cycle 2: ECSEventBus - Multiple Subscribers**
+**TDD Cycle 2: U_ECSEventBus - Multiple Subscribers**
 
 - [x] 1.2a – RED: Write test for multiple subscribers
 - Test: `test_publish_notifies_all_subscribers()`
@@ -811,7 +811,7 @@ static func unsubscribe(event_name: StringName, callback: Callable) -> void:
 
 - [x] 1.2c – VERIFY: Run tests, confirm GREEN
 
-**TDD Cycle 3: ECSEventBus - Unsubscribe**
+**TDD Cycle 3: U_ECSEventBus - Unsubscribe**
 
 - [x] 1.3a – RED: Write test for unsubscribe
 - Test: `test_unsubscribe_removes_callback()`
@@ -832,12 +832,12 @@ static func unsubscribe(event_name: StringName, callback: Callable) -> void:
 
 - [x] 2.1a – RED: Write test for event history recording
 - Test: `test_event_history_records_events()`
-  - Arrange: ECSEventBus
+  - Arrange: U_ECSEventBus
   - Act: Publish 3 events
   - Assert: get_event_history() returns 3 events with timestamps
 
 - [x] 2.1b – GREEN: Implement event history
-- Add to ecs_event_bus.gd:
+- Add to u_ecs_event_bus.gd:
 ```gdscript
 static var _event_history: Array[Dictionary] = []
 static var _max_history_size: int = 1000
@@ -909,7 +909,7 @@ if can_jump:
     jump_comp.time_since_jump_pressed = 999.0
 
     # NEW: Publish event
-    ECSEventBus.publish("entity_jumped", {
+    U_ECSEventBus.publish("entity_jumped", {
         "entity": body,
         "velocity": body.velocity,
         "position": body.global_position,
@@ -1003,7 +1003,7 @@ if can_jump:
   - Command: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit` (45/45 ECS unit tests passing; expected warning annotations observed).
 
 - [x] 7.2 – Integration Test with Events
-  - Added `tests/integration/test_ecs_events.gd` validating `ECSEventBus` wiring inside the full scene. Particles and sound systems subscribe via `_ready`, and a scripted jump triggers `entity_jumped` payload verification and subscriber side effects.
+  - Added `tests/integration/test_ecs_events.gd` validating `U_ECSEventBus` wiring inside the full scene. Particles and sound systems subscribe via `_ready`, and a scripted jump triggers `entity_jumped` payload verification and subscriber side effects.
   - Confirmed alongside the query suite using `-gdir=res://tests/integration -gexit` (8/8 integration tests green).
 
 - [x] 7.3 – Scene Validation
@@ -1216,7 +1216,7 @@ scripts/ecs/
 ├── ecs_component.gd           # MODIFIED: Added _validate_required_settings()
 ├── ecs_system.gd              # MODIFIED: Added execution_priority, query_entities()
 ├── entity_query.gd            # NEW: Query result wrapper
-├── ecs_event_bus.gd           # NEW: Event system singleton
+├── u_ecs_event_bus.gd           # NEW: Event system singleton
 ├── u_ecs_utils.gd             # NEW: Shared utilities
 ├── components/                # MODIFIED: NodePath exports removed
 │   ├── c_movement_component.gd
@@ -1269,7 +1269,7 @@ Verify all acceptance criteria:
 - ✓ Query performance remains <1ms with 100+ entities and 7+ component types
 
 **Epic 3 – Event Bus System:**
-- ✓ ECSEventBus.publish() notifies all subscribers
+- ✓ U_ECSEventBus.publish() notifies all subscribers
 - ✓ Multiple systems subscribe to same event
 - ✓ Event payload includes full context
 - ✓ Event dispatch <0.5ms per event
@@ -1334,7 +1334,7 @@ Finalize all documentation:
 - [ ] `docs/ecs/for humans/ecs_ELI5.md` updated with query examples
 - [ ] `docs/ecs/scene_migration_guide.md` created with step-by-step guide
 - [x] `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md` marked completed items
-- [ ] Add API documentation for EntityQuery, ECSEventBus, U_ECSUtils
+- [ ] Add API documentation for EntityQuery, U_ECSEventBus, U_ECSUtils
 
 ### Step 6: Deployment Readiness Checklist
 
@@ -1343,7 +1343,7 @@ Pre-deployment verification:
 **Infrastructure:**
 - ✓ All files in correct directory structure
 - ✓ M_ECSManager joins "ecs_manager" group
-- ✓ ECSEventBus singleton properly initialized
+- ✓ U_ECSEventBus singleton properly initialized
 - ✓ Debug tools plugin installed
 
 **Testing:**

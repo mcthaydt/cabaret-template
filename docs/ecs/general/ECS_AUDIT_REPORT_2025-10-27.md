@@ -34,7 +34,7 @@ All core ECS architectural elements are **fully implemented and operational**:
 | **BaseECSComponent** | ✅ Complete | `scripts/ecs/ecs_component.gd` | Base class with validation hooks |
 | **BaseECSSystem** | ✅ Complete | `scripts/ecs/ecs_system.gd` | Priority-based execution, query API |
 | **EntityQuery** | ✅ Complete | `scripts/ecs/entity_query.gd` | Query result wrapper with type safety |
-| **ECSEventBus** | ✅ Complete | `scripts/ecs/ecs_event_bus.gd` | Pub/sub with history buffer |
+| **U_ECSEventBus** | ✅ Complete | `scripts/ecs/u_ecs_event_bus.gd` | Pub/sub with history buffer |
 | **ECSEntity** | ✅ Complete | `scripts/ecs/ecs_entity.gd` | Entity root marker |
 | **U_ECSUtils** | ✅ Complete | `scripts/utils/u_ecs_utils.gd` | Centralized utilities |
 
@@ -108,7 +108,7 @@ All 12 systems are **fully implemented and tested**:
 - [x] All systems migrated to query-based approach
 
 **Epic 3: Event Bus System** (P0) - ✅ **COMPLETE**
-- [x] ECSEventBus static pub/sub
+- [x] U_ECSEventBus static pub/sub
 - [x] Event history buffer (1000 events, configurable)
 - [x] `entity_jumped` and `entity_landed` events
 - [x] Sample subscribers (particles, sound)
@@ -396,7 +396,7 @@ scripts/ecs/
 ├── ecs_component.gd (base)
 ├── ecs_system.gd (base)
 ├── entity_query.gd (query wrapper)
-├── ecs_event_bus.gd (event system)
+├── u_ecs_event_bus.gd (event system)
 ├── ecs_entity.gd (entity marker)
 ├── components/ (7 files)
 ├── systems/ (12 files)
@@ -602,7 +602,7 @@ State Store → [ECS]:
 
 **If Adding ECS Debugger** (de-scoped):
 - Query metrics API already present in M_ECSManager
-- Event history already present in ECSEventBus
+- Event history already present in U_ECSEventBus
 - Tooling would be additive (no refactor needed)
 
 ---
@@ -668,7 +668,7 @@ The ECS system is **ready for production use** with:
 - `scripts/ecs/ecs_component.gd` (49 lines)
 - `scripts/ecs/ecs_system.gd` (101 lines)
 - `scripts/ecs/entity_query.gd` (28 lines)
-- `scripts/ecs/ecs_event_bus.gd` (60 lines)
+- `scripts/ecs/u_ecs_event_bus.gd` (60 lines)
 - `scripts/ecs/ecs_entity.gd` (13 lines)
 - `scripts/utils/u_ecs_utils.gd` (193 lines)
 - `scripts/ecs/event_vfx_system.gd` (77 lines)

@@ -1,5 +1,5 @@
 extends Resource
-class_name StateSliceConfig
+class_name RS_StateSliceConfig
 
 ## Configuration for a state slice
 ##

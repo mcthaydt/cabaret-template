@@ -1450,10 +1450,10 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 
 ### 8.3 Event Bus System (Stories 3.1–3.4)
 
-**Status**: ✅ Delivered. `ECSEventBus` provides publish/subscribe semantics with a rolling history buffer for debugging.
+**Status**: ✅ Delivered. `U_ECSEventBus` provides publish/subscribe semantics with a rolling history buffer for debugging.
 
 **Highlights**:
-- `ECSEventBus.publish(event_type: StringName, payload: Dictionary)` timestamps every event.
+- `U_ECSEventBus.publish(event_type: StringName, payload: Dictionary)` timestamps every event.
 - Subscribers register callable handlers and receive events in the order they were fired.
 - History buffer defaults to 1,000 events and is configurable (`set_history_limit()`).
 - Sample systems (`S_JumpParticlesSystem`, `S_JumpSoundSystem`) demonstrate decoupled reactions to `entity_jumped`.
@@ -1528,7 +1528,7 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 - Auto-registration/unregistration with validation hooks
 - Multi-component entity queries with optional component support
 - EntityQuery caching + body deduplication helpers
-- Event bus (`ECSEventBus`) with rolling history buffer
+- Event bus (`U_ECSEventBus`) with rolling history buffer
 - Priority-sorted system scheduling via `execution_priority`
 - Settings resources and deep-copy snapshots for debugging
 - Decoupled component architecture (no cross-component NodePaths)

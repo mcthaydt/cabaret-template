@@ -12,7 +12,7 @@ version: "2.0"
 **Changes**: Addressed 18 critical gaps including U_StateUtils, StateHandoff, RS_StateStoreSettings, event bus reset patterns, scene template timing, project settings, expanded serialization, and architectural clarifications
 
 ### Phase 0 Decision (record here)
-- Chosen: Option C — Dual‑Bus via Abstract Base (ECSEventBus + StateStoreEventBus)
+- Chosen: Option C — Dual‑Bus via Abstract Base (U_ECSEventBus + U_StateEventBus)
 - Alternatives (for future consideration only):
   - Option A: Single bus with namespacing (time‑box 1 day)
   - Option B: Direct signals initially; defer bus work
@@ -77,7 +77,7 @@ This is a Godot 4.5 project with the following structure:
 
 ### Initial Files
 
-- [x] T013 [P] Create file `scripts/state/state_action_types.gd` with StringName constants skeleton (empty for now, will be populated per slice)
+- [x] T013 [P] Create file `scripts/state/u_state_action_types.gd` with StringName constants skeleton (empty for now, will be populated per slice)
 
 **Checkpoint**: Directory structure ready, project settings configured - can now work on foundational and user story tasks
 
@@ -89,8 +89,8 @@ This is a Godot 4.5 project with the following structure:
 
 **⚠️ DECISION MADE**: Option C (Dual-Bus via Abstract Base) was chosen and implemented in commit b7fb729
 - Created `EventBusBase` abstract class with shared logic
-- Created `StateStoreEventBus` extending base for state domain
-- Refactored `ECSEventBus` to extend base while preserving API
+- Created `U_StateEventBus` extending base for state domain
+- Refactored `U_ECSEventBus` to extend base while preserving API
 - All tests pass (7/7 state, 62/62 ECS)
 - Options A and B below are marked N/A since Option C was implemented
 
@@ -101,15 +101,15 @@ This is a Godot 4.5 project with the following structure:
 **If successful**: Unified event system from the start, cleaner architecture
 **If fails**: Switch to Option B after 1 day (use rollback tasks below)
 
-- [N/A] T014 [Phase0-A] Read existing `scripts/ecs/ecs_event_bus.gd` to understand current API
-- [N/A] T015 [Phase0-A] Create backup: Copy `scripts/ecs/ecs_event_bus.gd` to `scripts/ecs/ecs_event_bus.gd.backup`
+- [N/A] T014 [Phase0-A] Read existing `scripts/ecs/u_ecs_event_bus.gd` to understand current API
+- [N/A] T015 [Phase0-A] Create backup: Copy `scripts/ecs/u_ecs_event_bus.gd` to `scripts/ecs/u_ecs_event_bus.gd.backup`
 - [N/A] T016 [Phase0-A] Create new `scripts/event_bus.gd` with namespace support ("ecs/*", "state/*" prefixes)
 - [N/A] T017 [Phase0-A] Implement backward-compatible publish/subscribe in `scripts/event_bus.gd`
 - [N/A] T018 [Phase0-A] Add `reset()` method to `scripts/event_bus.gd` for test isolation (clears all subscriptions)
 - [N/A] T019 [Phase0-A] (No autoloads) — skip autoload configuration; use static class pattern
-- [N/A] T020 [Phase0-A] Update `scripts/ecs/systems/s_jump_system.gd` to use `EventBus` instead of `ECSEventBus`
-- [N/A] T021 [Phase0-A] Find all files using `ECSEventBus` via grep: `grep -r "ECSEventBus" scripts/ tests/`
-- [N/A] T022 [Phase0-A] Update all found files to use `EventBus` instead of `ECSEventBus`
+- [N/A] T020 [Phase0-A] Update `scripts/ecs/systems/s_jump_system.gd` to use `EventBus` instead of `U_ECSEventBus`
+- [N/A] T021 [Phase0-A] Find all files using `U_ECSEventBus` via grep: `grep -r "U_ECSEventBus" scripts/ tests/`
+- [N/A] T022 [Phase0-A] Update all found files to use `EventBus` instead of `U_ECSEventBus`
 - [N/A] T023 [Phase0-A] Run existing ECS tests: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit`
 - [N/A] T024 [Phase0-A] Fix any ECS test failures from EventBus refactor
 - [N/A] T025 [Phase0-A] Commit Phase 0A: "Refactor ecs_event_bus to unified event_bus with namespacing"
@@ -118,7 +118,7 @@ This is a Godot 4.5 project with the following structure:
 
 **Execute these if switching from Option A to Option B mid-refactor:**
 
-- [N/A] T026 [Phase0-A-Rollback] Restore backup: `mv scripts/ecs/ecs_event_bus.gd.backup scripts/ecs/ecs_event_bus.gd`
+- [N/A] T026 [Phase0-A-Rollback] Restore backup: `mv scripts/ecs/u_ecs_event_bus.gd.backup scripts/ecs/u_ecs_event_bus.gd`
 - [N/A] T027 [Phase0-A-Rollback] Delete incomplete event_bus.gd: `rm scripts/event_bus.gd`
 - [N/A] T028 [Phase0-A-Rollback] (No autoloads) — not applicable
 - [N/A] T029 [Phase0-A-Rollback] Revert any modified files: `git restore scripts/ tests/`
@@ -145,7 +145,7 @@ This is a Godot 4.5 project with the following structure:
 
 ### Tests for User Story 1a ⚠️ WRITE THESE TESTS FIRST, ENSURE THEY FAIL
 
-**⚠️ CRITICAL TESTING PATTERN**: All state test tasks must include a state bus reset in `before_each()` to prevent subscription leaks. Use `StateStoreEventBus.reset()` for state tests; use `ECSEventBus.reset()` in ECS test suites. Example template:
+**⚠️ CRITICAL TESTING PATTERN**: All state test tasks must include a state bus reset in `before_each()` to prevent subscription leaks. Use `U_StateEventBus.reset()` for state tests; use `U_ECSEventBus.reset()` in ECS test suites. Example template:
 
 ```gdscript
 extends GutTest
@@ -153,7 +153,7 @@ extends GutTest
 var store: M_StateStore
 
 func before_each():
-    StateStoreEventBus.reset()  # CRITICAL: Prevents test pollution in state tests
+    U_StateEventBus.reset()  # CRITICAL: Prevents test pollution in state tests
     store = M_StateStore.new()
     autofree(store)
     add_child(store)
@@ -178,7 +178,7 @@ func after_each():
 
 **Core Store Infrastructure:**
 
-- [x] T043 [P] [US1a] Create `scripts/state/state_slice_config.gd` with structure: slice_name (StringName), reducer (Callable), initial_state (Dictionary), dependencies (Array[StringName]), transient_fields (Array[StringName])
+- [x] T043 [P] [US1a] Create `scripts/state/resources/rs_state_slice_config.gd` with structure: slice_name (StringName), reducer (Callable), initial_state (Dictionary), dependencies (Array[StringName]), transient_fields (Array[StringName])
 - [x] T044 [P] [US1a] Create `scripts/state/resources/rs_state_store_settings.gd` extending Resource
 - [x] T045 [US1a] Add @export properties to RS_StateStoreSettings: max_history_size (int, default 1000), enable_debug (bool), enable_time_travel (bool), performance_monitoring (bool)
 - [x] T046 [US1a] Add method `to_dictionary() -> Dictionary` to RS_StateStoreSettings for serialization
@@ -187,14 +187,14 @@ func after_each():
 - [x] T049 [US1a] Add @icon annotation: `@icon("res://resources/editor_icons/state_store.svg")` (create icon later if needed)
 - [x] T050 [US1a] Add @export to M_StateStore: `@export var settings: RS_StateStoreSettings`
 - [x] T051 [US1a] Add signals to M_StateStore: `state_changed(action: Dictionary, new_state: Dictionary)`, `slice_updated(slice_name: StringName, slice_state: Dictionary)`, `action_dispatched(action: Dictionary)`, `validation_failed(action: Dictionary, error: String)`
-- [x] T052 [US1a] Add private vars to M_StateStore: `_state: Dictionary = {}`, `_subscribers: Array[Callable] = []`, `_slice_configs: Dictionary = {}` (slice_name -> StateSliceConfig)
+- [x] T052 [US1a] Add private vars to M_StateStore: `_state: Dictionary = {}`, `_subscribers: Array[Callable] = []`, `_slice_configs: Dictionary = {}` (slice_name -> RS_StateSliceConfig)
 - [x] T053 [US1a] Implement `_ready()` in M_StateStore: add_to_group("state_store"), validate settings exist
 - [x] T054 [US1a] Implement `dispatch(action: Dictionary) -> void` with basic action.type validation
 - [x] T055 [US1a] Implement `subscribe(callback: Callable) -> void` to add callback to _subscribers array
 - [x] T056 [US1a] Implement `unsubscribe(callback: Callable) -> void` to remove callback from _subscribers array
 - [x] T057 [US1a] Add validation in dispatch(): check action.has("type"), emit validation_failed if missing
 - [x] T058 [US1a] Add subscriber notification in dispatch(): call each subscriber with action
-- [x] T059 [US1a] Add method `register_slice(config: StateSliceConfig) -> void` for slice registration
+- [x] T059 [US1a] Add method `register_slice(config: RS_StateSliceConfig) -> void` for slice registration
 - [x] T060 [US1a] Add method `get_state_slice(slice_name: StringName) -> Dictionary` returning deep copy (IMPLEMENTED AS get_slice)
 - [x] T061 [US1a] Add method `get_full_state() -> Dictionary` returning deep copy of all slices (IMPLEMENTED AS get_state)
 
@@ -244,7 +244,7 @@ func after_each():
 
 ### Tests for User Story 1b ⚠️ WRITE THESE TESTS FIRST, ENSURE THEY FAIL
 
-**⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests (use `ECSEventBus.reset()` in ECS tests)
+**⚠️ REMINDER**: Include `U_StateEventBus.reset()` in `before_each()` for state tests (use `U_ECSEventBus.reset()` in ECS tests)
 
 - [x] T081 [P] [US1b] 📝 TEST: Create `tests/unit/state/test_action_registry.gd` (include bus reset in `before_each()`)
 - [x] T082 [P] [US1b] 📝 TEST: Write test `test_register_action_type_adds_to_registry()`
@@ -298,7 +298,7 @@ func after_each():
 
 ### Tests for User Story 1c ⚠️ WRITE THESE TESTS FIRST, ENSURE THEY FAIL
 
-**⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests
+**⚠️ REMINDER**: Include `U_StateEventBus.reset()` in `before_each()` for state tests
 
 - [x] T109 [P] [US1c] 📝 TEST: Create `tests/unit/state/test_gameplay_slice_reducers.gd` (include bus reset in `before_each()`)
 - [x] T110 [P] [US1c] 📝 TEST: Write test `test_reducer_is_pure_function()` - same input produces same output
@@ -330,17 +330,17 @@ func after_each():
 
 **Store Integration:**
 
-- [x] T128 [US1c] Update StateSliceConfig to include `reducer: Callable` field
+- [x] T128 [US1c] Update RS_StateSliceConfig to include `reducer: Callable` field
 - [x] T129 [US1c] Add `@export var gameplay_initial_state: RS_GameplayInitialState` to M_StateStore
 - [x] T130 [US1c] Update M_StateStore._ready() to register gameplay slice using register_slice()
-- [x] T131 [US1c] In _ready(), create StateSliceConfig for gameplay with: slice_name="gameplay", reducer=GameplayReducer.reduce, initial_state=gameplay_initial_state.to_dictionary()
+- [x] T131 [US1c] In _ready(), create RS_StateSliceConfig for gameplay with: slice_name="gameplay", reducer=GameplayReducer.reduce, initial_state=gameplay_initial_state.to_dictionary()
 - [x] T132 [US1c] Update M_StateStore.dispatch() to look up slice config, call reducer with current state and action
 - [x] T133 [US1c] In dispatch(), store new state returned by reducer using .duplicate(true)
 - [x] T134 [US1c] Add circular dependency validation in register_slice(): build dependency graph, detect cycles with DFS, push_error() if cycle found
 
 **Slice Registration Flow Documentation:**
 
-- [x] T135 [US1c] Add doc comment to register_slice() explaining: "Slices register via M_StateStore._ready() using @export resources. Each slice needs: RS_*InitialState resource, *_reducer.gd static class, StateSliceConfig in register_slice() call"
+- [x] T135 [US1c] Add doc comment to register_slice() explaining: "Slices register via M_StateStore._ready() using @export resources. Each slice needs: RS_*InitialState resource, *_reducer.gd static class, RS_StateSliceConfig in register_slice() call"
 - [x] T136 [US1c] Add comment showing example registration pattern in M_StateStore._ready()
 
 **Test & Validation:**
@@ -362,7 +362,7 @@ func after_each():
 
 ### Tests for User Story 1d ⚠️ WRITE THESE TESTS FIRST, ENSURE THEY FAIL
 
-**⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests
+**⚠️ REMINDER**: Include `U_StateEventBus.reset()` in `before_each()` for state tests
 
 - [x] T141 [P] [US1d] 📝 TEST: Update `tests/unit/state/test_u_gameplay_actions.gd` with new action creator tests
 - [x] T142 [P] [US1d] 📝 TEST: Write test `test_update_health_action_creator()`
@@ -411,7 +411,7 @@ func after_each():
 
 ### Tests for User Story 1e ⚠️ WRITE THESE TESTS FIRST, ENSURE THEY FAIL
 
-**⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests
+**⚠️ REMINDER**: Include `U_StateEventBus.reset()` in `before_each()` for state tests
 
 - [x] T164 [P] [US1e] 📝 TEST: Create `tests/unit/state/test_state_selectors.gd` (include bus reset in `before_each()`)
 - [x] T165 [P] [US1e] 📝 TEST: Write test `test_get_is_player_alive_returns_false_when_health_zero()`
@@ -424,7 +424,7 @@ func after_each():
 
 **Dependency System:**
 
-- [x] T170 [US1e] Update StateSliceConfig to include `dependencies: Array[StringName]` field (already present from T043)
+- [x] T170 [US1e] Update RS_StateSliceConfig to include `dependencies: Array[StringName]` field (already present from T043)
 - [x] T171 [US1e] Add method `validate_slice_dependencies() -> bool` to M_StateStore
 - [x] T172 [US1e] In validate_slice_dependencies(), check if accessing slice requires declaring dependency first
 - [x] T173 [US1e] Add dependency checking to get_slice(): log error if dependency not declared (added optional caller_slice parameter)
@@ -462,7 +462,7 @@ func after_each():
 
 ### Tests for User Story 1f ⚠️ WRITE THESE TESTS FIRST, ENSURE THEY FAIL
 
-**⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests
+**⚠️ REMINDER**: Include `U_StateEventBus.reset()` in `before_each()` for state tests
 
 - [x] T186 [P] [US1f] 📝 TEST: Update `tests/unit/state/test_m_state_store.gd` with batching tests (bus reset already present)
 - [x] T187 [P] [US1f] 📝 TEST: Write test `test_multiple_dispatches_emit_single_slice_updated_signal_per_frame()`
@@ -474,7 +474,7 @@ func after_each():
 
 **Signal Batcher:**
 
-- [x] T191 [P] [US1f] Create `scripts/state/utils/signal_batcher.gd` as class_name SignalBatcher extending RefCounted
+- [x] T191 [P] [US1f] Create `scripts/state/utils/u_signal_batcher.gd` as class_name U_SignalBatcher extending RefCounted
 - [x] T192 [US1f] Add private var `_pending_slice_updates: Dictionary = {}` (slice_name -> latest_state)
 - [x] T193 [US1f] Implement `func mark_slice_dirty(slice_name: StringName, slice_state: Dictionary) -> void`
 - [x] T194 [US1f] In mark_slice_dirty(), store slice_state in _pending_slice_updates (overwrite if already exists)
@@ -483,8 +483,8 @@ func after_each():
 
 **Store Integration:**
 
-- [x] T197 [US1f] Add private var `_signal_batcher: SignalBatcher` to M_StateStore
-- [x] T198 [US1f] In M_StateStore._ready(), initialize _signal_batcher = SignalBatcher.new()
+- [x] T197 [US1f] Add private var `_signal_batcher: U_SignalBatcher` to M_StateStore
+- [x] T198 [US1f] In M_StateStore._ready(), initialize _signal_batcher = U_SignalBatcher.new()
 - [x] T199 [US1f] Update M_StateStore.dispatch() to mark slices dirty instead of emitting immediately: call _signal_batcher.mark_slice_dirty()
 - [x] T200 [US1f] Add `_physics_process(delta: float)` to M_StateStore
 - [x] T201 [US1f] In _physics_process(), call _signal_batcher.flush() with emit callback that emits slice_updated signal
@@ -511,7 +511,7 @@ func after_each():
 
 ### Tests for User Story 1g ⚠️ WRITE THESE TESTS FIRST, ENSURE THEY FAIL
 
-**⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests
+**⚠️ REMINDER**: Include `U_StateEventBus.reset()` in `before_each()` for state tests
 
 - [x] T209 [P] [US1g] 📝 TEST: Update `tests/unit/state/test_m_state_store.gd` with history tests (bus reset already present)
 - [x] T210 [P] [US1g] 📝 TEST: Write test `test_action_history_records_actions_with_timestamps()`
@@ -556,7 +556,7 @@ func after_each():
 
 ### Tests for User Story 1h ⚠️ WRITE THESE TESTS FIRST, ENSURE THEY FAIL
 
-**⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests (use `ECSEventBus.reset()` in ECS tests)
+**⚠️ REMINDER**: Include `U_StateEventBus.reset()` in `before_each()` for state tests (use `U_ECSEventBus.reset()` in ECS tests)
 
 - [x] T231 [P] [US1h] 📝 TEST: Create `tests/unit/state/test_state_persistence.gd` (include bus reset in `before_each()`)
 - [x] T232 [P] [US1h] 📝 TEST: Write test `test_save_state_creates_valid_json_file()`
@@ -596,14 +596,14 @@ func after_each():
 
 **Transient Fields:**
 
-- [x] T261 [US1h] Verify StateSliceConfig includes `transient_fields: Array[StringName]` (added in T043)
+- [x] T261 [US1h] Verify RS_StateSliceConfig includes `transient_fields: Array[StringName]` (added in T043)
 - [x] T262 [US1h] Add doc comment to transient_fields explaining: "Fields marked transient will not be saved to disk. Use for cache, temporary UI state, derived values."
 
 **Save/Load Implementation:**
 
 - [x] T263 [US1h] Implement `save_state(filepath: String) -> Error` in M_StateStore
 - [x] T264 [US1h] In save_state(), iterate all slices in _state
-- [x] T265 [US1h] For each slice, get StateSliceConfig and exclude transient_fields
+- [x] T265 [US1h] For each slice, get RS_StateSliceConfig and exclude transient_fields
 - [x] T266 [US1h] Apply SerializationHelper.godot_to_json() to all remaining values
 - [x] T267 [US1h] Use JSON.stringify() to convert state Dictionary to JSON string
 - [x] T268 [US1h] Use FileAccess.open(filepath, FileAccess.WRITE) to write to disk
@@ -659,7 +659,7 @@ func after_each():
 - Documentation updated (DEV_PITFALLS.md with testing patterns)
 
 **COMMITS**:
-- `b7fb729` - Phase 0C: EventBusBase + StateStoreEventBus
+- `b7fb729` - Phase 0C: EventBusBase + U_StateEventBus
 - `77e6618` - Phase 1a: Core M_StateStore skeleton
 - `45cde3c` - Phase 1b: ActionRegistry with validation
 - `8e1e42d` - Phases 1c-1e: Reducers, actions, selectors (77% pass rate)
@@ -719,7 +719,7 @@ func after_each():
 
 ### Tests for Proof-of-Concept ⚠️ WRITE THESE TESTS FIRST
 
-**⚠️ REMINDER**: Include appropriate reset in `before_each()` - `StateStoreEventBus.reset()` for state tests, `ECSEventBus.reset()` for ECS tests
+**⚠️ REMINDER**: Include appropriate reset in `before_each()` - `U_StateEventBus.reset()` for state tests, `U_ECSEventBus.reset()` for ECS tests
 
 - [x] T298 [P] [PoC] 📝 TEST: Create `tests/unit/integration/test_poc_pause_system.gd` with both bus resets
 - [x] T299 [P] [PoC] 📝 TEST: Write test `test_pause_system_dispatches_pause_action()`
@@ -803,7 +803,7 @@ func after_each():
 
 ### Tests for User Story 2 ⚠️ WRITE THESE TESTS FIRST, ENSURE THEY FAIL
 
-**⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests
+**⚠️ REMINDER**: Include `U_StateEventBus.reset()` in `before_each()` for state tests
 
 - [x] T298 [P] [US2] 📝 TEST: Create `tests/unit/state/test_sc_state_debug_overlay.gd` (include bus reset in `before_each()`)
 - [x] T299 [P] [US2] 📝 TEST: Write test `test_debug_overlay_instantiates_without_errors()`
@@ -864,7 +864,7 @@ func after_each():
 
 ### Tests for User Story 3 ⚠️ WRITE THESE TESTS FIRST, ENSURE THEY FAIL
 
-**⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests (use `ECSEventBus.reset()` in ECS tests)
+**⚠️ REMINDER**: Include `U_StateEventBus.reset()` in `before_each()` for state tests (use `U_ECSEventBus.reset()` in ECS tests)
 
 - [x] T330 [P] [US3] 📝 TEST: Create `tests/unit/state/test_boot_slice_reducers.gd` (include bus reset in `before_each()`)
 - [x] T331 [P] [US3] 📝 TEST: Write test `test_boot_slice_initializes_with_loading_0_percent()`
@@ -920,7 +920,7 @@ func after_each():
 
 ### Tests for User Story 4 ⚠️ WRITE THESE TESTS FIRST, ENSURE THEY FAIL
 
-**⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests
+**⚠️ REMINDER**: Include `U_StateEventBus.reset()` in `before_each()` for state tests
 
 - [x] T357 [P] [US4] 📝 TEST: Create `tests/unit/state/test_menu_slice_reducers.gd` (include bus reset in `before_each()`)
 - [x] T358 [P] [US4] 📝 TEST: Write test `test_navigate_to_screen_updates_active_screen()`
@@ -975,7 +975,7 @@ func after_each():
 
 ### Tests for User Story 5 ⚠️ WRITE THESE TESTS FIRST, ENSURE THEY FAIL
 
-**⚠️ REMINDER**: Include `StateStoreEventBus.reset()` in `before_each()` for state tests
+**⚠️ REMINDER**: Include `U_StateEventBus.reset()` in `before_each()` for state tests
 
 - [x] T383 [P] [US5] 📝 TEST: Create `tests/unit/state/integration/test_slice_transitions.gd` (include bus reset in `before_each()`)
 - [x] T384 [P] [US5] 📝 TEST: Write test `test_boot_to_menu_transition_preserves_boot_completion()`
@@ -1035,7 +1035,7 @@ func after_each():
 - [x] T410 Profile M_StateStore dispatch overhead using U_StateUtils.benchmark(): test 1000 rapid dispatches
 - [x] T411 Log benchmark results: dispatch time, reducer time, signal batching time
 - [x] T412 Optimize .duplicate(true) calls if overhead exceeds 0.1ms per dispatch: consider selective copying (NO OPTIMIZATION NEEDED - 0.0014ms avg)
-- [x] T413 Profile SignalBatcher.flush() overhead: verify <0.05ms per frame using U_StateUtils.benchmark()
+- [x] T413 Profile U_SignalBatcher.flush() overhead: verify <0.05ms per frame using U_StateUtils.benchmark()
 - [x] T414 Add performance metrics to debug overlay: show dispatch count, avg dispatch time, signal emit count
 - [x] T415 Test with 10,000 action history entries: verify circular buffer performance scales
 
@@ -1077,8 +1077,8 @@ func after_each():
 **⚠️ ONLY IF FALLBACK (Option B) WAS USED IN PHASE 2:**
 
 - [N/A] T437 [Phase15-EventBus] Revisit event bus refactor: attempt Phase 0A tasks again
-- [N/A] T438 [Phase15-Event Integration] Refactor M_StateStore signaling to also publish via `StateStoreEventBus.publish()` (keep direct signals if desirable)
-- [N/A] T439 [Phase15-Event Integration] Ensure state tests use `StateStoreEventBus.reset()` in `before_each()`; ECS tests use `ECSEventBus.reset()`
+- [N/A] T438 [Phase15-Event Integration] Refactor M_StateStore signaling to also publish via `U_StateEventBus.publish()` (keep direct signals if desirable)
+- [N/A] T439 [Phase15-Event Integration] Ensure state tests use `U_StateEventBus.reset()` in `before_each()`; ECS tests use `U_ECSEventBus.reset()`
 - [N/A] T440 [Phase15-EventBus] Test EventBus refactor with full state store test suite
 - [N/A] T441 [Phase15-EventBus] Commit: "Integrate M_StateStore with unified EventBus"
 
@@ -1368,7 +1368,7 @@ func after_each():
 
 ```plaintext
 1. Write all tests marked with 📝 TEST (can be parallel within phase)
-  - CRITICAL: Include `StateStoreEventBus.reset()` in `before_each()` for all state tests
+  - CRITICAL: Include `U_StateEventBus.reset()` in `before_each()` for all state tests
 2. Run tests, verify they FAIL
 3. Implement code to make tests pass (some tasks parallel, some sequential)
 4. Run tests, verify they PASS
@@ -1444,7 +1444,7 @@ Each addition can be deployed independently without breaking previous functional
 - **Commit points**: Clearly marked at end of each user story phase
 - **Test-first**: Every implementation phase starts with test creation
 - **Scene integration**: Explicit test scenes for in-game validation of each phase
-- **Event bus reset critical**: All state tests must include `StateStoreEventBus.reset()` in `before_each()` to prevent subscription leaks; ECS test suites use `ECSEventBus.reset()`
+- **Event bus reset critical**: All state tests must include `U_StateEventBus.reset()` in `before_each()` to prevent subscription leaks; ECS test suites use `U_ECSEventBus.reset()`
 
 ---
 
@@ -1506,7 +1506,7 @@ From PRD, feature is complete when:
 
 - [x] T026C [Phase0-C] Create directory `scripts/events/`
 - [x] T027C [Phase0-C] Create `scripts/events/event_bus_base.gd` (abstract) with subscribe/unsubscribe/publish/reset/history and defensive payload duplication
-- [x] T028C [Phase0-C] Create `scripts/state/state_event_bus.gd` that extends base and exposes static API delegating to a private instance
-- [x] T029C [Phase0-C] Update `scripts/ecs/ecs_event_bus.gd` to extend base and delegate its static API to a private instance (no external API changes)
+- [x] T028C [Phase0-C] Create `scripts/state/u_state_event_bus.gd` that extends base and exposes static API delegating to a private instance
+- [x] T029C [Phase0-C] Update `scripts/ecs/u_ecs_event_bus.gd` to extend base and delegate its static API to a private instance (no external API changes)
 - [x] T030C [Phase0-C] 📝 TEST: Add `tests/unit/state/test_state_event_bus.gd` to verify isolation and reset behavior
-- [x] T031C [Phase0-C] Commit Phase 0C: "Add EventBusBase and StateStoreEventBus; delegate ECSEventBus to base"
+- [x] T031C [Phase0-C] Commit Phase 0C: "Add EventBusBase and U_StateEventBus; delegate U_ECSEventBus to base"

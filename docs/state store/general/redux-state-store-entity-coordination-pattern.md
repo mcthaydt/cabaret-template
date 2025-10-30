@@ -494,7 +494,7 @@ for enemy_entry in enemies:
 ## Alternative Patterns Considered
 
 ### Pattern 1: Event Bus for Entity Updates
-**Approach**: Publish entity updates via ECSEventBus instead of state store.
+**Approach**: Publish entity updates via U_ECSEventBus instead of state store.
 
 **Pros**: Lower overhead, no state duplication  
 **Cons**: No time-travel debugging, no debug overlay visibility, ephemeral

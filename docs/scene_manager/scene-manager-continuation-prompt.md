@@ -96,10 +96,10 @@ This guide directs you to implement the Scene Manager feature by following the t
 - ✅ T034: Scene reducer tests passing (10/10 ✅)
 - ✅ T035: Transient fields test added (is_transitioning, transition_type excluded from saves)
 - ✅ T036: All existing tests validated (223/223 passing - no regressions)
-- ✅ T037-T041: SceneRegistry static class created with 5 scenes, door pairings, validation
-- ✅ T042: SceneRegistry tests passing (19/19 ✅)
+- ✅ T037-T041: U_SceneRegistry static class created with 5 scenes, door pairings, validation
+- ✅ T042: U_SceneRegistry tests passing (19/19 ✅)
 - ✅ T042.5-T051: M_SceneManager implemented with queue, overlays, state integration
-- ✅ T052-T058: Transition effects (TransitionEffect, InstantTransition, FadeTransition)
+- ✅ T052-T058: Transition effects (BaseTransitionEffect, InstantTransition, FadeTransition)
 - ✅ T059-T062: UI scenes created (main_menu.tscn, settings_menu.tscn)
 - ✅ T063-T065: Integration tests run and validated (11/13 integration tests passing)
 
@@ -108,7 +108,7 @@ This guide directs you to implement the Scene Manager feature by following the t
 - Transient fields configured and validated (`is_transitioning`, `transition_type`)
 - Scene reducer follows immutable Redux patterns
 - Action creators properly registered with ActionRegistry
-- SceneRegistry static class with scene metadata, door pairings, and validation
+- U_SceneRegistry static class with scene metadata, door pairings, and validation
 - M_SceneManager coordinator with priority-based transition queue
 - Overlay stack management (push/pop)
 - Scene loading/unloading with ActiveSceneContainer
@@ -124,7 +124,7 @@ This guide directs you to implement the Scene Manager feature by following the t
 
 **Final Test Status**:
 - Scene reducer: 10/10 passing ✅
-- SceneRegistry: 19/19 passing ✅
+- U_SceneRegistry: 19/19 passing ✅
 - M_SceneManager: 46/47 passing ✅ (1 expected failure)
 - Transitions: 7/16 passing (Tween timing issues in headless mode)
 - Scene persistence: 1/1 new test passing ✅
@@ -233,7 +233,7 @@ Begin with Phase 3 by reading the detailed requirements in:
 
 **⚠️ IMPORTANT**: Phase 3 implements the first user story - basic scene transitions. This includes:
 - Scene state slice and reducer
-- SceneRegistry for scene metadata
+- U_SceneRegistry for scene metadata
 - M_SceneManager core functionality (transition_to, get_current_scene)
 - Transition effects (instant, fade)
 - Basic UI scenes (main menu, settings)

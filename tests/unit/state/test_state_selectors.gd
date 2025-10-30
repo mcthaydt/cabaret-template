@@ -2,13 +2,13 @@ extends GutTest
 
 ## Tests for GameplaySelectors derived state computation
 
-const StateStoreEventBus := preload("res://scripts/state/state_event_bus.gd")
+const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
 
 func before_each() -> void:
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 
 func after_each() -> void:
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 
 ## Test get_is_paused returns true when paused
 func test_get_is_paused_returns_true_when_paused() -> void:

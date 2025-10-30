@@ -24,7 +24,7 @@
 
 > **Status (2025-10-23):** Implementation has been cancelled. The description below reflects the original design for reference.
 
-The ECS Debugger Plugin is an **EditorPlugin-based debugging tool** that provides real-time visibility into the ECS architecture's runtime state. This project implements a **bottom-panel UI** that streams live data from `M_ECSManager`, `ECSEventBus`, and `BaseECSSystem` instances.
+The ECS Debugger Plugin is an **EditorPlugin-based debugging tool** that provides real-time visibility into the ECS architecture's runtime state. This project implements a **bottom-panel UI** that streams live data from `M_ECSManager`, `U_ECSEventBus`, and `BaseECSSystem` instances.
 
 Key capabilities:
 
@@ -95,7 +95,7 @@ Godot Editor
 └─ Data Sources (Read-Only)
    ├─ M_ECSManager.get_query_metrics()
    ├─ M_ECSManager.get_systems()
-   ├─ ECSEventBus.get_event_history()
+   ├─ U_ECSEventBus.get_event_history()
    └─ ECSSystem.is_debug_disabled()
 ```
 
@@ -133,7 +133,7 @@ Godot Editor
      ├─ Filter events → Re-populate ItemList with substring match
      ├─ Toggle system → system.set_debug_disabled() + save to ProjectSettings
      ├─ Export events → Copy JSON to DisplayServer.clipboard_set()
-     └─ Clear history → ECSEventBus.clear_history() + refresh()
+     └─ Clear history → U_ECSEventBus.clear_history() + refresh()
 ```
 
 ---
@@ -458,8 +458,8 @@ Payload display: Pretty-printed JSON (2-space indent)
 
 ```gdscript
 # Called by panel timer
-# Updates event list from ECSEventBus
-var all_events = ECSEventBus.get_event_history()
+# Updates event list from U_ECSEventBus
+var all_events = U_ECSEventBus.get_event_history()
 _apply_filter(all_events)
 _update_event_count(all_events.size())
 ```
@@ -469,7 +469,7 @@ _update_event_count(all_events.size())
 ```gdscript
 # User typed in filter input
 # Re-filter events (case-insensitive)
-var all_events = ECSEventBus.get_event_history()
+var all_events = U_ECSEventBus.get_event_history()
 _filtered_events.clear()
 var lower_filter = filter_text.to_lower()
 for event in all_events:
@@ -665,15 +665,15 @@ Moderate (2-3)
 ### 4.2 Event History Flow
 
 ```
-[Systems publish events via ECSEventBus]
+[Systems publish events via U_ECSEventBus]
         ↓
-[ECSEventBus stores in _event_history (rolling 1000)]
+[U_ECSEventBus stores in _event_history (rolling 1000)]
         ↓
 [Auto-refresh timer fires]
         ↓
 [Panel calls events_tab.refresh()]
         ↓
-[Tab calls ECSEventBus.get_event_history()]
+[Tab calls U_ECSEventBus.get_event_history()]
         ↓
 [Event bus returns Array[Dictionary]]
 Example: [
@@ -759,16 +759,16 @@ func get_systems() -> Array
 }
 ```
 
-### 5.2 ECSEventBus Integration
+### 5.2 U_ECSEventBus Integration
 
 **Used Methods**:
 
 ```gdscript
-# Event history (scripts/ecs/ecs_event_bus.gd:81)
+# Event history (scripts/ecs/u_ecs_event_bus.gd:81)
 static func get_event_history() -> Array
 # Returns: [{ name, payload, timestamp }, ...]
 
-# Clear history (scripts/ecs/ecs_event_bus.gd:73)
+# Clear history (scripts/ecs/u_ecs_event_bus.gd:73)
 static func clear_history() -> void
 # Clears _event_history array
 ```
@@ -1286,13 +1286,13 @@ func refresh(manager: M_ECSManager) -> void:
 
 ### 6.14 Event History Truncation Detection
 
-**Problem**: `ECSEventBus` has a fixed history limit (typically 100 events), but no API to detect truncation.
+**Problem**: `U_ECSEventBus` has a fixed history limit (typically 100 events), but no API to detect truncation.
 
 **Workaround**:
 
 ```gdscript
 # In T_ECSDebuggerEventsTab
-const MAX_EVENT_HISTORY = 100  # Must match ECSEventBus internal limit
+const MAX_EVENT_HISTORY = 100  # Must match U_ECSEventBus internal limit
 
 func update_event_count_label(filtered_count: int, total_count: int) -> void:
     if total_count >= MAX_EVENT_HISTORY:
@@ -1301,12 +1301,12 @@ func update_event_count_label(filtered_count: int, total_count: int) -> void:
         _count_label.text = "Showing %d / %d events" % [filtered_count, total_count]
 ```
 
-**Limitation**: Assumes `ECSEventBus._event_history` max size is 100. If ECS core changes this, the constant must be updated.
+**Limitation**: Assumes `U_ECSEventBus._event_history` max size is 100. If ECS core changes this, the constant must be updated.
 
 **Better Future Solution**: Add to ECS core:
 
 ```gdscript
-# In ECSEventBus
+# In U_ECSEventBus
 static func get_history_limit() -> int:
     return 100
 
@@ -1393,7 +1393,7 @@ Example: req:C_Movement,C_Input,C_Jump,C_Floating|opt:C_Align
         ↓
 [Conclusion: S_JumpSystem not publishing events]
         ↓
-[Checks S_JumpSystem.process_tick() → missing ECSEventBus.publish() call]
+[Checks S_JumpSystem.process_tick() → missing U_ECSEventBus.publish() call]
         ↓
 [Adds event publication code]
         ↓
@@ -1409,7 +1409,7 @@ ItemList: "[14:32:15.234] entity_jumped"
         ↓
 [Realizes S_ParticleSystem not subscribed]
         ↓
-[Adds ECSEventBus.subscribe() in particle system]
+[Adds U_ECSEventBus.subscribe() in particle system]
         ↓
 [Particles now spawn correctly!]
 ```
@@ -1526,7 +1526,7 @@ The ECS Debugger Plugin provides **real-time observability** into the ECS archit
 **Integration Points**:
 
 - M_ECSManager: `get_query_metrics()`, `get_systems()`
-- ECSEventBus: `get_event_history()`, `clear_history()`
+- U_ECSEventBus: `get_event_history()`, `clear_history()`
 - ECSSystem: `set_debug_disabled()`, `is_debug_disabled()`
 - ProjectSettings: `ecs_debugger/disabled_systems`
 

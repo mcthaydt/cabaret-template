@@ -251,7 +251,7 @@ Game properly handles end-game scenarios (player death, level victory, game comp
 - **FR-048**: System MUST work with existing singleton M_ECSManager (not replace or duplicate it)
 - **FR-049**: System MUST allow ECS components and systems to persist across scene transitions when appropriate
 - **FR-050**: System MUST provide lifecycle hooks for components/systems during transitions (on_scene_exiting, on_scene_entered)
-- **FR-051**: System MUST use ECSEventBus for transition events (scene_transition_started, scene_loaded, etc.)
+- **FR-051**: System MUST use U_ECSEventBus for transition events (scene_transition_started, scene_loaded, etc.)
 - **FR-052**: System MUST not require Godot autoload/singleton configuration (pure scene-tree-based)
 - **FR-053**: System MUST be discoverable via scene tree groups (similar to ECS Manager's "ecs_manager" group)
 
@@ -306,13 +306,13 @@ Game properly handles end-game scenarios (player death, level victory, game comp
   - Updates current_scene_id, scene_stack, is_transitioning
   - Follows existing pattern (BootReducer, MenuReducer, GameplayReducer)
 
-- **SceneRegistry** (NEW): Configuration data for all game scenes
+- **U_SceneRegistry** (NEW): Configuration data for all game scenes
   - Maps scene identifiers to scene paths
   - Stores scene metadata (type, default transition, preload priority)
   - Defines entrance/exit pairings for area transitions
   - Static GDScript class or Resource
 
-- **TransitionEffect** (NEW): Visual transition animations
+- **BaseTransitionEffect** (NEW): Visual transition animations
   - Base interface for all transition types
   - Implementations: InstantTransition, FadeTransition, LoadingScreenTransition, CustomTransition
   - Provides async transition lifecycle (start, update progress, complete)
@@ -450,7 +450,7 @@ Game properly handles end-game scenarios (player death, level victory, game comp
 - **FR-100**: System MUST fallback to main menu if scene load fails critically
 - **FR-101**: System MUST fallback to last checkpoint if player state corrupted
 - **FR-102**: System MUST validate scene slice state after StateHandoff restore
-- **FR-103**: SceneRegistry MUST provide validate_door_pairings() to check configuration integrity
+- **FR-103**: U_SceneRegistry MUST provide validate_door_pairings() to check configuration integrity
 
 #### Transition Effects Implementation
 
@@ -554,7 +554,7 @@ These questions were answered during architectural planning and integration with
 
 9. **Transition Queuing**: ✅ **Priority-based** - High-priority transitions (pause, death) interrupt/queue over low-priority (doors). Prevents spam while being responsive
 
-10. **Door Configuration**: ✅ **Central registry (static class)** - SceneRegistry static class defines all scene metadata and door pairings as single source of truth
+10. **Door Configuration**: ✅ **Central registry (static class)** - U_SceneRegistry static class defines all scene metadata and door pairings as single source of truth
 
 11. **Input Blocking**: ✅ **Block after transition effect starts** - Input remains active until fade-out begins, provides responsive feel while preventing mid-transition issues
 
@@ -634,9 +634,9 @@ These questions remain open for future iteration:
       rs_scene_initial_state.gd # NEW - Scene slice initial state
 
   /scene_management/
-    scene_registry.gd           # Scene metadata configuration
+    u_scene_registry.gd           # Scene metadata configuration
     /transitions/
-      transition_effect.gd      # Base transition interface
+      base_transition_effect.gd      # Base transition interface
       instant_transition.gd     # Instant effect implementation
       fade_transition.gd        # Fade effect implementation
       loading_screen_transition.gd # Loading screen implementation
@@ -831,7 +831,7 @@ func _initialize_slices() -> void:
 
     # Register scene slice if initial state provided
     if scene_initial_state != null:
-        var scene_config := StateSliceConfig.new(StringName("scene"))
+        var scene_config := RS_StateSliceConfig.new(StringName("scene"))
         scene_config.reducer = Callable(SceneReducer, "reduce")
         scene_config.initial_state = scene_initial_state.to_dictionary()
         scene_config.dependencies = []
@@ -920,11 +920,11 @@ root (Node)
     └── [Loading screen UI]
 ```
 
-### Example 7: SceneRegistry Static Class
+### Example 7: U_SceneRegistry Static Class
 
 ```gdscript
 extends RefCounted
-class_name SceneRegistry
+class_name U_SceneRegistry
 
 ## Static registry for scene metadata and door pairings
 ##
@@ -997,7 +997,7 @@ static var _door_pairings: Dictionary = {
 ## Get scene metadata by scene_id
 static func get_scene(scene_id: String) -> Dictionary:
 	if not _scenes.has(scene_id):
-		push_error("SceneRegistry: Unknown scene_id: ", scene_id)
+		push_error("U_SceneRegistry: Unknown scene_id: ", scene_id)
 		return {}
 	return _scenes[scene_id].duplicate(true)
 
@@ -1019,7 +1019,7 @@ static func get_default_transition(scene_id: String) -> String:
 ## Get door pairing by door_id
 static func get_door_pairing(door_id: String) -> Dictionary:
 	if not _door_pairings.has(door_id):
-		push_error("SceneRegistry: Unknown door_id: ", door_id)
+		push_error("U_SceneRegistry: Unknown door_id: ", door_id)
 		return {}
 	return _door_pairings[door_id].duplicate(true)
 
@@ -1033,7 +1033,7 @@ static func validate_door_pairings() -> bool:
 
 		# Check reverse door exists
 		if not _door_pairings.has(reverse_door):
-			push_error("SceneRegistry: door '", door_id, "' reverse_door '", reverse_door, "' not found")
+			push_error("U_SceneRegistry: door '", door_id, "' reverse_door '", reverse_door, "' not found")
 			all_valid = false
 			continue
 
@@ -1041,13 +1041,13 @@ static func validate_door_pairings() -> bool:
 		var reverse_pairing: Dictionary = _door_pairings[reverse_door]
 		var reverse_reverse: String = reverse_pairing.get("reverse_door", "")
 		if reverse_reverse != door_id:
-			push_error("SceneRegistry: door '", door_id, "' reverse pairing mismatch")
+			push_error("U_SceneRegistry: door '", door_id, "' reverse pairing mismatch")
 			all_valid = false
 
 		# Check target scene exists
 		var target_scene: String = pairing.get("target_scene", "")
 		if not _scenes.has(target_scene):
-			push_error("SceneRegistry: door '", door_id, "' target_scene '", target_scene, "' not found")
+			push_error("U_SceneRegistry: door '", door_id, "' target_scene '", target_scene, "' not found")
 			all_valid = false
 
 	return all_valid
@@ -1062,11 +1062,11 @@ static func get_preloadable_scenes(min_priority: int = 5) -> Array[String]:
 	return result
 ```
 
-### Example 8: TransitionEffect Base Class
+### Example 8: BaseTransitionEffect Base Class
 
 ```gdscript
 extends RefCounted
-class_name TransitionEffect
+class_name BaseTransitionEffect
 
 ## Base class for scene transition effects
 ##
@@ -1109,7 +1109,7 @@ func get_duration() -> float:
 ### Example 9: FadeTransition Implementation
 
 ```gdscript
-extends TransitionEffect
+extends BaseTransitionEffect
 class_name FadeTransition
 
 ## Fade to black transition effect
@@ -1188,13 +1188,13 @@ class_name C_SceneTriggerComponent
 ##
 ## Attach to Area3D nodes (doors, zone boundaries).
 
-## Unique identifier (matches SceneRegistry door_id)
+## Unique identifier (matches U_SceneRegistry door_id)
 @export var door_id: String = ""
 
-## Target scene override (if empty, uses SceneRegistry)
+## Target scene override (if empty, uses U_SceneRegistry)
 @export var target_scene_id: String = ""
 
-## Spawn point override (if empty, uses SceneRegistry)
+## Spawn point override (if empty, uses U_SceneRegistry)
 @export var spawn_point_id: String = ""
 
 ## Interaction mode: Auto or Interact
@@ -1268,16 +1268,16 @@ func trigger_transition() -> void:
 	var spawn: String = spawn_point_id
 	var transition: String = transition_override
 
-	# Use SceneRegistry pairing if door_id is set
+	# Use U_SceneRegistry pairing if door_id is set
 	if not door_id.is_empty():
-		var pairing: Dictionary = SceneRegistry.get_door_pairing(door_id)
+		var pairing: Dictionary = U_SceneRegistry.get_door_pairing(door_id)
 		if not pairing.is_empty():
 			target = pairing.get("target_scene", target)
 			spawn = pairing.get("spawn_point", spawn)
 
 	# Use default transition if not overridden
 	if transition.is_empty():
-		transition = SceneRegistry.get_default_transition(target)
+		transition = U_SceneRegistry.get_default_transition(target)
 
 	# Dispatch actions via state store
 	var store: M_StateStore = U_StateUtils.get_store(self)
@@ -1337,4 +1337,4 @@ func process_tick(delta: float) -> void:
 - **v2.0** (2025-10-27): **MAJOR REVISION** - Integrated with existing M_StateStore (Redux) and per-scene ECS architecture. Removed M_StateManager (use M_StateStore), removed singleton ECS (keep per-scene), removed hybrid player persistence (use state store only). Added FRs for Redux integration (scene slice, SceneActions, SceneReducer). Updated all architectural decisions to reflect existing systems.
 - **v2.1** (2025-10-27): Added 24 resolved questions covering all critical implementation details. Added 32 new FRs (FR-080 through FR-111) for state synchronization, scene slice management, player spawning, error handling, transition effects, and pause implementation. Clarified M_SceneManager controller pattern, component state sync frequency, scene slice transient fields, StateHandoff lifecycle, and error recovery strategies.
 - **v2.2** (2025-10-27): **AUDIT FIXES** - Corrected critical errors found in comprehensive audit: Fixed FR-005 (singleton → per-scene ECS), removed transition_state field ambiguity, standardized U_SceneActions naming, corrected file structure (u_scene_actions.gd location, removed .tres registry), added FR-112 for M_StateStore modification requirement, added RS_SceneInitialState to Key Entities. **MAJOR CLARIFICATION**: Added comprehensive Bootstrap Pattern section explaining root.tscn lifecycle, ActiveSceneContainer pattern, StateHandoff as safety mechanism vs primary persistence. Updated Resolved Questions #4 and #17 to reflect clarified architecture. Added 6 implementation examples with complete code patterns.
-- **v2.3** (2025-10-27): **COMPLETENESS UPDATE** - Filled remaining 5% gaps identified in audit. Added 5 new implementation examples (Examples 7-11): SceneRegistry static class with scene metadata and door pairing structure, TransitionEffect base class interface, FadeTransition implementation, C_SceneTriggerComponent with Area3D integration, S_SceneTriggerSystem for interaction handling. All examples include complete working code, validation methods, and integration patterns. PRD now 100% complete and implementation-ready for all phases.
+- **v2.3** (2025-10-27): **COMPLETENESS UPDATE** - Filled remaining 5% gaps identified in audit. Added 5 new implementation examples (Examples 7-11): U_SceneRegistry static class with scene metadata and door pairing structure, BaseTransitionEffect base class interface, FadeTransition implementation, C_SceneTriggerComponent with Area3D integration, S_SceneTriggerSystem for interaction handling. All examples include complete working code, validation methods, and integration patterns. PRD now 100% complete and implementation-ready for all phases.

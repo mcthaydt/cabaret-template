@@ -30,7 +30,7 @@ This document defines the data structures, interfaces, and integration patterns 
 ### Field Descriptions
 
 **current_scene_id** (String, persistent):
-- Identifier matching SceneRegistry scene_id
+- Identifier matching U_SceneRegistry scene_id
 - Represents the currently active base scene (not overlays)
 - Example values: "main_menu", "gameplay_base", "exterior", "interior_house"
 - Updated only on `transition_complete` action
@@ -67,12 +67,12 @@ func to_dictionary() -> Dictionary:
     }
 ```
 
-### StateSliceConfig Registration
+### RS_StateSliceConfig Registration
 
 ```gdscript
 # In M_StateStore._initialize_slices()
 if scene_initial_state != null:
-    var scene_config := StateSliceConfig.new(StringName("scene"))
+    var scene_config := RS_StateSliceConfig.new(StringName("scene"))
     scene_config.reducer = Callable(SceneReducer, "reduce")
     scene_config.initial_state = scene_initial_state.to_dictionary()
     scene_config.dependencies = []
@@ -82,12 +82,12 @@ if scene_initial_state != null:
 
 ---
 
-## R007: SceneRegistry Structure with Door Pairings
+## R007: U_SceneRegistry Structure with Door Pairings
 
 ### Scene Metadata Structure
 
 ```gdscript
-# Static dictionary in SceneRegistry
+# Static dictionary in U_SceneRegistry
 static var _scenes: Dictionary = {
     "scene_id": {
         "path": String,                   # res:// path to .tscn file
@@ -112,7 +112,7 @@ enum SceneType {
 ### Door Pairing Structure
 
 ```gdscript
-# Static dictionary in SceneRegistry
+# Static dictionary in U_SceneRegistry
 static var _door_pairings: Dictionary = {
     "door_id": {
         "target_scene": String,         # Scene ID to load
@@ -184,20 +184,20 @@ static func validate_door_pairings() -> bool:
 
         # Check reverse door exists
         if not _door_pairings.has(reverse_door):
-            push_error("SceneRegistry: door '", door_id, "' reverse_door '", reverse_door, "' not found")
+            push_error("U_SceneRegistry: door '", door_id, "' reverse_door '", reverse_door, "' not found")
             all_valid = false
             continue
 
         # Check bidirectional consistency
         var reverse_pairing: Dictionary = _door_pairings[reverse_door]
         if reverse_pairing.get("reverse_door") != door_id:
-            push_error("SceneRegistry: door '", door_id, "' reverse pairing mismatch")
+            push_error("U_SceneRegistry: door '", door_id, "' reverse pairing mismatch")
             all_valid = false
 
         # Check target scene exists
         var target_scene: String = pairing.get("target_scene", "")
         if not _scenes.has(target_scene):
-            push_error("SceneRegistry: door '", door_id, "' target_scene '", target_scene, "' not found")
+            push_error("U_SceneRegistry: door '", door_id, "' target_scene '", target_scene, "' not found")
             all_valid = false
 
     return all_valid
@@ -205,13 +205,13 @@ static func validate_door_pairings() -> bool:
 
 ---
 
-## R008: TransitionEffect Interface
+## R008: BaseTransitionEffect Interface
 
 ### Base Class Interface
 
 ```gdscript
 extends RefCounted
-class_name TransitionEffect
+class_name BaseTransitionEffect
 
 ## Signals
 signal transition_started
@@ -267,7 +267,7 @@ func get_duration() -> float
 
 ```gdscript
 # In M_SceneManager.transition_to_scene()
-var transition: TransitionEffect = _get_transition_effect(transition_type)
+var transition: BaseTransitionEffect = _get_transition_effect(transition_type)
 transition.initialize(_transition_overlay)
 
 # Start transition effect
@@ -386,7 +386,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 
 ---
 
-## R010: Integration Points (ActionRegistry, StateSliceConfig, SignalBatcher)
+## R010: Integration Points (ActionRegistry, RS_StateSliceConfig, U_SignalBatcher)
 
 ### ActionRegistry Integration
 
@@ -404,7 +404,7 @@ static func _static_init() -> void:
 
 **Benefit**: ActionRegistry.validate_action() will reject unknown action types
 
-### StateSliceConfig Integration
+### RS_StateSliceConfig Integration
 
 **Purpose**: Configures scene slice in M_StateStore
 
@@ -412,7 +412,7 @@ static func _static_init() -> void:
 ```gdscript
 # In M_StateStore._initialize_slices()
 if scene_initial_state != null:
-    var scene_config := StateSliceConfig.new(StringName("scene"))
+    var scene_config := RS_StateSliceConfig.new(StringName("scene"))
     scene_config.reducer = Callable(SceneReducer, "reduce")
     scene_config.initial_state = scene_initial_state.to_dictionary()
     scene_config.dependencies = []  # No dependencies on other slices
@@ -426,7 +426,7 @@ if scene_initial_state != null:
 - `dependencies`: Empty array (scene slice independent)
 - `transient_fields`: Array of field names to exclude from serialization
 
-### Signal Batching (StateStoreEventBus)
+### Signal Batching (U_StateEventBus)
 
 **Purpose**: Batches state updates per-frame to avoid redundant subscriptions
 
@@ -465,7 +465,7 @@ func _on_state_changed(action: Dictionary, new_state: Dictionary) -> void:
 ```gdscript
 # After existing boot/menu/gameplay registrations
 if scene_initial_state != null:
-    var scene_config := StateSliceConfig.new(StringName("scene"))
+    var scene_config := RS_StateSliceConfig.new(StringName("scene"))
     scene_config.reducer = Callable(SceneReducer, "reduce")
     scene_config.initial_state = scene_initial_state.to_dictionary()
     scene_config.dependencies = []
@@ -514,11 +514,11 @@ func transition_to_scene(scene_id: String, transition_type: String) -> void:
 - 3 fields: `current_scene_id`, `scene_stack`, `is_transitioning`
 - `is_transitioning` marked transient (excluded from save)
 
-**SceneRegistry**:
+**U_SceneRegistry**:
 - Static class with `_scenes` and `_door_pairings` dictionaries
 - Validation method checks bidirectional consistency
 
-**TransitionEffect**:
+**BaseTransitionEffect**:
 - Base class with `start_transition()`, `update_progress()`, `complete_transition()`
 - Three implementations: Instant, Fade, LoadingScreen
 
@@ -528,8 +528,8 @@ func transition_to_scene(scene_id: String, transition_type: String) -> void:
 
 **Integration**:
 - ActionRegistry: Register actions in `_static_init()`
-- StateSliceConfig: Configure slice with transient fields
-- StateStoreEventBus: Subscribe to batched updates
+- RS_StateSliceConfig: Configure slice with transient fields
+- U_StateEventBus: Subscribe to batched updates
 - M_StateStore: Add `scene_initial_state` property and register in `_initialize_slices()`
 
 **Next Steps**: Safety checks on M_StateStore modification (R022-R026)

@@ -3,7 +3,7 @@ extends BaseTest
 const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const PARTICLE_SYSTEM := preload("res://scripts/ecs/systems/s_landing_particles_system.gd")
 const SETTINGS := preload("res://scripts/ecs/resources/rs_landing_particles_settings.gd")
-const EVENT_BUS := preload("res://scripts/ecs/ecs_event_bus.gd")
+const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 
 const EVENT_NAME := StringName("entity_landed")
 

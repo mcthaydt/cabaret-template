@@ -1,4 +1,4 @@
-extends "res://scripts/scene_management/transitions/transition_effect.gd"
+extends "res://scripts/scene_management/transitions/base_transition_effect.gd"
 class_name FadeTransition
 
 ## Fade transition effect

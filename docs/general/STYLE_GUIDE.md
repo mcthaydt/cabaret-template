@@ -25,6 +25,8 @@ We use a **prefix + suffix** naming convention that provides:
 | **Managers** | `M_` | `Manager` | `M_ECSManager` |
 | **Resources/Settings** | `RS_` | `Settings` | `RS_MovementSettings` |
 | **Utilities** | `U_` | `Utils` / `*` | `U_ECSUtils`, `U_BootSelectors` |
+| **Event Buses** | `U_` | `EventBus` | `U_ECSEventBus`, `U_StateEventBus` |
+| **Registries** | `U_` | `Registry` | `U_SceneRegistry` |
 | **Scenes** | `SC_` | `Scene` | `SC_PlayerScene` |
 | **Shaders** | `SH_` | `Shader` | `SH_WaterShader` |
 | **Tools** | `T_` | `Tool` | `T_LevelEditorTool` |
@@ -40,6 +42,8 @@ We use a **prefix + suffix** naming convention that provides:
 | **Managers** | `m_*_manager.gd` | `m_ecs_manager.gd` |
 | **Resources** | `rs_*_settings.gd` | `rs_movement_settings.gd` |
 | **Utilities** | `u_*_utils.gd` | `utils/u_action_registry.gd` |
+| **Event Buses** | `u_*_event_bus.gd` | `u_state_event_bus.gd` |
+| **Registries** | `u_*_registry.gd` | `u_scene_registry.gd` |
 | **Scene Scripts** | `sc_*_scene.gd` | `sc_player_scene.gd` |
 | **Shaders** | `sh_*_shader.gdshader` | `sh_water_shader.gdshader` |
 | **Tools** | `t_*_tool.gd` | `t_level_editor_tool.gd` |
@@ -297,6 +301,7 @@ Abstract or base classes that define interfaces use the `Base` prefix to clearly
 - `BaseECSComponent` - Base class for all components (extends Node)
 - `ECSEntity` - Entity root marker (extends Node3D)
 - `BaseEventVFXSystem` - Base class for event-driven VFX systems (extends BaseECSSystem)
+- `BaseTransitionEffect` - Base class for transition effect implementations
 
 **Rationale:** The `Base` prefix makes it immediately clear that a class is abstract/foundational and should be extended rather than instantiated directly.
 
@@ -324,6 +329,7 @@ State management classes (selectors, reducers, and helpers) all use the `U_` pre
 
 **Helpers** (state utilities):
 - `U_ActionRegistry`, `U_SerializationHelper`, `U_StateHandoff`
+- `U_StateActionTypes`, `U_StateEventBus`, `U_SignalBatcher`
 
 **Rationale:** All state management utilities contain only static methods with no instance state, making them functionally equivalent to other utility classes like `U_ECSUtils`.
 

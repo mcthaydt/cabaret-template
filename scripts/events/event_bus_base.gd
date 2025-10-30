@@ -3,7 +3,7 @@ class_name EventBusBase
 
 ## Abstract base class for event buses providing shared subscription and history logic.
 ##
-## Concrete subclasses (ECSEventBus, StateStoreEventBus) extend this and expose
+## Concrete subclasses (U_ECSEventBus, U_StateEventBus) extend this and expose
 ## static APIs that delegate to private instances, maintaining domain isolation.
 
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")

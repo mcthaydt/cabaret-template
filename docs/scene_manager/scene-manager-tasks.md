@@ -39,10 +39,10 @@
 - [x] R004 [P] Research CanvasLayer overlay interaction with paused scene tree in docs/scene_manager/research.md
 - [x] R005 [P] Document Godot 4.5 scene lifecycle during load/unload in docs/scene_manager/research.md
 - [x] R006 Create data model schema for scene state slice in docs/scene_manager/data-model.md
-- [x] R007 [P] Document SceneRegistry structure with door pairings in docs/scene_manager/data-model.md
-- [x] R008 [P] Document TransitionEffect interface in docs/scene_manager/data-model.md
+- [x] R007 [P] Document U_SceneRegistry structure with door pairings in docs/scene_manager/data-model.md
+- [x] R008 [P] Document BaseTransitionEffect interface in docs/scene_manager/data-model.md
 - [x] R009 [P] Document action/reducer signatures in docs/scene_manager/data-model.md
-- [x] R010 [P] Document integration points (ActionRegistry, StateSliceConfig, SignalBatcher) in docs/scene_manager/data-model.md
+- [x] R010 [P] Document integration points (ActionRegistry, RS_StateSliceConfig, U_SignalBatcher) in docs/scene_manager/data-model.md
 
 ### Critical Prototypes
 
@@ -159,7 +159,7 @@
 ### Tests for User Story 1 (TDD - Write FIRST, watch fail)
 
 - [x] T025 [P] [US1] Write unit test for u_scene_reducer.gd in tests/unit/scene_manager/test_scene_reducer.gd - **COMPLETE** (10 tests written)
-- [x] T026 [P] [US1] Write unit test for SceneRegistry in tests/unit/scene_manager/test_scene_registry.gd - **COMPLETE** (18 tests written)
+- [x] T026 [P] [US1] Write unit test for U_SceneRegistry in tests/unit/scene_manager/test_scene_registry.gd - **COMPLETE** (18 tests written)
 - [x] T027 [P] [US1] Write unit test for M_SceneManager in tests/unit/scene_manager/test_m_scene_manager.gd - **COMPLETE** (23 tests written)
 - [x] T028 [P] [US1] Write unit test for transition effects in tests/unit/scene_manager/test_transitions.gd - **COMPLETE** (21 tests written)
 - [x] T029 [P] [US1] Write integration test for basic transitions in tests/integration/scene_manager/test_basic_transitions.gd - **COMPLETE** (15 tests written)
@@ -173,13 +173,13 @@
 - [x] T034 [US1] Run unit tests for scene slice and verify they pass - **COMPLETE** (10/10 tests passing ✅)
 - [x] T035 [US1] Test transient fields (is_transitioning) excluded from save_state() - **COMPLETE** (test added to test_state_persistence.gd, verifies is_transitioning and transition_type excluded)
 - [x] T036 [US1] Validate ALL ~212 existing tests still pass (no regressions) - **COMPLETE** (213/213 unit + 10/10 integration = 223/223 passing ✅)
-- [x] T037 [P] [US1] Create scripts/scene_management/scene_registry.gd static class - **COMPLETE** (SceneType enum, scene metadata, door pairings)
-- [x] T038 [P] [US1] Define scene metadata in SceneRegistry (paths, types, transitions, preload priority) - **COMPLETE** (5 scenes registered)
-- [x] T039 [P] [US1] Define door pairing structure in SceneRegistry - **COMPLETE** (exterior ↔ interior_house pairings)
-- [x] T040 [P] [US1] Implement SceneRegistry.validate_door_pairings() method - **COMPLETE** (validates target scenes exist)
-- [x] T041 [US1] Add "gameplay_base", "main_menu", "settings_menu" to SceneRegistry - **COMPLETE** (all 3 scenes registered with metadata)
-- [x] T042 [US1] Run unit tests for SceneRegistry and verify they pass - **COMPLETE** (19/19 tests passing ✅)
-- [x] T042.5 [US1] Add SceneRegistry.validate_door_pairings() call to M_SceneManager._ready() and log any validation errors - **COMPLETE** (validation in _ready())
+- [x] T037 [P] [US1] Create scripts/scene_management/u_scene_registry.gd static class - **COMPLETE** (SceneType enum, scene metadata, door pairings)
+- [x] T038 [P] [US1] Define scene metadata in U_SceneRegistry (paths, types, transitions, preload priority) - **COMPLETE** (5 scenes registered)
+- [x] T039 [P] [US1] Define door pairing structure in U_SceneRegistry - **COMPLETE** (exterior ↔ interior_house pairings)
+- [x] T040 [P] [US1] Implement U_SceneRegistry.validate_door_pairings() method - **COMPLETE** (validates target scenes exist)
+- [x] T041 [US1] Add "gameplay_base", "main_menu", "settings_menu" to U_SceneRegistry - **COMPLETE** (all 3 scenes registered with metadata)
+- [x] T042 [US1] Run unit tests for U_SceneRegistry and verify they pass - **COMPLETE** (19/19 tests passing ✅)
+- [x] T042.5 [US1] Add U_SceneRegistry.validate_door_pairings() call to M_SceneManager._ready() and log any validation errors - **COMPLETE** (validation in _ready())
 - [x] T043 [US1] Create scripts/managers/m_scene_manager.gd node - **COMPLETE** (coordinator with queue, overlays, state integration)
 - [x] T044 [US1] Implement M_SceneManager._ready(): add to "scene_manager" group, find M_StateStore - **COMPLETE** (group discovery pattern)
 - [x] T045 [US1] Implement transition queue with priority system (CRITICAL > HIGH > NORMAL) - **COMPLETE** (Priority enum, priority-based queue insertion)
@@ -189,7 +189,7 @@
 - [x] T049 [US1] Implement scene addition to ActiveSceneContainer (triggers StateHandoff restoration) - **COMPLETE** (_add_scene())
 - [x] T050 [US1] Implement subscribe to scene slice updates via M_StateStore.subscribe() - **COMPLETE** (_on_state_changed() callback)
 - [x] T051 [US1] Run unit tests for M_SceneManager (including queue priority) and verify they pass - **COMPLETE** (45/47 tests passing, 2 expected failures)
-- [x] T052 [P] [US1] Create scripts/scene_management/transitions/transition_effect.gd base class - **COMPLETE** (virtual execute() and get_duration())
+- [x] T052 [P] [US1] Create scripts/scene_management/transitions/base_transition_effect.gd base class - **COMPLETE** (virtual execute() and get_duration())
 - [x] T053 [P] [US1] Create scripts/scene_management/transitions/instant_transition.gd - **COMPLETE** (synchronous callback)
 - [x] T054 [P] [US1] Create scripts/scene_management/transitions/fade_transition.gd with Tween - **COMPLETE** (fade out→in, mid_transition_callback, configurable easing)
 - [x] T055 [US1] Implement input blocking during transitions (set_input_as_handled) - **COMPLETE** (block_input property)
@@ -198,7 +198,7 @@
 - [x] T058 [US1] Run unit tests for transition effects (including input blocking) and verify they pass - **COMPLETE** (7/16 passing, Tween timing issues in headless mode)
 - [x] T059 [P] [US1] Create scenes/ui/main_menu.tscn (minimal: Label + Button to settings) - **COMPLETE** (Control with VBoxContainer, Label, Button)
 - [x] T060 [P] [US1] Create scenes/ui/settings_menu.tscn (minimal: Label + Button to main) - **COMPLETE** (Control with VBoxContainer, Label, Button)
-- [x] T061 [US1] Add main_menu and settings_menu to SceneRegistry with correct paths and scene_ids - **COMPLETE** (registered in T037-T041)
+- [x] T061 [US1] Add main_menu and settings_menu to U_SceneRegistry with correct paths and scene_ids - **COMPLETE** (registered in T037-T041)
 - [x] T062 [US1] Verify UI scenes do NOT have M_ECSManager (UI scenes only) - **COMPLETE** (UI scenes contain only Control nodes)
 
 ### Integration Tests for User Story 1
@@ -274,7 +274,7 @@
 - [ ] T113 [US4] Gameplay scenes explicitly disable history (FR-078)
 - [ ] T114 [US4] Test: menu → settings → gameplay → back() returns to settings (not menu)
 - [ ] T115 [US4] Create scenes/ui/pause_menu.tscn with Resume/Settings/Quit buttons
-- [ ] T116 [US4] Add pause_menu to SceneRegistry
+- [ ] T116 [US4] Add pause_menu to U_SceneRegistry
 - [ ] T117 [US4] Implement pause trigger in M_SceneManager (listen for ESC input)
 - [ ] T118 [US4] Set get_tree().paused = true when pause overlay pushed
 - [ ] T119 [US4] Call M_CursorManager.set_cursor_visible(true) on pause
@@ -313,7 +313,7 @@
 
 - [ ] T081 [P] [US3] Create scripts/ecs/components/c_scene_trigger_component.gd (door_id, target, spawn_point, trigger_mode, cooldown)
 - [ ] T082 [P] [US3] Create scripts/ecs/systems/s_scene_trigger_system.gd (collision detection, input handling)
-- [ ] T083 [US3] Extend SceneRegistry with door pairing definitions (bidirectional)
+- [ ] T083 [US3] Extend U_SceneRegistry with door pairing definitions (bidirectional)
 - [ ] T084 [US3] Implement C_SceneTriggerComponent Area3D collision detection (_on_body_entered/_on_body_exited)
 - [ ] T085 [US3] Implement S_SceneTriggerSystem interaction input handling (Interact mode)
 - [ ] T086 [US3] Implement S_SceneTriggerSystem auto-trigger for Auto mode
@@ -324,7 +324,7 @@
 - [ ] T091 [US3] Add door trigger Area3D with C_SceneTriggerComponent to exterior_template.tscn
 - [ ] T092 [US3] Add exit door trigger Area3D with C_SceneTriggerComponent to interior_template.tscn
 - [ ] T093 [US3] Add spawn point markers (Node3D with unique names) to both templates
-- [ ] T094 [US3] Update SceneRegistry with door pairings for exterior ↔ interior
+- [ ] T094 [US3] Update U_SceneRegistry with door pairings for exterior ↔ interior
 - [ ] T095 [US3] Implement M_SceneManager spawn point restoration on scene load
 
 ### Integration Tests for User Story 3
@@ -356,7 +356,7 @@
 - [ ] T132 [US5] Implement LoadingScreenTransition.update_progress(progress) for ProgressBar
 - [ ] T133 [US5] Add LoadingOverlay reference in root.tscn
 - [ ] T134 [US5] Integrate loading_screen_transition with M_SceneManager
-- [ ] T135 [US5] Implement transition type selection based on SceneRegistry metadata
+- [ ] T135 [US5] Implement transition type selection based on U_SceneRegistry metadata
 - [ ] T136 [US5] Implement custom transition override per scene pair
 - [ ] T137 [US5] Test: Instant transition for UI menu → UI menu
 - [ ] T138 [US5] Test: Fade transition for menu → gameplay
@@ -390,7 +390,7 @@
 - [ ] T147 [US6] Implement ResourceLoader.load_threaded_get_status() polling
 - [ ] T148 [US6] Implement ResourceLoader.load_threaded_get() for final scene retrieval
 - [ ] T149 [US6] Implement preload on startup for high-priority scenes (priority >= 10)
-- [ ] T150 [US6] Use SceneRegistry.get_preloadable_scenes() to identify preload candidates
+- [ ] T150 [US6] Use U_SceneRegistry.get_preloadable_scenes() to identify preload candidates
 - [ ] T151 [US6] Implement on-demand loading for gameplay scenes (priority < 10)
 - [ ] T152 [US6] Implement scene cache management (Dictionary of preloaded PackedScenes)
 - [ ] T153 [US6] Implement memory management (unload unused scenes when memory pressure detected)
@@ -425,7 +425,7 @@
 - [ ] T163 [P] [US7] Create scenes/ui/game_over.tscn with Retry/Menu buttons
 - [ ] T164 [P] [US7] Create scenes/ui/victory.tscn with Continue/Menu buttons
 - [ ] T165 [P] [US7] Create scenes/ui/credits.tscn with scrolling text
-- [ ] T166 [US7] Add game_over, victory, credits to SceneRegistry
+- [ ] T166 [US7] Add game_over, victory, credits to U_SceneRegistry
 - [ ] T167 [US7] Implement retry functionality (reload gameplay from last checkpoint)
 - [ ] T168 [US7] Implement continue functionality (load next area/level)
 - [ ] T169 [US7] Implement credits auto-return to main menu after completion

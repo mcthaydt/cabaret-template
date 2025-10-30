@@ -3,14 +3,14 @@ extends GutTest
 ## Integration test for basic scene transitions
 ##
 ## Tests full scene transition flow: main_menu → settings_menu → back to main_menu.
-## Validates M_SceneManager, SceneRegistry, scene slice state, and transition effects.
+## Validates M_SceneManager, U_SceneRegistry, scene slice state, and transition effects.
 ## Tests follow TDD discipline: written BEFORE implementation.
 
 const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/state/resources/rs_state_store_settings.gd")
-const SceneRegistry = preload("res://scripts/scene_management/scene_registry.gd")
+const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
 
 var _root_scene: Node
@@ -242,11 +242,11 @@ func test_rapid_transitions_queue_correctly() -> void:
 	var scene_state: Dictionary = state.get("scene", {})
 	assert_eq(scene_state.get("current_scene_id"), StringName("scene3"), "Should process queued transitions")
 
-## Test SceneRegistry integration
+## Test U_SceneRegistry integration
 func test_scene_registry_provides_metadata() -> void:
-	var scene_data: Dictionary = SceneRegistry.get_scene(StringName("main_menu"))
+	var scene_data: Dictionary = U_SceneRegistry.get_scene(StringName("main_menu"))
 
-	assert_false(scene_data.is_empty(), "SceneRegistry should provide main_menu data")
+	assert_false(scene_data.is_empty(), "U_SceneRegistry should provide main_menu data")
 	assert_true(scene_data.has("path"), "Scene data should include path")
 	assert_true(scene_data.has("scene_type"), "Scene data should include type")
 

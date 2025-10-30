@@ -26,7 +26,7 @@
 
 ## Summary
 
-Implement a centralized Redux-style state management system for the Godot 4.5 game, featuring three state slices (boot, menu, gameplay) with immutable state updates, action/reducer patterns, signal-based reactivity, selective persistence, and comprehensive debugging tools. The system integrates with the existing ECS architecture via a dual-bus event architecture (ECSEventBus + StateStoreEventBus) while maintaining independent-but-observable separation of concerns.
+Implement a centralized Redux-style state management system for the Godot 4.5 game, featuring three state slices (boot, menu, gameplay) with immutable state updates, action/reducer patterns, signal-based reactivity, selective persistence, and comprehensive debugging tools. The system integrates with the existing ECS architecture via a dual-bus event architecture (U_ECSEventBus + U_StateEventBus) while maintaining independent-but-observable separation of concerns.
 
 **Primary Requirement**: Provide predictable, debuggable state management for game lifecycle (boot→menu→gameplay) with time-travel debugging, auto-save capabilities, and <0.1ms performance overhead.
 
@@ -41,7 +41,7 @@ Implement a centralized Redux-style state management system for the Godot 4.5 ga
 **Primary Dependencies**:
 - GUT (Godot Unit Test) framework for testing
 - Existing ECS system (`M_ECSManager`, `BaseECSComponent`, `BaseECSSystem`)
-- Existing `ecs_event_bus.gd` (kept for ECS domain)
+- Existing `u_ecs_event_bus.gd` (kept for ECS domain)
 - U_ECSUtils pattern for utilities
 
 **Storage**:
@@ -53,8 +53,8 @@ Implement a centralized Redux-style state management system for the Godot 4.5 ga
 - GUT (Godot Unit Test) framework
 - Headless test runner: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/state -gexit`
 - Test patterns: Given/When/Then, autofree fixtures, explicit typing, bus reset in `before_each()`:
-  - State tests: `StateStoreEventBus.reset()`
-  - ECS tests: `ECSEventBus.reset()`
+  - State tests: `U_StateEventBus.reset()`
+  - ECS tests: `U_ECSEventBus.reset()`
 
 **Target Platform**:
 - Development: macOS (Darwin 25.0.0)
@@ -303,7 +303,7 @@ Chosen path: Option C (Dual‑bus via abstract base). Alternatives are documente
 
 **Option C (Recommended): Dual‑Bus via Abstract Base**
 - Add `EventBusBase` (abstract) with shared logic
-- Keep `ECSEventBus` for ECS; add `StateStoreEventBus` for state
+- Keep `U_ECSEventBus` for ECS; add `U_StateEventBus` for state
 - Pros: Zero breaking changes, isolated domains, shared implementation
 - Cons: Two buses to reset in different test suites (explicit but clear)
 
@@ -311,7 +311,7 @@ Chosen path: Option C (Dual‑bus via abstract base). Alternatives are documente
 
 | Task | Estimated Time | Risk |
 |------|----------------|------|
-| Rename ecs_event_bus.gd → event_bus.gd | 5 min | Low |
+| Rename u_ecs_event_bus.gd → event_bus.gd | 5 min | Low |
 | Add namespacing (ecs/* vs state/*) | 30 min | Medium |
 | Add get_event_history_by_namespace() | 15 min | Low |
 | Find all ECS event publishers | 15 min | Low |
@@ -374,17 +374,14 @@ docs/state store/
 ```
 scripts/state/                                # NEW DIRECTORY
 ├── m_state_store.gd                          # Core store manager (Node)
-├── utils/u_state_handoff.gd                          # Static handoff utility (no autoload)
-├── action_registry.gd                        # Action type validation
-├── signal_batcher.gd                         # Per-frame signal batching
-├── state_slice_config.gd                     # Slice metadata (plain class)
+├── resources/rs_state_slice_config.gd        # Slice metadata resource
 │
 ├── utils/                                    # Shared utilities
 │   ├── u_state_utils.gd                      # State utility functions (NEW)
 │   ├── u_action_registry.gd                  # Action type validation
 │   ├── u_serialization_helper.gd             # Godot type ↔ JSON conversion
 │   ├── u_state_handoff.gd                    # Cross-scene state preservation
-│   └── signal_batcher.gd                     # Per-frame signal batching
+│   └── u_signal_batcher.gd                   # Per-frame signal batching
 │
 ├── actions/                                  # Action creator modules
 │   ├── u_gameplay_actions.gd                 # Gameplay action creators
@@ -425,7 +422,7 @@ scripts/events/                               # NEW DIRECTORY (shared infra)
 └── event_bus_base.gd                         # Abstract base class for event buses
 
 scripts/state/
-└── state_event_bus.gd                        # State domain bus (extends base)
+└── u_state_event_bus.gd                        # State domain bus (extends base)
 
 scenes/debug/                                 # NEW DIRECTORY
 ├── sc_state_debug_overlay.tscn               # Debug UI scene
@@ -462,8 +459,8 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 
 **Files**:
 - `scripts/events/event_bus_base.gd` — abstract base class
-- `scripts/state/state_event_bus.gd` — state domain bus with static delegates
-- `scripts/ecs/ecs_event_bus.gd` — update to extend base and delegate statics internally
+- `scripts/state/u_state_event_bus.gd` — state domain bus with static delegates
+- `scripts/ecs/u_ecs_event_bus.gd` — update to extend base and delegate statics internally
 
 **Changes**:
 1. Implement subscribe/unsubscribe/publish/reset/history in base
@@ -474,14 +471,14 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 **Tests**:
 - Add `tests/unit/state/test_state_event_bus.gd`:
   - Subscribers receive events
-  - `StateStoreEventBus.reset()` clears subscribers/history
-  - `ECSEventBus` is unaffected by state reset
+  - `U_StateEventBus.reset()` clears subscribers/history
+  - `U_ECSEventBus` is unaffected by state reset
 
 **Go/No-Go**:
 - ✅ Proceed when state tests and ECS tests both pass
 - ❌ If issues arise, fall back to Option B (direct signals) for P1
 
-**Commit Message**: `Add EventBusBase and StateStoreEventBus; delegate ECSEventBus to base (Phase 0)`
+**Commit Message**: `Add EventBusBase and U_StateEventBus; delegate U_ECSEventBus to base (Phase 0)`
 
 ---
 
@@ -492,7 +489,7 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 **Files Created**:
 - `scripts/state/m_state_store.gd` (store skeleton)
 - `scripts/state/utils/u_state_utils.gd` (access helper - NEW)
-- `scripts/state/state_slice_config.gd` (slice metadata)
+- `scripts/state/resources/rs_state_slice_config.gd` (slice metadata)
 - `scripts/state/resources/rs_state_store_settings.gd` (store config)
 - `resources/state/default_state_store_settings.tres` (default config)
 - `tests/unit/state/test_m_state_store.gd` (store tests)
@@ -643,12 +640,12 @@ static func benchmark(name: String, callable: Callable) -> float:
 	return elapsed_ms
 ```
 
-**Implementation**: StateSliceConfig
+**Implementation**: RS_StateSliceConfig
 
 ```gdscript
-# scripts/state/state_slice_config.gd
+# scripts/state/resources/rs_state_slice_config.gd
 extends Resource
-class_name StateSliceConfig
+class_name RS_StateSliceConfig
 
 ## Configuration for a state slice
 
@@ -702,7 +699,7 @@ var store: M_StateStore
 
 func before_each():
 	# Reset state bus between tests
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 
 	store = M_StateStore.new()
 	autofree(store)
@@ -713,7 +710,7 @@ func after_each():
 	if store and is_instance_valid(store):
 		store.queue_free()
 	store = null
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 
 func test_store_initializes_in_scene_tree():
 	assert_not_null(store, "Store should be created")
@@ -832,7 +829,7 @@ func test_benchmark_measures_time():
 - `tests/unit/state/test_state_persistence.gd`
 
 **Files Modified**:
-- `scripts/state/state_slice_config.gd` (add transient_fields if not present)
+- `scripts/state/resources/rs_state_slice_config.gd` (add transient_fields if not present)
 - `scripts/state/m_state_store.gd` (add save/load methods)
 
 **Implementation**: StateHandoff (No autoload)
@@ -991,7 +988,7 @@ func _serialize_slices() -> Dictionary:
 	var serialized: Dictionary = {}
 
 	for slice_name in _state:
-		var config: StateSliceConfig = _slice_configs.get(slice_name)
+		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
 		var transients: Array[StringName] = config.transient_fields if config else []
 
 		serialized[slice_name] = SerializationHelper.serialize_state(
@@ -1912,7 +1909,7 @@ var store: M_StateStore
 
 func before_each():
 	# Clear state event bus between tests
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 
 	store = M_StateStore.new()
 	autofree(store)
@@ -1923,10 +1920,10 @@ func after_each():
 	if store and is_instance_valid(store):
 		store.queue_free()
 	store = null
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 ```
 
-**Why Critical**: Without a bus reset, subscriptions leak between tests causing mysterious failures. Use `ECSEventBus.reset()` in ECS test suites.
+**Why Critical**: Without a bus reset, subscriptions leak between tests causing mysterious failures. Use `U_ECSEventBus.reset()` in ECS test suites.
 
 ---
 

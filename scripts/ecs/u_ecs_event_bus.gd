@@ -1,18 +1,18 @@
 extends RefCounted
-class_name ECSEventBus
+class_name U_ECSEventBus
 
 ## Event bus for ECS domain.
 ##
 ## Provides isolated event infrastructure for ECS systems and components,
 ## separate from state store event domain. Delegates to EventBusBase instance.
 
-const EventBusBase := preload("res://scripts/events/event_bus_base.gd")
+const EVENT_BUS_BASE := preload("res://scripts/events/event_bus_base.gd")
 
 static var _instance: EventBusBase = null
 
 static func _get_instance() -> EventBusBase:
 	if _instance == null:
-		_instance = EventBusBase.new()
+		_instance = EVENT_BUS_BASE.new()
 	return _instance
 
 ## Subscribe to an ECS event. Returns unsubscribe callable.

@@ -9,8 +9,8 @@ var pause_system: Node  # Will be S_PauseSystem once implemented
 
 func before_each() -> void:
 	# CRITICAL: Reset both event buses for integration tests
-	StateStoreEventBus.reset()
-	ECSEventBus.reset()
+	U_StateEventBus.reset()
+	U_ECSEventBus.reset()
 	
 	# Create M_StateStore
 	store = M_StateStore.new()
@@ -21,8 +21,8 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 func after_each() -> void:
-	StateStoreEventBus.reset()
-	ECSEventBus.reset()
+	U_StateEventBus.reset()
+	U_ECSEventBus.reset()
 	if store and is_instance_valid(store):
 		store.queue_free()
 	store = null

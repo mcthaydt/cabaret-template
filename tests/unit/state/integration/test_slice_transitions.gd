@@ -2,7 +2,7 @@ extends GutTest
 
 ## Integration tests for state slice transitions
 
-const StateStoreEventBus := preload("res://scripts/state/state_event_bus.gd")
+const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
 const StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_TransitionActions := preload("res://scripts/state/actions/u_transition_actions.gd")
 const U_BootActions := preload("res://scripts/state/actions/u_boot_actions.gd")
@@ -13,11 +13,11 @@ const RS_MenuInitialState := preload("res://scripts/state/resources/rs_menu_init
 const RS_GameplayInitialState := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
 
 func before_each() -> void:
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 	StateHandoff.clear_all()
 
 func after_each() -> void:
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 	StateHandoff.clear_all()
 
 ## T384: Test boot to menu transition preserves boot completion

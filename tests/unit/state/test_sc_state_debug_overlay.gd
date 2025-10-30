@@ -11,7 +11,7 @@ var store: M_StateStore
 var overlay: Node
 
 func before_each():
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 	
 	# Create store
 	store = M_StateStore.new()

@@ -1,5 +1,5 @@
 extends RefCounted
-class_name SceneRegistry
+class_name U_SceneRegistry
 
 ## Static scene metadata registry
 ##
@@ -233,7 +233,7 @@ static func validate_door_pairings() -> bool:
 	# Check all door exits reference valid scenes
 	for scene_id in _door_exits:
 		if not _scenes.has(scene_id):
-			push_error("SceneRegistry: Door exit references non-existent scene: %s" % scene_id)
+			push_error("U_SceneRegistry: Door exit references non-existent scene: %s" % scene_id)
 			is_valid = false
 			continue
 
@@ -243,12 +243,12 @@ static func validate_door_pairings() -> bool:
 			var target_scene: StringName = exit_data.get("target_scene_id", StringName(""))
 
 			if target_scene == StringName(""):
-				push_error("SceneRegistry: Door exit %s/%s has empty target_scene_id" % [scene_id, door_id])
+				push_error("U_SceneRegistry: Door exit %s/%s has empty target_scene_id" % [scene_id, door_id])
 				is_valid = false
 				continue
 
 			if not _scenes.has(target_scene):
-				push_error("SceneRegistry: Door exit %s/%s targets non-existent scene: %s" % [scene_id, door_id, target_scene])
+				push_error("U_SceneRegistry: Door exit %s/%s targets non-existent scene: %s" % [scene_id, door_id, target_scene])
 				is_valid = false
 
 	return is_valid

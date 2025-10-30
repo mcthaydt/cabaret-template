@@ -172,7 +172,7 @@
 - [ ] 🟥 **TDD**: Test event count display
   - Shows: "Showing X events" (when X < history limit)
   - Shows: "Showing X events (oldest truncated)" (when at limit)
-  - Dynamically checks `ECSEventBus._event_history.size()`
+  - Dynamically checks `U_ECSEventBus._event_history.size()`
   - Updates on filter change
 - [ ] 🟥 **Implement**: Event count label logic
 - [ ] 🟥 **TDD**: Test clipboard export
@@ -184,13 +184,13 @@
 ### 4.4 Clear History
 - [ ] 🟥 **TDD**: Test clear history with confirmation
   - Button shows `ConfirmationDialog` ("Clear all event history? This cannot be undone.")
-  - On confirm: calls `ECSEventBus.clear_history()`
+  - On confirm: calls `U_ECSEventBus.clear_history()`
   - On confirm: calls `refresh()` to update UI
 - [ ] 🟥 **Implement**: Clear button + ConfirmationDialog
 
 ### 4.5 Data Refresh
 - [ ] 🟥 **TDD**: Test `refresh()` updates events
-  - Calls `ECSEventBus.get_event_history()`
+  - Calls `U_ECSEventBus.get_event_history()`
   - Applies current filter
   - Updates ItemList
   - Preserves selection if possible
@@ -425,8 +425,8 @@
 **Integration:**
 - ✅ Uses existing `M_ECSManager.get_query_metrics()` (scripts/managers/m_ecs_manager.gd:109)
 - ✅ Uses existing `ECSSystem.set_debug_disabled()` (scripts/ecs/ecs_system.gd:50)
-- ✅ Uses existing `ECSEventBus.get_event_history()` (scripts/ecs/ecs_event_bus.gd:81)
-- ✅ Uses existing `ECSEventBus.clear_history()` (scripts/ecs/ecs_event_bus.gd:73)
+- ✅ Uses existing `U_ECSEventBus.get_event_history()` (scripts/ecs/u_ecs_event_bus.gd:81)
+- ✅ Uses existing `U_ECSEventBus.clear_history()` (scripts/ecs/u_ecs_event_bus.gd:73)
 - ✅ Uses existing GUT testing framework (addons/gut/)
 - ✅ Follows codebase conventions (U_ prefix, static methods, push_warning(), class_name)
 
@@ -660,14 +660,14 @@ static func derive_system_name(system: BaseECSSystem) -> String:
 
 ### Event History Truncation Detection
 
-**Current API:** `ECSEventBus.get_event_history()` returns Array
+**Current API:** `U_ECSEventBus.get_event_history()` returns Array
 
 **Issue:** No API to detect if history buffer hit its limit
 
 **Workaround:**
 ```gdscript
 # In T_ECSDebuggerEventsTab
-const MAX_EVENT_HISTORY = 100  # Must match ECSEventBus internal limit
+const MAX_EVENT_HISTORY = 100  # Must match U_ECSEventBus internal limit
 
 func update_event_count_label(filtered_count: int, total_count: int) -> void:
     if total_count >= MAX_EVENT_HISTORY:
@@ -676,9 +676,9 @@ func update_event_count_label(filtered_count: int, total_count: int) -> void:
         _count_label.text = "Showing %d / %d events" % [filtered_count, total_count]
 ```
 
-**Limitation:** This assumes `ECSEventBus` has a fixed limit of 100. If the limit changes, this constant must be updated.
+**Limitation:** This assumes `U_ECSEventBus` has a fixed limit of 100. If the limit changes, this constant must be updated.
 
-**Better Future Solution:** Add `ECSEventBus.get_history_limit()` and `ECSEventBus.is_history_truncated()` methods to the ECS core.
+**Better Future Solution:** Add `U_ECSEventBus.get_history_limit()` and `U_ECSEventBus.is_history_truncated()` methods to the ECS core.
 
 ### Empty State Messages
 
@@ -762,8 +762,8 @@ Systems will appear here once added to the manager.
 - ✅ `M_ECSManager.get_query_metrics()` - Returns Array of query metric Dictionaries
 - ✅ `ECSSystem.set_debug_disabled(bool)` - Enables/disables system execution
 - ✅ `ECSSystem.is_debug_disabled()` - Returns current disabled state
-- ✅ `ECSEventBus.get_event_history()` - Returns Array of event Dictionaries
-- ✅ `ECSEventBus.clear_history()` - Clears event history
+- ✅ `U_ECSEventBus.get_event_history()` - Returns Array of event Dictionaries
+- ✅ `U_ECSEventBus.clear_history()` - Clears event history
 - ✅ `M_ECSManager.get_systems()` - Returns Array[BaseECSSystem]
 - ✅ GUT testing framework (`addons/gut/`, `-gselect` pattern)
 - ✅ U_ECSUtils pattern (static methods, RefCounted, push_warning())

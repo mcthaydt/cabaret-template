@@ -4,12 +4,12 @@ extends GutTest
 ## 
 ## StateHandoff preserves state across scene changes without autoloads
 
-const StateStoreEventBus := preload("res://scripts/state/state_event_bus.gd")
+const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
 const StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 func before_each() -> void:
 	# Reset state bus between tests
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 	
 	# Clear any preserved state from previous tests
 	StateHandoff.clear_all()

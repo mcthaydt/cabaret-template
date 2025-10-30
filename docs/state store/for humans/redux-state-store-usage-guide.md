@@ -729,12 +729,12 @@ store.settings.enable_logging = true
 
 ### Problem: Test Failures with "Unexpected Errors"
 
-**Cause**: Missing `StateStoreEventBus.reset()` or `ActionRegistry` cleanup
+**Cause**: Missing `U_StateEventBus.reset()` or `ActionRegistry` cleanup
 
 **Solution**:
 ```gdscript
 func before_each() -> void:
-    StateStoreEventBus.reset()
+    U_StateEventBus.reset()
     ActionRegistry._registered_actions.clear()
 ```
 
@@ -1106,8 +1106,8 @@ var store: M_StateStore
 var pause_system: S_PauseSystem
 
 func before_each() -> void:
-	StateStoreEventBus.reset()
-	ECSEventBus.reset()
+	U_StateEventBus.reset()
+	U_ECSEventBus.reset()
 	
 	# Create store
 	store = M_StateStore.new()

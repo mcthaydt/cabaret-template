@@ -239,7 +239,7 @@ The redux-state-store implementation has been audited for completeness, consiste
 12. ✅ S_JumpSoundSystem - Uses EventBus
 
 **Non-State Systems** (still use ECS patterns):
-- ✅ Event-driven VFX systems use ECSEventBus (separate from state)
+- ✅ Event-driven VFX systems use U_ECSEventBus (separate from state)
 - ✅ No conflicts or cross-contamination
 - ✅ Clean separation of concerns
 
@@ -400,8 +400,8 @@ rm scenes/debug/state_test_us5_full_flow.tscn
 - ✅ Clear boundaries
 
 **Event Bus Isolation**:
-- ✅ StateStoreEventBus for state events
-- ✅ ECSEventBus for ECS events
+- ✅ U_StateEventBus for state events
+- ✅ U_ECSEventBus for ECS events
 - ✅ No cross-contamination
 - ✅ Separate subscriber lists
 - ✅ Separate history logs
@@ -541,12 +541,12 @@ Time:              6.526s
 ## Appendix B: File Inventory
 
 **State System Files** (30 total):
-- Core: scripts/state/m_state_store.gd, scripts/state/state_event_bus.gd, scripts/state/state_slice_config.gd, scripts/state/utils/u_state_handoff.gd
+- Core: scripts/state/m_state_store.gd, scripts/state/u_state_event_bus.gd, scripts/state/resources/rs_state_slice_config.gd, scripts/state/utils/u_state_handoff.gd
 - Actions: scripts/state/actions/u_boot_actions.gd, scripts/state/actions/u_menu_actions.gd, scripts/state/actions/u_gameplay_actions.gd, scripts/state/actions/u_transition_actions.gd, scripts/state/actions/u_entity_actions.gd, scripts/state/actions/u_input_actions.gd, scripts/state/actions/u_visual_actions.gd
 - Reducers: scripts/state/reducers/u_boot_reducer.gd, scripts/state/reducers/u_menu_reducer.gd, scripts/state/reducers/u_gameplay_reducer.gd, scripts/state/reducers/u_scene_reducer.gd
 - Selectors: scripts/state/selectors/u_boot_selectors.gd, scripts/state/selectors/u_menu_selectors.gd, scripts/state/selectors/u_gameplay_selectors.gd, scripts/state/selectors/u_entity_selectors.gd, scripts/state/selectors/u_input_selectors.gd, scripts/state/selectors/u_physics_selectors.gd, scripts/state/selectors/u_visual_selectors.gd
 - Resources: scripts/state/resources/rs_boot_initial_state.gd, scripts/state/resources/rs_menu_initial_state.gd, scripts/state/resources/rs_gameplay_initial_state.gd, scripts/state/resources/rs_state_store_settings.gd
-- Utils: scripts/state/utils/u_state_utils.gd, scripts/state/utils/u_action_registry.gd, scripts/state/utils/signal_batcher.gd, scripts/state/utils/u_serialization_helper.gd, scripts/state/state_action_types.gd
+- Utils: scripts/state/utils/u_state_utils.gd, scripts/state/utils/u_action_registry.gd, scripts/state/utils/u_signal_batcher.gd, scripts/state/utils/u_serialization_helper.gd, scripts/state/u_state_action_types.gd
 
 **Test Files** (14 state + 2 integration = 16 total)
 

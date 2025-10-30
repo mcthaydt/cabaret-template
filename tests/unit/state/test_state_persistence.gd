@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for state persistence (save/load)
 
-const StateStoreEventBus := preload("res://scripts/state/state_event_bus.gd")
+const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
 const RS_SceneInitialState := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd")
 
@@ -10,7 +10,7 @@ var store: M_StateStore
 var test_save_path: String = "user://test_state_save.json"
 
 func before_each() -> void:
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 	
 	store = M_StateStore.new()
 	store.gameplay_initial_state = RS_GameplayInitialState.new()
@@ -30,7 +30,7 @@ func after_each() -> void:
 	if FileAccess.file_exists(test_save_path):
 		DirAccess.remove_absolute(test_save_path)
 	
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 
 func test_save_state_creates_valid_json_file() -> void:
 	# Dispatch some actions to create state
@@ -79,7 +79,7 @@ func test_load_state_restores_data_correctly() -> void:
 
 func test_transient_fields_excluded_from_save() -> void:
 	# Create a custom slice with transient fields
-	var config := StateSliceConfig.new(StringName("test_slice"))
+	var config := RS_StateSliceConfig.new(StringName("test_slice"))
 	config.initial_state = {
 		"persistent_value": 100,
 		"transient_cache": 999
@@ -107,7 +107,7 @@ func test_transient_fields_excluded_from_save() -> void:
 
 func test_godot_types_serialize_and_deserialize_correctly() -> void:
 	# Create a test slice with various Godot types
-	var config := StateSliceConfig.new(StringName("types_slice"))
+	var config := RS_StateSliceConfig.new(StringName("types_slice"))
 	config.initial_state = {
 		"vector2_field": Vector2(10.5, 20.3),
 		"vector3_field": Vector3(1.0, 2.0, 3.0),
@@ -135,7 +135,7 @@ func test_godot_types_serialize_and_deserialize_correctly() -> void:
 	await get_tree().process_frame
 	
 	# Register same slice structure in new store
-	var new_config := StateSliceConfig.new(StringName("types_slice"))
+	var new_config := RS_StateSliceConfig.new(StringName("types_slice"))
 	new_config.initial_state = {}
 	new_config.reducer = Callable()
 	new_store.register_slice(new_config)

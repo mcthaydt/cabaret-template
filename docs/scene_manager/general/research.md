@@ -326,7 +326,7 @@ This validates that scene restructuring is necessary and correctly planned!
 - Registers boot slice if `boot_initial_state != null`
 - Registers menu slice if `menu_initial_state != null`
 - Registers gameplay slice if `gameplay_initial_state != null`
-- Clean pattern: Check for null, create StateSliceConfig, call `register_slice()`
+- Clean pattern: Check for null, create RS_StateSliceConfig, call `register_slice()`
 
 ### Required Modification for Scene Slice
 
@@ -339,7 +339,7 @@ This validates that scene restructuring is necessary and correctly planned!
 ```gdscript
 # Register scene slice if initial state provided
 if scene_initial_state != null:
-    var scene_config := StateSliceConfig.new(StringName("scene"))
+    var scene_config := RS_StateSliceConfig.new(StringName("scene"))
     scene_config.reducer = Callable(SceneReducer, "reduce")
     scene_config.initial_state = scene_initial_state.to_dictionary()
     scene_config.dependencies = []
@@ -362,7 +362,7 @@ const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_ini
 
 **✓ Pattern Consistency**:
 - Follows exact same pattern as boot/menu/gameplay slices
-- Uses same StateSliceConfig structure
+- Uses same RS_StateSliceConfig structure
 - Uses same null-check pattern before registration
 
 **✓ Dependency Independence**:
@@ -558,8 +558,8 @@ tween.finished.connect(func():
 
 **✓ R006-R010**: Data Model Documentation
 - [x] Scene state slice schema defined (data-model.md)
-- [x] SceneRegistry structure documented (data-model.md)
-- [x] TransitionEffect interface documented (data-model.md)
+- [x] U_SceneRegistry structure documented (data-model.md)
+- [x] BaseTransitionEffect interface documented (data-model.md)
 - [x] Action/reducer signatures documented (data-model.md)
 - [x] Integration points documented (data-model.md)
 

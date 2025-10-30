@@ -2,15 +2,15 @@ extends GutTest
 
 ## Tests for GameplayReducer pure functions
 
-const StateStoreEventBus := preload("res://scripts/state/state_event_bus.gd")
+const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
 const StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 func before_each() -> void:
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 	StateHandoff.clear_all()  # Clear any state from previous tests
 
 func after_each() -> void:
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 	StateHandoff.clear_all()
 
 ## Test that reducer is a pure function (same inputs = same outputs)

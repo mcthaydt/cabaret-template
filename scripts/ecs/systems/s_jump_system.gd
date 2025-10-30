@@ -78,7 +78,7 @@ func process_tick(_delta: float) -> void:
 				"landing_time": now,
 				"vertical_velocity": body.velocity.y,
 			}
-			ECSEventBus.publish(EVENT_ENTITY_LANDED, landing_payload)
+			U_ECSEventBus.publish(EVENT_ENTITY_LANDED, landing_payload)
 			if debug_logs_enabled:
 				print("[Jump] %s landed vY=%.3f supported_now=%s" % [str(body.name), float(body.velocity.y), str(supported_now)])
 			
@@ -182,7 +182,7 @@ func process_tick(_delta: float) -> void:
 			"air_jumps_remaining": component.has_air_jumps_remaining(),
 			"jump_force": component.settings.jump_force if component.settings != null else 0.0,
 		}
-		ECSEventBus.publish(EVENT_ENTITY_JUMPED, event_payload)
+		U_ECSEventBus.publish(EVENT_ENTITY_JUMPED, event_payload)
 
 ## Phase 16: Get entity ID from body for state coordination
 func _get_entity_id(body: Node) -> String:

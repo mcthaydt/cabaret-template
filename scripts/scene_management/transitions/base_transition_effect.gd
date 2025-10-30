@@ -1,5 +1,5 @@
 extends RefCounted
-class_name TransitionEffect
+class_name BaseTransitionEffect
 
 ## Base class for scene transition effects
 ##
@@ -12,7 +12,7 @@ class_name TransitionEffect
 ## @param callback: Callable to invoke when transition completes
 func execute(_overlay: CanvasLayer, _callback: Callable) -> void:
 	# Virtual method - override in subclasses
-	push_error("TransitionEffect.execute() must be overridden in subclass")
+	push_error("BaseTransitionEffect.execute() must be overridden in subclass")
 	if _callback != null and _callback.is_valid():
 		_callback.call()
 

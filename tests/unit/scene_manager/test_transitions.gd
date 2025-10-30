@@ -2,10 +2,10 @@ extends GutTest
 
 ## Unit tests for transition effects
 ##
-## Tests TransitionEffect base class and implementations (InstantTransition, FadeTransition).
+## Tests BaseTransitionEffect base class and implementations (InstantTransition, FadeTransition).
 ## Tests follow TDD discipline: written BEFORE implementation.
 
-const TransitionEffect = preload("res://scripts/scene_management/transitions/transition_effect.gd")
+const BaseTransitionEffect = preload("res://scripts/scene_management/transitions/base_transition_effect.gd")
 const InstantTransition = preload("res://scripts/scene_management/transitions/instant_transition.gd")
 const FadeTransition = preload("res://scripts/scene_management/transitions/fade_transition.gd")
 
@@ -26,9 +26,9 @@ func after_each() -> void:
 	_transition_overlay = null
 	_color_rect = null
 
-## Test TransitionEffect base class interface
+## Test BaseTransitionEffect interface
 func test_transition_effect_has_required_methods() -> void:
-	var effect := TransitionEffect.new()
+	var effect := BaseTransitionEffect.new()
 
 	# Verify interface methods exist (should be virtual/abstract)
 	assert_true(effect.has_method("execute"), "Should have execute method")
@@ -148,7 +148,7 @@ func test_fade_transition_mid_callback() -> void:
 	await wait_seconds(0.15)
 	assert_true(completion_callback_called[0], "Completion callback should be called")
 
-## Test TransitionEffect cleanup
+## Test BaseTransitionEffect cleanup
 func test_transition_cleans_up_tween() -> void:
 	var fade := FadeTransition.new()
 	fade.duration = 0.1
@@ -198,7 +198,7 @@ func test_fade_transition_zero_duration() -> void:
 	# Should complete immediately with zero duration
 	assert_true(completed[0], "Zero duration fade should complete immediately")
 
-## Test TransitionEffect error handling
+## Test BaseTransitionEffect error handling
 func test_transition_with_null_overlay() -> void:
 	var fade := FadeTransition.new()
 	fade.duration = 0.1

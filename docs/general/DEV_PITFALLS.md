@@ -125,13 +125,13 @@
 - **Clear static state between tests**: Static classes (like `StateHandoff`, `ActionRegistry`) retain state across tests. Always call reset/clear methods in `before_each()` and `after_each()`:
   ```gdscript
   func before_each() -> void:
-      StateStoreEventBus.reset()  # For state tests
+      U_StateEventBus.reset()  # For state tests
       StateHandoff.clear_all()     # Prevents state pollution
-      # ECSEventBus.reset() for ECS tests
+      # U_ECSEventBus.reset() for ECS tests
   
   func after_each() -> void:
       StateHandoff.clear_all()
-      StateStoreEventBus.reset()
+      U_StateEventBus.reset()
   ```
   This prevents test pollution where one test's state affects another, causing false failures like getting `health=100` instead of expected `health=75`.
 
@@ -153,7 +153,7 @@
   ```gdscript
   func before_each() -> void:
       StateHandoff.clear_all()  # CRITICAL for state coordination tests
-      ECSEventBus.reset()        # CRITICAL for ECS event tests
+      U_ECSEventBus.reset()        # CRITICAL for ECS event tests
       store = M_StateStore.new()
       store.gameplay_initial_state = RS_GameplayInitialState.new()
       add_child_autofree(store)
@@ -262,7 +262,7 @@ As of 2025-10-28 (Phase 3 In Progress):
   - **Scene Manager (NEW)**:
     - Integration: 13/13 ✅
     - M_SceneManager: 23/23 ✅
-    - SceneRegistry: 19/19 ✅
+    - U_SceneRegistry: 19/19 ✅
     - Scene Reducer: 10/10 ✅
     - Transition Effects: 16/16 ✅
 - **Test Execution Time**: ~17 seconds for full suite

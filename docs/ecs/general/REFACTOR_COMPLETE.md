@@ -30,7 +30,7 @@ The ECS architecture refactor is **complete and production-ready**. All four bat
 - **All systems migrated** to query-based approach
 
 #### Batch 3: Event Bus + Component Decoupling ✅
-- **`ECSEventBus`** static pub/sub system
+- **`U_ECSEventBus`** static pub/sub system
   - `publish(event_name, data)` broadcasts events
   - `subscribe(event_name, callback)` registers listeners
   - Event history buffer (1000 events)
@@ -83,7 +83,7 @@ scripts/
 │   ├── ecs_component.gd          # Base component with validation
 │   ├── ecs_system.gd              # Base system with execution_priority
 │   ├── entity_query.gd            # Query result wrapper (NEW)
-│   ├── ecs_event_bus.gd           # Event pub/sub system (NEW)
+│   ├── u_ecs_event_bus.gd           # Event pub/sub system (NEW)
 │   ├── components/                # Pure data containers
 │   │   ├── c_movement_component.gd
 │   │   ├── c_input_component.gd
@@ -119,14 +119,14 @@ for entity_query in entities:
 **Event Bus:**
 ```gdscript
 # Publish an event
-ECSEventBus.publish("entity_jumped", {
+U_ECSEventBus.publish("entity_jumped", {
     "entity": body,
     "velocity": velocity,
     "position": body.global_position
 })
 
 # Subscribe to events
-ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
+U_ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
 
 func _on_entity_jumped(data: Dictionary):
     # React to jump (spawn particles, play sound, etc.)
@@ -213,7 +213,7 @@ The current implementation is ready for:
 
 **Key files to review:**
 - `scripts/managers/m_ecs_manager.gd:209-272` - Query implementation
-- `scripts/ecs/ecs_event_bus.gd` - Event system
+- `scripts/ecs/u_ecs_event_bus.gd` - Event system
 - `scripts/ecs/entity_query.gd` - Query results
 - `tests/integration/test_ecs_full_refactor.gd` - Integration test
 

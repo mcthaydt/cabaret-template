@@ -138,7 +138,7 @@ dispatch()                   3.18 µs
 └─ emit action_dispatched    0.20 µs (6%)
 ```
 
-### SignalBatcher.flush()
+### U_SignalBatcher.flush()
 
 **Per-frame overhead**: 2 µs (negligible)
 

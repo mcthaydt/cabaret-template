@@ -10,7 +10,7 @@ extends GutTest
 var store: M_StateStore
 
 func before_each() -> void:
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 	store = M_StateStore.new()
 	autofree(store)
 	add_child(store)
@@ -135,7 +135,7 @@ func test_duplicate_overhead() -> void:
 	# Assert that deep duplicate is reasonable (< 0.01ms for typical state)
 	assert_lt(deep_avg, 0.01, "Deep duplicate should be < 0.01ms for typical state")
 
-## T413: Profile SignalBatcher.flush() overhead
+## T413: Profile U_SignalBatcher.flush() overhead
 func test_signal_batcher_flush_overhead() -> void:
 	# Dispatch many actions to create dirty slices
 	for i in range(100):
@@ -145,7 +145,7 @@ func test_signal_batcher_flush_overhead() -> void:
 		store.dispatch(action2)
 	
 	# Measure flush time
-	var flush_time: float = U_StateUtils.benchmark("SignalBatcher Flush (100 actions)", func() -> void:
+	var flush_time: float = U_StateUtils.benchmark("U_SignalBatcher Flush (100 actions)", func() -> void:
 		store._physics_process(0.016)
 	)
 	
@@ -155,7 +155,7 @@ func test_signal_batcher_flush_overhead() -> void:
 	print("Target: < 0.05 ms per frame")
 	
 	# Verify performance
-	assert_lt(flush_time, 0.05, "SignalBatcher.flush() should be < 0.05ms per frame")
+	assert_lt(flush_time, 0.05, "U_SignalBatcher.flush() should be < 0.05ms per frame")
 
 ## T415: Test with 10,000 action history entries
 func test_large_action_history_performance() -> void:

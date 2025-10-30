@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for M_StateStore core functionality
 
-const StateStoreEventBus := preload("res://scripts/state/state_event_bus.gd")
+const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
 
 var store: M_StateStore
 var callback_called: bool = false
@@ -17,7 +17,7 @@ var last_slice_name: StringName = StringName()
 
 func before_each() -> void:
 	# CRITICAL: Reset state bus between tests to prevent subscription leaks
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 	
 	# Reset test variables
 	callback_called = false
@@ -41,7 +41,7 @@ func before_each() -> void:
 func after_each() -> void:
 	# Cleanup handled by autofree
 	store = null
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 
 func test_store_instantiates_as_node() -> void:
 	assert_not_null(store, "Store should be created")
@@ -128,7 +128,7 @@ func test_get_state_returns_deep_copy() -> void:
 	assert_false(state2.has("test"), "Modifying copy should not affect original")
 
 func test_get_slice_returns_deep_copy() -> void:
-	var config := StateSliceConfig.new(StringName("test_slice"))
+	var config := RS_StateSliceConfig.new(StringName("test_slice"))
 	config.initial_state = {"value": 100}
 	store.register_slice(config)
 
@@ -140,7 +140,7 @@ func test_get_slice_returns_deep_copy() -> void:
 	assert_eq(slice2.get("value"), 100, "Modifying slice copy should not affect original")
 
 func test_register_slice_adds_to_state() -> void:
-	var config := StateSliceConfig.new(StringName("gameplay"))
+	var config := RS_StateSliceConfig.new(StringName("gameplay"))
 	config.initial_state = {"health": 100, "score": 0}
 	store.register_slice(config)
 
