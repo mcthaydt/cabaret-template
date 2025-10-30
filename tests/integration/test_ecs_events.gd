@@ -97,6 +97,7 @@ func test_entity_jumped_event_notifies_subscribers() -> void:
 
 	body.velocity = Vector3.ZERO
 	var now := ECS_UTILS.get_current_time()
+	jump_component.record_ground_height(body.global_position.y)
 	jump_component.mark_on_floor(now)
 	if floating_component != null:
 		floating_component.update_support_state(true, now)
@@ -186,6 +187,7 @@ func test_entity_landed_event_publishes_event() -> void:
 	# Now mark entity as landing (becomes supported)
 	body.global_position = Vector3(0, 0, 0)  # Back on ground
 	var landing_time := ECS_UTILS.get_current_time()
+	jump_component.record_ground_height(body.global_position.y)
 	jump_component.mark_on_floor(landing_time)
 	if floating_component != null:
 		floating_component.update_support_state(true, landing_time)

@@ -94,6 +94,7 @@ func process_tick(_delta: float) -> void:
 		# Landing event may trigger position resets that temporarily invalidate is_on_floor()
 		# By marking after the event, we ensure jump checks use correct post-reset floor state
 		if supported_now:
+			component.record_ground_height(current_height)
 			component.mark_on_floor(now)
 
 		var jump_requested: bool = input_component.has_jump_request(component.settings.jump_buffer_time, now)

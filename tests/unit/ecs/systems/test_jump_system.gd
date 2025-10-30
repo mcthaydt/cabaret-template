@@ -126,6 +126,7 @@ func test_jump_system_uses_jump_buffer() -> void:
 	body.grounded = false
 
 	var now := ECS_UTILS.get_current_time()
+	jump.record_ground_height(body.global_position.y)
 	jump.mark_on_floor(now - jump.settings.coyote_time - 1.0)
 
 	input.set_jump_pressed(true)
@@ -134,6 +135,7 @@ func test_jump_system_uses_jump_buffer() -> void:
 	assert_eq(body.velocity.y, 0.0)
 
 	body.grounded = true
+	jump.record_ground_height(body.global_position.y)
 	jump.mark_on_floor(now)
 	manager._physics_process(0.016)
 
@@ -162,6 +164,43 @@ func test_jump_respects_max_air_jumps_setting() -> void:
 	manager._physics_process(0.016)
 
 	assert_eq(body.velocity.y, 0.0)
+
+func test_landing_on_higher_surface_bypasses_fall_distance_gate() -> void:
+	var jump: C_JumpComponent = JumpComponentScript.new()
+	jump.settings = RS_JumpSettings.new()
+	add_child(jump)
+	autofree(jump)
+
+	var initial_height := 0.0
+	var takeoff_time := 0.0
+	jump.record_ground_height(initial_height)
+	jump.mark_on_floor(takeoff_time)
+
+	jump.set_airborne(true)
+	jump._airborne_since_time = takeoff_time
+	jump._airborne_peak_height = 1.15
+
+	var landing_time := takeoff_time + 0.2
+	var landing_height := 1.0  # Higher than previous ground
+
+	var landed := jump.check_landing_transition(true, landing_time, landing_height)
+	assert_true(landed, "Landing on a higher platform should bypass the fall distance gate")
+
+func test_step_up_requires_minimum_fall_distance() -> void:
+	var jump: C_JumpComponent = JumpComponentScript.new()
+	jump.settings = RS_JumpSettings.new()
+	add_child(jump)
+	autofree(jump)
+
+	jump.record_ground_height(0.0)
+	jump.mark_on_floor(0.0)
+
+	jump.set_airborne(true)
+	jump._airborne_since_time = 0.0
+	jump._airborne_peak_height = 0.56
+
+	var landed := jump.check_landing_transition(true, 0.1, 0.55)
+	assert_false(landed, "Step-up bypass should not trigger if airborne fall distance is too small")
 
 func test_jump_component_tracks_apex_state() -> void:
 	var context := await _setup_entity()

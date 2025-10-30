@@ -17,6 +17,7 @@ var _last_landing_time: float = -INF
 var _airborne_since_time: float = -INF
 var _airborne_peak_height: float = -INF
 var _debug_snapshot: Dictionary = {}
+var _last_ground_height: float = -INF
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
@@ -35,6 +36,9 @@ func mark_on_floor(current_time: float) -> void:
 	if settings != null:
 		_air_jumps_remaining = settings.max_air_jumps
 
+func record_ground_height(current_height: float) -> void:
+	_last_ground_height = current_height
+
 func is_airborne() -> bool:
 	return _was_airborne
 
@@ -44,6 +48,7 @@ func set_airborne(airborne: bool) -> void:
 func check_landing_transition(grounded_now: bool, current_time: float, current_height: float) -> bool:
 	var was_airborne := _was_airborne
 	var just_landed := was_airborne and grounded_now
+	var previous_ground_height: float = _last_ground_height
 
 	# Track peak height during airborne period
 	if _was_airborne:
@@ -78,7 +83,14 @@ func check_landing_transition(grounded_now: bool, current_time: float, current_h
 			fall_distance = _airborne_peak_height - current_height
 
 		var min_fall_height: float = settings.min_landing_fall_height if settings != null else 0.5
-		if fall_distance < min_fall_height:
+		var step_up_height: float = 0.0
+		if previous_ground_height != -INF:
+			step_up_height = current_height - previous_ground_height
+		var min_step_up_height: float = settings.min_step_up_height if settings != null else 0.5
+		var min_step_up_fall: float = settings.min_step_up_fall_height if settings != null else 0.05
+		var passes_fall_distance: bool = fall_distance >= min_fall_height
+		var passes_step_up: bool = step_up_height >= min_step_up_height and fall_distance >= min_step_up_fall
+		if not passes_fall_distance and not passes_step_up:
 			return false
 
 		_last_landing_time = current_time
@@ -89,6 +101,7 @@ func check_landing_transition(grounded_now: bool, current_time: float, current_h
 func can_jump(current_time: float) -> bool:
 	var body := get_character_body()
 	if body and body.is_on_floor():
+		record_ground_height(body.global_position.y)
 		mark_on_floor(current_time)
 		return true
 	if settings != null and current_time - _last_on_floor_time <= settings.coyote_time:

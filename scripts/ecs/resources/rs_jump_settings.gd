@@ -12,3 +12,7 @@ class_name RS_JumpSettings
 
 ## Minimum vertical distance required for a landing event to fire (filters ramp bounces)
 @export var min_landing_fall_height: float = 0.5
+## Minimum upward step height that still counts as a landing even if fall distance is small
+@export var min_step_up_height: float = 0.5
+## Minimum fall distance required (while airborne) for step-up landings
+@export var min_step_up_fall_height: float = 0.05
