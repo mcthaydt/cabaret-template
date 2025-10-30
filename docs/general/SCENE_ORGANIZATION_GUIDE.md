@@ -210,7 +210,7 @@ This is the **reference implementation** for all gameplay scenes. It demonstrate
 **File:** `templates/player_template.tscn`
 
 Entity template showing:
-- Entity root structure (`E_PlayerRoot` extending `BaseECSEntity`)
+- Entity root structure (`E_PlayerRoot` extending `ECSEntity`)
 - Character body setup
 - Component organization within `Components` group
 - Component configuration with settings resources
@@ -260,7 +260,7 @@ Camera entity showing:
 
 ### Entity Structure
 
-1. **Always extend `BaseECSEntity`** for entity roots
+1. **Always extend `ECSEntity`** for entity roots
 2. **Use `Components` group** to organize components within entities
 3. **Wire component NodePaths** in the scene editor
 4. **Assign settings resources** to components that require them

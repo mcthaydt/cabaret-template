@@ -50,8 +50,8 @@ func test_get_manager_returns_null_when_manager_missing() -> void:
 	var located := ECS_UTILS.get_manager(subject)
 	assert_null(located)
 
-func test_find_entity_root_detects_base_entity() -> void:
-	var entity_script := load("res://scripts/ecs/base_entity.gd")
+func test_find_entity_root_detects_ecs_entity() -> void:
+	var entity_script := load("res://scripts/ecs/ecs_entity.gd")
 	var entity := entity_script.new() as Node3D
 	entity.name = "E_Base"
 	add_child(entity)

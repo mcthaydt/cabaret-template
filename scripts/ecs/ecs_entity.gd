@@ -1,6 +1,6 @@
 @icon("res://resources/editor_icons/entities.svg")
 extends Node3D
-class_name BaseECSEntity
+class_name ECSEntity
 
 const META_ENTITY_ROOT := StringName("_ecs_entity_root")
 const ENTITY_GROUP := StringName("ecs_entity")

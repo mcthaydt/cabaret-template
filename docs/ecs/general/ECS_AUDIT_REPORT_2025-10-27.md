@@ -35,7 +35,7 @@ All core ECS architectural elements are **fully implemented and operational**:
 | **BaseECSSystem** | ✅ Complete | `scripts/ecs/ecs_system.gd` | Priority-based execution, query API |
 | **EntityQuery** | ✅ Complete | `scripts/ecs/entity_query.gd` | Query result wrapper with type safety |
 | **ECSEventBus** | ✅ Complete | `scripts/ecs/ecs_event_bus.gd` | Pub/sub with history buffer |
-| **BaseEntity** | ✅ Complete | `scripts/ecs/base_entity.gd` | Entity root marker |
+| **ECSEntity** | ✅ Complete | `scripts/ecs/ecs_entity.gd` | Entity root marker |
 | **U_ECSUtils** | ✅ Complete | `scripts/utils/u_ecs_utils.gd` | Centralized utilities |
 
 ### 1.2 Component Implementations ✅
@@ -128,7 +128,7 @@ All 12 systems are **fully implemented and tested**:
 
 **Epic 6: Component Tags & Entity Tracking** (P2) - ⏸️ **DEFERRED**
 - ❌ Explicitly deferred per PRD (future enhancement)
-- Current `BaseEntity` marker satisfies immediate needs
+- Current `ECSEntity` marker satisfies immediate needs
 
 ### 2.2 Architecture Document Alignment ✅
 
@@ -384,7 +384,7 @@ $ grep -i "component.*path\|nodepath.*component" templates/*.tscn
 | Managers | `M_NameManager` | ✅ 1/1 managers |
 | Resources | `RS_NameSettings` | ✅ 8/8 resources |
 | Utilities | `U_NameUtils` | ✅ 1/1 utils |
-| Entities | `E_Name` or `BaseEntity` script | ✅ Templates |
+| Entities | `E_Name` or `ECSEntity` script | ✅ Templates |
 | Constants | `SCREAMING_SNAKE_CASE` | ✅ All constants |
 | StringName | `StringName("C_NameComponent")` | ✅ All types |
 
@@ -397,7 +397,7 @@ scripts/ecs/
 ├── ecs_system.gd (base)
 ├── entity_query.gd (query wrapper)
 ├── ecs_event_bus.gd (event system)
-├── base_entity.gd (entity marker)
+├── ecs_entity.gd (entity marker)
 ├── components/ (7 files)
 ├── systems/ (12 files)
 └── resources/ (8 files)
@@ -669,7 +669,7 @@ The ECS system is **ready for production use** with:
 - `scripts/ecs/ecs_system.gd` (101 lines)
 - `scripts/ecs/entity_query.gd` (28 lines)
 - `scripts/ecs/ecs_event_bus.gd` (60 lines)
-- `scripts/ecs/base_entity.gd` (13 lines)
+- `scripts/ecs/ecs_entity.gd` (13 lines)
 - `scripts/utils/u_ecs_utils.gd` (193 lines)
 - `scripts/ecs/event_vfx_system.gd` (77 lines)
 

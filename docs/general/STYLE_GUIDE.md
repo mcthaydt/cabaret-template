@@ -295,7 +295,7 @@ func _exit_tree() -> void:
 Abstract or base classes that define interfaces use the `Base` prefix to clearly distinguish them from concrete implementations:
 - `BaseECSSystem` - Base class for all systems (extends Node)
 - `BaseECSComponent` - Base class for all components (extends Node)
-- `BaseECSEntity` - Base class for entities (extends Node3D)
+- `ECSEntity` - Entity root marker (extends Node3D)
 - `BaseEventVFXSystem` - Base class for event-driven VFX systems (extends BaseECSSystem)
 
 **Rationale:** The `Base` prefix makes it immediately clear that a class is abstract/foundational and should be extended rather than instantiated directly.

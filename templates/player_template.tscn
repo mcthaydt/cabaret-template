@@ -15,7 +15,7 @@
 [ext_resource type="Resource" uid="uid://c0ka0i1askexa" path="res://resources/settings/floating_default.tres" id="12_float"]
 [ext_resource type="Resource" uid="uid://dhkl8uuw4aeeh" path="res://resources/settings/align_default.tres" id="13_align"]
 [ext_resource type="Resource" uid="uid://bge6h6phsahy3" path="res://resources/settings/landing_indicator_default.tres" id="14_land"]
-[ext_resource type="Script" uid="uid://dt705fmg3a3jc" path="res://scripts/ecs/base_entity.gd" id="15_baseentity"]
+[ext_resource type="Script" uid="uid://dt705fmg3a3jc" path="res://scripts/ecs/ecs_entity.gd" id="15_ecsentity"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_6mvan"]
 
@@ -36,7 +36,7 @@ albedo_color = Color(0.08627451, 0.3529412, 0.29803923, 1)
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_16kfq"]
 
 [node name="E_PlayerRoot" type="Node3D"]
-script = ExtResource("15_baseentity")
+script = ExtResource("15_ecsentity")
 
 [node name="Player_Body" type="CharacterBody3D" parent="."]
 

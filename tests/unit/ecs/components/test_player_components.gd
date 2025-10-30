@@ -55,7 +55,7 @@ func test_jump_component_defaults_and_registration() -> void:
 
 	assert_eq(component.get_component_type(), JUMP_COMPONENT.COMPONENT_TYPE)
 	assert_eq(component.settings.jump_force, 12.0)
-	assert_eq(component.settings.coyote_time, 0.15)
+	assert_eq(component.settings.coyote_time, 0.28)
 	assert_eq(component.settings.max_air_jumps, 0)
 
 	var components := manager.get_components(JUMP_COMPONENT.COMPONENT_TYPE)

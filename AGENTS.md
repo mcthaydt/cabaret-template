@@ -70,7 +70,7 @@
 
 ## Naming Conventions Quick Reference
 
-- **Base classes:** `Base*` prefix (e.g., `BaseECSSystem`, `BaseECSComponent`, `BaseECSEntity`, `BaseEventVFXSystem`)
+- **Base classes:** `Base*` prefix (e.g., `BaseECSSystem`, `BaseECSComponent`, `BaseEventVFXSystem`); entity roots extend `ECSEntity`
 - **Utilities:** `U_*` prefix (e.g., `U_ECSUtils`, `U_BootSelectors`, `U_GameplayReducer`, `U_ActionRegistry`)
 - **Managers:** `M_*` prefix (e.g., `M_ECSManager`, `M_StateStore`)
 - **Components:** `C_*` prefix (e.g., `C_MovementComponent`, `C_JumpComponent`)
