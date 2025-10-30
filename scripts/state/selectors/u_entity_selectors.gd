@@ -29,7 +29,16 @@ static func get_entity_rotation(state: Dictionary, entity_id: String) -> Vector3
 
 ## Check if entity is on floor
 static func is_entity_on_floor(state: Dictionary, entity_id: String) -> bool:
-	return get_entity(state, entity_id).get("is_on_floor", false)
+	var result: bool = get_entity(state, entity_id).get("is_on_floor", false)
+
+	# [DEBUG] Log selector query
+	print("[U_EntitySelectors] is_entity_on_floor() - Entity: %s, Result: %s, Frame: %d" % [
+		entity_id,
+		"TRUE" if result else "FALSE",
+		Engine.get_physics_frames()
+	])
+
+	return result
 
 ## Check if entity is moving
 static func is_entity_moving(state: Dictionary, entity_id: String) -> bool:

@@ -12,6 +12,9 @@ const EVENT_ENTITY_LANDED := StringName("entity_landed")
 
 @export var debug_logs_enabled: bool = false
 
+# [DEBUG] Track previous floor state to detect walk-off events
+var _previous_floor_states: Dictionary = {}
+
 func process_tick(_delta: float) -> void:
 	# Skip processing if game is paused
 	var store: M_StateStore = U_StateUtils.get_store(self)
@@ -86,6 +89,11 @@ func process_tick(_delta: float) -> void:
 			if store:
 				var entity_id: String = _get_entity_id(body)
 				if not entity_id.is_empty():
+					# [DEBUG] Log landing event dispatch
+					print("[S_JumpSystem] LANDING EVENT - Dispatching is_on_floor=TRUE for Entity: %s, Frame: %d" % [
+						entity_id,
+						Engine.get_physics_frames()
+					])
 					store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, {
 						"is_on_floor": true
 					}))
@@ -157,6 +165,11 @@ func process_tick(_delta: float) -> void:
 		if store:
 			var entity_id: String = _get_entity_id(body)
 			if not entity_id.is_empty():
+				# [DEBUG] Log jump event dispatch
+				print("[S_JumpSystem] JUMP EVENT - Dispatching is_on_floor=FALSE for Entity: %s, Frame: %d" % [
+					entity_id,
+					Engine.get_physics_frames()
+				])
 				store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, {
 					"is_on_floor": false
 				}))
@@ -184,6 +197,30 @@ func process_tick(_delta: float) -> void:
 			"jump_force": component.settings.jump_force if component.settings != null else 0.0,
 		}
 		U_ECSEventBus.publish(EVENT_ENTITY_JUMPED, event_payload)
+
+	# [DEBUG] Track floor state changes at end of loop (runs for all entities)
+	# This detects walk-off events where is_on_floor changes without a jump/land event
+	for entity_query in entities:
+		var component: C_JumpComponent = entity_query.get_component(JUMP_TYPE)
+		if component == null:
+			continue
+		var body = component.get_character_body()
+		if body == null:
+			continue
+
+		var is_on_floor_raw: bool = body.is_on_floor()
+		var entity_id: String = _get_entity_id(body)
+		var previous_on_floor: bool = _previous_floor_states.get(entity_id, is_on_floor_raw)
+
+		if previous_on_floor != is_on_floor_raw:
+			print("[S_JumpSystem] FLOOR STATE CHANGED - Entity: %s, Previous: %s, Current: %s, Frame: %d (Check if dispatch occurred above)" % [
+				entity_id,
+				"TRUE" if previous_on_floor else "FALSE",
+				"TRUE" if is_on_floor_raw else "FALSE",
+				Engine.get_physics_frames()
+			])
+
+		_previous_floor_states[entity_id] = is_on_floor_raw
 
 ## Phase 16: Get entity ID from body for state coordination
 func _get_entity_id(body: Node) -> String:

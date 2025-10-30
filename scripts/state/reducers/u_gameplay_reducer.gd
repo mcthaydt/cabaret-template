@@ -90,14 +90,31 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			var payload: Dictionary = action.get("payload", {})
 			var entity_id: String = payload.get("entity_id", "")
 			var snapshot: Dictionary = payload.get("snapshot", {})
-			
+
 			if entity_id.is_empty():
 				return state
-			
+
 			# Ensure entities dict exists
 			if not new_state.has("entities"):
 				new_state["entities"] = {}
-			
+
+			# [DEBUG] Log when is_on_floor is included in snapshot
+			if snapshot.has("is_on_floor"):
+				var entity_data: Dictionary = new_state["entities"].get(entity_id, {})
+				var has_old_value: bool = entity_data.has("is_on_floor")
+				var old_value: Variant = entity_data.get("is_on_floor", false)
+				var new_value: Variant = snapshot.get("is_on_floor")
+
+				var old_str: String = "UNSET" if not has_old_value else ("TRUE" if old_value else "FALSE")
+				var new_str: String = "TRUE" if new_value else "FALSE"
+
+				print("[U_GameplayReducer] UPDATE_ENTITY_SNAPSHOT - Entity: %s, is_on_floor: %s -> %s, Frame: %d" % [
+					entity_id,
+					old_str,
+					new_str,
+					Engine.get_physics_frames()
+				])
+
 			# Merge snapshot into entity data (preserves existing fields)
 			if new_state["entities"].has(entity_id):
 				var existing: Dictionary = new_state["entities"][entity_id].duplicate(true)
@@ -106,7 +123,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 				new_state["entities"][entity_id] = existing
 			else:
 				new_state["entities"][entity_id] = snapshot.duplicate(true)
-			
+
 			return new_state
 		
 		U_EntityActions.ACTION_REMOVE_ENTITY:

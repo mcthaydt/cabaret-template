@@ -49,6 +49,7 @@ func process_tick(delta: float) -> void:
 		if state == null:
 			state = {
 				"velocity": body.velocity,
+				"previous_is_on_floor": body.is_on_floor(),  # Track for change detection
 			}
 			body_state[body] = state
 			bodies.append(body)
@@ -150,27 +151,74 @@ func process_tick(delta: float) -> void:
 			"dynamics_velocity": movement_component.get_horizontal_dynamics_velocity(),
 		})
 
+	# Build floating component map for floor detection
+	var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, FLOATING_TYPE)
+
 	for body in bodies:
 		var final_velocity: Vector3 = body_state[body].velocity
 		body.velocity = final_velocity
 		if body.has_method("move_and_slide"):
 			body.move_and_slide()
-	
+
+			# [DEBUG] Log is_on_floor state after move_and_slide (check both raw and floating)
+			var is_on_floor_raw: bool = body.is_on_floor()
+			var floating_supported: bool = false
+			var floating_component: C_FloatingComponent = floating_by_body.get(body, null) as C_FloatingComponent
+			if floating_component != null:
+				floating_supported = floating_component.is_supported
+			var current_on_floor: bool = is_on_floor_raw or floating_supported
+			var previous_on_floor: bool = body_state[body].previous_is_on_floor
+			var entity_id: String = _get_entity_id(body)
+
+			if current_on_floor != previous_on_floor:
+				print("[S_MovementSystem] FLOOR STATE CHANGE - Entity: %s, Previous: %s, Current: %s (raw: %s, float: %s), Frame: %d" % [
+					entity_id,
+					"TRUE" if previous_on_floor else "FALSE",
+					"TRUE" if current_on_floor else "FALSE",
+					"TRUE" if is_on_floor_raw else "FALSE",
+					"TRUE" if floating_supported else "FALSE",
+					Engine.get_physics_frames()
+				])
+
+			# Update for next frame
+			body_state[body].previous_is_on_floor = current_on_floor
+
 	# Phase 16: Dispatch entity snapshots to state store (Entity Coordination Pattern)
+	# Reuse floating_by_body map created earlier
 	if store and bodies.size() > 0:
 		for body in bodies:
 			var entity_id: String = _get_entity_id(body)
 			if entity_id.is_empty():
 				continue
-			
+
 			var is_moving: bool = Vector2(body.velocity.x, body.velocity.z).length() > 0.1
+
+			# Check BOTH is_on_floor() and floating support (matching JumpSystem logic)
+			var is_on_floor_raw: bool = body.is_on_floor()
+			var floating_supported: bool = false
+			var floating_component: C_FloatingComponent = floating_by_body.get(body, null) as C_FloatingComponent
+			if floating_component != null:
+				floating_supported = floating_component.is_supported
+			var current_on_floor: bool = is_on_floor_raw or floating_supported
+
 			var snapshot: Dictionary = {
 				"position": body.global_position,
 				"velocity": body.velocity,
 				"rotation": body.rotation,
 				"is_moving": is_moving,
+				"is_on_floor": current_on_floor,
 				"entity_type": _get_entity_type(body)
 			}
+
+			# [DEBUG] Log snapshot dispatch with floating support info
+			print("[S_MovementSystem] Dispatching snapshot - Entity: %s, is_on_floor_raw: %s, floating_supported: %s, final: %s, Frame: %d" % [
+				entity_id,
+				"TRUE" if is_on_floor_raw else "FALSE",
+				"TRUE" if floating_supported else "FALSE",
+				"TRUE" if current_on_floor else "FALSE",
+				Engine.get_physics_frames()
+			])
+
 			store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
 
 func _get_desired_velocity(input_vector: Vector2, max_speed: float) -> Vector3:
