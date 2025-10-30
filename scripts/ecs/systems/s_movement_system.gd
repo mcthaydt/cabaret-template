@@ -8,6 +8,10 @@ const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 
+# State stability tracking to prevent flickering in state store
+const MIN_STABLE_FRAMES := 10  # Frames state must be stable before dispatching (~0.167s @ 60fps)
+var _floor_state_stable_frames: Dictionary = {}  # entity_id -> frames_stable
+
 func process_tick(delta: float) -> void:
 	# Skip processing if game is paused
 	var store: M_StateStore = U_StateUtils.get_store(self)
@@ -160,25 +164,13 @@ func process_tick(delta: float) -> void:
 		if body.has_method("move_and_slide"):
 			body.move_and_slide()
 
-			# [DEBUG] Log is_on_floor state after move_and_slide (check both raw and floating)
+			# Track floor state for stability check
 			var is_on_floor_raw: bool = body.is_on_floor()
 			var floating_supported: bool = false
 			var floating_component: C_FloatingComponent = floating_by_body.get(body, null) as C_FloatingComponent
 			if floating_component != null:
 				floating_supported = floating_component.is_supported
 			var current_on_floor: bool = is_on_floor_raw or floating_supported
-			var previous_on_floor: bool = body_state[body].previous_is_on_floor
-			var entity_id: String = _get_entity_id(body)
-
-			if current_on_floor != previous_on_floor:
-				print("[S_MovementSystem] FLOOR STATE CHANGE - Entity: %s, Previous: %s, Current: %s (raw: %s, float: %s), Frame: %d" % [
-					entity_id,
-					"TRUE" if previous_on_floor else "FALSE",
-					"TRUE" if current_on_floor else "FALSE",
-					"TRUE" if is_on_floor_raw else "FALSE",
-					"TRUE" if floating_supported else "FALSE",
-					Engine.get_physics_frames()
-				])
 
 			# Update for next frame
 			body_state[body].previous_is_on_floor = current_on_floor
@@ -201,23 +193,33 @@ func process_tick(delta: float) -> void:
 				floating_supported = floating_component.is_supported
 			var current_on_floor: bool = is_on_floor_raw or floating_supported
 
+			# Stability check: Only dispatch if floor state has been stable for MIN_STABLE_FRAMES
+			# This prevents flickering from floating capsule jitter
+			var previous_on_floor: bool = body_state[body].previous_is_on_floor
+			var stable_frames: int = _floor_state_stable_frames.get(entity_id, 0)
+
+			if current_on_floor != previous_on_floor:
+				# State changed - reset stability counter
+				_floor_state_stable_frames[entity_id] = 0
+			else:
+				# State unchanged - increment stability counter
+				if stable_frames < MIN_STABLE_FRAMES:
+					_floor_state_stable_frames[entity_id] = stable_frames + 1
+
+			# Only include is_on_floor in snapshot if state is stable
+			var should_update_floor_state: bool = _floor_state_stable_frames.get(entity_id, 0) >= MIN_STABLE_FRAMES
+
 			var snapshot: Dictionary = {
 				"position": body.global_position,
 				"velocity": body.velocity,
 				"rotation": body.rotation,
 				"is_moving": is_moving,
-				"is_on_floor": current_on_floor,
 				"entity_type": _get_entity_type(body)
 			}
 
-			# [DEBUG] Log snapshot dispatch with floating support info
-			print("[S_MovementSystem] Dispatching snapshot - Entity: %s, is_on_floor_raw: %s, floating_supported: %s, final: %s, Frame: %d" % [
-				entity_id,
-				"TRUE" if is_on_floor_raw else "FALSE",
-				"TRUE" if floating_supported else "FALSE",
-				"TRUE" if current_on_floor else "FALSE",
-				Engine.get_physics_frames()
-			])
+			# Only add is_on_floor to snapshot if stable
+			if should_update_floor_state:
+				snapshot["is_on_floor"] = current_on_floor
 
 			store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
 

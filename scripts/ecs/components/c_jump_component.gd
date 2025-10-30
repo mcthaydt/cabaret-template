@@ -100,35 +100,13 @@ func check_landing_transition(grounded_now: bool, current_time: float, current_h
 
 func can_jump(current_time: float) -> bool:
 	var body := get_character_body()
-
-	# [DEBUG] Check 1: Raw is_on_floor()
-	var on_floor_raw: bool = body and body.is_on_floor()
-	if on_floor_raw:
-		print("[C_JumpComponent] can_jump() - Check 1: is_on_floor()=TRUE, ALLOWED, Frame: %d" % Engine.get_physics_frames())
+	if body and body.is_on_floor():
 		record_ground_height(body.global_position.y)
 		mark_on_floor(current_time)
 		return true
-
-	# [DEBUG] Check 2: Coyote time
-	var coyote_active: bool = settings != null and current_time - _last_on_floor_time <= settings.coyote_time
-	if coyote_active:
-		var time_since_floor: float = current_time - _last_on_floor_time if settings != null else 0.0
-		print("[C_JumpComponent] can_jump() - Check 2: Coyote time ACTIVE (%.3fs since floor), ALLOWED, Frame: %d" % [
-			time_since_floor,
-			Engine.get_physics_frames()
-		])
+	if settings != null and current_time - _last_on_floor_time <= settings.coyote_time:
 		return true
-
-	# [DEBUG] Check 3: Air jumps
-	var has_air_jumps: bool = _air_jumps_remaining > 0
-	print("[C_JumpComponent] can_jump() - Check 3: is_on_floor()=%s, coyote=%s, air_jumps=%d, Result=%s, Frame: %d" % [
-		"TRUE" if on_floor_raw else "FALSE",
-		"ACTIVE" if coyote_active else "EXPIRED",
-		_air_jumps_remaining,
-		"ALLOWED" if has_air_jumps else "BLOCKED",
-		Engine.get_physics_frames()
-	])
-	return has_air_jumps
+	return _air_jumps_remaining > 0
 
 func on_jump_performed(current_time: float, grounded: bool) -> void:
 	_last_jump_time = current_time

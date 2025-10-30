@@ -98,23 +98,6 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			if not new_state.has("entities"):
 				new_state["entities"] = {}
 
-			# [DEBUG] Log when is_on_floor is included in snapshot
-			if snapshot.has("is_on_floor"):
-				var entity_data: Dictionary = new_state["entities"].get(entity_id, {})
-				var has_old_value: bool = entity_data.has("is_on_floor")
-				var old_value: Variant = entity_data.get("is_on_floor", false)
-				var new_value: Variant = snapshot.get("is_on_floor")
-
-				var old_str: String = "UNSET" if not has_old_value else ("TRUE" if old_value else "FALSE")
-				var new_str: String = "TRUE" if new_value else "FALSE"
-
-				print("[U_GameplayReducer] UPDATE_ENTITY_SNAPSHOT - Entity: %s, is_on_floor: %s -> %s, Frame: %d" % [
-					entity_id,
-					old_str,
-					new_str,
-					Engine.get_physics_frames()
-				])
-
 			# Merge snapshot into entity data (preserves existing fields)
 			if new_state["entities"].has(entity_id):
 				var existing: Dictionary = new_state["entities"][entity_id].duplicate(true)

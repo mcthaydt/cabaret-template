@@ -10,10 +10,6 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 const EVENT_ENTITY_JUMPED := StringName("entity_jumped")
 const EVENT_ENTITY_LANDED := StringName("entity_landed")
 
-@export var debug_logs_enabled: bool = false
-
-# [DEBUG] Track previous floor state to detect walk-off events
-var _previous_floor_states: Dictionary = {}
 
 func process_tick(_delta: float) -> void:
 	# Skip processing if game is paused
@@ -82,18 +78,11 @@ func process_tick(_delta: float) -> void:
 				"vertical_velocity": body.velocity.y,
 			}
 			U_ECSEventBus.publish(EVENT_ENTITY_LANDED, landing_payload)
-			if debug_logs_enabled:
-				print("[Jump] %s landed vY=%.3f supported_now=%s" % [str(body.name), float(body.velocity.y), str(supported_now)])
-			
+
 			# Phase 16: Update entity snapshot with floor state (Entity Coordination Pattern)
 			if store:
 				var entity_id: String = _get_entity_id(body)
 				if not entity_id.is_empty():
-					# [DEBUG] Log landing event dispatch
-					print("[S_JumpSystem] LANDING EVENT - Dispatching is_on_floor=TRUE for Entity: %s, Frame: %d" % [
-						entity_id,
-						Engine.get_physics_frames()
-					])
 					store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, {
 						"is_on_floor": true
 					}))
@@ -115,14 +104,6 @@ func process_tick(_delta: float) -> void:
 				"has_air_jumps": component.has_air_jumps_remaining(),
 				"recent_apex": component.has_recent_apex(now),
 			})
-			if debug_logs_enabled and Input.is_action_just_pressed(StringName("jump")):
-				print("[Jump] %s request missed: buffered?=%s buffer=%.2fs supported_now=%s support_recent=%s" % [
-					str(body.name),
-					"no",  # we only log when request not registered via buffer
-					float(component.settings.jump_buffer_time),
-					str(supported_now),
-					str(support_recent)
-				])
 			continue
 
 		if not component.can_jump(now):
@@ -134,17 +115,6 @@ func process_tick(_delta: float) -> void:
 				"has_air_jumps": component.has_air_jumps_remaining(),
 				"recent_apex": component.has_recent_apex(now),
 			})
-			if debug_logs_enabled:
-				var reason := ""
-				if not support_recent and not component.has_air_jumps_remaining():
-					reason = "no support, coyote expired, no air jumps"
-				elif not support_recent and component.has_air_jumps_remaining():
-					reason = "no support, coyote expired, using air jumps later"
-				else:
-					reason = "unknown gating"
-				print("[Jump] %s suppressed: %s (on_floor=%s float_now=%s float_recent=%s)" % [
-					str(body.name), reason, str(is_on_floor_raw), str(floating_supported_now), str(has_floating_support)
-				])
 			continue
 
 		if not input_component.consume_jump_request():
@@ -156,20 +126,11 @@ func process_tick(_delta: float) -> void:
 		body.velocity = velocity
 		if floating_component != null:
 			floating_component.reset_recent_support(now, component.settings.coyote_time)
-		if debug_logs_enabled:
-			print("[Jump] %s JUMP performed force=%.2f supported_now=%s support_recent=%s" % [
-				str(body.name), float(component.settings.jump_force), str(supported_now), str(support_recent)
-			])
-		
+
 		# Phase 16: Update entity snapshot with floor state (Entity Coordination Pattern)
 		if store:
 			var entity_id: String = _get_entity_id(body)
 			if not entity_id.is_empty():
-				# [DEBUG] Log jump event dispatch
-				print("[S_JumpSystem] JUMP EVENT - Dispatching is_on_floor=FALSE for Entity: %s, Frame: %d" % [
-					entity_id,
-					Engine.get_physics_frames()
-				])
 				store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, {
 					"is_on_floor": false
 				}))
@@ -197,30 +158,6 @@ func process_tick(_delta: float) -> void:
 			"jump_force": component.settings.jump_force if component.settings != null else 0.0,
 		}
 		U_ECSEventBus.publish(EVENT_ENTITY_JUMPED, event_payload)
-
-	# [DEBUG] Track floor state changes at end of loop (runs for all entities)
-	# This detects walk-off events where is_on_floor changes without a jump/land event
-	for entity_query in entities:
-		var component: C_JumpComponent = entity_query.get_component(JUMP_TYPE)
-		if component == null:
-			continue
-		var body = component.get_character_body()
-		if body == null:
-			continue
-
-		var is_on_floor_raw: bool = body.is_on_floor()
-		var entity_id: String = _get_entity_id(body)
-		var previous_on_floor: bool = _previous_floor_states.get(entity_id, is_on_floor_raw)
-
-		if previous_on_floor != is_on_floor_raw:
-			print("[S_JumpSystem] FLOOR STATE CHANGED - Entity: %s, Previous: %s, Current: %s, Frame: %d (Check if dispatch occurred above)" % [
-				entity_id,
-				"TRUE" if previous_on_floor else "FALSE",
-				"TRUE" if is_on_floor_raw else "FALSE",
-				Engine.get_physics_frames()
-			])
-
-		_previous_floor_states[entity_id] = is_on_floor_raw
 
 ## Phase 16: Get entity ID from body for state coordination
 func _get_entity_id(body: Node) -> String:
