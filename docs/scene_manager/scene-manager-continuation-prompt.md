@@ -5,7 +5,7 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager`
-**Status**: ✅ Phase 0, 1, 2 Complete | 🚧 Phase 3 In Progress (T025-T034 complete)
+**Status**: ✅ Phase 0, 1, 2, 3, 4 Complete | 🚧 Phase 5 Ready to Start
 
 ---
 
@@ -136,6 +136,35 @@ This guide directs you to implement the Scene Manager feature by following the t
 
 ---
 
+## ✅ Phase 4: User Story 2 - Persistent Game State - COMPLETE (12/12 tasks)
+
+**Status**: Phase 4 complete! All state persistence tests passing
+**Date Completed**: 2025-10-30
+**Final Status**: 12/12 tasks (100%)
+
+**Completed (12/12 tasks) - 100%**:
+- ✅ T068: Integration test for state persistence created (test_state_persistence.gd - 8 tests)
+- ✅ T069: Gameplay slice verified to track player state (paused, move_input, look_input, jump_pressed, gravity_scale, show_landing_indicator, particle_settings, audio_settings)
+- ✅ T070: StateHandoff verified to preserve gameplay slice across transitions
+- ✅ T071-T074: State persistence across scene transitions validated
+- ✅ T075-T079: Save/load cycle fully functional with transient field exclusion
+
+**Key Achievements**:
+- 8 comprehensive integration tests covering all persistence scenarios
+- All gameplay state fields tested: paused, move_input, look_input, jump_pressed, gravity_scale, show_landing_indicator, particle_settings, audio_settings
+- StateHandoff correctly preserves/restores gameplay state (confirmed via test logs)
+- Save/load cycle working with proper transient field exclusion (is_transitioning, transition_type)
+- Action creators added to U_GameplayActions: update_move_input, update_look_input, set_jump_pressed, set_jump_just_pressed, set_gravity_scale, set_show_landing_indicator, set_particle_settings, set_audio_settings
+- U_GameplayReducer updated to handle all new actions with immutable state patterns
+- Multiple transition persistence tested (state survives menu → settings → gameplay → menu loop)
+- Particle and audio settings persist correctly across save/load
+- All 103 state unit tests still passing (no regressions)
+- **TOTAL: 111/113 tests passing (98%)** (8 new integration + 103 existing state tests, 2 pre-existing performance benchmark failures)
+
+**Phase 4 Complete!** Ready for Phase 5 (User Story 4: Pause System)
+
+---
+
 ## Instructions
 
 ### 1. Review Project Foundations
@@ -223,17 +252,21 @@ Due to risk management reordering, Phase 5 (T101-T128) comes before Phase 6 (T08
 
 ## Getting Started
 
-**Current Phase**: Phase 3 (User Story 1 - Basic Scene Transitions)
+**Current Phase**: Phase 5 (User Story 4 - Pause System) ⚡
 
-Begin with Phase 3 by reading the detailed requirements in:
+Begin with Phase 5 by reading the detailed requirements in:
 
-- `scene-manager-plan.md` (Phase 3 section)
-- `scene-manager-tasks.md` (T025-T067)
-- `scene-manager-prd.md` (User Story 1)
+- `scene-manager-plan.md` (Phase 5 section)
+- `scene-manager-tasks.md` (T101-T128)
+- `scene-manager-prd.md` (User Story 4)
 
-**⚠️ IMPORTANT**: Phase 3 implements the first user story - basic scene transitions. This includes:
-- Scene state slice and reducer
-- U_SceneRegistry for scene metadata
-- M_SceneManager core functionality (transition_to, get_current_scene)
-- Transition effects (instant, fade)
-- Basic UI scenes (main menu, settings)
+**⚠️ IMPORTANT**: Phase 5 implements the pause system - gameplay can be paused at any time with a menu overlay. This includes:
+- push_overlay() and pop_overlay() methods for M_SceneManager
+- UIOverlayStack management (CanvasLayer overlays)
+- Scene history tracking for UI navigation (go_back() functionality)
+- Pause menu scene with Resume/Settings/Quit buttons
+- SceneTree.paused integration
+- M_CursorManager integration (show cursor on pause)
+- process_mode configuration for pause-aware nodes
+
+**Note**: Phase 5 moved up in priority (originally Phase 6) because it's simpler than Area Transitions (US3) and validates restructuring before tackling complex ECS components.

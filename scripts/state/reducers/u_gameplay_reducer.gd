@@ -23,7 +23,47 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			var new_state: Dictionary = state.duplicate(true)
 			new_state.paused = false
 			return new_state
-		
+
+		U_GameplayActions.ACTION_UPDATE_MOVE_INPUT:
+			var new_state: Dictionary = state.duplicate(true)
+			new_state.move_input = action.get("payload", Vector2.ZERO)
+			return new_state
+
+		U_GameplayActions.ACTION_UPDATE_LOOK_INPUT:
+			var new_state: Dictionary = state.duplicate(true)
+			new_state.look_input = action.get("payload", Vector2.ZERO)
+			return new_state
+
+		U_GameplayActions.ACTION_SET_JUMP_PRESSED:
+			var new_state: Dictionary = state.duplicate(true)
+			new_state.jump_pressed = action.get("payload", false)
+			return new_state
+
+		U_GameplayActions.ACTION_SET_JUMP_JUST_PRESSED:
+			var new_state: Dictionary = state.duplicate(true)
+			new_state.jump_just_pressed = action.get("payload", false)
+			return new_state
+
+		U_GameplayActions.ACTION_SET_GRAVITY_SCALE:
+			var new_state: Dictionary = state.duplicate(true)
+			new_state.gravity_scale = action.get("payload", 1.0)
+			return new_state
+
+		U_GameplayActions.ACTION_SET_SHOW_LANDING_INDICATOR:
+			var new_state: Dictionary = state.duplicate(true)
+			new_state.show_landing_indicator = action.get("payload", true)
+			return new_state
+
+		U_GameplayActions.ACTION_SET_PARTICLE_SETTINGS:
+			var new_state: Dictionary = state.duplicate(true)
+			new_state.particle_settings = action.get("payload", {}).duplicate(true)
+			return new_state
+
+		U_GameplayActions.ACTION_SET_AUDIO_SETTINGS:
+			var new_state: Dictionary = state.duplicate(true)
+			new_state.audio_settings = action.get("payload", {}).duplicate(true)
+			return new_state
+
 		U_TransitionActions.ACTION_TRANSITION_TO_GAMEPLAY:
 			# Apply menu config to gameplay state
 			var new_state: Dictionary = state.duplicate(true)
