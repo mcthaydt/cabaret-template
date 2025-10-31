@@ -35,6 +35,9 @@ class_name RS_GameplayInitialState
 	"pitch_scale": 1.0
 }
 
+# Area transition state (writable)
+@export var target_spawn_point: StringName = StringName("")
+
 # Entity snapshots (read-only coordination layer)
 # Populated at runtime by systems dispatching U_EntityActions.update_entity_snapshot()
 # Structure: { "entity_id": { position, velocity, rotation, is_on_floor, is_moving, entity_type, health } }
@@ -55,6 +58,8 @@ func to_dictionary() -> Dictionary:
 		"show_landing_indicator": show_landing_indicator,
 		"particle_settings": particle_settings.duplicate(true),
 		"audio_settings": audio_settings.duplicate(true),
+		# Area transition state (writable)
+		"target_spawn_point": target_spawn_point,
 		# Entity snapshots (read-only coordination layer)
 		"entities": entities.duplicate(true)
 	}

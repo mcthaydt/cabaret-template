@@ -16,6 +16,7 @@ const ACTION_SET_GRAVITY_SCALE := StringName("gameplay/set_gravity_scale")
 const ACTION_SET_SHOW_LANDING_INDICATOR := StringName("gameplay/set_show_landing_indicator")
 const ACTION_SET_PARTICLE_SETTINGS := StringName("gameplay/set_particle_settings")
 const ACTION_SET_AUDIO_SETTINGS := StringName("gameplay/set_audio_settings")
+const ACTION_SET_TARGET_SPAWN_POINT := StringName("gameplay/set_target_spawn_point")
 
 ## Static initializer - automatically registers actions
 static func _static_init() -> void:
@@ -29,6 +30,7 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SET_SHOW_LANDING_INDICATOR)
 	U_ActionRegistry.register_action(ACTION_SET_PARTICLE_SETTINGS)
 	U_ActionRegistry.register_action(ACTION_SET_AUDIO_SETTINGS)
+	U_ActionRegistry.register_action(ACTION_SET_TARGET_SPAWN_POINT)
 
 ## Create a pause game action
 static func pause_game() -> Dictionary:
@@ -98,4 +100,11 @@ static func set_audio_settings(settings: Dictionary) -> Dictionary:
 	return {
 		"type": ACTION_SET_AUDIO_SETTINGS,
 		"payload": settings.duplicate(true)  # Deep copy for immutability
+	}
+
+## Set target spawn point for area transitions
+static func set_target_spawn_point(spawn_point: StringName) -> Dictionary:
+	return {
+		"type": ACTION_SET_TARGET_SPAWN_POINT,
+		"payload": spawn_point
 	}

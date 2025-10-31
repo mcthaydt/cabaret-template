@@ -64,6 +64,11 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			new_state.audio_settings = action.get("payload", {}).duplicate(true)
 			return new_state
 
+		U_GameplayActions.ACTION_SET_TARGET_SPAWN_POINT:
+			var new_state: Dictionary = state.duplicate(true)
+			new_state.target_spawn_point = action.get("payload", StringName(""))
+			return new_state
+
 		U_TransitionActions.ACTION_TRANSITION_TO_GAMEPLAY:
 			# Apply menu config to gameplay state
 			var new_state: Dictionary = state.duplicate(true)

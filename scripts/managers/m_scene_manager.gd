@@ -16,6 +16,7 @@ class_name M_SceneManager
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const M_CURSOR_MANAGER := preload("res://scripts/managers/m_cursor_manager.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const INSTANT_TRANSITION := preload("res://scripts/scene_management/transitions/instant_transition.gd")
 const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/fade_transition.gd")
@@ -249,6 +250,9 @@ func _perform_transition(request: TransitionRequest) -> void:
 		# Add new scene to ActiveSceneContainer
 		if _active_scene_container != null:
 			_add_scene(new_scene)
+
+		# Restore player spawn point if transitioning from door trigger
+		_restore_player_spawn_point(new_scene)
 
 		scene_swap_complete[0] = true
 
@@ -523,6 +527,89 @@ func go_back() -> void:
 	# Transition to that scene
 	# Use HIGH priority to jump the queue for back navigation
 	transition_to_scene(previous_scene, "instant", Priority.HIGH)
+
+## Restore player to spawn point after area transition (T095)
+func _restore_player_spawn_point(loaded_scene: Node) -> void:
+	if _store == null:
+		return
+
+	# Get target spawn point from gameplay state
+	var state: Dictionary = _store.get_state()
+	var gameplay_state: Dictionary = state.get("gameplay", {})
+	var target_spawn: StringName = gameplay_state.get("target_spawn_point", StringName(""))
+
+	# If no spawn point specified, do nothing (normal scene transition)
+	if target_spawn.is_empty():
+		return
+
+	# Find spawn point node in loaded scene
+	var spawn_node: Node3D = _find_spawn_point(loaded_scene, target_spawn)
+	if spawn_node == null:
+		push_warning("M_SceneManager: Spawn point '%s' not found in scene" % target_spawn)
+		# Clear spawn point even if not found to prevent repeated warnings
+		_clear_target_spawn_point()
+		return
+
+	# Find player entity in loaded scene
+	var player: Node3D = _find_player_entity(loaded_scene)
+	if player == null:
+		push_warning("M_SceneManager: Player entity not found in scene for spawn restoration")
+		_clear_target_spawn_point()
+		return
+
+	# Position player at spawn point
+	player.global_position = spawn_node.global_position
+	player.global_rotation = spawn_node.global_rotation
+
+	# Clear target spawn point from state (one-time use)
+	_clear_target_spawn_point()
+
+## Find spawn point node by name in scene tree
+func _find_spawn_point(scene_root: Node, spawn_name: StringName) -> Node3D:
+	# Search for spawn point marker (Node3D with matching name)
+	var spawn_points: Array = []
+	_find_nodes_by_name(scene_root, spawn_name, spawn_points)
+
+	if spawn_points.is_empty():
+		return null
+
+	# Return first match
+	return spawn_points[0] as Node3D
+
+## Find player entity in scene (node with name starting with "E_Player")
+func _find_player_entity(scene_root: Node) -> Node3D:
+	var players: Array = []
+	_find_nodes_by_prefix(scene_root, "E_Player", players)
+
+	if players.is_empty():
+		return null
+
+	return players[0] as Node3D
+
+## Recursive helper to find nodes by exact name
+func _find_nodes_by_name(node: Node, target_name: StringName, results: Array) -> void:
+	if node.name == target_name:
+		results.append(node)
+
+	for child in node.get_children():
+		_find_nodes_by_name(child, target_name, results)
+
+## Recursive helper to find nodes by name prefix
+func _find_nodes_by_prefix(node: Node, prefix: String, results: Array) -> void:
+	if node.name.begins_with(prefix):
+		results.append(node)
+
+	for child in node.get_children():
+		_find_nodes_by_prefix(child, prefix, results)
+
+## Clear target spawn point from gameplay state
+func _clear_target_spawn_point() -> void:
+	if _store == null:
+		return
+
+	# Dispatch action to clear spawn point
+	var clear_action: Dictionary = U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName(""))
+	_store.dispatch(clear_action)
 
 ## Update scene history based on scene type (T111-T113)
 func _update_scene_history(target_scene_id: StringName) -> void:
