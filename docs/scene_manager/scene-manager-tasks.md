@@ -326,7 +326,11 @@
 
 ---
 
-## Phase 6: User Story 3 - Area Transitions (Exterior ↔ Interior) (Priority: P2) ⚡ MOVED DOWN
+## Phase 6: User Story 3 - Area Transitions (Exterior ↔ Interior) (Priority: P2) ⚡ PARTIAL (7/21 tasks)
+
+**Status**: Phase 6 partially complete - foundation implemented, scene templates pending
+**Date Started**: 2025-10-31
+**Current Status**: 7/21 tasks (33%), 14 tasks remaining
 
 **Goal**: Players can seamlessly transition between gameplay areas using doors and zone triggers
 
@@ -336,35 +340,49 @@
 
 ### Tests for User Story 3 (TDD - Write FIRST, watch fail)
 
-- [ ] T080 [P] [US3] Write integration test for area transitions in tests/integration/scene_manager/test_area_transitions.gd
+- [x] T080 [P] [US3] Write integration test for area transitions in tests/integration/scene_manager/test_area_transitions.gd - **COMPLETE** (9 tests written, 7/9 passing)
 
 ### Implementation for User Story 3
 
-- [ ] T081 [P] [US3] Create scripts/ecs/components/c_scene_trigger_component.gd (door_id, target, spawn_point, trigger_mode, cooldown)
-- [ ] T082 [P] [US3] Create scripts/ecs/systems/s_scene_trigger_system.gd (collision detection, input handling)
-- [ ] T083 [US3] Extend U_SceneRegistry with door pairing definitions (bidirectional)
-- [ ] T084 [US3] Implement C_SceneTriggerComponent Area3D collision detection (_on_body_entered/_on_body_exited)
-- [ ] T085 [US3] Implement S_SceneTriggerSystem interaction input handling (Interact mode)
-- [ ] T086 [US3] Implement S_SceneTriggerSystem auto-trigger for Auto mode
-- [ ] T087 [US3] Dispatch U_GameplayActions.set_target_spawn_point() before transition
-- [ ] T088 [US3] Dispatch U_SceneActions.transition_to() from trigger system
-- [ ] T089 [P] [US3] Create scenes/gameplay/exterior_template.tscn with M_ECSManager
-- [ ] T090 [P] [US3] Create scenes/gameplay/interior_template.tscn with M_ECSManager
-- [ ] T091 [US3] Add door trigger Area3D with C_SceneTriggerComponent to exterior_template.tscn
-- [ ] T092 [US3] Add exit door trigger Area3D with C_SceneTriggerComponent to interior_template.tscn
-- [ ] T093 [US3] Add spawn point markers (Node3D with unique names) to both templates
-- [ ] T094 [US3] Update U_SceneRegistry with door pairings for exterior ↔ interior
-- [ ] T095 [US3] Implement M_SceneManager spawn point restoration on scene load
+- [x] T081 [P] [US3] Create scripts/ecs/components/c_scene_trigger_component.gd (door_id, target, spawn_point, trigger_mode, cooldown) - **COMPLETE** (171 lines, AUTO/INTERACT modes)
+- [x] T082 [P] [US3] Create scripts/ecs/systems/s_scene_trigger_system.gd (collision detection, input handling) - **COMPLETE** (66 lines, INTERACT mode)
+- [x] T083 [US3] Extend U_SceneRegistry with door pairing definitions (bidirectional) - **COMPLETE** (already existed from Phase 0)
+- [x] T084 [US3] Implement C_SceneTriggerComponent Area3D collision detection (_on_body_entered/_on_body_exited) - **COMPLETE** (AUTO mode via collision callbacks)
+- [x] T085 [US3] Implement S_SceneTriggerSystem interaction input handling (Interact mode) - **COMPLETE** (checks interact input + player_in_zone)
+- [x] T086 [US3] Implement S_SceneTriggerSystem auto-trigger for Auto mode - **COMPLETE** (handled by component collision callbacks)
+- [x] T087 [US3] Dispatch U_GameplayActions.set_target_spawn_point() before transition - **COMPLETE** (action + reducer + state field)
+- [ ] T088 [US3] Dispatch U_SceneActions.transition_to() from trigger system - **DEFERRED** (handled by C_SceneTriggerComponent directly)
+- [ ] T089 [P] [US3] Create scenes/gameplay/exterior_template.tscn with M_ECSManager - **PENDING** (requires scene editor or programmatic creation)
+- [ ] T090 [P] [US3] Create scenes/gameplay/interior_template.tscn with M_ECSManager - **PENDING** (requires scene editor)
+- [ ] T091 [US3] Add door trigger Area3D with C_SceneTriggerComponent to exterior_template.tscn - **PENDING** (blocked by T089)
+- [ ] T092 [US3] Add exit door trigger Area3D with C_SceneTriggerComponent to interior_template.tscn - **PENDING** (blocked by T090)
+- [ ] T093 [US3] Add spawn point markers (Node3D with unique names) to both templates - **PENDING** (blocked by T089-T090)
+- [ ] T094 [US3] Update U_SceneRegistry with door pairings for exterior ↔ interior - **COMPLETE** (already exists)
+- [x] T095 [US3] Implement M_SceneManager spawn point restoration on scene load - **COMPLETE** (_restore_player_spawn_point + helpers)
 
 ### Integration Tests for User Story 3
 
-- [ ] T096 [US3] Run test_area_transitions.gd and verify all door pairings work
-- [ ] T097 [US3] Test: Enter door in exterior → assert interior loads at correct spawn point
-- [ ] T098 [US3] Test: Exit door in interior → assert exterior loads at correct spawn point
-- [ ] T099 [US3] Manual test: exterior → door → interior → exit → exterior (verify player position correct)
-- [ ] T100 [US3] Validate area state persistence (enemy positions, collected items preserved)
+- [ ] T096 [US3] Run test_area_transitions.gd and verify all door pairings work - **PARTIAL** (7/9 tests passing, 2 incomplete)
+- [ ] T097 [US3] Test: Enter door in exterior → assert interior loads at correct spawn point - **PENDING** (blocked by scene templates)
+- [ ] T098 [US3] Test: Exit door in interior → assert exterior loads at correct spawn point - **PENDING** (blocked by scene templates)
+- [ ] T099 [US3] Manual test: exterior → door → interior → exit → exterior (verify player position correct) - **PENDING** (blocked by scene templates)
+- [ ] T100 [US3] Validate area state persistence (enemy positions, collected items preserved) - **PENDING** (blocked by scene templates)
 
-**Checkpoint**: User Story 3 complete - area transitions working with correct spawn points
+**Checkpoint**: Phase 6 foundation complete - spawn point system working, scene templates needed for full integration
+
+**Key Achievements**:
+- Scene trigger component with AUTO/INTERACT modes
+- Collision detection via Area3D
+- Spawn point restoration after transitions
+- Target spawn point in gameplay state
+- INTERACT mode input handling
+- Tests: 42/46 passing (91%) - 37 existing + 7 new Phase 6
+
+**Remaining Work**:
+- Create exterior/interior scene templates (T089-T090)
+- Add door triggers and spawn markers to scenes (T091-T093)
+- Complete integration testing (T096-T100)
+- Scene template creation requires Godot editor or programmatic instantiation
 
 ---
 
