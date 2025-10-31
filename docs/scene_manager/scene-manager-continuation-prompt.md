@@ -189,6 +189,8 @@ This guide directs you to implement the Scene Manager feature by following the t
 - Gameplay scenes clear history (T113 - FR-078 compliance)
 - Cursor management integrated (visible on pause, hidden on unpause)
 - SceneTree.paused integration working
+- Gameplay.paused in state mirrors overlay presence for HUD reactivity
+- Registry now points pause_menu to `scenes/ui/pause_menu.tscn` (replacing test scene path)
 - process_mode configuration correct (PROCESS_MODE_ALWAYS for overlays)
 - All 37 integration tests passing:
   * test_basic_transitions.gd: 13/13 ✅

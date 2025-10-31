@@ -296,6 +296,7 @@
 - [x] T119 [US4] Call M_CursorManager.set_cursor_visible(true) on pause - **COMPLETE** (_update_pause_state:354)
 - [x] T120 [US4] Call M_CursorManager.set_cursor_visible(false) on unpause - **COMPLETE** (_update_pause_state:356)
 - [x] T121 [US4] Set get_tree().paused = false when pause overlay popped - **COMPLETE** (_update_pause_state:350)
+- [x] T121.5 [US4] Sync gameplay.paused in state with overlay presence for HUD - **COMPLETE** (M_SceneManager._update_pause_state:392-402)
 - [x] T122 [US4] Configure process_mode for pause-aware nodes (PROCESS_MODE_PAUSABLE vs PROCESS_MODE_ALWAYS) - **COMPLETE** (UIOverlayStack PROCESS_MODE_ALWAYS, overlay scenes configured:338)
 
 ### Integration Tests for User Story 4
@@ -305,6 +306,7 @@
 - [x] T125 [US4] Test: Verify ECS systems stop processing during pause - **COMPLETE** (test_pause_during_gameplay_freezes_ecs_systems passing)
 - [x] T126 [US4] Test: Unpause → assert gameplay resumes exactly (no state drift, no time advancement) - **COMPLETE** (test_unpause_resumes_exactly passing)
 - [x] T127 [US4] Test: Nested pause (gameplay → pause → settings → back through stack) - **COMPLETE** (test_nested_pause_overlays_stack_correctly passing)
+  - Notes: pause_menu is now the real UI scene at `scenes/ui/pause_menu.tscn` (registry updated)
 - [ ] T128 [US4] Manual test: Pause mid-air, verify player position unchanged on unpause - **DEFERRED** (requires GUI, like previous phases)
 
 **Checkpoint**: ✅ User Story 4 complete - pause system working, restructuring validated with tests passing
@@ -326,7 +328,7 @@
 
 ---
 
-## Phase 6: User Story 3 - Area Transitions (Exterior ↔ Interior) (Priority: P2) ⚡ PARTIAL (9/21 tasks)
+## Phase 6: User Story 3 - Area Transitions (Exterior ↔ Interior) (Priority: P2) ⚡ PARTIAL (20/21 tasks)
 
 **Status**: Phase 6 partially complete - foundation implemented, scene templates pending
 **Date Started**: 2025-10-31
