@@ -63,9 +63,6 @@ var _pending_transition: bool = false
 func _ready() -> void:
 	super._ready()
 
-	# Set initial cooldown to prevent immediate re-triggering on scene load
-	_cooldown_remaining = cooldown_duration
-
 	# Create Area3D for collision detection
 	_create_trigger_area()
 
@@ -104,17 +101,26 @@ func _process(delta: float) -> void:
 ## Callback when body enters trigger area
 func _on_body_entered(body: Node3D) -> void:
 	# Check if it's the player (check body or its owner for "player" group)
+	print_debug("[SceneTrigger] body_entered: ", body,
+		" in_player_zone_before=", _player_in_zone,
+		" cooldown_remaining=", _cooldown_remaining,
+		" pending=", _pending_transition,
+		" trigger_mode=", trigger_mode)
 	if _is_player(body):
 		_player_in_zone = true
-
 		# If AUTO mode, trigger transition immediately
 		if trigger_mode == TriggerMode.AUTO and _can_trigger():
 			_trigger_transition()
+		else:
+			print_debug("[SceneTrigger] body_entered: player but cannot trigger; mode=", trigger_mode)
+	else:
+		print_debug("[SceneTrigger] body_entered: non-player body=", body)
 
 ## Callback when body exits trigger area
 func _on_body_exited(body: Node3D) -> void:
 	if _is_player(body):
 		_player_in_zone = false
+		print_debug("[SceneTrigger] body_exited: ", body)
 
 ## Check if body belongs to player entity
 func _is_player(body: Node3D) -> bool:
@@ -132,14 +138,17 @@ func _is_player(body: Node3D) -> bool:
 	if owner_node != null and owner_node.is_in_group("player"):
 		return true
 
+	print_debug("[SceneTrigger] _is_player: NOT player; body=", body, " parent=", body.get_parent())
 	return false
 
 ## Check if trigger can fire (not on cooldown)
 func _can_trigger() -> bool:
 	if _pending_transition:
+		print_debug("[SceneTrigger] _can_trigger: false (pending_transition)")
 		return false
 
 	if _cooldown_remaining > 0.0:
+		print_debug("[SceneTrigger] _can_trigger: false (cooldown ", _cooldown_remaining, ")")
 		return false
 
 	# Guard against re-entry while a scene transition is underway
@@ -147,6 +156,7 @@ func _can_trigger() -> bool:
 	if store != null:
 		var scene_state: Dictionary = store.get_slice(StringName("scene"))
 		if scene_state.get("is_transitioning", false):
+			print_debug("[SceneTrigger] _can_trigger: false (scene.is_transitioning)")
 			return false
 
 	# Also check SceneManager if available
@@ -154,6 +164,7 @@ func _can_trigger() -> bool:
 	if managers.size() > 0:
 		var mgr = managers[0]
 		if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
+			print_debug("[SceneTrigger] _can_trigger: false (manager.is_transitioning)")
 			return false
 
 	return true
@@ -195,7 +206,9 @@ func _trigger_transition() -> void:
 		door_id
 	)
 	var transition_type: String = door_data.get("transition_type", "fade")
-
+	print_debug("[SceneTrigger] triggering: door_id=", door_id, " target_scene=", target_scene_id, 
+		" spawn=", target_spawn_point, " current_scene=", _get_current_scene_id(store), 
+		" transition_type=", transition_type)
 	scene_manager.transition_to_scene(target_scene_id, transition_type, scene_manager.Priority.HIGH)
 
 ## Get current scene ID from state

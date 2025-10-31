@@ -31,7 +31,7 @@ script = ExtResource("7_cursor")
 
 [node name="M_SceneManager" type="Node" parent="Managers"]
 script = ExtResource("8_scene_manager")
-initial_scene_id = &"main_menu"
+initial_scene_id = &"exterior"
 
 [node name="ActiveSceneContainer" type="Node" parent="."]
 script = ExtResource("9_active_scene_container")
