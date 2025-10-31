@@ -44,33 +44,33 @@ func before_each() -> void:
 
 	await get_tree().process_frame
 
-func test_settings_replaces_pause_and_returns_properly() -> void:
-	# Given: In gameplay scene with pause overlay visible
+func test_settings_replaces_pause_overlay_and_returns_to_pause() -> void:
+	# Given: In gameplay with pause overlay visible
 	_scene_manager.transition_to_scene(StringName("gameplay_base"), "instant", M_SCENE_MANAGER.Priority.HIGH)
 	await wait_physics_frames(5)
 	_scene_manager.push_overlay(StringName("pause_menu"))
 	await get_tree().process_frame
 	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Pause overlay should be shown")
 
-	# When: Open settings from pause (should switch to settings scene and hide pause)
+	# When: Open settings from pause (replace overlay)
 	_scene_manager.open_settings_from_pause()
-	await wait_physics_frames(5)
+	await get_tree().process_frame
 
-	# Then: Overlay stack is empty, current_scene is settings_menu
-	assert_eq(_ui_overlay_stack.get_child_count(), 0, "Pause overlay should be removed while in settings")
-	var state: Dictionary = _state_store.get_state()
-	var scene_state: Dictionary = state.get("scene", {})
-	var current_scene: StringName = scene_state.get("current_scene_id", StringName(""))
-	assert_eq(current_scene, StringName("settings_menu"), "Should be in settings scene")
+	# Then: Still one overlay, and it should be settings_menu
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should still have one overlay (settings)")
+	# Verify the overlay has scene_id metadata set to settings_menu
+	var top := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1)
+	assert_true(top.has_meta(StringName("_scene_manager_overlay_scene_id")), "Overlay should have scene_id metadata")
+	var sid: Variant = top.get_meta(StringName("_scene_manager_overlay_scene_id"))
+	assert_true(StringName(sid) == StringName("settings_menu"), "Top overlay should be settings_menu")
 
-	# When: Back from settings
+	# When: Return from settings
 	_scene_manager.resume_from_settings()
-	await wait_physics_frames(5)
+	await get_tree().process_frame
 
-	# Then: Back to gameplay and pause overlay restored
-	state = _state_store.get_state()
-	scene_state = state.get("scene", {})
-	current_scene = scene_state.get("current_scene_id", StringName(""))
-	assert_eq(current_scene, StringName("gameplay_base"), "Should return to gameplay scene")
-	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Pause overlay should be restored after returning from settings")
-
+	# Then: Still one overlay, and it should be pause_menu
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have pause overlay after returning")
+	top = _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1)
+	assert_true(top.has_meta(StringName("_scene_manager_overlay_scene_id")))
+	sid = top.get_meta(StringName("_scene_manager_overlay_scene_id"))
+	assert_true(StringName(sid) == StringName("pause_menu"), "Top overlay should be pause_menu")

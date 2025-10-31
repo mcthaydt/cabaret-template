@@ -62,6 +62,7 @@ var _scene_history: Array[StringName] = []
 ## Pending return info for settings opened from pause
 var _pending_return_scene_id: StringName = StringName("")
 var _pending_overlay_after_transition: StringName = StringName("")
+var _settings_opened_from_pause: bool = false
 
 ## Store subscription
 var _unsubscribe: Callable
@@ -543,25 +544,29 @@ func _create_transition_effect(transition_type: String):
 
 ## Open settings as a full scene when invoked from pause
 func open_settings_from_pause() -> void:
-	# Record current gameplay scene to return to later and remove pause overlay
-	_pending_return_scene_id = _current_scene_id
-	if _ui_overlay_stack != null and _ui_overlay_stack.get_child_count() > 0:
-		pop_overlay()
-
-	# Transition to settings scene
-	transition_to_scene(StringName("settings_menu"), "instant", Priority.HIGH)
+	# Replace pause overlay with settings overlay (do not unpause or change base scene)
+	_settings_opened_from_pause = true
+	if _ui_overlay_stack != null:
+		# Remove pause overlay if present
+		if _ui_overlay_stack.get_child_count() > 0:
+			pop_overlay()
+		# Push settings overlay
+		push_overlay(StringName("settings_menu"))
 
 ## Resume back to gameplay and re-open pause after leaving settings
 func resume_from_settings() -> void:
-	if _pending_return_scene_id.is_empty():
-		# Nothing to resume to; ignore
+	# If opened from pause, return to pause overlay
+	if _settings_opened_from_pause:
+		_settings_opened_from_pause = false
+		# Pop settings overlay and re-open pause overlay
+		if _ui_overlay_stack != null and _ui_overlay_stack.get_child_count() > 0:
+			pop_overlay()
+		push_overlay(StringName("pause_menu"))
 		return
 
-	var target: StringName = _pending_return_scene_id
-	_pending_return_scene_id = StringName("")
-	# Schedule pause overlay to be restored after the transition completes
-	_pending_overlay_after_transition = StringName("pause_menu")
-	transition_to_scene(target, "instant", Priority.HIGH)
+	# Otherwise use history or stay
+	if can_go_back():
+		go_back()
 
 ## Get current scene type (helper for input handler)
 func _get_current_scene_type() -> int:
