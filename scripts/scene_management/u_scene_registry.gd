@@ -114,7 +114,7 @@ static func _register_scenes() -> void:
 
 	_register_scene(
 		StringName("pause_menu"),
-		"res://tests/scenes/test_pause_menu.tscn",
+		"res://scenes/ui/pause_menu.tscn",
 		SceneType.UI,
 		"instant",
 		0

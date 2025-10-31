@@ -17,6 +17,7 @@ signal pause_state_changed(is_paused: bool)
 var _store: M_StateStore = null
 var _cursor_manager: M_CursorManager = null
 var _is_paused: bool = false
+var _scene_manager: Node = null
 
 func _ready() -> void:
 	super._ready()
@@ -31,6 +32,11 @@ func _ready() -> void:
 		push_error("S_PauseSystem: Could not find M_StateStore")
 		return
 	
+	# Find Scene Manager (if present, prefer overlay-based pause)
+	var scene_managers: Array = get_tree().get_nodes_in_group("scene_manager")
+	if scene_managers.size() > 0:
+		_scene_manager = scene_managers[0]
+
 	# Get reference to cursor manager (optional - pause still works without it)
 	var cursor_managers: Array[Node] = get_tree().get_nodes_in_group("cursor_manager")
 	if cursor_managers.size() > 0:
@@ -67,17 +73,25 @@ func toggle_pause() -> void:
 	var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
 	var is_currently_paused: bool = U_GameplaySelectors.get_is_paused(gameplay_state)
 	
-	# Dispatch opposite action and update cursor
+	# Prefer overlay pattern when Scene Manager is available
+	if _scene_manager != null:
+		if is_currently_paused:
+			if _scene_manager.has_method("pop_overlay"):
+				_scene_manager.pop_overlay()
+		else:
+			if _scene_manager.has_method("push_overlay"):
+				_scene_manager.push_overlay(StringName("pause_menu"))
+		return
+
+	# Fallback: no Scene Manager — dispatch actions directly and manage cursor
 	if is_currently_paused:
-		# Unpause: lock cursor for gameplay
 		_store.dispatch(U_GameplayActions.unpause_game())
 		if _cursor_manager:
-			_cursor_manager.set_cursor_state(true, false)  # locked, hidden
+			_cursor_manager.set_cursor_state(true, false)
 	else:
-		# Pause: unlock cursor for UI interaction
 		_store.dispatch(U_GameplayActions.pause_game())
 		if _cursor_manager:
-			_cursor_manager.set_cursor_state(false, true)  # unlocked, visible
+			_cursor_manager.set_cursor_state(false, true)
 
 ## Handle state store slice updates
 func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:

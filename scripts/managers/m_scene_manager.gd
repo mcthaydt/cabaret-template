@@ -389,6 +389,18 @@ func _update_pause_state() -> void:
 	if get_tree().paused != should_pause:
 		get_tree().paused = should_pause
 
+	# Keep gameplay state in sync so HUD/selectors reflect pause status
+	if _store != null:
+		var gameplay_state: Dictionary = _store.get_slice(StringName("gameplay"))
+		var is_paused_in_state: bool = false
+		if not gameplay_state.is_empty():
+			is_paused_in_state = gameplay_state.get("paused", false)
+
+		if should_pause and not is_paused_in_state:
+			_store.dispatch(U_GAMEPLAY_ACTIONS.pause_game())
+		elif not should_pause and is_paused_in_state:
+			_store.dispatch(U_GAMEPLAY_ACTIONS.unpause_game())
+
 	if _cursor_manager != null:
 		if should_pause:
 			_cursor_manager.set_cursor_state(false, true)  # unlocked, visible
