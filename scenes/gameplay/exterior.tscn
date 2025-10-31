@@ -26,9 +26,9 @@
 [ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/settings/landing_particles_default.tres" id="10_landing_particles_settings"]
 [ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/hud_overlay.tscn" id="11_hud"]
 [ext_resource type="Script" uid="uid://d0n2a3p3tkdq0" path="res://scripts/scene_structure/managers_group.gd" id="12_klon2"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://mm82rwglfuba" path="res://scripts/scene_structure/entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/camera_template.tscn" id="19_ph0bl"]
+[ext_resource type="Script" uid="uid://cfntl6uuagy6m" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://cyt3uyx2c4mr2" path="res://scripts/ecs/components/c_scene_trigger_component.gd" id="30_trigger"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
@@ -173,16 +173,16 @@ script = ExtResource("16_8qi87")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
 
 [node name="exit_from_house" type="Node3D" parent="Entities/E_SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8749304, -0.31296825, 1.4028394)
 
 [node name="E_Player" parent="Entities" instance=ExtResource("7_4wxy1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1.9733102, 0)
 
 [node name="E_CameraRoot" parent="Entities" instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
 
 [node name="E_DoorTrigger" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
+script = ExtResource("16_8qi87")
 
 [node name="C_SceneTriggerComponent" type="Node" parent="Entities/E_DoorTrigger"]
 script = ExtResource("30_trigger")
