@@ -65,6 +65,7 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 	_tween = overlay.create_tween()
 	_tween.set_ease(easing_type)
 	_tween.set_trans(transition_type)
+	# No test-logs in production code; tests will assert
 
 	# Calculate half duration
 	var half_duration: float = duration / 2.0

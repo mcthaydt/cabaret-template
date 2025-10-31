@@ -248,6 +248,11 @@
 
 - **Fade transitions need adequate wait time in tests**: FadeTransition duration defaults to 0.2 seconds. Tests using fade transitions must wait at least 15 physics frames (0.25s at 60fps) for completion. Waiting only 4 frames (0.067s) will cause assertions to run before transitions complete, resulting in `is_transitioning` still being true or `current_scene_id` not yet updated. Use `await wait_physics_frames(15)` after fade transitions in tests.
 
+- **Tween process mode must match wait loop (idle vs physics)**: Headless runs can stall if a transition tween updates on one process domain while the manager waits on the other (e.g., tween on PHYSICS but loop yields IDLE frames). We removed the physics-only tween path and aligned the manager’s wait loop with idle frames again. This eliminates the idle/physics mismatch that previously stalled completion. Guidance:
+  - If you choose physics: set `_tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)`, wait with `await get_tree().physics_frame`, and prefer `await wait_physics_frames(...)` in tests.
+  - If you choose idle: keep the tween on default (IDLE), wait with `await get_tree().process_frame`, and prefer `await wait_seconds(...)` in tests.
+  - Avoid pausing the tree during fades unless the overlay/tween are explicitly configured to run while paused (e.g., container `process_mode = ALWAYS`).
+
 ## Test Coverage Status
 
 As of 2025-10-28 (Phase 3 In Progress):

@@ -147,6 +147,7 @@ func transition_to_scene(scene_id: StringName, transition_type: String, priority
 
 	# Add to queue based on priority
 	_enqueue_transition(request)
+	# Debug logs live in tests, not here
 
 	# Process queue if not already processing
 	if not _is_processing_transition:
