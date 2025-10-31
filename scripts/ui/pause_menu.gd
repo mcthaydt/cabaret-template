@@ -42,9 +42,9 @@ func _on_resume_pressed() -> void:
 func _on_settings_pressed() -> void:
 	settings_pressed.emit()
 
-	# Push settings overlay via Scene Manager
-	if _scene_manager != null and _scene_manager.has_method("push_overlay"):
-		_scene_manager.push_overlay(StringName("settings_menu"))
+	# Open settings as a full scene (hide pause while in settings)
+	if _scene_manager != null and _scene_manager.has_method("open_settings_from_pause"):
+		_scene_manager.open_settings_from_pause()
 
 func _on_quit_pressed() -> void:
 	quit_pressed.emit()

@@ -59,6 +59,10 @@ var _current_scene_id: StringName = StringName("")
 ## Only tracks UI/Menu scenes, cleared when entering gameplay
 var _scene_history: Array[StringName] = []
 
+## Pending return info for settings opened from pause
+var _pending_return_scene_id: StringName = StringName("")
+var _pending_overlay_after_transition: StringName = StringName("")
+
 ## Store subscription
 var _unsubscribe: Callable
 
@@ -226,6 +230,12 @@ func _process_transition_queue() -> void:
 	# Dispatch transition completed action
 	if _store != null:
 		_store.dispatch(U_SCENE_ACTIONS.transition_completed(request.scene_id))
+
+	# If a post-transition overlay was requested, push it now
+	if not _pending_overlay_after_transition.is_empty():
+		var overlay_to_push: StringName = _pending_overlay_after_transition
+		_pending_overlay_after_transition = StringName("")
+		push_overlay(overlay_to_push)
 
 	# Process next transition in queue
 	await get_tree().physics_frame
@@ -529,6 +539,29 @@ func _create_transition_effect(transition_type: String):
 			# Unknown type, use instant as fallback
 			push_warning("M_SceneManager: Unknown transition type '%s', using instant" % transition_type)
 			return INSTANT_TRANSITION.new()
+
+
+## Open settings as a full scene when invoked from pause
+func open_settings_from_pause() -> void:
+	# Record current gameplay scene to return to later and remove pause overlay
+	_pending_return_scene_id = _current_scene_id
+	if _ui_overlay_stack != null and _ui_overlay_stack.get_child_count() > 0:
+		pop_overlay()
+
+	# Transition to settings scene
+	transition_to_scene(StringName("settings_menu"), "instant", Priority.HIGH)
+
+## Resume back to gameplay and re-open pause after leaving settings
+func resume_from_settings() -> void:
+	if _pending_return_scene_id.is_empty():
+		# Nothing to resume to; ignore
+		return
+
+	var target: StringName = _pending_return_scene_id
+	_pending_return_scene_id = StringName("")
+	# Schedule pause overlay to be restored after the transition completes
+	_pending_overlay_after_transition = StringName("pause_menu")
+	transition_to_scene(target, "instant", Priority.HIGH)
 
 ## Get current scene type (helper for input handler)
 func _get_current_scene_type() -> int:
