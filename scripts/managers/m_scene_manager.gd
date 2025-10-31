@@ -54,6 +54,10 @@ var _is_processing_transition: bool = false
 ## Current scene tracking for reactive cursor updates
 var _current_scene_id: StringName = StringName("")
 
+## Scene history tracking for UI navigation (T109)
+## Only tracks UI/Menu scenes, cleared when entering gameplay
+var _scene_history: Array[StringName] = []
+
 ## Store subscription
 var _unsubscribe: Callable
 
@@ -100,6 +104,22 @@ func _exit_tree() -> void:
 	# Unsubscribe from state updates
 	if _unsubscribe != null and _unsubscribe.is_valid():
 		_unsubscribe.call()
+
+## Input handler for ESC pause trigger (T117)
+func _input(event: InputEvent) -> void:
+	# Check for ESC key to trigger pause
+	if event is InputEventKey:
+		var key_event := event as InputEventKey
+		if key_event.keycode == KEY_ESCAPE and key_event.pressed and not key_event.is_echo():
+			# Only pause if in gameplay scene and no overlays active
+			var scene_type: int = _get_current_scene_type()
+			if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY and _ui_overlay_stack.get_child_count() == 0:
+				push_overlay(StringName("pause_menu"))
+				get_viewport().set_input_as_handled()
+			# If already paused, ESC pops the top overlay (resume/back)
+			elif _ui_overlay_stack.get_child_count() > 0:
+				pop_overlay()
+				get_viewport().set_input_as_handled()
 
 ## Find container nodes in the scene tree
 func _find_container_nodes() -> void:
@@ -204,6 +224,9 @@ func _perform_transition(request: TransitionRequest) -> void:
 	if scene_path.is_empty():
 		push_error("M_SceneManager: No path for scene '%s'" % request.scene_id)
 		return
+
+	# Track scene history based on scene type (T111-T113)
+	_update_scene_history(request.scene_id)
 
 	# Create transition effect based on type
 	var transition_effect = _create_transition_effect(request.transition_type)
@@ -477,3 +500,46 @@ func _create_transition_effect(transition_type: String):
 			# Unknown type, use instant as fallback
 			push_warning("M_SceneManager: Unknown transition type '%s', using instant" % transition_type)
 			return INSTANT_TRANSITION.new()
+
+## Get current scene type (helper for input handler)
+func _get_current_scene_type() -> int:
+	if _current_scene_id.is_empty():
+		return -1
+	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(_current_scene_id)
+	return scene_data.get("scene_type", -1)
+
+## Check if can navigate back in history (T110)
+func can_go_back() -> bool:
+	return _scene_history.size() > 0
+
+## Navigate back to previous UI scene (T110)
+func go_back() -> void:
+	if not can_go_back():
+		return  # No history to go back to
+
+	# Pop the most recent scene from history
+	var previous_scene: StringName = _scene_history.pop_back()
+
+	# Transition to that scene
+	# Use HIGH priority to jump the queue for back navigation
+	transition_to_scene(previous_scene, "instant", Priority.HIGH)
+
+## Update scene history based on scene type (T111-T113)
+func _update_scene_history(target_scene_id: StringName) -> void:
+	# Get current and target scene types
+	var current_scene_type: int = _get_current_scene_type()
+	var target_scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(target_scene_id)
+	var target_scene_type: int = target_scene_data.get("scene_type", -1)
+
+	# T112: UI/Menu scenes automatically track history
+	# Add current scene to history BEFORE transitioning (if it's a UI/Menu scene)
+	var is_ui_or_menu: bool = (current_scene_type == U_SCENE_REGISTRY.SceneType.UI or
+								current_scene_type == U_SCENE_REGISTRY.SceneType.MENU)
+	if is_ui_or_menu and not _current_scene_id.is_empty():
+		# Avoid adding duplicate consecutive entries
+		if _scene_history.is_empty() or _scene_history.back() != _current_scene_id:
+			_scene_history.append(_current_scene_id)
+
+	# T113: Gameplay scenes explicitly disable history (clear history stack)
+	if target_scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
+		_scene_history.clear()

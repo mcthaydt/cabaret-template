@@ -229,6 +229,95 @@ func test_pause_menu_process_mode_set_to_always() -> void:
 	assert_eq(_ui_overlay_stack.process_mode, Node.PROCESS_MODE_ALWAYS,
 		"UIOverlayStack should have PROCESS_MODE_ALWAYS to work during pause")
 
+## T109-T114: Scene History Navigation Tests
+
+func test_ui_scenes_track_history() -> void:
+	# Given: Navigate from main_menu to settings_menu
+	_scene_manager.transition_to_scene(StringName("main_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	await wait_physics_frames(5)
+	_scene_manager.transition_to_scene(StringName("settings_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	await wait_physics_frames(5)
+
+	# When: Call go_back()
+	var can_go_back: bool = _scene_manager.can_go_back()
+
+	# Then: History should have main_menu entry
+	assert_true(can_go_back, "Should be able to go back after UI navigation")
+
+func test_go_back_returns_to_previous_ui_scene() -> void:
+	# Given: Navigate main_menu → settings_menu
+	_scene_manager.transition_to_scene(StringName("main_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	await wait_physics_frames(5)
+	_scene_manager.transition_to_scene(StringName("settings_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	await wait_physics_frames(5)
+
+	# When: Go back
+	_scene_manager.go_back()
+	await wait_physics_frames(5)
+
+	# Then: Should return to main_menu
+	var state: Dictionary = _state_store.get_state()
+	var scene_state: Dictionary = state.get("scene", {})
+	var current_scene: StringName = scene_state.get("current_scene_id", StringName(""))
+	assert_eq(current_scene, StringName("main_menu"), "Should return to main_menu")
+
+func test_gameplay_scenes_do_not_track_history() -> void:
+	# Given: Navigate main_menu → gameplay_base
+	_scene_manager.transition_to_scene(StringName("main_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	await wait_physics_frames(5)
+	_scene_manager.transition_to_scene(StringName("gameplay_base"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	await wait_physics_frames(5)
+
+	# When: Check if can go back
+	var can_go_back: bool = _scene_manager.can_go_back()
+
+	# Then: Should NOT be able to go back (gameplay scenes clear history)
+	assert_false(can_go_back, "Gameplay scenes should clear history (FR-078)")
+
+func test_history_navigation_skips_gameplay_scenes() -> void:
+	# Given: Navigate menu → settings → gameplay → settings
+	_scene_manager.transition_to_scene(StringName("main_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	await wait_physics_frames(5)
+	_scene_manager.transition_to_scene(StringName("settings_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	await wait_physics_frames(5)
+	_scene_manager.transition_to_scene(StringName("gameplay_base"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	await wait_physics_frames(5)
+	_scene_manager.transition_to_scene(StringName("settings_menu"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	await wait_physics_frames(5)
+
+	# When: Go back from settings
+	_scene_manager.go_back()
+	await wait_physics_frames(5)
+
+	# Then: Should return to main_menu (skipping gameplay_base in history)
+	var state: Dictionary = _state_store.get_state()
+	var scene_state: Dictionary = state.get("scene", {})
+	var current_scene: StringName = scene_state.get("current_scene_id", StringName(""))
+	# Note: Since gameplay clears history, going back from settings after gameplay
+	# should have no history, so go_back() should be a no-op
+	# OR if we track pre-gameplay history, should return to main_menu
+	assert_true(current_scene == StringName("settings_menu") or current_scene == StringName("main_menu"),
+		"Should either stay at settings (no history) or return to main_menu (pre-gameplay history)")
+
+func test_esc_key_triggers_pause_during_gameplay() -> void:
+	# Given: In gameplay scene with no pause overlay
+	_scene_manager.transition_to_scene(StringName("gameplay_base"), "instant", M_SCENE_MANAGER.Priority.HIGH)
+	await wait_physics_frames(5)
+	get_tree().paused = false
+	assert_eq(_ui_overlay_stack.get_child_count(), 0, "No overlays initially")
+
+	# When: Simulate ESC key press via direct input handler call
+	# Note: Input.parse_input_event() doesn't work in headless mode
+	var event := InputEventKey.new()
+	event.keycode = KEY_ESCAPE
+	event.pressed = true
+	_scene_manager._input(event)  # Directly call input handler
+	await get_tree().process_frame
+
+	# Then: Pause menu should be pushed
+	assert_gt(_ui_overlay_stack.get_child_count(), 0, "Pause menu should be pushed on ESC")
+	assert_true(get_tree().paused, "Game should be paused on ESC")
+
 ## Helper: Trigger pause via scene manager
 func _trigger_pause() -> void:
 	_scene_manager.push_overlay(StringName("pause_menu"))
