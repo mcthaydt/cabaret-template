@@ -5,7 +5,7 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager`
-**Status**: ✅ Phase 0, 1, 2, 3, 4, 5, 6 Complete | 🚀 Ready for Phase 7
+**Status**: ✅ Phase 0, 1, 2, 3, 4, 5 Complete | 🚧 Phase 6 Partial (86%) | 🚀 Ready for Phase 7
 
 ---
 
@@ -203,14 +203,13 @@ This guide directs you to implement the Scene Manager feature by following the t
 
 ---
 
-## ✅ Phase 6: User Story 3 - Area Transitions - COMPLETE (21/21 tasks)
+## 🚧 Phase 6: User Story 3 - Area Transitions - PARTIAL (18/21 tasks)
 
-**Status**: Phase 6 complete! All area transition features working
+**Status**: Phase 6 foundation complete, manual testing and entity persistence remain
 **Date Started**: 2025-10-31
-**Date Completed**: 2025-10-31
-**Final Status**: 21/21 tasks (100%)
+**Current Status**: 18/21 tasks (86%)
 
-**Completed (21/21 tasks) - 100%**:
+**Completed (18/21 tasks) - 86%**:
 - ✅ T080: Integration tests created (test_area_transitions.gd - 9 tests, 9/9 passing ✅)
 - ✅ T081: C_SceneTriggerComponent created (171 lines, AUTO/INTERACT modes, Area3D collision)
 - ✅ T082: S_SceneTriggerSystem created (66 lines, INTERACT mode input handling)
@@ -220,7 +219,12 @@ This guide directs you to implement the Scene Manager feature by following the t
 - ✅ T089-T090: Scene templates created programmatically (exterior.tscn, interior_house.tscn)
 - ✅ T091-T093: Door triggers and spawn markers added to both scenes
 - ✅ T095: Spawn point restoration implemented in M_SceneManager
-- ✅ T096-T100: All integration tests passing (9/9 tests ✅)
+- ✅ T096: Component-level integration tests passing (9/9 tests ✅)
+
+**Incomplete (3/21 tasks)**:
+- ⏸️ T097-T098: Full scene load transitions not tested (only component behavior validated)
+- ⏸️ T099: Manual GUI test required (exterior → interior → exterior player position verification)
+- ⏸️ T100: Real entity state persistence (enemy positions, collectibles) - requires entity spawning system, out of scope for basic transitions
 
 **Key Achievements**:
 - Scene trigger component with AUTO/INTERACT trigger modes
@@ -232,7 +236,7 @@ This guide directs you to implement the Scene Manager feature by following the t
 - INTERACT mode requires 'E' or 'F' key press while in trigger zone
 - **Programmatic scene generation** via U_SceneBuilder utility
 - exterior.tscn and interior_house.tscn created with door triggers and spawn markers
-- All integration tests passing: 9/9 tests ✅ (test_area_transitions.gd)
+- Component-level integration tests passing: 9/9 tests ✅ (test_area_transitions.gd)
 - **TOTAL TESTS: 46/46 passing (100%)** - 37 existing + 9 new Phase 6
 
 **Files Created**:
@@ -242,7 +246,12 @@ This guide directs you to implement the Scene Manager feature by following the t
 - `scenes/gameplay/interior_house.tscn` - Interior area with door_to_exterior trigger
 - `tests/utils/test_scene_generation.gd` - Scene generation validation tests
 
-**Phase 6 Complete!** Ready for Phase 7 (User Story 5: Transition Effects)
+**Remaining Work**:
+- Manual GUI testing of full transition flow (T099)
+- Full scene load transition tests (T097-T098)
+- Entity state persistence system (T100 - likely deferred to later phase)
+
+**Phase 6 Foundation Complete (86%)!** Core area transition system working, manual testing and entity persistence remain
 
 ---
 
@@ -358,6 +367,6 @@ Due to risk management reordering, Phase 5 (T101-T128) comes before Phase 6 (T08
 - Preload queue management
 - Read: `scene-manager-tasks.md` (T145-T161)
 
-**Phase 6 Status**: ✅ Complete (21/21 tasks) - All area transitions working with programmatically generated scenes!
+**Phase 6 Status**: 🚧 Partial (18/21 tasks - 86%) - Core system working, manual testing and entity persistence remain
 
 **Recommended Path**: Proceed to **Phase 7** (Transition Effects) → Phase 8 (Preloading) → Phase 9 (End-Game Flows) → Phase 10 (Polish)

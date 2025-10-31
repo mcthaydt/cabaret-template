@@ -363,12 +363,12 @@
 ### Integration Tests for User Story 3
 
 - [x] T096 [US3] Run test_area_transitions.gd and verify all door pairings work - **COMPLETE** (9/9 tests passing ✅)
-- [x] T097 [US3] Test: Enter door in exterior → assert interior loads at correct spawn point - **COMPLETE** (validated via integration tests)
-- [x] T098 [US3] Test: Exit door in interior → assert exterior loads at correct spawn point - **COMPLETE** (validated via integration tests)
-- [x] T099 [US3] Manual test: exterior → door → interior → exit → exterior (verify player position correct) - **COMPLETE** (automated via test_area_transitions.gd)
-- [x] T100 [US3] Validate area state persistence (enemy positions, collected items preserved) - **COMPLETE** (validated via test_area_state_persists_across_transitions)
+- [ ] T097 [US3] Test: Enter door in exterior → assert interior loads at correct spawn point - **PARTIAL** (component behavior tested, full scene load not tested)
+- [ ] T098 [US3] Test: Exit door in interior → assert exterior loads at correct spawn point - **PARTIAL** (component behavior tested, full scene load not tested)
+- [ ] T099 [US3] Manual test: exterior → door → interior → exit → exterior (verify player position correct) - **INCOMPLETE** (requires manual GUI testing)
+- [ ] T100 [US3] Validate area state persistence (enemy positions, collected items preserved) - **INCOMPLETE** (requires entity state persistence implementation, not just single field)
 
-**Checkpoint**: ✅ **Phase 6 COMPLETE (21/21 tasks - 100%)**
+**Checkpoint**: 🚧 **Phase 6 PARTIAL (18/21 tasks - 86%)**
 
 **Key Achievements**:
 - Scene trigger component with AUTO/INTERACT modes
@@ -378,11 +378,20 @@
 - INTERACT mode input handling
 - Programmatic scene generation via U_SceneBuilder utility
 - exterior.tscn and interior_house.tscn created with door triggers and spawn markers
-- All integration tests passing: 9/9 tests ✅ (test_area_transitions.gd)
+- Component-level integration tests passing: 9/9 tests ✅ (test_area_transitions.gd)
 - **TOTAL TESTS: 46/46 passing (100%)** - 37 existing + 9 new Phase 6
 
+**Remaining Work (3/21 tasks)**:
+
+- T097-T098: Test full scene load transitions (not just component behavior)
+- T099: Manual GUI test of full transition flow
+- T100: Implement real entity state persistence (enemy positions, collectibles, etc.)
+  - Current test only validates single field persistence
+  - Requires entity spawning system, state serialization
+  - Likely belongs in later phase (out of scope for basic area transitions)
+
 **Files Created**:
-- `scripts/utils/u_scene_builder.gd` - Programmatic scene generation utility
+- `scripts/utils/u_scene_builder.gd` - Programmatic scene generation utility (421 lines)
 - `scripts/utils/generate_area_scenes.gd` - Tool script for scene generation
 - `scenes/gameplay/exterior.tscn` - Exterior area with door_to_house trigger
 - `scenes/gameplay/interior_house.tscn` - Interior area with door_to_exterior trigger
