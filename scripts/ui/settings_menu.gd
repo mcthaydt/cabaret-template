@@ -35,16 +35,16 @@ func _ready() -> void:
 		back_button.text = "Back to Main Menu"
 
 func _on_back_pressed() -> void:
-    if _scene_manager == null:
-        return
+	if _scene_manager == null:
+		return
 
-    # If we have a pending return to pause, ask Scene Manager to resume
-    if _scene_manager.has_method("resume_from_settings"):
-        _scene_manager.resume_from_settings()
-        return
+	# If we have a pending return to pause, ask Scene Manager to resume
+	if _scene_manager.has_method("resume_from_settings"):
+		_scene_manager.resume_from_settings()
+		return
 
-    # Otherwise use UI history when available, falling back to main menu
-    if _scene_manager.has_method("can_go_back") and _scene_manager.can_go_back():
-        _scene_manager.go_back()
-    else:
-        _scene_manager.transition_to_scene(StringName("main_menu"), "instant")
+	# Otherwise use UI history when available, falling back to main menu
+	if _scene_manager.has_method("can_go_back") and _scene_manager.can_go_back():
+		_scene_manager.go_back()
+	else:
+		_scene_manager.transition_to_scene(StringName("main_menu"), "instant")
