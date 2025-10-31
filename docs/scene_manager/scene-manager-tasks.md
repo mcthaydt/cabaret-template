@@ -360,6 +360,12 @@
 - [ ] T094 [US3] Update U_SceneRegistry with door pairings for exterior ↔ interior - **COMPLETE** (already exists)
 - [x] T095 [US3] Implement M_SceneManager spawn point restoration on scene load - **COMPLETE** (_restore_player_spawn_point + helpers)
 
+### Refinement: Trigger Geometry (Shape-Agnostic)
+
+- [x] R-TRIG-01 Add RS_SceneTriggerSettings resource with shape enum (Box, Cylinder), cylinder radius/height, box size, local offset, and player mask - **COMPLETE** (scripts/ecs/resources/rs_scene_trigger_settings.gd, resources/rs_scene_trigger_settings.tres)
+- [x] R-TRIG-02 Refactor C_SceneTriggerComponent to construct `CollisionShape3D` from settings; default to Cylinder (radius=1.0, height=3.0, offset=Vector3(0,1.5,0)) while preserving guards and signals - **COMPLETE**
+- [ ] R-TRIG-03 Update gameplay scenes/templates to assign RS_SceneTriggerSettings explicitly where desired (optional; component has sensible defaults) - **PENDING**
+
 ### Integration Tests for User Story 3
 
 - [x] T096 [US3] Run test_area_transitions.gd and verify all door pairings work - **COMPLETE** (9/9 tests passing ✅)
@@ -398,6 +404,8 @@
 - `scenes/gameplay/exterior.tscn` - Exterior area with door_to_house trigger
 - `scenes/gameplay/interior_house.tscn` - Interior area with door_to_exterior trigger
 - `tests/utils/test_scene_generation.gd` - Scene generation validation tests
+ - `scripts/ecs/resources/rs_scene_trigger_settings.gd` - Trigger geometry/resource settings (shape-agnostic)
+ - `resources/rs_scene_trigger_settings.tres` - Default trigger settings (Cylinder)
 
 ---
 

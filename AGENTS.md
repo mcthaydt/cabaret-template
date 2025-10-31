@@ -103,6 +103,7 @@
 - `S_SceneTriggerSystem` must be present in gameplay scenes to support INTERACT mode; add it under `Systems/Core`.
 - `FadeTransition` temporarily blocks input during the effect to reduce accidental re-triggers; input is restored on completion.
 - For manual tests that start in the exterior, temporarily change `root.tscn` `initial_scene_id` to `exterior`, but keep `main_menu` as the default for normal gameplay/tests.
+ - Triggers are shape-agnostic via `RS_SceneTriggerSettings` (Box or Cylinder). Default is Cylinder (Y-up). Avoid non-uniform scaling of nodes; adjust `radius/height` or `box_size` on the shape instead. Use `local_offset` to align with door visuals.
 
 ## Test Commands
 

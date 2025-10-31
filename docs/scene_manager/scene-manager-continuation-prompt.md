@@ -220,6 +220,7 @@ This guide directs you to implement the Scene Manager feature by following the t
 - ✅ T091-T093: Door triggers and spawn markers added to both scenes
 - ✅ T095: Spawn point restoration implemented in M_SceneManager
 - ✅ T096: Component-level integration tests passing (9/9 tests ✅)
+ - ✅ Refinement: Trigger geometry made shape-agnostic via RS_SceneTriggerSettings; C_SceneTriggerComponent now builds Cylinder/Box from settings (default Cylinder: r=1.0, h=3.0, offset=Vector3(0,1.5,0))
 
 **Incomplete (3/21 tasks)**:
 - ⏸️ T097-T098: Full scene load transitions not tested (only component behavior validated)
@@ -245,6 +246,8 @@ This guide directs you to implement the Scene Manager feature by following the t
 - `scenes/gameplay/exterior.tscn` - Exterior area with door_to_house trigger
 - `scenes/gameplay/interior_house.tscn` - Interior area with door_to_exterior trigger
 - `tests/utils/test_scene_generation.gd` - Scene generation validation tests
+ - `scripts/ecs/resources/rs_scene_trigger_settings.gd` - Scene trigger settings resource
+ - `resources/rs_scene_trigger_settings.tres` - Default trigger settings (Cylinder)
 
 **Remaining Work**:
 - Manual GUI testing of full transition flow (T099)

@@ -50,7 +50,7 @@ ambient_light_source = 3
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_door"]
 shading_mode = 0
-albedo_color = Color(0.2, 1, 0.2, 1)
+albedo_color = Color(0.9828339, 0, 0.010878513, 1)
 
 [node name="Main2" type="Node3D"]
 script = ExtResource("1_f2o31")
@@ -180,9 +180,11 @@ door_id = &"door_to_house"
 target_scene_id = &"interior_house"
 target_spawn_point = &"sp_entrance_from_exterior"
 
-[node name="DoorVisual" type="CSGBox3D" parent="Entities/E_DoorTrigger"]
-size = Vector3(2, 3, 0.2)
-material = SubResource("StandardMaterial3D_door")
+[node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.40026855, 0)
+material_overlay = SubResource("StandardMaterial3D_door")
+radius = 0.7910156
+height = 2.0715332
 
 [node name="SP_SpawnPoints" type="Node3D" parent="."]
 script = ExtResource("21_spawnpoints")

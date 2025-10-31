@@ -21,6 +21,7 @@ class_name C_SceneTriggerComponent
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
 const PLAYER_TAG_COMPONENT_TYPE := StringName("C_PlayerTagComponent")
+const RS_SceneTriggerSettings := preload("res://scripts/ecs/resources/rs_scene_trigger_settings.gd")
 
 ## Trigger mode enum
 enum TriggerMode {
@@ -82,8 +83,9 @@ func _create_trigger_area() -> void:
 	_trigger_area = Area3D.new()
 	_trigger_area.name = "TriggerArea"
 	_trigger_area.collision_layer = 0  # Don't collide with anything
-	_trigger_area.collision_mask = 1   # Detect layer 1 (player)
+	_trigger_area.collision_mask = _get_settings().player_mask  # Detect player layer(s)
 	_trigger_area.monitoring = true    # Explicitly enable detection
+
 	# Reparent under the door Node3D so the area inherits the door's transform
 	var door_node := get_parent() as Node3D
 	if door_node != null:
@@ -91,20 +93,55 @@ func _create_trigger_area() -> void:
 	else:
 		call_deferred("add_child", _trigger_area)
 
-	# Create collision shape (box)
+	# Create collision shape from settings
 	var collision_shape := CollisionShape3D.new()
 	collision_shape.name = "CollisionShape3D"
-	# Offset upward to match player hover height (1.5m)
-	collision_shape.position = Vector3(0, 1.5, 0)
-	var box_shape := BoxShape3D.new()
-	# Match DoorVisual dimensions: size = Vector3(2, 3, 0.2)
-	box_shape.size = Vector3(2.0, 3.0, 0.2)
-	collision_shape.shape = box_shape
+	collision_shape.position = _get_settings().local_offset
+
+	match _get_settings().shape_type:
+		RS_SceneTriggerSettings.ShapeType.CYLINDER:
+			var cyl := CylinderShape3D.new()
+			cyl.radius = max(0.001, _get_settings().cyl_radius)
+			cyl.height = max(0.001, _get_settings().cyl_height)
+			collision_shape.shape = cyl
+		RS_SceneTriggerSettings.ShapeType.BOX:
+			var box := BoxShape3D.new()
+			box.size = _get_settings().box_size
+			collision_shape.shape = box
+		_:
+			# Fallback to cylinder defaults if enum is unknown
+			var cyl_fallback := CylinderShape3D.new()
+			cyl_fallback.radius = 1.0
+			cyl_fallback.height = 3.0
+			collision_shape.shape = cyl_fallback
+
 	_trigger_area.add_child(collision_shape)
 
 	# Connect signals
 	_trigger_area.body_entered.connect(_on_body_entered)
 	_trigger_area.body_exited.connect(_on_body_exited)
+
+## Lazy-init and return settings
+var _cached_settings: RS_SceneTriggerSettings = null
+
+@export var settings: RS_SceneTriggerSettings
+
+func _get_settings() -> RS_SceneTriggerSettings:
+	if _cached_settings != null:
+		return _cached_settings
+
+	if settings == null:
+		# Create a default settings instance matching previous behavior but cylindrical by default
+		settings = RS_SceneTriggerSettings.new()
+		settings.shape_type = RS_SceneTriggerSettings.ShapeType.CYLINDER
+		settings.cyl_radius = 1.0
+		settings.cyl_height = 3.0
+		settings.box_size = Vector3(2.0, 3.0, 0.2)
+		settings.local_offset = Vector3(0, 1.5, 0)
+		settings.player_mask = 1
+
+	_cached_settings = settings
+	return _cached_settings
 
 ## Process cooldown timer
 func _process(delta: float) -> void:

@@ -47,6 +47,12 @@
   - Keep spawn markers positioned outside trigger volumes to avoid immediate re-trigger on load.
   - Avoid leaving `initial_scene_id = exterior` outside of manual tests; prefer `main_menu` to follow the flow and reduce confusion.
 
+- Trigger geometry pitfalls (Cylinder default):
+  - `CylinderShape3D` is Y-up; do not rotate unless your door axis demands it.
+  - Avoid non-uniform scaling on trigger nodes; set `radius/height` (or `box_size`) via settings instead.
+  - Too-small radius/height leads to flickery enter/exit at edges—add margin.
+  - Keep collision masks consistent with the player layer (`player_mask` in RS_SceneTriggerSettings). A mismatch causes no events.
+
 ## GDScript Language Pitfalls
 
 - **Lambda closures cannot reassign primitive variables**: GDScript lambdas capture variables but **cannot reassign primitive types** (bool, int, float). Writing `var completed = false; var callback = func(): completed = true` will NOT modify the outer `completed` variable - the callback will set a local copy instead. **Solution**: Wrap primitives in mutable containers like Arrays. Example:
