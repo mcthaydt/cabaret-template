@@ -20,6 +20,7 @@ class_name C_SceneTriggerComponent
 
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
+const PLAYER_TAG_COMPONENT_TYPE := StringName("C_PlayerTagComponent")
 
 ## Trigger mode enum
 enum TriggerMode {
@@ -130,20 +131,16 @@ func _on_body_exited(body: Node3D) -> void:
 
 ## Check if body belongs to player entity
 func _is_player(body: Node3D) -> bool:
-	# Check if body itself is in player group
-	if body.is_in_group("player"):
-		return true
+	# ECS-based detection only: resolve entity and verify it has the player tag component
+	var entity := ECS_UTILS.find_entity_root(body)
+	var mgr: M_ECSManager = get_manager()
+	if mgr == null:
+		mgr = ECS_UTILS.get_manager(self) as M_ECSManager
+	if entity == null or mgr == null:
+		return false
 
-	# Check if body's parent is in player group (E_PlayerRoot owns Player_Body)
-	var parent := body.get_parent()
-	if parent != null and parent.is_in_group("player"):
-		return true
-
-	# Check scene owner (for instanced scenes)
-	var owner_node := body.owner
-	if owner_node != null and owner_node.is_in_group("player"):
-		return true
-	return false
+	var comps: Dictionary = mgr.get_components_for_entity(entity)
+	return comps.has(PLAYER_TAG_COMPONENT_TYPE) and comps.get(PLAYER_TAG_COMPONENT_TYPE) != null
 
 ## Check if trigger can fire (not on cooldown)
 func _can_trigger() -> bool:
@@ -220,4 +217,3 @@ func is_player_in_zone() -> bool:
 func trigger_interact() -> void:
 	if _player_in_zone and _can_trigger():
 		_trigger_transition()
-

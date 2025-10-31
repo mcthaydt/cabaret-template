@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://cyu3l6we2jq23"]
+[gd_scene load_steps=23 format=3 uid="uid://cyu3l6we2jq23"]
 
 [ext_resource type="Script" uid="uid://b8rdwkrpu385x" path="res://scripts/ecs/components/c_movement_component.gd" id="1_6m9bm"]
 [ext_resource type="Texture2D" uid="uid://dm23qd3lalkrv" path="res://assets/textures/tex_shadow_blob.png" id="1_m3alx"]
@@ -16,6 +16,7 @@
 [ext_resource type="Resource" uid="uid://dhkl8uuw4aeeh" path="res://resources/settings/align_default.tres" id="13_align"]
 [ext_resource type="Resource" uid="uid://bge6h6phsahy3" path="res://resources/settings/landing_indicator_default.tres" id="14_land"]
 [ext_resource type="Script" uid="uid://dt705fmg3a3jc" path="res://scripts/ecs/ecs_entity.gd" id="15_ecsentity"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_player_tag_component.gd" id="16_playertag"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_6mvan"]
 
@@ -119,3 +120,6 @@ settings = ExtResource("14_land")
 character_body_path = NodePath("../../Player_Body")
 origin_marker_path = NodePath("../../Player_Body/HoverRays/Center")
 landing_marker_path = NodePath("../../Player_Body/Body_Mesh/GroundIndicator")
+
+[node name="C_PlayerTagComponent" type="Node" parent="Components"]
+script = ExtResource("16_playertag")

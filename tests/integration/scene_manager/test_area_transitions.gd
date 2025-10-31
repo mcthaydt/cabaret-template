@@ -13,6 +13,7 @@ const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const C_SCENE_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_scene_trigger_component.gd")
+const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
@@ -149,7 +150,8 @@ func test_scene_trigger_component_has_area3d_collision() -> void:
 	entity.add_child(trigger)
 
 	# When: Component initializes
-	await get_tree().process_frame
+	# Wait a physics frame so trigger arms (C_SceneTriggerComponent defers arming to physics)
+	await wait_physics_frames(1)
 
 	# Then: Component should have Area3D for collision detection
 	# Note: C_SceneTriggerComponent parents the Area3D under the Door entity (Node3D)
@@ -178,11 +180,22 @@ func test_auto_trigger_mode_fires_on_body_entered() -> void:
 
 	await get_tree().process_frame
 
-	# Create player body
-	var player := CharacterBody3D.new()
-	player.name = "E_Player"
-	player.add_to_group("player")  # Ensure _is_player() detects this as the player
-	add_child_autofree(player)
+	# Create player entity with ECS tag (no groups)
+	var player_entity := Node3D.new()
+	player_entity.name = "E_Player"
+	add_child_autofree(player_entity)
+
+	var player_body := CharacterBody3D.new()
+	player_body.name = "Player_Body"
+	player_entity.add_child(player_body)
+
+	var player_tag := C_PLAYER_TAG_COMPONENT.new()
+	player_entity.add_child(player_tag)
+
+	# Allow ECS registration of the tag component
+	await get_tree().process_frame
+	# Ensure trigger is armed (requires a physics frame)
+	await wait_physics_frames(1)
 
 	# When: Player enters trigger area
 	# Area3D is parented under the entity (see component design)
@@ -190,19 +203,23 @@ func test_auto_trigger_mode_fires_on_body_entered() -> void:
 	assert_not_null(area, "TriggerArea should exist")
 
 	if area != null:
-		# Emit the body_entered signal instead of calling private method
-		area.body_entered.emit(player)
+		# Emit the body_entered signal with the player's body
+		area.body_entered.emit(player_body)
 		await wait_physics_frames(2)
 
-		# Then: Transition should be triggered
-		# (We'll check state store for transition_started)
-		var state: Dictionary = _state_store.get_state()
-		var scene_state: Dictionary = state.get("scene", {})
-		var is_transitioning: bool = scene_state.get("is_transitioning", false)
-		assert_true(is_transitioning, "Scene transition should be triggered on body enter")
+	# Then: Transition should be triggered
+	# (We'll check state store for transition_started)
+	var state: Dictionary = _state_store.get_state()
+	var scene_state: Dictionary = state.get("scene", {})
+	var is_transitioning: bool = scene_state.get("is_transitioning", false)
+	assert_true(is_transitioning, "Scene transition should be triggered on body enter")
 
 func test_interact_trigger_mode_requires_input() -> void:
-	# Given: Trigger in INTERACT mode
+	# Given: Scene with ECS manager and a trigger in INTERACT mode
+	var ecs_manager := M_ECS_MANAGER.new()
+	add_child_autofree(ecs_manager)
+	await get_tree().process_frame
+
 	var entity := Node3D.new()
 	entity.name = "E_DoorTrigger"
 	add_child_autofree(entity)
@@ -211,16 +228,26 @@ func test_interact_trigger_mode_requires_input() -> void:
 	trigger.door_id = StringName("door_to_house")
 	trigger.target_scene_id = StringName("interior_house")
 	trigger.target_spawn_point = StringName("sp_entrance_from_exterior")
-	trigger.trigger_mode = C_SCENE_TRIGGER_COMPONENT.TriggerMode.INTERACT  # INTERACT mode
+	trigger.trigger_mode = C_SCENE_TRIGGER_COMPONENT.TriggerMode.INTERACT # INTERACT mode
 	entity.add_child(trigger)
 
-	await get_tree().process_frame
+	# Wait a physics frame so trigger arms (C_SceneTriggerComponent defers arming to physics)
+	await wait_physics_frames(1)
 
-	# Create player body
-	var player := CharacterBody3D.new()
-	player.name = "E_Player"
-	player.add_to_group("player")  # Ensure _is_player() detects this as the player
-	add_child_autofree(player)
+	# Create player entity with ECS tag (no groups)
+	var player_entity := Node3D.new()
+	player_entity.name = "E_Player"
+	add_child_autofree(player_entity)
+
+	var player_body := CharacterBody3D.new()
+	player_body.name = "Player_Body"
+	player_entity.add_child(player_body)
+
+	var player_tag := C_PLAYER_TAG_COMPONENT.new()
+	player_entity.add_child(player_tag)
+
+	# Allow ECS registration of the tag component
+	await get_tree().process_frame
 
 	# When: Player enters trigger area (without pressing interact)
 	# Area3D is parented under the entity (see component design)
@@ -228,21 +255,21 @@ func test_interact_trigger_mode_requires_input() -> void:
 	assert_not_null(area, "TriggerArea should exist")
 
 	if area != null:
-		area.body_entered.emit(player)
+		area.body_entered.emit(player_body)
 		await wait_physics_frames(2)
 
-		# Then: Should NOT auto-trigger (is_player_in_zone should be true but no transition)
-		assert_true(trigger.is_player_in_zone(), "Player should be detected in zone")
+	# Then: Should NOT auto-trigger (is_player_in_zone should be true but no transition)
+	assert_true(trigger.is_player_in_zone(), "Player should be detected in zone")
 
-		# And: When trigger_interact() is called manually
-		trigger.trigger_interact()
-		await wait_physics_frames(2)
+	# And: When trigger_interact() is called manually
+	trigger.trigger_interact()
+	await wait_physics_frames(2)
 
-		# Then: Transition should be triggered
-		var state: Dictionary = _state_store.get_state()
-		var scene_state: Dictionary = state.get("scene", {})
-		var is_transitioning: bool = scene_state.get("is_transitioning", false)
-		assert_true(is_transitioning, "Scene transition should be triggered after manual interact")
+	# Then: Transition should be triggered
+	var state: Dictionary = _state_store.get_state()
+	var scene_state: Dictionary = state.get("scene", {})
+	var is_transitioning: bool = scene_state.get("is_transitioning", false)
+	assert_true(is_transitioning, "Scene transition should be triggered after manual interact")
 
 func test_area_state_persists_across_transitions() -> void:
 	# Given: Gameplay state with test data
@@ -294,7 +321,7 @@ func test_full_scene_load_exterior_to_interior() -> void:
 
 	# When: Trigger transition to interior via scene manager
 	_scene_manager.transition_to_scene(StringName("interior_house"), "instant", _scene_manager.Priority.HIGH)
-	await wait_physics_frames(4)  # Wait for transition to complete
+	await wait_physics_frames(4) # Wait for transition to complete
 
 	# Then: Interior scene should be loaded in ActiveSceneContainer
 	assert_eq(_active_scene_container.get_child_count(), 1, "ActiveSceneContainer should have 1 child")
@@ -333,7 +360,7 @@ func test_full_scene_load_interior_to_exterior() -> void:
 
 	# When: Trigger transition to exterior via scene manager
 	_scene_manager.transition_to_scene(StringName("exterior"), "instant", _scene_manager.Priority.HIGH)
-	await wait_physics_frames(4)  # Wait for transition to complete
+	await wait_physics_frames(4) # Wait for transition to complete
 
 	# Then: Exterior scene should be loaded in ActiveSceneContainer
 	assert_eq(_active_scene_container.get_child_count(), 1, "ActiveSceneContainer should have 1 child")
