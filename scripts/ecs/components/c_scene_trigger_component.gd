@@ -60,11 +60,21 @@ var _player_in_zone: bool = false
 ## Internal: Prevent duplicate transitions while a transition is pending
 var _pending_transition: bool = false
 
+## Internal: Arm flag to ignore first-frame overlaps after scene load
+var _armed: bool = false
+
 func _ready() -> void:
 	super._ready()
 
 	# Create Area3D for collision detection
 	_create_trigger_area()
+
+	# Arm after one physics frame to avoid startup overlaps
+	call_deferred("_arm_trigger")
+
+func _arm_trigger() -> void:
+	await get_tree().physics_frame
+	_armed = true
 
 ## Create Area3D child for collision detection
 func _create_trigger_area() -> void:
@@ -108,6 +118,21 @@ func _on_body_entered(body: Node3D) -> void:
 		" trigger_mode=", trigger_mode)
 	if _is_player(body):
 		_player_in_zone = true
+
+		# Log spatial relation between player and trigger area
+		var door_node := get_parent() as Node3D
+		var area_center: Vector3
+		if _trigger_area != null:
+			area_center = _trigger_area.global_transform.origin + Vector3(0, 1.5, 0)
+		elif door_node != null:
+			area_center = door_node.global_position + Vector3(0, 1.5, 0)
+		else:
+			area_center = Vector3.ZERO
+		var player_body := _find_player_body()
+		if player_body != null:
+			var diff: Vector3 = player_body.global_position - area_center
+			var within: bool = (absf(diff.x) <= 1.0 and absf(diff.y) <= 2.0 and absf(diff.z) <= 1.0)
+			print_debug("[SceneTrigger] area_center=", area_center, " player_pos=", player_body.global_position, " diff=", diff, " within_box=", within)
 		# If AUTO mode, trigger transition immediately
 		if trigger_mode == TriggerMode.AUTO and _can_trigger():
 			_trigger_transition()
@@ -143,6 +168,9 @@ func _is_player(body: Node3D) -> bool:
 
 ## Check if trigger can fire (not on cooldown)
 func _can_trigger() -> bool:
+	if not _armed:
+		print_debug("[SceneTrigger] _can_trigger: false (not armed)")
+		return false
 	if _pending_transition:
 		print_debug("[SceneTrigger] _can_trigger: false (pending_transition)")
 		return false
@@ -171,14 +199,14 @@ func _can_trigger() -> bool:
 
 ## Trigger the scene transition
 func _trigger_transition() -> void:
-	# Start cooldown
-	_cooldown_remaining = cooldown_duration
-
 	# Get state store
 	var store = U_StateUtils.get_store(self)
 	if store == null:
 		push_error("C_SceneTriggerComponent: No M_StateStore found")
 		return
+
+	# Mark pending to avoid duplicate requests within the same cooldown window
+	_pending_transition = true
 
 	# Dispatch set_target_spawn_point action
 	var spawn_action: Dictionary = U_GameplayActions.set_target_spawn_point(target_spawn_point)
@@ -192,13 +220,6 @@ func _trigger_transition() -> void:
 
 	var scene_manager = scene_manager_group[0]
 
-	# Final guard before requesting transition
-	if not _can_trigger():
-		return
-
-	# Mark pending to avoid duplicate requests within the same cooldown window
-	_pending_transition = true
-
 	# Trigger scene transition
 	# Get transition type from door pairing
 	var door_data: Dictionary = U_SceneRegistry.get_door_exit(
@@ -210,6 +231,9 @@ func _trigger_transition() -> void:
 		" spawn=", target_spawn_point, " current_scene=", _get_current_scene_id(store), 
 		" transition_type=", transition_type)
 	scene_manager.transition_to_scene(target_scene_id, transition_type, scene_manager.Priority.HIGH)
+
+	# Start cooldown after dispatching to prevent immediate re-trigger
+	_cooldown_remaining = cooldown_duration
 
 ## Get current scene ID from state
 func _get_current_scene_id(store) -> StringName:
@@ -225,3 +249,14 @@ func is_player_in_zone() -> bool:
 func trigger_interact() -> void:
 	if _player_in_zone and _can_trigger():
 		_trigger_transition()
+
+## Helper: find the player's CharacterBody3D for logging
+func _find_player_body() -> CharacterBody3D:
+	var players: Array = get_tree().get_nodes_in_group("player")
+	if players.is_empty():
+		return null
+	var root := players[0] as Node
+	if root == null:
+		return null
+	var body_node := root.find_child("Player_Body", true, false)
+	return body_node as CharacterBody3D
