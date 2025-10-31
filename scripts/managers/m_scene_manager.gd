@@ -20,6 +20,8 @@ const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_regist
 const INSTANT_TRANSITION := preload("res://scripts/scene_management/transitions/instant_transition.gd")
 const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/fade_transition.gd")
 
+const OVERLAY_META_SCENE_ID := StringName("_scene_manager_overlay_scene_id")
+
 ## Priority enum for transition queue
 enum Priority {
 	NORMAL = 0,   # Standard transitions
@@ -80,6 +82,7 @@ func _ready() -> void:
 
 	# Find container nodes
 	_find_container_nodes()
+	_sync_overlay_stack_state()
 
 	# Subscribe to scene slice updates
 	if _store != null:
@@ -284,10 +287,6 @@ func _add_scene(scene: Node) -> void:
 
 ## Push overlay scene onto UIOverlayStack
 func push_overlay(scene_id: StringName) -> void:
-	# Dispatch push overlay action
-	if _store != null:
-		_store.dispatch(U_SCENE_ACTIONS.push_overlay(scene_id))
-
 	# Load and add overlay scene
 	var scene_path: String = U_SCENE_REGISTRY.get_scene_path(scene_id)
 	if scene_path.is_empty():
@@ -299,8 +298,18 @@ func push_overlay(scene_id: StringName) -> void:
 		push_error("M_SceneManager: Failed to load overlay scene '%s'" % scene_id)
 		return
 
+	if _ui_overlay_stack == null:
+		push_error("M_SceneManager: UIOverlayStack not found for overlay '%s'" % scene_id)
+		overlay_scene.queue_free()
+		return
+
+	_configure_overlay_scene(overlay_scene, scene_id)
 	if _ui_overlay_stack != null:
 		_ui_overlay_stack.add_child(overlay_scene)
+		# Dispatch push overlay action after successful add
+		if _store != null:
+			_store.dispatch(U_SCENE_ACTIONS.push_overlay(scene_id))
+		_update_pause_state()
 
 ## Pop top overlay from UIOverlayStack
 func pop_overlay() -> void:
@@ -319,6 +328,104 @@ func pop_overlay() -> void:
 	var top_overlay: Node = _ui_overlay_stack.get_child(overlay_count - 1)
 	_ui_overlay_stack.remove_child(top_overlay)
 	top_overlay.queue_free()
+	_update_pause_state()
+
+## Configure overlay scene for pause handling
+func _configure_overlay_scene(overlay_scene: Node, scene_id: StringName) -> void:
+	if overlay_scene == null:
+		return
+
+	overlay_scene.process_mode = Node.PROCESS_MODE_ALWAYS
+	overlay_scene.set_meta(OVERLAY_META_SCENE_ID, scene_id)
+
+## Update SceneTree pause + cursor state based on overlay stack
+func _update_pause_state() -> void:
+	if _ui_overlay_stack == null:
+		return
+
+	var overlay_count: int = _ui_overlay_stack.get_child_count()
+	var should_pause: bool = overlay_count > 0
+
+	if get_tree().paused != should_pause:
+		get_tree().paused = should_pause
+
+	if _cursor_manager != null:
+		if should_pause:
+			_cursor_manager.set_cursor_state(false, true)  # unlocked, visible
+		else:
+			_cursor_manager.set_cursor_state(true, false)  # locked, hidden
+
+## Ensure scene_stack metadata matches actual overlay stack
+func _sync_overlay_stack_state() -> void:
+	if _store == null or _ui_overlay_stack == null:
+		return
+
+	var scene_state: Dictionary = _store.get_slice(StringName("scene"))
+	if scene_state.is_empty():
+		_update_pause_state()
+		return
+
+	var current_stack_variant: Array = scene_state.get("scene_stack", [])
+	var current_stack: Array[StringName] = []
+	for entry in current_stack_variant:
+		if entry is StringName:
+			current_stack.append(entry)
+		elif entry is String:
+			current_stack.append(StringName(entry))
+
+	var desired_stack: Array[StringName] = _get_overlay_scene_ids_from_ui()
+
+	if _overlay_stacks_match(current_stack, desired_stack):
+		_update_pause_state()
+		return
+
+	if current_stack.size() > 0:
+		_clear_scene_stack_state(current_stack.size())
+
+	for scene_id in desired_stack:
+		_store.dispatch(U_SCENE_ACTIONS.push_overlay(scene_id))
+
+	_update_pause_state()
+
+## Collect overlay scene IDs from UIOverlayStack metadata
+func _get_overlay_scene_ids_from_ui() -> Array[StringName]:
+	var overlay_ids: Array[StringName] = []
+
+	if _ui_overlay_stack == null:
+		return overlay_ids
+
+	for child in _ui_overlay_stack.get_children():
+		if child.has_meta(OVERLAY_META_SCENE_ID):
+			var scene_id_meta: Variant = child.get_meta(OVERLAY_META_SCENE_ID)
+			if scene_id_meta is StringName:
+				overlay_ids.append(scene_id_meta)
+			elif scene_id_meta is String:
+				overlay_ids.append(StringName(scene_id_meta))
+			else:
+				push_warning("M_SceneManager: Overlay has invalid scene_id metadata")
+		else:
+			push_warning("M_SceneManager: Overlay missing scene_id metadata")
+
+	return overlay_ids
+
+## Clear scene_stack metadata by dispatching pop actions
+func _clear_scene_stack_state(count: int) -> void:
+	if _store == null or count <= 0:
+		return
+
+	for _i in range(count):
+		_store.dispatch(U_SCENE_ACTIONS.pop_overlay())
+
+## Compare overlay stacks for equality
+func _overlay_stacks_match(stack_a: Array[StringName], stack_b: Array[StringName]) -> bool:
+	if stack_a.size() != stack_b.size():
+		return false
+
+	for i in range(stack_a.size()):
+		if stack_a[i] != stack_b[i]:
+			return false
+
+	return true
 
 ## Get current scene ID from state
 func get_current_scene() -> StringName:
