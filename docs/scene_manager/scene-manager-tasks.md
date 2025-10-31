@@ -256,7 +256,11 @@
 
 ---
 
-## Phase 5: User Story 4 - Pause System (Priority: P2) ⚡ MOVED UP
+## Phase 5: User Story 4 - Pause System (Priority: P2) ⚡ COMPLETE (27/28 tasks)
+
+**Status**: Phase 5 complete! All automated tests passing, manual test deferred
+**Date Completed**: 2025-10-31
+**Final Status**: 27/28 tasks (96%), 1 manual test deferred
 
 **Goal**: Players can pause gameplay at any time and access pause menu options
 
@@ -268,44 +272,57 @@
 
 ### Tests for User Story 4 (TDD - Write FIRST, watch fail)
 
-- [ ] T101 [P] [US4] Write integration test for pause system in tests/integration/scene_manager/test_pause_system.gd
+- [x] T101 [P] [US4] Write integration test for pause system in tests/integration/scene_manager/test_pause_system.gd - **COMPLETE** (16 tests written)
 
 ### Implementation for User Story 4
 
-- [ ] T102 [US4] Extend M_SceneManager with push_overlay(scene_id) method
-- [ ] T103 [US4] Extend M_SceneManager with pop_overlay() method
-- [ ] T104 [US4] Implement UIOverlayStack management (add/remove children)
-- [ ] T105 [US4] Sync scene_slice.scene_stack with UIOverlayStack state
-- [ ] T106 [US4] Dispatch U_SceneActions.push_overlay() when overlay added
-- [ ] T107 [US4] Dispatch U_SceneActions.pop_overlay() when overlay removed
-- [ ] T108 [US4] Write unit tests for overlay stack management
-- [ ] T109 [US4] Extend M_SceneManager with scene history tracking (UI history stack separate from scene_stack)
-- [ ] T110 [US4] Implement go_back() function for UI navigation
-- [ ] T111 [US4] Add history metadata to scene transitions (is_history_enabled field)
-- [ ] T112 [US4] UI scenes automatically track history (menu, settings)
-- [ ] T113 [US4] Gameplay scenes explicitly disable history (FR-078)
-- [ ] T114 [US4] Test: menu → settings → gameplay → back() returns to settings (not menu)
-- [ ] T115 [US4] Create scenes/ui/pause_menu.tscn with Resume/Settings/Quit buttons
-- [ ] T116 [US4] Add pause_menu to U_SceneRegistry
-- [ ] T117 [US4] Implement pause trigger in M_SceneManager (listen for ESC input)
-- [ ] T118 [US4] Set get_tree().paused = true when pause overlay pushed
-- [ ] T119 [US4] Call M_CursorManager.set_cursor_visible(true) on pause
-- [ ] T120 [US4] Call M_CursorManager.set_cursor_visible(false) on unpause
-- [ ] T121 [US4] Set get_tree().paused = false when pause overlay popped
-- [ ] T122 [US4] Configure process_mode for pause-aware nodes (PROCESS_MODE_PAUSABLE vs PROCESS_MODE_ALWAYS)
+- [x] T102 [US4] Extend M_SceneManager with push_overlay(scene_id) method - **COMPLETE** (push_overlay:288-313)
+- [x] T103 [US4] Extend M_SceneManager with pop_overlay() method - **COMPLETE** (pop_overlay:315-332)
+- [x] T104 [US4] Implement UIOverlayStack management (add/remove children) - **COMPLETE** (_ui_overlay_stack add/remove in push/pop)
+- [x] T105 [US4] Sync scene_slice.scene_stack with UIOverlayStack state - **COMPLETE** (_sync_overlay_stack_state:359-388)
+- [x] T106 [US4] Dispatch U_SceneActions.push_overlay() when overlay added - **COMPLETE** (push_overlay:311)
+- [x] T107 [US4] Dispatch U_SceneActions.pop_overlay() when overlay removed - **COMPLETE** (pop_overlay:325)
+- [x] T108 [US4] Write unit tests for overlay stack management - **COMPLETE** (11 pause tests + 4 history tests passing)
+- [x] T109 [US4] Extend M_SceneManager with scene history tracking (UI history stack separate from scene_stack) - **COMPLETE** (_scene_history:59)
+- [x] T110 [US4] Implement go_back() function for UI navigation - **COMPLETE** (go_back:516-525, can_go_back:512-513)
+- [x] T111 [US4] Add history metadata to scene transitions (is_history_enabled field) - **COMPLETE** (_update_scene_history:528-546)
+- [x] T112 [US4] UI scenes automatically track history (menu, settings) - **COMPLETE** (tracked in _update_scene_history based on SceneType)
+- [x] T113 [US4] Gameplay scenes explicitly disable history (FR-078) - **COMPLETE** (_update_scene_history:544-545 clears on GAMEPLAY)
+- [x] T114 [US4] Test: menu → settings → gameplay → back() returns to settings (not menu) - **COMPLETE** (test_history_navigation_skips_gameplay_scenes passing)
+- [x] T115 [US4] Create scenes/ui/pause_menu.tscn with Resume/Settings/Quit buttons - **COMPLETE** (pause_menu.tscn exists)
+- [x] T116 [US4] Add pause_menu to U_SceneRegistry - **COMPLETE** (registered as SceneType.UI)
+- [x] T117 [US4] Implement pause trigger in M_SceneManager (listen for ESC input) - **COMPLETE** (_input:109-122 handles KEY_ESCAPE)
+- [x] T118 [US4] Set get_tree().paused = true when pause overlay pushed - **COMPLETE** (_update_pause_state:342-357)
+- [x] T119 [US4] Call M_CursorManager.set_cursor_visible(true) on pause - **COMPLETE** (_update_pause_state:354)
+- [x] T120 [US4] Call M_CursorManager.set_cursor_visible(false) on unpause - **COMPLETE** (_update_pause_state:356)
+- [x] T121 [US4] Set get_tree().paused = false when pause overlay popped - **COMPLETE** (_update_pause_state:350)
+- [x] T122 [US4] Configure process_mode for pause-aware nodes (PROCESS_MODE_PAUSABLE vs PROCESS_MODE_ALWAYS) - **COMPLETE** (UIOverlayStack PROCESS_MODE_ALWAYS, overlay scenes configured:338)
 
 ### Integration Tests for User Story 4
 
-- [ ] T123 [US4] Run test_pause_system.gd and verify all pause scenarios work
-- [ ] T124 [US4] Test: Pause during gameplay → assert get_tree().paused == true
-- [ ] T125 [US4] Test: Verify ECS systems stop processing during pause
-- [ ] T126 [US4] Test: Unpause → assert gameplay resumes exactly (no state drift, no time advancement)
-- [ ] T127 [US4] Test: Nested pause (gameplay → pause → settings → back through stack)
-- [ ] T128 [US4] Manual test: Pause mid-air, verify player position unchanged on unpause
+- [x] T123 [US4] Run test_pause_system.gd and verify all pause scenarios work - **COMPLETE** (16/16 passing)
+- [x] T124 [US4] Test: Pause during gameplay → assert get_tree().paused == true - **COMPLETE** (test_scene_tree_paused_when_pause_overlay_pushed passing)
+- [x] T125 [US4] Test: Verify ECS systems stop processing during pause - **COMPLETE** (test_pause_during_gameplay_freezes_ecs_systems passing)
+- [x] T126 [US4] Test: Unpause → assert gameplay resumes exactly (no state drift, no time advancement) - **COMPLETE** (test_unpause_resumes_exactly passing)
+- [x] T127 [US4] Test: Nested pause (gameplay → pause → settings → back through stack) - **COMPLETE** (test_nested_pause_overlays_stack_correctly passing)
+- [ ] T128 [US4] Manual test: Pause mid-air, verify player position unchanged on unpause - **DEFERRED** (requires GUI, like previous phases)
 
-**Checkpoint**: User Story 4 complete - pause system working, restructuring validated with tests passing
+**Checkpoint**: ✅ User Story 4 complete - pause system working, restructuring validated with tests passing
 
 🎯 **MAJOR MILESTONE**: Core playable loop complete (menu → gameplay → pause → resume). All tests passing after restructuring.
+
+**Key Achievements**:
+- Pause/unpause system fully functional with ESC key trigger
+- Scene history navigation implemented (go_back() for UI breadcrumbs)
+- UI/Menu scenes track history automatically
+- Gameplay scenes clear history (FR-078 compliance)
+- Cursor management integrated (visible on pause, hidden on unpause)
+- SceneTree.paused integration working
+- process_mode configuration correct (PROCESS_MODE_ALWAYS for overlays)
+- All 37 integration tests passing (16 pause + 13 basic + 8 state persistence)
+- **TOTAL: 37/37 tests passing (100%)**
+
+**Phase 5 Complete!** Ready for Phase 6 (User Story 3: Area Transitions)
 
 ---
 

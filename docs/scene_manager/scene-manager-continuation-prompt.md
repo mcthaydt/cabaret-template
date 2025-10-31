@@ -5,7 +5,7 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager`
-**Status**: ✅ Phase 0, 1, 2, 3, 4 Complete | 🚧 Phase 5 Ready to Start
+**Status**: ✅ Phase 0, 1, 2, 3, 4, 5 Complete | 🚧 Phase 6 Ready to Start
 
 ---
 
@@ -165,6 +165,44 @@ This guide directs you to implement the Scene Manager feature by following the t
 
 ---
 
+## ✅ Phase 5: User Story 4 - Pause System - COMPLETE (27/28 tasks)
+
+**Status**: Phase 5 complete! All automated tests passing, manual test deferred
+**Date Completed**: 2025-10-31
+**Final Status**: 27/28 tasks (96%), 1 manual test deferred
+
+**Completed (27/28 tasks) - 96%**:
+- ✅ T101: Integration tests created (test_pause_system.gd - 16 tests passing ✅)
+- ✅ T102-T107: Overlay stack management (push_overlay/pop_overlay with state sync)
+- ✅ T108: Unit tests for overlay management passing
+- ✅ T109-T114: Scene history navigation implemented (go_back() for UI breadcrumbs)
+- ✅ T115: pause_menu.tscn created with Resume/Settings/Quit buttons
+- ✅ T116: pause_menu registered in U_SceneRegistry
+- ✅ T117: ESC input handler implemented (_input() method)
+- ✅ T118-T122: Pause/unpause with cursor and process_mode configuration
+- ✅ T123-T127: All integration tests passing (37/37 tests ✅)
+
+**Key Achievements**:
+- Pause/unpause system fully functional with ESC key trigger
+- Scene history navigation: go_back() returns to previous UI scene
+- UI/Menu scenes track history automatically (T112)
+- Gameplay scenes clear history (T113 - FR-078 compliance)
+- Cursor management integrated (visible on pause, hidden on unpause)
+- SceneTree.paused integration working
+- process_mode configuration correct (PROCESS_MODE_ALWAYS for overlays)
+- All 37 integration tests passing:
+  * test_basic_transitions.gd: 13/13 ✅
+  * test_pause_system.gd: 16/16 ✅
+  * test_state_persistence.gd: 8/8 ✅
+- **TOTAL: 37/37 tests passing (100%)**
+
+**Deferred Work (1 task - requires GUI)**:
+- T128: Manual test (pause mid-air, verify position unchanged)
+
+**Phase 5 Complete!** Ready for Phase 6 (User Story 3: Area Transitions)
+
+---
+
 ## Instructions
 
 ### 1. Review Project Foundations
@@ -252,21 +290,20 @@ Due to risk management reordering, Phase 5 (T101-T128) comes before Phase 6 (T08
 
 ## Getting Started
 
-**Current Phase**: Phase 5 (User Story 4 - Pause System) ⚡
+**Current Phase**: Phase 6 (User Story 3 - Area Transitions) ⚡
 
-Begin with Phase 5 by reading the detailed requirements in:
+Begin with Phase 6 by reading the detailed requirements in:
 
-- `scene-manager-plan.md` (Phase 5 section)
-- `scene-manager-tasks.md` (T101-T128)
-- `scene-manager-prd.md` (User Story 4)
+- `scene-manager-plan.md` (Phase 6 section - originally called Phase 2 in plan)
+- `scene-manager-tasks.md` (T080-T100)
+- `scene-manager-prd.md` (User Story 3)
 
-**⚠️ IMPORTANT**: Phase 5 implements the pause system - gameplay can be paused at any time with a menu overlay. This includes:
-- push_overlay() and pop_overlay() methods for M_SceneManager
-- UIOverlayStack management (CanvasLayer overlays)
-- Scene history tracking for UI navigation (go_back() functionality)
-- Pause menu scene with Resume/Settings/Quit buttons
-- SceneTree.paused integration
-- M_CursorManager integration (show cursor on pause)
-- process_mode configuration for pause-aware nodes
+**⚠️ IMPORTANT**: Phase 6 implements area transitions - Zelda OoT-style exterior ↔ interior transitions with door triggers. This includes:
+- C_SceneTriggerComponent (door_id, target, spawn_point, trigger_mode, cooldown)
+- S_SceneTriggerSystem (collision detection, input handling)
+- Door pairing definitions in U_SceneRegistry
+- Spawn point restoration on scene load
+- Exterior and interior gameplay scene templates
+- Area3D collision detection for Auto/Interact trigger modes
 
-**Note**: Phase 5 moved up in priority (originally Phase 6) because it's simpler than Area Transitions (US3) and validates restructuring before tackling complex ECS components.
+**Note**: Phase 6 was moved down in priority (after Phase 5) because it requires complex ECS component integration. The simpler pause system (Phase 5) validated the scene restructuring first.
