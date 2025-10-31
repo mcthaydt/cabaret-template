@@ -22,6 +22,7 @@ const INSTANT_TRANSITION := preload("res://scripts/scene_management/transitions/
 const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/fade_transition.gd")
 
 const OVERLAY_META_SCENE_ID := StringName("_scene_manager_overlay_scene_id")
+const PARTICLE_META_ORIG_SPEED := StringName("_scene_manager_particle_orig_speed")
 
 ## Priority enum for transition queue
 enum Priority {
@@ -417,6 +418,40 @@ func _update_pause_state() -> void:
 			_cursor_manager.set_cursor_state(false, true)  # unlocked, visible
 		else:
 			_cursor_manager.set_cursor_state(true, false)  # locked, hidden
+
+	# Ensure particles in gameplay respect pause (GPU particles ignore SceneTree pause)
+	_set_particles_paused(should_pause)
+
+## Recursively collect particle nodes and set speed_scale to pause/resume simulation
+func _set_particles_paused(should_pause: bool) -> void:
+	if _active_scene_container == null:
+		return
+
+	var particles: Array = []
+	_collect_particle_nodes(_active_scene_container, particles)
+
+	for p in particles:
+		# Store original speed once
+		if should_pause:
+			if not p.has_meta(PARTICLE_META_ORIG_SPEED):
+				var current: Variant = p.get("speed_scale")
+				var orig_speed: float = (current as float) if current is float else 1.0
+				p.set_meta(PARTICLE_META_ORIG_SPEED, orig_speed)
+			p.set("speed_scale", 0.0)
+		else:
+			# Restore on resume
+			if p.has_meta(PARTICLE_META_ORIG_SPEED):
+				var orig: Variant = p.get_meta(PARTICLE_META_ORIG_SPEED)
+				p.set("speed_scale", float(orig) if orig is float else 1.0)
+				p.set_meta(PARTICLE_META_ORIG_SPEED, null)
+
+func _collect_particle_nodes(node: Node, out: Array) -> void:
+	# Check for both 2D and 3D particle node types
+	if node is GPUParticles3D or node is CPUParticles3D or node is GPUParticles2D or node is CPUParticles2D:
+		out.append(node)
+
+	for child in node.get_children():
+		_collect_particle_nodes(child, out)
 
 ## Ensure scene_stack metadata matches actual overlay stack
 func _sync_overlay_stack_state() -> void:
