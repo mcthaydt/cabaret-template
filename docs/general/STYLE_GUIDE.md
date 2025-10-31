@@ -650,6 +650,15 @@ EXCLUSIONS:
 
 ---
 
-**Last Updated:** 2025-10-18
+---
+
+## Scene Node Naming (Non-script markers)
+
+- Entities: `E_` prefix, e.g., `E_Player`, `E_CameraRoot`.
+- Spawn container: `SP_SpawnPoints` (uses `spawn_points_group.gd`), placed at scene root.
+- Spawn markers: `sp_*` lowercase snake-case, e.g., `sp_entrance_from_exterior`, `sp_exit_from_house`.
+  - Chosen to avoid collision with entity prefixes and to remain visually distinct.
+
+**Last Updated:** 2025-10-31
 **Version:** 1.0
 **Status:** Active - Ready for Implementation

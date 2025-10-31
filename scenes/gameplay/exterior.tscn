@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://cshfrc7k5ec6f"]
+[gd_scene load_steps=36 format=3 uid="uid://cshfrc7k5ec6f"]
 
 [ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://bbovcvnujbnj3" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -29,6 +29,7 @@
 [ext_resource type="Script" uid="uid://mm82rwglfuba" path="res://scripts/scene_structure/entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/camera_template.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://cfntl6uuagy6m" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
+[ext_resource type="Script" uid="uid://u7yf4vdyvkmx" path="res://scripts/scene_structure/spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://cyt3uyx2c4mr2" path="res://scripts/ecs/components/c_scene_trigger_component.gd" id="30_trigger"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
@@ -164,20 +165,9 @@ script = ExtResource("6_0e7m3")
 [node name="Entities" type="Node" parent="."]
 script = ExtResource("16_8qi87")
 
-[node name="E_SpawnPoints" type="Node3D" parent="Entities"]
-script = ExtResource("16_8qi87")
-
-[node name="E_PlayerSpawn" type="Node3D" parent="Entities/E_SpawnPoints"]
-
-[node name="E_CameraSpawn" type="Node3D" parent="Entities/E_SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
-
-[node name="exit_from_house" type="Node3D" parent="Entities/E_SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8749304, -0.31296825, 1.4028394)
-
 [node name="E_Player" parent="Entities" instance=ExtResource("7_4wxy1")]
 
-[node name="E_CameraRoot" parent="Entities" instance=ExtResource("19_ph0bl")]
+[node name="E_Camera" parent="Entities" instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
 
 [node name="E_DoorTrigger" type="Node3D" parent="Entities"]
@@ -188,10 +178,17 @@ script = ExtResource("16_8qi87")
 script = ExtResource("30_trigger")
 door_id = &"door_to_house"
 target_scene_id = &"interior_house"
-target_spawn_point = &"entrance_from_exterior"
+target_spawn_point = &"sp_entrance_from_exterior"
 
 [node name="DoorVisual" type="CSGBox3D" parent="Entities/E_DoorTrigger"]
 size = Vector3(2, 3, 0.2)
 material = SubResource("StandardMaterial3D_door")
+
+[node name="SP_SpawnPoints" type="Node3D" parent="."]
+script = ExtResource("21_spawnpoints")
+
+[node name="sp_exit_from_house" type="Node3D" parent="SP_SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7472486, -0.31296825, 1.4028394)
+script = ExtResource("21_spawnpoints")
 
 [node name="HUD" parent="." instance=ExtResource("11_hud")]

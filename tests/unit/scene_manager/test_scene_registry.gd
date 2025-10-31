@@ -86,7 +86,7 @@ func test_door_pairing_exterior_to_interior() -> void:
 	)
 
 	assert_eq(exit_data["target_scene_id"], StringName("interior_house"), "Should target interior scene")
-	assert_eq(exit_data["target_spawn_point"], StringName("entrance_from_exterior"), "Should specify spawn point")
+	assert_eq(exit_data["target_spawn_point"], StringName("sp_entrance_from_exterior"), "Should specify spawn point")
 
 ## Test door pairing - exiting interior
 func test_door_pairing_interior_to_exterior() -> void:
@@ -96,7 +96,7 @@ func test_door_pairing_interior_to_exterior() -> void:
 	)
 
 	assert_eq(exit_data["target_scene_id"], StringName("exterior"), "Should target exterior scene")
-	assert_eq(exit_data["target_spawn_point"], StringName("exit_from_house"), "Should specify spawn point")
+	assert_eq(exit_data["target_spawn_point"], StringName("sp_exit_from_house"), "Should specify spawn point")
 
 ## Test invalid door ID returns empty dict
 func test_invalid_door_id_returns_empty() -> void:

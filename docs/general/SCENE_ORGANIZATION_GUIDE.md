@@ -57,9 +57,9 @@ Main (Node3D) [main_root_node.gd]
 │  └─ M_StateStore
 │
 ├─ Entities (Node) [entities_group.gd]
-│  ├─ E_SpawnPoints (Node3D) [entities_group.gd]
-│  │  ├─ E_PlayerSpawn (Node3D)
-│  │  └─ E_CameraSpawn (Node3D)
+│  ├─ SP_SpawnPoints (Node3D) [spawn_points_group.gd]
+│  │  ├─ sp_entrance_from_exterior (Node3D)
+│  │  └─ sp_exit_from_house (Node3D)
 │  ├─ E_Player (player_template.tscn instance)
 │  └─ E_CameraRoot (camera_template.tscn instance)
 │
@@ -181,8 +181,10 @@ All nodes should use **descriptive names with category prefixes** for clarity:
 
 - **Category Group Nodes:** Use descriptive names without prefixes
   - `Systems`, `Managers`, `Entities`, `SceneObjects`, `Environment`, `Core`, `Physics`, `Movement`, `Feedback`
-- **Spawn Points:** Use `E_` prefix with descriptive names
-  - `E_PlayerSpawn`, `E_CameraSpawn`, `E_SpawnPoints` (container)
+- **Spawn Points:** Use named Node3D markers under `SP_SpawnPoints` that describe the entry/exit.
+  - Examples: `sp_entrance_from_exterior`, `sp_exit_from_house`
+  - Do not use generic markers like `E_PlayerSpawn` or `E_CameraSpawn`.
+  - Container uses `SP_` prefix to indicate non-entity grouping.
 
 ---
 

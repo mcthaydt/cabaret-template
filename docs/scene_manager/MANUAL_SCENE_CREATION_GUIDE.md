@@ -41,7 +41,7 @@ We tried programmatic scene generation (`U_SceneBuilder`) but it was **overengin
 7. In Inspector, set:
    - `door_id`: "door_to_house"
    - `target_scene_id`: "interior_house"
-   - `target_spawn_point`: "entrance_from_exterior"
+   - `target_spawn_point`: "sp_entrance_from_exterior"
    - `trigger_mode`: AUTO
    - `cooldown_duration`: 1.0
 
@@ -55,13 +55,13 @@ We tried programmatic scene generation (`U_SceneBuilder`) but it was **overengin
 
 ### 4. Add Spawn Point Marker
 
-1. Navigate to `Main > Entities > E_SpawnPoints`
+1. Navigate to `Main > SP_SpawnPoints`
 2. Right-click → **Add Child Node** → Select `Node3D`
-3. Name it `exit_from_house`
+3. Name it `sp_exit_from_house`
 4. Set Position: `x=0, y=0, z=0` (or wherever you want players to spawn when exiting interior)
 
 5. **(Optional)** Add visual marker:
-   - Right-click `exit_from_house` → Add Child Node → `CSGCylinder3D`
+  - Right-click `sp_exit_from_house` → Add Child Node → `CSGCylinder3D`
    - Set Radius: 0.5, Height: 0.1
    - Add material with cyan color `RGB(0.0, 1.0, 1.0, 0.5)` (semi-transparent)
 
@@ -91,13 +91,13 @@ We tried programmatic scene generation (`U_SceneBuilder`) but it was **overengin
 Same as exterior, but:
 - `door_id`: "door_to_exterior"
 - `target_scene_id`: "exterior"
-- `target_spawn_point`: "exit_from_house"
+- `target_spawn_point`: "sp_exit_from_house"
 - Position: `x=5, y=0, z=0` (or wherever makes sense)
 
 ### 4. Add Spawn Point Marker
 
-1. Add `Node3D` to `E_SpawnPoints`
-2. Name it `entrance_from_exterior`
+1. Add `Node3D` to `SP_SpawnPoints`
+2. Name it `sp_entrance_from_exterior`
 3. Position: `x=0, y=0, z=0` (where players spawn when entering from exterior)
 
 ### 5. Save Scene
@@ -147,7 +147,7 @@ _register_door_exit(
     StringName("exterior"),
     StringName("door_to_house"),
     StringName("interior_house"),
-    StringName("entrance_from_exterior"),
+    StringName("sp_entrance_from_exterior"),
     "fade"
 )
 
@@ -155,7 +155,7 @@ _register_door_exit(
     StringName("interior_house"),
     StringName("door_to_exterior"),
     StringName("exterior"),
-    StringName("exit_from_house"),
+    StringName("sp_exit_from_house"),
     "fade"
 )
 ```

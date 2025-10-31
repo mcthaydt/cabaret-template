@@ -28,6 +28,7 @@
 [ext_resource type="Script" uid="uid://d0n2a3p3tkdq0" path="res://scripts/scene_structure/managers_group.gd" id="12_klon2"]
 [ext_resource type="Script" uid="uid://mm82rwglfuba" path="res://scripts/scene_structure/entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/camera_template.tscn" id="19_ph0bl"]
+[ext_resource type="Script" path="res://scripts/scene_structure/spawn_points_group.gd" id="21_spawnpoints"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -160,13 +161,8 @@ script = ExtResource("6_0e7m3")
 [node name="Entities" type="Node" parent="."]
 script = ExtResource("16_8qi87")
 
-[node name="E_SpawnPoints" type="Node3D" parent="Entities"]
-script = ExtResource("16_8qi87")
-
-[node name="E_PlayerSpawn" type="Node3D" parent="Entities/E_SpawnPoints"]
-
-[node name="E_CameraSpawn" type="Node3D" parent="Entities/E_SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
+[node name="SP_SpawnPoints" type="Node3D" parent="."]
+script = ExtResource("21_spawnpoints")
 
 [node name="E_Player" parent="Entities" instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)

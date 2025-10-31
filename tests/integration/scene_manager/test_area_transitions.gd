@@ -75,7 +75,7 @@ func test_door_pairing_registered_in_scene_registry() -> void:
 	assert_false(door_data.is_empty(), "Door pairing should be registered")
 	assert_eq(door_data.get("target_scene_id"), StringName("interior_house"),
 		"Door should target interior_house scene")
-	assert_eq(door_data.get("target_spawn_point"), StringName("entrance_from_exterior"),
+	assert_eq(door_data.get("target_spawn_point"), StringName("sp_entrance_from_exterior"),
 		"Door should have entrance spawn point")
 
 func test_scene_trigger_component_stores_door_metadata() -> void:
@@ -83,19 +83,22 @@ func test_scene_trigger_component_stores_door_metadata() -> void:
 	var trigger := C_SCENE_TRIGGER_COMPONENT.new()
 	trigger.door_id = StringName("door_to_house")
 	trigger.target_scene_id = StringName("interior_house")
-	trigger.target_spawn_point = StringName("entrance_from_exterior")
+	trigger.target_spawn_point = StringName("sp_entrance_from_exterior")
 	trigger.trigger_mode = C_SCENE_TRIGGER_COMPONENT.TriggerMode.AUTO
 
 	# Then: Component should store all metadata
 	assert_eq(trigger.door_id, StringName("door_to_house"), "door_id should be stored")
 	assert_eq(trigger.target_scene_id, StringName("interior_house"), "target_scene_id should be stored")
-	assert_eq(trigger.target_spawn_point, StringName("entrance_from_exterior"), "spawn point should be stored")
+	assert_eq(trigger.target_spawn_point, StringName("sp_entrance_from_exterior"), "spawn point should be stored")
 	assert_eq(trigger.trigger_mode, C_SCENE_TRIGGER_COMPONENT.TriggerMode.AUTO, "trigger_mode should be AUTO")
+
+	# Cleanup to avoid GUT orphan warnings
+	trigger.free()
 
 func test_target_spawn_point_stored_in_gameplay_state_before_transition() -> void:
 	# When: Dispatch set_target_spawn_point action
 	var U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-	var action: Dictionary = U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("entrance_from_exterior"))
+	var action: Dictionary = U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("sp_entrance_from_exterior"))
 	_state_store.dispatch(action)
 	await wait_physics_frames(2)
 
@@ -103,7 +106,7 @@ func test_target_spawn_point_stored_in_gameplay_state_before_transition() -> voi
 	var state: Dictionary = _state_store.get_state()
 	var gameplay_state: Dictionary = state.get("gameplay", {})
 	var target_spawn: StringName = gameplay_state.get("target_spawn_point", StringName(""))
-	assert_eq(target_spawn, StringName("entrance_from_exterior"),
+	assert_eq(target_spawn, StringName("sp_entrance_from_exterior"),
 		"target_spawn_point should be stored in gameplay state")
 
 func test_spawn_point_restoration_positions_player_correctly() -> void:
@@ -133,6 +136,7 @@ func test_bidirectional_door_pairings_registered() -> void:
 	assert_eq(interior_door.get("target_scene_id"), StringName("exterior"),
 		"Interior door should lead to exterior")
 
+
 func test_scene_trigger_component_has_area3d_collision() -> void:
 	# Given: Create entity with trigger component
 	var entity := Node3D.new()
@@ -148,7 +152,9 @@ func test_scene_trigger_component_has_area3d_collision() -> void:
 	await get_tree().process_frame
 
 	# Then: Component should have Area3D for collision detection
-	var area: Area3D = trigger.get_node_or_null("TriggerArea")
+	# Note: C_SceneTriggerComponent parents the Area3D under the Door entity (Node3D)
+	# so the area inherits the door's transform. Tests should query the entity, not the component.
+	var area: Area3D = entity.get_node_or_null("TriggerArea")
 	assert_not_null(area, "Component should create TriggerArea child")
 	assert_true(area is Area3D, "TriggerArea should be Area3D")
 
@@ -166,7 +172,7 @@ func test_auto_trigger_mode_fires_on_body_entered() -> void:
 	var trigger := C_SCENE_TRIGGER_COMPONENT.new()
 	trigger.door_id = StringName("door_to_house")
 	trigger.target_scene_id = StringName("interior_house")
-	trigger.target_spawn_point = StringName("entrance_from_exterior")
+	trigger.target_spawn_point = StringName("sp_entrance_from_exterior")
 	trigger.trigger_mode = C_SCENE_TRIGGER_COMPONENT.TriggerMode.AUTO
 	entity.add_child(trigger)
 
@@ -175,10 +181,12 @@ func test_auto_trigger_mode_fires_on_body_entered() -> void:
 	# Create player body
 	var player := CharacterBody3D.new()
 	player.name = "E_Player"
+	player.add_to_group("player")  # Ensure _is_player() detects this as the player
 	add_child_autofree(player)
 
 	# When: Player enters trigger area
-	var area: Area3D = trigger.get_node_or_null("TriggerArea")
+	# Area3D is parented under the entity (see component design)
+	var area: Area3D = entity.get_node_or_null("TriggerArea")
 	assert_not_null(area, "TriggerArea should exist")
 
 	if area != null:
@@ -202,7 +210,7 @@ func test_interact_trigger_mode_requires_input() -> void:
 	var trigger := C_SCENE_TRIGGER_COMPONENT.new()
 	trigger.door_id = StringName("door_to_house")
 	trigger.target_scene_id = StringName("interior_house")
-	trigger.target_spawn_point = StringName("entrance_from_exterior")
+	trigger.target_spawn_point = StringName("sp_entrance_from_exterior")
 	trigger.trigger_mode = C_SCENE_TRIGGER_COMPONENT.TriggerMode.INTERACT  # INTERACT mode
 	entity.add_child(trigger)
 
@@ -211,10 +219,12 @@ func test_interact_trigger_mode_requires_input() -> void:
 	# Create player body
 	var player := CharacterBody3D.new()
 	player.name = "E_Player"
+	player.add_to_group("player")  # Ensure _is_player() detects this as the player
 	add_child_autofree(player)
 
 	# When: Player enters trigger area (without pressing interact)
-	var area: Area3D = trigger.get_node_or_null("TriggerArea")
+	# Area3D is parented under the entity (see component design)
+	var area: Area3D = entity.get_node_or_null("TriggerArea")
 	assert_not_null(area, "TriggerArea should exist")
 
 	if area != null:
@@ -355,7 +365,7 @@ func test_spawn_point_restoration_after_door_transition() -> void:
 
 	# Set target spawn point BEFORE transition (simulating door trigger)
 	var U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-	_state_store.dispatch(U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("entrance_from_exterior")))
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("sp_entrance_from_exterior")))
 	await wait_physics_frames(2)
 
 	# When: Transition to interior scene
@@ -371,8 +381,8 @@ func test_spawn_point_restoration_after_door_transition() -> void:
 	assert_not_null(player, "Player should exist in interior scene")
 
 	# And: Player should be at spawn point position
-	var spawn_marker: Node3D = _find_spawn_point_in_scene(interior_scene, StringName("entrance_from_exterior"))
-	assert_not_null(spawn_marker, "Spawn marker 'entrance_from_exterior' should exist")
+	var spawn_marker: Node3D = _find_spawn_point_in_scene(interior_scene, StringName("sp_entrance_from_exterior"))
+	assert_not_null(spawn_marker, "Spawn marker 'sp_entrance_from_exterior' should exist")
 
 	# Verify player is at spawn point (within tolerance)
 	var distance: float = player.global_position.distance_to(spawn_marker.global_position)

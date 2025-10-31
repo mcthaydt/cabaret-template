@@ -127,7 +127,7 @@ static func _register_door_pairings() -> void:
 		StringName("exterior"),
 		StringName("door_to_house"),
 		StringName("interior_house"),
-		StringName("entrance_from_exterior"),
+		StringName("sp_entrance_from_exterior"),
 		"fade"
 	)
 
@@ -136,7 +136,7 @@ static func _register_door_pairings() -> void:
 		StringName("interior_house"),
 		StringName("door_to_exterior"),
 		StringName("exterior"),
-		StringName("exit_from_house"),
+		StringName("sp_exit_from_house"),
 		"fade"
 	)
 
