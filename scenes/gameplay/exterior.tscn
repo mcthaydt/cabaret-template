@@ -1,0 +1,295 @@
+[gd_scene load_steps=54 format=3]
+
+[ext_resource type="Script" path="res://scripts/scene_structure/main_root_node.gd" id="1_s1nff"]
+[ext_resource type="Script" path="res://scripts/scene_structure/scene_objects_group.gd" id="2_6d87t"]
+[ext_resource type="Script" path="res://scripts/scene_structure/environment_group.gd" id="3_e8wb8"]
+[ext_resource type="Script" path="res://scripts/scene_structure/systems_group.gd" id="4_rec8y"]
+[ext_resource type="Script" path="res://scripts/scene_structure/systems_core_group.gd" id="5_qsu50"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_input_system.gd" id="6_ys3lh"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_pause_system.gd" id="7_iesiq"]
+[ext_resource type="Script" path="res://scripts/scene_structure/systems_physics_group.gd" id="8_ioybk"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_gravity_system.gd" id="9_hxivq"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_jump_system.gd" id="10_n0x0w"]
+[ext_resource type="Script" path="res://scripts/scene_structure/systems_movement_group.gd" id="11_011bd"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_movement_system.gd" id="12_803a0"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_floating_system.gd" id="13_68qij"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="14_50qkx"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="15_8kr5q"]
+[ext_resource type="Script" path="res://scripts/scene_structure/systems_feedback_group.gd" id="16_mp22e"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="17_ap0tw"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="18_ksr5t"]
+[ext_resource type="Resource" path="res://resources/settings/jump_particles_default.tres" id="19_r1xvd"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="20_jl6aw"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="21_f0cqw"]
+[ext_resource type="Resource" path="res://resources/settings/landing_particles_default.tres" id="22_vht2n"]
+[ext_resource type="Script" path="res://scripts/scene_structure/managers_group.gd" id="23_ac3i0"]
+[ext_resource type="Script" path="res://scripts/managers/m_ecs_manager.gd" id="24_e2irm"]
+[ext_resource type="Script" path="res://scripts/scene_structure/entities_group.gd" id="25_bq0w0"]
+[ext_resource type="PackedScene" path="res://templates/player_template.tscn" id="26_1gwfm"]
+[ext_resource type="Script" path="res://scripts/ecs/ecs_entity.gd" id="27_tfbej"]
+[ext_resource type="Texture2D" path="res://assets/textures/tex_shadow_blob.png" id="28_c3m31"]
+[ext_resource type="Script" path="res://scripts/scene_structure/components_group.gd" id="29_cpmjq"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_movement_component.gd" id="30_uvci5"]
+[ext_resource type="Resource" path="res://resources/settings/movement_default.tres" id="31_0k4ik"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_jump_component.gd" id="32_cmi86"]
+[ext_resource type="Resource" path="res://resources/settings/jump_default.tres" id="33_hhq22"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_input_component.gd" id="34_varlm"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_rotate_to_input_component.gd" id="35_yccpd"]
+[ext_resource type="Resource" path="res://resources/settings/rotate_default.tres" id="36_rn2rm"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_floating_component.gd" id="37_yrux6"]
+[ext_resource type="Resource" path="res://resources/settings/floating_default.tres" id="38_oncof"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_align_with_surface_component.gd" id="39_ss2ci"]
+[ext_resource type="Resource" path="res://resources/settings/align_default.tres" id="40_ojyib"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_landing_indicator_component.gd" id="41_nevyj"]
+[ext_resource type="Resource" path="res://resources/settings/landing_indicator_default.tres" id="42_jq6kt"]
+[ext_resource type="PackedScene" path="res://templates/camera_template.tscn" id="43_tlrj0"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_scene_trigger_component.gd" id="44_eh38i"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud_overlay.tscn" id="45_x15a1"]
+[ext_resource type="Script" path="res://scenes/ui/hud_overlay.gd" id="46_5706w"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8laib"]
+shading_mode = 0
+diffuse_mode = 2
+albedo_color = Color(0.43137255, 0.15294118, 0.15294118, 1)
+
+[sub_resource type="Environment" id="Environment_ga3pv"]
+background_mode = 1
+background_color = Color(0.3019608, 0.60784316, 0.9019608, 1)
+ambient_light_source = 2
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_6mvan"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6mvan"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.11764706, 0.7372549, 0.4509804, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_yiwtw"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yiwtw"]
+shading_mode = 0
+diffuse_mode = 3
+specular_mode = 1
+albedo_color = Color(0.08627451, 0.3529412, 0.29803923, 1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_16kfq"]
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_s1nff")
+
+[node name="SceneObjects" type="Node3D" parent="."]
+script = ExtResource("2_6d87t")
+
+[node name="SO_Floor" type="CSGBox3D" parent="SceneObjects"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
+material_override = SubResource("StandardMaterial3D_8laib")
+use_collision = true
+size = Vector3(25, 1, 25)
+
+[node name="Enviroment" type="Node" parent="."]
+script = ExtResource("3_e8wb8")
+
+[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Enviroment"]
+environment = SubResource("Environment_ga3pv")
+
+[node name="Env_DirectionalLight3D" type="DirectionalLight3D" parent="Enviroment"]
+transform = Transform3D(1, 0, 0, 0, 0.9385653, -0.34510165, 0, 0.34510165, 0.9385653, 0, 0, 0)
+light_color = Color(0.56078434, 0.827451, 1, 1)
+light_energy = 12.026
+light_indirect_energy = 4.482
+
+[node name="Systems" type="Node" parent="."]
+script = ExtResource("4_rec8y")
+
+[node name="Core" type="Node" parent="Systems"]
+script = ExtResource("5_qsu50")
+
+[node name="S_InputSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("6_ys3lh")
+
+[node name="S_PauseSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("7_iesiq")
+execution_priority = 5
+
+[node name="Physics" type="Node" parent="Systems"]
+script = ExtResource("8_ioybk")
+
+[node name="S_GravitySystem" type="Node" parent="Systems/Physics"]
+script = ExtResource("9_hxivq")
+execution_priority = 60
+
+[node name="S_JumpSystem" type="Node" parent="Systems/Physics"]
+script = ExtResource("10_n0x0w")
+execution_priority = 75
+
+[node name="Movement" type="Node" parent="Systems"]
+script = ExtResource("11_011bd")
+
+[node name="S_MovementSystem" type="Node" parent="Systems/Movement"]
+script = ExtResource("12_803a0")
+execution_priority = 50
+
+[node name="S_FloatingSystem" type="Node" parent="Systems/Movement"]
+script = ExtResource("13_68qij")
+execution_priority = 70
+
+[node name="S_RotateToInputSystem" type="Node" parent="Systems/Movement"]
+script = ExtResource("14_50qkx")
+execution_priority = 80
+
+[node name="S_AlignWithSurfaceSystem" type="Node" parent="Systems/Movement"]
+script = ExtResource("15_8kr5q")
+execution_priority = 90
+
+[node name="Feedback" type="Node" parent="Systems"]
+script = ExtResource("16_mp22e")
+
+[node name="S_LandingIndicatorSystem" type="Node" parent="Systems/Feedback"]
+script = ExtResource("17_ap0tw")
+execution_priority = 110
+
+[node name="S_JumpParticlesSystem" type="Node" parent="Systems/Feedback"]
+script = ExtResource("18_ksr5t")
+settings = ExtResource("19_r1xvd")
+execution_priority = 120
+
+[node name="S_JumpSoundSystem" type="Node" parent="Systems/Feedback"]
+script = ExtResource("20_jl6aw")
+execution_priority = 121
+
+[node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback"]
+script = ExtResource("21_f0cqw")
+settings = ExtResource("22_vht2n")
+execution_priority = 122
+
+[node name="Managers" type="Node" parent="."]
+script = ExtResource("23_ac3i0")
+
+[node name="M_ECSManager" type="Node" parent="Managers"]
+script = ExtResource("24_e2irm")
+query_metrics_enabled = true
+query_metrics_capacity = 64
+
+[node name="Entities" type="Node" parent="."]
+script = ExtResource("25_bq0w0")
+
+[node name="E_SpawnPoints" type="Node3D" parent="Entities"]
+script = ExtResource("25_bq0w0")
+
+[node name="E_PlayerSpawn" type="Node3D" parent="Entities/E_SpawnPoints"]
+
+[node name="E_CameraSpawn" type="Node3D" parent="Entities/E_SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
+
+[node name="exit_from_house" type="Node3D" parent="Entities/E_SpawnPoints"]
+
+[node name="E_PlayerRoot" type="Node3D" parent="Entities" instance=ExtResource("26_1gwfm")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
+script = ExtResource("27_tfbej")
+
+[node name="Player_Body" type="CharacterBody3D" parent="Entities/E_PlayerRoot"]
+
+[node name="Body_Mesh" type="CSGMesh3D" parent="Entities/E_PlayerRoot/Player_Body"]
+transform = Transform3D(1, 0, 0, 0, 0.5518581, 0, 0, 0, 1, 0, -0.3421986, 0)
+mesh = SubResource("CapsuleMesh_6mvan")
+material = SubResource("StandardMaterial3D_6mvan")
+
+[node name="Direction_Mesh" type="MeshInstance3D" parent="Entities/E_PlayerRoot/Player_Body/Body_Mesh"]
+transform = Transform3D(0.39169633, 0, 0, 0, 0.15378642, 0, 0, 0, 0.36884245, -0.019476414, 0.6069238, -0.4746977)
+mesh = SubResource("BoxMesh_yiwtw")
+surface_material_override/0 = SubResource("StandardMaterial3D_yiwtw")
+
+[node name="GroundIndicator" type="Sprite3D" parent="Entities/E_PlayerRoot/Player_Body/Body_Mesh"]
+transform = Transform3D(0.2, 0, 0, 0, -8.742278e-09, -0.2, 0, 0.2, -8.742278e-09, 0, -2.3227184, 0)
+modulate = Color(1, 1, 1, 0.49803922)
+texture = ExtResource("28_c3m31")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/E_PlayerRoot/Player_Body"]
+shape = SubResource("CapsuleShape3D_16kfq")
+
+[node name="HoverRays" type="Node3D" parent="Entities/E_PlayerRoot/Player_Body"]
+
+[node name="Center" type="RayCast3D" parent="Entities/E_PlayerRoot/Player_Body/HoverRays"]
+target_position = Vector3(0, -1.5, 0)
+
+[node name="Forward" type="RayCast3D" parent="Entities/E_PlayerRoot/Player_Body/HoverRays"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.35)
+target_position = Vector3(0, -1.5, 0)
+
+[node name="Back" type="RayCast3D" parent="Entities/E_PlayerRoot/Player_Body/HoverRays"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.35)
+target_position = Vector3(0, -1.5, 0)
+
+[node name="Left" type="RayCast3D" parent="Entities/E_PlayerRoot/Player_Body/HoverRays"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 0, 0)
+target_position = Vector3(0, -1.5, 0)
+
+[node name="Right" type="RayCast3D" parent="Entities/E_PlayerRoot/Player_Body/HoverRays"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0, 0)
+target_position = Vector3(0, -1.5, 0)
+
+[node name="Components" type="Node" parent="Entities/E_PlayerRoot"]
+script = ExtResource("29_cpmjq")
+
+[node name="C_MovementComponent" type="Node" parent="Entities/E_PlayerRoot/Components"]
+script = ExtResource("30_uvci5")
+settings = ExtResource("31_0k4ik")
+component_type = &"C_MovementComponent"
+
+[node name="C_JumpComponent" type="Node" parent="Entities/E_PlayerRoot/Components"]
+script = ExtResource("32_cmi86")
+settings = ExtResource("33_hhq22")
+character_body_path = NodePath("../../Player_Body")
+component_type = &"C_JumpComponent"
+
+[node name="C_InputComponent" type="Node" parent="Entities/E_PlayerRoot/Components"]
+script = ExtResource("34_varlm")
+component_type = &"C_InputComponent"
+
+[node name="C_RotateToInputComponent" type="Node" parent="Entities/E_PlayerRoot/Components"]
+script = ExtResource("35_yccpd")
+settings = ExtResource("36_rn2rm")
+target_node_path = NodePath("../../Player_Body")
+component_type = &"C_RotateToInputComponent"
+
+[node name="C_FloatingComponent" type="Node" parent="Entities/E_PlayerRoot/Components"]
+script = ExtResource("37_yrux6")
+settings = ExtResource("38_oncof")
+character_body_path = NodePath("../../Player_Body")
+raycast_root_path = NodePath("../../Player_Body/HoverRays")
+component_type = &"C_FloatingComponent"
+
+[node name="C_AlignWithSurfaceComponent" type="Node" parent="Entities/E_PlayerRoot/Components"]
+script = ExtResource("39_ss2ci")
+settings = ExtResource("40_ojyib")
+character_body_path = NodePath("../../Player_Body")
+visual_alignment_path = NodePath("../../Player_Body/Body_Mesh")
+component_type = &"C_AlignWithSurfaceComponent"
+
+[node name="C_LandingIndicatorComponent" type="Node" parent="Entities/E_PlayerRoot/Components"]
+script = ExtResource("41_nevyj")
+settings = ExtResource("42_jq6kt")
+character_body_path = NodePath("../../Player_Body")
+origin_marker_path = NodePath("../../Player_Body/HoverRays/Center")
+landing_marker_path = NodePath("../../Player_Body/Body_Mesh/GroundIndicator")
+component_type = &"C_LandingIndicatorComponent"
+
+[node name="E_CameraRoot" type="Node3D" parent="Entities" instance=ExtResource("43_tlrj0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
+script = ExtResource("27_tfbej")
+
+[node name="E_PlayerCamera" type="Camera3D" parent="Entities/E_CameraRoot" groups=["main_camera"]]
+current = true
+
+[node name="E_DoorTrigger" type="Node3D" parent="Entities"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
+
+[node name="C_SceneTriggerComponent" type="Node" parent="Entities/E_DoorTrigger"]
+script = ExtResource("44_eh38i")
+door_id = &"door_to_house"
+target_scene_id = &"interior_house"
+target_spawn_point = &"entrance_from_exterior"
+
+[node name="HUD" type="CanvasLayer" parent="." instance=ExtResource("45_x15a1")]
+script = ExtResource("46_5706w")

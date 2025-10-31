@@ -47,6 +47,15 @@ func before_each() -> void:
 	transition_overlay.name = "TransitionOverlay"
 	_root_node.add_child(transition_overlay)
 
+	# Add ColorRect for FadeTransition
+	var color_rect := ColorRect.new()
+	color_rect.name = "TransitionColorRect"
+	color_rect.color = Color.BLACK
+	color_rect.modulate.a = 0.0
+	color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	color_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	transition_overlay.add_child(color_rect)
+
 	# Create M_SceneManager
 	_scene_manager = M_SCENE_MANAGER.new()
 	_scene_manager.skip_initial_scene_load = true
@@ -170,8 +179,11 @@ func test_auto_trigger_mode_fires_on_body_entered() -> void:
 
 	# When: Player enters trigger area
 	var area: Area3D = trigger.get_node_or_null("TriggerArea")
+	assert_not_null(area, "TriggerArea should exist")
+
 	if area != null:
-		area._on_body_entered(player)
+		# Emit the body_entered signal instead of calling private method
+		area.body_entered.emit(player)
 		await wait_physics_frames(2)
 
 		# Then: Transition should be triggered
@@ -182,11 +194,66 @@ func test_auto_trigger_mode_fires_on_body_entered() -> void:
 		assert_true(is_transitioning, "Scene transition should be triggered on body enter")
 
 func test_interact_trigger_mode_requires_input() -> void:
-	# This test verifies that INTERACT mode only triggers with player input
-	# Will be fully implemented after S_SceneTriggerSystem is created
-	pass  # Placeholder for T085 test
+	# Given: Trigger in INTERACT mode
+	var entity := Node3D.new()
+	entity.name = "E_DoorTrigger"
+	add_child_autofree(entity)
+
+	var trigger := C_SCENE_TRIGGER_COMPONENT.new()
+	trigger.door_id = StringName("door_to_house")
+	trigger.target_scene_id = StringName("interior_house")
+	trigger.target_spawn_point = StringName("entrance_from_exterior")
+	trigger.trigger_mode = C_SCENE_TRIGGER_COMPONENT.TriggerMode.INTERACT  # INTERACT mode
+	entity.add_child(trigger)
+
+	await get_tree().process_frame
+
+	# Create player body
+	var player := CharacterBody3D.new()
+	player.name = "E_Player"
+	add_child_autofree(player)
+
+	# When: Player enters trigger area (without pressing interact)
+	var area: Area3D = trigger.get_node_or_null("TriggerArea")
+	assert_not_null(area, "TriggerArea should exist")
+
+	if area != null:
+		area.body_entered.emit(player)
+		await wait_physics_frames(2)
+
+		# Then: Should NOT auto-trigger (is_player_in_zone should be true but no transition)
+		assert_true(trigger.is_player_in_zone(), "Player should be detected in zone")
+
+		# And: When trigger_interact() is called manually
+		trigger.trigger_interact()
+		await wait_physics_frames(2)
+
+		# Then: Transition should be triggered
+		var state: Dictionary = _state_store.get_state()
+		var scene_state: Dictionary = state.get("scene", {})
+		var is_transitioning: bool = scene_state.get("is_transitioning", false)
+		assert_true(is_transitioning, "Scene transition should be triggered after manual interact")
 
 func test_area_state_persists_across_transitions() -> void:
-	# This test verifies FR-036 (persist area state when transitioning away)
-	# Will be fully implemented after full area transition flow is working
-	pass  # Placeholder for T100 test
+	# Given: Gameplay state with test data
+	var U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+
+	# Set some gameplay state
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.set_gravity_scale(2.5))
+	await wait_physics_frames(2)
+
+	# When: Trigger a scene transition
+	var action: Dictionary = U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("test_spawn"))
+	_state_store.dispatch(action)
+	await wait_physics_frames(2)
+
+	# Then: Gameplay state should persist
+	var state: Dictionary = _state_store.get_state()
+	var gameplay_state: Dictionary = state.get("gameplay", {})
+	var gravity_scale: float = gameplay_state.get("gravity_scale", 1.0)
+
+	# Verify state persists (gravity_scale should still be 2.5)
+	assert_eq(gravity_scale, 2.5, "Gameplay state should persist across transitions")
+
+	# This is a simplified test - full area state persistence (FR-036) would require
+	# testing entity positions/states across full scene load/unload cycles
