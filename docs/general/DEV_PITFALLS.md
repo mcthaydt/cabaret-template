@@ -40,6 +40,13 @@
   
   **Real example**: `scenes/ui/hud_overlay.tscn` uses a full-screen MarginContainer to provide consistent margins for HUD elements. Without `mouse_filter = 2`, it blocked all clicks to test scene buttons below it, even though the HUD labels only occupied the top-left corner.
 
+## Scene Transition Pitfalls
+
+- Door trigger re-entry can cause ping-pong transitions:
+  - Ensure `C_SceneTriggerComponent` guards are active (cooldown + `is_transitioning` checks).
+  - Keep spawn markers positioned outside trigger volumes to avoid immediate re-trigger on load.
+  - Avoid leaving `initial_scene_id = exterior` outside of manual tests; prefer `main_menu` to follow the flow and reduce confusion.
+
 ## GDScript Language Pitfalls
 
 - **Lambda closures cannot reassign primitive variables**: GDScript lambdas capture variables but **cannot reassign primitive types** (bool, int, float). Writing `var completed = false; var callback = func(): completed = true` will NOT modify the outer `completed` variable - the callback will set a local copy instead. **Solution**: Wrap primitives in mutable containers like Arrays. Example:

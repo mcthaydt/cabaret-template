@@ -326,7 +326,7 @@
 
 ---
 
-## Phase 6: User Story 3 - Area Transitions (Exterior ↔ Interior) (Priority: P2) ⚡ PARTIAL (7/21 tasks)
+## Phase 6: User Story 3 - Area Transitions (Exterior ↔ Interior) (Priority: P2) ⚡ PARTIAL (9/21 tasks)
 
 **Status**: Phase 6 partially complete - foundation implemented, scene templates pending
 **Date Started**: 2025-10-31
@@ -363,10 +363,14 @@
 ### Integration Tests for User Story 3
 
 - [x] T096 [US3] Run test_area_transitions.gd and verify all door pairings work - **COMPLETE** (9/9 tests passing ✅)
-- [ ] T097 [US3] Test: Enter door in exterior → assert interior loads at correct spawn point - **PARTIAL** (component behavior tested, full scene load not tested)
-- [ ] T098 [US3] Test: Exit door in interior → assert exterior loads at correct spawn point - **PARTIAL** (component behavior tested, full scene load not tested)
+- [x] T097 [US3] Test: Enter door in exterior → assert interior loads at correct spawn point - **COMPLETE**
+  - Scenes updated to include `S_SceneTriggerSystem` under `Systems/Core`.
+  - `C_SceneTriggerComponent` now guards re-entry with `is_transitioning` + pending flag to prevent duplicate transitions.
+  - Full-scene integration assertions pass when `exterior.tscn` and `interior_house.tscn` are present.
+- [x] T098 [US3] Test: Exit door in interior → assert exterior loads at correct spawn point - **COMPLETE**
+  - Verified spawn restoration to `exit_from_house` with player repositioned and spawn flag cleared.
 - [ ] T099 [US3] Manual test: exterior → door → interior → exit → exterior (verify player position correct) - **INCOMPLETE** (requires manual GUI testing)
-- [ ] T100 [US3] Validate area state persistence (enemy positions, collected items preserved) - **INCOMPLETE** (requires entity state persistence implementation, not just single field)
+- [ ] T100 [US3] Validate area state persistence (enemy positions, collected items preserved) - **DEFERRED** (requires entity state persistence implementation, not just single field)
 
 **Checkpoint**: 🚧 **Phase 6 PARTIAL (18/21 tasks - 86%)**
 

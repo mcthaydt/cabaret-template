@@ -5,7 +5,7 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager`
-**Status**: ✅ Phase 0, 1, 2, 3, 4, 5 Complete | 🚧 Phase 6 Partial (86%) | 🚀 Ready for Phase 7
+**Status**: ✅ Phase 0, 1, 2, 3, 4, 5 Complete | 🚧 Phase 6 Partial (43%) | 🚀 Ready for Phase 7
 
 ---
 
@@ -367,6 +367,10 @@ Due to risk management reordering, Phase 5 (T101-T128) comes before Phase 6 (T08
 - Preload queue management
 - Read: `scene-manager-tasks.md` (T145-T161)
 
-**Phase 6 Status**: 🚧 Partial (18/21 tasks - 86%) - Core system working, manual testing and entity persistence remain
+**Phase 6 Status**: 🚧 Partial (9/21 tasks - 43%)
+- Implemented re-entry guards in `C_SceneTriggerComponent` (pending flag + store/manager `is_transitioning` check)
+- Added `S_SceneTriggerSystem` to gameplay scenes under `Systems/Core` (INTERACT support)
+- Enabled input blocking during `FadeTransition` to reduce accidental re-triggers
+- Default startup restored to `main_menu` (manual tests can temporarily set `exterior` per guide)
 
 **Recommended Path**: Proceed to **Phase 7** (Transition Effects) → Phase 8 (Preloading) → Phase 9 (End-Game Flows) → Phase 10 (Polish)

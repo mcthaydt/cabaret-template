@@ -65,6 +65,9 @@ var _unsubscribe: Callable
 ## Skip initial scene load (for tests)
 var skip_initial_scene_load: bool = false
 
+## Initial scene to load on startup (configurable for testing)
+@export var initial_scene_id: StringName = StringName("main_menu")
+
 func _ready() -> void:
 	# Add to scene_manager group for discovery
 	add_to_group("scene_manager")
@@ -154,8 +157,8 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 
 ## Load initial scene on startup
 func _load_initial_scene() -> void:
-	# Load main_menu as the initial scene
-	transition_to_scene(StringName("main_menu"), "instant", Priority.CRITICAL)
+	# Load initial scene (configurable via export var)
+	transition_to_scene(initial_scene_id, "instant", Priority.CRITICAL)
 
 ## Transition to a new scene
 func transition_to_scene(scene_id: StringName, transition_type: String, priority: int = Priority.NORMAL) -> void:
@@ -179,6 +182,16 @@ func transition_to_scene(scene_id: StringName, transition_type: String, priority
 
 ## Enqueue transition based on priority
 func _enqueue_transition(request: TransitionRequest) -> void:
+	# Drop duplicate requests for the same target already in the queue
+	for existing in _transition_queue:
+		if existing.scene_id == request.scene_id and existing.transition_type == request.transition_type:
+			# Keep the higher-priority one
+			if existing.priority >= request.priority:
+				return
+			# Replace existing lower-priority with the new one
+			_transition_queue.erase(existing)
+			break
+
 	# Insert based on priority (higher priority = earlier in queue)
 	var insert_index: int = _transition_queue.size()
 

@@ -95,6 +95,15 @@
 - Tabs and warnings
   - Keep tab indentation in `.gd` files; tests use native method stubs on engine classes—suppress with `@warning_ignore("native_method_override")` where applicable (details in `docs/general/developer_pitfalls.md`).
 
+## Area Transitions (US3) Notes
+
+- Scene triggers now guard against duplicate requests:
+  - `C_SceneTriggerComponent` checks `scene.is_transitioning` and a local pending flag before firing, and uses a cooldown window.
+  - `M_SceneManager` dedupes identical transition requests already queued.
+- `S_SceneTriggerSystem` must be present in gameplay scenes to support INTERACT mode; add it under `Systems/Core`.
+- `FadeTransition` temporarily blocks input during the effect to reduce accidental re-triggers; input is restored on completion.
+- For manual tests that start in the exterior, temporarily change `root.tscn` `initial_scene_id` to `exterior`, but keep `main_menu` as the default for normal gameplay/tests.
+
 ## Test Commands
 
 - Run ECS tests

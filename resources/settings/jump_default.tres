@@ -4,5 +4,3 @@
 
 [resource]
 script = ExtResource("1_0")
-min_step_up_height = 0.5
-min_step_up_fall_height = 0.05

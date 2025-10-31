@@ -53,6 +53,11 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 	# Set fade color
 	color_rect.color = fade_color
 
+	# Optionally block input during transition (restore after)
+	var original_mouse_filter := color_rect.mouse_filter
+	if block_input:
+		color_rect.mouse_filter = Control.MOUSE_FILTER_STOP
+
 	# Handle zero duration
 	if duration <= 0.0:
 		# Instant transition - call callbacks immediately
@@ -85,6 +90,8 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 	# Completion callback
 	_tween.tween_callback(func() -> void:
 		_cleanup_tween()
+		# Restore mouse filter
+		color_rect.mouse_filter = original_mouse_filter
 		callback.call()
 	)
 

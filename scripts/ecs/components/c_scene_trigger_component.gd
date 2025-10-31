@@ -30,6 +30,9 @@ enum TriggerMode {
 ## Component type constant
 const COMPONENT_TYPE := StringName("C_SceneTriggerComponent")
 
+func _init() -> void:
+	component_type = COMPONENT_TYPE
+
 ## Door ID (unique identifier for this door/trigger)
 @export var door_id: StringName = StringName("")
 
@@ -54,8 +57,14 @@ var _trigger_area: Area3D = null
 ## Internal: Player currently in trigger zone
 var _player_in_zone: bool = false
 
+## Internal: Prevent duplicate transitions while a transition is pending
+var _pending_transition: bool = false
+
 func _ready() -> void:
 	super._ready()
+
+	# Set initial cooldown to prevent immediate re-triggering on scene load
+	_cooldown_remaining = cooldown_duration
 
 	# Create Area3D for collision detection
 	_create_trigger_area()
@@ -66,13 +75,16 @@ func _create_trigger_area() -> void:
 	_trigger_area.name = "TriggerArea"
 	_trigger_area.collision_layer = 0  # Don't collide with anything
 	_trigger_area.collision_mask = 1   # Detect layer 1 (player)
+	_trigger_area.monitoring = true    # Explicitly enable detection
 	add_child(_trigger_area)
 
 	# Create collision shape (box)
 	var collision_shape := CollisionShape3D.new()
 	collision_shape.name = "CollisionShape3D"
+	# Offset upward to match player hover height (1.5m)
+	collision_shape.position = Vector3(0, 1.5, 0)
 	var box_shape := BoxShape3D.new()
-	box_shape.size = Vector3(2.0, 3.0, 2.0)  # Default door-sized trigger
+	box_shape.size = Vector3(2.0, 4.0, 2.0)  # Taller box for better detection (y=-0.5 to y=+3.5)
 	collision_shape.shape = box_shape
 	_trigger_area.add_child(collision_shape)
 
@@ -85,10 +97,14 @@ func _process(delta: float) -> void:
 	if _cooldown_remaining > 0.0:
 		_cooldown_remaining -= delta
 
+	# Reset pending flag when cooldown elapses to allow future triggers
+	if _pending_transition and _cooldown_remaining <= 0.0:
+		_pending_transition = false
+
 ## Callback when body enters trigger area
 func _on_body_entered(body: Node3D) -> void:
-	# Check if it's the player
-	if body.name.begins_with("E_Player"):
+	# Check if it's the player (check body or its owner for "player" group)
+	if _is_player(body):
 		_player_in_zone = true
 
 		# If AUTO mode, trigger transition immediately
@@ -97,12 +113,50 @@ func _on_body_entered(body: Node3D) -> void:
 
 ## Callback when body exits trigger area
 func _on_body_exited(body: Node3D) -> void:
-	if body.name.begins_with("E_Player"):
+	if _is_player(body):
 		_player_in_zone = false
+
+## Check if body belongs to player entity
+func _is_player(body: Node3D) -> bool:
+	# Check if body itself is in player group
+	if body.is_in_group("player"):
+		return true
+
+	# Check if body's parent is in player group (E_PlayerRoot owns Player_Body)
+	var parent := body.get_parent()
+	if parent != null and parent.is_in_group("player"):
+		return true
+
+	# Check scene owner (for instanced scenes)
+	var owner_node := body.owner
+	if owner_node != null and owner_node.is_in_group("player"):
+		return true
+
+	return false
 
 ## Check if trigger can fire (not on cooldown)
 func _can_trigger() -> bool:
-	return _cooldown_remaining <= 0.0
+	if _pending_transition:
+		return false
+
+	if _cooldown_remaining > 0.0:
+		return false
+
+	# Guard against re-entry while a scene transition is underway
+	var store = U_StateUtils.get_store(self)
+	if store != null:
+		var scene_state: Dictionary = store.get_slice(StringName("scene"))
+		if scene_state.get("is_transitioning", false):
+			return false
+
+	# Also check SceneManager if available
+	var managers: Array = get_tree().get_nodes_in_group("scene_manager")
+	if managers.size() > 0:
+		var mgr = managers[0]
+		if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
+			return false
+
+	return true
 
 ## Trigger the scene transition
 func _trigger_transition() -> void:
@@ -126,6 +180,13 @@ func _trigger_transition() -> void:
 		return
 
 	var scene_manager = scene_manager_group[0]
+
+	# Final guard before requesting transition
+	if not _can_trigger():
+		return
+
+	# Mark pending to avoid duplicate requests within the same cooldown window
+	_pending_transition = true
 
 	# Trigger scene transition
 	# Get transition type from door pairing

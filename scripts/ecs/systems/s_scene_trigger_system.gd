@@ -14,18 +14,11 @@ const SYSTEM_TYPE := StringName("S_SceneTriggerSystem")
 ## Interact action (default: "ui_accept" or "E" key)
 @export var interact_action: StringName = StringName("interact")
 
-var _manager: M_ECSManager
 var _actions_initialized: bool = false
 
 func _ready() -> void:
 	super._ready()
-	_locate_manager()
 	_ensure_interact_action()
-
-func _locate_manager() -> void:
-	var manager_group: Array = get_tree().get_nodes_in_group("ecs_manager")
-	if not manager_group.is_empty():
-		_manager = manager_group[0] as M_ECSManager
 
 func _ensure_interact_action() -> void:
 	if _actions_initialized:

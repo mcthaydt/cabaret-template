@@ -257,3 +257,155 @@ func test_area_state_persists_across_transitions() -> void:
 
 	# This is a simplified test - full area state persistence (FR-036) would require
 	# testing entity positions/states across full scene load/unload cycles
+
+func test_full_scene_load_exterior_to_interior() -> void:
+	# Check if scenes exist (they need to be created manually)
+	if not FileAccess.file_exists("res://scenes/gameplay/exterior.tscn"):
+		pending("exterior.tscn must be created manually - see MANUAL_SCENE_CREATION_GUIDE.md")
+		return
+	if not FileAccess.file_exists("res://scenes/gameplay/interior_house.tscn"):
+		pending("interior_house.tscn must be created manually - see MANUAL_SCENE_CREATION_GUIDE.md")
+		return
+
+	# Given: Clear any previous spawn point from state
+	var U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("")))
+	await wait_physics_frames(1)
+
+	# Load exterior scene into ActiveSceneContainer
+	var exterior_scene: Node = load("res://scenes/gameplay/exterior.tscn").instantiate()
+	_active_scene_container.add_child(exterior_scene)
+	await get_tree().process_frame
+
+	# Set current scene in state
+	var U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	await wait_physics_frames(2)
+
+	# When: Trigger transition to interior via scene manager
+	_scene_manager.transition_to_scene(StringName("interior_house"), "instant", _scene_manager.Priority.HIGH)
+	await wait_physics_frames(4)  # Wait for transition to complete
+
+	# Then: Interior scene should be loaded in ActiveSceneContainer
+	assert_eq(_active_scene_container.get_child_count(), 1, "ActiveSceneContainer should have 1 child")
+	var loaded_scene: Node = _active_scene_container.get_child(0)
+	assert_not_null(loaded_scene, "Loaded scene should exist")
+
+	# And: Current scene ID should be updated
+	var state: Dictionary = _state_store.get_state()
+	var scene_state: Dictionary = state.get("scene", {})
+	var current_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
+	assert_eq(current_scene_id, StringName("interior_house"), "Current scene should be interior_house")
+
+func test_full_scene_load_interior_to_exterior() -> void:
+	# Check if scenes exist (they need to be created manually)
+	if not FileAccess.file_exists("res://scenes/gameplay/exterior.tscn"):
+		pending("exterior.tscn must be created manually - see MANUAL_SCENE_CREATION_GUIDE.md")
+		return
+	if not FileAccess.file_exists("res://scenes/gameplay/interior_house.tscn"):
+		pending("interior_house.tscn must be created manually - see MANUAL_SCENE_CREATION_GUIDE.md")
+		return
+
+	# Given: Clear any previous spawn point from state
+	var U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("")))
+	await wait_physics_frames(1)
+
+	# Load interior scene into ActiveSceneContainer
+	var interior_scene: Node = load("res://scenes/gameplay/interior_house.tscn").instantiate()
+	_active_scene_container.add_child(interior_scene)
+	await get_tree().process_frame
+
+	# Set current scene in state
+	var U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
+	await wait_physics_frames(2)
+
+	# When: Trigger transition to exterior via scene manager
+	_scene_manager.transition_to_scene(StringName("exterior"), "instant", _scene_manager.Priority.HIGH)
+	await wait_physics_frames(4)  # Wait for transition to complete
+
+	# Then: Exterior scene should be loaded in ActiveSceneContainer
+	assert_eq(_active_scene_container.get_child_count(), 1, "ActiveSceneContainer should have 1 child")
+	var loaded_scene: Node = _active_scene_container.get_child(0)
+	assert_not_null(loaded_scene, "Loaded scene should exist")
+
+	# And: Current scene ID should be updated
+	var state: Dictionary = _state_store.get_state()
+	var scene_state: Dictionary = state.get("scene", {})
+	var current_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
+	assert_eq(current_scene_id, StringName("exterior"), "Current scene should be exterior")
+
+func test_spawn_point_restoration_after_door_transition() -> void:
+	# Check if scenes exist (they need to be created manually)
+	if not FileAccess.file_exists("res://scenes/gameplay/exterior.tscn"):
+		pending("exterior.tscn must be created manually - see MANUAL_SCENE_CREATION_GUIDE.md")
+		return
+	if not FileAccess.file_exists("res://scenes/gameplay/interior_house.tscn"):
+		pending("interior_house.tscn must be created manually - see MANUAL_SCENE_CREATION_GUIDE.md")
+		return
+
+	# Given: Load exterior scene and set target spawn point
+	var exterior_scene: Node = load("res://scenes/gameplay/exterior.tscn").instantiate()
+	_active_scene_container.add_child(exterior_scene)
+	await get_tree().process_frame
+
+	var U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+
+	# Set target spawn point BEFORE transition (simulating door trigger)
+	var U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("entrance_from_exterior")))
+	await wait_physics_frames(2)
+
+	# When: Transition to interior scene
+	_scene_manager.transition_to_scene(StringName("interior_house"), "instant", _scene_manager.Priority.HIGH)
+	await wait_physics_frames(4)
+
+	# Then: Player should exist in interior scene
+	var interior_scene: Node = _active_scene_container.get_child(0)
+	assert_not_null(interior_scene, "Interior scene should be loaded")
+
+	# Find player in interior scene
+	var player: Node3D = _find_player_in_scene(interior_scene)
+	assert_not_null(player, "Player should exist in interior scene")
+
+	# And: Player should be at spawn point position
+	var spawn_marker: Node3D = _find_spawn_point_in_scene(interior_scene, StringName("entrance_from_exterior"))
+	assert_not_null(spawn_marker, "Spawn marker 'entrance_from_exterior' should exist")
+
+	# Verify player is at spawn point (within tolerance)
+	var distance: float = player.global_position.distance_to(spawn_marker.global_position)
+	assert_lt(distance, 0.1, "Player should be positioned at spawn marker (distance < 0.1)")
+
+	# And: Target spawn point should be cleared from state
+	var state: Dictionary = _state_store.get_state()
+	var gameplay_state: Dictionary = state.get("gameplay", {})
+	var target_spawn: StringName = gameplay_state.get("target_spawn_point", StringName(""))
+	assert_eq(target_spawn, StringName(""), "Target spawn point should be cleared after use")
+
+## Helper: Find player entity in scene
+func _find_player_in_scene(scene_root: Node) -> Node3D:
+	var players: Array = []
+	_find_nodes_by_prefix(scene_root, "E_Player", players)
+	return players[0] as Node3D if players.size() > 0 else null
+
+## Helper: Find spawn point by name in scene
+func _find_spawn_point_in_scene(scene_root: Node, spawn_name: StringName) -> Node3D:
+	var spawn_points: Array = []
+	_find_nodes_by_name(scene_root, spawn_name, spawn_points)
+	return spawn_points[0] as Node3D if spawn_points.size() > 0 else null
+
+## Recursive helper to find nodes by name
+func _find_nodes_by_name(node: Node, target_name: StringName, results: Array) -> void:
+	if node.name == target_name:
+		results.append(node)
+	for child in node.get_children():
+		_find_nodes_by_name(child, target_name, results)
+
+## Recursive helper to find nodes by prefix
+func _find_nodes_by_prefix(node: Node, prefix: String, results: Array) -> void:
+	if node.name.begins_with(prefix):
+		results.append(node)
+	for child in node.get_children():
+		_find_nodes_by_prefix(child, prefix, results)
