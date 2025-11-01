@@ -268,6 +268,15 @@
   - If you choose idle: keep the tween on default (IDLE), wait with `await get_tree().process_frame`, and prefer `await wait_seconds(...)` in tests.
   - Avoid pausing the tree during fades unless the overlay/tween are explicitly configured to run while paused (e.g., container `process_mode = ALWAYS`).
 
+- **Paused SceneTree stalls Tweens/Timers unless owner runs while paused**: If `get_tree().paused == true`, tweens and timers won't advance for nodes in the default/pausable modes. This caused transition tests to hang while awaiting `tween.finished` or `wait_seconds(...)`.
+  - For transitions, temporarily set both `TransitionOverlay` and its `TransitionColorRect` to `process_mode = Node.PROCESS_MODE_ALWAYS` during the fade and restore their original modes on completion.
+  - In tests, avoid relying on `wait_seconds(...)` when the tree may be paused. Instead, either wait on `tween.finished` with a timeout loop that yields `process_frame`, or create timers that run while paused. Diagnostics should log `paused`, `Engine.time_scale`, and the nodes’ `process_mode` values.
+  - Symptom: alpha/modulate never changes, `tween.is_running == true`, and wait loops time out with the tree paused.
+
+- **Don't kill a Tween before `finished`**: Calling `Tween.kill()` (or equivalent) inside the tween chain prevents the `finished` signal from emitting. Tests that `await tween.finished` will hang.
+  - Use `tween.finished.connect(...)` to run cleanup and completion callbacks, and only clear references after `finished` fires.
+  - If a synchronous completion is needed, use a final `tween_callback(...)` in the chain instead of killing the tween.
+
 - **ESC must be ignored during active transitions**: Pressing ESC while a fade/loading transition is running can pause the tree, freezing tweens and leaving the transition incomplete. The Scene Manager now ignores ESC when `is_transitioning()` or while processing the transition queue. Tests that emit ESC on the same frame as a door trigger rely on this guard to avoid accidental pause overlays.
 
 ## Input System Pitfalls

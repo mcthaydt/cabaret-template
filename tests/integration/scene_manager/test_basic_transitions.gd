@@ -259,8 +259,21 @@ func test_fade_transition_completes() -> void:
 
 	_manager.transition_to_scene(StringName("main_menu"), "fade")
 
-	# Wait for fade duration (default is likely 0.5s)
-	await wait_seconds(0.7)
+	# Wait for fade completion; in paused trees, avoid timer-based waits
+	if get_tree().paused:
+		var start_ms: int = Time.get_ticks_msec()
+		var timeout_ms: int = 2000
+		while true:
+			var st: Dictionary = _store.get_state()
+			var ss: Dictionary = st.get("scene", {})
+			if not ss.get("is_transitioning", false):
+				break
+			if Time.get_ticks_msec() - start_ms > timeout_ms:
+				break
+			await get_tree().process_frame
+	else:
+		# Wait for fade duration (default is likely 0.5s)
+		await wait_seconds(0.7)
 
 	# Verify transition completed
 	var final_state: Dictionary = _store.get_state()

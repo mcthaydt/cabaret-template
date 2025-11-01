@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for SC_StateDebugOverlay - Debug overlay UI
 ##
-## Tests the F3-toggleable debug overlay that displays:
+## Tests the action-toggleable debug overlay that displays:
 ## - Current state (JSON formatted)
 ## - Action history (last 20 actions)
 ## - Action detail view (before/after state diff)
@@ -101,41 +101,38 @@ func test_debug_overlay_displays_action_history():
 
 ## Test: Debug overlay toggles with input action
 func test_debug_overlay_toggles_with_input_action():
-	# Verify M_StateStore has _input method for F3 toggle
+	# Verify M_StateStore has _input method for action-based toggle
 	assert_true(store.has_method("_input"), "M_StateStore should have _input method")
-	
+
 	# Check if overlay is initially hidden/not present
 	var overlays_before := get_tree().get_nodes_in_group("state_debug_overlay")
 	var initial_count := overlays_before.size()
-	
+
 	# Simulate toggle_debug_overlay action being pressed
-	# Use physical_keycode for F3 (4194334)
-	var key_event := InputEventKey.new()
-	key_event.physical_keycode = KEY_F3
-	key_event.pressed = true
-	
-	# Simulate input being processed
-	Input.parse_input_event(key_event)
-	store._input(key_event)
+	var action_event := InputEventAction.new()
+	action_event.action = "toggle_debug_overlay"
+	action_event.pressed = true
+
+	# Deliver event directly to the store
+	store._input(action_event)
 	await get_tree().process_frame
 	await get_tree().process_frame
-	
+
 	# Verify overlay was spawned
 	var overlays_after := get_tree().get_nodes_in_group("state_debug_overlay")
-	assert_gt(overlays_after.size(), initial_count, "Pressing F3 should spawn debug overlay")
-	
-	# Simulate F3 key release
-	key_event.pressed = false
-	Input.parse_input_event(key_event)
+	assert_gt(overlays_after.size(), initial_count, "Action press should spawn debug overlay")
+
+	# Simulate action release (not strictly required but mirrors real input)
+	action_event.pressed = false
+	store._input(action_event)
 	await get_tree().process_frame
-	
-	# Simulate F3 key press again to toggle off
-	key_event.pressed = true
-	Input.parse_input_event(key_event)
-	store._input(key_event)
+
+	# Simulate action press again to toggle off
+	action_event.pressed = true
+	store._input(action_event)
 	await get_tree().process_frame
 	await get_tree().process_frame
-	
+
 	# Verify overlay was removed
 	var overlays_final := get_tree().get_nodes_in_group("state_debug_overlay")
-	assert_eq(overlays_final.size(), initial_count, "Pressing F3 again should remove debug overlay")
+	assert_eq(overlays_final.size(), initial_count, "Second action press should remove debug overlay")

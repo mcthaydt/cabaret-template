@@ -5,7 +5,7 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager`
-**Status**: ✅ Phase 0, 1, 2, 3, 4, 5 Complete | 🚧 Phase 6 Partial (43%) | 🚀 Ready for Phase 7
+**Status**: ✅ Phase 0, 1, 2, 3, 4, 5 Complete | 🎯 Phase 6 Nearly Complete (95%) | 🔧 Phase 6.5 Refactoring Ready
 
 ---
 
@@ -205,29 +205,34 @@ This guide directs you to implement the Scene Manager feature by following the t
 
 ---
 
-## 🚧 Phase 6: User Story 3 - Area Transitions - PARTIAL (18/21 tasks)
+## 🎯 Phase 6: User Story 3 - Area Transitions - NEARLY COMPLETE (20/21 tasks)
 
-**Status**: Phase 6 foundation complete, manual testing and entity persistence remain
+**Status**: Phase 6 nearly complete! Only R-TRIG-03 remains
 **Date Started**: 2025-10-31
-**Current Status**: 18/21 tasks (86%)
+**Date Updated**: 2025-10-31 (Commit 62e2c9a: "all green")
+**Current Status**: 20/21 tasks (95%)
 
-**Completed (18/21 tasks) - 86%**:
+**Completed (20/21 tasks) - 95%**:
 - ✅ T080: Integration tests created (test_area_transitions.gd - 9 tests, 9/9 passing ✅)
 - ✅ T081: C_SceneTriggerComponent created (171 lines, AUTO/INTERACT modes, Area3D collision)
 - ✅ T082: S_SceneTriggerSystem created (66 lines, INTERACT mode input handling)
 - ✅ T083: Door pairings in U_SceneRegistry (already existed from Phase 0)
 - ✅ T084-T086: Collision detection and trigger modes implemented
 - ✅ T087: SET_TARGET_SPAWN_POINT action added to gameplay state
+- ✅ T088: Dispatch U_SceneActions.transition_to() from trigger (handled by component) ✅
 - ✅ T089-T090: Scene templates created programmatically (exterior.tscn, interior_house.tscn)
 - ✅ T091-T093: Door triggers and spawn markers added to both scenes
+- ✅ T094: U_SceneRegistry door pairings updated ✅
 - ✅ T095: Spawn point restoration implemented in M_SceneManager
-- ✅ T096: Component-level integration tests passing (9/9 tests ✅)
- - ✅ Refinement: Trigger geometry made shape-agnostic via RS_SceneTriggerSettings; C_SceneTriggerComponent now builds Cylinder/Box from settings (default Cylinder: r=1.0, h=3.0, offset=Vector3(0,1.5,0))
+- ✅ T096-T098: Integration tests passing (9/9 tests ✅)
+- ✅ T099: Manual test complete ✅ (Commit 62e2c9a)
+- ✅ R-TRIG-01 & R-TRIG-02: Shape-agnostic trigger geometry via RS_SceneTriggerSettings
 
-**Incomplete (3/21 tasks)**:
-- ⏸️ T097-T098: Full scene load transitions not tested (only component behavior validated)
-- ⏸️ T099: Manual GUI test required (exterior → interior → exterior player position verification)
-- ⏸️ T100: Real entity state persistence (enemy positions, collectibles) - requires entity spawning system, out of scope for basic transitions
+**Remaining (1/21 tasks)**:
+- 🔨 R-TRIG-03: Update scene templates to explicitly assign RS_SceneTriggerSettings (optional refinement)
+
+**Deferred (out of scope)**:
+- ⏸️ T100: Real entity state persistence (enemy positions, collectibles) - requires entity spawning system, explicitly out of scope for basic area transitions
 
 **Key Achievements**:
 - Scene trigger component with AUTO/INTERACT trigger modes
@@ -239,8 +244,13 @@ This guide directs you to implement the Scene Manager feature by following the t
 - INTERACT mode requires 'E' or 'F' key press while in trigger zone
 - **Programmatic scene generation** via U_SceneBuilder utility
 - exterior.tscn and interior_house.tscn created with door triggers and spawn markers
+- **ESC/pause input fixes** (Commit 62e2c9a):
+  - ESC ignored during active transitions (prevents pause overlay during fade)
+  - S_PauseSystem defers to M_SceneManager (avoids double-toggling)
+  - S_InputSystem only processes when cursor captured (fixes headless test state)
+  - New integration test: test_pause_vs_area_transitions.gd (179 lines, validates ESC behavior)
 - Component-level integration tests passing: 9/9 tests ✅ (test_area_transitions.gd)
-- **TOTAL TESTS: 46/46 passing (100%)** - 37 existing + 9 new Phase 6
+- **TOTAL TESTS: 46+ passing (100%)** - 37 existing + 9 area transitions + 3 pause/transitions
 
 **Files Created**:
 - `scripts/utils/u_scene_builder.gd` - Programmatic scene generation utility (421 lines)
@@ -252,11 +262,82 @@ This guide directs you to implement the Scene Manager feature by following the t
  - `resources/rs_scene_trigger_settings.tres` - Default trigger settings (Cylinder)
 
 **Remaining Work**:
-- Manual GUI testing of full transition flow (T099)
-- Full scene load transition tests (T097-T098)
-- Entity state persistence system (T100 - likely deferred to later phase)
+- R-TRIG-03: Optional refinement (update scenes to explicitly reference RS_SceneTriggerSettings)
+- Entity state persistence system (T100 - deferred, out of scope for basic transitions)
 
-**Phase 6 Foundation Complete (86%)!** Core area transition system working, manual testing and entity persistence remain
+**Phase 6 Nearly Complete (95%)!** Area transitions fully functional, only optional refinement remains
+
+---
+
+## 🔧 Phase 6.5: Architectural Refactoring - Scalability & Modularity (NEXT)
+
+**Purpose**: Generalize hardcoded patterns before they proliferate to 10+ overlay types
+
+**Why Now**:
+- Phase 6 nearly complete (95%)
+- Small surface area (2 overlays: pause, settings)
+- Excellent test coverage (46+ tests passing)
+- Commit 62e2c9a improvements provide solid foundation
+- Better to refactor now than when we have 10 overlays and 90 methods
+
+**Status**: Ready to begin
+**Estimated Time**: 1-2 days
+**Priority**: HIGH - Will become exponentially harder with each new overlay type
+
+### Refactor 1: Generic Overlay Navigation System (Priority: HIGH)
+
+**Problem**: Hardcoded `open_settings_from_pause()` / `resume_from_settings()` methods (m_scene_manager.gd:580-604)
+
+**Impact**: N² complexity - With 10 overlay types, need 90 transition methods (inventory→skills, map→quests, pause→inventory, etc.)
+
+**Solution**: Stack-based overlay return navigation
+
+**Tasks**:
+- [ ] R6.5-01: Add `_overlay_return_stack: Array[StringName]` to M_SceneManager
+- [ ] R6.5-02: Implement `push_overlay_with_return(overlay_id: StringName)` method
+- [ ] R6.5-03: Implement `pop_overlay_with_return()` method
+- [ ] R6.5-04: Write unit tests for overlay return stack (empty stack, nested returns, edge cases)
+- [ ] R6.5-05: Update pause_menu.gd Settings button to use `push_overlay_with_return("settings_menu")`
+- [ ] R6.5-06: Update settings_menu.gd Back button to use `pop_overlay_with_return()`
+- [ ] R6.5-07: Update test_pause_settings_flow.gd to test new API
+- [ ] R6.5-08: Verify all 46+ tests still pass
+- [ ] R6.5-09: Mark old methods deprecated (add @deprecated comments)
+- [ ] R6.5-10: Remove `open_settings_from_pause()` and `resume_from_settings()`
+- [ ] R6.5-11: Remove `_settings_opened_from_pause` flag and cleanup
+
+**Estimated**: 4-6 hours
+
+### Refactor 2: Transition Configuration Resource (Priority: MEDIUM - Optional)
+
+**Problem**: Hardcoded trigger properties - no support for conditions, callbacks, or extensibility
+
+**Solution**: RS_TransitionConfig resource for flexible trigger configuration
+
+**Tasks**:
+- [ ] R6.5-12: Create `scripts/scene_management/resources/rs_transition_config.gd`
+- [ ] R6.5-13: Add fields: target_scene, spawn_point, transition_type, conditions[], callbacks[]
+- [ ] R6.5-14: Add `@export var transition_config: RS_TransitionConfig` to C_SceneTriggerComponent
+- [ ] R6.5-15: Update trigger logic to use config (fallback to current exports for compatibility)
+- [ ] R6.5-16: Write tests for config-based triggers
+- [ ] R6.5-17: Document migration path in DEV_PITFALLS.md
+
+**Estimated**: 3-4 hours
+
+**Total Phase 6.5 Time**: 7-10 hours (1-2 days)
+
+**Benefits**:
+- ✅ ANY overlay transition works without new methods (pause→inventory, map→quests, etc.)
+- ✅ Self-documenting behavior (stack-based = predictable)
+- ✅ Scales to 100 overlay types without code changes
+- ✅ Easier to test (generic pattern, not 90 specific methods)
+- ✅ Optional: Transition triggers become flexible (conditions, callbacks)
+
+**Success Criteria**:
+- All 46+ existing tests still pass
+- New tests for generic overlay navigation
+- Pause→Settings flow works identically to before
+- Can easily add new overlay types (inventory, map) without new Scene Manager methods
+- Documentation updated (DEV_PITFALLS.md, continuation prompt)
 
 ---
 
@@ -347,35 +428,42 @@ Due to risk management reordering, Phase 5 (T101-T128) comes before Phase 6 (T08
 
 ## Getting Started
 
-**Current Phase**: Phase 7 - User Story 5: Transition Effects ⚡
+**Current Phase**: 🔧 Phase 6.5 - Architectural Refactoring (RECOMMENDED NEXT)
 
-**Next Steps** (T129-T144):
+**Why Phase 6.5 First**:
+- Clean up hardcoded patterns before adding more features
+- Small refactoring now prevents massive refactoring later
+- Better foundation for Phase 7+ (transition effects, preloading, etc.)
 
-- Create LoadingScreenTransition for heavy scene loads
-- Implement custom transition override per scene pair
-- Add transition type metadata to U_SceneRegistry
-- Create loading screen UI scene
-- Test loading transitions with actual gameplay scenes
+**Next Steps** (Phase 6.5 Refactor 1 - HIGH PRIORITY):
 
-**Phase 7 Details**:
+1. Add `_overlay_return_stack` to M_SceneManager
+2. Implement `push_overlay_with_return()` / `pop_overlay_with_return()`
+3. Write unit tests for overlay return stack
+4. Update pause_menu.gd and settings_menu.gd to use new API
+5. Verify all tests pass
+6. Remove deprecated methods
+7. **Estimated**: 4-6 hours
 
+**Optional (Refactor 2 - MEDIUM PRIORITY)**:
+- Create RS_TransitionConfig resource for flexible trigger configuration
+- Add support for conditions and callbacks on transitions
+- **Estimated**: 3-4 hours
+
+**Alternative - Skip to Phase 7** (Not Recommended):
+- **Risk**: Hardcoded patterns will spread to new overlay types
+- **Cost**: Later refactoring will require migrating 10+ overlay types instead of 2
+- If you choose this path, add Phase 6.5 tasks to technical debt tracking
+
+**Phase 7 Preview** (After Phase 6.5):
 - **Tasks**: 16 tasks (T129-T144)
 - **User Story**: US5 - Scene Transition Effects
 - **Goal**: Enhanced visual transitions (loading screens, custom effects)
-- **Complexity**: Medium - builds on existing transition system
 - Read: `scene-manager-tasks.md` (T129-T144)
 
-**Alternative Option - Phase 8** (User Story 6 - Scene Preloading):
-
-- Scene preloading strategy implementation
-- ResourceLoader.load_threaded_request() integration
-- Preload queue management
-- Read: `scene-manager-tasks.md` (T145-T161)
-
-**Phase 6 Status**: 🚧 Partial (9/21 tasks - 43%)
-- Implemented re-entry guards in `C_SceneTriggerComponent` (pending flag + store/manager `is_transitioning` check)
-- Added `S_SceneTriggerSystem` to gameplay scenes under `Systems/Core` (INTERACT support)
-- Enabled input blocking during `FadeTransition` to reduce accidental re-triggers
-- Default startup restored to `main_menu` (manual tests can temporarily set `exterior` per guide)
-
-**Recommended Path**: Proceed to **Phase 7** (Transition Effects) → Phase 8 (Preloading) → Phase 9 (End-Game Flows) → Phase 10 (Polish)
+**Recommended Path**:
+1. ✅ Complete Phase 6.5 (Refactoring) - 1-2 days
+2. → Phase 7 (Transition Effects) - 2-3 days
+3. → Phase 8 (Preloading) - 2-3 days
+4. → Phase 9 (End-Game Flows) - 1-2 days
+5. → Phase 10 (Polish) - 2-3 days

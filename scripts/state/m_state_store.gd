@@ -69,6 +69,8 @@ func _ready() -> void:
 	
 	_signal_batcher = U_SIGNAL_BATCHER.new()
 	set_physics_process(true)  # Enable physics processing for signal batching
+	# Ensure batching and input work even when the SceneTree is paused.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 
 func _exit_tree() -> void:
 	# Preserve state for scene transitions via StateHandoff
@@ -85,10 +87,18 @@ func _physics_process(_delta: float) -> void:
 			_perf_signal_emit_count += 1  # Track signal emissions
 		)
 
-## Handle input for debug overlay toggle (F3 key)
+func _process(_delta: float) -> void:
+	# Also flush on idle frames to ensure progress when physics ticks are paused.
+	if _signal_batcher != null and _signal_batcher.get_pending_count() > 0:
+		_signal_batcher.flush(func(slice_name: StringName, slice_state: Dictionary) -> void:
+			slice_updated.emit(slice_name, slice_state)
+			_perf_signal_emit_count += 1
+		)
+
+## Handle input for debug overlay toggle via action
 ##
-## Debug overlay spawns on F3 key press, controlled by M_StateStore._input()
-## for easy access to store reference without needing global state.
+## Debug overlay spawns when the `toggle_debug_overlay` action is pressed.
+## Supports both action events (InputEventAction) and Input singleton state.
 func _input(event: InputEvent) -> void:
 	# Check if debug overlay is enabled via project settings
 	const PROJECT_SETTING_ENABLE_DEBUG_OVERLAY := "state/debug/enable_debug_overlay"
@@ -96,14 +106,25 @@ func _input(event: InputEvent) -> void:
 		if not ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_DEBUG_OVERLAY, true):
 			return  # Debug overlay disabled in project settings
 	
-	# Toggle debug overlay with F3 key
-	if Input.is_action_just_pressed("toggle_debug_overlay"):
+	# Toggle debug overlay with action (prefer explicit InputEventAction, fallback to Input state)
+	var toggle_pressed: bool = false
+	if event is InputEventAction:
+		var aev := event as InputEventAction
+		toggle_pressed = aev.action == "toggle_debug_overlay" and aev.pressed
+	else:
+		# Fallback to Input singleton so hardware mapping still works
+		toggle_pressed = Input.is_action_just_pressed("toggle_debug_overlay")
+
+	# Act on toggle
+	if toggle_pressed:
 		if _debug_overlay == null or not is_instance_valid(_debug_overlay):
 			# Spawn debug overlay
 			var overlay_scene := load("res://scenes/debug/sc_state_debug_overlay.tscn")
 			if overlay_scene:
 				_debug_overlay = overlay_scene.instantiate()
 				add_child(_debug_overlay)
+				# Ensure group membership is immediate for tests querying by group.
+				_debug_overlay.add_to_group("state_debug_overlay")
 		else:
 			# Despawn debug overlay
 			_debug_overlay.queue_free()

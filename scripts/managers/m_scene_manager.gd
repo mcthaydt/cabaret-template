@@ -60,10 +60,10 @@ var _current_scene_id: StringName = StringName("")
 ## Only tracks UI/Menu scenes, cleared when entering gameplay
 var _scene_history: Array[StringName] = []
 
-## Pending return info for settings opened from pause
-var _pending_return_scene_id: StringName = StringName("")
-var _pending_overlay_after_transition: StringName = StringName("")
-var _settings_opened_from_pause: bool = false
+## Overlay return stack for generic overlay navigation (Phase 6.5)
+## Tracks previous overlay ID when pushing with return, enabling stack-based navigation
+## Example: pause→settings→back returns to pause without hardcoded methods
+var _overlay_return_stack: Array[StringName] = []
 
 ## Store subscription
 var _unsubscribe: Callable
@@ -239,12 +239,6 @@ func _process_transition_queue() -> void:
 	if _store != null:
 		_store.dispatch(U_SCENE_ACTIONS.transition_completed(request.scene_id))
 
-	# If a post-transition overlay was requested, push it now
-	if not _pending_overlay_after_transition.is_empty():
-		var overlay_to_push: StringName = _pending_overlay_after_transition
-		_pending_overlay_after_transition = StringName("")
-		push_overlay(overlay_to_push)
-
 	# Process next transition in queue
 	await get_tree().physics_frame
 	_process_transition_queue()
@@ -387,6 +381,76 @@ func pop_overlay() -> void:
 	_ui_overlay_stack.remove_child(top_overlay)
 	top_overlay.queue_free()
 	_update_pause_state()
+
+## Push overlay with automatic return navigation (Phase 6.5)
+##
+## Replaces the current overlay (if any) with a new overlay and remembers the previous one.
+## When pop_overlay_with_return() is called, the previous overlay will be restored.
+##
+## This enables generic overlay transitions without hardcoded methods:
+## - pause → settings → back (returns to pause)
+## - inventory → skill_tree → back (returns to inventory)
+## - map → quests → back (returns to map)
+##
+## Behavior: REPLACE mode (not stack mode)
+## - If overlay already exists: pop it, remember it, push new one
+## - If no overlay exists: remember empty, push new one
+##
+## Example:
+##   push_overlay("pause_menu")                 # 1 overlay: pause
+##   push_overlay_with_return("settings_menu")  # Remember pause, replace → 1 overlay: settings
+##   pop_overlay_with_return()                  # Restore pause → 1 overlay: pause
+func push_overlay_with_return(overlay_id: StringName) -> void:
+	# Remember current top overlay (if any) for return navigation
+	var current_top: StringName = _get_top_overlay_id()
+	_overlay_return_stack.push_back(current_top)
+
+	# If there's a current overlay, pop it before pushing new one (REPLACE mode)
+	if not current_top.is_empty():
+		pop_overlay()
+
+	# Push new overlay
+	push_overlay(overlay_id)
+
+## Pop overlay with automatic return navigation (Phase 6.5)
+##
+## Pops the current overlay and restores the previous overlay from the return stack.
+## If the return stack is empty, this behaves like pop_overlay().
+## If the return stack has a non-empty overlay ID, that overlay is pushed.
+##
+## This provides stack-based overlay navigation without hardcoded logic.
+func pop_overlay_with_return() -> void:
+	# Pop current overlay
+	pop_overlay()
+
+	# Check return stack for previous overlay to restore
+	if not _overlay_return_stack.is_empty():
+		var previous_overlay: StringName = _overlay_return_stack.pop_back()
+
+		# Only push if previous overlay was non-empty (not base gameplay)
+		if not previous_overlay.is_empty():
+			push_overlay(previous_overlay)
+
+## Get the scene_id of the current top overlay (helper for return stack)
+##
+## Returns StringName("") if no overlays are active.
+func _get_top_overlay_id() -> StringName:
+	if _ui_overlay_stack == null:
+		return StringName("")
+
+	var overlay_count: int = _ui_overlay_stack.get_child_count()
+	if overlay_count == 0:
+		return StringName("")
+
+	var top_overlay: Node = _ui_overlay_stack.get_child(overlay_count - 1)
+	if top_overlay.has_meta(OVERLAY_META_SCENE_ID):
+		var scene_id_meta: Variant = top_overlay.get_meta(OVERLAY_META_SCENE_ID)
+		if scene_id_meta is StringName:
+			return scene_id_meta
+		elif scene_id_meta is String:
+			return StringName(scene_id_meta)
+
+	return StringName("")
 
 ## Configure overlay scene for pause handling
 func _configure_overlay_scene(overlay_scene: Node, scene_id: StringName) -> void:
@@ -583,31 +647,6 @@ func _create_transition_effect(transition_type: String):
 			return INSTANT_TRANSITION.new()
 
 
-## Open settings as a full scene when invoked from pause
-func open_settings_from_pause() -> void:
-	# Replace pause overlay with settings overlay (do not unpause or change base scene)
-	_settings_opened_from_pause = true
-	if _ui_overlay_stack != null:
-		# Remove pause overlay if present
-		if _ui_overlay_stack.get_child_count() > 0:
-			pop_overlay()
-		# Push settings overlay
-		push_overlay(StringName("settings_menu"))
-
-## Resume back to gameplay and re-open pause after leaving settings
-func resume_from_settings() -> void:
-	# If opened from pause, return to pause overlay
-	if _settings_opened_from_pause:
-		_settings_opened_from_pause = false
-		# Pop settings overlay and re-open pause overlay
-		if _ui_overlay_stack != null and _ui_overlay_stack.get_child_count() > 0:
-			pop_overlay()
-		push_overlay(StringName("pause_menu"))
-		return
-
-	# Otherwise use history or stay
-	if can_go_back():
-		go_back()
 
 ## Get current scene type (helper for input handler)
 func _get_current_scene_type() -> int:

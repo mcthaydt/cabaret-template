@@ -259,3 +259,144 @@ func test_priority_enum_defined() -> void:
 	assert_eq(M_SceneManager.Priority.NORMAL, 0, "NORMAL priority should be 0")
 	assert_eq(M_SceneManager.Priority.HIGH, 1, "HIGH priority should be 1")
 	assert_eq(M_SceneManager.Priority.CRITICAL, 2, "CRITICAL priority should be 2")
+
+## ========================================================================
+## Phase 6.5: Overlay Return Stack Tests
+## ========================================================================
+
+## Test push_overlay_with_return from empty state (no current overlay)
+func test_push_overlay_with_return_from_empty() -> void:
+	# Given: No overlays active
+	assert_eq(_ui_overlay_stack.get_child_count(), 0, "Should start with no overlays")
+
+	# When: Push overlay with return
+	_manager.push_overlay_with_return(StringName("pause_menu"))
+	await get_tree().process_frame
+
+	# Then: Overlay is pushed, return stack contains empty string
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay")
+	# Return stack should have one entry (the empty string from before)
+	assert_eq(_manager._overlay_return_stack.size(), 1, "Return stack should have one entry")
+	assert_eq(_manager._overlay_return_stack[0], StringName(""), "Return stack should contain empty string")
+
+## Test push_overlay_with_return from existing overlay (REPLACE mode)
+func test_push_overlay_with_return_from_existing_overlay() -> void:
+	# Given: pause_menu overlay is active
+	_manager.push_overlay(StringName("pause_menu"))
+	await get_tree().process_frame
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have pause overlay")
+
+	# When: Push settings with return (REPLACE mode - pops pause, pushes settings)
+	_manager.push_overlay_with_return(StringName("settings_menu"))
+	await get_tree().process_frame
+
+	# Then: Settings overlay replaces pause, return stack contains pause_menu
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay (settings replaces pause)")
+	assert_eq(_manager._overlay_return_stack.size(), 1, "Return stack should have one entry")
+	assert_eq(_manager._overlay_return_stack[0], StringName("pause_menu"), "Return stack should contain pause_menu")
+
+## Test pop_overlay_with_return restores previous overlay
+func test_pop_overlay_with_return_restores_previous() -> void:
+	# Given: pause → settings transition using push_overlay_with_return (REPLACE mode)
+	_manager.push_overlay(StringName("pause_menu"))
+	await get_tree().process_frame
+	_manager.push_overlay_with_return(StringName("settings_menu"))
+	await get_tree().process_frame
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay (settings replaced pause)")
+
+	# When: Pop with return
+	_manager.pop_overlay_with_return()
+	await get_tree().process_frame
+
+	# Then: Settings is removed, pause_menu is restored
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay")
+	var top_overlay: Node = _ui_overlay_stack.get_child(0)
+	var scene_id: Variant = top_overlay.get_meta(StringName("_scene_manager_overlay_scene_id"))
+	assert_eq(StringName(scene_id), StringName("pause_menu"), "Top overlay should be pause_menu")
+	assert_eq(_manager._overlay_return_stack.size(), 0, "Return stack should be empty")
+
+## Test pop_overlay_with_return with empty return stack
+func test_pop_overlay_with_return_empty_stack() -> void:
+	# Given: One overlay, but pushed without return (empty return stack)
+	_manager.push_overlay(StringName("pause_menu"))
+	await get_tree().process_frame
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay")
+	assert_eq(_manager._overlay_return_stack.size(), 0, "Return stack should be empty")
+
+	# When: Pop with return (stack is empty)
+	_manager.pop_overlay_with_return()
+	await get_tree().process_frame
+
+	# Then: Overlay is removed, nothing is restored (no crash)
+	assert_eq(_ui_overlay_stack.get_child_count(), 0, "Should have no overlays")
+	assert_eq(_manager._overlay_return_stack.size(), 0, "Return stack should still be empty")
+
+## Test nested overlay navigation (A → B → C → back → back) with REPLACE mode
+func test_nested_overlay_navigation() -> void:
+	# Given: pause_menu overlay
+	_manager.push_overlay(StringName("pause_menu"))
+	await get_tree().process_frame
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay")
+
+	# When: Push settings with return (replaces pause)
+	_manager.push_overlay_with_return(StringName("settings_menu"))
+	await get_tree().process_frame
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay (settings replaced pause)")
+
+	# When: Push another overlay with return (simulating settings → sub-menu, replaces settings)
+	_manager.push_overlay_with_return(StringName("pause_menu"))  # Reuse pause_menu as third overlay
+	await get_tree().process_frame
+
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay (pause2 replaced settings)")
+	assert_eq(_manager._overlay_return_stack.size(), 2, "Return stack should have two entries")
+
+	# When: Pop with return (back from third to second)
+	_manager.pop_overlay_with_return()
+	await get_tree().process_frame
+
+	# Then: Third overlay removed, second (settings) restored
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay (settings restored)")
+	assert_eq(_manager._overlay_return_stack.size(), 1, "Return stack should have one entry")
+
+	# When: Pop with return again (back from second to first)
+	_manager.pop_overlay_with_return()
+	await get_tree().process_frame
+
+	# Then: Second overlay removed, first (pause) restored
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay (pause restored)")
+	assert_eq(_manager._overlay_return_stack.size(), 0, "Return stack should be empty")
+
+## Test pop_overlay_with_return when return stack has empty string
+func test_pop_overlay_with_return_empty_string_in_stack() -> void:
+	# Given: Overlay pushed with return from empty state (return stack contains empty string)
+	_manager.push_overlay_with_return(StringName("pause_menu"))
+	await get_tree().process_frame
+	assert_eq(_manager._overlay_return_stack.size(), 1, "Return stack should have one entry")
+	assert_eq(_manager._overlay_return_stack[0], StringName(""), "Return stack should contain empty string")
+
+	# When: Pop with return (return stack has empty string)
+	_manager.pop_overlay_with_return()
+	await get_tree().process_frame
+
+	# Then: Overlay is removed, nothing is restored (empty string is not pushed)
+	assert_eq(_ui_overlay_stack.get_child_count(), 0, "Should have no overlays")
+	assert_eq(_manager._overlay_return_stack.size(), 0, "Return stack should be empty")
+
+## Test _get_top_overlay_id helper returns correct ID
+func test_get_top_overlay_id_helper() -> void:
+	# Given: No overlays
+	assert_eq(_manager._get_top_overlay_id(), StringName(""), "Should return empty string when no overlays")
+
+	# When: Push overlay
+	_manager.push_overlay(StringName("pause_menu"))
+	await get_tree().process_frame
+
+	# Then: Returns correct overlay ID
+	assert_eq(_manager._get_top_overlay_id(), StringName("pause_menu"), "Should return pause_menu ID")
+
+	# When: Push second overlay
+	_manager.push_overlay(StringName("settings_menu"))
+	await get_tree().process_frame
+
+	# Then: Returns top overlay ID
+	assert_eq(_manager._get_top_overlay_id(), StringName("settings_menu"), "Should return settings_menu ID")

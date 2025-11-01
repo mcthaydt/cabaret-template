@@ -42,9 +42,11 @@ func _on_resume_pressed() -> void:
 func _on_settings_pressed() -> void:
 	settings_pressed.emit()
 
-	# Open settings as a full scene (hide pause while in settings)
-	if _scene_manager != null and _scene_manager.has_method("open_settings_from_pause"):
-		_scene_manager.open_settings_from_pause()
+	# Open settings overlay with automatic return to pause (Phase 6.5)
+	# Uses generic overlay navigation - when user clicks Back in settings,
+	# pop_overlay_with_return() will restore pause menu automatically
+	if _scene_manager != null and _scene_manager.has_method("push_overlay_with_return"):
+		_scene_manager.push_overlay_with_return(StringName("settings_menu"))
 
 func _on_quit_pressed() -> void:
 	quit_pressed.emit()

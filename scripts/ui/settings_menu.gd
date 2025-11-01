@@ -38,20 +38,14 @@ func _on_back_pressed() -> void:
 	if _scene_manager == null:
 		return
 
-	# If overlay context, return to pause overlay explicitly
-	if _is_overlay and _scene_manager.has_method("push_overlay"):
-		# Pop settings overlay
-		if _scene_manager.has_method("pop_overlay"):
-			_scene_manager.pop_overlay()
-		# Re-open pause overlay
-		_scene_manager.push_overlay(StringName("pause_menu"))
+	# If overlay context, use generic overlay return navigation (Phase 6.5)
+	# pop_overlay_with_return() will automatically restore the previous overlay
+	# (e.g., pause menu) from the return stack
+	if _is_overlay and _scene_manager.has_method("pop_overlay_with_return"):
+		_scene_manager.pop_overlay_with_return()
 		return
 
-	# Otherwise use Scene Manager resume/back helpers
-	if _scene_manager.has_method("resume_from_settings"):
-		_scene_manager.resume_from_settings()
-		return
-
+	# Otherwise use Scene Manager scene history navigation
 	if _scene_manager.has_method("can_go_back") and _scene_manager.can_go_back():
 		_scene_manager.go_back()
 	else:

@@ -411,6 +411,51 @@
 
 ---
 
+## Phase 6.5: Architectural Refactoring - Scalability & Modularity ✅ COMPLETE (11/11 tasks)
+
+**Goal**: Generalize hardcoded overlay navigation patterns before they proliferate to 10+ overlay types
+
+**Date Completed**: 2025-10-31
+
+**Completed Tasks (11/11) - 100%**:
+- [x] R6.5-01 Add `_overlay_return_stack: Array[StringName]` to M_SceneManager
+- [x] R6.5-02 Implement `push_overlay_with_return(overlay_id: StringName)` method (REPLACE mode)
+- [x] R6.5-03 Implement `pop_overlay_with_return()` method (automatic restoration)
+- [x] R6.5-04 Write unit tests for overlay return stack (8 new tests in test_m_scene_manager.gd)
+- [x] R6.5-05 Update pause_menu.gd Settings button to use `push_overlay_with_return()`
+- [x] R6.5-06 Update settings_menu.gd Back button to use `pop_overlay_with_return()`
+- [x] R6.5-07 Update test_pause_settings_flow.gd to test new API
+- [x] R6.5-08 Verify all 54 integration tests still pass ✅
+- [x] R6.5-09 Mark old methods deprecated (`open_settings_from_pause()`, `resume_from_settings()`)
+- [x] R6.5-10 Remove deprecated methods from M_SceneManager
+- [x] R6.5-11 Remove obsolete flags (`_settings_opened_from_pause`, `_pending_return_scene_id`, `_pending_overlay_after_transition`)
+
+**Key Achievements**:
+- **Generic overlay navigation**: `push_overlay_with_return()` / `pop_overlay_with_return()` replace hardcoded methods
+- **REPLACE mode semantics**: Overlays replace previous overlay, return stack remembers it
+- **Scalable architecture**: Works for ANY overlay transition (pause→settings, inventory→skills, map→quests) without new methods
+- **No N² complexity**: 10 overlay types = 0 new methods needed (vs 90 with old approach)
+- **Full test coverage**: 8 new unit tests + updated integration test (54/54 passing)
+- **Clean codebase**: Removed 26 lines of hardcoded logic, added 70 lines of generic infrastructure
+
+**Files Modified**:
+- `scripts/managers/m_scene_manager.gd`: Added overlay return stack, new methods, removed deprecated code
+- `scripts/ui/pause_menu.gd`: Updated to use `push_overlay_with_return()`
+- `scripts/ui/settings_menu.gd`: Updated to use `pop_overlay_with_return()`
+- `tests/unit/scene_manager/test_m_scene_manager.gd`: Added 8 new tests for overlay return stack
+- `tests/integration/scene_manager/test_pause_settings_flow.gd`: Updated to test new API
+
+**Benefits**:
+- ✅ Future overlay types (inventory, map, quests, skill tree) work automatically
+- ✅ Self-documenting behavior (stack-based = predictable)
+- ✅ Easier to test (generic pattern, not N² specific methods)
+- ✅ Reduced code duplication and maintenance burden
+- ✅ Eliminated manual flag tracking (`_settings_opened_from_pause`)
+
+**Phase 6.5 Complete!** Architecture now scales to unlimited overlay types without code changes
+
+---
+
 ## Phase 7: User Story 5 - Scene Transition Effects (Priority: P3)
 
 **Goal**: Scene transitions use appropriate visual effects based on transition type
