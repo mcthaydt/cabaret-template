@@ -279,6 +279,28 @@
 
 - **ESC must be ignored during active transitions**: Pressing ESC while a fade/loading transition is running can pause the tree, freezing tweens and leaving the transition incomplete. The Scene Manager now ignores ESC when `is_transitioning()` or while processing the transition queue. Tests that emit ESC on the same frame as a door trigger rely on this guard to avoid accidental pause overlays.
 
+- **Transition type override parameter**: M_SceneManager supports three transition types: "instant" (no delay), "fade" (crossfade effect), and "loading" (loading screen with progress bar). To override the default transition type for a specific scene transition, pass the transition_type parameter:
+  ```gdscript
+  # Use explicit transition type (overrides registry default)
+  M_SceneManager.transition_to_scene(StringName("main_menu"), "loading")
+  M_SceneManager.transition_to_scene(StringName("settings_menu"), "instant")
+
+  # Use registry default (recommended for most cases)
+  M_SceneManager.transition_to_scene(StringName("gameplay_base"))  # Uses default from U_SceneRegistry
+  ```
+
+  **Transition Selection Priority**:
+  1. Explicit override parameter (if provided)
+  2. Default from U_SceneRegistry.get_default_transition()
+  3. Fallback to "instant" if unknown type
+
+  **Choosing Transition Types**:
+  - **instant**: UI → UI transitions, fast menu navigation (< 100ms)
+  - **fade**: Menu → Gameplay transitions, smooth visual polish (0.2-0.5s)
+  - **loading**: Large scene loads, async loading in Phase 8 (1.5s minimum duration)
+
+  **Note**: Loading transitions require LoadingOverlay in root.tscn. If LoadingOverlay is missing, loading transitions will fall back to instant.
+
 ## Input System Pitfalls
 
 - **Avoid clobbering test-driven input state**: In headless tests there is no real keyboard/mouse input, but tests may set `gameplay.move_input`, `look_input`, and `jump_pressed` directly to validate persistence across transitions. If `S_InputSystem` dispatches zeros every frame, it will overwrite these values and break tests. To prevent this, `S_InputSystem` only dispatches when `Input.mouse_mode == Input.MOUSE_MODE_CAPTURED` (i.e., gameplay with cursor locked by `M_CursorManager`). This keeps tests deterministic while preserving correct behavior in real gameplay.

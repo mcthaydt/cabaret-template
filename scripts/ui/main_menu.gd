@@ -28,7 +28,7 @@ func _ready() -> void:
 
 func _on_play_pressed() -> void:
 	if _scene_manager:
-		_scene_manager.transition_to_scene(StringName("exterior"), "fade")
+		_scene_manager.transition_to_scene(StringName("exterior"), "loading")
 
 func _on_settings_pressed() -> void:
 	if _scene_manager:

@@ -20,6 +20,7 @@ const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_acti
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const INSTANT_TRANSITION := preload("res://scripts/scene_management/transitions/instant_transition.gd")
 const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/fade_transition.gd")
+const LOADING_SCREEN_TRANSITION := preload("res://scripts/scene_management/transitions/loading_screen_transition.gd")
 
 const OVERLAY_META_SCENE_ID := StringName("_scene_manager_overlay_scene_id")
 const PARTICLE_META_ORIG_SPEED := StringName("_scene_manager_particle_orig_speed")
@@ -48,6 +49,7 @@ var _cursor_manager: M_CursorManager = null
 var _active_scene_container: Node = null
 var _ui_overlay_stack: CanvasLayer = null
 var _transition_overlay: CanvasLayer = null
+var _loading_overlay: CanvasLayer = null
 
 ## Transition queue
 var _transition_queue: Array[TransitionRequest] = []
@@ -155,6 +157,11 @@ func _find_container_nodes() -> void:
 	_transition_overlay = root.find_child("TransitionOverlay", true, false)
 	if _transition_overlay == null:
 		push_error("M_SceneManager: TransitionOverlay not found")
+
+	# Find LoadingOverlay
+	_loading_overlay = root.find_child("LoadingOverlay", true, false)
+	if _loading_overlay == null:
+		push_warning("M_SceneManager: LoadingOverlay not found (loading transitions will not work)")
 
 ## State change callback
 func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
@@ -294,6 +301,10 @@ func _perform_transition(request: TransitionRequest) -> void:
 		if transition_effect is FadeTransition:
 			(transition_effect as FadeTransition).mid_transition_callback = scene_swap_callback
 			transition_effect.execute(_transition_overlay, completion_callback)
+		# For loading screen transitions, set mid-transition callback and use loading overlay
+		elif transition_effect is LoadingScreenTransition:
+			(transition_effect as LoadingScreenTransition).mid_transition_callback = scene_swap_callback
+			transition_effect.execute(_loading_overlay, completion_callback)
 		else:
 			# For instant transitions, scene swap happens in completion callback
 			transition_effect.execute(_transition_overlay, func() -> void:
@@ -641,6 +652,10 @@ func _create_transition_effect(transition_type: String):
 			var fade := FADE_TRANSITION.new()
 			fade.duration = 0.2  # Shorter duration for faster tests
 			return fade
+		"loading":
+			var loading := LOADING_SCREEN_TRANSITION.new()
+			loading.min_duration = 1.5  # Minimum display time
+			return loading
 		_:
 			# Unknown type, use instant as fallback
 			push_warning("M_SceneManager: Unknown transition type '%s', using instant" % transition_type)

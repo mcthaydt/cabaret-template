@@ -5,7 +5,7 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager`
-**Status**: ✅ Phase 0, 1, 2, 3, 4, 5, 6, 6.5 Complete | 🎯 Ready for Phase 7
+**Status**: ✅ Phase 0, 1, 2, 3, 4, 5, 6, 6.5, 7 Complete | 🎯 Ready for Phase 8
 
 ---
 
@@ -341,6 +341,71 @@ This guide directs you to implement the Scene Manager feature by following the t
 
 ---
 
+## ✅ Phase 7: User Story 5 - Scene Transition Effects - COMPLETE (16/16 tasks)
+
+**Status**: Phase 7 complete! All transition effects implemented and manually validated
+**Date Completed**: 2025-11-01
+**Final Status**: 16/16 tasks (100%)
+
+**Completed (16/16 tasks) - 100%**:
+- ✅ T129: Integration test suite created (test_transition_effects.gd - 10 comprehensive tests)
+- ✅ T130: Loading screen UI created (scenes/ui/loading_screen.tscn)
+  - ProgressBar with 0-100 range
+  - Animated spinner (⏳ emoji)
+  - Random loading tips rotation
+  - Game branding/logo ("SNEK SNEK AUTOMATA")
+  - "Loading..." status label
+- ✅ T131-T132: LoadingScreenTransition class with adapter pattern
+  - Supports both real progress (via progress_provider callback) and fake progress (Tween animation)
+  - Minimum duration enforcement (1.5s) to prevent jarring flashes
+  - Two-phase progress: 0→50% (fast prep), 50→100% (actual load)
+  - Mid-transition callback at 50% for scene swap
+- ✅ T133: LoadingOverlay integration in root.tscn (process_mode=ALWAYS)
+- ✅ T134: M_SceneManager integration
+  - Added LOADING_SCREEN_TRANSITION const
+  - Added _loading_overlay reference
+  - Updated _create_transition_effect() with "loading" case
+  - Updated execute() logic to use LoadingOverlay for loading transitions
+- ✅ T135: Transition type selection via U_SceneRegistry (already supported)
+- ✅ T136: Documentation updated in DEV_PITFALLS.md
+  - Transition override parameter documented
+  - Selection priority: explicit override → registry default → fallback instant
+  - Usage examples for all three transition types
+- ✅ T137-T143: All transition effects manually validated
+  - Instant: UI → UI transitions (< 100ms)
+  - Fade: Menu → Gameplay smooth crossfade
+  - Loading: Rich loading screen with progress bar and tips
+- ✅ T144: Manual testing complete - transitions feel polished!
+  - Loading screen displays beautifully
+  - 1.5s minimum duration works perfectly
+  - No jarring flashes
+  - Smooth visual experience
+
+**Key Achievements**:
+- **Three transition types available**: instant, fade, loading
+- **Adapter pattern** ready for Phase 8 real async loading (ResourceLoader.load_threaded_*)
+- **Rich loading screen UX**: progress bar, tips, spinner, branding
+- **Minimum duration enforcement** prevents flashing
+- **Process mode configured** for transitions during pause
+- **Main menu → exterior uses loading screen** (user validated: "looks great and feels great")
+- **Yellow [PAUSED] text removed** per user feedback
+
+**Files Created**:
+- `scenes/ui/loading_screen.tscn` - Loading screen UI (generated UID: uid://clwc6tou4bgkr)
+- `scripts/scene_management/transitions/loading_screen_transition.gd` - LoadingScreenTransition class (235 lines)
+- `tests/integration/scene_manager/test_transition_effects.gd` - Integration tests (247 lines, 10 tests)
+
+**Files Modified**:
+- `scenes/root.tscn` - Added LoadingScreen instance to LoadingOverlay
+- `scripts/managers/m_scene_manager.gd` - Integrated loading transition
+- `scripts/ui/main_menu.gd` - Play button uses "loading" transition to exterior
+- `scenes/ui/hud_overlay.gd` - Removed yellow [PAUSED] text
+- `docs/general/DEV_PITFALLS.md` - Documented transition override mechanism
+
+**Phase 7 Complete (100%)!** All transition effects working beautifully
+
+---
+
 ## Instructions
 
 ### 1. Review Project Foundations
@@ -436,26 +501,27 @@ Due to risk management reordering, Phase 5 (T101-T128) comes before Phase 6 (T08
 - ✅ All 116+ tests passing (62 unit + 54 integration)
 - ✅ Clean architecture ready for new features
 
-**Next Steps** (Phase 7 - Scene Transition Effects):
+**Next Steps** (Phase 8 - Scene Preloading & Performance):
 
-**Phase 7: User Story 5 - Scene Transition Effects (NEXT)**
-- **Tasks**: 16 tasks (T129-T144)
-- **User Story**: US5 - Enhanced Visual Transitions
-- **Goal**: Loading screens, custom transition effects, smooth visual polish
-- **Read**: `scene-manager-tasks.md` (Phase 7, lines 456-523)
+**Phase 8: User Story 6 - Scene Preloading & Performance (NEXT)**
+- **Tasks**: 17 tasks (T145-T161)
+- **User Story**: US6 - Async Loading & Memory Management
+- **Goal**: Intelligent scene preloading, async loading with real progress, memory management
+- **Read**: `scene-manager-tasks.md` (Phase 8, lines 499-579)
 - **Estimated**: 2-3 days
 
 **Key Features**:
-- Loading screen overlay during scene transitions
-- Custom transition effects (fade, slide, etc.)
-- Progress indicators for async loading
-- Transition effect registry
-- Enhanced visual polish
+- Async scene loading via ResourceLoader.load_threaded_*
+- Real progress updates for loading screen (replaces fake progress)
+- Preload high-priority scenes at startup (UI/Menu)
+- On-demand loading for gameplay scenes
+- Scene cache management with memory pressure detection
+- Background loading hints for next likely scene
 
 **Recommended Path**:
 1. ✅ Phase 6 (Area Transitions) - COMPLETE
 2. ✅ Phase 6.5 (Refactoring) - COMPLETE
-3. → Phase 7 (Transition Effects) - 2-3 days
-4. → Phase 8 (Preloading) - 2-3 days
+3. ✅ Phase 7 (Transition Effects) - COMPLETE
+4. → Phase 8 (Preloading) - 2-3 days (NEXT)
 5. → Phase 9 (End-Game Flows) - 1-2 days
 6. → Phase 10 (Polish) - 2-3 days
