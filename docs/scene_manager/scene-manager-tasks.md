@@ -534,6 +534,244 @@
 
 ---
 
+## Phase 8.5: Gameplay Mechanics Foundation (NEW - Prerequisite for End-Game Flows)
+
+**Goal**: Implement minimal health, damage, death, and victory systems to enable proper testing of end-game flows.
+
+**Rationale**: Phase 9 (End-Game Flows) requires actual gameplay triggers (death, victory) to be properly tested end-to-end. This phase builds the minimal viable gameplay mechanics using existing ECS patterns, enabling Phase 9 to test with real game events rather than just UI navigation.
+
+**Dependencies**: Phase 8 complete (Scene preloading)
+**Enables**: Phase 9 (End-Game Flows with real gameplay integration)
+**Estimated Time**: 6-8 hours
+
+**Key Integration Points**:
+- Follows existing C_Component and S_System patterns from Phase 6
+- Leverages Area3D collision detection (like C_SceneTriggerComponent)
+- Integrates with M_StateStore for state persistence
+- Uses M_SceneManager transitions for death/victory scene loading
+
+### Tests for Gameplay Mechanics (TDD - Write FIRST, watch fail)
+
+- [ ] T145.1 [P] Write integration test for health system in tests/integration/gameplay/test_health_system.gd
+  - Test health initialization (player starts with max health)
+  - Test health reduction (damage reduces current_health)
+  - Test death detection (health <= 0 triggers game_over)
+  - Test invincibility frames (no damage during invincibility period)
+  - Test health restoration (healing increases current_health)
+
+- [ ] T145.2 [P] Write integration test for damage system in tests/integration/gameplay/test_damage_system.gd
+  - Test damage zones apply damage to player
+  - Test instant death zones (fall zones)
+  - Test damage cooldown (player can't be damaged repeatedly in short time)
+  - Test damage zone collision layers (only affects player)
+
+- [ ] T145.3 [P] Write integration test for victory system in tests/integration/gameplay/test_victory_system.gd
+  - Test victory trigger detection (player enters goal zone)
+  - Test victory scene transition (triggers victory scene)
+  - Test objective tracking (completed_areas in state)
+
+### Part 1: Health System Implementation (T145.4 - T145.9)
+
+- [ ] T145.4 [P] Create scripts/ecs/components/c_health_component.gd
+  - Properties: current_health (float), max_health (float), is_invincible (bool), invincibility_timer (float)
+  - Pattern: Extend C_Component, follow C_JumpComponent structure
+  - Signals: health_changed(old_health, new_health), death()
+
+- [ ] T145.5 [P] Create scripts/ecs/resources/rs_health_settings.gd
+  - Properties: default_max_health (100.0), invincibility_duration (1.0), regen_enabled (false), regen_rate (0.0)
+  - Pattern: Extend Resource, follow RS_JumpSettings structure
+
+- [ ] T145.6 Create resources/settings/health_settings.tres
+  - Instance of RS_HealthSettings with default values
+  - default_max_health = 100.0
+  - invincibility_duration = 1.0
+
+- [ ] T145.7 [P] Create scripts/ecs/systems/s_health_system.gd
+  - Extends S_System (category: CORE, priority: 200)
+  - _process_system(): Update invincibility timers, detect death
+  - Death detection: if health <= 0 → dispatch death action → trigger game_over scene
+  - Handle invincibility frames (decrement timer, set is_invincible = false when expires)
+  - Integration: Use U_StateUtils.get_store() and M_SceneManager group
+
+- [ ] T145.8 Integrate health with state management
+  - Modify: scripts/state/resources/rs_gameplay_initial_state.gd
+    - Actually implement health field in entity snapshots (currently comment only, line 44)
+    - Add: player_health: float = 100.0
+    - Add: player_max_health: float = 100.0
+  - Modify: scripts/state/selectors/u_entity_selectors.gd
+    - Make get_entity_health() return real health from component (not hardcoded 100, line 42)
+  - Modify: scripts/state/actions/u_gameplay_actions.gd
+    - Add: take_damage(entity_id: int, amount: float) → Dictionary
+    - Add: heal(entity_id: int, amount: float) → Dictionary
+    - Add: trigger_death(entity_id: int) → Dictionary
+    - Add: increment_death_count() → Dictionary
+  - Modify: scripts/state/reducers/u_gameplay_reducer.gd
+    - Handle ACTION_TAKE_DAMAGE: reduce player_health, clamp to 0
+    - Handle ACTION_HEAL: increase player_health, clamp to player_max_health
+    - Handle ACTION_TRIGGER_DEATH: set player_health = 0, increment death_count
+    - Handle ACTION_INCREMENT_DEATH_COUNT: death_count += 1
+
+- [ ] T145.9 Add health display to HUD
+  - Modify: scenes/ui/hud_overlay.tscn
+    - Add ProgressBar node for health bar (or HBoxContainer with TextureRect for hearts)
+    - Position: Top-left corner, below debug overlay
+  - Modify: scripts/ui/hud_controller.gd (or create if doesn't exist)
+    - Connect to health via U_EntitySelectors.get_entity_health()
+    - Update health display on state change
+    - Subscribe to M_StateStore.state_changed signal
+
+### Part 2: Damage System Implementation (T145.10 - T145.14)
+
+- [ ] T145.10 [P] Create scripts/ecs/components/c_damage_zone_component.gd
+  - Extends C_Component
+  - Uses Area3D (copy pattern from C_SceneTriggerComponent)
+  - Properties: damage_amount (float), is_instant_death (bool), damage_cooldown (float), collision_layer_mask (int)
+  - Signals: player_entered, player_exited
+  - _on_body_entered(): Check if body is player → emit player_entered
+  - _on_body_exited(): emit player_exited
+
+- [ ] T145.11 [P] Create scripts/ecs/systems/s_damage_system.gd
+  - Extends S_System (category: CORE, priority: 250)
+  - _process_system(): Monitor entities with C_DamageZoneComponent
+  - Track damage cooldowns per entity (Dictionary[int, float])
+  - Apply damage when player in zone and cooldown expired
+  - Dispatch U_GameplayActions.take_damage() or trigger_death() if instant_death
+  - Update cooldown timers
+
+- [ ] T145.12 [P] Create scenes/hazards/death_zone.tscn
+  - Root: Node3D
+  - Child: Area3D with CollisionShape3D (box shape, large flat plane)
+  - Entity component: C_DamageZoneComponent (is_instant_death = true)
+  - Usage: Place below ground level for fall detection
+  - Visual: Optional red transparent MeshInstance3D for editor visibility
+
+- [ ] T145.13 [P] Create scenes/hazards/spike_trap.tscn
+  - Root: Node3D
+  - Child: CSGBox3D or MeshInstance3D (spike visual)
+  - Child: Area3D with CollisionShape3D (box shape matching visual)
+  - Entity component: C_DamageZoneComponent (damage_amount = 25.0, damage_cooldown = 1.0)
+  - Visual: Spikes protruding from ground
+
+- [ ] T145.14 Add hazards to test level
+  - Modify: scenes/gameplay/exterior.tscn
+    - Add death_zone instance below ground level (Y = -10, large XZ plane)
+    - Add 1-2 spike_trap instances near spawn for testing
+  - Add S_DamageSystem to Systems/Core in gameplay scenes
+    - Modify: scenes/gameplay/gameplay_base.tscn (add S_DamageSystem to Systems/Core)
+
+### Part 3: Victory System Implementation (T145.15 - T145.19)
+
+- [ ] T145.15 [P] Create scripts/ecs/components/c_victory_trigger_component.gd
+  - Extends C_Component
+  - Copy structure from C_SceneTriggerComponent (similar Area3D pattern)
+  - Properties: objective_id (StringName), victory_type (String: "level_complete", "boss_defeated", "item_collected")
+  - Properties: trigger_once (bool = true), is_triggered (bool = false)
+  - Signals: player_entered, victory_triggered
+  - _on_body_entered(): Check if player → emit player_entered → set is_triggered if trigger_once
+
+- [ ] T145.16 [P] Create scripts/ecs/systems/s_victory_system.gd
+  - Extends S_System (category: CORE, priority: 300)
+  - _process_system(): Monitor entities with C_VictoryTriggerComponent
+  - When player_entered signal received and not is_triggered:
+    - Dispatch U_GameplayActions.trigger_victory(objective_id)
+    - Dispatch U_SceneActions.transition_to_scene("victory", "fade", Priority.HIGH)
+
+- [ ] T145.17 [P] Create scenes/objectives/goal_zone.tscn
+  - Root: Node3D
+  - Visual: CSGCylinder3D (height = 2.0, radius = 1.5, glowing material)
+  - Visual: OmniLight3D (yellow/gold glow)
+  - Visual: CPUParticles3D (sparkles rising)
+  - Child: Area3D with CollisionShape3D (cylinder matching visual)
+  - Entity component: C_VictoryTriggerComponent (objective_id = "goal_01", victory_type = "level_complete")
+
+- [ ] T145.18 Add goal zone to test level
+  - Modify: scenes/gameplay/interior_house.tscn
+    - Add goal_zone instance at end of level (visible location)
+  - Add S_VictorySystem to Systems/Core in gameplay scenes
+    - Modify: scenes/gameplay/gameplay_base.tscn (add S_VictorySystem to Systems/Core)
+
+- [ ] T145.19 Add victory actions to state
+  - Modify: scripts/state/actions/u_gameplay_actions.gd
+    - Add: trigger_victory(objective_id: StringName) → Dictionary
+    - Add: mark_area_complete(area_id: String) → Dictionary
+  - Modify: scripts/state/reducers/u_gameplay_reducer.gd
+    - Handle ACTION_TRIGGER_VICTORY: log victory event
+    - Handle ACTION_MARK_AREA_COMPLETE: append area_id to completed_areas array (if not already present)
+  - Modify: scripts/state/resources/rs_gameplay_initial_state.gd
+    - Add: completed_areas: Array[String] = []
+
+### Integration Tests for Gameplay Mechanics (T145.20 - T145.22)
+
+- [ ] T145.20 Run test_health_system.gd
+  - Expected: All health tests pass (initialization, damage, death, invincibility, healing)
+  - Validation: Health system integrates with ECS and state management
+  - Validation: Death detection triggers game_over scene transition
+
+- [ ] T145.21 Run test_damage_system.gd
+  - Expected: All damage tests pass (damage zones, instant death, cooldown)
+  - Validation: Damage zones apply damage via Area3D collision
+  - Validation: Cooldown prevents rapid damage ticks
+
+- [ ] T145.22 Run test_victory_system.gd
+  - Expected: All victory tests pass (trigger detection, scene transition, objective tracking)
+  - Validation: Victory triggers work via Area3D collision
+  - Validation: Victory scene transition occurs correctly
+
+### Full System Integration (T145.23 - T145.24)
+
+- [ ] T145.23 Run full test suite
+  - Expected: All 74 existing tests + 3 new test files pass
+  - Validation: No regressions from new gameplay systems
+  - Validation: Health, damage, victory systems integrate cleanly with existing architecture
+
+- [ ] T145.24 Manual validation
+  - Test: Spawn → take damage from spike → verify health decreases
+  - Test: Spawn → fall into death zone → verify game_over scene loads
+  - Test: Spawn → reach goal zone → verify victory scene loads
+  - Confirm: Smooth integration with Scene Manager transitions
+  - Confirm: HUD displays health correctly
+
+**Checkpoint**: ✅ Phase 8.5 complete - minimal gameplay mechanics implemented, Phase 9 can now test with real gameplay triggers
+
+**Key Achievements**:
+- Health system with ECS components (C_HealthComponent, S_HealthSystem)
+- Damage zones (instant death + damage-over-time)
+- Victory triggers (goal zones)
+- State management integration (health, deaths, completed areas)
+- HUD health display
+- Death → game_over transition
+- Victory → victory scene transition
+- 3 new test files covering all gameplay mechanics
+- All tests passing (74+ existing + new gameplay tests)
+
+**Files Created**:
+- `scripts/ecs/components/c_health_component.gd`
+- `scripts/ecs/resources/rs_health_settings.gd`
+- `resources/settings/health_settings.tres`
+- `scripts/ecs/systems/s_health_system.gd`
+- `scripts/ecs/components/c_damage_zone_component.gd`
+- `scripts/ecs/systems/s_damage_system.gd`
+- `scenes/hazards/death_zone.tscn`
+- `scenes/hazards/spike_trap.tscn`
+- `scripts/ecs/components/c_victory_trigger_component.gd`
+- `scripts/ecs/systems/s_victory_system.gd`
+- `scenes/objectives/goal_zone.tscn`
+- `tests/integration/gameplay/test_health_system.gd`
+- `tests/integration/gameplay/test_damage_system.gd`
+- `tests/integration/gameplay/test_victory_system.gd`
+
+**Files Modified**:
+- `scripts/state/resources/rs_gameplay_initial_state.gd` (added health, deaths, completed_areas)
+- `scripts/state/selectors/u_entity_selectors.gd` (real health selector)
+- `scripts/state/actions/u_gameplay_actions.gd` (health/death/victory actions)
+- `scripts/state/reducers/u_gameplay_reducer.gd` (health/death/victory reducers)
+- `scenes/ui/hud_overlay.tscn` (added health display)
+- `scenes/gameplay/gameplay_base.tscn` (added S_HealthSystem, S_DamageSystem, S_VictorySystem)
+- `scenes/gameplay/exterior.tscn` (added death zone, spike traps)
+- `scenes/gameplay/interior_house.tscn` (added goal zone)
+
+---
+
 ## Phase 9: User Story 7 - Win/Lose End-Game Flow (Priority: P3)
 
 **Goal**: Game properly handles end-game scenarios with appropriate screens and navigation
