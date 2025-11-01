@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RS_SceneTriggerSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ecs/resources/rs_scene_trigger_settings.gd" id="1_settings_script"]
+
+[resource]
+script = ExtResource("1_settings_script")
+shape_type = 1
+cyl_radius = 1.0
+cyl_height = 3.0
+box_size = Vector3(3, 3, 0.5)
+local_offset = Vector3(0, 1.5, 0)
+player_mask = 1

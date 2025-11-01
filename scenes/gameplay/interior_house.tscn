@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3 uid="uid://bageed5ytib7"]
+[gd_scene load_steps=37 format=3 uid="uid://bageed5ytib7"]
 
 [ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://bbovcvnujbnj3" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -30,6 +30,7 @@
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/camera_template.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://cfntl6uuagy6m" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://u7yf4vdyvkmx" path="res://scripts/scene_structure/spawn_points_group.gd" id="21_spawnpoints"]
+[ext_resource type="Resource" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="30_auc1c"]
 [ext_resource type="Script" uid="uid://cyt3uyx2c4mr2" path="res://scripts/ecs/components/c_scene_trigger_component.gd" id="30_trigger"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
@@ -174,6 +175,7 @@ script = ExtResource("30_trigger")
 door_id = &"door_to_exterior"
 target_scene_id = &"exterior"
 target_spawn_point = &"sp_exit_from_house"
+settings = ExtResource("30_auc1c")
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.57354736, 0)
