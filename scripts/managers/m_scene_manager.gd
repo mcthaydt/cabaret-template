@@ -120,7 +120,13 @@ func _input(event: InputEvent) -> void:
 	# Check for ESC key to trigger pause
 	if event is InputEventKey:
 		var key_event := event as InputEventKey
-		if key_event.keycode == KEY_ESCAPE and key_event.pressed and not key_event.is_echo():
+		var is_pause_trigger: bool = (key_event.keycode == KEY_ESCAPE) or key_event.is_action_pressed("pause")
+		if is_pause_trigger and key_event.pressed and not key_event.is_echo():
+			# Ignore ESC while a scene transition is in progress (fade/loading)
+			# Prevents pausing during transitions which can stall tweens and break transitions
+			if is_transitioning() or _is_processing_transition:
+				get_viewport().set_input_as_handled()
+				return
 			# Only pause if in gameplay scene and no overlays active
 			var scene_type: int = _get_current_scene_type()
 			if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY and _ui_overlay_stack.get_child_count() == 0:

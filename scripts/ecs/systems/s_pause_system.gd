@@ -57,6 +57,11 @@ func _exit_tree() -> void:
 func _input(event: InputEvent) -> void:
 	if not _store:
 		return
+
+	# Defer to Scene Manager when present; it owns ESC/pause handling
+	# This avoids double-toggling overlays when both are active
+	if _scene_manager != null:
+		return
 	
 	# Check for "pause" input action (toggle pause + cursor management)
 	# Uses _input() instead of _unhandled_input() to process before M_CursorManager

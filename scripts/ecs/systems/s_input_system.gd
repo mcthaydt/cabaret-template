@@ -29,7 +29,14 @@ func _input(event: InputEvent) -> void:
 
 func process_tick(_delta: float) -> void:
 	_ensure_actions()
-	
+
+	# Only capture input when the cursor is locked/captured (gameplay)
+	# This avoids overriding test-driven state changes and UI/menu contexts
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		# Reset accumulated mouse delta when not actively capturing
+		_mouse_delta = Vector2.ZERO
+		return
+
 	# Skip input capture if game is paused
 	var store: M_StateStore = U_StateUtils.get_store(self)
 	if store:

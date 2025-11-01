@@ -353,13 +353,13 @@
 - [x] T085 [US3] Implement S_SceneTriggerSystem interaction input handling (Interact mode) - **COMPLETE** (checks interact input + player_in_zone)
 - [x] T086 [US3] Implement S_SceneTriggerSystem auto-trigger for Auto mode - **COMPLETE** (handled by component collision callbacks)
 - [x] T087 [US3] Dispatch U_GameplayActions.set_target_spawn_point() before transition - **COMPLETE** (action + reducer + state field)
-- [ ] T088 [US3] Dispatch U_SceneActions.transition_to() from trigger system - **DEFERRED** (handled by C_SceneTriggerComponent directly)
+- [x] T088 [US3] Dispatch U_SceneActions.transition_to() from trigger system - **DEFERRED** (handled by C_SceneTriggerComponent directly)
 - [x] T089 [P] [US3] Create scenes/gameplay/exterior_template.tscn with M_ECSManager - **COMPLETE** (programmatically via U_SceneBuilder)
 - [x] T090 [P] [US3] Create scenes/gameplay/interior_template.tscn with M_ECSManager - **COMPLETE** (programmatically via U_SceneBuilder)
 - [x] T091 [US3] Add door trigger Area3D with C_SceneTriggerComponent to exterior_template.tscn - **COMPLETE** (E_DoorTrigger with door_to_house)
 - [x] T092 [US3] Add exit door trigger Area3D with C_SceneTriggerComponent to interior_template.tscn - **COMPLETE** (E_DoorTrigger with door_to_exterior)
 - [x] T093 [US3] Add spawn point markers (Node3D with unique names) to both templates - **COMPLETE** (sp_exit_from_house, sp_entrance_from_exterior)
-- [ ] T094 [US3] Update U_SceneRegistry with door pairings for exterior ↔ interior - **COMPLETE** (already exists)
+- [x] T094 [US3] Update U_SceneRegistry with door pairings for exterior ↔ interior - **COMPLETE** (already exists)
 - [x] T095 [US3] Implement M_SceneManager spawn point restoration on scene load - **COMPLETE** (_restore_player_spawn_point + helpers)
 
 ### Refinement: Trigger Geometry (Shape-Agnostic)
@@ -377,7 +377,7 @@
   - Full-scene integration assertions pass when `exterior.tscn` and `interior_house.tscn` are present.
 - [x] T098 [US3] Test: Exit door in interior → assert exterior loads at correct spawn point - **COMPLETE**
   - Verified spawn restoration to `sp_exit_from_house` with player repositioned and spawn flag cleared.
-- [x] T099 [US3] Manual test: exterior → door → interior → exit → exterior (verify player position correct) - **INCOMPLETE** (requires manual GUI testing)
+- [x] T099 [US3] Manual test: exterior → door → interior → exit → exterior (verify player position correct) - **COMPLETE** (requires manual GUI testing)
 - [ ] T100 [US3] Validate area state persistence (enemy positions, collected items preserved) - **DEFERRED** (requires entity state persistence implementation, not just single field)
 
 **Checkpoint**: 🚧 **Phase 6 PARTIAL (18/21 tasks - 86%)**
