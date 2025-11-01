@@ -157,6 +157,10 @@ func _on_body_entered(body: Node3D) -> void:
 	# Check if it's the player (check body or its owner for "player" group)
 	if _is_player(body):
 		_player_in_zone = true
+
+		# Phase 8: Hint to preload target scene in background
+		_hint_preload_target_scene()
+
 		# If AUTO mode, trigger transition immediately
 		if trigger_mode == TriggerMode.AUTO and _can_trigger():
 			_trigger_transition()
@@ -254,3 +258,25 @@ func is_player_in_zone() -> bool:
 func trigger_interact() -> void:
 	if _player_in_zone and _can_trigger():
 		_trigger_transition()
+
+## Hint to Scene Manager to preload target scene in background (Phase 8)
+##
+## Called when player enters trigger zone to start background loading of target scene.
+## Non-blocking - scene loads in background while player is near door.
+func _hint_preload_target_scene() -> void:
+	# Find Scene Manager via group
+	var scene_manager_group: Array = get_tree().get_nodes_in_group("scene_manager")
+	if scene_manager_group.is_empty():
+		# Scene Manager not found, skip hint (may not be implemented yet)
+		return
+
+	var scene_manager = scene_manager_group[0]
+
+	# Get target scene path from registry
+	var scene_path: String = U_SceneRegistry.get_scene_path(target_scene_id)
+	if scene_path.is_empty():
+		return
+
+	# Call Scene Manager's hint method (if available)
+	if scene_manager.has_method("hint_preload_scene"):
+		scene_manager.hint_preload_scene(scene_path)

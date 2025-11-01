@@ -1,6 +1,8 @@
 extends "res://scripts/scene_management/transitions/base_transition_effect.gd"
 class_name LoadingScreenTransition
 
+const LOADING_SCREEN_SCENE := preload("res://scenes/ui/loading_screen.tscn")
+
 ## Loading screen transition effect
 ##
 ## Shows a loading screen with progress bar, tips, and spinner during scene transitions.
@@ -64,6 +66,8 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 	# Find loading screen UI
 	_loading_screen = _find_loading_screen(overlay)
 	if _loading_screen == null:
+		_loading_screen = _ensure_loading_screen(overlay)
+	if _loading_screen == null:
 		push_error("LoadingScreenTransition: LoadingScreen not found in overlay")
 		if callback.is_valid():
 			callback.call()
@@ -102,19 +106,75 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 		# Use fake Tween-based progress
 		_execute_with_fake_progress(overlay, callback, original_overlay_mode, original_screen_mode)
 
-## Execute with real async loading progress
+## Execute with real async loading progress (Phase 8)
 func _execute_with_real_progress(overlay: CanvasLayer, callback: Callable, original_overlay_mode: int, original_screen_mode: int) -> void:
 	# Poll progress_provider until complete
-	# This will be implemented in Phase 8 when we add ResourceLoader.load_threaded_*
-	# For now, fall back to fake progress
-	push_warning("LoadingScreenTransition: Real progress not yet implemented, using fake progress")
-	_execute_with_fake_progress(overlay, callback, original_overlay_mode, original_screen_mode)
+	var prev_progress: float = 0.0
+	var mid_transition_fired: bool = false
+	var iterations: int = 0
+
+	# Update status label
+	if _status_label:
+		_status_label.text = "Loading..."
+
+	while true:
+		# Get current progress from provider
+		var current_progress: float = 0.0
+		if progress_provider.is_valid():
+			current_progress = progress_provider.call()
+		else:
+			# Provider became invalid mid-transition, abort
+			push_error("LoadingScreenTransition: Progress provider became invalid mid-transition")
+			break
+
+		# Update progress bar (convert 0.0-1.0 to 0.0-100.0)
+		if _progress_bar:
+			_progress_bar.value = current_progress * 100.0
+
+		# Trigger mid-transition callback:
+		# - At 50% threshold for async loading
+		# - Immediately if progress hasn't changed (sync loading - needs callback to set progress)
+		var should_fire_callback: bool = false
+		if not mid_transition_fired:
+			if current_progress >= 0.5:
+				# Normal case: progress reached 50%
+				should_fire_callback = true
+			elif iterations > 0 and current_progress == prev_progress and current_progress < 0.5:
+				# Sync loading case: progress stuck at 0, fire callback immediately
+				should_fire_callback = true
+
+		if should_fire_callback:
+			if mid_transition_callback.is_valid():
+				# Call and await callback (Phase 8: scene loading may be async)
+				# In Godot 4, just await the call directly - it handles both sync and async
+				await mid_transition_callback.call()
+			mid_transition_fired = true
+
+			# Re-poll progress after callback completes (callback may set progress to 1.0)
+			if progress_provider.is_valid():
+				current_progress = progress_provider.call()
+			if _progress_bar:
+				_progress_bar.value = current_progress * 100.0
+
+		# Check if complete
+		if current_progress >= 1.0:
+			break
+
+		# Update previous progress and iteration count
+		prev_progress = current_progress
+		iterations += 1
+
+		# Wait one frame before next poll
+		await overlay.get_tree().process_frame
+
+	# Enforce minimum duration before completing
+	await _enforce_minimum_duration_and_complete(overlay, callback, original_overlay_mode, original_screen_mode)
 
 ## Execute with fake Tween-based progress animation
 func _execute_with_fake_progress(overlay: CanvasLayer, callback: Callable, original_overlay_mode: int, original_screen_mode: int) -> void:
 	if _progress_bar == null:
 		# No progress bar, just enforce minimum duration then complete
-		_enforce_minimum_duration_and_complete(overlay, callback, original_overlay_mode, original_screen_mode)
+		await _enforce_minimum_duration_and_complete(overlay, callback, original_overlay_mode, original_screen_mode)
 		return
 
 	# Create Tween for progress animation
@@ -147,18 +207,21 @@ func _enforce_minimum_duration_and_complete(overlay: CanvasLayer, callback: Call
 	var remaining: float = min_duration - elapsed
 
 	if remaining > 0.0:
-		# Wait remaining time using timer connection
+		# Wait remaining time
 		if overlay.get_tree():
-			var timer := overlay.get_tree().create_timer(remaining, true, false, true)
-			timer.timeout.connect(func() -> void:
-				_complete_transition(overlay, callback, original_overlay_mode, original_screen_mode)
-			)
-		else:
-			# No tree available, complete immediately
-			_complete_transition(overlay, callback, original_overlay_mode, original_screen_mode)
-	else:
-		# Already exceeded minimum duration, complete immediately
-		_complete_transition(overlay, callback, original_overlay_mode, original_screen_mode)
+			# In headless mode, use frame-based delays (more reliable)
+			if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
+				var target_time: float = _start_time + min_duration
+				while (Time.get_ticks_msec() / 1000.0) < target_time:
+					await overlay.get_tree().process_frame
+			else:
+				# Use timer in normal mode
+				var timer := overlay.get_tree().create_timer(remaining, true, false, true)
+				await timer.timeout
+		# else: No tree available, complete immediately (no wait)
+
+	# Complete transition after minimum duration enforced
+	_complete_transition(overlay, callback, original_overlay_mode, original_screen_mode)
 
 ## Complete the transition and clean up
 func _complete_transition(overlay: CanvasLayer, callback: Callable, original_overlay_mode: int, original_screen_mode: int) -> void:
@@ -205,6 +268,19 @@ func _find_loading_screen(overlay: CanvasLayer) -> Control:
 		if child is Control and child.name == "LoadingScreen":
 			return child as Control
 	return null
+
+## Ensure a LoadingScreen instance exists on the overlay
+func _ensure_loading_screen(overlay: CanvasLayer) -> Control:
+	if LOADING_SCREEN_SCENE == null:
+		return null
+
+	var instance: Node = LOADING_SCREEN_SCENE.instantiate()
+	if instance == null or not (instance is Control):
+		return null
+
+	var control_instance := instance as Control
+	overlay.add_child(control_instance)
+	return control_instance
 
 ## Find ProgressBar in loading screen
 func _find_progress_bar(loading_screen: Control) -> ProgressBar:

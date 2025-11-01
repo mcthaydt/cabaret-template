@@ -49,7 +49,7 @@ static func _register_scenes() -> void:
 		"res://scenes/ui/main_menu.tscn",
 		SceneType.MENU,
 		"fade",
-		5  # Medium priority - load after boot
+		10  # Critical path - preload at startup (Phase 8)
 	)
 
 	# Settings Menu
@@ -112,12 +112,22 @@ static func _register_scenes() -> void:
 		0
 	)
 
+	# Pause Menu
 	_register_scene(
 		StringName("pause_menu"),
 		"res://scenes/ui/pause_menu.tscn",
 		SceneType.UI,
 		"instant",
-		0
+		10  # Critical path - preload at startup (Phase 8)
+	)
+
+	# Loading Screen
+	_register_scene(
+		StringName("loading_screen"),
+		"res://scenes/ui/loading_screen.tscn",
+		SceneType.UI,
+		"instant",
+		10  # Critical path - preload at startup (Phase 8)
 	)
 
 ## Register door pairings for seamless area transitions
@@ -217,6 +227,20 @@ static func get_scenes_by_type(scene_type: int) -> Array:
 	var result: Array = []
 	for scene_data in _scenes.values():
 		if scene_data["scene_type"] == scene_type:
+			result.append(scene_data.duplicate(true))
+	return result
+
+## Get all scenes with preload_priority >= min_priority
+##
+## Used by Scene Manager to determine which scenes to preload at startup.
+## Default min_priority of 10 returns only "critical path" scenes.
+##
+## Returns: Array of scene metadata dictionaries
+static func get_preloadable_scenes(min_priority: int = 10) -> Array:
+	var result: Array = []
+	for scene_data in _scenes.values():
+		var priority: int = scene_data.get("preload_priority", 0)
+		if priority >= min_priority:
 			result.append(scene_data.duplicate(true))
 	return result
 

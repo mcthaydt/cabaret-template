@@ -67,6 +67,25 @@ var _scene_history: Array[StringName] = []
 ## Example: pause→settings→back returns to pause without hardcoded methods
 var _overlay_return_stack: Array[StringName] = []
 
+## Scene cache management (Phase 8)
+## Cache: path → PackedScene
+var _scene_cache: Dictionary = {}
+
+## Background loading tracking (Phase 8)
+## Key: path (String), Value: { scene_id, status, start_time }
+var _background_loads: Dictionary = {}
+
+## Cache limits (Phase 8)
+var _max_cached_scenes: int = 5
+var _max_cache_memory: int = 100 * 1024 * 1024  # 100MB
+
+## LRU tracking (Phase 8)
+## Key: path (String), Value: timestamp (float)
+var _cache_access_times: Dictionary = {}
+
+## Background polling active flag (Phase 8)
+var _is_background_polling_active: bool = false
+
 ## Store subscription
 var _unsubscribe: Callable
 
@@ -107,6 +126,9 @@ func _ready() -> void:
 	# Validate U_SceneRegistry door pairings
 	if not U_SCENE_REGISTRY.validate_door_pairings():
 		push_error("M_SceneManager: U_SceneRegistry door pairing validation failed")
+
+	# Phase 8: Preload critical scenes in background (main_menu, pause_menu, loading_screen)
+	_preload_critical_scenes()
 
 	# Load initial scene (main_menu) unless skipped for tests
 	if not skip_initial_scene_load:
@@ -264,6 +286,21 @@ func _perform_transition(request: TransitionRequest) -> void:
 	# Create transition effect based on type
 	var transition_effect = _create_transition_effect(request.transition_type)
 
+	# Phase 8: Check if scene is cached
+	var use_cached: bool = _is_scene_cached(scene_path)
+
+	# Phase 8: Create progress callback for async loading
+	var current_progress: Array = [0.0]  # Array for closure to work
+	var progress_callback := func(progress: float) -> void:
+		current_progress[0] = progress
+
+	# Phase 8: Set progress_provider for LoadingScreenTransition
+	if transition_effect is LoadingScreenTransition:
+		var loading_transition := transition_effect as LoadingScreenTransition
+		# Create a Callable that returns current progress
+		loading_transition.progress_provider = func() -> float:
+			return current_progress[0]
+
 	# Track if scene swap has completed (use Array for closure to work)
 	var scene_swap_complete: Array = [false]
 
@@ -273,8 +310,26 @@ func _perform_transition(request: TransitionRequest) -> void:
 		if _active_scene_container != null:
 			_remove_current_scene()
 
-		# Load new scene
-		var new_scene: Node = _load_scene(scene_path)
+		# Load new scene (Phase 8: async for loading transitions, cached if available, sync otherwise)
+		var new_scene: Node = null
+		if use_cached:
+			# Use cached scene (instant)
+			var cached := _get_cached_scene(scene_path)
+			if cached:
+				new_scene = cached.instantiate()
+				# Update progress for loading transitions (instant completion)
+				if request.transition_type == "loading":
+					progress_callback.call(1.0)
+		elif request.transition_type == "loading" and not (OS.has_feature("headless") or DisplayServer.get_name() == "headless"):
+			# Use async loading for "loading" transitions (Phase 8)
+			new_scene = await _load_scene_async(scene_path, progress_callback)
+		else:
+			# Use sync loading for other transitions (or headless mode)
+			new_scene = _load_scene(scene_path)
+			# Update progress for loading transitions in headless/sync mode
+			if request.transition_type == "loading":
+				progress_callback.call(1.0)
+
 		if new_scene == null:
 			push_error("M_SceneManager: Failed to load scene '%s'" % scene_path)
 			return
@@ -340,6 +395,101 @@ func _load_scene(scene_path: String) -> Node:
 
 	var instance: Node = packed_scene.instantiate()
 	return instance
+
+## Load scene asynchronously with progress callback (Phase 8)
+##
+## Uses ResourceLoader.load_threaded_* for async loading with real progress updates.
+## Falls back to sync loading in headless mode.
+##
+## Parameters:
+##   scene_path: Resource path to .tscn file
+##   progress_callback: Callable(progress: float) called with 0.0-1.0 progress
+##
+## Returns: Instantiated Node or null on failure
+func _load_scene_async(scene_path: String, progress_callback: Callable) -> Node:
+	# Fallback to sync loading in headless mode (async may not work)
+	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
+		var packed_scene: PackedScene = load(scene_path) as PackedScene
+		if progress_callback.is_valid():
+			progress_callback.call(1.0)  # Fake instant completion
+		if packed_scene:
+			return packed_scene.instantiate()
+		return null
+
+	# Check if already loading in background
+	if _background_loads.has(scene_path):
+		# Attach to existing load
+		while true:
+			var progress: Array = [0.0]
+			var status: int = ResourceLoader.load_threaded_get_status(scene_path, progress)
+
+			# Update progress callback
+			if progress_callback.is_valid():
+				progress_callback.call(progress[0])
+
+			# Check status
+			if status == ResourceLoader.THREAD_LOAD_LOADED:
+				break
+			elif status == ResourceLoader.THREAD_LOAD_FAILED:
+				push_error("M_SceneManager: Async load failed for '%s'" % scene_path)
+				return null
+			elif status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+				push_error("M_SceneManager: Invalid resource path '%s'" % scene_path)
+				return null
+
+			await get_tree().process_frame
+
+		# Remove from background loads
+		_background_loads.erase(scene_path)
+
+		# Get loaded resource
+		var packed_scene: PackedScene = ResourceLoader.load_threaded_get(scene_path) as PackedScene
+		if packed_scene:
+			return packed_scene.instantiate()
+		return null
+
+	# Start new async load
+	var err: int = ResourceLoader.load_threaded_request(scene_path, "PackedScene")
+	if err != OK:
+		push_error("M_SceneManager: Failed to start async load for '%s' (error %d)" % [scene_path, err])
+		return null
+
+	# Poll until loaded
+	var progress: Array = [0.0]
+	var timeout_time: float = Time.get_ticks_msec() / 1000.0 + 30.0  # 30s timeout
+	while true:
+		var current_time: float = Time.get_ticks_msec() / 1000.0
+
+		# Timeout protection
+		if current_time > timeout_time:
+			push_error("M_SceneManager: Async load timeout for '%s'" % scene_path)
+			return null
+
+		var status: int = ResourceLoader.load_threaded_get_status(scene_path, progress)
+
+		# Update progress callback
+		if progress_callback.is_valid():
+			progress_callback.call(progress[0])
+
+		# Check status
+		if status == ResourceLoader.THREAD_LOAD_LOADED:
+			break
+		elif status == ResourceLoader.THREAD_LOAD_FAILED:
+			push_error("M_SceneManager: Async load failed for '%s'" % scene_path)
+			return null
+		elif status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+			push_error("M_SceneManager: Invalid resource path '%s'" % scene_path)
+			return null
+
+		await get_tree().process_frame
+
+	# Get loaded resource
+	var packed_scene: PackedScene = ResourceLoader.load_threaded_get(scene_path) as PackedScene
+	if packed_scene == null:
+		push_error("M_SceneManager: Failed to get loaded PackedScene for '%s'" % scene_path)
+		return null
+
+	return packed_scene.instantiate()
 
 ## Add scene to ActiveSceneContainer
 func _add_scene(scene: Node) -> void:
@@ -658,7 +808,7 @@ func _create_transition_effect(transition_type: String):
 			return loading
 		_:
 			# Unknown type, use instant as fallback
-			push_warning("M_SceneManager: Unknown transition type '%s', using instant" % transition_type)
+			print_debug("M_SceneManager: Unknown transition type '%s', using instant" % transition_type)
 			return INSTANT_TRANSITION.new()
 
 
@@ -788,3 +938,207 @@ func _update_scene_history(target_scene_id: StringName) -> void:
 	# T113: Gameplay scenes explicitly disable history (clear history stack)
 	if target_scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
 		_scene_history.clear()
+
+## ============================================================================
+## Phase 8: Scene Cache Management
+## ============================================================================
+
+## Check if scene is cached
+func _is_scene_cached(scene_path: String) -> bool:
+	return _scene_cache.has(scene_path)
+
+## Get cached PackedScene (updates LRU access time)
+func _get_cached_scene(scene_path: String) -> PackedScene:
+	if not _scene_cache.has(scene_path):
+		return null
+
+	# Update LRU access time
+	_cache_access_times[scene_path] = Time.get_ticks_msec() / 1000.0
+
+	return _scene_cache[scene_path] as PackedScene
+
+## Add PackedScene to cache (with eviction if needed)
+func _add_to_cache(scene_path: String, packed_scene: PackedScene) -> void:
+	if packed_scene == null:
+		return
+
+	# Add to cache
+	_scene_cache[scene_path] = packed_scene
+	_cache_access_times[scene_path] = Time.get_ticks_msec() / 1000.0
+
+	# Check if eviction needed
+	_check_cache_pressure()
+
+## Check cache pressure and evict if necessary (hybrid policy)
+func _check_cache_pressure() -> void:
+	# Evict if exceeds max count
+	while _scene_cache.size() > _max_cached_scenes:
+		_evict_cache_lru()
+
+	# Evict if exceeds memory limit
+	var memory_usage: int = _get_cache_memory_usage()
+	while memory_usage > _max_cache_memory and _scene_cache.size() > 0:
+		_evict_cache_lru()
+		memory_usage = _get_cache_memory_usage()
+
+## Evict least-recently-used scene from cache
+func _evict_cache_lru() -> void:
+	if _scene_cache.is_empty():
+		return
+
+	# Find LRU path
+	var lru_path: String = ""
+	var lru_time: float = INF
+
+	for path in _cache_access_times:
+		var access_time: float = _cache_access_times[path]
+		if access_time < lru_time:
+			lru_time = access_time
+			lru_path = path
+
+	# Evict
+	if not lru_path.is_empty():
+		_scene_cache.erase(lru_path)
+		_cache_access_times.erase(lru_path)
+
+## Get estimated cache memory usage in bytes
+func _get_cache_memory_usage() -> int:
+	# Rough estimate: ~6.91 MB per gameplay scene (from Phase 0 measurements)
+	# UI scenes smaller (~1 MB estimated)
+	var total_bytes: int = 0
+
+	for scene_path in _scene_cache:
+		# Estimate based on scene type
+		if "gameplay" in scene_path:
+			total_bytes += 7 * 1024 * 1024  # ~7 MB per gameplay scene
+		else:
+			total_bytes += 1 * 1024 * 1024  # ~1 MB per UI scene
+
+	return total_bytes
+
+## ============================================================================
+## Phase 8: Scene Preloading at Startup
+## ============================================================================
+
+## Preload critical scenes at startup (Phase 8)
+##
+## Loads scenes with priority >= 10 in background for instant transitions.
+## Critical scenes: main_menu, pause_menu, loading_screen
+func _preload_critical_scenes() -> void:
+	# Get critical scenes from registry (priority >= 10)
+	var critical_scenes: Array = U_SCENE_REGISTRY.get_preloadable_scenes(10)
+
+	if critical_scenes.is_empty():
+		print_debug("M_SceneManager: No critical scenes to preload")
+		return
+
+	print("M_SceneManager: Starting preload for %d critical scene(s)" % critical_scenes.size())
+
+	# Start async load for each critical scene
+	for scene_data in critical_scenes:
+		var scene_id: StringName = scene_data.get("scene_id", StringName(""))
+		var scene_path: String = scene_data.get("path", "")
+
+		if scene_path.is_empty():
+			push_warning("M_SceneManager: Critical scene '%s' has empty path" % scene_id)
+			continue
+
+		# Skip if already cached
+		if _is_scene_cached(scene_path):
+			print_debug("M_SceneManager: Critical scene '%s' already cached" % scene_id)
+			continue
+
+		# Start async load
+		var err: int = ResourceLoader.load_threaded_request(scene_path, "PackedScene")
+		if err != OK:
+			push_error("M_SceneManager: Failed to start preload for '%s' (error %d)" % [scene_id, err])
+			continue
+
+		# Track in background loads
+		_background_loads[scene_path] = {
+			"scene_id": scene_id,
+			"status": ResourceLoader.THREAD_LOAD_IN_PROGRESS,
+			"start_time": Time.get_ticks_msec() / 1000.0
+		}
+
+		print_debug("M_SceneManager: Started preload for '%s'" % scene_id)
+
+	# Start background polling if we have loads in progress
+	if not _background_loads.is_empty():
+		_is_background_polling_active = true
+		_start_background_load_polling()
+
+## Start background polling loop for preloaded scenes (Phase 8)
+func _start_background_load_polling() -> void:
+	while not _background_loads.is_empty():
+		var completed_paths: Array = []
+
+		# Poll each background load
+		for scene_path in _background_loads:
+			var load_data: Dictionary = _background_loads[scene_path]
+			var status: int = ResourceLoader.load_threaded_get_status(scene_path)
+
+			if status == ResourceLoader.THREAD_LOAD_LOADED:
+				# Load complete - add to cache
+				var packed_scene: PackedScene = ResourceLoader.load_threaded_get(scene_path) as PackedScene
+				if packed_scene:
+					_add_to_cache(scene_path, packed_scene)
+					print("M_SceneManager: Preloaded '%s' successfully" % load_data.get("scene_id"))
+				else:
+					push_error("M_SceneManager: Failed to get preloaded scene '%s'" % load_data.get("scene_id"))
+				completed_paths.append(scene_path)
+
+			elif status == ResourceLoader.THREAD_LOAD_FAILED:
+				# Load failed
+				push_error("M_SceneManager: Preload failed for '%s'" % load_data.get("scene_id"))
+				completed_paths.append(scene_path)
+
+			elif status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+				# Invalid resource
+				push_error("M_SceneManager: Invalid resource for preload '%s'" % load_data.get("scene_id"))
+				completed_paths.append(scene_path)
+
+		# Remove completed loads
+		for path in completed_paths:
+			_background_loads.erase(path)
+
+		# Wait one frame before next poll
+		if not _background_loads.is_empty():
+			await get_tree().process_frame
+
+	print("M_SceneManager: All critical scenes preloaded")
+	_is_background_polling_active = false
+
+## Hint to preload a scene in background (Phase 8)
+##
+## Called when player approaches a door trigger to preload target scene.
+## Non-blocking - loads in background while player is in trigger zone.
+##
+## @param scene_path: Resource path to .tscn file
+func hint_preload_scene(scene_path: String) -> void:
+	# Skip if already cached or loading
+	if _is_scene_cached(scene_path):
+		return
+
+	if _background_loads.has(scene_path):
+		return
+
+	print_debug("M_SceneManager: Preload hint received for '%s'" % scene_path)
+
+	# Start background load
+	var err: int = ResourceLoader.load_threaded_request(scene_path, "PackedScene")
+	if err != OK:
+		push_error("M_SceneManager: Failed to start hinted preload for '%s' (error %d)" % [scene_path, err])
+		return
+
+	# Track in background loads
+	_background_loads[scene_path] = {
+		"scene_id": scene_path.get_file().get_basename(),
+		"status": ResourceLoader.THREAD_LOAD_IN_PROGRESS,
+		"start_time": Time.get_ticks_msec() / 1000.0
+	}
+
+	# Start polling if not already running
+	if not _is_background_polling_active:
+		_is_background_polling_active = true
+		_start_background_load_polling()
