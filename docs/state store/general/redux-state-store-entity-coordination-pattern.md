@@ -255,7 +255,7 @@ static func get_player_entity_id(state: Dictionary) -> String:
 	var entities: Array = get_entities_by_type(state, "player")
 	if entities.size() > 0:
 		return entities[0]["id"]
-	return ""
+	return state.get("gameplay", {}).get("player_entity_id", "E_Player")
 
 ## Get player position (convenience)
 static func get_player_position(state: Dictionary) -> Vector3:

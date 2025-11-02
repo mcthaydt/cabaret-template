@@ -1045,55 +1045,63 @@ func process_tick(delta: float) -> void:
 
 ### 10.5 UI Integration Example
 
-**HUD that reacts to state** (`scenes/ui/hud_overlay.gd`):
+**HUD that reacts to state** (`scripts/ui/hud_controller.gd`):
 
 ```gdscript
 extends CanvasLayer
 
-@onready var health_label: Label = %HealthLabel
-@onready var score_label: Label = %ScoreLabel
-@onready var pause_label: Label = %PauseLabel
+const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_EntitySelectors := preload("res://scripts/state/selectors/u_entity_selectors.gd")
+
+@onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
+@onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
 
 var _store: M_StateStore = null
+var _player_entity_id: String = "E_Player"
 
 func _ready() -> void:
-	await get_tree().process_frame
-	
 	_store = U_StateUtils.get_store(self)
-	if not _store:
+	if _store == null:
 		push_error("HUD: Could not find M_StateStore")
 		return
-	
-	# Subscribe to gameplay slice
+
+	_player_entity_id = String(_store.get_slice(StringName("gameplay")).get("player_entity_id", "E_Player"))
 	_store.slice_updated.connect(_on_slice_updated)
-	
-	# Initial update
-	_update_ui(_store.get_slice(StringName("gameplay")))
+	_update_display(_store.get_state())
 
 func _exit_tree() -> void:
-	if _store and _store.slice_updated.is_connected(_on_slice_updated):
+	if _store != null and _store.slice_updated.is_connected(_on_slice_updated):
 		_store.slice_updated.disconnect(_on_slice_updated)
 
-func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
-	if slice_name == StringName("gameplay"):
-		_update_ui(slice_state)
+func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void:
+	if slice_name != StringName("gameplay"):
+		return
+	_update_display(_store.get_state())
 
-func _update_ui(state: Dictionary) -> void:
-	# Use selectors to get values
-	var is_paused: bool = GameplaySelectors.get_is_paused(state)
-	pause_label.visible = is_paused
-	
-	# Get entity data if available
-	var player_pos: Vector3 = EntitySelectors.get_player_position(state)
-	position_label.text = "Position: %v" % player_pos
-	pause_label.text = "[PAUSED]"
+func _update_display(state: Dictionary) -> void:
+	pause_label.text = ""
+	_update_health(state)
+
+func _update_health(state: Dictionary) -> void:
+	var health := U_EntitySelectors.get_entity_health(state, _player_entity_id)
+	var max_health := U_EntitySelectors.get_entity_max_health(state, _player_entity_id)
+	max_health = max(max_health, 1.0)
+	health = clampf(health, 0.0, max_health)
+
+	if not is_equal_approx(health_bar.max_value, max_health):
+		health_bar.max_value = max_health
+	if not is_equal_approx(health_bar.value, health):
+		health_bar.value = health
+
+	health_bar.format = "%d / %d"
+	health_bar.tooltip_text = "%d / %d" % [int(round(health)), int(round(max_health))]
 ```
 
 **Benefits of state-driven UI:**
 - UI automatically updates when state changes
-- No need to manually call update methods
-- Single source of truth for all UI elements
-- Easy to add new UI elements (just subscribe)
+- No manual wiring between gameplay code and UI widgets
+- Single source of truth for live gameplay data (health, pause state, etc.)
+- Easy to add new UI elements—subscribe and read from selectors
 
 ### 10.6 Testing ECS Integration
 

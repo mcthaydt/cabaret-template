@@ -40,8 +40,30 @@ static func get_entity_type(state: Dictionary, entity_id: String) -> String:
 	return get_entity(state, entity_id).get("entity_type", "unknown")
 
 ## Get entity health
-static func get_entity_health(state: Dictionary, entity_id: String) -> int:
-	return get_entity(state, entity_id).get("health", 100)
+static func get_entity_health(state: Dictionary, entity_id: String) -> float:
+	var entity: Dictionary = get_entity(state, entity_id)
+	if entity.has("health"):
+		return float(entity.get("health"))
+
+	var gameplay: Dictionary = state.get("gameplay", {})
+	var player_id: String = String(gameplay.get("player_entity_id", "E_Player"))
+	if entity_id == player_id:
+		return float(gameplay.get("player_health", 0.0))
+
+	return float(entity.get("health", gameplay.get("player_health", 0.0)))
+
+## Get entity max health (player fallback)
+static func get_entity_max_health(state: Dictionary, entity_id: String) -> float:
+	var entity: Dictionary = get_entity(state, entity_id)
+	if entity.has("max_health"):
+		return float(entity.get("max_health"))
+
+	var gameplay: Dictionary = state.get("gameplay", {})
+	var player_id: String = String(gameplay.get("player_entity_id", "E_Player"))
+	if entity_id == player_id:
+		return float(gameplay.get("player_max_health", 0.0))
+
+	return float(entity.get("max_health", 0.0))
 
 ## Get all entities of a specific type
 static func get_entities_by_type(state: Dictionary, entity_type: String) -> Array:
@@ -61,7 +83,7 @@ static func get_player_entity_id(state: Dictionary) -> String:
 	var entities: Array = get_entities_by_type(state, "player")
 	if entities.size() > 0:
 		return entities[0]["id"]
-	return ""
+	return state.get("gameplay", {}).get("player_entity_id", "E_Player")
 
 ## Get player position (convenience)
 static func get_player_position(state: Dictionary) -> Vector3:

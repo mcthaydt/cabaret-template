@@ -114,7 +114,7 @@ Files that need refactoring:
 
 **Systems:**
 - `scripts/ecs/systems/s_health_system.gd` - Currently uses mock actions (may need to remove or refactor)
-- `scenes/ui/hud_overlay.gd` - Currently displays mock health/score (needs refactor or removal)
+- `scripts/ui/hud_controller.gd` / `scenes/ui/hud_overlay.tscn` - HUD reacts to state store (updated during Phase 8.5)
 
 **Tests:**
 - 9 test files listed above

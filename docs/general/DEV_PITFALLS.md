@@ -199,6 +199,10 @@
   await wait_physics_frames(1)
   ```
 
+## Headless Test Pitfalls
+
+- **Headless GUT runs crash if `user://` resolves outside the sandbox**: The CLI harness blocks writes to `~/Library/Application Support/Godot/...`, so running Godot headless without overriding the user directory makes `RotatedFileLogger` abort during startup. Always launch tests via `tools/run_gut_suite.sh` (or manually prepend `HOME="$PWD/.godot_user"` to the Godot command). The script also enables `-ginclude_subdirs=true` so nested test suites execute instead of being skipped silently.
+
 ## Documentation and Planning Pitfalls
 
 - **MANDATORY: Update continuation prompt and tasks after EVERY phase**: Failing to update planning documentation after completing a phase creates confusion for future work sessions. After completing ANY phase of ANY feature:

@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 ## Test Entity Coordination Pattern
 ##
@@ -22,7 +22,7 @@ func after_each() -> void:
 
 ## Test dispatching entity snapshots
 func test_update_entity_snapshot():
-	var action = U_EntityActions.update_entity_snapshot("player", {
+	var action = U_EntityActions.update_entity_snapshot("E_Player", {
 		"position": Vector3(1, 2, 3),
 		"velocity": Vector3(4, 5, 6),
 		"entity_type": "player"
@@ -32,15 +32,15 @@ func test_update_entity_snapshot():
 	
 	var state = store.get_state()
 	var entities = state.get("gameplay", {}).get("entities", {})
-	assert_true(entities.has("player"), "Should have player entity")
-	assert_eq(entities["player"]["position"], Vector3(1, 2, 3), "Position should match")
-	assert_eq(entities["player"]["velocity"], Vector3(4, 5, 6), "Velocity should match")
-	assert_eq(entities["player"]["entity_type"], "player", "Entity type should match")
+	assert_true(entities.has("E_Player"), "Should have player entity")
+	assert_eq(entities["E_Player"]["position"], Vector3(1, 2, 3), "Position should match")
+	assert_eq(entities["E_Player"]["velocity"], Vector3(4, 5, 6), "Velocity should match")
+	assert_eq(entities["E_Player"]["entity_type"], "player", "Entity type should match")
 
 ## Test merging entity snapshots (preserves existing fields)
 func test_merge_entity_snapshot():
 	# First snapshot
-	store.dispatch(U_EntityActions.update_entity_snapshot("player", {
+	store.dispatch(U_EntityActions.update_entity_snapshot("E_Player", {
 		"position": Vector3(1, 2, 3),
 		"health": 100,
 		"entity_type": "player"
@@ -48,20 +48,20 @@ func test_merge_entity_snapshot():
 	await wait_physics_frames(1)
 	
 	# Second snapshot (only updates position)
-	store.dispatch(U_EntityActions.update_entity_snapshot("player", {
+	store.dispatch(U_EntityActions.update_entity_snapshot("E_Player", {
 		"position": Vector3(10, 20, 30)
 	}))
 	await wait_physics_frames(1)
 	
 	var state = store.get_state()
-	var player = U_EntitySelectors.get_entity(state, "player")
+	var player = U_EntitySelectors.get_entity(state, "E_Player")
 	assert_eq(player["position"], Vector3(10, 20, 30), "Position should be updated")
 	assert_eq(player["health"], 100, "Health should be preserved")
 	assert_eq(player["entity_type"], "player", "Entity type should be preserved")
 
 ## Test multiple entities
 func test_multiple_entities():
-	store.dispatch(U_EntityActions.update_entity_snapshot("player", {
+	store.dispatch(U_EntityActions.update_entity_snapshot("E_Player", {
 		"position": Vector3(0, 0, 0),
 		"entity_type": "player"
 	}))
@@ -78,13 +78,13 @@ func test_multiple_entities():
 	var state = store.get_state()
 	var all_entities = U_EntitySelectors.get_all_entities(state)
 	assert_eq(all_entities.size(), 3, "Should have 3 entities")
-	assert_true(all_entities.has("player"), "Should have player")
+	assert_true(all_entities.has("E_Player"), "Should have player")
 	assert_true(all_entities.has("enemy_1"), "Should have enemy_1")
 	assert_true(all_entities.has("enemy_2"), "Should have enemy_2")
 
 ## Test entity selectors
 func test_entity_selectors():
-	store.dispatch(U_EntityActions.update_entity_snapshot("player", {
+	store.dispatch(U_EntityActions.update_entity_snapshot("E_Player", {
 		"position": Vector3(1, 2, 3),
 		"velocity": Vector3(4, 5, 6),
 		"rotation": Vector3(0, 1.57, 0),
@@ -96,17 +96,17 @@ func test_entity_selectors():
 	await wait_physics_frames(1)
 	
 	var state = store.get_state()
-	assert_eq(U_EntitySelectors.get_entity_position(state, "player"), Vector3(1, 2, 3))
-	assert_eq(U_EntitySelectors.get_entity_velocity(state, "player"), Vector3(4, 5, 6))
-	assert_eq(U_EntitySelectors.get_entity_rotation(state, "player"), Vector3(0, 1.57, 0))
-	assert_true(U_EntitySelectors.is_entity_on_floor(state, "player"))
-	assert_true(U_EntitySelectors.is_entity_moving(state, "player"))
-	assert_eq(U_EntitySelectors.get_entity_type(state, "player"), "player")
-	assert_eq(U_EntitySelectors.get_entity_health(state, "player"), 100)
+	assert_eq(U_EntitySelectors.get_entity_position(state, "E_Player"), Vector3(1, 2, 3))
+	assert_eq(U_EntitySelectors.get_entity_velocity(state, "E_Player"), Vector3(4, 5, 6))
+	assert_eq(U_EntitySelectors.get_entity_rotation(state, "E_Player"), Vector3(0, 1.57, 0))
+	assert_true(U_EntitySelectors.is_entity_on_floor(state, "E_Player"))
+	assert_true(U_EntitySelectors.is_entity_moving(state, "E_Player"))
+	assert_eq(U_EntitySelectors.get_entity_type(state, "E_Player"), "player")
+	assert_almost_eq(U_EntitySelectors.get_entity_health(state, "E_Player"), 100.0, 0.001)
 
 ## Test get entities by type
 func test_get_entities_by_type():
-	store.dispatch(U_EntityActions.update_entity_snapshot("player", {"entity_type": "player"}))
+	store.dispatch(U_EntityActions.update_entity_snapshot("E_Player", {"entity_type": "player"}))
 	store.dispatch(U_EntityActions.update_entity_snapshot("enemy_1", {"entity_type": "enemy"}))
 	store.dispatch(U_EntityActions.update_entity_snapshot("enemy_2", {"entity_type": "enemy"}))
 	store.dispatch(U_EntityActions.update_entity_snapshot("npc_1", {"entity_type": "npc"}))
@@ -121,7 +121,7 @@ func test_get_entities_by_type():
 
 ## Test player convenience selectors
 func test_player_convenience_selectors():
-	store.dispatch(U_EntityActions.update_entity_snapshot("player", {
+	store.dispatch(U_EntityActions.update_entity_snapshot("E_Player", {
 		"position": Vector3(5, 10, 15),
 		"velocity": Vector3(1, 0, 1),
 		"entity_type": "player"
@@ -129,22 +129,22 @@ func test_player_convenience_selectors():
 	await wait_physics_frames(1)
 	
 	var state = store.get_state()
-	assert_eq(U_EntitySelectors.get_player_entity_id(state), "player")
+	assert_eq(U_EntitySelectors.get_player_entity_id(state), "E_Player")
 	assert_eq(U_EntitySelectors.get_player_position(state), Vector3(5, 10, 15))
 	assert_eq(U_EntitySelectors.get_player_velocity(state), Vector3(1, 0, 1))
 
 ## Test get entities within radius
 func test_get_entities_within_radius():
-	store.dispatch(U_EntityActions.update_entity_snapshot("player", {
+	store.dispatch(U_EntityActions.update_entity_snapshot("E_Player", {
 		"position": Vector3(0, 0, 0),
 		"entity_type": "player"
 	}))
 	store.dispatch(U_EntityActions.update_entity_snapshot("enemy_close", {
-		"position": Vector3(5, 0, 0),  # 5 units away
+		"position": Vector3(5, 0, 0), # 5 units away
 		"entity_type": "enemy"
 	}))
 	store.dispatch(U_EntityActions.update_entity_snapshot("enemy_far", {
-		"position": Vector3(50, 0, 0),  # 50 units away
+		"position": Vector3(50, 0, 0), # 50 units away
 		"entity_type": "enemy"
 	}))
 	await wait_physics_frames(1)
@@ -176,18 +176,18 @@ func test_remove_entity():
 ## Test entity physics convenience method
 func test_entity_physics_convenience():
 	var action = U_EntityActions.update_entity_physics(
-		"player",
-		Vector3(1, 2, 3),      # position
-		Vector3(4, 5, 6),      # velocity
-		Vector3(0, 1.57, 0),   # rotation
-		true,                   # is_on_floor
-		true                    # is_moving
+		"E_Player",
+		Vector3(1, 2, 3), # position
+		Vector3(4, 5, 6), # velocity
+		Vector3(0, 1.57, 0), # rotation
+		true, # is_on_floor
+		true # is_moving
 	)
 	store.dispatch(action)
 	await wait_physics_frames(1)
 	
 	var state = store.get_state()
-	var player = U_EntitySelectors.get_entity(state, "player")
+	var player = U_EntitySelectors.get_entity(state, "E_Player")
 	assert_eq(player["position"], Vector3(1, 2, 3))
 	assert_eq(player["velocity"], Vector3(4, 5, 6))
 	assert_eq(player["rotation"], Vector3(0, 1.57, 0))

@@ -69,6 +69,65 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			new_state.target_spawn_point = action.get("payload", StringName(""))
 			return new_state
 
+		U_GameplayActions.ACTION_TAKE_DAMAGE:
+			var damage_state: Dictionary = state.duplicate(true)
+			var damage_payload: Dictionary = action.get("payload", {})
+			var damage_entity: String = String(damage_payload.get("entity_id", ""))
+			var player_id_damage: String = String(state.get("player_entity_id", "E_Player"))
+			if damage_entity.is_empty() or damage_entity == player_id_damage:
+				var current_health: float = float(damage_state.get("player_health", 0.0))
+				var max_health: float = float(damage_state.get("player_max_health", current_health))
+				var damage_amount: float = float(damage_payload.get("amount", 0.0))
+				damage_state.player_health = clampf(current_health - damage_amount, 0.0, max_health)
+			return damage_state
+
+		U_GameplayActions.ACTION_HEAL:
+			var heal_state: Dictionary = state.duplicate(true)
+			var heal_payload: Dictionary = action.get("payload", {})
+			var heal_entity: String = String(heal_payload.get("entity_id", ""))
+			var player_id_heal: String = String(state.get("player_entity_id", "E_Player"))
+			if heal_entity.is_empty() or heal_entity == player_id_heal:
+				var current_health_heal: float = float(heal_state.get("player_health", 0.0))
+				var max_health_heal: float = float(heal_state.get("player_max_health", current_health_heal))
+				var heal_amount: float = float(heal_payload.get("amount", 0.0))
+				heal_state.player_health = clampf(current_health_heal + heal_amount, 0.0, max_health_heal)
+			return heal_state
+
+		U_GameplayActions.ACTION_TRIGGER_DEATH:
+			var death_state: Dictionary = state.duplicate(true)
+			var death_payload: Dictionary = action.get("payload", {})
+			var death_entity: String = String(death_payload.get("entity_id", ""))
+			var tracked_player: String = String(state.get("player_entity_id", "E_Player"))
+			if death_entity.is_empty() or death_entity == tracked_player:
+				death_state.player_health = 0.0
+			return death_state
+
+		U_GameplayActions.ACTION_INCREMENT_DEATH_COUNT:
+			var count_state: Dictionary = state.duplicate(true)
+			count_state.death_count = int(count_state.get("death_count", 0)) + 1
+			return count_state
+
+		U_GameplayActions.ACTION_TRIGGER_VICTORY:
+			var victory_state: Dictionary = state.duplicate(true)
+			victory_state.last_victory_objective = action.get("payload", StringName(""))
+			return victory_state
+
+		U_GameplayActions.ACTION_MARK_AREA_COMPLETE:
+			var area_state: Dictionary = state.duplicate(true)
+			var area_id: String = String(action.get("payload", ""))
+			var areas: Array = []
+			if area_state.has("completed_areas"):
+				areas = (area_state.completed_areas as Array).duplicate(true)
+			if not area_id.is_empty() and not areas.has(area_id):
+				areas.append(area_id)
+			area_state.completed_areas = areas
+			return area_state
+
+		U_GameplayActions.ACTION_GAME_COMPLETE:
+			var complete_state: Dictionary = state.duplicate(true)
+			complete_state.game_completed = true
+			return complete_state
+
 		U_TransitionActions.ACTION_TRANSITION_TO_GAMEPLAY:
 			# Apply menu config to gameplay state
 			var new_state: Dictionary = state.duplicate(true)

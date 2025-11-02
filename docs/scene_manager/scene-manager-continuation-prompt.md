@@ -5,7 +5,7 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager`
-**Status**: ✅ Phase 0, 1, 2, 3, 4, 5, 6, 6.5, 7, 8 Complete | 🎯 Ready for Phase 8.5
+**Status**: ✅ Phase 0, 1, 2, 3, 4, 5, 6, 6.5, 7, 8, 8.5 Complete | 🎯 Ready for Phase 9
 
 ---
 
@@ -94,48 +94,33 @@ Additional tracking requirements:
 
 ## Getting Started
 
-**Current Phase**: 🎯 Phase 8.5 - Gameplay Mechanics Foundation (NEXT)
+**Current Phase**: 🎯 Phase 9 - End-Game Flows (NEXT)
 
-**Phase 7 & 8 Complete**:
+**Phase 8.5 Complete**:
 
-- ✅ All transition effects working beautifully (instant, fade, loading)
-- ✅ Async loading with real progress tracking
-- ✅ Scene cache management (LRU + memory limits)
-- ✅ Critical scene preloading at startup
-- ✅ Automatic preload hints near doors
-- ✅ All 74 tests passing (100%)
-- ✅ Clean code (no warnings, no orphans)
+- ✅ ECS health loop (components + systems + HUD wiring)
+- ✅ Damage zones (spikes, death plane) with cooldown protection
+- ✅ Victory triggers (goal zone, state updates, scene handoff)
+- ✅ Player template owns health metadata + state integration
+- ✅ New integration tests (health/damage/victory) + full suite passing
 
-**Next Steps** (Phase 8.5 - Gameplay Mechanics Foundation):
+**Next Steps** (Phase 9 - End-Game Flows):
 
-**Phase 8.5: Gameplay Mechanics Foundation (NEXT)**
+- **Tasks**: 16 tasks (T162-T177)
+- **Goal**: Wire full win/lose flows: game over, victory, credits navigation
+- **Why**: Unlock final story beats, allow retry/continue UX backed by real gameplay triggers
+- **Read**: `scene-manager-tasks.md` Phase 9 section (lines ~900-970)
+- **Estimated**: 8-10 hours
 
-- **Tasks**: 24 tasks (T145.1-T145.24)
-- **Goal**: Implement minimal health, damage, death, and victory systems
-- **Why**: Enable proper testing of Phase 9 end-game flows with real gameplay triggers
-- **Read**: `scene-manager-tasks.md` (Phase 8.5, lines 537-773)
-- **Estimated**: 6-8 hours
+**Phase 9 Workstreams**:
 
-**Key Features**:
+1. Build UI scenes (game_over, victory, credits) with expected controls
+2. Register scenes + transitions in U_SceneRegistry and Scene Manager flows
+3. Implement retry/continue plumbing with state + Scene Manager
+4. Author endgame integration tests (test_endgame_flows.gd) and run full suite
 
-- Health system with ECS components (C_HealthComponent, S_HealthSystem)
-- Damage zones (instant death + damage-over-time)
-- Victory trigger zones (goal zones)
-- State management integration (health, deaths, completed areas)
-- HUD health display
-- Death → game_over transition
-- Victory → victory scene transition
+**After Phase 9**:
 
-**Implementation Parts**:
-
-1. → Part 1: Health System (6 tasks, 2-3 hours)
-2. → Part 2: Damage System (5 tasks, 1-2 hours)
-3. → Part 3: Victory System (5 tasks, 1-2 hours)
-4. → Part 4: Integration & Testing (8 tasks, 1-2 hours)
-
-**After Phase 8.5**:
-
-- Phase 9: End-Game Flows (16 tasks, 8-10 hours) - Can now test with real gameplay!
 - Phase 10: Polish & Cross-Cutting (29 tasks, 2-3 days)
 
 **Recommended Path**:
@@ -144,6 +129,6 @@ Additional tracking requirements:
 2. ✅ Phase 6.5 (Refactoring) - COMPLETE
 3. ✅ Phase 7 (Transition Effects) - COMPLETE
 4. ✅ Phase 8 (Preloading & Performance) - COMPLETE
-5. → Phase 8.5 (Gameplay Mechanics) - 6-8 hours (NEXT)
+5. ✅ Phase 8.5 (Gameplay Mechanics) - COMPLETE
 6. → Phase 9 (End-Game Flows) - 8-10 hours
 7. → Phase 10 (Polish) - 2-3 days

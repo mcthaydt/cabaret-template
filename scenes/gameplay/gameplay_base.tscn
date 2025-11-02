@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://bqt5yh1xvx2wv"]
+[gd_scene load_steps=35 format=3 uid="uid://bqt5yh1xvx2wv"]
 
 [ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://bbovcvnujbnj3" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -22,6 +22,9 @@
 [ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/settings/jump_particles_default.tres" id="9_jump_particles_settings"]
 [ext_resource type="Script" uid="uid://cqxyfp4wvohnb" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
 [ext_resource type="Script" uid="uid://x30wlbvmhmiu" path="res://scripts/ecs/systems/s_pause_system.gd" id="9_pause"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
 [ext_resource type="Script" uid="uid://c0es6y2cw780d" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
 [ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/settings/landing_particles_default.tres" id="10_landing_particles_settings"]
 [ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/hud_overlay.tscn" id="11_hud"]
@@ -96,10 +99,23 @@ script = ExtResource("3_systems_core")
 
 [node name="S_InputSystem" type="Node" parent="Systems/Core"]
 script = ExtResource("1_pybrx")
+require_captured_cursor = true
 
 [node name="S_PauseSystem" type="Node" parent="Systems/Core"]
 script = ExtResource("9_pause")
 execution_priority = 5
+
+[node name="S_HealthSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("9_health")
+execution_priority = 200
+
+[node name="S_DamageSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("9_damage")
+execution_priority = 250
+
+[node name="S_VictorySystem" type="Node" parent="Systems/Core"]
+script = ExtResource("9_victory")
+execution_priority = 300
 
 [node name="Physics" type="Node" parent="Systems"]
 script = ExtResource("3_systems_physics")
