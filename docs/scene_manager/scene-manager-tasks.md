@@ -924,11 +924,16 @@
   - Position: Visible/accessible location (e.g., near spawn, or at special landmark)
   - Configure C_VictoryTriggerComponent: victory_type=GAME_COMPLETE (1), objective_id="final_goal", area_id="exterior"
   - Add visual marker (e.g., glowing mesh or particle effect) to make it obvious
-- [ ] T165.4 [P] [US7] Add conditional activation logic to victory triggers
-  - Option A: Modify S_VictorySystem._can_trigger_victory() to check completed_areas for GAME_COMPLETE type
-  - Option B: Add script to goal_zone.tscn that disables Area3D monitoring until unlocked
-  - Implementation: Check if "interior_house" in state.gameplay.completed_areas before allowing GAME_COMPLETE victory
-  - Visual feedback: Hide/show goal zone mesh based on unlock status
+- [ ] T165.4 [P] [US7] Add conditional activation logic to victory triggers (Hybrid approach)
+  - System logic: Modify S_VictorySystem._can_trigger_victory() to check completed_areas for GAME_COMPLETE type
+    - Check if "interior_house" in state.gameplay.completed_areas before allowing GAME_COMPLETE victory
+    - Return false if locked, preventing victory trigger from firing
+  - Goal zone visual: Add script to final goal_zone in exterior.tscn
+    - Subscribe to state changes, monitor completed_areas array
+    - Hide goal zone mesh/particles when locked (visible = false)
+    - Show goal zone mesh/particles when unlocked (visible = true)
+    - Optionally play unlock animation/sound when first unlocked
+  - Separation of concerns: System handles game rules, entity handles presentation
 - [ ] T165.5 [US7] Test: Ragdoll spawns correctly on death (spike damage and fall damage)
   - Verify ragdoll appears at player position
   - Verify ragdoll tumbles and falls naturally
