@@ -610,6 +610,14 @@
   - `LEVEL_COMPLETE`: Return to exterior/hub with progress tracked (enables progressive gameplay)
   - `GAME_COMPLETE`: Show credits/final victory screen (traditional end-game)
   - `victory_type` property determines which scene to load and which state to update
+- **Death Scenarios**: Multiple ways to die, all use same death flow
+  - **Fall Death**: Death zone (Area3D) placed below map (Y=-10) triggers instant death when player falls off
+    - `is_instant_death: bool = true` bypasses health system, immediately triggers death flow
+    - Large XZ plane catches any fall-off-map scenario
+    - Optional red transparent visual for editor visibility (invisible in-game)
+  - **Damage Death**: Accumulating damage from hazards/enemies until health reaches 0
+    - Uses normal health system with damage-over-time
+    - Triggers same delayed death animation when health depleted
 
 ### Tests for Gameplay Mechanics (TDD - Write FIRST, watch fail)
 
@@ -622,10 +630,11 @@
   - Test auto-regeneration (health regenerates after 3s without damage at 10hp/s)
 
 - [ ] T145.2 [P] Write integration test for damage system in tests/integration/gameplay/test_damage_system.gd
-  - Test damage zones apply damage to player
-  - Test instant death zones (fall zones)
+  - Test damage zones apply damage to player (spike traps reduce health)
+  - Test instant death zones (fall zones trigger immediate death, bypass health system)
+  - Test fall-off-map scenario (player falls below Y threshold → death zone triggered → game_over after delay)
   - Test damage cooldown (player can't be damaged repeatedly in short time)
-  - Test damage zone collision layers (only affects player)
+  - Test damage zone collision layers (only affects player, not other entities)
 
 - [ ] T145.3 [P] Write integration test for victory system in tests/integration/gameplay/test_victory_system.gd
   - Test victory trigger detection (player enters goal zone)
@@ -712,12 +721,16 @@
   - Dispatch U_GameplayActions.take_damage() or trigger_death() if instant_death
   - Update cooldown timers
 
-- [ ] T145.12 [P] Create scenes/hazards/death_zone.tscn
-  - Root: Node3D
-  - Child: Area3D with CollisionShape3D (box shape, large flat plane)
-  - Entity component: C_DamageZoneComponent (is_instant_death = true)
-  - Usage: Place below ground level for fall detection
-  - Visual: Optional red transparent MeshInstance3D for editor visibility
+- [ ] T145.12 [P] Create scenes/hazards/death_zone.tscn (Fall-Off-Map Death Trigger)
+  - Root: Node3D (name: "E_DeathZone")
+  - Child: Area3D with CollisionShape3D (box shape, VERY LARGE flat plane for fall detection)
+    - Shape: BoxShape3D with size (200, 2, 200) to catch all fall-off-map scenarios
+    - Position: Y = -10 (below ground level, catches falling players)
+  - Entity component: C_DamageZoneComponent
+    - `is_instant_death = true` (bypasses health system, triggers immediate death)
+    - `damage_amount = 0.0` (not used for instant death)
+  - Visual: Optional red transparent MeshInstance3D (visible in editor, invisible in-game via layer)
+  - Purpose: Catch players who fall off platforms/edges and trigger death sequence
 
 - [ ] T145.13 [P] Create scenes/hazards/spike_trap.tscn
   - Root: Node3D
@@ -726,12 +739,17 @@
   - Entity component: C_DamageZoneComponent (damage_amount = 25.0, damage_cooldown = 1.0)
   - Visual: Spikes protruding from ground
 
-- [ ] T145.14 Add hazards to test level
+- [ ] T145.14 Add hazards to test levels (Fall Death + Damage Zones)
   - Modify: scenes/gameplay/exterior.tscn
-    - Add death_zone instance below ground level (Y = -10, large XZ plane)
-    - Add 1-2 spike_trap instances near spawn for testing
+    - Add death_zone instance (Position: 0, -10, 0) - catches all fall-off-map scenarios
+      - Ensure it's centered under the playable area with large enough coverage
+      - Test: Walk off platform edge → fall → death zone triggers → game_over after 2.5s
+    - Add 1-2 spike_trap instances near spawn for damage testing
+      - Position on ground where player can easily test
+  - Modify: scenes/gameplay/interior_house.tscn
+    - Add death_zone instance if interior has drop hazards
   - Add S_DamageSystem to Systems/Core in gameplay scenes
-    - Modify: scenes/gameplay/gameplay_base.tscn (add S_DamageSystem to Systems/Core)
+    - Modify: scenes/gameplay/gameplay_base.tscn (add S_DamageSystem to Systems/Core, priority 250)
 
 ### Part 3: Victory System Implementation (T145.15 - T145.19)
 
@@ -806,12 +824,20 @@
   - Validation: No regressions from new gameplay systems
   - Validation: Health, damage, victory systems integrate cleanly with existing architecture
 
-- [ ] T145.24 Manual validation
-  - Test: Spawn → take damage from spike → verify health decreases
-  - Test: Spawn → fall into death zone → verify game_over scene loads
-  - Test: Spawn → reach goal zone → verify victory scene loads
-  - Confirm: Smooth integration with Scene Manager transitions
-  - Confirm: HUD displays health correctly
+- [ ] T145.24 Manual validation (End-to-End Gameplay Testing)
+  - **Damage Test**: Spawn → walk into spike trap → verify health bar decreases by 25hp
+    - Confirm: Health regeneration starts 3s after leaving spike zone
+    - Confirm: Invincibility frames prevent repeated damage for 1s
+  - **Fall Death Test**: Spawn → walk off platform edge → fall below Y=-10 → verify death zone triggered
+    - Confirm: Death animation/effect plays for 2.5s (player visible, ragdoll/fade)
+    - Confirm: game_over scene loads after death animation completes
+    - Confirm: Fall death is instant (bypasses health system, no matter current health)
+  - **Victory Test**: Spawn → navigate to goal zone → enter trigger → verify victory scene loads
+    - Confirm: LEVEL_COMPLETE type returns to exterior with progress tracked
+  - **Health Regen Test**: Take damage → wait 3s without damage → verify health regenerates at 10hp/s
+  - **HUD Test**: Verify health bar updates in real-time during all scenarios
+  - Confirm: Smooth fade transitions with Scene Manager (no jarring cuts)
+  - Confirm: All state updates persist correctly (death_count, completed_areas)
 
 **Checkpoint**: ✅ Phase 8.5 complete - minimal gameplay mechanics implemented, Phase 9 can now test with real gameplay triggers
 
