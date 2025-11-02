@@ -596,14 +596,30 @@
 - Integrates with M_StateStore for state persistence
 - Uses M_SceneManager transitions for death/victory scene loading
 
+**Design Decisions** (confirmed with user):
+- **Health UI**: Health bar (numeric) using ProgressBar widget - simple, flexible for any health values
+- **Health Regeneration**: Auto-regeneration enabled - health slowly regenerates after not taking damage for a few seconds (Halo-style recovery)
+  - `regen_enabled: bool = true` in RS_HealthSettings
+  - `regen_delay: float = 3.0` (seconds without damage before regen starts)
+  - `regen_rate: float = 10.0` (health per second during regeneration)
+- **Death Flow**: Delayed transition - show death animation/effect for 2-3 seconds before fading to game_over scene (more cinematic than instant)
+  - `death_animation_duration: float = 2.5` in S_HealthSystem
+  - Player remains visible during death animation (ragdoll/fade effect)
+  - game_over scene transition begins after delay expires
+- **Victory Types**: Support both types via enum in C_VictoryTriggerComponent
+  - `LEVEL_COMPLETE`: Return to exterior/hub with progress tracked (enables progressive gameplay)
+  - `GAME_COMPLETE`: Show credits/final victory screen (traditional end-game)
+  - `victory_type` property determines which scene to load and which state to update
+
 ### Tests for Gameplay Mechanics (TDD - Write FIRST, watch fail)
 
 - [ ] T145.1 [P] Write integration test for health system in tests/integration/gameplay/test_health_system.gd
   - Test health initialization (player starts with max health)
   - Test health reduction (damage reduces current_health)
-  - Test death detection (health <= 0 triggers game_over)
+  - Test death detection (health <= 0 triggers delayed game_over after 2.5s)
   - Test invincibility frames (no damage during invincibility period)
   - Test health restoration (healing increases current_health)
+  - Test auto-regeneration (health regenerates after 3s without damage at 10hp/s)
 
 - [ ] T145.2 [P] Write integration test for damage system in tests/integration/gameplay/test_damage_system.gd
   - Test damage zones apply damage to player
@@ -620,22 +636,32 @@
 
 - [ ] T145.4 [P] Create scripts/ecs/components/c_health_component.gd
   - Properties: current_health (float), max_health (float), is_invincible (bool), invincibility_timer (float)
+  - Properties: time_since_last_damage (float), is_dead (bool), death_timer (float) - for regeneration and delayed death
   - Pattern: Extend C_Component, follow C_JumpComponent structure
   - Signals: health_changed(old_health, new_health), death()
 
 - [ ] T145.5 [P] Create scripts/ecs/resources/rs_health_settings.gd
-  - Properties: default_max_health (100.0), invincibility_duration (1.0), regen_enabled (false), regen_rate (0.0)
+  - Properties: default_max_health (100.0), invincibility_duration (1.0)
+  - Properties: regen_enabled (true), regen_delay (3.0), regen_rate (10.0) - auto health regeneration after not taking damage
+  - Properties: death_animation_duration (2.5) - delay before game_over transition for cinematic death
   - Pattern: Extend Resource, follow RS_JumpSettings structure
 
 - [ ] T145.6 Create resources/settings/health_settings.tres
   - Instance of RS_HealthSettings with default values
   - default_max_health = 100.0
   - invincibility_duration = 1.0
+  - regen_enabled = true
+  - regen_delay = 3.0
+  - regen_rate = 10.0
+  - death_animation_duration = 2.5
 
 - [ ] T145.7 [P] Create scripts/ecs/systems/s_health_system.gd
   - Extends S_System (category: CORE, priority: 200)
-  - _process_system(): Update invincibility timers, detect death
-  - Death detection: if health <= 0 → dispatch death action → trigger game_over scene
+  - _process_system(): Update invincibility timers, health regeneration, detect death
+  - Health regeneration: Track time_since_last_damage per entity, start regen after regen_delay expires
+  - Regeneration logic: current_health += regen_rate * delta (clamp to max_health)
+  - Death detection: if health <= 0 → start death_animation_timer (2.5s) → play death effect/ragdoll
+  - Death transition: After death_animation_duration expires → dispatch death action → trigger game_over scene (delayed, not instant)
   - Handle invincibility frames (decrement timer, set is_invincible = false when expires)
   - Integration: Use U_StateUtils.get_store() and M_SceneManager group
 
@@ -659,11 +685,13 @@
 
 - [ ] T145.9 Add health display to HUD
   - Modify: scenes/ui/hud_overlay.tscn
-    - Add ProgressBar node for health bar (or HBoxContainer with TextureRect for hearts)
+    - Add ProgressBar node for health bar (numeric display, simple and flexible)
+    - Configure: min_value = 0, max_value = 100, show_percentage = true
     - Position: Top-left corner, below debug overlay
+    - Style: Green fill color, rounded corners, border
   - Modify: scripts/ui/hud_controller.gd (or create if doesn't exist)
     - Connect to health via U_EntitySelectors.get_entity_health()
-    - Update health display on state change
+    - Update ProgressBar.value on state change
     - Subscribe to M_StateStore.state_changed signal
 
 ### Part 2: Damage System Implementation (T145.10 - T145.14)
@@ -710,8 +738,11 @@
 - [ ] T145.15 [P] Create scripts/ecs/components/c_victory_trigger_component.gd
   - Extends C_Component
   - Copy structure from C_SceneTriggerComponent (similar Area3D pattern)
-  - Properties: objective_id (StringName), victory_type (String: "level_complete", "boss_defeated", "item_collected")
+  - Enum: VictoryType { LEVEL_COMPLETE, GAME_COMPLETE }
+  - Properties: objective_id (StringName), victory_type (VictoryType) - determines scene to load and state updates
   - Properties: trigger_once (bool = true), is_triggered (bool = false)
+  - LEVEL_COMPLETE: Returns to exterior/hub scene with progress tracked (progressive gameplay)
+  - GAME_COMPLETE: Shows credits/final victory screen (traditional end-game)
   - Signals: player_entered, victory_triggered
   - _on_body_entered(): Check if player → emit player_entered → set is_triggered if trigger_once
 
@@ -720,7 +751,10 @@
   - _process_system(): Monitor entities with C_VictoryTriggerComponent
   - When player_entered signal received and not is_triggered:
     - Dispatch U_GameplayActions.trigger_victory(objective_id)
-    - Dispatch U_SceneActions.transition_to_scene("victory", "fade", Priority.HIGH)
+    - Handle victory_type:
+      - LEVEL_COMPLETE: Dispatch mark_area_complete(area_id), transition to exterior/hub scene
+      - GAME_COMPLETE: Dispatch game_complete action, transition to victory/credits scene
+    - Use U_SceneActions.transition_to_scene() with "fade" transition
 
 - [ ] T145.17 [P] Create scenes/objectives/goal_zone.tscn
   - Root: Node3D
@@ -728,7 +762,9 @@
   - Visual: OmniLight3D (yellow/gold glow)
   - Visual: CPUParticles3D (sparkles rising)
   - Child: Area3D with CollisionShape3D (cylinder matching visual)
-  - Entity component: C_VictoryTriggerComponent (objective_id = "goal_01", victory_type = "level_complete")
+  - Entity component: C_VictoryTriggerComponent
+    - objective_id = "goal_01"
+    - victory_type = VictoryType.LEVEL_COMPLETE (returns to exterior with progress tracked)
 
 - [ ] T145.18 Add goal zone to test level
   - Modify: scenes/gameplay/interior_house.tscn
