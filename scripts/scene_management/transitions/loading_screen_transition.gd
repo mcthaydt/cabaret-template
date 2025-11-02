@@ -2,6 +2,7 @@ extends "res://scripts/scene_management/transitions/base_transition_effect.gd"
 class_name LoadingScreenTransition
 
 const LOADING_SCREEN_SCENE := preload("res://scenes/ui/loading_screen.tscn")
+const HUD_GROUP := StringName("hud_layers")
 
 ## Loading screen transition effect
 ##
@@ -48,6 +49,7 @@ var _tip_label: Label = null
 var _status_label: Label = null
 var _tween: Tween = null
 var _start_time: float = 0.0
+var _temporarily_hidden_hud_nodes: Array[CanvasItem] = []
 
 ## Execute loading screen transition
 ##
@@ -62,6 +64,9 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 
 	_loading_overlay = overlay
 	_start_time = Time.get_ticks_msec() / 1000.0
+
+	_temporarily_hidden_hud_nodes.clear()
+	_hide_hud_layers(overlay.get_tree())
 
 	# Find loading screen UI
 	_loading_screen = _find_loading_screen(overlay)
@@ -148,6 +153,7 @@ func _execute_with_real_progress(overlay: CanvasLayer, callback: Callable, origi
 				# Call and await callback (Phase 8: scene loading may be async)
 				# In Godot 4, just await the call directly - it handles both sync and async
 				await mid_transition_callback.call()
+			_hide_hud_layers(overlay.get_tree())
 			mid_transition_fired = true
 
 			# Re-poll progress after callback completes (callback may set progress to 1.0)
@@ -190,6 +196,7 @@ func _execute_with_fake_progress(overlay: CanvasLayer, callback: Callable, origi
 	_tween.tween_callback(func() -> void:
 		if mid_transition_callback.is_valid():
 			mid_transition_callback.call()
+		_hide_hud_layers(overlay.get_tree())
 	)
 
 	# Phase 3: Animate 50→100% (slower actual load phase)
@@ -228,6 +235,8 @@ func _complete_transition(overlay: CanvasLayer, callback: Callable, original_ove
 	# Hide loading overlay
 	overlay.visible = false
 
+	_restore_hidden_hud_layers()
+
 	# Restore process modes
 	overlay.process_mode = original_overlay_mode
 	if _loading_screen:
@@ -244,6 +253,7 @@ func _complete_transition(overlay: CanvasLayer, callback: Callable, original_ove
 	_progress_bar = null
 	_tip_label = null
 	_status_label = null
+	_temporarily_hidden_hud_nodes.clear()
 
 ## Update progress manually (for real async loading)
 ##
@@ -251,6 +261,31 @@ func _complete_transition(overlay: CanvasLayer, callback: Callable, original_ove
 func update_progress(progress: float) -> void:
 	if _progress_bar:
 		_progress_bar.value = clamp(progress, 0.0, 100.0)
+
+## Hide HUD CanvasLayers while the loading screen is active
+func _hide_hud_layers(tree: SceneTree) -> void:
+	if tree == null:
+		return
+
+	var hud_nodes: Array = tree.get_nodes_in_group(HUD_GROUP)
+	for node in hud_nodes:
+		var canvas_item := node as CanvasItem
+		if canvas_item == null:
+			continue
+		if canvas_item.visible:
+			canvas_item.hide()
+			if not _temporarily_hidden_hud_nodes.has(canvas_item):
+				_temporarily_hidden_hud_nodes.append(canvas_item)
+
+## Restore previously hidden HUD CanvasLayers
+func _restore_hidden_hud_layers() -> void:
+	if _temporarily_hidden_hud_nodes.is_empty():
+		return
+
+	for canvas_item in _temporarily_hidden_hud_nodes:
+		if is_instance_valid(canvas_item):
+			canvas_item.show()
+	_temporarily_hidden_hud_nodes.clear()
 
 ## Get a random loading tip
 ##
