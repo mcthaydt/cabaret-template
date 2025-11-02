@@ -112,7 +112,7 @@ Additional tracking requirements:
 - ❌ **Game over scene missing**: `s_health_system.gd:151` references `"game_over"` scene (doesn't exist)
 - ❌ **Credits scene missing**: Not yet referenced by any system
 - ❌ **Scene registry incomplete**: None of the above scenes registered in `u_scene_registry.gd`
-- ❌ **No death visual**: Death has 2.5s delay (`death_animation_duration`) but only waits passively, no visual effect
+- ❌ **No death visual**: Death has 2.5s delay (`RS_HealthSettings.death_animation_duration`) but only waits passively, no visual effect
 - ❌ **Exterior missing GAME_COMPLETE goal**: Only interior has victory trigger, no final goal zone unlocked after completion
 
 **Phase 9 Victory Progression Design**:

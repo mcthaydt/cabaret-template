@@ -258,6 +258,22 @@
 
   **Testing**: Before enabling a transition system, manually call `M_SceneManager.transition_to_scene()` in a test to verify the target scene loads successfully.
 
+  **Incremental Development Safety**: When implementing features that add new scene transitions (like Phase 9 end-game flows), temporarily disable or guard the transition triggers until all scenes are created and registered. This prevents crashes during incremental development.
+
+  **Example**:
+  ```gdscript
+  # In s_health_system.gd (temporary guard during Phase 9 development)
+  func _handle_death_sequence(component: C_HealthComponent, entity: Node3D) -> void:
+      if component.death_timer <= 0.0:
+          # TODO: Remove this guard after T166 (scene registry) completes
+          if not U_SceneRegistry.has_scene(StringName("game_over")):
+              push_warning("game_over scene not registered yet, skipping transition")
+              return
+
+          var scene_manager := get_tree().get_nodes_in_group("scene_manager")[0]
+          scene_manager.transition_to_scene(StringName("game_over"), "fade", TransitionPriority.CRITICAL)
+  ```
+
 - **Root scene architecture is mandatory**: As of Phase 2, the project uses a root scene pattern where `scenes/root.tscn` persists throughout the session. DO NOT create gameplay scenes with M_StateStore or M_CursorManager - these managers live ONLY in root.tscn. Each gameplay scene should have its own M_ECSManager instance.
 
 - **Gameplay scenes must be self-contained**: When creating new gameplay scenes, duplicate `scenes/gameplay/gameplay_base.tscn` as a template. Include:

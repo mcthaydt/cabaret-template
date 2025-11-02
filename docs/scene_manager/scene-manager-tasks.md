@@ -884,6 +884,8 @@
 
 **Goal**: Game properly handles end-game scenarios with appropriate screens and navigation
 
+**Estimated Time**: 10-12 hours
+
 **Independent Test**: Trigger death → Game Over screen → "Retry" → Gameplay restarts. Trigger victory → Victory screen → "Continue" proceeds. Complete game → Credits → Return to menu
 
 ### Tests for User Story 7 (TDD - Write FIRST, watch fail)
@@ -902,9 +904,13 @@
   - Button handlers: Continue → transition to exterior, Credits → transition to credits, Menu → transition to main_menu
   - Scene type: END_GAME
 - [ ] T165 [P] [US7] Create scenes/ui/credits.tscn with scrolling text
-  - UI Elements: ScrollContainer with credits text, auto-scroll animation (Tween), Skip button
-  - Auto-return: Timer set to 60 seconds, automatically transitions to main_menu when complete
-  - Button handler: Skip → immediate transition to main_menu
+  - UI Elements: ScrollContainer with VBoxContainer, Label/RichTextLabel with credits text, Skip button (bottom-right)
+  - Auto-scroll: Tween animates scroll_vertical from 0 to max over 55 seconds (bottom-to-top scroll)
+    - scroll_speed calculation: max_scroll / 55 seconds
+    - Tween.TRANS_LINEAR, Tween.EASE_IN_OUT
+    - Starts automatically on _ready()
+  - Auto-return: Timer set to 60 seconds (5s buffer after scroll completes), automatically transitions to main_menu
+  - Button handler: Skip → immediate transition to main_menu (cancels timer and tween)
   - Scene type: END_GAME
 - [ ] T165.1 [P] [US7] Create templates/player_ragdoll.tscn (simple ragdoll prefab)
   - Root: RigidBody3D (mass=70, gravity_scale=1.0)
@@ -934,6 +940,7 @@
     - Show goal zone mesh/particles when unlocked (visible = true)
     - Optionally play unlock animation/sound when first unlocked
   - Separation of concerns: System handles game rules, entity handles presentation
+  - Note: Victory transitions won't work until T166 (scene registry) completes
 - [ ] T165.5 [US7] Test: Ragdoll spawns correctly on death (spike damage and fall damage)
   - Verify ragdoll appears at player position
   - Verify ragdoll tumbles and falls naturally
@@ -945,8 +952,11 @@
   - credits: path="res://scenes/ui/credits.tscn", type=END_GAME, default_transition="fade", preload_priority=0 (no preload - rare access)
 - [ ] T167 [US7] Implement retry functionality (reload gameplay from last checkpoint)
   - Soft reset: Dispatch action to restore player health to max (keep death_count, completed_areas, all other progress)
-  - Transition to exterior scene (or last gameplay scene) with "fade" transition
-  - Note: Checkpoint system deferred to Phase 10, use default spawn points for now
+  - Transition to exterior scene (hub world) with "fade" transition
+  - Spawn behavior: Player spawns at scene's default spawn point (SpawnPoint node marked as "default")
+    - If player died in exterior → respawn at exterior default spawn
+    - If player died in interior → respawn at exterior default spawn (return to hub)
+  - Note: Checkpoint system deferred to Phase 10, no mid-scene checkpoints yet
 - [ ] T168 [US7] Implement continue functionality (load next area/level)
   - Always return to exterior scene (hub world) after victory
   - Transition uses "fade" effect
