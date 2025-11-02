@@ -893,12 +893,62 @@
 ### Implementation for User Story 7
 
 - [ ] T163 [P] [US7] Create scenes/ui/game_over.tscn with Retry/Menu buttons
+  - UI Elements: Title "Game Over", death count display (read from state.gameplay.death_count), Retry button, Menu button
+  - Button handlers: Retry → soft reset (restore health, keep progress) → transition to exterior, Menu → transition to main_menu
+  - Scene type: END_GAME
 - [ ] T164 [P] [US7] Create scenes/ui/victory.tscn with Continue/Menu buttons
+  - UI Elements: Title "Victory!", completed areas count display, Continue button, Credits button, Menu button
+  - Conditional display: Show Credits button only if game_completed = true
+  - Button handlers: Continue → transition to exterior, Credits → transition to credits, Menu → transition to main_menu
+  - Scene type: END_GAME
 - [ ] T165 [P] [US7] Create scenes/ui/credits.tscn with scrolling text
+  - UI Elements: ScrollContainer with credits text, auto-scroll animation (Tween), Skip button
+  - Auto-return: Timer set to 60 seconds, automatically transitions to main_menu when complete
+  - Button handler: Skip → immediate transition to main_menu
+  - Scene type: END_GAME
+- [ ] T165.1 [P] [US7] Create templates/player_ragdoll.tscn (simple ragdoll prefab)
+  - Root: RigidBody3D (mass=70, gravity_scale=1.0)
+  - Child: CollisionShape3D with CapsuleShape3D (height=2, radius=0.5 - match player size)
+  - Child: MeshInstance3D with CapsuleMesh (same dimensions, material=player color)
+  - Physics: Continuous CD enabled, lock_rotation disabled (allow tumbling)
+- [ ] T165.2 [P] [US7] Update s_health_system.gd to spawn ragdoll on death
+  - In _handle_death_sequence(), when death timer starts:
+    1. Hide player entity (visible=false)
+    2. Preload and instantiate player_ragdoll.tscn
+    3. Add ragdoll to scene tree at player's parent
+    4. Set ragdoll global_position and global_rotation to match player
+    5. Apply random impulse (upward + sideways) and angular_velocity for tumble effect
+  - Wait for death_timer (2.5s) then transition to game_over as usual
+- [ ] T165.3 [P] [US7] Add GAME_COMPLETE goal zone to exterior.tscn
+  - Instantiate goal_zone.tscn in exterior scene
+  - Position: Visible/accessible location (e.g., near spawn, or at special landmark)
+  - Configure C_VictoryTriggerComponent: victory_type=GAME_COMPLETE (1), objective_id="final_goal", area_id="exterior"
+  - Add visual marker (e.g., glowing mesh or particle effect) to make it obvious
+- [ ] T165.4 [P] [US7] Add conditional activation logic to victory triggers
+  - Option A: Modify S_VictorySystem._can_trigger_victory() to check completed_areas for GAME_COMPLETE type
+  - Option B: Add script to goal_zone.tscn that disables Area3D monitoring until unlocked
+  - Implementation: Check if "interior_house" in state.gameplay.completed_areas before allowing GAME_COMPLETE victory
+  - Visual feedback: Hide/show goal zone mesh based on unlock status
+- [ ] T165.5 [US7] Test: Ragdoll spawns correctly on death (spike damage and fall damage)
+  - Verify ragdoll appears at player position
+  - Verify ragdoll tumbles and falls naturally
+  - Verify transition to game_over occurs after 2.5s
+  - Verify no errors or visual glitches
 - [ ] T166 [US7] Add game_over, victory, credits to U_SceneRegistry
+  - game_over: path="res://scenes/ui/game_over.tscn", type=END_GAME, default_transition="fade", preload_priority=8 (high - deaths are common)
+  - victory: path="res://scenes/ui/victory.tscn", type=END_GAME, default_transition="fade", preload_priority=5 (medium - less frequent)
+  - credits: path="res://scenes/ui/credits.tscn", type=END_GAME, default_transition="fade", preload_priority=0 (no preload - rare access)
 - [ ] T167 [US7] Implement retry functionality (reload gameplay from last checkpoint)
+  - Soft reset: Dispatch action to restore player health to max (keep death_count, completed_areas, all other progress)
+  - Transition to exterior scene (or last gameplay scene) with "fade" transition
+  - Note: Checkpoint system deferred to Phase 10, use default spawn points for now
 - [ ] T168 [US7] Implement continue functionality (load next area/level)
+  - Always return to exterior scene (hub world) after victory
+  - Transition uses "fade" effect
+  - Future: Add level progression system if multi-level design is implemented
 - [ ] T169 [US7] Implement credits auto-return to main menu after completion
+  - Already implemented in T165 (60-second timer in credits scene)
+  - This task is for verification/integration testing only
 - [ ] T170 [US7] Test: Death condition triggers game_over scene
 - [ ] T171 [US7] Test: Victory condition triggers victory scene
 - [ ] T172 [US7] Test: Game completion triggers credits scene

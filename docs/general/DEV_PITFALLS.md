@@ -220,6 +220,44 @@
 
 ## Scene Manager Pitfalls (Phase 2+)
 
+- **Always create and register scenes before referencing them in transitions**: Systems that call `M_SceneManager.transition_to_scene()` must ensure the target scene exists and is registered in `U_SceneRegistry` BEFORE the transition can occur. Missing scenes cause crashes with "Scene not found in registry" errors.
+
+  **Problem**: Phase 8.5 implemented victory/death trigger systems that reference scenes that don't exist yet:
+  - `s_health_system.gd:151` → transitions to `"game_over"` (scene doesn't exist, not registered)
+  - `s_victory_system.gd:47` → transitions to `"victory"` (scene doesn't exist, not registered)
+  - When these triggers fire, the game crashes because Scene Manager can't load non-existent scenes
+
+  **Solution**: Follow this order when implementing transition flows:
+  1. Create the .tscn scene file first (e.g., `scenes/ui/game_over.tscn`)
+  2. Register the scene in `U_SceneRegistry._register_all_scenes()` with proper metadata
+  3. Then implement/enable systems that transition to that scene
+
+  **Registry Registration Example**:
+  ```gdscript
+  # In u_scene_registry.gd:
+  func _register_all_scenes() -> void:
+      # ... existing registrations ...
+
+      # End-game scenes (Phase 9)
+      _register_scene(
+          StringName("game_over"),
+          "res://scenes/ui/game_over.tscn",
+          SceneType.END_GAME,
+          "fade",
+          8  # High priority - deaths are common
+      )
+
+      _register_scene(
+          StringName("victory"),
+          "res://scenes/ui/victory.tscn",
+          SceneType.END_GAME,
+          "fade",
+          5  # Medium priority - less frequent
+      )
+  ```
+
+  **Testing**: Before enabling a transition system, manually call `M_SceneManager.transition_to_scene()` in a test to verify the target scene loads successfully.
+
 - **Root scene architecture is mandatory**: As of Phase 2, the project uses a root scene pattern where `scenes/root.tscn` persists throughout the session. DO NOT create gameplay scenes with M_StateStore or M_CursorManager - these managers live ONLY in root.tscn. Each gameplay scene should have its own M_ECSManager instance.
 
 - **Gameplay scenes must be self-contained**: When creating new gameplay scenes, duplicate `scenes/gameplay/gameplay_base.tscn` as a template. Include:

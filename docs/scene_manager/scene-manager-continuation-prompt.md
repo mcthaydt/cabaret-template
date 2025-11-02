@@ -104,13 +104,56 @@ Additional tracking requirements:
 - ✅ Player template owns health metadata + state integration
 - ✅ New integration tests (health/damage/victory) + full suite passing
 
+**Known Gaps from Phase 8.5**:
+
+⚠️ Phase 8.5 implemented the *trigger systems* for victory and death, but the *destination scenes* don't exist yet. **The game will crash** if these triggers fire:
+
+- ❌ **Victory scene missing**: `s_victory_system.gd:47` references `"victory"` scene (doesn't exist)
+- ❌ **Game over scene missing**: `s_health_system.gd:151` references `"game_over"` scene (doesn't exist)
+- ❌ **Credits scene missing**: Not yet referenced by any system
+- ❌ **Scene registry incomplete**: None of the above scenes registered in `u_scene_registry.gd`
+- ❌ **No death visual**: Death has 2.5s delay (`death_animation_duration`) but only waits passively, no visual effect
+- ❌ **Exterior missing GAME_COMPLETE goal**: Only interior has victory trigger, no final goal zone unlocked after completion
+
+**Phase 9 Victory Progression Design**:
+
+Phase 9 implements a **two-stage victory system** to provide progression:
+
+1. **Stage 1: LEVEL_COMPLETE** (Interior House Goal)
+   - Player enters goal zone in `interior_house.tscn`
+   - `S_VictorySystem` adds "interior_house" to `state.gameplay.completed_areas`
+   - Returns player to `exterior.tscn` to continue exploring
+   - Always available from game start
+
+2. **Stage 2: GAME_COMPLETE** (Exterior Final Goal)
+   - New goal zone spawns in `exterior.tscn` after Stage 1 completion
+   - Only activates if "interior_house" is in `completed_areas` array
+   - Triggers transition to victory screen (`victory.tscn`)
+   - Shows credits option and end-game stats
+
+**Unlock Logic**: Goal zone or `S_VictorySystem` checks `state.gameplay.completed_areas` before allowing GAME_COMPLETE victory type to trigger.
+
+**Phase 9 Death Effect Design**:
+
+Phase 9 implements a **simple ragdoll death effect** for visual feedback:
+
+- **Approach**: Spawn separate `RigidBody3D` ragdoll, hide `CharacterBody3D` player
+- **Ragdoll**: Simple single-body physics (capsule mesh, tumble rotation)
+- **Flow**:
+  1. Player health reaches 0
+  2. `S_HealthSystem` hides player entity
+  3. Spawn ragdoll prefab at player position with impulse/angular velocity
+  4. Ragdoll tumbles and falls for 2.5 seconds
+  5. Fade transition to `game_over.tscn`
+- **Prefab**: `templates/player_ragdoll.tscn` (RigidBody3D + CapsuleMesh + CollisionShape3D)
+
 **Next Steps** (Phase 9 - End-Game Flows):
 
-- **Tasks**: 16 tasks (T162-T177)
-- **Goal**: Wire full win/lose flows: game over, victory, credits navigation
-- **Why**: Unlock final story beats, allow retry/continue UX backed by real gameplay triggers
-- **Read**: `scene-manager-tasks.md` Phase 9 section (lines ~900-970)
-- **Estimated**: 8-10 hours
+- **Tasks**: 21 tasks (T162-T177 + T165.1-T165.5)
+- **Goal**: Wire full win/lose flows: game over, victory, credits navigation, ragdoll death effect, progressive victory system
+- **Why**: Unlock final story beats, allow retry/continue UX backed by real gameplay triggers, add visual death feedback
+- **Read**: `scene-manager-tasks.md` Phase 9 section (lines ~883-965)
+- **Estimated**: 10-12 hours
 
 **Phase 9 Workstreams**:
 
