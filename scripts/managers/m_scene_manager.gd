@@ -333,6 +333,17 @@ func _perform_transition(request: TransitionRequest) -> void:
 	# Phase 10: Capture old camera state before scene removal (T178-T180)
 	var old_camera_state: CameraState = _capture_camera_state()
 
+	# Phase 10: Prepare transition camera BEFORE transition starts (T182.5)
+	# This ensures transition camera is active from the very beginning
+	var should_blend: bool = old_camera_state != null and request.transition_type != "instant"
+	if should_blend:
+		# Set transition camera to match old camera state
+		_transition_camera.global_position = old_camera_state.global_position
+		_transition_camera.global_rotation = old_camera_state.global_rotation
+		_transition_camera.fov = old_camera_state.fov
+		# Make transition camera current BEFORE transition starts
+		_transition_camera.current = true
+
 	# Track new camera for blending after scene load
 	var new_camera_ref: Array = [null]  # Use Array for closure
 
@@ -373,10 +384,26 @@ func _perform_transition(request: TransitionRequest) -> void:
 		# Restore player spawn point if transitioning from door trigger
 		_restore_player_spawn_point(new_scene)
 
-		# Phase 10: Find new scene camera and store for blending after callback
+		# Phase 10: Find new scene camera and start tween toward it (T182.5)
 		var new_cameras: Array = get_tree().get_nodes_in_group("main_camera")
 		if not new_cameras.is_empty():
 			new_camera_ref[0] = new_cameras[0] as Camera3D
+
+		# Phase 10: Start tween animation toward new camera (mid-transition)
+		# Transition camera is already active, now animate it to new position
+		if should_blend:
+			# Re-assert transition camera as current (new scene camera may have overridden it)
+			_transition_camera.current = true
+
+			var new_camera: Camera3D = new_camera_ref[0] as Camera3D
+			if new_camera != null:
+				# Start tween to animate from current transition camera state to new camera
+				_start_camera_blend_tween(new_camera, _camera_blend_duration)
+		else:
+			# No blending (instant transition or no camera) - just activate new camera
+			var new_camera: Camera3D = new_camera_ref[0] as Camera3D
+			if new_camera != null:
+				new_camera.current = true
 
 		scene_swap_complete[0] = true
 
@@ -412,25 +439,8 @@ func _perform_transition(request: TransitionRequest) -> void:
 	while not transition_complete[0]:
 		await get_tree().process_frame
 
-	# Phase 10: Camera blending (T178-T182, T182.5)
-	# Start camera blend without waiting - it runs in background via Tween
-	# This ensures _perform_transition returns quickly so state updates aren't delayed
-	var blend_duration: float = 0.0 if request.transition_type == "instant" else _camera_blend_duration
-	var new_camera: Camera3D = new_camera_ref[0] as Camera3D
-
-	if new_camera != null:
-		if old_camera_state != null:
-			# Start blend tween (runs automatically in background)
-			var blend_tween: Tween = _blend_camera(old_camera_state, new_camera, blend_duration)
-			# Connect to finished signal to finalize camera switch
-			if blend_tween != null and blend_tween.is_valid():
-				blend_tween.finished.connect(_finalize_camera_blend.bind(new_camera), CONNECT_ONE_SHOT)
-			else:
-				# Tween invalid (e.g., instant transition with duration=0), activate immediately
-				_finalize_camera_blend(new_camera)
-		else:
-			# No old camera - just activate new camera immediately
-			new_camera.current = true
+	# Phase 10: Camera blending now happens in scene_swap_callback (T182.5)
+	# This ensures blend runs in parallel with fade effect, not sequentially after
 
 ## Remove current scene from ActiveSceneContainer
 func _remove_current_scene() -> void:
@@ -1071,6 +1081,37 @@ func _blend_camera(from_state: CameraState, to_camera: Camera3D, duration: float
 	_camera_blend_tween.tween_property(_transition_camera, "fov", to_camera.fov, duration)
 
 	return _camera_blend_tween
+
+## Start camera blend tween toward new camera (T182.5)
+##
+## Assumes transition camera is already positioned and active.
+## Creates tween to animate from current transition camera state to new camera.
+##
+## Parameters:
+##   to_camera: New scene camera to blend towards
+##   duration: Blend duration in seconds
+func _start_camera_blend_tween(to_camera: Camera3D, duration: float) -> void:
+	# Kill existing blend tween if running
+	if _camera_blend_tween != null and _camera_blend_tween.is_running():
+		_camera_blend_tween.kill()
+
+	# Create tween for blending
+	_camera_blend_tween = create_tween()
+	_camera_blend_tween.set_parallel(true)  # All properties blend simultaneously
+	_camera_blend_tween.set_trans(Tween.TRANS_CUBIC)
+	_camera_blend_tween.set_ease(Tween.EASE_IN_OUT)
+
+	# T178: Interpolate position
+	_camera_blend_tween.tween_property(_transition_camera, "global_position", to_camera.global_position, duration)
+
+	# T179: Interpolate rotation (quaternion interpolation for smooth results)
+	_camera_blend_tween.tween_property(_transition_camera, "global_rotation", to_camera.global_rotation, duration)
+
+	# T180: Interpolate FOV
+	_camera_blend_tween.tween_property(_transition_camera, "fov", to_camera.fov, duration)
+
+	# Connect to finished signal to finalize camera switch
+	_camera_blend_tween.finished.connect(_finalize_camera_blend.bind(to_camera), CONNECT_ONE_SHOT)
 
 ## Finalize camera blend by activating new scene camera (T181)
 ##
