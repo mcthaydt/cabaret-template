@@ -5,23 +5,23 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager` (continuing on existing branch)
-**Status**: ✅ Phase 12.1 COMPLETE | 🎯 Phase 12.2 READY TO START
+**Status**: ✅ Phase 12.1 & 12.2 COMPLETE | 🎯 Phase 12.3a READY TO START
 
 ---
 
-## 🎯 CURRENT PHASE: Phase 12.2 - Camera Manager Extraction
+## 🎯 CURRENT PHASE: Phase 12.3a - Death Respawn System
 
 **Quick Start Checklist** (Do in order):
 1. ⬜ Read this entire document first
 2. ⬜ Read all the documentation required below - Project patterns
-3. ⬜ Read `scene-manager-tasks.md` Phase 12.2 section
-4. ⬜ Run baseline tests: `524/528 passing` (confirm no regressions)
-5. ⬜ Start with Task **T232** (write camera manager tests)
+3. ⬜ Read `scene-manager-tasks.md` Phase 12.3a section
+4. ⬜ Run baseline tests: `548/552 passing` (confirm no regressions)
+5. ⬜ Start with Task **T252** (write death respawn tests)
 
-**Remaining Approved Scope**: 39 tasks, 16-24 hours
+**Remaining Approved Scope**: 19 tasks, 10-14 hours
 - ✅ **Sub-Phase 12.1**: M_SpawnManager extraction (T215-T231) - **COMPLETE**
-- **Sub-Phase 12.2**: M_CameraManager extraction (T232-T251) - **NEXT** (6-8 hours)
-- **Sub-Phase 12.3a**: Death respawn (T252-T260) - Pending (6-8 hours)
+- ✅ **Sub-Phase 12.2**: M_CameraManager extraction (T232-T251) - **COMPLETE**
+- **Sub-Phase 12.3a**: Death respawn (T252-T260) - **NEXT** (6-8 hours)
 - **Sub-Phase 12.5**: Scene contract validation (T299-T308) - Pending (4-6 hours)
 
 **Deferred**: Sub-Phases 12.3b, 12.4 (checkpoint markers, spawn effects, advanced features)
@@ -115,18 +115,19 @@ Additional tracking requirements:
 
 ## Previously Completed Phases
 
-**Status**: Phases 1-11 complete, Phase 12.1 complete (524/528 tests passing)
+**Status**: Phases 1-11 complete, Phase 12.1 & 12.2 complete (548/552 tests passing)
 - ✅ Scene restructuring, transitions, state persistence, pause, area transitions, effects, preloading, endgame flows, camera blending, polish complete
-- ✅ Phase 12.1: M_SpawnManager extraction complete (106 lines extracted)
-- ✅ Production ready - Comprehensive test coverage with 1390 assertions
+- ✅ Phase 12.1: M_SpawnManager extraction complete (106 lines extracted, 23 tests added)
+- ✅ Phase 12.2: M_CameraManager extraction complete (135 lines extracted, 24 tests added)
+- ✅ Production ready - Comprehensive test coverage with 1424 assertions
 
 ---
 
 ## Current Phase: Phase 12 - Spawn System Extraction (3-Manager Architecture)
 
-**Status**: ✅ Phase 12.1 COMPLETE | 🎯 Phase 12.2 IN PROGRESS
-**Remaining Scope**: Sub-Phases 12.2, 12.3a, 12.5 (deferred: 12.3b, 12.4)
-**Remaining Time**: 16-24 hours
+**Status**: ✅ Phase 12.1 & 12.2 COMPLETE | 🎯 Phase 12.3a IN PROGRESS
+**Remaining Scope**: Sub-Phases 12.3a, 12.5 (deferred: 12.3b, 12.4)
+**Remaining Time**: 10-14 hours
 
 **Architecture Decision**: ✅ **3-Manager Approach**
 - **M_SceneManager** (~1,171 lines) → Scene transitions only
@@ -154,10 +155,12 @@ Additional tracking requirements:
 - ✅ Added 23 new comprehensive tests (18 integration + 15 unit)
 - ✅ All 524/528 tests passing (up from 508 before Phase 12)
 
-**Sub-Phase 12.2: Camera Extraction** (T232-T251) - 6-8 hours ⭐ APPROVED
-- Extract M_CameraManager (separate from spawn manager)
-- Move camera blending, CameraState class, transition camera
-- Additional 135 lines extracted, M_SceneManager down to ~1,171 lines
+**Sub-Phase 12.2: Camera Extraction** (T232-T251) - ✅ **COMPLETE** (6 hours actual)
+- ✅ Extracted M_CameraManager from M_SceneManager (~192 lines)
+- ✅ Moved camera blending, CameraState class, transition camera, FOV interpolation
+- ✅ 135 lines extracted from M_SceneManager (camera methods removed)
+- ✅ Added 24 new comprehensive tests (13 integration + 11 unit)
+- ✅ All 548/552 tests passing (up from 524/528)
 
 **Sub-Phase 12.3a: Death Respawn** (T252-T260) - 6-8 hours ⭐ APPROVED
 - Implement spawn_at_last_spawn() using existing spawn system
@@ -196,12 +199,13 @@ Additional tracking requirements:
    - All 524/528 tests passing
    - 106 lines extracted, M_SpawnManager created
 
-2. 🎯 **CURRENT**: Sub-Phase 12.2 (M_CameraManager extraction)
-   - 20 tasks, 6-8 hours
+2. ✅ **COMPLETE**: Sub-Phase 12.2 (M_CameraManager extraction)
+   - 20 tasks, 6 hours actual
+   - All 548/552 tests passing
+   - 135 lines extracted, M_CameraManager created
    - Camera independence achieved
-   - M_SceneManager clean, focused on transitions
 
-3. **Then**: Sub-Phase 12.3a (Death respawn)
+3. 🎯 **CURRENT**: Sub-Phase 12.3a (Death respawn)
    - 9 tasks, 6-8 hours
    - Death → respawn loop working
    - Core gameplay complete
@@ -234,12 +238,13 @@ Additional tracking requirements:
 
 ---
 
-### **QUICK START FOR PHASE 12.2**
+### **QUICK START FOR PHASE 12.3a**
 
-**Before Starting Sub-Phase 12.2**:
-1. Read: `docs/scene_manager/scene-manager-tasks.md` Phase 12.2 section (T232-T251)
-2. Confirm baseline: Run tests, expect 524/528 passing
-3. Review M_SceneManager camera code (lines 48-57, 71-74, 1087-1208)
+**Before Starting Sub-Phase 12.3a**:
+1. Read: `docs/scene_manager/scene-manager-tasks.md` Phase 12.3a section (T252-T260)
+2. Confirm baseline: Run tests, expect 548/552 passing
+3. Review M_SpawnManager methods (spawn_player_at_point)
+4. Review S_HealthSystem death sequence integration points
 
 **During Implementation**:
 - Follow TDD: Tests first, watch fail, implement, watch pass
@@ -247,11 +252,12 @@ Additional tracking requirements:
 - Run full test suite every 3-5 tasks
 - STOP if tests fail - fix immediately before proceeding
 
-**Phase 12.1 Success Criteria** ✅ ACHIEVED:
+**Phase 12.1 & 12.2 Success Criteria** ✅ ACHIEVED:
 - ✅ M_SpawnManager created and tested (23 new tests)
-- ✅ All tests passing (524/528, up from 508)
-- ✅ 106 lines extracted from M_SceneManager
-- ✅ Spawn restoration working via M_SpawnManager
+- ✅ M_CameraManager created and tested (24 new tests)
+- ✅ All tests passing (548/552, up from 508 before Phase 12)
+- ✅ 241 lines extracted from M_SceneManager (106 spawn + 135 camera)
+- ✅ Spawn restoration and camera blending working via dedicated managers
 
 **Phase 12 Final Success Criteria** (after 12.2, 12.3a, 12.5):
 - ✅ All approved sub-phases complete (12.1, 12.2, 12.3a, 12.5)
@@ -268,14 +274,14 @@ Additional tracking requirements:
 
 ## Phase 12 - Implementation Requirements
 
-**Phase 12.1 Completed** ✅:
+**Phase 12.1 & 12.2 Completed** ✅:
 - ✅ All prerequisites read and followed
-- ✅ Baseline established: 508/512 tests passing → 524/528 after 12.1
-- ✅ M_SpawnManager created and integrated
-- ✅ 106 lines extracted, 23 new tests added
+- ✅ Baseline established: 508/512 → 524/528 after 12.1 → 548/552 after 12.2
+- ✅ M_SpawnManager created and integrated (106 lines, 23 tests)
+- ✅ M_CameraManager created and integrated (135 lines, 24 tests)
 - ✅ Branch: `SceneManager` (continuing existing branch)
 
-**Phase 12.2 Requirements**:
+**Phase 12.3a Requirements**:
 - Write elegant, minimal, modular code
 - Adhere strictly to existing code patterns, conventions, and best practices
 - Include thorough, clear comments/documentation within the code
@@ -285,14 +291,14 @@ Additional tracking requirements:
 - Run full test suite every 3-5 tasks
 - **STOP if tests fail** - fix immediately before proceeding
 
-**Next Task**: **T232** - Write camera manager tests (TDD RED)
+**Next Task**: **T252** - Write death respawn tests (TDD RED)
 
 **Remaining Implementation Path**:
 1. ✅ **Phase 12.1** (T215-T231): M_SpawnManager extraction - COMPLETE (8 hours)
-2. 🎯 **Phase 12.2** (T232-T251): M_CameraManager extraction - NEXT (6-8 hours)
-3. → **Phase 12.3a** (T252-T260): Death respawn - 6-8 hours
+2. ✅ **Phase 12.2** (T232-T251): M_CameraManager extraction - COMPLETE (6 hours)
+3. 🎯 **Phase 12.3a** (T252-T260): Death respawn - NEXT (6-8 hours)
 4. → **Phase 12.5** (T299-T308): Scene contract validation - 4-6 hours
 
-**Remaining**: 16-24 hours, 39 tasks
+**Remaining**: 10-14 hours, 19 tasks
 
 ---

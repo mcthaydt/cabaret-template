@@ -1351,33 +1351,33 @@
 - Spawn system stays focused on player positioning only
 - Maximum separation of concerns (3 single-responsibility managers)
 
-- [ ] T232 [P] Write `tests/integration/camera_system/test_camera_manager.gd` (camera blending, state capture, handoff) - TDD RED
-- [ ] T233 [P] Write tests for camera state capture (CameraState object creation)
-- [ ] T234 [P] Write tests for camera handoff between camera and scene managers
-- [ ] T235 Create `scripts/managers/m_camera_manager.gd` extending Node
+- [x] T232 [P] Write `tests/integration/camera_system/test_camera_manager.gd` (camera blending, state capture, handoff) - TDD RED
+- [x] T233 [P] Write tests for camera state capture (CameraState object creation)
+- [x] T234 [P] Write tests for camera handoff between camera and scene managers
+- [x] T235 Create `scripts/managers/m_camera_manager.gd` extending Node
   - Add to "camera_manager" group in _ready()
   - Member variables: _scene_manager, _transition_camera, _camera_blend_tween
-- [ ] T236 Move CameraState class from M_SceneManager to M_CameraManager
-- [ ] T237 Move _transition_camera creation to M_CameraManager
-- [ ] T238 Implement `blend_cameras(old_scene: Node, new_scene: Node, duration: float) -> void`
+- [x] T236 Move CameraState class from M_SceneManager to M_CameraManager
+- [x] T237 Move _transition_camera creation to M_CameraManager
+- [x] T238 Implement `blend_cameras(old_scene: Node, new_scene: Node, duration: float) -> void`
   - Capture old camera state via _capture_camera_state()
   - Find new camera in new scene via "main_camera" group
   - Position transition camera at old state
   - Start blend tween
   - Emit camera_blend_complete signal when done
-- [ ] T239 Move _capture_camera_state() to M_CameraManager
-- [ ] T240 Move _blend_camera() logic to M_CameraManager (rename to _create_blend_tween)
-- [ ] T241 Move _finalize_camera_blend() to M_CameraManager
-- [ ] T242 Add M_CameraManager node to `scenes/root.tscn` under Managers (alongside M_SceneManager, M_SpawnManager)
-- [ ] T243 Update M_SceneManager._ready() to find M_CameraManager via group
-- [ ] T244 Update M_SceneManager._perform_transition() to call _camera_manager.blend_cameras()
-- [ ] T245 Remove camera methods from M_SceneManager (_create_transition_camera, _capture_camera_state, _blend_camera, _start_camera_blend_tween, _finalize_camera_blend)
-- [ ] T246 Remove CameraState class from M_SceneManager
-- [ ] T247 Remove camera member variables from M_SceneManager (_transition_camera, _camera_blend_tween, _camera_blend_duration)
-- [ ] T248 Run camera tests - expect all PASS
-- [ ] T249 Run full test suite - expect 502/506 passing
-- [ ] T250 Manual test: exterior ↔ interior with camera blending (smooth interpolation)
-- [ ] T251 Commit: "Phase 12.2: Extract camera blending into M_CameraManager"
+- [x] T239 Move _capture_camera_state() to M_CameraManager
+- [x] T240 Move _blend_camera() logic to M_CameraManager (rename to _create_blend_tween)
+- [x] T241 Move _finalize_camera_blend() to M_CameraManager
+- [x] T242 Add M_CameraManager node to `scenes/root.tscn` under Managers (alongside M_SceneManager, M_SpawnManager)
+- [x] T243 Update M_SceneManager._ready() to find M_CameraManager via group
+- [x] T244 Update M_SceneManager._perform_transition() to call _camera_manager.blend_cameras()
+- [x] T245 Remove camera methods from M_SceneManager (_create_transition_camera, _capture_camera_state, _blend_camera, _start_camera_blend_tween, _finalize_camera_blend)
+- [x] T246 Remove CameraState class from M_SceneManager
+- [x] T247 Remove camera member variables from M_SceneManager (_transition_camera, _camera_blend_tween, _camera_blend_duration)
+- [x] T248 Run camera tests - expect all PASS (24/24 passing)
+- [x] T249 Run full test suite - expect no regressions (548/552 passing)
+- [x] T250 Manual test: exterior ↔ interior with camera blending (smooth interpolation)
+- [x] T251 Commit: "Phase 12.2: Extract camera blending into M_CameraManager" (commit 0704347)
 
 **Checkpoint**: ✅ Sub-Phase 12.2 complete - camera system extracted into M_CameraManager, 135 lines moved, M_SceneManager ~1171 lines
 
