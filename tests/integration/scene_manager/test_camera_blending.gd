@@ -1,16 +1,17 @@
 extends GutTest
 
-## Integration test for camera blending during scene transitions (Phase 10)
+## Integration test for camera blending during scene transitions (Phase 10, updated Phase 12.2)
 ##
 ## Tests T178-T182: Camera position, rotation, and FOV blending during scene transitions.
 ## Validates smooth interpolation with Tween system, no jitter, and proper integration
 ## with FadeTransition effect.
 ##
-## Architecture: M_SceneManager creates transition camera, captures old camera state,
-## blends to new camera state using Tween interpolation.
+## Architecture (Phase 12.2): M_CameraManager handles camera blending. M_SceneManager
+## delegates camera operations to M_CameraManager during transitions.
 
 const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
 const M_SpawnManager = preload("res://scripts/managers/m_spawn_manager.gd")
+const M_CameraManager = preload("res://scripts/managers/m_camera_manager.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/state/resources/rs_state_store_settings.gd")
@@ -18,6 +19,7 @@ const RS_StateStoreSettings = preload("res://scripts/state/resources/rs_state_st
 var _root_scene: Node
 var _manager: M_SceneManager
 var _spawn_manager: M_SpawnManager
+var _camera_manager: M_CameraManager
 var _store: M_StateStore
 var _active_scene_container: Node
 var _ui_overlay_stack: CanvasLayer
@@ -64,6 +66,10 @@ func before_each() -> void:
 	_spawn_manager = M_SpawnManager.new()
 	_root_scene.add_child(_spawn_manager)
 
+	# Create camera manager (Phase 12.2: required for camera blending)
+	_camera_manager = M_CameraManager.new()
+	_root_scene.add_child(_camera_manager)
+
 	# Create scene manager
 	_manager = M_SceneManager.new()
 	_manager.skip_initial_scene_load = true
@@ -73,6 +79,7 @@ func before_each() -> void:
 func after_each() -> void:
 	_manager = null
 	_spawn_manager = null
+	_camera_manager = null
 	_store = null
 	_active_scene_container = null
 	_ui_overlay_stack = null
@@ -103,7 +110,7 @@ func test_camera_position_blending() -> void:
 	await wait_physics_frames(5)
 
 	# Check transition camera exists
-	var transition_camera: Camera3D = _manager.get("_transition_camera")
+	var transition_camera: Camera3D = _camera_manager.get("_transition_camera")
 	assert_not_null(transition_camera, "Transition camera should exist in M_SceneManager")
 	# Note: In headless mode, Tweens may complete instantly, so checking mid-blend state is unreliable
 	# Skip this check in headless mode
@@ -158,7 +165,7 @@ func test_camera_rotation_blending() -> void:
 	await wait_physics_frames(5)
 
 	# Check transition camera exists
-	var transition_camera: Camera3D = _manager.get("_transition_camera")
+	var transition_camera: Camera3D = _camera_manager.get("_transition_camera")
 	assert_not_null(transition_camera, "Transition camera should exist")
 
 	# Complete transition
@@ -192,7 +199,7 @@ func test_camera_fov_blending() -> void:
 	await wait_physics_frames(5)
 
 	# Check transition camera
-	var transition_camera: Camera3D = _manager.get("_transition_camera")
+	var transition_camera: Camera3D = _camera_manager.get("_transition_camera")
 	assert_not_null(transition_camera, "Transition camera should exist")
 
 	# Complete transition
@@ -236,7 +243,7 @@ func test_camera_transitions_smooth() -> void:
 	for i in range(10):
 		await get_tree().process_frame
 		if transition_camera == null:
-			transition_camera = _manager.get("_transition_camera")
+			transition_camera = _camera_manager.get("_transition_camera")
 		if transition_camera != null and transition_camera.current:
 			positions_during_blend.append(transition_camera.global_position)
 
@@ -268,7 +275,7 @@ func test_camera_blend_with_fade_transition() -> void:
 
 	# Check transition camera becomes active early (during fade)
 	await wait_physics_frames(3)
-	var transition_camera: Camera3D = _manager.get("_transition_camera")
+	var transition_camera: Camera3D = _camera_manager.get("_transition_camera")
 	assert_not_null(transition_camera, "Transition camera should exist")
 	# Skip mid-transition timing checks in headless mode
 	if not _is_headless():
