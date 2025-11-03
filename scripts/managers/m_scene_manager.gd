@@ -1221,7 +1221,7 @@ func _preload_critical_scenes() -> void:
 		print_debug("M_SceneManager: No critical scenes to preload")
 		return
 
-	print("M_SceneManager: Starting preload for %d critical scene(s)" % critical_scenes.size())
+	print_debug("M_SceneManager: Starting preload for %d critical scene(s)" % critical_scenes.size())
 
 	# Start async load for each critical scene
 	for scene_data in critical_scenes:
@@ -1272,7 +1272,7 @@ func _start_background_load_polling() -> void:
 				var packed_scene: PackedScene = ResourceLoader.load_threaded_get(scene_path) as PackedScene
 				if packed_scene:
 					_add_to_cache(scene_path, packed_scene)
-					print("M_SceneManager: Preloaded '%s' successfully" % load_data.get("scene_id"))
+					print_debug("M_SceneManager: Preloaded '%s' successfully" % load_data.get("scene_id"))
 				else:
 					push_error("M_SceneManager: Failed to get preloaded scene '%s'" % load_data.get("scene_id"))
 				completed_paths.append(scene_path)
@@ -1295,7 +1295,7 @@ func _start_background_load_polling() -> void:
 		if not _background_loads.is_empty():
 			await get_tree().process_frame
 
-	print("M_SceneManager: All critical scenes preloaded")
+	print_debug("M_SceneManager: All critical scenes preloaded")
 	_is_background_polling_active = false
 
 ## Hint to preload a scene in background (Phase 8)

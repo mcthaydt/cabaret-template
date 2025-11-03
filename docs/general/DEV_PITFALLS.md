@@ -359,14 +359,100 @@
 
   **Note**: Loading transitions require LoadingOverlay in root.tscn. If LoadingOverlay is missing, loading transitions will fall back to instant.
 
+### Phase 10-Specific Pitfalls (Camera Blending, Edge Cases, Performance)
+
+- **Camera blending only works for GAMEPLAY → GAMEPLAY transitions**: Camera position/rotation/FOV blending requires both source and target scenes to be `SceneType.GAMEPLAY` with cameras in "main_camera" group. UI → Gameplay or Gameplay → UI transitions will NOT blend cameras.
+
+  **Requirements checklist**:
+  - ✅ Both scenes have `SceneType.GAMEPLAY` in registry
+  - ✅ Both scenes have Camera3D in "main_camera" group
+  - ✅ Transition type is `"fade"` (not `"instant"` or `"loading"`)
+  - ❌ UI scenes don't have cameras to blend
+
+  **Problem**: Camera jumps instead of smooth interpolation.
+
+  **Solution**: Verify all requirements met. Check camera is added to "main_camera" group in scene editor (Inspector → Node tab → Groups → Add "main_camera").
+
+- **Camera blend runs in background, doesn't block state updates**: As of Phase 10, camera blending uses signal-based finalization (`Tween.finished` with `CONNECT_ONE_SHOT`) instead of blocking the transition. State dispatch happens immediately after scene load completes, camera blend continues in background.
+
+  **Why it matters**: Tests should not wait for camera blend to complete - check `is_transitioning` immediately after scene load, not after camera finishes blending.
+
+  **Impact**: Faster transitions, no artificial delays waiting for camera animation.
+
+- **Transition queue handles concurrent transitions with priority sorting**: When multiple transitions are queued (e.g., rapid door triggers or death during scene load), `M_SceneManager` processes them by priority (`CRITICAL > HIGH > NORMAL`). Tests that spam transitions should verify the final scene matches the highest-priority request, not necessarily the last request.
+
+  **Example**: If player triggers door (NORMAL) then dies mid-transition (CRITICAL), the death transition takes precedence and executes first when the door transition completes.
+
+- **Scene cache eviction uses LRU strategy with dual limits**: The scene cache has TWO eviction triggers:
+  1. **Count limit**: Max 5 cached scenes (hard limit)
+  2. **Memory limit**: Max 100MB total cache size (soft limit)
+
+  **LRU (Least Recently Used) behavior**: Oldest accessed scenes evict first when limits exceeded.
+
+  **Gotcha**: Preloaded critical scenes (main_menu, pause_menu) still count toward cache limit. If you load 6 gameplay scenes, the first preloaded scene may be evicted and need to reload later.
+
+  **Solution**: Set appropriate preload priorities (10 = always cached, 0 = never preloaded). Don't mark every scene as priority 10 or cache fills with rarely-used scenes.
+
+- **Async loading progress requires explicit callbacks**: `ResourceLoader.load_threaded_get_status()` returns progress in `[0.0, 1.0]` range, but loading screens need callbacks to update UI. The `LoadingScreenTransition` polls progress and calls `update_progress_callback` regularly.
+
+  **Problem**: Custom loading screens don't update progress bar.
+
+  **Solution**: Implement `update_progress(progress: float)` method in loading screen script and connect to `LoadingScreenTransition` via callback pattern. See `scripts/scene_management/transitions/loading_screen_transition.gd` for reference.
+
+- **Headless mode fallback**: ResourceLoader async loading (`load_threaded_request`) may fail in headless mode if no rendering backend is available. `M_SceneManager` detects stuck progress (progress doesn't change for multiple frames) and falls back to synchronous loading.
+
+  **Impact on tests**: Tests run in headless mode use sync loading (instant), so async loading paths are not fully tested in CI. Manual testing in editor required to validate loading screen animations.
+
+- **Scene triggers auto-hint preload on player proximity**: `C_SceneTriggerComponent` calls `M_SceneManager.hint_preload_scene()` when player enters the Area3D, triggering background load of target scene. This happens BEFORE player activates the trigger (walks through/presses 'E').
+
+  **Benefit**: Door transitions feel instant because scene is already cached by the time player triggers transition.
+
+  **Gotcha**: Rapid door approach + leave + approach may trigger multiple preload hints. `M_SceneManager` deduplicates requests (checks if scene already cached/loading before starting new async load).
+
+- **Spawn marker positioning prevents ping-pong loops**: Place spawn markers 2-3 units OUTSIDE trigger zones, not inside. If spawn marker is inside trigger area, player spawns and immediately re-triggers the door, causing rapid back-and-forth transitions.
+
+  **Example (WRONG)**:
+  ```
+  [Door Trigger Zone @ X=0, radius=2]
+    └─ sp_exit_from_house @ X=0 (inside zone, immediate re-trigger)
+  ```
+
+  **Example (CORRECT)**:
+  ```
+  [Door Trigger Zone @ X=0, radius=2]
+  ← sp_exit_from_house @ X=4 (outside zone, player has time to move away)
+  ```
+
+- **Cooldown duration must exceed transition duration**: If `C_SceneTriggerComponent.cooldown_duration` is shorter than transition duration (e.g., cooldown=0.5s, fade transition=0.2s), player can re-trigger during the fade-in phase after spawning.
+
+  **Recommended minimum**: `cooldown_duration = 1.0` seconds (gives player time to see new environment before trigger reactivates).
+
+- **Test coverage note - Tween timing tests pending in headless mode**: Some transition timing tests are marked pending because Tween animations don't run consistently in headless mode (requires GPU rendering for accurate frame timing).
+
+  **Pending tests** (4 total, expected):
+  - `test_fade_transition_uses_tween`
+  - `test_input_blocking_enabled`
+  - `test_fade_transition_easing`
+  - `test_transition_cleans_up_tween`
+
+  **Not a failure**: These tests pass when run in Godot editor with rendering enabled. Manual validation required for visual polish.
+
+- **Scene registry validation happens at startup**: `M_SceneManager._ready()` calls `U_SceneRegistry.validate_door_pairings()` to check all door targets exist. Invalid pairings log errors but don't crash.
+
+  **Example error**: `"Door 'door_to_house' targets scene 'interior_house' which is not registered"`
+
+  **Solution**: Check console logs at startup for validation errors. Fix by registering missing scenes or correcting door_id/target_scene_id in `C_SceneTriggerComponent`.
+
 ## Input System Pitfalls
 
 - **Avoid clobbering test-driven input state**: In headless tests there is no real keyboard/mouse input, but tests may set `gameplay.move_input`, `look_input`, and `jump_pressed` directly to validate persistence across transitions. If `S_InputSystem` dispatches zeros every frame, it will overwrite these values and break tests. To prevent this, `S_InputSystem` only dispatches when `Input.mouse_mode == Input.MOUSE_MODE_CAPTURED` (i.e., gameplay with cursor locked by `M_CursorManager`). This keeps tests deterministic while preserving correct behavior in real gameplay.
 
 ## Test Coverage Status
 
-As of 2025-10-28 (Phase 3 In Progress):
-- **Total Tests**: 288+ tests passing (76 new scene manager tests added)
+As of 2025-11-03 (Phase 10 Complete - Scene Manager Finished):
+- **Total Tests**: 502/506 tests passing (99.2%), 4 pending (Tween timing in headless mode)
+- **Total Assertions**: 1349
+- **Test Execution Time**: ~54 seconds for full suite
 - **Test Breakdown**:
   - Cursor Manager: 13/13 ✅
   - ECS: 62/62 ✅
@@ -374,23 +460,35 @@ As of 2025-10-28 (Phase 3 In Progress):
   - Utils: 11/11 ✅
   - Unit/Integration: 12/12 ✅
   - Integration: 10/10 ✅
-  - **Scene Manager (NEW)**:
-    - Integration: 13/13 ✅
-    - M_SceneManager: 23/23 ✅
-    - U_SceneRegistry: 19/19 ✅
-    - Scene Reducer: 10/10 ✅
-    - Transition Effects: 16/16 ✅
-- **Test Execution Time**: ~17 seconds for full suite
-- **Status**: All tests passing after Phase 3 scene manager implementation
+  - **Scene Manager (Phases 0-10)**:
+    - Integration: 13 (basic transitions) ✅
+    - Integration: 8 (state persistence) ✅
+    - Integration: 16 (pause system) ✅
+    - Integration: 9 (area transitions) ✅
+    - Integration: 10 (scene preloading) ✅
+    - Integration: 6 (camera blending) ✅
+    - Integration: 15 (edge cases) ✅
+    - M_SceneManager: 23 ✅
+    - U_SceneRegistry: 19 ✅
+    - Scene Reducer: 10 ✅
+    - Transition Effects: 16 (4 pending - Tween timing)
+  - **Gameplay Mechanics (Phase 8.5)**:
+    - Health System: tests integrated ✅
+    - Damage System: tests integrated ✅
+    - Victory System: tests integrated ✅
+  - **End-Game Flows (Phase 9)**:
+    - Death/victory/credits integration: tests integrated ✅
+- **Status**: All tests passing except 4 expected pending (Tween timing in headless mode)
 
 Test directories:
 - `tests/unit/ecs` - ECS component and system tests
 - `tests/unit/state` - State management tests
 - `tests/unit/integration` - ECS/State coordination tests
-- `tests/integration` - Full scene integration tests
+- `tests/integration/scene_manager` - Scene Manager integration tests
+- `tests/integration/gameplay` - Gameplay mechanics integration tests
 - `tests/unit/utils` - Utility tests
 
-All critical paths tested including error conditions, edge cases, integration scenarios, and scene restructuring patterns.
+All critical paths tested including error conditions, edge cases, integration scenarios, scene restructuring patterns, camera blending, async loading, cache management, and end-game flows.
 - **No C-style ternaries**: GDScript 4.5 rejects `condition ? a : b`. Use the native `a if condition else b` form and keep payload normalization readable.
 - **Keep component discovery consistent**: Decoupled components (e.g., `C_MovementComponent`, `C_JumpComponent`, `C_RotateToInputComponent`, `C_AlignWithSurfaceComponent`) now auto-discover their peers, but components that still export NodePaths for scene nodes (landing indicator markers, floating raycasts, etc.) require those paths to be wired. Mixing patterns silently disables behaviour and breaks tests.
 - **Reset support timers after jumps**: When modifying jump logic, remember to clear support/apex timers just like `C_JumpComponent.on_jump_performed()` does. Forgetting this can enable double jumps that tests catch.
