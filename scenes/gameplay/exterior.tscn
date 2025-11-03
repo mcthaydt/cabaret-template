@@ -189,7 +189,10 @@ script = ExtResource("16_8qi87")
 [node name="E_Player" parent="Entities" instance=ExtResource("7_4wxy1")]
 
 [node name="E_Camera" parent="Entities" instance=ExtResource("19_ph0bl")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 4.5)
+
+[node name="E_PlayerCamera" parent="Entities/E_Camera"]
+fov = 80.0
 
 [node name="E_DoorTrigger" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
