@@ -10,6 +10,7 @@ extends GutTest
 ## - Auto-trigger vs Interact-trigger modes
 
 const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
+const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const C_SCENE_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_scene_trigger_component.gd")
@@ -20,6 +21,7 @@ const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gam
 
 var _root_node: Node
 var _state_store: M_STATE_STORE
+var _spawn_manager: M_SPAWN_MANAGER
 var _scene_manager: M_SCENE_MANAGER
 var _active_scene_container: Node
 
@@ -56,6 +58,10 @@ func before_each() -> void:
 	color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	color_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	transition_overlay.add_child(color_rect)
+
+	# Create M_SpawnManager (Phase 12.1: required for spawn restoration)
+	_spawn_manager = M_SPAWN_MANAGER.new()
+	_root_node.add_child(_spawn_manager)
 
 	# Create M_SceneManager
 	_scene_manager = M_SCENE_MANAGER.new()
@@ -110,11 +116,12 @@ func test_target_spawn_point_stored_in_gameplay_state_before_transition() -> voi
 	assert_eq(target_spawn, StringName("sp_entrance_from_exterior"),
 		"target_spawn_point should be stored in gameplay state")
 
-func test_spawn_point_restoration_positions_player_correctly() -> void:
-	# This test will be implemented once we have spawn point restoration logic
-	# For now, it validates that M_SceneManager has a method for spawn restoration
-	assert_true(_scene_manager.has_method("_restore_player_spawn_point"),
-		"M_SceneManager should have _restore_player_spawn_point method")
+## test_spawn_point_restoration_positions_player_correctly - REMOVED (Phase 12.1)
+## This test was a placeholder for spawn restoration logic. Spawn restoration is now
+## handled by M_SpawnManager and comprehensively tested in:
+## - tests/integration/spawn_system/test_spawn_manager.gd
+## - tests/unit/spawn_system/test_spawn_validation.gd
+## The integration with M_SceneManager is tested via area transition tests below.
 
 func test_bidirectional_door_pairings_registered() -> void:
 	# Given: Exterior → Interior door

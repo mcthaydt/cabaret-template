@@ -4,8 +4,30 @@
 
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
-**Branch**: `SceneManager`
-**Status**: ✅ Phase 11 COMPLETE | Scene Manager PRODUCTION READY (95%+ score)
+**Branch**: `feature/spawn-system-3-managers` (create new branch for Phase 12)
+**Status**: ✅ Phase 11 COMPLETE | 🎯 Phase 12 READY TO START
+
+---
+
+## 🎯 CURRENT PHASE: Phase 12 - Spawn System Extraction (3-Manager Architecture)
+
+**Quick Start Checklist** (Do in order):
+1. ⬜ Read this entire document first
+2. ⬜ Read all the documentation required below - Project patterns
+3. ⬜ Read `scene-manager-tasks.md` Phase 12 section
+4. ⬜ Create branch: `feature/spawn-system-3-managers`
+5. ⬜ Run baseline tests: `502/506 passing` (document result)
+6. ⬜ Start with Task **T215** (run baseline test suite)
+
+**Approved Scope**: 56 tasks, 24-32 hours
+- **Sub-Phase 12.1**: M_SpawnManager extraction (T215-T231)
+- **Sub-Phase 12.2**: M_CameraManager extraction (T232-T251)
+- **Sub-Phase 12.3a**: Death respawn (T252-T260)
+- **Sub-Phase 12.5**: Scene contract validation (T299-T308)
+
+**Deferred**: Sub-Phases 12.3b, 12.4 (checkpoint markers, spawn effects, advanced features)
+
+**Jump to**: [Phase 12 Details](#next-phase-phase-12---spawn-system-extraction-3-manager-architecture) | [Phase 12 Tasks](./scene-manager-tasks.md#phase-12-spawn-system-extraction-separation-of-concerns)
 
 ---
 
@@ -92,177 +114,178 @@ Additional tracking requirements:
 
 ---
 
-## Getting Started
+## Previously Completed Phases
 
-**Current Phase**: 🎯 Phase 11 - Post-Audit Improvements
-
-**Phase 10 COMPLETE** (T178-T206 - 100%):
-- ✅ Camera blending fully implemented (position, rotation, FOV)
-- ✅ Edge case testing complete (18 tests, all scenarios covered)
-- ✅ Documentation updated (quickstart.md, AGENTS.md, DEV_PITFALLS.md)
-- ✅ Code cleanup complete (debug prints converted, no TODOs)
-- ✅ Full test suite: 502/506 passing (99.2%)
-- ✅ All 22 PRD success criteria met
-
-**Audit Results** (November 3, 2025):
-- **Overall Score**: 94.1% - PRODUCTION READY ✅
-- **Completeness**: 95% (19/20 requirements, missing: runtime scene registry)
-- **Consistency**: 100% (perfect AGENTS.md adherence)
-- **Cohesion**: 96% (excellent separation of concerns)
-- **Harmony**: 97% (seamless ECS/Redux integration)
-- **Modularity**: 94% (highly reusable components)
-- **Scalability**: 95% (handles 100+ scenes efficiently)
-- **User-Friendliness**: 85% (good for coders, decent for non-coders)
-- **Critical Issues**: 0 found ✅
-
-**Current Phase**: ✅ Phase 11 COMPLETE - All post-audit improvements implemented
-
-**Phase 11 COMPLETE** (T207-T214 - 100%):
-- ✅ Spawn point validation with enhanced error logging (T207)
-- ✅ Closure pattern documentation for readability (T208)
-- ✅ Transition factory for runtime extensibility (T209)
-- ✅ Spawn validation test coverage (T210)
-- ✅ Full regression test suite passing (T211)
-- ✅ RS_SceneRegistryEntry resource for non-coder friendliness (T212)
-- ✅ Documentation updated with Phase 11 completion (T214)
-
-**Final Audit Score**: **95.4%** (up from 94.1%)
-- Completeness: 95% → 95% (all requirements met)
-- Consistency: 100% (maintained)
-- Cohesion: 96% (maintained)
-- Harmony: 97% (maintained)
-- Modularity: 94% → 96% (transition factory improvement)
-- Scalability: 95% (maintained)
-- User-Friendliness: 85% → 95% (RS_SceneRegistryEntry resource)
-- Test Coverage: 99.2% (501/506 passing)
-
-**Production Status**: ✅ READY FOR RELEASE
-
-**Phase 9 COMPLETE**:
-
-- ✅ All 177 Phase 9 tasks complete (100%)
-- ✅ End-game UI scenes (game_over, victory, credits) implemented
-- ✅ Two-stage victory progression working (LEVEL_COMPLETE → GAME_COMPLETE)
-- ✅ Ragdoll death effect with delayed transition
-- ✅ Retry/continue/credits navigation flows complete
-- ✅ Manual in-editor validation complete (T177) - all endgame flows working
-- ✅ Integration test coverage: test_endgame_flows.gd
-
-**Phase 10 - Camera Blending COMPLETE** (T178-T182.6):
-
-- ✅ T178: Camera position blending implemented
-- ✅ T179: Camera rotation blending implemented (quaternion interpolation)
-- ✅ T180: Camera FOV blending implemented
-- ✅ T181: Transition camera added to M_SceneManager
-- ✅ T182: Smooth camera transitions via Tween system
-- ✅ T182.5: Camera blend integrated with FadeTransition (non-blocking)
-- ✅ T182.6: Scene-specific camera variations (exterior: 80° FOV @ height 1.5, interior: 65° FOV @ height 0.8)
-- ✅ Integration test coverage: test_camera_blending.gd (6 tests, all passing)
-- ✅ Fix: Camera blend runs in background via signal-based finalization (no state update blocking)
-- ✅ Test status: 79 passing, 6 failing (unchanged baseline - GDScript warnings only)
-
-**Phase 9 Victory Progression Design**:
-
-Phase 9 implements a **two-stage victory system** to provide progression:
-
-1. **Stage 1: LEVEL_COMPLETE** (Interior House Goal)
-   - Player enters goal zone in `interior_house.tscn`
-   - `S_VictorySystem` adds "interior_house" to `state.gameplay.completed_areas`
-   - Returns player to `exterior.tscn` to continue exploring
-   - Always available from game start
-
-2. **Stage 2: GAME_COMPLETE** (Exterior Final Goal)
-   - New goal zone spawns in `exterior.tscn` after Stage 1 completion
-   - Only activates if "interior_house" is in `completed_areas` array
-   - Triggers transition to victory screen (`victory.tscn`)
-   - Shows credits option and end-game stats
-
-**Unlock Logic**: Goal zone or `S_VictorySystem` checks `state.gameplay.completed_areas` before allowing GAME_COMPLETE victory type to trigger.
-
-**Phase 9 Death Effect Design**:
-
-Phase 9 implements a **simple ragdoll death effect** for visual feedback:
-
-- **Approach**: Spawn separate `RigidBody3D` ragdoll, hide `CharacterBody3D` player
-- **Ragdoll**: Simple single-body physics (capsule mesh, tumble rotation)
-- **Flow**:
-  1. Player health reaches 0
-  2. `S_HealthSystem` hides player entity
-  3. Spawn ragdoll prefab at player position with impulse/angular velocity
-  4. Ragdoll tumbles and falls for 2.5 seconds
-  5. Fade transition to `game_over.tscn`
-- **Prefab**: `templates/player_ragdoll.tscn` (RigidBody3D + CapsuleMesh + CollisionShape3D)
-
-**Phase 11 Goals** (Post-Audit Improvements):
-
-Based on comprehensive audit (94.1% score), implementing recommended improvements to reach 95%+ completion:
-
-**Priority 1: Before Release** (1-2 hours)
-1. 🎯 T207: Add spawn point validation in M_SceneManager
-   - Validate spawn point exists before player spawn
-   - Log error if not found, don't spawn at origin
-   - Add test coverage for missing spawn points
-
-2. 🎯 T208: Document closure patterns in M_SceneManager
-   - Add comments explaining Array-based closure pattern
-   - Document why closures are used vs simpler approaches
-   - Reference GDScript closure limitations
-
-**Priority 2: Modularity Improvements** (2-3 hours)
-3. 🎯 T209: Create U_TransitionFactory with registration pattern
-   - Extract _create_transition_effect() to static factory class
-   - Allow runtime registration of custom transition types
-   - Update M_SceneManager to use factory
-   - Maintain backward compatibility with existing transitions
-
-**Priority 3: Testing & Validation** (1 hour)
-4. 🎯 T210: Add test coverage for spawn point validation
-   - Test: Missing spawn point logs error, doesn't spawn
-   - Test: Invalid spawn point (wrong type) handled gracefully
-   - Test: Spawn point in different scene hierarchy
-
-5. 🎯 T211: Run full regression test suite
-   - Verify 502/506 tests still passing
-   - No new failures introduced
-   - Validate all Phase 11 changes
-
-**Priority 4: Non-Coder Friendliness** (4-5 hours) - REQUIRED
-6. 🎯 T212: Create RS_SceneRegistryEntry resource
-   - Resource-based scene registration for editor UI
-   - Allows non-coders to add scenes without code
-   - Update U_SceneRegistry to load from resources
-   - **Status**: REQUIRED for 95%+ target score
-
-**Optional: Future Enhancements** (defer to Phase 12)
-7. ⏳ T213: Add performance telemetry hooks (optional)
-   - Track transition times per type
-   - Log slow transitions for optimization
-   - **Note**: Future optimization aid, not critical
-
-**Documentation**:
-8. 🎯 T214: Update continuation prompt and tasks.md with Phase 11 completion status
-
-**Recommended Path**:
-
-1. ✅ Phase 6 (Area Transitions) - COMPLETE
-2. ✅ Phase 6.5 (Refactoring) - COMPLETE
-3. ✅ Phase 7 (Transition Effects) - COMPLETE
-4. ✅ Phase 8 (Preloading & Performance) - COMPLETE
-5. ✅ Phase 8.5 (Gameplay Mechanics) - COMPLETE
-6. ✅ Phase 9 (End-Game Flows) - COMPLETE
-7. → Phase 10 (Polish) - 2-3 days
+**Status**: Phases 1-11 complete (502/506 tests passing)
+- ✅ Scene restructuring, transitions, state persistence, pause, area transitions, effects, preloading, endgame flows, camera blending, polish complete
+- ✅ Production ready - Audit score: 95.4%
 
 ---
-Now implement precisely as planned, in full.
 
-Implementation Requirements:
+## Next Phase: Phase 12 - Spawn System Extraction (3-Manager Architecture)
 
-- Write elegant, minimal, modular code.
-- Adhere strictly to existing code patterns, conventions, and best practices.
-- Include thorough, clear comments/documentation within the code.
-- Ensure we have absolutely no orphans, and every test that's expected to fail is marked as such\
-- Read every single required document before beginning\
+**Status**: 📋 READY TO START
+**Approved Scope**: Sub-Phases 12.1, 12.2, 12.3a, 12.5 (deferred: 12.3b, 12.4)
+**Estimated Time**: 24-32 hours (minimal viable spawn system)
 
-Do you have any questions?
+**Architecture Decision**: ✅ **3-Manager Approach**
+- **M_SceneManager** (~1,171 lines) → Scene transitions only
+- **M_SpawnManager** (~150 lines) → Player spawning only
+- **M_CameraManager** (~200 lines) → Camera blending only
+
+**Why 3 Managers?**
+- Maximum separation of concerns (each has single responsibility)
+- Camera usable independently (cinematics, shake, cutscenes)
+- Better testability (mock one without the others)
+
+**Current Architecture Issues**:
+- M_SceneManager handles both scene transitions AND player/camera spawning
+- 241 lines of spawn/camera logic coupled to transition logic (106 spawn + 135 camera)
+- Makes it harder to add spawn features or camera features independently
+
+---
+
+### **APPROVED IMPLEMENTATION SCOPE**
+
+**Sub-Phase 12.1: Spawn Extraction** (T215-T231) - 8-10 hours ⭐ APPROVED
+- Extract M_SpawnManager from M_SceneManager
+- Move spawn point discovery, player positioning, validation
+- 106 lines extracted, all tests pass
+
+**Sub-Phase 12.2: Camera Extraction** (T232-T251) - 6-8 hours ⭐ APPROVED
+- Extract M_CameraManager (separate from spawn manager)
+- Move camera blending, CameraState class, transition camera
+- Additional 135 lines extracted, M_SceneManager down to ~1,171 lines
+
+**Sub-Phase 12.3a: Death Respawn** (T252-T260) - 6-8 hours ⭐ APPROVED
+- Implement spawn_at_last_spawn() using existing spawn system
+- Integrate with S_HealthSystem death sequence
+- Death → respawn working (NO checkpoint markers yet)
+
+**Sub-Phase 12.5: Scene Contract Validation** (T299-T308) - 4-6 hours ⭐ APPROVED
+- Create ISceneContract validation class
+- Validate gameplay scenes at load time (not spawn time)
+- Catch missing player/camera/spawn points EARLY
+- Clear, structured error messages
+
+**Total Approved**: 24-32 hours, 45-50 tasks
+
+---
+
+### **DEFERRED TO PHASE 13** (Not Needed Yet)
+
+**Sub-Phase 12.3b: Checkpoint Markers** - DEFERRED
+- C_CheckpointComponent + S_CheckpointSystem
+- Checkpoint persistence in save files
+- Reason: Death respawn using last spawn point is sufficient
+
+**Sub-Phase 12.4: Advanced Features** - DEFERRED
+- Spawn effects (fade, particles) - polish, not functionality
+- Conditional spawning - requires quest/item systems (don't exist yet)
+- Spawn registry - overkill for current scale (< 50 spawn points)
+- Reason: Not needed for core gameplay
+
+---
+
+### **IMPLEMENTATION ORDER**
+
+1. **Start**: Sub-Phase 12.1 (M_SpawnManager extraction)
+   - 17 tasks, 8-10 hours
+   - Lowest risk, immediate value
+   - All tests pass before proceeding to 12.2
+
+2. **Continue**: Sub-Phase 12.2 (M_CameraManager extraction)
+   - 20 tasks, 6-8 hours
+   - Camera independence achieved
+   - M_SceneManager clean, focused on transitions
+
+3. **Then**: Sub-Phase 12.3a (Death respawn)
+   - 9 tasks, 6-8 hours
+   - Death → respawn loop working
+   - Core gameplay complete
+
+4. **Finally**: Sub-Phase 12.5 (Scene contract validation)
+   - 10 tasks, 4-6 hours
+   - Configuration errors caught early
+   - Quality improvement
+
+**STOP after 12.5** - Ship it, move to other features
+
+---
+
+### **KEY BENEFITS**
+
+**3-Manager Architecture**:
+- ✅ M_SceneManager: Pure scene transitions (~1,171 lines, focused)
+- ✅ M_SpawnManager: Pure player spawning (~150 lines, testable)
+- ✅ M_CameraManager: Pure camera blending (~200 lines, reusable for cinematics)
+
+**Scope Management**:
+- ✅ Core features only (spawn, camera, death respawn, validation)
+- ✅ No premature features (checkpoints, effects, conditional spawning)
+- ✅ Faster time-to-value (24-32 hours vs 42-54 hours)
+
+**Quality**:
+- ✅ Scene contract validation catches config errors EARLY
+- ✅ Comprehensive test coverage (TDD approach)
+- ✅ Clean separation enables future extensions
+
+---
+
+### **QUICK START**
+
+**Before Starting**:
+1. Read: `docs/scene_manager/scene-manager-tasks.md` Phase 12 section
+2. Read: `docs/scene_manager/PHASE_12_AUDIT_REPORT.md` (audit results)
+3. Create feature branch: `feature/spawn-system-3-managers`
+4. Run baseline tests, document current pass rate (502/506 expected)
+
+**During Implementation**:
+- Follow TDD: Tests first, watch fail, implement, watch pass
+- Commit after each green test
+- Run full test suite every 3-5 tasks
+- STOP if tests fail - fix immediately before proceeding
+
+**Success Criteria**:
+- ✅ All approved sub-phases complete
+- ✅ All tests passing (502+/506)
+- ✅ Manual validation: door transitions, camera blending, death respawn
+- ✅ M_SceneManager ~1,171 lines (down from 1,412)
+- ✅ Documentation updated (quickstart, AGENTS.md, DEV_PITFALLS.md)
+
+**See**: `docs/scene_manager/scene-manager-tasks.md` Phase 12 for detailed task breakdown
+
+---
+
+---
+
+## Phase 12 - Implementation Requirements
+
+**Before You Start**:
+1. ✅ Read `AGENTS.md` - Project conventions
+2. ✅ Read `DEV_PITFALLS.md` - Common mistakes
+3. ✅ Read `scene-manager-tasks.md` Phase 12 section (T215-T308)
+4. ✅ Create branch: `feature/spawn-system-3-managers`
+5. ✅ Run baseline: `502/506 tests passing` (document this)
+
+**During Implementation**:
+- Write elegant, minimal, modular code
+- Adhere strictly to existing code patterns, conventions, and best practices
+- Include thorough, clear comments/documentation within the code
+- Ensure we have absolutely no orphans
+- Follow TDD religiously: Tests FIRST, watch fail, implement, watch pass
+- Commit after each green test with task number in message
+- Run full test suite every 3-5 tasks
+- **STOP if tests fail** - fix immediately before proceeding
+
+**First Task**: **T215** - Run full test suite to establish baseline
+
+**Implementation Path**:
+1. → **Phase 12.1** (T215-T231): M_SpawnManager extraction - 8-10 hours
+2. → **Phase 12.2** (T232-T251): M_CameraManager extraction - 6-8 hours
+3. → **Phase 12.3a** (T252-T260): Death respawn - 6-8 hours
+4. → **Phase 12.5** (T299-T308): Scene contract validation - 4-6 hours
+
+**Total**: 24-32 hours, 56 tasks
 
 ---

@@ -816,6 +816,214 @@ During development:
 
 ---
 
+## Phase 12: Spawn System Architecture (Future Enhancement)
+
+### Overview
+
+**Status**: Phase 11 Complete, Phase 12 Planned
+**Purpose**: Extract spawn/camera logic from M_SceneManager into dedicated M_SpawnManager
+
+### Current Architecture Issues
+
+**M_SceneManager Responsibilities** (as of Phase 11):
+- Scene loading/unloading ✅ (Core responsibility)
+- Scene transition queue management ✅ (Core responsibility)
+- Transition effect execution ✅ (Core responsibility)
+- UI overlay stack management ✅ (Core responsibility)
+- **Player spawn point restoration** ⚠️ (Should be separate)
+- **Camera positioning/blending** ⚠️ (Should be separate)
+- State persistence coordination ✅ (Integration responsibility)
+- Scene cache management ✅ (Core responsibility)
+- Cursor state management ✅ (Integration responsibility)
+
+**Coupling Issues**:
+- 241 lines of spawn/camera logic embedded in M_SceneManager (106 spawn + 135 camera)
+- Violates Single Responsibility Principle
+- Difficult to add spawn features (checkpoints, effects, conditions)
+- Camera blending tightly coupled to scene transitions
+
+### Proposed Architecture
+
+**M_SpawnManager** (Scene-based manager, added to root.tscn):
+
+**Core Responsibilities**:
+1. **Player Spawning**
+   - Find player entity in scene
+   - Find spawn point by ID
+   - Validate spawn point (Node3D type, exists)
+   - Position player at spawn point
+   - Clear target spawn point from state
+
+2. **Camera Coordination**
+   - Initialize scene camera
+   - Capture camera state before scene change
+   - Coordinate camera blending during transitions
+   - Manage transition camera lifecycle
+
+3. **Checkpoint System** (Phase 12.3)
+   - Register checkpoints (scene + spawn point)
+   - Restore player at last checkpoint
+   - Persist checkpoint in save files
+   - Death respawn integration
+
+4. **Advanced Spawn Features** (Phase 12.4)
+   - Spawn effects (fade, particles)
+   - Conditional spawning (quest/item/flag gates)
+   - Spawn point metadata (priority, tags)
+   - Spawn registry (lookup by tag/condition)
+
+### Interface Design
+
+**M_SpawnManager Public API**:
+```gdscript
+class_name M_SpawnManager extends Node
+
+# Core spawning
+func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool
+func spawn_at_checkpoint() -> bool
+func spawn_by_tag(scene_id: StringName, tag: String) -> bool
+
+# Camera coordination
+func initialize_scene_camera(scene: Node) -> Camera3D
+func coordinate_camera_blend(old_scene: Node, new_scene: Node, duration: float) -> void
+
+# Checkpoint management
+func register_checkpoint(scene_id: StringName, spawn_point: StringName) -> void
+func clear_checkpoint() -> void
+
+# Validation
+func validate_spawn_point(scene: Node, spawn_point_id: StringName) -> bool
+
+# Signals
+signal spawn_completed(success: bool)
+signal checkpoint_registered(scene_id: StringName, spawn_point: StringName)
+signal camera_blend_complete()
+```
+
+### Integration with M_SceneManager
+
+**M_SceneManager Changes**:
+```gdscript
+# Add reference to spawn manager
+var _spawn_manager: M_SpawnManager
+
+func _ready() -> void:
+    # Find spawn manager via group
+    var spawn_managers := get_tree().get_nodes_in_group("spawn_manager")
+    if spawn_managers.size() > 0:
+        _spawn_manager = spawn_managers[0] as M_SpawnManager
+
+func _perform_transition(...) -> void:
+    # ... scene loading logic ...
+
+    # Replace spawn logic with spawn manager call
+    if _spawn_manager != null:
+        var spawn_success := _spawn_manager.spawn_player_at_point(
+            new_scene,
+            target_spawn_point
+        )
+        if not spawn_success:
+            push_warning("Spawn failed, player at default position")
+
+    # Replace camera blending with spawn manager coordination
+    if _spawn_manager != null and should_blend_camera:
+        _spawn_manager.coordinate_camera_blend(
+            old_scene,
+            new_scene,
+            transition_duration
+        )
+```
+
+**Code Extracted from M_SceneManager**:
+- `_restore_player_spawn_point()` → M_SpawnManager.spawn_player_at_point()
+- `_find_spawn_point()` → M_SpawnManager._find_spawn_point()
+- `_find_player_entity()` → M_SpawnManager._find_player_entity()
+- `_clear_target_spawn_point()` → M_SpawnManager (internal)
+- `_create_transition_camera()` → M_SpawnManager._create_transition_camera()
+- `_capture_camera_state()` → M_SpawnManager._capture_camera_state()
+- `_blend_camera()` → M_SpawnManager._blend_camera_internal()
+- `_finalize_camera_blend()` → M_SpawnManager._finalize_camera_blend()
+- `CameraState` class → M_SpawnManager (nested class)
+
+### Benefits
+
+**Separation of Concerns**:
+- M_SceneManager: Scene transitions only (~1,171 lines, down from 1,412)
+- M_SpawnManager: Player/camera spawning (~400 lines)
+- Clear interface boundary between systems
+
+**Extensibility**:
+- Add spawn effects without modifying scene manager
+- Conditional spawning based on game state
+- Spawn point metadata and registry
+- Multiple spawn strategies (checkpoint, tag-based, priority-based)
+
+**Reusability**:
+- Checkpoint system uses spawn manager
+- Death respawn uses spawn manager
+- Teleport system uses spawn manager
+- Manual spawn triggers use spawn manager
+
+**Testability**:
+- Spawn logic isolated and independently testable
+- Mock spawn manager in scene transition tests
+- Comprehensive spawn validation tests
+- Camera coordination tests separate from transition tests
+
+### Implementation Phases
+
+**Sub-Phase 12.1: Core Extraction** (8-10 hours)
+- Extract player spawn logic
+- M_SpawnManager in root.tscn
+- Update M_SceneManager integration
+- Test coverage: spawn validation
+
+**Sub-Phase 12.2: Camera Integration** (6-8 hours)
+- Extract camera blending coordination
+- CameraState class moved
+- Camera tests comprehensive
+
+**Sub-Phase 12.3: Checkpoint System** (10-12 hours)
+- Checkpoint registration/restoration
+- Death respawn integration
+- Save/load persistence
+- C_CheckpointComponent + S_CheckpointSystem
+
+**Sub-Phase 12.4: Advanced Features** (12-15 hours)
+- Spawn effects (fade, particles)
+- Conditional spawning (quest/item/flag)
+- Spawn registry (U_SpawnRegistry)
+- Spawn by tag/priority
+
+### Testing Strategy
+
+**New Test Coverage**:
+- `tests/integration/spawn_system/test_spawn_manager.gd` (~200 lines)
+- `tests/integration/spawn_system/test_camera_initialization.gd` (~150 lines)
+- `tests/integration/spawn_system/test_checkpoint_system.gd` (~180 lines)
+- `tests/unit/spawn_system/test_spawn_validation.gd` (~120 lines)
+
+**Regression Testing**:
+- All existing scene manager tests must pass
+- No changes to scene transition behavior
+- Camera blending identical to Phase 10 implementation
+
+### Risk Assessment
+
+**Low Risk**:
+- Well-defined interface boundary
+- No architectural changes to M_SceneManager
+- Existing tests validate no regressions
+- Can be implemented incrementally (4 sub-phases)
+
+**Mitigations**:
+- TDD approach (tests first)
+- Keep camera blending in M_SceneManager until Sub-Phase 12.2
+- Comprehensive regression testing after each sub-phase
+- Manual validation of door transitions after each sub-phase
+
+---
+
 ## Related Documentation
 
 - [scene-manager-prd.md](./scene-manager-prd.md) - Full feature specification (v2.3)

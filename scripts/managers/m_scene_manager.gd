@@ -59,6 +59,7 @@ class CameraState:
 ## Internal references
 var _store: M_StateStore = null
 var _cursor_manager: M_CursorManager = null
+var _spawn_manager: Node = null  # M_SpawnManager (Phase 12.1)
 var _active_scene_container: Node = null
 var _ui_overlay_stack: CanvasLayer = null
 var _transition_overlay: CanvasLayer = null
@@ -132,6 +133,13 @@ func _ready() -> void:
 		_cursor_manager = cursor_managers[0] as M_CursorManager
 	else:
 		push_warning("M_SceneManager: No M_CursorManager found in 'cursor_manager' group")
+
+	# Find M_SpawnManager via group (Phase 12.1: T225)
+	var spawn_managers: Array = get_tree().get_nodes_in_group("spawn_manager")
+	if spawn_managers.size() > 0:
+		_spawn_manager = spawn_managers[0]
+	else:
+		push_error("M_SceneManager: No M_SpawnManager found in 'spawn_manager' group")
 
 	# Find container nodes
 	_find_container_nodes()
@@ -431,8 +439,15 @@ func _perform_transition(request: TransitionRequest) -> void:
 		if _active_scene_container != null:
 			_add_scene(new_scene)
 
-		# Restore player spawn point if transitioning from door trigger
-		_restore_player_spawn_point(new_scene)
+		# Restore player spawn point if transitioning from door trigger (Phase 12.1: T226)
+		# Read target spawn point from gameplay state and delegate to M_SpawnManager
+		if _spawn_manager != null and _store != null:
+			var state: Dictionary = _store.get_state()
+			var gameplay_state: Dictionary = state.get("gameplay", {})
+			var target_spawn: StringName = gameplay_state.get("target_spawn_point", StringName(""))
+
+			if not target_spawn.is_empty():
+				_spawn_manager.spawn_player_at_point(new_scene, target_spawn)
 
 		# Phase 10: Find new scene camera and start tween toward it (T182.5)
 		var new_cameras: Array = get_tree().get_nodes_in_group("main_camera")
@@ -956,113 +971,6 @@ func go_back() -> void:
 	# Transition to that scene
 	# Use HIGH priority to jump the queue for back navigation
 	transition_to_scene(previous_scene, "instant", Priority.HIGH)
-
-## Restore player to spawn point after area transition (T095, T207)
-##
-## Validates spawn point exists before positioning player. If spawn point is missing,
-## logs error and does NOT spawn player at origin as fallback - this prevents
-## configuration errors from causing invisible bugs where player appears at (0,0,0).
-##
-## Phase 11 improvements (T207):
-## - Changed push_warning to push_error for missing spawn points (config error severity)
-## - Added scene name to error messages for easier debugging
-## - Enhanced validation to check Node3D type explicitly
-func _restore_player_spawn_point(loaded_scene: Node) -> void:
-	if _store == null:
-		return
-
-	# Get target spawn point from gameplay state
-	var state: Dictionary = _store.get_state()
-	var gameplay_state: Dictionary = state.get("gameplay", {})
-	var target_spawn: StringName = gameplay_state.get("target_spawn_point", StringName(""))
-
-	# If no spawn point specified, do nothing (normal scene transition)
-	if target_spawn.is_empty():
-		return
-
-	# Get current scene name for error messages
-	var scene_name: String = loaded_scene.name if loaded_scene != null else "unknown"
-
-	# Find spawn point node in loaded scene (generic search first)
-	var spawn_candidates: Array = []
-	_find_nodes_by_name(loaded_scene, target_spawn, spawn_candidates)
-
-	if spawn_candidates.is_empty():
-		# T207: Spawn point doesn't exist at all
-		push_error("M_SceneManager: Spawn point '%s' not found in scene '%s'. Player will not be repositioned. Check spawn point naming and hierarchy." % [target_spawn, scene_name])
-		_clear_target_spawn_point()
-		return
-
-	var spawn_node: Node = spawn_candidates[0]
-
-	# T207: Validate spawn point is actually a Node3D (or derived class)
-	if not (spawn_node is Node3D):
-		push_error("M_SceneManager: Spawn point '%s' in scene '%s' is not a Node3D (found type: %s). Player cannot be positioned." % [target_spawn, scene_name, spawn_node.get_class()])
-		_clear_target_spawn_point()
-		return
-
-	# Find player entity in loaded scene
-	var player: Node3D = _find_player_entity(loaded_scene)
-	if player == null:
-		# T207: Upgraded to push_error - missing player in gameplay scene is a critical issue
-		push_error("M_SceneManager: Player entity not found in scene '%s' for spawn restoration. Expected node name starting with 'E_Player'." % scene_name)
-		_clear_target_spawn_point()
-		return
-
-	# Position player at spawn point (cast is safe - we validated it's a Node3D above)
-	var spawn_node_3d := spawn_node as Node3D
-	player.global_position = spawn_node_3d.global_position
-	player.global_rotation = spawn_node_3d.global_rotation
-
-	# Clear target spawn point from state (one-time use)
-	_clear_target_spawn_point()
-
-## Find spawn point node by name in scene tree
-func _find_spawn_point(scene_root: Node, spawn_name: StringName) -> Node3D:
-	# Search for spawn point marker (Node3D with matching name)
-	var spawn_points: Array = []
-	_find_nodes_by_name(scene_root, spawn_name, spawn_points)
-
-	if spawn_points.is_empty():
-		return null
-
-	# Return first match (will return null if not a Node3D, which will be caught by validation in _restore_player_spawn_point)
-	return spawn_points[0] as Node3D
-
-## Find player entity in scene (node with name starting with "E_Player")
-func _find_player_entity(scene_root: Node) -> Node3D:
-	var players: Array = []
-	_find_nodes_by_prefix(scene_root, "E_Player", players)
-
-	if players.is_empty():
-		return null
-
-	return players[0] as Node3D
-
-## Recursive helper to find nodes by exact name
-func _find_nodes_by_name(node: Node, target_name: StringName, results: Array) -> void:
-	if node.name == target_name:
-		results.append(node)
-
-	for child in node.get_children():
-		_find_nodes_by_name(child, target_name, results)
-
-## Recursive helper to find nodes by name prefix
-func _find_nodes_by_prefix(node: Node, prefix: String, results: Array) -> void:
-	if node.name.begins_with(prefix):
-		results.append(node)
-
-	for child in node.get_children():
-		_find_nodes_by_prefix(child, prefix, results)
-
-## Clear target spawn point from gameplay state
-func _clear_target_spawn_point() -> void:
-	if _store == null:
-		return
-
-	# Dispatch action to clear spawn point
-	var clear_action: Dictionary = U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName(""))
-	_store.dispatch(clear_action)
 
 ## Update scene history based on scene type (T111-T113)
 func _update_scene_history(target_scene_id: StringName) -> void:

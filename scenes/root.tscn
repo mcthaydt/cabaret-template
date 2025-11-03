@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://ccv3ylnj0qbnm"]
+[gd_scene load_steps=14 format=3 uid="uid://ccv3ylnj0qbnm"]
 
 [ext_resource type="Resource" uid="uid://dq08aopcfbjyp" path="res://resources/state/default_boot_initial_state.tres" id="1_boot_state"]
 [ext_resource type="Resource" uid="uid://uygy4iikdf74" path="res://resources/state/default_gameplay_initial_state.tres" id="2_gameplay_state"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="10_main_root"]
 [ext_resource type="Script" uid="uid://d0n2a3p3tkdq0" path="res://scripts/scene_structure/managers_group.gd" id="11_managers_group"]
 [ext_resource type="PackedScene" path="res://scenes/ui/loading_screen.tscn" id="12_loading_screen"]
+[ext_resource type="Script" path="res://scripts/managers/m_spawn_manager.gd" id="13_spawn_manager"]
 
 [node name="Root" type="Node"]
 script = ExtResource("10_main_root")
@@ -32,6 +33,9 @@ script = ExtResource("7_cursor")
 
 [node name="M_SceneManager" type="Node" parent="Managers"]
 script = ExtResource("8_scene_manager")
+
+[node name="M_SpawnManager" type="Node" parent="Managers"]
+script = ExtResource("13_spawn_manager")
 
 [node name="ActiveSceneContainer" type="Node" parent="."]
 script = ExtResource("9_active_scene_container")

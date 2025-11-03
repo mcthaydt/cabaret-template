@@ -1279,6 +1279,280 @@
 
 ---
 
+## Phase 12: Spawn System Extraction (3-Manager Architecture)
+
+**Purpose**: Extract player spawn and camera blending logic from M_SceneManager into dedicated M_SpawnManager and M_CameraManager to achieve maximum separation of concerns.
+
+**Status**: 📋 READY TO START
+**Approved Scope**: 56 tasks (Sub-Phases 12.1, 12.2, 12.3a, 12.5)
+**Estimated Time**: 24-32 hours
+**Current M_SceneManager Size**: ~1412 lines
+**Target M_SceneManager Size**: ~1171 lines (241 lines extracted)
+
+**Rationale**: M_SceneManager currently handles both scene transitions AND player/camera spawning (~241 lines of spawn/camera logic: 106 spawn methods + 135 camera methods/state). This violates Single Responsibility Principle and prevents independent camera/spawn feature development.
+
+**Architecture**: 3-Manager approach for maximum separation
+- **M_SceneManager** (~1,171 lines) → Scene transitions only
+- **M_SpawnManager** (~150 lines) → Player spawning only
+- **M_CameraManager** (~200 lines) → Camera blending only
+
+**Deferred to Phase 13**: Sub-Phase 12.3b (checkpoint markers), Sub-Phase 12.4 (spawn effects, conditional spawning, metadata registry)
+
+### Sub-Phase 12.1: Core Extraction (Foundation) - 8-10 hours
+
+**Goal**: Extract player spawn logic into M_SpawnManager without breaking existing functionality.
+
+- [ ] T215 [P] Run full test suite to establish baseline (expect 502/506 passing)
+- [ ] T216 [P] Document current spawn call sites in M_SceneManager (lines 960-1066)
+- [ ] T217 [P] Write `tests/integration/spawn_system/test_spawn_manager.gd` (spawn point discovery, player positioning, validation) - TDD RED
+- [ ] T218 [P] Write `tests/unit/spawn_system/test_spawn_validation.gd` (edge cases, missing spawn points, type validation) - TDD RED
+- [ ] T219 Create `scripts/managers/m_spawn_manager.gd` extending Node
+  - Add to "spawn_manager" group in _ready()
+  - Member variables: _scene_manager, _state_store
+- [ ] T220 Implement `spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool`
+  - Find player entity via _find_player_entity()
+  - Find spawn point via _find_spawn_point()
+  - Validate spawn point (Node3D type, exists)
+  - Position player at spawn point (global_position, global_rotation)
+  - Clear target_spawn_point from state
+  - Return true on success, false on failure
+- [ ] T221 Implement `_find_spawn_point(scene: Node, spawn_point_id: StringName) -> Node3D`
+  - Search scene tree for node by name (recursive)
+  - Validate Node3D type with push_error() if wrong type
+  - Log push_error() with scene name if not found
+  - Return null on failure
+- [ ] T222 Implement `_find_player_entity(scene: Node) -> Node3D`
+  - Search for node with name prefix "E_Player"
+  - Log push_error() if not found
+  - Return null on failure
+- [ ] T223 Implement `initialize_scene_camera(scene: Node) -> Camera3D`
+  - Find camera in "main_camera" group
+  - Return camera reference for blending
+  - Log warning if not found (UI scenes don't need cameras)
+- [ ] T224 Add M_SpawnManager node to `scenes/root.tscn` under Managers
+- [ ] T225 Modify M_SceneManager._ready() to find M_SpawnManager via group
+- [ ] T226 Replace M_SceneManager._restore_player_spawn_point() call with _spawn_manager.spawn_player_at_point()
+  - Location: M_SceneManager._perform_transition() line ~435
+- [ ] T227 Remove spawn methods from M_SceneManager (_restore_player_spawn_point, _find_spawn_point, _find_player_entity, _clear_target_spawn_point)
+  - Keep camera blending methods for now (Sub-Phase 12.2)
+- [ ] T228 Run spawn system tests - expect all PASS (TDD GREEN)
+- [ ] T229 Run full test suite - expect 502/506 passing (no regressions)
+- [ ] T230 Manual test: exterior → interior door transitions (spawn points work)
+- [ ] T231 Commit: "Phase 12.1: Extract player spawn logic into M_SpawnManager"
+
+**Checkpoint**: ✅ Sub-Phase 12.1 complete - player spawning extracted, 106 lines moved, all tests pass
+
+### Sub-Phase 12.2: Camera System Extraction - 6-8 hours
+
+**Goal**: Extract camera blending into dedicated M_CameraManager (3-manager architecture).
+
+**Rationale**: Separating camera management from spawn management allows:
+- Camera system to be used independently (cinematics, camera shake, cutscenes)
+- Spawn system stays focused on player positioning only
+- Maximum separation of concerns (3 single-responsibility managers)
+
+- [ ] T232 [P] Write `tests/integration/camera_system/test_camera_manager.gd` (camera blending, state capture, handoff) - TDD RED
+- [ ] T233 [P] Write tests for camera state capture (CameraState object creation)
+- [ ] T234 [P] Write tests for camera handoff between camera and scene managers
+- [ ] T235 Create `scripts/managers/m_camera_manager.gd` extending Node
+  - Add to "camera_manager" group in _ready()
+  - Member variables: _scene_manager, _transition_camera, _camera_blend_tween
+- [ ] T236 Move CameraState class from M_SceneManager to M_CameraManager
+- [ ] T237 Move _transition_camera creation to M_CameraManager
+- [ ] T238 Implement `blend_cameras(old_scene: Node, new_scene: Node, duration: float) -> void`
+  - Capture old camera state via _capture_camera_state()
+  - Find new camera in new scene via "main_camera" group
+  - Position transition camera at old state
+  - Start blend tween
+  - Emit camera_blend_complete signal when done
+- [ ] T239 Move _capture_camera_state() to M_CameraManager
+- [ ] T240 Move _blend_camera() logic to M_CameraManager (rename to _create_blend_tween)
+- [ ] T241 Move _finalize_camera_blend() to M_CameraManager
+- [ ] T242 Add M_CameraManager node to `scenes/root.tscn` under Managers (alongside M_SceneManager, M_SpawnManager)
+- [ ] T243 Update M_SceneManager._ready() to find M_CameraManager via group
+- [ ] T244 Update M_SceneManager._perform_transition() to call _camera_manager.blend_cameras()
+- [ ] T245 Remove camera methods from M_SceneManager (_create_transition_camera, _capture_camera_state, _blend_camera, _start_camera_blend_tween, _finalize_camera_blend)
+- [ ] T246 Remove CameraState class from M_SceneManager
+- [ ] T247 Remove camera member variables from M_SceneManager (_transition_camera, _camera_blend_tween, _camera_blend_duration)
+- [ ] T248 Run camera tests - expect all PASS
+- [ ] T249 Run full test suite - expect 502/506 passing
+- [ ] T250 Manual test: exterior ↔ interior with camera blending (smooth interpolation)
+- [ ] T251 Commit: "Phase 12.2: Extract camera blending into M_CameraManager"
+
+**Checkpoint**: ✅ Sub-Phase 12.2 complete - camera system extracted into M_CameraManager, 135 lines moved, M_SceneManager ~1171 lines
+
+### Sub-Phase 12.3a: Death Respawn - 6-8 hours ⭐ APPROVED
+
+**Goal**: Implement death → respawn using existing spawn system (NO checkpoint markers yet).
+
+**Rationale**: Death respawn using last spawn point is sufficient for core gameplay. Checkpoint markers deferred to Phase 13.
+
+- [ ] T252 [P] Write `tests/integration/spawn_system/test_death_respawn.gd` - TDD RED
+- [ ] T253 [P] Write tests for death → game_over → respawn flow
+- [ ] T254 [P] Write tests for spawn_at_last_spawn() method
+- [ ] T255 Implement M_SpawnManager.spawn_at_last_spawn() -> bool
+  - Read target_spawn_point from gameplay state (set by last door transition)
+  - Call existing spawn_player_at_point() with last spawn point
+  - Return false if no last spawn point set (use sp_default)
+- [ ] T256 Integrate with S_HealthSystem death sequence
+  - When health reaches 0: transition to game_over scene
+  - Game over scene "Retry" button: call M_SpawnManager.spawn_at_last_spawn()
+  - Player respawns at last door they used (NOT at checkpoint marker)
+- [ ] T257 Update game_over.tscn to wire Retry button
+  - Find M_SpawnManager via group
+  - Call spawn_at_last_spawn() on button press
+- [ ] T258 Run death respawn tests - expect all PASS
+- [ ] T259 Run full test suite - expect 502/506 passing
+- [ ] T260 Manual test: exterior → interior → die → respawn at last door
+- [ ] T261 Commit: "Phase 12.3a: Implement death respawn using last spawn point"
+
+**Checkpoint**: ✅ Sub-Phase 12.3a complete - death respawn working using last spawn point
+
+### Sub-Phase 12.3b: Checkpoint Markers - DEFERRED TO PHASE 13
+
+**Status**: 🚫 NOT APPROVED FOR PHASE 12
+
+**Rationale**: Death respawn using last spawn point is sufficient for current gameplay. Checkpoint markers add complexity without current gameplay need (no long dungeons/difficult sections requiring mid-area checkpoints yet).
+
+**Tasks Deferred**: T262-T275 (checkpoint components, systems, markers, persistence)
+
+### Sub-Phase 12.4: Advanced Features - DEFERRED TO PHASE 13
+
+**Status**: 🚫 NOT APPROVED FOR PHASE 12
+
+**Rationale**:
+- Spawn effects: Polish, not core functionality
+- Conditional spawning: Requires quest/item systems that don't exist yet
+- Spawn registry: Overkill for current scale (< 50 spawn points total)
+
+**Goal**: Spawn effects, conditional spawning, spawn point metadata, and polish.
+
+**Part A: Spawn Effects** (4 hours)
+- [ ] T267 [P] Write tests for spawn effect coordination
+- [ ] T268 [P] Write tests for fade-in effects on player spawn
+- [ ] T269 [P] Write tests for particle effects on spawn
+- [ ] T270 Create `scripts/spawn_system/base_spawn_effect.gd`
+  - Virtual execute() method, duration property, completion callback
+- [ ] T271 Create `scripts/spawn_system/spawn_fade_effect.gd`
+  - Fade player from transparent → opaque (Tween on MeshInstance3D modulate)
+  - Duration: 0.3s
+- [ ] T272 Create `scripts/spawn_system/spawn_particle_effect.gd`
+  - Instantiate particle burst at spawn point, auto-cleanup after duration
+- [ ] T273 Integrate effects with M_SpawnManager.spawn_player_at_point()
+  - Optional effect parameter
+  - Play effect after positioning player
+  - Await effect completion before returning
+- [ ] T274 Add spawn_effect field to checkpoint registration (default: "fade")
+
+**Part B: Conditional Spawning** (4 hours)
+- [ ] T275 [P] Write tests for spawn conditions (locked spawns)
+- [ ] T276 [P] Write tests for unlock state integration
+- [ ] T277 [P] Write tests for spawn validation based on game state
+- [ ] T278 Create `scripts/spawn_system/spawn_condition.gd` resource
+  - Enum: ConditionType (ALWAYS, QUEST_COMPLETE, ITEM_OWNED, FLAG_SET)
+  - Properties: condition_type, required_quest/item/flag
+- [ ] T279 Add conditions array to spawn point metadata
+- [ ] T280 Implement M_SpawnManager._check_spawn_conditions(spawn_point_id: StringName) -> bool
+  - Iterate conditions array, check state for quest/item/flag
+  - Return true if all conditions met
+- [ ] T281 Integrate condition checks into spawn_player_at_point()
+  - Call _check_spawn_conditions() before spawning
+  - Log warning and return false if locked
+- [ ] T282 Add conditional spawn examples to test scenes
+
+**Part C: Spawn Point Metadata & Registry** (4 hours)
+- [ ] T283 [P] Write tests for spawn point metadata lookup
+- [ ] T284 [P] Write tests for spawn priority (multiple spawns, pick best)
+- [ ] T285 [P] Write tests for spawn tags (outdoor, indoor, safe, dangerous)
+- [ ] T286 Create `scripts/scene_management/u_spawn_registry.gd` static class
+  - register_spawn_point(scene_id, spawn_id, metadata)
+  - get_spawn_metadata(scene_id, spawn_id) -> Dictionary
+  - find_spawn_by_tag(scene_id, tag) -> StringName
+- [ ] T287 Define spawn metadata structure
+  - priority: int (higher = preferred)
+  - tags: Array[String] (outdoor, indoor, safe, dangerous, default)
+  - conditions: Array[SpawnCondition]
+  - effect: String (fade, particle, none)
+- [ ] T288 Integrate U_SpawnRegistry with M_SpawnManager
+  - Look up metadata during spawn_player_at_point()
+  - Apply conditions and effects based on metadata
+- [ ] T289 Update scene templates to register spawn points in _ready()
+- [ ] T290 Add spawn_by_tag() method to M_SpawnManager
+  - Use case: "spawn at safe outdoor spawn" after death
+- [ ] T291 Document spawn registry patterns in quickstart
+
+**Validation & Polish** (3 hours)
+- [ ] T292 Run all spawn system tests - expect all PASS
+- [ ] T293 Run full test suite - expect 502+ passing
+- [ ] T294 Manual test: All spawn features (effects, conditions, tags, priorities)
+- [ ] T295 Update docs/scene_manager/scene-manager-continuation-prompt.md with Phase 12 status
+- [ ] T296 Update DEV_PITFALLS.md with spawn system pitfalls (spawn point positioning, checkpoint registration timing)
+- [ ] T297 Create docs/scene_manager/spawn-system-quickstart.md (usage guide)
+- [ ] T298 Commit: "Phase 12.4: Implement advanced spawn features (effects, conditions, metadata)"
+
+**Tasks Deferred**: T262-T298 (all Sub-Phase 12.3b and 12.4 tasks)
+
+### Sub-Phase 12.5: Scene Contract Validation - 4-6 hours ⭐ APPROVED
+
+**Goal**: Create ISceneContract validation system to catch configuration errors at scene load time (NOT spawn time).
+
+**Rationale**: Currently, missing player entities, cameras, or spawn points are only detected when spawning happens. This causes confusing errors during gameplay. Scene contract validation catches these errors EARLY when scenes load, with clear structured error messages.
+
+- [ ] T299 [P] Write `tests/unit/scene_validation/test_scene_contract.gd` - TDD RED
+- [ ] T300 [P] Write tests for gameplay scene validation (player, camera, spawn points required)
+- [ ] T301 [P] Write tests for UI scene validation (no player/spawn required, optional camera)
+- [ ] T302 Create `scripts/scene_management/i_scene_contract.gd` class
+  - validate_scene(scene: Node, scene_type: SceneType) -> ValidationResult
+  - ValidationResult: { valid: bool, errors: Array[String], warnings: Array[String] }
+- [ ] T303 Implement gameplay scene validation rules
+  - REQUIRED: One player entity (E_Player* prefix)
+  - REQUIRED: One camera in "main_camera" group
+  - REQUIRED: At least one spawn point (sp_* prefix)
+  - REQUIRED: Default spawn point (sp_default) exists
+  - WARNING: Multiple player entities found (ambiguous)
+  - WARNING: Multiple default spawn points
+- [ ] T304 Implement UI scene validation rules
+  - FORBIDDEN: Player entities (UI scenes shouldn't have players)
+  - FORBIDDEN: Spawn points (UI scenes don't need spawn logic)
+  - OPTIONAL: Camera (some UI scenes have cameras, others don't)
+- [ ] T305 Integrate validation into M_SceneManager._perform_transition()
+  - After loading scene, before spawning player
+  - Call ISceneContract.validate_scene()
+  - If validation fails: log errors, abort transition, show error screen
+  - If warnings only: log warnings, continue with transition
+- [ ] T306 Run scene validation tests - expect all PASS
+- [ ] T307 Manual test: Load scene with missing player → clear error message at load time
+- [ ] T308 Manual test: Load scene with missing spawn point → clear error message
+- [ ] T309 Run full test suite - expect 502/506 passing
+- [ ] T310 Commit: "Phase 12.5: Add scene contract validation for early error detection"
+
+**Checkpoint**: ✅ Sub-Phase 12.5 complete - scene configuration errors caught early with clear messages
+
+**Checkpoint**: ✅ **Phase 12 APPROVED SCOPE COMPLETE (56/56 tasks)** - Spawn/Camera extraction + death respawn + validation
+
+**Phase 12 Approved Scope Deliverables**:
+- **Lines Extracted from M_SceneManager**: 241 lines (106 spawn + 135 camera)
+- **M_SceneManager Final Size**: ~1,171 lines (down from 1,412)
+- **New Managers**: M_SpawnManager (~150 lines), M_CameraManager (~200 lines)
+- **Test Coverage**: Comprehensive (TDD approach, expect 502+/506 passing)
+- **New Features**: Death respawn, scene contract validation
+- **Documentation**: Updated continuation prompt, AGENTS.md, DEV_PITFALLS.md
+
+**Architecture Benefits**:
+- ✅ **Maximum Separation of Concerns**: 3 single-responsibility managers
+- ✅ **Camera Independence**: M_CameraManager reusable for cinematics, shake, cutscenes
+- ✅ **Early Error Detection**: Scene contract validation catches config errors at load time
+- ✅ **Testability**: Each manager testable in isolation
+- ✅ **Maintainability**: Smaller, focused managers (~150-200 lines each)
+
+**Deferred Features** (Phase 13):
+- Checkpoint markers (C_CheckpointComponent, S_CheckpointSystem)
+- Spawn effects (fade, particles)
+- Conditional spawning (quest/item integration)
+- Spawn metadata registry
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
