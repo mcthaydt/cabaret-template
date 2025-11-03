@@ -190,3 +190,18 @@ Phase 9 implements a **simple ragdoll death effect** for visual feedback:
 5. ✅ Phase 8.5 (Gameplay Mechanics) - COMPLETE
 6. ✅ Phase 9 (End-Game Flows) - COMPLETE
 7. → Phase 10 (Polish) - 2-3 days
+
+---
+Now implement precisely as planned, in full.
+
+Implementation Requirements:
+
+- Write elegant, minimal, modular code.
+- Adhere strictly to existing code patterns, conventions, and best practices.
+- Include thorough, clear comments/documentation within the code.
+- Ensure we have absolutely no orphans, and every test that's expected to fail is marked as such\
+- Read every single required document before beginning\
+
+Do you have any questions?
+
+---

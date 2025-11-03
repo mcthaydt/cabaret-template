@@ -69,7 +69,7 @@ var _is_processing_transition: bool = false
 ## Camera blending (Phase 10: T178-T181)
 var _transition_camera: Camera3D = null
 var _camera_blend_tween: Tween = null
-var _camera_blend_duration: float = 0.5  # Default blend duration in seconds
+var _camera_blend_duration: float = 0.2  # Match fade transition duration
 
 ## Current scene tracking for reactive cursor updates
 var _current_scene_id: StringName = StringName("")
@@ -408,37 +408,29 @@ func _perform_transition(request: TransitionRequest) -> void:
 		scene_swap_callback.call()
 		completion_callback.call()
 
-	# Phase 10: Start camera blend in parallel with transition effect (T178-T182, T182.5)
-	# Track camera blend completion separately from transition effect
-	var camera_blend_complete: Array = [false]
-	var camera_blend_tween: Tween = null
+	# Wait for transition to complete (matches original pattern)
+	while not transition_complete[0]:
+		await get_tree().process_frame
 
-	# Start camera blend as soon as scene swap completes (runs parallel with fade)
+	# Phase 10: Camera blending (T178-T182, T182.5)
+	# Start camera blend without waiting - it runs in background via Tween
+	# This ensures _perform_transition returns quickly so state updates aren't delayed
 	var blend_duration: float = 0.0 if request.transition_type == "instant" else _camera_blend_duration
-
-	# Wait for scene swap to complete first (so new camera exists)
-	while not scene_swap_complete[0]:
-		await get_tree().process_frame
-
-	# Now start camera blend (will run parallel with remainder of fade)
 	var new_camera: Camera3D = new_camera_ref[0] as Camera3D
-	if old_camera_state != null and new_camera != null:
-		camera_blend_tween = _blend_camera(old_camera_state, new_camera, blend_duration)
-		# Connect completion callback
-		camera_blend_tween.finished.connect(func() -> void:
-			_finalize_camera_blend(new_camera)
-			camera_blend_complete[0] = true
-		)
-	elif new_camera != null:
-		# No old camera state, just activate new camera directly
-		new_camera.current = true
-		camera_blend_complete[0] = true
-	else:
-		camera_blend_complete[0] = true
 
-	# Wait for BOTH transition effect AND camera blend to complete
-	while not transition_complete[0] or not camera_blend_complete[0]:
-		await get_tree().process_frame
+	if new_camera != null:
+		if old_camera_state != null:
+			# Start blend tween (runs automatically in background)
+			var blend_tween: Tween = _blend_camera(old_camera_state, new_camera, blend_duration)
+			# Connect to finished signal to finalize camera switch
+			if blend_tween != null and blend_tween.is_valid():
+				blend_tween.finished.connect(_finalize_camera_blend.bind(new_camera), CONNECT_ONE_SHOT)
+			else:
+				# Tween invalid (e.g., instant transition with duration=0), activate immediately
+				_finalize_camera_blend(new_camera)
+		else:
+			# No old camera - just activate new camera immediately
+			new_camera.current = true
 
 ## Remove current scene from ActiveSceneContainer
 func _remove_current_scene() -> void:
