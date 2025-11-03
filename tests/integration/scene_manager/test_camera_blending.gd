@@ -10,12 +10,14 @@ extends GutTest
 ## blends to new camera state using Tween interpolation.
 
 const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
+const M_SpawnManager = preload("res://scripts/managers/m_spawn_manager.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/state/resources/rs_state_store_settings.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager
+var _spawn_manager: M_SpawnManager
 var _store: M_StateStore
 var _active_scene_container: Node
 var _ui_overlay_stack: CanvasLayer
@@ -58,6 +60,10 @@ func before_each() -> void:
 	_transition_overlay.add_child(color_rect)
 	_root_scene.add_child(_transition_overlay)
 
+	# Create spawn manager (Phase 12.1: required for spawn restoration)
+	_spawn_manager = M_SpawnManager.new()
+	_root_scene.add_child(_spawn_manager)
+
 	# Create scene manager
 	_manager = M_SceneManager.new()
 	_manager.skip_initial_scene_load = true
@@ -66,6 +72,7 @@ func before_each() -> void:
 
 func after_each() -> void:
 	_manager = null
+	_spawn_manager = null
 	_store = null
 	_active_scene_container = null
 	_ui_overlay_stack = null
