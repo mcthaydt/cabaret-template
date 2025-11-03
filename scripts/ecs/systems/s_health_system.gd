@@ -7,20 +7,26 @@ class_name S_HealthSystem
 ## dispatches state actions, and coordinates delayed death transitions.
 
 const COMPONENT_TYPE := StringName("C_HealthComponent")
-const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_EntityActions := preload("res://scripts/state/actions/u_entity_actions.gd")
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
+const PLAYER_RAGDOLL := preload("res://templates/player_ragdoll.tscn")
 
 var _store: M_StateStore = null
 var _scene_manager: M_SceneManager = null
 var _death_logged: Dictionary = {}          # entity_id -> bool
 var _transition_triggered: Dictionary = {}  # entity_id -> bool
+var _ragdoll_spawned: Dictionary = {}       # entity_id -> bool
+var _ragdoll_instances: Dictionary = {}     # entity_id -> WeakRef
+var _entity_refs: Dictionary = {}           # entity_id -> WeakRef
+var _entity_original_visibility: Dictionary = {}  # entity_id -> bool
+var _rng := RandomNumberGenerator.new()
 
 func _init() -> void:
 	execution_priority = 200
+	_rng.randomize()
 
 func process_tick(delta: float) -> void:
 	if not _ensure_dependencies_ready():
@@ -139,6 +145,10 @@ func _apply_regeneration(component: C_HealthComponent, entity_id: String, delta:
 			_dispatch_heal_state(entity_id, healed_amount)
 
 func _handle_death_sequence(component: C_HealthComponent, entity_id: String) -> void:
+	if not _ragdoll_spawned.get(entity_id, false):
+		_spawn_ragdoll(component, entity_id)
+		_ragdoll_spawned[entity_id] = true
+
 	if component.death_timer > 0.0:
 		return
 	if _transition_triggered.get(entity_id, false):
@@ -154,6 +164,7 @@ func _handle_death_sequence(component: C_HealthComponent, entity_id: String) -> 
 		)
 
 func _reset_death_flags(entity_id: String) -> void:
+	_restore_entity_state(entity_id)
 	_death_logged.erase(entity_id)
 	_transition_triggered.erase(entity_id)
 
@@ -186,6 +197,72 @@ func _update_entity_snapshot(component: C_HealthComponent, entity_id: String) ->
 		"is_dead": component.is_dead()
 	}
 	_store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
+
+func _spawn_ragdoll(component: C_HealthComponent, entity_id: String) -> void:
+	if PLAYER_RAGDOLL == null:
+		return
+
+	var entity_root := U_ECSUtils.find_entity_root(component) as Node3D
+	if entity_root == null:
+		entity_root = component.get_parent() as Node3D
+	if entity_root == null:
+		return
+
+	var parent := entity_root.get_parent()
+	if parent == null:
+		return
+
+	var ragdoll_scene := PLAYER_RAGDOLL as PackedScene
+	if ragdoll_scene == null:
+		return
+
+	var ragdoll := ragdoll_scene.instantiate() as RigidBody3D
+	if ragdoll == null:
+		return
+
+	var source_transform: Transform3D = entity_root.global_transform
+	var body := component.get_character_body()
+	if body != null and is_instance_valid(body):
+		source_transform = body.global_transform
+
+	parent.add_child(ragdoll)
+	ragdoll.global_transform = source_transform
+	ragdoll.linear_velocity = Vector3(
+		_rng.randf_range(-4.0, 4.0),
+		_rng.randf_range(4.0, 6.0),
+		_rng.randf_range(-4.0, 4.0)
+	)
+	ragdoll.angular_velocity = Vector3(
+		_rng.randf_range(-6.0, 6.0),
+		_rng.randf_range(-3.0, 3.0),
+		_rng.randf_range(-6.0, 6.0)
+	)
+	ragdoll.set_meta("player_ragdoll", true)
+
+	_entity_refs[entity_id] = weakref(entity_root)
+	_entity_original_visibility[entity_id] = entity_root.visible
+	entity_root.visible = false
+	_ragdoll_instances[entity_id] = weakref(ragdoll)
+
+func _restore_entity_state(entity_id: String) -> void:
+	var ragdoll_ref_candidate: Variant = _ragdoll_instances.get(entity_id)
+	if ragdoll_ref_candidate is WeakRef:
+		var ragdoll_ref: WeakRef = ragdoll_ref_candidate
+		var ragdoll := ragdoll_ref.get_ref() as RigidBody3D
+		if ragdoll != null and is_instance_valid(ragdoll):
+			ragdoll.queue_free()
+	_ragdoll_instances.erase(entity_id)
+
+	var entity_ref_candidate: Variant = _entity_refs.get(entity_id)
+	if entity_ref_candidate is WeakRef:
+		var entity_ref: WeakRef = entity_ref_candidate
+		var entity := entity_ref.get_ref() as Node3D
+		if entity != null and is_instance_valid(entity):
+			var was_visible: bool = bool(_entity_original_visibility.get(entity_id, true))
+			entity.visible = was_visible
+	_entity_refs.erase(entity_id)
+	_entity_original_visibility.erase(entity_id)
+	_ragdoll_spawned.erase(entity_id)
 
 func _ensure_dependencies_ready() -> bool:
 	if _store == null:

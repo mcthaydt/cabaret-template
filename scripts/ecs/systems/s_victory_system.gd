@@ -6,6 +6,7 @@ const COMPONENT_TYPE := StringName("C_VictoryTriggerComponent")
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
+const REQUIRED_FINAL_AREA := "interior_house"
 
 var _store: M_StateStore = null
 var _scene_manager: M_SceneManager = null
@@ -24,6 +25,8 @@ func process_tick(_delta: float) -> void:
 			continue
 
 		if trigger.consume_trigger_request():
+			if not _can_trigger_victory(trigger):
+				continue
 			_handle_victory(trigger)
 
 func _handle_victory(trigger: C_VictoryTriggerComponent) -> void:
@@ -40,6 +43,25 @@ func _handle_victory(trigger: C_VictoryTriggerComponent) -> void:
 		_scene_manager.transition_to_scene(target_scene, "fade", M_SceneManager.Priority.HIGH)
 
 	trigger.set_triggered()
+
+func _can_trigger_victory(trigger: C_VictoryTriggerComponent) -> bool:
+	if trigger == null:
+		return false
+
+	if trigger.victory_type == C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:
+		if _store == null:
+			return false
+		var state: Dictionary = _store.get_state()
+		var gameplay: Dictionary = state.get("gameplay", {})
+		var completed_variant: Variant = gameplay.get("completed_areas", [])
+		if completed_variant is Array:
+			var completed: Array = completed_variant
+			if not completed.has(REQUIRED_FINAL_AREA):
+				return false
+		else:
+			return false
+
+	return true
 
 func _get_target_scene(trigger: C_VictoryTriggerComponent) -> StringName:
 	match trigger.victory_type:

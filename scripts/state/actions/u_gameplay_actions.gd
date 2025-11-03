@@ -24,6 +24,8 @@ const ACTION_INCREMENT_DEATH_COUNT := StringName("gameplay/increment_death_count
 const ACTION_TRIGGER_VICTORY := StringName("gameplay/trigger_victory")
 const ACTION_MARK_AREA_COMPLETE := StringName("gameplay/mark_area_complete")
 const ACTION_GAME_COMPLETE := StringName("gameplay/game_complete")
+const ACTION_RESET_PROGRESS := StringName("gameplay/reset_progress")
+const ACTION_RESET_AFTER_DEATH := StringName("gameplay/reset_after_death")
 
 ## Static initializer - automatically registers actions
 static func _static_init() -> void:
@@ -45,6 +47,8 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_TRIGGER_VICTORY)
 	U_ActionRegistry.register_action(ACTION_MARK_AREA_COMPLETE)
 	U_ActionRegistry.register_action(ACTION_GAME_COMPLETE)
+	U_ActionRegistry.register_action(ACTION_RESET_PROGRESS)
+	U_ActionRegistry.register_action(ACTION_RESET_AFTER_DEATH)
 
 ## Create a pause game action
 static func pause_game() -> Dictionary:
@@ -177,5 +181,19 @@ static func mark_area_complete(area_id: String) -> Dictionary:
 static func game_complete() -> Dictionary:
 	return {
 		"type": ACTION_GAME_COMPLETE,
+		"payload": null
+	}
+
+## Hard reset after victory (clear progression to initial state)
+static func reset_progress() -> Dictionary:
+	return {
+		"type": ACTION_RESET_PROGRESS,
+		"payload": null
+	}
+
+## Soft reset after death (restore health/state without wiping progress)
+static func reset_after_death() -> Dictionary:
+	return {
+		"type": ACTION_RESET_AFTER_DEATH,
 		"payload": null
 	}

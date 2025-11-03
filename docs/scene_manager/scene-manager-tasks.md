@@ -890,20 +890,20 @@
 
 ### Tests for User Story 7 (TDD - Write FIRST, watch fail)
 
-- [ ] T162 [P] [US7] Write integration test for end-game flows in tests/integration/scene_manager/test_endgame_flows.gd
+- [x] T162 [P] [US7] Write integration test for end-game flows in tests/integration/scene_manager/test_endgame_flows.gd *(test suite now covers death/victory/credits flows)*
 
 ### Implementation for User Story 7
 
-- [ ] T163 [P] [US7] Create scenes/ui/game_over.tscn with Retry/Menu buttons
+- [x] T163 [P] [US7] Create scenes/ui/game_over.tscn with Retry/Menu buttons
   - UI Elements: Title "Game Over", death count display (read from state.gameplay.death_count), Retry button, Menu button
   - Button handlers: Retry → soft reset (restore health, keep progress) → transition to exterior, Menu → transition to main_menu
   - Scene type: END_GAME
-- [ ] T164 [P] [US7] Create scenes/ui/victory.tscn with Continue/Menu buttons
+- [x] T164 [P] [US7] Create scenes/ui/victory.tscn with Continue/Menu buttons
   - UI Elements: Title "Victory!", completed areas count display, Continue button, Credits button, Menu button
   - Conditional display: Show Credits button only if game_completed = true
   - Button handlers: Continue → transition to exterior, Credits → transition to credits, Menu → transition to main_menu
   - Scene type: END_GAME
-- [ ] T165 [P] [US7] Create scenes/ui/credits.tscn with scrolling text
+- [x] T165 [P] [US7] Create scenes/ui/credits.tscn with scrolling text
   - UI Elements: ScrollContainer with VBoxContainer, Label/RichTextLabel with credits text, Skip button (bottom-right)
   - Auto-scroll: Tween animates scroll_vertical from 0 to max over 55 seconds (bottom-to-top scroll)
     - scroll_speed calculation: max_scroll / 55 seconds
@@ -912,12 +912,12 @@
   - Auto-return: Timer set to 60 seconds (5s buffer after scroll completes), automatically transitions to main_menu
   - Button handler: Skip → immediate transition to main_menu (cancels timer and tween)
   - Scene type: END_GAME
-- [ ] T165.1 [P] [US7] Create templates/player_ragdoll.tscn (simple ragdoll prefab)
+- [x] T165.1 [P] [US7] Create templates/player_ragdoll.tscn (simple ragdoll prefab)
   - Root: RigidBody3D (mass=70, gravity_scale=1.0)
   - Child: CollisionShape3D with CapsuleShape3D (height=2, radius=0.5 - match player size)
   - Child: MeshInstance3D with CapsuleMesh (same dimensions, material=player color)
   - Physics: Continuous CD enabled, lock_rotation disabled (allow tumbling)
-- [ ] T165.2 [P] [US7] Update s_health_system.gd to spawn ragdoll on death
+- [x] T165.2 [P] [US7] Update s_health_system.gd to spawn ragdoll on death
   - In _handle_death_sequence(), when death timer starts:
     1. Hide player entity (visible=false)
     2. Preload and instantiate player_ragdoll.tscn
@@ -925,12 +925,12 @@
     4. Set ragdoll global_position and global_rotation to match player
     5. Apply random impulse (upward + sideways) and angular_velocity for tumble effect
   - Wait for death_timer (2.5s) then transition to game_over as usual
-- [ ] T165.3 [P] [US7] Add GAME_COMPLETE goal zone to exterior.tscn
+- [x] T165.3 [P] [US7] Add GAME_COMPLETE goal zone to exterior.tscn
   - Instantiate goal_zone.tscn in exterior scene
   - Position: Visible/accessible location (e.g., near spawn, or at special landmark)
   - Configure C_VictoryTriggerComponent: victory_type=GAME_COMPLETE (1), objective_id="final_goal", area_id="exterior"
   - Add visual marker (e.g., glowing mesh or particle effect) to make it obvious
-- [ ] T165.4 [P] [US7] Add conditional activation logic to victory triggers (Hybrid approach)
+- [x] T165.4 [P] [US7] Add conditional activation logic to victory triggers (Hybrid approach)
   - System logic: Modify S_VictorySystem._can_trigger_victory() to check completed_areas for GAME_COMPLETE type
     - Check if "interior_house" in state.gameplay.completed_areas before allowing GAME_COMPLETE victory
     - Return false if locked, preventing victory trigger from firing
@@ -941,42 +941,43 @@
     - Optionally play unlock animation/sound when first unlocked
   - Separation of concerns: System handles game rules, entity handles presentation
   - Note: Victory transitions won't work until T166 (scene registry) completes
-- [ ] T165.5 [US7] Test: Ragdoll spawns correctly on death (spike damage and fall damage)
+- [x] T165.5 [US7] Test: Ragdoll spawns correctly on death (spike damage and fall damage)
   - Verify ragdoll appears at player position
   - Verify ragdoll tumbles and falls naturally
   - Verify transition to game_over occurs after 2.5s
   - Verify no errors or visual glitches
-- [ ] T166 [US7] Add game_over, victory, credits to U_SceneRegistry
+- [x] T166 [US7] Add game_over, victory, credits to U_SceneRegistry
   - game_over: path="res://scenes/ui/game_over.tscn", type=END_GAME, default_transition="fade", preload_priority=8 (high - deaths are common)
   - victory: path="res://scenes/ui/victory.tscn", type=END_GAME, default_transition="fade", preload_priority=5 (medium - less frequent)
   - credits: path="res://scenes/ui/credits.tscn", type=END_GAME, default_transition="fade", preload_priority=0 (no preload - rare access)
-- [ ] T167 [US7] Implement retry functionality (reload gameplay from last checkpoint)
+- [x] T167 [US7] Implement retry functionality (reload gameplay from last checkpoint)
   - Soft reset: Dispatch action to restore player health to max (keep death_count, completed_areas, all other progress)
   - Transition to exterior scene (hub world) with "fade" transition
   - Spawn behavior: Player spawns at scene's default spawn point (SpawnPoint node marked as "default")
     - If player died in exterior → respawn at exterior default spawn
     - If player died in interior → respawn at exterior default spawn (return to hub)
   - Note: Checkpoint system deferred to Phase 10, no mid-scene checkpoints yet
-- [ ] T168 [US7] Implement continue functionality (load next area/level)
+- [x] T168 [US7] Implement continue functionality (load next area/level)
   - Always return to exterior scene (hub world) after victory
   - Transition uses "fade" effect
   - Future: Add level progression system if multi-level design is implemented
-- [ ] T169 [US7] Implement credits auto-return to main menu after completion
+- [x] T169 [US7] Implement credits auto-return to main menu after completion
   - Already implemented in T165 (60-second timer in credits scene)
   - This task is for verification/integration testing only
-- [ ] T170 [US7] Test: Death condition triggers game_over scene
-- [ ] T171 [US7] Test: Victory condition triggers victory scene
-- [ ] T172 [US7] Test: Game completion triggers credits scene
+- [x] T170 [US7] Test: Death condition triggers game_over scene *(test_endgame_flows.gd::test_death...)*
+- [x] T171 [US7] Test: Victory condition triggers victory scene *(test_endgame_flows.gd::test_victory_triggers... )*
+- [x] T172 [US7] Test: Game completion triggers credits scene *(test_endgame_flows.gd::test_victory_continue_and_credits... )*
 
 ### Integration Tests for User Story 7
 
-- [ ] T173 [US7] Run test_endgame_flows.gd and verify all end-game scenarios
-- [ ] T174 [US7] Test: Game Over → Retry → Gameplay restarts from checkpoint
-- [ ] T175 [US7] Test: Victory → Continue → Next area loads
-- [ ] T176 [US7] Test: Credits → Auto-return to Main Menu
-- [ ] T177 [US7] Manual test: Trigger all end-game scenarios in-game
+- [x] T173 [US7] Run test_endgame_flows.gd and verify all end-game scenarios
+- [x] T174 [US7] Test: Game Over → Retry → Gameplay restarts from checkpoint *(covered in test_endgame_flows.gd::test_game_over_retry... )*
+- [x] T175 [US7] Test: Victory → Continue → Next area loads *(test_endgame_flows.gd::test_victory_continue... )*
+- [x] T176 [US7] Test: Credits → Auto-return to Main Menu *(test_endgame_flows.gd::test_credits_auto_return_to_main_menu)*
+- [x] T177 [US7] Manual test: Trigger all end-game scenarios in-game
+  - **Complete**: Manual validation done - all endgame flows working (death, victory, credits, ragdoll effects)
 
-**Checkpoint**: User Story 7 complete - end-game flows working with proper navigation
+**Checkpoint**: ✅ **Phase 9 COMPLETE (177/177 tasks - 100%)** - User Story 7 complete, end-game flows working with proper navigation
 
 ---
 
@@ -987,11 +988,45 @@
 ### Camera Blending
 
 - [ ] T178 [P] Implement camera position blending between old and new scene cameras
+  - **Architecture**: Scene-based cameras (not player-attached), E_Camera entity with E_PlayerCamera node
+  - **Current state**: Cameras at identical position (0, 1, 4.5) in both exterior and interior
+  - **Implementation**:
+    1. Capture old camera global_position before scene unload (find via "main_camera" group)
+    2. Create transition Camera3D in M_SceneManager, set as current
+    3. Tween from old position → new scene camera position over 0.3-0.5s
+    4. Use Tween.TRANS_CUBIC, Tween.EASE_IN_OUT (pattern from prototype_camera_blending.gd)
+  - **Reference**: scripts/prototypes/prototype_camera_blending.gd (Phase 0 validation)
 - [ ] T179 [P] Implement camera rotation blending using Tween
+  - Capture old camera global_rotation before unload
+  - Tween transition camera rotation from old → new
+  - Use same timing/easing as position (0.3-0.5s, TRANS_CUBIC, EASE_IN_OUT)
 - [ ] T180 [P] Implement camera FOV blending
+  - Capture old camera fov before unload (default 75° currently)
+  - Tween transition camera fov from old → new
+  - **Scene variations** (optional follow-up):
+    - Exterior: FOV 80° (wider for open space)
+    - Interior: FOV 65° (narrower for enclosed space)
 - [ ] T181 Add dedicated transition camera to M_SceneManager for blending
+  - Create Camera3D node in M_SceneManager._ready()
+  - Add to scene tree (child of M_SceneManager or root.tscn level)
+  - Set current=true during blend, current=false after
+  - Cleanup: Keep camera node for reuse across transitions
 - [ ] T182 Test camera transitions are smooth (no jitter, no pop)
+  - Integration test: tests/integration/scene_manager/test_camera_blending.gd
+  - Test exterior → interior → exterior transitions
+  - Assert: Smooth interpolation, no visible jitter
+  - Manual validation: Observe transitions feel polished
+  - **Known limitation**: Cameras currently identical, blending is subtle
 - [ ] T182.5 Integrate camera blending with FadeTransition to blend during fade-in (FR-074: parallel with fade effect)
+  - Modify scripts/scene_management/transitions/fade_transition.gd
+  - Camera blend runs parallel with fade effect (not sequential)
+  - Timing: Camera blend starts during fade-out, completes during fade-in
+  - Both effects finish simultaneously for smooth transition
+- [ ] T182.6 [OPTIONAL] Create scene-specific camera variations to demonstrate blending
+  - Exterior (exterior.tscn): Camera at (0, 1.5, 4.5), FOV 80° (higher, wider for open space)
+  - Interior (interior_house.tscn): Camera at (0, 0.8, 4.5), FOV 65° (lower, narrower for enclosed space)
+  - Makes camera blending more noticeable and meaningful
+  - **Note**: Blending system works with identical cameras, variations are polish
 
 ### Edge Case Testing
 

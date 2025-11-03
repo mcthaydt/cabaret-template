@@ -128,6 +128,54 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			complete_state.game_completed = true
 			return complete_state
 
+		U_GameplayActions.ACTION_RESET_PROGRESS:
+			var reset_state: Dictionary = state.duplicate(true)
+			var max_health_reset: float = float(reset_state.get("player_max_health", 100.0))
+
+			reset_state.paused = false
+			reset_state.move_input = Vector2.ZERO
+			reset_state.look_input = Vector2.ZERO
+			reset_state.jump_pressed = false
+			reset_state.jump_just_pressed = false
+
+			reset_state.player_health = max_health_reset
+			reset_state.death_count = 0
+			reset_state.completed_areas = []
+			reset_state.last_victory_objective = StringName("")
+			reset_state.game_completed = false
+			reset_state.target_spawn_point = StringName("")
+
+			var player_id: String = String(reset_state.get("player_entity_id", "E_Player"))
+			var updated_entities: Dictionary = {}
+			if reset_state.has("entities"):
+				var entities_copy: Dictionary = reset_state["entities"].duplicate(true)
+				if entities_copy.has(player_id):
+					var player_snapshot: Dictionary = entities_copy[player_id].duplicate(true)
+					player_snapshot["health"] = max_health_reset
+					player_snapshot["is_dead"] = false
+					updated_entities[player_id] = player_snapshot
+			reset_state["entities"] = updated_entities
+
+			return reset_state
+
+		U_GameplayActions.ACTION_RESET_AFTER_DEATH:
+			var reset_state: Dictionary = state.duplicate(true)
+			var max_health_reset: float = float(reset_state.get("player_max_health", 100.0))
+			reset_state.player_health = max_health_reset
+			reset_state.last_victory_objective = StringName("")
+
+			var player_id: String = String(reset_state.get("player_entity_id", "E_Player"))
+			if reset_state.has("entities"):
+				var entities_copy: Dictionary = reset_state["entities"].duplicate(true)
+				if entities_copy.has(player_id):
+					var player_snapshot: Dictionary = entities_copy[player_id].duplicate(true)
+					player_snapshot["health"] = max_health_reset
+					player_snapshot["is_dead"] = false
+					entities_copy[player_id] = player_snapshot
+				reset_state["entities"] = entities_copy
+
+			return reset_state
+
 		U_TransitionActions.ACTION_TRANSITION_TO_GAMEPLAY:
 			# Apply menu config to gameplay state
 			var new_state: Dictionary = state.duplicate(true)

@@ -291,15 +291,22 @@ func _perform_transition(request: TransitionRequest) -> void:
 
 	# Phase 8: Create progress callback for async loading
 	var current_progress: Array = [0.0]  # Array for closure to work
-	var progress_callback := func(progress: float) -> void:
-		current_progress[0] = progress
+	var progress_callback: Callable
 
-	# Phase 8: Set progress_provider for LoadingScreenTransition
+	# Phase 8: Set progress handling for LoadingScreenTransition
 	if transition_effect is LoadingScreenTransition:
 		var loading_transition := transition_effect as LoadingScreenTransition
-		# Create a Callable that returns current progress
+		progress_callback = func(progress: float) -> void:
+			var normalized_progress: float = clamp(progress, 0.0, 1.0)
+			current_progress[0] = normalized_progress
+			loading_transition.update_progress(normalized_progress * 100.0)
+
+		# Create a Callable that returns current progress for polling loop
 		loading_transition.progress_provider = func() -> float:
 			return current_progress[0]
+	else:
+		progress_callback = func(progress: float) -> void:
+			current_progress[0] = clamp(progress, 0.0, 1.0)
 
 	# Track if scene swap has completed (use Array for closure to work)
 	var scene_swap_complete: Array = [false]

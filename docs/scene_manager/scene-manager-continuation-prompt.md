@@ -5,7 +5,7 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager`
-**Status**: ✅ Phase 0, 1, 2, 3, 4, 5, 6, 6.5, 7, 8, 8.5 Complete | 🎯 Ready for Phase 9
+**Status**: ✅ Phase 9 COMPLETE | 🎯 Phase 10: Camera Blending & Polish
 
 ---
 
@@ -94,26 +94,26 @@ Additional tracking requirements:
 
 ## Getting Started
 
-**Current Phase**: 🎯 Phase 9 - End-Game Flows (NEXT)
+**Current Phase**: 🎯 Phase 10 - Polish & Cross-Cutting Concerns (28 tasks, 2-3 days)
 
-**Phase 8.5 Complete**:
+**Phase 9 COMPLETE**:
 
-- ✅ ECS health loop (components + systems + HUD wiring)
-- ✅ Damage zones (spikes, death plane) with cooldown protection
-- ✅ Victory triggers (goal zone, state updates, scene handoff)
-- ✅ Player template owns health metadata + state integration
-- ✅ New integration tests (health/damage/victory) + full suite passing
+- ✅ All 177 Phase 9 tasks complete (100%)
+- ✅ End-game UI scenes (game_over, victory, credits) implemented
+- ✅ Two-stage victory progression working (LEVEL_COMPLETE → GAME_COMPLETE)
+- ✅ Ragdoll death effect with delayed transition
+- ✅ Retry/continue/credits navigation flows complete
+- ✅ Manual in-editor validation complete (T177) - all endgame flows working
+- ✅ Integration test coverage: test_endgame_flows.gd
 
-**Known Gaps from Phase 8.5**:
+**Phase 10 Preparation Complete**:
 
-⚠️ Phase 8.5 implemented the *trigger systems* for victory and death, but the *destination scenes* don't exist yet. **The game will crash** if these triggers fire:
-
-- ❌ **Victory scene missing**: `s_victory_system.gd:47` references `"victory"` scene (doesn't exist)
-- ❌ **Game over scene missing**: `s_health_system.gd:151` references `"game_over"` scene (doesn't exist)
-- ❌ **Credits scene missing**: Not yet referenced by any system
-- ❌ **Scene registry incomplete**: None of the above scenes registered in `u_scene_registry.gd`
-- ❌ **No death visual**: Death has 2.5s delay (`RS_HealthSettings.death_animation_duration`) but only waits passively, no visual effect
-- ❌ **Exterior missing GAME_COMPLETE goal**: Only interior has victory trigger, no final goal zone unlocked after completion
+- ✅ T177 manual validation complete
+- ✅ Camera blending architecture validated (scene-based pattern, prototype exists)
+- ✅ Implementation approach confirmed: Transition camera + Tween interpolation
+- ✅ Scene cameras identified: E_Camera entity with E_PlayerCamera node
+- ✅ Current state: Cameras identical at (0, 1, 4.5), FOV 75°
+- ✅ Optional variations planned: Different FOV/height for exterior vs interior
 
 **Phase 9 Victory Progression Design**:
 
@@ -147,24 +147,39 @@ Phase 9 implements a **simple ragdoll death effect** for visual feedback:
   5. Fade transition to `game_over.tscn`
 - **Prefab**: `templates/player_ragdoll.tscn` (RigidBody3D + CapsuleMesh + CollisionShape3D)
 
-**Next Steps** (Phase 9 - End-Game Flows):
+**Next Steps** (Phase 10 execution):
 
-- **Tasks**: 21 tasks (T162-T177 + T165.1-T165.5)
-- **Goal**: Wire full win/lose flows: game over, victory, credits navigation, ragdoll death effect, progressive victory system
-- **Why**: Unlock final story beats, allow retry/continue UX backed by real gameplay triggers, add visual death feedback
-- **Read**: `scene-manager-tasks.md` Phase 9 section (lines ~883-965)
-- **Estimated**: 10-12 hours
+1. 🎯 Start with camera blending (T178-T182.6)
+   - Reference: `scripts/prototypes/prototype_camera_blending.gd` for implementation pattern
+   - Create transition camera in M_SceneManager
+   - Implement Tween-based interpolation (position, rotation, FOV)
+   - Integrate with FadeTransition (parallel blending)
+   - Optional: Create scene-specific camera variations
 
-**Phase 9 Workstreams**:
+2. 🎯 Edge case testing (T183-T191)
+   - All 8 edge case scenarios from PRD
+   - Scene loading failures, transition collisions, memory pressure
+   - Physics frame safety, unsaved progress handling
 
-1. Build UI scenes (game_over, victory, credits) with expected controls
-2. Register scenes + transitions in U_SceneRegistry and Scene Manager flows
-3. Implement retry/continue plumbing with state + Scene Manager
-4. Author endgame integration tests (test_endgame_flows.gd) and run full suite
+3. 🎯 Documentation updates (T192-T194)
+   - Create quickstart.md usage guide
+   - Update AGENTS.md with Scene Manager patterns
+   - Update DEV_PITFALLS.md with scene-specific pitfalls
 
-**After Phase 9**:
+4. 🎯 Final validation & code cleanup (T195-T205)
+   - Full test suite validation
+   - Manual game loop testing
+   - Performance/memory validation
+   - Code review and cleanup
+   - Remove debug code, verify TODOs
 
-- Phase 10: Polish & Cross-Cutting (29 tasks, 2-3 days)
+**Phase 10 Scope (User Confirmed)**:
+
+- ✅ All 28 tasks (skip T206 static analysis)
+- ✅ Camera blending: Implement system + optional scene variations
+- ✅ Edge case testing: All 8 scenarios from PRD
+- ✅ Documentation: quickstart.md, AGENTS.md, DEV_PITFALLS.md updates
+- ✅ Code cleanup: Remove debug code, verify TODOs
 
 **Recommended Path**:
 
@@ -173,5 +188,5 @@ Phase 9 implements a **simple ragdoll death effect** for visual feedback:
 3. ✅ Phase 7 (Transition Effects) - COMPLETE
 4. ✅ Phase 8 (Preloading & Performance) - COMPLETE
 5. ✅ Phase 8.5 (Gameplay Mechanics) - COMPLETE
-6. → Phase 9 (End-Game Flows) - 8-10 hours
+6. ✅ Phase 9 (End-Game Flows) - COMPLETE
 7. → Phase 10 (Polish) - 2-3 days

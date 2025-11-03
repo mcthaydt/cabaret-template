@@ -95,15 +95,11 @@
 - Tabs and warnings
   - Keep tab indentation in `.gd` files; tests use native method stubs on engine classes—suppress with `@warning_ignore("native_method_override")` where applicable (details in `docs/general/developer_pitfalls.md`).
 
-## Area Transitions (US3) Notes
+## Scene Transition Patterns
 
-- Scene triggers now guard against duplicate requests:
-  - `C_SceneTriggerComponent` checks `scene.is_transitioning` and a local pending flag before firing, and uses a cooldown window.
-  - `M_SceneManager` dedupes identical transition requests already queued.
-- `S_SceneTriggerSystem` must be present in gameplay scenes to support INTERACT mode; add it under `Systems/Core`.
-- `FadeTransition` temporarily blocks input during the effect to reduce accidental re-triggers; input is restored on completion.
-- For manual tests that start in the exterior, temporarily change `root.tscn` `initial_scene_id` to `exterior`, but keep `main_menu` as the default for normal gameplay/tests.
- - Triggers are shape-agnostic via `RS_SceneTriggerSettings` (Box or Cylinder). Default is Cylinder (Y-up). Avoid non-uniform scaling of nodes; adjust `radius/height` or `box_size` on the shape instead. Use `local_offset` to align with door visuals.
+- **Duplicate request protection**: Components that trigger transitions should check transition state and use cooldown/pending flags to prevent duplicate requests.
+- **Input blocking during transitions**: Transition effects should temporarily block input to prevent accidental re-triggers; restore input on completion.
+- **Trigger shape configuration**: Scene trigger components use shape resources (Box or Cylinder). Avoid non-uniform scaling of nodes; adjust shape dimensions on the resource instead. Use `local_offset` to align triggers with visual geometry.
 
 ## Test Commands
 

@@ -130,6 +130,31 @@ static func _register_scenes() -> void:
 		10  # Critical path - preload at startup (Phase 8)
 	)
 
+	# End-game scenes
+	_register_scene(
+		StringName("game_over"),
+		"res://scenes/ui/game_over.tscn",
+		SceneType.END_GAME,
+		"fade",
+		8
+	)
+
+	_register_scene(
+		StringName("victory"),
+		"res://scenes/ui/victory.tscn",
+		SceneType.END_GAME,
+		"fade",
+		5
+	)
+
+	_register_scene(
+		StringName("credits"),
+		"res://scenes/ui/credits.tscn",
+		SceneType.END_GAME,
+		"fade",
+		0
+	)
+
 ## Register door pairings for seamless area transitions
 static func _register_door_pairings() -> void:
 	# Exterior → Interior House

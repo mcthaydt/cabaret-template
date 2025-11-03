@@ -1,4 +1,4 @@
-[gd_scene load_steps=42 format=3 uid="uid://cshfrc7k5ec6f"]
+[gd_scene load_steps=44 format=3 uid="uid://cshfrc7k5ec6f"]
 
 [ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://bbovcvnujbnj3" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -37,6 +37,8 @@
 [ext_resource type="Resource" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="30_yy52v"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/death_zone.tscn" id="40_death_zone"]
 [ext_resource type="PackedScene" path="res://scenes/hazards/spike_trap.tscn" id="40_spike_trap"]
+[ext_resource type="PackedScene" path="res://scenes/objectives/goal_zone.tscn" id="41_goal_zone"]
+[ext_resource type="Script" path="res://scripts/gameplay/endgame_goal_zone.gd" id="41_goal_script"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -210,6 +212,17 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 3)
 
 [node name="E_SpikeTrapB" parent="Entities/Hazards" instance=ExtResource("40_spike_trap")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 3)
+
+[node name="E_FinalGoal" parent="Entities" instance=ExtResource("41_goal_zone")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -5)
+script = ExtResource("41_goal_script")
+required_area = "interior_house"
+
+[node name="C_VictoryTriggerComponent" parent="Entities/E_FinalGoal"]
+objective_id = &"final_goal"
+area_id = "exterior"
+victory_type = 1
+trigger_once = true
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.40026855, 0)
