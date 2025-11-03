@@ -94,7 +94,7 @@ Additional tracking requirements:
 
 ## Getting Started
 
-**Current Phase**: 🎯 Phase 10 - Polish & Cross-Cutting Concerns (28 tasks, 2-3 days)
+**Current Phase**: 🎯 Phase 10 - Polish & Cross-Cutting Concerns (21 tasks remaining)
 
 **Phase 9 COMPLETE**:
 
@@ -106,14 +106,18 @@ Additional tracking requirements:
 - ✅ Manual in-editor validation complete (T177) - all endgame flows working
 - ✅ Integration test coverage: test_endgame_flows.gd
 
-**Phase 10 Preparation Complete**:
+**Phase 10 - Camera Blending COMPLETE** (T178-T182.6):
 
-- ✅ T177 manual validation complete
-- ✅ Camera blending architecture validated (scene-based pattern, prototype exists)
-- ✅ Implementation approach confirmed: Transition camera + Tween interpolation
-- ✅ Scene cameras identified: E_Camera entity with E_PlayerCamera node
-- ✅ Current state: Cameras identical at (0, 1, 4.5), FOV 75°
-- ✅ Optional variations planned: Different FOV/height for exterior vs interior
+- ✅ T178: Camera position blending implemented
+- ✅ T179: Camera rotation blending implemented (quaternion interpolation)
+- ✅ T180: Camera FOV blending implemented
+- ✅ T181: Transition camera added to M_SceneManager
+- ✅ T182: Smooth camera transitions via Tween system
+- ✅ T182.5: Camera blend integrated with FadeTransition (non-blocking)
+- ✅ T182.6: Scene-specific camera variations (exterior: 80° FOV @ height 1.5, interior: 65° FOV @ height 0.8)
+- ✅ Integration test coverage: test_camera_blending.gd (6 tests, all passing)
+- ✅ Fix: Camera blend runs in background via signal-based finalization (no state update blocking)
+- ✅ Test status: 79 passing, 6 failing (unchanged baseline - GDScript warnings only)
 
 **Phase 9 Victory Progression Design**:
 
@@ -149,37 +153,44 @@ Phase 9 implements a **simple ragdoll death effect** for visual feedback:
 
 **Next Steps** (Phase 10 execution):
 
-1. 🎯 Start with camera blending (T178-T182.6)
-   - Reference: `scripts/prototypes/prototype_camera_blending.gd` for implementation pattern
-   - Create transition camera in M_SceneManager
-   - Implement Tween-based interpolation (position, rotation, FOV)
-   - Integrate with FadeTransition (parallel blending)
-   - Optional: Create scene-specific camera variations
+1. ✅ ~~Camera blending (T178-T182.6)~~ - **COMPLETE**
 
-2. 🎯 Edge case testing (T183-T191)
-   - All 8 edge case scenarios from PRD
-   - Scene loading failures, transition collisions, memory pressure
-   - Physics frame safety, unsaved progress handling
+2. 🎯 Edge case testing (T183-T191) - **NEXT PRIORITY**
+   - Create test_edge_cases.gd test file
+   - T184: Scene loading failure fallback
+   - T185: Transition during transition (queue handling)
+   - T186: Corrupted save file handling
+   - T187: Pause during transition
+   - T188: Low memory scenario
+   - T189: Door trigger while player in air
+   - T190: Transition from physics frame
+   - T191: Unsaved progress on quit
 
 3. 🎯 Documentation updates (T192-T194)
-   - Create quickstart.md usage guide
-   - Update AGENTS.md with Scene Manager patterns
-   - Update DEV_PITFALLS.md with scene-specific pitfalls
+   - T192: Create quickstart.md usage guide
+   - T193: Update AGENTS.md with Scene Manager patterns
+   - T194: Update DEV_PITFALLS.md with scene-specific pitfalls
 
 4. 🎯 Final validation & code cleanup (T195-T205)
-   - Full test suite validation
-   - Manual game loop testing
-   - Performance/memory validation
-   - Code review and cleanup
-   - Remove debug code, verify TODOs
+   - T195: Run full test suite (all tests pass)
+   - T196: Manual test - Full game loop
+   - T197: Validate all 112 functional requirements
+   - T198: Validate all 22 success criteria
+   - T199: Performance validation
+   - T200: Memory validation
+   - T201: Code review - AGENTS.md patterns
+   - T202: Code review - STYLE_GUIDE.md
+   - T203: Remove debug print statements
+   - T204: Remove commented-out code
+   - T205: Verify all TODOs resolved
 
 **Phase 10 Scope (User Confirmed)**:
 
 - ✅ All 28 tasks (skip T206 static analysis)
-- ✅ Camera blending: Implement system + optional scene variations
-- ✅ Edge case testing: All 8 scenarios from PRD
-- ✅ Documentation: quickstart.md, AGENTS.md, DEV_PITFALLS.md updates
-- ✅ Code cleanup: Remove debug code, verify TODOs
+- ✅ **Camera blending: COMPLETE** - System + optional scene variations implemented
+- 🎯 Edge case testing: All 8 scenarios from PRD
+- 🎯 Documentation: quickstart.md, AGENTS.md, DEV_PITFALLS.md updates
+- 🎯 Code cleanup: Remove debug code, verify TODOs
 
 **Recommended Path**:
 

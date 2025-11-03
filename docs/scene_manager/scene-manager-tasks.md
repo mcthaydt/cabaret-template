@@ -987,46 +987,48 @@
 
 ### Camera Blending
 
-- [ ] T178 [P] Implement camera position blending between old and new scene cameras
+- [x] T178 [P] Implement camera position blending between old and new scene cameras
   - **Architecture**: Scene-based cameras (not player-attached), E_Camera entity with E_PlayerCamera node
-  - **Current state**: Cameras at identical position (0, 1, 4.5) in both exterior and interior
   - **Implementation**:
-    1. Capture old camera global_position before scene unload (find via "main_camera" group)
-    2. Create transition Camera3D in M_SceneManager, set as current
-    3. Tween from old position → new scene camera position over 0.3-0.5s
-    4. Use Tween.TRANS_CUBIC, Tween.EASE_IN_OUT (pattern from prototype_camera_blending.gd)
-  - **Reference**: scripts/prototypes/prototype_camera_blending.gd (Phase 0 validation)
-- [ ] T179 [P] Implement camera rotation blending using Tween
-  - Capture old camera global_rotation before unload
-  - Tween transition camera rotation from old → new
-  - Use same timing/easing as position (0.3-0.5s, TRANS_CUBIC, EASE_IN_OUT)
-- [ ] T180 [P] Implement camera FOV blending
-  - Capture old camera fov before unload (default 75° currently)
-  - Tween transition camera fov from old → new
-  - **Scene variations** (optional follow-up):
-    - Exterior: FOV 80° (wider for open space)
-    - Interior: FOV 65° (narrower for enclosed space)
-- [ ] T181 Add dedicated transition camera to M_SceneManager for blending
-  - Create Camera3D node in M_SceneManager._ready()
-  - Add to scene tree (child of M_SceneManager or root.tscn level)
-  - Set current=true during blend, current=false after
-  - Cleanup: Keep camera node for reuse across transitions
-- [ ] T182 Test camera transitions are smooth (no jitter, no pop)
-  - Integration test: tests/integration/scene_manager/test_camera_blending.gd
-  - Test exterior → interior → exterior transitions
-  - Assert: Smooth interpolation, no visible jitter
-  - Manual validation: Observe transitions feel polished
-  - **Known limitation**: Cameras currently identical, blending is subtle
-- [ ] T182.5 Integrate camera blending with FadeTransition to blend during fade-in (FR-074: parallel with fade effect)
-  - Modify scripts/scene_management/transitions/fade_transition.gd
-  - Camera blend runs parallel with fade effect (not sequential)
-  - Timing: Camera blend starts during fade-out, completes during fade-in
-  - Both effects finish simultaneously for smooth transition
-- [ ] T182.6 [OPTIONAL] Create scene-specific camera variations to demonstrate blending
-  - Exterior (exterior.tscn): Camera at (0, 1.5, 4.5), FOV 80° (higher, wider for open space)
-  - Interior (interior_house.tscn): Camera at (0, 0.8, 4.5), FOV 65° (lower, narrower for enclosed space)
-  - Makes camera blending more noticeable and meaningful
-  - **Note**: Blending system works with identical cameras, variations are polish
+    1. ✅ Created CameraState class to capture camera properties
+    2. ✅ Capture old camera global_position before scene unload (find via "main_camera" group)
+    3. ✅ Create transition Camera3D in M_SceneManager._ready(), add as child
+    4. ✅ Tween from old position → new scene camera position (0.2s to match fade duration)
+    5. ✅ Use Tween.TRANS_CUBIC, Tween.EASE_IN_OUT
+  - **Files**: scripts/managers/m_scene_manager.gd:46-55 (CameraState), 976-980 (_create_transition_camera), 988-1001 (_capture_camera_state), 1014-1076 (_blend_camera)
+- [x] T179 [P] Implement camera rotation blending using Tween
+  - ✅ Capture old camera global_rotation before unload
+  - ✅ Tween transition camera rotation from old → new using quaternion interpolation
+  - ✅ Same timing/easing as position (0.2s, TRANS_CUBIC, EASE_IN_OUT)
+  - **Files**: scripts/managers/m_scene_manager.gd:1071 (rotation blending in _blend_camera)
+- [x] T180 [P] Implement camera FOV blending
+  - ✅ Capture old camera fov before unload
+  - ✅ Tween transition camera fov from old → new
+  - ✅ Scene variations implemented (see T182.6)
+  - **Files**: scripts/managers/m_scene_manager.gd:1074 (FOV blending in _blend_camera)
+- [x] T181 Add dedicated transition camera to M_SceneManager for blending
+  - ✅ Create Camera3D node in M_SceneManager._ready()
+  - ✅ Add to scene tree as child of M_SceneManager
+  - ✅ Set current=true during blend via _blend_camera, current=false after via _finalize_camera_blend
+  - ✅ Reusable across transitions (persists as member variable)
+  - **Files**: scripts/managers/m_scene_manager.gd:70-72 (member variables), 976-980 (_create_transition_camera), 1080-1089 (_finalize_camera_blend)
+- [x] T182 Test camera transitions are smooth (no jitter, no pop)
+  - ✅ Integration test: tests/integration/scene_manager/test_camera_blending.gd (6 tests, all passing)
+  - ✅ Tests exterior → interior → exterior transitions
+  - ✅ Validates smooth interpolation, position/rotation/FOV blending
+  - ✅ Headless mode handling for unreliable Tween timing
+  - **Files**: tests/integration/scene_manager/test_camera_blending.gd
+- [x] T182.5 Integrate camera blending with FadeTransition to blend during fade-in (FR-074: parallel with fade effect)
+  - ✅ Camera blend runs in background without blocking state updates
+  - ✅ Uses Tween.finished signal with CONNECT_ONE_SHOT for finalization
+  - ✅ _perform_transition returns immediately after transition completes
+  - ✅ No sequential blocking - state dispatch happens without delay
+  - **Files**: scripts/managers/m_scene_manager.gd:411-433 (camera blend integration in _perform_transition)
+- [x] T182.6 [OPTIONAL] Create scene-specific camera variations to demonstrate blending
+  - ✅ Exterior (exterior.tscn): Camera at (0, 1.5, 4.5), FOV 80° (higher, wider for open space)
+  - ✅ Interior (interior_house.tscn): Camera at (0, 0.8, 4.5), FOV 65° (lower, narrower for enclosed space)
+  - ✅ Camera blending now clearly visible and meaningful
+  - **Files**: scenes/gameplay/exterior.tscn:192-195, scenes/gameplay/interior_house.tscn:185-188
 
 ### Edge Case Testing
 
