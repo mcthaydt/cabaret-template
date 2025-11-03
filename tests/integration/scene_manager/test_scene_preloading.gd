@@ -104,6 +104,9 @@ func test_async_loading_progress_updates() -> void:
 	var scene_path: String = U_SceneRegistry.get_scene_path(StringName("settings_menu"))
 	var loaded_scene: Node = await _manager._load_scene_async(scene_path, progress_callback)
 
+	# Always assert that scene loaded successfully
+	assert_not_null(loaded_scene, "Should load scene successfully")
+
 	# Verify progress increases (or at least ends at 1.0 for instant loads)
 	if progress_values.size() > 1:
 		for i in range(progress_values.size() - 1):

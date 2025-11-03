@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RS_SceneRegistryEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/scene_management/resources/rs_scene_registry_entry.gd" id="1_resource"]
+
+[resource]
+script = ExtResource("1_resource")
+scene_id = &"gameplay_base"
+scene_path = "res://scenes/gameplay/gameplay_base.tscn"
+scene_type = 1
+default_transition = "loading"
+preload_priority = 8

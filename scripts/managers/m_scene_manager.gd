@@ -18,7 +18,9 @@ const M_CURSOR_MANAGER := preload("res://scripts/managers/m_cursor_manager.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
-const INSTANT_TRANSITION := preload("res://scripts/scene_management/transitions/instant_transition.gd")
+const U_TRANSITION_FACTORY := preload("res://scripts/scene_management/u_transition_factory.gd")
+# T209: Transition class imports removed - now handled by U_TransitionFactory
+# Kept for type checking only:
 const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/fade_transition.gd")
 const LOADING_SCREEN_TRANSITION := preload("res://scripts/scene_management/transitions/loading_screen_transition.gd")
 
@@ -292,6 +294,45 @@ func _process_transition_queue() -> void:
 	_process_transition_queue()
 
 ## Perform the actual scene transition
+##
+## **GDScript Closure Pattern** (T208):
+## This method uses the "Array wrapper" pattern for closures to work around GDScript's
+## limitation that closures cannot capture mutable local variables by reference.
+##
+## **Why use Arrays?**
+## In GDScript, when you create a lambda/closure (e.g., `func() -> void:`), it can only
+## capture local variables by VALUE, not by reference. If you try to modify a captured
+## variable, you get a compile error: "Cannot assign to a variable captured from outer scope."
+##
+## **Solution:**
+## Wrap mutable values in an Array (e.g., `var progress: Array = [0.0]`). Arrays are
+## reference types, so the closure captures the Array reference (by value), but can still
+## modify the Array contents (e.g., `progress[0] = 0.5`).
+##
+## **Example:**
+## ```gdscript
+## # ❌ This FAILS - cannot modify captured variable:
+## var progress: float = 0.0
+## var callback := func() -> void:
+##     progress = 0.5  # ERROR: Cannot assign to captured variable
+##
+## # ✅ This WORKS - Array reference captured, contents mutable:
+## var progress: Array = [0.0]
+## var callback := func() -> void:
+##     progress[0] = 0.5  # OK: Modifying array contents, not array reference
+## ```
+##
+## **Where used in this method:**
+## - `current_progress: Array = [0.0]` - Progress tracking for async loading
+## - `scene_swap_complete: Array = [false]` - Flag for transition callback coordination
+## - `new_camera_ref: Array = [null]` - Camera reference for blend callback
+##
+## **Alternative approaches:**
+## - Member variables: Would require complex state management and cleanup
+## - Signals: Would add unnecessary indirection and timing complexity
+## - Helper classes: Overkill for simple value passing
+##
+## The Array pattern is the recommended GDScript idiom for this use case.
 func _perform_transition(request: TransitionRequest) -> void:
 	# Get scene path from registry
 	var scene_path: String = U_SCENE_REGISTRY.get_scene_path(request.scene_id)
@@ -302,14 +343,23 @@ func _perform_transition(request: TransitionRequest) -> void:
 	# Track scene history based on scene type (T111-T113)
 	_update_scene_history(request.scene_id)
 
-	# Create transition effect based on type
-	var transition_effect = _create_transition_effect(request.transition_type)
+	# T209: Create transition effect via factory (was _create_transition_effect)
+	var transition_effect = U_TRANSITION_FACTORY.create_transition(request.transition_type)
+
+	# Fallback to instant if transition type not found
+	if transition_effect == null:
+		print_debug("M_SceneManager: Transition type '%s' not found, falling back to 'instant'" % request.transition_type)
+		transition_effect = U_TRANSITION_FACTORY.create_transition("instant")
+
+	# Configure transition-specific settings
+	_configure_transition(transition_effect, request.transition_type)
 
 	# Phase 8: Check if scene is cached
 	var use_cached: bool = _is_scene_cached(scene_path)
 
 	# Phase 8: Create progress callback for async loading
-	var current_progress: Array = [0.0]  # Array for closure to work
+	# T208: Array wrapper for closure to capture mutable value (see method doc comment)
+	var current_progress: Array = [0.0]
 	var progress_callback: Callable
 
 	# Phase 8: Set progress handling for LoadingScreenTransition
@@ -327,7 +377,7 @@ func _perform_transition(request: TransitionRequest) -> void:
 		progress_callback = func(progress: float) -> void:
 			current_progress[0] = clamp(progress, 0.0, 1.0)
 
-	# Track if scene swap has completed (use Array for closure to work)
+	# T208: Track if scene swap has completed (Array wrapper for closure pattern)
 	var scene_swap_complete: Array = [false]
 
 	# Phase 10: Capture old camera state before scene removal (T178-T180)
@@ -860,23 +910,27 @@ func _update_cursor_for_scene(scene_id: StringName) -> void:
 		U_SCENE_REGISTRY.SceneType.GAMEPLAY:
 			_cursor_manager.set_cursor_state(true, false)  # locked, hidden
 
-## Create transition effect based on type
-func _create_transition_effect(transition_type: String):
-	match transition_type.to_lower():
-		"instant":
-			return INSTANT_TRANSITION.new()
-		"fade":
-			var fade := FADE_TRANSITION.new()
-			fade.duration = 0.2  # Shorter duration for faster tests
-			return fade
-		"loading":
-			var loading := LOADING_SCREEN_TRANSITION.new()
-			loading.min_duration = 1.5  # Minimum display time
-			return loading
-		_:
-			# Unknown type, use instant as fallback
-			print_debug("M_SceneManager: Unknown transition type '%s', using instant" % transition_type)
-			return INSTANT_TRANSITION.new()
+## Configure transition-specific settings (T209)
+##
+## Applies default configuration to transition effects after creation by factory.
+## Centralizes transition configuration that was previously in _create_transition_effect().
+##
+## Parameters:
+##   transition: The transition effect instance to configure
+##   transition_type: The transition type name (for type-checking)
+func _configure_transition(transition: BaseTransitionEffect, transition_type: String) -> void:
+	if transition == null:
+		return
+
+	# Configure fade transitions
+	if transition is FADE_TRANSITION:
+		var fade := transition as FADE_TRANSITION
+		fade.duration = 0.2  # Shorter duration for faster tests
+
+	# Configure loading screen transitions
+	if transition is LOADING_SCREEN_TRANSITION:
+		var loading := transition as LOADING_SCREEN_TRANSITION
+		loading.min_duration = 1.5  # Minimum display time
 
 
 
@@ -903,7 +957,16 @@ func go_back() -> void:
 	# Use HIGH priority to jump the queue for back navigation
 	transition_to_scene(previous_scene, "instant", Priority.HIGH)
 
-## Restore player to spawn point after area transition (T095)
+## Restore player to spawn point after area transition (T095, T207)
+##
+## Validates spawn point exists before positioning player. If spawn point is missing,
+## logs error and does NOT spawn player at origin as fallback - this prevents
+## configuration errors from causing invisible bugs where player appears at (0,0,0).
+##
+## Phase 11 improvements (T207):
+## - Changed push_warning to push_error for missing spawn points (config error severity)
+## - Added scene name to error messages for easier debugging
+## - Enhanced validation to check Node3D type explicitly
 func _restore_player_spawn_point(loaded_scene: Node) -> void:
 	if _store == null:
 		return
@@ -917,24 +980,39 @@ func _restore_player_spawn_point(loaded_scene: Node) -> void:
 	if target_spawn.is_empty():
 		return
 
-	# Find spawn point node in loaded scene
-	var spawn_node: Node3D = _find_spawn_point(loaded_scene, target_spawn)
-	if spawn_node == null:
-		push_warning("M_SceneManager: Spawn point '%s' not found in scene" % target_spawn)
-		# Clear spawn point even if not found to prevent repeated warnings
+	# Get current scene name for error messages
+	var scene_name: String = loaded_scene.name if loaded_scene != null else "unknown"
+
+	# Find spawn point node in loaded scene (generic search first)
+	var spawn_candidates: Array = []
+	_find_nodes_by_name(loaded_scene, target_spawn, spawn_candidates)
+
+	if spawn_candidates.is_empty():
+		# T207: Spawn point doesn't exist at all
+		push_error("M_SceneManager: Spawn point '%s' not found in scene '%s'. Player will not be repositioned. Check spawn point naming and hierarchy." % [target_spawn, scene_name])
+		_clear_target_spawn_point()
+		return
+
+	var spawn_node: Node = spawn_candidates[0]
+
+	# T207: Validate spawn point is actually a Node3D (or derived class)
+	if not (spawn_node is Node3D):
+		push_error("M_SceneManager: Spawn point '%s' in scene '%s' is not a Node3D (found type: %s). Player cannot be positioned." % [target_spawn, scene_name, spawn_node.get_class()])
 		_clear_target_spawn_point()
 		return
 
 	# Find player entity in loaded scene
 	var player: Node3D = _find_player_entity(loaded_scene)
 	if player == null:
-		push_warning("M_SceneManager: Player entity not found in scene for spawn restoration")
+		# T207: Upgraded to push_error - missing player in gameplay scene is a critical issue
+		push_error("M_SceneManager: Player entity not found in scene '%s' for spawn restoration. Expected node name starting with 'E_Player'." % scene_name)
 		_clear_target_spawn_point()
 		return
 
-	# Position player at spawn point
-	player.global_position = spawn_node.global_position
-	player.global_rotation = spawn_node.global_rotation
+	# Position player at spawn point (cast is safe - we validated it's a Node3D above)
+	var spawn_node_3d := spawn_node as Node3D
+	player.global_position = spawn_node_3d.global_position
+	player.global_rotation = spawn_node_3d.global_rotation
 
 	# Clear target spawn point from state (one-time use)
 	_clear_target_spawn_point()
@@ -948,7 +1026,7 @@ func _find_spawn_point(scene_root: Node, spawn_name: StringName) -> Node3D:
 	if spawn_points.is_empty():
 		return null
 
-	# Return first match
+	# Return first match (will return null if not a Node3D, which will be caught by validation in _restore_player_spawn_point)
 	return spawn_points[0] as Node3D
 
 ## Find player entity in scene (node with name starting with "E_Player")

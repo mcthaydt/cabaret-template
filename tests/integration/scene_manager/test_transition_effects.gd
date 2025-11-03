@@ -268,11 +268,17 @@ func test_transition_type_override() -> void:
 	# Verify it completed quickly (instant override worked)
 	assert_false(scene_state.get("is_transitioning", false))
 
-## Test unknown transition type falls back to instant
+## Test unknown transition type falls back to instant (T209)
 func test_unknown_transition_type_fallback() -> void:
+	# T209: After factory refactor, this logs a warning from U_TransitionFactory
+	# and a debug message from M_SceneManager, then falls back to "instant"
+
 	# Use non-existent transition type
 	_manager.transition_to_scene(StringName("main_menu"), "nonexistent_type")
 	await wait_physics_frames(2)
+
+	# Assert that the expected warning was logged
+	assert_engine_error("U_TransitionFactory: Unknown transition type")
 
 	# Should fall back to instant and complete
 	var state: Dictionary = _store.get_state()

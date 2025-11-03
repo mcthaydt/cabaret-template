@@ -541,7 +541,8 @@ func test_unsaved_progress_triggers_auto_save_on_quit() -> void:
 
 	var loaded_state: Dictionary = _store.get_state()
 	var loaded_gameplay: Dictionary = loaded_state.get("gameplay", {})
-	assert_gt(loaded_gameplay.get("death_count", 0), 0, "Saved state should preserve changes")
+	var death_count: int = int(loaded_gameplay.get("death_count", 0))
+	assert_gt(death_count, 0, "Saved state should preserve changes")
 
 	# Cleanup
 	if FileAccess.file_exists(save_path):

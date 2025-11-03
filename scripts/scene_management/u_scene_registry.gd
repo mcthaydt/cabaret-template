@@ -3,6 +3,9 @@ class_name U_SceneRegistry
 
 ## Static scene metadata registry
 ##
+## T212: Now supports resource-based scene registration via RS_SceneRegistryEntry
+const RS_SceneRegistryEntry := preload("res://scripts/scene_management/resources/rs_scene_registry_entry.gd")
+##
 ## Central registry for all scenes in the game. Provides scene metadata,
 ## door pairings, and validation. This is a static class - all data and
 ## methods are static.
@@ -37,13 +40,32 @@ static var _scenes: Dictionary = {}
 static var _door_exits: Dictionary = {}
 
 ## Static initializer - registers all scenes and door pairings
+##
+## T212: Now loads resource-based scene entries from resources/scene_registry/
 static func _static_init() -> void:
 	_register_scenes()
+	_load_resource_entries()  # T212: Load RS_SceneRegistryEntry resources
 	_register_door_pairings()
 
 ## Register all scenes with metadata
+##
+## T212: CRITICAL scenes kept hardcoded for safety. Non-critical scenes moved to
+## resources/scene_registry/*.tres files for non-coder editing.
+##
+## CRITICAL (hardcoded for boot safety):
+## - main_menu: Game entry point, must always work
+## - settings_menu: Core UI, treated as critical
+## - pause_menu: Preloaded at startup (priority 10)
+## - loading_screen: Preloaded at startup (priority 10)
+## - test scenes: Required for test suite
+##
+## NON-CRITICAL (migrated to .tres resources):
+## - gameplay_base, exterior, interior_house → resources/scene_registry/
+## - game_over, victory, credits → resources/scene_registry/
 static func _register_scenes() -> void:
-	# Main Menu
+	# CRITICAL SCENES - Keep hardcoded for safety
+
+	# Main Menu (game entry point)
 	_register_scene(
 		StringName("main_menu"),
 		"res://scenes/ui/main_menu.tscn",
@@ -52,42 +74,34 @@ static func _register_scenes() -> void:
 		10  # Critical path - preload at startup (Phase 8)
 	)
 
-	# Settings Menu
+	# Settings Menu (user-designated critical)
 	_register_scene(
 		StringName("settings_menu"),
 		"res://scenes/ui/settings_menu.tscn",
 		SceneType.UI,
 		"instant",
-		3  # Lower priority - overlay
+		10  # Upgraded to critical priority per user request
 	)
 
-	# Gameplay Base
+	# Pause Menu (preloaded at startup)
 	_register_scene(
-		StringName("gameplay_base"),
-		"res://scenes/gameplay/gameplay_base.tscn",
-		SceneType.GAMEPLAY,
-		"loading",
-		8  # High priority - core gameplay scene
+		StringName("pause_menu"),
+		"res://scenes/ui/pause_menu.tscn",
+		SceneType.UI,
+		"instant",
+		10  # Critical path - preload at startup (Phase 8)
 	)
 
-	# Example area scenes (for door pairing tests)
+	# Loading Screen (preloaded at startup)
 	_register_scene(
-		StringName("exterior"),
-		"res://scenes/gameplay/exterior.tscn",
-		SceneType.GAMEPLAY,
-		"fade",
-		6
+		StringName("loading_screen"),
+		"res://scenes/ui/loading_screen.tscn",
+		SceneType.UI,
+		"instant",
+		10  # Critical path - preload at startup (Phase 8)
 	)
 
-	_register_scene(
-		StringName("interior_house"),
-		"res://scenes/gameplay/interior_house.tscn",
-		SceneType.GAMEPLAY,
-		"fade",
-		6
-	)
-
-	# Test scenes (for unit tests)
+	# TEST SCENES - Keep hardcoded for test suite stability
 	_register_scene(
 		StringName("scene1"),
 		"res://tests/scenes/test_scene1.tscn",
@@ -112,48 +126,91 @@ static func _register_scenes() -> void:
 		0
 	)
 
-	# Pause Menu
-	_register_scene(
-		StringName("pause_menu"),
-		"res://scenes/ui/pause_menu.tscn",
-		SceneType.UI,
-		"instant",
-		10  # Critical path - preload at startup (Phase 8)
-	)
+	# NON-CRITICAL SCENES - Migrated to resources/scene_registry/*.tres
+	# These scenes are now loaded via _load_resource_entries()
+	# See: resources/scene_registry/README.md for details
 
-	# Loading Screen
-	_register_scene(
-		StringName("loading_screen"),
-		"res://scenes/ui/loading_screen.tscn",
-		SceneType.UI,
-		"instant",
-		10  # Critical path - preload at startup (Phase 8)
-	)
+## Load scene entries from resource files (T212)
+##
+## Scans resources/scene_registry/ for RS_SceneRegistryEntry .tres files and
+## registers each scene. This allows non-coders to add scenes via editor UI.
+##
+## **Phase 11 improvement** (T212):
+## - Scans directory for .tres files
+## - Loads each RS_SceneRegistryEntry resource
+## - Calls _register_scene() with resource data
+## - Skips invalid or duplicate scenes
+## - Maintains backward compatibility with hardcoded scenes
+##
+## **Non-coder workflow**:
+## 1. Create new RS_SceneRegistryEntry resource in editor
+## 2. Configure scene_id, scene_path, scene_type, etc.
+## 3. Save as resources/scene_registry/<name>.tres
+## 4. Scene auto-loads on next game start
+static func _load_resource_entries() -> void:
+	const REGISTRY_DIR := "res://resources/scene_registry/"
 
-	# End-game scenes
-	_register_scene(
-		StringName("game_over"),
-		"res://scenes/ui/game_over.tscn",
-		SceneType.END_GAME,
-		"fade",
-		8
-	)
+	# Check if directory exists
+	var dir := DirAccess.open(REGISTRY_DIR)
+	if dir == null:
+		# Directory doesn't exist yet - this is OK, just means no resource entries
+		print_debug("U_SceneRegistry: No resource directory at %s (this is OK, resources are optional)" % REGISTRY_DIR)
+		return
 
-	_register_scene(
-		StringName("victory"),
-		"res://scenes/ui/victory.tscn",
-		SceneType.END_GAME,
-		"fade",
-		5
-	)
+	# Scan directory for .tres files
+	dir.list_dir_begin()
+	var file_name: String = dir.get_next()
+	var loaded_count: int = 0
+	var skipped_count: int = 0
 
-	_register_scene(
-		StringName("credits"),
-		"res://scenes/ui/credits.tscn",
-		SceneType.END_GAME,
-		"fade",
-		0
-	)
+	while file_name != "":
+		# Skip directories and non-.tres files
+		if not dir.current_is_dir() and file_name.ends_with(".tres"):
+			var resource_path: String = REGISTRY_DIR + file_name
+			var resource: Resource = load(resource_path)
+
+			# Validate resource type
+			if not (resource is RS_SceneRegistryEntry):
+				push_warning("U_SceneRegistry: Resource at %s is not RS_SceneRegistryEntry (found %s), skipping" % [resource_path, resource.get_class()])
+				skipped_count += 1
+				file_name = dir.get_next()
+				continue
+
+			var entry := resource as RS_SceneRegistryEntry
+
+			# Validate entry completeness
+			if not entry.is_valid():
+				push_warning("U_SceneRegistry: Scene entry in %s is invalid (scene_id or scene_path empty), skipping" % resource_path)
+				skipped_count += 1
+				file_name = dir.get_next()
+				continue
+
+			# Check for duplicate scene_id (don't overwrite hardcoded scenes)
+			if _scenes.has(entry.scene_id):
+				push_warning("U_SceneRegistry: Scene '%s' from %s already registered (hardcoded or duplicate), skipping" % [entry.scene_id, resource_path])
+				skipped_count += 1
+				file_name = dir.get_next()
+				continue
+
+			# Register scene from resource
+			_register_scene(
+				entry.scene_id,
+				entry.scene_path,
+				entry.scene_type,
+				entry.default_transition,
+				entry.preload_priority
+			)
+
+			loaded_count += 1
+			print_debug("U_SceneRegistry: Loaded scene '%s' from resource %s" % [entry.scene_id, file_name])
+
+		file_name = dir.get_next()
+
+	dir.list_dir_end()
+
+	# Log summary
+	if loaded_count > 0 or skipped_count > 0:
+		print_debug("U_SceneRegistry: Resource loading complete - %d loaded, %d skipped" % [loaded_count, skipped_count])
 
 ## Register door pairings for seamless area transitions
 static func _register_door_pairings() -> void:
