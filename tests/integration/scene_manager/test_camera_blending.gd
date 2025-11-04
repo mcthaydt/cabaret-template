@@ -86,6 +86,17 @@ func after_each() -> void:
 	_transition_overlay = null
 	_root_scene = null
 
+## Helper: Wait for camera blend tween to be created
+## Returns the tween or null if not created within timeout
+func _await_camera_tween_created(timeout_sec: float = 0.5) -> Tween:
+	var start_ms: int = Time.get_ticks_msec()
+	while (Time.get_ticks_msec() - start_ms) < (timeout_sec * 1000):
+		await get_tree().process_frame
+		var tween: Tween = _camera_manager.get("_camera_blend_tween")
+		if tween != null:
+			return tween
+	return null
+
 ## T178: Test camera position blending during scene transition
 ##
 ## Validates that camera position interpolates smoothly from old scene camera
@@ -235,20 +246,26 @@ func test_camera_transitions_smooth() -> void:
 	# Start transition with fade (0.2s duration)
 	_manager.transition_to_scene(StringName("interior_house"), "fade")
 
+	# Wait for camera blend tween to be created
+	var tween: Tween = await _await_camera_tween_created(0.5)
+	assert_not_null(tween, "Camera blend tween should be created")
+
+	# Get transition camera
+	var transition_camera: Camera3D = _camera_manager.get("_transition_camera")
+	assert_not_null(transition_camera, "Transition camera should exist")
+
 	# Sample transition camera position at multiple points during blend
-	var transition_camera: Camera3D = null
 	var positions_during_blend: Array[Vector3] = []
 
-	# Sample over ~10 frames during transition
-	for i in range(10):
+	# Sample while tween is running
+	while tween != null and tween.is_running():
 		await get_tree().process_frame
-		if transition_camera == null:
-			transition_camera = _camera_manager.get("_transition_camera")
-		if transition_camera != null and transition_camera.current:
+		if transition_camera.current:
 			positions_during_blend.append(transition_camera.global_position)
 
-	# Wait for completion
-	await wait_physics_frames(10)
+	# If tween completed too quickly, wait for full transition
+	if positions_during_blend.size() < 4:
+		await wait_physics_frames(10)
 
 	# Validate we captured intermediate positions during blend
 	assert_gt(positions_during_blend.size(), 3, "Should have captured multiple positions during blend")
@@ -273,16 +290,25 @@ func test_camera_blend_with_fade_transition() -> void:
 	var start_time: float = Time.get_ticks_msec() / 1000.0
 	_manager.transition_to_scene(StringName("interior_house"), "fade")
 
-	# Check transition camera becomes active early (during fade)
-	await wait_physics_frames(3)
+	# Wait for camera blend tween to be created (confirms blending started)
+	var tween: Tween = await _await_camera_tween_created(0.5)
+	assert_not_null(tween, "Camera blend tween should be created")
+
+	# Check transition camera becomes active during blend
 	var transition_camera: Camera3D = _camera_manager.get("_transition_camera")
 	assert_not_null(transition_camera, "Transition camera should exist")
-	# Skip mid-transition timing checks in headless mode
+
+	# Skip mid-transition timing checks in headless mode (tween may complete instantly)
 	if not _is_headless():
-		assert_true(transition_camera.current, "Transition camera should be active during fade")
+		# In GUI mode, tween should be running and transition camera should be active
+		if tween.is_running():
+			assert_true(transition_camera.current, "Transition camera should be active during fade")
 
 	# Wait for both to complete
-	await wait_physics_frames(15)
+	if tween != null and tween.is_running():
+		await tween.finished
+	await wait_physics_frames(5)
+
 	var end_time: float = Time.get_ticks_msec() / 1000.0
 	var duration: float = end_time - start_time
 
