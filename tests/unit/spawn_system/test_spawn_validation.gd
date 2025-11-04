@@ -82,8 +82,9 @@ func test_spawn_handles_player_with_different_node_types() -> void:
 	assert_almost_eq(player_char_body.global_position, spawn_point.global_position, Vector3(0.01, 0.01, 0.01))
 
 	# Clean up and test with RigidBody3D
-	player_char_body.queue_free()
 	test_scene.remove_child(player_char_body)
+	player_char_body.queue_free()
+	await get_tree().process_frame
 
 	var player_rigid_body := RigidBody3D.new()
 	player_rigid_body.name = "E_Player"

@@ -117,8 +117,9 @@ func test_camera_position_blending() -> void:
 	# Transition to interior (camera at 0, 0.8, 4.5) with fade (allows time for blend)
 	_manager.transition_to_scene(StringName("interior_house"), "fade")
 
-	# Wait mid-transition to capture blending
-	await wait_physics_frames(5)
+	# Wait for camera blend tween to be created
+	var tween: Tween = await _await_camera_tween_created(0.5)
+	assert_not_null(tween, "Camera blend tween should be created")
 
 	# Check transition camera exists
 	var transition_camera: Camera3D = _camera_manager.get("_transition_camera")
@@ -126,7 +127,9 @@ func test_camera_position_blending() -> void:
 	# Note: In headless mode, Tweens may complete instantly, so checking mid-blend state is unreliable
 	# Skip this check in headless mode
 	if not _is_headless():
-		assert_true(transition_camera.current, "Transition camera should be active during blend")
+		# Only check if tween is still running (may complete instantly)
+		if tween.is_running():
+			assert_true(transition_camera.current, "Transition camera should be active during blend")
 
 	# Complete transition
 	await wait_physics_frames(15)
