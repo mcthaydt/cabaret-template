@@ -30,7 +30,7 @@ var _connected_checkpoints: Dictionary = {}  # Track which checkpoints we've alr
 
 func _ready() -> void:
 	# Set priority (checkpoints are low priority, process after gameplay systems)
-	process_priority = 100
+	execution_priority = 100
 	super._ready()
 
 ## Connect to checkpoint Area3D signals

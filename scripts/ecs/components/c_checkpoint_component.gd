@@ -37,6 +37,10 @@ const COMPONENT_TYPE := StringName("C_CheckpointComponent")
 ## Timestamp when checkpoint was last activated (for debugging)
 @export var last_activated_time: float = 0.0
 
+func _init() -> void:
+	# Ensure consistent component type for ECS queries/registration
+	component_type = COMPONENT_TYPE
+
 func _ready() -> void:
 	super._ready()
 
