@@ -180,6 +180,9 @@ script = ExtResource("16_8qi87")
 [node name="SP_SpawnPoints" type="Node3D" parent="."]
 script = ExtResource("21_spawnpoints")
 
+[node name="sp_default" type="Node3D" parent="SP_SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
+
 [node name="E_Player" parent="Entities" instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
 

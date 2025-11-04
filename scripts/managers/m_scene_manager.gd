@@ -19,6 +19,7 @@ const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_TRANSITION_FACTORY := preload("res://scripts/scene_management/u_transition_factory.gd")
+const I_SCENE_CONTRACT := preload("res://scripts/scene_management/i_scene_contract.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
 # Kept for type checking only:
 const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/fade_transition.gd")
@@ -416,6 +417,9 @@ func _perform_transition(request: TransitionRequest) -> void:
 		if new_scene == null:
 			push_error("M_SceneManager: Failed to load scene '%s'" % scene_path)
 			return
+
+		# Phase 12.5: Validate scene contract (T306)
+		_validate_scene_contract(new_scene, request.scene_id)
 
 		# Add new scene to ActiveSceneContainer
 		if _active_scene_container != null:
@@ -1168,3 +1172,53 @@ func hint_preload_scene(scene_path: String) -> void:
 	if not _is_background_polling_active:
 		_is_background_polling_active = true
 		_start_background_load_polling()
+
+## Validate scene contract (Phase 12.5 - T306)
+##
+## Checks that loaded scene meets required contract based on scene type.
+## Logs errors and warnings but does NOT block scene loading (fail-safe design).
+##
+## Parameters:
+##   scene: The loaded scene to validate
+##   scene_id: Scene identifier for looking up scene type
+##
+## Returns:
+##   void (logs errors but always continues)
+func _validate_scene_contract(scene: Node, scene_id: StringName) -> void:
+	if scene == null:
+		return
+
+	# Skip validation for test scenes (res://tests/* paths)
+	var scene_path: String = U_SCENE_REGISTRY.get_scene_path(scene_id)
+	if scene_path.begins_with("res://tests/"):
+		return
+
+	# Get scene type from registry
+	var registry_type: int = U_SCENE_REGISTRY.get_scene_type(scene_id)
+
+	# Map registry SceneType to contract SceneType
+	var contract_type: I_SCENE_CONTRACT.SceneType
+	match registry_type:
+		U_SCENE_REGISTRY.SceneType.GAMEPLAY:
+			contract_type = I_SCENE_CONTRACT.SceneType.GAMEPLAY
+		U_SCENE_REGISTRY.SceneType.UI, U_SCENE_REGISTRY.SceneType.MENU, U_SCENE_REGISTRY.SceneType.END_GAME:
+			contract_type = I_SCENE_CONTRACT.SceneType.UI
+		_:
+			# Unknown type - skip validation
+			return
+
+	# Create validator and validate scene
+	var validator := I_SCENE_CONTRACT.new()
+	var result: Dictionary = validator.validate_scene(scene, contract_type)
+
+	# Log validation results
+	if not result.get("valid", true):
+		push_warning("Scene '%s' failed contract validation:" % scene_id)
+		var errors: Array = result.get("errors", [])
+		for error in errors:
+			push_warning("  - %s" % error)
+
+	# Log warnings (if any)
+	var warnings: Array = result.get("warnings", [])
+	for warning in warnings:
+		print_debug("Scene '%s' validation warning: %s" % [scene_id, warning])
