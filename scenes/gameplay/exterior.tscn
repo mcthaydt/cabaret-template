@@ -39,6 +39,11 @@
 [ext_resource type="PackedScene" path="res://scenes/hazards/spike_trap.tscn" id="40_spike_trap"]
 [ext_resource type="PackedScene" path="res://scenes/objectives/goal_zone.tscn" id="41_goal_zone"]
 [ext_resource type="Script" path="res://scripts/gameplay/endgame_goal_zone.gd" id="41_goal_script"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_checkpoint_system.gd" id="42_checkpoint_system"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_checkpoint_component.gd" id="43_checkpoint_component"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_checkpoint"]
+size = Vector3(2, 3, 2)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -125,6 +130,9 @@ execution_priority = 300
 
 [node name="S_SceneTriggerSystem" type="Node" parent="Systems/Core"]
 script = ExtResource("20_scene_trigger_system")
+
+[node name="S_CheckpointSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("42_checkpoint_system")
 
 [node name="Physics" type="Node" parent="Systems"]
 script = ExtResource("3_systems_physics")
@@ -216,6 +224,19 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 3)
 [node name="E_SpikeTrapB" parent="Entities/Hazards" instance=ExtResource("40_spike_trap")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 3)
 
+[node name="E_Checkpoint_SafeZone" type="Node3D" parent="Entities"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 0)
+
+[node name="C_CheckpointComponent" type="Node" parent="Entities/E_Checkpoint_SafeZone"]
+script = ExtResource("43_checkpoint_component")
+checkpoint_id = &"cp_safe_zone"
+spawn_point_id = &"sp_checkpoint_safe"
+
+[node name="CheckpointArea" type="Area3D" parent="Entities/E_Checkpoint_SafeZone"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/E_Checkpoint_SafeZone/CheckpointArea"]
+shape = SubResource("BoxShape3D_checkpoint")
+
 [node name="E_FinalGoal" parent="Entities" instance=ExtResource("41_goal_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -5)
 script = ExtResource("41_goal_script")
@@ -237,6 +258,9 @@ height = 2.0715332
 script = ExtResource("21_spawnpoints")
 
 [node name="sp_default" type="Node3D" parent="SP_SpawnPoints"]
+
+[node name="sp_checkpoint_safe" type="Node3D" parent="SP_SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 0)
 
 [node name="sp_exit_from_house" type="Node3D" parent="SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7472486, -0.31296825, 1.4028394)
