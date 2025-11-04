@@ -191,6 +191,47 @@ func _find_nodes_by_prefix(node: Node, prefix: String, results: Array) -> void:
 	for child in node.get_children():
 		_find_nodes_by_prefix(child, prefix, results)
 
+## Spawn player at last spawn point used (T255 - Phase 12.3a)
+##
+## Reads target_spawn_point from gameplay state and spawns player there.
+## If no target_spawn_point is set, falls back to "sp_default".
+## Used for death respawn: player respawns at the last door/checkpoint they used.
+##
+## Parameters:
+##   scene: Root node of the current gameplay scene
+##
+## Returns:
+##   true if spawn succeeded, false if validation failed
+##
+## Flow:
+##   1. Read target_spawn_point from gameplay state
+##   2. If empty, fallback to "sp_default"
+##   3. Call spawn_player_at_point() to position player
+##   4. spawn_player_at_point() clears target_spawn_point automatically
+func spawn_at_last_spawn(scene: Node) -> bool:
+	# Validate scene
+	if scene == null:
+		push_error("M_SpawnManager: Cannot spawn - scene is null")
+		return false
+
+	# Validate state store is ready
+	if _state_store == null:
+		push_error("M_SpawnManager: Cannot spawn - state store not initialized")
+		return false
+
+	# Read target_spawn_point from gameplay state
+	var state: Dictionary = _state_store.get_state()
+	var gameplay_state: Dictionary = state.get("gameplay", {})
+	var target_spawn: StringName = gameplay_state.get("target_spawn_point", StringName(""))
+
+	# Fallback to default spawn if no target set
+	var spawn_id: StringName = target_spawn
+	if spawn_id.is_empty():
+		spawn_id = StringName("sp_default")
+
+	# Use existing spawn_player_at_point() method (handles validation, positioning, clearing state)
+	return spawn_player_at_point(scene, spawn_id)
+
 ## Clear target spawn point from gameplay state
 ##
 ## Dispatches action to clear spawn point field in state store.
