@@ -2,13 +2,15 @@ extends GutTest
 
 ## Tests for state persistence (save/load)
 
-const StateStoreEventBus := preload("res://scripts/state/state_event_bus.gd")
+const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
+const RS_SceneInitialState := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
+const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd")
 
 var store: M_StateStore
 var test_save_path: String = "user://test_state_save.json"
 
 func before_each() -> void:
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 	
 	store = M_StateStore.new()
 	store.gameplay_initial_state = RS_GameplayInitialState.new()
@@ -28,7 +30,7 @@ func after_each() -> void:
 	if FileAccess.file_exists(test_save_path):
 		DirAccess.remove_absolute(test_save_path)
 	
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 
 func test_save_state_creates_valid_json_file() -> void:
 	# Dispatch some actions to create state
@@ -77,7 +79,7 @@ func test_load_state_restores_data_correctly() -> void:
 
 func test_transient_fields_excluded_from_save() -> void:
 	# Create a custom slice with transient fields
-	var config := StateSliceConfig.new(StringName("test_slice"))
+	var config := RS_StateSliceConfig.new(StringName("test_slice"))
 	config.initial_state = {
 		"persistent_value": 100,
 		"transient_cache": 999
@@ -105,7 +107,7 @@ func test_transient_fields_excluded_from_save() -> void:
 
 func test_godot_types_serialize_and_deserialize_correctly() -> void:
 	# Create a test slice with various Godot types
-	var config := StateSliceConfig.new(StringName("types_slice"))
+	var config := RS_StateSliceConfig.new(StringName("types_slice"))
 	config.initial_state = {
 		"vector2_field": Vector2(10.5, 20.3),
 		"vector3_field": Vector3(1.0, 2.0, 3.0),
@@ -133,7 +135,7 @@ func test_godot_types_serialize_and_deserialize_correctly() -> void:
 	await get_tree().process_frame
 	
 	# Register same slice structure in new store
-	var new_config := StateSliceConfig.new(StringName("types_slice"))
+	var new_config := RS_StateSliceConfig.new(StringName("types_slice"))
 	new_config.initial_state = {}
 	new_config.reducer = Callable()
 	new_store.register_slice(new_config)
@@ -173,6 +175,48 @@ func test_godot_types_serialize_and_deserialize_correctly() -> void:
 	# Check nested dict
 	var nested: Dictionary = loaded_slice.get("nested_dict", {})
 	assert_eq(nested.get("inner"), "value", "Nested dict should match")
+
+func test_scene_slice_transient_fields_excluded_from_save() -> void:
+	# Create store with scene slice
+	var scene_store := M_StateStore.new()
+	scene_store.gameplay_initial_state = RS_GameplayInitialState.new()
+	scene_store.scene_initial_state = RS_SceneInitialState.new()
+	add_child(scene_store)
+	autofree(scene_store)
+	await get_tree().process_frame
+
+	# Dispatch scene action to set transient fields
+	var action: Dictionary = U_SceneActions.transition_started(
+		StringName("gameplay_base"),
+		"fade"
+	)
+	scene_store.dispatch(action)
+
+	# Verify transient fields are set in state
+	var scene_state: Dictionary = scene_store.get_slice(StringName("scene"))
+	assert_true(scene_state.get("is_transitioning"), "is_transitioning should be true in state")
+	assert_eq(scene_state.get("transition_type"), "fade", "transition_type should be 'fade' in state")
+
+	# Save state
+	var save_result: Error = scene_store.save_state(test_save_path)
+	assert_eq(save_result, OK, "Save should succeed")
+
+	# Read the saved file and check contents
+	var file: FileAccess = FileAccess.open(test_save_path, FileAccess.READ)
+	var json_text: String = file.get_as_text()
+	file.close()
+
+	var parsed: Dictionary = JSON.parse_string(json_text) as Dictionary
+	var saved_scene_slice: Dictionary = parsed.get("scene", {})
+
+	# Verify transient fields are excluded from save file
+	assert_false(saved_scene_slice.has("is_transitioning"), "is_transitioning should be excluded from save")
+	assert_false(saved_scene_slice.has("transition_type"), "transition_type should be excluded from save")
+
+	# Verify non-transient fields ARE saved
+	assert_true(saved_scene_slice.has("current_scene_id"), "current_scene_id should be saved")
+	assert_true(saved_scene_slice.has("scene_stack"), "scene_stack should be saved")
+	assert_true(saved_scene_slice.has("previous_scene_id"), "previous_scene_id should be saved")
 
 func test_load_nonexistent_file_returns_error() -> void:
 	var result: Error = store.load_state("user://nonexistent_file.json")

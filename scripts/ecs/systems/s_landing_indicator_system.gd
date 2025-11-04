@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_LandingIndicatorSystem
 
 ## Phase 16: Reads show_landing_indicator from state
@@ -12,7 +12,7 @@ func process_tick(_delta: float) -> void:
 	var store: M_StateStore = U_StateUtils.get_store(self)
 	var should_show: bool = true
 	if store:
-		should_show = VisualSelectors.should_show_landing_indicator(store.get_state())
+		should_show = U_VisualSelectors.should_show_landing_indicator(store.get_state())
 	
 	var manager := get_manager()
 	if manager == null:

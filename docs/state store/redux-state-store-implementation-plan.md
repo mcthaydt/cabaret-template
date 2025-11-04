@@ -26,7 +26,7 @@
 
 ## Summary
 
-Implement a centralized Redux-style state management system for the Godot 4.5 game, featuring three state slices (boot, menu, gameplay) with immutable state updates, action/reducer patterns, signal-based reactivity, selective persistence, and comprehensive debugging tools. The system integrates with the existing ECS architecture via a dual-bus event architecture (ECSEventBus + StateStoreEventBus) while maintaining independent-but-observable separation of concerns.
+Implement a centralized Redux-style state management system for the Godot 4.5 game, featuring three state slices (boot, menu, gameplay) with immutable state updates, action/reducer patterns, signal-based reactivity, selective persistence, and comprehensive debugging tools. The system integrates with the existing ECS architecture via a dual-bus event architecture (U_ECSEventBus + U_StateEventBus) while maintaining independent-but-observable separation of concerns.
 
 **Primary Requirement**: Provide predictable, debuggable state management for game lifecycle (boot→menu→gameplay) with time-travel debugging, auto-save capabilities, and <0.1ms performance overhead.
 
@@ -40,8 +40,8 @@ Implement a centralized Redux-style state management system for the Godot 4.5 ga
 
 **Primary Dependencies**:
 - GUT (Godot Unit Test) framework for testing
-- Existing ECS system (`M_ECSManager`, `ECSComponent`, `ECSSystem`)
-- Existing `ecs_event_bus.gd` (kept for ECS domain)
+- Existing ECS system (`M_ECSManager`, `BaseECSComponent`, `BaseECSSystem`)
+- Existing `u_ecs_event_bus.gd` (kept for ECS domain)
 - U_ECSUtils pattern for utilities
 
 **Storage**:
@@ -53,8 +53,8 @@ Implement a centralized Redux-style state management system for the Godot 4.5 ga
 - GUT (Godot Unit Test) framework
 - Headless test runner: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/state -gexit`
 - Test patterns: Given/When/Then, autofree fixtures, explicit typing, bus reset in `before_each()`:
-  - State tests: `StateStoreEventBus.reset()`
-  - ECS tests: `ECSEventBus.reset()`
+  - State tests: `U_StateEventBus.reset()`
+  - ECS tests: `U_ECSEventBus.reset()`
 
 **Target Platform**:
 - Development: macOS (Darwin 25.0.0)
@@ -159,8 +159,8 @@ scripts/state/resources/                      # .gd scripts ONLY
 
 **Implementation** (no autoload):
 ```gdscript
-# scripts/state/state_handoff.gd
-class_name StateHandoff
+# scripts/state/utils/u_state_handoff.gd
+class_name U_StateHandoff
 
 static var _preserved_slices: Dictionary = {}
 
@@ -192,7 +192,7 @@ static func clear_all() -> void:
 
 **Implementation**:
 ```gdscript
-# scripts/state/u_state_utils.gd
+# scripts/state/utils/u_state_utils.gd
 class_name U_StateUtils
 
 static func get_store(node: Node) -> M_StateStore:
@@ -303,7 +303,7 @@ Chosen path: Option C (Dual‑bus via abstract base). Alternatives are documente
 
 **Option C (Recommended): Dual‑Bus via Abstract Base**
 - Add `EventBusBase` (abstract) with shared logic
-- Keep `ECSEventBus` for ECS; add `StateStoreEventBus` for state
+- Keep `U_ECSEventBus` for ECS; add `U_StateEventBus` for state
 - Pros: Zero breaking changes, isolated domains, shared implementation
 - Cons: Two buses to reset in different test suites (explicit but clear)
 
@@ -311,7 +311,7 @@ Chosen path: Option C (Dual‑bus via abstract base). Alternatives are documente
 
 | Task | Estimated Time | Risk |
 |------|----------------|------|
-| Rename ecs_event_bus.gd → event_bus.gd | 5 min | Low |
+| Rename u_ecs_event_bus.gd → event_bus.gd | 5 min | Low |
 | Add namespacing (ecs/* vs state/*) | 30 min | Medium |
 | Add get_event_history_by_namespace() | 15 min | Low |
 | Find all ECS event publishers | 15 min | Low |
@@ -374,27 +374,36 @@ docs/state store/
 ```
 scripts/state/                                # NEW DIRECTORY
 ├── m_state_store.gd                          # Core store manager (Node)
-├── state_handoff.gd                          # Static handoff utility (no autoload)
-├── action_registry.gd                        # Action type validation
-├── signal_batcher.gd                         # Per-frame signal batching
-├── serialization_helper.gd                   # Godot type ↔ JSON conversion
-├── state_slice_config.gd                     # Slice metadata (plain class)
+├── resources/rs_state_slice_config.gd        # Slice metadata resource
 │
-├── u_state_utils.gd                          # State utility functions (NEW)
+├── utils/                                    # Shared utilities
+│   ├── u_state_utils.gd                      # State utility functions (NEW)
+│   ├── u_action_registry.gd                  # Action type validation
+│   ├── u_serialization_helper.gd             # Godot type ↔ JSON conversion
+│   ├── u_state_handoff.gd                    # Cross-scene state preservation
+│   └── u_signal_batcher.gd                   # Per-frame signal batching
 │
-├── u_gameplay_actions.gd                     # Gameplay action creators
-├── u_boot_actions.gd                         # Boot action creators
-├── u_menu_actions.gd                         # Menu action creators
+├── actions/                                  # Action creator modules
+│   ├── u_gameplay_actions.gd                 # Gameplay action creators
+│   ├── u_boot_actions.gd                     # Boot action creators
+│   ├── u_menu_actions.gd                     # Menu action creators
+│   ├── u_scene_actions.gd                    # Scene transition actions
+│   └── u_transition_actions.gd               # Transition helpers
 │
-├── reducers/                                 # NEW SUBDIRECTORY
-│   ├── gameplay_reducer.gd                   # Gameplay slice reducer
-│   ├── boot_reducer.gd                       # Boot slice reducer
-│   └── menu_reducer.gd                       # Menu slice reducer
+├── reducers/                                 # Pure reducers per slice
+│   ├── u_gameplay_reducer.gd                 # Gameplay slice reducer
+│   ├── u_boot_reducer.gd                     # Boot slice reducer
+│   ├── u_menu_reducer.gd                     # Menu slice reducer
+│   └── u_scene_reducer.gd                    # Scene slice reducer
 │
-├── selectors/                                # NEW SUBDIRECTORY
-│   ├── gameplay_selectors.gd                 # Gameplay derived state
-│   ├── boot_selectors.gd                     # Boot derived state
-│   └── menu_selectors.gd                     # Menu derived state
+├── selectors/                                # Derived state helpers
+│   ├── u_gameplay_selectors.gd               # Gameplay derived state
+│   ├── u_boot_selectors.gd                   # Boot derived state
+│   ├── u_menu_selectors.gd                   # Menu derived state
+│   ├── u_entity_selectors.gd                 # Entity derived state
+│   ├── u_input_selectors.gd                  # Input derived state
+│   ├── u_physics_selectors.gd                # Physics derived state
+│   └── u_visual_selectors.gd                 # Visual derived state
 │
 └── resources/                                # .gd scripts for Resources
     ├── rs_gameplay_initial_state.gd
@@ -413,7 +422,7 @@ scripts/events/                               # NEW DIRECTORY (shared infra)
 └── event_bus_base.gd                         # Abstract base class for event buses
 
 scripts/state/
-└── state_event_bus.gd                        # State domain bus (extends base)
+└── u_state_event_bus.gd                        # State domain bus (extends base)
 
 scenes/debug/                                 # NEW DIRECTORY
 ├── sc_state_debug_overlay.tscn               # Debug UI scene
@@ -450,8 +459,8 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 
 **Files**:
 - `scripts/events/event_bus_base.gd` — abstract base class
-- `scripts/state/state_event_bus.gd` — state domain bus with static delegates
-- `scripts/ecs/ecs_event_bus.gd` — update to extend base and delegate statics internally
+- `scripts/state/u_state_event_bus.gd` — state domain bus with static delegates
+- `scripts/ecs/u_ecs_event_bus.gd` — update to extend base and delegate statics internally
 
 **Changes**:
 1. Implement subscribe/unsubscribe/publish/reset/history in base
@@ -462,14 +471,14 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 **Tests**:
 - Add `tests/unit/state/test_state_event_bus.gd`:
   - Subscribers receive events
-  - `StateStoreEventBus.reset()` clears subscribers/history
-  - `ECSEventBus` is unaffected by state reset
+  - `U_StateEventBus.reset()` clears subscribers/history
+  - `U_ECSEventBus` is unaffected by state reset
 
 **Go/No-Go**:
 - ✅ Proceed when state tests and ECS tests both pass
 - ❌ If issues arise, fall back to Option B (direct signals) for P1
 
-**Commit Message**: `Add EventBusBase and StateStoreEventBus; delegate ECSEventBus to base (Phase 0)`
+**Commit Message**: `Add EventBusBase and U_StateEventBus; delegate U_ECSEventBus to base (Phase 0)`
 
 ---
 
@@ -479,8 +488,8 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 
 **Files Created**:
 - `scripts/state/m_state_store.gd` (store skeleton)
-- `scripts/state/u_state_utils.gd` (access helper - NEW)
-- `scripts/state/state_slice_config.gd` (slice metadata)
+- `scripts/state/utils/u_state_utils.gd` (access helper - NEW)
+- `scripts/state/resources/rs_state_slice_config.gd` (slice metadata)
 - `scripts/state/resources/rs_state_store_settings.gd` (store config)
 - `resources/state/default_state_store_settings.tres` (default config)
 - `tests/unit/state/test_m_state_store.gd` (store tests)
@@ -515,7 +524,7 @@ signal validation_failed(action: Dictionary, error: String)
 const PROJECT_SETTING_HISTORY_SIZE := "state/debug/history_size"
 const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 
-const U_STATE_UTILS := preload("res://scripts/state/u_state_utils.gd")
+const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 
 @export var settings: RS_StateStoreSettings
 
@@ -594,7 +603,7 @@ func _exit_tree() -> void:
 **Implementation**: U_StateUtils
 
 ```gdscript
-# scripts/state/u_state_utils.gd
+# scripts/state/utils/u_state_utils.gd
 class_name U_StateUtils
 
 ## Utility functions for state management (similar to U_ECSUtils)
@@ -631,12 +640,12 @@ static func benchmark(name: String, callable: Callable) -> float:
 	return elapsed_ms
 ```
 
-**Implementation**: StateSliceConfig
+**Implementation**: RS_StateSliceConfig
 
 ```gdscript
-# scripts/state/state_slice_config.gd
+# scripts/state/resources/rs_state_slice_config.gd
 extends Resource
-class_name StateSliceConfig
+class_name RS_StateSliceConfig
 
 ## Configuration for a state slice
 
@@ -690,7 +699,7 @@ var store: M_StateStore
 
 func before_each():
 	# Reset state bus between tests
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 
 	store = M_StateStore.new()
 	autofree(store)
@@ -701,7 +710,7 @@ func after_each():
 	if store and is_instance_valid(store):
 		store.queue_free()
 	store = null
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 
 func test_store_initializes_in_scene_tree():
 	assert_not_null(store, "Store should be created")
@@ -815,19 +824,19 @@ func test_benchmark_measures_time():
 **Objective**: Implement save/load with JSON serialization, Godot type conversion, selective persistence, save slot management, metadata, and validation.
 
 **Files Created**:
-- `scripts/state/serialization_helper.gd`
-- `scripts/state/state_handoff.gd` (static utility — no autoload)
+- `scripts/state/utils/u_serialization_helper.gd`
+- `scripts/state/utils/u_state_handoff.gd` (static utility — no autoload)
 - `tests/unit/state/test_state_persistence.gd`
 
 **Files Modified**:
-- `scripts/state/state_slice_config.gd` (add transient_fields if not present)
+- `scripts/state/resources/rs_state_slice_config.gd` (add transient_fields if not present)
 - `scripts/state/m_state_store.gd` (add save/load methods)
 
 **Implementation**: StateHandoff (No autoload)
 
 ```gdscript
-# scripts/state/state_handoff.gd
-class_name StateHandoff
+# scripts/state/utils/u_state_handoff.gd
+class_name U_StateHandoff
 
 ## Static utility that preserves state between scene changes
 ## without using autoloads.
@@ -979,7 +988,7 @@ func _serialize_slices() -> Dictionary:
 	var serialized: Dictionary = {}
 
 	for slice_name in _state:
-		var config: StateSliceConfig = _slice_configs.get(slice_name)
+		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
 		var transients: Array[StringName] = config.transient_fields if config else []
 
 		serialized[slice_name] = SerializationHelper.serialize_state(
@@ -1040,8 +1049,8 @@ func _ready() -> void:
 **Implementation**: SerializationHelper
 
 ```gdscript
-# scripts/state/serialization_helper.gd
-class_name SerializationHelper
+# scripts/state/utils/u_serialization_helper.gd
+class_name U_SerializationHelper
 
 ## Utility for converting Godot types to/from JSON-compatible structures
 
@@ -1263,7 +1272,7 @@ These step-by-step workflows guide you through common development tasks. **Use t
 **Step 1: Add Action Constant & Creator** (5 min)
 
 ```gdscript
-# scripts/state/u_gameplay_actions.gd
+# scripts/state/actions/u_gameplay_actions.gd
 const ACTION_UPDATE_AMMO := StringName("gameplay/update_ammo")
 
 static func update_ammo(ammo: int) -> Dictionary:
@@ -1298,7 +1307,7 @@ Open `resources/state/default_gameplay_initial_state.tres` in Godot, set `defaul
 **Step 4: Add Reducer Case** (3 min)
 
 ```gdscript
-# scripts/state/reducers/gameplay_reducer.gd
+# scripts/state/reducers/u_gameplay_reducer.gd
 static func reduce(current_state: Dictionary, action: Dictionary) -> Dictionary:
 	var next_state: Dictionary = current_state.duplicate(true)
 
@@ -1332,7 +1341,7 @@ Run tests: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s 
 **Step 6 (Optional): Add Selector** (5 min)
 
 ```gdscript
-# scripts/state/selectors/gameplay_selectors.gd
+# scripts/state/selectors/u_gameplay_selectors.gd
 static func select_ammo(state: Dictionary) -> int:
 	var gameplay: Dictionary = state.get("gameplay", {})
 	return gameplay.get("ammo", 0)
@@ -1362,7 +1371,7 @@ static func select_is_out_of_ammo(state: Dictionary) -> bool:
 
 ```gdscript
 # scripts/ecs/systems/s_movement_system.gd
-extends ECSSystem
+extends BaseECSSystem
 class_name S_MovementSystem
 
 var _state_store: M_StateStore
@@ -1487,7 +1496,7 @@ Complete working examples showing how ECS systems integrate with the state store
 ```gdscript
 # scripts/ecs/systems/s_movement_system.gd
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_MovementSystem
 
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
@@ -1559,7 +1568,7 @@ func _on_state_changed(action: Dictionary, new_state: Dictionary) -> void:
 ```gdscript
 # scripts/ecs/systems/s_input_system.gd
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_InputSystem
 
 const INPUT_TYPE := StringName("C_InputComponent")
@@ -1637,7 +1646,7 @@ func _on_state_changed(action: Dictionary, new_state: Dictionary) -> void:
 		_show_game_over_screen()
 
 # OR: Use reducer to handle derived state
-# In gameplay_reducer.gd:
+# In u_gameplay_reducer.gd:
 static func reduce(current_state: Dictionary, action: Dictionary) -> Dictionary:
 	var next_state: Dictionary = current_state.duplicate(true)
 
@@ -1666,7 +1675,7 @@ How to debug state issues **before** Phase 2 debug overlay exists.
 ### Technique 1: Print Statements in Reducer
 
 ```gdscript
-# scripts/state/reducers/gameplay_reducer.gd
+# scripts/state/reducers/u_gameplay_reducer.gd
 static func reduce(current_state: Dictionary, action: Dictionary) -> Dictionary:
 	if OS.is_debug_build():
 		print("════════════════════════════════════════")
@@ -1900,7 +1909,7 @@ var store: M_StateStore
 
 func before_each():
 	# Clear state event bus between tests
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 
 	store = M_StateStore.new()
 	autofree(store)
@@ -1911,10 +1920,10 @@ func after_each():
 	if store and is_instance_valid(store):
 		store.queue_free()
 	store = null
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 ```
 
-**Why Critical**: Without a bus reset, subscriptions leak between tests causing mysterious failures. Use `ECSEventBus.reset()` in ECS test suites.
+**Why Critical**: Without a bus reset, subscriptions leak between tests causing mysterious failures. Use `U_ECSEventBus.reset()` in ECS test suites.
 
 ---
 

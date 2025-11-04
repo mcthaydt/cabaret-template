@@ -2,7 +2,7 @@ extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const EVENT_VFX_SYSTEM := preload("res://scripts/ecs/event_vfx_system.gd")
-const EVENT_BUS := preload("res://scripts/ecs/ecs_event_bus.gd")
+const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 
 const TEST_EVENT_NAME := StringName("test_event")
 
@@ -20,7 +20,7 @@ func _spawn_manager() -> M_ECSManager:
 
 ## Test concrete implementation of EventVFXSystem
 class TestVFXSystem:
-	extends EVENT_VFX_SYSTEM
+	extends BaseEventVFXSystem
 
 	var event_name: StringName = StringName()
 	var request_builder: Callable = Callable()
@@ -38,7 +38,7 @@ class TestVFXSystem:
 func test_system_extends_ecs_system() -> void:
 	var system := TestVFXSystem.new()
 	autofree(system)
-	assert_true(system is ECSSystem, "EventVFXSystem should extend ECSSystem")
+	assert_true(system is BaseECSSystem, "EventVFXSystem should extend ECSSystem")
 
 func test_get_event_name_returns_empty_in_base_class() -> void:
 	var system := TestVFXSystem.new()

@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_InputSystem
 
 ## Phase 16: Dispatches input to state store and components
@@ -13,6 +13,7 @@ const INPUT_TYPE := StringName("C_InputComponent")
 @export var jump_action: StringName = StringName("jump")
 @export var sprint_action: StringName = StringName("sprint")
 @export var input_deadzone: float = 0.15
+@export var require_captured_cursor: bool = false
 
 var _actions_initialized := false
 var _mouse_delta: Vector2 = Vector2.ZERO
@@ -29,12 +30,19 @@ func _input(event: InputEvent) -> void:
 
 func process_tick(_delta: float) -> void:
 	_ensure_actions()
-	
+
+	# Only capture input when the cursor is locked/captured (gameplay)
+	# This avoids overriding test-driven state changes and UI/menu contexts
+	if require_captured_cursor and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		# Reset accumulated mouse delta when not actively capturing
+		_mouse_delta = Vector2.ZERO
+		return
+
 	# Skip input capture if game is paused
 	var store: M_StateStore = U_StateUtils.get_store(self)
 	if store:
 		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-		if GameplaySelectors.get_is_paused(gameplay_state):
+		if U_GameplaySelectors.get_is_paused(gameplay_state):
 			# Reset mouse delta when paused
 			_mouse_delta = Vector2.ZERO
 			return

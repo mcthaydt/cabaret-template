@@ -35,17 +35,17 @@ func test_action_creators_return_typed_dictionary() -> void:
 
 func test_actions_are_registered_automatically() -> void:
 	# _static_init() should have registered these
-	assert_true(ActionRegistry.is_registered(U_GameplayActions.ACTION_PAUSE_GAME), 
+	assert_true(U_ActionRegistry.is_registered(U_GameplayActions.ACTION_PAUSE_GAME), 
 		"PAUSE_GAME should be auto-registered")
-	assert_true(ActionRegistry.is_registered(U_GameplayActions.ACTION_UNPAUSE_GAME), 
+	assert_true(U_ActionRegistry.is_registered(U_GameplayActions.ACTION_UNPAUSE_GAME), 
 		"UNPAUSE_GAME should be auto-registered")
 
 func test_created_actions_validate_successfully() -> void:
 	var pause_action: Dictionary = U_GameplayActions.pause_game()
 	var unpause_action: Dictionary = U_GameplayActions.unpause_game()
 	
-	assert_true(ActionRegistry.validate_action(pause_action), "pause_game action should validate")
-	assert_true(ActionRegistry.validate_action(unpause_action), "unpause_game action should validate")
+	assert_true(U_ActionRegistry.validate_action(pause_action), "pause_game action should validate")
+	assert_true(U_ActionRegistry.validate_action(unpause_action), "unpause_game action should validate")
 
 func test_action_constants_are_string_names() -> void:
 	assert_true(U_GameplayActions.ACTION_PAUSE_GAME is StringName, "ACTION_PAUSE_GAME should be StringName")

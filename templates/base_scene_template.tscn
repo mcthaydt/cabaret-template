@@ -1,9 +1,9 @@
-[gd_scene load_steps=34 format=3 uid="uid://rygahxanlmio"]
+[gd_scene load_steps=39 format=3 uid="uid://rygahxanlmio"]
 
-[ext_resource type="Resource" path="res://resources/state/default_boot_initial_state.tres" id="1_boot_state"]
+[ext_resource type="Resource" uid="uid://dq08aopcfbjyp" path="res://resources/state/default_boot_initial_state.tres" id="1_boot_state"]
 [ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
 [ext_resource type="Resource" uid="uid://uygy4iikdf74" path="res://resources/state/default_gameplay_initial_state.tres" id="1_gameplay_state"]
-[ext_resource type="Resource" path="res://resources/state/default_menu_initial_state.tres" id="1_menu_state"]
+[ext_resource type="Resource" uid="uid://b26lupnu6qot0" path="res://resources/state/default_menu_initial_state.tres" id="1_menu_state"]
 [ext_resource type="Script" uid="uid://bbovcvnujbnj3" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
 [ext_resource type="Resource" uid="uid://dw7q8jxqvhgwf" path="res://resources/state/default_state_store_settings.tres" id="1_state_settings"]
 [ext_resource type="Script" uid="uid://dog624m744wa4" path="res://scripts/state/m_state_store.gd" id="1_state_store"]
@@ -11,6 +11,10 @@
 [ext_resource type="Script" uid="uid://biqa541wtn26y" path="res://scripts/scene_structure/scene_objects_group.gd" id="2_ph0bl"]
 [ext_resource type="Script" uid="uid://pfqmo0e48jlo" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
 [ext_resource type="Script" uid="uid://bgnsh0o3wra1n" path="res://scripts/scene_structure/systems_group.gd" id="3_ph0bl"]
+[ext_resource type="Script" uid="uid://c4e4hlymefb77" path="res://scripts/scene_structure/systems_core_group.gd" id="3_systems_core"]
+[ext_resource type="Script" uid="uid://b4sme8c1pqnrd" path="res://scripts/scene_structure/systems_feedback_group.gd" id="3_systems_feedback"]
+[ext_resource type="Script" uid="uid://ddn3u13llflav" path="res://scripts/scene_structure/systems_movement_group.gd" id="3_systems_movement"]
+[ext_resource type="Script" uid="uid://dg6boicav68qc" path="res://scripts/scene_structure/systems_physics_group.gd" id="3_systems_physics"]
 [ext_resource type="Script" uid="uid://stjin1lq2sly" path="res://scripts/ecs/systems/s_gravity_system.gd" id="3_xnqit"]
 [ext_resource type="Script" uid="uid://rs0c1nihjtjv" path="res://scripts/ecs/systems/s_movement_system.gd" id="4_vry44"]
 [ext_resource type="Script" uid="uid://de612gn1alhu" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
@@ -30,6 +34,7 @@
 [ext_resource type="Script" uid="uid://d0n2a3p3tkdq0" path="res://scripts/scene_structure/managers_group.gd" id="12_klon2"]
 [ext_resource type="Script" uid="uid://mm82rwglfuba" path="res://scripts/scene_structure/entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/camera_template.tscn" id="19_ph0bl"]
+[ext_resource type="Script" uid="uid://u7yf4vdyvkmx" path="res://scripts/scene_structure/spawn_points_group.gd" id="21_spawnpoints"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -92,54 +97,66 @@ light_indirect_energy = 4.482
 [node name="Systems" type="Node" parent="."]
 script = ExtResource("3_ph0bl")
 
-[node name="S_InputSystem" type="Node" parent="Systems"]
+[node name="Core" type="Node" parent="Systems"]
+script = ExtResource("3_systems_core")
+
+[node name="S_InputSystem" type="Node" parent="Systems/Core"]
 script = ExtResource("1_pybrx")
 
-[node name="S_JumpSystem" type="Node" parent="Systems"]
-script = ExtResource("2_rfthe")
-execution_priority = 75
+[node name="S_PauseSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("9_pause")
+execution_priority = 5
 
-[node name="S_GravitySystem" type="Node" parent="Systems"]
+[node name="Physics" type="Node" parent="Systems"]
+script = ExtResource("3_systems_physics")
+
+[node name="S_GravitySystem" type="Node" parent="Systems/Physics"]
 script = ExtResource("3_xnqit")
 execution_priority = 60
 
-[node name="S_MovementSystem" type="Node" parent="Systems"]
+[node name="S_JumpSystem" type="Node" parent="Systems/Physics"]
+script = ExtResource("2_rfthe")
+execution_priority = 75
+
+[node name="Movement" type="Node" parent="Systems"]
+script = ExtResource("3_systems_movement")
+
+[node name="S_MovementSystem" type="Node" parent="Systems/Movement"]
 script = ExtResource("4_vry44")
 execution_priority = 50
 
-[node name="S_RotateToInputSystem" type="Node" parent="Systems"]
-script = ExtResource("5_r0a6q")
-execution_priority = 80
-
-[node name="S_FloatingSystem" type="Node" parent="Systems"]
+[node name="S_FloatingSystem" type="Node" parent="Systems/Movement"]
 script = ExtResource("6_tnjgn")
 execution_priority = 70
 
-[node name="S_AlignWithSurfaceSystem" type="Node" parent="Systems"]
+[node name="S_RotateToInputSystem" type="Node" parent="Systems/Movement"]
+script = ExtResource("5_r0a6q")
+execution_priority = 80
+
+[node name="S_AlignWithSurfaceSystem" type="Node" parent="Systems/Movement"]
 script = ExtResource("7_awem0")
 execution_priority = 90
 
-[node name="S_LandingIndicatorSystem" type="Node" parent="Systems"]
+[node name="Feedback" type="Node" parent="Systems"]
+script = ExtResource("3_systems_feedback")
+
+[node name="S_LandingIndicatorSystem" type="Node" parent="Systems/Feedback"]
 script = ExtResource("8_ey5t3")
 execution_priority = 110
 
-[node name="S_JumpParticlesSystem" type="Node" parent="Systems"]
+[node name="S_JumpParticlesSystem" type="Node" parent="Systems/Feedback"]
 script = ExtResource("9_jump_particles")
 settings = ExtResource("9_jump_particles_settings")
 execution_priority = 120
 
-[node name="S_JumpSoundSystem" type="Node" parent="Systems"]
+[node name="S_JumpSoundSystem" type="Node" parent="Systems/Feedback"]
 script = ExtResource("9_jump_sound")
 execution_priority = 121
 
-[node name="S_LandingParticlesSystem" type="Node" parent="Systems"]
+[node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback"]
 script = ExtResource("10_landing_particles")
 settings = ExtResource("10_landing_particles_settings")
 execution_priority = 122
-
-[node name="S_PauseSystem" type="Node" parent="Systems"]
-script = ExtResource("9_pause")
-execution_priority = 5
 
 [node name="Managers" type="Node" parent="."]
 script = ExtResource("12_klon2")
@@ -160,18 +177,13 @@ gameplay_initial_state = ExtResource("1_gameplay_state")
 [node name="Entities" type="Node" parent="."]
 script = ExtResource("16_8qi87")
 
-[node name="E_SpawnPoints" type="Node3D" parent="Entities"]
-script = ExtResource("16_8qi87")
-
-[node name="E_PlayerSpawn" type="Node3D" parent="Entities/E_SpawnPoints"]
-
-[node name="E_CameraSpawn" type="Node3D" parent="Entities/E_SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
-
 [node name="E_Player" parent="Entities" instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
 
 [node name="E_CameraRoot" parent="Entities" instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
+
+[node name="SP_SpawnPoints" type="Node3D" parent="."]
+script = ExtResource("21_spawnpoints")
 
 [node name="HUD" parent="." instance=ExtResource("11_hud")]

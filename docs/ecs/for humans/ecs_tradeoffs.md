@@ -231,7 +231,7 @@ With ECS: 7+ files
 
 **✗ Repetitive Component Boilerplate**
 Every component needs:
-- `extends ECSComponent`
+- `extends BaseECSComponent`
 - `class_name C_MyComponent`
 - `const COMPONENT_TYPE := StringName("C_MyComponent")`
 - NodePath exports
@@ -239,7 +239,7 @@ Every component needs:
 
 **✗ Repetitive System Boilerplate**
 Every system needs:
-- `extends ECSSystem`
+- `extends BaseECSSystem`
 - `class_name S_MySystem`
 - `process_tick(delta)` override
 - `get_components()` calls

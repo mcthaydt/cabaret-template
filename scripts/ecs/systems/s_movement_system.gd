@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_MovementSystem
 
 ## Phase 16: Dispatches velocity to state store
@@ -8,12 +8,16 @@ const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 
+# State stability tracking to prevent flickering in state store
+const MIN_STABLE_FRAMES := 10  # Frames state must be stable before dispatching (~0.167s @ 60fps)
+var _floor_state_stable_frames: Dictionary = {}  # entity_id -> frames_stable
+
 func process_tick(delta: float) -> void:
 	# Skip processing if game is paused
 	var store: M_StateStore = U_StateUtils.get_store(self)
 	if store:
 		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-		if GameplaySelectors.get_is_paused(gameplay_state):
+		if U_GameplaySelectors.get_is_paused(gameplay_state):
 			return
 	
 	var manager := get_manager()
@@ -49,6 +53,7 @@ func process_tick(delta: float) -> void:
 		if state == null:
 			state = {
 				"velocity": body.velocity,
+				"previous_is_on_floor": body.is_on_floor(),  # Track for change detection
 			}
 			body_state[body] = state
 			bodies.append(body)
@@ -150,20 +155,60 @@ func process_tick(delta: float) -> void:
 			"dynamics_velocity": movement_component.get_horizontal_dynamics_velocity(),
 		})
 
+	# Build floating component map for floor detection
+	var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, FLOATING_TYPE)
+
 	for body in bodies:
 		var final_velocity: Vector3 = body_state[body].velocity
 		body.velocity = final_velocity
 		if body.has_method("move_and_slide"):
 			body.move_and_slide()
-	
+
+			# Track floor state for stability check
+			var is_on_floor_raw: bool = body.is_on_floor()
+			var floating_supported: bool = false
+			var floating_component: C_FloatingComponent = floating_by_body.get(body, null) as C_FloatingComponent
+			if floating_component != null:
+				floating_supported = floating_component.is_supported
+			var current_on_floor: bool = is_on_floor_raw or floating_supported
+
+			# Update for next frame
+			body_state[body].previous_is_on_floor = current_on_floor
+
 	# Phase 16: Dispatch entity snapshots to state store (Entity Coordination Pattern)
+	# Reuse floating_by_body map created earlier
 	if store and bodies.size() > 0:
 		for body in bodies:
 			var entity_id: String = _get_entity_id(body)
 			if entity_id.is_empty():
 				continue
-			
+
 			var is_moving: bool = Vector2(body.velocity.x, body.velocity.z).length() > 0.1
+
+			# Check BOTH is_on_floor() and floating support (matching JumpSystem logic)
+			var is_on_floor_raw: bool = body.is_on_floor()
+			var floating_supported: bool = false
+			var floating_component: C_FloatingComponent = floating_by_body.get(body, null) as C_FloatingComponent
+			if floating_component != null:
+				floating_supported = floating_component.is_supported
+			var current_on_floor: bool = is_on_floor_raw or floating_supported
+
+			# Stability check: Only dispatch if floor state has been stable for MIN_STABLE_FRAMES
+			# This prevents flickering from floating capsule jitter
+			var previous_on_floor: bool = body_state[body].previous_is_on_floor
+			var stable_frames: int = _floor_state_stable_frames.get(entity_id, 0)
+
+			if current_on_floor != previous_on_floor:
+				# State changed - reset stability counter
+				_floor_state_stable_frames[entity_id] = 0
+			else:
+				# State unchanged - increment stability counter
+				if stable_frames < MIN_STABLE_FRAMES:
+					_floor_state_stable_frames[entity_id] = stable_frames + 1
+
+			# Only include is_on_floor in snapshot if state is stable
+			var should_update_floor_state: bool = _floor_state_stable_frames.get(entity_id, 0) >= MIN_STABLE_FRAMES
+
 			var snapshot: Dictionary = {
 				"position": body.global_position,
 				"velocity": body.velocity,
@@ -171,6 +216,11 @@ func process_tick(delta: float) -> void:
 				"is_moving": is_moving,
 				"entity_type": _get_entity_type(body)
 			}
+
+			# Only add is_on_floor to snapshot if stable
+			if should_update_floor_state:
+				snapshot["is_on_floor"] = current_on_floor
+
 			store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
 
 func _get_desired_velocity(input_vector: Vector2, max_speed: float) -> Vector3:

@@ -393,7 +393,7 @@ ecs_debugger/disabled_systems = [
 
 **Solutions:**
 1. **Trigger events** by performing in-game actions
-2. **Verify event publishing** by checking `ECSEventBus.publish()` calls in your code
+2. **Verify event publishing** by checking `U_ECSEventBus.publish()` calls in your code
 3. **Check the event count indicator** at the top of the tab
 
 ---
@@ -481,7 +481,7 @@ Disabled system states are saved to **ProjectSettings** (not EditorSettings), wh
 
 ### 6. Performance Impact
 
-The debugger polls `M_ECSManager.get_query_metrics()` and `ECSEventBus.get_event_history()` at the configured refresh rate (default: 0.5s).
+The debugger polls `M_ECSManager.get_query_metrics()` and `U_ECSEventBus.get_event_history()` at the configured refresh rate (default: 0.5s).
 
 **Frame Impact:**
 - **Minimal** (<0.1ms per refresh on typical projects)

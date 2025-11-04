@@ -28,8 +28,8 @@ Production state now contains only real fields used by actual game systems. See 
 We use an abstract base with two concrete buses (no autoload changes, no breaking changes):
 
 - `scripts/events/event_bus_base.gd` (abstract) — shared implementation for subscribe/publish/history
-- `scripts/ecs/ecs_event_bus.gd` (concrete) — ECS‑domain bus, preserves current public API
-- `scripts/state/state_event_bus.gd` (concrete) — State‑domain bus, used only by state store and its tests
+- `scripts/ecs/u_ecs_event_bus.gd` (concrete) — ECS‑domain bus, preserves current public API
+- `scripts/state/u_state_event_bus.gd` (concrete) — State‑domain bus, used only by state store and its tests
 
 This isolates subscribers and histories between ECS and State, while sharing one implementation. If a single bus is later preferred, namespaced events remain a viable alternative, but dual‑bus avoids cross‑domain coupling.
 
@@ -61,7 +61,7 @@ All state management code follows the project's prefix+suffix naming conventions
 | Component | Class Name | File Name | Example |
 |-----------|------------|-----------|---------|
 | State Store | `M_StateStore` | `m_state_store.gd` | Manager pattern |
-| Action Creators | `U_GameplayActions` | `u_gameplay_actions.gd` | Utility pattern (suffix "Actions" permitted) |
+| Action Creators | `U_GameplayActions` | `actions/u_gameplay_actions.gd` | Utility pattern (suffix "Actions" permitted) |
 | Initial State | `RS_GameplayInitialState` | `rs_gameplay_initial_state.gd` | Resource pattern |
 | Debug Overlay | `SC_StateDebugOverlay` | `sc_state_debug_overlay.gd` | Scene pattern |
 | Tests | `TestMStateStore` | `test_m_state_store.gd` | Test pattern |
@@ -82,8 +82,8 @@ All state store tests use GUT (Godot Unit Test) framework with project-standard 
 ```
 
 Note on event bus resets in tests:
-- State store tests: call `StateStoreEventBus.reset()`
-- ECS tests: call `ECSEventBus.reset()`
+- State store tests: call `U_StateEventBus.reset()`
+- ECS tests: call `U_ECSEventBus.reset()`
 
 ### Critical Testing Requirements
 - **Autofree everything**: All nodes instantiated in tests must use `autofree()`/`autofree_context()` to prevent memory leaks
@@ -111,22 +111,29 @@ This feature will create the following new files:
 ### Core State System
 - `scripts/state/m_state_store.gd` - Central state store manager
 - `scripts/events/event_bus_base.gd` - Abstract base for event buses
-- `scripts/state/state_event_bus.gd` - Concrete state store event bus (uses base)
+- `scripts/state/u_state_event_bus.gd` - Concrete state store event bus (uses base)
 
 ### Action Creators (Utilities)
-- `scripts/state/u_gameplay_actions.gd` - Gameplay action creators
-- `scripts/state/u_boot_actions.gd` - Boot sequence action creators
-- `scripts/state/u_menu_actions.gd` - Menu navigation action creators
+- `scripts/state/actions/u_gameplay_actions.gd` - Gameplay action creators
+- `scripts/state/actions/u_boot_actions.gd` - Boot sequence action creators
+- `scripts/state/actions/u_menu_actions.gd` - Menu navigation action creators
+- `scripts/state/actions/u_scene_actions.gd` - Scene transition action creators
+- `scripts/state/actions/u_transition_actions.gd` - Cross-scene transition helpers
 
 ### Reducers
-- `scripts/state/reducers/gameplay_reducer.gd` - Gameplay slice reducer
-- `scripts/state/reducers/boot_reducer.gd` - Boot slice reducer
-- `scripts/state/reducers/menu_reducer.gd` - Menu slice reducer
+- `scripts/state/reducers/u_gameplay_reducer.gd` - Gameplay slice reducer
+- `scripts/state/reducers/u_boot_reducer.gd` - Boot slice reducer
+- `scripts/state/reducers/u_menu_reducer.gd` - Menu slice reducer
+- `scripts/state/reducers/u_scene_reducer.gd` - Scene management slice reducer
 
 ### Selectors
-- `scripts/state/selectors/gameplay_selectors.gd` - Gameplay state selectors
-- `scripts/state/selectors/boot_selectors.gd` - Boot state selectors
-- `scripts/state/selectors/menu_selectors.gd` - Menu state selectors
+- `scripts/state/selectors/u_gameplay_selectors.gd` - Gameplay state selectors
+- `scripts/state/selectors/u_boot_selectors.gd` - Boot state selectors
+- `scripts/state/selectors/u_menu_selectors.gd` - Menu state selectors
+- `scripts/state/selectors/u_entity_selectors.gd` - Entity-derived selectors
+- `scripts/state/selectors/u_input_selectors.gd` - Input-derived selectors
+- `scripts/state/selectors/u_visual_selectors.gd` - Visual feedback selectors
+- `scripts/state/selectors/u_physics_selectors.gd` - Physics integration selectors
 
 ### Initial State Resources
 - `scripts/state/resources/rs_gameplay_initial_state.gd` (+.tres) - Gameplay default state
@@ -135,10 +142,11 @@ This feature will create the following new files:
 - `scripts/state/resources/rs_state_store_settings.gd` (+.tres) - Store config (history size, debug mode, etc.)
 
 ### Support Systems
-- `scripts/state/action_registry.gd` - Action type validation system
-- `scripts/state/signal_batcher.gd` - Per-frame signal batching
-- `scripts/state/serialization_helper.gd` - Godot type ↔ JSON conversion
-- `scripts/state/state_slice_config.gd` - Slice metadata (dependencies, transient fields)
+- `scripts/state/utils/u_action_registry.gd` - Action type validation system
+- `scripts/state/utils/u_signal_batcher.gd` - Per-frame signal batching
+- `scripts/state/utils/u_serialization_helper.gd` - Godot type ↔ JSON conversion
+- `scripts/state/utils/u_state_handoff.gd` - Cross-scene state preservation
+- `scripts/state/resources/rs_state_slice_config.gd` - Slice metadata (dependencies, transient fields)
 
 ### Debug Tools
 - `scenes/debug/sc_state_debug_overlay.tscn` - Debug UI scene
@@ -172,7 +180,7 @@ Developer creates a fully-functional gameplay state slice demonstrating all Redu
 
 **Deliverables**:
 - `scripts/state/m_state_store.gd` - Store class extending `Node`
-- `scripts/state/state_slice_config.gd` - Slice metadata structure (plain class, not Resource)
+- `scripts/state/resources/rs_state_slice_config.gd` - Slice metadata structure (plain class, not Resource)
 - Basic `dispatch(action)` method (no reducers yet, just logs action)
 - Basic `subscribe(callback)` method for registering observers
 - `tests/unit/state/test_m_state_store.gd` - Tests for store instantiation and subscription
@@ -189,8 +197,8 @@ Developer creates a fully-functional gameplay state slice demonstrating all Redu
 **Objective**: Implement action type validation using `StringName` constants and runtime payload checking.
 
 **Deliverables**:
-- `scripts/state/action_registry.gd` - Action type registry and validator
-- `scripts/state/u_gameplay_actions.gd` - Action creator utilities with constants
+- `scripts/state/utils/u_action_registry.gd` - Action type registry and validator
+- `scripts/state/actions/u_gameplay_actions.gd` - Action creator utilities with constants
 - Action validation in `M_StateStore.dispatch()`
 - `tests/unit/state/test_u_gameplay_actions.gd` - Action creator tests
 
@@ -242,8 +250,8 @@ Developer creates a fully-functional gameplay state slice demonstrating all Redu
 **Objective**: Implement selector infrastructure for derived state computation with explicit slice dependency declarations.
 
 **Deliverables**:
-- `scripts/state/selectors/gameplay_selectors.gd` - Selector utility functions
-- Dependency declaration in `StateSliceConfig`
+- `scripts/state/selectors/u_gameplay_selectors.gd` - Selector utility functions
+- Dependency declaration in `RS_StateSliceConfig`
 - Selectors: `get_is_player_alive()`, `get_is_game_over()`, `get_completion_percentage()`, etc.
 - `tests/unit/state/test_state_selectors.gd` - Selector computation tests
 
@@ -259,7 +267,7 @@ Developer creates a fully-functional gameplay state slice demonstrating all Redu
 **Objective**: Implement hybrid timing system - immediate state updates but batched signal emission using physics frame.
 
 **Deliverables**:
-- `scripts/state/signal_batcher.gd` - Per-frame signal batching system
+- `scripts/state/utils/u_signal_batcher.gd` - Per-frame signal batching system
 - Integration with `M_StateStore._physics_process()`
 - Signals: `state_changed(action, new_state)`, `slice_updated(slice_name, slice_state)`
 - Signal batching tests
@@ -294,8 +302,8 @@ Developer creates a fully-functional gameplay state slice demonstrating all Redu
 **Objective**: Implement save/load system with JSON serialization, Godot type conversion, and selective field persistence.
 
 **Deliverables**:
-- `scripts/state/serialization_helper.gd` - Godot type ↔ JSON conversion (Vector3 → {x,y,z}, etc.)
-- Transient field marking in `StateSliceConfig`
+- `scripts/state/utils/u_serialization_helper.gd` - Godot type ↔ JSON conversion (Vector3 → {x,y,z}, etc.)
+- Transient field marking in `RS_StateSliceConfig`
 - `save_state(filepath)` and `load_state(filepath)` methods
 - `tests/unit/state/test_state_persistence.gd` - Save/load round-trip tests
 
@@ -441,7 +449,7 @@ Developer can rewind state to previous points in time, replay action sequences, 
   - If circular pattern detected (action → state change → signal → system → dispatch same action), system should guard against it
 
 - **How do event buses handle both ECS and state events without conflicts?**
-  - Recommended: dual‑bus separation. ECS uses `ECSEventBus`; state store uses `StateStoreEventBus`. Subscribers and histories are isolated by design.
+  - Recommended: dual‑bus separation. ECS uses `U_ECSEventBus`; state store uses `U_StateEventBus`. Subscribers and histories are isolated by design.
   - Alternative: single bus with namespaced StringNames (e.g., `"ecs/*"`, `"state/*"`) if consolidation is desired later.
   - Event payloads remain domain‑specific: ECS events carry component refs; state events carry actions/state diffs.
 
@@ -502,12 +510,12 @@ Developer can rewind state to previous points in time, replay action sequences, 
 - **FR-022**: All state management classes MUST follow project naming conventions: M_* (managers), U_* (utilities), RS_* (resources), SC_* (scenes)
 - **FR-023**: All action types MUST use StringName constants (not strings) and be validated by ActionRegistry before dispatch
 - **FR-024**: Signal emission MUST batch per physics frame with maximum 1 signal per slice per frame to prevent spam
-- **FR-025**: State persistence MUST support transient field marking via StateSliceConfig to exclude runtime-only fields from saves
+- **FR-025**: State persistence MUST support transient field marking via RS_StateSliceConfig to exclude runtime-only fields from saves
 - **FR-026**: Godot-specific types (Vector3, Transform3D, Color, etc.) MUST convert to/from JSON dictionaries via SerializationHelper
 - **FR-027**: Initial state for each slice MUST load from RS_*InitialState resources (.tres files) following ECS settings pattern
-- **FR-028**: Cross-slice selector access MUST declare explicit dependencies in StateSliceConfig to document coupling
+- **FR-028**: Cross-slice selector access MUST declare explicit dependencies in RS_StateSliceConfig to document coupling
 - **FR-029**: Event bus architecture MUST be one of:
-  - Preferred: dual‑bus via `EventBusBase` with `ECSEventBus` and `StateStoreEventBus` (isolated domains, shared implementation), or
+  - Preferred: dual‑bus via `EventBusBase` with `U_ECSEventBus` and `U_StateEventBus` (isolated domains, shared implementation), or
   - Alternative: single bus with namespaced event types (`"ecs/*"`, `"state/*"`). Direct signals are acceptable for initial delivery if bus work is deferred.
 - **FR-030**: Time-travel snapshots MUST be created only on manual developer trigger (not automatic) to minimize memory overhead
 
@@ -528,9 +536,9 @@ Developer can rewind state to previous points in time, replay action sequences, 
 - **Slice**: Named portion of state tree (e.g., `"gameplay"`, `"boot"`, `"menu"`) with:
   - Own reducer function
   - Initial state from RS_*InitialState resource
-  - StateSliceConfig defining dependencies and transient fields
+  - RS_StateSliceConfig defining dependencies and transient fields
 
-- **StateSliceConfig** (plain class): Configuration for a state slice declaring:
+- **RS_StateSliceConfig** (plain class): Configuration for a state slice declaring:
   - `slice_name: StringName` - Unique slice identifier
   - `dependencies: Array[StringName]` - Other slices this selector can access
   - `transient_fields: Array[StringName]` - Fields excluded from persistence (e.g., `"_cache"`)
@@ -541,7 +549,7 @@ Developer can rewind state to previous points in time, replay action sequences, 
   - Payload shape validators (optional, for type safety)
   - Validation error reporting
 
-- **SignalBatcher**: Queues signal emissions and batches them per physics frame:
+- **U_SignalBatcher**: Queues signal emissions and batches them per physics frame:
   - Integrates with `M_StateStore._physics_process(delta)`
   - Tracks which slices changed during frame
   - Emits max 1 `slice_updated(slice_name, slice_state)` per slice per frame
@@ -599,14 +607,14 @@ Developer can rewind state to previous points in time, replay action sequences, 
 
 - **SC-008**: Type safety patterns catch common mistakes (wrong action type, missing payload fields, incorrect reducer signature) with clear error messages in development. ActionRegistry validates all dispatched actions against registered types.
 
-- **SC-009**: Dual‑bus architecture in place: `ECSEventBus` and `StateStoreEventBus` both extend `EventBusBase`, isolating domains while sharing implementation. Namespaced single‑bus remains an alternative, not required.
+- **SC-009**: Dual‑bus architecture in place: `U_ECSEventBus` and `U_StateEventBus` both extend `EventBusBase`, isolating domains while sharing implementation. Namespaced single‑bus remains an alternative, not required.
 
 - **SC-010**: All 8 micro-stories for User Story 1 (P1) committed individually with passing tests. Each commit represents a logical, test-green milestone following `AGENTS.md` requirements.
 
 - **SC-011**: All state management files follow project naming conventions: M_StateStore, U_GameplayActions, RS_GameplayInitialState, SC_StateDebugOverlay, test_m_state_store.gd.
 
-- **SC-012**: Cross-slice dependencies are explicitly declared in StateSliceConfig. Circular dependencies detected at initialization and prevented with clear error messages.
+- **SC-012**: Cross-slice dependencies are explicitly declared in RS_StateSliceConfig. Circular dependencies detected at initialization and prevented with clear error messages.
 
-- **SC-013**: Transient fields (e.g., runtime caches) are excluded from persistence when marked in StateSliceConfig. Save files only contain persistable game state.
+- **SC-013**: Transient fields (e.g., runtime caches) are excluded from persistence when marked in RS_StateSliceConfig. Save files only contain persistable game state.
 
 - **SC-014**: Debug overlay (SC_StateDebugOverlay) can be spawned/removed on demand via F3 key. Overlay shows live state, action history, and allows manual snapshot creation without impacting production builds.

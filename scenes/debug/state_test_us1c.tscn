@@ -1,7 +1,0 @@
-[gd_scene load_steps=3 format=3 uid="uid://dpk7q3wx2mnop"]
-
-[ext_resource type="PackedScene" uid="uid://rygahxanlmio" path="res://templates/base_scene_template.tscn" id="1_base"]
-[ext_resource type="Script" uid="uid://do80iuyx5r7x5" path="res://scenes/debug/state_test_us1c.gd" id="2_script"]
-
-[node name="StateTestUS1c" instance=ExtResource("1_base")]
-script = ExtResource("2_script")

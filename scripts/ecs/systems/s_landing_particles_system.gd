@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/system.svg")
-extends "res://scripts/ecs/event_vfx_system.gd"
+extends BaseEventVFXSystem
 class_name S_LandingParticlesSystem
 
 const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_landing_particles_settings.gd")

@@ -24,12 +24,14 @@ We use a **prefix + suffix** naming convention that provides:
 | **Components** | `C_` | `Component` | `C_MovementComponent` |
 | **Managers** | `M_` | `Manager` | `M_ECSManager` |
 | **Resources/Settings** | `RS_` | `Settings` | `RS_MovementSettings` |
-| **Utilities** | `U_` | `Utils` | `U_ECSUtils` |
+| **Utilities** | `U_` | `Utils` / `*` | `U_ECSUtils`, `U_BootSelectors` |
+| **Event Buses** | `U_` | `EventBus` | `U_ECSEventBus`, `U_StateEventBus` |
+| **Registries** | `U_` | `Registry` | `U_SceneRegistry` |
 | **Scenes** | `SC_` | `Scene` | `SC_PlayerScene` |
 | **Shaders** | `SH_` | `Shader` | `SH_WaterShader` |
 | **Tools** | `T_` | `Tool` | `T_LevelEditorTool` |
 | **Plugins** | `P_` | `Plugin` | `P_CustomPlugin` |
-| **Base Classes** | *(none)* | descriptive | `ECSSystem`, `ECSComponent` |
+| **Base Classes** | *(none)* | descriptive | `BaseECSSystem`, `BaseECSComponent` |
 
 ### File Names: `prefix_snake_case_suffix.gd`
 
@@ -39,7 +41,9 @@ We use a **prefix + suffix** naming convention that provides:
 | **Components** | `c_*_component.gd` | `c_movement_component.gd` |
 | **Managers** | `m_*_manager.gd` | `m_ecs_manager.gd` |
 | **Resources** | `rs_*_settings.gd` | `rs_movement_settings.gd` |
-| **Utilities** | `u_*_utils.gd` | `u_action_utils.gd` |
+| **Utilities** | `u_*_utils.gd` | `utils/u_action_registry.gd` |
+| **Event Buses** | `u_*_event_bus.gd` | `u_state_event_bus.gd` |
+| **Registries** | `u_*_registry.gd` | `u_scene_registry.gd` |
 | **Scene Scripts** | `sc_*_scene.gd` | `sc_player_scene.gd` |
 | **Shaders** | `sh_*_shader.gdshader` | `sh_water_shader.gdshader` |
 | **Tools** | `t_*_tool.gd` | `t_level_editor_tool.gd` |
@@ -113,7 +117,7 @@ tests/
 
 ```gdscript
 class_name S_MovementSystem
-extends ECSSystem
+extends BaseECSSystem
 
 const SYSTEM_TYPE := StringName("S_MovementSystem")
 const MOVEMENT_COMPONENT := StringName("C_MovementComponent")
@@ -140,7 +144,7 @@ func _process_movement(component: C_MovementComponent, delta: float) -> void:
 
 ```gdscript
 class_name C_MovementComponent
-extends ECSComponent
+extends BaseECSComponent
 
 const COMPONENT_TYPE := StringName("C_MovementComponent")
 
@@ -189,9 +193,9 @@ class_name M_ECSManager
 extends Node
 
 var _components: Dictionary = {}
-var _systems: Array[ECSSystem] = []
+var _systems: Array[BaseECSSystem] = []
 
-func register_component(component: ECSComponent) -> void:
+func register_component(component: BaseECSComponent) -> void:
     var type = component.component_type
     if not _components.has(type):
         _components[type] = []
@@ -203,7 +207,7 @@ func get_components(type: StringName) -> Array:
 
 ### Utility Example
 
-**File:** `scripts/state/u_action_utils.gd`
+**File:** `scripts/state/utils/u_action_registry.gd`
 
 ```gdscript
 class_name U_ECSUtils
@@ -291,11 +295,15 @@ func _exit_tree() -> void:
 
 ## Special Cases & Exceptions
 
-### Base Classes (No Prefix)
-Abstract or base classes that define interfaces should NOT have prefixes:
-- `ECSSystem` - Base class for all systems
-- `ECSComponent` - Base class for all components
-- `Resource` - Godot built-in
+### Base Classes (Base Prefix)
+Abstract or base classes that define interfaces use the `Base` prefix to clearly distinguish them from concrete implementations:
+- `BaseECSSystem` - Base class for all systems (extends Node)
+- `BaseECSComponent` - Base class for all components (extends Node)
+- `ECSEntity` - Entity root marker (extends Node3D)
+- `BaseEventVFXSystem` - Base class for event-driven VFX systems (extends BaseECSSystem)
+- `BaseTransitionEffect` - Base class for transition effect implementations
+
+**Rationale:** The `Base` prefix makes it immediately clear that a class is abstract/foundational and should be extended rather than instantiated directly.
 
 ### Godot Built-ins (No Prefix)
 Never prefix Godot's built-in classes:
@@ -309,11 +317,28 @@ Never prefix Godot's built-in classes:
 - Only apply our conventions to code we create
 - When referencing addon code, use their naming conventions
 
+### State Management Utilities
+State management classes (selectors, reducers, and helpers) all use the `U_` prefix since they're static utility classes:
+
+**Selectors** (compute derived state):
+- `U_BootSelectors`, `U_GameplaySelectors`, `U_MenuSelectors`
+- `U_EntitySelectors`, `U_InputSelectors`, `U_PhysicsSelectors`, `U_VisualSelectors`
+
+**Reducers** (pure state update functions):
+- `U_BootReducer`, `U_GameplayReducer`, `U_MenuReducer`
+
+**Helpers** (state utilities):
+- `U_ActionRegistry`, `U_SerializationHelper`, `U_StateHandoff`
+- `U_StateActionTypes`, `U_StateEventBus`, `U_SignalBatcher`
+
+**Rationale:** All state management utilities contain only static methods with no instance state, making them functionally equivalent to other utility classes like `U_ECSUtils`.
+
 ### Test Files
 Test files use `test_` prefix followed by the class being tested:
 - `test_s_movement_system.gd`
 - `test_c_movement_component.gd`
 - `test_m_ecs_manager.gd`
+- `test_u_gameplay_selectors.gd`
 
 ### Scene Files (.tscn)
 Scene files use descriptive snake_case names without prefixes:
@@ -625,6 +650,15 @@ EXCLUSIONS:
 
 ---
 
-**Last Updated:** 2025-10-18
+---
+
+## Scene Node Naming (Non-script markers)
+
+- Entities: `E_` prefix, e.g., `E_Player`, `E_CameraRoot`.
+- Spawn container: `SP_SpawnPoints` (uses `spawn_points_group.gd`), placed at scene root.
+- Spawn markers: `sp_*` lowercase snake-case, e.g., `sp_entrance_from_exterior`, `sp_exit_from_house`.
+  - Chosen to avoid collision with entity prefixes and to remain visually distinct.
+
+**Last Updated:** 2025-10-31
 **Version:** 1.0
 **Status:** Active - Ready for Implementation

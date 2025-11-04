@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_AlignWithSurfaceSystem
 
 const ALIGN_TYPE := StringName("C_AlignWithSurfaceComponent")

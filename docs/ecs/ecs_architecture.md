@@ -67,11 +67,11 @@ Scene Tree
 │  └─ C_FloatingComponent (data: floating_enabled, floating_height)
 │
 ├─ M_ECSManager (Centralized Registry)
-│  ├─ _components: Dictionary[StringName, Array[ECSComponent]]
+│  ├─ _components: Dictionary[StringName, Array[BaseECSComponent]]
 │  │   ├─ "C_MovementComponent" → [component1, component2, ...]
 │  │   ├─ "C_InputComponent" → [component3, ...]
 │  │   └─ ...
-│  ├─ _systems: Array[ECSSystem] (sorted by execution_priority)
+│  ├─ _systems: Array[BaseECSSystem] (sorted by execution_priority)
 │  │   ├─ S_InputSystem (priority: 0)
 │  │   ├─ S_JumpSystem (priority: 40)
 │  │   ├─ S_MovementSystem (priority: 50)
@@ -138,13 +138,13 @@ Scene Tree
 
 **Key Properties**:
 ```gdscript
-var _components: Dictionary = {}  # StringName → Array[ECSComponent]
-var _systems: Array[ECSSystem] = []
+var _components: Dictionary = {}  # StringName → Array[BaseECSComponent]
+var _systems: Array[BaseECSSystem] = []
 ```
 
 **Key Methods**:
 
-#### `register_component(component: ECSComponent) -> void`
+#### `register_component(component: BaseECSComponent) -> void`
 ```gdscript
 # Lines 18-31
 # Called automatically by components on _ready()
@@ -153,7 +153,7 @@ var _systems: Array[ECSSystem] = []
 # Asserts if component is null or has no COMPONENT_TYPE
 ```
 
-#### `unregister_component(component: ECSComponent) -> void`
+#### `unregister_component(component: BaseECSComponent) -> void`
 ```gdscript
 # Lines 33-49
 # Called automatically on component exit_tree
@@ -177,8 +177,8 @@ var _systems: Array[ECSSystem] = []
 ```
 
 **Signals**:
-- `registered(component: ECSComponent)` - Fired when component registers
-- `unregistered(component: ECSComponent)` - Fired when component unregisters
+- `registered(component: BaseECSComponent)` - Fired when component registers
+- `unregistered(component: BaseECSComponent)` - Fired when component unregisters
 
 **Discovery Pattern**:
 - Joins `"ecs_manager"` scene tree group on `_ready()`
@@ -203,7 +203,7 @@ var _systems: Array[ECSSystem] = []
 All components use the `@icon` decorator for visual organization in the Godot editor:
 ```gdscript
 @icon("res://resources/editor_icons/component.svg")
-extends ECSComponent
+extends BaseECSComponent
 class_name C_MovementComponent
 ```
 This displays a custom icon in the scene tree and inspector for easy identification.
@@ -271,7 +271,7 @@ Component destroyed
 All systems use the `@icon` decorator for visual organization in the Godot editor:
 ```gdscript
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_MovementSystem
 ```
 This displays a custom icon in the scene tree and inspector for easy identification.
@@ -937,7 +937,7 @@ func test_movement_system_applies_velocity():
 **Trade-off**: Entities must be in scene tree (can't have "abstract" entities).
 
 **Entity Identification Contract**:
-- Attach `scripts/ecs/base_entity.gd` to every gameplay entity root. The script tags the node via `_ecs_entity_root` metadata, so component discovery becomes deterministic without relying on naming.
+- Attach `scripts/ecs/ecs_entity.gd` to every gameplay entity root. The script tags the node via `_ecs_entity_root` metadata, so component discovery becomes deterministic without relying on naming.
 - Legacy prefixes (`E_`) and the optional `ecs_entity` group remain as fallbacks; enable the `add_legacy_group` export if you need to interop with older scenes during migration.
 - The manager caches discovered roots via `_ecs_entity_root` metadata on the node chain, so reparenting or renaming should continue to satisfy the script/prefix contract to avoid stale lookups.
 
@@ -1450,10 +1450,10 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 
 ### 8.3 Event Bus System (Stories 3.1–3.4)
 
-**Status**: ✅ Delivered. `ECSEventBus` provides publish/subscribe semantics with a rolling history buffer for debugging.
+**Status**: ✅ Delivered. `U_ECSEventBus` provides publish/subscribe semantics with a rolling history buffer for debugging.
 
 **Highlights**:
-- `ECSEventBus.publish(event_type: StringName, payload: Dictionary)` timestamps every event.
+- `U_ECSEventBus.publish(event_type: StringName, payload: Dictionary)` timestamps every event.
 - Subscribers register callable handlers and receive events in the order they were fired.
 - History buffer defaults to 1,000 events and is configurable (`set_history_limit()`).
 - Sample systems (`S_JumpParticlesSystem`, `S_JumpSoundSystem`) demonstrate decoupled reactions to `entity_jumped`.
@@ -1469,7 +1469,7 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 **Status**: ✅ Delivered. Systems no longer rely on scene-tree placement; `M_ECSManager` sorts them by `execution_priority` every time the order changes.
 
 **Highlights**:
-- `execution_priority` is exported on `ECSSystem`, clamped to `0–1000`, and visible in the inspector.
+- `execution_priority` is exported on `BaseECSSystem`, clamped to `0–1000`, and visible in the inspector.
 - Lower values run earlier; registration order breaks ties.
 - `M_ECSManager.mark_systems_dirty()` is invoked whenever a system’s priority changes, so the next physics tick re-sorts the cache.
 - Recommended priority bands are documented in [§6.8](#68-priority-sorted-system-scheduling).
@@ -1528,7 +1528,7 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 - Auto-registration/unregistration with validation hooks
 - Multi-component entity queries with optional component support
 - EntityQuery caching + body deduplication helpers
-- Event bus (`ECSEventBus`) with rolling history buffer
+- Event bus (`U_ECSEventBus`) with rolling history buffer
 - Priority-sorted system scheduling via `execution_priority`
 - Settings resources and deep-copy snapshots for debugging
 - Decoupled component architecture (no cross-component NodePaths)

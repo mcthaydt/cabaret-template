@@ -1,0 +1,83 @@
+[gd_scene load_steps=2 format=3 uid="uid://cixccq2fphsgc"]
+
+[ext_resource type="Script" uid="uid://djr6yv7yw27gb" path="res://scripts/ui/credits.gd" id="1"]
+
+[node name="Credits" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 96.0
+offset_top = 96.0
+offset_right = -96.0
+offset_bottom = -96.0
+mouse_filter = 0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+follow_focus = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="HeaderLabel" type="Label" parent="MarginContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "Project Musical Parakeet"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="MarginContainer/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+
+[node name="TeamLabel" type="Label" parent="MarginContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "Development Team"
+horizontal_alignment = 1
+
+[node name="NamesLabel" type="Label" parent="MarginContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "Design  •  Engineering  •  Art  •  Audio"
+horizontal_alignment = 1
+
+[node name="Spacer2" type="Control" parent="MarginContainer/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+
+[node name="ThanksLabel" type="Label" parent="MarginContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "Thank you for playing!"
+horizontal_alignment = 1
+
+[node name="Spacer3" type="Control" parent="MarginContainer/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+
+[node name="FooterLabel" type="Label" parent="MarginContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "© 2025 Snek Snek Automata"
+horizontal_alignment = 1
+
+[node name="SkipButton" type="Button" parent="."]
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -96.0
+offset_right = -32.0
+offset_bottom = -32.0
+text = "Skip"

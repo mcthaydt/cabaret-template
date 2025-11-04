@@ -1,6 +1,6 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
-class_name EventVFXSystem
+extends BaseECSSystem
+class_name BaseEventVFXSystem
 
 ## Base class for VFX systems that respond to ECS events
 ##
@@ -13,7 +13,7 @@ class_name EventVFXSystem
 ## - get_event_name() -> StringName
 ## - create_request_from_payload(payload: Dictionary) -> Dictionary
 
-const EVENT_BUS := preload("res://scripts/ecs/ecs_event_bus.gd")
+const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 
 ## Queue of VFX requests to be processed in process_tick()
 var requests: Array = []

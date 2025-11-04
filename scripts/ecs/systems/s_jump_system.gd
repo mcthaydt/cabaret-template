@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_JumpSystem
 
 ## Phase 16: Dispatches floor state to state store
@@ -10,12 +10,13 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 const EVENT_ENTITY_JUMPED := StringName("entity_jumped")
 const EVENT_ENTITY_LANDED := StringName("entity_landed")
 
+
 func process_tick(_delta: float) -> void:
 	# Skip processing if game is paused
 	var store: M_StateStore = U_StateUtils.get_store(self)
 	if store:
 		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-		if GameplaySelectors.get_is_paused(gameplay_state):
+		if U_GameplaySelectors.get_is_paused(gameplay_state):
 			return
 	
 	var manager := get_manager()
@@ -76,8 +77,8 @@ func process_tick(_delta: float) -> void:
 				"landing_time": now,
 				"vertical_velocity": body.velocity.y,
 			}
-			ECSEventBus.publish(EVENT_ENTITY_LANDED, landing_payload)
-			
+			U_ECSEventBus.publish(EVENT_ENTITY_LANDED, landing_payload)
+
 			# Phase 16: Update entity snapshot with floor state (Entity Coordination Pattern)
 			if store:
 				var entity_id: String = _get_entity_id(body)
@@ -90,6 +91,7 @@ func process_tick(_delta: float) -> void:
 		# Landing event may trigger position resets that temporarily invalidate is_on_floor()
 		# By marking after the event, we ensure jump checks use correct post-reset floor state
 		if supported_now:
+			component.record_ground_height(current_height)
 			component.mark_on_floor(now)
 
 		var jump_requested: bool = input_component.has_jump_request(component.settings.jump_buffer_time, now)
@@ -124,7 +126,7 @@ func process_tick(_delta: float) -> void:
 		body.velocity = velocity
 		if floating_component != null:
 			floating_component.reset_recent_support(now, component.settings.coyote_time)
-		
+
 		# Phase 16: Update entity snapshot with floor state (Entity Coordination Pattern)
 		if store:
 			var entity_id: String = _get_entity_id(body)
@@ -155,7 +157,7 @@ func process_tick(_delta: float) -> void:
 			"air_jumps_remaining": component.has_air_jumps_remaining(),
 			"jump_force": component.settings.jump_force if component.settings != null else 0.0,
 		}
-		ECSEventBus.publish(EVENT_ENTITY_JUMPED, event_payload)
+		U_ECSEventBus.publish(EVENT_ENTITY_JUMPED, event_payload)
 
 ## Phase 16: Get entity ID from body for state coordination
 func _get_entity_id(body: Node) -> String:

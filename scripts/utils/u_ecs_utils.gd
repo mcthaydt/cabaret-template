@@ -5,7 +5,7 @@ class_name U_ECSUtils
 const META_ENTITY_ROOT := StringName("_ecs_entity_root")
 const ENTITY_GROUP := StringName("ecs_entity")
 const MANAGER_GROUP := StringName("ecs_manager")
-const BASE_ENTITY_SCRIPT := preload("res://scripts/ecs/base_entity.gd")
+const ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/ecs_entity.gd")
 
 static var _warning_handler: Callable = Callable()
 static var _manager_method_warnings: Dictionary = {}
@@ -44,7 +44,7 @@ static func find_entity_root(from_node: Node, warn_on_missing: bool = false) -> 
 				return _cache_entity_root(stored_node, visited)
 
 		var current_script: Script = current.get_script()
-		if current_script == BASE_ENTITY_SCRIPT:
+		if current_script == ECS_ENTITY_SCRIPT:
 			return _cache_entity_root(current, visited)
 
 		if current.is_in_group(ENTITY_GROUP):
@@ -69,7 +69,7 @@ static func map_components_by_body(manager: M_ECSManager, component_type: String
 
 	var components: Array = manager.get_components(component_type)
 	for entry in components:
-		var ecs_component: ECSComponent = entry as ECSComponent
+		var ecs_component: BaseECSComponent = entry as BaseECSComponent
 		if ecs_component == null:
 			continue
 		if not ecs_component.has_method("get_character_body"):

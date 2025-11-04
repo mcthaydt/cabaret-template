@@ -2,8 +2,8 @@
 extends Node
 class_name M_ECSManager
 
-signal component_added(component_type: StringName, component: ECSComponent)
-signal component_removed(component_type: StringName, component: ECSComponent)
+signal component_added(component_type: StringName, component: BaseECSComponent)
+signal component_removed(component_type: StringName, component: BaseECSComponent)
 
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 const META_ENTITY_ROOT := StringName("_ecs_entity_root")
@@ -12,8 +12,8 @@ const PROJECT_SETTING_QUERY_METRICS_ENABLED := "ecs/debug/query_metrics_enabled"
 const PROJECT_SETTING_QUERY_METRICS_CAPACITY := "ecs/debug/query_metrics_capacity"
 
 var _components: Dictionary = {}
-var _systems: Array[ECSSystem] = []
-var _sorted_systems: Array[ECSSystem] = []
+var _systems: Array[BaseECSSystem] = []
+var _sorted_systems: Array[BaseECSSystem] = []
 var _systems_dirty: bool = true
 var _entity_component_map: Dictionary = {}
 var _query_cache: Dictionary = {}
@@ -66,7 +66,7 @@ func _initialize_query_metric_settings() -> void:
 		var stored_capacity: int = int(ProjectSettings.get_setting(PROJECT_SETTING_QUERY_METRICS_CAPACITY, _query_metrics_capacity))
 		query_metrics_capacity = stored_capacity
 
-func register_component(component: ECSComponent) -> void:
+func register_component(component: BaseECSComponent) -> void:
 	if component == null:
 		push_warning("Attempted to register a null component")
 		return
@@ -85,7 +85,7 @@ func register_component(component: ECSComponent) -> void:
 	component.on_registered(self)
 	component_added.emit(type_name, component)
 
-func unregister_component(component: ECSComponent) -> void:
+func unregister_component(component: BaseECSComponent) -> void:
 	if component == null:
 		return
 
@@ -177,7 +177,7 @@ func set_query_metrics_enabled_runtime(enabled: bool) -> void:
 func set_query_metrics_capacity_runtime(capacity: int) -> void:
 	query_metrics_capacity = capacity
 
-func register_system(system: ECSSystem) -> void:
+func register_system(system: BaseECSSystem) -> void:
 	if system == null:
 		push_warning("Attempted to register a null system")
 		return
@@ -255,7 +255,7 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
 
 	return results.duplicate()
 
-func _track_component(component: ECSComponent, type_name: StringName) -> void:
+func _track_component(component: BaseECSComponent, type_name: StringName) -> void:
 	var entity := _get_entity_for_component(component)
 	if entity == null:
 		return
@@ -273,7 +273,7 @@ func _track_component(component: ECSComponent, type_name: StringName) -> void:
 	_entity_component_map[entity] = tracked_components
 	_invalidate_query_cache()
 
-func _untrack_component(component: ECSComponent, type_name: StringName) -> void:
+func _untrack_component(component: BaseECSComponent, type_name: StringName) -> void:
 	var entity: Node = null
 	if component.has_meta(META_ENTITY_ROOT):
 		entity = component.get_meta(META_ENTITY_ROOT) as Node
@@ -298,7 +298,7 @@ func _untrack_component(component: ECSComponent, type_name: StringName) -> void:
 		_entity_component_map[entity] = tracked_components
 	_invalidate_query_cache()
 
-func _get_entity_for_component(component: ECSComponent, warn_on_missing: bool = true) -> Node:
+func _get_entity_for_component(component: BaseECSComponent, warn_on_missing: bool = true) -> Node:
 	if component == null:
 		return null
 	var entity := U_ECS_UTILS.find_entity_root(component)
@@ -308,7 +308,7 @@ func _get_entity_for_component(component: ECSComponent, warn_on_missing: bool = 
 		push_error("M_ECSManager: Component %s has no entity root ancestor" % component.name)
 	return null
 
-func _find_entity_for_component(component: ECSComponent) -> Node:
+func _find_entity_for_component(component: BaseECSComponent) -> Node:
 	for entity in _entity_component_map.keys():
 		var tracked_components: Dictionary = _entity_component_map[entity]
 		if tracked_components.values().has(component):
@@ -461,7 +461,7 @@ func _ensure_systems_sorted() -> void:
 	_systems_dirty = false
 
 func _sort_systems() -> void:
-	var valid_systems: Array[ECSSystem] = []
+	var valid_systems: Array[BaseECSSystem] = []
 	for system in _systems:
 		if system == null:
 			continue
@@ -472,7 +472,7 @@ func _sort_systems() -> void:
 	_sorted_systems = valid_systems.duplicate()
 	_sorted_systems.sort_custom(Callable(self, "_compare_system_priority"))
 
-func _compare_system_priority(a: ECSSystem, b: ECSSystem) -> bool:
+func _compare_system_priority(a: BaseECSSystem, b: BaseECSSystem) -> bool:
 	var priority_a: int = a.execution_priority
 	var priority_b: int = b.execution_priority
 	if priority_a == priority_b:

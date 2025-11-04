@@ -1,7 +1,7 @@
 extends BaseTest
 
 const BASE_SCENE := preload("res://templates/base_scene_template.tscn")
-const EVENT_BUS := preload("res://scripts/ecs/ecs_event_bus.gd")
+const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const JUMP_PARTICLE_SYSTEM := preload("res://scripts/ecs/systems/s_jump_particles_system.gd")
 const JUMP_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_jump_sound_system.gd")
 const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
@@ -12,7 +12,7 @@ const EVENT_LANDED := StringName("entity_landed")
 func before_each() -> void:
 	EVENT_BUS.reset()
 	# Clear state handoff to prevent interference between tests
-	StateHandoff.clear_all()
+	U_StateHandoff.clear_all()
 
 func after_each() -> void:
 	pass
@@ -55,8 +55,9 @@ func test_entity_jumped_event_notifies_subscribers() -> void:
 	var scene: Node = context["scene"]
 
 	# Get existing systems from the scene instead of creating new ones
-	var particles = scene.get_node("Systems/S_JumpParticlesSystem")
-	var sound = scene.get_node("Systems/S_JumpSoundSystem")
+	# Systems are now organized in category groups (Feedback contains VFX/audio systems)
+	var particles = scene.get_node("Systems/Feedback/S_JumpParticlesSystem")
+	var sound = scene.get_node("Systems/Feedback/S_JumpSoundSystem")
 	assert_not_null(particles, "Scene should have S_JumpParticlesSystem")
 	assert_not_null(sound, "Scene should have S_JumpSoundSystem")
 
@@ -96,6 +97,7 @@ func test_entity_jumped_event_notifies_subscribers() -> void:
 
 	body.velocity = Vector3.ZERO
 	var now := ECS_UTILS.get_current_time()
+	jump_component.record_ground_height(body.global_position.y)
 	jump_component.mark_on_floor(now)
 	if floating_component != null:
 		floating_component.update_support_state(true, now)
@@ -185,6 +187,7 @@ func test_entity_landed_event_publishes_event() -> void:
 	# Now mark entity as landing (becomes supported)
 	body.global_position = Vector3(0, 0, 0)  # Back on ground
 	var landing_time := ECS_UTILS.get_current_time()
+	jump_component.record_ground_height(body.global_position.y)
 	jump_component.mark_on_floor(landing_time)
 	if floating_component != null:
 		floating_component.update_support_state(true, landing_time)

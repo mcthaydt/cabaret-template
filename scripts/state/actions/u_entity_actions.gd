@@ -12,8 +12,8 @@ const ACTION_REMOVE_ENTITY := StringName("gameplay/REMOVE_ENTITY")
 
 ## Static initializer - register actions
 static func _static_init() -> void:
-	ActionRegistry.register_action(ACTION_UPDATE_ENTITY_SNAPSHOT)
-	ActionRegistry.register_action(ACTION_REMOVE_ENTITY)
+	U_ActionRegistry.register_action(ACTION_UPDATE_ENTITY_SNAPSHOT)
+	U_ActionRegistry.register_action(ACTION_REMOVE_ENTITY)
 
 ## Update entity snapshot in state (for coordination/visibility)
 ## entity_id: Unique identifier (e.g., "player", "enemy_goblin_1")

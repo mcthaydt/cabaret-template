@@ -13,14 +13,16 @@ class_name M_StateStore
 ##   store.dispatch(U_GameplayActions.pause_game())
 ##   var state: Dictionary = store.get_state()
 
-const SignalBatcher = preload("res://scripts/state/signal_batcher.gd")
-const SerializationHelper = preload("res://scripts/state/serialization_helper.gd")
-const StateHandoff = preload("res://scripts/state/state_handoff.gd")
-const BootReducer = preload("res://scripts/state/reducers/boot_reducer.gd")
-const MenuReducer = preload("res://scripts/state/reducers/menu_reducer.gd")
-const GameplayReducer = preload("res://scripts/state/reducers/gameplay_reducer.gd")
-const RS_BootInitialState = preload("res://scripts/state/resources/rs_boot_initial_state.gd")
-const RS_MenuInitialState = preload("res://scripts/state/resources/rs_menu_initial_state.gd")
+const U_SIGNAL_BATCHER := preload("res://scripts/state/utils/u_signal_batcher.gd")
+const U_SERIALIZATION_HELPER := preload("res://scripts/state/utils/u_serialization_helper.gd")
+const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_BOOT_REDUCER := preload("res://scripts/state/reducers/u_boot_reducer.gd")
+const U_MENU_REDUCER := preload("res://scripts/state/reducers/u_menu_reducer.gd")
+const U_GAMEPLAY_REDUCER := preload("res://scripts/state/reducers/u_gameplay_reducer.gd")
+const U_SCENE_REDUCER := preload("res://scripts/state/reducers/u_scene_reducer.gd")
+const RS_BOOT_INITIAL_STATE := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
+const RS_MENU_INITIAL_STATE := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 
 signal state_changed(action: Dictionary, new_state: Dictionary)
 signal slice_updated(slice_name: StringName, slice_state: Dictionary)
@@ -36,11 +38,12 @@ const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 @export var boot_initial_state: RS_BootInitialState
 @export var menu_initial_state: RS_MenuInitialState
 @export var gameplay_initial_state: RS_GameplayInitialState
+@export var scene_initial_state: RS_SceneInitialState
 
 var _state: Dictionary = {}
 var _subscribers: Array[Callable] = []
 var _slice_configs: Dictionary = {}
-var _signal_batcher: SignalBatcher = null
+var _signal_batcher: U_SignalBatcher = null
 var _action_history: Array = []
 var _max_history_size: int = 1000
 var _enable_history: bool = true
@@ -64,8 +67,10 @@ func _ready() -> void:
 	# Restore state from StateHandoff AFTER slices are initialized
 	_restore_from_handoff()
 	
-	_signal_batcher = SignalBatcher.new()
+	_signal_batcher = U_SIGNAL_BATCHER.new()
 	set_physics_process(true)  # Enable physics processing for signal batching
+	# Ensure batching and input work even when the SceneTree is paused.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 
 func _exit_tree() -> void:
 	# Preserve state for scene transitions via StateHandoff
@@ -82,10 +87,18 @@ func _physics_process(_delta: float) -> void:
 			_perf_signal_emit_count += 1  # Track signal emissions
 		)
 
-## Handle input for debug overlay toggle (F3 key)
+func _process(_delta: float) -> void:
+	# Also flush on idle frames to ensure progress when physics ticks are paused.
+	if _signal_batcher != null and _signal_batcher.get_pending_count() > 0:
+		_signal_batcher.flush(func(slice_name: StringName, slice_state: Dictionary) -> void:
+			slice_updated.emit(slice_name, slice_state)
+			_perf_signal_emit_count += 1
+		)
+
+## Handle input for debug overlay toggle via action
 ##
-## Debug overlay spawns on F3 key press, controlled by M_StateStore._input()
-## for easy access to store reference without needing global state.
+## Debug overlay spawns when the `toggle_debug_overlay` action is pressed.
+## Supports both action events (InputEventAction) and Input singleton state.
 func _input(event: InputEvent) -> void:
 	# Check if debug overlay is enabled via project settings
 	const PROJECT_SETTING_ENABLE_DEBUG_OVERLAY := "state/debug/enable_debug_overlay"
@@ -93,14 +106,25 @@ func _input(event: InputEvent) -> void:
 		if not ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_DEBUG_OVERLAY, true):
 			return  # Debug overlay disabled in project settings
 	
-	# Toggle debug overlay with F3 key
-	if Input.is_action_just_pressed("toggle_debug_overlay"):
+	# Toggle debug overlay with action (prefer explicit InputEventAction, fallback to Input state)
+	var toggle_pressed: bool = false
+	if event is InputEventAction:
+		var aev := event as InputEventAction
+		toggle_pressed = aev.action == "toggle_debug_overlay" and aev.pressed
+	else:
+		# Fallback to Input singleton so hardware mapping still works
+		toggle_pressed = Input.is_action_just_pressed("toggle_debug_overlay")
+
+	# Act on toggle
+	if toggle_pressed:
 		if _debug_overlay == null or not is_instance_valid(_debug_overlay):
 			# Spawn debug overlay
 			var overlay_scene := load("res://scenes/debug/sc_state_debug_overlay.tscn")
 			if overlay_scene:
 				_debug_overlay = overlay_scene.instantiate()
 				add_child(_debug_overlay)
+				# Ensure group membership is immediate for tests querying by group.
+				_debug_overlay.add_to_group("state_debug_overlay")
 		else:
 			# Despawn debug overlay
 			_debug_overlay.queue_free()
@@ -128,8 +152,8 @@ func _initialize_settings() -> void:
 func _initialize_slices() -> void:
 	# Register boot slice if initial state provided
 	if boot_initial_state != null:
-		var boot_config := StateSliceConfig.new(StringName("boot"))
-		boot_config.reducer = Callable(BootReducer, "reduce")
+		var boot_config := RS_StateSliceConfig.new(StringName("boot"))
+		boot_config.reducer = Callable(U_BOOT_REDUCER, "reduce")
 		boot_config.initial_state = boot_initial_state.to_dictionary()
 		boot_config.dependencies = []
 		boot_config.transient_fields = []
@@ -137,8 +161,8 @@ func _initialize_slices() -> void:
 	
 	# Register menu slice if initial state provided
 	if menu_initial_state != null:
-		var menu_config := StateSliceConfig.new(StringName("menu"))
-		menu_config.reducer = Callable(MenuReducer, "reduce")
+		var menu_config := RS_StateSliceConfig.new(StringName("menu"))
+		menu_config.reducer = Callable(U_MENU_REDUCER, "reduce")
 		menu_config.initial_state = menu_initial_state.to_dictionary()
 		menu_config.dependencies = []
 		menu_config.transient_fields = []
@@ -146,12 +170,21 @@ func _initialize_slices() -> void:
 	
 	# Register gameplay slice if initial state provided
 	if gameplay_initial_state != null:
-		var gameplay_config := StateSliceConfig.new(StringName("gameplay"))
-		gameplay_config.reducer = Callable(GameplayReducer, "reduce")
+		var gameplay_config := RS_StateSliceConfig.new(StringName("gameplay"))
+		gameplay_config.reducer = Callable(U_GAMEPLAY_REDUCER, "reduce")
 		gameplay_config.initial_state = gameplay_initial_state.to_dictionary()
 		gameplay_config.dependencies = []
 		gameplay_config.transient_fields = []
 		register_slice(gameplay_config)
+
+	# Register scene slice if initial state provided
+	if scene_initial_state != null:
+		var scene_config := RS_StateSliceConfig.new(StringName("scene"))
+		scene_config.reducer = Callable(U_SCENE_REDUCER, "reduce")
+		scene_config.initial_state = scene_initial_state.to_dictionary()
+		scene_config.dependencies = []
+		scene_config.transient_fields = ["is_transitioning", "transition_type"]  # Don't persist transition state
+		register_slice(scene_config)
 
 ## Dispatch an action to update state
 func dispatch(action: Dictionary) -> void:
@@ -159,11 +192,11 @@ func dispatch(action: Dictionary) -> void:
 	var perf_start: int = Time.get_ticks_usec()
 	
 	# Validate action using ActionRegistry
-	if not ActionRegistry.validate_action(action):
+	if not U_ActionRegistry.validate_action(action):
 		var error_msg: String = "Action validation failed"
 		if not action.has("type"):
 			error_msg = "Action missing 'type' field"
-		elif not ActionRegistry.is_registered(action.get("type")):
+		elif not U_ActionRegistry.is_registered(action.get("type")):
 			error_msg = "Unregistered action type: %s" % action.get("type")
 		
 		validation_failed.emit(action, error_msg)
@@ -197,7 +230,7 @@ func dispatch(action: Dictionary) -> void:
 ## State updates are IMMEDIATE (synchronous), signal emissions are batched (per-frame)
 func _apply_reducers(action: Dictionary) -> void:
 	for slice_name in _slice_configs:
-		var config: StateSliceConfig = _slice_configs[slice_name]
+		var config: RS_StateSliceConfig = _slice_configs[slice_name]
 		if config.reducer == Callable() or not config.reducer.is_valid():
 			continue
 		
@@ -246,7 +279,7 @@ func get_state() -> Dictionary:
 func get_slice(slice_name: StringName, caller_slice: StringName = StringName()) -> Dictionary:
 	# Validate dependencies if caller is specified
 	if caller_slice != StringName():
-		var caller_config: StateSliceConfig = _slice_configs.get(caller_slice)
+		var caller_config: RS_StateSliceConfig = _slice_configs.get(caller_slice)
 		if caller_config != null:
 			if not caller_config.dependencies.has(slice_name) and caller_slice != slice_name:
 				push_error("M_StateStore.get_slice: Slice '", caller_slice, "' accessing '", slice_name, "' without declaring dependency")
@@ -259,15 +292,15 @@ func get_slice(slice_name: StringName, caller_slice: StringName = StringName()) 
 ## Each slice needs:
 ##   - RS_*InitialState resource (e.g., RS_GameplayInitialState)
 ##   - *_reducer.gd static class (e.g., GameplayReducer)
-##   - StateSliceConfig in register_slice() call
+##   - RS_StateSliceConfig in register_slice() call
 ##
 ## Example registration pattern:
-##   var gameplay_config := StateSliceConfig.new(StringName("gameplay"))
+##   var gameplay_config := RS_StateSliceConfig.new(StringName("gameplay"))
 ##   gameplay_config.reducer = Callable(GameplayReducer, "reduce")
 ##   gameplay_config.initial_state = gameplay_initial_state.to_dictionary()
 ##   gameplay_config.dependencies = []  # Other slices this slice depends on
 ##   register_slice(gameplay_config)
-func register_slice(config: StateSliceConfig) -> void:
+func register_slice(config: RS_StateSliceConfig) -> void:
 	if config == null:
 		push_error("M_StateStore.register_slice: Config is null")
 		return
@@ -284,9 +317,6 @@ func register_slice(config: StateSliceConfig) -> void:
 	_slice_configs[config.slice_name] = config
 	_state[config.slice_name] = config.initial_state.duplicate(true)
 
-	if OS.is_debug_build() and settings.enable_debug_logging:
-		print("[STATE] Registered slice: ", config.slice_name)
-
 ## Validate that all declared slice dependencies exist and are valid
 ##
 ## Returns true if all dependencies are valid, false otherwise.
@@ -297,7 +327,7 @@ func validate_slice_dependencies() -> bool:
 	var all_valid := true
 	
 	for slice_name in _slice_configs:
-		var config: StateSliceConfig = _slice_configs[slice_name]
+		var config: RS_StateSliceConfig = _slice_configs[slice_name]
 		
 		for dep in config.dependencies:
 			if not _slice_configs.has(dep):
@@ -313,7 +343,7 @@ func _has_circular_dependency(slice_name: StringName, dependencies: Array[String
 
 	for dep in dependencies:
 		if not visited.get(dep, false):
-			var dep_config: StateSliceConfig = _slice_configs.get(dep)
+			var dep_config: RS_StateSliceConfig = _slice_configs.get(dep)
 			if dep_config != null:
 				if _has_circular_dependency(dep, dep_config.dependencies, visited, rec_stack):
 					return true
@@ -384,7 +414,7 @@ func save_state(filepath: String) -> Error:
 	
 	for slice_name in _state:
 		var slice_state: Dictionary = _state[slice_name]
-		var config: StateSliceConfig = _slice_configs.get(slice_name)
+		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
 		
 		# Copy slice state, excluding transient fields
 		var filtered_state: Dictionary = {}
@@ -397,7 +427,7 @@ func save_state(filepath: String) -> Error:
 				filtered_state[key] = slice_state[key]
 		
 		# Apply serialization to convert Godot types
-		state_to_save[slice_name] = SerializationHelper.godot_to_json(filtered_state)
+		state_to_save[slice_name] = U_SERIALIZATION_HELPER.godot_to_json(filtered_state)
 	
 	# Convert to JSON string
 	var json_string: String = JSON.stringify(state_to_save, "\t")
@@ -450,14 +480,14 @@ func load_state(filepath: String) -> Error:
 	var loaded_state: Dictionary = parsed as Dictionary
 	
 	# Apply deserialization to convert back to Godot types
-	var deserialized_state: Dictionary = SerializationHelper.json_to_godot(loaded_state)
+	var deserialized_state: Dictionary = U_SERIALIZATION_HELPER.json_to_godot(loaded_state)
 	
 	# Merge loaded state with current state
 	for slice_name in deserialized_state:
 		if _state.has(slice_name):
 			var loaded_slice: Dictionary = deserialized_state[slice_name]
 			var current_slice: Dictionary = _state[slice_name]
-			var config: StateSliceConfig = _slice_configs.get(slice_name)
+			var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
 			
 			# Preserve transient fields from current state
 			if config != null:
@@ -479,7 +509,7 @@ func load_state(filepath: String) -> Error:
 func _preserve_to_handoff() -> void:
 	for slice_name in _state:
 		var slice_state: Dictionary = _state[slice_name]
-		StateHandoff.preserve_slice(slice_name, slice_state)
+		U_STATE_HANDOFF.preserve_slice(slice_name, slice_state)
 	
 	if OS.is_debug_build() and settings.enable_debug_logging:
 		print("[STATE] Preserved state to StateHandoff for scene transition")
@@ -487,7 +517,7 @@ func _preserve_to_handoff() -> void:
 ## Restore state from StateHandoff after scene transitions
 func _restore_from_handoff() -> void:
 	for slice_name in _slice_configs:
-		var restored_state: Dictionary = StateHandoff.restore_slice(slice_name)
+		var restored_state: Dictionary = U_STATE_HANDOFF.restore_slice(slice_name)
 		
 		if not restored_state.is_empty():
 			# Merge restored state with current state (restored takes precedence)
@@ -503,7 +533,7 @@ func _restore_from_handoff() -> void:
 				print("[STATE] Restored slice '", slice_name, "' from StateHandoff")
 			
 			# Clear the handoff state after restoring
-			StateHandoff.clear_slice(slice_name)
+			U_STATE_HANDOFF.clear_slice(slice_name)
 
 ## Get performance metrics (T414)
 ##

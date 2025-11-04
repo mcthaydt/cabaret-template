@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_RotateToInputSystem
 
 ## Phase 16: Dispatches rotation to state store
@@ -12,7 +12,7 @@ func process_tick(delta: float) -> void:
 	var store: M_StateStore = U_StateUtils.get_store(self)
 	if store:
 		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-		if GameplaySelectors.get_is_paused(gameplay_state):
+		if U_GameplaySelectors.get_is_paused(gameplay_state):
 			return
 	
 	var manager := get_manager()

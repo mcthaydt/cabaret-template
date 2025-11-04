@@ -26,7 +26,7 @@ var events_received: Array[Dictionary] = []
 func before_each():
 	# Reset event tracking
 	events_received.clear()
-	ECSEventBus.clear_history()
+	U_ECSEventBus.clear_history()
 	scene_root = null
 	manager = null
 	player_entity = null
@@ -63,7 +63,7 @@ func test_full_ecs_refactor_600_frame_simulation():
 	assert_not_null(manager, "Manager should exist in base scene")
 
 	# Subscribe to events
-	_unsubscribe_jump = ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
+	_unsubscribe_jump = U_ECSEventBus.subscribe("entity_jumped", _on_entity_jumped)
 
 	# Wait for components to register
 	await get_tree().process_frame
@@ -158,7 +158,7 @@ func test_full_ecs_refactor_600_frame_simulation():
 	gut.p("Events received during simulation: %d" % events_received.size())
 
 	# Check event history is functional (even if empty)
-	var event_history = ECSEventBus.get_event_history()
+	var event_history = U_ECSEventBus.get_event_history()
 	gut.p("Event bus history capacity: %d events" % event_history.size())
 
 	# Event bus is operational (we subscribed successfully earlier)

@@ -26,7 +26,7 @@ Without the debugger, you'd have to manually write down every time you use a pie
 ```
 Your Game with ECS
 ├─ M_ECSManager ← Keeps track of all components
-├─ ECSEventBus ← Records all events
+├─ U_ECSEventBus ← Records all events
 ├─ Systems ← Process components
 └─ Components ← Store data
 
@@ -38,7 +38,7 @@ ECS Debugger Plugin
 
 **Every 0.5 seconds (you can change this!), the plugin asks:**
 1. "Hey M_ECSManager, what queries ran recently?" → Shows in Queries tab
-2. "Hey ECSEventBus, what events happened?" → Shows in Events tab
+2. "Hey U_ECSEventBus, what events happened?" → Shows in Events tab
 3. "Hey M_ECSManager, which systems are running?" → Shows in System Order tab
 
 **You see the answers instantly in the editor!**
@@ -216,7 +216,7 @@ Problem: "Jump particles aren't spawning"
 2. Type "jump" in filter
 3. Look for events... see no "particle_spawn" events!
 4. Conclusion: Particle system isn't listening to jump events
-5. Fix: Add ECSEventBus.subscribe("entity_jumped", ...) in particle system
+5. Fix: Add U_ECSEventBus.subscribe("entity_jumped", ...) in particle system
 6. Re-test, see "particle_spawn" events appearing!
 ```
 
@@ -528,7 +528,7 @@ Click **"Refresh Now"** to immediately see the new state (don't wait for timer).
 1. No events have been published yet
 2. Run the scene and trigger events (e.g., make the player jump)
 3. Events should appear in chronological order
-4. If still empty, check if systems are publishing events via `ECSEventBus.publish(...)`
+4. If still empty, check if systems are publishing events via `U_ECSEventBus.publish(...)`
 
 ### Problem: "System toggles don't persist"
 

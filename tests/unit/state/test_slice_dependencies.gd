@@ -5,7 +5,7 @@ extends GutTest
 var store: M_StateStore
 
 func before_each() -> void:
-	StateStoreEventBus.reset()
+	U_StateEventBus.reset()
 	store = M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()
 	autofree(store)
@@ -20,13 +20,13 @@ func after_each() -> void:
 ## Test that validate_slice_dependencies returns true when all dependencies exist
 func test_validate_slice_dependencies_returns_true_for_valid_dependencies() -> void:
 	# Register slice A with no dependencies
-	var config_a := StateSliceConfig.new(StringName("slice_a"))
+	var config_a := RS_StateSliceConfig.new(StringName("slice_a"))
 	config_a.initial_state = {"value": 1}
 	config_a.dependencies = []
 	store.register_slice(config_a)
 	
 	# Register slice B that depends on slice A
-	var config_b := StateSliceConfig.new(StringName("slice_b"))
+	var config_b := RS_StateSliceConfig.new(StringName("slice_b"))
 	config_b.initial_state = {"value": 2}
 	config_b.dependencies = [StringName("slice_a")]
 	store.register_slice(config_b)
@@ -37,7 +37,7 @@ func test_validate_slice_dependencies_returns_true_for_valid_dependencies() -> v
 ## Test that validate_slice_dependencies returns false and logs error for invalid dependency
 func test_validate_slice_dependencies_returns_false_for_invalid_dependency() -> void:
 	# Register slice that depends on non-existent slice
-	var config := StateSliceConfig.new(StringName("slice_c"))
+	var config := RS_StateSliceConfig.new(StringName("slice_c"))
 	config.initial_state = {"value": 3}
 	config.dependencies = [StringName("nonexistent_slice")]
 	store.register_slice(config)
@@ -49,12 +49,12 @@ func test_validate_slice_dependencies_returns_false_for_invalid_dependency() -> 
 ## Test that get_slice logs error when accessing undeclared dependency
 func test_get_slice_logs_error_for_undeclared_dependency() -> void:
 	# Register two slices, B doesn't declare dependency on A
-	var config_a := StateSliceConfig.new(StringName("slice_a"))
+	var config_a := RS_StateSliceConfig.new(StringName("slice_a"))
 	config_a.initial_state = {"value": 1}
 	config_a.dependencies = []
 	store.register_slice(config_a)
 	
-	var config_b := StateSliceConfig.new(StringName("slice_b"))
+	var config_b := RS_StateSliceConfig.new(StringName("slice_b"))
 	config_b.initial_state = {"value": 2}
 	config_b.dependencies = []  # NOT declaring dependency on slice_a
 	store.register_slice(config_b)
@@ -69,12 +69,12 @@ func test_get_slice_logs_error_for_undeclared_dependency() -> void:
 ## Test that get_slice allows access when dependency is declared
 func test_get_slice_allows_access_with_declared_dependency() -> void:
 	# Register two slices, B properly declares dependency on A
-	var config_a := StateSliceConfig.new(StringName("slice_a"))
+	var config_a := RS_StateSliceConfig.new(StringName("slice_a"))
 	config_a.initial_state = {"value": 1}
 	config_a.dependencies = []
 	store.register_slice(config_a)
 	
-	var config_b := StateSliceConfig.new(StringName("slice_b"))
+	var config_b := RS_StateSliceConfig.new(StringName("slice_b"))
 	config_b.initial_state = {"value": 2}
 	config_b.dependencies = [StringName("slice_a")]  # Properly declared
 	store.register_slice(config_b)
@@ -86,7 +86,7 @@ func test_get_slice_allows_access_with_declared_dependency() -> void:
 
 ## Test that slice can access itself without declaring self-dependency
 func test_slice_can_access_itself_without_declaring_dependency() -> void:
-	var config := StateSliceConfig.new(StringName("slice_a"))
+	var config := RS_StateSliceConfig.new(StringName("slice_a"))
 	config.initial_state = {"value": 1}
 	config.dependencies = []  # No self-dependency needed
 	store.register_slice(config)
@@ -98,7 +98,7 @@ func test_slice_can_access_itself_without_declaring_dependency() -> void:
 
 ## Test that get_slice works normally without caller parameter (backward compatibility)
 func test_get_slice_backward_compatible_without_caller() -> void:
-	var config := StateSliceConfig.new(StringName("slice_a"))
+	var config := RS_StateSliceConfig.new(StringName("slice_a"))
 	config.initial_state = {"value": 1}
 	config.dependencies = []
 	store.register_slice(config)

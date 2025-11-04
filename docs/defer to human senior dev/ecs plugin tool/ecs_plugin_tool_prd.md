@@ -62,7 +62,7 @@ Complex (4+) ▼
 **Story**: As a developer, I want to inspect event history with filtering and payload viewing so that I can trace gameplay event chains and debug systemic interactions
 
 **Acceptance Criteria**:
-- Given ECSEventBus tracking event history (1000 events), when I open the Events tab, then I see chronological list of events with timestamps ("[14:32:15.234] entity_jumped")
+- Given U_ECSEventBus tracking event history (1000 events), when I open the Events tab, then I see chronological list of events with timestamps ("[14:32:15.234] entity_jumped")
 - Given substring filter, when I type "jump", then ItemList shows only events containing "jump" (case-insensitive match on event name)
 - Given filtered events, when I select an event, then TextEdit displays pretty-printed payload JSON with 2-space indent
 - Given event payload with complex data, when displayed, then I can copy specific values for debugging (e.g., velocity, position)
@@ -226,7 +226,7 @@ func _ready():
 #### Compatibility
 
 - **Godot version**: 4.x (uses EditorPlugin, DisplayServer, ProjectSettings APIs)
-- **ECS version**: Compatible with current ECS implementation (M_ECSManager, ECSEventBus, ECSSystem)
+- **ECS version**: Compatible with current ECS implementation (M_ECSManager, U_ECSEventBus, ECSSystem)
 - **GUT integration**: Tests use existing GUT framework (`-gselect` pattern)
 - **No breaking changes**: Plugin is additive, doesn't modify existing ECS code
 
@@ -260,8 +260,8 @@ addons/ecs_debugger/
 **Integration Points**:
 - `M_ECSManager.get_query_metrics()` → Query performance data
 - `M_ECSManager.get_systems()` → System list with priorities
-- `ECSEventBus.get_event_history()` → Event chronology
-- `ECSEventBus.clear_history()` → Event log clearing
+- `U_ECSEventBus.get_event_history()` → Event chronology
+- `U_ECSEventBus.clear_history()` → Event log clearing
 - `ECSSystem.set_debug_disabled()` → System enable/disable
 - `ProjectSettings` → Persist disabled systems
 
@@ -468,8 +468,8 @@ addons/ecs_debugger/
 - ✅ `M_ECSManager.get_query_metrics()` (scripts/managers/m_ecs_manager.gd:109)
 - ✅ `ECSSystem.set_debug_disabled()` (scripts/ecs/ecs_system.gd:50)
 - ✅ `ECSSystem.is_debug_disabled()` (scripts/ecs/ecs_system.gd:53)
-- ✅ `ECSEventBus.get_event_history()` (scripts/ecs/ecs_event_bus.gd:81)
-- ✅ `ECSEventBus.clear_history()` (scripts/ecs/ecs_event_bus.gd:73)
+- ✅ `U_ECSEventBus.get_event_history()` (scripts/ecs/u_ecs_event_bus.gd:81)
+- ✅ `U_ECSEventBus.clear_history()` (scripts/ecs/u_ecs_event_bus.gd:73)
 - ✅ `M_ECSManager.get_systems()` (scripts/managers/m_ecs_manager.gd:86)
 
 ### Testing Infrastructure

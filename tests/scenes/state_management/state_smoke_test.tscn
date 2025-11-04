@@ -1,0 +1,7 @@
+[gd_scene load_steps=3 format=3 uid="uid://cy54rdq0mfcok"]
+
+[ext_resource type="PackedScene" uid="uid://rygahxanlmio" path="res://templates/base_scene_template.tscn" id="1_smoke"]
+[ext_resource type="Script" uid="uid://cmwre5etx0djn" path="res://scenes/debug/state_smoke_test.gd" id="2_smoke"]
+
+[node name="StateSmokeTest" instance=ExtResource("1_smoke")]
+script = ExtResource("2_smoke")

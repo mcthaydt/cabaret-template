@@ -1,0 +1,38 @@
+[gd_scene load_steps=4 format=3 uid="uid://behhuoexdtawd"]
+
+[ext_resource type="Script" uid="uid://c8w8vp65hhovg" path="res://scripts/ecs/components/c_victory_trigger_component.gd" id="1"]
+
+[sub_resource type="StandardMaterial3D" id="Material_goal"]
+albedo_color = Color(0.968627, 0.847059, 0.239216, 1)
+emission_enabled = true
+emission = Color(1, 0.843137, 0.223529, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="CylinderShape3D" id="CylinderShape_goal"]
+radius = 1.5
+
+[node name="E_GoalZone" type="Node3D"]
+
+[node name="Visual" type="CSGCylinder3D" parent="."]
+radius = 1.5
+material = SubResource("Material_goal")
+
+[node name="GlowLight" type="OmniLight3D" parent="."]
+light_color = Color(1, 0.87451, 0.364706, 1)
+light_energy = 2.5
+
+[node name="Sparkles" type="CPUParticles3D" parent="."]
+amount = 80
+lifetime = 1.5
+preprocess = 0.5
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("CylinderShape_goal")
+
+[node name="C_VictoryTriggerComponent" type="Node" parent="."]
+script = ExtResource("1")
+objective_id = &"goal_01"
+area_id = "interior_house"
+area_path = NodePath("../Area3D")

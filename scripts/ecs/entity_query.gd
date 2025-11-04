@@ -19,8 +19,8 @@ var components: Dictionary:
 	get:
 		return _components.duplicate(true)
 
-func get_component(component_type: StringName) -> ECSComponent:
-	return _components.get(component_type) as ECSComponent
+func get_component(component_type: StringName) -> BaseECSComponent:
+	return _components.get(component_type) as BaseECSComponent
 
 func has_component(component_type: StringName) -> bool:
 	if not _components.has(component_type):

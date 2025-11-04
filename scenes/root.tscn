@@ -1,0 +1,67 @@
+[gd_scene load_steps=15 format=3 uid="uid://ccv3ylnj0qbnm"]
+
+[ext_resource type="Resource" uid="uid://dq08aopcfbjyp" path="res://resources/state/default_boot_initial_state.tres" id="1_boot_state"]
+[ext_resource type="Resource" uid="uid://uygy4iikdf74" path="res://resources/state/default_gameplay_initial_state.tres" id="2_gameplay_state"]
+[ext_resource type="Resource" uid="uid://b26lupnu6qot0" path="res://resources/state/default_menu_initial_state.tres" id="3_menu_state"]
+[ext_resource type="Resource" uid="uid://dw7q8jxqvhgwf" path="res://resources/state/default_state_store_settings.tres" id="4_state_settings"]
+[ext_resource type="Resource" uid="uid://com8t6o2gcr03" path="res://resources/state/default_scene_initial_state.tres" id="5_scene_state"]
+[ext_resource type="Script" uid="uid://dog624m744wa4" path="res://scripts/state/m_state_store.gd" id="6_state_store"]
+[ext_resource type="Script" uid="uid://3mg2o7kqih67" path="res://scripts/managers/m_cursor_manager.gd" id="7_cursor"]
+[ext_resource type="Script" uid="uid://b761hchbro82l" path="res://scripts/managers/m_scene_manager.gd" id="8_scene_manager"]
+[ext_resource type="Script" uid="uid://d8wlgdy0k1da" path="res://scripts/scene_structure/active_scene_container.gd" id="9_active_scene_container"]
+[ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="10_main_root"]
+[ext_resource type="Script" uid="uid://d0n2a3p3tkdq0" path="res://scripts/scene_structure/managers_group.gd" id="11_managers_group"]
+[ext_resource type="PackedScene" uid="uid://clwc6tou4bgkr" path="res://scenes/ui/loading_screen.tscn" id="12_loading_screen"]
+[ext_resource type="Script" uid="uid://cqsphudtcvp0f" path="res://scripts/managers/m_spawn_manager.gd" id="13_spawn_manager"]
+[ext_resource type="Script" uid="uid://d18utlxlm5qn7" path="res://scripts/managers/m_camera_manager.gd" id="14_camera_manager"]
+
+[node name="Root" type="Node"]
+script = ExtResource("10_main_root")
+
+[node name="Managers" type="Node" parent="."]
+script = ExtResource("11_managers_group")
+
+[node name="M_StateStore" type="Node" parent="Managers"]
+script = ExtResource("6_state_store")
+settings = ExtResource("4_state_settings")
+boot_initial_state = ExtResource("1_boot_state")
+menu_initial_state = ExtResource("3_menu_state")
+gameplay_initial_state = ExtResource("2_gameplay_state")
+scene_initial_state = ExtResource("5_scene_state")
+
+[node name="M_CursorManager" type="Node" parent="Managers"]
+script = ExtResource("7_cursor")
+
+[node name="M_SceneManager" type="Node" parent="Managers"]
+script = ExtResource("8_scene_manager")
+
+[node name="M_SpawnManager" type="Node" parent="Managers"]
+script = ExtResource("13_spawn_manager")
+
+[node name="M_CameraManager" type="Node" parent="Managers"]
+script = ExtResource("14_camera_manager")
+
+[node name="ActiveSceneContainer" type="Node" parent="."]
+script = ExtResource("9_active_scene_container")
+
+[node name="UIOverlayStack" type="CanvasLayer" parent="."]
+process_mode = 3
+
+[node name="TransitionOverlay" type="CanvasLayer" parent="."]
+
+[node name="TransitionColorRect" type="ColorRect" parent="TransitionOverlay"]
+modulate = Color(1, 1, 1, 0)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="LoadingOverlay" type="CanvasLayer" parent="."]
+process_mode = 3
+layer = 100
+visible = false
+
+[node name="LoadingScreen" parent="LoadingOverlay" instance=ExtResource("12_loading_screen")]

@@ -1,11 +1,15 @@
 @icon("res://resources/editor_icons/system.svg")
-extends ECSSystem
+extends BaseECSSystem
 class_name S_FloatingSystem
 
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 ## Number of consecutive frames required to transition stable ground state
 ## 4 frames ≈ 67ms at 60fps, filters spring oscillations (~50ms) while staying responsive
 const STABLE_GROUND_FRAMES_REQUIRED := 4
+
+@export var debug_logs_enabled: bool = false
+
+var _last_support_state: Dictionary = {}
 
 class SupportInfo:
 	var has_hit: bool = false
@@ -82,11 +86,33 @@ func process_tick(delta: float) -> void:
 			if floating_component.settings.align_to_normal:
 				body.up_direction = normal
 
+
+			if debug_logs_enabled:
+				var prev: Variant = _last_support_state.get(body, null)
+				if prev == null or (prev as bool) != support_active:
+					var info := "[Floating] %s support=%s dist=%.3f velN=%.3f height_err=%.3f within_h=%.3f within_v=%.3f" % [
+						str(body.name),
+						str(support_active),
+						support.distance,
+						velocity.dot(normal),
+						(floating_component.settings.hover_height - support.distance),
+						float(abs(floating_component.settings.hover_height - support.distance) <= floating_component.settings.height_tolerance),
+						float(abs(velocity.dot(normal)) <= floating_component.settings.settle_speed_tolerance)
+					]
+					print(info)
+					_last_support_state[body] = support_active
+
 			floating_component.update_support_state(support_active, now)
 			floating_component.update_stable_ground_state(support_active, STABLE_GROUND_FRAMES_REQUIRED)
 		else:
 			velocity.y -= floating_component.settings.fall_gravity * delta
 			velocity.y = clamp(velocity.y, -floating_component.settings.max_down_speed, floating_component.settings.max_up_speed)
+			if debug_logs_enabled:
+				var prev2: Variant = _last_support_state.get(body, null)
+				if prev2 == null or (prev2 as bool) != false:
+					print("[Floating] %s support=false (no ray hits)" % str(body.name))
+					_last_support_state[body] = false
+
 			floating_component.update_support_state(false, now)
 			floating_component.update_stable_ground_state(false, STABLE_GROUND_FRAMES_REQUIRED)
 
