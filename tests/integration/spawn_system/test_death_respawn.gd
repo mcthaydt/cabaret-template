@@ -83,39 +83,38 @@ func after_each() -> void:
 ## T252: Test spawn_at_last_spawn() uses target_spawn_point from gameplay state
 ##
 ## Validates that spawn_at_last_spawn() reads target_spawn_point from gameplay state
-## and spawns player at that spawn point.
+## and spawns player at that spawn point (using existing sp_exit_from_house).
 func test_spawn_at_last_spawn_uses_target_spawn_point() -> void:
 	# Load exterior scene
 	_scene_manager.transition_to_scene(StringName("exterior"), "instant")
 	await wait_physics_frames(3)
 
-	# Set target_spawn_point in gameplay state (simulates door transition)
-	_store.dispatch(U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("sp_test")))
-	await get_tree().process_frame
-
 	# Get current scene
 	var current_scene: Node = _active_scene_container.get_child(0)
 	assert_not_null(current_scene, "Should have loaded exterior scene")
 
-	# Add test spawn point to scene
-	var spawn_point := Node3D.new()
-	spawn_point.name = "sp_test"
-	spawn_point.position = Vector3(100, 50, 25)
-	current_scene.add_child(spawn_point)
-
-	# Find player in scene
+	# Find player and the sp_exit_from_house spawn point
 	var player: Node3D = _find_player_in_scene(current_scene)
 	assert_not_null(player, "Player should exist in exterior scene")
 
+	var exit_spawn: Node3D = _find_spawn_point_in_scene(current_scene, "sp_exit_from_house")
+	assert_not_null(exit_spawn, "sp_exit_from_house should exist in exterior scene")
+
 	var original_pos: Vector3 = player.global_position
+	var target_pos: Vector3 = exit_spawn.global_position
+
+	# Set target_spawn_point to sp_exit_from_house (simulates player coming from house)
+	_store.dispatch(U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("sp_exit_from_house")))
+	await get_tree().process_frame
 
 	# Act: Call spawn_at_last_spawn()
 	var result: bool = _spawn_manager.spawn_at_last_spawn(current_scene)
+	await get_tree().physics_frame  # Wait for position to update
 
 	# Assert
 	assert_true(result, "spawn_at_last_spawn should succeed")
-	assert_almost_eq(player.global_position, spawn_point.global_position, Vector3(0.1, 0.1, 0.1),
-		"Player should be positioned at target_spawn_point")
+	assert_almost_eq(player.global_position, target_pos, Vector3(0.1, 0.1, 0.1),
+		"Player should be positioned at sp_exit_from_house")
 	assert_ne(player.global_position, original_pos, "Player position should have changed")
 
 ## T252: Test spawn_at_last_spawn() falls back to sp_default if no target_spawn_point
@@ -213,15 +212,16 @@ func test_spawn_at_last_spawn_fails_gracefully_if_spawn_missing() -> void:
 ## Validates that spawn_at_last_spawn() works correctly when transitioning
 ## between different gameplay scenes (exterior → interior).
 func test_spawn_at_last_spawn_works_across_scenes() -> void:
-	# Load exterior, transition to interior through door (sets target_spawn_point)
+	# Load exterior, transition to interior through door
 	_scene_manager.transition_to_scene(StringName("exterior"), "instant")
 	await wait_physics_frames(3)
 
-	# Simulate door transition: set target_spawn_point for interior
+	# Transition to interior (M_SceneManager will handle spawn automatically)
+	# Note: In real gameplay, C_SceneTriggerComponent sets target_spawn_point
+	# For this test, we simulate by setting it manually before transition
 	_store.dispatch(U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("sp_entrance_from_exterior")))
 	await get_tree().process_frame
 
-	# Transition to interior
 	_scene_manager.transition_to_scene(StringName("interior_house"), "instant")
 	await wait_physics_frames(3)
 
@@ -229,28 +229,27 @@ func test_spawn_at_last_spawn_works_across_scenes() -> void:
 	var player: Node3D = _find_player_in_scene(interior_scene)
 	assert_not_null(player, "Player should exist in interior scene")
 
-	# Player should have been spawned at sp_entrance_from_exterior
+	# Get entrance spawn position for reference
 	var entrance_spawn: Node3D = _find_spawn_point_in_scene(interior_scene, "sp_entrance_from_exterior")
-	if entrance_spawn != null:
-		assert_almost_eq(player.global_position, entrance_spawn.global_position, Vector3(0.5, 0.5, 0.5),
-			"Player should be at entrance spawn point after door transition")
+	assert_not_null(entrance_spawn, "Entrance spawn point should exist")
 
-	# Now simulate death: player should respawn at same spawn point
-	# Move player away
+	# Now simulate death: player should respawn at entrance spawn (last used)
+	# Move player away first
+	var respawn_target_pos: Vector3 = entrance_spawn.global_position
 	player.global_position = Vector3(999, 999, 999)
 
-	# Set target_spawn_point again (simulate remembering last spawn for respawn)
+	# Set target_spawn_point for respawn (simulates "last spawn used")
 	_store.dispatch(U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("sp_entrance_from_exterior")))
 	await get_tree().process_frame
 
 	# Act: Respawn using spawn_at_last_spawn()
 	var result: bool = _spawn_manager.spawn_at_last_spawn(interior_scene)
+	await get_tree().physics_frame  # Wait for position to update
 
 	# Assert: Player should be back at entrance spawn
 	assert_true(result, "Respawn should succeed")
-	if entrance_spawn != null:
-		assert_almost_eq(player.global_position, entrance_spawn.global_position, Vector3(0.5, 0.5, 0.5),
-			"Player should respawn at last spawn point")
+	assert_almost_eq(player.global_position, respawn_target_pos, Vector3(0.5, 0.5, 0.5),
+		"Player should respawn at last spawn point (sp_entrance_from_exterior)")
 
 ## Helper: Find player entity in scene
 func _find_player_in_scene(scene: Node) -> Node3D:

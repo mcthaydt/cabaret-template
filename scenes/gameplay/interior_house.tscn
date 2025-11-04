@@ -217,6 +217,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -0.41013765, -10.004155)
 [node name="SP_SpawnPoints" type="Node3D" parent="."]
 script = ExtResource("21_spawnpoints")
 
+[node name="sp_default" type="Node3D" parent="SP_SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.190454, 1.0887601, 1.7809162)
+
 [node name="sp_entrance_from_exterior" type="Node3D" parent="SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.3252916, -0.40663242, 1.4185565)
 script = ExtResource("21_spawnpoints")

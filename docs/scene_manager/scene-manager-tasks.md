@@ -1408,17 +1408,9 @@
 
 **Checkpoint**: ✅ Sub-Phase 12.3a complete - death respawn working using last spawn point
 
-### Sub-Phase 12.3b: Checkpoint Markers - DEFERRED TO PHASE 13
-
-**Status**: 🚫 NOT APPROVED FOR PHASE 12
-
 **Rationale**: Death respawn using last spawn point is sufficient for current gameplay. Checkpoint markers add complexity without current gameplay need (no long dungeons/difficult sections requiring mid-area checkpoints yet).
 
-**Tasks Deferred**: T262-T275 (checkpoint components, systems, markers, persistence)
-
-### Sub-Phase 12.4: Advanced Features - DEFERRED TO PHASE 13
-
-**Status**: 🚫 NOT APPROVED FOR PHASE 12
+### Sub-Phase 12.4: Advanced Features
 
 **Rationale**:
 - Spawn effects: Polish, not core functionality
