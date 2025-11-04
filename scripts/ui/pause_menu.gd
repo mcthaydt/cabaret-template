@@ -1,3 +1,4 @@
+@icon("res://resources/editor_icons/utility.svg")
 extends Control
 
 ## Pause Menu - Overlay menu shown when gameplay is paused

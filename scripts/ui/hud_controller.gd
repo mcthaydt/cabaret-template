@@ -1,3 +1,4 @@
+@icon("res://resources/editor_icons/utility.svg")
 extends CanvasLayer
 
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")

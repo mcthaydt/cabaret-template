@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://jd1xkl5ignjh"]
+[gd_scene load_steps=5 format=3 uid="uid://jd1xkl5ignjh"]
 
 [ext_resource type="Script" uid="uid://1nivlxhm3u2u" path="res://scripts/ecs/components/c_damage_zone_component.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/ecs/ecs_entity.gd" id="2_ecs_entity"]
 
 [sub_resource type="StandardMaterial3D" id="Material_spike"]
 albedo_color = Color(0.643137, 0.160784, 0.160784, 1)
@@ -10,6 +11,7 @@ roughness = 0.25
 size = Vector3(1.5, 1, 1.5)
 
 [node name="E_SpikeTrap" type="Node3D"]
+script = ExtResource("2_ecs_entity")
 
 [node name="MeshInstance3D" type="CSGBox3D" parent="."]
 size = Vector3(1.5, 0.5, 1.5)

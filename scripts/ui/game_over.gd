@@ -1,3 +1,4 @@
+@icon("res://resources/editor_icons/utility.svg")
 extends Control
 
 ## Game Over screen controller (Phase 9)

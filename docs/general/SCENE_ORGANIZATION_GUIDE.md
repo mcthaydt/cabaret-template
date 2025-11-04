@@ -12,6 +12,10 @@ This guide documents the standardized scene tree organization used throughout Pr
 4. [Node Naming Conventions](#node-naming-conventions)
 5. [Example Scenes](#example-scenes)
 6. [Best Practices](#best-practices)
+7. [Single‑Entity Controllers](#single-entity-controllers)
+   1. [Checkpoint (E_Checkpoint_SafeZone)](#checkpoint-e_checkpoint_safezone)
+   2. [Reusable Volume Settings](#reusable-volume-settings)
+   3. [Repeatable Migration Checklist](#repeatable-migration-checklist)
 
 ---
 
@@ -290,6 +294,62 @@ Consider adding a new system category when:
 5. Communicate changes to team
 
 ---
+
+## Single-Entity Controllers
+
+Some interactable entities (doors, checkpoints, goals, hazards) are easier to author and maintain when they are a single `E_*` node with a thin controller script. The controller ensures the required ECS component exists and is configured at runtime, eliminating the need for nested component nodes or hand-authored `Area3D` children.
+
+This pattern mirrors the existing `E_FinalGoal` and should be used going forward.
+
+### Checkpoint (E_Checkpoint_SafeZone)
+
+Target result: `E_Checkpoint_SafeZone` is a single node with a controller; no visible `C_*` child, no authored `Area3D`.
+
+1) Make the component self‑sufficient
+- File: `scripts/ecs/components/c_checkpoint_component.gd`
+- Add exports and helpers:
+  - `@export_node_path("Area3D") var area_path`
+  - `@export var settings: RS_SceneTriggerSettings`
+  - `func get_trigger_area() -> Area3D`
+  - `func set_enabled(enabled: bool)`
+- Behavior: If `area_path` is empty and no authored area is found, the component creates its own `Area3D + CollisionShape3D` from `settings` (box/cylinder, size, offset, mask).
+
+2) Create a thin controller
+- File: `scripts/gameplay/checkpoint_zone.gd` (extends `ECSEntity`)
+- Exports: `checkpoint_id`, `spawn_point_id`, optional `area_path`, and `settings`.
+- On `_ready()`: find or create a `C_CheckpointComponent` child and apply the exports.
+- Provides `get_trigger_area()` and `set_enabled()` pass‑throughs for state‑driven gating.
+
+3) Update the scene
+- File: `scenes/gameplay/exterior.tscn`
+- On `E_Checkpoint_SafeZone`:
+  - Set script to `scripts/gameplay/checkpoint_zone.gd`.
+  - Set `checkpoint_id`, `spawn_point_id`, and assign a `settings` resource.
+  - Remove authored `C_CheckpointComponent` and `Area3D/CollisionShape3D` children.
+
+Notes & pitfalls
+- Tabs only in `.gd` files (see `DEV_PITFALLS.md`).
+- In `.tres`, reference the script explicitly (don’t rely on `class_name`) to avoid “Cannot get class” errors.
+- Systems (e.g., `S_CheckpointSystem`) continue to discover components normally; no system change required.
+
+### Reusable Volume Settings
+
+Use a small Resource to drive volume creation consistently across components.
+
+- File: `scripts/ecs/resources/rs_scene_trigger_settings.gd`
+- Example preset: `resources/triggers/rs_checkpoint_box_2x3x2.tres`
+  - Script reference included in the resource file
+  - Fields: `shape_type`, `box_size`/`cyl_radius`+`cyl_height`, `local_offset`, `player_mask`
+
+### Repeatable Migration Checklist
+
+Use this for doors, hazards, goals, and future interactables:
+- Ensure the ECS component can auto‑create/resolve its `Area3D + CollisionShape3D` and exposes `get_trigger_area()`/`set_enabled()`.
+- Add a thin controller script that:
+  - Exports per‑instance fields and a `settings` Resource
+  - Creates (or finds) the component on `_ready()` and applies exports
+- In the scene: attach the controller to the `E_*` node, set exports, assign the settings resource, remove authored component/area children.
+- Validate in editor logs (no parse errors), then at runtime.
 
 ## Scene Manager Integration (Future)
 

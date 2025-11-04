@@ -1,4 +1,4 @@
-[gd_scene load_steps=47 format=3 uid="uid://cshfrc7k5ec6f"]
+[gd_scene load_steps=48 format=3 uid="uid://cshfrc7k5ec6f"]
 
 [ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://bbovcvnujbnj3" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -33,14 +33,16 @@
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/camera_template.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://cfntl6uuagy6m" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://u7yf4vdyvkmx" path="res://scripts/scene_structure/spawn_points_group.gd" id="21_spawnpoints"]
-[ext_resource type="Script" uid="uid://cyt3uyx2c4mr2" path="res://scripts/ecs/components/c_scene_trigger_component.gd" id="30_trigger"]
+[ext_resource type="Script" uid="uid://b3ba2fenw3s8f" path="res://scripts/gameplay/door_trigger.gd" id="30_door_controller"]
 [ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="30_yy52v"]
+[ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://assets/textures/tex_icon.svg" id="39_u0c34"]
 [ext_resource type="PackedScene" uid="uid://dyjqcg3o35ety" path="res://scenes/hazards/death_zone.tscn" id="40_death_zone"]
 [ext_resource type="PackedScene" uid="uid://jd1xkl5ignjh" path="res://scenes/hazards/spike_trap.tscn" id="40_spike_trap"]
 [ext_resource type="Script" uid="uid://1obkco381ntt" path="res://scripts/gameplay/endgame_goal_zone.gd" id="41_goal_script"]
 [ext_resource type="PackedScene" uid="uid://behhuoexdtawd" path="res://scenes/objectives/goal_zone.tscn" id="41_goal_zone"]
 [ext_resource type="Script" uid="uid://c8myk1s3dr4gd" path="res://scripts/ecs/systems/s_checkpoint_system.gd" id="42_checkpoint_system"]
-[ext_resource type="Script" uid="uid://dweh6u0r8boob" path="res://scripts/ecs/components/c_checkpoint_component.gd" id="43_checkpoint_component"]
+[ext_resource type="Resource" path="res://resources/triggers/rs_checkpoint_box_2x3x2.tres" id="43_checkpoint_settings"]
+[ext_resource type="Script" uid="uid://q3vq5twadvsn" path="res://scripts/gameplay/checkpoint_zone.gd" id="43_checkpoint_zone_script"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -62,10 +64,7 @@ ambient_light_source = 3
 shading_mode = 0
 albedo_color = Color(0.9828339, 0, 0.010878513, 1)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_checkpoint"]
-size = Vector3(2, 3, 2)
-
-[node name="Main2" type="Node3D"]
+[node name="GameplayRoot2" type="Node3D"]
 script = ExtResource("1_f2o31")
 
 [node name="SceneObjects" type="Node3D" parent="."]
@@ -90,13 +89,13 @@ use_collision = true
 size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
 
-[node name="Enviroment" type="Node" parent="."]
+[node name="Environment" type="Node" parent="."]
 script = ExtResource("2_8soux")
 
-[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Enviroment"]
+[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment"]
 environment = SubResource("Environment_q3o1v")
 
-[node name="Env_DirectionalLight3D" type="DirectionalLight3D" parent="Enviroment"]
+[node name="Env_DirectionalLight3D" type="DirectionalLight3D" parent="Environment"]
 transform = Transform3D(1, 0, 0, 0, 0.9385653, 0.34510165, 0, -0.34510165, 0.9385653, 0, 0, 0)
 light_color = Color(0.56078434, 0.827451, 1, 1)
 light_energy = 12.026
@@ -204,10 +203,7 @@ fov = 80.0
 
 [node name="E_DoorTrigger" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
-script = ExtResource("16_8qi87")
-
-[node name="C_SceneTriggerComponent" type="Node" parent="Entities/E_DoorTrigger"]
-script = ExtResource("30_trigger")
+script = ExtResource("30_door_controller")
 door_id = &"door_to_house"
 target_scene_id = &"interior_house"
 target_spawn_point = &"sp_entrance_from_exterior"
@@ -219,44 +215,46 @@ material_overlay = SubResource("StandardMaterial3D_door")
 radius = 0.7910156
 height = 2.0715332
 
-[node name="Hazards" type="Node" parent="Entities"]
+[node name="E_Hazards" type="Node" parent="Entities"]
+script = ExtResource("16_8qi87")
 
-[node name="E_DeathZone" parent="Entities/Hazards" instance=ExtResource("40_death_zone")]
+[node name="E_DeathZone" parent="Entities/E_Hazards" instance=ExtResource("40_death_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
 
-[node name="E_SpikeTrapA" parent="Entities/Hazards" instance=ExtResource("40_spike_trap")]
+[node name="E_SpikeTrapA" parent="Entities/E_Hazards" instance=ExtResource("40_spike_trap")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 3)
 
-[node name="E_SpikeTrapB" parent="Entities/Hazards" instance=ExtResource("40_spike_trap")]
+[node name="E_SpikeTrapB" parent="Entities/E_Hazards" instance=ExtResource("40_spike_trap")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 3)
 
 [node name="E_Checkpoint_SafeZone" type="Node3D" parent="Entities"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 0)
-
-[node name="C_CheckpointComponent" type="Node" parent="Entities/E_Checkpoint_SafeZone"]
-script = ExtResource("43_checkpoint_component")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.9000635, 0, -5.877161)
+script = ExtResource("43_checkpoint_zone_script")
 checkpoint_id = &"cp_safe_zone"
 spawn_point_id = &"sp_checkpoint_safe"
+settings = ExtResource("43_checkpoint_settings")
 
-[node name="CheckpointArea" type="Area3D" parent="Entities/E_Checkpoint_SafeZone"]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Entities/E_Checkpoint_SafeZone/CheckpointArea"]
-shape = SubResource("BoxShape3D_checkpoint")
+[node name="CheckpointVisual" type="Sprite3D" parent="Entities/E_Checkpoint_SafeZone"]
+texture = ExtResource("39_u0c34")
 
 [node name="E_FinalGoal" parent="Entities" instance=ExtResource("41_goal_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -5)
 script = ExtResource("41_goal_script")
+required_area = "interior_house"
+victory_component_path = NodePath("C_VictoryTriggerComponent")
+visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePath("GlowLight")])
 
-[node name="C_VictoryTriggerComponent" parent="Entities/E_FinalGoal"]
-victory_type = 1
+
 
 [node name="SP_SpawnPoints" type="Node3D" parent="."]
 script = ExtResource("21_spawnpoints")
 
 [node name="sp_default" type="Node3D" parent="SP_SpawnPoints"]
+script = ExtResource("21_spawnpoints")
 
 [node name="sp_checkpoint_safe" type="Node3D" parent="SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1999226, 3.6344914, -2.3520212)
+script = ExtResource("21_spawnpoints")
 
 [node name="sp_exit_from_house" type="Node3D" parent="SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7472486, -0.31296825, 1.4028394)

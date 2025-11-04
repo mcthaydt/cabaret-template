@@ -10,15 +10,16 @@ const COMPONENT_TYPE := StringName("C_CheckpointComponent")
 ## Unlike spawn points linked to doors, checkpoints are independent mid-scene markers.
 ##
 ## Usage:
-## 1. Add C_CheckpointComponent to a Node3D in your scene
-## 2. Add an Area3D child for collision detection
-## 3. Set checkpoint_id (unique ID) and spawn_point_id (where to spawn)
+## 1. Add C_CheckpointComponent to a Node3D in your scene (entity root E_* preferred)
+## 2. Set checkpoint_id (unique ID) and spawn_point_id (where to spawn)
+## 3. Optional: Assign `area_path` to an existing Area3D, otherwise this
+##    component will auto-create an Area3D + CollisionShape3D using `settings`.
 ## 4. S_CheckpointSystem will detect player entry and update last_checkpoint
 ##
-## Example:
+## Example (no authored children required):
 ##   CheckpointNode (Node3D)
-##   ├─ C_CheckpointComponent (checkpoint_id="cp_safe_room", spawn_point_id="sp_safe_room")
-##   └─ Area3D (for collision detection)
+##   └─ C_CheckpointComponent (checkpoint_id="cp_safe_room", spawn_point_id="sp_safe_room")
+##      └─ (auto) Area3D + CollisionShape3D
 ##
 ## Integration:
 ## - S_CheckpointSystem queries for C_CheckpointComponent
@@ -37,6 +38,17 @@ const COMPONENT_TYPE := StringName("C_CheckpointComponent")
 ## Timestamp when checkpoint was last activated (for debugging)
 @export var last_activated_time: float = 0.0
 
+## Optional: Provide an existing Area3D via node path. If empty, a new Area3D is created.
+@export_node_path("Area3D") var area_path: NodePath
+
+## Settings used to create/configure the trigger Area3D when not provided.
+## Reused from scene triggers to keep volume configuration consistent.
+const RS_SceneTriggerSettings := preload("res://scripts/ecs/resources/rs_scene_trigger_settings.gd")
+@export var settings: RS_SceneTriggerSettings
+
+var _area: Area3D = null
+var _cached_settings: RS_SceneTriggerSettings = null
+
 func _init() -> void:
 	# Ensure consistent component type for ECS queries/registration
 	component_type = COMPONENT_TYPE
@@ -51,14 +63,8 @@ func _ready() -> void:
 	if spawn_point_id.is_empty():
 		push_error("C_CheckpointComponent: spawn_point_id is required. Player won't know where to spawn!")
 
-	# Check for Area3D child or sibling (warning only - checkpoint won't trigger without it)
-	var area: Area3D = _find_area3d_child()
-	if area == null:
-		area = _find_area3d_sibling()
-
-	# Only warn if neither child nor sibling Area3D found
-	if area == null:
-		push_warning("C_CheckpointComponent: No Area3D found as child or sibling. Add an Area3D for collision detection.")
+	# Resolve or create Area3D so systems/controllers can rely on it.
+	_resolve_or_create_area()
 
 ## Find Area3D child node (for validation)
 func _find_area3d_child() -> Area3D:
@@ -82,3 +88,91 @@ func _find_area3d_sibling() -> Area3D:
 func activate() -> void:
 	is_activated = true
 	last_activated_time = Time.get_ticks_msec() / 1000.0
+
+## Public: Return the Area3D used for checkpoint detection (may be null early in _ready)
+func get_trigger_area() -> Area3D:
+	return _area
+
+## Public: Enable/disable monitoring for this checkpoint's Area3D
+func set_enabled(enabled: bool) -> void:
+	if _area == null:
+		return
+	_area.monitoring = enabled
+	_area.monitorable = enabled
+
+## Internal: Resolve settings with defaults and cache
+func _get_settings() -> RS_SceneTriggerSettings:
+	if _cached_settings != null:
+		return _cached_settings
+	if settings == null:
+		settings = RS_SceneTriggerSettings.new()
+		settings.shape_type = RS_SceneTriggerSettings.ShapeType.CYLINDER
+		settings.cyl_radius = 1.0
+		settings.cyl_height = 2.0
+		settings.box_size = Vector3(1.0, 2.0, 1.0)
+		settings.local_offset = Vector3(0, 1.0, 0)
+		settings.player_mask = 1
+	_cached_settings = settings
+	return _cached_settings
+
+## Internal: Resolve or create the Area3D used by this checkpoint
+func _resolve_or_create_area() -> void:
+	# 1) Respect explicit path
+	if not area_path.is_empty():
+		_area = get_node_or_null(area_path) as Area3D
+		if _area != null:
+			_configure_area_geometry()
+			return
+
+	# 2) Look for authored child/sibling areas for backwards compatibility
+	_area = _find_area3d_child()
+	if _area == null:
+		_area = _find_area3d_sibling()
+	if _area != null:
+		_configure_area_geometry()
+		return
+
+	# 3) Create a new Area3D as a sibling under the entity root (preferred)
+	var parent_node := get_parent() as Node3D
+	var host: Node = parent_node if parent_node != null else self
+	_area = Area3D.new()
+	_area.name = "CheckpointArea"
+	_area.collision_layer = 0
+	_area.collision_mask = _get_settings().player_mask
+	host.call_deferred("add_child", _area)
+
+	# Create collision shape based on settings
+	var shape := CollisionShape3D.new()
+	shape.name = "CollisionShape3D"
+	shape.position = _get_settings().local_offset
+
+	match _get_settings().shape_type:
+		RS_SceneTriggerSettings.ShapeType.CYLINDER:
+			var cyl := CylinderShape3D.new()
+			cyl.radius = max(0.001, _get_settings().cyl_radius)
+			cyl.height = max(0.001, _get_settings().cyl_height)
+			shape.shape = cyl
+		RS_SceneTriggerSettings.ShapeType.BOX:
+			var box := BoxShape3D.new()
+			box.size = _get_settings().box_size
+			shape.shape = box
+		_:
+			var cyl_fallback := CylinderShape3D.new()
+			cyl_fallback.radius = 1.0
+			cyl_fallback.height = 2.0
+			shape.shape = cyl_fallback
+
+	_area.add_child(shape)
+	# Ensure monitoring defaults
+	_area.monitoring = true
+	_area.monitorable = true
+
+## Internal: Adopt/normalize authored areas if present
+func _configure_area_geometry() -> void:
+	if _area == null:
+		return
+	_area.monitoring = true
+	_area.monitorable = true
+	# Respect authored shapes; only ensure mask if left at default
+	if _area.collision_mask == 0:
+		_area.collision_mask = _get_settings().player_mask

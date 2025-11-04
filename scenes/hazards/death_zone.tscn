@@ -1,11 +1,13 @@
-[gd_scene load_steps=3 format=3 uid="uid://dyjqcg3o35ety"]
+[gd_scene load_steps=4 format=3 uid="uid://dyjqcg3o35ety"]
 
 [ext_resource type="Script" uid="uid://1nivlxhm3u2u" path="res://scripts/ecs/components/c_damage_zone_component.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/ecs/ecs_entity.gd" id="2_ecs_entity"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_death"]
 size = Vector3(200, 2, 200)
 
 [node name="E_DeathZone" type="Node3D"]
+script = ExtResource("2_ecs_entity")
 
 [node name="Area3D" type="Area3D" parent="."]
 collision_layer = 0

@@ -650,6 +650,15 @@ EXCLUSIONS:
 
 ---
 
+## Scene Roots
+
+- Gameplay scenes: name the 3D root `GameplayRoot` and attach `scripts/scene_structure/main_root_node.gd`.
+- Persistent root scene (`scenes/root.tscn`): name the root `Root`.
+- UI scenes: name root by purpose (e.g., `MainMenu`, `PauseMenu`, `SettingsMenu`).
+- Prototype scenes: prefer `PrototypeRoot` unless the scene’s purpose is clearer as a noun (e.g., `CameraBlendTest`).
+- Never keep Godot’s auto-suffixed names (e.g., `Main2`, `Main3`). If a duplicate occurs, rename back to the canonical name.
+- Use marker scripts and custom icons to convey role; do not encode context via numeric suffixes.
+
 ---
 
 ## Scene Node Naming (Non-script markers)

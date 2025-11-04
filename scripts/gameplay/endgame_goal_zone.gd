@@ -1,4 +1,4 @@
-extends Node3D
+extends "res://scripts/ecs/ecs_entity.gd"
 
 ## Exterior final goal controller
 ##
@@ -7,6 +7,7 @@ extends Node3D
 ## and toggles visuals + Area3D monitoring accordingly.
 
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
+const C_VictoryTriggerComponent := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 
 @export var required_area: String = "interior_house"
 @export var victory_component_path: NodePath = NodePath("C_VictoryTriggerComponent")
@@ -30,6 +31,8 @@ func _ready() -> void:
 		_victory_component = get_node_or_null(victory_component_path) as C_VictoryTriggerComponent
 		if _victory_component != null:
 			_trigger_area = _victory_component.get_trigger_area()
+			# Ensure this goal triggers the game-complete flow (victory screen)
+			_victory_component.victory_type = C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE
 
 	if _store != null:
 		_store.slice_updated.connect(_on_slice_updated)

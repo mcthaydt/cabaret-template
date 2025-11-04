@@ -1,4 +1,4 @@
-[gd_scene load_steps=42 format=3 uid="uid://bageed5ytib7"]
+[gd_scene load_steps=43 format=3 uid="uid://bageed5ytib7"]
 
 [ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://bbovcvnujbnj3" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -33,10 +33,12 @@
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/camera_template.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://cfntl6uuagy6m" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://u7yf4vdyvkmx" path="res://scripts/scene_structure/spawn_points_group.gd" id="21_spawnpoints"]
-[ext_resource type="Resource" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="30_auc1c"]
+[ext_resource type="Script" uid="uid://dt705fmg3a3jc" path="res://scripts/ecs/ecs_entity.gd" id="22_ecs_entity"]
+[ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="30_auc1c"]
 [ext_resource type="Script" uid="uid://cyt3uyx2c4mr2" path="res://scripts/ecs/components/c_scene_trigger_component.gd" id="30_trigger"]
-[ext_resource type="PackedScene" path="res://scenes/hazards/death_zone.tscn" id="40_death_zone"]
-[ext_resource type="PackedScene" path="res://scenes/objectives/goal_zone.tscn" id="41_goal_zone"]
+[ext_resource type="Script" path="res://scripts/gameplay/door_trigger.gd" id="30_door_controller"]
+[ext_resource type="PackedScene" uid="uid://dyjqcg3o35ety" path="res://scenes/hazards/death_zone.tscn" id="40_death_zone"]
+[ext_resource type="PackedScene" uid="uid://behhuoexdtawd" path="res://scenes/objectives/goal_zone.tscn" id="41_goal_zone"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -58,7 +60,7 @@ ambient_light_source = 3
 shading_mode = 0
 albedo_color = Color(0.9828339, 0, 0.010878513, 1)
 
-[node name="Main" type="Node3D"]
+[node name="GameplayRoot" type="Node3D"]
 script = ExtResource("1_f2o31")
 
 [node name="SceneObjects" type="Node3D" parent="."]
@@ -77,13 +79,13 @@ use_collision = true
 size = Vector3(8, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
 
-[node name="Enviroment" type="Node" parent="."]
+[node name="Environment" type="Node" parent="."]
 script = ExtResource("2_8soux")
 
-[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Enviroment"]
+[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment"]
 environment = SubResource("Environment_q3o1v")
 
-[node name="Env_DirectionalLight3D" type="DirectionalLight3D" parent="Enviroment"]
+[node name="Env_DirectionalLight3D" type="DirectionalLight3D" parent="Environment"]
 transform = Transform3D(1, 0, 0, 0, 0.9385653, 0.34510165, 0, -0.34510165, 0.9385653, 0, 0, 0)
 light_color = Color(0.56078434, 0.827451, 1, 1)
 light_energy = 12.026
@@ -189,10 +191,7 @@ fov = 65.0
 
 [node name="E_DoorTrigger" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
-script = ExtResource("16_8qi87")
-
-[node name="C_SceneTriggerComponent" type="Node" parent="Entities/E_DoorTrigger"]
-script = ExtResource("30_trigger")
+script = ExtResource("30_door_controller")
 door_id = &"door_to_exterior"
 target_scene_id = &"exterior"
 target_spawn_point = &"sp_exit_from_house"
@@ -204,14 +203,16 @@ material_overlay = SubResource("StandardMaterial3D_ee6xw")
 radius = 0.7910156
 height = 2.0715332
 
-[node name="Hazards" type="Node" parent="Entities"]
+[node name="E_Hazards" type="Node" parent="Entities"]
+script = ExtResource("16_8qi87")
 
-[node name="E_DeathZone" parent="Entities/Hazards" instance=ExtResource("40_death_zone")]
+[node name="E_DeathZone" parent="Entities/E_Hazards" instance=ExtResource("40_death_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
 
-[node name="Objectives" type="Node" parent="Entities"]
+[node name="E_Objectives" type="Node" parent="Entities"]
+script = ExtResource("16_8qi87")
 
-[node name="E_GoalZone" parent="Entities/Objectives" instance=ExtResource("41_goal_zone")]
+[node name="E_GoalZone" parent="Entities/E_Objectives" instance=ExtResource("41_goal_zone")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -0.41013765, -10.004155)
 
 [node name="SP_SpawnPoints" type="Node3D" parent="."]
@@ -219,6 +220,7 @@ script = ExtResource("21_spawnpoints")
 
 [node name="sp_default" type="Node3D" parent="SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.190454, 1.0887601, 1.7809162)
+script = ExtResource("21_spawnpoints")
 
 [node name="sp_entrance_from_exterior" type="Node3D" parent="SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.3252916, -0.40663242, 1.4185565)
