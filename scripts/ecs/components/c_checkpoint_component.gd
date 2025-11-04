@@ -47,16 +47,31 @@ func _ready() -> void:
 	if spawn_point_id.is_empty():
 		push_error("C_CheckpointComponent: spawn_point_id is required. Player won't know where to spawn!")
 
-	# Check for Area3D child
+	# Check for Area3D child or sibling (warning only - checkpoint won't trigger without it)
 	var area: Area3D = _find_area3d_child()
 	if area == null:
-		push_error("C_CheckpointComponent: No Area3D child found. Add an Area3D for collision detection.")
+		area = _find_area3d_sibling()
+
+	# Only warn if neither child nor sibling Area3D found
+	if area == null:
+		push_warning("C_CheckpointComponent: No Area3D found as child or sibling. Add an Area3D for collision detection.")
 
 ## Find Area3D child node (for validation)
 func _find_area3d_child() -> Area3D:
 	for child in get_children():
 		if child is Area3D:
 			return child as Area3D
+	return null
+
+## Find Area3D sibling node (alternative to child structure)
+func _find_area3d_sibling() -> Area3D:
+	var parent_node := get_parent()
+	if parent_node == null:
+		return null
+
+	for sibling in parent_node.get_children():
+		if sibling != self and sibling is Area3D:
+			return sibling as Area3D
 	return null
 
 ## Activate this checkpoint (called by S_CheckpointSystem)
