@@ -101,8 +101,8 @@ func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool:
 	player.global_position = spawn_point.global_position
 	player.global_rotation = spawn_point.global_rotation
 
-	# Emit player_spawned event for VFX systems (Phase 12.4)
-	EVENT_BUS.emit_event(StringName("player_spawned"), {
+	# Publish player_spawned event for VFX systems (Phase 12.4)
+	EVENT_BUS.publish(StringName("player_spawned"), {
 		"position": spawn_point.global_position,
 		"spawn_point_id": spawn_point_id,
 		"player": player
