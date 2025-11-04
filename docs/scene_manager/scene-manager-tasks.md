@@ -1412,6 +1412,7 @@
 
 ### Sub-Phase 12.4: Advanced Features
 
+
 **Rationale**:
 - Spawn effects: Polish, not core functionality
 - Conditional spawning: Requires quest/item systems that don't exist yet

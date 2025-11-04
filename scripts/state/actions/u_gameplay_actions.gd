@@ -17,6 +17,7 @@ const ACTION_SET_SHOW_LANDING_INDICATOR := StringName("gameplay/set_show_landing
 const ACTION_SET_PARTICLE_SETTINGS := StringName("gameplay/set_particle_settings")
 const ACTION_SET_AUDIO_SETTINGS := StringName("gameplay/set_audio_settings")
 const ACTION_SET_TARGET_SPAWN_POINT := StringName("gameplay/set_target_spawn_point")
+const ACTION_SET_LAST_CHECKPOINT := StringName("gameplay/set_last_checkpoint")
 const ACTION_TAKE_DAMAGE := StringName("gameplay/take_damage")
 const ACTION_HEAL := StringName("gameplay/heal")
 const ACTION_TRIGGER_DEATH := StringName("gameplay/trigger_death")
@@ -40,6 +41,7 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SET_PARTICLE_SETTINGS)
 	U_ActionRegistry.register_action(ACTION_SET_AUDIO_SETTINGS)
 	U_ActionRegistry.register_action(ACTION_SET_TARGET_SPAWN_POINT)
+	U_ActionRegistry.register_action(ACTION_SET_LAST_CHECKPOINT)
 	U_ActionRegistry.register_action(ACTION_TAKE_DAMAGE)
 	U_ActionRegistry.register_action(ACTION_HEAL)
 	U_ActionRegistry.register_action(ACTION_TRIGGER_DEATH)
@@ -125,6 +127,13 @@ static func set_target_spawn_point(spawn_point: StringName) -> Dictionary:
 	return {
 		"type": ACTION_SET_TARGET_SPAWN_POINT,
 		"payload": spawn_point
+	}
+
+## Set last checkpoint for death respawn (Phase 12.3b)
+static func set_last_checkpoint(checkpoint_spawn_point: StringName) -> Dictionary:
+	return {
+		"type": ACTION_SET_LAST_CHECKPOINT,
+		"payload": checkpoint_spawn_point
 	}
 
 ## Record damage taken (health reduced)

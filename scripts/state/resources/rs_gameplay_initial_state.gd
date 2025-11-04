@@ -46,6 +46,7 @@ class_name RS_GameplayInitialState
 
 # Area transition state (writable)
 @export var target_spawn_point: StringName = StringName("")
+@export var last_checkpoint: StringName = StringName("")  # Phase 12.3b: Last checkpoint activated
 
 # Entity snapshots (read-only coordination layer)
 # Populated at runtime by systems dispatching U_EntityActions.update_entity_snapshot()
@@ -77,6 +78,7 @@ func to_dictionary() -> Dictionary:
 		"audio_settings": audio_settings.duplicate(true),
 		# Area transition state (writable)
 		"target_spawn_point": target_spawn_point,
+		"last_checkpoint": last_checkpoint,
 		# Entity snapshots (read-only coordination layer)
 		"entities": entities.duplicate(true)
 	}

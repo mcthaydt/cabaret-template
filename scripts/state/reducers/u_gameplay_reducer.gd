@@ -69,6 +69,11 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			new_state.target_spawn_point = action.get("payload", StringName(""))
 			return new_state
 
+		U_GameplayActions.ACTION_SET_LAST_CHECKPOINT:
+			var new_state: Dictionary = state.duplicate(true)
+			new_state.last_checkpoint = action.get("payload", StringName(""))
+			return new_state
+
 		U_GameplayActions.ACTION_TAKE_DAMAGE:
 			var damage_state: Dictionary = state.duplicate(true)
 			var damage_payload: Dictionary = action.get("payload", {})
