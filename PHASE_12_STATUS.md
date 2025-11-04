@@ -31,75 +31,40 @@
 - **Tests**: 3/5 passing (acceptable for now)
 
 ### Sub-Phase 12.3b: Checkpoint Markers (T262-T271)
-- **Status**: ⚠️ CODE COMPLETE, SCENE SETUP PENDING (commits 802af20, 7a3d91e)
-- **Time**: 3 hours
+- **Status**: ✅ COMPLETE (commits 802af20, 7a3d91e, ee517f9)
+- **Time**: 3.5 hours
 - **Result**:
   - C_CheckpointComponent created (~60 lines)
   - S_CheckpointSystem created (~90 lines)
   - last_checkpoint state tracking added
   - spawn_at_last_spawn() respects priority: checkpoint > door > default
   - 5/5 component tests passing
-- **Remaining**: Add checkpoint entity to exterior.tscn (manual step)
+  - Checkpoint entity added to exterior.tscn at (-8, 0, 0)
 
 ---
 
-## 📝 To Complete Sub-Phase 12.3b
+## 🎯 Remaining Work (Focused Phase 12)
 
-### Add Checkpoint to exterior.tscn (Godot Editor)
+### Sub-Phase 12.4: Advanced Features (T272-T299) - DEFERRED
+**Rationale**: Spawn effects, conditional spawning, and spawn registry are polish/future features not needed for core gameplay right now. Can be added in future phases when quest/item systems exist.
 
-**Steps**:
-1. Open `scenes/gameplay/exterior.tscn` in Godot
-2. Add a new Node3D under `Entities` group (or create `Checkpoints` group)
-3. Name it: `E_Checkpoint_SafeZone`
-4. Position: Somewhere mid-scene (e.g., `Vector3(5, 0, 5)`)
-5. Add C_CheckpointComponent script to the node:
-   - checkpoint_id: `"cp_safe_zone"`
-   - spawn_point_id: `"sp_checkpoint_safe"` (add this spawn point too!)
-6. Add Area3D child: `CheckpointArea`
-   - Add CollisionShape3D with BoxShape3D (size: 2x3x2)
-7. Add spawn point for checkpoint:
-   - Under `SP_SpawnPoints`, add Node3D named `sp_checkpoint_safe`
-   - Position same as checkpoint or nearby
-8. Optional: Add MeshInstance3D for visual indicator (glowing cube, particles, etc.)
+**Deferred Features**:
+- Spawn effects (fade, particles) - Polish
+- Conditional spawning - Requires quest/item systems (don't exist yet)
+- Spawn registry & metadata - Overkill for current scale
 
-**Verification**:
-- Run game
-- Walk player through checkpoint
-- Check console for: `"Checkpoint activated: cp_safe_zone (spawn at: sp_checkpoint_safe)"`
-- Kill player (fall off map, damage zone)
-- Player should respawn at checkpoint instead of sp_default
-
----
-
-## 🎯 Remaining Work (Full Phase 12)
-
-### Sub-Phase 12.4: Advanced Features (T272-T299) - NOT STARTED
-**Estimated**: 12-14 hours, 28 tasks
-
-**Parts**:
-- **Part A: Spawn Effects** (8 tasks)
-  - BaseSpawnEffect, SpawnFadeEffect, SpawnParticleEffect
-  - Visual feedback on player spawn
-
-- **Part B: Conditional Spawning** (8 tasks)
-  - RS_SpawnCondition resource (QUEST_COMPLETE, ITEM_OWNED, FLAG_SET)
-  - Spawn validation based on game state
-
-- **Part C: Spawn Registry & Metadata** (12 tasks)
-  - U_SpawnRegistry static class
-  - Metadata: priority, tags, conditions, effects
-  - spawn_by_tag() method
-
-### Sub-Phase 12.5: Scene Contract Validation (T300-T311) - NOT STARTED
+### Sub-Phase 12.5: Scene Contract Validation (T300-T311) - IN PROGRESS
 **Estimated**: 4-6 hours, 11 tasks
 
-**Goal**: Catch scene configuration errors at load time
+**Goal**: Catch scene configuration errors at load time (NOT spawn time)
 
 **Features**:
 - ISceneContract validation class
 - Gameplay scene validation (player, camera, spawns required)
 - UI scene validation (no player/spawns, optional camera)
 - Clear error messages before gameplay starts
+
+**Value**: Prevents confusing runtime errors by catching configuration issues early
 
 ---
 
