@@ -425,15 +425,11 @@ func _perform_transition(request: TransitionRequest) -> void:
 		if _active_scene_container != null:
 			_add_scene(new_scene)
 
-		# Restore player spawn point if transitioning from door trigger (Phase 12.1: T226)
-		# Read target spawn point from gameplay state and delegate to M_SpawnManager
-		if _spawn_manager != null and _store != null:
-			var state: Dictionary = _store.get_state()
-			var gameplay_state: Dictionary = state.get("gameplay", {})
-			var target_spawn: StringName = gameplay_state.get("target_spawn_point", StringName(""))
-
-			if not target_spawn.is_empty():
-				_spawn_manager.spawn_player_at_point(new_scene, target_spawn)
+		# Restore player spawn point (Phase 12.1: T226, Phase 12.3: T268)
+		# Use spawn_at_last_spawn() which checks priority: target_spawn_point → last_checkpoint → sp_default
+		# This handles both door transitions AND death respawn correctly
+		if _spawn_manager != null:
+			_spawn_manager.spawn_at_last_spawn(new_scene)
 
 		# Phase 12.2: Blend cameras using M_CameraManager (T244)
 		if should_blend and _camera_manager != null:
