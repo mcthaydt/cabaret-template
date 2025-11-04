@@ -1,4 +1,8 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=6 format=3 uid="uid://bpe1nw6kld0bb"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player_ragdoll"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_player_ragdoll"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
 shading_mode = 0
@@ -6,21 +10,13 @@ diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.11764706, 0.7372549, 0.4509804, 1)
 
+[sub_resource type="BoxMesh" id="BoxMesh_direction_indicator"]
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_direction"]
 shading_mode = 0
 diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.08627451, 0.3529412, 0.29803923, 1)
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player_ragdoll"]
-radius = 0.5
-height = 2.0
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_player_ragdoll"]
-radius = 0.5
-height = 2.0
-
-[sub_resource type="BoxMesh" id="BoxMesh_direction_indicator"]
 
 [node name="PlayerRagdoll" type="RigidBody3D"]
 mass = 70.0

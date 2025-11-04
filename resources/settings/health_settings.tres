@@ -1,12 +1,6 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_HealthSettings" load_steps=2 format=3 uid="uid://bay3xmfxc8da0"]
 
-[ext_resource type="Script" path="res://scripts/ecs/resources/rs_health_settings.gd" id="1"]
+[ext_resource type="Script" uid="uid://dq1d8brybkur2" path="res://scripts/ecs/resources/rs_health_settings.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
-default_max_health = 100.0
-invincibility_duration = 1.0
-regen_enabled = true
-regen_delay = 3.0
-regen_rate = 10.0
-death_animation_duration = 2.5

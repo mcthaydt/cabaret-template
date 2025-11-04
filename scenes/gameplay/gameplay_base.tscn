@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://bqt5yh1xvx2wv"]
+[gd_scene load_steps=36 format=3 uid="uid://bqt5yh1xvx2wv"]
 
 [ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://bbovcvnujbnj3" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -18,20 +18,20 @@
 [ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://templates/player_template.tscn" id="7_4wxy1"]
 [ext_resource type="Script" uid="uid://bl83n4tcxatcm" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
 [ext_resource type="Script" uid="uid://b3elt7u6s7lm6" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
+[ext_resource type="Script" uid="uid://db2oq1sxpp75q" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
+[ext_resource type="Script" uid="uid://ye0gnxx7r43g" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
 [ext_resource type="Script" uid="uid://b0gp4g45vfgs0" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
 [ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/settings/jump_particles_default.tres" id="9_jump_particles_settings"]
 [ext_resource type="Script" uid="uid://cqxyfp4wvohnb" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
 [ext_resource type="Script" uid="uid://x30wlbvmhmiu" path="res://scripts/ecs/systems/s_pause_system.gd" id="9_pause"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
+[ext_resource type="Script" uid="uid://c1an3hp5hmmfs" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
 [ext_resource type="Script" uid="uid://c0es6y2cw780d" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
 [ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/settings/landing_particles_default.tres" id="10_landing_particles_settings"]
 [ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/hud_overlay.tscn" id="11_hud"]
 [ext_resource type="Script" uid="uid://d0n2a3p3tkdq0" path="res://scripts/scene_structure/managers_group.gd" id="12_klon2"]
 [ext_resource type="Script" uid="uid://mm82rwglfuba" path="res://scripts/scene_structure/entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/camera_template.tscn" id="19_ph0bl"]
-[ext_resource type="Script" path="res://scripts/scene_structure/spawn_points_group.gd" id="21_spawnpoints"]
+[ext_resource type="Script" uid="uid://u7yf4vdyvkmx" path="res://scripts/scene_structure/spawn_points_group.gd" id="21_spawnpoints"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -177,16 +177,16 @@ script = ExtResource("6_0e7m3")
 [node name="Entities" type="Node" parent="."]
 script = ExtResource("16_8qi87")
 
-[node name="SP_SpawnPoints" type="Node3D" parent="."]
-script = ExtResource("21_spawnpoints")
-
-[node name="sp_default" type="Node3D" parent="SP_SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
-
 [node name="E_Player" parent="Entities" instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
 
 [node name="E_CameraRoot" parent="Entities" instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
+
+[node name="SP_SpawnPoints" type="Node3D" parent="."]
+script = ExtResource("21_spawnpoints")
+
+[node name="sp_default" type="Node3D" parent="SP_SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
 
 [node name="HUD" parent="." instance=ExtResource("11_hud")]

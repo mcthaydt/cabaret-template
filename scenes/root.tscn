@@ -11,9 +11,9 @@
 [ext_resource type="Script" uid="uid://d8wlgdy0k1da" path="res://scripts/scene_structure/active_scene_container.gd" id="9_active_scene_container"]
 [ext_resource type="Script" uid="uid://bm8n7pkdpbvku" path="res://scripts/scene_structure/main_root_node.gd" id="10_main_root"]
 [ext_resource type="Script" uid="uid://d0n2a3p3tkdq0" path="res://scripts/scene_structure/managers_group.gd" id="11_managers_group"]
-[ext_resource type="PackedScene" path="res://scenes/ui/loading_screen.tscn" id="12_loading_screen"]
-[ext_resource type="Script" path="res://scripts/managers/m_spawn_manager.gd" id="13_spawn_manager"]
-[ext_resource type="Script" path="res://scripts/managers/m_camera_manager.gd" id="14_camera_manager"]
+[ext_resource type="PackedScene" uid="uid://clwc6tou4bgkr" path="res://scenes/ui/loading_screen.tscn" id="12_loading_screen"]
+[ext_resource type="Script" uid="uid://cqsphudtcvp0f" path="res://scripts/managers/m_spawn_manager.gd" id="13_spawn_manager"]
+[ext_resource type="Script" uid="uid://d18utlxlm5qn7" path="res://scripts/managers/m_camera_manager.gd" id="14_camera_manager"]
 
 [node name="Root" type="Node"]
 script = ExtResource("10_main_root")
@@ -60,8 +60,8 @@ mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
 [node name="LoadingOverlay" type="CanvasLayer" parent="."]
-layer = 100
 process_mode = 3
+layer = 100
 visible = false
 
 [node name="LoadingScreen" parent="LoadingOverlay" instance=ExtResource("12_loading_screen")]

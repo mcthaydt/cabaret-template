@@ -11,8 +11,10 @@ const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
 const M_CAMERA_MANAGER := preload("res://scripts/managers/m_camera_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 var _root_scene: Node
 var _scene_manager: M_SCENE_MANAGER
@@ -24,6 +26,9 @@ var _ui_overlay_stack: CanvasLayer
 var _transition_overlay: CanvasLayer
 
 func before_each() -> void:
+	# Clear StateHandoff to prevent state pollution between tests
+	StateHandoff.clear_all()
+
 	# Create root scene structure
 	_root_scene = Node.new()
 	_root_scene.name = "Root"
@@ -34,6 +39,8 @@ func before_each() -> void:
 	_store.settings = RS_STATE_STORE_SETTINGS.new()
 	var scene_initial_state := RS_SCENE_INITIAL_STATE.new()
 	_store.scene_initial_state = scene_initial_state
+	var gameplay_initial_state := RS_GAMEPLAY_INITIAL_STATE.new()
+	_store.gameplay_initial_state = gameplay_initial_state
 	_root_scene.add_child(_store)
 	await get_tree().process_frame
 
@@ -71,6 +78,9 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 func after_each() -> void:
+	# Clear StateHandoff to prevent state pollution between tests
+	StateHandoff.clear_all()
+
 	_scene_manager = null
 	_spawn_manager = null
 	_camera_manager = null
@@ -202,10 +212,9 @@ func test_spawn_at_last_spawn_fails_gracefully_if_spawn_missing() -> void:
 	# Act: Call spawn_at_last_spawn()
 	var result: bool = _spawn_manager.spawn_at_last_spawn(current_scene)
 
-	# Assert: Should fail gracefully
-	# Note: Will fall back to sp_default if it exists, or fail if no default
-	# Either behavior is acceptable - test that it doesn't crash
-	assert_not_null(result, "spawn_at_last_spawn should return a boolean (not crash)")
+	# Assert: Should fail gracefully and return false
+	assert_push_error("M_SpawnManager: Spawn point 'sp_nonexistent' not found")
+	assert_false(result, "spawn_at_last_spawn should return false when spawn point missing")
 
 ## T254: Test spawn_at_last_spawn() works with different scene types
 ##

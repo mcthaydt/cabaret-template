@@ -184,7 +184,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.190454, 1.0887601, 1.78091
 [node name="E_Camera" parent="Entities" instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 4.5)
 
-[node name="E_PlayerCamera" parent="Entities/E_Camera"]
+[node name="E_PlayerCamera" parent="Entities/E_Camera" index="0"]
 fov = 65.0
 
 [node name="E_DoorTrigger" type="Node3D" parent="Entities"]
@@ -225,3 +225,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.3252916, -0.40663242, 1.41
 script = ExtResource("21_spawnpoints")
 
 [node name="HUD" parent="." instance=ExtResource("11_hud")]
+
+[editable path="Entities/E_Camera"]

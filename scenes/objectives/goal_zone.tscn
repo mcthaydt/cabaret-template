@@ -1,6 +1,6 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://behhuoexdtawd"]
 
-[ext_resource type="Script" path="res://scripts/ecs/components/c_victory_trigger_component.gd" id="1"]
+[ext_resource type="Script" uid="uid://c8w8vp65hhovg" path="res://scripts/ecs/components/c_victory_trigger_component.gd" id="1"]
 
 [sub_resource type="StandardMaterial3D" id="Material_goal"]
 albedo_color = Color(0.968627, 0.847059, 0.239216, 1)
@@ -10,40 +10,23 @@ emission_energy_multiplier = 1.5
 
 [sub_resource type="CylinderShape3D" id="CylinderShape_goal"]
 radius = 1.5
-height = 2.0
-
-[sub_resource type="ParticleProcessMaterial" id="ParticleMaterial_goal"]
-gravity = Vector3(0, -4, 0)
-initial_velocity_min = 0.5
-initial_velocity_max = 1.5
-direction = Vector3(0, 1, 0)
-scale_min = 0.2
-scale_max = 0.4
 
 [node name="E_GoalZone" type="Node3D"]
 
 [node name="Visual" type="CSGCylinder3D" parent="."]
 radius = 1.5
-height = 2.0
 material = SubResource("Material_goal")
 
 [node name="GlowLight" type="OmniLight3D" parent="."]
 light_color = Color(1, 0.87451, 0.364706, 1)
 light_energy = 2.5
-range = 6.0
-shadow_enabled = false
 
 [node name="Sparkles" type="CPUParticles3D" parent="."]
 amount = 80
 lifetime = 1.5
-one_shot = false
 preprocess = 0.5
-process_material = SubResource("ParticleMaterial_goal")
-emitting = true
 
 [node name="Area3D" type="Area3D" parent="."]
-monitoring = true
-monitorable = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
 shape = SubResource("CylinderShape_goal")
@@ -52,5 +35,4 @@ shape = SubResource("CylinderShape_goal")
 script = ExtResource("1")
 objective_id = &"goal_01"
 area_id = "interior_house"
-victory_type = 0
 area_path = NodePath("../Area3D")
