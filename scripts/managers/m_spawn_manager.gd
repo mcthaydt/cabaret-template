@@ -25,6 +25,7 @@ extends Node
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 
 ## Internal references
 var _state_store: M_STATE_STORE = null
@@ -99,6 +100,13 @@ func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool:
 	# Position player at spawn point
 	player.global_position = spawn_point.global_position
 	player.global_rotation = spawn_point.global_rotation
+
+	# Emit player_spawned event for VFX systems (Phase 12.4)
+	EVENT_BUS.emit_event(StringName("player_spawned"), {
+		"position": spawn_point.global_position,
+		"spawn_point_id": spawn_point_id,
+		"player": player
+	})
 
 	# Clear target spawn point from state (one-time use)
 	_clear_target_spawn_point()
