@@ -202,8 +202,8 @@ func _find_nodes_by_prefix(node: Node, prefix: String, results: Array) -> void:
 ## Spawn player at last spawn point used (T255 - Phase 12.3a, T268 - Phase 12.3b)
 ##
 ## Priority order for spawn point selection:
-##   1. last_checkpoint (set by S_CheckpointSystem when player touches checkpoint)
-##   2. target_spawn_point (set by C_SceneTriggerComponent for door transitions)
+##   1. target_spawn_point (set by C_SceneTriggerComponent for door transitions - current scene entry)
+##   2. last_checkpoint (set by S_CheckpointSystem when player touches checkpoint - mid-scene)
 ##   3. sp_default (fallback if both above are empty)
 ##
 ## Used for death respawn: player respawns at the last meaningful location.
@@ -215,8 +215,8 @@ func _find_nodes_by_prefix(node: Node, prefix: String, results: Array) -> void:
 ##   true if spawn succeeded, false if validation failed
 ##
 ## Flow:
-##   1. Check last_checkpoint first (highest priority)
-##   2. If empty, check target_spawn_point (door spawn)
+##   1. Check target_spawn_point first (where player entered current scene)
+##   2. If empty, check last_checkpoint (mid-scene checkpoint)
 ##   3. If empty, fallback to "sp_default"
 ##   4. Call spawn_player_at_point() to position player
 ##   5. spawn_player_at_point() clears target_spawn_point automatically
@@ -237,12 +237,12 @@ func spawn_at_last_spawn(scene: Node) -> bool:
 	var last_checkpoint: StringName = gameplay_state.get("last_checkpoint", StringName(""))
 	var target_spawn: StringName = gameplay_state.get("target_spawn_point", StringName(""))
 
-	# Priority 1: last_checkpoint (mid-scene checkpoint)
-	var spawn_id: StringName = last_checkpoint
+	# Priority 1: target_spawn_point (current scene entry point - most relevant for death respawn)
+	var spawn_id: StringName = target_spawn
 
-	# Priority 2: target_spawn_point (door transition)
+	# Priority 2: last_checkpoint (mid-scene checkpoint)
 	if spawn_id.is_empty():
-		spawn_id = target_spawn
+		spawn_id = last_checkpoint
 
 	# Priority 3: sp_default (fallback)
 	if spawn_id.is_empty():
