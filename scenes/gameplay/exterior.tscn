@@ -34,11 +34,11 @@
 [ext_resource type="Script" uid="uid://cfntl6uuagy6m" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://u7yf4vdyvkmx" path="res://scripts/scene_structure/spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://cyt3uyx2c4mr2" path="res://scripts/ecs/components/c_scene_trigger_component.gd" id="30_trigger"]
-[ext_resource type="Resource" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="30_yy52v"]
-[ext_resource type="PackedScene" path="res://scenes/hazards/death_zone.tscn" id="40_death_zone"]
-[ext_resource type="PackedScene" path="res://scenes/hazards/spike_trap.tscn" id="40_spike_trap"]
+[ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="30_yy52v"]
+[ext_resource type="PackedScene" uid="uid://dyjqcg3o35ety" path="res://scenes/hazards/death_zone.tscn" id="40_death_zone"]
+[ext_resource type="PackedScene" uid="uid://jd1xkl5ignjh" path="res://scenes/hazards/spike_trap.tscn" id="40_spike_trap"]
 [ext_resource type="Script" uid="uid://1obkco381ntt" path="res://scripts/gameplay/endgame_goal_zone.gd" id="41_goal_script"]
-[ext_resource type="PackedScene" path="res://scenes/objectives/goal_zone.tscn" id="41_goal_zone"]
+[ext_resource type="PackedScene" uid="uid://behhuoexdtawd" path="res://scenes/objectives/goal_zone.tscn" id="41_goal_zone"]
 [ext_resource type="Script" uid="uid://c8myk1s3dr4gd" path="res://scripts/ecs/systems/s_checkpoint_system.gd" id="42_checkpoint_system"]
 [ext_resource type="Script" uid="uid://dweh6u0r8boob" path="res://scripts/ecs/components/c_checkpoint_component.gd" id="43_checkpoint_component"]
 
@@ -79,7 +79,7 @@ size = Vector3(25, 1, 25)
 material = SubResource("StandardMaterial3D_748a2")
 
 [node name="SO_Block2" type="CSGBox3D" parent="SceneObjects"]
-transform = Transform3D(0.89320666, 0.44964638, 0, -0.44964638, 0.89320666, 0, 0, 0, 1, -5.180423, -0.7959937, -0.10645056)
+transform = Transform3D(0.9999651, 0.008359998, 0, -0.008359998, 0.9999651, 0, 0, 0, 1, -5.180423, -1.1647629, -0.10645056)
 use_collision = true
 size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
@@ -247,13 +247,16 @@ shape = SubResource("BoxShape3D_checkpoint")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -5)
 script = ExtResource("41_goal_script")
 
+[node name="C_VictoryTriggerComponent" parent="Entities/E_FinalGoal"]
+victory_type = 1
+
 [node name="SP_SpawnPoints" type="Node3D" parent="."]
 script = ExtResource("21_spawnpoints")
 
 [node name="sp_default" type="Node3D" parent="SP_SpawnPoints"]
 
 [node name="sp_checkpoint_safe" type="Node3D" parent="SP_SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1999226, 3.6344914, -2.3520212)
 
 [node name="sp_exit_from_house" type="Node3D" parent="SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7472486, -0.31296825, 1.4028394)

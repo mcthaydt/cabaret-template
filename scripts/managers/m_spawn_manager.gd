@@ -226,9 +226,10 @@ func spawn_at_last_spawn(scene: Node) -> bool:
 		push_error("M_SpawnManager: Cannot spawn - scene is null")
 		return false
 
-	# Validate state store is ready
+	# Validate state store is ready (may not be during initial scene load)
 	if _state_store == null:
-		push_error("M_SpawnManager: Cannot spawn - state store not initialized")
+		# Silently skip spawning if state store isn't ready yet (happens during boot)
+		# Player will be at scene's default position, which is fine for initial load
 		return false
 
 	# Read spawn point from gameplay state (priority order)
@@ -237,19 +238,27 @@ func spawn_at_last_spawn(scene: Node) -> bool:
 	var last_checkpoint: StringName = gameplay_state.get("last_checkpoint", StringName(""))
 	var target_spawn: StringName = gameplay_state.get("target_spawn_point", StringName(""))
 
-	# Priority 1: target_spawn_point (current scene entry point - most relevant for death respawn)
+	# Determine spawn source and id with priority:
+	# 1) target_spawn_point (door entry)
+	# 2) last_checkpoint (mid-scene checkpoint)
+	# 3) sp_default (scene fallback)
+	var used_last_checkpoint: bool = false
 	var spawn_id: StringName = target_spawn
-
-	# Priority 2: last_checkpoint (mid-scene checkpoint)
 	if spawn_id.is_empty():
 		spawn_id = last_checkpoint
-
-	# Priority 3: sp_default (fallback)
+		used_last_checkpoint = not spawn_id.is_empty()
 	if spawn_id.is_empty():
 		spawn_id = StringName("sp_default")
 
-	# Use existing spawn_player_at_point() method (handles validation, positioning, clearing state)
-	return spawn_player_at_point(scene, spawn_id)
+	# Try primary spawn
+	var ok: bool = spawn_player_at_point(scene, spawn_id)
+
+	# If checkpoint was chosen but is missing in this scene (e.g., carried over from another scene),
+	# fall back to scene default to keep respawn reliable.
+	if not ok and used_last_checkpoint:
+		ok = spawn_player_at_point(scene, StringName("sp_default"))
+
+	return ok
 
 ## Clear target spawn point from gameplay state
 ##

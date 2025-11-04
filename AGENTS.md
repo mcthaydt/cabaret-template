@@ -161,7 +161,9 @@
 - **Container**: Place under `SP_SpawnPoints` (Node3D) in gameplay scenes
 - **Default spawn**: Name one marker `sp_default` for initial scene load
 - **Position**: Place spawn markers 2-3 units OUTSIDE trigger zones (prevents ping-pong)
-- **Automatic restoration**: Scene Manager reads `target_spawn_point` from gameplay state and positions player on load
+- **Automatic restoration**: M_SpawnManager applies spawn on scene load using:
+  - Priority: `target_spawn_point` → `last_checkpoint` → `sp_default`
+  - Fallback: If a `last_checkpoint` from a different scene is invalid, fall back to `sp_default` automatically
 
 ### State Persistence
 - **Automatic persistence**: `gameplay` slice persists across transitions via `StateHandoff`

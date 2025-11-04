@@ -173,10 +173,10 @@ func _on_body_exited(body: Node3D) -> void:
 ## Check if body belongs to player entity
 func _is_player(body: Node3D) -> bool:
 	# ECS-based detection only: resolve entity and verify it has the player tag component
-	var entity := ECS_UTILS.find_entity_root(body)
+	var entity := U_ECSUtils.find_entity_root(body)
 	var mgr: M_ECSManager = get_manager()
 	if mgr == null:
-		mgr = ECS_UTILS.get_manager(self) as M_ECSManager
+		mgr = U_ECSUtils.get_manager(self) as M_ECSManager
 	if entity == null or mgr == null:
 		return false
 

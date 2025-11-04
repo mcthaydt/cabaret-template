@@ -428,7 +428,9 @@ func _perform_transition(request: TransitionRequest) -> void:
 		# Restore player spawn point (Phase 12.1: T226, Phase 12.3: T268)
 		# Use spawn_at_last_spawn() which checks priority: target_spawn_point → last_checkpoint → sp_default
 		# This handles both door transitions AND death respawn correctly
-		if _spawn_manager != null:
+		# Only apply to GAMEPLAY scenes (not UI/Menu/EndGame)
+		var scene_type: int = U_SCENE_REGISTRY.get_scene_type(request.scene_id)
+		if _spawn_manager != null and scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
 			_spawn_manager.spawn_at_last_spawn(new_scene)
 
 		# Phase 12.2: Blend cameras using M_CameraManager (T244)

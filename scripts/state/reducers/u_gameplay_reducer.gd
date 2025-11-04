@@ -149,6 +149,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			reset_state.last_victory_objective = StringName("")
 			reset_state.game_completed = false
 			reset_state.target_spawn_point = StringName("")
+			reset_state.last_checkpoint = StringName("")
 
 			var player_id: String = String(reset_state.get("player_entity_id", "E_Player"))
 			var updated_entities: Dictionary = {}
