@@ -19,6 +19,9 @@ var _unsubscribe_interact_prompt_show: Callable
 var _unsubscribe_interact_prompt_hide: Callable
 var _unsubscribe_signpost: Callable
 var _active_prompt_id: int = 0
+var _last_prompt_action: StringName = StringName("interact")
+var _last_prompt_text: String = ""
+var _toast_active: bool = false
 
 func _ready() -> void:
 	add_to_group(HUD_GROUP)
@@ -55,9 +58,16 @@ func _exit_tree() -> void:
 		_unsubscribe_signpost.call()
 
 func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void:
-	if slice_name != StringName("gameplay"):
-		return
-	_update_display(_store.get_state())
+	# React to gameplay updates (health, etc.) and scene updates (pause/overlays)
+	if slice_name == StringName("gameplay") or slice_name == StringName("scene"):
+		_update_display(_store.get_state())
+		# Hide interact prompt while paused
+		if _is_paused(_store.get_state()):
+			interact_prompt_label.visible = false
+			# Also hide any active toasts while paused
+			if checkpoint_toast != null:
+				checkpoint_toast.visible = false
+				_toast_active = false
 
 func _update_display(state: Dictionary) -> void:
 	pause_label.text = ""
@@ -98,9 +108,16 @@ func _on_checkpoint_event(payload: Variant) -> void:
 func _show_checkpoint_toast(text: String) -> void:
 	if checkpoint_toast == null:
 		return
+	# Do not show toasts while paused
+	if _store != null and _is_paused(_store.get_state()):
+		return
 	checkpoint_toast.text = text
 	checkpoint_toast.modulate.a = 0.0
 	checkpoint_toast.visible = true
+	_toast_active = true
+	# Avoid overlap with interact prompt while toast is visible
+	if interact_prompt_label != null:
+		interact_prompt_label.visible = false
 
 	var tween := create_tween()
 	tween.set_trans(Tween.TRANS_CUBIC)
@@ -113,10 +130,18 @@ func _show_checkpoint_toast(text: String) -> void:
 	tween.tween_property(checkpoint_toast, "modulate:a", 0.0, 0.3)
 	tween.finished.connect(func() -> void:
 		checkpoint_toast.visible = false
+		_toast_active = false
+		# Restore prompt if still relevant and not paused
+		if not _is_paused(_store.get_state()) and _active_prompt_id != 0 and interact_prompt_label != null:
+			interact_prompt_label.text = _format_interact_prompt(_last_prompt_action, _last_prompt_text)
+			interact_prompt_label.visible = true
 	)
 
 func _on_interact_prompt_show(payload: Variant) -> void:
 	if interact_prompt_label == null:
+		return
+	# Suppress interact prompt while paused (e.g., pause menu open)
+	if _store != null and _is_paused(_store.get_state()):
 		return
 	if typeof(payload) != TYPE_DICTIONARY:
 		return
@@ -130,6 +155,11 @@ func _on_interact_prompt_show(payload: Variant) -> void:
 	var prompt_text: String = String(data.get("prompt", "Interact"))
 
 	_active_prompt_id = controller_id
+	_last_prompt_action = action_name
+	_last_prompt_text = prompt_text
+	# If a toast is currently visible, defer showing the prompt to avoid overlap
+	if _toast_active:
+		return
 	interact_prompt_label.text = _format_interact_prompt(action_name, prompt_text)
 	interact_prompt_label.visible = true
 
@@ -158,6 +188,9 @@ func _on_signpost_message(payload: Variant) -> void:
 		text = String(payload)
 	if text.is_empty():
 		return
+	# Suppress signpost messages while paused
+	if _store != null and _is_paused(_store.get_state()):
+		return
 	_show_checkpoint_toast(text)
 
 func _format_interact_prompt(action: StringName, prompt_text: String) -> String:
@@ -168,6 +201,11 @@ func _format_interact_prompt(action: StringName, prompt_text: String) -> String:
 	if cleaned_prompt.is_empty():
 		cleaned_prompt = "Interact"
 	return "Press [%s] to %s" % [action_label, cleaned_prompt]
+
+func _is_paused(state: Dictionary) -> bool:
+	var scene_state: Dictionary = state.get("scene", {})
+	var stack: Array = scene_state.get("scene_stack", [])
+	return stack.size() > 0
 
 func _get_primary_input_label(action: StringName) -> String:
 	var action_string := String(action)

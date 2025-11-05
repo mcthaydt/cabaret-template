@@ -71,7 +71,8 @@ func _update_display() -> void:
 
 func _on_continue_pressed() -> void:
 	_reset_game_progress()
-	_transition_to_scene(StringName("gameplay_base"))
+	# Return to hub (exterior) per integration tests
+	_transition_to_scene(StringName("exterior"))
 
 func _on_credits_pressed() -> void:
 	_reset_game_progress()

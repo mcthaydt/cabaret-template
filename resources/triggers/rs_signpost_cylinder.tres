@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_SceneTriggerSettings" load_steps=2 format=3 uid="uid://b2ehbrq1l8yro"]
+
+[ext_resource type="Script" uid="uid://cawvylnr030r6" path="res://scripts/ecs/resources/rs_scene_trigger_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+cyl_height = 2.0
+box_size = Vector3(1, 1.5, 0.1)
+local_offset = Vector3(0, 1, 0)
+arm_delay_physics_frames = 1

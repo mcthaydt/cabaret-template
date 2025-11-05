@@ -1,14 +1,12 @@
-[gd_resource type="Resource" load_steps=2 format=3 uid="uid://m0goalcyl001"]
+[gd_resource type="Resource" script_class="RS_SceneTriggerSettings" load_steps=2 format=3 uid="uid://m0goalcyl001"]
 
-[ext_resource type="Script" path="res://scripts/ecs/resources/rs_scene_trigger_settings.gd" id="1"]
+[ext_resource type="Script" uid="uid://cawvylnr030r6" path="res://scripts/ecs/resources/rs_scene_trigger_settings.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
-shape_type = 1
 cyl_radius = 1.5
 cyl_height = 2.5
 local_offset = Vector3(0, 1.25, 0)
-player_mask = 1
-enable_on_ready = false
+enable_on_ready = true
 ignore_initial_overlap = false
-toggle_visuals_on_enable = true
+arm_delay_physics_frames = 1

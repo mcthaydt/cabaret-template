@@ -1,11 +1,11 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_SceneTriggerSettings" load_steps=2 format=3 uid="uid://na7m34dl6a4d"]
 
-[ext_resource type="Script" path="res://scripts/ecs/resources/rs_scene_trigger_settings.gd" id="1"]
+[ext_resource type="Script" uid="uid://cawvylnr030r6" path="res://scripts/ecs/resources/rs_scene_trigger_settings.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 shape_type = 0
 box_size = Vector3(2, 3, 2)
 local_offset = Vector3(0, 0, 0)
-player_mask = 1
 ignore_initial_overlap = false
+arm_delay_physics_frames = 1

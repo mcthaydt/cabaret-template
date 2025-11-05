@@ -5,18 +5,18 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager` (continuing on existing branch)
-**Status**: 🔄 Post Scene Manager hardening in progress — track work in [post-scene-manager-tasks.md](./post-scene-manager-tasks.md)
+**Status**: ✅ Post Scene Manager hardening complete — see [post-scene-manager-tasks.md](./post-scene-manager-tasks.md) (100%)
 
 ---
 
-## 🎯 CURRENT STATUS: Post Scene Manager Hardening
+## 🎯 CURRENT STATUS: Post Scene Manager Hardening (Complete)
 
-**Focus Areas**
-- Finalize controller hardening tasks (spawn-inside policy, transition gating, style enforcement).
-- Normalize state loads when older saves reference retired scene/door IDs.
-- Refresh documentation + templates so future updates follow the new interactable pattern.
+**Finalized**
+- Controller hardening (spawn-inside policy, transition gating, style enforcement).
+- State load normalization for retired scene/door IDs.
+- Documentation + templates aligned to interactable pattern; sample signpost added to exterior.tscn.
 
-**Tracking**: Work is sequenced in [post-scene-manager-tasks.md](./post-scene-manager-tasks.md); update the checklist + completion percentage after every batch of changes.
+Tracking remains available in [post-scene-manager-tasks.md](./post-scene-manager-tasks.md).
 
 ---
 

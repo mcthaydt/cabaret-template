@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://baymf4575tym0"]
+[gd_scene load_steps=4 format=3 uid="uid://baymf4575tym0"]
 
 [ext_resource type="Script" uid="uid://b3ba2fenw3s8f" path="res://scripts/gameplay/e_door_trigger_controller.gd" id="1_controller"]
 [ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="2_8x6vi"]

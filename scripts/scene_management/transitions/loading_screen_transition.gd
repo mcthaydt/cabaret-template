@@ -122,6 +122,12 @@ func _execute_with_real_progress(overlay: CanvasLayer, callback: Callable, origi
 	if _status_label:
 		_status_label.text = "Loading..."
 
+	# Kick off scene swap immediately so async loading can report real progress
+	if not mid_transition_fired and mid_transition_callback.is_valid():
+		await mid_transition_callback.call()
+		_hide_hud_layers(overlay.get_tree())
+		mid_transition_fired = true
+
 	while true:
 		# Get current progress from provider
 		var current_progress: float = 0.0
@@ -139,28 +145,7 @@ func _execute_with_real_progress(overlay: CanvasLayer, callback: Callable, origi
 		# Trigger mid-transition callback:
 		# - At 50% threshold for async loading
 		# - Immediately if progress hasn't changed (sync loading - needs callback to set progress)
-		var should_fire_callback: bool = false
-		if not mid_transition_fired:
-			if current_progress >= 0.5:
-				# Normal case: progress reached 50%
-				should_fire_callback = true
-			elif iterations > 0 and current_progress == prev_progress and current_progress < 0.5:
-				# Sync loading case: progress stuck at 0, fire callback immediately
-				should_fire_callback = true
-
-		if should_fire_callback:
-			if mid_transition_callback.is_valid():
-				# Call and await callback (Phase 8: scene loading may be async)
-				# In Godot 4, just await the call directly - it handles both sync and async
-				await mid_transition_callback.call()
-			_hide_hud_layers(overlay.get_tree())
-			mid_transition_fired = true
-
-			# Re-poll progress after callback completes (callback may set progress to 1.0)
-			if progress_provider.is_valid():
-				current_progress = progress_provider.call()
-			if _progress_bar:
-				_progress_bar.value = current_progress * 100.0
+		# Callback already fired above to start loading; no-op here
 
 		# Check if complete
 		if current_progress >= 1.0:

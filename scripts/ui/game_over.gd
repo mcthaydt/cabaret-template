@@ -59,7 +59,8 @@ func _update_death_count() -> void:
 
 func _on_retry_pressed() -> void:
 	_dispatch_soft_reset()
-	_transition_to_scene(StringName("gameplay_base"))
+	# Retry returns to hub (exterior) per integration tests
+	_transition_to_scene(StringName("exterior"))
 
 func _on_menu_pressed() -> void:
 	_dispatch_soft_reset()

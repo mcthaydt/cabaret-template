@@ -60,6 +60,12 @@ var _loading_overlay: CanvasLayer = null
 var _transition_queue: Array[TransitionRequest] = []
 var _is_processing_transition: bool = false
 
+## Last time (ms) a transition was requested. Used to guard against
+## same-frame ESC/pause when an AUTO door trigger fires.
+var _last_transition_request_time_ms: int = 0
+## Frame marker to suppress pause handling for current frame
+var _suppress_pause_frame: int = -1
+
 ## Current scene tracking for reactive cursor updates
 var _current_scene_id: StringName = StringName("")
 
@@ -165,9 +171,22 @@ func _input(event: InputEvent) -> void:
 		var key_event := event as InputEventKey
 		var is_pause_trigger: bool = (key_event.keycode == KEY_ESCAPE) or key_event.is_action_pressed("pause")
 		if is_pause_trigger and key_event.pressed and not key_event.is_echo():
+			# Guard: ignore ESC on the same frame a transition request was queued
+			# This covers AUTO door triggers where input and trigger happen together.
+			var now_ms: int = Time.get_ticks_msec()
+			if (now_ms - _last_transition_request_time_ms) <= 16:
+				get_viewport().set_input_as_handled()
+				return
+
+			# Guard: if pause suppression is requested for this frame, ignore ESC
+			if _suppress_pause_frame == Engine.get_process_frames():
+				get_viewport().set_input_as_handled()
+				return
 			# Ignore ESC while a scene transition is in progress (fade/loading)
-			# Prevents pausing during transitions which can stall tweens and break transitions
-			if is_transitioning() or _is_processing_transition:
+			# or when a transition has just been queued but not yet marked as
+			# transitioning in state. This prevents same-frame pause when an
+			# AUTO door trigger fires and the transition queue is populated.
+			if is_transitioning() or _is_processing_transition or _transition_queue.size() > 0:
 				get_viewport().set_input_as_handled()
 				return
 			# Only pause if in gameplay scene and no overlays active
@@ -232,6 +251,9 @@ func transition_to_scene(scene_id: StringName, transition_type: String, priority
 	# Create transition request
 	var request := TransitionRequest.new(scene_id, transition_type, priority)
 
+	# Record the moment this request was queued for ESC guard logic
+	_last_transition_request_time_ms = Time.get_ticks_msec()
+
 	# Add to queue based on priority
 	_enqueue_transition(request)
 	# Debug logs live in tests, not here
@@ -239,6 +261,10 @@ func transition_to_scene(scene_id: StringName, transition_type: String, priority
 	# Process queue if not already processing
 	if not _is_processing_transition:
 		_process_transition_queue()
+
+## External: Suppress pause handling for the current frame (same-frame door triggers)
+func suppress_pause_for_current_frame() -> void:
+	_suppress_pause_frame = Engine.get_process_frames()
 
 ## Enqueue transition based on priority
 func _enqueue_transition(request: TransitionRequest) -> void:
@@ -363,14 +389,21 @@ func _perform_transition(request: TransitionRequest) -> void:
 	# Phase 8: Set progress handling for LoadingScreenTransition
 	if transition_effect is LoadingScreenTransition:
 		var loading_transition := transition_effect as LoadingScreenTransition
-		progress_callback = func(progress: float) -> void:
-			var normalized_progress: float = clamp(progress, 0.0, 1.0)
-			current_progress[0] = normalized_progress
-			loading_transition.update_progress(normalized_progress * 100.0)
+		# If scene is cached, use FAKE progress (no provider) to show minimal loading
+		# Otherwise, wire a real progress provider for async loading.
+		if not use_cached:
+			progress_callback = func(progress: float) -> void:
+				var normalized_progress: float = clamp(progress, 0.0, 1.0)
+				current_progress[0] = normalized_progress
+				loading_transition.update_progress(normalized_progress * 100.0)
 
-		# Create a Callable that returns current progress for polling loop
-		loading_transition.progress_provider = func() -> float:
-			return current_progress[0]
+			# Create a Callable that returns current progress for polling loop
+			loading_transition.progress_provider = func() -> float:
+				return current_progress[0]
+		else:
+			# Cached scene: fall back to tween-based fake progress; mid-callback will swap scene at 50%
+			progress_callback = func(_progress: float) -> void:
+				pass
 	else:
 		progress_callback = func(progress: float) -> void:
 			current_progress[0] = clamp(progress, 0.0, 1.0)
@@ -388,6 +421,9 @@ func _perform_transition(request: TransitionRequest) -> void:
 	# Phase 10: Determine if camera blending should occur
 	var should_blend: bool = old_camera_state != null and _camera_manager != null
 
+	# Reference holder for the newly loaded scene (closure-friendly)
+	var new_scene_ref: Array = [null]
+
 	# Define scene swap callback (called at mid-transition for fades, immediately for instant)
 	var scene_swap_callback := func() -> void:
 		# Remove current scene from ActiveSceneContainer
@@ -401,9 +437,8 @@ func _perform_transition(request: TransitionRequest) -> void:
 			var cached := _get_cached_scene(scene_path)
 			if cached:
 				new_scene = cached.instantiate()
-				# Update progress for loading transitions (instant completion)
-				if request.transition_type == "loading":
-					progress_callback.call(1.0)
+				# For cached scenes with "loading" transition, we use fake progress,
+				# so avoid forcing progress to 100% here.
 		elif request.transition_type == "loading" and not (OS.has_feature("headless") or DisplayServer.get_name() == "headless"):
 			# Use async loading for "loading" transitions (Phase 8)
 			new_scene = await _load_scene_async(scene_path, progress_callback)
@@ -424,6 +459,8 @@ func _perform_transition(request: TransitionRequest) -> void:
 		# Add new scene to ActiveSceneContainer
 		if _active_scene_container != null:
 			_add_scene(new_scene)
+		# Store for post-transition finalization
+		new_scene_ref[0] = new_scene
 
 		# Restore player spawn point (Phase 12.1: T226, Phase 12.3: T268)
 		# Use spawn_at_last_spawn() which checks priority: target_spawn_point → last_checkpoint → sp_default
@@ -481,6 +518,10 @@ func _perform_transition(request: TransitionRequest) -> void:
 
 	# Phase 10: Camera blending now happens in scene_swap_callback (T182.5)
 	# This ensures blend runs in parallel with fade effect, not sequentially after
+
+	# Safety: Ensure camera finalized in case tween finished signal didn't fire yet
+	if _camera_manager != null and new_scene_ref[0] != null and _camera_manager.has_method("finalize_blend_to_scene"):
+		_camera_manager.finalize_blend_to_scene(new_scene_ref[0])
 
 ## Remove current scene from ActiveSceneContainer
 func _remove_current_scene() -> void:
@@ -606,7 +647,10 @@ func _add_scene(scene: Node) -> void:
 	_active_scene_container.add_child(scene)
 
 ## Push overlay scene onto UIOverlayStack
-func push_overlay(scene_id: StringName) -> void:
+func push_overlay(scene_id: StringName, force: bool = false) -> void:
+	# Note: Transition guards are enforced at input-handling time (ESC/pause)
+	# to avoid pushing overlays during scene transitions. Overlay navigation
+	# and direct calls here proceed unconditionally.
 	# Load and add overlay scene
 	var scene_path: String = U_SCENE_REGISTRY.get_scene_path(scene_id)
 	if scene_path.is_empty():
@@ -677,8 +721,8 @@ func push_overlay_with_return(overlay_id: StringName) -> void:
 	if not current_top.is_empty():
 		pop_overlay()
 
-	# Push new overlay
-	push_overlay(overlay_id)
+	# Push new overlay (force to bypass transition guard; this is UI-only navigation)
+	push_overlay(overlay_id, true)
 
 ## Pop overlay with automatic return navigation (Phase 6.5)
 ##
@@ -697,7 +741,12 @@ func pop_overlay_with_return() -> void:
 
 		# Only push if previous overlay was non-empty (not base gameplay)
 		if not previous_overlay.is_empty():
-			push_overlay(previous_overlay)
+			# Defer restoration to next frame to avoid race with queue_free()
+			call_deferred("_push_overlay_for_return", previous_overlay)
+
+## Internal: deferred restore helper for return navigation
+func _push_overlay_for_return(scene_id: StringName) -> void:
+	push_overlay(scene_id, true)
 
 ## Get the scene_id of the current top overlay (helper for return stack)
 ##
@@ -1057,10 +1106,7 @@ func _preload_critical_scenes() -> void:
 	var critical_scenes: Array = U_SCENE_REGISTRY.get_preloadable_scenes(10)
 
 	if critical_scenes.is_empty():
-		print_debug("M_SceneManager: No critical scenes to preload")
 		return
-
-	print_debug("M_SceneManager: Starting preload for %d critical scene(s)" % critical_scenes.size())
 
 	# Start async load for each critical scene
 	for scene_data in critical_scenes:
@@ -1073,7 +1119,6 @@ func _preload_critical_scenes() -> void:
 
 		# Skip if already cached
 		if _is_scene_cached(scene_path):
-			print_debug("M_SceneManager: Critical scene '%s' already cached" % scene_id)
 			continue
 
 		# Start async load
@@ -1088,8 +1133,6 @@ func _preload_critical_scenes() -> void:
 			"status": ResourceLoader.THREAD_LOAD_IN_PROGRESS,
 			"start_time": Time.get_ticks_msec() / 1000.0
 		}
-
-		print_debug("M_SceneManager: Started preload for '%s'" % scene_id)
 
 	# Start background polling if we have loads in progress
 	if not _background_loads.is_empty():
@@ -1111,7 +1154,6 @@ func _start_background_load_polling() -> void:
 				var packed_scene: PackedScene = ResourceLoader.load_threaded_get(scene_path) as PackedScene
 				if packed_scene:
 					_add_to_cache(scene_path, packed_scene)
-					print_debug("M_SceneManager: Preloaded '%s' successfully" % load_data.get("scene_id"))
 				else:
 					push_error("M_SceneManager: Failed to get preloaded scene '%s'" % load_data.get("scene_id"))
 				completed_paths.append(scene_path)
@@ -1134,7 +1176,6 @@ func _start_background_load_polling() -> void:
 		if not _background_loads.is_empty():
 			await get_tree().process_frame
 
-	print_debug("M_SceneManager: All critical scenes preloaded")
 	_is_background_polling_active = false
 
 ## Hint to preload a scene in background (Phase 8)
@@ -1150,8 +1191,6 @@ func hint_preload_scene(scene_path: String) -> void:
 
 	if _background_loads.has(scene_path):
 		return
-
-	print_debug("M_SceneManager: Preload hint received for '%s'" % scene_path)
 
 	# Start background load
 	var err: int = ResourceLoader.load_threaded_request(scene_path, "PackedScene")

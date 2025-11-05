@@ -73,6 +73,9 @@ func _show_interact_prompt() -> void:
 		return
 	if interact_action.is_empty():
 		return
+	# Do not show prompts while transitions/overlays are active (pause/menus)
+	if _is_transition_blocked():
+		return
 
 	var payload := {
 		"controller_id": get_instance_id(),

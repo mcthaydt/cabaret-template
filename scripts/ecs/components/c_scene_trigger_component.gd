@@ -227,6 +227,13 @@ func _on_body_entered(body: Node3D) -> void:
 
 		# If AUTO mode, trigger transition immediately
 		if trigger_mode == TriggerMode.AUTO and _can_trigger():
+			# Notify SceneManager to suppress same-frame ESC pause
+			var scene_manager_group := get_tree().get_nodes_in_group("scene_manager")
+			if not scene_manager_group.is_empty():
+				var mgr := scene_manager_group[0]
+				if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
+					mgr.suppress_pause_for_current_frame()
+
 			_trigger_transition()
 
 ## Callback when body exits trigger area
@@ -320,8 +327,43 @@ func is_player_in_zone() -> bool:
 
 ## Manually trigger transition (for INTERACT mode)
 func trigger_interact() -> void:
-	if _player_in_zone and _can_trigger():
+	# Explicit interact path should not depend on internal arm state or the
+	# component's own _player_in_zone bookkeeping, since controllers already
+	# validated player presence and arming on their side.
+	if _can_trigger_interact():
+		# Suppress same-frame ESC pause handling to avoid pause overlay during
+		# door-triggered transitions when interact is used.
+		var scene_manager_group := get_tree().get_nodes_in_group("scene_manager")
+		if not scene_manager_group.is_empty():
+			var mgr := scene_manager_group[0]
+			if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
+				mgr.suppress_pause_for_current_frame()
+
 		_trigger_transition()
+
+## Interact-specific trigger guard (bypasses internal arm flag and zone flag)
+func _can_trigger_interact() -> bool:
+	if _pending_transition:
+		return false
+
+	if _cooldown_remaining > 0.0:
+		return false
+
+	# Guard against re-entry while a scene transition is underway
+	var store = U_StateUtils.get_store(self)
+	if store != null:
+		var scene_state: Dictionary = store.get_slice(StringName("scene"))
+		if scene_state.get("is_transitioning", false):
+			return false
+
+	# Also check SceneManager if available
+	var managers: Array = get_tree().get_nodes_in_group("scene_manager")
+	if managers.size() > 0:
+		var mgr = managers[0]
+		if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
+			return false
+
+	return true
 
 ## Hint to Scene Manager to preload target scene in background (Phase 8)
 ##

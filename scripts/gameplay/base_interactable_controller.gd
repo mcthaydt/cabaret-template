@@ -216,6 +216,10 @@ func _is_transition_blocked() -> bool:
 		var scene_slice: Dictionary = store.get_slice(StringName("scene"))
 		if scene_slice.get("is_transitioning", false):
 			return true
+		# Block interactions while any UI overlay is active (paused/menus)
+		var stack: Array = scene_slice.get("scene_stack", [])
+		if stack.size() > 0:
+			return true
 	var scene_managers := get_tree().get_nodes_in_group(SCENE_MANAGER_GROUP)
 	if not scene_managers.is_empty():
 		var manager := scene_managers[0]

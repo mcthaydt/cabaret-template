@@ -64,7 +64,7 @@ func _ensure_component(area: Area3D) -> void:
 
 func _instantiate_component() -> C_CheckpointComponent:
 	if component_factory != null and component_factory.is_valid():
-		var created := component_factory.call()
+		var created: Variant = component_factory.call()
 		if created is C_CheckpointComponent:
 			return created as C_CheckpointComponent
 		push_warning("E_CheckpointZone: component_factory returned incompatible instance.")

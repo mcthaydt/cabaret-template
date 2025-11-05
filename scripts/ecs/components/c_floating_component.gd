@@ -44,14 +44,17 @@ func get_raycast_nodes() -> Array:
 	if root == null:
 		return rays
 
-	if root is RayCast3D:
-		rays.append(root)
-
-	for child in root.get_children():
-		if child is RayCast3D:
-			rays.append(child)
-
+	# Collect RayCast3D nodes recursively to avoid missing diagonals nested in groups
+	_collect_rays_recursive(root, rays)
 	return rays
+
+func _collect_rays_recursive(node: Node, rays: Array) -> void:
+	if node is RayCast3D:
+		rays.append(node)
+	for child in node.get_children():
+		var n := child as Node
+		if n != null:
+			_collect_rays_recursive(n, rays)
 
 func update_support_state(supported: bool, current_time: float) -> void:
 	is_supported = supported

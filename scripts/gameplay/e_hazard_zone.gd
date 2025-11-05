@@ -66,7 +66,7 @@ func _ensure_component(area: Area3D) -> void:
 
 func _instantiate_component() -> C_DamageZoneComponent:
 	if component_factory != null and component_factory.is_valid():
-		var created := component_factory.call()
+		var created: Variant = component_factory.call()
 		if created is C_DamageZoneComponent:
 			return created as C_DamageZoneComponent
 		push_warning("E_HazardZone: component_factory returned incompatible instance.")
