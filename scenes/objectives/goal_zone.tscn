@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://behhuoexdtawd"]
 
-[ext_resource type="Script" uid="uid://c8w8vp65hhovg" path="res://scripts/ecs/components/c_victory_trigger_component.gd" id="1"]
-[ext_resource type="Script" uid="uid://dt705fmg3a3jc" path="res://scripts/ecs/ecs_entity.gd" id="2_ecs_entity"]
+[ext_resource type="Script" uid="uid://4ebf9449c49a" path="res://scripts/gameplay/e_victory_zone.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://resources/triggers/rs_goal_cylinder.tres" id="2_goal_settings"]
 
 [sub_resource type="StandardMaterial3D" id="Material_goal"]
 albedo_color = Color(0.968627, 0.847059, 0.239216, 1)
@@ -19,7 +19,11 @@ text = ":)"
 radius = 1.5
 
 [node name="E_GoalZone" type="Node3D"]
-script = ExtResource("2_ecs_entity")
+script = ExtResource("1_controller")
+objective_id = &"goal_01"
+area_id = "interior_house"
+visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePath("GlowLight")])
+settings = ExtResource("2_goal_settings")
 
 [node name="Visual" type="CSGCylinder3D" parent="."]
 radius = 1.5
@@ -34,14 +38,3 @@ amount = 80
 lifetime = 1.5
 preprocess = 0.5
 mesh = SubResource("TextMesh_eyiog")
-
-[node name="Area3D" type="Area3D" parent="."]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
-shape = SubResource("CylinderShape_goal")
-
-[node name="C_VictoryTriggerComponent" type="Node" parent="."]
-script = ExtResource("1")
-objective_id = &"goal_01"
-area_id = "interior_house"
-area_path = NodePath("../Area3D")

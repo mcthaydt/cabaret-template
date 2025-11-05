@@ -1,5 +1,7 @@
 # Post Scene Manager: Interactables Unification Tasks
 
+**Progress:** 69% (36 / 52 tasks complete)
+
 Input: Current gameplay scenes and ECS components
 Prerequisites: Scene Manager Phase 10 complete, checkpoint/door controllers validated in exterior/interior
 
@@ -39,59 +41,59 @@ Naming & Key Decisions
 Phases & Tasks (TDD-first for base; tests-after for migrations)
 
 Phase A: Foundations (TDD)
-- [ ] T-A01 Tests: `tests/unit/interactables/test_base_volume_controller.gd`
-- [ ] T-A02 Impl: `scripts/gameplay/base_volume_controller.gd` (tabs only)
-- [ ] T-A03 Tests: `tests/unit/interactables/test_base_interactable_controller.gd`
-- [ ] T-A04 Impl: `scripts/gameplay/base_interactable_controller.gd` (cooldown/lock + player detection)
-- [ ] T-A05 Tests: `tests/unit/interactables/test_triggered_interactable_controller.gd`
-- [ ] T-A06 Impl: `scripts/gameplay/triggered_interactable_controller.gd` (AUTO/INTERACT + input)
-- [ ] T-A07 Validate `scripts/ecs/resources/rs_scene_trigger_settings.gd` covers all needs; extend conservatively and update default `.tres` as needed
+- [x] T-A01 Tests: `tests/unit/interactables/test_base_volume_controller.gd` (added)
+- [x] T-A02 Impl: `scripts/gameplay/base_volume_controller.gd` (tabs only)
+- [x] T-A03 Tests: `tests/unit/interactables/test_base_interactable_controller.gd` (added)
+- [x] T-A04 Impl: `scripts/gameplay/base_interactable_controller.gd` (cooldown/lock + player detection)
+- [x] T-A05 Tests: `tests/unit/interactables/test_triggered_interactable_controller.gd` (added)
+- [x] T-A06 Impl: `scripts/gameplay/triggered_interactable_controller.gd` (AUTO/INTERACT + input)
+- [x] T-A07 Validate `scripts/ecs/resources/rs_scene_trigger_settings.gd` covers all needs; extend conservatively and update default `.tres` as needed
   - Include cases: spawn-inside handling (initial overlap), arming after first physics frame, and enable/disable toggling visuals
 
 Phase B: Controllers (Concrete; TDD)
-- [ ] T-B00 Align naming: rename existing controllers to E_*-prefixed filenames and update scenes
+- [x] T-B00 Align naming: rename existing controllers to E_*-prefixed filenames and update scenes (scripts + exterior/interior scenes now reference new controllers)
   - `scripts/gameplay/door_trigger.gd` → `scripts/gameplay/e_door_trigger_controller.gd`
   - `scripts/gameplay/checkpoint_zone.gd` → `scripts/gameplay/e_checkpoint_zone.gd`
   - Update references in `exterior.tscn`, `interior_house.tscn`, and any others
-- [ ] T-B01 Tests: `tests/unit/interactables/test_e_door_trigger_controller.gd`
-- [ ] T-B02 Impl: `scripts/gameplay/e_door_trigger_controller.gd` (extends BaseInteractable; AUTO default)
-- [ ] T-B03 Tests: `tests/unit/interactables/test_e_checkpoint_zone.gd`
-- [ ] T-B04 Impl: `scripts/gameplay/e_checkpoint_zone.gd` (extends BaseVolume; passive on enter)
-- [ ] T-B05 Tests: `tests/unit/interactables/test_e_hazard_zone.gd`
-- [ ] T-B06 Impl: `scripts/gameplay/e_hazard_zone.gd` (extends BaseVolume; passive continuous)
-- [ ] T-B07 Tests: `tests/unit/interactables/test_e_victory_zone.gd`
-- [ ] T-B08 Impl: `scripts/gameplay/e_victory_zone.gd` (extends BaseVolume; passive on enter, supports `victory_type`)
-- [ ] T-B09 Tests: `tests/unit/interactables/test_e_signpost.gd`
-- [ ] T-B10 Impl: `scripts/gameplay/e_signpost.gd` (extends TriggeredInteractable; INTERACT)
+- [x] T-B01 Tests: `tests/unit/interactables/test_e_door_trigger_controller.gd` (covers component wiring + activation delegation)
+- [x] T-B02 Impl: `scripts/gameplay/e_door_trigger_controller.gd` (extends BaseInteractable; AUTO default)
+- [x] T-B03 Tests: `tests/unit/interactables/test_e_checkpoint_zone.gd` (verifies component reuse of controller area)
+- [x] T-B04 Impl: `scripts/gameplay/e_checkpoint_zone.gd` (extends BaseVolume; passive on enter)
+- [x] T-B05 Tests: `tests/unit/interactables/test_e_hazard_zone.gd` (validates damage config + shared area)
+- [x] T-B06 Impl: `scripts/gameplay/e_hazard_zone.gd` (extends BaseVolume; passive continuous)
+- [x] T-B07 Tests: `tests/unit/interactables/test_e_victory_zone.gd` (ensures objective + area wiring)
+- [x] T-B08 Impl: `scripts/gameplay/e_victory_zone.gd` (extends BaseVolume; passive on enter, supports `victory_type`)
+- [x] T-B09 Tests: `tests/unit/interactables/test_e_signpost.gd` (signal behaviour + locking)
+- [x] T-B10 Impl: `scripts/gameplay/e_signpost.gd` (extends TriggeredInteractable; INTERACT)
 
 Phase C: HUD/UI (Optional niceties; TDD optional)
-- [ ] T-C01 Add prompt UI for INTERACT mode (“Press [E] to …”) showing while inside and hiding on exit
-- [ ] T-C02 Toast or popup for signpost message; reuse existing checkpoint toast for MVP
+- [x] T-C01 Add prompt UI for INTERACT mode (“Press [E] to …”) showing while inside and hiding on exit (interact prompt events + HUD label wired)
+- [x] T-C02 Toast or popup for signpost message; reuse existing checkpoint toast for MVP (signpost publishes event, HUD reuses toast)
 
 Phase D: Scene Migration (tests-after)
-- [ ] T-D01 Exterior: replace nested door component with controller; assign existing door settings `.tres`
-- [ ] T-D02 Interior: same as above
-- [ ] T-D03 Exterior: checkpoint uses controller + settings; remove authored Area3D/CollisionShape3D
-- [ ] T-D04 Objectives: convert `checkpoint_safe_zone.tscn` to controller pattern
-- [ ] T-D05 Hazards: convert `scenes/hazards/*.tscn` to hazard controller (remove nested component/areas where simple)
-- [ ] T-D06 Goals: ensure endgame goal enforces `GAME_COMPLETE` and routes to victory; convert to victory controller if appropriate
-- [ ] T-D07 De‑nest audit: `scenes/gameplay/*` contains no PackedScene instances under Entities (allow Camera/Player templates only where required)
-- [ ] T-D08 Remove exterior/interior as primary gameplay entries; mark as fixtures; update Scene Registry defaults to `gameplay_base`
-- [ ] T-D09 Normalize gameplay scene root naming/markers (e.g., `GameplayRoot`) to match templates and docs
+- [x] T-D01 Exterior: replace nested door component with controller; assign existing door settings `.tres` (door now uses E_DoorTriggerController with visual path)
+- [x] T-D02 Interior: same as above (interior door migrated to controller + shared settings)
+- [x] T-D03 Exterior: checkpoint uses controller + settings; remove authored Area3D/CollisionShape3D (safe zone relies on controller volume)
+- [x] T-D04 Objectives: convert `checkpoint_safe_zone.tscn` to controller pattern (resource updated to use E_CheckpointZone)
+- [x] T-D05 Hazards: convert `scenes/hazards/*.tscn` to hazard controller (remove nested component/areas where simple) (death zone & spike trap now controller-driven)
+- [x] T-D06 Goals: ensure endgame goal enforces `GAME_COMPLETE` and routes to victory; convert to victory controller if appropriate (endgame goal extends E_VictoryZone)
+- [x] T-D07 De‑nest audit: `scenes/gameplay/*` contains no PackedScene instances under Entities (allow Camera/Player templates only where required) (exterior/interior inline hazard & goal nodes)
+- [x] T-D08 Remove exterior/interior as primary gameplay entries; mark as fixtures; update Scene Registry defaults to `gameplay_base` (hub scenes downgraded to fixture priority + flows now enter `gameplay_base`)
+- [x] T-D09 Normalize gameplay scene root naming/markers (e.g., `GameplayRoot`) to match templates and docs (exterior root renamed to `GameplayRoot`)
 
 Phase F: De‑nesting & Docs Cleanup
-- [ ] T-F01 Remove nested scenes from gameplay via interactables base/controller pattern (single `E_*` per interactable; no authored component/Area3D children)
-- [ ] T-F02 Retire `exterior.tscn` and `interior_house.tscn` as fixtures; route post–Main Menu action to `gameplay_base.tscn`
+- [x] T-F01 Remove nested scenes from gameplay via interactables base/controller pattern (single `E_*` per interactable; no authored component/Area3D children) (gameplay scenes define controllers inline)
+- [x] T-F02 Retire `exterior.tscn` and `interior_house.tscn` as fixtures; route post–Main Menu action to `gameplay_base.tscn` (main menu/victory/game over now point to hub scene)
 - [ ] T-F03 Clean up Scene Manager documentation (reconcile phases, remove stale notes, link to this plan)
 - [ ] T-F04 Clean up `DEV_PITFALLS.md`, `STYLE_GUIDE.md`, `SCENE_ORGANIZATION_GUIDE.md`, and `AGENTS.md` with new interactables/base patterns
 - [ ] T-F05 Create base templates for PRD, Plan, Tasks, and Continuation Guide in `docs/_templates/` (if not already present), modeled on existing documents
 
 Phase E: Validation (Tests)
-- [ ] T-E01 Unit tests for base controllers (enter/exit, cooldown, INTERACT)
-- [ ] T-E02 Integration tests: door transitions still work; checkpoints update state; hazards apply damage; victory routes correctly
+- [x] T-E01 Unit tests for base controllers (enter/exit, cooldown, INTERACT) (interactable/unit suites executed via GUT)
+- [x] T-E02 Integration tests: door transitions still work; checkpoints update state; hazards apply damage; victory routes correctly (scene manager integration suite exercised post-migration)
 
 Phase G: Cross‑cutting Hardening & Migration Gaps
-- [ ] T-G01 Scene Registry sweep: update `U_SceneRegistry` scene IDs, defaults, door pairings, and preload priorities; add fallbacks for retired `exterior`/`interior_house`
+- [x] T-G01 Scene Registry sweep: update `U_SceneRegistry` scene IDs, defaults, door pairings, and preload priorities; add fallbacks for retired `exterior`/`interior_house` (hub entries downgraded, flows rerouted to gameplay_base)
 - [ ] T-G02 Save/state migration: map legacy `current_scene_id`, `last_checkpoint`, and `completed_areas` to new IDs; warn + fallback when unknown; add unit tests
 - [ ] T-G03 Spawn‑inside policy: decide (arm vs. detect initial overlap) and implement consistently across controllers; add tests
 - [ ] T-G04 Transition gating: ensure controllers/trigger components suppress activation while `M_SceneManager.is_transitioning()` or store `scene.is_transitioning` is true; add tests
@@ -100,9 +102,9 @@ Phase G: Cross‑cutting Hardening & Migration Gaps
 - [ ] T-G07 Visuals separation: define pattern for interactable visuals (e.g., `Visual` child under entity) now that logic is de‑nested; update examples/guides
 - [ ] T-G08 Input scope: verify `interact` InputMap entry and prompt/HUD process modes are correct (e.g., PROCESS_MODE_ALWAYS when needed)
 - [ ] T-G09 Signal lifecycle: all controllers disconnect on `_exit_tree()`; add a unit test covering subscribe/unsubscribe
-- [ ] T-G10 Prompt UI (optional): show/hide on enter/exit for INTERACT controllers; reuse HUD or add lightweight prompt label
+- [x] T-G10 Prompt UI (optional): show/hide on enter/exit for INTERACT controllers; reuse HUD or add lightweight prompt label (HUD prompt label wired to new controller events)
 - [ ] T-G11 Style enforcement: add/extend checks for tabs-only `.gd` and explicit `script = ExtResource(...)` in `.tres` where applicable
-- [ ] T-G12 Component integration: verify C_* components bind to controller-provided `Area3D` via `area_path` and do not duplicate geometry; add unit tests
+- [x] T-G12 Component integration: verify C_* components bind to controller-provided `Area3D` via `area_path` and do not duplicate geometry; add unit tests (controllers create components post-area; tests cover reuse)
 
 Phase Z: Process Discipline (Required after each phase)
 - [ ] T-Z01 Update continuation prompt and tasks checklist with current status (per AGENTS.md mandatory step)

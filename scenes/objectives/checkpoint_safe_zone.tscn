@@ -1,20 +1,10 @@
 [gd_scene load_steps=4 format=3 uid="uid://dcjm3807436f3"]
 
-[ext_resource type="Script" uid="uid://dt705fmg3a3jc" path="res://scripts/ecs/ecs_entity.gd" id="1_diu8d"]
-[ext_resource type="Script" uid="uid://dweh6u0r8boob" path="res://scripts/ecs/components/c_checkpoint_component.gd" id="2_i1d1q"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_checkpoint"]
-size = Vector3(2, 3, 2)
+[ext_resource type="Script" uid="uid://q3vq5twadvsn" path="res://scripts/gameplay/e_checkpoint_zone.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://resources/triggers/rs_checkpoint_box_2x3x2.tres" id="2_checkpoint_settings"]
 
 [node name="E_Checkpoint_SafeZone" type="Node3D"]
-script = ExtResource("1_diu8d")
-
-[node name="C_CheckpointComponent" type="Node" parent="."]
-script = ExtResource("2_i1d1q")
+script = ExtResource("1_controller")
 checkpoint_id = &"cp_safe_zone"
 spawn_point_id = &"sp_checkpoint_safe"
-
-[node name="CheckpointArea" type="Area3D" parent="."]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="CheckpointArea"]
-shape = SubResource("BoxShape3D_checkpoint")
+settings = ExtResource("2_checkpoint_settings")

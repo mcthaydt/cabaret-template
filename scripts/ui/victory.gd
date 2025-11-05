@@ -4,7 +4,7 @@ extends Control
 ## Victory screen controller (Phase 9)
 ##
 ## Displays completion stats and routes buttons:
-## - Continue: Return to hub exterior.
+## - Continue: Return to gameplay hub.
 ## - Credits: Open credits (visible after full completion).
 ## - Menu: Return to main menu.
 
@@ -71,7 +71,7 @@ func _update_display() -> void:
 
 func _on_continue_pressed() -> void:
 	_reset_game_progress()
-	_transition_to_scene(StringName("exterior"))
+	_transition_to_scene(StringName("gameplay_base"))
 
 func _on_credits_pressed() -> void:
 	_reset_game_progress()

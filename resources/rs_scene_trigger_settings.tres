@@ -4,3 +4,7 @@
 
 [resource]
 script = ExtResource("1_settings_script")
+enable_on_ready = true
+ignore_initial_overlap = true
+toggle_visuals_on_enable = true
+arm_delay_physics_frames = 1

@@ -68,6 +68,15 @@
 - Systems organized by category: Core / Physics / Movement / Feedback
 - Naming: Node names use prefixes matching their script types (E_, S_, C_, M_, SO_, Env_)
 
+### Interactable Controllers
+- Controllers live in `scripts/gameplay/` and replace ad-hoc `C_*` nodes; create a single `E_*` node per interactable:
+  - Base stack: `base_volume_controller.gd`, `base_interactable_controller.gd`, `triggered_interactable_controller.gd`
+  - Concrete controllers: `e_door_trigger_controller.gd`, `e_checkpoint_zone.gd`, `e_hazard_zone.gd`, `e_victory_zone.gd`, `e_signpost.gd`
+- Controllers auto-create/adopt `Area3D` volumes using `RS_SceneTriggerSettings`—never author separate component or Area children manually.
+- `triggered_interactable_controller.gd` publishes `interact_prompt_show` / `interact_prompt_hide` events; HUD renders the prompt label.
+- `e_signpost.gd` emits `signpost_message` events; HUD reuses the checkpoint toast UI for signpost text.
+- Exterior/interior scenes are now fixtures built on controllers; core flow routes through `gameplay_base` instead of these fixtures.
+
 ## Naming Conventions Quick Reference
 
 - **Base classes:** `Base*` prefix (e.g., `BaseECSSystem`, `BaseECSComponent`, `BaseEventVFXSystem`); entity roots extend `ECSEntity`

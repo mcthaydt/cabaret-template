@@ -1,22 +1,18 @@
 [gd_scene load_steps=5 format=3 uid="uid://baymf4575tym0"]
 
-[ext_resource type="Script" uid="uid://dt705fmg3a3jc" path="res://scripts/ecs/ecs_entity.gd" id="1_mg8vb"]
-[ext_resource type="Script" uid="uid://cyt3uyx2c4mr2" path="res://scripts/ecs/components/c_scene_trigger_component.gd" id="2_8afcb"]
-[ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="3_8x6vi"]
+[ext_resource type="Script" uid="uid://b3ba2fenw3s8f" path="res://scripts/gameplay/e_door_trigger_controller.gd" id="1_controller"]
+[ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="2_8x6vi"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_door"]
 shading_mode = 0
 albedo_color = Color(0.9828339, 0, 0.010878513, 1)
 
 [node name="E_DoorTrigger" type="Node3D"]
-script = ExtResource("1_mg8vb")
-
-[node name="C_SceneTriggerComponent" type="Node" parent="."]
-script = ExtResource("2_8afcb")
+script = ExtResource("1_controller")
 door_id = &"door_to_house"
 target_scene_id = &"interior_house"
 target_spawn_point = &"sp_entrance_from_exterior"
-settings = ExtResource("3_8x6vi")
+settings = ExtResource("2_8x6vi")
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.40026855, 0)

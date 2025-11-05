@@ -4,7 +4,7 @@ extends Control
 ## Game Over screen controller (Phase 9)
 ##
 ## Shows total death count and provides Retry/Menu actions:
-## - Retry: Soft reset player state and transition back to exterior.
+## - Retry: Soft reset player state and transition back to gameplay hub.
 ## - Menu: Return to main menu scene.
 
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
@@ -59,7 +59,7 @@ func _update_death_count() -> void:
 
 func _on_retry_pressed() -> void:
 	_dispatch_soft_reset()
-	_transition_to_scene(StringName("exterior"))
+	_transition_to_scene(StringName("gameplay_base"))
 
 func _on_menu_pressed() -> void:
 	_dispatch_soft_reset()

@@ -409,6 +409,10 @@
 
   **Gotcha**: Rapid door approach + leave + approach may trigger multiple preload hints. `M_SceneManager` deduplicates requests (checks if scene already cached/loading before starting new async load).
 
+- **Interactable events wrap payloads**: `U_ECSEventBus.publish()` wraps user payloads in an event dictionary (`{ "name": ..., "payload": ..., "timestamp": ... }`). When listening to `interact_prompt_show`, `interact_prompt_hide`, or `signpost_message`, unwrap `event["payload"]` before accessing controller data. Forgetting to unwrap leads to empty prompt text or missing controller IDs.
+
+- **Controllers expect no authored components**: When using `E_*` interactable controllers, do NOT add `C_*` component nodes or extra `Area3D` children manually. Controllers assign `area_path` to the auto-managed volume and maintain state; authored extras create duplicate signals and inconsistent cooldowns.
+
 - **Spawn marker positioning prevents ping-pong loops**: Place spawn markers 2-3 units OUTSIDE trigger zones, not inside. If spawn marker is inside trigger area, player spawns and immediately re-triggers the door, causing rapid back-and-forth transitions.
 
   **Example (WRONG)**:

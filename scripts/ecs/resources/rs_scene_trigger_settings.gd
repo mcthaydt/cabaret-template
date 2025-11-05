@@ -22,3 +22,15 @@ enum ShapeType { BOX = 0, CYLINDER = 1 }
 # Collision mask to detect player bodies (default expects player on layer 1)
 @export var player_mask: int = 1
 
+# Runtime behaviour toggles
+@export var enable_on_ready: bool = true
+@export var ignore_initial_overlap: bool = true
+@export var toggle_visuals_on_enable: bool = true
+
+var _arm_delay_physics_frames: int = 1
+
+@export var arm_delay_physics_frames: int:
+	get:
+		return _arm_delay_physics_frames
+	set(value):
+		_arm_delay_physics_frames = max(0, value)

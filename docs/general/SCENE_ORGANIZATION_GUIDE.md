@@ -123,6 +123,22 @@ Systems are organized into **four functional categories** for better visual orga
 
 ---
 
+## Interactable Controllers
+
+Interactables (doors, checkpoints, hazards, victory goals, signposts) are authored as single `E_*` nodes that extend controller scripts under `scripts/gameplay/`:
+
+- Base stack: `base_volume_controller.gd`, `base_interactable_controller.gd`, `triggered_interactable_controller.gd`
+- Concrete controllers: `e_door_trigger_controller.gd`, `e_checkpoint_zone.gd`, `e_hazard_zone.gd`, `e_victory_zone.gd`, `e_signpost.gd`
+
+Controllers automatically resolve or create the `Area3D` volume, configure the matching `C_*` ECS component, and apply `RS_SceneTriggerSettings`. **Do not** hand-author component children or duplicate Area nodes—authoring a single controller node keeps scenes consistent.
+
+- Volume tuning flows through `settings: RS_SceneTriggerSettings`
+- Triggered controllers publish `interact_prompt_show` / `interact_prompt_hide` via `U_ECSEventBus` for HUD prompts
+- Signposts publish `signpost_message` events (HUD reuses checkpoint toast UI)
+- Fixture scenes (`exterior.tscn`, `interior_house.tscn`) now inline controller nodes; `gameplay_base.tscn` is the gameplay entry hub
+
+---
+
 ## Marker Scripts
 
 Marker scripts provide visual organization in the Godot editor via custom `@icon` annotations. They contain no logic—only an icon reference and documentation.

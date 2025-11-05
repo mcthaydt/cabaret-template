@@ -10,10 +10,15 @@ const HUD_GROUP := StringName("hud_layers")
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
 @onready var health_label: Label = $MarginContainer/VBoxContainer/HealthBar/HealthLabel
 @onready var checkpoint_toast: Label = $MarginContainer/CheckpointToast
+@onready var interact_prompt_label: Label = $MarginContainer/InteractPrompt
 
 var _store: M_StateStore = null
 var _player_entity_id: String = "E_Player"
 var _unsubscribe_checkpoint: Callable
+var _unsubscribe_interact_prompt_show: Callable
+var _unsubscribe_interact_prompt_hide: Callable
+var _unsubscribe_signpost: Callable
+var _active_prompt_id: int = 0
 
 func _ready() -> void:
 	add_to_group(HUD_GROUP)
@@ -28,6 +33,9 @@ func _ready() -> void:
 
 	# Subscribe to checkpoint events for player feedback
 	_unsubscribe_checkpoint = U_ECSEventBus.subscribe(StringName("checkpoint_activated"), _on_checkpoint_event)
+	_unsubscribe_interact_prompt_show = U_ECSEventBus.subscribe(StringName("interact_prompt_show"), _on_interact_prompt_show)
+	_unsubscribe_interact_prompt_hide = U_ECSEventBus.subscribe(StringName("interact_prompt_hide"), _on_interact_prompt_hide)
+	_unsubscribe_signpost = U_ECSEventBus.subscribe(StringName("signpost_message"), _on_signpost_message)
 
 	_update_display(_store.get_state())
 
@@ -38,6 +46,12 @@ func _exit_tree() -> void:
 		_store.slice_updated.disconnect(_on_slice_updated)
 	if _unsubscribe_checkpoint != null and _unsubscribe_checkpoint.is_valid():
 		_unsubscribe_checkpoint.call()
+	if _unsubscribe_interact_prompt_show != null and _unsubscribe_interact_prompt_show.is_valid():
+		_unsubscribe_interact_prompt_show.call()
+	if _unsubscribe_interact_prompt_hide != null and _unsubscribe_interact_prompt_hide.is_valid():
+		_unsubscribe_interact_prompt_hide.call()
+	if _unsubscribe_signpost != null and _unsubscribe_signpost.is_valid():
+		_unsubscribe_signpost.call()
 
 func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void:
 	if slice_name != StringName("gameplay"):
@@ -99,3 +113,78 @@ func _show_checkpoint_toast(text: String) -> void:
 	tween.finished.connect(func() -> void:
 		checkpoint_toast.visible = false
 	)
+
+func _on_interact_prompt_show(payload: Variant) -> void:
+	if interact_prompt_label == null:
+		return
+	if typeof(payload) != TYPE_DICTIONARY:
+		return
+	var event: Dictionary = payload
+	var inner_payload: Variant = event.get("payload", {})
+	if typeof(inner_payload) != TYPE_DICTIONARY:
+		return
+	var data: Dictionary = inner_payload
+	var controller_id: int = int(data.get("controller_id", 0))
+	var action_name: StringName = data.get("action", StringName("interact"))
+	var prompt_text: String = String(data.get("prompt", "Interact"))
+
+	_active_prompt_id = controller_id
+	interact_prompt_label.text = _format_interact_prompt(action_name, prompt_text)
+	interact_prompt_label.visible = true
+
+func _on_interact_prompt_hide(payload: Variant) -> void:
+	if interact_prompt_label == null:
+		return
+	var controller_id: int = 0
+	if typeof(payload) == TYPE_DICTIONARY:
+		var event: Dictionary = payload
+		var inner_payload: Variant = event.get("payload", {})
+		if typeof(inner_payload) == TYPE_DICTIONARY:
+			controller_id = int((inner_payload as Dictionary).get("controller_id", 0))
+	if controller_id != 0 and controller_id != _active_prompt_id:
+		return
+	_active_prompt_id = 0
+	interact_prompt_label.visible = false
+
+func _on_signpost_message(payload: Variant) -> void:
+	var text: String = ""
+	if typeof(payload) == TYPE_DICTIONARY:
+		var event: Dictionary = payload
+		var inner_payload: Variant = event.get("payload", {})
+		if typeof(inner_payload) == TYPE_DICTIONARY:
+			text = String((inner_payload as Dictionary).get("message", ""))
+	else:
+		text = String(payload)
+	if text.is_empty():
+		return
+	_show_checkpoint_toast(text)
+
+func _format_interact_prompt(action: StringName, prompt_text: String) -> String:
+	var action_label := _get_primary_input_label(action)
+	if action_label.is_empty():
+		action_label = String(action).capitalize()
+	var cleaned_prompt := prompt_text
+	if cleaned_prompt.is_empty():
+		cleaned_prompt = "Interact"
+	return "Press [%s] to %s" % [action_label, cleaned_prompt]
+
+func _get_primary_input_label(action: StringName) -> String:
+	var action_string := String(action)
+	if not InputMap.has_action(action_string):
+		return ""
+	var events := InputMap.action_get_events(action_string)
+	for event in events:
+		if event is InputEventKey:
+			var key_event := event as InputEventKey
+			var keycode := key_event.physical_keycode
+			if keycode == 0:
+				keycode = key_event.keycode
+			if keycode != 0:
+				return OS.get_keycode_string(keycode)
+		elif event is InputEventJoypadButton:
+			var joy_event := event as InputEventJoypadButton
+			return "GP Btn %d" % joy_event.button_index
+		elif event is InputEventMouseButton:
+			var mouse_event := event as InputEventMouseButton
+			return "Mouse %d" % mouse_event.button_index
+	return ""
