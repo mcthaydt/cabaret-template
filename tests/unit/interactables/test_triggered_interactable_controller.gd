@@ -6,6 +6,14 @@ const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 
+class TransitioningSceneManager:
+	extends Node
+
+	var transitioning: bool = false
+
+	func is_transitioning() -> bool:
+		return transitioning
+
 func _pump_frames(count: int = 1) -> void:
 	for _i in count:
 		await get_tree().process_frame
@@ -183,3 +191,29 @@ func test_interact_prompt_events_on_enter_and_exit() -> void:
 		unsubscribe_hide.call()
 
 	InputMap.erase_action("prompt_action")
+
+func test_activation_blocked_during_scene_transition() -> void:
+	var context := await _initialize_context()
+	var controller = context["controller"]
+	controller.trigger_mode = controller.TriggerMode.INTERACT
+
+	var scene_manager := TransitioningSceneManager.new()
+	scene_manager.name = "SceneManagerStub"
+	scene_manager.transitioning = true
+	add_child(scene_manager)
+	autofree(scene_manager)
+	scene_manager.add_to_group("scene_manager")
+
+	var area: Area3D = controller.get_trigger_area()
+	var player_body: CharacterBody3D = context["player_body"]
+	await _arm(controller)
+	area.emit_signal("body_entered", player_body)
+	await _pump_frames()
+
+	var player_entity: Node3D = context["player_root"]
+	assert_false(controller.activate(player_entity),
+		"Activation should be blocked while the scene manager is transitioning.")
+
+	scene_manager.transitioning = false
+	assert_true(controller.activate(player_entity),
+		"Activation should succeed once the scene manager finishes transitioning.")

@@ -105,6 +105,7 @@ func _apply_component_config() -> void:
 
 	var settings := _get_settings()
 	if settings != null:
+		settings.ignore_initial_overlap = false
 		var mask := int(settings.player_mask)
 		if mask <= 0:
 			mask = 1

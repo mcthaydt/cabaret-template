@@ -86,6 +86,11 @@ const MAX_JUMP_HEIGHT: float = 2.0
 const DEFAULT_GRAVITY: float = 9.8
 ```
 
+### Indentation & Resource Conventions
+
+- Use tabs for indentation in all `.gd` scripts. Automated style checks fail on leading spaces, so configure your editor accordingly.
+- Trigger configuration resources (`RS_SceneTriggerSettings` and derivatives) must declare `script = ExtResource("…")`. Duplicate shared `.tres` files before customizing per-scene values or rely on controller auto-duplication.
+
 ### Directories: `snake_case` (plural)
 
 ```

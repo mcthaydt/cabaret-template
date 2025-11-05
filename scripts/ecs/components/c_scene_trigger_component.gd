@@ -135,8 +135,7 @@ func _configure_trigger_area(area: Area3D, force_shape_from_settings: bool) -> v
 	area.monitoring = true
 	area.monitorable = true
 	area.collision_layer = 0
-	if area.collision_mask == 0:
-		area.collision_mask = _get_settings().player_mask
+	area.collision_mask = max(1, _get_settings().player_mask)
 
 	_ensure_collision_shape(area, force_shape_from_settings)
 

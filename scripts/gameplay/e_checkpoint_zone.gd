@@ -54,6 +54,7 @@ func _ensure_component(area: Area3D) -> void:
 	instance.checkpoint_id = _checkpoint_id
 	instance.spawn_point_id = _spawn_point_id
 	if settings != null:
+		settings.ignore_initial_overlap = false
 		instance.settings = settings
 
 	add_child(instance)
@@ -97,6 +98,7 @@ func _apply_component_config() -> void:
 	_component.checkpoint_id = _checkpoint_id
 	_component.spawn_point_id = _spawn_point_id
 	if settings != null:
+		settings.ignore_initial_overlap = false
 		_component.settings = settings
 
 	_update_component_area_path()

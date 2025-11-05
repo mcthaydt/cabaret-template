@@ -52,6 +52,10 @@
   - Avoid non-uniform scaling on trigger nodes; set `radius/height` (or `box_size`) via settings instead.
   - Too-small radius/height leads to flickery enter/exit at edges—add margin.
   - Keep collision masks consistent with the player layer (`player_mask` in RS_SceneTriggerSettings). A mismatch causes no events.
+- Interactable controllers refuse to fire while `M_SceneManager` (or the scene slice) reports `is_transitioning`. When debugging a “stuck” interact prompt, confirm the active transition finished before calling `activate()`.
+- Passive volumes (hazards, checkpoints, victory zones) must re-arm and detect spawn-inside overlaps. Leave `ignore_initial_overlap` disabled for these controllers; only doors / INTERACT prompts keep it enabled to avoid instant re-activation.
+- Per-instance trigger settings must be unique. Controllers automatically duplicate shared `.tres` references and set `resource_local_to_scene = true`; avoid manually reusing the same resource via code or editor overrides, otherwise one instance will mutate all others.
+- Trigger volumes now clamp `player_mask` to at least `1`. If you intentionally need a different mask, update the settings resource—forcing the mask to `0` will be ignored.
 
 ## GDScript Language Pitfalls
 
@@ -500,5 +504,10 @@ All critical paths tested including error conditions, edge cases, integration sc
  - **ECS components require an entity root**: `M_ECSManager` associates components to entities by walking ancestors and picking the first node whose name starts with `E_`. If a component is not under such a parent, registration logs `push_error("M_ECSManager: Component <Name> has no entity root ancestor")` and the component is not tracked for entity queries. In tests and scenes, create an entity node (e.g., `var e := Node.new(); e.name = "E_Player"; e.add_child(component)`).
  - **Registration is deferred; yield a frame**: `ECSComponent._ready()` uses `call_deferred("_register_with_manager")`. After adding a manager/component, `await get_tree().process_frame` before asserting on registration (`get_components(...)`) or entity tracking to avoid race conditions.
  - **Required settings block registration**: Components like `C_JumpComponent`, `C_MovementComponent`, `C_FloatingComponent`, and `C_AlignWithSurfaceComponent` validate that their `*Settings` resources are assigned. Missing settings produce a `push_error("<Component> missing settings; assign an <Resource>.")` and skip registration. Wire default `.tres` in scenes, or set `component.settings = RS_*Settings.new()` in tests.
- - **Input.mouse_mode changes may need a frame**: When toggling cursor lock/visibility rapidly (e.g., calling `toggle_cursor()` twice), yield a frame between calls in tests to let `Input.mouse_mode` settle on headless runners. Example: `manager.toggle_cursor(); await get_tree().process_frame; manager.toggle_cursor(); await get_tree().process_frame`.
+- **Input.mouse_mode changes may need a frame**: When toggling cursor lock/visibility rapidly (e.g., calling `toggle_cursor()` twice), yield a frame between calls in tests to let `Input.mouse_mode` settle on headless runners. Example: `manager.toggle_cursor(); await get_tree().process_frame; manager.toggle_cursor(); await get_tree().process_frame`.
 - **Camera-relative forward uses negative Z**: Our input vector treats `Vector2.UP` (`y = -1`) as forward. When converting to camera space (see `S_MovementSystem`), multiply the input’s Y by `-1` before combining with `cam_forward`, otherwise forward/backward movement inverts.
+
+## Style & Resource Hygiene
+
+- `.gd` files under `scripts/` (and the gameplay/unit tests that exercise them) must use tab indentation. The style suite (`tests/unit/style/test_style_enforcement.gd`) fails immediately on leading spaces, so run it before committing editor-authored changes.
+- Trigger configuration resources (`RS_SceneTriggerSettings` derivatives) must include `script = ExtResource(...)` and should remain scene-local. Controllers now duplicate shared `.tres` files automatically, but avoid manually reusing the same resource across entities or the inspector will apply mutations to every instance.

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=2 format=3 uid="uid://deathzonevol1"]
+[gd_resource type="Resource" load_steps=2 format=3 uid="uid://death0onevol1"]
 
 [ext_resource type="Script" path="res://scripts/ecs/resources/rs_scene_trigger_settings.gd" id="1"]
 
@@ -9,5 +9,5 @@ box_size = Vector3(200, 2, 200)
 local_offset = Vector3(0, 1, 0)
 player_mask = 1
 enable_on_ready = true
-ignore_initial_overlap = true
+ignore_initial_overlap = false
 toggle_visuals_on_enable = false

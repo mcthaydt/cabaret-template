@@ -76,6 +76,10 @@
 - `triggered_interactable_controller.gd` publishes `interact_prompt_show` / `interact_prompt_hide` events; HUD renders the prompt label.
 - `e_signpost.gd` emits `signpost_message` events; HUD reuses the checkpoint toast UI for signpost text.
 - Exterior/interior scenes are now fixtures built on controllers; core flow routes through `gameplay_base` instead of these fixtures.
+- Controller `settings` are auto-duplicated (`resource_local_to_scene = true`). Assign shared `.tres` files freely—each controller keeps a unique copy.
+- Passive volumes (`E_CheckpointZone`, `E_HazardZone`, `E_VictoryZone`) keep `ignore_initial_overlap = false` so respawns inside the volume re-register automatically. Triggered interactables (doors, signposts) leave it `true` to avoid instant re-activation.
+- Use `visual_paths` to toggle meshes/lights/particles when controllers enable/disable; keep visuals as controller children instead of wiring extra logic nodes.
+- Controllers run with `process_mode = PROCESS_MODE_ALWAYS` and will not activate while `scene.is_transitioning` or `M_SceneManager.is_transitioning()` is true.
 
 ## Naming Conventions Quick Reference
 
@@ -101,8 +105,15 @@
   - Wire `@export` NodePaths in scenes; missing paths intentionally short-circuit behavior in systems. See `templates/player_template.tscn` for patterns.
 - Resources
   - New exported fields in `*Settings.gd` require updating default `.tres` under `resources/` and any scene using them.
+  - Trigger settings automatically clamp `player_mask` to at least layer 1; configure the desired mask on the resource instead of zeroing it at runtime.
 - Tabs and warnings
   - Keep tab indentation in `.gd` files; tests use native method stubs on engine classes—suppress with `@warning_ignore("native_method_override")` where applicable (details in `docs/general/developer_pitfalls.md`).
+- State load normalization
+  - `M_StateStore.load_state()` sanitizes unknown `current_scene_id`, `target_spawn_point`, and `last_checkpoint` values, falling back to `gameplay_base` / `sp_default` and deduping `completed_areas`.
+- Style enforcement
+  - `tests/unit/style/test_style_enforcement.gd` fails on leading spaces in gameplay/state/ui scripts and verifies trigger resources include `script = ExtResource(...)`.
+- InputMap
+  - The `interact` action must remain in `project.godot`; HUD/process prompts run in `PROCESS_MODE_ALWAYS` to stay responsive when the tree is paused.
 
 ## Scene Manager Patterns (Phase 10 Complete)
 

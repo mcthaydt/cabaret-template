@@ -8,3 +8,4 @@ shape_type = 0
 box_size = Vector3(2, 3, 2)
 local_offset = Vector3(0, 0, 0)
 player_mask = 1
+ignore_initial_overlap = false

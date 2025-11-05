@@ -194,14 +194,49 @@ func test_multiple_dispatches_emit_single_slice_updated_signal_per_frame() -> vo
 func test_state_reads_immediately_after_dispatch_show_new_state() -> void:
 	# State updates should be synchronous, not batched
 	U_ActionRegistry.register_action(StringName("test/immediate"))
-	
+
 	# Dispatch action that would update state
 	var action: Dictionary = {"type": U_GameplayActions.ACTION_PAUSE_GAME, "payload": null}
 	store.dispatch(action)
-	
-	# State should be updated IMMEDIATELY, not waiting for physics frame
-	var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-	assert_true(gameplay_state.get("paused", false), "State should update immediately, before signal batching")
+	var gameplay_state := store.get_state().get("gameplay", {})
+	assert_true(gameplay_state.get("paused", false), "Dispatch should update gameplay slice immediately.")
+	store.dispatch(U_GameplayActions.unpause_game())
+
+func test_normalize_scene_slice_falls_back_to_default_scene() -> void:
+	var state := {
+		"scene": {
+			"current_scene_id": StringName("")
+		}
+	}
+	store.call("_normalize_loaded_state", state)
+	var scene_slice: Dictionary = state["scene"]
+	assert_eq(scene_slice.get("current_scene_id"), StringName("gameplay_base"),
+		"Blank scene IDs should fall back to gameplay_base.")
+
+func test_normalize_gameplay_slice_sanitizes_spawn_and_completed_areas() -> void:
+	var state := {
+		"gameplay": {
+			"target_spawn_point": StringName(""),
+			"last_checkpoint": StringName(""),
+			"completed_areas": ["interior_house", "interior_house", "", "forest ", " "]
+		}
+	}
+	store.call("_normalize_loaded_state", state)
+	var gameplay_slice: Dictionary = state["gameplay"]
+	assert_eq(gameplay_slice.get("target_spawn_point"), StringName(""),
+		"Blank spawn references should remain unset.")
+	assert_eq(gameplay_slice.get("last_checkpoint"), StringName(""),
+		"Blank checkpoints should remain unset.")
+	var completed: Array = gameplay_slice.get("completed_areas", [])
+	assert_eq(completed.size(), 2, "Completed areas should be deduplicated and trimmed.")
+	assert_true(completed.has("interior_house"), "Completed areas should retain valid entries.")
+	assert_true(completed.has("forest"), "Completed areas should strip whitespace.")
+
+func test_normalize_spawn_reference_handles_invalid_values() -> void:
+	var fallback_spawn: StringName = store.call("_normalize_spawn_reference", StringName("HubSpawn"), false, false)
+	assert_eq(fallback_spawn, StringName("sp_default"), "Invalid spawn IDs should fall back to sp_default")
+	var fallback_checkpoint: StringName = store.call("_normalize_spawn_reference", StringName("hub_default"), false, false)
+	assert_eq(fallback_checkpoint, StringName("sp_default"), "Invalid checkpoints should fall back to sp_default")
 
 func test_signal_batching_overhead_less_than_0_05ms() -> void:
 	U_ActionRegistry.register_action(StringName("test/perf"))

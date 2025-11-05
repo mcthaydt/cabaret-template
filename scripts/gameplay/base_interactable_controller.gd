@@ -2,6 +2,8 @@ extends "res://scripts/gameplay/base_volume_controller.gd"
 class_name BaseInteractableController
 
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+const STATE_STORE_GROUP := StringName("state_store")
+const SCENE_MANAGER_GROUP := StringName("scene_manager")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 
 signal player_entered(player: Node3D)
@@ -14,10 +16,14 @@ var _tracked_players: Dictionary = {}
 var _cooldown_remaining: float = 0.0
 var _is_locked: bool = false
 var _cached_manager: M_ECSManager
+var _cached_store: M_StateStore
 var _arming_frames_remaining: int = 0
 var _is_armed: bool = false
+var _area_enter_callable: Callable = Callable()
+var _area_exit_callable: Callable = Callable()
 func _ready() -> void:
 	super._ready()
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_physics_process(true)
 	trigger_area_ready.connect(_on_trigger_area_ready)
 	var existing_area := get_trigger_area()
@@ -25,8 +31,12 @@ func _ready() -> void:
 		_on_trigger_area_ready(existing_area)
 
 func _exit_tree() -> void:
+	_disconnect_trigger_area_signals(get_trigger_area())
 	_clear_tracked_players(false)
 	_cached_manager = null
+	_cached_store = null
+	_area_enter_callable = Callable()
+	_area_exit_callable = Callable()
 	super._exit_tree()
 
 func _physics_process(delta: float) -> void:
@@ -73,6 +83,8 @@ func can_activate() -> bool:
 		return false
 	if _tracked_players.is_empty():
 		return false
+	if _is_transition_blocked():
+		return false
 	return _cooldown_remaining <= 0.0
 
 func activate(player: Node3D) -> bool:
@@ -87,12 +99,13 @@ func activate(player: Node3D) -> bool:
 func _on_trigger_area_ready(area: Area3D) -> void:
 	if not is_instance_valid(area):
 		return
-	var enter_callable := Callable(self, "_on_trigger_area_body_entered")
-	var exit_callable := Callable(self, "_on_trigger_area_body_exited")
-	if not area.body_entered.is_connected(enter_callable):
-		area.body_entered.connect(enter_callable)
-	if not area.body_exited.is_connected(exit_callable):
-		area.body_exited.connect(exit_callable)
+	_disconnect_trigger_area_signals(area)
+	_area_enter_callable = Callable(self, "_on_trigger_area_body_entered")
+	_area_exit_callable = Callable(self, "_on_trigger_area_body_exited")
+	if not area.body_entered.is_connected(_area_enter_callable):
+		area.body_entered.connect(_area_enter_callable)
+	if not area.body_exited.is_connected(_area_exit_callable):
+		area.body_exited.connect(_area_exit_callable)
 	_schedule_arming()
 
 func _schedule_arming() -> void:
@@ -114,6 +127,9 @@ func _register_existing_overlaps() -> void:
 	var area := get_trigger_area()
 	if area == null:
 		return
+	if not area.monitoring:
+		area.monitoring = true
+		area.monitorable = true
 	var overlaps := area.get_overlapping_bodies()
 	for body in overlaps:
 		if body is Node3D:
@@ -181,6 +197,39 @@ func _get_manager() -> M_ECSManager:
 		return _cached_manager
 	_cached_manager = U_ECS_UTILS.get_manager(self) as M_ECSManager
 	return _cached_manager
+
+func _get_store() -> M_StateStore:
+	if _cached_store != null and is_instance_valid(_cached_store):
+		return _cached_store
+	var tree := get_tree()
+	if tree == null:
+		return null
+	var stores := tree.get_nodes_in_group(STATE_STORE_GROUP)
+	if stores.is_empty():
+		return null
+	_cached_store = stores[0] as M_StateStore
+	return _cached_store
+
+func _is_transition_blocked() -> bool:
+	var store := _get_store()
+	if store != null:
+		var scene_slice: Dictionary = store.get_slice(StringName("scene"))
+		if scene_slice.get("is_transitioning", false):
+			return true
+	var scene_managers := get_tree().get_nodes_in_group(SCENE_MANAGER_GROUP)
+	if not scene_managers.is_empty():
+		var manager := scene_managers[0]
+		if manager != null and manager.has_method("is_transitioning") and manager.is_transitioning():
+			return true
+	return false
+
+func _disconnect_trigger_area_signals(area: Area3D) -> void:
+	if area == null or not is_instance_valid(area):
+		return
+	if _area_enter_callable != Callable() and area.body_entered.is_connected(_area_enter_callable):
+		area.body_entered.disconnect(_area_enter_callable)
+	if _area_exit_callable != Callable() and area.body_exited.is_connected(_area_exit_callable):
+		area.body_exited.disconnect(_area_exit_callable)
 
 func _on_enabled_state_changed(enabled: bool) -> void:
 	super._on_enabled_state_changed(enabled)

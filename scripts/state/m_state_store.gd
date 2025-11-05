@@ -20,9 +20,13 @@ const U_BOOT_REDUCER := preload("res://scripts/state/reducers/u_boot_reducer.gd"
 const U_MENU_REDUCER := preload("res://scripts/state/reducers/u_menu_reducer.gd")
 const U_GAMEPLAY_REDUCER := preload("res://scripts/state/reducers/u_gameplay_reducer.gd")
 const U_SCENE_REDUCER := preload("res://scripts/state/reducers/u_scene_reducer.gd")
+const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const RS_BOOT_INITIAL_STATE := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
 const RS_MENU_INITIAL_STATE := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
+const DEFAULT_SCENE_ID := StringName("gameplay_base")
+const DEFAULT_SPAWN_POINT := StringName("sp_default")
+const SPAWN_PREFIX := "sp_"
 
 signal state_changed(action: Dictionary, new_state: Dictionary)
 signal slice_updated(slice_name: StringName, slice_state: Dictionary)
@@ -481,6 +485,7 @@ func load_state(filepath: String) -> Error:
 	
 	# Apply deserialization to convert back to Godot types
 	var deserialized_state: Dictionary = U_SERIALIZATION_HELPER.json_to_godot(loaded_state)
+	_normalize_loaded_state(deserialized_state)
 	
 	# Merge loaded state with current state
 	for slice_name in deserialized_state:
@@ -534,6 +539,66 @@ func _restore_from_handoff() -> void:
 			
 			# Clear the handoff state after restoring
 			U_STATE_HANDOFF.clear_slice(slice_name)
+
+func _normalize_loaded_state(state: Dictionary) -> void:
+	if state.has("scene") and state["scene"] is Dictionary:
+		_normalize_scene_slice(state["scene"])
+	if state.has("gameplay") and state["gameplay"] is Dictionary:
+		_normalize_gameplay_slice(state["gameplay"])
+
+func _normalize_scene_slice(scene_slice: Dictionary) -> void:
+	var raw_scene_id: Variant = scene_slice.get("current_scene_id", StringName(""))
+	var scene_id := _as_string_name(raw_scene_id)
+	if _is_scene_registered(scene_id):
+		scene_slice["current_scene_id"] = scene_id
+	else:
+		if not String(scene_id).is_empty():
+			push_warning("State load: Unknown scene_id '%s'. Falling back to %s." % [String(scene_id), String(DEFAULT_SCENE_ID)])
+		scene_slice["current_scene_id"] = DEFAULT_SCENE_ID
+
+func _normalize_gameplay_slice(gameplay_slice: Dictionary) -> void:
+	gameplay_slice["target_spawn_point"] = _normalize_spawn_reference(
+		gameplay_slice.get("target_spawn_point", StringName("")),
+		true
+	)
+	gameplay_slice["last_checkpoint"] = _normalize_spawn_reference(
+		gameplay_slice.get("last_checkpoint", StringName("")),
+		true
+	)
+
+	var raw_completed: Variant = gameplay_slice.get("completed_areas", [])
+	var completed: Array[String] = []
+	if raw_completed is Array:
+		for entry in (raw_completed as Array):
+			var identifier := String(entry).strip_edges()
+			if identifier.is_empty():
+				continue
+			if not completed.has(identifier):
+				completed.append(identifier)
+	gameplay_slice["completed_areas"] = completed
+
+func _as_string_name(value: Variant) -> StringName:
+	if value is StringName:
+		return value
+	if value is String:
+		return StringName(value)
+	return StringName("")
+
+func _is_scene_registered(scene_id: StringName) -> bool:
+	if scene_id.is_empty():
+		return false
+	return not U_SCENE_REGISTRY.get_scene(scene_id).is_empty()
+
+func _normalize_spawn_reference(value: Variant, allow_empty: bool, emit_warning: bool = true) -> StringName:
+	var spawn := _as_string_name(value)
+	var text := String(spawn)
+	if text.is_empty():
+		return StringName("") if allow_empty else DEFAULT_SPAWN_POINT
+	if text.begins_with(SPAWN_PREFIX):
+		return spawn
+	if emit_warning:
+		push_warning("State load: Unknown spawn point '%s'. Using %s." % [text, String(DEFAULT_SPAWN_POINT)])
+	return DEFAULT_SPAWN_POINT
 
 ## Get performance metrics (T414)
 ##

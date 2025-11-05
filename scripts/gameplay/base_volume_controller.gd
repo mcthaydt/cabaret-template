@@ -10,9 +10,11 @@ signal trigger_area_ready(area: Area3D)
 	get:
 		return _settings
 	set(value):
-		if _settings == value:
+		var resolved := _ensure_settings_unique(value)
+		if _settings == resolved:
 			return
-		_settings = value
+		# Setting changed: reset cache and reapply configuration.
+		_settings = resolved
 		_cached_settings = null
 		if _is_initialized:
 			_apply_settings_to_area()
@@ -135,7 +137,7 @@ func _apply_settings_to_area() -> void:
 
 	var resolved_settings := _get_settings()
 	_trigger_area.collision_layer = 0
-	_trigger_area.collision_mask = resolved_settings.player_mask
+	_trigger_area.collision_mask = max(1, resolved_settings.player_mask)
 	_trigger_area.monitoring = true
 	_trigger_area.monitorable = true
 
@@ -191,6 +193,7 @@ func _get_settings() -> RS_SceneTriggerSettings:
 		return _cached_settings
 	if _settings == null:
 		_settings = RS_SCENE_TRIGGER_SETTINGS.new()
+		_settings.resource_local_to_scene = true
 	_cached_settings = _settings
 	return _cached_settings
 
@@ -207,3 +210,16 @@ func refresh_visual_nodes() -> void:
 func _on_enabled_state_changed(_enabled: bool) -> void:
 	# Hook for subclasses to respond when the enabled state toggles.
 	pass
+
+func _ensure_settings_unique(value: RS_SceneTriggerSettings) -> RS_SceneTriggerSettings:
+	if value == null:
+		return null
+	if value.resource_local_to_scene:
+		return value
+	if value.resource_path != "":
+		var duplicated := value.duplicate(true) as RS_SceneTriggerSettings
+		if duplicated != null:
+			duplicated.resource_local_to_scene = true
+			return duplicated
+	value.resource_local_to_scene = true
+	return value

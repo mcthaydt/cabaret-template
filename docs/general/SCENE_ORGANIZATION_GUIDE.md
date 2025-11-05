@@ -136,6 +136,11 @@ Controllers automatically resolve or create the `Area3D` volume, configure the m
 - Triggered controllers publish `interact_prompt_show` / `interact_prompt_hide` via `U_ECSEventBus` for HUD prompts
 - Signposts publish `signpost_message` events (HUD reuses checkpoint toast UI)
 - Fixture scenes (`exterior.tscn`, `interior_house.tscn`) now inline controller nodes; `gameplay_base.tscn` is the gameplay entry hub
+- `settings` resources are duplicated automatically when you assign a shared `.tres`; edits stay local to the scene. Leave the inspector copy as-is—no manual “Make Unique” step required.
+- Passive volumes (hazards, checkpoints, victory zones) enable spawn-inside detection by default. Keep `ignore_initial_overlap = false` so re-enabling a controller re-registers overlapping players safely.
+- Doors and other INTERACT prompts keep `ignore_initial_overlap = true` to avoid immediately retriggering when the player spawns at a door.
+- Use `visual_paths` to toggle meshes, lights, and particles when controllers enable/disable. Place visuals as children of the controller (`DoorVisual`, `GlowLight`, etc.) and reference them via exported paths instead of adding extra logic nodes.
+- Controllers run with `process_mode = PROCESS_MODE_ALWAYS` and refuse to activate while the scene manager (or state slice) is transitioning. If an activation seems ignored, verify `M_SceneManager.is_transitioning()` is false.
 
 ---
 

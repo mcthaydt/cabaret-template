@@ -180,10 +180,6 @@ func test_detects_spawn_inside_when_configured() -> void:
 	var resolved_entity: Node3D = controller._resolve_player_entity(body)
 	assert_not_null(resolved_entity, "Controller should resolve the player entity from the overlapping body.")
 
-	controller.set_enabled(false)
-	await _pump_frames()
-	controller.set_enabled(true)
-
 	var enters: Array = []
 	controller.player_entered.connect(func(player: Node3D) -> void:
 		enters.append(player))
@@ -204,3 +200,38 @@ func test_detects_spawn_inside_when_configured() -> void:
 
 	assert_eq(enters.size(), 1, "Controller should synthesize enter events when player starts inside the volume.")
 	assert_true(controller.is_player_in_zone(), "Controller should track player when overlapping at startup.")
+
+	controller.set_enabled(false)
+	await _pump_frames()
+	assert_false(controller.is_player_in_zone(), "Disabling should clear tracked players.")
+	controller.set_enabled(true)
+
+	await _wait_for_arming(controller, 3)
+	var refreshed_overlaps: Array = controller.get_trigger_area().get_overlapping_bodies()
+	for candidate in refreshed_overlaps:
+		if candidate is Node3D:
+			controller._handle_body_entered(candidate)
+	await _pump_frames()
+	assert_eq(enters.size(), 2, "Controller should emit another enter after being re-enabled.")
+	assert_true(controller.is_player_in_zone(),
+		"Controller should re-register overlapping players after being re-enabled.")
+
+func test_disconnect_trigger_area_signals_unhooks_area_connections() -> void:
+	var context := await _initialize_controller_with_player()
+	var controller: BaseInteractableController = context["controller"]
+	var area: Area3D = controller.get_trigger_area()
+
+	var enter_callable := Callable(controller, "_on_trigger_area_body_entered")
+	var exit_callable := Callable(controller, "_on_trigger_area_body_exited")
+
+	assert_true(area.body_entered.is_connected(enter_callable),
+		"Trigger area should be connected before explicit disconnect.")
+	assert_true(area.body_exited.is_connected(exit_callable),
+		"Trigger area should be connected before explicit disconnect.")
+
+	controller.call("_disconnect_trigger_area_signals", area)
+
+	assert_false(area.body_entered.is_connected(enter_callable),
+		"Helper should disconnect body_entered signal.")
+	assert_false(area.body_exited.is_connected(exit_callable),
+		"Helper should disconnect body_exited signal.")

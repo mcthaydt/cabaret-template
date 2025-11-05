@@ -22,6 +22,7 @@ var _active_prompt_id: int = 0
 
 func _ready() -> void:
 	add_to_group(HUD_GROUP)
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_store = U_StateUtils.get_store(self)
 
 	if _store == null:

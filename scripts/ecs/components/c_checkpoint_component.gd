@@ -138,7 +138,7 @@ func _resolve_or_create_area() -> void:
 	_area = Area3D.new()
 	_area.name = "CheckpointArea"
 	_area.collision_layer = 0
-	_area.collision_mask = _get_settings().player_mask
+	_area.collision_mask = max(1, _get_settings().player_mask)
 	host.call_deferred("add_child", _area)
 
 	# Create collision shape based on settings
@@ -175,4 +175,4 @@ func _configure_area_geometry() -> void:
 	_area.monitorable = true
 	# Respect authored shapes; only ensure mask if left at default
 	if _area.collision_mask == 0:
-		_area.collision_mask = _get_settings().player_mask
+		_area.collision_mask = max(1, _get_settings().player_mask)

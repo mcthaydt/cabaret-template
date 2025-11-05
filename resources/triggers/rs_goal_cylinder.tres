@@ -10,5 +10,5 @@ cyl_height = 2.5
 local_offset = Vector3(0, 1.25, 0)
 player_mask = 1
 enable_on_ready = false
-ignore_initial_overlap = true
+ignore_initial_overlap = false
 toggle_visuals_on_enable = true

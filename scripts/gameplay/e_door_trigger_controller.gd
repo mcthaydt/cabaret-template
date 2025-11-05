@@ -115,6 +115,7 @@ func _apply_component_config() -> void:
 		_component._resolve_or_create_trigger_area()
 
 	if settings != null:
+		settings.ignore_initial_overlap = true
 		_component.settings = settings
 
 func refresh_volume_from_settings() -> void:
