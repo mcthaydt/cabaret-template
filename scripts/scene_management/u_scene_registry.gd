@@ -148,28 +148,35 @@ static func _register_scenes() -> void:
 ## 3. Save as resources/scene_registry/<name>.tres
 ## 4. Scene auto-loads on next game start
 static func _load_resource_entries() -> void:
-	const REGISTRY_DIR := "res://resources/scene_registry/"
+	# Support loading entries from both game resources and tests
+	var total_loaded: int = 0
+	var total_skipped: int = 0
 
-	# Check if directory exists
-	var dir := DirAccess.open(REGISTRY_DIR)
-	if dir == null:
-		# Directory doesn't exist yet - this is OK, just means no resource entries
-		print_debug("U_SceneRegistry: No resource directory at %s (this is OK, resources are optional)" % REGISTRY_DIR)
-		return
+	var res_result: Dictionary = _load_entries_from_dir("res://resources/scene_registry/")
+	total_loaded += int(res_result.get("loaded", 0))
+	total_skipped += int(res_result.get("skipped", 0))
 
-	# Scan directory for .tres files
-	dir.list_dir_begin()
-	var file_name: String = dir.get_next()
+	var test_result: Dictionary = _load_entries_from_dir("res://tests/scene_registry/")
+	total_loaded += int(test_result.get("loaded", 0))
+	total_skipped += int(test_result.get("skipped", 0))
+
+static func _load_entries_from_dir(dir_path: String) -> Dictionary:
 	var loaded_count: int = 0
 	var skipped_count: int = 0
 
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		# Directory doesn't exist; not an error
+		return {"loaded": 0, "skipped": 0}
+
+	dir.list_dir_begin()
+	var file_name: String = dir.get_next()
+
 	while file_name != "":
-		# Skip directories and non-.tres files
 		if not dir.current_is_dir() and file_name.ends_with(".tres"):
-			var resource_path: String = REGISTRY_DIR + file_name
+			var resource_path: String = dir_path + file_name
 			var resource: Resource = load(resource_path)
 
-			# Validate resource type
 			if not (resource is RS_SceneRegistryEntry):
 				push_warning("U_SceneRegistry: Resource at %s is not RS_SceneRegistryEntry (found %s), skipping" % [resource_path, resource.get_class()])
 				skipped_count += 1
@@ -177,22 +184,18 @@ static func _load_resource_entries() -> void:
 				continue
 
 			var entry := resource as RS_SceneRegistryEntry
-
-			# Validate entry completeness
 			if not entry.is_valid():
 				push_warning("U_SceneRegistry: Scene entry in %s is invalid (scene_id or scene_path empty), skipping" % resource_path)
 				skipped_count += 1
 				file_name = dir.get_next()
 				continue
 
-			# Check for duplicate scene_id (don't overwrite hardcoded scenes)
 			if _scenes.has(entry.scene_id):
 				push_warning("U_SceneRegistry: Scene '%s' from %s already registered (hardcoded or duplicate), skipping" % [entry.scene_id, resource_path])
 				skipped_count += 1
 				file_name = dir.get_next()
 				continue
 
-			# Register scene from resource
 			_register_scene(
 				entry.scene_id,
 				entry.scene_path,
@@ -200,17 +203,11 @@ static func _load_resource_entries() -> void:
 				entry.default_transition,
 				entry.preload_priority
 			)
-
 			loaded_count += 1
-			print_debug("U_SceneRegistry: Loaded scene '%s' from resource %s" % [entry.scene_id, file_name])
-
 		file_name = dir.get_next()
 
 	dir.list_dir_end()
-
-	# Log summary
-	if loaded_count > 0 or skipped_count > 0:
-		print_debug("U_SceneRegistry: Resource loading complete - %d loaded, %d skipped" % [loaded_count, skipped_count])
+	return {"loaded": loaded_count, "skipped": skipped_count}
 
 ## Register door pairings for seamless area transitions
 static func _register_door_pairings() -> void:

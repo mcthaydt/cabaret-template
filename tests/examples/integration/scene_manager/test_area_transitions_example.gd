@@ -304,11 +304,11 @@ func test_area_state_persists_across_transitions() -> void:
 
 func test_full_scene_load_exterior_to_interior() -> void:
 	# Check if scenes exist (they need to be created manually)
-	if not FileAccess.file_exists("res://scenes/gameplay/exterior.tscn"):
-		pending("exterior.tscn must be created manually - see MANUAL_SCENE_CREATION_GUIDE.md")
+	if not FileAccess.file_exists("res://tests/scenes/test_exterior.tscn"):
+		pending("tests/scenes/test_exterior.tscn must exist - see MANUAL_SCENE_CREATION_GUIDE.md")
 		return
-	if not FileAccess.file_exists("res://scenes/gameplay/interior_house.tscn"):
-		pending("interior_house.tscn must be created manually - see MANUAL_SCENE_CREATION_GUIDE.md")
+	if not FileAccess.file_exists("res://tests/scenes/test_interior_house.tscn"):
+		pending("tests/scenes/test_interior_house.tscn must exist - see MANUAL_SCENE_CREATION_GUIDE.md")
 		return
 
 	# Given: Clear any previous spawn point from state
@@ -317,7 +317,7 @@ func test_full_scene_load_exterior_to_interior() -> void:
 	await wait_physics_frames(1)
 
 	# Load exterior scene into ActiveSceneContainer
-	var exterior_scene: Node = load("res://scenes/gameplay/exterior.tscn").instantiate()
+	var exterior_scene: Node = load("res://tests/scenes/test_exterior.tscn").instantiate()
 	_active_scene_container.add_child(exterior_scene)
 	await get_tree().process_frame
 
@@ -343,11 +343,11 @@ func test_full_scene_load_exterior_to_interior() -> void:
 
 func test_full_scene_load_interior_to_exterior() -> void:
 	# Check if scenes exist (they need to be created manually)
-	if not FileAccess.file_exists("res://scenes/gameplay/exterior.tscn"):
-		pending("exterior.tscn must be created manually - see MANUAL_SCENE_CREATION_GUIDE.md")
+	if not FileAccess.file_exists("res://tests/scenes/test_exterior.tscn"):
+		pending("tests/scenes/test_exterior.tscn must exist - see MANUAL_SCENE_CREATION_GUIDE.md")
 		return
-	if not FileAccess.file_exists("res://scenes/gameplay/interior_house.tscn"):
-		pending("interior_house.tscn must be created manually - see MANUAL_SCENE_CREATION_GUIDE.md")
+	if not FileAccess.file_exists("res://tests/scenes/test_interior_house.tscn"):
+		pending("tests/scenes/test_interior_house.tscn must exist - see MANUAL_SCENE_CREATION_GUIDE.md")
 		return
 
 	# Given: Clear any previous spawn point from state
@@ -356,7 +356,7 @@ func test_full_scene_load_interior_to_exterior() -> void:
 	await wait_physics_frames(1)
 
 	# Load interior scene into ActiveSceneContainer
-	var interior_scene: Node = load("res://scenes/gameplay/interior_house.tscn").instantiate()
+	var interior_scene: Node = load("res://tests/scenes/test_interior_house.tscn").instantiate()
 	_active_scene_container.add_child(interior_scene)
 	await get_tree().process_frame
 
@@ -382,15 +382,15 @@ func test_full_scene_load_interior_to_exterior() -> void:
 
 func test_spawn_point_restoration_after_door_transition() -> void:
 	# Check if scenes exist (they need to be created manually)
-	if not FileAccess.file_exists("res://scenes/gameplay/exterior.tscn"):
-		pending("exterior.tscn must be created manually - see MANUAL_SCENE_CREATION_GUIDE.md")
+	if not FileAccess.file_exists("res://tests/scenes/test_exterior.tscn"):
+		pending("tests/scenes/test_exterior.tscn must exist - see MANUAL_SCENE_CREATION_GUIDE.md")
 		return
-	if not FileAccess.file_exists("res://scenes/gameplay/interior_house.tscn"):
-		pending("interior_house.tscn must be created manually - see MANUAL_SCENE_CREATION_GUIDE.md")
+	if not FileAccess.file_exists("res://tests/scenes/test_interior_house.tscn"):
+		pending("tests/scenes/test_interior_house.tscn must exist - see MANUAL_SCENE_CREATION_GUIDE.md")
 		return
 
 	# Given: Load exterior scene and set target spawn point
-	var exterior_scene: Node = load("res://scenes/gameplay/exterior.tscn").instantiate()
+	var exterior_scene: Node = load("res://tests/scenes/test_exterior.tscn").instantiate()
 	_active_scene_container.add_child(exterior_scene)
 	await get_tree().process_frame
 

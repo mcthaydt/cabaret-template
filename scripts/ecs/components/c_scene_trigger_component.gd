@@ -20,6 +20,8 @@ class_name C_SceneTriggerComponent
 
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
+const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
 const PLAYER_TAG_COMPONENT_TYPE := StringName("C_PlayerTagComponent")
 const RS_SceneTriggerSettings := preload("res://scripts/ecs/resources/rs_scene_trigger_settings.gd")
 
@@ -50,6 +52,9 @@ func _init() -> void:
 ## Cooldown duration in seconds (prevent rapid re-triggering)
 @export var cooldown_duration: float = 1.0
 
+## Optional: Reuse an authored Area3D instead of auto-creating one (set by controllers)
+@export_node_path("Area3D") var area_path: NodePath
+
 ## Internal: Cooldown timer
 var _cooldown_remaining: float = 0.0
 
@@ -67,59 +72,118 @@ var _armed: bool = false
 
 func _ready() -> void:
 	super._ready()
-
-	# Create Area3D for collision detection
-	_create_trigger_area()
-
-	# Arm after one physics frame to avoid startup overlaps
+	await get_tree().process_frame
+	_resolve_or_create_trigger_area()
 	call_deferred("_arm_trigger")
 
 func _arm_trigger() -> void:
 	await get_tree().physics_frame
 	_armed = true
 
-## Create Area3D child for collision detection
-func _create_trigger_area() -> void:
-	_trigger_area = Area3D.new()
-	_trigger_area.name = "TriggerArea"
-	_trigger_area.collision_layer = 0  # Don't collide with anything
-	_trigger_area.collision_mask = _get_settings().player_mask  # Detect player layer(s)
-	_trigger_area.monitoring = true    # Explicitly enable detection
+## Resolve or create the Area3D used for collision detection
+func _resolve_or_create_trigger_area() -> void:
+	if _trigger_area != null and is_instance_valid(_trigger_area):
+		return
 
-	# Reparent under the door Node3D so the area inherits the door's transform
-	var door_node := get_parent() as Node3D
-	if door_node != null:
-		door_node.call_deferred("add_child", _trigger_area)
+	var resolved: Area3D = _resolve_area_from_path()
+	var created_new: bool = false
+
+	if resolved == null:
+		resolved = _find_existing_area()
+
+	if resolved == null:
+		resolved = _create_new_area()
+		created_new = true
+
+	if resolved == null:
+		push_error("C_SceneTriggerComponent: Unable to resolve or create trigger area.")
+		return
+
+	_trigger_area = resolved
+	_configure_trigger_area(_trigger_area, created_new)
+
+func _resolve_area_from_path() -> Area3D:
+	if area_path.is_empty():
+		return null
+	return get_node_or_null(area_path) as Area3D
+
+func _find_existing_area() -> Area3D:
+	for child in get_children():
+		if child is Area3D:
+			return child as Area3D
+	var parent_node := get_parent()
+	if parent_node != null:
+		for sibling in parent_node.get_children():
+			if sibling is Area3D:
+				return sibling as Area3D
+	return null
+
+func _create_new_area() -> Area3D:
+	var area := Area3D.new()
+	area.name = "TriggerArea"
+	var host := get_parent()
+	if host is Node:
+		(host as Node).add_child(area)
 	else:
-		call_deferred("add_child", _trigger_area)
+		add_child(area)
+	return area
 
-	# Create collision shape from settings
-	var collision_shape := CollisionShape3D.new()
-	collision_shape.name = "CollisionShape3D"
-	collision_shape.position = _get_settings().local_offset
+func _configure_trigger_area(area: Area3D, force_shape_from_settings: bool) -> void:
+	if area == null:
+		return
+
+	area.monitoring = true
+	area.monitorable = true
+	area.collision_layer = 0
+	area.collision_mask = max(1, _get_settings().player_mask)
+
+	_ensure_collision_shape(area, force_shape_from_settings)
+
+	if not area.body_entered.is_connected(_on_body_entered):
+		area.body_entered.connect(_on_body_entered)
+	if not area.body_exited.is_connected(_on_body_exited):
+		area.body_exited.connect(_on_body_exited)
+
+	if area_path.is_empty():
+		var parent := get_parent()
+		if parent != null:
+			var relative := parent.get_path_to(area)
+			if not relative.is_empty():
+				area_path = relative
+
+func _ensure_collision_shape(area: Area3D, apply_settings: bool) -> void:
+	var existing_shape: CollisionShape3D = null
+	for child in area.get_children():
+		if child is CollisionShape3D:
+			existing_shape = child as CollisionShape3D
+			break
+
+	if existing_shape == null:
+		existing_shape = CollisionShape3D.new()
+		existing_shape.name = "CollisionShape3D"
+		area.add_child(existing_shape)
+		apply_settings = true
+
+	if not apply_settings:
+		return
+
+	existing_shape.position = _get_settings().local_offset
 
 	match _get_settings().shape_type:
 		RS_SceneTriggerSettings.ShapeType.CYLINDER:
 			var cyl := CylinderShape3D.new()
 			cyl.radius = max(0.001, _get_settings().cyl_radius)
 			cyl.height = max(0.001, _get_settings().cyl_height)
-			collision_shape.shape = cyl
+			existing_shape.shape = cyl
 		RS_SceneTriggerSettings.ShapeType.BOX:
 			var box := BoxShape3D.new()
 			box.size = _get_settings().box_size
-			collision_shape.shape = box
+			existing_shape.shape = box
 		_:
-			# Fallback to cylinder defaults if enum is unknown
 			var cyl_fallback := CylinderShape3D.new()
 			cyl_fallback.radius = 1.0
 			cyl_fallback.height = 3.0
-			collision_shape.shape = cyl_fallback
-
-	_trigger_area.add_child(collision_shape)
-
-	# Connect signals
-	_trigger_area.body_entered.connect(_on_body_entered)
-	_trigger_area.body_exited.connect(_on_body_exited)
+			existing_shape.shape = cyl_fallback
 
 ## Lazy-init and return settings
 var _cached_settings: RS_SceneTriggerSettings = null
@@ -163,6 +227,13 @@ func _on_body_entered(body: Node3D) -> void:
 
 		# If AUTO mode, trigger transition immediately
 		if trigger_mode == TriggerMode.AUTO and _can_trigger():
+			# Notify SceneManager to suppress same-frame ESC pause
+			var scene_manager_group := get_tree().get_nodes_in_group("scene_manager")
+			if not scene_manager_group.is_empty():
+				var mgr := scene_manager_group[0]
+				if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
+					mgr.suppress_pause_for_current_frame()
+
 			_trigger_transition()
 
 ## Callback when body exits trigger area
@@ -173,10 +244,10 @@ func _on_body_exited(body: Node3D) -> void:
 ## Check if body belongs to player entity
 func _is_player(body: Node3D) -> bool:
 	# ECS-based detection only: resolve entity and verify it has the player tag component
-	var entity := ECS_UTILS.find_entity_root(body)
+	var entity := U_ECSUtils.find_entity_root(body)
 	var mgr: M_ECSManager = get_manager()
 	if mgr == null:
-		mgr = ECS_UTILS.get_manager(self) as M_ECSManager
+		mgr = U_ECSUtils.get_manager(self) as M_ECSManager
 	if entity == null or mgr == null:
 		return false
 
@@ -256,8 +327,43 @@ func is_player_in_zone() -> bool:
 
 ## Manually trigger transition (for INTERACT mode)
 func trigger_interact() -> void:
-	if _player_in_zone and _can_trigger():
+	# Explicit interact path should not depend on internal arm state or the
+	# component's own _player_in_zone bookkeeping, since controllers already
+	# validated player presence and arming on their side.
+	if _can_trigger_interact():
+		# Suppress same-frame ESC pause handling to avoid pause overlay during
+		# door-triggered transitions when interact is used.
+		var scene_manager_group := get_tree().get_nodes_in_group("scene_manager")
+		if not scene_manager_group.is_empty():
+			var mgr := scene_manager_group[0]
+			if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
+				mgr.suppress_pause_for_current_frame()
+
 		_trigger_transition()
+
+## Interact-specific trigger guard (bypasses internal arm flag and zone flag)
+func _can_trigger_interact() -> bool:
+	if _pending_transition:
+		return false
+
+	if _cooldown_remaining > 0.0:
+		return false
+
+	# Guard against re-entry while a scene transition is underway
+	var store = U_StateUtils.get_store(self)
+	if store != null:
+		var scene_state: Dictionary = store.get_slice(StringName("scene"))
+		if scene_state.get("is_transitioning", false):
+			return false
+
+	# Also check SceneManager if available
+	var managers: Array = get_tree().get_nodes_in_group("scene_manager")
+	if managers.size() > 0:
+		var mgr = managers[0]
+		if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
+			return false
+
+	return true
 
 ## Hint to Scene Manager to preload target scene in background (Phase 8)
 ##

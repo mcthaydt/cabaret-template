@@ -23,6 +23,7 @@ var _ragdoll_instances: Dictionary = {}     # entity_id -> WeakRef
 var _entity_refs: Dictionary = {}           # entity_id -> WeakRef
 var _entity_original_visibility: Dictionary = {}  # entity_id -> bool
 var _rng := RandomNumberGenerator.new()
+var _synced_from_state: Dictionary = {}  # entity_id -> bool
 
 func _init() -> void:
 	execution_priority = 200
@@ -50,6 +51,24 @@ func process_tick(delta: float) -> void:
 func _process_component(component: C_HealthComponent, entity_id: String, delta: float) -> void:
 	if component.settings == null:
 		return
+
+	# One-time sync: initialize component health from persisted gameplay state
+	# This prevents health resetting to max when changing gameplay scenes.
+	if not _synced_from_state.get(entity_id, false):
+		var desired_health: float = -1.0
+		if _store != null:
+			var gameplay: Dictionary = _store.get_slice(StringName("gameplay"))
+			var player_id: String = String(gameplay.get("player_entity_id", "E_Player"))
+			if entity_id == player_id:
+				desired_health = float(gameplay.get("player_health", -1.0))
+		if desired_health >= 0.0:
+			var current: float = component.get_current_health()
+			var diff: float = desired_health - current
+			if diff > 0.0:
+				component.apply_heal(diff)
+			elif diff < 0.0:
+				component.apply_damage(-diff)
+		_synced_from_state[entity_id] = true
 
 	# Update timers
 	component.consume_invincibility(delta)
@@ -167,6 +186,7 @@ func _reset_death_flags(entity_id: String) -> void:
 	_restore_entity_state(entity_id)
 	_death_logged.erase(entity_id)
 	_transition_triggered.erase(entity_id)
+	_synced_from_state.erase(entity_id)
 
 func _dispatch_damage_state(entity_id: String, damage_amount: float) -> void:
 	if _store == null:

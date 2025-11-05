@@ -86,6 +86,11 @@ const MAX_JUMP_HEIGHT: float = 2.0
 const DEFAULT_GRAVITY: float = 9.8
 ```
 
+### Indentation & Resource Conventions
+
+- Use tabs for indentation in all `.gd` scripts. Automated style checks fail on leading spaces, so configure your editor accordingly.
+- Trigger configuration resources (`RS_SceneTriggerSettings` and derivatives) must declare `script = ExtResource("…")`. Duplicate shared `.tres` files before customizing per-scene values or rely on controller auto-duplication.
+
 ### Directories: `snake_case` (plural)
 
 ```
@@ -649,6 +654,15 @@ EXCLUSIONS:
 ```
 
 ---
+
+## Scene Roots
+
+- Gameplay scenes: name the 3D root `GameplayRoot` and attach `scripts/scene_structure/main_root_node.gd`.
+- Persistent root scene (`scenes/root.tscn`): name the root `Root`.
+- UI scenes: name root by purpose (e.g., `MainMenu`, `PauseMenu`, `SettingsMenu`).
+- Prototype scenes: prefer `PrototypeRoot` unless the scene’s purpose is clearer as a noun (e.g., `CameraBlendTest`).
+- Never keep Godot’s auto-suffixed names (e.g., `Main2`, `Main3`). If a duplicate occurs, rename back to the canonical name.
+- Use marker scripts and custom icons to convey role; do not encode context via numeric suffixes.
 
 ---
 

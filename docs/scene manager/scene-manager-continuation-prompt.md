@@ -5,36 +5,18 @@
 This guide directs you to implement the Scene Manager feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `SceneManager` (continuing on existing branch)
-**Status**: ✅ **ALL PHASE 12 SUB-PHASES COMPLETE** | 🐛 2 Test Failures Remain
+**Status**: ✅ Post Scene Manager hardening complete — see [post-scene-manager-tasks.md](./post-scene-manager-tasks.md) (100%)
 
 ---
 
-## 🎯 CURRENT STATUS: Phase 12 Complete with Minor Issues
+## 🎯 CURRENT STATUS: Post Scene Manager Hardening (Complete)
 
-**Test Status**: **564/570 passing** (98.9% pass rate)
-- ✅ 564 tests passing
-- ❌ 2 tests failing (death respawn edge cases - test setup issues)
-- ⏸️ 4 tests pending (Tween timing - expected in headless mode)
+**Finalized**
+- Controller hardening (spawn-inside policy, transition gating, style enforcement).
+- State load normalization for retired scene/door IDs.
+- Documentation + templates aligned to interactable pattern; sample signpost added to exterior.tscn.
 
-**Recent Fixes Applied** (2025-11-03):
-1. ✅ Fixed M_SpawnManager compilation error (`emit_event` → `publish`) - Fixed 25 tests
-2. ✅ Fixed C_CheckpointComponent Area3D validation (sibling support) - Fixed 16 tests
-3. ✅ Improved spawn_at_last_spawn priority logic (target_spawn_point first)
-4. ✅ Removed obsolete status tracking files
-
-**Completed Scope**:
-- ✅ **Sub-Phase 12.1**: M_SpawnManager extraction (T215-T231) - **COMPLETE**
-- ✅ **Sub-Phase 12.2**: M_CameraManager extraction (T232-T251) - **COMPLETE**
-- ✅ **Sub-Phase 12.3a**: Death respawn (T252-T260) - **COMPLETE**
-- ✅ **Sub-Phase 12.3b**: Checkpoint markers (T262-T271) - **COMPLETE**
-- ✅ **Sub-Phase 12.4**: Spawn particles (T267-T274) - **COMPLETE** (partial)
-- ✅ **Sub-Phase 12.5**: Scene contract validation (T300-T306) - **COMPLETE**
-
-**Remaining Work**:
-- 🐛 Investigate 2 failing death respawn tests (test_spawn_at_last_spawn_uses_target_spawn_point, test_spawn_at_last_spawn_works_across_scenes)
-- 📝 Optional: Additional spawn features deferred (conditional spawning, spawn registry)
-
-**Jump to**: [Phase 12 Details](#next-phase-phase-12---spawn-system-extraction-3-manager-architecture) | [Phase 12 Tasks](./scene-manager-tasks.md#phase-12-spawn-system-extraction-separation-of-concerns)
+Tracking remains available in [post-scene-manager-tasks.md](./post-scene-manager-tasks.md).
 
 ---
 

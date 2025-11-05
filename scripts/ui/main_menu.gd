@@ -1,3 +1,4 @@
+@icon("res://resources/editor_icons/utility.svg")
 extends Control
 
 ## Main Menu UI Controller
@@ -28,7 +29,7 @@ func _ready() -> void:
 
 func _on_play_pressed() -> void:
 	if _scene_manager:
-		_scene_manager.transition_to_scene(StringName("exterior"), "loading")
+		_scene_manager.transition_to_scene(StringName("gameplay_base"), "loading")
 
 func _on_settings_pressed() -> void:
 	if _scene_manager:

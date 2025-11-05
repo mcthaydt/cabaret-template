@@ -1,3 +1,4 @@
+@icon("res://resources/editor_icons/utility.svg")
 extends Control
 
 ## Credits screen controller (Phase 9)

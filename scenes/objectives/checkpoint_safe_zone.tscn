@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://dcjm3807436f3"]
+
+[ext_resource type="Script" uid="uid://q3vq5twadvsn" path="res://scripts/gameplay/e_checkpoint_zone.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://resources/triggers/rs_checkpoint_box_2x3x2.tres" id="2_checkpoint_settings"]
+
+[node name="E_Checkpoint_SafeZone" type="Node3D"]
+script = ExtResource("1_controller")
+checkpoint_id = &"cp_safe_zone"
+spawn_point_id = &"sp_checkpoint_safe"
+settings = ExtResource("2_checkpoint_settings")

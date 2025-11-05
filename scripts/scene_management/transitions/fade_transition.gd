@@ -82,6 +82,8 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 
 	# Create Tween
 	_tween = overlay.create_tween()
+	# Advance using physics frames so tests waiting on physics progress the fade
+	_tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	_tween.set_ease(easing_type)
 	_tween.set_trans(transition_type)
 	# No test-logs in production code; tests will assert

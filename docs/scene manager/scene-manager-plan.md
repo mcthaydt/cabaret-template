@@ -3,6 +3,8 @@
 **Branch**: `SceneManager` | **Date**: 2025-10-27 | **Spec**: [scene-manager-prd.md](./scene-manager-prd.md)
 **Input**: Feature specification from `/docs/scene_manager/scene-manager-prd.md`
 
+**Post-Phase Tracker**: Follow-up hardening tasks now live in [post-scene-manager-tasks.md](./post-scene-manager-tasks.md). Treat that checklist as the authoritative source for ongoing work after Phase 12.
+
 **⚠️ CRITICAL FINDINGS**: This plan has been revised to address significant architectural challenges not captured in the initial PRD:
 
 1. **Scene Restructuring Required** (High Impact): Current architecture merges managers + gameplay content. Scene Manager requires separation into root scene (persistent managers) + gameplay scenes (dynamic content). This affects ALL existing scenes.

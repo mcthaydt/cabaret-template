@@ -1,18 +1,31 @@
+@icon("res://resources/editor_icons/utility.svg")
 extends CanvasLayer
 
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_EntitySelectors := preload("res://scripts/state/selectors/u_entity_selectors.gd")
+const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const HUD_GROUP := StringName("hud_layers")
 
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
 @onready var health_label: Label = $MarginContainer/VBoxContainer/HealthBar/HealthLabel
+@onready var checkpoint_toast: Label = $MarginContainer/CheckpointToast
+@onready var interact_prompt_label: Label = $MarginContainer/InteractPrompt
 
 var _store: M_StateStore = null
 var _player_entity_id: String = "E_Player"
+var _unsubscribe_checkpoint: Callable
+var _unsubscribe_interact_prompt_show: Callable
+var _unsubscribe_interact_prompt_hide: Callable
+var _unsubscribe_signpost: Callable
+var _active_prompt_id: int = 0
+var _last_prompt_action: StringName = StringName("interact")
+var _last_prompt_text: String = ""
+var _toast_active: bool = false
 
 func _ready() -> void:
 	add_to_group(HUD_GROUP)
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_store = U_StateUtils.get_store(self)
 
 	if _store == null:
@@ -22,6 +35,12 @@ func _ready() -> void:
 	_player_entity_id = String(_store.get_slice(StringName("gameplay")).get("player_entity_id", "E_Player"))
 	_store.slice_updated.connect(_on_slice_updated)
 
+	# Subscribe to checkpoint events for player feedback
+	_unsubscribe_checkpoint = U_ECSEventBus.subscribe(StringName("checkpoint_activated"), _on_checkpoint_event)
+	_unsubscribe_interact_prompt_show = U_ECSEventBus.subscribe(StringName("interact_prompt_show"), _on_interact_prompt_show)
+	_unsubscribe_interact_prompt_hide = U_ECSEventBus.subscribe(StringName("interact_prompt_hide"), _on_interact_prompt_hide)
+	_unsubscribe_signpost = U_ECSEventBus.subscribe(StringName("signpost_message"), _on_signpost_message)
+
 	_update_display(_store.get_state())
 
 func _exit_tree() -> void:
@@ -29,11 +48,26 @@ func _exit_tree() -> void:
 		remove_from_group(HUD_GROUP)
 	if _store != null and _store.slice_updated.is_connected(_on_slice_updated):
 		_store.slice_updated.disconnect(_on_slice_updated)
+	if _unsubscribe_checkpoint != null and _unsubscribe_checkpoint.is_valid():
+		_unsubscribe_checkpoint.call()
+	if _unsubscribe_interact_prompt_show != null and _unsubscribe_interact_prompt_show.is_valid():
+		_unsubscribe_interact_prompt_show.call()
+	if _unsubscribe_interact_prompt_hide != null and _unsubscribe_interact_prompt_hide.is_valid():
+		_unsubscribe_interact_prompt_hide.call()
+	if _unsubscribe_signpost != null and _unsubscribe_signpost.is_valid():
+		_unsubscribe_signpost.call()
 
 func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void:
-	if slice_name != StringName("gameplay"):
-		return
-	_update_display(_store.get_state())
+	# React to gameplay updates (health, etc.) and scene updates (pause/overlays)
+	if slice_name == StringName("gameplay") or slice_name == StringName("scene"):
+		_update_display(_store.get_state())
+		# Hide interact prompt while paused
+		if _is_paused(_store.get_state()):
+			interact_prompt_label.visible = false
+			# Also hide any active toasts while paused
+			if checkpoint_toast != null:
+				checkpoint_toast.visible = false
+				_toast_active = false
 
 func _update_display(state: Dictionary) -> void:
 	pause_label.text = ""
@@ -59,3 +93,137 @@ func _update_health(state: Dictionary) -> void:
 	if health_label != null:
 		health_label.text = display_text
 	health_bar.tooltip_text = display_text
+
+## ECS: Show a brief toast when a checkpoint is activated
+func _on_checkpoint_event(payload: Variant) -> void:
+	var text: String = "Checkpoint reached"
+	if typeof(payload) == TYPE_DICTIONARY:
+		var p: Dictionary = payload
+		var cp_id: Variant = p.get("checkpoint_id")
+		if cp_id is StringName and String(cp_id) != "":
+			text = "Checkpoint: %s" % String(cp_id)
+
+	_show_checkpoint_toast(text)
+
+func _show_checkpoint_toast(text: String) -> void:
+	if checkpoint_toast == null:
+		return
+	# Do not show toasts while paused
+	if _store != null and _is_paused(_store.get_state()):
+		return
+	checkpoint_toast.text = text
+	checkpoint_toast.modulate.a = 0.0
+	checkpoint_toast.visible = true
+	_toast_active = true
+	# Avoid overlap with interact prompt while toast is visible
+	if interact_prompt_label != null:
+		interact_prompt_label.visible = false
+
+	var tween := create_tween()
+	tween.set_trans(Tween.TRANS_CUBIC)
+	tween.set_ease(Tween.EASE_IN_OUT)
+	# Fade in
+	tween.tween_property(checkpoint_toast, "modulate:a", 1.0, 0.2).from(0.0)
+	# Hold
+	tween.tween_interval(1.0)
+	# Fade out
+	tween.tween_property(checkpoint_toast, "modulate:a", 0.0, 0.3)
+	tween.finished.connect(func() -> void:
+		checkpoint_toast.visible = false
+		_toast_active = false
+		# Restore prompt if still relevant and not paused
+		if not _is_paused(_store.get_state()) and _active_prompt_id != 0 and interact_prompt_label != null:
+			interact_prompt_label.text = _format_interact_prompt(_last_prompt_action, _last_prompt_text)
+			interact_prompt_label.visible = true
+	)
+
+func _on_interact_prompt_show(payload: Variant) -> void:
+	if interact_prompt_label == null:
+		return
+	# Suppress interact prompt while paused (e.g., pause menu open)
+	if _store != null and _is_paused(_store.get_state()):
+		return
+	if typeof(payload) != TYPE_DICTIONARY:
+		return
+	var event: Dictionary = payload
+	var inner_payload: Variant = event.get("payload", {})
+	if typeof(inner_payload) != TYPE_DICTIONARY:
+		return
+	var data: Dictionary = inner_payload
+	var controller_id: int = int(data.get("controller_id", 0))
+	var action_name: StringName = data.get("action", StringName("interact"))
+	var prompt_text: String = String(data.get("prompt", "Interact"))
+
+	_active_prompt_id = controller_id
+	_last_prompt_action = action_name
+	_last_prompt_text = prompt_text
+	# If a toast is currently visible, defer showing the prompt to avoid overlap
+	if _toast_active:
+		return
+	interact_prompt_label.text = _format_interact_prompt(action_name, prompt_text)
+	interact_prompt_label.visible = true
+
+func _on_interact_prompt_hide(payload: Variant) -> void:
+	if interact_prompt_label == null:
+		return
+	var controller_id: int = 0
+	if typeof(payload) == TYPE_DICTIONARY:
+		var event: Dictionary = payload
+		var inner_payload: Variant = event.get("payload", {})
+		if typeof(inner_payload) == TYPE_DICTIONARY:
+			controller_id = int((inner_payload as Dictionary).get("controller_id", 0))
+	if controller_id != 0 and controller_id != _active_prompt_id:
+		return
+	_active_prompt_id = 0
+	interact_prompt_label.visible = false
+
+func _on_signpost_message(payload: Variant) -> void:
+	var text: String = ""
+	if typeof(payload) == TYPE_DICTIONARY:
+		var event: Dictionary = payload
+		var inner_payload: Variant = event.get("payload", {})
+		if typeof(inner_payload) == TYPE_DICTIONARY:
+			text = String((inner_payload as Dictionary).get("message", ""))
+	else:
+		text = String(payload)
+	if text.is_empty():
+		return
+	# Suppress signpost messages while paused
+	if _store != null and _is_paused(_store.get_state()):
+		return
+	_show_checkpoint_toast(text)
+
+func _format_interact_prompt(action: StringName, prompt_text: String) -> String:
+	var action_label := _get_primary_input_label(action)
+	if action_label.is_empty():
+		action_label = String(action).capitalize()
+	var cleaned_prompt := prompt_text
+	if cleaned_prompt.is_empty():
+		cleaned_prompt = "Interact"
+	return "Press [%s] to %s" % [action_label, cleaned_prompt]
+
+func _is_paused(state: Dictionary) -> bool:
+	var scene_state: Dictionary = state.get("scene", {})
+	var stack: Array = scene_state.get("scene_stack", [])
+	return stack.size() > 0
+
+func _get_primary_input_label(action: StringName) -> String:
+	var action_string := String(action)
+	if not InputMap.has_action(action_string):
+		return ""
+	var events := InputMap.action_get_events(action_string)
+	for event in events:
+		if event is InputEventKey:
+			var key_event := event as InputEventKey
+			var keycode := key_event.physical_keycode
+			if keycode == 0:
+				keycode = key_event.keycode
+			if keycode != 0:
+				return OS.get_keycode_string(keycode)
+		elif event is InputEventJoypadButton:
+			var joy_event := event as InputEventJoypadButton
+			return "GP Btn %d" % joy_event.button_index
+		elif event is InputEventMouseButton:
+			var mouse_event := event as InputEventMouseButton
+			return "Mouse %d" % mouse_event.button_index
+	return ""

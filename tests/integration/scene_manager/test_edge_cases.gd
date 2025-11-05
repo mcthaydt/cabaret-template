@@ -89,6 +89,10 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 func after_each() -> void:
+	# Explicitly free root scene tree to ensure its children are released
+	if _root_scene != null and is_instance_valid(_root_scene):
+		_root_scene.queue_free()
+
 	_manager = null
 	_store = null
 	_cursor_manager = null
@@ -97,6 +101,10 @@ func after_each() -> void:
 	_transition_overlay = null
 	_loading_overlay = null
 	_root_scene = null
+
+	# Allow queued frees from add_child_autofree and queued tweens to flush
+	await get_tree().process_frame
+	await get_tree().physics_frame
 
 # ============================================================================
 # T184: Test scene loading failure → fallback to main menu
@@ -392,18 +400,22 @@ func test_memory_pressure_evicts_lru_scenes() -> void:
 # ============================================================================
 
 func test_door_trigger_while_airborne_validates_grounded() -> void:
-	# Create a mock scene trigger component
+	# Create host entity for the trigger so it mirrors in-game parenting
+	var door_entity := Node3D.new()
+	door_entity.name = "E_TestDoorTrigger"
+	_root_scene.add_child(door_entity)
+
 	var trigger := C_SceneTriggerComponent.new()
 	trigger.target_scene_id = StringName("interior_house")
 	trigger.target_spawn_point = StringName("sp_entrance_from_exterior")
 	trigger.door_id = StringName("door_to_house")
-	add_child_autofree(trigger)
+	door_entity.add_child(trigger)
 	await get_tree().process_frame
 
 	# Create a mock player body (not grounded)
 	var player := CharacterBody3D.new()
 	player.name = "E_Player"
-	add_child_autofree(player)
+	_root_scene.add_child(player)
 
 	# Simulate player entering trigger area while airborne
 	# The component's _on_body_entered should check if player is grounded
@@ -420,13 +432,17 @@ func test_door_trigger_while_airborne_validates_grounded() -> void:
 	assert_true(true, "Door trigger while airborne should not crash")
 
 func test_door_trigger_cooldown_prevents_spam() -> void:
-	# Create trigger with cooldown
+	# Create trigger under a host entity to ensure helper area nodes free correctly
+	var door_entity := Node3D.new()
+	door_entity.name = "E_TestDoorCooldown"
+	_root_scene.add_child(door_entity)
+
 	var trigger := C_SceneTriggerComponent.new()
 	trigger.target_scene_id = StringName("interior_house")
 	trigger.target_spawn_point = StringName("sp_entrance_from_exterior")
 	trigger.door_id = StringName("door_to_house")
 	trigger.cooldown_duration = 1.0  # 1 second cooldown
-	add_child_autofree(trigger)
+	door_entity.add_child(trigger)
 	await get_tree().process_frame
 
 	# Verify cooldown property exists and is configured
@@ -463,7 +479,7 @@ func test_transition_from_physics_frame_defers_safely() -> void:
 	var PhysicsTestNode := RefCounted.new()
 	var physics_node := Node.new()
 	physics_node.set_physics_process(true)
-	add_child_autofree(physics_node)
+	_root_scene.add_child(physics_node)
 
 	# Create a script that overrides _physics_process
 	var script := GDScript.new()

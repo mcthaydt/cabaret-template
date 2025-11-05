@@ -23,6 +23,7 @@ var _state_store: M_StateStore
 var _ecs_manager: M_ECSManager
 var _scene_manager_stub: TestSceneManager
 
+
 func before_each() -> void:
 	_root = Node.new()
 	add_child_autofree(_root)

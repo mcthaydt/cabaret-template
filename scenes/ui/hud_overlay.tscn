@@ -60,3 +60,19 @@ anchor_bottom = 1.0
 theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="CheckpointToast" type="Label" parent="MarginContainer"]
+visible = false
+modulate = Color(1, 1, 1, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Checkpoint"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InteractPrompt" type="Label" parent="MarginContainer"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1

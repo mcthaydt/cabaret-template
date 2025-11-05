@@ -4,3 +4,4 @@
 
 [resource]
 script = ExtResource("1_settings_script")
+arm_delay_physics_frames = 1

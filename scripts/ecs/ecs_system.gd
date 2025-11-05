@@ -1,3 +1,4 @@
+@icon("res://resources/editor_icons/system.svg")
 extends Node
 
 class_name BaseECSSystem

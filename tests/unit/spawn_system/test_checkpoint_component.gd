@@ -12,6 +12,8 @@ var checkpoint: C_CHECKPOINT_COMPONENT
 func before_each() -> void:
 	checkpoint = C_CHECKPOINT_COMPONENT.new()
 	add_child_autofree(checkpoint)
+	# Allow deferred child creation in component _ready() to complete
+	await get_tree().process_frame
 
 func after_each() -> void:
 	checkpoint = null

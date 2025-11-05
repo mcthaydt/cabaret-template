@@ -103,8 +103,50 @@ func test_esc_ignored_during_door_fade_transition() -> void:
     var player_body: CharacterBody3D = _find_in_tree(exterior_scene, StringName("Player_Body")) as CharacterBody3D
     assert_not_null(player_body, "Player_Body should exist")
 
+    # Ensure ECS manager has registered the player entity components
+    var ecs_mgrs: Array = get_tree().get_nodes_in_group("ecs_manager")
+    if not ecs_mgrs.is_empty():
+        var ecs_mgr: Node = ecs_mgrs[0]
+        var player_entity: Node = _find_in_tree(exterior_scene, StringName("E_Player"))
+        var comp_map: Dictionary = (ecs_mgr.call("get_components_for_entity", player_entity) if ecs_mgr.has_method("get_components_for_entity") else {})
+        assert_true(comp_map.has(StringName("C_PlayerTagComponent")), "Player entity should have player tag component")
+
     # When: Player enters AUTO trigger and ESC is pressed during the fade
+    # Pre-check: verify the SceneManager instance used by triggers is our instance
+    var mgrs: Array = get_tree().get_nodes_in_group("scene_manager")
+    assert_eq(mgrs.size(), 1, "Exactly one SceneManager should be present")
+    if not mgrs.is_empty():
+        var grp_mgr: Node = mgrs[0]
+        assert_true(grp_mgr == _scene_manager, "SceneManager group instance should match local instance")
+
+    # Resolve door controller and ensure we emit on its TriggerArea
+    var door_controller: Node = _find_in_tree(exterior_scene, StringName("E_DoorTrigger"))
+    if door_controller != null:
+        var controller_area: Area3D = null
+        if door_controller.has_method("get_trigger_area"):
+            controller_area = door_controller.call("get_trigger_area") as Area3D
+        assert_true(controller_area == trigger_area, "Must emit body_entered on the door's TriggerArea")
+
+        var comp: Node = door_controller.get("_component") if door_controller.has_method("get") else null
+        if comp != null:
+            var area_path_val := comp.get("area_path")
+            var trig_mode := comp.get("trigger_mode")
+            assert_true(String(area_path_val) != "", "Component area_path should be set")
+
+        var ctrl_armed := false
+        var arm_frames := 0
+        if door_controller.has_method("get"):
+            ctrl_armed = bool(door_controller.get("_is_armed"))
+            arm_frames = int(door_controller.get("_arming_frames_remaining"))
+        assert_true(ctrl_armed, "Controller should be armed before emitting body_entered")
+
+    # Emit trigger and immediately send ESC key event to scene manager
     trigger_area.body_entered.emit(player_body)
+
+    # Inspect transition state right after trigger (queue may be popped immediately)
+    var scene_state_now: Dictionary = _store.get_state().get("scene", {})
+    assert_true(scene_state_now.get("is_transitioning", false), "Transition should be in progress after door trigger")
+
     # Immediately send ESC key event to scene manager
     var ev := InputEventKey.new()
     ev.keycode = KEY_ESCAPE

@@ -1,21 +1,11 @@
 [gd_scene load_steps=3 format=3 uid="uid://dyjqcg3o35ety"]
 
-[ext_resource type="Script" uid="uid://1nivlxhm3u2u" path="res://scripts/ecs/components/c_damage_zone_component.gd" id="1"]
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_death"]
-size = Vector3(200, 2, 200)
+[ext_resource type="Script" uid="uid://5da70f7a6341" path="res://scripts/gameplay/e_hazard_zone.gd" id="1_controller"]
+[ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/rs_death_zone_volume.tres" id="2_death_settings"]
 
 [node name="E_DeathZone" type="Node3D"]
-
-[node name="Area3D" type="Area3D" parent="."]
-collision_layer = 0
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
-shape = SubResource("BoxShape3D_death")
-
-[node name="C_DamageZoneComponent" type="Node" parent="."]
-script = ExtResource("1")
-damage_amount = 0.0
+script = ExtResource("1_controller")
 is_instant_death = true
 damage_cooldown = 0.0
-area_path = NodePath("../Area3D")
+damage_amount = 0.0
+settings = ExtResource("2_death_settings")

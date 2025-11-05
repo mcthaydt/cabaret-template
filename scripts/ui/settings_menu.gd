@@ -1,3 +1,4 @@
+@icon("res://resources/editor_icons/utility.svg")
 extends Control
 
 ## Settings Menu UI Controller
@@ -11,9 +12,18 @@ var _scene_manager: M_SceneManager = null
 var _is_overlay: bool = false
 
 func _ready() -> void:
+	var scene_tree := get_tree()
+	if scene_tree == null:
+		push_error("SettingsMenu: SceneTree unavailable in _ready()")
+		return
+
 	# Find M_SceneManager via group
-	await get_tree().process_frame
-	var managers: Array = get_tree().get_nodes_in_group("scene_manager")
+	await scene_tree.process_frame
+
+	if not is_inside_tree():
+		return
+
+	var managers: Array = scene_tree.get_nodes_in_group("scene_manager")
 	if managers.size() > 0:
 		_scene_manager = managers[0] as M_SceneManager
 	else:

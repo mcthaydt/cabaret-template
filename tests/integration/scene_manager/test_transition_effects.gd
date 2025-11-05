@@ -67,6 +67,12 @@ func before_each() -> void:
 	_root_scene.add_child(_manager)
 	await get_tree().process_frame
 
+	# Diagnostics: ensure scene manager is bound to the correct store
+	var stores := get_tree().get_nodes_in_group("state_store")
+	print("[DBG] stores count=", stores.size())
+	if not stores.is_empty():
+		print("[DBG] manager bound to same store=", (_manager.get("_store") == _store))
+
 func after_each() -> void:
 	_manager = null
 	_store = null
@@ -126,8 +132,12 @@ func test_fade_transition_for_menu_to_gameplay() -> void:
 	var scene_state_during: Dictionary = state_during.get("scene", {})
 	assert_true(scene_state_during.get("is_transitioning", false), "Should be transitioning during fade")
 
-	# Wait for fade completion (0.2s fade = 15 frames + buffer)
-	await wait_physics_frames(15)
+	# Wait for fade completion (0.2s fade). Sample intermediate state.
+	await wait_physics_frames(5)
+	var mid_state: Dictionary = _store.get_state()
+	var mid_scene: Dictionary = mid_state.get("scene", {})
+	print("[DBG] mid: transitioning=", mid_scene.get("is_transitioning", false), ", current=", mid_scene.get("current_scene_id", StringName("")))
+	await wait_physics_frames(10)
 
 	# Verify completion
 	var state: Dictionary = _store.get_state()
