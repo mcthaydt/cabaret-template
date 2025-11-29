@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="SSA_Rising"
+config/name="cabaret ball"
 run/main_scene="res://scenes/root.tscn"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://assets/textures/tex_icon.svg"
