@@ -1,6 +1,6 @@
 # UI Manager Task Checklist
 
-**Progress:** 72% (31 / 43 tasks complete)
+**Progress:** 57% (31 / 54 tasks complete)
 
 **Architecture Decisions Made:**
 - Dedicated `navigation` slice (Option A)
@@ -738,6 +738,70 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
     - grep -r "SCRIPT_VERSION" scripts/ui/ → 0 results
     - All 135 state tests passing
   - **Result**: No duplicate navigation logic outside reducers/actions; all UI properly uses navigation actions
+
+### Phase 7: UX Refinements & Polish
+
+Issues discovered during testing that need to be addressed:
+
+- [ ] T070 [UX] Fix joystick menu navigation sensitivity.
+  - **Issue**: Joystick requires exact up/hard press for menu navigation
+  - **Expected**: Smooth analog stick navigation with appropriate deadzone
+  - **Files**: `scripts/ui/base/base_panel.gd`, possibly input mapping
+
+- [ ] T071 [UX] Add menu option cycling when input held.
+  - **Issue**: Menu options don't cycle continuously when directional input is held
+  - **Expected**: Options should cycle/scroll when ui_up/ui_down held
+  - **Files**: UI focus system or base panel input handling
+
+- [ ] T072 [UX] Context-aware settings visibility.
+  - **Issue**: Gamepad controls shown when not using gamepad
+  - **Expected**: Settings menu hides irrelevant options based on active device type
+  - **Files**: Settings menu UI, device detection integration
+  - **Dependencies**: `M_InputDeviceManager` device type
+
+- [ ] T073 [UX] Consolidate all settings into unified settings menu.
+  - **Issue**: Settings scattered across multiple overlays
+  - **Expected**: Single settings menu with tabs/sections for different categories
+  - **Files**: `scripts/ui/settings_menu.gd`, pause menu structure
+
+- [ ] T074 [BUG] Mobile touchscreen controls appearing after gamepad menu exit.
+  - **Issue**: Touchscreen controls show after exiting menu with gamepad on mobile
+  - **Expected**: Controls remain hidden if exited with gamepad
+  - **Files**: `scripts/ui/mobile_controls.gd` visibility logic
+  - **Root cause**: Device detection not updating correctly on menu close
+
+- [ ] T075 [UX] Gamepad-accessible scrollbars in rebind controls.
+  - **Issue**: Rebind controls overlay not fully controllable with gamepad (scrollbar navigation fails)
+  - **Expected**: Full gamepad navigation including scroll areas
+  - **Files**: `scripts/ui/input_rebinding_overlay.gd`
+
+- [ ] T076 [UX] Context-sensitive rebind controls.
+  - **Issue**: Rebind controls shows all device inputs regardless of active device
+  - **Expected**: Only show rebindable actions for current device type
+  - **Files**: `scripts/ui/input_rebinding_overlay.gd`
+
+- [ ] T077 [UX] Context-sensitive input profiles with visual feedback.
+  - **Issue**: Input profiles don't show what the actual inputs are
+  - **Expected**: Profile selector shows preview of bindings for selected profile
+  - **Files**: `scripts/ui/input_profile_selector.gd`
+
+- [ ] T078 [UX] Visual button prompts in gamepad control UI.
+  - **Issue**: Gamepad control UI should visualize actual button being pressed
+  - **Expected**: Show Xbox/PS button glyphs matching physical controller
+  - **Files**: Gamepad settings overlay, button prompt system
+  - **Dependencies**: Button glyph assets, device type detection
+
+- [ ] T079 [ARCH] Remove overlay stacking (flatten UI).
+  - **Issue**: Menus should not stack as overlays
+  - **Expected**: Settings/input screens replace pause menu instead of stacking
+  - **Impact**: Requires rethinking overlay_stack vs panel switching
+  - **Files**: Navigation reducer, UI registry overlay definitions
+
+- [ ] T080 [UX] Cancel button exits menu directly.
+  - **Issue**: Cancel (B/Circle) button doesn't exit menu
+  - **Expected**: Cancel button should close current menu/return to previous
+  - **Files**: `scripts/ui/ui_input_handler.gd`, base overlay input handling
+  - **Note**: May conflict with T079 depending on final architecture
 
 ## Notes
 
