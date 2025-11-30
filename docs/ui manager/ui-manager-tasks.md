@@ -753,7 +753,7 @@ Issues discovered during testing that need to be addressed:
     3. 11 unit tests + 4 integration tests verify deadzone behavior
     4. Documentation added to DEV_PITFALLS.md
 
-- [ ] T071 [UX] Add menu option cycling when input held.
+- [x] T071 [UX] Add menu option cycling when input held.
   - **Issue**: Menu options don't cycle continuously when directional input is held
   - **Expected**: Options should cycle/scroll when ui_up/ui_down held
   - **Files**: UI focus system or base panel input handling

@@ -7,34 +7,59 @@ class_name BaseMenuScreen
 ## Inherits the common store / focus / back handling from BasePanel and provides
 ## a dedicated hook for menu-specific setup.
 ##
-## Implements manual analog stick navigation to work around Godot quirk where
-## InputEventJoypadMotion.is_action() incorrectly matches both directions simultaneously.
+## Implements manual analog stick navigation with repeat/echo behavior to work around
+## Godot quirk where InputEventJoypadMotion.is_action() incorrectly matches both
+## directions simultaneously and doesn't provide echo/repeat like keyboard input.
+
+const AnalogStickRepeater = preload("res://scripts/ui/utils/analog_stick_repeater.gd")
+
+const STICK_DEADZONE: float = 0.25  # Must match project.godot ui_* action deadzone
+
+var _stick_repeater: AnalogStickRepeater
+
 
 func _ready() -> void:
 	await super._ready()
 
-func _input(event: InputEvent) -> void:
-	# Manual analog stick navigation fix for Godot quirk:
-	# InputEventJoypadMotion.is_action() incorrectly matches both directions
-	# simultaneously, breaking built-in UI navigation. We intercept analog stick
-	# input and manually handle focus navigation using Input.is_action_just_pressed()
-	# which correctly checks axis direction.
-	if event is InputEventJoypadMotion:
-		var motion := event as InputEventJoypadMotion
-		# Only intercept ui navigation axes (vertical/horizontal)
-		if motion.axis == JOY_AXIS_LEFT_Y or motion.axis == JOY_AXIS_LEFT_X:
-			if Input.is_action_just_pressed("ui_up"):
-				_navigate_focus("ui_up")
-				get_viewport().set_input_as_handled()
-			elif Input.is_action_just_pressed("ui_down"):
-				_navigate_focus("ui_down")
-				get_viewport().set_input_as_handled()
-			elif Input.is_action_just_pressed("ui_left"):
-				_navigate_focus("ui_left")
-				get_viewport().set_input_as_handled()
-			elif Input.is_action_just_pressed("ui_right"):
-				_navigate_focus("ui_right")
-				get_viewport().set_input_as_handled()
+	# Initialize analog stick repeater
+	_stick_repeater = AnalogStickRepeater.new()
+	_stick_repeater.on_navigate = _navigate_focus
+
+func _process(delta: float) -> void:
+	# Update analog stick repeater ONLY for analog input (not keyboard/D-pad)
+	# This prevents double-firing since keyboard/D-pad have built-in repeat
+	if _stick_repeater:
+		_stick_repeater.update("ui_up", _is_stick_pressed_up(), delta)
+		_stick_repeater.update("ui_down", _is_stick_pressed_down(), delta)
+		_stick_repeater.update("ui_left", _is_stick_pressed_left(), delta)
+		_stick_repeater.update("ui_right", _is_stick_pressed_right(), delta)
+
+
+## Check if ONLY the analog stick (not D-pad/keyboard) is pressed in each direction
+## Checks all connected joypads, not just device 0
+func _is_stick_pressed_up() -> bool:
+	for device in Input.get_connected_joypads():
+		if Input.get_joy_axis(device, JOY_AXIS_LEFT_Y) < -STICK_DEADZONE:
+			return true
+	return false
+
+func _is_stick_pressed_down() -> bool:
+	for device in Input.get_connected_joypads():
+		if Input.get_joy_axis(device, JOY_AXIS_LEFT_Y) > STICK_DEADZONE:
+			return true
+	return false
+
+func _is_stick_pressed_left() -> bool:
+	for device in Input.get_connected_joypads():
+		if Input.get_joy_axis(device, JOY_AXIS_LEFT_X) < -STICK_DEADZONE:
+			return true
+	return false
+
+func _is_stick_pressed_right() -> bool:
+	for device in Input.get_connected_joypads():
+		if Input.get_joy_axis(device, JOY_AXIS_LEFT_X) > STICK_DEADZONE:
+			return true
+	return false
 
 func _navigate_focus(direction: StringName) -> void:
 	var focused := get_viewport().gui_get_focus_owner()

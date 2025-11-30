@@ -1,11 +1,11 @@
 @icon("res://resources/editor_icons/utility.svg")
-extends "res://scripts/ui/base/base_panel.gd"
+extends "res://scripts/ui/base/base_menu_screen.gd"
 class_name BaseOverlay
 
 ## Base class for overlay scenes that stack on top of gameplay/menus.
 ##
-## Ensures overlays keep processing even when the tree is paused and
-## reuses BasePanel behavior for store lookup, focus, and back handling.
+## Ensures overlays keep processing even when the tree is paused.
+## Inherits analog stick repeat behavior from BaseMenuScreen.
 ## Automatically creates an opaque/dimmed background panel to prevent
 ## visual bleed-through when overlays are stacked.
 

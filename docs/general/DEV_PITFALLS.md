@@ -71,6 +71,53 @@
 
 - **Testing**: Run `tests/unit/ui/test_joystick_navigation_deadzone.gd` to verify all ui_* actions have correct deadzone and that stick drift values don't trigger navigation.
 
+### Overlays with Custom Navigation Must Override _navigate_focus
+
+- **Problem**: When an overlay (like InputProfileSelector) needs custom joystick navigation behavior, setting focus neighbors causes the parent menu's analog stick repeater to also process the same input, creating a conflict where both menus try to navigate simultaneously. This happens because both `BaseMenuScreen` instances (parent menu and overlay) run their own `_process()` loops with analog stick repeaters.
+
+- **Symptom**: Navigation appears to work for one frame, then immediately reverses or toggles rapidly. Logs show both parent and overlay calling `_navigate_focus()` for the same input event.
+
+- **Solution**: When an overlay needs custom navigation behavior:
+  1. **Override `_navigate_focus(direction: StringName)`** to handle all navigation manually
+  2. **Do NOT set focus neighbors** using `U_FocusConfigurator` or manually - leave them empty
+  3. **Handle all directions explicitly** in the override and return early without calling `super._navigate_focus(direction)`
+
+  ```gdscript
+  # InputProfileSelector example - custom up/down for cycling, left/right for navigation
+  func _navigate_focus(direction: StringName) -> void:
+      var focused := get_viewport().gui_get_focus_owner()
+
+      # Handle up/down on ProfileButton: cycle profiles
+      if focused == _profile_button and (direction == "ui_up" or direction == "ui_down"):
+          if direction == "ui_up":
+              _cycle_profile(-1)
+          else:
+              _cycle_profile(1)
+          return  # Don't call super - prevents parent from also processing
+
+      # Handle left/right navigation between buttons
+      if focused == _profile_button and (direction == "ui_left" or direction == "ui_right"):
+          _apply_button.grab_focus()
+          return
+
+      if focused == _apply_button and (direction == "ui_left" or direction == "ui_right"):
+          _profile_button.grab_focus()
+          return
+
+      # For any other cases, use default behavior
+      super._navigate_focus(direction)
+
+  func _configure_focus_neighbors() -> void:
+      # Don't set focus neighbors - prevents parent menu from processing navigation
+      pass
+  ```
+
+- **Why this works**: Without focus neighbors set, the parent menu's `_navigate_focus()` finds no valid `focus_neighbor_left/right` paths and does nothing. Only the overlay's override processes the input.
+
+- **When to use**: Any overlay that needs non-standard navigation (cycling values, custom layouts) instead of simple focus neighbor traversal.
+
+- **Real example**: `scripts/ui/input_profile_selector.gd` - Uses up/down to cycle through profile names instead of navigating between controls, and left/right to move between the profile button and apply button.
+
 ### Explicit Focus Neighbor Configuration
 
 - **Problem**: Godot's automatic focus neighbor calculation can be unreliable with complex UI layouts, causing unexpected focus jumps or broken gamepad navigation. Auto-calculated paths may skip controls, jump to non-adjacent elements, or fail entirely in nested container hierarchies.
