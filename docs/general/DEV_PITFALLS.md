@@ -40,6 +40,70 @@
   
   **Real example**: `scenes/ui/hud_overlay.tscn` uses a full-screen MarginContainer to provide consistent margins for HUD elements. Without `mouse_filter = 2`, it blocked all clicks to test scene buttons below it, even though the HUD labels only occupied the top-left corner.
 
+## UI Navigation Pitfalls (Gamepad/Joystick)
+
+### UI Navigation Deadzone Consistency
+
+- **Problem**: Inconsistent deadzone values between InputMap actions and device detection cause unpredictable gamepad navigation behavior. If `ui_up/down/left/right` actions use a 0.2 deadzone while device detection uses 0.25, analog stick values between 0.2-0.25 will trigger navigation but might not register as device input, creating timing inconsistencies. Additionally, stick drift (typical range 0.15-0.2) can cause false navigation triggers with low deadzones.
+
+- **Solution**: Standardize all UI navigation actions and device detection to use **0.25 deadzone**:
+  - In `project.godot`, set `"deadzone": 0.25` for `ui_up`, `ui_down`, `ui_left`, `ui_right`
+  - Match `M_InputDeviceManager.DEVICE_SWITCH_DEADZONE = 0.25`
+  - This threshold is above typical stick drift (0.15-0.2) while remaining responsive
+
+- **Why 0.25**:
+  - Industry standard for reliable gamepad navigation
+  - Above typical controller stick drift threshold
+  - Prevents false triggers from controller calibration variance
+  - Provides consistent "device switched" + "navigation input" timing
+
+- **Code Example**:
+  ```gdscript
+  # project.godot (for each ui_* action)
+  ui_up={
+  "deadzone": 0.25,  # Must match DEVICE_SWITCH_DEADZONE
+  "events": [...]
+  }
+
+  # M_InputDeviceManager.gd
+  const DEVICE_SWITCH_DEADZONE: float = 0.25
+  ```
+
+- **Testing**: Run `tests/unit/ui/test_joystick_navigation_deadzone.gd` to verify all ui_* actions have correct deadzone and that stick drift values don't trigger navigation.
+
+### Explicit Focus Neighbor Configuration
+
+- **Problem**: Godot's automatic focus neighbor calculation can be unreliable with complex UI layouts, causing unexpected focus jumps or broken gamepad navigation. Auto-calculated paths may skip controls, jump to non-adjacent elements, or fail entirely in nested container hierarchies.
+
+- **Solution**: Explicitly configure `focus_neighbor_top/bottom/left/right` properties using `U_FocusConfigurator` helper:
+  ```gdscript
+  # scripts/ui/helpers/u_focus_configurator.gd
+
+  # For vertical lists (main menu, pause menu)
+  var buttons: Array[Control] = [play_button, settings_button, quit_button]
+  U_FocusConfigurator.configure_vertical_focus(buttons, true)  # true = wrap navigation
+
+  # For horizontal lists (endgame button rows)
+  var buttons: Array[Control] = [retry_button, menu_button]
+  U_FocusConfigurator.configure_horizontal_focus(buttons, true)
+
+  # For grids (settings panels, inventories)
+  var grid: Array = [[btn1, btn2], [btn3, btn4]]
+  U_FocusConfigurator.configure_grid_focus(grid, true, true)  # wrap_vert, wrap_horiz
+  ```
+
+- **When to use**:
+  - Call `_configure_focus_neighbors()` in `_ready()` or `_on_panel_ready()` after `@onready` vars are initialized
+  - Use for all UI screens with gamepad navigation (main menu, pause, settings, endgame)
+  - Prefer explicit configuration over relying on Godot's auto-calculation
+
+- **Wrapping behavior**: With `wrap=true`, pressing up on the first control focuses the last (and vice versa), creating circular navigation. Disable wrapping for non-circular flows.
+
+- **Real examples**:
+  - `scripts/ui/main_menu.gd` - Vertical focus for Play/Settings buttons
+  - `scripts/ui/pause_menu.gd` - Vertical focus for 7 menu options
+  - `scripts/ui/game_over.gd` - Horizontal focus for Retry/Menu buttons
+
 ## State Store Pitfalls (Redux-style)
 
 - Signal batching timing

@@ -6,6 +6,7 @@ extends "res://scripts/ui/base/base_overlay.gd"
 ## Buttons dispatch navigation actions instead of calling Scene Manager directly.
 
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 
 const OVERLAY_SETTINGS := StringName("settings_menu_overlay")
 const OVERLAY_INPUT_PROFILE := StringName("input_profile_selector")
@@ -23,6 +24,28 @@ const OVERLAY_INPUT_REBINDING := StringName("input_rebinding")
 
 func _ready() -> void:
 	await super._ready()
+	_configure_focus_neighbors()
+
+func _configure_focus_neighbors() -> void:
+	# Configure vertical focus navigation for pause menu buttons with wrapping
+	var buttons: Array[Control] = []
+	if _resume_button != null:
+		buttons.append(_resume_button)
+	if _settings_button != null:
+		buttons.append(_settings_button)
+	if _input_profiles_button != null:
+		buttons.append(_input_profiles_button)
+	if _gamepad_settings_button != null:
+		buttons.append(_gamepad_settings_button)
+	if _touchscreen_settings_button != null:
+		buttons.append(_touchscreen_settings_button)
+	if _rebind_controls_button != null:
+		buttons.append(_rebind_controls_button)
+	if _quit_button != null:
+		buttons.append(_quit_button)
+
+	if not buttons.is_empty():
+		U_FocusConfigurator.configure_vertical_focus(buttons, true)
 
 func _on_store_ready(store_ref: M_StateStore) -> void:
 	# Subscribe to navigation state to hide when shell changes away from gameplay

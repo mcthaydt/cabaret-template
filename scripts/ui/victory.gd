@@ -10,6 +10,7 @@ extends BaseMenuScreen
 
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 
 @onready var _completed_label: Label = $MarginContainer/VBoxContainer/CompletedLabel
 @onready var _continue_button: Button = $MarginContainer/VBoxContainer/ButtonRow/ContinueButton
@@ -30,7 +31,21 @@ func _on_store_ready(store: M_StateStore) -> void:
 
 func _on_panel_ready() -> void:
 	_connect_buttons()
+	_configure_focus_neighbors()
 	_update_display()
+
+func _configure_focus_neighbors() -> void:
+	# Configure horizontal focus navigation for victory buttons with wrapping
+	var buttons: Array[Control] = []
+	if _continue_button != null:
+		buttons.append(_continue_button)
+	if _credits_button != null:
+		buttons.append(_credits_button)
+	if _menu_button != null:
+		buttons.append(_menu_button)
+
+	if not buttons.is_empty():
+		U_FocusConfigurator.configure_horizontal_focus(buttons, true)
 
 func _exit_tree() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():

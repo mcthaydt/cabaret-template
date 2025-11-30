@@ -8,6 +8,7 @@ extends BaseMenuScreen
 
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
@@ -24,12 +25,24 @@ var _active_panel: StringName = StringName()
 
 func _on_panel_ready() -> void:
 	_connect_buttons()
+	_configure_focus_neighbors()
 	var store := get_store()
 	if store == null:
 		return
 	if _store_unsubscribe == Callable() or not _store_unsubscribe.is_valid():
 		_store_unsubscribe = store.subscribe(_on_state_changed)
 	_on_state_changed({}, store.get_state())
+
+func _configure_focus_neighbors() -> void:
+	# Configure main panel button focus (vertical navigation with wrapping)
+	var main_buttons: Array[Control] = []
+	if _play_button != null:
+		main_buttons.append(_play_button)
+	if _settings_button != null:
+		main_buttons.append(_settings_button)
+
+	if not main_buttons.is_empty():
+		U_FocusConfigurator.configure_vertical_focus(main_buttons, true)
 
 func _exit_tree() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():

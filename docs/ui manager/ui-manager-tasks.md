@@ -743,10 +743,15 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
 
 Issues discovered during testing that need to be addressed:
 
-- [ ] T070 [UX] Fix joystick menu navigation sensitivity.
+- [x] T070 [UX] Fix joystick menu navigation sensitivity. ✅
   - **Issue**: Joystick requires exact up/hard press for menu navigation
   - **Expected**: Smooth analog stick navigation with appropriate deadzone
   - **Files**: `scripts/ui/base/base_panel.gd`, possibly input mapping
+  - **Status**: Fixed with two-pronged approach:
+    1. Standardized deadzone to 0.25 across all ui_* actions and device detection
+    2. Added explicit focus neighbor configuration via `U_FocusConfigurator` helper
+    3. 11 unit tests + 4 integration tests verify deadzone behavior
+    4. Documentation added to DEV_PITFALLS.md
 
 - [ ] T071 [UX] Add menu option cycling when input held.
   - **Issue**: Menu options don't cycle continuously when directional input is held

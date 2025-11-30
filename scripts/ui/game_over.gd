@@ -9,6 +9,7 @@ extends BaseMenuScreen
 
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 
 @onready var _death_count_label: Label = $MarginContainer/VBoxContainer/DeathCountLabel
 @onready var _retry_button: Button = $MarginContainer/VBoxContainer/ButtonRow/RetryButton
@@ -26,7 +27,19 @@ func _on_store_ready(store: M_StateStore) -> void:
 
 func _on_panel_ready() -> void:
 	_connect_buttons()
+	_configure_focus_neighbors()
 	_update_death_count()
+
+func _configure_focus_neighbors() -> void:
+	# Configure horizontal focus navigation for game over buttons with wrapping
+	var buttons: Array[Control] = []
+	if _retry_button != null:
+		buttons.append(_retry_button)
+	if _menu_button != null:
+		buttons.append(_menu_button)
+
+	if not buttons.is_empty():
+		U_FocusConfigurator.configure_horizontal_focus(buttons, true)
 
 func _exit_tree() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
