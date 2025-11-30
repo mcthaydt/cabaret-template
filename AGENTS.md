@@ -245,6 +245,52 @@
   - Gameplay transitions: < 3s (async with loading screen)
   - Large scenes: < 5s (loading screen with progress bar)
 
+## UI Manager Patterns
+
+### Navigation State
+
+- **Navigation slice**: Dedicated Redux slice managing UI location (`shell`, `overlay_stack`, `active_menu_panel`)
+- **Shells**: `main_menu`, `gameplay`, `endgame`
+- **Overlays**: Modal dialogs stacked on gameplay via `overlay_stack` array
+- **Panels**: Embedded UI within shells (e.g., `menu/main`, `menu/settings`)
+
+### Using Navigation Actions
+
+```gdscript
+const U_NavigationActions = preload("res://scripts/state/actions/u_navigation_actions.gd")
+
+# Open pause overlay
+store.dispatch(U_NavigationActions.open_pause())
+
+# Open nested overlay
+store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
+
+# Close top overlay (CloseMode determines behavior)
+store.dispatch(U_NavigationActions.close_top_overlay())
+
+# Switch menu panels
+store.dispatch(U_NavigationActions.set_menu_panel(StringName("menu/settings")))
+```
+
+### UI Registry
+
+- **Resource-based**: All screens defined in `resources/ui_screens/*.tres`
+- **Screen definition**: `RS_UIScreenDefinition` with `screen_id`, `kind`, `scene_id`, `allowed_shells`, `close_mode`
+- **Validation**: Registry validates parent-child relationships and scene references
+
+### Base UI Classes
+
+- **BasePanel**: Auto-store lookup, focus management, back button handling
+- **BaseMenuScreen**: For full-screen UIs (main menu, endgame)
+- **BaseOverlay**: For modal dialogs, sets `PROCESS_MODE_ALWAYS`, manages background dimming
+
+### Common Patterns
+
+- UI controllers extend base classes and dispatch actions (never call Scene Manager directly)
+- Subscribe to `slice_updated` for reactive updates
+- Use `U_NavigationSelectors.is_paused()` for pause state (single source of truth)
+- Await store ready: `await get_tree().process_frame` before accessing store in `_ready()`
+
 ## Test Commands
 
 - Run ECS tests

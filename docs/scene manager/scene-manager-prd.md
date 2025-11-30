@@ -527,6 +527,15 @@ The Scene Manager system must NOT use Godot autoload/singleton configuration. In
 - **Hybrid Pause**: SceneTree.paused = true + ECS systems check pause state manually
 - **Save/Load**: Use M_StateStore.save_state() / load_state() (existing implementation)
 
+#### UI Manager Integration
+
+Scene Manager acts as a reactive enforcer of navigation state:
+- Reads `navigation` slice via `U_NavigationSelectors`
+- Reconciles desired overlay stack with actual `UIOverlayStack` children
+- Does not own navigation logic (delegated to `U_NavigationReducer`)
+
+See: `docs/ui manager/ui-manager-prd.md`
+
 ### Godot Version
 
 - Target: **Godot 4.5** (current project version)

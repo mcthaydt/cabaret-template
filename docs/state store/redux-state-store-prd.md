@@ -538,6 +538,21 @@ Developer can rewind state to previous points in time, replay action sequences, 
   - Initial state from RS_*InitialState resource
   - RS_StateSliceConfig defining dependencies and transient fields
 
+- **Navigation Slice**: Dedicated Redux slice managing UI location and overlay stack management. Fully transient (not persisted to saves).
+  - **Reducer**: `U_NavigationReducer`
+  - **Purpose**: UI location and overlay stack management
+  - **State Shape**:
+    ```gdscript
+    {
+      "shell": StringName,              # "main_menu" | "gameplay" | "endgame"
+      "base_scene_id": StringName,      # Current scene ID
+      "overlay_stack": Array[StringName], # Stack of overlay IDs
+      "active_menu_panel": StringName   # Active panel (e.g., "menu/main")
+    }
+    ```
+  - **Key Actions**: `NAV/OPEN_PAUSE`, `NAV/CLOSE_PAUSE`, `NAV/OPEN_OVERLAY`, `NAV/CLOSE_TOP_OVERLAY`, `NAV/SET_MENU_PANEL`
+  - See: `docs/ui manager/ui-manager-prd.md`
+
 - **RS_StateSliceConfig** (plain class): Configuration for a state slice declaring:
   - `slice_name: StringName` - Unique slice identifier
   - `dependencies: Array[StringName]` - Other slices this selector can access

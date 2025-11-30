@@ -629,6 +629,80 @@ _cursor_manager.toggle_cursor()  # Removed in T071
 - Navigation Data Model: `docs/ui manager/general/data-model.md`
 - Input/UI Flow Matrix: `docs/ui manager/general/flows-and-input.md`
 
+## UI Navigation Pitfalls
+
+### Store Access Race Condition
+
+**Problem**: Accessing store in `_ready()` before it's registered causes null reference
+
+**Solution**: Always await one frame before store lookup
+```gdscript
+# ❌ WRONG
+func _ready():
+	var store = U_StateUtils.get_store(self)  # May be null!
+
+# ✅ CORRECT
+func _ready():
+	await get_tree().process_frame
+	var store = U_StateUtils.get_store(self)
+```
+
+### Overlay Parent Validation
+
+**Problem**: Opening overlay without parent overlay in stack silently fails
+
+**Solution**: Check `U_NavigationSelectors.get_overlay_stack()` or ensure pause is open first
+```gdscript
+# Settings overlay requires pause_menu parent
+store.dispatch(U_NavigationActions.open_pause())  # First open pause
+await get_tree().process_frame
+store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
+```
+
+### Panel Filtering
+
+**Problem**: Main menu controller responds to pause menu panel updates (shared `active_menu_panel` state)
+
+**Solution**: Filter panel updates by prefix
+```gdscript
+func _on_panel_changed(panel_id: StringName):
+	if not panel_id.begins_with("menu/"):
+		return  # Ignore pause/* panels
+	_show_panel(panel_id)
+```
+
+### Direct Scene Manager Calls
+
+**Problem**: UI calling `M_SceneManager.push_overlay()` bypasses navigation state
+
+**Solution**: Always dispatch navigation actions
+```gdscript
+# ❌ WRONG
+scene_manager.push_overlay(StringName("pause_menu"))
+
+# ✅ CORRECT
+store.dispatch(U_NavigationActions.open_pause())
+```
+
+### Process Mode for Overlays
+
+**Problem**: Overlays freeze when tree is paused
+
+**Solution**: Set `process_mode = PROCESS_MODE_ALWAYS` (BaseOverlay does this automatically)
+
+### Pause State Detection
+
+**Problem**: Multiple systems checking `scene.scene_stack` or `get_tree().paused` for pause state
+
+**Solution**: Use canonical selector
+```gdscript
+# ❌ WRONG
+var is_paused = state.get("scene", {}).get("scene_stack", []).size() > 0
+
+# ✅ CORRECT
+var is_paused = U_NavigationSelectors.is_paused(state)
+```
+
 ## Test Coverage Status
 
 As of 2025-11-03 (Phase 10 Complete - Scene Manager Finished):

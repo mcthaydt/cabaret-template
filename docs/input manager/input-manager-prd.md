@@ -118,6 +118,26 @@ Defined in `project.godot` [input] section:
 All actions have 0.2 deadzone (except `toggle_debug_overlay`: 0.5).
 **Currently keyboard-only** - no gamepad or touchscreen bindings.
 
+#### UI Navigation Actions
+
+The following `ui_*` actions are reserved for UI navigation:
+
+| Action | Keyboard | Gamepad | Purpose |
+|--------|----------|---------|---------|
+| `ui_accept` | Enter, Space | A (button 0) | Activate focused control |
+| `ui_cancel` | ESC | B (button 1) | Context-dependent back |
+| `ui_pause` | ESC | Start (button 6) | Identical to `ui_cancel` |
+| `ui_up/down/left/right` | Arrows | D-pad / Left stick | Focus navigation |
+
+**Design**: `ui_pause` and `ui_cancel` are identical (both ESC on keyboard)
+- In gameplay: Opens pause
+- In overlays: Closes overlay (CloseMode determines next state)
+- In menu panels: Returns to previous panel
+
+**Routing**: `UIInputHandler` maps `ui_*` events to navigation actions based on context
+
+See: `docs/ui manager/ui-manager-prd.md`
+
 #### Test Coverage
 
 10 passing tests:
