@@ -112,3 +112,41 @@ func test_clears_stale_state_when_ui_empty() -> void:
 	var stack: Array = scene_state.get("scene_stack", [])
 	assert_eq(stack.size(), 0, "Manager should clear stale overlay state when UI has none")
 	assert_false(get_tree().paused, "Tree should be unpaused without overlays")
+
+## When popping a child overlay, focus should return to the next overlay below it
+func test_restores_focus_to_underlying_overlay_after_pop() -> void:
+	# Arrange: two overlays already on the stack (pause below settings)
+	var pause_overlay := Control.new()
+	pause_overlay.name = "PauseOverlay"
+	pause_overlay.set_meta(StringName("_scene_manager_overlay_scene_id"), StringName("pause_menu"))
+	var pause_button := Button.new()
+	pause_button.name = "ResumeButton"
+	pause_overlay.add_child(pause_button)
+	_ui_overlay_stack.add_child(pause_overlay)
+	autofree(pause_overlay)
+
+	var settings_overlay := Control.new()
+	settings_overlay.name = "SettingsOverlay"
+	settings_overlay.set_meta(StringName("_scene_manager_overlay_scene_id"), StringName("settings_menu"))
+	var settings_button := Button.new()
+	settings_button.name = "BackButton"
+	settings_overlay.add_child(settings_button)
+	_ui_overlay_stack.add_child(settings_overlay)
+	autofree(settings_overlay)
+
+	# Act: create manager (syncs existing overlays) and focus top overlay
+	var manager := M_SceneManager.new()
+	manager.skip_initial_scene_load = true
+	add_child_autofree(manager)
+	await get_tree().process_frame
+
+	settings_button.grab_focus()
+	assert_true(settings_button.has_focus(), "Precondition: top overlay should own focus")
+
+	# Pop top overlay; focus should move to pause overlay button
+	manager.pop_overlay()
+	await get_tree().process_frame
+
+	var focus_owner := get_viewport().gui_get_focus_owner()
+	assert_not_null(focus_owner, "Focus should be restored to a control")
+	assert_eq(focus_owner, pause_button, "Focus should move to the underlying overlay's first focusable")

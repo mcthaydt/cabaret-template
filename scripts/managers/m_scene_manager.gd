@@ -729,7 +729,7 @@ func push_overlay(scene_id: StringName, force: bool = false) -> void:
 		push_error("M_SceneManager: UIOverlayStack not found for overlay '%s'" % scene_id)
 		overlay_scene.queue_free()
 		return
-
+	
 	_configure_overlay_scene(overlay_scene, scene_id)
 	if _ui_overlay_stack != null:
 		_ui_overlay_stack.add_child(overlay_scene)
@@ -746,7 +746,7 @@ func pop_overlay() -> void:
 	var overlay_count: int = _ui_overlay_stack.get_child_count()
 	if overlay_count == 0:
 		return  # Nothing to pop
-
+	
 	# Dispatch pop overlay action
 	if _store != null:
 		_store.dispatch(U_SCENE_ACTIONS.pop_overlay())
@@ -756,6 +756,7 @@ func pop_overlay() -> void:
 	_ui_overlay_stack.remove_child(top_overlay)
 	top_overlay.queue_free()
 	_update_pause_state()
+	_restore_focus_to_top_overlay()
 
 ## Push overlay with automatic return navigation (Phase 6.5)
 ##
@@ -836,9 +837,51 @@ func _get_top_overlay_id() -> StringName:
 func _configure_overlay_scene(overlay_scene: Node, scene_id: StringName) -> void:
 	if overlay_scene == null:
 		return
-
+	
 	overlay_scene.process_mode = Node.PROCESS_MODE_ALWAYS
 	overlay_scene.set_meta(OVERLAY_META_SCENE_ID, scene_id)
+
+func _restore_focus_to_top_overlay() -> void:
+	if _ui_overlay_stack == null:
+		return
+
+	var overlay_count: int = _ui_overlay_stack.get_child_count()
+	if overlay_count == 0:
+		return
+
+	var top_overlay: Node = _ui_overlay_stack.get_child(overlay_count - 1)
+	if top_overlay == null:
+		return
+
+	var viewport: Viewport = get_tree().root
+	var focus_owner: Control = null
+	if viewport != null:
+		focus_owner = viewport.gui_get_focus_owner()
+
+	var has_focus_in_top: bool = focus_owner != null \
+		and focus_owner.is_inside_tree() \
+		and top_overlay.is_ancestor_of(focus_owner)
+	if has_focus_in_top:
+		return
+
+	var target: Control = _find_first_focusable_in(top_overlay)
+	if target != null and target.is_inside_tree():
+		target.grab_focus()
+
+func _find_first_focusable_in(root: Node) -> Control:
+	for child in root.get_children():
+		if child is Control:
+			var control := child as Control
+			if control.focus_mode != Control.FOCUS_NONE and control.is_visible_in_tree():
+				return control
+			var nested_control := _find_first_focusable_in(control)
+			if nested_control != null:
+				return nested_control
+		else:
+			var nested := _find_first_focusable_in(child)
+			if nested != null:
+				return nested
+	return null
 
 ## Update SceneTree pause + cursor state based on overlay stack
 func _update_pause_state() -> void:
