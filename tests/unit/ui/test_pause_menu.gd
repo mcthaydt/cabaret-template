@@ -81,6 +81,24 @@ func test_back_action_matches_resume() -> void:
 	assert_true(nav_slice.get("overlay_stack", []).is_empty(),
 		"ui_cancel should close pause overlay via navigation action")
 
+## Test pause menu hides when transitioning from gameplay to main menu
+## Reproduces bug: pause menu flashes when quitting to main menu from pause
+func test_pause_menu_hidden_when_transitioning_to_main_menu() -> void:
+	var store := await _create_state_store()
+	_prepare_paused_state(store)
+	var pause_menu := await _instantiate_pause_menu()
+
+	# Pause menu should be visible during gameplay pause
+	assert_true(pause_menu.visible, "Pause menu should be visible when paused in gameplay")
+
+	# Simulate clicking "Quit to Main Menu" - this clears overlays AND changes shell
+	store.dispatch(U_NavigationActions.return_to_main_menu())
+	await wait_process_frames(3)
+
+	# Pause menu should be hidden because we're transitioning to main menu shell
+	# BUG: Currently fails - pause menu stays visible during transition
+	assert_false(pause_menu.visible, "Pause menu should be hidden when transitioning to main menu")
+
 func _create_state_store() -> M_StateStore:
 	var store := M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()

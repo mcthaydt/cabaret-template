@@ -6,28 +6,50 @@ class_name U_UIRegistry
 ## Loads RS_UIScreenDefinition resources from disk and provides lookup helpers
 ## used by navigation reducers/selectors.
 
-const RS_UIScreenDefinition := preload("res://scripts/ui/resources/rs_ui_screen_definition.gd")
+# Preload all UI screen definitions (required for exported builds)
+const MAIN_MENU_SCREEN := preload("res://resources/ui_screens/main_menu_screen.tres")
+const GAME_OVER_SCREEN := preload("res://resources/ui_screens/game_over_screen.tres")
+const VICTORY_SCREEN := preload("res://resources/ui_screens/victory_screen.tres")
+const CREDITS_SCREEN := preload("res://resources/ui_screens/credits_screen.tres")
+const PAUSE_MENU_OVERLAY := preload("res://resources/ui_screens/pause_menu_overlay.tres")
+const SETTINGS_MENU_OVERLAY := preload("res://resources/ui_screens/settings_menu_overlay.tres")
+const INPUT_PROFILE_SELECTOR_OVERLAY := preload("res://resources/ui_screens/input_profile_selector_overlay.tres")
+const GAMEPAD_SETTINGS_OVERLAY := preload("res://resources/ui_screens/gamepad_settings_overlay.tres")
+const TOUCHSCREEN_SETTINGS_OVERLAY := preload("res://resources/ui_screens/touchscreen_settings_overlay.tres")
+const INPUT_REBINDING_OVERLAY := preload("res://resources/ui_screens/input_rebinding_overlay.tres")
+const EDIT_TOUCH_CONTROLS_OVERLAY := preload("res://resources/ui_screens/edit_touch_controls_overlay.tres")
 
 static var _screens: Dictionary = {}
-static var _load_dirs: Array[String] = [
-	"res://resources/ui_screens/",
-	"res://tests/ui_screens/"
-]
 
 static func _static_init() -> void:
-	reload_registry()
+	_register_all_screens()
+
+static func _register_all_screens() -> void:
+	# Explicitly register all preloaded screen definitions
+	_register_definition(MAIN_MENU_SCREEN as RS_UIScreenDefinition)
+	_register_definition(GAME_OVER_SCREEN as RS_UIScreenDefinition)
+	_register_definition(VICTORY_SCREEN as RS_UIScreenDefinition)
+	_register_definition(CREDITS_SCREEN as RS_UIScreenDefinition)
+	_register_definition(PAUSE_MENU_OVERLAY as RS_UIScreenDefinition)
+	_register_definition(SETTINGS_MENU_OVERLAY as RS_UIScreenDefinition)
+	_register_definition(INPUT_PROFILE_SELECTOR_OVERLAY as RS_UIScreenDefinition)
+	_register_definition(GAMEPAD_SETTINGS_OVERLAY as RS_UIScreenDefinition)
+	_register_definition(TOUCHSCREEN_SETTINGS_OVERLAY as RS_UIScreenDefinition)
+	_register_definition(INPUT_REBINDING_OVERLAY as RS_UIScreenDefinition)
+	_register_definition(EDIT_TOUCH_CONTROLS_OVERLAY as RS_UIScreenDefinition)
 
 ## Reload registry entries from disk or a provided list (useful for tests).
 static func reload_registry(definitions: Array = []) -> void:
 	_screens.clear()
 
 	if not definitions.is_empty():
+		# Test mode: use provided definitions
 		for definition in definitions:
 			_register_definition(definition)
 		return
 
-	for dir_path in _load_dirs:
-		_load_definitions_from_dir(dir_path)
+	# Normal mode: use preloaded definitions
+	_register_all_screens()
 
 ## Get screen definition by id (defensive copy).
 static func get_screen(screen_id: StringName) -> Dictionary:
@@ -56,6 +78,7 @@ static func is_valid_overlay_for_parent(overlay_id: StringName, parent_id: Strin
 		return false
 
 	var definition := _screens[overlay_id] as RS_UIScreenDefinition
+
 	if definition.kind != RS_UIScreenDefinition.UIScreenKind.OVERLAY:
 		return false
 

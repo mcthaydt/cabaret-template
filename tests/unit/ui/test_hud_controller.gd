@@ -67,3 +67,43 @@ func test_health_bar_hides_when_menus_open() -> void:
 
 	# Health bar should be visible again
 	assert_true(health_bar.visible, "Health bar should be visible again when menu is closed")
+
+## Test health bar stays hidden when transitioning from gameplay to main menu
+## Reproduces bug: health bar flashes when quitting to main menu from pause
+func test_health_bar_hidden_when_transitioning_to_main_menu() -> void:
+	var store := M_STATE_STORE.new()
+	store.settings = RS_STATE_STORE_SETTINGS.new()
+	store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
+	store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
+	store.navigation_initial_state = RS_NAVIGATION_INITIAL_STATE.new()
+	add_child(store)
+	autofree(store)
+	await get_tree().process_frame
+
+	# Start in gameplay with pause menu open
+	store.dispatch(U_NavigationActions.start_game(StringName("exterior")))
+	await wait_process_frames(1)
+
+	var hud := HUD_SCENE.instantiate()
+	add_child(hud)
+	autofree(hud)
+	await get_tree().process_frame
+
+	var health_bar: ProgressBar = hud.get_node("MarginContainer/VBoxContainer/HealthBar")
+	assert_not_null(health_bar, "Health bar should exist")
+
+	# Open pause menu
+	store.dispatch(U_NavigationActions.open_pause())
+	await wait_process_frames(3)
+
+	# Health bar should be hidden
+	assert_false(health_bar.visible, "Health bar should be hidden when pause menu is open")
+
+	# Simulate clicking "Quit to Main Menu" - this clears overlays AND changes shell
+	store.dispatch(U_NavigationActions.return_to_main_menu())
+	await wait_process_frames(3)
+
+	# Health bar should STAY hidden because we're transitioning to main menu shell
+	# BUG: Currently fails - health bar shows because overlays are cleared,
+	# even though shell is now "main_menu" not "gameplay"
+	assert_false(health_bar.visible, "Health bar should stay hidden when transitioning to main menu")

@@ -101,3 +101,24 @@ func _create_main_menu() -> Control:
 	add_child_autofree(menu)
 	await wait_process_frames(3)
 	return menu
+
+## Test main menu ignores non-menu panels (like pause/root from gameplay)
+## Reproduces bug: settings panel shows when transitioning to gameplay
+func test_ignores_non_menu_panel_ids() -> void:
+	var store := await _create_state_store()
+	var menu := await _create_main_menu()
+	var main_panel: Control = menu.get_node("MainPanel")
+	var settings_panel: Control = menu.get_node("SettingsPanel")
+
+	# Verify initial state: main panel visible
+	assert_true(main_panel.visible, "Main panel should be visible initially")
+	assert_false(settings_panel.visible, "Settings panel should be hidden initially")
+
+	# Simulate what happens when user clicks Play - navigation state updates to pause/root
+	store.dispatch(U_NavigationActions.set_menu_panel(StringName("pause/root")))
+	await wait_process_frames(2)
+
+	# Main menu should IGNORE "pause/root" because it's not a menu panel
+	# BUG: Currently fails - main menu interprets "pause/root" as "not main, so show settings"
+	assert_true(main_panel.visible, "Main panel should remain visible when non-menu panel is set")
+	assert_false(settings_panel.visible, "Settings panel should remain hidden when non-menu panel is set")

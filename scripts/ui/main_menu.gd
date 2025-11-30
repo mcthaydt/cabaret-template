@@ -53,11 +53,23 @@ func _update_panel_state(panel_id: StringName) -> void:
 	var resolved_panel: StringName = panel_id
 	if resolved_panel == StringName(""):
 		resolved_panel = PANEL_MAIN
+
+	# Only respond to main menu panels (menu/*)
+	# Ignore panels from other contexts (like pause/root from gameplay)
+	if not _is_main_menu_panel(resolved_panel):
+		return
+
 	if resolved_panel == _active_panel:
 		return
 	_active_panel = resolved_panel
 	_set_panel_visibility(resolved_panel == PANEL_MAIN)
 	_focus_active_panel()
+
+## Check if a panel ID belongs to the main menu
+func _is_main_menu_panel(panel_id: StringName) -> bool:
+	# Main menu panels all start with "menu/"
+	var panel_str: String = str(panel_id)
+	return panel_str.begins_with("menu/")
 
 func _set_panel_visibility(show_main: bool) -> void:
 	if _main_panel != null:

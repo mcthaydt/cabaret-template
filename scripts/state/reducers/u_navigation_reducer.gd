@@ -88,12 +88,21 @@ static func _reduce_set_shell(state: Dictionary, action: Dictionary) -> Dictiona
 static func _reduce_open_pause(state: Dictionary) -> Dictionary:
 	var shell: StringName = state.get("shell", StringName())
 	var current_stack: Array = state.get("overlay_stack", [])
+
+	print("[DIAG-REDUCER] _reduce_open_pause ENTRY")
+	print("[DIAG-REDUCER]   shell=", shell, " (need: gameplay)")
+	print("[DIAG-REDUCER]   current_stack=", current_stack, " (need: empty)")
+
 	if shell != SHELL_GAMEPLAY or current_stack.size() > 0:
+		print("[DIAG-REDUCER]   REJECTED: shell != gameplay OR stack not empty")
+		print("[DIAG-REDUCER]     shell == SHELL_GAMEPLAY? ", shell == SHELL_GAMEPLAY)
+		print("[DIAG-REDUCER]     stack.size() = ", current_stack.size())
 		return state
 
 	var new_state: Dictionary = state.duplicate(true)
 	new_state["overlay_stack"] = [OVERLAY_PAUSE]
 	new_state["active_menu_panel"] = DEFAULT_PAUSE_PANEL
+	print("[DIAG-REDUCER]   ACCEPTED: new overlay_stack=[pause_menu]")
 	return new_state
 
 static func _reduce_close_pause(state: Dictionary) -> Dictionary:
@@ -110,22 +119,32 @@ static func _reduce_open_overlay(state: Dictionary, action: Dictionary) -> Dicti
 	var shell: StringName = state.get("shell", StringName())
 	var current_stack: Array = state.get("overlay_stack", [])
 
+	print("[DIAG-REDUCER] _reduce_open_overlay ENTRY")
+	print("[DIAG-REDUCER]   overlay_id=", overlay_id)
+	print("[DIAG-REDUCER]   shell=", shell)
+	print("[DIAG-REDUCER]   current_stack=", current_stack)
+
 	if overlay_id == StringName("") or shell != SHELL_GAMEPLAY:
+		print("[DIAG-REDUCER]   REJECTED: empty overlay_id or shell != gameplay")
 		return state
 
 	if overlay_id == OVERLAY_PAUSE:
+		print("[DIAG-REDUCER]   REJECTED: pause uses OPEN_PAUSE action")
 		return state  # Pause opens via OPEN_PAUSE
 
 	if not _is_overlay_allowed_for_parent(overlay_id, current_stack):
+		print("[DIAG-REDUCER]   REJECTED: parent validation failed")
 		return state
 
 	if current_stack.has(overlay_id):
+		print("[DIAG-REDUCER]   REJECTED: overlay already in stack")
 		return state
 
 	var new_state: Dictionary = state.duplicate(true)
 	var new_stack: Array = current_stack.duplicate(true)
 	new_stack.append(overlay_id)
 	new_state["overlay_stack"] = new_stack
+	print("[DIAG-REDUCER]   ACCEPTED: new_stack=", new_stack)
 	return new_state
 
 static func _reduce_close_top_overlay(state: Dictionary) -> Dictionary:
@@ -229,10 +248,15 @@ static func _reduce_return_to_main_menu(state: Dictionary) -> Dictionary:
 	return new_state
 
 static func _is_overlay_allowed_for_parent(overlay_id: StringName, current_stack: Array) -> bool:
+	print("[DIAG-VALID] overlay_id=", overlay_id, " current_stack=", current_stack)
+
 	if current_stack.is_empty():
+		print("[DIAG-VALID] REJECTED: stack is EMPTY")
 		return false
 
 	var parent_overlay: StringName = current_stack.back() if current_stack.back() is StringName else StringName("")
+	var is_valid := U_UIRegistry.is_valid_overlay_for_parent(overlay_id, parent_overlay)
+	print("[DIAG-VALID] parent=", parent_overlay, " is_valid=", is_valid)
 
 	# Use UI registry to check allowed_parents
-	return U_UIRegistry.is_valid_overlay_for_parent(overlay_id, parent_overlay)
+	return is_valid

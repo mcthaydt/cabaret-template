@@ -64,9 +64,6 @@ func _configure_existing_background(panel: ColorRect) -> void:
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	_ensure_fullscreen_anchors(panel)
 
-	# DIAGNOSTIC: Log background panel configuration
-	print("[BaseOverlay:%s] Background panel configured: mouse_filter=STOP, color=%s" % [name, panel.color])
-
 func _ensure_fullscreen_anchors(panel: ColorRect) -> void:
 	"""Ensure panel covers full viewport."""
 	panel.anchor_left = 0.0

@@ -79,6 +79,34 @@
 
 ## GDScript Language Pitfalls
 
+- **Don't preload script files as type constants when using class_name**: When a script defines `class_name MyClass`, don't create a constant that preloads the script file itself (`const MyClass := preload("res://path/to/my_class.gd")`). This creates a type conflict where Godot sees preloaded resources as generic `Resource` instead of the specific class type, causing "Invalid type in function" errors when passing them to typed parameters.
+
+  **Problem**: Type checking fails when passing preloaded `.tres` resources to functions expecting the class type:
+  ```gdscript
+  # WRONG - creates type conflict:
+  const RS_UIScreenDefinition := preload("res://scripts/ui/resources/rs_ui_screen_definition.gd")
+  const MAIN_MENU := preload("res://resources/ui_screens/main_menu.tres")
+
+  static func register(definition: RS_UIScreenDefinition) -> void:
+      # ...
+
+  register(MAIN_MENU)  # ERROR: Resource is not a subclass of expected argument class
+  ```
+
+  **Solution**: Remove the script preload constant. The `class_name` directive makes the class globally available:
+  ```gdscript
+  # CORRECT - use class_name directly:
+  # (RS_UIScreenDefinition is already available via class_name in the script)
+  const MAIN_MENU := preload("res://resources/ui_screens/main_menu.tres")
+
+  static func register(definition: RS_UIScreenDefinition) -> void:
+      # ...
+
+  register(MAIN_MENU)  # Works correctly
+  ```
+
+  **Real example**: `U_UIRegistry.gd` had `const RS_UIScreenDefinition := preload(...)` which conflicted with the `class_name RS_UIScreenDefinition` in the resource script. Removing the preload constant fixed the type checking error.
+
 - **Lambda closures cannot reassign primitive variables**: GDScript lambdas capture variables but **cannot reassign primitive types** (bool, int, float). Writing `var completed = false; var callback = func(): completed = true` will NOT modify the outer `completed` variable - the callback will set a local copy instead. **Solution**: Wrap primitives in mutable containers like Arrays. Example:
   ```gdscript
   # WRONG - closure doesn't modify outer variable:

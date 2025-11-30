@@ -64,12 +64,6 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
-		# DIAGNOSTIC: Log touch events
-		var parent_controls := get_parent() as Control
-		var parent_visible := parent_controls != null and parent_controls.is_visible_in_tree()
-		var is_inside := _is_touch_inside(touch.position)
-		if touch.pressed and is_inside:
-			print("[VirtualButton:%s] Touch detected: visible=%s, parent_visible=%s, pos=%s, inside=%s" % [action, is_visible_in_tree(), parent_visible, touch.position, is_inside])
 		if touch.pressed:
 			_handle_touch_press(touch)
 		else:
@@ -218,12 +212,17 @@ func _bridge_input_action_released(action_name: StringName) -> void:
 func _bridge_pause_pressed() -> void:
 	var store := _get_store_instance()
 	if store == null:
+		print("[DIAG-VBUTTON] ERROR: Store is null")
 		return
 
 	var nav_slice := store.get_slice(StringName("navigation"))
+	print("[DIAG-VBUTTON] Pause pressed: shell=", nav_slice.get("shell"), " stack=", nav_slice.get("overlay_stack"))
+
 	if U_NavigationSelectors.is_paused(nav_slice):
+		print("[DIAG-VBUTTON] Dispatching close_pause()")
 		store.dispatch(U_NavigationActions.close_pause())
 	else:
+		print("[DIAG-VBUTTON] Dispatching open_pause()")
 		store.dispatch(U_NavigationActions.open_pause())
 
 func _get_parent_local_position(global_point: Vector2) -> Vector2:

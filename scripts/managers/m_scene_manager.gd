@@ -867,7 +867,17 @@ func _update_pause_state() -> void:
 		if should_pause:
 			_cursor_manager.set_cursor_state(false, true)  # unlocked, visible
 		else:
-			_cursor_manager.set_cursor_state(true, false)  # locked, hidden
+			# No overlays - set cursor based on current scene type
+			# MENU/UI/END_GAME scenes need visible cursor even without overlays
+			# GAMEPLAY scenes need hidden cursor
+			var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(_current_scene_id)
+			var scene_type: int = scene_data.get("scene_type", U_SCENE_REGISTRY.SceneType.GAMEPLAY)
+
+			match scene_type:
+				U_SCENE_REGISTRY.SceneType.MENU, U_SCENE_REGISTRY.SceneType.UI, U_SCENE_REGISTRY.SceneType.END_GAME:
+					_cursor_manager.set_cursor_state(false, true)  # unlocked, visible
+				U_SCENE_REGISTRY.SceneType.GAMEPLAY:
+					_cursor_manager.set_cursor_state(true, false)  # locked, hidden
 
 	# Ensure particles in gameplay respect pause (GPU particles ignore SceneTree pause)
 	_set_particles_paused(should_pause)

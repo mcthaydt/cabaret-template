@@ -708,8 +708,8 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
     - [x] Main menu → Settings panel → shows settings, back → returns to main panel
     - [x] Main menu root panel → back key → no-op
   - **Mobile-specific**:
-    - [ ] Edit Touch Controls overlay → close → resumes gameplay
-    - [ ] Touchscreen Settings overlay → close → resumes gameplay
+    - [x] Edit Touch Controls overlay → close → resumes gameplay
+    - [x] Touchscreen Settings overlay → close → resumes gameplay
   - **Acceptance**: All 17+ test cases pass with both input methods
 
 - [ ] T062 [DOC] Update all related documentation.

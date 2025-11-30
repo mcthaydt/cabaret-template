@@ -89,7 +89,16 @@ func _update_health(state: Dictionary) -> void:
 		health_bar.visible = false
 		return
 
-	# Show health bar during gameplay
+	# Only show health bar during active gameplay shell
+	# Don't show when transitioning to/from gameplay (shell != "gameplay")
+	var navigation_state: Dictionary = state.get("navigation", {})
+	var shell: StringName = navigation_state.get("shell", StringName())
+
+	if shell != StringName("gameplay"):
+		health_bar.visible = false
+		return
+
+	# Show health bar during active gameplay
 	health_bar.visible = true
 
 	var health: float = U_EntitySelectors.get_entity_health(state, _player_entity_id)
