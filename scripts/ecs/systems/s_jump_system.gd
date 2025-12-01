@@ -14,10 +14,22 @@ const EVENT_ENTITY_LANDED := StringName("entity_landed")
 func process_tick(_delta: float) -> void:
 	# Skip processing if game is paused
 	var store: M_StateStore = U_StateUtils.get_store(self)
+	var accessibility_jump_buffer: float = -1.0
 	if store:
 		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
 		if U_GameplaySelectors.get_is_paused(gameplay_state):
 			return
+		var state: Dictionary = store.get_state()
+		var settings_variant: Variant = state.get("settings", {})
+		if settings_variant is Dictionary:
+			var settings_dict := settings_variant as Dictionary
+			var input_settings_variant: Variant = settings_dict.get("input_settings", {})
+			if input_settings_variant is Dictionary:
+				var input_settings := input_settings_variant as Dictionary
+				var accessibility_variant: Variant = input_settings.get("accessibility", {})
+				if accessibility_variant is Dictionary:
+					var accessibility := accessibility_variant as Dictionary
+					accessibility_jump_buffer = float(accessibility.get("jump_buffer_time", accessibility_jump_buffer))
 	
 	var manager := get_manager()
 	if manager == null:
@@ -94,7 +106,10 @@ func process_tick(_delta: float) -> void:
 			component.record_ground_height(current_height)
 			component.mark_on_floor(now)
 
-		var jump_requested: bool = input_component.has_jump_request(component.settings.jump_buffer_time, now)
+		var buffer_time := component.settings.jump_buffer_time
+		if accessibility_jump_buffer >= 0.0:
+			buffer_time = max(buffer_time, accessibility_jump_buffer)
+		var jump_requested: bool = input_component.has_jump_request(buffer_time, now)
 		if not jump_requested:
 			component.update_debug_snapshot({
 				"supported": supported_now,

@@ -64,6 +64,16 @@ static func reduce_gameplay_input(state: Dictionary, action: Dictionary) -> Vari
 	var action_type: Variant = action.get("type")
 
 	match action_type:
+		U_InputActions.ACTION_PROFILE_SWITCHED:
+			# Clear transient input so movement/looking/sprinting stop when profiles change.
+			return _with_values(current, {
+				"move_input": Vector2.ZERO,
+				"look_input": Vector2.ZERO,
+				"jump_pressed": false,
+				"jump_just_pressed": false,
+				"sprint_pressed": false,
+			})
+
 		U_InputActions.ACTION_UPDATE_MOVE_INPUT:
 			var payload: Dictionary = action.get("payload", {})
 			return _with_values(current, {

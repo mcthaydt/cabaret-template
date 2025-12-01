@@ -46,6 +46,9 @@ var _right_stick_deadzone: float = 0.2
 var _deadzone_curve: int = RS_GamepadSettings.DeadzoneCurve.LINEAR
 var _right_stick_sensitivity: float = 1.0
 var _invert_right_stick_y: bool = false
+var _sprint_toggle_enabled: bool = false
+var _sprint_toggled_on: bool = false
+var _sprint_button_was_pressed: bool = false
 
 func on_configured() -> void:
 	_ensure_actions()
@@ -85,6 +88,7 @@ func process_tick(_delta: float) -> void:
 		active_device_type = U_InputSelectors.get_active_device_type(state)
 		active_gamepad_id = U_InputSelectors.get_active_gamepad_id(state)
 		is_gamepad_connected = U_InputSelectors.is_gamepad_connected(state)
+		_update_accessibility_from_state(state)
 		# Fallback: if the store reports an active gamepad with a valid id,
 		# treat it as connected even if the connection flag missed a platform-specific event.
 		if active_device_type == DeviceType.GAMEPAD and active_gamepad_id >= 0:
@@ -115,7 +119,8 @@ func process_tick(_delta: float) -> void:
 		keyboard_vector = Vector2.ZERO
 	var jump_pressed := Input.is_action_pressed(jump_action)
 	var jump_just_pressed := Input.is_action_just_pressed(jump_action)
-	var sprint_pressed := Input.is_action_pressed(sprint_action)
+	var sprint_button_pressed := Input.is_action_pressed(sprint_action)
+	var sprint_pressed := _compute_sprint_pressed(sprint_button_pressed)
 
 	var final_movement := keyboard_vector
 	if active_device_type == DeviceType.GAMEPAD:
@@ -167,6 +172,36 @@ func process_tick(_delta: float) -> void:
 			gamepad_component.device_id = active_gamepad_id
 			gamepad_component.apply_settings_from_dictionary(_gamepad_settings_cache)
 			gamepad_component.button_states = _button_states.duplicate(true)
+
+func _update_accessibility_from_state(state: Dictionary) -> void:
+	var settings_variant: Variant = state.get("settings", {})
+	if not (settings_variant is Dictionary):
+		_sprint_toggle_enabled = false
+		return
+	var settings_dict := settings_variant as Dictionary
+	var input_settings_variant: Variant = settings_dict.get("input_settings", {})
+	if not (input_settings_variant is Dictionary):
+		_sprint_toggle_enabled = false
+		return
+	var input_settings := input_settings_variant as Dictionary
+	var accessibility_variant: Variant = input_settings.get("accessibility", {})
+	if not (accessibility_variant is Dictionary):
+		_sprint_toggle_enabled = false
+		return
+	var accessibility := accessibility_variant as Dictionary
+	_sprint_toggle_enabled = bool(accessibility.get("sprint_toggle_mode", false))
+
+func _compute_sprint_pressed(button_pressed: bool) -> bool:
+	if not _sprint_toggle_enabled:
+		_sprint_toggled_on = false
+		_sprint_button_was_pressed = button_pressed
+		return button_pressed
+
+	var just_pressed := button_pressed and not _sprint_button_was_pressed
+	if just_pressed:
+		_sprint_toggled_on = not _sprint_toggled_on
+	_sprint_button_was_pressed = button_pressed
+	return _sprint_toggled_on
 
 func _ensure_actions() -> void:
 	if _actions_initialized:

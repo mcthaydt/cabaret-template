@@ -5,6 +5,7 @@ class_name InputProfileSelector
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
+const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
 const RS_InputProfile := preload("res://scripts/ecs/resources/rs_input_profile.gd")
 
 @onready var _profile_button: Button = $HBoxContainer/ProfileButton
@@ -62,10 +63,29 @@ func _configure_focus_neighbors() -> void:
 func _populate_profiles() -> void:
 	if _manager == null:
 		return
-	_available_profiles = _manager.get_available_profile_ids()
+	# Start from all available profiles, then filter by active device type when possible.
+	var all_ids: Array[String] = _manager.get_available_profile_ids()
+	var filtered_ids: Array[String] = all_ids
+
+	var store := get_store()
+	if store != null and "available_profiles" in _manager:
+		var state: Dictionary = store.get_state()
+		var device_type: int = U_InputSelectors.get_active_device_type(state)
+		var profiles_dict: Dictionary = _manager.available_profiles
+		var device_filtered: Array[String] = []
+		for id_key in profiles_dict.keys():
+			var profile: RS_InputProfile = profiles_dict[id_key]
+			if profile == null:
+				continue
+			if profile.device_type == device_type:
+				device_filtered.append(String(id_key))
+		if not device_filtered.is_empty():
+			device_filtered.sort()
+			filtered_ids = device_filtered
+
+	_available_profiles = filtered_ids
 
 	# Find currently active profile from settings
-	var store := get_store()
 	if store == null:
 		_current_index = 0
 	else:
@@ -187,7 +207,7 @@ func _build_bindings_preview(profile: RS_InputProfile) -> String:
 		if not action_labels.is_empty():
 			segments.append("%s: %s" % [label, ", ".join(action_labels)])
 
-	return " • ".join(segments)
+	return "\n".join(segments)
 
 func _collect_action_labels(profile: RS_InputProfile, actions: Array[StringName]) -> Array[String]:
 	var labels: Array[String] = []
@@ -211,7 +231,7 @@ func _format_binding_text(events: Array) -> String:
 	for ev in events:
 		if ev is InputEvent:
 			var event := ev as InputEvent
-			labels.append(_format_binding_label(event.as_text()))
+			labels.append(_format_binding_label(U_InputRebindUtils.format_event_label(event)))
 	return ", ".join(labels)
 
 func _format_binding_label(binding_text: String) -> String:

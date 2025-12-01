@@ -776,11 +776,11 @@ func _format_binding_text(events: Array) -> String:
 	for ev in events:
 		if ev is InputEvent:
 			var event := ev as InputEvent
-			labels.append(event.as_text())
+			labels.append(U_InputRebindUtils.format_event_label(event))
 		elif ev is Dictionary:
 			var reconstructed := U_InputRebindUtils.dict_to_event(ev)
 			if reconstructed is InputEvent:
-				labels.append((reconstructed as InputEvent).as_text())
+				labels.append(U_InputRebindUtils.format_event_label(reconstructed as InputEvent))
 	return ", ".join(labels)
 
 func _format_binding_label(binding_text: String) -> String:

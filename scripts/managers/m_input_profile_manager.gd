@@ -252,6 +252,9 @@ func _load_available_profiles() -> void:
 	var default_gamepad_res := load("res://resources/input/profiles/default_gamepad.tres")
 	if default_gamepad_res is RS_InputProfile:
 		available_profiles["default_gamepad"] = default_gamepad_res
+	var accessibility_gamepad_res := load("res://resources/input/profiles/accessibility_gamepad.tres")
+	if accessibility_gamepad_res is RS_InputProfile:
+		available_profiles["accessibility_gamepad"] = accessibility_gamepad_res
 	var default_touchscreen_res := load("res://resources/input/profiles/default_touchscreen.tres")
 	if default_touchscreen_res is RS_InputProfile:
 		available_profiles["default_touchscreen"] = default_touchscreen_res
@@ -305,6 +308,27 @@ func load_profile(profile_id: String) -> bool:
 func get_active_profile() -> RS_InputProfile:
 	return active_profile
 
+func _apply_profile_accessibility(profile_id: String, profile: RS_InputProfile) -> void:
+	if profile == null:
+		return
+	_ensure_state_store_ready()
+	if _state_store == null:
+		return
+
+	# Only auto-apply accessibility defaults for dedicated accessibility profiles.
+	var id_str := String(profile_id)
+	if not id_str.begins_with("accessibility"):
+		return
+
+	var accessibility_updates := [
+		U_InputActions.update_accessibility("jump_buffer_time", profile.jump_buffer_time),
+		U_InputActions.update_accessibility("sprint_toggle_mode", profile.sprint_toggle_mode),
+		U_InputActions.update_accessibility("interact_hold_duration", profile.interact_hold_duration),
+	]
+
+	for action in accessibility_updates:
+		_state_store.dispatch(action)
+
 func get_default_joystick_position() -> Vector2:
 	var profile := _get_default_touchscreen_profile()
 	if profile == null:
@@ -340,6 +364,11 @@ func switch_profile(profile_id: String) -> void:
 
 	if not load_profile(profile_id):
 		return
+
+	# Apply accessibility defaults for dedicated accessibility profiles
+	# when the player explicitly switches profiles.
+	_apply_profile_accessibility(profile_id, active_profile)
+
 	# Clear per-frame input state where appropriate (handled by reducers on next tick)
 	if store != null:
 		store.dispatch(U_InputActions.profile_switched(profile_id))

@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="RS_InputProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ecs/resources/rs_input_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+profile_name = "Accessibility (Gamepad)"
+device_type = 1
+action_mappings = {
+"interact": [{
+"button_index": 2,
+"type": "joypad_button"
+}],
+"jump": [{
+"button_index": 0,
+"type": "joypad_button"
+}],
+"move_backward": [{
+"axis": 1,
+"axis_value": 1.0,
+"type": "joypad_motion"
+}],
+"move_forward": [{
+"axis": 1,
+"axis_value": -1.0,
+"type": "joypad_motion"
+}],
+"move_left": [{
+"axis": 0,
+"axis_value": -1.0,
+"type": "joypad_motion"
+}],
+"move_right": [{
+"axis": 0,
+"axis_value": 1.0,
+"type": "joypad_motion"
+}],
+"sprint": [{
+"button_index": 7,
+"type": "joypad_button"
+}]
+}
+description = "Accessibility-focused gamepad: Left stick = Move, A = Jump, sprint toggle on stick click"
+jump_buffer_time = 0.2
+sprint_toggle_mode = true
+

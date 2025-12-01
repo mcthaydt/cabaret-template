@@ -55,9 +55,9 @@ func _on_device_changed(device_type: int, device_id: int, timestamp: float) -> v
 	})
 
 func test_manager_adds_to_group_and_defaults_to_keyboard() -> void:
-	var connected := Input.get_connected_joypads()
-	var expected_connected := not connected.is_empty()
-	var nodes := get_tree().get_nodes_in_group("input_device_manager")
+	var connected: Array = Input.get_connected_joypads()
+	var expected_connected: bool = not connected.is_empty()
+	var nodes: Array = get_tree().get_nodes_in_group("input_device_manager")
 	assert_true(_manager in nodes, "Manager should join input_device_manager group")
 	assert_eq(_manager.get_active_device(), M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE, "Default device should be keyboard/mouse")
 	assert_eq(_manager.get_gamepad_device_id(), -1, "No active gamepad on startup")
@@ -81,7 +81,7 @@ func test_manager_adds_to_group_and_defaults_to_keyboard() -> void:
 	assert_eq(_manager.process_mode, Node.PROCESS_MODE_ALWAYS, "Manager should process even when tree paused")
 
 func test_initial_keyboard_input_emits_device_changed_event() -> void:
-	var key_event := InputEventKey.new()
+	var key_event: InputEventKey = InputEventKey.new()
 	key_event.pressed = true
 	key_event.physical_keycode = KEY_W
 	_manager._input(key_event)
@@ -94,7 +94,7 @@ func test_initial_keyboard_input_emits_device_changed_event() -> void:
 	assert_gt(float(event.get("timestamp", 0.0)), 0.0)
 
 	assert_eq(_dispatched_actions.size(), 1, "Initial keyboard input should dispatch to state store")
-	var action := _dispatched_actions[0]
+	var action: Dictionary = _dispatched_actions[0]
 	assert_eq(action.get("type"), U_InputActions.ACTION_DEVICE_CHANGED)
 	var payload: Dictionary = action.get("payload", {})
 	assert_eq(int(payload.get("device_type", 99)), M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE)
@@ -102,7 +102,7 @@ func test_initial_keyboard_input_emits_device_changed_event() -> void:
 	assert_gt(float(payload.get("timestamp", 0.0)), 0.0)
 
 func test_gamepad_event_switches_to_gamepad_and_dispatches_action() -> void:
-	var motion := InputEventJoypadMotion.new()
+	var motion: InputEventJoypadMotion = InputEventJoypadMotion.new()
 	motion.device = 7
 	motion.axis = JOY_AXIS_LEFT_X
 	motion.axis_value = 0.5
@@ -114,13 +114,13 @@ func test_gamepad_event_switches_to_gamepad_and_dispatches_action() -> void:
 	assert_true(_manager.is_gamepad_connected(), "Gamepad connection flag should be true after input")
 
 	assert_eq(_device_events.size(), 1, "device_changed should emit once for gamepad switch")
-	var event := _device_events[0]
+	var event: Dictionary = _device_events[0]
 	assert_eq(event.get("device_type"), M_InputDeviceManager.DeviceType.GAMEPAD)
 	assert_eq(event.get("device_id"), 7)
 	assert_gt(float(event.get("timestamp", 0.0)), 0.0)
 
 	assert_eq(_dispatched_actions.size(), 1, "Store should receive device_changed action")
-	var action := _dispatched_actions[0]
+	var action: Dictionary = _dispatched_actions[0]
 	assert_eq(action.get("type"), U_InputActions.ACTION_DEVICE_CHANGED)
 	var payload: Dictionary = action.get("payload", {})
 	assert_eq(int(payload.get("device_type", -1)), M_InputDeviceManager.DeviceType.GAMEPAD)
@@ -139,7 +139,7 @@ func test_dispatch_precedes_device_changed_signal() -> void:
 	_store.action_dispatched.connect(dispatch_callable)
 	_manager.device_changed.connect(signal_callable)
 
-	var key_event := InputEventKey.new()
+	var key_event: InputEventKey = InputEventKey.new()
 	key_event.pressed = true
 	key_event.physical_keycode = KEY_E
 	_manager._input(key_event)
@@ -155,9 +155,9 @@ func test_dispatch_precedes_device_changed_signal() -> void:
 func test_store_state_visible_within_device_changed_signal() -> void:
 	var observed: Array[Dictionary] = []
 	var capture_callable := func(_device_type: int, _device_id: int, _timestamp: float) -> void:
-		var state := _store.get_state()
-		var gameplay_slice := state.get("gameplay", {}) as Dictionary
-		var input_slice := gameplay_slice.get("input", {}) as Dictionary
+		var state: Dictionary = _store.get_state()
+		var gameplay_slice: Dictionary = state.get("gameplay", {}) as Dictionary
+		var input_slice: Dictionary = gameplay_slice.get("input", {}) as Dictionary
 		observed.append({
 			"active_device": input_slice.get("active_device", -99),
 			"gamepad_device_id": input_slice.get("gamepad_device_id", -99),
@@ -165,7 +165,7 @@ func test_store_state_visible_within_device_changed_signal() -> void:
 
 	_manager.device_changed.connect(capture_callable)
 
-	var motion := InputEventJoypadMotion.new()
+	var motion: InputEventJoypadMotion = InputEventJoypadMotion.new()
 	motion.device = 4
 	motion.axis = JOY_AXIS_LEFT_Y
 	motion.axis_value = 0.9
@@ -175,7 +175,7 @@ func test_store_state_visible_within_device_changed_signal() -> void:
 	_manager.device_changed.disconnect(capture_callable)
 
 	assert_eq(observed.size(), 1, "Signal listener should capture single state snapshot")
-	var snapshot := observed[0]
+	var snapshot: Dictionary = observed[0]
 	assert_eq(int(snapshot.get("active_device", -1)), M_InputDeviceManager.DeviceType.GAMEPAD, "Store state should already reflect active device inside signal handler")
 	assert_eq(int(snapshot.get("gamepad_device_id", -1)), 4, "Store state should expose new active gamepad ID inside signal handler")
 
@@ -184,7 +184,7 @@ func test_keyboard_event_after_gamepad_switches_back_to_keyboard() -> void:
 	_dispatched_actions.clear()
 	_device_events.clear()
 
-	var key_event := InputEventKey.new()
+	var key_event: InputEventKey = InputEventKey.new()
 	key_event.pressed = true
 	key_event.physical_keycode = KEY_SPACE
 	_manager._input(key_event)
@@ -195,13 +195,13 @@ func test_keyboard_event_after_gamepad_switches_back_to_keyboard() -> void:
 	assert_true(_manager.is_gamepad_connected(), "Gamepad remains connected even when keyboard becomes active")
 
 	assert_eq(_device_events.size(), 1, "device_changed should emit once for keyboard switch")
-	var event := _device_events[0]
+	var event: Dictionary = _device_events[0]
 	assert_eq(event.get("device_type"), M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE)
 	assert_eq(event.get("device_id"), -1)
 	assert_gt(float(event.get("timestamp", 0.0)), 0.0)
 
 	assert_eq(_dispatched_actions.size(), 1, "Store should receive device_changed action for keyboard switch")
-	var action := _dispatched_actions[0]
+	var action: Dictionary = _dispatched_actions[0]
 	assert_eq(action.get("type"), U_InputActions.ACTION_DEVICE_CHANGED)
 	var payload: Dictionary = action.get("payload", {})
 	assert_eq(int(payload.get("device_type", 99)), M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE)
@@ -209,8 +209,8 @@ func test_keyboard_event_after_gamepad_switches_back_to_keyboard() -> void:
 	assert_gt(float(payload.get("timestamp", 0.0)), 0.0)
 
 func test_touch_event_switches_to_touchscreen_without_gamepad_state() -> void:
-	var was_connected := _manager.is_gamepad_connected()
-	var touch := InputEventScreenTouch.new()
+	var was_connected: bool = _manager.is_gamepad_connected()
+	var touch: InputEventScreenTouch = InputEventScreenTouch.new()
 	touch.pressed = true
 	touch.index = 0
 	touch.position = Vector2.ONE
@@ -231,7 +231,7 @@ func test_touch_event_switches_to_touchscreen_without_gamepad_state() -> void:
 		)
 
 	assert_eq(_device_events.size(), 1)
-	var event := _device_events[0]
+	var event: Dictionary = _device_events[0]
 	assert_eq(event.get("device_type"), M_InputDeviceManager.DeviceType.TOUCHSCREEN)
 	assert_eq(event.get("device_id"), -1)
 	assert_gt(float(event.get("timestamp", 0.0)), 0.0)
@@ -244,7 +244,7 @@ func test_gamepad_disconnect_ignored_when_overlay_active() -> void:
 	_store.dispatch(U_NavigationActions.start_game(StringName("exterior")))
 	_store.dispatch(U_NavigationActions.open_pause())
 	await get_tree().process_frame
-	var dispatched_before := _dispatched_actions.size()
+	var dispatched_before: int = _dispatched_actions.size()
 
 	_manager._on_joy_connection_changed(5, false)
 	await get_tree().process_frame
@@ -253,7 +253,7 @@ func test_gamepad_disconnect_ignored_when_overlay_active() -> void:
 	assert_eq(_manager.get_gamepad_device_id(), 5, "Gamepad id should be preserved during ignored disconnect")
 	assert_eq(_device_events.size(), 0, "Ignored disconnect should not emit device_changed")
 	assert_eq(_dispatched_actions.size(), dispatched_before + 1, "Ignored disconnect should only dispatch connection state")
-	var last_action := _dispatched_actions.back()
+	var last_action: Dictionary = _dispatched_actions.back()
 	assert_eq(last_action.get("type"), U_InputActions.ACTION_GAMEPAD_DISCONNECTED)
 
 func test_gamepad_disconnect_ignored_with_grace_on_mobile() -> void:
@@ -269,19 +269,19 @@ func test_gamepad_disconnect_ignored_with_grace_on_mobile() -> void:
 	assert_eq(_manager.get_gamepad_device_id(), 8)
 	assert_eq(_device_events.size(), 0, "Grace-ignored disconnect should not emit device_changed")
 	assert_eq(_dispatched_actions.size(), 1, "Grace-ignored disconnect should still dispatch connection state")
-	var action := _dispatched_actions.back()
+	var action: Dictionary = _dispatched_actions.back()
 	assert_eq(action.get("type"), U_InputActions.ACTION_GAMEPAD_DISCONNECTED)
 
 func test_redundant_device_events_do_not_reemit() -> void:
 	await _simulate_gamepad_input(2)
-	var key_event := InputEventKey.new()
+	var key_event: InputEventKey = InputEventKey.new()
 	key_event.pressed = true
 	key_event.physical_keycode = KEY_F
 	_manager._input(key_event)
 	await get_tree().process_frame
 
-	var emitted_actions := _dispatched_actions.size()
-	var emitted_events := _device_events.size()
+	var emitted_actions: int = _dispatched_actions.size()
+	var emitted_events: int = _device_events.size()
 
 	_manager._input(key_event)
 	await get_tree().process_frame
@@ -294,15 +294,15 @@ func test_duplicate_events_refresh_last_input_time() -> void:
 	_dispatched_actions.clear()
 	_device_events.clear()
 
-	var key_event := InputEventKey.new()
+	var key_event: InputEventKey = InputEventKey.new()
 	key_event.pressed = true
 	key_event.physical_keycode = KEY_Q
 	_manager._input(key_event)
 	await get_tree().process_frame
-	var first_time := _manager.get_last_input_time()
+	var first_time: float = _manager.get_last_input_time()
 
 	await get_tree().process_frame
-	var key_event_two := InputEventKey.new()
+	var key_event_two: InputEventKey = InputEventKey.new()
 	key_event_two.pressed = true
 	key_event_two.physical_keycode = KEY_W
 	_manager._input(key_event_two)
@@ -314,7 +314,7 @@ func test_duplicate_events_refresh_last_input_time() -> void:
 	assert_true(_manager.get_time_since_last_input() >= 0.0, "Time since last input should be non-negative")
 
 func test_small_gamepad_motion_does_not_override_keyboard() -> void:
-	var key_event := InputEventKey.new()
+	var key_event: InputEventKey = InputEventKey.new()
 	key_event.pressed = true
 	key_event.physical_keycode = KEY_W
 	_manager._input(key_event)
@@ -323,7 +323,7 @@ func test_small_gamepad_motion_does_not_override_keyboard() -> void:
 	_dispatched_actions.clear()
 	_device_events.clear()
 
-	var small_motion := InputEventJoypadMotion.new()
+	var small_motion: InputEventJoypadMotion = InputEventJoypadMotion.new()
 	small_motion.device = 11
 	small_motion.axis = JOY_AXIS_LEFT_X
 	small_motion.axis_value = 0.05
@@ -337,7 +337,7 @@ func test_small_gamepad_motion_does_not_override_keyboard() -> void:
 func _simulate_gamepad_input(device_id: int) -> void:
 	_dispatched_actions.clear()
 	_device_events.clear()
-	var motion := InputEventJoypadMotion.new()
+	var motion: InputEventJoypadMotion = InputEventJoypadMotion.new()
 	motion.device = device_id
 	motion.axis = JOY_AXIS_LEFT_X
 	motion.axis_value = 0.25

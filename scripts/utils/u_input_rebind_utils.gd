@@ -9,6 +9,91 @@ class ValidationResult extends RefCounted:
 	var error: String = ""
 	var conflict_action: StringName = StringName()
 
+static func format_event_label(event: InputEvent) -> String:
+	if event == null:
+		return ""
+
+	if event is InputEventJoypadMotion:
+		var motion := event as InputEventJoypadMotion
+		var axis := motion.axis
+		var value := motion.axis_value
+		if axis == 4:
+			return "Left Trigger"
+		elif axis == 5:
+			return "Right Trigger"
+		if axis == JOY_AXIS_LEFT_X:
+			if value < 0.0:
+				return "Left Joystick Left"
+			elif value > 0.0:
+				return "Left Joystick Right"
+		elif axis == JOY_AXIS_LEFT_Y:
+			if value < 0.0:
+				return "Left Joystick Up"
+			elif value > 0.0:
+				return "Left Joystick Down"
+		elif axis == JOY_AXIS_RIGHT_X:
+			if value < 0.0:
+				return "Right Joystick Left"
+			elif value > 0.0:
+				return "Right Joystick Right"
+		elif axis == JOY_AXIS_RIGHT_Y:
+			if value < 0.0:
+				return "Right Joystick Up"
+			elif value > 0.0:
+				return "Right Joystick Down"
+		# Fallback to Godot's default text when direction cannot be determined.
+		return motion.as_text()
+
+	if event is InputEventKey:
+		return (event as InputEventKey).as_text()
+	if event is InputEventJoypadButton:
+		return _format_joypad_button_label((event as InputEventJoypadButton).button_index)
+	if event is InputEventMouseButton:
+		return (event as InputEventMouseButton).as_text()
+	if event is InputEventMouseMotion:
+		return (event as InputEventMouseMotion).as_text()
+	if event is InputEventScreenTouch:
+		return (event as InputEventScreenTouch).as_text()
+	if event is InputEventScreenDrag:
+		return (event as InputEventScreenDrag).as_text()
+
+	return event.as_text()
+
+static func _format_joypad_button_label(index: int) -> String:
+	match index:
+		JOY_BUTTON_A:
+			return "Bottom Action"
+		JOY_BUTTON_B:
+			return "Right Action"
+		JOY_BUTTON_X:
+			return "Left Action"
+		JOY_BUTTON_Y:
+			return "Top Action"
+		JOY_BUTTON_LEFT_SHOULDER:
+			return "Left Bumper"
+		JOY_BUTTON_RIGHT_SHOULDER:
+			return "Right Bumper"
+		JOY_BUTTON_LEFT_STICK:
+			return "Left Stick Held"
+		JOY_BUTTON_RIGHT_STICK:
+			return "Right Stick Click"
+		JOY_BUTTON_BACK:
+			return "Select/Back"
+		JOY_BUTTON_START:
+			return "Start"
+		JOY_BUTTON_GUIDE:
+			return "Guide"
+		JOY_BUTTON_DPAD_UP:
+			return "D-Pad Up"
+		JOY_BUTTON_DPAD_DOWN:
+			return "D-Pad Down"
+		JOY_BUTTON_DPAD_LEFT:
+			return "D-Pad Left"
+		JOY_BUTTON_DPAD_RIGHT:
+			return "D-Pad Right"
+		_:
+			return "Button %d" % index
+
 static func validate_rebind(
 	action: StringName,
 	event: InputEvent,
