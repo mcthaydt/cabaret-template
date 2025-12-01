@@ -38,6 +38,22 @@ action_mappings = {
 "sprint": [{
 "button_index": 7,
 "type": "joypad_button"
+}],
+"ui_down": [{
+"button_index": 12,
+"type": "joypad_button"
+}],
+"ui_left": [{
+"button_index": 13,
+"type": "joypad_button"
+}],
+"ui_right": [{
+"button_index": 14,
+"type": "joypad_button"
+}],
+"ui_up": [{
+"button_index": 11,
+"type": "joypad_button"
 }]
 }
 description = "Accessibility-focused gamepad: Left stick = Move, A = Jump, sprint toggle on stick click"

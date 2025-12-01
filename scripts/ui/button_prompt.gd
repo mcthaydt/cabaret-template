@@ -9,6 +9,7 @@ const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_man
 
 @export var label_path: NodePath = NodePath("Text")
 @export var text_icon_panel_path: NodePath = NodePath("TextIcon")
+@export var text_icon_texture_path: NodePath = NodePath("TextIcon/ButtonIcon")
 @export var text_icon_label_path: NodePath = NodePath("TextIcon/Label")
 @export var mobile_button_path: NodePath = NodePath("MobileButton")
 @export var mobile_button_label_path: NodePath = NodePath("MobileButton/ActionLabel")
@@ -17,6 +18,7 @@ const INTERACT_COLOR := Color(1.0, 0.85, 0.6)
 
 var _label: Label
 var _text_icon_panel: Control
+var _text_icon_texture: TextureRect
 var _text_icon_label: Label
 var _mobile_button: Control
 var _mobile_button_label: Label
@@ -31,6 +33,7 @@ var _is_shown: bool = false
 func _ready() -> void:
 	_label = get_node_or_null(label_path) as Label
 	_text_icon_panel = get_node_or_null(text_icon_panel_path) as Control
+	_text_icon_texture = get_node_or_null(text_icon_texture_path) as TextureRect
 	_text_icon_label = get_node_or_null(text_icon_label_path) as Label
 	_mobile_button = get_node_or_null(mobile_button_path) as Control
 	_mobile_button_label = get_node_or_null(mobile_button_label_path) as Label
@@ -101,11 +104,32 @@ func _refresh_prompt() -> void:
 	else:
 		if _mobile_button != null:
 			_mobile_button.visible = false
+
 		if _text_icon_panel != null:
-			var should_show_text_icon := not binding_label.is_empty()
-			_text_icon_panel.visible = should_show_text_icon
-			if _text_icon_label != null:
-				_text_icon_label.text = binding_label if should_show_text_icon else ""
+			# Try texture first, fall back to text
+			var texture := U_ButtonPromptRegistry.get_prompt(_action, _device_type)
+			var has_texture := texture != null
+			var has_binding_label := not binding_label.is_empty()
+
+			_text_icon_panel.visible = has_texture or has_binding_label
+
+			if _text_icon_texture != null:
+				if has_texture:
+					_text_icon_texture.texture = texture
+					_text_icon_texture.visible = true
+					if _text_icon_label != null:
+						_text_icon_label.visible = false
+				else:
+					_text_icon_texture.texture = null
+					_text_icon_texture.visible = false
+					if _text_icon_label != null:
+						_text_icon_label.visible = has_binding_label
+						_text_icon_label.text = binding_label if has_binding_label else ""
+			else:
+				# No texture node (backward compatible)
+				if _text_icon_label != null:
+					_text_icon_label.visible = has_binding_label
+					_text_icon_label.text = binding_label if has_binding_label else ""
 
 	if _label != null:
 		_label.text = cleaned_prompt
@@ -125,6 +149,9 @@ func _reset_visuals() -> void:
 		_label.visible = false
 	if _text_icon_panel != null:
 		_text_icon_panel.visible = false
+	if _text_icon_texture != null:
+		_text_icon_texture.texture = null
+		_text_icon_texture.visible = false
 	if _text_icon_label != null:
 		_text_icon_label.text = ""
 	if _mobile_button != null:

@@ -124,6 +124,19 @@
   - Device detection is centralized in `M_InputDeviceManager`; gameplay systems read `U_InputSelectors.get_active_device_type()` / `get_active_gamepad_id()` instead of dispatching their own `device_changed` actions.
   - Rebinding flows must dispatch via Redux (`U_InputActions.rebind_action`)—`M_InputProfileManager` now derives InputMap state from the store, so avoid mutating InputMap directly in UI code.
   - `S_InputSystem` only gates input on cursor capture for desktop platforms; on mobile (`OS.has_feature("mobile")`), do not depend on `Input.mouse_mode` for gamepad routing so Bluetooth controllers remain functional when MobileControls hides the touchscreen UI.
+- Button Prompt Patterns (Phase 1 - Generic Glyphs)
+  - **Registry handles texture loading**: `U_ButtonPromptRegistry.get_prompt(action, device_type)` returns cached Texture2D for registered actions
+  - **Automatic fallback**: When texture unavailable, ButtonPrompt falls back to text label
+  - **Texture priority**: Show texture if available, otherwise show text binding label
+  - **Caching**: Textures loaded once and cached in registry for performance
+  - **Device switching**: ButtonPrompt automatically updates texture when device changes
+  - **Texture display**: TextureRect with 32x32 minimum size, aspect ratio preserved (STRETCH_KEEP_ASPECT_CENTERED)
+  - **Usage**:
+    ```gdscript
+    button_prompt.show_prompt(StringName("interact"), "Open Door")
+    # Shows texture for current device, falls back to text if unavailable
+    ```
+  - **Note**: Textures are mapped to actions, not specific key bindings. When user rebinds an action, the texture remains the same (shows action's registered glyph, not the new key).
 
 ## Scene Manager Patterns (Phase 10 Complete)
 

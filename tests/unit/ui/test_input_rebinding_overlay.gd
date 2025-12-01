@@ -90,17 +90,11 @@ func test_reserved_actions_show_as_disabled() -> void:
 	var rows: Dictionary = {}
 	if rows_value is Dictionary:
 		rows = rows_value as Dictionary
-	assert_true(rows.has(StringName("pause")), "Overlay should include reserved pause action")
-	var pause_row: Dictionary = rows[StringName("pause")]
-	var pause_add: Button = pause_row.get("add_button")
-	var pause_replace: Button = pause_row.get("replace_button")
-	assert_not_null(pause_add)
-	assert_not_null(pause_replace)
-	assert_true(pause_add.disabled, "Reserved add button should be disabled")
-	assert_true(pause_replace.disabled, "Reserved replace button should be disabled")
-	assert_eq(pause_add.text, "Reserved")
-	assert_eq(pause_replace.text, "Reserved")
 
+	# Pause should be excluded from the overlay entirely
+	assert_false(rows.has(StringName("pause")), "Pause action should be excluded from rebind controls")
+
+	# Non-reserved actions should work normally
 	var jump_row: Dictionary = rows[StringName("test_jump")]
 	var jump_replace: Button = jump_row.get("replace_button")
 	assert_not_null(jump_replace)

@@ -33,6 +33,22 @@ action_mappings = {
 "sprint": [{
 "physical_keycode": 4194325,
 "type": "key"
+}],
+"ui_down": [{
+"physical_keycode": 4194322,
+"type": "key"
+}],
+"ui_left": [{
+"physical_keycode": 4194319,
+"type": "key"
+}],
+"ui_right": [{
+"physical_keycode": 4194321,
+"type": "key"
+}],
+"ui_up": [{
+"physical_keycode": 4194320,
+"type": "key"
 }]
 }
 description = "Standard WASD movement, Space = Jump, Shift = Sprint"

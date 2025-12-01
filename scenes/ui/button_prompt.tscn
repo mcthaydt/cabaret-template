@@ -26,6 +26,13 @@ layout_mode = 2
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("1")
 
+[node name="ButtonIcon" type="TextureRect" parent="TextIcon"]
+visible = false
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
 [node name="Label" type="Label" parent="TextIcon"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20

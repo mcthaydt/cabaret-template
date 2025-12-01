@@ -33,6 +33,22 @@ action_mappings = {
 "sprint": [{
 "physical_keycode": 4194325,
 "type": "key"
+}],
+"ui_down": [{
+"physical_keycode": 83,
+"type": "key"
+}],
+"ui_left": [{
+"physical_keycode": 65,
+"type": "key"
+}],
+"ui_right": [{
+"physical_keycode": 68,
+"type": "key"
+}],
+"ui_up": [{
+"physical_keycode": 87,
+"type": "key"
 }]
 }
 description = "Arrow keys movement, Space = Jump, Shift = Sprint"

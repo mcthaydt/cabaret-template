@@ -56,7 +56,7 @@ func _await_frames(count: int) -> void:
 func test_interact_prompt_updates_icon_on_device_switch() -> void:
 	var text_label: Label = _hud.get_node("MarginContainer/InteractPrompt/Text")
 	var text_icon: Control = _hud.get_node("MarginContainer/InteractPrompt/TextIcon")
-	var text_icon_label: Label = text_icon.get_node("Label")
+	var text_icon_texture: TextureRect = text_icon.get_node("ButtonIcon")
 
 	U_ECSEventBus.publish(StringName("interact_prompt_show"), {
 		"controller_id": 99,
@@ -65,8 +65,9 @@ func test_interact_prompt_updates_icon_on_device_switch() -> void:
 	})
 	await _await_frames(1)
 
-	assert_true(text_icon.visible, "HUD prompt should display binding label")
-	assert_eq(text_icon_label.text, "E", "HUD should show keyboard binding label")
+	assert_true(text_icon.visible, "HUD prompt should display icon")
+	assert_true(text_icon_texture.visible, "HUD should show keyboard texture")
+	assert_not_null(text_icon_texture.texture, "Texture should be loaded for keyboard")
 	assert_eq(text_label.text, "Read", "Prompt text should reflect interact message")
 
 	_device_manager._on_joy_connection_changed(1, true)
@@ -79,7 +80,8 @@ func test_interact_prompt_updates_icon_on_device_switch() -> void:
 	await _await_frames(1)
 
 	assert_true(text_icon.visible, "HUD text icon stays visible after device switch")
-	assert_eq(text_icon_label.text, "West", "HUD should update binding label for gamepad")
+	assert_true(text_icon_texture.visible, "HUD should show gamepad texture")
+	assert_not_null(text_icon_texture.texture, "Texture should be loaded for gamepad")
 	assert_eq(text_label.text, "Read", "Prompt text should remain unchanged when device switches")
 
 func test_interact_prompt_falls_back_to_text_when_icon_missing() -> void:

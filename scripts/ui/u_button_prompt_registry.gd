@@ -58,6 +58,17 @@ static func _initialize_registry() -> void:
 	_assign_prompt(StringName("move_right"), DEVICE_KEYBOARD_MOUSE, keyboard_base + "key_d.png")
 	_assign_prompt(StringName("move_right"), DEVICE_GAMEPAD, gamepad_base + "dpad_right.png")
 
+	# UI navigation - use d-pad graphics for both keyboard and gamepad
+	# (keyboard arrow keys will show gamepad-style directional icons)
+	_assign_prompt(StringName("ui_up"), DEVICE_KEYBOARD_MOUSE, gamepad_base + "dpad_up.png", "↑")
+	_assign_prompt(StringName("ui_up"), DEVICE_GAMEPAD, gamepad_base + "dpad_up.png")
+	_assign_prompt(StringName("ui_down"), DEVICE_KEYBOARD_MOUSE, gamepad_base + "dpad_down.png", "↓")
+	_assign_prompt(StringName("ui_down"), DEVICE_GAMEPAD, gamepad_base + "dpad_down.png")
+	_assign_prompt(StringName("ui_left"), DEVICE_KEYBOARD_MOUSE, gamepad_base + "dpad_left.png", "←")
+	_assign_prompt(StringName("ui_left"), DEVICE_GAMEPAD, gamepad_base + "dpad_left.png")
+	_assign_prompt(StringName("ui_right"), DEVICE_KEYBOARD_MOUSE, gamepad_base + "dpad_right.png", "→")
+	_assign_prompt(StringName("ui_right"), DEVICE_GAMEPAD, gamepad_base + "dpad_right.png")
+
 	_assign_prompt(StringName("toggle_inventory"), DEVICE_GAMEPAD, gamepad_base + "button_select.png")
 	_assign_prompt(StringName("toggle_inventory"), DEVICE_KEYBOARD_MOUSE, keyboard_base + "key_e.png")
 
@@ -71,7 +82,33 @@ static func register_prompt(
 	_assign_prompt(action, device, texture_path, label)
 
 static func get_prompt(action: StringName, device: int) -> Texture2D:
-	return null
+	_ensure_initialized()
+	var entry := _get_device_entry(action, device)
+	if entry.is_empty():
+		return null
+
+	# Check cache first
+	var cached_texture: Variant = entry.get("texture", null)
+	if cached_texture != null and cached_texture is Texture2D:
+		return cached_texture as Texture2D
+
+	# Load texture from path
+	var texture_path: String = entry.get("path", "")
+	if texture_path.is_empty():
+		return null
+
+	# Check file exists before loading to avoid errors
+	if not ResourceLoader.exists(texture_path):
+		return null
+
+	var texture: Texture2D = load(texture_path)
+	if texture == null:
+		return null  # Graceful degradation
+
+	# Cache for future calls
+	entry["texture"] = texture
+	_set_device_entry(action, device, entry)
+	return texture
 
 static func get_prompt_text(action: StringName, device: int) -> String:
 	_ensure_initialized()

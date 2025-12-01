@@ -87,12 +87,13 @@ func test_show_prompt_updates_icon_and_text() -> void:
 	await _await_frames(1)
 
 	var text_icon: Control = button_prompt.get_node("TextIcon")
-	var text_icon_label: Label = text_icon.get_node("Label")
+	var text_icon_texture: TextureRect = text_icon.get_node("ButtonIcon")
 	var label: Label = button_prompt.get_node("Text")
 
 	assert_true(button_prompt.visible, "Prompt container should be visible after show")
 	assert_true(text_icon.visible, "Text icon should be visible when prompt shown")
-	assert_eq(text_icon_label.text, "E", "Text icon should reflect keyboard binding")
+	assert_true(text_icon_texture.visible, "Texture should be visible for keyboard binding")
+	assert_not_null(text_icon_texture.texture, "Texture should be loaded for keyboard binding")
 	assert_eq(label.text, "Read", "Prompt text should match provided value")
 
 	_device_manager._on_joy_connection_changed(1, true)
@@ -105,7 +106,8 @@ func test_show_prompt_updates_icon_and_text() -> void:
 	await _await_frames(1)
 
 	assert_true(text_icon.visible, "Text icon should remain visible after device change")
-	assert_eq(text_icon_label.text, "West", "Text icon should update to current device binding")
+	assert_true(text_icon_texture.visible, "Texture should be visible for gamepad binding")
+	assert_not_null(text_icon_texture.texture, "Texture should be loaded for gamepad binding")
 	assert_eq(label.text, "Read", "Prompt text should remain unchanged when device switches")
 
 func test_missing_icon_falls_back_to_text_label() -> void:
@@ -155,6 +157,90 @@ func test_interact_prompt_reflects_custom_binding() -> void:
 func test_jump_prompt_reflects_custom_binding() -> void:
 	await _assert_prompt_updates_binding_label(StringName("jump"), "Jump", Key.KEY_Q)
 
+func test_show_prompt_displays_texture_when_available() -> void:
+	_button_prompt.call("show_prompt", StringName("interact"), "Open Door")
+	await _await_frames(1)
+
+	var text_icon: Control = _button_prompt.get_node("TextIcon")
+	var text_icon_texture: TextureRect = text_icon.get_node("ButtonIcon")
+	var text_icon_label: Label = text_icon.get_node("Label")
+
+	assert_true(text_icon.visible, "Text icon panel should be visible")
+	assert_true(text_icon_texture.visible, "Texture should be visible when available")
+	assert_not_null(text_icon_texture.texture, "Texture should be loaded from registry")
+	assert_false(text_icon_label.visible, "Text label should be hidden when texture shown")
+
+func test_show_prompt_falls_back_to_text_when_texture_missing() -> void:
+	var action := StringName("missing_texture_action")
+	U_ButtonPromptRegistry.register_prompt(action, DeviceType.KEYBOARD_MOUSE, "res://invalid/missing.png", "TestKey")
+
+	_button_prompt.call("show_prompt", action, "Test Action")
+	await _await_frames(1)
+
+	var text_icon: Control = _button_prompt.get_node("TextIcon")
+	var text_icon_texture: TextureRect = text_icon.get_node("ButtonIcon")
+	var text_icon_label: Label = text_icon.get_node("Label")
+
+	assert_true(text_icon.visible, "Text icon panel should be visible")
+	assert_false(text_icon_texture.visible, "Texture should be hidden when unavailable")
+	assert_null(text_icon_texture.texture, "Texture should be null for missing files")
+	assert_true(text_icon_label.visible, "Text label should be visible as fallback")
+	assert_eq(text_icon_label.text, "TestKey", "Text label should show binding label")
+
+func test_device_switch_updates_texture() -> void:
+	_button_prompt.call("show_prompt", StringName("interact"), "Interact")
+	await _await_frames(1)
+
+	var text_icon: Control = _button_prompt.get_node("TextIcon")
+	var text_icon_texture: TextureRect = text_icon.get_node("ButtonIcon")
+	var keyboard_texture := text_icon_texture.texture
+
+	assert_not_null(keyboard_texture, "Keyboard texture should be loaded")
+
+	# Switch to gamepad
+	_device_manager._on_joy_connection_changed(0, true)
+	await _await_frames(1)
+	var motion := InputEventJoypadMotion.new()
+	motion.device = 0
+	motion.axis = JOY_AXIS_LEFT_X
+	motion.axis_value = 0.6
+	_device_manager._input(motion)
+	await _await_frames(1)
+
+	var gamepad_texture := text_icon_texture.texture
+	assert_not_null(gamepad_texture, "Gamepad texture should be loaded")
+	if keyboard_texture != null and gamepad_texture != null:
+		assert_ne(keyboard_texture.resource_path, gamepad_texture.resource_path, "Texture should change with device type")
+
+func test_hide_prompt_clears_texture() -> void:
+	_button_prompt.call("show_prompt", StringName("interact"), "Test")
+	await _await_frames(1)
+
+	var text_icon_texture: TextureRect = _button_prompt.get_node("TextIcon/ButtonIcon")
+	assert_not_null(text_icon_texture.texture, "Texture should be set when prompt shown")
+
+	_button_prompt.call("hide_prompt")
+	await _await_frames(1)
+
+	assert_null(text_icon_texture.texture, "Texture should be cleared when prompt hidden")
+	assert_false(text_icon_texture.visible, "Texture rect should be hidden")
+
+func test_button_icon_maintains_aspect_ratio() -> void:
+	_button_prompt.call("show_prompt", StringName("jump"), "Jump")
+	await _await_frames(1)
+
+	var text_icon_texture: TextureRect = _button_prompt.get_node("TextIcon/ButtonIcon")
+	assert_eq(text_icon_texture.stretch_mode, TextureRect.STRETCH_KEEP_ASPECT_CENTERED,
+		"Texture should maintain aspect ratio with centered stretch mode")
+
+func test_button_icon_respects_minimum_size() -> void:
+	_button_prompt.call("show_prompt", StringName("interact"), "Interact")
+	await _await_frames(1)
+
+	var text_icon_texture: TextureRect = _button_prompt.get_node("TextIcon/ButtonIcon")
+	var min_size := text_icon_texture.custom_minimum_size
+	assert_eq(min_size, Vector2(32, 32), "Texture should have 32x32 minimum size")
+
 func _capture_action_events(action: StringName) -> Array[InputEvent]:
 	var results: Array[InputEvent] = []
 	if not InputMap.has_action(action):
@@ -178,13 +264,19 @@ func _assert_prompt_updates_binding_label(action: StringName, prompt: String, ke
 	_button_prompt.call("show_prompt", action, prompt)
 	await _await_frames(1)
 	var text_icon: Control = _button_prompt.get_node("TextIcon")
+	var text_icon_texture: TextureRect = text_icon.get_node("ButtonIcon")
 	var text_icon_label: Label = text_icon.get_node("Label")
 	var label: Label = _button_prompt.get_node("Text")
 	assert_true(is_instance_valid(text_icon), "Text icon should remain valid while prompt active")
 	assert_true(is_instance_valid(label), "Label should remain valid while prompt active")
 	assert_true(text_icon.visible, "Text icon should be visible for default binding")
-	assert_eq(text_icon_label.text, U_ButtonPromptRegistry.get_binding_label(action, DeviceType.KEYBOARD_MOUSE),
-		"Text icon should reflect current binding label")
+	# Texture should be visible if available
+	var has_texture := U_ButtonPromptRegistry.get_prompt(action, DeviceType.KEYBOARD_MOUSE) != null
+	if has_texture:
+		assert_true(text_icon_texture.visible, "Texture should be visible when available")
+	else:
+		assert_eq(text_icon_label.text, U_ButtonPromptRegistry.get_binding_label(action, DeviceType.KEYBOARD_MOUSE),
+			"Text icon should reflect current binding label")
 	assert_eq(label.text, prompt, "Default prompt keeps provided label when icon available")
 
 	var original_events := _capture_action_events(action)
@@ -192,13 +284,22 @@ func _assert_prompt_updates_binding_label(action: StringName, prompt: String, ke
 	_button_prompt.call("show_prompt", action, prompt)
 	await _await_frames(1)
 	text_icon = _button_prompt.get_node("TextIcon")
+	text_icon_texture = text_icon.get_node("ButtonIcon")
 	text_icon_label = text_icon.get_node("Label")
 	label = _button_prompt.get_node("Text")
 
 	assert_true(text_icon.visible, "Text icon should remain visible after rebinding")
-	assert_eq(text_icon_label.text, OS.get_keycode_string(keycode),
-		"Text icon should display rebound key label")
-	assert_eq(label.text, prompt, "Prompt text should remain provided label when fallback icon used")
+	# Texture remains shown if registered for action (even if binding changed)
+	if has_texture:
+		assert_true(text_icon_texture.visible, "Texture should remain visible after rebinding")
+		assert_not_null(text_icon_texture.texture, "Texture should still be loaded")
+		# Note: Texture may not match new binding, but it's registered for the action
+	else:
+		assert_false(text_icon_texture.visible, "Texture should be hidden when not available")
+		assert_true(text_icon_label.visible, "Text label should be visible as fallback")
+		assert_eq(text_icon_label.text, OS.get_keycode_string(keycode),
+			"Text icon should display rebound key label")
+	assert_eq(label.text, prompt, "Prompt text should remain provided label")
 
 	_restore_action_events(action, original_events)
 

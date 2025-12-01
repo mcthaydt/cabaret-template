@@ -8,6 +8,8 @@ const U_InputCaptureGuard := preload("res://scripts/utils/u_input_capture_guard.
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
+const U_ButtonPromptRegistry := preload("res://scripts/ui/u_button_prompt_registry.gd")
+const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/default_rebind_settings.tres")
 
 @onready var _action_list: VBoxContainer = %ActionList
@@ -26,7 +28,7 @@ var _is_capturing: bool = false
 var _pending_action: StringName = StringName()
 var _pending_event: InputEvent = null
 var _pending_conflict: StringName = StringName()
-var _action_rows: Dictionary = {}  # StringName -> {container: VBoxContainer, name_label: Label, binding_label: Label, replace_button: Button, add_button: Button, reset_button: Button, category_header: Label}
+var _action_rows: Dictionary = {}  # StringName -> {container: VBoxContainer, name_label: Label, binding_container: HBoxContainer, replace_button: Button, add_button: Button, reset_button: Button, category_header: Label}
 var _capture_mode: String = U_InputActions.REBIND_MODE_REPLACE
 var _search_filter: String = ""
 var _focused_action_index: int = -1
@@ -44,9 +46,9 @@ const CATEGORY_SPACING := 16
 
 # Action categories for grouping
 const ACTION_CATEGORIES := {
-	"movement": ["move_left", "move_right", "move_forward", "move_backward", "jump", "crouch", "sprint"],
+	"movement": ["move_left", "move_right", "move_forward", "move_backward", "jump", "crouch", "sprint", "test_jump"],
 	"combat": ["attack", "defend", "special_attack"],
-	"ui": ["pause", "interact", "menu", "inventory"],
+	"ui": ["interact", "menu", "inventory", "ui_up", "ui_down", "ui_left", "ui_right"],
 	"camera": ["camera_up", "camera_down", "camera_left", "camera_right", "zoom_in", "zoom_out"]
 }
 
@@ -54,8 +56,7 @@ const ACTION_CATEGORIES := {
 const EXCLUDED_ACTIONS := [
 	# Built-in UI navigation
 	"ui_accept", "ui_select", "ui_cancel", "ui_focus_next", "ui_focus_prev",
-	"ui_left", "ui_right", "ui_up", "ui_down", "ui_page_up", "ui_page_down",
-	"ui_home", "ui_end",
+	"ui_page_up", "ui_page_down", "ui_home", "ui_end",
 	# Text editing
 	"ui_text_completion_query", "ui_text_completion_accept", "ui_text_completion_replace",
 	"ui_text_newline", "ui_text_newline_blank", "ui_text_newline_above",
@@ -87,6 +88,8 @@ const EXCLUDED_ACTIONS := [
 	"ui_graph_follow_right", "ui_graph_follow_right.macos",
 	"ui_filedialog_up_one_level", "ui_filedialog_refresh", "ui_filedialog_show_hidden",
 	"ui_swap_input_direction", "ui_colorpicker_delete_preset",
+	# Game-specific excluded actions
+	"pause",
 	# Editor-specific
 	"editor", "editor_forward", "editor_backward"
 ]
@@ -121,7 +124,7 @@ func _on_panel_ready() -> void:
 
 	_connect_profile_signals()
 	_build_action_rows()
-	_update_status("Select an action to rebind. Use Tab/Arrow keys to navigate.")
+	_update_status("Select an action to rebind.")
 	_set_reset_button_enabled(_profile_manager != null)
 
 func _connect_profile_signals() -> void:
@@ -188,13 +191,13 @@ func _build_action_rows() -> void:
 			name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			name_label.add_theme_font_size_override("font_size", 14)
 
-			var bindings_label := Label.new()
-			bindings_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			bindings_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-			bindings_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1.0))
+			var bindings_container := HBoxContainer.new()
+			bindings_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			bindings_container.alignment = BoxContainer.ALIGNMENT_END
+			bindings_container.add_theme_constant_override("separation", 8)
 
 			label_row.add_child(name_label)
-			label_row.add_child(bindings_label)
+			label_row.add_child(bindings_container)
 
 			# Bottom row: Buttons
 			var button_row := HBoxContainer.new()
@@ -234,7 +237,7 @@ func _build_action_rows() -> void:
 			_action_rows[action] = {
 				"container": row,
 				"name_label": name_label,
-				"binding_label": bindings_label,
+				"binding_container": bindings_container,
 				"add_button": add_button,
 				"replace_button": replace_button,
 				"reset_button": reset_button,
@@ -319,13 +322,21 @@ func _get_active_profile() -> RS_InputProfile:
 
 func _refresh_bindings() -> void:
 	var device_category: String = _get_active_device_category()
+	var device_type_for_registry: int = M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE
+	if device_category == "gamepad":
+		device_type_for_registry = M_InputDeviceManager.DeviceType.GAMEPAD
 
 	for action in _action_rows.keys():
 		var data: Dictionary = _action_rows[action]
-		var binding_label: Label = data.get("binding_label")
+		var binding_container: HBoxContainer = data.get("binding_container")
 		var name_label: Label = data.get("name_label")
-		if binding_label == null:
+		if binding_container == null:
 			continue
+
+		# Clear existing children
+		for child in binding_container.get_children():
+			child.queue_free()
+
 		var events := InputMap.action_get_events(action)
 		var filtered_events: Array[InputEvent] = []
 		for event in events:
@@ -343,18 +354,21 @@ func _refresh_bindings() -> void:
 			display_events = events
 
 		if display_events.is_empty():
-			binding_label.text = "Unbound"
+			var unbound_label := Label.new()
+			unbound_label.text = "Unbound"
+			unbound_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1.0))
+			binding_container.add_child(unbound_label)
 		else:
-			binding_label.text = _format_binding_text(display_events)
+			_populate_binding_visuals(binding_container, action, display_events, device_type_for_registry)
 
 		# Add visual indicator for custom bindings
 		var is_custom := _is_binding_custom(action)
 		if is_custom and name_label != null:
 			name_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.4, 1.0))  # Gold color for custom
-			binding_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.4, 1.0))
+			binding_container.modulate = Color(1.0, 0.8, 0.4, 1.0)
 		elif name_label != null:
 			name_label.remove_theme_color_override("font_color")
-			binding_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1.0))
+			binding_container.modulate = Color(1.0, 1.0, 1.0, 1.0)
 
 		var add_button: Button = data.get("add_button")
 		var replace_button: Button = data.get("replace_button")
@@ -768,7 +782,11 @@ func _format_action_name(action: StringName) -> String:
 		var word := words[i]
 		if word.is_empty():
 			continue
-		words[i] = word.left(1).to_upper() + word.substr(1).to_lower()
+		# Keep known acronyms uppercase
+		if word.to_lower() == "ui":
+			words[i] = "UI"
+		else:
+			words[i] = word.left(1).to_upper() + word.substr(1).to_lower()
 	return " ".join(words)
 
 func _format_binding_text(events: Array) -> String:
@@ -820,10 +838,6 @@ func _categorize_actions(actions: Array[StringName]) -> Dictionary:
 				break
 		if not found:
 			uncategorized.append(action)
-
-	# Add uncategorized actions to "other" category
-	if not uncategorized.is_empty():
-		categorized["other"] = uncategorized
 
 	return categorized
 
@@ -1155,6 +1169,82 @@ func _navigate_focus(direction: StringName) -> void:
 	# Defer to BaseMenuScreen neighbor-based navigation for analog sticks
 	# so movement feels consistent with other menus.
 	super._navigate_focus(direction)
+
+func _populate_binding_visuals(container: HBoxContainer, action: StringName, events: Array, device_type: int) -> void:
+	if container == null:
+		return
+
+	# Try to get texture from registry for this action
+	var registry_texture: Texture2D = U_ButtonPromptRegistry.get_prompt(action, device_type)
+
+	# If we have a registry texture, show it (canonical binding for this device)
+	if registry_texture != null:
+		var texture_rect := TextureRect.new()
+		texture_rect.texture = registry_texture
+		texture_rect.custom_minimum_size = Vector2(24, 24)
+		texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		container.add_child(texture_rect)
+		return
+
+	# Otherwise, show each event individually (for multiple bindings or unregistered actions)
+	for i in range(events.size()):
+		var event: InputEvent = events[i]
+		if event == null:
+			continue
+
+		# Try to get texture for individual keys
+		var texture: Texture2D = null
+		if event is InputEventKey:
+			var key_event := event as InputEventKey
+			var keycode := key_event.physical_keycode
+			if keycode == 0:
+				keycode = key_event.keycode
+			# Check common keys
+			var key_name := ""
+			match keycode:
+				KEY_W:
+					key_name = "key_w"
+				KEY_A:
+					key_name = "key_a"
+				KEY_S:
+					key_name = "key_s"
+				KEY_D:
+					key_name = "key_d"
+				KEY_E:
+					key_name = "key_e"
+				KEY_SPACE:
+					key_name = "key_space"
+				KEY_SHIFT:
+					key_name = "key_shift"
+				KEY_ESCAPE:
+					key_name = "key_escape"
+			if not key_name.is_empty():
+				var path := "res://resources/button_prompts/keyboard/%s.png" % key_name
+				if ResourceLoader.exists(path):
+					texture = load(path)
+
+		# Display texture or fallback to text
+		if texture != null:
+			var texture_rect := TextureRect.new()
+			texture_rect.texture = texture
+			texture_rect.custom_minimum_size = Vector2(24, 24)
+			texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			container.add_child(texture_rect)
+		else:
+			# Fallback to text label
+			var event_label := Label.new()
+			event_label.text = U_InputRebindUtils.format_event_label(event)
+			event_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1.0))
+			container.add_child(event_label)
+
+		# Add separator comma between bindings (except last)
+		if i < events.size() - 1:
+			var separator := Label.new()
+			separator.text = ", "
+			separator.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1.0))
+			container.add_child(separator)
 
 ## Returns device type category for an InputEvent.
 ## Returns: "keyboard", "mouse", "gamepad", or "unknown"
