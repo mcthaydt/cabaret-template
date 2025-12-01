@@ -8,6 +8,7 @@ const RS_TouchscreenSettings := preload("res://scripts/ecs/resources/rs_touchscr
 const VirtualJoystickScene := preload("res://scenes/ui/virtual_joystick.tscn")
 const VirtualButtonScene := preload("res://scenes/ui/virtual_button.tscn")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 
 @onready var _joystick_size_slider: HSlider = %JoystickSizeSlider
 @onready var _button_size_slider: HSlider = %ButtonSizeSlider
@@ -48,6 +49,7 @@ func _on_store_ready(store: M_StateStore) -> void:
 func _on_panel_ready() -> void:
 	_profile_manager = get_tree().get_first_node_in_group("input_profile_manager")
 
+	_configure_focus_neighbors()
 	_build_preview()
 	_connect_signals()
 	_update_preview_from_sliders()
@@ -97,6 +99,43 @@ func _build_preview() -> void:
 				button_instance._refresh_label()
 			button_instance.process_mode = Node.PROCESS_MODE_DISABLED
 			_preview_buttons.append(button_instance)
+
+func _configure_focus_neighbors() -> void:
+	var vertical_controls: Array[Control] = []
+	if _joystick_size_slider != null:
+		vertical_controls.append(_joystick_size_slider)
+	if _button_size_slider != null:
+		vertical_controls.append(_button_size_slider)
+	if _joystick_opacity_slider != null:
+		vertical_controls.append(_joystick_opacity_slider)
+	if _button_opacity_slider != null:
+		vertical_controls.append(_button_opacity_slider)
+	if _joystick_deadzone_slider != null:
+		vertical_controls.append(_joystick_deadzone_slider)
+
+	if not vertical_controls.is_empty():
+		U_FocusConfigurator.configure_vertical_focus(vertical_controls, false)
+
+	var buttons: Array[Control] = []
+	if _cancel_button != null:
+		buttons.append(_cancel_button)
+	if _reset_button != null:
+		buttons.append(_reset_button)
+	if _edit_layout_button != null:
+		buttons.append(_edit_layout_button)
+	if _apply_button != null:
+		buttons.append(_apply_button)
+
+	if not buttons.is_empty():
+		U_FocusConfigurator.configure_horizontal_focus(buttons, true)
+		var top_control: Control = _joystick_deadzone_slider
+		if top_control != null:
+			# Use Apply as the primary down target; fall back to first button if missing.
+			var down_target: Control = _apply_button if _apply_button != null else buttons[0]
+			top_control.focus_neighbor_bottom = top_control.get_path_to(down_target)
+			for button in buttons:
+				button.focus_neighbor_top = button.get_path_to(top_control)
+				button.focus_neighbor_bottom = button.get_path_to(top_control)
 
 func _connect_signals() -> void:
 	_joystick_size_slider.value_changed.connect(func(value: float) -> void:
@@ -253,6 +292,9 @@ func _on_edit_layout_pressed() -> void:
 	var store := get_store()
 	if store != null:
 		store.dispatch(U_NavigationActions.open_overlay(StringName("edit_touch_controls")))
+
+func _on_back_pressed() -> void:
+	_close_overlay()
 
 func _is_position_only_settings_update(settings_payload: Dictionary) -> bool:
 	if settings_payload.is_empty():

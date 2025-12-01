@@ -4,6 +4,7 @@ class_name EditTouchControlsOverlay
 
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 
 @onready var _drag_mode_check: CheckButton = %DragModeCheck
 @onready var _cancel_button: Button = %CancelButton
@@ -20,6 +21,7 @@ func _on_panel_ready() -> void:
 	_mobile_controls = get_tree().get_first_node_in_group("mobile_controls") as MobileControls
 	_profile_manager = get_tree().get_first_node_in_group("input_profile_manager")
 
+	_configure_focus_neighbors()
 	_capture_original_positions()
 	_set_drag_mode(false)
 
@@ -27,6 +29,28 @@ func _on_panel_ready() -> void:
 	_cancel_button.pressed.connect(_on_cancel_pressed)
 	_reset_button.pressed.connect(_on_reset_pressed)
 	_save_button.pressed.connect(_on_save_pressed)
+
+func _configure_focus_neighbors() -> void:
+	var buttons: Array[Control] = []
+	if _cancel_button != null:
+		buttons.append(_cancel_button)
+	if _reset_button != null:
+		buttons.append(_reset_button)
+	if _save_button != null:
+		buttons.append(_save_button)
+
+	if not buttons.is_empty():
+		U_FocusConfigurator.configure_horizontal_focus(buttons, true)
+
+		var top_control: Control = _drag_mode_check
+		if top_control != null:
+			# From the toggle row, down moves into the primary action (Save),
+			# and up/down from the bottom row returns to the toggle.
+			var down_target: Control = _save_button if _save_button != null else buttons[0]
+			top_control.focus_neighbor_bottom = top_control.get_path_to(down_target)
+			for button in buttons:
+				button.focus_neighbor_top = button.get_path_to(top_control)
+				button.focus_neighbor_bottom = button.get_path_to(top_control)
 
 func _exit_tree() -> void:
 	if _drag_mode_enabled:
@@ -184,3 +208,6 @@ func _close_overlay() -> void:
 	var store := get_store()
 	if store != null:
 		store.dispatch(U_NavigationActions.close_top_overlay())
+
+func _on_back_pressed() -> void:
+	_on_cancel_pressed()
