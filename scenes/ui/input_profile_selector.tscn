@@ -29,3 +29,11 @@ size_flags_horizontal = 3
 [node name="ApplyButton" type="Button" parent="HBoxContainer"]
 layout_mode = 2
 text = "Apply"
+
+[node name="PreviewLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 72.0
+offset_right = 640.0
+offset_bottom = 272.0
+autowrap_mode = 2

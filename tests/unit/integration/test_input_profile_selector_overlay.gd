@@ -111,6 +111,26 @@ func test_apply_closes_overlays_and_resumes() -> void:
 	assert_eq(_ui_overlay_stack.get_child_count(), 0, "All overlays closed after apply")
 	assert_false(get_tree().paused, "Tree resumed after applying profile")
 
+func test_profile_selector_shows_binding_preview() -> void:
+	var manager := M_SceneManager.new()
+	manager.skip_initial_scene_load = true
+	add_child_autofree(manager)
+	await get_tree().process_frame
+
+	await _start_game_and_pause()
+
+	# Open the profile selector overlay
+	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
+	var profiles_button := pause_menu.get_node("VBoxContainer/InputProfilesButton") as Button
+	assert_not_null(profiles_button, "InputProfilesButton should exist on pause menu")
+	profiles_button.emit_signal("pressed")
+	await wait_physics_frames(4)
+
+	var selector := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
+	var preview_label := selector.get_node("PreviewLabel") as Label
+	assert_not_null(preview_label, "PreviewLabel should exist on profile selector")
+	assert_false(preview_label.text.strip_edges().is_empty(), "Preview label should show bindings preview for the selected profile")
+
 func _start_game_and_pause() -> void:
 	_store.dispatch(U_NavigationActions.start_game(StringName("scene1")))
 	await _await_scene(StringName("scene1"))

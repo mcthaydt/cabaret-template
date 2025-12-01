@@ -151,7 +151,7 @@ Phase 7 addresses UX refinements discovered during testing:
 **Context-Aware UI:**
 - T072: Gamepad settings shown even when using keyboard/mouse
 - T076: Rebind controls shows all devices instead of current device only
-- T077: Input profiles don't preview actual bindings
+- T077: Input profiles now show per-profile binding previews in the selector overlay (players can see core actions before applying a profile)
 - T078: Gamepad UI needs visual button glyphs (Xbox/PS)
 
 **Architecture & UX:**

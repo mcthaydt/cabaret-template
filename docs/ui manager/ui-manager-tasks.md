@@ -1,6 +1,6 @@
 # UI Manager Task Checklist
 
-**Progress:** 57% (31 / 54 tasks complete)
+**Progress:** 59% (32 / 54 tasks complete)
 
 **Architecture Decisions Made:**
 - Dedicated `navigation` slice (Option A)
@@ -788,10 +788,13 @@ Issues discovered during testing that need to be addressed:
     - InputRebindingOverlay now filters displayed bindings by active device (`U_InputSelectors.get_active_device_type()`), showing gamepad-only bindings when on gamepad and keyboard/mouse bindings otherwise (with a safe fallback when no filtered events exist).
     - Pause menu hides the Rebind Controls button when the active device is TOUCHSCREEN so touch-only players are not offered an unavailable flow.
 
-- [ ] T077 [UX] Context-sensitive input profiles with visual feedback.
+- [x] T077 [UX] Context-sensitive input profiles with visual feedback.
   - **Issue**: Input profiles don't show what the actual inputs are
   - **Expected**: Profile selector shows preview of bindings for selected profile
   - **Files**: `scripts/ui/input_profile_selector.gd`
+  - **Status (2025-12-01)**:
+    - InputProfileSelector now renders a per-profile bindings summary using RS_InputProfile action mappings, updating live as the user cycles profiles.
+    - The preview surfaces core actions (movement, jump, sprint, interact, pause) with device-appropriate labels so players can see the effective layout before applying a profile.
 
 - [ ] T078 [UX] Visual button prompts in gamepad control UI.
   - **Issue**: Gamepad control UI should visualize actual button being pressed
