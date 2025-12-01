@@ -5,15 +5,15 @@
 This guide directs you to implement the UI Manager / Navigation feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `main`
-**Status**: ✅ Phase 6 complete – Core UI Manager implementation finished; documentation complete; diagnostic code removed
+**Status**: ✅ Phase 6 complete; Phase 7 in progress – Core UI Manager implementation finished; UX refinements underway (T079 flattening complete)
 
 ---
 
-## 🎯 CURRENT STATUS: Phase 6 Complete – Core Implementation Finished
+## 🎯 CURRENT STATUS: Phase 6 Complete, Phase 7 In Progress
 
 - PRD: `docs/ui manager/ui-manager-prd.md` – feature definition, goals, non‑goals.
 - Plan: `docs/ui manager/ui-manager-plan.md` – milestones and phases.
-- Tasks: `docs/ui manager/ui-manager-tasks.md` – checklist (31/54 tasks complete; Phases 0-6 done, Phase 7 pending).
+- Tasks: `docs/ui manager/ui-manager-tasks.md` – checklist (32/54 tasks complete; Phases 0-6 done, Phase 7 partially complete).
 - Data Model: `docs/ui manager/general/data-model.md` – navigation + registry schema, overlay semantics, input/action model.
 - Flows & Input: `docs/ui manager/general/flows-and-input.md` – key flows, canonical ui_* actions, and context-based routing matrix.
 
@@ -32,6 +32,22 @@ This guide directs you to implement the UI Manager / Navigation feature by follo
 **Tests Added/Updated**:
 - All existing navigation tests continue to pass
 - No new test coverage needed (cleanup only)
+
+### What Changed in Phase 7 (So Far)
+
+**T070 / T071 / T074 / T075 – Input & Navigation UX**  
+- Joystick navigation now uses a standardized deadzone and repeat behavior (stick repeater + focus configurator).  
+- Menu options scroll smoothly while directional input is held.  
+- MobileControls visibility is correctly tied to active device + pause/navigation state; controls no longer reappear after exiting menus with gamepad.  
+- Rebind controls overlay has gamepad-accessible scroll areas and improved focus wiring.
+
+**T072 – Context-Aware Settings Visibility (Pause Menu)**  
+- Pause menu dynamically hides/shows Gamepad vs Touchscreen settings buttons based on active device (`M_InputDeviceManager` + `U_InputSelectors`).  
+- When switching from touchscreen to gamepad while paused:
+  - Analog navigation state is reset.  
+  - Focus is explicitly snapped back to the Resume button.  
+  - The first gamepad navigation input after the switch is consumed, so “waking” the controller with a stick nudge does not move selection.  
+- All existing UI tests still pass; behavior validated on mobile + gamepad.
 
 ---
 
@@ -132,7 +148,7 @@ Phase 7 addresses UX refinements discovered during testing:
 
 **Architecture & UX:**
 - T073: Settings scattered across multiple overlays (needs consolidation)
-- T079: Overlays stack instead of replacing (flatten UI architecture)
+- T079: ✅ Overlays now replace instead of stacking (flattened overlay navigation via navigation slice)
 - T080: Cancel button doesn't exit menu consistently
 
 **Bug Fixes:**

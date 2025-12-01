@@ -33,6 +33,7 @@ func test_navigation_initial_state_defaults() -> void:
 	assert_eq(state_dict.get("shell"), StringName("main_menu"), "Shell should default to main_menu")
 	assert_eq(state_dict.get("base_scene_id"), StringName("main_menu"), "Base scene should default to main_menu")
 	assert_eq(state_dict.get("overlay_stack"), [], "Overlay stack should start empty")
+	assert_eq(state_dict.get("overlay_return_stack"), [], "Overlay return stack should start empty")
 	assert_eq(state_dict.get("active_menu_panel"), StringName("menu/main"), "Active menu panel should default to menu/main")
 
 ## T011: Open/close pause flow
@@ -58,17 +59,21 @@ func test_nested_overlay_navigation_returns_to_pause_then_resumes_gameplay() -> 
 		"shell": StringName("gameplay"),
 		"base_scene_id": StringName("exterior"),
 		"overlay_stack": [StringName("pause_menu")],
+		"overlay_return_stack": [],
 		"active_menu_panel": StringName("pause/root")
 	}
 
 	var settings_state: Dictionary = U_NavigationReducer.reduce(state, U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
-	assert_eq(settings_state.get("overlay_stack"), [StringName("pause_menu"), StringName("settings_menu_overlay")], "Settings overlay should push on top of pause")
+	assert_eq(settings_state.get("overlay_stack"), [StringName("settings_menu_overlay")], "Settings overlay should replace pause as top overlay")
+	assert_eq(settings_state.get("overlay_return_stack"), [StringName("pause_menu")], "Pause overlay should be stored for return navigation")
 
 	var back_to_pause: Dictionary = U_NavigationReducer.reduce(settings_state, U_NavigationActions.close_top_overlay())
-	assert_eq(back_to_pause.get("overlay_stack"), [StringName("pause_menu")], "CloseMode RETURN should pop back to pause overlay only")
+	assert_eq(back_to_pause.get("overlay_stack"), [StringName("pause_menu")], "CloseMode RETURN should restore pause overlay")
+	assert_eq(back_to_pause.get("overlay_return_stack"), [], "Return stack should be cleared after returning to pause")
 
 	var resumed_state: Dictionary = U_NavigationReducer.reduce(back_to_pause, U_NavigationActions.close_top_overlay())
 	assert_eq(resumed_state.get("overlay_stack"), [], "Closing pause should clear overlay stack")
+	assert_eq(resumed_state.get("overlay_return_stack"), [], "Return stack should remain empty after closing pause")
 	assert_false(U_NavigationSelectors.is_paused(resumed_state), "Game should be unpaused after closing pause overlay")
 
 ## T011/T014: Overlays that resume gameplay directly
@@ -77,14 +82,17 @@ func test_overlay_close_mode_resumes_gameplay_directly() -> void:
 		"shell": StringName("gameplay"),
 		"base_scene_id": StringName("exterior"),
 		"overlay_stack": [StringName("pause_menu")],
+		"overlay_return_stack": [],
 		"active_menu_panel": StringName("pause/root")
 	}
 
 	var rebinding_state: Dictionary = U_NavigationReducer.reduce(state, U_NavigationActions.open_overlay(StringName("input_rebinding")))
-	assert_eq(rebinding_state.get("overlay_stack"), [StringName("pause_menu"), StringName("input_rebinding")], "Input rebinding overlay should push onto stack")
+	assert_eq(rebinding_state.get("overlay_stack"), [StringName("input_rebinding")], "Input rebinding overlay should replace pause as top overlay")
+	assert_eq(rebinding_state.get("overlay_return_stack"), [StringName("pause_menu")], "Pause overlay should be stored for resume/return semantics")
 
 	var resumed_state: Dictionary = U_NavigationReducer.reduce(rebinding_state, U_NavigationActions.close_top_overlay())
 	assert_eq(resumed_state.get("overlay_stack"), [], "Rebinding overlay should close and resume gameplay directly")
+	assert_eq(resumed_state.get("overlay_return_stack"), [], "Return stack should be cleared when resuming gameplay")
 	assert_false(U_NavigationSelectors.is_paused(resumed_state), "Game should be unpaused after closing resume-to-gameplay overlay")
 
 ## T011: Menu panel switching
@@ -155,7 +163,8 @@ func test_navigation_selectors_reflect_state_and_do_not_mutate() -> void:
 	var state: Dictionary = {
 		"shell": StringName("gameplay"),
 		"base_scene_id": StringName("exterior"),
-		"overlay_stack": [StringName("pause_menu"), StringName("settings_menu_overlay")],
+		"overlay_stack": [StringName("settings_menu_overlay")],
+		"overlay_return_stack": [StringName("pause_menu")],
 		"active_menu_panel": StringName("pause/root")
 	}
 
@@ -169,12 +178,12 @@ func test_navigation_selectors_reflect_state_and_do_not_mutate() -> void:
 
 	assert_eq(shell, StringName("gameplay"), "Selector should return shell")
 	assert_eq(base_scene_id, StringName("exterior"), "Selector should return base scene id")
-	assert_eq(overlay_stack, [StringName("pause_menu"), StringName("settings_menu_overlay")], "Selector should return overlay stack copy")
+	assert_eq(overlay_stack, [StringName("settings_menu_overlay")], "Selector should return overlay stack copy")
 	assert_eq(top_overlay, StringName("settings_menu_overlay"), "Top overlay should be settings menu overlay")
 	assert_eq(close_mode, U_NavigationReducer.CloseMode.RETURN_TO_PREVIOUS_OVERLAY, "Settings overlay should return to previous overlay")
 	assert_true(paused, "Paused selector should return true when overlays exist in gameplay")
 	assert_eq(active_panel, StringName("pause/root"), "Active menu panel should be preserved")
-	assert_eq(state.get("overlay_stack"), [StringName("pause_menu"), StringName("settings_menu_overlay")], "Selectors should not mutate source state")
+	assert_eq(state.get("overlay_stack"), [StringName("settings_menu_overlay")], "Selectors should not mutate source state")
 
 ## T012: Navigation slice registers in state store
 func test_navigation_slice_initializes_in_state_store() -> void:

@@ -43,11 +43,11 @@ func test_settings_opens_with_pause_parent() -> void:
 	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
 	await get_tree().physics_frame
 
-	# THEN: Stack should contain both pause_menu and settings
+	# THEN: Stack should contain only settings as top overlay, with pause stored for return
 	var nav := _store.get_slice(StringName("navigation"))
-	assert_eq(nav.get("overlay_stack").size(), 2, "Should have 2 overlays in stack")
-	assert_eq(nav.get("overlay_stack")[0], StringName("pause_menu"), "First should be pause_menu")
-	assert_eq(nav.get("overlay_stack")[1], StringName("settings_menu_overlay"), "Second should be settings")
+	assert_eq(nav.get("overlay_stack"), [StringName("settings_menu_overlay")], "Settings should replace pause as top overlay")
+	var return_stack: Array = nav.get("overlay_return_stack", [])
+	assert_eq(return_stack, [StringName("pause_menu")], "Pause_menu should be stored in overlay_return_stack")
 
 func test_settings_REJECTED_without_pause_parent() -> void:
 	# GIVEN: Empty overlay stack (no pause menu open)
@@ -84,10 +84,11 @@ func test_gamepad_settings_opens_with_pause_parent() -> void:
 	_store.dispatch(U_NavigationActions.open_overlay(StringName("gamepad_settings")))
 	await get_tree().physics_frame
 
-	# THEN: Stack should contain both
+	# THEN: Stack should contain only gamepad_settings as top overlay, with pause stored for return
 	var nav := _store.get_slice(StringName("navigation"))
-	assert_eq(nav.get("overlay_stack").size(), 2, "Should have 2 overlays")
-	assert_eq(nav.get("overlay_stack")[1], StringName("gamepad_settings"), "Second should be gamepad_settings")
+	assert_eq(nav.get("overlay_stack"), [StringName("gamepad_settings")], "Gamepad settings should be top overlay")
+	var return_stack: Array = nav.get("overlay_return_stack", [])
+	assert_eq(return_stack, [StringName("pause_menu")], "Pause_menu should be stored in overlay_return_stack")
 
 func test_input_profiles_opens_with_pause_parent() -> void:
 	# GIVEN: Pause menu is open
@@ -98,7 +99,8 @@ func test_input_profiles_opens_with_pause_parent() -> void:
 	_store.dispatch(U_NavigationActions.open_overlay(StringName("input_profile_selector")))
 	await get_tree().physics_frame
 
-	# THEN: Stack should contain both
+	# THEN: Stack should contain only input_profile_selector as top overlay, with pause stored for return
 	var nav := _store.get_slice(StringName("navigation"))
-	assert_eq(nav.get("overlay_stack").size(), 2, "Should have 2 overlays")
-	assert_eq(nav.get("overlay_stack")[1], StringName("input_profile_selector"), "Second should be input_profile_selector")
+	assert_eq(nav.get("overlay_stack"), [StringName("input_profile_selector")], "Input profile selector should be top overlay")
+	var return_stack: Array = nav.get("overlay_return_stack", [])
+	assert_eq(return_stack, [StringName("pause_menu")], "Pause_menu should be stored in overlay_return_stack")

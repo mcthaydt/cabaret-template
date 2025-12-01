@@ -98,13 +98,13 @@ func test_navigation_nested_overlay_returns_to_pause() -> void:
 	_store.dispatch(U_NavigationActions.open_overlay(StringName("settings_menu_overlay")))
 	await wait_physics_frames(3)
 
-	assert_eq(_ui_overlay_stack.get_child_count(), 2, "Settings overlay stacked on pause")
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Settings overlay should replace pause as top overlay")
 	assert_eq(_get_top_overlay_scene_id(), StringName("settings_menu"), "Settings overlay should be top-most")
 
 	_store.dispatch(U_NavigationActions.close_top_overlay())
 	await wait_physics_frames(2)
 
-	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Settings overlay removed, pause remains")
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Settings overlay removed, pause restored as top overlay")
 	assert_eq(_get_top_overlay_scene_id(), StringName("pause_menu"), "Pause overlay restored after return")
 
 	_store.dispatch(U_NavigationActions.close_top_overlay())

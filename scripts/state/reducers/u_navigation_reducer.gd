@@ -63,8 +63,14 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			return state
 
 static func get_close_mode_for_overlay(overlay_id: StringName) -> int:
-	if overlay_id == OVERLAY_SETTINGS:
-		return CloseMode.RETURN_TO_PREVIOUS_OVERLAY
+	# Look up close_mode from UI registry; default to RESUME_TO_GAMEPLAY
+	var definition: Dictionary = U_UIRegistry.get_screen(overlay_id)
+	if not definition.is_empty():
+		var mode_variant: Variant = definition.get("close_mode", CloseMode.RESUME_TO_GAMEPLAY)
+		if mode_variant is int:
+			return mode_variant
+		return int(mode_variant)
+	# Fallbacks for legacy/static overlays
 	if overlay_id == OVERLAY_PAUSE:
 		return CloseMode.RESUME_TO_GAMEPLAY
 	return CloseMode.RESUME_TO_GAMEPLAY
@@ -77,6 +83,7 @@ static func _reduce_set_shell(state: Dictionary, action: Dictionary) -> Dictiona
 	new_state["shell"] = target_shell
 	new_state["base_scene_id"] = target_scene
 	new_state["overlay_stack"] = []
+	new_state["overlay_return_stack"] = []
 
 	if target_shell == SHELL_MAIN_MENU:
 		new_state["active_menu_panel"] = DEFAULT_MENU_PANEL
@@ -94,6 +101,7 @@ static func _reduce_open_pause(state: Dictionary) -> Dictionary:
 
 	var new_state: Dictionary = state.duplicate(true)
 	new_state["overlay_stack"] = [OVERLAY_PAUSE]
+	new_state["overlay_return_stack"] = []
 	new_state["active_menu_panel"] = DEFAULT_PAUSE_PANEL
 	return new_state
 
@@ -104,12 +112,14 @@ static func _reduce_close_pause(state: Dictionary) -> Dictionary:
 
 	var new_state: Dictionary = state.duplicate(true)
 	new_state["overlay_stack"] = []
+	new_state["overlay_return_stack"] = []
 	return new_state
 
 static func _reduce_open_overlay(state: Dictionary, action: Dictionary) -> Dictionary:
 	var overlay_id: StringName = action.get("screen_id", StringName())
 	var shell: StringName = state.get("shell", StringName())
 	var current_stack: Array = state.get("overlay_stack", [])
+	var return_stack: Array = state.get("overlay_return_stack", [])
 
 	if overlay_id == StringName("") or shell != SHELL_GAMEPLAY:
 		return state
@@ -120,17 +130,26 @@ static func _reduce_open_overlay(state: Dictionary, action: Dictionary) -> Dicti
 	if not _is_overlay_allowed_for_parent(overlay_id, current_stack):
 		return state
 
-	if current_stack.has(overlay_id):
-		return state
-
 	var new_state: Dictionary = state.duplicate(true)
-	var new_stack: Array = current_stack.duplicate(true)
+	var new_stack: Array = []
+	var new_return_stack: Array = return_stack.duplicate(true)
+
+	# Determine parent overlay (if any) for return navigation
+	var parent_overlay: StringName = StringName("")
+	if not current_stack.is_empty() and current_stack.back() is StringName:
+		parent_overlay = current_stack.back()
+
+	# Remember current top overlay (can be empty when opening first overlay)
+	new_return_stack.append(parent_overlay)
 	new_stack.append(overlay_id)
+
 	new_state["overlay_stack"] = new_stack
+	new_state["overlay_return_stack"] = new_return_stack
 	return new_state
 
 static func _reduce_close_top_overlay(state: Dictionary) -> Dictionary:
 	var current_stack: Array = state.get("overlay_stack", [])
+	var return_stack: Array = state.get("overlay_return_stack", [])
 	if current_stack.is_empty():
 		return state
 
@@ -140,13 +159,21 @@ static func _reduce_close_top_overlay(state: Dictionary) -> Dictionary:
 
 	match close_mode:
 		CloseMode.RETURN_TO_PREVIOUS_OVERLAY:
-			var new_stack: Array = current_stack.duplicate(true)
-			new_stack.pop_back()
+			var new_stack: Array = []
+			var new_return_stack: Array = return_stack.duplicate(true)
+			var previous_overlay: StringName = StringName("")
+			if not new_return_stack.is_empty():
+				previous_overlay = new_return_stack.pop_back()
+			if previous_overlay != StringName(""):
+				new_stack.append(previous_overlay)
 			new_state["overlay_stack"] = new_stack
+			new_state["overlay_return_stack"] = new_return_stack
 		CloseMode.RESUME_TO_GAMEPLAY:
 			new_state["overlay_stack"] = []
+			new_state["overlay_return_stack"] = []
 		CloseMode.RESUME_TO_MENU:
 			new_state["overlay_stack"] = []
+			new_state["overlay_return_stack"] = []
 			new_state["shell"] = SHELL_MAIN_MENU
 			new_state["base_scene_id"] = SHELL_MAIN_MENU
 
@@ -170,6 +197,7 @@ static func _reduce_start_game(state: Dictionary, action: Dictionary) -> Diction
 	new_state["shell"] = SHELL_GAMEPLAY
 	new_state["base_scene_id"] = scene_id
 	new_state["overlay_stack"] = []
+	new_state["overlay_return_stack"] = []
 	new_state["active_menu_panel"] = DEFAULT_PAUSE_PANEL
 	new_state["last_gameplay_scene_id"] = scene_id
 	return new_state
@@ -182,6 +210,7 @@ static func _reduce_open_endgame(state: Dictionary, action: Dictionary) -> Dicti
 	new_state["shell"] = SHELL_ENDGAME
 	new_state["base_scene_id"] = scene_id
 	new_state["overlay_stack"] = []
+	new_state["overlay_return_stack"] = []
 	new_state["active_menu_panel"] = state.get("active_menu_panel", DEFAULT_MENU_PANEL)
 	new_state["last_gameplay_scene_id"] = state.get("last_gameplay_scene_id", previous_gameplay_scene)
 	return new_state
@@ -202,6 +231,7 @@ static func _reduce_retry(state: Dictionary, action: Dictionary) -> Dictionary:
 	new_state["shell"] = SHELL_GAMEPLAY
 	new_state["base_scene_id"] = desired_scene
 	new_state["overlay_stack"] = []
+	new_state["overlay_return_stack"] = []
 	new_state["active_menu_panel"] = DEFAULT_PAUSE_PANEL
 	new_state["last_gameplay_scene_id"] = desired_scene
 	return new_state
@@ -211,6 +241,7 @@ static func _reduce_skip_to_credits(state: Dictionary) -> Dictionary:
 	new_state["shell"] = SHELL_ENDGAME
 	new_state["base_scene_id"] = StringName("credits")
 	new_state["overlay_stack"] = []
+	new_state["overlay_return_stack"] = []
 	return new_state
 
 static func _reduce_skip_to_menu(state: Dictionary) -> Dictionary:
@@ -218,6 +249,7 @@ static func _reduce_skip_to_menu(state: Dictionary) -> Dictionary:
 	new_state["shell"] = SHELL_MAIN_MENU
 	new_state["base_scene_id"] = SHELL_MAIN_MENU
 	new_state["overlay_stack"] = []
+	new_state["overlay_return_stack"] = []
 	new_state["active_menu_panel"] = DEFAULT_MENU_PANEL
 	return new_state
 
@@ -226,6 +258,7 @@ static func _reduce_return_to_main_menu(state: Dictionary) -> Dictionary:
 	new_state["shell"] = SHELL_MAIN_MENU
 	new_state["base_scene_id"] = SHELL_MAIN_MENU
 	new_state["overlay_stack"] = []
+	new_state["overlay_return_stack"] = []
 	new_state["active_menu_panel"] = DEFAULT_MENU_PANEL
 	return new_state
 

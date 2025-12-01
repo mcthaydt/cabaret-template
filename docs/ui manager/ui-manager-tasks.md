@@ -796,11 +796,16 @@ Issues discovered during testing that need to be addressed:
   - **Files**: Gamepad settings overlay, button prompt system
   - **Dependencies**: Button glyph assets, device type detection
 
-- [ ] T079 [ARCH] Remove overlay stacking (flatten UI).
+- [x] T079 [ARCH] Remove overlay stacking (flatten UI).
   - **Issue**: Menus should not stack as overlays
   - **Expected**: Settings/input screens replace pause menu instead of stacking
   - **Impact**: Requires rethinking overlay_stack vs panel switching
   - **Files**: Navigation reducer, UI registry overlay definitions
+  - **Status (2025-12-01)**:
+    - Navigation slice now tracks a single active overlay in `overlay_stack` plus a logical `overlay_return_stack` for RETURN_TO_PREVIOUS_OVERLAY flows.
+    - `NAV/OPEN_OVERLAY` replaces the current top overlay instead of stacking, appending the previous overlay ID to `overlay_return_stack`.
+    - `NAV/CLOSE_TOP_OVERLAY` uses UI registry `close_mode` to either restore the previous overlay (settings → pause) or resume gameplay/menu and clear both stacks.
+    - Scene Manager reconciliation logic is unchanged; because `overlay_stack` now contains at most one entry, `UIOverlayStack` never holds multiple visible pause/settings overlays simultaneously.
 
 - [ ] T080 [UX] Cancel button exits menu directly.
   - **Issue**: Cancel (B/Circle) button doesn't exit menu
