@@ -394,3 +394,82 @@ static func _events_match(a: InputEvent, b: InputEvent) -> bool:
 		if code_a != 0 and code_b != 0:
 			return key_a.keycode == key_b.keycode
 	return a.is_match(b) and b.is_match(a)
+
+## Returns a texture icon for the given InputEvent, or null if no icon exists.
+## Used by UI components to display visual representations of key bindings.
+static func get_texture_for_event(event: InputEvent) -> Texture2D:
+	if event == null:
+		return null
+
+	if event is InputEventKey:
+		var key_event := event as InputEventKey
+		var keycode := key_event.physical_keycode
+		if keycode == 0:
+			keycode = key_event.keycode
+		# Check common keys
+		var key_name := ""
+		var folder := "keyboard"
+		match keycode:
+			KEY_W:
+				key_name = "key_w"
+			KEY_A:
+				key_name = "key_a"
+			KEY_S:
+				key_name = "key_s"
+			KEY_D:
+				key_name = "key_d"
+			KEY_E:
+				key_name = "key_e"
+			KEY_SPACE:
+				key_name = "key_space"
+			KEY_SHIFT:
+				key_name = "key_shift"
+			KEY_ESCAPE:
+				key_name = "key_escape"
+			KEY_UP:
+				key_name = "dpad_up"
+				folder = "gamepad"
+			KEY_DOWN:
+				key_name = "dpad_down"
+				folder = "gamepad"
+			KEY_LEFT:
+				key_name = "dpad_left"
+				folder = "gamepad"
+			KEY_RIGHT:
+				key_name = "dpad_right"
+				folder = "gamepad"
+		if not key_name.is_empty():
+			var path := "res://resources/button_prompts/%s/%s.png" % [folder, key_name]
+			if ResourceLoader.exists(path):
+				return load(path)
+
+	elif event is InputEventJoypadButton:
+		var joy_button := event as InputEventJoypadButton
+		var button_name := ""
+		match joy_button.button_index:
+			JOY_BUTTON_A:
+				button_name = "button_south"
+			JOY_BUTTON_B:
+				button_name = "button_east"
+			JOY_BUTTON_X:
+				button_name = "button_west"
+			JOY_BUTTON_Y:
+				button_name = "button_north"
+			JOY_BUTTON_LEFT_SHOULDER:
+				button_name = "button_lb"
+			JOY_BUTTON_RIGHT_SHOULDER:
+				button_name = "button_rb"
+			JOY_BUTTON_LEFT_STICK:
+				button_name = "button_ls"
+			JOY_BUTTON_RIGHT_STICK:
+				button_name = "button_rs"
+			JOY_BUTTON_START:
+				button_name = "button_start"
+			JOY_BUTTON_BACK:
+				button_name = "button_select"
+		if not button_name.is_empty():
+			var path := "res://resources/button_prompts/gamepad/%s.png" % button_name
+			if ResourceLoader.exists(path):
+				return load(path)
+
+	return null

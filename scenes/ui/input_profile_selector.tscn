@@ -30,10 +30,20 @@ size_flags_horizontal = 3
 layout_mode = 2
 text = "Apply"
 
-[node name="PreviewLabel" type="Label" parent="."]
+[node name="PreviewContainer" type="VBoxContainer" parent="."]
 layout_mode = 0
 offset_left = 16.0
 offset_top = 72.0
 offset_right = 640.0
 offset_bottom = 272.0
+
+[node name="HeaderLabel" type="Label" parent="PreviewContainer"]
+layout_mode = 2
 autowrap_mode = 2
+
+[node name="DescriptionLabel" type="Label" parent="PreviewContainer"]
+layout_mode = 2
+autowrap_mode = 2
+
+[node name="BindingsContainer" type="VBoxContainer" parent="PreviewContainer"]
+layout_mode = 2

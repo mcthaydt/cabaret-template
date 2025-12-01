@@ -127,9 +127,14 @@ func test_profile_selector_shows_binding_preview() -> void:
 	await wait_physics_frames(4)
 
 	var selector := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var preview_label := selector.get_node("PreviewLabel") as Label
-	assert_not_null(preview_label, "PreviewLabel should exist on profile selector")
-	assert_false(preview_label.text.strip_edges().is_empty(), "Preview label should show bindings preview for the selected profile")
+	var preview_container := selector.get_node("PreviewContainer") as VBoxContainer
+	assert_not_null(preview_container, "PreviewContainer should exist on profile selector")
+	var header_label := preview_container.get_node("HeaderLabel") as Label
+	assert_not_null(header_label, "HeaderLabel should exist in preview container")
+	# The bindings container should have child nodes showing the bindings with icons
+	var bindings_container := preview_container.get_node("BindingsContainer") as VBoxContainer
+	assert_not_null(bindings_container, "BindingsContainer should exist in preview container")
+	assert_gt(bindings_container.get_child_count(), 0, "Bindings container should show action bindings")
 
 func _start_game_and_pause() -> void:
 	_store.dispatch(U_NavigationActions.start_game(StringName("scene1")))

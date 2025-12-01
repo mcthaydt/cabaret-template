@@ -7,10 +7,14 @@ const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_a
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
 const RS_InputProfile := preload("res://scripts/ecs/resources/rs_input_profile.gd")
+const U_ButtonPromptRegistry := preload("res://scripts/ui/u_button_prompt_registry.gd")
+const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 
 @onready var _profile_button: Button = $HBoxContainer/ProfileButton
 @onready var _apply_button: Button = $HBoxContainer/ApplyButton
-@onready var _preview_label: Label = $"PreviewLabel"
+@onready var _header_label: Label = $PreviewContainer/HeaderLabel
+@onready var _description_label: Label = $PreviewContainer/DescriptionLabel
+@onready var _bindings_container: VBoxContainer = $PreviewContainer/BindingsContainer
 
 var _manager: Node = null
 var _available_profiles: Array[String] = []
@@ -133,30 +137,29 @@ func _on_back_pressed() -> void:
 	_close_overlay()
 
 func _update_preview() -> void:
-	if _preview_label == null:
+	if _header_label == null or _description_label == null or _bindings_container == null:
 		return
 	if _manager == null or _available_profiles.is_empty():
-		_preview_label.text = ""
+		_header_label.text = ""
+		_description_label.text = ""
+		_clear_bindings_container()
 		return
 
 	var profile := _get_selected_profile()
 	if profile == null:
-		_preview_label.text = ""
+		_header_label.text = ""
+		_description_label.text = ""
+		_clear_bindings_container()
 		return
 
-	var header := profile.profile_name
-	var description := profile.description
-	var details := _build_bindings_preview(profile)
-
-	var lines: Array[String] = []
-	if not header.is_empty():
-		lines.append(header)
-	if not description.is_empty():
-		lines.append(description)
-	if not details.is_empty():
-		lines.append(details)
-
-	_preview_label.text = "\n".join(lines)
+	_header_label.text = profile.profile_name
+	# Only show description for touchscreen profiles (device_type 2)
+	# For keyboard/gamepad, the visual bindings are self-explanatory
+	if profile.device_type == 2:  # TOUCHSCREEN
+		_description_label.text = profile.description
+	else:
+		_description_label.text = ""
+	_build_bindings_preview(profile)
 
 func _get_selected_profile() -> RS_InputProfile:
 	if _manager == null:
@@ -177,22 +180,31 @@ func _get_selected_profile() -> RS_InputProfile:
 			return profile
 	return null
 
-func _build_bindings_preview(profile: RS_InputProfile) -> String:
+func _clear_bindings_container() -> void:
+	if _bindings_container == null:
+		return
+	for child in _bindings_container.get_children():
+		child.queue_free()
+
+func _build_bindings_preview(profile: RS_InputProfile) -> void:
+	_clear_bindings_container()
 	if profile == null:
-		return ""
+		return
 
-	var segments: Array[String] = []
+	var device_type_for_registry: int = M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE
+	if profile.device_type == 1:  # GAMEPAD
+		device_type_for_registry = M_InputDeviceManager.DeviceType.GAMEPAD
 
-	var move_labels: Array[String] = []
-	move_labels.append_array(_collect_action_labels(profile, [
+	# Movement actions
+	var move_actions := [
 		StringName("move_forward"),
 		StringName("move_backward"),
 		StringName("move_left"),
 		StringName("move_right")
-	]))
-	if not move_labels.is_empty():
-		segments.append("Move: %s" % ", ".join(move_labels))
+	]
+	_add_action_group_row("Move", move_actions, profile, device_type_for_registry)
 
+	# Individual actions
 	var single_actions := [
 		{ "action": StringName("jump"), "label": "Jump" },
 		{ "action": StringName("sprint"), "label": "Sprint" },
@@ -203,36 +215,98 @@ func _build_bindings_preview(profile: RS_InputProfile) -> String:
 	for entry in single_actions:
 		var action_name: StringName = entry["action"]
 		var label: String = entry["label"]
-		var action_labels := _collect_action_labels(profile, [action_name])
-		if not action_labels.is_empty():
-			segments.append("%s: %s" % [label, ", ".join(action_labels)])
+		_add_action_row(label, action_name, profile, device_type_for_registry)
 
-	return "\n".join(segments)
+func _add_action_group_row(group_label: String, actions: Array, profile: RS_InputProfile, device_type: int) -> void:
+	if profile == null or _bindings_container == null:
+		return
 
-func _collect_action_labels(profile: RS_InputProfile, actions: Array[StringName]) -> Array[String]:
-	var labels: Array[String] = []
-	if profile == null:
-		return labels
-
+	var has_any_binding := false
 	for action_name in actions:
 		var events := profile.get_events_for_action(action_name)
-		if events.is_empty():
-			continue
-		var display_events: Array = []
-		for event in events:
-			display_events.append(event)
-		var binding_text := _format_binding_text(display_events)
-		if not binding_text.is_empty():
-			labels.append(binding_text)
-	return labels
+		if not events.is_empty():
+			has_any_binding = true
+			break
 
-func _format_binding_text(events: Array) -> String:
-	var labels: Array[String] = []
-	for ev in events:
-		if ev is InputEvent:
-			var event := ev as InputEvent
-			labels.append(_format_binding_label(U_InputRebindUtils.format_event_label(event)))
-	return ", ".join(labels)
+	if not has_any_binding:
+		return
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+
+	var label := Label.new()
+	label.text = group_label + ":"
+	label.custom_minimum_size = Vector2(100, 0)
+	row.add_child(label)
+
+	var icons_container := HBoxContainer.new()
+	icons_container.add_theme_constant_override("separation", 4)
+	row.add_child(icons_container)
+
+	for action_name in actions:
+		_add_binding_icons_for_action(icons_container, action_name, profile, device_type)
+
+	_bindings_container.add_child(row)
+
+func _add_action_row(action_label: String, action_name: StringName, profile: RS_InputProfile, device_type: int) -> void:
+	if profile == null or _bindings_container == null:
+		return
+
+	var events := profile.get_events_for_action(action_name)
+	if events.is_empty():
+		return
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+
+	var label := Label.new()
+	label.text = action_label + ":"
+	label.custom_minimum_size = Vector2(100, 0)
+	row.add_child(label)
+
+	var icons_container := HBoxContainer.new()
+	icons_container.add_theme_constant_override("separation", 4)
+	row.add_child(icons_container)
+
+	_add_binding_icons_for_action(icons_container, action_name, profile, device_type)
+
+	_bindings_container.add_child(row)
+
+func _add_binding_icons_for_action(container: HBoxContainer, action: StringName, profile: RS_InputProfile, device_type: int) -> void:
+	if container == null or profile == null:
+		return
+
+	# Show the actual events from this profile (not the registry defaults)
+	var events := profile.get_events_for_action(action)
+	for i in range(events.size()):
+		var event: InputEvent = events[i]
+		if event == null:
+			continue
+
+		# Try to get texture for individual keys
+		var texture: Texture2D = U_InputRebindUtils.get_texture_for_event(event)
+
+		# Display texture or fallback to text
+		if texture != null:
+			var texture_rect := TextureRect.new()
+			texture_rect.texture = texture
+			texture_rect.custom_minimum_size = Vector2(24, 24)
+			texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			container.add_child(texture_rect)
+		else:
+			# Fallback to text label
+			var event_label := Label.new()
+			event_label.text = _format_binding_label(U_InputRebindUtils.format_event_label(event))
+			event_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1.0))
+			container.add_child(event_label)
+
+		# Add separator comma between bindings (except last)
+		if i < events.size() - 1:
+			var separator := Label.new()
+			separator.text = ", "
+			separator.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1.0))
+			container.add_child(separator)
 
 func _format_binding_label(binding_text: String) -> String:
 	var trimmed := binding_text.strip_edges()

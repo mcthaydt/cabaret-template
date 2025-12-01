@@ -1194,35 +1194,7 @@ func _populate_binding_visuals(container: HBoxContainer, action: StringName, eve
 			continue
 
 		# Try to get texture for individual keys
-		var texture: Texture2D = null
-		if event is InputEventKey:
-			var key_event := event as InputEventKey
-			var keycode := key_event.physical_keycode
-			if keycode == 0:
-				keycode = key_event.keycode
-			# Check common keys
-			var key_name := ""
-			match keycode:
-				KEY_W:
-					key_name = "key_w"
-				KEY_A:
-					key_name = "key_a"
-				KEY_S:
-					key_name = "key_s"
-				KEY_D:
-					key_name = "key_d"
-				KEY_E:
-					key_name = "key_e"
-				KEY_SPACE:
-					key_name = "key_space"
-				KEY_SHIFT:
-					key_name = "key_shift"
-				KEY_ESCAPE:
-					key_name = "key_escape"
-			if not key_name.is_empty():
-				var path := "res://resources/button_prompts/keyboard/%s.png" % key_name
-				if ResourceLoader.exists(path):
-					texture = load(path)
+		var texture: Texture2D = U_InputRebindUtils.get_texture_for_event(event)
 
 		# Display texture or fallback to text
 		if texture != null:
