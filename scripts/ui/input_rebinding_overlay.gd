@@ -7,6 +7,7 @@ const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd
 const U_InputCaptureGuard := preload("res://scripts/utils/u_input_capture_guard.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
+const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/default_rebind_settings.tres")
 
 @onready var _action_list: VBoxContainer = %ActionList
@@ -317,6 +318,8 @@ func _get_active_profile() -> RS_InputProfile:
 	return null
 
 func _refresh_bindings() -> void:
+	var device_category: String = _get_active_device_category()
+
 	for action in _action_rows.keys():
 		var data: Dictionary = _action_rows[action]
 		var binding_label: Label = data.get("binding_label")
@@ -324,10 +327,25 @@ func _refresh_bindings() -> void:
 		if binding_label == null:
 			continue
 		var events := InputMap.action_get_events(action)
-		if events.is_empty():
+		var filtered_events: Array[InputEvent] = []
+		for event in events:
+			if event is InputEvent:
+				var device_type: String = _get_event_device_type(event as InputEvent)
+				if device_category == "gamepad":
+					if device_type == "gamepad":
+						filtered_events.append(event)
+				else:
+					if device_type == "keyboard" or device_type == "mouse" or device_type == "unknown":
+						filtered_events.append(event)
+
+		var display_events: Array = filtered_events
+		if display_events.is_empty():
+			display_events = events
+
+		if display_events.is_empty():
 			binding_label.text = "Unbound"
 		else:
-			binding_label.text = _format_binding_text(events)
+			binding_label.text = _format_binding_text(display_events)
 
 		# Add visual indicator for custom bindings
 		var is_custom := _is_binding_custom(action)
@@ -622,6 +640,19 @@ func _clone_event(source: InputEvent) -> InputEvent:
 	if dict.is_empty():
 		return null
 	return U_InputRebindUtils.dict_to_event(dict)
+
+func _get_active_device_category() -> String:
+	_ensure_store_reference()
+	if _store == null:
+		return "keyboard"
+	var state: Dictionary = _store.get_state()
+	var device_type: int = U_InputSelectors.get_active_device_type(state)
+	match device_type:
+		1:
+			return "gamepad"
+		_:
+			# Treat keyboard + mouse + touchscreen as keyboard-style bindings in this overlay.
+			return "keyboard"
 
 func _events_match(a: InputEvent, b: InputEvent) -> bool:
 	if a == null or b == null:

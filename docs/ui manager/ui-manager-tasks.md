@@ -780,10 +780,13 @@ Issues discovered during testing that need to be addressed:
   - **Expected**: Full gamepad navigation including scroll areas
   - **Files**: `scripts/ui/input_rebinding_overlay.gd`
 
-- [ ] T076 [UX] Context-sensitive rebind controls.
+- [x] T076 [UX] Context-sensitive rebind controls.
   - **Issue**: Rebind controls shows all device inputs regardless of active device
   - **Expected**: Only show rebindable actions for current device type
-  - **Files**: `scripts/ui/input_rebinding_overlay.gd`
+  - **Files**: `scripts/ui/input_rebinding_overlay.gd`, `scripts/ui/pause_menu.gd`
+  - **Status (2025-12-01)**:
+    - InputRebindingOverlay now filters displayed bindings by active device (`U_InputSelectors.get_active_device_type()`), showing gamepad-only bindings when on gamepad and keyboard/mouse bindings otherwise (with a safe fallback when no filtered events exist).
+    - Pause menu hides the Rebind Controls button when the active device is TOUCHSCREEN so touch-only players are not offered an unavailable flow.
 
 - [ ] T077 [UX] Context-sensitive input profiles with visual feedback.
   - **Issue**: Input profiles don't show what the actual inputs are
@@ -807,11 +810,13 @@ Issues discovered during testing that need to be addressed:
     - `NAV/CLOSE_TOP_OVERLAY` uses UI registry `close_mode` to either restore the previous overlay (settings → pause) or resume gameplay/menu and clear both stacks.
     - Scene Manager reconciliation logic is unchanged; because `overlay_stack` now contains at most one entry, `UIOverlayStack` never holds multiple visible pause/settings overlays simultaneously.
 
-- [ ] T080 [UX] Cancel button exits menu directly.
+- [x] T080 [UX] Cancel button exits menu directly.
   - **Issue**: Cancel (B/Circle) button doesn't exit menu
   - **Expected**: Cancel button should close current menu/return to previous
   - **Files**: `scripts/ui/ui_input_handler.gd`, base overlay input handling
-  - **Note**: May conflict with T079 depending on final architecture
+  - **Status (2025-12-01)**:
+    - `UIInputHandler` routes `ui_cancel`/`ui_pause` using navigation state: gameplay (open/close pause or top overlay), main menu (back to `menu/main` or no-op at root), endgame (retry/skip-to-credits/skip-to-menu), matching the flows matrix.
+    - Base overlays use `_on_back_pressed()` to dispatch the appropriate navigation action so Cancel consistently exits the current menu or returns to the previous overlay; this is compatible with the flattened overlay stack from T079.
 
 ## Notes
 

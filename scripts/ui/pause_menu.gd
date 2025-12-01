@@ -43,7 +43,7 @@ func _configure_focus_neighbors() -> void:
 		buttons.append(_gamepad_settings_button)
 	if _touchscreen_settings_button != null and _touchscreen_settings_button.visible:
 		buttons.append(_touchscreen_settings_button)
-	if _rebind_controls_button != null:
+	if _rebind_controls_button != null and _rebind_controls_button.visible:
 		buttons.append(_rebind_controls_button)
 	if _quit_button != null:
 		buttons.append(_quit_button)
@@ -83,6 +83,8 @@ func _update_settings_visibility(state: Dictionary) -> void:
 		_gamepad_settings_button.visible = is_gamepad
 	if _touchscreen_settings_button != null:
 		_touchscreen_settings_button.visible = is_touchscreen
+	if _rebind_controls_button != null:
+		_rebind_controls_button.visible = not is_touchscreen
 
 	var previous_type: int = _last_device_type
 	_last_device_type = device_type

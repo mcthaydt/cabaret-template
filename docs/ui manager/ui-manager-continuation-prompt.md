@@ -5,7 +5,7 @@
 This guide directs you to implement the UI Manager / Navigation feature by following the tasks outlined in the documentation in sequential order.
 
 **Branch**: `main`
-**Status**: ✅ Phase 6 complete; Phase 7 in progress – Core UI Manager implementation finished; UX refinements underway (T079 flattening complete)
+**Status**: ✅ Phase 6 complete; Phase 7 in progress – Core UI Manager implementation finished; UX refinements underway (T070–T076, T079, T080 complete)
 
 ---
 
@@ -48,6 +48,14 @@ This guide directs you to implement the UI Manager / Navigation feature by follo
   - Focus is explicitly snapped back to the Resume button.  
   - The first gamepad navigation input after the switch is consumed, so “waking” the controller with a stick nudge does not move selection.  
 - All existing UI tests still pass; behavior validated on mobile + gamepad.
+
+**T076 – Context-Sensitive Rebind Controls**  
+- Rebind Controls overlay now filters displayed bindings by active device type (keyboard/mouse vs gamepad) using `U_InputSelectors.get_active_device_type()`, while still falling back to all bindings if filtering would otherwise hide valid entries.  
+- Pause menu hides the Rebind Controls entry when the active device is TOUCHSCREEN so touch-only players are not shown a non-functional rebind flow.
+
+**T079 / T080 – Overlay Flattening & Back Behavior**  
+- Navigation slice now maintains a single active overlay ID plus an `overlay_return_stack`, so settings/input overlays replace rather than stack on top of pause while still supporting “return to previous overlay” semantics where needed.  
+- `UIInputHandler` and base overlays route `ui_cancel` / `ui_pause` through navigation actions so Cancel consistently exits the current overlay or returns to the prior screen in main menu, gameplay, and endgame shells, matching the flows document.
 
 ---
 
