@@ -121,13 +121,23 @@ static func _reduce_open_overlay(state: Dictionary, action: Dictionary) -> Dicti
 	var current_stack: Array = state.get("overlay_stack", [])
 	var return_stack: Array = state.get("overlay_return_stack", [])
 
+	print("[NavigationReducer] DIAGNOSTIC: _reduce_open_overlay called")
+	print("  - overlay_id: ", overlay_id)
+	print("  - shell: ", shell)
+	print("  - current_stack: ", current_stack)
+	print("  - current_stack.size(): ", current_stack.size())
+
 	if overlay_id == StringName("") or shell != SHELL_GAMEPLAY:
+		print("[NavigationReducer] DIAGNOSTIC: Rejected - empty overlay_id or not in gameplay shell")
 		return state
 
 	if overlay_id == OVERLAY_PAUSE:
+		print("[NavigationReducer] DIAGNOSTIC: Rejected - trying to open pause via OPEN_OVERLAY")
 		return state  # Pause opens via OPEN_PAUSE
 
 	if not _is_overlay_allowed_for_parent(overlay_id, current_stack):
+		print("[NavigationReducer] DIAGNOSTIC: Rejected - overlay not allowed for current parent")
+		print("  - _is_overlay_allowed_for_parent returned false")
 		return state
 
 	var new_state: Dictionary = state.duplicate(true)
@@ -263,11 +273,20 @@ static func _reduce_return_to_main_menu(state: Dictionary) -> Dictionary:
 	return new_state
 
 static func _is_overlay_allowed_for_parent(overlay_id: StringName, current_stack: Array) -> bool:
+	print("[NavigationReducer] DIAGNOSTIC: _is_overlay_allowed_for_parent called")
+	print("  - overlay_id: ", overlay_id)
+	print("  - current_stack: ", current_stack)
+	print("  - current_stack.is_empty(): ", current_stack.is_empty())
+
 	if current_stack.is_empty():
+		print("[NavigationReducer] DIAGNOSTIC: Returning false - stack is empty")
 		return false
 
 	var parent_overlay: StringName = current_stack.back() if current_stack.back() is StringName else StringName("")
+	print("[NavigationReducer] DIAGNOSTIC: parent_overlay from stack: ", parent_overlay)
+
 	var is_valid := U_UIRegistry.is_valid_overlay_for_parent(overlay_id, parent_overlay)
+	print("[NavigationReducer] DIAGNOSTIC: UI Registry validation result: ", is_valid)
 
 	# Use UI registry to check allowed_parents
 	return is_valid

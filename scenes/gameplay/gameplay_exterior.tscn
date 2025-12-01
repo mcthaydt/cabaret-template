@@ -300,7 +300,7 @@ texture = ExtResource("39_u0c34")
 [node name="E_TutorialSign" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.787005, 1.1897154, -2.5)
 script = ExtResource("45_signpost_controller")
-message = "Welcome to SSA! Press [E] to interact."
+message = "Welcome to SSA!"
 settings = ExtResource("45_signpost_settings")
 
 [node name="CSGSphere3D" type="CSGSphere3D" parent="Entities/E_TutorialSign"]

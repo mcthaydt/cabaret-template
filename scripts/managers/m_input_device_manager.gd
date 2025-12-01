@@ -71,10 +71,18 @@ func _input(event: InputEvent) -> void:
 		var mouse_button := event as InputEventMouseButton
 		if not mouse_button.pressed:
 			return
+		# CRITICAL FIX: Ignore mouse events emulated from touch on mobile
+		# Godot automatically converts touch to mouse for compatibility, but we handle
+		# touch separately. This prevents device type from flickering 2→0→2 on touch.
+		if OS.has_feature("mobile") or OS.has_feature("web"):
+			return
 		_handle_keyboard_mouse_input(mouse_button)
 	elif event is InputEventMouseMotion:
 		var mouse_motion := event as InputEventMouseMotion
 		if mouse_motion.relative.length_squared() <= 0.0:
+			return
+		# CRITICAL FIX: Ignore mouse motion emulated from touch on mobile
+		if OS.has_feature("mobile") or OS.has_feature("web"):
 			return
 		_handle_keyboard_mouse_input(mouse_motion)
 	elif event is InputEventScreenTouch:

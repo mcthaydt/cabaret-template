@@ -620,6 +620,43 @@
 
 - **Do not gate mobile gamepad input on cursor capture**: On mobile platforms there is no meaningful mouse cursor, so `Input.mouse_mode` is not a reliable signal. Gating `S_InputSystem` on `Input.mouse_mode == Input.MOUSE_MODE_CAPTURED` will silently block Bluetooth gamepad input on mobile while still hiding the touchscreen UI (MobileControls). The fix pattern is: only apply the cursor-capture gate on non-mobile platforms (`if not OS.has_feature("mobile")`), so mobile gamepad input continues to flow even when the virtual controls are hidden.
 
+- **Godot auto-converts touch to mouse events on mobile, causing device type flicker**: On Android/iOS, Godot automatically synthesizes `InputEventMouseButton` and `InputEventMouseMotion` from `InputEventScreenTouch` and `InputEventScreenDrag` for compatibility. If `M_InputDeviceManager` processes both the original touch event AND the emulated mouse event, the device type will flicker between `TOUCHSCREEN` (2) and `KEYBOARD_MOUSE` (0) on every touch, causing UI buttons that are conditionally shown based on device type to hide mid-press and cancel touch events.
+
+  **Problem**: Tapping a button that's only visible when `device_type == TOUCHSCREEN` (like the touchscreen settings button in pause menu):
+  1. Touch begins → `InputEventScreenTouch` → device type set to TOUCHSCREEN → button visible ✓
+  2. Godot emulates mouse → `InputEventMouseButton` → device type set to KEYBOARD_MOUSE → button hidden ✗
+  3. Button becomes invisible mid-touch, Godot cancels the press, `pressed` signal never fires
+  4. Touch ends → `InputEventScreenTouch` → device type back to TOUCHSCREEN → button visible again (but press was already canceled)
+
+  **Symptom**: Button receives `gui_input` events (touch press/release detected) but `pressed` signal never fires. Rapid visibility toggling in logs (visible→hidden→visible) when tapping.
+
+  **Solution**: In `M_InputDeviceManager._input()`, ignore emulated mouse events on mobile platforms:
+  ```gdscript
+  elif event is InputEventMouseButton:
+      var mouse_button := event as InputEventMouseButton
+      if not mouse_button.pressed:
+          return
+      # CRITICAL FIX: Ignore mouse events emulated from touch on mobile
+      # Godot automatically converts touch to mouse for compatibility, but we handle
+      # touch separately. This prevents device type from flickering 2→0→2 on touch.
+      if OS.has_feature("mobile") or OS.has_feature("web"):
+          return
+      _handle_keyboard_mouse_input(mouse_button)
+
+  elif event is InputEventMouseMotion:
+      var mouse_motion := event as InputEventMouseMotion
+      if mouse_motion.relative.length_squared() <= 0.0:
+          return
+      # CRITICAL FIX: Ignore mouse motion emulated from touch on mobile
+      if OS.has_feature("mobile") or OS.has_feature("web"):
+          return
+      _handle_keyboard_mouse_input(mouse_motion)
+  ```
+
+  **Why this works**: On mobile, only `InputEventScreenTouch`/`InputEventScreenDrag` trigger device detection, keeping device type stable at `TOUCHSCREEN`. On desktop, mouse events still work normally (no `mobile` feature flag). Buttons stay visible throughout the entire touch interaction, allowing Godot's button press detection to complete normally.
+
+  **Alternate manifestation**: This same bug can affect ANY UI element that conditionally shows/hides based on `device_type` - not just buttons. If a control becomes invisible during an interaction due to device type flickering, the interaction will be canceled mid-gesture.
+
 - **MobileControls visibility depends on navigation shell**: `MobileControls._update_visibility()` only shows controls when the navigation slice reports `shell == SHELL_GAMEPLAY` (or an empty shell with `force_enable` in very early boot). In tests that construct `M_StateStore` manually, forgetting to wire `navigation_initial_state` (via `RS_NavigationInitialState`) and/or dispatch `U_NavigationActions.start_game(...)` leaves `shell == "main_menu"`, so MobileControls stays hidden even if `device_type == TOUCHSCREEN` and `force_enable == true`. Fix pattern: for touchscreen or MobileControls tests, always provide a navigation slice and move it into gameplay before instantiating MobileControls; in production, let the Scene Manager drive navigation state instead of bypassing it.
 
 - **Pause is the only reserved binding**: `pause/ui_pause/ui_cancel` must keep ESC (keyboard) and Start (gamepad). RS_RebindSettings marks pause as non-rebindable; do not strip ESC/Start from `project.godot` or InputMap initialization when adding new actions. Both bindings are required for UI Manager navigation flows and tests.

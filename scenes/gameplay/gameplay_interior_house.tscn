@@ -260,7 +260,7 @@ mesh = SubResource("TextMesh_goal")
 [node name="E_TutorialSign_Interior" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.14, 0, 2)
 script = ExtResource("45_signpost_controller")
-message = "Welcome inside! Press [E] near signs to read."
+message = "Welcome inside!"
 settings = ExtResource("45_signpost_settings")
 visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("GlowLight")])
 

@@ -796,7 +796,7 @@ Issues discovered during testing that need to be addressed:
     - InputProfileSelector now renders a per-profile bindings summary using RS_InputProfile action mappings, updating live as the user cycles profiles.
     - The preview surfaces core actions (movement, jump, sprint, interact, pause) with device-appropriate labels so players can see the effective layout before applying a profile.
 
-- [ ] T078 [UX] Visual button prompts in gamepad control UI.
+- [x] T078 [UX] Visual button prompts in gamepad control UI.
   - **Issue**: Gamepad control UI should visualize actual button being pressed
   - **Expected**: Show Xbox/PS button glyphs matching physical controller
   - **Files**: Gamepad settings overlay, button prompt system
