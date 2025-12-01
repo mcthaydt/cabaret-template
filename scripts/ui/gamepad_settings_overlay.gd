@@ -19,6 +19,9 @@ const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configura
 @onready var _preview: GamepadStickPreview = %StickPreview
 @onready var _apply_button: Button = %ApplyButton
 @onready var _cancel_button: Button = %CancelButton
+@onready var _reset_button: Button = %ResetButton
+@onready var _preview_enter_prompt: ButtonPrompt = %EnterPrompt
+@onready var _preview_exit_prompt: ButtonPrompt = %ExitPrompt
 
 var _store_unsubscribe: Callable = Callable()
 var _current_device_id: int = -1
@@ -40,6 +43,16 @@ func _on_store_ready(store: M_StateStore) -> void:
 func _on_panel_ready() -> void:
 	_configure_focus_neighbors()
 	_connect_control_signals()
+	_configure_preview_prompts()
+
+func _configure_preview_prompts() -> void:
+	if _preview_enter_prompt != null:
+		_preview_enter_prompt.show_prompt(StringName("ui_accept"), "Press to test sticks")
+	if _preview_exit_prompt != null:
+		_preview_exit_prompt.show_prompt(StringName("ui_cancel"), "Press to exit preview")
+		_preview_exit_prompt.visible = false
+	if _preview != null:
+		_preview.set_active(false)
 
 func _configure_focus_neighbors() -> void:
 	var vertical_controls: Array[Control] = []
@@ -63,6 +76,8 @@ func _configure_focus_neighbors() -> void:
 	var buttons: Array[Control] = []
 	if _cancel_button != null:
 		buttons.append(_cancel_button)
+	if _reset_button != null:
+		buttons.append(_reset_button)
 	if _apply_button != null:
 		buttons.append(_apply_button)
 
@@ -80,6 +95,8 @@ func _connect_control_signals() -> void:
 	_vibration_checkbox.toggled.connect(_on_vibration_toggled)
 	_apply_button.pressed.connect(_on_apply_pressed)
 	_cancel_button.pressed.connect(_close_overlay)
+	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
+		_reset_button.pressed.connect(_on_reset_pressed)
 
 func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	if state == null:
@@ -146,6 +163,25 @@ func _on_apply_pressed() -> void:
 	store.dispatch(U_InputActions.set_vibration_intensity(vibration_intensity))
 	_close_overlay()
 
+func _on_reset_pressed() -> void:
+	var store := get_store()
+	var defaults := RS_GamepadSettings.new()
+
+	_left_slider.value = defaults.left_stick_deadzone
+	_right_slider.value = defaults.right_stick_deadzone
+	_vibration_checkbox.button_pressed = defaults.vibration_enabled
+	_vibration_slider.value = defaults.vibration_intensity
+
+	_update_slider_label(_left_label, _left_slider.value)
+	_update_slider_label(_right_label, _right_slider.value)
+	_update_slider_label(_vibration_label, _vibration_slider.value)
+
+	if store != null:
+		store.dispatch(U_InputActions.update_gamepad_deadzone("left", defaults.left_stick_deadzone))
+		store.dispatch(U_InputActions.update_gamepad_deadzone("right", defaults.right_stick_deadzone))
+		store.dispatch(U_InputActions.toggle_vibration(defaults.vibration_enabled))
+		store.dispatch(U_InputActions.set_vibration_intensity(defaults.vibration_intensity))
+
 func _close_overlay() -> void:
 	var store := get_store()
 	if store != null:
@@ -163,6 +199,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _preview != null and _preview.has_focus():
 		if event.is_action_pressed("ui_accept"):
 			_preview_active = true
+			if _preview != null:
+				_preview.set_active(true)
+			if _preview_enter_prompt != null:
+				_preview_enter_prompt.visible = false
+			if _preview_exit_prompt != null:
+				_preview_exit_prompt.visible = true
 			var viewport := get_viewport()
 			if viewport != null:
 				viewport.set_input_as_handled()
@@ -170,6 +212,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		if _preview_active and (event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_pause")):
 			_preview_active = false
+			if _preview != null:
+				_preview.set_active(false)
+			if _preview_enter_prompt != null:
+				_preview_enter_prompt.visible = true
+			if _preview_exit_prompt != null:
+				_preview_exit_prompt.visible = false
 			var viewport_cancel := get_viewport()
 			if viewport_cancel != null:
 				viewport_cancel.set_input_as_handled()

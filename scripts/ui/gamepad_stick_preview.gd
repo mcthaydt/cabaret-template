@@ -4,6 +4,11 @@ class_name GamepadStickPreview
 ## Simple visualization for left/right stick vectors.
 
 @export var circle_radius: float = 50.0
+@export var active_border_color: Color = Color(0.4, 0.9, 1.0, 0.9)
+@export var hover_border_color: Color = Color(0.6, 0.8, 1.0, 0.9)
+@export var inactive_border_color: Color = Color(0.25, 0.25, 0.25, 1.0)
+
+var _is_active: bool = false
 
 var _left_vector: Vector2 = Vector2.ZERO
 var _right_vector: Vector2 = Vector2.ZERO
@@ -28,10 +33,22 @@ func update_vectors(left: Vector2, right: Vector2, left_raw: Vector2 = Vector2.Z
 	_right_raw = right_raw
 	queue_redraw()
 
+func set_active(active: bool) -> void:
+	_is_active = active
+	queue_redraw()
+
 func _draw() -> void:
 	var size: Vector2 = get_size()
 	var left_center: Vector2 = Vector2(size.x * 0.25, size.y * 0.4)
 	var right_center: Vector2 = Vector2(size.x * 0.75, size.y * 0.4)
+
+	var border_color: Color = inactive_border_color
+	if has_focus():
+		border_color = hover_border_color
+	if _is_active:
+		border_color = active_border_color
+	draw_rect(Rect2(Vector2.ZERO, size), Color(0, 0, 0, 0.35), true)
+	draw_rect(Rect2(Vector2.ZERO, size), border_color, false, 2.0)
 
 	# Draw stick visualizations
 	_draw_stick_circle(left_center, _left_vector, Color(0.2, 0.7, 1.0))

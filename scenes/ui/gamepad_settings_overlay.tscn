@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://3i50wvrc3pth"]
+[gd_scene load_steps=4 format=3 uid="uid://3i50wvrc3pth"]
 
 [ext_resource type="Script" uid="uid://c5xcj17j871iw" path="res://scripts/ui/gamepad_settings_overlay.gd" id="1"]
 [ext_resource type="Script" uid="uid://bh7yxsksw2bti" path="res://scripts/ui/gamepad_stick_preview.gd" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/ui/button_prompt.tscn" id="3"]
 
 [node name="GamepadSettingsOverlay" type="Control"]
 layout_mode = 3
@@ -136,12 +137,22 @@ layout_mode = 2
 text = "1.00"
 horizontal_alignment = 1
 
-[node name="StickPreview" type="Control" parent="CenterContainer/Panel/VBox"]
+[node name="StickPreviewContainer" type="VBoxContainer" parent="CenterContainer/Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StickPreview" type="Control" parent="CenterContainer/Panel/VBox/StickPreviewContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 focus_mode = 2
 script = ExtResource("2")
+
+[node name="EnterPrompt" parent="CenterContainer/Panel/VBox/StickPreviewContainer" instance=ExtResource("3")]
+unique_name_in_owner = true
+
+[node name="ExitPrompt" parent="CenterContainer/Panel/VBox/StickPreviewContainer" instance=ExtResource("3")]
+unique_name_in_owner = true
 
 [node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
@@ -152,6 +163,11 @@ alignment = 2
 unique_name_in_owner = true
 layout_mode = 2
 text = "Cancel"
+
+[node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Reset to Defaults"
 
 [node name="ApplyButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
 unique_name_in_owner = true
