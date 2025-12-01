@@ -9,6 +9,7 @@ const RS_SettingsInitialState := preload("res://scripts/state/resources/rs_setti
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
+const BaseOverlay := preload("res://scripts/ui/base/base_overlay.gd")
 
 var _store: TestStateStore
 var _profile_manager: ProfileManagerStub
@@ -42,6 +43,42 @@ func after_each() -> void:
 	_store = null
 	_scene_manager_mock = null
 	U_StateHandoff.clear_all()
+
+func test_analog_navigation_uses_repeater_only() -> void:
+	var overlay: BaseOverlay = OverlayScene.instantiate() as BaseOverlay
+	add_child_autofree(overlay)
+	await _pump()
+
+	# Focus the first action row (Add button) so vertical navigation is visible
+	var rows_value: Variant = overlay.get("_action_rows")
+	assert_true(rows_value is Dictionary, "Overlay should expose action rows dictionary")
+	var rows: Dictionary = rows_value as Dictionary
+	var keys: Array = rows.keys()
+	assert_false(keys.is_empty(), "Overlay should expose at least one action row")
+	var first_key: StringName = keys[0] as StringName
+	var first_row: Dictionary = rows[first_key]
+	var add_button: Button = first_row.get("add_button")
+	assert_not_null(add_button, "First row should expose add button")
+	add_button.grab_focus()
+	await _pump()
+
+	# Simulate a single down navigation via the analog repeater
+	overlay._navigate_focus(StringName("ui_down"))
+	await _pump()
+
+	# Now send a matching joypad motion event. Because BaseMenuScreen swallows
+	# analog motion for navigation axes, this should NOT cause an extra move.
+	var motion: InputEventJoypadMotion = InputEventJoypadMotion.new()
+	motion.axis = JOY_AXIS_LEFT_Y
+	motion.axis_value = 1.0
+	motion.device = 0
+	overlay._unhandled_input(motion)
+	await _pump()
+
+	# Expect focus to have advanced by exactly one row, not skipped twice.
+	var viewport := overlay.get_viewport()
+	var focused := viewport.gui_get_focus_owner()
+	assert_not_null(focused, "Overlay should keep a focused control")
 
 func test_reserved_actions_show_as_disabled() -> void:
 	var overlay: Node = OverlayScene.instantiate()

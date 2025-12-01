@@ -6,7 +6,7 @@ class_name AnalogStickRepeater
 ## Mimics keyboard key repeat: immediate trigger on press, delay before repeating,
 ## then continuous repeat at a fixed interval while held.
 
-const REPEAT_INITIAL_DELAY: float = 0.5  # 500ms before first repeat
+const REPEAT_INITIAL_DELAY: float = 0.8  # 800ms before first repeat
 const REPEAT_INTERVAL: float = 0.05       # 50ms between repeats
 
 ## Callback invoked when navigation should occur

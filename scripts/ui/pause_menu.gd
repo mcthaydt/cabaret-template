@@ -100,7 +100,16 @@ func _navigate_focus(direction: StringName) -> void:
 	if _consume_next_nav:
 		_consume_next_nav = false
 		return
+
+	var viewport: Viewport = get_viewport()
+	var before: Control = null
+	if viewport != null:
+		before = viewport.gui_get_focus_owner() as Control
+
 	super._navigate_focus(direction)
+
+	if viewport != null:
+		var after: Control = viewport.gui_get_focus_owner() as Control
 
 func _focus_resume() -> void:
 	if _resume_button == null or not _resume_button.is_inside_tree() or not _resume_button.visible:

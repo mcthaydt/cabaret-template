@@ -4,13 +4,13 @@ extends GutTest
 ##
 ## Verifies that analog stick UI navigation repeats like keyboard/D-pad:
 ## 1. Immediate trigger when crossing deadzone
-## 2. Initial delay (~500ms) before first repeat
+## 2. Initial delay (~800ms) before first repeat
 ## 3. Continuous repeat (~50ms interval) while held
 ## 4. Stop when released below deadzone
 
 const AnalogStickRepeater = preload("res://scripts/ui/utils/analog_stick_repeater.gd")
 
-const REPEAT_INITIAL_DELAY: float = 0.5  # 500ms
+const REPEAT_INITIAL_DELAY: float = 0.8  # 800ms
 const REPEAT_INTERVAL: float = 0.05      # 50ms
 
 var repeater: AnalogStickRepeater
@@ -77,8 +77,8 @@ func test_first_repeat_after_initial_delay() -> void:
 	repeater.update("ui_down", true, delta)
 	navigation_calls.clear()
 
-	# Simulate 500ms+
-	for i in range(32):  # 32 frames * 16ms ≈ 512ms
+	# Simulate 900ms+ (past 800ms initial delay)
+	for i in range(56):  # 56 frames * 16ms ≈ 896ms
 		repeater.update("ui_down", true, delta)
 
 	assert_gt(navigation_calls.size(), 0,
@@ -94,21 +94,21 @@ func test_continuous_repeat_at_interval() -> void:
 	repeater.update("ui_down", true, delta)
 	navigation_calls.clear()
 
-	# Simulate 1 second of holding (after initial delay passes)
+	# Simulate 2 seconds of holding (after initial delay passes)
 	var total_time: float = 0.0
 	var frame_count: int = 0
 
-	while total_time < 1.0:
+	while total_time < 2.0:
 		repeater.update("ui_down", true, delta)
 		total_time += delta
 		frame_count += 1
 
-	# After 500ms delay, we have 500ms of repeating
-	# At 50ms intervals, that's ~10 repeats (allow for timing precision)
-	assert_gte(navigation_calls.size(), 8,
-		"Should have multiple repeats (expected 8-10)")
-	assert_lte(navigation_calls.size(), 11,
-		"Repeat count should be reasonable (8-10, not way more)")
+	# After 800ms delay, we have ~1.2s of repeating
+	# At 50ms intervals, that's ~24 repeats (allow for timing precision)
+	assert_gte(navigation_calls.size(), 15,
+		"Should have multiple repeats (expected around 20-25)")
+	assert_lte(navigation_calls.size(), 30,
+		"Repeat count should be reasonable (around 20-25, not way more)")
 
 
 ## RELEASE TESTS
@@ -181,8 +181,8 @@ func test_multiple_directions_held_simultaneously() -> void:
 	repeater.update("ui_right", true, delta)
 	navigation_calls.clear()
 
-	# Wait for initial delay on both
-	for i in range(32):
+	# Wait for initial delay on both (simulate ~1.6s > 0.8s delay)
+	for i in range(100):
 		repeater.update("ui_down", true, delta)
 		repeater.update("ui_right", true, delta)
 

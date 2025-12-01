@@ -34,6 +34,34 @@ func _process(delta: float) -> void:
 		_stick_repeater.update("ui_left", _is_stick_pressed_left(), delta)
 		_stick_repeater.update("ui_right", _is_stick_pressed_right(), delta)
 
+func _unhandled_input(event: InputEvent) -> void:
+	# Swallow analog stick motion events used for navigation so Godot's built-in
+	# ui_up/down/left/right handling does not also move focus. This ensures the
+	# AnalogStickRepeater is the single source of analog navigation and prevents
+	# double-skips when changing direction after a held repeat.
+	if event is InputEventJoypadMotion:
+		var motion: InputEventJoypadMotion = event as InputEventJoypadMotion
+		if motion.axis == JOY_AXIS_LEFT_Y and abs(motion.axis_value) > STICK_DEADZONE:
+			var viewport: Viewport = get_viewport()
+			if viewport != null:
+				viewport.set_input_as_handled()
+		elif motion.axis == JOY_AXIS_LEFT_X and abs(motion.axis_value) > STICK_DEADZONE:
+			var viewport_x: Viewport = get_viewport()
+			if viewport_x != null:
+				viewport_x.set_input_as_handled()
+	elif event is InputEventJoypadButton:
+		var button: InputEventJoypadButton = event as InputEventJoypadButton
+		if (
+			button.is_action_pressed("ui_up")
+			or button.is_action_pressed("ui_down")
+			or button.is_action_pressed("ui_left")
+			or button.is_action_pressed("ui_right")
+		):
+			var viewport_button: Viewport = get_viewport()
+			if viewport_button != null:
+				viewport_button.set_input_as_handled()
+	super._unhandled_input(event)
+
 
 ## Check if ONLY the analog stick (not D-pad/keyboard) is pressed in each direction
 ## Checks all connected joypads, not just device 0
