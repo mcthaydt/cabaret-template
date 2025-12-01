@@ -6,6 +6,7 @@ const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd"
 const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
 const U_InputCaptureGuard := preload("res://scripts/utils/u_input_capture_guard.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/default_rebind_settings.tres")
 
 @onready var _action_list: VBoxContainer = %ActionList
@@ -13,6 +14,7 @@ const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_
 @onready var _search_box: LineEdit = %SearchBox
 @onready var _close_button: Button = %CloseButton
 @onready var _reset_button: Button = %ResetButton
+@onready var _scroll: ScrollContainer = $CenterContainer/Panel/VBox/Scroll
 @onready var _conflict_dialog: ConfirmationDialog = %ConflictDialog
 @onready var _reset_confirm_dialog: ConfirmationDialog = %ResetConfirmDialog
 @onready var _error_dialog: AcceptDialog = %ErrorDialog
@@ -29,6 +31,9 @@ var _search_filter: String = ""
 var _focused_action_index: int = -1
 var _focusable_actions: Array[StringName] = []
 var _capture_guard_active: bool = false
+var _is_on_bottom_row: bool = false
+var _bottom_button_index: int = 0
+var _row_button_index: int = 0
 
 const REPLACE_BUTTON_TEXT := "Replace"
 const ADD_BUTTON_TEXT := "Add Binding"
@@ -248,6 +253,19 @@ func _build_action_rows() -> void:
 
 	_refresh_bindings()
 	_set_reset_button_enabled(_profile_manager != null and not _is_capturing)
+
+	_configure_focus_neighbors()
+
+	# Initialize focus on the first action when available so gamepad/keyboard
+	# navigation starts from the list instead of the search box.
+	if not _focusable_actions.is_empty():
+		_focused_action_index = 0
+		_is_on_bottom_row = false
+		_row_button_index = 0
+		_apply_focus()
+	else:
+		_focused_action_index = -1
+		_is_on_bottom_row = false
 
 func _collect_actions() -> Array[StringName]:
 	var actions: Array[StringName] = []
@@ -643,6 +661,40 @@ func _on_close_pressed() -> void:
 	else:
 		queue_free()
 
+func _on_back_pressed() -> void:
+	_on_close_pressed()
+
+func _process(delta: float) -> void:
+	# Preserve base menu behavior (analog repeat on left stick)
+	super._process(delta)
+	_update_right_stick_scroll(delta)
+
+func _update_right_stick_scroll(delta: float) -> void:
+	if _scroll == null:
+		return
+
+	var axis_x: float = 0.0
+	var axis_y: float = 0.0
+	var found_device: bool = false
+
+	for device in Input.get_connected_joypads():
+		axis_x = Input.get_joy_axis(device, JOY_AXIS_RIGHT_X)
+		axis_y = Input.get_joy_axis(device, JOY_AXIS_RIGHT_Y)
+		if abs(axis_x) > BaseMenuScreen.STICK_DEADZONE or abs(axis_y) > BaseMenuScreen.STICK_DEADZONE:
+			found_device = true
+			break
+
+	if not found_device:
+		return
+
+	# Horizontal: axis_x > 0 scrolls right, < 0 scrolls left.
+	# Vertical: axis_y > 0 scrolls down, < 0 scrolls up.
+	var scroll_speed: float = 800.0
+	var new_h: float = float(_scroll.scroll_horizontal) + axis_x * scroll_speed * delta
+	var new_v: float = float(_scroll.scroll_vertical) + axis_y * scroll_speed * delta
+	_scroll.scroll_horizontal = int(new_h)
+	_scroll.scroll_vertical = int(new_v)
+
 func _on_reset_pressed() -> void:
 	if _is_capturing:
 		_cancel_capture()
@@ -774,29 +826,86 @@ func _is_binding_custom(action: StringName) -> bool:
 		return (bindings_variant as Dictionary).has(action)
 	return false
 
-func _unhandled_key_input(event: InputEvent) -> void:
+func _configure_focus_neighbors() -> void:
+	# Horizontal neighbors for per-row buttons
+	for action in _focusable_actions:
+		if not _action_rows.has(action):
+			continue
+		var row_data: Dictionary = _action_rows[action]
+		var add_button: Button = row_data.get("add_button")
+		var replace_button: Button = row_data.get("replace_button")
+		var reset_button: Button = row_data.get("reset_button")
+
+		var row_buttons: Array[Control] = []
+		if add_button != null:
+			row_buttons.append(add_button)
+		if replace_button != null:
+			row_buttons.append(replace_button)
+		if reset_button != null:
+			row_buttons.append(reset_button)
+		if not row_buttons.is_empty():
+			U_FocusConfigurator.configure_horizontal_focus(row_buttons, false)
+
+	# Vertical neighbors for primary controls (Add buttons)
+	var add_buttons: Array[Button] = []
+	for action in _focusable_actions:
+		var row: Dictionary = _action_rows.get(action, {}) as Dictionary
+		var add_button: Button = row.get("add_button")
+		if add_button != null:
+			add_buttons.append(add_button)
+
+	var count: int = add_buttons.size()
+	for i in range(count):
+		var btn: Button = add_buttons[i]
+		if btn == null:
+			continue
+		# Previous row
+		if i > 0:
+			btn.focus_neighbor_top = btn.get_path_to(add_buttons[i - 1])
+		# Next row
+		if i < count - 1:
+			btn.focus_neighbor_bottom = btn.get_path_to(add_buttons[i + 1])
+
+	# Bottom-row buttons (Reset to Defaults / Close)
+	var bottom_buttons: Array[Control] = []
+	if _reset_button != null:
+		bottom_buttons.append(_reset_button)
+	if _close_button != null:
+		bottom_buttons.append(_close_button)
+
+	if not bottom_buttons.is_empty():
+		U_FocusConfigurator.configure_horizontal_focus(bottom_buttons, true)
+		# Link last Add button to bottom row
+		if count > 0:
+			var last_add: Button = add_buttons[count - 1]
+			if last_add != null:
+				last_add.focus_neighbor_bottom = last_add.get_path_to(bottom_buttons[0])
+				for bottom in bottom_buttons:
+					if bottom != null:
+						bottom.focus_neighbor_top = bottom.get_path_to(last_add)
+
+func _get_first_focusable() -> Control:
+	# Prefer focusing the first row's Add button rather than the search box
+	# so gamepad users land on an action immediately.
+	if not _focusable_actions.is_empty():
+		var first_action := _focusable_actions[0]
+		if _action_rows.has(first_action):
+			var row_data: Dictionary = _action_rows[first_action]
+			var add_button: Button = row_data.get("add_button")
+			if add_button != null:
+				return add_button
+	return super._get_first_focusable()
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Handle gamepad navigation separately so keyboard continues to use
+	# the existing _unhandled_key_input path.
 	if _is_capturing:
+		super._unhandled_input(event)
 		return
 
-	if event is InputEventKey and event.pressed and not event.echo:
-		match event.keycode:
-			Key.KEY_TAB:
-				if event.shift_pressed:
-					_focus_previous_action()
-				else:
-					_focus_next_action()
-				get_viewport().set_input_as_handled()
-			Key.KEY_UP:
-				_focus_previous_action()
-				get_viewport().set_input_as_handled()
-			Key.KEY_DOWN:
-				_focus_next_action()
-				get_viewport().set_input_as_handled()
-			Key.KEY_ENTER, Key.KEY_KP_ENTER:
-				if _focused_action_index >= 0 and _focused_action_index < _focusable_actions.size():
-					var action := _focusable_actions[_focused_action_index]
-					_begin_capture(action, U_InputActions.REBIND_MODE_REPLACE)
-				get_viewport().set_input_as_handled()
+	# Let default UI navigation (neighbors) handle D-pad and keyboard,
+	# so behavior matches other menus.
+	super._unhandled_input(event)
 
 func _exit_tree() -> void:
 	if _capture_guard_active:
@@ -806,18 +915,46 @@ func _exit_tree() -> void:
 func _focus_next_action() -> void:
 	if _focusable_actions.is_empty():
 		return
+	_row_button_index = 0
 	_focused_action_index = (_focused_action_index + 1) % _focusable_actions.size()
 	_apply_focus()
 
 func _focus_previous_action() -> void:
 	if _focusable_actions.is_empty():
 		return
+	_row_button_index = 0
 	_focused_action_index -= 1
 	if _focused_action_index < 0:
 		_focused_action_index = _focusable_actions.size() - 1
 	_apply_focus()
 
 func _apply_focus() -> void:
+	# When on the bottom button row, focus the appropriate bottom button.
+	if _is_on_bottom_row:
+		var buttons: Array[Button] = []
+		if _reset_button != null and not _reset_button.disabled:
+			buttons.append(_reset_button)
+		if _close_button != null and not _close_button.disabled:
+			buttons.append(_close_button)
+
+		if buttons.is_empty():
+			_is_on_bottom_row = false
+		else:
+			if _bottom_button_index < 0 or _bottom_button_index >= buttons.size():
+				_bottom_button_index = clampi(_bottom_button_index, 0, buttons.size() - 1)
+			var button := buttons[_bottom_button_index]
+			if button != null:
+				button.grab_focus()
+
+		# Dim all action rows when bottom buttons are focused.
+		for action_key in _action_rows.keys():
+			var data: Dictionary = _action_rows[action_key]
+			var row_container: Control = data.get("container")
+			if row_container != null:
+				row_container.modulate = Color(1, 1, 1, 0.7)
+		if _is_on_bottom_row:
+			return
+
 	if _focused_action_index < 0 or _focused_action_index >= _focusable_actions.size():
 		return
 
@@ -826,15 +963,133 @@ func _apply_focus() -> void:
 		return
 
 	var row_data: Dictionary = _action_rows[action]
-	var container: Control = row_data.get("container")
-	if container != null:
-		container.grab_focus()
-		# Highlight focused row
-		for other_action in _action_rows.keys():
-			var other_data: Dictionary = _action_rows[other_action]
-			var other_container: Control = other_data.get("container")
-			if other_container != null:
-				other_container.modulate = Color(1, 1, 1, 1) if other_action == action else Color(1, 1, 1, 0.7)
+	var add_button: Button = row_data.get("add_button")
+	var replace_button: Button = row_data.get("replace_button")
+	var reset_button: Button = row_data.get("reset_button")
+
+	var row_buttons: Array[Button] = []
+	if add_button != null and not add_button.disabled:
+		row_buttons.append(add_button)
+	if replace_button != null and not replace_button.disabled:
+		row_buttons.append(replace_button)
+	if reset_button != null and not reset_button.disabled:
+		row_buttons.append(reset_button)
+
+	if not row_buttons.is_empty():
+		if _row_button_index < 0 or _row_button_index >= row_buttons.size():
+			_row_button_index = clampi(_row_button_index, 0, row_buttons.size() - 1)
+		var focused_button := row_buttons[_row_button_index]
+		if focused_button != null:
+			focused_button.grab_focus()
+	else:
+		var container: Control = row_data.get("container")
+		if container != null:
+			container.grab_focus()
+
+	# Highlight focused row
+	for other_action in _action_rows.keys():
+		var other_data: Dictionary = _action_rows[other_action]
+		var other_container: Control = other_data.get("container")
+		if other_container != null:
+			other_container.modulate = Color(1, 1, 1, 1) if other_action == action else Color(1, 1, 1, 0.7)
+
+func _cycle_row_button(direction: int) -> void:
+	if _focused_action_index < 0 or _focused_action_index >= _focusable_actions.size():
+		return
+	var action := _focusable_actions[_focused_action_index]
+	if not _action_rows.has(action):
+		return
+
+	var row_data: Dictionary = _action_rows[action]
+	var add_button: Button = row_data.get("add_button")
+	var replace_button: Button = row_data.get("replace_button")
+	var reset_button: Button = row_data.get("reset_button")
+
+	var row_buttons: Array[Button] = []
+	if add_button != null and not add_button.disabled:
+		row_buttons.append(add_button)
+	if replace_button != null and not replace_button.disabled:
+		row_buttons.append(replace_button)
+	if reset_button != null and not reset_button.disabled:
+		row_buttons.append(reset_button)
+	if row_buttons.is_empty():
+		return
+
+	_row_button_index += direction
+	if _row_button_index < 0:
+		_row_button_index = row_buttons.size() - 1
+	if _row_button_index >= row_buttons.size():
+		_row_button_index = 0
+
+	_apply_focus()
+
+func _cycle_bottom_button(direction: int) -> void:
+	var buttons: Array[Button] = []
+	if _reset_button != null and not _reset_button.disabled:
+		buttons.append(_reset_button)
+	if _close_button != null and not _close_button.disabled:
+		buttons.append(_close_button)
+	if buttons.is_empty():
+		return
+
+	_bottom_button_index += direction
+	if _bottom_button_index < 0:
+		_bottom_button_index = buttons.size() - 1
+	if _bottom_button_index >= buttons.size():
+		_bottom_button_index = 0
+
+	_apply_focus()
+
+func _navigate(direction: StringName) -> void:
+	if _is_capturing:
+		return
+
+	match direction:
+		StringName("ui_up"):
+			if _is_on_bottom_row:
+				_is_on_bottom_row = false
+				if _focusable_actions.is_empty():
+					return
+				if _focused_action_index < 0 or _focused_action_index >= _focusable_actions.size():
+					_focused_action_index = _focusable_actions.size() - 1
+				_apply_focus()
+			else:
+				_focus_previous_action()
+		StringName("ui_down"):
+			if _is_on_bottom_row:
+				return
+			if _focusable_actions.is_empty():
+				if _reset_button != null or _close_button != null:
+					_is_on_bottom_row = true
+					_bottom_button_index = 0
+					_apply_focus()
+				return
+			if _focused_action_index < 0:
+				_focused_action_index = 0
+				_apply_focus()
+				return
+			if _focused_action_index < _focusable_actions.size() - 1:
+				_focus_next_action()
+			else:
+				if _reset_button != null or _close_button != null:
+					_is_on_bottom_row = true
+					_bottom_button_index = 0
+					_apply_focus()
+		StringName("ui_left"):
+			if _is_on_bottom_row:
+				_cycle_bottom_button(-1)
+			else:
+				_cycle_row_button(-1)
+		StringName("ui_right"):
+			if _is_on_bottom_row:
+				_cycle_bottom_button(1)
+			else:
+				_cycle_row_button(1)
+
+func _navigate_focus(direction: StringName) -> void:
+	# Defer to BaseMenuScreen neighbor-based navigation for analog sticks
+	# so movement feels consistent with other menus.
+	super._navigate_focus(direction)
 
 ## Returns device type category for an InputEvent.
 ## Returns: "keyboard", "mouse", "gamepad", or "unknown"
