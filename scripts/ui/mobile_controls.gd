@@ -278,6 +278,11 @@ func _update_navigation_state(state: Dictionary) -> void:
 	if not was_transitioning and _is_transitioning:
 		_awaiting_transition_signal = true
 
+	# Fallback: If state says transition ended but we're still waiting for signal, unblock
+	# This handles test environments without real SceneManager or missed signals
+	if was_transitioning and not _is_transitioning and _awaiting_transition_signal:
+		_awaiting_transition_signal = false
+
 func _update_visibility() -> void:
 	# Always show controls when editing, regardless of device type
 	if _is_edit_overlay_active:
