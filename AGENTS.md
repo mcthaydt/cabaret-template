@@ -304,6 +304,88 @@ store.dispatch(U_NavigationActions.set_menu_panel(StringName("menu/settings")))
 - Use `U_NavigationSelectors.is_paused()` for pause state (single source of truth)
 - Await store ready: `await get_tree().process_frame` before accessing store in `_ready()`
 
+### Unified Settings Panel Patterns
+
+**Architecture**:
+- `SettingsPanel` extends `BaseMenuScreen` (gets analog stick repeater)
+- Tab content panels extend plain `Control` (NO nested repeaters)
+- Use `ButtonGroup` for tab radio behavior (automatic mutual exclusivity)
+- Auto-save pattern: dispatch Redux actions immediately (no Apply/Cancel buttons)
+
+**Base Class Hierarchy**:
+```
+BasePanel (store + focus helpers)
+└─ BaseMenuScreen (+ AnalogStickRepeater)
+    ├─ SettingsPanel ← extends this
+    └─ BaseOverlay (+ PROCESS_MODE_ALWAYS)
+
+Tab panels (gamepad_tab, touchscreen_tab, etc.)
+└─ Control ← extends this (NOT BaseMenuScreen!)
+```
+
+**ButtonGroup Setup**:
+```gdscript
+# In settings_panel.gd:
+var _tab_button_group := ButtonGroup.new()
+func _ready():
+    input_profiles_button.toggle_mode = true
+    input_profiles_button.button_group = _tab_button_group
+    gamepad_button.toggle_mode = true
+    gamepad_button.button_group = _tab_button_group
+    # ButtonGroup automatically handles button_pressed states
+    _tab_button_group.pressed.connect(_on_tab_button_pressed)
+```
+
+**Focus Management Rules**:
+1. **Tab switch**: Transfer focus to first control in new tab
+   ```gdscript
+   await get_tree().process_frame  # Let visibility settle
+   var first_focusable := _get_first_focusable_in_active_tab()
+   if first_focusable:
+       first_focusable.grab_focus()
+   ```
+
+2. **Device switch**: If active tab becomes hidden, switch tab AND re-focus
+   ```gdscript
+   _update_tab_visibility()
+   if not _is_active_tab_visible():
+       _switch_to_first_visible_tab()
+       await get_tree().process_frame
+       _focus_first_control_in_active_tab()  # Critical!
+   ```
+
+3. **Tab content**: Use `U_FocusConfigurator` for focus chains, not custom `_navigate_focus()`
+   ```gdscript
+   # In gamepad_tab.gd:
+   func _configure_focus_neighbors():
+       var controls: Array[Control] = [left_slider, right_slider, checkbox]
+       U_FocusConfigurator.configure_vertical_focus(controls, false)
+   ```
+
+**Auto-Save Pattern**:
+```gdscript
+# ✅ CORRECT - immediate dispatch
+func _on_left_deadzone_changed(value: float):
+    store.dispatch(U_InputActions.update_gamepad_setting("left_stick_deadzone", value))
+
+# ❌ WRONG - batching with Apply button
+var _pending_changes: Dictionary = {}
+func _on_slider_changed(value: float):
+    _pending_changes["deadzone"] = value
+func _on_apply_pressed():
+    store.dispatch(...)
+```
+
+**Input Actions for Tab Switching**:
+- Add `ui_focus_prev` (L1/LB, Page Up) and `ui_focus_next` (R1/RB, Page Down) to `project.godot`
+- Shoulder buttons cycle tabs, focus transfers automatically
+
+**Anti-Patterns**:
+- ❌ Tab panels extending `BaseMenuScreen` (creates nested repeater conflict)
+- ❌ Manual button state management (use `ButtonGroup` instead)
+- ❌ Apply/Cancel buttons (use auto-save pattern)
+- ❌ Tab content overriding `_navigate_focus()` (conflicts with parent repeater)
+
 ## Test Commands
 
 - Run ECS tests

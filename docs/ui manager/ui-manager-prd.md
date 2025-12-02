@@ -152,9 +152,174 @@ The target architecture:
   - New unit tests for navigation reducers, selectors, and registry integration.
   - New integration tests verifying scene/overlay stacks for key flows.
 
+## Unified Settings Panel
+
+### Overview
+
+All input-related settings are consolidated into a single unified settings panel with tabbed sections. This panel is accessible from both the main menu (as an embedded panel) and the pause menu (as an overlay), providing a consistent settings experience across contexts.
+
+### Architecture
+
+**Base Class**: `SettingsPanel` extends `BaseMenuScreen`
+- Inherits `AnalogStickRepeater` for smooth gamepad navigation (held-stick repeat behavior)
+- Supports dual contexts (main menu panel / pause overlay) without special handling
+
+**Tab Structure**: Single-level tabs for Input settings (Phase 1)
+```
+[Input Profiles] [Gamepad] [Touchscreen] [Keyboard/Mouse]
+```
+
+**Tab Content**: Plain `Control` nodes (do NOT extend `BaseMenuScreen`)
+- Parent `SettingsPanel` handles all analog stick input via inherited repeater
+- Tabs use `U_FocusConfigurator` for focus chain configuration
+- Avoids nested analog repeater conflicts
+
+**Radio Behavior**: `ButtonGroup` resource for tab mutual exclusivity
+- Automatic visual state management (only one tab active)
+- Connect to `ButtonGroup.pressed` signal for tab switching logic
+
+### Tab Visibility Rules
+
+**Device-Based Filtering**:
+- **Input Profiles tab**: Always visible (all devices)
+- **Gamepad tab**: Visible only when `M_InputDeviceManager.DeviceType.GAMEPAD` active
+- **Touchscreen tab**: Visible only when `DeviceType.TOUCHSCREEN` active
+- **Keyboard/Mouse tab**: Visible when keyboard, mouse, or combined device active
+
+**Device Switch Behavior**:
+- Silent auto-switch to first visible tab (no toast notification)
+- Focus transfers to first focusable control in new tab
+- Critical: `_focus_first_control_in_active_tab()` must be called after device switch
+
+### Tab Content Details
+
+#### Input Profiles Tab
+- Profile cycling buttons (up/down to cycle, button to apply)
+- Binding preview showing effective action mappings for selected profile
+- Auto-save: Profile switches dispatch immediately to Redux
+- No Apply/Cancel buttons (consistent with auto-save pattern)
+
+#### Gamepad Tab
+- Left/right stick deadzone sliders
+- Vibration enable/disable toggle
+- Vibration intensity slider
+- Interactive stick preview for testing
+- Auto-save: Slider changes dispatch immediately
+- No Apply/Cancel buttons
+
+#### Touchscreen Tab
+- Virtual joystick size/opacity sliders
+- Button size/opacity sliders
+- Joystick deadzone slider
+- Live preview showing button layout
+- "Edit Layout" button → opens `edit_touch_controls_overlay` (modal)
+- Auto-save: Slider changes dispatch immediately
+- No Apply/Cancel buttons
+
+#### Keyboard/Mouse Tab
+- "Rebind Controls" button → opens `input_rebinding_overlay` (modal)
+- Placeholder for future mouse sensitivity slider
+- Minimal UI (one button initially)
+
+### Focus Management
+
+**Tab Switching Focus Flow**:
+1. User presses R1/L1 (shoulder buttons) or clicks tab button
+2. `SettingsPanel` catches `ui_focus_next`/`ui_focus_prev` or button press
+3. `ButtonGroup` automatically updates button states (radio behavior)
+4. `_activate_tab()` hides old content, shows new content
+5. **Critical**: `_focus_first_control_in_active_tab()` transfers focus to new tab
+6. Must `await get_tree().process_frame` before focusing (ensure visibility)
+
+**Device Switch Focus Flow**:
+1. `M_InputDeviceManager` detects device change
+2. `SettingsPanel` receives device change signal
+3. `_update_tab_visibility()` hides/shows tabs per device
+4. If active tab becomes hidden, `_switch_to_first_visible_tab()`
+5. **Critical**: `_focus_first_control_in_active_tab()` re-establishes focus
+
+### Input Actions
+
+**New Actions Required** (add to `project.godot`):
+```ini
+ui_focus_prev={
+  "deadzone": 0.2,
+  "events": [
+    InputEventJoypadButton(button_index=9),  # L1/LB shoulder
+    InputEventKey(keycode=4194323)            # Page Up (keyboard fallback)
+  ]
+}
+ui_focus_next={
+  "deadzone": 0.2,
+  "events": [
+    InputEventJoypadButton(button_index=10), # R1/RB shoulder
+    InputEventKey(keycode=4194324)            # Page Down (keyboard fallback)
+  ]
+}
+```
+
+### Dual Context Integration
+
+**Main Menu Context**:
+- Settings panel shown when `navigation.active_menu_panel == "menu/settings"`
+- Back button dispatches `NAV/SET_MENU_PANEL("menu/main")`
+- Normal process mode (not PROCESS_MODE_ALWAYS)
+- Panel blends with menu background
+
+**Pause Menu Context**:
+- Settings panel embedded in `settings_menu_overlay`
+- Back button dispatches `NAV/CLOSE_TOP_OVERLAY` (returns to pause)
+- Parent overlay provides PROCESS_MODE_ALWAYS + background dimming
+- Panel works identically to main menu context (context-agnostic design)
+
+### Anti-Patterns
+
+**❌ WRONG - Tab panels extend BaseMenuScreen**:
+```gdscript
+# scripts/ui/panels/gamepad_tab.gd
+extends BaseMenuScreen  # Creates nested AnalogStickRepeater conflict!
+```
+
+**✅ CORRECT - Tab panels extend Control**:
+```gdscript
+extends Control
+const U_FocusConfigurator := preload("...")
+func _ready():
+    _configure_focus_neighbors()  # Use helper, not custom repeater
+```
+
+**❌ WRONG - Apply/Cancel buttons**:
+```gdscript
+func _on_apply_pressed():
+    # Batch save all changes
+```
+
+**✅ CORRECT - Auto-save pattern**:
+```gdscript
+func _on_slider_changed(value: float):
+    store.dispatch(U_InputActions.update_setting("key", value))
+    # ✅ Saved immediately to Redux
+```
+
+### Future Scalability (Phase 2+)
+
+**Category → Sub-Tab Architecture**:
+When adding Audio/Graphics/Accessibility settings, refactor to two-level hierarchy:
+
+```
+[Input] [Audio] [Graphics] [Accessibility]
+   ^top-level category tabs^
+
+When Input selected:
+  [Profiles] [Gamepad] [Touch] [KB/Mouse]
+       ^device-specific sub-tabs^
+```
+
+Current implementation uses single-level tabs to keep Phase 1 simple. Future refactor will nest tabs under categories without breaking existing panel components.
+
 ## Open Questions
 
-- Should we introduce a dedicated `navigation` slice, or extend the existing `scene` + `menu` slices with navigation fields and adopt a clear ownership model?
-- How much of the current `scene.scene_stack` semantics should be preserved exactly vs refactored to be fully driven by navigation reducers?
-- Do we want a separate continuation prompt and phases for “UI Manager / Navigation” similar to Scene Manager and Input Manager, or keep this as a sub‑phase of Scene Manager evolution?
+- Should we introduce a dedicated `navigation` slice, or extend the existing `scene` + `menu` slices with navigation fields and adopt a clear ownership model? ✅ **RESOLVED**: Dedicated navigation slice implemented
+- How much of the current `scene.scene_stack` semantics should be preserved exactly vs refactored to be fully driven by navigation reducers? ✅ **RESOLVED**: Flattened overlay architecture (T079) with return stack for navigation
+- Do we want a separate continuation prompt and phases for "UI Manager / Navigation" similar to Scene Manager and Input Manager, or keep this as a sub‑phase of Scene Manager evolution? ✅ **RESOLVED**: Separate UI Manager phases complete
 

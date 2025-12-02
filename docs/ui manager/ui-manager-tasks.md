@@ -765,9 +765,60 @@ Issues discovered during testing that need to be addressed:
   - **Dependencies**: `M_InputDeviceManager` device type
 
 - [ ] T073 [UX] Consolidate all settings into unified settings menu.
-  - **Issue**: Settings scattered across multiple overlays
-  - **Expected**: Single settings menu with tabs/sections for different categories
-  - **Files**: `scripts/ui/settings_menu.gd`, pause menu structure
+  - **Issue**: Settings scattered across multiple overlays (gamepad, touchscreen, rebinding, profiles)
+  - **Expected**: Single unified settings panel with tabbed interface for input settings
+  - **Scope**: Phase 1 - Input settings only (Gamepad, Touchscreen, Profiles, Keyboard/Mouse)
+  - **Files**: `scripts/ui/panels/settings_panel.gd`, `scripts/ui/panels/*_tab.gd`, pause/main menu integration
+
+  **Architecture Decisions**:
+  - `SettingsPanel` extends `BaseMenuScreen` (inherits AnalogStickRepeater for smooth gamepad nav)
+  - Tab content panels extend plain `Control` (avoid nested analog repeater conflicts)
+  - Use `ButtonGroup` resource for tab radio behavior (automatic mutual exclusivity)
+  - Auto-save pattern: dispatch Redux actions immediately (no Apply/Cancel buttons)
+  - Device-based tab visibility: show only relevant tabs per active device
+  - Focus transfer: on tab switch, focus moves to first control in new tab
+  - Shoulder buttons (L1/R1) cycle tabs; requires new `ui_focus_prev`/`ui_focus_next` actions
+
+  **Tab Structure** (Phase 1):
+  ```
+  [Input Profiles] [Gamepad] [Touchscreen] [Keyboard/Mouse]
+  ```
+
+  **Future Scalability** (Phase 2+):
+  - Refactor to two-level hierarchy: Category tabs → Device-specific sub-tabs
+  - Categories: Input, Audio, Graphics, Accessibility
+  - Current single-level tabs will become sub-tabs under "Input" category
+
+  **Base Class Hierarchy**:
+  ```
+  BasePanel (store + focus)
+  └─ BaseMenuScreen (+ AnalogStickRepeater)
+      ├─ SettingsPanel ← Phase 1 implementation
+      └─ BaseOverlay (+ PROCESS_MODE_ALWAYS)
+
+  Tab panels: extends Control (NOT BaseMenuScreen!)
+  ```
+
+  **Critical Patterns**:
+  - Focus management: `_focus_first_control_in_active_tab()` after every tab switch/device switch
+  - Tab visibility: `_update_tab_visibility()` on device change signal
+  - ButtonGroup: `_tab_button_group.pressed.connect(_on_tab_button_pressed)`
+  - Auto-save: `slider.value_changed.connect(func(v): store.dispatch(action))`
+
+  **Anti-Patterns (see DEV_PITFALLS.md)**:
+  - ❌ Tab panels extending BaseMenuScreen (nested repeater conflict)
+  - ❌ Manual button state management (use ButtonGroup)
+  - ❌ Apply/Cancel buttons (use auto-save pattern)
+  - ❌ Tab content overriding `_navigate_focus()` (conflicts with parent)
+
+  **Sub-Tasks** (see plan file for details):
+  - T073.0: Documentation updates (COMPLETED)
+  - T073.1: Create SettingsPanel foundation
+  - T073.2-5: Create tab panels (Input Profiles, Gamepad, Touchscreen, KB/Mouse)
+  - T073.6-7: Integrate into main menu and pause menu
+  - T073.8-9: Focus management and device switching tests
+  - T073.10: Update tests for button removal
+  - T073.11: Final documentation and QA
 
 - [x] T074 [BUG] Mobile touchscreen controls appearing after gamepad menu exit.
   - **Issue**: Touchscreen controls show after exiting menu with gamepad on mobile

@@ -952,6 +952,138 @@ All critical paths tested including error conditions, edge cases, integration sc
 
   **Real example**: `scripts/state/reducers/u_gameplay_reducer.gd:199-207` preserves device state during `ACTION_RESET_PROGRESS` to fix touchscreen controls becoming unresponsive after victory screen reset.
 
+## Unified Settings Panel Pitfalls
+
+### Base Class Selection
+
+**Problem**: Tab panels extending `BaseMenuScreen` create nested `AnalogStickRepeater` conflicts
+
+**Solution**: Parent `SettingsPanel` extends `BaseMenuScreen`; child tab panels extend plain `Control`
+```gdscript
+# ❌ WRONG - creates duplicate analog repeater
+# scripts/ui/panels/gamepad_tab.gd
+extends BaseMenuScreen  # Parent already has repeater!
+
+# ✅ CORRECT - parent handles all analog input
+extends Control
+const U_FocusConfigurator := preload("...")
+func _configure_focus_neighbors():
+    U_FocusConfigurator.configure_vertical_focus([...], false)
+```
+
+### ButtonGroup for Tab Radio Behavior
+
+**Problem**: Manual button state management is error-prone and verbose
+
+**Solution**: Use Godot's `ButtonGroup` resource for automatic mutual exclusivity
+```gdscript
+# ✅ In settings_panel.gd _ready():
+var _tab_button_group := ButtonGroup.new()
+input_profiles_button.toggle_mode = true
+input_profiles_button.button_group = _tab_button_group
+gamepad_button.toggle_mode = true
+gamepad_button.button_group = _tab_button_group
+# ButtonGroup automatically ensures only one button is pressed
+_tab_button_group.pressed.connect(_on_tab_button_pressed)
+```
+
+### Focus Transfer on Tab Switch
+
+**Problem**: Focus remains on tab button after switching, requiring extra navigation
+
+**Solution**: Always transfer focus to first control in new tab
+```gdscript
+# ❌ WRONG - focus stuck on tab button
+func _activate_tab(tab_button: Button):
+    _show_tab_content(tab_button.name)
+    # User must press down arrow to reach sliders
+
+# ✅ CORRECT - automatic focus transfer
+func _activate_tab(tab_button: Button):
+    _show_tab_content(tab_button.name)
+    await get_tree().process_frame  # Let visibility settle
+    var first_focusable := _get_first_focusable_in_active_tab()
+    if first_focusable:
+        first_focusable.grab_focus()  # Ready to navigate immediately
+```
+
+### Device Switch Focus Recovery
+
+**Problem**: When device switches and active tab becomes hidden, focus is lost on invisible control
+
+**Solution**: Re-establish focus on first control of new active tab
+```gdscript
+# ✅ In _on_device_changed():
+_update_tab_visibility()
+if not _is_active_tab_visible():
+    _switch_to_first_visible_tab()
+    await get_tree().process_frame
+    var first_focusable := _get_first_focusable_in_active_tab()
+    if first_focusable:
+        first_focusable.grab_focus()  # ⚠️ CRITICAL - prevents lost focus
+```
+
+### Auto-Save vs Apply/Cancel Pattern
+
+**Problem**: Apply/Cancel buttons add unnecessary complexity and UI clutter for Redux-based settings
+
+**Solution**: Dispatch Redux actions immediately on slider/toggle changes
+```gdscript
+# ❌ WRONG - batching with Apply button
+var _pending_changes: Dictionary = {}
+func _on_slider_changed(value: float):
+    _pending_changes["deadzone"] = value  # Local state
+func _on_apply_pressed():
+    store.dispatch(U_InputActions.update_settings(_pending_changes))
+
+# ✅ CORRECT - auto-save (immediate dispatch)
+func _on_left_deadzone_changed(value: float):
+    store.dispatch(U_InputActions.update_gamepad_setting("left_stick_deadzone", value))
+    # ✅ Saved to Redux immediately
+    # ❌ No local "dirty state" tracking
+    # ❌ No Apply/Cancel buttons needed
+```
+
+### Tab Content vs Parent Navigation
+
+**Problem**: Tab content overriding `_navigate_focus()` conflicts with parent's analog repeater
+
+**Solution**: Tab content uses `U_FocusConfigurator` for focus chains; parent handles navigation
+```gdscript
+# ❌ WRONG - tab overrides navigation
+func _navigate_focus(direction: StringName):
+    # Custom logic here...
+    # Parent's analog repeater ALSO fires → double navigation!
+
+# ✅ CORRECT - configure neighbors, let parent navigate
+func _configure_focus_neighbors():
+    var controls: Array[Control] = [slider1, slider2, checkbox]
+    U_FocusConfigurator.configure_vertical_focus(controls, false)
+    # Parent's _navigate_focus() follows these neighbors automatically
+```
+
+### Missing ui_focus_prev/ui_focus_next Actions
+
+**Problem**: Shoulder button tab switching fails at runtime with missing action errors
+
+**Solution**: Add input actions to `project.godot` BEFORE implementing tab cycling
+```ini
+ui_focus_prev={
+  "deadzone": 0.2,
+  "events": [
+    Object(InputEventJoypadButton, button_index=9),  # L1/LB
+    Object(InputEventKey, keycode=4194323)            # Page Up
+  ]
+}
+ui_focus_next={
+  "deadzone": 0.2,
+  "events": [
+    Object(InputEventJoypadButton, button_index=10), # R1/RB
+    Object(InputEventKey, keycode=4194324)            # Page Down
+  ]
+}
+```
+
 ## Style & Resource Hygiene
 
 - `.gd` files under `scripts/` (and the gameplay/unit tests that exercise them) must use tab indentation. The style suite (`tests/unit/style/test_style_enforcement.gd`) fails immediately on leading spaces, so run it before committing editor-authored changes.
