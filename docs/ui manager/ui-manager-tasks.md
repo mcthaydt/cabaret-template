@@ -352,13 +352,13 @@ These tasks must be completed before UI Manager implementation can proceed. They
 - [x] T040 [ARCH] Document reusable panels and their responsibilities.
   - **Files**: Update `docs/ui manager/general/data-model.md`
   - **Reusable Panels**:
-    - **SettingsPanel** - Audio, graphics, accessibility settings; used in main_menu and pause_menu
+    - **Settings Hub** - Input-focused settings hub; used as a panel in main_menu and as an overlay from pause_menu
   - **Panel Architecture**:
     - Panels are scenes that can be instanced as children of base screens/overlays
     - Panels read state via selectors, dispatch actions on user input
     - Panels do NOT call Scene Manager directly
   - **Acceptance**: Panel architecture documented with integration pattern
-  - **Status**: Section 3.4 now details SettingsPanel responsibilities, BasePanel contract, focus + store wiring, and parent/child integration flow.
+  - **Status**: Section 3.4 now details the Settings Hub responsibilities (input settings only for this phase), BasePanel contract, focus + store wiring, and parent/child integration flow. The more ambitious tabbed SettingsPanel design is deferred.
 
 - [x] T041 [IMPL] Introduce base classes for UI components.
   - **Files**: Create in `scripts/ui/base/`

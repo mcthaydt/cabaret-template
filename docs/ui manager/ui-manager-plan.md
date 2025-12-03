@@ -4,7 +4,7 @@
 
 - **Feature / area**: UI Navigation & Manager System (UI Manager)
 - **Owner**: TBD
-- **Current status**: M4 complete – navigation + reconciliation shipped, ready for M5 (UI panels & controller refactors)
+- **Current status**: M1–M6 implemented; M7 UX refinements and small architectural tweaks in progress (see ui-manager-tasks Phase 7)
 
 This plan defines how to introduce a navigation/UI slice, a data‑driven UI registry, and state‑driven navigation on top of the existing Scene Manager, State Store, and Input Manager. The goal is to reach a state where UI and menu flows are as declarative and testable as ECS and state management, while keeping all existing flows working during the migration.
 

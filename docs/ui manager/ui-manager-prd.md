@@ -152,174 +152,86 @@ The target architecture:
   - New unit tests for navigation reducers, selectors, and registry integration.
   - New integration tests verifying scene/overlay stacks for key flows.
 
-## Unified Settings Panel
+## Settings Hub (Current Implementation)
 
 ### Overview
 
-All input-related settings are consolidated into a single unified settings panel with tabbed sections. This panel is accessible from both the main menu (as an embedded panel) and the pause menu (as an overlay), providing a consistent settings experience across contexts.
+All input-related settings are consolidated into a single **Settings Hub** screen rather than a tabbed panel. This hub is:
 
-### Architecture
+- Embedded in the main menu as a panel (`navigation.active_menu_panel == "menu/settings"`).
+- Exposed in gameplay as an overlay (`settings_menu_overlay`) opened from the pause menu.
 
-**Base Class**: `SettingsPanel` extends `BaseMenuScreen`
-- Inherits `AnalogStickRepeater` for smooth gamepad navigation (held-stick repeat behavior)
-- Supports dual contexts (main menu panel / pause overlay) without special handling
+From the player’s perspective, Settings appears as a simple list of entry points that fan out into dedicated screens/overlays:
 
-**Tab Structure**: Single-level tabs for Input settings (Phase 1)
-```
-[Input Profiles] [Gamepad] [Touchscreen] [Keyboard/Mouse]
-```
+- Input Profiles
+- Gamepad Settings
+- Touchscreen Settings
+- Rebind Controls
 
-**Tab Content**: Plain `Control` nodes (do NOT extend `BaseMenuScreen`)
-- Parent `SettingsPanel` handles all analog stick input via inherited repeater
-- Tabs use `U_FocusConfigurator` for focus chain configuration
-- Avoids nested analog repeater conflicts
-
-**Radio Behavior**: `ButtonGroup` resource for tab mutual exclusivity
-- Automatic visual state management (only one tab active)
-- Connect to `ButtonGroup.pressed` signal for tab switching logic
-
-### Tab Visibility Rules
-
-**Device-Based Filtering**:
-- **Input Profiles tab**: Always visible (all devices)
-- **Gamepad tab**: Visible only when `M_InputDeviceManager.DeviceType.GAMEPAD` active
-- **Touchscreen tab**: Visible only when `DeviceType.TOUCHSCREEN` active
-- **Keyboard/Mouse tab**: Visible when keyboard, mouse, or combined device active
-
-**Device Switch Behavior**:
-- Silent auto-switch to first visible tab (no toast notification)
-- Focus transfers to first focusable control in new tab
-- Critical: `_focus_first_control_in_active_tab()` must be called after device switch
-
-### Tab Content Details
-
-#### Input Profiles Tab
-- Profile cycling buttons (up/down to cycle, button to apply)
-- Binding preview showing effective action mappings for selected profile
-- Auto-save: Profile switches dispatch immediately to Redux
-- No Apply/Cancel buttons (consistent with auto-save pattern)
-
-#### Gamepad Tab
-- Left/right stick deadzone sliders
-- Vibration enable/disable toggle
-- Vibration intensity slider
-- Interactive stick preview for testing
-- Auto-save: Slider changes dispatch immediately
-- No Apply/Cancel buttons
-
-#### Touchscreen Tab
-- Virtual joystick size/opacity sliders
-- Button size/opacity sliders
-- Joystick deadzone slider
-- Live preview showing button layout
-- "Edit Layout" button → opens `edit_touch_controls_overlay` (modal)
-- Auto-save: Slider changes dispatch immediately
-- No Apply/Cancel buttons
-
-#### Keyboard/Mouse Tab
-- "Rebind Controls" button → opens `input_rebinding_overlay` (modal)
-- Placeholder for future mouse sensitivity slider
-- Minimal UI (one button initially)
-
-### Focus Management
-
-**Tab Switching Focus Flow**:
-1. User presses R1/L1 (shoulder buttons) or clicks tab button
-2. `SettingsPanel` catches `ui_focus_next`/`ui_focus_prev` or button press
-3. `ButtonGroup` automatically updates button states (radio behavior)
-4. `_activate_tab()` hides old content, shows new content
-5. **Critical**: `_focus_first_control_in_active_tab()` transfers focus to new tab
-6. Must `await get_tree().process_frame` before focusing (ensure visibility)
-
-**Device Switch Focus Flow**:
-1. `M_InputDeviceManager` detects device change
-2. `SettingsPanel` receives device change signal
-3. `_update_tab_visibility()` hides/shows tabs per device
-4. If active tab becomes hidden, `_switch_to_first_visible_tab()`
-5. **Critical**: `_focus_first_control_in_active_tab()` re-establishes focus
-
-### Input Actions
-
-**New Actions Required** (add to `project.godot`):
-```ini
-ui_focus_prev={
-  "deadzone": 0.2,
-  "events": [
-    InputEventJoypadButton(button_index=9),  # L1/LB shoulder
-    InputEventKey(keycode=4194323)            # Page Up (keyboard fallback)
-  ]
-}
-ui_focus_next={
-  "deadzone": 0.2,
-  "events": [
-    InputEventJoypadButton(button_index=10), # R1/RB shoulder
-    InputEventKey(keycode=4194324)            # Page Down (keyboard fallback)
-  ]
-}
-```
-
-### Dual Context Integration
+### Hub Architecture
 
 **Main Menu Context**:
-- Settings panel shown when `navigation.active_menu_panel == "menu/settings"`
-- Back button dispatches `NAV/SET_MENU_PANEL("menu/main")`
-- Normal process mode (not PROCESS_MODE_ALWAYS)
-- Panel blends with menu background
+- Scene: `settings_menu.tscn` instanced inside `MainMenu` under `SettingsPanel`.
+- Controller: `settings_menu.gd` extends `BaseOverlay` but runs embedded as a panel.
+- Back button:
+  - Dispatches `NAV/SET_MENU_PANEL("menu/main")` by way of `NAV/RETURN_TO_MAIN_MENU`.
+  - Returns to the main menu’s root panel.
+- Each entry button transitions to a standalone UI scene:
+  - Input Profiles → `input_profile_selector`
+  - Gamepad Settings → `gamepad_settings`
+  - Touchscreen Settings → `touchscreen_settings`
+  - Rebind Controls → `input_rebinding`
 
-**Pause Menu Context**:
-- Settings panel embedded in `settings_menu_overlay`
-- Back button dispatches `NAV/CLOSE_TOP_OVERLAY` (returns to pause)
-- Parent overlay provides PROCESS_MODE_ALWAYS + background dimming
-- Panel works identically to main menu context (context-agnostic design)
+**Gameplay / Pause Context**:
+- Pause menu (`pause_menu`) opens `settings_menu_overlay` via navigation actions.
+- `settings_menu_overlay` instances the same hub UI as an overlay on top of gameplay.
+- Back button:
+  - Calls `NAV/CLOSE_TOP_OVERLAY` when the top overlay is `settings_menu_overlay`.
+  - Returns to the pause overlay while keeping the game paused.
+- Each entry button pushes or replaces overlays via navigation:
+  - Input Profiles → `input_profile_selector` overlay.
+  - Gamepad Settings → `gamepad_settings` overlay.
+  - Touchscreen Settings → `touchscreen_settings` overlay.
+  - Rebind Controls → `input_rebinding` overlay.
 
-### Anti-Patterns
+### Button Visibility Rules (Context Sensitivity)
 
-**❌ WRONG - Tab panels extend BaseMenuScreen**:
-```gdscript
-# scripts/ui/panels/gamepad_tab.gd
-extends BaseMenuScreen  # Creates nested AnalogStickRepeater conflict!
-```
+Settings Hub adapts to the current device and platform using `U_InputSelectors` and `M_InputDeviceManager`:
 
-**✅ CORRECT - Tab panels extend Control**:
-```gdscript
-extends Control
-const U_FocusConfigurator := preload("...")
-func _ready():
-    _configure_focus_neighbors()  # Use helper, not custom repeater
-```
+- **Input Profiles**:
+  - Always visible.
+  - `InputProfileSelector` filters profile options by active device type where possible.
 
-**❌ WRONG - Apply/Cancel buttons**:
-```gdscript
-func _on_apply_pressed():
-    # Batch save all changes
-```
+- **Gamepad Settings**:
+  - Visible when a gamepad is connected (`gamepad_connected == true`), regardless of whether keyboard/mouse is currently active.
+  - Hidden when no gamepad is connected.
+  - Rationale: expose gamepad tuning whenever hardware is present so players can configure before using it.
 
-**✅ CORRECT - Auto-save pattern**:
-```gdscript
-func _on_slider_changed(value: float):
-    store.dispatch(U_InputActions.update_setting("key", value))
-    # ✅ Saved immediately to Redux
-```
+- **Touchscreen Settings**:
+  - Visible when:
+    - Running on a mobile build (`OS.has_feature("mobile")`), or
+    - Running with the `--emulate-mobile` flag in desktop builds (touchscreen smoke testing).
+  - Hidden on non-mobile builds without emulation.
+  - Touchscreen Settings overlay shows live previews and an “Edit Layout” button; “Edit Layout” itself is only available when the current shell is `gameplay` so controls are actually on-screen.
 
-### Future Scalability (Phase 2+)
+- **Rebind Controls**:
+  - Hidden when the active device is **touch-only**:
+    - `active_device_type == DeviceType.TOUCHSCREEN` and `gamepad_connected == false`.
+  - Visible in all other cases (keyboard/mouse, gamepad, or mixed touch+gamepad environments).
+  - Rationale: avoid presenting a non-functional rebinding flow to touch-only players, while still allowing rebinding in hybrid setups.
 
-**Category → Sub-Tab Architecture**:
-When adding Audio/Graphics/Accessibility settings, refactor to two-level hierarchy:
+### Future Scalability
 
-```
-[Input] [Audio] [Graphics] [Accessibility]
-   ^top-level category tabs^
+The original design envisioned a fully tabbed `SettingsPanel` with Input/Audio/Graphics/Accessibility categories and device-specific sub-tabs. The current hub-based approach intentionally keeps scope focused on input:
 
-When Input selected:
-  [Profiles] [Gamepad] [Touch] [KB/Mouse]
-       ^device-specific sub-tabs^
-```
-
-Current implementation uses single-level tabs to keep Phase 1 simple. Future refactor will nest tabs under categories without breaking existing panel components.
+- Audio/graphics/accessibility settings remain out of scope for this phase.
+- New settings areas should be added as additional hub entries with dedicated overlays/scenes.
+- If a future phase reintroduces a tabbed SettingsPanel, it should:
+  - Reuse the existing input overlays as tab content where practical.
+  - Preserve the current navigation contracts (main menu vs gameplay) and CloseMode semantics.
 
 ## Open Questions
 
 - Should we introduce a dedicated `navigation` slice, or extend the existing `scene` + `menu` slices with navigation fields and adopt a clear ownership model? ✅ **RESOLVED**: Dedicated navigation slice implemented
 - How much of the current `scene.scene_stack` semantics should be preserved exactly vs refactored to be fully driven by navigation reducers? ✅ **RESOLVED**: Flattened overlay architecture (T079) with return stack for navigation
 - Do we want a separate continuation prompt and phases for "UI Manager / Navigation" similar to Scene Manager and Input Manager, or keep this as a sub‑phase of Scene Manager evolution? ✅ **RESOLVED**: Separate UI Manager phases complete
-

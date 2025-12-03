@@ -234,13 +234,15 @@ Panel definitions live alongside screen definitions but do not have `scene_id`; 
 
 ### 3.4 Reusable Panels
 
-Only the **SettingsPanel** must be shared across shells while Phase 4 is in-flight. Everything else can stay scene-specific until we prove we need reuse.
+In the current implementation, the only cross-context “settings” UI is the **Settings Hub** used for input configuration. It is shared between shells in a simple way:
 
-| Panel           | Panel ID        | Consumes Selectors                                  | Dispatches Actions                                         | Notes                                                                 |
-|-----------------|-----------------|-----------------------------------------------------|------------------------------------------------------------|-----------------------------------------------------------------------|
-| SettingsPanel   | `menu/settings` (main) / `pause/settings` (pause) | `U_SettingsSelectors` for audio/video/input prefs, `U_NavigationSelectors.get_shell()` for context | `U_SettingsActions.*`, `U_NavigationActions.set_menu_panel("menu/main")`, `U_NavigationActions.close_top_overlay()` | Same scene instanced twice; panel script reads current shell to decide whether "Back" returns to main panel or pause overlay. |
+| Panel / Screen   | Panel ID        | Contexts                     | Consumes Selectors                                  | Dispatches Actions                                         | Notes                                                                 |
+|------------------|-----------------|------------------------------|-----------------------------------------------------|------------------------------------------------------------|-----------------------------------------------------------------------|
+| Settings Hub     | `menu/settings` | main_menu (panel) / gameplay (overlay via `settings_menu_overlay`) | `U_InputSelectors` for device state, `U_NavigationSelectors.get_shell()` for context | `U_NavigationActions.set_menu_panel("menu/main")`, `U_NavigationActions.close_top_overlay()`, `U_NavigationActions.open_overlay(...)` | Single hub UI used both as embedded panel in main menu and as an overlay from pause; fans out to dedicated overlays/scenes for each settings area. |
 
-#### Panel Architecture (Phase 4 target)
+The more ambitious tabbed `SettingsPanel` (with audio/graphics/accessibility categories) is intentionally deferred. New settings areas should be added as additional hub entries plus dedicated overlays/scenes rather than as new tabs until a future phase revisits that design.
+
+#### Panel Architecture (Phase 4 target – adjusted)
 
 - **BasePanel script** (new in Phase 4) provides:
   - Store discovery (`await get_tree().process_frame`, `U_StateUtils.get_store(self)`).

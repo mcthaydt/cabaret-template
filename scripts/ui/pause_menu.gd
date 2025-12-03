@@ -61,7 +61,9 @@ func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void
 	var previous_type: int = _last_device_type
 	_last_device_type = device_type
 
-	if device_type == M_InputDeviceManager.DeviceType.GAMEPAD and previous_type != M_InputDeviceManager.DeviceType.GAMEPAD:
+	# Only consume first input when resuming FROM touch to gamepad.
+	if device_type == M_InputDeviceManager.DeviceType.GAMEPAD \
+			and previous_type == M_InputDeviceManager.DeviceType.TOUCHSCREEN:
 		reset_analog_navigation()
 		_consume_next_nav = true
 		_focus_resume()

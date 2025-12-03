@@ -32,6 +32,14 @@ func _on_panel_ready() -> void:
 		_store_unsubscribe = store.subscribe(_on_state_changed)
 	_on_state_changed({}, store.get_state())
 
+func _process(delta: float) -> void:
+	# Only run analog stick navigation from the main panel.
+	# When the settings panel (SettingsMenu) is active, its own BaseMenuScreen
+	# instance handles analog navigation to avoid double-processing.
+	if _active_panel == PANEL_SETTINGS:
+		return
+	super._process(delta)
+
 func _configure_focus_neighbors() -> void:
 	# Configure main panel button focus (vertical navigation with wrapping)
 	var main_buttons: Array[Control] = []

@@ -149,13 +149,13 @@ Phase 7 addresses UX refinements discovered during testing:
 - T075: Rebind controls scrollbars not fully accessible via gamepad
 
 **Context-Aware UI:**
-- T072: Gamepad settings shown even when using keyboard/mouse
-- T076: Rebind controls shows all devices instead of current device only
+- T072: Gamepad settings visibility and touchscreen settings visibility tuned to match actual device and platform state (hub-based, not tabbed)
+- T076: Rebind controls shows device-appropriate bindings and hides the flow for touch-only contexts
 - T077: Input profiles now show per-profile binding previews in the selector overlay (players can see core actions before applying a profile)
 - T078: Gamepad UI needs visual button glyphs (Xbox/PS)
 
 **Architecture & UX:**
-- T073: Settings scattered across multiple overlays (needs consolidation)
+- T073: Original “tabbed SettingsPanel” consolidation concept is intentionally deferred; current architecture uses a Settings Hub plus dedicated overlays/scenes for each settings area
 - T079: ✅ Overlays now replace instead of stacking (flattened overlay navigation via navigation slice)
 - T080: Cancel button doesn't exit menu consistently
 

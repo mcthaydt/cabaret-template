@@ -90,7 +90,8 @@ func _is_stick_pressed_right() -> bool:
 	return false
 
 func _navigate_focus(direction: StringName) -> void:
-	var focused := get_viewport().gui_get_focus_owner()
+	var viewport := get_viewport()
+	var focused := viewport.gui_get_focus_owner() if viewport != null else null
 	if focused == null:
 		return
 	if not is_ancestor_of(focused):
