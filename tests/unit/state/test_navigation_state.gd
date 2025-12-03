@@ -81,19 +81,19 @@ func test_overlay_close_mode_resumes_gameplay_directly() -> void:
 	var state: Dictionary = {
 		"shell": StringName("gameplay"),
 		"base_scene_id": StringName("exterior"),
-		"overlay_stack": [StringName("pause_menu")],
-		"overlay_return_stack": [],
+		"overlay_stack": [StringName("settings_menu_overlay")],
+		"overlay_return_stack": [StringName("pause_menu")],
 		"active_menu_panel": StringName("pause/root")
 	}
 
 	var rebinding_state: Dictionary = U_NavigationReducer.reduce(state, U_NavigationActions.open_overlay(StringName("input_rebinding")))
-	assert_eq(rebinding_state.get("overlay_stack"), [StringName("input_rebinding")], "Input rebinding overlay should replace pause as top overlay")
-	assert_eq(rebinding_state.get("overlay_return_stack"), [StringName("pause_menu")], "Pause overlay should be stored for resume/return semantics")
+	assert_eq(rebinding_state.get("overlay_stack"), [StringName("input_rebinding")], "Input rebinding overlay should be top overlay")
+	assert_eq(rebinding_state.get("overlay_return_stack"), [StringName("pause_menu"), StringName("settings_menu_overlay")], "Pause and settings overlays should be stored for return semantics")
 
 	var resumed_state: Dictionary = U_NavigationReducer.reduce(rebinding_state, U_NavigationActions.close_top_overlay())
-	assert_eq(resumed_state.get("overlay_stack"), [], "Rebinding overlay should close and resume gameplay directly")
-	assert_eq(resumed_state.get("overlay_return_stack"), [], "Return stack should be cleared when resuming gameplay")
-	assert_false(U_NavigationSelectors.is_paused(resumed_state), "Game should be unpaused after closing resume-to-gameplay overlay")
+	assert_eq(resumed_state.get("overlay_stack"), [StringName("settings_menu_overlay")], "Rebinding overlay should close and return to settings overlay")
+	assert_eq(resumed_state.get("overlay_return_stack"), [StringName("pause_menu")], "Pause overlay should remain in return stack")
+	assert_true(U_NavigationSelectors.is_paused(resumed_state), "Game should remain paused while settings overlay is active")
 
 ## T011: Menu panel switching
 func test_set_menu_panel_updates_active_panel() -> void:

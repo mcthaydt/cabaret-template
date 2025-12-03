@@ -9,5 +9,5 @@ kind = 1
 scene_id = &"edit_touch_controls"
 allowed_shells = [&"gameplay"]
 allowed_parents = [&"pause_menu", &"touchscreen_settings"]
-close_mode = 1
+close_mode = 0
 hides_previous_overlays = true

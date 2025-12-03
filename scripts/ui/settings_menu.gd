@@ -9,6 +9,7 @@ extends "res://scripts/ui/base/base_overlay.gd"
 
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 
 @onready var _back_button: Button = $VBoxContainer/BackButton
@@ -23,6 +24,16 @@ const OVERLAY_GAMEPAD_SETTINGS := StringName("gamepad_settings")
 const OVERLAY_TOUCHSCREEN_SETTINGS := StringName("touchscreen_settings")
 const OVERLAY_INPUT_REBINDING := StringName("input_rebinding")
 
+func _on_store_ready(store: M_StateStore) -> void:
+	if store != null and not store.slice_updated.is_connected(_on_slice_updated):
+		store.slice_updated.connect(_on_slice_updated)
+		_update_button_visibility(store.get_state())
+
+func _exit_tree() -> void:
+	var store := get_store()
+	if store != null and store.slice_updated.is_connected(_on_slice_updated):
+		store.slice_updated.disconnect(_on_slice_updated)
+
 func _on_panel_ready() -> void:
 	if _back_button != null and not _back_button.pressed.is_connected(_on_back_pressed):
 		_back_button.pressed.connect(_on_back_pressed)
@@ -35,6 +46,15 @@ func _on_panel_ready() -> void:
 	if _rebind_controls_button != null and not _rebind_controls_button.pressed.is_connected(_on_rebind_controls_pressed):
 		_rebind_controls_button.pressed.connect(_on_rebind_controls_pressed)
 	_update_back_button_label()
+	var store := get_store()
+	if store != null:
+		_update_button_visibility(store.get_state())
+
+func _on_slice_updated(_slice_name: StringName, _slice_state: Dictionary) -> void:
+	var store := get_store()
+	if store == null:
+		return
+	_update_button_visibility(store.get_state())
 
 func _on_back_pressed() -> void:
 	var store := get_store()
@@ -59,6 +79,15 @@ func _on_touchscreen_settings_pressed() -> void:
 
 func _on_rebind_controls_pressed() -> void:
 	_open_settings_target(OVERLAY_INPUT_REBINDING, StringName("input_rebinding"))
+
+func _update_button_visibility(state: Dictionary) -> void:
+	var has_gamepad: bool = U_InputSelectors.is_gamepad_connected(state)
+	var is_mobile: bool = OS.has_feature("mobile")
+
+	if _gamepad_settings_button != null:
+		_gamepad_settings_button.visible = has_gamepad
+	if _touchscreen_settings_button != null:
+		_touchscreen_settings_button.visible = is_mobile
 
 func _open_settings_target(overlay_id: StringName, scene_id: StringName) -> void:
 	var store := get_store()

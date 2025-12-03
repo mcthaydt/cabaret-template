@@ -119,9 +119,11 @@ func test_apply_closes_overlays_and_resumes() -> void:
 	apply_button.emit_signal("pressed")
 	await wait_physics_frames(3)
 
-	# Expect overlays cleared and tree unpaused
-	assert_eq(_ui_overlay_stack.get_child_count(), 0, "All overlays closed after apply")
-	assert_false(get_tree().paused, "Tree resumed after applying profile")
+	# Expect to return to settings overlay and remain paused
+	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should return to a single settings overlay after apply")
+	var top_after := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1)
+	assert_eq(String(top_after.name), "SettingsMenu", "Top overlay should be the settings menu after applying profile")
+	assert_true(get_tree().paused, "Tree should remain paused while in settings")
 
 func test_profile_selector_shows_binding_preview() -> void:
 	var manager := M_SceneManager.new()

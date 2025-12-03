@@ -92,10 +92,12 @@ func test_gameplay_with_gamepad_settings_resumes_gameplay() -> void:
 	_simulate_ui_cancel()
 	await wait_process_frames(2)
 
-	# Assert: all overlays closed, resumes gameplay (RESUME_TO_GAMEPLAY)
+	# Assert: returns to settings overlay, game remains paused
 	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
 	var overlay_stack: Array = nav_slice.get("overlay_stack", [])
-	assert_eq(overlay_stack.size(), 0, "Should resume gameplay when gamepad_settings closes")
+	assert_eq(overlay_stack.size(), 1, "Should return to settings overlay when gamepad_settings closes")
+	assert_eq(overlay_stack[0], StringName("pause_menu"), "Pause overlay should be active after gamepad_settings closes")
+	assert_true(U_NavigationSelectors.is_paused(nav_slice), "Game should remain paused while pause overlay is active")
 
 
 ## MAIN MENU CONTEXT TESTS
