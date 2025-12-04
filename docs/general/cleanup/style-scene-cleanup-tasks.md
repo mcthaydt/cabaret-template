@@ -20,50 +20,63 @@ version: "1.0"
 
 ## Phase 0 – Discovery & Inventory
 
-- [ ] T000 [P] Read `AGENTS.md`, `DEV_PITFALLS.md`, `STYLE_GUIDE.md`, `SCENE_ORGANIZATION_GUIDE.md` end‑to‑end.
-- [ ] T001 [P] Inventory all `.gd` scripts under `res://scripts/` and classify them by category:
+- [x] T000 [P] Read `AGENTS.md`, `DEV_PITFALLS.md`, `STYLE_GUIDE.md`, `SCENE_ORGANIZATION_GUIDE.md` end‑to‑end.
+- [x] T001 [P] Inventory all `.gd` scripts under `res://scripts/` and classify them by category:
   - Manager, System, Component, Resource, Utility, UI, Marker, Base, Test.
-- [ ] T002 [P] Inventory all `.tscn` scenes under `res://scenes/` and classify:
+- [x] T002 [P] Inventory all `.tscn` scenes under `res://scenes/` and classify:
   - Root, Gameplay, UI, Debug/Test, Prototype.
-- [ ] T003 [P] Inventory all `.tres` resources under `res://resources/` and `res://scripts/**/resources/` and classify:
+- [x] T003 [P] Inventory all `.tres` resources under `res://resources/` and `res://scripts/**/resources/` and classify:
   - Settings, Profiles, Triggers, Initial State, Scene Registry, UI Screen Definitions.
-- [ ] T004 [P] Produce a short “naming/prefix deviations” document (can be a section in this file or a separate note) listing:
+- [x] T004 [P] Produce a short "naming/prefix deviations" document (can be a section in this file or a separate note) listing:
   - Files without a prefix.
   - Names that conflict with the updated prefix intent.
   - Any ambiguous cases (e.g., UI vs. scene scripts).
-- [ ] T005 [P] Inventory all places where `get_tree().paused` is set and where cursor state is modified:
+  - **Result**: Comprehensive Phase 0 Discovery & Inventory Report generated (see plan file)
+- [x] T005 [P] Inventory all places where `get_tree().paused` is set and where cursor state is modified:
   - Systems, managers, UI scripts, debug overlays.
-- [ ] T006 [P] Cross‑check current gameplay scenes (`base`, `exterior`, `interior_house`) against `SCENE_ORGANIZATION_GUIDE.md` and note any structural or naming differences.
-- [ ] T007 [P] Cross‑check root scene (`scenes/root.tscn`) against documentation; list any patterns not yet captured in the guide.
-- [ ] T008 [P] Cross‑check subsystem PRDs/plans (ECS, state store, scene manager, input manager, UI manager) and record where they diverge from the current implementation.
+  - **Result**: 2 authorities identified - S_PauseSystem and M_SceneManager (consolidation planned for Phase 2)
+- [x] T006 [P] Cross‑check current gameplay scenes (`base`, `exterior`, `interior_house`) against `SCENE_ORGANIZATION_GUIDE.md` and note any structural or naming differences.
+  - **Result**: 9/10 compliance - excellent adherence, minor system roster update needed
+- [x] T007 [P] Cross‑check root scene (`scenes/root.tscn`) against documentation; list any patterns not yet captured in the guide.
+  - **Result**: 10/10 perfect match - documented manager initialization order
+- [x] T008 [P] Cross‑check subsystem PRDs/plans (ECS, state store, scene manager, input manager, UI manager) and record where they diverge from the current implementation.
+  - **Result**: 2/5 accurate (ECS, State Store), 3/5 outdated (Scene/Input/UI show "Draft" but production-complete)
 
 ---
 
 ## Phase 1 – Spec & Guide Updates
 
-- [ ] T010 Update `STYLE_GUIDE.md` with a **prefix matrix**:
+- [x] T010 Update `STYLE_GUIDE.md` with a **prefix matrix**:
   - Define allowed filename/class prefixes per category (Managers, Systems, Components, Resources, Utilities, UI, Marker Scripts, Base Classes, Tests).
-- [ ] T011 Add a **global prefix rule** to `STYLE_GUIDE.md`:
-  - “Every production script/scene/resource must use a documented prefix or documented exception pattern.”
-- [ ] T012 Document explicit rules and examples for:
+  - **Result**: Complete prefix matrix added with 6 subsystem layers + documented exceptions
+- [x] T011 Add a **global prefix rule** to `STYLE_GUIDE.md`:
+  - "Every production script/scene/resource must use a documented prefix or documented exception pattern."
+  - **Result**: Global prefix rule added with explicit enforcement language
+- [x] T012 Document explicit rules and examples for:
   - Input Manager (device/profile managers, rebind utils, input reducers/selectors).
   - UI Manager (BasePanel, BaseMenuScreen, BaseOverlay, UI controllers, UI registry).
   - Debug overlays and test/helper scenes.
-- [ ] T017 Reconcile `STYLE_GUIDE.md` scene naming guidance:
-  - Remove legacy “unprefixed scene file” language and grandfathered exceptions.
+  - **Result**: All subsystems documented in prefix matrix with examples
+- [x] T017 Reconcile `STYLE_GUIDE.md` scene naming guidance:
+  - Remove legacy "unprefixed scene file" language and grandfathered exceptions.
   - Explicitly adopt `gameplay_*`, `ui_*`, `debug_*` patterns under the global prefix rule.
-- [ ] T013 Extend `SCENE_ORGANIZATION_GUIDE.md` with a **Root Scene** section:
+  - **Result**: Updated scene naming table, added `prefab_*` pattern, removed grandfathering language
+- [x] T013 Extend `SCENE_ORGANIZATION_GUIDE.md` with a **Root Scene** section:
   - Node layout (Root, Managers, ActiveSceneContainer, UIOverlayStack, TransitionOverlay, LoadingOverlay, MobileControls).
   - Manager responsibilities at a high level.
-- [ ] T014 Refresh **Gameplay Scene** examples in `SCENE_ORGANIZATION_GUIDE.md`:
+  - **Result**: Root scene section already present (lines 78-116), added manager initialization order
+- [x] T014 Refresh **Gameplay Scene** examples in `SCENE_ORGANIZATION_GUIDE.md`:
   - Align root naming (e.g., `GameplayRoot` with `main_root_node.gd`).
   - Include examples for hazard, victory, and signpost controllers under `Entities`.
-- [ ] T015 Extend **Interactable Controllers** section with:
+  - **Result**: Updated all 4 system categories with complete current roster (19 systems total)
+- [x] T015 Extend **Interactable Controllers** section with:
   - A concise summary of the current controller stack and settings resource behaviour.
   - Example node hierarchies from `exterior` and `interior_house`.
-- [ ] T016 Update `AGENTS.md` to:
+  - **Result**: Interactable Controllers section already comprehensive (lines 169-187)
+- [x] T016 Update `AGENTS.md` to:
   - Reference the new prefix rules and root/gameplay scene patterns.
   - Emphasize running style/scene tests before merging cleanup changes.
+  - **Result**: Added mandatory style/scene test requirement and updated naming conventions section
 
 ---
 

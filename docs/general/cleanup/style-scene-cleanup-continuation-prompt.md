@@ -18,23 +18,37 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ---
 
-## Current Status (2025-12-03 – Initial Draft)
+## Current Status (2025-12-03 – Phase 0 & 1 Complete)
 
-- **PRD**: `docs/general/cleanup/style-scene-cleanup-prd.md` – Drafted, not yet executed.
-- **Plan**: `docs/general/cleanup/style-scene-cleanup-plan.md` – Phases 0–6 defined.
-- **Tasks**: `docs/general/cleanup/style-scene-cleanup-tasks.md` – All tasks unchecked.
+- **PRD**: `docs/general/cleanup/style-scene-cleanup-prd.md` – Drafted.
+- **Plan**: `docs/general/cleanup/style-scene-cleanup-plan.md` – Phases 0–9 defined with user-approved policies.
+- **Tasks**: `docs/general/cleanup/style-scene-cleanup-tasks.md` – Phase 0 & 1 tasks complete.
 
 **Execution Status**:
 
-- Phase 0 – Discovery & Inventory: **NOT STARTED**
-- Phase 1 – Spec & Guide Updates: **NOT STARTED**
-- Phase 2 – Responsibility Consolidation (Pause/Cursor): **NOT STARTED**
-- Phase 3 – Naming & Prefix Migration: **NOT STARTED**
+- Phase 0 – Discovery & Inventory: **✅ COMPLETE** (Commit: 032bb7d - documentation updates)
+  - Comprehensive inventory of 175 scripts, 31 scenes, 57 resources
+  - Identified 36 files requiring renaming (UI scripts, UI scenes, prefab scenes)
+  - Documented pause authority conflict (S_PauseSystem vs M_SceneManager)
+  - Cross-checked all subsystem PRDs vs implementation
+
+- Phase 1 – Spec & Guide Updates: **✅ COMPLETE** (Commit: 032bb7d)
+  - Added complete prefix matrix to STYLE_GUIDE.md (6 subsystem layers + exceptions)
+  - Updated SCENE_ORGANIZATION_GUIDE.md with manager init order and current system roster
+  - Updated AGENTS.md with mandatory style/scene test requirement
+  - All T010-T017 tasks checked off
+
+- Phase 2 – Responsibility Consolidation (Pause/Cursor): **IN PROGRESS**
+- Phase 3 – Naming & Prefix Migration: **NOT STARTED** (36 files in 5 batches)
 - Phase 4 – Tests & Tooling Hardening: **NOT STARTED**
 - Phase 5 – Docs & Planning Alignment: **NOT STARTED**
 - Phase 6 – Final Validation & Regression Sweep: **NOT STARTED**
 
-No changes have been made yet beyond adding the PRD, plan, tasks, and this continuation prompt.
+**Policy Decisions Approved**:
+- ✅ UI screen controllers: Add `ui_` prefix
+- ✅ UI scenes: Migrate all 16 to `ui_` prefix
+- ✅ Pause authority: S_PauseSystem is sole authority
+- ✅ Hazard/objective scenes: Add `prefab_` prefix
 
 ---
 
