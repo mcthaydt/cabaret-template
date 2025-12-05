@@ -9,17 +9,17 @@ status: "Phase 2 - Implementation"
 
 ## Overview
 
-This document defines the **single authority pattern** for pause and cursor state management in Cabaret Ball. Prior to Phase 2, both `S_PauseSystem` and `M_SceneManager` controlled pause/cursor state, leading to conflicts and inconsistent behavior.
+This document defines the **single authority pattern** for pause and cursor state management in Cabaret Ball. Prior to Phase 2, both `M_PauseManager` and `M_SceneManager` controlled pause/cursor state, leading to conflicts and inconsistent behavior.
 
-**Phase 2 Goal**: Establish `S_PauseSystem` as the **sole authority** for both engine pause and cursor coordination.
+**Phase 2 Goal**: Establish `M_PauseManager` as the **sole authority** for both engine pause and cursor coordination.
 
 ---
 
 ## Authority Hierarchy
 
-### Single Authority: S_PauseSystem
+### Single Authority: M_PauseManager
 
-`S_PauseSystem` is the **only** system that:
+`M_PauseManager` is the **only** system that:
 - Writes to `get_tree().paused`
 - Calls `M_CursorManager.set_cursor_state()`
 - Coordinates pause and cursor state based on navigation and scene context
@@ -30,7 +30,7 @@ This document defines the **single authority pattern** for pause and cursor stat
 - Writes to `Input.mouse_mode`
 - Manages cursor visibility (`Input.MOUSE_MODE_VISIBLE` vs `HIDDEN` vs `CAPTURED`)
 
-**CRITICAL**: No other system should write to these properties. All pause/cursor changes flow through S_PauseSystem → M_CursorManager.
+**CRITICAL**: No other system should write to these properties. All pause/cursor changes flow through M_PauseManager → M_CursorManager.
 
 ---
 
@@ -38,7 +38,7 @@ This document defines the **single authority pattern** for pause and cursor stat
 
 ### Pause State
 
-`S_PauseSystem` derives pause state from the **scene slice**:
+`M_PauseManager` derives pause state from the **scene slice**:
 
 ```gdscript
 var scene_state: Dictionary = store.get_slice(StringName("scene"))
@@ -50,7 +50,7 @@ var is_paused: bool = scene_stack.size() > 0
 
 ### Cursor State
 
-`S_PauseSystem` derives cursor state from **BOTH** pause state AND scene type:
+`M_PauseManager` derives cursor state from **BOTH** pause state AND scene type:
 
 ```gdscript
 if is_paused:
@@ -79,7 +79,7 @@ else:
 
 ## Initialization Order
 
-`S_PauseSystem` depends on:
+`M_PauseManager` depends on:
 1. `M_StateStore` - provides scene slice updates
 2. `M_SceneManager` - populates scene state (current_scene_id, scene_stack)
 3. `M_CursorManager` - executes cursor state changes
@@ -91,7 +91,7 @@ Root
     ├─ M_StateStore          (1st - state foundation)
     ├─ M_SceneManager        (2nd - populates scene state)
     ├─ M_CursorManager       (3rd - cursor execution)
-    └─ S_PauseSystem         (4th - coordinates pause/cursor)
+    └─ M_PauseManager         (4th - coordinates pause/cursor)
 ```
 
 **Initialization Pattern**:
@@ -134,7 +134,7 @@ After Phase 2, `M_SceneManager` retains these responsibilities:
 ### 3. Particle Pause Workaround
 - Set `speed_scale` on GPU particles when pause state changes
 - **WHY**: GPU particles ignore `SceneTree.paused`, need manual speed_scale adjustment
-- **DOES NOT** write to `get_tree().paused` (S_PauseSystem does that)
+- **DOES NOT** write to `get_tree().paused` (M_PauseManager does that)
 
 ### What M_SceneManager NO LONGER Does:
 - ❌ Write to `get_tree().paused`
@@ -146,9 +146,9 @@ After Phase 2, `M_SceneManager` retains these responsibilities:
 
 ## Forbidden Patterns
 
-### ❌ NEVER: Direct Pause Writes Outside S_PauseSystem
+### ❌ NEVER: Direct Pause Writes Outside M_PauseManager
 ```gdscript
-# WRONG - only S_PauseSystem should do this
+# WRONG - only M_PauseManager should do this
 get_tree().paused = true
 ```
 
@@ -158,9 +158,9 @@ get_tree().paused = true
 Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 ```
 
-### ❌ NEVER: Direct Cursor Manager Calls Outside S_PauseSystem
+### ❌ NEVER: Direct Cursor Manager Calls Outside M_PauseManager
 ```gdscript
-# WRONG - only S_PauseSystem should do this
+# WRONG - only M_PauseManager should do this
 M_CursorManager.set_cursor_state(false, true)
 ```
 
@@ -177,8 +177,8 @@ if get_tree().paused:
 ## Testing Strategy
 
 ### Unit Tests
-- Verify S_PauseSystem derives pause from scene_stack correctly
-- Verify S_PauseSystem derives cursor from scene type correctly
+- Verify M_PauseManager derives pause from scene_stack correctly
+- Verify M_PauseManager derives cursor from scene type correctly
 - Verify M_CursorManager translates state to Input.mouse_mode correctly
 
 ### Integration Tests
@@ -192,14 +192,14 @@ if get_tree().paused:
 ```gdscript
 # After dispatching scene/navigation actions
 await get_tree().process_frame  # Let state store update
-await get_tree().process_frame  # Let S_PauseSystem react
+await get_tree().process_frame  # Let M_PauseManager react
 
 # Then assert pause/cursor state
 assert_true(get_tree().paused)
 assert_true(_cursor_manager.is_cursor_visible())
 ```
 
-**WHY**: S_PauseSystem reacts to `slice_updated` signals, which are asynchronous. Tests need to wait for the reaction to complete.
+**WHY**: M_PauseManager reacts to `slice_updated` signals, which are asynchronous. Tests need to wait for the reaction to complete.
 
 ---
 
@@ -207,13 +207,13 @@ assert_true(_cursor_manager.is_cursor_visible())
 
 ### Grep Patterns for Violations
 ```bash
-# Find pause writes (should only be in S_PauseSystem)
+# Find pause writes (should only be in M_PauseManager)
 grep -r "get_tree().paused =" scripts/
 
 # Find mouse_mode writes (should only be in M_CursorManager)
 grep -r "Input.mouse_mode =" scripts/
 
-# Find cursor manager calls (should only be in S_PauseSystem)
+# Find cursor manager calls (should only be in M_PauseManager)
 grep -r "M_CursorManager.set_cursor_state" scripts/
 grep -r "_cursor_manager.set_cursor_state" scripts/
 ```
@@ -229,8 +229,8 @@ grep -r "_cursor_manager.set_cursor_state" scripts/
 
 | **Responsibility** | **Authority** | **Forbidden Elsewhere** |
 |--------------------|---------------|-------------------------|
-| `get_tree().paused = X` | S_PauseSystem | ✅ ENFORCED |
-| `cursor_manager.set_cursor_state()` | S_PauseSystem | ✅ ENFORCED |
+| `get_tree().paused = X` | M_PauseManager | ✅ ENFORCED |
+| `cursor_manager.set_cursor_state()` | M_PauseManager | ✅ ENFORCED |
 | `Input.mouse_mode = X` | M_CursorManager | ✅ ENFORCED |
 | Overlay push/pop | M_SceneManager | ✅ OK (drives state) |
 | Scene transitions | M_SceneManager | ✅ OK (drives state) |
@@ -240,5 +240,5 @@ grep -r "_cursor_manager.set_cursor_state" scripts/
 **Golden Rule**: State flows one direction:
 1. User input → Navigation/Scene actions
 2. Actions → State store updates
-3. State updates → S_PauseSystem reacts
-4. S_PauseSystem → Engine pause & cursor state
+3. State updates → M_PauseManager reacts
+4. M_PauseManager → Engine pause & cursor state

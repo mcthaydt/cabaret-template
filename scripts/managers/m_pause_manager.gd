@@ -1,8 +1,8 @@
-@icon("res://resources/editor_icons/system.svg")
-extends BaseECSSystem
-class_name S_PauseSystem
+@icon("res://resources/editor_icons/manager.svg")
+extends Node
+class_name M_PauseManager
 
-## Pause System - SOLE AUTHORITY for engine pause and cursor coordination
+## Pause Manager - SOLE AUTHORITY for engine pause and cursor coordination
 ##
 ## Phase 2 (T021): Refactored to derive pause and cursor state from scene slice.
 ## Phase 2.1 (Post-T021): Added UIOverlayStack reference to bridge state sync timing gap.
@@ -41,7 +41,7 @@ func _init() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 func _ready() -> void:
-	super._ready()
+	add_to_group("pause_manager")
 
 	# Get reference to state store (synchronous - state store should already exist)
 	# Note: U_StateUtils.get_store may push_error if store not found, but we handle it gracefully

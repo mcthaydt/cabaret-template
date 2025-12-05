@@ -79,15 +79,15 @@ No runtime code changes in this phase; only documentation.
 
 ## Phase 2 – Responsibility Consolidation (Pause/Cursor)
 
-**Goal**: Make pause and cursor control single‑sourced and architecture‑aligned, with `S_PauseSystem` as the authority.
+**Goal**: Make pause and cursor control single‑sourced and architecture‑aligned, with `M_PauseManager` as the authority.
 
 - Document the final authority model:
-  - `S_PauseSystem` is the canonical owner of:
+  - `M_PauseManager` is the canonical owner of:
     - Engine pause (`get_tree().paused`).
     - Pause state propagation (signals, store fields).
     - Cursor coordination via `M_CursorManager`.
 - Update code:
-  - Refactor `S_PauseSystem` to:
+  - Refactor `M_PauseManager` to:
     - Derive pause from the `navigation` slice (already partly implemented).
     - Apply engine pause and call into `M_CursorManager` as needed.
   - Remove or deprecate direct pause/cursor responsibilities from:

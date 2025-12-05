@@ -5,7 +5,7 @@ extends GutTest
 const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 const M_CursorManager := preload("res://scripts/managers/m_cursor_manager.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const S_PauseSystem := preload("res://scripts/ecs/systems/s_pause_system.gd")
+const M_PauseManager := preload("res://scripts/managers/m_pause_manager.gd")
 const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const RS_BootInitialState := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
 const RS_MenuInitialState := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
@@ -17,7 +17,7 @@ const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd"
 var _root: Node
 var _store: M_StateStore
 var _cursor: M_CursorManager
-var _pause_system: S_PauseSystem
+var _pause_system: M_PauseManager
 var _manager: M_SceneManager
 
 func before_each() -> void:
@@ -67,7 +67,7 @@ func before_each() -> void:
     _root.add_child(_manager)
 
     # Pause system (coordinates cursor state with scene type)
-    _pause_system = S_PauseSystem.new()
+    _pause_system = M_PauseManager.new()
     _root.add_child(_pause_system)
     await get_tree().process_frame
 
@@ -83,7 +83,7 @@ func test_cursor_updates_on_scene_state_changes() -> void:
     # MENU: main_menu
     _store.dispatch(U_SceneActions.transition_completed(StringName("main_menu")))
     await wait_physics_frames(1)  # State store batches
-    await wait_physics_frames(1)  # S_PauseSystem reacts
+    await wait_physics_frames(1)  # M_PauseManager reacts
 
     assert_false(_cursor.is_cursor_locked(), "Cursor should be unlocked in UI/menu scenes")
     assert_true(_cursor.is_cursor_visible(), "Cursor should be visible in UI/menu scenes")
@@ -91,7 +91,7 @@ func test_cursor_updates_on_scene_state_changes() -> void:
     # GAMEPLAY: use a test gameplay scene (scene1 is registered as gameplay)
     _store.dispatch(U_SceneActions.transition_completed(StringName("scene1")))
     await wait_physics_frames(1)  # State store batches
-    await wait_physics_frames(1)  # S_PauseSystem reacts
+    await wait_physics_frames(1)  # M_PauseManager reacts
 
     assert_true(_cursor.is_cursor_locked(), "Cursor should be locked in gameplay scenes")
     assert_false(_cursor.is_cursor_visible(), "Cursor should be hidden in gameplay scenes")

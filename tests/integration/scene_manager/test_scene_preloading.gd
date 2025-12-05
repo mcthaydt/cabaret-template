@@ -9,7 +9,7 @@ extends GutTest
 const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const M_CursorManager = preload("res://scripts/managers/m_cursor_manager.gd")
-const S_PauseSystem = preload("res://scripts/ecs/systems/s_pause_system.gd")
+const M_PauseManager = preload("res://scripts/managers/m_pause_manager.gd")
 const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_NavigationInitialState = preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/state/resources/rs_state_store_settings.gd")
@@ -19,7 +19,7 @@ var _root_scene: Node
 var _manager: M_SceneManager
 var _store: M_StateStore
 var _cursor: M_CursorManager
-var _pause_system: S_PauseSystem
+var _pause_system: M_PauseManager
 var _active_scene_container: Node
 
 func before_each() -> void:
@@ -37,7 +37,7 @@ func before_each() -> void:
 	_root_scene.add_child(_store)
 	await get_tree().process_frame
 
-	# Create cursor manager (Phase 2: T024b - required for S_PauseSystem)
+	# Create cursor manager (Phase 2: T024b - required for M_PauseManager)
 	_cursor = M_CursorManager.new()
 	_root_scene.add_child(_cursor)
 
@@ -68,7 +68,7 @@ func before_each() -> void:
 	_root_scene.add_child(_manager)
 
 	# Create pause system (Phase 2: T024b - sole authority for pause/cursor)
-	_pause_system = S_PauseSystem.new()
+	_pause_system = M_PauseManager.new()
 	_root_scene.add_child(_pause_system)
 
 	await get_tree().process_frame

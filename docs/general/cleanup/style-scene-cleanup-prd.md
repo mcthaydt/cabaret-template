@@ -40,7 +40,7 @@ The project already adheres strongly to its style and scene organization convent
    - The user requirement is now “**every file should have a prefix**” – this needs a precise, enforceable definition and migration path.
 
 2. **Pause and cursor responsibilities are duplicated**
-   - `S_PauseSystem` is documented (and partly implemented) as the engine‑level pause controller that derives pause from the navigation slice.
+   - `M_PauseManager` is documented (and partly implemented) as the engine‑level pause controller that derives pause from the navigation slice.
    - `M_SceneManager._update_pause_state()` still:
      - Sets `get_tree().paused`.
      - Dispatches pause/unpause gameplay actions.
@@ -86,7 +86,7 @@ The project already adheres strongly to its style and scene organization convent
 
 2. **Single Source of Truth for Pause/Cursor**
    - Centralize pause and cursor control in **one place**, consistent with the UI Manager architecture:
-     - `S_PauseSystem` (or a clearly named manager/system) is responsible for:
+     - `M_PauseManager` (or a clearly named manager/system) is responsible for:
        - `get_tree().paused`.
        - High‑level pause state (and signals).
        - Delegating cursor state to `M_CursorManager`.
@@ -196,13 +196,13 @@ The project already adheres strongly to its style and scene organization convent
 ### 5.3 Responsibility & Architecture
 
 7. **Pause & Cursor**:
-   - `S_PauseSystem` is the **single authority** for:
+   - `M_PauseManager` is the **single authority** for:
      - Engine pause (`get_tree().paused`).
      - Emitting a canonical pause signal/state.
      - Delegating cursor visibility/lock state to `M_CursorManager`.
    - `M_SceneManager`:
      - Must not set `get_tree().paused` directly.
-     - May still manage particles and scene‑local pause behaviours, but must depend on the centralized pause indicator (navigation slice or `S_PauseSystem`), not its own overlay count.
+     - May still manage particles and scene‑local pause behaviours, but must depend on the centralized pause indicator (navigation slice or `M_PauseManager`), not its own overlay count.
 
 8. **Navigation & UI**:
    - `navigation` slice and UI registry remain source of truth for UI state.
@@ -262,7 +262,7 @@ The cleanup work is considered complete when:
    - The current gameplay scenes (base, exterior, interior_house).
    - The current root scene structure.
    - The interactable controller patterns.
-4. `S_PauseSystem` (or a clearly designated component) is the sole owner of engine pause state and cursor coordination, with tests confirming behaviour.
+4. `M_PauseManager` (or a clearly designated component) is the sole owner of engine pause state and cursor coordination, with tests confirming behaviour.
 5. `M_SceneManager` no longer directly toggles `get_tree().paused` or gameplay pause flags, instead responding to navigation/pause state.
 6. All subsystem PRDs/plans/tasks are synchronized with the present codebase; any remaining work is delegated to this cleanup tasks file.
 7. Full GUT test suites (ECS, state, scene_manager, input_manager, ui, style) pass on target platforms.

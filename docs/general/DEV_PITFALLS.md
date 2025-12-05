@@ -277,9 +277,9 @@
   ```
   Systems that get the store in `process_tick()` don't need this await since process_tick runs after all _ready() calls complete.
 
-- **Input processing order matters**: Godot processes input in a specific order: `_input()` → `_gui_input()` → `_unhandled_input()`. If one system calls `set_input_as_handled()` in `_unhandled_input()`, other systems using `_unhandled_input()` may never see the input. **Solution**: Systems that need priority access to input should use `_input()` instead of `_unhandled_input()`. Example: S_PauseSystem uses `_input()` to process pause before M_CursorManager (which uses `_unhandled_input()`) can consume it. Both call `set_input_as_handled()` to prevent further propagation.
+- **Input processing order matters**: Godot processes input in a specific order: `_input()` → `_gui_input()` → `_unhandled_input()`. If one system calls `set_input_as_handled()` in `_unhandled_input()`, other systems using `_unhandled_input()` may never see the input. **Solution**: Systems that need priority access to input should use `_input()` instead of `_unhandled_input()`. Example: M_PauseManager uses `_input()` to process pause before M_CursorManager (which uses `_unhandled_input()`) can consume it. Both call `set_input_as_handled()` to prevent further propagation.
 
-- **Single source of truth for ESC/pause**: To avoid double-toggles, route ESC/pause through `M_SceneManager` only when it is present. `S_PauseSystem` now defers input handling if a Scene Manager exists and should only be used as a fallback (or via direct `toggle_pause()` in tests). Ensure the InputMap maps `pause` to ESC for consistency (project.godot already does).
+- **Single source of truth for ESC/pause**: To avoid double-toggles, route ESC/pause through `M_SceneManager` only when it is present. `M_PauseManager` now defers input handling if a Scene Manager exists and should only be used as a fallback (or via direct `toggle_pause()` in tests). Ensure the InputMap maps `pause` to ESC for consistency (project.godot already does).
 
 ## GUT Testing Pitfalls
 
@@ -703,11 +703,11 @@ The Input Manager and UI Manager have clear, separated responsibilities. Violati
 **UI Manager does NOT**:
 - ❌ Read raw input events (`InputEventKey`, `InputEventJoypadButton`) to detect ESC/pause
 - ❌ Map hardware buttons to actions (that's Input Manager's job)
-- ❌ Directly control cursor lock/visibility (delegates to `M_CursorManager` via `S_PauseSystem`)
+- ❌ Directly control cursor lock/visibility (delegates to `M_CursorManager` via `M_PauseManager`)
 
 ### System-Level Responsibilities (Phase 4b Refactor)
 
-**S_PauseSystem** (T070):
+**M_PauseManager** (T070):
 - Subscribes to `navigation` slice, NOT raw input
 - Derives pause state from `U_NavigationSelectors.is_paused(state)`
 - Applies engine-level pause (`get_tree().paused = is_paused`)
@@ -716,7 +716,7 @@ The Input Manager and UI Manager have clear, separated responsibilities. Violati
 
 **M_CursorManager** (T071):
 - Exposes `set_cursor_state(locked, visible)`, `set_cursor_locked()`, `set_cursor_visible()`
-- Reacts ONLY to explicit calls from `S_PauseSystem` or `M_SceneManager`
+- Reacts ONLY to explicit calls from `M_PauseManager` or `M_SceneManager`
 - Does NOT listen to pause/ESC input directly
 
 **M_SceneManager** (T072):
@@ -741,7 +741,7 @@ store.dispatch(U_NavigationActions.open_pause())
 # 2. Navigation reducer updates state:
 # navigation.overlay_stack = ["pause_menu"]
 
-# 3. S_PauseSystem sees navigation change:
+# 3. M_PauseManager sees navigation change:
 # U_NavigationSelectors.is_paused(state) == true → sets get_tree().paused = true
 
 # 4. M_SceneManager reconciles overlays:
@@ -753,7 +753,7 @@ store.dispatch(U_NavigationActions.open_pause())
 # ✅ User presses back button in pause menu:
 store.dispatch(U_NavigationActions.close_pause())
 # → Navigation reducer clears overlay_stack
-# → S_PauseSystem sets get_tree().paused = false
+# → M_PauseManager sets get_tree().paused = false
 # → M_SceneManager pops overlay to match empty stack
 ```
 
@@ -767,7 +767,7 @@ store.dispatch(U_NavigationActions.close_pause())
 
 4. **Ignoring transition state**: Overlay reconciliation defers during base scene transitions. Don't assume pause overlays push immediately—reconciliation may be deferred.
 
-5. **Pause system initialization timing**: S_PauseSystem must initialize synchronously (not async) to subscribe to state updates before M_SceneManager syncs overlay state in its `_ready()`. Async initialization causes the pause system to miss initial state changes. See "S_PauseSystem Initialization Timing" section below.
+5. **Pause system initialization timing**: M_PauseManager must initialize synchronously (not async) to subscribe to state updates before M_SceneManager syncs overlay state in its `_ready()`. Async initialization causes the pause system to miss initial state changes. See "M_PauseManager Initialization Timing" section below.
 
 ### Testing Patterns (Phase 4b)
 
@@ -785,23 +785,23 @@ _scene_manager._input(event)  # Removed in T072
 _cursor_manager.toggle_cursor()  # Removed in T071
 ```
 
-### S_PauseSystem Initialization Timing
+### M_PauseManager Initialization Timing
 
-**Problem**: S_PauseSystem may miss state updates if initialization is async
+**Problem**: M_PauseManager may miss state updates if initialization is async
 
 The pause system subscribes to `scene.slice_updated` to detect overlay changes and apply engine pause. If initialization uses `await get_tree().process_frame`, the following race condition occurs:
 
-1. S_PauseSystem added to tree → `_ready()` starts → awaits frame (paused in middle of `_ready()`)
+1. M_PauseManager added to tree → `_ready()` starts → awaits frame (paused in middle of `_ready()`)
 2. M_SceneManager added to tree → `_ready()` runs completely → syncs overlay state (clears stale overlays)
 3. Frame completes, test checks state
-4. S_PauseSystem's await completes AFTER test checks → subscribes too late
+4. M_PauseManager's await completes AFTER test checks → subscribes too late
 
 **Symptoms**:
 - `get_tree().paused` doesn't match actual overlay state
 - Tests fail with "Tree should be unpaused without overlays" when state is correct but pause system hasn't synced yet
 - Pause system's `is_paused()` returns stale value
 
-**Solution** (implemented in s_pause_system.gd:43-95):
+**Solution** (implemented in m_pause_manager.gd:43-95):
 ```gdscript
 func _ready() -> void:
     super._ready()

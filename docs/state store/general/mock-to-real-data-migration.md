@@ -158,7 +158,7 @@ All remaining test files refactored to use:
 ```
 
 **All fields are used by real game systems:**
-- `paused`: Used by S_PauseSystem and all gameplay systems
+- `paused`: Used by M_PauseManager and all gameplay systems
 - Input fields: Used by S_InputSystem
 - Settings: Used by S_GravitySystem, S_LandingIndicatorSystem
 - `entities`: Entity Coordination Pattern for multi-entity state

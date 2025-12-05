@@ -232,7 +232,7 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	var new_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
 
 	# Only track scene_id when it actually changes and is not empty
-	# Phase 2 (T022): Cursor updates removed - S_PauseSystem is now sole authority
+	# Phase 2 (T022): Cursor updates removed - M_PauseManager is now sole authority
 	if new_scene_id != _current_scene_id and not new_scene_id.is_empty():
 		_current_scene_id = new_scene_id
 		if _navigation_pending_scene_id == new_scene_id:
@@ -900,7 +900,7 @@ func _find_first_focusable_in(root: Node) -> Control:
 ## Update particles and focus based on overlay stack
 ##
 ## Phase 2 (T022): Refactored to remove pause/cursor authority.
-## S_PauseSystem is now the sole authority for get_tree().paused and cursor state.
+## M_PauseManager is now the sole authority for get_tree().paused and cursor state.
 ## This method only handles GPU particle workaround (particles ignore SceneTree pause).
 func _update_particles_and_focus() -> void:
 	if _ui_overlay_stack == null:
@@ -910,7 +910,7 @@ func _update_particles_and_focus() -> void:
 	var should_pause: bool = overlay_count > 0
 
 	# Ensure particles in gameplay respect pause (GPU particles ignore SceneTree pause)
-	# This is a workaround - S_PauseSystem controls actual pause via get_tree().paused
+	# This is a workaround - M_PauseManager controls actual pause via get_tree().paused
 	_set_particles_paused(should_pause)
 
 ## Recursively collect particle nodes and set speed_scale to pause/resume simulation
@@ -1199,7 +1199,7 @@ func is_transitioning() -> bool:
 	return scene_state.get("is_transitioning", false)
 
 ## Keep navigation shell/base scene aligned with the actual scene (manual transitions/tests)
-## Phase 2 (T022): Removed _update_cursor_for_scene() - S_PauseSystem now handles cursor state
+## Phase 2 (T022): Removed _update_cursor_for_scene() - M_PauseManager now handles cursor state
 func _sync_navigation_shell_with_scene(scene_id: StringName) -> void:
 	if not _initial_navigation_synced:
 		return

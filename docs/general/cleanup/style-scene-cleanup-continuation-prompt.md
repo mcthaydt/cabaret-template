@@ -29,7 +29,7 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 - Phase 0 – Discovery & Inventory: **✅ COMPLETE** (Commit: 032bb7d - documentation updates)
   - Comprehensive inventory of 175 scripts, 31 scenes, 57 resources
   - Identified 36 files requiring renaming (UI scripts, UI scenes, prefab scenes)
-  - Documented pause authority conflict (S_PauseSystem vs M_SceneManager)
+  - Documented pause authority conflict (M_PauseManager vs M_SceneManager)
   - Cross-checked all subsystem PRDs vs implementation
 
 - Phase 1 – Spec & Guide Updates: **✅ COMPLETE** (Commit: 032bb7d)
@@ -47,7 +47,7 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 **Policy Decisions Approved**:
 - ✅ UI screen controllers: Add `ui_` prefix
 - ✅ UI scenes: Migrate all 16 to `ui_` prefix
-- ✅ Pause authority: S_PauseSystem is sole authority
+- ✅ Pause authority: M_PauseManager is sole authority
 - ✅ Hazard/objective scenes: Add `prefab_` prefix
 
 ---

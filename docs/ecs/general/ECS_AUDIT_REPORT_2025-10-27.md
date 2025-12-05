@@ -77,7 +77,7 @@ All 12 systems are **fully implemented and tested**:
 | **S_JumpParticlesSystem** | 110 | VFX on jump events | ✅ (event-based) | ❌ ECS-only |
 | **S_JumpSoundSystem** | 110 | SFX on jump events | ✅ (event-based) | ❌ ECS-only |
 | **S_LandingParticlesSystem** | 110 | VFX on landing events | ✅ (event-based) | ❌ ECS-only |
-| **S_PauseSystem** | 200 | Pause handling | ✅ | ✅ Reads/writes pause state |
+| **M_PauseManager** | 200 | Pause handling | ✅ | ✅ Reads/writes pause state |
 
 **Key Features**:
 - ✅ All systems extend `BaseECSSystem` base class
@@ -261,7 +261,7 @@ Time: 2.183s
 | S_GravitySystem | ✅ gravity_scale | ❌ | ✅ Complete |
 | S_RotateToInputSystem | ❌ | ✅ rotation | ✅ Complete |
 | S_LandingIndicatorSystem | ✅ show_landing_indicator | ❌ | ✅ Complete |
-| S_PauseSystem | ✅ is_paused | ✅ is_paused | ✅ Complete |
+| M_PauseManager | ✅ is_paused | ✅ is_paused | ✅ Complete |
 
 **State Store Access Pattern** (all systems):
 ```gdscript
@@ -523,7 +523,7 @@ Priority 100:  S_LandingIndicatorSystem (projection)
          ↓
 Priority 110:  S_JumpParticlesSystem, S_JumpSoundSystem, S_LandingParticlesSystem (VFX/SFX)
          ↓
-Priority 200:  S_PauseSystem (meta control)
+Priority 200:  M_PauseManager (meta control)
 ```
 
 **Assessment**: ✅ **LOGICALLY ORDERED**
@@ -694,7 +694,7 @@ The ECS system is **ready for production use** with:
 - `s_jump_particles_system.gd` (75 lines)
 - `s_jump_sound_system.gd` (28 lines)
 - `s_landing_particles_system.gd` (75 lines)
-- `s_pause_system.gd` (92 lines)
+- `m_pause_manager.gd` (92 lines)
 
 ### Resources (8)
 - `rs_movement_settings.gd` (28 lines)

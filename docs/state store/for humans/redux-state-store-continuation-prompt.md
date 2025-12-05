@@ -65,7 +65,7 @@ The Redux-style centralized state store implementation is **PHASES 1-14 COMPLETE
 - ✅ Phase 0C: EventBusBase architecture (commit b7fb729)
 - ✅ Phase 1 (Setup): All directories, project settings, base files
 - ✅ Phase 3-10 (US1a-US1h): Core gameplay slice (complete state store infrastructure)
-- ✅ Phase 10.5: Proof-of-Concept Integration (S_PauseSystem, S_HealthSystem, HUD)
+- ✅ Phase 10.5: Proof-of-Concept Integration (M_PauseManager, S_HealthSystem, HUD)
 - ✅ Phase 11 (US2): Debug Overlay with F3 toggle
 - ✅ Phase 12 (US3): Boot slice with loading progress state (commit 0b60fc0)
 - ✅ Phase 13 (US4): Menu slice with navigation and configuration (commit 27fd503)
@@ -268,7 +268,7 @@ All phases followed TDD: Write tests → Verify tests fail → Implement → Ver
 **Goal**: Validate state store architecture works with real ECS systems ✅ ACHIEVED
 
 **Implemented Systems**:
-- ✅ S_PauseSystem: Pause/unpause via "pause" input action, manages cursor state
+- ✅ M_PauseManager: Pause/unpause via "pause" input action, manages cursor state
 - ✅ S_HealthSystem: Timer-based damage (10 HP / 5 sec), respects pause, emits death signal
 - ✅ HUD Overlay: Reactive UI displaying health, score, [PAUSED] status from GameplaySelectors
 - ✅ Movement/Jump Integration: Systems check pause state, skip processing when paused
@@ -291,13 +291,13 @@ All phases followed TDD: Write tests → Verify tests fail → Implement → Ver
    - Documented pattern in DEV_PITFALLS.md
 
 2. **Input Processing Order** (commit 10014e6):
-   - Problem: M_CursorManager consumed "pause" input before S_PauseSystem could see it
+   - Problem: M_CursorManager consumed "pause" input before M_PauseManager could see it
    - Root Cause: Both used `_unhandled_input()`, first caller's `set_input_as_handled()` blocked others
-   - Solution: Changed S_PauseSystem to `_input()` for priority processing
+   - Solution: Changed M_PauseManager to `_input()` for priority processing
    - Documented Godot input order in DEV_PITFALLS.md: `_input()` → `_gui_input()` → `_unhandled_input()`
 
 3. **Missing Icons** (commit 0e0c843):
-   - Problem: S_PauseSystem and S_HealthSystem appeared with default script icon
+   - Problem: M_PauseManager and S_HealthSystem appeared with default script icon
    - Solution: Added `@icon("res://resources/editor_icons/system.svg")` annotations
    - Documented requirement in DEV_PITFALLS.md
 
@@ -307,7 +307,7 @@ All phases followed TDD: Write tests → Verify tests fail → Implement → Ver
 - ✅ Input processing order: `_input()` vs `_unhandled_input()` and `set_input_as_handled()` behavior
 
 **Files Created**:
-- `scripts/ecs/systems/s_pause_system.gd` - Pause management via state store
+- `scripts/ecs/systems/m_pause_manager.gd` - Pause management via state store
 - `scripts/ecs/systems/s_health_system.gd` - Health/damage/death via state store
 - `scenes/ui/hud_overlay.tscn` + `.gd` - Reactive UI from GameplaySelectors
 - `tests/unit/integration/test_poc_pause_system.gd` - Integration test stubs
@@ -315,17 +315,17 @@ All phases followed TDD: Write tests → Verify tests fail → Implement → Ver
 
 **Commits** (16 total):
 - 8df79e0: Phase 1 - Actions, reducers, selectors, test stubs
-- e07e25b: Phase 2 - S_PauseSystem, movement/jump pause checks, score dispatch
+- e07e25b: Phase 2 - M_PauseManager, movement/jump pause checks, score dispatch
 - fc0a0cf: Phase 3 - S_HealthSystem, HUD overlay, scene integration
 - f8e6fbc: Fix parse errors (invalid super._exit_tree calls)
 - 2ffcd79: Fix race condition with await pattern
 - bb5c2ef: Changed pause from ESC to P key
-- cd01b77: Reverted to ESC, S_PauseSystem manages cursor
+- cd01b77: Reverted to ESC, M_PauseManager manages cursor
 - f4431be: Use "pause" input action instead of hardcoded keys
 - 6c8aa4b: M_CursorManager also uses "pause" input action
 - f83d86d: Added debug script to diagnose pause failure
 - 7fadd1b: Fixed debug script subscriber signature
-- c8c780e: Added detailed logging to S_PauseSystem
+- c8c780e: Added detailed logging to M_PauseManager
 - 10014e6: Fixed input processing order (_input vs _unhandled_input)
 - 298e57b: Removed debug prints from systems
 - 6d2c5de: Removed debug script, documented input processing pitfall
@@ -470,7 +470,7 @@ Phases 15 & 16 complete. State store fully functional with multi-entity support.
 
 5. ✅ **ECS Integration Documentation** (T425-T431): COMPLETE
    - Added Section 10 to usage guide (412 lines)
-   - S_PauseSystem full implementation documented
+   - M_PauseManager full implementation documented
    - S_HealthSystem documented
    - HUD integration example documented
    - Common pitfalls and integration checklist added
@@ -543,13 +543,13 @@ Phases 15 & 16 complete. State store fully functional with multi-entity support.
 
 **Why Phase 16**:
 - User explicitly requested: "I want everything in the project to use the new state not just 2 systems"
-- Current status: Only S_PauseSystem and S_HealthSystem + HUD use state store
+- Current status: Only M_PauseManager and S_HealthSystem + HUD use state store
 - 13 systems and 1 manager still need integration
 - This achieves true centralized state management across the entire game
 
 **Systems to Integrate (15 total)**:
 
-1. ✅ S_PauseSystem - Already integrated (Phase 10.5)
+1. ✅ M_PauseManager - Already integrated (Phase 10.5)
 2. ✅ S_HealthSystem - Already integrated (Phase 10.5)
 3. **S_InputSystem** - Dispatch input state to store
 4. **S_MovementSystem** - Read movement params from state
@@ -596,7 +596,7 @@ Phases 15 & 16 complete. State store fully functional with multi-entity support.
 1. 🚨 Open `redux-state-store-tasks.md`
 2. Find Phase 16 section (Tasks T449-T500)
 3. Start with Task T449 (first integration task)
-4. Follow the established patterns from S_PauseSystem/S_HealthSystem
+4. Follow the established patterns from M_PauseManager/S_HealthSystem
 5. Check off tasks and commit regularly
 
 ### Phase 16.5: Mock Data Removal ⏳ FUTURE WORK

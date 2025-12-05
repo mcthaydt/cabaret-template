@@ -5,7 +5,7 @@ extends GutTest
 const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const M_CURSOR_MANAGER := preload("res://scripts/managers/m_cursor_manager.gd")
-const S_PAUSE_SYSTEM := preload("res://scripts/ecs/systems/s_pause_system.gd")
+const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_pause_manager.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
 
@@ -46,7 +46,7 @@ func before_each() -> void:
 	_scene_manager.skip_initial_scene_load = true
 	_root.add_child(_scene_manager)
 
-	# Create S_PauseSystem (Phase 2: T024b - sole authority for pause/cursor)
+	# Create M_PauseManager (Phase 2: T024b - sole authority for pause/cursor)
 	_pause_system = S_PAUSE_SYSTEM.new()
 	_root.add_child(_pause_system)
 

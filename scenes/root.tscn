@@ -21,7 +21,7 @@
 [ext_resource type="Resource" path="res://resources/state/default_debug_initial_state.tres" id="19_debug_state"]
 [ext_resource type="Resource" uid="uid://dtak7mhm8w170" path="res://resources/state/navigation_initial_state.tres" id="20_navigation_state"]
 [ext_resource type="Script" path="res://scripts/ui/ui_input_handler.gd" id="21_ui_input_handler"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_pause_system.gd" id="22_pause_system"]
+[ext_resource type="Script" path="res://scripts/managers/m_pause_manager.gd" id="22_pause_manager"]
 
 [node name="Root" type="Node"]
 script = ExtResource("10_main_root")
@@ -46,8 +46,8 @@ script = ExtResource("7_cursor")
 [node name="M_SceneManager" type="Node" parent="Managers"]
 script = ExtResource("8_scene_manager")
 
-[node name="S_PauseSystem" type="Node" parent="Managers"]
-script = ExtResource("22_pause_system")
+[node name="M_PauseManager" type="Node" parent="Managers"]
+script = ExtResource("22_pause_manager")
 
 [node name="M_SpawnManager" type="Node" parent="Managers"]
 script = ExtResource("13_spawn_manager")

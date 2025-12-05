@@ -29,7 +29,7 @@ func test_manager_initializes_with_locked_and_hidden_cursor() -> void:
 	# The manager's internal state (checked above) is what matters for functionality
 
 ## T071: Tests for toggle_cursor() removed - method no longer exists
-## Cursor state is now controlled via explicit set_cursor_state() calls from S_PauseSystem
+## Cursor state is now controlled via explicit set_cursor_state() calls from M_PauseManager
 
 func test_set_cursor_locked_changes_lock_state() -> void:
 	var manager := CURSOR_MANAGER.new()
@@ -93,7 +93,7 @@ func test_cursor_state_changed_signal_does_not_emit_when_state_unchanged() -> vo
 
 func test_cursor_manager_does_not_handle_pause_input() -> void:
 	# T071: M_CursorManager no longer handles pause/ESC input directly
-	# Cursor state is controlled via explicit calls from S_PauseSystem
+	# Cursor state is controlled via explicit calls from M_PauseManager
 	var manager := CURSOR_MANAGER.new()
 	add_child(manager)
 	autofree(manager)

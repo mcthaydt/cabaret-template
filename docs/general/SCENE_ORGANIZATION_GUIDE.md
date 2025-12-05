@@ -37,7 +37,7 @@ GameplayRoot (Node3D) [main_root_node.gd]
 ├─ Systems (Node) [systems_group.gd]
 │  ├─ Core (Node) [systems_core_group.gd]
 │  │  ├─ S_InputSystem (priority: 0)
-│  │  └─ S_PauseSystem (priority: 5)
+│  │  └─ M_PauseManager (priority: 5)
 │  │
 │  ├─ Physics (Node) [systems_physics_group.gd]
 │  │  ├─ S_GravitySystem (priority: 60)
@@ -143,7 +143,7 @@ Systems are organized into **four functional categories** for better visual orga
 
 **Systems:**
 - `S_InputSystem` (priority: 0) - Input capture and processing
-- `S_PauseSystem` (priority: 5) - Engine pause state management (sole authority)
+- `M_PauseManager` (priority: 5) - Engine pause state management (sole authority)
 - `S_TouchscreenSystem` - Mobile virtual controls coordination
 - `S_CheckpointSystem` - Checkpoint activation and respawn point updates
 - `S_SceneTriggerSystem` - Door and scene transition triggers

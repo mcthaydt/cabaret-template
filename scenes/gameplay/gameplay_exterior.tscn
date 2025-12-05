@@ -23,7 +23,6 @@
 [ext_resource type="Script" uid="uid://inbnerw83pve" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
 [ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/settings/jump_particles_default.tres" id="9_jump_particles_settings"]
 [ext_resource type="Script" uid="uid://cu3er3y1tl8r3" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
-[ext_resource type="Script" uid="uid://c0q5fgkbsulke" path="res://scripts/ecs/systems/s_pause_system.gd" id="9_pause"]
 [ext_resource type="Script" uid="uid://bc1ae47bo4m04" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
 [ext_resource type="Script" uid="uid://b5g6xp0umxfy4" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
 [ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/settings/landing_particles_default.tres" id="10_landing_particles_settings"]
@@ -137,10 +136,6 @@ require_captured_cursor = true
 
 [node name="S_TouchscreenSystem" type="Node" parent="Systems/Core"]
 script = ExtResource("24_touchscreen_system")
-
-[node name="S_PauseSystem" type="Node" parent="Systems/Core"]
-script = ExtResource("9_pause")
-execution_priority = 5
 
 [node name="S_HealthSystem" type="Node" parent="Systems/Core"]
 script = ExtResource("9_health")

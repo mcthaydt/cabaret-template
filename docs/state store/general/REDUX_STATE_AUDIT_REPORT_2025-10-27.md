@@ -231,7 +231,7 @@ The redux-state-store implementation has been audited for completeness, consiste
 4. ✅ S_RotateToInputSystem - Reads input from state
 5. ✅ S_GravitySystem - Reads gravity_scale from state
 6. ✅ S_LandingIndicatorSystem - Reads show_landing_indicator from state
-7. ✅ S_PauseSystem - Manages pause state
+7. ✅ M_PauseManager - Manages pause state
 8. ✅ S_FloatingSystem - Respects pause state
 9. ✅ S_AlignWithSurfaceSystem - Respects pause state
 10. ✅ S_JumpParticlesSystem - Uses EventBus
