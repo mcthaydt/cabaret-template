@@ -5,5 +5,5 @@
 [resource]
 script = ExtResource("1_resource")
 scene_id = &"credits"
-scene_path = "res://scenes/ui/credits.tscn"
+scene_path = "res://scenes/ui/ui_credits.tscn"
 scene_type = 3

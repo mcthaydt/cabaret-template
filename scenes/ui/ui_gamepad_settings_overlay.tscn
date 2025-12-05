@@ -1,8 +1,8 @@
 [gd_scene load_steps=4 format=3 uid="uid://3i50wvrc3pth"]
 
-[ext_resource type="Script" uid="uid://c5xcj17j871iw" path="res://scripts/ui/ui_gamepad_settings_overlay.gd" id="1"]
-[ext_resource type="Script" uid="uid://bh7yxsksw2bti" path="res://scripts/ui/ui_gamepad_stick_preview.gd" id="2"]
-[ext_resource type="PackedScene" uid="uid://bq8y7b2npl2g0" path="res://scenes/ui/button_prompt.tscn" id="3"]
+[ext_resource type="Script" uid="uid://dc4j6pmsk2it8" path="res://scripts/ui/ui_gamepad_settings_overlay.gd" id="1"]
+[ext_resource type="Script" uid="uid://c1l1led32s3l8" path="res://scripts/ui/ui_gamepad_stick_preview.gd" id="2"]
+[ext_resource type="PackedScene" uid="uid://bq8y7b2npl2g0" path="res://scenes/ui/ui_button_prompt.tscn" id="3"]
 
 [node name="GamepadSettingsOverlay" type="Control"]
 layout_mode = 3

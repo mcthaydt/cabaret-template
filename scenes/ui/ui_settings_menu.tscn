@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://ddn5pq0hy1ou6"]
 
-[ext_resource type="Script" uid="uid://b5g72yehbfacx" path="res://scripts/ui/ui_settings_menu.gd" id="1_settings_menu_script"]
+[ext_resource type="Script" uid="uid://dash1f6f5yxiu" path="res://scripts/ui/ui_settings_menu.gd" id="1_settings_menu_script"]
 
 [node name="SettingsMenu" type="Control"]
 layout_mode = 3

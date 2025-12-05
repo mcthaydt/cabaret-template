@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 scene_id = "input_rebinding"
-scene_path = "res://scenes/ui/input_rebinding_overlay.tscn"
+scene_path = "res://scenes/ui/ui_input_rebinding_overlay.tscn"
 scene_type = 2
 default_transition = "instant"
 preload_priority = 5

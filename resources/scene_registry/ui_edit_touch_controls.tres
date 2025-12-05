@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1")
 scene_id = "edit_touch_controls"
-scene_path = "res://scenes/ui/edit_touch_controls_overlay.tscn"
+scene_path = "res://scenes/ui/ui_edit_touch_controls_overlay.tscn"
 scene_type = 2
 default_transition = "instant"
 preload_priority = 5

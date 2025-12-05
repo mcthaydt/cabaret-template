@@ -1,4 +1,4 @@
-[gd_scene load_steps=0 format=3 uid="uid://clwc6tou4bgkr"]
+[gd_scene format=3 uid="uid://clwc6tou4bgkr"]
 
 [node name="LoadingScreen" type="Control"]
 process_mode = 3
