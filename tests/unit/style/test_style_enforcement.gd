@@ -29,9 +29,9 @@ const BASE_CLASS_EXCEPTIONS := [
 	"base_volume_controller.gd",
 	"base_interactable_controller.gd",
 	"triggered_interactable_controller.gd",
-	"ecs_component.gd",
-	"ecs_system.gd",
-	"ecs_entity.gd"
+	"base_ecs_component.gd",
+	"base_ecs_system.gd",
+	"base_ecs_entity.gd"
 ]
 
 const MARKER_SCRIPT_EXCEPTIONS := [

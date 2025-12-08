@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/entities.svg")
-extends "res://scripts/ecs/ecs_entity.gd"
+extends "res://scripts/ecs/base_ecs_entity.gd"
 class_name BaseVolumeController
 
 const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/ecs/resources/rs_scene_trigger_settings.gd")

@@ -31,11 +31,11 @@ All core ECS architectural elements are **fully implemented and operational**:
 | Component | Status | Location | Notes |
 |-----------|--------|----------|-------|
 | **M_ECSManager** | ✅ Complete | `scripts/managers/m_ecs_manager.gd` | 482 lines, full query system, caching, metrics |
-| **BaseECSComponent** | ✅ Complete | `scripts/ecs/ecs_component.gd` | Base class with validation hooks |
-| **BaseECSSystem** | ✅ Complete | `scripts/ecs/ecs_system.gd` | Priority-based execution, query API |
+| **BaseECSComponent** | ✅ Complete | `scripts/ecs/base_ecs_component.gd` | Base class with validation hooks |
+| **BaseECSSystem** | ✅ Complete | `scripts/ecs/base_ecs_system.gd` | Priority-based execution, query API |
 | **EntityQuery** | ✅ Complete | `scripts/ecs/entity_query.gd` | Query result wrapper with type safety |
 | **U_ECSEventBus** | ✅ Complete | `scripts/ecs/u_ecs_event_bus.gd` | Pub/sub with history buffer |
-| **ECSEntity** | ✅ Complete | `scripts/ecs/ecs_entity.gd` | Entity root marker |
+| **ECSEntity** | ✅ Complete | `scripts/ecs/base_ecs_entity.gd` | Entity root marker |
 | **U_ECSUtils** | ✅ Complete | `scripts/utils/u_ecs_utils.gd` | Centralized utilities |
 
 ### 1.2 Component Implementations ✅
@@ -201,8 +201,8 @@ Time: 2.183s
 ```
 
 **Test Distribution**:
-- ✅ `test_ecs_component.gd` - Base component lifecycle
-- ✅ `test_ecs_system.gd` - Base system lifecycle
+- ✅ `test_base_ecs_component.gd` - Base component lifecycle
+- ✅ `test_base_ecs_system.gd` - Base system lifecycle
 - ✅ `test_ecs_manager.gd` - Registration, queries, caching
 - ✅ `test_entity_query.gd` - Query result wrappers
 - ✅ `test_ecs_event_bus.gd` - Event pub/sub
@@ -393,11 +393,11 @@ $ grep -i "component.*path\|nodepath.*component" templates/*.tscn
 **Directory Structure**:
 ```
 scripts/ecs/
-├── ecs_component.gd (base)
-├── ecs_system.gd (base)
+├── base_ecs_component.gd (base)
+├── base_ecs_system.gd (base)
 ├── entity_query.gd (query wrapper)
 ├── u_ecs_event_bus.gd (event system)
-├── ecs_entity.gd (entity marker)
+├── base_ecs_entity.gd (entity marker)
 ├── components/ (7 files)
 ├── systems/ (12 files)
 └── resources/ (8 files)
@@ -665,11 +665,11 @@ The ECS system is **ready for production use** with:
 
 ### Core Files (8)
 - `scripts/managers/m_ecs_manager.gd` (482 lines)
-- `scripts/ecs/ecs_component.gd` (49 lines)
-- `scripts/ecs/ecs_system.gd` (101 lines)
+- `scripts/ecs/base_ecs_component.gd` (49 lines)
+- `scripts/ecs/base_ecs_system.gd` (101 lines)
 - `scripts/ecs/entity_query.gd` (28 lines)
 - `scripts/ecs/u_ecs_event_bus.gd` (60 lines)
-- `scripts/ecs/ecs_entity.gd` (13 lines)
+- `scripts/ecs/base_ecs_entity.gd` (13 lines)
 - `scripts/utils/u_ecs_utils.gd` (193 lines)
 - `scripts/ecs/event_vfx_system.gd` (77 lines)
 

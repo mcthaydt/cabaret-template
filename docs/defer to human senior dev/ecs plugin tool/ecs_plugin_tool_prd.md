@@ -466,8 +466,8 @@ addons/ecs_debugger/
 ### Existing ECS APIs (Already Implemented)
 
 - ✅ `M_ECSManager.get_query_metrics()` (scripts/managers/m_ecs_manager.gd:109)
-- ✅ `ECSSystem.set_debug_disabled()` (scripts/ecs/ecs_system.gd:50)
-- ✅ `ECSSystem.is_debug_disabled()` (scripts/ecs/ecs_system.gd:53)
+- ✅ `ECSSystem.set_debug_disabled()` (scripts/ecs/base_ecs_system.gd:50)
+- ✅ `ECSSystem.is_debug_disabled()` (scripts/ecs/base_ecs_system.gd:53)
 - ✅ `U_ECSEventBus.get_event_history()` (scripts/ecs/u_ecs_event_bus.gd:81)
 - ✅ `U_ECSEventBus.clear_history()` (scripts/ecs/u_ecs_event_bus.gd:73)
 - ✅ `M_ECSManager.get_systems()` (scripts/managers/m_ecs_manager.gd:86)

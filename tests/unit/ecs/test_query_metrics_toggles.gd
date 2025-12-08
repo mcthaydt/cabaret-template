@@ -3,7 +3,7 @@ extends GutTest
 ## Unit tests for M_ECSManager query metrics toggles and capacity trimming
 
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const BASE_ECS_COMPONENT := preload("res://scripts/ecs/ecs_component.gd")
+const BASE_ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
 
 class QueryDummyComponent:
 	extends BaseECSComponent

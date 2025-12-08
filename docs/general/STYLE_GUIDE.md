@@ -195,7 +195,7 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 #### Documented Exceptions
 | Category | File Pattern | Examples | Rationale |
 |----------|--------------|----------|-----------|
-| **Base Classes** | `base_*.gd` / `ecs_*.gd` | `base_panel.gd` → `BasePanel`, `ecs_component.gd` → `BaseECSComponent`, `ecs_entity.gd` → `ECSEntity` | Abstract base classes use `Base` or `ECS` prefix to indicate foundational role |
+| **Base Classes** | `base_*.gd` / `ecs_*.gd` | `base_panel.gd` → `BasePanel`, `base_ecs_component.gd` → `BaseECSComponent`, `base_ecs_entity.gd` → `ECSEntity` | Abstract base classes use `Base` or `ECS` prefix to indicate foundational role |
 | **Marker Scripts** | `*_group.gd` / `*_node.gd` / `*_container.gd` | `main_root_node.gd`, `entities_group.gd`, `active_scene_container.gd` | Scene structure markers provide visual organization, not runtime behavior |
 | **Interface Scripts** | `i_*.gd` | `i_scene_contract.gd` → `I_SCENE_CONTRACT` | Interface definitions follow GDScript interface pattern |
 | **Event Buses** | `*_event_bus.gd` / `event_bus_base.gd` | `u_ecs_event_bus.gd` → `U_ECSEventBus`, `event_bus_base.gd` → `EventBusBase` | Base event bus is foundational, utility event buses use `u_` prefix |

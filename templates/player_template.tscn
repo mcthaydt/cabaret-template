@@ -15,7 +15,7 @@
 [ext_resource type="Resource" uid="uid://c0ka0i1askexa" path="res://resources/settings/floating_default.tres" id="12_float"]
 [ext_resource type="Resource" uid="uid://dhkl8uuw4aeeh" path="res://resources/settings/align_default.tres" id="13_align"]
 [ext_resource type="Resource" uid="uid://bge6h6phsahy3" path="res://resources/settings/landing_indicator_default.tres" id="14_land"]
-[ext_resource type="Script" uid="uid://cqv4dgjvxifq0" path="res://scripts/ecs/ecs_entity.gd" id="15_ecsentity"]
+[ext_resource type="Script" uid="uid://buh21cnax6m08" path="res://scripts/ecs/base_ecs_entity.gd" id="15_ecsentity"]
 [ext_resource type="Script" uid="uid://dp5fekvumgtkx" path="res://scripts/ecs/components/c_player_tag_component.gd" id="16_playertag"]
 [ext_resource type="Script" uid="uid://ddjomxk60ovwr" path="res://scripts/ecs/components/c_health_component.gd" id="17_health"]
 [ext_resource type="Resource" uid="uid://bay3xmfxc8da0" path="res://resources/settings/health_settings.tres" id="18_health_settings"]

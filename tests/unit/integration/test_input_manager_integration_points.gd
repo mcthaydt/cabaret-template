@@ -10,7 +10,7 @@ const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const S_INPUT_SYSTEM := preload("res://scripts/ecs/systems/s_input_system.gd")
 const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
-const ECSEntity := preload("res://scripts/ecs/ecs_entity.gd")
+const ECSEntity := preload("res://scripts/ecs/base_ecs_entity.gd")
 
 func before_each() -> void:
 	U_STATE_HANDOFF.clear_all()

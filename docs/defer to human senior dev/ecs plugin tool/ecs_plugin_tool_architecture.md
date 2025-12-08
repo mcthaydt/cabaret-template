@@ -789,7 +789,7 @@ static func clear_history() -> void
 **Used Methods**:
 
 ```gdscript
-# Debug disable (scripts/ecs/ecs_system.gd:50)
+# Debug disable (scripts/ecs/base_ecs_system.gd:50)
 func set_debug_disabled(disabled: bool) -> void
 func is_debug_disabled() -> bool
 # Controls whether M_ECSManager calls process_tick()

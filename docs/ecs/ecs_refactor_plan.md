@@ -71,7 +71,7 @@ Epic 1 – Code Quality Refactors (15 points)
 
 - [x] Story 1.1: Extract manager discovery utility (U_ECSUtils.get_manager()) (2 points) — Implemented `scripts/utils/u_ecs_utils.gd`, updated base classes, and added `tests/unit/ecs/test_u_ecs_utils.gd` (GUT `-gselect=test_u_ecs_utils -gexit` green)
 - [x] Story 1.2: Extract time utilities (U_ECSUtils.get_current_time()) (1 point) — Added `get_current_time()` helper, refactored components/systems/tests, full ECS suite passing with `-gexit`
-- [x] Story 1.3: Extract settings validation pattern (ECSComponent._validate_required_settings()) (3 points) — Added validation hooks to base component, migrated settings-based components, new `tests/unit/ecs/test_ecs_component.gd` coverage
+- [x] Story 1.3: Extract settings validation pattern (ECSComponent._validate_required_settings()) (3 points) — Added validation hooks to base component, migrated settings-based components, new `tests/unit/ecs/test_base_ecs_component.gd` coverage
 - [x] Story 1.4: Extract body mapping helper (U_ECSUtils.map_components_by_body()) (3 points) — Added helper + tests, refactored S_JumpSystem & S_GravitySystem to reuse it
 - [x] Story 1.5: Add null filtering to M_ECSManager.get_components() (2 points) — get_components now removes null entries, covered by updated manager tests
 - [x] Story 1.6: Update all systems to use U_ECSUtils (4 points) — Systems now rely on shared helpers (time, body maps, null-free get_components) with redundant checks removed
@@ -101,7 +101,7 @@ Epic 4 – Component Decoupling (7 points)
 
 Epic 5 – System Execution Ordering (5 points)
 
-- [x] Story 5.1: Add execution_priority to ECSSystem base class (2 points) — Added exported `execution_priority` (clamped 0–1000) to `BaseECSSystem`, notifying the manager on change with coverage in `tests/unit/ecs/test_ecs_system.gd`
+- [x] Story 5.1: Add execution_priority to ECSSystem base class (2 points) — Added exported `execution_priority` (clamped 0–1000) to `BaseECSSystem`, notifying the manager on change with coverage in `tests/unit/ecs/test_base_ecs_system.gd`
 - [x] Story 5.2: Implement system sorting in M_ECSManager (2 points) — `M_ECSManager` now disables per-system physics ticks, sorts `_systems` by `execution_priority`, and drives execution via its own `_physics_process`; regression suites updated to call `manager._physics_process` and new priority-order test added in `tests/unit/ecs/test_ecs_manager.gd`
 - [x] Story 5.3: Document system priority conventions (1 point) — Updated `ecs_architecture.md`, `ecs_refactor_recommendations.md`, and planning docs with priority bands, scheduling rules, and hand-off guidance.
 
@@ -122,8 +122,8 @@ Testing & Documentation (7 points)
 | Plan Reference | Actual Codebase Path | Class Name |
 |----------------|----------------------|------------|
 | `M_ECSManager` | `scripts/managers/m_ecs_manager.gd` | `M_ECSManager` |
-| `BaseECSSystem` | `scripts/ecs/ecs_system.gd` | `BaseECSSystem` |
-| `BaseECSComponent` | `scripts/ecs/ecs_component.gd` | `BaseECSComponent` |
+| `BaseECSSystem` | `scripts/ecs/base_ecs_system.gd` | `BaseECSSystem` |
+| `BaseECSComponent` | `scripts/ecs/base_ecs_component.gd` | `BaseECSComponent` |
 | `U_ECSUtils` (NEW) | `scripts/utils/u_ecs_utils.gd` | `U_ECSUtils` |
 | `EntityQuery` (NEW) | `scripts/ecs/entity_query.gd` | `EntityQuery` |
 | `U_ECSEventBus` (NEW) | `scripts/ecs/u_ecs_event_bus.gd` | `U_ECSEventBus` |
@@ -342,7 +342,7 @@ static func get_active_camera(from_node: Node) -> Camera3D:
 **TDD Cycle 1: BaseECSComponent._validate_required_settings() - Base Implementation**
 
 - [x] 3.1a – RED: Write test for settings validation hook
-- Create `tests/unit/ecs/test_ecs_component.gd`
+- Create `tests/unit/ecs/test_base_ecs_component.gd`
 - Test: `test_validate_required_settings_hook_called_in_ready()`
   - Arrange: Create test component extending ECSComponent
   - Override _validate_required_settings() to return false
@@ -350,7 +350,7 @@ static func get_active_camera(from_node: Node) -> Camera3D:
   - Assert: Component NOT registered (validation failed)
 
 - [x] 3.1b – GREEN: Implement validation hook in ECSComponent
-- Modify `scripts/ecs/ecs_component.gd`
+- Modify `scripts/ecs/base_ecs_component.gd`
 - Add: `func _validate_required_settings() -> bool: return true` (default: pass)
 - Modify _ready(): Call _validate_required_settings() before registration
 - If validation fails, push_error() and skip registration
@@ -649,7 +649,7 @@ func _get_entity_for_component(component: BaseECSComponent) -> Node:
 
 - [x] 2.3c – VERIFY: Run tests, confirm GREEN (`-gselect=test_ecs_manager -gexit`)
 
-- Aligned existing ECS test fixtures (`test_ecs_component.gd`, `test_u_ecs_utils.gd`) with the new E_* entity root requirement so auto-registration remains valid.
+- Aligned existing ECS test fixtures (`test_base_ecs_component.gd`, `test_u_ecs_utils.gd`) with the new E_* entity root requirement so auto-registration remains valid.
 
 
 - [x] Step 3 – Implement M_ECSManager.query_entities()
@@ -694,8 +694,8 @@ func _get_entity_for_component(component: BaseECSComponent) -> Node:
 
 **TDD Cycle 1: BaseECSSystem.query_entities() Convenience Method**
 
-- [x] 3.5a – RED: Added `tests/unit/ecs/test_ecs_system.gd` with `test_query_entities_passthrough_matches_manager_results()` to assert systems receive identical results when calling the convenience method.
-- [x] 3.5b – GREEN: Implemented `query_entities()` passthrough in `scripts/ecs/ecs_system.gd`, defending against missing managers.
+- [x] 3.5a – RED: Added `tests/unit/ecs/test_base_ecs_system.gd` with `test_query_entities_passthrough_matches_manager_results()` to assert systems receive identical results when calling the convenience method.
+- [x] 3.5b – GREEN: Implemented `query_entities()` passthrough in `scripts/ecs/base_ecs_system.gd`, defending against missing managers.
 - [x] 3.5c – VERIFY: `Godot --headless ... -gdir=res://tests/unit/ecs -gselect=test_ecs_system -gexit`; full ECS suite remains green.
 
 **Rationale**: Systems can now call `query_entities([...])` directly instead of `get_manager().query_entities([...])`. Reduces boilerplate, consistent with existing `get_components()` pattern.
@@ -1028,14 +1028,14 @@ Goal: Explicit system execution order, debug tools, migration guide, documentati
 **TDD Cycle 1: Add execution_priority to ECSSystem**
 
 - [x] 1.1a – RED: Write test for execution_priority property
-- Create `tests/unit/ecs/test_ecs_system.gd`
+- Create `tests/unit/ecs/test_base_ecs_system.gd`
 - Test: `test_system_has_execution_priority_property()`
   - Arrange: Create test system extending ECSSystem
   - Act: Set execution_priority = 50
   - Assert: Property value == 50
 
 - [x] 1.1b – GREEN: Add execution_priority to ECSSystem
-- Modify `scripts/ecs/ecs_system.gd`:
+- Modify `scripts/ecs/base_ecs_system.gd`:
 ```gdscript
 var _execution_priority: int = 0
 
@@ -1092,7 +1092,7 @@ func _sort_systems() -> void:
 	_sorted_systems.sort_custom(Callable(self, "_compare_system_priority"))
 ```
 
-- Modify `scripts/ecs/ecs_system.gd`:
+- Modify `scripts/ecs/base_ecs_system.gd`:
   - Call `_notify_manager_priority_changed()` inside `configure()` so registration marks the sort order dirty
   - Guard `_physics_process()` to only invoke `process_tick()` when `_manager` is `null` (manager disables physics stepping with `set_physics_process(false)`)
 
@@ -1213,8 +1213,8 @@ File tree verification:
 
 ```
 scripts/ecs/
-├── ecs_component.gd           # MODIFIED: Added _validate_required_settings()
-├── ecs_system.gd              # MODIFIED: Added execution_priority, query_entities()
+├── base_ecs_component.gd           # MODIFIED: Added _validate_required_settings()
+├── base_ecs_system.gd              # MODIFIED: Added execution_priority, query_entities()
 ├── entity_query.gd            # NEW: Query result wrapper
 ├── u_ecs_event_bus.gd           # NEW: Event system singleton
 ├── u_ecs_utils.gd             # NEW: Shared utilities

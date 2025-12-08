@@ -80,8 +80,8 @@ The ECS architecture refactor is **complete and production-ready**. All four bat
 ```
 scripts/
 ├── ecs/
-│   ├── ecs_component.gd          # Base component with validation
-│   ├── ecs_system.gd              # Base system with execution_priority
+│   ├── base_ecs_component.gd          # Base component with validation
+│   ├── base_ecs_system.gd              # Base system with execution_priority
 │   ├── entity_query.gd            # Query result wrapper (NEW)
 │   ├── u_ecs_event_bus.gd           # Event pub/sub system (NEW)
 │   ├── components/                # Pure data containers

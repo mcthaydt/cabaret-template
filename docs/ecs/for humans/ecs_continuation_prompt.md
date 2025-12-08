@@ -14,7 +14,7 @@ Stories 1.1–5.3 are complete. Before you dive into the Testing & Documentati
    - `docs/ecs/ecs_architecture.md` (§6.8 priority scheduling, §8 status recap) and `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md`
 3. Familiarize yourself with the updated baseline:
    - `scripts/utils/u_ecs_utils.gd` and `scripts/managers/m_ecs_manager.gd` (shared manager helpers, entity query caching, priority-sorted system execution inside `_physics_process`)
-   - `scripts/ecs/ecs_system.gd` (exported, clamped `execution_priority` with manager notifications; systems only self-tick when unmanaged)
+   - `scripts/ecs/base_ecs_system.gd` (exported, clamped `execution_priority` with manager notifications; systems only self-tick when unmanaged)
    - `scripts/ecs/components/c_movement_component.gd` & `c_jump_component.gd` (auto-discovery, no peer NodePaths)
    - `scripts/ecs/components/c_rotate_to_input_component.gd` & `c_align_with_surface_component.gd` (no component cross-links; scene-only NodePaths remain)
    - `scripts/ecs/systems/` gravity, floating, rotate-to-input, align-with-surface, and landing indicator systems (all rely on `query_entities()` with optional components)

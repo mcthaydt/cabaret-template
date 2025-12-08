@@ -195,7 +195,7 @@ var _systems: Array[BaseECSSystem] = []
 
 ### 3.2 ECSComponent (Base Class)
 
-**Location**: `scripts/ecs/ecs_component.gd`
+**Location**: `scripts/ecs/base_ecs_component.gd`
 
 **Purpose**: Base class for all data components. Handles auto-registration with manager.
 
@@ -263,7 +263,7 @@ Component destroyed
 
 ### 3.3 ECSSystem (Base Class)
 
-**Location**: `scripts/ecs/ecs_system.gd`
+**Location**: `scripts/ecs/base_ecs_system.gd`
 
 **Purpose**: Base class for all logic systems. Provides component query API.
 
@@ -937,7 +937,7 @@ func test_movement_system_applies_velocity():
 **Trade-off**: Entities must be in scene tree (can't have "abstract" entities).
 
 **Entity Identification Contract**:
-- Attach `scripts/ecs/ecs_entity.gd` to every gameplay entity root. The script tags the node via `_ecs_entity_root` metadata, so component discovery becomes deterministic without relying on naming.
+- Attach `scripts/ecs/base_ecs_entity.gd` to every gameplay entity root. The script tags the node via `_ecs_entity_root` metadata, so component discovery becomes deterministic without relying on naming.
 - Legacy prefixes (`E_`) and the optional `ecs_entity` group remain as fallbacks; enable the `add_legacy_group` export if you need to interop with older scenes during migration.
 - The manager caches discovered roots via `_ecs_entity_root` metadata on the node chain, so reparenting or renaming should continue to satisfy the script/prefix contract to avoid stale lookups.
 

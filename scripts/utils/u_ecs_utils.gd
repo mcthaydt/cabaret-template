@@ -5,7 +5,7 @@ class_name U_ECSUtils
 const META_ENTITY_ROOT := StringName("_ecs_entity_root")
 const ENTITY_GROUP := StringName("ecs_entity")
 const MANAGER_GROUP := StringName("ecs_manager")
-const ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/ecs_entity.gd")
+const ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/base_ecs_entity.gd")
 
 static var _warning_handler: Callable = Callable()
 static var _manager_method_warnings: Dictionary = {}
