@@ -445,18 +445,49 @@ version: "1.0"
 
 ## Phase 4 – Tests & Tooling Hardening
 
-- [ ] T040 Extend `tests/unit/style/test_style_enforcement.gd` to:
+- [x] T040 Extend `tests/unit/style/test_style_enforcement.gd` to:
   - Validate prefix patterns for `.gd` scripts in `scripts/ecs`, `scripts/state`, `scripts/ui`, `scripts/managers`, `scripts/gameplay`, `scripts/scene_structure`.
-- [ ] T041 Add tests (either in style suite or a separate file) that:
+  - **Result**: ✅ Comprehensive prefix validation implemented with directory-specific rules (tests/unit/style/test_style_enforcement.gd:169-183)
+- [x] T041 Add tests (either in style suite or a separate file) that:
   - Validate `.tscn` scene names in `scenes/gameplay` and `scenes/ui` match expected naming patterns.
   - Validate `.tres` resources in key directories match documented `RS_` or other resource prefixes.
-- [ ] T042 Introduce allowlists in style tests for documented exceptions:
+  - **Result**: ✅ Scene naming validation (test_scenes_follow_naming_conventions) and resource validation (test_resources_follow_naming_conventions) implemented (tests/unit/style/test_style_enforcement.gd:185-229)
+- [x] T042 Introduce allowlists in style tests for documented exceptions:
   - Marker scripts.
   - Base classes.
   - Any legacy/test assets intentionally kept.
-- [ ] T043 Add or update scene organization tests that:
+  - **Result**: ✅ Complete exception lists implemented: BASE_CLASS_EXCEPTIONS, MARKER_SCRIPT_EXCEPTIONS, INTERFACE_EXCEPTIONS, EVENT_BUS_EXCEPTIONS, UTILITY_EXCEPTIONS, TRANSITION_EXCEPTIONS (tests/unit/style/test_style_enforcement.gd:24-73)
+- [x] T043 Add or update scene organization tests that:
   - Assert root and gameplay scenes contain required groups and marker scripts.
   - Fail loudly if future changes violate structure without updating the guide.
+  - **Result**: ✅ Root structure test (test_scene_organization_root_structure) validates required managers and containers. Gameplay structure test (test_scene_organization_gameplay_structure) validates organizational nodes and spawn point placement (tests/unit/style/test_style_enforcement.gd:231-291)
+
+### Phase 4 Status Summary
+
+**Completed (2025-12-08)**:
+
+**Implementation**:
+- ✅ T040: Comprehensive prefix validation with directory-specific rules
+- ✅ T041: Scene and resource naming pattern validation
+- ✅ T042: Complete exception allowlists for all documented categories
+- ✅ T043: Scene organization structure tests for root and gameplay scenes
+
+**Test Coverage Added**:
+1. `test_scripts_follow_prefix_conventions()` - Validates all scripts follow STYLE_GUIDE.md prefix matrix
+2. `test_scenes_follow_naming_conventions()` - Validates scene files use correct prefixes (gameplay_, ui_, prefab_, debug_)
+3. `test_resources_follow_naming_conventions()` - Validates UI screen definitions follow naming patterns
+4. `test_scene_organization_root_structure()` - Validates root.tscn contains required managers and containers
+5. `test_scene_organization_gameplay_structure()` - Validates gameplay scenes follow SCENE_ORGANIZATION_GUIDE.md structure
+
+**Test Results**: All 7 tests passing (18 assertions total)
+- ✅ Prefix compliance: 100% (all production scripts follow documented patterns)
+- ✅ Scene naming: 100% (gameplay, UI, prefab, debug scenes all compliant)
+- ✅ Scene structure: 100% (root and gameplay scenes match documentation)
+
+**Files Modified**:
+- `tests/unit/style/test_style_enforcement.gd` - Extended with 5 new tests and comprehensive validation logic
+
+**Next Step**: Phase 5 - Docs & Planning Alignment
 
 ---
 

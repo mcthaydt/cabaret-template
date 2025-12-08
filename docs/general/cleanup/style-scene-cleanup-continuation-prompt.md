@@ -18,29 +18,19 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ---
 
-## Current Status (2025-12-04 – Phase 0 - 2 Complete)
+## Current Status (2025-12-08 – Phase 0-4 Complete)
 
 - **PRD**: `docs/general/cleanup/style-scene-cleanup-prd.md` – Drafted.
 - **Plan**: `docs/general/cleanup/style-scene-cleanup-plan.md` – Phases 0–9 defined with user-approved policies.
-- **Tasks**: `docs/general/cleanup/style-scene-cleanup-tasks.md` – Phase 0 - 2 tasks complete.
+- **Tasks**: `docs/general/cleanup/style-scene-cleanup-tasks.md` – Phase 0-4 tasks complete.
 
 **Execution Status**:
 
 - Phase 0 – Discovery & Inventory: **✅ COMPLETE** (Commit: 032bb7d - documentation updates)
-  - Comprehensive inventory of 175 scripts, 31 scenes, 57 resources
-  - Identified 36 files requiring renaming (UI scripts, UI scenes, prefab scenes)
-  - Documented pause authority conflict (M_PauseManager vs M_SceneManager)
-  - Cross-checked all subsystem PRDs vs implementation
-
 - Phase 1 – Spec & Guide Updates: **✅ COMPLETE** (Commit: 032bb7d)
-  - Added complete prefix matrix to STYLE_GUIDE.md (6 subsystem layers + exceptions)
-  - Updated SCENE_ORGANIZATION_GUIDE.md with manager init order and current system roster
-  - Updated AGENTS.md with mandatory style/scene test requirement
-  - All T010-T017 tasks checked off
-
-- Phase 2 – Responsibility Consolidation (Pause/Cursor):**✅ COMPLETE**
-- Phase 3 – Naming & Prefix Migration: **IN PROGRESS**
-- Phase 4 – Tests & Tooling Hardening: **NOT STARTED**
+- Phase 2 – Responsibility Consolidation (Pause/Cursor): **✅ COMPLETE**
+- Phase 3 – Naming & Prefix Migration: **✅ COMPLETE**
+- Phase 4 – Tests & Tooling Hardening: **✅ COMPLETE** (2025-12-08)
 - Phase 5 – Docs & Planning Alignment: **NOT STARTED**
 - Phase 6 – Final Validation & Regression Sweep: **NOT STARTED**
 
@@ -49,6 +39,7 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 - ✅ UI scenes: Migrate all 16 to `ui_` prefix
 - ✅ Pause authority: M_PauseManager is sole authority
 - ✅ Hazard/objective scenes: Add `prefab_` prefix
+- ✅ Style enforcement: Comprehensive automated testing in place
 
 ---
 
@@ -112,4 +103,3 @@ These subsystem PRDs/plans will be referenced in Phase 5 when aligning documenta
 - If you discover new gaps or edge cases:
   - Do **not** “just fix them” silently.
   - Add new tasks to `style-scene-cleanup-tasks.md` and update the PRD/Plan if needed.
-
