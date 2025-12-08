@@ -27,7 +27,7 @@ Production state now contains only real fields used by actual game systems. See 
 ### Event Bus Integration
 We use an abstract base with two concrete buses (no autoload changes, no breaking changes):
 
-- `scripts/events/event_bus_base.gd` (abstract) — shared implementation for subscribe/publish/history
+- `scripts/events/base_event_bus.gd` (abstract) — shared implementation for subscribe/publish/history
 - `scripts/ecs/u_ecs_event_bus.gd` (concrete) — ECS‑domain bus, preserves current public API
 - `scripts/state/u_state_event_bus.gd` (concrete) — State‑domain bus, used only by state store and its tests
 
@@ -110,7 +110,7 @@ This feature will create the following new files:
 
 ### Core State System
 - `scripts/state/m_state_store.gd` - Central state store manager
-- `scripts/events/event_bus_base.gd` - Abstract base for event buses
+- `scripts/events/base_event_bus.gd` - Abstract base for event buses
 - `scripts/state/u_state_event_bus.gd` - Concrete state store event bus (uses base)
 
 ### Action Creators (Utilities)
@@ -515,7 +515,7 @@ Developer can rewind state to previous points in time, replay action sequences, 
 - **FR-027**: Initial state for each slice MUST load from RS_*InitialState resources (.tres files) following ECS settings pattern
 - **FR-028**: Cross-slice selector access MUST declare explicit dependencies in RS_StateSliceConfig to document coupling
 - **FR-029**: Event bus architecture MUST be one of:
-  - Preferred: dual‑bus via `EventBusBase` with `U_ECSEventBus` and `U_StateEventBus` (isolated domains, shared implementation), or
+  - Preferred: dual‑bus via `BaseEventBus` with `U_ECSEventBus` and `U_StateEventBus` (isolated domains, shared implementation), or
   - Alternative: single bus with namespaced event types (`"ecs/*"`, `"state/*"`). Direct signals are acceptable for initial delivery if bus work is deferred.
 - **FR-030**: Time-travel snapshots MUST be created only on manual developer trigger (not automatic) to minimize memory overhead
 
@@ -622,7 +622,7 @@ Developer can rewind state to previous points in time, replay action sequences, 
 
 - **SC-008**: Type safety patterns catch common mistakes (wrong action type, missing payload fields, incorrect reducer signature) with clear error messages in development. ActionRegistry validates all dispatched actions against registered types.
 
-- **SC-009**: Dual‑bus architecture in place: `U_ECSEventBus` and `U_StateEventBus` both extend `EventBusBase`, isolating domains while sharing implementation. Namespaced single‑bus remains an alternative, not required.
+- **SC-009**: Dual‑bus architecture in place: `U_ECSEventBus` and `U_StateEventBus` both extend `BaseEventBus`, isolating domains while sharing implementation. Namespaced single‑bus remains an alternative, not required.
 
 - **SC-010**: All 8 micro-stories for User Story 1 (P1) committed individually with passing tests. Each commit represents a logical, test-green milestone following `AGENTS.md` requirements.
 

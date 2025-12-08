@@ -44,7 +44,7 @@ Constraints:
 - Godot Editor: Provide migration guide and debug tools for inspector workflow
 
 High-Level Architecture:
-M_ECSManager enhanced with query_entities(required, optional) returning Array[EntityQuery]. EntityQuery wraps entity (Node) + components (Dictionary). U_ECSEventBus singleton handles pub/sub with event history. Systems use queries instead of manual NodePath cross-references. Components become pure data containers (no @export_node_path). System execution ordered by priority (@export var execution_priority).
+M_ECSManager enhanced with query_entities(required, optional) returning Array[U_EntityQuery]. U_EntityQuery wraps entity (Node) + components (Dictionary). U_ECSEventBus singleton handles pub/sub with event history. Systems use queries instead of manual NodePath cross-references. Components become pure data containers (no @export_node_path). System execution ordered by priority (@export var execution_priority).
 
 ---
 
@@ -78,7 +78,7 @@ Epic 1 – Code Quality Refactors (15 points)
 
 Epic 2 – Multi-Component Query System (18 points)
 
-- [x] Story 2.1: Implement EntityQuery class (3 points) — Added `scripts/ecs/entity_query.gd` with encapsulated component accessors and coverage via `tests/unit/ecs/test_entity_query.gd` (GUT `-gselect=test_entity_query -gexit`)
+- [x] Story 2.1: Implement U_EntityQuery class (3 points) — Added `scripts/ecs/u_entity_query.gd` with encapsulated component accessors and coverage via `tests/unit/ecs/test_u_entity_query.gd` (GUT `-gselect=test_entity_query -gexit`)
 - [x] Story 2.2: Implement entity-component tracking in M_ECSManager (4 points) — Introduced `_entity_component_map`, entity lookup helpers, and `get_components_for_entity()` with regression coverage in `tests/unit/ecs/test_ecs_manager.gd` (GUT `-gselect=test_ecs_manager -gexit`)
 - [x] Story 2.3: Implement M_ECSManager.query_entities() (5 points) — Added multi-component query API backed by entity tracking, plus new GUT coverage for required/optional component combinations in `tests/unit/ecs/test_ecs_manager.gd` (GUT `-gselect=test_ecs_manager -gexit`)
 - [x] Story 2.4: Migrate S_MovementSystem to query-based approach (2 points) — Refactored `s_movement_system.gd` to consume `query_entities()` and optional floating components; strengthened coverage with `tests/unit/ecs/systems/test_movement_system.gd` (GUT `-gselect=test_movement_system -gexit`)
@@ -125,7 +125,7 @@ Testing & Documentation (7 points)
 | `BaseECSSystem` | `scripts/ecs/base_ecs_system.gd` | `BaseECSSystem` |
 | `BaseECSComponent` | `scripts/ecs/base_ecs_component.gd` | `BaseECSComponent` |
 | `U_ECSUtils` (NEW) | `scripts/utils/u_ecs_utils.gd` | `U_ECSUtils` |
-| `EntityQuery` (NEW) | `scripts/ecs/entity_query.gd` | `EntityQuery` |
+| `U_EntityQuery` (NEW) | `scripts/ecs/u_entity_query.gd` | `U_EntityQuery` |
 | `U_ECSEventBus` (NEW) | `scripts/ecs/u_ecs_event_bus.gd` | `U_ECSEventBus` |
 | Systems | `scripts/ecs/systems/s_*_system.gd` | `S_*System` |
 | Components | `scripts/ecs/components/c_*_component.gd` | `C_*Component` |
@@ -501,21 +501,21 @@ Goal: Implement multi-component query system, migrate 2 systems as proof-of-conc
 
 ---
 
-- [x] Step 1 – Implement EntityQuery Class
+- [x] Step 1 – Implement U_EntityQuery Class
 
-**TDD Cycle 1: EntityQuery - Basic Structure**
+**TDD Cycle 1: U_EntityQuery - Basic Structure**
 
-- [x] 1.1a – RED: Write test for EntityQuery construction
-- Create `tests/unit/ecs/test_entity_query.gd`
+- [x] 1.1a – RED: Write test for U_EntityQuery construction
+- Create `tests/unit/ecs/test_u_entity_query.gd`
 - Test: `test_entity_query_stores_entity_and_components()`
   - Arrange: Create E_* root node (scene organization node), Dictionary of components
-  - Act: Create EntityQuery with entity and components
+  - Act: Create U_EntityQuery with entity and components
   - Assert: entity property and components property correctly set
 
-- [x] 1.1b – GREEN: Implement EntityQuery class
-- Create `scripts/ecs/entity_query.gd`
+- [x] 1.1b – GREEN: Implement U_EntityQuery class
+- Create `scripts/ecs/u_entity_query.gd`
 ```gdscript
-class_name EntityQuery
+class_name U_EntityQuery
 
 var entity: Node  # E_* root node (scene organization node)
 var components: Dictionary  # StringName → ECSComponent
@@ -527,16 +527,16 @@ func _init(p_entity: Node, p_components: Dictionary):
 
 - [x] 1.1c – VERIFY: Run tests, confirm GREEN
 
-**TDD Cycle 2: EntityQuery.get_component()**
+**TDD Cycle 2: U_EntityQuery.get_component()**
 
 - [x] 1.2a – RED: Write test for get_component
 - Test: `test_get_component_returns_component()`
-  - Arrange: EntityQuery with C_MovementComponent in components dict
+  - Arrange: U_EntityQuery with C_MovementComponent in components dict
   - Act: Call entity_query.get_component(C_MovementComponent.COMPONENT_TYPE)
   - Assert: Returns C_MovementComponent instance
 
 - [x] 1.2b – GREEN: Implement get_component
-- Add to entity_query.gd:
+- Add to u_entity_query.gd:
 ```gdscript
 func get_component(type: StringName) -> ECSComponent:
     return components.get(type)
@@ -544,21 +544,21 @@ func get_component(type: StringName) -> ECSComponent:
 
 - [x] 1.2c – VERIFY: Run tests, confirm GREEN
 
-**TDD Cycle 3: EntityQuery.has_component()**
+**TDD Cycle 3: U_EntityQuery.has_component()**
 
 - [x] 1.3a – RED: Write test for has_component
 - Test: `test_has_component_returns_true_for_existing()`
-  - Arrange: EntityQuery with C_MovementComponent
+  - Arrange: U_EntityQuery with C_MovementComponent
   - Act: Call has_component(C_MovementComponent.COMPONENT_TYPE)
   - Assert: Returns true
 
 - Test: `test_has_component_returns_false_for_missing()`
-  - Arrange: EntityQuery without C_FloatingComponent
+  - Arrange: U_EntityQuery without C_FloatingComponent
   - Act: Call has_component(C_FloatingComponent.COMPONENT_TYPE)
   - Assert: Returns false
 
 - [x] 1.3b – GREEN: Implement has_component
-- Add to entity_query.gd:
+- Add to u_entity_query.gd:
 ```gdscript
 func has_component(type: StringName) -> bool:
     return components.has(type)
@@ -663,7 +663,7 @@ func _get_entity_for_component(component: BaseECSComponent) -> Node:
 **TDD Cycle 2: query_entities() - Multiple Required Components**
 
 - [x] 3.2a – RED: Extended the manager test suite with `test_query_entities_with_multiple_required_components()` to ensure entities missing any required component are excluded.
-- [x] 3.2b – GREEN: Expanded `query_entities()` to validate all required component types per entity before creating an `EntityQuery`.
+- [x] 3.2b – GREEN: Expanded `query_entities()` to validate all required component types per entity before creating an `U_EntityQuery`.
 - [x] 3.2c – VERIFY: `-gselect=test_ecs_manager -gexit`
 
 **TDD Cycle 3: query_entities() - Optional Components**
@@ -686,7 +686,7 @@ func _get_entity_for_component(component: BaseECSComponent) -> Node:
 **Notes**
 
 - System unit tests now register components under `E_*` entity roots to ensure compatibility with entity-component tracking and cache invalidation.
-- Query caching returns shared `EntityQuery` instances via shallowly duplicated arrays, preventing repeated allocations while preserving caller isolation.
+- Query caching returns shared `U_EntityQuery` instances via shallowly duplicated arrays, preventing repeated allocations while preserving caller isolation.
 
 ---
 
@@ -1215,7 +1215,7 @@ File tree verification:
 scripts/ecs/
 ├── base_ecs_component.gd           # MODIFIED: Added _validate_required_settings()
 ├── base_ecs_system.gd              # MODIFIED: Added execution_priority, query_entities()
-├── entity_query.gd            # NEW: Query result wrapper
+├── u_entity_query.gd            # NEW: Query result wrapper
 ├── u_ecs_event_bus.gd           # NEW: Event system singleton
 ├── u_ecs_utils.gd             # NEW: Shared utilities
 ├── components/                # MODIFIED: NodePath exports removed
@@ -1262,8 +1262,8 @@ Verify all acceptance criteria:
 - ✓ Null filtering in M_ECSManager.get_components()
 
 **Epic 2 – Multi-Component Query System:**
-- ✓ M_ECSManager.query_entities([required], [optional]) returns Array[EntityQuery]
-- ✓ EntityQuery.get_component() returns components without manual cross-reference
+- ✓ M_ECSManager.query_entities([required], [optional]) returns Array[U_EntityQuery]
+- ✓ U_EntityQuery.get_component() returns components without manual cross-reference
 - ✓ Query with optional components supported
 - ✓ Query execution <1ms at 60fps with 100+ entities
 - ✓ Query performance remains <1ms with 100+ entities and 7+ component types
@@ -1334,7 +1334,7 @@ Finalize all documentation:
 - [ ] `docs/ecs/for humans/ecs_ELI5.md` updated with query examples
 - [ ] `docs/ecs/scene_migration_guide.md` created with step-by-step guide
 - [x] `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md` marked completed items
-- [ ] Add API documentation for EntityQuery, U_ECSEventBus, U_ECSUtils
+- [ ] Add API documentation for U_EntityQuery, U_ECSEventBus, U_ECSUtils
 
 ### Step 6: Deployment Readiness Checklist
 

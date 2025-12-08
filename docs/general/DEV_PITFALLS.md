@@ -1016,7 +1016,7 @@ All critical paths tested including error conditions, edge cases, integration sc
 
 ### Base Class Selection
 
-**Problem**: Tab panels extending `BaseMenuScreen` create nested `AnalogStickRepeater` conflicts
+**Problem**: Tab panels extending `BaseMenuScreen` create nested `U_AnalogStickRepeater` conflicts
 
 **Solution**: Parent `SettingsPanel` extends `BaseMenuScreen`; child tab panels extend plain `Control`
 ```gdscript

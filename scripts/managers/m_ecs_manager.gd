@@ -192,7 +192,7 @@ func register_system(system: BaseECSSystem) -> void:
 	mark_systems_dirty()
 
 func query_entities(required: Array[StringName], optional: Array[StringName] = []) -> Array:
-	var results: Array[EntityQuery] = []
+	var results: Array[U_EntityQuery] = []
 	if required.is_empty():
 		push_warning("M_ECSManager.query_entities called without required component types")
 		return results
@@ -242,7 +242,7 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
 			if entity_components.has(optional_type):
 				query_components[optional_type] = entity_components[optional_type]
 
-		var query := EntityQuery.new()
+		var query := U_EntityQuery.new()
 		query.entity = entity
 		query.components = query_components
 		results.append(query)

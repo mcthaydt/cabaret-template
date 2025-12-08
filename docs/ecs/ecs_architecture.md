@@ -708,9 +708,9 @@ func process_tick(_delta: float) -> void:
          ↓
 [3] var entities = system.query_entities(required_types, optional_types)
          ↓
-[4] Manager assembles EntityQuery results from entity→component map
+[4] Manager assembles U_EntityQuery results from entity→component map
          ↓
-[5] Returns Array[EntityQuery] (each holds entity + component dictionary)
+[5] Returns Array[U_EntityQuery] (each holds entity + component dictionary)
          ↓
 [6] System iterates entity queries
          │
@@ -730,11 +730,11 @@ func process_tick(_delta: float) -> void:
 **Pattern**:
 - Components register with the manager using their `COMPONENT_TYPE`.
 - `M_ECSManager` maintains an entity→component map keyed by the closest ancestor whose name starts with `E_`.
-- Systems call `query_entities(required_types, optional_types)` to retrieve `EntityQuery` objects.
+- Systems call `query_entities(required_types, optional_types)` to retrieve `U_EntityQuery` objects.
 
-**EntityQuery Structure**:
+**U_EntityQuery Structure**:
 ```gdscript
-class_name EntityQuery
+class_name U_EntityQuery
 
 var entity: Node  # Entity root (e.g., E_Player)
 var components: Dictionary[StringName, ECSComponent]
@@ -1422,7 +1422,7 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 **Status**: ✅ Delivered. `M_ECSManager.query_entities(required, optional)` now powers every gameplay system.
 
 **Highlights**:
-- Returns `Array[EntityQuery]`, each providing the entity root and a dictionary of resolved components.
+- Returns `Array[U_EntityQuery]`, each providing the entity root and a dictionary of resolved components.
 - Optional components are supported; missing entries resolve to `null`.
 - The manager caches an entity→component map so repeated queries avoid walking the scene tree.
 - `U_ECSUtils.map_components_by_body()` supplements queries when systems need body-level deduplication.
@@ -1527,7 +1527,7 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 - Manager discovery utilities (`U_ECSUtils.get_manager`, group helpers)
 - Auto-registration/unregistration with validation hooks
 - Multi-component entity queries with optional component support
-- EntityQuery caching + body deduplication helpers
+- U_EntityQuery caching + body deduplication helpers
 - Event bus (`U_ECSEventBus`) with rolling history buffer
 - Priority-sorted system scheduling via `execution_priority`
 - Settings resources and deep-copy snapshots for debugging

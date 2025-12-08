@@ -11,18 +11,18 @@ class_name BaseMenuScreen
 ## Godot quirk where InputEventJoypadMotion.is_action() incorrectly matches both
 ## directions simultaneously and doesn't provide echo/repeat like keyboard input.
 
-const AnalogStickRepeater = preload("res://scripts/ui/utils/analog_stick_repeater.gd")
+const U_AnalogStickRepeater = preload("res://scripts/ui/utils/u_analog_stick_repeater.gd")
 
 const STICK_DEADZONE: float = 0.25  # Must match project.godot ui_* action deadzone
 
-var _stick_repeater: AnalogStickRepeater
+var _stick_repeater: U_AnalogStickRepeater
 
 
 func _ready() -> void:
 	await super._ready()
 
 	# Initialize analog stick repeater
-	_stick_repeater = AnalogStickRepeater.new()
+	_stick_repeater = U_AnalogStickRepeater.new()
 	_stick_repeater.on_navigate = _navigate_focus
 
 func _process(delta: float) -> void:
@@ -37,7 +37,7 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	# Swallow analog stick motion events used for navigation so Godot's built-in
 	# ui_up/down/left/right handling does not also move focus. This ensures the
-	# AnalogStickRepeater is the single source of analog navigation and prevents
+	# U_AnalogStickRepeater is the single source of analog navigation and prevents
 	# double-skips when changing direction after a held repeat.
 	if event is InputEventJoypadMotion:
 		var motion: InputEventJoypadMotion = event as InputEventJoypadMotion

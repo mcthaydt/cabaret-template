@@ -33,7 +33,7 @@ All core ECS architectural elements are **fully implemented and operational**:
 | **M_ECSManager** | ✅ Complete | `scripts/managers/m_ecs_manager.gd` | 482 lines, full query system, caching, metrics |
 | **BaseECSComponent** | ✅ Complete | `scripts/ecs/base_ecs_component.gd` | Base class with validation hooks |
 | **BaseECSSystem** | ✅ Complete | `scripts/ecs/base_ecs_system.gd` | Priority-based execution, query API |
-| **EntityQuery** | ✅ Complete | `scripts/ecs/entity_query.gd` | Query result wrapper with type safety |
+| **U_EntityQuery** | ✅ Complete | `scripts/ecs/u_entity_query.gd` | Query result wrapper with type safety |
 | **U_ECSEventBus** | ✅ Complete | `scripts/ecs/u_ecs_event_bus.gd` | Pub/sub with history buffer |
 | **ECSEntity** | ✅ Complete | `scripts/ecs/base_ecs_entity.gd` | Entity root marker |
 | **U_ECSUtils** | ✅ Complete | `scripts/utils/u_ecs_utils.gd` | Centralized utilities |
@@ -102,7 +102,7 @@ All 12 systems are **fully implemented and tested**:
 
 **Epic 2: Multi-Component Query System** (P0) - ✅ **COMPLETE**
 - [x] `query_entities(required, optional)` API
-- [x] EntityQuery wrapper with `get_component()`, `has_component()`
+- [x] U_EntityQuery wrapper with `get_component()`, `has_component()`
 - [x] Query caching (99.8% hit rate over 4,271 queries)
 - [x] Performance <1ms (target met, typical 0.10-2.7ms)
 - [x] All systems migrated to query-based approach
@@ -204,7 +204,7 @@ Time: 2.183s
 - ✅ `test_base_ecs_component.gd` - Base component lifecycle
 - ✅ `test_base_ecs_system.gd` - Base system lifecycle
 - ✅ `test_ecs_manager.gd` - Registration, queries, caching
-- ✅ `test_entity_query.gd` - Query result wrappers
+- ✅ `test_u_entity_query.gd` - Query result wrappers
 - ✅ `test_ecs_event_bus.gd` - Event pub/sub
 - ✅ `test_u_ecs_utils.gd` - Utility functions
 - ✅ `test_*_component.gd` - Individual component tests (7 files)
@@ -395,7 +395,7 @@ $ grep -i "component.*path\|nodepath.*component" templates/*.tscn
 scripts/ecs/
 ├── base_ecs_component.gd (base)
 ├── base_ecs_system.gd (base)
-├── entity_query.gd (query wrapper)
+├── u_entity_query.gd (query wrapper)
 ├── u_ecs_event_bus.gd (event system)
 ├── base_ecs_entity.gd (entity marker)
 ├── components/ (7 files)
@@ -667,7 +667,7 @@ The ECS system is **ready for production use** with:
 - `scripts/managers/m_ecs_manager.gd` (482 lines)
 - `scripts/ecs/base_ecs_component.gd` (49 lines)
 - `scripts/ecs/base_ecs_system.gd` (101 lines)
-- `scripts/ecs/entity_query.gd` (28 lines)
+- `scripts/ecs/u_entity_query.gd` (28 lines)
 - `scripts/ecs/u_ecs_event_bus.gd` (60 lines)
 - `scripts/ecs/base_ecs_entity.gd` (13 lines)
 - `scripts/utils/u_ecs_utils.gd` (193 lines)

@@ -62,7 +62,7 @@ The Redux-style centralized state store implementation is **PHASES 1-14 COMPLETE
 **Phase 0 Decision**: **Option C - Dual-bus via abstract base** (IMPLEMENTED ✅)
 
 **Completed Phases**:
-- ✅ Phase 0C: EventBusBase architecture (commit b7fb729)
+- ✅ Phase 0C: BaseEventBus architecture (commit b7fb729)
 - ✅ Phase 1 (Setup): All directories, project settings, base files
 - ✅ Phase 3-10 (US1a-US1h): Core gameplay slice (complete state store infrastructure)
 - ✅ Phase 10.5: Proof-of-Concept Integration (M_PauseManager, S_HealthSystem, HUD)
@@ -137,7 +137,7 @@ The Redux-style centralized state store implementation is **PHASES 1-14 COMPLETE
 
 3. **Understand the architecture**:
    - In-scene `M_StateStore` node (parallel to `M_ECSManager`)
-   - **Dual-bus architecture**: `EventBusBase` (abstract) → `U_ECSEventBus` + `U_StateEventBus` (concrete)
+   - **Dual-bus architecture**: `BaseEventBus` (abstract) → `U_ECSEventBus` + `U_StateEventBus` (concrete)
    - Three state slices: boot, menu, gameplay
    - Redux-style dispatch/reducer pattern with immutable updates
    - Signal batching (immediate state updates, per-frame signal emissions)
@@ -220,7 +220,7 @@ Before starting implementation:
 - State updates: Immediate (synchronous)
 - Signal emissions: Batched (per physics frame)
 - No autoloads: M_StateStore is in-scene node, StateHandoff is static class
-- Event bus: Dual-bus (U_ECSEventBus + U_StateEventBus via EventBusBase)
+- Event bus: Dual-bus (U_ECSEventBus + U_StateEventBus via BaseEventBus)
 - Immutability: .duplicate(true) in all reducers
 - Persistence: JSON with comprehensive Godot type serialization
 
@@ -232,7 +232,7 @@ Before starting implementation:
 
 **Completed**:
 1. ✅ Created directory `scripts/events/`
-2. ✅ Created `scripts/events/event_bus_base.gd` (abstract base with shared logic)
+2. ✅ Created `scripts/events/base_event_bus.gd` (abstract base with shared logic)
 3. ✅ Created `scripts/state/u_state_event_bus.gd` (state domain bus extending base)
 4. ✅ Updated `scripts/ecs/u_ecs_event_bus.gd` to extend base (preserves existing API)
 5. ✅ Added tests for state bus isolation and reset behavior (7/7 passing)
@@ -241,14 +241,14 @@ Before starting implementation:
 **Key Benefits Achieved**:
 - Zero breaking changes to existing ECS code (62/62 ECS tests still pass)
 - Isolated domains (ECS vs State) with separate subscribers/histories
-- Shared implementation in `EventBusBase` with lazy initialization
+- Shared implementation in `BaseEventBus` with lazy initialization
 - Clean test isolation: `U_StateEventBus.reset()` vs `U_ECSEventBus.reset()`
 
 ### Completed Phases: User Story 1 (Core Gameplay Slice) + PoC - 11 Phases
 
 All phases complete with 100% test pass rate:
 
-1. **Phase 0C**: EventBusBase architecture ✅ COMPLETED (commit b7fb729)
+1. **Phase 0C**: BaseEventBus architecture ✅ COMPLETED (commit b7fb729)
 2. **Phase 3 (US1a)**: Core M_StateStore Skeleton with U_StateUtils ✅ COMPLETED (commit 77e6618)
 3. **Phase 4 (US1b)**: Action Registry with StringName Validation ✅ COMPLETED (commit 45cde3c)
 4. **Phase 5 (US1c)**: Gameplay Slice Reducer Infrastructure ✅ COMPLETED (commit 8e1e42d)
@@ -380,7 +380,7 @@ All gameplay systems now respect pause state:
 ## Key Architectural Points
 
 **Event Bus Architecture (Option C)**:
-- `EventBusBase` (abstract) contains shared subscribe/unsubscribe/publish/reset/history logic
+- `BaseEventBus` (abstract) contains shared subscribe/unsubscribe/publish/reset/history logic
 - `U_ECSEventBus` extends base, delegates static API to private instance, preserves existing API
 - `U_StateEventBus` extends base, exposes static API for state domain
 - Completely isolated: ECS and State have separate subscribers and histories
@@ -666,18 +666,18 @@ Phases 15 & 16 complete. State store fully functional with multi-entity support.
 
 Per the implementation plan, Phase 0C should:
 
-1. Create `EventBusBase` with:
+1. Create `BaseEventBus` with:
    - Private instance management for subscribers/history
    - `subscribe()`, `unsubscribe()`, `publish()`, `reset()`, `get_history()`
    - Defensive payload `.duplicate(true)` for safety
 
 2. `U_StateEventBus` should:
-   - Extend `EventBusBase`
+   - Extend `BaseEventBus`
    - Expose static API delegating to private instance
    - Used exclusively by state store and state tests
 
 3. `U_ECSEventBus` should:
-   - Extend `EventBusBase`
+   - Extend `BaseEventBus`
    - Preserve existing public API (no breaking changes)
    - Delegate internally to base implementation
 

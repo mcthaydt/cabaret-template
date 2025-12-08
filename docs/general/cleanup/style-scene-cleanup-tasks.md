@@ -280,9 +280,9 @@ version: "1.0"
    - Non-breaking, safe to add
 
 **Documentation Updates Needed:**
-- Add `scripts/ui/utils/analog_stick_repeater.gd` to STYLE_GUIDE.md exceptions table
+- Add `scripts/ui/utils/u_analog_stick_repeater.gd` to STYLE_GUIDE.md exceptions table
   - Specialized UI navigation helper that doesn't fit standard categorization
-  - Similar to existing exceptions like `event_bus_base.gd`
+  - Similar to existing exceptions like `base_event_bus.gd`
 
 **Strengths:**
 - ✅ All managers, systems, components follow naming conventions (100%)
@@ -415,7 +415,7 @@ version: "1.0"
 
 **Priority 4 - Documentation Updates:**
 - [x] T040a Update STYLE_GUIDE.md:
-  - Add `analog_stick_repeater.gd` to exceptions table
+  - Add `u_analog_stick_repeater.gd` to exceptions table
   - **Estimated Time:** 2 minutes
 
 - [x] T040b Update SCENE_ORGANIZATION_GUIDE.md:
@@ -521,7 +521,7 @@ version: "1.0"
   - Document how IDs interact with existing entity root naming (`E_*`).
 - [ ] T061 Implement core ID support in ECS:
   - Extend `M_ECSManager` and `U_ECSUtils` to track entity IDs and optional tags.
-  - Ensure `EntityQuery` can return entity IDs/tags alongside Node references.
+  - Ensure `U_EntityQuery` can return entity IDs/tags alongside Node references.
 - [ ] T062 Integrate entity IDs with state store:
   - Ensure `U_EntityActions` and `U_EntitySelectors` work seamlessly with explicit IDs.
   - Update docs where entity IDs are mentioned.

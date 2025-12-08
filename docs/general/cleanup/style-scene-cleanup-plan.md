@@ -172,7 +172,7 @@ No new gameplay logic in this phase; purely enforcement.
   - Define how IDs are stored on components/entities and exposed to systems.
 - Update ECS core:
   - Extend `M_ECSManager` and `U_ECSUtils` to track/entity IDs and optional tags.
-  - Ensure `EntityQuery` can surface IDs/tags cleanly.
+  - Ensure `U_EntityQuery` can surface IDs/tags cleanly.
 - Integrate with state store:
   - Ensure `U_EntityActions` / `U_EntitySelectors` and `RS_GameplayInitialState` can work with the new ID model without breaking existing flows.
 - Add tests:

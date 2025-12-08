@@ -322,7 +322,7 @@ store.dispatch(U_NavigationActions.set_menu_panel(StringName("menu/settings")))
 **Base Class Hierarchy**:
 ```
 BasePanel (store + focus helpers)
-└─ BaseMenuScreen (+ AnalogStickRepeater)
+└─ BaseMenuScreen (+ U_AnalogStickRepeater)
     ├─ SettingsPanel ← extends this
     └─ BaseOverlay (+ PROCESS_MODE_ALWAYS)
 

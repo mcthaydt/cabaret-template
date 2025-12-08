@@ -88,7 +88,7 @@ This is a Godot 4.5 project with the following structure:
 **Purpose**: Event bus refactor that MUST be resolved before ANY user story implementation
 
 **⚠️ DECISION MADE**: Option C (Dual-Bus via Abstract Base) was chosen and implemented in commit b7fb729
-- Created `EventBusBase` abstract class with shared logic
+- Created `BaseEventBus` abstract class with shared logic
 - Created `U_StateEventBus` extending base for state domain
 - Refactored `U_ECSEventBus` to extend base while preserving API
 - All tests pass (7/7 state, 62/62 ECS)
@@ -659,7 +659,7 @@ func after_each():
 - Documentation updated (DEV_PITFALLS.md with testing patterns)
 
 **COMMITS**:
-- `b7fb729` - Phase 0C: EventBusBase + U_StateEventBus
+- `b7fb729` - Phase 0C: BaseEventBus + U_StateEventBus
 - `77e6618` - Phase 1a: Core M_StateStore skeleton
 - `45cde3c` - Phase 1b: ActionRegistry with validation
 - `8e1e42d` - Phases 1c-1e: Reducers, actions, selectors (77% pass rate)
@@ -1505,8 +1505,8 @@ From PRD, feature is complete when:
 **Approach**: Add a shared abstract base and two concrete buses (ECS + State) without breaking existing ECS API
 
 - [x] T026C [Phase0-C] Create directory `scripts/events/`
-- [x] T027C [Phase0-C] Create `scripts/events/event_bus_base.gd` (abstract) with subscribe/unsubscribe/publish/reset/history and defensive payload duplication
+- [x] T027C [Phase0-C] Create `scripts/events/base_event_bus.gd` (abstract) with subscribe/unsubscribe/publish/reset/history and defensive payload duplication
 - [x] T028C [Phase0-C] Create `scripts/state/u_state_event_bus.gd` that extends base and exposes static API delegating to a private instance
 - [x] T029C [Phase0-C] Update `scripts/ecs/u_ecs_event_bus.gd` to extend base and delegate its static API to a private instance (no external API changes)
 - [x] T030C [Phase0-C] 📝 TEST: Add `tests/unit/state/test_state_event_bus.gd` to verify isolation and reset behavior
-- [x] T031C [Phase0-C] Commit Phase 0C: "Add EventBusBase and U_StateEventBus; delegate U_ECSEventBus to base"
+- [x] T031C [Phase0-C] Commit Phase 0C: "Add BaseEventBus and U_StateEventBus; delegate U_ECSEventBus to base"

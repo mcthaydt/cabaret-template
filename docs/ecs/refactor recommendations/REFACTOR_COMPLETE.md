@@ -24,7 +24,7 @@ The ECS architecture refactor is **complete and production-ready**. All four bat
 - **`query_entities(required, optional)`** API
   - Query entities with multiple required components
   - Support for optional components
-  - Type-safe `EntityQuery` wrapper class
+  - Type-safe `U_EntityQuery` wrapper class
 - **Query caching** with 99.8% hit rate
 - **Entity-component tracking** in manager
 - **All systems migrated** to query-based approach
@@ -82,7 +82,7 @@ scripts/
 ├── ecs/
 │   ├── base_ecs_component.gd          # Base component with validation
 │   ├── base_ecs_system.gd              # Base system with execution_priority
-│   ├── entity_query.gd            # Query result wrapper (NEW)
+│   ├── u_entity_query.gd            # Query result wrapper (NEW)
 │   ├── u_ecs_event_bus.gd           # Event pub/sub system (NEW)
 │   ├── components/                # Pure data containers
 │   │   ├── c_movement_component.gd
@@ -214,7 +214,7 @@ The current implementation is ready for:
 **Key files to review:**
 - `scripts/managers/m_ecs_manager.gd:209-272` - Query implementation
 - `scripts/ecs/u_ecs_event_bus.gd` - Event system
-- `scripts/ecs/entity_query.gd` - Query results
+- `scripts/ecs/u_entity_query.gd` - Query results
 - `tests/integration/test_ecs_full_refactor.gd` - Integration test
 
 ---

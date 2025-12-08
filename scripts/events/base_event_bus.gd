@@ -1,5 +1,5 @@
 extends RefCounted
-class_name EventBusBase
+class_name BaseEventBus
 
 ## Abstract base class for event buses providing shared subscription and history logic.
 ##
@@ -17,12 +17,12 @@ var _max_history_size: int = DEFAULT_MAX_HISTORY_SIZE
 func subscribe(event_name: StringName, callback: Callable) -> Callable:
 	var normalized_event: StringName = event_name
 	if normalized_event == StringName():
-		push_error("EventBusBase.subscribe called with empty event name.")
+		push_error("BaseEventBus.subscribe called with empty event name.")
 		return func() -> void:
 			pass
 
 	if callback == Callable():
-		push_error("EventBusBase.subscribe called with invalid callback.")
+		push_error("BaseEventBus.subscribe called with invalid callback.")
 		return func() -> void:
 			pass
 
@@ -52,7 +52,7 @@ func unsubscribe(event_name: StringName, callback: Callable) -> void:
 func publish(event_name: StringName, payload: Variant = null) -> void:
 	var normalized_event: StringName = event_name
 	if normalized_event == StringName():
-		push_error("EventBusBase.publish called with empty event name.")
+		push_error("BaseEventBus.publish called with empty event name.")
 		return
 
 	var event_payload: Dictionary = {

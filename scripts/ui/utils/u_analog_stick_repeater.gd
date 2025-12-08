@@ -1,5 +1,5 @@
 extends RefCounted
-class_name AnalogStickRepeater
+class_name U_AnalogStickRepeater
 
 ## Handles analog stick repeat/echo behavior for UI navigation.
 ##

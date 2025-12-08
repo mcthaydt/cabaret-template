@@ -652,7 +652,7 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
         optional: Component types that MAY be present
 
     Returns:
-        Array[EntityQuery] where each EntityQuery has:
+        Array[U_EntityQuery] where each U_EntityQuery has:
         - entity: Node (the CharacterBody3D or parent node)
         - components: Dictionary[StringName → ECSComponent]
 
@@ -690,7 +690,7 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
             continue
 
         # Entity matches! Create result
-        var result := EntityQuery.new()
+        var result := U_EntityQuery.new()
         result.entity = entity
         result.components = component_map
         results.append(result)
@@ -738,7 +738,7 @@ func query_exclude(required: Array[StringName], excluded: Array[StringName]) -> 
             continue
 
         # Entity matches!
-        var result := EntityQuery.new()
+        var result := U_EntityQuery.new()
         result.entity = entity
         result.components = component_map
         results.append(result)
@@ -746,7 +746,7 @@ func query_exclude(required: Array[StringName], excluded: Array[StringName]) -> 
     return results
 
 # Inner class for query results
-class EntityQuery:
+class U_EntityQuery:
     var entity: Node
     var components: Dictionary  # StringName → ECSComponent
 

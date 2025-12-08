@@ -50,7 +50,7 @@ The redux-state-store implementation has been audited for completeness, consiste
 - test_ecs_event_bus.gd: 6/6
 - test_ecs_manager.gd: 19/19
 - test_base_ecs_system.gd: 2/2
-- test_entity_query.gd: 3/3
+- test_u_entity_query.gd: 3/3
 - test_event_vfx_system.gd: 12/12
 - test_u_ecs_utils.gd: 16/16
 

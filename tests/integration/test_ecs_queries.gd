@@ -54,7 +54,7 @@ func test_query_entities_returns_player_components() -> void:
 	], [FLOATING_TYPE])
 
 	assert_eq(results.size(), 1, "Expected exactly one player entity to match movement+input query")
-	var query: EntityQuery = results[0]
+	var query: U_EntityQuery = results[0]
 	assert_not_null(query.get_component(MOVEMENT_TYPE))
 	assert_not_null(query.get_component(INPUT_TYPE))
 
@@ -106,7 +106,7 @@ func test_query_entities_includes_runtime_entities() -> void:
 
 	var runtime_found := false
 	for query in results:
-		var eq: EntityQuery = query
+		var eq: U_EntityQuery = query
 		if eq.entity == runtime_entity:
 			runtime_found = true
 			assert_eq(eq.get_component(MOVEMENT_TYPE), movement_component)

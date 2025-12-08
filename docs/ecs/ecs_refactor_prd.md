@@ -8,7 +8,7 @@
 - **Problem**: Current ECS implementation blocks emergent gameplay with single-component queries, tight NodePath coupling between components, no event system for cross-system communication, and manual system execution ordering
 - **Success**: 100% of systems use multi-component queries, zero NodePath cross-references between components, <1ms query performance at 60fps, emergent gameplay interactions working (e.g., jump → dust particles → environmental reaction)
 - **Timeline**: 2-3 weeks for complete refactor across 4 batches
-- **Progress** (current): Stories 1.1–5.3 complete — `U_ECSUtils` centralizes manager/time/body helpers, `_validate_required_settings()` enforces component setup, `M_ECSManager.get_components()` prunes nulls, all systems consume the shared utilities, `EntityQuery` now wraps entity/component results, `M_ECSManager` tracks entity-to-component maps via `get_components_for_entity()`, `query_entities()` returns `EntityQuery` results for required/optional component sets, `S_MovementSystem`/`S_JumpSystem` consume those queries, query caching keeps repeated lookups under budget (`tests/unit/ecs/test_ecs_manager.gd` via GUT `-gselect=test_ecs_manager -gexit`), Story 3.1 delivered the static `U_ECSEventBus` publish/subscribe API with timestamped payloads, Story 3.2 added the rolling event history buffer with debugging helpers (`get_event_history()`, `set_history_limit()`, `clear_history()`), Story 3.3 now publishes `entity_jumped` events from `S_JumpSystem` with full context (entity/body, input, floating support, velocity) backed by `tests/unit/ecs/systems/test_jump_system.gd` (GUT `-gdir=res://tests/unit/ecs/systems -gselect=test_jump_system -gexit`), Story 3.4 introduced `S_JumpParticlesSystem`/`S_JumpSoundSystem` sample subscribers to demonstrate cross-system reactions (validated via `tests/unit/ecs/systems/test_jump_event_subscribers.gd`, GUT `-gdir=res://tests/unit/ecs/systems -gselect=test_jump_event_subscribers -gexit`), Step 2.5 shipped the cross-tree reference utilities (`get_singleton_from_group`, `get_nodes_from_group`, `get_active_camera`) with coverage in `tests/unit/ecs/test_u_ecs_utils.gd` and updated movement camera resolution (`tests/unit/ecs/systems/test_movement_system.gd`), Step 6 completed Batch 1 verification (full ECS suite: 43/43 tests green, integration smoke test covering base scene wiring, performance baseline of 2.96 ms/frame across 120 simulated frames with 100 entities × 7 components), Story 4.1 decoupled `C_MovementComponent` by removing component NodePath exports, auto-discovering the entity `CharacterBody3D`, and relying solely on query-based lookups for peer components, Story 4.2 removed the jump component's input NodePath, shifting `S_JumpSystem` fully onto query-derived relationships while keeping body wiring in-scene, Story 4.3 migrated gravity, floating, rotation-to-input, align-with-surface, and landing indicator systems to query-derived entity traversal with NodePath fallbacks only for scene nodes, Story 4.4 wired templates/tests to rely on the new discovery pattern end-to-end, Story 5.1 added the exported `execution_priority` on `BaseECSSystem` with coverage in `tests/unit/ecs/test_base_ecs_system.gd`, Story 5.2 moved execution into `M_ECSManager._physics_process`, sorting systems by priority with dirty tracking/clamped setters and migrating all ECS system tests to drive ticks via the manager (full ECS unit suite green via GUT `-gdir=res://tests/unit/ecs -gexit`), Story 5.3 captured the priority conventions across architecture/recommendation docs with recommended bands and migration guidance. **Decision (2025-10-23)**: Batch 4 Step 2 (ECS debugger tooling) is de-scoped after a failed attempt; no debugger assets exist in the codebase.
+- **Progress** (current): Stories 1.1–5.3 complete — `U_ECSUtils` centralizes manager/time/body helpers, `_validate_required_settings()` enforces component setup, `M_ECSManager.get_components()` prunes nulls, all systems consume the shared utilities, `U_EntityQuery` now wraps entity/component results, `M_ECSManager` tracks entity-to-component maps via `get_components_for_entity()`, `query_entities()` returns `U_EntityQuery` results for required/optional component sets, `S_MovementSystem`/`S_JumpSystem` consume those queries, query caching keeps repeated lookups under budget (`tests/unit/ecs/test_ecs_manager.gd` via GUT `-gselect=test_ecs_manager -gexit`), Story 3.1 delivered the static `U_ECSEventBus` publish/subscribe API with timestamped payloads, Story 3.2 added the rolling event history buffer with debugging helpers (`get_event_history()`, `set_history_limit()`, `clear_history()`), Story 3.3 now publishes `entity_jumped` events from `S_JumpSystem` with full context (entity/body, input, floating support, velocity) backed by `tests/unit/ecs/systems/test_jump_system.gd` (GUT `-gdir=res://tests/unit/ecs/systems -gselect=test_jump_system -gexit`), Story 3.4 introduced `S_JumpParticlesSystem`/`S_JumpSoundSystem` sample subscribers to demonstrate cross-system reactions (validated via `tests/unit/ecs/systems/test_jump_event_subscribers.gd`, GUT `-gdir=res://tests/unit/ecs/systems -gselect=test_jump_event_subscribers -gexit`), Step 2.5 shipped the cross-tree reference utilities (`get_singleton_from_group`, `get_nodes_from_group`, `get_active_camera`) with coverage in `tests/unit/ecs/test_u_ecs_utils.gd` and updated movement camera resolution (`tests/unit/ecs/systems/test_movement_system.gd`), Step 6 completed Batch 1 verification (full ECS suite: 43/43 tests green, integration smoke test covering base scene wiring, performance baseline of 2.96 ms/frame across 120 simulated frames with 100 entities × 7 components), Story 4.1 decoupled `C_MovementComponent` by removing component NodePath exports, auto-discovering the entity `CharacterBody3D`, and relying solely on query-based lookups for peer components, Story 4.2 removed the jump component's input NodePath, shifting `S_JumpSystem` fully onto query-derived relationships while keeping body wiring in-scene, Story 4.3 migrated gravity, floating, rotation-to-input, align-with-surface, and landing indicator systems to query-derived entity traversal with NodePath fallbacks only for scene nodes, Story 4.4 wired templates/tests to rely on the new discovery pattern end-to-end, Story 5.1 added the exported `execution_priority` on `BaseECSSystem` with coverage in `tests/unit/ecs/test_base_ecs_system.gd`, Story 5.2 moved execution into `M_ECSManager._physics_process`, sorting systems by priority with dirty tracking/clamped setters and migrating all ECS system tests to drive ticks via the manager (full ECS unit suite green via GUT `-gdir=res://tests/unit/ecs -gexit`), Story 5.3 captured the priority conventions across architecture/recommendation docs with recommended bands and migration guidance. **Decision (2025-10-23)**: Batch 4 Step 2 (ECS debugger tooling) is de-scoped after a failed attempt; no debugger assets exist in the codebase.
 - **Status Note**: Remaining Batch 4 polish items now exclude the debugger tooling; revisit only if the project direction changes.
 
 ## Requirements
@@ -190,7 +190,7 @@ func _physics_process(delta):
 #### P0 (Must Have - MVP for Emergent Gameplay)
 
 - Multi-component query system (`M_ECSManager.query_entities()`)
-- EntityQuery class with component filters (required, optional)
+- U_EntityQuery class with component filters (required, optional)
 - QueryResult with component accessors (`get_component()`, `has_component()`)
 - Event bus singleton (U_ECSEventBus) with pub/sub API
 - Event history buffer (last 1000 events for debugging)
@@ -263,9 +263,9 @@ M_ECSManager
 ├─ register_component(component)
 ├─ unregister_component(component)
 ├─ get_components(type: StringName) → Array[Component]  # Legacy API
-└─ query_entities(required: Array[StringName], optional: Array[StringName] = []) → Array[EntityQuery]
+└─ query_entities(required: Array[StringName], optional: Array[StringName] = []) → Array[U_EntityQuery]
 
-EntityQuery (new class):
+U_EntityQuery (new class):
 ├─ entity: Node  # The E_* root node (scene organization node)
 ├─ components: Dictionary[StringName, ECSComponent]
 ├─ get_component(type: StringName) → Component
@@ -284,7 +284,7 @@ U_ECSEventBus (purely static class - no Node, no scene tree):
 
 Systems Query Pattern (new):
 - S_MovementSystem queries ["C_MovementComponent", "C_InputComponent"]
-- Returns EntityQuery objects with both components guaranteed present
+- Returns U_EntityQuery objects with both components guaranteed present
 - No manual NodePath lookups, no null checks for required components
 - Optional components checked via entity.has_component()
 
@@ -310,11 +310,11 @@ Component Structure (decoupled):
          ↓
     entities = query_entities([C_Movement, C_Input], [C_Floating])
          ↓
-    Manager builds EntityQuery objects:
+    Manager builds U_EntityQuery objects:
         - Find all entities with Movement component
         - Filter to only entities also having Input component
         - Optionally check for Floating component
-        - Return EntityQuery wrappers
+        - Return U_EntityQuery wrappers
 
 [3] Event Publication (NEW)
     System detects gameplay event (e.g., jump)
@@ -338,11 +338,11 @@ Component Structure (decoupled):
 
 ### Key Classes
 
-#### 1. EntityQuery
+#### 1. U_EntityQuery
 
 ```gdscript
-# scripts/ecs/entity_query.gd
-class_name EntityQuery
+# scripts/ecs/u_entity_query.gd
+class_name U_EntityQuery
 
 var entity: Node  # The E_* root node (scene organization node)
 var components: Dictionary[StringName, ECSComponent]  # StringName → ECSComponent
@@ -431,9 +431,9 @@ static func _duplicate_payload(payload: Variant) -> Variant:
 func query_entities(
     required: Array[StringName],
     optional: Array[StringName] = []
-) -> Array[EntityQuery]:
+) -> Array[U_EntityQuery]:
     """Query entities with multiple component requirements"""
-    var results: Array[EntityQuery] = []
+    var results: Array[U_EntityQuery] = []
 
     # Start with smallest component set for performance
     var smallest_set = _get_smallest_component_set(required)
@@ -454,8 +454,8 @@ func query_entities(
             if _entity_component_map[entity].has(type):
                 entity_components[type] = _entity_component_map[entity][type]
 
-        # Create EntityQuery result
-        var query = EntityQuery.new()
+        # Create U_EntityQuery result
+        var query = U_EntityQuery.new()
         query.entity = entity
         query.components = entity_components
         results.append(query)
@@ -512,7 +512,7 @@ static func map_components_by_body(
 scripts/ecs/
 ├── base_ecs_component.gd           # Base component class (existing)
 ├── base_ecs_system.gd              # Base system class (existing, enhanced)
-├── entity_query.gd            # NEW: Query result wrapper
+├── u_entity_query.gd            # NEW: Query result wrapper
 ├── u_ecs_event_bus.gd           # NEW: Event system singleton
 ├── u_ecs_utils.gd             # NEW: Shared utilities
 ├── components/                # Component implementations (existing)
@@ -754,7 +754,7 @@ support_component_path = NodePath("../C_FloatingComponent")     # Manual wiring!
 **Goal**: Implement query system, migrate 2-3 systems as proof-of-concept
 
 **Deliverables**:
-- EntityQuery class
+- U_EntityQuery class
 - M_ECSManager.query_entities() implementation
 - Entity-component map tracking
 - Query performance optimization

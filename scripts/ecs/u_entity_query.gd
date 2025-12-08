@@ -1,6 +1,6 @@
 extends RefCounted
 
-class_name EntityQuery
+class_name U_EntityQuery
 
 var entity: Node = null
 
@@ -14,7 +14,7 @@ var components: Dictionary:
 		if value is Dictionary:
 			_components = (value as Dictionary).duplicate(true)
 			return
-		push_warning("EntityQuery.components expects a Dictionary of components.")
+		push_warning("U_EntityQuery.components expects a Dictionary of components.")
 		_components = {}
 	get:
 		return _components.duplicate(true)
