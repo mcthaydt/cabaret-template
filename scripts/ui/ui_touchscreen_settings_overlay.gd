@@ -443,23 +443,9 @@ func _close_overlay() -> void:
 
 	# Main menu flow (standalone settings scenes):
 	# - When accessed from the main menu, touchscreen_settings runs as a base
-	#   scene (no overlays). Closing should reliably return to the settings_menu
-	#   scene even if navigation already thinks base_scene_id is settings_menu.
-	# - To guarantee this, request a scene transition via SceneManager AND
-	#   update the navigation shell to settings_menu.
+	#   scene (no overlays). Closing should return to the settings_menu scene.
+	# - Use navigate_to_ui_screen action to trigger the transition via Redux.
 	if shell == StringName("main_menu"):
-		var tree := get_tree()
-		if tree != null:
-			var managers: Array = tree.get_nodes_in_group("scene_manager")
-			if not managers.is_empty():
-				var scene_manager = managers[0]
-				if scene_manager != null and scene_manager.has_method("transition_to_scene"):
-					scene_manager.transition_to_scene(
-						StringName("settings_menu"),
-						"fade",
-						1  # HIGH priority to match other back-navigation flows
-					)
-
-		store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
+		store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("settings_menu"), "fade", 1))
 	else:
 		store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))

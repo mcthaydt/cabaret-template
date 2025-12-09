@@ -11,7 +11,6 @@ const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configura
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_ButtonPromptRegistry := preload("res://scripts/ui/u_button_prompt_registry.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/default_rebind_settings.tres")
 
 @onready var _action_list: VBoxContainer = %ActionList
@@ -731,16 +730,10 @@ func _on_back_pressed() -> void:
 	_on_close_pressed()
 
 func _transition_back_to_settings_scene() -> void:
-	var tree := get_tree()
-	if tree == null:
+	var store := get_store()
+	if store == null:
 		return
-	var managers := tree.get_nodes_in_group("scene_manager")
-	if managers.is_empty():
-		return
-	var scene_manager := managers[0] as M_SceneManager
-	if scene_manager == null:
-		return
-	scene_manager.transition_to_scene(StringName("settings_menu"), "fade", M_SceneManager.Priority.HIGH)
+	store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("settings_menu"), "fade", 2))
 
 func _process(delta: float) -> void:
 	# Preserve base menu behavior (analog repeat on left stick)

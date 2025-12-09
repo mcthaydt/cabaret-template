@@ -5,13 +5,11 @@ class_name UI_SettingsMenu
 ## Settings Menu UI Controller
 ##
 ## Runs as either an overlay (pause → settings) or as embedded UI in the main
-## menu. Uses navigation actions for overlay flows and SceneManager transitions
-## when opened from the main menu.
+## menu. Uses navigation actions for all flows (overlay management and scene transitions).
 
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 
@@ -160,7 +158,6 @@ func _navigate_focus(direction: StringName) -> void:
 func _open_settings_target(overlay_id: StringName, scene_id: StringName) -> void:
 	var store := get_store()
 	if store == null:
-		_transition_to_scene(scene_id)
 		return
 
 	var nav_slice: Dictionary = store.get_state().get("navigation", {})
@@ -172,20 +169,8 @@ func _open_settings_target(overlay_id: StringName, scene_id: StringName) -> void
 		store.dispatch(U_NavigationActions.open_overlay(overlay_id))
 		return
 
-	# Menu flow (main menu/settings scene): transition to standalone UI scene.
-	_transition_to_scene(scene_id)
-
-func _transition_to_scene(scene_id: StringName) -> void:
-	var tree := get_tree()
-	if tree == null:
-		return
-	var managers := tree.get_nodes_in_group("scene_manager")
-	if managers.is_empty():
-		return
-	var scene_manager := managers[0] as M_SceneManager
-	if scene_manager == null:
-		return
-	scene_manager.transition_to_scene(scene_id, "fade", M_SceneManager.Priority.HIGH)
+	# Menu flow (main menu/settings scene): navigate to standalone UI scene via Redux action.
+	store.dispatch(U_NavigationActions.navigate_to_ui_screen(scene_id, "fade", 2))
 
 func _update_back_button_label() -> void:
 	if _back_button == null:

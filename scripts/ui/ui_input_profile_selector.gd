@@ -10,7 +10,6 @@ const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd
 const RS_InputProfile := preload("res://scripts/ecs/resources/rs_input_profile.gd")
 const U_ButtonPromptRegistry := preload("res://scripts/ui/u_button_prompt_registry.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 
 @onready var _profile_button: Button = $HBoxContainer/ProfileButton
 @onready var _apply_button: Button = $HBoxContainer/ApplyButton
@@ -152,16 +151,10 @@ func _on_back_pressed() -> void:
 	_close_overlay()
 
 func _transition_back_to_settings_scene() -> void:
-	var tree := get_tree()
-	if tree == null:
+	var store := get_store()
+	if store == null:
 		return
-	var managers := tree.get_nodes_in_group("scene_manager")
-	if managers.is_empty():
-		return
-	var scene_manager := managers[0] as M_SceneManager
-	if scene_manager == null:
-		return
-	scene_manager.transition_to_scene(StringName("settings_menu"), "fade", M_SceneManager.Priority.HIGH)
+	store.dispatch(U_NavigationActions.navigate_to_ui_screen(StringName("settings_menu"), "fade", 2))
 
 func _update_preview() -> void:
 	if _header_label == null or _description_label == null or _bindings_container == null:
