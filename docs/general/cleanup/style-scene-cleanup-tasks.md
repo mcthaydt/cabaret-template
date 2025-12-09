@@ -537,7 +537,7 @@ version: "1.0"
 
 ### Script Fixes
 
-- [ ] T057 Rename `scripts/ecs/event_vfx_system.gd` → `scripts/ecs/base_event_vfx_system.gd`:
+- [x] T057 Rename `scripts/ecs/event_vfx_system.gd` → `scripts/ecs/base_event_vfx_system.gd`:
   - File declares `class_name BaseEventVFXSystem` but filename missing `base_` prefix
   - Update any preload() references
 

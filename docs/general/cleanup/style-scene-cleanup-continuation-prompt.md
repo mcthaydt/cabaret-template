@@ -49,13 +49,13 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
     - ui_touchscreen_settings_overlay.gd ✅
   - **Tests**: All 128 UI tests passing ✅ (fixed 3 failing tests)
   - **Architecture**: UI scripts now dispatch Redux actions exclusively
-- **Phase 5B – Audit Findings: **NOT STARTED** (Added 2025-12-09)
+- **Phase 5B – Audit Findings: **🔄 IN PROGRESS** (Added 2025-12-09)
   - 8 quick-fix tasks from codebase audit (T057-T059e)
   - **T057**: Rename `event_vfx_system.gd` → `base_event_vfx_system.gd`
   - **T058**: Add `class_name E_EndgameGoalZone`
   - **T059**: Delete orphaned `tmp_invalid_gameplay.tscn`
   - **T059a-e**: Documentation updates (DEV_PITFALLS, STYLE_GUIDE, AGENTS.md, T022 checkbox)
-- Phase 6 – ECS Entity IDs & Tagging: **🔄 IN PROGRESS** (Planning complete, ready for implementation)
+- Phase 6 – ECS Entity IDs & Tagging: **NOT STARTED** (Planning complete, ready for implementation)
   - **T060**: Design complete ✅ (2025-12-08)
     - Plan file: `/Users/mcthaydt/.claude/plans/zesty-sleeping-alpaca.md`
     - Design decisions approved:
@@ -118,42 +118,33 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ## How to Continue
 
-**Current Phase: Phase 6 – ECS Entity IDs & Tagging**
+**Current Phase: Phase 5B – Audit Findings (Quick Fixes)**
 
-1. **Read the Phase 6 Plan**
-   - Plan file: `/Users/mcthaydt/.claude/plans/zesty-sleeping-alpaca.md`
-   - Tasks file: `docs/general/cleanup/style-scene-cleanup-tasks.md` (Phase 6 section)
-   - Design decisions documented above
+1. **Read the Tasks**
+   - Tasks file: `docs/general/cleanup/style-scene-cleanup-tasks.md` (Phase 5B section)
+   - 8 quick-fix tasks from codebase audit (T057-T059e)
 
 2. **Implementation Order**:
-   - **T061**: Implement core ID support (23 detailed sub-tasks)
-     - Start with `base_ecs_entity.gd` (T061a-T061g)
-     - Then `m_ecs_manager.gd` (T061h-T061r)
-     - Then `u_ecs_utils.gd` (T061s-T061t)
-     - Finally `u_entity_query.gd` (T061u-T061w)
-   - **T062**: Integrate with state store (8 sub-tasks)
-   - **T063**: Add comprehensive tests (10 sub-tasks)
-   - **T064**: Migrate ALL existing entities (12 sub-tasks)
-     - **Templates** (T064a-b): player_template, camera_template
-     - **Prefabs** (T064c-g): checkpoint, death_zone, spike_trap, goal_zone, door_trigger
-     - **Scene instances** (T064h-i): gameplay_exterior, gameplay_interior_house
-     - **Verification** (T064j-k): Test all scenes, verify no duplicate IDs
-     - **Documentation** (T064l): Document entity ID/tag mappings
+   - **T057**: Rename `event_vfx_system.gd` → `base_event_vfx_system.gd`
+     - Update all references in imports/preloads
+   - **T058**: Add `class_name E_EndgameGoalZone` to endgame_goal_zone.gd
+   - **T059**: Delete orphaned `tmp_invalid_gameplay.tscn`
+   - **T059a**: Update DEV_PITFALLS.md with class_name policy
+   - **T059b**: Update STYLE_GUIDE.md with class_name examples
+   - **T059c**: Update AGENTS.md with class_name requirement
+   - **T059d**: Mark T022 checkbox in tasks file
+   - **T059e**: Update continuation prompt when Phase 5B complete
 
 3. **Testing Strategy**:
-   - Follow existing test patterns (BaseTest, autofree, _spawn_* helpers)
-   - Reset U_ECSEventBus in before_each()
-   - Verify entity registration events via event bus history
+   - Run full test suite after T057 to catch any broken imports
+   - Verify scenes load correctly after T058
+   - Git grep to find any references to tmp_invalid_gameplay.tscn before T059
 
-4. **Architecture Notes**:
-   - Use `const U_ECS_UTILS := preload(...)` pattern in base_ecs_entity.gd
-   - Publish events via `U_ECSEventBus` (not signals)
-   - Entity IDs are StringName, tags are Array[StringName]
-   - Auto-register entities when first component registers
+4. **Keep changes scoped**:
+   - Each task is independent and can be done separately
+   - Commit after each logical group (e.g., T057, then T058-059, then T059a-e docs)
 
-5. **Keep changes scoped**:
-   - Complete T061 before starting T062
-   - Run tests after each major step
+**Next Phase After 5B**: Phase 6 – ECS Entity IDs & Tagging (Planning complete, see below for details)
 
 ---
 
