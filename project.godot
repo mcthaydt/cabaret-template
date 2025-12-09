@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="cabaret ball"
-run/main_scene="res://scenes/root.tscn"
+run/main_scene="uid://ccv3ylnj0qbnm"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://assets/textures/tex_icon.svg"
 boot_splash/minimum_display_time=5
