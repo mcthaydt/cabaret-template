@@ -1,7 +1,7 @@
 extends "res://scripts/gameplay/base_volume_controller.gd"
 class_name BaseInteractableController
 
-const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+# U_ECS_UTILS inherited from BaseECSEntity (via base_volume_controller.gd)
 const STATE_STORE_GROUP := StringName("state_store")
 const SCENE_MANAGER_GROUP := StringName("scene_manager")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")

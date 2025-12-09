@@ -278,7 +278,7 @@ func register_entity(entity: Node) -> void:
 	# Handle duplicate IDs by appending instance ID suffix
 	if _entities_by_id.has(entity_id):
 		var new_id := StringName("%s_%d" % [String(entity_id), entity.get_instance_id()])
-		push_warning("M_ECSManager: Duplicate entity ID '%s' - renamed to '%s'" % [String(entity_id), String(new_id)])
+		print_verbose("M_ECSManager: Duplicate entity ID '%s' - renamed to '%s'" % [String(entity_id), String(new_id)])
 		entity_id = new_id
 		if entity.has_method("set_entity_id"):
 			entity.set_entity_id(entity_id)
@@ -414,14 +414,14 @@ func _unindex_entity_tags(entity: Node) -> void:
 	if entity == null:
 		return
 
-	var tags := _get_entity_tags(entity)
-	for tag in tags:
-		if not _entities_by_tag.has(tag):
-			continue
+	# Remove entity from ALL tags that currently contain it
+	# (don't rely on entity.get_tags() since tags may have changed)
+	for tag in _entities_by_tag.keys():
 		var tag_array: Array = _entities_by_tag[tag]
-		tag_array.erase(entity)
-		if tag_array.is_empty():
-			_entities_by_tag.erase(tag)
+		if tag_array.has(entity):
+			tag_array.erase(entity)
+			if tag_array.is_empty():
+				_entities_by_tag.erase(tag)
 
 ## Gets the tags from an entity node.
 ## Calls entity.get_tags() if available, otherwise returns empty array.
