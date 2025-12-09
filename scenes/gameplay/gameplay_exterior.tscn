@@ -233,6 +233,9 @@ fov = 80.0
 [node name="E_DoorTrigger" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
 script = ExtResource("30_door_controller")
+door_id = &"door_to_house"
+target_scene_id = &"interior_house"
+target_spawn_point = &"sp_entrance_from_exterior"
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.40026855, 0)

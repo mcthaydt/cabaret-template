@@ -32,14 +32,34 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _store == null:
 		return
 
-	# Only handle ui_cancel and ui_pause (they're identical per flows-and-input.md)
-	# Directional navigation is handled by Godot's built-in focus system
-	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("ui_pause"):
+	# Handle ui_pause (Start button - opens pause menu)
+	if event.is_action_pressed("ui_pause"):
+		_handle_ui_pause()
+		get_viewport().set_input_as_handled()
+		return
+
+	# Handle ui_cancel (B button - back/cancel in menus only)
+	if event.is_action_pressed("ui_cancel"):
 		_handle_ui_cancel()
 		get_viewport().set_input_as_handled()
 
 
-## Handle ui_cancel / ui_pause input (identical behavior)
+## Handle ui_pause input (Start button - opens pause menu)
+func _handle_ui_pause() -> void:
+	var state: Dictionary = _store.get_state()
+	var nav_state: Dictionary = state.get("navigation", {})
+
+	var shell: StringName = U_NavigationSelectors.get_shell(nav_state)
+	var overlay_stack: Array = U_NavigationSelectors.get_overlay_stack(nav_state)
+
+	# ui_pause only works in gameplay shell
+	if shell == U_NavigationReducer.SHELL_GAMEPLAY:
+		if overlay_stack.is_empty():
+			# No overlays → open pause
+			_store.dispatch(U_NavigationActions.open_pause())
+		# If overlays already open, do nothing (ui_cancel handles closing them)
+
+## Handle ui_cancel input (B button - back/cancel in menus only)
 func _handle_ui_cancel() -> void:
 	var state: Dictionary = _store.get_state()
 	var nav_state: Dictionary = state.get("navigation", {})
@@ -61,15 +81,13 @@ func _handle_ui_cancel() -> void:
 			_handle_endgame_cancel(base_scene_id)
 
 
-## Handle cancel in gameplay shell
+## Handle cancel in gameplay shell (B button - close overlays only)
 func _handle_gameplay_cancel(overlay_stack: Array) -> void:
-	if overlay_stack.is_empty():
-		# No overlays → open pause
-		_store.dispatch(U_NavigationActions.open_pause())
-	else:
+	if not overlay_stack.is_empty():
 		# Has overlays → close top overlay
 		# CloseMode (RESUME_TO_GAMEPLAY vs RETURN_TO_PREVIOUS_OVERLAY) is handled by reducer
 		_store.dispatch(U_NavigationActions.close_top_overlay())
+	# If no overlays, do nothing (ui_pause handles opening pause menu)
 
 
 ## Handle cancel in main menu shell
