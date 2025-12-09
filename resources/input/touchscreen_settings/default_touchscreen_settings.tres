@@ -4,3 +4,8 @@
 
 [resource]
 script = ExtResource("1")
+virtual_joystick_size = 0.8
+button_size = 1.1
+joystick_deadzone = 0.15
+virtual_joystick_opacity = 0.7
+button_opacity = 0.8

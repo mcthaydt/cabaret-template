@@ -124,7 +124,7 @@ version: "1.0"
 
 ### M_SceneManager Cleanup
 
-- [ ] T022 Remove ALL pause/cursor control from `M_SceneManager`:
+- [x] T022 Remove ALL pause/cursor control from `M_SceneManager`:
   - Rename `_update_pause_state()` → `_update_particles_and_focus()`.
   - Remove `get_tree().paused` writes.
   - Remove `M_CursorManager.set_cursor_state()` calls.
@@ -530,6 +530,53 @@ version: "1.0"
 
 ---
 
+## Phase 5B – Audit Findings (Post-Phase 5 Polish)
+
+**Audit Date**: 2025-12-09
+**Purpose**: Address gaps found during comprehensive codebase audit
+
+### Script Fixes
+
+- [ ] T057 Rename `scripts/ecs/event_vfx_system.gd` → `scripts/ecs/base_event_vfx_system.gd`:
+  - File declares `class_name BaseEventVFXSystem` but filename missing `base_` prefix
+  - Update any preload() references
+
+- [ ] T058 Add missing `class_name E_EndgameGoalZone` to `scripts/gameplay/e_endgame_goal_zone.gd`:
+  - Non-breaking addition for type safety
+
+### Cleanup
+
+- [ ] T059 Delete orphaned temporary file `scenes/tmp_invalid_gameplay.tscn`:
+  - Empty test artifact (3 lines), not used anywhere
+
+### Documentation Updates
+
+- [ ] T059a Update `DEV_PITFALLS.md`:
+  - Remove references to "Phase 5" as future (now complete)
+  - Update phase numbering to current reality
+
+- [ ] T059b Clean up `STYLE_GUIDE.md`:
+  - Remove or mark as historical the embedded "Phase 2-10" sections (lines 487-576)
+  - These reference an old refactoring workflow, not current cleanup phases
+
+- [ ] T059c Update `AGENTS.md`:
+  - Line 90: Change "Phase 4B (2025-12-08)" to "Phase 5 Complete (2025-12-08)"
+  - Line 99: Remove `so_*` prefix reference - no such files exist in codebase
+  - Or add `so_*` to STYLE_GUIDE.md if this prefix should be used
+
+- [ ] T059d Standardize M_GameplayInitializer in gameplay scenes:
+  - Either add to `gameplay_interior_house.tscn` for consistency
+  - Or update SCENE_ORGANIZATION_GUIDE.md to clarify it's optional
+
+### Task Checkbox Fix
+
+- [ ] T059e Update T022 checkbox in Phase 2:
+  - T022 "Remove ALL pause/cursor control from M_SceneManager" shows `[ ]`
+  - Phase 2 Status Summary says "✅ T022: Removed pause/cursor control"
+  - Mark task definition as `[x]` to match completion status
+
+---
+
 ## Phase 6 – ECS Entity IDs & Tagging
 
 ### Design Decisions (Approved 2025-12-08)
@@ -841,24 +888,141 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ---
 
-## Phase 7 – Spawn Registry & Spawn Conditions
+## Phase 7 – ECS Event Bus Migration
 
-- [ ] T070 Design a minimal **spawn metadata** structure:
+**Goal**: Migrate direct component signals to use U_ECSEventBus for decoupled, event-driven architecture.
+
+**Current State (Audit Findings)**:
+- 7 components/systems use direct signals instead of event bus
+- Systems poll component state instead of subscribing to events
+- Some signals are defined but never subscribed to (dead code)
+
+**Gold Standard Examples** (already correct):
+- S_JumpSystem publishes `entity_jumped`, `entity_landed` via event bus
+- S_GamepadVibrationSystem subscribes to events via event bus
+- S_CheckpointSystem publishes `checkpoint_activated` via event bus
+
+### Phase 7A: Health & Death Events (Priority 1 - Core Game Flow)
+
+- [ ] T070a Migrate C_HealthComponent signals to event bus:
+  - Replace `signal health_changed` with `U_ECSEventBus.publish("health_changed", payload)`
+  - Replace `signal death` with `U_ECSEventBus.publish("entity_death", payload)`
+  - Payload should include: `entity_id`, `previous_health`, `new_health`, `is_dead`
+  - Remove direct signal declarations
+
+- [ ] T070b Update S_HealthSystem to subscribe to health events (if applicable):
+  - Verify system is event-driven or polling-based by design
+  - Document decision
+
+- [ ] T070c Update S_GamepadVibrationSystem to subscribe to death events:
+  - Add subscription to `"entity_death"` event for death vibration feedback
+
+- [ ] T070d Add tests for health event bus integration:
+  - Test `health_changed` event published on damage
+  - Test `entity_death` event published on death
+  - Test subscribers receive events correctly
+
+### Phase 7B: Victory Events (Priority 1 - End Game Flow)
+
+- [ ] T071a Migrate C_VictoryTriggerComponent signals to event bus:
+  - Replace `signal player_entered` with `U_ECSEventBus.publish("victory_zone_entered", payload)`
+  - Replace `signal victory_triggered` with `U_ECSEventBus.publish("victory_triggered", payload)`
+  - Payload should include: `entity_id`, `trigger_node`, `body`
+  - Remove direct signal declarations
+
+- [ ] T071b Refactor S_VictorySystem to subscribe to victory events:
+  - Replace polling `trigger.consume_trigger_request()` with event subscription
+  - Subscribe to `"victory_triggered"` event
+  - Process victory logic in event handler
+
+- [ ] T071c Add tests for victory event bus integration:
+  - Test events published when player enters victory zone
+  - Test S_VictorySystem responds to events correctly
+
+### Phase 7C: Damage Zone Events (Priority 2 - Physics/Damage)
+
+- [ ] T072a Migrate C_DamageZoneComponent signals to event bus:
+  - Replace `signal player_entered` with `U_ECSEventBus.publish("damage_zone_entered", payload)`
+  - Replace `signal player_exited` with `U_ECSEventBus.publish("damage_zone_exited", payload)`
+  - Payload should include: `zone_id`, `body`, `damage_per_second`
+  - Remove direct signal declarations
+
+- [ ] T072b Refactor S_DamageSystem to subscribe to zone events:
+  - Replace polling `zone.get_bodies_in_zone()` with event-driven tracking
+  - Subscribe to `"damage_zone_entered"` and `"damage_zone_exited"`
+  - Maintain internal set of bodies in zones
+
+- [ ] T072c Add tests for damage zone event bus integration:
+  - Test events published on zone enter/exit
+  - Test S_DamageSystem tracks bodies correctly via events
+
+### Phase 7D: Checkpoint Events (Priority 2 - Already Partial)
+
+- [ ] T073a Refactor C_CheckpointComponent to publish area events:
+  - Publish `"checkpoint_zone_entered"` when player enters checkpoint area
+  - Move Area3D signal handling from S_CheckpointSystem to component
+
+- [ ] T073b Refactor S_CheckpointSystem to subscribe to checkpoint events:
+  - Remove direct Area3D.body_entered connections
+  - Subscribe to `"checkpoint_zone_entered"` from event bus
+  - Keep existing `"checkpoint_activated"` publishing (already correct)
+
+- [ ] T073c Add tests for checkpoint event flow:
+  - Test zone enter event published by component
+  - Test system subscribes and activates checkpoint correctly
+
+### Phase 7E: Component Registration Events (Priority 3)
+
+- [ ] T074a Migrate BaseECSComponent.registered signal to event bus:
+  - Replace `signal registered` with `U_ECSEventBus.publish("component_registered", payload)`
+  - Payload should include: `component_type`, `entity_node`, `component_instance`
+  - Remove direct signal declaration
+
+- [ ] T074b Update any systems that need registration notifications:
+  - Search for `.registered.connect()` calls
+  - Migrate to event bus subscriptions
+
+- [ ] T074c Add tests for component registration events:
+  - Test event published when component registers with manager
+
+### Phase 7F: Cleanup & Documentation
+
+- [ ] T075a Remove unused signal declarations:
+  - Audit for signals with no subscribers after migration
+  - Remove dead signal code
+
+- [ ] T075b Document event bus conventions in `docs/ecs/ecs_architecture.md`:
+  - List all standard event names and payloads
+  - Document subscription/unsubscription patterns
+  - Add examples of correct event bus usage
+
+- [ ] T075c Update STYLE_GUIDE.md:
+  - Add rule: "ECS components MUST use U_ECSEventBus for domain events"
+  - Add rule: "Direct signals only for Node lifecycle (tree_entered, etc.)"
+
+- [ ] T075d Run full ECS test suite:
+  - Verify no regressions from event bus migration
+
+---
+
+## Phase 8 – Spawn Registry & Spawn Conditions
+
+- [ ] T080 Design a minimal **spawn metadata** structure:
   - List required fields (id, tags, basic conditions).
   - Decide whether to use a Resource type (e.g., `RS_SpawnMetadata`) or plain dictionaries.
-- [ ] T071 Implement a `U_SpawnRegistry` (or similar) for spawn metadata:
+- [ ] T081 Implement a `U_SpawnRegistry` (or similar) for spawn metadata:
   - Provide helpers for looking up spawn info by id/tag.
   - Keep it lightweight and focused on current needs.
-- [ ] T072 Integrate spawn metadata with `M_SpawnManager`:
+- [ ] T082 Integrate spawn metadata with `M_SpawnManager`:
   - Allow M_SpawnManager to consult the registry when picking spawn points.
   - Preserve current behaviour as the default when no metadata is present.
-- [ ] T073 Add tests:
+- [ ] T083 Add tests:
   - Unit tests for spawn registry lookup and condition evaluation.
   - Integration tests to confirm exterior/interior transitions and checkpoints still work correctly.
 
 ---
 
-## Phase 8 – Large File Splitting for Maintainability
+## Phase 9 – Large File Splitting for Maintainability
 
 **Goal**: Split files over 400 lines into smaller, more maintainable units (~400 lines max)
 
@@ -873,186 +1037,414 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 | `u_scene_registry.gd` | 460 | ~330 | 1 |
 | `ui_touchscreen_settings_overlay.gd` | 451 | ~330 | 1 |
 
-### Phase 8A: Scene Manager Split (1,565 → ~400 lines)
+### Phase 9A: Scene Manager Split (1,565 → ~400 lines)
 
-- [ ] T080a Create `scripts/scene_management/helpers/u_scene_cache.gd`:
+- [ ] T090a Create `scripts/scene_management/helpers/u_scene_cache.gd`:
   - Extract: `_is_scene_cached`, `_get_cached_scene`, `_add_to_cache`, `_check_cache_pressure`, `_evict_cache_lru`, `_get_cache_memory_usage`
   - Extract: `_preload_critical_scenes`, `_start_background_load_polling`, `hint_preload_scene`
   - Include cache member variables: `_scene_cache`, `_cache_access_times`, `_background_loads`, `_max_cached_scenes`, `_max_cache_memory`
 
-- [ ] T080b Create `scripts/scene_management/helpers/u_scene_loader.gd`:
+- [ ] T090b Create `scripts/scene_management/helpers/u_scene_loader.gd`:
   - Extract: `_load_scene`, `_load_scene_async`, `_add_scene`, `_remove_current_scene`
   - Extract: `_validate_scene_contract`, `_find_player_in_scene`, `_unfreeze_player_physics`
 
-- [ ] T080c Create `scripts/scene_management/helpers/u_overlay_stack_manager.gd`:
+- [ ] T090c Create `scripts/scene_management/helpers/u_overlay_stack_manager.gd`:
   - Extract: `push_overlay`, `pop_overlay`, `push_overlay_with_return`, `pop_overlay_with_return`
   - Extract: `_configure_overlay_scene`, `_get_top_overlay_id`, `_restore_focus_to_top_overlay`, `_find_first_focusable_in`
   - Extract: `_reconcile_overlay_stack`, `_get_overlay_scene_ids_from_ui`, `_overlay_stacks_match`, `_update_overlay_visibility`
 
-- [ ] T080d Refactor `m_scene_manager.gd` to use helpers:
+- [ ] T090d Refactor `m_scene_manager.gd` to use helpers:
   - Add const preloads for all 3 new helpers
   - Replace extracted methods with delegation calls
   - Keep: Node lifecycle, store subscription, transition queue, public API wrappers, signals
   - Verify ~400 lines remaining
 
-- [ ] T080e Update external references to M_SceneManager:
+- [ ] T090e Update external references to M_SceneManager:
   - Search for `M_SceneManager.` calls and verify still work
   - Search for `hint_preload_scene` calls and update if signature changed
 
-- [ ] T080f Run scene manager tests:
+- [ ] T090f Run scene manager tests:
   - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/scene_manager -gexit`
   - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/scene_management -gexit`
 
-### Phase 8B: Input Rebinding Overlay Split (1,254 → ~400 lines)
+### Phase 9B: Input Rebinding Overlay Split (1,254 → ~400 lines)
 
-- [ ] T081a Create `scripts/ui/helpers/u_rebind_action_list_builder.gd`:
+- [ ] T091a Create `scripts/ui/helpers/u_rebind_action_list_builder.gd`:
   - Extract: `_build_action_rows`, `_collect_actions`, `_categorize_actions`, `_format_action_name`, `_add_spacer`
   - Extract: `ACTION_CATEGORIES` constant, `EXCLUDED_ACTIONS` constant
   - Extract: `_refresh_bindings`, `_populate_binding_visuals`, `_get_event_device_type`
 
-- [ ] T081b Create `scripts/ui/helpers/u_rebind_capture_handler.gd`:
+- [ ] T091b Create `scripts/ui/helpers/u_rebind_capture_handler.gd`:
   - Extract: `_begin_capture`, `_cancel_capture`, `_input`, `_handle_captured_event`
   - Extract: `_apply_binding`, `_build_final_target_events`, `_build_final_conflict_events`
   - Extract: `_get_action_events`, `_append_unique_event`, `_clone_event`, `_events_match`
 
-- [ ] T081c Create `scripts/ui/helpers/u_rebind_focus_navigation.gd`:
+- [ ] T091c Create `scripts/ui/helpers/u_rebind_focus_navigation.gd`:
   - Extract: `_configure_focus_neighbors`, `_apply_focus`, `_navigate`, `_navigate_focus`
   - Extract: `_cycle_row_button`, `_cycle_bottom_button`, `_focus_next_action`, `_focus_previous_action`
   - Extract: `_ensure_row_visible`, `_connect_row_focus_handlers`
 
-- [ ] T081d Refactor `ui_input_rebinding_overlay.gd` to use helpers:
+- [ ] T091d Refactor `ui_input_rebinding_overlay.gd` to use helpers:
   - Add const preloads for all 3 new helpers
   - Replace extracted methods with delegation calls
   - Keep: Node references, lifecycle, signal connections, profile manager integration, dialogs
   - Verify ~400 lines remaining
 
-- [ ] T081e Run input rebinding tests:
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/input -gexit`
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/input -gexit`
+- [ ] T091e Run input rebinding tests
 
-### Phase 8C: State Store Split (809 → ~400 lines)
+### Phase 9C: State Store Split (809 → ~400 lines)
 
-- [ ] T082a Create `scripts/state/utils/u_state_persistence.gd`:
+- [ ] T092a Create `scripts/state/utils/u_state_persistence.gd`:
   - Extract: `save_state`, `load_state`
   - Extract: `_normalize_loaded_state`, `_normalize_scene_slice`, `_normalize_gameplay_slice`
   - Extract: `_normalize_spawn_reference`, `_as_string_name`, `_is_scene_registered`
   - Include: DEFAULT_SCENE_ID, DEFAULT_SPAWN_POINT, SPAWN_PREFIX, CHECKPOINT_PREFIX constants
 
-- [ ] T082b Create `scripts/state/utils/u_state_slice_manager.gd`:
+- [ ] T092b Create `scripts/state/utils/u_state_slice_manager.gd`:
   - Extract: `register_slice`, `validate_slice_dependencies`, `_has_circular_dependency`
   - Extract: `_initialize_slices`, `_apply_reducers`
 
-- [ ] T082c Refactor `m_state_store.gd` to use helpers:
+- [ ] T092c Refactor `m_state_store.gd` to use helpers:
   - Add const preloads for both new helpers
   - Replace extracted methods with delegation calls
   - Keep: `dispatch`, `subscribe`, `get_state`, `get_slice`, StateHandoff, debug overlay, performance metrics
   - Verify ~400 lines remaining
 
-- [ ] T082d Run state store tests:
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/state -gexit`
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/state -gexit`
+- [ ] T092d Run state store tests
 
-### Phase 8D: Input Rebind Utils Split (509 → ~180 lines)
+### Phase 9D: Input Rebind Utils Split (509 → ~180 lines)
 
-- [ ] T083a Create `scripts/utils/u_input_event_serialization.gd`:
+- [ ] T093a Create `scripts/utils/u_input_event_serialization.gd`:
   - Extract: `event_to_dict`, `dict_to_event`
   - Extract: All `_*_to_dict` and `_dict_to_*` helper methods
 
-- [ ] T083b Create `scripts/utils/u_input_event_display.gd`:
+- [ ] T093b Create `scripts/utils/u_input_event_display.gd`:
   - Extract: `format_event_label`, `_format_joypad_button_label`, `_format_joypad_axis_label`
   - Extract: `get_texture_for_event`
 
-- [ ] T083c Refactor `u_input_rebind_utils.gd` to use helpers:
+- [ ] T093c Refactor `u_input_rebind_utils.gd` to use helpers:
   - Add const preloads for both new utilities
   - Replace extracted methods with delegation calls
   - Keep: `ValidationResult`, `validate_rebind`, `rebind_action`, `get_conflicting_action`, `is_reserved_action`
   - Verify ~180 lines remaining
 
-- [ ] T083d Update external references:
-  - Search for `U_InputRebindUtils.event_to_dict` and update to use new utility
-  - Search for `U_InputRebindUtils.format_event_label` and update to use new utility
-  - Run input tests to verify
+- [ ] T093d Update external references and run input tests
 
-### Phase 8E: Minor Splits
+### Phase 9E: Minor Splits
 
 #### ECS Manager (500 → ~380 lines)
 
-- [ ] T084a Create `scripts/ecs/helpers/u_ecs_query_metrics.gd`:
+- [ ] T094a Create `scripts/ecs/helpers/u_ecs_query_metrics.gd`:
   - Extract: `_record_query_metrics`, `_compare_query_metrics`, `_enforce_query_metric_capacity`
   - Extract: `_compare_metric_keys_by_recency`, `get_query_metrics`, `clear_query_metrics`
 
-- [ ] T084b Refactor `m_ecs_manager.gd` to use helper and run ECS tests
+- [ ] T094b Refactor `m_ecs_manager.gd` to use helper and run ECS tests
 
 #### Input Profile Manager (480 → ~350 lines)
 
-- [ ] T085a Create `scripts/managers/helpers/u_input_profile_loader.gd`:
+- [ ] T095a Create `scripts/managers/helpers/u_input_profile_loader.gd`:
   - Extract: `_load_available_profiles`, `load_profile`, `_apply_profile_to_input_map`
   - Extract: `_apply_profile_accessibility`, `_is_same_device_type`
 
-- [ ] T085b Refactor `m_input_profile_manager.gd` to use helper and run tests
+- [ ] T095b Refactor `m_input_profile_manager.gd` to use helper and run tests
 
 #### Scene Registry (460 → ~330 lines)
 
-- [ ] T086a Create `scripts/scene_management/helpers/u_scene_registry_loader.gd`:
+- [ ] T096a Create `scripts/scene_management/helpers/u_scene_registry_loader.gd`:
   - Extract: `_load_resource_entries`, `_load_entries_from_dir`, `_backfill_default_gameplay_scenes`
 
-- [ ] T086b Refactor `u_scene_registry.gd` to use helper and run tests
+- [ ] T096b Refactor `u_scene_registry.gd` to use helper and run tests
 
 #### Touchscreen Settings Overlay (451 → ~330 lines)
 
-- [ ] T087a Create `scripts/ui/helpers/u_touchscreen_preview_builder.gd`:
+- [ ] T097a Create `scripts/ui/helpers/u_touchscreen_preview_builder.gd`:
   - Extract: Preview building and positioning logic
 
-- [ ] T087b Refactor `ui_touchscreen_settings_overlay.gd` to use helper and run tests
+- [ ] T097b Refactor `ui_touchscreen_settings_overlay.gd` to use helper and run tests
 
-### Phase 8F: Validation & Documentation
+### Phase 9F: Validation & Documentation
 
-- [ ] T088a Run full test suite:
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/ -ginclude_subdirs -gexit`
-  - Document any failures and fix
+- [ ] T098a Run full test suite
 
-- [ ] T088b Verify line counts:
+- [ ] T098b Verify line counts:
   - Confirm all split files are under 400 lines
   - Confirm original files are reduced to target sizes
 
-- [ ] T089a Update STYLE_GUIDE.md:
+- [ ] T099a Update STYLE_GUIDE.md:
   - Add new `helpers/` subdirectory patterns
   - Document helper file naming convention (`u_*_helper.gd` or `u_*_builder.gd`)
 
-- [ ] T089b Update AGENTS.md:
+- [ ] T099b Update AGENTS.md:
   - Add note about helper extraction pattern for large files
   - Reference new helper locations in Repo Map
 
 ---
 
-## Phase 9 – Multi‑Slot Save Manager
+## Phase 10 – Multi‑Slot Save Manager
 
-- [ ] T090 Design a **multi‑slot save** model:
+- [ ] T100 Design a **multi‑slot save** model:
   - Decide on slot identifiers and file naming (e.g., `save_slot_1.json`).
   - Define a minimal metadata format (last scene, timestamp, etc.).
-- [ ] T091 Implement a `M_SaveManager` (or equivalent) that wraps `M_StateStore`:
+- [ ] T101 Implement a `M_SaveManager` (or equivalent) that wraps `M_StateStore`:
   - Expose APIs for `save_to_slot(slot_id)`, `load_from_slot(slot_id)`, and listing available slots.
   - Keep serialization logic delegated to `M_StateStore`.
-- [ ] T092 Add a basic UI surface for slot selection:
+- [ ] T102 Add a basic UI surface for slot selection:
   - A simple overlay or menu panel that lists slots and dispatches actions for save/load.
   - Drive it through navigation/state, not direct Scene Manager calls.
-- [ ] T093 Add tests:
+- [ ] T103 Add tests:
   - Unit tests for `M_SaveManager` slot operations and metadata.
   - Integration tests that verify end‑to‑end save/load between different slots.
 
 ---
 
-## Phase 10 – Final Validation & Regression Sweep
+## Phase 10B – Architectural Hardening
 
-- [ ] T100 Run full GUT test suites (all categories) and record baseline.
-- [ ] T101 Manually verify core user flows:
+**Goal**: Address systemic architectural issues for better modularity, testability, and scalability.
+**Audit Date**: 2025-12-09
+**Estimated Effort**: 4-6 weeks total (can be done incrementally)
+
+> **⚠️ DEPENDENCIES & OVERLAP NOTICE**
+> - **Requires Phase 7 complete**: Manager decoupling (10B-1) uses events from Phase 7
+> - **Overlaps with Phase 9**: Transition extraction (10B-2) is architectural; Phase 9 is procedural splitting. Do Phase 9A first, then 10B-2 builds on it.
+> - **10B-6 extends Phase 7**: Event bus enhancement adds typed events on top of Phase 7 migration
+> - **Recommended order**: Phase 7 → Phase 9 → Phase 10B-1 through 10B-5 → Phase 10B-6 through 10B-9
+
+### Phase 10B-1: Manager Coupling Reduction
+
+**Problem**: Systems directly reference managers (M_SceneManager, M_StateStore) creating tight coupling and making unit testing difficult.
+
+**Prerequisite**: Phase 7A (health events) and Phase 7B (victory events) must be complete.
+
+- [ ] T104 **Decouple S_HealthSystem from M_SceneManager**:
+  - Currently: `var _scene_manager: M_SceneManager` direct reference (line 18)
+  - Currently: Direct call to `_scene_manager.transition_to_scene()` (line 178)
+  - Refactor: Use `entity_death` event from Phase 7A (T070a)
+  - Add: M_SceneManager subscribes to `entity_death` and handles game over transition
+  - Remove: `_scene_manager` member variable and direct calls
+  - Result: S_HealthSystem testable without M_SceneManager
+
+- [ ] T105 **Decouple S_VictorySystem from M_SceneManager**:
+  - Currently: `var _scene_manager: M_SceneManager` direct reference (line 12)
+  - Currently: Direct call to `_scene_manager.transition_to_scene()` (line 44)
+  - Refactor: Use `victory_triggered` event from Phase 7B (T071a)
+  - Add: M_SceneManager subscribes to `victory_triggered` and handles victory transition
+  - Remove: `_scene_manager` member variable and direct calls
+  - Result: S_VictorySystem testable in isolation
+
+- [ ] T106 **Decouple S_CheckpointSystem from direct Area3D connections**:
+  - Currently: Manually connects Area3D signals, tracks `_connected_checkpoints`
+  - Refactor: Components emit events, system subscribes via U_ECSEventBus
+  - Add cleanup in component `_exit_tree()` to prevent signal leaks
+  - Result: No signal connection leaks, cleaner lifecycle
+
+- [ ] T107 **Add manager initialization assertions**:
+  - Add assertions in manager `_ready()` to verify dependencies exist
+  - M_PauseManager, M_SpawnManager, M_CameraManager should assert M_StateStore exists
+  - Fail fast instead of silent failures
+
+### Phase 10B-2: Extract Transition Subsystem
+
+**Problem**: M_SceneManager (1,565 lines) is a god object handling too many concerns.
+
+- [ ] T108 **Design TransitionOrchestrator abstraction**:
+  - Define responsibilities: transition state machine, effect execution, scene swap sequencing
+  - Design interface with lifecycle hooks: `initialize()`, `execute()`, `on_scene_swap()`, `on_complete()`
+  - Document in plan file before implementation
+
+- [ ] T109 **Create `scripts/scene_management/transition_orchestrator.gd`**:
+  - Extract transition effect management from M_SceneManager
+  - Handle all scene loading strategies (sync/async/cached)
+  - Manage progress tracking and callbacks
+  - Target: 300-400 lines
+
+- [ ] T110a **Create `scripts/scene_management/i_transition_effect.gd`**:
+  - Define interface for transition effects
+  - Methods: `initialize(config)`, `execute(layer, callback)`, `on_scene_swap()`, `on_complete()`
+  - Update Trans_Fade, Trans_LoadingScreen to implement interface
+
+- [ ] T110b **Refactor M_SceneManager to use TransitionOrchestrator**:
+  - Remove transition logic (400+ lines)
+  - Delegate to TransitionOrchestrator
+  - Target: M_SceneManager reduced to ~1,100 lines
+
+### Phase 10B-3: Scene Type Handler Pattern
+
+**Problem**: M_SceneManager has hardcoded `match scene_type:` logic; adding new scene types requires modifying the manager.
+
+- [ ] T111a **Design ISceneTypeHandler interface**:
+  - Methods: `on_load(scene)`, `on_unload(scene)`, `get_required_managers()`, `get_scene_type()`
+  - Document expected behavior for each method
+
+- [ ] T111b **Create scene type handlers**:
+  - `scripts/scene_management/handlers/gameplay_scene_handler.gd`
+  - `scripts/scene_management/handlers/menu_scene_handler.gd`
+  - `scripts/scene_management/handlers/ui_scene_handler.gd`
+  - `scripts/scene_management/handlers/endgame_scene_handler.gd`
+
+- [ ] T111c **Create SceneTypeHandlerRegistry**:
+  - Register handlers at startup
+  - M_SceneManager delegates to appropriate handler based on scene type
+  - Result: Adding new scene types requires only adding a handler class
+
+### Phase 10B-4: Input Device Abstraction
+
+**Problem**: DeviceType is hardcoded enum; adding new input types (VR) requires modifying multiple files.
+
+- [ ] T112a **Design IInputSource interface**:
+  - Methods: `get_device_type()`, `get_priority()`, `get_stick_deadzone()`, `is_active()`
+  - Document device registration pattern
+
+- [ ] T112b **Create input source implementations**:
+  - `scripts/input/sources/keyboard_mouse_source.gd`
+  - `scripts/input/sources/gamepad_source.gd`
+  - `scripts/input/sources/touchscreen_source.gd`
+
+- [ ] T112c **Refactor M_InputDeviceManager to use IInputSource**:
+  - Replace hardcoded device type checks with polymorphic calls
+  - Register sources at startup
+  - Result: Adding VR requires only adding a new source class
+
+- [ ] T112d **Refactor S_InputSystem to use input sources**:
+  - Extract device-specific logic into source classes
+  - S_InputSystem queries active source, delegates input capture
+  - Target: S_InputSystem reduced from 412 to ~200 lines
+
+### Phase 10B-5: State Persistence Extraction
+
+**Problem**: M_StateStore (809 lines) mixes state management with persistence, history, and validation.
+
+- [ ] T113a **Create `scripts/state/utils/u_state_repository.gd`**:
+  - Extract: `save_state()`, `load_state()`, auto-save logic
+  - Extract: `_normalize_loaded_state()`, validation methods
+  - Target: 200-250 lines
+
+- [ ] T113b **Create `scripts/state/utils/u_state_validator.gd`**:
+  - Extract: State schema validation
+  - Validate entire loaded state against registries before applying
+  - Fail fast on invalid state
+
+- [ ] T113c **Refactor M_StateStore to use extracted utilities**:
+  - M_StateStore focuses on dispatch/subscribe/get_state
+  - Delegates persistence to U_StateRepository
+  - Delegates validation to U_StateValidator
+  - Target: M_StateStore reduced to ~500 lines
+
+### Phase 10B-6: Unified Event Bus Enhancement
+
+**Problem**: Mixed communication patterns (direct signals, state store, event bus, polling).
+
+**Prerequisite**: Phase 7 (Event Bus Migration) must be complete. This phase EXTENDS Phase 7 with typed events and better infrastructure.
+
+**Note**: Phase 7 migrates signals → StringName events. This phase upgrades StringName events → typed event classes.
+
+- [ ] T114a **Extend U_ECSEventBus with typed events**:
+  - Create typed event wrapper classes for events defined in Phase 7:
+    - `HealthChangedEvent` (wraps Phase 7's `"health_changed"`)
+    - `EntityDeathEvent` (wraps Phase 7's `"entity_death"`)
+    - `VictoryTriggeredEvent` (wraps Phase 7's `"victory_triggered"`)
+    - `CheckpointActivatedEvent` (wraps existing `"checkpoint_activated"`)
+  - Add event priority support for ordering subscribers
+  - Add subscriber validation (warn on duplicate subscriptions)
+
+- [ ] T114b **Document event taxonomy**:
+  - Consolidate Phase 7F documentation (T075b) with architectural overview
+  - List all standard events and their typed class equivalents
+  - Document which systems publish/subscribe to which events
+  - Add to `docs/ecs/ecs_events.md`
+
+- [ ] T114c **Migrate remaining direct manager calls to events**:
+  - Audit all `_scene_manager.` calls in systems (should be none after 10B-1)
+  - Audit all `_store.dispatch()` calls that could be events instead
+  - M_SceneManager becomes pure event subscriber for game flow events
+
+### Phase 10B-7: Service Locator / Dependency Container
+
+**Problem**: 33+ group lookups scattered throughout codebase; dependencies invisible at compile time.
+
+- [ ] T115a **Design ServiceLocator pattern**:
+  - Central registry for all managers
+  - Explicit registration at startup
+  - Validation that all required services exist before gameplay starts
+
+- [ ] T115b **Create `scripts/core/service_locator.gd`**:
+  - Methods: `register(service_name, instance)`, `get(service_name)`, `has(service_name)`
+  - Validate dependencies on `validate_all()`
+  - Make dependency graph visible
+
+- [ ] T115c **Migrate group lookups to ServiceLocator**:
+  - Replace `get_tree().get_nodes_in_group("state_store")` with `ServiceLocator.get("state_store")`
+  - Update all 33+ group lookups
+  - Result: Explicit dependencies, faster lookups, compile-time visibility
+
+### Phase 10B-8: Testing Infrastructure
+
+**Problem**: Systems are difficult to unit test due to concrete manager dependencies.
+
+- [ ] T116a **Create manager interfaces**:
+  - `scripts/interfaces/i_state_store.gd` - interface for M_StateStore
+  - `scripts/interfaces/i_scene_manager.gd` - interface for M_SceneManager
+  - `scripts/interfaces/i_ecs_manager.gd` - interface for M_ECSManager
+
+- [ ] T116b **Create mock implementations for testing**:
+  - `tests/mocks/mock_state_store.gd`
+  - `tests/mocks/mock_scene_manager.gd`
+  - `tests/mocks/mock_ecs_manager.gd`
+
+- [ ] T116c **Update systems to depend on interfaces**:
+  - Systems accept dependencies via constructor or exported properties
+  - Production: wire real implementations
+  - Tests: inject mocks
+  - Result: Systems 100% testable in isolation
+
+### Phase 10B-9: Documentation & Contracts
+
+- [ ] T117a **Create ECS-State contract documentation**:
+  - Document all ECS → State dependencies (which systems dispatch which actions)
+  - Document all State → ECS dependencies (which systems read which selectors)
+  - Add to `docs/architecture/ecs_state_contract.md`
+
+- [ ] T117b **Create dependency graph visualization**:
+  - Document manager initialization order
+  - Document system → manager dependencies
+  - Generate ASCII or mermaid diagram
+
+- [ ] T117c **Add architectural decision records (ADRs)**:
+  - ADR-001: Redux-style state management
+  - ADR-002: ECS pattern with Node-based components
+  - ADR-003: Event bus for cross-system communication
+  - ADR-004: Service locator for dependency management
+
+### Phase 10B Summary
+
+| Refactoring | Effort | Impact |
+|-------------|--------|--------|
+| Manager Coupling Reduction | 3-5 days | Systems testable in isolation |
+| Transition Subsystem | 1-2 weeks | M_SceneManager -400 lines |
+| Scene Type Handlers | 3-5 days | 10x easier to add scene types |
+| Input Device Abstraction | 1 week | Plugin-based input devices |
+| State Persistence Extraction | 3-5 days | M_StateStore -300 lines |
+| Unified Event Bus | 1 week | Decoupled communication |
+| Service Locator | 3-5 days | Explicit dependencies |
+| Testing Infrastructure | 1 week | 5x easier to test |
+| Documentation | 2-3 days | Clear architectural contracts |
+
+**Total Estimated Effort**: 4-6 weeks
+**Total Lines Simplified**: 1,500+ lines
+**Testability Improvement**: 5-10x better isolation
+
+---
+
+## Phase 11 – Final Validation & Regression Sweep
+
+- [ ] T120 Run full GUT test suites (all categories) and record baseline.
+- [ ] T121 Manually verify core user flows:
   - Main menu → gameplay → pause → settings/input overlays → resume.
   - Area transitions exterior ↔ interior_house.
   - Endgame flows (game_over/victory/credits).
-- [ ] T102 Spot‑check representative files in each category for prefix/style adherence:
+- [ ] T122 Spot‑check representative files in each category for prefix/style adherence:
   - Managers, systems, components, UI controllers, resources, markers, debug scenes.
-- [ ] T103 Confirm `STYLE_GUIDE.md` and `SCENE_ORGANIZATION_GUIDE.md` examples match actual code and scenes.
-- [ ] T104 Update the Cleanup PRD status to "Complete" and add a short summary of what changed.
+- [ ] T123 Confirm `STYLE_GUIDE.md` and `SCENE_ORGANIZATION_GUIDE.md` examples match actual code and scenes.
+- [ ] T124 Update the Cleanup PRD status to "Complete" and add a short summary of what changed.
 
 ---
 
