@@ -1,5 +1,5 @@
 extends "res://scripts/scene_management/transitions/base_transition_effect.gd"
-class_name InstantTransition
+class_name Trans_Instant
 
 ## Instant transition effect - completes immediately
 ##

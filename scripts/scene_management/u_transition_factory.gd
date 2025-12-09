@@ -40,9 +40,9 @@ static func _static_init() -> void:
 
 ## Register built-in transitions (instant, fade, loading)
 static func _register_built_in_transitions() -> void:
-	const INSTANT_TRANSITION := preload("res://scripts/scene_management/transitions/instant_transition.gd")
-	const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/fade_transition.gd")
-	const LOADING_SCREEN_TRANSITION := preload("res://scripts/scene_management/transitions/loading_screen_transition.gd")
+	const INSTANT_TRANSITION := preload("res://scripts/scene_management/transitions/trans_instant.gd")
+	const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/trans_fade.gd")
+	const LOADING_SCREEN_TRANSITION := preload("res://scripts/scene_management/transitions/trans_loading_screen.gd")
 
 	register_transition("instant", INSTANT_TRANSITION)
 	register_transition("fade", FADE_TRANSITION)

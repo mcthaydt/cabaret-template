@@ -2,12 +2,12 @@ extends GutTest
 
 ## Unit tests for transition effects
 ##
-## Tests BaseTransitionEffect base class and implementations (InstantTransition, FadeTransition).
+## Tests BaseTransitionEffect base class and implementations (Trans_Instant, Trans_Fade).
 ## Tests follow TDD discipline: written BEFORE implementation.
 
 const BaseTransitionEffect = preload("res://scripts/scene_management/transitions/base_transition_effect.gd")
-const InstantTransition = preload("res://scripts/scene_management/transitions/instant_transition.gd")
-const FadeTransition = preload("res://scripts/scene_management/transitions/fade_transition.gd")
+const Trans_Instant = preload("res://scripts/scene_management/transitions/trans_instant.gd")
+const Trans_Fade = preload("res://scripts/scene_management/transitions/trans_fade.gd")
 
 var _transition_overlay: CanvasLayer
 var _color_rect: ColorRect
@@ -27,7 +27,7 @@ func after_each() -> void:
 	_color_rect = null
 
 ## Helper: Await tween.finished or timeout with diagnostics
-func _await_tween_finished_or_timeout(fade: FadeTransition, _label: String, timeout_sec: float = 1.0) -> bool:
+func _await_tween_finished_or_timeout(fade: Trans_Fade, _label: String, timeout_sec: float = 1.0) -> bool:
 
 	# Ensure tween exists before waiting on finished
 	if fade._tween == null:
@@ -58,9 +58,9 @@ func test_transition_effect_has_required_methods() -> void:
 	assert_true(effect.has_method("execute"), "Should have execute method")
 	assert_true(effect.has_method("get_duration"), "Should have get_duration method")
 
-## Test InstantTransition completes immediately
+## Test Trans_Instant completes immediately
 func test_instant_transition_completes_immediately() -> void:
-	var instant := InstantTransition.new()
+	var instant := Trans_Instant.new()
 
 	var completed: Array = [false]  # Use array for closure to work
 	var callback := func() -> void:
@@ -69,29 +69,29 @@ func test_instant_transition_completes_immediately() -> void:
 	instant.execute(_transition_overlay, callback)
 	await get_tree().process_frame
 
-	assert_true(completed[0], "InstantTransition should complete immediately")
+	assert_true(completed[0], "Trans_Instant should complete immediately")
 
-## Test InstantTransition duration is zero
+## Test Trans_Instant duration is zero
 func test_instant_transition_duration_is_zero() -> void:
-	var instant := InstantTransition.new()
+	var instant := Trans_Instant.new()
 
 	var duration: float = instant.get_duration()
 
-	assert_eq(duration, 0.0, "InstantTransition duration should be 0.0")
+	assert_eq(duration, 0.0, "Trans_Instant duration should be 0.0")
 
-## Test FadeTransition has configurable duration
+## Test Trans_Fade has configurable duration
 func test_fade_transition_duration() -> void:
-	var fade := FadeTransition.new()
+	var fade := Trans_Fade.new()
 	fade.duration = 0.5
 
 	var duration: float = fade.get_duration()
 
-	assert_eq(duration, 0.5, "FadeTransition should return configured duration")
+	assert_eq(duration, 0.5, "Trans_Fade should return configured duration")
 
-## Test FadeTransition fades out then in
+## Test Trans_Fade fades out then in
 ## Uses tween.finished signal for reliable completion in headless mode
 func test_fade_transition_sequence() -> void:
-	var fade := FadeTransition.new()
+	var fade := Trans_Fade.new()
 	fade.duration = 0.2  # Shorter for faster tests
 
 	var completed: Array = [false]  # Use array for closure to work
@@ -111,9 +111,9 @@ func test_fade_transition_sequence() -> void:
 	assert_almost_eq(_color_rect.modulate.a, 0.0, 0.1, "Should fade back to transparent")
 	assert_true(completed[0], "Should call completion callback")
 
-## Test FadeTransition respects color setting
+## Test Trans_Fade respects color setting
 func test_fade_transition_color() -> void:
-	var fade := FadeTransition.new()
+	var fade := Trans_Fade.new()
 	fade.fade_color = Color.WHITE
 	fade.duration = 0.1
 
@@ -132,7 +132,7 @@ func test_fade_transition_color() -> void:
 
 ## Test transition blocks input during execution
 func test_transition_blocks_input() -> void:
-	var fade := FadeTransition.new()
+	var fade := Trans_Fade.new()
 	fade.duration = 0.2
 
 	var completed: Array = [false]  # Use array for closure to work
@@ -152,9 +152,9 @@ func test_transition_blocks_input() -> void:
 
 	assert_true(completed[0], "Transition should complete")
 
-## Test FadeTransition with mid-transition callback
+## Test Trans_Fade with mid-transition callback
 func test_fade_transition_mid_callback() -> void:
-	var fade := FadeTransition.new()
+	var fade := Trans_Fade.new()
 	fade.duration = 0.2
 
 	var mid_callback_called: Array = [false]  # Use array for closure to work
@@ -182,7 +182,7 @@ func test_transition_cleans_up_tween() -> void:
 	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
 		pending("Skipped: Tween timing unreliable in headless mode")
 		return
-	var fade := FadeTransition.new()
+	var fade := Trans_Fade.new()
 	fade.duration = 0.1
 
 	var callback := func() -> void:
@@ -202,10 +202,10 @@ func test_transition_cleans_up_tween() -> void:
 
 ## Test multiple transitions don't conflict
 func test_multiple_transitions_queued() -> void:
-	var fade1 := FadeTransition.new()
+	var fade1 := Trans_Fade.new()
 	fade1.duration = 0.1
 
-	var fade2 := FadeTransition.new()
+	var fade2 := Trans_Fade.new()
 	fade2.duration = 0.1
 
 	var completed1: Array = [false]  # Use array for closure to work
@@ -225,9 +225,9 @@ func test_multiple_transitions_queued() -> void:
 	assert_true(completed1[0], "First transition should complete")
 	# Note: Second transition behavior depends on implementation
 
-## Test FadeTransition with zero duration
+## Test Trans_Fade with zero duration
 func test_fade_transition_zero_duration() -> void:
-	var fade := FadeTransition.new()
+	var fade := Trans_Fade.new()
 	fade.duration = 0.0
 
 	var completed: Array = [false]  # Use array for closure to work
@@ -240,7 +240,7 @@ func test_fade_transition_zero_duration() -> void:
 
 ## Test BaseTransitionEffect error handling
 func test_transition_with_null_overlay() -> void:
-	var fade := FadeTransition.new()
+	var fade := Trans_Fade.new()
 	fade.duration = 0.1
 
 	var completed: Array = [false]  # Use array for closure to work
@@ -252,13 +252,13 @@ func test_transition_with_null_overlay() -> void:
 	# Should not crash, may skip transition or use fallback
 	assert_true(true, "Should handle null overlay gracefully")
 
-## Test FadeTransition Tween properties
+## Test Trans_Fade Tween properties
 ## @warning: Skipped in headless - tween timing unreliable without rendering
 func test_fade_transition_uses_tween() -> void:
 	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
 		pending("Skipped: Tween timing unreliable in headless mode")
 		return
-	var fade := FadeTransition.new()
+	var fade := Trans_Fade.new()
 	fade.duration = 0.2
 
 	fade.execute(_transition_overlay, func() -> void: pass)
@@ -288,7 +288,7 @@ func test_input_blocking_enabled() -> void:
 	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
 		pending("Skipped: Tween timing unreliable in headless mode")
 		return
-	var fade := FadeTransition.new()
+	var fade := Trans_Fade.new()
 	fade.duration = 0.1
 	fade.block_input = true
 
@@ -313,13 +313,13 @@ func test_input_blocking_enabled() -> void:
 	# After transition, input blocking should be disabled
 	assert_true(true, "Input blocking should be disabled after transition")
 
-## Test FadeTransition configurable easing
+## Test Trans_Fade configurable easing
 ## @warning: Skipped in headless - tween timing unreliable without rendering
 func test_fade_transition_easing() -> void:
 	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
 		pending("Skipped: Tween timing unreliable in headless mode")
 		return
-	var fade := FadeTransition.new()
+	var fade := Trans_Fade.new()
 	fade.duration = 0.2
 	fade.easing_type = Tween.EASE_IN_OUT
 	fade.transition_type = Tween.TRANS_CUBIC
@@ -336,9 +336,9 @@ func test_fade_transition_easing() -> void:
 
 	assert_true(completed[0], "Should complete with custom easing")
 
-## Test InstantTransition with scene swap
+## Test Trans_Instant with scene swap
 func test_instant_transition_scene_swap_timing() -> void:
-	var instant := InstantTransition.new()
+	var instant := Trans_Instant.new()
 
 	var scene_swapped: Array = [false]  # Use array for closure to work
 	var callback := func() -> void:
@@ -347,4 +347,4 @@ func test_instant_transition_scene_swap_timing() -> void:
 	instant.execute(_transition_overlay, callback)
 
 	# Should call callback immediately (within same frame)
-	assert_true(scene_swapped[0], "InstantTransition should allow immediate scene swap")
+	assert_true(scene_swapped[0], "Trans_Instant should allow immediate scene swap")

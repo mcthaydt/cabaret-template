@@ -86,7 +86,7 @@ if status == ResourceLoader.THREAD_LOAD_LOADED:
 
 ### Integration Strategy for Scene Manager
 
-**LoadingScreenTransition**:
+**Trans_LoadingScreen**:
 1. Start async load with `load_threaded_request()`
 2. Show loading screen overlay
 3. Poll status every frame with `load_threaded_get_status()`
@@ -526,7 +526,7 @@ tween.finished.connect(func():
 - `TRANS_SINE` with `EASE_IN_OUT` provides smoothest visual result
 - Transition camera should be independent of scene tree (persist in root.tscn)
 
-**Integration with FadeTransition (FR-074)**:
+**Integration with Trans_Fade (FR-074)**:
 - Start camera blend and fade-out simultaneously
 - Camera blends during fade-out (scene hidden, blend invisible)
 - Fade-in reveals final camera position smoothly

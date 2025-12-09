@@ -183,7 +183,7 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 | **Scene Manager** | `m_scene_manager.gd` | `M_SceneManager` | `m_scene_manager.gd` → `M_SceneManager` |
 | **Spawn Manager** | `m_spawn_manager.gd` | `M_SpawnManager` | `m_spawn_manager.gd` → `M_SpawnManager` |
 | **Scene Utilities** | `u_scene_*.gd` | `U_Scene*` | `u_scene_registry.gd` → `U_SceneRegistry`, `u_transition_factory.gd` → `U_TransitionFactory` |
-| **Transition Effects** | `*_transition.gd` | `*Transition` | `fade_transition.gd` → `FadeTransition`, `loading_screen_transition.gd` → `LoadingScreenTransition` |
+| **Transition Effects** | `*_transition.gd` | `*Transition` | `trans_fade.gd` → `Trans_Fade`, `trans_loading_screen.gd` → `Trans_LoadingScreen` |
 | **Scene Triggers** | `c_scene_trigger_component.gd` | `C_SceneTriggerComponent` | `c_scene_trigger_component.gd` → `C_SceneTriggerComponent` |
 
 #### Gameplay Controllers (Interactables)

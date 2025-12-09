@@ -30,8 +30,8 @@ const U_TRANSITION_FACTORY := preload("res://scripts/scene_management/u_transiti
 const I_SCENE_CONTRACT := preload("res://scripts/scene_management/i_scene_contract.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
 # Kept for type checking only:
-const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/fade_transition.gd")
-const LOADING_SCREEN_TRANSITION := preload("res://scripts/scene_management/transitions/loading_screen_transition.gd")
+const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/trans_fade.gd")
+const LOADING_SCREEN_TRANSITION := preload("res://scripts/scene_management/transitions/trans_loading_screen.gd")
 
 const OVERLAY_META_SCENE_ID := StringName("_scene_manager_overlay_scene_id")
 const PARTICLE_META_ORIG_SPEED := StringName("_scene_manager_particle_orig_speed")
@@ -400,9 +400,9 @@ func _perform_transition(request: TransitionRequest) -> void:
 	var current_progress: Array = [0.0]
 	var progress_callback: Callable
 
-	# Phase 8: Set progress handling for LoadingScreenTransition
-	if transition_effect is LoadingScreenTransition:
-		var loading_transition := transition_effect as LoadingScreenTransition
+	# Phase 8: Set progress handling for Trans_LoadingScreen
+	if transition_effect is Trans_LoadingScreen:
+		var loading_transition := transition_effect as Trans_LoadingScreen
 		# If scene is cached, use FAKE progress (no provider) to show minimal loading
 		# Otherwise, wire a real progress provider for async loading.
 		if not use_cached:
@@ -524,12 +524,12 @@ func _perform_transition(request: TransitionRequest) -> void:
 	# Execute transition effect
 	if transition_effect != null:
 		# For fade transitions, set mid-transition callback for scene swap
-		if transition_effect is FadeTransition:
-			(transition_effect as FadeTransition).mid_transition_callback = scene_swap_callback
+		if transition_effect is Trans_Fade:
+			(transition_effect as Trans_Fade).mid_transition_callback = scene_swap_callback
 			transition_effect.execute(_transition_overlay, completion_callback)
 		# For loading screen transitions, set mid-transition callback and use loading overlay
-		elif transition_effect is LoadingScreenTransition:
-			(transition_effect as LoadingScreenTransition).mid_transition_callback = scene_swap_callback
+		elif transition_effect is Trans_LoadingScreen:
+			(transition_effect as Trans_LoadingScreen).mid_transition_callback = scene_swap_callback
 			transition_effect.execute(_loading_overlay, completion_callback)
 		else:
 			# For instant transitions, scene swap happens in completion callback

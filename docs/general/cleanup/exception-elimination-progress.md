@@ -42,9 +42,9 @@
 
 | Old Filename | New Filename | Class Name Change | Impact |
 |--------------|--------------|-------------------|--------|
-| `fade_transition.gd` | `trans_fade.gd` | `FadeTransition` → `Trans_Fade` | 2 uses |
-| `loading_screen_transition.gd` | `trans_loading_screen.gd` | `LoadingScreenTransition` → `Trans_LoadingScreen` | 2 uses |
-| `instant_transition.gd` | `trans_instant.gd` | `InstantTransition` → `Trans_Instant` | 2 uses |
+| `trans_fade.gd` | `trans_fade.gd` | `Trans_Fade` → `Trans_Fade` | 2 uses |
+| `trans_loading_screen.gd` | `trans_loading_screen.gd` | `Trans_LoadingScreen` → `Trans_LoadingScreen` | 2 uses |
+| `trans_instant.gd` | `trans_instant.gd` | `Trans_Instant` → `Trans_Instant` | 2 uses |
 
 **Primary file to update:** `m_scene_manager.gd`
 **Estimated References:** ~6-8 files

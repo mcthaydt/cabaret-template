@@ -54,7 +54,7 @@ func before_each() -> void:
 	transition_overlay.name = "TransitionOverlay"
 	_root_node.add_child(transition_overlay)
 
-	# Add ColorRect for FadeTransition
+	# Add ColorRect for Trans_Fade
 	var color_rect := ColorRect.new()
 	color_rect.name = "TransitionColorRect"
 	color_rect.color = Color.BLACK

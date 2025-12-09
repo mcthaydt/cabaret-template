@@ -1,5 +1,5 @@
 extends "res://scripts/scene_management/transitions/base_transition_effect.gd"
-class_name LoadingScreenTransition
+class_name Trans_LoadingScreen
 
 const LOADING_SCREEN_SCENE := preload("res://scenes/ui/ui_loading_screen.tscn")
 const HUD_GROUP := StringName("hud_layers")

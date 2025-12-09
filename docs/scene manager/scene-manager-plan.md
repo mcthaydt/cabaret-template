@@ -158,9 +158,9 @@ scripts/
 │   ├── u_scene_registry.gd      # NEW - Static class for scene metadata
 │   └── /transitions/          # NEW directory
 │       ├── base_transition_effect.gd        # NEW - Base transition interface
-│       ├── instant_transition.gd       # NEW - Instant transition
-│       ├── fade_transition.gd          # NEW - Fade effect
-│       └── loading_screen_transition.gd # NEW - Loading screen
+│       ├── trans_instant.gd       # NEW - Instant transition
+│       ├── trans_fade.gd          # NEW - Fade effect
+│       └── trans_loading_screen.gd # NEW - Loading screen
 │
 └── ecs/
     ├── /components/
@@ -480,8 +480,8 @@ Before implementing Scene Manager, must restructure existing scenes:
 8. **Transition Effects** (2-3 hours) - TDD REQUIRED
    - **Test First**: Write `tests/unit/scene_manager/test_transitions.gd`
    - Create `scripts/scene_management/transitions/base_transition_effect.gd` base class
-   - Implement `scripts/scene_management/transitions/instant_transition.gd`
-   - Implement `scripts/scene_management/transitions/fade_transition.gd` with Tween
+   - Implement `scripts/scene_management/transitions/trans_instant.gd`
+   - Implement `scripts/scene_management/transitions/trans_fade.gd` with Tween
    - **Input Blocking**: Block input during transition (set_input_as_handled() in fade)
    - Update TransitionOverlay in root.tscn (ColorRect with modulate.a = 0)
    - Integrate with M_SceneManager.transition_to_scene()
@@ -615,7 +615,7 @@ Before implementing Scene Manager, must restructure existing scenes:
 
 1. **Loading Screen Transition** (1-2 hours)
    - Create `loading_screen.tscn`
-   - Implement `LoadingScreenTransition`
+   - Implement `Trans_LoadingScreen`
    - Add progress bar updates during async loading
    - Add LoadingOverlay to root.tscn
 

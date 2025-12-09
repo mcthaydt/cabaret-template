@@ -190,8 +190,8 @@
 - [x] T050 [US1] Implement subscribe to scene slice updates via M_StateStore.subscribe() - **COMPLETE** (_on_state_changed() callback)
 - [x] T051 [US1] Run unit tests for M_SceneManager (including queue priority) and verify they pass - **COMPLETE** (45/47 tests passing, 2 expected failures)
 - [x] T052 [P] [US1] Create scripts/scene_management/transitions/base_transition_effect.gd base class - **COMPLETE** (virtual execute() and get_duration())
-- [x] T053 [P] [US1] Create scripts/scene_management/transitions/instant_transition.gd - **COMPLETE** (synchronous callback)
-- [x] T054 [P] [US1] Create scripts/scene_management/transitions/fade_transition.gd with Tween - **COMPLETE** (fade out→in, mid_transition_callback, configurable easing)
+- [x] T053 [P] [US1] Create scripts/scene_management/transitions/trans_instant.gd - **COMPLETE** (synchronous callback)
+- [x] T054 [P] [US1] Create scripts/scene_management/transitions/trans_fade.gd with Tween - **COMPLETE** (fade out→in, mid_transition_callback, configurable easing)
 - [x] T055 [US1] Implement input blocking during transitions (set_input_as_handled) - **COMPLETE** (block_input property)
 - [x] T056 [US1] Update TransitionOverlay in root.tscn (ColorRect with modulate.a = 0) - **COMPLETE** (already configured in root.tscn)
 - [x] T057 [US1] Integrate transition effects with M_SceneManager.transition_to_scene() - **COMPLETE** (M_SceneManager calls transition effects)
@@ -476,8 +476,8 @@
 ### Implementation for User Story 5
 
 - [x] T130 [P] [US5] Create scenes/ui/loading_screen.tscn with ProgressBar
-- [x] T131 [P] [US5] Create scripts/scene_management/transitions/loading_screen_transition.gd
-- [x] T132 [US5] Implement LoadingScreenTransition.update_progress(progress) for ProgressBar
+- [x] T131 [P] [US5] Create scripts/scene_management/transitions/trans_loading_screen.gd
+- [x] T132 [US5] Implement Trans_LoadingScreen.update_progress(progress) for ProgressBar
 - [x] T133 [US5] Add LoadingOverlay reference in root.tscn
 - [x] T134 [US5] Integrate loading_screen_transition with M_SceneManager
 - [x] T135 [US5] Implement transition type selection based on U_SceneRegistry metadata
@@ -565,12 +565,12 @@
 7. test_cache_eviction_on_memory_pressure - Memory limit triggers eviction
 8. test_automatic_preload_hint_near_door - Door approach triggers preload hint
 9. test_background_load_completes_before_transition - Hints load in background
-10. test_real_progress_in_loading_transition - LoadingScreenTransition shows real progress
+10. test_real_progress_in_loading_transition - Trans_LoadingScreen shows real progress
 
 **Files Modified**:
 - `scripts/managers/m_scene_manager.gd`: Added _load_scene_async(), cache management, preloading, hints (+360 lines)
 - `scripts/scene_management/u_scene_registry.gd`: Updated priorities, added get_preloadable_scenes() (+28 lines)
-- `scripts/scene_management/transitions/loading_screen_transition.gd`: Real progress polling with stuck detection (+110 lines)
+- `scripts/scene_management/transitions/trans_loading_screen.gd`: Real progress polling with stuck detection (+110 lines)
 - `scripts/ecs/components/c_scene_trigger_component.gd`: Added automatic preload hints on door approach (+26 lines)
 
 **Files Created**:
@@ -1018,7 +1018,7 @@
   - ✅ Validates smooth interpolation, position/rotation/FOV blending
   - ✅ Headless mode handling for unreliable Tween timing
   - **Files**: tests/integration/scene_manager/test_camera_blending.gd
-- [x] T182.5 Integrate camera blending with FadeTransition to blend during fade-in (FR-074: parallel with fade effect)
+- [x] T182.5 Integrate camera blending with Trans_Fade to blend during fade-in (FR-074: parallel with fade effect)
   - ✅ Camera blend runs in background without blocking state updates
   - ✅ Uses Tween.finished signal with CONNECT_ONE_SHOT for finalization
   - ✅ _perform_transition returns immediately after transition completes

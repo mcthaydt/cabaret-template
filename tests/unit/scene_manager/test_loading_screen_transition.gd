@@ -1,6 +1,6 @@
 extends GutTest
 
-const LoadingScreenTransition = preload("res://scripts/scene_management/transitions/loading_screen_transition.gd")
+const Trans_LoadingScreen = preload("res://scripts/scene_management/transitions/trans_loading_screen.gd")
 
 var _overlay: CanvasLayer
 
@@ -13,7 +13,7 @@ func after_each() -> void:
 
 ## Real-progress path: mid callback should fire immediately and progress should advance
 func test_loading_real_progress_mid_callback_and_updates() -> void:
-	var transition := LoadingScreenTransition.new()
+	var transition := Trans_LoadingScreen.new()
 	transition.min_duration = 0.05
 
 	var progress: Array = [0.0]
@@ -45,7 +45,7 @@ func test_loading_real_progress_mid_callback_and_updates() -> void:
 
 ## Fake path (no provider): should enforce minimum duration
 func test_loading_fake_progress_enforces_min_duration() -> void:
-	var transition := LoadingScreenTransition.new()
+	var transition := Trans_LoadingScreen.new()
 	transition.min_duration = 0.1
 
 	var completed: Array = [false]

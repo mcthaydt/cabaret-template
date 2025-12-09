@@ -4,7 +4,7 @@ extends GutTest
 ##
 ## Tests T178-T182: Camera position, rotation, and FOV blending during scene transitions.
 ## Validates smooth interpolation with Tween system, no jitter, and proper integration
-## with FadeTransition effect.
+## with Trans_Fade effect.
 ##
 ## Architecture (Phase 12.2): M_CameraManager handles camera blending. M_SceneManager
 ## delegates camera operations to M_CameraManager during transitions.
@@ -287,7 +287,7 @@ func _test_camera_transitions_smooth_DISABLED() -> void:
 		# No single frame should have a large jump (threshold: 0.5 units per frame at 60fps)
 		assert_lt(distance, 0.5, "Position changes should be gradual, no sudden jumps")
 
-## T182.5: Test camera blending integrates with FadeTransition
+## T182.5: Test camera blending integrates with Trans_Fade
 ##
 ## Validates that camera blend runs in parallel with fade effect, not sequentially.
 ## Both effects should start and finish around the same time.

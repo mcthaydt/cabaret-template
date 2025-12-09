@@ -499,7 +499,7 @@
   ```
   Without Array wrappers, transitions will never complete because the `while` loop checks a flag that the callback can't modify, causing infinite loops or test timeouts.
 
-- **Fade transitions need adequate wait time in tests**: FadeTransition duration defaults to 0.2 seconds. Tests using fade transitions must wait at least 15 physics frames (0.25s at 60fps) for completion. Waiting only 4 frames (0.067s) will cause assertions to run before transitions complete, resulting in `is_transitioning` still being true or `current_scene_id` not yet updated. Use `await wait_physics_frames(15)` after fade transitions in tests.
+- **Fade transitions need adequate wait time in tests**: Trans_Fade duration defaults to 0.2 seconds. Tests using fade transitions must wait at least 15 physics frames (0.25s at 60fps) for completion. Waiting only 4 frames (0.067s) will cause assertions to run before transitions complete, resulting in `is_transitioning` still being true or `current_scene_id` not yet updated. Use `await wait_physics_frames(15)` after fade transitions in tests.
 
 - **Tween process mode must match wait loop (idle vs physics)**: Headless runs can stall if a transition tween updates on one process domain while the manager waits on the other (e.g., tween on PHYSICS but loop yields IDLE frames). We removed the physics-only tween path and aligned the manager’s wait loop with idle frames again. This eliminates the idle/physics mismatch that previously stalled completion. Guidance:
   - If you choose physics: set `_tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)`, wait with `await get_tree().physics_frame`, and prefer `await wait_physics_frames(...)` in tests.
@@ -573,11 +573,11 @@
 
   **Solution**: Set appropriate preload priorities (10 = always cached, 0 = never preloaded). Don't mark every scene as priority 10 or cache fills with rarely-used scenes.
 
-- **Async loading progress requires explicit callbacks**: `ResourceLoader.load_threaded_get_status()` returns progress in `[0.0, 1.0]` range, but loading screens need callbacks to update UI. The `LoadingScreenTransition` polls progress and calls `update_progress_callback` regularly.
+- **Async loading progress requires explicit callbacks**: `ResourceLoader.load_threaded_get_status()` returns progress in `[0.0, 1.0]` range, but loading screens need callbacks to update UI. The `Trans_LoadingScreen` polls progress and calls `update_progress_callback` regularly.
 
   **Problem**: Custom loading screens don't update progress bar.
 
-  **Solution**: Implement `update_progress(progress: float)` method in loading screen script and connect to `LoadingScreenTransition` via callback pattern. See `scripts/scene_management/transitions/loading_screen_transition.gd` for reference.
+  **Solution**: Implement `update_progress(progress: float)` method in loading screen script and connect to `Trans_LoadingScreen` via callback pattern. See `scripts/scene_management/transitions/trans_loading_screen.gd` for reference.
 
 - **Headless mode fallback**: ResourceLoader async loading (`load_threaded_request`) may fail in headless mode if no rendering backend is available. `M_SceneManager` detects stuck progress (progress doesn't change for multiple frames) and falls back to synchronous loading.
 
