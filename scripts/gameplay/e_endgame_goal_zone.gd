@@ -1,4 +1,5 @@
 extends "res://scripts/gameplay/e_victory_zone.gd"
+class_name E_EndgameGoalZone
 
 ## Exterior final goal controller built on the victory interactable base.
 ##
