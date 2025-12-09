@@ -596,47 +596,47 @@ version: "1.0"
 
 **Step 1: Update `scripts/ecs/base_ecs_entity.gd`**
 
-- [ ] T061a Add const preload at top (following BaseECSComponent pattern):
+- [x] T061a Add const preload at top (following BaseECSComponent pattern):
   ```gdscript
   const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
   ```
-- [ ] T061b Add export variables:
+- [x] T061b Add export variables:
   ```gdscript
   @export var entity_id: StringName = StringName("")
   @export var tags: Array[StringName] = []
   ```
-- [ ] T061c Add `get_entity_id() -> StringName`:
+- [x] T061c Add `get_entity_id() -> StringName`:
   - If `entity_id` is empty, call `_generate_id_from_name()` and cache result
   - Return cached `entity_id`
-- [ ] T061d Add `_generate_id_from_name() -> StringName`:
+- [x] T061d Add `_generate_id_from_name() -> StringName`:
   - Get node name
   - Strip `E_` prefix if present
   - Convert to lowercase
   - Return as `StringName`
-- [ ] T061e Add `set_entity_id(id: StringName) -> void` for manager to update on duplicate
-- [ ] T061f Add tag methods:
+- [x] T061e Add `set_entity_id(id: StringName) -> void` for manager to update on duplicate
+- [x] T061f Add tag methods:
   - `get_tags() -> Array[StringName]` (returns duplicate)
   - `has_tag(tag: StringName) -> bool`
   - `add_tag(tag: StringName) -> void` (appends if not present, notifies manager)
   - `remove_tag(tag: StringName) -> void` (erases if present, notifies manager)
-- [ ] T061g Add `_notify_tags_changed() -> void`:
+- [x] T061g Add `_notify_tags_changed() -> void`:
   - Get manager via `U_ECS_UTILS.get_manager(self)` (use const preload from T061a)
   - Call `manager.update_entity_tags(self)` if manager exists
 
 **Step 2: Update `scripts/managers/m_ecs_manager.gd`**
 
-- [ ] T061h Add new member variables:
+- [x] T061h Add new member variables:
   ```gdscript
   var _entities_by_id: Dictionary = {}  # StringName → Node
   var _entities_by_tag: Dictionary = {}  # StringName → Array[Node]
   var _registered_entities: Dictionary = {}  # Node → StringName (entity_id)
   ```
-- [ ] T061i Define event constants (at top of file):
+- [x] T061i Define event constants (at top of file):
   ```gdscript
   const EVENT_ENTITY_REGISTERED := StringName("entity_registered")
   const EVENT_ENTITY_UNREGISTERED := StringName("entity_unregistered")
   ```
-- [ ] T061j Add `register_entity(entity: Node) -> void`:
+- [x] T061j Add `register_entity(entity: Node) -> void`:
   - Return early if null or already registered
   - Get entity ID via `_get_entity_id(entity)`
   - Handle duplicate: append `_%d` suffix with instance ID, log warning, call `entity.set_entity_id()`
@@ -644,54 +644,54 @@ version: "1.0"
   - Add to `_registered_entities[entity] = entity_id`
   - Call `_index_entity_tags(entity)`
   - Publish event: `U_ECSEventBus.publish(EVENT_ENTITY_REGISTERED, {"entity_id": entity_id, "entity": entity})`
-- [ ] T061k Add `unregister_entity(entity: Node) -> void`:
+- [x] T061k Add `unregister_entity(entity: Node) -> void`:
   - Return early if null or not registered
   - Get entity_id from `_registered_entities[entity]`
   - Erase from `_entities_by_id`
   - Erase from `_registered_entities`
   - Call `_unindex_entity_tags(entity)`
   - Publish event: `U_ECSEventBus.publish(EVENT_ENTITY_UNREGISTERED, {"entity_id": entity_id, "entity": entity})`
-- [ ] T061l Add `get_entity_by_id(id: StringName) -> Node`:
+- [x] T061l Add `get_entity_by_id(id: StringName) -> Node`:
   - Return `_entities_by_id.get(id, null)`
-- [ ] T061m Add `get_entities_by_tag(tag: StringName) -> Array[Node]`:
+- [x] T061m Add `get_entities_by_tag(tag: StringName) -> Array[Node]`:
   - Return array of valid entities from `_entities_by_tag[tag]`
   - Filter out invalid instances
-- [ ] T061n Add `get_entities_by_tags(tags: Array[StringName], match_all: bool = false) -> Array[Node]`:
+- [x] T061n Add `get_entities_by_tags(tags: Array[StringName], match_all: bool = false) -> Array[Node]`:
   - If `match_all`: entity must have ALL tags
   - If not `match_all`: entity must have ANY tag
   - Deduplicate results
-- [ ] T061o Add `get_all_entity_ids() -> Array[StringName]`:
+- [x] T061o Add `get_all_entity_ids() -> Array[StringName]`:
   - Return keys of `_entities_by_id`
-- [ ] T061p Add `update_entity_tags(entity: Node) -> void`:
+- [x] T061p Add `update_entity_tags(entity: Node) -> void`:
   - Return early if not registered
   - Call `_unindex_entity_tags(entity)`
   - Call `_index_entity_tags(entity)`
-- [ ] T061q Add helper methods:
+- [x] T061q Add helper methods:
   - `_get_entity_id(entity: Node) -> StringName` - call entity method or fallback to name-based generation
   - `_index_entity_tags(entity: Node) -> void` - add entity to tag arrays
   - `_unindex_entity_tags(entity: Node) -> void` - remove entity from tag arrays
   - `_get_entity_tags(entity: Node) -> Array[StringName]` - call entity method
   - `_entity_has_tag(entity: Node, tag: StringName) -> bool` - call entity method
-- [ ] T061r Modify `_track_component()`:
+- [x] T061r Modify `_track_component()`:
   - After finding entity root, call `register_entity(entity)` if not already registered
   - This auto-registers entities when their first component registers
 
 **Step 3: Update `scripts/utils/u_ecs_utils.gd`**
 
-- [ ] T061s Add `static func get_entity_id(entity: Node) -> StringName`:
+- [x] T061s Add `static func get_entity_id(entity: Node) -> StringName`:
   - Call `entity.get_entity_id()` if method exists
   - Fallback: generate from name
-- [ ] T061t Add `static func get_entity_tags(entity: Node) -> Array[StringName]`:
+- [x] T061t Add `static func get_entity_tags(entity: Node) -> Array[StringName]`:
   - Call `entity.get_tags()` if method exists
   - Fallback: return empty array
 
 **Step 4: Update `scripts/utils/u_entity_query.gd`**
 
-- [ ] T061u Add `func get_entity_id() -> StringName`:
+- [x] T061u Add `func get_entity_id() -> StringName`:
   - Return `U_ECSUtils.get_entity_id(entity)`
-- [ ] T061v Add `func get_tags() -> Array[StringName]`:
+- [x] T061v Add `func get_tags() -> Array[StringName]`:
   - Return `U_ECSUtils.get_entity_tags(entity)`
-- [ ] T061w Add `func has_tag(tag: StringName) -> bool`:
+- [x] T061w Add `func has_tag(tag: StringName) -> bool`:
   - Return `get_tags().has(tag)`
 
 ### T062: Integrate Entity IDs with State Store

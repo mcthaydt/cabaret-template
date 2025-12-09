@@ -122,6 +122,34 @@ static func get_active_camera(from_node: Node) -> Camera3D:
 
 	return get_singleton_from_group(from_node, StringName("main_camera"), false) as Camera3D
 
+## Returns the entity ID for the given entity node.
+## Calls entity.get_entity_id() if available, otherwise generates from name.
+static func get_entity_id(entity: Node) -> StringName:
+	if entity == null:
+		return StringName("")
+	if entity.has_method("get_entity_id"):
+		return entity.get_entity_id()
+
+	# Fallback: generate ID from node name
+	var node_name := String(entity.name)
+	if node_name.begins_with("E_"):
+		node_name = node_name.substr(2)
+	return StringName(node_name.to_lower())
+
+## Returns the tags for the given entity node.
+## Calls entity.get_tags() if available, otherwise returns empty array.
+static func get_entity_tags(entity: Node) -> Array[StringName]:
+	if entity == null:
+		return []
+	if entity.has_method("get_tags"):
+		var tags_variant: Variant = entity.get_tags()
+		if tags_variant is Array:
+			var result: Array[StringName] = []
+			for tag in tags_variant:
+				result.append(StringName(tag))
+			return result
+	return []
+
 static func set_warning_handler(handler: Callable) -> void:
 	_warning_handler = handler
 

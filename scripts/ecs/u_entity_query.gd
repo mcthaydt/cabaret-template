@@ -2,6 +2,8 @@ extends RefCounted
 
 class_name U_EntityQuery
 
+const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+
 var entity: Node = null
 
 var _components: Dictionary = {}
@@ -29,3 +31,15 @@ func has_component(component_type: StringName) -> bool:
 
 func get_all_components() -> Dictionary:
 	return _components.duplicate(true)
+
+## Returns the entity ID for this query's entity.
+func get_entity_id() -> StringName:
+	return U_ECS_UTILS.get_entity_id(entity)
+
+## Returns the tags for this query's entity.
+func get_tags() -> Array[StringName]:
+	return U_ECS_UTILS.get_entity_tags(entity)
+
+## Checks if this query's entity has the specified tag.
+func has_tag(tag: StringName) -> bool:
+	return get_tags().has(tag)

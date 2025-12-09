@@ -6,10 +6,14 @@ signal component_added(component_type: StringName, component: BaseECSComponent)
 signal component_removed(component_type: StringName, component: BaseECSComponent)
 
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const META_ENTITY_ROOT := StringName("_ecs_entity_root")
 const META_ENTITY_TRACKED := StringName("_ecs_tracked_entity")
 const PROJECT_SETTING_QUERY_METRICS_ENABLED := "ecs/debug/query_metrics_enabled"
 const PROJECT_SETTING_QUERY_METRICS_CAPACITY := "ecs/debug/query_metrics_capacity"
+
+const EVENT_ENTITY_REGISTERED := StringName("entity_registered")
+const EVENT_ENTITY_UNREGISTERED := StringName("entity_unregistered")
 
 var _components: Dictionary = {}
 var _systems: Array[BaseECSSystem] = []
@@ -21,6 +25,11 @@ var _query_metrics: Dictionary = {}
 var _time_provider: Callable = Callable(U_ECS_UTILS, "get_current_time")
 var _query_metrics_enabled: bool = true
 var _query_metrics_capacity: int = 64
+
+# Entity ID and tagging support
+var _entities_by_id: Dictionary = {}  # StringName → Node
+var _entities_by_tag: Dictionary = {}  # StringName → Array[Node]
+var _registered_entities: Dictionary = {}  # Node → StringName (entity_id)
 
 @export var query_metrics_enabled: bool:
 	get:
@@ -255,10 +264,195 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
 
 	return results.duplicate()
 
+## Registers an entity with the ECS manager.
+## Handles duplicate IDs by appending instance ID suffix.
+## Publishes entity_registered event via U_ECSEventBus.
+func register_entity(entity: Node) -> void:
+	if entity == null:
+		return
+	if _registered_entities.has(entity):
+		return
+
+	var entity_id := _get_entity_id(entity)
+
+	# Handle duplicate IDs by appending instance ID suffix
+	if _entities_by_id.has(entity_id):
+		var new_id := StringName("%s_%d" % [String(entity_id), entity.get_instance_id()])
+		push_warning("M_ECSManager: Duplicate entity ID '%s' - renamed to '%s'" % [String(entity_id), String(new_id)])
+		entity_id = new_id
+		if entity.has_method("set_entity_id"):
+			entity.set_entity_id(entity_id)
+
+	_entities_by_id[entity_id] = entity
+	_registered_entities[entity] = entity_id
+	_index_entity_tags(entity)
+
+	U_ECS_EVENT_BUS.publish(EVENT_ENTITY_REGISTERED, {
+		"entity_id": entity_id,
+		"entity": entity
+	})
+
+## Unregisters an entity from the ECS manager.
+## Publishes entity_unregistered event via U_ECSEventBus.
+func unregister_entity(entity: Node) -> void:
+	if entity == null:
+		return
+	if not _registered_entities.has(entity):
+		return
+
+	var entity_id: StringName = _registered_entities[entity]
+	_entities_by_id.erase(entity_id)
+	_registered_entities.erase(entity)
+	_unindex_entity_tags(entity)
+
+	U_ECS_EVENT_BUS.publish(EVENT_ENTITY_UNREGISTERED, {
+		"entity_id": entity_id,
+		"entity": entity
+	})
+
+## Returns the entity with the given ID, or null if not found.
+func get_entity_by_id(id: StringName) -> Node:
+	return _entities_by_id.get(id, null)
+
+## Returns all entities with the specified tag.
+## Filters out invalid instances.
+func get_entities_by_tag(tag: StringName) -> Array[Node]:
+	var results: Array[Node] = []
+	if not _entities_by_tag.has(tag):
+		return results
+
+	var entities: Array = _entities_by_tag[tag]
+	for entity_variant in entities:
+		var entity := entity_variant as Node
+		if entity == null:
+			continue
+		if not is_instance_valid(entity):
+			continue
+		results.append(entity)
+
+	return results
+
+## Returns all entities that have ANY of the specified tags (match_all=false)
+## or ALL of the specified tags (match_all=true).
+## Deduplicates results.
+func get_entities_by_tags(tags: Array[StringName], match_all: bool = false) -> Array[Node]:
+	var results: Array[Node] = []
+	if tags.is_empty():
+		return results
+
+	if match_all:
+		# Entity must have ALL tags
+		var candidates: Dictionary = {}  # Node → tag count
+		for tag in tags:
+			var entities := get_entities_by_tag(tag)
+			for entity in entities:
+				candidates[entity] = candidates.get(entity, 0) + 1
+
+		# Only include entities that have all tags
+		for entity in candidates.keys():
+			if candidates[entity] == tags.size():
+				results.append(entity)
+	else:
+		# Entity must have ANY tag
+		var seen: Dictionary = {}
+		for tag in tags:
+			var entities := get_entities_by_tag(tag)
+			for entity in entities:
+				if not seen.has(entity):
+					results.append(entity)
+					seen[entity] = true
+
+	return results
+
+## Returns all registered entity IDs.
+func get_all_entity_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	for key in _entities_by_id.keys():
+		ids.append(StringName(key))
+	return ids
+
+## Updates the tag index for an entity when its tags change.
+## Called by entities when they add/remove tags.
+func update_entity_tags(entity: Node) -> void:
+	if entity == null:
+		return
+	if not _registered_entities.has(entity):
+		return
+
+	_unindex_entity_tags(entity)
+	_index_entity_tags(entity)
+
+## Gets the entity ID from an entity node.
+## Calls entity.get_entity_id() if available, otherwise generates from name.
+func _get_entity_id(entity: Node) -> StringName:
+	if entity == null:
+		return StringName("")
+	if entity.has_method("get_entity_id"):
+		return entity.get_entity_id()
+
+	# Fallback: generate ID from node name
+	var node_name := String(entity.name)
+	if node_name.begins_with("E_"):
+		node_name = node_name.substr(2)
+	return StringName(node_name.to_lower())
+
+## Indexes an entity's tags in the tag lookup dictionary.
+func _index_entity_tags(entity: Node) -> void:
+	if entity == null:
+		return
+
+	var tags := _get_entity_tags(entity)
+	for tag in tags:
+		if not _entities_by_tag.has(tag):
+			_entities_by_tag[tag] = []
+		var tag_array: Array = _entities_by_tag[tag]
+		if not tag_array.has(entity):
+			tag_array.append(entity)
+
+## Removes an entity from all tag indexes.
+func _unindex_entity_tags(entity: Node) -> void:
+	if entity == null:
+		return
+
+	var tags := _get_entity_tags(entity)
+	for tag in tags:
+		if not _entities_by_tag.has(tag):
+			continue
+		var tag_array: Array = _entities_by_tag[tag]
+		tag_array.erase(entity)
+		if tag_array.is_empty():
+			_entities_by_tag.erase(tag)
+
+## Gets the tags from an entity node.
+## Calls entity.get_tags() if available, otherwise returns empty array.
+func _get_entity_tags(entity: Node) -> Array[StringName]:
+	if entity == null:
+		return []
+	if entity.has_method("get_tags"):
+		var tags_variant: Variant = entity.get_tags()
+		if tags_variant is Array:
+			var result: Array[StringName] = []
+			for tag in tags_variant:
+				result.append(StringName(tag))
+			return result
+	return []
+
+## Checks if an entity has a specific tag.
+func _entity_has_tag(entity: Node, tag: StringName) -> bool:
+	if entity == null:
+		return false
+	if entity.has_method("has_tag"):
+		return entity.has_tag(tag)
+	return _get_entity_tags(entity).has(tag)
+
 func _track_component(component: BaseECSComponent, type_name: StringName) -> void:
 	var entity := _get_entity_for_component(component)
 	if entity == null:
 		return
+
+	# Auto-register entity when first component is added
+	if not _registered_entities.has(entity):
+		register_entity(entity)
 
 	component.set_meta(META_ENTITY_ROOT, entity)
 
