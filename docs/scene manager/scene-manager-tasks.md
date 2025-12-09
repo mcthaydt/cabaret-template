@@ -912,7 +912,7 @@
   - Auto-return: Timer set to 60 seconds (5s buffer after scroll completes), automatically transitions to main_menu
   - Button handler: Skip → immediate transition to main_menu (cancels timer and tween)
   - Scene type: END_GAME
-- [x] T165.1 [P] [US7] Create templates/player_ragdoll.tscn (simple ragdoll prefab)
+- [x] T165.1 [P] [US7] Create templates/tmpl_player_ragdoll.tscn (simple ragdoll prefab)
   - Root: RigidBody3D (mass=70, gravity_scale=1.0)
   - Child: CollisionShape3D with CapsuleShape3D (height=2, radius=0.5 - match player size)
   - Child: MeshInstance3D with CapsuleMesh (same dimensions, material=player color)
@@ -920,7 +920,7 @@
 - [x] T165.2 [P] [US7] Update s_health_system.gd to spawn ragdoll on death
   - In _handle_death_sequence(), when death timer starts:
     1. Hide player entity (visible=false)
-    2. Preload and instantiate player_ragdoll.tscn
+    2. Preload and instantiate tmpl_player_ragdoll.tscn
     3. Add ragdoll to scene tree at player's parent
     4. Set ragdoll global_position and global_rotation to match player
     5. Apply random impulse (upward + sideways) and angular_velocity for tumble effect

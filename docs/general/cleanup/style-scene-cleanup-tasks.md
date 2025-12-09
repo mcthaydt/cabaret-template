@@ -783,15 +783,15 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 #### Step 1: Templates (T064a-b)
 
-- [ ] T064a Migrate **player_template.tscn**:
-  - Open `templates/player_template.tscn` in editor
+- [ ] T064a Migrate **tmpl_player.tscn**:
+  - Open `templates/tmpl_player.tscn` in editor
   - Verify `E_PlayerRoot` shows new export variables (entity_id, tags)
   - Set `entity_id = StringName("player")` (explicit, not auto-generated "playerroot")
   - Set `tags = [StringName("player")]`
   - Save and verify no errors
 
-- [ ] T064b Migrate **camera_template.tscn**:
-  - Open `templates/camera_template.tscn` in editor
+- [ ] T064b Migrate **tmpl_camera.tscn**:
+  - Open `templates/tmpl_camera.tscn` in editor
   - Verify `E_CameraRoot` shows new export variables
   - Set `entity_id = StringName("camera")` (explicit, not "cameraroot")
   - Set `tags = [StringName("camera")]`
@@ -850,7 +850,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 #### Step 4: Verification (T064j-k)
 
 - [ ] T064j Test base scene template integration:
-  - Load `templates/base_scene_template.tscn`
+  - Load `templates/tmpl_base_scene.tscn`
   - Verify `E_Player` instance (from player_template) has entity_id = "player"
   - Verify `E_CameraRoot` instance has entity_id = "camera"
   - Run the scene and check entity registration via M_ECSManager

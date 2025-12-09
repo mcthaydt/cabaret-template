@@ -1,6 +1,6 @@
 extends BaseTest
 
-const BASE_SCENE := preload("res://templates/base_scene_template.tscn")
+const BASE_SCENE := preload("res://templates/tmpl_base_scene.tscn")
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")

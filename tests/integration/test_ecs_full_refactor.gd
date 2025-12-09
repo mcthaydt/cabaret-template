@@ -58,7 +58,7 @@ func test_full_ecs_refactor_600_frame_simulation():
 	# ========================================
 
 	# Load base scene with everything configured
-	var base_scene_template := load("res://templates/base_scene_template.tscn")
+	var base_scene_template := load("res://templates/tmpl_base_scene.tscn")
 	scene_root = base_scene_template.instantiate()
 	add_child(scene_root)
 	autofree(scene_root)

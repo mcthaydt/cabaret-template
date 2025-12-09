@@ -74,7 +74,7 @@
   - Contains: Systems, Entities, SceneObjects, Environment
   - HUD uses `U_StateUtils.get_store(self)` to find M_StateStore via "state_store" group
 - Node tree structure: See `docs/scene_organization/SCENE_ORGANIZATION_GUIDE.md`
-- Templates: `templates/base_scene_template.tscn` (legacy reference), `templates/player_template.tscn`
+- Templates: `templates/tmpl_base_scene.tscn` (legacy reference), `templates/tmpl_player.tscn`, `templates/tmpl_camera.tscn`
 - Marker scripts: `scripts/scene_structure/*` (11 total) provide visual organization
 - Systems organized by category: Core / Physics / Movement / Feedback
 - Naming: Node names use prefixes matching their script types (E_, S_, C_, M_, SO_, Env_)
@@ -120,7 +120,7 @@
 - Copy semantics
   - Use `.duplicate(true)` for deep copies of `Dictionary`/`Array` before mutating; the codebase relies on immutability patterns both in ECS snapshots and state.
 - Scenes and NodePaths
-  - Wire `@export` NodePaths in scenes; missing paths intentionally short-circuit behavior in systems. See `templates/player_template.tscn` for patterns.
+  - Wire `@export` NodePaths in scenes; missing paths intentionally short-circuit behavior in systems. See `templates/tmpl_player.tscn` for patterns.
 - Resources
   - New exported fields in `*Settings.gd` require updating default `.tres` under `resources/` and any scene using them.
   - Trigger settings automatically clamp `player_mask` to at least layer 1; configure the desired mask on the resource instead of zeroing it at runtime.

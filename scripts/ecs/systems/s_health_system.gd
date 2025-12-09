@@ -12,7 +12,7 @@ const U_EntityActions := preload("res://scripts/state/actions/u_entity_actions.g
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
-const PLAYER_RAGDOLL := preload("res://templates/player_ragdoll.tscn")
+const PLAYER_RAGDOLL := preload("res://templates/tmpl_player_ragdoll.tscn")
 
 var _store: M_StateStore = null
 var _scene_manager: M_SceneManager = null
