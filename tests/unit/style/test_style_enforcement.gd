@@ -22,54 +22,9 @@ const TRIGGER_RESOURCE_FILES := [
 ]
 
 # Documented exceptions from STYLE_GUIDE.md
-const BASE_CLASS_EXCEPTIONS := [
-	"base_panel.gd",
-	"base_menu_screen.gd",
-	"base_overlay.gd",
-	"base_volume_controller.gd",
-	"base_interactable_controller.gd",
-	"triggered_interactable_controller.gd",
-	"base_ecs_component.gd",
-	"base_ecs_system.gd",
-	"base_ecs_entity.gd"
-]
-
-const MARKER_SCRIPT_EXCEPTIONS := [
-	"main_root_node.gd",
-	"entities_group.gd",
-	"systems_core_group.gd",
-	"systems_physics_group.gd",
-	"systems_movement_group.gd",
-	"systems_feedback_group.gd",
-	"scene_objects_group.gd",
-	"environment_group.gd",
-	"sp_spawn_points.gd",
-	"spawn_points_group.gd",
-	"active_scene_container.gd",
-	"ui_overlay_stack.gd",
-	"transition_overlay.gd",
-	"managers_group.gd",
-	"systems_group.gd",
-	"components_group.gd"
-]
-
+# Only interface files remain as exceptions (documented pattern)
 const INTERFACE_EXCEPTIONS := [
 	"i_scene_contract.gd"
-]
-
-const EVENT_BUS_EXCEPTIONS := [
-	"event_bus_base.gd"
-]
-
-const UTILITY_EXCEPTIONS := [
-	"entity_query.gd",
-	"analog_stick_repeater.gd"
-]
-
-const TRANSITION_EXCEPTIONS := [
-	"fade_transition.gd",
-	"loading_screen_transition.gd",
-	"instant_transition.gd"
 ]
 
 # Valid prefixes by directory
@@ -78,15 +33,20 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/ecs/systems": ["s_", "m_"],  # m_ for M_PauseManager
 	"res://scripts/ecs/components": ["c_"],
 	"res://scripts/ecs/resources": ["rs_"],
+	"res://scripts/ecs": ["base_", "u_", "event_"],  # base_ecs_*.gd files, u_ecs_event_bus.gd, u_entity_query.gd, event_vfx_system.gd
 	"res://scripts/state/actions": ["u_"],
 	"res://scripts/state/reducers": ["u_"],
 	"res://scripts/state/selectors": ["u_"],
 	"res://scripts/state/resources": ["rs_"],  # State initial state resources
 	"res://scripts/state": ["u_", "m_"],  # m_state_store.gd is in root
 	"res://scripts/ui/resources": ["rs_"],  # UI screen definitions
+	"res://scripts/ui/base": ["base_"],  # base_*.gd UI base classes
+	"res://scripts/ui/utils": ["u_"],  # UI utilities
 	"res://scripts/ui": ["ui_", "u_"],  # ui_ for controllers, u_ for utilities
-	"res://scripts/gameplay": ["e_", "endgame_"],  # e_ for entities, endgame_ for special zones
-	"res://scripts/scene_structure": [],  # All exceptions
+	"res://scripts/gameplay": ["e_", "base_", "triggered_"],  # e_ for entities, base_ for base controllers, triggered_ for special controllers
+	"res://scripts/scene_structure": ["marker_"],  # marker_*.gd organizational scripts
+	"res://scripts/scene_management/transitions": ["trans_", "base_"],  # transition effects
+	"res://scripts/events": ["base_"],  # base_event_bus.gd
 }
 
 func test_gd_files_use_tab_indentation() -> void:
@@ -342,12 +302,7 @@ func _is_valid_script_name(filename: String, allowed_prefixes: Array) -> bool:
 
 func _is_exception(filename: String) -> bool:
 	return (
-		filename in BASE_CLASS_EXCEPTIONS or
-		filename in MARKER_SCRIPT_EXCEPTIONS or
 		filename in INTERFACE_EXCEPTIONS or
-		filename in EVENT_BUS_EXCEPTIONS or
-		filename in UTILITY_EXCEPTIONS or
-		filename in TRANSITION_EXCEPTIONS or
 		filename.begins_with("test_")  # Test files are always exceptions
 	)
 

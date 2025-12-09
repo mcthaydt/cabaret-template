@@ -53,8 +53,9 @@ The following patterns apply to **production** scripts under `res://scripts/**`.
 | **Registries** | `u_*_registry.gd` | `u_scene_registry.gd`, `u_ui_registry.gd` |
 | **Event Buses** | `u_*_event_bus.gd` | `u_state_event_bus.gd`, `u_ecs_event_bus.gd` |
 | **UI Controllers** | `ui_*_screen.gd` / `ui_*_overlay.gd` / `ui_*_panel.gd` | `ui_main_menu_screen.gd`, `ui_pause_menu_overlay.gd` |
-| **Base Classes** | `base_*.gd` | `base_panel.gd`, `base_menu_screen.gd`, `base_overlay.gd` |
-| **Marker Scripts** | `*_group.gd` / `*_node.gd` | `main_root_node.gd`, `entities_group.gd`, `systems_core_group.gd` |
+| **Base Classes** | `base_*.gd` | `base_panel.gd`, `base_menu_screen.gd`, `base_overlay.gd`, `base_ecs_component.gd` |
+| **Marker Scripts** | `marker_*.gd` | `marker_entities_group.gd`, `marker_main_root_node.gd`, `marker_active_scene_container.gd` |
+| **Transition Effects** | `trans_*.gd` | `trans_fade.gd`, `trans_loading_screen.gd`, `trans_instant.gd` |
 | **Scene Scripts** | `sc_*_scene.gd` (where used) | `sc_player_scene.gd` |
 | **Shaders** | `sh_*_shader.gdshader` | `sh_water_shader.gdshader` |
 | **Tools** | `t_*_tool.gd` | `t_level_editor_tool.gd` |
@@ -183,7 +184,8 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 | **Scene Manager** | `m_scene_manager.gd` | `M_SceneManager` | `m_scene_manager.gd` → `M_SceneManager` |
 | **Spawn Manager** | `m_spawn_manager.gd` | `M_SpawnManager` | `m_spawn_manager.gd` → `M_SpawnManager` |
 | **Scene Utilities** | `u_scene_*.gd` | `U_Scene*` | `u_scene_registry.gd` → `U_SceneRegistry`, `u_transition_factory.gd` → `U_TransitionFactory` |
-| **Transition Effects** | `*_transition.gd` | `*Transition` | `trans_fade.gd` → `Trans_Fade`, `trans_loading_screen.gd` → `Trans_LoadingScreen` |
+| **Transition Effects** | `trans_*.gd` | `Trans_*` | `trans_fade.gd` → `Trans_Fade`, `trans_loading_screen.gd` → `Trans_LoadingScreen` |
+| **Base Transition** | `base_transition_effect.gd` | `BaseTransitionEffect` | `base_transition_effect.gd` → `BaseTransitionEffect` |
 | **Scene Triggers** | `c_scene_trigger_component.gd` | `C_SceneTriggerComponent` | `c_scene_trigger_component.gd` → `C_SceneTriggerComponent` |
 
 #### Gameplay Controllers (Interactables)
@@ -193,14 +195,19 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 | **Base Controllers** | `base_*_controller.gd` / `*_controller.gd` | `Base*Controller` / `*Controller` | `base_volume_controller.gd` → `BaseVolumeController`, `triggered_interactable_controller.gd` → `TriggeredInteractableController` |
 
 #### Documented Exceptions
+
+As of Phase 4B completion (2025-12-08), only ONE exception remains:
+
 | Category | File Pattern | Examples | Rationale |
 |----------|--------------|----------|-----------|
-| **Base Classes** | `base_*.gd` / `ecs_*.gd` | `base_panel.gd` → `BasePanel`, `base_ecs_component.gd` → `BaseECSComponent`, `base_ecs_entity.gd` → `ECSEntity` | Abstract base classes use `Base` or `ECS` prefix to indicate foundational role |
-| **Marker Scripts** | `*_group.gd` / `*_node.gd` / `*_container.gd` | `main_root_node.gd`, `entities_group.gd`, `active_scene_container.gd` | Scene structure markers provide visual organization, not runtime behavior |
 | **Interface Scripts** | `i_*.gd` | `i_scene_contract.gd` → `I_SCENE_CONTRACT` | Interface definitions follow GDScript interface pattern |
-| **Event Buses** | `*_event_bus.gd` / `base_event_bus.gd` | `u_ecs_event_bus.gd` → `U_ECSEventBus`, `base_event_bus.gd` → `BaseEventBus` | Base event bus is foundational, utility event buses use `u_` prefix |
-| **Entity Query** | `u_entity_query.gd` | `u_entity_query.gd` → `U_EntityQuery` | Standalone utility class for ECS queries |
-| **UI Navigation Helpers** | `u_analog_stick_repeater.gd` | `u_analog_stick_repeater.gd` → `U_AnalogStickRepeater` | Specialized UI navigation helper that doesn't fit standard categorization |
+
+**Previously Exceptions (Now Following Standard Patterns):**
+- Base Classes: Now use `base_` prefix (e.g., `base_panel.gd`, `base_ecs_component.gd`)
+- Marker Scripts: Now use `marker_` prefix (e.g., `marker_entities_group.gd`, `marker_main_root_node.gd`)
+- Transitions: Use `trans_` prefix (e.g., `trans_fade.gd`, `trans_loading_screen.gd`)
+- Event Buses: Use `base_` or `u_` prefix (e.g., `base_event_bus.gd`, `u_ecs_event_bus.gd`)
+- Utilities: Use `u_` prefix (e.g., `u_entity_query.gd`, `u_analog_stick_repeater.gd`)
 
 ### Directories: `snake_case` (plural)
 

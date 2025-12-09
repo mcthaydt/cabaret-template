@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://dm23qd3lalkrv" path="res://assets/textures/tex_shadow_blob.png" id="1_m3alx"]
 [ext_resource type="Script" uid="uid://b87yhhq4n1ldg" path="res://scripts/ecs/components/c_jump_component.gd" id="2_h3hux"]
 [ext_resource type="Script" uid="uid://cce7dk8f7vdd" path="res://scripts/ecs/components/c_input_component.gd" id="3_2fo1m"]
-[ext_resource type="Script" uid="uid://0pytf8ut4mvx" path="res://scripts/scene_structure/components_group.gd" id="3_8l4b7"]
+[ext_resource type="Script" uid="uid://ng4h6f6u61et" path="res://scripts/scene_structure/marker_components_group.gd" id="3_8l4b7"]
 [ext_resource type="Script" uid="uid://cepw6x4r271g7" path="res://scripts/ecs/components/c_rotate_to_input_component.gd" id="4_4etni"]
 [ext_resource type="Script" uid="uid://b8moqms3tv55v" path="res://scripts/ecs/components/c_floating_component.gd" id="5_f1jtd"]
 [ext_resource type="Script" uid="uid://blaeasuukrfw0" path="res://scripts/ecs/components/c_align_with_surface_component.gd" id="6_xa0wx"]

@@ -27,8 +27,8 @@
 - `scripts/managers/m_scene_manager.gd`: Scene transition coordinator (Phase 3+); manages ActiveSceneContainer.
 - `scripts/state/m_state_store.gd`: Redux store; adds to "state_store" group for discovery via `U_StateUtils.get_store()`.
 - `scripts/ui/u_ui_registry.gd` + `resources/ui_screens/`: UI registry definitions (`RS_UIScreenDefinition`) for base screens and overlays.
-- `scripts/ecs/ecs_component.gd`: Base for components. Auto-registers with manager; exposes `get_snapshot()` hook.
-- `scripts/ecs/ecs_system.gd`: Base for systems. Implement `process_tick(delta)`; runs via `_physics_process`.
+- `scripts/ecs/base_ecs_component.gd`: Base for components. Auto-registers with manager; exposes `get_snapshot()` hook.
+- `scripts/ecs/base_ecs_system.gd`: Base for systems. Implement `process_tick(delta)`; runs via `_physics_process`.
 - `scripts/ecs/components/*`: Gameplay components with `@export` NodePaths and typed getters.
 - `scripts/ecs/systems/*`: Systems that query components by `StringName` and operate per-physics tick.
 - `scripts/ecs/resources/*`: `Resource` classes holding tunables consumed by components/systems.
@@ -39,13 +39,13 @@
 ## ECS Guidelines
 
 - Components
-  - Extend `ECSComponent`; define `const COMPONENT_TYPE := StringName("YourComponent")` and set `component_type = COMPONENT_TYPE` in `_init()`.
+  - Extend `BaseECSComponent`; define `const COMPONENT_TYPE := StringName("YourComponent")` and set `component_type = COMPONENT_TYPE` in `_init()`.
   - Enforce required settings/resources by overriding `_validate_required_settings()` (call `push_error(...)` and return `false` to abort registration); use `_on_required_settings_ready()` for post-validation setup.
   - Prefer `@export` NodePaths with typed getters that use `get_node_or_null(...) as Type` and return `null` on empty paths.
   - Keep null-safe call sites; systems assume absent paths disable behavior rather than error.
   - If you expose debug state, copy via `snapshot.duplicate(true)` to avoid aliasing.
 - Systems
-  - Extend `ECSSystem`; implement `process_tick(delta)` (invoked from `_physics_process`).
+  - Extend `BaseECSSystem`; implement `process_tick(delta)` (invoked from `_physics_process`).
   - Query with `get_components(StringName)`, dedupe per-body where needed, and clamp/guard values (see movement/rotation/floating examples).
   - Use `U_ECSUtils.map_components_by_body()` when multiple systems need shared body→component dictionaries (avoids duplicate loops).
   - Auto-discovers `M_ECSManager` via parent traversal or `ecs_manager` group; no manual wiring needed.
@@ -87,20 +87,20 @@
 
 ## Naming Conventions Quick Reference
 
-**IMPORTANT**: All production scripts, scenes, and resources must follow documented prefix patterns or be explicitly listed as exceptions. See `docs/general/STYLE_GUIDE.md` for the complete prefix matrix.
+**IMPORTANT**: All production scripts, scenes, and resources must follow documented prefix patterns. As of Phase 4B (2025-12-08), only ONE exception remains: `i_scene_contract.gd` (interface pattern). See `docs/general/STYLE_GUIDE.md` for the complete prefix matrix.
 
-- **Base classes:** `Base*` prefix (e.g., `BaseECSSystem`, `BaseECSComponent`, `BaseEventVFXSystem`); entity roots extend `ECSEntity`
-- **Utilities:** `U_*` prefix (e.g., `U_ECSUtils`, `U_BootSelectors`, `U_GameplayReducer`, `U_ActionRegistry`)
-- **Managers:** `M_*` prefix (e.g., `M_ECSManager`, `M_StateStore`, `M_UIInputHandler`)
-- **Components:** `C_*` prefix (e.g., `C_MovementComponent`, `C_JumpComponent`)
-- **Systems:** `S_*` prefix (e.g., `S_GravitySystem`, `S_MovementSystem`)
-- **Resources:** `RS_*` prefix (e.g., `RS_JumpSettings`, `RS_MovementSettings`)
-- **Entities:** `E_*` prefix (e.g., `E_Player`, `E_CameraRoot`)
-- **Scene Objects:** `SO_*` prefix (e.g., `SO_Floor`, `SO_Block`)
-- **UI Scripts:** `ui_*` prefix for scripts, `ui_*` prefix for scenes (e.g., `ui_main_menu.gd` → `UI_MainMenu`, `ui_pause_menu.tscn`)
-- **Prefabs:** `prefab_*` prefix for entity/hazard scenes (e.g., `prefab_death_zone.tscn`, `prefab_checkpoint.tscn`)
-
-**Marker Script Exceptions:** `main_root_node.gd`, `entities_group.gd`, `systems_group.gd`, `active_scene_container.gd` (see STYLE_GUIDE.md for full list)
+- **Base classes:** `base_*` prefix (e.g., `base_ecs_component.gd` → `BaseECSComponent`, `base_panel.gd` → `BasePanel`)
+- **Utilities:** `u_*` prefix (e.g., `u_ecs_utils.gd` → `U_ECSUtils`, `u_entity_query.gd` → `U_EntityQuery`)
+- **Managers:** `m_*` prefix (e.g., `m_ecs_manager.gd` → `M_ECSManager`, `m_state_store.gd` → `M_StateStore`)
+- **Components:** `c_*` prefix (e.g., `c_movement_component.gd` → `C_MovementComponent`)
+- **Systems:** `s_*` prefix (e.g., `s_gravity_system.gd` → `S_GravitySystem`)
+- **Resources:** `rs_*` prefix (e.g., `rs_jump_settings.gd` → `RS_JumpSettings`)
+- **Entities:** `e_*` prefix (e.g., `e_player.gd` → `E_Player`, `e_checkpoint_zone.gd` → `E_CheckpointZone`)
+- **Scene Objects:** `so_*` prefix (e.g., `so_floor.gd` → `SO_Floor`)
+- **UI Scripts:** `ui_*` prefix (e.g., `ui_main_menu.gd` → `UI_MainMenu`)
+- **Marker Scripts:** `marker_*` prefix (e.g., `marker_entities_group.gd`, `marker_main_root_node.gd`)
+- **Transitions:** `trans_*` prefix (e.g., `trans_fade.gd` → `Trans_Fade`)
+- **Prefabs:** `prefab_*` prefix for scenes (e.g., `prefab_death_zone.tscn`)
 
 ## Conventions and Gotchas
 
@@ -405,9 +405,9 @@ func _on_apply_pressed():
 ## Quick How-Tos (non-duplicative)
 
 - Add a new ECS Component
-  - Create `scripts/ecs/components/c_your_component.gd` extending `ECSComponent` with `COMPONENT_TYPE` and exported NodePaths; add typed getters; update a scene to wire paths.
+  - Create `scripts/ecs/components/c_your_component.gd` extending `BaseECSComponent` with `COMPONENT_TYPE` and exported NodePaths; add typed getters; update a scene to wire paths.
 - Add a new ECS System
-  - Create `scripts/ecs/systems/s_your_system.gd` extending `ECSSystem`; implement `process_tick(delta)`; query with your component's `StringName`; drop the node under a running scene—auto-configured.
+  - Create `scripts/ecs/systems/s_your_system.gd` extending `BaseECSSystem`; implement `process_tick(delta)`; query with your component's `StringName`; drop the node under a running scene—auto-configured.
 - Find M_StateStore from any node
   - Use `U_StateUtils.get_store(self)` to find the store via "state_store" group.
   - In `_ready()`: add `await get_tree().process_frame` BEFORE calling `get_store()` to avoid race conditions.
