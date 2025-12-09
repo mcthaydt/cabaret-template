@@ -493,18 +493,24 @@ version: "1.0"
 
 ## Phase 5 – Docs & Planning Alignment
 
-- [ ] T050 Reconcile ECS documentation (`docs/ecs/*`) with current implementation:
-  - Mark completed refactor phases as such.
-  - Move any remaining “future” items into either this cleanup or clearly marked “Deferred” sections.
-- [ ] T051 Reconcile State Store documentation (`docs/state store/*`) with current implementation:
-  - Ensure mock‑data removal and entity coordination pattern are described as complete.
-  - Align tasks/plan with reality.
-- [ ] T052 Reconcile Scene Manager documentation (`docs/scene manager/*`) with current implementation:
-  - Overlay and navigation changes, camera blending, spawn manager split, preloading.
-- [ ] T053 Reconcile Input Manager documentation (`docs/input manager/*`) with current implementation:
-  - Profiles, rebinding, touchscreen support, button prompts, device manager behaviour.
-- [ ] T054 Reconcile UI Manager documentation (`docs/ui manager/*`) with current implementation:
-  - Navigation slice, UI registry, settings hub, overlay flattening, UI input handler.
+- [x] T050 Reconcile ECS documentation (`docs/ecs/*`) with current implementation:
+  - ✅ Marked refactor as COMPLETE in PRD/plan (Batches 1-4 complete, debugger tooling de-scoped)
+  - ✅ Updated continuation prompt with completion summary
+  - ✅ All future items clearly marked as deferred
+- [x] T051 Reconcile State Store documentation (`docs/state store/*`) with current implementation:
+  - ✅ PRD already marked PRODUCTION READY (Phases 1-16.5 complete, mock data removed)
+  - ✅ Entity coordination pattern documented and complete
+  - ✅ Tasks/plan aligned with reality
+- [x] T052 Reconcile Scene Manager documentation (`docs/scene manager/*`) with current implementation:
+  - ✅ Marked as PRODUCTION READY in PRD (all phases complete, post-hardening complete)
+  - ✅ Continuation prompt already shows completion status
+  - ✅ All features (overlay, navigation, camera blending, spawn manager, preloading) implemented
+- [x] T053 Reconcile Input Manager documentation (`docs/input manager/*`) with current implementation:
+  - ✅ Marked as PRODUCTION READY in PRD
+  - ✅ All features (profiles, rebinding, touchscreen, button prompts, device manager) implemented
+- [x] T054 Reconcile UI Manager documentation (`docs/ui manager/*`) with current implementation:
+  - ✅ Marked as PRODUCTION READY in PRD
+  - ✅ All features (navigation slice, UI registry, settings hub, overlay management) implemented
 - [ ] T055 Ensure each subsystem’s continuation prompt is updated to:
   - Reflect the new style/scene rules.
   - Reference this cleanup where appropriate.
