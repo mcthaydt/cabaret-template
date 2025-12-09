@@ -231,19 +231,21 @@ func test_cancel_from_main_menu_requests_settings_menu_scene_transition() -> voi
 	nav_slice["active_menu_panel"] = StringName("menu/main")
 	_store._state[StringName("navigation")] = nav_slice.duplicate(true)
 
-	# Stub SceneManager so we can observe scene transition requests
-	var manager_stub := SceneManagerStub.new()
-	manager_stub.add_to_group("scene_manager")
-	add_child_autofree(manager_stub)
-
 	_store.dispatched_actions.clear()
 	overlay.call("_on_cancel_pressed")
 	await _pump()
 
+	# Check that navigate_to_ui_screen action was dispatched with settings_menu
+	var navigate_action: Dictionary = {}
+	for action in _store.dispatched_actions:
+		if action.get("type") == U_NavigationActions.ACTION_NAVIGATE_TO_UI_SCREEN:
+			navigate_action = action
+			break
+
 	assert_eq(
-		manager_stub.last_scene_id,
+		navigate_action.get("scene_id"),
 		StringName("settings_menu"),
-		"Cancel from main menu touchscreen_settings should request transition back to settings_menu scene"
+		"Cancel from main menu touchscreen_settings should dispatch navigate_to_ui_screen(settings_menu)"
 	)
 
 func test_horizontal_navigation_skips_hidden_edit_layout_in_main_menu() -> void:
@@ -388,5 +390,10 @@ func _count_navigation_close_or_return_actions() -> int:
 			var shell: StringName = action.get("shell", StringName())
 			var base_scene: StringName = action.get("base_scene_id", StringName())
 			if shell == StringName("main_menu") and base_scene == StringName("settings_menu"):
+				count += 1
+		elif action_type == U_NavigationActions.ACTION_NAVIGATE_TO_UI_SCREEN:
+			# navigate_to_ui_screen with settings_menu is a "return to settings" action
+			var scene_id: StringName = action.get("scene_id", StringName())
+			if scene_id == StringName("settings_menu"):
 				count += 1
 	return count

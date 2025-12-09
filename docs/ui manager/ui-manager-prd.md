@@ -258,27 +258,31 @@ scene_manager.transition_to_scene("main_menu")  # ❌ Violates architecture
 3. **Predictability**: All navigation changes go through reducers, making them traceable and debuggable
 4. **Consistency**: Same pattern as ECS (components don't call managers directly, they dispatch events)
 
-### Known Violations (Technical Debt)
+### Implementation Status
 
-As of 2025-12-08, the following UI scripts violate this rule and need refactoring:
+✅ **ALL VIOLATIONS RESOLVED** (2025-12-08)
 
-1. **`scripts/ui/ui_settings_menu.gd`** (lines 14, 185-188)
-   - Directly calls `scene_manager.transition_to_scene()`
-   - **Fix**: Replace with `U_SceneActions.transition_to_scene()` or `U_NavigationActions.navigate_to_scene()`
+All UI scripts now comply with the UI → Redux → Scene Manager rule. The following violations were fixed:
 
-2. **`scripts/ui/ui_input_profile_selector.gd`** (lines 13, 161-164)
-   - Directly calls `scene_manager.transition_to_scene()`
-   - **Fix**: Replace with Redux actions
+1. **`scripts/ui/ui_settings_menu.gd`** ✅ FIXED
+   - Removed `M_SceneManager` import
+   - Replaced `_transition_to_scene()` with `U_NavigationActions.navigate_to_ui_screen()`
 
-3. **`scripts/ui/ui_input_rebinding_overlay.gd`** (lines 14, 740-743)
-   - Directly calls `scene_manager.transition_to_scene()`
-   - **Fix**: Replace with Redux actions
+2. **`scripts/ui/ui_input_profile_selector.gd`** ✅ FIXED
+   - Removed `M_SceneManager` import
+   - Refactored `_transition_back_to_settings_scene()` to use Redux action
 
-4. **`scripts/ui/ui_touchscreen_settings_overlay.gd`** (lines 456-457)
-   - Directly calls `scene_manager.transition_to_scene()`
-   - **Fix**: Replace with Redux actions
+3. **`scripts/ui/ui_input_rebinding_overlay.gd`** ✅ FIXED
+   - Removed `M_SceneManager` import
+   - Refactored `_transition_back_to_settings_scene()` to use Redux action
 
-**Tracking**: See `docs/general/cleanup/style-scene-cleanup-tasks.md` Task T056 for refactoring plan.
+4. **`scripts/ui/ui_touchscreen_settings_overlay.gd`** ✅ FIXED
+   - Simplified back navigation to use `U_NavigationActions.navigate_to_ui_screen()`
+   - Removed direct `M_SceneManager` calls
+
+**Solution**: Added `U_NavigationActions.navigate_to_ui_screen(scene_id, transition_type, priority)` action that updates navigation state, which M_SceneManager reconciles automatically.
+
+**Commit**: `c9c6a26` - refactor: Eliminate UI→SceneManager violations (4/4 fixed)
 
 ## Open Questions
 
