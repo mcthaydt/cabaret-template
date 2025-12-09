@@ -87,7 +87,7 @@
 
 ## Naming Conventions Quick Reference
 
-**IMPORTANT**: All production scripts, scenes, and resources must follow documented prefix patterns. As of Phase 4B (2025-12-08), 100% prefix compliance achieved - all files follow their respective prefix patterns. See `docs/general/STYLE_GUIDE.md` for the complete prefix matrix.
+**IMPORTANT**: All production scripts, scenes, and resources must follow documented prefix patterns. As of Phase 5 Complete (2025-12-08), 100% prefix compliance achieved - all files follow their respective prefix patterns. See `docs/general/STYLE_GUIDE.md` for the complete prefix matrix.
 
 - **Base classes:** `base_*` prefix (e.g., `base_ecs_component.gd` → `BaseECSComponent`, `base_panel.gd` → `BasePanel`)
 - **Utilities:** `u_*` prefix (e.g., `u_ecs_utils.gd` → `U_ECSUtils`, `u_entity_query.gd` → `U_EntityQuery`)
@@ -96,7 +96,6 @@
 - **Systems:** `s_*` prefix (e.g., `s_gravity_system.gd` → `S_GravitySystem`)
 - **Resources:** `rs_*` prefix (e.g., `rs_jump_settings.gd` → `RS_JumpSettings`)
 - **Entities:** `e_*` prefix (e.g., `e_player.gd` → `E_Player`, `e_checkpoint_zone.gd` → `E_CheckpointZone`)
-- **Scene Objects:** `so_*` prefix (e.g., `so_floor.gd` → `SO_Floor`)
 - **UI Scripts:** `ui_*` prefix (e.g., `ui_main_menu.gd` → `UI_MainMenu`)
 - **Marker Scripts:** `marker_*` prefix (e.g., `marker_entities_group.gd`, `marker_main_root_node.gd`)
 - **Transitions:** `trans_*` prefix (e.g., `trans_fade.gd` → `Trans_Fade`)

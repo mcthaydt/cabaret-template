@@ -231,6 +231,7 @@ Systems are organized into **four functional categories** for better visual orga
 - Discovers `M_SpawnManager` via "spawn_manager" group
 - Only spawns if player is NOT already at spawn point (avoids double-spawn)
 - Some scenes like `gameplay_base.tscn` and `gameplay_exterior.tscn` include it for convenience
+- **It is perfectly acceptable for gameplay scenes to omit this node** (e.g., `gameplay_interior_house.tscn`)
 
 **Note:** NOT required for normal gameplay - `M_SceneManager` handles spawning during scene transitions. This is purely a development convenience.
 

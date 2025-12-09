@@ -553,22 +553,19 @@ version: "1.0"
 
 ### Documentation Updates
 
-- [ ] T059a Update `DEV_PITFALLS.md`:
-  - Remove references to "Phase 5" as future (now complete)
-  - Update phase numbering to current reality
+- [x] T059a Update `DEV_PITFALLS.md`:
+  - Removed references to "future Phase 5" - updated to M_UIInputHandler
 
-- [ ] T059b Clean up `STYLE_GUIDE.md`:
-  - Remove or mark as historical the embedded "Phase 2-10" sections (lines 487-576)
-  - These reference an old refactoring workflow, not current cleanup phases
+- [x] T059b Clean up `STYLE_GUIDE.md`:
+  - Added historical note to Phase 1-10 sections - marked as completed ECS refactoring from 2024
 
-- [ ] T059c Update `AGENTS.md`:
-  - Line 90: Change "Phase 4B (2025-12-08)" to "Phase 5 Complete (2025-12-08)"
-  - Line 99: Remove `so_*` prefix reference - no such files exist in codebase
-  - Or add `so_*` to STYLE_GUIDE.md if this prefix should be used
+- [x] T059c Update `AGENTS.md`:
+  - Updated "Phase 4B (2025-12-08)" → "Phase 5 Complete (2025-12-08)"
+  - Removed `so_*` prefix reference (no such files exist)
 
-- [ ] T059d Standardize M_GameplayInitializer in gameplay scenes:
-  - Either add to `gameplay_interior_house.tscn` for consistency
-  - Or update SCENE_ORGANIZATION_GUIDE.md to clarify it's optional
+- [x] T059d Standardize M_GameplayInitializer in gameplay scenes:
+  - Updated SCENE_ORGANIZATION_GUIDE.md to explicitly clarify it's optional
+  - Added note that it's acceptable to omit (e.g., gameplay_interior_house.tscn)
 
 ### Task Checkbox Fix
 

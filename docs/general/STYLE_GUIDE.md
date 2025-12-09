@@ -484,6 +484,16 @@ This plan covers the complete refactoring of existing code to match the new nami
 **Estimated Impact:** ~40-50 files
 **Risk Level:** Medium (extensive renaming, but tests will catch issues)
 
+---
+
+## ⚠️ HISTORICAL NOTE
+
+**The following Phase 1-10 checklist represents a completed ECS naming refactoring from 2024.**
+**All items below have been completed. This section is preserved for historical reference only.**
+**For current style/scene cleanup progress, see `docs/general/cleanup/style-scene-cleanup-tasks.md`**
+
+---
+
 ### Phase 1: Documentation
 - [x] Create `STYLE_GUIDE.md` (this document)
 

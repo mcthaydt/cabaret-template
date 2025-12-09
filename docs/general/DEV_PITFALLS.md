@@ -734,8 +734,8 @@ func _input(event):
     if event.is_action_pressed("pause"):
         M_SceneManager.push_overlay("pause_menu")
 
-# ✅ CORRECT (Phase 4b pattern):
-# 1. UI input handler (future Phase 5) or virtual button dispatches action:
+# ✅ CORRECT:
+# 1. M_UIInputHandler or virtual button dispatches action:
 store.dispatch(U_NavigationActions.open_pause())
 
 # 2. Navigation reducer updates state:
@@ -763,7 +763,7 @@ store.dispatch(U_NavigationActions.close_pause())
 
 2. **Bypassing navigation state**: Don't call `M_SceneManager.push_overlay()` directly from UI controllers. Dispatch `U_NavigationActions.open_overlay(screen_id)` instead.
 
-3. **Reading input in UI controllers**: Don't check `Input.is_action_pressed("ui_cancel")` in UI scripts. React to navigation state changes or wait for future UI input handler (Phase 5).
+3. **Reading input in UI controllers**: Don't check `Input.is_action_pressed("ui_cancel")` in UI scripts. React to navigation state changes or let M_UIInputHandler handle input.
 
 4. **Ignoring transition state**: Overlay reconciliation defers during base scene transitions. Don't assume pause overlays push immediately—reconciliation may be deferred.
 
