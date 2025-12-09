@@ -55,7 +55,7 @@
 
 | Old Filename | New Filename | Class Name Change | Location | Impact |
 |--------------|--------------|-------------------|----------|--------|
-| `endgame_goal_zone.gd` | `e_endgame_goal_zone.gd` | Add `E_EndgameGoalZone` | `scripts/gameplay/` | Scene-attached |
+| `e_endgame_goal_zone.gd` | `e_e_endgame_goal_zone.gd` | Add `E_EndgameGoalZone` | `scripts/gameplay/` | Scene-attached |
 | `test_root_loader.gd` | **DECISION NEEDED** | TBD | `scripts/` (root) | Check purpose first |
 
 **Options for test_root_loader.gd:**

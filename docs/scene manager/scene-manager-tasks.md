@@ -120,7 +120,7 @@
 
 ### Integration Validation
 
-- [x] T017 Create test script in root.tscn to load gameplay_base.tscn into ActiveSceneContainer - **scripts/test_root_loader.gd**
+- [x] T017 Create test script in root.tscn to load gameplay_base.tscn into ActiveSceneContainer - **tests/helpers/test_root_loader.gd**
 - [x] T018 Run game from root.tscn and validate ECS works (player moves, components register) - **PASSED**
 - [x] T019 Validate Redux works (state updates, HUD updates) - **PASSED** (StateHandoff logs confirmed)
 - [x] T020 Run ALL ~212 tests and verify no regressions from baseline - **ALL PASSING** (212/212 ✅)

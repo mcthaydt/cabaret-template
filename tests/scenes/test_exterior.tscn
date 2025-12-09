@@ -37,7 +37,7 @@
 [ext_resource type="Script" uid="uid://ccm1a2gahhbye" path="res://scripts/gameplay/e_door_trigger_controller.gd" id="30_door_controller"]
 [ext_resource type="Script" uid="uid://sdf0ennjlulg" path="res://scripts/managers/m_gameplay_initializer.gd" id="31_j1c0c"]
 [ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://assets/textures/tex_icon.svg" id="39_u0c34"]
-[ext_resource type="Script" uid="uid://dk814k74hxxbg" path="res://scripts/gameplay/endgame_goal_zone.gd" id="41_goal_script"]
+[ext_resource type="Script" uid="uid://dk814k74hxxbg" path="res://scripts/gameplay/e_endgame_goal_zone.gd" id="41_goal_script"]
 [ext_resource type="Script" uid="uid://krd5w8xgf7f" path="res://scripts/ecs/systems/s_checkpoint_system.gd" id="42_checkpoint_system"]
 [ext_resource type="Resource" uid="uid://na7m34dl6a4d" path="res://resources/triggers/rs_checkpoint_box_2x3x2.tres" id="43_checkpoint_settings"]
 [ext_resource type="Script" uid="uid://bggqvmnm43r3f" path="res://scripts/gameplay/e_checkpoint_zone.gd" id="43_checkpoint_zone_script"]
