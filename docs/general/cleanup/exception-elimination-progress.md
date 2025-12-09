@@ -102,13 +102,13 @@ These files already follow the `base_` prefix pattern and should be **removed fr
 
 ---
 
-## Permanent Exceptions (1 file)
+## Interface Pattern (1 file)
 
-This file should **remain** in exception list (documented interface pattern):
+This file follows the `i_*` prefix pattern for interfaces (not an exception):
 
 | Filename | Class Name | Pattern | Notes |
 |----------|------------|---------|-------|
-| `i_scene_contract.gd` | `I_SCENE_CONTRACT` | Interface (`i_`) | ✅ Documented in STYLE_GUIDE.md line 200 |
+| `i_scene_contract.gd` | `I_SCENE_CONTRACT` | Interface (`i_`) | ✅ Follows documented `i_` prefix pattern in STYLE_GUIDE.md |
 
 ---
 
@@ -210,7 +210,7 @@ Update "Naming Conventions Quick Reference" (lines 89-103):
 - ✅ Batch 4 Complete: 2 files (newly discovered) - renamed/moved
 - ✅ Batch 5 Complete: 14 files (marker scripts) - already correct
 - ℹ️ Already Correct: 6 files (removed from exceptions)
-- ℹ️ Permanent Exception: 1 file (interface pattern)
+- ℹ️ Interface Pattern: 1 file (`i_scene_contract.gd` follows `i_` prefix, not an exception)
 
 **References Updated:**
 - Batch 1: 31 files (production + tests + docs)
@@ -219,7 +219,7 @@ Update "Naming Conventions Quick Reference" (lines 89-103):
 
 **Final Outcome:**
 - ✅ 100% prefix compliance achieved
-- ✅ Exception lists reduced to 1 entry (`i_scene_contract.gd`)
+- ✅ Zero exceptions - all files follow documented prefix patterns (including `i_` for interfaces)
 - ✅ All style enforcement tests passing
 - ✅ All production code follows documented naming conventions
 

@@ -56,6 +56,7 @@ The following patterns apply to **production** scripts under `res://scripts/**`.
 | **Base Classes** | `base_*.gd` | `base_panel.gd`, `base_menu_screen.gd`, `base_overlay.gd`, `base_ecs_component.gd` |
 | **Marker Scripts** | `marker_*.gd` | `marker_entities_group.gd`, `marker_main_root_node.gd`, `marker_active_scene_container.gd` |
 | **Transition Effects** | `trans_*.gd` | `trans_fade.gd`, `trans_loading_screen.gd`, `trans_instant.gd` |
+| **Interface Scripts** | `i_*.gd` | `i_scene_contract.gd` |
 | **Scene Scripts** | `sc_*_scene.gd` (where used) | `sc_player_scene.gd` |
 | **Shaders** | `sh_*_shader.gdshader` | `sh_water_shader.gdshader` |
 | **Tools** | `t_*_tool.gd` | `t_level_editor_tool.gd` |
@@ -194,15 +195,15 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 | **Entity Controllers** | `e_*.gd` | `E_*` | `e_door_trigger_controller.gd` → `E_DoorTriggerController`, `e_checkpoint_zone.gd` → `E_CheckpointZone` |
 | **Base Controllers** | `base_*_controller.gd` / `*_controller.gd` | `Base*Controller` / `*Controller` | `base_volume_controller.gd` → `BaseVolumeController`, `triggered_interactable_controller.gd` → `TriggeredInteractableController` |
 
-#### Documented Exceptions
+#### Additional Prefix Patterns
 
-As of Phase 4B completion (2025-12-08), only ONE exception remains:
+| Category | File Pattern | Class Pattern | Examples |
+|----------|--------------|---------------|----------|
+| **Interface Scripts** | `i_*.gd` | `I_*` (UPPER_SNAKE_CASE) | `i_scene_contract.gd` → `I_SCENE_CONTRACT` |
 
-| Category | File Pattern | Examples | Rationale |
-|----------|--------------|----------|-----------|
-| **Interface Scripts** | `i_*.gd` | `i_scene_contract.gd` → `I_SCENE_CONTRACT` | Interface definitions follow GDScript interface pattern |
+**Note:** Interface scripts follow the `i_` prefix pattern. They were previously listed as "exceptions" but they actually follow a documented prefix convention.
 
-**Previously Exceptions (Now Following Standard Patterns):**
+**Previously Listed as Exceptions (Now Following Standard Patterns):**
 - Base Classes: Now use `base_` prefix (e.g., `base_panel.gd`, `base_ecs_component.gd`)
 - Marker Scripts: Now use `marker_` prefix (e.g., `marker_entities_group.gd`, `marker_main_root_node.gd`)
 - Transitions: Use `trans_` prefix (e.g., `trans_fade.gd`, `trans_loading_screen.gd`)

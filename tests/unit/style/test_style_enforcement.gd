@@ -21,11 +21,8 @@ const TRIGGER_RESOURCE_FILES := [
 	"res://resources/rs_scene_trigger_settings.tres"
 ]
 
-# Documented exceptions from STYLE_GUIDE.md
-# Only interface files remain as exceptions (documented pattern)
-const INTERFACE_EXCEPTIONS := [
-	"i_scene_contract.gd"
-]
+# No exceptions - all files follow documented prefix patterns
+# (Previously interface files were listed as exceptions, but i_ is a valid prefix pattern)
 
 # Valid prefixes by directory
 const SCRIPT_PREFIX_RULES := {
@@ -46,6 +43,8 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/gameplay": ["e_", "base_", "triggered_"],  # e_ for entities, base_ for base controllers, triggered_ for special controllers
 	"res://scripts/scene_structure": ["marker_"],  # marker_*.gd organizational scripts
 	"res://scripts/scene_management/transitions": ["trans_", "base_"],  # transition effects
+	"res://scripts/scene_management/resources": ["rs_"],  # scene registry resources
+	"res://scripts/scene_management": ["i_", "u_"],  # i_scene_contract.gd, u_scene_registry.gd, u_transition_factory.gd
 	"res://scripts/events": ["base_"],  # base_event_bus.gd
 }
 
@@ -301,10 +300,7 @@ func _is_valid_script_name(filename: String, allowed_prefixes: Array) -> bool:
 	return false
 
 func _is_exception(filename: String) -> bool:
-	return (
-		filename in INTERFACE_EXCEPTIONS or
-		filename.begins_with("test_")  # Test files are always exceptions
-	)
+	return filename.begins_with("test_")  # Test files are always exceptions
 
 func _check_scene_directory(dir_path: String, required_prefix: String, violations: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
