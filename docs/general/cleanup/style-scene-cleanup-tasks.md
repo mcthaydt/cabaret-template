@@ -783,14 +783,14 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 #### Step 1: Templates (T064a-b)
 
-- [ ] T064a Migrate **tmpl_player.tscn**:
+- [x] T064a Migrate **tmpl_player.tscn**:
   - Open `templates/tmpl_player.tscn` in editor
   - Verify `E_PlayerRoot` shows new export variables (entity_id, tags)
   - Set `entity_id = StringName("player")` (explicit, not auto-generated "playerroot")
   - Set `tags = [StringName("player")]`
   - Save and verify no errors
 
-- [ ] T064b Migrate **tmpl_camera.tscn**:
+- [x] T064b Migrate **tmpl_camera.tscn**:
   - Open `templates/tmpl_camera.tscn` in editor
   - Verify `E_CameraRoot` shows new export variables
   - Set `entity_id = StringName("camera")` (explicit, not "cameraroot")
@@ -799,32 +799,32 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 #### Step 2: Prefabs (T064c-g)
 
-- [ ] T064c Migrate **prefab_checkpoint_safe_zone.tscn**:
+- [x] T064c Migrate **prefab_checkpoint_safe_zone.tscn**:
   - Open prefab in editor
   - Verify `E_Checkpoint_SafeZone` shows new export variables
   - Set `entity_id = StringName("checkpoint_safezone")` (or leave auto-generated)
   - Set `tags = [StringName("checkpoint"), StringName("objective")]`
   - Save
 
-- [ ] T064d Migrate **prefab_death_zone.tscn**:
+- [x] T064d Migrate **prefab_death_zone.tscn**:
   - Open prefab in editor
   - Set `entity_id = StringName("deathzone")` (or leave auto-generated)
   - Set `tags = [StringName("hazard"), StringName("death")]`
   - Save
 
-- [ ] T064e Migrate **prefab_spike_trap.tscn**:
+- [x] T064e Migrate **prefab_spike_trap.tscn**:
   - Open prefab in editor
   - Set `entity_id = StringName("spiketrap")` (or leave auto-generated)
   - Set `tags = [StringName("hazard"), StringName("trap")]`
   - Save
 
-- [ ] T064f Migrate **prefab_goal_zone.tscn**:
+- [x] T064f Migrate **prefab_goal_zone.tscn**:
   - Open prefab in editor
   - Set `entity_id = StringName("goalzone")` (or leave auto-generated)
   - Set `tags = [StringName("objective"), StringName("goal")]`
   - Save
 
-- [ ] T064g Migrate **prefab_door_trigger.tscn**:
+- [x] T064g Migrate **prefab_door_trigger.tscn**:
   - Open prefab in editor
   - Set `entity_id = StringName("doortrigger")` (or leave auto-generated)
   - Set `tags = [StringName("trigger"), StringName("door")]`
@@ -832,7 +832,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 #### Step 3: Gameplay Scene Instances (T064h-i)
 
-- [ ] T064h Update **gameplay_exterior.tscn** entity instances:
+- [x] T064h Update **gameplay_exterior.tscn** entity instances:
   - Open `scenes/gameplay/gameplay_exterior.tscn`
   - For each E_* instance that is NOT a template instance (E_Player, E_CameraRoot):
     - `E_FinalGoal`: Set `entity_id = StringName("finalgoal")`, `tags = [StringName("objective"), StringName("endgame")]`
@@ -841,7 +841,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
     - `E_Checkpoint_SafeZone`, `E_DeathZone`, `E_DoorTrigger`: Instances inherit from prefabs
   - Save
 
-- [ ] T064i Update **gameplay_interior_house.tscn** entity instances:
+- [x] T064i Update **gameplay_interior_house.tscn** entity instances:
   - Open `scenes/gameplay/gameplay_interior_house.tscn`
   - `E_TutorialSign_Interior`: Set `entity_id = StringName("tutorial_interior")`, `tags = [StringName("interactable"), StringName("tutorial")]`
   - `E_GoalZone`, `E_DeathZone`, `E_DoorTrigger`: Instances inherit from prefabs
