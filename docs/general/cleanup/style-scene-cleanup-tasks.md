@@ -698,28 +698,28 @@ version: "1.0"
 
 **Step 1: Update `scripts/state/actions/u_entity_actions.gd`**
 
-- [ ] T062a Modify `update_entity_snapshot(entity_id: Variant, snapshot: Dictionary)`:
+- [x] T062a Modify `update_entity_snapshot(entity_id: Variant, snapshot: Dictionary)`:
   - Convert `entity_id` to String: `String(entity_id) if entity_id is StringName else str(entity_id)`
   - This allows passing both `StringName` and `String` IDs
-- [ ] T062b Modify `remove_entity(entity_id: Variant)`:
+- [x] T062b Modify `remove_entity(entity_id: Variant)`:
   - Same StringName → String conversion
-- [ ] T062c Modify `update_entity_physics()`:
+- [x] T062c Modify `update_entity_physics()`:
   - Same StringName → String conversion for entity_id parameter
 
 **Step 2: Update `scripts/state/selectors/u_entity_selectors.gd`**
 
-- [ ] T062d Modify `get_entity(state: Dictionary, entity_id: Variant)`:
+- [x] T062d Modify `get_entity(state: Dictionary, entity_id: Variant)`:
   - Convert `entity_id` to String before dictionary lookup
-- [ ] T062e Modify `get_entity_position()`, `get_entity_velocity()`, `get_entity_rotation()`:
+- [x] T062e Modify `get_entity_position()`, `get_entity_velocity()`, `get_entity_rotation()`:
   - Update to use Variant entity_id parameter
-- [ ] T062f Modify `is_entity_on_floor()`, `is_entity_moving()`:
+- [x] T062f Modify `is_entity_on_floor()`, `is_entity_moving()`:
   - Update to use Variant entity_id parameter
-- [ ] T062g Modify `get_entity_type()`, `get_entity_health()`, `get_entity_max_health()`:
+- [x] T062g Modify `get_entity_type()`, `get_entity_health()`, `get_entity_max_health()`:
   - Update to use Variant entity_id parameter
 
 **Step 3: Add snapshot builder to `scripts/utils/u_ecs_utils.gd`**
 
-- [ ] T062h Add `static func build_entity_snapshot(entity: Node) -> Dictionary`:
+- [x] T062h Add `static func build_entity_snapshot(entity: Node) -> Dictionary`:
   - Include `entity_id` (as String)
   - Include `tags` (as Array[String])
   - Include `position`, `rotation` if Node3D

@@ -12,55 +12,70 @@ static func get_all_entities(state: Dictionary) -> Dictionary:
 	return state.get("gameplay", {}).get("entities", {})
 
 ## Get specific entity snapshot
-static func get_entity(state: Dictionary, entity_id: String) -> Dictionary:
-	return get_all_entities(state).get(entity_id, {})
+## entity_id: accepts String or StringName
+static func get_entity(state: Dictionary, entity_id: Variant) -> Dictionary:
+	# Convert StringName to String for dictionary lookup
+	var id_string := String(entity_id) if entity_id is StringName else str(entity_id)
+	return get_all_entities(state).get(id_string, {})
 
 ## Get entity position
-static func get_entity_position(state: Dictionary, entity_id: String) -> Vector3:
+## entity_id: accepts String or StringName
+static func get_entity_position(state: Dictionary, entity_id: Variant) -> Vector3:
 	return get_entity(state, entity_id).get("position", Vector3.ZERO)
 
 ## Get entity velocity
-static func get_entity_velocity(state: Dictionary, entity_id: String) -> Vector3:
+## entity_id: accepts String or StringName
+static func get_entity_velocity(state: Dictionary, entity_id: Variant) -> Vector3:
 	return get_entity(state, entity_id).get("velocity", Vector3.ZERO)
 
 ## Get entity rotation
-static func get_entity_rotation(state: Dictionary, entity_id: String) -> Vector3:
+## entity_id: accepts String or StringName
+static func get_entity_rotation(state: Dictionary, entity_id: Variant) -> Vector3:
 	return get_entity(state, entity_id).get("rotation", Vector3.ZERO)
 
 ## Check if entity is on floor
-static func is_entity_on_floor(state: Dictionary, entity_id: String) -> bool:
+## entity_id: accepts String or StringName
+static func is_entity_on_floor(state: Dictionary, entity_id: Variant) -> bool:
 	return get_entity(state, entity_id).get("is_on_floor", false)
 
 ## Check if entity is moving
-static func is_entity_moving(state: Dictionary, entity_id: String) -> bool:
+## entity_id: accepts String or StringName
+static func is_entity_moving(state: Dictionary, entity_id: Variant) -> bool:
 	return get_entity(state, entity_id).get("is_moving", false)
 
 ## Get entity type (player, enemy, npc, etc.)
-static func get_entity_type(state: Dictionary, entity_id: String) -> String:
+## entity_id: accepts String or StringName
+static func get_entity_type(state: Dictionary, entity_id: Variant) -> String:
 	return get_entity(state, entity_id).get("entity_type", "unknown")
 
 ## Get entity health
-static func get_entity_health(state: Dictionary, entity_id: String) -> float:
+## entity_id: accepts String or StringName
+static func get_entity_health(state: Dictionary, entity_id: Variant) -> float:
 	var entity: Dictionary = get_entity(state, entity_id)
 	if entity.has("health"):
 		return float(entity.get("health"))
 
 	var gameplay: Dictionary = state.get("gameplay", {})
 	var player_id: String = String(gameplay.get("player_entity_id", "E_Player"))
-	if entity_id == player_id:
+	# Convert entity_id to String for comparison
+	var id_string := String(entity_id) if entity_id is StringName else str(entity_id)
+	if id_string == player_id:
 		return float(gameplay.get("player_health", 0.0))
 
 	return float(entity.get("health", gameplay.get("player_health", 0.0)))
 
 ## Get entity max health (player fallback)
-static func get_entity_max_health(state: Dictionary, entity_id: String) -> float:
+## entity_id: accepts String or StringName
+static func get_entity_max_health(state: Dictionary, entity_id: Variant) -> float:
 	var entity: Dictionary = get_entity(state, entity_id)
 	if entity.has("max_health"):
 		return float(entity.get("max_health"))
 
 	var gameplay: Dictionary = state.get("gameplay", {})
 	var player_id: String = String(gameplay.get("player_entity_id", "E_Player"))
-	if entity_id == player_id:
+	# Convert entity_id to String for comparison
+	var id_string := String(entity_id) if entity_id is StringName else str(entity_id)
+	if id_string == player_id:
 		return float(gameplay.get("player_max_health", 0.0))
 
 	return float(entity.get("max_health", 0.0))

@@ -150,6 +150,40 @@ static func get_entity_tags(entity: Node) -> Array[StringName]:
 			return result
 	return []
 
+## Builds a snapshot dictionary for an entity node.
+## Includes entity_id, tags, and physics data (position, rotation, velocity, etc.)
+## Used for syncing entity state to the Redux store.
+static func build_entity_snapshot(entity: Node) -> Dictionary:
+	if entity == null:
+		return {}
+
+	var snapshot: Dictionary = {}
+
+	# Entity ID (as String for dictionary keys)
+	var entity_id := get_entity_id(entity)
+	snapshot["entity_id"] = String(entity_id)
+
+	# Tags (as Array[String] for serialization)
+	var tags := get_entity_tags(entity)
+	var tags_array: Array[String] = []
+	for tag in tags:
+		tags_array.append(String(tag))
+	snapshot["tags"] = tags_array
+
+	# Physics data (if Node3D)
+	if entity is Node3D:
+		var node3d := entity as Node3D
+		snapshot["position"] = node3d.global_position
+		snapshot["rotation"] = node3d.rotation
+
+		# Velocity and floor status (if CharacterBody3D)
+		if entity is CharacterBody3D:
+			var body := entity as CharacterBody3D
+			snapshot["velocity"] = body.velocity
+			snapshot["is_on_floor"] = body.is_on_floor()
+
+	return snapshot
+
 static func set_warning_handler(handler: Callable) -> void:
 	_warning_handler = handler
 
