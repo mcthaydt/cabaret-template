@@ -231,6 +231,55 @@ The original design envisioned a fully tabbed `SettingsPanel` with Input/Audio/G
   - Reuse the existing input overlays as tab content where practical.
   - Preserve the current navigation contracts (main menu vs gameplay) and CloseMode semantics.
 
+## Architectural Rule: UI → Redux → Scene Manager
+
+**Core Principle**: UI scripts must NEVER call `M_SceneManager` methods directly. All scene transitions and overlay management must go through Redux actions.
+
+### The Rule
+
+✅ **CORRECT**: UI scripts dispatch actions
+```gdscript
+# In UI controller
+U_NavigationActions.open_overlay("settings_menu_overlay")
+U_SceneActions.transition_to_scene("main_menu")
+```
+
+❌ **INCORRECT**: UI scripts call M_SceneManager directly
+```gdscript
+# DON'T DO THIS
+var scene_manager = U_StateUtils.get_manager_from_group("scene_manager")
+scene_manager.transition_to_scene("main_menu")  # ❌ Violates architecture
+```
+
+### Rationale
+
+1. **Single Source of Truth**: Navigation state must live in Redux, not be scattered across UI controllers
+2. **Testability**: Actions can be tested without scene tree manipulation
+3. **Predictability**: All navigation changes go through reducers, making them traceable and debuggable
+4. **Consistency**: Same pattern as ECS (components don't call managers directly, they dispatch events)
+
+### Known Violations (Technical Debt)
+
+As of 2025-12-08, the following UI scripts violate this rule and need refactoring:
+
+1. **`scripts/ui/ui_settings_menu.gd`** (lines 14, 185-188)
+   - Directly calls `scene_manager.transition_to_scene()`
+   - **Fix**: Replace with `U_SceneActions.transition_to_scene()` or `U_NavigationActions.navigate_to_scene()`
+
+2. **`scripts/ui/ui_input_profile_selector.gd`** (lines 13, 161-164)
+   - Directly calls `scene_manager.transition_to_scene()`
+   - **Fix**: Replace with Redux actions
+
+3. **`scripts/ui/ui_input_rebinding_overlay.gd`** (lines 14, 740-743)
+   - Directly calls `scene_manager.transition_to_scene()`
+   - **Fix**: Replace with Redux actions
+
+4. **`scripts/ui/ui_touchscreen_settings_overlay.gd`** (lines 456-457)
+   - Directly calls `scene_manager.transition_to_scene()`
+   - **Fix**: Replace with Redux actions
+
+**Tracking**: See `docs/general/cleanup/style-scene-cleanup-tasks.md` Task T056 for refactoring plan.
+
 ## Open Questions
 
 - Should we introduce a dedicated `navigation` slice, or extend the existing `scene` + `menu` slices with navigation fields and adopt a clear ownership model? ✅ **RESOLVED**: Dedicated navigation slice implemented

@@ -100,6 +100,8 @@ Additional tracking requirements:
 - **No autoloads**: Use scene-tree-based discovery patterns
 - **TDD is mandatory**: Write tests before implementation
 - **Immutable state**: Always use `.duplicate(true)` in reducers
+- **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and `docs/general/SCENE_ORGANIZATION_GUIDE.md`
+- **Cleanup Project**: See `docs/general/cleanup/style-scene-cleanup-continuation-prompt.md` for architectural improvements
 
 ---
 

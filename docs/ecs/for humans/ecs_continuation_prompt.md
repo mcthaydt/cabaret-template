@@ -72,6 +72,15 @@ When working with the ECS architecture:
    - All system tests drive execution via `manager._physics_process()`
    - Entity roots must use `E_*` prefix for query system
 
+## Style & Scene Organization
+
+When working with ECS code, follow project-wide conventions:
+
+- **Naming**: All ECS files use established prefixes (`E_*` for entity roots, `C_*` for components, `S_*` for systems)
+- **Scene Organization**: See `docs/general/SCENE_ORGANIZATION_GUIDE.md` for scene file structure
+- **Style Guide**: See `docs/general/STYLE_GUIDE.md` for code conventions
+- **Cleanup Project**: See `docs/general/cleanup/style-scene-cleanup-continuation-prompt.md` for ongoing architectural improvements
+
 ## Friendly Resources
 
 - `ecs_ELI5.md` – Intro to the architecture

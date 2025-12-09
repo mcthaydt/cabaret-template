@@ -645,6 +645,8 @@ Phases 15 & 16 complete. State store fully functional with multi-entity support.
 - **Planning**: `redux-state-store-prd.md`, `redux-state-store-implementation-plan.md`
 - **Tasks**: `redux-state-store-tasks.md` (see Phase 0 section, T026C-T031C)
 - **Code Standards**: `AGENTS.md`, `docs/general/DEV_PITFALLS.md`, `docs/general/STYLE_GUIDE.md`
+- **Scene Organization**: `docs/general/SCENE_ORGANIZATION_GUIDE.md` - Scene file structure and prefixes
+- **Cleanup Project**: `docs/general/cleanup/style-scene-cleanup-continuation-prompt.md` - Ongoing architectural improvements
 
 ## Test Commands
 

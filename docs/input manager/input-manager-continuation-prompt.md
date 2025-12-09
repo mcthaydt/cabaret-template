@@ -61,6 +61,13 @@
 - Performance target: < 16.67ms frame time (60 FPS)
 - Migration tests: `tests/unit/integration/test_touchscreen_settings_migration.gd`, `tests/unit/input_manager/test_u_input_serialization.gd`
 
+## Style & Organization
+
+Follow project-wide conventions:
+- **Style Guide**: `docs/general/STYLE_GUIDE.md` - Code formatting and naming
+- **Scene Organization**: `docs/general/SCENE_ORGANIZATION_GUIDE.md` - Scene file structure
+- **Cleanup Project**: `docs/general/cleanup/style-scene-cleanup-continuation-prompt.md` - Architectural improvements
+
 ## Links
 
 - Plan: [input-manager-plan.md](./input-manager-plan.md)

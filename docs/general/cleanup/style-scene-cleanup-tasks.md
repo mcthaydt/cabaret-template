@@ -511,12 +511,22 @@ version: "1.0"
 - [x] T054 Reconcile UI Manager documentation (`docs/ui manager/*`) with current implementation:
   - ✅ Marked as PRODUCTION READY in PRD
   - ✅ All features (navigation slice, UI registry, settings hub, overlay management) implemented
-- [ ] T055 Ensure each subsystem’s continuation prompt is updated to:
-  - Reflect the new style/scene rules.
-  - Reference this cleanup where appropriate.
-- [ ] T056 Codify “UI → Redux → Scene Manager” rule:
-  - Update UI Manager docs to state that UI scripts must not call `M_SceneManager` directly.
-  - Inventory existing direct `M_SceneManager.transition_to_scene` calls in UI scripts and link their refactors to this cleanup plan.
+- [x] T055 Ensure each subsystem's continuation prompt is updated to:
+  - ✅ ECS: Added Style & Scene Organization section referencing STYLE_GUIDE, SCENE_ORGANIZATION_GUIDE, cleanup project
+  - ✅ State Store: Added references to style guides and cleanup project
+  - ✅ Scene Manager: Added Critical Notes referencing style/organization guides
+  - ✅ Input Manager: Added Style & Organization section
+  - ✅ UI Manager: Added style references and UI→Redux→Scene Manager rule note
+- [x] T056 Codify "UI → Redux → Scene Manager" rule:
+  - ✅ Added "Architectural Rule: UI → Redux → Scene Manager" section to `docs/ui manager/ui-manager-prd.md`
+  - ✅ Documented core principle with correct/incorrect examples
+  - ✅ Explained rationale (single source of truth, testability, predictability, consistency)
+  - ✅ Inventoried 4 violations:
+    1. `ui_settings_menu.gd` (lines 14, 185-188)
+    2. `ui_input_profile_selector.gd` (lines 13, 161-164)
+    3. `ui_input_rebinding_overlay.gd` (lines 14, 740-743)
+    4. `ui_touchscreen_settings_overlay.gd` (lines 456-457)
+  - ✅ Linked refactoring to this cleanup plan
 
 ---
 
