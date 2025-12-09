@@ -546,8 +546,10 @@ version: "1.0"
 
 ### Cleanup
 
-- [ ] T059 Delete orphaned temporary file `scenes/tmp_invalid_gameplay.tscn`:
-  - Empty test artifact (3 lines), not used anywhere
+- [SKIP] T059 Delete orphaned temporary file `scenes/tmp_invalid_gameplay.tscn`:
+  - **SKIPPED**: File is actively used in `test_scene_contract_invocation.gd` and `test_scene_registry_resources.gd`
+  - Scene provides minimal test fixture for scene transition validation
+  - Cannot be deleted without updating tests first
 
 ### Documentation Updates
 
@@ -570,10 +572,8 @@ version: "1.0"
 
 ### Task Checkbox Fix
 
-- [ ] T059e Update T022 checkbox in Phase 2:
-  - T022 "Remove ALL pause/cursor control from M_SceneManager" shows `[ ]`
-  - Phase 2 Status Summary says "✅ T022: Removed pause/cursor control"
-  - Mark task definition as `[x]` to match completion status
+- [x] T059e Update T022 checkbox in Phase 2:
+  - T022 already marked as `[x]` on line 127 (task was already complete)
 
 ---
 
