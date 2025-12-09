@@ -62,7 +62,7 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
   - **T059e**: Verified T022 checkbox (already correct) ✅
   - **Tests**: All passing (64 ECS, 7 style, 90 scene manager) ✅
   - **Commits**: 6 commits (3 implementation, 3 documentation)
-- Phase 6 – ECS Entity IDs & Tagging: **NOT STARTED** (Planning complete, ready for implementation)
+- Phase 6 – ECS Entity IDs & Tagging: **IN PROGRESS** (T060-T063 complete, T064a-i complete)
   - **T060**: Design complete ✅ (2025-12-08)
     - Plan file: `/Users/mcthaydt/.claude/plans/zesty-sleeping-alpaca.md`
     - Design decisions approved:
@@ -72,16 +72,30 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
       - Tagging: Multiple freeform tags (Array[StringName])
     - Architecture: Uses existing U_ECSEventBus for entity registration events
     - Patterns audited: Follows BaseECSComponent const preload, BaseTest autofree, async spawn helpers
-  - **T061-T064**: Detailed implementation steps in `style-scene-cleanup-tasks.md`
-    - 23 sub-tasks for core ID support (base_ecs_entity.gd, m_ecs_manager.gd, u_ecs_utils.gd)
-    - 8 sub-tasks for state store integration (u_entity_actions.gd, u_entity_selectors.gd)
-    - 10 sub-tasks for tests + documentation
-    - **12 sub-tasks** for migrating ALL existing entities:
-      - 2 templates (player_template, camera_template)
-      - 5 prefabs (checkpoint, death_zone, spike_trap, goal_zone, door_trigger)
-      - 2 gameplay scene instances (E_FinalGoal, E_TutorialSign)
-      - 2 verification steps
-      - 1 documentation update
+  - **T061**: Core ID support ✅ COMPLETE (2025-12-09)
+    - base_ecs_entity.gd: entity_id, tags exports, get_entity_id(), tag methods
+    - m_ecs_manager.gd: entity registration, tag indexing, query methods
+    - u_ecs_utils.gd: get_entity_id(), get_entity_tags(), build_entity_snapshot()
+    - u_entity_query.gd: get_entity_id(), get_tags(), has_tag()
+  - **T062**: State Store integration ✅ COMPLETE (2025-12-09)
+    - u_entity_actions.gd: StringName support for entity_id parameters
+    - u_entity_selectors.gd: StringName support for entity_id parameters
+    - u_ecs_utils.gd: build_entity_snapshot() includes entity_id and tags
+  - **T063**: Tests ✅ COMPLETE (2025-12-09)
+    - 27 new tests in test_entity_ids.gd
+    - All 91 ECS unit tests passing
+    - Documentation updated (ecs_architecture.md, AGENTS.md)
+  - **T064a-i**: Entity migration ✅ COMPLETE (2025-12-09)
+    - Templates: tmpl_player.tscn, tmpl_camera.tscn
+    - Prefabs: 5 prefabs (checkpoint, death_zone, spike_trap, goal_zone, door_trigger)
+    - Gameplay scenes: gameplay_exterior.tscn, gameplay_interior_house.tscn
+    - All entities have unique IDs and appropriate tags
+    - All 181 tests passing (91 ECS + 90 Scene Manager)
+    - Commits: 6be2509 (implementation), 89fbfc1 (documentation)
+  - **T064j-k**: Verification - automated tests passing, manual verification optional
+  - **T064l**: Documentation - NEXT TASK
+    - Add entity ID/tag mappings table to docs/ecs/ecs_architecture.md
+  - **T064m-v**: Template refactoring - deferred (optional architectural improvement)
 - Phase 7 – ECS Event Bus Migration: **NOT STARTED**
   - Migrate 7 components/systems from direct signals to U_ECSEventBus
   - **7A**: Health & death events (C_HealthComponent → event bus)
@@ -127,42 +141,24 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 **Current Phase: Phase 6 – ECS Entity IDs & Tagging**
 
-Phase 5B is complete! All audit findings have been addressed and documentation is up to date.
+Phase 6 core implementation is nearly complete! T060-T063 and T064a-i are done.
 
-1. **Read the Phase 6 Plan**
-   - Plan file: `/Users/mcthaydt/.claude/plans/zesty-sleeping-alpaca.md`
-   - Tasks file: `docs/general/cleanup/style-scene-cleanup-tasks.md` (Phase 6 section)
-   - Design decisions documented above
+1. **Next Task: T064l - Documentation**
+   - Add entity ID/tag mappings table to `docs/ecs/ecs_architecture.md`
+   - Document all entity IDs and their tags:
+     - Templates: E_PlayerRoot → "player", E_CameraRoot → "camera"
+     - Prefabs: checkpoint_safezone, deathzone, spiketrap, goalzone, doortrigger
+     - Scene instances: finalgoal, tutorial_exterior, tutorial_interior, etc.
+   - Document tagging strategy (hazard, objective, interactable, checkpoint, trigger, door)
 
-2. **Implementation Order**:
-   - **T061**: Implement core ID support (23 detailed sub-tasks)
-     - Start with `base_ecs_entity.gd` (T061a-T061g)
-     - Then `m_ecs_manager.gd` (T061h-T061r)
-     - Then `u_ecs_utils.gd` (T061s-T061t)
-     - Finally `u_entity_query.gd` (T061u-T061w)
-   - **T062**: Integrate with state store (8 sub-tasks)
-   - **T063**: Add comprehensive tests (10 sub-tasks)
-   - **T064**: Migrate ALL existing entities (12 sub-tasks)
-     - **Templates** (T064a-b): player_template, camera_template
-     - **Prefabs** (T064c-g): checkpoint, death_zone, spike_trap, goal_zone, door_trigger
-     - **Scene instances** (T064h-i): gameplay_exterior, gameplay_interior_house
-     - **Verification** (T064j-k): Test all scenes, verify no duplicate IDs
-     - **Documentation** (T064l): Document entity ID/tag mappings
+2. **Remaining Phase 6 Tasks (Optional)**:
+   - **T064j-k**: Manual verification (automated tests already passing)
+   - **T064m-v**: Template architecture refactoring (separate generic character templates from player-specific prefabs)
 
-3. **Testing Strategy**:
-   - Follow existing test patterns (BaseTest, autofree, _spawn_* helpers)
-   - Reset U_ECSEventBus in before_each()
-   - Verify entity registration events via event bus history
-
-4. **Architecture Notes**:
-   - Use `const U_ECS_UTILS := preload(...)` pattern in base_ecs_entity.gd
-   - Publish events via `U_ECSEventBus` (not signals)
-   - Entity IDs are StringName, tags are Array[StringName]
-   - Auto-register entities when first component registers
-
-5. **Keep changes scoped**:
-   - Complete T061 before starting T062
-   - Run tests after each major step
+3. **After Phase 6**:
+   - Move to Phase 7 (ECS Event Bus Migration) or
+   - Move to Phase 8 (Spawn Registry & Spawn Conditions) or
+   - Move to Phase 9 (Large File Splitting)
 
 ---
 
