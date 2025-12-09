@@ -18,11 +18,11 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ---
 
-## Current Status (2025-12-08 – Phase 0-5 Complete)
+## Current Status (2025-12-08 – Phase 5 Complete + Bonus Refactoring)
 
 - **PRD**: `docs/general/cleanup/style-scene-cleanup-prd.md` – Drafted.
 - **Plan**: `docs/general/cleanup/style-scene-cleanup-plan.md` – Phases 0–9 defined with user-approved policies.
-- **Tasks**: `docs/general/cleanup/style-scene-cleanup-tasks.md` – Phase 0-5 tasks complete (T050-T054 ✅).
+- **Tasks**: `docs/general/cleanup/style-scene-cleanup-tasks.md` – Phase 0-5 tasks complete (T050-T056 ✅).
 
 **Execution Status**:
 
@@ -31,14 +31,28 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 - Phase 2 – Responsibility Consolidation (Pause/Cursor): **✅ COMPLETE**
 - Phase 3 – Naming & Prefix Migration: **✅ COMPLETE**
 - Phase 4 – Tests & Tooling Hardening: **✅ COMPLETE** (2025-12-08)
-- Phase 5 – Docs & Planning Alignment: **✅ COMPLETE** (2025-12-08, Commit: 30dd4d6)
-  - **T050-T054 Complete**: All subsystem PRDs marked PRODUCTION READY
+- Phase 5 – Docs & Planning Alignment: **✅ COMPLETE** (2025-12-08, Commits: 30dd4d6, 8b1ae15, 011c4fa)
+  - **T050-T056 Complete**: All subsystem PRDs marked PRODUCTION READY + UI→Redux→Scene Manager rule codified
   - ECS: Batches 1-4 complete, debugger tooling de-scoped
   - State Store: Phases 1-16.5 complete, mock data removed, entity coordination ready
   - Scene Manager: All phases complete, post-hardening done
   - Input Manager: All planned features implemented (profiles, rebinding, device detection)
   - UI Manager: All planned features implemented (navigation slice, registry, settings)
-- Phase 6 – Final Validation & Regression Sweep: **NOT STARTED**
+  - **T055**: All subsystem continuation prompts updated with style/scene references
+  - **T056**: UI→Redux→Scene Manager architectural rule codified with 4 violations inventoried
+- **Bonus Work** – UI→Redux→Scene Manager Refactoring: **✅ COMPLETE** (2025-12-08, Commits: c9c6a26, 20978da)
+  - **Added**: `navigate_to_ui_screen()` Redux action for UI scene transitions
+  - **Refactored**: 4 UI scripts to eliminate direct M_SceneManager calls
+    - ui_settings_menu.gd ✅
+    - ui_input_profile_selector.gd ✅
+    - ui_input_rebinding_overlay.gd ✅
+    - ui_touchscreen_settings_overlay.gd ✅
+  - **Tests**: All 128 UI tests passing ✅ (fixed 3 failing tests)
+  - **Architecture**: UI scripts now dispatch Redux actions exclusively
+- Phase 6 – ECS Entity IDs & Tagging: **NOT STARTED**
+- Phase 7 – Spawn Registry & Spawn Conditions: **NOT STARTED**
+- Phase 8 – Multi-Slot Save Manager: **NOT STARTED**
+- Phase 9 – Final Validation & Regression Sweep: **NOT STARTED**
 
 **Policy Decisions Approved**:
 - ✅ UI screen controllers: Add `ui_` prefix
