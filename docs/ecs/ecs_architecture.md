@@ -1483,22 +1483,104 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 
 ---
 
-### 8.5 No Entity Abstraction
+### 8.5 Entity IDs & Tagging ✅ RESOLVED (Phase 6 - 2025-12-09)
 
-**Problem**: No explicit entity concept—`CharacterBody3D` acts as implicit entity.
+**Status**: Implemented
 
-**Issues**:
-- Can't have non-physical entities (UI elements, game logic)
-- Hard to serialize entity state
-- Can't query "all entities with X components" directly
+**Solution**: Explicit entity ID and tag system added to `BaseECSEntity` with automatic registration via `M_ECSManager`.
 
-**Current Pattern**: Components reference parent node as "entity".
+#### Entity ID System
 
-**Desired Pattern**: Explicit entity ID, components belong to entity ID, systems query by entity.
+**Pattern**: All entities (nodes extending `BaseECSEntity`) have unique string identifiers.
 
-**Impact**: Low for current use case (3D character controller), High for general ECS.
+**ID Assignment**:
+- **Auto-generated**: ID derived from node name (`E_Player` → `"player"`)
+  - Strips `E_` prefix, converts to lowercase
+  - Cached after first call to `get_entity_id()`
+- **Manual override**: Set `entity_id` export variable for custom IDs
+- **Duplicate handling**: Automatically appends `_{instance_id}` suffix on collision
 
-**Solution**: See `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md` → Entity Tracking
+**Core Methods** (in `BaseECSEntity`):
+```gdscript
+func get_entity_id() -> StringName    # Returns cached or generated ID
+func set_entity_id(id: StringName)     # Allows manager to update on duplicates
+```
+
+**Manager Integration** (in `M_ECSManager`):
+```gdscript
+func register_entity(entity: Node) -> void           # Auto-registers when first component added
+func get_entity_by_id(id: StringName) -> Node        # Lookup entity by ID
+func get_all_entity_ids() -> Array[StringName]      # Get all registered IDs
+```
+
+#### Tag System
+
+**Pattern**: Entities can have multiple freeform tags for categorization.
+
+**Tag Usage**:
+- **Export variable**: `@export var tags: Array[StringName] = []`
+- **Dynamic management**: `add_tag(tag)`, `remove_tag(tag)`, `has_tag(tag)`
+- **Tag queries**: Find entities by tags (ANY or ALL match)
+
+**Core Methods** (in `BaseECSEntity`):
+```gdscript
+func get_tags() -> Array[StringName]       # Returns defensive copy
+func has_tag(tag: StringName) -> bool      # Check for tag
+func add_tag(tag: StringName) -> void      # Add tag, updates manager index
+func remove_tag(tag: StringName) -> void   # Remove tag, updates manager index
+```
+
+**Manager Queries** (in `M_ECSManager`):
+```gdscript
+func get_entities_by_tag(tag: StringName) -> Array[Node]
+func get_entities_by_tags(tags: Array[StringName], match_all: bool = false) -> Array[Node]
+```
+
+#### Example Usage
+
+```gdscript
+# Entity setup in scene
+var player := E_PlayerRoot.new()
+player.entity_id = StringName("player")        # Manual ID
+player.tags = [StringName("player"), StringName("controllable")]
+
+# System queries
+var manager := U_ECSUtils.get_manager(self)
+var player_entity := manager.get_entity_by_id(StringName("player"))
+var hostile_entities := manager.get_entities_by_tag(StringName("enemy"))
+var boss_enemies := manager.get_entities_by_tags([StringName("enemy"), StringName("boss")], true)
+```
+
+#### State Store Integration
+
+**Snapshot Building** (in `U_ECSUtils`):
+```gdscript
+func build_entity_snapshot(entity: Node) -> Dictionary
+    # Returns: { "entity_id": String, "tags": Array[String], "position": Vector3, ... }
+```
+
+**Redux Actions** (in `U_EntityActions`):
+- Accept both `String` and `StringName` for entity_id parameters
+- Automatically converted to String for dictionary keys
+
+#### Events
+
+**Entity Lifecycle Events** (published to `U_ECSEventBus`):
+- `"entity_registered"` - payload: `{ "entity_id": StringName, "entity": Node }`
+- `"entity_unregistered"` - payload: `{ "entity_id": StringName, "entity": Node }`
+
+#### Benefits
+
+✅ **Unique identifiers**: Every entity has a stable ID across scene transitions
+✅ **Flexible categorization**: Tag-based queries for gameplay logic
+✅ **State persistence**: Entity IDs integrate with Redux state snapshots
+✅ **Event-driven architecture**: Entity registration/unregistration via event bus
+✅ **Automatic management**: Auto-registration when first component added
+✅ **Collision-safe**: Duplicate IDs automatically resolved with instance ID suffix
+
+**Implementation**: `scripts/ecs/base_ecs_entity.gd`, `scripts/managers/m_ecs_manager.gd`
+**Tests**: `tests/unit/ecs/test_entity_ids.gd` (27 tests, all passing)
+**Documentation**: Phase 6 of style/scene cleanup project
 
 ---
 
@@ -1533,10 +1615,11 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 - Settings resources and deep-copy snapshots for debugging
 - Decoupled component architecture (no cross-component NodePaths)
 - Query-driven systems: movement, jump, gravity, floating, rotate-to-input, align-to-surface, landing indicator
+- **Entity IDs & tagging** (Phase 6): Unique identifiers, tag-based queries, auto-registration, state store integration
 
 **Not Implemented (Yet)** (see [§8](#8-current-limitations)):
-- Explicit entity ID abstraction
-- Component tag/indexing layer
+- ~~Explicit entity ID abstraction~~ ✅ Implemented (Phase 6)
+- ~~Component tag/indexing layer~~ ✅ Implemented (Phase 6)
 - Optional execution-order visualiser/debug overlay
 
 ### 9.3 Next Steps

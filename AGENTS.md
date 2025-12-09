@@ -53,6 +53,14 @@
   - Ensure exactly one `M_ECSManager` in-scene. It auto-adds to `ecs_manager` group on `_ready()`.
   - Emits `component_added`/`component_removed` and calls `component.on_registered(self)`.
   - `get_components()` strips out null entries automatically; only guard for missing components when logic truly requires it.
+- Entities (Phase 6 - Entity IDs & Tags)
+  - All entities extend `BaseECSEntity` (Node3D with entity_id and tags exports).
+  - **Entity IDs**: Auto-generated from node name (`E_Player` → `"player"`), or manually set via `entity_id` export. Cached after first access. Duplicate IDs automatically get `_{instance_id}` suffix.
+  - **Tags**: Freeform `Array[StringName]` for categorization. Use `add_tag(tag)`, `remove_tag(tag)`, `has_tag(tag)` to modify. Tags auto-update manager's tag index.
+  - **Manager queries**: `get_entity_by_id(id)`, `get_entities_by_tag(tag)`, `get_entities_by_tags(tags, match_all)`.
+  - **Auto-registration**: Entities automatically register with `M_ECSManager` when their first component registers. Publishes `"entity_registered"` event to `U_ECSEventBus`.
+  - **State integration**: `U_ECSUtils.build_entity_snapshot(entity)` includes entity_id and tags for Redux persistence.
+  - Example: `player.entity_id = StringName("player"); player.tags = [StringName("player"), StringName("controllable")]`
 
 ## Scene Organization
 
