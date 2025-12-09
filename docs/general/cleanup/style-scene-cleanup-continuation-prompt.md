@@ -18,11 +18,11 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ---
 
-## Current Status (2025-12-08 – Phase 0-4 Complete)
+## Current Status (2025-12-08 – Phase 0-5 Complete)
 
 - **PRD**: `docs/general/cleanup/style-scene-cleanup-prd.md` – Drafted.
 - **Plan**: `docs/general/cleanup/style-scene-cleanup-plan.md` – Phases 0–9 defined with user-approved policies.
-- **Tasks**: `docs/general/cleanup/style-scene-cleanup-tasks.md` – Phase 0-4 tasks complete.
+- **Tasks**: `docs/general/cleanup/style-scene-cleanup-tasks.md` – Phase 0-5 tasks complete (T050-T054 ✅).
 
 **Execution Status**:
 
@@ -31,7 +31,13 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 - Phase 2 – Responsibility Consolidation (Pause/Cursor): **✅ COMPLETE**
 - Phase 3 – Naming & Prefix Migration: **✅ COMPLETE**
 - Phase 4 – Tests & Tooling Hardening: **✅ COMPLETE** (2025-12-08)
-- Phase 5 – Docs & Planning Alignment: **NOT STARTED**
+- Phase 5 – Docs & Planning Alignment: **✅ COMPLETE** (2025-12-08, Commit: 30dd4d6)
+  - **T050-T054 Complete**: All subsystem PRDs marked PRODUCTION READY
+  - ECS: Batches 1-4 complete, debugger tooling de-scoped
+  - State Store: Phases 1-16.5 complete, mock data removed, entity coordination ready
+  - Scene Manager: All phases complete, post-hardening done
+  - Input Manager: All planned features implemented (profiles, rebinding, device detection)
+  - UI Manager: All planned features implemented (navigation slice, registry, settings)
 - Phase 6 – Final Validation & Regression Sweep: **NOT STARTED**
 
 **Policy Decisions Approved**:
