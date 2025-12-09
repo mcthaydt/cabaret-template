@@ -873,6 +873,107 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Scene instances: E_FinalGoal → "finalgoal", E_TutorialSign → "tutorial_exterior", etc.
   - Document tagging strategy (hazard, objective, interactable, etc.)
 
+#### Step 6: Template Architecture Refactoring (T064m-v)
+
+**Goal**: Separate generic character/ragdoll templates from player-specific prefabs for better reusability
+
+**Current Architecture**:
+- `tmpl_player.tscn` - Character + input mixed together
+- `tmpl_player_ragdoll.tscn` - Ragdoll (player-specific naming)
+
+**Target Architecture**:
+
+**Templates (generic, reusable bases)**:
+- `tmpl_character.tscn` - Base character (movement, physics, visuals, health) - NO INPUT
+- `tmpl_character_ragdoll.tscn` - Generic ragdoll for death physics
+- `tmpl_camera.tscn` - Camera (already generic ✓)
+
+**Prefabs (pre-configured entities)**:
+- `prefabs/prefab_player.tscn` - tmpl_character + input components
+- `prefabs/prefab_player_ragdoll.tscn` - tmpl_character_ragdoll configured for player
+- Future: `prefabs/prefab_npc_guard.tscn` - tmpl_character + AI components
+
+**Implementation Tasks**:
+
+- [ ] T064m Rename **tmpl_player.tscn** → **tmpl_character.tscn**:
+  - Use git mv: `git mv templates/tmpl_player.tscn templates/tmpl_character.tscn`
+  - Open in editor
+  - Rename root node: `E_PlayerRoot` → `E_CharacterRoot`
+  - Remove input-specific components:
+    - Delete `C_InputComponent`
+    - Delete `C_GamepadComponent`
+    - Delete `C_PlayerTagComponent`
+  - Update entity_id: `StringName("")` (will auto-generate from node name)
+  - Update tags: `[StringName("character")]`
+  - Save
+
+- [ ] T064n Rename **tmpl_player_ragdoll.tscn** → **tmpl_character_ragdoll.tscn**:
+  - Use git mv: `git mv templates/tmpl_player_ragdoll.tscn templates/tmpl_character_ragdoll.tscn`
+  - Open in editor
+  - Rename root node: `PlayerRagdoll` → `CharacterRagdoll`
+  - Update any player-specific naming to be generic
+  - Save
+
+- [ ] T064o Create **prefabs/prefab_player.tscn**:
+  - Create new scene
+  - Instantiate `templates/tmpl_character.tscn` as root (using scene inheritance or instance)
+  - Rename root node to `E_PlayerRoot`
+  - Add Components folder (if not inherited)
+  - Add input-specific components:
+    - C_InputComponent
+    - C_GamepadComponent
+    - C_PlayerTagComponent
+  - Set entity_id: `StringName("player")`
+  - Set tags: `[StringName("player"), StringName("character")]`
+  - Save to `scenes/prefabs/prefab_player.tscn`
+
+- [ ] T064p Create **prefabs/prefab_player_ragdoll.tscn**:
+  - Create new scene
+  - Instantiate `templates/tmpl_character_ragdoll.tscn`
+  - Configure player-specific properties (mass, etc.)
+  - Add any player-specific ragdoll components if needed
+  - Save to `scenes/prefabs/prefab_player_ragdoll.tscn`
+
+- [ ] T064q Update all scene references from tmpl_player → prefab_player:
+  - **tmpl_base_scene.tscn**: Update ExtResource path from tmpl_player to prefab_player
+  - **gameplay_base.tscn**: Update player instance reference
+  - **gameplay_exterior.tscn**: Update player instance reference
+  - **gameplay_interior_house.tscn**: Update player instance reference
+  - Use find/replace in .tscn files: `templates/tmpl_player.tscn` → `scenes/prefabs/prefab_player.tscn`
+
+- [ ] T064r Update any code references to tmpl_player_ragdoll:
+  - Search codebase for `tmpl_player_ragdoll` or `player_ragdoll`
+  - Update preload paths to point to `prefab_player_ragdoll.tscn`
+  - Update any instantiation code
+
+- [ ] T064s Run full test suite to verify refactoring:
+  - ECS tests: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit`
+  - Scene manager tests: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/scene_manager -gexit`
+  - Verify all tests pass with new paths
+
+- [ ] T064t Manual gameplay testing:
+  - Play `scenes/gameplay/gameplay_exterior.tscn`
+  - Verify player spawns correctly
+  - Verify all movement, jumping, floating, rotation work
+  - Verify input works (keyboard, gamepad, touchscreen)
+  - Verify health and damage work
+  - Test death to verify ragdoll spawns correctly (if implemented)
+
+- [ ] T064u Update AGENTS.md documentation:
+  - Update "Scene Organization" section (line 77) to document new template/prefab hierarchy:
+    - **Templates**: `tmpl_character.tscn` (generic base), `tmpl_character_ragdoll.tscn` (generic ragdoll), `tmpl_camera.tscn` (camera)
+    - **Prefabs**: `prefab_player.tscn` (character + input), `prefab_player_ragdoll.tscn` (player death)
+  - Add note: "Templates are generic bases. Prefabs are pre-configured entities using templates + specific components (input, AI, etc.)"
+  - Add example: "To create NPC: use tmpl_character.tscn + AI components as new prefab"
+
+- [ ] T064v Update SCENE_ORGANIZATION_GUIDE.md:
+  - Add "Templates vs Prefabs" section:
+    - Templates: Generic, reusable bases (character, camera, ragdoll)
+    - Prefabs: Pre-configured entities using templates + domain-specific components
+  - Document template inheritance pattern
+  - Show example of creating NPC using tmpl_character.tscn
+  - Document component separation (generic vs. input-specific vs. AI-specific)
+
 ### Documentation Updates (After Implementation)
 
 - [x] T063h Update `docs/ecs/ecs_architecture.md`:
