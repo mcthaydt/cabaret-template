@@ -866,7 +866,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 #### Step 5: Documentation (T064l)
 
-- [ ] T064l Document entity ID mappings in `docs/ecs/ecs_architecture.md`:
+- [x] T064l Document entity ID mappings in `docs/ecs/ecs_architecture.md`:
   - Add table of all entity types with their IDs and tags
   - Templates: E_PlayerRoot → "player", E_CameraRoot → "camera"
   - Prefabs: E_Checkpoint_SafeZone → "checkpoint_safezone", etc.

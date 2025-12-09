@@ -93,8 +93,8 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
     - All 181 tests passing (91 ECS + 90 Scene Manager)
     - Commits: 6be2509 (implementation), 89fbfc1 (documentation)
   - **T064j-k**: Verification - automated tests passing, manual verification optional
-  - **T064l**: Documentation - NEXT TASK
-    - Add entity ID/tag mappings table to docs/ecs/ecs_architecture.md
+  - **T064l**: Documentation ✅ COMPLETE (2025-12-09)
+    - Added entity ID/tag inventory and tagging strategy table to docs/ecs/ecs_architecture.md
   - **T064m-v**: Template refactoring - deferred (optional architectural improvement)
 - Phase 7 – ECS Event Bus Migration: **NOT STARTED**
   - Migrate 7 components/systems from direct signals to U_ECSEventBus
@@ -141,19 +141,14 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 **Current Phase: Phase 6 – ECS Entity IDs & Tagging**
 
-Phase 6 core implementation is nearly complete! T060-T063 and T064a-i are done.
+Phase 6 core implementation is nearly complete (T060-T064l done).
 
-1. **Next Task: T064l - Documentation**
-   - Add entity ID/tag mappings table to `docs/ecs/ecs_architecture.md`
-   - Document all entity IDs and their tags:
-     - Templates: E_PlayerRoot → "player", E_CameraRoot → "camera"
-     - Prefabs: checkpoint_safezone, deathzone, spiketrap, goalzone, doortrigger
-     - Scene instances: finalgoal, tutorial_exterior, tutorial_interior, etc.
-   - Document tagging strategy (hazard, objective, interactable, checkpoint, trigger, door)
+1. **Next Task: T064j-k - Manual verification (optional but next in checklist)**
+   - Load tmpl_base_scene and gameplay scenes to visually confirm entity registration/IDs/tags.
+   - Note any issues before moving on.
 
-2. **Remaining Phase 6 Tasks (Optional)**:
-   - **T064j-k**: Manual verification (automated tests already passing)
-   - **T064m-v**: Template architecture refactoring (separate generic character templates from player-specific prefabs)
+2. **Optional follow-up: T064m-v**
+   - Template architecture refactor (character vs player prefabs) if opting in.
 
 3. **After Phase 6**:
    - Move to Phase 7 (ECS Event Bus Migration) or
