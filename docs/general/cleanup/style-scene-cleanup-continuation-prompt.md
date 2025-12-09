@@ -49,10 +49,37 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
     - ui_touchscreen_settings_overlay.gd ✅
   - **Tests**: All 128 UI tests passing ✅ (fixed 3 failing tests)
   - **Architecture**: UI scripts now dispatch Redux actions exclusively
-- Phase 6 – ECS Entity IDs & Tagging: **NOT STARTED**
+- Phase 6 – ECS Entity IDs & Tagging: **🔄 IN PROGRESS** (Planning complete, ready for implementation)
+  - **T060**: Design complete ✅ (2025-12-08)
+    - Plan file: `/Users/mcthaydt/.claude/plans/zesty-sleeping-alpaca.md`
+    - Design decisions approved:
+      - ID Assignment: Auto-generated from node name (E_Player → "player"), manual override via export
+      - ID Scope: Required for all entities (supports systemic/emergent gameplay)
+      - State Store Integration: Loosely coupled (manual sync)
+      - Tagging: Multiple freeform tags (Array[StringName])
+    - Architecture: Uses existing U_ECSEventBus for entity registration events
+    - Patterns audited: Follows BaseECSComponent const preload, BaseTest autofree, async spawn helpers
+  - **T061-T064**: Detailed implementation steps in `style-scene-cleanup-tasks.md`
+    - 23 sub-tasks for core ID support (base_ecs_entity.gd, m_ecs_manager.gd, u_ecs_utils.gd)
+    - 8 sub-tasks for state store integration (u_entity_actions.gd, u_entity_selectors.gd)
+    - 10 sub-tasks for tests + documentation
+    - **12 sub-tasks** for migrating ALL existing entities:
+      - 2 templates (player_template, camera_template)
+      - 5 prefabs (checkpoint, death_zone, spike_trap, goal_zone, door_trigger)
+      - 2 gameplay scene instances (E_FinalGoal, E_TutorialSign)
+      - 2 verification steps
+      - 1 documentation update
 - Phase 7 – Spawn Registry & Spawn Conditions: **NOT STARTED**
-- Phase 8 – Multi-Slot Save Manager: **NOT STARTED**
-- Phase 9 – Final Validation & Regression Sweep: **NOT STARTED**
+- Phase 8 – Large File Splitting for Maintainability: **NOT STARTED**
+  - Split 8 files over 400 lines into smaller, more maintainable helpers (~400 lines max)
+  - **8A**: m_scene_manager.gd (1,565 → ~400) - 3 helpers + refactor + external refs + tests
+  - **8B**: ui_input_rebinding_overlay.gd (1,254 → ~400) - 3 helpers + refactor + tests
+  - **8C**: m_state_store.gd (809 → ~400) - 2 helpers + refactor + tests
+  - **8D**: u_input_rebind_utils.gd (509 → ~180) - 2 utilities + refactor + external refs + tests
+  - **8E**: Minor splits for 4 files (500-451 lines each)
+  - **8F**: Validation & documentation updates
+- Phase 9 – Multi-Slot Save Manager: **NOT STARTED**
+- Phase 10 – Final Validation & Regression Sweep: **NOT STARTED**
 
 **Policy Decisions Approved**:
 - ✅ UI screen controllers: Add `ui_` prefix
@@ -65,20 +92,42 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ## How to Continue
 
-1. **Read the PRD and Plan**
-   - `docs/general/cleanup/style-scene-cleanup-prd.md`
-   - `docs/general/cleanup/style-scene-cleanup-plan.md`
-2. **Re‑read core guidelines** (once per session):
-   - `AGENTS.md`
-   - `docs/general/DEV_PITFALLS.md`
-   - `docs/general/STYLE_GUIDE.md`
-   - `docs/general/SCENE_ORGANIZATION_GUIDE.md`
-3. **Start with Phase 0 tasks** in `style-scene-cleanup-tasks.md`:
-   - T000–T008 establish the actual, current deviations and inventory.
-4. **Use TDD where applicable**:
-   - For style/scene enforcement tests, write failing tests first, then implement changes.
+**Current Phase: Phase 6 – ECS Entity IDs & Tagging**
+
+1. **Read the Phase 6 Plan**
+   - Plan file: `/Users/mcthaydt/.claude/plans/zesty-sleeping-alpaca.md`
+   - Tasks file: `docs/general/cleanup/style-scene-cleanup-tasks.md` (Phase 6 section)
+   - Design decisions documented above
+
+2. **Implementation Order**:
+   - **T061**: Implement core ID support (23 detailed sub-tasks)
+     - Start with `base_ecs_entity.gd` (T061a-T061g)
+     - Then `m_ecs_manager.gd` (T061h-T061r)
+     - Then `u_ecs_utils.gd` (T061s-T061t)
+     - Finally `u_entity_query.gd` (T061u-T061w)
+   - **T062**: Integrate with state store (8 sub-tasks)
+   - **T063**: Add comprehensive tests (10 sub-tasks)
+   - **T064**: Migrate ALL existing entities (12 sub-tasks)
+     - **Templates** (T064a-b): player_template, camera_template
+     - **Prefabs** (T064c-g): checkpoint, death_zone, spike_trap, goal_zone, door_trigger
+     - **Scene instances** (T064h-i): gameplay_exterior, gameplay_interior_house
+     - **Verification** (T064j-k): Test all scenes, verify no duplicate IDs
+     - **Documentation** (T064l): Document entity ID/tag mappings
+
+3. **Testing Strategy**:
+   - Follow existing test patterns (BaseTest, autofree, _spawn_* helpers)
+   - Reset U_ECSEventBus in before_each()
+   - Verify entity registration events via event bus history
+
+4. **Architecture Notes**:
+   - Use `const U_ECS_UTILS := preload(...)` pattern in base_ecs_entity.gd
+   - Publish events via `U_ECSEventBus` (not signals)
+   - Entity IDs are StringName, tags are Array[StringName]
+   - Auto-register entities when first component registers
+
 5. **Keep changes scoped**:
-   - Do not mix Phase 2 pause refactors with Phase 3 naming changes in one commit.
+   - Complete T061 before starting T062
+   - Run tests after each major step
 
 ---
 
