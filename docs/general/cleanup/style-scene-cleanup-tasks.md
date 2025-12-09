@@ -541,7 +541,7 @@ version: "1.0"
   - File declares `class_name BaseEventVFXSystem` but filename missing `base_` prefix
   - Update any preload() references
 
-- [ ] T058 Add missing `class_name E_EndgameGoalZone` to `scripts/gameplay/e_endgame_goal_zone.gd`:
+- [x] T058 Add missing `class_name E_EndgameGoalZone` to `scripts/gameplay/e_endgame_goal_zone.gd`:
   - Non-breaking addition for type safety
 
 ### Cleanup
