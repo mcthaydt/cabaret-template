@@ -9,6 +9,8 @@ albedo_color = Color(0.9828339, 0, 0.010878513, 1)
 
 [node name="E_DoorTrigger" type="Node3D"]
 script = ExtResource("1_controller")
+entity_id = &"doortrigger"
+tags = Array[StringName]([&"trigger", &"door"])
 door_id = &"door_to_house"
 target_scene_id = &"interior_house"
 target_spawn_point = &"sp_entrance_from_exterior"

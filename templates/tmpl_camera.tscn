@@ -4,6 +4,8 @@
 
 [node name="E_CameraRoot" type="Node3D"]
 script = ExtResource("1_ecsentity")
+entity_id = &"camera"
+tags = Array[StringName]([&"camera"])
 
 [node name="E_PlayerCamera" type="Camera3D" parent="." groups=["main_camera"]]
 current = true

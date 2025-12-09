@@ -233,6 +233,8 @@ fov = 80.0
 [node name="E_DoorTrigger" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
 script = ExtResource("30_door_controller")
+entity_id = &"door_to_house"
+tags = Array[StringName]([&"trigger", &"door"])
 door_id = &"door_to_house"
 target_scene_id = &"interior_house"
 target_spawn_point = &"sp_entrance_from_exterior"
@@ -249,12 +251,16 @@ script = ExtResource("16_8qi87")
 [node name="E_DeathZone" type="Node3D" parent="Entities/Hazards"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
 script = ExtResource("44_hazard_controller")
+entity_id = &"deathzone_exterior"
+tags = Array[StringName]([&"hazard", &"death"])
 is_instant_death = true
 settings = ExtResource("44_death_settings")
 
 [node name="E_SpikeTrapA" type="Node3D" parent="Entities/Hazards"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 3)
 script = ExtResource("44_hazard_controller")
+entity_id = &"spiketrap_a"
+tags = Array[StringName]([&"hazard", &"trap"])
 settings = ExtResource("44_spike_settings")
 visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
 
@@ -270,6 +276,8 @@ material = SubResource("StandardMaterial3D_spike")
 [node name="E_SpikeTrapB" type="Node3D" parent="Entities/Hazards"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 3)
 script = ExtResource("44_hazard_controller")
+entity_id = &"spiketrap_b"
+tags = Array[StringName]([&"hazard", &"trap"])
 settings = ExtResource("44_spike_settings")
 visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
 
@@ -285,6 +293,8 @@ material = SubResource("StandardMaterial3D_spike")
 [node name="E_Checkpoint_SafeZone" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.9000635, 0, -5.877161)
 script = ExtResource("43_checkpoint_zone_script")
+entity_id = &"checkpoint_exterior"
+tags = Array[StringName]([&"checkpoint", &"objective"])
 checkpoint_id = &"cp_safe_zone"
 spawn_point_id = &"sp_checkpoint_safe"
 settings = ExtResource("43_checkpoint_settings")
@@ -295,6 +305,8 @@ texture = ExtResource("39_u0c34")
 [node name="E_TutorialSign" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.787005, 1.1897154, -2.5)
 script = ExtResource("45_signpost_controller")
+entity_id = &"tutorial_exterior"
+tags = Array[StringName]([&"interactable", &"tutorial"])
 message = "Welcome to Crispy Template!"
 settings = ExtResource("45_signpost_settings")
 
@@ -305,6 +317,8 @@ material = SubResource("StandardMaterial3D_12vux")
 [node name="E_FinalGoal" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -5)
 script = ExtResource("41_goal_script")
+entity_id = &"finalgoal"
+tags = Array[StringName]([&"objective", &"endgame"])
 
 [node name="Visual" type="CSGCylinder3D" parent="Entities/E_FinalGoal"]
 radius = 1.5

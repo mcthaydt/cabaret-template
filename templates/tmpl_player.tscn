@@ -42,6 +42,8 @@ albedo_color = Color(0.08627451, 0.3529412, 0.29803923, 1)
 
 [node name="E_PlayerRoot" type="Node3D" groups=["player"]]
 script = ExtResource("15_ecsentity")
+entity_id = &"player"
+tags = Array[StringName]([&"player"])
 
 [node name="Player_Body" type="CharacterBody3D" parent="."]
 

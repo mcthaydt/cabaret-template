@@ -17,6 +17,8 @@ text = ":)"
 
 [node name="E_GoalZone" type="Node3D"]
 script = ExtResource("1_controller")
+entity_id = &"goalzone"
+tags = Array[StringName]([&"objective", &"goal"])
 objective_id = &"goal_01"
 area_id = "interior_house"
 settings = ExtResource("2_goal_settings")
