@@ -107,7 +107,8 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
   - **7A COMPLETE (2025-12-09)**: C_HealthComponent now publishes `health_changed`/`entity_death` via U_ECSEventBus; S_GamepadVibrationSystem listens for death events; added health event tests; ECS unit suite passing.
   - **7B COMPLETE (2025-12-09)**: C_VictoryTriggerComponent publishes `victory_zone_entered`/`victory_triggered`; S_VictorySystem subscribes to victory events; added unit coverage for component + system; ECS unit suite passing.
   - **7C COMPLETE (2025-12-09)**: C_DamageZoneComponent publishes enter/exit events; S_DamageSystem subscribes and tracks bodies via event bus; added component/system event tests; ECS unit suite passing.
-  - Remaining: 7D checkpoint events, 7E registration events, 7F cleanup/docs.
+  - **7D COMPLETE (2025-12-09)**: C_CheckpointComponent publishes `checkpoint_zone_entered`; S_CheckpointSystem subscribes and dispatches last_checkpoint + activation events; added component/system event tests; ECS unit suite passing.
+  - Remaining: 7E registration events, 7F cleanup/docs.
 - Phase 8 – Spawn Registry & Spawn Conditions: **NOT STARTED**
 - Phase 9 – Large File Splitting for Maintainability: **NOT STARTED**
   - Split 8 files over 400 lines into smaller helpers (~400 lines max)

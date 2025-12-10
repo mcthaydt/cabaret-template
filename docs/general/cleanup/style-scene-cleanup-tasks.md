@@ -1075,16 +1075,16 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 7D: Checkpoint Events (Priority 2 - Already Partial)
 
-- [ ] T073a Refactor C_CheckpointComponent to publish area events:
+- [x] T073a Refactor C_CheckpointComponent to publish area events:
   - Publish `"checkpoint_zone_entered"` when player enters checkpoint area
   - Move Area3D signal handling from S_CheckpointSystem to component
 
-- [ ] T073b Refactor S_CheckpointSystem to subscribe to checkpoint events:
+- [x] T073b Refactor S_CheckpointSystem to subscribe to checkpoint events:
   - Remove direct Area3D.body_entered connections
   - Subscribe to `"checkpoint_zone_entered"` from event bus
   - Keep existing `"checkpoint_activated"` publishing (already correct)
 
-- [ ] T073c Add tests for checkpoint event flow:
+- [x] T073c Add tests for checkpoint event flow:
   - Test zone enter event published by component
   - Test system subscribes and activates checkpoint correctly
 
