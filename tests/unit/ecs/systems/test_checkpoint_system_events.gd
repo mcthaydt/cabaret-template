@@ -52,7 +52,7 @@ func test_checkpoint_event_updates_last_checkpoint_and_dispatches_activation() -
 	await wait_physics_frames(2)
 
 	var state := store.get_state()
-	var gameplay_state := state.get("gameplay", {})
+	var gameplay_state: Dictionary = state.get("gameplay", {})
 	var last_checkpoint := U_GameplaySelectors.get_last_checkpoint(gameplay_state)
 	assert_eq(last_checkpoint, StringName("sp_test"), "Checkpoint event should update last checkpoint")
 
