@@ -5,6 +5,8 @@ class_name S_HealthSystem
 ## Core health management system.
 ## Applies queued damage/heal events, handles regeneration and death flow,
 ## dispatches state actions, and coordinates delayed death transitions.
+## System remains tick-driven; health/victory subscribers should listen to
+## U_ECSEventBus events emitted by components instead of direct signals.
 
 const COMPONENT_TYPE := StringName("C_HealthComponent")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")

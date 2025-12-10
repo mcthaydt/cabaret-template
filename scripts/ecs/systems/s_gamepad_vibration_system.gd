@@ -7,6 +7,7 @@ class_name S_GamepadVibrationSystem
 
 const GAMEPAD_TYPE := StringName("C_GamepadComponent")
 const EVENT_ENTITY_LANDED := StringName("entity_landed")
+const EVENT_ENTITY_DEATH := StringName("entity_death")
 const EVENT_VIBRATION_REQUEST := StringName("gamepad_vibration_request")
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
@@ -31,6 +32,7 @@ func on_configured() -> void:
 
 func _subscribe_events() -> void:
 	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_ENTITY_LANDED, _on_entity_landed))
+	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_ENTITY_DEATH, _on_entity_death))
 	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_VIBRATION_REQUEST, _on_vibration_request))
 
 func process_tick(_delta: float) -> void:
@@ -44,6 +46,12 @@ func _on_entity_landed(event: Dictionary) -> void:
 	if entity_id.is_empty() or not _is_player_entity(entity_id):
 		return
 	_trigger_vibration(0.2, 0.1, 0.1)
+
+func _on_entity_death(event: Dictionary) -> void:
+	var payload: Dictionary = event.get("payload", {})
+	var entity_id := String(payload.get("entity_id", ""))
+	if _is_player_entity(entity_id):
+		_trigger_death_vibration()
 
 func _on_vibration_request(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
@@ -113,11 +121,6 @@ func _on_state_store_changed(action: Dictionary, state: Dictionary) -> void:
 			var entity_id := String(payload.get("entity_id", ""))
 			if _is_player_entity(entity_id):
 				_trigger_damage_vibration(float(payload.get("amount", 0.0)))
-		elif action_type == U_GameplayActions.ACTION_TRIGGER_DEATH:
-			var payload_death: Dictionary = action.get("payload", {})
-			var death_entity := String(payload_death.get("entity_id", ""))
-			if _is_player_entity(death_entity):
-				_trigger_death_vibration()
 	_apply_settings_from_state(state)
 
 func _apply_settings_from_state(state: Dictionary) -> void:
@@ -166,8 +169,11 @@ func _get_component_device_id() -> int:
 func _is_player_entity(entity_id: String) -> bool:
 	if entity_id.is_empty():
 		return false
-	# Check exact match or if it contains "Player"
-	return entity_id == _player_entity_id or "Player" in entity_id
+	var normalized := entity_id.to_lower()
+	var expected := String(_player_entity_id).to_lower()
+	if normalized == expected:
+		return true
+	return normalized.contains("player")
 
 func _get_entity_id_from_node(entity: Node) -> String:
 	if entity == null:

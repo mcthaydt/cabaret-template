@@ -1021,20 +1021,20 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 7A: Health & Death Events (Priority 1 - Core Game Flow)
 
-- [ ] T070a Migrate C_HealthComponent signals to event bus:
+- [x] T070a Migrate C_HealthComponent signals to event bus:
   - Replace `signal health_changed` with `U_ECSEventBus.publish("health_changed", payload)`
   - Replace `signal death` with `U_ECSEventBus.publish("entity_death", payload)`
   - Payload should include: `entity_id`, `previous_health`, `new_health`, `is_dead`
   - Remove direct signal declarations
 
-- [ ] T070b Update S_HealthSystem to subscribe to health events (if applicable):
+- [x] T070b Update S_HealthSystem to subscribe to health events (if applicable):
   - Verify system is event-driven or polling-based by design
   - Document decision
 
-- [ ] T070c Update S_GamepadVibrationSystem to subscribe to death events:
+- [x] T070c Update S_GamepadVibrationSystem to subscribe to death events:
   - Add subscription to `"entity_death"` event for death vibration feedback
 
-- [ ] T070d Add tests for health event bus integration:
+- [x] T070d Add tests for health event bus integration:
   - Test `health_changed` event published on damage
   - Test `entity_death` event published on death
   - Test subscribers receive events correctly
