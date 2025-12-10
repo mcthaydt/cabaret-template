@@ -1,10 +1,9 @@
-[gd_resource type="Resource" script_class="RS_SpawnMetadata" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_SpawnMetadata" load_steps=2 format=3 uid="uid://t1jgkqtr1hke"]
 
-[ext_resource type="Script" path="res://scripts/scene_management/resources/rs_spawn_metadata.gd" id="1"]
+[ext_resource type="Script" uid="uid://bwyfpmi63k2my" path="res://scripts/scene_management/resources/rs_spawn_metadata.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 spawn_id = &"sp_exit_from_house"
-tags = [&"door_return"]
+tags = Array[StringName]([&"door_return"])
 priority = 5
-condition = 0

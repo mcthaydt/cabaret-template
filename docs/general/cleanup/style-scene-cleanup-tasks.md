@@ -1176,33 +1176,33 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 9A: Scene Manager Split (1,565 → ~400 lines)
 
-- [ ] T090a Create `scripts/scene_management/helpers/u_scene_cache.gd`:
+- [x] T090a Create `scripts/scene_management/helpers/u_scene_cache.gd`:
   - Extract: `_is_scene_cached`, `_get_cached_scene`, `_add_to_cache`, `_check_cache_pressure`, `_evict_cache_lru`, `_get_cache_memory_usage`
   - Extract: `_preload_critical_scenes`, `_start_background_load_polling`, `hint_preload_scene`
   - Include cache member variables: `_scene_cache`, `_cache_access_times`, `_background_loads`, `_max_cached_scenes`, `_max_cache_memory`
 
-- [ ] T090b Create `scripts/scene_management/helpers/u_scene_loader.gd`:
+- [x] T090b Create `scripts/scene_management/helpers/u_scene_loader.gd`:
   - Extract: `_load_scene`, `_load_scene_async`, `_add_scene`, `_remove_current_scene`
   - Extract: `_validate_scene_contract`, `_find_player_in_scene`, `_unfreeze_player_physics`
 
-- [ ] T090c Create `scripts/scene_management/helpers/u_overlay_stack_manager.gd`:
+- [x] T090c Create `scripts/scene_management/helpers/u_overlay_stack_manager.gd`:
   - Extract: `push_overlay`, `pop_overlay`, `push_overlay_with_return`, `pop_overlay_with_return`
   - Extract: `_configure_overlay_scene`, `_get_top_overlay_id`, `_restore_focus_to_top_overlay`, `_find_first_focusable_in`
   - Extract: `_reconcile_overlay_stack`, `_get_overlay_scene_ids_from_ui`, `_overlay_stacks_match`, `_update_overlay_visibility`
 
-- [ ] T090d Refactor `m_scene_manager.gd` to use helpers:
+- [x] T090d Refactor `m_scene_manager.gd` to use helpers:
   - Add const preloads for all 3 new helpers
   - Replace extracted methods with delegation calls
   - Keep: Node lifecycle, store subscription, transition queue, public API wrappers, signals
   - Verify ~400 lines remaining
 
-- [ ] T090e Update external references to M_SceneManager:
+- [x] T090e Update external references to M_SceneManager:
   - Search for `M_SceneManager.` calls and verify still work
   - Search for `hint_preload_scene` calls and update if signature changed
 
-- [ ] T090f Run scene manager tests:
+- [x] T090f Run scene manager tests:
   - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/scene_manager -gexit`
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/scene_management -gexit`
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/scene_manager -gexit`
 
 ### Phase 9B: Input Rebinding Overlay Split (1,254 → ~400 lines)
 

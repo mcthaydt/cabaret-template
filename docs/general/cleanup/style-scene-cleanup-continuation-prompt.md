@@ -111,9 +111,12 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
   - **7E**: BaseECSComponent publishes `component_registered`; test coverage added.
   - **7F**: Cleanup/docs completed (event catalog + style guide rules); ECS unit suite green.
 - Phase 8 – Spawn Registry & Spawn Conditions: **IN PROGRESS** (T080-T083 complete - registry + integration)
-- Phase 9 – Large File Splitting for Maintainability: **NOT STARTED**
-  - Split 8 files over 400 lines into smaller helpers (~400 lines max)
-  - **9A**: m_scene_manager.gd (1,565 → ~400) - 3 helpers
+- Phase 9 – Large File Splitting for Maintainability: **IN PROGRESS**
+  - **9A (Scene Manager helpers)**: ✅ IMPLEMENTED (2025-12-10)
+    - Added `U_SceneCache`, `U_SceneLoader`, and `U_OverlayStackManager` under `scripts/scene_management/helpers/`.
+    - `M_SceneManager` now delegates cache, loading, and overlay-stack responsibilities to helpers while keeping public API and behavior identical.
+    - Scene manager unit + integration suites fully passing (only pre-existing pending tween tests remain skipped).
+    - Note: File length is still ~1,100 lines; the ~400 line target will be reached after later architectural extractions (e.g., Phase 10B-2 transition subsystem split).
   - **9B**: ui_input_rebinding_overlay.gd (1,254 → ~400) - 3 helpers
   - **9C**: m_state_store.gd (809 → ~400) - 2 helpers
   - **9D**: u_input_rebind_utils.gd (509 → ~180) - 2 utilities

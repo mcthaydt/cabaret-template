@@ -1,4 +1,4 @@
-[gd_scene load_steps=49 format=3 uid="uid://bageed5ytib7"]
+[gd_scene load_steps=52 format=3 uid="uid://bageed5ytib7"]
 
 [ext_resource type="Script" uid="uid://cjxb0xilcht7t" path="res://scripts/scene_structure/marker_main_root_node.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://bsccsmledbxbs" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -15,7 +15,7 @@
 [ext_resource type="Script" uid="uid://djggd1n130ax6" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
 [ext_resource type="Script" uid="uid://bj50lxnot37ba" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
 [ext_resource type="Script" uid="uid://blh5rcefesvhl" path="res://scripts/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_player.tscn" id="7_4wxy1"]
+[ext_resource type="PackedScene" uid="uid://d1cugdu6fb42l" path="res://scenes/prefabs/prefab_player.tscn" id="7_4wxy1"]
 [ext_resource type="Script" uid="uid://c8ass3lvev88k" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
 [ext_resource type="Script" uid="uid://dgf540va7nevu" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
 [ext_resource type="Script" uid="uid://btv2kb8firb4t" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
@@ -32,9 +32,6 @@
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://dtaup85wkpxg0" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://i7he404b0pg7" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
-[ext_resource type="Script" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
-[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_interior_house_spawns.tres" id="51_interior_default_spawn_meta"]
-[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_interior_house_entrance_spawn.tres" id="52_interior_entrance_spawn_meta"]
 [ext_resource type="Script" uid="uid://b420jsnbnxfy8" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
 [ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="30_auc1c"]
 [ext_resource type="Script" uid="uid://ccm1a2gahhbye" path="res://scripts/gameplay/e_door_trigger_controller.gd" id="30_door_controller"]
@@ -44,6 +41,9 @@
 [ext_resource type="Script" uid="uid://d3l2saw67j1so" path="res://scripts/gameplay/e_victory_zone.gd" id="44_victory_controller"]
 [ext_resource type="Script" uid="uid://dr277k25nhehf" path="res://scripts/gameplay/e_signpost.gd" id="45_signpost_controller"]
 [ext_resource type="Resource" uid="uid://b2ehbrq1l8yro" path="res://resources/triggers/rs_signpost_cylinder.tres" id="45_signpost_settings"]
+[ext_resource type="Script" uid="uid://c27x1bugc2k6c" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
+[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_interior_house_spawns.tres" id="51_interior_default_spawn_meta"]
+[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_interior_house_entrance_spawn.tres" id="52_interior_entrance_spawn_meta"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0

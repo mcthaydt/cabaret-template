@@ -807,6 +807,14 @@ EXCLUSIONS:
 - Spawn markers: `sp_*` lowercase snake-case, e.g., `sp_entrance_from_exterior`, `sp_exit_from_house`.
   - Chosen to avoid collision with entity prefixes and to remain visually distinct.
 
+### Spawn Point Scripts
+
+- Spawn point nodes that own metadata use a dedicated script:
+  - File: `scripts/scene_management/sp_spawn_point.gd`
+  - Class: `SP_SpawnPoint`
+  - Prefix pattern: `sp_*` (spawn point scripts live alongside `u_*`/`i_*` scene management helpers)
+  - Purpose: export an `RS_SpawnMetadata` resource on each `sp_*` node under `SP_SpawnPoints`.
+
 **Last Updated:** 2025-10-31
 **Version:** 1.0
 **Status:** Active - Ready for Implementation
