@@ -5,8 +5,8 @@
 
 [node name="E_Checkpoint_SafeZone" type="Node3D"]
 script = ExtResource("1_controller")
-entity_id = &"checkpoint_safezone"
-tags = Array[StringName]([&"checkpoint", &"objective"])
 checkpoint_id = &"cp_safe_zone"
 spawn_point_id = &"sp_checkpoint_safe"
 settings = ExtResource("2_checkpoint_settings")
+entity_id = &"checkpoint_safezone"
+tags = Array[StringName]([&"checkpoint", &"objective"])

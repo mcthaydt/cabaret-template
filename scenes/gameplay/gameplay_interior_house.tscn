@@ -205,13 +205,13 @@ fov = 65.0
 [node name="E_DoorTrigger" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
 script = ExtResource("30_door_controller")
-entity_id = &"door_to_exterior"
-tags = Array[StringName]([&"trigger", &"door"])
 door_id = &"door_to_exterior"
 target_scene_id = &"exterior"
 target_spawn_point = &"sp_exit_from_house"
 settings = ExtResource("30_auc1c")
 visual_paths = Array[NodePath]([NodePath("DoorVisual")])
+entity_id = &"door_to_exterior"
+tags = Array[StringName]([&"trigger", &"door"])
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.57354736, 0)
@@ -225,10 +225,10 @@ script = ExtResource("16_8qi87")
 [node name="E_DeathZone" type="Node3D" parent="Entities/Hazards"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
 script = ExtResource("44_hazard_controller")
-entity_id = &"deathzone_interior"
-tags = Array[StringName]([&"hazard", &"death"])
 is_instant_death = true
 settings = ExtResource("44_death_settings")
+entity_id = &"deathzone_interior"
+tags = Array[StringName]([&"hazard", &"death"])
 
 [node name="Objectives" type="Node" parent="Entities"]
 script = ExtResource("16_8qi87")
@@ -236,12 +236,12 @@ script = ExtResource("16_8qi87")
 [node name="E_GoalZone" type="Node3D" parent="Entities/Objectives"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -0.41013765, -10.004155)
 script = ExtResource("44_victory_controller")
-entity_id = &"goalzone_interior"
-tags = Array[StringName]([&"objective", &"goal"])
 objective_id = &"goal_interior"
 area_id = "interior_house"
 settings = ExtResource("44_goal_settings")
 visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePath("GlowLight")])
+entity_id = &"goalzone_interior"
+tags = Array[StringName]([&"objective", &"goal"])
 
 [node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_GoalZone"]
 radius = 1.5
@@ -261,11 +261,11 @@ mesh = SubResource("TextMesh_goal")
 [node name="E_TutorialSign_Interior" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.14, 0, 2)
 script = ExtResource("45_signpost_controller")
-entity_id = &"tutorial_interior"
-tags = Array[StringName]([&"interactable", &"tutorial"])
 message = "Welcome inside!"
 settings = ExtResource("45_signpost_settings")
 visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("GlowLight")])
+entity_id = &"tutorial_interior"
+tags = Array[StringName]([&"interactable", &"tutorial"])
 
 [node name="Visual" type="CSGCylinder3D" parent="Entities/E_TutorialSign_Interior"]
 radius = 0.25

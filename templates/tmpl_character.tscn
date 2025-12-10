@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://cyu3l6we2jq23"]
+[gd_scene load_steps=23 format=3 uid="uid://cyu3l6we2jq23"]
 
 [ext_resource type="Script" uid="uid://ctpc0r4wq7urj" path="res://scripts/ecs/components/c_movement_component.gd" id="1_6m9bm"]
 [ext_resource type="Texture2D" uid="uid://dm23qd3lalkrv" path="res://assets/textures/tex_shadow_blob.png" id="1_m3alx"]
@@ -38,7 +38,6 @@ albedo_color = Color(0.08627451, 0.3529412, 0.29803923, 1)
 
 [node name="E_CharacterRoot" type="Node3D"]
 script = ExtResource("15_ecsentity")
-entity_id = &""
 tags = Array[StringName]([&"character"])
 
 [node name="Player_Body" type="CharacterBody3D" parent="."]

@@ -9,10 +9,10 @@ roughness = 0.25
 
 [node name="E_SpikeTrap" type="Node3D"]
 script = ExtResource("1_controller")
-entity_id = &"spiketrap"
-tags = Array[StringName]([&"hazard", &"trap"])
 settings = ExtResource("2_spike_settings")
 visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
+entity_id = &"spiketrap"
+tags = Array[StringName]([&"hazard", &"trap"])
 
 [node name="MeshInstance3D" type="CSGBox3D" parent="."]
 size = Vector3(1.5, 0.5, 1.5)

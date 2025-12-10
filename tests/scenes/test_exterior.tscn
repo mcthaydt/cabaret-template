@@ -15,7 +15,7 @@
 [ext_resource type="Script" uid="uid://djggd1n130ax6" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
 [ext_resource type="Script" uid="uid://bj50lxnot37ba" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
 [ext_resource type="Script" uid="uid://blh5rcefesvhl" path="res://scripts/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_player.tscn" id="7_4wxy1"]
+[ext_resource type="PackedScene" uid="uid://d1cugdu6fb42l" path="res://scenes/prefabs/prefab_player.tscn" id="7_4wxy1"]
 [ext_resource type="Script" uid="uid://c8ass3lvev88k" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
 [ext_resource type="Script" uid="uid://dgf540va7nevu" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
 [ext_resource type="Script" uid="uid://btv2kb8firb4t" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
