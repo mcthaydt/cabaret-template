@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="cabaret ball"
+config/name="crispy template"
 run/main_scene="uid://ccv3ylnj0qbnm"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://assets/textures/tex_icon.svg"

@@ -42,8 +42,8 @@
 [ext_resource type="Script" uid="uid://dr277k25nhehf" path="res://scripts/gameplay/e_signpost.gd" id="45_signpost_controller"]
 [ext_resource type="Resource" uid="uid://b2ehbrq1l8yro" path="res://resources/triggers/rs_signpost_cylinder.tres" id="45_signpost_settings"]
 [ext_resource type="Script" uid="uid://c27x1bugc2k6c" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
-[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_interior_house_spawns.tres" id="51_interior_default_spawn_meta"]
-[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_interior_house_entrance_spawn.tres" id="52_interior_entrance_spawn_meta"]
+[ext_resource type="Resource" uid="uid://bqktd616pidot" path="res://resources/spawn_metadata/gameplay_interior_house_spawns.tres" id="51_interior_default_spawn_meta"]
+[ext_resource type="Resource" uid="uid://5a5jc4dpye3i" path="res://resources/spawn_metadata/gameplay_interior_house_entrance_spawn.tres" id="52_interior_entrance_spawn_meta"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -88,6 +88,34 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
 material_override = SubResource("StandardMaterial3D_q3o1v")
 use_collision = true
 size = Vector3(25, 1, 25)
+material = SubResource("StandardMaterial3D_748a2")
+
+[node name="SO_Floor5" type="CSGBox3D" parent="SceneObjects"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.4307995, 0)
+material_override = SubResource("StandardMaterial3D_q3o1v")
+use_collision = true
+size = Vector3(25, 1, 25)
+material = SubResource("StandardMaterial3D_748a2")
+
+[node name="SO_Floor2" type="CSGBox3D" parent="SceneObjects"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.810547, 3.571289, 0)
+material_override = SubResource("StandardMaterial3D_q3o1v")
+use_collision = true
+size = Vector3(1.3789063, 12.142578, 25)
+material = SubResource("StandardMaterial3D_748a2")
+
+[node name="SO_Floor3" type="CSGBox3D" parent="SceneObjects"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.48357, 3.571289, 0)
+material_override = SubResource("StandardMaterial3D_q3o1v")
+use_collision = true
+size = Vector3(1.3789063, 12.142578, 25)
+material = SubResource("StandardMaterial3D_748a2")
+
+[node name="SO_Floor4" type="CSGBox3D" parent="SceneObjects"]
+transform = Transform3D(-0.010768487, 0, 0.999942, 0, 1, 0, -0.999942, 0, -0.010768487, -0.07457161, 3.571289, -12.845993)
+material_override = SubResource("StandardMaterial3D_q3o1v")
+use_collision = true
+size = Vector3(1.3789063, 12.142578, 25)
 material = SubResource("StandardMaterial3D_748a2")
 
 [node name="SO_Block3" type="CSGBox3D" parent="SceneObjects"]
@@ -200,7 +228,7 @@ script = ExtResource("16_8qi87")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.190454, 1.0887601, 1.7809162)
 
 [node name="E_CameraRoot" parent="Entities" instance=ExtResource("19_ph0bl")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 4.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 7.147382)
 
 [node name="E_PlayerCamera" parent="Entities/E_CameraRoot" index="0"]
 fov = 65.0

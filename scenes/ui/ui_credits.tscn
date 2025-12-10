@@ -35,7 +35,7 @@ theme_override_constants/separation = 24
 
 [node name="HeaderLabel" type="Label" parent="MarginContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
-text = "Project Musical Parakeet"
+text = "crispy template"
 horizontal_alignment = 1
 
 [node name="Spacer1" type="Control" parent="MarginContainer/ScrollContainer/VBoxContainer"]
@@ -67,7 +67,7 @@ layout_mode = 2
 
 [node name="FooterLabel" type="Label" parent="MarginContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
-text = "© 2025 Snek Snek Automata"
+text = "© 2025 Crispy Cabaret"
 horizontal_alignment = 1
 
 [node name="SkipButton" type="Button" parent="."]
