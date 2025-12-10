@@ -1,10 +1,10 @@
-[gd_resource type="Resource" script_class="RS_SpawnMetadata" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_SpawnMetadata" load_steps=2 format=3 uid="uid://cvgjhiir8koeu"]
 
-[ext_resource type="Script" path="res://scripts/scene_management/resources/rs_spawn_metadata.gd" id="1"]
+[ext_resource type="Script" uid="uid://bwyfpmi63k2my" path="res://scripts/scene_management/resources/rs_spawn_metadata.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 spawn_id = &"sp_checkpoint_safe"
-tags = [&"checkpoint"]
+tags = Array[StringName]([&"checkpoint"])
 priority = 10
-condition = 1
+condition = 2

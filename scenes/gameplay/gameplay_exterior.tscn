@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=3 uid="uid://ctcs7j03knyuf"]
+[gd_scene load_steps=60 format=3 uid="uid://ctcs7j03knyuf"]
 
 [ext_resource type="Script" uid="uid://cjxb0xilcht7t" path="res://scripts/scene_structure/marker_main_root_node.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://bsccsmledbxbs" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -32,10 +32,6 @@
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://dtaup85wkpxg0" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://i7he404b0pg7" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
-[ext_resource type="Script" uid="uid://c27x1bugc2k6c" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
-[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_exterior_spawns.tres" id="51_exterior_default_spawn_meta"]
-[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_exterior_checkpoint_spawns.tres" id="52_exterior_checkpoint_spawn_meta"]
-[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_exterior_exit_from_house_spawn.tres" id="53_exterior_exit_from_house_spawn_meta"]
 [ext_resource type="Script" uid="uid://b420jsnbnxfy8" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
 [ext_resource type="Script" uid="uid://bafjlsa2nxo8r" path="res://scripts/ecs/systems/s_gamepad_vibration_system.gd" id="28_jpc3c"]
 [ext_resource type="Script" uid="uid://ccm1a2gahhbye" path="res://scripts/gameplay/e_door_trigger_controller.gd" id="30_door_controller"]
@@ -50,6 +46,10 @@
 [ext_resource type="Resource" uid="uid://c8u21l3ag26ky" path="res://resources/triggers/rs_spike_trap_volume.tres" id="44_spike_settings"]
 [ext_resource type="Script" uid="uid://dr277k25nhehf" path="res://scripts/gameplay/e_signpost.gd" id="45_signpost_controller"]
 [ext_resource type="Resource" uid="uid://b2ehbrq1l8yro" path="res://resources/triggers/rs_signpost_cylinder.tres" id="45_signpost_settings"]
+[ext_resource type="Script" uid="uid://c27x1bugc2k6c" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
+[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_exterior_spawns.tres" id="51_exterior_default_spawn_meta"]
+[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_exterior_checkpoint_spawns.tres" id="52_exterior_checkpoint_spawn_meta"]
+[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_exterior_exit_from_house_spawn.tres" id="53_exterior_exit_from_house_spawn_meta"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0

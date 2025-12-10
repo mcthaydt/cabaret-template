@@ -1448,16 +1448,23 @@
 - [ ] T281 Integrate condition checks into spawn_player_at_point() - **DEFERRED**: No quest system yet
 - [ ] T282 Add conditional spawn examples to test scenes - **DEFERRED**: No quest system yet
 
-**Part C: Spawn Point Metadata & Registry** ⚠️ DEFERRED (Future Phase)
-- [ ] T283 [P] Write tests for spawn point metadata lookup - **DEFERRED**: Current scale doesn't need registry
-- [ ] T284 [P] Write tests for spawn priority (multiple spawns, pick best) - **DEFERRED**: Current scale doesn't need registry
-- [ ] T285 [P] Write tests for spawn tags (outdoor, indoor, safe, dangerous) - **DEFERRED**: Current scale doesn't need registry
-- [ ] T286 Create `scripts/scene_management/u_spawn_registry.gd` static class - **DEFERRED**: Overkill for < 50 spawn points
-- [ ] T287 Define spawn metadata structure - **DEFERRED**: Not needed yet
-- [ ] T288 Integrate U_SpawnRegistry with M_SpawnManager - **DEFERRED**: Not needed yet
-- [ ] T289 Update scene templates to register spawn points in _ready() - **DEFERRED**: Not needed yet
-- [ ] T290 Add spawn_by_tag() method to M_SpawnManager - **DEFERRED**: Not needed yet
-- [ ] T291 Document spawn registry patterns in quickstart - **DEFERRED**: Not needed yet
+**Part C: Spawn Point Metadata & Registry** ✅ IMPLEMENTED (Phase 8 – Style & Scene Cleanup)
+- [x] T283 [P] Write tests for spawn point metadata lookup  
+  - ✅ Covered by `tests/unit/spawn_system/test_spawn_registry.gd` (Phase 8 T083).
+- [x] T284 [P] Write tests for spawn priority (multiple spawns, pick best)  
+  - ✅ Covered by spawn registry priority tests in `test_spawn_registry.gd` and spawn selection tests in `test_spawn_validation.gd`.
+- [x] T285 [P] Write tests for spawn tags (outdoor, indoor, safe, dangerous)  
+  - ✅ Covered by tag-based lookup tests in `test_spawn_registry.gd`.
+- [x] T286 Create `scripts/scene_management/u_spawn_registry.gd` static class  
+  - ✅ Implemented as `U_SpawnRegistry` with scene-attached metadata support (see Phase 8 T081/T086).
+- [x] T287 Define spawn metadata structure  
+  - ✅ Implemented as `RS_SpawnMetadata` Resource in `scripts/scene_management/resources/rs_spawn_metadata.gd` with `.tres` assets under `resources/spawn_metadata/` (Phase 8 T080/T084).
+- [x] T288 Integrate U_SpawnRegistry with M_SpawnManager  
+  - ✅ `M_SpawnManager.spawn_at_last_spawn()` now calls `U_SpawnRegistry.reload_from_scene(scene)` and gates all spawn ids through `_is_spawn_allowed()` (Phase 8 T082/T086).
+- [x] T289 Update scene templates to register spawn points in _ready()  
+  - ✅ Achieved via scene-attached `SP_SpawnPoint` nodes under `SP_SpawnPoints` in `gameplay_base`, `gameplay_exterior`, and `gameplay_interior_house` (no runtime registration needed; metadata is read directly from the scene).
+- [ ] T290 Add spawn_by_tag() method to M_SpawnManager - **DEFERRED**: Still not needed at current scale
+- [ ] T291 Document spawn registry patterns in quickstart - **DEFERRED**: Can be added when spawn_by_tag() is introduced; for now, see Phase 8 notes in `docs/general/cleanup/style-scene-cleanup-tasks.md`.
 
 **Validation & Polish** ✅ COMPLETE
 - [x] T292 Run all spawn system tests - expect all PASS - **COMPLETE**: 564/570 passing (98.9%)

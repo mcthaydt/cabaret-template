@@ -1149,11 +1149,11 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
     - Marker scripts (like `marker_spawn_points_group.gd`) remain only on containers with no data; individual spawn points become data-bearing nodes with proper prefixes.
   - Update `_is_spawn_allowed()` / `spawn_at_last_spawn()` to build the registry from the current scene’s spawn point nodes (using their hooked resources) instead of only scanning `resources/spawn_metadata/`.
   - Ensure respawn selection always passes through U_SpawnRegistry for `target_spawn_point`, `last_checkpoint`, and `sp_default`, and that missing/misconfigured metadata fails loudly in tests.
-- [ ] T085 Manual spawn behaviour verification (after T086):
+- [x] T085 Manual spawn behaviour verification (after T086):
   - In-editor play: verify door transitions, checkpoint respawns, and default spawns behave identically with the scene-attached metadata in place.
   - Toggle conditions (e.g., set a checkpoint spawn to DISABLED) and confirm M_SpawnManager falls back as expected.
   - Watch logs for unexpected spawn-related errors or missing metadata warnings.
-- [ ] T087 Reconcile spawn registry tasks/docs across subsystems:
+- [x] T087 Reconcile spawn registry tasks/docs across subsystems:
   - Update `docs/scene manager/scene-manager-tasks.md` and related PRD/plan references (T287/T288) to reflect the scene-attached spawn metadata design (RS_SpawnMetadata exported on `*_spawn_point` scripts).
   - Cross-link Phase 8 tasks (T080–T086) so future contributors see a single, up-to-date source of truth for spawn registry work and understand that marker scripts are data-less, while spawn point nodes own their metadata via exported resources.
 
