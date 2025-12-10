@@ -37,10 +37,15 @@ func test_victory_event_dispatches_actions_and_marks_triggered() -> void:
 	await get_tree().process_frame
 	# on_configured() is automatically called by BaseECSSystem.configure()
 
+	var trigger_entity := Node3D.new()
+	trigger_entity.name = "E_VictoryTrigger"
+	add_child_autofree(trigger_entity)
+
 	var trigger := C_VictoryTriggerComponent.new()
 	trigger.objective_id = StringName("main_objective")
 	trigger.area_id = "exterior"
-	add_child_autofree(trigger)
+	trigger_entity.add_child(trigger)
+	autofree(trigger)
 
 	var body := Node3D.new()
 	add_child_autofree(body)
@@ -84,9 +89,14 @@ func test_game_complete_gated_until_area_finished() -> void:
 	await get_tree().process_frame
 	# on_configured() is automatically called by BaseECSSystem.configure()
 
+	var trigger_entity := Node3D.new()
+	trigger_entity.name = "E_VictoryTrigger"
+	add_child_autofree(trigger_entity)
+
 	var trigger := C_VictoryTriggerComponent.new()
 	trigger.victory_type = C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE
-	add_child_autofree(trigger)
+	trigger_entity.add_child(trigger)
+	autofree(trigger)
 
 	var body := Node3D.new()
 	add_child_autofree(body)
