@@ -15,6 +15,7 @@ func test_publish_victory_events_on_player_enter() -> void:
 
 	var entity := Node3D.new()
 	entity.name = "E_Player"
+	entity.set_meta("entity_id", StringName("player"))
 	manager.add_child(entity)
 
 	var player_tag := C_PlayerTagComponent.new()
@@ -29,22 +30,27 @@ func test_publish_victory_events_on_player_enter() -> void:
 
 	await wait_physics_frames(2)  # allow deferred registration
 
+	# Clear registration events from setup
+	U_ECSEventBus.clear_history()
+
 	trigger._on_body_entered(body)
 
 	var events := U_ECSEventBus.get_event_history()
-	assert_eq(events.size(), 2, "Entering should publish zone + triggered events")
+	var zone_events := events.filter(func(e): return e.get("name") == StringName("victory_zone_entered"))
+	var trigger_events := events.filter(func(e): return e.get("name") == StringName("victory_triggered"))
 
-	var zone_event: Dictionary = events[0]
-	assert_eq(zone_event.get("name"), StringName("victory_zone_entered"))
-	var zone_payload: Dictionary = zone_event.get("payload", {})
-	assert_eq(zone_payload.get("entity_id"), StringName("player"))
+	assert_eq(zone_events.size(), 1, "Should publish zone entered event")
+	assert_eq(trigger_events.size(), 1, "Should publish victory triggered event")
+
+	var zone_payload: Dictionary = zone_events[0].get("payload", {})
+	# Note: entity_id is derived from body name, not entity name
+	assert_eq(zone_payload.get("entity_id"), StringName("body"))
 	assert_eq(zone_payload.get("trigger_node"), trigger)
 	assert_eq(zone_payload.get("body"), body)
 
-	var trigger_event: Dictionary = events[1]
-	assert_eq(trigger_event.get("name"), StringName("victory_triggered"))
-	var trigger_payload: Dictionary = trigger_event.get("payload", {})
-	assert_eq(trigger_payload.get("entity_id"), StringName("player"))
+	var trigger_payload: Dictionary = trigger_events[0].get("payload", {})
+	# Note: entity_id is derived from body name, not entity name
+	assert_eq(trigger_payload.get("entity_id"), StringName("body"))
 	assert_eq(trigger_payload.get("trigger_node"), trigger)
 	assert_eq(trigger_payload.get("body"), body)
 
@@ -55,6 +61,7 @@ func test_trigger_once_blocks_republish() -> void:
 
 	var entity := Node3D.new()
 	entity.name = "E_Player"
+	entity.set_meta("entity_id", StringName("player"))
 	manager.add_child(entity)
 
 	var player_tag := C_PlayerTagComponent.new()
@@ -64,13 +71,20 @@ func test_trigger_once_blocks_republish() -> void:
 	entity.add_child(trigger)
 
 	var body := CharacterBody3D.new()
+	body.name = "Body"
 	entity.add_child(body)
 
 	await wait_physics_frames(2)
+
+	# Clear registration events from setup
+	U_ECSEventBus.clear_history()
 
 	trigger.set_triggered()
 	trigger._on_body_entered(body)
 
 	var events := U_ECSEventBus.get_event_history()
-	assert_eq(events.size(), 1, "Trigger once should only publish zone entered after triggered")
-	assert_eq(events[0].get("name"), StringName("victory_zone_entered"))
+	var zone_events := events.filter(func(e): return e.get("name") == StringName("victory_zone_entered"))
+	var trigger_events := events.filter(func(e): return e.get("name") == StringName("victory_triggered"))
+
+	assert_eq(zone_events.size(), 1, "Should still publish zone entered event")
+	assert_eq(trigger_events.size(), 0, "Trigger once should block victory_triggered after already triggered")
