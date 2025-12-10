@@ -103,14 +103,10 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
     - Updated gameplay/base scenes to use player prefab
     - Updated docs (AGENTS, SCENE_ORGANIZATION_GUIDE) with Templates vs Prefabs section
     - Tests: style enforcement, ECS unit suite, scene manager integration suite all passing
-- Phase 7 – ECS Event Bus Migration: **NOT STARTED**
-  - Migrate 7 components/systems from direct signals to U_ECSEventBus
-  - **7A**: Health & death events (C_HealthComponent → event bus)
-  - **7B**: Victory events (C_VictoryTriggerComponent → event bus)
-  - **7C**: Damage zone events (C_DamageZoneComponent → event bus)
-  - **7D**: Checkpoint events (refactor mixed pattern)
-  - **7E**: Component registration events (BaseECSComponent)
-  - **7F**: Cleanup & documentation
+- Phase 7 – ECS Event Bus Migration: **IN PROGRESS**
+  - **7A COMPLETE (2025-12-09)**: C_HealthComponent now publishes `health_changed`/`entity_death` via U_ECSEventBus; S_GamepadVibrationSystem listens for death events; added health event tests; ECS unit suite passing.
+  - **7B COMPLETE (2025-12-09)**: C_VictoryTriggerComponent publishes `victory_zone_entered`/`victory_triggered`; S_VictorySystem subscribes to victory events; added unit coverage for component + system; ECS unit suite passing.
+  - Remaining: 7C damage zone events, 7D checkpoint events, 7E registration events, 7F cleanup/docs.
 - Phase 8 – Spawn Registry & Spawn Conditions: **NOT STARTED**
 - Phase 9 – Large File Splitting for Maintainability: **NOT STARTED**
   - Split 8 files over 400 lines into smaller helpers (~400 lines max)
@@ -146,7 +142,7 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ## How to Continue
 
-**Current Phase: Phase 7 – ECS Event Bus Migration (next up)**
+**Current Phase: Phase 7 – ECS Event Bus Migration (continuing with 7C next)**
 
 Phase 6 is complete through T064v; optional T064t manual gameplay check remains if desired.
 

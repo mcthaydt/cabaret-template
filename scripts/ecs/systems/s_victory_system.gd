@@ -6,28 +6,39 @@ const COMPONENT_TYPE := StringName("C_VictoryTriggerComponent")
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
+const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const EVENT_VICTORY_TRIGGERED := StringName("victory_triggered")
 const REQUIRED_FINAL_AREA := "interior_house"
 
 var _store: M_StateStore = null
 var _scene_manager: M_SceneManager = null
+var _event_unsubscribes: Array[Callable] = []
 
 func _init() -> void:
 	execution_priority = 300
 
 func process_tick(_delta: float) -> void:
+	# Victory processing is event-driven via ECSEventBus.
+	pass
+
+func on_configured() -> void:
+	_subscribe_events()
+
+func _subscribe_events() -> void:
+	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_VICTORY_TRIGGERED, _on_victory_triggered))
+
+func _on_victory_triggered(event: Dictionary) -> void:
+	var payload: Dictionary = event.get("payload", {})
+	var trigger := payload.get("trigger_node") as C_VictoryTriggerComponent
+	if trigger == null or not is_instance_valid(trigger):
+		return
+	if trigger.trigger_once and trigger.is_triggered:
+		return
 	if not _ensure_dependencies_ready():
 		return
-
-	var components: Array = get_components(COMPONENT_TYPE)
-	for entry in components:
-		var trigger: C_VictoryTriggerComponent = entry as C_VictoryTriggerComponent
-		if trigger == null or not is_instance_valid(trigger):
-			continue
-
-		if trigger.consume_trigger_request():
-			if not _can_trigger_victory(trigger):
-				continue
-			_handle_victory(trigger)
+	if not _can_trigger_victory(trigger):
+		return
+	_handle_victory(trigger)
 
 func _handle_victory(trigger: C_VictoryTriggerComponent) -> void:
 	if _store != null:
@@ -79,3 +90,9 @@ func _ensure_dependencies_ready() -> bool:
 		if managers.size() > 0:
 			_scene_manager = managers[0] as M_SceneManager
 	return _store != null
+
+func _exit_tree() -> void:
+	for unsubscribe in _event_unsubscribes:
+		if unsubscribe != null and unsubscribe is Callable and (unsubscribe as Callable).is_valid():
+			(unsubscribe as Callable).call()
+	_event_unsubscribes.clear()

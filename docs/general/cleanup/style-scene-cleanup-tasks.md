@@ -1041,18 +1041,18 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 7B: Victory Events (Priority 1 - End Game Flow)
 
-- [ ] T071a Migrate C_VictoryTriggerComponent signals to event bus:
+- [x] T071a Migrate C_VictoryTriggerComponent signals to event bus:
   - Replace `signal player_entered` with `U_ECSEventBus.publish("victory_zone_entered", payload)`
   - Replace `signal victory_triggered` with `U_ECSEventBus.publish("victory_triggered", payload)`
   - Payload should include: `entity_id`, `trigger_node`, `body`
   - Remove direct signal declarations
 
-- [ ] T071b Refactor S_VictorySystem to subscribe to victory events:
+- [x] T071b Refactor S_VictorySystem to subscribe to victory events:
   - Replace polling `trigger.consume_trigger_request()` with event subscription
   - Subscribe to `"victory_triggered"` event
   - Process victory logic in event handler
 
-- [ ] T071c Add tests for victory event bus integration:
+- [x] T071c Add tests for victory event bus integration:
   - Test events published when player enters victory zone
   - Test S_VictorySystem responds to events correctly
 

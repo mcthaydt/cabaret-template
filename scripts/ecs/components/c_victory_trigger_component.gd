@@ -3,12 +3,12 @@ extends BaseECSComponent
 class_name C_VictoryTriggerComponent
 
 const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
+const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const EVENT_VICTORY_ZONE_ENTERED := StringName("victory_zone_entered")
+const EVENT_VICTORY_TRIGGERED := StringName("victory_triggered")
 
 const COMPONENT_TYPE := StringName("C_VictoryTriggerComponent")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
-
-signal player_entered(body: Node3D)
-signal victory_triggered()
 
 enum VictoryType {
 	LEVEL_COMPLETE = 0,
@@ -25,7 +25,7 @@ var is_triggered: bool = false
 
 var _area: Area3D = null
 var _player_inside: bool = false
-var _pending_trigger: bool = false
+var _last_body: Node3D = null
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
@@ -77,8 +77,10 @@ func _on_body_entered(body: Node3D) -> void:
 	if not _is_player(body):
 		return
 	_player_inside = true
-	_pending_trigger = true
-	player_entered.emit(body)
+	_last_body = body
+	_publish_zone_entered(body)
+	if _can_publish_trigger():
+		_publish_victory_triggered(body)
 
 func _on_body_exited(body: Node3D) -> void:
 	if not _is_player(body):
@@ -97,13 +99,6 @@ func _is_player(body: Node3D) -> bool:
 	var comps: Dictionary = manager.get_components_for_entity(entity)
 	return comps.has(PLAYER_TAG_COMPONENT) and comps.get(PLAYER_TAG_COMPONENT) != null
 
-func consume_trigger_request() -> bool:
-	if _pending_trigger and (not trigger_once or not is_triggered):
-		_pending_trigger = false
-		return true
-	_pending_trigger = false
-	return false
-
 func get_trigger_area() -> Area3D:
 	return _area
 
@@ -111,5 +106,28 @@ func is_player_inside() -> bool:
 	return _player_inside
 
 func set_triggered() -> void:
+	if trigger_once and is_triggered:
+		return
 	is_triggered = true
-	victory_triggered.emit()
+	_publish_victory_triggered(_last_body, true)
+
+func _can_publish_trigger() -> bool:
+	if trigger_once and is_triggered:
+		return false
+	return true
+
+func _publish_zone_entered(body: Node3D) -> void:
+	U_ECSEventBus.publish(EVENT_VICTORY_ZONE_ENTERED, {
+		"entity_id": U_ECSUtils.get_entity_id(body),
+		"trigger_node": self,
+		"body": body,
+	})
+
+func _publish_victory_triggered(body: Node3D, force: bool = false) -> void:
+	if trigger_once and is_triggered and not force:
+		return
+	U_ECSEventBus.publish(EVENT_VICTORY_TRIGGERED, {
+		"entity_id": U_ECSUtils.get_entity_id(body),
+		"trigger_node": self,
+		"body": body,
+	})
