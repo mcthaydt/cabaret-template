@@ -1462,6 +1462,24 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 - Replace ad-hoc signal wiring between systems with event bus topics.
 - Be mindful of payload size: keep dictionaries lean (<1 KB) to avoid ballooning the history buffer.
 
+#### Standard ECS Events (Phase 7 - 2025-12-09)
+
+| Event | Publisher | Payload (keys) | Notes |
+|-------|-----------|----------------|-------|
+| `health_changed` | `C_HealthComponent` | `entity_id`, `previous_health`, `new_health`, `is_dead` | Fired on every health delta (damage/heal). |
+| `entity_death` | `C_HealthComponent` | `entity_id`, `previous_health`, `new_health`, `is_dead=true` | Single-shot when health hits 0. |
+| `victory_zone_entered` | `C_VictoryTriggerComponent` | `entity_id`, `trigger_node`, `body` | Emitted on player overlap. |
+| `victory_triggered` | `C_VictoryTriggerComponent` | `entity_id`, `trigger_node`, `body` | Drives `S_VictorySystem` transition flow. |
+| `damage_zone_entered` / `damage_zone_exited` | `C_DamageZoneComponent` | `zone`, `zone_id`, `body`, `damage_per_second`, `is_instant_death` | `S_DamageSystem` keeps per-zone body sets from these. |
+| `checkpoint_zone_entered` | `C_CheckpointComponent` | `entity_id`, `checkpoint`, `body`, `spawn_point_id` | Consumed by `S_CheckpointSystem`; replaces Area3D signal wiring. |
+| `checkpoint_activated` | `S_CheckpointSystem` | `checkpoint_id`, `spawn_point_id` | UI/HUD hook for feedback. |
+| `component_registered` | `BaseECSComponent` | `component_type`, `component`, `entity`, `entity_id?`, `manager` | Emitted when a component finishes registration. |
+
+**Subscription Patterns**:
+- Subscribe via `U_ECSEventBus.subscribe(event, callable)` in `_ready()`/`on_configured()` and store the unsubscribe callable.
+- Unsubscribe in `_exit_tree()` to prevent leaks.
+- Keep payloads typed and small; deep-copy when mutating (`payload.duplicate(true)`).
+
 ---
 
 ### 8.4 System Execution Ordering (Stories 5.1–5.3)

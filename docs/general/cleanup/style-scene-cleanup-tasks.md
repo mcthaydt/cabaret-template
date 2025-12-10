@@ -1104,20 +1104,20 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 7F: Cleanup & Documentation
 
-- [ ] T075a Remove unused signal declarations:
+- [x] T075a Remove unused signal declarations:
   - Audit for signals with no subscribers after migration
   - Remove dead signal code
 
-- [ ] T075b Document event bus conventions in `docs/ecs/ecs_architecture.md`:
+- [x] T075b Document event bus conventions in `docs/ecs/ecs_architecture.md`:
   - List all standard event names and payloads
   - Document subscription/unsubscription patterns
   - Add examples of correct event bus usage
 
-- [ ] T075c Update STYLE_GUIDE.md:
+- [x] T075c Update STYLE_GUIDE.md:
   - Add rule: "ECS components MUST use U_ECSEventBus for domain events"
   - Add rule: "Direct signals only for Node lifecycle (tree_entered, etc.)"
 
-- [ ] T075d Run full ECS test suite:
+- [x] T075d Run full ECS test suite:
   - Verify no regressions from event bus migration
 
 ---

@@ -464,6 +464,11 @@ Test files use `test_` prefix followed by the class being tested:
 - `test_m_ecs_manager.gd`
 - `test_u_gameplay_selectors.gd`
 
+### ECS Event Bus Usage
+- ECS components publish gameplay-domain events via `U_ECSEventBus` (e.g., `health_changed`, `victory_triggered`, `damage_zone_entered`, `checkpoint_zone_entered`, `component_registered`); avoid custom signals for these flows.
+- Systems subscribe in `_ready()`/`on_configured()` and unsubscribe in `_exit_tree()` using the callable returned by `subscribe()`.
+- Keep payloads minimal and typed; deep-copy (`duplicate(true)`) before mutating shared payloads.
+
 ### Scene Files (.tscn)
 Scene files use descriptive snake_case names without prefixes:
 - `player_character.tscn`
