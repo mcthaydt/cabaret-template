@@ -250,6 +250,10 @@ func spawn_at_last_spawn(scene: Node) -> bool:
 		push_error("M_SpawnManager: Cannot spawn - scene is null")
 		return false
 
+	# Refresh spawn metadata from the current scene's spawn points so
+	# decisions are driven by scene-attached RS_SpawnMetadata resources.
+	U_SPAWN_REGISTRY.reload_from_scene(scene)
+
 	# Validate state store is ready (may not be during initial scene load)
 	if _state_store == null:
 		# Silently skip spawning if state store isn't ready yet (happens during boot)
@@ -265,7 +269,7 @@ func spawn_at_last_spawn(scene: Node) -> bool:
 	# Determine spawn source and id with priority, consulting spawn metadata:
 	# 1) target_spawn_point (door entry) if allowed by metadata
 	# 2) last_checkpoint (mid-scene checkpoint) if allowed by metadata
-	# 3) sp_default (scene fallback)
+	# 3) sp_default (scene fallback, also gated by metadata)
 	var used_last_checkpoint: bool = false
 	var spawn_id: StringName = StringName("")
 
@@ -276,6 +280,10 @@ func spawn_at_last_spawn(scene: Node) -> bool:
 		used_last_checkpoint = true
 	else:
 		spawn_id = StringName("sp_default")
+		# Default spawn must also have metadata; missing metadata disables
+		# the id (no more implicit "always allowed").
+		if not _is_spawn_allowed(spawn_id, false):
+			return false
 
 	# Try primary spawn
 	var ok: bool = await spawn_player_at_point(scene, spawn_id)
@@ -301,8 +309,9 @@ func _is_spawn_allowed(spawn_id: StringName, used_last_checkpoint: bool) -> bool
 
 	var metadata: Dictionary = U_SPAWN_REGISTRY.get_spawn(spawn_id)
 	if metadata.is_empty():
-		# No metadata configured; treat as always allowed.
-		return true
+		# No metadata configured; disable this spawn id. All spawn
+		# selection should be driven by scene-attached metadata.
+		return false
 
 	var condition: int = int(metadata.get("condition", SPAWN_CONDITION_ALWAYS))
 

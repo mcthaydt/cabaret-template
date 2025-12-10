@@ -3,32 +3,50 @@ class_name U_SpawnRegistry
 
 ## Static registry for spawn metadata.
 ##
-## Loads RS_SpawnMetadata resources or accepts them directly (tests) and
-## provides lookup helpers by spawn_id and tag. Integration with
-## M_SpawnManager is handled separately (see cleanup tasks T082/T083).
+## In production, metadata is provided by scene-attached RS_SpawnMetadata
+## resources on SP_SpawnPoint nodes. Tests can still inject metadata
+## directly via reload_registry([...]).
 
 static var _spawns_by_id: Dictionary = {}  # StringName -> RS_SpawnMetadata
 
-## Static initializer - load any configured spawn metadata resources.
+## Static initializer - start from a clean state.
 static func _static_init() -> void:
-	reload_registry()
+	_spawns_by_id.clear()
 
-## Reload registry entries from disk or a provided list (useful for tests).
+## Reload registry entries from a provided list (tests).
 ##
 ## When `spawn_resources` is non-empty, the registry will be populated
-## exclusively from that list (no disk access). When empty, the registry
-## attempts to load metadata from project resources.
+## exclusively from that list. When empty, the registry is simply cleared.
 static func reload_registry(spawn_resources: Array = []) -> void:
 	_spawns_by_id.clear()
 
-	if not spawn_resources.is_empty():
-		for resource in spawn_resources:
-			_register_spawn_resource(resource)
+	if spawn_resources.is_empty():
 		return
 
-	# Normal mode: load from project resources (if present).
-	_load_metadata_from_dir("res://resources/spawn_metadata/")
-	_load_metadata_from_dir("res://tests/spawn_metadata/")
+	for resource in spawn_resources:
+		_register_spawn_resource(resource)
+
+## Reload registry entries from the current scene's spawn point nodes.
+##
+## This scans for `SP_SpawnPoint` children under the `SP_SpawnPoints`
+## container and registers any attached RS_SpawnMetadata resources.
+static func reload_from_scene(scene: Node) -> void:
+	_spawns_by_id.clear()
+
+	if scene == null:
+		return
+
+	# Convention: spawn points live under Entities/SP_SpawnPoints
+	var spawn_points_root: Node = scene.get_node_or_null("Entities/SP_SpawnPoints")
+	if spawn_points_root == null:
+		return
+
+	for child in spawn_points_root.get_children():
+		if child is SP_SpawnPoint:
+			var spawn_point: SP_SpawnPoint = child
+			var metadata: RS_SpawnMetadata = spawn_point.get_spawn_metadata()
+			if metadata != null:
+				_register_spawn_resource(metadata)
 
 ## Get spawn metadata by id (defensive copy).
 ##

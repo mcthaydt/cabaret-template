@@ -15,7 +15,7 @@
 [ext_resource type="Script" uid="uid://djggd1n130ax6" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
 [ext_resource type="Script" uid="uid://bj50lxnot37ba" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
 [ext_resource type="Script" uid="uid://blh5rcefesvhl" path="res://scripts/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/prefab_player.tscn" id="7_4wxy1"]
+[ext_resource type="PackedScene" uid="uid://d1cugdu6fb42l" path="res://scenes/prefabs/prefab_player.tscn" id="7_4wxy1"]
 [ext_resource type="Script" uid="uid://c8ass3lvev88k" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
 [ext_resource type="Script" uid="uid://dgf540va7nevu" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
 [ext_resource type="Script" uid="uid://btv2kb8firb4t" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
@@ -32,6 +32,10 @@
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://dtaup85wkpxg0" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://i7he404b0pg7" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
+[ext_resource type="Script" uid="uid://c27x1bugc2k6c" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
+[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_exterior_spawns.tres" id="51_exterior_default_spawn_meta"]
+[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_exterior_checkpoint_spawns.tres" id="52_exterior_checkpoint_spawn_meta"]
+[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_exterior_exit_from_house_spawn.tres" id="53_exterior_exit_from_house_spawn_meta"]
 [ext_resource type="Script" uid="uid://b420jsnbnxfy8" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
 [ext_resource type="Script" uid="uid://bafjlsa2nxo8r" path="res://scripts/ecs/systems/s_gamepad_vibration_system.gd" id="28_jpc3c"]
 [ext_resource type="Script" uid="uid://ccm1a2gahhbye" path="res://scripts/gameplay/e_door_trigger_controller.gd" id="30_door_controller"]
@@ -340,15 +344,18 @@ script = ExtResource("21_spawnpoints")
 
 [node name="sp_default" type="Node3D" parent="Entities/SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3674707, 0)
-script = ExtResource("21_spawnpoints")
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("51_exterior_default_spawn_meta")
 
 [node name="sp_checkpoint_safe" type="Node3D" parent="Entities/SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1999226, 3.6344914, -2.3520212)
-script = ExtResource("21_spawnpoints")
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("52_exterior_checkpoint_spawn_meta")
 
 [node name="sp_exit_from_house" type="Node3D" parent="Entities/SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7472486, -0.31296825, 1.4028394)
-script = ExtResource("21_spawnpoints")
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("53_exterior_exit_from_house_spawn_meta")
 
 [node name="HUD" parent="." instance=ExtResource("11_hud")]
 

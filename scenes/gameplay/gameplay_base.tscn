@@ -31,6 +31,8 @@
 [ext_resource type="Script" uid="uid://dmpwmbteqvtp0" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://i7he404b0pg7" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
+[ext_resource type="Script" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
+[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_base_spawns.tres" id="51_base_spawn_meta"]
 [ext_resource type="Script" uid="uid://bafjlsa2nxo8r" path="res://scripts/ecs/systems/s_gamepad_vibration_system.gd" id="22_gamepad_vibration"]
 [ext_resource type="Script" uid="uid://sdf0ennjlulg" path="res://scripts/managers/m_gameplay_initializer.gd" id="23_initializer"]
 [ext_resource type="Script" uid="uid://b420jsnbnxfy8" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
@@ -195,6 +197,7 @@ script = ExtResource("21_spawnpoints")
 
 [node name="sp_default" type="Node3D" parent="Entities/SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 4.4034653, 0)
-script = ExtResource("21_spawnpoints")
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("51_base_spawn_meta")
 
 [node name="HUD" parent="." instance=ExtResource("11_hud")]

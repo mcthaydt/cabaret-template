@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_SpawnMetadata" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/scene_management/resources/rs_spawn_metadata.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+spawn_id = &"sp_exit_from_house"
+tags = [&"door_return"]
+priority = 5
+condition = 0

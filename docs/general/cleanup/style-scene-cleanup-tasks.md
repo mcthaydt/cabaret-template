@@ -1126,7 +1126,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 - [x] T080 Design a minimal **spawn metadata** structure:
   - List required fields (id, tags, basic conditions).
-  - Decide whether to use a Resource type (e.g., `RS_SpawnMetadata`) or plain dictionaries.
+  - Decide whether to use a Resource type (e.gp, `RS_SpawnMetadata`) or plain dictionaries.
   - **Result**: Chosen `RS_SpawnMetadata` Resource (`rs_spawn_metadata.gd`) with fields `spawn_id: StringName`, `tags: Array[StringName]`, `priority: int`, and a `SpawnCondition` enum (`ALWAYS`, `CHECKPOINT_ONLY`, `DISABLED`) as documented in `style-scene-cleanup-plan.md` Phase 7.
 - [x] T081 Implement a `U_SpawnRegistry` (or similar) for spawn metadata:
   - Provide helpers for looking up spawn info by id/tag.
@@ -1137,16 +1137,25 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 - [x] T083 Add tests:
   - Unit tests for spawn registry lookup and condition evaluation.
   - Integration tests to confirm exterior/interior transitions and checkpoints still work correctly.
-- [ ] T084 Author spawn metadata resources for gameplay scenes:
+- [x] T084 Author spawn metadata resources for gameplay scenes:
   - Create `resources/spawn_metadata/` and add `RS_SpawnMetadata` `.tres` files for key IDs:
     - Defaults (`sp_default` per gameplay scene)
     - Checkpoints (`cp_*` markers with CHECKPOINT_ONLY)
     - Any special door targets that should be DISABLED or prioritized
   - Verify spawn_id values match actual Node names in `gameplay_base`, `gameplay_exterior`, and `gameplay_interior_house`.
-- [ ] T085 Manual spawn behaviour verification:
-  - In-editor play: verify door transitions, checkpoint respawns, and default spawns behave identically with metadata present.
+- [x] T086 Make spawn_at_last_spawn fully metadata-driven and scene-attached:
+  - Replace folder-scanned metadata with scene-attached RS_SpawnMetadata:
+    - Rename/repurpose the existing SP_SpawnPoints children so each `sp_*` node uses a non-marker script (e.g., `sp_spawn_point.gd`) that exports an `RS_SpawnMetadata` resource.
+    - Marker scripts (like `marker_spawn_points_group.gd`) remain only on containers with no data; individual spawn points become data-bearing nodes with proper prefixes.
+  - Update `_is_spawn_allowed()` / `spawn_at_last_spawn()` to build the registry from the current scene’s spawn point nodes (using their hooked resources) instead of only scanning `resources/spawn_metadata/`.
+  - Ensure respawn selection always passes through U_SpawnRegistry for `target_spawn_point`, `last_checkpoint`, and `sp_default`, and that missing/misconfigured metadata fails loudly in tests.
+- [ ] T085 Manual spawn behaviour verification (after T086):
+  - In-editor play: verify door transitions, checkpoint respawns, and default spawns behave identically with the scene-attached metadata in place.
   - Toggle conditions (e.g., set a checkpoint spawn to DISABLED) and confirm M_SpawnManager falls back as expected.
   - Watch logs for unexpected spawn-related errors or missing metadata warnings.
+- [ ] T087 Reconcile spawn registry tasks/docs across subsystems:
+  - Update `docs/scene manager/scene-manager-tasks.md` and related PRD/plan references (T287/T288) to reflect the scene-attached spawn metadata design (RS_SpawnMetadata exported on `*_spawn_point` scripts).
+  - Cross-link Phase 8 tasks (T080–T086) so future contributors see a single, up-to-date source of truth for spawn registry work and understand that marker scripts are data-less, while spawn point nodes own their metadata via exported resources.
 
 ---
 

@@ -32,6 +32,9 @@
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://dtaup85wkpxg0" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://i7he404b0pg7" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
+[ext_resource type="Script" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
+[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_interior_house_spawns.tres" id="51_interior_default_spawn_meta"]
+[ext_resource type="Resource" path="res://resources/spawn_metadata/gameplay_interior_house_entrance_spawn.tres" id="52_interior_entrance_spawn_meta"]
 [ext_resource type="Script" uid="uid://b420jsnbnxfy8" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
 [ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="30_auc1c"]
 [ext_resource type="Script" uid="uid://ccm1a2gahhbye" path="res://scripts/gameplay/e_door_trigger_controller.gd" id="30_door_controller"]
@@ -282,11 +285,13 @@ script = ExtResource("21_spawnpoints")
 
 [node name="sp_default" type="Node3D" parent="Entities/SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7123368, 1.0887601, 1.7809162)
-script = ExtResource("21_spawnpoints")
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("51_interior_default_spawn_meta")
 
 [node name="sp_entrance_from_exterior" type="Node3D" parent="Entities/SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.3252916, -0.40663242, 1.4185565)
-script = ExtResource("21_spawnpoints")
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("52_interior_entrance_spawn_meta")
 
 [node name="HUD" parent="." instance=ExtResource("11_hud")]
 

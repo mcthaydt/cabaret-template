@@ -335,37 +335,48 @@ func test_spawn_at_last_spawn_uses_target_spawn_when_allowed_by_metadata() -> vo
 	state_store.dispatch(U_GAMEPLAY_ACTIONS.set_last_checkpoint(StringName("")))
 	await get_tree().physics_frame
 
-	# Scene with player and both spawn markers
+	# Scene layout mirrors production: Entities → SP_SpawnPoints → SP_SpawnPoint nodes
+	var entities := Node3D.new()
+	entities.name = "Entities"
+	test_scene.add_child(entities)
+
 	var player := CharacterBody3D.new()
 	player.name = "E_Player"
-	test_scene.add_child(player)
+	entities.add_child(player)
 
-	var sp_entry := Node3D.new()
+	var spawn_points_root := Node3D.new()
+	spawn_points_root.name = "SP_SpawnPoints"
+	entities.add_child(spawn_points_root)
+
+	# Target spawn (sp_entry) with ALWAYS metadata
+	var sp_entry := SP_SpawnPoint.new()
 	sp_entry.name = "sp_entry"
 	sp_entry.position = Vector3(5, 0, 0)
-	test_scene.add_child(sp_entry)
-
-	var sp_checkpoint := Node3D.new()
-	sp_checkpoint.name = "cp_checkpoint"
-	sp_checkpoint.position = Vector3(20, 0, 0)
-	test_scene.add_child(sp_checkpoint)
-
-	# Provide a default spawn marker to avoid unexpected fallback errors.
-	var sp_default := Node3D.new()
-	sp_default.name = "sp_default"
-	sp_default.position = Vector3(0, 0, 0)
-	test_scene.add_child(sp_default)
-
-	# Metadata: target spawn ALWAYS, checkpoint CHECKPOINT_ONLY
 	var meta_entry := RS_SpawnMetadata.new()
 	meta_entry.spawn_id = StringName("sp_entry")
 	meta_entry.condition = RS_SpawnMetadata.SpawnCondition.ALWAYS
+	sp_entry.spawn_metadata = meta_entry
+	spawn_points_root.add_child(sp_entry)
 
+	# Checkpoint spawn (cp_checkpoint) with CHECKPOINT_ONLY metadata
+	var sp_checkpoint := SP_SpawnPoint.new()
+	sp_checkpoint.name = "cp_checkpoint"
+	sp_checkpoint.position = Vector3(20, 0, 0)
 	var meta_checkpoint := RS_SpawnMetadata.new()
 	meta_checkpoint.spawn_id = StringName("cp_checkpoint")
 	meta_checkpoint.condition = RS_SpawnMetadata.SpawnCondition.CHECKPOINT_ONLY
+	sp_checkpoint.spawn_metadata = meta_checkpoint
+	spawn_points_root.add_child(sp_checkpoint)
 
-	U_SpawnRegistry.reload_registry([meta_entry, meta_checkpoint])
+	# Default spawn (sp_default) with ALWAYS metadata to avoid unexpected fallback errors
+	var sp_default := SP_SpawnPoint.new()
+	sp_default.name = "sp_default"
+	sp_default.position = Vector3(0, 0, 0)
+	var meta_default := RS_SpawnMetadata.new()
+	meta_default.spawn_id = StringName("sp_default")
+	meta_default.condition = RS_SpawnMetadata.SpawnCondition.ALWAYS
+	sp_default.spawn_metadata = meta_default
+	spawn_points_root.add_child(sp_default)
 
 	# Act
 	var ok := await spawn_manager.spawn_at_last_spawn(test_scene)
