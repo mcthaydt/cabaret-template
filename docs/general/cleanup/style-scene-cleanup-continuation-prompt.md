@@ -117,7 +117,8 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
     - `M_SceneManager` now delegates cache, loading, and overlay-stack responsibilities to helpers while keeping public API and behavior identical.
     - Scene manager unit + integration suites fully passing (only pre-existing pending tween tests remain skipped).
     - Note: File length is still ~1,100 lines; the ~400 line target will be reached after later architectural extractions (e.g., Phase 10B-2 transition subsystem split).
-  - **9B**: ui_input_rebinding_overlay.gd (1,254 → ~400) - 3 helpers
+  - **9B (Input Rebinding Overlay)**: ✅ COMPLETE (2025-12-10)
+    - `U_RebindActionListBuilder` helper confirmed in place and wired into `UI_InputRebindingOverlay`; tasks checklist updated (T091a).
   - **9C**: m_state_store.gd (809 → ~400) - 2 helpers
   - **9D**: u_input_rebind_utils.gd (509 → ~180) - 2 utilities
   - **9E**: Minor splits for 4 files (500-451 lines each)

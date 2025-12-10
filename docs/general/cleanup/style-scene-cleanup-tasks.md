@@ -1206,7 +1206,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 9B: Input Rebinding Overlay Split (1,254 → ~400 lines)
 
-- [ ] T091a Create `scripts/ui/helpers/u_rebind_action_list_builder.gd`:
+- [x] T091a Create `scripts/ui/helpers/u_rebind_action_list_builder.gd`:
   - Extract: `_build_action_rows`, `_collect_actions`, `_categorize_actions`, `_format_action_name`, `_add_spacer`
   - Extract: `ACTION_CATEGORIES` constant, `EXCLUDED_ACTIONS` constant
   - Extract: `_refresh_bindings`, `_populate_binding_visuals`, `_get_event_device_type`
@@ -1231,23 +1231,23 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 9C: State Store Split (809 → ~400 lines)
 
-- [ ] T092a Create `scripts/state/utils/u_state_persistence.gd`:
+- [x] T092a Create `scripts/state/utils/u_state_persistence.gd`:
   - Extract: `save_state`, `load_state`
   - Extract: `_normalize_loaded_state`, `_normalize_scene_slice`, `_normalize_gameplay_slice`
   - Extract: `_normalize_spawn_reference`, `_as_string_name`, `_is_scene_registered`
   - Include: DEFAULT_SCENE_ID, DEFAULT_SPAWN_POINT, SPAWN_PREFIX, CHECKPOINT_PREFIX constants
 
-- [ ] T092b Create `scripts/state/utils/u_state_slice_manager.gd`:
+- [x] T092b Create `scripts/state/utils/u_state_slice_manager.gd`:
   - Extract: `register_slice`, `validate_slice_dependencies`, `_has_circular_dependency`
   - Extract: `_initialize_slices`, `_apply_reducers`
 
-- [ ] T092c Refactor `m_state_store.gd` to use helpers:
+- [x] T092c Refactor `m_state_store.gd` to use helpers:
   - Add const preloads for both new helpers
   - Replace extracted methods with delegation calls
   - Keep: `dispatch`, `subscribe`, `get_state`, `get_slice`, StateHandoff, debug overlay, performance metrics
   - Verify ~400 lines remaining
 
-- [ ] T092d Run state store tests
+- [x] T092d Run state store tests
 
 ### Phase 9D: Input Rebind Utils Split (509 → ~180 lines)
 

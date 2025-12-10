@@ -220,7 +220,17 @@ func _exit_tree() -> void:
 
 ## Find container nodes in the scene tree
 func _find_container_nodes() -> void:
-	var root: Node = get_tree().root.get_child(get_tree().root.get_child_count() - 1)
+	var tree := get_tree()
+	if tree == null:
+		return
+
+	var root: Node = self
+	# Walk up until we reach the scene root (direct child of SceneTree.root),
+	# so we only search within the same root scene as this manager.
+	while root.get_parent() != null and root.get_parent() != tree.root:
+		root = root.get_parent()
+	if root.get_parent() != tree.root:
+		root = tree.root
 	# Find ActiveSceneContainer
 	_active_scene_container = root.find_child("ActiveSceneContainer", true, false)
 	if _active_scene_container == null:
@@ -761,11 +771,26 @@ func _reconcile_base_scene(desired_scene_id: StringName) -> void:
 	if _is_scene_in_queue(desired_scene_id):
 		return
 
+	# Default transition settings come from the scene registry.
 	var transition_type: String = String(scene_data.get("default_transition", "instant"))
+	var priority: int = Priority.HIGH
+
+	# Navigation slice may provide override metadata (e.g., endgame flows
+	# that should use instant transitions instead of long fades).
+	if not _latest_navigation_state.is_empty():
+		var metadata: Dictionary = _latest_navigation_state.get("_transition_metadata", {})
+		if not metadata.is_empty():
+			var type_variant: Variant = metadata.get("transition_type", transition_type)
+			if type_variant is String:
+				transition_type = String(type_variant)
+			var priority_variant: Variant = metadata.get("priority", priority)
+			if priority_variant is int:
+				priority = int(priority_variant)
+
 	if transition_type.is_empty():
 		transition_type = "instant"
 
-	transition_to_scene(desired_scene_id, transition_type, Priority.HIGH)
+	transition_to_scene(desired_scene_id, transition_type, priority)
 	_navigation_pending_scene_id = desired_scene_id
 
 func _is_scene_in_queue(scene_id: StringName) -> bool:

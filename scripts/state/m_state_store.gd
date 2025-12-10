@@ -14,8 +14,8 @@ class_name M_StateStore
 ##   var state: Dictionary = store.get_state()
 
 const U_SIGNAL_BATCHER := preload("res://scripts/state/utils/u_signal_batcher.gd")
-const U_SERIALIZATION_HELPER := preload("res://scripts/state/utils/u_serialization_helper.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_STATE_SLICE_MANAGER := preload("res://scripts/state/utils/u_state_slice_manager.gd")
 const U_BOOT_REDUCER := preload("res://scripts/state/reducers/u_boot_reducer.gd")
 const U_MENU_REDUCER := preload("res://scripts/state/reducers/u_menu_reducer.gd")
 const U_GAMEPLAY_REDUCER := preload("res://scripts/state/reducers/u_gameplay_reducer.gd")
@@ -23,18 +23,14 @@ const U_NAVIGATION_REDUCER := preload("res://scripts/state/reducers/u_navigation
 const U_SCENE_REDUCER := preload("res://scripts/state/reducers/u_scene_reducer.gd")
 const U_SETTINGS_REDUCER := preload("res://scripts/state/reducers/u_settings_reducer.gd")
 const U_DEBUG_REDUCER := preload("res://scripts/state/reducers/u_debug_reducer.gd")
-const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_INPUT_CAPTURE_GUARD := preload("res://scripts/utils/u_input_capture_guard.gd")
+const U_STATE_PERSISTENCE := preload("res://scripts/state/utils/u_state_persistence.gd")
 const RS_BOOT_INITIAL_STATE := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
 const RS_MENU_INITIAL_STATE := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_SETTINGS_INITIAL_STATE := preload("res://scripts/state/resources/rs_settings_initial_state.gd")
 const RS_DEBUG_INITIAL_STATE := preload("res://scripts/state/resources/rs_debug_initial_state.gd")
-const DEFAULT_SCENE_ID := StringName("gameplay_base")
-const DEFAULT_SPAWN_POINT := StringName("sp_default")
-const SPAWN_PREFIX := "sp_"
-const CHECKPOINT_PREFIX := "cp_"
 
 signal state_changed(action: Dictionary, new_state: Dictionary)
 signal slice_updated(slice_name: StringName, slice_state: Dictionary)
@@ -238,82 +234,37 @@ func _initialize_settings() -> void:
 		_enable_history = true  # Default to enabled in debug builds
 
 func _initialize_slices() -> void:
-	# Register boot slice if initial state provided
-	if boot_initial_state != null:
-		var boot_config := RS_StateSliceConfig.new(StringName("boot"))
-		boot_config.reducer = Callable(U_BOOT_REDUCER, "reduce")
-		boot_config.initial_state = boot_initial_state.to_dictionary()
-		boot_config.dependencies = []
-		boot_config.transient_fields = []
-		register_slice(boot_config)
-	
-	# Register menu slice if initial state provided
-	if menu_initial_state != null:
-		var menu_config := RS_StateSliceConfig.new(StringName("menu"))
-		menu_config.reducer = Callable(U_MENU_REDUCER, "reduce")
-		menu_config.initial_state = menu_initial_state.to_dictionary()
-		menu_config.dependencies = []
-		menu_config.transient_fields = []
-		register_slice(menu_config)
+	U_STATE_SLICE_MANAGER.initialize_slices(
+		_slice_configs,
+		_state,
+		boot_initial_state,
+		menu_initial_state,
+		navigation_initial_state,
+		settings_initial_state,
+		gameplay_initial_state,
+		scene_initial_state,
+		debug_initial_state
+	)
 
-	# Register navigation slice (transient)
-	if navigation_initial_state == null:
-		navigation_initial_state = RS_NAVIGATION_INITIAL_STATE.new()
-	if navigation_initial_state != null:
-		var navigation_config := RS_StateSliceConfig.new(StringName("navigation"))
-		navigation_config.reducer = Callable(U_NAVIGATION_REDUCER, "reduce")
-		navigation_config.initial_state = navigation_initial_state.to_dictionary()
-		navigation_config.dependencies = []
-		navigation_config.transient_fields = []
-		navigation_config.is_transient = true
-		register_slice(navigation_config)
-	
-	# Register settings slice (persistent input settings + future categories)
-	if settings_initial_state == null:
-		settings_initial_state = RS_SETTINGS_INITIAL_STATE.new()
-	if settings_initial_state != null:
-		var settings_config := RS_StateSliceConfig.new(StringName("settings"))
-		settings_config.reducer = Callable(U_SETTINGS_REDUCER, "reduce")
-		settings_config.initial_state = settings_initial_state.to_dictionary()
-		settings_config.dependencies = []
-		settings_config.transient_fields = []
-		register_slice(settings_config)
-	
-	# Register gameplay slice if initial state provided
-	if gameplay_initial_state != null:
-		var gameplay_config := RS_StateSliceConfig.new(StringName("gameplay"))
-		gameplay_config.reducer = Callable(U_GAMEPLAY_REDUCER, "reduce")
-		gameplay_config.initial_state = gameplay_initial_state.to_dictionary()
-		gameplay_config.dependencies = []
-		# Inputs are transient across scene transitions (StateHandoff) to avoid sticky input,
-		# but are persisted for save/load (handled specially in save_state()).
-		gameplay_config.transient_fields = [
-			StringName("input"),
-			StringName("move_input"),
-			StringName("look_input"),
-			StringName("jump_pressed"),
-			StringName("jump_just_pressed"),
-			StringName("sprint_pressed"),
-		]
-		register_slice(gameplay_config)
+## Normalize a deserialized state dictionary for tests.
+##
+## This is a thin wrapper around U_StatePersistence._normalize_loaded_state()
+## so tests can exercise normalization logic without reaching into the helper
+## directly. Production code should continue to use U_StatePersistence for
+## save/load flows.
+func _normalize_loaded_state(state: Dictionary) -> void:
+	U_STATE_PERSISTENCE._normalize_loaded_state(state)
 
-	# Register scene slice if initial state provided
-	if scene_initial_state != null:
-		var scene_config := RS_StateSliceConfig.new(StringName("scene"))
-		scene_config.reducer = Callable(U_SCENE_REDUCER, "reduce")
-		scene_config.initial_state = scene_initial_state.to_dictionary()
-		scene_config.dependencies = []
-		scene_config.transient_fields = ["is_transitioning", "transition_type"]  # Don't persist transition state
-		register_slice(scene_config)
-
-	# Register debug slice if initial state provided
-	if debug_initial_state != null:
-		var debug_config := RS_StateSliceConfig.new(StringName("debug"))
-		debug_config.reducer = Callable(U_DEBUG_REDUCER, "reduce")
-		debug_config.initial_state = debug_initial_state.to_dictionary()
-		debug_config.dependencies = []
-		debug_config.transient_fields = []
-		register_slice(debug_config)
+## Normalize a single spawn reference for tests.
+##
+## Delegates to U_StatePersistence._normalize_spawn_reference() so tests can
+## validate spawn normalization behavior via the store instance.
+func _normalize_spawn_reference(
+	value: Variant,
+	allow_empty: bool,
+	emit_warning: bool = true
+) -> StringName:
+	return U_STATE_PERSISTENCE._normalize_spawn_reference(value, allow_empty, emit_warning)
 
 ## Dispatch an action to update state
 func dispatch(action: Dictionary) -> void:
@@ -336,7 +287,13 @@ func dispatch(action: Dictionary) -> void:
 		return
 
 	# Process action through reducers to update state and detect changes
-	var any_changed: bool = _apply_reducers(action)
+	var any_changed: bool = U_STATE_SLICE_MANAGER.apply_reducers(
+		_state,
+		_slice_configs,
+		action,
+		_signal_batcher,
+		_pending_immediate_updates
+	)
 
 	# Record action in history AFTER reducer runs (includes state_after)
 	if _enable_history:
@@ -372,57 +329,15 @@ func dispatch(action: Dictionary) -> void:
 	_perf_dispatch_count += 1
 
 ## Apply reducers to update state based on action
-## State updates are IMMEDIATE (synchronous), signal emissions are batched (per-frame)
+## Kept for backward compatibility; now delegates to U_StateSliceManager.
 func _apply_reducers(action: Dictionary) -> bool:
-	var changed_any: bool = false
-	var action_type: String = String(action.get("type", StringName("") ))
-	var target_slices: Array[StringName] = []
-	# Fast-path: skip reducers entirely for test-only actions
-	if action_type.begins_with("test/"):
-		return false
-	# Route by common slice prefixes to avoid calling all reducers
-	if action_type.begins_with("gameplay/"):
-		target_slices.append(StringName("gameplay"))
-	elif action_type.begins_with("input/"):
-		# Input actions can affect both gameplay (transient input) and settings (persistent config)
-		target_slices.append(StringName("gameplay"))
-		target_slices.append(StringName("settings"))
-	elif action_type.begins_with("settings/"):
-		target_slices.append(StringName("settings"))
-	elif action_type.begins_with("scene/"):
-		target_slices.append(StringName("scene"))
-	elif action_type.begins_with("boot/"):
-		target_slices.append(StringName("boot"))
-	elif action_type.begins_with("menu/"):
-		target_slices.append(StringName("menu"))
-	elif action_type.begins_with("navigation/"):
-		target_slices.append(StringName("navigation"))
-	elif action_type.begins_with("debug/"):
-		target_slices.append(StringName("debug"))
-	else:
-		# Unknown prefix: evaluate all reducers for safety
-		for sn in _slice_configs.keys():
-			target_slices.append(sn)
-
-	for slice_name in target_slices:
-		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
-		if config == null or config.reducer == Callable() or not config.reducer.is_valid():
-			continue
-		var current_slice_state: Dictionary = _state.get(slice_name, {})
-		var next_slice_state: Variant = config.reducer.call(current_slice_state, action)
-		if next_slice_state is Dictionary:
-			var next_state_dict := next_slice_state as Dictionary
-			# Skip work if reducer returned state unchanged
-			if next_state_dict == current_slice_state:
-				continue
-			var new_slice_state := next_state_dict.duplicate(true)
-			_state[slice_name] = new_slice_state
-			_pending_immediate_updates[slice_name] = new_slice_state.duplicate(true)
-			# Mark slice as dirty for batched signal emission
-			if _signal_batcher != null:
-				_signal_batcher.mark_slice_dirty(slice_name, new_slice_state)
-			changed_any = true
-	return changed_any
+	return U_STATE_SLICE_MANAGER.apply_reducers(
+		_state,
+		_slice_configs,
+		action,
+		_signal_batcher,
+		_pending_immediate_updates
+	)
 
 ## Subscribe to state changes
 ## Returns unsubscribe callable
@@ -480,58 +395,10 @@ func get_slice(slice_name: StringName, caller_slice: StringName = StringName()) 
 ##   gameplay_config.dependencies = []  # Other slices this slice depends on
 ##   register_slice(gameplay_config)
 func register_slice(config: RS_StateSliceConfig) -> void:
-	if config == null:
-		push_error("M_StateStore.register_slice: Config is null")
-		return
+	U_STATE_SLICE_MANAGER.register_slice(_slice_configs, _state, config)
 
-	if config.slice_name == StringName():
-		push_error("M_StateStore.register_slice: Slice name is empty")
-		return
-
-	# Validate circular dependencies
-	if _has_circular_dependency(config.slice_name, config.dependencies):
-		push_error("M_StateStore.register_slice: Circular dependency detected for slice '", config.slice_name, "'")
-		return
-
-	_slice_configs[config.slice_name] = config
-	_state[config.slice_name] = config.initial_state.duplicate(true)
-
-## Validate that all declared slice dependencies exist and are valid
-##
-## Returns true if all dependencies are valid, false otherwise.
-## Checks that:
-## - All declared dependencies point to registered slices
-## - No circular dependencies exist (already checked at registration)
 func validate_slice_dependencies() -> bool:
-	var all_valid := true
-	
-	for slice_name in _slice_configs:
-		var config: RS_StateSliceConfig = _slice_configs[slice_name]
-		
-		for dep in config.dependencies:
-			if not _slice_configs.has(dep):
-				push_error("M_StateStore: Slice '", slice_name, "' declares dependency on unregistered slice '", dep, "'")
-				all_valid = false
-	
-	return all_valid
-
-## Check for circular dependencies using depth-first search
-func _has_circular_dependency(slice_name: StringName, dependencies: Array[StringName], visited: Dictionary = {}, rec_stack: Dictionary = {}) -> bool:
-	visited[slice_name] = true
-	rec_stack[slice_name] = true
-
-	for dep in dependencies:
-		if not visited.get(dep, false):
-			var dep_config: RS_StateSliceConfig = _slice_configs.get(dep)
-			if dep_config != null:
-				if _has_circular_dependency(dep, dep_config.dependencies, visited, rec_stack):
-					return true
-		elif rec_stack.get(dep, false):
-			# Found a back edge, circular dependency detected
-			return true
-
-	rec_stack[slice_name] = false
-	return false
+	return U_STATE_SLICE_MANAGER.validate_slice_dependencies(_slice_configs)
 
 ## Record action in history with timestamp and state snapshot
 func _record_action_in_history(action: Dictionary) -> void:
@@ -586,102 +453,17 @@ func get_last_n_actions(n: int) -> Array:
 ## Excludes transient fields as defined in slice configs.
 ## Returns OK on success, or an Error code on failure.
 func save_state(filepath: String) -> Error:
-	if filepath.is_empty():
-		push_error("M_StateStore.save_state: Empty filepath")
-		return ERR_INVALID_PARAMETER
-
-	# Build state to save, excluding transient fields
-	var state_to_save: Dictionary = {}
-	for slice_name in _state:
-		var slice_state: Dictionary = _state[slice_name]
-		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
-		if config != null and config.is_transient:
-			continue
-		# Copy slice state, excluding transient fields
-		var filtered_state: Dictionary = {}
-		if String(slice_name) == "gameplay":
-			# Persist full gameplay slice including input fields for save/load
-			filtered_state = slice_state.duplicate(true)
-		else:
-			for key in slice_state:
-				var is_transient: bool = false
-				if config != null:
-					is_transient = config.transient_fields.has(key)
-				if not is_transient:
-					filtered_state[key] = slice_state[key]
-		# Apply serialization to convert Godot types
-		state_to_save[slice_name] = U_SERIALIZATION_HELPER.godot_to_json(filtered_state)
-
-	# Convert to JSON string
-	var json_string: String = JSON.stringify(state_to_save, "\t")
-
-	# Write to file
-	var file: FileAccess = FileAccess.open(filepath, FileAccess.WRITE)
-	if file == null:
-		var error: Error = FileAccess.get_open_error()
-		push_error("M_StateStore.save_state: Failed to open file for writing: ", error)
-		return error
-
-	file.store_string(json_string)
-	file.close()
-
-	return OK
+	return U_STATE_PERSISTENCE.save_state(filepath, _state, _slice_configs)
 
 ## Load state from JSON file
 ##
 ## Merges loaded state with current state, preserving transient fields.
 ## Returns OK on success, or an Error code on failure.
 func load_state(filepath: String) -> Error:
-	if filepath.is_empty():
-		push_error("M_StateStore.load_state: Empty filepath")
-		return ERR_INVALID_PARAMETER
-	
-	# Check if file exists
-	if not FileAccess.file_exists(filepath):
-		push_error("M_StateStore.load_state: File does not exist: ", filepath)
-		return ERR_FILE_NOT_FOUND
-	
-	# Read file
-	var file: FileAccess = FileAccess.open(filepath, FileAccess.READ)
-	if file == null:
-		var error: Error = FileAccess.get_open_error()
-		push_error("M_StateStore.load_state: Failed to open file for reading: ", error)
-		return error
-	
-	var json_string: String = file.get_as_text()
-	file.close()
-	
-	# Parse JSON
-	var parsed: Variant = JSON.parse_string(json_string)
-	if parsed == null or not parsed is Dictionary:
-		push_error("M_StateStore.load_state: Invalid JSON in file")
-		return ERR_PARSE_ERROR
-	
-	var loaded_state: Dictionary = parsed as Dictionary
-	
-	# Apply deserialization to convert back to Godot types
-	var deserialized_state: Dictionary = U_SERIALIZATION_HELPER.json_to_godot(loaded_state)
-	_normalize_loaded_state(deserialized_state)
-	
-	# Merge loaded state with current state
-	for slice_name in deserialized_state:
-		if _state.has(slice_name):
-			var loaded_slice: Dictionary = deserialized_state[slice_name]
-			var current_slice: Dictionary = _state[slice_name]
-			var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
-			
-			# Preserve transient fields from current state
-			if config != null:
-				for transient_field in config.transient_fields:
-					if current_slice.has(transient_field) and not loaded_slice.has(transient_field):
-						loaded_slice[transient_field] = current_slice[transient_field]
-			
-			# Replace slice with loaded state (merged with transient fields)
-			_state[slice_name] = loaded_slice.duplicate(true)
-	
-	state_loaded.emit(filepath)
-	
-	return OK
+	var err: Error = U_STATE_PERSISTENCE.load_state(filepath, _state, _slice_configs)
+	if err == OK:
+		state_loaded.emit(filepath)
+	return err
 
 ## Preserve state to StateHandoff for scene transitions
 func _preserve_to_handoff() -> void:
@@ -717,68 +499,6 @@ func _restore_from_handoff() -> void:
 			
 			# Clear the handoff state after restoring
 			U_STATE_HANDOFF.clear_slice(slice_name)
-
-func _normalize_loaded_state(state: Dictionary) -> void:
-	if state.has("scene") and state["scene"] is Dictionary:
-		_normalize_scene_slice(state["scene"])
-	if state.has("gameplay") and state["gameplay"] is Dictionary:
-		_normalize_gameplay_slice(state["gameplay"])
-
-func _normalize_scene_slice(scene_slice: Dictionary) -> void:
-	var raw_scene_id: Variant = scene_slice.get("current_scene_id", StringName(""))
-	var scene_id := _as_string_name(raw_scene_id)
-	if _is_scene_registered(scene_id):
-		scene_slice["current_scene_id"] = scene_id
-	else:
-		if not String(scene_id).is_empty():
-			push_warning("State load: Unknown scene_id '%s'. Falling back to %s." % [String(scene_id), String(DEFAULT_SCENE_ID)])
-		scene_slice["current_scene_id"] = DEFAULT_SCENE_ID
-
-func _normalize_gameplay_slice(gameplay_slice: Dictionary) -> void:
-	gameplay_slice["target_spawn_point"] = _normalize_spawn_reference(
-		gameplay_slice.get("target_spawn_point", StringName("")),
-		true
-	)
-	gameplay_slice["last_checkpoint"] = _normalize_spawn_reference(
-		gameplay_slice.get("last_checkpoint", StringName("")),
-		true
-	)
-
-	var raw_completed: Variant = gameplay_slice.get("completed_areas", [])
-	var completed: Array[String] = []
-	if raw_completed is Array:
-		for entry in (raw_completed as Array):
-			var identifier := String(entry).strip_edges()
-			if identifier.is_empty():
-				continue
-			if not completed.has(identifier):
-				completed.append(identifier)
-	gameplay_slice["completed_areas"] = completed
-
-func _as_string_name(value: Variant) -> StringName:
-	if value is StringName:
-		return value
-	if value is String:
-		return StringName(value)
-	return StringName("")
-
-func _is_scene_registered(scene_id: StringName) -> bool:
-	if scene_id.is_empty():
-		return false
-	return not U_SCENE_REGISTRY.get_scene(scene_id).is_empty()
-
-func _normalize_spawn_reference(value: Variant, allow_empty: bool, emit_warning: bool = true) -> StringName:
-	var spawn := _as_string_name(value)
-	var text := String(spawn)
-	if text.is_empty():
-		return StringName("") if allow_empty else DEFAULT_SPAWN_POINT
-	if text.begins_with(SPAWN_PREFIX):
-		return spawn
-	if text.begins_with(CHECKPOINT_PREFIX):
-		return spawn
-	if emit_warning:
-		push_warning("State load: Unknown spawn point '%s'. Using %s." % [text, String(DEFAULT_SPAWN_POINT)])
-	return DEFAULT_SPAWN_POINT
 
 ## Get performance metrics (T414)
 ##

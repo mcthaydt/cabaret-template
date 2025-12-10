@@ -198,6 +198,13 @@ func _enforce_minimum_duration_and_complete(overlay: CanvasLayer, callback: Call
 	var remaining: float = min_duration - elapsed
 
 	if remaining > 0.0:
+		# If the overlay was freed while we were loading, skip any waiting and
+		# complete immediately to avoid accessing a dead SceneTree.
+		if not is_instance_valid(overlay):
+			if callback.is_valid():
+				callback.call()
+			return
+
 		# Wait remaining time
 		if overlay.get_tree():
 			# In headless mode, use frame-based delays (more reliable)
@@ -212,18 +219,26 @@ func _enforce_minimum_duration_and_complete(overlay: CanvasLayer, callback: Call
 		# else: No tree available, complete immediately (no wait)
 
 	# Complete transition after minimum duration enforced
+	# Guard against overlay being freed while waiting
+	if not is_instance_valid(overlay):
+		if callback.is_valid():
+			callback.call()
+		return
+
 	_complete_transition(overlay, callback, original_overlay_mode, original_screen_mode)
 
 ## Complete the transition and clean up
 func _complete_transition(overlay: CanvasLayer, callback: Callable, original_overlay_mode: int, original_screen_mode: int) -> void:
-	# Hide loading overlay
-	overlay.visible = false
+	# Hide loading overlay (guard against freed overlay)
+	if is_instance_valid(overlay):
+		overlay.visible = false
 
 	_restore_hidden_hud_layers()
 
 	# Restore process modes
-	overlay.process_mode = original_overlay_mode
-	if _loading_screen:
+	if is_instance_valid(overlay):
+		overlay.process_mode = original_overlay_mode
+	if _loading_screen and is_instance_valid(_loading_screen):
 		_loading_screen.process_mode = original_screen_mode
 
 	# Call completion callback
