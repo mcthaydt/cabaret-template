@@ -7,4 +7,5 @@ script = ExtResource("1_resource")
 scene_id = &"exterior"
 scene_path = "res://scenes/gameplay/gameplay_exterior.tscn"
 scene_type = 1
+default_transition = "loading"
 preload_priority = 6
