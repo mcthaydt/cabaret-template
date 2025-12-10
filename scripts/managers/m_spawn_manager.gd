@@ -26,6 +26,11 @@ const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_acti
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_SPAWN_REGISTRY := preload("res://scripts/scene_management/u_spawn_registry.gd")
+
+const SPAWN_CONDITION_ALWAYS := 0
+const SPAWN_CONDITION_CHECKPOINT_ONLY := 1
+const SPAWN_CONDITION_DISABLED := 2
 
 ## Internal references
 var _state_store: M_STATE_STORE = null
@@ -251,22 +256,25 @@ func spawn_at_last_spawn(scene: Node) -> bool:
 		# Player will be at scene's default position, which is fine for initial load
 		return false
 
-	# Read spawn point from gameplay state (priority order)
+	# Read spawn point from gameplay state
 	var state: Dictionary = _state_store.get_state()
 	var gameplay_state: Dictionary = state.get("gameplay", {})
 	var last_checkpoint: StringName = gameplay_state.get("last_checkpoint", StringName(""))
 	var target_spawn: StringName = gameplay_state.get("target_spawn_point", StringName(""))
 
-	# Determine spawn source and id with priority:
-	# 1) target_spawn_point (door entry)
-	# 2) last_checkpoint (mid-scene checkpoint)
+	# Determine spawn source and id with priority, consulting spawn metadata:
+	# 1) target_spawn_point (door entry) if allowed by metadata
+	# 2) last_checkpoint (mid-scene checkpoint) if allowed by metadata
 	# 3) sp_default (scene fallback)
 	var used_last_checkpoint: bool = false
-	var spawn_id: StringName = target_spawn
-	if spawn_id.is_empty():
+	var spawn_id: StringName = StringName("")
+
+	if not target_spawn.is_empty() and _is_spawn_allowed(target_spawn, false):
+		spawn_id = target_spawn
+	elif not last_checkpoint.is_empty() and _is_spawn_allowed(last_checkpoint, true):
 		spawn_id = last_checkpoint
-		used_last_checkpoint = not spawn_id.is_empty()
-	if spawn_id.is_empty():
+		used_last_checkpoint = true
+	else:
 		spawn_id = StringName("sp_default")
 
 	# Try primary spawn
@@ -278,6 +286,33 @@ func spawn_at_last_spawn(scene: Node) -> bool:
 		ok = await spawn_player_at_point(scene, StringName("sp_default"))
 
 	return ok
+
+## Check whether a spawn id is allowed based on metadata conditions.
+##
+## When no metadata exists for the given id, this returns true to
+## preserve existing behaviour. When metadata is present, the
+## SpawnCondition enum is interpreted as:
+## - ALWAYS: always allowed
+## - CHECKPOINT_ONLY: only allowed when selected from last_checkpoint
+## - DISABLED: never allowed
+func _is_spawn_allowed(spawn_id: StringName, used_last_checkpoint: bool) -> bool:
+	if spawn_id.is_empty():
+		return false
+
+	var metadata: Dictionary = U_SPAWN_REGISTRY.get_spawn(spawn_id)
+	if metadata.is_empty():
+		# No metadata configured; treat as always allowed.
+		return true
+
+	var condition: int = int(metadata.get("condition", SPAWN_CONDITION_ALWAYS))
+
+	if condition == SPAWN_CONDITION_DISABLED:
+		return false
+
+	if condition == SPAWN_CONDITION_CHECKPOINT_ONLY and not used_last_checkpoint:
+		return false
+
+	return true
 
 ## Clear target spawn point from gameplay state
 ##

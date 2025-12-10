@@ -110,7 +110,7 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
   - **7D**: Checkpoints publish `checkpoint_zone_entered`; S_CheckpointSystem subscribes and dispatches last_checkpoint + activation events; tests added.
   - **7E**: BaseECSComponent publishes `component_registered`; test coverage added.
   - **7F**: Cleanup/docs completed (event catalog + style guide rules); ECS unit suite green.
-- Phase 8 – Spawn Registry & Spawn Conditions: **NOT STARTED**
+- Phase 8 – Spawn Registry & Spawn Conditions: **IN PROGRESS** (T080-T083 complete - registry + integration)
 - Phase 9 – Large File Splitting for Maintainability: **NOT STARTED**
   - Split 8 files over 400 lines into smaller helpers (~400 lines max)
   - **9A**: m_scene_manager.gd (1,565 → ~400) - 3 helpers

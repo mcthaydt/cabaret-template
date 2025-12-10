@@ -185,8 +185,14 @@ No new gameplay logic in this phase; purely enforcement.
 
 **Goal**: Add a simple spawn registry and condition layer on top of the existing `M_SpawnManager`.
 
-- Design spawn metadata:
-  - Define a small `RS_*` resource (or plain dictionary structure) to describe spawns (id, tags, optional conditions).
+- Design spawn metadata (T080):
+  - Represent spawn metadata as a dedicated Resource script `rs_spawn_metadata.gd` with `class_name RS_SpawnMetadata` (not plain dictionaries) so spawns are editor‑friendly and covered by existing `RS_` style rules.
+  - Required fields:
+    - `spawn_id: StringName` – stable identifier for the spawn point (matches the spawn marker’s ID/name used by `M_SpawnManager`).
+    - `tags: Array[StringName]` – optional categorisation tags (e.g., `default`, `checkpoint`, `door_target`, `debug`).
+    - `priority: int` – simple integer tie‑breaker when multiple candidates are valid; higher priority wins.
+    - `condition: int` – enum `SpawnCondition` with values `ALWAYS`, `CHECKPOINT_ONLY`, `DISABLED` to cover basic activation rules without quest logic.
+  - Conditions stay intentionally minimal in this phase; more complex predicates (quest flags, story beats, etc.) can be layered on later without changing existing metadata.
 - Implement a spawn registry:
   - Add a `U_SpawnRegistry` or equivalent static helper for describing spawn points and tags.
   - Integrate with `M_SpawnManager` where appropriate (without over‑engineering for quests yet).

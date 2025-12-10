@@ -7,6 +7,9 @@ extends GutTest
 const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_SpawnRegistry := preload("res://scripts/scene_management/u_spawn_registry.gd")
+const RS_SpawnMetadata := preload("res://scripts/scene_management/resources/rs_spawn_metadata.gd")
 
 var spawn_manager: M_SPAWN_MANAGER
 var state_store: M_STATE_STORE
@@ -319,3 +322,54 @@ func test_spawn_error_includes_node_type_when_spawn_point_wrong_type() -> void:
 
 	# Assert
 	assert_push_error("found type: Control")
+
+## ============================================================================
+## Spawn Metadata / Condition Integration Tests
+## ============================================================================
+
+func test_spawn_at_last_spawn_uses_target_spawn_when_allowed_by_metadata() -> void:
+	# Arrange: use state_store, spawn_manager, and test_scene created in before_each
+
+	# Configure gameplay state: target_spawn_point set, last_checkpoint empty
+	state_store.dispatch(U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("sp_entry")))
+	state_store.dispatch(U_GAMEPLAY_ACTIONS.set_last_checkpoint(StringName("")))
+	await get_tree().physics_frame
+
+	# Scene with player and both spawn markers
+	var player := CharacterBody3D.new()
+	player.name = "E_Player"
+	test_scene.add_child(player)
+
+	var sp_entry := Node3D.new()
+	sp_entry.name = "sp_entry"
+	sp_entry.position = Vector3(5, 0, 0)
+	test_scene.add_child(sp_entry)
+
+	var sp_checkpoint := Node3D.new()
+	sp_checkpoint.name = "cp_checkpoint"
+	sp_checkpoint.position = Vector3(20, 0, 0)
+	test_scene.add_child(sp_checkpoint)
+
+	# Provide a default spawn marker to avoid unexpected fallback errors.
+	var sp_default := Node3D.new()
+	sp_default.name = "sp_default"
+	sp_default.position = Vector3(0, 0, 0)
+	test_scene.add_child(sp_default)
+
+	# Metadata: target spawn ALWAYS, checkpoint CHECKPOINT_ONLY
+	var meta_entry := RS_SpawnMetadata.new()
+	meta_entry.spawn_id = StringName("sp_entry")
+	meta_entry.condition = RS_SpawnMetadata.SpawnCondition.ALWAYS
+
+	var meta_checkpoint := RS_SpawnMetadata.new()
+	meta_checkpoint.spawn_id = StringName("cp_checkpoint")
+	meta_checkpoint.condition = RS_SpawnMetadata.SpawnCondition.CHECKPOINT_ONLY
+
+	U_SpawnRegistry.reload_registry([meta_entry, meta_checkpoint])
+
+	# Act
+	var ok := await spawn_manager.spawn_at_last_spawn(test_scene)
+
+	# Assert: Should use target spawn (sp_entry)
+	assert_true(ok, "Spawn should succeed when target_spawn_point allowed")
+	assert_almost_eq(player.global_position, sp_entry.global_position, Vector3(0.01, 0.01, 0.01))

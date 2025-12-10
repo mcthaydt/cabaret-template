@@ -1124,18 +1124,29 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ## Phase 8 – Spawn Registry & Spawn Conditions
 
-- [ ] T080 Design a minimal **spawn metadata** structure:
+- [x] T080 Design a minimal **spawn metadata** structure:
   - List required fields (id, tags, basic conditions).
   - Decide whether to use a Resource type (e.g., `RS_SpawnMetadata`) or plain dictionaries.
-- [ ] T081 Implement a `U_SpawnRegistry` (or similar) for spawn metadata:
+  - **Result**: Chosen `RS_SpawnMetadata` Resource (`rs_spawn_metadata.gd`) with fields `spawn_id: StringName`, `tags: Array[StringName]`, `priority: int`, and a `SpawnCondition` enum (`ALWAYS`, `CHECKPOINT_ONLY`, `DISABLED`) as documented in `style-scene-cleanup-plan.md` Phase 7.
+- [x] T081 Implement a `U_SpawnRegistry` (or similar) for spawn metadata:
   - Provide helpers for looking up spawn info by id/tag.
   - Keep it lightweight and focused on current needs.
-- [ ] T082 Integrate spawn metadata with `M_SpawnManager`:
+- [x] T082 Integrate spawn metadata with `M_SpawnManager`:
   - Allow M_SpawnManager to consult the registry when picking spawn points.
   - Preserve current behaviour as the default when no metadata is present.
-- [ ] T083 Add tests:
+- [x] T083 Add tests:
   - Unit tests for spawn registry lookup and condition evaluation.
   - Integration tests to confirm exterior/interior transitions and checkpoints still work correctly.
+- [ ] T084 Author spawn metadata resources for gameplay scenes:
+  - Create `resources/spawn_metadata/` and add `RS_SpawnMetadata` `.tres` files for key IDs:
+    - Defaults (`sp_default` per gameplay scene)
+    - Checkpoints (`cp_*` markers with CHECKPOINT_ONLY)
+    - Any special door targets that should be DISABLED or prioritized
+  - Verify spawn_id values match actual Node names in `gameplay_base`, `gameplay_exterior`, and `gameplay_interior_house`.
+- [ ] T085 Manual spawn behaviour verification:
+  - In-editor play: verify door transitions, checkpoint respawns, and default spawns behave identically with metadata present.
+  - Toggle conditions (e.g., set a checkpoint spawn to DISABLED) and confirm M_SpawnManager falls back as expected.
+  - Watch logs for unexpected spawn-related errors or missing metadata warnings.
 
 ---
 
