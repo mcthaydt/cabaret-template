@@ -26,7 +26,6 @@ func test_damage_applies_on_enter_event() -> void:
 		"zone_id": StringName("hazard"),
 		"body": body,
 	})
-	await get_tree().process_frame
 
 	system.process_tick(0.1)
 
@@ -95,7 +94,8 @@ func _setup_world() -> Dictionary:
 
 	var system := S_DamageSystem.new()
 	manager.add_child(system)
-	system.on_configured()
+	autofree(system)
+	# on_configured() is automatically called by BaseECSSystem.configure()
 	await wait_physics_frames(2)
 
 	return {

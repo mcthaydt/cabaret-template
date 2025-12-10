@@ -2,6 +2,7 @@ extends BaseTest
 
 const S_VictorySystem := preload("res://scripts/ecs/systems/s_victory_system.gd")
 const C_VictoryTriggerComponent := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
+const M_ECSManager := preload("res://scripts/managers/m_ecs_manager.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const RS_GameplayInitialState := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
@@ -12,6 +13,10 @@ func before_each() -> void:
 	U_ECSEventBus.reset()
 
 func test_victory_event_dispatches_actions_and_marks_triggered() -> void:
+	var manager := M_ECSManager.new()
+	add_child_autofree(manager)
+	await get_tree().process_frame
+
 	var store := M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()
 	store.gameplay_initial_state = RS_GameplayInitialState.new()
@@ -27,8 +32,10 @@ func test_victory_event_dispatches_actions_and_marks_triggered() -> void:
 	add_child_autofree(Node.new())  # keep tree alive for unsubscribe cleanup
 
 	var system := S_VictorySystem.new()
-	system._store = store
-	system.on_configured()
+	manager.add_child(system)
+	autofree(system)
+	await get_tree().process_frame
+	# on_configured() is automatically called by BaseECSSystem.configure()
 
 	var trigger := C_VictoryTriggerComponent.new()
 	trigger.objective_id = StringName("main_objective")
@@ -53,6 +60,10 @@ func test_victory_event_dispatches_actions_and_marks_triggered() -> void:
 		(unsubscribe as Callable).call()
 
 func test_game_complete_gated_until_area_finished() -> void:
+	var manager := M_ECSManager.new()
+	add_child_autofree(manager)
+	await get_tree().process_frame
+
 	var store := M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()
 	store.gameplay_initial_state = RS_GameplayInitialState.new()
@@ -66,8 +77,10 @@ func test_game_complete_gated_until_area_finished() -> void:
 	)
 
 	var system := S_VictorySystem.new()
-	system._store = store
-	system.on_configured()
+	manager.add_child(system)
+	autofree(system)
+	await get_tree().process_frame
+	# on_configured() is automatically called by BaseECSSystem.configure()
 
 	var trigger := C_VictoryTriggerComponent.new()
 	trigger.victory_type = C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE

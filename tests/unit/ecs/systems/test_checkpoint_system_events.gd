@@ -27,7 +27,7 @@ func test_checkpoint_event_updates_last_checkpoint_and_dispatches_activation() -
 	var system := S_CheckpointSystem.new()
 	add_child_autofree(system)
 	await get_tree().process_frame
-	system.on_configured()
+	# on_configured() is automatically called by BaseECSSystem.configure()
 
 	var entity := Node3D.new()
 	entity.name = "E_Player"
@@ -37,6 +37,7 @@ func test_checkpoint_event_updates_last_checkpoint_and_dispatches_activation() -
 	entity.add_child(player_tag)
 
 	var checkpoint := C_CheckpointComponent.new()
+	checkpoint.checkpoint_id = StringName("checkpoint_1")
 	checkpoint.spawn_point_id = StringName("sp_test")
 	entity.add_child(checkpoint)
 
@@ -51,7 +52,8 @@ func test_checkpoint_event_updates_last_checkpoint_and_dispatches_activation() -
 	await wait_physics_frames(2)
 
 	var state := store.get_state()
-	var last_checkpoint := U_GameplaySelectors.get_last_checkpoint(state)
+	var gameplay_state := state.get("gameplay", {})
+	var last_checkpoint := U_GameplaySelectors.get_last_checkpoint(gameplay_state)
 	assert_eq(last_checkpoint, StringName("sp_test"), "Checkpoint event should update last checkpoint")
 
 	var history := U_ECSEventBus.get_event_history()
