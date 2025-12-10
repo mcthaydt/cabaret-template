@@ -92,7 +92,9 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
     - All entities have unique IDs and appropriate tags
     - All 181 tests passing (91 ECS + 90 Scene Manager)
     - Commits: 6be2509 (implementation), 89fbfc1 (documentation)
-  - **T064j-k**: Verification - automated tests passing, manual verification optional
+  - **T064j-k**: Verification ✅ COMPLETE (2025-12-09)
+    - Automated coverage via `tests/unit/ecs/test_entity_scene_registration.gd` (entities + tags in templates and gameplay scenes)
+    - ECS unit suite passing (includes new test)
   - **T064l**: Documentation ✅ COMPLETE (2025-12-09)
     - Added entity ID/tag inventory and tagging strategy table to docs/ecs/ecs_architecture.md
   - **T064m-v**: Template refactoring - deferred (optional architectural improvement)
@@ -143,14 +145,10 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 Phase 6 core implementation is nearly complete (T060-T064l done).
 
-1. **Next Task: T064j-k - Manual verification (optional but next in checklist)**
-   - Load tmpl_base_scene and gameplay scenes to visually confirm entity registration/IDs/tags.
-   - Note any issues before moving on.
-
-2. **Optional follow-up: T064m-v**
+1. **Optional follow-up: T064m-v**
    - Template architecture refactor (character vs player prefabs) if opting in.
 
-3. **After Phase 6**:
+2. **After Phase 6**:
    - Move to Phase 7 (ECS Event Bus Migration) or
    - Move to Phase 8 (Spawn Registry & Spawn Conditions) or
    - Move to Phase 9 (Large File Splitting)

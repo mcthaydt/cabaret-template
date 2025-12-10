@@ -849,20 +849,22 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 #### Step 4: Verification (T064j-k)
 
-- [ ] T064j Test base scene template integration:
+- [x] T064j Test base scene template integration:
   - Load `templates/tmpl_base_scene.tscn`
   - Verify `E_Player` instance (from player_template) has entity_id = "player"
   - Verify `E_CameraRoot` instance has entity_id = "camera"
   - Run the scene and check entity registration via M_ECSManager
   - Verify all entities registered with correct IDs
+- Verified via automated test `tests/unit/ecs/test_entity_scene_registration.gd`
 
-- [ ] T064k Test gameplay scenes:
+- [x] T064k Test gameplay scenes:
   - Load `scenes/gameplay/gameplay_exterior.tscn`
   - Run scene, open debugger or console
   - Verify all entities registered with M_ECSManager
   - Verify entity IDs and tags are correct
   - Verify no duplicate ID warnings
   - Repeat for `gameplay_interior_house.tscn`
+- Verified via automated test `tests/unit/ecs/test_entity_scene_registration.gd`
 
 #### Step 5: Documentation (T064l)
 
