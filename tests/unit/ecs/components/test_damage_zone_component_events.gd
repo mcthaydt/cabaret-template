@@ -11,9 +11,12 @@ func test_damage_zone_publishes_enter_and_exit_events() -> void:
 	component.damage_amount = 12.0
 	component.is_instant_death = false
 	add_child(component)
+	autofree(component)
 
 	var body := CharacterBody3D.new()
 	body.name = "E_PlayerBody"
+	add_child(body)
+	autofree(body)
 
 	component._on_body_entered(body)
 	component._on_body_exited(body)

@@ -40,8 +40,10 @@ func test_victory_event_dispatches_actions_and_marks_triggered() -> void:
 	var trigger := C_VictoryTriggerComponent.new()
 	trigger.objective_id = StringName("main_objective")
 	trigger.area_id = "exterior"
+	add_child_autofree(trigger)
 
 	var body := Node3D.new()
+	add_child_autofree(body)
 
 	U_ECSEventBus.publish(StringName("victory_triggered"), {
 		"entity_id": StringName("player"),
@@ -84,11 +86,15 @@ func test_game_complete_gated_until_area_finished() -> void:
 
 	var trigger := C_VictoryTriggerComponent.new()
 	trigger.victory_type = C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE
+	add_child_autofree(trigger)
+
+	var body := Node3D.new()
+	add_child_autofree(body)
 
 	U_ECSEventBus.publish(StringName("victory_triggered"), {
 		"entity_id": StringName("player"),
 		"trigger_node": trigger,
-		"body": Node3D.new(),
+		"body": body,
 	})
 	await get_tree().process_frame
 
