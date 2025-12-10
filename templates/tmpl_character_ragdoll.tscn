@@ -1,8 +1,8 @@
 [gd_scene load_steps=6 format=3 uid="uid://bpe1nw6kld0bb"]
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player_ragdoll"]
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_character_ragdoll"]
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_player_ragdoll"]
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_character_ragdoll"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
 shading_mode = 0
@@ -18,18 +18,18 @@ diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.08627451, 0.3529412, 0.29803923, 1)
 
-[node name="PlayerRagdoll" type="RigidBody3D"]
+[node name="CharacterRagdoll" type="RigidBody3D"]
 mass = 70.0
 continuous_cd = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-shape = SubResource("CapsuleShape3D_player_ragdoll")
+shape = SubResource("CapsuleShape3D_character_ragdoll")
 
 [node name="VisualRoot" type="Node3D" parent="."]
 
 [node name="Body_Mesh" type="MeshInstance3D" parent="VisualRoot"]
 transform = Transform3D(1, 0, 0, 0, 0.5518581, 0, 0, 0, 1, 0, -0.3421986, 0)
-mesh = SubResource("CapsuleMesh_player_ragdoll")
+mesh = SubResource("CapsuleMesh_character_ragdoll")
 surface_material_override/0 = SubResource("StandardMaterial3D_body")
 
 [node name="Direction_Mesh" type="MeshInstance3D" parent="VisualRoot/Body_Mesh"]

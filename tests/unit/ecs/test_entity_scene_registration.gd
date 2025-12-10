@@ -63,7 +63,7 @@ func test_tmpl_base_scene_registers_player_and_camera() -> void:
 	await _await_ecs_registration()
 
 	var expected: Dictionary = {
-		StringName("player"): [StringName("player")],
+		StringName("player"): [StringName("player"), StringName("character")],
 		StringName("camera"): [StringName("camera")]
 	}
 

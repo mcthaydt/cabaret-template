@@ -64,8 +64,8 @@ GameplayRoot (Node3D) [main_root_node.gd]
 │  │  ├─ sp_entrance_from_exterior (Node3D) [spawn_points_group.gd]
 │  │  ├─ sp_exit_from_house (Node3D) [spawn_points_group.gd]
 │  │  └─ sp_default (Node3D) [spawn_points_group.gd]
-│  ├─ E_Player (player_template.tscn instance)
-│  ├─ E_CameraRoot (camera_template.tscn instance)
+│  ├─ E_Player (prefab_player.tscn instance)
+│  ├─ E_CameraRoot (tmpl_camera.tscn instance)
 │  ├─ Hazards (Node) [entities_group.gd] - Container for hazard entities
 │  │  ├─ E_DeathZone (Node3D + hazard_controller.gd)
 │  │  ├─ E_SpikeTrapA (Node3D + hazard_controller.gd)
@@ -333,7 +333,7 @@ All nodes should use **descriptive names with category prefixes** for clarity:
 
 ### Base Scene Template
 
-**File:** `templates/base_scene_template.tscn`
+**File:** `templates/tmpl_base_scene.tscn`
 
 This is the **reference implementation** for all gameplay scenes. It demonstrates:
 - Complete system category organization
@@ -348,29 +348,35 @@ This is the **reference implementation** for all gameplay scenes. It demonstrate
 - Creating test scenes
 - Prototyping new features
 
-### Player Template
+### Character Template
 
-**File:** `templates/player_template.tscn`
+**File:** `templates/tmpl_character.tscn`
 
-Entity template showing:
-- Entity root structure (`E_PlayerRoot` extending `ECSEntity`)
+Generic character base showing:
+- Entity root structure (`E_CharacterRoot` extending `BaseECSEntity`)
 - Character body setup
 - Component organization within `Components` group
-- Component configuration with settings resources
+- Movement/jump/floating/align/health configuration (no input)
 
 **When to Use:**
-- Creating new player variants
-- Adding new controllable characters
-- Understanding component wiring
+- Creating reusable bases for controllable or AI-driven characters
+- Building prefabs (player/NPC) that add input- or AI-specific components
+- Understanding component wiring without player-only tags
 
 ### Camera Template
 
-**File:** `templates/camera_template.tscn`
+**File:** `templates/tmpl_camera.tscn`
 
 Camera entity showing:
 - Camera node setup
 - Entity structure for non-physical entities
 - Third-person camera configuration
+
+### Templates vs Prefabs
+
+- **Templates (generic bases):** `tmpl_base_scene.tscn`, `tmpl_character.tscn`, `tmpl_character_ragdoll.tscn`, `tmpl_camera.tscn`. These scenes contain reusable structure and non-domain-specific components.
+- **Prefabs (configured entities):** `prefab_player.tscn`, `prefab_player_ragdoll.tscn`, hazard/objective prefabs. Prefabs instance templates and add domain-specific components, tags, and IDs.
+- **Pattern:** Start from a template, instance it in a prefab, then add input/AI/tag components and set `entity_id`/`tags`. Example: to build an NPC, instance `tmpl_character.tscn`, rename root to `E_NPCRoot`, add AI components, set tags `[npc, character]`, and save as `prefab_npc_*.tscn`.
 
 ---
 

@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://ctpc0r4wq7urj" path="res://scripts/ecs/components/c_movement_component.gd" id="1_6m9bm"]
 [ext_resource type="Texture2D" uid="uid://dm23qd3lalkrv" path="res://assets/textures/tex_shadow_blob.png" id="1_m3alx"]
 [ext_resource type="Script" uid="uid://b87yhhq4n1ldg" path="res://scripts/ecs/components/c_jump_component.gd" id="2_h3hux"]
-[ext_resource type="Script" uid="uid://cce7dk8f7vdd" path="res://scripts/ecs/components/c_input_component.gd" id="3_2fo1m"]
 [ext_resource type="Script" uid="uid://ng4h6f6u61et" path="res://scripts/scene_structure/marker_components_group.gd" id="3_8l4b7"]
 [ext_resource type="Script" uid="uid://cepw6x4r271g7" path="res://scripts/ecs/components/c_rotate_to_input_component.gd" id="4_4etni"]
 [ext_resource type="Script" uid="uid://b8moqms3tv55v" path="res://scripts/ecs/components/c_floating_component.gd" id="5_f1jtd"]
@@ -16,11 +15,8 @@
 [ext_resource type="Resource" uid="uid://dhkl8uuw4aeeh" path="res://resources/settings/align_default.tres" id="13_align"]
 [ext_resource type="Resource" uid="uid://bge6h6phsahy3" path="res://resources/settings/landing_indicator_default.tres" id="14_land"]
 [ext_resource type="Script" uid="uid://buh21cnax6m08" path="res://scripts/ecs/base_ecs_entity.gd" id="15_ecsentity"]
-[ext_resource type="Script" uid="uid://dp5fekvumgtkx" path="res://scripts/ecs/components/c_player_tag_component.gd" id="16_playertag"]
 [ext_resource type="Script" uid="uid://ddjomxk60ovwr" path="res://scripts/ecs/components/c_health_component.gd" id="17_health"]
 [ext_resource type="Resource" uid="uid://bay3xmfxc8da0" path="res://resources/settings/health_settings.tres" id="18_health_settings"]
-[ext_resource type="Script" uid="uid://bs4jqicnhq5j0" path="res://scripts/ecs/components/c_gamepad_component.gd" id="19_gamepad_component"]
-[ext_resource type="Resource" uid="uid://flpd0eijo5ab" path="res://resources/input/gamepad_settings/default_gamepad_settings.tres" id="20_gamepad_settings"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_6mvan"]
 
@@ -40,10 +36,10 @@ albedo_color = Color(0.08627451, 0.3529412, 0.29803923, 1)
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_16kfq"]
 
-[node name="E_PlayerRoot" type="Node3D" groups=["player"]]
+[node name="E_CharacterRoot" type="Node3D"]
 script = ExtResource("15_ecsentity")
-entity_id = &"player"
-tags = Array[StringName]([&"player"])
+entity_id = &""
+tags = Array[StringName]([&"character"])
 
 [node name="Player_Body" type="CharacterBody3D" parent="."]
 
@@ -115,13 +111,6 @@ script = ExtResource("2_h3hux")
 settings = ExtResource("10_jump")
 character_body_path = NodePath("../../Player_Body")
 
-[node name="C_InputComponent" type="Node" parent="Components"]
-script = ExtResource("3_2fo1m")
-
-[node name="C_GamepadComponent" type="Node" parent="Components"]
-script = ExtResource("19_gamepad_component")
-settings = ExtResource("20_gamepad_settings")
-
 [node name="C_RotateToInputComponent" type="Node" parent="Components"]
 script = ExtResource("4_4etni")
 settings = ExtResource("11_rot")
@@ -145,9 +134,6 @@ settings = ExtResource("14_land")
 character_body_path = NodePath("../../Player_Body")
 origin_marker_path = NodePath("../../Player_Body/HoverRays/Center")
 landing_marker_path = NodePath("../../Player_Body/Body_Mesh/GroundIndicator")
-
-[node name="C_PlayerTagComponent" type="Node" parent="Components"]
-script = ExtResource("16_playertag")
 
 [node name="C_HealthComponent" type="Node" parent="Components"]
 script = ExtResource("17_health")

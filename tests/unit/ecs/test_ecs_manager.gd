@@ -3,7 +3,7 @@ extends BaseTest
 const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
 const ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
-const PLAYER_SCENE := preload("res://templates/tmpl_player.tscn")
+const PLAYER_SCENE := preload("res://scenes/prefabs/prefab_player.tscn")
 const BASE_SCENE := preload("res://templates/tmpl_base_scene.tscn")
 
 class FakeComponent extends BaseECSComponent:

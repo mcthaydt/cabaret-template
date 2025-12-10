@@ -1584,7 +1584,7 @@ func build_entity_snapshot(entity: Node) -> Dictionary
 
 | Scene | Entity Node | entity_id | tags | Notes |
 |---|---|---|---|---|
-| templates/tmpl_player.tscn | E_PlayerRoot | `player` | `[player]` | Primary controllable; inherits movement/input/health stack |
+| templates/tmpl_character.tscn | E_CharacterRoot | `""` (auto → `characterroot`) | `[character]` | Generic character base (movement/physics/health, no input) |
 | templates/tmpl_camera.tscn | E_CameraRoot | `camera` | `[camera]` | Main camera; member of `main_camera` group |
 
 **Prefabs**
@@ -1592,6 +1592,7 @@ func build_entity_snapshot(entity: Node) -> Dictionary
 | Prefab | Entity Node | entity_id | tags | Notes |
 |---|---|---|---|---|
 | scenes/prefabs/prefab_checkpoint_safe_zone.tscn | E_Checkpoint_SafeZone | `checkpoint_safezone` | `[checkpoint, objective]` | Passive respawn/restore volume |
+| scenes/prefabs/prefab_player.tscn | E_PlayerRoot | `player` | `[player, character]` | Player prefab (character template + input/gamepad/player tag) |
 | scenes/prefabs/prefab_death_zone.tscn | E_DeathZone | `deathzone` | `[hazard, death]` | Instant-death hazard volume |
 | scenes/prefabs/prefab_spike_trap.tscn | E_SpikeTrap | `spiketrap` | `[hazard, trap]` | Reusable spike trap hazard |
 | scenes/prefabs/prefab_goal_zone.tscn | E_GoalZone | `goalzone` | `[objective, goal]` | Area completion objective |

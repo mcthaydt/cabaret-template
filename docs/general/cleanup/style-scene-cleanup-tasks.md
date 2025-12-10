@@ -897,7 +897,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Implementation Tasks**:
 
-- [ ] T064m Rename **tmpl_player.tscn** → **tmpl_character.tscn**:
+- [x] T064m Rename **tmpl_player.tscn** → **tmpl_character.tscn**:
   - Use git mv: `git mv templates/tmpl_player.tscn templates/tmpl_character.tscn`
   - Open in editor
   - Rename root node: `E_PlayerRoot` → `E_CharacterRoot`
@@ -909,14 +909,14 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Update tags: `[StringName("character")]`
   - Save
 
-- [ ] T064n Rename **tmpl_player_ragdoll.tscn** → **tmpl_character_ragdoll.tscn**:
+- [x] T064n Rename **tmpl_player_ragdoll.tscn** → **tmpl_character_ragdoll.tscn**:
   - Use git mv: `git mv templates/tmpl_player_ragdoll.tscn templates/tmpl_character_ragdoll.tscn`
   - Open in editor
   - Rename root node: `PlayerRagdoll` → `CharacterRagdoll`
   - Update any player-specific naming to be generic
   - Save
 
-- [ ] T064o Create **prefabs/prefab_player.tscn**:
+- [x] T064o Create **prefabs/prefab_player.tscn**:
   - Create new scene
   - Instantiate `templates/tmpl_character.tscn` as root (using scene inheritance or instance)
   - Rename root node to `E_PlayerRoot`
@@ -929,26 +929,26 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Set tags: `[StringName("player"), StringName("character")]`
   - Save to `scenes/prefabs/prefab_player.tscn`
 
-- [ ] T064p Create **prefabs/prefab_player_ragdoll.tscn**:
+- [x] T064p Create **prefabs/prefab_player_ragdoll.tscn**:
   - Create new scene
   - Instantiate `templates/tmpl_character_ragdoll.tscn`
   - Configure player-specific properties (mass, etc.)
   - Add any player-specific ragdoll components if needed
   - Save to `scenes/prefabs/prefab_player_ragdoll.tscn`
 
-- [ ] T064q Update all scene references from tmpl_player → prefab_player:
+- [x] T064q Update all scene references from tmpl_player → prefab_player:
   - **tmpl_base_scene.tscn**: Update ExtResource path from tmpl_player to prefab_player
   - **gameplay_base.tscn**: Update player instance reference
   - **gameplay_exterior.tscn**: Update player instance reference
   - **gameplay_interior_house.tscn**: Update player instance reference
   - Use find/replace in .tscn files: `templates/tmpl_player.tscn` → `scenes/prefabs/prefab_player.tscn`
 
-- [ ] T064r Update any code references to tmpl_player_ragdoll:
+- [x] T064r Update any code references to tmpl_player_ragdoll:
   - Search codebase for `tmpl_player_ragdoll` or `player_ragdoll`
   - Update preload paths to point to `prefab_player_ragdoll.tscn`
   - Update any instantiation code
 
-- [ ] T064s Run full test suite to verify refactoring:
+- [x] T064s Run full test suite to verify refactoring:
   - ECS tests: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit`
   - Scene manager tests: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/scene_manager -gexit`
   - Verify all tests pass with new paths
@@ -961,14 +961,14 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Verify health and damage work
   - Test death to verify ragdoll spawns correctly (if implemented)
 
-- [ ] T064u Update AGENTS.md documentation:
+- [x] T064u Update AGENTS.md documentation:
   - Update "Scene Organization" section (line 77) to document new template/prefab hierarchy:
     - **Templates**: `tmpl_character.tscn` (generic base), `tmpl_character_ragdoll.tscn` (generic ragdoll), `tmpl_camera.tscn` (camera)
     - **Prefabs**: `prefab_player.tscn` (character + input), `prefab_player_ragdoll.tscn` (player death)
   - Add note: "Templates are generic bases. Prefabs are pre-configured entities using templates + specific components (input, AI, etc.)"
   - Add example: "To create NPC: use tmpl_character.tscn + AI components as new prefab"
 
-- [ ] T064v Update SCENE_ORGANIZATION_GUIDE.md:
+- [x] T064v Update SCENE_ORGANIZATION_GUIDE.md:
   - Add "Templates vs Prefabs" section:
     - Templates: Generic, reusable bases (character, camera, ragdoll)
     - Prefabs: Pre-configured entities using templates + domain-specific components
