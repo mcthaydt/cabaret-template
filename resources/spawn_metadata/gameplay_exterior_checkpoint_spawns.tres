@@ -7,4 +7,4 @@ script = ExtResource("1")
 spawn_id = &"sp_checkpoint_safe"
 tags = Array[StringName]([&"checkpoint"])
 priority = 10
-condition = 2
+condition = 1
