@@ -8,8 +8,6 @@ class_name C_HealthComponent
 
 const COMPONENT_TYPE := StringName("C_HealthComponent")
 const RS_HealthSettings := preload("res://scripts/ecs/resources/rs_health_settings.gd")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
-const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
 const EVENT_HEALTH_CHANGED := StringName("health_changed")
 const EVENT_ENTITY_DEATH := StringName("entity_death")
 
@@ -177,12 +175,12 @@ func _publish_death_event(previous_health: float) -> void:
 	})
 
 func _get_entity_id() -> StringName:
-	var entity := U_ECSUtils.find_entity_root(self)
+	var entity := ECS_UTILS.find_entity_root(self)
 	if entity != null:
-		return U_ECSUtils.get_entity_id(entity)
+		return ECS_UTILS.get_entity_id(entity)
 
 	var body := get_character_body()
 	if body != null:
-		return U_ECSUtils.get_entity_id(body)
+		return ECS_UTILS.get_entity_id(body)
 
 	return StringName(String(name).to_lower())

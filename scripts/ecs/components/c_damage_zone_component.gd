@@ -6,8 +6,6 @@ class_name C_DamageZoneComponent
 ## Tracks overlapping bodies so S_DamageSystem can apply damage ticks.
 
 const COMPONENT_TYPE := StringName("C_DamageZoneComponent")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
-const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
 const EVENT_DAMAGE_ZONE_ENTERED := StringName("damage_zone_entered")
 const EVENT_DAMAGE_ZONE_EXITED := StringName("damage_zone_exited")
 
@@ -112,4 +110,4 @@ func _publish_exited(body: Node3D) -> void:
 	})
 
 func _get_zone_id() -> StringName:
-	return U_ECSUtils.get_entity_id(self)
+	return ECS_UTILS.get_entity_id(self)

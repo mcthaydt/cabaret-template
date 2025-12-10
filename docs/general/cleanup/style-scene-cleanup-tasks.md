@@ -1090,16 +1090,16 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 7E: Component Registration Events (Priority 3)
 
-- [ ] T074a Migrate BaseECSComponent.registered signal to event bus:
+- [x] T074a Migrate BaseECSComponent.registered signal to event bus:
   - Replace `signal registered` with `U_ECSEventBus.publish("component_registered", payload)`
   - Payload should include: `component_type`, `entity_node`, `component_instance`
   - Remove direct signal declaration
 
-- [ ] T074b Update any systems that need registration notifications:
+- [x] T074b Update any systems that need registration notifications:
   - Search for `.registered.connect()` calls
   - Migrate to event bus subscriptions
 
-- [ ] T074c Add tests for component registration events:
+- [x] T074c Add tests for component registration events:
   - Test event published when component registers with manager
 
 ### Phase 7F: Cleanup & Documentation

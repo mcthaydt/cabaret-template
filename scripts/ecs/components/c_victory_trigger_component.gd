@@ -2,8 +2,6 @@
 extends BaseECSComponent
 class_name C_VictoryTriggerComponent
 
-const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const EVENT_VICTORY_ZONE_ENTERED := StringName("victory_zone_entered")
 const EVENT_VICTORY_TRIGGERED := StringName("victory_triggered")
 
@@ -90,7 +88,7 @@ func _on_body_exited(body: Node3D) -> void:
 func _is_player(body: Node3D) -> bool:
 	if body == null:
 		return false
-	var entity := U_ECSUtils.find_entity_root(body)
+	var entity := ECS_UTILS.find_entity_root(body)
 	if entity == null:
 		return false
 	var manager := get_manager()
@@ -118,7 +116,7 @@ func _can_publish_trigger() -> bool:
 
 func _publish_zone_entered(body: Node3D) -> void:
 	U_ECSEventBus.publish(EVENT_VICTORY_ZONE_ENTERED, {
-		"entity_id": U_ECSUtils.get_entity_id(body),
+		"entity_id": ECS_UTILS.get_entity_id(body),
 		"trigger_node": self,
 		"body": body,
 	})
@@ -127,7 +125,7 @@ func _publish_victory_triggered(body: Node3D, force: bool = false) -> void:
 	if trigger_once and is_triggered and not force:
 		return
 	U_ECSEventBus.publish(EVENT_VICTORY_TRIGGERED, {
-		"entity_id": U_ECSUtils.get_entity_id(body),
+		"entity_id": ECS_UTILS.get_entity_id(body),
 		"trigger_node": self,
 		"body": body,
 	})

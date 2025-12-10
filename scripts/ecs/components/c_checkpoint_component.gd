@@ -3,8 +3,6 @@ extends BaseECSComponent
 class_name C_CheckpointComponent
 
 const COMPONENT_TYPE := StringName("C_CheckpointComponent")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
-const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
 const EVENT_CHECKPOINT_ZONE_ENTERED := StringName("checkpoint_zone_entered")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 
@@ -202,7 +200,7 @@ func _on_area_body_exited(_body: Node3D) -> void:
 func _is_player(body: Node3D) -> bool:
 	if body == null:
 		return false
-	var entity := U_ECSUtils.find_entity_root(body)
+	var entity := ECS_UTILS.find_entity_root(body)
 	if entity == null:
 		return false
 	var manager := get_manager()
@@ -212,7 +210,7 @@ func _is_player(body: Node3D) -> bool:
 	return comps.has(PLAYER_TAG_COMPONENT) and comps.get(PLAYER_TAG_COMPONENT) != null
 
 func _publish_zone_entered(body: Node3D) -> void:
-	var entity_id := U_ECSUtils.get_entity_id(body)
+	var entity_id := ECS_UTILS.get_entity_id(body)
 	U_ECSEventBus.publish(EVENT_CHECKPOINT_ZONE_ENTERED, {
 		"entity_id": entity_id,
 		"checkpoint": self,
