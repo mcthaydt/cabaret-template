@@ -8,11 +8,19 @@ const DAMAGE_COMPONENT_TYPE := StringName("C_DamageZoneComponent")
 const HEALTH_COMPONENT_TYPE := StringName("C_HealthComponent")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
+const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const EVENT_DAMAGE_ZONE_ENTERED := StringName("damage_zone_entered")
+const EVENT_DAMAGE_ZONE_EXITED := StringName("damage_zone_exited")
 
 var _cooldowns: Dictionary = {}  # zone_instance_id -> Dictionary(entity_id -> remaining_time)
+var _zone_bodies: Dictionary = {}  # zone_instance_id -> Array[Node3D]
+var _event_unsubscribes: Array[Callable] = []
 
 func _init() -> void:
 	execution_priority = 250
+
+func on_configured() -> void:
+	_subscribe_events()
 
 func process_tick(delta: float) -> void:
 	var zones: Array = get_components(DAMAGE_COMPONENT_TYPE)
@@ -33,7 +41,7 @@ func process_tick(delta: float) -> void:
 			_cooldowns[zone_id] = cooldowns
 			continue
 
-		var bodies: Array = zone.get_bodies_in_zone()
+		var bodies: Array = _get_bodies_for_zone(zone, zone_id)
 		for body_entry in bodies:
 			var body: Node3D = body_entry as Node3D
 			if body == null:
@@ -127,3 +135,48 @@ func _cleanup_stale_zones(zones: Array) -> void:
 		var zone_id: int = int(key)
 		if not valid_ids.has(zone_id):
 			_cooldowns.erase(zone_id)
+
+	for zone_id in _zone_bodies.keys():
+		var id_int := int(zone_id)
+		if not valid_ids.has(id_int):
+			_zone_bodies.erase(id_int)
+
+func _subscribe_events() -> void:
+	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_DAMAGE_ZONE_ENTERED, _on_zone_entered))
+	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_DAMAGE_ZONE_EXITED, _on_zone_exited))
+
+func _on_zone_entered(event: Dictionary) -> void:
+	var payload: Dictionary = event.get("payload", {})
+	var zone := payload.get("zone") as C_DamageZoneComponent
+	var body := payload.get("body") as Node3D
+	if zone == null or body == null:
+		return
+	var zone_id: int = zone.get_instance_id()
+	var bodies: Array = _zone_bodies.get(zone_id, [])
+	if not bodies.has(body):
+		bodies.append(body)
+	_zone_bodies[zone_id] = bodies
+
+func _on_zone_exited(event: Dictionary) -> void:
+	var payload: Dictionary = event.get("payload", {})
+	var zone := payload.get("zone") as C_DamageZoneComponent
+	var body := payload.get("body") as Node3D
+	if zone == null or body == null:
+		return
+	var zone_id: int = zone.get_instance_id()
+	if not _zone_bodies.has(zone_id):
+		return
+	var bodies: Array = _zone_bodies.get(zone_id, [])
+	bodies.erase(body)
+	_zone_bodies[zone_id] = bodies
+
+func _get_bodies_for_zone(zone: C_DamageZoneComponent, zone_id: int) -> Array:
+	if _zone_bodies.has(zone_id):
+		return (_zone_bodies.get(zone_id, []) as Array).duplicate()
+	return zone.get_bodies_in_zone()
+
+func _exit_tree() -> void:
+	for unsubscribe in _event_unsubscribes:
+		if unsubscribe != null and unsubscribe is Callable and (unsubscribe as Callable).is_valid():
+			(unsubscribe as Callable).call()
+	_event_unsubscribes.clear()

@@ -1058,18 +1058,18 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 7C: Damage Zone Events (Priority 2 - Physics/Damage)
 
-- [ ] T072a Migrate C_DamageZoneComponent signals to event bus:
+- [x] T072a Migrate C_DamageZoneComponent signals to event bus:
   - Replace `signal player_entered` with `U_ECSEventBus.publish("damage_zone_entered", payload)`
   - Replace `signal player_exited` with `U_ECSEventBus.publish("damage_zone_exited", payload)`
   - Payload should include: `zone_id`, `body`, `damage_per_second`
   - Remove direct signal declarations
 
-- [ ] T072b Refactor S_DamageSystem to subscribe to zone events:
+- [x] T072b Refactor S_DamageSystem to subscribe to zone events:
   - Replace polling `zone.get_bodies_in_zone()` with event-driven tracking
   - Subscribe to `"damage_zone_entered"` and `"damage_zone_exited"`
   - Maintain internal set of bodies in zones
 
-- [ ] T072c Add tests for damage zone event bus integration:
+- [x] T072c Add tests for damage zone event bus integration:
   - Test events published on zone enter/exit
   - Test S_DamageSystem tracks bodies correctly via events
 
