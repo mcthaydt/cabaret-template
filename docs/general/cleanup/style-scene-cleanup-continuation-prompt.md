@@ -62,7 +62,7 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
   - **T059e**: Verified T022 checkbox (already correct) ✅
   - **Tests**: All passing (64 ECS, 7 style, 90 scene manager) ✅
   - **Commits**: 6 commits (3 implementation, 3 documentation)
-- Phase 6 – ECS Entity IDs & Tagging: **IN PROGRESS** (T060-T063 complete, T064a-i complete)
+- Phase 6 – ECS Entity IDs & Tagging: **✅ COMPLETE** (T060-T064v)
   - **T060**: Design complete ✅ (2025-12-08)
     - Plan file: `/Users/mcthaydt/.claude/plans/zesty-sleeping-alpaca.md`
     - Design decisions approved:
@@ -86,7 +86,7 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
     - All 91 ECS unit tests passing
     - Documentation updated (ecs_architecture.md, AGENTS.md)
   - **T064a-i**: Entity migration ✅ COMPLETE (2025-12-09)
-    - Templates: tmpl_player.tscn, tmpl_camera.tscn
+    - Templates: tmpl_character.tscn (generic), tmpl_camera.tscn
     - Prefabs: 5 prefabs (checkpoint, death_zone, spike_trap, goal_zone, door_trigger)
     - Gameplay scenes: gameplay_exterior.tscn, gameplay_interior_house.tscn
     - All entities have unique IDs and appropriate tags
@@ -97,7 +97,12 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
     - ECS unit suite passing (includes new test)
   - **T064l**: Documentation ✅ COMPLETE (2025-12-09)
     - Added entity ID/tag inventory and tagging strategy table to docs/ecs/ecs_architecture.md
-  - **T064m-v**: Template refactoring - deferred (optional architectural improvement)
+  - **T064m-v**: Template/prefab refactor ✅ COMPLETE (2025-12-09)
+    - Split player template into `tmpl_character.tscn` (generic) + `prefab_player.tscn`
+    - Converted ragdoll to `tmpl_character_ragdoll.tscn` + `prefab_player_ragdoll.tscn`
+    - Updated gameplay/base scenes to use player prefab
+    - Updated docs (AGENTS, SCENE_ORGANIZATION_GUIDE) with Templates vs Prefabs section
+    - Tests: style enforcement, ECS unit suite, scene manager integration suite all passing
 - Phase 7 – ECS Event Bus Migration: **NOT STARTED**
   - Migrate 7 components/systems from direct signals to U_ECSEventBus
   - **7A**: Health & death events (C_HealthComponent → event bus)
@@ -141,17 +146,17 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ## How to Continue
 
-**Current Phase: Phase 6 – ECS Entity IDs & Tagging**
+**Current Phase: Phase 7 – ECS Event Bus Migration (next up)**
 
-Phase 6 core implementation is nearly complete (T060-T064l done).
+Phase 6 is complete through T064v; optional T064t manual gameplay check remains if desired.
 
-1. **Optional follow-up: T064m-v**
-   - Template architecture refactor (character vs player prefabs) if opting in.
+1. **Next phase options**:
+   - Phase 7 (ECS Event Bus Migration)
+   - Phase 8 (Spawn Registry & Spawn Conditions)
+   - Phase 9 (Large File Splitting)
 
-2. **After Phase 6**:
-   - Move to Phase 7 (ECS Event Bus Migration) or
-   - Move to Phase 8 (Spawn Registry & Spawn Conditions) or
-   - Move to Phase 9 (Large File Splitting)
+2. **Optional**:
+   - T064t manual gameplay verification (player spawn/input/death ragdoll) if we want a manual sanity sweep post-refactor.
 
 ---
 

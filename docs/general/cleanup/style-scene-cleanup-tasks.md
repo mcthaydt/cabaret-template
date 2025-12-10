@@ -953,7 +953,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Scene manager tests: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/scene_manager -gexit`
   - Verify all tests pass with new paths
 
-- [ ] T064t Manual gameplay testing:
+- [x] T064t Manual gameplay testing:
   - Play `scenes/gameplay/gameplay_exterior.tscn`
   - Verify player spawns correctly
   - Verify all movement, jumping, floating, rotation work
