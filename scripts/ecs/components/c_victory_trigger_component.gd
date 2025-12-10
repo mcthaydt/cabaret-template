@@ -107,7 +107,8 @@ func set_triggered() -> void:
 	if trigger_once and is_triggered:
 		return
 	is_triggered = true
-	_publish_victory_triggered(_last_body, true)
+	# Note: Do NOT publish event here - creates infinite loop with S_VictorySystem
+	# Event is already published by _on_body_entered → _publish_victory_triggered
 
 func _can_publish_trigger() -> bool:
 	if trigger_once and is_triggered:
