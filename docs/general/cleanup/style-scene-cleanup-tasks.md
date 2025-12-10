@@ -1211,23 +1211,23 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Extract: `ACTION_CATEGORIES` constant, `EXCLUDED_ACTIONS` constant
   - Extract: `_refresh_bindings`, `_populate_binding_visuals`, `_get_event_device_type`
 
-- [ ] T091b Create `scripts/ui/helpers/u_rebind_capture_handler.gd`:
+- [x] T091b Create `scripts/ui/helpers/u_rebind_capture_handler.gd`:
   - Extract: `_begin_capture`, `_cancel_capture`, `_input`, `_handle_captured_event`
   - Extract: `_apply_binding`, `_build_final_target_events`, `_build_final_conflict_events`
   - Extract: `_get_action_events`, `_append_unique_event`, `_clone_event`, `_events_match`
 
-- [ ] T091c Create `scripts/ui/helpers/u_rebind_focus_navigation.gd`:
+- [x] T091c Create `scripts/ui/helpers/u_rebind_focus_navigation.gd`:
   - Extract: `_configure_focus_neighbors`, `_apply_focus`, `_navigate`, `_navigate_focus`
   - Extract: `_cycle_row_button`, `_cycle_bottom_button`, `_focus_next_action`, `_focus_previous_action`
   - Extract: `_ensure_row_visible`, `_connect_row_focus_handlers`
 
-- [ ] T091d Refactor `ui_input_rebinding_overlay.gd` to use helpers:
+- [x] T091d Refactor `ui_input_rebinding_overlay.gd` to use helpers:
   - Add const preloads for all 3 new helpers
   - Replace extracted methods with delegation calls
   - Keep: Node references, lifecycle, signal connections, profile manager integration, dialogs
   - Verify ~400 lines remaining
 
-- [ ] T091e Run input rebinding tests
+- [x] T091e Run input rebinding tests
 
 ### Phase 9C: State Store Split (809 → ~400 lines)
 
