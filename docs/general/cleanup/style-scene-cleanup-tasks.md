@@ -1301,36 +1301,186 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 9F: Validation & Documentation
 
-- [ ] T098a Run full test suite
+- [x] T098a Run full test suite
 
-- [ ] T098b Verify line counts:
+- [x] T098b Verify line counts:
   - Confirm all split files are under 400 lines
   - Confirm original files are reduced to target sizes
 
-- [ ] T099a Update STYLE_GUIDE.md:
+- [x] T099a Update STYLE_GUIDE.md:
   - Add new `helpers/` subdirectory patterns
   - Document helper file naming convention (`u_*_helper.gd` or `u_*_builder.gd`)
 
-- [ ] T099b Update AGENTS.md:
+- [x] T099b Update AGENTS.md:
   - Add note about helper extraction pattern for large files
   - Reference new helper locations in Repo Map
 
 ---
 
-## Phase 10 – Multi‑Slot Save Manager
+## Phase 10 – Multi-Slot Save Manager
 
-- [ ] T100 Design a **multi‑slot save** model:
-  - Decide on slot identifiers and file naming (e.g., `save_slot_1.json`).
-  - Define a minimal metadata format (last scene, timestamp, etc.).
-- [ ] T101 Implement a `M_SaveManager` (or equivalent) that wraps `M_StateStore`:
-  - Expose APIs for `save_to_slot(slot_id)`, `load_from_slot(slot_id)`, and listing available slots.
-  - Keep serialization logic delegated to `M_StateStore`.
-- [ ] T102 Add a basic UI surface for slot selection:
-  - A simple overlay or menu panel that lists slots and dispatches actions for save/load.
-  - Drive it through navigation/state, not direct Scene Manager calls.
-- [ ] T103 Add tests:
-  - Unit tests for `M_SaveManager` slot operations and metadata.
-  - Integration tests that verify end‑to‑end save/load between different slots.
+**Goal**: Wrap `M_StateStore.save_state/load_state` in a dedicated save manager with multi-slot support and rich metadata preview UI.
+
+**Configuration**:
+- 3 manual save slots + 1 dedicated auto-save slot
+- Access from main menu (Continue/Load Game) and pause menu (Save/Load Game)
+- Rich metadata preview: scene name, timestamp, play time, health, deaths, completion %
+
+### Phase 10.0: Data Model Design
+
+- [ ] T100 Create `RS_SaveSlotMetadata` resource class:
+  - [ ] T100a Create `scripts/state/resources/rs_save_slot_metadata.gd` with `class_name RS_SaveSlotMetadata`
+  - [ ] T100b Add fields:
+    - `slot_id: int`, `slot_type: SlotType` (enum: MANUAL=0, AUTO=1)
+    - `scene_id: StringName`, `scene_name: String`
+    - `timestamp: int` (Unix epoch), `formatted_timestamp: String`
+    - `play_time_seconds: float`
+    - `player_health: float`, `player_max_health: float`
+    - `death_count: int`, `completion_percentage: float`
+    - `completed_areas: Array[String]`
+    - `is_empty: bool`, `file_path: String`, `file_version: int`
+  - [ ] T100c Add `to_dictionary() -> Dictionary` and `static func from_dictionary(data: Dictionary) -> RS_SaveSlotMetadata`
+  - [ ] T100d Add helper `get_display_summary() -> String` for UI preview text
+
+- [ ] T101 Define save file envelope format:
+  - [ ] T101a Document JSON structure: `{ "version": 1, "metadata": {...}, "state": {...} }`
+  - [ ] T101b Add version migration notes in code comments
+
+### Phase 10.1: M_SaveManager Core Implementation
+
+- [ ] T102 Create `M_SaveManager` manager class:
+  - [ ] T102a Create `scripts/managers/m_save_manager.gd` with `class_name M_SaveManager`
+  - [ ] T102b Add to `"save_manager"` group in `_ready()`
+  - [ ] T102c Add constants: `MANUAL_SLOT_COUNT := 3`, `AUTO_SLOT_INDEX := -1`, `SAVE_FILE_VERSION := 1`
+  - [ ] T102d Add file naming: `savegame_slot_{n}.json` for manual, `savegame_auto.json` for auto
+
+- [ ] T103 Implement slot enumeration:
+  - [ ] T103a Add `_scan_save_slots() -> void` - scan `user://` for save files
+  - [ ] T103b Parse metadata from each file without loading full state
+  - [ ] T103c Populate `_slots: Array[RS_SaveSlotMetadata]` (3 manual + 1 auto)
+  - [ ] T103d Call on `_ready()` and expose `rescan_slots()` for refresh
+  - [ ] T103e Emit `slots_refreshed` signal after scan
+
+- [ ] T104 Implement save operations:
+  - [ ] T104a Add `save_to_slot(slot_index: int) -> Error`
+  - [ ] T104b Build metadata from current state (scene, health, deaths, completion, play time)
+  - [ ] T104c Create envelope with version + metadata + state
+  - [ ] T104d Delegate state serialization to `U_StatePersistence`
+  - [ ] T104e Write to appropriate file path
+  - [ ] T104f Emit `slot_saved(slot_index)` signal
+  - [ ] T104g Add `save_to_auto_slot() -> Error` wrapper
+
+- [ ] T105 Implement load operations:
+  - [ ] T105a Add `load_from_slot(slot_index: int) -> Error`
+  - [ ] T105b Read and validate envelope version
+  - [ ] T105c Extract state and apply via `M_StateStore`
+  - [ ] T105d Emit `slot_loaded(slot_index)` signal
+  - [ ] T105e Add `load_from_auto_slot() -> Error` wrapper
+
+- [ ] T106 Implement slot management:
+  - [ ] T106a Add `delete_slot(slot_index: int) -> Error`
+  - [ ] T106b Add `get_slot_metadata(slot_index: int) -> RS_SaveSlotMetadata`
+  - [ ] T106c Add `get_all_slots() -> Array[RS_SaveSlotMetadata]`
+  - [ ] T106d Add `has_any_saves() -> bool`
+  - [ ] T106e Add `get_most_recent_slot() -> RS_SaveSlotMetadata`
+
+### Phase 10.2: Redux Integration
+
+- [ ] T107 Create save actions:
+  - [ ] T107a Create `scripts/state/actions/u_save_actions.gd` with `class_name U_SaveActions`
+  - [ ] T107b Add actions: `ACTION_REFRESH_SAVE_SLOTS`, `ACTION_SELECT_SLOT`, `ACTION_SAVE_TO_SLOT`, `ACTION_LOAD_FROM_SLOT`, `ACTION_DELETE_SLOT`
+  - [ ] T107c Register actions in `_static_init()`
+  - [ ] T107d Create action creator functions
+
+- [ ] T108 Update menu reducer:
+  - [ ] T108a Extend `u_menu_reducer.gd` to handle `ACTION_REFRESH_SAVE_SLOTS`
+  - [ ] T108b Store `available_saves` as Array of metadata dictionaries
+  - [ ] T108c Add `selected_save_slot: int` field (default: -1)
+  - [ ] T108d Handle `ACTION_SELECT_SLOT`
+
+- [ ] T109 Create save selectors:
+  - [ ] T109a Create `scripts/state/selectors/u_save_selectors.gd` with `class_name U_SaveSelectors`
+  - [ ] T109b Add `get_available_saves()`, `get_selected_slot()`, `has_any_saves()`, `get_save_slot_by_index()`
+
+### Phase 10.3: Auto-Save Integration
+
+- [ ] T110 Integrate auto-save with existing timer:
+  - [ ] T110a Modify `M_StateStore._on_autosave_timeout()` to call `M_SaveManager.save_to_auto_slot()`
+  - [ ] T110b Add `M_SaveManager` group lookup in `M_StateStore`
+  - [ ] T110c Fallback to current behavior if `M_SaveManager` not found (backward compatibility)
+
+### Phase 10.4: UI Implementation
+
+- [ ] T111 Create save slot selector overlay:
+  - [ ] T111a Create `scenes/ui/ui_save_slot_selector.tscn` extending BaseOverlay
+  - [ ] T111b Create `scripts/ui/ui_save_slot_selector.gd` with `class_name UI_SaveSlotSelector`
+  - [ ] T111c Add `enum Mode { SAVE, LOAD }` with `@export var mode: Mode`
+  - [ ] T111d Layout: Title, slot list (VBoxContainer), action buttons (Save/Load, Delete, Back)
+
+- [ ] T112 Implement slot list with cycling navigation:
+  - [ ] T112a Display per slot: name, scene, timestamp, play time, health, deaths, completion %
+  - [ ] T112b Override `_navigate_focus()` for up/down slot cycling (follow `ui_input_profile_selector.gd` pattern)
+  - [ ] T112c Visual highlight for selected slot
+  - [ ] T112d Handle empty slots (show "Empty Slot", save-only in SAVE mode)
+
+- [ ] T113 Implement action buttons:
+  - [ ] T113a Save/Load button: dispatch appropriate action, close overlay on success
+  - [ ] T113b Delete button: show confirmation dialog, dispatch delete action
+  - [ ] T113c Back button: `U_NavigationActions.close_top_overlay()`
+  - [ ] T113d Disable Load/Delete for empty slots in LOAD mode
+
+- [ ] T114 Register overlay in UI system:
+  - [ ] T114a Create `resources/ui_screens/save_slot_selector_overlay.tres` (RS_UIScreenDefinition)
+  - [ ] T114b Register scene in `U_SceneRegistry`
+  - [ ] T114c Add to `U_UIRegistry._register_all_screens()`
+
+### Phase 10.5: Menu Integration
+
+- [ ] T115 Integrate with main menu:
+  - [ ] T115a Add "Continue" button (loads most recent save, only visible when `has_any_saves()`)
+  - [ ] T115b Add "Load Game" button (opens selector in LOAD mode)
+  - [ ] T115c Update `ui_main_menu.gd` and `ui_main_menu.tscn`
+
+- [ ] T116 Integrate with pause menu:
+  - [ ] T116a Add "Save Game" button (opens selector in SAVE mode)
+  - [ ] T116b Add "Load Game" button (opens selector in LOAD mode)
+  - [ ] T116c Update `ui_pause_menu.gd` and `ui_pause_menu.tscn`
+
+### Phase 10.6: Settings Resource
+
+- [ ] T117 Create save manager settings:
+  - [ ] T117a Create `scripts/managers/resources/rs_save_manager_settings.gd`
+  - [ ] T117b Add fields: `manual_slot_count`, `auto_save_enabled`, `show_auto_save_in_list`, `confirm_overwrite`, `confirm_delete`
+  - [ ] T117c Create default `.tres` at `resources/settings/save_manager_settings.tres`
+
+### Phase 10.7: Testing
+
+- [ ] T118 Unit tests for M_SaveManager:
+  - [ ] T118a Create `tests/unit/managers/test_m_save_manager.gd`
+  - [ ] T118b Test slot enumeration, save, load, delete operations
+  - [ ] T118c Test auto-save targets correct file
+  - [ ] T118d Test version field in envelope
+
+- [ ] T119 Unit tests for RS_SaveSlotMetadata:
+  - [ ] T119a Create `tests/unit/resources/test_rs_save_slot_metadata.gd`
+  - [ ] T119b Test serialization roundtrip
+  - [ ] T119c Test from_dictionary handles missing fields gracefully
+
+- [ ] T120 Unit tests for Redux layer:
+  - [ ] T120a Create `tests/unit/state/test_save_slice.gd`
+  - [ ] T120b Test actions, reducer, selectors
+
+- [ ] T121 Integration tests:
+  - [ ] T121a Create `tests/integration/save_manager/test_save_load_flow.gd`
+  - [ ] T121b Test full save/load cycle from UI to state restoration
+  - [ ] T121c Test auto-save timer integration
+
+### Phase 10.8: Documentation
+
+- [ ] T122 Update documentation:
+  - [ ] T122a Add save manager patterns to `AGENTS.md`
+  - [ ] T122b Document save file format in code comments
+  - [ ] T122c Create `docs/save_manager/save-manager-continuation-prompt.md`
 
 ---
 
@@ -1352,7 +1502,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Prerequisite**: Phase 7A (health events) and Phase 7B (victory events) must be complete.
 
-- [ ] T104 **Decouple S_HealthSystem from M_SceneManager**:
+- [ ] T130 **Decouple S_HealthSystem from M_SceneManager**:
   - Currently: `var _scene_manager: M_SceneManager` direct reference (line 18)
   - Currently: Direct call to `_scene_manager.transition_to_scene()` (line 178)
   - Refactor: Use `entity_death` event from Phase 7A (T070a)
@@ -1360,7 +1510,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Remove: `_scene_manager` member variable and direct calls
   - Result: S_HealthSystem testable without M_SceneManager
 
-- [ ] T105 **Decouple S_VictorySystem from M_SceneManager**:
+- [ ] T131 **Decouple S_VictorySystem from M_SceneManager**:
   - Currently: `var _scene_manager: M_SceneManager` direct reference (line 12)
   - Currently: Direct call to `_scene_manager.transition_to_scene()` (line 44)
   - Refactor: Use `victory_triggered` event from Phase 7B (T071a)
@@ -1368,13 +1518,13 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Remove: `_scene_manager` member variable and direct calls
   - Result: S_VictorySystem testable in isolation
 
-- [ ] T106 **Decouple S_CheckpointSystem from direct Area3D connections**:
+- [ ] T132 **Decouple S_CheckpointSystem from direct Area3D connections**:
   - Currently: Manually connects Area3D signals, tracks `_connected_checkpoints`
   - Refactor: Components emit events, system subscribes via U_ECSEventBus
   - Add cleanup in component `_exit_tree()` to prevent signal leaks
   - Result: No signal connection leaks, cleaner lifecycle
 
-- [ ] T107 **Add manager initialization assertions**:
+- [ ] T133 **Add manager initialization assertions**:
   - Add assertions in manager `_ready()` to verify dependencies exist
   - M_PauseManager, M_SpawnManager, M_CameraManager should assert M_StateStore exists
   - Fail fast instead of silent failures
@@ -1383,23 +1533,23 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Problem**: M_SceneManager (1,565 lines) is a god object handling too many concerns.
 
-- [ ] T108 **Design TransitionOrchestrator abstraction**:
+- [ ] T134 **Design TransitionOrchestrator abstraction**:
   - Define responsibilities: transition state machine, effect execution, scene swap sequencing
   - Design interface with lifecycle hooks: `initialize()`, `execute()`, `on_scene_swap()`, `on_complete()`
   - Document in plan file before implementation
 
-- [ ] T109 **Create `scripts/scene_management/transition_orchestrator.gd`**:
+- [ ] T135 **Create `scripts/scene_management/transition_orchestrator.gd`**:
   - Extract transition effect management from M_SceneManager
   - Handle all scene loading strategies (sync/async/cached)
   - Manage progress tracking and callbacks
   - Target: 300-400 lines
 
-- [ ] T110a **Create `scripts/scene_management/i_transition_effect.gd`**:
+- [ ] T136a **Create `scripts/scene_management/i_transition_effect.gd`**:
   - Define interface for transition effects
   - Methods: `initialize(config)`, `execute(layer, callback)`, `on_scene_swap()`, `on_complete()`
   - Update Trans_Fade, Trans_LoadingScreen to implement interface
 
-- [ ] T110b **Refactor M_SceneManager to use TransitionOrchestrator**:
+- [ ] T136b **Refactor M_SceneManager to use TransitionOrchestrator**:
   - Remove transition logic (400+ lines)
   - Delegate to TransitionOrchestrator
   - Target: M_SceneManager reduced to ~1,100 lines
@@ -1408,17 +1558,17 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Problem**: M_SceneManager has hardcoded `match scene_type:` logic; adding new scene types requires modifying the manager.
 
-- [ ] T111a **Design ISceneTypeHandler interface**:
+- [ ] T137a **Design ISceneTypeHandler interface**:
   - Methods: `on_load(scene)`, `on_unload(scene)`, `get_required_managers()`, `get_scene_type()`
   - Document expected behavior for each method
 
-- [ ] T111b **Create scene type handlers**:
+- [ ] T137b **Create scene type handlers**:
   - `scripts/scene_management/handlers/gameplay_scene_handler.gd`
   - `scripts/scene_management/handlers/menu_scene_handler.gd`
   - `scripts/scene_management/handlers/ui_scene_handler.gd`
   - `scripts/scene_management/handlers/endgame_scene_handler.gd`
 
-- [ ] T111c **Create SceneTypeHandlerRegistry**:
+- [ ] T137c **Create SceneTypeHandlerRegistry**:
   - Register handlers at startup
   - M_SceneManager delegates to appropriate handler based on scene type
   - Result: Adding new scene types requires only adding a handler class
@@ -1427,21 +1577,21 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Problem**: DeviceType is hardcoded enum; adding new input types (VR) requires modifying multiple files.
 
-- [ ] T112a **Design IInputSource interface**:
+- [ ] T138a **Design IInputSource interface**:
   - Methods: `get_device_type()`, `get_priority()`, `get_stick_deadzone()`, `is_active()`
   - Document device registration pattern
 
-- [ ] T112b **Create input source implementations**:
+- [ ] T138b **Create input source implementations**:
   - `scripts/input/sources/keyboard_mouse_source.gd`
   - `scripts/input/sources/gamepad_source.gd`
   - `scripts/input/sources/touchscreen_source.gd`
 
-- [ ] T112c **Refactor M_InputDeviceManager to use IInputSource**:
+- [ ] T138c **Refactor M_InputDeviceManager to use IInputSource**:
   - Replace hardcoded device type checks with polymorphic calls
   - Register sources at startup
   - Result: Adding VR requires only adding a new source class
 
-- [ ] T112d **Refactor S_InputSystem to use input sources**:
+- [ ] T138d **Refactor S_InputSystem to use input sources**:
   - Extract device-specific logic into source classes
   - S_InputSystem queries active source, delegates input capture
   - Target: S_InputSystem reduced from 412 to ~200 lines
@@ -1450,17 +1600,17 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Problem**: M_StateStore (809 lines) mixes state management with persistence, history, and validation.
 
-- [ ] T113a **Create `scripts/state/utils/u_state_repository.gd`**:
+- [ ] T139a **Create `scripts/state/utils/u_state_repository.gd`**:
   - Extract: `save_state()`, `load_state()`, auto-save logic
   - Extract: `_normalize_loaded_state()`, validation methods
   - Target: 200-250 lines
 
-- [ ] T113b **Create `scripts/state/utils/u_state_validator.gd`**:
+- [ ] T139b **Create `scripts/state/utils/u_state_validator.gd`**:
   - Extract: State schema validation
   - Validate entire loaded state against registries before applying
   - Fail fast on invalid state
 
-- [ ] T113c **Refactor M_StateStore to use extracted utilities**:
+- [ ] T139c **Refactor M_StateStore to use extracted utilities**:
   - M_StateStore focuses on dispatch/subscribe/get_state
   - Delegates persistence to U_StateRepository
   - Delegates validation to U_StateValidator
@@ -1474,7 +1624,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Note**: Phase 7 migrates signals → StringName events. This phase upgrades StringName events → typed event classes.
 
-- [ ] T114a **Extend U_ECSEventBus with typed events**:
+- [ ] T140a **Extend U_ECSEventBus with typed events**:
   - Create typed event wrapper classes for events defined in Phase 7:
     - `HealthChangedEvent` (wraps Phase 7's `"health_changed"`)
     - `EntityDeathEvent` (wraps Phase 7's `"entity_death"`)
@@ -1483,13 +1633,13 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Add event priority support for ordering subscribers
   - Add subscriber validation (warn on duplicate subscriptions)
 
-- [ ] T114b **Document event taxonomy**:
+- [ ] T140b **Document event taxonomy**:
   - Consolidate Phase 7F documentation (T075b) with architectural overview
   - List all standard events and their typed class equivalents
   - Document which systems publish/subscribe to which events
   - Add to `docs/ecs/ecs_events.md`
 
-- [ ] T114c **Migrate remaining direct manager calls to events**:
+- [ ] T140c **Migrate remaining direct manager calls to events**:
   - Audit all `_scene_manager.` calls in systems (should be none after 10B-1)
   - Audit all `_store.dispatch()` calls that could be events instead
   - M_SceneManager becomes pure event subscriber for game flow events
@@ -1498,17 +1648,17 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Problem**: 33+ group lookups scattered throughout codebase; dependencies invisible at compile time.
 
-- [ ] T115a **Design ServiceLocator pattern**:
+- [ ] T141a **Design ServiceLocator pattern**:
   - Central registry for all managers
   - Explicit registration at startup
   - Validation that all required services exist before gameplay starts
 
-- [ ] T115b **Create `scripts/core/service_locator.gd`**:
+- [ ] T141b **Create `scripts/core/service_locator.gd`**:
   - Methods: `register(service_name, instance)`, `get(service_name)`, `has(service_name)`
   - Validate dependencies on `validate_all()`
   - Make dependency graph visible
 
-- [ ] T115c **Migrate group lookups to ServiceLocator**:
+- [ ] T141c **Migrate group lookups to ServiceLocator**:
   - Replace `get_tree().get_nodes_in_group("state_store")` with `ServiceLocator.get("state_store")`
   - Update all 33+ group lookups
   - Result: Explicit dependencies, faster lookups, compile-time visibility
@@ -1517,17 +1667,17 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Problem**: Systems are difficult to unit test due to concrete manager dependencies.
 
-- [ ] T116a **Create manager interfaces**:
+- [ ] T142a **Create manager interfaces**:
   - `scripts/interfaces/i_state_store.gd` - interface for M_StateStore
   - `scripts/interfaces/i_scene_manager.gd` - interface for M_SceneManager
   - `scripts/interfaces/i_ecs_manager.gd` - interface for M_ECSManager
 
-- [ ] T116b **Create mock implementations for testing**:
+- [ ] T142b **Create mock implementations for testing**:
   - `tests/mocks/mock_state_store.gd`
   - `tests/mocks/mock_scene_manager.gd`
   - `tests/mocks/mock_ecs_manager.gd`
 
-- [ ] T116c **Update systems to depend on interfaces**:
+- [ ] T142c **Update systems to depend on interfaces**:
   - Systems accept dependencies via constructor or exported properties
   - Production: wire real implementations
   - Tests: inject mocks
@@ -1535,17 +1685,17 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 10B-9: Documentation & Contracts
 
-- [ ] T117a **Create ECS-State contract documentation**:
+- [ ] T143a **Create ECS-State contract documentation**:
   - Document all ECS → State dependencies (which systems dispatch which actions)
   - Document all State → ECS dependencies (which systems read which selectors)
   - Add to `docs/architecture/ecs_state_contract.md`
 
-- [ ] T117b **Create dependency graph visualization**:
+- [ ] T143b **Create dependency graph visualization**:
   - Document manager initialization order
   - Document system → manager dependencies
   - Generate ASCII or mermaid diagram
 
-- [ ] T117c **Add architectural decision records (ADRs)**:
+- [ ] T143c **Add architectural decision records (ADRs)**:
   - ADR-001: Redux-style state management
   - ADR-002: ECS pattern with Node-based components
   - ADR-003: Event bus for cross-system communication
@@ -1573,15 +1723,15 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ## Phase 11 – Final Validation & Regression Sweep
 
-- [ ] T120 Run full GUT test suites (all categories) and record baseline.
-- [ ] T121 Manually verify core user flows:
+- [ ] T150 Run full GUT test suites (all categories) and record baseline.
+- [ ] T151 Manually verify core user flows:
   - Main menu → gameplay → pause → settings/input overlays → resume.
   - Area transitions exterior ↔ interior_house.
   - Endgame flows (game_over/victory/credits).
-- [ ] T122 Spot‑check representative files in each category for prefix/style adherence:
+- [ ] T152 Spot-check representative files in each category for prefix/style adherence:
   - Managers, systems, components, UI controllers, resources, markers, debug scenes.
-- [ ] T123 Confirm `STYLE_GUIDE.md` and `SCENE_ORGANIZATION_GUIDE.md` examples match actual code and scenes.
-- [ ] T124 Update the Cleanup PRD status to "Complete" and add a short summary of what changed.
+- [ ] T153 Confirm `STYLE_GUIDE.md` and `SCENE_ORGANIZATION_GUIDE.md` examples match actual code and scenes.
+- [ ] T154 Update the Cleanup PRD status to "Complete" and add a short summary of what changed.
 
 ---
 

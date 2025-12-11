@@ -18,11 +18,11 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ---
 
-## Current Status (2025-12-11 – Phase 9E Complete, Phase 9F Next)
+## Current Status (2025-12-10 – Phase 10 Detailed Plan Ready)
 
 - **PRD**: `docs/general/cleanup/style-scene-cleanup-prd.md` – Drafted.
 - **Plan**: `docs/general/cleanup/style-scene-cleanup-plan.md` – Phases 0–11 defined with user-approved policies.
-- **Tasks**: `docs/general/cleanup/style-scene-cleanup-tasks.md` – Phase 0-5 complete, Phase 5B & 10B added (2025-12-09 audit).
+- **Tasks**: `docs/general/cleanup/style-scene-cleanup-tasks.md` – Phase 10 expanded (2025-12-10), task numbers renumbered.
 
 **Execution Status**:
 
@@ -32,19 +32,20 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 - Phase 3 – Naming & Prefix Migration: **✅ COMPLETE**
 - Phase 4 – Tests & Tooling Hardening: **✅ COMPLETE** (2025-12-08)
 - Phase 5 – Docs & Planning Alignment: **✅ COMPLETE** (2025-12-08, Commits: 30dd4d6, 8b1ae15, 011c4fa)
-- **Phase 5B – Audit Findings: **✅ COMPLETE** (2025-12-09)
+- **Phase 5B – Audit Findings**: **✅ COMPLETE** (2025-12-09)
 - Phase 6 – ECS Entity IDs & Tagging: **✅ COMPLETE** (T060-T064v)
-- Phase 7 – ECS Event Bus Migration: **COMPLETE (2025-12-09)**
-- Phase 8 – Spawn Registry & Spawn Conditions: **IN PROGRESS** (T080-T083 complete - registry + integration)
-- Phase 9 – Large File Splitting for Maintainability: **IN PROGRESS**
-  - **9A (Scene Manager helpers)**: ✅ IMPLEMENTED (2025-12-10)
+- Phase 7 – ECS Event Bus Migration: **✅ COMPLETE** (2025-12-09)
+- Phase 8 – Spawn Registry & Spawn Conditions: **✅ COMPLETE** (T080-T087)
+- Phase 9 – Large File Splitting for Maintainability: **✅ COMPLETE**
+  - **9A (Scene Manager helpers)**: ✅ COMPLETE (2025-12-10)
   - **9B (Input Rebinding Overlay)**: ✅ COMPLETE (2025-12-10)
   - **9C (State Store split)**: ✅ COMPLETE (2025-12-11)
   - **9D (Input Rebind Utils split)**: ✅ COMPLETE (2025-12-11)
-  - **9E (Minor Splits)**: ✅ COMPLETE (T094-T097 – helpers + refactors; ECS query metrics, input profile loader, scene registry loader, touchscreen preview builder)
-- Phase 10 – Multi-Slot Save Manager: **NOT STARTED**
-- **Phase 10B – Architectural Hardening: **NOT STARTED** (Added 2025-12-09)
-- Phase 11 – Final Validation & Regression Sweep: **NOT STARTED** (Tasks renumbered T120-T124)
+  - **9E (Minor Splits)**: ✅ COMPLETE (T094-T097)
+  - **9F (Validation)**: Pending (T098-T099)
+- **Phase 10 – Multi-Slot Save Manager**: **NOT STARTED** (Detailed plan ready - T100-T122)
+- **Phase 10B – Architectural Hardening**: **NOT STARTED** (Tasks renumbered T130-T143)
+- Phase 11 – Final Validation & Regression Sweep: **NOT STARTED** (Tasks renumbered T150-T154)
 
 **Policy Decisions Approved**:
 - ✅ UI screen controllers: Add `ui_` prefix
@@ -57,9 +58,45 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ## How to Continue
 
-**Current Phase: Phase 9 – Large File Splitting for Maintainability (9E – Minor Splits)**
+**Current Phase: Phase 10 – Multi-Slot Save Manager (Design & Implementation)**
 
-Focus on Phase 9E tasks (T094–T097), then proceed to Phase 9F validation/documentation before moving on to Phase 10/10B.
+Phase 10 has been expanded into 8 sub-phases with 23 detailed tasks (T100-T122):
+
+### Phase 10 Configuration (User Approved)
+- **3 manual save slots** + **1 dedicated auto-save slot** (4 total)
+- **Access points**: Main menu + Pause menu (full slot selection from both)
+- **Metadata preview**: Rich (scene name, timestamp, play time, health, deaths, completion %)
+
+### Implementation Order
+1. **Phase 10.0 (T100-T101)**: Data model - Create `RS_SaveSlotMetadata`, define envelope format
+2. **Phase 10.1 (T102-T106)**: M_SaveManager core - slot enumeration, save/load/delete operations
+3. **Phase 10.2 (T107-T109)**: Redux integration - actions, reducer updates, selectors
+4. **Phase 10.3 (T110)**: Auto-save integration with existing 60s timer
+5. **Phase 10.4 (T111-T114)**: UI implementation - save slot selector overlay
+6. **Phase 10.5 (T115-T116)**: Menu integration - main menu + pause menu buttons
+7. **Phase 10.6 (T117)**: Settings resource for configuration
+8. **Phase 10.7 (T118-T121)**: Testing - unit + integration tests
+9. **Phase 10.8 (T122)**: Documentation updates
+
+### Key Files to Create
+- `scripts/managers/m_save_manager.gd` - Core save manager
+- `scripts/state/resources/rs_save_slot_metadata.gd` - Slot metadata model
+- `scripts/state/actions/u_save_actions.gd` - Redux actions
+- `scripts/ui/ui_save_slot_selector.gd` - Overlay controller
+- `scenes/ui/ui_save_slot_selector.tscn` - Overlay scene
+
+### Key Files to Modify
+- `scripts/state/m_state_store.gd` - Route auto-save to M_SaveManager
+- `scripts/state/reducers/u_menu_reducer.gd` - Handle save slot actions
+- `scripts/ui/ui_main_menu.gd` - Add Continue/Load Game buttons
+- `scripts/ui/ui_pause_menu.gd` - Add Save/Load Game buttons
+
+### Patterns to Follow
+- UI overlays: Extend `BaseOverlay`, register in `U_UIRegistry`
+- List selection: Follow `ui_input_profile_selector.gd` pattern
+- Navigation: Use `U_NavigationActions` - never call Scene Manager directly
+
+**Note**: Phase 10B (T130-T143) and Phase 11 (T150-T154) have been renumbered to avoid conflicts.
 
 ---
 

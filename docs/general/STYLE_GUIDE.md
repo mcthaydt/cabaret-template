@@ -61,6 +61,7 @@ The following patterns apply to **production** scripts under `res://scripts/**`.
 | **Shaders** | `sh_*_shader.gdshader` | `sh_water_shader.gdshader` |
 | **Tools** | `t_*_tool.gd` | `t_level_editor_tool.gd` |
 | **Plugins** | `p_*_plugin.gd` | `p_custom_plugin.gd` |
+| **Helpers** | `*helpers/*` + `u_*_helper.gd` / `u_*_builder.gd` / `m_*_loader.gd` | `u_scene_registry_loader.gd`, `u_touchscreen_preview_builder.gd`, `m_input_profile_loader.gd` |
 
 ### Scenes & Resources: Filenames
 
@@ -222,7 +223,8 @@ scripts/
 ├── scenes/
 ├── shaders/
 ├── tools/
-└── utils/
+├── utils/
+└── helpers/
 
 tests/
 └── unit/
