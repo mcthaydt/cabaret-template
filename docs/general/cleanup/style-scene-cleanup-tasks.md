@@ -1251,21 +1251,21 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 9D: Input Rebind Utils Split (509 → ~180 lines)
 
-- [ ] T093a Create `scripts/utils/u_input_event_serialization.gd`:
+- [x] T093a Create `scripts/utils/u_input_event_serialization.gd`:
   - Extract: `event_to_dict`, `dict_to_event`
   - Extract: All `_*_to_dict` and `_dict_to_*` helper methods
 
-- [ ] T093b Create `scripts/utils/u_input_event_display.gd`:
+- [x] T093b Create `scripts/utils/u_input_event_display.gd`:
   - Extract: `format_event_label`, `_format_joypad_button_label`, `_format_joypad_axis_label`
   - Extract: `get_texture_for_event`
 
-- [ ] T093c Refactor `u_input_rebind_utils.gd` to use helpers:
+- [x] T093c Refactor `u_input_rebind_utils.gd` to use helpers:
   - Add const preloads for both new utilities
   - Replace extracted methods with delegation calls
   - Keep: `ValidationResult`, `validate_rebind`, `rebind_action`, `get_conflicting_action`, `is_reserved_action`
   - Verify ~180 lines remaining
 
-- [ ] T093d Update external references and run input tests
+- [x] T093d Update external references and run input tests
 
 ### Phase 9E: Minor Splits
 
