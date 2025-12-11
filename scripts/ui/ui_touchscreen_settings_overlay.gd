@@ -10,6 +10,7 @@ const VirtualButtonScene := preload("res://scenes/ui/ui_virtual_button.tscn")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
+const U_TouchscreenPreviewBuilder := preload("res://scripts/ui/helpers/u_touchscreen_preview_builder.gd")
 
 @onready var _joystick_size_slider: HSlider = %JoystickSizeSlider
 @onready var _button_size_slider: HSlider = %ButtonSizeSlider
@@ -34,6 +35,7 @@ var _profile_manager: Node = null
 var _preview_joystick: Control = null
 var _preview_buttons: Array[Control] = []
 var _defaults: RS_TouchscreenSettings = preload("res://resources/input/touchscreen_settings/default_touchscreen_settings.tres")
+var _preview_builder := U_TouchscreenPreviewBuilder.new()
 var _updating_from_state: bool = false
 var _has_local_edits: bool = false
 var _override_log_count: int = 0
@@ -65,42 +67,26 @@ func _build_preview() -> void:
 	if _preview_container == null:
 		return
 
-	for child in _preview_container.get_children():
-		child.queue_free()
-	_preview_buttons.clear()
+	var joystick_out: Array = []
+	var buttons_out: Array = []
+	_preview_builder.build_preview(
+		_preview_container,
+		VirtualJoystickScene,
+		VirtualButtonScene,
+		joystick_out,
+		buttons_out
+	)
+
 	_preview_joystick = null
+	if not joystick_out.is_empty():
+		var first_joystick: Control = joystick_out[0] as Control
+		if first_joystick != null:
+			_preview_joystick = first_joystick
 
-	var viewport_size: Vector2 = _preview_container.size
-	if viewport_size.is_zero_approx():
-		viewport_size = Vector2(400, 220)
-
-	var joystick_instance := VirtualJoystickScene.instantiate()
-	if joystick_instance is Control:
-		_preview_container.add_child(joystick_instance)
-		_preview_joystick = joystick_instance
-		joystick_instance.name = "PreviewJoystick"
-		joystick_instance.process_mode = Node.PROCESS_MODE_DISABLED
-		if joystick_instance is Control:
-			joystick_instance.position = Vector2(40, viewport_size.y - 140)
-
-	var actions := [
-		StringName("jump"),
-		StringName("sprint"),
-		StringName("interact"),
-		StringName("pause")
-	]
-
-	for index in actions.size():
-		var button_instance := VirtualButtonScene.instantiate()
-		if button_instance is Control:
-			_preview_container.add_child(button_instance)
-			button_instance.name = "PreviewButton_%s" % String(actions[index])
-			if "action" in button_instance:
-				button_instance.action = actions[index]
-			if button_instance.has_method("_refresh_label"):
-				button_instance._refresh_label()
-			button_instance.process_mode = Node.PROCESS_MODE_DISABLED
-			_preview_buttons.append(button_instance)
+	_preview_buttons.clear()
+	for entry in buttons_out:
+		if entry is Control:
+			_preview_buttons.append(entry)
 
 func _configure_focus_neighbors() -> void:
 	var vertical_controls: Array[Control] = []
@@ -333,82 +319,25 @@ func _is_position_only_settings_update(settings_payload: Dictionary) -> bool:
 	return true
 
 func _update_preview_from_sliders() -> void:
+	if _preview_container == null:
+		return
+
 	var joystick_size: float = float(_joystick_size_slider.value)
-	if joystick_size < 0.01:
-		joystick_size = 0.01
-
 	var button_size: float = float(_button_size_slider.value)
-	if button_size < 0.01:
-		button_size = 0.01
+	var joystick_opacity: float = float(_joystick_opacity_slider.value)
+	var button_opacity: float = float(_button_opacity_slider.value)
+	var joystick_deadzone: float = float(_joystick_deadzone_slider.value)
 
-	var joystick_opacity: float = clampf(float(_joystick_opacity_slider.value), 0.0, 1.0)
-	var button_opacity: float = clampf(float(_button_opacity_slider.value), 0.0, 1.0)
-	var joystick_deadzone: float = clampf(float(_joystick_deadzone_slider.value), 0.0, 1.0)
-
-	if _preview_joystick != null and is_instance_valid(_preview_joystick):
-		_preview_joystick.scale = Vector2.ONE * joystick_size
-		var color: Color = _preview_joystick.modulate
-		color.a = joystick_opacity
-		_preview_joystick.modulate = color
-		if "deadzone" in _preview_joystick:
-			_preview_joystick.deadzone = joystick_deadzone
-
-	for button in _preview_buttons:
-		if button == null or not is_instance_valid(button):
-			continue
-		button.scale = Vector2.ONE * button_size
-		var button_color: Color = button.modulate
-		button_color.a = button_opacity
-		button.modulate = button_color
-
-	var preview_size: Vector2 = _preview_container.size
-	if preview_size.is_zero_approx():
-		preview_size = Vector2(520, 220)
-
-	if _preview_joystick != null and is_instance_valid(_preview_joystick):
-		var base_joystick_size: Vector2 = _preview_joystick.size
-		if base_joystick_size.is_zero_approx():
-			base_joystick_size = _preview_joystick.custom_minimum_size
-		var joystick_scaled: Vector2 = base_joystick_size * joystick_size
-		var padding: float = 24.0
-		_preview_joystick.position = Vector2(
-			padding,
-			max(padding, preview_size.y - padding - joystick_scaled.y)
-		)
-
-	var button_padding: float = 24.0
-	var button_spacing: float = 12.0
-	var base_button_size: Vector2 = Vector2.ONE * 100.0
-	if not _preview_buttons.is_empty():
-		var sample_button: Control = _preview_buttons[0]
-		if sample_button != null and is_instance_valid(sample_button):
-			base_button_size = sample_button.size
-			if base_button_size.is_zero_approx():
-				base_button_size = sample_button.custom_minimum_size
-	var button_scaled_size: Vector2 = base_button_size * button_size
-	var total_width: float = float(_preview_buttons.size()) * button_scaled_size.x
-	if _preview_buttons.size() > 1:
-		total_width += float(_preview_buttons.size() - 1) * button_spacing
-
-	# Position buttons in a 2x2 grid
-	var grid_cols: int = 2
-	var grid_rows: int = 2
-	var grid_width: float = float(grid_cols) * button_scaled_size.x + float(grid_cols - 1) * button_spacing
-	var grid_height: float = float(grid_rows) * button_scaled_size.y + float(grid_rows - 1) * button_spacing
-
-	var grid_start_x: float = max(button_padding, preview_size.x - button_padding - grid_width)
-	var grid_start_y: float = max(button_padding, preview_size.y - button_padding - grid_height)
-
-	for index in _preview_buttons.size():
-		var button: Control = _preview_buttons[index]
-		if button == null or not is_instance_valid(button):
-			continue
-		var col: int = index % grid_cols
-		var row: int = index / grid_cols
-		button.position = Vector2(
-			grid_start_x + float(col) * (button_scaled_size.x + button_spacing),
-			grid_start_y + float(row) * (button_scaled_size.y + button_spacing)
-		)
+	_preview_builder.update_preview_from_sliders(
+		_preview_container,
+		_preview_joystick,
+		_preview_buttons,
+		joystick_size,
+		button_size,
+		joystick_opacity,
+		button_opacity,
+		joystick_deadzone
+	)
 
 func _update_slider_label(label: Label, value: float) -> void:
 	if label == null:

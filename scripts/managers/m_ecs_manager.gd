@@ -7,6 +7,7 @@ signal component_removed(component_type: StringName, component: BaseECSComponent
 
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECS_QUERY_METRICS := preload("res://scripts/ecs/helpers/u_ecs_query_metrics.gd")
 const META_ENTITY_ROOT := StringName("_ecs_entity_root")
 const META_ENTITY_TRACKED := StringName("_ecs_tracked_entity")
 const PROJECT_SETTING_QUERY_METRICS_ENABLED := "ecs/debug/query_metrics_enabled"
@@ -21,10 +22,8 @@ var _sorted_systems: Array[BaseECSSystem] = []
 var _systems_dirty: bool = true
 var _entity_component_map: Dictionary = {}
 var _query_cache: Dictionary = {}
-var _query_metrics: Dictionary = {}
 var _time_provider: Callable = Callable(U_ECS_UTILS, "get_current_time")
-var _query_metrics_enabled: bool = true
-var _query_metrics_capacity: int = 64
+var _query_metrics_helper := U_ECS_QUERY_METRICS.new()
 
 # Entity ID and tagging support
 var _entities_by_id: Dictionary = {}  # StringName → Node
@@ -33,23 +32,15 @@ var _registered_entities: Dictionary = {}  # Node → StringName (entity_id)
 
 @export var query_metrics_enabled: bool:
 	get:
-		return _query_metrics_enabled
+		return _query_metrics_helper.get_query_metrics_enabled()
 	set(value):
-		if _query_metrics_enabled == value:
-			return
-		_query_metrics_enabled = value
-		if not _query_metrics_enabled:
-			clear_query_metrics()
+		_query_metrics_helper.set_query_metrics_enabled(value)
 
 @export var query_metrics_capacity: int:
 	get:
-		return _query_metrics_capacity
+		return _query_metrics_helper.get_query_metrics_capacity()
 	set(value):
-		var clamped: int = max(value, 0)
-		if _query_metrics_capacity == clamped:
-			return
-		_query_metrics_capacity = clamped
-		_enforce_query_metric_capacity()
+		_query_metrics_helper.set_query_metrics_capacity(value)
 
 func _ready() -> void:
 	add_to_group("ecs_manager")
@@ -72,7 +63,8 @@ func _initialize_query_metric_settings() -> void:
 	query_metrics_enabled = configured_enabled
 
 	if ProjectSettings.has_setting(PROJECT_SETTING_QUERY_METRICS_CAPACITY):
-		var stored_capacity: int = int(ProjectSettings.get_setting(PROJECT_SETTING_QUERY_METRICS_CAPACITY, _query_metrics_capacity))
+		var default_capacity: int = _query_metrics_helper.get_query_metrics_capacity()
+		var stored_capacity: int = int(ProjectSettings.get_setting(PROJECT_SETTING_QUERY_METRICS_CAPACITY, default_capacity))
 		query_metrics_capacity = stored_capacity
 
 func register_component(component: BaseECSComponent) -> void:
@@ -156,29 +148,10 @@ func reset_time_provider() -> void:
 	_time_provider = Callable(U_ECS_UTILS, "get_current_time")
 
 func get_query_metrics() -> Array:
-	if not _query_metrics_enabled:
-		return []
-	var metrics: Array = []
-	for entry in _query_metrics.values():
-		var metric: Dictionary = {
-			"id": entry.get("id", ""),
-			"required": _duplicate_string_names(entry.get("required", [])),
-			"optional": _duplicate_string_names(entry.get("optional", [])),
-			"total_calls": int(entry.get("total_calls", 0)),
-			"cache_hits": int(entry.get("cache_hits", 0)),
-			"last_duration": float(entry.get("last_duration", 0.0)),
-			"last_result_count": int(entry.get("last_result_count", 0)),
-			"last_run_time": float(entry.get("last_run_time", 0.0)),
-		}
-		metrics.append(metric)
-	if metrics.size() > 1:
-		metrics.sort_custom(Callable(self, "_compare_query_metrics"))
-	return metrics
+	return _query_metrics_helper.get_query_metrics()
 
 func clear_query_metrics() -> void:
-	if _query_metrics.is_empty():
-		return
-	_query_metrics.clear()
+	_query_metrics_helper.clear_query_metrics()
 
 func set_query_metrics_enabled_runtime(enabled: bool) -> void:
 	query_metrics_enabled = enabled
@@ -215,14 +188,30 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
 
 	if _query_cache.has(key):
 		var cached_results: Array = _query_cache[key]
-		_record_query_metrics(key, required, optional, cached_results.size(), 0.0, true, start_time)
+		_query_metrics_helper.record_query_metrics(
+			key,
+			required,
+			optional,
+			cached_results.size(),
+			0.0,
+			true,
+			start_time
+		)
 		return _duplicate_query_results(cached_results)
 
 	var candidate_components := get_components(candidate_type)
 	if candidate_components.is_empty():
 		var no_result_time: float = _get_current_time()
 		var no_result_duration: float = max(no_result_time - start_time, 0.0)
-		_record_query_metrics(key, required, optional, 0, no_result_duration, false, no_result_time)
+		_query_metrics_helper.record_query_metrics(
+			key,
+			required,
+			optional,
+			0,
+			no_result_duration,
+			false,
+			no_result_time
+		)
 		return results
 
 	var seen_entities: Dictionary = {}
@@ -260,7 +249,15 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
 	_query_cache[key] = results
 	var end_time: float = _get_current_time()
 	var duration: float = max(end_time - start_time, 0.0)
-	_record_query_metrics(key, required, optional, results.size(), duration, false, end_time)
+	_query_metrics_helper.record_query_metrics(
+		key,
+		required,
+		optional,
+		results.size(),
+		duration,
+		false,
+		end_time
+	)
 
 	return results.duplicate()
 
@@ -546,93 +543,6 @@ func _make_query_cache_key(required: Array, optional: Array) -> String:
 
 func _duplicate_query_results(results: Array) -> Array:
 	return results.duplicate()
-
-func _record_query_metrics(
-	key: String,
-	required: Array[StringName],
-	optional: Array[StringName],
-	result_count: int,
-	duration: float,
-	was_cache_hit: bool,
-	timestamp: float
-) -> void:
-	if not _query_metrics_enabled:
-		return
-
-	var metrics: Dictionary = _query_metrics.get(key, {
-		"id": key,
-		"required": [],
-		"optional": [],
-		"total_calls": 0,
-		"cache_hits": 0,
-		"last_duration": 0.0,
-		"last_result_count": 0,
-		"last_run_time": 0.0,
-	}) as Dictionary
-
-	var required_copy: Array[StringName] = _duplicate_string_names(required)
-	required_copy.sort()
-	var optional_copy: Array[StringName] = _duplicate_string_names(optional)
-	optional_copy.sort()
-
-	var total_calls: int = int(metrics.get("total_calls", 0)) + 1
-	var cache_hits: int = int(metrics.get("cache_hits", 0))
-	if was_cache_hit:
-		cache_hits += 1
-
-	metrics["id"] = key
-	metrics["required"] = required_copy
-	metrics["optional"] = optional_copy
-	metrics["total_calls"] = total_calls
-	metrics["cache_hits"] = cache_hits
-	metrics["last_duration"] = max(duration, 0.0)
-	metrics["last_result_count"] = result_count
-	metrics["last_run_time"] = timestamp
-
-	_query_metrics[key] = metrics
-	_enforce_query_metric_capacity()
-
-func _duplicate_string_names(source: Variant) -> Array:
-	var result: Array[StringName] = []
-	if source is Array:
-		for entry in source:
-			result.append(StringName(entry))
-	elif source is PackedStringArray:
-		for entry in source:
-			result.append(StringName(entry))
-	return result
-
-func _compare_query_metrics(a: Dictionary, b: Dictionary) -> bool:
-	var time_a: float = float(a.get("last_run_time", 0.0))
-	var time_b: float = float(b.get("last_run_time", 0.0))
-	if is_equal_approx(time_a, time_b):
-		return String(a.get("id", "")) < String(b.get("id", ""))
-	return time_a > time_b
-
-func _enforce_query_metric_capacity() -> void:
-	if _query_metrics_capacity <= 0:
-		return
-	if _query_metrics.size() <= _query_metrics_capacity:
-		return
-
-	var keys: Array[String] = []
-	for raw_key in _query_metrics.keys():
-		keys.append(String(raw_key))
-	keys.sort_custom(Callable(self, "_compare_metric_keys_by_recency"))
-
-	for index in range(_query_metrics_capacity, keys.size()):
-		var key: String = keys[index]
-		if _query_metrics.has(key):
-			_query_metrics.erase(key)
-
-func _compare_metric_keys_by_recency(a: String, b: String) -> bool:
-	var data_a: Dictionary = _query_metrics.get(a, {})
-	var data_b: Dictionary = _query_metrics.get(b, {})
-	var time_a: float = float(data_a.get("last_run_time", 0.0))
-	var time_b: float = float(data_b.get("last_run_time", 0.0))
-	if is_equal_approx(time_a, time_b):
-		return String(a) < String(b)
-	return time_a > time_b
 
 func _get_current_time() -> float:
 	if _time_provider != Callable() and _time_provider.is_valid():

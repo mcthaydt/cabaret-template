@@ -1,0 +1,164 @@
+extends RefCounted
+class_name U_SceneRegistryLoader
+
+const RS_SceneRegistryEntry := preload("res://scripts/scene_management/resources/rs_scene_registry_entry.gd")
+
+func load_resource_entries(scenes: Dictionary, register_scene_callable: Callable) -> void:
+	if register_scene_callable == Callable() or not register_scene_callable.is_valid():
+		return
+
+	var res_result: Dictionary = _load_entries_from_dir("res://resources/scene_registry/", scenes, register_scene_callable)
+	var test_result: Dictionary = _load_entries_from_dir("res://tests/scene_registry/", scenes, register_scene_callable)
+
+	# Keep totals available for potential debugging, even if unused by callers.
+	var _total_loaded: int = int(res_result.get("loaded", 0)) + int(test_result.get("loaded", 0))
+	var _total_skipped: int = int(res_result.get("skipped", 0)) + int(test_result.get("skipped", 0))
+	_total_loaded = _total_loaded # silence unused variable warning until needed
+	_total_skipped = _total_skipped
+
+func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callable: Callable) -> void:
+	if register_scene_callable == Callable() or not register_scene_callable.is_valid():
+		return
+
+	if not scenes.has(StringName("exterior")):
+		register_scene_callable.call(
+			StringName("exterior"),
+			"res://scenes/gameplay/gameplay_exterior.tscn",
+			U_SceneRegistry.SceneType.GAMEPLAY,
+			"fade",
+			6
+		)
+
+	if not scenes.has(StringName("interior_house")):
+		register_scene_callable.call(
+			StringName("interior_house"),
+			"res://scenes/gameplay/gameplay_interior_house.tscn",
+			U_SceneRegistry.SceneType.GAMEPLAY,
+			"fade",
+			6
+		)
+
+	if not scenes.has(StringName("gamepad_settings")):
+		register_scene_callable.call(
+			StringName("gamepad_settings"),
+			"res://scenes/ui/ui_gamepad_settings_overlay.tscn",
+			U_SceneRegistry.SceneType.UI,
+			"instant",
+			5
+		)
+
+	if not scenes.has(StringName("touchscreen_settings")):
+		register_scene_callable.call(
+			StringName("touchscreen_settings"),
+			"res://scenes/ui/ui_touchscreen_settings_overlay.tscn",
+			U_SceneRegistry.SceneType.UI,
+			"instant",
+			5
+		)
+
+	if not scenes.has(StringName("edit_touch_controls")):
+		register_scene_callable.call(
+			StringName("edit_touch_controls"),
+			"res://scenes/ui/ui_edit_touch_controls_overlay.tscn",
+			U_SceneRegistry.SceneType.UI,
+			"instant",
+			5
+		)
+
+	if not scenes.has(StringName("input_profile_selector")):
+		register_scene_callable.call(
+			StringName("input_profile_selector"),
+			"res://scenes/ui/ui_input_profile_selector.tscn",
+			U_SceneRegistry.SceneType.UI,
+			"instant",
+			5
+		)
+
+	if not scenes.has(StringName("input_rebinding")):
+		register_scene_callable.call(
+			StringName("input_rebinding"),
+			"res://scenes/ui/ui_input_rebinding_overlay.tscn",
+			U_SceneRegistry.SceneType.UI,
+			"instant",
+			5
+		)
+
+	if not scenes.has(StringName("game_over")):
+		register_scene_callable.call(
+			StringName("game_over"),
+			"res://scenes/ui/ui_game_over.tscn",
+			U_SceneRegistry.SceneType.END_GAME,
+			"fade",
+			8
+		)
+
+	if not scenes.has(StringName("victory")):
+		register_scene_callable.call(
+			StringName("victory"),
+			"res://scenes/ui/ui_victory.tscn",
+			U_SceneRegistry.SceneType.END_GAME,
+			"fade",
+			5
+		)
+
+	if not scenes.has(StringName("credits")):
+		register_scene_callable.call(
+			StringName("credits"),
+			"res://scenes/ui/ui_credits.tscn",
+			U_SceneRegistry.SceneType.END_GAME,
+			"fade",
+			0
+		)
+
+func _load_entries_from_dir(
+	dir_path: String,
+	scenes: Dictionary,
+	register_scene_callable: Callable
+) -> Dictionary:
+	var loaded_count: int = 0
+	var skipped_count: int = 0
+
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return {"loaded": 0, "skipped": 0}
+
+	dir.list_dir_begin()
+	var file_name: String = dir.get_next()
+
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.ends_with(".tres"):
+			var resource_path: String = dir_path + file_name
+			var resource: Resource = load(resource_path)
+
+			if not (resource is RS_SceneRegistryEntry):
+				push_warning("U_SceneRegistryLoader: Resource at %s is not RS_SceneRegistryEntry (found %s), skipping" % [resource_path, resource.get_class()])
+				skipped_count += 1
+				file_name = dir.get_next()
+				continue
+
+			var entry := resource as RS_SceneRegistryEntry
+			if not entry.is_valid():
+				push_warning("U_SceneRegistryLoader: Scene entry in %s is invalid (scene_id or scene_path empty), skipping" % resource_path)
+				skipped_count += 1
+				file_name = dir.get_next()
+				continue
+
+			if scenes.has(entry.scene_id):
+				push_warning("U_SceneRegistryLoader: Scene '%s' from %s already registered (hardcoded or duplicate), skipping" % [entry.scene_id, resource_path])
+				skipped_count += 1
+				file_name = dir.get_next()
+				continue
+
+			register_scene_callable.call(
+				entry.scene_id,
+				entry.scene_path,
+				entry.scene_type,
+				entry.default_transition,
+				entry.preload_priority
+			)
+			loaded_count += 1
+		file_name = dir.get_next()
+
+	dir.list_dir_end()
+	return {"loaded": loaded_count, "skipped": skipped_count}
+

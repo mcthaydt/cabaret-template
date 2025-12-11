@@ -18,7 +18,7 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ---
 
-## Current Status (2025-12-09 – Phase 5B & 10B Added)
+## Current Status (2025-12-11 – Phase 9E Complete, Phase 9F Next)
 
 - **PRD**: `docs/general/cleanup/style-scene-cleanup-prd.md` – Drafted.
 - **Plan**: `docs/general/cleanup/style-scene-cleanup-plan.md` – Phases 0–11 defined with user-approved policies.
@@ -32,117 +32,18 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 - Phase 3 – Naming & Prefix Migration: **✅ COMPLETE**
 - Phase 4 – Tests & Tooling Hardening: **✅ COMPLETE** (2025-12-08)
 - Phase 5 – Docs & Planning Alignment: **✅ COMPLETE** (2025-12-08, Commits: 30dd4d6, 8b1ae15, 011c4fa)
-  - **T050-T056 Complete**: All subsystem PRDs marked PRODUCTION READY + UI→Redux→Scene Manager rule codified
-  - ECS: Batches 1-4 complete, debugger tooling de-scoped
-  - State Store: Phases 1-16.5 complete, mock data removed, entity coordination ready
-  - Scene Manager: All phases complete, post-hardening done
-  - Input Manager: All planned features implemented (profiles, rebinding, device detection)
-  - UI Manager: All planned features implemented (navigation slice, registry, settings)
-  - **T055**: All subsystem continuation prompts updated with style/scene references
-  - **T056**: UI→Redux→Scene Manager architectural rule codified with 4 violations inventoried
-- **Bonus Work** – UI→Redux→Scene Manager Refactoring: **✅ COMPLETE** (2025-12-08, Commits: c9c6a26, 20978da)
-  - **Added**: `navigate_to_ui_screen()` Redux action for UI scene transitions
-  - **Refactored**: 4 UI scripts to eliminate direct M_SceneManager calls
-    - ui_settings_menu.gd ✅
-    - ui_input_profile_selector.gd ✅
-    - ui_input_rebinding_overlay.gd ✅
-    - ui_touchscreen_settings_overlay.gd ✅
-  - **Tests**: All 128 UI tests passing ✅ (fixed 3 failing tests)
-  - **Architecture**: UI scripts now dispatch Redux actions exclusively
 - **Phase 5B – Audit Findings: **✅ COMPLETE** (2025-12-09)
-  - **T057**: Renamed `event_vfx_system.gd` → `base_event_vfx_system.gd` ✅
-    - File now matches `class_name BaseEventVFXSystem`
-    - Updated test references and style enforcement rules
-  - **T058**: Added `class_name E_EndgameGoalZone` ✅
-  - **T059**: SKIPPED - `tmp_invalid_gameplay.tscn` actively used in tests
-  - **T059a**: Updated DEV_PITFALLS.md (removed "future Phase 5" refs) ✅
-  - **T059b**: Added historical note to STYLE_GUIDE.md Phase 1-10 checklist ✅
-  - **T059c**: Updated AGENTS.md ("Phase 5 Complete", removed `so_*` prefix) ✅
-  - **T059d**: Clarified M_GameplayInitializer is optional in SCENE_ORGANIZATION_GUIDE.md ✅
-  - **T059e**: Verified T022 checkbox (already correct) ✅
-  - **Tests**: All passing (64 ECS, 7 style, 90 scene manager) ✅
-  - **Commits**: 6 commits (3 implementation, 3 documentation)
 - Phase 6 – ECS Entity IDs & Tagging: **✅ COMPLETE** (T060-T064v)
-  - **T060**: Design complete ✅ (2025-12-08)
-    - Plan file: `/Users/mcthaydt/.claude/plans/zesty-sleeping-alpaca.md`
-    - Design decisions approved:
-      - ID Assignment: Auto-generated from node name (E_Player → "player"), manual override via export
-      - ID Scope: Required for all entities (supports systemic/emergent gameplay)
-      - State Store Integration: Loosely coupled (manual sync)
-      - Tagging: Multiple freeform tags (Array[StringName])
-    - Architecture: Uses existing U_ECSEventBus for entity registration events
-    - Patterns audited: Follows BaseECSComponent const preload, BaseTest autofree, async spawn helpers
-  - **T061**: Core ID support ✅ COMPLETE (2025-12-09)
-    - base_ecs_entity.gd: entity_id, tags exports, get_entity_id(), tag methods
-    - m_ecs_manager.gd: entity registration, tag indexing, query methods
-    - u_ecs_utils.gd: get_entity_id(), get_entity_tags(), build_entity_snapshot()
-    - u_entity_query.gd: get_entity_id(), get_tags(), has_tag()
-  - **T062**: State Store integration ✅ COMPLETE (2025-12-09)
-    - u_entity_actions.gd: StringName support for entity_id parameters
-    - u_entity_selectors.gd: StringName support for entity_id parameters
-    - u_ecs_utils.gd: build_entity_snapshot() includes entity_id and tags
-  - **T063**: Tests ✅ COMPLETE (2025-12-09)
-    - 27 new tests in test_entity_ids.gd
-    - All 91 ECS unit tests passing
-    - Documentation updated (ecs_architecture.md, AGENTS.md)
-  - **T064a-i**: Entity migration ✅ COMPLETE (2025-12-09)
-    - Templates: tmpl_character.tscn (generic), tmpl_camera.tscn
-    - Prefabs: 5 prefabs (checkpoint, death_zone, spike_trap, goal_zone, door_trigger)
-    - Gameplay scenes: gameplay_exterior.tscn, gameplay_interior_house.tscn
-    - All entities have unique IDs and appropriate tags
-    - All 181 tests passing (91 ECS + 90 Scene Manager)
-    - Commits: 6be2509 (implementation), 89fbfc1 (documentation)
-  - **T064j-k**: Verification ✅ COMPLETE (2025-12-09)
-    - Automated coverage via `tests/unit/ecs/test_entity_scene_registration.gd` (entities + tags in templates and gameplay scenes)
-    - ECS unit suite passing (includes new test)
-  - **T064l**: Documentation ✅ COMPLETE (2025-12-09)
-    - Added entity ID/tag inventory and tagging strategy table to docs/ecs/ecs_architecture.md
-  - **T064m-v**: Template/prefab refactor ✅ COMPLETE (2025-12-09)
-    - Split player template into `tmpl_character.tscn` (generic) + `prefab_player.tscn`
-    - Converted ragdoll to `tmpl_character_ragdoll.tscn` + `prefab_player_ragdoll.tscn`
-    - Updated gameplay/base scenes to use player prefab
-    - Updated docs (AGENTS, SCENE_ORGANIZATION_GUIDE) with Templates vs Prefabs section
-    - Tests: style enforcement, ECS unit suite, scene manager integration suite all passing
 - Phase 7 – ECS Event Bus Migration: **COMPLETE (2025-12-09)**
-  - **7A**: C_HealthComponent publishes `health_changed`/`entity_death`; S_GamepadVibrationSystem listens for death events; health event tests added.
-  - **7B**: Victory trigger publishes `victory_zone_entered`/`victory_triggered`; S_VictorySystem subscribes; unit coverage added.
-  - **7C**: Damage zones publish enter/exit; S_DamageSystem consumes events and tracks bodies; event tests added.
-  - **7D**: Checkpoints publish `checkpoint_zone_entered`; S_CheckpointSystem subscribes and dispatches last_checkpoint + activation events; tests added.
-  - **7E**: BaseECSComponent publishes `component_registered`; test coverage added.
-  - **7F**: Cleanup/docs completed (event catalog + style guide rules); ECS unit suite green.
 - Phase 8 – Spawn Registry & Spawn Conditions: **IN PROGRESS** (T080-T083 complete - registry + integration)
 - Phase 9 – Large File Splitting for Maintainability: **IN PROGRESS**
   - **9A (Scene Manager helpers)**: ✅ IMPLEMENTED (2025-12-10)
-    - Added `U_SceneCache`, `U_SceneLoader`, and `U_OverlayStackManager` under `scripts/scene_management/helpers/`.
-    - `M_SceneManager` now delegates cache, loading, and overlay-stack responsibilities to helpers while keeping public API and behavior identical.
-    - Scene manager unit + integration suites fully passing (only pre-existing pending tween tests remain skipped).
-    - Note: File length is still ~1,100 lines; the ~400 line target will be reached after later architectural extractions (e.g., Phase 10B-2 transition subsystem split).
   - **9B (Input Rebinding Overlay)**: ✅ COMPLETE (2025-12-10)
-    - `U_RebindActionListBuilder` helper confirmed in place and wired into `UI_InputRebindingOverlay`; tasks checklist updated (T091a).
   - **9C (State Store split)**: ✅ COMPLETE (2025-12-11)
-    - `U_StatePersistence` and `U_StateSliceManager` extracted; `M_StateStore` delegates save/load, normalization, and slice wiring to helpers.
-    - Added thin test-only wrappers `_normalize_loaded_state` / `_normalize_spawn_reference` on `M_StateStore` to keep unit tests aligned with the new helpers.
-    - All `M_StateStore` unit tests (`test_m_state_store.gd`) passing; flaky perf bound relaxed to account for headless/CI variance.
   - **9D (Input Rebind Utils split)**: ✅ COMPLETE (2025-12-11)
-    - Created `U_InputEventSerialization` (`u_input_event_serialization.gd`) with `event_to_dict` / `dict_to_event` and all per-event-type helpers.
-    - Created `U_InputEventDisplay` (`u_input_event_display.gd`) with `format_event_label`, joypad label helpers, and `get_texture_for_event`.
-    - `U_InputRebindUtils` now delegates serialization/label/texture concerns to the new helpers while keeping its public API (`ValidationResult`, `validate_rebind`, `rebind_action`, conflict helpers) intact.
-    - Updated tests and callers: input utils, input serialization, and input profile manager suites all passing (including performance and round-trip serialization tests).
-  - **9E**: Minor splits for 4 files (500-451 lines each)
-  - **9F**: Validation & documentation
+  - **9E (Minor Splits)**: ✅ COMPLETE (T094-T097 – helpers + refactors; ECS query metrics, input profile loader, scene registry loader, touchscreen preview builder)
 - Phase 10 – Multi-Slot Save Manager: **NOT STARTED**
 - **Phase 10B – Architectural Hardening: **NOT STARTED** (Added 2025-12-09)
-  - 9 sub-phases, 42 tasks total (T104-T117c)
-  - **10B-1**: Manager coupling reduction (decouple systems from M_SceneManager)
-  - **10B-2**: Extract Transition subsystem from M_SceneManager
-  - **10B-3**: Scene type handler pattern (plugin-based scene types)
-  - **10B-4**: Input device abstraction (IInputSource interface)
-  - **10B-5**: State persistence extraction
-  - **10B-6**: Unified event bus enhancement (typed events)
-  - **10B-7**: Service locator pattern (replace 33 group lookups)
-  - **10B-8**: Testing infrastructure (interfaces + mocks)
-  - **10B-9**: Documentation & contracts (ADRs, dependency graphs)
-  - **Dependencies**: Requires Phase 7 complete; overlaps with Phase 9
 - Phase 11 – Final Validation & Regression Sweep: **NOT STARTED** (Tasks renumbered T120-T124)
 
 **Policy Decisions Approved**:
@@ -156,17 +57,9 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ## How to Continue
 
-**Current Phase: Phase 8 – Spawn Registry & Spawn Conditions (next)**
+**Current Phase: Phase 9 – Large File Splitting for Maintainability (9E – Minor Splits)**
 
-Phase 6 is complete through T064v; optional T064t manual gameplay check remains if desired.
-
-1. **Next phase options**:
-   - Phase 7 (ECS Event Bus Migration)
-   - Phase 8 (Spawn Registry & Spawn Conditions)
-   - Phase 9 (Large File Splitting)
-
-2. **Optional**:
-   - T064t manual gameplay verification (player spawn/input/death ragdoll) if we want a manual sanity sweep post-refactor.
+Focus on Phase 9E tasks (T094–T097), then proceed to Phase 9F validation/documentation before moving on to Phase 10/10B.
 
 ---
 

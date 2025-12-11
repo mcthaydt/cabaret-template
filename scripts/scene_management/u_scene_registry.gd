@@ -5,6 +5,7 @@ class_name U_SceneRegistry
 ##
 ## T212: Now supports resource-based scene registration via RS_SceneRegistryEntry
 const RS_SceneRegistryEntry := preload("res://scripts/scene_management/resources/rs_scene_registry_entry.gd")
+const U_SceneRegistryLoader := preload("res://scripts/scene_management/helpers/u_scene_registry_loader.gd")
 ##
 ## Central registry for all scenes in the game. Provides scene metadata,
 ## door pairings, and validation. This is a static class - all data and
@@ -33,6 +34,7 @@ enum SceneType {
 ## Key: scene_id (StringName)
 ## Value: Dictionary with scene metadata
 static var _scenes: Dictionary = {}
+static var _loader := U_SceneRegistryLoader.new()
 
 ## Door pairing dictionary
 ## Key: scene_id (StringName)
@@ -149,168 +151,14 @@ static func _register_scenes() -> void:
 ## 3. Save as resources/scene_registry/<name>.tres
 ## 4. Scene auto-loads on next game start
 static func _load_resource_entries() -> void:
-	# Support loading entries from both game resources and tests
-	var total_loaded: int = 0
-	var total_skipped: int = 0
-
-	var res_result: Dictionary = _load_entries_from_dir("res://resources/scene_registry/")
-	total_loaded += int(res_result.get("loaded", 0))
-	total_skipped += int(res_result.get("skipped", 0))
-
-	var test_result: Dictionary = _load_entries_from_dir("res://tests/scene_registry/")
-	total_loaded += int(test_result.get("loaded", 0))
-	total_skipped += int(test_result.get("skipped", 0))
-
-static func _load_entries_from_dir(dir_path: String) -> Dictionary:
-	var loaded_count: int = 0
-	var skipped_count: int = 0
-
-	var dir := DirAccess.open(dir_path)
-	if dir == null:
-		# Directory doesn't exist; not an error
-		return {"loaded": 0, "skipped": 0}
-
-	dir.list_dir_begin()
-	var file_name: String = dir.get_next()
-
-	while file_name != "":
-		if not dir.current_is_dir() and file_name.ends_with(".tres"):
-			var resource_path: String = dir_path + file_name
-			var resource: Resource = load(resource_path)
-
-			if not (resource is RS_SceneRegistryEntry):
-				push_warning("U_SceneRegistry: Resource at %s is not RS_SceneRegistryEntry (found %s), skipping" % [resource_path, resource.get_class()])
-				skipped_count += 1
-				file_name = dir.get_next()
-				continue
-
-			var entry := resource as RS_SceneRegistryEntry
-			if not entry.is_valid():
-				push_warning("U_SceneRegistry: Scene entry in %s is invalid (scene_id or scene_path empty), skipping" % resource_path)
-				skipped_count += 1
-				file_name = dir.get_next()
-				continue
-
-			if _scenes.has(entry.scene_id):
-				push_warning("U_SceneRegistry: Scene '%s' from %s already registered (hardcoded or duplicate), skipping" % [entry.scene_id, resource_path])
-				skipped_count += 1
-				file_name = dir.get_next()
-				continue
-
-			_register_scene(
-				entry.scene_id,
-				entry.scene_path,
-				entry.scene_type,
-				entry.default_transition,
-				entry.preload_priority
-			)
-			loaded_count += 1
-		file_name = dir.get_next()
-
-	dir.list_dir_end()
-	return {"loaded": loaded_count, "skipped": skipped_count}
+	_loader.load_resource_entries(_scenes, Callable(U_SceneRegistry, "_register_scene"))
 
 ## Ensure critical gameplay, settings, and end-game scenes are registered even
 ## if resources are missing. This provides a safety net for exports where
 ## resource-based entries might be excluded by filters (e.g., mobile builds).
 ## If resource entries exist, this is a no-op.
 static func _backfill_default_gameplay_scenes() -> void:
-	if not _scenes.has(StringName("exterior")):
-		_register_scene(
-			StringName("exterior"),
-			"res://scenes/gameplay/gameplay_exterior.tscn",
-			SceneType.GAMEPLAY,
-			"fade",
-			6
-		)
-
-	if not _scenes.has(StringName("interior_house")):
-		_register_scene(
-			StringName("interior_house"),
-			"res://scenes/gameplay/gameplay_interior_house.tscn",
-			SceneType.GAMEPLAY,
-			"fade",
-			6
-		)
-
-	# Settings / input UI overlays used from pause menu and settings flows.
-	# These must exist on all platforms (including mobile) so overlay
-	# navigation via Scene Manager works even if resource entries are
-	# stripped from the export.
-	if not _scenes.has(StringName("gamepad_settings")):
-		_register_scene(
-			StringName("gamepad_settings"),
-			"res://scenes/ui/ui_gamepad_settings_overlay.tscn",
-			SceneType.UI,
-			"instant",
-			5
-		)
-
-	if not _scenes.has(StringName("touchscreen_settings")):
-		_register_scene(
-			StringName("touchscreen_settings"),
-			"res://scenes/ui/ui_touchscreen_settings_overlay.tscn",
-			SceneType.UI,
-			"instant",
-			5
-		)
-
-	if not _scenes.has(StringName("edit_touch_controls")):
-		_register_scene(
-			StringName("edit_touch_controls"),
-			"res://scenes/ui/ui_edit_touch_controls_overlay.tscn",
-			SceneType.UI,
-			"instant",
-			5
-		)
-
-	if not _scenes.has(StringName("input_profile_selector")):
-		_register_scene(
-			StringName("input_profile_selector"),
-			"res://scenes/ui/ui_input_profile_selector.tscn",
-			SceneType.UI,
-			"instant",
-			5
-		)
-
-	if not _scenes.has(StringName("input_rebinding")):
-		_register_scene(
-			StringName("input_rebinding"),
-			"res://scenes/ui/ui_input_rebinding_overlay.tscn",
-			SceneType.UI,
-			"instant",
-			5
-		)
-
-	# End-game scenes used by death/victory flows (gameplay-critical).
-	# If resource entries failed to load on a given platform, register
-	# them here so transitions remain functional.
-	if not _scenes.has(StringName("game_over")):
-		_register_scene(
-			StringName("game_over"),
-			"res://scenes/ui/ui_game_over.tscn",
-			SceneType.END_GAME,
-			"fade",
-			8
-		)
-
-	if not _scenes.has(StringName("victory")):
-		_register_scene(
-			StringName("victory"),
-			"res://scenes/ui/ui_victory.tscn",
-			SceneType.END_GAME,
-			"fade",
-			5
-		)
-
-	if not _scenes.has(StringName("credits")):
-		_register_scene(
-			StringName("credits"),
-			"res://scenes/ui/ui_credits.tscn",
-			SceneType.END_GAME,
-			"fade",
-			0
-		)
+	_loader.backfill_default_gameplay_scenes(_scenes, Callable(U_SceneRegistry, "_register_scene"))
 
 ## Register door pairings for seamless area transitions
 static func _register_door_pairings() -> void:

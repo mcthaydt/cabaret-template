@@ -1271,33 +1271,33 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 #### ECS Manager (500 → ~380 lines)
 
-- [ ] T094a Create `scripts/ecs/helpers/u_ecs_query_metrics.gd`:
+- [x] T094a Create `scripts/ecs/helpers/u_ecs_query_metrics.gd`:
   - Extract: `_record_query_metrics`, `_compare_query_metrics`, `_enforce_query_metric_capacity`
   - Extract: `_compare_metric_keys_by_recency`, `get_query_metrics`, `clear_query_metrics`
 
-- [ ] T094b Refactor `m_ecs_manager.gd` to use helper and run ECS tests
+- [x] T094b Refactor `m_ecs_manager.gd` to use helper and run ECS tests
 
 #### Input Profile Manager (480 → ~350 lines)
 
-- [ ] T095a Create `scripts/managers/helpers/u_input_profile_loader.gd`:
+- [x] T095a Create `scripts/managers/helpers/u_input_profile_loader.gd`:
   - Extract: `_load_available_profiles`, `load_profile`, `_apply_profile_to_input_map`
   - Extract: `_apply_profile_accessibility`, `_is_same_device_type`
 
-- [ ] T095b Refactor `m_input_profile_manager.gd` to use helper and run tests
+- [x] T095b Refactor `m_input_profile_manager.gd` to use helper and run tests
 
 #### Scene Registry (460 → ~330 lines)
 
-- [ ] T096a Create `scripts/scene_management/helpers/u_scene_registry_loader.gd`:
+- [x] T096a Create `scripts/scene_management/helpers/u_scene_registry_loader.gd`:
   - Extract: `_load_resource_entries`, `_load_entries_from_dir`, `_backfill_default_gameplay_scenes`
 
-- [ ] T096b Refactor `u_scene_registry.gd` to use helper and run tests
+- [x] T096b Refactor `u_scene_registry.gd` to use helper and run tests
 
 #### Touchscreen Settings Overlay (451 → ~330 lines)
 
-- [ ] T097a Create `scripts/ui/helpers/u_touchscreen_preview_builder.gd`:
+- [x] T097a Create `scripts/ui/helpers/u_touchscreen_preview_builder.gd`:
   - Extract: Preview building and positioning logic
 
-- [ ] T097b Refactor `ui_touchscreen_settings_overlay.gd` to use helper and run tests
+- [x] T097b Refactor `ui_touchscreen_settings_overlay.gd` to use helper and run tests
 
 ### Phase 9F: Validation & Documentation
 
