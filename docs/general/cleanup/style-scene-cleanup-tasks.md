@@ -1319,6 +1319,8 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ## Phase 10 – Multi-Slot Save Manager
 
+> **⚠️ DEFERRED**: This entire phase will be handled as a separate PRD.
+
 **Goal**: Wrap `M_StateStore.save_state/load_state` in a dedicated save manager with multi-slot support and rich metadata preview UI.
 
 **Configuration**:

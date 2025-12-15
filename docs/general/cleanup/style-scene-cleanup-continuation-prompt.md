@@ -18,7 +18,7 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ---
 
-## Current Status (2025-12-10 – Phase 10 Detailed Plan Ready)
+## Current Status (2025-12-15 – Phase 9 Complete, Phase 10/10B Deferred)
 
 - **PRD**: `docs/general/cleanup/style-scene-cleanup-prd.md` – Drafted.
 - **Plan**: `docs/general/cleanup/style-scene-cleanup-plan.md` – Phases 0–11 defined with user-approved policies.
@@ -36,15 +36,15 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 - Phase 6 – ECS Entity IDs & Tagging: **✅ COMPLETE** (T060-T064v)
 - Phase 7 – ECS Event Bus Migration: **✅ COMPLETE** (2025-12-09)
 - Phase 8 – Spawn Registry & Spawn Conditions: **✅ COMPLETE** (T080-T087)
-- Phase 9 – Large File Splitting for Maintainability: **✅ COMPLETE**
+- Phase 9 – Large File Splitting for Maintainability: **✅ COMPLETE** (Commit: e271cac)
   - **9A (Scene Manager helpers)**: ✅ COMPLETE (2025-12-10)
   - **9B (Input Rebinding Overlay)**: ✅ COMPLETE (2025-12-10)
   - **9C (State Store split)**: ✅ COMPLETE (2025-12-11)
   - **9D (Input Rebind Utils split)**: ✅ COMPLETE (2025-12-11)
   - **9E (Minor Splits)**: ✅ COMPLETE (T094-T097)
-  - **9F (Validation)**: Pending (T098-T099)
-- **Phase 10 – Multi-Slot Save Manager**: **NOT STARTED** (Detailed plan ready - T100-T122)
-- **Phase 10B – Architectural Hardening**: **NOT STARTED** (Tasks renumbered T130-T143)
+  - **9F (Validation)**: ✅ COMPLETE (T098-T099)
+- **Phase 10 – Multi-Slot Save Manager**: **⏸️ DEFERRED** (Will be handled as separate PRD)
+- **Phase 10B – Architectural Hardening**: **🔄 IN PROGRESS** (Current phase - T130-T143)
 - Phase 11 – Final Validation & Regression Sweep: **NOT STARTED** (Tasks renumbered T150-T154)
 
 **Policy Decisions Approved**:
@@ -58,45 +58,16 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ## How to Continue
 
-**Current Phase: Phase 10 – Multi-Slot Save Manager (Design & Implementation)**
+**Current Phase: Phase 10B – Architectural Hardening**
 
-Phase 10 has been expanded into 8 sub-phases with 23 detailed tasks (T100-T122):
+Phase 9 is complete. Phase 10 (Multi-Slot Save Manager) has been deferred to a separate PRD.
 
-### Phase 10 Configuration (User Approved)
-- **3 manual save slots** + **1 dedicated auto-save slot** (4 total)
-- **Access points**: Main menu + Pause menu (full slot selection from both)
-- **Metadata preview**: Rich (scene name, timestamp, play time, health, deaths, completion %)
+**Next Steps**:
+1. Start Phase 10B - Architectural Hardening (T130-T143)
+2. Address systemic architectural issues for better modularity, testability, and scalability
+3. Follow task order in `style-scene-cleanup-tasks.md`
 
-### Implementation Order
-1. **Phase 10.0 (T100-T101)**: Data model - Create `RS_SaveSlotMetadata`, define envelope format
-2. **Phase 10.1 (T102-T106)**: M_SaveManager core - slot enumeration, save/load/delete operations
-3. **Phase 10.2 (T107-T109)**: Redux integration - actions, reducer updates, selectors
-4. **Phase 10.3 (T110)**: Auto-save integration with existing 60s timer
-5. **Phase 10.4 (T111-T114)**: UI implementation - save slot selector overlay
-6. **Phase 10.5 (T115-T116)**: Menu integration - main menu + pause menu buttons
-7. **Phase 10.6 (T117)**: Settings resource for configuration
-8. **Phase 10.7 (T118-T121)**: Testing - unit + integration tests
-9. **Phase 10.8 (T122)**: Documentation updates
-
-### Key Files to Create
-- `scripts/managers/m_save_manager.gd` - Core save manager
-- `scripts/state/resources/rs_save_slot_metadata.gd` - Slot metadata model
-- `scripts/state/actions/u_save_actions.gd` - Redux actions
-- `scripts/ui/ui_save_slot_selector.gd` - Overlay controller
-- `scenes/ui/ui_save_slot_selector.tscn` - Overlay scene
-
-### Key Files to Modify
-- `scripts/state/m_state_store.gd` - Route auto-save to M_SaveManager
-- `scripts/state/reducers/u_menu_reducer.gd` - Handle save slot actions
-- `scripts/ui/ui_main_menu.gd` - Add Continue/Load Game buttons
-- `scripts/ui/ui_pause_menu.gd` - Add Save/Load Game buttons
-
-### Patterns to Follow
-- UI overlays: Extend `BaseOverlay`, register in `U_UIRegistry`
-- List selection: Follow `ui_input_profile_selector.gd` pattern
-- Navigation: Use `U_NavigationActions` - never call Scene Manager directly
-
-**Note**: Phase 10B (T130-T143) and Phase 11 (T150-T154) have been renumbered to avoid conflicts.
+**Note**: Phase 10 (Multi-Slot Save Manager) is deferred and will be handled as a separate PRD later.
 
 ---
 
