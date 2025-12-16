@@ -1,15 +1,15 @@
 extends RefCounted
 class_name U_StatePersistence
 
-## State persistence and normalization helper for M_StateStore.
+## State persistence helper for M_StateStore.
 ##
 ## Extracted as part of Phase 9C (T092a) to keep M_StateStore focused on
-## store orchestration while this helper owns save/load and normalization.
+## store orchestration while this helper owns save/load I/O.
+##
+## Updated in Phase 10B-5 (T139b) to delegate validation/normalization
+## to U_StateValidator for better separation of concerns.
 
-const DEFAULT_SCENE_ID := StringName("gameplay_base")
-const DEFAULT_SPAWN_POINT := StringName("sp_default")
-const SPAWN_PREFIX := "sp_"
-const CHECKPOINT_PREFIX := "cp_"
+const U_STATE_VALIDATOR := preload("res://scripts/state/utils/u_state_validator.gd")
 
 ## Save the given state dictionary to a JSON file.
 ##
@@ -84,7 +84,7 @@ static func load_state(filepath: String, state: Dictionary, slice_configs: Dicti
 	var loaded_state: Dictionary = parsed as Dictionary
 	var deserialized_state: Dictionary = U_SerializationHelper.json_to_godot(loaded_state)
 
-	_normalize_loaded_state(deserialized_state)
+	U_STATE_VALIDATOR.normalize_loaded_state(deserialized_state)
 
 	for slice_name in deserialized_state:
 		if state.has(slice_name):
@@ -101,75 +101,16 @@ static func load_state(filepath: String, state: Dictionary, slice_configs: Dicti
 
 	return OK
 
-## Normalize scene and gameplay slices after deserialization.
+## DEPRECATED: Use U_StateValidator.normalize_loaded_state() instead.
+## Kept for backward compatibility with existing tests.
 static func _normalize_loaded_state(state: Dictionary) -> void:
-	if state.has("scene") and state["scene"] is Dictionary:
-		_normalize_scene_slice(state["scene"])
-	if state.has("gameplay") and state["gameplay"] is Dictionary:
-		_normalize_gameplay_slice(state["gameplay"])
+	U_STATE_VALIDATOR.normalize_loaded_state(state)
 
-static func _normalize_scene_slice(scene_slice: Dictionary) -> void:
-	var raw_scene_id: Variant = scene_slice.get("current_scene_id", StringName(""))
-	var scene_id := _as_string_name(raw_scene_id)
-	if _is_scene_registered(scene_id):
-		scene_slice["current_scene_id"] = scene_id
-	else:
-		if not String(scene_id).is_empty():
-			push_warning(
-				"State load: Unknown scene_id '%s'. Falling back to %s."
-				% [String(scene_id), String(DEFAULT_SCENE_ID)]
-			)
-		scene_slice["current_scene_id"] = DEFAULT_SCENE_ID
-
-static func _normalize_gameplay_slice(gameplay_slice: Dictionary) -> void:
-	gameplay_slice["target_spawn_point"] = _normalize_spawn_reference(
-		gameplay_slice.get("target_spawn_point", StringName("")),
-		true
-	)
-	gameplay_slice["last_checkpoint"] = _normalize_spawn_reference(
-		gameplay_slice.get("last_checkpoint", StringName("")),
-		true
-	)
-
-	var raw_completed: Variant = gameplay_slice.get("completed_areas", [])
-	var completed: Array[String] = []
-	if raw_completed is Array:
-		for entry in (raw_completed as Array):
-			var identifier := String(entry).strip_edges()
-			if identifier.is_empty():
-				continue
-			if not completed.has(identifier):
-				completed.append(identifier)
-	gameplay_slice["completed_areas"] = completed
-
+## DEPRECATED: Use U_StateValidator.normalize_spawn_reference() instead.
+## Kept for backward compatibility with existing tests.
 static func _normalize_spawn_reference(
 	value: Variant,
 	allow_empty: bool,
 	emit_warning: bool = true
 ) -> StringName:
-	var spawn := _as_string_name(value)
-	var text := String(spawn)
-	if text.is_empty():
-		return StringName("") if allow_empty else DEFAULT_SPAWN_POINT
-	if text.begins_with(SPAWN_PREFIX):
-		return spawn
-	if text.begins_with(CHECKPOINT_PREFIX):
-		return spawn
-	if emit_warning:
-		push_warning(
-			"State load: Unknown spawn point '%s'. Using %s."
-			% [text, String(DEFAULT_SPAWN_POINT)]
-		)
-	return DEFAULT_SPAWN_POINT
-
-static func _as_string_name(value: Variant) -> StringName:
-	if value is StringName:
-		return value
-	if value is String:
-		return StringName(value)
-	return StringName("")
-
-static func _is_scene_registered(scene_id: StringName) -> bool:
-	if scene_id.is_empty():
-		return false
-	return not U_SceneRegistry.get_scene(scene_id).is_empty()
+	return U_STATE_VALIDATOR.normalize_spawn_reference(value, allow_empty, emit_warning)

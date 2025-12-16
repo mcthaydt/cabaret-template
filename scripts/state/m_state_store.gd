@@ -16,6 +16,8 @@ class_name M_StateStore
 const U_SIGNAL_BATCHER := preload("res://scripts/state/utils/u_signal_batcher.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_STATE_SLICE_MANAGER := preload("res://scripts/state/utils/u_state_slice_manager.gd")
+const U_STATE_REPOSITORY := preload("res://scripts/state/utils/u_state_repository.gd")
+const U_STATE_VALIDATOR := preload("res://scripts/state/utils/u_state_validator.gd")
 const U_BOOT_REDUCER := preload("res://scripts/state/reducers/u_boot_reducer.gd")
 const U_MENU_REDUCER := preload("res://scripts/state/reducers/u_menu_reducer.gd")
 const U_GAMEPLAY_REDUCER := preload("res://scripts/state/reducers/u_gameplay_reducer.gd")
@@ -24,7 +26,6 @@ const U_SCENE_REDUCER := preload("res://scripts/state/reducers/u_scene_reducer.g
 const U_SETTINGS_REDUCER := preload("res://scripts/state/reducers/u_settings_reducer.gd")
 const U_DEBUG_REDUCER := preload("res://scripts/state/reducers/u_debug_reducer.gd")
 const U_INPUT_CAPTURE_GUARD := preload("res://scripts/utils/u_input_capture_guard.gd")
-const U_STATE_PERSISTENCE := preload("res://scripts/state/utils/u_state_persistence.gd")
 const RS_BOOT_INITIAL_STATE := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
 const RS_MENU_INITIAL_STATE := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
@@ -110,9 +111,7 @@ func _exit_tree() -> void:
 var _autosave_timer: Timer = null
 
 func _setup_autosave_timer() -> void:
-	if settings == null or not settings.enable_persistence:
-		return
-	var interval: float = max(settings.auto_save_interval, 0.0)
+	var interval: float = U_STATE_REPOSITORY.get_autosave_interval(settings)
 	if interval <= 0.0:
 		return
 	if _autosave_timer == null:
@@ -133,27 +132,12 @@ func _on_autosave_timeout() -> void:
 	_save_state_if_enabled()
 
 func _save_state_if_enabled() -> void:
-	if settings != null and settings.enable_persistence:
-		var path := _get_default_save_path()
-		var err: Error = save_state(path)
-		if err != OK and OS.is_debug_build() and settings.enable_debug_logging:
-			push_warning("M_StateStore: Autosave failed (" + str(err) + ") to " + path)
+	var enable_logging := settings != null and settings.enable_debug_logging
+	U_STATE_REPOSITORY.save_state_if_enabled(settings, _state, _slice_configs, enable_logging)
 
 func _try_autoload_state() -> void:
-	if settings == null or not settings.enable_persistence:
-		return
-	var path := _get_default_save_path()
-	if FileAccess.file_exists(path):
-		var err: Error = load_state(path)
-		if err != OK and OS.is_debug_build() and settings.enable_debug_logging:
-			push_warning("M_StateStore: Autoload failed (" + str(err) + ") from " + path)
-
-func _get_default_save_path() -> String:
-	if settings != null:
-		var override_path := String(settings.save_path_override)
-		if not override_path.is_empty():
-			return override_path
-	return "user://savegame.json"
+	var enable_logging := settings != null and settings.enable_debug_logging
+	U_STATE_REPOSITORY.try_autoload_state(settings, _state, _slice_configs, enable_logging)
 
 func _physics_process(_delta: float) -> void:
 	# Flush batched signals once per physics frame
@@ -248,23 +232,23 @@ func _initialize_slices() -> void:
 
 ## Normalize a deserialized state dictionary for tests.
 ##
-## This is a thin wrapper around U_StatePersistence._normalize_loaded_state()
-## so tests can exercise normalization logic without reaching into the helper
-## directly. Production code should continue to use U_StatePersistence for
+## This is a thin wrapper around U_StateValidator.normalize_loaded_state()
+## so tests can exercise normalization logic without reaching into the validator
+## directly. Production code should continue to use U_StateRepository for
 ## save/load flows.
 func _normalize_loaded_state(state: Dictionary) -> void:
-	U_STATE_PERSISTENCE._normalize_loaded_state(state)
+	U_STATE_VALIDATOR.normalize_loaded_state(state)
 
 ## Normalize a single spawn reference for tests.
 ##
-## Delegates to U_StatePersistence._normalize_spawn_reference() so tests can
+## Delegates to U_StateValidator.normalize_spawn_reference() so tests can
 ## validate spawn normalization behavior via the store instance.
 func _normalize_spawn_reference(
 	value: Variant,
 	allow_empty: bool,
 	emit_warning: bool = true
 ) -> StringName:
-	return U_STATE_PERSISTENCE._normalize_spawn_reference(value, allow_empty, emit_warning)
+	return U_STATE_VALIDATOR.normalize_spawn_reference(value, allow_empty, emit_warning)
 
 ## Dispatch an action to update state
 func dispatch(action: Dictionary) -> void:
@@ -453,14 +437,14 @@ func get_last_n_actions(n: int) -> Array:
 ## Excludes transient fields as defined in slice configs.
 ## Returns OK on success, or an Error code on failure.
 func save_state(filepath: String) -> Error:
-	return U_STATE_PERSISTENCE.save_state(filepath, _state, _slice_configs)
+	return U_STATE_REPOSITORY.save_state(filepath, _state, _slice_configs)
 
 ## Load state from JSON file
 ##
 ## Merges loaded state with current state, preserving transient fields.
 ## Returns OK on success, or an Error code on failure.
 func load_state(filepath: String) -> Error:
-	var err: Error = U_STATE_PERSISTENCE.load_state(filepath, _state, _slice_configs)
+	var err: Error = U_STATE_REPOSITORY.load_state(filepath, _state, _slice_configs)
 	if err == OK:
 		state_loaded.emit(filepath)
 	return err
