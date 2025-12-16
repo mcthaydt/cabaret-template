@@ -3,6 +3,7 @@ class_name Trans_LoadingScreen
 
 const LOADING_SCREEN_SCENE := preload("res://scenes/ui/ui_loading_screen.tscn")
 const HUD_GROUP := StringName("hud_layers")
+const U_TweenManager = preload("res://scripts/scene_management/u_tween_manager.gd")
 
 ## Loading screen transition effect
 ##
@@ -185,12 +186,8 @@ func _execute_with_fake_progress(overlay: CanvasLayer, callback: Callable, origi
 		await _enforce_minimum_duration_and_complete(overlay, callback, original_overlay_mode, original_screen_mode)
 		return
 
-	# Create Tween for progress animation
-	_tween = overlay.create_tween()
-	# Use physics process mode so tests using wait_physics_frames() can advance the tween
-	_tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-	_tween.set_ease(Tween.EASE_IN_OUT)
-	_tween.set_trans(Tween.TRANS_CUBIC)
+	# Create Tween for progress animation using U_TweenManager for standard config
+	_tween = U_TweenManager.create_transition_tween(overlay)
 
 	# Phase 1: Animate 0→50% (fast preparation phase)
 	var first_half_duration: float = min_duration * 0.3  # 30% of time for first half

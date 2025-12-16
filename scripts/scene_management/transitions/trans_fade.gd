@@ -4,13 +4,15 @@ class_name Trans_Fade
 ## Fade transition effect
 ##
 ## Fades out to a color, then fades back in.
-## Uses Tween to animate the TransitionColorRect's modulate.a property.
+## Uses U_TweenManager for standardized tween configuration and lifecycle.
 ##
 ## Sequence:
 ## 1. Fade out: alpha 0.0 → 1.0 (duration/2)
 ## 2. Call mid_transition_callback (if set)
 ## 3. Fade in: alpha 1.0 → 0.0 (duration/2)
 ## 4. Call completion callback
+
+const U_TweenManager = preload("res://scripts/scene_management/u_tween_manager.gd")
 
 ## Transition duration in seconds
 @export var duration: float = 1.0
@@ -30,8 +32,11 @@ class_name Trans_Fade
 ## Optional callback at mid-point (when fully faded out)
 var mid_transition_callback: Callable
 
-## Internal Tween reference
+## Internal Tween reference (for backwards compatibility with tests)
 var _tween: Tween = null
+
+## TweenContext for process mode management (execute() only)
+var _tween_context: U_TweenManager.TweenContext = null
 
 ## Execute fade-out only (for orchestrator sequencing)
 ##
@@ -56,14 +61,14 @@ func execute_fade_out(overlay: CanvasLayer) -> Signal:
 	overlay.process_mode = Node.PROCESS_MODE_ALWAYS
 	color_rect.process_mode = Node.PROCESS_MODE_ALWAYS
 
-	# Create fade-out tween
-	var half_duration: float = duration / 2.0
-	_tween = overlay.create_tween()
-	_tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-	_tween.set_ease(easing_type)
-	_tween.set_trans(transition_type)
+	# Create fade-out tween with custom config to match exports
+	var config := U_TweenManager.TweenConfig.new()
+	config.ease_type = easing_type
+	config.trans_type = transition_type
+	_tween = U_TweenManager.create_transition_tween(overlay, config)
 
 	# Fade out (alpha 0 → 1)
+	var half_duration: float = duration / 2.0
 	_tween.tween_property(color_rect, "modulate:a", 1.0, half_duration).from(0.0)
 
 	return _tween.finished
@@ -82,14 +87,14 @@ func execute_fade_in(overlay: CanvasLayer, callback: Callable) -> Signal:
 		call_deferred("emit_signal", "dummy_completed")
 		return dummy_signal
 
-	# Create fade-in tween
-	var half_duration: float = duration / 2.0
-	_tween = overlay.create_tween()
-	_tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-	_tween.set_ease(easing_type)
-	_tween.set_trans(transition_type)
+	# Create fade-in tween with custom config
+	var config := U_TweenManager.TweenConfig.new()
+	config.ease_type = easing_type
+	config.trans_type = transition_type
+	_tween = U_TweenManager.create_transition_tween(overlay, config)
 
 	# Fade in (alpha 1 → 0)
+	var half_duration: float = duration / 2.0
 	_tween.tween_property(color_rect, "modulate:a", 0.0, half_duration).from(1.0)
 
 	# Restore input and process modes on completion
@@ -125,52 +130,41 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 	# Set fade color
 	color_rect.color = fade_color
 
-	# Optionally block input during transition (restore after)
+	# Save original mouse filter for restoration
 	var original_mouse_filter := color_rect.mouse_filter
 	if block_input:
 		color_rect.mouse_filter = Control.MOUSE_FILTER_STOP
 
-	# Ensure transition advances even if the SceneTree is paused.
-	var original_overlay_mode: int = overlay.process_mode
-	var original_color_rect_mode: int = color_rect.process_mode
-	overlay.process_mode = Node.PROCESS_MODE_ALWAYS
-	color_rect.process_mode = Node.PROCESS_MODE_ALWAYS
-
 	# Handle zero duration
 	if duration <= 0.0:
-		# Instant transition - call callbacks immediately and restore input state
+		# Instant transition - call callbacks immediately
 		if mid_transition_callback.is_valid():
 			mid_transition_callback.call()
-		# Restore mouse filter
 		color_rect.mouse_filter = original_mouse_filter
-		# Restore process modes
-		overlay.process_mode = original_overlay_mode
-		color_rect.process_mode = original_color_rect_mode
 		if callback.is_valid():
 			callback.call()
 		return
 
-	# Calculate half duration
-	var half_duration: float = duration / 2.0
+	# Create pausable tween with automatic process mode save/restore
+	# Uses TweenContext to handle the common save-ALWAYS-restore pattern
+	var config := U_TweenManager.TweenConfig.new()
+	config.ease_type = easing_type
+	config.trans_type = transition_type
+	_tween_context = U_TweenManager.create_pausable_tween(overlay, [overlay, color_rect], config)
+	_tween = _tween_context.tween
 
-	# Create Tween
-	_tween = overlay.create_tween()
-	# Advance using physics frames so tests waiting on physics progress the fade
-	_tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
-	_tween.set_ease(easing_type)
-	_tween.set_trans(transition_type)
-
-	# On finish: restore input, call completion, then clear reference.
+	# On finish: restore process modes and input, call completion
 	_tween.finished.connect(func() -> void:
-		# Restore mouse filter
 		color_rect.mouse_filter = original_mouse_filter
-		# Restore process modes
-		overlay.process_mode = original_overlay_mode as Node.ProcessMode
-		color_rect.process_mode = original_color_rect_mode as Node.ProcessMode
+		_tween_context.restore_process_modes()
 		if callback.is_valid():
 			callback.call()
 		_tween = null
+		_tween_context = null
 	)
+
+	# Calculate half duration
+	var half_duration: float = duration / 2.0
 
 	# Fade out (alpha 0 → 1)
 	_tween.tween_property(color_rect, "modulate:a", 1.0, half_duration).from(0.0)

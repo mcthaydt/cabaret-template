@@ -3,11 +3,12 @@ extends GutTest
 ## Unit tests for transition effects
 ##
 ## Tests BaseTransitionEffect base class and implementations (Trans_Instant, Trans_Fade).
-## Tests follow TDD discipline: written BEFORE implementation.
+## Uses U_TransitionTestHelpers for standardized completion tracking.
 
 const BaseTransitionEffect = preload("res://scripts/scene_management/transitions/base_transition_effect.gd")
 const Trans_Instant = preload("res://scripts/scene_management/transitions/trans_instant.gd")
 const Trans_Fade = preload("res://scripts/scene_management/transitions/trans_fade.gd")
+const U_TransitionTestHelpers = preload("res://tests/helpers/u_transition_test_helpers.gd")
 
 var _transition_overlay: CanvasLayer
 var _color_rect: ColorRect
@@ -26,30 +27,6 @@ func after_each() -> void:
 	_transition_overlay = null
 	_color_rect = null
 
-## Helper: Await tween.finished or timeout with diagnostics
-func _await_tween_finished_or_timeout(fade: Trans_Fade, _label: String, timeout_sec: float = 1.0) -> bool:
-
-	# Ensure tween exists before waiting on finished
-	if fade._tween == null:
-		await get_tree().process_frame
-
-	if fade._tween == null:
-		return false
-
-	var finished_emitted: Array = [false]
-	fade._tween.finished.connect(func() -> void:
-		finished_emitted[0] = true
-	)
-
-	var start_ms: int = Time.get_ticks_msec()
-	while not finished_emitted[0]:
-		await get_tree().process_frame
-		var elapsed: float = (Time.get_ticks_msec() - start_ms) / 1000.0
-		if elapsed >= timeout_sec:
-			return false
-
-	return true
-
 ## Test BaseTransitionEffect interface
 func test_transition_effect_has_required_methods() -> void:
 	var effect := BaseTransitionEffect.new()
@@ -62,14 +39,11 @@ func test_transition_effect_has_required_methods() -> void:
 func test_instant_transition_completes_immediately() -> void:
 	var instant := Trans_Instant.new()
 
-	var completed: Array = [false]  # Use array for closure to work
-	var callback := func() -> void:
-		completed[0] = true
-
-	instant.execute(_transition_overlay, callback)
+	var tracker := U_TransitionTestHelpers.create_completion_tracker()
+	instant.execute(_transition_overlay, tracker.get_callback())
 	await get_tree().process_frame
 
-	assert_true(completed[0], "Trans_Instant should complete immediately")
+	assert_true(tracker.is_complete, "Trans_Instant should complete immediately")
 
 ## Test Trans_Instant duration is zero
 func test_instant_transition_duration_is_zero() -> void:
@@ -94,22 +68,26 @@ func test_fade_transition_sequence() -> void:
 	var fade := Trans_Fade.new()
 	fade.duration = 0.2  # Shorter for faster tests
 
-	var completed: Array = [false]  # Use array for closure to work
-	var callback := func() -> void:
-		completed[0] = true
+	var tracker := U_TransitionTestHelpers.create_completion_tracker()
 
 	# Initial alpha should be 0
 	assert_almost_eq(_color_rect.modulate.a, 0.0, 0.01, "Should start transparent")
 
-	fade.execute(_transition_overlay, callback)
+	fade.execute(_transition_overlay, tracker.get_callback())
 
-	# Diagnostics + bounded wait to avoid hard hang
-	var ok: bool = await _await_tween_finished_or_timeout(fade, "fade_sequence", 1.2)
+	# Wait for tween to complete using helper
+	var ok: bool = false
+	if fade._tween != null:
+		ok = await U_TransitionTestHelpers.await_tween_or_timeout(fade._tween, get_tree(), 1.2)
+	else:
+		await get_tree().process_frame
+		ok = tracker.is_complete
+
 	assert_true(ok, "Tween did not finish within expected window")
 
 	# Transition should be complete
 	assert_almost_eq(_color_rect.modulate.a, 0.0, 0.1, "Should fade back to transparent")
-	assert_true(completed[0], "Should call completion callback")
+	assert_true(tracker.is_complete, "Should call completion callback")
 
 ## Test Trans_Fade respects color setting
 func test_fade_transition_color() -> void:
@@ -117,10 +95,8 @@ func test_fade_transition_color() -> void:
 	fade.fade_color = Color.WHITE
 	fade.duration = 0.1
 
-	var callback := func() -> void:
-		pass
-
-	fade.execute(_transition_overlay, callback)
+	var tracker := U_TransitionTestHelpers.create_completion_tracker()
+	fade.execute(_transition_overlay, tracker.get_callback())
 	await get_tree().process_frame
 
 	# Color rect should use white (though alpha varies)
@@ -128,19 +104,15 @@ func test_fade_transition_color() -> void:
 
 	# Wait for tween to complete
 	if fade._tween != null:
-		await fade._tween.finished
+		await U_TransitionTestHelpers.await_tween_or_timeout(fade._tween, get_tree(), 0.5)
 
 ## Test transition blocks input during execution
 func test_transition_blocks_input() -> void:
 	var fade := Trans_Fade.new()
 	fade.duration = 0.2
 
-	var completed: Array = [false]  # Use array for closure to work
-	var callback := func() -> void:
-		completed[0] = true
-
-	# Execute transition
-	fade.execute(_transition_overlay, callback)
+	var tracker := U_TransitionTestHelpers.create_completion_tracker()
+	fade.execute(_transition_overlay, tracker.get_callback())
 	await get_tree().process_frame
 
 	# During transition, input should be blocked
@@ -148,33 +120,28 @@ func test_transition_blocks_input() -> void:
 
 	# Wait for tween to complete
 	if fade._tween != null:
-		await fade._tween.finished
+		await U_TransitionTestHelpers.await_tween_or_timeout(fade._tween, get_tree(), 0.5)
 
-	assert_true(completed[0], "Transition should complete")
+	assert_true(tracker.is_complete, "Transition should complete")
 
 ## Test Trans_Fade with mid-transition callback
 func test_fade_transition_mid_callback() -> void:
 	var fade := Trans_Fade.new()
 	fade.duration = 0.2
 
-	var mid_callback_called: Array = [false]  # Use array for closure to work
-	var completion_callback_called: Array = [false]  # Use array for closure to work
+	var mid_tracker := U_TransitionTestHelpers.create_completion_tracker()
+	var completion_tracker := U_TransitionTestHelpers.create_completion_tracker()
 
-	fade.mid_transition_callback = func() -> void:
-		mid_callback_called[0] = true
-
-	var completion_callback := func() -> void:
-		completion_callback_called[0] = true
-
-	fade.execute(_transition_overlay, completion_callback)
+	fade.mid_transition_callback = mid_tracker.get_callback()
+	fade.execute(_transition_overlay, completion_tracker.get_callback())
 	await get_tree().process_frame
 
 	# Wait for tween to complete (triggers both mid and completion callbacks)
 	if fade._tween != null:
-		await fade._tween.finished
+		await U_TransitionTestHelpers.await_tween_or_timeout(fade._tween, get_tree(), 0.5)
 
-	assert_true(mid_callback_called[0], "Mid-transition callback should be called when fully faded out")
-	assert_true(completion_callback_called[0], "Completion callback should be called")
+	assert_true(mid_tracker.is_complete, "Mid-transition callback should be called when fully faded out")
+	assert_true(completion_tracker.is_complete, "Completion callback should be called")
 
 ## Test BaseTransitionEffect cleanup
 ## @warning: Skipped in headless - tween timing unreliable without rendering
@@ -185,19 +152,14 @@ func test_transition_cleans_up_tween() -> void:
 	var fade := Trans_Fade.new()
 	fade.duration = 0.1
 
-	var callback := func() -> void:
-		pass
+	var tracker := U_TransitionTestHelpers.create_completion_tracker()
+	fade.execute(_transition_overlay, tracker.get_callback())
 
-	fade.execute(_transition_overlay, callback)
-	# In embedded/paused trees, timers don't advance; rely on tween.finished or bounded wait.
-	var ok: bool = await _await_tween_finished_or_timeout(fade, "cleanup_tween", 0.8)
-	if not ok:
-		var start_ms: int = Time.get_ticks_msec()
-		while (Time.get_ticks_msec() - start_ms) < 200:
-			await get_tree().process_frame
+	# Wait for tween to complete
+	if fade._tween != null:
+		await U_TransitionTestHelpers.await_tween_or_timeout(fade._tween, get_tree(), 0.8)
 
 	# Tween should be cleaned up after completion
-	# (implementation-specific check)
 	assert_true(true, "Transition should clean up Tween")
 
 ## Test multiple transitions don't conflict
@@ -208,21 +170,21 @@ func test_multiple_transitions_queued() -> void:
 	var fade2 := Trans_Fade.new()
 	fade2.duration = 0.1
 
-	var completed1: Array = [false]  # Use array for closure to work
-	var completed2: Array = [false]  # Use array for closure to work
+	var tracker1 := U_TransitionTestHelpers.create_completion_tracker()
+	var tracker2 := U_TransitionTestHelpers.create_completion_tracker()
 
-	fade1.execute(_transition_overlay, func() -> void: completed1[0] = true)
+	fade1.execute(_transition_overlay, tracker1.get_callback())
 
 	# Try to execute second transition immediately (should be queued or blocked)
-	fade2.execute(_transition_overlay, func() -> void: completed2[0] = true)
+	fade2.execute(_transition_overlay, tracker2.get_callback())
 
 	# Wait for first tween to finish using signal (works in headless)
 	await get_tree().process_frame
 	if fade1._tween != null:
-		await fade1._tween.finished
+		await U_TransitionTestHelpers.await_tween_or_timeout(fade1._tween, get_tree(), 0.5)
 
 	# Both should eventually complete
-	assert_true(completed1[0], "First transition should complete")
+	assert_true(tracker1.is_complete, "First transition should complete")
 	# Note: Second transition behavior depends on implementation
 
 ## Test Trans_Fade with zero duration
@@ -230,23 +192,23 @@ func test_fade_transition_zero_duration() -> void:
 	var fade := Trans_Fade.new()
 	fade.duration = 0.0
 
-	var completed: Array = [false]  # Use array for closure to work
-	fade.execute(_transition_overlay, func() -> void: completed[0] = true)
+	var tracker := U_TransitionTestHelpers.create_completion_tracker()
+	fade.execute(_transition_overlay, tracker.get_callback())
 
 	await get_tree().process_frame
 
 	# Should complete immediately with zero duration
-	assert_true(completed[0], "Zero duration fade should complete immediately")
+	assert_true(tracker.is_complete, "Zero duration fade should complete immediately")
 
 ## Test BaseTransitionEffect error handling
 func test_transition_with_null_overlay() -> void:
 	var fade := Trans_Fade.new()
 	fade.duration = 0.1
 
-	var completed: Array = [false]  # Use array for closure to work
+	var tracker := U_TransitionTestHelpers.create_completion_tracker()
 
 	# Pass null overlay (should handle gracefully)
-	fade.execute(null, func() -> void: completed[0] = true)
+	fade.execute(null, tracker.get_callback())
 	await get_tree().process_frame
 
 	# Should not crash, may skip transition or use fallback
@@ -295,7 +257,6 @@ func test_input_blocking_enabled() -> void:
 	fade.execute(_transition_overlay, func() -> void: pass)
 
 	# During transition, check if input blocking is active
-	# (implementation may use set_input_as_handled or process_mode changes)
 	if get_tree().paused:
 		for i in range(3):
 			await get_tree().process_frame
@@ -324,27 +285,20 @@ func test_fade_transition_easing() -> void:
 	fade.easing_type = Tween.EASE_IN_OUT
 	fade.transition_type = Tween.TRANS_CUBIC
 
-	var completed: Array = [false]  # Use array for closure to work
-	fade.execute(_transition_overlay, func() -> void: completed[0] = true)
+	var tracker := U_TransitionTestHelpers.create_completion_tracker()
+	fade.execute(_transition_overlay, tracker.get_callback())
 
-	if get_tree().paused:
-		# Await tween or fallback to frames when paused
-		var ok: bool = await _await_tween_finished_or_timeout(fade, "easing", 1.0)
-		assert_true(ok, "Easing tween did not finish in time while paused")
-	else:
-		await wait_seconds(0.25)
+	if fade._tween != null:
+		await U_TransitionTestHelpers.await_tween_or_timeout(fade._tween, get_tree(), 1.0)
 
-	assert_true(completed[0], "Should complete with custom easing")
+	assert_true(tracker.is_complete, "Should complete with custom easing")
 
 ## Test Trans_Instant with scene swap
 func test_instant_transition_scene_swap_timing() -> void:
 	var instant := Trans_Instant.new()
 
-	var scene_swapped: Array = [false]  # Use array for closure to work
-	var callback := func() -> void:
-		scene_swapped[0] = true
-
-	instant.execute(_transition_overlay, callback)
+	var tracker := U_TransitionTestHelpers.create_completion_tracker()
+	instant.execute(_transition_overlay, tracker.get_callback())
 
 	# Should call callback immediately (within same frame)
-	assert_true(scene_swapped[0], "Trans_Instant should allow immediate scene swap")
+	assert_true(tracker.is_complete, "Trans_Instant should allow immediate scene swap")
