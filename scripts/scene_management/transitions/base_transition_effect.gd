@@ -1,8 +1,9 @@
-extends RefCounted
+extends I_TransitionEffect
 class_name BaseTransitionEffect
 
 ## Base class for scene transition effects
 ##
+## Phase 10B-2 (T136a): Implements I_TransitionEffect interface
 ## Defines the interface for all transition effects.
 ## Subclasses implement execute() to perform the actual transition.
 

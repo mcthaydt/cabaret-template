@@ -33,6 +33,77 @@ var mid_transition_callback: Callable
 ## Internal Tween reference
 var _tween: Tween = null
 
+## Execute fade-out only (for orchestrator sequencing)
+##
+## Returns a Signal that emits when fade-out completes
+func execute_fade_out(overlay: CanvasLayer) -> Signal:
+	var color_rect: ColorRect = _find_color_rect(overlay)
+	if color_rect == null:
+		push_error("FadeTransition: TransitionColorRect not found in overlay")
+		# Return a dummy signal that emits immediately
+		var dummy_signal := Signal()
+		call_deferred("emit_signal", "dummy_completed")
+		return dummy_signal
+
+	# Set fade color
+	color_rect.color = fade_color
+
+	# Block input during transition
+	if block_input:
+		color_rect.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	# Ensure transition advances even if the SceneTree is paused
+	overlay.process_mode = Node.PROCESS_MODE_ALWAYS
+	color_rect.process_mode = Node.PROCESS_MODE_ALWAYS
+
+	# Create fade-out tween
+	var half_duration: float = duration / 2.0
+	_tween = overlay.create_tween()
+	_tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+	_tween.set_ease(easing_type)
+	_tween.set_trans(transition_type)
+
+	# Fade out (alpha 0 → 1)
+	_tween.tween_property(color_rect, "modulate:a", 1.0, half_duration).from(0.0)
+
+	return _tween.finished
+
+## Execute fade-in only (for orchestrator sequencing)
+##
+## Returns a Signal that emits when fade-in completes
+func execute_fade_in(overlay: CanvasLayer, callback: Callable) -> Signal:
+	var color_rect: ColorRect = _find_color_rect(overlay)
+	if color_rect == null:
+		push_error("FadeTransition: TransitionColorRect not found in overlay")
+		if callback.is_valid():
+			callback.call()
+		# Return a dummy signal
+		var dummy_signal := Signal()
+		call_deferred("emit_signal", "dummy_completed")
+		return dummy_signal
+
+	# Create fade-in tween
+	var half_duration: float = duration / 2.0
+	_tween = overlay.create_tween()
+	_tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
+	_tween.set_ease(easing_type)
+	_tween.set_trans(transition_type)
+
+	# Fade in (alpha 1 → 0)
+	_tween.tween_property(color_rect, "modulate:a", 0.0, half_duration).from(1.0)
+
+	# Restore input and process modes on completion
+	_tween.finished.connect(func() -> void:
+		color_rect.mouse_filter = Control.MOUSE_FILTER_PASS
+		overlay.process_mode = Node.PROCESS_MODE_INHERIT
+		color_rect.process_mode = Node.PROCESS_MODE_INHERIT
+		if callback.is_valid():
+			callback.call()
+		_tween = null
+	)
+
+	return _tween.finished
+
 ## Execute fade transition
 ##
 ## @param overlay: CanvasLayer containing TransitionColorRect
@@ -79,33 +150,32 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 			callback.call()
 		return
 
+	# Calculate half duration
+	var half_duration: float = duration / 2.0
+
 	# Create Tween
 	_tween = overlay.create_tween()
 	# Advance using physics frames so tests waiting on physics progress the fade
 	_tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	_tween.set_ease(easing_type)
 	_tween.set_trans(transition_type)
-	# No test-logs in production code; tests will assert
 
 	# On finish: restore input, call completion, then clear reference.
 	_tween.finished.connect(func() -> void:
 		# Restore mouse filter
 		color_rect.mouse_filter = original_mouse_filter
 		# Restore process modes
-		overlay.process_mode = original_overlay_mode
-		color_rect.process_mode = original_color_rect_mode
+		overlay.process_mode = original_overlay_mode as Node.ProcessMode
+		color_rect.process_mode = original_color_rect_mode as Node.ProcessMode
 		if callback.is_valid():
 			callback.call()
 		_tween = null
 	)
 
-	# Calculate half duration
-	var half_duration: float = duration / 2.0
-
 	# Fade out (alpha 0 → 1)
 	_tween.tween_property(color_rect, "modulate:a", 1.0, half_duration).from(0.0)
 
-	# Mid-point callback
+	# Mid-point callback - call synchronously (orchestrator handles async sequencing)
 	_tween.tween_callback(func() -> void:
 		if mid_transition_callback.is_valid():
 			mid_transition_callback.call()

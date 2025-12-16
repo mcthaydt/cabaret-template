@@ -33,6 +33,7 @@ const U_SCENE_LOADER := preload("res://scripts/scene_management/helpers/u_scene_
 const U_OVERLAY_STACK_MANAGER := preload("res://scripts/scene_management/helpers/u_overlay_stack_manager.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
+const U_TRANSITION_ORCHESTRATOR := preload("res://scripts/scene_management/u_transition_orchestrator.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
 # Kept for type checking only:
 const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/trans_fade.gd")
@@ -132,6 +133,7 @@ var _is_background_polling_active:
 ## Helpers
 var _scene_loader := U_SCENE_LOADER.new()
 var _overlay_helper := U_OVERLAY_STACK_MANAGER.new()
+var _transition_orchestrator := U_TRANSITION_ORCHESTRATOR.new()
 
 ## Store subscription
 var _unsubscribe: Callable
@@ -460,45 +462,14 @@ func _perform_transition(request: TransitionRequest) -> void:
 	# Track scene history based on scene type (T111-T113)
 	_update_scene_history(request.scene_id)
 
-	# T209: Create transition effect via factory (was _create_transition_effect)
-	var transition_effect = U_TRANSITION_FACTORY.create_transition(request.transition_type)
-
-	# Fallback to instant if transition type not found
-	if transition_effect == null:
-		transition_effect = U_TRANSITION_FACTORY.create_transition("instant")
-
-	# Configure transition-specific settings
-	_configure_transition(transition_effect, request.transition_type)
-
 	# Phase 8: Check if scene is cached
 	var use_cached: bool = _is_scene_cached(scene_path)
 
 	# Phase 8: Create progress callback for async loading
 	# T208: Array wrapper for closure to capture mutable value (see method doc comment)
 	var current_progress: Array = [0.0]
-	var progress_callback: Callable
-
-	# Phase 8: Set progress handling for Trans_LoadingScreen
-	if transition_effect is Trans_LoadingScreen:
-		var loading_transition := transition_effect as Trans_LoadingScreen
-		# If scene is cached, use FAKE progress (no provider) to show minimal loading
-		# Otherwise, wire a real progress provider for async loading.
-		if not use_cached:
-			progress_callback = func(progress: float) -> void:
-				var normalized_progress: float = clamp(progress, 0.0, 1.0)
-				current_progress[0] = normalized_progress
-				loading_transition.update_progress(normalized_progress * 100.0)
-
-			# Create a Callable that returns current progress for polling loop
-			loading_transition.progress_provider = func() -> float:
-				return current_progress[0]
-		else:
-			# Cached scene: fall back to tween-based fake progress; mid-callback will swap scene at 50%
-			progress_callback = func(_progress: float) -> void:
-				pass
-	else:
-		progress_callback = func(progress: float) -> void:
-			current_progress[0] = clamp(progress, 0.0, 1.0)
+	var progress_callback: Callable = func(progress: float) -> void:
+		current_progress[0] = clamp(progress, 0.0, 1.0)
 
 	# T208: Track if scene swap has completed (Array wrapper for closure pattern)
 	var scene_swap_complete: Array = [false]
@@ -562,6 +533,22 @@ func _perform_transition(request: TransitionRequest) -> void:
 		# Store for post-transition finalization
 		new_scene_ref[0] = new_scene
 
+		# Phase 12.2: Blend cameras using M_CameraManager (T244)
+		# IMPORTANT: Start camera blend IMMEDIATELY after scene is added, BEFORE spawn waits.
+		# This ensures the camera blend tween exists for tests that query it during transitions.
+		# The spawn waits (frame waits + spawn operations) can delay tween creation and cause
+		# tests to timeout when waiting for the tween.
+		if should_blend and _camera_manager != null:
+			# Delegate camera blending to M_CameraManager with pre-captured state
+			_camera_manager.blend_cameras(null, new_scene, 0.2, old_camera_state)
+		else:
+			# No blending (instant transition or no camera) - just activate new camera if present
+			var new_cameras: Array = get_tree().get_nodes_in_group("main_camera")
+			if not new_cameras.is_empty():
+				var new_camera: Camera3D = new_cameras[0] as Camera3D
+				if new_camera != null:
+					new_camera.current = true
+
 		# Restore player spawn point (Phase 12.1: T226, Phase 12.3: T268)
 		# Use spawn_at_last_spawn() which checks priority: target_spawn_point → last_checkpoint → sp_default
 		# This handles both door transitions AND death respawn correctly
@@ -578,51 +565,20 @@ func _perform_transition(request: TransitionRequest) -> void:
 			if is_instance_valid(new_scene):
 				await _spawn_manager.spawn_at_last_spawn(new_scene)
 
-		# Phase 12.2: Blend cameras using M_CameraManager (T244)
-		if should_blend and _camera_manager != null:
-			# Delegate camera blending to M_CameraManager with pre-captured state
-			_camera_manager.blend_cameras(null, new_scene, 0.2, old_camera_state)
-		else:
-			# No blending (instant transition or no camera) - just activate new camera if present
-			var new_cameras: Array = get_tree().get_nodes_in_group("main_camera")
-			if not new_cameras.is_empty():
-				var new_camera: Camera3D = new_cameras[0] as Camera3D
-				if new_camera != null:
-					new_camera.current = true
-
 		scene_swap_complete[0] = true
 
-	# Track if transition has fully completed (use Array for closure to work)
-	var transition_complete: Array = [false]
+	# Phase 10B-2 (T136b): Delegate transition effect execution to TransitionOrchestrator
+	var overlays := {
+		"transition_overlay": _transition_overlay,
+		"loading_overlay": _loading_overlay
+	}
 
-	# Define completion callback
-	var completion_callback := func() -> void:
-		transition_complete[0] = true
-
-	# Execute transition effect
-	if transition_effect != null:
-		# For fade transitions, set mid-transition callback for scene swap
-		if transition_effect is Trans_Fade:
-			(transition_effect as Trans_Fade).mid_transition_callback = scene_swap_callback
-			transition_effect.execute(_transition_overlay, completion_callback)
-		# For loading screen transitions, set mid-transition callback and use loading overlay
-		elif transition_effect is Trans_LoadingScreen:
-			(transition_effect as Trans_LoadingScreen).mid_transition_callback = scene_swap_callback
-			transition_effect.execute(_loading_overlay, completion_callback)
-		else:
-			# For instant transitions, scene swap happens in completion callback
-			transition_effect.execute(_transition_overlay, func() -> void:
-				scene_swap_callback.call()
-				completion_callback.call()
-			)
-	else:
-		# Fallback: instant scene swap if no transition effect
-		scene_swap_callback.call()
-		completion_callback.call()
-
-	# Wait for transition to complete (matches original pattern)
-	while not transition_complete[0]:
-		await get_tree().process_frame
+	await _transition_orchestrator.execute_transition_effect(
+		request.transition_type,
+		scene_swap_callback,
+		func() -> void: pass,  # Completion handled below
+		overlays
+	)
 
 	# Phase 10: Camera blending now happens in scene_swap_callback (T182.5)
 	# This ensures blend runs in parallel with fade effect, not sequentially after

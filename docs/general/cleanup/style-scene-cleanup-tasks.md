@@ -1537,23 +1537,23 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Problem**: M_SceneManager (1,565 lines) is a god object handling too many concerns.
 
-- [ ] T134 **Design TransitionOrchestrator abstraction**:
+- [x] T134 **Design TransitionOrchestrator abstraction**:
   - Define responsibilities: transition state machine, effect execution, scene swap sequencing
   - Design interface with lifecycle hooks: `initialize()`, `execute()`, `on_scene_swap()`, `on_complete()`
   - Document in plan file before implementation
 
-- [ ] T135 **Create `scripts/scene_management/transition_orchestrator.gd`**:
+- [x] T135 **Create `scripts/scene_management/transition_orchestrator.gd`**:
   - Extract transition effect management from M_SceneManager
   - Handle all scene loading strategies (sync/async/cached)
   - Manage progress tracking and callbacks
   - Target: 300-400 lines
 
-- [ ] T136a **Create `scripts/scene_management/i_transition_effect.gd`**:
+- [x] T136a **Create `scripts/scene_management/i_transition_effect.gd`**:
   - Define interface for transition effects
   - Methods: `initialize(config)`, `execute(layer, callback)`, `on_scene_swap()`, `on_complete()`
   - Update Trans_Fade, Trans_LoadingScreen to implement interface
 
-- [ ] T136b **Refactor M_SceneManager to use TransitionOrchestrator**:
+- [x] T136b **Refactor M_SceneManager to use TransitionOrchestrator**:
   - Remove transition logic (400+ lines)
   - Delegate to TransitionOrchestrator
   - Target: M_SceneManager reduced to ~1,100 lines
