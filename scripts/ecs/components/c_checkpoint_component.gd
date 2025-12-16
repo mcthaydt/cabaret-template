@@ -217,3 +217,11 @@ func _publish_zone_entered(body: Node3D) -> void:
 		"body": body,
 		"spawn_point_id": spawn_point_id,
 	})
+
+## Cleanup: Disconnect Area3D signals to prevent leaks
+func _exit_tree() -> void:
+	if _area != null and is_instance_valid(_area):
+		if _area.body_entered.is_connected(_on_area_body_entered):
+			_area.body_entered.disconnect(_on_area_body_entered)
+		if _area.body_exited.is_connected(_on_area_body_exited):
+			_area.body_exited.disconnect(_on_area_body_exited)

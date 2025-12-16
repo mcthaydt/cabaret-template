@@ -50,8 +50,9 @@ func _ready() -> void:
 		_store = stores[0] as M_StateStore
 
 	if not _store:
-		# Store not found yet - defer initialization
+		# Phase 10B (T133): Warn if M_StateStore missing for fail-fast feedback
 		# This is normal in some test environments without a full state store
+		push_warning("M_PauseManager: M_StateStore not ready during _ready(). Deferring initialization.")
 		call_deferred("_deferred_init")
 		return
 

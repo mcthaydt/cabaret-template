@@ -12,12 +12,10 @@ const COMPONENT_TYPE := StringName("C_HealthComponent")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_EntityActions := preload("res://scripts/state/actions/u_entity_actions.gd")
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
 const PLAYER_RAGDOLL := preload("res://scenes/prefabs/prefab_player_ragdoll.tscn")
 
 var _store: M_StateStore = null
-var _scene_manager: M_SceneManager = null
 var _death_logged: Dictionary = {}          # entity_id -> bool
 var _transition_triggered: Dictionary = {}  # entity_id -> bool
 var _ragdoll_spawned: Dictionary = {}       # entity_id -> bool
@@ -170,19 +168,8 @@ func _handle_death_sequence(component: C_HealthComponent, entity_id: String) -> 
 		_spawn_ragdoll(component, entity_id)
 		_ragdoll_spawned[entity_id] = true
 
-	if component.death_timer > 0.0:
-		return
-	if _transition_triggered.get(entity_id, false):
-		return
-
-	_transition_triggered[entity_id] = true
-
-	if _scene_manager != null and is_instance_valid(_scene_manager):
-		_scene_manager.transition_to_scene(
-			StringName("game_over"),
-			"fade",
-			M_SceneManager.Priority.CRITICAL
-		)
+	# Death timer and transition are now handled by entity_death event
+	# M_SceneManager subscribes to entity_death and handles game over transition
 
 func _reset_death_flags(entity_id: String) -> void:
 	_restore_entity_state(entity_id)
@@ -289,10 +276,6 @@ func _restore_entity_state(entity_id: String) -> void:
 func _ensure_dependencies_ready() -> bool:
 	if _store == null:
 		_store = U_StateUtils.get_store(self)
-	if _scene_manager == null:
-		var managers := get_tree().get_nodes_in_group("scene_manager")
-		if managers.size() > 0:
-			_scene_manager = managers[0] as M_SceneManager
 	return _store != null
 
 func _get_entity_id(component: C_HealthComponent) -> String:

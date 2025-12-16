@@ -45,6 +45,10 @@ func _ready() -> void:
 	if stores.size() > 0:
 		_state_store = stores[0] as M_STATE_STORE
 
+	# Phase 10B (T133): Warn if M_StateStore missing for fail-fast feedback
+	if _state_store == null:
+		push_warning("M_SpawnManager: M_StateStore dependency not found. Ensure M_StateStore exists in scene tree and is in 'state_store' group")
+
 ## Spawn player at specified spawn point (T220)
 ##
 ## Validates spawn point exists and is a Node3D, finds player entity,

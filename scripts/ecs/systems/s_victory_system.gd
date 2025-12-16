@@ -5,13 +5,11 @@ class_name S_VictorySystem
 const COMPONENT_TYPE := StringName("C_VictoryTriggerComponent")
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const EVENT_VICTORY_TRIGGERED := StringName("victory_triggered")
 const REQUIRED_FINAL_AREA := "interior_house"
 
 var _store: M_StateStore = null
-var _scene_manager: M_SceneManager = null
 var _event_unsubscribes: Array[Callable] = []
 
 func _init() -> void:
@@ -49,11 +47,7 @@ func _handle_victory(trigger: C_VictoryTriggerComponent) -> void:
 		if trigger.victory_type == C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:
 			_store.dispatch(U_GameplayActions.game_complete())
 
-	var target_scene := _get_target_scene(trigger)
-
-	if _scene_manager != null and is_instance_valid(_scene_manager):
-		_scene_manager.transition_to_scene(target_scene, "fade", M_SceneManager.Priority.HIGH)
-
+	# Victory transition now handled by M_SceneManager via victory_triggered event
 	trigger.set_triggered()
 
 func _can_trigger_victory(trigger: C_VictoryTriggerComponent) -> bool:
@@ -75,20 +69,9 @@ func _can_trigger_victory(trigger: C_VictoryTriggerComponent) -> bool:
 
 	return true
 
-func _get_target_scene(trigger: C_VictoryTriggerComponent) -> StringName:
-	match trigger.victory_type:
-		C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:
-			return StringName("victory")
-		_:
-			return StringName("exterior")
-
 func _ensure_dependencies_ready() -> bool:
 	if _store == null:
 		_store = U_StateUtils.get_store(self)
-	if _scene_manager == null:
-		var managers := get_tree().get_nodes_in_group("scene_manager")
-		if managers.size() > 0:
-			_scene_manager = managers[0] as M_SceneManager
 	return _store != null
 
 func _exit_tree() -> void:

@@ -47,13 +47,6 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 - **Phase 10B – Architectural Hardening**: **🔄 IN PROGRESS** (Current phase - T130-T143)
 - Phase 11 – Final Validation & Regression Sweep: **NOT STARTED** (Tasks renumbered T150-T154)
 
-**Policy Decisions Approved**:
-- ✅ UI screen controllers: Add `ui_` prefix
-- ✅ UI scenes: Migrate all 16 to `ui_` prefix
-- ✅ Pause authority: M_PauseManager is sole authority
-- ✅ Hazard/objective scenes: Add `prefab_` prefix
-- ✅ Style enforcement: Comprehensive automated testing in place
-
 ---
 
 ## How to Continue
@@ -86,7 +79,7 @@ When you complete a phase (e.g., Phase 0 or Phase 1):
 
 ---
 
-## Related Documents
+## Related Documents **MUST READ**
 
 - `docs/general/STYLE_GUIDE.md`
 - `docs/general/SCENE_ORGANIZATION_GUIDE.md`
@@ -98,6 +91,8 @@ When you complete a phase (e.g., Phase 0 or Phase 1):
 - `docs/scene manager/scene-manager-prd.md`
 - `docs/input manager/input-manager-prd.md`
 - `docs/ui manager/ui-manager-prd.md`
+
+- `docs/general/cleanup/phase-10b-implementation-plan.md` (Architectural Hardening detailed plan)
 
 These subsystem PRDs/plans will be referenced in Phase 5 when aligning documentation.
 

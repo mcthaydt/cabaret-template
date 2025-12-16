@@ -1488,6 +1488,8 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ## Phase 10B – Architectural Hardening
 
+**Detailed implementation plan**: See `docs/general/cleanup/phase-10b-implementation-plan.md`
+
 **Goal**: Address systemic architectural issues for better modularity, testability, and scalability.
 **Audit Date**: 2025-12-09
 **Estimated Effort**: 4-6 weeks total (can be done incrementally)
@@ -1504,7 +1506,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Prerequisite**: Phase 7A (health events) and Phase 7B (victory events) must be complete.
 
-- [ ] T130 **Decouple S_HealthSystem from M_SceneManager**:
+- [x] T130 **Decouple S_HealthSystem from M_SceneManager**:
   - Currently: `var _scene_manager: M_SceneManager` direct reference (line 18)
   - Currently: Direct call to `_scene_manager.transition_to_scene()` (line 178)
   - Refactor: Use `entity_death` event from Phase 7A (T070a)
@@ -1512,7 +1514,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Remove: `_scene_manager` member variable and direct calls
   - Result: S_HealthSystem testable without M_SceneManager
 
-- [ ] T131 **Decouple S_VictorySystem from M_SceneManager**:
+- [x] T131 **Decouple S_VictorySystem from M_SceneManager**:
   - Currently: `var _scene_manager: M_SceneManager` direct reference (line 12)
   - Currently: Direct call to `_scene_manager.transition_to_scene()` (line 44)
   - Refactor: Use `victory_triggered` event from Phase 7B (T071a)
@@ -1520,13 +1522,13 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Remove: `_scene_manager` member variable and direct calls
   - Result: S_VictorySystem testable in isolation
 
-- [ ] T132 **Decouple S_CheckpointSystem from direct Area3D connections**:
+- [x] T132 **Decouple S_CheckpointSystem from direct Area3D connections**:
   - Currently: Manually connects Area3D signals, tracks `_connected_checkpoints`
   - Refactor: Components emit events, system subscribes via U_ECSEventBus
   - Add cleanup in component `_exit_tree()` to prevent signal leaks
   - Result: No signal connection leaks, cleaner lifecycle
 
-- [ ] T133 **Add manager initialization assertions**:
+- [x] T133 **Add manager initialization assertions**:
   - Add assertions in manager `_ready()` to verify dependencies exist
   - M_PauseManager, M_SpawnManager, M_CameraManager should assert M_StateStore exists
   - Fail fast instead of silent failures

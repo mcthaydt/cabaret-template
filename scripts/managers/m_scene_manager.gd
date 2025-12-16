@@ -31,6 +31,8 @@ const I_SCENE_CONTRACT := preload("res://scripts/scene_management/i_scene_contra
 const U_SCENE_CACHE := preload("res://scripts/scene_management/helpers/u_scene_cache.gd")
 const U_SCENE_LOADER := preload("res://scripts/scene_management/helpers/u_scene_loader.gd")
 const U_OVERLAY_STACK_MANAGER := preload("res://scripts/scene_management/helpers/u_overlay_stack_manager.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
 # Kept for type checking only:
 const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/trans_fade.gd")
@@ -134,6 +136,10 @@ var _overlay_helper := U_OVERLAY_STACK_MANAGER.new()
 ## Store subscription
 var _unsubscribe: Callable
 
+## ECS event bus subscriptions
+var _entity_death_unsubscribe: Callable
+var _victory_triggered_unsubscribe: Callable
+
 ## Skip initial scene load (for tests)
 var skip_initial_scene_load: bool = false
 
@@ -185,6 +191,10 @@ func _ready() -> void:
 			_store.slice_updated.connect(_on_slice_updated)
 			_navigation_slice_connected = true
 
+	# Subscribe to ECS events
+	_entity_death_unsubscribe = U_ECS_EVENT_BUS.subscribe(StringName("entity_death"), _on_entity_death)
+	_victory_triggered_unsubscribe = U_ECS_EVENT_BUS.subscribe(StringName("victory_triggered"), _on_victory_triggered)
+
 	# Validate U_SceneRegistry door pairings
 	if not U_SCENE_REGISTRY.validate_door_pairings():
 		push_error("M_SceneManager: U_SceneRegistry door pairing validation failed")
@@ -217,6 +227,12 @@ func _exit_tree() -> void:
 	if _store != null and _navigation_slice_connected and _store.slice_updated.is_connected(_on_slice_updated):
 		_store.slice_updated.disconnect(_on_slice_updated)
 	_navigation_slice_connected = false
+
+	# Unsubscribe from ECS events
+	if _entity_death_unsubscribe != null and _entity_death_unsubscribe.is_valid():
+		_entity_death_unsubscribe.call()
+	if _victory_triggered_unsubscribe != null and _victory_triggered_unsubscribe.is_valid():
+		_victory_triggered_unsubscribe.call()
 
 ## Find container nodes in the scene tree
 func _find_container_nodes() -> void:
@@ -275,6 +291,32 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 			_navigation_pending_scene_id = StringName("")
 		# NOTE: _sync_navigation_shell_with_scene() now called AFTER transition completes
 		# in _process_transition_queue() to prevent mobile controls flashing (line 316)
+
+## ECS event handler: entity_death
+## Phase 10B (T130): Subscribe to entity_death event instead of direct call from S_HealthSystem
+func _on_entity_death(event: Dictionary) -> void:
+	# Trigger game over transition when player dies
+	transition_to_scene(StringName("game_over"), "fade", Priority.CRITICAL)
+
+## ECS event handler: victory_triggered
+## Phase 10B (T131): Subscribe to victory_triggered event instead of direct call from S_VictorySystem
+func _on_victory_triggered(event: Dictionary) -> void:
+	var payload: Dictionary = event.get("payload", {})
+	var trigger := payload.get("trigger_node") as C_VictoryTriggerComponent
+	if trigger == null or not is_instance_valid(trigger):
+		return
+
+	# Determine target scene based on victory type
+	var target_scene := _get_victory_target_scene(trigger)
+	transition_to_scene(target_scene, "fade", Priority.HIGH)
+
+## Determine target scene for victory transition
+func _get_victory_target_scene(trigger: C_VictoryTriggerComponent) -> StringName:
+	match trigger.victory_type:
+		C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:
+			return StringName("victory")
+		_:
+			return StringName("exterior")
 
 ## Load initial scene on startup
 func _load_initial_scene() -> void:
