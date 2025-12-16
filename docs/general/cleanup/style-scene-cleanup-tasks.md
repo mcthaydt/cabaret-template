@@ -1581,21 +1581,21 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Problem**: DeviceType is hardcoded enum; adding new input types (VR) requires modifying multiple files.
 
-- [ ] T138a **Design IInputSource interface**:
+- [x] T138a **Design IInputSource interface**:
   - Methods: `get_device_type()`, `get_priority()`, `get_stick_deadzone()`, `is_active()`
   - Document device registration pattern
 
-- [ ] T138b **Create input source implementations**:
+- [x] T138b **Create input source implementations**:
   - `scripts/input/sources/keyboard_mouse_source.gd`
   - `scripts/input/sources/gamepad_source.gd`
   - `scripts/input/sources/touchscreen_source.gd`
 
-- [ ] T138c **Refactor M_InputDeviceManager to use IInputSource**:
+- [x] T138c **Refactor M_InputDeviceManager to use IInputSource**:
   - Replace hardcoded device type checks with polymorphic calls
   - Register sources at startup
   - Result: Adding VR requires only adding a new source class
 
-- [ ] T138d **Refactor S_InputSystem to use input sources**:
+- [x] T138d **Refactor S_InputSystem to use input sources**:
   - Extract device-specific logic into source classes
   - S_InputSystem queries active source, delegates input capture
   - Target: S_InputSystem reduced from 412 to ~200 lines
@@ -1604,17 +1604,17 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Problem**: M_StateStore (809 lines) mixes state management with persistence, history, and validation.
 
-- [ ] T139a **Create `scripts/state/utils/u_state_repository.gd`**:
+- [x] T139a **Create `scripts/state/utils/u_state_repository.gd`**:
   - Extract: `save_state()`, `load_state()`, auto-save logic
   - Extract: `_normalize_loaded_state()`, validation methods
   - Target: 200-250 lines
 
-- [ ] T139b **Create `scripts/state/utils/u_state_validator.gd`**:
+- [x] T139b **Create `scripts/state/utils/u_state_validator.gd`**:
   - Extract: State schema validation
   - Validate entire loaded state against registries before applying
   - Fail fast on invalid state
 
-- [ ] T139c **Refactor M_StateStore to use extracted utilities**:
+- [x] T139c **Refactor M_StateStore to use extracted utilities**:
   - M_StateStore focuses on dispatch/subscribe/get_state
   - Delegates persistence to U_StateRepository
   - Delegates validation to U_StateValidator
