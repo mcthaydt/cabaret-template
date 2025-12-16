@@ -151,6 +151,22 @@
   - Device detection is centralized in `M_InputDeviceManager`; gameplay systems read `U_InputSelectors.get_active_device_type()` / `get_active_gamepad_id()` instead of dispatching their own `device_changed` actions.
   - Rebinding flows must dispatch via Redux (`U_InputActions.rebind_action`)—`M_InputProfileManager` now derives InputMap state from the store, so avoid mutating InputMap directly in UI code.
   - `S_InputSystem` only gates input on cursor capture for desktop platforms; on mobile (`OS.has_feature("mobile")`), do not depend on `Input.mouse_mode` for gamepad routing so Bluetooth controllers remain functional when MobileControls hides the touchscreen UI.
+- Input Source Abstraction (Phase 10B-4 - Device Polymorphism)
+  - **Centralized device types**: `U_DeviceTypeConstants.DeviceType` enum (KEYBOARD_MOUSE, GAMEPAD, TOUCHSCREEN) replaces local enums
+  - **IInputSource interface**: All input devices implement `get_device_type()`, `get_priority()`, `is_active()`, `capture_input()`
+  - **Source implementations**:
+    - `KeyboardMouseSource`: Priority 1, captures keyboard vector + mouse delta
+    - `GamepadSource`: Priority 2, handles stick deadzones + button states
+    - `TouchscreenSource`: Priority 3, delegates to MobileControls virtual input
+  - **M_InputDeviceManager**: Registers sources at startup, delegates input events to appropriate source
+  - **S_InputSystem**: Queries active source from manager, delegates `capture_input()` call, writes to components
+  - **Adding new devices (e.g., VR)**: Create new source class extending `I_InputSource`, register in `M_InputDeviceManager._register_input_sources()`
+  - **Pattern**:
+    ```gdscript
+    # In M_InputDeviceManager
+    var source := _input_device_manager.get_input_source_for_device(active_device_type)
+    var input_data := source.capture_input(delta)  # {move_input, look_input, jump_pressed, etc.}
+    ```
 - Button Prompt Patterns (Phase 1 - Generic Glyphs)
   - **Registry handles texture loading**: `U_ButtonPromptRegistry.get_prompt(action, device_type)` returns cached Texture2D for registered actions
   - **Automatic fallback**: When texture unavailable, ButtonPrompt falls back to text label
