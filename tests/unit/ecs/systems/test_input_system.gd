@@ -3,9 +3,13 @@ extends BaseTest
 const ECS_MANAGER = preload("res://scripts/managers/m_ecs_manager.gd")
 const InputComponentScript = preload("res://scripts/ecs/components/c_input_component.gd")
 const InputSystemScript = preload("res://scripts/ecs/systems/s_input_system.gd")
+const InputDeviceManagerScript = preload("res://scripts/managers/m_input_device_manager.gd")
 const RS_SettingsInitialState = preload("res://scripts/state/resources/rs_settings_initial_state.gd")
 const U_StateHandoff = preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_InputActions = preload("res://scripts/state/actions/u_input_actions.gd")
+const U_DeviceTypeConstants = preload("res://scripts/input/u_device_type_constants.gd")
+const KeyboardMouseSource = preload("res://scripts/input/sources/keyboard_mouse_source.gd")
+const GamepadSource = preload("res://scripts/input/sources/gamepad_source.gd")
 
 func before_all() -> void:
 	_ensure_action("move_left")
@@ -42,6 +46,12 @@ func _setup_entity() -> Dictionary:
 	autofree(store)
 	await _pump()
 
+	# Create M_InputDeviceManager (required by S_InputSystem)
+	var input_device_manager := InputDeviceManagerScript.new()
+	add_child(input_device_manager)
+	autofree(input_device_manager)
+	await _pump()
+
 	var manager = ECS_MANAGER.new()
 	add_child(manager)
 	await _pump()
@@ -65,6 +75,7 @@ func _setup_entity() -> Dictionary:
 		"manager": manager,
 		"component": component,
 		"system": system,
+		"input_device_manager": input_device_manager,
 	}
 
 func test_input_system_updates_move_vector_from_actions() -> void:
@@ -110,16 +121,17 @@ func test_input_system_dispatches_state_updates_to_store() -> void:
 	autofree_context(context)
 	var manager: M_ECSManager = context["manager"] as M_ECSManager
 	var store: M_StateStore = context["store"] as M_StateStore
-	var system: S_InputSystem = context["system"] as S_InputSystem
+	var input_device_manager: M_InputDeviceManager = context["input_device_manager"] as M_InputDeviceManager
 
 	Input.action_press("move_right")
 	Input.action_press("move_forward")
 	Input.action_press("jump")
 	Input.action_press("sprint")
 
+	# Simulate mouse motion through input device manager (it delegates to keyboard/mouse source)
 	var motion := InputEventMouseMotion.new()
 	motion.relative = Vector2(3.0, -2.0)
-	system._input(motion)
+	input_device_manager._input(motion)
 
 	manager._physics_process(0.016)
 
@@ -138,12 +150,12 @@ func test_mouse_sensitivity_updates_from_settings_slice() -> void:
 	autofree_context(context)
 	var manager: M_ECSManager = context["manager"] as M_ECSManager
 	var store: M_StateStore = context["store"] as M_StateStore
-	var system: S_InputSystem = context["system"] as S_InputSystem
+	var input_device_manager: M_InputDeviceManager = context["input_device_manager"] as M_InputDeviceManager
 
 	# Initial tick to ensure store hookup
 	var initial_motion := InputEventMouseMotion.new()
 	initial_motion.relative = Vector2(1.0, 0.0)
-	system._input(initial_motion)
+	input_device_manager._input(initial_motion)
 	manager._physics_process(0.016)
 
 	store.dispatch(U_InputActions.update_mouse_sensitivity(2.5))
@@ -151,7 +163,7 @@ func test_mouse_sensitivity_updates_from_settings_slice() -> void:
 
 	var second_motion := InputEventMouseMotion.new()
 	second_motion.relative = Vector2(1.0, 0.0)
-	system._input(second_motion)
+	input_device_manager._input(second_motion)
 	manager._physics_process(0.016)
 
 	var gameplay := store.get_slice(StringName("gameplay"))
@@ -165,30 +177,30 @@ func test_gamepad_motion_updates_component_and_store() -> void:
 	autofree_context(context)
 	var manager: M_ECSManager = context["manager"] as M_ECSManager
 	var store: M_StateStore = context["store"] as M_StateStore
-	var system: S_InputSystem = context["system"] as S_InputSystem
+	var input_device_manager: M_InputDeviceManager = context["input_device_manager"] as M_InputDeviceManager
 	var component: C_InputComponent = context["component"] as C_InputComponent
 
 	store.dispatch(U_InputActions.gamepad_connected(9))
-	store.dispatch(U_InputActions.device_changed(InputSystemScript.DeviceType.GAMEPAD, 9))
+	store.dispatch(U_InputActions.device_changed(U_DeviceTypeConstants.DeviceType.GAMEPAD, 9))
 	await _pump()
 
 	var motion_x := InputEventJoypadMotion.new()
 	motion_x.device = 9
 	motion_x.axis = JOY_AXIS_LEFT_X
 	motion_x.axis_value = 0.8
-	system._input(motion_x)
+	input_device_manager._input(motion_x)
 	var motion_y := InputEventJoypadMotion.new()
 	motion_y.device = 9
 	motion_y.axis = JOY_AXIS_LEFT_Y
 	motion_y.axis_value = -0.6
-	system._input(motion_y)
+	input_device_manager._input(motion_y)
 
 	manager._physics_process(0.016)
 
 	assert_true(component.move_vector.length() > 0.0)
 	var gameplay: Dictionary = store.get_state().get("gameplay", {}) as Dictionary
 	var input_slice: Dictionary = gameplay.get("input", {})
-	assert_eq(input_slice.get("active_device", 0), InputSystemScript.DeviceType.GAMEPAD)
+	assert_eq(input_slice.get("active_device", 0), U_DeviceTypeConstants.DeviceType.GAMEPAD)
 	assert_eq(input_slice.get("gamepad_device_id", -1), 9)
 	assert_true(input_slice.get("gamepad_connected", true))
 
@@ -196,18 +208,18 @@ func test_handle_gamepad_disconnected_resets_local_state_only() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)
 	var store: M_StateStore = context["store"] as M_StateStore
-	var system: S_InputSystem = context["system"] as S_InputSystem
+	var input_device_manager: M_InputDeviceManager = context["input_device_manager"] as M_InputDeviceManager
 	var manager: M_ECSManager = context["manager"] as M_ECSManager
 
 	store.dispatch(U_InputActions.gamepad_connected(3))
-	store.dispatch(U_InputActions.device_changed(InputSystemScript.DeviceType.GAMEPAD, 3))
+	store.dispatch(U_InputActions.device_changed(U_DeviceTypeConstants.DeviceType.GAMEPAD, 3))
 	await _pump()
 
 	var motion := InputEventJoypadMotion.new()
 	motion.device = 3
 	motion.axis = JOY_AXIS_LEFT_X
 	motion.axis_value = 0.5
-	system._input(motion)
+	input_device_manager._input(motion)
 	manager._physics_process(0.016)
 
 	store.dispatch(U_InputActions.gamepad_disconnected(3))
@@ -216,13 +228,15 @@ func test_handle_gamepad_disconnected_resets_local_state_only() -> void:
 
 	var gameplay: Dictionary = store.get_state().get("gameplay", {}) as Dictionary
 	var input_slice: Dictionary = gameplay.get("input", {})
-	assert_eq(input_slice.get("active_device", 0), InputSystemScript.DeviceType.GAMEPAD, "System should not force device change; manager handles it")
+	assert_eq(input_slice.get("active_device", 0), U_DeviceTypeConstants.DeviceType.GAMEPAD, "System should not force device change; manager handles it")
 	assert_false(input_slice.get("gamepad_connected", true))
 	assert_eq(input_slice.get("gamepad_device_id", 99), -1)
-	var left_stick: Vector2 = system.get("_gamepad_left_stick")
-	assert_true(left_stick.is_zero_approx())
-	var buttons: Dictionary = system.get("_button_states")
-	assert_true(buttons.is_empty())
+
+	# Verify gamepad source state is reset (state lives in source now, not system)
+	var gamepad_source := input_device_manager.get_input_source_for_device(U_DeviceTypeConstants.DeviceType.GAMEPAD) as GamepadSource
+	assert_not_null(gamepad_source)
+	var button_states := gamepad_source.get_button_states()
+	assert_true(button_states.is_empty())
 
 func test_action_strengths_populated_on_components() -> void:
 	var context: Dictionary = await _setup_entity()
