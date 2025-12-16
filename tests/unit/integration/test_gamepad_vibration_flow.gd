@@ -68,8 +68,8 @@ func test_landing_event_triggers_vibration_end_to_end() -> void:
 	motion.device = 2
 	motion.axis = JOY_AXIS_LEFT_X
 	motion.axis_value = 0.5
+	# device_manager._input() delegates to gamepad source, no need to call input_system._input()
 	device_manager._input(motion)
-	input_system._input(motion)
 	manager._physics_process(0.016)
 	await wait_physics_frames(1) # Allow state to propagate to vibration system
 

@@ -8,6 +8,7 @@ const DEFAULT_SCENE_STATE := preload("res://resources/state/default_scene_initia
 const DEFAULT_SETTINGS_STATE := preload("res://resources/state/default_settings_initial_state.tres")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
+const M_INPUT_DEVICE_MANAGER := preload("res://scripts/managers/m_input_device_manager.gd")
 const S_INPUT_SYSTEM := preload("res://scripts/ecs/systems/s_input_system.gd")
 const C_INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
 const ECSEntity := preload("res://scripts/ecs/base_ecs_entity.gd")
@@ -97,6 +98,13 @@ func test_gameplay_input_resets_between_scene_transitions() -> void:
 func test_input_system_end_to_end_updates_store_and_component() -> void:
 	_ensure_default_actions()
 	var store: M_StateStore = await _spawn_state_store()
+
+	# Create M_InputDeviceManager (required by S_InputSystem for input sources)
+	var input_device_manager: M_InputDeviceManager = M_INPUT_DEVICE_MANAGER.new()
+	add_child(input_device_manager)
+	autofree(input_device_manager)
+	await get_tree().process_frame
+
 	var manager: M_ECSManager = M_ECS_MANAGER.new()
 	add_child(manager)
 	autofree(manager)
@@ -123,7 +131,8 @@ func test_input_system_end_to_end_updates_store_and_component() -> void:
 
 	var mouse_motion: InputEventMouseMotion = InputEventMouseMotion.new()
 	mouse_motion.relative = Vector2(4.0, -1.5)
-	system._input(mouse_motion)
+	# Input events are handled by M_InputDeviceManager which delegates to input sources
+	input_device_manager._input(mouse_motion)
 
 	manager._physics_process(0.016)
 
