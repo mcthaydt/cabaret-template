@@ -185,6 +185,7 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 |----------|--------------|---------------|----------|
 | **Scene Manager** | `m_scene_manager.gd` | `M_SceneManager` | `m_scene_manager.gd` → `M_SceneManager` |
 | **Spawn Manager** | `m_spawn_manager.gd` | `M_SpawnManager` | `m_spawn_manager.gd` → `M_SpawnManager` |
+| **Scene Type Handlers** | `h_*_handler.gd` | `H_*Handler` | `h_gameplay_scene_handler.gd` → `H_GameplaySceneHandler`, `h_menu_scene_handler.gd` → `H_MenuSceneHandler` |
 | **Scene Utilities** | `u_scene_*.gd` | `U_Scene*` | `u_scene_registry.gd` → `U_SceneRegistry`, `u_transition_factory.gd` → `U_TransitionFactory` |
 | **Transition Effects** | `trans_*.gd` | `Trans_*` | `trans_fade.gd` → `Trans_Fade`, `trans_loading_screen.gd` → `Trans_LoadingScreen` |
 | **Base Transition** | `base_transition_effect.gd` | `BaseTransitionEffect` | `base_transition_effect.gd` → `BaseTransitionEffect` |

@@ -39,6 +39,13 @@ const U_TRANSITION_ORCHESTRATOR := preload("res://scripts/scene_management/u_tra
 const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/trans_fade.gd")
 const LOADING_SCREEN_TRANSITION := preload("res://scripts/scene_management/transitions/trans_loading_screen.gd")
 
+# T137a: Phase 10B-3 - Scene type handler imports
+const I_SCENE_TYPE_HANDLER := preload("res://scripts/scene_management/i_scene_type_handler.gd")
+const H_GAMEPLAY_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_gameplay_scene_handler.gd")
+const H_MENU_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_menu_scene_handler.gd")
+const H_UI_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_ui_scene_handler.gd")
+const H_ENDGAME_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_endgame_scene_handler.gd")
+
 const OVERLAY_META_SCENE_ID := StringName("_scene_manager_overlay_scene_id")
 const PARTICLE_META_ORIG_SPEED := StringName("_scene_manager_particle_orig_speed")
 
@@ -135,6 +142,10 @@ var _scene_loader := U_SCENE_LOADER.new()
 var _overlay_helper := U_OVERLAY_STACK_MANAGER.new()
 var _transition_orchestrator := U_TRANSITION_ORCHESTRATOR.new()
 
+## Scene type handlers (T137a: Phase 10B-3)
+## Maps SceneType enum values to handler instances
+var _scene_type_handlers: Dictionary = {}  # int (SceneType) -> I_SCENE_TYPE_HANDLER
+
 ## Store subscription
 var _unsubscribe: Callable
 
@@ -197,6 +208,9 @@ func _ready() -> void:
 	_entity_death_unsubscribe = U_ECS_EVENT_BUS.subscribe(StringName("entity_death"), _on_entity_death)
 	_victory_triggered_unsubscribe = U_ECS_EVENT_BUS.subscribe(StringName("victory_triggered"), _on_victory_triggered)
 
+	# Register scene type handlers (T137c: Phase 10B-3)
+	_register_scene_type_handlers()
+
 	# Validate U_SceneRegistry door pairings
 	if not U_SCENE_REGISTRY.validate_door_pairings():
 		push_error("M_SceneManager: U_SceneRegistry door pairing validation failed")
@@ -221,6 +235,19 @@ func _request_navigation_reconciliation() -> void:
 	if nav_state.is_empty():
 		return
 	_reconcile_navigation_state(nav_state)
+
+
+## Register all scene type handlers (T137c: Phase 10B-3)
+##
+## Creates handler instances for each SceneType enum value and registers them
+## in the _scene_type_handlers dictionary. Handlers encapsulate scene-type-specific
+## behavior for loading, unloading, and navigation.
+func _register_scene_type_handlers() -> void:
+	_scene_type_handlers[U_SCENE_REGISTRY.SceneType.GAMEPLAY] = H_GAMEPLAY_SCENE_HANDLER.new()
+	_scene_type_handlers[U_SCENE_REGISTRY.SceneType.MENU] = H_MENU_SCENE_HANDLER.new()
+	_scene_type_handlers[U_SCENE_REGISTRY.SceneType.UI] = H_UI_SCENE_HANDLER.new()
+	_scene_type_handlers[U_SCENE_REGISTRY.SceneType.END_GAME] = H_ENDGAME_SCENE_HANDLER.new()
+
 
 func _exit_tree() -> void:
 	# Unsubscribe from state updates
@@ -519,12 +546,12 @@ func _perform_transition(request: TransitionRequest) -> void:
 		# Phase 12.5: Validate scene contract (T306)
 		_validate_scene_contract(new_scene, request.scene_id)
 
-		# Determine scene type for spawn handling
+		# Determine scene type for handler delegation
 		var scene_type: int = U_SCENE_REGISTRY.get_scene_type(request.scene_id)
 
-		# Mark gameplay scenes as spawned by M_SceneManager BEFORE adding to tree
+		# T137c (Phase 10B-3): Set gameplay metadata BEFORE adding to tree
 		# This must happen before _ready() calls fire, so M_GameplayInitializer sees it
-		if _spawn_manager != null and scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
+		if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
 			new_scene.set_meta("_scene_manager_spawned", true)
 
 		# Add new scene to ActiveSceneContainer
@@ -549,21 +576,22 @@ func _perform_transition(request: TransitionRequest) -> void:
 				if new_camera != null:
 					new_camera.current = true
 
-		# Restore player spawn point (Phase 12.1: T226, Phase 12.3: T268)
-		# Use spawn_at_last_spawn() which checks priority: target_spawn_point → last_checkpoint → sp_default
-		# This handles both door transitions AND death respawn correctly
-		# Only apply to GAMEPLAY scenes (not UI/Menu/EndGame)
-		if _spawn_manager != null and scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
-			# Wait for scene tree to fully initialize (spawn points, entities, etc.)
-			# This ensures all child nodes have completed their _ready() calls before spawning
-			# Multiple waits needed because some nodes use call_deferred for initialization
-			await get_tree().process_frame
-			await get_tree().physics_frame
-			await get_tree().process_frame  # Extra wait for deferred operations
+		# T137c (Phase 10B-3): Delegate scene-type-specific load behavior to handler
+		# Handlers encapsulate scene-type logic (metadata, spawning, etc.)
+		# Wait for scene tree to fully initialize before calling handler
+		await get_tree().process_frame
+		await get_tree().physics_frame
+		await get_tree().process_frame  # Extra wait for deferred operations
 
-			# Check scene is still valid before spawning (can be freed during test cleanup)
-			if is_instance_valid(new_scene):
-				await _spawn_manager.spawn_at_last_spawn(new_scene)
+		# Check scene is still valid before handler call (can be freed during test cleanup)
+		if is_instance_valid(new_scene):
+			var handler := _scene_type_handlers.get(scene_type) as I_SCENE_TYPE_HANDLER
+			if handler != null:
+				var managers := {
+					"spawn_manager": _spawn_manager,
+					"state_store": _store
+				}
+				await handler.on_load(new_scene, request.scene_id, managers)
 
 		scene_swap_complete[0] = true
 
@@ -943,14 +971,14 @@ func _sync_navigation_shell_with_scene(scene_id: StringName) -> void:
 		return
 
 	var scene_type: int = scene_data.get("scene_type", U_SCENE_REGISTRY.SceneType.GAMEPLAY)
-	var desired_shell: StringName = nav_state.get("shell", StringName(""))
-	match scene_type:
-		U_SCENE_REGISTRY.SceneType.GAMEPLAY:
-			desired_shell = StringName("gameplay")
-		U_SCENE_REGISTRY.SceneType.END_GAME:
-			desired_shell = StringName("endgame")
-		U_SCENE_REGISTRY.SceneType.MENU, U_SCENE_REGISTRY.SceneType.UI:
-			desired_shell = StringName("main_menu")
+
+	# T137c (Phase 10B-3): Delegate shell determination to handler
+	var handler := _scene_type_handlers.get(scene_type) as I_SCENE_TYPE_HANDLER
+	if handler == null:
+		push_error("M_SceneManager: No handler registered for scene_type %d" % scene_type)
+		return
+
+	var desired_shell: StringName = handler.get_shell_id()
 
 	var current_shell: StringName = nav_state.get("shell", StringName(""))
 	var current_scene: StringName = nav_state.get("base_scene_id", StringName(""))
@@ -973,15 +1001,10 @@ func _sync_navigation_shell_with_scene(scene_id: StringName) -> void:
 		# has already updated base_scene_id. Treat this as in-sync and skip.
 		return
 
-	match scene_type:
-		U_SCENE_REGISTRY.SceneType.GAMEPLAY:
-			_store.dispatch(U_NAVIGATION_ACTIONS.start_game(scene_id))
-		U_SCENE_REGISTRY.SceneType.END_GAME:
-			_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(desired_shell, scene_id))
-		U_SCENE_REGISTRY.SceneType.MENU, U_SCENE_REGISTRY.SceneType.UI:
-			_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(desired_shell, scene_id))
-		_:
-			_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(desired_shell, scene_id))
+	# T137c (Phase 10B-3): Dispatch navigation action from handler
+	var nav_action := handler.get_navigation_action(scene_id)
+	if not nav_action.is_empty():
+		_store.dispatch(nav_action)
 
 ## Configure transition-specific settings (T209)
 ##
@@ -1037,17 +1060,20 @@ func _update_scene_history(target_scene_id: StringName) -> void:
 	var target_scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(target_scene_id)
 	var target_scene_type: int = target_scene_data.get("scene_type", -1)
 
-	# T112: UI/Menu scenes automatically track history
-	# Add current scene to history BEFORE transitioning (if it's a UI/Menu scene)
-	var is_ui_or_menu: bool = (current_scene_type == U_SCENE_REGISTRY.SceneType.UI or
-								current_scene_type == U_SCENE_REGISTRY.SceneType.MENU)
-	if is_ui_or_menu and not _current_scene_id.is_empty():
+	# T112 + T137c (Phase 10B-3): Delegate history tracking decision to handlers
+	# Add current scene to history BEFORE transitioning (if handler says to track)
+	var current_handler := _scene_type_handlers.get(current_scene_type) as I_SCENE_TYPE_HANDLER
+	var should_track_current: bool = current_handler != null and current_handler.should_track_history()
+
+	if should_track_current and not _current_scene_id.is_empty():
 		# Avoid adding duplicate consecutive entries
 		if _scene_history.is_empty() or _scene_history.back() != _current_scene_id:
 			_scene_history.append(_current_scene_id)
 
-	# T113: Gameplay scenes explicitly disable history (clear history stack)
-	if target_scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
+	# T113 + T137c (Phase 10B-3): Clear history if target scene handler doesn't track
+	# (e.g., GAMEPLAY scenes clear history stack, END_GAME scenes don't track)
+	var target_handler := _scene_type_handlers.get(target_scene_type) as I_SCENE_TYPE_HANDLER
+	if target_handler != null and not target_handler.should_track_history():
 		_scene_history.clear()
 
 ## ============================================================================

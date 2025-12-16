@@ -1562,17 +1562,17 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Problem**: M_SceneManager has hardcoded `match scene_type:` logic; adding new scene types requires modifying the manager.
 
-- [ ] T137a **Design ISceneTypeHandler interface**:
+- [x] T137a **Design ISceneTypeHandler interface**:
   - Methods: `on_load(scene)`, `on_unload(scene)`, `get_required_managers()`, `get_scene_type()`
   - Document expected behavior for each method
 
-- [ ] T137b **Create scene type handlers**:
+- [x] T137b **Create scene type handlers**:
   - `scripts/scene_management/handlers/gameplay_scene_handler.gd`
   - `scripts/scene_management/handlers/menu_scene_handler.gd`
   - `scripts/scene_management/handlers/ui_scene_handler.gd`
   - `scripts/scene_management/handlers/endgame_scene_handler.gd`
 
-- [ ] T137c **Create SceneTypeHandlerRegistry**:
+- [x] T137c **Create SceneTypeHandlerRegistry**:
   - Register handlers at startup
   - M_SceneManager delegates to appropriate handler based on scene type
   - Result: Adding new scene types requires only adding a handler class

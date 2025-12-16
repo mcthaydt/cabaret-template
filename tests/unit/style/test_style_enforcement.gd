@@ -44,6 +44,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/scene_structure": ["marker_"],  # marker_*.gd organizational scripts
 	"res://scripts/scene_management/transitions": ["trans_", "base_"],  # transition effects
 	"res://scripts/scene_management/resources": ["rs_"],  # scene registry resources
+	"res://scripts/scene_management/handlers": ["h_"],  # Scene type handlers (Phase 10B-3)
 	"res://scripts/scene_management": ["i_", "u_", "sp_"],  # i_scene_contract.gd, u_scene_registry.gd, u_transition_factory.gd, sp_spawn_point.gd
 	"res://scripts/events": ["base_"],  # base_event_bus.gd
 }
