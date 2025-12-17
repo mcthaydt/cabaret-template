@@ -58,7 +58,8 @@ func _ready() -> void:
 
 ## Deferred initialization if store isn't ready yet
 func _deferred_init() -> void:
-	_store = U_ServiceLocator.get_service(StringName("state_store")) as M_StateStore
+	# Use try_get_service to avoid errors in test environments
+	_store = U_ServiceLocator.try_get_service(StringName("state_store")) as M_StateStore
 
 	if not _store:
 		# No store available - pause system will remain inactive

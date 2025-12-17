@@ -131,8 +131,18 @@ static func has(service_name: StringName) -> bool:
 	if not _services.has(service_name):
 		return false
 
-	var instance: Node = _services[service_name]
-	return instance != null and is_instance_valid(instance)
+	# Get as Variant first to avoid "invalid previously freed instance" error on assignment
+	var instance_variant: Variant = _services.get(service_name)
+	if instance_variant == null:
+		_services.erase(service_name)
+		return false
+
+	# Now check if it's a valid instance
+	if not is_instance_valid(instance_variant):
+		_services.erase(service_name)
+		return false
+
+	return true
 
 ## Register a dependency relationship
 ##
