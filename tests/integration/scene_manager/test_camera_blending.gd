@@ -15,6 +15,7 @@ const M_CameraManager = preload("res://scripts/managers/m_camera_manager.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/state/resources/rs_state_store_settings.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager
@@ -74,9 +75,19 @@ func before_each() -> void:
 	_manager = M_SceneManager.new()
 	_manager.skip_initial_scene_load = true
 	_root_scene.add_child(_manager)
+
+	# Register managers with ServiceLocator (Phase 10B-7: T141c)
+	U_ServiceLocator.register(StringName("state_store"), _store)
+	U_ServiceLocator.register(StringName("scene_manager"), _manager)
+	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
+	U_ServiceLocator.register(StringName("camera_manager"), _camera_manager)
+
 	await get_tree().process_frame
 
 func after_each() -> void:
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
+
 	_manager = null
 	_spawn_manager = null
 	_camera_manager = null
