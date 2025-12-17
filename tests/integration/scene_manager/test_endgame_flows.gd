@@ -20,6 +20,7 @@ const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 const PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
@@ -105,10 +106,17 @@ func before_each() -> void:
 	_scene_manager.initial_scene_id = StringName("exterior")
 	_root.add_child(_scene_manager)
 
+	# Register managers with ServiceLocator (Phase 10B-7: T141c)
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
+	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager)
+
 	await get_tree().process_frame
 	await wait_physics_frames(1)
 
 func after_each() -> void:
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
+
 	_root = null
 	_state_store = null
 	_scene_manager = null

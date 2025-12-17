@@ -9,6 +9,7 @@ const M_CURSOR_MANAGER := preload("res://scripts/managers/m_cursor_manager.gd")
 const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_pause_manager.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _root_node: Node
 var _state_store: M_STATE_STORE
@@ -51,7 +52,17 @@ func before_each() -> void:
 	_pause_system = S_PAUSE_SYSTEM.new()
 	_root_node.add_child(_pause_system)
 
+	# Register managers with ServiceLocator (Phase 10B-7: T141c)
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
+	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager)
+	U_ServiceLocator.register(StringName("cursor_manager"), _cursor_manager)
+	U_ServiceLocator.register(StringName("pause_manager"), _pause_system)
+
 	await get_tree().process_frame
+
+func after_each() -> void:
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
 
 func test_settings_with_return_to_pause_using_new_api() -> void:
 	# Given: In gameplay with pause overlay visible
