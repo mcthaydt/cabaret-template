@@ -27,7 +27,7 @@ var _current_vector: Vector2 = Vector2.ZERO
 var _is_active: bool = false
 var _is_repositioning: bool = false
 var _touch_offset_from_control: Vector2 = Vector2.ZERO
-var _store: M_StateStore = null
+var _store: I_StateStore = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS

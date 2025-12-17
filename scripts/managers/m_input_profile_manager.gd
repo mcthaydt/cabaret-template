@@ -31,9 +31,9 @@ signal custom_binding_added(action: StringName, event: InputEvent)
 
 var active_profile: RS_InputProfile
 var available_profiles: Dictionary = {} # String -> RS_InputProfile
-var store_ref: M_StateStore = null
+var store_ref: I_StateStore = null
 
-var _state_store: M_StateStore = null
+var _state_store: I_StateStore = null
 var _unsubscribe: Callable = Callable()
 var _profile_loader := M_InputProfileLoader.new()
 var _pause_gate_enabled: bool = false
@@ -80,7 +80,7 @@ func _ensure_state_store_ready() -> void:
 	_state_store = store
 	store_ref = store
 
-func _get_state_store() -> M_StateStore:
+func _get_state_store() -> I_StateStore:
 	if _state_store != null and is_instance_valid(_state_store):
 		return _state_store
 	return null

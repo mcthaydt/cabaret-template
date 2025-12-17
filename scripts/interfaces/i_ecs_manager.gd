@@ -1,4 +1,4 @@
-extends Resource
+extends Node
 class_name I_ECSManager
 
 ## Minimal interface for M_ECSManager

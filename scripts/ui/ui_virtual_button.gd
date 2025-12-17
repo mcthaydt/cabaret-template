@@ -49,7 +49,7 @@ var _touch_id: int = -1
 var _is_pressed: bool = false
 var _is_repositioning: bool = false
 var _touch_offset_from_control: Vector2 = Vector2.ZERO
-var _store: M_StateStore = null
+var _store: I_StateStore = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -236,7 +236,7 @@ func _load_texture(path: String) -> Texture2D:
 		return resource
 	return null
 
-func _get_store_instance() -> M_StateStore:
+func _get_store_instance() -> I_StateStore:
 	if _store != null and is_instance_valid(_store):
 		return _store
 	var tree := get_tree()

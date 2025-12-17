@@ -6,7 +6,7 @@ class_name BaseECSSystem
 const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 static var _missing_manager_method_warnings: Dictionary = {}
 
-var _manager: M_ECSManager
+var _manager: I_ECSManager
 var _execution_priority: int = 0
 var _debug_disabled: bool = false
 
@@ -28,7 +28,7 @@ var _debug_disabled: bool = false
 func _ready() -> void:
 	call_deferred("_register_with_manager")
 
-func configure(manager: M_ECSManager) -> void:
+func configure(manager: I_ECSManager) -> void:
 	_manager = manager
 	_notify_manager_priority_changed()
 	on_configured()
@@ -36,7 +36,7 @@ func configure(manager: M_ECSManager) -> void:
 func on_configured() -> void:
 	pass
 
-func get_manager() -> M_ECSManager:
+func get_manager() -> I_ECSManager:
 	# Prioritize injected manager for tests (Phase 10B-8)
 	if ecs_manager != null:
 		return ecs_manager
@@ -81,7 +81,7 @@ func _register_with_manager() -> void:
 		return
 
 	# Otherwise, auto-discover
-	var manager := ECS_UTILS.get_manager(self) as M_ECSManager
+	var manager := ECS_UTILS.get_manager(self) as I_ECSManager
 	if manager == null:
 		return
 	manager.register_system(self)

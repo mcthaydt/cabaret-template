@@ -1676,17 +1676,17 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 **Problem**: Systems are difficult to unit test due to concrete manager dependencies.
 
-- [ ] T142a **Create manager interfaces**:
+- [x] T142a **Create manager interfaces**:
   - `scripts/interfaces/i_state_store.gd` - interface for M_StateStore
   - `scripts/interfaces/i_scene_manager.gd` - interface for M_SceneManager
   - `scripts/interfaces/i_ecs_manager.gd` - interface for M_ECSManager
 
-- [ ] T142b **Create mock implementations for testing**:
+- [x] T142b **Create mock implementations for testing**:
   - `tests/mocks/mock_state_store.gd`
   - `tests/mocks/mock_scene_manager.gd`
   - `tests/mocks/mock_ecs_manager.gd`
 
-- [ ] T142c **Update systems to depend on interfaces**:
+- [x] T142c **Update systems to depend on interfaces**:
   - Systems accept dependencies via constructor or exported properties
   - Production: wire real implementations
   - Tests: inject mocks

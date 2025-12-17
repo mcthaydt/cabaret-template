@@ -129,11 +129,11 @@ func _handle_captured_event(event: InputEvent) -> void:
 func _apply_binding(event: InputEvent, conflict_action: StringName) -> void:
 	await U_RebindCaptureHandler.apply_binding(self, event, conflict_action)
 
-func _resolve_preferred_store() -> M_StateStore:
+func _resolve_preferred_store() -> I_StateStore:
 	var stores := get_tree().get_nodes_in_group("state_store")
-	var fallback_store: M_StateStore = null
+	var fallback_store: I_StateStore = null
 	for entry in stores:
-		var candidate := entry as M_StateStore
+		var candidate := entry as I_StateStore
 		if candidate == null:
 			continue
 		if "dispatched_actions" in candidate:

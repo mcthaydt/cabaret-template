@@ -36,7 +36,7 @@ const DeviceType := U_DeviceTypeConstants.DeviceType
 @export var state_store: I_StateStore = null
 
 var _actions_initialized := false
-var _state_store: M_StateStore = null
+var _state_store: I_StateStore = null
 var _store_unsubscribe: Callable = Callable()
 var _input_device_manager: M_InputDeviceManager = null
 var _gamepad_settings_cache: Dictionary = {}
@@ -285,7 +285,7 @@ func _ensure_state_store_ready() -> void:
 	_teardown_store_subscription()
 
 	# Use injected store if available (Phase 10B-8)
-	var store: M_StateStore = null
+	var store: I_StateStore = null
 	if state_store != null:
 		store = state_store
 	else:
@@ -298,7 +298,7 @@ func _ensure_state_store_ready() -> void:
 	_store_unsubscribe = store.subscribe(_on_state_store_changed)
 	_apply_settings_from_state(store.get_state())
 
-func _get_state_store() -> M_StateStore:
+func _get_state_store() -> I_StateStore:
 	if _state_store != null and is_instance_valid(_state_store):
 		return _state_store
 	_teardown_store_subscription()

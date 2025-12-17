@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/manager.svg")
-extends Node
+extends I_ECSManager
 class_name M_ECSManager
 
 signal component_added(component_type: StringName, component: BaseECSComponent)

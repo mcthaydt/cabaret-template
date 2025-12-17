@@ -15,7 +15,7 @@ const HUD_GROUP := StringName("hud_layers")
 @onready var checkpoint_toast: Label = $MarginContainer/CheckpointToast
 @onready var interact_prompt: UI_ButtonPrompt = $MarginContainer/InteractPrompt
 
-var _store: M_StateStore = null
+var _store: I_StateStore = null
 var _player_entity_id: String = "E_Player"
 var _unsubscribe_checkpoint: Callable
 var _unsubscribe_interact_prompt_show: Callable

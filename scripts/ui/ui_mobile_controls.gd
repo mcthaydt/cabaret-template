@@ -23,7 +23,7 @@ const DEFAULT_TOUCHSCREEN_PROFILE_PATH := "res://resources/input/profiles/defaul
 const SHELL_GAMEPLAY := StringName("gameplay")
 const EDIT_OVERLAY_ID := StringName("edit_touch_controls")
 
-var _state_store: M_StateStore = null
+var _state_store: I_StateStore = null
 var _unsubscribe: Callable = Callable()
 var _controls_root: Control = null
 var _default_touchscreen_settings: RS_TouchscreenSettings = RS_TouchscreenSettings.new()

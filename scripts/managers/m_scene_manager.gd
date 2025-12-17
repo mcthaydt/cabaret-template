@@ -68,7 +68,7 @@ class TransitionRequest:
 		priority = p_priority
 
 ## Internal references
-var _store: M_StateStore = null
+var _store: I_StateStore = null
 var _cursor_manager: M_CursorManager = null
 var _spawn_manager: Node = null  # M_SpawnManager (Phase 12.1)
 var _camera_manager: Node = null  # M_CameraManager (Phase 12.2)

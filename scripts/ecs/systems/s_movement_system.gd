@@ -20,7 +20,7 @@ var _floor_state_stable_frames: Dictionary = {}  # entity_id -> frames_stable
 func process_tick(delta: float) -> void:
 	# Skip processing if game is paused
 	# Use injected store if available (Phase 10B-8)
-	var store: M_StateStore = null
+	var store: I_StateStore = null
 	if state_store != null:
 		store = state_store
 	else:

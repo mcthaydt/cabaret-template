@@ -22,7 +22,7 @@ var _text_icon_texture: TextureRect
 var _text_icon_label: Label
 var _mobile_button: Control
 var _mobile_button_label: Label
-var _store: M_StateStore = null
+var _store: I_StateStore = null
 var _device_manager: M_InputDeviceManager = null
 var _tree_node_added_connected: bool = false
 var _device_type: int = M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE

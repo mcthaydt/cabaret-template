@@ -21,7 +21,7 @@ static func get_manager(from_node: Node) -> Node:
 		return null
 
 	# Priority 1: Check for injected manager (test pattern, Phase 10B-8)
-	if from_node.has_method("get") and from_node.has("ecs_manager"):
+	if "ecs_manager" in from_node:
 		var injected: Variant = from_node.get("ecs_manager")
 		if injected != null and is_instance_valid(injected):
 			return injected
@@ -76,7 +76,7 @@ static func find_entity_root(from_node: Node, warn_on_missing: bool = false) -> 
 static func get_current_time() -> float:
 	return float(Time.get_ticks_msec()) / 1000.0
 
-static func map_components_by_body(manager: M_ECSManager, component_type: StringName) -> Dictionary:
+static func map_components_by_body(manager: I_ECSManager, component_type: StringName) -> Dictionary:
 	var result: Dictionary = {}
 	if manager == null:
 		return result

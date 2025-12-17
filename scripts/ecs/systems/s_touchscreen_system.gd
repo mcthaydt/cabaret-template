@@ -21,7 +21,7 @@ const UI_MobileControls := preload("res://scripts/ui/ui_mobile_controls.gd")
 @export var force_enable: bool = false
 @export var emulate_mobile_override: bool = false
 
-var _state_store: M_StateStore = null
+var _state_store: I_StateStore = null
 var _mobile_controls: UI_MobileControls = null
 var _joystick: UI_VirtualJoystick = null
 var _button_map: Dictionary = {}
@@ -78,7 +78,7 @@ func _ensure_state_store_ready() -> void:
 		return
 	_state_store = U_StateUtils.get_store(self)
 
-func _get_state_store() -> M_StateStore:
+func _get_state_store() -> I_StateStore:
 	if _state_store == null or not is_instance_valid(_state_store):
 		_state_store = null
 		return null
@@ -123,7 +123,7 @@ func _get_button_pressed(action: StringName) -> bool:
 		return false
 	return button.is_pressed()
 
-func _dispatch_state(store: M_StateStore, move_vector: Vector2, jump_pressed: bool, jump_just_pressed: bool, sprint_pressed: bool) -> void:
+func _dispatch_state(store: I_StateStore, move_vector: Vector2, jump_pressed: bool, jump_just_pressed: bool, sprint_pressed: bool) -> void:
 	if store == null or not is_instance_valid(store):
 		return
 	store.dispatch(U_InputActions.update_move_input(move_vector))

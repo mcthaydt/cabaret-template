@@ -20,7 +20,7 @@ const PLAYER_RAGDOLL := preload("res://scenes/prefabs/prefab_player_ragdoll.tscn
 ## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
 @export var state_store: I_StateStore = null
 
-var _store: M_StateStore = null
+var _store: I_StateStore = null
 var _death_logged: Dictionary = {}          # entity_id -> bool
 var _transition_triggered: Dictionary = {}  # entity_id -> bool
 var _ragdoll_spawned: Dictionary = {}       # entity_id -> bool

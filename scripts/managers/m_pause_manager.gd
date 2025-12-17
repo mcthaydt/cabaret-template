@@ -27,7 +27,7 @@ signal pause_state_changed(is_paused: bool)
 
 const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
 
-var _store: M_StateStore = null
+var _store: I_StateStore = null
 var _cursor_manager: M_CursorManager = null
 var _ui_overlay_stack: CanvasLayer = null
 var _is_paused: bool = false

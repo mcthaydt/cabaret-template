@@ -1,6 +1,6 @@
 @icon("res://resources/editor_icons/manager.svg")
 
-extends Node
+extends I_StateStore
 class_name M_StateStore
 
 ## Centralized Redux-style state store for game state management.

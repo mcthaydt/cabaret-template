@@ -13,7 +13,7 @@ const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigati
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_NavigationReducer := preload("res://scripts/state/reducers/u_navigation_reducer.gd")
 
-var _store: Node = null
+var _store: I_StateStore = null
 
 
 func _ready() -> void:

@@ -9,26 +9,26 @@ class_name U_StateUtils
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const STORE_GROUP := StringName("state_store")
 
-## Get the M_StateStore from injection, ServiceLocator, or groups
+## Get the I_StateStore from injection, ServiceLocator, or groups
 ## Returns null if no store found or node is invalid
 ##
 ## Lookup order (Phase 10B-8):
 ##   1. Check if node has 'state_store' @export (for test injection)
 ##   2. ServiceLocator (fast, centralized)
 ##   3. Group lookup (backward compatibility)
-static func get_store(node: Node) -> M_StateStore:
+static func get_store(node: Node) -> I_StateStore:
 	if node == null or not is_instance_valid(node):
 		push_error("U_StateUtils.get_store: Invalid node")
 		return null
 
 	# Priority 1: Check for injected store (test pattern, Phase 10B-8)
-	if node.has_method("get") and node.has("state_store"):
+	if "state_store" in node:
 		var injected: Variant = node.get("state_store")
 		if injected != null and is_instance_valid(injected):
 			return injected
 
 	# Priority 2: ServiceLocator (production pattern)
-	var store := U_ServiceLocator.try_get_service(STORE_GROUP) as M_StateStore
+	var store := U_ServiceLocator.try_get_service(STORE_GROUP) as I_StateStore
 
 	# Priority 3: Group lookup (backward compatibility)
 	if store == null:
@@ -45,11 +45,11 @@ static func get_store(node: Node) -> M_StateStore:
 		if store_group.size() > 1:
 			push_warning("U_StateUtils.get_store: Multiple stores found, using first")
 
-		store = store_group[0] as M_StateStore
+		store = store_group[0] as I_StateStore
 
 	return store
 
-static func await_store_ready(node: Node, max_frames: int = 120) -> M_StateStore:
+static func await_store_ready(node: Node, max_frames: int = 120) -> I_StateStore:
 	if node == null or not is_instance_valid(node):
 		push_error("U_StateUtils.await_store_ready: Invalid node")
 		return null
@@ -62,11 +62,11 @@ static func await_store_ready(node: Node, max_frames: int = 120) -> M_StateStore
 	var frames_waited := 0
 	while frames_waited <= max_frames:
 		# Try ServiceLocator first (silent lookup to avoid error spam during waiting)
-		var store := U_ServiceLocator.try_get_service(STORE_GROUP) as M_StateStore
+		var store := U_ServiceLocator.try_get_service(STORE_GROUP) as I_StateStore
 
 		# Fallback to group lookup if ServiceLocator not initialized yet
 		if store == null:
-			store = tree.get_first_node_in_group(STORE_GROUP) as M_StateStore
+			store = tree.get_first_node_in_group(STORE_GROUP) as I_StateStore
 
 		if store != null:
 			if store.is_ready():

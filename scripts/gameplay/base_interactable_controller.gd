@@ -16,7 +16,7 @@ var _tracked_players: Dictionary = {}
 var _cooldown_remaining: float = 0.0
 var _is_locked: bool = false
 var _cached_manager: M_ECSManager
-var _cached_store: M_StateStore
+var _cached_store: I_StateStore
 var _arming_frames_remaining: int = 0
 var _is_armed: bool = false
 var _area_enter_callable: Callable = Callable()
@@ -198,7 +198,7 @@ func _get_manager() -> M_ECSManager:
 	_cached_manager = U_ECS_UTILS.get_manager(self) as M_ECSManager
 	return _cached_manager
 
-func _get_store() -> M_StateStore:
+func _get_store() -> I_StateStore:
 	if _cached_store != null and is_instance_valid(_cached_store):
 		return _cached_store
 	var tree := get_tree()
@@ -207,7 +207,7 @@ func _get_store() -> M_StateStore:
 	var stores := tree.get_nodes_in_group(STATE_STORE_GROUP)
 	if stores.is_empty():
 		return null
-	_cached_store = stores[0] as M_StateStore
+	_cached_store = stores[0] as I_StateStore
 	return _cached_store
 
 func _is_transition_blocked() -> bool:

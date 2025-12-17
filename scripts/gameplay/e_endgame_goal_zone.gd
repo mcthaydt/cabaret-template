@@ -11,7 +11,7 @@ const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 
 @export var required_area: String = "interior_house"
 
-var _store: M_StateStore = null
+var _store: I_StateStore = null
 var _has_applied_state: bool = false
 var _is_unlocked: bool = false
 

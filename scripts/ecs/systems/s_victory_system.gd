@@ -14,7 +14,7 @@ const REQUIRED_FINAL_AREA := "interior_house"
 ## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
 @export var state_store: I_StateStore = null
 
-var _store: M_StateStore = null
+var _store: I_StateStore = null
 var _event_unsubscribes: Array[Callable] = []
 
 func _init() -> void:
