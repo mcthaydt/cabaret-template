@@ -61,7 +61,17 @@ static func set_history_limit(limit: int) -> void:
 ## Convert typed event class to event name.
 ## Example: Evn_HealthChanged -> "health_changed"
 static func _event_class_to_name(event: BaseECSEvent) -> StringName:
-	var event_class: String = event.get_class()
+	# Get the script's class_name, not the base class
+	var script: Script = event.get_script()
+	if script == null:
+		push_error("Event has no script attached")
+		return StringName("")
+
+	var event_class: String = script.get_global_name()
+	if event_class.is_empty():
+		push_error("Event script has no class_name defined")
+		return StringName("")
+
 	# Remove "Evn_" prefix and convert to snake_case
 	var name_without_prefix: String = event_class.replace("Evn_", "")
 	var snake: String = name_without_prefix.to_snake_case()
