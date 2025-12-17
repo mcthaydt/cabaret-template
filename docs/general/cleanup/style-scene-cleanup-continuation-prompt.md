@@ -18,7 +18,7 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
 
 ---
 
-## Current Status (2025-12-15 – Phase 9 Complete, Phase 10/10B Deferred)
+## Current Status (2025-12-17 – Phase 10B Complete)
 
 - **PRD**: `docs/general/cleanup/style-scene-cleanup-prd.md` – Drafted.
 - **Plan**: `docs/general/cleanup/style-scene-cleanup-plan.md` – Phases 0–11 defined with user-approved policies.
@@ -44,21 +44,25 @@ If you are ever unsure what to do next, **read the tasks file** and follow the n
   - **9E (Minor Splits)**: ✅ COMPLETE (T094-T097)
   - **9F (Validation)**: ✅ COMPLETE (T098-T099)
 - **Phase 10 – Multi-Slot Save Manager**: **⏸️ DEFERRED** (Will be handled as separate PRD)
-- **Phase 10B – Architectural Hardening**: **🔄 IN PROGRESS** (Current phase - T130-T143)
+- **Phase 10B – Architectural Hardening**: **✅ COMPLETE** (T130-T143)
+  - Phase 10B-9 deliverables (T143a-T143c) completed:
+    - `docs/architecture/ecs_state_contract.md`
+    - `docs/architecture/dependency_graph.md` (includes mermaid)
+    - `docs/architecture/adr/ADR-001-redux-state-management.md` .. `ADR-004-service-locator.md`
 - Phase 11 – Final Validation & Regression Sweep: **NOT STARTED** (Tasks renumbered T150-T154)
 
 ---
 
 ## How to Continue
 
-**Current Phase: Phase 10B – Architectural Hardening**
+**Current Phase: Phase 11 – Final Validation & Regression Sweep**
 
-Phase 9 is complete. Phase 10 (Multi-Slot Save Manager) has been deferred to a separate PRD.
+Phase 10B is complete. Phase 10 (Multi-Slot Save Manager) remains deferred to a separate PRD.
 
 **Next Steps**:
-1. Start Phase 10B - Architectural Hardening (T130-T143)
-2. Address systemic architectural issues for better modularity, testability, and scalability
-3. Follow task order in `style-scene-cleanup-tasks.md`
+1. Start Phase 11 tasks (T150-T154) in `docs/general/cleanup/style-scene-cleanup-tasks.md`
+2. Run full GUT test suites and record baseline
+3. Manually verify core user flows (menu → gameplay → transitions → overlays)
 
 **Note**: Phase 10 (Multi-Slot Save Manager) is deferred and will be handled as a separate PRD later.
 

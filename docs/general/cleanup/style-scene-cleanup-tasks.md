@@ -1694,21 +1694,24 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 10B-9: Documentation & Contracts
 
-- [ ] T143a **Create ECS-State contract documentation**:
+- [x] T143a **Create ECS-State contract documentation**:
   - Document all ECS → State dependencies (which systems dispatch which actions)
   - Document all State → ECS dependencies (which systems read which selectors)
   - Add to `docs/architecture/ecs_state_contract.md`
+  - ✅ Completed (2025-12-17): `docs/architecture/ecs_state_contract.md`
 
-- [ ] T143b **Create dependency graph visualization**:
+- [x] T143b **Create dependency graph visualization**:
   - Document manager initialization order
   - Document system → manager dependencies
   - Generate ASCII or mermaid diagram
+  - ✅ Completed (2025-12-17): `docs/architecture/dependency_graph.md` (includes mermaid)
 
-- [ ] T143c **Add architectural decision records (ADRs)**:
+- [x] T143c **Add architectural decision records (ADRs)**:
   - ADR-001: Redux-style state management
   - ADR-002: ECS pattern with Node-based components
   - ADR-003: Event bus for cross-system communication
   - ADR-004: Service locator for dependency management
+  - ✅ Completed (2025-12-17): `docs/architecture/adr/ADR-001-redux-state-management.md` .. `ADR-004-service-locator.md`
 
 ### Phase 10B Summary
 
