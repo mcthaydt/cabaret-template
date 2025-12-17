@@ -30,6 +30,8 @@ func after_each() -> void:
 	Input.action_release("move_backward")
 	Input.action_release("jump")
 	Input.action_release("sprint")
+	# Call parent to clear ServiceLocator
+	super.after_each()
 
 func _pump() -> void:
 	await get_tree().process_frame
@@ -46,11 +48,17 @@ func _setup_entity() -> Dictionary:
 	autofree(store)
 	await _pump()
 
+	# Register state_store with ServiceLocator so systems can find it
+	U_ServiceLocator.register(StringName("state_store"), store)
+
 	# Create M_InputDeviceManager (required by S_InputSystem)
 	var input_device_manager := InputDeviceManagerScript.new()
 	add_child(input_device_manager)
 	autofree(input_device_manager)
 	await _pump()
+
+	# Register input_device_manager with ServiceLocator so systems can find it
+	U_ServiceLocator.register(StringName("input_device_manager"), input_device_manager)
 
 	var manager = ECS_MANAGER.new()
 	add_child(manager)

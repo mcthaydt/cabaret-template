@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
@@ -60,10 +60,18 @@ func before_each() -> void:
 	add_child_autofree(_store)
 	await get_tree().process_frame
 
+	# Register all managers with ServiceLocator so they can find each other
+	U_ServiceLocator.register(StringName("state_store"), _store)
+	U_ServiceLocator.register(StringName("cursor_manager"), _cursor_manager)
+	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
+	U_ServiceLocator.register(StringName("camera_manager"), _camera_manager)
+
 	# Create M_PauseManager to apply pause based on scene state
 	_pause_system = M_PauseManager.new()
 	add_child_autofree(_pause_system)
 	await get_tree().process_frame
+
+	U_ServiceLocator.register(StringName("pause_manager"), _pause_system)
 
 func after_each() -> void:
 	get_tree().paused = false  # Reset pause state
@@ -76,6 +84,8 @@ func after_each() -> void:
 	_spawn_manager = null
 	_camera_manager = null
 	_pause_system = null
+	# Call parent to clear ServiceLocator
+	super.after_each()
 
 func test_navigation_open_and_close_pause_overlay() -> void:
 	await _spawn_scene_manager()
@@ -244,6 +254,8 @@ func _spawn_scene_manager() -> M_SceneManager:
 	manager.skip_initial_scene_load = true
 	add_child_autofree(manager)
 	await get_tree().process_frame
+	# Register scene_manager with ServiceLocator so other managers can find it
+	U_ServiceLocator.register(StringName("scene_manager"), manager)
 	return manager
 
 func _await_scene(scene_id: StringName, limit_frames: int = 30) -> void:

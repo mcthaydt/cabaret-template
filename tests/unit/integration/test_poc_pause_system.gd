@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 ## Proof-of-Concept Integration Tests: Pause System
 ##
@@ -27,11 +27,17 @@ func before_each() -> void:
 	add_child(store)
 	await get_tree().process_frame
 
+	# Register state_store with ServiceLocator so managers can find it
+	U_ServiceLocator.register(StringName("state_store"), store)
+
 	# Create cursor manager (T071: required for M_PauseManager coordination)
 	cursor_manager = M_CursorManager.new()
 	autofree(cursor_manager)
 	add_child(cursor_manager)
 	await get_tree().process_frame
+
+	# Register cursor_manager with ServiceLocator
+	U_ServiceLocator.register(StringName("cursor_manager"), cursor_manager)
 
 func after_each() -> void:
 	get_tree().paused = false  # Reset pause state
@@ -42,6 +48,8 @@ func after_each() -> void:
 	store = null
 	pause_system = null
 	cursor_manager = null
+	# Call parent to clear ServiceLocator
+	super.after_each()
 
 ## T299: Test pause system reacts to scene state changes (Phase 2 refactor)
 func test_pause_system_reacts_to_navigation_state() -> void:

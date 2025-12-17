@@ -4,6 +4,11 @@ class_name BaseTest
 ## Base test class that centralizes automatic cleanup of test fixtures.
 ## Registers created nodes with GUT's autofree queue so they are cleaned up
 ## even when tests fail early.
+## Also handles ServiceLocator cleanup to prevent service pollution across tests.
+
+func after_each() -> void:
+	# Clear ServiceLocator to prevent service pollution across tests
+	U_ServiceLocator.clear()
 
 ## Register a single node for queue_free cleanup after the test finishes.
 func autofree(node: Node) -> Node:
