@@ -2,7 +2,6 @@ extends RefCounted
 class_name U_RebindActionListBuilder
 
 const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
-const U_ButtonPromptRegistry := preload("res://scripts/ui/u_button_prompt_registry.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 
@@ -400,17 +399,6 @@ static func _populate_binding_visuals(
 	device_type: int
 ) -> void:
 	if container == null:
-		return
-
-	var registry_texture: Texture2D = U_ButtonPromptRegistry.get_prompt(action, device_type)
-
-	if registry_texture != null:
-		var texture_rect := TextureRect.new()
-		texture_rect.texture = registry_texture
-		texture_rect.custom_minimum_size = Vector2(24, 24)
-		texture_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-		texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		container.add_child(texture_rect)
 		return
 
 	for i in range(events.size()):

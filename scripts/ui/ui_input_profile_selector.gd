@@ -22,10 +22,13 @@ var _available_profiles: Array[String] = []
 var _current_index: int = 0
 
 func _on_panel_ready() -> void:
+	await get_tree().process_frame
 	_manager = get_tree().get_first_node_in_group("input_profile_manager")
 	if _manager == null:
 		push_warning("InputProfileSelector: M_InputProfileManager not found")
 		return
+	if _manager.has_signal("profile_switched") and not _manager.profile_switched.is_connected(_on_manager_profile_switched):
+		_manager.profile_switched.connect(_on_manager_profile_switched)
 	_populate_profiles()
 	_configure_focus_neighbors()
 	if _profile_button != null and not _profile_button.pressed.is_connected(_on_profile_button_pressed):
@@ -33,6 +36,17 @@ func _on_panel_ready() -> void:
 	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
 		_apply_button.pressed.connect(_on_apply_pressed)
 	_update_preview()
+
+func _on_manager_profile_switched(profile_id: String) -> void:
+	if _available_profiles.is_empty():
+		_populate_profiles()
+		return
+	var idx := _available_profiles.find(profile_id)
+	if idx != -1:
+		_current_index = idx
+		_update_button_text()
+	else:
+		_populate_profiles()
 
 func _navigate_focus(direction: StringName) -> void:
 	# Override to handle navigation within this overlay
@@ -73,6 +87,11 @@ func _populate_profiles() -> void:
 	var filtered_ids: Array[String] = all_ids
 
 	var store := get_store()
+	var active_id := ""
+	if store != null:
+		var state: Dictionary = store.get_state()
+		active_id = U_InputSelectors.get_active_profile_id(state)
+
 	if store != null and "available_profiles" in _manager:
 		var state: Dictionary = store.get_state()
 		var device_type: int = U_InputSelectors.get_active_device_type(state)
@@ -87,6 +106,9 @@ func _populate_profiles() -> void:
 		if not device_filtered.is_empty():
 			device_filtered.sort()
 			filtered_ids = device_filtered
+			# Ensure the current active profile is shown even if it doesn't match the current device filter.
+			if not active_id.is_empty() and not filtered_ids.has(active_id) and all_ids.has(active_id):
+				filtered_ids.insert(0, active_id)
 
 	_available_profiles = filtered_ids
 
@@ -94,8 +116,6 @@ func _populate_profiles() -> void:
 	if store == null:
 		_current_index = 0
 	else:
-		var state: Dictionary = store.get_state()
-		var active_id := U_InputSelectors.get_active_profile_id(state)
 		_current_index = _available_profiles.find(active_id)
 		if _current_index == -1:
 			_current_index = 0

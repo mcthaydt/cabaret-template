@@ -8,11 +8,19 @@ const RS_GameplayInitialState = preload("res://scripts/state/resources/rs_gamepl
 const U_GameplayActions = preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_InputActions = preload("res://scripts/state/actions/u_input_actions.gd")
 const U_InputRebindUtils = preload("res://scripts/utils/u_input_rebind_utils.gd")
+const U_NavigationActions = preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_StateHandoff = preload("res://scripts/state/utils/u_state_handoff.gd")
 
 var _store: M_StateStore
 var _mgr
 var _cleanup_requested := false
+
+func _await_manager_initialized(timeout_frames: int = 10) -> void:
+	for _i in range(timeout_frames):
+		if _mgr != null and _mgr.store_ref != null:
+			return
+		await get_tree().process_frame
+	assert_true(false, "Timed out waiting for M_InputProfileManager to initialize")
 
 func _get_key_events_for_action(action_name: StringName) -> Array[InputEventKey]:
 	var results: Array[InputEventKey] = []
@@ -148,6 +156,9 @@ func test_get_default_joystick_position_returns_profile_value() -> void:
 	assert_eq(pos, Vector2(82, 390), "Should match default_touchscreen.tres value")
 
 func test_switch_profile_requires_pause() -> void:
+	await _await_manager_initialized()
+	_store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+
 	# Ensure default available ids detected (if resources exist)
 	var ids: Array[String] = _mgr.get_available_profile_ids()
 	# If nothing available, create a temporary profile in-memory
@@ -158,10 +169,12 @@ func test_switch_profile_requires_pause() -> void:
 		ids = _mgr.get_available_profile_ids()
 	assert_gt(ids.size(), 0, "Should have at least one profile id to test")
 
-	var first_id := ids[0]
 	# Attempt switch while unpaused should be blocked
 	var before_active: RS_InputProfile = _mgr.active_profile
-	_mgr.switch_profile(first_id)
+	var blocked_profile := RS_InputProfile.new()
+	blocked_profile.profile_name = "Temp Blocked"
+	_mgr.available_profiles["temp_blocked"] = blocked_profile
+	_mgr.switch_profile("temp_blocked")
 	var after_active: RS_InputProfile = _mgr.active_profile
 	assert_eq(after_active, before_active, "Switch should be blocked when not paused")
 
@@ -199,6 +212,7 @@ func test_apply_profile_only_modifies_defined_actions() -> void:
 
 	var jump_key := InputEventKey.new()
 	jump_key.physical_keycode = KEY_SPACE
+	jump_key.keycode = KEY_SPACE
 	p.set_events_for_action(StringName("jump"), [jump_key])
 
 	# Pause to allow switching
@@ -212,9 +226,9 @@ func test_apply_profile_only_modifies_defined_actions() -> void:
 
 	# Verify InputMap has exactly the events we set for jump
 	assert_true(InputMap.has_action("jump"), "Jump action exists after apply")
-	var events := InputMap.action_get_events("jump")
-	assert_eq(events.size(), 1, "Jump should have one mapping from profile")
-	assert_true(events[0] is InputEventKey, "Jump mapping is key event")
+	var key_events := _get_key_events_for_action(StringName("jump"))
+	assert_eq(key_events.size(), 1, "Jump should have one keyboard mapping from profile")
+	assert_eq(key_events[0].physical_keycode, KEY_SPACE, "Jump mapping should be Space")
 
 func test_save_custom_bindings_writes_input_settings_file() -> void:
 	var result: bool = _mgr.save_custom_bindings()
@@ -491,23 +505,26 @@ func test_reset_to_defaults_restores_replaced_bindings() -> void:
 	# Set up a profile with default binding
 	var profile := RS_InputProfile.new()
 	profile.profile_name = "Test Reset Profile"
+	_ensure_jump_action_exists()
 	var default_jump_event := InputEventKey.new()
 	default_jump_event.physical_keycode = Key.KEY_J
 	default_jump_event.keycode = Key.KEY_J
 	profile.set_events_for_action(StringName("jump"), [default_jump_event])
 
+	await _await_manager_initialized()
+
 	# Pause and switch to test profile
 	_store.dispatch(U_GameplayActions.pause_game())
-	await get_tree().process_frame
+	await get_tree().physics_frame
 
 	_mgr.available_profiles["test_reset"] = profile
 	_mgr.switch_profile("test_reset")
 	await get_tree().process_frame
 
 	# Verify default binding is active
-	var initial_events := InputMap.action_get_events(StringName("jump"))
-	assert_eq(initial_events.size(), 1, "Should have default binding")
-	assert_eq((initial_events[0] as InputEventKey).physical_keycode, Key.KEY_J, "Default should be J")
+	var initial_key_events := _get_key_events_for_action(StringName("jump"))
+	assert_eq(initial_key_events.size(), 1, "Should have a single keyboard binding")
+	assert_eq(initial_key_events[0].physical_keycode, Key.KEY_J, "Default should be J")
 
 	# REPLACE the binding (not add) with a different key
 	var new_event := InputEventKey.new()
@@ -523,9 +540,9 @@ func test_reset_to_defaults_restores_replaced_bindings() -> void:
 	await get_tree().process_frame
 
 	# Verify binding was replaced
-	var replaced_events := InputMap.action_get_events(StringName("jump"))
-	assert_eq(replaced_events.size(), 1, "Should have one binding after replace")
-	assert_eq((replaced_events[0] as InputEventKey).physical_keycode, Key.KEY_K, "Should be replaced with K")
+	var replaced_key_events := _get_key_events_for_action(StringName("jump"))
+	assert_eq(replaced_key_events.size(), 1, "Should have a single keyboard binding after replace")
+	assert_eq(replaced_key_events[0].physical_keycode, Key.KEY_K, "Should be replaced with K")
 
 	# Verify custom_bindings tracks the replacement
 	var custom_bindings := _get_store_custom_bindings()

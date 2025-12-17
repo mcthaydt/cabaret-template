@@ -20,6 +20,7 @@ const DEFAULT_GAMEPLAY_INPUT_STATE := {
 const DEFAULT_INPUT_SETTINGS_STATE := {
 	"active_profile_id": "default",
 	"custom_bindings": {},
+	"custom_bindings_by_profile": {},
 	"gamepad_settings": {
 		"left_stick_deadzone": 0.2,
 		"right_stick_deadzone": 0.2,
@@ -129,8 +130,15 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 	match action_type:
 		U_InputActions.ACTION_PROFILE_SWITCHED:
 			var payload: Dictionary = action.get("payload", {})
+			var profile_id := String(payload.get("profile_id", "default"))
+			var all_bindings: Dictionary = _duplicate_dict(current.get("custom_bindings_by_profile", {}))
+			var profile_bindings: Dictionary = {}
+			var bindings_variant: Variant = all_bindings.get(profile_id, {})
+			if bindings_variant is Dictionary:
+				profile_bindings = (bindings_variant as Dictionary).duplicate(true)
 			return _with_values(current, {
-				"active_profile_id": String(payload.get("profile_id", "default"))
+				"active_profile_id": profile_id,
+				"custom_bindings": profile_bindings
 			})
 
 		U_InputActions.ACTION_REBIND_ACTION:
@@ -182,10 +190,23 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 							bindings[conflict_action] = updated_conflict
 				bindings[action_name] = final_events
 
-			return _with_values(current, {"custom_bindings": bindings})
+			var profile_id := String(current.get("active_profile_id", "default"))
+			var all_bindings: Dictionary = _duplicate_dict(current.get("custom_bindings_by_profile", {}))
+			if bindings.is_empty():
+				all_bindings.erase(profile_id)
+			else:
+				all_bindings[profile_id] = bindings
+
+			return _with_values(current, {
+				"custom_bindings": bindings,
+				"custom_bindings_by_profile": all_bindings
+			})
 
 		U_InputActions.ACTION_RESET_BINDINGS:
-			return _with_values(current, {"custom_bindings": {}})
+			return _with_values(current, {
+				"custom_bindings": {},
+				"custom_bindings_by_profile": {}
+			})
 
 		U_InputActions.ACTION_UPDATE_GAMEPAD_DEADZONE:
 			var deadzone_payload: Dictionary = action.get("payload", {})
@@ -257,6 +278,9 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 			if load_payload.has("active_profile_id"):
 				updates["active_profile_id"] = String(load_payload.get("active_profile_id", "default"))
 
+			if load_payload.has("custom_bindings_by_profile"):
+				updates["custom_bindings_by_profile"] = _normalize_custom_bindings_by_profile(load_payload["custom_bindings_by_profile"])
+
 			if load_payload.has("custom_bindings"):
 				updates["custom_bindings"] = _normalize_custom_bindings(load_payload["custom_bindings"])
 
@@ -272,6 +296,23 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 			if load_payload.has("accessibility") and load_payload["accessibility"] is Dictionary:
 				updates["accessibility"] = _duplicate_dict(load_payload["accessibility"])
 
+			# Keep `custom_bindings` in sync with the active profile when loading.
+			var loaded_profile_id: String = String(updates.get("active_profile_id", current.get("active_profile_id", "default")))
+			if updates.has("custom_bindings_by_profile"):
+				var all_loaded: Dictionary = _duplicate_dict(updates.get("custom_bindings_by_profile", {}))
+				var view_variant: Variant = all_loaded.get(loaded_profile_id, {})
+				var view_bindings: Dictionary = {}
+				if view_variant is Dictionary:
+					view_bindings = (view_variant as Dictionary).duplicate(true)
+				updates["custom_bindings"] = view_bindings
+			elif updates.has("custom_bindings"):
+				# Legacy payload: treat custom_bindings as belonging to the loaded active profile.
+				var legacy_bindings: Dictionary = _duplicate_dict(updates.get("custom_bindings", {}))
+				var by_profile: Dictionary = {}
+				if not legacy_bindings.is_empty():
+					by_profile[loaded_profile_id] = legacy_bindings
+				updates["custom_bindings_by_profile"] = by_profile
+
 			if updates.is_empty():
 				return current
 			return _with_values(current, updates)
@@ -284,7 +325,16 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 			var current_bindings: Dictionary = _duplicate_dict(current.get("custom_bindings", {}))
 			if current_bindings.has(clear_action_name):
 				current_bindings.erase(clear_action_name)
-				return _with_values(current, {"custom_bindings": current_bindings})
+				var profile_id := String(current.get("active_profile_id", "default"))
+				var all_bindings: Dictionary = _duplicate_dict(current.get("custom_bindings_by_profile", {}))
+				if current_bindings.is_empty():
+					all_bindings.erase(profile_id)
+				else:
+					all_bindings[profile_id] = current_bindings
+				return _with_values(current, {
+					"custom_bindings": current_bindings,
+					"custom_bindings_by_profile": all_bindings
+				})
 			return current
 
 		U_InputActions.ACTION_REMOVE_EVENT_FROM_ACTION:
@@ -305,7 +355,16 @@ static func reduce_input_settings(state: Dictionary, action: Dictionary) -> Vari
 				bindings_dict.erase(target_action)
 			else:
 				bindings_dict[target_action] = filtered
-			return _with_values(current, {"custom_bindings": bindings_dict})
+			var profile_id := String(current.get("active_profile_id", "default"))
+			var all_bindings: Dictionary = _duplicate_dict(current.get("custom_bindings_by_profile", {}))
+			if bindings_dict.is_empty():
+				all_bindings.erase(profile_id)
+			else:
+				all_bindings[profile_id] = bindings_dict
+			return _with_values(current, {
+				"custom_bindings": bindings_dict,
+				"custom_bindings_by_profile": all_bindings
+			})
 
 		_:
 			return null
@@ -415,6 +474,17 @@ static func _normalize_custom_bindings(value: Variant) -> Dictionary:
 						serialized.append(U_InputRebindUtils.event_to_dict(entry))
 				if not serialized.is_empty():
 					normalized[StringName(action)] = serialized
+	return normalized
+
+static func _normalize_custom_bindings_by_profile(value: Variant) -> Dictionary:
+	var normalized: Dictionary = {}
+	if value is Dictionary:
+		for profile_key in (value as Dictionary).keys():
+			var profile_id := String(profile_key)
+			var bindings_variant: Variant = (value as Dictionary)[profile_key]
+			var profile_bindings := _normalize_custom_bindings(bindings_variant)
+			if not profile_bindings.is_empty():
+				normalized[profile_id] = profile_bindings
 	return normalized
 
 ## Returns device type category for an event dictionary.

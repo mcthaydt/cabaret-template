@@ -206,6 +206,47 @@ func test_add_binding_appends_additional_event() -> void:
 			stored_key_names.append(OS.get_keycode_string((reconstructed_event as InputEventKey).keycode))
 	assert_true(stored_key_names.has("J"), "Store should persist default binding for replay")
 	assert_true(stored_key_names.has("F10"), "Store should persist newly added binding")
+
+func test_overlay_displays_actual_binding_not_action_prompt_glyph() -> void:
+	# Regression: action prompt glyphs (e.g. move_forward shows "W") must NOT mask
+	# the actual currently bound event for the action.
+	var action := StringName("move_forward")
+	assert_true(InputMap.has_action(action), "Project InputMap should define move_forward")
+
+	var original_events: Array = InputMap.action_get_events(action)
+	InputMap.action_erase_events(action)
+	var f9 := InputEventKey.new()
+	f9.keycode = Key.KEY_F9
+	f9.physical_keycode = Key.KEY_F9
+	InputMap.action_add_event(action, f9)
+
+	var overlay: Node = OverlayScene.instantiate()
+	add_child_autofree(overlay)
+	await _pump()
+
+	var rows_value: Variant = overlay.get("_action_rows")
+	assert_true(rows_value is Dictionary, "Overlay should expose action rows dictionary")
+	var rows: Dictionary = rows_value as Dictionary
+	assert_true(rows.has(action), "Overlay should expose move_forward row")
+	var row: Dictionary = rows[action]
+	var binding_container: HBoxContainer = row.get("binding_container")
+	assert_not_null(binding_container, "Row should expose binding container")
+
+	var found_label := false
+	for child in binding_container.get_children():
+		if child is Label:
+			var label := child as Label
+			if label.text.contains("F9"):
+				found_label = true
+				break
+	assert_true(found_label, "Overlay should display F9 (not the action glyph)")
+
+	# Restore original InputMap events for move_forward.
+	InputMap.action_erase_events(action)
+	for ev in original_events:
+		if ev is InputEvent:
+			InputMap.action_add_event(action, (ev as InputEvent).duplicate(true))
+
 func test_conflict_prompts_and_swaps_on_confirm() -> void:
 	var overlay: Node = OverlayScene.instantiate()
 	add_child_autofree(overlay)

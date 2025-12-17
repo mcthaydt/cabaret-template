@@ -10,6 +10,7 @@ const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
+const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 
 const PERSIST_ACTIONS := [
 	U_InputActions.ACTION_REBIND_ACTION,
@@ -92,6 +93,7 @@ func _sync_from_state(state: Dictionary, force_profile_reapply: bool = false) ->
 	var input_settings := _get_input_settings_from_state(state)
 	var desired_profile_id := _resolve_profile_id(String(input_settings.get("active_profile_id", "")))
 	var profile_changed := desired_profile_id != _current_profile_id
+	var bindings_variant: Variant = input_settings.get("custom_bindings", {})
 
 	if profile_changed:
 		if load_profile(desired_profile_id):
@@ -105,8 +107,6 @@ func _sync_from_state(state: Dictionary, force_profile_reapply: bool = false) ->
 
 	if (profile_changed or force_profile_reapply) and active_profile != null:
 		_apply_profile_to_input_map(active_profile)
-
-	var bindings_variant: Variant = input_settings.get("custom_bindings", {})
 	var new_signature := hash(bindings_variant)
 	if profile_changed or force_profile_reapply or new_signature != _last_bindings_signature:
 		_apply_custom_bindings_from_state(bindings_variant)
@@ -326,8 +326,9 @@ func switch_profile(profile_id: String) -> void:
 	var tree_paused := get_tree() != null and get_tree().paused
 
 	var allow_by_pause_state := gameplay_paused and _pause_gate_enabled
+	var allow_by_menu_shell := _is_in_menu_shell(store)
 
-	if not allow_by_pause_state and not tree_paused:
+	if not allow_by_pause_state and not allow_by_menu_shell and not tree_paused:
 		return
 
 	if not load_profile(profile_id):
@@ -415,3 +416,15 @@ func _is_gameplay_paused(store: M_StateStore) -> bool:
 	if gameplay is Dictionary:
 		return bool((gameplay as Dictionary).get("paused", false))
 	return false
+
+func _is_in_menu_shell(store: I_StateStore) -> bool:
+	if store == null:
+		return false
+	var state := store.get_state()
+	if state == null:
+		return false
+	var nav_variant: Variant = state.get("navigation", {})
+	if not (nav_variant is Dictionary):
+		return false
+	var shell: StringName = U_NavigationSelectors.get_shell(nav_variant as Dictionary)
+	return shell != StringName("gameplay")
