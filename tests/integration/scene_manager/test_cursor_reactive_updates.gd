@@ -34,6 +34,8 @@ func before_each() -> void:
     _store.gameplay_initial_state = RS_GameplayInitialState.new()
     _store.scene_initial_state = RS_SceneInitialState.new()
     _root.add_child(_store)
+    # Register state store via ServiceLocator BEFORE managers run _ready()
+    U_ServiceLocator.register(StringName("state_store"), _store)
     await get_tree().process_frame
 
     # Required containers/nodes for manager
@@ -56,9 +58,15 @@ func before_each() -> void:
     loading.name = "LoadingOverlay"
     _root.add_child(loading)
 
+    # Register overlays via ServiceLocator for M_SceneManager discovery
+    U_ServiceLocator.register(StringName("transition_overlay"), transition_overlay)
+    U_ServiceLocator.register(StringName("loading_overlay"), loading)
+
     # Cursor manager for reactive updates
     _cursor = M_CursorManager.new()
     _root.add_child(_cursor)
+    # Register cursor_manager for M_PauseManager discovery
+    U_ServiceLocator.register(StringName("cursor_manager"), _cursor)
     await get_tree().process_frame
 
     # Scene manager
@@ -72,6 +80,24 @@ func before_each() -> void:
     await get_tree().process_frame
 
 func after_each() -> void:
+    # Clear ServiceLocator first (prevents cross-test pollution)
+    U_ServiceLocator.clear()
+
+    # Clear containers
+    var active_container := _root.get_node_or_null("ActiveSceneContainer") if _root else null
+    if active_container and is_instance_valid(active_container):
+        for child in active_container.get_children():
+            child.queue_free()
+
+    var overlay := _root.get_node_or_null("UIOverlayStack") if _root else null
+    if overlay and is_instance_valid(overlay):
+        for child in overlay.get_children():
+            child.queue_free()
+
+    # Wait for cleanup
+    await get_tree().process_frame
+    await get_tree().physics_frame
+
     _root = null
     _store = null
     _cursor = null

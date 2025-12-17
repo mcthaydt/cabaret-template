@@ -53,6 +53,8 @@ func before_each() -> void:
 	_store.scene_initial_state = RS_SceneInitialState.new()
 	_store.navigation_initial_state = RS_NavigationInitialState.new()
 	_root_scene.add_child(_store)
+	# Register state store via ServiceLocator BEFORE managers run _ready()
+	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
 	# Create cursor manager
@@ -85,6 +87,10 @@ func before_each() -> void:
 	_loading_overlay.visible = false
 	_root_scene.add_child(_loading_overlay)
 
+	# Register overlays via ServiceLocator for M_SceneManager discovery
+	U_ServiceLocator.register(StringName("transition_overlay"), _transition_overlay)
+	U_ServiceLocator.register(StringName("loading_overlay"), _loading_overlay)
+
 	# Create scene manager
 	_manager = M_SceneManager.new()
 	_manager.skip_initial_scene_load = true  # Don't load main_menu automatically in tests
@@ -92,7 +98,20 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 func after_each() -> void:
-	# Explicitly free root scene tree to ensure its children are released
+	# 1. Clear ServiceLocator first (prevents cross-test pollution)
+	U_ServiceLocator.clear()
+
+	# 2. Clear active scenes loaded by M_SceneManager
+	if _active_scene_container and is_instance_valid(_active_scene_container):
+		for child in _active_scene_container.get_children():
+			child.queue_free()
+
+	# 3. Clear UI overlay stack
+	if _ui_overlay_stack and is_instance_valid(_ui_overlay_stack):
+		for child in _ui_overlay_stack.get_children():
+			child.queue_free()
+
+	# 4. Explicitly free root scene tree to ensure its children are released
 	if _root_scene != null and is_instance_valid(_root_scene):
 		_root_scene.queue_free()
 

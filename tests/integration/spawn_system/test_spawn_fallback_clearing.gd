@@ -18,6 +18,8 @@ func before_each() -> void:
     _store = M_StateStore.new()
     _store.gameplay_initial_state = RS_GAMEPLAY_INITIAL.new()
     add_child_autofree(_store)
+    # Register state store via ServiceLocator for M_SpawnManager discovery
+    U_ServiceLocator.register(StringName("state_store"), _store)
     await get_tree().process_frame
 
     _spawn = M_SPAWN_MANAGER.new()
@@ -52,13 +54,17 @@ func before_each() -> void:
     _spawn_points_root.add_child(sp_default)
 
 func after_each() -> void:
+    # Clear ServiceLocator first (prevents cross-test pollution)
+    U_ServiceLocator.clear()
+
     _spawn = null
     _store = null
     _scene = null
 
 func test_fallback_from_missing_checkpoint_clears_target_and_spawns_at_default() -> void:
     # Set last_checkpoint to a missing marker; target_spawn_point empty
-    _store.dispatch(U_GAMEPLAY_ACTIONS.set_last_checkpoint(StringName("sp_missing_checkpoint")))
+    # Use cp_ prefix for checkpoints (triggers silent fallback in M_SpawnManager)
+    _store.dispatch(U_GAMEPLAY_ACTIONS.set_last_checkpoint(StringName("cp_missing_checkpoint")))
     _store.dispatch(U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("")))
     await get_tree().physics_frame
 

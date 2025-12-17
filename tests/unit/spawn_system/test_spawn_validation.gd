@@ -20,6 +20,8 @@ func before_each() -> void:
 	state_store = M_STATE_STORE.new()
 	state_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
 	add_child_autofree(state_store)
+	# Register state store via ServiceLocator for M_SpawnManager discovery
+	U_ServiceLocator.register(StringName("state_store"), state_store)
 	await get_tree().process_frame
 
 	# Create spawn manager
@@ -33,6 +35,9 @@ func before_each() -> void:
 	add_child_autofree(test_scene)
 
 func after_each() -> void:
+	# Clear ServiceLocator first (prevents cross-test pollution)
+	U_ServiceLocator.clear()
+
 	if spawn_manager and is_instance_valid(spawn_manager):
 		spawn_manager.queue_free()
 	if state_store and is_instance_valid(state_store):

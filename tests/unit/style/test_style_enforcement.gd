@@ -193,34 +193,45 @@ func test_scene_organization_root_structure() -> void:
 	var root_scene := load("res://scenes/root.tscn") as PackedScene
 	assert_not_null(root_scene, "Root scene must exist")
 
-	var root := root_scene.instantiate()
-	add_child_autofree(root)
+	# Use PackedScene.get_state() to check node structure without instantiation
+	# This avoids runtime initialization issues (M_PauseManager warnings, ServiceLocator conflicts)
+	var scene_state := root_scene.get_state()
 
-	# Check for required managers
-	var managers := root.get_node_or_null("Managers")
-	assert_not_null(managers, "Root scene must have Managers node")
+	var has_managers := false
+	var has_state_store := false
+	var has_scene_manager := false
+	var has_cursor_manager := false
+	var has_pause_manager := false
+	var has_active_scene_container := false
+	var has_ui_overlay_stack := false
 
-	# Check for M_StateStore
-	var state_store := managers.get_node_or_null("M_StateStore")
-	assert_not_null(state_store, "Root scene must have M_StateStore in Managers")
+	for i in range(scene_state.get_node_count()):
+		var node_name := scene_state.get_node_name(i)
+		var node_path := scene_state.get_node_path(i)
+		var path_str := str(node_path)
 
-	# Check for M_SceneManager
-	var scene_manager := managers.get_node_or_null("M_SceneManager")
-	assert_not_null(scene_manager, "Root scene must have M_SceneManager in Managers")
+		if node_name == "Managers":
+			has_managers = true
+		elif node_name == "M_StateStore" and path_str.contains("Managers"):
+			has_state_store = true
+		elif node_name == "M_SceneManager" and path_str.contains("Managers"):
+			has_scene_manager = true
+		elif node_name == "M_CursorManager" and path_str.contains("Managers"):
+			has_cursor_manager = true
+		elif node_name == "M_PauseManager" and path_str.contains("Managers"):
+			has_pause_manager = true
+		elif node_name == "ActiveSceneContainer":
+			has_active_scene_container = true
+		elif node_name == "UIOverlayStack":
+			has_ui_overlay_stack = true
 
-	# Check for M_CursorManager
-	var cursor_manager := managers.get_node_or_null("M_CursorManager")
-	assert_not_null(cursor_manager, "Root scene must have M_CursorManager in Managers")
-
-	# Check for M_PauseManager (Phase 2)
-	var pause_manager := managers.get_node_or_null("M_PauseManager")
-	assert_not_null(pause_manager, "Root scene must have M_PauseManager in Managers")
-
-	# Check for scene containers
-	assert_not_null(root.get_node_or_null("ActiveSceneContainer"),
-		"Root scene must have ActiveSceneContainer")
-	assert_not_null(root.get_node_or_null("UIOverlayStack"),
-		"Root scene must have UIOverlayStack")
+	assert_true(has_managers, "Root scene must have Managers node")
+	assert_true(has_state_store, "Root scene must have M_StateStore in Managers")
+	assert_true(has_scene_manager, "Root scene must have M_SceneManager in Managers")
+	assert_true(has_cursor_manager, "Root scene must have M_CursorManager in Managers")
+	assert_true(has_pause_manager, "Root scene must have M_PauseManager in Managers")
+	assert_true(has_active_scene_container, "Root scene must have ActiveSceneContainer")
+	assert_true(has_ui_overlay_stack, "Root scene must have UIOverlayStack")
 
 func test_scene_organization_gameplay_structure() -> void:
 	var gameplay_base := load("res://scenes/gameplay/gameplay_base.tscn") as PackedScene

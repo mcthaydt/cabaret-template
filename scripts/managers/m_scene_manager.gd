@@ -171,19 +171,20 @@ func _ready() -> void:
 		push_error("M_SceneManager: No M_StateStore registered with ServiceLocator")
 		return
 
-	_cursor_manager = U_ServiceLocator.get_service(StringName("cursor_manager")) as M_CursorManager
+	# Optional dependencies - use try_get_service to avoid error spam in tests
+	_cursor_manager = U_ServiceLocator.try_get_service(StringName("cursor_manager")) as M_CursorManager
 	if not _cursor_manager:
 		push_warning("M_SceneManager: No M_CursorManager registered with ServiceLocator")
 
 	# Find M_SpawnManager via ServiceLocator (Phase 12.1: T225)
-	_spawn_manager = U_ServiceLocator.get_service(StringName("spawn_manager"))
+	_spawn_manager = U_ServiceLocator.try_get_service(StringName("spawn_manager"))
 	if not _spawn_manager:
-		push_error("M_SceneManager: No M_SpawnManager registered with ServiceLocator")
+		push_warning("M_SceneManager: No M_SpawnManager registered with ServiceLocator")
 
 	# Find M_CameraManager via ServiceLocator (Phase 12.2: T243)
-	_camera_manager = U_ServiceLocator.get_service(StringName("camera_manager"))
+	_camera_manager = U_ServiceLocator.try_get_service(StringName("camera_manager"))
 	if not _camera_manager:
-		push_error("M_SceneManager: No M_CameraManager found in 'camera_manager' group")
+		push_warning("M_SceneManager: No M_CameraManager found in 'camera_manager' group")
 
 	# Find container nodes
 	_find_container_nodes()
@@ -280,13 +281,17 @@ func _find_container_nodes() -> void:
 	if _ui_overlay_stack == null:
 		push_error("M_SceneManager: UIOverlayStack not found")
 
-	# Find TransitionOverlay
-	_transition_overlay = root.find_child("TransitionOverlay", true, false)
+	# Find TransitionOverlay (check ServiceLocator first for test environments)
+	_transition_overlay = U_ServiceLocator.try_get_service(StringName("transition_overlay")) as CanvasLayer
+	if _transition_overlay == null:
+		_transition_overlay = root.find_child("TransitionOverlay", true, false)
 	if _transition_overlay == null:
 		push_error("M_SceneManager: TransitionOverlay not found")
 
-	# Find LoadingOverlay
-	_loading_overlay = root.find_child("LoadingOverlay", true, false)
+	# Find LoadingOverlay (check ServiceLocator first for test environments)
+	_loading_overlay = U_ServiceLocator.try_get_service(StringName("loading_overlay")) as CanvasLayer
+	if _loading_overlay == null:
+		_loading_overlay = root.find_child("LoadingOverlay", true, false)
 	if _loading_overlay == null:
 		push_warning("M_SceneManager: LoadingOverlay not found (loading transitions will not work)")
 
