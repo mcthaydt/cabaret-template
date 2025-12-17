@@ -1462,23 +1462,48 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 - Replace ad-hoc signal wiring between systems with event bus topics.
 - Be mindful of payload size: keep dictionaries lean (<1 KB) to avoid ballooning the history buffer.
 
-#### Standard ECS Events (Phase 7 - 2025-12-09)
+#### Standard ECS Events (Phase 7, Enhanced Phase 10B-6)
 
-| Event | Publisher | Payload (keys) | Notes |
-|-------|-----------|----------------|-------|
-| `health_changed` | `C_HealthComponent` | `entity_id`, `previous_health`, `new_health`, `is_dead` | Fired on every health delta (damage/heal). |
-| `entity_death` | `C_HealthComponent` | `entity_id`, `previous_health`, `new_health`, `is_dead=true` | Single-shot when health hits 0. |
-| `victory_zone_entered` | `C_VictoryTriggerComponent` | `entity_id`, `trigger_node`, `body` | Emitted on player overlap. |
-| `victory_triggered` | `C_VictoryTriggerComponent` | `entity_id`, `trigger_node`, `body` | Drives `S_VictorySystem` transition flow. |
-| `damage_zone_entered` / `damage_zone_exited` | `C_DamageZoneComponent` | `zone`, `zone_id`, `body`, `damage_per_second`, `is_instant_death` | `S_DamageSystem` keeps per-zone body sets from these. |
-| `checkpoint_zone_entered` | `C_CheckpointComponent` | `entity_id`, `checkpoint`, `body`, `spawn_point_id` | Consumed by `S_CheckpointSystem`; replaces Area3D signal wiring. |
-| `checkpoint_activated` | `S_CheckpointSystem` | `checkpoint_id`, `spawn_point_id` | UI/HUD hook for feedback. |
-| `component_registered` | `BaseECSComponent` | `component_type`, `component`, `entity`, `entity_id?`, `manager` | Emitted when a component finishes registration. |
+**📚 See [ecs_events.md](./ecs_events.md) for comprehensive event documentation including typed events, priority system, and API reference.**
 
-**Subscription Patterns**:
-- Subscribe via `U_ECSEventBus.subscribe(event, callable)` in `_ready()`/`on_configured()` and store the unsubscribe callable.
-- Unsubscribe in `_exit_tree()` to prevent leaks.
-- Keep payloads typed and small; deep-copy when mutating (`payload.duplicate(true)`).
+**Core Events** (Phase 10B-6 - Typed Events):
+
+| Event | Typed Class | Publisher | Subscribers | Priority |
+|-------|-------------|-----------|-------------|----------|
+| `health_changed` | `Evn_HealthChanged` | `C_HealthComponent` | _(state-driven)_ | - |
+| `entity_death` | `Evn_EntityDeath` | `C_HealthComponent` | `M_SceneManager` (10), `S_GamepadVibrationSystem` (0) | 10: Quick game over |
+| `victory_triggered` | `Evn_VictoryTriggered` | `C_VictoryTriggerComponent` | `S_VictorySystem` (10), `M_SceneManager` (5) | 10: State before transition |
+| `checkpoint_activated` | `Evn_CheckpointActivated` | `S_CheckpointSystem` | `UI_HudController` (0) | - |
+
+**Additional Events** (StringName):
+- `victory_zone_entered`, `checkpoint_zone_entered`, `damage_zone_entered/exited`
+- `entity_jumped`, `entity_landed`, `component_registered`, `entity_registered/unregistered`
+
+**Subscription Pattern with Priority**:
+```gdscript
+# Subscribe with priority (higher = called first)
+var _unsubscribe := U_ECSEventBus.subscribe(
+    StringName("entity_death"),
+    _on_entity_death,
+    10  # High priority
+)
+
+# Unsubscribe in _exit_tree()
+func _exit_tree() -> void:
+    if _unsubscribe != null and _unsubscribe.is_valid():
+        _unsubscribe.call()
+```
+
+**Typed Event Publishing**:
+```gdscript
+var death_event := Evn_EntityDeath.new(entity_id, prev_health, 0.0, true)
+U_ECSEventBus.publish_typed(death_event)  # Auto-converts to "entity_death"
+```
+
+**Priority Guidelines**:
+- **10**: Critical state updates before transitions (e.g., S_VictorySystem)
+- **5-9**: Important ordering (e.g., M_SceneManager transitions after state)
+- **0** (default): No special ordering needed (UI, VFX, haptics)
 
 ---
 
