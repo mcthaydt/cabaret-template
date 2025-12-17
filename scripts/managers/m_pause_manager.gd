@@ -44,7 +44,8 @@ func _ready() -> void:
 	add_to_group("pause_manager")
 
 	# Get reference to state store via ServiceLocator (Phase 10B-7: T141c)
-	_store = U_ServiceLocator.get_service(StringName("state_store")) as M_StateStore
+	# Use try_get_service to avoid errors in test environments
+	_store = U_ServiceLocator.try_get_service(StringName("state_store")) as M_StateStore
 
 	if not _store:
 		# Phase 10B (T133): Warn if M_StateStore missing for fail-fast feedback
