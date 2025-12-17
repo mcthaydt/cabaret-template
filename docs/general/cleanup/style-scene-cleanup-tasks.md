@@ -1735,15 +1735,15 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ## Phase 11 – Final Validation & Regression Sweep
 
-- [ ] T150 Run full GUT test suites (all categories) and record baseline.
-- [ ] T151 Manually verify core user flows:
+- [x] T150 Run full GUT test suites (all categories) and record baseline.
+- [x] T151 Manually verify core user flows:
   - Main menu → gameplay → pause → settings/input overlays → resume.
   - Area transitions exterior ↔ interior_house.
   - Endgame flows (game_over/victory/credits).
-- [ ] T152 Spot-check representative files in each category for prefix/style adherence:
+- [x] T152 Spot-check representative files in each category for prefix/style adherence:
   - Managers, systems, components, UI controllers, resources, markers, debug scenes.
-- [ ] T153 Confirm `STYLE_GUIDE.md` and `SCENE_ORGANIZATION_GUIDE.md` examples match actual code and scenes.
-- [ ] T154 Update the Cleanup PRD status to "Complete" and add a short summary of what changed.
+- [x] T153 Confirm `STYLE_GUIDE.md` and `SCENE_ORGANIZATION_GUIDE.md` examples match actual code and scenes.
+- [x] T154 Update the Cleanup PRD status to "Complete" and add a short summary of what changed.
 
 ---
 
