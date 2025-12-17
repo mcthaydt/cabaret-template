@@ -12,6 +12,7 @@ const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_ini
 const RS_StateStoreSettings = preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager
@@ -56,9 +57,17 @@ func before_each() -> void:
 	_manager = M_SceneManager.new()
 	_manager.skip_initial_scene_load = true  # Don't load main_menu automatically in tests
 	_root_scene.add_child(_manager)
+
+	# Register managers with ServiceLocator (Phase 10B-7: T141c)
+	U_ServiceLocator.register(StringName("state_store"), _store)
+	U_ServiceLocator.register(StringName("scene_manager"), _manager)
+
 	await get_tree().process_frame
 
 func after_each() -> void:
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
+
 	_manager = null
 	_store = null
 	_active_scene_container = null
