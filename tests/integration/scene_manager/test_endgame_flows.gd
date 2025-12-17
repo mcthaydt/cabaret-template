@@ -233,18 +233,24 @@ func test_death_spawns_ragdoll_and_transitions_to_game_over() -> void:
 
 	assert_eq(_scene_manager.get_current_scene(), StringName("game_over"),
 		"Game Over scene should load after death sequence completes")
+	var nav_state: Dictionary = _state_store.get_state().get("navigation", {})
+	assert_eq(nav_state.get("shell"), StringName("endgame"),
+		"Navigation shell should switch to endgame when game_over loads")
+	assert_eq(nav_state.get("base_scene_id"), StringName("game_over"),
+		"Navigation base scene should point to game_over when game_over loads")
 
 func test_game_over_retry_resets_health_and_returns_to_exterior() -> void:
-	assert_true(ResourceLoader.exists("res://scenes/ui/ui_game_over.tscn"),
-		"game_over scene must exist")
-	var packed_scene: PackedScene = load("res://scenes/ui/ui_game_over.tscn") as PackedScene
-	assert_not_null(packed_scene, "game_over.tscn should load as PackedScene")
+	_scene_manager.transition_to_scene(StringName("game_over"), "instant")
+	await wait_physics_frames(3)
 
-	var scene_instance: Control = packed_scene.instantiate() as Control
-	assert_not_null(scene_instance, "Game Over scene must be Control root")
+	var nav_state: Dictionary = _state_store.get_state().get("navigation", {})
+	assert_eq(nav_state.get("shell"), StringName("endgame"),
+		"Navigation shell should switch to endgame for game_over screen")
+	assert_eq(nav_state.get("base_scene_id"), StringName("game_over"),
+		"Navigation base scene should point to game_over for game_over screen")
 
-	_active_scene_container.add_child(scene_instance)
-	await wait_physics_frames(2)
+	var scene_instance: Control = _get_active_scene_instance() as Control
+	assert_not_null(scene_instance, "Game Over scene should load into ActiveSceneContainer")
 
 	var retry_button: Button = scene_instance.find_child("RetryButton", true, false) as Button
 	assert_not_null(retry_button, "RetryButton must exist in game_over scene")

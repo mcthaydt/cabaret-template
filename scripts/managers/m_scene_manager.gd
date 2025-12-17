@@ -990,15 +990,20 @@ func _sync_navigation_shell_with_scene(scene_id: StringName) -> void:
 	# is the source of truth. Avoid clobbering a newer navigation target with
 	# stale scene_id values from earlier transitions.
 	if _navigation_pending_scene_id != StringName(""):
-		# If navigation has requested a DIFFERENT scene than the one that just
-		# finished loading, skip reconciliation entirely. This prevents races
-		# where a late _sync_navigation_shell_with_scene call for a previous
-		# scene overwrites the more recent navigation target.
-		if _navigation_pending_scene_id != scene_id:
+		# Endgame scenes (death/victory) must always override any stale pending
+		# navigation targets so UI state matches the actual loaded screen.
+		if scene_type == U_SCENE_REGISTRY.SceneType.END_GAME:
+			_navigation_pending_scene_id = StringName("")
+		else:
+			# If navigation has requested a DIFFERENT scene than the one that just
+			# finished loading, skip reconciliation entirely. This prevents races
+			# where a late _sync_navigation_shell_with_scene call for a previous
+			# scene overwrites the more recent navigation target.
+			if _navigation_pending_scene_id != scene_id:
+				return
+			# If the pending navigation target matches the scene_id, the reducer
+			# has already updated base_scene_id. Treat this as in-sync and skip.
 			return
-		# If the pending navigation target matches the scene_id, the reducer
-		# has already updated base_scene_id. Treat this as in-sync and skip.
-		return
 
 	# T137c (Phase 10B-3): Dispatch navigation action from handler
 	var nav_action := handler.get_navigation_action(scene_id)
