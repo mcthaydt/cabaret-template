@@ -9,17 +9,28 @@ class_name U_StateUtils
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const STORE_GROUP := StringName("state_store")
 
-## Get the M_StateStore from the ServiceLocator
+## Get the M_StateStore from injection, ServiceLocator, or groups
 ## Returns null if no store found or node is invalid
+##
+## Lookup order (Phase 10B-8):
+##   1. Check if node has 'state_store' @export (for test injection)
+##   2. ServiceLocator (fast, centralized)
+##   3. Group lookup (backward compatibility)
 static func get_store(node: Node) -> M_StateStore:
 	if node == null or not is_instance_valid(node):
 		push_error("U_StateUtils.get_store: Invalid node")
 		return null
 
-	# Use ServiceLocator for fast, centralized lookup (try_get_service for silent fallback)
+	# Priority 1: Check for injected store (test pattern, Phase 10B-8)
+	if node.has_method("get") and node.has("state_store"):
+		var injected: Variant = node.get("state_store")
+		if injected != null and is_instance_valid(injected):
+			return injected as M_StateStore
+
+	# Priority 2: ServiceLocator (production pattern)
 	var store := U_ServiceLocator.try_get_service(STORE_GROUP) as M_StateStore
 
-	# Fallback to group lookup for backward compatibility during migration
+	# Priority 3: Group lookup (backward compatibility)
 	if store == null:
 		var tree: SceneTree = node.get_tree()
 		if tree == null:

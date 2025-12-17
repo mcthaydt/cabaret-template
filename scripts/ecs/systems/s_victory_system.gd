@@ -9,6 +9,11 @@ const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const EVENT_VICTORY_TRIGGERED := StringName("victory_triggered")
 const REQUIRED_FINAL_AREA := "interior_house"
 
+## Injected state store (for testing)
+## If set, system uses this instead of U_StateUtils.get_store()
+## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
+@export var state_store: I_StateStore = null
+
 var _store: M_StateStore = null
 var _event_unsubscribes: Array[Callable] = []
 
@@ -72,7 +77,11 @@ func _can_trigger_victory(trigger: C_VictoryTriggerComponent) -> bool:
 
 func _ensure_dependencies_ready() -> bool:
 	if _store == null:
-		_store = U_StateUtils.get_store(self)
+		# Use injected store if available (Phase 10B-8)
+		if state_store != null:
+			_store = state_store as M_StateStore
+		else:
+			_store = U_StateUtils.get_store(self)
 	return _store != null
 
 func _exit_tree() -> void:

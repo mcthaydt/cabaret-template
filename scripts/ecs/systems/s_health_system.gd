@@ -15,6 +15,11 @@ const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
 const PLAYER_RAGDOLL := preload("res://scenes/prefabs/prefab_player_ragdoll.tscn")
 
+## Injected state store (for testing)
+## If set, system uses this instead of U_StateUtils.get_store()
+## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
+@export var state_store: I_StateStore = null
+
 var _store: M_StateStore = null
 var _death_logged: Dictionary = {}          # entity_id -> bool
 var _transition_triggered: Dictionary = {}  # entity_id -> bool
@@ -275,7 +280,11 @@ func _restore_entity_state(entity_id: String) -> void:
 
 func _ensure_dependencies_ready() -> bool:
 	if _store == null:
-		_store = U_StateUtils.get_store(self)
+		# Use injected store if available (Phase 10B-8)
+		if state_store != null:
+			_store = state_store as M_StateStore
+		else:
+			_store = U_StateUtils.get_store(self)
 	return _store != null
 
 func _get_entity_id(component: C_HealthComponent) -> String:

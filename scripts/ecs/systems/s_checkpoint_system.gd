@@ -28,6 +28,11 @@ const EVENT_CHECKPOINT_ACTIVATED := StringName("checkpoint_activated")
 
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 
+## Injected state store (for testing)
+## If set, system uses this instead of U_StateUtils.get_store()
+## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
+@export var state_store: I_StateStore = null
+
 var _store: M_StateStore = null
 var _event_unsubscribes: Array[Callable] = []
 
@@ -56,7 +61,11 @@ func _on_checkpoint_zone_entered(event: Dictionary) -> void:
 	checkpoint.activate()
 
 	if _store == null:
-		_store = U_STATE_UTILS.get_store(self)
+		# Use injected store if available (Phase 10B-8)
+		if state_store != null:
+			_store = state_store as M_StateStore
+		else:
+			_store = U_STATE_UTILS.get_store(self)
 
 	if _store != null:
 		var action: Dictionary = U_GAMEPLAY_ACTIONS.set_last_checkpoint(spawn_point_id)

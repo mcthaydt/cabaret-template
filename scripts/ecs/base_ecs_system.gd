@@ -10,6 +10,11 @@ var _manager: M_ECSManager
 var _execution_priority: int = 0
 var _debug_disabled: bool = false
 
+## Injected ECS manager (for testing)
+## If set via @export, system uses this instead of auto-discovery
+## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
+@export var ecs_manager: I_ECSManager = null
+
 @export var execution_priority: int:
 	get:
 		return _execution_priority
@@ -32,6 +37,9 @@ func on_configured() -> void:
 	pass
 
 func get_manager() -> M_ECSManager:
+	# Prioritize injected manager for tests (Phase 10B-8)
+	if ecs_manager != null:
+		return ecs_manager as M_ECSManager
 	return _manager
 
 func get_components(component_type: StringName) -> Array:
@@ -66,6 +74,13 @@ func _physics_process(delta: float) -> void:
 		process_tick(delta)
 
 func _register_with_manager() -> void:
+	# Use injected manager if available (Phase 10B-8)
+	if ecs_manager != null:
+		if ecs_manager.has_method("register_system"):
+			ecs_manager.register_system(self)
+		return
+
+	# Otherwise, auto-discover
 	var manager := ECS_UTILS.get_manager(self) as M_ECSManager
 	if manager == null:
 		return

@@ -19,6 +19,11 @@ const C_GamepadComponent := preload("res://scripts/ecs/components/c_gamepad_comp
 const DEVICE_TYPE_KEYBOARD_MOUSE := 0
 const DEVICE_TYPE_GAMEPAD := 1
 
+## Injected state store (for testing)
+## If set, system uses this instead of U_StateUtils.get_store()
+## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
+@export var state_store: I_StateStore = null
+
 var _state_store: M_StateStore = null
 var _store_unsubscribe: Callable = Callable()
 var _event_unsubscribes: Array[Callable] = []
@@ -100,7 +105,13 @@ func _ensure_state_store_ready() -> void:
 
 	_teardown_store_subscription()
 
-	var store := U_StateUtils.get_store(self)
+	# Use injected store if available (Phase 10B-8)
+	var store: M_StateStore = null
+	if state_store != null:
+		store = state_store as M_StateStore
+	else:
+		store = U_StateUtils.get_store(self)
+
 	if store == null:
 		return
 

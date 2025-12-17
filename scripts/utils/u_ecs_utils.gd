@@ -10,10 +10,23 @@ const ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/base_ecs_entity.gd")
 static var _warning_handler: Callable = Callable()
 static var _manager_method_warnings: Dictionary = {}
 
+## Get the M_ECSManager from injection, parent traversal, or groups
+##
+## Lookup order (Phase 10B-8):
+##   1. Check if node has 'ecs_manager' @export (for test injection)
+##   2. Parent traversal (existing pattern)
+##   3. Group lookup (existing fallback)
 static func get_manager(from_node: Node) -> Node:
 	if from_node == null:
 		return null
 
+	# Priority 1: Check for injected manager (test pattern, Phase 10B-8)
+	if from_node.has_method("get") and from_node.has("ecs_manager"):
+		var injected: Variant = from_node.get("ecs_manager")
+		if injected != null and is_instance_valid(injected):
+			return injected as Node
+
+	# Priority 2: Parent traversal (existing pattern)
 	var current: Node = from_node.get_parent()
 	while current != null:
 		if _node_has_manager_methods(current):
@@ -21,6 +34,7 @@ static func get_manager(from_node: Node) -> Node:
 		_warn_missing_manager_methods(current)
 		current = current.get_parent()
 
+	# Priority 3: Group lookup (existing fallback)
 	var manager: Node = get_singleton_from_group(from_node, MANAGER_GROUP, false)
 	if manager != null:
 		if _node_has_manager_methods(manager):

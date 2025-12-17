@@ -5,12 +5,24 @@ class_name S_GravitySystem
 ## Phase 16: Reads gravity_scale from state for zone-based modifiers
 
 @export var gravity: float = 30.0
+
+## Injected state store (for testing)
+## If set, system uses this instead of U_StateUtils.get_store()
+## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
+@export var state_store: I_StateStore = null
+
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 
 func process_tick(delta: float) -> void:
 	# Skip processing if game is paused
-	var store: M_StateStore = U_StateUtils.get_store(self)
+	# Use injected store if available (Phase 10B-8)
+	var store: M_StateStore = null
+	if state_store != null:
+		store = state_store as M_StateStore
+	else:
+		store = U_StateUtils.get_store(self)
+
 	if store:
 		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
 		if U_GameplaySelectors.get_is_paused(gameplay_state):
