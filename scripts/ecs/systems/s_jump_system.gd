@@ -21,7 +21,7 @@ func process_tick(_delta: float) -> void:
 	# Use injected store if available (Phase 10B-8)
 	var store: M_StateStore = null
 	if state_store != null:
-		store = state_store as M_StateStore
+		store = state_store
 	else:
 		store = U_StateUtils.get_store(self)
 

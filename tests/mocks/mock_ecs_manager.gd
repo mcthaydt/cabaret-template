@@ -91,7 +91,7 @@ func register_system(system: BaseECSSystem) -> void:
 ## Test helpers
 
 ## Pre-register a component for an entity
-func add_component_to_entity(entity: Node, component: BaseECSComponent) -> void:
+func add_component_to_entity(_entity: Node, component: BaseECSComponent) -> void:
 	register_component(component)
 
 ## Clear all registered components

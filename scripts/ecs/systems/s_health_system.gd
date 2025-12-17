@@ -282,7 +282,7 @@ func _ensure_dependencies_ready() -> bool:
 	if _store == null:
 		# Use injected store if available (Phase 10B-8)
 		if state_store != null:
-			_store = state_store as M_StateStore
+			_store = state_store
 		else:
 			_store = U_StateUtils.get_store(self)
 	return _store != null

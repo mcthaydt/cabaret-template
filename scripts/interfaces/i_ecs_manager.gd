@@ -1,4 +1,4 @@
-extends RefCounted
+extends Resource
 class_name I_ECSManager
 
 ## Minimal interface for M_ECSManager

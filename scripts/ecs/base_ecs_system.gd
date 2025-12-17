@@ -39,7 +39,7 @@ func on_configured() -> void:
 func get_manager() -> M_ECSManager:
 	# Prioritize injected manager for tests (Phase 10B-8)
 	if ecs_manager != null:
-		return ecs_manager as M_ECSManager
+		return ecs_manager
 	return _manager
 
 func get_components(component_type: StringName) -> Array:

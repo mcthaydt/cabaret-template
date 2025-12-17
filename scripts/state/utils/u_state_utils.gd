@@ -25,7 +25,7 @@ static func get_store(node: Node) -> M_StateStore:
 	if node.has_method("get") and node.has("state_store"):
 		var injected: Variant = node.get("state_store")
 		if injected != null and is_instance_valid(injected):
-			return injected as M_StateStore
+			return injected
 
 	# Priority 2: ServiceLocator (production pattern)
 	var store := U_ServiceLocator.try_get_service(STORE_GROUP) as M_StateStore

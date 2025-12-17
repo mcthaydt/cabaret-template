@@ -63,7 +63,7 @@ func _on_checkpoint_zone_entered(event: Dictionary) -> void:
 	if _store == null:
 		# Use injected store if available (Phase 10B-8)
 		if state_store != null:
-			_store = state_store as M_StateStore
+			_store = state_store
 		else:
 			_store = U_STATE_UTILS.get_store(self)
 

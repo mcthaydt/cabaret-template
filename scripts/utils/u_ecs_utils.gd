@@ -24,7 +24,7 @@ static func get_manager(from_node: Node) -> Node:
 	if from_node.has_method("get") and from_node.has("ecs_manager"):
 		var injected: Variant = from_node.get("ecs_manager")
 		if injected != null and is_instance_valid(injected):
-			return injected as Node
+			return injected
 
 	# Priority 2: Parent traversal (existing pattern)
 	var current: Node = from_node.get_parent()
