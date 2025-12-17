@@ -13,18 +13,18 @@ version: "1.0"
 - No new architecture frameworks; prefer small helper extraction and existing patterns.
 - No “clever” abstractions that hide control flow.
 
-**Progress:** 0% (0 / 18 tasks complete)
+**Progress:** 17% (4 / 24 tasks complete)
 
 ---
 
 ## Phase 0 — Prep & Safety (Baseline)
 
-- [ ] T100 Re-read `docs/general/DEV_PITFALLS.md` + `docs/general/STYLE_GUIDE.md` before touching code.
-- [ ] T101 Capture a “public API snapshot” for `M_SceneManager` (public methods + signals + expected invariants) in **Notes** below.
-- [ ] T102 Create an extraction map for `scripts/managers/m_scene_manager.gd`:
+- [x] T100 Re-read `docs/general/DEV_PITFALLS.md` + `docs/general/STYLE_GUIDE.md` before touching code.
+- [x] T101 Capture a “public API snapshot” for `M_SceneManager` (public methods + signals + expected invariants) in **Notes** below.
+- [x] T102 Create an extraction map for `scripts/managers/m_scene_manager.gd`:
   - Major responsibilities/regions (overlays, transition queue, navigation reconciliation, preload/cache, event subscriptions).
   - Candidate helper boundaries (3–5 helpers).
-- [ ] T103 Identify the must-pass tests for this refactor (list test files/dirs) and record them in **Links** below.
+- [x] T103 Identify the must-pass tests for this refactor (list test files/dirs) and record them in **Links** below.
 
 ---
 
@@ -93,7 +93,52 @@ version: "1.0"
 ## Notes
 
 - **M_SceneManager public API snapshot (T101)**:
-  - (fill in)
+  - `signal transition_visual_complete(scene_id: StringName)` emitted after transition finishes and scene is fully visible (used by MobileControls to re-show UI without flashing).
+  - Public methods:
+    - `transition_to_scene(scene_id: StringName, transition_type: String, priority: int = Priority.NORMAL)`:
+      - No-op if `U_SceneRegistry.get_scene(scene_id)` is missing/empty.
+      - Enqueues transition with dedupe-by `(scene_id, transition_type)`, retaining higher priority.
+      - Dispatches scene actions via `M_StateStore`: `transition_started(scene_id, transition_type)` then `transition_completed(scene_id)`.
+    - `push_overlay(scene_id: StringName, force: bool = false)` / `pop_overlay()`:
+      - Delegates to `U_OverlayStackManager` to instantiate/remove overlay scene(s) in `UIOverlayStack`.
+      - Dispatches `U_SceneActions.push_overlay(...)` / `pop_overlay()` to keep state and UI in sync.
+    - `push_overlay_with_return(overlay_id: StringName)` / `pop_overlay_with_return()`:
+      - “Replace mode” overlay navigation (pause → settings → back returns to pause) handled by `U_OverlayStackManager`.
+    - `get_current_scene() -> StringName` reads `scene.current_scene_id` from store; returns `StringName("")` if store missing.
+    - `is_transitioning() -> bool` reads `scene.is_transitioning` from store; returns `false` if store missing.
+    - `can_go_back() -> bool` / `go_back()`:
+      - Uses internal `_scene_history` (UI/menu scenes only; cleared when entering gameplay via handler rules).
+      - `go_back()` transitions instantly with `Priority.HIGH`.
+    - `hint_preload_scene(scene_path: String)` delegates to `U_SceneCache` background preloader.
+  - Expected invariants / “contract” assumptions:
+    - Exactly one `M_SceneManager` in the root scene; it adds itself to `"scene_manager"` group in `_ready()`.
+    - `M_StateStore` is required and is resolved via `U_ServiceLocator.get_service("state_store")` (tests register it explicitly); missing store is a hard error.
+    - Active gameplay/ui scenes are swapped as children of `ActiveSceneContainer` (intended: at most one active child at a time).
+    - Overlay scenes are children of `UIOverlayStack` and reconcile with store overlay stack state (source of truth is navigation/state slices; helper keeps both aligned).
+    - Navigation reconciliation is intentionally deferred and guarded against clobbering newer navigation targets (`_navigation_pending_scene_id` checks).
+    - External callers should treat `transition_visual_complete` (not store updates) as the “safe to show controls” moment.
+- **Extraction map (T102)** (`scripts/managers/m_scene_manager.gd`):
+  - Setup & discovery:
+    - `_ready()` ServiceLocator lookups (`state_store` required; others optional), container discovery (`ActiveSceneContainer`, `UIOverlayStack`, `TransitionOverlay`, `LoadingOverlay`), store subscription, ECS event subscriptions, handler registration, preload, initial scene load.
+    - `_find_container_nodes()` + `_ensure_store_reference()` (fallback group lookup) are “environment wiring” concerns.
+  - Transition queue + state integration:
+    - `transition_to_scene()` → `_enqueue_transition()` (dedupe + priority ordering) → `_process_transition_queue()` (dispatch started/completed; emits `transition_visual_complete`).
+  - Transition execution:
+    - `_perform_transition()` is the largest hotspot: scene contract validation, cached vs sync vs async load, progress callbacks, camera blending hooks, spawn/physics waits, scene-type handler delegation.
+    - Delegates some responsibilities already (`U_TransitionOrchestrator`, `U_SceneLoader`), but remains a dense coordinator.
+  - Overlay management:
+    - Public overlay API delegates to `U_OverlayStackManager`, but reconciliation helpers and particle pause workaround live in manager (`_sync_overlay_stack_state()`, `_reconcile_overlay_stack()`, `_update_particles_and_focus()`).
+  - Navigation reconciliation:
+    - Store subscription / slice update handler → `_reconcile_navigation_state()` with guard rails (`_navigation_pending_scene_id`, `_pending_overlay_reconciliation`, `_initial_navigation_synced`).
+  - History / back navigation:
+    - `_scene_history` + `can_go_back()` / `go_back()` + `_update_scene_history()` relies on scene-type handler policy.
+  - Preload/cache:
+    - `U_SceneCache` is already the heavy lifter, but cache API passthrough + preload orchestration remains in manager.
+  - Candidate helper boundaries (3–5):
+    - `U_SceneManagerNodeFinder` (container discovery + optional overlay resolution).
+    - `U_SceneTransitionQueue` (TransitionRequest, dedupe, priority ordering, “processing” state).
+    - `U_NavigationReconciler` (navigation slice → base scene + overlay reconciliation, including pending/guard flags).
+    - Keep/lean on existing helpers: `U_SceneLoader`, `U_SceneCache`, `U_OverlayStackManager`, `U_TransitionOrchestrator`.
 - **Helper boundary decision (T110)**:
   - (fill in)
 - **Dependency accessors (T121)**:
@@ -103,9 +148,15 @@ version: "1.0"
 
 ## Links
 
-- Plan:
-- Continuation prompt:
+- Plan: `docs/general/cleanup/hotspot-simplification-plan.md`
+- Continuation prompt: `docs/general/cleanup/hotspot-simplification-continuation-prompt.md`
 - Related docs:
   - `docs/architecture/dependency_graph.md`
   - `docs/general/DEV_PITFALLS.md`
   - `docs/general/STYLE_GUIDE.md`
+  - Must-pass tests (T103):
+    - `tests/unit/scene_manager/` (core coverage for `M_SceneManager`, overlays, transitions, registry, dedupe)
+    - `tests/unit/scene_management/` (scene type handlers + transition helpers)
+    - `tests/unit/integration/test_navigation_integration.gd` (end-to-end reconciliation expectations)
+    - `tests/unit/integration/test_manager_initialization_order.gd` (ServiceLocator + startup ordering)
+    - `tests/unit/style/test_style_enforcement.gd` (after any helper/script adds/moves/renames)
