@@ -125,8 +125,9 @@ func _publish_zone_entered(body: Node3D) -> void:
 func _publish_victory_triggered(body: Node3D, force: bool = false) -> void:
 	if trigger_once and is_triggered and not force:
 		return
-	U_ECSEventBus.publish(EVENT_VICTORY_TRIGGERED, {
-		"entity_id": ECS_UTILS.get_entity_id(body),
-		"trigger_node": self,
-		"body": body,
-	})
+	var victory_event := Evn_VictoryTriggered.new(
+		ECS_UTILS.get_entity_id(body),
+		self,
+		body
+	)
+	U_ECSEventBus.publish_typed(victory_event)

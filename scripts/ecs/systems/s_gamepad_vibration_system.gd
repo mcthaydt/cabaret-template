@@ -32,7 +32,8 @@ func on_configured() -> void:
 
 func _subscribe_events() -> void:
 	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_ENTITY_LANDED, _on_entity_landed))
-	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_ENTITY_DEATH, _on_entity_death))
+	# Priority 0 (default): Haptic feedback doesn't need high priority
+	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_ENTITY_DEATH, _on_entity_death, 0))
 	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_VIBRATION_REQUEST, _on_vibration_request))
 
 func process_tick(_delta: float) -> void:

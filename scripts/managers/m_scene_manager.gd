@@ -204,9 +204,11 @@ func _ready() -> void:
 			_store.slice_updated.connect(_on_slice_updated)
 			_navigation_slice_connected = true
 
-	# Subscribe to ECS events
-	_entity_death_unsubscribe = U_ECS_EVENT_BUS.subscribe(StringName("entity_death"), _on_entity_death)
-	_victory_triggered_unsubscribe = U_ECS_EVENT_BUS.subscribe(StringName("victory_triggered"), _on_victory_triggered)
+	# Subscribe to ECS events with priorities
+	# entity_death: Priority 10 (high - quick transition to game over)
+	_entity_death_unsubscribe = U_ECS_EVENT_BUS.subscribe(StringName("entity_death"), _on_entity_death, 10)
+	# victory_triggered: Priority 5 (medium - after S_VictorySystem processes state)
+	_victory_triggered_unsubscribe = U_ECS_EVENT_BUS.subscribe(StringName("victory_triggered"), _on_victory_triggered, 5)
 
 	# Register scene type handlers (T137c: Phase 10B-3)
 	_register_scene_type_handlers()

@@ -62,10 +62,11 @@ func _on_checkpoint_zone_entered(event: Dictionary) -> void:
 		var action: Dictionary = U_GAMEPLAY_ACTIONS.set_last_checkpoint(spawn_point_id)
 		_store.dispatch(action)
 
-	U_ECSEventBus.publish(EVENT_CHECKPOINT_ACTIVATED, {
-		"checkpoint_id": checkpoint.checkpoint_id,
-		"spawn_point_id": checkpoint.spawn_point_id
-	})
+	var checkpoint_event := Evn_CheckpointActivated.new(
+		checkpoint.checkpoint_id,
+		checkpoint.spawn_point_id
+	)
+	U_ECSEventBus.publish_typed(checkpoint_event)
 
 func _exit_tree() -> void:
 	for unsubscribe in _event_unsubscribes:

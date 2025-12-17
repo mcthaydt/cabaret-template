@@ -13,8 +13,9 @@ var _subscribers: Dictionary = {}
 var _event_history: Array = []
 var _max_history_size: int = DEFAULT_MAX_HISTORY_SIZE
 
-## Subscribe to an event. Returns unsubscribe callable.
-func subscribe(event_name: StringName, callback: Callable) -> Callable:
+## Subscribe to an event with optional priority. Returns unsubscribe callable.
+## Higher priority subscribers are called first (10 > 5 > 0).
+func subscribe(event_name: StringName, callback: Callable, priority: int = 0) -> Callable:
 	var normalized_event: StringName = event_name
 	if normalized_event == StringName():
 		push_error("BaseEventBus.subscribe called with empty event name.")
@@ -30,8 +31,25 @@ func subscribe(event_name: StringName, callback: Callable) -> Callable:
 		_subscribers[normalized_event] = []
 
 	var subscriber_list: Array = _subscribers[normalized_event]
-	if not subscriber_list.has(callback):
-		subscriber_list.append(callback)
+
+	# Check for duplicate subscriptions
+	for sub_meta in subscriber_list:
+		if sub_meta.callback == callback:
+			var source := _get_callback_source(callback)
+			push_warning("BaseEventBus: Duplicate subscription to '%s' from %s" % [event_name, source])
+			return func() -> void:
+				pass
+
+	# Add subscriber with metadata
+	var source := _get_callback_source(callback)
+	subscriber_list.append({
+		"callback": callback,
+		"priority": priority,
+		"source": source
+	})
+
+	# Sort by priority (higher first)
+	subscriber_list.sort_custom(func(a, b): return a.priority > b.priority)
 
 	return func() -> void:
 		unsubscribe(normalized_event, callback)
@@ -43,7 +61,12 @@ func unsubscribe(event_name: StringName, callback: Callable) -> void:
 		return
 
 	var subscriber_list: Array = _subscribers[normalized_event]
-	subscriber_list.erase(callback)
+
+	# Find and remove subscriber by callback
+	for i in range(subscriber_list.size() - 1, -1, -1):
+		if subscriber_list[i].callback == callback:
+			subscriber_list.remove_at(i)
+			break
 
 	if subscriber_list.is_empty():
 		_subscribers.erase(normalized_event)
@@ -67,8 +90,8 @@ func publish(event_name: StringName, payload: Variant = null) -> void:
 		return
 
 	var subscribers: Array = _subscribers[normalized_event].duplicate()
-	for subscriber in subscribers:
-		var callback: Callable = subscriber
+	for sub_meta in subscribers:
+		var callback: Callable = sub_meta.callback
 		if callback.is_valid():
 			callback.call(event_payload)
 
@@ -113,3 +136,20 @@ func _duplicate_payload(payload: Variant) -> Variant:
 	if payload is Array:
 		return (payload as Array).duplicate(true)
 	return payload
+
+## Get readable source info from callback for debugging.
+func _get_callback_source(callback: Callable) -> String:
+	var obj := callback.get_object()
+	if obj == null:
+		return "unknown"
+
+	var script: Script = obj.get_script()
+	if script != null:
+		var path: String = script.resource_path
+		# Extract just the filename
+		var filename := path.get_file()
+		return filename
+
+	# Fallback to class name
+	var obj_class: String = obj.get_class()
+	return obj_class if obj_class else "unknown"

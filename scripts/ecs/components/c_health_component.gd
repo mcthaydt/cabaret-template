@@ -159,20 +159,22 @@ func has_pending_heal() -> bool:
 	return not _pending_heals.is_empty()
 
 func _publish_health_changed(previous_health: float, new_health: float) -> void:
-	U_ECSEventBus.publish(EVENT_HEALTH_CHANGED, {
-		"entity_id": _get_entity_id(),
-		"previous_health": previous_health,
-		"new_health": new_health,
-		"is_dead": _is_dead,
-	})
+	var health_event := Evn_HealthChanged.new(
+		_get_entity_id(),
+		previous_health,
+		new_health,
+		_is_dead
+	)
+	U_ECSEventBus.publish_typed(health_event)
 
 func _publish_death_event(previous_health: float) -> void:
-	U_ECSEventBus.publish(EVENT_ENTITY_DEATH, {
-		"entity_id": _get_entity_id(),
-		"previous_health": previous_health,
-		"new_health": current_health,
-		"is_dead": true,
-	})
+	var death_event := Evn_EntityDeath.new(
+		_get_entity_id(),
+		previous_health,
+		current_health,
+		true
+	)
+	U_ECSEventBus.publish_typed(death_event)
 
 func _get_entity_id() -> StringName:
 	var entity := ECS_UTILS.find_entity_root(self)

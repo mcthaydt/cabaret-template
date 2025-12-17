@@ -23,7 +23,8 @@ func on_configured() -> void:
 	_subscribe_events()
 
 func _subscribe_events() -> void:
-	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_VICTORY_TRIGGERED, _on_victory_triggered))
+	# Priority 10: Process state updates before scene manager transitions (priority 5)
+	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_VICTORY_TRIGGERED, _on_victory_triggered, 10))
 
 func _on_victory_triggered(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
