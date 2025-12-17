@@ -43,11 +43,8 @@ func _init() -> void:
 func _ready() -> void:
 	add_to_group("pause_manager")
 
-	# Get reference to state store (synchronous - state store should already exist)
-	# Note: U_StateUtils.get_store may push_error if store not found, but we handle it gracefully
-	var stores := get_tree().get_nodes_in_group("state_store")
-	if stores.size() > 0:
-		_store = stores[0] as M_StateStore
+	# Get reference to state store via ServiceLocator (Phase 10B-7: T141c)
+	_store = U_ServiceLocator.get_service(StringName("state_store")) as M_StateStore
 
 	if not _store:
 		# Phase 10B (T133): Warn if M_StateStore missing for fail-fast feedback
@@ -61,9 +58,7 @@ func _ready() -> void:
 
 ## Deferred initialization if store isn't ready yet
 func _deferred_init() -> void:
-	var stores := get_tree().get_nodes_in_group("state_store")
-	if stores.size() > 0:
-		_store = stores[0] as M_StateStore
+	_store = U_ServiceLocator.get_service(StringName("state_store")) as M_StateStore
 
 	if not _store:
 		# No store available - pause system will remain inactive
@@ -74,10 +69,9 @@ func _deferred_init() -> void:
 
 ## Main initialization logic
 func _initialize() -> void:
-	# Get reference to cursor manager (optional - pause still works without it)
-	var cursor_managers: Array[Node] = get_tree().get_nodes_in_group("cursor_manager")
-	if cursor_managers.size() > 0:
-		_cursor_manager = cursor_managers[0] as M_CursorManager
+	# Get reference to cursor manager via ServiceLocator (Phase 10B-7: T141c)
+	# Optional - pause still works without it
+	_cursor_manager = U_ServiceLocator.get_service(StringName("cursor_manager")) as M_CursorManager
 
 	# Get reference to UIOverlayStack (for immediate pause detection)
 	_ui_overlay_stack = get_tree().root.find_child("UIOverlayStack", true, false)

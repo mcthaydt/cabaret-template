@@ -163,34 +163,26 @@ func _ready() -> void:
 	# Add to scene_manager group for discovery
 	add_to_group("scene_manager")
 
-	# Find M_StateStore via group
-	await get_tree().process_frame  # Wait for store to register
-	var stores: Array = get_tree().get_nodes_in_group("state_store")
-	if stores.size() > 0:
-		_store = stores[0] as M_StateStore
-	else:
-		push_error("M_SceneManager: No M_StateStore found in 'state_store' group")
+	# Find managers via ServiceLocator (Phase 10B-7: T141c)
+	await get_tree().process_frame  # Wait for ServiceLocator to initialize
+
+	_store = U_ServiceLocator.get_service(StringName("state_store")) as M_StateStore
+	if not _store:
+		push_error("M_SceneManager: No M_StateStore registered with ServiceLocator")
 		return
 
-	# Find M_CursorManager via group
-	var cursor_managers: Array = get_tree().get_nodes_in_group("cursor_manager")
-	if cursor_managers.size() > 0:
-		_cursor_manager = cursor_managers[0] as M_CursorManager
-	else:
-		push_warning("M_SceneManager: No M_CursorManager found in 'cursor_manager' group")
+	_cursor_manager = U_ServiceLocator.get_service(StringName("cursor_manager")) as M_CursorManager
+	if not _cursor_manager:
+		push_warning("M_SceneManager: No M_CursorManager registered with ServiceLocator")
 
-	# Find M_SpawnManager via group (Phase 12.1: T225)
-	var spawn_managers: Array = get_tree().get_nodes_in_group("spawn_manager")
-	if spawn_managers.size() > 0:
-		_spawn_manager = spawn_managers[0]
-	else:
-		push_error("M_SceneManager: No M_SpawnManager found in 'spawn_manager' group")
+	# Find M_SpawnManager via ServiceLocator (Phase 12.1: T225)
+	_spawn_manager = U_ServiceLocator.get_service(StringName("spawn_manager"))
+	if not _spawn_manager:
+		push_error("M_SceneManager: No M_SpawnManager registered with ServiceLocator")
 
-	# Find M_CameraManager via group (Phase 12.2: T243)
-	var camera_managers: Array = get_tree().get_nodes_in_group("camera_manager")
-	if camera_managers.size() > 0:
-		_camera_manager = camera_managers[0]
-	else:
+	# Find M_CameraManager via ServiceLocator (Phase 12.2: T243)
+	_camera_manager = U_ServiceLocator.get_service(StringName("camera_manager"))
+	if not _camera_manager:
 		push_error("M_SceneManager: No M_CameraManager found in 'camera_manager' group")
 
 	# Find container nodes

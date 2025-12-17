@@ -39,11 +39,10 @@ func _ready() -> void:
 	# Add to spawn_manager group for discovery
 	add_to_group("spawn_manager")
 
-	# Find state store (gracefully handle missing store in test environments)
+	# Find state store via ServiceLocator (Phase 10B-7: T141c)
+	# Gracefully handle missing store in test environments
 	await get_tree().process_frame
-	var stores := get_tree().get_nodes_in_group("state_store")
-	if stores.size() > 0:
-		_state_store = stores[0] as M_STATE_STORE
+	_state_store = U_ServiceLocator.get_service(StringName("state_store")) as M_STATE_STORE
 
 	# Phase 10B (T133): Warn if M_StateStore missing for fail-fast feedback
 	if _state_store == null:

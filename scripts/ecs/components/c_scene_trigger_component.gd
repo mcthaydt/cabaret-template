@@ -235,11 +235,9 @@ func _on_body_entered(body: Node3D) -> void:
 
 		# If AUTO mode, trigger transition immediately
 		if trigger_mode == TriggerMode.AUTO and _can_trigger():
-			# Notify SceneManager to suppress same-frame ESC pause
-			var scene_manager_group := get_tree().get_nodes_in_group("scene_manager")
-			if not scene_manager_group.is_empty():
-				var mgr := scene_manager_group[0]
-				if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
+			# Notify SceneManager to suppress same-frame ESC pause via ServiceLocator (Phase 10B-7: T141c)
+			var mgr := U_ServiceLocator.get_service(StringName("scene_manager"))
+			if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
 					mgr.suppress_pause_for_current_frame()
 
 			_trigger_transition()
@@ -279,11 +277,9 @@ func _can_trigger() -> bool:
 		if scene_state.get("is_transitioning", false):
 			return false
 
-	# Also check SceneManager if available
-	var managers: Array = get_tree().get_nodes_in_group("scene_manager")
-	if managers.size() > 0:
-		var mgr = managers[0]
-		if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
+	# Also check SceneManager if available via ServiceLocator (Phase 10B-7: T141c)
+	var mgr := U_ServiceLocator.get_service(StringName("scene_manager"))
+	if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
 			return false
 
 	return true
@@ -303,13 +299,11 @@ func _trigger_transition() -> void:
 	var spawn_action: Dictionary = U_GameplayActions.set_target_spawn_point(target_spawn_point)
 	store.dispatch(spawn_action)
 
-	# Get scene manager
-	var scene_manager_group: Array = get_tree().get_nodes_in_group("scene_manager")
-	if scene_manager_group.is_empty():
-		push_error("C_SceneTriggerComponent: No M_SceneManager found in 'scene_manager' group")
+	# Get scene manager via ServiceLocator (Phase 10B-7: T141c)
+	var scene_manager := U_ServiceLocator.get_service(StringName("scene_manager"))
+	if scene_manager == null:
+		push_error("C_SceneTriggerComponent: No M_SceneManager registered with ServiceLocator")
 		return
-
-	var scene_manager = scene_manager_group[0]
 
 	# Trigger scene transition
 	# Get transition type from door pairing
@@ -341,10 +335,9 @@ func trigger_interact() -> void:
 	if _can_trigger_interact():
 		# Suppress same-frame ESC pause handling to avoid pause overlay during
 		# door-triggered transitions when interact is used.
-		var scene_manager_group := get_tree().get_nodes_in_group("scene_manager")
-		if not scene_manager_group.is_empty():
-			var mgr := scene_manager_group[0]
-			if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
+		# Get scene manager via ServiceLocator (Phase 10B-7: T141c)
+		var mgr := U_ServiceLocator.get_service(StringName("scene_manager"))
+		if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
 				mgr.suppress_pause_for_current_frame()
 
 		_trigger_transition()
@@ -364,11 +357,9 @@ func _can_trigger_interact() -> bool:
 		if scene_state.get("is_transitioning", false):
 			return false
 
-	# Also check SceneManager if available
-	var managers: Array = get_tree().get_nodes_in_group("scene_manager")
-	if managers.size() > 0:
-		var mgr = managers[0]
-		if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
+	# Also check SceneManager if available via ServiceLocator (Phase 10B-7: T141c)
+	var mgr := U_ServiceLocator.get_service(StringName("scene_manager"))
+	if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
 			return false
 
 	return true
@@ -378,13 +369,11 @@ func _can_trigger_interact() -> bool:
 ## Called when player enters trigger zone to start background loading of target scene.
 ## Non-blocking - scene loads in background while player is near door.
 func _hint_preload_target_scene() -> void:
-	# Find Scene Manager via group
-	var scene_manager_group: Array = get_tree().get_nodes_in_group("scene_manager")
-	if scene_manager_group.is_empty():
+	# Find Scene Manager via ServiceLocator (Phase 10B-7: T141c)
+	var scene_manager := U_ServiceLocator.get_service(StringName("scene_manager"))
+	if scene_manager == null:
 		# Scene Manager not found, skip hint (may not be implemented yet)
 		return
-
-	var scene_manager = scene_manager_group[0]
 
 	# Get target scene path from registry
 	var scene_path: String = U_SceneRegistry.get_scene_path(target_scene_id)

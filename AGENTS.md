@@ -445,9 +445,15 @@ func _on_apply_pressed():
 - Add a new ECS System
   - Create `scripts/ecs/systems/s_your_system.gd` extending `BaseECSSystem`; implement `process_tick(delta)`; query with your component's `StringName`; drop the node under a running scene—auto-configured.
 - Find M_StateStore from any node
-  - Use `U_StateUtils.get_store(self)` to find the store via "state_store" group.
+  - Use `U_StateUtils.get_store(self)` to find the store (internally uses U_ServiceLocator with fallback to group lookup).
   - In `_ready()`: add `await get_tree().process_frame` BEFORE calling `get_store()` to avoid race conditions.
   - In `process_tick()`: no await needed (store already registered).
+- Access managers via ServiceLocator (Phase 10B-7: T141)
+  - Use `U_ServiceLocator.get_service(StringName("service_name"))` for fast, centralized manager access.
+  - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`.
+  - ServiceLocator provides O(1) Dictionary lookup vs O(n) tree traversal of group lookups.
+  - All services are registered at startup in `root.tscn` via `marker_main_root_node.gd`.
+  - Fallback to group lookup is available for backward compatibility and test environments.
 - Create a new gameplay scene
   - Duplicate `scenes/gameplay/gameplay_base.tscn` as starting point.
   - Keep M_ECSManager + Systems + Entities + Environment structure.

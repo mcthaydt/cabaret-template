@@ -6,29 +6,38 @@ class_name U_StateUtils
 ## Provides helpers for finding M_StateStore in scene tree and
 ## performance benchmarking for state operations.
 
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const STORE_GROUP := StringName("state_store")
 
-## Get the M_StateStore from the scene tree
+## Get the M_StateStore from the ServiceLocator
 ## Returns null if no store found or node is invalid
 static func get_store(node: Node) -> M_StateStore:
 	if node == null or not is_instance_valid(node):
 		push_error("U_StateUtils.get_store: Invalid node")
 		return null
 
-	var tree: SceneTree = node.get_tree()
-	if tree == null:
-		push_error("U_StateUtils.get_store: Node not in tree")
-		return null
+	# Use ServiceLocator for fast, centralized lookup
+	var store := U_ServiceLocator.get_service(STORE_GROUP) as M_StateStore
 
-	var store_group: Array = tree.get_nodes_in_group(STORE_GROUP)
-	if store_group.is_empty():
-		push_error("U_StateUtils.get_store: No M_StateStore in 'state_store' group")
-		return null
+	# Fallback to group lookup for backward compatibility during migration
+	if store == null:
+		push_warning("U_StateUtils.get_store: ServiceLocator lookup failed, falling back to group lookup")
+		var tree: SceneTree = node.get_tree()
+		if tree == null:
+			push_error("U_StateUtils.get_store: Node not in tree")
+			return null
 
-	if store_group.size() > 1:
-		push_warning("U_StateUtils.get_store: Multiple stores found, using first")
+		var store_group: Array = tree.get_nodes_in_group(STORE_GROUP)
+		if store_group.is_empty():
+			push_error("U_StateUtils.get_store: No M_StateStore in 'state_store' group")
+			return null
 
-	return store_group[0] as M_StateStore
+		if store_group.size() > 1:
+			push_warning("U_StateUtils.get_store: Multiple stores found, using first")
+
+		store = store_group[0] as M_StateStore
+
+	return store
 
 static func await_store_ready(node: Node, max_frames: int = 120) -> M_StateStore:
 	if node == null or not is_instance_valid(node):
@@ -42,7 +51,13 @@ static func await_store_ready(node: Node, max_frames: int = 120) -> M_StateStore
 
 	var frames_waited := 0
 	while frames_waited <= max_frames:
-		var store := tree.get_first_node_in_group(STORE_GROUP) as M_StateStore
+		# Try ServiceLocator first
+		var store := U_ServiceLocator.get_service(STORE_GROUP) as M_StateStore
+
+		# Fallback to group lookup if ServiceLocator not initialized yet
+		if store == null:
+			store = tree.get_first_node_in_group(STORE_GROUP) as M_StateStore
+
 		if store != null:
 			if store.is_ready():
 				return store

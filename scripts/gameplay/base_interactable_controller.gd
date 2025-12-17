@@ -220,11 +220,10 @@ func _is_transition_blocked() -> bool:
 		var stack: Array = scene_slice.get("scene_stack", [])
 		if stack.size() > 0:
 			return true
-	var scene_managers := get_tree().get_nodes_in_group(SCENE_MANAGER_GROUP)
-	if not scene_managers.is_empty():
-		var manager := scene_managers[0]
-		if manager != null and manager.has_method("is_transitioning") and manager.is_transitioning():
-			return true
+	# Check if scene manager is transitioning via ServiceLocator (Phase 10B-7: T141c)
+	var manager := U_ServiceLocator.get_service(SCENE_MANAGER_GROUP)
+	if manager != null and manager.has_method("is_transitioning") and manager.is_transitioning():
+		return true
 	return false
 
 func _disconnect_trigger_area_signals(area: Area3D) -> void:
