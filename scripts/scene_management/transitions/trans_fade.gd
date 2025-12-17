@@ -14,6 +14,8 @@ class_name Trans_Fade
 
 const U_TweenManager = preload("res://scripts/scene_management/u_tween_manager.gd")
 
+const _META_ORIGINAL_MOUSE_FILTER := StringName("_trans_fade_original_mouse_filter")
+
 ## Transition duration in seconds
 @export var duration: float = 1.0
 
@@ -61,6 +63,8 @@ func execute_fade_out(overlay: CanvasLayer) -> Signal:
 
 	# Block input during transition
 	if block_input:
+		if not color_rect.has_meta(_META_ORIGINAL_MOUSE_FILTER):
+			color_rect.set_meta(_META_ORIGINAL_MOUSE_FILTER, int(color_rect.mouse_filter))
 		color_rect.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	# Ensure transition advances even if the SceneTree is paused
@@ -113,7 +117,11 @@ func execute_fade_in(overlay: CanvasLayer, callback: Callable) -> Signal:
 
 	# Restore input and process modes on completion
 	_tween.finished.connect(func() -> void:
-		color_rect.mouse_filter = Control.MOUSE_FILTER_PASS
+		var restore_mouse_filter: int = Control.MOUSE_FILTER_IGNORE
+		if color_rect.has_meta(_META_ORIGINAL_MOUSE_FILTER):
+			restore_mouse_filter = int(color_rect.get_meta(_META_ORIGINAL_MOUSE_FILTER))
+			color_rect.remove_meta(_META_ORIGINAL_MOUSE_FILTER)
+		color_rect.mouse_filter = restore_mouse_filter
 		overlay.process_mode = Node.PROCESS_MODE_INHERIT
 		color_rect.process_mode = Node.PROCESS_MODE_INHERIT
 		if callback.is_valid():
