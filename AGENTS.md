@@ -49,6 +49,22 @@
   - Query with `get_components(StringName)`, dedupe per-body where needed, and clamp/guard values (see movement/rotation/floating examples).
   - Use `U_ECSUtils.map_components_by_body()` when multiple systems need shared body→component dictionaries (avoids duplicate loops).
   - Auto-discovers `M_ECSManager` via parent traversal or `ecs_manager` group; no manual wiring needed.
+- **Testing with Dependency Injection (Phase 10B-8)**
+  - Systems support `@export` dependency injection for isolated testing with mocks.
+  - **Inject ECS manager**: All systems inherit `@export var ecs_manager: I_ECSManager` from BaseECSSystem.
+  - **Inject state store**: 9 state-dependent systems have `@export var state_store: I_StateStore` (S_HealthSystem, S_VictorySystem, S_CheckpointSystem, S_InputSystem, S_GamepadVibrationSystem, S_GravitySystem, S_MovementSystem, S_JumpSystem, S_RotateToInputSystem).
+  - **Injection priority chain**: U_StateUtils.get_store() and U_ECSUtils.get_manager() check @export injection first, then fall back to ServiceLocator/groups. Production code unchanged (auto-discovery if not injected).
+  - **Mock classes**: Use `MockStateStore` and `MockECSManager` from `tests/mocks/` for isolated testing.
+  - **Example test pattern**:
+    ```gdscript
+    var mock_manager := MockECSManager.new()
+    var mock_store := MockStateStore.new()
+    var system := S_HealthSystem.new()
+    system.ecs_manager = mock_manager  # Inject via @export
+    system.state_store = mock_store    # Inject via @export
+    # Test system in isolation without real managers
+    ```
+  - **Mock helpers**: `MockStateStore.get_dispatched_actions()` verifies actions; `MockStateStore.set_slice()` sets up test state; `MockECSManager.add_component_to_entity()` populates components.
 - Manager
   - Ensure exactly one `M_ECSManager` in-scene. It auto-adds to `ecs_manager` group on `_ready()`.
   - Emits `component_added`/`component_removed` and calls `component.on_registered(self)`.
