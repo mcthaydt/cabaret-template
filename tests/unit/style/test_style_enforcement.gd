@@ -30,6 +30,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/ecs/systems": ["s_", "m_"],  # m_ for M_PauseManager
 	"res://scripts/ecs/components": ["c_"],
 	"res://scripts/ecs/resources": ["rs_"],
+	"res://scripts/ecs/events": ["evn_", "base_"],  # evn_ for typed events, base_ for BaseECSEvent
 	"res://scripts/ecs": ["base_", "u_"],  # base_ecs_*.gd files, base_event_vfx_system.gd, u_ecs_event_bus.gd, u_entity_query.gd
 	"res://scripts/state/actions": ["u_"],
 	"res://scripts/state/reducers": ["u_"],

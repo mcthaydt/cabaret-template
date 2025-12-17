@@ -26,6 +26,7 @@ We use a **prefix + suffix** naming convention that provides:
 | **Resources/Settings** | `RS_` | `Settings` | `RS_MovementSettings` |
 | **Utilities** | `U_` | `Utils` / `*` | `U_ECSUtils`, `U_BootSelectors` |
 | **Event Buses** | `U_` | `EventBus` | `U_ECSEventBus`, `U_StateEventBus` |
+| **Typed Events** | `Evn_` | `*Event` suffix omitted | `Evn_HealthChanged`, `Evn_EntityDeath` |
 | **Registries** | `U_` | `Registry` | `U_SceneRegistry` |
 | **Scenes** | `SC_` | `Scene` | `SC_PlayerScene` |
 | **Shaders** | `SH_` | `Shader` | `SH_WaterShader` |
@@ -52,6 +53,7 @@ The following patterns apply to **production** scripts under `res://scripts/**`.
 | **Utilities** | `u_*_utils.gd` | `u_ecs_utils.gd`, `u_input_rebind_utils.gd` |
 | **Registries** | `u_*_registry.gd` | `u_scene_registry.gd`, `u_ui_registry.gd` |
 | **Event Buses** | `u_*_event_bus.gd` | `u_state_event_bus.gd`, `u_ecs_event_bus.gd` |
+| **Typed Events** | `evn_*.gd` | `evn_health_changed.gd`, `evn_entity_death.gd`, `evn_victory_triggered.gd` |
 | **UI Controllers** | `ui_*_screen.gd` / `ui_*_overlay.gd` / `ui_*_panel.gd` | `ui_main_menu_screen.gd`, `ui_pause_menu_overlay.gd` |
 | **Base Classes** | `base_*.gd` | `base_panel.gd`, `base_menu_screen.gd`, `base_overlay.gd`, `base_ecs_component.gd` |
 | **Marker Scripts** | `marker_*.gd` | `marker_entities_group.gd`, `marker_main_root_node.gd`, `marker_active_scene_container.gd` |
@@ -210,6 +212,7 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 - Marker Scripts: Now use `marker_` prefix (e.g., `marker_entities_group.gd`, `marker_main_root_node.gd`)
 - Transitions: Use `trans_` prefix (e.g., `trans_fade.gd`, `trans_loading_screen.gd`)
 - Event Buses: Use `base_` or `u_` prefix (e.g., `base_event_bus.gd`, `u_ecs_event_bus.gd`)
+- Typed Events: Use `evn_` prefix and `Evn_` class name (e.g., `evn_health_changed.gd` with `class_name Evn_HealthChanged`)
 - Utilities: Use `u_` prefix (e.g., `u_entity_query.gd`, `u_analog_stick_repeater.gd`)
 
 ### Directories: `snake_case` (plural)
