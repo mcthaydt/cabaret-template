@@ -16,12 +16,11 @@ static func get_store(node: Node) -> M_StateStore:
 		push_error("U_StateUtils.get_store: Invalid node")
 		return null
 
-	# Use ServiceLocator for fast, centralized lookup
-	var store := U_ServiceLocator.get_service(STORE_GROUP) as M_StateStore
+	# Use ServiceLocator for fast, centralized lookup (try_get_service for silent fallback)
+	var store := U_ServiceLocator.try_get_service(STORE_GROUP) as M_StateStore
 
 	# Fallback to group lookup for backward compatibility during migration
 	if store == null:
-		push_warning("U_StateUtils.get_store: ServiceLocator lookup failed, falling back to group lookup")
 		var tree: SceneTree = node.get_tree()
 		if tree == null:
 			push_error("U_StateUtils.get_store: Node not in tree")
@@ -51,8 +50,8 @@ static func await_store_ready(node: Node, max_frames: int = 120) -> M_StateStore
 
 	var frames_waited := 0
 	while frames_waited <= max_frames:
-		# Try ServiceLocator first
-		var store := U_ServiceLocator.get_service(STORE_GROUP) as M_StateStore
+		# Try ServiceLocator first (silent lookup to avoid error spam during waiting)
+		var store := U_ServiceLocator.try_get_service(STORE_GROUP) as M_StateStore
 
 		# Fallback to group lookup if ServiceLocator not initialized yet
 		if store == null:

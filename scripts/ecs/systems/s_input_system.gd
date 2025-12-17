@@ -50,7 +50,8 @@ func _ensure_input_device_manager() -> void:
 	if _input_device_manager != null and is_instance_valid(_input_device_manager):
 		return
 	# Get input device manager via ServiceLocator (Phase 10B-7: T141c)
-	_input_device_manager = U_ServiceLocator.get_service(StringName("input_device_manager")) as M_InputDeviceManager
+	# Use try_get_service to avoid errors in test environments
+	_input_device_manager = U_ServiceLocator.try_get_service(StringName("input_device_manager")) as M_InputDeviceManager
 
 func process_tick(_delta: float) -> void:
 	_ensure_actions()

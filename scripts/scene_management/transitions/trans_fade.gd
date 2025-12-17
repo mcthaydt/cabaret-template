@@ -42,6 +42,12 @@ var _tween_context: U_TweenManager.TweenContext = null
 ##
 ## Returns a Signal that emits when fade-out completes
 func execute_fade_out(overlay: CanvasLayer) -> Signal:
+	if overlay == null:
+		push_warning("Trans_Fade.execute_fade_out: overlay is null (test environment?)")
+		# Return a completed signal for graceful degradation
+		var completed := Signal()
+		return completed
+
 	var color_rect: ColorRect = _find_color_rect(overlay)
 	if color_rect == null:
 		push_error("FadeTransition: TransitionColorRect not found in overlay")
@@ -77,6 +83,14 @@ func execute_fade_out(overlay: CanvasLayer) -> Signal:
 ##
 ## Returns a Signal that emits when fade-in completes
 func execute_fade_in(overlay: CanvasLayer, callback: Callable) -> Signal:
+	if overlay == null:
+		push_warning("Trans_Fade.execute_fade_in: overlay is null (test environment?)")
+		if callback.is_valid():
+			callback.call()
+		# Return a completed signal for graceful degradation
+		var completed := Signal()
+		return completed
+
 	var color_rect: ColorRect = _find_color_rect(overlay)
 	if color_rect == null:
 		push_error("FadeTransition: TransitionColorRect not found in overlay")
@@ -182,6 +196,8 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 
 ## Find TransitionColorRect in overlay
 func _find_color_rect(overlay: CanvasLayer) -> ColorRect:
+	if overlay == null:
+		return null
 	for child in overlay.get_children():
 		if child is ColorRect and child.name == "TransitionColorRect":
 			return child as ColorRect

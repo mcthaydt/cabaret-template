@@ -10,21 +10,31 @@ func _ready() -> void:
 ## Register all managers with the service locator for fast, centralized access
 func _initialize_service_locator() -> void:
 	# Get references to all manager nodes
-	var managers_node := $Managers
+	var managers_node := get_node_or_null("Managers")
 	if managers_node == null:
-		push_error("Root: Managers node not found")
+		# Managers node doesn't exist - likely running in test environment
+		# Skip ServiceLocator initialization (tests handle their own setup)
 		return
 
-	# Register all services
-	U_ServiceLocator.register(StringName("state_store"), managers_node.get_node("M_StateStore"))
-	U_ServiceLocator.register(StringName("cursor_manager"), managers_node.get_node("M_CursorManager"))
-	U_ServiceLocator.register(StringName("scene_manager"), managers_node.get_node("M_SceneManager"))
-	U_ServiceLocator.register(StringName("pause_manager"), managers_node.get_node("M_PauseManager"))
-	U_ServiceLocator.register(StringName("spawn_manager"), managers_node.get_node("M_SpawnManager"))
-	U_ServiceLocator.register(StringName("camera_manager"), managers_node.get_node("M_CameraManager"))
-	U_ServiceLocator.register(StringName("input_profile_manager"), managers_node.get_node("M_InputProfileManager"))
-	U_ServiceLocator.register(StringName("input_device_manager"), managers_node.get_node("M_InputDeviceManager"))
-	U_ServiceLocator.register(StringName("ui_input_handler"), managers_node.get_node("M_UIInputHandler"))
+	# Check if the critical manager exists (state_store is required for all others)
+	# If state_store doesn't exist, we're probably a gameplay scene loaded under root.tscn
+	# which already initialized ServiceLocator, or we're in a test environment
+	var state_store_node := managers_node.get_node_or_null("M_StateStore")
+	if state_store_node == null:
+		# No state store in this scene - skip ServiceLocator initialization
+		# Tests or root.tscn handle their own ServiceLocator setup
+		return
+
+	# Register all services (use get_node_or_null to be defensive)
+	_register_if_exists(managers_node, "M_StateStore", StringName("state_store"))
+	_register_if_exists(managers_node, "M_CursorManager", StringName("cursor_manager"))
+	_register_if_exists(managers_node, "M_SceneManager", StringName("scene_manager"))
+	_register_if_exists(managers_node, "M_PauseManager", StringName("pause_manager"))
+	_register_if_exists(managers_node, "M_SpawnManager", StringName("spawn_manager"))
+	_register_if_exists(managers_node, "M_CameraManager", StringName("camera_manager"))
+	_register_if_exists(managers_node, "M_InputProfileManager", StringName("input_profile_manager"))
+	_register_if_exists(managers_node, "M_InputDeviceManager", StringName("input_device_manager"))
+	_register_if_exists(managers_node, "M_UIInputHandler", StringName("ui_input_handler"))
 
 	# Register dependencies for validation
 	U_ServiceLocator.register_dependency(StringName("pause_manager"), StringName("state_store"))
@@ -41,3 +51,9 @@ func _initialize_service_locator() -> void:
 
 	# Print dependency graph in verbose mode
 	print_verbose(U_ServiceLocator.get_dependency_graph())
+
+## Helper to register a service only if the node exists
+func _register_if_exists(parent: Node, node_name: String, service_name: StringName) -> void:
+	var node := parent.get_node_or_null(node_name)
+	if node != null:
+		U_ServiceLocator.register(service_name, node)

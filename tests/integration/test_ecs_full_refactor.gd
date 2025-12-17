@@ -24,7 +24,12 @@ var _state_store: M_StateStore = null
 ## Track events published during test
 var events_received: Array[Dictionary] = []
 
+const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
+
 func before_each():
+	# Clear ServiceLocator first to ensure clean state between tests
+	U_ServiceLocator.clear()
+
 	# Reset event tracking
 	events_received.clear()
 	U_ECSEventBus.clear_history()
@@ -37,9 +42,13 @@ func before_each():
 	_state_store = M_StateStore.new()
 	add_child(_state_store)
 	autofree(_state_store)
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
 	await get_tree().process_frame
 
 func after_each():
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
+
 	if _unsubscribe_jump != Callable() and _unsubscribe_jump.is_valid():
 		_unsubscribe_jump.call()
 		_unsubscribe_jump = Callable()

@@ -10,6 +10,7 @@ const M_CameraManager := preload("res://scripts/managers/m_camera_manager.gd")
 const M_InputProfileManager := preload("res://scripts/managers/m_input_profile_manager.gd")
 const M_PauseManager := preload("res://scripts/managers/m_pause_manager.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _store: M_StateStore
 var _ui_overlay_stack: CanvasLayer
@@ -22,6 +23,9 @@ var _profile_manager: M_InputProfileManager
 var _pause_system: M_PauseManager
 
 func before_each() -> void:
+	# Clear ServiceLocator first to ensure clean state between tests
+	U_ServiceLocator.clear()
+
 	# Minimal scene tree for SceneManager overlays
 	_active_scene_container = Node.new()
 	_active_scene_container.name = "ActiveSceneContainer"
@@ -44,29 +48,40 @@ func before_each() -> void:
 
 	_cursor_manager = M_CursorManager.new()
 	add_child_autofree(_cursor_manager)
+	U_ServiceLocator.register(StringName("cursor_manager"), _cursor_manager)
+
 	_spawn_manager = M_SpawnManager.new()
 	add_child_autofree(_spawn_manager)
+	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
 	await get_tree().process_frame
+
 	_camera_manager = M_CameraManager.new()
 	add_child_autofree(_camera_manager)
+	U_ServiceLocator.register(StringName("camera_manager"), _camera_manager)
 	await get_tree().process_frame
 
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
 	_store.scene_initial_state = RS_SceneInitialState.new()
 	add_child_autofree(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
 	_profile_manager = M_InputProfileManager.new()
 	add_child_autofree(_profile_manager)
+	U_ServiceLocator.register(StringName("input_profile_manager"), _profile_manager)
 	await get_tree().process_frame
 
 	# Create M_PauseManager to apply pause based on scene state
 	_pause_system = M_PauseManager.new()
 	add_child_autofree(_pause_system)
+	U_ServiceLocator.register(StringName("pause_manager"), _pause_system)
 	await get_tree().process_frame
 
 func after_each() -> void:
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
+
 	get_tree().paused = false  # Reset pause state
 	_store = null
 	_ui_overlay_stack = null
@@ -79,11 +94,15 @@ func test_pause_menu_opens_profile_selector_overlay() -> void:
 	var manager := M_SceneManager.new()
 	manager.skip_initial_scene_load = true
 	add_child_autofree(manager)
+	U_ServiceLocator.register(StringName("scene_manager"), manager)
 	await get_tree().process_frame
 
 	await _start_game_and_pause()
 
 	# Find pause menu node and press Settings, then InputProfilesButton in settings overlay
+	if _ui_overlay_stack.get_child_count() == 0:
+		assert_true(false, "UIOverlayStack should have at least one child (pause menu)")
+		return
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	assert_not_null(pause_menu, "Pause menu overlay should exist")
 	var settings_button := pause_menu.get_node("CenterContainer/VBoxContainer/SettingsButton") as Button
@@ -107,11 +126,15 @@ func test_apply_closes_overlays_and_resumes() -> void:
 	var manager := M_SceneManager.new()
 	manager.skip_initial_scene_load = true
 	add_child_autofree(manager)
+	U_ServiceLocator.register(StringName("scene_manager"), manager)
 	await get_tree().process_frame
 
 	await _start_game_and_pause()
 
 	# Open the settings overlay, then the profile selector overlay
+	if _ui_overlay_stack.get_child_count() == 0:
+		assert_true(false, "UIOverlayStack should have at least one child (pause menu)")
+		return
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	var settings_button := pause_menu.get_node("CenterContainer/VBoxContainer/SettingsButton") as Button
 	settings_button.emit_signal("pressed")
@@ -138,11 +161,15 @@ func test_profile_selector_shows_binding_preview() -> void:
 	var manager := M_SceneManager.new()
 	manager.skip_initial_scene_load = true
 	add_child_autofree(manager)
+	U_ServiceLocator.register(StringName("scene_manager"), manager)
 	await get_tree().process_frame
 
 	await _start_game_and_pause()
 
 	# Open the settings overlay, then the profile selector overlay
+	if _ui_overlay_stack.get_child_count() == 0:
+		assert_true(false, "UIOverlayStack should have at least one child (pause menu)")
+		return
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	var settings_button := pause_menu.get_node("CenterContainer/VBoxContainer/SettingsButton") as Button
 	assert_not_null(settings_button, "SettingsButton should exist on pause menu")

@@ -70,8 +70,8 @@ func _deferred_init() -> void:
 ## Main initialization logic
 func _initialize() -> void:
 	# Get reference to cursor manager via ServiceLocator (Phase 10B-7: T141c)
-	# Optional - pause still works without it
-	_cursor_manager = U_ServiceLocator.get_service(StringName("cursor_manager")) as M_CursorManager
+	# Optional - pause still works without it. Use try_get_service to avoid errors in test environments.
+	_cursor_manager = U_ServiceLocator.try_get_service(StringName("cursor_manager")) as M_CursorManager
 
 	# Get reference to UIOverlayStack (for immediate pause detection)
 	_ui_overlay_stack = get_tree().root.find_child("UIOverlayStack", true, false)

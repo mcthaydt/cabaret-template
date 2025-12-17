@@ -8,15 +8,24 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 const MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
 const MOVEMENT_SETTINGS := preload("res://resources/settings/movement_default.tres")
+const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
 
 var _state_store: M_StateStore = null
 
 func before_each() -> void:
+	# Clear ServiceLocator first to ensure clean state between tests
+	U_ServiceLocator.clear()
+
 	# Create and add M_StateStore for systems that require it
 	_state_store = M_StateStore.new()
 	add_child(_state_store)
 	autofree(_state_store)
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
 	await get_tree().process_frame
+
+func after_each() -> void:
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
 
 func _setup_scene() -> Dictionary:
 	await get_tree().process_frame

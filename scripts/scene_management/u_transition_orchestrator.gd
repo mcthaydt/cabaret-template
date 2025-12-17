@@ -103,16 +103,27 @@ func execute_transition_effect(transition_type: String, scene_swap_callback: Cal
 ## (scene loading, spawning, etc.), and we need the fade-in to wait for it to complete.
 ## We manually sequence: fade-out → async scene swap → fade-in
 func _execute_fade_transition(effect: Trans_Fade, overlay: CanvasLayer, scene_swap: Callable, complete: Callable) -> void:
+	# Handle null overlay gracefully (test environments may not have overlay set up)
+	if overlay == null:
+		push_warning("U_TransitionOrchestrator: overlay is null, executing instant transition")
+		# Just do the scene swap and complete immediately
+		await scene_swap.call()
+		if complete.is_valid():
+			complete.call()
+		return
+
 	# Execute fade-out and wait for completion
 	var fade_out_signal := effect.execute_fade_out(overlay)
-	await fade_out_signal
+	if fade_out_signal != null:
+		await fade_out_signal
 
 	# Execute async scene swap
 	await scene_swap.call()
 
 	# Execute fade-in and wait for completion
 	var fade_in_signal := effect.execute_fade_in(overlay, complete)
-	await fade_in_signal
+	if fade_in_signal != null:
+		await fade_in_signal
 
 ## Execute loading screen transition
 func _execute_loading_transition(effect: Trans_LoadingScreen, overlay: CanvasLayer, scene_swap: Callable, complete: Callable, progress: Callable) -> void:

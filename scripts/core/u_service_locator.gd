@@ -71,13 +71,54 @@ static func get_service(service_name: StringName) -> Node:
 		push_error("U_ServiceLocator.get_service: Service '%s' not registered. Available services: %s" % [service_name, _services.keys()])
 		return null
 
-	var instance: Node = _services[service_name]
-	if instance == null or not is_instance_valid(instance):
-		push_error("U_ServiceLocator.get_service: Service '%s' is null or invalid" % service_name)
+	# Get as Variant first to avoid "invalid previously freed instance" error on assignment
+	var instance_variant: Variant = _services.get(service_name)
+	if instance_variant == null:
+		push_error("U_ServiceLocator.get_service: Service '%s' is null" % service_name)
 		_services.erase(service_name)
 		return null
 
-	return instance
+	# Now check if it's a valid Node instance
+	if not is_instance_valid(instance_variant):
+		push_error("U_ServiceLocator.get_service: Service '%s' was freed" % service_name)
+		_services.erase(service_name)
+		return null
+
+	return instance_variant as Node
+
+## Try to retrieve a service by name without logging errors
+##
+## Use this for optional dependencies where the service may not exist
+## (e.g., in test environments or when graceful degradation is acceptable)
+##
+## Parameters:
+##   service_name: The service identifier
+##
+## Returns:
+##   The service instance (Node) or null if not found (silent failure)
+##
+## Example:
+##   var manager := U_ServiceLocator.try_get_service(StringName("input_device_manager"))
+##   if manager:
+##       # Use manager
+##   else:
+##       # Fallback behavior
+static func try_get_service(service_name: StringName) -> Node:
+	if not _services.has(service_name):
+		return null
+
+	# Get as Variant first to avoid "invalid previously freed instance" error on assignment
+	var instance_variant: Variant = _services.get(service_name)
+	if instance_variant == null:
+		_services.erase(service_name)
+		return null
+
+	# Now check if it's a valid Node instance
+	if not is_instance_valid(instance_variant):
+		_services.erase(service_name)
+		return null
+
+	return instance_variant as Node
 
 ## Check if a service is registered
 ##

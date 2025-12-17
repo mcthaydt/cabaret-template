@@ -21,17 +21,22 @@ var _active_scene_container: Node
 var _ui_overlay_stack: CanvasLayer
 
 func before_each() -> void:
+	# Clear ServiceLocator first to ensure clean state between tests
+	U_ServiceLocator.clear()
+
 	# Create root scene structure
 	_root_scene = Node.new()
 	_root_scene.name = "Root"
 	add_child_autofree(_root_scene)
 
-	# Create state store with all slices
+	# Create state store with all slices - register IMMEDIATELY after adding to tree
+	# so other managers can find it in their _ready()
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
 	var scene_initial_state := RS_SceneInitialState.new()
 	_store.scene_initial_state = scene_initial_state
 	_root_scene.add_child(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
 	# Create scene containers
@@ -53,13 +58,10 @@ func before_each() -> void:
 	transition_overlay.add_child(color_rect)
 	_root_scene.add_child(transition_overlay)
 
-	# Create scene manager
+	# Create scene manager - register IMMEDIATELY after adding to tree
 	_manager = M_SceneManager.new()
 	_manager.skip_initial_scene_load = true  # Don't load main_menu automatically in tests
 	_root_scene.add_child(_manager)
-
-	# Register managers with ServiceLocator (Phase 10B-7: T141c)
-	U_ServiceLocator.register(StringName("state_store"), _store)
 	U_ServiceLocator.register(StringName("scene_manager"), _manager)
 
 	await get_tree().process_frame

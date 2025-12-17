@@ -31,17 +31,22 @@ func _is_headless() -> bool:
 	return OS.has_feature("headless") or DisplayServer.get_name() == "headless"
 
 func before_each() -> void:
+	# Clear ServiceLocator first to ensure clean state between tests
+	U_ServiceLocator.clear()
+
 	# Create root scene structure
 	_root_scene = Node.new()
 	_root_scene.name = "Root"
 	add_child_autofree(_root_scene)
 
-	# Create state store with all slices
+	# Create state store with all slices - register IMMEDIATELY after adding to tree
+	# so other managers can find it in their _ready()
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
 	var scene_initial_state := RS_SceneInitialState.new()
 	_store.scene_initial_state = scene_initial_state
 	_root_scene.add_child(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
 	# Create scene containers
@@ -66,21 +71,18 @@ func before_each() -> void:
 	# Create spawn manager (Phase 12.1: required for spawn restoration)
 	_spawn_manager = M_SpawnManager.new()
 	_root_scene.add_child(_spawn_manager)
+	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
 
 	# Create camera manager (Phase 12.2: required for camera blending)
 	_camera_manager = M_CameraManager.new()
 	_root_scene.add_child(_camera_manager)
+	U_ServiceLocator.register(StringName("camera_manager"), _camera_manager)
 
-	# Create scene manager
+	# Create scene manager - register IMMEDIATELY after adding to tree
 	_manager = M_SceneManager.new()
 	_manager.skip_initial_scene_load = true
 	_root_scene.add_child(_manager)
-
-	# Register managers with ServiceLocator (Phase 10B-7: T141c)
-	U_ServiceLocator.register(StringName("state_store"), _store)
 	U_ServiceLocator.register(StringName("scene_manager"), _manager)
-	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
-	U_ServiceLocator.register(StringName("camera_manager"), _camera_manager)
 
 	await get_tree().process_frame
 
