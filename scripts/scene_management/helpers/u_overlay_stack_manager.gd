@@ -18,17 +18,17 @@ const OVERLAY_META_SCENE_ID := StringName("_scene_manager_overlay_scene_id")
 func push_overlay(manager: Node, scene_id: StringName, force: bool) -> void:
 	var scene_path: String = U_SCENE_REGISTRY.get_scene_path(scene_id)
 	if scene_path.is_empty():
-		manager.push_warning("M_SceneManager: Scene '%s' not found for overlay" % scene_id)
+		push_warning("M_SceneManager: Scene '%s' not found for overlay" % scene_id)
 		return
 
 	var overlay_scene: Node = manager._load_scene(scene_path)
 	if overlay_scene == null:
-		manager.push_error("M_SceneManager: Failed to load overlay scene '%s'" % scene_id)
+		push_error("M_SceneManager: Failed to load overlay scene '%s'" % scene_id)
 		return
 
 	var ui_overlay_stack: CanvasLayer = manager._ui_overlay_stack
 	if ui_overlay_stack == null:
-		manager.push_error("M_SceneManager: UIOverlayStack not found for overlay '%s'" % scene_id)
+		push_error("M_SceneManager: UIOverlayStack not found for overlay '%s'" % scene_id)
 		overlay_scene.queue_free()
 		return
 
@@ -193,7 +193,7 @@ func _reconcile_overlay_stack(manager: Node, desired_overlay_ids: Array[StringNa
 
 	var desired_count: int = min(desired_scene_stack.size(), MAX_STACK_DEPTH)
 	if desired_scene_stack.size() > MAX_STACK_DEPTH:
-		manager.push_warning("M_SceneManager: Desired overlay stack exceeds supported depth (%d); truncating" % MAX_STACK_DEPTH)
+		push_warning("M_SceneManager: Desired overlay stack exceeds supported depth (%d); truncating" % MAX_STACK_DEPTH)
 
 	for i in range(prefix_len, desired_count):
 		var scene_id: StringName = desired_scene_stack[i]
@@ -221,9 +221,9 @@ func _get_overlay_scene_ids_from_ui(manager: Node) -> Array[StringName]:
 			elif scene_id_meta is String:
 				overlay_ids.append(StringName(scene_id_meta))
 			else:
-				manager.push_warning("M_SceneManager: Overlay has invalid scene_id metadata")
+				push_warning("M_SceneManager: Overlay has invalid scene_id metadata")
 		else:
-			manager.push_warning("M_SceneManager: Overlay missing scene_id metadata")
+			push_warning("M_SceneManager: Overlay missing scene_id metadata")
 
 	return overlay_ids
 
