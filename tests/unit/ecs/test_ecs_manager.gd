@@ -72,6 +72,8 @@ func before_each() -> void:
 	add_child(_state_store)
 	autofree(_state_store)
 	await get_tree().process_frame
+	# Register state_store with ServiceLocator so scenes can find it
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
 
 func _on_component_added(component_type, received) -> void:
 	_added_calls += 1
