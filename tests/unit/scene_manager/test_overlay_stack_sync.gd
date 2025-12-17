@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 ## Unit tests for overlay stack/state synchronization on M_SceneManager startup
 
@@ -61,10 +61,18 @@ func before_each() -> void:
 	add_child_autofree(_store)
 	await get_tree().process_frame
 
+	# Register all managers with ServiceLocator so they can find each other
+	U_ServiceLocator.register(StringName("state_store"), _store)
+	U_ServiceLocator.register(StringName("cursor_manager"), _cursor_manager)
+	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
+	U_ServiceLocator.register(StringName("camera_manager"), _camera_manager)
+
 	# Create M_PauseManager to apply pause based on scene state
 	_pause_system = M_PauseManager.new()
 	add_child_autofree(_pause_system)
 	await get_tree().process_frame
+
+	U_ServiceLocator.register(StringName("pause_manager"), _pause_system)
 
 func after_each() -> void:
 	get_tree().paused = false  # Reset pause state
@@ -73,6 +81,8 @@ func after_each() -> void:
 	_active_scene_container = null
 	_transition_overlay = null
 	_pause_system = null
+	# Call parent to clear ServiceLocator
+	super.after_each()
 
 ## When UIOverlayStack already has overlays, manager should mirror to state
 func test_syncs_state_from_preexisting_ui_overlays() -> void:
