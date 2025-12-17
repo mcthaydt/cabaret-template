@@ -17,9 +17,21 @@ const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_man
 @onready var _description_label: Label = $PreviewContainer/DescriptionLabel
 @onready var _bindings_container: VBoxContainer = $PreviewContainer/BindingsContainer
 
+@export var debug_nav_logs: bool = false
+
 var _manager: Node = null
 var _available_profiles: Array[String] = []
 var _current_index: int = 0
+
+func _nav_log(message: String) -> void:
+	if not debug_nav_logs:
+		return
+	print("[UI_InputProfileSelector] %s" % message)
+
+func _describe_node(node: Node) -> String:
+	if node == null:
+		return "<null>"
+	return "%s(%s)" % [node.name, node.get_class()]
 
 func _on_panel_ready() -> void:
 	await get_tree().process_frame
@@ -35,6 +47,12 @@ func _on_panel_ready() -> void:
 		_profile_button.pressed.connect(_on_profile_button_pressed)
 	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
 		_apply_button.pressed.connect(_on_apply_pressed)
+	_nav_log("ready manager=%s profiles=%d current_index=%d focused=%s" % [
+		_describe_node(_manager),
+		_available_profiles.size(),
+		_current_index,
+		_describe_node(get_viewport().gui_get_focus_owner() if get_viewport() != null else null)
+	])
 	_update_preview()
 
 func _on_manager_profile_switched(profile_id: String) -> void:
@@ -51,6 +69,7 @@ func _on_manager_profile_switched(profile_id: String) -> void:
 func _navigate_focus(direction: StringName) -> void:
 	# Override to handle navigation within this overlay
 	var focused := get_viewport().gui_get_focus_owner()
+	_nav_log("_navigate_focus(%s) focused=%s" % [direction, _describe_node(focused)])
 
 	# Handle up/down on ProfileButton: cycle profiles
 	if focused == _profile_button and (direction == "ui_up" or direction == "ui_down"):
@@ -73,6 +92,57 @@ func _navigate_focus(direction: StringName) -> void:
 
 	# For any other navigation, use default behavior
 	super._navigate_focus(direction)
+
+func _unhandled_input(event: InputEvent) -> void:
+	var viewport := get_viewport()
+	var focused := viewport.gui_get_focus_owner() if viewport != null else null
+
+	if focused == _profile_button:
+		if event.is_action_pressed("ui_up"):
+			_cycle_profile(-1)
+			if viewport != null:
+				viewport.set_input_as_handled()
+			return
+		if event.is_action_pressed("ui_down"):
+			_cycle_profile(1)
+			if viewport != null:
+				viewport.set_input_as_handled()
+			return
+		if event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right"):
+			if _apply_button != null:
+				_apply_button.grab_focus()
+				if viewport != null:
+					viewport.set_input_as_handled()
+				return
+
+	if focused == _apply_button:
+		if event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right"):
+			if _profile_button != null:
+				_profile_button.grab_focus()
+				if viewport != null:
+					viewport.set_input_as_handled()
+				return
+
+	var action := ""
+	if event.is_action_pressed("ui_up"):
+		action = "ui_up"
+	elif event.is_action_pressed("ui_down"):
+		action = "ui_down"
+	elif event.is_action_pressed("ui_left"):
+		action = "ui_left"
+	elif event.is_action_pressed("ui_right"):
+		action = "ui_right"
+	elif event.is_action_pressed("ui_accept"):
+		action = "ui_accept"
+
+	if not action.is_empty():
+		_nav_log("_unhandled_input action=%s event=%s focused=%s" % [
+			action,
+			event.get_class(),
+			_describe_node(focused)
+		])
+
+	super._unhandled_input(event)
 
 func _configure_focus_neighbors() -> void:
 	# Don't set focus neighbors - we handle all navigation in _navigate_focus override
@@ -136,6 +206,11 @@ func _cycle_profile(direction: int) -> void:
 	_current_index = (_current_index + direction) % _available_profiles.size()
 	if _current_index < 0:
 		_current_index = _available_profiles.size() - 1
+	_nav_log("_cycle_profile(%d) -> current_index=%d selected=%s" % [
+		direction,
+		_current_index,
+		_available_profiles[_current_index] if not _available_profiles.is_empty() else ""
+	])
 	_update_button_text()
 
 func _on_profile_button_pressed() -> void:
