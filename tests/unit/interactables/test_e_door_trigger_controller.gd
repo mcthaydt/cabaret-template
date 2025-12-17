@@ -59,6 +59,10 @@ func before_each() -> void:
 
 	await _pump_frames(1)
 
+	# Register services with ServiceLocator so components can find them
+	U_ServiceLocator.register(StringName("state_store"), store)
+	U_ServiceLocator.register(StringName("scene_manager"), mgr)
+
 func _create_controller() -> E_DoorTriggerController:
 	var controller := E_DoorTriggerController.new()
 	controller.component_factory = Callable(self, "_create_scene_trigger_stub")

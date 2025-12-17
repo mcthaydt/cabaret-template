@@ -221,7 +221,8 @@ func _is_transition_blocked() -> bool:
 		if stack.size() > 0:
 			return true
 	# Check if scene manager is transitioning via ServiceLocator (Phase 10B-7: T141c)
-	var manager := U_ServiceLocator.get_service(SCENE_MANAGER_GROUP)
+	# Use try_get_service to avoid errors in test environments
+	var manager := U_ServiceLocator.try_get_service(SCENE_MANAGER_GROUP)
 	if manager != null and manager.has_method("is_transitioning") and manager.is_transitioning():
 		return true
 	return false

@@ -203,6 +203,8 @@ func test_activation_blocked_during_scene_transition() -> void:
 	add_child(scene_manager)
 	autofree(scene_manager)
 	scene_manager.add_to_group("scene_manager")
+	# Register scene_manager with ServiceLocator so controllers can find it
+	U_ServiceLocator.register(StringName("scene_manager"), scene_manager)
 
 	var area: Area3D = controller.get_trigger_area()
 	var player_body: CharacterBody3D = context["player_body"]

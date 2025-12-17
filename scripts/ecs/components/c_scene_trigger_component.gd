@@ -236,7 +236,8 @@ func _on_body_entered(body: Node3D) -> void:
 		# If AUTO mode, trigger transition immediately
 		if trigger_mode == TriggerMode.AUTO and _can_trigger():
 			# Notify SceneManager to suppress same-frame ESC pause via ServiceLocator (Phase 10B-7: T141c)
-			var mgr := U_ServiceLocator.get_service(StringName("scene_manager"))
+			# Use try_get_service to avoid errors in test environments
+			var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager"))
 			if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
 					mgr.suppress_pause_for_current_frame()
 
@@ -278,7 +279,8 @@ func _can_trigger() -> bool:
 			return false
 
 	# Also check SceneManager if available via ServiceLocator (Phase 10B-7: T141c)
-	var mgr := U_ServiceLocator.get_service(StringName("scene_manager"))
+	# Use try_get_service to avoid errors in test environments
+	var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager"))
 	if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
 			return false
 
@@ -336,7 +338,8 @@ func trigger_interact() -> void:
 		# Suppress same-frame ESC pause handling to avoid pause overlay during
 		# door-triggered transitions when interact is used.
 		# Get scene manager via ServiceLocator (Phase 10B-7: T141c)
-		var mgr := U_ServiceLocator.get_service(StringName("scene_manager"))
+		# Use try_get_service to avoid errors in test environments
+		var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager"))
 		if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
 				mgr.suppress_pause_for_current_frame()
 
@@ -358,7 +361,8 @@ func _can_trigger_interact() -> bool:
 			return false
 
 	# Also check SceneManager if available via ServiceLocator (Phase 10B-7: T141c)
-	var mgr := U_ServiceLocator.get_service(StringName("scene_manager"))
+	# Use try_get_service to avoid errors in test environments
+	var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager"))
 	if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
 			return false
 
@@ -370,7 +374,8 @@ func _can_trigger_interact() -> bool:
 ## Non-blocking - scene loads in background while player is near door.
 func _hint_preload_target_scene() -> void:
 	# Find Scene Manager via ServiceLocator (Phase 10B-7: T141c)
-	var scene_manager := U_ServiceLocator.get_service(StringName("scene_manager"))
+	# Use try_get_service to avoid errors in test environments
+	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager"))
 	if scene_manager == null:
 		# Scene Manager not found, skip hint (may not be implemented yet)
 		return
