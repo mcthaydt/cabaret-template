@@ -288,10 +288,10 @@ func test_fade_transition_easing() -> void:
 	var tracker := U_TransitionTestHelpers.create_completion_tracker()
 	fade.execute(_transition_overlay, tracker.get_callback())
 
-	if fade._tween != null:
-		await U_TransitionTestHelpers.await_tween_or_timeout(fade._tween, get_tree(), 1.0)
+	# Wait for completion with timeout
+	var completed: bool = await tracker.wait(get_tree(), 1.0)
 
-	assert_true(tracker.is_complete, "Should complete with custom easing")
+	assert_true(completed, "Should complete with custom easing")
 
 ## Test Trans_Instant with scene swap
 func test_instant_transition_scene_swap_timing() -> void:
