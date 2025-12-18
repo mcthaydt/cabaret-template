@@ -11,6 +11,7 @@ const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 
 @export var force_enable: bool = false
@@ -38,6 +39,7 @@ var _is_transitioning: bool = false
 var _has_overlay_active: bool = false
 var _is_edit_overlay_active: bool = false
 var _current_shell: StringName = StringName("")
+var _current_scene_id: StringName = StringName("")
 var _fade_delay: float = 0.0
 var _fade_duration: float = 0.0
 var _fade_elapsed: float = 0.0
@@ -49,6 +51,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process(true)
 	add_to_group("mobile_controls")
+	visible = false
 
 	if not _should_enable():
 		queue_free()
@@ -276,6 +279,7 @@ func _update_navigation_state(state: Dictionary) -> void:
 	var scene_state: Dictionary = state.get("scene", {})
 	var was_transitioning: bool = _is_transitioning
 	_is_transitioning = bool(scene_state.get("is_transitioning", false))
+	_current_scene_id = scene_state.get("current_scene_id", StringName(""))
 
 	# When transition starts, block visibility updates until signal fires
 	if not was_transitioning and _is_transitioning:
@@ -301,7 +305,11 @@ func _update_visibility() -> void:
 	var device_allows: bool = _device_type == M_InputDeviceManager.DeviceType.TOUCHSCREEN
 	var shell_allows: bool = (_current_shell == SHELL_GAMEPLAY) or (force_enable and _current_shell == StringName(""))
 	var overlay_allows: bool = not _has_overlay_active or _is_edit_overlay_active
-	var should_show: bool = device_allows and shell_allows and not _is_transitioning and overlay_allows
+	var scene_allows: bool = true
+	if not force_enable:
+		scene_allows = U_SceneRegistry.get_scene_type(_current_scene_id) == U_SceneRegistry.SceneType.GAMEPLAY
+
+	var should_show: bool = device_allows and shell_allows and scene_allows and not _is_transitioning and overlay_allows
 
 	visible = should_show
 

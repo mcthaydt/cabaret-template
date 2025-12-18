@@ -5,6 +5,7 @@
 [node name="MobileControls" type="CanvasLayer"]
 process_mode = 3
 layer = 50
+visible = false
 script = ExtResource("1")
 
 [node name="Controls" type="Control" parent="."]
