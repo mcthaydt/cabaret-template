@@ -21,8 +21,9 @@ const TRIGGER_RESOURCE_FILES := [
 	"res://resources/rs_scene_trigger_settings.tres"
 ]
 
-# No exceptions - all files follow documented prefix patterns
-# (Previously interface files were listed as exceptions, but i_ is a valid prefix pattern)
+const SCRIPT_FILENAME_EXCEPTIONS := [
+	"main.gd" # Root bootstrap script (intentionally unprefixed)
+]
 
 # Valid prefixes by directory
 const SCRIPT_PREFIX_RULES := {
@@ -313,7 +314,7 @@ func _is_valid_script_name(filename: String, allowed_prefixes: Array) -> bool:
 	return false
 
 func _is_exception(filename: String) -> bool:
-	return filename.begins_with("test_")  # Test files are always exceptions
+	return filename.begins_with("test_") or filename in SCRIPT_FILENAME_EXCEPTIONS
 
 func _check_scene_directory(dir_path: String, required_prefix: String, violations: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)

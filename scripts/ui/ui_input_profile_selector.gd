@@ -114,9 +114,22 @@ func _navigate_focus(direction: StringName) -> void:
 	super._navigate_focus(direction)
 
 func _unhandled_input(event: InputEvent) -> void:
+	# Note: Analog stick motion (InputEventJoypadMotion) is handled by
+	# _navigate_focus() via the analog stick repeater from BaseMenuScreen.
+	# Only handle discrete button presses (keyboard, D-pad) here.
+	#
+	# Analog stick motion should NOT be handled here with is_action_pressed()
+	# as that bypasses debouncing and causes rapid cycling.
+
+	# Skip analog stick motion events - let the repeater handle them
+	if event is InputEventJoypadMotion:
+		super._unhandled_input(event)
+		return
+
 	var viewport := get_viewport()
 	var focused := viewport.gui_get_focus_owner() if viewport != null else null
 
+	# Handle discrete button presses for profile cycling
 	if focused == _profile_button:
 		if event.is_action_pressed("ui_up"):
 			_cycle_profile(-1)

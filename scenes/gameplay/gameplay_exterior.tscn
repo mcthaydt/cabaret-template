@@ -1,6 +1,6 @@
 [gd_scene load_steps=60 format=3 uid="uid://ctcs7j03knyuf"]
 
-[ext_resource type="Script" uid="uid://b4tth4uu52xvk" path="res://scripts/scene_structure/marker_main_root_node.gd" id="1_f2o31"]
+[ext_resource type="Script" uid="uid://b4tth4uu52xvk" path="res://scripts/scene_structure/main.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://cf5gy8sa741bw" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
 [ext_resource type="Script" uid="uid://c2s8iwkj3ng5j" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
 [ext_resource type="Script" uid="uid://c3pmyueyktptt" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]

@@ -18,13 +18,13 @@ The root scene persists across the whole session. Manager ordering in the scene 
 8. `M_InputDeviceManager`
 9. `M_UIInputHandler`
 
-`scripts/scene_structure/marker_main_root_node.gd` registers these into `U_ServiceLocator` and validates declared dependencies.
+`scripts/scene_structure/main.gd` registers these into `U_ServiceLocator` and validates declared dependencies.
 
 ---
 
 ## Service Locator Dependencies
 
-`U_ServiceLocator` dependency declarations are registered by `marker_main_root_node.gd` at startup:
+`U_ServiceLocator` dependency declarations are registered by `main.gd` at startup:
 
 - `pause_manager` → `state_store`, `cursor_manager`
 - `spawn_manager` → `state_store`
@@ -109,4 +109,3 @@ flowchart TD
 
 - ECS systems that depend on state should support dependency injection via `@export var state_store: I_StateStore` for isolated testing.
 - ECS systems should treat missing store as “feature disabled” (skip read/write) rather than crashing.
-

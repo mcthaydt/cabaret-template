@@ -130,7 +130,7 @@ Output: All runtime code/assets adhere to the documented naming/prefix rules or 
 - Extend `tests/unit/style/test_style_enforcement.gd` (or add sibling suites) to:
   - Validate that all `.gd` scripts in key directories:
     - Start with an allowed prefix for their category, or
-    - Match an exception pattern (e.g., `main_root_node.gd`, `entities_group.gd`, `base_*`).
+    - Match an exception pattern (e.g., `main.gd`, `base_*`).
   - Optionally, ensure `class_name` matches or is compatible with the file prefix.
 - Add scene organization tests (if not already in place) that:
   - Validate gameplay scenes contain required groups and marker scripts.

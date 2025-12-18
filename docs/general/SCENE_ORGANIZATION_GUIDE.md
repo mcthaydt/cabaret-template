@@ -24,46 +24,46 @@ This guide documents the standardized scene tree organization used throughout Pr
 All **gameplay scenes** (e.g., `gameplay_base.tscn`, `gameplay_exterior.tscn`, `gameplay_interior_house.tscn`) should follow this hierarchy:
 
 ```
-GameplayRoot (Node3D) [main_root_node.gd]
-├─ SceneObjects (Node3D) [scene_objects_group.gd]
+GameplayRoot (Node3D) [main.gd]
+├─ SceneObjects (Node3D) [marker_scene_objects_group.gd]
 │  ├─ SO_Floor (CSGBox3D)
 │  ├─ SO_Block (CSGBox3D)
 │  └─ ... (static scene geometry)
 │
-├─ Environment (Node) [environment_group.gd]
+├─ Environment (Node) [marker_environment_group.gd]
 │  ├─ Env_WorldEnvironment (WorldEnvironment)
 │  └─ Env_DirectionalLight3D (DirectionalLight3D)
 │
-├─ Systems (Node) [systems_group.gd]
-│  ├─ Core (Node) [systems_core_group.gd]
+├─ Systems (Node) [marker_systems_group.gd]
+│  ├─ Core (Node) [marker_systems_core_group.gd]
 │  │  └─ S_InputSystem (priority: 0)
 │  │
-│  ├─ Physics (Node) [systems_physics_group.gd]
+│  ├─ Physics (Node) [marker_systems_physics_group.gd]
 │  │  ├─ S_GravitySystem (priority: 60)
 │  │  └─ S_JumpSystem (priority: 75)
 │  │
-│  ├─ Movement (Node) [systems_movement_group.gd]
+│  ├─ Movement (Node) [marker_systems_movement_group.gd]
 │  │  ├─ S_MovementSystem (priority: 50)
 │  │  ├─ S_FloatingSystem (priority: 70)
 │  │  ├─ S_RotateToInputSystem (priority: 80)
 │  │  └─ S_AlignWithSurfaceSystem (priority: 90)
 │  │
-│  └─ Feedback (Node) [systems_feedback_group.gd]
+│  └─ Feedback (Node) [marker_systems_feedback_group.gd]
 │     ├─ S_LandingIndicatorSystem (priority: 110)
 │     ├─ S_JumpParticlesSystem (priority: 120)
 │     ├─ S_JumpSoundSystem (priority: 121)
 │     └─ S_LandingParticlesSystem (priority: 122)
 │
-├─ Managers (Node) [managers_group.gd]
+├─ Managers (Node) [marker_managers_group.gd]
 │  ├─ M_ECSManager
 │  ├─ M_CursorManager
 │  └─ M_StateStore
 │
-├─ Entities (Node) [entities_group.gd]
-│  ├─ SP_SpawnPoints (Node3D) [spawn_points_group.gd]
-│  │  ├─ sp_entrance_from_exterior (Node3D) [spawn_points_group.gd]
-│  │  ├─ sp_exit_from_house (Node3D) [spawn_points_group.gd]
-│  │  └─ sp_default (Node3D) [spawn_points_group.gd]
+├─ Entities (Node) [marker_entities_group.gd]
+│  ├─ SP_SpawnPoints (Node3D) [marker_spawn_points_group.gd]
+│  │  ├─ sp_entrance_from_exterior (Node3D) [marker_spawn_points_group.gd]
+│  │  ├─ sp_exit_from_house (Node3D) [marker_spawn_points_group.gd]
+│  │  └─ sp_default (Node3D) [marker_spawn_points_group.gd]
 │  ├─ E_Player (prefab_player.tscn instance)
 │  ├─ E_CameraRoot (tmpl_camera.tscn instance)
 │  ├─ Hazards (Node) [entities_group.gd] - Container for hazard entities
@@ -82,7 +82,7 @@ GameplayRoot (Node3D) [main_root_node.gd]
    └─ (UI elements)
 ```
 
-`GameplayRoot` is the canonical root name for gameplay scenes; it must use the `main_root_node.gd` marker script.
+`GameplayRoot` is the canonical root name for gameplay scenes; it must use the `main.gd` root script.
 
 ### Important: Node Hierarchy Rules
 
@@ -107,8 +107,8 @@ When renaming container nodes, ensure ALL child node parent paths are updated to
 The **root scene** persists across the entire session and owns global managers and containers. It follows this structure:
 
 ```
-Root (Node) [main_root_node.gd]
-├─ Managers (Node) [managers_group.gd]
+Root (Node) [main.gd]
+├─ Managers (Node) [marker_managers_group.gd]
 │  ├─ M_StateStore
 │  ├─ M_CursorManager
 │  ├─ M_SceneManager
@@ -118,7 +118,7 @@ Root (Node) [main_root_node.gd]
 │  ├─ M_InputDeviceManager
 │  └─ UIInputHandler
 │
-├─ ActiveSceneContainer (Node) [active_scene_container.gd]
+├─ ActiveSceneContainer (Node) [marker_active_scene_container.gd]
 │  └─ (Gameplay / UI scenes loaded by M_SceneManager)
 │
 ├─ UIOverlayStack (CanvasLayer)
@@ -266,17 +266,16 @@ Marker scripts provide visual organization in the Godot editor via custom `@icon
 
 | Script | Purpose | Icon | Location |
 |--------|---------|------|----------|
-| `main_root_node.gd` | Scene root marker | `main_root.svg` | `scripts/scene_structure/` |
-| `scene_objects_group.gd` | Static geometry group | `scene_objects.svg` | `scripts/scene_structure/` |
-| `environment_group.gd` | Lighting/environment group | `environment.svg` | `scripts/scene_structure/` |
-| `systems_group.gd` | Systems container | `system.svg` | `scripts/scene_structure/` |
-| `systems_core_group.gd` | Core systems group | `systems_core.svg` | `scripts/scene_structure/` |
-| `systems_physics_group.gd` | Physics systems group | `systems_physics.svg` | `scripts/scene_structure/` |
-| `systems_movement_group.gd` | Movement systems group | `systems_movement.svg` | `scripts/scene_structure/` |
-| `systems_feedback_group.gd` | Feedback systems group | `systems_feedback.svg` | `scripts/scene_structure/` |
-| `managers_group.gd` | Managers group | `manager.svg` | `scripts/scene_structure/` |
-| `entities_group.gd` | Entities group | `entities.svg` | `scripts/scene_structure/` |
-| `components_group.gd` | Components group (within entities) | `component.svg` | `scripts/scene_structure/` |
+| `marker_scene_objects_group.gd` | Static geometry group | `scene_objects.svg` | `scripts/scene_structure/` |
+| `marker_environment_group.gd` | Lighting/environment group | `environment.svg` | `scripts/scene_structure/` |
+| `marker_systems_group.gd` | Systems container | `system.svg` | `scripts/scene_structure/` |
+| `marker_systems_core_group.gd` | Core systems group | `systems_core.svg` | `scripts/scene_structure/` |
+| `marker_systems_physics_group.gd` | Physics systems group | `systems_physics.svg` | `scripts/scene_structure/` |
+| `marker_systems_movement_group.gd` | Movement systems group | `systems_movement.svg` | `scripts/scene_structure/` |
+| `marker_systems_feedback_group.gd` | Feedback systems group | `systems_feedback.svg` | `scripts/scene_structure/` |
+| `marker_managers_group.gd` | Managers group | `manager.svg` | `scripts/scene_structure/` |
+| `marker_entities_group.gd` | Entities group | `entities.svg` | `scripts/scene_structure/` |
+| `marker_components_group.gd` | Components group (within entities) | `component.svg` | `scripts/scene_structure/` |
 
 ### Creating New Marker Scripts
 

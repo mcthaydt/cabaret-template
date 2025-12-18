@@ -68,7 +68,7 @@ All in `scripts/scene_structure/` - Added `marker_` prefix:
 
 | Old Filename | New Filename | Commit |
 |--------------|--------------|--------|
-| `main_root_node.gd` | `marker_main_root_node.gd` | 5bf119e |
+| `main_root_node.gd` | `main.gd` | 5bf119e |
 | `entities_group.gd` | `marker_entities_group.gd` | 5bf119e |
 | `systems_core_group.gd` | `marker_systems_core_group.gd` | 5bf119e |
 | `systems_physics_group.gd` | `marker_systems_physics_group.gd` | 5bf119e |
@@ -118,7 +118,7 @@ This file follows the `i_*` prefix pattern for interfaces (not an exception):
 
 **Add new prefix patterns to matrix:**
 ```markdown
-| **Marker Scripts** | `marker_*.gd` | No class_name | `marker_marker_entities_group.gd`, `marker_marker_main_root_node.gd` |
+| **Marker Scripts** | `marker_*.gd` | No class_name | `marker_entities_group.gd`, `marker_active_scene_container.gd` |
 | **Transition Effects** | `trans_*.gd` | `Trans_*` | `trans_fade.gd` → `Trans_Fade` |
 | **Base Classes** | `base_*.gd` | `Base*` | `base_panel.gd`, `base_ecs_component.gd` |
 ```

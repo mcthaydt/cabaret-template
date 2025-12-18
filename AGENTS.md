@@ -121,7 +121,7 @@
 - **Resources:** `rs_*` prefix (e.g., `rs_jump_settings.gd` → `RS_JumpSettings`)
 - **Entities:** `e_*` prefix (e.g., `e_player.gd` → `E_Player`, `e_checkpoint_zone.gd` → `E_CheckpointZone`)
 - **UI Scripts:** `ui_*` prefix (e.g., `ui_main_menu.gd` → `UI_MainMenu`)
-- **Marker Scripts:** `marker_*` prefix (e.g., `marker_entities_group.gd`, `marker_main_root_node.gd`)
+- **Marker Scripts:** `marker_*` prefix (e.g., `marker_entities_group.gd`, `marker_active_scene_container.gd`)
 - **Transitions:** `trans_*` prefix (e.g., `trans_fade.gd` → `Trans_Fade`)
 - **Interfaces:** `i_*` prefix (e.g., `i_scene_contract.gd` → `I_SCENE_CONTRACT`)
 - **Prefabs:** `prefab_*` prefix for scenes (e.g., `prefab_death_zone.tscn`)
@@ -468,7 +468,7 @@ func _on_apply_pressed():
   - Use `U_ServiceLocator.get_service(StringName("service_name"))` for fast, centralized manager access.
   - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`.
   - ServiceLocator provides O(1) Dictionary lookup vs O(n) tree traversal of group lookups.
-  - All services are registered at startup in `root.tscn` via `marker_main_root_node.gd`.
+  - All services are registered at startup in `root.tscn` via `main.gd`.
   - Fallback to group lookup is available for backward compatibility and test environments.
 - Create a new gameplay scene
   - Duplicate `scenes/gameplay/gameplay_base.tscn` as starting point.

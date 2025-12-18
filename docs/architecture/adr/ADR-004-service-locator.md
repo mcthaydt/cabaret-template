@@ -20,7 +20,7 @@ As the project grew, this created:
 
 Adopt `U_ServiceLocator` as the primary manager/service registry:
 
-- Root scene registers all persistent managers at startup (`marker_main_root_node.gd`).
+- Root scene registers all persistent managers at startup (`main.gd`).
 - Consumers use:
   - `U_ServiceLocator.get_service(name)` for required dependencies (errors if missing)
   - `U_ServiceLocator.try_get_service(name)` for optional/test-safe dependencies
@@ -49,6 +49,5 @@ Group lookup remains a fallback in some areas for backward compatibility and tes
 ## References
 
 - `scripts/core/u_service_locator.gd`
-- `scripts/scene_structure/marker_main_root_node.gd`
+- `scripts/scene_structure/main.gd`
 - `scenes/root.tscn`
-

@@ -56,7 +56,7 @@ The following patterns apply to **production** scripts under `res://scripts/**`.
 | **Typed Events** | `evn_*.gd` | `evn_health_changed.gd`, `evn_entity_death.gd`, `evn_victory_triggered.gd` |
 | **UI Controllers** | `ui_*_screen.gd` / `ui_*_overlay.gd` / `ui_*_panel.gd` | `ui_main_menu_screen.gd`, `ui_pause_menu_overlay.gd` |
 | **Base Classes** | `base_*.gd` | `base_panel.gd`, `base_menu_screen.gd`, `base_overlay.gd`, `base_ecs_component.gd` |
-| **Marker Scripts** | `marker_*.gd` | `marker_entities_group.gd`, `marker_main_root_node.gd`, `marker_active_scene_container.gd` |
+| **Marker Scripts** | `marker_*.gd` | `marker_entities_group.gd`, `marker_active_scene_container.gd`, `marker_managers_group.gd` |
 | **Transition Effects** | `trans_*.gd` | `trans_fade.gd`, `trans_loading_screen.gd`, `trans_instant.gd` |
 | **Interface Scripts** | `i_*.gd` | `i_scene_contract.gd` |
 | **Scene Scripts** | `sc_*_scene.gd` (where used) | `sc_player_scene.gd` |
@@ -141,7 +141,7 @@ For all **production** scripts, scenes, and resources under:
 every file must:
 
 - Use one of the documented prefixes for its category (e.g., `m_`, `s_`, `c_`, `rs_`, `u_`, `ui_`, `gameplay_`, `debug_`), **or**
-- Be explicitly listed as a marker/base exception (e.g., `main_root_node.gd`, `entities_group.gd`, `systems_group.gd`).
+- Be explicitly listed as an exception (e.g., `main.gd`).
 
 If you introduce a new category that does not fit the existing table, update this guide and add a test to enforce the new pattern.
 
@@ -209,7 +209,7 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 
 **Previously Listed as Exceptions (Now Following Standard Patterns):**
 - Base Classes: Now use `base_` prefix (e.g., `base_panel.gd`, `base_ecs_component.gd`)
-- Marker Scripts: Now use `marker_` prefix (e.g., `marker_entities_group.gd`, `marker_main_root_node.gd`)
+- Marker Scripts: Now use `marker_` prefix (e.g., `marker_entities_group.gd`, `marker_active_scene_container.gd`)
 - Transitions: Use `trans_` prefix (e.g., `trans_fade.gd`, `trans_loading_screen.gd`)
 - Event Buses: Use `base_` or `u_` prefix (e.g., `base_event_bus.gd`, `u_ecs_event_bus.gd`)
 - Typed Events: Use `evn_` prefix and `Evn_` class name (e.g., `evn_health_changed.gd` with `class_name Evn_HealthChanged`)
@@ -469,6 +469,10 @@ Test files use `test_` prefix followed by the class being tested:
 - `test_c_movement_component.gd`
 - `test_m_ecs_manager.gd`
 - `test_u_gameplay_selectors.gd`
+
+### Main Root Script (Exception)
+The project root node script is allowed to be unprefixed:
+- `scripts/scene_structure/main.gd`
 
 ### ECS Event Bus Usage
 - ECS components publish gameplay-domain events via `U_ECSEventBus` (e.g., `health_changed`, `victory_triggered`, `damage_zone_entered`, `checkpoint_zone_entered`, `component_registered`); avoid custom signals for these flows.
@@ -797,7 +801,7 @@ EXCLUSIONS:
 
 ## Scene Roots
 
-- Gameplay scenes: name the 3D root `GameplayRoot` and attach `scripts/scene_structure/main_root_node.gd`.
+- Gameplay scenes: name the 3D root `GameplayRoot` and attach `scripts/scene_structure/main.gd`.
 - Persistent root scene (`scenes/root.tscn`): name the root `Root`.
 - UI scenes: name root by purpose (e.g., `MainMenu`, `PauseMenu`, `SettingsMenu`).
 - Prototype scenes: prefer `PrototypeRoot` unless the scene’s purpose is clearer as a noun (e.g., `CameraBlendTest`).
