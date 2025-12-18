@@ -19,27 +19,26 @@ version: "1.0"
   - Test compatibility: Updated test_transition_dedupe.gd to use helper-based API
 - **Commit needed**: Phase 1 implementation changes ready for commit
 
-## Next Phase (Phase 2)
+## Phase 2 Complete (2025-12-18)
 
 Goal: Standardize dependency lookup patterns across the codebase (no new framework).
 
-Standard chain (intent):
-1. `@export` injection (tests)
-2. `U_ServiceLocator.try_get_service(...)` (production)
-3. Group lookup (only where needed for backward compatibility)
+- **Lookup chain applied to worst offenders**:
+  - Added `U_StateUtils.try_get_store(node)` for silent optional store lookup (injection → ServiceLocator → group).
+  - Updated key UI/gameplay “leaf” nodes to prefer `U_ServiceLocator.try_get_service(...)` with group fallback where needed:
+    - Input managers: `input_profile_manager`, `input_device_manager`
+    - Scene manager signal hookup (`UI_MobileControls`)
+  - Updated door trigger (`C_SceneTriggerComponent`) to resolve `scene_manager` via ServiceLocator then group fallback (and fixed inconsistent indentation).
+- **Must-pass tests**: Ran and passing:
+  - `tests/unit/style/`
+  - `tests/unit/scene_management/`
+  - `tests/unit/scene_manager/`
+  - `tests/unit/integration/`
+- **Commit needed**: Phase 2 implementation changes ready for commit
 
-Suggested execution order:
-1. Inventory all dependency lookups that bypass the standard chain (T120).
-2. Decide the "preferred accessor" per dependency and record it (T121).
-3. Apply the standard chain to worst offenders first (T122).
-4. Add/adjust tests for dependency lookup changes (T123).
-5. Add a short "Dependency Lookup Rule" section to DEV_PITFALLS.md if needed (T124).
+## Next Phase (Phase 3)
 
-Focus areas:
-- State store: `U_StateUtils.get_store(node)` / `await_store_ready(...)`
-- ECS manager: `U_ECSUtils.get_manager(node)`
-- Optional managers: `U_ServiceLocator.try_get_service(StringName("..."))`
-- Avoid direct field access from helpers (`manager._field`) → use helper methods instead
+Goal: Stop runtime `InputMap` mutation in gameplay systems (deterministic bindings).
 
 ## Must-Pass Tests
 
@@ -57,4 +56,3 @@ Focus areas:
   - `docs/general/cleanup/hotspot-simplification-continuation-prompt.md`
   - Any impacted planning docs (e.g., `docs/architecture/dependency_graph.md`) if assumptions change
 - Commit documentation updates separately from implementation commits.
-

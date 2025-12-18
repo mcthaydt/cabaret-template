@@ -184,6 +184,19 @@
   - `device_changed` actions must originate from `M_InputDeviceManager`. `S_InputSystem` only reads `U_InputSelectors.get_active_device_type()` / `get_active_gamepad_id()`; dispatching from multiple sources causes duplicate logs and race conditions.
   - Gamepad hot-plug events dispatch `gamepad_connected` / `gamepad_disconnected` from the manager. Keep connection-dependent systems (e.g., vibration) subscribed to Redux state rather than polling the manager directly.
 
+## Dependency Lookup Rule
+
+- **Standard chain (preferred)**:
+  1. `@export` injection (tests)
+  2. `U_ServiceLocator.try_get_service(StringName("..."))` (production)
+  3. Group lookup / tree traversal only as a compatibility fallback
+
+- **State store**:
+  - Required callers: `U_StateUtils.get_store(node)` / `U_StateUtils.await_store_ready(node)`
+  - Optional callers (standalone scenes / editor-opened gameplay scenes): `U_StateUtils.try_get_store(node)` to avoid noisy errors
+
+- **Avoid ad-hoc group scanning in leaf nodes**: Prefer the standard chain for managers like `scene_manager`, `input_profile_manager`, `input_device_manager`, etc. Only drop to `get_tree().get_first_node_in_group(...)` when ServiceLocator may not be initialized (tests / isolated scenes).
+
 ## Scene Transition Pitfalls
 
 - Door trigger re-entry can cause ping-pong transitions:
