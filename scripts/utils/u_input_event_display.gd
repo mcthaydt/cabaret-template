@@ -162,6 +162,14 @@ static func get_texture_for_event(event: InputEvent) -> Texture2D:
 				button_name = "button_start"
 			JOY_BUTTON_BACK:
 				button_name = "button_select"
+			JOY_BUTTON_DPAD_UP:
+				button_name = "dpad_up"
+			JOY_BUTTON_DPAD_DOWN:
+				button_name = "dpad_down"
+			JOY_BUTTON_DPAD_LEFT:
+				button_name = "dpad_left"
+			JOY_BUTTON_DPAD_RIGHT:
+				button_name = "dpad_right"
 
 		if not button_name.is_empty():
 			var path := "res://resources/button_prompts/gamepad/%s.png" % button_name
@@ -202,4 +210,3 @@ static func get_texture_for_event(event: InputEvent) -> Texture2D:
 				return load(path)
 
 	return null
-

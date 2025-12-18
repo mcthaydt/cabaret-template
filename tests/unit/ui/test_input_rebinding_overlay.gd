@@ -247,6 +247,12 @@ func test_overlay_displays_actual_binding_not_action_prompt_glyph() -> void:
 		if ev is InputEvent:
 			InputMap.action_add_event(action, (ev as InputEvent).duplicate(true))
 
+func test_dpad_button_bindings_have_icons() -> void:
+	var dpad_down := InputEventJoypadButton.new()
+	dpad_down.button_index = JOY_BUTTON_DPAD_DOWN
+	var texture := U_InputRebindUtils.get_texture_for_event(dpad_down)
+	assert_not_null(texture, "D-pad Down should display an icon (not just text)")
+
 func test_conflict_prompts_and_swaps_on_confirm() -> void:
 	var overlay: Node = OverlayScene.instantiate()
 	add_child_autofree(overlay)
