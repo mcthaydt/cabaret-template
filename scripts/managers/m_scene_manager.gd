@@ -37,6 +37,7 @@ const U_TRANSITION_ORCHESTRATOR := preload("res://scripts/scene_management/u_tra
 const U_SCENE_TRANSITION_QUEUE := preload("res://scripts/scene_management/helpers/u_scene_transition_queue.gd")
 const U_SCENE_MANAGER_NODE_FINDER := preload("res://scripts/scene_management/helpers/u_scene_manager_node_finder.gd")
 const U_NAVIGATION_RECONCILER := preload("res://scripts/scene_management/helpers/u_navigation_reconciler.gd")
+const U_INPUT_MAP_BOOTSTRAPPER := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
 # Kept for type checking only:
 const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/trans_fade.gd")
@@ -156,6 +157,13 @@ func _ready() -> void:
 
 	# Find managers via ServiceLocator (Phase 10B-7: T141c)
 	await get_tree().process_frame  # Wait for ServiceLocator to initialize
+
+	# Phase 3 (InputMap determinism): ensure required actions exist in dev/test.
+	# This avoids brittle test ordering where other suites erase actions.
+	U_INPUT_MAP_BOOTSTRAPPER.ensure_required_actions(
+		U_INPUT_MAP_BOOTSTRAPPER.REQUIRED_ACTIONS,
+		U_INPUT_MAP_BOOTSTRAPPER.should_patch_missing_actions()
+	)
 
 	_store = U_ServiceLocator.get_service(StringName("state_store")) as M_StateStore
 	if not _store:

@@ -42,7 +42,8 @@ Goal: Stop runtime `InputMap` mutation in gameplay systems (deterministic bindin
 
 - **InputMap boot/init authority (Option B)**:
   - Added `scripts/input/u_input_map_bootstrapper.gd` to centralize the required-action set and dev/test-only patching.
-  - `M_InputProfileManager` now calls the bootstrapper on startup to avoid brittle missing-action states in dev/test.
+  - `M_InputProfileManager` calls the bootstrapper on startup to avoid brittle missing-action states in dev/test.
+  - `M_SceneManager` also calls the bootstrapper on startup (defensive against test ordering that erases actions before gameplay scenes load).
 - **Gameplay systems no longer mutate InputMap**:
   - `S_InputSystem` now validates required actions once and aborts capture (with a clear error) if misconfigured.
   - `S_SceneTriggerSystem` no longer creates/binds the `interact` action; it validates and short-circuits safely.

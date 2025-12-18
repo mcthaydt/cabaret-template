@@ -116,7 +116,30 @@
 
 - **When to use**: Any overlay that needs non-standard navigation (cycling values, custom layouts) instead of simple focus neighbor traversal.
 
-- **Real example**: `scripts/ui/input_profile_selector.gd` - Uses up/down to cycle through profile names instead of navigating between controls, and left/right to move between the profile button and apply button.
+- **Real example**: `scripts/ui/ui_input_profile_selector.gd` - Uses up/down to cycle through profile names instead of navigating between controls, and left/right to move between the profile button and apply button.
+
+### Avoid Await Before Wiring UI Signals
+
+- **Problem**: Awaiting (e.g., `await get_tree().process_frame`) before connecting critical UI signals can create a 1+ frame window where buttons emit `pressed` but nothing is listening yet.
+
+- **Symptom**: Tests (or very fast user input) can press Apply/Close immediately after an overlay is created and the handler never fires, leaving the overlay stuck on the stack.
+
+- **Solution**:
+  1. Connect critical signals first (buttons, toggles) at the top of `_ready()` / `_on_panel_ready()`.
+  2. If dependencies initialize asynchronously (store/managers), make the handler defensive (lazy-resolve dependency and/or repopulate state before acting).
+
+  ```gdscript
+  func _on_panel_ready() -> void:
+      _apply_button.pressed.connect(_on_apply_pressed)  # connect first
+      _manager = _resolve_manager()  # may be null, handler can re-resolve
+
+  func _on_apply_pressed() -> void:
+      if _manager == null:
+          _manager = _resolve_manager()
+      if _available_profiles.is_empty():
+          _populate_profiles()
+      _manager.switch_profile(_available_profiles[_current_index])
+  ```
 
 ### Explicit Focus Neighbor Configuration
 

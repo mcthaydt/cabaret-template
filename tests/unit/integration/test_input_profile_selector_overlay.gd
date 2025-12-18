@@ -192,11 +192,13 @@ func test_apply_closes_overlays_and_resumes() -> void:
 	_debug_overlay_snapshot("after ApplyButton pressed")
 
 	# Wait for overlay stack to reconcile (overlay pop happens asynchronously via Redux/navigation)
-	# Manual polling loop with timeout for reliability
+	# Manual polling loop with timeout for reliability.
+	# Note: Navigation reducer uses RETURN_TO_PREVIOUS_OVERLAY semantics, so the stack is typically
+	# a single overlay that swaps (selector → settings), not a multi-child stack.
 	var max_attempts := 100
 	var attempts := 0
 	var last_signature := ""
-	while _ui_overlay_stack.get_child_count() > 1 and attempts < max_attempts:
+	while attempts < max_attempts:
 		await get_tree().physics_frame
 		attempts += 1
 		var overlay_names: Array[String] = []
@@ -206,6 +208,10 @@ func test_apply_closes_overlays_and_resumes() -> void:
 		if signature != last_signature:
 			last_signature = signature
 			_debug_overlay_snapshot("poll attempt=%d" % attempts)
+		if _ui_overlay_stack.get_child_count() == 1:
+			var top := _ui_overlay_stack.get_child(0)
+			if top != null and String(top.name) == "SettingsMenu":
+				break
 
 	if attempts >= max_attempts:
 		_debug_overlay_snapshot("timeout after %d frames" % max_attempts)

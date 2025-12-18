@@ -39,19 +39,20 @@ func _describe_node(node: Node) -> String:
 	return "%s(%s)" % [node.name, node.get_class()]
 
 func _on_panel_ready() -> void:
-	await get_tree().process_frame
+	if _profile_button != null and not _profile_button.pressed.is_connected(_on_profile_button_pressed):
+		_profile_button.pressed.connect(_on_profile_button_pressed)
+	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
+		_apply_button.pressed.connect(_on_apply_pressed)
+
 	_manager = _resolve_input_profile_manager()
 	if _manager == null:
 		push_warning("InputProfileSelector: M_InputProfileManager not found")
+		_update_preview()
 		return
 	if _manager.has_signal("profile_switched") and not _manager.profile_switched.is_connected(_on_manager_profile_switched):
 		_manager.profile_switched.connect(_on_manager_profile_switched)
 	_populate_profiles()
 	_configure_focus_neighbors()
-	if _profile_button != null and not _profile_button.pressed.is_connected(_on_profile_button_pressed):
-		_profile_button.pressed.connect(_on_profile_button_pressed)
-	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
-		_apply_button.pressed.connect(_on_apply_pressed)
 	_nav_log("ready manager=%s profiles=%d current_index=%d focused=%s" % [
 		_describe_node(_manager),
 		_available_profiles.size(),
@@ -237,6 +238,10 @@ func _on_profile_button_pressed() -> void:
 	_cycle_profile(1)
 
 func _on_apply_pressed() -> void:
+	if _manager == null:
+		_manager = _resolve_input_profile_manager()
+	if _manager != null and _available_profiles.is_empty():
+		_populate_profiles()
 	if _manager == null or _available_profiles.is_empty():
 		return
 	var selected_profile := _available_profiles[_current_index]

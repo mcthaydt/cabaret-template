@@ -86,6 +86,7 @@ version: "1.0"
 - [x] T131 Choose the single “InputMap initialization authority”:
   - Option A: Treat `project.godot` as canonical; enforce via tests.
   - Option B: A dedicated boot/init step (manager/utility) that only validates and patches missing actions in dev/test. <- this one
+  - Implemented in `U_InputMapBootstrapper`, invoked on startup by `M_InputProfileManager` (and `M_SceneManager` as a defensive fallback for test ordering).
 - [x] T132 Remove `InputMap` mutation from `scripts/ecs/systems/s_input_system.gd` (replace with validation + early warnings if actions are missing).
   - Removed `_ensure_actions()` / `_ensure_action()` mutation path; system now validates required actions once and aborts capture with a clear error if misconfigured.
   - Also removed InputMap mutation from `scripts/ecs/systems/s_scene_trigger_system.gd` (same rationale; `INTERACT` mode now validates `interact` exists and short-circuits safely).
