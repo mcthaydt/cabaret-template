@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://cud3ix81sip6p"]
 
-[ext_resource type="Script" uid="uid://nj1jpa8sdwsk" path="res://scripts/ui/ui_input_rebinding_overlay.gd" id="1"]
+[ext_resource type="Script" uid="uid://dvgnmdtulgxd4" path="res://scripts/ui/ui_input_rebinding_overlay.gd" id="1"]
 
 [node name="InputRebindingOverlay" type="Control"]
 layout_mode = 3

@@ -22,6 +22,43 @@ var _camera_manager: M_CameraManager
 var _profile_manager: M_InputProfileManager
 var _pause_system: M_PauseManager
 
+const _DEBUG_LOGS: bool = false
+
+func _one_line(value: Variant) -> String:
+	var s := var_to_str(value)
+	s = s.replace("\n", "\\n")
+	s = s.replace("\t", "\\t")
+	return s
+
+func _debug_overlay_snapshot(context: String) -> void:
+	if not _DEBUG_LOGS:
+		return
+
+	var overlay_names: Array[String] = []
+	if _ui_overlay_stack != null and is_instance_valid(_ui_overlay_stack):
+		for child in _ui_overlay_stack.get_children():
+			overlay_names.append(String(child.name))
+
+	var scene_state: Dictionary = {}
+	if _store != null and is_instance_valid(_store):
+		scene_state = _store.get_slice(StringName("scene"))
+
+	var nav_state: Dictionary = {}
+	if _store != null and is_instance_valid(_store):
+		nav_state = _store.get_slice(StringName("navigation"))
+
+	print("[test_input_profile_selector_overlay] %s paused=%s ui_stack=%s scene={id=%s transitioning=%s stack=%s} nav={shell=%s base=%s overlays=%s}" % [
+		context,
+		str(get_tree().paused),
+		_one_line(overlay_names),
+		str(scene_state.get("current_scene_id", StringName(""))),
+		str(scene_state.get("is_transitioning", false)),
+		_one_line(scene_state.get("scene_stack", [])),
+		str(nav_state.get("shell", StringName(""))),
+		str(nav_state.get("base_scene_id", StringName(""))),
+		_one_line(nav_state.get("overlay_stack", [])),
+	])
+
 func before_each() -> void:
 	# Clear ServiceLocator first to ensure clean state between tests
 	U_ServiceLocator.clear()
@@ -130,6 +167,7 @@ func test_apply_closes_overlays_and_resumes() -> void:
 	await get_tree().process_frame
 
 	await _start_game_and_pause()
+	_debug_overlay_snapshot("after _start_game_and_pause")
 
 	# Open the settings overlay, then the profile selector overlay
 	if _ui_overlay_stack.get_child_count() == 0:
@@ -139,23 +177,50 @@ func test_apply_closes_overlays_and_resumes() -> void:
 	var settings_button := pause_menu.get_node("CenterContainer/VBoxContainer/SettingsButton") as Button
 	settings_button.emit_signal("pressed")
 	await wait_physics_frames(2)
+	_debug_overlay_snapshot("after SettingsButton pressed + wait(2)")
 
 	var settings_overlay := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	var profiles_button := settings_overlay.get_node("CenterContainer/VBoxContainer/InputProfilesButton") as Button
 	profiles_button.emit_signal("pressed")
 	await wait_physics_frames(2)
+	_debug_overlay_snapshot("after InputProfilesButton pressed + wait(2)")
 
 	# Press Apply on the selector
 	var selector := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	var apply_button := selector.get_node("HBoxContainer/ApplyButton") as Button
 	apply_button.emit_signal("pressed")
-	await wait_physics_frames(3)
+	_debug_overlay_snapshot("after ApplyButton pressed")
+
+	# Wait for overlay stack to reconcile (overlay pop happens asynchronously via Redux/navigation)
+	# Manual polling loop with timeout for reliability
+	var max_attempts := 100
+	var attempts := 0
+	var last_signature := ""
+	while _ui_overlay_stack.get_child_count() > 1 and attempts < max_attempts:
+		await get_tree().physics_frame
+		attempts += 1
+		var overlay_names: Array[String] = []
+		for child in _ui_overlay_stack.get_children():
+			overlay_names.append(String(child.name))
+		var signature := _one_line(overlay_names)
+		if signature != last_signature:
+			last_signature = signature
+			_debug_overlay_snapshot("poll attempt=%d" % attempts)
+
+	if attempts >= max_attempts:
+		_debug_overlay_snapshot("timeout after %d frames" % max_attempts)
+		fail_test("Timeout: Overlay was not popped after %d frames" % max_attempts)
 
 	# Expect to return to settings overlay and remain paused
+	_debug_overlay_snapshot("final (before assertions)")
 	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should return to a single settings overlay after apply")
 	var top_after := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1)
 	assert_eq(String(top_after.name), "SettingsMenu", "Top overlay should be the settings menu after applying profile")
 	assert_true(get_tree().paused, "Tree should remain paused while in settings")
+
+	# Allow queued frees from overlay reconciliation to flush so GUT doesn't
+	# report orphaned nodes from the popped overlay.
+	await get_tree().process_frame
 
 func test_profile_selector_shows_binding_preview() -> void:
 	var manager := M_SceneManager.new()

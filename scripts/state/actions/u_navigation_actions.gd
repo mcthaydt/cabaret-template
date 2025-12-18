@@ -60,7 +60,10 @@ static func open_overlay(screen_id: StringName) -> Dictionary:
 
 static func close_top_overlay() -> Dictionary:
 	return {
-		"type": ACTION_CLOSE_TOP_OVERLAY
+		"type": ACTION_CLOSE_TOP_OVERLAY,
+		# UI overlay closure needs same-frame visibility so SceneManager can
+		# reconcile the UIOverlayStack immediately (even while paused).
+		"immediate": true
 	}
 
 static func set_menu_panel(panel_id: StringName) -> Dictionary:

@@ -176,7 +176,7 @@ func test_sync_navigation_shell_does_not_override_pending_navigation() -> void:
 	nav_slice["base_scene_id"] = StringName("settings_menu")
 	_store._state["navigation"] = nav_slice.duplicate(true)
 
-	manager._navigation_pending_scene_id = StringName("settings_menu")
+	manager._set_navigation_pending_scene_id(StringName("settings_menu"))
 
 	# A transition for the previous scene completes; SceneManager attempts to
 	# sync navigation shell to that scene_id. This should NOT clobber the
@@ -197,7 +197,7 @@ func test_manual_transition_to_touchscreen_settings_aligns_navigation() -> void:
 	# pending navigation-driven transition. Tests use skip_initial_scene_load,
 	# so we explicitly clear pending state and normalize navigation here.
 	manager._initial_navigation_synced = true
-	manager._navigation_pending_scene_id = StringName("")
+	manager._set_navigation_pending_scene_id(StringName(""))
 
 	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
 	nav_slice["shell"] = StringName("main_menu")

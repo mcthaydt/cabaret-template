@@ -34,6 +34,9 @@ const U_OVERLAY_STACK_MANAGER := preload("res://scripts/scene_management/helpers
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 const U_TRANSITION_ORCHESTRATOR := preload("res://scripts/scene_management/u_transition_orchestrator.gd")
+const U_SCENE_TRANSITION_QUEUE := preload("res://scripts/scene_management/helpers/u_scene_transition_queue.gd")
+const U_SCENE_MANAGER_NODE_FINDER := preload("res://scripts/scene_management/helpers/u_scene_manager_node_finder.gd")
+const U_NAVIGATION_RECONCILER := preload("res://scripts/scene_management/helpers/u_navigation_reconciler.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
 # Kept for type checking only:
 const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/trans_fade.gd")
@@ -49,23 +52,12 @@ const H_ENDGAME_SCENE_HANDLER := preload("res://scripts/scene_management/handler
 const OVERLAY_META_SCENE_ID := StringName("_scene_manager_overlay_scene_id")
 const PARTICLE_META_ORIG_SPEED := StringName("_scene_manager_particle_orig_speed")
 
-## Priority enum for transition queue
+## Priority enum (re-exported from U_SceneTransitionQueue for external callers)
 enum Priority {
-	NORMAL = 0,   # Standard transitions
-	HIGH = 1,     # User-initiated transitions (back button)
-	CRITICAL = 2  # System-critical transitions (error, death)
+	NORMAL = U_SCENE_TRANSITION_QUEUE.Priority.NORMAL,
+	HIGH = U_SCENE_TRANSITION_QUEUE.Priority.HIGH,
+	CRITICAL = U_SCENE_TRANSITION_QUEUE.Priority.CRITICAL
 }
-
-## Transition request structure
-class TransitionRequest:
-	var scene_id: StringName
-	var transition_type: String
-	var priority: int
-
-	func _init(p_scene_id: StringName, p_transition_type: String, p_priority: int) -> void:
-		scene_id = p_scene_id
-		transition_type = p_transition_type
-		priority = p_priority
 
 ## Internal references
 var _store: I_StateStore = null
@@ -77,18 +69,17 @@ var _ui_overlay_stack: CanvasLayer = null
 var _transition_overlay: CanvasLayer = null
 var _loading_overlay: CanvasLayer = null
 
-## Transition queue
-var _transition_queue: Array[TransitionRequest] = []
-var _is_processing_transition: bool = false
+## Transition queue helper
+var _transition_queue_helper := U_SCENE_TRANSITION_QUEUE.new()
 
 ## Current scene tracking for reactive cursor updates
 var _current_scene_id: StringName = StringName("")
 var _active_transition_target: StringName = StringName("")
-var _navigation_pending_scene_id: StringName = StringName("")
-var _latest_navigation_state: Dictionary = {}
-var _pending_overlay_reconciliation: bool = false
 var _navigation_slice_connected: bool = false
 var _initial_navigation_synced: bool = false
+
+## Navigation reconciliation helper
+var _navigation_reconciler := U_NAVIGATION_RECONCILER.new()
 
 ## Scene history tracking for UI navigation (T109)
 ## Only tracks UI/Menu scenes, cleared when entering gameplay
@@ -186,8 +177,13 @@ func _ready() -> void:
 	if not _camera_manager:
 		push_warning("M_SceneManager: No M_CameraManager found in 'camera_manager' group")
 
-	# Find container nodes
-	_find_container_nodes()
+	# Find container nodes (delegates to helper)
+	var containers := U_SCENE_MANAGER_NODE_FINDER.find_containers(self)
+	_active_scene_container = containers.active_scene_container
+	_ui_overlay_stack = containers.ui_overlay_stack
+	_transition_overlay = containers.transition_overlay
+	_loading_overlay = containers.loading_overlay
+
 	_sync_overlay_stack_state()
 
 	# Subscribe to scene slice updates
@@ -229,7 +225,12 @@ func _request_navigation_reconciliation() -> void:
 	var nav_state: Dictionary = _store.get_slice(StringName("navigation"))
 	if nav_state.is_empty():
 		return
-	_reconcile_navigation_state(nav_state)
+	_navigation_reconciler.reconcile_navigation_state(
+		nav_state,
+		self,
+		_current_scene_id,
+		_overlay_helper
+	)
 
 
 ## Register all scene type handlers (T137c: Phase 10B-3)
@@ -258,52 +259,8 @@ func _exit_tree() -> void:
 	if _victory_triggered_unsubscribe != null and _victory_triggered_unsubscribe.is_valid():
 		_victory_triggered_unsubscribe.call()
 
-## Find container nodes in the scene tree
-func _find_container_nodes() -> void:
-	var tree := get_tree()
-	if tree == null:
-		return
-
-	var root: Node = self
-	# Walk up until we reach the scene root (direct child of SceneTree.root),
-	# so we only search within the same root scene as this manager.
-	while root.get_parent() != null and root.get_parent() != tree.root:
-		root = root.get_parent()
-	if root.get_parent() != tree.root:
-		root = tree.root
-	# Find ActiveSceneContainer
-	_active_scene_container = root.find_child("ActiveSceneContainer", true, false)
-	if _active_scene_container == null:
-		push_error("M_SceneManager: ActiveSceneContainer not found")
-
-	# Find UIOverlayStack
-	_ui_overlay_stack = root.find_child("UIOverlayStack", true, false)
-	if _ui_overlay_stack == null:
-		push_error("M_SceneManager: UIOverlayStack not found")
-
-	# Find TransitionOverlay (check ServiceLocator first for test environments)
-	_transition_overlay = U_ServiceLocator.try_get_service(StringName("transition_overlay")) as CanvasLayer
-	if _transition_overlay == null:
-		_transition_overlay = root.find_child("TransitionOverlay", true, false)
-	if _transition_overlay == null:
-		push_error("M_SceneManager: TransitionOverlay not found")
-
-	# Find LoadingOverlay (check ServiceLocator first for test environments)
-	_loading_overlay = U_ServiceLocator.try_get_service(StringName("loading_overlay")) as CanvasLayer
-	if _loading_overlay == null:
-		_loading_overlay = root.find_child("LoadingOverlay", true, false)
-	if _loading_overlay == null:
-		push_warning("M_SceneManager: LoadingOverlay not found (loading transitions will not work)")
-
 func _ensure_store_reference() -> void:
-	if _store != null and is_instance_valid(_store):
-		return
-	var tree := get_tree()
-	if tree == null:
-		return
-	var stores := tree.get_nodes_in_group("state_store")
-	if stores.size() > 0:
-		_store = stores[0] as M_StateStore
+	_store = U_SCENE_MANAGER_NODE_FINDER.ensure_store_reference(_store, self)
 
 ## State change callback
 func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
@@ -315,8 +272,8 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	# Phase 2 (T022): Cursor updates removed - M_PauseManager is now sole authority
 	if new_scene_id != _current_scene_id and not new_scene_id.is_empty():
 		_current_scene_id = new_scene_id
-		if _navigation_pending_scene_id == new_scene_id:
-			_navigation_pending_scene_id = StringName("")
+		if _navigation_reconciler.get_pending_scene_id() == new_scene_id:
+			_navigation_reconciler.set_pending_scene_id(StringName(""))
 		# NOTE: _sync_navigation_shell_with_scene() now called AFTER transition completes
 		# in _process_transition_queue() to prevent mobile controls flashing (line 316)
 
@@ -361,53 +318,34 @@ func transition_to_scene(scene_id: StringName, transition_type: String, priority
 
 	_ensure_store_reference()
 
-	# Create transition request
-	var request := TransitionRequest.new(scene_id, transition_type, priority)
-
-	# Add to queue based on priority
-	_enqueue_transition(request)
+	# Add to queue based on priority (delegates to helper)
+	_transition_queue_helper.enqueue(scene_id, transition_type, priority)
 	# Debug logs live in tests, not here
 
 	# Process queue if not already processing
-	if not _is_processing_transition:
+	if not _transition_queue_helper.is_processing():
 		_process_transition_queue()
-
-## Enqueue transition based on priority
-func _enqueue_transition(request: TransitionRequest) -> void:
-	# Drop duplicate requests for the same target already in the queue
-	for existing in _transition_queue:
-		if existing.scene_id == request.scene_id and existing.transition_type == request.transition_type:
-			# Keep the higher-priority one
-			if existing.priority >= request.priority:
-				return
-			# Replace existing lower-priority with the new one
-			_transition_queue.erase(existing)
-			break
-
-	# Insert based on priority (higher priority = earlier in queue)
-	var insert_index: int = _transition_queue.size()
-
-	for i in range(_transition_queue.size()):
-		if request.priority > _transition_queue[i].priority:
-			insert_index = i
-			break
-
-	_transition_queue.insert(insert_index, request)
 
 ## Process transition queue
 func _process_transition_queue() -> void:
-	if _transition_queue.is_empty():
-		_is_processing_transition = false
+	if _transition_queue_helper.is_empty():
+		_transition_queue_helper.set_processing(false)
 		_active_transition_target = StringName("")
 		_reconcile_pending_navigation_overlays()
 		return
 
 	_ensure_store_reference()
 
-	_is_processing_transition = true
+	_transition_queue_helper.set_processing(true)
 
 	# Get next transition from queue
-	var request: TransitionRequest = _transition_queue.pop_front()
+	var request := _transition_queue_helper.pop_front()
+	if request == null:
+		_transition_queue_helper.set_processing(false)
+		_active_transition_target = StringName("")
+		_reconcile_pending_navigation_overlays()
+		return
+
 	_active_transition_target = request.scene_id
 
 	# Dispatch transition started action
@@ -478,7 +416,7 @@ func _process_transition_queue() -> void:
 ## - Helper classes: Overkill for simple value passing
 ##
 ## The Array pattern is the recommended GDScript idiom for this use case.
-func _perform_transition(request: TransitionRequest) -> void:
+func _perform_transition(request) -> void:
 	# Get scene path from registry
 	var scene_path: String = U_SCENE_REGISTRY.get_scene_path(request.scene_id)
 	if scene_path.is_empty():
@@ -768,111 +706,39 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 		return
 	if slice_state.is_empty():
 		return
-	_reconcile_navigation_state(slice_state)
-
-func _reconcile_navigation_state(nav_state: Dictionary) -> void:
-	if nav_state.is_empty():
-		return
-	_latest_navigation_state = nav_state.duplicate(true)
-	var desired_scene_id: StringName = nav_state.get("base_scene_id", StringName(""))
-	_reconcile_base_scene(desired_scene_id)
-	var desired_overlay_ids: Array[StringName] = _coerce_string_name_array(nav_state.get("overlay_stack", []))
-	var current_stack: Array[StringName] = _get_overlay_scene_ids_from_ui()
-	_reconcile_overlay_stack(desired_overlay_ids, current_stack)
-
-func _reconcile_base_scene(desired_scene_id: StringName) -> void:
-	if desired_scene_id == StringName(""):
-		return
-	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(desired_scene_id)
-	if scene_data.is_empty():
-		return
-	var current_scene_id: StringName = get_current_scene()
-	if current_scene_id == desired_scene_id:
-		return
-	if _active_transition_target == desired_scene_id:
-		return
-	if _navigation_pending_scene_id == desired_scene_id:
-		return
-	if _is_scene_in_queue(desired_scene_id):
-		return
-
-	# Default transition settings come from the scene registry.
-	var transition_type: String = String(scene_data.get("default_transition", "instant"))
-	var priority: int = Priority.HIGH
-
-	# Navigation slice may provide override metadata (e.g., endgame flows
-	# that should use instant transitions instead of long fades).
-	if not _latest_navigation_state.is_empty():
-		var metadata: Dictionary = _latest_navigation_state.get("_transition_metadata", {})
-		if not metadata.is_empty():
-			var type_variant: Variant = metadata.get("transition_type", transition_type)
-			if type_variant is String:
-				transition_type = String(type_variant)
-			var priority_variant: Variant = metadata.get("priority", priority)
-			if priority_variant is int:
-				priority = int(priority_variant)
-
-	if transition_type.is_empty():
-		transition_type = "instant"
-
-	transition_to_scene(desired_scene_id, transition_type, priority)
-	_navigation_pending_scene_id = desired_scene_id
+	_navigation_reconciler.reconcile_navigation_state(
+		slice_state,
+		self,
+		_current_scene_id,
+		_overlay_helper
+	)
 
 func _is_scene_in_queue(scene_id: StringName) -> bool:
-	for request in _transition_queue:
-		if request is TransitionRequest and request.scene_id == scene_id:
-			return true
-	return false
+	return _transition_queue_helper.contains_scene(scene_id)
 
-func _reconcile_overlay_stack(desired_overlay_ids: Array[StringName], current_stack: Array[StringName]) -> void:
-	_overlay_helper.reconcile_overlay_stack(self, desired_overlay_ids, current_stack)
+## Helper for navigation reconciler callback
+func _get_active_transition_target() -> StringName:
+	return _active_transition_target
 
-func _reconcile_pending_navigation_overlays() -> void:
-	if not _pending_overlay_reconciliation:
-		return
-	if _latest_navigation_state.is_empty():
-		_pending_overlay_reconciliation = false
-		return
+## Helper for overlay stack manager to check transition state
+func _get_transition_queue_state() -> Dictionary:
+	return {
+		"is_processing": _transition_queue_helper.is_processing(),
+		"queue_size": _transition_queue_helper.size()
+	}
 
-	var desired_overlay_ids: Array[StringName] = _coerce_string_name_array(
-		_latest_navigation_state.get("overlay_stack", [])
-	)
-	var current_stack: Array[StringName] = _get_overlay_scene_ids_from_ui()
-	_reconcile_overlay_stack(desired_overlay_ids, current_stack)
+## Helper for overlay stack manager to set reconciliation pending flag
+func _set_overlay_reconciliation_pending(pending: bool) -> void:
+	_navigation_reconciler.set_overlay_reconciliation_pending(pending)
 
-func _get_longest_matching_prefix(stack_a: Array[StringName], stack_b: Array[StringName]) -> int:
-	var limit: int = min(stack_a.size(), stack_b.size())
-	for i in range(limit):
-		if stack_a[i] != stack_b[i]:
-			return i
-	return limit
+## Helper for tests to set/get navigation pending scene
+func _set_navigation_pending_scene_id(scene_id: StringName) -> void:
+	_navigation_reconciler.set_pending_scene_id(scene_id)
 
-func _map_overlay_ids_to_scene_ids(overlay_ids: Array[StringName]) -> Array[StringName]:
-	var mapped: Array[StringName] = []
-	for overlay_id in overlay_ids:
-		var definition: Dictionary = U_UI_REGISTRY.get_screen(overlay_id)
-		if definition.is_empty():
-			mapped.append(overlay_id)
-			continue
-		var scene_id_variant: Variant = definition.get("scene_id", overlay_id)
-		if scene_id_variant is StringName:
-			mapped.append(scene_id_variant)
-		elif scene_id_variant is String:
-			mapped.append(StringName(scene_id_variant))
-		else:
-			mapped.append(overlay_id)
-	return mapped
+func _get_navigation_pending_scene_id() -> StringName:
+	return _navigation_reconciler.get_pending_scene_id()
 
-func _coerce_string_name_array(value: Variant) -> Array[StringName]:
-	var result: Array[StringName] = []
-	if value is Array:
-		for entry in value:
-			if entry is StringName:
-				result.append(entry)
-			elif entry is String:
-				result.append(StringName(entry))
-	return result
-
+## Helper for overlay stack manager to push overlay and verify success
 func _push_overlay_scene_from_navigation(scene_id: StringName) -> bool:
 	var before_count: int = 0
 	if _ui_overlay_stack != null:
@@ -882,6 +748,12 @@ func _push_overlay_scene_from_navigation(scene_id: StringName) -> bool:
 		return false
 	var after_count: int = _ui_overlay_stack.get_child_count()
 	return after_count > before_count
+
+func _reconcile_overlay_stack(desired_overlay_ids: Array[StringName], current_stack: Array[StringName]) -> void:
+	_overlay_helper.reconcile_overlay_stack(self, desired_overlay_ids, current_stack)
+
+func _reconcile_pending_navigation_overlays() -> void:
+	_navigation_reconciler.reconcile_pending_overlays(self, _overlay_helper)
 
 ## Ensure scene_stack metadata matches actual overlay stack
 func _sync_overlay_stack_state() -> void:
@@ -989,17 +861,18 @@ func _sync_navigation_shell_with_scene(scene_id: StringName) -> void:
 	# When a navigation-driven transition is in progress, the navigation slice
 	# is the source of truth. Avoid clobbering a newer navigation target with
 	# stale scene_id values from earlier transitions.
-	if _navigation_pending_scene_id != StringName(""):
+	var pending_scene: StringName = _navigation_reconciler.get_pending_scene_id()
+	if pending_scene != StringName(""):
 		# Endgame scenes (death/victory) must always override any stale pending
 		# navigation targets so UI state matches the actual loaded screen.
 		if scene_type == U_SCENE_REGISTRY.SceneType.END_GAME:
-			_navigation_pending_scene_id = StringName("")
+			_navigation_reconciler.set_pending_scene_id(StringName(""))
 		else:
 			# If navigation has requested a DIFFERENT scene than the one that just
 			# finished loading, skip reconciliation entirely. This prevents races
 			# where a late _sync_navigation_shell_with_scene call for a previous
 			# scene overwrites the more recent navigation target.
-			if _navigation_pending_scene_id != scene_id:
+			if pending_scene != scene_id:
 				return
 			# If the pending navigation target matches the scene_id, the reducer
 			# has already updated base_scene_id. Treat this as in-sync and skip.

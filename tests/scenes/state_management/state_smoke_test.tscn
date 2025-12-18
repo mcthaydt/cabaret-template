@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://cy54rdq0mfcok"]
 
 [ext_resource type="PackedScene" uid="uid://rygahxanlmio" path="res://templates/tmpl_base_scene.tscn" id="1_smoke"]
-[ext_resource type="Script" uid="uid://r5q51m8f2bma" path="res://tests/scenes/state_management/state_smoke_test.gd" id="2_smoke"]
+[ext_resource type="Script" uid="uid://derkk376j8rx0" path="res://tests/scenes/state_management/state_smoke_test.gd" id="2_smoke"]
 
 [node name="StateSmokeTest" instance=ExtResource("1_smoke")]
 script = ExtResource("2_smoke")

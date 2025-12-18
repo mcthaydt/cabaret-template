@@ -8,24 +8,38 @@ version: "1.0"
 
 ## Current Status
 
-- Phase 0 complete: baseline snapshot + extraction map + must-pass tests recorded in `docs/general/cleanup/hotspot-simplification-tasks.md`.
-- No production code changes yet (docs-only milestone).
+- **Phase 0 complete**: Baseline snapshot + extraction map + must-pass tests recorded.
+- **Phase 1 complete (2025-12-17)**: Extracted 3 helpers under `scripts/scene_management/helpers/`:
+  1. **U_SceneTransitionQueue** (~120 lines): Transition queue with priority ordering, dedupe logic, processing state tracking
+  2. **U_NavigationReconciler** (~210 lines): Navigation slice reconciliation, base scene transitions, overlay stack reconciliation, guard flags
+  3. **U_SceneManagerNodeFinder** (~94 lines): Container discovery (ActiveSceneContainer, UIOverlayStack, overlays), ServiceLocator-first lookup, store reference fallback
+- **Results**:
+  - Line count: 1149 → 1003 (146 line reduction, 12.7%)
+  - Behavior preserved: All guard rails maintained (transition_visual_complete timing, dedupe logic, ServiceLocator-first resolution)
+  - Test compatibility: Updated test_transition_dedupe.gd to use helper-based API
+- **Commit needed**: Phase 1 implementation changes ready for commit
 
-## Next Phase (Phase 1)
+## Next Phase (Phase 2)
 
-Goal: make `scripts/managers/m_scene_manager.gd` a thin coordinator by extracting 3–5 helpers under `scripts/scene_management/helpers/` without behavior changes.
+Goal: Standardize dependency lookup patterns across the codebase (no new framework).
+
+Standard chain (intent):
+1. `@export` injection (tests)
+2. `U_ServiceLocator.try_get_service(...)` (production)
+3. Group lookup (only where needed for backward compatibility)
 
 Suggested execution order:
-1. Decide helper list and write it into **Notes** (T110).
-2. Extract transition queue (priority + dedupe + processing state).
-3. Extract navigation reconciliation (navigation slice → base scene + overlay reconciliation).
-4. Consider extracting container discovery/wiring if it keeps the manager readable.
-5. Keep existing helpers as dependencies; avoid creating new singletons.
+1. Inventory all dependency lookups that bypass the standard chain (T120).
+2. Decide the "preferred accessor" per dependency and record it (T121).
+3. Apply the standard chain to worst offenders first (T122).
+4. Add/adjust tests for dependency lookup changes (T123).
+5. Add a short "Dependency Lookup Rule" section to DEV_PITFALLS.md if needed (T124).
 
-Guard rails to preserve:
-- `transition_visual_complete` must still fire after visual completion.
-- Dedupe logic: same `(scene_id, transition_type)` keeps higher priority.
-- ServiceLocator-first dependency resolution must remain test-friendly.
+Focus areas:
+- State store: `U_StateUtils.get_store(node)` / `await_store_ready(...)`
+- ECS manager: `U_ECSUtils.get_manager(node)`
+- Optional managers: `U_ServiceLocator.try_get_service(StringName("..."))`
+- Avoid direct field access from helpers (`manager._field`) → use helper methods instead
 
 ## Must-Pass Tests
 

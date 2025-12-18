@@ -73,10 +73,13 @@ var _perf_signal_emit_count: int = 0
 var _perf_last_dispatch_time_us: int = 0
 
 func _ready() -> void:
+	# Store must continue flushing batched slice_updated signals while paused so
+	# pause menus and overlay reconciliation remain responsive.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("state_store")
 	_initialize_settings()
 	_initialize_slices()
-	
+		
 	# Validate all slice dependencies after registration
 	if not validate_slice_dependencies():
 		push_warning("M_StateStore: Some slice dependencies are invalid")

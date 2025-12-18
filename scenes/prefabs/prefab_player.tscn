@@ -1,10 +1,10 @@
 [gd_scene load_steps=6 format=3 uid="uid://d1cugdu6fb42l"]
 
 [ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://templates/tmpl_character.tscn" id="1_character_template"]
-[ext_resource type="Script" uid="uid://cce7dk8f7vdd" path="res://scripts/ecs/components/c_input_component.gd" id="2_input"]
-[ext_resource type="Script" uid="uid://bs4jqicnhq5j0" path="res://scripts/ecs/components/c_gamepad_component.gd" id="3_gamepad"]
+[ext_resource type="Script" uid="uid://bjjswu58u8b51" path="res://scripts/ecs/components/c_input_component.gd" id="2_input"]
+[ext_resource type="Script" uid="uid://bfiq4wpdy6xin" path="res://scripts/ecs/components/c_gamepad_component.gd" id="3_gamepad"]
 [ext_resource type="Resource" uid="uid://flpd0eijo5ab" path="res://resources/input/gamepad_settings/default_gamepad_settings.tres" id="4_gamepad_settings"]
-[ext_resource type="Script" uid="uid://dp5fekvumgtkx" path="res://scripts/ecs/components/c_player_tag_component.gd" id="5_player_tag"]
+[ext_resource type="Script" uid="uid://dnbakyi8isnt1" path="res://scripts/ecs/components/c_player_tag_component.gd" id="5_player_tag"]
 
 [node name="E_PlayerRoot" groups=["player"] instance=ExtResource("1_character_template")]
 entity_id = &"player"

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_BootInitialState" load_steps=2 format=3 uid="uid://dq08aopcfbjyp"]
 
-[ext_resource type="Script" uid="uid://erui52ra8lom" path="res://scripts/state/resources/rs_boot_initial_state.gd" id="1_boot"]
+[ext_resource type="Script" uid="uid://crstoui5lprkm" path="res://scripts/state/resources/rs_boot_initial_state.gd" id="1_boot"]
 
 [resource]
 script = ExtResource("1_boot")

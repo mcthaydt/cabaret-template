@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://ckv5eh8xyrwbk"]
 
-[ext_resource type="Script" uid="uid://c35xpjvb7eo6a" path="res://addons/gut/gui/ShellOutOptions.gd" id="1_ht2pf"]
+[ext_resource type="Script" uid="uid://c4jb4c5y2tx17" path="res://addons/gut/gui/ShellOutOptions.gd" id="1_ht2pf"]
 
 [node name="ShellOutOptions" type="ConfirmationDialog"]
 oversampling_override = 1.0

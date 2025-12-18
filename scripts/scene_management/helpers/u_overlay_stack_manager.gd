@@ -55,8 +55,10 @@ func pop_overlay(manager: Node) -> void:
 		store.dispatch(U_SCENE_ACTIONS.pop_overlay())
 
 	var top_overlay: Node = ui_overlay_stack.get_child(overlay_count - 1)
-	ui_overlay_stack.remove_child(top_overlay)
+	# Ensure the node is queued for deletion while it is still in the scene tree.
+	# Calling queue_free() after remove_child() can leave it orphaned in tests.
 	top_overlay.queue_free()
+	ui_overlay_stack.remove_child(top_overlay)
 
 	manager._update_particles_and_focus()
 	manager._restore_focus_to_top_overlay()
@@ -172,14 +174,24 @@ func _get_top_overlay_id(manager: Node) -> StringName:
 	return StringName("")
 
 func _reconcile_overlay_stack(manager: Node, desired_overlay_ids: Array[StringName], current_stack: Array[StringName]) -> void:
-	if manager._is_processing_transition or manager._transition_queue.size() > 0:
-		manager._pending_overlay_reconciliation = true
+	# Check if transition is in progress (via helper methods)
+	var transition_state: Dictionary = {}
+	if manager.has_method("_get_transition_queue_state"):
+		transition_state = manager.call("_get_transition_queue_state")
+
+	var is_processing: bool = transition_state.get("is_processing", false)
+	var queue_size: int = transition_state.get("queue_size", 0)
+
+	if is_processing or queue_size > 0:
+		if manager.has_method("_set_overlay_reconciliation_pending"):
+			manager.call("_set_overlay_reconciliation_pending", true)
 		return
 
 	const MAX_STACK_DEPTH := 8
 	var desired_scene_stack: Array[StringName] = _map_overlay_ids_to_scene_ids(desired_overlay_ids)
 	if _overlay_stacks_match(current_stack, desired_scene_stack):
-		manager._pending_overlay_reconciliation = false
+		if manager.has_method("_set_overlay_reconciliation_pending"):
+			manager.call("_set_overlay_reconciliation_pending", false)
 		_update_overlay_visibility(manager, desired_overlay_ids)
 		return
 
@@ -203,7 +215,8 @@ func _reconcile_overlay_stack(manager: Node, desired_overlay_ids: Array[StringNa
 			break
 		normalized_current.append(scene_id)
 
-	manager._pending_overlay_reconciliation = false
+	if manager.has_method("_set_overlay_reconciliation_pending"):
+		manager.call("_set_overlay_reconciliation_pending", false)
 	_update_overlay_visibility(manager, desired_overlay_ids)
 
 func _get_overlay_scene_ids_from_ui(manager: Node) -> Array[StringName]:
@@ -281,4 +294,3 @@ func _map_overlay_ids_to_scene_ids(overlay_ids: Array[StringName]) -> Array[Stri
 		else:
 			mapped.append(overlay_id)
 	return mapped
-

@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c5xb3dasm6kyj"]
 
-[ext_resource type="Script" uid="uid://csbprb1uia66q" path="res://scripts/ui/ui_edit_touch_controls_overlay.gd" id="1"]
+[ext_resource type="Script" uid="uid://dkx2dqrf7c2tw" path="res://scripts/ui/ui_edit_touch_controls_overlay.gd" id="1"]
 
 [node name="EditTouchControlsOverlay" type="Control"]
 layout_mode = 3
