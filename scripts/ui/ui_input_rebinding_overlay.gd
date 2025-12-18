@@ -14,6 +14,7 @@ const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_man
 const U_RebindActionListBuilder := preload("res://scripts/ui/helpers/u_rebind_action_list_builder.gd")
 const U_RebindCaptureHandler := preload("res://scripts/ui/helpers/u_rebind_capture_handler.gd")
 const U_RebindFocusNavigation := preload("res://scripts/ui/helpers/u_rebind_focus_navigation.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/default_rebind_settings.tres")
 
 @onready var _action_list: VBoxContainer = %ActionList
@@ -25,6 +26,10 @@ const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_
 @onready var _conflict_dialog: ConfirmationDialog = %ConflictDialog
 @onready var _reset_confirm_dialog: ConfirmationDialog = %ResetConfirmDialog
 @onready var _error_dialog: AcceptDialog = %ErrorDialog
+
+@export var input_profile_manager: Node = null
+
+const INPUT_PROFILE_MANAGER_SERVICE := StringName("input_profile_manager")
 
 var _profile_manager: Node = null
 var _rebind_settings: RS_RebindSettings = null
@@ -43,7 +48,7 @@ var _bottom_button_index: int = 0
 var _row_button_index: int = 0
 
 func _on_panel_ready() -> void:
-	_profile_manager = get_tree().get_first_node_in_group("input_profile_manager")
+	_profile_manager = _resolve_input_profile_manager()
 	if _profile_manager != null and "store_ref" in _profile_manager:
 		var manager_store: Variant = _profile_manager.store_ref
 		if manager_store is M_StateStore:
@@ -74,6 +79,19 @@ func _on_panel_ready() -> void:
 	_build_action_rows()
 	_update_status("Select an action to rebind.")
 	_set_reset_button_enabled(_profile_manager != null)
+
+func _resolve_input_profile_manager() -> Node:
+	if input_profile_manager != null and is_instance_valid(input_profile_manager):
+		return input_profile_manager
+
+	var manager := U_ServiceLocator.try_get_service(INPUT_PROFILE_MANAGER_SERVICE)
+	if manager != null:
+		return manager
+
+	var tree := get_tree()
+	if tree == null:
+		return null
+	return tree.get_first_node_in_group("input_profile_manager")
 
 func _connect_profile_signals() -> void:
 	if _profile_manager == null:

@@ -6,12 +6,17 @@ const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd"
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 @onready var _drag_mode_check: CheckButton = %DragModeCheck
 @onready var _cancel_button: Button = %CancelButton
 @onready var _reset_button: Button = %ResetButton
 @onready var _save_button: Button = %SaveButton
 @onready var _grid_overlay: ColorRect = $GridOverlay
+
+@export var input_profile_manager: Node = null
+
+const INPUT_PROFILE_MANAGER_SERVICE := StringName("input_profile_manager")
 
 var _mobile_controls: UI_MobileControls = null
 var _profile_manager: Node = null
@@ -20,7 +25,7 @@ var _original_positions: Dictionary = {}
 
 func _on_panel_ready() -> void:
 	_mobile_controls = get_tree().get_first_node_in_group("mobile_controls") as UI_MobileControls
-	_profile_manager = get_tree().get_first_node_in_group("input_profile_manager")
+	_profile_manager = _resolve_input_profile_manager()
 
 	_configure_focus_neighbors()
 	_capture_original_positions()
@@ -30,6 +35,19 @@ func _on_panel_ready() -> void:
 	_cancel_button.pressed.connect(_on_cancel_pressed)
 	_reset_button.pressed.connect(_on_reset_pressed)
 	_save_button.pressed.connect(_on_save_pressed)
+
+func _resolve_input_profile_manager() -> Node:
+	if input_profile_manager != null and is_instance_valid(input_profile_manager):
+		return input_profile_manager
+
+	var manager := U_ServiceLocator.try_get_service(INPUT_PROFILE_MANAGER_SERVICE)
+	if manager != null:
+		return manager
+
+	var tree := get_tree()
+	if tree == null:
+		return null
+	return tree.get_first_node_in_group("input_profile_manager")
 
 func _configure_focus_neighbors() -> void:
 	var buttons: Array[Control] = []

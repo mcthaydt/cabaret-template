@@ -49,6 +49,35 @@ static func get_store(node: Node) -> I_StateStore:
 
 	return store
 
+## Try to get the I_StateStore from injection, ServiceLocator, or groups (silent)
+## Returns null if no store found or node is invalid.
+##
+## Lookup order:
+##   1. Check if node has 'state_store' @export (for test injection)
+##   2. ServiceLocator (fast, centralized)
+##   3. Group lookup (backward compatibility)
+static func try_get_store(node: Node) -> I_StateStore:
+	if node == null or not is_instance_valid(node):
+		return null
+
+	# Priority 1: Check for injected store (test pattern, Phase 10B-8)
+	if "state_store" in node:
+		var injected: Variant = node.get("state_store")
+		if injected != null and is_instance_valid(injected):
+			return injected
+
+	# Priority 2: ServiceLocator (production pattern)
+	var store := U_ServiceLocator.try_get_service(STORE_GROUP) as I_StateStore
+	if store != null:
+		return store
+
+	# Priority 3: Group lookup (backward compatibility)
+	var tree: SceneTree = node.get_tree()
+	if tree == null:
+		return null
+
+	return tree.get_first_node_in_group(STORE_GROUP) as I_StateStore
+
 static func await_store_ready(node: Node, max_frames: int = 120) -> I_StateStore:
 	if node == null or not is_instance_valid(node):
 		push_error("U_StateUtils.await_store_ready: Invalid node")

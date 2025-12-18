@@ -239,11 +239,5 @@ func _load_texture(path: String) -> Texture2D:
 func _get_store_instance() -> I_StateStore:
 	if _store != null and is_instance_valid(_store):
 		return _store
-	var tree := get_tree()
-	if tree == null:
-		return null
-	var stores := tree.get_nodes_in_group("state_store")
-	if stores.is_empty():
-		return null
-	_store = U_StateUtils.get_store(self)
+	_store = U_StateUtils.try_get_store(self)
 	return _store

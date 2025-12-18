@@ -5,6 +5,7 @@ class_name UI_ButtonPrompt
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_ButtonPromptRegistry := preload("res://scripts/ui/u_button_prompt_registry.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 
 @export var label_path: NodePath = NodePath("Text")
@@ -13,6 +14,8 @@ const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_man
 @export var text_icon_label_path: NodePath = NodePath("TextIcon/Label")
 @export var mobile_button_path: NodePath = NodePath("MobileButton")
 @export var mobile_button_label_path: NodePath = NodePath("MobileButton/ActionLabel")
+
+@export var input_device_manager: M_InputDeviceManager = null
 
 const INTERACT_COLOR := Color(1.0, 0.85, 0.6)
 
@@ -161,11 +164,17 @@ func _reset_visuals() -> void:
 	visible = false
 
 func _bind_device_manager() -> void:
-	if get_tree() == null:
-		return
 	if _device_manager != null and is_instance_valid(_device_manager):
 		return
-	var manager := get_tree().get_first_node_in_group("input_device_manager") as M_InputDeviceManager
+	var manager: M_InputDeviceManager = null
+	if input_device_manager != null and is_instance_valid(input_device_manager):
+		manager = input_device_manager
+	else:
+		manager = U_ServiceLocator.try_get_service(StringName("input_device_manager")) as M_InputDeviceManager
+		if manager == null:
+			var tree := get_tree()
+			if tree != null:
+				manager = tree.get_first_node_in_group("input_device_manager") as M_InputDeviceManager
 	if manager == null:
 		return
 	_device_manager = manager

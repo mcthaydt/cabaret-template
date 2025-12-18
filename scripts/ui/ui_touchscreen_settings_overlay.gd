@@ -11,6 +11,7 @@ const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_a
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 const U_TouchscreenPreviewBuilder := preload("res://scripts/ui/helpers/u_touchscreen_preview_builder.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 @onready var _joystick_size_slider: HSlider = %JoystickSizeSlider
 @onready var _button_size_slider: HSlider = %ButtonSizeSlider
@@ -29,6 +30,10 @@ const U_TouchscreenPreviewBuilder := preload("res://scripts/ui/helpers/u_touchsc
 @onready var _cancel_button: Button = %CancelButton
 @onready var _reset_button: Button = %ResetButton
 @onready var _edit_layout_button: Button = %EditLayoutButton
+
+@export var input_profile_manager: Node = null
+
+const INPUT_PROFILE_MANAGER_SERVICE := StringName("input_profile_manager")
 
 var _store_unsubscribe: Callable = Callable()
 var _profile_manager: Node = null
@@ -50,13 +55,26 @@ func _on_store_ready(store: M_StateStore) -> void:
 		_on_state_changed({}, store.get_state())
 
 func _on_panel_ready() -> void:
-	_profile_manager = get_tree().get_first_node_in_group("input_profile_manager")
+	_profile_manager = _resolve_input_profile_manager()
 
 	_configure_focus_neighbors()
 	_build_preview()
 	_connect_signals()
 	_update_preview_from_sliders()
 	_update_edit_layout_visibility()
+
+func _resolve_input_profile_manager() -> Node:
+	if input_profile_manager != null and is_instance_valid(input_profile_manager):
+		return input_profile_manager
+
+	var manager := U_ServiceLocator.try_get_service(INPUT_PROFILE_MANAGER_SERVICE)
+	if manager != null:
+		return manager
+
+	var tree := get_tree()
+	if tree == null:
+		return null
+	return tree.get_first_node_in_group("input_profile_manager")
 
 func _exit_tree() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():

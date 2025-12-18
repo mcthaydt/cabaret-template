@@ -10,6 +10,7 @@ const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd
 const RS_InputProfile := preload("res://scripts/ecs/resources/rs_input_profile.gd")
 const U_ButtonPromptRegistry := preload("res://scripts/ui/u_button_prompt_registry.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 @onready var _profile_button: Button = $HBoxContainer/ProfileButton
 @onready var _apply_button: Button = $HBoxContainer/ApplyButton
@@ -18,6 +19,10 @@ const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_man
 @onready var _bindings_container: VBoxContainer = $PreviewContainer/BindingsContainer
 
 @export var debug_nav_logs: bool = false
+
+@export var input_profile_manager: Node = null
+
+const INPUT_PROFILE_MANAGER_SERVICE := StringName("input_profile_manager")
 
 var _manager: Node = null
 var _available_profiles: Array[String] = []
@@ -35,7 +40,7 @@ func _describe_node(node: Node) -> String:
 
 func _on_panel_ready() -> void:
 	await get_tree().process_frame
-	_manager = get_tree().get_first_node_in_group("input_profile_manager")
+	_manager = _resolve_input_profile_manager()
 	if _manager == null:
 		push_warning("InputProfileSelector: M_InputProfileManager not found")
 		return
@@ -54,6 +59,20 @@ func _on_panel_ready() -> void:
 		_describe_node(get_viewport().gui_get_focus_owner() if get_viewport() != null else null)
 	])
 	_update_preview()
+
+func _resolve_input_profile_manager() -> Node:
+	if input_profile_manager != null and is_instance_valid(input_profile_manager):
+		return input_profile_manager
+
+	var manager := U_ServiceLocator.try_get_service(INPUT_PROFILE_MANAGER_SERVICE)
+	if manager != null:
+		return manager
+
+	var tree := get_tree()
+	if tree == null:
+		return null
+
+	return tree.get_first_node_in_group("input_profile_manager")
 
 func _on_manager_profile_switched(profile_id: String) -> void:
 	if _available_profiles.is_empty():

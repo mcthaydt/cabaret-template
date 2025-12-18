@@ -239,7 +239,7 @@ func _on_body_entered(body: Node3D) -> void:
 			# Use try_get_service to avoid errors in test environments
 			var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager"))
 			if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
-					mgr.suppress_pause_for_current_frame()
+				mgr.suppress_pause_for_current_frame()
 
 			_trigger_transition()
 
@@ -282,7 +282,7 @@ func _can_trigger() -> bool:
 	# Use try_get_service to avoid errors in test environments
 	var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager"))
 	if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
-			return false
+		return false
 
 	return true
 
@@ -301,10 +301,14 @@ func _trigger_transition() -> void:
 	var spawn_action: Dictionary = U_GameplayActions.set_target_spawn_point(target_spawn_point)
 	store.dispatch(spawn_action)
 
-	# Get scene manager via ServiceLocator (Phase 10B-7: T141c)
-	var scene_manager := U_ServiceLocator.get_service(StringName("scene_manager"))
+	# Resolve scene manager via ServiceLocator, then group fallback (backward compatibility)
+	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager"))
 	if scene_manager == null:
-		push_error("C_SceneTriggerComponent: No M_SceneManager registered with ServiceLocator")
+		var tree := get_tree()
+		if tree != null:
+			scene_manager = tree.get_first_node_in_group("scene_manager")
+	if scene_manager == null:
+		push_error("C_SceneTriggerComponent: No M_SceneManager available (ServiceLocator or group)")
 		return
 
 	# Trigger scene transition
@@ -341,7 +345,7 @@ func trigger_interact() -> void:
 		# Use try_get_service to avoid errors in test environments
 		var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager"))
 		if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
-				mgr.suppress_pause_for_current_frame()
+			mgr.suppress_pause_for_current_frame()
 
 		_trigger_transition()
 
@@ -364,7 +368,7 @@ func _can_trigger_interact() -> bool:
 	# Use try_get_service to avoid errors in test environments
 	var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager"))
 	if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
-			return false
+		return false
 
 	return true
 

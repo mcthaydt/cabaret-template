@@ -2,7 +2,7 @@ extends "res://scripts/gameplay/base_volume_controller.gd"
 class_name BaseInteractableController
 
 # U_ECS_UTILS inherited from BaseECSEntity (via base_volume_controller.gd)
-const STATE_STORE_GROUP := StringName("state_store")
+const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const SCENE_MANAGER_GROUP := StringName("scene_manager")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 
@@ -201,13 +201,7 @@ func _get_manager() -> M_ECSManager:
 func _get_store() -> I_StateStore:
 	if _cached_store != null and is_instance_valid(_cached_store):
 		return _cached_store
-	var tree := get_tree()
-	if tree == null:
-		return null
-	var stores := tree.get_nodes_in_group(STATE_STORE_GROUP)
-	if stores.is_empty():
-		return null
-	_cached_store = stores[0] as I_StateStore
+	_cached_store = U_StateUtils.try_get_store(self)
 	return _cached_store
 
 func _is_transition_blocked() -> bool:

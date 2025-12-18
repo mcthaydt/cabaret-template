@@ -10,6 +10,7 @@ const RS_TouchscreenSettings := preload("res://scripts/ecs/resources/rs_touchscr
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 
 @export var force_enable: bool = false
@@ -79,11 +80,13 @@ func _ready() -> void:
 
 	# Connect to SceneManager's transition_visual_complete signal
 	# This tells us when fade-in animation completes and scene is fully visible
-	var scene_managers := get_tree().get_nodes_in_group("scene_manager")
-	if not scene_managers.is_empty():
-		var scene_manager: Node = scene_managers[0]
-		if scene_manager.has_signal("transition_visual_complete"):
-			scene_manager.transition_visual_complete.connect(_on_transition_visual_complete)
+	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager"))
+	if scene_manager == null:
+		var tree := get_tree()
+		if tree != null:
+			scene_manager = tree.get_first_node_in_group("scene_manager")
+	if scene_manager != null and scene_manager.has_signal("transition_visual_complete"):
+		scene_manager.transition_visual_complete.connect(_on_transition_visual_complete)
 
 func _exit_tree() -> void:
 	if _unsubscribe != Callable() and _unsubscribe.is_valid():
