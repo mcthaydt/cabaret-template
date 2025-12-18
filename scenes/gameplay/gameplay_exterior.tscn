@@ -309,7 +309,7 @@ texture = ExtResource("39_u0c34")
 [node name="E_TutorialSign" type="Node3D" parent="Entities"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.787005, 1.1897154, -2.5)
 script = ExtResource("45_signpost_controller")
-message = "Welcome to Crispy Template!"
+message = "Welcome to Cabaret Template!"
 settings = ExtResource("45_signpost_settings")
 entity_id = &"tutorial_exterior"
 tags = Array[StringName]([&"interactable", &"tutorial"])
