@@ -16,6 +16,7 @@ const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd"
 const C_GamepadComponent := preload("res://scripts/ecs/components/c_gamepad_component.gd")
 const ACTION_MOVE_STRENGTH := StringName("move")
 const ACTION_LOOK_STRENGTH := StringName("look")
+const U_InputMapBootstrapper := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 
 # Use centralized DeviceType enum
 const DeviceType := U_DeviceTypeConstants.DeviceType
@@ -35,7 +36,8 @@ const DeviceType := U_DeviceTypeConstants.DeviceType
 ## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
 @export var state_store: I_StateStore = null
 
-var _actions_initialized := false
+var _actions_validated := false
+var _actions_valid: bool = true
 var _state_store: I_StateStore = null
 var _store_unsubscribe: Callable = Callable()
 var _input_device_manager: M_InputDeviceManager = null
@@ -45,7 +47,7 @@ var _sprint_toggled_on: bool = false
 var _sprint_button_was_pressed: bool = false
 
 func on_configured() -> void:
-	_ensure_actions()
+	_validate_required_actions()
 	_ensure_state_store_ready()
 	_ensure_input_device_manager()
 	# Device connection/hotplug is handled by M_InputDeviceManager.
@@ -59,7 +61,9 @@ func _ensure_input_device_manager() -> void:
 	_input_device_manager = U_ServiceLocator.try_get_service(StringName("input_device_manager")) as M_InputDeviceManager
 
 func process_tick(_delta: float) -> void:
-	_ensure_actions()
+	_validate_required_actions()
+	if not _actions_valid:
+		return
 	_ensure_state_store_ready()
 	_ensure_input_device_manager()
 
@@ -174,109 +178,32 @@ func _compute_sprint_pressed(button_pressed: bool) -> bool:
 	_sprint_button_was_pressed = button_pressed
 	return _sprint_toggled_on
 
-func _ensure_actions() -> void:
-	if _actions_initialized:
+func _validate_required_actions() -> void:
+	if _actions_validated:
+		return
+	_actions_validated = true
+
+	var required_actions: Array[StringName] = [
+		negative_x_action,
+		positive_x_action,
+		negative_z_action,
+		positive_z_action,
+		jump_action,
+		sprint_action,
+		interact_action,
+	]
+
+	_actions_valid = U_InputMapBootstrapper.validate_required_actions(required_actions)
+	if _actions_valid:
 		return
 
-	_ensure_action(
-		negative_x_action,
-		[KEY_A, KEY_LEFT],
-		[JOY_BUTTON_DPAD_LEFT],
-		[
-			{"axis": JOY_AXIS_LEFT_X, "axis_value": -1.0}
-		]
-	)
-	_ensure_action(
-		positive_x_action,
-		[KEY_D, KEY_RIGHT],
-		[JOY_BUTTON_DPAD_RIGHT],
-		[
-			{"axis": JOY_AXIS_LEFT_X, "axis_value": 1.0}
-		]
-	)
-	_ensure_action(
-		negative_z_action,
-		[KEY_W, KEY_UP],
-		[JOY_BUTTON_DPAD_UP],
-		[
-			{"axis": JOY_AXIS_LEFT_Y, "axis_value": -1.0}
-		]
-	)
-	_ensure_action(
-		positive_z_action,
-		[KEY_S, KEY_DOWN],
-		[JOY_BUTTON_DPAD_DOWN],
-		[
-			{"axis": JOY_AXIS_LEFT_Y, "axis_value": 1.0}
-		]
-	)
-	_ensure_action(jump_action, [KEY_SPACE], [JOY_BUTTON_A])  # Bottom face button (PS Cross / Xbox A)
-	_ensure_action(sprint_action, [KEY_SHIFT], [JOY_BUTTON_LEFT_STICK])  # L3 (left stick click)
-	_ensure_action(interact_action, [KEY_E], [JOY_BUTTON_X])  # Left face button (PS Square / Xbox X)
-
-	_actions_initialized = true
-
-func _ensure_action(action_name: StringName, keys: Array, buttons: Array = [], motions: Array = []) -> void:
-	if not InputMap.has_action(action_name):
-		InputMap.add_action(action_name)
-
-	var events := InputMap.action_get_events(action_name)
-
-	# Check if we already have keyboard keys
-	var has_keyboard := false
-	var has_gamepad_button := false
-	var existing_motions: Array[Dictionary] = []
-	for event in events:
-		if event is InputEventKey:
-			has_keyboard = true
-		elif event is InputEventJoypadButton:
-			has_gamepad_button = true
-		elif event is InputEventJoypadMotion:
-			var motion_event := event as InputEventJoypadMotion
-			var sign := -1.0 if motion_event.axis_value < 0.0 else 1.0
-			existing_motions.append({
-				"axis": motion_event.axis,
-				"axis_value": sign
-			})
-
-	# Add keyboard keys if missing
-	if not has_keyboard:
-		for key_code in keys:
-			var event := InputEventKey.new()
-			event.physical_keycode = key_code
-			InputMap.action_add_event(action_name, event)
-
-	# Add gamepad buttons if missing
-	if not has_gamepad_button:
-		for button_index in buttons:
-			var button_event := InputEventJoypadButton.new()
-			button_event.button_index = button_index
-			InputMap.action_add_event(action_name, button_event)
-
-	# Add gamepad motion events (left stick axes) if missing
-	for motion_data in motions:
-		if not (motion_data is Dictionary):
+	var missing: Array[StringName] = []
+	for action in required_actions:
+		if action == StringName():
 			continue
-		var axis := int((motion_data as Dictionary).get("axis", -1))
-		var axis_value := float((motion_data as Dictionary).get("axis_value", 0.0))
-		if axis == -1 or is_zero_approx(axis_value):
-			continue
-		var target_sign := -1.0 if axis_value < 0.0 else 1.0
-		var already_present := false
-		for existing in existing_motions:
-			if int(existing.get("axis", -1)) == axis and float(existing.get("axis_value", 0.0)) == target_sign:
-				already_present = true
-				break
-		if already_present:
-			continue
-		var motion_event := InputEventJoypadMotion.new()
-		motion_event.axis = axis
-		motion_event.axis_value = target_sign
-		InputMap.action_add_event(action_name, motion_event)
-		existing_motions.append({
-			"axis": axis,
-			"axis_value": target_sign
-		})
+		if not InputMap.has_action(action):
+			missing.append(action)
+	push_error("S_InputSystem: Missing required InputMap actions: %s (fix project.godot / boot init; system will not capture input)" % [missing])
 
 func _ensure_state_store_ready() -> void:
 	if _state_store != null and is_instance_valid(_state_store):

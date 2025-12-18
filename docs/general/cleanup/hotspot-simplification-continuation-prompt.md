@@ -17,7 +17,7 @@ version: "1.0"
   - Line count: 1149 → 1003 (146 line reduction, 12.7%)
   - Behavior preserved: All guard rails maintained (transition_visual_complete timing, dedupe logic, ServiceLocator-first resolution)
   - Test compatibility: Updated test_transition_dedupe.gd to use helper-based API
-- **Commit needed**: Phase 1 implementation changes ready for commit
+- **Committed**: Phase 1 implementation + docs are in git (`8232207`).
 
 ## Phase 2 Complete (2025-12-18)
 
@@ -34,11 +34,30 @@ Goal: Standardize dependency lookup patterns across the codebase (no new framewo
   - `tests/unit/scene_management/`
   - `tests/unit/scene_manager/`
   - `tests/unit/integration/`
-- **Commit needed**: Phase 2 implementation changes ready for commit
+- **Committed**: Phase 2 implementation is in git (`2b4c67e`), with docs follow-up (`fe09fc1`).
 
-## Next Phase (Phase 3)
+## Phase 3 Complete (2025-12-18)
 
 Goal: Stop runtime `InputMap` mutation in gameplay systems (deterministic bindings).
+
+- **InputMap boot/init authority (Option B)**:
+  - Added `scripts/input/u_input_map_bootstrapper.gd` to centralize the required-action set and dev/test-only patching.
+  - `M_InputProfileManager` now calls the bootstrapper on startup to avoid brittle missing-action states in dev/test.
+- **Gameplay systems no longer mutate InputMap**:
+  - `S_InputSystem` now validates required actions once and aborts capture (with a clear error) if misconfigured.
+  - `S_SceneTriggerSystem` no longer creates/binds the `interact` action; it validates and short-circuits safely.
+- **Project bindings are deterministic**:
+  - Updated `project.godot` to include `sprint`, `ui_select`, `ui_focus_next`, `ui_focus_prev` and baseline gamepad bindings for `jump`/`interact`.
+- **Regression coverage**:
+  - Expanded `tests/unit/input/test_input_map.gd` to assert required actions exist without relying on gameplay systems running first.
+
+- **Must-pass tests**: Ran and passing:
+  - `tests/unit/input/`
+  - `tests/unit/ecs/systems/`
+  - `tests/unit/input_manager/`
+  - `tests/unit/style/`
+
+- **Commit needed**: Phase 3 implementation + docs updates are ready for commit (docs commit must be separate from implementation).
 
 ## Must-Pass Tests
 

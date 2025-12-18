@@ -13,7 +13,7 @@ version: "1.0"
 - No new architecture frameworks; prefer small helper extraction and existing patterns.
 - No “clever” abstractions that hide control flow.
 
-**Progress:** 79% (19 / 24 tasks complete)
+**Progress:** 100% (24 / 24 tasks complete)
 
 ---
 
@@ -82,13 +82,18 @@ version: "1.0"
 - Gameplay ECS systems do not create/modify actions at runtime (deterministic bindings).
 - InputMap setup is performed once during boot/init (or treated as `project.godot` source of truth).
 
-- [ ] T130 Inventory all runtime `InputMap` writes (search for `InputMap.add_action`, `InputMap.action_add_event`, `InputMap.erase_action`, etc.) and list call sites in **Notes**.
-- [ ] T131 Choose the single “InputMap initialization authority”:
+- [x] T130 Inventory all runtime `InputMap` writes (search for `InputMap.add_action`, `InputMap.action_add_event`, `InputMap.erase_action`, etc.) and list call sites in **Notes**.
+- [x] T131 Choose the single “InputMap initialization authority”:
   - Option A: Treat `project.godot` as canonical; enforce via tests.
   - Option B: A dedicated boot/init step (manager/utility) that only validates and patches missing actions in dev/test. <- this one
-- [ ] T132 Remove `InputMap` mutation from `scripts/ecs/systems/s_input_system.gd` (replace with validation + early warnings if actions are missing).
-- [ ] T133 Ensure required actions exist in `project.godot` (and keep naming stable; especially `interact` and UI actions).
-- [ ] T134 Add a regression test ensuring required actions exist without relying on `S_InputSystem` running first.
+- [x] T132 Remove `InputMap` mutation from `scripts/ecs/systems/s_input_system.gd` (replace with validation + early warnings if actions are missing).
+  - Removed `_ensure_actions()` / `_ensure_action()` mutation path; system now validates required actions once and aborts capture with a clear error if misconfigured.
+  - Also removed InputMap mutation from `scripts/ecs/systems/s_scene_trigger_system.gd` (same rationale; `INTERACT` mode now validates `interact` exists and short-circuits safely).
+- [x] T133 Ensure required actions exist in `project.godot` (and keep naming stable; especially `interact` and UI actions).
+  - Added missing actions: `sprint`, `ui_select`, `ui_focus_next`, `ui_focus_prev`.
+  - Added baseline gamepad button defaults for `jump` and `interact` to preserve behavior without runtime patching.
+- [x] T134 Add a regression test ensuring required actions exist without relying on `S_InputSystem` running first.
+  - Expanded `tests/unit/input/test_input_map.gd` to assert a baseline set of required actions exist.
 
 ---
 
@@ -186,7 +191,14 @@ version: "1.0"
   - Registered managers: `U_ServiceLocator.try_get_service(StringName("..."))` (production fast-path)
   - Group fallback: `get_tree().get_first_node_in_group("...")` only when needed for compatibility
 - **Runtime InputMap write inventory (T130)**:
-  - (fill in)
+  - Gameplay ECS systems (removed in Phase 3):
+    - `scripts/ecs/systems/s_input_system.gd` (added actions/events)
+    - `scripts/ecs/systems/s_scene_trigger_system.gd` (added interact action/events)
+  - Input system authority (expected runtime mutation):
+    - `scripts/managers/m_input_profile_manager.gd` / `scripts/managers/helpers/m_input_profile_loader.gd` (apply profiles to InputMap)
+    - `scripts/utils/u_input_rebind_utils.gd` (apply rebind results)
+  - UI virtual controls (touchscreen):
+    - `scripts/ui/ui_virtual_button.gd` (ensures action exists for virtual buttons)
 
 ## Links
 

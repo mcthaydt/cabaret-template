@@ -6,6 +6,7 @@ const RS_InputProfile = preload("res://scripts/ecs/resources/rs_input_profile.gd
 const U_InputSerialization := preload("res://scripts/utils/u_input_serialization.gd")
 const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
 const M_InputProfileLoader := preload("res://scripts/managers/helpers/m_input_profile_loader.gd")
+const U_InputMapBootstrapper := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
@@ -46,6 +47,10 @@ var _tracked_custom_actions: Array[StringName] = []
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("input_profile_manager")
+	U_InputMapBootstrapper.ensure_required_actions(
+		U_InputMapBootstrapper.REQUIRED_ACTIONS,
+		U_InputMapBootstrapper.should_patch_missing_actions()
+	)
 	_load_available_profiles()
 	await _initialize_from_store()
 
