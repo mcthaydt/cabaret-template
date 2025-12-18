@@ -1,8 +1,8 @@
 extends GutTest
 
-const OverlayScene := preload("res://scenes/ui/edit_touch_controls_overlay.tscn")
-const MobileControlsScene := preload("res://scenes/ui/mobile_controls.tscn")
-const VirtualButton := preload("res://scripts/ui/virtual_button.gd")
+const OverlayScene := preload("res://scenes/ui/ui_edit_touch_controls_overlay.tscn")
+const MobileControlsScene := preload("res://scenes/ui/ui_mobile_controls.tscn")
+const UI_VirtualButton := preload("res://scripts/ui/ui_virtual_button.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const RS_BootInitialState := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
@@ -17,7 +17,7 @@ const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_a
 
 var _store: TestStateStore
 var _profile_manager_mock: ProfileManagerMock
-var _mobile_controls: MobileControls
+var _mobile_controls: UI_MobileControls
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
@@ -164,12 +164,12 @@ func test_cancel_button_reverts_positions_and_closes_overlay() -> void:
 	assert_vector_almost_eq(joystick.position, original_joystick_pos, 0.001, "Joystick position should revert on cancel")
 	assert_vector_almost_eq((buttons[0] as Control).position, original_button_pos, 0.001, "Button position should revert on cancel")
 
-func _create_mobile_controls() -> MobileControls:
+func _create_mobile_controls() -> UI_MobileControls:
 	var controls := MobileControlsScene.instantiate()
 	controls.force_enable = true
 	add_child_autofree(controls)
 	await _pump_frames(3)
-	return controls as MobileControls
+	return controls as UI_MobileControls
 
 func _create_overlay() -> Node:
 	var overlay := OverlayScene.instantiate()

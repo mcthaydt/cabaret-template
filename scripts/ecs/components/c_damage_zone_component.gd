@@ -6,9 +6,8 @@ class_name C_DamageZoneComponent
 ## Tracks overlapping bodies so S_DamageSystem can apply damage ticks.
 
 const COMPONENT_TYPE := StringName("C_DamageZoneComponent")
-
-signal player_entered(body: Node3D)
-signal player_exited(body: Node3D)
+const EVENT_DAMAGE_ZONE_ENTERED := StringName("damage_zone_entered")
+const EVENT_DAMAGE_ZONE_EXITED := StringName("damage_zone_exited")
 
 @export var damage_amount: float = 25.0
 @export var is_instant_death: bool = false
@@ -73,14 +72,14 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	if not _bodies_in_zone.has(body):
 		_bodies_in_zone.append(body)
-		player_entered.emit(body)
+		_publish_entered(body)
 
 func _on_body_exited(body: Node3D) -> void:
 	if body == null:
 		return
 	if _bodies_in_zone.has(body):
 		_bodies_in_zone.erase(body)
-		player_exited.emit(body)
+		_publish_exited(body)
 
 func get_damage_area() -> Area3D:
 	return _area
@@ -92,3 +91,23 @@ func set_area_path(path: NodePath) -> void:
 	area_path = path
 	if is_inside_tree():
 		_resolve_area()
+
+func _publish_entered(body: Node3D) -> void:
+	U_ECSEventBus.publish(EVENT_DAMAGE_ZONE_ENTERED, {
+		"zone": self,
+		"zone_id": _get_zone_id(),
+		"body": body,
+		"damage_per_second": damage_amount,
+		"is_instant_death": is_instant_death,
+	})
+
+func _publish_exited(body: Node3D) -> void:
+	U_ECSEventBus.publish(EVENT_DAMAGE_ZONE_EXITED, {
+		"zone": self,
+		"zone_id": _get_zone_id(),
+		"body": body,
+		"is_instant_death": is_instant_death,
+	})
+
+func _get_zone_id() -> StringName:
+	return ECS_UTILS.get_entity_id(self)

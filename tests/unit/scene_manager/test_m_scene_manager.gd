@@ -10,6 +10,7 @@ const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
 
 var _manager: M_SceneManager
 var _store: M_StateStore
@@ -18,12 +19,16 @@ var _ui_overlay_stack: CanvasLayer
 var _transition_overlay: CanvasLayer
 
 func before_each() -> void:
+	# Clear ServiceLocator first to ensure clean state between tests
+	U_ServiceLocator.clear()
+
 	# Create state store with scene slice
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
 	var scene_initial_state := RS_SceneInitialState.new()
 	_store.scene_initial_state = scene_initial_state
 	add_child_autofree(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
 	# Create container nodes
@@ -46,9 +51,13 @@ func before_each() -> void:
 	_manager = M_SceneManager.new()
 	_manager.skip_initial_scene_load = true  # Don't load main_menu automatically in tests
 	add_child_autofree(_manager)
+	U_ServiceLocator.register(StringName("scene_manager"), _manager)
 	await get_tree().process_frame
 
 func after_each() -> void:
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
+
 	_manager = null
 	_store = null
 	_active_scene_container = null

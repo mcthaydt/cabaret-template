@@ -59,6 +59,8 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			return _reduce_skip_to_menu(state)
 		U_NavigationActions.ACTION_RETURN_TO_MAIN_MENU:
 			return _reduce_return_to_main_menu(state)
+		U_NavigationActions.ACTION_NAVIGATE_TO_UI_SCREEN:
+			return _reduce_navigate_to_ui_screen(state, action)
 		_:
 			return state
 
@@ -213,6 +215,9 @@ static func _reduce_open_endgame(state: Dictionary, action: Dictionary) -> Dicti
 	new_state["overlay_return_stack"] = []
 	new_state["active_menu_panel"] = state.get("active_menu_panel", DEFAULT_MENU_PANEL)
 	new_state["last_gameplay_scene_id"] = state.get("last_gameplay_scene_id", previous_gameplay_scene)
+	# Clear any transition metadata when entering endgame; endgame flows
+	# will provide their own per-action transition preferences.
+	new_state.erase("_transition_metadata")
 	return new_state
 
 static func _reduce_retry(state: Dictionary, action: Dictionary) -> Dictionary:
@@ -234,6 +239,13 @@ static func _reduce_retry(state: Dictionary, action: Dictionary) -> Dictionary:
 	new_state["overlay_return_stack"] = []
 	new_state["active_menu_panel"] = DEFAULT_PAUSE_PANEL
 	new_state["last_gameplay_scene_id"] = desired_scene
+	# Retry transitions (from Game Over / Victory) should be snappy to keep
+	# the flow responsive. Store transition metadata so M_SceneManager can
+	# prefer instant, high-priority transitions for this navigation change.
+	new_state["_transition_metadata"] = {
+		"transition_type": "instant",
+		"priority": 2
+	}
 	return new_state
 
 static func _reduce_skip_to_credits(state: Dictionary) -> Dictionary:
@@ -242,6 +254,12 @@ static func _reduce_skip_to_credits(state: Dictionary) -> Dictionary:
 	new_state["base_scene_id"] = StringName("credits")
 	new_state["overlay_stack"] = []
 	new_state["overlay_return_stack"] = []
+	# Skipping to credits from Victory should avoid long fades so quick
+	# checks and automated flows stay responsive.
+	new_state["_transition_metadata"] = {
+		"transition_type": "instant",
+		"priority": 2
+	}
 	return new_state
 
 static func _reduce_skip_to_menu(state: Dictionary) -> Dictionary:
@@ -251,6 +269,12 @@ static func _reduce_skip_to_menu(state: Dictionary) -> Dictionary:
 	new_state["overlay_stack"] = []
 	new_state["overlay_return_stack"] = []
 	new_state["active_menu_panel"] = DEFAULT_MENU_PANEL
+	# Credits auto-return to menu should be immediate; mark this navigation
+	# change so Scene Manager uses an instant transition.
+	new_state["_transition_metadata"] = {
+		"transition_type": "instant",
+		"priority": 2
+	}
 	return new_state
 
 static func _reduce_return_to_main_menu(state: Dictionary) -> Dictionary:
@@ -260,6 +284,29 @@ static func _reduce_return_to_main_menu(state: Dictionary) -> Dictionary:
 	new_state["overlay_stack"] = []
 	new_state["overlay_return_stack"] = []
 	new_state["active_menu_panel"] = DEFAULT_MENU_PANEL
+	# Game Over / Victory "Menu" button should feel instant. Flag this
+	# navigation request so Scene Manager does not apply long fades.
+	new_state["_transition_metadata"] = {
+		"transition_type": "instant",
+		"priority": 2
+	}
+	return new_state
+
+static func _reduce_navigate_to_ui_screen(state: Dictionary, action: Dictionary) -> Dictionary:
+	var new_state: Dictionary = state.duplicate(true)
+	var scene_id: StringName = action.get("scene_id", StringName(""))
+
+	if scene_id == StringName(""):
+		return state
+
+	# Set the base_scene_id to trigger M_SceneManager reconciliation
+	# The transition_type and priority are stored for M_SceneManager to use
+	new_state["base_scene_id"] = scene_id
+	new_state["_transition_metadata"] = {
+		"transition_type": action.get("transition_type", "fade"),
+		"priority": action.get("priority", 2)
+	}
+
 	return new_state
 
 static func _is_overlay_allowed_for_parent(overlay_id: StringName, current_stack: Array) -> bool:

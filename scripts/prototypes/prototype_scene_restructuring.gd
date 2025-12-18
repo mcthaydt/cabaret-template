@@ -2,7 +2,7 @@ extends Node
 
 ## Prototype script for R011-R016: Scene Restructuring Validation
 ##
-## This script tests loading base_scene_template.tscn as a child of ActiveSceneContainer
+## This script tests loading tmpl_base_scene.tscn as a child of ActiveSceneContainer
 ## to validate that ECS and Redux still work after scene restructuring.
 ##
 ## Test Checklist:
@@ -13,9 +13,9 @@ extends Node
 
 var _active_scene_container: Node = null
 var _loaded_scene: Node = null
-var _store: M_StateStore = null
+var _store: I_StateStore = null
 
-const BASE_SCENE_PATH := "res://templates/base_scene_template.tscn"
+const BASE_SCENE_PATH := "res://templates/tmpl_base_scene.tscn"
 
 func _ready() -> void:
 	print("\n" + "=".repeat(60))
@@ -58,7 +58,7 @@ func _ready() -> void:
 	print("\n[PROTOTYPE] Memory baseline: ", "%.2f" % memory_before_load_mb, " MB")
 
 	# Test 1: Load base_scene_template as child
-	print("\n[PROTOTYPE] Test 1: Loading base_scene_template.tscn...")
+	print("\n[PROTOTYPE] Test 1: Loading tmpl_base_scene.tscn...")
 	var load_start_time_ms: int = Time.get_ticks_msec()
 
 	var scene_resource = load(BASE_SCENE_PATH)

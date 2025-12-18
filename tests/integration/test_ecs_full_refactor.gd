@@ -19,11 +19,17 @@ var movement_comp: C_MovementComponent
 var jump_comp: C_JumpComponent
 var floating_comp: C_FloatingComponent
 var _unsubscribe_jump: Callable = Callable()
+var _state_store: M_StateStore = null
 
 ## Track events published during test
 var events_received: Array[Dictionary] = []
 
+const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
+
 func before_each():
+	# Clear ServiceLocator first to ensure clean state between tests
+	U_ServiceLocator.clear()
+
 	# Reset event tracking
 	events_received.clear()
 	U_ECSEventBus.clear_history()
@@ -32,7 +38,17 @@ func before_each():
 	player_entity = null
 	_unsubscribe_jump = Callable()
 
+	# Create and add M_StateStore for systems that require it
+	_state_store = M_StateStore.new()
+	add_child(_state_store)
+	autofree(_state_store)
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
+	await get_tree().process_frame
+
 func after_each():
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
+
 	if _unsubscribe_jump != Callable() and _unsubscribe_jump.is_valid():
 		_unsubscribe_jump.call()
 		_unsubscribe_jump = Callable()
@@ -51,7 +67,7 @@ func test_full_ecs_refactor_600_frame_simulation():
 	# ========================================
 
 	# Load base scene with everything configured
-	var base_scene_template := load("res://templates/base_scene_template.tscn")
+	var base_scene_template := load("res://templates/tmpl_base_scene.tscn")
 	scene_root = base_scene_template.instantiate()
 	add_child(scene_root)
 	autofree(scene_root)

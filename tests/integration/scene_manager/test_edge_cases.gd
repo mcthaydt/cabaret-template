@@ -38,6 +38,62 @@ var _ui_overlay_stack: CanvasLayer
 var _transition_overlay: CanvasLayer
 var _loading_overlay: CanvasLayer
 
+const _DEBUG_LOGS: bool = false
+
+func _one_line(value: Variant) -> String:
+	var s := var_to_str(value)
+	s = s.replace("\n", "\\n")
+	s = s.replace("\t", "\\t")
+	return s
+
+func _debug_transition_snapshot(context: String) -> void:
+	if not _DEBUG_LOGS:
+		return
+
+	var scene_state: Dictionary = _store.get_slice(StringName("scene"))
+	var nav_state: Dictionary = _store.get_slice(StringName("navigation"))
+	var queue_state: Dictionary = {}
+	if _manager != null and is_instance_valid(_manager):
+		queue_state = _manager._get_transition_queue_state()
+
+	var overlay_names: Array[String] = []
+	if _ui_overlay_stack != null and is_instance_valid(_ui_overlay_stack):
+		for child in _ui_overlay_stack.get_children():
+			overlay_names.append(String(child.name))
+
+	var queue_items: Array[String] = []
+	if _manager != null and is_instance_valid(_manager):
+		var queue_helper = _manager.get("_transition_queue_helper")
+		if queue_helper != null:
+			var internal_queue: Variant = queue_helper.get("_queue")
+			if internal_queue is Array:
+				for req in internal_queue:
+					if req == null:
+						queue_items.append("<null>")
+						continue
+					var req_scene: Variant = req.get("scene_id")
+					var req_type: Variant = req.get("transition_type")
+					var req_priority: Variant = req.get("priority")
+					queue_items.append("%s/%s/%s" % [String(req_scene), String(req_type), String(req_priority)])
+
+	print("[test_edge_cases] %s paused=%s scene={id=%s transitioning=%s type=%s stack=%s} nav={shell=%s base=%s overlays=%s} ui_stack=%s queue={processing=%s size=%s active_target=%s pending_scene=%s items=%s}" % [
+		context,
+		str(get_tree().paused),
+		str(scene_state.get("current_scene_id", StringName(""))),
+		str(scene_state.get("is_transitioning", false)),
+		str(scene_state.get("transition_type", "")),
+		_one_line(scene_state.get("scene_stack", [])),
+		str(nav_state.get("shell", StringName(""))),
+		str(nav_state.get("base_scene_id", StringName(""))),
+		_one_line(nav_state.get("overlay_stack", [])),
+		_one_line(overlay_names),
+		str(queue_state.get("is_processing", false)),
+		str(queue_state.get("queue_size", -1)),
+		str(_manager._get_active_transition_target() if _manager != null else StringName("")),
+		str(_manager._get_navigation_pending_scene_id() if _manager != null else StringName("")),
+		_one_line(queue_items),
+	])
+
 func before_each() -> void:
 	# Create root scene structure
 	_root_scene = Node.new()
@@ -53,6 +109,8 @@ func before_each() -> void:
 	_store.scene_initial_state = RS_SceneInitialState.new()
 	_store.navigation_initial_state = RS_NavigationInitialState.new()
 	_root_scene.add_child(_store)
+	# Register state store via ServiceLocator BEFORE managers run _ready()
+	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
 	# Create cursor manager
@@ -85,6 +143,10 @@ func before_each() -> void:
 	_loading_overlay.visible = false
 	_root_scene.add_child(_loading_overlay)
 
+	# Register overlays via ServiceLocator for M_SceneManager discovery
+	U_ServiceLocator.register(StringName("transition_overlay"), _transition_overlay)
+	U_ServiceLocator.register(StringName("loading_overlay"), _loading_overlay)
+
 	# Create scene manager
 	_manager = M_SceneManager.new()
 	_manager.skip_initial_scene_load = true  # Don't load main_menu automatically in tests
@@ -92,7 +154,20 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 func after_each() -> void:
-	# Explicitly free root scene tree to ensure its children are released
+	# 1. Clear ServiceLocator first (prevents cross-test pollution)
+	U_ServiceLocator.clear()
+
+	# 2. Clear active scenes loaded by M_SceneManager
+	if _active_scene_container and is_instance_valid(_active_scene_container):
+		for child in _active_scene_container.get_children():
+			child.queue_free()
+
+	# 3. Clear UI overlay stack
+	if _ui_overlay_stack and is_instance_valid(_ui_overlay_stack):
+		for child in _ui_overlay_stack.get_children():
+			child.queue_free()
+
+	# 4. Explicitly free root scene tree to ensure its children are released
 	if _root_scene != null and is_instance_valid(_root_scene):
 		_root_scene.queue_free()
 
@@ -124,7 +199,8 @@ func test_scene_loading_failure_fallback_to_main_menu() -> void:
 	var current_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
 
 	# Verify we didn't crash and are in a valid state
-	assert_false(_manager._is_processing_transition, "Should not be stuck in transition")
+	var queue_helper = _manager.get("_transition_queue_helper")
+	assert_false(queue_helper.is_processing(), "Should not be stuck in transition")
 	# Should either be at fallback (main_menu) or empty (no scene loaded yet)
 	# The important thing is we didn't crash
 	assert_true(true, "Scene loading failure should not crash the system")
@@ -154,7 +230,8 @@ func _disabled_test_missing_scene_file_handled_gracefully() -> void:
 	# Should handle error gracefully without crashing
 	var state: Dictionary = _store.get_state()
 	var scene_state: Dictionary = state.get("scene", {})
-	assert_false(_manager._is_processing_transition, "Should recover from loading failure")
+	var queue_helper_2 = _manager.get("_transition_queue_helper")
+	assert_false(queue_helper_2.is_processing(), "Should recover from loading failure")
 
 	# Cleanup test data
 	U_SceneRegistry._scenes.erase(test_scene_id)
@@ -178,7 +255,8 @@ func test_transition_during_transition_queues_correctly() -> void:
 	await get_tree().physics_frame
 
 	# Should queue the second transition
-	assert_gt(_manager._transition_queue.size(), 0, "Second transition should be queued")
+	var queue_helper_3 = _manager.get("_transition_queue_helper")
+	assert_gt(queue_helper_3.size(), 0, "Second transition should be queued")
 
 	# Wait for both to complete
 	await wait_physics_frames(20)
@@ -204,8 +282,10 @@ func test_priority_queue_respects_critical_transitions() -> void:
 	# CRITICAL priority should jump to front of queue
 	# Queue processing happens in _process_transition_queue, which sorts by priority
 	# The CRITICAL transition should be processed before NORMAL ones
+	var queue_helper_4 = _manager.get("_transition_queue_helper")
+	var internal_queue = queue_helper_4.get("_queue")
 	var queue_priorities: Array = []
-	for req in _manager._transition_queue:
+	for req in internal_queue:
 		queue_priorities.append(req.priority)
 
 	# If queue has items, first should be highest priority (CRITICAL = 2)
@@ -327,17 +407,24 @@ func test_pause_action_during_transition_reconciles_after_completion() -> void:
 	_store.dispatch(U_NavigationActions.start_game(StringName("gameplay_base")))
 	_manager.transition_to_scene(StringName("gameplay_base"), "fade")
 	await get_tree().physics_frame
+	_debug_transition_snapshot("after start_game + transition_to_scene")
 
 	# Attempt to open pause during transition
 	_store.dispatch(U_NavigationActions.open_pause())
 	await get_tree().physics_frame
+	_debug_transition_snapshot("after open_pause dispatch")
 
 	# Navigation state should have pause queued, but reconciliation defers to transition completion
 	var nav_state: Dictionary = _store.get_slice(StringName("navigation"))
 	# Note: Reconciliation logic should prevent pause overlay from pushing during transition
+	_debug_transition_snapshot("after reading navigation slice (nav_state=%s)" % [_one_line(nav_state)])
 
 	# Wait for transition to complete
-	await wait_physics_frames(20)
+	for i in range(20):
+		await get_tree().physics_frame
+		if i == 0 or i == 4 or i == 9 or i == 19:
+			_debug_transition_snapshot("during wait_physics_frames: i=%d/20" % (i + 1))
+	_debug_transition_snapshot("after wait_physics_frames(20)")
 
 	# After transition completes, reconciliation should handle deferred navigation state
 	var scene_state: Dictionary = _store.get_slice(StringName("scene"))

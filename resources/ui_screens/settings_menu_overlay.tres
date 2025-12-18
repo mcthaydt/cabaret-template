@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="RS_UIScreenDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_UIScreenDefinition" load_steps=2 format=3 uid="uid://bkaq2wx75r0f4"]
 
-[ext_resource type="Script" path="res://scripts/ui/resources/rs_ui_screen_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://cxwcn4lvbnkwv" path="res://scripts/ui/resources/rs_ui_screen_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 screen_id = &"settings_menu_overlay"
 kind = 1
 scene_id = &"settings_menu"
-allowed_shells = [&"gameplay"]
-allowed_parents = [&"pause_menu"]
+allowed_shells = Array[StringName]([&"gameplay"])
+allowed_parents = Array[StringName]([&"pause_menu"])
 close_mode = 0

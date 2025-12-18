@@ -2,7 +2,8 @@
 
 **Feature Branch**: `ui-manager`
 **Created**: 2025-11-24
-**Status**: Draft
+**Last Updated**: 2025-12-08
+**Status**: ✅ **PRODUCTION READY** - All planned features implemented
 **Input**: User description: "UI / Menu handling as well‑architected as the rest of the codebase (Gamepad Controllable, Modular UI, Data‑Driven, Everything still works)"
 
 ## Problem Statement
@@ -229,6 +230,59 @@ The original design envisioned a fully tabbed `SettingsPanel` with Input/Audio/G
 - If a future phase reintroduces a tabbed SettingsPanel, it should:
   - Reuse the existing input overlays as tab content where practical.
   - Preserve the current navigation contracts (main menu vs gameplay) and CloseMode semantics.
+
+## Architectural Rule: UI → Redux → Scene Manager
+
+**Core Principle**: UI scripts must NEVER call `M_SceneManager` methods directly. All scene transitions and overlay management must go through Redux actions.
+
+### The Rule
+
+✅ **CORRECT**: UI scripts dispatch actions
+```gdscript
+# In UI controller
+U_NavigationActions.open_overlay("settings_menu_overlay")
+U_SceneActions.transition_to_scene("main_menu")
+```
+
+❌ **INCORRECT**: UI scripts call M_SceneManager directly
+```gdscript
+# DON'T DO THIS
+var scene_manager = U_StateUtils.get_manager_from_group("scene_manager")
+scene_manager.transition_to_scene("main_menu")  # ❌ Violates architecture
+```
+
+### Rationale
+
+1. **Single Source of Truth**: Navigation state must live in Redux, not be scattered across UI controllers
+2. **Testability**: Actions can be tested without scene tree manipulation
+3. **Predictability**: All navigation changes go through reducers, making them traceable and debuggable
+4. **Consistency**: Same pattern as ECS (components don't call managers directly, they dispatch events)
+
+### Implementation Status
+
+✅ **ALL VIOLATIONS RESOLVED** (2025-12-08)
+
+All UI scripts now comply with the UI → Redux → Scene Manager rule. The following violations were fixed:
+
+1. **`scripts/ui/ui_settings_menu.gd`** ✅ FIXED
+   - Removed `M_SceneManager` import
+   - Replaced `_transition_to_scene()` with `U_NavigationActions.navigate_to_ui_screen()`
+
+2. **`scripts/ui/ui_input_profile_selector.gd`** ✅ FIXED
+   - Removed `M_SceneManager` import
+   - Refactored `_transition_back_to_settings_scene()` to use Redux action
+
+3. **`scripts/ui/ui_input_rebinding_overlay.gd`** ✅ FIXED
+   - Removed `M_SceneManager` import
+   - Refactored `_transition_back_to_settings_scene()` to use Redux action
+
+4. **`scripts/ui/ui_touchscreen_settings_overlay.gd`** ✅ FIXED
+   - Simplified back navigation to use `U_NavigationActions.navigate_to_ui_screen()`
+   - Removed direct `M_SceneManager` calls
+
+**Solution**: Added `U_NavigationActions.navigate_to_ui_screen(scene_id, transition_type, priority)` action that updates navigation state, which M_SceneManager reconciles automatically.
+
+**Commit**: `c9c6a26` - refactor: Eliminate UI→SceneManager violations (4/4 fixed)
 
 ## Open Questions
 

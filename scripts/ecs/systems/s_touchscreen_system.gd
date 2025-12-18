@@ -14,16 +14,16 @@ const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selecto
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 const C_InputComponent := preload("res://scripts/ecs/components/c_input_component.gd")
-const VirtualJoystick := preload("res://scripts/ui/virtual_joystick.gd")
-const VirtualButton := preload("res://scripts/ui/virtual_button.gd")
-const MobileControls := preload("res://scripts/ui/mobile_controls.gd")
+const UI_VirtualJoystick := preload("res://scripts/ui/ui_virtual_joystick.gd")
+const UI_VirtualButton := preload("res://scripts/ui/ui_virtual_button.gd")
+const UI_MobileControls := preload("res://scripts/ui/ui_mobile_controls.gd")
 
 @export var force_enable: bool = false
 @export var emulate_mobile_override: bool = false
 
-var _state_store: M_StateStore = null
-var _mobile_controls: MobileControls = null
-var _joystick: VirtualJoystick = null
+var _state_store: I_StateStore = null
+var _mobile_controls: UI_MobileControls = null
+var _joystick: UI_VirtualJoystick = null
 var _button_map: Dictionary = {}
 var _last_jump_pressed: bool = false
 
@@ -78,7 +78,7 @@ func _ensure_state_store_ready() -> void:
 		return
 	_state_store = U_StateUtils.get_store(self)
 
-func _get_state_store() -> M_StateStore:
+func _get_state_store() -> I_StateStore:
 	if _state_store == null or not is_instance_valid(_state_store):
 		_state_store = null
 		return null
@@ -86,18 +86,18 @@ func _get_state_store() -> M_StateStore:
 
 func _ensure_controls_ready() -> bool:
 	if _mobile_controls == null or not is_instance_valid(_mobile_controls):
-		_mobile_controls = get_tree().get_first_node_in_group("mobile_controls") as MobileControls
+		_mobile_controls = get_tree().get_first_node_in_group("mobile_controls") as UI_MobileControls
 		_button_map.clear()
 		_joystick = null
 		if _mobile_controls != null and is_instance_valid(_mobile_controls):
-			_joystick = _mobile_controls.get_node_or_null("Controls/VirtualJoystick") as VirtualJoystick
+			_joystick = _mobile_controls.get_node_or_null("Controls/VirtualJoystick") as UI_VirtualJoystick
 			_cache_buttons(_mobile_controls.get_buttons())
 
 	if _mobile_controls == null or not is_instance_valid(_mobile_controls):
 		return false
 
 	if _joystick == null or not is_instance_valid(_joystick):
-		_joystick = _mobile_controls.get_node_or_null("Controls/VirtualJoystick") as VirtualJoystick
+		_joystick = _mobile_controls.get_node_or_null("Controls/VirtualJoystick") as UI_VirtualJoystick
 
 	if _button_map.is_empty():
 		_cache_buttons(_mobile_controls.get_buttons())
@@ -107,9 +107,9 @@ func _ensure_controls_ready() -> bool:
 func _cache_buttons(buttons: Array) -> void:
 	_button_map.clear()
 	for button in buttons:
-		if not (button is VirtualButton):
+		if not (button is UI_VirtualButton):
 			continue
-		var vb := button as VirtualButton
+		var vb := button as UI_VirtualButton
 		_button_map[String(vb.action)] = vb
 
 func _get_move_vector() -> Vector2:
@@ -118,12 +118,12 @@ func _get_move_vector() -> Vector2:
 	return _joystick.get_vector()
 
 func _get_button_pressed(action: StringName) -> bool:
-	var button: VirtualButton = _button_map.get(String(action))
+	var button: UI_VirtualButton = _button_map.get(String(action))
 	if button == null or not is_instance_valid(button):
 		return false
 	return button.is_pressed()
 
-func _dispatch_state(store: M_StateStore, move_vector: Vector2, jump_pressed: bool, jump_just_pressed: bool, sprint_pressed: bool) -> void:
+func _dispatch_state(store: I_StateStore, move_vector: Vector2, jump_pressed: bool, jump_just_pressed: bool, sprint_pressed: bool) -> void:
 	if store == null or not is_instance_valid(store):
 		return
 	store.dispatch(U_InputActions.update_move_input(move_vector))

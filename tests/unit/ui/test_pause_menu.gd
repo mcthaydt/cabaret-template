@@ -1,6 +1,6 @@
 extends GutTest
 
-const PauseMenuScene := preload("res://scenes/ui/pause_menu.tscn")
+const PauseMenuScene := preload("res://scenes/ui/ui_pause_menu.tscn")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const RS_BootInitialState := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
@@ -80,7 +80,7 @@ func test_pause_menu_hidden_when_transitioning_to_main_menu() -> void:
 
 	# Simulate clicking "Quit to Main Menu" - this clears overlays AND changes shell
 	store.dispatch(U_NavigationActions.return_to_main_menu())
-	await wait_process_frames(3)
+	await wait_process_frames(5)
 
 	# Pause menu should be hidden because we're transitioning to main menu shell
 	assert_false(pause_menu.visible, "Pause menu should be hidden when transitioning to main menu")

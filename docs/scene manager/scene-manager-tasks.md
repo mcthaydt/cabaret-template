@@ -120,7 +120,7 @@
 
 ### Integration Validation
 
-- [x] T017 Create test script in root.tscn to load gameplay_base.tscn into ActiveSceneContainer - **scripts/test_root_loader.gd**
+- [x] T017 Create test script in root.tscn to load gameplay_base.tscn into ActiveSceneContainer - **tests/helpers/test_root_loader.gd**
 - [x] T018 Run game from root.tscn and validate ECS works (player moves, components register) - **PASSED**
 - [x] T019 Validate Redux works (state updates, HUD updates) - **PASSED** (StateHandoff logs confirmed)
 - [x] T020 Run ALL ~212 tests and verify no regressions from baseline - **ALL PASSING** (212/212 ✅)
@@ -190,8 +190,8 @@
 - [x] T050 [US1] Implement subscribe to scene slice updates via M_StateStore.subscribe() - **COMPLETE** (_on_state_changed() callback)
 - [x] T051 [US1] Run unit tests for M_SceneManager (including queue priority) and verify they pass - **COMPLETE** (45/47 tests passing, 2 expected failures)
 - [x] T052 [P] [US1] Create scripts/scene_management/transitions/base_transition_effect.gd base class - **COMPLETE** (virtual execute() and get_duration())
-- [x] T053 [P] [US1] Create scripts/scene_management/transitions/instant_transition.gd - **COMPLETE** (synchronous callback)
-- [x] T054 [P] [US1] Create scripts/scene_management/transitions/fade_transition.gd with Tween - **COMPLETE** (fade out→in, mid_transition_callback, configurable easing)
+- [x] T053 [P] [US1] Create scripts/scene_management/transitions/trans_instant.gd - **COMPLETE** (synchronous callback)
+- [x] T054 [P] [US1] Create scripts/scene_management/transitions/trans_fade.gd with Tween - **COMPLETE** (fade out→in, mid_transition_callback, configurable easing)
 - [x] T055 [US1] Implement input blocking during transitions (set_input_as_handled) - **COMPLETE** (block_input property)
 - [x] T056 [US1] Update TransitionOverlay in root.tscn (ColorRect with modulate.a = 0) - **COMPLETE** (already configured in root.tscn)
 - [x] T057 [US1] Integrate transition effects with M_SceneManager.transition_to_scene() - **COMPLETE** (M_SceneManager calls transition effects)
@@ -476,8 +476,8 @@
 ### Implementation for User Story 5
 
 - [x] T130 [P] [US5] Create scenes/ui/loading_screen.tscn with ProgressBar
-- [x] T131 [P] [US5] Create scripts/scene_management/transitions/loading_screen_transition.gd
-- [x] T132 [US5] Implement LoadingScreenTransition.update_progress(progress) for ProgressBar
+- [x] T131 [P] [US5] Create scripts/scene_management/transitions/trans_loading_screen.gd
+- [x] T132 [US5] Implement Trans_LoadingScreen.update_progress(progress) for ProgressBar
 - [x] T133 [US5] Add LoadingOverlay reference in root.tscn
 - [x] T134 [US5] Integrate loading_screen_transition with M_SceneManager
 - [x] T135 [US5] Implement transition type selection based on U_SceneRegistry metadata
@@ -565,12 +565,12 @@
 7. test_cache_eviction_on_memory_pressure - Memory limit triggers eviction
 8. test_automatic_preload_hint_near_door - Door approach triggers preload hint
 9. test_background_load_completes_before_transition - Hints load in background
-10. test_real_progress_in_loading_transition - LoadingScreenTransition shows real progress
+10. test_real_progress_in_loading_transition - Trans_LoadingScreen shows real progress
 
 **Files Modified**:
 - `scripts/managers/m_scene_manager.gd`: Added _load_scene_async(), cache management, preloading, hints (+360 lines)
 - `scripts/scene_management/u_scene_registry.gd`: Updated priorities, added get_preloadable_scenes() (+28 lines)
-- `scripts/scene_management/transitions/loading_screen_transition.gd`: Real progress polling with stuck detection (+110 lines)
+- `scripts/scene_management/transitions/trans_loading_screen.gd`: Real progress polling with stuck detection (+110 lines)
 - `scripts/ecs/components/c_scene_trigger_component.gd`: Added automatic preload hints on door approach (+26 lines)
 
 **Files Created**:
@@ -912,7 +912,7 @@
   - Auto-return: Timer set to 60 seconds (5s buffer after scroll completes), automatically transitions to main_menu
   - Button handler: Skip → immediate transition to main_menu (cancels timer and tween)
   - Scene type: END_GAME
-- [x] T165.1 [P] [US7] Create templates/player_ragdoll.tscn (simple ragdoll prefab)
+- [x] T165.1 [P] [US7] Create templates/tmpl_player_ragdoll.tscn (simple ragdoll prefab)
   - Root: RigidBody3D (mass=70, gravity_scale=1.0)
   - Child: CollisionShape3D with CapsuleShape3D (height=2, radius=0.5 - match player size)
   - Child: MeshInstance3D with CapsuleMesh (same dimensions, material=player color)
@@ -920,7 +920,7 @@
 - [x] T165.2 [P] [US7] Update s_health_system.gd to spawn ragdoll on death
   - In _handle_death_sequence(), when death timer starts:
     1. Hide player entity (visible=false)
-    2. Preload and instantiate player_ragdoll.tscn
+    2. Preload and instantiate tmpl_player_ragdoll.tscn
     3. Add ragdoll to scene tree at player's parent
     4. Set ragdoll global_position and global_rotation to match player
     5. Apply random impulse (upward + sideways) and angular_velocity for tumble effect
@@ -1018,7 +1018,7 @@
   - ✅ Validates smooth interpolation, position/rotation/FOV blending
   - ✅ Headless mode handling for unreliable Tween timing
   - **Files**: tests/integration/scene_manager/test_camera_blending.gd
-- [x] T182.5 Integrate camera blending with FadeTransition to blend during fade-in (FR-074: parallel with fade effect)
+- [x] T182.5 Integrate camera blending with Trans_Fade to blend during fade-in (FR-074: parallel with fade effect)
   - ✅ Camera blend runs in background without blocking state updates
   - ✅ Uses Tween.finished signal with CONNECT_ONE_SHOT for finalization
   - ✅ _perform_transition returns immediately after transition completes
@@ -1448,16 +1448,23 @@
 - [ ] T281 Integrate condition checks into spawn_player_at_point() - **DEFERRED**: No quest system yet
 - [ ] T282 Add conditional spawn examples to test scenes - **DEFERRED**: No quest system yet
 
-**Part C: Spawn Point Metadata & Registry** ⚠️ DEFERRED (Future Phase)
-- [ ] T283 [P] Write tests for spawn point metadata lookup - **DEFERRED**: Current scale doesn't need registry
-- [ ] T284 [P] Write tests for spawn priority (multiple spawns, pick best) - **DEFERRED**: Current scale doesn't need registry
-- [ ] T285 [P] Write tests for spawn tags (outdoor, indoor, safe, dangerous) - **DEFERRED**: Current scale doesn't need registry
-- [ ] T286 Create `scripts/scene_management/u_spawn_registry.gd` static class - **DEFERRED**: Overkill for < 50 spawn points
-- [ ] T287 Define spawn metadata structure - **DEFERRED**: Not needed yet
-- [ ] T288 Integrate U_SpawnRegistry with M_SpawnManager - **DEFERRED**: Not needed yet
-- [ ] T289 Update scene templates to register spawn points in _ready() - **DEFERRED**: Not needed yet
-- [ ] T290 Add spawn_by_tag() method to M_SpawnManager - **DEFERRED**: Not needed yet
-- [ ] T291 Document spawn registry patterns in quickstart - **DEFERRED**: Not needed yet
+**Part C: Spawn Point Metadata & Registry** ✅ IMPLEMENTED (Phase 8 – Style & Scene Cleanup)
+- [x] T283 [P] Write tests for spawn point metadata lookup  
+  - ✅ Covered by `tests/unit/spawn_system/test_spawn_registry.gd` (Phase 8 T083).
+- [x] T284 [P] Write tests for spawn priority (multiple spawns, pick best)  
+  - ✅ Covered by spawn registry priority tests in `test_spawn_registry.gd` and spawn selection tests in `test_spawn_validation.gd`.
+- [x] T285 [P] Write tests for spawn tags (outdoor, indoor, safe, dangerous)  
+  - ✅ Covered by tag-based lookup tests in `test_spawn_registry.gd`.
+- [x] T286 Create `scripts/scene_management/u_spawn_registry.gd` static class  
+  - ✅ Implemented as `U_SpawnRegistry` with scene-attached metadata support (see Phase 8 T081/T086).
+- [x] T287 Define spawn metadata structure  
+  - ✅ Implemented as `RS_SpawnMetadata` Resource in `scripts/scene_management/resources/rs_spawn_metadata.gd` with `.tres` assets under `resources/spawn_metadata/` (Phase 8 T080/T084).
+- [x] T288 Integrate U_SpawnRegistry with M_SpawnManager  
+  - ✅ `M_SpawnManager.spawn_at_last_spawn()` now calls `U_SpawnRegistry.reload_from_scene(scene)` and gates all spawn ids through `_is_spawn_allowed()` (Phase 8 T082/T086).
+- [x] T289 Update scene templates to register spawn points in _ready()  
+  - ✅ Achieved via scene-attached `SP_SpawnPoint` nodes under `SP_SpawnPoints` in `gameplay_base`, `gameplay_exterior`, and `gameplay_interior_house` (no runtime registration needed; metadata is read directly from the scene).
+- [ ] T290 Add spawn_by_tag() method to M_SpawnManager - **DEFERRED**: Still not needed at current scale
+- [ ] T291 Document spawn registry patterns in quickstart - **DEFERRED**: Can be added when spawn_by_tag() is introduced; for now, see Phase 8 notes in `docs/general/cleanup/style-scene-cleanup-tasks.md`.
 
 **Validation & Polish** ✅ COMPLETE
 - [x] T292 Run all spawn system tests - expect all PASS - **COMPLETE**: 564/570 passing (98.9%)

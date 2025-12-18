@@ -4,10 +4,10 @@ const RS_TouchscreenSettings := preload("res://scripts/ecs/resources/rs_touchscr
 
 func test_defaults_match_spec() -> void:
 	var settings := RS_TouchscreenSettings.new()
-	assert_almost_eq(settings.virtual_joystick_size, 1.0, 0.0001, "Default joystick size should be 1.0")
+	assert_almost_eq(settings.virtual_joystick_size, 0.8, 0.0001, "Default joystick size should be 0.8")
 	assert_almost_eq(settings.joystick_deadzone, 0.15, 0.0001, "Default joystick deadzone should be 0.15")
 	assert_almost_eq(settings.virtual_joystick_opacity, 0.7, 0.0001, "Default joystick opacity should be 0.7")
-	assert_almost_eq(settings.button_size, 1.0, 0.0001, "Default button size should be 1.0")
+	assert_almost_eq(settings.button_size, 1.1, 0.0001, "Default button size should be 1.1")
 	assert_almost_eq(settings.button_opacity, 0.8, 0.0001, "Default button opacity should be 0.8")
 
 func test_apply_touch_deadzone_zeroes_values_below_threshold() -> void:

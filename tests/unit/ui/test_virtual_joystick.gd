@@ -1,6 +1,6 @@
 extends GutTest
 
-const VirtualJoystickScene := preload("res://scenes/ui/virtual_joystick.tscn")
+const VirtualJoystickScene := preload("res://scenes/ui/ui_virtual_joystick.tscn")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
@@ -155,7 +155,7 @@ func _make_touch_event(index: int, position: Vector2, pressed: bool) -> InputEve
 	event.pressed = pressed
 	return event
 
-func _create_joystick(configure: Callable = Callable()) -> VirtualJoystick:
+func _create_joystick(configure: Callable = Callable()) -> UI_VirtualJoystick:
 	var joystick := VirtualJoystickScene.instantiate()
 	if configure != Callable() and configure.is_valid():
 		configure.call(joystick)

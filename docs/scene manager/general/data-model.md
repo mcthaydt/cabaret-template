@@ -244,20 +244,20 @@ func get_duration() -> float
 
 ### Transition Types
 
-**InstantTransition**:
+**Trans_Instant**:
 - No visual effect
 - Immediate scene swap
 - `get_duration()` returns 0.0
 - Use for: UI menu → UI menu transitions
 
-**FadeTransition**:
+**Trans_Fade**:
 - Fade to black/color then fade back
 - Uses Tween on ColorRect.modulate.a
 - `get_duration()` returns `fade_duration * 2.0`
 - Configurable: `fade_duration`, `fade_color`
 - Use for: Menu → gameplay, area transitions
 
-**LoadingScreenTransition**:
+**Trans_LoadingScreen**:
 - Display loading screen with progress bar
 - `update_progress()` updates ProgressBar.value
 - `get_duration()` returns variable (depends on load time)

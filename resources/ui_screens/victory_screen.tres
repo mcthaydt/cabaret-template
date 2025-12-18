@@ -1,12 +1,10 @@
-[gd_resource type="Resource" script_class="RS_UIScreenDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_UIScreenDefinition" load_steps=2 format=3 uid="uid://cm53y7yleoypm"]
 
-[ext_resource type="Script" path="res://scripts/ui/resources/rs_ui_screen_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://cxwcn4lvbnkwv" path="res://scripts/ui/resources/rs_ui_screen_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 screen_id = &"victory"
-kind = 0
 scene_id = &"victory"
-allowed_shells = [&"endgame"]
-allowed_parents = []
+allowed_shells = Array[StringName]([&"endgame"])
 close_mode = 2

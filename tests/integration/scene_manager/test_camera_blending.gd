@@ -4,7 +4,7 @@ extends GutTest
 ##
 ## Tests T178-T182: Camera position, rotation, and FOV blending during scene transitions.
 ## Validates smooth interpolation with Tween system, no jitter, and proper integration
-## with FadeTransition effect.
+## with Trans_Fade effect.
 ##
 ## Architecture (Phase 12.2): M_CameraManager handles camera blending. M_SceneManager
 ## delegates camera operations to M_CameraManager during transitions.
@@ -15,6 +15,7 @@ const M_CameraManager = preload("res://scripts/managers/m_camera_manager.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/state/resources/rs_state_store_settings.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager
@@ -30,17 +31,22 @@ func _is_headless() -> bool:
 	return OS.has_feature("headless") or DisplayServer.get_name() == "headless"
 
 func before_each() -> void:
+	# Clear ServiceLocator first to ensure clean state between tests
+	U_ServiceLocator.clear()
+
 	# Create root scene structure
 	_root_scene = Node.new()
 	_root_scene.name = "Root"
 	add_child_autofree(_root_scene)
 
-	# Create state store with all slices
+	# Create state store with all slices - register IMMEDIATELY after adding to tree
+	# so other managers can find it in their _ready()
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
 	var scene_initial_state := RS_SceneInitialState.new()
 	_store.scene_initial_state = scene_initial_state
 	_root_scene.add_child(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
 	# Create scene containers
@@ -65,18 +71,25 @@ func before_each() -> void:
 	# Create spawn manager (Phase 12.1: required for spawn restoration)
 	_spawn_manager = M_SpawnManager.new()
 	_root_scene.add_child(_spawn_manager)
+	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
 
 	# Create camera manager (Phase 12.2: required for camera blending)
 	_camera_manager = M_CameraManager.new()
 	_root_scene.add_child(_camera_manager)
+	U_ServiceLocator.register(StringName("camera_manager"), _camera_manager)
 
-	# Create scene manager
+	# Create scene manager - register IMMEDIATELY after adding to tree
 	_manager = M_SceneManager.new()
 	_manager.skip_initial_scene_load = true
 	_root_scene.add_child(_manager)
+	U_ServiceLocator.register(StringName("scene_manager"), _manager)
+
 	await get_tree().process_frame
 
 func after_each() -> void:
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
+
 	_manager = null
 	_spawn_manager = null
 	_camera_manager = null
@@ -287,7 +300,7 @@ func _test_camera_transitions_smooth_DISABLED() -> void:
 		# No single frame should have a large jump (threshold: 0.5 units per frame at 60fps)
 		assert_lt(distance, 0.5, "Position changes should be gradual, no sudden jumps")
 
-## T182.5: Test camera blending integrates with FadeTransition
+## T182.5: Test camera blending integrates with Trans_Fade
 ##
 ## Validates that camera blend runs in parallel with fade effect, not sequentially.
 ## Both effects should start and finish around the same time.

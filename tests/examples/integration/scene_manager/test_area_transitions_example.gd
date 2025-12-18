@@ -16,6 +16,7 @@ const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const C_SCENE_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_scene_trigger_component.gd")
 const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/state/resources/rs_state_store_settings.gd")
@@ -54,7 +55,7 @@ func before_each() -> void:
 	transition_overlay.name = "TransitionOverlay"
 	_root_node.add_child(transition_overlay)
 
-	# Add ColorRect for FadeTransition
+	# Add ColorRect for Trans_Fade
 	var color_rect := ColorRect.new()
 	color_rect.name = "TransitionColorRect"
 	color_rect.color = Color.BLACK
@@ -72,8 +73,18 @@ func before_each() -> void:
 	_scene_manager.skip_initial_scene_load = true
 	_root_node.add_child(_scene_manager)
 
+	# Register managers with ServiceLocator (Phase 10B-7: T141c)
+	# This is normally done by root.tscn, but tests need to do it manually
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
+	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
+	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager)
+
 	# Wait for all nodes to initialize
 	await get_tree().process_frame
+
+func after_each() -> void:
+	# Clear ServiceLocator to prevent state leakage between tests
+	U_ServiceLocator.clear()
 
 func test_door_pairing_registered_in_scene_registry() -> void:
 	# When: Query door pairing from registry

@@ -1,6 +1,6 @@
 extends GutTest
 
-const OverlayScene := preload("res://scenes/ui/touchscreen_settings_overlay.tscn")
+const OverlayScene := preload("res://scenes/ui/ui_touchscreen_settings_overlay.tscn")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const RS_GameplayInitialState := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
@@ -156,8 +156,8 @@ func test_reset_restores_default_values_and_calls_profile_manager() -> void:
 	overlay.call("_on_reset_pressed")
 	await _pump()
 
-	assert_almost_eq(joystick_size_slider.value, 1.0, 0.001, "Joystick size should reset to default")
-	assert_almost_eq(button_size_slider.value, 1.0, 0.001, "Button size should reset to default")
+	assert_almost_eq(joystick_size_slider.value, 0.8, 0.001, "Joystick size should reset to default")
+	assert_almost_eq(button_size_slider.value, 1.1, 0.001, "Button size should reset to default")
 	assert_almost_eq(joystick_opacity_slider.value, 0.7, 0.001, "Joystick opacity should reset to default")
 	assert_almost_eq(button_opacity_slider.value, 0.8, 0.001, "Button opacity should reset to default")
 	assert_almost_eq(joystick_deadzone_slider.value, 0.15, 0.001, "Joystick deadzone should reset to default")
@@ -191,8 +191,8 @@ func test_reset_dispatches_default_settings_to_store() -> void:
 	assert_eq(action.get("type"), U_InputActions.ACTION_UPDATE_TOUCHSCREEN_SETTINGS)
 	var payload: Dictionary = action.get("payload", {})
 	var settings: Dictionary = payload.get("settings", {})
-	assert_almost_eq(float(settings.get("virtual_joystick_size", -1.0)), 1.0, 0.001)
-	assert_almost_eq(float(settings.get("button_size", -1.0)), 1.0, 0.001)
+	assert_almost_eq(float(settings.get("virtual_joystick_size", -1.0)), 0.8, 0.001)
+	assert_almost_eq(float(settings.get("button_size", -1.0)), 1.1, 0.001)
 	assert_almost_eq(float(settings.get("virtual_joystick_opacity", -1.0)), 0.7, 0.001)
 	assert_almost_eq(float(settings.get("button_opacity", -1.0)), 0.8, 0.001)
 	assert_almost_eq(float(settings.get("joystick_deadzone", -1.0)), 0.15, 0.001)
@@ -215,6 +215,80 @@ func test_cancel_discards_changes_and_closes_overlay() -> void:
 	assert_eq(close_count_after, close_count_before + 1,
 		"Cancel should dispatch a single navigation close/return action")
 	assert_eq(_store.dispatched_actions.size(), 1, "Cancel should only dispatch navigation action")
+
+func test_cancel_from_main_menu_requests_settings_menu_scene_transition() -> void:
+	var overlay := OverlayScene.instantiate()
+	add_child_autofree(overlay)
+	await _pump()
+	await _refresh_overlay_state(overlay)
+
+	# Simulate main_menu shell with touchscreen_settings as the active base scene
+	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
+	nav_slice["shell"] = StringName("main_menu")
+	nav_slice["base_scene_id"] = StringName("touchscreen_settings")
+	nav_slice["overlay_stack"] = []
+	nav_slice["overlay_return_stack"] = []
+	nav_slice["active_menu_panel"] = StringName("menu/main")
+	_store._state[StringName("navigation")] = nav_slice.duplicate(true)
+
+	_store.dispatched_actions.clear()
+	overlay.call("_on_cancel_pressed")
+	await _pump()
+
+	# Check that navigate_to_ui_screen action was dispatched with settings_menu
+	var navigate_action: Dictionary = {}
+	for action in _store.dispatched_actions:
+		if action.get("type") == U_NavigationActions.ACTION_NAVIGATE_TO_UI_SCREEN:
+			navigate_action = action
+			break
+
+	assert_eq(
+		navigate_action.get("scene_id"),
+		StringName("settings_menu"),
+		"Cancel from main menu touchscreen_settings should dispatch navigate_to_ui_screen(settings_menu)"
+	)
+
+func test_horizontal_navigation_skips_hidden_edit_layout_in_main_menu() -> void:
+	var overlay := OverlayScene.instantiate()
+	add_child_autofree(overlay)
+	await _pump()
+	await _refresh_overlay_state(overlay)
+
+	var cancel_button: Button = overlay.get_node("%CancelButton")
+	var reset_button: Button = overlay.get_node("%ResetButton")
+	var apply_button: Button = overlay.get_node("%ApplyButton")
+	var edit_layout_button: Button = overlay.get_node("%EditLayoutButton")
+
+	assert_not_null(cancel_button)
+	assert_not_null(reset_button)
+	assert_not_null(apply_button)
+	assert_not_null(edit_layout_button)
+	assert_false(
+		edit_layout_button.visible,
+		"Edit Layout should be hidden when touchscreen settings are opened from main menu"
+	)
+
+	# Start with Cancel focused and navigate horizontally to the right.
+	cancel_button.grab_focus()
+	await _pump()
+
+	overlay.call("_navigate_focus", StringName("ui_right"))
+	await _pump()
+	var focused: Control = overlay.get_viewport().gui_get_focus_owner()
+	assert_eq(focused, reset_button,
+		"Right from Cancel should focus Reset when Edit Layout is hidden")
+
+	overlay.call("_navigate_focus", StringName("ui_right"))
+	await _pump()
+	focused = overlay.get_viewport().gui_get_focus_owner()
+	assert_eq(focused, apply_button,
+		"Right from Reset should focus Apply when Edit Layout is hidden")
+
+	overlay.call("_navigate_focus", StringName("ui_right"))
+	await _pump()
+	focused = overlay.get_viewport().gui_get_focus_owner()
+	assert_eq(focused, cancel_button,
+		"Right from Apply should wrap back to Cancel")
 
 func test_device_changed_does_not_override_local_edits() -> void:
 	var overlay := OverlayScene.instantiate()
@@ -271,6 +345,16 @@ func assert_vector_almost_eq(a: Vector2, b: Vector2, tolerance: float, message: 
 	assert_almost_eq(a.x, b.x, tolerance, message + " (x)")
 	assert_almost_eq(a.y, b.y, tolerance, message + " (y)")
 
+class SceneManagerStub extends Node:
+	var last_scene_id: StringName = StringName("")
+	var last_transition_type: String = ""
+	var last_priority: int = -1
+
+	func transition_to_scene(scene_id: StringName, transition_type: String, priority: int = 0) -> void:
+		last_scene_id = scene_id
+		last_transition_type = transition_type
+		last_priority = priority
+
 class ProfileManagerMock extends Node:
 	var reset_called: bool = false
 
@@ -306,5 +390,10 @@ func _count_navigation_close_or_return_actions() -> int:
 			var shell: StringName = action.get("shell", StringName())
 			var base_scene: StringName = action.get("base_scene_id", StringName())
 			if shell == StringName("main_menu") and base_scene == StringName("settings_menu"):
+				count += 1
+		elif action_type == U_NavigationActions.ACTION_NAVIGATE_TO_UI_SCREEN:
+			# navigate_to_ui_screen with settings_menu is a "return to settings" action
+			var scene_id: StringName = action.get("scene_id", StringName())
+			if scene_id == StringName("settings_menu"):
 				count += 1
 	return count

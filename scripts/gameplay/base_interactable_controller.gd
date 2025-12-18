@@ -1,8 +1,8 @@
 extends "res://scripts/gameplay/base_volume_controller.gd"
 class_name BaseInteractableController
 
-const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
-const STATE_STORE_GROUP := StringName("state_store")
+# U_ECS_UTILS inherited from BaseECSEntity (via base_volume_controller.gd)
+const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const SCENE_MANAGER_GROUP := StringName("scene_manager")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 
@@ -16,7 +16,7 @@ var _tracked_players: Dictionary = {}
 var _cooldown_remaining: float = 0.0
 var _is_locked: bool = false
 var _cached_manager: M_ECSManager
-var _cached_store: M_StateStore
+var _cached_store: I_StateStore
 var _arming_frames_remaining: int = 0
 var _is_armed: bool = false
 var _area_enter_callable: Callable = Callable()
@@ -198,16 +198,10 @@ func _get_manager() -> M_ECSManager:
 	_cached_manager = U_ECS_UTILS.get_manager(self) as M_ECSManager
 	return _cached_manager
 
-func _get_store() -> M_StateStore:
+func _get_store() -> I_StateStore:
 	if _cached_store != null and is_instance_valid(_cached_store):
 		return _cached_store
-	var tree := get_tree()
-	if tree == null:
-		return null
-	var stores := tree.get_nodes_in_group(STATE_STORE_GROUP)
-	if stores.is_empty():
-		return null
-	_cached_store = stores[0] as M_StateStore
+	_cached_store = U_StateUtils.try_get_store(self)
 	return _cached_store
 
 func _is_transition_blocked() -> bool:
@@ -220,11 +214,11 @@ func _is_transition_blocked() -> bool:
 		var stack: Array = scene_slice.get("scene_stack", [])
 		if stack.size() > 0:
 			return true
-	var scene_managers := get_tree().get_nodes_in_group(SCENE_MANAGER_GROUP)
-	if not scene_managers.is_empty():
-		var manager := scene_managers[0]
-		if manager != null and manager.has_method("is_transitioning") and manager.is_transitioning():
-			return true
+	# Check if scene manager is transitioning via ServiceLocator (Phase 10B-7: T141c)
+	# Use try_get_service to avoid errors in test environments
+	var manager := U_ServiceLocator.try_get_service(SCENE_MANAGER_GROUP)
+	if manager != null and manager.has_method("is_transitioning") and manager.is_transitioning():
+		return true
 	return false
 
 func _disconnect_trigger_area_signals(area: Area3D) -> void:

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_SceneRegistryEntry" load_steps=2 format=3 uid="uid://cu5ql1ks4fo4x"]
+
+[ext_resource type="Script" uid="uid://cy1jmueffnilv" path="res://scripts/scene_management/resources/rs_scene_registry_entry.gd" id="1_resource"]
+
+[resource]
+script = ExtResource("1_resource")
+scene_id = &"game_over"
+scene_path = "res://scenes/ui/ui_game_over.tscn"
+scene_type = 3
+preload_priority = 8

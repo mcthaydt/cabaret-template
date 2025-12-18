@@ -63,7 +63,7 @@ These refactorings eliminate significant duplication with minimal risk.
 
 ### 1. Extract Duplicate Manager Location Logic
 
-**Location**: Both `ecs_component.gd:40-55` and `ecs_system.gd:40-55`
+**Location**: Both `base_ecs_component.gd:40-55` and `base_ecs_system.gd:40-55`
 
 **Problem**: Identical `_locate_manager()` method duplicated in both base classes (30 lines × 2 = 60 lines of duplication).
 
@@ -174,7 +174,7 @@ func get_character_body() -> CharacterBody3D:
 **Solution**: Add helper to `BaseECSComponent` base class
 
 ```gdscript
-# In scripts/ecs/ecs_component.gd (add to base class)
+# In scripts/ecs/base_ecs_component.gd (add to base class)
 
 func _get_node_from_path(path: NodePath, type = null):
     """
@@ -255,7 +255,7 @@ func _ready() -> void:
 **Solution**: Create base validation pattern in `BaseECSComponent`
 
 ```gdscript
-# In scripts/ecs/ecs_component.gd (add to base class)
+# In scripts/ecs/base_ecs_component.gd (add to base class)
 
 @export var settings: Resource  # Optional base (subclasses override type)
 
@@ -416,7 +416,7 @@ func process_tick(delta: float) -> void:
 **Solution**: Add to `BaseECSComponent` base class
 
 ```gdscript
-# In scripts/ecs/ecs_component.gd (add to base)
+# In scripts/ecs/base_ecs_component.gd (add to base)
 
 var _debug_snapshot: Dictionary = {}
 
@@ -512,7 +512,7 @@ Base class already has this implementation.
 **Solution**: Filter null components in `ECSSystem.get_components()`
 
 ```gdscript
-# In ecs_system.gd
+# In base_ecs_system.gd
 func get_components(component_type: StringName) -> Array:
     if _manager == null:
         return []
@@ -652,7 +652,7 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
         optional: Component types that MAY be present
 
     Returns:
-        Array[EntityQuery] where each EntityQuery has:
+        Array[U_EntityQuery] where each U_EntityQuery has:
         - entity: Node (the CharacterBody3D or parent node)
         - components: Dictionary[StringName → ECSComponent]
 
@@ -690,7 +690,7 @@ func query_entities(required: Array[StringName], optional: Array[StringName] = [
             continue
 
         # Entity matches! Create result
-        var result := EntityQuery.new()
+        var result := U_EntityQuery.new()
         result.entity = entity
         result.components = component_map
         results.append(result)
@@ -738,7 +738,7 @@ func query_exclude(required: Array[StringName], excluded: Array[StringName]) -> 
             continue
 
         # Entity matches!
-        var result := EntityQuery.new()
+        var result := U_EntityQuery.new()
         result.entity = entity
         result.components = component_map
         results.append(result)
@@ -746,7 +746,7 @@ func query_exclude(required: Array[StringName], excluded: Array[StringName]) -> 
     return results
 
 # Inner class for query results
-class EntityQuery:
+class U_EntityQuery:
     var entity: Node
     var components: Dictionary  # StringName → ECSComponent
 

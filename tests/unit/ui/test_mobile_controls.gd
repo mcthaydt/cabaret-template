@@ -1,7 +1,7 @@
 extends GutTest
 
-const MobileControlsScene := preload("res://scenes/ui/mobile_controls.tscn")
-const VirtualButton := preload("res://scripts/ui/virtual_button.gd")
+const MobileControlsScene := preload("res://scenes/ui/ui_mobile_controls.tscn")
+const UI_VirtualButton := preload("res://scripts/ui/ui_virtual_button.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const RS_BootInitialState := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
@@ -216,10 +216,10 @@ func _create_state_store() -> M_StateStore:
 	await _await_frames(2)
 	return store
 
-func _find_button(buttons: Array, action: StringName) -> VirtualButton:
+func _find_button(buttons: Array, action: StringName) -> UI_VirtualButton:
 	for button in buttons:
-		if button is VirtualButton and (button as VirtualButton).action == action:
-			return button as VirtualButton
+		if button is UI_VirtualButton and (button as UI_VirtualButton).action == action:
+			return button as UI_VirtualButton
 	return null
 
 func assert_vector_almost_eq(a: Vector2, b: Vector2, tolerance: float, message: String = "") -> void:

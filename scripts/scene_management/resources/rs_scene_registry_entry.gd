@@ -32,7 +32,7 @@ class_name RS_SceneRegistryEntry
 ## Unique identifier for this scene (e.g., "main_menu", "level_01")
 @export var scene_id: StringName = StringName("")
 
-## Path to the scene file (e.g., "res://scenes/ui/main_menu.tscn")
+## Path to the scene file (e.g., "res://scenes/ui/ui_main_menu.tscn")
 @export_file("*.tscn") var scene_path: String = ""
 
 ## Scene type (determines behavior like cursor visibility, pause handling)

@@ -1,6 +1,6 @@
 extends GutTest
 
-const VirtualButtonScriptPath := "res://scripts/ui/virtual_button.gd"
+const VirtualButtonScriptPath := "res://scripts/ui/ui_virtual_button.gd"
 const ACTION_TYPE_TAP := 0
 const ACTION_TYPE_HOLD := 1
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")

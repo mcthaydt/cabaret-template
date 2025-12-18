@@ -1,26 +1,27 @@
-[gd_scene load_steps=21 format=3 uid="uid://ccv3ylnj0qbnm"]
+[gd_scene load_steps=23 format=3 uid="uid://ccv3ylnj0qbnm"]
 
 [ext_resource type="Resource" uid="uid://dq08aopcfbjyp" path="res://resources/state/default_boot_initial_state.tres" id="1_boot_state"]
 [ext_resource type="Resource" uid="uid://uygy4iikdf74" path="res://resources/state/default_gameplay_initial_state.tres" id="2_gameplay_state"]
 [ext_resource type="Resource" uid="uid://b26lupnu6qot0" path="res://resources/state/default_menu_initial_state.tres" id="3_menu_state"]
 [ext_resource type="Resource" uid="uid://dw7q8jxqvhgwf" path="res://resources/state/default_state_store_settings.tres" id="4_state_settings"]
 [ext_resource type="Resource" uid="uid://com8t6o2gcr03" path="res://resources/state/default_scene_initial_state.tres" id="5_scene_state"]
-[ext_resource type="Script" uid="uid://bb0teevje4vj7" path="res://scripts/state/m_state_store.gd" id="6_state_store"]
-[ext_resource type="Script" uid="uid://3acasji7rjnh" path="res://scripts/managers/m_cursor_manager.gd" id="7_cursor"]
-[ext_resource type="Script" uid="uid://ix2j8cjgofpe" path="res://scripts/managers/m_scene_manager.gd" id="8_scene_manager"]
-[ext_resource type="Script" uid="uid://b1v427bjit3ec" path="res://scripts/scene_structure/active_scene_container.gd" id="9_active_scene_container"]
-[ext_resource type="Script" uid="uid://dcqel6tpsbeg5" path="res://scripts/scene_structure/main_root_node.gd" id="10_main_root"]
-[ext_resource type="Script" uid="uid://d0n2a3p3tkdq0" path="res://scripts/scene_structure/managers_group.gd" id="11_managers_group"]
-[ext_resource type="PackedScene" uid="uid://clwc6tou4bgkr" path="res://scenes/ui/loading_screen.tscn" id="12_loading_screen"]
-[ext_resource type="Script" uid="uid://b4kn85pvxb2ym" path="res://scripts/managers/m_spawn_manager.gd" id="13_spawn_manager"]
-[ext_resource type="Script" uid="uid://ctvy4krw17kjx" path="res://scripts/managers/m_camera_manager.gd" id="14_camera_manager"]
+[ext_resource type="Script" uid="uid://bf1h0ro7i5h1b" path="res://scripts/state/m_state_store.gd" id="6_state_store"]
+[ext_resource type="Script" uid="uid://b763drfab8uoo" path="res://scripts/managers/m_cursor_manager.gd" id="7_cursor"]
+[ext_resource type="Script" uid="uid://cs887nkkeodno" path="res://scripts/managers/m_scene_manager.gd" id="8_scene_manager"]
+[ext_resource type="Script" uid="uid://bfj0ulqvmg3ry" path="res://scripts/scene_structure/marker_active_scene_container.gd" id="9_active_scene_container"]
+[ext_resource type="Script" uid="uid://b4tth4uu52xvk" path="res://scripts/scene_structure/main.gd" id="10_main_root"]
+[ext_resource type="Script" uid="uid://dmtpf2djqjecl" path="res://scripts/scene_structure/marker_managers_group.gd" id="11_managers_group"]
+[ext_resource type="PackedScene" uid="uid://clwc6tou4bgkr" path="res://scenes/ui/ui_loading_screen.tscn" id="12_loading_screen"]
+[ext_resource type="Script" uid="uid://8rsvee7kyx8v" path="res://scripts/managers/m_spawn_manager.gd" id="13_spawn_manager"]
+[ext_resource type="Script" uid="uid://jyy4y1wx5me5" path="res://scripts/managers/m_camera_manager.gd" id="14_camera_manager"]
 [ext_resource type="Resource" uid="uid://dr18uxocdcc4e" path="res://resources/state/default_settings_initial_state.tres" id="15_settings_state"]
-[ext_resource type="Script" uid="uid://bdscq5hyno7ok" path="res://scripts/managers/m_input_profile_manager.gd" id="16_input_profile_manager"]
-[ext_resource type="Script" uid="uid://dw507chlshfnn" path="res://scripts/managers/m_input_device_manager.gd" id="17_input_device_manager"]
-[ext_resource type="PackedScene" path="res://scenes/ui/mobile_controls.tscn" id="18_mobile_controls"]
-[ext_resource type="Resource" path="res://resources/state/default_debug_initial_state.tres" id="19_debug_state"]
+[ext_resource type="Script" uid="uid://dat03gh25ur0f" path="res://scripts/managers/m_input_profile_manager.gd" id="16_input_profile_manager"]
+[ext_resource type="Script" uid="uid://qkhis5wxu1wr" path="res://scripts/managers/m_input_device_manager.gd" id="17_input_device_manager"]
+[ext_resource type="PackedScene" uid="uid://bbq72nhhlq7bc" path="res://scenes/ui/ui_mobile_controls.tscn" id="18_mobile_controls"]
+[ext_resource type="Resource" uid="uid://cxgny75sx0rxu" path="res://resources/state/default_debug_initial_state.tres" id="19_debug_state"]
 [ext_resource type="Resource" uid="uid://dtak7mhm8w170" path="res://resources/state/navigation_initial_state.tres" id="20_navigation_state"]
-[ext_resource type="Script" path="res://scripts/ui/ui_input_handler.gd" id="21_ui_input_handler"]
+[ext_resource type="Script" uid="uid://d4j8yeejg30o6" path="res://scripts/managers/m_ui_input_handler.gd" id="21_ui_input_handler"]
+[ext_resource type="Script" uid="uid://cfcv553r6lbbf" path="res://scripts/managers/m_pause_manager.gd" id="22_pause_manager"]
 
 [node name="Root" type="Node"]
 script = ExtResource("10_main_root")
@@ -45,6 +46,9 @@ script = ExtResource("7_cursor")
 [node name="M_SceneManager" type="Node" parent="Managers"]
 script = ExtResource("8_scene_manager")
 
+[node name="M_PauseManager" type="Node" parent="Managers"]
+script = ExtResource("22_pause_manager")
+
 [node name="M_SpawnManager" type="Node" parent="Managers"]
 script = ExtResource("13_spawn_manager")
 
@@ -57,7 +61,7 @@ script = ExtResource("16_input_profile_manager")
 [node name="M_InputDeviceManager" type="Node" parent="Managers"]
 script = ExtResource("17_input_device_manager")
 
-[node name="UIInputHandler" type="Node" parent="Managers"]
+[node name="M_UIInputHandler" type="Node" parent="Managers"]
 script = ExtResource("21_ui_input_handler")
 
 [node name="ActiveSceneContainer" type="Node" parent="."]

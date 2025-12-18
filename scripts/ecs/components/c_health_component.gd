@@ -8,9 +8,8 @@ class_name C_HealthComponent
 
 const COMPONENT_TYPE := StringName("C_HealthComponent")
 const RS_HealthSettings := preload("res://scripts/ecs/resources/rs_health_settings.gd")
-
-signal health_changed(previous_health: float, new_health: float)
-signal death()
+const EVENT_HEALTH_CHANGED := StringName("health_changed")
+const EVENT_ENTITY_DEATH := StringName("entity_death")
 
 @export var settings: RS_HealthSettings
 @export_node_path("CharacterBody3D") var character_body_path: NodePath
@@ -92,7 +91,7 @@ func apply_damage(amount: float) -> void:
 	current_health = clampf(current_health - amount, 0.0, max_health)
 	time_since_last_damage = 0.0
 	if not is_equal_approx(previous, current_health):
-		health_changed.emit(previous, current_health)
+		_publish_health_changed(previous, current_health)
 
 func apply_heal(amount: float) -> void:
 	if amount <= 0.0:
@@ -100,7 +99,7 @@ func apply_heal(amount: float) -> void:
 	var previous := current_health
 	current_health = clampf(current_health + amount, 0.0, max_health)
 	if not is_equal_approx(previous, current_health):
-		health_changed.emit(previous, current_health)
+		_publish_health_changed(previous, current_health)
 
 func set_max_health(value: float) -> void:
 	max_health = max(value, 1.0)
@@ -113,8 +112,8 @@ func mark_dead() -> void:
 	var previous := current_health
 	current_health = 0.0
 	if not is_equal_approx(previous, current_health):
-		health_changed.emit(previous, current_health)
-	death.emit()
+		_publish_health_changed(previous, current_health)
+	_publish_death_event(previous)
 
 func revive() -> void:
 	_is_dead = false
@@ -158,3 +157,32 @@ func has_pending_damage() -> bool:
 
 func has_pending_heal() -> bool:
 	return not _pending_heals.is_empty()
+
+func _publish_health_changed(previous_health: float, new_health: float) -> void:
+	var health_event := Evn_HealthChanged.new(
+		_get_entity_id(),
+		previous_health,
+		new_health,
+		_is_dead
+	)
+	U_ECSEventBus.publish_typed(health_event)
+
+func _publish_death_event(previous_health: float) -> void:
+	var death_event := Evn_EntityDeath.new(
+		_get_entity_id(),
+		previous_health,
+		current_health,
+		true
+	)
+	U_ECSEventBus.publish_typed(death_event)
+
+func _get_entity_id() -> StringName:
+	var entity := ECS_UTILS.find_entity_root(self)
+	if entity != null:
+		return ECS_UTILS.get_entity_id(entity)
+
+	var body := get_character_body()
+	if body != null:
+		return ECS_UTILS.get_entity_id(body)
+
+	return StringName(String(name).to_lower())

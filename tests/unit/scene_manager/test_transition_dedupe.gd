@@ -6,6 +6,7 @@ const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const RS_SceneInitialState := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
+const U_SCENE_TRANSITION_QUEUE := preload("res://scripts/scene_management/helpers/u_scene_transition_queue.gd")
 
 var _manager: M_SceneManager
 var _store: M_StateStore
@@ -48,16 +49,21 @@ func after_each() -> void:
     _transition_overlay = null
 
 func _enqueue(scene_id: StringName, ttype: String, priority: int) -> void:
-    var req := M_SceneManager.TransitionRequest.new(scene_id, ttype, priority)
-    _manager._enqueue_transition(req)
+    # Access the helper directly to enqueue
+    var queue_helper = _manager.get("_transition_queue_helper")
+    queue_helper.enqueue(scene_id, ttype, priority)
+
+func _get_queue_helper():
+    return _manager.get("_transition_queue_helper")
 
 func test_duplicate_lower_priority_is_ignored() -> void:
     _enqueue(StringName("main_menu"), "instant", M_SceneManager.Priority.HIGH)
     _enqueue(StringName("main_menu"), "instant", M_SceneManager.Priority.NORMAL)
 
     # Only one request should exist, with HIGH priority
-    assert_eq(_manager.get("_transition_queue").size(), 1)
-    var req = _manager.get("_transition_queue")[0]
+    var queue_helper = _get_queue_helper()
+    assert_eq(queue_helper.size(), 1)
+    var req = queue_helper.pop_front()
     assert_eq(req.scene_id, StringName("main_menu"))
     assert_eq(req.transition_type, "instant")
     assert_eq(req.priority, M_SceneManager.Priority.HIGH)
@@ -66,7 +72,8 @@ func test_duplicate_higher_priority_replaces_existing() -> void:
     _enqueue(StringName("settings_menu"), "fade", M_SceneManager.Priority.NORMAL)
     _enqueue(StringName("settings_menu"), "fade", M_SceneManager.Priority.CRITICAL)
 
-    assert_eq(_manager.get("_transition_queue").size(), 1)
-    var req = _manager.get("_transition_queue")[0]
+    var queue_helper = _get_queue_helper()
+    assert_eq(queue_helper.size(), 1)
+    var req = queue_helper.pop_front()
     assert_eq(req.priority, M_SceneManager.Priority.CRITICAL)
 

@@ -1,0 +1,86 @@
+[gd_scene load_steps=2 format=3 uid="uid://3b84vsgut2v8"]
+
+[ext_resource type="Script" uid="uid://dnu6e742xivs0" path="res://scenes/debug/debug_state_overlay.gd" id="1_n7gxc"]
+
+[node name="SC_StateDebugOverlay" type="CanvasLayer"]
+script = ExtResource("1_n7gxc")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/PanelContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "State Store Debug Overlay (F3 to toggle)"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="StateLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+text = "Current State: (loading...)"
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="PerfLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "=== PERFORMANCE METRICS ===
+Dispatches: 0
+Avg Time: 0.000000 ms
+Last Time: 0.000000 ms
+Signals: 0"
+
+[node name="HSeparator4" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HistoryLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "Action History (Last 20):"
+
+[node name="HistoryList" type="ItemList" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+
+[node name="HSeparator3" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="DetailLabel" type="RichTextLabel" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+bbcode_enabled = true
+text = "[b]Action Detail:[/b] Select an action from history"
+fit_content = true
+
+[connection signal="item_selected" from="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/HistoryList" to="." method="_on_history_list_item_selected"]

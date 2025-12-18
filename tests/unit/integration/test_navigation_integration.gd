@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
@@ -7,7 +7,9 @@ const RS_SceneInitialState := preload("res://scripts/state/resources/rs_scene_in
 const M_CursorManager := preload("res://scripts/managers/m_cursor_manager.gd")
 const M_SpawnManager := preload("res://scripts/managers/m_spawn_manager.gd")
 const M_CameraManager := preload("res://scripts/managers/m_camera_manager.gd")
+const M_PauseManager := preload("res://scripts/managers/m_pause_manager.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 
 const OVERLAY_META_SCENE_ID := StringName("_scene_manager_overlay_scene_id")
 
@@ -19,6 +21,7 @@ var _loading_overlay: CanvasLayer
 var _cursor_manager: M_CursorManager
 var _spawn_manager: M_SpawnManager
 var _camera_manager: M_CameraManager
+var _pause_system: M_PauseManager
 
 func before_each() -> void:
 	_active_scene_container = Node.new()
@@ -57,7 +60,21 @@ func before_each() -> void:
 	add_child_autofree(_store)
 	await get_tree().process_frame
 
+	# Register all managers with ServiceLocator so they can find each other
+	U_ServiceLocator.register(StringName("state_store"), _store)
+	U_ServiceLocator.register(StringName("cursor_manager"), _cursor_manager)
+	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
+	U_ServiceLocator.register(StringName("camera_manager"), _camera_manager)
+
+	# Create M_PauseManager to apply pause based on scene state
+	_pause_system = M_PauseManager.new()
+	add_child_autofree(_pause_system)
+	await get_tree().process_frame
+
+	U_ServiceLocator.register(StringName("pause_manager"), _pause_system)
+
 func after_each() -> void:
+	get_tree().paused = false  # Reset pause state
 	_store = null
 	_active_scene_container = null
 	_ui_overlay_stack = null
@@ -66,6 +83,9 @@ func after_each() -> void:
 	_cursor_manager = null
 	_spawn_manager = null
 	_camera_manager = null
+	_pause_system = null
+	# Call parent to clear ServiceLocator
+	super.after_each()
 
 func test_navigation_open_and_close_pause_overlay() -> void:
 	await _spawn_scene_manager()
@@ -74,7 +94,7 @@ func test_navigation_open_and_close_pause_overlay() -> void:
 	await _await_scene(StringName("scene1"))
 
 	_store.dispatch(U_NavigationActions.open_pause())
-	await wait_physics_frames(3)
+	await wait_physics_frames(5)  # Allow time for navigation→scene bridging + M_PauseManager reaction
 
 	assert_true(get_tree().paused, "Tree should pause when pause overlay opens")
 	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Pause overlay added to stack")
@@ -145,6 +165,78 @@ func test_navigation_victory_skip_flow() -> void:
 	var scene_state: Dictionary = _store.get_state().get("scene", {})
 	assert_eq(scene_state.get("current_scene_id"), StringName("main_menu"), "Skip to menu should load main menu scene")
 
+
+func test_sync_navigation_shell_does_not_override_pending_navigation() -> void:
+	var manager := await _spawn_scene_manager()
+
+	# Simulate navigation already requesting settings_menu while a previous
+	# scene (e.g., touchscreen_settings) finishes loading.
+	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
+	nav_slice["shell"] = StringName("main_menu")
+	nav_slice["base_scene_id"] = StringName("settings_menu")
+	_store._state["navigation"] = nav_slice.duplicate(true)
+
+	manager._set_navigation_pending_scene_id(StringName("settings_menu"))
+
+	# A transition for the previous scene completes; SceneManager attempts to
+	# sync navigation shell to that scene_id. This should NOT clobber the
+	# pending navigation target (settings_menu).
+	manager._sync_navigation_shell_with_scene(StringName("touchscreen_settings"))
+
+	nav_slice = _store.get_slice(StringName("navigation"))
+	assert_eq(
+		nav_slice.get("base_scene_id"),
+		StringName("settings_menu"),
+		"Syncing shell for a previous scene must not override a newer pending navigation target"
+	)
+
+func test_manual_transition_to_touchscreen_settings_aligns_navigation() -> void:
+	var manager := await _spawn_scene_manager()
+
+	# Emulate runtime post-bootstrap state: navigation already synced and no
+	# pending navigation-driven transition. Tests use skip_initial_scene_load,
+	# so we explicitly clear pending state and normalize navigation here.
+	manager._initial_navigation_synced = true
+	manager._set_navigation_pending_scene_id(StringName(""))
+
+	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
+	nav_slice["shell"] = StringName("main_menu")
+	nav_slice["base_scene_id"] = StringName("main_menu")
+	nav_slice["overlay_stack"] = []
+	nav_slice["overlay_return_stack"] = []
+	nav_slice["active_menu_panel"] = StringName("menu/main")
+	_store._state[StringName("navigation")] = nav_slice.duplicate(true)
+
+	# Transition into settings_menu as a standalone UI scene (main menu flow).
+	manager.transition_to_scene(StringName("settings_menu"), "instant", M_SceneManager.Priority.HIGH)
+	await _await_scene(StringName("settings_menu"), 30)
+
+	nav_slice = _store.get_slice(StringName("navigation"))
+	var shell: StringName = U_NavigationSelectors.get_shell(nav_slice)
+	var base_scene_id: StringName = U_NavigationSelectors.get_base_scene_id(nav_slice)
+
+	assert_eq(shell, StringName("main_menu"), "Settings menu should run in main_menu shell")
+	assert_eq(
+		base_scene_id,
+		StringName("settings_menu"),
+		"Navigation base_scene_id should track settings_menu after manual transition"
+	)
+
+	# From settings_menu, transition directly to touchscreen_settings (main menu flow).
+	manager.transition_to_scene(StringName("touchscreen_settings"), "instant", M_SceneManager.Priority.HIGH)
+	await _await_scene(StringName("touchscreen_settings"), 30)
+
+	nav_slice = _store.get_slice(StringName("navigation"))
+	shell = U_NavigationSelectors.get_shell(nav_slice)
+	base_scene_id = U_NavigationSelectors.get_base_scene_id(nav_slice)
+
+	assert_eq(shell, StringName("main_menu"), "Touchscreen settings should run in main_menu shell")
+	assert_eq(
+		base_scene_id,
+		StringName("touchscreen_settings"),
+		"Navigation base_scene_id should track touchscreen_settings after manual transition"
+	)
+
 func _get_top_overlay_scene_id() -> StringName:
 	if _ui_overlay_stack == null or _ui_overlay_stack.get_child_count() == 0:
 		return StringName("")
@@ -162,6 +254,8 @@ func _spawn_scene_manager() -> M_SceneManager:
 	manager.skip_initial_scene_load = true
 	add_child_autofree(manager)
 	await get_tree().process_frame
+	# Register scene_manager with ServiceLocator so other managers can find it
+	U_ServiceLocator.register(StringName("scene_manager"), manager)
 	return manager
 
 func _await_scene(scene_id: StringName, limit_frames: int = 30) -> void:

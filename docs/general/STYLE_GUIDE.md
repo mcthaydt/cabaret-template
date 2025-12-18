@@ -26,30 +26,69 @@ We use a **prefix + suffix** naming convention that provides:
 | **Resources/Settings** | `RS_` | `Settings` | `RS_MovementSettings` |
 | **Utilities** | `U_` | `Utils` / `*` | `U_ECSUtils`, `U_BootSelectors` |
 | **Event Buses** | `U_` | `EventBus` | `U_ECSEventBus`, `U_StateEventBus` |
+| **Typed Events** | `Evn_` | `*Event` suffix omitted | `Evn_HealthChanged`, `Evn_EntityDeath` |
 | **Registries** | `U_` | `Registry` | `U_SceneRegistry` |
 | **Scenes** | `SC_` | `Scene` | `SC_PlayerScene` |
 | **Shaders** | `SH_` | `Shader` | `SH_WaterShader` |
 | **Tools** | `T_` | `Tool` | `T_LevelEditorTool` |
 | **Plugins** | `P_` | `Plugin` | `P_CustomPlugin` |
-| **Base Classes** | *(none)* | descriptive | `BaseECSSystem`, `BaseECSComponent` |
+| **Base Classes** | `Base` | descriptive | `BaseECSSystem`, `BaseECSComponent`, `BasePanel`, `BaseOverlay` |
+| **UI Screens** | `UI_` | `Screen` / `Overlay` / `Panel` | `UI_MainMenuScreen`, `UI_PauseMenuOverlay` |
 
 ### File Names: `prefix_snake_case_suffix.gd`
+
+The following patterns apply to **production** scripts under `res://scripts/**`. Test and prototype scripts are documented separately.
 
 | Category | Pattern | Example |
 |----------|---------|---------|
 | **Systems** | `s_*_system.gd` | `s_movement_system.gd` |
 | **Components** | `c_*_component.gd` | `c_movement_component.gd` |
 | **Managers** | `m_*_manager.gd` | `m_ecs_manager.gd` |
-| **Resources** | `rs_*_settings.gd` | `rs_movement_settings.gd` |
-| **Utilities** | `u_*_utils.gd` | `utils/u_action_registry.gd` |
-| **Event Buses** | `u_*_event_bus.gd` | `u_state_event_bus.gd` |
-| **Registries** | `u_*_registry.gd` | `u_scene_registry.gd` |
-| **Scene Scripts** | `sc_*_scene.gd` | `sc_player_scene.gd` |
+| **Resources (settings)** | `rs_*_settings.gd` | `rs_movement_settings.gd` |
+| **Resources (initial state)** | `rs_*_initial_state.gd` | `rs_gameplay_initial_state.gd` |
+| **Resources (registry/definition)** | `rs_*_entry.gd` / `rs_*_definition.gd` | `rs_scene_registry_entry.gd`, `rs_ui_screen_definition.gd` |
+| **State Actions** | `u_*_actions.gd` | `u_gameplay_actions.gd` |
+| **State Reducers** | `u_*_reducer.gd` | `u_gameplay_reducer.gd` |
+| **State Selectors** | `u_*_selectors.gd` | `u_gameplay_selectors.gd` |
+| **Utilities** | `u_*_utils.gd` | `u_ecs_utils.gd`, `u_input_rebind_utils.gd` |
+| **Registries** | `u_*_registry.gd` | `u_scene_registry.gd`, `u_ui_registry.gd` |
+| **Event Buses** | `u_*_event_bus.gd` | `u_state_event_bus.gd`, `u_ecs_event_bus.gd` |
+| **Typed Events** | `evn_*.gd` | `evn_health_changed.gd`, `evn_entity_death.gd`, `evn_victory_triggered.gd` |
+| **UI Controllers** | `ui_*_screen.gd` / `ui_*_overlay.gd` / `ui_*_panel.gd` | `ui_main_menu_screen.gd`, `ui_pause_menu_overlay.gd` |
+| **Base Classes** | `base_*.gd` | `base_panel.gd`, `base_menu_screen.gd`, `base_overlay.gd`, `base_ecs_component.gd` |
+| **Marker Scripts** | `marker_*.gd` | `marker_entities_group.gd`, `marker_active_scene_container.gd`, `marker_managers_group.gd` |
+| **Transition Effects** | `trans_*.gd` | `trans_fade.gd`, `trans_loading_screen.gd`, `trans_instant.gd` |
+| **Interface Scripts** | `i_*.gd` | `i_scene_contract.gd` |
+| **Scene Scripts** | `sc_*_scene.gd` (where used) | `sc_player_scene.gd` |
 | **Shaders** | `sh_*_shader.gdshader` | `sh_water_shader.gdshader` |
 | **Tools** | `t_*_tool.gd` | `t_level_editor_tool.gd` |
 | **Plugins** | `p_*_plugin.gd` | `p_custom_plugin.gd` |
-| **Base Classes** | `snake_case.gd` | `ecs_system.gd` |
-| **Test Files** | `test_*.gd` | `test_s_movement_system.gd` |
+| **Helpers** | `*helpers/*` + `u_*_helper.gd` / `u_*_builder.gd` / `m_*_loader.gd` | `u_scene_registry_loader.gd`, `u_touchscreen_preview_builder.gd`, `m_input_profile_loader.gd` |
+
+### Scenes & Resources: Filenames
+
+These rules apply to **production** assets under `res://scenes/**` and `res://resources/**`:
+
+| Category | Pattern | Example |
+|----------|---------|---------|
+| **Gameplay Scenes** | `gameplay_*.tscn` | `gameplay_base.tscn`, `gameplay_exterior.tscn` |
+| **UI Scenes** | `ui_*.tscn` | `ui_main_menu.tscn`, `ui_pause_menu.tscn` |
+| **Prefab Scenes** | `prefab_*.tscn` | `prefab_death_zone.tscn`, `prefab_checkpoint.tscn` |
+| **Debug Scenes** | `debug_*.tscn` | `debug_state_overlay.tscn` |
+| **UI Screen Definitions** | `resources/ui_screens/*_screen.tres` | `main_menu_screen.tres` |
+| **Scene Registry Entries** | `resources/scene_registry/*.tres` | `gameplay_base_entry.tres` |
+
+**Note**: All UI scenes now use `ui_` prefix. Legacy unprefixed UI scenes have been migrated to this pattern.
+
+### Test, Prototype, and Debug Scripts
+
+| Category | Pattern | Example |
+|----------|---------|---------|
+| **Unit/Integration Tests** | `test_*.gd` under `res://tests/**` | `test_m_state_store.gd` |
+| **Prototype Scripts** | `proto_*.gd` under `res://prototypes/**` | `proto_movement_playground.gd` |
+| **Debug Helpers** | `debug_*.gd` under `res://scripts/debug/**` | `debug_state_overlay_controller.gd` |
+
+Tests and prototypes may use more relaxed naming, but must be clearly distinguished from production scripts via directory and filename prefixes.
 
 ### Methods & Functions: `snake_case`
 
@@ -91,6 +130,91 @@ const DEFAULT_GRAVITY: float = 9.8
 - Use tabs for indentation in all `.gd` scripts. Automated style checks fail on leading spaces, so configure your editor accordingly.
 - Trigger configuration resources (`RS_SceneTriggerSettings` and derivatives) must declare `script = ExtResource("…")`. Duplicate shared `.tres` files before customizing per-scene values or rely on controller auto-duplication.
 
+### Global Prefix Rule (Production Code)
+
+For all **production** scripts, scenes, and resources under:
+
+- `res://scripts/**`
+- `res://scenes/**`
+- `res://resources/**`
+
+every file must:
+
+- Use one of the documented prefixes for its category (e.g., `m_`, `s_`, `c_`, `rs_`, `u_`, `ui_`, `gameplay_`, `debug_`), **or**
+- Be explicitly listed as an exception (e.g., `main.gd`).
+
+If you introduce a new category that does not fit the existing table, update this guide and add a test to enforce the new pattern.
+
+### Complete Prefix Matrix
+
+This matrix documents all allowed filename and class prefixes by category. **Every production file** must match one of these patterns or be explicitly documented as an exception below.
+
+#### Core ECS Layer
+| Category | File Pattern | Class Pattern | Examples |
+|----------|--------------|---------------|----------|
+| **Managers** | `m_*_manager.gd` | `M_*Manager` | `m_ecs_manager.gd` → `M_ECSManager`, `m_state_store.gd` → `M_StateStore` |
+| **Systems** | `s_*_system.gd` | `S_*System` | `s_movement_system.gd` → `S_MovementSystem`, `m_pause_manager.gd` → `M_PauseManager` |
+| **Components** | `c_*_component.gd` | `C_*Component` | `c_movement_component.gd` → `C_MovementComponent` |
+| **Resources** | `rs_*_settings.gd` / `rs_*_initial_state.gd` | `RS_*Settings` / `RS_*InitialState` | `rs_movement_settings.gd` → `RS_MovementSettings` |
+
+#### State Management Layer
+| Category | File Pattern | Class Pattern | Examples |
+|----------|--------------|---------------|----------|
+| **Actions** | `u_*_actions.gd` | `U_*Actions` | `u_gameplay_actions.gd` → `U_GameplayActions` |
+| **Reducers** | `u_*_reducer.gd` | `U_*Reducer` | `u_gameplay_reducer.gd` → `U_GameplayReducer` |
+| **Selectors** | `u_*_selectors.gd` | `U_*Selectors` | `u_gameplay_selectors.gd` → `U_GameplaySelectors` |
+| **State Utils** | `u_*.gd` | `U_*` | `u_state_handoff.gd` → `U_StateHandoff`, `u_action_registry.gd` → `U_ActionRegistry` |
+
+#### UI Layer
+| Category | File Pattern | Class Pattern | Examples |
+|----------|--------------|---------------|----------|
+| **Screen Controllers** | `ui_*_screen.gd` / `ui_*.gd` | `UI_*Screen` / `UI_*` | `ui_main_menu.gd` → `UI_MainMenu`, `ui_credits.gd` → `UI_Credits` |
+| **Overlay Controllers** | `ui_*_overlay.gd` | `UI_*Overlay` | `ui_pause_menu_overlay.gd` → `UI_PauseMenuOverlay` |
+| **UI Components** | `ui_*.gd` | `UI_*` | `ui_button_prompt.gd` → `UI_ButtonPrompt`, `ui_virtual_joystick.gd` → `UI_VirtualJoystick` |
+| **UI Utilities** | `u_ui_*.gd` | `U_UI*` | `u_ui_registry.gd` → `U_UIRegistry`, `u_focus_configurator.gd` → `U_FocusConfigurator` |
+| **UI Manager** | `m_ui_input_handler.gd` | `M_UIInputHandler` | `m_ui_input_handler.gd` → `M_UIInputHandler` |
+
+#### Input Management Layer
+| Category | File Pattern | Class Pattern | Examples |
+|----------|--------------|---------------|----------|
+| **Input Managers** | `m_input_*_manager.gd` | `M_Input*Manager` | `m_input_device_manager.gd` → `M_InputDeviceManager`, `m_input_profile_manager.gd` → `M_InputProfileManager` |
+| **Input Utilities** | `u_input_*.gd` | `U_Input*` | `u_input_rebind_utils.gd` → `U_InputRebindUtils`, `u_input_serialization.gd` → `U_InputSerialization` |
+| **Input Components** | `c_*_component.gd` | `C_*Component` | `c_input_component.gd` → `C_InputComponent`, `c_gamepad_component.gd` → `C_GamepadComponent` |
+| **Input Systems** | `s_*_system.gd` | `S_*System` | `s_input_system.gd` → `S_InputSystem`, `s_touchscreen_system.gd` → `S_TouchscreenSystem` |
+
+#### Scene Management Layer
+| Category | File Pattern | Class Pattern | Examples |
+|----------|--------------|---------------|----------|
+| **Scene Manager** | `m_scene_manager.gd` | `M_SceneManager` | `m_scene_manager.gd` → `M_SceneManager` |
+| **Spawn Manager** | `m_spawn_manager.gd` | `M_SpawnManager` | `m_spawn_manager.gd` → `M_SpawnManager` |
+| **Scene Type Handlers** | `h_*_handler.gd` | `H_*Handler` | `h_gameplay_scene_handler.gd` → `H_GameplaySceneHandler`, `h_menu_scene_handler.gd` → `H_MenuSceneHandler` |
+| **Scene Utilities** | `u_scene_*.gd` | `U_Scene*` | `u_scene_registry.gd` → `U_SceneRegistry`, `u_transition_factory.gd` → `U_TransitionFactory` |
+| **Transition Effects** | `trans_*.gd` | `Trans_*` | `trans_fade.gd` → `Trans_Fade`, `trans_loading_screen.gd` → `Trans_LoadingScreen` |
+| **Base Transition** | `base_transition_effect.gd` | `BaseTransitionEffect` | `base_transition_effect.gd` → `BaseTransitionEffect` |
+| **Scene Triggers** | `c_scene_trigger_component.gd` | `C_SceneTriggerComponent` | `c_scene_trigger_component.gd` → `C_SceneTriggerComponent` |
+
+#### Gameplay Controllers (Interactables)
+| Category | File Pattern | Class Pattern | Examples |
+|----------|--------------|---------------|----------|
+| **Entity Controllers** | `e_*.gd` | `E_*` | `e_door_trigger_controller.gd` → `E_DoorTriggerController`, `e_checkpoint_zone.gd` → `E_CheckpointZone` |
+| **Base Controllers** | `base_*_controller.gd` / `*_controller.gd` | `Base*Controller` / `*Controller` | `base_volume_controller.gd` → `BaseVolumeController`, `triggered_interactable_controller.gd` → `TriggeredInteractableController` |
+
+#### Additional Prefix Patterns
+
+| Category | File Pattern | Class Pattern | Examples |
+|----------|--------------|---------------|----------|
+| **Interface Scripts** | `i_*.gd` | `I_*` (UPPER_SNAKE_CASE) | `i_scene_contract.gd` → `I_SCENE_CONTRACT` |
+
+**Note:** Interface scripts follow the `i_` prefix pattern. They were previously listed as "exceptions" but they actually follow a documented prefix convention.
+
+**Previously Listed as Exceptions (Now Following Standard Patterns):**
+- Base Classes: Now use `base_` prefix (e.g., `base_panel.gd`, `base_ecs_component.gd`)
+- Marker Scripts: Now use `marker_` prefix (e.g., `marker_entities_group.gd`, `marker_active_scene_container.gd`)
+- Transitions: Use `trans_` prefix (e.g., `trans_fade.gd`, `trans_loading_screen.gd`)
+- Event Buses: Use `base_` or `u_` prefix (e.g., `base_event_bus.gd`, `u_ecs_event_bus.gd`)
+- Typed Events: Use `evn_` prefix and `Evn_` class name (e.g., `evn_health_changed.gd` with `class_name Evn_HealthChanged`)
+- Utilities: Use `u_` prefix (e.g., `u_entity_query.gd`, `u_analog_stick_repeater.gd`)
+
 ### Directories: `snake_case` (plural)
 
 ```
@@ -103,7 +227,8 @@ scripts/
 ├── scenes/
 ├── shaders/
 ├── tools/
-└── utils/
+├── utils/
+└── helpers/
 
 tests/
 └── unit/
@@ -345,6 +470,15 @@ Test files use `test_` prefix followed by the class being tested:
 - `test_m_ecs_manager.gd`
 - `test_u_gameplay_selectors.gd`
 
+### Main Root Script (Exception)
+The project root node script is allowed to be unprefixed:
+- `scripts/scene_structure/main.gd`
+
+### ECS Event Bus Usage
+- ECS components publish gameplay-domain events via `U_ECSEventBus` (e.g., `health_changed`, `victory_triggered`, `damage_zone_entered`, `checkpoint_zone_entered`, `component_registered`); avoid custom signals for these flows.
+- Systems subscribe in `_ready()`/`on_configured()` and unsubscribe in `_exit_tree()` using the callable returned by `subscribe()`.
+- Keep payloads minimal and typed; deep-copy (`duplicate(true)`) before mutating shared payloads.
+
 ### Scene Files (.tscn)
 Scene files use descriptive snake_case names without prefixes:
 - `player_character.tscn`
@@ -364,6 +498,16 @@ This plan covers the complete refactoring of existing code to match the new nami
 **Excluded:** `addons/` folder (third-party code)
 **Estimated Impact:** ~40-50 files
 **Risk Level:** Medium (extensive renaming, but tests will catch issues)
+
+---
+
+## ⚠️ HISTORICAL NOTE
+
+**The following Phase 1-10 checklist represents a completed ECS naming refactoring from 2024.**
+**All items below have been completed. This section is preserved for historical reference only.**
+**For current style/scene cleanup progress, see `docs/general/cleanup/style-scene-cleanup-tasks.md`**
+
+---
 
 ### Phase 1: Documentation
 - [x] Create `STYLE_GUIDE.md` (this document)
@@ -657,7 +801,7 @@ EXCLUSIONS:
 
 ## Scene Roots
 
-- Gameplay scenes: name the 3D root `GameplayRoot` and attach `scripts/scene_structure/main_root_node.gd`.
+- Gameplay scenes: name the 3D root `GameplayRoot` and attach `scripts/scene_structure/main.gd`.
 - Persistent root scene (`scenes/root.tscn`): name the root `Root`.
 - UI scenes: name root by purpose (e.g., `MainMenu`, `PauseMenu`, `SettingsMenu`).
 - Prototype scenes: prefer `PrototypeRoot` unless the scene’s purpose is clearer as a noun (e.g., `CameraBlendTest`).
@@ -672,6 +816,14 @@ EXCLUSIONS:
 - Spawn container: `SP_SpawnPoints` (uses `spawn_points_group.gd`), placed at scene root.
 - Spawn markers: `sp_*` lowercase snake-case, e.g., `sp_entrance_from_exterior`, `sp_exit_from_house`.
   - Chosen to avoid collision with entity prefixes and to remain visually distinct.
+
+### Spawn Point Scripts
+
+- Spawn point nodes that own metadata use a dedicated script:
+  - File: `scripts/scene_management/sp_spawn_point.gd`
+  - Class: `SP_SpawnPoint`
+  - Prefix pattern: `sp_*` (spawn point scripts live alongside `u_*`/`i_*` scene management helpers)
+  - Purpose: export an `RS_SpawnMetadata` resource on each `sp_*` node under `SP_SpawnPoints`.
 
 **Last Updated:** 2025-10-31
 **Version:** 1.0

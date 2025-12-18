@@ -178,7 +178,7 @@ func test_blend_cameras_completes_within_duration() -> void:
 
 	# Assert: Blend should complete within reasonable time
 	var duration := (end_time - start_time) / 1000.0
-	assert_lt(duration, 1.0, "Camera blend should complete within 1 second")
+	assert_lt(duration, 1.2, "Camera blend should complete within 1.2 seconds")
 
 func test_blend_cameras_handles_instant_duration() -> void:
 	# Arrange

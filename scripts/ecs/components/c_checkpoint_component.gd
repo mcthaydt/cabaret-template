@@ -3,6 +3,8 @@ extends BaseECSComponent
 class_name C_CheckpointComponent
 
 const COMPONENT_TYPE := StringName("C_CheckpointComponent")
+const EVENT_CHECKPOINT_ZONE_ENTERED := StringName("checkpoint_zone_entered")
+const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 
 ## Checkpoint Component (Phase 12.3b - T265)
 ##
@@ -166,6 +168,7 @@ func _resolve_or_create_area() -> void:
 	# Ensure monitoring defaults
 	_area.monitoring = true
 	_area.monitorable = true
+	_connect_area_signals()
 
 ## Internal: Adopt/normalize authored areas if present
 func _configure_area_geometry() -> void:
@@ -176,3 +179,49 @@ func _configure_area_geometry() -> void:
 	# Respect authored shapes; only ensure mask if left at default
 	if _area.collision_mask == 0:
 		_area.collision_mask = max(1, _get_settings().player_mask)
+	_connect_area_signals()
+
+func _connect_area_signals() -> void:
+	if _area == null:
+		return
+	if not _area.body_entered.is_connected(_on_area_body_entered):
+		_area.body_entered.connect(_on_area_body_entered)
+	if not _area.body_exited.is_connected(_on_area_body_exited):
+		_area.body_exited.connect(_on_area_body_exited)
+
+func _on_area_body_entered(body: Node3D) -> void:
+	if not _is_player(body):
+		return
+	_publish_zone_entered(body)
+
+func _on_area_body_exited(_body: Node3D) -> void:
+	pass
+
+func _is_player(body: Node3D) -> bool:
+	if body == null:
+		return false
+	var entity := ECS_UTILS.find_entity_root(body)
+	if entity == null:
+		return false
+	var manager := get_manager()
+	if manager == null:
+		return false
+	var comps: Dictionary = manager.get_components_for_entity(entity)
+	return comps.has(PLAYER_TAG_COMPONENT) and comps.get(PLAYER_TAG_COMPONENT) != null
+
+func _publish_zone_entered(body: Node3D) -> void:
+	var entity_id := ECS_UTILS.get_entity_id(body)
+	U_ECSEventBus.publish(EVENT_CHECKPOINT_ZONE_ENTERED, {
+		"entity_id": entity_id,
+		"checkpoint": self,
+		"body": body,
+		"spawn_point_id": spawn_point_id,
+	})
+
+## Cleanup: Disconnect Area3D signals to prevent leaks
+func _exit_tree() -> void:
+	if _area != null and is_instance_valid(_area):
+		if _area.body_entered.is_connected(_on_area_body_entered):
+			_area.body_entered.disconnect(_on_area_body_entered)
+		if _area.body_exited.is_connected(_on_area_body_exited):
+			_area.body_exited.disconnect(_on_area_body_exited)

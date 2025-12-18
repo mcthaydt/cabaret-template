@@ -17,6 +17,7 @@ const ACTION_RETRY := StringName("navigation/retry")
 const ACTION_SKIP_TO_CREDITS := StringName("navigation/skip_to_credits")
 const ACTION_SKIP_TO_MENU := StringName("navigation/skip_to_menu")
 const ACTION_RETURN_TO_MAIN_MENU := StringName("navigation/return_to_main_menu")
+const ACTION_NAVIGATE_TO_UI_SCREEN := StringName("navigation/navigate_to_ui_screen")
 
 ## Register all navigation actions with the ActionRegistry
 static func _static_init() -> void:
@@ -32,6 +33,7 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SKIP_TO_CREDITS)
 	U_ActionRegistry.register_action(ACTION_SKIP_TO_MENU)
 	U_ActionRegistry.register_action(ACTION_RETURN_TO_MAIN_MENU)
+	U_ActionRegistry.register_action(ACTION_NAVIGATE_TO_UI_SCREEN)
 
 static func set_shell(shell: StringName, base_scene_id: StringName) -> Dictionary:
 	return {
@@ -58,7 +60,10 @@ static func open_overlay(screen_id: StringName) -> Dictionary:
 
 static func close_top_overlay() -> Dictionary:
 	return {
-		"type": ACTION_CLOSE_TOP_OVERLAY
+		"type": ACTION_CLOSE_TOP_OVERLAY,
+		# UI overlay closure needs same-frame visibility so SceneManager can
+		# reconcile the UIOverlayStack immediately (even while paused).
+		"immediate": true
 	}
 
 static func set_menu_panel(panel_id: StringName) -> Dictionary:
@@ -98,4 +103,21 @@ static func skip_to_menu() -> Dictionary:
 static func return_to_main_menu() -> Dictionary:
 	return {
 		"type": ACTION_RETURN_TO_MAIN_MENU
+	}
+
+## Navigate to a standalone UI screen (used for settings screens in main menu context)
+##
+## This action triggers M_SceneManager to transition to the specified UI scene.
+## Use this instead of calling M_SceneManager.transition_to_scene() directly from UI scripts.
+##
+## Payload:
+## - scene_id: StringName - The scene ID to navigate to
+## - transition_type: String - Transition effect ("fade", "instant", "loading")
+## - priority: int - Transition priority (use M_SceneManager.Priority constants)
+static func navigate_to_ui_screen(scene_id: StringName, transition_type: String = "fade", priority: int = 2) -> Dictionary:
+	return {
+		"type": ACTION_NAVIGATE_TO_UI_SCREEN,
+		"scene_id": scene_id,
+		"transition_type": transition_type,
+		"priority": priority
 	}

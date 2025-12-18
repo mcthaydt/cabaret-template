@@ -202,3 +202,27 @@ func test_endgame_scenes_backfilled_when_missing() -> void:
 
 	# Restore original scenes to avoid impacting other tests
 	U_SceneRegistry._scenes = scenes_backup
+
+## Test gameplay scenes backfill prefers loading transition when missing
+func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
+	var scenes_backup: Dictionary = (U_SceneRegistry._scenes as Dictionary).duplicate(true)
+
+	U_SceneRegistry._scenes.erase(StringName("gameplay_base"))
+	U_SceneRegistry._scenes.erase(StringName("exterior"))
+	U_SceneRegistry._scenes.erase(StringName("interior_house"))
+
+	U_SceneRegistry._backfill_default_gameplay_scenes()
+
+	var gameplay_base: Dictionary = U_SceneRegistry.get_scene(StringName("gameplay_base"))
+	assert_false(gameplay_base.is_empty(), "gameplay_base should be registered by backfill")
+	assert_eq(String(gameplay_base.get("default_transition", "")), "loading", "gameplay_base backfill should prefer loading transition")
+
+	var exterior: Dictionary = U_SceneRegistry.get_scene(StringName("exterior"))
+	assert_false(exterior.is_empty(), "exterior should be registered by backfill")
+	assert_eq(String(exterior.get("default_transition", "")), "loading", "exterior backfill should prefer loading transition")
+
+	var interior: Dictionary = U_SceneRegistry.get_scene(StringName("interior_house"))
+	assert_false(interior.is_empty(), "interior_house should be registered by backfill")
+	assert_eq(String(interior.get("default_transition", "")), "loading", "interior_house backfill should prefer loading transition")
+
+	U_SceneRegistry._scenes = scenes_backup

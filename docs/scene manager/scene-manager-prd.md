@@ -2,7 +2,8 @@
 
 **Feature Branch**: `scene-manager`
 **Created**: 2025-10-27
-**Status**: Draft
+**Last Updated**: 2025-12-08
+**Status**: ✅ **PRODUCTION READY** - All Phases Complete, Post-Hardening Complete
 **Input**: User description: "Scene Manager (menu → gameplay (exterior -> interior) → pause → end) — FLOW CONTROL"
 
 ## User Scenarios & Testing *(mandatory)*
@@ -314,7 +315,7 @@ Game properly handles end-game scenarios (player death, level victory, game comp
 
 - **BaseTransitionEffect** (NEW): Visual transition animations
   - Base interface for all transition types
-  - Implementations: InstantTransition, FadeTransition, LoadingScreenTransition, CustomTransition
+  - Implementations: Trans_Instant, Trans_Fade, Trans_LoadingScreen, CustomTransition
   - Provides async transition lifecycle (start, update progress, complete)
 
 - **SceneTrigger** (NEW): Entity-based trigger component
@@ -646,9 +647,9 @@ These questions remain open for future iteration:
     u_scene_registry.gd           # Scene metadata configuration
     /transitions/
       base_transition_effect.gd      # Base transition interface
-      instant_transition.gd     # Instant effect implementation
-      fade_transition.gd        # Fade effect implementation
-      loading_screen_transition.gd # Loading screen implementation
+      trans_instant.gd     # Instant effect implementation
+      trans_fade.gd        # Fade effect implementation
+      trans_loading_screen.gd # Loading screen implementation
 
   /ecs/
     c_scene_trigger_component.gd # Trigger component
@@ -1115,11 +1116,11 @@ func get_duration() -> float:
 	return 0.0
 ```
 
-### Example 9: FadeTransition Implementation
+### Example 9: Trans_Fade Implementation
 
 ```gdscript
 extends BaseTransitionEffect
-class_name FadeTransition
+class_name Trans_Fade
 
 ## Fade to black transition effect
 
@@ -1151,7 +1152,7 @@ func start_transition() -> void:
 	super.start_transition()
 
 	if _color_rect == null:
-		push_error("FadeTransition: No ColorRect available")
+		push_error("Trans_Fade: No ColorRect available")
 		return
 
 	# Fade to opaque
@@ -1346,4 +1347,4 @@ func process_tick(delta: float) -> void:
 - **v2.0** (2025-10-27): **MAJOR REVISION** - Integrated with existing M_StateStore (Redux) and per-scene ECS architecture. Removed M_StateManager (use M_StateStore), removed singleton ECS (keep per-scene), removed hybrid player persistence (use state store only). Added FRs for Redux integration (scene slice, SceneActions, SceneReducer). Updated all architectural decisions to reflect existing systems.
 - **v2.1** (2025-10-27): Added 24 resolved questions covering all critical implementation details. Added 32 new FRs (FR-080 through FR-111) for state synchronization, scene slice management, player spawning, error handling, transition effects, and pause implementation. Clarified M_SceneManager controller pattern, component state sync frequency, scene slice transient fields, StateHandoff lifecycle, and error recovery strategies.
 - **v2.2** (2025-10-27): **AUDIT FIXES** - Corrected critical errors found in comprehensive audit: Fixed FR-005 (singleton → per-scene ECS), removed transition_state field ambiguity, standardized U_SceneActions naming, corrected file structure (u_scene_actions.gd location, removed .tres registry), added FR-112 for M_StateStore modification requirement, added RS_SceneInitialState to Key Entities. **MAJOR CLARIFICATION**: Added comprehensive Bootstrap Pattern section explaining root.tscn lifecycle, ActiveSceneContainer pattern, StateHandoff as safety mechanism vs primary persistence. Updated Resolved Questions #4 and #17 to reflect clarified architecture. Added 6 implementation examples with complete code patterns.
-- **v2.3** (2025-10-27): **COMPLETENESS UPDATE** - Filled remaining 5% gaps identified in audit. Added 5 new implementation examples (Examples 7-11): U_SceneRegistry static class with scene metadata and door pairing structure, BaseTransitionEffect base class interface, FadeTransition implementation, C_SceneTriggerComponent with Area3D integration, S_SceneTriggerSystem for interaction handling. All examples include complete working code, validation methods, and integration patterns. PRD now 100% complete and implementation-ready for all phases.
+- **v2.3** (2025-10-27): **COMPLETENESS UPDATE** - Filled remaining 5% gaps identified in audit. Added 5 new implementation examples (Examples 7-11): U_SceneRegistry static class with scene metadata and door pairing structure, BaseTransitionEffect base class interface, Trans_Fade implementation, C_SceneTriggerComponent with Area3D integration, S_SceneTriggerSystem for interaction handling. All examples include complete working code, validation methods, and integration patterns. PRD now 100% complete and implementation-ready for all phases.

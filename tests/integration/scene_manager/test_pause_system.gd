@@ -13,15 +13,18 @@ extends GutTest
 const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const M_CURSOR_MANAGER := preload("res://scripts/managers/m_cursor_manager.gd")
+const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_pause_manager.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _root_node: Node
 var _state_store: M_STATE_STORE
 var _scene_manager: M_SCENE_MANAGER
 var _cursor_manager: M_CURSOR_MANAGER
+var _pause_system: S_PAUSE_SYSTEM
 var _active_scene_container: Node
 var _ui_overlay_stack: CanvasLayer
 
@@ -59,8 +62,22 @@ func before_each() -> void:
 	_scene_manager.skip_initial_scene_load = true
 	_root_node.add_child(_scene_manager)
 
+	# Create M_PauseManager (Phase 2: T024b - sole authority for pause/cursor)
+	_pause_system = S_PAUSE_SYSTEM.new()
+	_root_node.add_child(_pause_system)
+
+	# Register managers with ServiceLocator (Phase 10B-7: T141c)
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
+	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager)
+	U_ServiceLocator.register(StringName("cursor_manager"), _cursor_manager)
+	U_ServiceLocator.register(StringName("pause_manager"), _pause_system)
+
 	# Wait for all nodes to initialize
 	await get_tree().process_frame
+
+func after_each() -> void:
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
 
 func test_pause_overlay_pushed_to_ui_overlay_stack() -> void:
 	# Given: No overlays on stack
@@ -93,7 +110,8 @@ func test_scene_tree_paused_when_pause_overlay_pushed() -> void:
 
 	# When: Push pause overlay with pause trigger
 	_trigger_pause()
-	await get_tree().process_frame
+	await wait_physics_frames(1)  # State store batches on physics frame
+	await wait_physics_frames(1)  # M_PauseManager reacts
 
 	# Then: SceneTree.paused is true
 	assert_true(get_tree().paused, "SceneTree should be paused when pause overlay pushed")
@@ -104,12 +122,14 @@ func test_scene_tree_paused_when_pause_overlay_pushed() -> void:
 func test_scene_tree_unpaused_when_pause_overlay_popped() -> void:
 	# Given: Game is paused
 	_trigger_pause()
-	await get_tree().process_frame
-	get_tree().paused = true
+	await wait_physics_frames(1)
+	await wait_physics_frames(1)  # Let M_PauseManager react
+	assert_true(get_tree().paused, "Game should be paused initially")
 
 	# When: Pop pause overlay (resume)
 	_trigger_unpause()
-	await get_tree().process_frame
+	await wait_physics_frames(1)  # State store batches
+	await wait_physics_frames(1)  # M_PauseManager reacts
 
 	# Then: SceneTree.paused is false
 	assert_false(get_tree().paused, "SceneTree should be unpaused when pause overlay popped")
@@ -121,7 +141,8 @@ func test_cursor_visible_when_paused() -> void:
 
 	# When: Pause game
 	_trigger_pause()
-	await get_tree().process_frame
+	await wait_physics_frames(1)  # State store batches
+	await wait_physics_frames(1)  # M_PauseManager updates cursor
 
 	# Then: Cursor becomes visible
 	assert_true(_cursor_manager.is_cursor_visible(), "Cursor should be visible when paused")
@@ -129,12 +150,14 @@ func test_cursor_visible_when_paused() -> void:
 func test_cursor_hidden_when_unpaused() -> void:
 	# Given: Game is paused with visible cursor
 	_trigger_pause()
-	await get_tree().process_frame
-	_cursor_manager.set_cursor_state(false, true)  # unlocked, visible
+	await wait_physics_frames(1)
+	await wait_physics_frames(1)  # Let M_PauseManager set cursor
+	assert_true(_cursor_manager.is_cursor_visible(), "Cursor should be visible when paused")
 
 	# When: Unpause game
 	_trigger_unpause()
-	await get_tree().process_frame
+	await wait_physics_frames(1)  # State store batches
+	await wait_physics_frames(1)  # M_PauseManager updates cursor
 
 	# Then: Cursor becomes hidden
 	assert_false(_cursor_manager.is_cursor_visible(), "Cursor should be hidden when unpaused")

@@ -1,7 +1,7 @@
 extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const EVENT_VFX_SYSTEM := preload("res://scripts/ecs/event_vfx_system.gd")
+const EVENT_VFX_SYSTEM := preload("res://scripts/ecs/base_event_vfx_system.gd")
 const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 
 const TEST_EVENT_NAME := StringName("test_event")

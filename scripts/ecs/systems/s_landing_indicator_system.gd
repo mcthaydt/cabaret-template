@@ -9,7 +9,7 @@ const UP_VECTOR: Vector3 = Vector3.UP
 
 func process_tick(_delta: float) -> void:
 	# Phase 16: Check if landing indicator is enabled in state
-	var store: M_StateStore = U_StateUtils.get_store(self)
+	var store: I_StateStore = U_StateUtils.get_store(self)
 	var should_show: bool = true
 	if store:
 		should_show = U_VisualSelectors.should_show_landing_indicator(store.get_state())

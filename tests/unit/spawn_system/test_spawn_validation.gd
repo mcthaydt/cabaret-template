@@ -7,6 +7,9 @@ extends GutTest
 const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_SpawnRegistry := preload("res://scripts/scene_management/u_spawn_registry.gd")
+const RS_SpawnMetadata := preload("res://scripts/scene_management/resources/rs_spawn_metadata.gd")
 
 var spawn_manager: M_SPAWN_MANAGER
 var state_store: M_STATE_STORE
@@ -17,6 +20,8 @@ func before_each() -> void:
 	state_store = M_STATE_STORE.new()
 	state_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
 	add_child_autofree(state_store)
+	# Register state store via ServiceLocator for M_SpawnManager discovery
+	U_ServiceLocator.register(StringName("state_store"), state_store)
 	await get_tree().process_frame
 
 	# Create spawn manager
@@ -30,6 +35,9 @@ func before_each() -> void:
 	add_child_autofree(test_scene)
 
 func after_each() -> void:
+	# Clear ServiceLocator first (prevents cross-test pollution)
+	U_ServiceLocator.clear()
+
 	if spawn_manager and is_instance_valid(spawn_manager):
 		spawn_manager.queue_free()
 	if state_store and is_instance_valid(state_store):
@@ -319,3 +327,65 @@ func test_spawn_error_includes_node_type_when_spawn_point_wrong_type() -> void:
 
 	# Assert
 	assert_push_error("found type: Control")
+
+## ============================================================================
+## Spawn Metadata / Condition Integration Tests
+## ============================================================================
+
+func test_spawn_at_last_spawn_uses_target_spawn_when_allowed_by_metadata() -> void:
+	# Arrange: use state_store, spawn_manager, and test_scene created in before_each
+
+	# Configure gameplay state: target_spawn_point set, last_checkpoint empty
+	state_store.dispatch(U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName("sp_entry")))
+	state_store.dispatch(U_GAMEPLAY_ACTIONS.set_last_checkpoint(StringName("")))
+	await get_tree().physics_frame
+
+	# Scene layout mirrors production: Entities → SP_SpawnPoints → SP_SpawnPoint nodes
+	var entities := Node3D.new()
+	entities.name = "Entities"
+	test_scene.add_child(entities)
+
+	var player := CharacterBody3D.new()
+	player.name = "E_Player"
+	entities.add_child(player)
+
+	var spawn_points_root := Node3D.new()
+	spawn_points_root.name = "SP_SpawnPoints"
+	entities.add_child(spawn_points_root)
+
+	# Target spawn (sp_entry) with ALWAYS metadata
+	var sp_entry := SP_SpawnPoint.new()
+	sp_entry.name = "sp_entry"
+	sp_entry.position = Vector3(5, 0, 0)
+	var meta_entry := RS_SpawnMetadata.new()
+	meta_entry.spawn_id = StringName("sp_entry")
+	meta_entry.condition = RS_SpawnMetadata.SpawnCondition.ALWAYS
+	sp_entry.spawn_metadata = meta_entry
+	spawn_points_root.add_child(sp_entry)
+
+	# Checkpoint spawn (cp_checkpoint) with CHECKPOINT_ONLY metadata
+	var sp_checkpoint := SP_SpawnPoint.new()
+	sp_checkpoint.name = "cp_checkpoint"
+	sp_checkpoint.position = Vector3(20, 0, 0)
+	var meta_checkpoint := RS_SpawnMetadata.new()
+	meta_checkpoint.spawn_id = StringName("cp_checkpoint")
+	meta_checkpoint.condition = RS_SpawnMetadata.SpawnCondition.CHECKPOINT_ONLY
+	sp_checkpoint.spawn_metadata = meta_checkpoint
+	spawn_points_root.add_child(sp_checkpoint)
+
+	# Default spawn (sp_default) with ALWAYS metadata to avoid unexpected fallback errors
+	var sp_default := SP_SpawnPoint.new()
+	sp_default.name = "sp_default"
+	sp_default.position = Vector3(0, 0, 0)
+	var meta_default := RS_SpawnMetadata.new()
+	meta_default.spawn_id = StringName("sp_default")
+	meta_default.condition = RS_SpawnMetadata.SpawnCondition.ALWAYS
+	sp_default.spawn_metadata = meta_default
+	spawn_points_root.add_child(sp_default)
+
+	# Act
+	var ok := await spawn_manager.spawn_at_last_spawn(test_scene)
+
+	# Assert: Should use target spawn (sp_entry)
+	assert_true(ok, "Spawn should succeed when target_spawn_point allowed")
+	assert_almost_eq(player.global_position, sp_entry.global_position, Vector3(0.01, 0.01, 0.01))

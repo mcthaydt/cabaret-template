@@ -16,6 +16,7 @@ const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gam
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _root: Node
 var _store: M_STATE_STORE
@@ -61,9 +62,16 @@ func before_each() -> void:
 	_scene_manager.skip_initial_scene_load = true
 	_root.add_child(_scene_manager)
 
+	# Register managers with ServiceLocator (Phase 10B-7: T141c)
+	U_ServiceLocator.register(StringName("state_store"), _store)
+	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager)
+
 	await get_tree().process_frame
 
 func after_each() -> void:
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
+
 	_scene_manager = null
 	_store = null
 	_active_scene_container = null

@@ -3,7 +3,7 @@ extends GutTest
 const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
 const RS_RebindSettings := preload("res://scripts/ecs/resources/rs_rebind_settings.gd")
 const RS_InputProfile := preload("res://scripts/ecs/resources/rs_input_profile.gd")
-const InputRebindingOverlay := preload("res://scripts/ui/input_rebinding_overlay.gd")
+const U_RebindActionListBuilder := preload("res://scripts/ui/helpers/u_rebind_action_list_builder.gd")
 
 var _created_actions: Array[StringName] = []
 
@@ -273,13 +273,13 @@ func test_get_conflicting_action_respects_excluded_list() -> void:
 	)
 	assert_true(conflict_no_exclusion != StringName(), "Should detect at least one conflict without exclusions")
 	assert_true(
-		InputRebindingOverlay.EXCLUDED_ACTIONS.has(String(conflict_no_exclusion)),
+		U_RebindActionListBuilder.EXCLUDED_ACTIONS.has(String(conflict_no_exclusion)),
 		"Detected conflict should be one of the excluded overlay actions"
 	)
 
 	# With exclusions - should skip ui_accept
 	var excluded: Array[String] = []
-	excluded.assign(InputRebindingOverlay.EXCLUDED_ACTIONS)
+	excluded.assign(U_RebindActionListBuilder.EXCLUDED_ACTIONS)
 	var conflict_with_exclusion := U_InputRebindUtils.get_conflicting_action(
 		event,
 		null,

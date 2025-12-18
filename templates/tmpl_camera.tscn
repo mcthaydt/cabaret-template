@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://4f8xryxbxit0"]
+
+[ext_resource type="Script" uid="uid://bn8u70vuua5wx" path="res://scripts/ecs/base_ecs_entity.gd" id="1_ecsentity"]
+
+[node name="E_CameraRoot" type="Node3D"]
+script = ExtResource("1_ecsentity")
+entity_id = &"camera"
+tags = Array[StringName]([&"camera"])
+
+[node name="E_PlayerCamera" type="Camera3D" parent="." groups=["main_camera"]]
+current = true

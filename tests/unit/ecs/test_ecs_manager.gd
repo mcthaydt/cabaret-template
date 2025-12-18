@@ -1,10 +1,11 @@
 extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const ECS_COMPONENT := preload("res://scripts/ecs/ecs_component.gd")
-const ECS_SYSTEM := preload("res://scripts/ecs/ecs_system.gd")
-const PLAYER_SCENE := preload("res://templates/player_template.tscn")
-const BASE_SCENE := preload("res://templates/base_scene_template.tscn")
+const ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
+const ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
+const PLAYER_SCENE := preload("res://scenes/prefabs/prefab_player.tscn")
+const BASE_SCENE := preload("res://templates/tmpl_base_scene.tscn")
+const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 
 class FakeComponent extends BaseECSComponent:
 	const TYPE := StringName("C_FakeComponent")
@@ -63,6 +64,16 @@ var _expected_component
 var _expected_manager
 var _added_calls := 0
 var _registered_calls := 0
+var _state_store: M_StateStore = null
+
+func before_each() -> void:
+	# Create and add M_StateStore for tests that use BASE_SCENE
+	_state_store = M_StateStore.new()
+	add_child(_state_store)
+	autofree(_state_store)
+	await get_tree().process_frame
+	# Register state_store with ServiceLocator so scenes can find it
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
 
 func _on_component_added(component_type, received) -> void:
 	_added_calls += 1
@@ -148,16 +159,22 @@ func test_register_component_emits_signals() -> void:
 
 	assert_true(component.has_method("on_registered"))
 
-	var add_err := manager.component_added.connect(Callable(self, "_on_component_added"))
+	# Test manager signal
+	var add_err: int = manager.component_added.connect(Callable(self, "_on_component_added"))
 	assert_eq(add_err, OK)
 
-	var reg_err := component.registered.connect(Callable(self, "_on_component_registered"))
-	assert_eq(reg_err, OK)
+	# Phase 7E: component.registered signal migrated to event bus
+	# Subscribe to component_registered event
+	U_ECSEventBus.reset()
 
 	manager.register_component(component)
 
 	assert_eq(_added_calls, 1)
-	assert_eq(_registered_calls, 1)
+
+	# Verify event bus published component_registered event
+	var history := U_ECSEventBus.get_event_history()
+	assert_true(history.any(func(event): return event.get("name") == StringName("component_registered")),
+		"component_registered event should be published")
 
 func test_register_system_configures_and_queries_components() -> void:
 	var manager: M_ECSManager = ECS_MANAGER.new()

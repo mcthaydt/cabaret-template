@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_LandingIndicatorSettings" load_steps=2 format=3 uid="uid://bge6h6phsahy3"]
 
-[ext_resource type="Script" uid="uid://d3co78rmgr1vm" path="res://scripts/ecs/resources/rs_landing_indicator_settings.gd" id="1_0"]
+[ext_resource type="Script" uid="uid://davl5km6nmvbd" path="res://scripts/ecs/resources/rs_landing_indicator_settings.gd" id="1_0"]
 
 [resource]
 script = ExtResource("1_0")

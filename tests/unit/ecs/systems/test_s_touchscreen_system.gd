@@ -1,6 +1,6 @@
 extends BaseTest
 
-const MobileControlsScene := preload("res://scenes/ui/mobile_controls.tscn")
+const MobileControlsScene := preload("res://scenes/ui/ui_mobile_controls.tscn")
 const M_ECSManager := preload("res://scripts/managers/m_ecs_manager.gd")
 const S_TouchscreenSystem := preload("res://scripts/ecs/systems/s_touchscreen_system.gd")
 const C_InputComponent := preload("res://scripts/ecs/components/c_input_component.gd")
@@ -18,8 +18,8 @@ const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selecto
 const U_DebugActions := preload("res://scripts/state/actions/u_debug_actions.gd")
 const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const VirtualButton := preload("res://scripts/ui/virtual_button.gd")
-const VirtualJoystick := preload("res://scripts/ui/virtual_joystick.gd")
+const UI_VirtualButton := preload("res://scripts/ui/ui_virtual_button.gd")
+const UI_VirtualJoystick := preload("res://scripts/ui/ui_virtual_joystick.gd")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
@@ -34,10 +34,10 @@ func test_updates_component_from_virtual_controls() -> void:
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
 	await _await_frames(1)
 
-	var joystick: VirtualJoystick = context["joystick"]
+	var joystick: UI_VirtualJoystick = context["joystick"]
 	_press_joystick(joystick, Vector2.ZERO, Vector2(joystick.joystick_radius, 0.0))
 
-	var jump_button: VirtualButton = context["jump_button"]
+	var jump_button: UI_VirtualButton = context["jump_button"]
 	_press_button(jump_button)
 
 	var manager: M_ECSManager = context["manager"]
@@ -60,7 +60,7 @@ func test_skips_processing_when_device_not_touchscreen() -> void:
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.GAMEPAD, 1))
 	await _await_frames(1)
 
-	var joystick: VirtualJoystick = context["joystick"]
+	var joystick: UI_VirtualJoystick = context["joystick"]
 	_press_joystick(joystick, Vector2.ZERO, Vector2(joystick.joystick_radius, 0.0))
 
 	var manager: M_ECSManager = context["manager"]
@@ -82,7 +82,7 @@ func test_emergency_disable_flag_blocks_processing() -> void:
 	store.dispatch(U_DebugActions.set_disable_touchscreen(true))
 	await _await_frames(1)
 
-	var joystick: VirtualJoystick = context["joystick"]
+	var joystick: UI_VirtualJoystick = context["joystick"]
 	_press_joystick(joystick, Vector2.ZERO, Vector2(joystick.joystick_radius, 0.0))
 
 	var manager: M_ECSManager = context["manager"]
@@ -132,7 +132,7 @@ func _setup_touchscreen_scene() -> Dictionary:
 	add_child_autofree(controls)
 	await _await_frames(2)
 
-	var joystick := controls.get_node_or_null("Controls/VirtualJoystick") as VirtualJoystick
+	var joystick := controls.get_node_or_null("Controls/VirtualJoystick") as UI_VirtualJoystick
 	var buttons: Array = controls.get_buttons()
 	var jump_button := _find_button(buttons, StringName("jump"))
 
@@ -146,13 +146,13 @@ func _setup_touchscreen_scene() -> Dictionary:
 		"jump_button": jump_button,
 	}
 
-func _find_button(buttons: Array, action: StringName) -> VirtualButton:
+func _find_button(buttons: Array, action: StringName) -> UI_VirtualButton:
 	for button in buttons:
-		if button is VirtualButton and (button as VirtualButton).action == action:
-			return button as VirtualButton
+		if button is UI_VirtualButton and (button as UI_VirtualButton).action == action:
+			return button as UI_VirtualButton
 	return null
 
-func _press_joystick(joystick: VirtualJoystick, start: Vector2, end: Vector2) -> void:
+func _press_joystick(joystick: UI_VirtualJoystick, start: Vector2, end: Vector2) -> void:
 	var touch := InputEventScreenTouch.new()
 	touch.index = 0
 	touch.pressed = true
@@ -164,7 +164,7 @@ func _press_joystick(joystick: VirtualJoystick, start: Vector2, end: Vector2) ->
 	drag.position = end
 	joystick._input(drag)
 
-func _press_button(button: VirtualButton) -> void:
+func _press_button(button: UI_VirtualButton) -> void:
 	if button == null:
 		return
 	var touch := InputEventScreenTouch.new()

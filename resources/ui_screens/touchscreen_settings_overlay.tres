@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="RS_UIScreenDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_UIScreenDefinition" load_steps=2 format=3 uid="uid://css51yd2jegbr"]
 
-[ext_resource type="Script" path="res://scripts/ui/resources/rs_ui_screen_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://cxwcn4lvbnkwv" path="res://scripts/ui/resources/rs_ui_screen_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 screen_id = &"touchscreen_settings"
 kind = 1
 scene_id = &"touchscreen_settings"
-allowed_shells = [&"gameplay"]
-allowed_parents = [&"pause_menu", &"settings_menu_overlay"]
+allowed_shells = Array[StringName]([&"gameplay"])
+allowed_parents = Array[StringName]([&"pause_menu", &"settings_menu_overlay"])
 close_mode = 0

@@ -1,13 +1,13 @@
-[gd_resource type="Resource" script_class="RS_UIScreenDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_UIScreenDefinition" load_steps=2 format=3 uid="uid://5fugtp8d18ks"]
 
-[ext_resource type="Script" path="res://scripts/ui/resources/rs_ui_screen_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://cxwcn4lvbnkwv" path="res://scripts/ui/resources/rs_ui_screen_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 screen_id = &"edit_touch_controls"
 kind = 1
 scene_id = &"edit_touch_controls"
-allowed_shells = [&"gameplay"]
-allowed_parents = [&"pause_menu", &"touchscreen_settings"]
+allowed_shells = Array[StringName]([&"gameplay"])
+allowed_parents = Array[StringName]([&"pause_menu", &"touchscreen_settings"])
 close_mode = 0
 hides_previous_overlays = true

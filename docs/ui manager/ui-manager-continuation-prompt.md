@@ -136,6 +136,9 @@ You MUST:
 - **State-First Architecture**: Navigation and UI state are declarative. Reducers + registry define behavior; managers enforce it.
 - **Immutable State**: Follow existing Redux patterns (`.duplicate(true)`, pure reducers).
 - **Input Contracts**: UI controllers must rely on `ui_*` actions, not hardcoded keycodes or gamepad buttons. Input Manager remains responsible for mapping hardware to `ui_*`.
+- **Style & Organization**: Follow `docs/general/STYLE_GUIDE.md` and `docs/general/SCENE_ORGANIZATION_GUIDE.md`
+- **Cleanup Project**: See `docs/general/cleanup/style-scene-cleanup-continuation-prompt.md` for architectural improvements
+- **UI → Redux → Scene Manager Rule**: UI scripts must NOT call `M_SceneManager` directly - use Redux actions instead (see T056)
 
 ---
 

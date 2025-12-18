@@ -1,0 +1,201 @@
+[gd_scene load_steps=2 format=3 uid="uid://clnxfxn1asidv"]
+
+[ext_resource type="Script" uid="uid://dv0tmilymmp3j" path="res://scripts/ui/ui_touchscreen_settings_overlay.gd" id="1"]
+
+[node name="TouchscreenSettingsOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -260.0
+offset_right = 280.0
+offset_bottom = 260.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="CenterContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel"]
+custom_minimum_size = Vector2(560, 520)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Title" type="Label" parent="CenterContainer/Panel/VBox"]
+layout_mode = 2
+text = "Touchscreen Settings"
+horizontal_alignment = 1
+
+[node name="JoystickSizeRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="JoystickSizeLabel" type="Label" parent="CenterContainer/Panel/VBox/JoystickSizeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Joystick Size"
+
+[node name="JoystickSizeSlider" type="HSlider" parent="CenterContainer/Panel/VBox/JoystickSizeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.5
+max_value = 2.0
+step = 0.1
+value = 1.0
+
+[node name="JoystickSizeValue" type="Label" parent="CenterContainer/Panel/VBox/JoystickSizeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "1.00"
+horizontal_alignment = 1
+
+[node name="ButtonSizeRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ButtonSizeLabel" type="Label" parent="CenterContainer/Panel/VBox/ButtonSizeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Button Size"
+
+[node name="ButtonSizeSlider" type="HSlider" parent="CenterContainer/Panel/VBox/ButtonSizeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.5
+max_value = 2.0
+step = 0.1
+value = 1.0
+
+[node name="ButtonSizeValue" type="Label" parent="CenterContainer/Panel/VBox/ButtonSizeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "1.00"
+horizontal_alignment = 1
+
+[node name="JoystickOpacityRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="JoystickOpacityLabel" type="Label" parent="CenterContainer/Panel/VBox/JoystickOpacityRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Joystick Opacity"
+
+[node name="JoystickOpacitySlider" type="HSlider" parent="CenterContainer/Panel/VBox/JoystickOpacityRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.3
+max_value = 1.0
+step = 0.05
+value = 0.7
+
+[node name="JoystickOpacityValue" type="Label" parent="CenterContainer/Panel/VBox/JoystickOpacityRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0.70"
+horizontal_alignment = 1
+
+[node name="ButtonOpacityRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ButtonOpacityLabel" type="Label" parent="CenterContainer/Panel/VBox/ButtonOpacityRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Button Opacity"
+
+[node name="ButtonOpacitySlider" type="HSlider" parent="CenterContainer/Panel/VBox/ButtonOpacityRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.3
+max_value = 1.0
+step = 0.05
+value = 0.8
+
+[node name="ButtonOpacityValue" type="Label" parent="CenterContainer/Panel/VBox/ButtonOpacityRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0.80"
+horizontal_alignment = 1
+
+[node name="JoystickDeadzoneRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="JoystickDeadzoneLabel" type="Label" parent="CenterContainer/Panel/VBox/JoystickDeadzoneRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Joystick Deadzone"
+
+[node name="JoystickDeadzoneSlider" type="HSlider" parent="CenterContainer/Panel/VBox/JoystickDeadzoneRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 0.5
+step = 0.01
+value = 0.15
+
+[node name="JoystickDeadzoneValue" type="Label" parent="CenterContainer/Panel/VBox/JoystickDeadzoneRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0.15"
+horizontal_alignment = 1
+
+[node name="PreviewContainer" type="Control" parent="CenterContainer/Panel/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(520, 220)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 2
+
+[node name="CancelButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Cancel"
+
+[node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Reset to Defaults"
+
+[node name="EditLayoutButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Edit Layout"
+
+[node name="ApplyButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Apply"

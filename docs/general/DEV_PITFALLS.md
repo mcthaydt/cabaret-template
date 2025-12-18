@@ -116,7 +116,30 @@
 
 - **When to use**: Any overlay that needs non-standard navigation (cycling values, custom layouts) instead of simple focus neighbor traversal.
 
-- **Real example**: `scripts/ui/input_profile_selector.gd` - Uses up/down to cycle through profile names instead of navigating between controls, and left/right to move between the profile button and apply button.
+- **Real example**: `scripts/ui/ui_input_profile_selector.gd` - Uses up/down to cycle through profile names instead of navigating between controls, and left/right to move between the profile button and apply button.
+
+### Avoid Await Before Wiring UI Signals
+
+- **Problem**: Awaiting (e.g., `await get_tree().process_frame`) before connecting critical UI signals can create a 1+ frame window where buttons emit `pressed` but nothing is listening yet.
+
+- **Symptom**: Tests (or very fast user input) can press Apply/Close immediately after an overlay is created and the handler never fires, leaving the overlay stuck on the stack.
+
+- **Solution**:
+  1. Connect critical signals first (buttons, toggles) at the top of `_ready()` / `_on_panel_ready()`.
+  2. If dependencies initialize asynchronously (store/managers), make the handler defensive (lazy-resolve dependency and/or repopulate state before acting).
+
+  ```gdscript
+  func _on_panel_ready() -> void:
+      _apply_button.pressed.connect(_on_apply_pressed)  # connect first
+      _manager = _resolve_manager()  # may be null, handler can re-resolve
+
+  func _on_apply_pressed() -> void:
+      if _manager == null:
+          _manager = _resolve_manager()
+      if _available_profiles.is_empty():
+          _populate_profiles()
+      _manager.switch_profile(_available_profiles[_current_index])
+  ```
 
 ### Explicit Focus Neighbor Configuration
 
@@ -151,6 +174,19 @@
   - `scripts/ui/pause_menu.gd` - Vertical focus for 7 menu options
   - `scripts/ui/game_over.gd` - Horizontal focus for Retry/Menu buttons
 
+### Dynamic Button Visibility and Focus Chains
+
+- **Problem**: When using `U_FocusConfigurator.configure_horizontal_focus()` or `configure_vertical_focus()` with controls that may be hidden at runtime, the helper still wires focus neighbors for ALL controls passed in. If one of those controls later becomes invisible (e.g., `Edit Layout` hidden in touchscreen settings when opened from main menu), gamepad navigation will try to move focus into an invisible control, causing the focus “cursor” to appear stuck or to skip visible buttons unexpectedly.
+
+- **Solution**:
+  - Always build the focus list from **visible** controls only. Filter out any controls where `control.visible == false` before calling `U_FocusConfigurator`.
+  - When visibility changes at runtime (e.g., toggling a button on/off based on shell or device type), immediately re-run `_configure_focus_neighbors()` so focus neighbors match the new layout.
+  - Use the same pattern for bottom-row button bars (Cancel/Reset/Apply) and tab strips so that hiding a single button never leaves it in the focus chain.
+
+- **Why it matters**:
+  - BaseMenuScreen’s analog stick navigation relies entirely on focus neighbors. If hidden controls remain in the neighbor chain, navigation appears broken even though the buttons still work when clicked.
+  - This surfaced in `TouchscreenSettingsOverlay`: `Edit Layout` is hidden in main-menu flow, but remained in the horizontal focus list. The fix was to include only visible buttons when configuring focus and to re-run configuration whenever `Edit Layout` visibility changes.
+
 ## State Store Pitfalls (Redux-style)
 
 - Signal batching timing
@@ -170,6 +206,19 @@
 - Device detection flow
   - `device_changed` actions must originate from `M_InputDeviceManager`. `S_InputSystem` only reads `U_InputSelectors.get_active_device_type()` / `get_active_gamepad_id()`; dispatching from multiple sources causes duplicate logs and race conditions.
   - Gamepad hot-plug events dispatch `gamepad_connected` / `gamepad_disconnected` from the manager. Keep connection-dependent systems (e.g., vibration) subscribed to Redux state rather than polling the manager directly.
+
+## Dependency Lookup Rule
+
+- **Standard chain (preferred)**:
+  1. `@export` injection (tests)
+  2. `U_ServiceLocator.try_get_service(StringName("..."))` (production)
+  3. Group lookup / tree traversal only as a compatibility fallback
+
+- **State store**:
+  - Required callers: `U_StateUtils.get_store(node)` / `U_StateUtils.await_store_ready(node)`
+  - Optional callers (standalone scenes / editor-opened gameplay scenes): `U_StateUtils.try_get_store(node)` to avoid noisy errors
+
+- **Avoid ad-hoc group scanning in leaf nodes**: Prefer the standard chain for managers like `scene_manager`, `input_profile_manager`, `input_device_manager`, etc. Only drop to `get_tree().get_first_node_in_group(...)` when ServiceLocator may not be initialized (tests / isolated scenes).
 
 ## Scene Transition Pitfalls
 
@@ -264,9 +313,9 @@
   ```
   Systems that get the store in `process_tick()` don't need this await since process_tick runs after all _ready() calls complete.
 
-- **Input processing order matters**: Godot processes input in a specific order: `_input()` → `_gui_input()` → `_unhandled_input()`. If one system calls `set_input_as_handled()` in `_unhandled_input()`, other systems using `_unhandled_input()` may never see the input. **Solution**: Systems that need priority access to input should use `_input()` instead of `_unhandled_input()`. Example: S_PauseSystem uses `_input()` to process pause before M_CursorManager (which uses `_unhandled_input()`) can consume it. Both call `set_input_as_handled()` to prevent further propagation.
+- **Input processing order matters**: Godot processes input in a specific order: `_input()` → `_gui_input()` → `_unhandled_input()`. If one system calls `set_input_as_handled()` in `_unhandled_input()`, other systems using `_unhandled_input()` may never see the input. **Solution**: Systems that need priority access to input should use `_input()` instead of `_unhandled_input()`. Example: M_PauseManager uses `_input()` to process pause before M_CursorManager (which uses `_unhandled_input()`) can consume it. Both call `set_input_as_handled()` to prevent further propagation.
 
-- **Single source of truth for ESC/pause**: To avoid double-toggles, route ESC/pause through `M_SceneManager` only when it is present. `S_PauseSystem` now defers input handling if a Scene Manager exists and should only be used as a fallback (or via direct `toggle_pause()` in tests). Ensure the InputMap maps `pause` to ESC for consistency (project.godot already does).
+- **Single source of truth for ESC/pause**: To avoid double-toggles, route ESC/pause through `M_SceneManager` only when it is present. `M_PauseManager` now defers input handling if a Scene Manager exists and should only be used as a fallback (or via direct `toggle_pause()` in tests). Ensure the InputMap maps `pause` to ESC for consistency (project.godot already does).
 
 ## GUT Testing Pitfalls
 
@@ -486,7 +535,7 @@
   ```
   Without Array wrappers, transitions will never complete because the `while` loop checks a flag that the callback can't modify, causing infinite loops or test timeouts.
 
-- **Fade transitions need adequate wait time in tests**: FadeTransition duration defaults to 0.2 seconds. Tests using fade transitions must wait at least 15 physics frames (0.25s at 60fps) for completion. Waiting only 4 frames (0.067s) will cause assertions to run before transitions complete, resulting in `is_transitioning` still being true or `current_scene_id` not yet updated. Use `await wait_physics_frames(15)` after fade transitions in tests.
+- **Fade transitions need adequate wait time in tests**: Trans_Fade duration defaults to 0.2 seconds. Tests using fade transitions must wait at least 15 physics frames (0.25s at 60fps) for completion. Waiting only 4 frames (0.067s) will cause assertions to run before transitions complete, resulting in `is_transitioning` still being true or `current_scene_id` not yet updated. Use `await wait_physics_frames(15)` after fade transitions in tests.
 
 - **Tween process mode must match wait loop (idle vs physics)**: Headless runs can stall if a transition tween updates on one process domain while the manager waits on the other (e.g., tween on PHYSICS but loop yields IDLE frames). We removed the physics-only tween path and aligned the manager’s wait loop with idle frames again. This eliminates the idle/physics mismatch that previously stalled completion. Guidance:
   - If you choose physics: set `_tween.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)`, wait with `await get_tree().physics_frame`, and prefer `await wait_physics_frames(...)` in tests.
@@ -560,11 +609,11 @@
 
   **Solution**: Set appropriate preload priorities (10 = always cached, 0 = never preloaded). Don't mark every scene as priority 10 or cache fills with rarely-used scenes.
 
-- **Async loading progress requires explicit callbacks**: `ResourceLoader.load_threaded_get_status()` returns progress in `[0.0, 1.0]` range, but loading screens need callbacks to update UI. The `LoadingScreenTransition` polls progress and calls `update_progress_callback` regularly.
+- **Async loading progress requires explicit callbacks**: `ResourceLoader.load_threaded_get_status()` returns progress in `[0.0, 1.0]` range, but loading screens need callbacks to update UI. The `Trans_LoadingScreen` polls progress and calls `update_progress_callback` regularly.
 
   **Problem**: Custom loading screens don't update progress bar.
 
-  **Solution**: Implement `update_progress(progress: float)` method in loading screen script and connect to `LoadingScreenTransition` via callback pattern. See `scripts/scene_management/transitions/loading_screen_transition.gd` for reference.
+  **Solution**: Implement `update_progress(progress: float)` method in loading screen script and connect to `Trans_LoadingScreen` via callback pattern. See `scripts/scene_management/transitions/trans_loading_screen.gd` for reference.
 
 - **Headless mode fallback**: ResourceLoader async loading (`load_threaded_request`) may fail in headless mode if no rendering backend is available. `M_SceneManager` detects stuck progress (progress doesn't change for multiple frames) and falls back to synchronous loading.
 
@@ -690,11 +739,11 @@ The Input Manager and UI Manager have clear, separated responsibilities. Violati
 **UI Manager does NOT**:
 - ❌ Read raw input events (`InputEventKey`, `InputEventJoypadButton`) to detect ESC/pause
 - ❌ Map hardware buttons to actions (that's Input Manager's job)
-- ❌ Directly control cursor lock/visibility (delegates to `M_CursorManager` via `S_PauseSystem`)
+- ❌ Directly control cursor lock/visibility (delegates to `M_CursorManager` via `M_PauseManager`)
 
 ### System-Level Responsibilities (Phase 4b Refactor)
 
-**S_PauseSystem** (T070):
+**M_PauseManager** (T070):
 - Subscribes to `navigation` slice, NOT raw input
 - Derives pause state from `U_NavigationSelectors.is_paused(state)`
 - Applies engine-level pause (`get_tree().paused = is_paused`)
@@ -703,7 +752,7 @@ The Input Manager and UI Manager have clear, separated responsibilities. Violati
 
 **M_CursorManager** (T071):
 - Exposes `set_cursor_state(locked, visible)`, `set_cursor_locked()`, `set_cursor_visible()`
-- Reacts ONLY to explicit calls from `S_PauseSystem` or `M_SceneManager`
+- Reacts ONLY to explicit calls from `M_PauseManager` or `M_SceneManager`
 - Does NOT listen to pause/ESC input directly
 
 **M_SceneManager** (T072):
@@ -721,14 +770,14 @@ func _input(event):
     if event.is_action_pressed("pause"):
         M_SceneManager.push_overlay("pause_menu")
 
-# ✅ CORRECT (Phase 4b pattern):
-# 1. UI input handler (future Phase 5) or virtual button dispatches action:
+# ✅ CORRECT:
+# 1. M_UIInputHandler or virtual button dispatches action:
 store.dispatch(U_NavigationActions.open_pause())
 
 # 2. Navigation reducer updates state:
 # navigation.overlay_stack = ["pause_menu"]
 
-# 3. S_PauseSystem sees navigation change:
+# 3. M_PauseManager sees navigation change:
 # U_NavigationSelectors.is_paused(state) == true → sets get_tree().paused = true
 
 # 4. M_SceneManager reconciles overlays:
@@ -740,7 +789,7 @@ store.dispatch(U_NavigationActions.open_pause())
 # ✅ User presses back button in pause menu:
 store.dispatch(U_NavigationActions.close_pause())
 # → Navigation reducer clears overlay_stack
-# → S_PauseSystem sets get_tree().paused = false
+# → M_PauseManager sets get_tree().paused = false
 # → M_SceneManager pops overlay to match empty stack
 ```
 
@@ -750,9 +799,11 @@ store.dispatch(U_NavigationActions.close_pause())
 
 2. **Bypassing navigation state**: Don't call `M_SceneManager.push_overlay()` directly from UI controllers. Dispatch `U_NavigationActions.open_overlay(screen_id)` instead.
 
-3. **Reading input in UI controllers**: Don't check `Input.is_action_pressed("ui_cancel")` in UI scripts. React to navigation state changes or wait for future UI input handler (Phase 5).
+3. **Reading input in UI controllers**: Don't check `Input.is_action_pressed("ui_cancel")` in UI scripts. React to navigation state changes or let M_UIInputHandler handle input.
 
 4. **Ignoring transition state**: Overlay reconciliation defers during base scene transitions. Don't assume pause overlays push immediately—reconciliation may be deferred.
+
+5. **Pause system initialization timing**: M_PauseManager must initialize synchronously (not async) to subscribe to state updates before M_SceneManager syncs overlay state in its `_ready()`. Async initialization causes the pause system to miss initial state changes. See "M_PauseManager Initialization Timing" section below.
 
 ### Testing Patterns (Phase 4b)
 
@@ -769,6 +820,51 @@ await wait_physics_frames(2)
 _scene_manager._input(event)  # Removed in T072
 _cursor_manager.toggle_cursor()  # Removed in T071
 ```
+
+### M_PauseManager Initialization Timing
+
+**Problem**: M_PauseManager may miss state updates if initialization is async
+
+The pause system subscribes to `scene.slice_updated` to detect overlay changes and apply engine pause. If initialization uses `await get_tree().process_frame`, the following race condition occurs:
+
+1. M_PauseManager added to tree → `_ready()` starts → awaits frame (paused in middle of `_ready()`)
+2. M_SceneManager added to tree → `_ready()` runs completely → syncs overlay state (clears stale overlays)
+3. Frame completes, test checks state
+4. M_PauseManager's await completes AFTER test checks → subscribes too late
+
+**Symptoms**:
+- `get_tree().paused` doesn't match actual overlay state
+- Tests fail with "Tree should be unpaused without overlays" when state is correct but pause system hasn't synced yet
+- Pause system's `is_paused()` returns stale value
+
+**Solution** (implemented in m_pause_manager.gd:43-95):
+```gdscript
+func _ready() -> void:
+    super._ready()
+
+    # Get store synchronously - no await!
+    _store = U_StateUtils.get_store(self)
+
+    if not _store:
+        # Defer if store not ready, but don't block _ready()
+        call_deferred("_deferred_init")
+        return
+
+    _initialize()  # Synchronous initialization
+
+# Also use _process() polling as backup:
+func _process(_delta: float) -> void:
+    _check_and_resync_pause_state()  # Detects state/engine pause mismatches
+```
+
+**Why polling is needed**:
+Even with synchronous initialization, state updates can arrive BEFORE UI changes (or vice versa) due to signal timing. The `_process()` polling ensures pause state stays synced by checking BOTH:
+- `scene.scene_stack` (state)
+- `UIOverlayStack.get_child_count()` (actual UI)
+
+If they disagree with current pause state, force a resync.
+
+**Related**: See "Store Access Race Condition" below for general store initialization patterns.
 
 ### Documentation References
 
@@ -956,7 +1052,7 @@ All critical paths tested including error conditions, edge cases, integration sc
 
 ### Base Class Selection
 
-**Problem**: Tab panels extending `BaseMenuScreen` create nested `AnalogStickRepeater` conflicts
+**Problem**: Tab panels extending `BaseMenuScreen` create nested `U_AnalogStickRepeater` conflicts
 
 **Solution**: Parent `SettingsPanel` extends `BaseMenuScreen`; child tab panels extend plain `Control`
 ```gdscript

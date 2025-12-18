@@ -302,7 +302,7 @@ Chosen path: Option C (Dual‑bus via abstract base). Alternatives are documente
 - Cons: No shared bus semantics for state until later
 
 **Option C (Recommended): Dual‑Bus via Abstract Base**
-- Add `EventBusBase` (abstract) with shared logic
+- Add `BaseEventBus` (abstract) with shared logic
 - Keep `U_ECSEventBus` for ECS; add `U_StateEventBus` for state
 - Pros: Zero breaking changes, isolated domains, shared implementation
 - Cons: Two buses to reset in different test suites (explicit but clear)
@@ -419,7 +419,7 @@ resources/state/                              # NEW DIRECTORY (.tres files)
 
 scripts/
 scripts/events/                               # NEW DIRECTORY (shared infra)
-└── event_bus_base.gd                         # Abstract base class for event buses
+└── base_event_bus.gd                         # Abstract base class for event buses
 
 scripts/state/
 └── u_state_event_bus.gd                        # State domain bus (extends base)
@@ -458,7 +458,7 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 **Objective (Option C)**: Share logic via abstract base while isolating ECS and state domains.
 
 **Files**:
-- `scripts/events/event_bus_base.gd` — abstract base class
+- `scripts/events/base_event_bus.gd` — abstract base class
 - `scripts/state/u_state_event_bus.gd` — state domain bus with static delegates
 - `scripts/ecs/u_ecs_event_bus.gd` — update to extend base and delegate statics internally
 
@@ -478,7 +478,7 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 - ✅ Proceed when state tests and ECS tests both pass
 - ❌ If issues arise, fall back to Option B (direct signals) for P1
 
-**Commit Message**: `Add EventBusBase and U_StateEventBus; delegate U_ECSEventBus to base (Phase 0)`
+**Commit Message**: `Add BaseEventBus and U_StateEventBus; delegate U_ECSEventBus to base (Phase 0)`
 
 ---
 

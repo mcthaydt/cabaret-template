@@ -495,14 +495,14 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
 
 - [x] T070 [REF] Align Pause System with Navigation Slice.
   - **Files**:
-    - `scripts/ecs/systems/s_pause_system.gd`
-    - `tests/unit/ecs/systems/test_s_pause_system.gd`
+    - `scripts/ecs/systems/m_pause_manager.gd`
+    - `tests/unit/ecs/systems/test_m_pause_manager.gd`
   - **Deliverables**:
-    - S_PauseSystem no longer reads input events (`event.is_action_pressed("pause")`) directly
+    - M_PauseManager no longer reads input events (`event.is_action_pressed("pause")`) directly
     - System subscribes to store and derives pause state from navigation selectors (`U_NavigationSelectors.is_paused(state)`)
     - System is responsible only for applying engine-level pause (`get_tree().paused`), emitting `pause_state_changed`, and coordinating with cursor manager
   - **Acceptance**: All pause toggling is driven by navigation state changes, not raw input; existing tests updated to drive pause via actions/state
-- _Notes (2025-11-26)_: S_PauseSystem refactored to watch navigation slice, removed input handling, now only applies engine pause and coordinates cursor state.
+- _Notes (2025-11-26)_: M_PauseManager refactored to watch navigation slice, removed input handling, now only applies engine pause and coordinates cursor state.
 
 - [x] T071 [REF] Decouple Cursor Manager from "pause" Input Action.
   - **Files**:
@@ -510,9 +510,9 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
     - `tests/unit/managers/test_m_cursor_manager.gd`
   - **Deliverables**:
     - M_CursorManager no longer toggles on the "pause" InputMap action in `_unhandled_input()`
-    - Cursor manager exposes `set_cursor_state()`, `set_cursor_locked()`, `set_cursor_visible()` and reacts only to explicit calls/signals from S_PauseSystem or Scene Manager
+    - Cursor manager exposes `set_cursor_state()`, `set_cursor_locked()`, `set_cursor_visible()` and reacts only to explicit calls/signals from M_PauseManager or Scene Manager
   - **Acceptance**: No direct references to "pause" remain in M_CursorManager; cursor state changes are triggered via pause/navigation flows
-- _Notes (2025-11-26)_: Removed `_unhandled_input()` and `toggle_cursor()` methods; cursor now controlled via explicit calls from S_PauseSystem.
+- _Notes (2025-11-26)_: Removed `_unhandled_input()` and `toggle_cursor()` methods; cursor now controlled via explicit calls from M_PauseManager.
 
 - [x] T072 [REF] Remove ESC/Pause Handling from Scene Manager Input Path.
   - **Files**:

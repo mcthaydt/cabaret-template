@@ -12,7 +12,7 @@ const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const BACK_ACTION_CANCEL := StringName("ui_cancel")
 const BACK_ACTION_PAUSE := StringName("ui_pause")
 
-var _store: M_StateStore = null
+var _store: I_StateStore = null
 
 func _ready() -> void:
 	set_process_input(true)
@@ -22,7 +22,7 @@ func _ready() -> void:
 	_on_panel_ready()
 	await _apply_initial_focus()
 
-func get_store() -> M_StateStore:
+func get_store() -> I_StateStore:
 	return _store
 
 func _ensure_store_ready() -> void:

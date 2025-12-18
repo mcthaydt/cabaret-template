@@ -1,47 +1,49 @@
-[gd_scene load_steps=50 format=3 uid="uid://bageed5ytib7"]
+[gd_scene load_steps=52 format=3 uid="uid://bageed5ytib7"]
 
-[ext_resource type="Script" uid="uid://dcqel6tpsbeg5" path="res://scripts/scene_structure/main_root_node.gd" id="1_f2o31"]
-[ext_resource type="Script" uid="uid://bsccsmledbxbs" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
-[ext_resource type="Script" uid="uid://d4jv6x1m1qr4i" path="res://scripts/scene_structure/environment_group.gd" id="2_8soux"]
-[ext_resource type="Script" uid="uid://biqa541wtn26y" path="res://scripts/scene_structure/scene_objects_group.gd" id="2_ph0bl"]
-[ext_resource type="Script" uid="uid://drqywr42vxyud" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
-[ext_resource type="Script" uid="uid://bgnsh0o3wra1n" path="res://scripts/scene_structure/systems_group.gd" id="3_ph0bl"]
-[ext_resource type="Script" uid="uid://c4e4hlymefb77" path="res://scripts/scene_structure/systems_core_group.gd" id="3_systems_core"]
-[ext_resource type="Script" uid="uid://b4sme8c1pqnrd" path="res://scripts/scene_structure/systems_feedback_group.gd" id="3_systems_feedback"]
-[ext_resource type="Script" uid="uid://ddn3u13llflav" path="res://scripts/scene_structure/systems_movement_group.gd" id="3_systems_movement"]
-[ext_resource type="Script" uid="uid://dg6boicav68qc" path="res://scripts/scene_structure/systems_physics_group.gd" id="3_systems_physics"]
-[ext_resource type="Script" uid="uid://cpf4nf40ofvnf" path="res://scripts/ecs/systems/s_gravity_system.gd" id="3_xnqit"]
-[ext_resource type="Script" uid="uid://dqmp6mj101ily" path="res://scripts/ecs/systems/s_movement_system.gd" id="4_vry44"]
-[ext_resource type="Script" uid="uid://djggd1n130ax6" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
-[ext_resource type="Script" uid="uid://bj50lxnot37ba" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
-[ext_resource type="Script" uid="uid://blh5rcefesvhl" path="res://scripts/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
-[ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://templates/player_template.tscn" id="7_4wxy1"]
-[ext_resource type="Script" uid="uid://c8ass3lvev88k" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
-[ext_resource type="Script" uid="uid://dgf540va7nevu" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
-[ext_resource type="Script" uid="uid://btv2kb8firb4t" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
-[ext_resource type="Script" uid="uid://5f8pn1tlew0i" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
-[ext_resource type="Script" uid="uid://inbnerw83pve" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
+[ext_resource type="Script" uid="uid://b4tth4uu52xvk" path="res://scripts/scene_structure/main.gd" id="1_f2o31"]
+[ext_resource type="Script" uid="uid://cf5gy8sa741bw" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
+[ext_resource type="Script" uid="uid://c2s8iwkj3ng5j" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
+[ext_resource type="Script" uid="uid://c3pmyueyktptt" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
+[ext_resource type="Script" uid="uid://dwurjc15jl1du" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
+[ext_resource type="Script" uid="uid://bnbp7xxjubame" path="res://scripts/scene_structure/marker_systems_group.gd" id="3_ph0bl"]
+[ext_resource type="Script" uid="uid://cimlbsy05smtk" path="res://scripts/scene_structure/marker_systems_core_group.gd" id="3_systems_core"]
+[ext_resource type="Script" uid="uid://d3reosm6olki" path="res://scripts/scene_structure/marker_systems_feedback_group.gd" id="3_systems_feedback"]
+[ext_resource type="Script" uid="uid://b46av5k1mp4pu" path="res://scripts/scene_structure/marker_systems_movement_group.gd" id="3_systems_movement"]
+[ext_resource type="Script" uid="uid://5vxlons2nik7" path="res://scripts/scene_structure/marker_systems_physics_group.gd" id="3_systems_physics"]
+[ext_resource type="Script" uid="uid://c8py77uvrsbi7" path="res://scripts/ecs/systems/s_gravity_system.gd" id="3_xnqit"]
+[ext_resource type="Script" uid="uid://wingajgxjj7o" path="res://scripts/ecs/systems/s_movement_system.gd" id="4_vry44"]
+[ext_resource type="Script" uid="uid://de46hebf8138h" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
+[ext_resource type="Script" uid="uid://7hjo6txkl0sr" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
+[ext_resource type="Script" uid="uid://dti7l35sh5bkc" path="res://scripts/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
+[ext_resource type="PackedScene" uid="uid://d1cugdu6fb42l" path="res://scenes/prefabs/prefab_player.tscn" id="7_4wxy1"]
+[ext_resource type="Script" uid="uid://di63yf5ndtjs7" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
+[ext_resource type="Script" uid="uid://c6ekxw4ydotfv" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
+[ext_resource type="Script" uid="uid://bic034xc08ugf" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
+[ext_resource type="Script" uid="uid://um5gugfbdv1k" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
+[ext_resource type="Script" uid="uid://dc0p5fatqefv7" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
 [ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/settings/jump_particles_default.tres" id="9_jump_particles_settings"]
-[ext_resource type="Script" uid="uid://cu3er3y1tl8r3" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
-[ext_resource type="Script" uid="uid://c0q5fgkbsulke" path="res://scripts/ecs/systems/s_pause_system.gd" id="9_pause"]
-[ext_resource type="Script" uid="uid://bc1ae47bo4m04" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
-[ext_resource type="Script" uid="uid://b5g6xp0umxfy4" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
+[ext_resource type="Script" uid="uid://cdne8b5e10tj6" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
+[ext_resource type="Script" uid="uid://bcm4yo4jmdd7g" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
+[ext_resource type="Script" uid="uid://b5wgbapxu8fmy" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
 [ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/settings/landing_particles_default.tres" id="10_landing_particles_settings"]
-[ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/hud_overlay.tscn" id="11_hud"]
-[ext_resource type="Script" uid="uid://d0n2a3p3tkdq0" path="res://scripts/scene_structure/managers_group.gd" id="12_klon2"]
-[ext_resource type="Script" uid="uid://mm82rwglfuba" path="res://scripts/scene_structure/entities_group.gd" id="16_8qi87"]
-[ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/camera_template.tscn" id="19_ph0bl"]
-[ext_resource type="Script" uid="uid://dtaup85wkpxg0" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
-[ext_resource type="Script" uid="uid://u7yf4vdyvkmx" path="res://scripts/scene_structure/spawn_points_group.gd" id="21_spawnpoints"]
-[ext_resource type="Script" uid="uid://b420jsnbnxfy8" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
+[ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/ui_hud_overlay.tscn" id="11_hud"]
+[ext_resource type="Script" uid="uid://dmtpf2djqjecl" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
+[ext_resource type="Script" uid="uid://crvefkge3deso" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
+[ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/tmpl_camera.tscn" id="19_ph0bl"]
+[ext_resource type="Script" uid="uid://3nv5tm37f7ov" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
+[ext_resource type="Script" uid="uid://ckks3y1urx2dm" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
+[ext_resource type="Script" uid="uid://cjqw8dw7lt3ky" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
 [ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="30_auc1c"]
-[ext_resource type="Script" uid="uid://ccm1a2gahhbye" path="res://scripts/gameplay/e_door_trigger_controller.gd" id="30_door_controller"]
+[ext_resource type="Script" uid="uid://j8442qpkovcg" path="res://scripts/gameplay/e_door_trigger_controller.gd" id="30_door_controller"]
 [ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/rs_death_zone_volume.tres" id="44_death_settings"]
 [ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/rs_goal_cylinder.tres" id="44_goal_settings"]
-[ext_resource type="Script" uid="uid://df16oscnvlau8" path="res://scripts/gameplay/e_hazard_zone.gd" id="44_hazard_controller"]
-[ext_resource type="Script" uid="uid://d3l2saw67j1so" path="res://scripts/gameplay/e_victory_zone.gd" id="44_victory_controller"]
-[ext_resource type="Script" uid="uid://dr277k25nhehf" path="res://scripts/gameplay/e_signpost.gd" id="45_signpost_controller"]
+[ext_resource type="Script" uid="uid://cpi8lux3xig4o" path="res://scripts/gameplay/e_hazard_zone.gd" id="44_hazard_controller"]
+[ext_resource type="Script" uid="uid://c0gmmilbk63f2" path="res://scripts/gameplay/e_victory_zone.gd" id="44_victory_controller"]
+[ext_resource type="Script" uid="uid://dhhwgam3xt3i1" path="res://scripts/gameplay/e_signpost.gd" id="45_signpost_controller"]
 [ext_resource type="Resource" uid="uid://b2ehbrq1l8yro" path="res://resources/triggers/rs_signpost_cylinder.tres" id="45_signpost_settings"]
+[ext_resource type="Script" uid="uid://cuv07yhyjth5p" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
+[ext_resource type="Resource" uid="uid://bqktd616pidot" path="res://resources/spawn_metadata/gameplay_interior_house_spawns.tres" id="51_interior_default_spawn_meta"]
+[ext_resource type="Resource" uid="uid://5a5jc4dpye3i" path="res://resources/spawn_metadata/gameplay_interior_house_entrance_spawn.tres" id="52_interior_entrance_spawn_meta"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -88,6 +90,34 @@ use_collision = true
 size = Vector3(25, 1, 25)
 material = SubResource("StandardMaterial3D_748a2")
 
+[node name="SO_Floor5" type="CSGBox3D" parent="SceneObjects"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.4307995, 0)
+material_override = SubResource("StandardMaterial3D_q3o1v")
+use_collision = true
+size = Vector3(25, 1, 25)
+material = SubResource("StandardMaterial3D_748a2")
+
+[node name="SO_Floor2" type="CSGBox3D" parent="SceneObjects"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.810547, 3.571289, 0)
+material_override = SubResource("StandardMaterial3D_q3o1v")
+use_collision = true
+size = Vector3(1.3789063, 12.142578, 25)
+material = SubResource("StandardMaterial3D_748a2")
+
+[node name="SO_Floor3" type="CSGBox3D" parent="SceneObjects"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.48357, 3.571289, 0)
+material_override = SubResource("StandardMaterial3D_q3o1v")
+use_collision = true
+size = Vector3(1.3789063, 12.142578, 25)
+material = SubResource("StandardMaterial3D_748a2")
+
+[node name="SO_Floor4" type="CSGBox3D" parent="SceneObjects"]
+transform = Transform3D(-0.010768487, 0, 0.999942, 0, 1, 0, -0.999942, 0, -0.010768487, -0.07457161, 3.571289, -12.845993)
+material_override = SubResource("StandardMaterial3D_q3o1v")
+use_collision = true
+size = Vector3(1.3789063, 12.142578, 25)
+material = SubResource("StandardMaterial3D_748a2")
+
 [node name="SO_Block3" type="CSGBox3D" parent="SceneObjects"]
 transform = Transform3D(-0.69425654, -0.7197277, 0, 0.7197277, -0.69425654, 0, 0, 0, 1, -4.044385, 0.110826224, -3.1731567)
 use_collision = true
@@ -118,10 +148,6 @@ require_captured_cursor = true
 
 [node name="S_TouchscreenSystem" type="Node" parent="Systems/Core"]
 script = ExtResource("24_touchscreen_system")
-
-[node name="S_PauseSystem" type="Node" parent="Systems/Core"]
-script = ExtResource("9_pause")
-execution_priority = 5
 
 [node name="S_HealthSystem" type="Node" parent="Systems/Core"]
 script = ExtResource("9_health")
@@ -201,10 +227,10 @@ script = ExtResource("16_8qi87")
 [node name="E_Player" parent="Entities" instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.190454, 1.0887601, 1.7809162)
 
-[node name="E_Camera" parent="Entities" instance=ExtResource("19_ph0bl")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 4.5)
+[node name="E_CameraRoot" parent="Entities" instance=ExtResource("19_ph0bl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 7.147382)
 
-[node name="E_PlayerCamera" parent="Entities/E_Camera" index="0"]
+[node name="E_PlayerCamera" parent="Entities/E_CameraRoot" index="0"]
 fov = 65.0
 
 [node name="E_DoorTrigger" type="Node3D" parent="Entities"]
@@ -215,6 +241,8 @@ target_scene_id = &"exterior"
 target_spawn_point = &"sp_exit_from_house"
 settings = ExtResource("30_auc1c")
 visual_paths = Array[NodePath]([NodePath("DoorVisual")])
+entity_id = &"door_to_exterior"
+tags = Array[StringName]([&"trigger", &"door"])
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.57354736, 0)
@@ -222,36 +250,40 @@ material_overlay = SubResource("StandardMaterial3D_ee6xw")
 radius = 0.7910156
 height = 2.0715332
 
-[node name="E_Hazards" type="Node" parent="Entities"]
+[node name="Hazards" type="Node" parent="Entities"]
 script = ExtResource("16_8qi87")
 
-[node name="E_DeathZone" type="Node3D" parent="Entities/E_Hazards"]
+[node name="E_DeathZone" type="Node3D" parent="Entities/Hazards"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
 script = ExtResource("44_hazard_controller")
 is_instant_death = true
 settings = ExtResource("44_death_settings")
+entity_id = &"deathzone_interior"
+tags = Array[StringName]([&"hazard", &"death"])
 
-[node name="E_Objectives" type="Node" parent="Entities"]
+[node name="Objectives" type="Node" parent="Entities"]
 script = ExtResource("16_8qi87")
 
-[node name="E_GoalZone" type="Node3D" parent="Entities/E_Objectives"]
+[node name="E_GoalZone" type="Node3D" parent="Entities/Objectives"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -0.41013765, -10.004155)
 script = ExtResource("44_victory_controller")
 objective_id = &"goal_interior"
 area_id = "interior_house"
 settings = ExtResource("44_goal_settings")
 visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePath("GlowLight")])
+entity_id = &"goalzone_interior"
+tags = Array[StringName]([&"objective", &"goal"])
 
-[node name="Visual" type="CSGCylinder3D" parent="Entities/E_Objectives/E_GoalZone"]
+[node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_GoalZone"]
 radius = 1.5
 material = SubResource("StandardMaterial3D_goal")
 
-[node name="GlowLight" type="OmniLight3D" parent="Entities/E_Objectives/E_GoalZone"]
+[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_GoalZone"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 light_color = Color(1, 0.87451, 0.364706, 1)
 light_energy = 2.0
 
-[node name="Sparkles" type="CPUParticles3D" parent="Entities/E_Objectives/E_GoalZone"]
+[node name="Sparkles" type="CPUParticles3D" parent="Entities/Objectives/E_GoalZone"]
 amount = 80
 lifetime = 1.5
 preprocess = 0.5
@@ -263,6 +295,8 @@ script = ExtResource("45_signpost_controller")
 message = "Welcome inside!"
 settings = ExtResource("45_signpost_settings")
 visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("GlowLight")])
+entity_id = &"tutorial_interior"
+tags = Array[StringName]([&"interactable", &"tutorial"])
 
 [node name="Visual" type="CSGCylinder3D" parent="Entities/E_TutorialSign_Interior"]
 radius = 0.25
@@ -274,17 +308,19 @@ light_color = Color(0.8, 0.9, 1, 1)
 light_energy = 1.5
 omni_range = 1.863689
 
-[node name="SP_SpawnPoints" type="Node3D" parent="."]
+[node name="SP_SpawnPoints" type="Node3D" parent="Entities"]
 script = ExtResource("21_spawnpoints")
 
-[node name="sp_default" type="Node3D" parent="SP_SpawnPoints"]
+[node name="sp_default" type="Node3D" parent="Entities/SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7123368, 1.0887601, 1.7809162)
-script = ExtResource("21_spawnpoints")
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("51_interior_default_spawn_meta")
 
-[node name="sp_entrance_from_exterior" type="Node3D" parent="SP_SpawnPoints"]
+[node name="sp_entrance_from_exterior" type="Node3D" parent="Entities/SP_SpawnPoints"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.3252916, -0.40663242, 1.4185565)
-script = ExtResource("21_spawnpoints")
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("52_interior_entrance_spawn_meta")
 
 [node name="HUD" parent="." instance=ExtResource("11_hud")]
 
-[editable path="Entities/E_Camera"]
+[editable path="Entities/E_CameraRoot"]

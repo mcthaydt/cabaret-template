@@ -1,0 +1,34 @@
+[gd_scene load_steps=3 format=3 uid="uid://d2ageyb8ybl1m"]
+
+[ext_resource type="Script" uid="uid://fbgcii2acj1d" path="res://scripts/ui/ui_virtual_button.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://da5wjpwvjqj77" path="res://resources/button_prompts/mobile/button_background.png" id="2"]
+
+[node name="VirtualButton" type="Control"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 100.0
+offset_bottom = 100.0
+script = ExtResource("1")
+button_texture = ExtResource("2")
+
+[node name="ButtonTexture" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = ExtResource("2")
+
+[node name="ActionLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.85)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.55)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 18
+text = "ACTION"
+horizontal_alignment = 1
+vertical_alignment = 1

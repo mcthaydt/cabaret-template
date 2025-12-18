@@ -10,10 +10,21 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 const EVENT_ENTITY_JUMPED := StringName("entity_jumped")
 const EVENT_ENTITY_LANDED := StringName("entity_landed")
 
+## Injected state store (for testing)
+## If set, system uses this instead of U_StateUtils.get_store()
+## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
+@export var state_store: I_StateStore = null
+
 
 func process_tick(_delta: float) -> void:
 	# Skip processing if game is paused
-	var store: M_StateStore = U_StateUtils.get_store(self)
+	# Use injected store if available (Phase 10B-8)
+	var store: I_StateStore = null
+	if state_store != null:
+		store = state_store
+	else:
+		store = U_StateUtils.get_store(self)
+
 	var accessibility_jump_buffer: float = -1.0
 	if store:
 		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))

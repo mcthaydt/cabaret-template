@@ -1,12 +1,10 @@
-[gd_resource type="Resource" script_class="RS_UIScreenDefinition" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_UIScreenDefinition" load_steps=2 format=3 uid="uid://baex85qa5wyvr"]
 
-[ext_resource type="Script" path="res://scripts/ui/resources/rs_ui_screen_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://cxwcn4lvbnkwv" path="res://scripts/ui/resources/rs_ui_screen_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 screen_id = &"main_menu"
-kind = 0
 scene_id = &"main_menu"
-allowed_shells = [&"main_menu"]
-allowed_parents = []
+allowed_shells = Array[StringName]([&"main_menu"])
 close_mode = 2

@@ -50,9 +50,9 @@ ResourceSaver.save(entry, "res://resources/scene_registry/my_level.tres")
 - `gameplay_base.tres`: GAMEPLAY, loading, priority 8
 - `exterior.tres`: GAMEPLAY, fade, priority 6
 - `interior_house.tres`: GAMEPLAY, fade, priority 6
-- `game_over.tres`: END_GAME, fade, priority 8
-- `victory.tres`: END_GAME, fade, priority 5
-- `credits.tres`: END_GAME, fade, priority 0
+- `ui_game_over.tres`: END_GAME, fade, priority 8
+- `ui_victory.tres`: END_GAME, fade, priority 5
+- `ui_credits.tres`: END_GAME, fade, priority 0
 
 **Critical scenes (kept hardcoded in U_SceneRegistry)**:
 - main_menu: MENU, fade, priority 10

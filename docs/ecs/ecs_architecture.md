@@ -195,7 +195,7 @@ var _systems: Array[BaseECSSystem] = []
 
 ### 3.2 ECSComponent (Base Class)
 
-**Location**: `scripts/ecs/ecs_component.gd`
+**Location**: `scripts/ecs/base_ecs_component.gd`
 
 **Purpose**: Base class for all data components. Handles auto-registration with manager.
 
@@ -263,7 +263,7 @@ Component destroyed
 
 ### 3.3 ECSSystem (Base Class)
 
-**Location**: `scripts/ecs/ecs_system.gd`
+**Location**: `scripts/ecs/base_ecs_system.gd`
 
 **Purpose**: Base class for all logic systems. Provides component query API.
 
@@ -708,9 +708,9 @@ func process_tick(_delta: float) -> void:
          ↓
 [3] var entities = system.query_entities(required_types, optional_types)
          ↓
-[4] Manager assembles EntityQuery results from entity→component map
+[4] Manager assembles U_EntityQuery results from entity→component map
          ↓
-[5] Returns Array[EntityQuery] (each holds entity + component dictionary)
+[5] Returns Array[U_EntityQuery] (each holds entity + component dictionary)
          ↓
 [6] System iterates entity queries
          │
@@ -730,11 +730,11 @@ func process_tick(_delta: float) -> void:
 **Pattern**:
 - Components register with the manager using their `COMPONENT_TYPE`.
 - `M_ECSManager` maintains an entity→component map keyed by the closest ancestor whose name starts with `E_`.
-- Systems call `query_entities(required_types, optional_types)` to retrieve `EntityQuery` objects.
+- Systems call `query_entities(required_types, optional_types)` to retrieve `U_EntityQuery` objects.
 
-**EntityQuery Structure**:
+**U_EntityQuery Structure**:
 ```gdscript
-class_name EntityQuery
+class_name U_EntityQuery
 
 var entity: Node  # Entity root (e.g., E_Player)
 var components: Dictionary[StringName, ECSComponent]
@@ -937,7 +937,7 @@ func test_movement_system_applies_velocity():
 **Trade-off**: Entities must be in scene tree (can't have "abstract" entities).
 
 **Entity Identification Contract**:
-- Attach `scripts/ecs/ecs_entity.gd` to every gameplay entity root. The script tags the node via `_ecs_entity_root` metadata, so component discovery becomes deterministic without relying on naming.
+- Attach `scripts/ecs/base_ecs_entity.gd` to every gameplay entity root. The script tags the node via `_ecs_entity_root` metadata, so component discovery becomes deterministic without relying on naming.
 - Legacy prefixes (`E_`) and the optional `ecs_entity` group remain as fallbacks; enable the `add_legacy_group` export if you need to interop with older scenes during migration.
 - The manager caches discovered roots via `_ecs_entity_root` metadata on the node chain, so reparenting or renaming should continue to satisfy the script/prefix contract to avoid stale lookups.
 
@@ -1422,7 +1422,7 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 **Status**: ✅ Delivered. `M_ECSManager.query_entities(required, optional)` now powers every gameplay system.
 
 **Highlights**:
-- Returns `Array[EntityQuery]`, each providing the entity root and a dictionary of resolved components.
+- Returns `Array[U_EntityQuery]`, each providing the entity root and a dictionary of resolved components.
 - Optional components are supported; missing entries resolve to `null`.
 - The manager caches an entity→component map so repeated queries avoid walking the scene tree.
 - `U_ECSUtils.map_components_by_body()` supplements queries when systems need body-level deduplication.
@@ -1462,6 +1462,49 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 - Replace ad-hoc signal wiring between systems with event bus topics.
 - Be mindful of payload size: keep dictionaries lean (<1 KB) to avoid ballooning the history buffer.
 
+#### Standard ECS Events (Phase 7, Enhanced Phase 10B-6)
+
+**📚 See [ecs_events.md](./ecs_events.md) for comprehensive event documentation including typed events, priority system, and API reference.**
+
+**Core Events** (Phase 10B-6 - Typed Events):
+
+| Event | Typed Class | Publisher | Subscribers | Priority |
+|-------|-------------|-----------|-------------|----------|
+| `health_changed` | `Evn_HealthChanged` | `C_HealthComponent` | _(state-driven)_ | - |
+| `entity_death` | `Evn_EntityDeath` | `C_HealthComponent` | `M_SceneManager` (10), `S_GamepadVibrationSystem` (0) | 10: Quick game over |
+| `victory_triggered` | `Evn_VictoryTriggered` | `C_VictoryTriggerComponent` | `S_VictorySystem` (10), `M_SceneManager` (5) | 10: State before transition |
+| `checkpoint_activated` | `Evn_CheckpointActivated` | `S_CheckpointSystem` | `UI_HudController` (0) | - |
+
+**Additional Events** (StringName):
+- `victory_zone_entered`, `checkpoint_zone_entered`, `damage_zone_entered/exited`
+- `entity_jumped`, `entity_landed`, `component_registered`, `entity_registered/unregistered`
+
+**Subscription Pattern with Priority**:
+```gdscript
+# Subscribe with priority (higher = called first)
+var _unsubscribe := U_ECSEventBus.subscribe(
+    StringName("entity_death"),
+    _on_entity_death,
+    10  # High priority
+)
+
+# Unsubscribe in _exit_tree()
+func _exit_tree() -> void:
+    if _unsubscribe != null and _unsubscribe.is_valid():
+        _unsubscribe.call()
+```
+
+**Typed Event Publishing**:
+```gdscript
+var death_event := Evn_EntityDeath.new(entity_id, prev_health, 0.0, true)
+U_ECSEventBus.publish_typed(death_event)  # Auto-converts to "entity_death"
+```
+
+**Priority Guidelines**:
+- **10**: Critical state updates before transitions (e.g., S_VictorySystem)
+- **5-9**: Important ordering (e.g., M_SceneManager transitions after state)
+- **0** (default): No special ordering needed (UI, VFX, haptics)
+
 ---
 
 ### 8.4 System Execution Ordering (Stories 5.1–5.3)
@@ -1483,22 +1526,147 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 
 ---
 
-### 8.5 No Entity Abstraction
+### 8.5 Entity IDs & Tagging ✅ RESOLVED (Phase 6 - 2025-12-09)
 
-**Problem**: No explicit entity concept—`CharacterBody3D` acts as implicit entity.
+**Status**: Implemented
 
-**Issues**:
-- Can't have non-physical entities (UI elements, game logic)
-- Hard to serialize entity state
-- Can't query "all entities with X components" directly
+**Solution**: Explicit entity ID and tag system added to `BaseECSEntity` with automatic registration via `M_ECSManager`.
 
-**Current Pattern**: Components reference parent node as "entity".
+#### Entity ID System
 
-**Desired Pattern**: Explicit entity ID, components belong to entity ID, systems query by entity.
+**Pattern**: All entities (nodes extending `BaseECSEntity`) have unique string identifiers.
 
-**Impact**: Low for current use case (3D character controller), High for general ECS.
+**ID Assignment**:
+- **Auto-generated**: ID derived from node name (`E_Player` → `"player"`)
+  - Strips `E_` prefix, converts to lowercase
+  - Cached after first call to `get_entity_id()`
+- **Manual override**: Set `entity_id` export variable for custom IDs
+- **Duplicate handling**: Automatically appends `_{instance_id}` suffix on collision
 
-**Solution**: See `docs/ecs/refactor recommendations/ecs_refactor_recommendations.md` → Entity Tracking
+**Core Methods** (in `BaseECSEntity`):
+```gdscript
+func get_entity_id() -> StringName    # Returns cached or generated ID
+func set_entity_id(id: StringName)     # Allows manager to update on duplicates
+```
+
+**Manager Integration** (in `M_ECSManager`):
+```gdscript
+func register_entity(entity: Node) -> void           # Auto-registers when first component added
+func get_entity_by_id(id: StringName) -> Node        # Lookup entity by ID
+func get_all_entity_ids() -> Array[StringName]      # Get all registered IDs
+```
+
+#### Tag System
+
+**Pattern**: Entities can have multiple freeform tags for categorization.
+
+**Tag Usage**:
+- **Export variable**: `@export var tags: Array[StringName] = []`
+- **Dynamic management**: `add_tag(tag)`, `remove_tag(tag)`, `has_tag(tag)`
+- **Tag queries**: Find entities by tags (ANY or ALL match)
+
+**Core Methods** (in `BaseECSEntity`):
+```gdscript
+func get_tags() -> Array[StringName]       # Returns defensive copy
+func has_tag(tag: StringName) -> bool      # Check for tag
+func add_tag(tag: StringName) -> void      # Add tag, updates manager index
+func remove_tag(tag: StringName) -> void   # Remove tag, updates manager index
+```
+
+**Manager Queries** (in `M_ECSManager`):
+```gdscript
+func get_entities_by_tag(tag: StringName) -> Array[Node]
+func get_entities_by_tags(tags: Array[StringName], match_all: bool = false) -> Array[Node]
+```
+
+#### Example Usage
+
+```gdscript
+# Entity setup in scene
+var player := E_PlayerRoot.new()
+player.entity_id = StringName("player")        # Manual ID
+player.tags = [StringName("player"), StringName("controllable")]
+
+# System queries
+var manager := U_ECSUtils.get_manager(self)
+var player_entity := manager.get_entity_by_id(StringName("player"))
+var hostile_entities := manager.get_entities_by_tag(StringName("enemy"))
+var boss_enemies := manager.get_entities_by_tags([StringName("enemy"), StringName("boss")], true)
+```
+
+#### State Store Integration
+
+**Snapshot Building** (in `U_ECSUtils`):
+```gdscript
+func build_entity_snapshot(entity: Node) -> Dictionary
+    # Returns: { "entity_id": String, "tags": Array[String], "position": Vector3, ... }
+```
+
+**Redux Actions** (in `U_EntityActions`):
+- Accept both `String` and `StringName` for entity_id parameters
+- Automatically converted to String for dictionary keys
+
+#### Events
+
+**Entity Lifecycle Events** (published to `U_ECSEventBus`):
+- `"entity_registered"` - payload: `{ "entity_id": StringName, "entity": Node }`
+- `"entity_unregistered"` - payload: `{ "entity_id": StringName, "entity": Node }`
+
+#### Benefits
+
+✅ **Unique identifiers**: Every entity has a stable ID across scene transitions
+✅ **Flexible categorization**: Tag-based queries for gameplay logic
+✅ **State persistence**: Entity IDs integrate with Redux state snapshots
+✅ **Event-driven architecture**: Entity registration/unregistration via event bus
+✅ **Automatic management**: Auto-registration when first component added
+✅ **Collision-safe**: Duplicate IDs automatically resolved with instance ID suffix
+
+#### ID/Tag Inventory (Phase 6 rollout)
+
+**Templates**
+
+| Scene | Entity Node | entity_id | tags | Notes |
+|---|---|---|---|---|
+| templates/tmpl_character.tscn | E_CharacterRoot | `""` (auto → `characterroot`) | `[character]` | Generic character base (movement/physics/health, no input) |
+| templates/tmpl_camera.tscn | E_CameraRoot | `camera` | `[camera]` | Main camera; member of `main_camera` group |
+
+**Prefabs**
+
+| Prefab | Entity Node | entity_id | tags | Notes |
+|---|---|---|---|---|
+| scenes/prefabs/prefab_checkpoint_safe_zone.tscn | E_Checkpoint_SafeZone | `checkpoint_safezone` | `[checkpoint, objective]` | Passive respawn/restore volume |
+| scenes/prefabs/prefab_player.tscn | E_PlayerRoot | `player` | `[player, character]` | Player prefab (character template + input/gamepad/player tag) |
+| scenes/prefabs/prefab_death_zone.tscn | E_DeathZone | `deathzone` | `[hazard, death]` | Instant-death hazard volume |
+| scenes/prefabs/prefab_spike_trap.tscn | E_SpikeTrap | `spiketrap` | `[hazard, trap]` | Reusable spike trap hazard |
+| scenes/prefabs/prefab_goal_zone.tscn | E_GoalZone | `goalzone` | `[objective, goal]` | Area completion objective |
+| scenes/prefabs/prefab_door_trigger.tscn | E_DoorTrigger | `doortrigger` | `[trigger, door]` | Scene transition door; configure door_id/targets per instance |
+
+**Gameplay scenes**
+
+| Scene | Entity Node | entity_id | tags | Notes |
+|---|---|---|---|---|
+| scenes/gameplay/gameplay_exterior.tscn | E_DoorTrigger | `door_to_house` | `[trigger, door]` | Transition to `interior_house` |
+| scenes/gameplay/gameplay_exterior.tscn | E_DeathZone | `deathzone_exterior` | `[hazard, death]` | Pit/kill floor |
+| scenes/gameplay/gameplay_exterior.tscn | E_SpikeTrapA / E_SpikeTrapB | `spiketrap_a` / `spiketrap_b` | `[hazard, trap]` | Dual spike traps using shared settings |
+| scenes/gameplay/gameplay_exterior.tscn | E_Checkpoint_SafeZone | `checkpoint_exterior` | `[checkpoint, objective]` | Exterior checkpoint near spawn |
+| scenes/gameplay/gameplay_exterior.tscn | E_TutorialSign | `tutorial_exterior` | `[interactable, tutorial]` | Signpost dialogue on exterior path |
+| scenes/gameplay/gameplay_exterior.tscn | E_FinalGoal | `finalgoal` | `[objective, endgame]` | Final victory trigger for exterior |
+| scenes/gameplay/gameplay_interior_house.tscn | E_DoorTrigger | `door_to_exterior` | `[trigger, door]` | Transition back to exterior |
+| scenes/gameplay/gameplay_interior_house.tscn | E_DeathZone | `deathzone_interior` | `[hazard, death]` | Interior pit hazard |
+| scenes/gameplay/gameplay_interior_house.tscn | E_GoalZone | `goalzone_interior` | `[objective, goal]` | Interior objective target |
+| scenes/gameplay/gameplay_interior_house.tscn | E_TutorialSign_Interior | `tutorial_interior` | `[interactable, tutorial]` | Interior signpost hint |
+
+**Tagging strategy**
+- `hazard` pairs with context tags (`death` for lethal volume, `trap` for spike traps) so systems can filter by severity.
+- `objective` marks win/goal flows; combine with `goal` for standard objectives or `endgame` for final victory.
+- `checkpoint` marks respawn/restore anchors; still carries `objective` for UI/state visibility.
+- `trigger` + `door` marks scene transitions and keeps door queries simple (hinting + interaction prompts).
+- `interactable` + `tutorial` marks non-lethal interactables (signposts) that surface tutorial text.
+- `player` and `camera` remain reserved for the controllable character and active camera; treat them as unique IDs per scene.
+
+**Implementation**: `scripts/ecs/base_ecs_entity.gd`, `scripts/managers/m_ecs_manager.gd`
+**Tests**: `tests/unit/ecs/test_entity_ids.gd` (27 tests, all passing)
+**Documentation**: Phase 6 of style/scene cleanup project
 
 ---
 
@@ -1527,16 +1695,17 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 - Manager discovery utilities (`U_ECSUtils.get_manager`, group helpers)
 - Auto-registration/unregistration with validation hooks
 - Multi-component entity queries with optional component support
-- EntityQuery caching + body deduplication helpers
+- U_EntityQuery caching + body deduplication helpers
 - Event bus (`U_ECSEventBus`) with rolling history buffer
 - Priority-sorted system scheduling via `execution_priority`
 - Settings resources and deep-copy snapshots for debugging
 - Decoupled component architecture (no cross-component NodePaths)
 - Query-driven systems: movement, jump, gravity, floating, rotate-to-input, align-to-surface, landing indicator
+- **Entity IDs & tagging** (Phase 6): Unique identifiers, tag-based queries, auto-registration, state store integration
 
 **Not Implemented (Yet)** (see [§8](#8-current-limitations)):
-- Explicit entity ID abstraction
-- Component tag/indexing layer
+- ~~Explicit entity ID abstraction~~ ✅ Implemented (Phase 6)
+- ~~Component tag/indexing layer~~ ✅ Implemented (Phase 6)
 - Optional execution-order visualiser/debug overlay
 
 ### 9.3 Next Steps

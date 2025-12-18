@@ -1,10 +1,11 @@
 [gd_resource type="Resource" script_class="RS_SceneRegistryEntry" load_steps=2 format=3 uid="uid://bmev4dw2kfkor"]
 
-[ext_resource type="Script" uid="uid://cth2b1b61wkdt" path="res://scripts/scene_management/resources/rs_scene_registry_entry.gd" id="1_resource"]
+[ext_resource type="Script" uid="uid://cy1jmueffnilv" path="res://scripts/scene_management/resources/rs_scene_registry_entry.gd" id="1_resource"]
 
 [resource]
 script = ExtResource("1_resource")
 scene_id = &"exterior"
 scene_path = "res://scenes/gameplay/gameplay_exterior.tscn"
 scene_type = 1
+default_transition = "loading"
 preload_priority = 6

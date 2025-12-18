@@ -27,6 +27,8 @@ func before_each() -> void:
     _store.scene_initial_state = RS_SceneInitialState.new()
     _store.navigation_initial_state = RS_NavigationInitialState.new()
     _root.add_child(_store)
+    # Register state store via ServiceLocator BEFORE managers run _ready()
+    U_ServiceLocator.register(StringName("state_store"), _store)
     await get_tree().process_frame
 
     _active = Node.new()
@@ -44,12 +46,32 @@ func before_each() -> void:
     _transition_overlay.add_child(cr)
     _root.add_child(_transition_overlay)
 
+    # Register overlays via ServiceLocator for M_SceneManager discovery
+    U_ServiceLocator.register(StringName("transition_overlay"), _transition_overlay)
+
     _manager = M_SceneManager.new()
     _manager.skip_initial_scene_load = true
     _root.add_child(_manager)
     await get_tree().process_frame
 
 func after_each() -> void:
+    # 1. Clear ServiceLocator first (prevents cross-test pollution)
+    U_ServiceLocator.clear()
+
+    # 2. Clear active scenes loaded by M_SceneManager
+    if _active and is_instance_valid(_active):
+        for child in _active.get_children():
+            child.queue_free()
+
+    # 3. Clear UI overlay stack
+    if _ui and is_instance_valid(_ui):
+        for child in _ui.get_children():
+            child.queue_free()
+
+    # 4. Wait for queue_free to process
+    await get_tree().process_frame
+    await get_tree().physics_frame
+
     _root = null
     _store = null
     _manager = null

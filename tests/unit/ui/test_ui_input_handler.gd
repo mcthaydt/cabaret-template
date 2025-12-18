@@ -1,6 +1,6 @@
 extends GutTest
 
-const UIInputHandler := preload("res://scripts/ui/ui_input_handler.gd")
+const M_UIInputHandler := preload("res://scripts/managers/m_ui_input_handler.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const RS_BootInitialState := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
@@ -14,7 +14,7 @@ const U_NavigationReducer := preload("res://scripts/state/reducers/u_navigation_
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 var _store: M_StateStore = null
-var _input_handler: UIInputHandler = null
+var _input_handler: M_UIInputHandler = null
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
@@ -36,15 +36,30 @@ func test_gameplay_no_overlays_opens_pause() -> void:
 	_store.dispatch(U_NavigationActions.start_game(StringName("exterior")))
 	await wait_process_frames(2)
 
-	# Action: press ui_cancel
-	_simulate_ui_cancel()
+	# Action: press ui_pause (Start button)
+	_simulate_ui_pause()
 	await wait_process_frames(2)
 
 	# Assert: pause overlay was added
 	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
 	var overlay_stack: Array = nav_slice.get("overlay_stack", [])
-	assert_eq(overlay_stack.size(), 1, "Should have one overlay after cancel in gameplay")
+	assert_eq(overlay_stack.size(), 1, "Should have one overlay after pause pressed in gameplay")
 	assert_eq(overlay_stack[0], StringName("pause_menu"), "Should open pause menu")
+
+
+func test_gameplay_no_overlays_cancel_does_nothing() -> void:
+	# Setup: gameplay shell, no overlays
+	_store.dispatch(U_NavigationActions.start_game(StringName("exterior")))
+	await wait_process_frames(2)
+
+	# Action: press ui_cancel (B button)
+	_simulate_ui_cancel()
+	await wait_process_frames(2)
+
+	# Assert: no overlay was added (cancel does NOT open pause)
+	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
+	var overlay_stack: Array = nav_slice.get("overlay_stack", [])
+	assert_eq(overlay_stack.size(), 0, "B button should NOT open pause in gameplay with no overlays")
 
 
 func test_gameplay_with_pause_closes_pause() -> void:
@@ -217,8 +232,8 @@ func _create_state_store() -> M_StateStore:
 	return store
 
 
-func _create_input_handler() -> UIInputHandler:
-	var handler := UIInputHandler.new()
+func _create_input_handler() -> M_UIInputHandler:
+	var handler := M_UIInputHandler.new()
 	add_child_autofree(handler)
 	await wait_process_frames(1)
 	return handler

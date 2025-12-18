@@ -10,59 +10,32 @@ class_name S_SceneTriggerSystem
 
 const COMPONENT_TYPE := StringName("C_SceneTriggerComponent")
 const SYSTEM_TYPE := StringName("S_SceneTriggerSystem")
+const U_InputMapBootstrapper := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 
 ## Interact action (default: "ui_accept" or "E" key)
 @export var interact_action: StringName = StringName("interact")
 
-var _actions_initialized: bool = false
+var _actions_validated: bool = false
+var _actions_valid: bool = true
 
-func _ready() -> void:
-	super._ready()
-	_ensure_interact_action()
+func _validate_interact_action() -> void:
+	if _actions_validated:
+		return
+	_actions_validated = true
 
-func _ensure_interact_action() -> void:
-	if _actions_initialized:
+	_actions_valid = U_InputMapBootstrapper.validate_required_actions([interact_action])
+	if _actions_valid:
 		return
 
-	# Ensure interact action exists in InputMap
-	if not InputMap.has_action(interact_action):
-		InputMap.add_action(interact_action)
-
-	var events := InputMap.action_get_events(interact_action)
-
-	# Check what we already have
-	var has_keyboard := false
-	var has_gamepad := false
-	for event in events:
-		if event is InputEventKey:
-			has_keyboard = true
-		elif event is InputEventJoypadButton:
-			has_gamepad = true
-
-	# Add keyboard keys if missing
-	if not has_keyboard:
-		# Add 'E' key as default interact key
-		var event := InputEventKey.new()
-		event.keycode = KEY_E
-		InputMap.action_add_event(interact_action, event)
-		# Add 'F' key as alternative
-		var event_f := InputEventKey.new()
-		event_f.keycode = KEY_F
-		InputMap.action_add_event(interact_action, event_f)
-
-	# Add gamepad button if missing (Left face button / X on Xbox, Square on PlayStation)
-	if not has_gamepad:
-		var gamepad_event := InputEventJoypadButton.new()
-		gamepad_event.button_index = JOY_BUTTON_X
-		InputMap.action_add_event(interact_action, gamepad_event)
-
-	_actions_initialized = true
+	push_error("S_SceneTriggerSystem: Missing required InputMap action '%s' (fix project.godot / boot init; INTERACT triggers will not fire)" % [interact_action])
 
 func process_tick(_delta: float) -> void:
 	if _manager == null:
 		return
-
-	_ensure_interact_action()
+	
+	_validate_interact_action()
+	if not _actions_valid:
+		return
 
 	# Get all scene trigger components
 	var triggers: Array = _manager.get_components(COMPONENT_TYPE)

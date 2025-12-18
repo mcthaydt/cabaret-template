@@ -1,21 +1,35 @@
 extends BaseTest
 
-const BASE_SCENE := preload("res://templates/base_scene_template.tscn")
+const BASE_SCENE := preload("res://templates/tmpl_base_scene.tscn")
 const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const JUMP_PARTICLE_SYSTEM := preload("res://scripts/ecs/systems/s_jump_particles_system.gd")
 const JUMP_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_jump_sound_system.gd")
 const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
 
 const EVENT_JUMPED := StringName("entity_jumped")
 const EVENT_LANDED := StringName("entity_landed")
 
+var _state_store: M_StateStore = null
+
 func before_each() -> void:
+	# Clear ServiceLocator first to ensure clean state between tests
+	U_ServiceLocator.clear()
+
 	EVENT_BUS.reset()
 	# Clear state handoff to prevent interference between tests
 	U_StateHandoff.clear_all()
 
+	# Create and add M_StateStore for systems that require it
+	_state_store = M_StateStore.new()
+	add_child(_state_store)
+	autofree(_state_store)
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
+	await get_tree().process_frame
+
 func after_each() -> void:
-	pass
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
 
 func _setup_scene() -> Dictionary:
 	await get_tree().process_frame

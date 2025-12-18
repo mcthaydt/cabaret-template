@@ -31,11 +31,11 @@ All core ECS architectural elements are **fully implemented and operational**:
 | Component | Status | Location | Notes |
 |-----------|--------|----------|-------|
 | **M_ECSManager** | ✅ Complete | `scripts/managers/m_ecs_manager.gd` | 482 lines, full query system, caching, metrics |
-| **BaseECSComponent** | ✅ Complete | `scripts/ecs/ecs_component.gd` | Base class with validation hooks |
-| **BaseECSSystem** | ✅ Complete | `scripts/ecs/ecs_system.gd` | Priority-based execution, query API |
-| **EntityQuery** | ✅ Complete | `scripts/ecs/entity_query.gd` | Query result wrapper with type safety |
+| **BaseECSComponent** | ✅ Complete | `scripts/ecs/base_ecs_component.gd` | Base class with validation hooks |
+| **BaseECSSystem** | ✅ Complete | `scripts/ecs/base_ecs_system.gd` | Priority-based execution, query API |
+| **U_EntityQuery** | ✅ Complete | `scripts/ecs/u_entity_query.gd` | Query result wrapper with type safety |
 | **U_ECSEventBus** | ✅ Complete | `scripts/ecs/u_ecs_event_bus.gd` | Pub/sub with history buffer |
-| **ECSEntity** | ✅ Complete | `scripts/ecs/ecs_entity.gd` | Entity root marker |
+| **ECSEntity** | ✅ Complete | `scripts/ecs/base_ecs_entity.gd` | Entity root marker |
 | **U_ECSUtils** | ✅ Complete | `scripts/utils/u_ecs_utils.gd` | Centralized utilities |
 
 ### 1.2 Component Implementations ✅
@@ -77,7 +77,7 @@ All 12 systems are **fully implemented and tested**:
 | **S_JumpParticlesSystem** | 110 | VFX on jump events | ✅ (event-based) | ❌ ECS-only |
 | **S_JumpSoundSystem** | 110 | SFX on jump events | ✅ (event-based) | ❌ ECS-only |
 | **S_LandingParticlesSystem** | 110 | VFX on landing events | ✅ (event-based) | ❌ ECS-only |
-| **S_PauseSystem** | 200 | Pause handling | ✅ | ✅ Reads/writes pause state |
+| **M_PauseManager** | 200 | Pause handling | ✅ | ✅ Reads/writes pause state |
 
 **Key Features**:
 - ✅ All systems extend `BaseECSSystem` base class
@@ -102,7 +102,7 @@ All 12 systems are **fully implemented and tested**:
 
 **Epic 2: Multi-Component Query System** (P0) - ✅ **COMPLETE**
 - [x] `query_entities(required, optional)` API
-- [x] EntityQuery wrapper with `get_component()`, `has_component()`
+- [x] U_EntityQuery wrapper with `get_component()`, `has_component()`
 - [x] Query caching (99.8% hit rate over 4,271 queries)
 - [x] Performance <1ms (target met, typical 0.10-2.7ms)
 - [x] All systems migrated to query-based approach
@@ -201,10 +201,10 @@ Time: 2.183s
 ```
 
 **Test Distribution**:
-- ✅ `test_ecs_component.gd` - Base component lifecycle
-- ✅ `test_ecs_system.gd` - Base system lifecycle
+- ✅ `test_base_ecs_component.gd` - Base component lifecycle
+- ✅ `test_base_ecs_system.gd` - Base system lifecycle
 - ✅ `test_ecs_manager.gd` - Registration, queries, caching
-- ✅ `test_entity_query.gd` - Query result wrappers
+- ✅ `test_u_entity_query.gd` - Query result wrappers
 - ✅ `test_ecs_event_bus.gd` - Event pub/sub
 - ✅ `test_u_ecs_utils.gd` - Utility functions
 - ✅ `test_*_component.gd` - Individual component tests (7 files)
@@ -261,7 +261,7 @@ Time: 2.183s
 | S_GravitySystem | ✅ gravity_scale | ❌ | ✅ Complete |
 | S_RotateToInputSystem | ❌ | ✅ rotation | ✅ Complete |
 | S_LandingIndicatorSystem | ✅ show_landing_indicator | ❌ | ✅ Complete |
-| S_PauseSystem | ✅ is_paused | ✅ is_paused | ✅ Complete |
+| M_PauseManager | ✅ is_paused | ✅ is_paused | ✅ Complete |
 
 **State Store Access Pattern** (all systems):
 ```gdscript
@@ -393,11 +393,11 @@ $ grep -i "component.*path\|nodepath.*component" templates/*.tscn
 **Directory Structure**:
 ```
 scripts/ecs/
-├── ecs_component.gd (base)
-├── ecs_system.gd (base)
-├── entity_query.gd (query wrapper)
+├── base_ecs_component.gd (base)
+├── base_ecs_system.gd (base)
+├── u_entity_query.gd (query wrapper)
 ├── u_ecs_event_bus.gd (event system)
-├── ecs_entity.gd (entity marker)
+├── base_ecs_entity.gd (entity marker)
 ├── components/ (7 files)
 ├── systems/ (12 files)
 └── resources/ (8 files)
@@ -523,7 +523,7 @@ Priority 100:  S_LandingIndicatorSystem (projection)
          ↓
 Priority 110:  S_JumpParticlesSystem, S_JumpSoundSystem, S_LandingParticlesSystem (VFX/SFX)
          ↓
-Priority 200:  S_PauseSystem (meta control)
+Priority 200:  M_PauseManager (meta control)
 ```
 
 **Assessment**: ✅ **LOGICALLY ORDERED**
@@ -665,11 +665,11 @@ The ECS system is **ready for production use** with:
 
 ### Core Files (8)
 - `scripts/managers/m_ecs_manager.gd` (482 lines)
-- `scripts/ecs/ecs_component.gd` (49 lines)
-- `scripts/ecs/ecs_system.gd` (101 lines)
-- `scripts/ecs/entity_query.gd` (28 lines)
+- `scripts/ecs/base_ecs_component.gd` (49 lines)
+- `scripts/ecs/base_ecs_system.gd` (101 lines)
+- `scripts/ecs/u_entity_query.gd` (28 lines)
 - `scripts/ecs/u_ecs_event_bus.gd` (60 lines)
-- `scripts/ecs/ecs_entity.gd` (13 lines)
+- `scripts/ecs/base_ecs_entity.gd` (13 lines)
 - `scripts/utils/u_ecs_utils.gd` (193 lines)
 - `scripts/ecs/event_vfx_system.gd` (77 lines)
 
@@ -694,7 +694,7 @@ The ECS system is **ready for production use** with:
 - `s_jump_particles_system.gd` (75 lines)
 - `s_jump_sound_system.gd` (28 lines)
 - `s_landing_particles_system.gd` (75 lines)
-- `s_pause_system.gd` (92 lines)
+- `m_pause_manager.gd` (92 lines)
 
 ### Resources (8)
 - `rs_movement_settings.gd` (28 lines)

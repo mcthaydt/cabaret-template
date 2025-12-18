@@ -6,25 +6,32 @@ const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_DeviceTypeConstants := preload("res://scripts/input/u_device_type_constants.gd")
+const KeyboardMouseSource := preload("res://scripts/input/sources/keyboard_mouse_source.gd")
+const GamepadSource := preload("res://scripts/input/sources/gamepad_source.gd")
+const TouchscreenSource := preload("res://scripts/input/sources/touchscreen_source.gd")
 
 signal device_changed(device_type: int, device_id: int, timestamp: float)
 
-enum DeviceType {
-	KEYBOARD_MOUSE,
-	GAMEPAD,
-	TOUCHSCREEN,
-}
+# Use centralized DeviceType enum
+const DeviceType := U_DeviceTypeConstants.DeviceType
 
 var _active_device: int = DeviceType.KEYBOARD_MOUSE
 var _active_gamepad_id: int = -1
 var _last_gamepad_device_id: int = -1
 var _gamepad_connected: bool = false
 var _last_input_time: float = 0.0
-var _state_store: M_StateStore = null
+var _state_store: I_StateStore = null
 var _joy_connection_bound: bool = false
 var _has_dispatched_initial_state: bool = false
 var _pending_device_events: Array[Dictionary] = []
 var _last_gamepad_signal_time: float = 0.0
+
+# Input sources
+var _keyboard_mouse_source: KeyboardMouseSource = null
+var _gamepad_source: GamepadSource = null
+var _touchscreen_source: TouchscreenSource = null
+var _input_sources: Array[I_InputSource] = []
 
 @export var emulate_mobile_disconnect_guard: bool = false
 
@@ -36,9 +43,23 @@ func _ready() -> void:
 	set_process_input(true)
 	set_process_unhandled_input(true)
 	add_to_group("input_device_manager")
+	_register_input_sources()
 	_register_existing_gamepads()
 	_connect_joypad_signals()
 	await _bind_state_store()
+
+func _register_input_sources() -> void:
+	# Create input sources
+	_keyboard_mouse_source = KeyboardMouseSource.new()
+	_gamepad_source = GamepadSource.new()
+	_touchscreen_source = TouchscreenSource.new()
+
+	# Register sources in priority order (highest priority first)
+	_input_sources = [
+		_touchscreen_source,  # Priority 3
+		_gamepad_source,      # Priority 2
+		_keyboard_mouse_source, # Priority 1
+	]
 
 func _exit_tree() -> void:
 	if is_in_group("input_device_manager"):
@@ -53,12 +74,18 @@ func _input(event: InputEvent) -> void:
 		var joy_button := event as InputEventJoypadButton
 		if not joy_button.pressed:
 			return
+		# Delegate to gamepad source
+		if _gamepad_source:
+			_gamepad_source.handle_button_event(joy_button.button_index, joy_button.pressed)
 		_handle_gamepad_input(joy_button.device)
 	elif event is InputEventJoypadMotion:
 		var joy_motion := event as InputEventJoypadMotion
 		if joy_motion.device >= 0:
 			_gamepad_connected = true
 			_last_gamepad_device_id = joy_motion.device
+		# Delegate to gamepad source
+		if _gamepad_source:
+			_gamepad_source.handle_motion_event(joy_motion.axis, joy_motion.axis_value)
 		if abs(joy_motion.axis_value) < DEVICE_SWITCH_DEADZONE:
 			return
 		_handle_gamepad_input(joy_motion.device)
@@ -84,13 +111,22 @@ func _input(event: InputEvent) -> void:
 		# CRITICAL FIX: Ignore mouse motion emulated from touch on mobile
 		if OS.has_feature("mobile") or OS.has_feature("web"):
 			return
+		# Delegate to keyboard/mouse source
+		if _keyboard_mouse_source:
+			_keyboard_mouse_source.set_mouse_delta(mouse_motion.relative)
 		_handle_keyboard_mouse_input(mouse_motion)
 	elif event is InputEventScreenTouch:
 		var screen_touch := event as InputEventScreenTouch
 		if not screen_touch.pressed:
 			return
+		# Delegate to touchscreen source
+		if _touchscreen_source:
+			_touchscreen_source.handle_touch_event()
 		_handle_touch_input()
 	elif event is InputEventScreenDrag:
+		# Delegate to touchscreen source
+		if _touchscreen_source:
+			_touchscreen_source.handle_touch_event()
 		_handle_touch_input()
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -187,6 +223,29 @@ func _register_existing_gamepads() -> void:
 		return
 	_gamepad_connected = true
 	_last_gamepad_device_id = int(connected[0])
+	# Initialize gamepad source with first connected device
+	if _gamepad_source:
+		_gamepad_source.set_device_id(_last_gamepad_device_id)
+		_gamepad_source.set_connected(true)
+
+func get_active_input_source() -> I_InputSource:
+	# Return the highest priority active source
+	for source in _input_sources:
+		if source and source.is_active():
+			return source
+	# Default to keyboard/mouse if no source is active
+	return _keyboard_mouse_source
+
+func get_input_source_for_device(device_type: int) -> I_InputSource:
+	match device_type:
+		DeviceType.KEYBOARD_MOUSE:
+			return _keyboard_mouse_source
+		DeviceType.GAMEPAD:
+			return _gamepad_source
+		DeviceType.TOUCHSCREEN:
+			return _touchscreen_source
+		_:
+			return _keyboard_mouse_source
 
 func _connect_joypad_signals() -> void:
 	if _joy_connection_bound:
@@ -219,6 +278,10 @@ func _on_joy_connection_changed(device_id: int, connected: bool) -> void:
 		_gamepad_connected = true
 		_last_gamepad_device_id = device_id
 		_last_gamepad_signal_time = U_ECSUtils.get_current_time()
+		# Update gamepad source
+		if _gamepad_source:
+			_gamepad_source.set_device_id(device_id)
+			_gamepad_source.set_connected(true)
 		_dispatch_connection_state(true, device_id)
 	else:
 		if device_id == _last_gamepad_device_id:
@@ -231,6 +294,9 @@ func _on_joy_connection_changed(device_id: int, connected: bool) -> void:
 		if should_switch and device_id == _active_gamepad_id:
 			_switch_device(DeviceType.KEYBOARD_MOUSE, -1)
 		_gamepad_connected = _evaluate_gamepad_connections()
+		# Update gamepad source
+		if _gamepad_source and not _gamepad_connected:
+			_gamepad_source.set_connected(false)
 		_dispatch_connection_state(false, device_id)
 
 func _evaluate_gamepad_connections() -> bool:

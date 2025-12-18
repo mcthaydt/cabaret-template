@@ -39,3 +39,23 @@ func test_loads_valid_resource_entry_and_skips_duplicates() -> void:
     # Assert scene registered
     assert_true(U_SceneRegistry._scenes.has(_tmp_scene_id), "Resource entry should be registered")
 
+func test_loader_accepts_trailing_slash_dir_path() -> void:
+    # Ensure our temp entry exists on disk
+    var entry := RS_SceneRegistryEntry.new()
+    entry.scene_id = _tmp_scene_id
+    entry.scene_path = "res://scenes/tmp_invalid_gameplay.tscn"
+    entry.scene_type = 1  # GAMEPLAY
+    entry.default_transition = "instant"
+    entry.preload_priority = 0
+    var save_err := ResourceSaver.save(entry, _tmp_path)
+    assert_eq(save_err, OK, "Should save registry entry resource")
+
+    var scenes: Dictionary = {}
+    var registered: Dictionary = {}
+    var register_callable := func(scene_id: StringName, _path: String, _scene_type: int, default_transition: String, _preload_priority: int) -> void:
+        registered[scene_id] = default_transition
+
+    var loader = U_SceneRegistry._loader
+    loader._load_entries_from_dir("res://resources/scene_registry/", scenes, register_callable)
+
+    assert_true(registered.has(_tmp_scene_id), "Loader should accept trailing-slash directory paths")

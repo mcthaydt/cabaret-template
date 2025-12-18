@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3 uid="uid://dskb553tjqnu"]
+
+[ext_resource type="PackedScene" uid="uid://bq8y7b2npl2g0" path="res://scenes/ui/ui_button_prompt.tscn" id="1"]
+
+[node name="StickPreviewContainer" type="VBoxContainer"]
+alignment = 1
+
+[node name="EnterPrompt" parent="." instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="ExitPrompt" parent="." instance=ExtResource("1")]
+layout_mode = 2

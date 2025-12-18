@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_JumpSettings" load_steps=2 format=3 uid="uid://cu511auq5q2ql"]
 
-[ext_resource type="Script" uid="uid://d0l0bnxirrwwi" path="res://scripts/ecs/resources/rs_jump_settings.gd" id="1_0"]
+[ext_resource type="Script" uid="uid://cwrnfinlf463a" path="res://scripts/ecs/resources/rs_jump_settings.gd" id="1_0"]
 
 [resource]
 script = ExtResource("1_0")

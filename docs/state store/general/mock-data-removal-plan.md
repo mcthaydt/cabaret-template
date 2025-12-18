@@ -15,7 +15,7 @@ Mock fields (TO REMOVE):
 - `level: int = 1` - Test-only level tracking
 
 Production fields (TO KEEP):
-- `paused: bool` - Used by S_PauseSystem and all gameplay systems
+- `paused: bool` - Used by M_PauseManager and all gameplay systems
 - `move_input: Vector2` - Used by S_InputSystem/S_MovementSystem
 - `look_input: Vector2` - Used by S_InputSystem/S_RotateToInputSystem
 - `jump_pressed: bool` - Used by S_InputSystem/S_JumpSystem

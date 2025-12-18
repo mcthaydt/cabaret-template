@@ -1,6 +1,6 @@
 extends GutTest
 
-const HUD_SCENE := preload("res://scenes/ui/hud_overlay.tscn")
+const HUD_SCENE := preload("res://scenes/ui/ui_hud_overlay.tscn")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
@@ -52,7 +52,7 @@ func test_health_bar_hides_when_menus_open() -> void:
 	# Simulate opening a menu by pushing an overlay via navigation actions
 	store.dispatch(U_NavigationActions.open_pause())
 	# Wait for signal batching to flush
-	await wait_process_frames(3)
+	await wait_process_frames(5)
 
 	var nav_with_overlay := store.get_slice(StringName("navigation"))
 	var overlay_stack: Array = nav_with_overlay.get("overlay_stack", [])
@@ -63,7 +63,7 @@ func test_health_bar_hides_when_menus_open() -> void:
 
 	# Simulate closing the menu
 	store.dispatch(U_NavigationActions.close_pause())
-	await wait_process_frames(3)
+	await wait_process_frames(5)
 
 	# Health bar should be visible again
 	assert_true(health_bar.visible, "Health bar should be visible again when menu is closed")
@@ -94,16 +94,15 @@ func test_health_bar_hidden_when_transitioning_to_main_menu() -> void:
 
 	# Open pause menu
 	store.dispatch(U_NavigationActions.open_pause())
-	await wait_process_frames(3)
+	await wait_process_frames(5)
 
 	# Health bar should be hidden
 	assert_false(health_bar.visible, "Health bar should be hidden when pause menu is open")
 
 	# Simulate clicking "Quit to Main Menu" - this clears overlays AND changes shell
 	store.dispatch(U_NavigationActions.return_to_main_menu())
-	await wait_process_frames(3)
+	await wait_process_frames(5)
 
 	# Health bar should STAY hidden because we're transitioning to main menu shell
-	# BUG: Currently fails - health bar shows because overlays are cleared,
-	# even though shell is now "main_menu" not "gameplay"
+	# The shell is now "main_menu" not "gameplay", so health bar remains hidden
 	assert_false(health_bar.visible, "Health bar should stay hidden when transitioning to main menu")

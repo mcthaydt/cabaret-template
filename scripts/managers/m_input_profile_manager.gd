@@ -5,10 +5,13 @@ class_name M_InputProfileManager
 const RS_InputProfile = preload("res://scripts/ecs/resources/rs_input_profile.gd")
 const U_InputSerialization := preload("res://scripts/utils/u_input_serialization.gd")
 const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
+const M_InputProfileLoader := preload("res://scripts/managers/helpers/m_input_profile_loader.gd")
+const U_InputMapBootstrapper := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
+const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 
 const PERSIST_ACTIONS := [
 	U_InputActions.ACTION_REBIND_ACTION,
@@ -30,10 +33,11 @@ signal custom_binding_added(action: StringName, event: InputEvent)
 
 var active_profile: RS_InputProfile
 var available_profiles: Dictionary = {} # String -> RS_InputProfile
-var store_ref: M_StateStore = null
+var store_ref: I_StateStore = null
 
-var _state_store: M_StateStore = null
+var _state_store: I_StateStore = null
 var _unsubscribe: Callable = Callable()
+var _profile_loader := M_InputProfileLoader.new()
 var _pause_gate_enabled: bool = false
 var _save_debounce_scheduled: bool = false
 var _current_profile_id: String = ""
@@ -43,6 +47,10 @@ var _tracked_custom_actions: Array[StringName] = []
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("input_profile_manager")
+	U_InputMapBootstrapper.ensure_required_actions(
+		U_InputMapBootstrapper.REQUIRED_ACTIONS,
+		U_InputMapBootstrapper.should_patch_missing_actions()
+	)
 	_load_available_profiles()
 	await _initialize_from_store()
 
@@ -78,7 +86,7 @@ func _ensure_state_store_ready() -> void:
 	_state_store = store
 	store_ref = store
 
-func _get_state_store() -> M_StateStore:
+func _get_state_store() -> I_StateStore:
 	if _state_store != null and is_instance_valid(_state_store):
 		return _state_store
 	return null
@@ -90,6 +98,7 @@ func _sync_from_state(state: Dictionary, force_profile_reapply: bool = false) ->
 	var input_settings := _get_input_settings_from_state(state)
 	var desired_profile_id := _resolve_profile_id(String(input_settings.get("active_profile_id", "")))
 	var profile_changed := desired_profile_id != _current_profile_id
+	var bindings_variant: Variant = input_settings.get("custom_bindings", {})
 
 	if profile_changed:
 		if load_profile(desired_profile_id):
@@ -103,8 +112,6 @@ func _sync_from_state(state: Dictionary, force_profile_reapply: bool = false) ->
 
 	if (profile_changed or force_profile_reapply) and active_profile != null:
 		_apply_profile_to_input_map(active_profile)
-
-	var bindings_variant: Variant = input_settings.get("custom_bindings", {})
 	var new_signature := hash(bindings_variant)
 	if profile_changed or force_profile_reapply or new_signature != _last_bindings_signature:
 		_apply_custom_bindings_from_state(bindings_variant)
@@ -239,25 +246,7 @@ func _on_store_changed(action: Dictionary, state: Dictionary) -> void:
 func _load_available_profiles() -> void:
 	# Built-in profiles (resources/input/profiles)
 	# Note: Use optional chaining; missing files are tolerated in early phases.
-	available_profiles.clear()
-	var default_res := load("res://resources/input/profiles/default_keyboard.tres")
-	if default_res is RS_InputProfile:
-		available_profiles["default"] = default_res
-	var alternate_res := load("res://resources/input/profiles/alternate_keyboard.tres")
-	if alternate_res is RS_InputProfile:
-		available_profiles["alternate"] = alternate_res
-	var accessibility_res := load("res://resources/input/profiles/accessibility_keyboard.tres")
-	if accessibility_res is RS_InputProfile:
-		available_profiles["accessibility"] = accessibility_res
-	var default_gamepad_res := load("res://resources/input/profiles/default_gamepad.tres")
-	if default_gamepad_res is RS_InputProfile:
-		available_profiles["default_gamepad"] = default_gamepad_res
-	var accessibility_gamepad_res := load("res://resources/input/profiles/accessibility_gamepad.tres")
-	if accessibility_gamepad_res is RS_InputProfile:
-		available_profiles["accessibility_gamepad"] = accessibility_gamepad_res
-	var default_touchscreen_res := load("res://resources/input/profiles/default_touchscreen.tres")
-	if default_touchscreen_res is RS_InputProfile:
-		available_profiles["default_touchscreen"] = default_touchscreen_res
+	available_profiles = _profile_loader.load_available_profiles()
 
 func get_available_profile_ids() -> Array[String]:
 	var ids: Array[String] = []
@@ -309,25 +298,9 @@ func get_active_profile() -> RS_InputProfile:
 	return active_profile
 
 func _apply_profile_accessibility(profile_id: String, profile: RS_InputProfile) -> void:
-	if profile == null:
-		return
 	_ensure_state_store_ready()
-	if _state_store == null:
-		return
-
-	# Only auto-apply accessibility defaults for dedicated accessibility profiles.
-	var id_str := String(profile_id)
-	if not id_str.begins_with("accessibility"):
-		return
-
-	var accessibility_updates := [
-		U_InputActions.update_accessibility("jump_buffer_time", profile.jump_buffer_time),
-		U_InputActions.update_accessibility("sprint_toggle_mode", profile.sprint_toggle_mode),
-		U_InputActions.update_accessibility("interact_hold_duration", profile.interact_hold_duration),
-	]
-
-	for action in accessibility_updates:
-		_state_store.dispatch(action)
+	var update_callable := Callable(U_InputActions, "update_accessibility")
+	_profile_loader.apply_profile_accessibility(profile_id, profile, _state_store, update_callable)
 
 func get_default_joystick_position() -> Vector2:
 	var profile := _get_default_touchscreen_profile()
@@ -358,8 +331,9 @@ func switch_profile(profile_id: String) -> void:
 	var tree_paused := get_tree() != null and get_tree().paused
 
 	var allow_by_pause_state := gameplay_paused and _pause_gate_enabled
+	var allow_by_menu_shell := _is_in_menu_shell(store)
 
-	if not allow_by_pause_state and not tree_paused:
+	if not allow_by_pause_state and not allow_by_menu_shell and not tree_paused:
 		return
 
 	if not load_profile(profile_id):
@@ -411,26 +385,7 @@ func reset_action(action: StringName) -> void:
 	_state_store.dispatch(U_InputActions.remove_action_bindings(action))
 
 func _apply_profile_to_input_map(profile: RS_InputProfile) -> void:
-	if profile == null:
-		return
-	# Only modify actions explicitly defined by the profile; leave others unchanged.
-	for action_key in profile.action_mappings.keys():
-		var action: StringName = StringName(action_key)
-		if not InputMap.has_action(action):
-			InputMap.add_action(action)
-
-		# Only clear events of the same device type as the profile
-		# This preserves gamepad bindings when applying keyboard profiles
-		var existing := InputMap.action_get_events(action)
-		for e in existing:
-			if _is_same_device_type(e, profile.device_type):
-				InputMap.action_erase_event(action, e)
-
-		# Add profile-defined events
-		var events: Array = profile.get_events_for_action(action)
-		for ev in events:
-			if ev is InputEvent:
-				InputMap.action_add_event(action, ev)
+	_profile_loader.apply_profile_to_input_map(profile)
 
 func _schedule_save() -> void:
 	if _save_debounce_scheduled:
@@ -467,14 +422,14 @@ func _is_gameplay_paused(store: M_StateStore) -> bool:
 		return bool((gameplay as Dictionary).get("paused", false))
 	return false
 
-func _is_same_device_type(event: InputEvent, device_type: int) -> bool:
-	# device_type: 0 = keyboard/mouse, 1 = gamepad, 2 = touchscreen
-	match device_type:
-		0: # Keyboard/Mouse
-			return event is InputEventKey or event is InputEventMouse or event is InputEventMouseButton
-		1: # Gamepad
-			return event is InputEventJoypadButton or event is InputEventJoypadMotion
-		2: # Touchscreen
-			return event is InputEventScreenTouch or event is InputEventScreenDrag
-		_:
-			return false
+func _is_in_menu_shell(store: I_StateStore) -> bool:
+	if store == null:
+		return false
+	var state := store.get_state()
+	if state == null:
+		return false
+	var nav_variant: Variant = state.get("navigation", {})
+	if not (nav_variant is Dictionary):
+		return false
+	var shell: StringName = U_NavigationSelectors.get_shell(nav_variant as Dictionary)
+	return shell != StringName("gameplay")

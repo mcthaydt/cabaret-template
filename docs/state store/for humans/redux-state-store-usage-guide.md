@@ -798,7 +798,7 @@ const ACTION_TRANSITION_TO_GAMEPLAY := StringName("transition/to_gameplay")
 
 ## 10. ECS Integration Patterns
 
-The state store integrates seamlessly with ECS systems. This section demonstrates real-world patterns from S_PauseSystem and S_HealthSystem.
+The state store integrates seamlessly with ECS systems. This section demonstrates real-world patterns from M_PauseManager and S_HealthSystem.
 
 ### 10.1 Basic Integration Pattern
 
@@ -870,14 +870,14 @@ func _exit_tree() -> void:
 		_store.slice_updated.disconnect(_on_slice_updated)
 ```
 
-### 10.2 Real Example: S_PauseSystem
+### 10.2 Real Example: M_PauseManager
 
-**Full implementation** (`scripts/ecs/systems/s_pause_system.gd`):
+**Full implementation** (`scripts/ecs/systems/m_pause_manager.gd`):
 
 ```gdscript
 @icon("res://resources/editor_icons/system.svg")
 extends BaseECSSystem
-class_name S_PauseSystem
+class_name M_PauseManager
 
 signal pause_state_changed(is_paused: bool)
 
@@ -891,7 +891,7 @@ func _ready() -> void:
 	
 	_store = U_StateUtils.get_store(self)
 	if not _store:
-		push_error("S_PauseSystem: Could not find M_StateStore")
+		push_error("M_PauseManager: Could not find M_StateStore")
 		return
 	
 	# Optional: Get cursor manager for UX coordination
@@ -1111,7 +1111,7 @@ func _update_health(state: Dictionary) -> void:
 extends GutTest
 
 var store: M_StateStore
-var pause_system: S_PauseSystem
+var pause_system: M_PauseManager
 
 func before_each() -> void:
 	U_StateEventBus.reset()
@@ -1122,7 +1122,7 @@ func before_each() -> void:
 	add_child(store)
 	
 	# Create pause system
-	pause_system = S_PauseSystem.new()
+	pause_system = M_PauseManager.new()
 	add_child(pause_system)
 	
 	await get_tree().process_frame

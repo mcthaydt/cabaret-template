@@ -41,15 +41,11 @@ func _ready() -> void:
 	if not is_inside_tree():
 		return
 
-	# Find spawn manager
-	var spawn_managers: Array = get_tree().get_nodes_in_group("spawn_manager")
-	if spawn_managers.is_empty():
+	# Find spawn manager via ServiceLocator (Phase 10B-7: T141c)
+	var spawn_manager: M_SPAWN_MANAGER = U_ServiceLocator.get_service(StringName("spawn_manager")) as M_SPAWN_MANAGER
+	if spawn_manager == null:
 		# No spawn manager available (e.g., running scene standalone in editor)
 		# Silently skip - this is expected behavior
-		return
-
-	var spawn_manager: M_SPAWN_MANAGER = spawn_managers[0] as M_SPAWN_MANAGER
-	if spawn_manager == null:
 		return
 
 	if scene_root == null:

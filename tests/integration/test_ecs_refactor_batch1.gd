@@ -1,9 +1,27 @@
 extends BaseTest
 
-const BASE_SCENE := preload("res://templates/base_scene_template.tscn")
+const BASE_SCENE := preload("res://templates/tmpl_base_scene.tscn")
 const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const ECS_SYSTEM := preload("res://scripts/ecs/ecs_system.gd")
-const ECS_COMPONENT := preload("res://scripts/ecs/ecs_component.gd")
+const ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
+const ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
+const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
+
+var _state_store: M_StateStore = null
+
+func before_each() -> void:
+	# Clear ServiceLocator first to ensure clean state between tests
+	U_ServiceLocator.clear()
+
+	# Create and add M_StateStore for systems that require it
+	_state_store = M_StateStore.new()
+	add_child(_state_store)
+	autofree(_state_store)
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
+	await get_tree().process_frame
+
+func after_each() -> void:
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
 
 func _setup_base_scene() -> Dictionary:
 	await get_tree().process_frame

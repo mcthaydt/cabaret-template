@@ -1,9 +1,10 @@
 extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const ECS_COMPONENT := preload("res://scripts/ecs/ecs_component.gd")
+const ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
 const JUMP_COMPONENT := preload("res://scripts/ecs/components/c_jump_component.gd")
 const JUMP_SETTINGS := preload("res://scripts/ecs/resources/rs_jump_settings.gd")
+const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 
 class TestInvalidComponent extends BaseECSComponent:
 	const TYPE := StringName("C_TestInvalidComponent")
@@ -49,6 +50,9 @@ func _spawn_entity(name: String = "E_TestEntity") -> Node:
 	autofree(entity)
 	return entity
 
+func before_each() -> void:
+	U_ECSEventBus.reset()
+
 func _await_frame() -> void:
 	await get_tree().process_frame
 
@@ -85,6 +89,10 @@ func test_validation_success_registers_component() -> void:
 	assert_true(component.ready_called)
 	var registered := manager.get_components(TestValidComponent.TYPE)
 	assert_eq(registered, [component])
+
+	var history := U_ECSEventBus.get_event_history()
+	assert_true(history.any(func(event): return event.get("name") == StringName("component_registered")),
+		"Registration should publish component_registered event")
 
 func test_jump_component_requires_settings() -> void:
 	var manager := _spawn_manager()

@@ -1,4 +1,4 @@
-extends GutTest
+extends BaseTest
 
 ## Unit tests for overlay stack/state synchronization on M_SceneManager startup
 
@@ -10,6 +10,7 @@ const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd"
 const M_CursorManager := preload("res://scripts/managers/m_cursor_manager.gd")
 const M_SpawnManager := preload("res://scripts/managers/m_spawn_manager.gd")
 const M_CameraManager := preload("res://scripts/managers/m_camera_manager.gd")
+const M_PauseManager := preload("res://scripts/managers/m_pause_manager.gd")
 
 var _store: M_StateStore
 var _ui_overlay_stack: CanvasLayer
@@ -18,6 +19,7 @@ var _transition_overlay: CanvasLayer
 var _cursor_manager: M_CursorManager
 var _spawn_manager: M_SpawnManager
 var _camera_manager: M_CameraManager
+var _pause_system: M_PauseManager
 
 func before_each() -> void:
 	# Minimal scene tree structure expected by M_SceneManager
@@ -59,11 +61,28 @@ func before_each() -> void:
 	add_child_autofree(_store)
 	await get_tree().process_frame
 
+	# Register all managers with ServiceLocator so they can find each other
+	U_ServiceLocator.register(StringName("state_store"), _store)
+	U_ServiceLocator.register(StringName("cursor_manager"), _cursor_manager)
+	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
+	U_ServiceLocator.register(StringName("camera_manager"), _camera_manager)
+
+	# Create M_PauseManager to apply pause based on scene state
+	_pause_system = M_PauseManager.new()
+	add_child_autofree(_pause_system)
+	await get_tree().process_frame
+
+	U_ServiceLocator.register(StringName("pause_manager"), _pause_system)
+
 func after_each() -> void:
+	get_tree().paused = false  # Reset pause state
 	_store = null
 	_ui_overlay_stack = null
 	_active_scene_container = null
 	_transition_overlay = null
+	_pause_system = null
+	# Call parent to clear ServiceLocator
+	super.after_each()
 
 ## When UIOverlayStack already has overlays, manager should mirror to state
 func test_syncs_state_from_preexisting_ui_overlays() -> void:
@@ -83,6 +102,7 @@ func test_syncs_state_from_preexisting_ui_overlays() -> void:
 	manager.skip_initial_scene_load = true
 	add_child_autofree(manager)
 	await get_tree().process_frame
+	await get_tree().physics_frame  # Allow M_PauseManager to react to scene state update
 
 	# Assert: scene slice reflects UI overlay order and tree is paused
 	var scene_state: Dictionary = _store.get_slice(StringName("scene"))
@@ -105,6 +125,8 @@ func test_clears_stale_state_when_ui_empty() -> void:
 	var manager := M_SceneManager.new()
 	manager.skip_initial_scene_load = true
 	add_child_autofree(manager)
+	await get_tree().process_frame
+	# Extra frame for pause system's _process() polling to sync
 	await get_tree().process_frame
 
 	# Assert: scene stack cleared and tree unpaused

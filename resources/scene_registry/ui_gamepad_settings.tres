@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="RS_SceneRegistryEntry" load_steps=2 format=3 uid="uid://cwmdqnt1oay8f"]
 
-[ext_resource type="Script" uid="uid://cth2b1b61wkdt" path="res://scripts/scene_management/resources/rs_scene_registry_entry.gd" id="1"]
+[ext_resource type="Script" uid="uid://cy1jmueffnilv" path="res://scripts/scene_management/resources/rs_scene_registry_entry.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 scene_id = "gamepad_settings"
-scene_path = "res://scenes/ui/gamepad_settings_overlay.tscn"
+scene_path = "res://scenes/ui/ui_gamepad_settings_overlay.tscn"
 scene_type = 2
 default_transition = "instant"
 preload_priority = 5

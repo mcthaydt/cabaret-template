@@ -19,14 +19,15 @@ func test_floating_component_defaults_and_registration() -> void:
 
 	var entity := Node.new()
 	entity.name = "E_TestEntity"
-	add_child(entity)
+	manager.add_child(entity)
 	autofree(entity)
+	await _pump()
 
 	var component: C_FloatingComponent = FLOATING_COMPONENT.new()
 	component.settings = RS_FloatingSettings.new()
 	entity.add_child(component)
 	autofree(component)
-	await _pump()
+	await wait_physics_frames(2)  # Let component register with manager
 
 	assert_eq(component.get_component_type(), FLOATING_COMPONENT.COMPONENT_TYPE) 
 	assert_almost_eq(component.settings.hover_height, 1.5, 0.001)
@@ -48,14 +49,15 @@ func test_floating_component_collects_child_rays() -> void:
 
 	var entity := Node.new()
 	entity.name = "E_TestEntity"
-	add_child(entity)
+	manager.add_child(entity)
 	autofree(entity)
+	await _pump()
 
 	var component: C_FloatingComponent = FLOATING_COMPONENT.new()
 	component.settings = RS_FloatingSettings.new()
 	entity.add_child(component)
 	autofree(component)
-	await _pump()
+	await wait_physics_frames(2)  # Let component register with manager
 
 	var ray_root := Node3D.new()
 	component.add_child(ray_root)

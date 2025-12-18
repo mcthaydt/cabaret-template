@@ -49,6 +49,9 @@ static func _prepare_save_payload(settings: Dictionary) -> Dictionary:
 	if payload.has("custom_bindings"):
 		payload["custom_bindings"] = _serialize_custom_bindings(payload["custom_bindings"])
 
+	if payload.has("custom_bindings_by_profile"):
+		payload["custom_bindings_by_profile"] = _serialize_custom_bindings_by_profile(payload["custom_bindings_by_profile"])
+
 	# Convert Vector2 fields to {x, y} dictionaries for JSON compatibility
 	if payload.has("touchscreen_settings"):
 		payload["touchscreen_settings"] = _serialize_touchscreen_vector2_fields(payload["touchscreen_settings"])
@@ -65,6 +68,9 @@ static func _sanitize_loaded_settings(data: Dictionary) -> Dictionary:
 
 	if data.has("custom_bindings"):
 		sanitized["custom_bindings"] = _sanitize_custom_bindings(data["custom_bindings"])
+
+	if data.has("custom_bindings_by_profile"):
+		sanitized["custom_bindings_by_profile"] = _sanitize_custom_bindings_by_profile(data["custom_bindings_by_profile"])
 
 	if data.has("gamepad_settings") and data["gamepad_settings"] is Dictionary:
 		sanitized["gamepad_settings"] = _sanitize_float_fields(
@@ -121,6 +127,14 @@ static func _serialize_custom_bindings(bindings: Variant) -> Dictionary:
 			result[String(action)] = serialized
 	return result
 
+static func _serialize_custom_bindings_by_profile(bindings_by_profile: Variant) -> Dictionary:
+	var result: Dictionary = {}
+	if bindings_by_profile is Dictionary:
+		for profile_id in (bindings_by_profile as Dictionary).keys():
+			var profile_key := String(profile_id)
+			result[profile_key] = _serialize_custom_bindings((bindings_by_profile as Dictionary)[profile_id])
+	return result
+
 static func _serialize_touchscreen_vector2_fields(touchscreen: Dictionary) -> Dictionary:
 	var result := touchscreen.duplicate(true)
 
@@ -162,6 +176,16 @@ static func _sanitize_custom_bindings(bindings: Variant) -> Dictionary:
 						serialized.append(U_InputRebindUtils.event_to_dict(event_entry))
 			if not serialized.is_empty():
 				cleaned[StringName(action)] = serialized
+	return cleaned
+
+static func _sanitize_custom_bindings_by_profile(bindings: Variant) -> Dictionary:
+	var cleaned: Dictionary = {}
+	if bindings is Dictionary:
+		for profile_id in (bindings as Dictionary).keys():
+			var profile_key := String(profile_id)
+			var profile_bindings := _sanitize_custom_bindings((bindings as Dictionary)[profile_id])
+			if not profile_bindings.is_empty():
+				cleaned[profile_key] = profile_bindings
 	return cleaned
 
 static func _sanitize_float_fields(source: Dictionary, ranges: Dictionary) -> Dictionary:

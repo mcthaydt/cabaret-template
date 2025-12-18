@@ -1,8 +1,8 @@
 extends GutTest
 
-const MobileControlsScene := preload("res://scenes/ui/mobile_controls.tscn")
-const VirtualJoystick := preload("res://scripts/ui/virtual_joystick.gd")
-const VirtualButton := preload("res://scripts/ui/virtual_button.gd")
+const MobileControlsScene := preload("res://scenes/ui/ui_mobile_controls.tscn")
+const UI_VirtualJoystick := preload("res://scripts/ui/ui_virtual_joystick.gd")
+const UI_VirtualButton := preload("res://scripts/ui/ui_virtual_button.gd")
 const S_TouchscreenSystem := preload("res://scripts/ecs/systems/s_touchscreen_system.gd")
 const M_ECSManager := preload("res://scripts/managers/m_ecs_manager.gd")
 const C_InputComponent := preload("res://scripts/ecs/components/c_input_component.gd")
@@ -34,10 +34,10 @@ func test_touchscreen_flow_updates_state_and_component() -> void:
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
 	await _await_frames(1)
 
-	var joystick: VirtualJoystick = ctx["joystick"]
+	var joystick: UI_VirtualJoystick = ctx["joystick"]
 	_press_joystick(joystick, Vector2.ZERO, Vector2(joystick.joystick_radius, 0.0))
 
-	var jump_button: VirtualButton = ctx["jump_button"]
+	var jump_button: UI_VirtualButton = ctx["jump_button"]
 	_press_button(jump_button)
 
 	var manager: M_ECSManager = ctx["ecs_manager"]
@@ -61,7 +61,7 @@ func test_controls_hide_and_processing_stops_on_device_change_and_transition() -
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.TOUCHSCREEN, -1))
 	await _await_state_update(store)
 
-	var joystick: VirtualJoystick = ctx["joystick"]
+	var joystick: UI_VirtualJoystick = ctx["joystick"]
 	_press_joystick(joystick, Vector2.ZERO, Vector2(joystick.joystick_radius, 0.0))
 
 	var manager: M_ECSManager = ctx["ecs_manager"]
@@ -73,7 +73,7 @@ func test_controls_hide_and_processing_stops_on_device_change_and_transition() -
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.GAMEPAD, 0))
 	await _await_state_update(store)
 
-	var controls: MobileControls = ctx["controls"]
+	var controls: UI_MobileControls = ctx["controls"]
 	assert_false(controls.visible, "MobileControls should hide when active device is not touchscreen")
 
 	_press_joystick(joystick, Vector2.ZERO, Vector2(0.0, -joystick.joystick_radius))
@@ -95,10 +95,10 @@ func test_controls_hide_and_processing_stops_on_device_change_and_transition() -
 
 func test_virtual_control_positions_persist_via_state_handoff() -> void:
 	var store: M_StateStore = await _create_state_store()
-	var controls: MobileControls = await _create_controls()
-	var joystick: VirtualJoystick = controls.get_node_or_null("Controls/VirtualJoystick") as VirtualJoystick
+	var controls: UI_MobileControls = await _create_controls()
+	var joystick: UI_VirtualJoystick = controls.get_node_or_null("Controls/VirtualJoystick") as UI_VirtualJoystick
 	assert_not_null(joystick)
-	var jump_button: VirtualButton = _find_button(controls.get_buttons(), StringName("jump"))
+	var jump_button: UI_VirtualButton = _find_button(controls.get_buttons(), StringName("jump"))
 	assert_not_null(jump_button)
 
 	var custom_joystick := Vector2(180, 320)
@@ -125,9 +125,9 @@ func test_virtual_control_positions_persist_via_state_handoff() -> void:
 	await _await_frames(2)
 
 	var restored_store: M_StateStore = await _create_state_store()
-	var restored_controls: MobileControls = await _create_controls()
-	var restored_joystick: VirtualJoystick = restored_controls.get_node_or_null("Controls/VirtualJoystick") as VirtualJoystick
-	var restored_jump: VirtualButton = _find_button(restored_controls.get_buttons(), StringName("jump"))
+	var restored_controls: UI_MobileControls = await _create_controls()
+	var restored_joystick: UI_VirtualJoystick = restored_controls.get_node_or_null("Controls/VirtualJoystick") as UI_VirtualJoystick
+	var restored_jump: UI_VirtualButton = _find_button(restored_controls.get_buttons(), StringName("jump"))
 	var viewport_size: Vector2 = restored_controls.get_viewport().get_visible_rect().size
 
 	assert_not_null(restored_joystick, "Restored MobileControls should have a joystick instance")
@@ -164,7 +164,7 @@ func _setup_environment() -> Dictionary:
 	await _await_frames(2)
 
 	var controls := await _create_controls()
-	var joystick := controls.get_node_or_null("Controls/VirtualJoystick") as VirtualJoystick
+	var joystick := controls.get_node_or_null("Controls/VirtualJoystick") as UI_VirtualJoystick
 	var buttons: Array = controls.get_buttons()
 	var jump_button := _find_button(buttons, StringName("jump"))
 
@@ -194,14 +194,14 @@ func _create_state_store() -> M_StateStore:
 	await _await_frames(2)
 	return store
 
-func _create_controls() -> MobileControls:
-	var controls := MobileControlsScene.instantiate() as MobileControls
+func _create_controls() -> UI_MobileControls:
+	var controls := MobileControlsScene.instantiate() as UI_MobileControls
 	controls.force_enable = true
 	add_child_autofree(controls)
 	await _await_frames(2)
 	return controls
 
-func _press_joystick(joystick: VirtualJoystick, start: Vector2, end: Vector2) -> void:
+func _press_joystick(joystick: UI_VirtualJoystick, start: Vector2, end: Vector2) -> void:
 	if joystick == null:
 		return
 	var touch := InputEventScreenTouch.new()
@@ -215,7 +215,7 @@ func _press_joystick(joystick: VirtualJoystick, start: Vector2, end: Vector2) ->
 	drag.position = end
 	joystick._input(drag)
 
-func _press_button(button: VirtualButton) -> void:
+func _press_button(button: UI_VirtualButton) -> void:
 	if button == null:
 		return
 	var touch := InputEventScreenTouch.new()
@@ -224,10 +224,10 @@ func _press_button(button: VirtualButton) -> void:
 	touch.position = button.get_global_rect().position + (button.get_global_rect().size * 0.5)
 	button._input(touch)
 
-func _find_button(buttons: Array, action: StringName) -> VirtualButton:
+func _find_button(buttons: Array, action: StringName) -> UI_VirtualButton:
 	for button in buttons:
-		if button is VirtualButton and (button as VirtualButton).action == action:
-			return button as VirtualButton
+		if button is UI_VirtualButton and (button as UI_VirtualButton).action == action:
+			return button as UI_VirtualButton
 	return null
 
 func assert_vector_almost_eq(a: Vector2, b: Vector2, tolerance: float, message: String = "") -> void:

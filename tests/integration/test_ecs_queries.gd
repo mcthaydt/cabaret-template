@@ -1,6 +1,6 @@
 extends BaseTest
 
-const BASE_SCENE := preload("res://templates/base_scene_template.tscn")
+const BASE_SCENE := preload("res://templates/tmpl_base_scene.tscn")
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
@@ -8,6 +8,24 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 const MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const INPUT_COMPONENT := preload("res://scripts/ecs/components/c_input_component.gd")
 const MOVEMENT_SETTINGS := preload("res://resources/settings/movement_default.tres")
+const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
+
+var _state_store: M_StateStore = null
+
+func before_each() -> void:
+	# Clear ServiceLocator first to ensure clean state between tests
+	U_ServiceLocator.clear()
+
+	# Create and add M_StateStore for systems that require it
+	_state_store = M_StateStore.new()
+	add_child(_state_store)
+	autofree(_state_store)
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
+	await get_tree().process_frame
+
+func after_each() -> void:
+	# Clear ServiceLocator to prevent state leakage
+	U_ServiceLocator.clear()
 
 func _setup_scene() -> Dictionary:
 	await get_tree().process_frame
@@ -45,7 +63,7 @@ func test_query_entities_returns_player_components() -> void:
 	], [FLOATING_TYPE])
 
 	assert_eq(results.size(), 1, "Expected exactly one player entity to match movement+input query")
-	var query: EntityQuery = results[0]
+	var query: U_EntityQuery = results[0]
 	assert_not_null(query.get_component(MOVEMENT_TYPE))
 	assert_not_null(query.get_component(INPUT_TYPE))
 
@@ -97,7 +115,7 @@ func test_query_entities_includes_runtime_entities() -> void:
 
 	var runtime_found := false
 	for query in results:
-		var eq: EntityQuery = query
+		var eq: U_EntityQuery = query
 		if eq.entity == runtime_entity:
 			runtime_found = true
 			assert_eq(eq.get_component(MOVEMENT_TYPE), movement_component)

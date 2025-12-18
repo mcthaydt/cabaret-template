@@ -88,7 +88,7 @@ This is a Godot 4.5 project with the following structure:
 **Purpose**: Event bus refactor that MUST be resolved before ANY user story implementation
 
 **⚠️ DECISION MADE**: Option C (Dual-Bus via Abstract Base) was chosen and implemented in commit b7fb729
-- Created `EventBusBase` abstract class with shared logic
+- Created `BaseEventBus` abstract class with shared logic
 - Created `U_StateEventBus` extending base for state domain
 - Refactored `U_ECSEventBus` to extend base while preserving API
 - All tests pass (7/7 state, 62/62 ECS)
@@ -659,7 +659,7 @@ func after_each():
 - Documentation updated (DEV_PITFALLS.md with testing patterns)
 
 **COMMITS**:
-- `b7fb729` - Phase 0C: EventBusBase + U_StateEventBus
+- `b7fb729` - Phase 0C: BaseEventBus + U_StateEventBus
 - `77e6618` - Phase 1a: Core M_StateStore skeleton
 - `45cde3c` - Phase 1b: ActionRegistry with validation
 - `8e1e42d` - Phases 1c-1e: Reducers, actions, selectors (77% pass rate)
@@ -735,16 +735,16 @@ func after_each():
 
 **System 1: Pause System (State Store Manages Pause State)**
 
-- [x] T307 [P] [PoC] Create `scripts/ecs/systems/s_pause_system.gd` extending ECSSystem
-- [x] T308 [PoC] In S_PauseSystem._ready(), get M_StateStore via U_StateUtils.get_store()
-- [x] T309 [PoC] Implement `_unhandled_input(event)` in S_PauseSystem: detect ESC key (or pause action)
+- [x] T307 [P] [PoC] Create `scripts/ecs/systems/m_pause_manager.gd` extending ECSSystem
+- [x] T308 [PoC] In M_PauseManager._ready(), get M_StateStore via U_StateUtils.get_store()
+- [x] T309 [PoC] Implement `_unhandled_input(event)` in M_PauseManager: detect ESC key (or pause action)
 - [x] T310 [PoC] On ESC press: check current pause state via GameplaySelectors.get_is_paused()
 - [x] T311 [PoC] If not paused: dispatch U_GameplayActions.pause_game(), if paused: dispatch U_GameplayActions.unpause_game()
 - [x] T312 [PoC] Subscribe to M_StateStore.slice_updated signal for "gameplay" slice
 - [x] T313 [PoC] On slice update: read paused state, emit PauseSystem-specific signal for other systems
 - [x] T314 [PoC] Update S_MovementSystem: in process_system(), check GameplaySelectors.get_is_paused(), return early if paused
 - [x] T315 [PoC] Update S_JumpSystem: check pause state, skip processing if paused
-- [x] T316 [PoC] Add S_PauseSystem to base_scene_template.tscn in Systems node
+- [x] T316 [PoC] Add M_PauseManager to base_scene_template.tscn in Systems node
 
 **System 2: Simple Health System (Damage Over Time)**
 
@@ -1056,7 +1056,7 @@ func after_each():
 
 ### Real ECS System Integration (Production Proof-of-Concept)
 
-- [x] T425 Choose 1-2 existing ECS systems for state store integration (e.g., S_InputSystem, S_PauseSystem) - S_PauseSystem & S_HealthSystem (Phase 10.5)
+- [x] T425 Choose 1-2 existing ECS systems for state store integration (e.g., S_InputSystem, M_PauseManager) - M_PauseManager & S_HealthSystem (Phase 10.5)
 - [x] T426 Update chosen system(s) to use U_StateUtils.get_store() to access M_StateStore - COMPLETE (Phase 10.5)
 - [x] T427 Update chosen system(s) to dispatch actions (e.g., pause/unpause, input events) - COMPLETE (Phase 10.5)
 - [x] T428 Update chosen system(s) to subscribe to state changes and react accordingly - COMPLETE (Phase 10.5)
@@ -1102,7 +1102,7 @@ func after_each():
 
 **User Request**: "I want everything in the project to use the new state not just 2 systems"
 
-**Current Status**: Only S_PauseSystem, S_HealthSystem, and HUD use state store. 13 systems and 1 manager remain.
+**Current Status**: Only M_PauseManager, S_HealthSystem, and HUD use state store. 13 systems and 1 manager remain.
 
 ### State Expansion for Full Integration
 
@@ -1505,8 +1505,8 @@ From PRD, feature is complete when:
 **Approach**: Add a shared abstract base and two concrete buses (ECS + State) without breaking existing ECS API
 
 - [x] T026C [Phase0-C] Create directory `scripts/events/`
-- [x] T027C [Phase0-C] Create `scripts/events/event_bus_base.gd` (abstract) with subscribe/unsubscribe/publish/reset/history and defensive payload duplication
+- [x] T027C [Phase0-C] Create `scripts/events/base_event_bus.gd` (abstract) with subscribe/unsubscribe/publish/reset/history and defensive payload duplication
 - [x] T028C [Phase0-C] Create `scripts/state/u_state_event_bus.gd` that extends base and exposes static API delegating to a private instance
 - [x] T029C [Phase0-C] Update `scripts/ecs/u_ecs_event_bus.gd` to extend base and delegate its static API to a private instance (no external API changes)
 - [x] T030C [Phase0-C] 📝 TEST: Add `tests/unit/state/test_state_event_bus.gd` to verify isolation and reset behavior
-- [x] T031C [Phase0-C] Commit Phase 0C: "Add EventBusBase and U_StateEventBus; delegate U_ECSEventBus to base"
+- [x] T031C [Phase0-C] Commit Phase 0C: "Add BaseEventBus and U_StateEventBus; delegate U_ECSEventBus to base"

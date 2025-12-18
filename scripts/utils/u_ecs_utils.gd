@@ -5,15 +5,28 @@ class_name U_ECSUtils
 const META_ENTITY_ROOT := StringName("_ecs_entity_root")
 const ENTITY_GROUP := StringName("ecs_entity")
 const MANAGER_GROUP := StringName("ecs_manager")
-const ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/ecs_entity.gd")
+const ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/base_ecs_entity.gd")
 
 static var _warning_handler: Callable = Callable()
 static var _manager_method_warnings: Dictionary = {}
 
+## Get the M_ECSManager from injection, parent traversal, or groups
+##
+## Lookup order (Phase 10B-8):
+##   1. Check if node has 'ecs_manager' @export (for test injection)
+##   2. Parent traversal (existing pattern)
+##   3. Group lookup (existing fallback)
 static func get_manager(from_node: Node) -> Node:
 	if from_node == null:
 		return null
 
+	# Priority 1: Check for injected manager (test pattern, Phase 10B-8)
+	if "ecs_manager" in from_node:
+		var injected: Variant = from_node.get("ecs_manager")
+		if injected != null and is_instance_valid(injected):
+			return injected
+
+	# Priority 2: Parent traversal (existing pattern)
 	var current: Node = from_node.get_parent()
 	while current != null:
 		if _node_has_manager_methods(current):
@@ -21,6 +34,7 @@ static func get_manager(from_node: Node) -> Node:
 		_warn_missing_manager_methods(current)
 		current = current.get_parent()
 
+	# Priority 3: Group lookup (existing fallback)
 	var manager: Node = get_singleton_from_group(from_node, MANAGER_GROUP, false)
 	if manager != null:
 		if _node_has_manager_methods(manager):
@@ -62,7 +76,7 @@ static func find_entity_root(from_node: Node, warn_on_missing: bool = false) -> 
 static func get_current_time() -> float:
 	return float(Time.get_ticks_msec()) / 1000.0
 
-static func map_components_by_body(manager: M_ECSManager, component_type: StringName) -> Dictionary:
+static func map_components_by_body(manager: I_ECSManager, component_type: StringName) -> Dictionary:
 	var result: Dictionary = {}
 	if manager == null:
 		return result
@@ -121,6 +135,68 @@ static func get_active_camera(from_node: Node) -> Camera3D:
 			return viewport_camera
 
 	return get_singleton_from_group(from_node, StringName("main_camera"), false) as Camera3D
+
+## Returns the entity ID for the given entity node.
+## Calls entity.get_entity_id() if available, otherwise generates from name.
+static func get_entity_id(entity: Node) -> StringName:
+	if entity == null:
+		return StringName("")
+	if entity.has_method("get_entity_id"):
+		return entity.get_entity_id()
+
+	# Fallback: generate ID from node name
+	var node_name := String(entity.name)
+	if node_name.begins_with("E_"):
+		node_name = node_name.substr(2)
+	return StringName(node_name.to_lower())
+
+## Returns the tags for the given entity node.
+## Calls entity.get_tags() if available, otherwise returns empty array.
+static func get_entity_tags(entity: Node) -> Array[StringName]:
+	if entity == null:
+		return []
+	if entity.has_method("get_tags"):
+		var tags_variant: Variant = entity.get_tags()
+		if tags_variant is Array:
+			var result: Array[StringName] = []
+			for tag in tags_variant:
+				result.append(StringName(tag))
+			return result
+	return []
+
+## Builds a snapshot dictionary for an entity node.
+## Includes entity_id, tags, and physics data (position, rotation, velocity, etc.)
+## Used for syncing entity state to the Redux store.
+static func build_entity_snapshot(entity: Node) -> Dictionary:
+	if entity == null:
+		return {}
+
+	var snapshot: Dictionary = {}
+
+	# Entity ID (as String for dictionary keys)
+	var entity_id := get_entity_id(entity)
+	snapshot["entity_id"] = String(entity_id)
+
+	# Tags (as Array[String] for serialization)
+	var tags := get_entity_tags(entity)
+	var tags_array: Array[String] = []
+	for tag in tags:
+		tags_array.append(String(tag))
+	snapshot["tags"] = tags_array
+
+	# Physics data (if Node3D)
+	if entity is Node3D:
+		var node3d := entity as Node3D
+		snapshot["position"] = node3d.global_position
+		snapshot["rotation"] = node3d.rotation
+
+		# Velocity and floor status (if CharacterBody3D)
+		if entity is CharacterBody3D:
+			var body := entity as CharacterBody3D
+			snapshot["velocity"] = body.velocity
+			snapshot["is_on_floor"] = body.is_on_floor()
+
+	return snapshot
 
 static func set_warning_handler(handler: Callable) -> void:
 	_warning_handler = handler

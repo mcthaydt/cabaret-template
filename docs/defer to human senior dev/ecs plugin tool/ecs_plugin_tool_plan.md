@@ -424,7 +424,7 @@
 
 **Integration:**
 - ✅ Uses existing `M_ECSManager.get_query_metrics()` (scripts/managers/m_ecs_manager.gd:109)
-- ✅ Uses existing `ECSSystem.set_debug_disabled()` (scripts/ecs/ecs_system.gd:50)
+- ✅ Uses existing `ECSSystem.set_debug_disabled()` (scripts/ecs/base_ecs_system.gd:50)
 - ✅ Uses existing `U_ECSEventBus.get_event_history()` (scripts/ecs/u_ecs_event_bus.gd:81)
 - ✅ Uses existing `U_ECSEventBus.clear_history()` (scripts/ecs/u_ecs_event_bus.gd:73)
 - ✅ Uses existing GUT testing framework (addons/gut/)

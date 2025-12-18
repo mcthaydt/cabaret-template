@@ -1,0 +1,39 @@
+[gd_scene load_steps=6 format=3 uid="uid://behhuoexdtawd"]
+
+[ext_resource type="Script" uid="uid://c0gmmilbk63f2" path="res://scripts/gameplay/e_victory_zone.gd" id="1_controller"]
+[ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/rs_goal_cylinder.tres" id="2_goal_settings"]
+
+[sub_resource type="StandardMaterial3D" id="Material_goal"]
+albedo_color = Color(0.968627, 0.847059, 0.239216, 1)
+emission_enabled = true
+emission = Color(1, 0.843137, 0.223529, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b3ofg"]
+
+[sub_resource type="TextMesh" id="TextMesh_eyiog"]
+material = SubResource("StandardMaterial3D_b3ofg")
+text = ":)"
+
+[node name="E_GoalZone" type="Node3D"]
+script = ExtResource("1_controller")
+objective_id = &"goal_01"
+area_id = "interior_house"
+settings = ExtResource("2_goal_settings")
+visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePath("GlowLight")])
+entity_id = &"goalzone"
+tags = Array[StringName]([&"objective", &"goal"])
+
+[node name="Visual" type="CSGCylinder3D" parent="."]
+radius = 1.5
+material = SubResource("Material_goal")
+
+[node name="GlowLight" type="OmniLight3D" parent="."]
+light_color = Color(1, 0.87451, 0.364706, 1)
+light_energy = 2.5
+
+[node name="Sparkles" type="CPUParticles3D" parent="."]
+amount = 80
+lifetime = 1.5
+preprocess = 0.5
+mesh = SubResource("TextMesh_eyiog")

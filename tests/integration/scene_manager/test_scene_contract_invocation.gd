@@ -21,6 +21,8 @@ func before_each() -> void:
     _store.settings = RS_StateStoreSettings.new()
     _store.scene_initial_state = RS_SceneInitialState.new()
     _root.add_child(_store)
+    # Register state store via ServiceLocator BEFORE managers run _ready()
+    U_ServiceLocator.register(StringName("state_store"), _store)
     await get_tree().process_frame
 
     var active := Node.new()
@@ -42,12 +44,35 @@ func before_each() -> void:
     loading.name = "LoadingOverlay"
     _root.add_child(loading)
 
+    # Register overlays via ServiceLocator for M_SceneManager discovery
+    U_ServiceLocator.register(StringName("transition_overlay"), transition_overlay)
+    U_ServiceLocator.register(StringName("loading_overlay"), loading)
+
     _manager = M_SceneManager.new()
     _manager.skip_initial_scene_load = true
     _root.add_child(_manager)
     await get_tree().process_frame
 
 func after_each() -> void:
+    # 1. Clear ServiceLocator first (prevents cross-test pollution)
+    U_ServiceLocator.clear()
+
+    # 2. Clear active scenes loaded by M_SceneManager
+    var active := _root.get_node_or_null("ActiveSceneContainer") if _root else null
+    if active and is_instance_valid(active):
+        for child in active.get_children():
+            child.queue_free()
+
+    # 3. Clear UI overlay stack
+    var ui := _root.get_node_or_null("UIOverlayStack") if _root else null
+    if ui and is_instance_valid(ui):
+        for child in ui.get_children():
+            child.queue_free()
+
+    # 4. Wait for queue_free to process
+    await get_tree().process_frame
+    await get_tree().physics_frame
+
     # Cleanup registry entry if created
     if U_SceneRegistry._scenes.has(StringName("tmp_invalid_gameplay")):
         U_SceneRegistry._scenes.erase(StringName("tmp_invalid_gameplay"))

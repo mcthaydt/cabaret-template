@@ -7,7 +7,7 @@ class_name M_CursorManager
 ## T071: Refactored to remove direct pause input handling.
 ## This manager provides a simple interface for controlling the mouse cursor's
 ## visibility and lock state. Cursor state is controlled via explicit calls from
-## S_PauseSystem or M_SceneManager, not via direct input handling.
+## M_PauseManager or M_SceneManager, not via direct input handling.
 ##
 ## Does NOT handle input directly - cursor changes flow through pause/navigation systems.
 

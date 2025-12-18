@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_InputProfile" load_steps=2 format=3 uid="uid://b6hvjhlbobpyw"]
 
-[ext_resource type="Script" uid="uid://csgtnfyfr8huj" path="res://scripts/ecs/resources/rs_input_profile.gd" id="1"]
+[ext_resource type="Script" uid="uid://ck3vmas5ece8s" path="res://scripts/ecs/resources/rs_input_profile.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
@@ -8,16 +8,16 @@ profile_name = "Default (Touchscreen)"
 device_type = 2
 description = "Touchscreen controls: Virtual joystick for movement, 4 buttons (Jump, Sprint, Interact, Pause)"
 virtual_buttons = Array[Dictionary]([{
-"action": "jump",
-"position": Vector2(844, 352)
-}, {
-"action": "sprint",
-"position": Vector2(765, 401)
-}, {
 "action": "interact",
-"position": Vector2(288, 260)
+"position": Vector2(240, 331)
+}, {
+"action": "jump",
+"position": Vector2(787, 373)
 }, {
 "action": "pause",
-"position": Vector2(811, 72)
+"position": Vector2(790, 73)
+}, {
+"action": "sprint",
+"position": Vector2(715, 433)
 }])
-virtual_joystick_position = Vector2(120, 300)
+virtual_joystick_position = Vector2(82, 390)
