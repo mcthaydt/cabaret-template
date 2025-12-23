@@ -10,7 +10,6 @@ class_name UI_SaveSlotSelector
 const U_SaveActions := preload("res://scripts/state/actions/u_save_actions.gd")
 const U_SaveSelectors := preload("res://scripts/state/selectors/u_save_selectors.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 const RS_SaveSlotMetadata := preload("res://scripts/state/resources/rs_save_slot_metadata.gd")
 const U_SaveManager := preload("res://scripts/state/utils/u_save_manager.gd")
 
@@ -70,12 +69,14 @@ func _ready() -> void:
 	_connect_button_signals()
 	_connect_dialog_signals()
 	_subscribe_to_state_updates()
-	_apply_initial_slot_focus()
 
 
 func _on_panel_ready() -> void:
 	# Hook from BasePanel - already handled in _ready()
 	pass
+
+func _apply_initial_focus() -> void:
+	await _apply_initial_slot_focus()
 
 
 func _input(event: InputEvent) -> void:
@@ -111,6 +112,88 @@ func _input(event: InputEvent) -> void:
 		var viewport := get_viewport()
 		if viewport != null:
 			viewport.set_input_as_handled()
+
+func _navigate_focus(direction: StringName) -> void:
+	var viewport := get_viewport()
+	var focused := viewport.gui_get_focus_owner() if viewport != null else null
+	if focused == null:
+		return
+	if not is_ancestor_of(focused):
+		return
+
+	var slots: Array[Button] = [_autosave_slot, _slot_1, _slot_2, _slot_3]
+	var actions: Array[Button] = [_action_button_1, _delete_button, _back_button]
+
+	var slot_index := slots.find(focused)
+	if slot_index != -1:
+		_navigate_slots(direction, slot_index, slots, actions)
+		return
+
+	var action_index := actions.find(focused)
+	if action_index != -1:
+		_navigate_actions(direction, action_index, slots, actions)
+		return
+
+	super._navigate_focus(direction)
+
+func _navigate_slots(direction: StringName, slot_index: int, slots: Array[Button], actions: Array[Button]) -> void:
+	match direction:
+		"ui_up":
+			var prev_slot := _find_focusable_slot(slots, slot_index - 1, -1)
+			if prev_slot != null:
+				prev_slot.grab_focus()
+		"ui_down":
+			var next_slot := _find_focusable_slot(slots, slot_index + 1, 1)
+			if next_slot != null:
+				next_slot.grab_focus()
+			else:
+				_focus_first_action(actions)
+		"ui_left", "ui_right":
+			pass
+
+func _navigate_actions(direction: StringName, action_index: int, slots: Array[Button], actions: Array[Button]) -> void:
+	match direction:
+		"ui_left":
+			if action_index > 0:
+				actions[action_index - 1].grab_focus()
+		"ui_right":
+			if action_index < actions.size() - 1:
+				actions[action_index + 1].grab_focus()
+		"ui_up":
+			var last_slot := _find_focusable_slot(slots, slots.size() - 1, -1)
+			if last_slot != null:
+				last_slot.grab_focus()
+		"ui_down":
+			pass
+
+func _find_focusable_slot(slots: Array[Button], start_index: int, step: int) -> Button:
+	var i := start_index
+	while i >= 0 and i < slots.size():
+		var slot := slots[i]
+		if _is_focusable_slot(slot):
+			return slot
+		i += step
+	return null
+
+func _focus_first_action(actions: Array[Button]) -> void:
+	for action_button in actions:
+		if _is_focusable_action(action_button):
+			action_button.grab_focus()
+			return
+
+func _is_focusable_slot(slot: Button) -> bool:
+	if slot == null:
+		return false
+	if slot.disabled:
+		return false
+	return slot.is_visible_in_tree()
+
+func _is_focusable_action(action_button: Button) -> bool:
+	if action_button == null:
+		return false
+	if action_button.disabled:
+		return false
+	return action_button.is_visible_in_tree()
 
 
 func _on_back_pressed() -> void:
@@ -187,26 +270,12 @@ func _update_ui_for_mode() -> void:
 
 
 func _configure_focus_neighbors() -> void:
-	# TIER 1: Vertical navigation through slots (Bug #1 Prevention)
-	var slots: Array[Control] = [_autosave_slot, _slot_1, _slot_2, _slot_3]
-	U_FocusConfigurator.configure_vertical_focus(slots, false)
-
-	# TIER 2: Horizontal navigation through action buttons
-	var actions: Array[Control] = [_action_button_1, _delete_button, _back_button]
-	U_FocusConfigurator.configure_horizontal_focus(actions, false)
-
-	# BRIDGE: Connect last slot to first action button
-	_slot_3.focus_neighbor_bottom = _action_button_1.get_path()
-	_action_button_1.focus_neighbor_top = _autosave_slot.get_path()
-
-	# CRITICAL: Disable left/right on slots (Bug #1 prevention)
-	for slot in slots:
-		slot.focus_neighbor_left = NodePath()
-		slot.focus_neighbor_right = NodePath()
-
-	# Monitor focus changes for preview updates
+	# Custom navigation handles focus traversal; only wire focus_entered for previews.
+	var slots: Array[Button] = [_autosave_slot, _slot_1, _slot_2, _slot_3]
 	for i in range(slots.size()):
 		var slot := slots[i]
+		if slot == null:
+			continue
 		if slot.focus_entered.is_connected(_on_slot_focused):
 			continue
 		slot.focus_entered.connect(_on_slot_focused.bind(i))
@@ -262,6 +331,10 @@ func _subscribe_to_state_updates() -> void:
 func _apply_initial_slot_focus() -> void:
 	# Focus first available slot
 	await get_tree().process_frame
+	var viewport := get_viewport()
+	var focused := viewport.gui_get_focus_owner() if viewport != null else null
+	if focused != null and is_ancestor_of(focused):
+		return
 	if _autosave_slot != null and _autosave_slot.is_inside_tree() and not _autosave_slot.disabled:
 		_autosave_slot.grab_focus()
 	elif _slot_1 != null and _slot_1.is_inside_tree():
