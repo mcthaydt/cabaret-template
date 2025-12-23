@@ -1,6 +1,6 @@
 # Save Manager Continuation Prompt
 
-**Current Phase**: Phase 2 Complete ✅ - Ready for Phase 3 (Autosave Modification)
+**Current Phase**: Phase 3 Complete ✅ - Ready for Phase 4 (Migration)
 **Branch**: `save-manager-v2`
 **Last Updated**: 2025-12-23
 
@@ -42,7 +42,7 @@ Implements a multi-slot save system with:
 - ✅ 27/27 tests passing
 - ✅ Timestamp precision bug fixed
 
-✅ **Phase 2 Complete** (2025-12-23, commit pending):
+✅ **Phase 2 Complete** (2025-12-23, commit a82cdfc):
 - ✅ `rs_save_initial_state.gd` - Redux state resource
 - ✅ `u_save_actions.gd` - Action creators (save/load/delete operations)
 - ✅ `u_save_reducer.gd` - State reducer with immutable updates
@@ -51,8 +51,14 @@ Implements a multi-slot save system with:
 - ✅ Save slice registered in m_state_store.gd
 - ✅ **Total tests**: 40/40 passing (27 manager + 13 reducer)
 
+✅ **Phase 3 Complete** (2025-12-23, commit pending):
+- ✅ Modified `m_state_store._on_autosave_timeout()` to use U_SaveManager
+- ✅ Added navigation shell check (only autosave in "gameplay")
+- ✅ Added transition check (skip if is_transitioning)
+- ✅ Autosave now writes to slot 0 via `U_SaveManager.save_to_auto_slot()`
+- ✅ **Total tests**: 40/40 passing (no regressions)
+
 ❌ **Not Started**:
-- Autosave redirection (Phase 3)
 - Migration (Phase 4)
 - UI layer (Phase 5)
 
@@ -164,38 +170,42 @@ var meta := U_SaveManager.get_slot_metadata(1)
 
 ## Next Steps (When Resuming)
 
-### ✅ Phase 1 & 2 Complete - Ready for Phase 3
+### ✅ Phase 1, 2 & 3 Complete - Ready for Phase 4
 
 **Phase 1 Accomplishments** (commit cff8a3b):
 - ✅ All data layer utilities implemented
 - ✅ 27/27 tests passing
 - ✅ Timestamp precision bug fixed
 
-**Phase 2 Accomplishments** (commit pending):
+**Phase 2 Accomplishments** (commit a82cdfc):
 - ✅ Redux integration complete
 - ✅ 40/40 tests passing (27 manager + 13 reducer)
 - ✅ Save slice registered with transient fields
 
-### Immediate Next Actions: Phase 3 (Autosave Modification)
+**Phase 3 Accomplishments** (commit pending):
+- ✅ Autosave redirected to U_SaveManager
+- ✅ Shell and transition checks implemented
+- ✅ 40/40 tests still passing (no regressions)
 
-**Goal**: Redirect existing autosave system to use U_SaveManager with slot 0
+### Immediate Next Actions: Phase 4 (Migration)
 
-**Step 1: Modify Autosave in m_state_store.gd**
-1. **Update `_on_autosave_timeout()`**:
-   - Replace U_STATE_REPOSITORY.save_state_if_enabled() call
-   - Use U_SaveManager.save_to_auto_slot() instead
-   - Add shell check (only save in "gameplay" shell)
-   - Add transition check (skip if is_transitioning)
+**Goal**: Migrate legacy `savegame.json` to slot 0 on first launch
 
-2. **Test autosave behavior**:
-   - Verify saves to user://save_slot_0.json
-   - Verify respects interval settings
-   - Verify skips during transitions
-   - Verify only saves in gameplay shell
+**Step 1: Add Migration to m_state_store._ready()**
+1. **Call migration helper**:
+   - Add call to `U_SaveManager.try_migrate_legacy_save()` in `_ready()`
+   - Log migration result if debug logging enabled
+   - Migration should happen after store initialization but before UI load
 
-**Step 2: After Phase 3**
-- Move to Phase 4: Migration (legacy save → slot 0)
-- Move to Phase 5: UI Layer
+2. **Test migration behavior**:
+   - Create test `user://savegame.json` file
+   - Verify migrates to `user://save_slot_0.json`
+   - Verify legacy file renamed to `user://savegame.json.backup`
+   - Verify slot 0 loads correctly after migration
+
+**Step 2: After Phase 4**
+- Move to Phase 5: UI Layer (save/load overlay)
+- Move to Phase 6: Menu Integration (pause menu + main menu)
 - See `save-manager-tasks.md` for full checklist
 
 ---

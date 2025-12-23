@@ -141,13 +141,25 @@
 
 ---
 
-## Phase 3: Autosave Modification
+## Phase 3: Autosave Modification ✅ COMPLETE
 
-- [ ] Modify `m_state_store.gd` autosave
-  - [ ] Update _on_autosave_timeout() to use U_SaveManager
-  - [ ] Add shell check (only in "gameplay")
-  - [ ] Add transition check (skip if is_transitioning)
-  - [ ] Test autosave triggers to slot 0
+**Completion Date**: 2025-12-23
+**Commit**: (pending)
+
+- [x] Modify `m_state_store.gd` autosave
+  - [x] Update _on_autosave_timeout() to use U_SaveManager
+  - [x] Add shell check (only in "gameplay")
+  - [x] Add transition check (skip if is_transitioning)
+  - [x] Test autosave triggers to slot 0
+
+**Key Implementation Notes**:
+- Added U_SAVE_MANAGER and U_SAVE_ENVELOPE preloads to m_state_store.gd
+- Replaced `_on_autosave_timeout()` to call `_autosave_to_dedicated_slot()`
+- New method checks navigation shell (only saves in "gameplay")
+- New method checks scene.is_transitioning (skips during transitions)
+- Calls `U_SaveManager.save_to_auto_slot()` instead of U_STATE_REPOSITORY
+- Kept `_save_state_if_enabled()` for backward compatibility (used in _exit_tree)
+- All existing tests still pass (40/40)
 
 ---
 
