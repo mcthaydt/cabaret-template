@@ -18,6 +18,7 @@ const GAMEPAD_SETTINGS_OVERLAY := preload("res://resources/ui_screens/gamepad_se
 const TOUCHSCREEN_SETTINGS_OVERLAY := preload("res://resources/ui_screens/touchscreen_settings_overlay.tres")
 const INPUT_REBINDING_OVERLAY := preload("res://resources/ui_screens/input_rebinding_overlay.tres")
 const EDIT_TOUCH_CONTROLS_OVERLAY := preload("res://resources/ui_screens/edit_touch_controls_overlay.tres")
+const SAVE_SLOT_SELECTOR_OVERLAY := preload("res://resources/ui_screens/save_slot_selector_overlay.tres")
 
 static var _screens: Dictionary = {}
 
@@ -37,6 +38,7 @@ static func _register_all_screens() -> void:
 	_register_definition(TOUCHSCREEN_SETTINGS_OVERLAY as RS_UIScreenDefinition)
 	_register_definition(INPUT_REBINDING_OVERLAY as RS_UIScreenDefinition)
 	_register_definition(EDIT_TOUCH_CONTROLS_OVERLAY as RS_UIScreenDefinition)
+	_register_definition(SAVE_SLOT_SELECTOR_OVERLAY as RS_UIScreenDefinition)
 
 ## Reload registry entries from disk or a provided list (useful for tests).
 static func reload_registry(definitions: Array = []) -> void:

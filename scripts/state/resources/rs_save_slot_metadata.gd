@@ -51,7 +51,7 @@ func to_dictionary() -> Dictionary:
 		"death_count": death_count,
 		"completed_areas": completed_areas.duplicate(),
 		"completion_percentage": completion_percentage,
-		"screenshot_data": screenshot_data,
+		"screenshot_data": _packed_byte_array_to_array(screenshot_data),
 		"is_empty": is_empty,
 		"file_path": file_path,
 		"file_version": file_version,
@@ -92,12 +92,38 @@ func from_dictionary(data: Dictionary) -> void:
 	var screenshot_value: Variant = data.get("screenshot_data", PackedByteArray())
 	if screenshot_value is PackedByteArray:
 		screenshot_data = screenshot_value
+	elif screenshot_value is Array:
+		screenshot_data = _array_to_packed_byte_array(screenshot_value as Array)
+	elif screenshot_value is String:
+		var encoded := screenshot_value as String
+		if encoded.is_empty():
+			screenshot_data = PackedByteArray()
+		else:
+			var parsed: Variant = JSON.parse_string(encoded)
+			if parsed is Array:
+				screenshot_data = _array_to_packed_byte_array(parsed as Array)
+			else:
+				screenshot_data = PackedByteArray()
 	else:
 		screenshot_data = PackedByteArray()
 
 	is_empty = bool(data.get("is_empty", true))
 	file_path = str(data.get("file_path", ""))
 	file_version = int(data.get("file_version", 0))
+
+static func _packed_byte_array_to_array(data: PackedByteArray) -> Array:
+	var result: Array = []
+	result.resize(data.size())
+	for i in range(data.size()):
+		result[i] = data[i]
+	return result
+
+static func _array_to_packed_byte_array(data: Array) -> PackedByteArray:
+	var bytes := PackedByteArray()
+	bytes.resize(data.size())
+	for i in range(data.size()):
+		bytes[i] = int(data[i])
+	return bytes
 
 func get_display_summary() -> String:
 	if is_empty:

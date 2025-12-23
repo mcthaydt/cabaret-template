@@ -1,0 +1,212 @@
+[gd_scene load_steps=2 format=3 uid="uid://bvkn8ya03m4j0"]
+
+[ext_resource type="Script" uid="uid://6cejkhss3mox" path="res://scripts/ui/ui_save_slot_selector.gd" id="1_save_slot_selector_script"]
+
+[node name="SaveSlotSelector" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_save_slot_selector_script")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 50
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="LeftPanel" type="VBoxContainer" parent="MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/HBoxContainer/LeftPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Load Game"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SlotList" type="VBoxContainer" parent="MarginContainer/HBoxContainer/LeftPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="AutosaveSlot" type="Button" parent="MarginContainer/HBoxContainer/LeftPanel/SlotList"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+text = "Autosave
+[Empty]"
+
+[node name="Slot1" type="Button" parent="MarginContainer/HBoxContainer/LeftPanel/SlotList"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+text = "Slot 1
+[Empty]"
+
+[node name="Slot2" type="Button" parent="MarginContainer/HBoxContainer/LeftPanel/SlotList"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+text = "Slot 2
+[Empty]"
+
+[node name="Slot3" type="Button" parent="MarginContainer/HBoxContainer/LeftPanel/SlotList"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+text = "Slot 3
+[Empty]"
+
+[node name="RightPanel" type="VBoxContainer" parent="MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="PreviewLabel" type="Label" parent="MarginContainer/HBoxContainer/RightPanel"]
+layout_mode = 2
+text = "Preview"
+horizontal_alignment = 1
+
+[node name="ScreenshotContainer" type="CenterContainer" parent="MarginContainer/HBoxContainer/RightPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScreenshotPreview" type="TextureRect" parent="MarginContainer/HBoxContainer/RightPanel/ScreenshotContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(256, 144)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EmptySlotLabel" type="Label" parent="MarginContainer/HBoxContainer/RightPanel/ScreenshotContainer/ScreenshotPreview"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -11.5
+offset_right = 50.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "No Preview"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/HBoxContainer/RightPanel"]
+layout_mode = 2
+
+[node name="MetadataContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/RightPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="SceneLabel" type="Label" parent="MarginContainer/HBoxContainer/RightPanel/MetadataContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Scene: ---"
+
+[node name="TimestampLabel" type="Label" parent="MarginContainer/HBoxContainer/RightPanel/MetadataContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Saved: ---"
+
+[node name="PlayTimeLabel" type="Label" parent="MarginContainer/HBoxContainer/RightPanel/MetadataContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Play Time: ---"
+
+[node name="HealthLabel" type="Label" parent="MarginContainer/HBoxContainer/RightPanel/MetadataContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Health: ---"
+
+[node name="DeathCountLabel" type="Label" parent="MarginContainer/HBoxContainer/RightPanel/MetadataContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Deaths: ---"
+
+[node name="ActionButtons" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -80.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 1
+
+[node name="ActionButton1" type="Button" parent="ActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = "Load"
+
+[node name="DeleteButton" type="Button" parent="ActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = "Delete"
+
+[node name="BackButton" type="Button" parent="ActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+text = "Back"
+
+[node name="SaveConfirmDialog" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Confirm Save"
+initial_position = 2
+size = Vector2i(300, 100)
+ok_button_text = "Overwrite"
+dialog_text = "Overwrite this save slot?"
+
+[node name="DeleteConfirmDialog" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Confirm Delete"
+initial_position = 2
+size = Vector2i(300, 120)
+ok_button_text = "Delete"
+dialog_text = "Delete this save slot?
+
+This cannot be undone."
+
+[node name="ErrorDialog" type="AcceptDialog" parent="."]
+unique_name_in_owner = true
+title = "Error"
+initial_position = 2
+size = Vector2i(300, 100)
+dialog_text = "An error occurred."

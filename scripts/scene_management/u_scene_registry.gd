@@ -104,6 +104,15 @@ static func _register_scenes() -> void:
 		10  # Critical path - preload at startup (Phase 8)
 	)
 
+	# Save Slot Selector (save/load overlay)
+	_register_scene(
+		StringName("ui_save_slot_selector"),
+		"res://scenes/ui/ui_save_slot_selector.tscn",
+		SceneType.UI,
+		"instant",
+		10  # Critical UI overlay - preload at startup
+	)
+
 	# TEST SCENES - Keep hardcoded for test suite stability
 	_register_scene(
 		StringName("scene1"),
