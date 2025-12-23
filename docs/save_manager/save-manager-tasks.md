@@ -1,57 +1,76 @@
 # Save Manager Task Checklist
 
-**Status**: Phase 0 - Planning Complete
-**Last Updated**: 2025-12-22
+**Status**: Phase 1 - Data Layer Foundation COMPLETE ✅
+**Last Updated**: 2025-12-23
 
 ---
 
-## Phase 1: Data Layer Foundation (TDD)
+## Phase 1: Data Layer Foundation (TDD) ✅ COMPLETE
+
+**Completion Date**: 2025-12-23
+**Commit**: cff8a3b
 
 **RED**: Write failing tests first
 
-- [ ] Create `tests/unit/state/test_save_manager.gd`
-  - [ ] Test SaveMetadata.to_dictionary() / from_dictionary()
-  - [ ] Test U_SaveEnvelope.get_slot_path() returns correct paths
-  - [ ] Test U_SaveEnvelope.slot_exists() detects files
-  - [ ] Test U_SaveEnvelope.legacy_save_exists()
-  - [ ] Test U_SaveManager.save_to_slot() creates file
-  - [ ] Test U_SaveManager.load_from_slot() restores state
-  - [ ] Test U_SaveManager.get_slot_metadata() returns correct data
-  - [ ] Test U_SaveManager.get_all_slot_metadata() returns array
-  - [ ] Test U_SaveManager.delete_slot() removes file
-  - [ ] Test U_SaveManager.delete_slot(0) returns error (autosave protected)
-  - [ ] Test U_SaveManager.migrate_legacy_save() moves file
+- [x] Create `tests/unit/state/test_save_manager.gd`
+  - [x] Test SaveMetadata.to_dictionary() / from_dictionary()
+  - [x] Test U_SaveManager.get_slot_path() returns correct paths
+  - [x] Test U_SaveManager.slot_exists() detects files
+  - [x] Test U_SaveManager.save_to_slot() creates file
+  - [x] Test U_SaveManager.load_from_slot() restores state
+  - [x] Test U_SaveManager.get_slot_metadata() returns correct data
+  - [x] Test U_SaveManager.get_all_slots() returns array
+  - [x] Test U_SaveManager.delete_slot() removes file
+  - [x] Test U_SaveManager.get_most_recent_slot() finds newest
+  - [x] Test U_SaveManager.has_any_save() detection
 
-- [ ] Run tests → ALL FAIL (no implementation yet) ❌
+- [x] Run tests → ALL FAIL (no implementation yet) ❌
 
 **GREEN**: Implement to make tests pass
 
-- [ ] Create `u_save_envelope.gd` with data structures
-  - [ ] Define constants (SLOT_COUNT, paths, SAVE_VERSION)
-  - [ ] Implement SaveMetadata class
-    - [ ] to_dictionary()
-    - [ ] from_dictionary()
-  - [ ] Implement SaveEnvelope class
-  - [ ] Add utility methods (get_slot_path, slot_exists, legacy_save_exists)
+- [x] Create `rs_save_slot_metadata.gd` (Resource-based metadata)
+  - [x] Define SlotType enum (MANUAL, AUTO)
+  - [x] Implement to_dictionary()
+  - [x] Implement from_dictionary()
+  - [x] Implement get_display_summary()
+  - [x] **Fixed**: Changed timestamp from int to float for sub-second precision
 
-- [ ] Create `u_save_manager.gd` with save/load logic
-  - [ ] Implement save_to_slot()
-  - [ ] Implement load_from_slot()
-  - [ ] Implement get_all_slot_metadata()
-  - [ ] Implement get_slot_metadata()
-  - [ ] Implement delete_slot() with autosave protection
-  - [ ] Implement migrate_legacy_save()
-  - [ ] Implement _build_metadata_from_state()
-  - [ ] Implement _save_envelope() helper
-  - [ ] Implement _load_envelope() helper
+- [x] Create `u_save_envelope.gd` with data structures
+  - [x] Define constants (paths, SAVE_VERSION)
+  - [x] Implement write_envelope()
+  - [x] Implement try_read_envelope()
+  - [x] Implement try_read_metadata()
+  - [x] Implement try_import_legacy_as_auto_slot()
 
-- [ ] Run tests → ALL PASS ✅
+- [x] Create `u_save_manager.gd` with save/load logic
+  - [x] Implement save_to_slot()
+  - [x] Implement save_to_auto_slot()
+  - [x] Implement load_from_slot()
+  - [x] Implement load_from_auto_slot()
+  - [x] Implement get_slot_metadata()
+  - [x] Implement get_all_slots()
+  - [x] Implement get_most_recent_slot()
+  - [x] Implement has_any_save()
+  - [x] Implement delete_slot() (autosave delete NOT implemented - returns error for slot 0)
+  - [x] Implement try_migrate_legacy_save()
+  - [x] Implement _build_metadata_from_state()
+
+- [x] Create `rs_save_manager_settings.gd` (configurable paths/settings)
+
+- [x] Run tests → ALL PASS ✅ (27/27 tests passing)
 
 **REFACTOR**: Clean up code
 
-- [ ] Review for code smells
-- [ ] Extract duplicated logic
-- [ ] Add docstrings
+- [x] Review for code smells - None found
+- [x] Add docstrings - Complete
+- [x] **Fixed**: Test error suppression using assert_push_error()
+
+**Key Implementation Notes**:
+- Used Resource-based approach for metadata (RS_SaveSlotMetadata) instead of plain class
+- Autosave protection: Manual delete_slot() rejects slot 0 with ERR_INVALID_PARAMETER
+- Slot ordering: get_all_slots() returns [1, 2, 3, 0] for UI display
+- Legacy migration: Copies savegame.json → slot 0, renames to .backup
+- Timestamp bug fixed: Changed from int to float to preserve sub-second precision
 
 ---
 

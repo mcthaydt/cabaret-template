@@ -1,8 +1,8 @@
 # Save Manager Continuation Prompt
 
-**Current Phase**: Phase 0 - Planning Complete
+**Current Phase**: Phase 1 Complete ✅ - Ready for Phase 2 (Redux Integration)
 **Branch**: `save-manager-v2`
-**Last Updated**: 2025-12-22
+**Last Updated**: 2025-12-23
 
 ---
 
@@ -33,19 +33,22 @@ Implements a multi-slot save system with:
 - 1 autosave slot (automatic, protected)
 - Save slot metadata (timestamp, location, progress)
 - Continue button (loads most recent save)
-- Legacy save migration (savegame.json → slot 1)
+- Legacy save migration (savegame.json → slot 0 autosave)
 
 ### Current Status
 
-✅ **Completed**:
-- PRD written (`save-manager-prd.md`)
-- Implementation plan created (`save-manager-plan.md`)
-- Task checklist created (`save-manager-tasks.md`)
-- Design decisions confirmed
+✅ **Phase 1 Complete** (2025-12-23, commit cff8a3b):
+- ✅ `rs_save_slot_metadata.gd` - Metadata resource (timestamp, scene, health, etc.)
+- ✅ `u_save_envelope.gd` - Envelope format + I/O utilities
+- ✅ `u_save_manager.gd` - Save/load/delete operations
+- ✅ `rs_save_manager_settings.gd` - Configurable paths
+- ✅ `tests/unit/state/test_save_manager.gd` - 27/27 tests passing
+- ✅ **Bug fix**: Timestamp precision (int → float for sub-second accuracy)
 
 ❌ **Not Started**:
-- No code written yet
-- Ready to begin Phase 1 (Data Layer Foundation)
+- Redux integration (Phase 2)
+- Autosave redirection (Phase 3)
+- UI layer (Phase 5)
 
 ---
 
@@ -155,45 +158,52 @@ var meta := U_SaveManager.get_slot_metadata(1)
 
 ## Next Steps (When Resuming)
 
-### Immediate Next Actions (TDD Approach)
+### ✅ Phase 1 Complete - Ready for Phase 2
+
+**Phase 1 Accomplishments**:
+- ✅ All data layer utilities implemented
+- ✅ 27/27 tests passing
+- ✅ Timestamp precision bug fixed
+- ✅ Commit: cff8a3b
+
+### Immediate Next Actions: Phase 2 (Redux Integration)
 
 **Step 1: Write Tests FIRST** ⚠️
-1. **Create `tests/unit/state/test_save_manager.gd`**:
-   - Test SaveMetadata to/from dictionary
-   - Test slot path resolution
-   - Test save_to_slot creates file
-   - Test load_from_slot restores state
-   - Test delete_slot removes file
-   - Test autosave protection
-   - Test legacy migration
+1. **Create `tests/unit/state/test_save_reducer.gd`**:
+   - Test initial state structure
+   - Test SET_LAST_SAVE_SLOT updates last_save_slot
+   - Test REFRESH_SLOT_METADATA populates slot_metadata array
+   - Test SAVE_STARTED/COMPLETED/FAILED state transitions
+   - Test LOAD_STARTED/COMPLETED/FAILED state transitions
+   - Test state immutability
 
 2. **Run tests** → Should ALL FAIL (no implementation yet) ❌
-   ```bash
-   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . \
-     -s addons/gut/gut_cmdln.gd \
-     -gtest=res://tests/unit/state/test_save_manager.gd \
-     -gexit
-   ```
 
-**Step 2: Implement to Make Tests Pass**
-3. **Create `u_save_envelope.gd`**:
-   - Define SaveMetadata class
-   - Define SaveEnvelope class
-   - Add constants and utility methods
+**Step 2: Implement Redux Integration**
+3. **Create `u_save_actions.gd`**:
+   - Define action type constants
+   - Implement action creators (save_to_slot, load_from_slot, etc.)
+   - Register actions in U_ActionRegistry
 
-4. **Create `u_save_manager.gd`**:
-   - Implement save_to_slot()
-   - Implement load_from_slot()
-   - Implement get_slot_metadata()
+4. **Create `rs_save_initial_state.gd`**:
+   - Define @export fields for Redux slice
+   - Implement to_dictionary()
 
-5. **Run tests again** → Should ALL PASS ✅
+5. **Create `u_save_reducer.gd`**:
+   - Handle all save actions
+   - Return new state (immutable pattern)
 
-**Step 3: Refactor**
-6. Clean up code while keeping tests green
+6. **Create `u_save_selectors.gd`**:
+   - Implement getter functions for save slice
 
-### After Phase 1
+7. **Register slice in `m_state_store.gd`**:
+   - Add to _slice_configs
+   - Add to _reducers
 
-- Move to Phase 2: Redux Integration
+8. **Run tests again** → Should ALL PASS ✅
+
+**Step 3: After Phase 2**
+- Move to Phase 3: Autosave Modification
 - See `save-manager-tasks.md` for full checklist
 
 ---
