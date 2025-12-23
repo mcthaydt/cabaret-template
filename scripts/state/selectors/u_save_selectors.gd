@@ -1,54 +1,34 @@
 extends RefCounted
 class_name U_SaveSelectors
 
-## Selectors for save-related UI state.
+## Selectors for save state slice
 ##
-## Note: V1 stores save UI state in the menu slice (`available_saves`,
-## `selected_save_slot`) to avoid adding a new slice.
+## Provides type-safe getter functions for save-related state.
 
-enum SlotSelectorMode {
-	SAVE = 0,
-	LOAD = 1
-}
+## Get whether a save operation is in progress
+static func is_saving(save_state: Dictionary) -> bool:
+	return bool(save_state.get("is_saving", false))
 
-static func get_available_slots(menu_state: Dictionary) -> Array:
-	var slots: Variant = menu_state.get("available_saves", [])
-	if slots is Array:
-		return (slots as Array).duplicate(true)
-	return []
+## Get whether a load operation is in progress
+static func is_loading(save_state: Dictionary) -> bool:
+	return bool(save_state.get("is_loading", false))
 
-static func get_selected_slot_id(menu_state: Dictionary) -> int:
-	return int(menu_state.get("selected_save_slot", 1))
+## Get whether a delete operation is in progress
+static func is_deleting(save_state: Dictionary) -> bool:
+	return bool(save_state.get("is_deleting", false))
 
-static func get_slot_selector_mode(menu_state: Dictionary) -> int:
-	return int(menu_state.get("save_slot_selector_mode", SlotSelectorMode.LOAD))
+## Get the last successfully saved slot index (-1 if none)
+static func get_last_save_slot(save_state: Dictionary) -> int:
+	return int(save_state.get("last_save_slot", -1))
 
-static func has_any_saves(menu_state: Dictionary) -> bool:
-	for slot in get_available_slots(menu_state):
-		if slot is Dictionary and not bool((slot as Dictionary).get("is_empty", true)):
-			return true
-	return false
+## Get the current UI mode (0 = SAVE, 1 = LOAD)
+static func get_current_mode(save_state: Dictionary) -> int:
+	return int(save_state.get("current_mode", 1))
 
-static func get_most_recent_non_empty_slot_id(menu_state: Dictionary) -> int:
-	var best_slot_id: int = 0
-	var best_timestamp: int = -1
-	for slot in get_available_slots(menu_state):
-		if not (slot is Dictionary):
-			continue
-		var slot_dict := slot as Dictionary
-		if bool(slot_dict.get("is_empty", true)):
-			continue
-		var ts: int = int(slot_dict.get("timestamp", 0))
-		if ts > best_timestamp:
-			best_timestamp = ts
-			best_slot_id = int(slot_dict.get("slot_id", 0))
-	return best_slot_id
+## Get the last error message (empty if no error)
+static func get_last_error(save_state: Dictionary) -> String:
+	return String(save_state.get("last_error", ""))
 
-static func get_slot_by_index(menu_state: Dictionary, index: int) -> Dictionary:
-	var slots: Array = get_available_slots(menu_state)
-	if index < 0 or index >= slots.size():
-		return {}
-	var entry: Variant = slots[index]
-	if entry is Dictionary:
-		return (entry as Dictionary).duplicate(true)
-	return {}
+## Check if any operation is in progress
+static func is_busy(save_state: Dictionary) -> bool:
+	return is_saving(save_state) or is_loading(save_state) or is_deleting(save_state)

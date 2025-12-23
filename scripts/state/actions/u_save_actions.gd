@@ -1,79 +1,104 @@
 extends RefCounted
 class_name U_SaveActions
 
-## Action creators for save system + UI flows.
+## Action creators for save state slice
 ##
-## UI should dispatch these actions; managers (M_SaveManager) listen and execute
-## side-effects.
+## Provides type-safe action creators using StringName constants.
+## All actions are automatically registered on static initialization.
 
-const ACTION_REFRESH_SLOTS := StringName("save/refresh_slots")
-const ACTION_SET_AVAILABLE_SLOTS := StringName("save/set_available_slots")
-const ACTION_SET_SELECTED_SLOT := StringName("save/set_selected_slot")
-const ACTION_SET_SLOT_SELECTOR_MODE := StringName("save/set_slot_selector_mode")
+const ACTION_SAVE_STARTED := StringName("save/save_started")
+const ACTION_SAVE_COMPLETED := StringName("save/save_completed")
+const ACTION_SAVE_FAILED := StringName("save/save_failed")
+const ACTION_LOAD_STARTED := StringName("save/load_started")
+const ACTION_LOAD_COMPLETED := StringName("save/load_completed")
+const ACTION_LOAD_FAILED := StringName("save/load_failed")
+const ACTION_DELETE_STARTED := StringName("save/delete_started")
+const ACTION_DELETE_COMPLETED := StringName("save/delete_completed")
+const ACTION_DELETE_FAILED := StringName("save/delete_failed")
+const ACTION_SET_SAVE_MODE := StringName("save/set_save_mode")
 
-const ACTION_SAVE_TO_SLOT := StringName("save/save_to_slot")
-const ACTION_LOAD_FROM_SLOT := StringName("save/load_from_slot")
-const ACTION_DELETE_SLOT := StringName("save/delete_slot")
-
+## Static initializer - automatically registers actions
 static func _static_init() -> void:
-	U_ActionRegistry.register_action(ACTION_REFRESH_SLOTS)
-	U_ActionRegistry.register_action(ACTION_SET_AVAILABLE_SLOTS)
-	U_ActionRegistry.register_action(ACTION_SET_SELECTED_SLOT)
-	U_ActionRegistry.register_action(ACTION_SET_SLOT_SELECTOR_MODE)
-	U_ActionRegistry.register_action(ACTION_SAVE_TO_SLOT)
-	U_ActionRegistry.register_action(ACTION_LOAD_FROM_SLOT)
-	U_ActionRegistry.register_action(ACTION_DELETE_SLOT)
+	U_ActionRegistry.register_action(ACTION_SAVE_STARTED)
+	U_ActionRegistry.register_action(ACTION_SAVE_COMPLETED)
+	U_ActionRegistry.register_action(ACTION_SAVE_FAILED)
+	U_ActionRegistry.register_action(ACTION_LOAD_STARTED)
+	U_ActionRegistry.register_action(ACTION_LOAD_COMPLETED)
+	U_ActionRegistry.register_action(ACTION_LOAD_FAILED)
+	U_ActionRegistry.register_action(ACTION_DELETE_STARTED)
+	U_ActionRegistry.register_action(ACTION_DELETE_COMPLETED)
+	U_ActionRegistry.register_action(ACTION_DELETE_FAILED)
+	U_ActionRegistry.register_action(ACTION_SET_SAVE_MODE)
 
-static func refresh_slots() -> Dictionary:
+## Create a save started action
+static func save_started(slot_index: int) -> Dictionary:
 	return {
-		"type": ACTION_REFRESH_SLOTS,
-		"payload": null
+		"type": ACTION_SAVE_STARTED,
+		"slot_index": slot_index
 	}
 
-static func set_available_slots(slots: Array) -> Dictionary:
+## Create a save completed action
+static func save_completed(slot_index: int) -> Dictionary:
 	return {
-		"type": ACTION_SET_AVAILABLE_SLOTS,
-		"payload": {
-			"slots": slots.duplicate(true)
-		}
+		"type": ACTION_SAVE_COMPLETED,
+		"slot_index": slot_index
 	}
 
-static func set_selected_slot(slot_id: int) -> Dictionary:
+## Create a save failed action
+static func save_failed(slot_index: int, error: String) -> Dictionary:
 	return {
-		"type": ACTION_SET_SELECTED_SLOT,
-		"payload": {
-			"slot_id": slot_id
-		}
+		"type": ACTION_SAVE_FAILED,
+		"slot_index": slot_index,
+		"error": error
 	}
 
-static func set_slot_selector_mode(mode: int) -> Dictionary:
+## Create a load started action
+static func load_started(slot_index: int) -> Dictionary:
 	return {
-		"type": ACTION_SET_SLOT_SELECTOR_MODE,
-		"payload": {
-			"mode": mode
-		}
+		"type": ACTION_LOAD_STARTED,
+		"slot_index": slot_index
 	}
 
-static func save_to_slot(slot_id: int) -> Dictionary:
+## Create a load completed action
+static func load_completed(slot_index: int) -> Dictionary:
 	return {
-		"type": ACTION_SAVE_TO_SLOT,
-		"payload": {
-			"slot_id": slot_id
-		}
+		"type": ACTION_LOAD_COMPLETED,
+		"slot_index": slot_index
 	}
 
-static func load_from_slot(slot_id: int) -> Dictionary:
+## Create a load failed action
+static func load_failed(slot_index: int, error: String) -> Dictionary:
 	return {
-		"type": ACTION_LOAD_FROM_SLOT,
-		"payload": {
-			"slot_id": slot_id
-		}
+		"type": ACTION_LOAD_FAILED,
+		"slot_index": slot_index,
+		"error": error
 	}
 
-static func delete_slot(slot_id: int) -> Dictionary:
+## Create a delete started action
+static func delete_started(slot_index: int) -> Dictionary:
 	return {
-		"type": ACTION_DELETE_SLOT,
-		"payload": {
-			"slot_id": slot_id
-		}
+		"type": ACTION_DELETE_STARTED,
+		"slot_index": slot_index
+	}
+
+## Create a delete completed action
+static func delete_completed(slot_index: int) -> Dictionary:
+	return {
+		"type": ACTION_DELETE_COMPLETED,
+		"slot_index": slot_index
+	}
+
+## Create a delete failed action
+static func delete_failed(slot_index: int, error: String) -> Dictionary:
+	return {
+		"type": ACTION_DELETE_FAILED,
+		"slot_index": slot_index,
+		"error": error
+	}
+
+## Create a set save mode action
+static func set_save_mode(mode: int) -> Dictionary:
+	return {
+		"type": ACTION_SET_SAVE_MODE,
+		"mode": mode
 	}

@@ -19,7 +19,8 @@ static func initialize_slices(
 	settings_initial_state: RS_SettingsInitialState,
 	gameplay_initial_state: RS_GameplayInitialState,
 	scene_initial_state: RS_SceneInitialState,
-	debug_initial_state: RS_DebugInitialState
+	debug_initial_state: RS_DebugInitialState,
+	save_initial_state: Resource = null
 ) -> void:
 	# Boot slice
 	if boot_initial_state != null:
@@ -95,6 +96,17 @@ static func initialize_slices(
 		debug_config.dependencies = []
 		debug_config.transient_fields = []
 		register_slice(slice_configs, state, debug_config)
+
+	# Save slice
+	if save_initial_state == null:
+		save_initial_state = RS_SaveInitialState.new()
+	if save_initial_state != null:
+		var save_config := RS_StateSliceConfig.new(StringName("save"))
+		save_config.reducer = Callable(U_SaveReducer, "reduce")
+		save_config.initial_state = save_initial_state.to_dictionary()
+		save_config.dependencies = []
+		save_config.transient_fields = ["is_saving", "is_loading", "is_deleting", "last_error"]
+		register_slice(slice_configs, state, save_config)
 
 ## Register a single slice config into the given dictionaries.
 static func register_slice(
