@@ -100,6 +100,9 @@ func _ready() -> void:
 	# Ensure batching and input work even when the SceneTree is paused.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
+	# Migrate legacy save file if present
+	_try_migrate_legacy_save()
+
 	# Schedule autosave if enabled
 	_setup_autosave_timer()
 
@@ -156,6 +159,25 @@ func _autosave_to_dedicated_slot() -> void:
 
 	if err != OK and settings != null and settings.enable_debug_logging:
 		push_warning("M_StateStore: Autosave failed: ", error_string(err))
+
+func _try_migrate_legacy_save() -> void:
+	# Check if legacy file exists before attempting migration
+	var legacy_exists := FileAccess.file_exists(U_SAVE_MANAGER.DEFAULT_LEGACY_PATH)
+	var auto_exists := FileAccess.file_exists(U_SAVE_MANAGER.DEFAULT_AUTO_SLOT_PATH)
+
+	var err := U_SAVE_MANAGER.try_migrate_legacy_save()
+
+	if settings != null and settings.enable_debug_logging:
+		if err == OK:
+			# Migration succeeded - check if it actually migrated vs was already done
+			if legacy_exists and not FileAccess.file_exists(U_SAVE_MANAGER.DEFAULT_LEGACY_PATH):
+				print("M_StateStore: Legacy save migrated to autosave slot")
+			elif not legacy_exists and not auto_exists:
+				# No legacy file and no autosave = nothing to migrate (normal for new installs)
+				pass
+		else:
+			# Only warn on actual errors
+			push_warning("M_StateStore: Legacy save migration failed: ", error_string(err))
 
 func _save_state_if_enabled() -> void:
 	var enable_logging := settings != null and settings.enable_debug_logging
