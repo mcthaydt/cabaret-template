@@ -341,6 +341,9 @@ static func _build_metadata_from_state(
 
 	md.completion_percentage = -1.0  # TODO: Calculate from completed areas
 
+	# Capture screenshot thumbnail
+	md.screenshot_data = _capture_viewport_screenshot()
+
 	return md
 
 
@@ -354,3 +357,33 @@ static func _format_timestamp(unix_time_seconds: float) -> String:
 		int(dt.get("minute", 0)),
 		int(dt.get("second", 0)),
 	]
+
+
+static func _capture_viewport_screenshot() -> PackedByteArray:
+	# Skip screenshot capture in headless mode (no rendering backend available)
+	if DisplayServer.get_name() == "headless":
+		return PackedByteArray()
+
+	# Try to get the root viewport from the scene tree
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return PackedByteArray()
+
+	var viewport := tree.root
+	if viewport == null:
+		return PackedByteArray()
+
+	# Get viewport texture and convert to image
+	var viewport_texture := viewport.get_texture()
+	if viewport_texture == null:
+		return PackedByteArray()
+
+	var img := viewport_texture.get_image()
+	if img == null:
+		return PackedByteArray()
+
+	# Resize to thumbnail size (256x144 maintains 16:9 aspect ratio)
+	img.resize(256, 144, Image.INTERPOLATE_LANCZOS)
+
+	# Convert to PNG bytes
+	return img.save_png_to_buffer()

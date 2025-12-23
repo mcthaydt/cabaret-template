@@ -30,6 +30,9 @@ enum SlotType {
 @export var completed_areas: Array[String] = []
 @export var completion_percentage: float = -1.0  # -1.0 = unknown sentinel (V1)
 
+# Screenshot thumbnail (PNG bytes, 256x144 resolution)
+@export var screenshot_data: PackedByteArray = []
+
 @export var is_empty: bool = true
 @export var file_path: String = ""
 @export var file_version: int = 0
@@ -48,6 +51,7 @@ func to_dictionary() -> Dictionary:
 		"death_count": death_count,
 		"completed_areas": completed_areas.duplicate(),
 		"completion_percentage": completion_percentage,
+		"screenshot_data": screenshot_data,
 		"is_empty": is_empty,
 		"file_path": file_path,
 		"file_version": file_version,
@@ -84,6 +88,13 @@ func from_dictionary(data: Dictionary) -> void:
 		completed_areas = []
 
 	completion_percentage = float(data.get("completion_percentage", -1.0))
+
+	var screenshot_value: Variant = data.get("screenshot_data", PackedByteArray())
+	if screenshot_value is PackedByteArray:
+		screenshot_data = screenshot_value
+	else:
+		screenshot_data = PackedByteArray()
+
 	is_empty = bool(data.get("is_empty", true))
 	file_path = str(data.get("file_path", ""))
 	file_version = int(data.get("file_version", 0))

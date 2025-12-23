@@ -194,6 +194,50 @@
 
 ---
 
+## Phase 4.5: Pre-Phase 5 Bug Prevention ✅ COMPLETE
+
+**Completion Date**: 2025-12-23
+**Commit**: (pending)
+
+**Purpose**: Address potential concerns identified during code review to prevent bugs from previous implementation.
+
+- [x] Add screenshot support to RS_SaveSlotMetadata
+  - [x] Added `screenshot_data: PackedByteArray` field
+  - [x] Updated `to_dictionary()` and `from_dictionary()` serialization
+  - [x] Added headless mode detection for graceful degradation
+
+- [x] Implement screenshot capture in U_SaveManager
+  - [x] Added `_capture_viewport_screenshot()` helper method
+  - [x] Captures at 256x144 resolution (16:9 aspect ratio)
+  - [x] Uses LANCZOS interpolation for high quality
+  - [x] Returns empty PackedByteArray in headless mode
+  - [x] Integrated into `_build_metadata_from_state()`
+
+- [x] Verify mode management pattern
+  - [x] Confirmed `U_SaveActions.set_save_mode()` exists
+  - [x] Verified reducer updates `current_mode` correctly
+  - [x] Documented pattern: dispatch mode BEFORE opening overlay
+
+- [x] Document focus navigation pattern
+  - [x] Two-tier focus (vertical slots + horizontal actions)
+  - [x] Reference to `U_FocusConfigurator` usage
+
+- [x] Document overlay closing pattern
+  - [x] Pattern: close overlay → await frame → dispatch load
+  - [x] Prevents Bug #6 (menu reopening, player stuck)
+
+- [x] Run tests to verify no regressions
+  - [x] All 171/171 tests passing
+  - [x] Screenshot changes don't break existing functionality
+
+**Key Implementation Notes**:
+- Screenshot capture automatically skipped in headless environments
+- Mode management via Redux prevents Bug #8 from LESSONS_LEARNED.md
+- Focus navigation and overlay closing are implementation patterns for Phase 5
+- No test changes needed (screenshot gracefully returns empty in tests)
+
+---
+
 ## Phase 5: UI Layer
 
 - [ ] Create `ui_save_slot_selector.tscn`
