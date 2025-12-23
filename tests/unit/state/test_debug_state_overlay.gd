@@ -64,8 +64,9 @@ func test_debug_overlay_displays_current_state():
 	# Verify state is displayed (should contain JSON structure)
 	var displayed_text: String = state_label.text
 	assert_true(displayed_text.length() > 0, "State label should have content")
-	# Just verify it's displaying some state data, not empty
-	assert_false(displayed_text.contains("loading"), "State label should not show 'loading' after initialization")
+	# Verify it's displaying actual state data (JSON structure) not the default scene text
+	assert_true(displayed_text.contains("{") or displayed_text.contains("boot") or displayed_text.contains("gameplay"),
+		"State label should display state data")
 
 ## Test: Debug overlay displays action history
 func test_debug_overlay_displays_action_history():

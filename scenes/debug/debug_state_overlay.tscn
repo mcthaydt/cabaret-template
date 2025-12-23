@@ -44,7 +44,7 @@ layout_mode = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
-text = "Current State: (loading...)"
+text = ""
 vertical_alignment = 1
 autowrap_mode = 3
 
