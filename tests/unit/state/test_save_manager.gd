@@ -86,7 +86,7 @@ func test_save_to_slot_stores_correct_metadata() -> void:
 	var metadata := U_SaveManager.get_slot_metadata(2)
 	assert_not_null(metadata, "Metadata should exist")
 	assert_eq(metadata.slot_id, 2)
-	assert_gt(metadata.timestamp, 0, "Timestamp should be set")
+	assert_gt(metadata.timestamp, 0.0, "Timestamp should be set")
 	assert_eq(metadata.scene_id, StringName("scn_exterior"))
 	assert_eq(metadata.player_health, 75.0)
 	assert_eq(metadata.death_count, 3)
@@ -102,14 +102,15 @@ func test_save_to_auto_slot_marks_as_autosave() -> void:
 	assert_eq(metadata.slot_id, 0)
 
 
-func test_save_to_slot_with_invalid_index_fails() -> void:
-	# Suppress expected error messages
-	gut.p("Testing error cases - errors expected")
-
+func test_save_to_slot_with_invalid_index_zero_fails() -> void:
 	var err := U_SaveManager.save_to_slot(0, _test_state, _test_slice_configs)
+	assert_push_error("Invalid slot index")
 	assert_ne(err, OK, "Save should fail for invalid slot")
 
-	err = U_SaveManager.save_to_slot(4, _test_state, _test_slice_configs)
+
+func test_save_to_slot_with_invalid_index_out_of_range_fails() -> void:
+	var err := U_SaveManager.save_to_slot(4, _test_state, _test_slice_configs)
+	assert_push_error("Invalid slot index")
 	assert_ne(err, OK, "Save should fail for out-of-range slot")
 
 
@@ -133,11 +134,9 @@ func test_load_from_slot_restores_state() -> void:
 
 
 func test_load_from_nonexistent_slot_fails() -> void:
-	# Suppress expected error messages
-	gut.p("Testing error case - error expected")
-
 	var loaded_state := {}
 	var err := U_SaveManager.load_from_slot(3, loaded_state, _test_slice_configs)
+	assert_push_error("File does not exist")
 
 	assert_ne(err, OK, "Load should fail for empty slot")
 

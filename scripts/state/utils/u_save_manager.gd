@@ -344,8 +344,8 @@ static func _build_metadata_from_state(
 	return md
 
 
-static func _format_timestamp(unix_time_seconds: int) -> String:
-	var dt: Dictionary = Time.get_datetime_dict_from_unix_time(unix_time_seconds)
+static func _format_timestamp(unix_time_seconds: float) -> String:
+	var dt: Dictionary = Time.get_datetime_dict_from_unix_time(int(unix_time_seconds))
 	return "%04d-%02d-%02d %02d:%02d:%02d" % [
 		int(dt.get("year", 0)),
 		int(dt.get("month", 0)),

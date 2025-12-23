@@ -18,7 +18,7 @@ enum SlotType {
 @export var scene_id: StringName = StringName("")
 @export var scene_name: String = ""
 
-@export var timestamp: int = 0
+@export var timestamp: float = 0.0
 @export var formatted_timestamp: String = ""
 
 @export var play_time_seconds: float = 0.0
@@ -64,7 +64,7 @@ func from_dictionary(data: Dictionary) -> void:
 		scene_id = StringName(str(scene_id_value))
 
 	scene_name = str(data.get("scene_name", ""))
-	timestamp = int(data.get("timestamp", 0))
+	timestamp = float(data.get("timestamp", 0.0))
 	formatted_timestamp = str(data.get("formatted_timestamp", ""))
 
 	play_time_seconds = float(data.get("play_time_seconds", 0.0))
