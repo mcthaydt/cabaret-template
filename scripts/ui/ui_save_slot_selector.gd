@@ -78,6 +78,41 @@ func _on_panel_ready() -> void:
 	pass
 
 
+func _input(event: InputEvent) -> void:
+	var direction := StringName()
+
+	if event is InputEventJoypadButton:
+		var button := event as InputEventJoypadButton
+		if not button.pressed:
+			return
+		if button.is_action_pressed("ui_up"):
+			direction = StringName("ui_up")
+		elif button.is_action_pressed("ui_down"):
+			direction = StringName("ui_down")
+		elif button.is_action_pressed("ui_left"):
+			direction = StringName("ui_left")
+		elif button.is_action_pressed("ui_right"):
+			direction = StringName("ui_right")
+	elif event is InputEventKey:
+		var key := event as InputEventKey
+		if not key.pressed:
+			return
+		if key.is_action_pressed("ui_up"):
+			direction = StringName("ui_up")
+		elif key.is_action_pressed("ui_down"):
+			direction = StringName("ui_down")
+		elif key.is_action_pressed("ui_left"):
+			direction = StringName("ui_left")
+		elif key.is_action_pressed("ui_right"):
+			direction = StringName("ui_right")
+
+	if direction != StringName():
+		_navigate_focus(direction)
+		var viewport := get_viewport()
+		if viewport != null:
+			viewport.set_input_as_handled()
+
+
 func _on_back_pressed() -> void:
 	var store := get_store()
 	if store == null:

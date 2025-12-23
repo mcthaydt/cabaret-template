@@ -119,9 +119,6 @@ func test_mode_save_shows_correct_ui() -> void:
 
 ## Bug #1 Prevention: Two-tier focus navigation - vertical slots
 func test_focus_navigation_vertical_slots() -> void:
-	pending("Pending: Custom input handling not yet implemented in UI_SaveSlotSelector")
-	return
-
 	var autosave: Button = _overlay.get_node("%AutosaveSlot")
 	var slot_1: Button = _overlay.get_node("%Slot1")
 	var slot_2: Button = _overlay.get_node("%Slot2")
@@ -155,9 +152,6 @@ func test_focus_navigation_vertical_slots() -> void:
 
 ## Bug #1 Prevention: Two-tier focus navigation - no left/right on slots
 func test_focus_navigation_no_horizontal_on_slots() -> void:
-	pending("Pending: Custom input handling not yet implemented in UI_SaveSlotSelector")
-	return
-
 	var slot_1: Button = _overlay.get_node("%Slot1")
 
 	# Focus slot 1
@@ -187,9 +181,6 @@ func test_focus_navigation_no_horizontal_on_slots() -> void:
 
 ## Bug #1 Prevention: Two-tier focus navigation - bridge to action buttons
 func test_focus_navigation_bridge_to_actions() -> void:
-	pending("Pending: Custom input handling not yet implemented in UI_SaveSlotSelector")
-	return
-
 	var slot_3: Button = _overlay.get_node("%Slot3")
 	var action_button: Button = _overlay.get_node("%ActionButton1")
 
@@ -209,9 +200,6 @@ func test_focus_navigation_bridge_to_actions() -> void:
 
 ## Bug #1 Prevention: Two-tier focus navigation - horizontal action buttons
 func test_focus_navigation_horizontal_actions() -> void:
-	pending("Pending: Custom input handling not yet implemented in UI_SaveSlotSelector")
-	return
-
 	var action_button_1: Button = _overlay.get_node("%ActionButton1")
 	var delete_button: Button = _overlay.get_node("%DeleteButton")
 	var back_button: Button = _overlay.get_node("%BackButton")
