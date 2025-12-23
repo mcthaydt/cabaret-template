@@ -1,6 +1,6 @@
 # Save Manager Continuation Prompt
 
-**Current Phase**: Phase 1 Complete ✅ - Ready for Phase 2 (Redux Integration)
+**Current Phase**: Phase 2 Complete ✅ - Ready for Phase 3 (Autosave Modification)
 **Branch**: `save-manager-v2`
 **Last Updated**: 2025-12-23
 
@@ -38,16 +38,22 @@ Implements a multi-slot save system with:
 ### Current Status
 
 ✅ **Phase 1 Complete** (2025-12-23, commit cff8a3b):
-- ✅ `rs_save_slot_metadata.gd` - Metadata resource (timestamp, scene, health, etc.)
-- ✅ `u_save_envelope.gd` - Envelope format + I/O utilities
-- ✅ `u_save_manager.gd` - Save/load/delete operations
-- ✅ `rs_save_manager_settings.gd` - Configurable paths
-- ✅ `tests/unit/state/test_save_manager.gd` - 27/27 tests passing
-- ✅ **Bug fix**: Timestamp precision (int → float for sub-second accuracy)
+- ✅ Data layer utilities (U_SaveManager, U_SaveEnvelope, RS_SaveSlotMetadata)
+- ✅ 27/27 tests passing
+- ✅ Timestamp precision bug fixed
+
+✅ **Phase 2 Complete** (2025-12-23, commit pending):
+- ✅ `rs_save_initial_state.gd` - Redux state resource
+- ✅ `u_save_actions.gd` - Action creators (save/load/delete operations)
+- ✅ `u_save_reducer.gd` - State reducer with immutable updates
+- ✅ `u_save_selectors.gd` - Type-safe getter functions
+- ✅ `tests/unit/state/test_save_reducer.gd` - 13/13 tests passing
+- ✅ Save slice registered in m_state_store.gd
+- ✅ **Total tests**: 40/40 passing (27 manager + 13 reducer)
 
 ❌ **Not Started**:
-- Redux integration (Phase 2)
 - Autosave redirection (Phase 3)
+- Migration (Phase 4)
 - UI layer (Phase 5)
 
 ---
@@ -158,52 +164,38 @@ var meta := U_SaveManager.get_slot_metadata(1)
 
 ## Next Steps (When Resuming)
 
-### ✅ Phase 1 Complete - Ready for Phase 2
+### ✅ Phase 1 & 2 Complete - Ready for Phase 3
 
-**Phase 1 Accomplishments**:
+**Phase 1 Accomplishments** (commit cff8a3b):
 - ✅ All data layer utilities implemented
 - ✅ 27/27 tests passing
 - ✅ Timestamp precision bug fixed
-- ✅ Commit: cff8a3b
 
-### Immediate Next Actions: Phase 2 (Redux Integration)
+**Phase 2 Accomplishments** (commit pending):
+- ✅ Redux integration complete
+- ✅ 40/40 tests passing (27 manager + 13 reducer)
+- ✅ Save slice registered with transient fields
 
-**Step 1: Write Tests FIRST** ⚠️
-1. **Create `tests/unit/state/test_save_reducer.gd`**:
-   - Test initial state structure
-   - Test SET_LAST_SAVE_SLOT updates last_save_slot
-   - Test REFRESH_SLOT_METADATA populates slot_metadata array
-   - Test SAVE_STARTED/COMPLETED/FAILED state transitions
-   - Test LOAD_STARTED/COMPLETED/FAILED state transitions
-   - Test state immutability
+### Immediate Next Actions: Phase 3 (Autosave Modification)
 
-2. **Run tests** → Should ALL FAIL (no implementation yet) ❌
+**Goal**: Redirect existing autosave system to use U_SaveManager with slot 0
 
-**Step 2: Implement Redux Integration**
-3. **Create `u_save_actions.gd`**:
-   - Define action type constants
-   - Implement action creators (save_to_slot, load_from_slot, etc.)
-   - Register actions in U_ActionRegistry
+**Step 1: Modify Autosave in m_state_store.gd**
+1. **Update `_on_autosave_timeout()`**:
+   - Replace U_STATE_REPOSITORY.save_state_if_enabled() call
+   - Use U_SaveManager.save_to_auto_slot() instead
+   - Add shell check (only save in "gameplay" shell)
+   - Add transition check (skip if is_transitioning)
 
-4. **Create `rs_save_initial_state.gd`**:
-   - Define @export fields for Redux slice
-   - Implement to_dictionary()
+2. **Test autosave behavior**:
+   - Verify saves to user://save_slot_0.json
+   - Verify respects interval settings
+   - Verify skips during transitions
+   - Verify only saves in gameplay shell
 
-5. **Create `u_save_reducer.gd`**:
-   - Handle all save actions
-   - Return new state (immutable pattern)
-
-6. **Create `u_save_selectors.gd`**:
-   - Implement getter functions for save slice
-
-7. **Register slice in `m_state_store.gd`**:
-   - Add to _slice_configs
-   - Add to _reducers
-
-8. **Run tests again** → Should ALL PASS ✅
-
-**Step 3: After Phase 2**
-- Move to Phase 3: Autosave Modification
+**Step 2: After Phase 3**
+- Move to Phase 4: Migration (legacy save → slot 0)
+- Move to Phase 5: UI Layer
 - See `save-manager-tasks.md` for full checklist
 
 ---
