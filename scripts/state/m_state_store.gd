@@ -26,6 +26,8 @@ const U_SCENE_REDUCER := preload("res://scripts/state/reducers/u_scene_reducer.g
 const U_SETTINGS_REDUCER := preload("res://scripts/state/reducers/u_settings_reducer.gd")
 const U_DEBUG_REDUCER := preload("res://scripts/state/reducers/u_debug_reducer.gd")
 const U_SAVE_REDUCER := preload("res://scripts/state/reducers/u_save_reducer.gd")
+const U_SAVE_MANAGER := preload("res://scripts/state/utils/u_save_manager.gd")
+const U_SAVE_ENVELOPE := preload("res://scripts/state/utils/u_save_envelope.gd")
 const U_INPUT_CAPTURE_GUARD := preload("res://scripts/utils/u_input_capture_guard.gd")
 const RS_BOOT_INITIAL_STATE := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
 const RS_MENU_INITIAL_STATE := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
@@ -135,7 +137,25 @@ func is_ready() -> bool:
 	return _is_ready
 
 func _on_autosave_timeout() -> void:
-	_save_state_if_enabled()
+	_autosave_to_dedicated_slot()
+
+func _autosave_to_dedicated_slot() -> void:
+	# Only autosave during active gameplay
+	var nav_state := get_slice(StringName("navigation"))
+	var shell: StringName = nav_state.get("shell", StringName(""))
+	if shell != StringName("gameplay"):
+		return  # Skip autosave in menus/boot
+
+	# Don't save during scene transitions
+	var scene_state := get_slice(StringName("scene"))
+	if scene_state.get("is_transitioning", false):
+		return  # Skip autosave while loading
+
+	# Save to autosave slot (slot 0)
+	var err := U_SAVE_MANAGER.save_to_auto_slot(_state, _slice_configs)
+
+	if err != OK and settings != null and settings.enable_debug_logging:
+		push_warning("M_StateStore: Autosave failed: ", error_string(err))
 
 func _save_state_if_enabled() -> void:
 	var enable_logging := settings != null and settings.enable_debug_logging
