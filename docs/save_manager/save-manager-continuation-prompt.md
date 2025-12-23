@@ -1,6 +1,6 @@
 # Save Manager Continuation Prompt
 
-**Current Phase**: Phase 3 Complete ✅ - Ready for Phase 4 (Migration)
+**Current Phase**: Phase 4 Complete ✅ - Ready for Phase 5 (UI Layer)
 **Branch**: `save-manager-v2`
 **Last Updated**: 2025-12-23
 
@@ -51,16 +51,23 @@ Implements a multi-slot save system with:
 - ✅ Save slice registered in m_state_store.gd
 - ✅ **Total tests**: 40/40 passing (27 manager + 13 reducer)
 
-✅ **Phase 3 Complete** (2025-12-23, commit pending):
+✅ **Phase 3 Complete** (2025-12-23, commit 7abd336):
 - ✅ Modified `m_state_store._on_autosave_timeout()` to use U_SaveManager
 - ✅ Added navigation shell check (only autosave in "gameplay")
 - ✅ Added transition check (skip if is_transitioning)
 - ✅ Autosave now writes to slot 0 via `U_SaveManager.save_to_auto_slot()`
 - ✅ **Total tests**: 40/40 passing (no regressions)
 
+✅ **Phase 4 Complete** (2025-12-23, commit pending):
+- ✅ Added `_try_migrate_legacy_save()` to m_state_store._ready()
+- ✅ Smart logging (only logs when actual migration occurs)
+- ✅ Migration path: `user://savegame.json` → `user://save_slot_0.json`
+- ✅ Legacy backup: `user://savegame.json.backup`
+- ✅ **Total tests**: 40/40 passing (no regressions)
+
 ❌ **Not Started**:
-- Migration (Phase 4)
 - UI layer (Phase 5)
+- Menu integration (Phase 6)
 
 ---
 
@@ -170,7 +177,7 @@ var meta := U_SaveManager.get_slot_metadata(1)
 
 ## Next Steps (When Resuming)
 
-### ✅ Phase 1, 2 & 3 Complete - Ready for Phase 4
+### ✅ Phase 1, 2, 3 & 4 Complete - Ready for Phase 5
 
 **Phase 1 Accomplishments** (commit cff8a3b):
 - ✅ All data layer utilities implemented
@@ -182,30 +189,43 @@ var meta := U_SaveManager.get_slot_metadata(1)
 - ✅ 40/40 tests passing (27 manager + 13 reducer)
 - ✅ Save slice registered with transient fields
 
-**Phase 3 Accomplishments** (commit pending):
+**Phase 3 Accomplishments** (commit 7abd336):
 - ✅ Autosave redirected to U_SaveManager
 - ✅ Shell and transition checks implemented
 - ✅ 40/40 tests still passing (no regressions)
 
-### Immediate Next Actions: Phase 4 (Migration)
+**Phase 4 Accomplishments** (commit pending):
+- ✅ Legacy save migration implemented
+- ✅ Smart logging for migration events
+- ✅ 40/40 tests still passing (no regressions)
 
-**Goal**: Migrate legacy `savegame.json` to slot 0 on first launch
+### Immediate Next Actions: Phase 5 (UI Layer)
 
-**Step 1: Add Migration to m_state_store._ready()**
-1. **Call migration helper**:
-   - Add call to `U_SaveManager.try_migrate_legacy_save()` in `_ready()`
-   - Log migration result if debug logging enabled
-   - Migration should happen after store initialization but before UI load
+**Goal**: Create save/load overlay UI for slot selection
 
-2. **Test migration behavior**:
-   - Create test `user://savegame.json` file
-   - Verify migrates to `user://save_slot_0.json`
-   - Verify legacy file renamed to `user://savegame.json.backup`
-   - Verify slot 0 loads correctly after migration
+**Step 1: Create UI Scene**
+1. **Create `scenes/ui/ui_save_slot_selector.tscn`**:
+   - Extend BaseOverlay
+   - Add TitleLabel (changes based on mode: "Save Game" vs "Load Game")
+   - Add SlotContainer (VBoxContainer) with 4 slot buttons
+   - Add BackButton for navigation
+   - Configure unique names (%) for node references
 
-**Step 2: After Phase 4**
-- Move to Phase 5: UI Layer (save/load overlay)
-- Move to Phase 6: Menu Integration (pause menu + main menu)
+2. **Create `scripts/ui/ui_save_slot_selector.gd`**:
+   - Define Mode enum (SAVE, LOAD)
+   - Implement set_mode() to switch between save/load
+   - Implement _refresh_slots() to update UI from metadata
+   - Implement _on_slot_pressed() to handle slot selection
+   - Configure focus chain for gamepad navigation
+
+**Step 2: Register Overlay**
+1. Create `resources/ui_screens/save_slot_selector_overlay.tres`
+2. Register in `u_ui_registry.gd`
+3. Register scene in `u_scene_registry.gd`
+
+**Step 3: After Phase 5**
+- Move to Phase 6: Menu Integration (pause menu + main menu buttons)
+- Move to Phase 7: Load Flow (scene transitions after load)
 - See `save-manager-tasks.md` for full checklist
 
 ---
