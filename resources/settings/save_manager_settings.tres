@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="RS_SaveManagerSettings" load_steps=2 format=3 uid="uid://bxt4tguaos6sr"]
+
+[ext_resource type="Script" uid="uid://xkbgkdkbl36k" path="res://scripts/state/resources/rs_save_manager_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
