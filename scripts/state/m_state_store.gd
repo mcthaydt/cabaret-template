@@ -28,6 +28,8 @@ const U_DEBUG_REDUCER := preload("res://scripts/state/reducers/u_debug_reducer.g
 const U_SAVE_REDUCER := preload("res://scripts/state/reducers/u_save_reducer.gd")
 const U_SAVE_MANAGER := preload("res://scripts/state/utils/u_save_manager.gd")
 const U_SAVE_ENVELOPE := preload("res://scripts/state/utils/u_save_envelope.gd")
+const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_INPUT_CAPTURE_GUARD := preload("res://scripts/utils/u_input_capture_guard.gd")
 const RS_BOOT_INITIAL_STATE := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
 const RS_MENU_INITIAL_STATE := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
@@ -106,6 +108,9 @@ func _ready() -> void:
 	# Schedule autosave if enabled
 	_setup_autosave_timer()
 
+	# Subscribe to load_started actions for load flow middleware (Phase 7)
+	action_dispatched.connect(_handle_load_started)
+
 	_is_ready = true
 	store_ready.emit()
 
@@ -178,6 +183,88 @@ func _try_migrate_legacy_save() -> void:
 		else:
 			# Only warn on actual errors
 			push_warning("M_StateStore: Legacy save migration failed: ", error_string(err))
+
+
+## Load Flow Middleware (Phase 7)
+## Handles load_started actions to restore state from save slots
+func _handle_load_started(action: Dictionary) -> void:
+	# DEBUG: Log all actions to see if middleware is being called
+	print("M_StateStore._handle_load_started: Received action: ", action.get("type"))
+
+	# Only process load_started actions
+	if action.get("type") != U_SAVE_ACTIONS.ACTION_LOAD_STARTED:
+		return
+
+	print("M_StateStore._handle_load_started: Processing load_started for slot ", action.get("slot_index"))
+
+	var slot_index: int = action.get("slot_index", -1)
+	if slot_index < 0:
+		push_error("M_StateStore._handle_load_started: Invalid slot_index")
+		dispatch(U_SAVE_ACTIONS.load_failed(slot_index, "Invalid slot index"))
+		return
+
+	# 1. Clear navigation overlay stack BEFORE loading (Bug #6 prevention)
+	#    Must be done before load because load clears all state
+	#    This prevents the save/load overlay from reopening after scene transition
+	_clear_navigation_overlays()
+
+	# 2. Attempt to load state from slot
+	var err: Error = OK
+	if slot_index == U_SAVE_MANAGER.AUTO_SLOT_INDEX:
+		print("DEBUG: Loading from auto slot, path: ", U_SAVE_MANAGER.get_auto_slot_path())
+		print("DEBUG: File exists? ", FileAccess.file_exists(U_SAVE_MANAGER.get_auto_slot_path()))
+		err = U_SAVE_MANAGER.load_from_auto_slot(_state, _slice_configs)
+		print("DEBUG: Load result: ", error_string(err))
+		if err == OK:
+			print("DEBUG: Scene slice after load: ", _state.get("scene", {}))
+	else:
+		err = U_SAVE_MANAGER.load_from_slot(slot_index, _state, _slice_configs)
+
+	if err != OK:
+		# Load failed - dispatch error action
+		var error_msg: String = "Failed to load from slot %d: %s" % [slot_index, error_string(err)]
+		print("ERROR DETAIL: ", error_msg)
+		if settings != null and settings.enable_debug_logging:
+			push_warning("M_StateStore: " + error_msg)
+		dispatch(U_SAVE_ACTIONS.load_failed(slot_index, error_msg))
+		return
+
+	# Load succeeded - perform post-load actions
+
+	# 3. Get the loaded scene_id from the restored state
+	var scene_slice: Dictionary = _state.get("scene", {})
+	var loaded_scene_id: StringName = scene_slice.get("current_scene_id", StringName(""))
+
+	if loaded_scene_id == StringName(""):
+		push_error("M_StateStore._handle_load_started: No scene_id in loaded state")
+		dispatch(U_SAVE_ACTIONS.load_failed(slot_index, "Invalid scene_id in save file"))
+		return
+
+	# 4. Trigger scene transition to the loaded scene
+	#    Use start_game action to transition to the loaded scene
+	print("M_StateStore: Transitioning to loaded scene: ", loaded_scene_id)
+	dispatch(U_NAVIGATION_ACTIONS.start_game(loaded_scene_id))
+
+	# 5. Dispatch load_completed action
+	dispatch(U_SAVE_ACTIONS.load_completed(slot_index))
+
+	if settings != null and settings.enable_debug_logging:
+		print("M_StateStore: Successfully loaded state from slot ", slot_index)
+
+
+## Clear navigation overlay stack (Bug #6 prevention)
+## Called during load flow to prevent overlays from reopening
+func _clear_navigation_overlays() -> void:
+	# Get current navigation state
+	var nav_state: Dictionary = get_slice(StringName("navigation"))
+	var overlay_stack: Array = nav_state.get("overlay_stack", [])
+
+	# Clear overlay stack by dispatching close actions for each overlay
+	for i in range(overlay_stack.size()):
+		dispatch(U_NAVIGATION_ACTIONS.close_top_overlay())
+
+	if settings != null and settings.enable_debug_logging and overlay_stack.size() > 0:
+		print("M_StateStore: Cleared ", overlay_stack.size(), " overlays during load")
 
 func _save_state_if_enabled() -> void:
 	var enable_logging := settings != null and settings.enable_debug_logging

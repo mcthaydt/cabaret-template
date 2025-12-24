@@ -28,6 +28,7 @@ const OVERLAY_SAVE_SELECTOR := StringName("save_slot_selector_overlay")
 
 var _store_unsubscribe: Callable = Callable()
 var _active_panel: StringName = StringName()
+var _previous_overlay_stack: Array = []
 
 func _on_panel_ready() -> void:
 	_connect_buttons()
@@ -83,7 +84,18 @@ func _connect_buttons() -> void:
 func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	var navigation_slice: Dictionary = state.get("navigation", {})
 	var desired_panel: StringName = U_NavigationSelectors.get_active_menu_panel(navigation_slice)
+	var current_overlay_stack: Array = navigation_slice.get("overlay_stack", [])
+
+	# Check if overlay just closed (stack went from non-empty to empty)
+	var overlay_just_closed: bool = _previous_overlay_stack.size() > 0 and current_overlay_stack.is_empty()
+	_previous_overlay_stack = current_overlay_stack.duplicate()
+
+	# Update panel state (handles panel changes)
 	_update_panel_state(desired_panel)
+
+	# Restore focus if overlay just closed while on main menu
+	if overlay_just_closed and _active_panel == PANEL_MAIN:
+		_focus_active_panel()
 
 func _update_panel_state(panel_id: StringName) -> void:
 	var resolved_panel: StringName = panel_id
@@ -122,15 +134,19 @@ func _apply_focus_after_layout() -> void:
 		focus_target.grab_focus()
 
 func _on_continue_pressed() -> void:
+	print("UI_MainMenu: Continue button pressed")
 	var store := get_store()
 	if store == null:
+		print("UI_MainMenu: ERROR - No store found!")
 		return
 	# Get most recent save slot
 	var most_recent_slot: int = U_SaveManager.get_most_recent_slot()
+	print("UI_MainMenu: Most recent slot: ", most_recent_slot)
 	if most_recent_slot < 0:
 		push_warning("UI_MainMenu: Continue pressed but no saves exist")
 		return
 	# Dispatch load action for most recent slot
+	print("UI_MainMenu: Dispatching load_started for slot ", most_recent_slot)
 	store.dispatch(U_SaveActions.load_started(most_recent_slot))
 
 func _on_play_pressed() -> void:
@@ -140,10 +156,13 @@ func _on_play_pressed() -> void:
 	store.dispatch(U_NavigationActions.start_game(DEFAULT_GAMEPLAY_SCENE))
 
 func _on_load_pressed() -> void:
+	print("UI_MainMenu: Load Game button pressed")
 	var store := get_store()
 	if store == null:
+		print("UI_MainMenu: ERROR - No store found!")
 		return
 	# Dispatch mode BEFORE opening overlay (prevents Bug #8 from LESSONS_LEARNED.md)
+	print("UI_MainMenu: Dispatching set_save_mode(LOAD) and opening overlay")
 	store.dispatch(U_SaveActions.set_save_mode(UI_SaveSlotSelector.Mode.LOAD))
 	store.dispatch(U_NavigationActions.open_overlay(OVERLAY_SAVE_SELECTOR))
 

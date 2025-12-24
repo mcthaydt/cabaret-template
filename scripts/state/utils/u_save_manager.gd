@@ -13,10 +13,11 @@ const U_SERIALIZATION_HELPER := preload("res://scripts/state/utils/u_serializati
 
 ## Default settings (can be overridden by passing settings parameter)
 const DEFAULT_MANUAL_SLOT_PATTERN: String = "user://save_slot_%d.json"
-const DEFAULT_AUTO_SLOT_PATH: String = "user://save_slot_0.json"
+const DEFAULT_AUTO_SLOT_PATH: String = "user://save_slot_4.json"
 const DEFAULT_LEGACY_PATH: String = "user://savegame.json"
 const DEFAULT_LEGACY_BACKUP_PATH: String = "user://savegame.json.backup"
 const DEFAULT_MANUAL_SLOT_COUNT: int = 3
+const AUTO_SLOT_INDEX: int = 4
 
 
 # ==============================================================================
@@ -38,7 +39,7 @@ static func save_to_slot(
 	return _save_to_path(path, slot_index, false, state)
 
 
-## Save current state to autosave slot (slot 0)
+## Save current state to autosave slot (slot 4)
 static func save_to_auto_slot(
 	state: Dictionary,
 	slice_configs: Dictionary,
@@ -48,7 +49,7 @@ static func save_to_auto_slot(
 	if path.is_empty():
 		push_error("U_SaveManager.save_to_auto_slot: Invalid autosave path")
 		return ERR_INVALID_PARAMETER
-	return _save_to_path(path, 0, true, state)
+	return _save_to_path(path, AUTO_SLOT_INDEX, true, state)
 
 
 # ==============================================================================
@@ -109,7 +110,7 @@ static func get_slot_metadata(
 	settings: RS_SaveManagerSettings = null
 ) -> RS_SaveSlotMetadata:
 	var path: String
-	if slot_index == 0:
+	if slot_index == AUTO_SLOT_INDEX:
 		path = get_auto_slot_path(settings)
 	else:
 		path = get_manual_slot_path(slot_index, settings)
@@ -123,7 +124,7 @@ static func get_slot_metadata(
 	return metadata
 
 
-## Get all slot metadata (manual slots + autosave)
+## Get all slot metadata (manual slots 1-3, then autosave slot 4)
 static func get_all_slots(settings: RS_SaveManagerSettings = null) -> Array[RS_SaveSlotMetadata]:
 	var slots: Array[RS_SaveSlotMetadata] = []
 
@@ -142,12 +143,12 @@ static func get_all_slots(settings: RS_SaveManagerSettings = null) -> Array[RS_S
 			metadata.file_path = path
 		slots.append(metadata)
 
-	# Autosave slot (0)
+	# Autosave slot (4) - at the end
 	var auto_path := get_auto_slot_path(settings)
-	var auto_md := _make_empty_slot_metadata(0, true, settings)
+	var auto_md := _make_empty_slot_metadata(AUTO_SLOT_INDEX, true, settings)
 	if FileAccess.file_exists(auto_path):
 		auto_md = U_SaveEnvelope.try_read_metadata(auto_path)
-		auto_md.slot_id = 0
+		auto_md.slot_id = AUTO_SLOT_INDEX
 		auto_md.slot_type = RS_SaveSlotMetadata.SlotType.AUTO
 		auto_md.file_path = auto_path
 	slots.append(auto_md)

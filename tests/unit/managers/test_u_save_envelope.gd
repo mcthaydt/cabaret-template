@@ -114,6 +114,9 @@ func test_legacy_import_wraps_once_and_renames_backup() -> void:
 	U_SaveTestHelpers.remove_file_if_exists(backup_path)
 
 	var legacy_state := {
+		"scene": {
+			"current_scene_id": "gameplay_base"
+		},
 		"gameplay": {
 			"paused": true,
 			"death_count": 1,

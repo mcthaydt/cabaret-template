@@ -123,13 +123,23 @@ static func _reduce_open_overlay(state: Dictionary, action: Dictionary) -> Dicti
 	var current_stack: Array = state.get("overlay_stack", [])
 	var return_stack: Array = state.get("overlay_return_stack", [])
 
-	if overlay_id == StringName("") or shell != SHELL_GAMEPLAY:
+	if overlay_id == StringName(""):
+		return state
+
+	# Save slot selector can open from both main menu and gameplay
+	var is_save_selector: bool = overlay_id == StringName("save_slot_selector_overlay")
+	var valid_shell: bool = shell == SHELL_GAMEPLAY or (shell == SHELL_MAIN_MENU and is_save_selector)
+
+	if not valid_shell:
 		return state
 
 	if overlay_id == OVERLAY_PAUSE:
 		return state  # Pause opens via OPEN_PAUSE
 
-	if not _is_overlay_allowed_for_parent(overlay_id, current_stack):
+	# Save slot selector can open directly from main menu without parent overlay
+	if is_save_selector and shell == SHELL_MAIN_MENU and current_stack.is_empty():
+		pass  # Allow opening as first overlay from main menu
+	elif not _is_overlay_allowed_for_parent(overlay_id, current_stack):
 		return state
 
 	var new_state: Dictionary = state.duplicate(true)

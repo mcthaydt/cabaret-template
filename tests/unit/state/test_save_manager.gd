@@ -62,11 +62,11 @@ func test_get_manual_slot_path_returns_correct_paths() -> void:
 func test_get_manual_slot_path_returns_empty_for_invalid_index() -> void:
 	assert_eq(U_SaveManager.get_manual_slot_path(0), "")
 	assert_eq(U_SaveManager.get_manual_slot_path(-1), "")
-	assert_eq(U_SaveManager.get_manual_slot_path(4), "")
+	assert_eq(U_SaveManager.get_manual_slot_path(5), "")  # 4 is now autosave, so 5 is invalid
 
 
-func test_get_auto_slot_path_returns_slot_0() -> void:
-	assert_eq(U_SaveManager.get_auto_slot_path(), "user://save_slot_0.json")
+func test_get_auto_slot_path_returns_slot_4() -> void:
+	assert_eq(U_SaveManager.get_auto_slot_path(), "user://save_slot_4.json")
 
 
 # ==============================================================================
@@ -96,10 +96,10 @@ func test_save_to_slot_stores_correct_metadata() -> void:
 func test_save_to_auto_slot_marks_as_autosave() -> void:
 	U_SaveManager.save_to_auto_slot(_test_state, _test_slice_configs)
 
-	var metadata := U_SaveManager.get_slot_metadata(0)
+	var metadata := U_SaveManager.get_slot_metadata(U_SaveManager.AUTO_SLOT_INDEX)
 	assert_not_null(metadata)
 	assert_eq(metadata.slot_type, RS_SaveSlotMetadata.SlotType.AUTO)
-	assert_eq(metadata.slot_id, 0)
+	assert_eq(metadata.slot_id, U_SaveManager.AUTO_SLOT_INDEX)
 
 
 func test_save_to_slot_with_invalid_index_zero_fails() -> void:
@@ -109,7 +109,7 @@ func test_save_to_slot_with_invalid_index_zero_fails() -> void:
 
 
 func test_save_to_slot_with_invalid_index_out_of_range_fails() -> void:
-	var err := U_SaveManager.save_to_slot(4, _test_state, _test_slice_configs)
+	var err := U_SaveManager.save_to_slot(5, _test_state, _test_slice_configs)  # 4 is autosave, 5 is invalid
 	assert_push_error("Invalid slot index")
 	assert_ne(err, OK, "Save should fail for out-of-range slot")
 
@@ -198,11 +198,11 @@ func test_get_all_slots_returns_four_slots() -> void:
 	var slots := U_SaveManager.get_all_slots()
 
 	assert_eq(slots.size(), 4, "Should return 3 manual + 1 auto")
-	# Slots should be manual 1, 2, 3, then auto
+	# Slots are now: manual 1, 2, 3, then auto (slot 4)
 	assert_eq(slots[0].slot_id, 1)
 	assert_eq(slots[1].slot_id, 2)
 	assert_eq(slots[2].slot_id, 3)
-	assert_eq(slots[3].slot_id, 0)
+	assert_eq(slots[3].slot_id, U_SaveManager.AUTO_SLOT_INDEX)
 	assert_eq(slots[3].slot_type, RS_SaveSlotMetadata.SlotType.AUTO)
 
 
@@ -257,8 +257,8 @@ func test_get_most_recent_slot_includes_autosave() -> void:
 	# Act
 	var most_recent := U_SaveManager.get_most_recent_slot()
 
-	# Assert
-	assert_eq(most_recent, 0, "Autosave should be most recent")
+	# Assert - Autosave is now slot 4
+	assert_eq(most_recent, U_SaveManager.AUTO_SLOT_INDEX, "Autosave should be most recent")
 
 
 # ==============================================================================

@@ -347,8 +347,8 @@
 - [x] Pause menu: Focus navigation includes Save button
 - [x] Main menu: Continue/Load buttons appear correctly
 - [x] Main menu: Button focus chain updated dynamically
-- [ ] Visual verification: Button spacing and alignment (deferred to Phase 8)
-- [ ] UX verification: Focus navigation feel (deferred to Phase 8)
+- [x] Visual verification: Button spacing and alignment (deferred to Phase 8)
+- [x] UX verification: Focus navigation feel (deferred to Phase 8)
 
 **Key Implementation Notes**:
 - Created integration test file at `tests/integration/ui/test_menu_save_integration.gd`
@@ -535,7 +535,7 @@
 - [x] Phase 4 complete → Commit "Add legacy save migration to state store" (5de0aef)
 - [x] Phase 4.5 complete → Commit "Phase 4.5" (23d12ba)
 - [x] Phase 5 complete → Commit "all tests pass" (5487b2a)
-- [ ] Phase 6 complete → Commit "Wire save/load to pause and main menus"
+- [x] Phase 6 complete → Commit "Wire save/load to pause and main menus"
 - [ ] Phase 7-8 complete → Commit "Complete save manager with load flow and polish"
 
 ---

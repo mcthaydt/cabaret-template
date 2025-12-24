@@ -121,7 +121,7 @@ func _navigate_focus(direction: StringName) -> void:
 	if not is_ancestor_of(focused):
 		return
 
-	var slots: Array[Button] = [_autosave_slot, _slot_1, _slot_2, _slot_3]
+	var slots: Array[Button] = [_slot_1, _slot_2, _slot_3, _autosave_slot]
 	var actions: Array[Button] = [_action_button_1, _delete_button, _back_button]
 
 	var slot_index := slots.find(focused)
@@ -226,33 +226,10 @@ func _load_mode_from_state() -> void:
 
 
 func _load_slot_metadata() -> void:
-	# Get all slots from U_SaveManager
-	var all_metadata: Array[RS_SaveSlotMetadata] = U_SaveManager.get_all_slots()
-
-	# Reorder to [Autosave, Slot1, Slot2, Slot3] for UI display
-	_slot_metadata.clear()
-	if all_metadata.size() != 4:
-		push_error("UI_SaveSlotSelector: Expected 4 slots, got %d" % all_metadata.size())
-		_slot_metadata = all_metadata
-		return
-
-	var autosave: RS_SaveSlotMetadata = null
-	var manual_slots: Array[RS_SaveSlotMetadata] = []
-	for metadata in all_metadata:
-		if metadata == null:
-			continue
-		if metadata.slot_id == 0 or metadata.slot_type == RS_SaveSlotMetadata.SlotType.AUTO:
-			autosave = metadata
-		else:
-			manual_slots.append(metadata)
-
-	manual_slots.sort_custom(_sort_slots_by_id)
-	if autosave != null:
-		_slot_metadata.append(autosave)
-	_slot_metadata.append_array(manual_slots)
-
+	# Get all slots from U_SaveManager - already in order [Slot1, Slot2, Slot3, Autosave]
+	_slot_metadata = U_SaveManager.get_all_slots()
 	if _slot_metadata.size() != 4:
-		push_error("UI_SaveSlotSelector: Failed to reorder slots, got %d" % _slot_metadata.size())
+		push_error("UI_SaveSlotSelector: Expected 4 slots, got %d" % _slot_metadata.size())
 
 
 func _update_ui_for_mode() -> void:
@@ -271,7 +248,7 @@ func _update_ui_for_mode() -> void:
 
 func _configure_focus_neighbors() -> void:
 	# Custom navigation handles focus traversal; only wire focus_entered for previews.
-	var slots: Array[Button] = [_autosave_slot, _slot_1, _slot_2, _slot_3]
+	var slots: Array[Button] = [_slot_1, _slot_2, _slot_3, _autosave_slot]
 	for i in range(slots.size()):
 		var slot := slots[i]
 		if slot == null:
@@ -285,15 +262,15 @@ func _sort_slots_by_id(a: RS_SaveSlotMetadata, b: RS_SaveSlotMetadata) -> bool:
 
 
 func _connect_button_signals() -> void:
-	# Slot buttons
-	if not _autosave_slot.pressed.is_connected(_on_slot_pressed):
-		_autosave_slot.pressed.connect(_on_slot_pressed.bind(0))
+	# Slot buttons - order is [Slot1, Slot2, Slot3, Autosave] matching _slot_metadata
 	if not _slot_1.pressed.is_connected(_on_slot_pressed):
-		_slot_1.pressed.connect(_on_slot_pressed.bind(1))
+		_slot_1.pressed.connect(_on_slot_pressed.bind(0))
 	if not _slot_2.pressed.is_connected(_on_slot_pressed):
-		_slot_2.pressed.connect(_on_slot_pressed.bind(2))
+		_slot_2.pressed.connect(_on_slot_pressed.bind(1))
 	if not _slot_3.pressed.is_connected(_on_slot_pressed):
-		_slot_3.pressed.connect(_on_slot_pressed.bind(3))
+		_slot_3.pressed.connect(_on_slot_pressed.bind(2))
+	if not _autosave_slot.pressed.is_connected(_on_slot_pressed):
+		_autosave_slot.pressed.connect(_on_slot_pressed.bind(3))
 
 	# Action buttons
 	if not _action_button_1.pressed.is_connected(_on_action_button_pressed):
@@ -335,10 +312,13 @@ func _apply_initial_slot_focus() -> void:
 	var focused := viewport.gui_get_focus_owner() if viewport != null else null
 	if focused != null and is_ancestor_of(focused):
 		return
-	if _autosave_slot != null and _autosave_slot.is_inside_tree() and not _autosave_slot.disabled:
-		_autosave_slot.grab_focus()
-	elif _slot_1 != null and _slot_1.is_inside_tree():
-		_slot_1.grab_focus()
+
+	# Try slots in order, using _is_focusable_slot to skip hidden/disabled slots
+	var slots: Array[Button] = [_slot_1, _slot_2, _slot_3, _autosave_slot]
+	for slot in slots:
+		if _is_focusable_slot(slot):
+			slot.grab_focus()
+			return
 
 
 # ==============================================================================
@@ -346,7 +326,7 @@ func _apply_initial_slot_focus() -> void:
 # ==============================================================================
 
 func _update_slot_displays() -> void:
-	var buttons: Array[Button] = [_autosave_slot, _slot_1, _slot_2, _slot_3]
+	var buttons: Array[Button] = [_slot_1, _slot_2, _slot_3, _autosave_slot]
 
 	for i in range(buttons.size()):
 		var button := buttons[i]
@@ -359,12 +339,13 @@ func _update_slot_displays() -> void:
 
 
 func _set_empty_slot_display(button: Button, slot_index: int) -> void:
-	var slot_name := "Autosave" if slot_index == 0 else "Slot %d" % slot_index
+	# slot_index 3 is autosave (maps to slot_id 4)
+	var slot_name := "Autosave" if slot_index == 3 else "Slot %d" % (slot_index + 1)
 	button.text = "%s\n[Empty]" % slot_name
 
 
 func _set_populated_slot_display(button: Button, metadata: RS_SaveSlotMetadata) -> void:
-	var slot_name := "Autosave" if metadata.slot_id == 0 else "Slot %d" % metadata.slot_id
+	var slot_name := "Autosave" if metadata.slot_type == RS_SaveSlotMetadata.SlotType.AUTO else "Slot %d" % metadata.slot_id
 
 	# Multi-line format for slot button
 	var display_text := "%s\n%s\n%s" % [
@@ -517,11 +498,16 @@ func _perform_save() -> void:
 	if store == null:
 		return
 
+	# Get actual slot_id from metadata
+	var metadata := _slot_metadata[_selected_slot_index] if _selected_slot_index < _slot_metadata.size() else null
+	if metadata == null:
+		return
+
 	# Close overlay (save happens in background via reducer side effect)
 	store.dispatch(U_NavigationActions.close_top_overlay())
 
-	# Dispatch save action
-	store.dispatch(U_SaveActions.save_started(_selected_slot_index))
+	# Dispatch save action with actual slot_id
+	store.dispatch(U_SaveActions.save_started(metadata.slot_id))
 
 
 # ==============================================================================
@@ -542,14 +528,14 @@ func _perform_load() -> void:
 	if store == null:
 		return
 
-	# CRITICAL: Close overlay BEFORE dispatching load (Bug #6 prevention)
-	store.dispatch(U_NavigationActions.close_top_overlay())
+	# Get actual slot_id from metadata
+	var metadata := _slot_metadata[_selected_slot_index] if _selected_slot_index < _slot_metadata.size() else null
+	if metadata == null:
+		return
 
-	# Wait for overlay to close
-	await get_tree().process_frame
-
-	# Dispatch load action
-	store.dispatch(U_SaveActions.load_started(_selected_slot_index))
+	# Dispatch load action with actual slot_id
+	# Note: M_StateStore load flow handles closing overlays (Bug #6 prevention)
+	store.dispatch(U_SaveActions.load_started(metadata.slot_id))
 
 
 # ==============================================================================
@@ -561,8 +547,8 @@ func _on_delete_pressed() -> void:
 		_show_error("No slot selected.")
 		return
 
-	# Prevent deleting autosave
-	if _selected_slot_index == 0:
+	# Prevent deleting autosave (index 3 = autosave slot)
+	if _selected_slot_index == 3:
 		_show_error("Cannot delete autosave slot.")
 		return
 
@@ -601,8 +587,13 @@ func _perform_delete() -> void:
 	if store == null:
 		return
 
-	# Dispatch delete action
-	store.dispatch(U_SaveActions.delete_started(_selected_slot_index))
+	# Get actual slot_id from metadata
+	var metadata := _slot_metadata[_selected_slot_index] if _selected_slot_index < _slot_metadata.size() else null
+	if metadata == null:
+		return
+
+	# Dispatch delete action with actual slot_id
+	store.dispatch(U_SaveActions.delete_started(metadata.slot_id))
 
 	# Reload metadata after delete completes (handled in _on_slice_updated)
 
@@ -621,7 +612,7 @@ func _on_error_dismissed() -> void:
 
 
 func _refocus_selected_slot() -> void:
-	var buttons: Array[Button] = [_autosave_slot, _slot_1, _slot_2, _slot_3]
+	var buttons: Array[Button] = [_slot_1, _slot_2, _slot_3, _autosave_slot]
 	if _selected_slot_index >= 0 and _selected_slot_index < buttons.size():
 		call_deferred("_deferred_refocus", buttons[_selected_slot_index])
 

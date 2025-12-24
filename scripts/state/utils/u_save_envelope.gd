@@ -143,13 +143,35 @@ static func try_import_legacy_as_auto_slot(legacy_path: String, auto_path: Strin
 
 	var legacy_state := parsed as Dictionary
 
+	# Validate that the legacy state has a valid scene slice with scene_id
+	# If not, don't migrate (this is likely a settings-only or invalid save)
+	var scene_slice: Dictionary = legacy_state.get("scene", {})
+	var scene_id: Variant = scene_slice.get("current_scene_id", "")
+
+	if scene_id == "" or scene_id == StringName(""):
+		# Legacy save has no valid scene - don't migrate
+		# Just rename it to backup and return OK
+		print("U_SaveEnvelope: Legacy save has no valid scene_id, skipping migration")
+		var rename_err := _rename_file(legacy_path, legacy_backup_path)
+		return rename_err if rename_err != OK else OK
+
 	var metadata := RS_SaveSlotMetadata.new()
-	metadata.slot_id = -1
+	metadata.slot_id = 0  # Autosave is slot 0, not -1
 	metadata.slot_type = RS_SaveSlotMetadata.SlotType.AUTO
 	metadata.is_empty = false
 	metadata.file_path = auto_path
 	metadata.file_version = SAVE_FILE_VERSION
 	metadata.completion_percentage = -1.0
+	metadata.scene_id = StringName(str(scene_id))
+	metadata.scene_name = str(scene_id)  # Use scene_id as fallback for scene name
+
+	# Extract gameplay data for metadata if available
+	var gameplay_slice: Dictionary = legacy_state.get("gameplay", {})
+	if not gameplay_slice.is_empty():
+		metadata.play_time_seconds = gameplay_slice.get("play_time_seconds", 0.0)
+		metadata.player_health = gameplay_slice.get("player_health", 0.0)
+		metadata.player_max_health = gameplay_slice.get("player_max_health", 100.0)
+		metadata.death_count = gameplay_slice.get("death_count", 0)
 
 	var write_err := write_envelope(auto_path, metadata, legacy_state, SAVE_FILE_VERSION)
 	if write_err != OK:

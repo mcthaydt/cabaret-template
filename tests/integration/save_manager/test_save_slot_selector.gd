@@ -21,7 +21,7 @@ var _dispatched_actions: Array[Dictionary] = []
 ## Test helper: Write metadata to disk for testing purposes
 func _save_test_metadata(metadata: RS_SaveSlotMetadata) -> void:
 	var path: String
-	if metadata.slot_id == 0:
+	if metadata.slot_id == U_SaveManager.AUTO_SLOT_INDEX:
 		path = U_SaveManager.get_auto_slot_path()
 	else:
 		path = U_SaveManager.get_manual_slot_path(metadata.slot_id)
@@ -118,16 +118,23 @@ func test_mode_save_shows_correct_ui() -> void:
 
 
 ## Bug #1 Prevention: Two-tier focus navigation - vertical slots
+## Order is now: Slot1, Slot2, Slot3, Autosave
 func test_focus_navigation_vertical_slots() -> void:
-	var autosave: Button = _overlay.get_node("%AutosaveSlot")
+	# Set mode to LOAD so autosave slot is focusable
+	_store.dispatch(U_SaveActions.set_save_mode(UI_SaveSlotSelector.Mode.LOAD))
+	_overlay._load_mode_from_state()
+	_overlay._update_ui_for_mode()
+	await get_tree().process_frame
+
 	var slot_1: Button = _overlay.get_node("%Slot1")
 	var slot_2: Button = _overlay.get_node("%Slot2")
 	var slot_3: Button = _overlay.get_node("%Slot3")
+	var autosave: Button = _overlay.get_node("%AutosaveSlot")
 
-	# Focus autosave slot
-	autosave.grab_focus()
+	# Focus slot 1 (first in list)
+	slot_1.grab_focus()
 	await get_tree().process_frame
-	assert_eq(_overlay.get_viewport().gui_get_focus_owner(), autosave, "Autosave should have focus")
+	assert_eq(_overlay.get_viewport().gui_get_focus_owner(), slot_1, "Slot1 should have focus")
 
 	# Simulate down navigation
 	var event := InputEventJoypadButton.new()
@@ -136,18 +143,18 @@ func test_focus_navigation_vertical_slots() -> void:
 	_overlay._input(event)
 	await get_tree().process_frame
 
-	# Should move to slot 1
-	assert_eq(_overlay.get_viewport().gui_get_focus_owner(), slot_1, "Down from autosave should focus slot 1")
-
-	# Continue down to slot 2
-	_overlay._input(event)
-	await get_tree().process_frame
+	# Should move to slot 2
 	assert_eq(_overlay.get_viewport().gui_get_focus_owner(), slot_2, "Down from slot 1 should focus slot 2")
 
 	# Continue down to slot 3
 	_overlay._input(event)
 	await get_tree().process_frame
 	assert_eq(_overlay.get_viewport().gui_get_focus_owner(), slot_3, "Down from slot 2 should focus slot 3")
+
+	# Continue down to autosave (last slot)
+	_overlay._input(event)
+	await get_tree().process_frame
+	assert_eq(_overlay.get_viewport().gui_get_focus_owner(), autosave, "Down from slot 3 should focus autosave")
 
 
 ## Bug #1 Prevention: Two-tier focus navigation - no left/right on slots
@@ -180,12 +187,19 @@ func test_focus_navigation_no_horizontal_on_slots() -> void:
 
 
 ## Bug #1 Prevention: Two-tier focus navigation - bridge to action buttons
+## Now goes through autosave first (Slot1 -> Slot2 -> Slot3 -> Autosave -> Actions)
 func test_focus_navigation_bridge_to_actions() -> void:
-	var slot_3: Button = _overlay.get_node("%Slot3")
+	# Set mode to LOAD so autosave is focusable
+	_store.dispatch(U_SaveActions.set_save_mode(UI_SaveSlotSelector.Mode.LOAD))
+	_overlay._load_mode_from_state()
+	_overlay._update_ui_for_mode()
+	await get_tree().process_frame
+
+	var autosave: Button = _overlay.get_node("%AutosaveSlot")
 	var action_button: Button = _overlay.get_node("%ActionButton1")
 
-	# Focus slot 3
-	slot_3.grab_focus()
+	# Focus autosave (last slot)
+	autosave.grab_focus()
 	await get_tree().process_frame
 
 	# Navigate down (should jump to action buttons)
@@ -195,7 +209,7 @@ func test_focus_navigation_bridge_to_actions() -> void:
 	_overlay._input(event)
 	await get_tree().process_frame
 
-	assert_eq(_overlay.get_viewport().gui_get_focus_owner(), action_button, "Down from slot 3 should focus first action button")
+	assert_eq(_overlay.get_viewport().gui_get_focus_owner(), action_button, "Down from autosave should focus first action button")
 
 
 ## Bug #1 Prevention: Two-tier focus navigation - horizontal action buttons
@@ -233,7 +247,7 @@ func test_screenshot_display_for_occupied_slot() -> void:
 
 	# Create save with screenshot
 	var metadata := RS_SaveSlotMetadata.new()
-	metadata.slot_id =1
+	metadata.slot_id = 1
 	metadata.is_empty = false
 	metadata.scene_name = "Test Scene"
 	metadata.screenshot_data = screenshot_data
@@ -251,9 +265,9 @@ func test_screenshot_display_for_occupied_slot() -> void:
 	_overlay._update_slot_displays()
 	await get_tree().process_frame
 
-	# Select slot 1
-	_overlay._selected_slot_index = 1
-	_overlay._show_slot_preview(_overlay._slot_metadata[1])
+	# Select slot 1 (now at index 0 in the list)
+	_overlay._selected_slot_index = 0
+	_overlay._show_slot_preview(_overlay._slot_metadata[0])
 	await get_tree().process_frame
 
 	# Verify screenshot loaded
@@ -274,9 +288,9 @@ func test_empty_slot_shows_placeholder() -> void:
 	_overlay._update_slot_displays()
 	await get_tree().process_frame
 
-	# Select empty slot
-	_overlay._selected_slot_index = 1
-	_overlay._show_slot_preview(_overlay._slot_metadata[1])
+	# Select empty slot (slot 1 is now at index 0)
+	_overlay._selected_slot_index = 0
+	_overlay._show_slot_preview(_overlay._slot_metadata[0])
 	await get_tree().process_frame
 
 	# Verify placeholder shown
@@ -291,7 +305,7 @@ func test_empty_slot_shows_placeholder() -> void:
 func test_load_flow_closes_overlay_before_load_action() -> void:
 	# Create a save in slot 1
 	var metadata := RS_SaveSlotMetadata.new()
-	metadata.slot_id =1
+	metadata.slot_id = 1
 	metadata.is_empty = false
 	metadata.scene_name = "Test Scene"
 	_save_test_metadata(metadata)
@@ -301,9 +315,9 @@ func test_load_flow_closes_overlay_before_load_action() -> void:
 	_overlay._load_mode_from_state()
 	await get_tree().process_frame
 
-	# Reload metadata
+	# Reload metadata (slot 1 is now at index 0)
 	_overlay._load_slot_metadata()
-	_overlay._selected_slot_index = 1
+	_overlay._selected_slot_index = 0
 
 	# Clear action history
 	_dispatched_actions.clear()
@@ -314,16 +328,27 @@ func test_load_flow_closes_overlay_before_load_action() -> void:
 	await get_tree().process_frame  # Wait for action dispatch after close
 
 	# Verify action dispatch order
+	# Note: With Phase 7 load flow middleware, load_started triggers immediate processing
+	# So we expect: close_top_overlay, load_started, [clear overlays], load_completed
 	assert_true(_dispatched_actions.size() >= 2, "Should dispatch at least 2 actions (close + load)")
 
-	# First action should be close_top_overlay
+	# First action should be close_top_overlay (Bug #6 prevention: overlay closes BEFORE load)
 	var first_action := _dispatched_actions[0]
 	assert_eq(first_action.get("type"), U_NavigationActions.ACTION_CLOSE_TOP_OVERLAY, "First action should close overlay")
 
-	# Second action should be load_started
-	var second_action := _dispatched_actions[1]
-	assert_eq(second_action.get("type"), U_SaveActions.ACTION_LOAD_STARTED, "Second action should start load")
-	assert_eq(second_action.get("slot_index"), 1, "Load action should target slot 1")
+	# Verify that load_started and load_completed are in the action sequence
+	var load_started_found := false
+	var load_completed_found := false
+	for action in _dispatched_actions:
+		if action.get("type") == U_SaveActions.ACTION_LOAD_STARTED:
+			load_started_found = true
+			assert_eq(action.get("slot_index"), 1, "Load started action should target slot 1")
+		elif action.get("type") == U_SaveActions.ACTION_LOAD_COMPLETED:
+			load_completed_found = true
+			assert_eq(action.get("slot_index"), 1, "Load completed action should target slot 1")
+
+	assert_true(load_started_found, "Should dispatch load_started action")
+	assert_true(load_completed_found, "Should dispatch load_completed action (middleware processed load)")
 
 
 ## Empty slot handling: Cannot load empty slot
@@ -338,7 +363,7 @@ func test_cannot_load_empty_slot() -> void:
 	await get_tree().process_frame
 
 	# Try to load empty slot
-	_overlay._selected_slot_index = 1
+	_overlay._selected_slot_index = 0
 	_overlay._on_action_button_pressed()
 	await get_tree().process_frame
 
@@ -358,7 +383,7 @@ func test_cannot_delete_empty_slot() -> void:
 	await get_tree().process_frame
 
 	# Try to delete empty slot
-	_overlay._selected_slot_index = 1
+	_overlay._selected_slot_index = 0
 	_overlay._on_delete_pressed()
 	await get_tree().process_frame
 
@@ -370,9 +395,10 @@ func test_cannot_delete_empty_slot() -> void:
 
 ## Empty slot handling: Cannot delete autosave
 func test_cannot_delete_autosave() -> void:
-	# Create autosave
+	# Create autosave (slot_id 4, at index 3 in the list)
 	var metadata := RS_SaveSlotMetadata.new()
-	metadata.slot_id =0
+	metadata.slot_id = U_SaveManager.AUTO_SLOT_INDEX
+	metadata.slot_type = RS_SaveSlotMetadata.SlotType.AUTO
 	metadata.is_empty = false
 	metadata.scene_name = "Autosave Test"
 	_save_test_metadata(metadata)
@@ -381,8 +407,8 @@ func test_cannot_delete_autosave() -> void:
 	_overlay._load_slot_metadata()
 	await get_tree().process_frame
 
-	# Try to delete autosave
-	_overlay._selected_slot_index = 0
+	# Try to delete autosave (index 3)
+	_overlay._selected_slot_index = 3
 	_overlay._on_delete_pressed()
 	await get_tree().process_frame
 
@@ -408,7 +434,7 @@ func test_save_overwrite_shows_confirmation() -> void:
 	await get_tree().process_frame
 
 	# Try to save to occupied slot
-	_overlay._selected_slot_index = 1
+	_overlay._selected_slot_index = 0
 	_overlay._on_action_button_pressed()
 	await get_tree().process_frame
 
@@ -433,7 +459,7 @@ func test_save_to_empty_slot_no_confirmation() -> void:
 	_dispatched_actions.clear()
 
 	# Try to save to empty slot
-	_overlay._selected_slot_index = 1
+	_overlay._selected_slot_index = 0
 	_overlay._on_action_button_pressed()
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -467,7 +493,7 @@ func test_save_confirmation_confirmed_dispatches_save() -> void:
 	await get_tree().process_frame
 
 	# Show confirmation
-	_overlay._selected_slot_index = 1
+	_overlay._selected_slot_index = 0
 	_overlay._on_action_button_pressed()
 	await get_tree().process_frame
 
@@ -493,9 +519,9 @@ func test_save_confirmation_confirmed_dispatches_save() -> void:
 
 ## Delete confirmation: Deleting occupied slot shows confirmation
 func test_delete_shows_confirmation() -> void:
-	# Create save in slot 2
+	# Create save in slot 2 (now at index 1)
 	var metadata := RS_SaveSlotMetadata.new()
-	metadata.slot_id =2
+	metadata.slot_id = 2
 	metadata.is_empty = false
 	metadata.scene_name = "Test Save"
 	_save_test_metadata(metadata)
@@ -504,8 +530,8 @@ func test_delete_shows_confirmation() -> void:
 	_overlay._load_slot_metadata()
 	await get_tree().process_frame
 
-	# Try to delete
-	_overlay._selected_slot_index = 2
+	# Try to delete (slot_id 2 is at index 1)
+	_overlay._selected_slot_index = 1
 	_overlay._on_delete_pressed()
 	await get_tree().process_frame
 
@@ -517,9 +543,9 @@ func test_delete_shows_confirmation() -> void:
 
 ## Delete confirmation: Confirming delete dispatches delete action
 func test_delete_confirmation_confirmed_dispatches_delete() -> void:
-	# Create save in slot 2
+	# Create save in slot 2 (now at index 1)
 	var metadata := RS_SaveSlotMetadata.new()
-	metadata.slot_id =2
+	metadata.slot_id = 2
 	metadata.is_empty = false
 	_save_test_metadata(metadata)
 
@@ -527,8 +553,8 @@ func test_delete_confirmation_confirmed_dispatches_delete() -> void:
 	_overlay._load_slot_metadata()
 	await get_tree().process_frame
 
-	# Show confirmation
-	_overlay._selected_slot_index = 2
+	# Show confirmation (slot_id 2 is at index 1)
+	_overlay._selected_slot_index = 1
 	_overlay._on_delete_pressed()
 	await get_tree().process_frame
 
@@ -568,19 +594,19 @@ func test_screenshot_caching_performance() -> void:
 	_overlay._load_slot_metadata()
 	await get_tree().process_frame
 
-	# Load screenshot first time
-	_overlay._selected_slot_index = 1
-	_overlay._show_slot_preview(_overlay._slot_metadata[1])
+	# Load screenshot first time (slot_id 1 is at index 0)
+	_overlay._selected_slot_index = 0
+	_overlay._show_slot_preview(_overlay._slot_metadata[0])
 	await get_tree().process_frame
 
-	# Verify cache populated
+	# Verify cache populated (cache uses slot_id, not index)
 	assert_eq(_overlay._screenshot_cache.size(), 1, "Cache should contain 1 screenshot")
 	assert_true(_overlay._screenshot_cache.has(1), "Cache should contain slot 1")
 
 	var cached_texture: Texture2D = _overlay._screenshot_cache[1]
 
 	# Load screenshot second time
-	_overlay._show_slot_preview(_overlay._slot_metadata[1])
+	_overlay._show_slot_preview(_overlay._slot_metadata[0])
 	await get_tree().process_frame
 
 	# Verify same texture used (from cache)
@@ -591,14 +617,14 @@ func test_screenshot_caching_performance() -> void:
 ## Metadata display: Play time formatted correctly
 func test_metadata_displays_play_time() -> void:
 	var metadata := RS_SaveSlotMetadata.new()
-	metadata.slot_id =1
+	metadata.slot_id = 1
 	metadata.is_empty = false
 	metadata.play_time_seconds = 3661.0  # 1 hour, 1 minute, 1 second
 	_save_test_metadata(metadata)
 
-	# Reload metadata
+	# Reload metadata - slot_id 1 is now at index 0 (first position)
 	_overlay._load_slot_metadata()
-	_overlay._show_slot_preview(_overlay._slot_metadata[1])
+	_overlay._show_slot_preview(_overlay._slot_metadata[0])
 	await get_tree().process_frame
 
 	var play_time_label: Label = _overlay.get_node("%PlayTimeLabel")
@@ -608,15 +634,15 @@ func test_metadata_displays_play_time() -> void:
 ## Metadata display: Health displayed correctly
 func test_metadata_displays_health() -> void:
 	var metadata := RS_SaveSlotMetadata.new()
-	metadata.slot_id =1
+	metadata.slot_id = 1
 	metadata.is_empty = false
 	metadata.player_health = 75.0
 	metadata.player_max_health = 100.0
 	_save_test_metadata(metadata)
 
-	# Reload metadata
+	# Reload metadata - slot_id 1 is now at index 0 (first position)
 	_overlay._load_slot_metadata()
-	_overlay._show_slot_preview(_overlay._slot_metadata[1])
+	_overlay._show_slot_preview(_overlay._slot_metadata[0])
 	await get_tree().process_frame
 
 	var health_label: Label = _overlay.get_node("%HealthLabel")
@@ -627,14 +653,14 @@ func test_metadata_displays_health() -> void:
 ## Metadata display: Death count displayed correctly
 func test_metadata_displays_death_count() -> void:
 	var metadata := RS_SaveSlotMetadata.new()
-	metadata.slot_id =1
+	metadata.slot_id = 1
 	metadata.is_empty = false
 	metadata.death_count = 42
 	_save_test_metadata(metadata)
 
-	# Reload metadata
+	# Reload metadata - slot_id 1 is now at index 0 (first position)
 	_overlay._load_slot_metadata()
-	_overlay._show_slot_preview(_overlay._slot_metadata[1])
+	_overlay._show_slot_preview(_overlay._slot_metadata[0])
 	await get_tree().process_frame
 
 	var death_count_label: Label = _overlay.get_node("%DeathCountLabel")
@@ -658,3 +684,26 @@ func test_back_button_closes_overlay() -> void:
 			break
 
 	assert_true(close_action_found, "Back button should dispatch close overlay action")
+
+
+## Autosave slot is always visible (now at end of list)
+func test_autosave_slot_always_visible() -> void:
+	_overlay._update_ui_for_mode()
+	await get_tree().process_frame
+
+	var autosave_slot: Button = _overlay.get_node("%AutosaveSlot")
+
+	assert_true(autosave_slot.visible, "Autosave slot should always be visible")
+
+
+## Initial focus goes to Slot1 (first manual slot)
+func test_initial_focus_goes_to_slot1() -> void:
+	# Apply initial focus
+	await _overlay._apply_initial_slot_focus()
+	await get_tree().process_frame
+
+	var slot_1: Button = _overlay.get_node("%Slot1")
+	var viewport := _overlay.get_viewport()
+	var focused := viewport.gui_get_focus_owner() if viewport != null else null
+
+	assert_eq(focused, slot_1, "Initial focus should go to Slot1 (first in list)")
