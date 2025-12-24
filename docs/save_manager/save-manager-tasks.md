@@ -1,6 +1,6 @@
 # Save Manager Task Checklist
 
-**Status**: Phase 2 - Redux Integration COMPLETE ✅
+**Status**: Phase 5 - UI Layer COMPLETE ✅
 **Last Updated**: 2025-12-23
 
 ---
@@ -238,37 +238,51 @@
 
 ---
 
-## Phase 5: UI Layer
+## Phase 5: UI Layer ✅ COMPLETE
 
-- [ ] Create `ui_save_slot_selector.tscn`
-  - [ ] Add TitleLabel
-  - [ ] Add SlotContainer (VBoxContainer)
-  - [ ] Add AutosaveSlot button
-  - [ ] Add Slot1/2/3 buttons
-  - [ ] Add BackButton
-  - [ ] Configure unique names (%)
+**Completion Date**: 2025-12-23
+**Commit**: 5487b2a
 
-- [ ] Create `ui_save_slot_selector.gd`
-  - [ ] Extend BaseOverlay
-  - [ ] Define Mode enum (SAVE, LOAD)
-  - [ ] Implement _ready()
-  - [ ] Implement set_mode()
-  - [ ] Implement _refresh_slots()
-  - [ ] Implement _update_slot_display()
-  - [ ] Implement _on_slot_pressed()
-  - [ ] Implement _perform_save()
-  - [ ] Implement _perform_load()
-  - [ ] Configure focus chain
+- [x] Create `ui_save_slot_selector.tscn`
+  - [x] Add TitleLabel
+  - [x] Add SlotContainer (VBoxContainer)
+  - [x] Add AutosaveSlot button
+  - [x] Add Slot1/2/3 buttons
+  - [x] Add BackButton
+  - [x] Configure unique names (%)
 
-- [ ] Create `save_slot_selector_overlay.tres`
-  - [ ] Set screen_id
-  - [ ] Set kind = OVERLAY
-  - [ ] Set scene_id
-  - [ ] Set allowed_shells
+- [x] Create `ui_save_slot_selector.gd`
+  - [x] Extend BaseOverlay
+  - [x] Define Mode enum (SAVE, LOAD)
+  - [x] Implement _ready()
+  - [x] Implement set_mode()
+  - [x] Implement _refresh_slots()
+  - [x] Implement _update_slot_display()
+  - [x] Implement _on_slot_pressed()
+  - [x] Implement _perform_save()
+  - [x] Implement _perform_load()
+  - [x] Configure focus chain
 
-- [ ] Register overlay
-  - [ ] Add to u_ui_registry.gd
-  - [ ] Add scene to u_scene_registry.gd
+- [x] Create `save_slot_selector_overlay.tres`
+  - [x] Set screen_id
+  - [x] Set kind = OVERLAY
+  - [x] Set scene_id
+  - [x] Set allowed_shells
+
+- [x] Register overlay
+  - [x] Add to u_ui_registry.gd
+  - [x] Add scene to u_scene_registry.gd
+
+**Key Implementation Notes**:
+- Used two-tier focus system (vertical slots + horizontal actions per slot)
+- Implemented screenshot caching with TextureRect reuse
+- Added confirmation dialogs for save overwrite and delete operations
+- Prevented autosave slot deletion (disabled delete button for slot 0)
+- Implemented overlay closing pattern to prevent Bug #6
+- Implemented mode management pattern to prevent Bug #8
+- Added playtime formatting (hours:minutes display)
+- Metadata displays: timestamp, location, health, death count
+- All 81 tests passing (22 integration + 59 unit)
 
 ---
 
@@ -360,10 +374,12 @@
 
 ## Commit Strategy
 
-- [ ] Phase 1 complete → Commit "Add save envelope data structures and manager"
-- [ ] Phase 2 complete → Commit "Add Redux integration for save system"
-- [ ] Phase 3-4 complete → Commit "Redirect autosave to slot 0 and add migration"
-- [ ] Phase 5 complete → Commit "Add save slot selector UI"
+- [x] Phase 1 complete → Commit "Add save envelope data structures and manager" (cff8a3b)
+- [x] Phase 2 complete → Commit "Add Redux integration for save system" (a82cdfc)
+- [x] Phase 3 complete → Commit "Redirect autosave to dedicated slot 0" (7abd336)
+- [x] Phase 4 complete → Commit "Add legacy save migration to state store" (5de0aef)
+- [x] Phase 4.5 complete → Commit "Phase 4.5" (23d12ba)
+- [x] Phase 5 complete → Commit "all tests pass" (5487b2a)
 - [ ] Phase 6 complete → Commit "Wire save/load to pause and main menus"
 - [ ] Phase 7-8 complete → Commit "Complete save manager with load flow and polish"
 

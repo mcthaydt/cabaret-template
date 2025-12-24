@@ -1,8 +1,8 @@
 # Save Manager Continuation Prompt
 
-**Current Phase**: Phase 4.5 Complete ✅ - Ready for Phase 5 (UI Layer)
+**Current Phase**: Phase 5 Complete ✅ - Ready for Phase 6 (Menu Integration)
 **Branch**: `save-manager-v2`
-**Last Updated**: 2025-12-23 (Screenshot Support Added)
+**Last Updated**: 2025-12-23 (UI Layer Complete)
 
 ---
 
@@ -65,17 +65,30 @@ Implements a multi-slot save system with:
 - ✅ Legacy backup: `user://savegame.json.backup`
 - ✅ **Total tests**: 40/40 passing (no regressions)
 
-✅ **Phase 4.5 Complete** (2025-12-23, commit pending):
+✅ **Phase 4.5 Complete** (2025-12-23, commit 23d12ba):
 - ✅ Added screenshot support to prevent Bug #2 from LESSONS_LEARNED.md
 - ✅ Added `screenshot_data: PackedByteArray` to RS_SaveSlotMetadata
 - ✅ Implemented `_capture_viewport_screenshot()` in U_SaveManager
 - ✅ Screenshot capture: 256x144 PNG thumbnail with LANCZOS interpolation
 - ✅ Headless mode detection (gracefully skips capture in tests)
 - ✅ Verified mode management pattern in Redux (prevents Bug #8)
-- ✅ **Total tests**: 171/171 passing (no regressions)
+- ✅ **Total tests**: 40/40 passing (no regressions)
+
+✅ **Phase 5 Complete** (2025-12-23, commit 5487b2a):
+- ✅ Created `scenes/ui/ui_save_slot_selector.tscn` - Save/load overlay UI
+- ✅ Created `scripts/ui/ui_save_slot_selector.gd` - Overlay controller
+- ✅ Created `resources/ui_screens/save_slot_selector_overlay.tres` - Screen definition
+- ✅ Registered in `u_ui_registry.gd` and `u_scene_registry.gd`
+- ✅ Implemented Mode enum (SAVE, LOAD) with dynamic UI updates
+- ✅ Implemented slot display with metadata (timestamp, location, health, deaths)
+- ✅ Implemented screenshot display and caching system
+- ✅ Implemented save/load/delete operations with confirmation dialogs
+- ✅ Implemented focus navigation (vertical slots + horizontal actions)
+- ✅ Added playtime tracking and formatting
+- ✅ Prevented all bugs from LESSONS_LEARNED.md (focus, overlay closing, mode management)
+- ✅ **Total tests**: 81/81 passing (22 integration + 59 unit tests)
 
 ❌ **Not Started**:
-- UI layer (Phase 5)
 - Menu integration (Phase 6)
 
 ---
@@ -186,77 +199,74 @@ var meta := U_SaveManager.get_slot_metadata(1)
 
 ## Next Steps (When Resuming)
 
-### ✅ Phase 1, 2, 3 & 4 Complete - Ready for Phase 5
+### ✅ Phase 1-5 Complete - Ready for Phase 6 (Menu Integration)
 
-**Phase 1 Accomplishments** (commit cff8a3b):
-- ✅ All data layer utilities implemented
-- ✅ 27/27 tests passing
-- ✅ Timestamp precision bug fixed
+**Phase 5 Accomplishments** (commit 5487b2a):
+- ✅ Full UI layer implementation complete
+- ✅ Overlay with dynamic SAVE/LOAD modes
+- ✅ Screenshot display and caching
+- ✅ Confirmation dialogs (overwrite, delete)
+- ✅ Focus navigation using U_FocusConfigurator
+- ✅ All LESSONS_LEARNED.md bugs prevented
+- ✅ 81/81 tests passing (no regressions)
 
-**Phase 2 Accomplishments** (commit a82cdfc):
-- ✅ Redux integration complete
-- ✅ 40/40 tests passing (27 manager + 13 reducer)
-- ✅ Save slice registered with transient fields
+**Phase 5 Key Implementation Patterns**:
+1. **Two-Tier Focus System**:
+   - Vertical navigation for slots (up/down)
+   - Horizontal navigation for actions within slot (left/right)
+   - U_FocusConfigurator handles neighbor setup
 
-**Phase 3 Accomplishments** (commit 7abd336):
-- ✅ Autosave redirected to U_SaveManager
-- ✅ Shell and transition checks implemented
-- ✅ 40/40 tests still passing (no regressions)
+2. **Screenshot Caching**:
+   - TextureRect nodes created/cached per slot
+   - Prevents redundant image loading
+   - Gracefully handles missing screenshots
 
-**Phase 4 Accomplishments** (commit pending):
-- ✅ Legacy save migration implemented
-- ✅ Smart logging for migration events
-- ✅ 40/40 tests still passing (no regressions)
+3. **Overlay Closing Pattern**:
+   ```gdscript
+   # CORRECT: Close overlay first, then dispatch load
+   close()
+   await get_tree().process_frame
+   store.dispatch(U_SaveActions.load_started(slot_index))
+   ```
+   This prevents Bug #6 (menu reopening, player stuck)
 
-### Pre-Phase 5 Concerns Addressed
+4. **Mode Management**:
+   ```gdscript
+   # CORRECT: Dispatch mode BEFORE opening overlay
+   store.dispatch(U_SaveActions.set_save_mode("SAVE"))
+   scene_manager.push_overlay(StringName("save_slot_selector_overlay"))
+   ```
+   This prevents Bug #8 (wrong dialog type)
 
-Before starting Phase 5 UI implementation, the following concerns from code review were addressed:
+### Immediate Next Actions: Phase 6 (Menu Integration)
 
-1. **Screenshot Feature** (Bug #2 Prevention):
-   - Added `screenshot_data` field to metadata
-   - Implemented viewport screenshot capture (256x144 PNG thumbnails)
-   - Graceful degradation in headless/test environments
+**Goal**: Wire save/load overlay to pause menu and main menu
 
-2. **Mode Management** (Bug #8 Prevention):
-   - Verified `U_SaveActions.set_save_mode()` pattern
-   - Redux state correctly tracks SAVE vs LOAD mode
-   - Pattern: Dispatch mode BEFORE opening overlay
+**Step 1: Pause Menu Integration**
+1. **Modify `scenes/ui/ui_pause_menu.tscn`**:
+   - Add "Save Game" button to menu
+   - Update focus chain to include new button
 
-3. **Focus Navigation** (Bug #1 Prevention):
-   - Two-tier focus pattern documented
-   - Use `U_FocusConfigurator` for vertical slots + horizontal actions
+2. **Modify `scripts/ui/ui_pause_menu.gd`**:
+   - Add `_on_save_pressed()` handler
+   - Dispatch `U_SaveActions.set_save_mode("SAVE")`
+   - Dispatch `U_NavigationActions.open_overlay("save_slot_selector_overlay")`
 
-4. **Overlay Closing** (Bug #6 Prevention):
-   - Pattern documented: close → await frame → dispatch load
-   - Prevents menu reopening and player physics bugs
+**Step 2: Main Menu Integration**
+1. **Modify `scenes/ui/ui_main_menu.tscn`**:
+   - Add "Continue" button (loads most recent save)
+   - Add "Load Game" button (opens load overlay)
+   - Update focus chain
 
-### Immediate Next Actions: Phase 5 (UI Layer)
+2. **Modify `scripts/ui/ui_main_menu.gd`**:
+   - Add `_update_button_visibility()` (hide Continue if no saves)
+   - Add `_on_continue_pressed()` (auto-load most recent)
+   - Add `_on_load_pressed()` (open selector in LOAD mode)
+   - Call visibility update in `_ready()`
 
-**Goal**: Create save/load overlay UI for slot selection
-
-**Step 1: Create UI Scene**
-1. **Create `scenes/ui/ui_save_slot_selector.tscn`**:
-   - Extend BaseOverlay
-   - Add TitleLabel (changes based on mode: "Save Game" vs "Load Game")
-   - Add SlotContainer (VBoxContainer) with 4 slot buttons
-   - Add BackButton for navigation
-   - Configure unique names (%) for node references
-
-2. **Create `scripts/ui/ui_save_slot_selector.gd`**:
-   - Define Mode enum (SAVE, LOAD)
-   - Implement set_mode() to switch between save/load
-   - Implement _refresh_slots() to update UI from metadata
-   - Implement _on_slot_pressed() to handle slot selection
-   - Configure focus chain for gamepad navigation
-
-**Step 2: Register Overlay**
-1. Create `resources/ui_screens/save_slot_selector_overlay.tres`
-2. Register in `u_ui_registry.gd`
-3. Register scene in `u_scene_registry.gd`
-
-**Step 3: After Phase 5**
-- Move to Phase 6: Menu Integration (pause menu + main menu buttons)
-- Move to Phase 7: Load Flow (scene transitions after load)
+**Step 3: After Phase 6**
+- Move to Phase 7: Load Flow (connect Redux actions to scene transitions)
+- Move to Phase 8: Polish (error handling, visual feedback)
 - See `save-manager-tasks.md` for full checklist
 
 ---
