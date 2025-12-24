@@ -12,6 +12,7 @@ const U_SaveEnvelope := preload("res://scripts/state/utils/u_save_envelope.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_SaveActions := preload("res://scripts/state/actions/u_save_actions.gd")
 const RS_SaveSlotMetadata := preload("res://scripts/state/resources/rs_save_slot_metadata.gd")
+const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 
 var _store: M_StateStore
 var _overlay: UI_SaveSlotSelector
@@ -41,14 +42,18 @@ func _save_test_metadata(metadata: RS_SaveSlotMetadata) -> void:
 
 
 func before_each() -> void:
+	_cleanup_save_files()
+
 	# Initialize state store
 	_store = M_StateStore.new()
+	_store.settings = RS_StateStoreSettings.new()
+	_store.settings.enable_persistence = false  # Prevent legacy save pollution across tests
+	_store.settings.enable_debug_logging = false
+	_dispatched_actions.clear()
+	_store.action_dispatched.connect(_on_action_dispatched)  # Connect before _ready middleware
 	add_child_autofree(_store)
 	await get_tree().process_frame
-
-	# Track dispatched actions
 	_dispatched_actions.clear()
-	_store.action_dispatched.connect(_on_action_dispatched)
 
 	# Load and initialize overlay scene
 	var scene: PackedScene = load("res://scenes/ui/ui_save_slot_selector.tscn")
@@ -58,15 +63,7 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	# Clean up manual save slots (1-3)
-	# Note: Slot 0 is autosave and cannot be deleted via delete_slot()
-	for i in range(1, 4):
-		U_SaveManager.delete_slot(i)
-
-	# Manually delete autosave if it exists
-	var autosave_path := U_SaveManager.get_auto_slot_path()
-	if FileAccess.file_exists(autosave_path):
-		DirAccess.remove_absolute(autosave_path)
+	_cleanup_save_files()
 
 	_overlay = null
 	_store = null
@@ -312,6 +309,7 @@ func test_load_flow_closes_overlay_before_load_action() -> void:
 
 	# Set mode to LOAD
 	_store.dispatch(U_SaveActions.set_save_mode(UI_SaveSlotSelector.Mode.LOAD))
+	_store.dispatch(U_NavigationActions.open_overlay(StringName("save_slot_selector_overlay")))
 	_overlay._load_mode_from_state()
 	await get_tree().process_frame
 
@@ -328,13 +326,21 @@ func test_load_flow_closes_overlay_before_load_action() -> void:
 	await get_tree().process_frame  # Wait for action dispatch after close
 
 	# Verify action dispatch order
-	# Note: With Phase 7 load flow middleware, load_started triggers immediate processing
-	# So we expect: close_top_overlay, load_started, [clear overlays], load_completed
-	assert_true(_dispatched_actions.size() >= 2, "Should dispatch at least 2 actions (close + load)")
+	# With Phase 7 load flow middleware, load_started triggers synchronous processing.
+	# Bug #6 prevention requires closing overlays BEFORE navigation/start_game (scene transition).
+	var close_index: int = -1
+	var start_game_index: int = -1
+	for i in range(_dispatched_actions.size()):
+		var action := _dispatched_actions[i]
+		var action_type: StringName = action.get("type", StringName(""))
+		if action_type == U_NavigationActions.ACTION_CLOSE_TOP_OVERLAY and close_index < 0:
+			close_index = i
+		if action_type == U_NavigationActions.ACTION_START_GAME and start_game_index < 0:
+			start_game_index = i
 
-	# First action should be close_top_overlay (Bug #6 prevention: overlay closes BEFORE load)
-	var first_action := _dispatched_actions[0]
-	assert_eq(first_action.get("type"), U_NavigationActions.ACTION_CLOSE_TOP_OVERLAY, "First action should close overlay")
+	assert_true(close_index >= 0, "Should dispatch close_top_overlay during load (Bug #6 prevention)")
+	assert_true(start_game_index >= 0, "Should dispatch start_game during load")
+	assert_true(close_index < start_game_index, "close_top_overlay should dispatch before start_game (Bug #6 prevention)")
 
 	# Verify that load_started and load_completed are in the action sequence
 	var load_started_found := false
@@ -349,6 +355,23 @@ func test_load_flow_closes_overlay_before_load_action() -> void:
 
 	assert_true(load_started_found, "Should dispatch load_started action")
 	assert_true(load_completed_found, "Should dispatch load_completed action (middleware processed load)")
+
+
+func _cleanup_save_files() -> void:
+	# Clean up manual save slots (1-3)
+	# Note: Slot 0 is autosave and cannot be deleted via delete_slot()
+	for i in range(1, 4):
+		U_SaveManager.delete_slot(i)
+
+	# Manually delete autosave if it exists
+	var autosave_path := U_SaveManager.get_auto_slot_path()
+	if FileAccess.file_exists(autosave_path):
+		DirAccess.remove_absolute(autosave_path)
+
+	if FileAccess.file_exists(U_SaveManager.DEFAULT_LEGACY_PATH):
+		DirAccess.remove_absolute(U_SaveManager.DEFAULT_LEGACY_PATH)
+	if FileAccess.file_exists(U_SaveManager.DEFAULT_LEGACY_BACKUP_PATH):
+		DirAccess.remove_absolute(U_SaveManager.DEFAULT_LEGACY_BACKUP_PATH)
 
 
 ## Empty slot handling: Cannot load empty slot

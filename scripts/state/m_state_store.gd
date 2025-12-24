@@ -203,6 +203,12 @@ func _handle_load_started(action: Dictionary) -> void:
 		dispatch(U_SAVE_ACTIONS.load_failed(slot_index, "Invalid slot index"))
 		return
 
+	# Cache the runtime scene_id (the scene currently loaded in the tree). The
+	# save file contains a target scene_id, but the SceneManager must be allowed
+	# to drive scene.current_scene_id via transition actions.
+	var runtime_scene_state: Dictionary = get_slice(StringName("scene"))
+	var runtime_current_scene_id: StringName = runtime_scene_state.get("current_scene_id", StringName(""))
+
 	# 1. Clear navigation overlay stack BEFORE loading (Bug #6 prevention)
 	#    Must be done before load because load clears all state
 	#    This prevents the save/load overlay from reopening after scene transition
@@ -223,7 +229,7 @@ func _handle_load_started(action: Dictionary) -> void:
 	if err != OK:
 		# Load failed - dispatch error action
 		var error_msg: String = "Failed to load from slot %d: %s" % [slot_index, error_string(err)]
-		print("ERROR DETAIL: ", error_msg)
+		push_error(error_msg)
 		if settings != null and settings.enable_debug_logging:
 			push_warning("M_StateStore: " + error_msg)
 		dispatch(U_SAVE_ACTIONS.load_failed(slot_index, error_msg))
@@ -239,6 +245,14 @@ func _handle_load_started(action: Dictionary) -> void:
 		push_error("M_StateStore._handle_load_started: No scene_id in loaded state")
 		dispatch(U_SAVE_ACTIONS.load_failed(slot_index, "Invalid scene_id in save file"))
 		return
+
+	# Restore runtime scene.current_scene_id so M_SceneManager doesn't interpret the
+	# save file's target scene_id as already-loaded and skip transitioning.
+	var scene_after_load: Dictionary = _state.get("scene", {})
+	scene_after_load["current_scene_id"] = runtime_current_scene_id
+	scene_after_load["is_transitioning"] = false
+	scene_after_load["transition_type"] = ""
+	_state["scene"] = scene_after_load
 
 	# 4. Trigger scene transition to the loaded scene
 	#    Use start_game action to transition to the loaded scene

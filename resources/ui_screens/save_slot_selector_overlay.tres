@@ -7,4 +7,5 @@ script = ExtResource("1")
 screen_id = &"save_slot_selector_overlay"
 kind = 1
 scene_id = &"ui_save_slot_selector"
-allowed_shells = Array[StringName]([&"gameplay"])
+allowed_shells = Array[StringName]([&"gameplay", &"main_menu"])
+allowed_parents = Array[StringName]([&"pause_menu"])

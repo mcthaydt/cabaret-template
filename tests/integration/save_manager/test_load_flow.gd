@@ -14,6 +14,7 @@ const U_SaveEnvelope := preload("res://scripts/state/utils/u_save_envelope.gd")
 const U_SaveActions := preload("res://scripts/state/actions/u_save_actions.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const RS_SaveSlotMetadata := preload("res://scripts/state/resources/rs_save_slot_metadata.gd")
+const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 
 var _store: M_StateStore
 var _dispatched_actions: Array[Dictionary] = []
@@ -32,6 +33,9 @@ func before_each() -> void:
 
 	# Initialize state store
 	_store = M_StateStore.new()
+	_store.settings = RS_StateStoreSettings.new()
+	_store.settings.enable_persistence = false  # Prevent writing legacy user://savegame.json during tests
+	_store.settings.enable_debug_logging = false
 	add_child_autofree(_store)
 	await get_tree().process_frame
 
@@ -124,7 +128,7 @@ func test_load_started_dispatches_load_failed_on_missing_file() -> void:
 
 	# Then: Should emit expected errors for missing file
 	assert_push_error("File does not exist")
-	assert_engine_error("Failed to load from slot")
+	assert_push_error("Failed to load from slot")
 
 	# And: Should dispatch load_failed with error message
 	var load_failed_actions := _get_actions_by_type(U_SaveActions.ACTION_LOAD_FAILED)
@@ -190,11 +194,11 @@ func test_load_started_triggers_scene_transition() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame  # Wait for async load handling
 
-	# Then: Should update scene state with loaded scene_id
-	var scene_state: Dictionary = _store.get_slice(StringName("scene"))
-	var current_scene: StringName = scene_state.get("current_scene_id", StringName(""))
-	assert_eq(current_scene, StringName("interior_house"),
-		"Current scene should be updated to loaded scene")
+	# Then: Should trigger navigation/start_game toward the loaded scene_id
+	var start_game_actions := _get_actions_by_type(U_NavigationActions.ACTION_START_GAME)
+	assert_eq(start_game_actions.size(), 1, "Should dispatch start_game action")
+	assert_eq(start_game_actions[0].get("scene_id"), StringName("interior_house"),
+		"start_game should target the loaded scene_id")
 
 
 # ==============================================================================

@@ -16,25 +16,20 @@ const U_SaveEnvelope := preload("res://scripts/state/utils/u_save_envelope.gd")
 const U_SaveActions := preload("res://scripts/state/actions/u_save_actions.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const RS_SaveSlotMetadata := preload("res://scripts/state/resources/rs_save_slot_metadata.gd")
+const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 
 var _store: M_StateStore
 var _dispatched_actions: Array[Dictionary] = []
 
 
 func before_each() -> void:
-	# Clean up any existing save slots BEFORE initializing store
-	# (to prevent legacy migration during test setup)
-	for i in range(1, 4):
-		U_SaveManager.delete_slot(i)
-	var autosave_path := U_SaveManager.get_auto_slot_path()
-	if FileAccess.file_exists(autosave_path):
-		DirAccess.remove_absolute(autosave_path)
-	var legacy_path := "user://savegame.json"
-	if FileAccess.file_exists(legacy_path):
-		DirAccess.remove_absolute(legacy_path)
+	_cleanup_save_files()
 
 	# Initialize state store
 	_store = M_StateStore.new()
+	_store.settings = RS_StateStoreSettings.new()
+	_store.settings.enable_persistence = false  # Prevent writing legacy user://savegame.json during tests
+	_store.settings.enable_debug_logging = false
 	add_child_autofree(_store)
 	await get_tree().process_frame
 
@@ -44,6 +39,16 @@ func before_each() -> void:
 
 
 func after_each() -> void:
+	_cleanup_save_files()
+
+	_store = null
+	_dispatched_actions.clear()
+
+
+func _on_action_dispatched(action: Dictionary) -> void:
+	_dispatched_actions.append(action)
+
+func _cleanup_save_files() -> void:
 	# Clean up save slots
 	for i in range(1, 4):
 		U_SaveManager.delete_slot(i)
@@ -52,12 +57,10 @@ func after_each() -> void:
 	if FileAccess.file_exists(autosave_path):
 		DirAccess.remove_absolute(autosave_path)
 
-	_store = null
-	_dispatched_actions.clear()
-
-
-func _on_action_dispatched(action: Dictionary) -> void:
-	_dispatched_actions.append(action)
+	if FileAccess.file_exists(U_SaveManager.DEFAULT_LEGACY_PATH):
+		DirAccess.remove_absolute(U_SaveManager.DEFAULT_LEGACY_PATH)
+	if FileAccess.file_exists(U_SaveManager.DEFAULT_LEGACY_BACKUP_PATH):
+		DirAccess.remove_absolute(U_SaveManager.DEFAULT_LEGACY_BACKUP_PATH)
 
 
 # ==============================================================================
