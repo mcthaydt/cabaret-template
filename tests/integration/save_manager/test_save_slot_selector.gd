@@ -318,11 +318,11 @@ func test_load_flow_closes_overlay_before_load_action() -> void:
 
 	# First action should be close_top_overlay
 	var first_action := _dispatched_actions[0]
-	assert_eq(first_action.get("type"), "NAVIGATION/CLOSE_TOP_OVERLAY", "First action should close overlay")
+	assert_eq(first_action.get("type"), U_NavigationActions.ACTION_CLOSE_TOP_OVERLAY, "First action should close overlay")
 
 	# Second action should be load_started
 	var second_action := _dispatched_actions[1]
-	assert_eq(second_action.get("type"), "SAVE/LOAD_STARTED", "Second action should start load")
+	assert_eq(second_action.get("type"), U_SaveActions.ACTION_LOAD_STARTED, "Second action should start load")
 	assert_eq(second_action.get("slot_index"), 1, "Load action should target slot 1")
 
 
@@ -445,7 +445,7 @@ func test_save_to_empty_slot_no_confirmation() -> void:
 	# Verify save_started action dispatched
 	var save_action_found := false
 	for action in _dispatched_actions:
-		if action.get("type") == "SAVE/SAVE_STARTED":
+		if action.get("type") == U_SaveActions.ACTION_SAVE_STARTED:
 			save_action_found = true
 			break
 
@@ -483,7 +483,7 @@ func test_save_confirmation_confirmed_dispatches_save() -> void:
 	# Verify save_started action dispatched
 	var save_action_found := false
 	for action in _dispatched_actions:
-		if action.get("type") == "SAVE/SAVE_STARTED":
+		if action.get("type") == U_SaveActions.ACTION_SAVE_STARTED:
 			save_action_found = true
 			assert_eq(action.get("slot_index"), 1, "Save should target slot 1")
 			break
@@ -543,7 +543,7 @@ func test_delete_confirmation_confirmed_dispatches_delete() -> void:
 	# Verify delete_started action dispatched
 	var delete_action_found := false
 	for action in _dispatched_actions:
-		if action.get("type") == "SAVE/DELETE_STARTED":
+		if action.get("type") == U_SaveActions.ACTION_DELETE_STARTED:
 			delete_action_found = true
 			assert_eq(action.get("slot_index"), 2, "Delete should target slot 2")
 			break
@@ -653,7 +653,7 @@ func test_back_button_closes_overlay() -> void:
 	# Verify close action dispatched
 	var close_action_found := false
 	for action in _dispatched_actions:
-		if action.get("type") == "NAVIGATION/CLOSE_TOP_OVERLAY":
+		if action.get("type") == U_NavigationActions.ACTION_CLOSE_TOP_OVERLAY:
 			close_action_found = true
 			break
 
