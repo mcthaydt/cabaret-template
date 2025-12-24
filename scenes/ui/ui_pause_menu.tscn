@@ -45,6 +45,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Resume"
 
+[node name="SaveGameButton" type="Button" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Save Game"
+
 [node name="SettingsButton" type="Button" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2

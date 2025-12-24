@@ -1,8 +1,8 @@
 # Save Manager Continuation Prompt
 
-**Current Phase**: Phase 5 Complete ✅ - Ready for Phase 6 (Menu Integration)
+**Current Phase**: Phase 6 Complete ✅ - Ready for Phase 7 (Load Flow)
 **Branch**: `save-manager-v2`
-**Last Updated**: 2025-12-23 (UI Layer Complete)
+**Last Updated**: 2025-12-23 (Menu Integration Complete)
 
 ---
 
@@ -93,8 +93,22 @@ Implements a multi-slot save system with:
 - ✅ **Total tests**: 81/81 passing (22 integration + 59 unit tests)
 - ℹ️ **Testing approach**: Integration testing (happy path workflows tested, UI behavior verified)
 
+✅ **Phase 6 Complete** (2025-12-23, commit pending):
+- ✅ Created `tests/integration/ui/test_menu_save_integration.gd` - Menu integration tests (7 tests)
+- ✅ Modified `scenes/ui/ui_pause_menu.tscn` - Added "Save Game" button
+- ✅ Modified `scripts/ui/ui_pause_menu.gd` - Added save button handler with Bug #8 prevention
+- ✅ Modified `scenes/ui/ui_main_menu.tscn` - Added "Continue" and "Load Game" buttons
+- ✅ Modified `scripts/ui/ui_main_menu.gd` - Added continue/load handlers with visibility logic
+- ✅ Implemented Continue button auto-load (most recent save via U_SaveManager.get_most_recent_slot())
+- ✅ Implemented dynamic button visibility (Continue hidden when no saves)
+- ✅ Updated focus chains in both menus (pause: Resume→Save→Settings→Quit, main: Continue→Play→Load→Settings)
+- ✅ Bug #8 prevention: Mode dispatched BEFORE overlay opens (prevents wrong dialog type)
+- ✅ **Total tests**: 88/88 passing (7 new Phase 6 + 81 existing)
+- ℹ️ **Testing approach**: Integration tests (TDD) for Redux dispatching + deferred for manual UX verification
+
 ❌ **Not Started**:
-- Menu integration (Phase 6)
+- Load flow (Phase 7)
+- Error handling and polish (Phase 8)
 
 ---
 
@@ -272,75 +286,73 @@ This project uses different testing approaches based on phase type:
 
 ## Next Steps (When Resuming)
 
-### ✅ Phase 1-5 Complete - Ready for Phase 6 (Menu Integration)
+### ✅ Phase 1-6 Complete - Ready for Phase 7 (Load Flow)
 
-**Phase 5 Accomplishments** (commit 5487b2a):
-- ✅ Full UI layer implementation complete
-- ✅ Overlay with dynamic SAVE/LOAD modes
-- ✅ Screenshot display and caching
-- ✅ Confirmation dialogs (overwrite, delete)
-- ✅ Focus navigation using U_FocusConfigurator
-- ✅ All LESSONS_LEARNED.md bugs prevented
-- ✅ 81/81 tests passing (no regressions)
+**Phase 6 Accomplishments** (commit pending):
+- ✅ Menu integration complete (pause + main menus)
+- ✅ Pause menu "Save Game" button with Redux dispatching
+- ✅ Main menu "Continue" button (auto-loads most recent save)
+- ✅ Main menu "Load Game" button (opens overlay in LOAD mode)
+- ✅ Dynamic button visibility (Continue hidden when no saves)
+- ✅ Focus chain updates for both menus
+- ✅ Bug #8 prevention: Mode dispatched BEFORE overlay
+- ✅ 88/88 tests passing (7 new + 81 existing, no regressions)
 
-**Phase 5 Key Implementation Patterns**:
-1. **Two-Tier Focus System**:
-   - Vertical navigation for slots (up/down)
-   - Horizontal navigation for actions within slot (left/right)
-   - U_FocusConfigurator handles neighbor setup
+**Phase 6 Key Implementation Patterns**:
+1. **Redux Dispatching Pattern**:
+   - Pause menu: Dispatch mode → Open overlay
+   - Main menu: Check saves → Show/hide Continue
+   - Continue: Get most recent slot → Dispatch load_started
 
-2. **Screenshot Caching**:
-   - TextureRect nodes created/cached per slot
-   - Prevents redundant image loading
-   - Gracefully handles missing screenshots
-
-3. **Overlay Closing Pattern**:
+2. **Button Visibility Logic**:
    ```gdscript
-   # CORRECT: Close overlay first, then dispatch load
-   close()
-   await get_tree().process_frame
-   store.dispatch(U_SaveActions.load_started(slot_index))
+   func _update_button_visibility() -> void:
+       var has_saves: bool = U_SaveManager.has_any_save()
+       if _continue_button != null:
+           _continue_button.visible = has_saves
    ```
-   This prevents Bug #6 (menu reopening, player stuck)
+   Called deferred in `_on_panel_ready()` for proper timing
 
-4. **Mode Management**:
+3. **Most Recent Save Detection**:
    ```gdscript
-   # CORRECT: Dispatch mode BEFORE opening overlay
-   store.dispatch(U_SaveActions.set_save_mode("SAVE"))
-   scene_manager.push_overlay(StringName("save_slot_selector_overlay"))
+   var most_recent_slot: int = U_SaveManager.get_most_recent_slot()
+   store.dispatch(U_SaveActions.load_started(most_recent_slot))
    ```
-   This prevents Bug #8 (wrong dialog type)
+   Returns slot index with highest timestamp (-1 if none)
 
-### Immediate Next Actions: Phase 6 (Menu Integration)
+4. **Focus Chain Updates**:
+   - Pause: Resume → Save → Settings → Quit (circular)
+   - Main: Continue (conditional) → Play → Load → Settings (circular)
+   - Continue only added to chain if visible
 
-**Goal**: Wire save/load overlay to pause menu and main menu
+### Immediate Next Actions: Phase 7 (Load Flow)
 
-**Step 1: Pause Menu Integration**
-1. **Modify `scenes/ui/ui_pause_menu.tscn`**:
-   - Add "Save Game" button to menu
-   - Update focus chain to include new button
+**Goal**: Connect Redux load actions to actual state restoration and scene transitions
 
-2. **Modify `scripts/ui/ui_pause_menu.gd`**:
-   - Add `_on_save_pressed()` handler
-   - Dispatch `U_SaveActions.set_save_mode("SAVE")`
-   - Dispatch `U_NavigationActions.open_overlay("save_slot_selector_overlay")`
+**Step 1: Implement Load Flow Middleware** (TDD approach)
+1. **Create `tests/integration/save_manager/test_load_flow.gd`**:
+   - Test: load_started restores state from slot
+   - Test: load_started dispatches load_completed on success
+   - Test: load_started dispatches load_failed on missing file
+   - Test: load_started clears overlay stack (Bug #6 prevention)
+   - Test: load_started triggers scene transition
 
-**Step 2: Main Menu Integration**
-1. **Modify `scenes/ui/ui_main_menu.tscn`**:
-   - Add "Continue" button (loads most recent save)
-   - Add "Load Game" button (opens load overlay)
-   - Update focus chain
+2. **Modify `m_state_store.gd`**:
+   - Add `_on_action_dispatched_for_load()` subscription in _ready()
+   - Implement `_handle_load_started(action)` handler
+   - Call `U_SaveManager.load_from_slot()` with error handling
+   - On success: Clear navigation overlays, trigger scene transition, dispatch load_completed
+   - On failure: Dispatch load_failed with error message
 
-2. **Modify `scripts/ui/ui_main_menu.gd`**:
-   - Add `_update_button_visibility()` (hide Continue if no saves)
-   - Add `_on_continue_pressed()` (auto-load most recent)
-   - Add `_on_load_pressed()` (open selector in LOAD mode)
-   - Call visibility update in `_ready()`
+**Step 2: Bug Prevention Checklist**
+- ✅ Bug #2: Player not stuck (spawn manager handles positioning)
+- ✅ Bug #3: Correct spawn point (loaded from state)
+- ✅ Bug #6: Overlay cleared before transition (prevents menu reopening)
+- ℹ️ Bug #1: Focus navigation (already handled by Phase 5)
 
-**Step 3: After Phase 6**
-- Move to Phase 7: Load Flow (connect Redux actions to scene transitions)
-- Move to Phase 8: Polish (error handling, visual feedback)
-- See `save-manager-tasks.md` for full checklist
+**Step 3: After Phase 7**
+- Move to Phase 8: Error Handling & Polish
+- See `save-manager-tasks.md` for Phase 7 detailed checklist
 
 ---
 

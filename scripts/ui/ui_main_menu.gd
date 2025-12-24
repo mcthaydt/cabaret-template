@@ -9,15 +9,21 @@ class_name UI_MainMenu
 
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_SaveActions := preload("res://scripts/state/actions/u_save_actions.gd")
+const U_SaveManager := preload("res://scripts/state/utils/u_save_manager.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
+const UI_SaveSlotSelector := preload("res://scripts/ui/ui_save_slot_selector.gd")
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
 const DEFAULT_GAMEPLAY_SCENE := StringName("exterior")
+const OVERLAY_SAVE_SELECTOR := StringName("save_slot_selector_overlay")
 
 @onready var _main_panel: Control = %MainPanel
 @onready var _settings_panel: Control = %SettingsPanel
+@onready var _continue_button: Button = %ContinueButton
 @onready var _play_button: Button = %PlayButton
+@onready var _load_button: Button = %LoadGameButton
 @onready var _settings_button: Button = %SettingsButton
 
 var _store_unsubscribe: Callable = Callable()
@@ -25,7 +31,9 @@ var _active_panel: StringName = StringName()
 
 func _on_panel_ready() -> void:
 	_connect_buttons()
-	_configure_focus_neighbors()
+	# Update button visibility after scene tree is ready
+	call_deferred("_update_button_visibility")
+	call_deferred("_configure_focus_neighbors")
 	var store := get_store()
 	if store == null:
 		return
@@ -44,8 +52,13 @@ func _process(delta: float) -> void:
 func _configure_focus_neighbors() -> void:
 	# Configure main panel button focus (vertical navigation with wrapping)
 	var main_buttons: Array[Control] = []
+	# Add buttons in display order (Continue only added if visible)
+	if _continue_button != null and _continue_button.visible:
+		main_buttons.append(_continue_button)
 	if _play_button != null:
 		main_buttons.append(_play_button)
+	if _load_button != null:
+		main_buttons.append(_load_button)
 	if _settings_button != null:
 		main_buttons.append(_settings_button)
 
@@ -58,8 +71,12 @@ func _exit_tree() -> void:
 		_store_unsubscribe = Callable()
 
 func _connect_buttons() -> void:
+	if _continue_button != null and not _continue_button.pressed.is_connected(_on_continue_pressed):
+		_continue_button.pressed.connect(_on_continue_pressed)
 	if _play_button != null and not _play_button.pressed.is_connected(_on_play_pressed):
 		_play_button.pressed.connect(_on_play_pressed)
+	if _load_button != null and not _load_button.pressed.is_connected(_on_load_pressed):
+		_load_button.pressed.connect(_on_load_pressed)
 	if _settings_button != null and not _settings_button.pressed.is_connected(_on_settings_pressed):
 		_settings_button.pressed.connect(_on_settings_pressed)
 
@@ -104,11 +121,31 @@ func _apply_focus_after_layout() -> void:
 	if focus_target != null and focus_target.is_inside_tree():
 		focus_target.grab_focus()
 
+func _on_continue_pressed() -> void:
+	var store := get_store()
+	if store == null:
+		return
+	# Get most recent save slot
+	var most_recent_slot: int = U_SaveManager.get_most_recent_slot()
+	if most_recent_slot < 0:
+		push_warning("UI_MainMenu: Continue pressed but no saves exist")
+		return
+	# Dispatch load action for most recent slot
+	store.dispatch(U_SaveActions.load_started(most_recent_slot))
+
 func _on_play_pressed() -> void:
 	var store := get_store()
 	if store == null:
 		return
 	store.dispatch(U_NavigationActions.start_game(DEFAULT_GAMEPLAY_SCENE))
+
+func _on_load_pressed() -> void:
+	var store := get_store()
+	if store == null:
+		return
+	# Dispatch mode BEFORE opening overlay (prevents Bug #8 from LESSONS_LEARNED.md)
+	store.dispatch(U_SaveActions.set_save_mode(UI_SaveSlotSelector.Mode.LOAD))
+	store.dispatch(U_NavigationActions.open_overlay(OVERLAY_SAVE_SELECTOR))
 
 func _on_settings_pressed() -> void:
 	var store := get_store()
@@ -121,3 +158,9 @@ func _on_back_pressed() -> void:
 		var store := get_store()
 		if store != null:
 			store.dispatch(U_NavigationActions.set_menu_panel(PANEL_MAIN))
+
+func _update_button_visibility() -> void:
+	# Show Continue button only if saves exist
+	var has_saves: bool = U_SaveManager.has_any_save()
+	if _continue_button != null:
+		_continue_button.visible = has_saves

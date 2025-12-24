@@ -7,13 +7,17 @@ class_name UI_PauseMenu
 ## Buttons dispatch navigation actions instead of calling Scene Manager directly.
 
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_SaveActions := preload("res://scripts/state/actions/u_save_actions.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
+const UI_SaveSlotSelector := preload("res://scripts/ui/ui_save_slot_selector.gd")
 
 const OVERLAY_SETTINGS := StringName("settings_menu_overlay")
+const OVERLAY_SAVE_SELECTOR := StringName("save_slot_selector_overlay")
 
 @onready var _resume_button: Button = %ResumeButton
+@onready var _save_button: Button = %SaveGameButton
 @onready var _settings_button: Button = %SettingsButton
 @onready var _quit_button: Button = %QuitButton
 
@@ -28,6 +32,8 @@ func _configure_focus_neighbors() -> void:
 	var buttons: Array[Control] = []
 	if _resume_button != null:
 		buttons.append(_resume_button)
+	if _save_button != null:
+		buttons.append(_save_button)
 	if _settings_button != null:
 		buttons.append(_settings_button)
 	if _quit_button != null:
@@ -100,6 +106,8 @@ func _on_panel_ready() -> void:
 func _connect_buttons() -> void:
 	if _resume_button != null and not _resume_button.pressed.is_connected(_on_resume_pressed):
 		_resume_button.pressed.connect(_on_resume_pressed)
+	if _save_button != null and not _save_button.pressed.is_connected(_on_save_pressed):
+		_save_button.pressed.connect(_on_save_pressed)
 	if _settings_button != null and not _settings_button.pressed.is_connected(_on_settings_pressed):
 		_settings_button.pressed.connect(_on_settings_pressed)
 	if _quit_button != null and not _quit_button.pressed.is_connected(_on_quit_pressed):
@@ -107,6 +115,14 @@ func _connect_buttons() -> void:
 
 func _on_resume_pressed() -> void:
 	_dispatch_navigation(U_NavigationActions.close_pause())
+
+func _on_save_pressed() -> void:
+	var store := get_store()
+	if store == null:
+		return
+	# Dispatch mode BEFORE opening overlay (prevents Bug #8 from LESSONS_LEARNED.md)
+	store.dispatch(U_SaveActions.set_save_mode(UI_SaveSlotSelector.Mode.SAVE))
+	_dispatch_navigation(U_NavigationActions.open_overlay(OVERLAY_SAVE_SELECTOR))
 
 func _on_settings_pressed() -> void:
 	_dispatch_navigation(U_NavigationActions.open_overlay(OVERLAY_SETTINGS))
