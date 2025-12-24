@@ -234,7 +234,16 @@
 - Screenshot capture automatically skipped in headless environments
 - Mode management via Redux prevents Bug #8 from LESSONS_LEARNED.md
 - Focus navigation and overlay closing are implementation patterns for Phase 5
-- No test changes needed (screenshot gracefully returns empty in tests)
+- Screenshot display tested via UI integration (22 tests)
+
+**Test Gap Identified**:
+- Screenshot capture logic (`_capture_viewport_screenshot()`) is untested due to headless mode
+- **Recommendation**: Add `tests/unit/state/test_screenshot_capture.gd` with 2-3 unit tests:
+  - Test headless mode detection returns empty PackedByteArray
+  - Test viewport texture acquisition (mocked)
+  - Test image resize to 256x144
+  - Test PNG encoding to buffer
+- **Priority**: Medium (prevents production bugs in visual feature)
 
 ---
 
@@ -286,67 +295,189 @@
 
 ---
 
-## Phase 6: Menu Integration
+## Phase 6: Menu Integration (TDD)
+
+**Testing Approach**: Unit tests for Redux dispatching + Manual tests for UI layout
+
+**RED**: Write failing tests first
+
+- [ ] Create `tests/unit/ui/test_ui_pause_menu_save_integration.gd`
+  - [ ] Test: Save button dispatches set_save_mode(SAVE) then open_overlay
+  - [ ] Test: Save button disabled outside gameplay shell
+  - [ ] Run tests → EXPECT 2-3 FAILURES
+
+- [ ] Create `tests/unit/ui/test_ui_main_menu_save_integration.gd`
+  - [ ] Test: Continue button hidden when no saves
+  - [ ] Test: Continue button visible when saves exist
+  - [ ] Test: Continue loads most recent save
+  - [ ] Test: Load button sets mode then opens overlay
+  - [ ] Test: Load button hidden when no saves
+  - [ ] Run tests → EXPECT 6-7 FAILURES
+
+**GREEN**: Implement to make tests pass
 
 - [ ] Modify pause menu
   - [ ] Add SaveButton to ui_pause_menu.tscn
   - [ ] Add _on_save_pressed() handler in ui_pause_menu.gd
+  - [ ] Dispatch set_save_mode(SAVE) BEFORE opening overlay (Bug #8 prevention)
+  - [ ] Add shell check (only enable during gameplay)
   - [ ] Connect button signal
   - [ ] Update focus chain
+  - [ ] Run tests → EXPECT 2-3 PASSES
 
 - [ ] Modify main menu
   - [ ] Add ContinueButton to ui_main_menu.tscn
   - [ ] Add LoadButton to ui_main_menu.tscn
-  - [ ] Implement _update_button_visibility()
-  - [ ] Implement _on_continue_pressed()
-  - [ ] Implement _on_load_pressed()
+  - [ ] Implement _update_button_visibility() (hide if no saves)
+  - [ ] Implement _on_continue_pressed() (load most recent)
+  - [ ] Implement _on_load_pressed() (dispatch mode + open overlay)
   - [ ] Update focus chain
   - [ ] Call visibility update in _ready()
+  - [ ] Run tests → EXPECT 6-7 PASSES
 
-- [ ] Add navigation actions
-  - [ ] Add open_save_selector() to u_navigation_actions.gd
-  - [ ] Handle in navigation reducer
+**REFACTOR**: Clean up code
+
+- [ ] Extract _can_save() helper in pause menu
+- [ ] Extract _find_most_recent_slot() helper in main menu
+- [ ] Add comments explaining Bug #8 prevention pattern
+- [ ] Run tests → EXPECT ALL PASSES (no regressions)
+
+**Manual Testing Requirements**:
+- [ ] Pause menu: Save button positioned correctly
+- [ ] Pause menu: Gamepad can navigate to Save button
+- [ ] Main menu: Continue/Load buttons appear only with saves
+- [ ] Main menu: Button spacing and alignment
+- [ ] Focus navigation feels natural on gamepad/keyboard
+- [ ] Button labels readable on all screen sizes
+
+**Key Implementation Notes**:
+- **Testable**: Redux action dispatching, button visibility logic
+- **Manual**: Button layouts, focus navigation feel, visual appearance
+- **Bug Prevention**: Mode dispatch BEFORE overlay (prevents Bug #8)
 
 ---
 
-## Phase 7: Load Flow
+## Phase 7: Load Flow (TDD - Integration Tests)
 
-- [ ] Implement load triggering
-  - [ ] Subscribe to load_started in m_state_store.gd
-  - [ ] Call U_SaveManager.load_from_slot()
-  - [ ] Dispatch load_completed with immediate: true
-  - [ ] Close overlay after dispatching load
+**Testing Approach**: Integration tests for state restoration + Manual tests for scene transitions
 
-- [ ] Test load flow
-  - [ ] Verify scene transition after load
-  - [ ] Verify correct spawn point
-  - [ ] Verify state restored (health, checkpoints, etc.)
+**RED**: Write failing integration tests first
+
+- [ ] Create `tests/integration/save_manager/test_load_flow.gd`
+  - [ ] Test: load_started restores state from slot
+  - [ ] Test: load_started dispatches load_completed on success
+  - [ ] Test: load_started dispatches load_failed on missing file
+  - [ ] Test: load_started clears overlay stack (Bug #6 prevention)
+  - [ ] Test: load_started triggers scene transition action
+  - [ ] Run tests → EXPECT 5 FAILURES
+
+**GREEN**: Implement load flow middleware
+
+- [ ] Modify `m_state_store.gd`
+  - [ ] Add `_on_action_dispatched_for_load()` subscription in _ready()
+  - [ ] Implement `_handle_load_started(action)` handler
+  - [ ] Call `U_SaveManager.load_from_slot()` with error handling
+  - [ ] On success: Clear navigation overlays (Bug #6 prevention)
+  - [ ] On success: Trigger scene transition to loaded scene
+  - [ ] On success: Dispatch load_completed
+  - [ ] On failure: Dispatch load_failed with error message
+  - [ ] Run tests → EXPECT 5 PASSES
+
+**REFACTOR**: Clean up and optimize
+
+- [ ] Extract `_clear_navigation_stack()` helper method
+- [ ] Add debug logging with settings guard
+- [ ] Add error recovery strategies documentation
+- [ ] Run tests → EXPECT ALL PASSES (no regressions)
+
+**Manual Testing Requirements**:
+- [ ] Load from main menu → Correct scene loads
+- [ ] Load from pause menu → Correct scene loads
+- [ ] Player spawns at saved spawn point
+- [ ] Player not stuck in air or geometry
+- [ ] Player physics working after load (can move/jump)
+- [ ] Health bar matches saved value
+- [ ] Death count matches saved value
+- [ ] Checkpoints reflect saved state
+- [ ] No menu reopens after load (Bug #6 check)
+- [ ] First Continue after restart loads correct location (Bug #5 check)
+- [ ] Scene transition smooth with loading screen if needed
+
+**Key Implementation Notes**:
+- **Testable**: State restoration, Redux dispatching, overlay clearing
+- **Manual**: Scene transitions, spawn point placement, physics state
+- **Bug Prevention**: Overlay closes BEFORE scene transition (prevents Bug #6)
 
 ---
 
-## Phase 8: Polish
+## Phase 8: Polish (TDD for Error Handling)
 
-- [ ] Add confirmation dialogs
-  - [ ] Overwrite confirmation when saving to populated slot
-  - [ ] Delete confirmation for manual slots
-  - [ ] Autosave delete blocked message
+**Testing Approach**: Unit tests for error handling + Manual tests for visual feedback
 
-- [ ] Error handling
-  - [ ] Detect corrupted saves on load
-  - [ ] Handle disk full errors
-  - [ ] Display error messages to user
-  - [ ] Mark corrupted slots in UI
+**Note**: Confirmation dialogs already implemented in Phase 5
 
-- [ ] Focus management
-  - [ ] Auto-focus first available slot
-  - [ ] Gamepad/keyboard navigation
-  - [ ] Back button handling
-  - [ ] Tab/shoulder button support
+**RED**: Write failing error handling tests first
 
-- [ ] Visual feedback
-  - [ ] Save completion toast
-  - [ ] Loading indicator
-  - [ ] Autosave icon/indicator
+- [ ] Create `tests/unit/state/test_save_error_handling.gd`
+  - [ ] Test: Corrupted save file dispatches load_failed
+  - [ ] Test: Save failure sets error state in Redux
+  - [ ] Test: Error state cleared on successful operation
+  - [ ] Test: Disk full error handling pattern
+  - [ ] Test: State validation detects missing required fields
+  - [ ] Run tests → EXPECT 5 FAILURES
+
+**GREEN**: Implement error handling
+
+- [ ] Modify `u_save_manager.gd`
+  - [ ] Add `_validate_state(state)` method
+  - [ ] Improve error detection in save_to_slot()
+  - [ ] Improve error detection in load_from_slot()
+  - [ ] Propagate errors with clear messages
+  - [ ] Run tests → EXPECT 5 PASSES
+
+- [ ] Modify `u_save_reducer.gd`
+  - [ ] Update save_failed reducer to set last_error
+  - [ ] Update load_failed reducer to set last_error
+  - [ ] Update save_completed reducer to clear last_error
+  - [ ] Update load_completed reducer to clear last_error
+  - [ ] Run tests → EXPECT ALL PASSES
+
+**REFACTOR**: Extract and document
+
+- [ ] Extract `U_SaveValidator` utility class
+- [ ] Add error code enum for categorization
+- [ ] Add structured logging format
+- [ ] Run tests → EXPECT ALL PASSES (no regressions)
+
+**Manual Testing Requirements - Visual Feedback**:
+- [ ] Save completion toast appears and fades correctly
+- [ ] Toast shows correct slot number
+- [ ] Loading indicator appears during load
+- [ ] Loading indicator blocks input appropriately
+- [ ] Autosave icon appears at intervals
+- [ ] Autosave icon doesn't block gameplay view
+- [ ] Error dialog appears for corrupted save
+- [ ] Error message is human-readable
+- [ ] Error dialog dismissible with button or ESC
+- [ ] Confirmation dialog shows correct slot info
+- [ ] Gamepad can navigate confirmation dialogs
+
+**Manual Testing Requirements - Focus Management**:
+- [ ] Auto-focus first available slot on overlay open
+- [ ] Gamepad/keyboard navigation smooth
+- [ ] Back button handling works correctly
+- [ ] Tab/shoulder button support functions
+
+**Manual Testing Requirements - Error Cases**:
+- [ ] Corrupted save shows error, doesn't crash
+- [ ] Missing save file shows error
+- [ ] Disk full scenario handled gracefully (if testable)
+- [ ] Save during autosave doesn't conflict
+
+**Key Implementation Notes**:
+- **Testable**: Error handling, Redux error state, validation logic
+- **Manual**: Toast animations, loading indicators, error dialog UX
+- Confirmation dialogs already implemented in Phase 5 (test coverage exists)
 
 ---
 

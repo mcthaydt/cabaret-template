@@ -57,6 +57,7 @@ Implements a multi-slot save system with:
 - ✅ Added transition check (skip if is_transitioning)
 - ✅ Autosave now writes to slot 0 via `U_SaveManager.save_to_auto_slot()`
 - ✅ **Total tests**: 40/40 passing (no regressions)
+- ℹ️ **Testing approach**: Integration testing (modifies existing code, core save operation already tested)
 
 ✅ **Phase 4 Complete** (2025-12-23, commit 5de0aef):
 - ✅ Added `_try_migrate_legacy_save()` to m_state_store._ready()
@@ -64,6 +65,7 @@ Implements a multi-slot save system with:
 - ✅ Migration path: `user://savegame.json` → `user://save_slot_0.json`
 - ✅ Legacy backup: `user://savegame.json.backup`
 - ✅ **Total tests**: 40/40 passing (no regressions)
+- ℹ️ **Testing approach**: Integration testing (migration operation tested, lifecycle deterministic)
 
 ✅ **Phase 4.5 Complete** (2025-12-23, commit 23d12ba):
 - ✅ Added screenshot support to prevent Bug #2 from LESSONS_LEARNED.md
@@ -73,6 +75,8 @@ Implements a multi-slot save system with:
 - ✅ Headless mode detection (gracefully skips capture in tests)
 - ✅ Verified mode management pattern in Redux (prevents Bug #8)
 - ✅ **Total tests**: 40/40 passing (no regressions)
+- ℹ️ **Testing approach**: Integration testing (screenshot display tested via UI, capture logic depends on Godot engine)
+- ⚠️ **Test gap identified**: Screenshot capture untested due to headless mode (see tasks.md for recommendation)
 
 ✅ **Phase 5 Complete** (2025-12-23, commit 5487b2a):
 - ✅ Created `scenes/ui/ui_save_slot_selector.tscn` - Save/load overlay UI
@@ -87,6 +91,7 @@ Implements a multi-slot save system with:
 - ✅ Added playtime tracking and formatting
 - ✅ Prevented all bugs from LESSONS_LEARNED.md (focus, overlay closing, mode management)
 - ✅ **Total tests**: 81/81 passing (22 integration + 59 unit tests)
+- ℹ️ **Testing approach**: Integration testing (happy path workflows tested, UI behavior verified)
 
 ❌ **Not Started**:
 - Menu integration (Phase 6)
@@ -194,6 +199,74 @@ var has_save := U_SaveEnvelope.slot_exists(1)
 var meta := U_SaveManager.get_slot_metadata(1)
 # Returns: {slot_index, timestamp, scene_name, is_empty, ...}
 ```
+
+---
+
+## Testing Strategy
+
+This project uses different testing approaches based on phase type:
+
+### TDD (Test-Driven Development) - Phases 1-2, 6-8
+
+**Used for**: New business logic, Redux integration, error handling
+
+**Process**: RED → GREEN → REFACTOR
+
+**Examples**:
+- Save manager utilities (Phase 1)
+- Redux reducers and selectors (Phase 2)
+- Menu integration Redux dispatching (Phase 6)
+- Load flow state restoration (Phase 7)
+- Error handling and validation (Phase 8)
+
+**Why**: These phases introduce new, testable business logic that benefits from test-first development.
+
+### Integration Testing - Phases 3-5
+
+**Used for**: Existing code modification, UI wiring, visual features
+
+**Process**: Implement → Test integration → Manual verification
+
+**Examples**:
+- Autosave redirection (Phase 3)
+- Legacy save migration (Phase 4)
+- Screenshot support (Phase 4.5)
+- UI overlay implementation (Phase 5)
+
+**Why**: These phases modify existing, tested code or depend heavily on Godot engine behavior. Core logic is unit-tested, but integration is verified through broader tests.
+
+### Manual Testing - All Phases (Supplementary)
+
+**Used for**: Visual layout, focus navigation feel, UX polish
+
+**Process**: Structured manual test checklist
+
+**Examples**:
+- Button spacing and alignment
+- Gamepad responsiveness
+- Toast animations
+- Loading screen smoothness
+
+**Why**: Some aspects of UX cannot be effectively unit-tested and require human judgment.
+
+### When to Use Each Strategy
+
+**Use TDD when**:
+- Adding new business logic or algorithms
+- Creating Redux actions/reducers/selectors
+- Implementing error handling or validation
+- Building testable integration flows (load flow, menu dispatching)
+
+**Use Integration Testing when**:
+- Modifying existing, tested code
+- Wiring UI components with existing systems
+- Implementing features that depend heavily on Godot engine behavior (screenshots, timers)
+
+**Always supplement with Manual Testing for**:
+- Visual presentation and layout
+- User experience and feel
+- Gamepad/keyboard navigation smoothness
+- Performance and visual feedback
 
 ---
 
