@@ -117,7 +117,7 @@ func test_mode_save_shows_correct_ui() -> void:
 ## Bug #1 Prevention: Two-tier focus navigation - vertical slots
 ## Order is now: Slot1, Slot2, Slot3, Autosave
 func test_focus_navigation_vertical_slots() -> void:
-	# Set mode to LOAD so autosave slot is focusable
+	# Set mode to LOAD (autosave may be hidden if disabled)
 	_store.dispatch(U_SaveActions.set_save_mode(UI_SaveSlotSelector.Mode.LOAD))
 	_overlay._load_mode_from_state()
 	_overlay._update_ui_for_mode()
@@ -127,6 +127,7 @@ func test_focus_navigation_vertical_slots() -> void:
 	var slot_2: Button = _overlay.get_node("%Slot2")
 	var slot_3: Button = _overlay.get_node("%Slot3")
 	var autosave: Button = _overlay.get_node("%AutosaveSlot")
+	var action_button: Button = _overlay.get_node("%ActionButton1")
 
 	# Focus slot 1 (first in list)
 	slot_1.grab_focus()
@@ -148,10 +149,11 @@ func test_focus_navigation_vertical_slots() -> void:
 	await get_tree().process_frame
 	assert_eq(_overlay.get_viewport().gui_get_focus_owner(), slot_3, "Down from slot 2 should focus slot 3")
 
-	# Continue down to autosave (last slot)
+	# Continue down to actions (autosave hidden when autosave disabled + empty)
 	_overlay._input(event)
 	await get_tree().process_frame
-	assert_eq(_overlay.get_viewport().gui_get_focus_owner(), autosave, "Down from slot 3 should focus autosave")
+	assert_false(autosave.visible, "Autosave slot should be hidden when autosave is disabled and empty")
+	assert_eq(_overlay.get_viewport().gui_get_focus_owner(), action_button, "Down from slot 3 should focus first action button when autosave is hidden")
 
 
 ## Bug #1 Prevention: Two-tier focus navigation - no left/right on slots
@@ -186,6 +188,18 @@ func test_focus_navigation_no_horizontal_on_slots() -> void:
 ## Bug #1 Prevention: Two-tier focus navigation - bridge to action buttons
 ## Now goes through autosave first (Slot1 -> Slot2 -> Slot3 -> Autosave -> Actions)
 func test_focus_navigation_bridge_to_actions() -> void:
+	# Create autosave so the autosave slot is visible and focusable.
+	var metadata := RS_SaveSlotMetadata.new()
+	metadata.slot_id = U_SaveManager.AUTO_SLOT_INDEX
+	metadata.slot_type = RS_SaveSlotMetadata.SlotType.AUTO
+	metadata.is_empty = false
+	metadata.scene_name = "Autosave Test"
+	_save_test_metadata(metadata)
+
+	# Reload metadata now that autosave exists
+	_overlay._load_slot_metadata()
+	await get_tree().process_frame
+
 	# Set mode to LOAD so autosave is focusable
 	_store.dispatch(U_SaveActions.set_save_mode(UI_SaveSlotSelector.Mode.LOAD))
 	_overlay._load_mode_from_state()
@@ -194,6 +208,8 @@ func test_focus_navigation_bridge_to_actions() -> void:
 
 	var autosave: Button = _overlay.get_node("%AutosaveSlot")
 	var action_button: Button = _overlay.get_node("%ActionButton1")
+
+	assert_true(autosave.visible, "Autosave slot should be visible when autosave has data")
 
 	# Focus autosave (last slot)
 	autosave.grab_focus()
@@ -710,13 +726,24 @@ func test_back_button_closes_overlay() -> void:
 
 
 ## Autosave slot is always visible (now at end of list)
-func test_autosave_slot_always_visible() -> void:
-	_overlay._update_ui_for_mode()
+func test_autosave_slot_hidden_when_autosave_disabled_and_empty() -> void:
+	_overlay._load_slot_metadata()
 	await get_tree().process_frame
 
 	var autosave_slot: Button = _overlay.get_node("%AutosaveSlot")
 
-	assert_true(autosave_slot.visible, "Autosave slot should always be visible")
+	assert_false(autosave_slot.visible, "Autosave slot should be hidden when autosave is disabled and empty")
+
+
+func test_autosave_slot_visible_when_autosave_enabled() -> void:
+	_store.settings.enable_persistence = true
+	_store.settings.auto_save_interval = 60.0
+	_overlay._load_slot_metadata()
+	await get_tree().process_frame
+
+	var autosave_slot: Button = _overlay.get_node("%AutosaveSlot")
+
+	assert_true(autosave_slot.visible, "Autosave slot should be visible when autosave is enabled")
 
 
 ## Initial focus goes to Slot1 (first manual slot)

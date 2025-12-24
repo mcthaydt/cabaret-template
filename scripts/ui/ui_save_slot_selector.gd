@@ -230,6 +230,60 @@ func _load_slot_metadata() -> void:
 	_slot_metadata = U_SaveManager.get_all_slots()
 	if _slot_metadata.size() != 4:
 		push_error("UI_SaveSlotSelector: Expected 4 slots, got %d" % _slot_metadata.size())
+	_update_autosave_slot_visibility()
+
+
+func _update_autosave_slot_visibility() -> void:
+	if _autosave_slot == null:
+		return
+
+	var should_show := _should_show_autosave_slot()
+	if _autosave_slot.visible == should_show:
+		return
+
+	_autosave_slot.visible = should_show
+
+	# If focus or selection is on the autosave slot and it's being hidden, move
+	# focus/selection to the nearest visible manual slot to avoid dead focus.
+	if not should_show:
+		if _selected_slot_index == 3:
+			_selected_slot_index = 2
+			_update_preview_panel(_selected_slot_index)
+
+		var viewport := get_viewport()
+		var focused := viewport.gui_get_focus_owner() if viewport != null else null
+		if focused == _autosave_slot:
+			if _is_focusable_slot(_slot_3):
+				_slot_3.grab_focus()
+			elif _is_focusable_slot(_slot_2):
+				_slot_2.grab_focus()
+			elif _is_focusable_slot(_slot_1):
+				_slot_1.grab_focus()
+
+
+func _should_show_autosave_slot() -> bool:
+	# Always show the autosave slot if it contains data (migration/backward
+	# compatibility). Hide it only when autosave is disabled AND the slot is empty.
+	if _slot_metadata.size() >= 4:
+		var autosave_md: RS_SaveSlotMetadata = _slot_metadata[3]
+		if autosave_md != null and not autosave_md.is_empty:
+			return true
+
+	return _is_autosave_enabled()
+
+
+func _is_autosave_enabled() -> bool:
+	var store := get_store()
+	if store is M_StateStore:
+		var state_store := store as M_StateStore
+		if state_store.settings == null:
+			return true
+		if not state_store.settings.enable_persistence:
+			return false
+		return state_store.settings.auto_save_interval > 0.0
+
+	# Unknown store implementation (tests/mocks) - default to showing autosave.
+	return true
 
 
 func _update_ui_for_mode() -> void:
