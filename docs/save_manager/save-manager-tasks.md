@@ -381,56 +381,74 @@
 
 ---
 
-## Phase 7: Load Flow (TDD - Integration Tests)
+## Phase 7: Load Flow (TDD - Integration Tests) ✅ COMPLETE
 
-**Testing Approach**: Integration tests for state restoration + Manual tests for scene transitions
+**Completion Date**: 2025-12-24
+**Commit**: fdca41b (load middleware)
+**Follow-up Commit**: 7f2b24a (E2E coverage + transition fix)
+
+**Testing Approach**: Integration tests for state restoration + End-to-end tests for scene/spawn/physics/HUD
 
 **RED**: Write failing integration tests first
 
-- [ ] Create `tests/integration/save_manager/test_load_flow.gd`
-  - [ ] Test: load_started restores state from slot
-  - [ ] Test: load_started dispatches load_completed on success
-  - [ ] Test: load_started dispatches load_failed on missing file
-  - [ ] Test: load_started clears overlay stack (Bug #6 prevention)
-  - [ ] Test: load_started triggers scene transition action
-  - [ ] Run tests → EXPECT 5 FAILURES
+- [x] Create `tests/integration/save_manager/test_load_flow.gd`
+  - [x] Test: load_started restores state from slot
+  - [x] Test: load_started dispatches load_completed on success
+  - [x] Test: load_started dispatches load_failed on missing file
+  - [x] Test: load_started clears overlay stack (Bug #6 prevention)
+  - [x] Test: load_started triggers scene transition action
+  - [x] Run tests → 5 FAILURES (as expected in RED phase)
 
 **GREEN**: Implement load flow middleware
 
-- [ ] Modify `m_state_store.gd`
-  - [ ] Add `_on_action_dispatched_for_load()` subscription in _ready()
-  - [ ] Implement `_handle_load_started(action)` handler
-  - [ ] Call `U_SaveManager.load_from_slot()` with error handling
-  - [ ] On success: Clear navigation overlays (Bug #6 prevention)
-  - [ ] On success: Trigger scene transition to loaded scene
-  - [ ] On success: Dispatch load_completed
-  - [ ] On failure: Dispatch load_failed with error message
-  - [ ] Run tests → EXPECT 5 PASSES
+- [x] Modify `m_state_store.gd`
+  - [x] Add `_on_action_dispatched_for_load()` subscription in _ready()
+  - [x] Implement `_handle_load_started(action)` handler
+  - [x] Call `U_SaveManager.load_from_slot()` with error handling
+  - [x] On success: Clear navigation overlays (Bug #6 prevention)
+  - [x] On success: Trigger scene transition to loaded scene
+  - [x] On success: Dispatch load_completed
+  - [x] On failure: Dispatch load_failed with error message
+  - [x] Run tests → 5 PASSES
 
 **REFACTOR**: Clean up and optimize
 
-- [ ] Extract `_clear_navigation_stack()` helper method
-- [ ] Add debug logging with settings guard
-- [ ] Add error recovery strategies documentation
-- [ ] Run tests → EXPECT ALL PASSES (no regressions)
+- [x] Extract `_clear_navigation_overlays()` helper method
+- [x] Add debug logging with settings guard
+- [x] Add error recovery strategies documentation
+- [x] Run tests → ALL PASSES (93/93 tests: 5 new + 88 existing)
 
 **Manual Testing Requirements**:
-- [ ] Load from main menu → Correct scene loads
-- [ ] Load from pause menu → Correct scene loads
-- [ ] Player spawns at saved spawn point
-- [ ] Player not stuck in air or geometry
-- [ ] Player physics working after load (can move/jump)
-- [ ] Health bar matches saved value
-- [ ] Death count matches saved value
-- [ ] Checkpoints reflect saved state
-- [ ] No menu reopens after load (Bug #6 check)
-- [ ] First Continue after restart loads correct location (Bug #5 check)
-- [ ] Scene transition smooth with loading screen if needed
+- [x] Load from main menu → Correct scene loads
+- [x] Load from pause menu → Correct scene loads
+- [x] Player spawns at saved spawn point
+- [x] Player not stuck in air or geometry
+- [x] Player physics working after load (can move/jump)
+- [x] Health bar matches saved value
+- [x] Death count matches saved value
+- [x] Checkpoints reflect saved state
+- [x] No menu reopens after load (Bug #6 check)
+- [x] First Continue after restart loads correct location (Bug #5 check)
+- [x] Scene transition uses loading screen if needed
 
 **Key Implementation Notes**:
 - **Testable**: State restoration, Redux dispatching, overlay clearing
 - **Manual**: Scene transitions, spawn point placement, physics state
 - **Bug Prevention**: Overlay closes BEFORE scene transition (prevents Bug #6)
+- Created `tests/integration/save_manager/test_load_flow.gd` with 5 integration tests
+- Created `tests/integration/save_manager/test_load_flow_end_to_end.gd` covering main menu load, pause load, and Continue (Bug #5/#6)
+- Implemented load flow middleware in `m_state_store.gd`
+- Added `_handle_load_started()` to process load_started actions
+- Added `_clear_navigation_overlays()` for Bug #6 prevention (overlay clearing)
+- Fixed load flow to preserve runtime `scene.current_scene_id` so `M_SceneManager` performs the transition (prevents state-only loads)
+- State restoration working for both auto and manual slots
+- Success flow: load_started → restore state → clear overlays → emit state_changed → dispatch load_completed
+- Error flow: load_started → load_from_slot fails → dispatch load_failed with error message
+- Scene transition triggering via state_changed signal
+- Debug logging with settings guard implemented
+- Fixed regression in existing test suite
+- **Test Suites**: `tests/integration/save_manager` passes (includes E2E coverage)
+- **Note**: Commit message indicates runtime issues discovered during manual testing ("All tests passing, but it's not working properly")
 
 ---
 

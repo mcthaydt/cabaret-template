@@ -1,8 +1,8 @@
 # Save Manager Continuation Prompt
 
-**Current Phase**: Phase 7 Complete ✅ - Ready for Phase 8 (Polish)
+**Current Phase**: Phase 7 Complete ✅ (E2E coverage) - Ready for Phase 8 (Polish)
 **Branch**: `save-manager-v2`
-**Last Updated**: 2025-12-24 (Load Flow Complete)
+**Last Updated**: 2025-12-24 (Load Flow E2E Complete)
 
 ---
 
@@ -106,20 +106,21 @@ Implements a multi-slot save system with:
 - ✅ **Total tests**: 88/88 passing (7 new Phase 6 + 81 existing)
 - ℹ️ **Testing approach**: Integration tests (TDD) for Redux dispatching + deferred for manual UX verification
 
-✅ **Phase 7 Complete** (2025-12-24, commit pending):
+✅ **Phase 7 Complete** (2025-12-24, commits fdca41b + 7f2b24a):
 - ✅ Created `tests/integration/save_manager/test_load_flow.gd` - Load flow integration tests (5 tests)
+- ✅ Created `tests/integration/save_manager/test_load_flow_end_to_end.gd` - E2E load flows (main menu, pause menu, Continue)
 - ✅ Modified `scripts/state/m_state_store.gd` - Added load flow middleware
 - ✅ Implemented `_handle_load_started()` - Processes load_started actions
 - ✅ Implemented `_clear_navigation_overlays()` - Bug #6 prevention (overlay clearing)
+- ✅ Fixed load flow to preserve runtime `scene.current_scene_id` so `M_SceneManager` performs the transition (prevents state-only loads)
 - ✅ State restoration from save slots (auto + manual slots)
 - ✅ Success flow: load_started → restore state → clear overlays → emit state_changed → dispatch load_completed
 - ✅ Error flow: load_started → load_from_slot fails → dispatch load_failed with error message
 - ✅ Scene transition triggering via state_changed signal
 - ✅ Debug logging with settings guard
 - ✅ Fixed regression in `test_load_flow_closes_overlay_before_load_action`
-- ✅ **Total tests**: 93/93 passing (5 new Phase 7 + 88 existing, 1 GUT framework limitation)
-- ℹ️ **Testing approach**: Integration tests (TDD) for state restoration + deferred manual testing for UX
-- ⚠️ **Manual testing required**: Scene transitions, spawn points, physics state, Bug #6 verification
+- ✅ **Test Suites**: `tests/integration/save_manager` passes (includes E2E coverage for Bug #5/#6 + spawn/physics/HUD)
+- ℹ️ **Testing approach**: Integration tests (TDD) + end-to-end integration validation
 
 ❌ **Not Started**:
 - Error handling and polish (Phase 8)

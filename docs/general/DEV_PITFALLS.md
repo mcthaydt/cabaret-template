@@ -197,6 +197,14 @@
   - Gameplay input fields (`input`, `move_input`, `look_input`, `jump_*`, `sprint_pressed`) should be transient across scene transitions (StateHandoff) to avoid sticky input on load.
   - Persist full gameplay slice for save/load. Special-case serialization so input fields are written to disk even if marked transient for handoff.
 
+- Test pollution from persistence + legacy migration
+  - Many integration tests should disable persistence (`RS_StateStoreSettings.enable_persistence = false`) to avoid writing `user://savegame.json` on teardown.
+  - If persistence is enabled for a suite, explicitly clean up `user://savegame.json` and `user://savegame.json.backup` to avoid legacy migration side effects in later tests.
+
+- Save/load scene transitions can become “state-only”
+  - If load middleware mutates `scene.current_scene_id` to the target scene *before* `M_SceneManager` transitions, `M_SceneManager` can update its internal current-scene tracking and skip the transition.
+  - Fix: Treat saved `scene.current_scene_id` as a *target*; restore the runtime `scene.current_scene_id` before dispatching navigation to the target scene so `M_SceneManager` performs the actual load/unload.
+
 - Performance considerations
   - Skip reducer work when the returned state equals the current slice (unchanged-state short-circuit).
   - Route actions to slice reducers by prefix (`gameplay/`, `settings/`, `scene/`, etc.) to avoid evaluating every reducer for every action.
