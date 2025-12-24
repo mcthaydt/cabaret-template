@@ -1,7 +1,7 @@
 # Save Manager Task Checklist
 
-**Status**: Phase 5 - UI Layer COMPLETE ✅
-**Last Updated**: 2025-12-23
+**Status**: Phase 8 - Polish IN PROGRESS
+**Last Updated**: 2025-12-24
 
 ---
 
@@ -457,6 +457,12 @@
 **Testing Approach**: Unit tests for error handling + Manual tests for visual feedback
 
 **Note**: Confirmation dialogs already implemented in Phase 5
+
+**Quick Polish (UI) ✅ COMPLETE**
+- [x] Hide Autosave slot when autosave is disabled (and empty)
+  - [x] Implement autosave visibility gating in `scripts/ui/ui_save_slot_selector.gd`
+  - [x] Add integration coverage in `tests/integration/save_manager/test_save_slot_selector.gd`
+  - **Commit**: a99c9c4
 
 **RED**: Write failing error handling tests first
 
