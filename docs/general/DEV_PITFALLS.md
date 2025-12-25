@@ -40,6 +40,17 @@
   
   **Real example**: `scenes/ui/hud_overlay.tscn` uses a full-screen MarginContainer to provide consistent margins for HUD elements. Without `mouse_filter = 2`, it blocked all clicks to test scene buttons below it, even though the HUD labels only occupied the top-left corner.
 
+- **Accept/click input can “leak” across UI transitions**: If a button press/click triggers a transition (close overlay, return to menu, load scene) and the next screen appears immediately with a focused button, an in-flight `ui_accept` (or mouse press/release) can activate that new focus target. This commonly shows up as “Quit to Menu” immediately auto-activating “Continue” on the main menu.
+
+  **Why it happens**: Input action state and focus persist across the transition boundary unless explicitly gated. If `ui_accept` is still pressed when the new screen becomes active, Godot routes it to the newly focused Control.
+
+  **Fix pattern (Central GUI Input Gate)**:
+  - Gate GUI input at the transition boundary (in the coordinator, not per-screen): temporarily set `viewport.gui_disable_input = true` when dispatching “return to menu” navigation actions, then re-enable after at least one frame (and optionally after `ui_accept` / mouse buttons are released).
+  - This is more robust than per-screen latches because it prevents the in-flight accept event from ever reaching newly-instantiated focused controls.
+  - In practice, keep the gate closed for a short minimum number of frames to handle “late” input events that can arrive right after the transition (even if `Input.is_action_pressed("ui_accept")` is already false).
+
+  **Concrete example**: `scripts/managers/m_scene_manager.gd` gates `Viewport.gui_disable_input` when `navigation/return_to_main_menu` (or `navigation/skip_to_menu`) is dispatched so the same input can’t also activate the focused “Continue” on the main menu.
+
 ## UI Navigation Pitfalls (Gamepad/Joystick)
 
 ### UI Navigation Deadzone Consistency

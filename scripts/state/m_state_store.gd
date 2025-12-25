@@ -159,7 +159,63 @@ func _try_autoload_state() -> void:
 	if _is_running_gut_tests():
 		return
 	var enable_logging := settings != null and settings.enable_debug_logging
-	U_STATE_REPOSITORY.try_autoload_state(settings, _state, _slice_configs, enable_logging)
+	var did_load: bool = U_STATE_REPOSITORY.try_autoload_state(settings, _state, _slice_configs, enable_logging)
+	if did_load and OS.is_debug_build() and enable_logging:
+		var nav_state: Dictionary = _state.get("navigation", {})
+		var shell: Variant = nav_state.get("shell", StringName(""))
+		var base_scene: Variant = nav_state.get("base_scene_id", StringName(""))
+		var overlays: Variant = nav_state.get("overlay_stack", [])
+		var overlay_count: int = overlays.size() if overlays is Array else 0
+		var scene_state: Dictionary = _state.get("scene", {})
+		var current_scene: Variant = scene_state.get("current_scene_id", StringName(""))
+		print("M_StateStore: Autoloaded persisted state (save_path=%s shell=%s base_scene_id=%s overlays=%d current_scene_id=%s)" % [
+			U_STATE_REPOSITORY.get_save_path(settings),
+			String(shell),
+			String(base_scene),
+			overlay_count,
+			String(current_scene)
+		])
+
+func _debug_trace_dispatch(action: Dictionary) -> void:
+	if settings == null or not settings.enable_debug_logging:
+		return
+	if not OS.is_debug_build():
+		return
+	var action_type: StringName = action.get("type", StringName())
+	if action_type == StringName(""):
+		return
+	var should_trace: bool = (
+		action_type == U_SAVE_ACTIONS.ACTION_LOAD_STARTED
+		or action_type == U_NAVIGATION_ACTIONS.ACTION_OPEN_PAUSE
+		or action_type == U_NAVIGATION_ACTIONS.ACTION_CLOSE_PAUSE
+		or action_type == U_NAVIGATION_ACTIONS.ACTION_CLOSE_TOP_OVERLAY
+		or action_type == U_NAVIGATION_ACTIONS.ACTION_RETURN_TO_MAIN_MENU
+		or action_type == U_NAVIGATION_ACTIONS.ACTION_SET_SHELL
+		or action_type == U_NAVIGATION_ACTIONS.ACTION_START_GAME
+	)
+	if not should_trace:
+		return
+	var nav_state: Dictionary = _state.get("navigation", {})
+	var shell: Variant = nav_state.get("shell", StringName(""))
+	var base_scene: Variant = nav_state.get("base_scene_id", StringName(""))
+	var overlays: Variant = nav_state.get("overlay_stack", [])
+	var overlay_count: int = overlays.size() if overlays is Array else 0
+	var stack: Array = get_stack()
+	var frames: Array[String] = []
+	for i in range(min(stack.size(), 6)):
+		var frame: Dictionary = stack[i]
+		var source: String = String(frame.get("source", ""))
+		var function_name: String = String(frame.get("function", ""))
+		var line_number: int = int(frame.get("line", 0))
+		frames.append("%s:%d:%s" % [source.get_file(), line_number, function_name])
+	print("M_StateStore: TRACE dispatch type=%s shell=%s base_scene_id=%s overlays=%d payload=%s stack=%s" % [
+		String(action_type),
+		String(shell),
+		String(base_scene),
+		overlay_count,
+		str(action),
+		" <- ".join(frames)
+	])
 
 func _is_running_gut_tests() -> bool:
 	var args: PackedStringArray = OS.get_cmdline_args()
@@ -288,6 +344,7 @@ func dispatch(action: Dictionary) -> void:
 	# Performance tracking start
 	var perf_start: int = Time.get_ticks_usec()
 	var is_immediate: bool = bool(action.get(ACTION_FLAG_IMMEDIATE, false))
+	_debug_trace_dispatch(action)
 	if _signal_batcher == null:
 		_signal_batcher = U_SIGNAL_BATCHER.new()
 	_pending_immediate_updates.clear()

@@ -408,6 +408,23 @@ func _write_save_slot(slot_index: int, scene_id: StringName, gameplay_patch: Dic
 	scene_slice["transition_type"] = ""
 	state["scene"] = scene_slice
 
+	# Real usage: saves are created during gameplay, so navigation persists as gameplay
+	# with base_scene_id set to the active gameplay scene.
+	#
+	# This ensures load flows are validated against the real-world pattern where
+	# dispatching navigation/start_game(scene_id) may be a reducer no-op if the loaded
+	# navigation slice already matches the target.
+	var navigation_slice: Dictionary = state.get("navigation", {})
+	navigation_slice["shell"] = StringName("gameplay")
+	navigation_slice["base_scene_id"] = scene_id
+	navigation_slice["active_menu_panel"] = StringName("pause/root")
+	navigation_slice["overlay_stack"] = []
+	navigation_slice["overlay_return_stack"] = []
+	navigation_slice["last_gameplay_scene_id"] = scene_id
+	if navigation_slice.has("_transition_metadata"):
+		navigation_slice.erase("_transition_metadata")
+	state["navigation"] = navigation_slice
+
 	var gameplay_slice: Dictionary = state.get("gameplay", {})
 	for key in gameplay_patch.keys():
 		gameplay_slice[key] = gameplay_patch[key]

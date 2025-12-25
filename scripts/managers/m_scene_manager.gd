@@ -82,6 +82,15 @@ var _initial_navigation_synced: bool = false
 ## Navigation reconciliation helper
 var _navigation_reconciler := U_NAVIGATION_RECONCILER.new()
 
+## GUI input gate (prevents ui_accept leaking across transitions)
+var _gui_input_gate_token: int = 0
+var _navigation_action_connected: bool = false
+var _post_gate_input_cooldown: int = 0
+
+const _GUI_INPUT_GATE_MIN_FRAMES: int = 20
+const _GUI_INPUT_GATE_CLEAN_FRAMES: int = 3
+const _POST_GATE_COOLDOWN_FRAMES: int = 2
+
 ## Scene history tracking for UI navigation (T109)
 ## Only tracks UI/Menu scenes, cleared when entering gameplay
 var _scene_history: Array[StringName] = []
@@ -151,9 +160,28 @@ var skip_initial_scene_load: bool = false
 ## Initial scene to load on startup (configurable for testing)
 @export var initial_scene_id: StringName = StringName("main_menu")
 
+func _is_debug_logging_enabled() -> bool:
+	if _store == null:
+		return false
+	# M_StateStore exposes `settings.enable_debug_logging`; allow missing in tests.
+	var settings_variant: Variant = null
+	if _store.has_method("get"):
+		settings_variant = _store.get("settings")
+	if settings_variant != null and settings_variant is Resource:
+		var enabled: Variant = (settings_variant as Resource).get("enable_debug_logging")
+		return bool(enabled)
+	return false
+
+func _debug(msg: String) -> void:
+	if not _is_debug_logging_enabled():
+		return
+	print("M_SceneManager: ", msg)
+
 func _ready() -> void:
 	# Add to scene_manager group for discovery
 	add_to_group("scene_manager")
+	# Must keep processing during pause to close overlays / transition to menu / load saves.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 
 	# Find managers via ServiceLocator (Phase 10B-7: T141c)
 	await get_tree().process_frame  # Wait for ServiceLocator to initialize
@@ -200,6 +228,10 @@ func _ready() -> void:
 		if not _store.slice_updated.is_connected(_on_slice_updated):
 			_store.slice_updated.connect(_on_slice_updated)
 			_navigation_slice_connected = true
+			_debug("Connected to store.slice_updated (navigation reconciliation enabled)")
+		if not _store.action_dispatched.is_connected(_on_action_dispatched):
+			_store.action_dispatched.connect(_on_action_dispatched)
+			_navigation_action_connected = true
 
 	# Subscribe to ECS events with priorities
 	# entity_death: Priority 10 (high - quick transition to game over)
@@ -222,6 +254,20 @@ func _ready() -> void:
 		_load_initial_scene()
 	call_deferred("_request_navigation_reconciliation")
 
+func _process(_delta: float) -> void:
+	# Decrement post-gate input cooldown each frame
+	if _post_gate_input_cooldown > 0:
+		_post_gate_input_cooldown -= 1
+
+func _input(event: InputEvent) -> void:
+	# Consume ui_accept events during post-gate cooldown to prevent input leak
+	# The GUI input gate blocks _gui_input during transitions, but a timing gap
+	# exists when the gate releases: the next frame's input phase can deliver
+	# queued events to newly-focused buttons before _process runs.
+	# This cooldown catches any leaked events for a few frames after gate release.
+	if _post_gate_input_cooldown > 0 and event.is_action("ui_accept"):
+		get_viewport().set_input_as_handled()
+
 func _request_navigation_reconciliation() -> void:
 	if _initial_navigation_synced:
 		return
@@ -233,6 +279,17 @@ func _request_navigation_reconciliation() -> void:
 	var nav_state: Dictionary = _store.get_slice(StringName("navigation"))
 	if nav_state.is_empty():
 		return
+	if _is_debug_logging_enabled():
+		var shell: Variant = nav_state.get("shell", StringName(""))
+		var base_scene: Variant = nav_state.get("base_scene_id", StringName(""))
+		var overlays: Variant = nav_state.get("overlay_stack", [])
+		var overlay_count: int = overlays.size() if overlays is Array else 0
+		_debug("Initial navigation reconciliation shell=%s base_scene_id=%s overlays=%d current_scene_id=%s" % [
+			String(shell),
+			String(base_scene),
+			overlay_count,
+			String(_current_scene_id)
+		])
 	_navigation_reconciler.reconcile_navigation_state(
 		nav_state,
 		self,
@@ -320,6 +377,7 @@ func transition_to_scene(scene_id: StringName, transition_type: String, priority
 	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(scene_id)
 	if scene_data.is_empty():
 		# Silently ignore missing scenes (graceful handling)
+		_debug("transition_to_scene ignored missing scene_id=%s (transition_type=%s)" % [String(scene_id), transition_type])
 		return
 
 	_ensure_store_reference()
@@ -718,12 +776,100 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 		return
 	if slice_state.is_empty():
 		return
+	_maybe_begin_gui_input_gate_for_navigation(slice_state)
+	if _is_debug_logging_enabled():
+		var desired_scene_id: StringName = slice_state.get("base_scene_id", StringName(""))
+		_debug("navigation slice_updated base_scene_id=%s current_scene_id=%s active_target=%s queue=%d" % [
+			String(desired_scene_id),
+			String(_current_scene_id),
+			String(_active_transition_target),
+			_transition_queue_helper.size()
+		])
 	_navigation_reconciler.reconcile_navigation_state(
 		slice_state,
 		self,
 		_current_scene_id,
 		_overlay_helper
 	)
+
+func _on_action_dispatched(action: Dictionary) -> void:
+	if action.is_empty():
+		return
+	var action_type: StringName = action.get("type", StringName(""))
+	if action_type == U_NAVIGATION_ACTIONS.ACTION_RETURN_TO_MAIN_MENU or action_type == U_NAVIGATION_ACTIONS.ACTION_SKIP_TO_MENU:
+		_debug("GUI input gate requested by action=%s" % String(action_type))
+		_begin_gui_input_gate_for_transition_boundary()
+
+func _maybe_begin_gui_input_gate_for_navigation(nav_state: Dictionary) -> void:
+	# Prevent "confirm/accept" input from leaking across a menu transition boundary.
+	# This happens when a button press triggers a navigation change and the new screen
+	# appears with a focused button that receives the same in-flight ui_accept event.
+	var shell: Variant = nav_state.get("shell", StringName(""))
+	var base_scene_id: Variant = nav_state.get("base_scene_id", StringName(""))
+	if StringName(shell) != StringName("main_menu") or StringName(base_scene_id) != StringName("main_menu"):
+		return
+	var viewport := get_viewport()
+	if viewport != null and viewport.gui_disable_input:
+		return
+	_begin_gui_input_gate_for_transition_boundary()
+
+func _begin_gui_input_gate_for_transition_boundary() -> void:
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return
+
+	_gui_input_gate_token += 1
+	var token := _gui_input_gate_token
+	viewport.gui_disable_input = true
+	_debug("GUI input gate engaged token=%d" % token)
+	call_deferred("_deferred_release_gui_input_gate", token)
+
+func _is_transition_input_active() -> bool:
+	# Block both action-style accept and mouse clicks (mouse press/release can also
+	# leak across an instant UI swap).
+	if Input.is_action_pressed("ui_accept"):
+		return true
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		return true
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+		return true
+	return false
+
+func _deferred_release_gui_input_gate(token: int) -> void:
+	var waited_frames: int = 0
+	# Always wait a minimum number of frames so any queued input events (and focus
+	# changes) settle before Controls can receive input on the new screen.
+	for _i in range(_GUI_INPUT_GATE_MIN_FRAMES):
+		if token != _gui_input_gate_token:
+			return
+		await get_tree().process_frame
+		waited_frames += 1
+
+	# Keep the gate closed while accept/click is active.
+	while token == _gui_input_gate_token and _is_transition_input_active():
+		await get_tree().process_frame
+		waited_frames += 1
+
+	# Require consecutive "clean" frames after release so a late ui_accept press
+	# arriving right after the transition can't activate the newly focused button.
+	var clean_frames: int = 0
+	while token == _gui_input_gate_token and clean_frames < _GUI_INPUT_GATE_CLEAN_FRAMES:
+		await get_tree().process_frame
+		waited_frames += 1
+		if _is_transition_input_active():
+			clean_frames = 0
+		else:
+			clean_frames += 1
+
+	if token != _gui_input_gate_token:
+		return
+	var viewport: Viewport = get_viewport()
+	if viewport != null:
+		viewport.gui_disable_input = false
+		# Start post-gate cooldown to consume any leaked ui_accept events
+		# that arrive immediately after the gate releases (frame lifecycle timing gap)
+		_post_gate_input_cooldown = _POST_GATE_COOLDOWN_FRAMES
+		_debug("GUI input gate released token=%d waited_frames=%d clean_frames=%d cooldown=%d" % [token, waited_frames, clean_frames, _post_gate_input_cooldown])
 
 func _is_scene_in_queue(scene_id: StringName) -> bool:
 	return _transition_queue_helper.contains_scene(scene_id)

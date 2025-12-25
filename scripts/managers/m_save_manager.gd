@@ -27,6 +27,7 @@ signal load_failed(slot_index: int, error: String)
 const U_SAVE_MANAGER := preload("res://scripts/state/utils/u_save_manager.gd")
 const U_SAVE_ACTIONS := preload("res://scripts/state/actions/u_save_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 ## Autosave interval in seconds (0 = disabled)
@@ -42,6 +43,23 @@ var _store = null
 var _scene_manager: Node = null
 var _autosave_timer: Timer = null
 
+func _is_debug_logging_enabled() -> bool:
+	if _store == null:
+		return false
+	# Prefer the same toggle as M_StateStore (resources/state/default_state_store_settings.tres).
+	# Works in production; in tests/mocks the settings resource may be absent.
+	var settings_variant: Variant = null
+	if _store.has_method("get"):
+		settings_variant = _store.get("settings")
+	if settings_variant != null and settings_variant is Resource:
+		var enabled: Variant = (settings_variant as Resource).get("enable_debug_logging")
+		return bool(enabled)
+	return false
+
+func _debug(msg: String) -> void:
+	if not _is_debug_logging_enabled():
+		return
+	print("M_SaveManager: ", msg)
 
 func _ready() -> void:
 	# Must continue operating when tree is paused (save from pause menu)
@@ -58,12 +76,18 @@ func _ready() -> void:
 	if _store == null:
 		push_error("M_SaveManager: No state store found")
 		return
+	_debug("Store found; connecting to store.action_dispatched")
 
 	# Find scene manager (optional - may not exist in tests)
 	_scene_manager = _find_scene_manager()
+	if _scene_manager == null:
+		_debug("No scene manager found (ok in tests)")
+	else:
+		_debug("Scene manager found: %s" % _scene_manager.name)
 
 	# Subscribe to actions
 	_store.action_dispatched.connect(_on_action_dispatched)
+	_debug("Subscribed to store.action_dispatched")
 
 	# Setup autosave timer
 	_setup_autosave_timer()
@@ -119,10 +143,13 @@ func _on_action_dispatched(action: Dictionary) -> void:
 
 	match action_type:
 		U_SAVE_ACTIONS.ACTION_SAVE_STARTED:
+			_debug("Received ACTION_SAVE_STARTED: %s" % str(action))
 			_handle_save_started(action)
 		U_SAVE_ACTIONS.ACTION_LOAD_STARTED:
+			_debug("Received ACTION_LOAD_STARTED: %s" % str(action))
 			_handle_load_started(action)
 		U_SAVE_ACTIONS.ACTION_DELETE_STARTED:
+			_debug("Received ACTION_DELETE_STARTED: %s" % str(action))
 			_handle_delete_started(action)
 
 
@@ -165,6 +192,7 @@ func _handle_save_started(action: Dictionary) -> void:
 func _handle_load_started(action: Dictionary) -> void:
 	var slot_index: int = action.get("slot_index", -1)
 	if slot_index < 0:
+		_debug("Load failed early: invalid slot_index=%d" % slot_index)
 		_dispatch_action(U_SAVE_ACTIONS.load_failed(slot_index, "Invalid slot index"))
 		load_failed.emit(slot_index, "Invalid slot index")
 		return
@@ -179,8 +207,10 @@ func _handle_load_started(action: Dictionary) -> void:
 	else:
 		path = U_SAVE_MANAGER.get_manual_slot_path(slot_index)
 
+	_debug("Load requested for slot %d (path=%s)" % [slot_index, path])
 	if not FileAccess.file_exists(path):
 		var error_msg := "Save file not found: %s" % path
+		_debug("Load failed: %s" % error_msg)
 		_dispatch_action(U_SAVE_ACTIONS.load_failed(slot_index, error_msg))
 		load_failed.emit(slot_index, error_msg)
 		return
@@ -190,6 +220,7 @@ func _handle_load_started(action: Dictionary) -> void:
 
 	if err != OK:
 		var error_msg := "Load failed: %s" % error_string(err)
+		_debug(error_msg)
 		_dispatch_action(U_SAVE_ACTIONS.load_failed(slot_index, error_msg))
 		load_failed.emit(slot_index, error_msg)
 		return
@@ -197,15 +228,47 @@ func _handle_load_started(action: Dictionary) -> void:
 	# Get loaded scene_id from the newly loaded state
 	var loaded_scene_slice: Dictionary = _store.get_slice(StringName("scene"))
 	var loaded_scene_id: StringName = loaded_scene_slice.get("current_scene_id", StringName(""))
+	_debug("Loaded scene slice current_scene_id=%s" % String(loaded_scene_id))
 
 	if loaded_scene_id == StringName(""):
+		_debug("Load failed: no scene/current_scene_id in loaded state")
 		_dispatch_action(U_SAVE_ACTIONS.load_failed(slot_index, "No scene_id in save file"))
 		load_failed.emit(slot_index, "No scene_id in save file")
 		return
 
+	var loaded_navigation_slice: Dictionary = _store.get_slice(StringName("navigation"))
+	var loaded_shell: StringName = loaded_navigation_slice.get("shell", StringName(""))
+	var loaded_base_scene_id: StringName = loaded_navigation_slice.get("base_scene_id", StringName(""))
+	_debug("Loaded navigation slice shell=%s base_scene_id=%s" % [String(loaded_shell), String(loaded_base_scene_id)])
+
 	# Trigger scene transition to loaded scene
 	# start_game will handle the shell change and scene transition
-	_dispatch_action(U_NAVIGATION_ACTIONS.start_game(loaded_scene_id))
+	_debug("Dispatching navigation/start_game(%s)" % String(loaded_scene_id))
+	var navigation_already_targets_loaded_scene: bool = loaded_shell == StringName("gameplay") and loaded_base_scene_id == loaded_scene_id
+	if navigation_already_targets_loaded_scene:
+		_debug("NOTE: navigation already matches target; start_game may be a no-op and not emit navigation slice_updated")
+	else:
+		_dispatch_action(U_NAVIGATION_ACTIONS.start_game(loaded_scene_id))
+
+	# When loading real-world gameplay saves, the saved navigation slice often already
+	# targets the loaded scene. Because load_from_save_slot mutates store state directly
+	# (no slice_updated emission), SceneManager won't reconcile navigation in that case.
+	# Force a transition as a safety net so "Continue" and load flows always work.
+	if navigation_already_targets_loaded_scene:
+		# Load order in tests can create M_SaveManager before M_SceneManager. Re-find lazily.
+		if _scene_manager == null:
+			_scene_manager = _find_scene_manager()
+		if _scene_manager == null or not _scene_manager.has_method("transition_to_scene"):
+			_debug("Cannot force transition: no scene manager available")
+		else:
+			var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(loaded_scene_id)
+			var transition_type: String = "instant"
+			if not scene_data.is_empty():
+				var transition_variant: Variant = scene_data.get("default_transition", "instant")
+				transition_type = String(transition_variant) if transition_variant is String else "instant"
+			_debug("Forcing scene_manager.transition_to_scene(%s, %s) due to navigation no-op" % [String(loaded_scene_id), transition_type])
+			# Priority 1 (HIGH) keeps load responsive without jumping ahead of critical transitions.
+			_scene_manager.call("transition_to_scene", loaded_scene_id, transition_type, 1)
 
 	# Success
 	_dispatch_action(U_SAVE_ACTIONS.load_completed(slot_index))

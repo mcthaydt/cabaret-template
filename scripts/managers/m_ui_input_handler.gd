@@ -15,6 +15,25 @@ const U_NavigationReducer := preload("res://scripts/state/reducers/u_navigation_
 
 var _store: I_StateStore = null
 
+func _is_debug_logging_enabled() -> bool:
+	if _store == null:
+		return false
+	# M_StateStore exposes `settings.enable_debug_logging`; allow missing in tests/mocks.
+	var settings_variant: Variant = null
+	if _store.has_method("get"):
+		settings_variant = _store.get("settings")
+	if settings_variant != null and settings_variant is Resource:
+		var enabled: Variant = (settings_variant as Resource).get("enable_debug_logging")
+		return bool(enabled)
+	return false
+
+func _debug(msg: String) -> void:
+	if not _is_debug_logging_enabled():
+		return
+	if not OS.is_debug_build():
+		return
+	print("M_UIInputHandler: ", msg)
+
 
 func _ready() -> void:
 	# Run in PROCESS_MODE_ALWAYS to handle pause/unpause
@@ -27,6 +46,54 @@ func _ready() -> void:
 	if _store == null:
 		push_error("M_UIInputHandler: Failed to find M_StateStore")
 
+func _input(event: InputEvent) -> void:
+	if not _is_debug_logging_enabled():
+		return
+	if not OS.is_debug_build():
+		return
+	if _store == null:
+		return
+
+	var is_pressed_event: bool = false
+	var event_desc: String = ""
+	if event is InputEventKey:
+		var key_event := event as InputEventKey
+		is_pressed_event = key_event.pressed and not key_event.echo
+		event_desc = "keycode=%d physical=%d" % [int(key_event.keycode), int(key_event.physical_keycode)]
+	elif event is InputEventJoypadButton:
+		var joy_event := event as InputEventJoypadButton
+		is_pressed_event = joy_event.pressed
+		event_desc = "joy_device=%d button_index=%d" % [int(joy_event.device), int(joy_event.button_index)]
+	else:
+		return
+
+	if not is_pressed_event:
+		return
+
+	var matched_actions: Array[StringName] = []
+	for action_name in [StringName("ui_pause"), StringName("ui_accept"), StringName("ui_cancel")]:
+		if event.is_action_pressed(String(action_name)):
+			matched_actions.append(action_name)
+	if matched_actions.is_empty():
+		return
+
+	var state: Dictionary = _store.get_state()
+	var nav_state: Dictionary = state.get("navigation", {})
+	var shell: StringName = U_NavigationSelectors.get_shell(nav_state)
+	var overlay_stack: Array = U_NavigationSelectors.get_overlay_stack(nav_state)
+	var focus_owner: Control = null
+	var viewport := get_viewport()
+	if viewport != null:
+		focus_owner = viewport.gui_get_focus_owner() as Control
+	var focus_path: String = String(focus_owner.get_path()) if focus_owner != null else "<none>"
+
+	_debug("Input %s actions=%s shell=%s overlays=%d focus=%s" % [
+		event_desc,
+		str(matched_actions),
+		String(shell),
+		overlay_stack.size(),
+		focus_path
+	])
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _store == null:
