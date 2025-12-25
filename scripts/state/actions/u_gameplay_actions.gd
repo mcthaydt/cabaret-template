@@ -27,6 +27,8 @@ const ACTION_MARK_AREA_COMPLETE := StringName("gameplay/mark_area_complete")
 const ACTION_GAME_COMPLETE := StringName("gameplay/game_complete")
 const ACTION_RESET_PROGRESS := StringName("gameplay/reset_progress")
 const ACTION_RESET_AFTER_DEATH := StringName("gameplay/reset_after_death")
+const ACTION_INCREMENT_PLAYTIME := StringName("gameplay/increment_playtime")
+const ACTION_SET_DEATH_IN_PROGRESS := StringName("gameplay/set_death_in_progress")
 
 ## Static initializer - automatically registers actions
 static func _static_init() -> void:
@@ -51,6 +53,8 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_GAME_COMPLETE)
 	U_ActionRegistry.register_action(ACTION_RESET_PROGRESS)
 	U_ActionRegistry.register_action(ACTION_RESET_AFTER_DEATH)
+	U_ActionRegistry.register_action(ACTION_INCREMENT_PLAYTIME)
+	U_ActionRegistry.register_action(ACTION_SET_DEATH_IN_PROGRESS)
 
 ## Create a pause game action
 static func pause_game() -> Dictionary:
@@ -205,4 +209,18 @@ static func reset_after_death() -> Dictionary:
 	return {
 		"type": ACTION_RESET_AFTER_DEATH,
 		"payload": null
+	}
+
+## Increment playtime by given number of seconds (Phase 0: Save Manager)
+static func increment_playtime(seconds: int) -> Dictionary:
+	return {
+		"type": ACTION_INCREMENT_PLAYTIME,
+		"payload": seconds
+	}
+
+## Set death_in_progress flag to block autosave during death (Phase 0: Save Manager)
+static func set_death_in_progress(value: bool) -> Dictionary:
+	return {
+		"type": ACTION_SET_DEATH_IN_PROGRESS,
+		"payload": value
 	}

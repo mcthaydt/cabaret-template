@@ -95,9 +95,6 @@ func _ready() -> void:
 	# Ensure batching and input work even when the SceneTree is paused.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
-	# Schedule autosave if enabled
-	_setup_autosave_timer()
-
 	_is_ready = true
 	store_ready.emit()
 
@@ -111,28 +108,8 @@ func _exit_tree() -> void:
 	if is_in_group("state_store"):
 		remove_from_group("state_store")
 
-var _autosave_timer: Timer = null
-
-func _setup_autosave_timer() -> void:
-	var interval: float = U_STATE_REPOSITORY.get_autosave_interval(settings)
-	if interval <= 0.0:
-		return
-	if _autosave_timer == null:
-		_autosave_timer = Timer.new()
-		_autosave_timer.one_shot = false
-		_autosave_timer.autostart = true
-		add_child(_autosave_timer)
-		_autosave_timer.timeout.connect(_on_autosave_timeout)
-	_autosave_timer.wait_time = interval
-	if not _autosave_timer.is_stopped():
-		_autosave_timer.stop()
-	_autosave_timer.start()
-
 func is_ready() -> bool:
 	return _is_ready
-
-func _on_autosave_timeout() -> void:
-	_save_state_if_enabled()
 
 func _save_state_if_enabled() -> void:
 	var enable_logging := settings != null and settings.enable_debug_logging
