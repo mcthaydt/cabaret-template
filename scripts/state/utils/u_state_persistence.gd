@@ -33,10 +33,7 @@ static func save_state(filepath: String, state: Dictionary, slice_configs: Dicti
 			filtered_state = slice_state.duplicate(true)
 		else:
 			for key in slice_state:
-				var is_transient: bool = false
-				if config != null:
-					is_transient = config.transient_fields.has(key)
-				if not is_transient:
+				if not _is_transient_field(config, key):
 					filtered_state[key] = slice_state[key]
 
 		state_to_save[slice_name] = U_SerializationHelper.godot_to_json(filtered_state)
@@ -94,12 +91,27 @@ static func load_state(filepath: String, state: Dictionary, slice_configs: Dicti
 
 			if config != null:
 				for transient_field in config.transient_fields:
-					if current_slice.has(transient_field) and not loaded_slice.has(transient_field):
-						loaded_slice[transient_field] = current_slice[transient_field]
+					var transient_str := String(transient_field)
+					var current_has := current_slice.has(transient_field) or current_slice.has(transient_str)
+					var loaded_has := loaded_slice.has(transient_field) or loaded_slice.has(transient_str)
+					if current_has and not loaded_has:
+						if current_slice.has(transient_str):
+							loaded_slice[transient_str] = current_slice[transient_str]
+						else:
+							loaded_slice[transient_str] = current_slice[transient_field]
 
 			state[slice_name] = loaded_slice.duplicate(true)
 
 	return OK
+
+static func _is_transient_field(config: RS_StateSliceConfig, key: Variant) -> bool:
+	if config == null:
+		return false
+	var key_str := String(key)
+	for transient_field in config.transient_fields:
+		if key_str == String(transient_field):
+			return true
+	return false
 
 ## DEPRECATED: Use U_StateValidator.normalize_loaded_state() instead.
 ## Kept for backward compatibility with existing tests.

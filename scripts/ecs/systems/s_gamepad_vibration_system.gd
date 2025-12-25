@@ -56,6 +56,9 @@ func _on_entity_landed(event: Dictionary) -> void:
 func _on_entity_death(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
 	var entity_id := String(payload.get("entity_id", ""))
+	if entity_id.is_empty():
+		var entity := payload.get("entity") as Node
+		entity_id = _get_entity_id_from_node(entity)
 	if _is_player_entity(entity_id):
 		_trigger_death_vibration()
 
@@ -77,12 +80,25 @@ func _trigger_vibration(weak: float, strong: float, duration: float) -> void:
 	if not _gamepad_settings.get("vibration_enabled", true):
 		return
 
-	# Only vibrate if active device is a gamepad
-	var active_device_type := int(_last_input_state.get("active_device", DEVICE_TYPE_KEYBOARD_MOUSE))
-	if active_device_type != DEVICE_TYPE_GAMEPAD:
-		return
+	var store := _get_state_store()
+	var active_device_type := DEVICE_TYPE_KEYBOARD_MOUSE
+	var device_id := -1
 
-	var device_id := _get_active_gamepad_id()
+	if store != null:
+		var state: Dictionary = store.get_state()
+		active_device_type = U_InputSelectors.get_active_device_type(state)
+		if active_device_type != DEVICE_TYPE_GAMEPAD:
+			return
+		device_id = U_InputSelectors.get_active_gamepad_id(state)
+		if device_id < 0 or not U_InputSelectors.is_gamepad_connected(state):
+			device_id = _get_component_device_id()
+	else:
+		# Fallback to cached state if store unavailable.
+		active_device_type = int(_last_input_state.get("active_device", DEVICE_TYPE_KEYBOARD_MOUSE))
+		if active_device_type != DEVICE_TYPE_GAMEPAD:
+			return
+		device_id = _get_active_gamepad_id()
+
 	if device_id < 0:
 		return
 	var intensity := clampf(float(_gamepad_settings.get("vibration_intensity", 1.0)), 0.0, 1.0)

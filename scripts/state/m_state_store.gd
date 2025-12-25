@@ -147,12 +147,29 @@ func _try_migrate_legacy_save() -> void:
 # NOTE: Load flow middleware moved to M_SaveManager (scripts/managers/m_save_manager.gd)
 
 func _save_state_if_enabled() -> void:
+	# Tests run via GUT should not write to user:// implicitly.
+	# Disk persistence is still available via explicit save_state/load_state calls.
+	if _is_running_gut_tests():
+		return
 	var enable_logging := settings != null and settings.enable_debug_logging
 	U_STATE_REPOSITORY.save_state_if_enabled(settings, _state, _slice_configs, enable_logging)
 
 func _try_autoload_state() -> void:
+	# Tests run via GUT should not auto-load user:// state (keeps tests hermetic).
+	if _is_running_gut_tests():
+		return
 	var enable_logging := settings != null and settings.enable_debug_logging
 	U_STATE_REPOSITORY.try_autoload_state(settings, _state, _slice_configs, enable_logging)
+
+func _is_running_gut_tests() -> bool:
+	var args: PackedStringArray = OS.get_cmdline_args()
+	for arg in args:
+		var arg_str := String(arg)
+		if arg_str.find("gut_cmdln.gd") != -1:
+			return true
+		if arg_str.find("addons/gut") != -1:
+			return true
+	return false
 
 func _physics_process(_delta: float) -> void:
 	# Flush batched signals once per physics frame
@@ -490,8 +507,11 @@ func _preserve_to_handoff() -> void:
 			continue
 		if config != null:
 			for transient_field in config.transient_fields:
+				var key_str := String(transient_field)
 				if preserved.has(transient_field):
 					preserved.erase(transient_field)
+				if preserved.has(key_str):
+					preserved.erase(key_str)
 		U_STATE_HANDOFF.preserve_slice(slice_name, preserved)
 	
 ## Restore state from StateHandoff after scene transitions
