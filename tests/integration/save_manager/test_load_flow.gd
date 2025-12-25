@@ -9,6 +9,7 @@ extends GutTest
 ## - Success/failure action dispatching
 
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
+const M_SaveManager := preload("res://scripts/managers/m_save_manager.gd")
 const U_SaveManager := preload("res://scripts/state/utils/u_save_manager.gd")
 const U_SaveEnvelope := preload("res://scripts/state/utils/u_save_envelope.gd")
 const U_SaveActions := preload("res://scripts/state/actions/u_save_actions.gd")
@@ -17,6 +18,7 @@ const RS_SaveSlotMetadata := preload("res://scripts/state/resources/rs_save_slot
 const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 
 var _store: M_StateStore
+var _save_manager: M_SaveManager
 var _dispatched_actions: Array[Dictionary] = []
 
 
@@ -39,6 +41,13 @@ func before_each() -> void:
 	add_child_autofree(_store)
 	await get_tree().process_frame
 
+	# Initialize save manager (handles load_started actions)
+	_save_manager = M_SaveManager.new()
+	_save_manager.autosave_interval = 0.0  # Disable autosave in tests
+	add_child_autofree(_save_manager)
+	await get_tree().process_frame
+	await get_tree().process_frame  # Extra frame for M_SaveManager to complete _ready
+
 	# Track dispatched actions
 	_dispatched_actions.clear()
 	_store.action_dispatched.connect(_on_action_dispatched)
@@ -54,6 +63,7 @@ func after_each() -> void:
 		DirAccess.remove_absolute(autosave_path)
 
 	_store = null
+	_save_manager = null
 	_dispatched_actions.clear()
 
 
@@ -126,11 +136,7 @@ func test_load_started_dispatches_load_failed_on_missing_file() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame  # Wait for async load handling
 
-	# Then: Should emit expected errors for missing file
-	assert_push_error("File does not exist")
-	assert_push_error("Failed to load from slot")
-
-	# And: Should dispatch load_failed with error message
+	# Then: Should dispatch load_failed with error message
 	var load_failed_actions := _get_actions_by_type(U_SaveActions.ACTION_LOAD_FAILED)
 	assert_eq(load_failed_actions.size(), 1,
 		"Should dispatch load_failed action")

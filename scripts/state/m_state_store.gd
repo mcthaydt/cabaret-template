@@ -105,11 +105,8 @@ func _ready() -> void:
 	# Migrate legacy save file if present
 	_try_migrate_legacy_save()
 
-	# Schedule autosave if enabled
-	_setup_autosave_timer()
-
-	# Subscribe to load_started actions for load flow middleware (Phase 7)
-	action_dispatched.connect(_handle_load_started)
+	# NOTE: Autosave timer and load flow now owned by M_SaveManager
+	# See scripts/managers/m_save_manager.gd
 
 	_is_ready = true
 	store_ready.emit()
@@ -124,46 +121,8 @@ func _exit_tree() -> void:
 	if is_in_group("state_store"):
 		remove_from_group("state_store")
 
-var _autosave_timer: Timer = null
-
-func _setup_autosave_timer() -> void:
-	var interval: float = U_STATE_REPOSITORY.get_autosave_interval(settings)
-	if interval <= 0.0:
-		return
-	if _autosave_timer == null:
-		_autosave_timer = Timer.new()
-		_autosave_timer.one_shot = false
-		_autosave_timer.autostart = true
-		add_child(_autosave_timer)
-		_autosave_timer.timeout.connect(_on_autosave_timeout)
-	_autosave_timer.wait_time = interval
-	if not _autosave_timer.is_stopped():
-		_autosave_timer.stop()
-	_autosave_timer.start()
-
 func is_ready() -> bool:
 	return _is_ready
-
-func _on_autosave_timeout() -> void:
-	_autosave_to_dedicated_slot()
-
-func _autosave_to_dedicated_slot() -> void:
-	# Only autosave during active gameplay
-	var nav_state := get_slice(StringName("navigation"))
-	var shell: StringName = nav_state.get("shell", StringName(""))
-	if shell != StringName("gameplay"):
-		return  # Skip autosave in menus/boot
-
-	# Don't save during scene transitions
-	var scene_state := get_slice(StringName("scene"))
-	if scene_state.get("is_transitioning", false):
-		return  # Skip autosave while loading
-
-	# Save to autosave slot (slot 0)
-	var err := U_SAVE_MANAGER.save_to_auto_slot(_state, _slice_configs)
-
-	if err != OK and settings != null and settings.enable_debug_logging:
-		push_warning("M_StateStore: Autosave failed: ", error_string(err))
 
 func _try_migrate_legacy_save() -> void:
 	# Check if legacy file exists before attempting migration
@@ -185,100 +144,7 @@ func _try_migrate_legacy_save() -> void:
 			push_warning("M_StateStore: Legacy save migration failed: ", error_string(err))
 
 
-## Load Flow Middleware (Phase 7)
-## Handles load_started actions to restore state from save slots
-func _handle_load_started(action: Dictionary) -> void:
-	# DEBUG: Log all actions to see if middleware is being called
-	print("M_StateStore._handle_load_started: Received action: ", action.get("type"))
-
-	# Only process load_started actions
-	if action.get("type") != U_SAVE_ACTIONS.ACTION_LOAD_STARTED:
-		return
-
-	print("M_StateStore._handle_load_started: Processing load_started for slot ", action.get("slot_index"))
-
-	var slot_index: int = action.get("slot_index", -1)
-	if slot_index < 0:
-		push_error("M_StateStore._handle_load_started: Invalid slot_index")
-		dispatch(U_SAVE_ACTIONS.load_failed(slot_index, "Invalid slot index"))
-		return
-
-	# Cache the runtime scene_id (the scene currently loaded in the tree). The
-	# save file contains a target scene_id, but the SceneManager must be allowed
-	# to drive scene.current_scene_id via transition actions.
-	var runtime_scene_state: Dictionary = get_slice(StringName("scene"))
-	var runtime_current_scene_id: StringName = runtime_scene_state.get("current_scene_id", StringName(""))
-
-	# 1. Clear navigation overlay stack BEFORE loading (Bug #6 prevention)
-	#    Must be done before load because load clears all state
-	#    This prevents the save/load overlay from reopening after scene transition
-	_clear_navigation_overlays()
-
-	# 2. Attempt to load state from slot
-	var err: Error = OK
-	if slot_index == U_SAVE_MANAGER.AUTO_SLOT_INDEX:
-		print("DEBUG: Loading from auto slot, path: ", U_SAVE_MANAGER.get_auto_slot_path())
-		print("DEBUG: File exists? ", FileAccess.file_exists(U_SAVE_MANAGER.get_auto_slot_path()))
-		err = U_SAVE_MANAGER.load_from_auto_slot(_state, _slice_configs)
-		print("DEBUG: Load result: ", error_string(err))
-		if err == OK:
-			print("DEBUG: Scene slice after load: ", _state.get("scene", {}))
-	else:
-		err = U_SAVE_MANAGER.load_from_slot(slot_index, _state, _slice_configs)
-
-	if err != OK:
-		# Load failed - dispatch error action
-		var error_msg: String = "Failed to load from slot %d: %s" % [slot_index, error_string(err)]
-		push_error(error_msg)
-		if settings != null and settings.enable_debug_logging:
-			push_warning("M_StateStore: " + error_msg)
-		dispatch(U_SAVE_ACTIONS.load_failed(slot_index, error_msg))
-		return
-
-	# Load succeeded - perform post-load actions
-
-	# 3. Get the loaded scene_id from the restored state
-	var scene_slice: Dictionary = _state.get("scene", {})
-	var loaded_scene_id: StringName = scene_slice.get("current_scene_id", StringName(""))
-
-	if loaded_scene_id == StringName(""):
-		push_error("M_StateStore._handle_load_started: No scene_id in loaded state")
-		dispatch(U_SAVE_ACTIONS.load_failed(slot_index, "Invalid scene_id in save file"))
-		return
-
-	# Restore runtime scene.current_scene_id so M_SceneManager doesn't interpret the
-	# save file's target scene_id as already-loaded and skip transitioning.
-	var scene_after_load: Dictionary = _state.get("scene", {})
-	scene_after_load["current_scene_id"] = runtime_current_scene_id
-	scene_after_load["is_transitioning"] = false
-	scene_after_load["transition_type"] = ""
-	_state["scene"] = scene_after_load
-
-	# 4. Trigger scene transition to the loaded scene
-	#    Use start_game action to transition to the loaded scene
-	print("M_StateStore: Transitioning to loaded scene: ", loaded_scene_id)
-	dispatch(U_NAVIGATION_ACTIONS.start_game(loaded_scene_id))
-
-	# 5. Dispatch load_completed action
-	dispatch(U_SAVE_ACTIONS.load_completed(slot_index))
-
-	if settings != null and settings.enable_debug_logging:
-		print("M_StateStore: Successfully loaded state from slot ", slot_index)
-
-
-## Clear navigation overlay stack (Bug #6 prevention)
-## Called during load flow to prevent overlays from reopening
-func _clear_navigation_overlays() -> void:
-	# Get current navigation state
-	var nav_state: Dictionary = get_slice(StringName("navigation"))
-	var overlay_stack: Array = nav_state.get("overlay_stack", [])
-
-	# Clear overlay stack by dispatching close actions for each overlay
-	for i in range(overlay_stack.size()):
-		dispatch(U_NAVIGATION_ACTIONS.close_top_overlay())
-
-	if settings != null and settings.enable_debug_logging and overlay_stack.size() > 0:
-		print("M_StateStore: Cleared ", overlay_stack.size(), " overlays during load")
+# NOTE: Load flow middleware moved to M_SaveManager (scripts/managers/m_save_manager.gd)
 
 func _save_state_if_enabled() -> void:
 	var enable_logging := settings != null and settings.enable_debug_logging
@@ -597,6 +463,21 @@ func load_state(filepath: String) -> Error:
 	var err: Error = U_STATE_REPOSITORY.load_state(filepath, _state, _slice_configs)
 	if err == OK:
 		state_loaded.emit(filepath)
+	return err
+
+
+## Load state from a save slot using the envelope format
+##
+## Used by M_SaveManager for save slot loading. Loads directly into _state.
+## Returns OK on success, or an Error code on failure.
+func load_from_save_slot(slot_index: int) -> Error:
+	var err: Error
+	if slot_index == U_SAVE_MANAGER.AUTO_SLOT_INDEX:
+		err = U_SAVE_MANAGER.load_from_auto_slot(_state, _slice_configs)
+	else:
+		err = U_SAVE_MANAGER.load_from_slot(slot_index, _state, _slice_configs)
+	if err == OK:
+		state_loaded.emit("slot_%d" % slot_index)
 	return err
 
 ## Preserve state to StateHandoff for scene transitions

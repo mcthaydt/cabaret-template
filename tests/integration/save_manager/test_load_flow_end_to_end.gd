@@ -11,6 +11,7 @@ extends BaseTest
 ## - Loading-screen transition used when scene requires it
 
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
+const M_SaveManager := preload("res://scripts/managers/m_save_manager.gd")
 const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 const M_SpawnManager := preload("res://scripts/managers/m_spawn_manager.gd")
 const M_PauseManager := preload("res://scripts/managers/m_pause_manager.gd")
@@ -41,6 +42,7 @@ const LEGACY_SAVE_PATH := "user://savegame.json"
 
 var _root_scene: Node
 var _store: M_StateStore
+var _save_manager: M_SaveManager
 var _scene_manager: M_SceneManager
 var _spawn_manager: M_SpawnManager
 var _pause_manager: M_PauseManager
@@ -103,6 +105,13 @@ func before_each() -> void:
 	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
+	_save_manager = M_SaveManager.new()
+	_save_manager.autosave_interval = 0.0  # Disable autosave in tests
+	_root_scene.add_child(_save_manager)
+	U_ServiceLocator.register(StringName("save_manager"), _save_manager)
+	await get_tree().process_frame
+	await get_tree().process_frame  # Extra frame for M_SaveManager to complete _ready
+
 	_spawn_manager = M_SpawnManager.new()
 	_root_scene.add_child(_spawn_manager)
 	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
@@ -125,6 +134,7 @@ func after_each() -> void:
 	U_StateHandoff.clear_all()
 	_root_scene = null
 	_store = null
+	_save_manager = null
 	_scene_manager = null
 	_spawn_manager = null
 	_pause_manager = null

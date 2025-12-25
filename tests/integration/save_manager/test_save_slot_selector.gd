@@ -7,6 +7,7 @@ extends GutTest
 
 const UI_SaveSlotSelector := preload("res://scripts/ui/ui_save_slot_selector.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
+const M_SaveManager := preload("res://scripts/managers/m_save_manager.gd")
 const U_SaveManager := preload("res://scripts/state/utils/u_save_manager.gd")
 const U_SaveEnvelope := preload("res://scripts/state/utils/u_save_envelope.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
@@ -15,6 +16,7 @@ const RS_SaveSlotMetadata := preload("res://scripts/state/resources/rs_save_slot
 const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 
 var _store: M_StateStore
+var _save_manager: M_SaveManager
 var _overlay: UI_SaveSlotSelector
 var _dispatched_actions: Array[Dictionary] = []
 
@@ -55,6 +57,13 @@ func before_each() -> void:
 	await get_tree().process_frame
 	_dispatched_actions.clear()
 
+	# Initialize save manager (handles load_started actions)
+	_save_manager = M_SaveManager.new()
+	_save_manager.autosave_interval = 0.0  # Disable autosave in tests
+	add_child_autofree(_save_manager)
+	await get_tree().process_frame
+	await get_tree().process_frame  # Extra frame for M_SaveManager to complete _ready
+
 	# Load and initialize overlay scene
 	var scene: PackedScene = load("res://scenes/ui/ui_save_slot_selector.tscn")
 	_overlay = scene.instantiate() as UI_SaveSlotSelector
@@ -66,6 +75,7 @@ func after_each() -> void:
 	_cleanup_save_files()
 
 	_overlay = null
+	_save_manager = null
 	_store = null
 	_dispatched_actions.clear()
 

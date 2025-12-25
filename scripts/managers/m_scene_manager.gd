@@ -272,18 +272,16 @@ func _ensure_store_reference() -> void:
 
 ## State change callback
 func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
-	# Detect scene changes and update cursor reactively
-	var scene_state: Dictionary = state.get("scene", {})
-	var new_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
-
-	# Only track scene_id when it actually changes and is not empty
-	# Phase 2 (T022): Cursor updates removed - M_PauseManager is now sole authority
-	if new_scene_id != _current_scene_id and not new_scene_id.is_empty():
-		_current_scene_id = new_scene_id
-		if _navigation_reconciler.get_pending_scene_id() == new_scene_id:
-			_navigation_reconciler.set_pending_scene_id(StringName(""))
-		# NOTE: _sync_navigation_shell_with_scene() now called AFTER transition completes
-		# in _process_transition_queue() to prevent mobile controls flashing (line 316)
+	# NOTE: _current_scene_id is now ONLY updated after transitions complete
+	# (in _process_transition_queue). This prevents premature updates during
+	# save/load operations where scene state changes before the actual transition.
+	#
+	# The old logic that updated _current_scene_id here caused a bug:
+	# 1. load_from_save_slot() updates scene.current_scene_id in state
+	# 2. This callback would set _current_scene_id to the loaded value
+	# 3. Then start_game() would be dispatched
+	# 4. Reconciler would skip transition because current == desired
+	pass
 
 ## ECS event handler: entity_death
 ## Phase 10B (T130): Subscribe to entity_death event instead of direct call from S_HealthSystem
@@ -365,6 +363,12 @@ func _process_transition_queue() -> void:
 
 	# Perform transition
 	await _perform_transition(request)
+
+	# Update _current_scene_id AFTER transition completes (not in _on_state_changed)
+	# This prevents race conditions with save/load operations
+	_current_scene_id = request.scene_id
+	if _navigation_reconciler.get_pending_scene_id() == request.scene_id:
+		_navigation_reconciler.set_pending_scene_id(StringName(""))
 
 	# Dispatch transition completed action
 	if _store != null:
