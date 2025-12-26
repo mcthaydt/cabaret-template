@@ -146,10 +146,16 @@ func test_load_preserves_state_to_handoff() -> void:
 	# Create a save
 	_save_manager.save_to_slot(StringName("slot_02"))
 
-	# Clear handoff to ensure clean state
-	U_STATE_HANDOFF.clear_all()
+	# Modify state after save to verify load restores it
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("different_scene")))
+	await get_tree().physics_frame
 
-	# Load the save
+	# Verify state was modified
+	var state_after_modification: Dictionary = _state_store.get_state()
+	var scene_after_mod: Dictionary = state_after_modification.get("scene", {})
+	assert_eq(scene_after_mod.get("current_scene_id"), StringName("different_scene"), "State should be modified before load")
+
+	# Load the save (will apply state directly to store via apply_loaded_state)
 	var load_result: Error = _save_manager.load_from_slot(StringName("slot_02"))
 
 	# Load might fail if scene slice doesn't have current_scene_id
@@ -158,17 +164,13 @@ func test_load_preserves_state_to_handoff() -> void:
 		pass_test("Skipping - requires fully initialized state store")
 		return
 
-	# If load succeeded, verify StateHandoff was populated
-	# (The actual slices depend on what's in the state store)
-	# At minimum, we expect some state to be preserved
-	var all_slices_empty := true
-	for slice_name in ["gameplay", "scene", "navigation"]:
-		var restored: Dictionary = U_STATE_HANDOFF.restore_slice(StringName(slice_name))
-		if not restored.is_empty():
-			all_slices_empty = false
-			break
+	# Wait for state to be applied
+	await get_tree().process_frame
 
-	assert_false(all_slices_empty, "At least one slice should be preserved to handoff")
+	# Verify state was restored via apply_loaded_state (not StateHandoff)
+	var state_after_load: Dictionary = _state_store.get_state()
+	var scene_after_load: Dictionary = state_after_load.get("scene", {})
+	assert_eq(scene_after_load.get("current_scene_id"), StringName("gameplay_base"), "State should be restored from save file")
 
 func test_load_lock_prevents_concurrent_operations() -> void:
 	# Create save manager
