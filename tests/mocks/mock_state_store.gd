@@ -14,6 +14,9 @@ class_name MockStateStore
 ## - clear_dispatched_actions(): Reset action history
 ## - reset(): Clear all state and history
 
+signal action_dispatched(action: Dictionary)
+signal slice_updated(slice_name: StringName, slice_state: Dictionary)
+
 var _state: Dictionary = {}
 var _subscribers: Array[Callable] = []
 var _dispatched_actions: Array[Dictionary] = []
@@ -33,6 +36,9 @@ func _init(initial_state: Dictionary = {}) -> void:
 
 func dispatch(action: Dictionary) -> void:
 	_dispatched_actions.append(action.duplicate(true))
+
+	# Emit action_dispatched signal (for autosave scheduler)
+	action_dispatched.emit(action.duplicate(true))
 
 	# Optionally apply simple reducers for common actions
 	var action_type: String = str(action.get("type", ""))

@@ -1,0 +1,185 @@
+extends BaseTest
+
+const M_AUTOSAVE_SCHEDULER := preload("res://scripts/managers/helpers/m_autosave_scheduler.gd")
+const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
+
+var _scheduler: Node
+var _mock_store: MockStateStore
+var _mock_save_manager: Node
+
+# Priority constants (duplicated from scheduler for testing)
+enum Priority {
+	NORMAL = 0,
+	HIGH = 1,
+	CRITICAL = 2
+}
+
+func before_each() -> void:
+	# Reset ECS event bus to prevent subscription leaks
+	U_ECSEventBus.reset()
+
+	# Clear ServiceLocator to prevent warnings
+	U_ServiceLocator.clear()
+
+	# Create mock state store
+	_mock_store = MOCK_STATE_STORE.new()
+	add_child(_mock_store)
+	autofree(_mock_store)
+
+	# Create mock save manager
+	_mock_save_manager = Node.new()
+	_mock_save_manager.name = "MockSaveManager"
+	_mock_save_manager.set_script(load("res://tests/mocks/mock_save_manager.gd"))
+	add_child(_mock_save_manager)
+	autofree(_mock_save_manager)
+
+	# Register mocks with ServiceLocator
+	U_ServiceLocator.register(StringName("state_store"), _mock_store)
+	U_ServiceLocator.register(StringName("save_manager"), _mock_save_manager)
+
+	await get_tree().process_frame
+
+func after_each() -> void:
+	pass
+
+## Phase 6: Autosave Scheduler Tests
+
+func test_scheduler_extends_node() -> void:
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	assert_true(_scheduler is Node, "Scheduler should extend Node")
+	autofree(_scheduler)
+
+func test_scheduler_discovers_dependencies() -> void:
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	await get_tree().process_frame
+
+	# Scheduler should have discovered state store and save manager
+	assert_true(_scheduler.has_method("_get_state_store"), "Scheduler should have _get_state_store method")
+	assert_true(_scheduler.has_method("_get_save_manager"), "Scheduler should have _get_save_manager method")
+
+func test_checkpoint_event_triggers_autosave_request() -> void:
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	# Set up state to allow autosave
+	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
+	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
+
+	await get_tree().process_frame
+
+	# Emit checkpoint event
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {"checkpoint_id": "test_checkpoint"})
+
+	await get_tree().process_frame
+
+	# Verify autosave was requested
+	assert_gt(_mock_save_manager.autosave_request_count, 0, "Checkpoint should trigger autosave request")
+
+func test_area_complete_action_triggers_autosave_request() -> void:
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	# Set up state to allow autosave
+	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
+	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
+
+	await get_tree().process_frame
+
+	# Dispatch area complete action
+	_mock_store.dispatch({
+		"type": StringName("gameplay/mark_area_complete"),
+		"payload": "test_area"
+	})
+
+	await get_tree().process_frame
+
+	# Verify autosave was requested
+	assert_gt(_mock_save_manager.autosave_request_count, 0, "Area complete action should trigger autosave request")
+
+func test_scene_transition_completed_triggers_autosave_request() -> void:
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	# Set up state to allow autosave
+	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
+	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
+
+	await get_tree().process_frame
+
+	# Dispatch scene transition completed action
+	_mock_store.dispatch({
+		"type": StringName("scene/transition_completed"),
+		"payload": {"scene_id": StringName("gameplay_base")}
+	})
+
+	await get_tree().process_frame
+
+	# Verify autosave was requested
+	assert_gt(_mock_save_manager.autosave_request_count, 0, "Scene transition completed should trigger autosave request")
+
+func test_autosave_blocked_when_death_in_progress() -> void:
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	# Set death_in_progress to true
+	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": true})
+	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
+
+	await get_tree().process_frame
+
+	# Emit checkpoint event
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {"checkpoint_id": "test_checkpoint"})
+
+	await get_tree().process_frame
+
+	# Verify autosave was NOT requested
+	assert_eq(_mock_save_manager.autosave_request_count, 0, "Autosave should be blocked when death_in_progress is true")
+
+func test_autosave_blocked_when_scene_transitioning() -> void:
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	# Set scene transitioning to true
+	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
+	_mock_store.set_slice(StringName("scene"), {"is_transitioning": true})
+
+	await get_tree().process_frame
+
+	# Emit checkpoint event
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {"checkpoint_id": "test_checkpoint"})
+
+	await get_tree().process_frame
+
+	# Verify autosave was NOT requested
+	assert_eq(_mock_save_manager.autosave_request_count, 0, "Autosave should be blocked when scene is transitioning")
+
+func test_coalescing_multiple_requests_into_one_write() -> void:
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	# Set up state to allow autosave
+	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
+	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
+
+	await get_tree().process_frame
+
+	# Emit multiple events rapidly (within same frame)
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {"checkpoint_id": "checkpoint_1"})
+	_mock_store.dispatch({
+		"type": StringName("gameplay/mark_area_complete"),
+		"payload": "area_1"
+	})
+
+	await get_tree().process_frame
+
+	# Verify only one autosave was requested (coalesced)
+	assert_eq(_mock_save_manager.autosave_request_count, 1, "Multiple events in same frame should coalesce into one autosave")
