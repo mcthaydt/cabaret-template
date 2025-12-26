@@ -408,19 +408,17 @@ func _perform_load(slot_id: StringName) -> void:
 		push_error("UI_SaveLoadMenu: Cannot load, M_SaveManager not found")
 		return
 
-	# Close the overlay immediately before loading
-	# Scene transition will handle its own loading screen
-	var store := get_store()
-	if store != null:
-		store.dispatch(U_NavigationActions.close_top_overlay())
+	# Show loading overlay (hides menu content, shows spinner)
+	_set_loading_state(true)
 
 	# Perform the load (scene transition begins)
 	var result: Error = _save_manager.load_from_slot(slot_id)
 
 	if result != OK:
 		push_warning("UI_SaveLoadMenu: Load failed with error code %d" % result)
+		_set_loading_state(false)
 		# TODO: Show error toast or inline message
-		# Note: Overlay is already closed, error will appear in gameplay
+	# If load succeeds, scene transition will close this overlay automatically
 
 func _perform_delete(slot_id: StringName) -> void:
 	if _save_manager == null:
@@ -437,9 +435,21 @@ func _perform_delete(slot_id: StringName) -> void:
 		_refresh_slot_list()
 
 func _set_loading_state(loading: bool) -> void:
-	# Just track loading state flag (used to prevent button mashing)
-	# Visual loading is now handled by closing overlay + scene transition
 	_is_loading = loading
+
+	# Show/hide loading overlay
+	if _loading_overlay != null:
+		_loading_overlay.visible = loading
+	if _loading_spinner != null:
+		_loading_spinner.visible = loading
+
+	# Hide main menu content while loading to prevent flicker
+	if _slot_list_container != null:
+		_slot_list_container.get_parent().visible = not loading  # Hide ScrollContainer
+	if _mode_label != null:
+		_mode_label.visible = not loading
+	if _back_button != null:
+		_back_button.visible = not loading
 
 ## Event handlers for save events
 
