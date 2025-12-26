@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://cj4k2r8x9m5tn"]
+[gd_scene load_steps=2 format=3 uid="uid://cj4k2r8yam5tn"]
 
 [ext_resource type="Script" path="res://scripts/ui/ui_save_load_menu.gd" id="1_save_load_menu_script"]
 
@@ -30,7 +30,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(400, 300)
+custom_minimum_size = Vector2(700, 300)
 layout_mode = 2
 alignment = 1
 

@@ -265,7 +265,7 @@ func load_from_slot(slot_id: StringName) -> Error:
 	# Trigger scene transition
 	# Note: M_StateStore will restore state from handoff after scene loads
 	if _scene_manager and _scene_manager.has_method("transition_to_scene"):
-		_scene_manager.transition_to_scene(target_scene_id)
+		_scene_manager.transition_to_scene(target_scene_id, "fade")
 	else:
 		# No scene manager - clear handoff, unsubscribe, and fail gracefully
 		U_STATE_HANDOFF.clear_all()

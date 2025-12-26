@@ -118,6 +118,9 @@ func _refresh_slot_list() -> void:
 	if _save_manager == null or _slot_list_container == null:
 		return
 
+	# Store which slot index had focus before refresh
+	var focused_slot_index: int = _get_focused_slot_index()
+
 	# Get all slot metadata from M_SaveManager
 	_cached_metadata = _save_manager.get_all_slot_metadata()
 
@@ -130,6 +133,9 @@ func _refresh_slot_list() -> void:
 
 	# Configure focus chain
 	_configure_slot_focus()
+
+	# Restore focus to the same slot (or first available if previous was deleted)
+	_restore_focus_to_slot(focused_slot_index)
 
 func _clear_slot_list() -> void:
 	if _slot_list_container == null:
@@ -280,6 +286,56 @@ func _configure_slot_focus() -> void:
 		focusable_controls.append(_back_button)
 		U_FocusConfigurator.configure_vertical_focus(focusable_controls, true)
 
+func _get_focused_slot_index() -> int:
+	# Returns the index of the currently focused slot container, or -1 if none
+	var viewport := get_viewport()
+	if viewport == null:
+		return -1
+
+	var focused_control := viewport.gui_get_focus_owner()
+	if focused_control == null:
+		return -1
+
+	# Check if focused control is a main button inside a slot container
+	var parent := focused_control.get_parent()
+	if parent is HBoxContainer and parent.get_parent() == _slot_list_container:
+		return parent.get_index()
+
+	return -1
+
+func _restore_focus_to_slot(slot_index: int) -> void:
+	# Restore focus to the slot at the given index, or first available slot
+	if _slot_list_container == null:
+		return
+
+	await get_tree().process_frame  # Wait for UI to settle
+
+	var target_index: int = slot_index
+	var slot_count: int = _slot_list_container.get_child_count()
+
+	# Clamp to valid range
+	if target_index >= slot_count:
+		target_index = slot_count - 1
+	if target_index < 0:
+		target_index = 0
+
+	# Find the main button in the target slot
+	if target_index < slot_count:
+		var slot_container := _slot_list_container.get_child(target_index)
+		if slot_container is HBoxContainer:
+			var main_button: Button = slot_container.get_node_or_null("MainButton") as Button
+			if main_button != null and not main_button.disabled and main_button.is_inside_tree():
+				main_button.grab_focus()
+				return
+
+	# Fallback: focus first available button
+	for container in _slot_list_container.get_children():
+		if container is HBoxContainer:
+			var main_button: Button = container.get_node_or_null("MainButton") as Button
+			if main_button != null and not main_button.disabled and main_button.is_inside_tree():
+				main_button.grab_focus()
+				return
+
 func _on_slot_item_pressed(slot_id: StringName, exists: bool) -> void:
 	if _is_loading:
 		return  # Ignore input during load
@@ -352,16 +408,19 @@ func _perform_load(slot_id: StringName) -> void:
 		push_error("UI_SaveLoadMenu: Cannot load, M_SaveManager not found")
 		return
 
-	# Show loading state
-	_set_loading_state(true)
+	# Close the overlay immediately before loading
+	# Scene transition will handle its own loading screen
+	var store := get_store()
+	if store != null:
+		store.dispatch(U_NavigationActions.close_top_overlay())
 
+	# Perform the load (scene transition begins)
 	var result: Error = _save_manager.load_from_slot(slot_id)
 
 	if result != OK:
 		push_warning("UI_SaveLoadMenu: Load failed with error code %d" % result)
-		_set_loading_state(false)
 		# TODO: Show error toast or inline message
-	# If load succeeds, scene transition will close this overlay automatically
+		# Note: Overlay is already closed, error will appear in gameplay
 
 func _perform_delete(slot_id: StringName) -> void:
 	if _save_manager == null:
@@ -378,22 +437,9 @@ func _perform_delete(slot_id: StringName) -> void:
 		_refresh_slot_list()
 
 func _set_loading_state(loading: bool) -> void:
+	# Just track loading state flag (used to prevent button mashing)
+	# Visual loading is now handled by closing overlay + scene transition
 	_is_loading = loading
-
-	if _loading_overlay != null:
-		_loading_overlay.visible = loading
-
-	if _loading_spinner != null:
-		_loading_spinner.visible = loading
-
-	# Disable all interactive elements during load
-	if _slot_list_container != null:
-		for child in _slot_list_container.get_children():
-			if child is Button:
-				child.disabled = loading
-
-	if _back_button != null:
-		_back_button.disabled = loading
 
 ## Event handlers for save events
 
