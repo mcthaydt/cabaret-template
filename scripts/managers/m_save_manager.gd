@@ -92,6 +92,66 @@ func _is_loading_locked() -> bool:
 	return _is_loading
 
 ## ============================================================================
+## Public API - Save Operations
+## ============================================================================
+
+## Save current state to a specific slot
+##
+## Returns Error code (OK on success, ERR_BUSY if already saving)
+func save_to_slot(slot_id: StringName) -> Error:
+	# Check lock - reject if already saving
+	if _is_saving:
+		return ERR_BUSY
+
+	# Validate slot_id
+	if not slot_id in ALL_SLOTS:
+		push_error("M_SaveManager: Invalid slot_id: %s" % slot_id)
+		return ERR_INVALID_PARAMETER
+
+	# Set lock
+	_is_saving = true
+
+	# Emit save_started event
+	var is_autosave: bool = (slot_id == SLOT_AUTOSAVE)
+	U_ECSEventBus.publish(StringName("save_started"), {
+		"slot_id": slot_id,
+		"is_autosave": is_autosave
+	})
+
+	# Get persistable state (transient fields already filtered)
+	var state: Dictionary = _state_store.get_persistable_state()
+
+	# Build header metadata
+	var header: Dictionary = _build_metadata(slot_id)
+
+	# Combine header + state
+	var save_data := {
+		"header": header,
+		"state": state
+	}
+
+	# Write to file atomically
+	var file_path: String = _get_slot_file_path(slot_id)
+	var file_io := M_SaveFileIO.new()
+	var result: Error = file_io.save_to_file(file_path, save_data)
+
+	# Clear lock
+	_is_saving = false
+
+	# Emit completion event
+	if result == OK:
+		U_ECSEventBus.publish(StringName("save_completed"), {
+			"slot_id": slot_id
+		})
+	else:
+		U_ECSEventBus.publish(StringName("save_failed"), {
+			"slot_id": slot_id,
+			"error_code": result
+		})
+
+	return result
+
+## ============================================================================
 ## Public API - Slot Registry
 ## ============================================================================
 

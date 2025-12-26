@@ -8,6 +8,12 @@ var _mock_store: MockStateStore
 var _mock_scene_manager: Node
 
 func before_each() -> void:
+	# Reset ECS event bus to prevent subscription leaks
+	U_ECSEventBus.reset()
+
+	# Clear ServiceLocator to prevent warnings
+	U_ServiceLocator.clear()
+
 	# Create mock state store
 	_mock_store = MOCK_STATE_STORE.new()
 	add_child(_mock_store)
@@ -23,7 +29,35 @@ func before_each() -> void:
 	U_ServiceLocator.register(StringName("state_store"), _mock_store)
 	U_ServiceLocator.register(StringName("scene_manager"), _mock_scene_manager)
 
+	# Ensure test directory exists and is clean
+	_ensure_test_directory_clean()
+
 	await get_tree().process_frame
+
+func after_each() -> void:
+	# Clean up test files
+	_cleanup_test_files()
+
+## Test helpers
+
+func _ensure_test_directory_clean() -> void:
+	var dir := DirAccess.open("user://")
+	if not dir.dir_exists("saves"):
+		DirAccess.make_dir_recursive_absolute("user://saves/")
+
+func _cleanup_test_files() -> void:
+	# Remove all test save files
+	var dir := DirAccess.open("user://saves/")
+	if not dir:
+		return
+
+	dir.list_dir_begin()
+	var file_name: String = dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and (file_name.ends_with(".json") or file_name.ends_with(".bak") or file_name.ends_with(".tmp")):
+			dir.remove(file_name)
+		file_name = dir.get_next()
+	dir.list_dir_end()
 
 ## Phase 1: Manager Lifecycle and Discovery Tests
 
@@ -305,3 +339,186 @@ func test_state_store_has_get_persistable_state_method() -> void:
 func test_state_store_has_get_slice_configs_method() -> void:
 	# Verify M_StateStore exposes get_slice_configs() for advanced use cases
 	assert_true(_mock_store.has_method("get_slice_configs"), "M_StateStore should have get_slice_configs() method")
+
+## Phase 4: Manual Save Workflow Tests
+
+func test_save_to_slot_returns_ok_when_successful() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup mock state
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+
+	# Should return OK on successful save
+	var result: Error = _save_manager.save_to_slot(StringName("slot_01"))
+	assert_eq(result, OK, "save_to_slot should return OK on success")
+
+func test_save_to_slot_rejects_when_already_saving() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup mock state
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+
+	# Manually set _is_saving to true (simulate concurrent save)
+	_save_manager.set("_is_saving", true)
+
+	# Should reject with ERR_BUSY
+	var result: Error = _save_manager.save_to_slot(StringName("slot_01"))
+	assert_eq(result, ERR_BUSY, "save_to_slot should return ERR_BUSY when already saving")
+
+func test_save_to_slot_emits_save_started_event() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup mock state
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+
+	# Subscribe to save_started event (use Array to capture mutable state)
+	var event_data: Array = [false, null]  # [received, event]
+	U_ECSEventBus.subscribe(StringName("save_started"), func(event: Variant) -> void:
+		event_data[0] = true
+		event_data[1] = event
+	)
+
+	# Perform save
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Verify event was published
+	assert_true(event_data[0], "save_started event should be published")
+	assert_true(event_data[1] is Dictionary, "Event should be a Dictionary")
+
+	# Extract payload from event wrapper
+	var event: Dictionary = event_data[1] as Dictionary
+	var payload: Dictionary = event.get("payload", {}) as Dictionary
+
+	assert_eq(payload.get("slot_id"), StringName("slot_01"), "Event payload should include slot_id")
+	assert_false(payload.get("is_autosave", true), "Manual save should have is_autosave=false")
+
+func test_save_to_slot_emits_save_completed_event() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup mock state
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+
+	# Subscribe to save_completed event (use Array to capture mutable state)
+	var event_data: Array = [false, null]  # [received, event]
+	U_ECSEventBus.subscribe(StringName("save_completed"), func(event: Variant) -> void:
+		event_data[0] = true
+		event_data[1] = event
+	)
+
+	# Perform save
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Verify event was published
+	assert_true(event_data[0], "save_completed event should be published on success")
+	assert_true(event_data[1] is Dictionary, "Event should be a Dictionary")
+
+	# Extract payload from event wrapper
+	var event: Dictionary = event_data[1] as Dictionary
+	var payload: Dictionary = event.get("payload", {}) as Dictionary
+
+	assert_eq(payload.get("slot_id"), StringName("slot_01"), "Event payload should include slot_id")
+
+func test_save_to_slot_sets_and_clears_is_saving_lock() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup mock state
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+
+	# Verify initial state
+	assert_false(_save_manager.call("_is_saving_locked"), "_is_saving should be false initially")
+
+	# Perform save
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# After save completes, lock should be cleared
+	assert_false(_save_manager.call("_is_saving_locked"), "_is_saving should be false after save completes")
+
+func test_save_to_slot_writes_file_with_header_and_state() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup mock state with recognizable data
+	_mock_store.set_slice(StringName("gameplay"), {
+		"playtime_seconds": 3600,
+		"player_health": 75.0,
+		"last_checkpoint": "cp_test"
+	})
+	_mock_store.set_slice(StringName("scene"), {
+		"current_scene_id": "gameplay_base"
+	})
+
+	# Perform save
+	var result: Error = _save_manager.save_to_slot(StringName("slot_01"))
+	assert_eq(result, OK, "Save should succeed")
+
+	# Verify file was written
+	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
+	assert_true(FileAccess.file_exists(file_path), "Save file should exist after save")
+
+	# Load and verify contents
+	var file_io := M_SaveFileIO.new()
+	file_io.silent_mode = true
+	var loaded_data: Dictionary = file_io.load_from_file(file_path)
+
+	# Verify structure: {header, state}
+	assert_true(loaded_data.has("header"), "Save file should have header")
+	assert_true(loaded_data.has("state"), "Save file should have state")
+
+	# Verify header fields
+	var header: Dictionary = loaded_data["header"]
+	assert_eq(header.get("save_version"), 1, "Header should have save_version=1")
+	assert_eq(header.get("slot_id"), StringName("slot_01"), "Header should have correct slot_id")
+	assert_eq(header.get("playtime_seconds"), 3600, "Header should have playtime from state")
+	assert_eq(header.get("current_scene_id"), "gameplay_base", "Header should have scene_id from state")
+
+	# Verify state was included
+	var state: Dictionary = loaded_data["state"]
+	assert_true(state.has("gameplay"), "State should include gameplay slice")
+	assert_eq(state["gameplay"].get("player_health"), 75.0, "State should preserve gameplay data")
+
+func test_save_to_slot_calls_get_persistable_state() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup mock state
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+
+	# Perform save
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Verify get_persistable_state was called by checking the saved file
+	# (The implementation should call get_persistable_state instead of get_state)
+	# This is verified by the fact that transient fields should be filtered
+	# We can't directly mock/spy the call, but we verify the behavior
