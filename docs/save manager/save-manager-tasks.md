@@ -385,10 +385,15 @@ Key points:
 - [x] **Task 9.5**: Update pause menu scene (`ui_pause_menu.tscn`)
   - Added SaveButton and LoadButton nodes with `unique_name_in_owner = true`
   - Buttons appear in order: Resume, Settings, Save, Load, Quit
+- [x] **Task 9.6**: Register overlay in U_UIRegistry (fix)
+  - Added SAVE_LOAD_MENU_OVERLAY preload constant
+  - Registered in `_register_all_screens()` method
+  - Overlay now discoverable by navigation reducers
 
 **Notes:**
 - Phase 9 complete (2025-12-26)
 - All Redux wiring in place for save/load mode switching
+- UI Registry properly configured for overlay discovery
 - UI scene files ready for Phase 10 implementation
 - Focus navigation configured via existing U_FocusConfigurator pattern
 
