@@ -26,8 +26,6 @@ var _save_manager: Node = null  # M_SaveManager
 ## Cached slot metadata
 var _cached_metadata: Array[Dictionary] = []
 
-## Loading state
-var _is_loading: bool = false
 
 ## Confirmation dialog state
 var _pending_action: Dictionary = {}  # {action: "save"|"delete", slot_id: StringName}
@@ -99,9 +97,6 @@ func _refresh_ui() -> void:
 
 	# Refresh slot list
 	_refresh_slot_list()
-
-	# Hide loading overlay
-	_set_loading_state(false)
 
 func _update_mode_label() -> void:
 	if _mode_label == null:
@@ -337,9 +332,6 @@ func _restore_focus_to_slot(slot_index: int) -> void:
 				return
 
 func _on_slot_item_pressed(slot_id: StringName, exists: bool) -> void:
-	if _is_loading:
-		return  # Ignore input during load
-
 	if _mode == StringName("save"):
 		if exists:
 			# Show overwrite confirmation
@@ -357,9 +349,6 @@ func _on_slot_item_pressed(slot_id: StringName, exists: bool) -> void:
 		# Empty slots are disabled in load mode, so this shouldn't happen
 
 func _on_delete_button_pressed(slot_id: StringName) -> void:
-	if _is_loading:
-		return  # Ignore input during load
-
 	# Show delete confirmation
 	_show_confirmation(
 		"Delete this save file?",
@@ -408,17 +397,18 @@ func _perform_load(slot_id: StringName) -> void:
 		push_error("UI_SaveLoadMenu: Cannot load, M_SaveManager not found")
 		return
 
-	# Show loading overlay (hides menu content, shows spinner)
-	_set_loading_state(true)
+	# Close the save/load menu immediately
+	# M_SceneManager's loading screen will take over
+	var store := get_store()
+	if store != null:
+		store.dispatch(U_NavigationActions.close_top_overlay())
 
-	# Perform the load (scene transition begins)
+	# Perform the load (scene transition + loading screen handled by M_SceneManager)
 	var result: Error = _save_manager.load_from_slot(slot_id)
 
 	if result != OK:
 		push_warning("UI_SaveLoadMenu: Load failed with error code %d" % result)
-		_set_loading_state(false)
-		# TODO: Show error toast or inline message
-	# If load succeeds, scene transition will close this overlay automatically
+		# TODO: Show error toast in gameplay (overlay already closed)
 
 func _perform_delete(slot_id: StringName) -> void:
 	if _save_manager == null:
@@ -433,23 +423,6 @@ func _perform_delete(slot_id: StringName) -> void:
 	else:
 		# Refresh UI to remove deleted slot
 		_refresh_slot_list()
-
-func _set_loading_state(loading: bool) -> void:
-	_is_loading = loading
-
-	# Show/hide loading overlay
-	if _loading_overlay != null:
-		_loading_overlay.visible = loading
-	if _loading_spinner != null:
-		_loading_spinner.visible = loading
-
-	# Hide main menu content while loading to prevent flicker
-	if _slot_list_container != null:
-		_slot_list_container.get_parent().visible = not loading  # Hide ScrollContainer
-	if _mode_label != null:
-		_mode_label.visible = not loading
-	if _back_button != null:
-		_back_button.visible = not loading
 
 ## Event handlers for save events
 
