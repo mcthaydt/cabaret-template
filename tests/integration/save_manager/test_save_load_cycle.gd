@@ -15,6 +15,8 @@ const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
 
 var _save_manager: M_SaveManager
 var _state_store: M_StateStore
@@ -26,8 +28,10 @@ func before_each() -> void:
 	U_ServiceLocator.clear()
 	U_STATE_HANDOFF.clear_all()
 
-	# Create real state store
+	# Create real state store with required initial state resources
 	_state_store = M_STATE_STORE.new()
+	_state_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
+	_state_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
 	add_child(_state_store)
 	autofree(_state_store)
 
@@ -82,6 +86,11 @@ func test_save_creates_valid_file_structure() -> void:
 
 	await get_tree().process_frame
 
+	# Initialize scene state with a valid current_scene_id
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	# Wait for physics frame to flush state updates
+	await get_tree().physics_frame
+
 	# Just do a basic save with whatever state exists
 	var save_result: Error = _save_manager.save_to_slot(StringName("slot_01"))
 	assert_eq(save_result, OK, "Save should succeed")
@@ -120,6 +129,11 @@ func test_load_preserves_state_to_handoff() -> void:
 
 	await get_tree().process_frame
 
+	# Initialize scene state with a valid current_scene_id
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	# Wait for physics frame to flush state updates
+	await get_tree().physics_frame
+
 	# Create a save
 	_save_manager.save_to_slot(StringName("slot_02"))
 
@@ -154,6 +168,11 @@ func test_load_lock_prevents_concurrent_operations() -> void:
 	autofree(_save_manager)
 
 	await get_tree().process_frame
+
+	# Initialize scene state with a valid current_scene_id
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	# Wait for physics frame to flush state updates
+	await get_tree().physics_frame
 
 	# Create a save
 	_save_manager.save_to_slot(StringName("slot_03"))
