@@ -18,6 +18,7 @@ class_name M_SaveManager
 ## - M_SceneManager: Scene transitions during load
 
 const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
+const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 ## Save file format version
 const SAVE_VERSION := 1
@@ -151,6 +152,70 @@ func save_to_slot(slot_id: StringName) -> Error:
 
 	return result
 
+## Load state from a specific slot
+##
+## Loads the save file, preserves state to StateHandoff, and transitions to the saved scene.
+## M_StateStore will automatically restore state after the scene loads.
+##
+## Returns Error code (OK on success, ERR_BUSY if already loading/transitioning, ERR_FILE_NOT_FOUND if slot doesn't exist)
+func load_from_slot(slot_id: StringName) -> Error:
+	# Check if already loading
+	if _is_loading:
+		return ERR_BUSY
+
+	# Check if scene manager is currently transitioning
+	if _scene_manager and _scene_manager.has_method("is_transitioning"):
+		if _scene_manager.is_transitioning():
+			return ERR_BUSY
+
+	# Validate slot_id
+	if not slot_id in ALL_SLOTS:
+		push_error("M_SaveManager: Invalid slot_id: %s" % slot_id)
+		return ERR_INVALID_PARAMETER
+
+	# Check if slot exists
+	if not slot_exists(slot_id):
+		return ERR_FILE_NOT_FOUND
+
+	# Set loading lock
+	_is_loading = true
+
+	# Read and validate save file
+	var file_path: String = _get_slot_file_path(slot_id)
+	var validation_result: Dictionary = _validate_and_load_save_file(file_path)
+
+	if validation_result.has("error"):
+		_is_loading = false
+		return validation_result["error"]
+
+	var header: Dictionary = validation_result["header"]
+	var loaded_state: Dictionary = validation_result["state"]
+	var target_scene_id: StringName = validation_result["scene_id"]
+
+	# Preserve all state slices to StateHandoff for scene transition
+	# M_StateStore will automatically restore them after the scene loads
+	for slice_name in loaded_state:
+		var slice_data: Dictionary = loaded_state[slice_name]
+		U_STATE_HANDOFF.preserve_slice(StringName(slice_name), slice_data)
+
+	# Trigger scene transition
+	# Note: M_StateStore will restore state from handoff after scene loads
+	if _scene_manager and _scene_manager.has_method("transition_to_scene"):
+		_scene_manager.transition_to_scene(target_scene_id)
+	else:
+		# No scene manager - clear handoff and fail gracefully
+		U_STATE_HANDOFF.clear_all()
+		_is_loading = false
+		push_error("M_SaveManager: No scene manager available for load transition")
+		return ERR_UNAVAILABLE
+
+	# Clear loading lock
+	# Note: In the future, this should be done after the scene transition completes
+	# For now, we clear it immediately since transitions are synchronous in tests
+	_is_loading = false
+
+	return OK
+
 ## Delete a save slot
 ##
 ## Removes the save file and backup for the specified slot.
@@ -251,6 +316,45 @@ func get_all_slot_metadata() -> Array[Dictionary]:
 		all_metadata.append(metadata)
 
 	return all_metadata
+
+## ============================================================================
+## Internal - Load Validation
+## ============================================================================
+
+## Validate and load a save file
+##
+## Returns a Dictionary with either:
+## - Success: {"header": Dictionary, "state": Dictionary, "scene_id": StringName}
+## - Failure: {"error": Error}
+func _validate_and_load_save_file(file_path: String) -> Dictionary:
+	var file_io := M_SaveFileIO.new()
+	file_io.silent_mode = true  # Don't spam warnings during load
+	var save_data: Dictionary = file_io.load_from_file(file_path)
+
+	# Check if file loaded successfully
+	if save_data.is_empty():
+		push_error("M_SaveManager: Failed to load save file: %s" % file_path)
+		return {"error": ERR_FILE_CORRUPT}
+
+	# Validate save data structure
+	if not save_data.has("header") or not save_data.has("state"):
+		push_error("M_SaveManager: Invalid save file structure (missing header or state)")
+		return {"error": ERR_FILE_CORRUPT}
+
+	var header: Dictionary = save_data["header"]
+	var loaded_state: Dictionary = save_data["state"]
+
+	# Extract and validate target scene
+	var target_scene_id: StringName = StringName(header.get("current_scene_id", ""))
+	if target_scene_id == StringName(""):
+		push_error("M_SaveManager: Save file has no current_scene_id")
+		return {"error": ERR_FILE_CORRUPT}
+
+	return {
+		"header": header,
+		"state": loaded_state,
+		"scene_id": target_scene_id
+	}
 
 ## ============================================================================
 ## Internal - Metadata Building

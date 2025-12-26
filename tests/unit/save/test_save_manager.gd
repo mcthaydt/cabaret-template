@@ -2,6 +2,7 @@ extends BaseTest
 
 const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
+const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 var _save_manager: Node
 var _mock_store: MockStateStore
@@ -649,3 +650,132 @@ func test_get_all_slot_metadata_includes_existing_slots_with_data() -> void:
 	# Verify slot_01 has full metadata
 	assert_true(slot_01_meta.get("exists", false), "slot_01 should be marked as exists=true")
 	assert_eq(slot_01_meta.get("playtime_seconds"), 100, "slot_01 should have playtime data")
+
+## Phase 5: Load Workflow Tests
+
+func test_load_from_slot_rejects_when_already_loading() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Manually set _is_loading to true (simulate concurrent load)
+	_save_manager.set("_is_loading", true)
+
+	# Should reject with ERR_BUSY
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, ERR_BUSY, "load_from_slot should return ERR_BUSY when already loading")
+
+func test_load_from_slot_rejects_during_scene_transition() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Add is_transitioning method to mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", true)
+
+	# Should reject with ERR_BUSY
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, ERR_BUSY, "load_from_slot should return ERR_BUSY during scene transition")
+
+func test_load_from_slot_rejects_nonexistent_slot() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Try to load from empty slot
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, ERR_FILE_NOT_FOUND, "load_from_slot should return ERR_FILE_NOT_FOUND for nonexistent slot")
+
+func test_load_from_slot_sets_and_clears_is_loading_lock() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a valid save first
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Add transition method to mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Verify initial state
+	assert_false(_save_manager.call("_is_loading_locked"), "_is_loading should be false initially")
+
+	# Perform load (this will trigger scene transition)
+	_save_manager.load_from_slot(StringName("slot_01"))
+
+	# After load completes (synchronous for now), lock should be cleared
+	# Note: This test may need adjustment once async loading is implemented
+	assert_false(_save_manager.call("_is_loading_locked"), "_is_loading should be false after load completes")
+
+func test_load_from_slot_preserves_state_to_handoff() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a save with specific data
+	_mock_store.set_slice(StringName("gameplay"), {
+		"playtime_seconds": 500,
+		"player_health": 50.0,
+		"last_checkpoint": "cp_saved"
+	})
+	_mock_store.set_slice(StringName("scene"), {
+		"current_scene_id": "interior_house"
+	})
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Add transition method to mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Clear handoff to ensure clean state
+	U_STATE_HANDOFF.clear_all()
+
+	# Load the save
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, OK, "Load should succeed")
+
+	# Verify state was preserved to handoff
+	var restored_gameplay: Dictionary = U_STATE_HANDOFF.restore_slice(StringName("gameplay"))
+	assert_false(restored_gameplay.is_empty(), "Gameplay state should be preserved to handoff")
+	assert_eq(restored_gameplay.get("playtime_seconds"), 500, "Preserved state should match saved data")
+	assert_eq(restored_gameplay.get("player_health"), 50.0, "Preserved state should include health")
+
+func test_load_from_slot_triggers_scene_transition() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a save with a specific scene
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "exterior"})
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Add transition method to mock scene manager and track calls
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+	_mock_scene_manager.set("_transition_called", false)
+	_mock_scene_manager.set("_transition_target", StringName(""))
+
+	# Load the save
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, OK, "Load should succeed")
+
+	# Verify scene transition was requested
+	assert_true(_mock_scene_manager.get("_transition_called"), "Scene transition should be called")
+	assert_eq(_mock_scene_manager.get("_transition_target"), StringName("exterior"), "Should transition to saved scene_id")
