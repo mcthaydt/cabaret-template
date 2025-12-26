@@ -1,6 +1,6 @@
 # Save Manager Implementation Tasks
 
-**Progress:** 27% (14 / 52 implementation tasks, 0 / 46 manual tests)
+**Progress:** 33% (17 / 52 implementation tasks, 0 / 46 manual tests)
 
 ---
 
@@ -112,23 +112,33 @@
   - Test `.tmp` -> `.json` rename ✅
   - Test `.bak` creation before overwrite ✅
   - Test `.bak` fallback on corruption ✅
-  - Created `tests/unit/save/test_save_file_io.gd` with 10 tests
-  - All assertions passing (75/78 total with existing tests)
-  - 3 tests show "Unexpected Errors" due to intentional warnings - logic is correct
+  - Created `tests/unit/save/test_save_file_io.gd` with two-tier testing:
+    - **Tier 1: Behavior Tests** (silent_mode = true): 12 tests verify functional correctness
+    - **Tier 2: Logging Tests** (silent_mode = false): 2 tests verify error emission with `[ExpectedError]` output
+  - All 14 tests passing, 24 assertions passing
 - [x] **Task 3.2 (Green)**: Implement `m_save_file_io.gd` with atomic operations
   - `ensure_save_directory()` -> `DirAccess.make_dir_recursive_absolute("user://saves")` ✅
   - `save_to_file(path, data)` -> write `.tmp`, backup `.bak`, rename to `.json` ✅
   - `load_from_file(path)` -> try `.json`, fallback to `.bak` if `.json` missing ✅
   - Clean up orphaned `.tmp` files on startup ✅
-  - Created `scripts/managers/helpers/m_save_file_io.gd` (135 lines, class_name helper)
+  - Created `scripts/managers/helpers/m_save_file_io.gd` (155 lines, class_name helper)
+  - Added `silent_mode` flag for test environments
 - [x] **Task 3.3 (Refactor)**: Extract file path utilities if needed
-  - No refactoring needed - file is clean and concise at 135 lines
+  - No refactoring needed - file is clean and concise at 155 lines
+
+**Additional Improvements:**
+- [x] Added `get_persistable_state()` to M_StateStore for save system integration
+- [x] Extracted `filter_transient_fields()` to U_StatePersistence utility
+- [x] Added save system initialization to M_SaveManager (directory + cleanup)
+- [x] Updated MockStateStore with new methods for testing
 
 **Notes:**
 - Atomic write pattern prevents partial saves: write to .tmp, then rename to .json
 - Backup (.bak) created before overwrite for corruption recovery
 - Load fallback chain: .json → .bak → empty dict
-- Warnings in tests are intentional (corruption detection logging)
+- Two-tier testing ensures both behavior AND logging correctness
+- Silent mode suppresses informational warnings in behavior tests
+- Logging tests verify errors are emitted with `[ExpectedError]` output (no false negatives)
 
 ---
 

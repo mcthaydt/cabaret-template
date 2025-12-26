@@ -71,11 +71,22 @@ func load_from_file(file_path: String) -> Dictionary:
 		var result: Dictionary = _try_load_json(file_path)
 		if not result.is_empty():
 			return result
-		else:
+		# Main file corrupted, check if backup exists before warning
+		var bak_path: String = file_path + ".bak"
+		if FileAccess.file_exists(bak_path):
 			if not silent_mode:
 				push_warning("Main save file corrupted, attempting backup: %s" % file_path)
+			var backup_result: Dictionary = _try_load_json(bak_path)
+			if not backup_result.is_empty():
+				if not silent_mode:
+					push_warning("Successfully recovered from backup: %s" % bak_path)
+				return backup_result
+			else:
+				push_error("Backup file also corrupted: %s" % bak_path)
+		# No backup exists, return empty
+		return {}
 
-	# Fallback to backup
+	# Main file doesn't exist, check for backup only
 	var bak_path: String = file_path + ".bak"
 	if FileAccess.file_exists(bak_path):
 		var result: Dictionary = _try_load_json(bak_path)
