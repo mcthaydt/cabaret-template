@@ -1,6 +1,6 @@
 # Save Manager Implementation Tasks
 
-**Progress:** 40% (21 / 52 implementation tasks, 0 / 46 manual tests)
+**Progress:** 42% (22 / 52 implementation tasks, 0 / 46 manual tests)
 
 ---
 
@@ -175,6 +175,12 @@
 - Tests extract actual payload via `event.get("payload", {})`
 - All tests use U_ServiceLocator.clear() and U_ECSEventBus.reset() in before_each to prevent leaks
 - Silent rejection on ERR_BUSY prevents test noise (GUT treats warnings as errors)
+
+**API Completion (Post-Phase 4):**
+- [x] Implemented `delete_slot()` - Removes save files (.json, .bak, .tmp), rejects autosave deletion (ERR_UNAUTHORIZED)
+- [x] Fixed `get_slot_metadata()` - Now reads headers from existing save files via M_SaveFileIO
+- [x] 5 new tests for delete and metadata reading (45/46 total passing, 119 assertions)
+- Save Manager now at 331 lines (still well under 400 limit)
 
 ---
 

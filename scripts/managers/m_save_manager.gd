@@ -151,6 +151,52 @@ func save_to_slot(slot_id: StringName) -> Error:
 
 	return result
 
+## Delete a save slot
+##
+## Removes the save file and backup for the specified slot.
+## Cannot delete the autosave slot.
+##
+## Returns Error code (OK on success, ERR_UNAUTHORIZED for autosave, ERR_FILE_NOT_FOUND if slot doesn't exist)
+func delete_slot(slot_id: StringName) -> Error:
+	# Prevent deletion of autosave slot
+	if slot_id == SLOT_AUTOSAVE:
+		return ERR_UNAUTHORIZED
+
+	# Validate slot_id
+	if not slot_id in ALL_SLOTS:
+		push_error("M_SaveManager: Invalid slot_id: %s" % slot_id)
+		return ERR_INVALID_PARAMETER
+
+	# Check if slot exists
+	if not slot_exists(slot_id):
+		return ERR_FILE_NOT_FOUND
+
+	var file_path: String = _get_slot_file_path(slot_id)
+	var bak_path: String = file_path + ".bak"
+	var tmp_path: String = file_path + ".tmp"
+
+	var dir := DirAccess.open(SAVE_DIR)
+	if not dir:
+		push_error("M_SaveManager: Failed to open save directory for deletion")
+		return ERR_FILE_CANT_OPEN
+
+	# Delete main file
+	if FileAccess.file_exists(file_path):
+		var error: Error = dir.remove(file_path.get_file())
+		if error != OK:
+			push_error("M_SaveManager: Failed to delete save file: %s (error %d)" % [file_path, error])
+			return error
+
+	# Delete backup file if it exists
+	if FileAccess.file_exists(bak_path):
+		dir.remove(bak_path.get_file())
+
+	# Delete temp file if it exists (cleanup)
+	if FileAccess.file_exists(tmp_path):
+		dir.remove(tmp_path.get_file())
+
+	return OK
+
 ## ============================================================================
 ## Public API - Slot Registry
 ## ============================================================================
@@ -169,9 +215,23 @@ func get_slot_metadata(slot_id: StringName) -> Dictionary:
 	if not slot_exists(slot_id):
 		return {}
 
-	# For now, return empty - will be implemented in Phase 3 when we add file I/O
-	# This needs to read the header from the save file
-	return {}
+	# Read header from save file
+	var file_path: String = _get_slot_file_path(slot_id)
+	var file_io := M_SaveFileIO.new()
+	file_io.silent_mode = true  # Don't spam warnings for missing files
+	var save_data: Dictionary = file_io.load_from_file(file_path)
+
+	if save_data.is_empty():
+		return {}
+
+	# Extract and return header
+	var header: Dictionary = save_data.get("header", {})
+	if header.is_empty():
+		return {}
+
+	# Add exists flag for consistency
+	header["exists"] = true
+	return header
 
 ## Get metadata for all slots (for UI display)
 func get_all_slot_metadata() -> Array[Dictionary]:

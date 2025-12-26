@@ -522,3 +522,109 @@ func test_save_to_slot_calls_get_persistable_state() -> void:
 	# (The implementation should call get_persistable_state instead of get_state)
 	# This is verified by the fact that transient fields should be filtered
 	# We can't directly mock/spy the call, but we verify the behavior
+
+## Phase 4+: Delete and Metadata Reading Tests
+
+func test_delete_slot_removes_save_files() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup and save to create files
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Verify files exist
+	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
+	assert_true(FileAccess.file_exists(file_path), "Save file should exist before delete")
+
+	# Delete the slot
+	var result: Error = _save_manager.delete_slot(StringName("slot_01"))
+	assert_eq(result, OK, "delete_slot should return OK on success")
+
+	# Verify files are removed
+	assert_false(FileAccess.file_exists(file_path), "Save file should be deleted")
+	assert_false(FileAccess.file_exists(file_path + ".bak"), "Backup file should be deleted")
+
+func test_delete_slot_rejects_autosave_slot() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Try to delete autosave slot
+	var result: Error = _save_manager.delete_slot(StringName("autosave"))
+	assert_eq(result, ERR_UNAUTHORIZED, "delete_slot should reject autosave slot with ERR_UNAUTHORIZED")
+
+func test_delete_slot_returns_error_for_nonexistent_slot() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Try to delete nonexistent slot
+	var result: Error = _save_manager.delete_slot(StringName("slot_01"))
+	assert_eq(result, ERR_FILE_NOT_FOUND, "delete_slot should return ERR_FILE_NOT_FOUND for nonexistent slot")
+
+func test_get_slot_metadata_reads_from_existing_file() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup and save
+	_mock_store.set_slice(StringName("gameplay"), {
+		"playtime_seconds": 7200,  # 2 hours
+		"last_checkpoint": "cp_final",
+		"target_spawn_point": "sp_boss"
+	})
+	_mock_store.set_slice(StringName("scene"), {
+		"current_scene_id": "interior_house"
+	})
+	_save_manager.save_to_slot(StringName("slot_02"))
+
+	# Read metadata back
+	var metadata: Dictionary = _save_manager.get_slot_metadata(StringName("slot_02"))
+
+	# Verify metadata fields
+	assert_false(metadata.is_empty(), "Metadata should not be empty for existing slot")
+	assert_eq(metadata.get("slot_id"), StringName("slot_02"), "Metadata should include slot_id")
+	assert_eq(metadata.get("playtime_seconds"), 7200, "Metadata should include playtime")
+	assert_eq(metadata.get("current_scene_id"), "interior_house", "Metadata should include scene_id")
+	assert_eq(metadata.get("last_checkpoint"), "cp_final", "Metadata should include checkpoint")
+	assert_eq(metadata.get("target_spawn_point"), "sp_boss", "Metadata should include spawn point")
+	assert_true(metadata.has("timestamp"), "Metadata should include timestamp")
+	assert_true(metadata.has("area_name"), "Metadata should include area_name")
+
+func test_get_all_slot_metadata_includes_existing_slots_with_data() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Save to slot_01
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Get all metadata
+	var all_metadata: Array[Dictionary] = _save_manager.get_all_slot_metadata()
+	assert_eq(all_metadata.size(), 4, "Should return metadata for all 4 slots")
+
+	# Find slot_01 in the list
+	var slot_01_meta: Dictionary = {}
+	for meta in all_metadata:
+		if meta.get("slot_id") == StringName("slot_01"):
+			slot_01_meta = meta
+			break
+
+	# Verify slot_01 has full metadata
+	assert_true(slot_01_meta.get("exists", false), "slot_01 should be marked as exists=true")
+	assert_eq(slot_01_meta.get("playtime_seconds"), 100, "slot_01 should have playtime data")
