@@ -70,16 +70,16 @@ func test_back_button_returns_to_main_panel() -> void:
 func test_play_button_dispatches_start_game_action() -> void:
 	var store := await _create_state_store()
 	var menu := await _create_main_menu()
-	var play_button: Button = menu.get_node("CenterContainer/MainPanel/PlayButton")
+	var new_game_button: Button = menu.get_node("CenterContainer/MainPanel/NewGameButton")
 
-	play_button.emit_signal("pressed")
+	new_game_button.emit_signal("pressed")
 	await wait_process_frames(2)
 
 	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
 	assert_eq(nav_slice.get("shell"), StringName("gameplay"),
-		"Play button should move navigation shell to gameplay")
+		"New Game button should move navigation shell to gameplay")
 	assert_eq(nav_slice.get("base_scene_id"), StringName("exterior"),
-		"Play button should target the exterior scene by default")
+		"New Game button should target the exterior scene by default")
 
 func _create_state_store() -> M_StateStore:
 	var store := M_StateStore.new()

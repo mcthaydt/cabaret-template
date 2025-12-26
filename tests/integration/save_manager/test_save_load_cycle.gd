@@ -18,6 +18,8 @@ const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
 
+const TEST_SAVE_DIR := "user://test_saves/"
+
 var _save_manager: M_SaveManager
 var _state_store: M_StateStore
 var _mock_scene_manager: Node
@@ -60,11 +62,11 @@ func after_each() -> void:
 
 func _ensure_test_directory_clean() -> void:
 	var dir := DirAccess.open("user://")
-	if not dir.dir_exists("saves"):
-		DirAccess.make_dir_recursive_absolute("user://saves/")
+	if not dir.dir_exists("test_saves"):
+		DirAccess.make_dir_recursive_absolute(TEST_SAVE_DIR)
 
 func _cleanup_test_files() -> void:
-	var dir := DirAccess.open("user://saves/")
+	var dir := DirAccess.open(TEST_SAVE_DIR)
 	if not dir:
 		return
 
@@ -76,11 +78,16 @@ func _cleanup_test_files() -> void:
 		file_name = dir.get_next()
 	dir.list_dir_end()
 
+func _create_save_manager() -> M_SaveManager:
+	var manager := M_SAVE_MANAGER.new()
+	manager.set_save_directory(TEST_SAVE_DIR)
+	return manager
+
 ## Integration Tests
 
 func test_save_creates_valid_file_structure() -> void:
 	# Create save manager
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -96,12 +103,14 @@ func test_save_creates_valid_file_structure() -> void:
 	assert_eq(save_result, OK, "Save should succeed")
 
 	# Verify file exists
-	var file_path := "user://saves/slot_01.json"
+	var file_path := TEST_SAVE_DIR + "slot_01.json"
 	assert_true(FileAccess.file_exists(file_path), "Save file should exist")
 
 	# Read and parse file
 	var file := FileAccess.open(file_path, FileAccess.READ)
 	assert_not_null(file, "Should be able to open save file")
+	if not file:
+		return  # Assertion failed, skip rest of test
 
 	var json_text: String = file.get_as_text()
 	file.close()
@@ -123,7 +132,7 @@ func test_save_creates_valid_file_structure() -> void:
 
 func test_load_preserves_state_to_handoff() -> void:
 	# Create save manager
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -163,7 +172,7 @@ func test_load_preserves_state_to_handoff() -> void:
 
 func test_load_lock_prevents_concurrent_operations() -> void:
 	# Create save manager
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 

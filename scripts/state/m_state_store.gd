@@ -450,6 +450,43 @@ func load_state(filepath: String) -> Error:
 		state_loaded.emit(filepath)
 	return err
 
+## Apply loaded state directly from a dictionary
+##
+## Used by M_SaveManager to apply save file state without going through file I/O.
+## Merges loaded state with current state (loaded takes precedence).
+## Respects transient slice and field configurations.
+## Emits slice_updated for each modified slice.
+func apply_loaded_state(loaded_state: Dictionary) -> void:
+	for slice_name in loaded_state:
+		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
+
+		# Skip transient slices
+		if config != null and config.is_transient:
+			continue
+
+		var loaded_slice: Dictionary = loaded_state[slice_name]
+		if not loaded_slice is Dictionary:
+			continue
+
+		# Filter out transient fields from loaded data
+		var filtered_slice := loaded_slice.duplicate(true)
+		if config != null:
+			for transient_field in config.transient_fields:
+				if filtered_slice.has(transient_field):
+					filtered_slice.erase(transient_field)
+
+		# Merge with current state (loaded takes precedence)
+		if _state.has(slice_name):
+			var current_slice: Dictionary = _state[slice_name]
+			for key in filtered_slice:
+				current_slice[key] = filtered_slice[key]
+			_state[slice_name] = current_slice
+		else:
+			_state[slice_name] = filtered_slice
+
+		# Emit slice_updated signal
+		slice_updated.emit(slice_name, _state[slice_name])
+
 ## Preserve state to StateHandoff for scene transitions
 func _preserve_to_handoff() -> void:
 	for slice_name in _state:

@@ -70,12 +70,33 @@ func get_slice(slice_name: StringName) -> Dictionary:
 	return _state.get(slice_name, {}).duplicate(true)
 
 func get_persistable_state() -> Dictionary:
-	# Mock implementation - just return state as-is (no actual transient filtering)
-	return _state.duplicate(true)
+	# Mock implementation - filter out known transient fields to match M_StateStore behavior
+	var filtered_state: Dictionary = _state.duplicate(true)
+
+	# Filter scene slice transient fields: is_transitioning, transition_type, scene_stack
+	if filtered_state.has("scene"):
+		var scene_slice: Dictionary = filtered_state["scene"].duplicate(true)
+		scene_slice.erase("is_transitioning")
+		scene_slice.erase("transition_type")
+		scene_slice.erase("scene_stack")  # KEY FIX: Don't persist overlay stack
+		filtered_state["scene"] = scene_slice
+
+	# Navigation slice is entirely transient - exclude it completely
+	filtered_state.erase("navigation")
+
+	return filtered_state
 
 func get_slice_configs() -> Dictionary:
-	# Mock implementation - return empty configs
-	return {}
+	# Mock implementation - return simplified configs for testing
+	return {
+		"scene": {
+			"transient_fields": [
+				StringName("is_transitioning"),
+				StringName("transition_type"),
+				StringName("scene_stack")
+			]
+		}
+	}
 
 func is_ready() -> bool:
 	return _is_ready

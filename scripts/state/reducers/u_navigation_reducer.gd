@@ -21,6 +21,7 @@ const SHELL_ENDGAME := StringName("endgame")
 
 const OVERLAY_PAUSE := StringName("pause_menu")
 const OVERLAY_SETTINGS := StringName("settings_menu_overlay")
+const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 const OVERLAY_INPUT_PROFILE := StringName("input_profile_selector")
 const OVERLAY_GAMEPAD_SETTINGS := StringName("gamepad_settings")
 const OVERLAY_TOUCHSCREEN_SETTINGS := StringName("touchscreen_settings")
@@ -125,14 +126,21 @@ static func _reduce_open_overlay(state: Dictionary, action: Dictionary) -> Dicti
 	var current_stack: Array = state.get("overlay_stack", [])
 	var return_stack: Array = state.get("overlay_return_stack", [])
 
-	if overlay_id == StringName("") or shell != SHELL_GAMEPLAY:
+	if overlay_id == StringName(""):
 		return state
 
 	if overlay_id == OVERLAY_PAUSE:
 		return state  # Pause opens via OPEN_PAUSE
 
-	if not _is_overlay_allowed_for_parent(overlay_id, current_stack):
+	# Check if overlay is allowed in current shell
+	if not _is_overlay_allowed_for_shell(overlay_id, shell):
 		return state
+
+	# For gameplay shell, check parent overlay requirements
+	# For main_menu shell, we allow overlays without parent (opened directly from menu)
+	if shell == SHELL_GAMEPLAY:
+		if not _is_overlay_allowed_for_parent(overlay_id, current_stack):
+			return state
 
 	var new_state: Dictionary = state.duplicate(true)
 	var new_stack: Array = []
@@ -160,6 +168,10 @@ static func _reduce_close_top_overlay(state: Dictionary) -> Dictionary:
 	var top_overlay: StringName = current_stack.back()
 	var close_mode: int = get_close_mode_for_overlay(top_overlay)
 	var new_state: Dictionary = state.duplicate(true)
+
+	# Clear save_load_mode when save/load overlay is closed
+	if top_overlay == OVERLAY_SAVE_LOAD:
+		new_state["save_load_mode"] = StringName("")
 
 	match close_mode:
 		CloseMode.RETURN_TO_PREVIOUS_OVERLAY:
@@ -328,3 +340,11 @@ static func _is_overlay_allowed_for_parent(overlay_id: StringName, current_stack
 	var is_valid := U_UIRegistry.is_valid_overlay_for_parent(overlay_id, parent_overlay)
 	# Use UI registry to check allowed_parents
 	return is_valid
+
+static func _is_overlay_allowed_for_shell(overlay_id: StringName, shell: StringName) -> bool:
+	var definition: Dictionary = U_UIRegistry.get_screen(overlay_id)
+	if definition.is_empty():
+		return false
+
+	var allowed_shells: Array = definition.get("allowed_shells", [])
+	return allowed_shells.has(shell)

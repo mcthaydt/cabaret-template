@@ -35,8 +35,6 @@ var _pending_action: Dictionary = {}  # {action: "save"|"delete", slot_id: Strin
 @onready var _slot_list_container: VBoxContainer = %SlotListContainer
 @onready var _back_button: Button = %BackButton
 @onready var _confirmation_dialog: ConfirmationDialog = %ConfirmationDialog
-@onready var _loading_overlay: ColorRect = %LoadingOverlay
-@onready var _loading_spinner: Control = %LoadingSpinner  # Could be AnimatedSprite2D or custom
 
 func _ready() -> void:
 	await super._ready()

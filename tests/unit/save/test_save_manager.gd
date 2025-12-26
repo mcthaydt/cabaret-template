@@ -4,6 +4,8 @@ const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 
+const TEST_SAVE_DIR := "user://test_saves/"
+
 var _save_manager: Node
 var _mock_store: MockStateStore
 var _mock_scene_manager: Node
@@ -43,12 +45,12 @@ func after_each() -> void:
 
 func _ensure_test_directory_clean() -> void:
 	var dir := DirAccess.open("user://")
-	if not dir.dir_exists("saves"):
-		DirAccess.make_dir_recursive_absolute("user://saves/")
+	if not dir.dir_exists("test_saves"):
+		DirAccess.make_dir_recursive_absolute(TEST_SAVE_DIR)
 
 func _cleanup_test_files() -> void:
 	# Remove all test save files
-	var dir := DirAccess.open("user://saves/")
+	var dir := DirAccess.open(TEST_SAVE_DIR)
 	if not dir:
 		return
 
@@ -60,15 +62,20 @@ func _cleanup_test_files() -> void:
 		file_name = dir.get_next()
 	dir.list_dir_end()
 
+func _create_save_manager() -> Node:
+	var manager := M_SAVE_MANAGER.new()
+	manager.set_save_directory(TEST_SAVE_DIR)
+	return manager
+
 ## Phase 1: Manager Lifecycle and Discovery Tests
 
 func test_manager_extends_node() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	assert_true(_save_manager is Node, "Save manager should extend Node")
 	autofree(_save_manager)
 
 func test_manager_adds_to_save_manager_group() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -78,7 +85,7 @@ func test_manager_adds_to_save_manager_group() -> void:
 	assert_true(nodes_in_group.has(_save_manager), "Manager should add itself to 'save_manager' group")
 
 func test_manager_registers_with_service_locator() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -89,7 +96,7 @@ func test_manager_registers_with_service_locator() -> void:
 	assert_eq(service, _save_manager, "ServiceLocator should return the correct manager instance")
 
 func test_manager_discovers_state_store_dependency() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -102,7 +109,7 @@ func test_manager_discovers_state_store_dependency() -> void:
 	assert_eq(store, _mock_store, "Manager should reference the correct state store")
 
 func test_manager_discovers_scene_manager_dependency() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -115,7 +122,7 @@ func test_manager_discovers_scene_manager_dependency() -> void:
 	assert_eq(manager, _mock_scene_manager, "Manager should reference the correct scene manager")
 
 func test_manager_initializes_lock_flags() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -134,7 +141,7 @@ func test_manager_initializes_lock_flags() -> void:
 ## Phase 2: Slot Registry and Metadata Tests
 
 func test_get_all_slot_ids_returns_correct_slots() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -148,7 +155,7 @@ func test_get_all_slot_ids_returns_correct_slots() -> void:
 	assert_has(slot_ids, StringName("slot_03"), "Should include slot_03")
 
 func test_slot_exists_returns_false_for_nonexistent_slot() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -158,7 +165,7 @@ func test_slot_exists_returns_false_for_nonexistent_slot() -> void:
 	assert_false(exists, "Nonexistent slot should return false")
 
 func test_get_slot_metadata_returns_empty_for_nonexistent_slot() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -168,7 +175,7 @@ func test_get_slot_metadata_returns_empty_for_nonexistent_slot() -> void:
 	assert_true(metadata.is_empty(), "Nonexistent slot should return empty metadata")
 
 func test_get_all_slot_metadata_returns_array_with_correct_size() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -178,7 +185,7 @@ func test_get_all_slot_metadata_returns_array_with_correct_size() -> void:
 	assert_eq(all_metadata.size(), 4, "Should return metadata for all 4 slots")
 
 func test_build_metadata_includes_required_fields() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -209,7 +216,7 @@ func test_build_metadata_includes_required_fields() -> void:
 	assert_true(metadata.has("slot_id"), "Metadata should have slot_id")
 
 func test_build_metadata_derives_area_name_from_scene_registry() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -232,7 +239,7 @@ func test_build_metadata_derives_area_name_from_scene_registry() -> void:
 	assert_gt(metadata["area_name"].length(), 0, "area_name should not be empty")
 
 func test_build_metadata_formats_timestamp_as_iso8601() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -249,7 +256,7 @@ func test_build_metadata_formats_timestamp_as_iso8601() -> void:
 	assert_true(timestamp.ends_with("Z"), "Timestamp should end with 'Z' for UTC")
 
 func test_build_metadata_uses_save_version_1() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -265,7 +272,7 @@ func test_build_metadata_uses_save_version_1() -> void:
 ## Phase 2: Edge Case Tests
 
 func test_build_metadata_handles_missing_scene_slice() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -281,7 +288,7 @@ func test_build_metadata_handles_missing_scene_slice() -> void:
 	assert_eq(metadata.get("area_name", null), "Unknown", "Missing scene_id should result in 'Unknown' area name")
 
 func test_build_metadata_fallback_area_name_formatting() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -299,7 +306,7 @@ func test_build_metadata_fallback_area_name_formatting() -> void:
 	assert_eq(metadata.get("area_name", null), "Custom Test Area", "Should format unknown scene_id into readable name")
 
 func test_build_metadata_handles_missing_gameplay_fields() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -317,7 +324,7 @@ func test_build_metadata_handles_missing_gameplay_fields() -> void:
 	assert_eq(metadata.get("target_spawn_point", null), "", "Missing spawn point should default to empty string")
 
 func test_get_all_slot_metadata_with_nonexistent_slots() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -344,7 +351,7 @@ func test_state_store_has_get_slice_configs_method() -> void:
 ## Phase 4: Manual Save Workflow Tests
 
 func test_save_to_slot_returns_ok_when_successful() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -359,7 +366,7 @@ func test_save_to_slot_returns_ok_when_successful() -> void:
 	assert_eq(result, OK, "save_to_slot should return OK on success")
 
 func test_save_to_slot_rejects_when_already_saving() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -377,7 +384,7 @@ func test_save_to_slot_rejects_when_already_saving() -> void:
 	assert_eq(result, ERR_BUSY, "save_to_slot should return ERR_BUSY when already saving")
 
 func test_save_to_slot_emits_save_started_event() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -409,7 +416,7 @@ func test_save_to_slot_emits_save_started_event() -> void:
 	assert_false(payload.get("is_autosave", true), "Manual save should have is_autosave=false")
 
 func test_save_to_slot_emits_save_completed_event() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -440,7 +447,7 @@ func test_save_to_slot_emits_save_completed_event() -> void:
 	assert_eq(payload.get("slot_id"), StringName("slot_01"), "Event payload should include slot_id")
 
 func test_save_to_slot_sets_and_clears_is_saving_lock() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -460,7 +467,7 @@ func test_save_to_slot_sets_and_clears_is_saving_lock() -> void:
 	assert_false(_save_manager.call("_is_saving_locked"), "_is_saving should be false after save completes")
 
 func test_save_to_slot_writes_file_with_header_and_state() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -507,7 +514,7 @@ func test_save_to_slot_writes_file_with_header_and_state() -> void:
 	assert_eq(int(state["gameplay"].get("playtime_seconds")), 3600, "State should preserve playtime")
 
 func test_save_to_slot_calls_get_persistable_state() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -547,7 +554,7 @@ func test_save_to_slot_calls_get_persistable_state() -> void:
 	assert_eq(state["gameplay"].get("player_health"), 75.0, "Persistable field should be saved")
 
 func test_request_autosave_saves_to_autosave_slot() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -563,11 +570,15 @@ func test_request_autosave_saves_to_autosave_slot() -> void:
 	await get_tree().process_frame
 
 	# Verify autosave file was created
-	var autosave_path: String = "user://saves/autosave.json"
+	var autosave_path: String = TEST_SAVE_DIR + "autosave.json"
 	assert_true(FileAccess.file_exists(autosave_path), "Autosave file should exist")
 
 	# Verify it's the autosave slot
 	var file := FileAccess.open(autosave_path, FileAccess.READ)
+	assert_not_null(file, "Should be able to open autosave file")
+	if not file:
+		return  # Assertion failed, skip rest of test
+
 	var json_string: String = file.get_as_text()
 	file.close()
 	var loaded_data: Dictionary = JSON.parse_string(json_string)
@@ -576,7 +587,7 @@ func test_request_autosave_saves_to_autosave_slot() -> void:
 ## Phase 4+: Delete and Metadata Reading Tests
 
 func test_delete_slot_removes_save_files() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -600,7 +611,7 @@ func test_delete_slot_removes_save_files() -> void:
 	assert_false(FileAccess.file_exists(file_path + ".bak"), "Backup file should be deleted")
 
 func test_delete_slot_rejects_autosave_slot() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -611,7 +622,7 @@ func test_delete_slot_rejects_autosave_slot() -> void:
 	assert_eq(result, ERR_UNAUTHORIZED, "delete_slot should reject autosave slot with ERR_UNAUTHORIZED")
 
 func test_delete_slot_returns_error_for_nonexistent_slot() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -622,7 +633,7 @@ func test_delete_slot_returns_error_for_nonexistent_slot() -> void:
 	assert_eq(result, ERR_FILE_NOT_FOUND, "delete_slot should return ERR_FILE_NOT_FOUND for nonexistent slot")
 
 func test_get_slot_metadata_reads_from_existing_file() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -653,7 +664,7 @@ func test_get_slot_metadata_reads_from_existing_file() -> void:
 	assert_true(metadata.has("area_name"), "Metadata should include area_name")
 
 func test_get_all_slot_metadata_includes_existing_slots_with_data() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -682,7 +693,7 @@ func test_get_all_slot_metadata_includes_existing_slots_with_data() -> void:
 ## Phase 5: Load Workflow Tests
 
 func test_load_from_slot_rejects_when_already_loading() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -696,7 +707,7 @@ func test_load_from_slot_rejects_when_already_loading() -> void:
 	assert_eq(result, ERR_BUSY, "load_from_slot should return ERR_BUSY when already loading")
 
 func test_load_from_slot_rejects_during_scene_transition() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -711,7 +722,7 @@ func test_load_from_slot_rejects_during_scene_transition() -> void:
 	assert_eq(result, ERR_BUSY, "load_from_slot should return ERR_BUSY during scene transition")
 
 func test_load_from_slot_rejects_nonexistent_slot() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -722,7 +733,7 @@ func test_load_from_slot_rejects_nonexistent_slot() -> void:
 	assert_eq(result, ERR_FILE_NOT_FOUND, "load_from_slot should return ERR_FILE_NOT_FOUND for nonexistent slot")
 
 func test_load_from_slot_sets_and_clears_is_loading_lock() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -754,7 +765,7 @@ func test_load_from_slot_sets_and_clears_is_loading_lock() -> void:
 	assert_false(_save_manager.call("_is_loading_locked"), "_is_loading should be false after transition completes")
 
 func test_load_from_slot_lock_stays_set_during_transition() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -781,7 +792,7 @@ func test_load_from_slot_lock_stays_set_during_transition() -> void:
 	assert_eq(second_load, ERR_BUSY, "Second load should be rejected while first is in progress")
 
 func test_load_from_slot_lock_clears_only_for_matching_scene() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -816,7 +827,7 @@ func test_load_from_slot_lock_clears_only_for_matching_scene() -> void:
 	assert_false(_save_manager.call("_is_loading_locked"), "Lock should clear when correct scene completes")
 
 func test_load_from_slot_preserves_state_to_handoff() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -851,7 +862,7 @@ func test_load_from_slot_preserves_state_to_handoff() -> void:
 	assert_eq(restored_gameplay.get("player_health"), 50.0, "Preserved state should include health")
 
 func test_load_from_slot_triggers_scene_transition() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -879,7 +890,7 @@ func test_load_from_slot_triggers_scene_transition() -> void:
 ## Phase 8: Error Handling and Corruption Recovery Tests
 
 func test_load_rejects_save_with_invalid_header_type() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -910,7 +921,7 @@ func test_load_rejects_save_with_invalid_header_type() -> void:
 	assert_push_error("current_scene_id")
 
 func test_load_rejects_save_with_invalid_state_type() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -940,7 +951,7 @@ func test_load_rejects_save_with_invalid_state_type() -> void:
 	assert_push_error("Save file 'state' is not a Dictionary")
 
 func test_load_rejects_save_with_missing_scene_id() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -974,7 +985,7 @@ func test_load_rejects_save_with_missing_scene_id() -> void:
 	assert_push_error("Save file header missing 'current_scene_id'")
 
 func test_load_rejects_save_with_empty_scene_id() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -1007,7 +1018,7 @@ func test_load_rejects_save_with_empty_scene_id() -> void:
 	assert_push_error("Save file 'current_scene_id' is empty")
 
 func test_load_accepts_save_with_minimal_valid_structure() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -1040,7 +1051,7 @@ func test_load_accepts_save_with_minimal_valid_structure() -> void:
 	assert_eq(result, OK, "Should accept save with minimal valid structure")
 
 func test_load_falls_back_to_backup_when_main_file_invalid() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -1083,7 +1094,7 @@ func test_load_falls_back_to_backup_when_main_file_invalid() -> void:
 	assert_eq(int(gameplay_state.get("playtime_seconds")), 100, "Should load data from backup file")
 
 func test_load_fails_when_both_main_and_backup_corrupted() -> void:
-	_save_manager = M_SAVE_MANAGER.new()
+	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
@@ -1118,3 +1129,120 @@ func test_load_fails_when_both_main_and_backup_corrupted() -> void:
 	# Multiple errors expected (from FileIO backup recovery + validation failure)
 	assert_push_error("Backup file also corrupted")
 	assert_push_error("Failed to load save file")
+
+## Phase 9: Overlay State Persistence Tests (Bug Fixes)
+
+func test_save_does_not_persist_overlay_stack() -> void:
+	# BUG FIX: Saves should not persist scene_stack to prevent pause on load
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup state with scene.scene_stack (simulating save while overlay is open)
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {
+		"current_scene_id": "gameplay_base",
+		"scene_stack": [StringName("save_load_menu")],  # This should NOT be saved!
+		"is_transitioning": false,
+		"transition_type": ""
+	})
+
+	# Perform save
+	var result: Error = _save_manager.save_to_slot(StringName("slot_01"))
+	assert_eq(result, OK, "Save should succeed")
+
+	# Load the saved file and verify scene_stack was NOT persisted
+	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
+	var file_io := M_SaveFileIO.new()
+	file_io.silent_mode = true
+	var loaded_data: Dictionary = file_io.load_from_file(file_path)
+
+	var state: Dictionary = loaded_data.get("state", {})
+	var scene: Dictionary = state.get("scene", {})
+
+	# scene_stack should be cleared (empty array, not persisted)
+	var scene_stack: Array = scene.get("scene_stack", [])
+
+	assert_eq(scene_stack.size(), 0, "scene_stack should NOT be persisted in save files")
+
+func test_load_clears_overlay_state_from_loaded_scene() -> void:
+	# BUG FIX: Load should clear scene_stack from loaded state before applying
+	# This handles legacy saves that were created with the bug
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a save file WITH scene_stack (simulating legacy save with the bug)
+	var save_with_overlay := {
+		"header": {
+			"save_version": 1,
+			"current_scene_id": "gameplay_base",
+			"timestamp": "2025-12-26T10:00:00Z",
+			"playtime_seconds": 100
+		},
+		"state": {
+			"gameplay": {"playtime_seconds": 100},
+			"scene": {
+				"current_scene_id": "gameplay_base",
+				"scene_stack": [StringName("save_load_menu")],  # Bug: this was saved
+				"is_transitioning": false
+			}
+		}
+	}
+
+	# Write the legacy save file directly
+	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
+	var file_io := M_SaveFileIO.new()
+	file_io.save_to_file(file_path, save_with_overlay)
+
+	# Setup mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Load the save
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, OK, "Load should succeed")
+
+	# Verify the loaded state had scene_stack cleared BEFORE applying to store
+	# Check what was actually applied to the mock store via StateHandoff
+	var scene_state: Dictionary = U_STATE_HANDOFF.restore_slice(StringName("scene"))
+	var scene_stack: Array = scene_state.get("scene_stack", [])
+
+	assert_eq(scene_stack.size(), 0, "scene_stack should be cleared before applying loaded state")
+
+func test_load_uses_loading_transition_type() -> void:
+	# BUG FIX: Load should always use "loading" transition, not "fade"
+	# Loading from save is a significant operation that deserves visual feedback
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a save for any scene
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Setup mock scene manager to track transition calls
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+	_mock_scene_manager.set("_transition_called", false)
+	_mock_scene_manager.set("_transition_target", StringName(""))
+	_mock_scene_manager.set("_transition_type", "")
+
+	# Load the save
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, OK, "Load should succeed")
+
+	# Verify scene transition was called
+	assert_true(_mock_scene_manager.get("_transition_called"), "Scene transition should be called")
+	assert_eq(_mock_scene_manager.get("_transition_target"), StringName("gameplay_base"), "Should transition to saved scene")
+
+	# The key assertion: should always use "loading", not "fade"
+	var transition_type: String = _mock_scene_manager.get("_transition_type")
+	assert_eq(transition_type, "loading", "Should always use loading transition when loading from saves")

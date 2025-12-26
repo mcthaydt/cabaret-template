@@ -102,6 +102,17 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	var desired_panel: StringName = U_NavigationSelectors.get_active_menu_panel(navigation_slice)
 	_update_panel_state(desired_panel)
 
+	# Restore main panel visibility and focus when overlay closes (in main_menu shell)
+	var shell: StringName = navigation_slice.get("shell", StringName(""))
+	var overlay_stack: Array = navigation_slice.get("overlay_stack", [])
+	if shell == StringName("main_menu") and overlay_stack.is_empty():
+		# Restore visibility if panel was hidden
+		if _main_panel != null and not _main_panel.visible and _active_panel == PANEL_MAIN:
+			_main_panel.visible = true
+		# BUG FIX: Always restore focus when returning from overlay, even if panel stayed visible
+		if _active_panel == PANEL_MAIN:
+			_focus_active_panel()
+
 func _update_panel_state(panel_id: StringName) -> void:
 	var resolved_panel: StringName = panel_id
 	if resolved_panel == StringName(""):
@@ -149,8 +160,18 @@ func _on_continue_pressed() -> void:
 		push_warning("UI_MainMenu: No saves found for Continue")
 		return
 
+	# Hide main menu content immediately for loading feedback
+	if _main_panel != null:
+		_main_panel.visible = false
+
 	# Load the save (scene transition will close main menu)
-	_save_manager.load_from_slot(most_recent_slot)
+	var result: Error = _save_manager.load_from_slot(most_recent_slot)
+
+	# If load failed, restore visibility
+	if result != OK:
+		if _main_panel != null:
+			_main_panel.visible = true
+		push_error("UI_MainMenu: Failed to load save (error %d)" % result)
 
 func _on_new_game_pressed() -> void:
 	var store := get_store()
@@ -165,6 +186,10 @@ func _on_load_game_pressed() -> void:
 	var store := get_store()
 	if store == null:
 		return
+
+	# Hide main panel while overlay is open
+	if _main_panel != null:
+		_main_panel.visible = false
 
 	# Set mode to "load" and open the save/load overlay
 	store.dispatch(U_NavigationActions.set_save_load_mode(StringName("load")))

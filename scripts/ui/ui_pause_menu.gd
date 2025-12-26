@@ -63,6 +63,12 @@ func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void
 		if shell != StringName("gameplay"):
 			visible = false
 
+		# BUG FIX: Restore focus when overlay closes (in gameplay shell)
+		# When save/load menu or settings closes, refocus the pause menu
+		var overlay_stack: Array = nav_state.get("overlay_stack", [])
+		if shell == StringName("gameplay") and overlay_stack.is_empty() and visible:
+			_focus_resume()
+
 	# Preserve analog navigation behavior for gamepad switches
 	var state: Dictionary = store.get_state()
 	var device_type: int = U_InputSelectors.get_active_device_type(state)

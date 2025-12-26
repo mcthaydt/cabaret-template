@@ -20,6 +20,9 @@ class_name M_SaveManager
 const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+const M_SAVE_FILE_IO := preload("res://scripts/managers/helpers/m_save_file_io.gd")
+const M_SAVE_MIGRATION_ENGINE := preload("res://scripts/managers/helpers/m_save_migration_engine.gd")
+const U_SAVE_VALIDATOR := preload("res://scripts/utils/u_save_validator.gd")
 
 ## Save file format version
 const SAVE_VERSION := 1
@@ -33,8 +36,8 @@ const SLOT_03 := StringName("slot_03")
 ## All available slots (autosave + 3 manual slots)
 const ALL_SLOTS: Array[StringName] = [SLOT_AUTOSAVE, SLOT_01, SLOT_02, SLOT_03]
 
-## Save directory
-const SAVE_DIR := "user://saves/"
+## Save directory (configurable for testing)
+var _save_dir: String = "user://saves/"
 
 ## Internal references
 var _state_store: I_StateStore = null
@@ -77,15 +80,20 @@ func _ready() -> void:
 	# Initialize autosave scheduler
 	_initialize_autosave_scheduler()
 
+## Set save directory (for testing)
+## IMPORTANT: Must be called BEFORE adding manager to tree
+func set_save_directory(path: String) -> void:
+	_save_dir = path
+
 ## Initialize save directory and cleanup orphaned files
 func _initialize_save_system() -> void:
-	var file_io := M_SaveFileIO.new()
+	var file_io := M_SAVE_FILE_IO.new()
 
 	# Ensure save directory exists
 	file_io.ensure_save_directory()
 
 	# Clean up orphaned .tmp files from previous crashes
-	file_io.cleanup_tmp_files(SAVE_DIR)
+	file_io.cleanup_tmp_files(_save_dir)
 
 	# Import legacy save file if it exists (one-time migration)
 	_import_legacy_save_if_exists()
@@ -93,11 +101,11 @@ func _initialize_save_system() -> void:
 ## Import legacy save file (user://savegame.json) to autosave slot if it exists
 func _import_legacy_save_if_exists() -> void:
 	# Check if legacy save exists
-	if not M_SaveMigrationEngine.should_import_legacy_save():
+	if not M_SAVE_MIGRATION_ENGINE.should_import_legacy_save():
 		return
 
 	# Import and migrate legacy save
-	var migrated_save: Dictionary = M_SaveMigrationEngine.import_legacy_save()
+	var migrated_save: Dictionary = M_SAVE_MIGRATION_ENGINE.import_legacy_save()
 
 	if migrated_save.is_empty():
 		push_error("M_SaveManager: Failed to import legacy save")
@@ -105,7 +113,7 @@ func _import_legacy_save_if_exists() -> void:
 
 	# Write migrated save to autosave slot
 	var autosave_path: String = _get_slot_file_path(SLOT_AUTOSAVE)
-	var file_io := M_SaveFileIO.new()
+	var file_io := M_SAVE_FILE_IO.new()
 	var result: Error = file_io.save_to_file(autosave_path, migrated_save)
 
 	if result == OK:
@@ -189,7 +197,7 @@ func save_to_slot(slot_id: StringName) -> Error:
 
 	# Write to file atomically
 	var file_path: String = _get_slot_file_path(slot_id)
-	var file_io := M_SaveFileIO.new()
+	var file_io := M_SAVE_FILE_IO.new()
 	var result: Error = file_io.save_to_file(file_path, save_data)
 
 	# Clear lock
@@ -248,11 +256,24 @@ func load_from_slot(slot_id: StringName) -> Error:
 	var loaded_state: Dictionary = validation_result["state"]
 	var target_scene_id: StringName = validation_result["scene_id"]
 
-	# Preserve all state slices to StateHandoff for scene transition
-	# M_StateStore will automatically restore them after the scene loads
-	for slice_name in loaded_state:
-		var slice_data: Dictionary = loaded_state[slice_name]
-		U_STATE_HANDOFF.preserve_slice(StringName(slice_name), slice_data)
+	# BUG FIX: Clear scene_stack from loaded state to prevent pausing on load
+	# Legacy saves may have scene_stack persisted (before it was marked transient)
+	# Clearing it here prevents M_PauseManager from pausing the tree after load
+	if loaded_state.has("scene"):
+		var scene_slice: Dictionary = loaded_state["scene"]
+		if scene_slice.has("scene_stack"):
+			scene_slice.erase("scene_stack")
+			loaded_state["scene"] = scene_slice
+
+	# Apply loaded state directly to M_StateStore
+	# This updates all slices immediately before scene transition
+	if _state_store.has_method("apply_loaded_state"):
+		_state_store.apply_loaded_state(loaded_state)
+	else:
+		# Fallback: preserve to StateHandoff (legacy behavior)
+		for slice_name in loaded_state:
+			var slice_data: Dictionary = loaded_state[slice_name]
+			U_STATE_HANDOFF.preserve_slice(StringName(slice_name), slice_data)
 
 	# Store target scene for transition completion verification
 	_loading_target_scene = target_scene_id
@@ -262,10 +283,14 @@ func load_from_slot(slot_id: StringName) -> Error:
 	if _state_store:
 		_transition_complete_unsubscribe = _state_store.subscribe(_on_load_transition_action)
 
-	# Trigger scene transition
+	# BUG FIX: Always use loading screen when loading from saves
+	# Loading is a significant operation that deserves visual feedback
+	var transition_type: String = "loading"
+
+	# Trigger scene transition with loading screen
 	# Note: M_StateStore will restore state from handoff after scene loads
 	if _scene_manager and _scene_manager.has_method("transition_to_scene"):
-		_scene_manager.transition_to_scene(target_scene_id, "fade")
+		_scene_manager.transition_to_scene(target_scene_id, transition_type)
 	else:
 		# No scene manager - clear handoff, unsubscribe, and fail gracefully
 		U_STATE_HANDOFF.clear_all()
@@ -299,7 +324,7 @@ func delete_slot(slot_id: StringName) -> Error:
 	var bak_path: String = file_path + ".bak"
 	var tmp_path: String = file_path + ".tmp"
 
-	var dir := DirAccess.open(SAVE_DIR)
+	var dir := DirAccess.open(_save_dir)
 	if not dir:
 		push_error("M_SaveManager: Failed to open save directory for deletion")
 		return ERR_FILE_CANT_OPEN
@@ -341,7 +366,7 @@ func get_slot_metadata(slot_id: StringName) -> Dictionary:
 
 	# Read header from save file
 	var file_path: String = _get_slot_file_path(slot_id)
-	var file_io := M_SaveFileIO.new()
+	var file_io := M_SAVE_FILE_IO.new()
 	file_io.silent_mode = true  # Don't spam warnings for missing files
 	var save_data: Dictionary = file_io.load_from_file(file_path)
 
@@ -450,7 +475,7 @@ func _clear_loading_lock() -> void:
 ## - Success: {"header": Dictionary, "state": Dictionary, "scene_id": StringName}
 ## - Failure: {"error": Error}
 func _validate_and_load_save_file(file_path: String) -> Dictionary:
-	var file_io := M_SaveFileIO.new()
+	var file_io := M_SAVE_FILE_IO.new()
 	file_io.silent_mode = true  # Don't spam warnings during load
 	var save_data: Dictionary = file_io.load_from_file(file_path)
 
@@ -460,10 +485,10 @@ func _validate_and_load_save_file(file_path: String) -> Dictionary:
 		return {"error": ERR_FILE_CORRUPT}
 
 	# Apply migrations to upgrade old save files (v0 → v1, etc.)
-	save_data = M_SaveMigrationEngine.migrate(save_data)
+	save_data = M_SAVE_MIGRATION_ENGINE.migrate(save_data)
 
 	# Validate save structure using U_SaveValidator
-	var validation_result: Dictionary = U_SaveValidator.validate_save_structure(save_data)
+	var validation_result: Dictionary = U_SAVE_VALIDATOR.validate_save_structure(save_data)
 
 	if not validation_result.get("valid", false):
 		# Validation failed - emit error with detailed message
@@ -522,7 +547,7 @@ func _build_metadata(slot_id: StringName) -> Dictionary:
 
 ## Get file path for a slot
 func _get_slot_file_path(slot_id: StringName) -> String:
-	return SAVE_DIR + String(slot_id) + ".json"
+	return _save_dir + String(slot_id) + ".json"
 
 ## Get current timestamp in ISO 8601 format
 func _get_iso8601_timestamp() -> String:
