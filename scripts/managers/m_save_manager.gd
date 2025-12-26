@@ -39,6 +39,7 @@ const SAVE_DIR := "user://saves/"
 ## Internal references
 var _state_store: I_StateStore = null
 var _scene_manager: Node = null  # M_SceneManager
+var _autosave_scheduler: Node = null  # M_AutosaveScheduler
 
 ## Lock flags to prevent concurrent operations
 var _is_saving: bool = false
@@ -73,6 +74,9 @@ func _ready() -> void:
 	# Initialize save system
 	_initialize_save_system()
 
+	# Initialize autosave scheduler
+	_initialize_autosave_scheduler()
+
 ## Initialize save directory and cleanup orphaned files
 func _initialize_save_system() -> void:
 	var file_io := M_SaveFileIO.new()
@@ -82,6 +86,44 @@ func _initialize_save_system() -> void:
 
 	# Clean up orphaned .tmp files from previous crashes
 	file_io.cleanup_tmp_files(SAVE_DIR)
+
+	# Import legacy save file if it exists (one-time migration)
+	_import_legacy_save_if_exists()
+
+## Import legacy save file (user://savegame.json) to autosave slot if it exists
+func _import_legacy_save_if_exists() -> void:
+	# Check if legacy save exists
+	if not M_SaveMigrationEngine.should_import_legacy_save():
+		return
+
+	# Import and migrate legacy save
+	var migrated_save: Dictionary = M_SaveMigrationEngine.import_legacy_save()
+
+	if migrated_save.is_empty():
+		push_error("M_SaveManager: Failed to import legacy save")
+		return
+
+	# Write migrated save to autosave slot
+	var autosave_path: String = _get_slot_file_path(SLOT_AUTOSAVE)
+	var file_io := M_SaveFileIO.new()
+	var result: Error = file_io.save_to_file(autosave_path, migrated_save)
+
+	if result == OK:
+		print("M_SaveManager: Successfully imported legacy save to autosave slot")
+	else:
+		push_error("M_SaveManager: Failed to write imported legacy save (error %d)" % result)
+
+## Initialize autosave scheduler as child node
+func _initialize_autosave_scheduler() -> void:
+	# Load and instantiate the autosave scheduler script
+	var scheduler_script := load("res://scripts/managers/helpers/m_autosave_scheduler.gd")
+	_autosave_scheduler = scheduler_script.new()
+	_autosave_scheduler.name = "M_AutosaveScheduler"
+
+	# Add as child node
+	add_child(_autosave_scheduler)
+
+	# Scheduler will auto-initialize and subscribe to events in its _ready()
 
 ## Get state store reference (for testing)
 func _get_state_store() -> I_StateStore:
@@ -384,27 +426,26 @@ func _validate_and_load_save_file(file_path: String) -> Dictionary:
 
 	# Check if file loaded successfully
 	if save_data.is_empty():
-		push_error("M_SaveManager: Failed to load save file: %s" % file_path)
+		push_error("M_SaveManager: Failed to load save file")
 		return {"error": ERR_FILE_CORRUPT}
 
-	# Validate save data structure
-	if not save_data.has("header") or not save_data.has("state"):
-		push_error("M_SaveManager: Invalid save file structure (missing header or state)")
-		return {"error": ERR_FILE_CORRUPT}
+	# Apply migrations to upgrade old save files (v0 → v1, etc.)
+	save_data = M_SaveMigrationEngine.migrate(save_data)
 
-	var header: Dictionary = save_data["header"]
-	var loaded_state: Dictionary = save_data["state"]
+	# Validate save structure using U_SaveValidator
+	var validation_result: Dictionary = U_SaveValidator.validate_save_structure(save_data)
 
-	# Extract and validate target scene
-	var target_scene_id: StringName = StringName(header.get("current_scene_id", ""))
-	if target_scene_id == StringName(""):
-		push_error("M_SaveManager: Save file has no current_scene_id")
-		return {"error": ERR_FILE_CORRUPT}
+	if not validation_result.get("valid", false):
+		# Validation failed - emit error with detailed message
+		var error_message: String = validation_result.get("message", "Unknown validation error")
+		push_error("M_SaveManager: %s" % error_message)
+		return {"error": validation_result.get("error", ERR_FILE_CORRUPT)}
 
+	# Validation succeeded - extract validated data
 	return {
-		"header": header,
-		"state": loaded_state,
-		"scene_id": target_scene_id
+		"header": validation_result["header"],
+		"state": validation_result["state"],
+		"scene_id": validation_result["scene_id"]
 	}
 
 ## ============================================================================

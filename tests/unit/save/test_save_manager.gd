@@ -874,3 +874,246 @@ func test_load_from_slot_triggers_scene_transition() -> void:
 	# Verify scene transition was requested
 	assert_true(_mock_scene_manager.get("_transition_called"), "Scene transition should be called")
 	assert_eq(_mock_scene_manager.get("_transition_target"), StringName("exterior"), "Should transition to saved scene_id")
+
+## Phase 8: Error Handling and Corruption Recovery Tests
+
+func test_load_rejects_save_with_invalid_header_type() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a save file with invalid header (string instead of Dictionary)
+	var invalid_save := {
+		"header": "this should be a dictionary",
+		"state": {
+			"gameplay": {"playtime_seconds": 100},
+			"scene": {"current_scene_id": "gameplay_base"}
+		}
+	}
+
+	# Write invalid save directly
+	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
+	var file_io := M_SaveFileIO.new()
+	file_io.save_to_file(file_path, invalid_save)
+
+	# Setup mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Try to load - migration treats invalid header as v0 and wraps it,
+	# then validation fails on missing scene_id in the generated header
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, ERR_FILE_CORRUPT, "Should reject save with invalid header type")
+	assert_push_error("current_scene_id")
+
+func test_load_rejects_save_with_invalid_state_type() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a save file with invalid state (array instead of Dictionary)
+	var invalid_save := {
+		"header": {
+			"save_version": 1,
+			"current_scene_id": "gameplay_base"
+		},
+		"state": [1, 2, 3]  # Should be Dictionary
+	}
+
+	# Write invalid save directly
+	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
+	var file_io := M_SaveFileIO.new()
+	file_io.save_to_file(file_path, invalid_save)
+
+	# Setup mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Try to load - should fail validation with detailed error
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, ERR_FILE_CORRUPT, "Should reject save with invalid state type")
+	assert_push_error("Save file 'state' is not a Dictionary")
+
+func test_load_rejects_save_with_missing_scene_id() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a save file without current_scene_id in header
+	var invalid_save := {
+		"header": {
+			"save_version": 1,
+			"timestamp": "2025-12-25T10:30:00Z"
+			# Missing current_scene_id
+		},
+		"state": {
+			"gameplay": {"playtime_seconds": 100},
+			"scene": {}
+		}
+	}
+
+	# Write invalid save directly
+	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
+	var file_io := M_SaveFileIO.new()
+	file_io.save_to_file(file_path, invalid_save)
+
+	# Setup mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Try to load - should fail validation with detailed error
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, ERR_FILE_CORRUPT, "Should reject save with missing current_scene_id")
+	assert_push_error("Save file header missing 'current_scene_id'")
+
+func test_load_rejects_save_with_empty_scene_id() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a save file with empty current_scene_id
+	var invalid_save := {
+		"header": {
+			"save_version": 1,
+			"current_scene_id": ""  # Empty string is invalid
+		},
+		"state": {
+			"gameplay": {"playtime_seconds": 100},
+			"scene": {"current_scene_id": ""}
+		}
+	}
+
+	# Write invalid save directly
+	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
+	var file_io := M_SaveFileIO.new()
+	file_io.save_to_file(file_path, invalid_save)
+
+	# Setup mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Try to load - should fail validation with detailed error
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, ERR_FILE_CORRUPT, "Should reject save with empty current_scene_id")
+	assert_push_error("Save file 'current_scene_id' is empty")
+
+func test_load_accepts_save_with_minimal_valid_structure() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a save with minimal required fields (should pass validation)
+	var minimal_save := {
+		"header": {
+			"save_version": 1,
+			"current_scene_id": "gameplay_base"
+			# Other header fields are optional for load validation
+		},
+		"state": {
+			"gameplay": {},  # Empty but present
+			"scene": {}      # Empty but present
+		}
+	}
+
+	# Write minimal save
+	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
+	var file_io := M_SaveFileIO.new()
+	file_io.save_to_file(file_path, minimal_save)
+
+	# Setup mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Load should succeed
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, OK, "Should accept save with minimal valid structure")
+
+func test_load_falls_back_to_backup_when_main_file_invalid() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a valid save first
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Get file paths
+	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
+	var bak_path: String = file_path + ".bak"
+
+	# Save again to create backup
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 200})
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Now corrupt the main file
+	var file := FileAccess.open(file_path, FileAccess.WRITE)
+	file.store_string("{invalid json")
+	file.close()
+
+	# Backup should exist
+	assert_true(FileAccess.file_exists(bak_path), "Backup should exist before load")
+
+	# Setup mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Clear handoff
+	U_STATE_HANDOFF.clear_all()
+
+	# Load should fall back to backup
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, OK, "Should successfully load from backup when main file is corrupted")
+
+	# Verify state was loaded from backup (should have playtime=100, the first save)
+	var gameplay_state: Dictionary = U_STATE_HANDOFF.restore_slice(StringName("gameplay"))
+	assert_eq(gameplay_state.get("playtime_seconds"), 100, "Should load data from backup file")
+
+func test_load_fails_when_both_main_and_backup_corrupted() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a valid save with backup
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_save_manager.save_to_slot(StringName("slot_01"))
+	_save_manager.save_to_slot(StringName("slot_01"))  # Create backup
+
+	# Get file paths
+	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
+	var bak_path: String = file_path + ".bak"
+
+	# Corrupt both files
+	var main_file := FileAccess.open(file_path, FileAccess.WRITE)
+	main_file.store_string("{invalid json")
+	main_file.close()
+
+	var bak_file := FileAccess.open(bak_path, FileAccess.WRITE)
+	bak_file.store_string("[also invalid]")
+	bak_file.close()
+
+	# Setup mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Load should fail - M_SaveFileIO will emit errors about corruption
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, ERR_FILE_CORRUPT, "Should fail when both main and backup are corrupted")
+	# Multiple errors expected (from FileIO backup recovery + validation failure)
+	assert_push_error("Backup file also corrupted")
+	assert_push_error("Failed to load save file")
