@@ -1,6 +1,6 @@
 # Save Manager Implementation Tasks
 
-**Progress:** 10% (5 / 52 implementation tasks, 0 / 46 manual tests)
+**Progress:** 15% (8 / 52 implementation tasks, 0 / 46 manual tests)
 
 ---
 
@@ -42,16 +42,27 @@
 
 ---
 
-## Phase 1: Manager Lifecycle and Discovery
+## Phase 1: Manager Lifecycle and Discovery ✅
 
 **Exit Criteria:** All Phase 1 tests pass, manager discoverable via ServiceLocator
 
-- [ ] **Task 1.1 (Red)**: Write tests for manager initialization, ServiceLocator registration, dependency discovery
-- [ ] **Task 1.2 (Green)**: Implement `m_save_manager.gd` with minimal code to pass tests
+- [x] **Task 1.1 (Red)**: Write tests for manager initialization, ServiceLocator registration, dependency discovery
+  - Created `tests/unit/save/test_save_manager.gd`
+  - Tests: extends Node, group membership, ServiceLocator registration, dependency discovery, lock flag initialization
+  - All 6 tests passing
+- [x] **Task 1.2 (Green)**: Implement `m_save_manager.gd` with minimal code to pass tests
   - Extend Node, add to "save_manager" group
   - Register with ServiceLocator on `_ready()`
   - Discover M_StateStore and M_SceneManager dependencies
-- [ ] **Task 1.3 (Refactor)**: Extract helpers if needed, cleanup
+  - Initialize _is_saving and _is_loading lock flags
+- [x] **Task 1.3 (Refactor)**: Extract helpers if needed, cleanup
+  - No refactoring needed (manager is 70 lines, clean and minimal)
+
+**Notes:**
+- 6/6 tests passing
+- Manager follows existing patterns from M_SceneManager
+- Uses U_ServiceLocator for dependency discovery
+- Mock dependencies registered in test setup
 
 ---
 

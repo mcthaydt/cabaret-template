@@ -41,18 +41,37 @@ Read these files before starting work:
 
 ## Current Progress
 
-Check `save-manager-tasks.md` for current phase and completed tasks. Look for `- [x]` vs `- [ ]`.
+**Last Updated**: 2025-12-25
+
+**Completed Phases**:
+- ✅ **Phase 0**: Preparation & Existing Code Migration (5 tasks)
+  - Removed M_StateStore autosave timer
+  - Added playtime_seconds field and S_PlaytimeSystem (7/7 tests passing)
+  - Added death_in_progress flag to gameplay slice
+- ✅ **Phase 1**: Manager Lifecycle and Discovery (3 tasks)
+  - Created M_SaveManager with ServiceLocator registration
+  - Discovers M_StateStore and M_SceneManager dependencies
+  - Initializes lock flags (_is_saving, _is_loading)
+  - Tests: 6/6 passing in test_save_manager.gd
+
+**Next Phase**: Phase 2 - Slot Registry and Metadata
+
+Check `save-manager-tasks.md` for detailed task list and current phase. Look for `- [x]` vs `- [ ]`.
 
 ## Implementation Patterns
 
 Follow existing codebase patterns:
 
 - **Managers**: See `m_scene_manager.gd` - ServiceLocator registration, group fallback
+  - M_SaveManager follows this pattern (Phase 1 complete)
 - **Helpers**: See `scripts/managers/helpers/` - extracted logic with `m_` prefix
+  - Will extract file I/O, slot registry, scheduler, migrations in later phases
 - **Actions**: See `u_gameplay_actions.gd` - const action names, static creators, registry
 - **ECS Systems**: See `s_checkpoint_system.gd` - extends BaseECSSystem
+  - S_PlaytimeSystem implemented (Phase 0 complete)
 - **Overlays**: See `ui_pause_menu.gd` and `base_overlay.gd`
 - **Events**: See `u_ecs_event_bus.gd` - `publish(event_name, payload)`
+  - Will emit save_started, save_completed, save_failed events
 
 ## File Format
 
