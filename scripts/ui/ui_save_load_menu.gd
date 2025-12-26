@@ -15,6 +15,7 @@ const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigati
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const M_SaveManager := preload("res://scripts/managers/m_save_manager.gd")
 
 ## Current mode: "save" or "load"
 var _mode: StringName = StringName("")
@@ -138,33 +139,69 @@ func _clear_slot_list() -> void:
 		child.queue_free()
 
 func _create_slot_item(slot_meta: Dictionary) -> void:
-	# TODO: This will create UI_SaveSlotItem instances once that component is implemented
-	# For now, create placeholder buttons
 	var slot_id: StringName = slot_meta.get("slot_id", StringName(""))
 	var exists: bool = slot_meta.get("exists", false)
+	var is_autosave: bool = (slot_id == M_SaveManager.SLOT_AUTOSAVE)
 
-	var item := Button.new()
-	item.name = "Slot_" + str(slot_id)
+	# Create container for slot (main button + delete button)
+	var slot_container := HBoxContainer.new()
+	slot_container.name = "Slot_" + str(slot_id)
+
+	# Create main save/load button (takes most of the space)
+	var main_button := Button.new()
+	main_button.name = "MainButton"
+	main_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	main_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 
 	if exists:
-		# Populated slot
+		# Populated slot - show metadata
 		var timestamp: String = slot_meta.get("timestamp", "")
 		var area_name: String = slot_meta.get("area_name", "Unknown")
 		var playtime: int = slot_meta.get("playtime_seconds", 0)
 
-		item.text = "%s - %s (%s)" % [slot_id, area_name, _format_playtime(playtime)]
+		# Format display text with timestamp, area, and playtime
+		var formatted_time: String = _format_timestamp(timestamp)
+		var formatted_playtime: String = _format_playtime(playtime)
+
+		# Multi-line text: Line 1 = slot name, Line 2 = metadata
+		var slot_display_name: String = "AUTOSAVE" if is_autosave else slot_id.to_upper()
+		main_button.text = "%s\n%s | %s | %s" % [
+			slot_display_name,
+			formatted_time,
+			area_name,
+			formatted_playtime
+		]
 	else:
 		# Empty slot
+		var slot_display_name: String = "AUTOSAVE" if is_autosave else slot_id.to_upper()
 		if _mode == StringName("save"):
-			item.text = "%s - [New Save]" % slot_id
+			main_button.text = "%s\n[New Save]" % slot_display_name
 		else:
-			item.text = "%s - [Empty]" % slot_id
-			item.disabled = true  # Can't load empty slots
+			main_button.text = "%s\n[Empty]" % slot_display_name
+			main_button.disabled = true  # Can't load empty slots
 
-	# Connect button press
-	item.pressed.connect(_on_slot_item_pressed.bind(slot_id, exists))
+	# Connect main button press (save/load action)
+	main_button.pressed.connect(_on_slot_item_pressed.bind(slot_id, exists))
 
-	_slot_list_container.add_child(item)
+	# Create delete button (only for populated slots, hidden for autosave)
+	var delete_button := Button.new()
+	delete_button.name = "DeleteButton"
+	delete_button.text = "Delete"
+	delete_button.custom_minimum_size = Vector2(80, 0)
+
+	# Show delete button only if slot is populated AND not autosave
+	delete_button.visible = exists and not is_autosave
+	delete_button.disabled = not exists or is_autosave
+
+	# Connect delete button press
+	if exists and not is_autosave:
+		delete_button.pressed.connect(_on_delete_button_pressed.bind(slot_id))
+
+	# Add buttons to container
+	slot_container.add_child(main_button)
+	slot_container.add_child(delete_button)
+
+	_slot_list_container.add_child(slot_container)
 
 func _format_playtime(seconds: int) -> String:
 	var hours: int = seconds / 3600
@@ -172,18 +209,76 @@ func _format_playtime(seconds: int) -> String:
 	var secs: int = seconds % 60
 	return "%02d:%02d:%02d" % [hours, minutes, secs]
 
+func _format_timestamp(iso_timestamp: String) -> String:
+	# Convert ISO 8601 timestamp to human-readable format
+	# Input: "2025-12-26T14:30:00Z"
+	# Output: "Dec 26, 2025 2:30 PM"
+
+	if iso_timestamp.is_empty():
+		return "Unknown Date"
+
+	# Parse ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ
+	var parts: PackedStringArray = iso_timestamp.split("T")
+	if parts.size() < 2:
+		return iso_timestamp  # Fallback to raw string if parsing fails
+
+	var date_part: String = parts[0]
+	var time_part: String = parts[1].replace("Z", "")
+
+	# Parse date: YYYY-MM-DD
+	var date_components: PackedStringArray = date_part.split("-")
+	if date_components.size() < 3:
+		return iso_timestamp
+
+	var year: String = date_components[0]
+	var month_num: int = date_components[1].to_int()
+	var day: String = date_components[2]
+
+	# Parse time: HH:MM:SS
+	var time_components: PackedStringArray = time_part.split(":")
+	if time_components.size() < 2:
+		return iso_timestamp
+
+	var hour: int = time_components[0].to_int()
+	var minute: String = time_components[1]
+
+	# Convert to 12-hour format
+	var am_pm: String = "AM"
+	var hour_12: int = hour
+	if hour >= 12:
+		am_pm = "PM"
+		if hour > 12:
+			hour_12 = hour - 12
+	elif hour == 0:
+		hour_12 = 12
+
+	# Month names
+	var month_names: Array[String] = [
+		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+	]
+	var month_name: String = month_names[month_num - 1] if month_num >= 1 and month_num <= 12 else "???"
+
+	return "%s %s, %s %d:%s %s" % [month_name, day, year, hour_12, minute, am_pm]
+
 func _configure_slot_focus() -> void:
 	if _slot_list_container == null or _back_button == null:
 		return
 
-	var slot_buttons: Array[Control] = []
-	for child in _slot_list_container.get_children():
-		if child is Button and not child.disabled:
-			slot_buttons.append(child as Control)
+	var focusable_controls: Array[Control] = []
 
-	if not slot_buttons.is_empty():
-		slot_buttons.append(_back_button)
-		U_FocusConfigurator.configure_vertical_focus(slot_buttons, true)
+	# Collect all focusable buttons from slot containers
+	for container in _slot_list_container.get_children():
+		if container is HBoxContainer:
+			# Get main button from slot container
+			var main_button: Button = container.get_node_or_null("MainButton") as Button
+			if main_button != null and not main_button.disabled:
+				focusable_controls.append(main_button)
+
+	# Add back button at the end
+	if not focusable_controls.is_empty():
+		focusable_controls.append(_back_button)
+		U_FocusConfigurator.configure_vertical_focus(focusable_controls, true)
 
 func _on_slot_item_pressed(slot_id: StringName, exists: bool) -> void:
 	if _is_loading:
@@ -204,6 +299,16 @@ func _on_slot_item_pressed(slot_id: StringName, exists: bool) -> void:
 			# Load from slot
 			_perform_load(slot_id)
 		# Empty slots are disabled in load mode, so this shouldn't happen
+
+func _on_delete_button_pressed(slot_id: StringName) -> void:
+	if _is_loading:
+		return  # Ignore input during load
+
+	# Show delete confirmation
+	_show_confirmation(
+		"Delete this save file?",
+		{"action": "delete", "slot_id": slot_id}
+	)
 
 func _show_confirmation(message: String, action_data: Dictionary) -> void:
 	if _confirmation_dialog == null:
