@@ -18,6 +18,7 @@ const ACTION_SKIP_TO_CREDITS := StringName("navigation/skip_to_credits")
 const ACTION_SKIP_TO_MENU := StringName("navigation/skip_to_menu")
 const ACTION_RETURN_TO_MAIN_MENU := StringName("navigation/return_to_main_menu")
 const ACTION_NAVIGATE_TO_UI_SCREEN := StringName("navigation/navigate_to_ui_screen")
+const ACTION_SET_SAVE_LOAD_MODE := StringName("navigation/set_save_load_mode")
 
 ## Register all navigation actions with the ActionRegistry
 static func _static_init() -> void:
@@ -34,6 +35,7 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SKIP_TO_MENU)
 	U_ActionRegistry.register_action(ACTION_RETURN_TO_MAIN_MENU)
 	U_ActionRegistry.register_action(ACTION_NAVIGATE_TO_UI_SCREEN)
+	U_ActionRegistry.register_action(ACTION_SET_SAVE_LOAD_MODE)
 
 static func set_shell(shell: StringName, base_scene_id: StringName) -> Dictionary:
 	return {
@@ -120,4 +122,14 @@ static func navigate_to_ui_screen(scene_id: StringName, transition_type: String 
 		"scene_id": scene_id,
 		"transition_type": transition_type,
 		"priority": priority
+	}
+
+## Set the save/load mode for the combined save/load overlay
+##
+## Payload:
+## - mode: StringName - Either "save" or "load"
+static func set_save_load_mode(mode: StringName) -> Dictionary:
+	return {
+		"type": ACTION_SET_SAVE_LOAD_MODE,
+		"mode": mode
 	}

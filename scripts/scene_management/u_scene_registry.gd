@@ -95,6 +95,15 @@ static func _register_scenes() -> void:
 		10  # Critical path - preload at startup (Phase 8)
 	)
 
+	# Save/Load Menu (preloaded at startup)
+	_register_scene(
+		StringName("save_load_menu"),
+		"res://scenes/ui/ui_save_load_menu.tscn",
+		SceneType.UI,
+		"instant",
+		10  # Critical path - accessed from pause menu
+	)
+
 	# Loading Screen (preloaded at startup)
 	_register_scene(
 		StringName("loading_screen"),

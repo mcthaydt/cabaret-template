@@ -1,15 +1,14 @@
 # Save Manager Implementation Tasks
 
-**Progress:** 69% (36 / 52 implementation tasks, 0 / 46 manual tests)
+**Progress:** 79% (41 / 52 implementation tasks, 0 / 46 manual tests)
 
-**Recent Improvements (Phase 8 Complete - 2025-12-26):**
-- ✅ Comprehensive save file validation with detailed error messages
-- ✅ U_SaveValidator utility extracts validation logic
-- ✅ Type-safe validation (header/state Dictionary type checking)
-- ✅ Required field validation (current_scene_id presence and non-empty)
-- ✅ Enhanced error reporting with specific error codes
-- ✅ 8 new validation tests (86 total unit tests, all passing)
-- ✅ Backup fallback tested for corrupted save files
+**Recent Improvements (Phase 9 Complete - 2025-12-26):**
+- ✅ Added save_load_mode field to navigation slice for mode switching
+- ✅ Save and Load buttons integrated into pause menu UI
+- ✅ Overlay definition created (save_load_menu_overlay.tres)
+- ✅ Scene registered in U_SceneRegistry with preload priority 10
+- ✅ Focus navigation configured via U_FocusConfigurator pattern
+- ✅ All Redux wiring in place for save/load overlay integration
 
 ---
 
@@ -360,29 +359,38 @@ Key points:
 
 ---
 
-## Phase 9: UI - Pause Menu Integration
+## Phase 9: UI - Pause Menu Integration ✅
 
 **Exit Criteria:** Save/Load buttons appear in pause menu, open combined overlay with correct mode
 
-- [ ] **Task 9.1**: Add `save_load_mode` to navigation slice
-  - Add field to `RS_NavigationInitialState`: `save_load_mode: StringName = ""`
-  - Add action `U_NavigationActions.set_save_load_mode(mode: StringName)`
-  - Add reducer handler in `U_NavigationReducer`
-- [ ] **Task 9.2**: Add Save and Load buttons to `ui_pause_menu.gd`
-  - Insert between Settings and Quit buttons
-  - `_on_save_pressed()` -> dispatch `set_save_load_mode("save")` then `open_overlay`
-  - `_on_load_pressed()` -> dispatch `set_save_load_mode("load")` then `open_overlay`
-- [ ] **Task 9.3**: Create overlay definition in `resources/ui_screens/`
-  - `save_load_menu_overlay.tres` (RS_UIScreenDefinition)
+- [x] **Task 9.1**: Add `save_load_mode` to navigation slice
+  - Added field to `RS_NavigationInitialState`: `save_load_mode: StringName = ""`
+  - Added action `U_NavigationActions.set_save_load_mode(mode: StringName)`
+  - Added reducer handler in `U_NavigationReducer`
+- [x] **Task 9.2**: Add Save and Load buttons to `ui_pause_menu.gd`
+  - Inserted between Settings and Quit buttons
+  - `_on_save_pressed()` -> dispatches `set_save_load_mode("save")` then `open_overlay`
+  - `_on_load_pressed()` -> dispatches `set_save_load_mode("load")` then `open_overlay`
+  - Focus neighbors configured via `U_FocusConfigurator.configure_vertical_focus()`
+- [x] **Task 9.3**: Create overlay definition in `resources/ui_screens/`
+  - Created `save_load_menu_overlay.tres` (RS_UIScreenDefinition)
   - `allowed_shells`: ["gameplay"]
   - `allowed_parents`: ["pause_menu"]
-- [ ] **Task 9.4**: Register scene in `U_SceneRegistry`
+  - `close_mode`: RETURN_TO_PREVIOUS_OVERLAY (0)
+- [x] **Task 9.4**: Register scene in `U_SceneRegistry`
   - Scene ID: `save_load_menu`
   - Scene Type: `SceneType.UI`
   - Path: `res://scenes/ui/ui_save_load_menu.tscn`
-- [ ] **Task 9.5**: Update pause menu scene (`ui_pause_menu.tscn`)
-  - Add SaveButton and LoadButton nodes
-  - Configure focus neighbors
+  - Preload priority: 10 (critical path - accessed from pause menu)
+- [x] **Task 9.5**: Update pause menu scene (`ui_pause_menu.tscn`)
+  - Added SaveButton and LoadButton nodes with `unique_name_in_owner = true`
+  - Buttons appear in order: Resume, Settings, Save, Load, Quit
+
+**Notes:**
+- Phase 9 complete (2025-12-26)
+- All Redux wiring in place for save/load mode switching
+- UI scene files ready for Phase 10 implementation
+- Focus navigation configured via existing U_FocusConfigurator pattern
 
 ---
 

@@ -61,6 +61,8 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			return _reduce_return_to_main_menu(state)
 		U_NavigationActions.ACTION_NAVIGATE_TO_UI_SCREEN:
 			return _reduce_navigate_to_ui_screen(state, action)
+		U_NavigationActions.ACTION_SET_SAVE_LOAD_MODE:
+			return _reduce_set_save_load_mode(state, action)
 		_:
 			return state
 
@@ -307,6 +309,15 @@ static func _reduce_navigate_to_ui_screen(state: Dictionary, action: Dictionary)
 		"priority": action.get("priority", 2)
 	}
 
+	return new_state
+
+static func _reduce_set_save_load_mode(state: Dictionary, action: Dictionary) -> Dictionary:
+	var mode: StringName = action.get("mode", StringName(""))
+	if mode == StringName(""):
+		return state
+
+	var new_state: Dictionary = state.duplicate(true)
+	new_state["save_load_mode"] = mode
 	return new_state
 
 static func _is_overlay_allowed_for_parent(overlay_id: StringName, current_stack: Array) -> bool:
