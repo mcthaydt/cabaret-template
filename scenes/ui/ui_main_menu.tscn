@@ -31,15 +31,30 @@ layout_mode = 2
 text = "Main Menu"
 horizontal_alignment = 1
 
-[node name="PlayButton" type="Button" parent="CenterContainer/MainPanel"]
+[node name="ContinueButton" type="Button" parent="CenterContainer/MainPanel"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Play"
+text = "Continue"
+
+[node name="NewGameButton" type="Button" parent="CenterContainer/MainPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "New Game"
+
+[node name="LoadGameButton" type="Button" parent="CenterContainer/MainPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Load Game"
 
 [node name="SettingsButton" type="Button" parent="CenterContainer/MainPanel"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Settings"
+
+[node name="QuitButton" type="Button" parent="CenterContainer/MainPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Quit"
 
 [node name="SettingsPanel" type="Control" parent="."]
 unique_name_in_owner = true

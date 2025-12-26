@@ -376,6 +376,36 @@ func get_all_slot_metadata() -> Array[Dictionary]:
 
 	return all_metadata
 
+## Check if any save files exist
+func has_any_saves() -> bool:
+	for slot_id in ALL_SLOTS:
+		if slot_exists(slot_id):
+			return true
+	return false
+
+## Get the most recent save slot ID (by timestamp)
+## Returns the slot_id of the newest save, or empty StringName if no saves exist
+## Priority: autosave → newest manual save
+func get_most_recent_save_slot() -> StringName:
+	var most_recent_slot: StringName = StringName("")
+	var most_recent_timestamp: String = ""
+
+	for slot_id in ALL_SLOTS:
+		var metadata := get_slot_metadata(slot_id)
+		if metadata.is_empty():
+			continue  # Skip empty slots
+
+		var timestamp: String = metadata.get("timestamp", "")
+		if timestamp.is_empty():
+			continue
+
+		# First save found, or this one is newer
+		if most_recent_timestamp.is_empty() or timestamp > most_recent_timestamp:
+			most_recent_timestamp = timestamp
+			most_recent_slot = slot_id
+
+	return most_recent_slot
+
 ## ============================================================================
 ## Internal - Load Transition Management
 ## ============================================================================
