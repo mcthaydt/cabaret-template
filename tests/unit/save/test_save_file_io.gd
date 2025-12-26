@@ -191,4 +191,6 @@ func _create_file_io_helper() -> Variant:
 	# For now, we're writing the tests first (TDD Red phase)
 	var io_class: GDScript = load("res://scripts/managers/helpers/m_save_file_io.gd")
 	var io: Variant = io_class.new()
+	# Enable silent mode to suppress informational warnings in tests
+	io.silent_mode = true
 	return io

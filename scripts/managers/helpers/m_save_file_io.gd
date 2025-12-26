@@ -11,6 +11,9 @@ extends RefCounted
 
 const SAVE_DIR := "user://saves/"
 
+## Silent mode (suppresses informational warnings - used for tests)
+var silent_mode: bool = false
+
 ## Ensures the save directory exists, creating it if necessary
 func ensure_save_directory() -> void:
 	var dir := DirAccess.open("user://")
@@ -69,14 +72,16 @@ func load_from_file(file_path: String) -> Dictionary:
 		if not result.is_empty():
 			return result
 		else:
-			push_warning("Main save file corrupted, attempting backup: %s" % file_path)
+			if not silent_mode:
+				push_warning("Main save file corrupted, attempting backup: %s" % file_path)
 
 	# Fallback to backup
 	var bak_path: String = file_path + ".bak"
 	if FileAccess.file_exists(bak_path):
 		var result: Dictionary = _try_load_json(bak_path)
 		if not result.is_empty():
-			push_warning("Successfully recovered from backup: %s" % bak_path)
+			if not silent_mode:
+				push_warning("Successfully recovered from backup: %s" % bak_path)
 			return result
 		else:
 			push_error("Backup file also corrupted: %s" % bak_path)
@@ -99,7 +104,8 @@ func cleanup_tmp_files(directory: String) -> void:
 			var tmp_path: String = directory.path_join(file_name)
 			var error: Error = dir.remove(file_name)
 			if error == OK:
-				push_warning("Cleaned up orphaned temporary file: %s" % tmp_path)
+				if not silent_mode:
+					push_warning("Cleaned up orphaned temporary file: %s" % tmp_path)
 			else:
 				push_error("Failed to clean up temporary file: %s (error %d)" % [tmp_path, error])
 		file_name = dir.get_next()
@@ -117,18 +123,21 @@ func _try_load_json(file_path: String) -> Dictionary:
 	file.close()
 
 	if content.is_empty():
-		push_warning("Save file is empty: %s" % file_path)
+		if not silent_mode:
+			push_warning("Save file is empty: %s" % file_path)
 		return {}
 
 	var json := JSON.new()
 	var parse_error: Error = json.parse(content)
 	if parse_error != OK:
-		push_error("JSON parse error in %s at line %d: %s" % [file_path, json.get_error_line(), json.get_error_message()])
+		if not silent_mode:
+			push_error("JSON parse error in %s at line %d: %s" % [file_path, json.get_error_line(), json.get_error_message()])
 		return {}
 
 	var data: Variant = json.get_data()
 	if not data is Dictionary:
-		push_error("Save file does not contain a valid Dictionary: %s" % file_path)
+		if not silent_mode:
+			push_error("Save file does not contain a valid Dictionary: %s" % file_path)
 		return {}
 
 	return data as Dictionary
