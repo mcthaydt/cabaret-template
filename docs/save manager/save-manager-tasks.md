@@ -157,6 +157,26 @@
 
 **Exit Criteria:** All Phase 5 tests pass, load integrates with scene transitions via StateHandoff
 
+**StateHandoff Integration Pattern** (existing pattern in codebase):
+```gdscript
+const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+
+# Store loaded state for scene transition
+U_STATE_HANDOFF.set_handoff_state(loaded_state)
+
+# Transition to target scene
+M_SceneManager.transition_to_scene(target_scene_id)
+
+# M_StateStore automatically applies handoff state in _restore_from_handoff()
+# after the new scene loads (called in M_StateStore._ready())
+```
+
+Key points:
+- StateHandoff is a singleton that stores state between scene transitions
+- M_StateStore automatically checks for handoff state on _ready()
+- Normalization (scene validation, spawn fallback) happens during restoration
+- Don't call store.dispatch() directly - let StateHandoff handle it
+
 - [ ] **Task 5.1 (Red)**: Write tests for load rejection, autosave blocking, scene transitions, locking
   - Test rejection during active transition
   - Test rejection if `_is_loading` already true

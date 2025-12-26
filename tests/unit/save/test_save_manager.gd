@@ -295,3 +295,13 @@ func test_get_all_slot_metadata_with_nonexistent_slots() -> void:
 		assert_false(metadata.get("exists", true), "All slots should be marked as nonexistent when no saves exist")
 		assert_true(metadata.has("slot_id"), "All entries should have slot_id")
 		assert_true(metadata.get("slot_id") in M_SAVE_MANAGER.ALL_SLOTS, "slot_id should be a valid slot")
+
+## Phase 3+: Persistable State Tests
+
+func test_state_store_has_get_persistable_state_method() -> void:
+	# Verify M_StateStore exposes get_persistable_state() for Save Manager
+	assert_true(_mock_store.has_method("get_persistable_state"), "M_StateStore should have get_persistable_state() method")
+
+func test_state_store_has_get_slice_configs_method() -> void:
+	# Verify M_StateStore exposes get_slice_configs() for advanced use cases
+	assert_true(_mock_store.has_method("get_slice_configs"), "M_StateStore should have get_slice_configs() method")

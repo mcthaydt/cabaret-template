@@ -11,6 +11,39 @@ class_name U_StatePersistence
 
 const U_STATE_VALIDATOR := preload("res://scripts/state/utils/u_state_validator.gd")
 
+## Filter transient fields from state according to slice configs.
+##
+## Returns a new Dictionary with transient slices and fields removed.
+## Does NOT apply JSON serialization - returns raw Godot types.
+##
+## Used by M_SaveManager to prepare state for saving with custom header format.
+static func filter_transient_fields(state: Dictionary, slice_configs: Dictionary) -> Dictionary:
+	var filtered_state: Dictionary = {}
+	for slice_name in state:
+		var slice_state: Dictionary = state[slice_name]
+		var config: RS_StateSliceConfig = slice_configs.get(slice_name)
+
+		# Skip entirely transient slices
+		if config != null and config.is_transient:
+			continue
+
+		var filtered_slice: Dictionary = {}
+		if String(slice_name) == "gameplay":
+			# Persist full gameplay slice including input fields for save/load
+			filtered_slice = slice_state.duplicate(true)
+		else:
+			# Filter out transient fields
+			for key in slice_state:
+				var is_transient: bool = false
+				if config != null:
+					is_transient = config.transient_fields.has(key)
+				if not is_transient:
+					filtered_slice[key] = slice_state[key]
+
+		filtered_state[slice_name] = filtered_slice
+
+	return filtered_state
+
 ## Save the given state dictionary to a JSON file.
 ##
 ## Excludes transient fields as defined in slice configs.
@@ -20,26 +53,13 @@ static func save_state(filepath: String, state: Dictionary, slice_configs: Dicti
 		push_error("U_StatePersistence.save_state: Empty filepath")
 		return ERR_INVALID_PARAMETER
 
+	# Filter transient fields
+	var filtered_state: Dictionary = filter_transient_fields(state, slice_configs)
+
+	# Apply JSON serialization to each slice
 	var state_to_save: Dictionary = {}
-	for slice_name in state:
-		var slice_state: Dictionary = state[slice_name]
-		var config: RS_StateSliceConfig = slice_configs.get(slice_name)
-		if config != null and config.is_transient:
-			continue
-
-		var filtered_state: Dictionary = {}
-		if String(slice_name) == "gameplay":
-			# Persist full gameplay slice including input fields for save/load.
-			filtered_state = slice_state.duplicate(true)
-		else:
-			for key in slice_state:
-				var is_transient: bool = false
-				if config != null:
-					is_transient = config.transient_fields.has(key)
-				if not is_transient:
-					filtered_state[key] = slice_state[key]
-
-		state_to_save[slice_name] = U_SerializationHelper.godot_to_json(filtered_state)
+	for slice_name in filtered_state:
+		state_to_save[slice_name] = U_SerializationHelper.godot_to_json(filtered_state[slice_name])
 
 	var json_string: String = JSON.stringify(state_to_save, "\t")
 

@@ -63,6 +63,14 @@ func get_state() -> Dictionary:
 func get_slice(slice_name: StringName) -> Dictionary:
 	return _state.get(slice_name, {}).duplicate(true)
 
+func get_persistable_state() -> Dictionary:
+	# Mock implementation - just return state as-is (no actual transient filtering)
+	return _state.duplicate(true)
+
+func get_slice_configs() -> Dictionary:
+	# Mock implementation - return empty configs
+	return {}
+
 func is_ready() -> bool:
 	return _is_ready
 

@@ -62,6 +62,19 @@ func _ready() -> void:
 	if not _scene_manager:
 		push_warning("M_SaveManager: No M_SceneManager registered with ServiceLocator")
 
+	# Initialize save system
+	_initialize_save_system()
+
+## Initialize save directory and cleanup orphaned files
+func _initialize_save_system() -> void:
+	var file_io := M_SaveFileIO.new()
+
+	# Ensure save directory exists
+	file_io.ensure_save_directory()
+
+	# Clean up orphaned .tmp files from previous crashes
+	file_io.cleanup_tmp_files(SAVE_DIR)
+
 ## Get state store reference (for testing)
 func _get_state_store() -> I_StateStore:
 	return _state_store

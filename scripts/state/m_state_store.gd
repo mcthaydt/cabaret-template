@@ -329,6 +329,27 @@ func unsubscribe(callback: Callable) -> void:
 func get_state() -> Dictionary:
 	return _state.duplicate(true)
 
+## Get state with transient fields filtered out
+##
+## Returns a deep copy of state suitable for persistence, with:
+## - Transient slices removed (where config.is_transient == true)
+## - Transient fields removed (as defined in slice configs)
+## - Gameplay slice fully preserved (includes input fields)
+##
+## Used by M_SaveManager to prepare state for saving.
+func get_persistable_state() -> Dictionary:
+	const U_STATE_PERSISTENCE := preload("res://scripts/state/utils/u_state_persistence.gd")
+	return U_STATE_PERSISTENCE.filter_transient_fields(_state, _slice_configs)
+
+## Get slice configs for advanced state manipulation
+##
+## Returns a reference to the internal slice configs dictionary.
+## Used by save/load systems that need direct access to transient field definitions.
+##
+## WARNING: This is a reference, not a copy. Do not modify.
+func get_slice_configs() -> Dictionary:
+	return _slice_configs
+
 ## Get specific slice state (deep copy)
 ##
 ## Optional caller_slice parameter enables dependency validation:

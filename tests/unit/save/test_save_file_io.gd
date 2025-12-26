@@ -96,7 +96,7 @@ func test_save_to_file_creates_backup_before_overwrite() -> void:
 	var backup_content: String = FileAccess.get_file_as_string(backup_path)
 	var backup_data: Variant = JSON.parse_string(backup_content)
 	assert_not_null(backup_data, "Backup file should contain valid JSON")
-	assert_eq(backup_data["state"]["gameplay"]["health"], 100, "Backup should contain original data")
+	assert_eq(int(backup_data["state"]["gameplay"]["health"]), 100, "Backup should contain original data")
 
 func test_load_from_file_reads_valid_json() -> void:
 	var io: Variant = _create_file_io_helper()
@@ -108,8 +108,8 @@ func test_load_from_file_reads_valid_json() -> void:
 	var result: Dictionary = io.call("load_from_file", TEST_FILE)
 
 	assert_false(result.is_empty(), "load_from_file should return data for valid file")
-	assert_eq(result["header"]["save_version"], 1, "Loaded data should match saved data")
-	assert_eq(result["state"]["gameplay"]["health"], 100, "Loaded state should match saved state")
+	assert_eq(int(result["header"]["save_version"]), 1, "Loaded data should match saved data")
+	assert_eq(int(result["state"]["gameplay"]["health"]), 100, "Loaded state should match saved state")
 
 func test_load_from_file_falls_back_to_backup_on_missing_json() -> void:
 	var io: Variant = _create_file_io_helper()
@@ -126,7 +126,7 @@ func test_load_from_file_falls_back_to_backup_on_missing_json() -> void:
 	var result: Dictionary = io.call("load_from_file", TEST_FILE)
 
 	assert_false(result.is_empty(), "load_from_file should fall back to .bak when .json is missing")
-	assert_eq(result["header"]["save_version"], 1, "Backup data should be valid")
+	assert_eq(int(result["header"]["save_version"]), 1, "Backup data should be valid")
 
 func test_load_from_file_falls_back_to_backup_on_corrupted_json() -> void:
 	var io: Variant = _create_file_io_helper()
@@ -144,7 +144,7 @@ func test_load_from_file_falls_back_to_backup_on_corrupted_json() -> void:
 	var result: Dictionary = io.call("load_from_file", TEST_FILE)
 
 	assert_false(result.is_empty(), "load_from_file should fall back to .bak when .json is corrupted")
-	assert_eq(result["header"]["save_version"], 1, "Backup data should be valid")
+	assert_eq(int(result["header"]["save_version"]), 1, "Backup data should be valid")
 
 func test_load_from_file_returns_empty_dict_when_both_files_missing() -> void:
 	var io: Variant = _create_file_io_helper()
