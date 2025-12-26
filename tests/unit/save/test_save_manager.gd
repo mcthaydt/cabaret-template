@@ -511,17 +511,38 @@ func test_save_to_slot_calls_get_persistable_state() -> void:
 
 	await get_tree().process_frame
 
-	# Setup mock state
-	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	# Setup mock state with both persistable and transient fields
+	_mock_store.set_slice(StringName("gameplay"), {
+		"playtime_seconds": 100,  # persistable
+		"player_health": 75.0      # persistable
+	})
+	_mock_store.set_slice(StringName("scene"), {
+		"current_scene_id": "gameplay_base",  # persistable
+		"is_transitioning": true               # transient (if defined in slice config)
+	})
 
 	# Perform save
-	_save_manager.save_to_slot(StringName("slot_01"))
+	var result: Error = _save_manager.save_to_slot(StringName("slot_01"))
+	assert_eq(result, OK, "Save should succeed")
 
-	# Verify get_persistable_state was called by checking the saved file
-	# (The implementation should call get_persistable_state instead of get_state)
-	# This is verified by the fact that transient fields should be filtered
-	# We can't directly mock/spy the call, but we verify the behavior
+	# Load the saved file and verify structure
+	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
+	var file_io := M_SaveFileIO.new()
+	file_io.silent_mode = true
+	var loaded_data: Dictionary = file_io.load_from_file(file_path)
+
+	# Verify the file was saved with correct structure
+	assert_true(loaded_data.has("header"), "Save file should have header")
+	assert_true(loaded_data.has("state"), "Save file should have state")
+
+	# Verify state was filtered (get_persistable_state was called)
+	var state: Dictionary = loaded_data["state"]
+	assert_true(state.has("gameplay"), "State should include gameplay slice")
+	assert_true(state.has("scene"), "State should include scene slice")
+
+	# Verify persistable fields are present
+	assert_eq(state["gameplay"].get("playtime_seconds"), 100, "Persistable field should be saved")
+	assert_eq(state["gameplay"].get("player_health"), 75.0, "Persistable field should be saved")
 
 ## Phase 4+: Delete and Metadata Reading Tests
 
