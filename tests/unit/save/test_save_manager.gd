@@ -226,3 +226,72 @@ func test_build_metadata_uses_save_version_1() -> void:
 	var metadata: Dictionary = _save_manager.call("_build_metadata", StringName("slot_01"))
 
 	assert_eq(metadata.get("save_version", -1), 1, "Current save_version should be 1")
+
+## Phase 2: Edge Case Tests
+
+func test_build_metadata_handles_missing_scene_slice() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Only set gameplay slice, no scene slice
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 0})
+
+	var metadata: Dictionary = _save_manager.call("_build_metadata", StringName("slot_01"))
+
+	# Should handle missing scene slice gracefully
+	assert_eq(metadata.get("current_scene_id", null), "", "Missing scene slice should result in empty scene_id")
+	assert_eq(metadata.get("area_name", null), "Unknown", "Missing scene_id should result in 'Unknown' area name")
+
+func test_build_metadata_fallback_area_name_formatting() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Use a scene_id that's NOT in the registry
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 0})
+	_mock_store.set_slice(StringName("scene"), {
+		"current_scene_id": "custom_test_area"
+	})
+
+	var metadata: Dictionary = _save_manager.call("_build_metadata", StringName("slot_01"))
+
+	# Should format scene_id into readable name
+	assert_eq(metadata.get("area_name", null), "Custom Test Area", "Should format unknown scene_id into readable name")
+
+func test_build_metadata_handles_missing_gameplay_fields() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Set empty gameplay slice
+	_mock_store.set_slice(StringName("gameplay"), {})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+
+	var metadata: Dictionary = _save_manager.call("_build_metadata", StringName("slot_01"))
+
+	# Should use defaults for missing fields
+	assert_eq(metadata.get("playtime_seconds", -1), 0, "Missing playtime should default to 0")
+	assert_eq(metadata.get("last_checkpoint", null), "", "Missing checkpoint should default to empty string")
+	assert_eq(metadata.get("target_spawn_point", null), "", "Missing spawn point should default to empty string")
+
+func test_get_all_slot_metadata_with_nonexistent_slots() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	var all_metadata: Array[Dictionary] = _save_manager.get_all_slot_metadata()
+
+	# All slots should be marked as nonexistent
+	for metadata in all_metadata:
+		assert_false(metadata.get("exists", true), "All slots should be marked as nonexistent when no saves exist")
+		assert_true(metadata.has("slot_id"), "All entries should have slot_id")
+		assert_true(metadata.get("slot_id") in M_SAVE_MANAGER.ALL_SLOTS, "slot_id should be a valid slot")

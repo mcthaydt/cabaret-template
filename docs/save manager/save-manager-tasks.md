@@ -83,11 +83,23 @@
 - [x] **Task 2.3 (Refactor)**: Clean up slot locking mechanism
   - No refactoring needed - lock flags are simple and clean
 
+**Edge Case Tests Added (Post-Phase 2):**
+- [x] Test missing scene slice → area_name defaults to "Unknown"
+- [x] Test unknown scene_id → fallback formatting ("custom_test_area" → "Custom Test Area")
+- [x] Test missing gameplay fields → defaults used (playtime=0, checkpoint="", spawn="")
+- [x] Test all nonexistent slots → marked with exists=false
+
+**Code Improvements:**
+- [x] Build ID now uses ProjectSettings instead of hardcoded value
+  - Tries `application/config/version` first
+  - Falls back to `application/config/name + " (dev)"`
+
 **Notes:**
-- Save Manager now at 207 lines (well under 400 line limit)
+- Save Manager now at 211 lines (well under 400 line limit)
 - Metadata building is pure function (testable, no side effects)
 - Area name derivation uses scene registry with fallback formatting
 - ISO 8601 timestamp format verified via tests
+- All edge cases tested and passing (18/18 tests, 55 assertions)
 - Ready for Phase 3: File I/O implementation
 
 ---

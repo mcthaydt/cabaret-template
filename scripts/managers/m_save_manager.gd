@@ -179,9 +179,13 @@ func _get_iso8601_timestamp() -> String:
 
 ## Get build ID (version identifier)
 func _get_build_id() -> String:
-	# For now, use a simple version string
-	# In production, this could come from project settings or build metadata
-	return "v0.1.0-alpha"
+	# Try to get version from project settings
+	var version: String = ProjectSettings.get_setting("application/config/version", "")
+	if version.is_empty():
+		# Fallback: use application name + "dev"
+		var app_name: String = ProjectSettings.get_setting("application/config/name", "Unknown")
+		return app_name + " (dev)"
+	return version
 
 ## Get human-readable area name from scene ID
 func _get_area_name_from_scene(scene_id: String) -> String:
