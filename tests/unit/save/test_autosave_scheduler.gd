@@ -66,6 +66,7 @@ func test_checkpoint_event_triggers_autosave_request() -> void:
 	autofree(_scheduler)
 
 	# Set up state to allow autosave
+	_mock_store.set_slice(StringName("navigation"), {"shell": "gameplay"})
 	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
 	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
 
@@ -85,6 +86,7 @@ func test_area_complete_action_triggers_autosave_request() -> void:
 	autofree(_scheduler)
 
 	# Set up state to allow autosave
+	_mock_store.set_slice(StringName("navigation"), {"shell": "gameplay"})
 	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
 	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
 
@@ -107,6 +109,7 @@ func test_scene_transition_completed_triggers_autosave_request() -> void:
 	autofree(_scheduler)
 
 	# Set up state to allow autosave
+	_mock_store.set_slice(StringName("navigation"), {"shell": "gameplay"})
 	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
 	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
 
@@ -167,6 +170,7 @@ func test_coalescing_multiple_requests_into_one_write() -> void:
 	autofree(_scheduler)
 
 	# Set up state to allow autosave
+	_mock_store.set_slice(StringName("navigation"), {"shell": "gameplay"})
 	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
 	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
 
@@ -183,3 +187,24 @@ func test_coalescing_multiple_requests_into_one_write() -> void:
 
 	# Verify only one autosave was requested (coalesced)
 	assert_eq(_mock_save_manager.autosave_request_count, 1, "Multiple events in same frame should coalesce into one autosave")
+
+func test_autosave_blocked_when_not_in_gameplay_shell() -> void:
+	# Autosaves should only happen during gameplay, not in menus
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	# Set up state in main menu (not gameplay)
+	_mock_store.set_slice(StringName("navigation"), {"shell": "main_menu"})
+	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
+	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
+
+	await get_tree().process_frame
+
+	# Try to trigger autosave with checkpoint
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {"checkpoint_id": "test_checkpoint"})
+
+	await get_tree().process_frame
+
+	# Verify autosave was NOT requested (blocked by shell check)
+	assert_eq(_mock_save_manager.autosave_request_count, 0, "Autosave should be blocked when not in gameplay shell")

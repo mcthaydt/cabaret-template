@@ -44,7 +44,7 @@ var _event_unsubscribes: Array[Callable] = []
 # Dirty flag + priority tracking for coalescing
 var _is_dirty: bool = false
 var _pending_priority: int = Priority.NORMAL
-var _last_autosave_time: float = 0.0
+var _last_autosave_time: float = -1000.0  # Initialize to distant past to allow first autosave
 
 func _ready() -> void:
 	_discover_dependencies()
@@ -82,6 +82,16 @@ func _on_action_dispatched(action: Dictionary) -> void:
 		_request_autosave_if_allowed(Priority.NORMAL)
 
 func _request_autosave_if_allowed(priority: int) -> void:
+	# Enforce cooldown based on priority
+	var now := Time.get_ticks_msec() / 1000.0
+	var time_since_last_save := now - _last_autosave_time
+
+	if priority == Priority.NORMAL and time_since_last_save < COOLDOWN_NORMAL:
+		return  # Skip - too soon for normal priority
+	elif priority == Priority.HIGH and time_since_last_save < COOLDOWN_HIGH:
+		return  # Skip - too soon for high priority
+	# CRITICAL priority ignores cooldown
+
 	# Check blocking conditions
 	if not _is_autosave_allowed():
 		return
@@ -102,6 +112,11 @@ func _is_autosave_allowed() -> bool:
 		return false
 
 	var state: Dictionary = _state_store.get_state()
+
+	# Only autosave during gameplay (not in menus)
+	var navigation: Dictionary = state.get("navigation", {})
+	if navigation.get("shell", "") != "gameplay":
+		return false
 
 	# Check death_in_progress flag
 	var gameplay: Dictionary = state.get("gameplay", {})

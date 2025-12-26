@@ -149,6 +149,13 @@ func _is_saving_locked() -> bool:
 func _is_loading_locked() -> bool:
 	return _is_loading
 
+## Check if save/load operations are currently locked
+##
+## Returns true if either a save or load operation is in progress.
+## Used by M_AutosaveScheduler to prevent autosaves during save/load operations.
+func is_locked() -> bool:
+	return _is_saving or _is_loading
+
 ## ============================================================================
 ## Public API - Save Operations
 ## ============================================================================
@@ -264,6 +271,19 @@ func load_from_slot(slot_id: StringName) -> Error:
 		if scene_slice.has("scene_stack"):
 			scene_slice.erase("scene_stack")
 			loaded_state["scene"] = scene_slice
+
+	# BUG FIX: Clear navigation overlay state from loaded state (legacy saves)
+	# Navigation slice is now entirely transient, but legacy saves may have persisted it
+	# Clear overlay_stack, overlay_return_stack, and save_load_mode to prevent UI issues
+	if loaded_state.has("navigation"):
+		var nav_slice: Dictionary = loaded_state["navigation"]
+		if nav_slice.has("overlay_stack"):
+			nav_slice.erase("overlay_stack")
+		if nav_slice.has("overlay_return_stack"):
+			nav_slice.erase("overlay_return_stack")
+		if nav_slice.has("save_load_mode"):
+			nav_slice.erase("save_load_mode")
+		loaded_state["navigation"] = nav_slice
 
 	# Apply loaded state directly to M_StateStore
 	# This updates all slices immediately before scene transition

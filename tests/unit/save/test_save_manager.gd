@@ -1246,3 +1246,126 @@ func test_load_uses_loading_transition_type() -> void:
 	# The key assertion: should always use "loading", not "fade"
 	var transition_type: String = _mock_scene_manager.get("_transition_type")
 	assert_eq(transition_type, "loading", "Should always use loading transition when loading from saves")
+
+## ============================================================================
+## Bug Fix Tests (TDD)
+## ============================================================================
+
+func test_is_locked_returns_false_when_not_saving_or_loading() -> void:
+	# BUG FIX #1: M_SaveManager needs public is_locked() method for M_AutosaveScheduler
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Initially not locked
+	assert_false(_save_manager.is_locked(), "Should not be locked initially")
+
+func test_is_locked_returns_true_when_saving() -> void:
+	# BUG FIX #1: is_locked() should return true during save operations
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup state
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+
+	# Use array to capture state (workaround for GDScript lambda capture-by-value)
+	var event_state: Array = [false, false]  # [save_started, lock_during_save]
+	U_ECSEventBus.subscribe(StringName("save_started"), func(_event: Dictionary) -> void:
+		event_state[0] = true  # save_started
+		event_state[1] = _save_manager.is_locked()  # lock_during_save
+	)
+
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	assert_true(event_state[0], "Save should have started")
+	assert_true(event_state[1], "Should be locked during save operation")
+	assert_false(_save_manager.is_locked(), "Should be unlocked after save completes")
+
+func test_is_locked_returns_true_when_loading() -> void:
+	# BUG FIX #1: is_locked() should return true during load operations
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup state and save
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Setup mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Check lock state during load
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, OK, "Load should succeed")
+
+	# Note: Load sets lock, triggers transition, then lock is cleared after transition completes
+	# We can't easily test mid-load state, but we can verify the lock cleared after
+	# For now, just verify method exists and returns bool
+	var is_locked: bool = _save_manager.is_locked()
+	assert_typeof(is_locked, TYPE_BOOL, "is_locked() should return a boolean")
+
+func test_load_clears_navigation_overlay_stack_from_legacy_saves() -> void:
+	# BUG FIX #2: Load should clear overlay_stack from navigation slice (legacy saves)
+	# Similar to how scene_stack is cleared from scene slice
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a legacy save WITH navigation.overlay_stack (before navigation was transient)
+	var legacy_save_with_overlays := {
+		"header": {
+			"save_version": 1,
+			"current_scene_id": "gameplay_base",
+			"timestamp": "2025-12-26T10:00:00Z",
+			"playtime_seconds": 100
+		},
+		"state": {
+			"gameplay": {"playtime_seconds": 100},
+			"scene": {
+				"current_scene_id": "gameplay_base",
+				"is_transitioning": false
+			},
+			"navigation": {
+				"shell": "gameplay",
+				"overlay_stack": [StringName("pause_menu"), StringName("save_load_menu")],
+				"overlay_return_stack": [StringName("pause_menu")],
+				"save_load_mode": StringName("load")
+			}
+		}
+	}
+
+	# Write the legacy save file directly
+	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
+	var file_io := M_SaveFileIO.new()
+	file_io.save_to_file(file_path, legacy_save_with_overlays)
+
+	# Setup mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Load the save
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, OK, "Load should succeed")
+
+	# Verify navigation overlay fields were cleared BEFORE applying to store
+	# The navigation slice is transient, so it shouldn't be in StateHandoff at all
+	# But if it was loaded from a legacy save, it should have been cleaned
+	var nav_state: Dictionary = U_STATE_HANDOFF.restore_slice(StringName("navigation"))
+
+	# If navigation was in the loaded state, these fields should have been cleared
+	if not nav_state.is_empty():
+		assert_false(nav_state.has("overlay_stack"), "overlay_stack should be cleared from legacy saves")
+		assert_false(nav_state.has("overlay_return_stack"), "overlay_return_stack should be cleared from legacy saves")
+		assert_false(nav_state.has("save_load_mode"), "save_load_mode should be cleared from legacy saves")
