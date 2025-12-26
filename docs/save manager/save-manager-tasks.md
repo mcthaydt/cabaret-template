@@ -1,6 +1,6 @@
 # Save Manager Implementation Tasks
 
-**Progress:** 15% (8 / 52 implementation tasks, 0 / 46 manual tests)
+**Progress:** 21% (11 / 52 implementation tasks, 0 / 46 manual tests)
 
 ---
 
@@ -66,16 +66,29 @@
 
 ---
 
-## Phase 2: Slot Registry and Metadata
+## Phase 2: Slot Registry and Metadata ✅
 
 **Exit Criteria:** All Phase 2 tests pass, slot metadata accurately reflects state
 
-- [ ] **Task 2.1 (Red)**: Write tests for slot enumeration, metadata creation, conflict detection
-- [ ] **Task 2.2 (Green)**: Implement `m_save_slot_registry.gd` and `u_save_metadata.gd`
-  - Slot IDs: `autosave`, `slot_01`, `slot_02`, `slot_03`
-  - Metadata: timestamp, playtime, area_name, scene_id, thumbnail_path
-  - File path generation: `user://saves/{slot_id}.json`
-- [ ] **Task 2.3 (Refactor)**: Clean up slot locking mechanism
+- [x] **Task 2.1 (Red)**: Write tests for slot enumeration, metadata creation, conflict detection
+  - Added 8 new tests for slot registry and metadata building
+  - Tests cover: slot IDs, slot existence, metadata retrieval, metadata building, area name derivation, timestamp formatting, save version
+  - All tests passing (14/14 total including Phase 1 tests)
+- [x] **Task 2.2 (Green)**: Implement slot registry and metadata utilities
+  - Added slot constants: `SLOT_AUTOSAVE`, `SLOT_01`, `SLOT_02`, `SLOT_03`
+  - Implemented `get_all_slot_ids()`, `slot_exists()`, `get_slot_metadata()`, `get_all_slot_metadata()`
+  - Implemented `_build_metadata()` with all required header fields
+  - Implemented helper methods: `_get_slot_file_path()`, `_get_iso8601_timestamp()`, `_get_build_id()`, `_get_area_name_from_scene()`
+  - Metadata includes: save_version, timestamp, build_id, playtime_seconds, current_scene_id, last_checkpoint, target_spawn_point, area_name, slot_id, thumbnail_path
+- [x] **Task 2.3 (Refactor)**: Clean up slot locking mechanism
+  - No refactoring needed - lock flags are simple and clean
+
+**Notes:**
+- Save Manager now at 207 lines (well under 400 line limit)
+- Metadata building is pure function (testable, no side effects)
+- Area name derivation uses scene registry with fallback formatting
+- ISO 8601 timestamp format verified via tests
+- Ready for Phase 3: File I/O implementation
 
 ---
 
