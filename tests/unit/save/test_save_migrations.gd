@@ -196,8 +196,8 @@ func test_import_legacy_save_migrates_and_returns_save_data() -> void:
 	# Should be migrated to v1 format
 	assert_true(imported.has("header"), "Imported save should have header")
 	assert_true(imported.has("state"), "Imported save should have state")
-	assert_eq(imported["header"]["save_version"], 1, "Should migrate to v1")
-	assert_eq(imported["state"]["gameplay"]["player_health"], 80, "Should preserve state data")
+	assert_eq(int(imported["header"]["save_version"]), 1, "Should migrate to v1")
+	assert_eq(int(imported["state"]["gameplay"]["player_health"]), 80, "Should preserve state data")
 
 	# Cleanup
 	if FileAccess.file_exists(legacy_path):

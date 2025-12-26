@@ -495,15 +495,16 @@ func test_save_to_slot_writes_file_with_header_and_state() -> void:
 
 	# Verify header fields
 	var header: Dictionary = loaded_data["header"]
-	assert_eq(header.get("save_version"), 1, "Header should have save_version=1")
+	assert_eq(int(header.get("save_version")), 1, "Header should have save_version=1")
 	assert_eq(header.get("slot_id"), StringName("slot_01"), "Header should have correct slot_id")
-	assert_eq(header.get("playtime_seconds"), 3600, "Header should have playtime from state")
+	assert_eq(int(header.get("playtime_seconds")), 3600, "Header should have playtime from state")
 	assert_eq(header.get("current_scene_id"), "gameplay_base", "Header should have scene_id from state")
 
 	# Verify state was included
 	var state: Dictionary = loaded_data["state"]
 	assert_true(state.has("gameplay"), "State should include gameplay slice")
 	assert_eq(state["gameplay"].get("player_health"), 75.0, "State should preserve gameplay data")
+	assert_eq(int(state["gameplay"].get("playtime_seconds")), 3600, "State should preserve playtime")
 
 func test_save_to_slot_calls_get_persistable_state() -> void:
 	_save_manager = M_SAVE_MANAGER.new()
@@ -542,7 +543,7 @@ func test_save_to_slot_calls_get_persistable_state() -> void:
 	assert_true(state.has("scene"), "State should include scene slice")
 
 	# Verify persistable fields are present
-	assert_eq(state["gameplay"].get("playtime_seconds"), 100, "Persistable field should be saved")
+	assert_eq(int(state["gameplay"].get("playtime_seconds")), 100, "Persistable field should be saved")
 	assert_eq(state["gameplay"].get("player_health"), 75.0, "Persistable field should be saved")
 
 func test_request_autosave_saves_to_autosave_slot() -> void:
@@ -644,7 +645,7 @@ func test_get_slot_metadata_reads_from_existing_file() -> void:
 	# Verify metadata fields
 	assert_false(metadata.is_empty(), "Metadata should not be empty for existing slot")
 	assert_eq(metadata.get("slot_id"), StringName("slot_02"), "Metadata should include slot_id")
-	assert_eq(metadata.get("playtime_seconds"), 7200, "Metadata should include playtime")
+	assert_eq(int(metadata.get("playtime_seconds")), 7200, "Metadata should include playtime")
 	assert_eq(metadata.get("current_scene_id"), "interior_house", "Metadata should include scene_id")
 	assert_eq(metadata.get("last_checkpoint"), "cp_final", "Metadata should include checkpoint")
 	assert_eq(metadata.get("target_spawn_point"), "sp_boss", "Metadata should include spawn point")
@@ -676,7 +677,7 @@ func test_get_all_slot_metadata_includes_existing_slots_with_data() -> void:
 
 	# Verify slot_01 has full metadata
 	assert_true(slot_01_meta.get("exists", false), "slot_01 should be marked as exists=true")
-	assert_eq(slot_01_meta.get("playtime_seconds"), 100, "slot_01 should have playtime data")
+	assert_eq(int(slot_01_meta.get("playtime_seconds")), 100, "slot_01 should have playtime data")
 
 ## Phase 5: Load Workflow Tests
 
@@ -846,7 +847,7 @@ func test_load_from_slot_preserves_state_to_handoff() -> void:
 	# Verify state was preserved to handoff
 	var restored_gameplay: Dictionary = U_STATE_HANDOFF.restore_slice(StringName("gameplay"))
 	assert_false(restored_gameplay.is_empty(), "Gameplay state should be preserved to handoff")
-	assert_eq(restored_gameplay.get("playtime_seconds"), 500, "Preserved state should match saved data")
+	assert_eq(int(restored_gameplay.get("playtime_seconds")), 500, "Preserved state should match saved data")
 	assert_eq(restored_gameplay.get("player_health"), 50.0, "Preserved state should include health")
 
 func test_load_from_slot_triggers_scene_transition() -> void:
@@ -1079,7 +1080,7 @@ func test_load_falls_back_to_backup_when_main_file_invalid() -> void:
 
 	# Verify state was loaded from backup (should have playtime=100, the first save)
 	var gameplay_state: Dictionary = U_STATE_HANDOFF.restore_slice(StringName("gameplay"))
-	assert_eq(gameplay_state.get("playtime_seconds"), 100, "Should load data from backup file")
+	assert_eq(int(gameplay_state.get("playtime_seconds")), 100, "Should load data from backup file")
 
 func test_load_fails_when_both_main_and_backup_corrupted() -> void:
 	_save_manager = M_SAVE_MANAGER.new()
