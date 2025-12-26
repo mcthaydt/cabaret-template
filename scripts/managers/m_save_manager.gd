@@ -19,6 +19,7 @@ class_name M_SaveManager
 
 const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 
 ## Save file format version
 const SAVE_VERSION := 1
@@ -42,6 +43,12 @@ var _scene_manager: Node = null  # M_SceneManager
 ## Lock flags to prevent concurrent operations
 var _is_saving: bool = false
 var _is_loading: bool = false
+
+## Tracks which scene we're loading to (for transition completion verification)
+var _loading_target_scene: StringName = StringName("")
+
+## Store subscription unsubscribe callback (for transition completion)
+var _transition_complete_unsubscribe: Callable
 
 func _ready() -> void:
 	# Add to save_manager group for discovery
@@ -185,7 +192,7 @@ func load_from_slot(slot_id: StringName) -> Error:
 	var validation_result: Dictionary = _validate_and_load_save_file(file_path)
 
 	if validation_result.has("error"):
-		_is_loading = false
+		_clear_loading_lock()
 		return validation_result["error"]
 
 	var header: Dictionary = validation_result["header"]
@@ -198,21 +205,24 @@ func load_from_slot(slot_id: StringName) -> Error:
 		var slice_data: Dictionary = loaded_state[slice_name]
 		U_STATE_HANDOFF.preserve_slice(StringName(slice_name), slice_data)
 
+	# Store target scene for transition completion verification
+	_loading_target_scene = target_scene_id
+
+	# Subscribe to state store to detect when transition completes
+	# We'll clear _is_loading lock when we see transition_completed action
+	if _state_store:
+		_transition_complete_unsubscribe = _state_store.subscribe(_on_load_transition_action)
+
 	# Trigger scene transition
 	# Note: M_StateStore will restore state from handoff after scene loads
 	if _scene_manager and _scene_manager.has_method("transition_to_scene"):
 		_scene_manager.transition_to_scene(target_scene_id)
 	else:
-		# No scene manager - clear handoff and fail gracefully
+		# No scene manager - clear handoff, unsubscribe, and fail gracefully
 		U_STATE_HANDOFF.clear_all()
-		_is_loading = false
+		_clear_loading_lock()
 		push_error("M_SaveManager: No scene manager available for load transition")
 		return ERR_UNAVAILABLE
-
-	# Clear loading lock
-	# Note: In the future, this should be done after the scene transition completes
-	# For now, we clear it immediately since transitions are synchronous in tests
-	_is_loading = false
 
 	return OK
 
@@ -316,6 +326,40 @@ func get_all_slot_metadata() -> Array[Dictionary]:
 		all_metadata.append(metadata)
 
 	return all_metadata
+
+## ============================================================================
+## Internal - Load Transition Management
+## ============================================================================
+
+## Callback for state store actions during load
+## Listens for transition_completed to clear loading lock
+func _on_load_transition_action(action: Dictionary, _state: Dictionary) -> void:
+	var action_type: String = str(action.get("type", ""))
+
+	# Only care about transition_completed actions
+	if action_type != String(U_SCENE_ACTIONS.ACTION_TRANSITION_COMPLETED):
+		return
+
+	# Verify the scene_id matches what we're loading
+	var payload: Dictionary = action.get("payload", {})
+	var completed_scene_id: StringName = payload.get("scene_id", StringName(""))
+
+	if completed_scene_id != _loading_target_scene:
+		# Not our transition - ignore
+		return
+
+	# Transition complete - clear loading lock
+	_clear_loading_lock()
+
+## Clear loading lock and cleanup transition tracking
+func _clear_loading_lock() -> void:
+	_is_loading = false
+	_loading_target_scene = StringName("")
+
+	# Unsubscribe from state store if we have an active subscription
+	if _transition_complete_unsubscribe.is_valid():
+		_transition_complete_unsubscribe.call()
+		_transition_complete_unsubscribe = Callable()
 
 ## ============================================================================
 ## Internal - Load Validation

@@ -2,6 +2,12 @@
 
 **Progress:** 48% (25 / 52 implementation tasks, 0 / 46 manual tests)
 
+**Recent Improvements (Pre-Phase 6):**
+- ✅ Fixed lock timing issue - `_is_loading` now clears after scene transition completes (not immediately)
+- ✅ Added integration test for save/load cycle validation
+- ✅ 3 new lock timing tests (54 unit tests total, all passing)
+- ✅ Prevents autosave during load by keeping lock set until transition completes
+
 ---
 
 ## Phase 0: Preparation & Existing Code Migration ✅

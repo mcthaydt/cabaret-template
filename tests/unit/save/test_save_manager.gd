@@ -715,9 +715,77 @@ func test_load_from_slot_sets_and_clears_is_loading_lock() -> void:
 	# Perform load (this will trigger scene transition)
 	_save_manager.load_from_slot(StringName("slot_01"))
 
-	# After load completes (synchronous for now), lock should be cleared
-	# Note: This test may need adjustment once async loading is implemented
-	assert_false(_save_manager.call("_is_loading_locked"), "_is_loading should be false after load completes")
+	# Lock should STAY SET during transition (new behavior!)
+	assert_true(_save_manager.call("_is_loading_locked"), "_is_loading should stay true during transition")
+
+	# Simulate transition completion by dispatching the action
+	const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+	_mock_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+
+	# Now lock should be cleared
+	assert_false(_save_manager.call("_is_loading_locked"), "_is_loading should be false after transition completes")
+
+func test_load_from_slot_lock_stays_set_during_transition() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a valid save
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "exterior"})
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Setup mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Perform load
+	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(result, OK, "Load should succeed")
+
+	# Lock should stay set until transition completes
+	assert_true(_save_manager.call("_is_loading_locked"), "Lock should stay set during transition")
+
+	# Attempting another load should fail with ERR_BUSY
+	var second_load: Error = _save_manager.load_from_slot(StringName("slot_01"))
+	assert_eq(second_load, ERR_BUSY, "Second load should be rejected while first is in progress")
+
+func test_load_from_slot_lock_clears_only_for_matching_scene() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create a save for "exterior" scene
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "exterior"})
+	_save_manager.save_to_slot(StringName("slot_01"))
+
+	# Setup mock scene manager
+	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
+	_mock_scene_manager.set("_is_transitioning", false)
+
+	# Perform load
+	_save_manager.load_from_slot(StringName("slot_01"))
+
+	# Lock should be set
+	assert_true(_save_manager.call("_is_loading_locked"), "Lock should be set")
+
+	# Dispatch transition_completed for WRONG scene
+	const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+	_mock_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
+
+	# Lock should STILL be set (wrong scene)
+	assert_true(_save_manager.call("_is_loading_locked"), "Lock should stay set when wrong scene completes")
+
+	# Dispatch transition_completed for CORRECT scene
+	_mock_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+
+	# Now lock should be cleared
+	assert_false(_save_manager.call("_is_loading_locked"), "Lock should clear when correct scene completes")
 
 func test_load_from_slot_preserves_state_to_handoff() -> void:
 	_save_manager = M_SAVE_MANAGER.new()
