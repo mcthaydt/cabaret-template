@@ -545,6 +545,33 @@ func test_save_to_slot_calls_get_persistable_state() -> void:
 	assert_eq(state["gameplay"].get("playtime_seconds"), 100, "Persistable field should be saved")
 	assert_eq(state["gameplay"].get("player_health"), 75.0, "Persistable field should be saved")
 
+func test_request_autosave_saves_to_autosave_slot() -> void:
+	_save_manager = M_SAVE_MANAGER.new()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup state
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 42})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+
+	# Request autosave
+	_save_manager.request_autosave()
+
+	await get_tree().process_frame
+
+	# Verify autosave file was created
+	var autosave_path: String = "user://saves/autosave.json"
+	assert_true(FileAccess.file_exists(autosave_path), "Autosave file should exist")
+
+	# Verify it's the autosave slot
+	var file := FileAccess.open(autosave_path, FileAccess.READ)
+	var json_string: String = file.get_as_text()
+	file.close()
+	var loaded_data: Dictionary = JSON.parse_string(json_string)
+	assert_eq(loaded_data["header"]["slot_id"], "autosave", "Should save to autosave slot")
+
 ## Phase 4+: Delete and Metadata Reading Tests
 
 func test_delete_slot_removes_save_files() -> void:

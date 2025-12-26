@@ -103,6 +103,13 @@ func _is_loading_locked() -> bool:
 ## Public API - Save Operations
 ## ============================================================================
 
+## Request an autosave (called by M_AutosaveScheduler)
+##
+## Always saves to the autosave slot. Priority parameter is reserved for future
+## cooldown enforcement but currently unused.
+func request_autosave(priority: int = 0) -> void:
+	save_to_slot(SLOT_AUTOSAVE)
+
 ## Save current state to a specific slot
 ##
 ## Returns Error code (OK on success, ERR_BUSY if already saving)
