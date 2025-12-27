@@ -391,3 +391,250 @@ func test_comprehensive_state_roundtrip() -> void:
 	# Verify scene ID (StateHandoff triggers scene transition, so this might not match exactly)
 	# We verify that current_scene_id matches what was saved in the header
 	assert_eq(scene_after.get("current_scene_id"), StringName("gameplay_base"), "Scene should be restored to saved scene")
+
+## AT-05: Autosave cooldown prevents spam (rapid checkpoint triggers)
+func test_autosave_cooldown_prevents_spam() -> void:
+	# Create save manager (autosave scheduler will be initialized automatically)
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Initialize scene state
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+
+	# Set navigation shell to "gameplay"
+	const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+
+	await get_tree().physics_frame
+
+	var autosave_path := TEST_SAVE_DIR + "autosave.json"
+
+	# First checkpoint - should trigger autosave
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {
+		"checkpoint_id": StringName("checkpoint_1"),
+		"position": Vector3.ZERO
+	})
+
+	await get_tree().process_frame
+	await get_tree().physics_frame
+
+	# Verify first autosave was created
+	assert_true(FileAccess.file_exists(autosave_path), "First autosave should be created")
+
+	# Read first save and capture timestamp
+	var file1 := FileAccess.open(autosave_path, FileAccess.READ)
+	assert_not_null(file1, "Should be able to open first autosave")
+	var json1 := JSON.new()
+	json1.parse(file1.get_as_text())
+	file1.close()
+	var data1: Dictionary = json1.data as Dictionary
+	var header1: Dictionary = data1.get("header", {})
+	var timestamp1: String = header1.get("timestamp", "")
+
+	# Second checkpoint immediately (within cooldown period of 5s)
+	# Should be SKIPPED due to cooldown
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {
+		"checkpoint_id": StringName("checkpoint_2"),
+		"position": Vector3.ONE
+	})
+
+	await get_tree().process_frame
+	await get_tree().physics_frame
+
+	# Read autosave again and verify timestamp hasn't changed
+	var file2 := FileAccess.open(autosave_path, FileAccess.READ)
+	assert_not_null(file2, "Should be able to open autosave after second checkpoint")
+	var json2 := JSON.new()
+	json2.parse(file2.get_as_text())
+	file2.close()
+	var data2: Dictionary = json2.data as Dictionary
+	var header2: Dictionary = data2.get("header", {})
+	var timestamp2: String = header2.get("timestamp", "")
+
+	# Timestamp should be UNCHANGED because second checkpoint was within cooldown
+	assert_eq(timestamp2, timestamp1, "Timestamp should not change - second checkpoint should be rate-limited by cooldown")
+
+	# Third checkpoint immediately - also should be SKIPPED
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {
+		"checkpoint_id": StringName("checkpoint_3"),
+		"position": Vector3(2, 2, 2)
+	})
+
+	await get_tree().process_frame
+	await get_tree().physics_frame
+
+	# Verify timestamp still unchanged
+	var file3 := FileAccess.open(autosave_path, FileAccess.READ)
+	assert_not_null(file3, "Should be able to open autosave after third checkpoint")
+	var json3 := JSON.new()
+	json3.parse(file3.get_as_text())
+	file3.close()
+	var data3: Dictionary = json3.data as Dictionary
+	var header3: Dictionary = data3.get("header", {})
+	var timestamp3: String = header3.get("timestamp", "")
+
+	assert_eq(timestamp3, timestamp1, "Timestamp should still not change - third checkpoint also rate-limited")
+
+## AT-04: Autosave triggers after scene transition completes
+func test_autosave_triggers_on_scene_transition() -> void:
+	# Create save manager (autosave scheduler will be initialized automatically)
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Initialize scene state with a valid current_scene_id
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+
+	# Set navigation shell to "gameplay" (required for autosave to trigger)
+	const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+
+	await get_tree().physics_frame
+
+	# Verify autosave file doesn't exist yet
+	var autosave_path := TEST_SAVE_DIR + "autosave.json"
+	assert_false(FileAccess.file_exists(autosave_path), "Autosave should not exist yet")
+
+	# Dispatch scene transition completed action (simulates transition to new scene)
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
+
+	# Wait for autosave scheduler to process action and trigger save
+	await get_tree().process_frame
+	await get_tree().physics_frame
+
+	# Verify autosave was created
+	assert_true(FileAccess.file_exists(autosave_path), "Autosave should be created after scene transition")
+
+	# Verify autosave contains the new scene_id
+	var file := FileAccess.open(autosave_path, FileAccess.READ)
+	assert_not_null(file, "Should be able to open autosave file")
+	if file:
+		var json_text: String = file.get_as_text()
+		file.close()
+
+		var json := JSON.new()
+		var parse_result := json.parse(json_text)
+		assert_eq(parse_result, OK, "Autosave file should be valid JSON")
+
+		var data: Dictionary = json.data as Dictionary
+		var header: Dictionary = data.get("header", {})
+		var current_scene_id: StringName = header.get("current_scene_id", StringName(""))
+		assert_eq(current_scene_id, StringName("interior_house"), "Autosave should contain new scene_id")
+
+## AT-03: Autosave triggers on area completion action
+func test_autosave_triggers_on_area_completion() -> void:
+	# Create save manager (autosave scheduler will be initialized automatically)
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Initialize scene state with a valid current_scene_id
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+
+	# Set navigation shell to "gameplay" (required for autosave to trigger)
+	const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+	_state_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+
+	await get_tree().physics_frame
+
+	# Verify autosave file doesn't exist yet
+	var autosave_path := TEST_SAVE_DIR + "autosave.json"
+	assert_false(FileAccess.file_exists(autosave_path), "Autosave should not exist yet")
+
+	# Dispatch area completion action
+	const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete(StringName("test_area")))
+
+	# Wait for autosave scheduler to process action and trigger save
+	await get_tree().process_frame
+	await get_tree().physics_frame
+
+	# Verify autosave was created
+	assert_true(FileAccess.file_exists(autosave_path), "Autosave should be created after area completion")
+
+	# Verify autosave contains the completed area
+	var file := FileAccess.open(autosave_path, FileAccess.READ)
+	assert_not_null(file, "Should be able to open autosave file")
+	if file:
+		var json_text: String = file.get_as_text()
+		file.close()
+
+		var json := JSON.new()
+		var parse_result := json.parse(json_text)
+		assert_eq(parse_result, OK, "Autosave file should be valid JSON")
+
+		var data: Dictionary = json.data as Dictionary
+		var state: Dictionary = data.get("state", {})
+		var gameplay: Dictionary = state.get("gameplay", {})
+		var completed_areas: Array = gameplay.get("completed_areas", [])
+		assert_true(completed_areas.has("test_area"), "Autosave should contain completed area")
+
+## AT-02: Manual save to occupied slot overwrites correctly with timestamp update
+func test_manual_save_overwrites_with_timestamp_update() -> void:
+	# Create save manager
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Initialize scene state
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	await get_tree().physics_frame
+
+	# First save to slot_01
+	var first_save_result: Error = _save_manager.save_to_slot(StringName("slot_01"))
+	assert_eq(first_save_result, OK, "First save should succeed")
+
+	# Read first save file and capture timestamp
+	var file_path := TEST_SAVE_DIR + "slot_01.json"
+	var file1 := FileAccess.open(file_path, FileAccess.READ)
+	assert_not_null(file1, "Should be able to open first save file")
+	var json1 := JSON.new()
+	json1.parse(file1.get_as_text())
+	file1.close()
+	var data1: Dictionary = json1.data as Dictionary
+	var header1: Dictionary = data1.get("header", {})
+	var timestamp1: String = header1.get("timestamp", "")
+	assert_ne(timestamp1, "", "First save should have a timestamp")
+
+	# Wait to ensure timestamp will be different (timestamps are ISO 8601 with second precision)
+	# Use a timer to advance time by at least 1 second
+	await get_tree().create_timer(1.5).timeout
+
+	# Modify state slightly
+	const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.increment_playtime(10))
+	await get_tree().physics_frame
+
+	# Second save to same slot (overwrite)
+	var second_save_result: Error = _save_manager.save_to_slot(StringName("slot_01"))
+	assert_eq(second_save_result, OK, "Second save (overwrite) should succeed")
+
+	# Read second save file and capture timestamp
+	var file2 := FileAccess.open(file_path, FileAccess.READ)
+	assert_not_null(file2, "Should be able to open second save file")
+	var json2 := JSON.new()
+	json2.parse(file2.get_as_text())
+	file2.close()
+	var data2: Dictionary = json2.data as Dictionary
+	var header2: Dictionary = data2.get("header", {})
+	var timestamp2: String = header2.get("timestamp", "")
+	assert_ne(timestamp2, "", "Second save should have a timestamp")
+
+	# Verify timestamps are different (second save is later)
+	assert_ne(timestamp1, timestamp2, "Timestamp should be updated on overwrite")
+	# Note: We can't easily assert timestamp2 > timestamp1 without parsing ISO 8601,
+	# but the fact that they're different confirms the timestamp was updated
+
+	# Verify playtime was updated in save file
+	var gameplay2: Dictionary = data2.get("state", {}).get("gameplay", {})
+	var playtime2: int = gameplay2.get("playtime_seconds", 0)
+	assert_gt(playtime2, 0, "Playtime should be non-zero after increment")

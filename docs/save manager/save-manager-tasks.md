@@ -1,8 +1,17 @@
 # Save Manager Implementation Tasks
 
-**Progress:** 100% (55 / 55 implementation tasks, 0 / 30 additional automated tests, 0 / 20 manual tests)
+**Progress:** 100% implementation + 17% automated tests (55 / 55 implementation tasks, 5 / 30 additional automated tests, 0 / 20 manual tests)
 
-**Recent Improvements (Phase 13 Complete - 2025-12-26):**
+**Recent Improvements (Phase 14 In Progress - 2025-12-27):**
+
+- ✅ Added 4 new integration tests for Phase 14 (10 total tests, 62 assertions)
+- ✅ AT-02: Manual save overwrite with timestamp update verification
+- ✅ AT-03: Autosave triggers on area completion action
+- ✅ AT-04: Autosave triggers on scene transition completed
+- ✅ AT-05: Autosave cooldown prevents spam (rate limiting)
+- ✅ All new tests passing (9/10 tests pass, 1 pre-existing failure in health test)
+
+**Phase 13 Complete (2025-12-26):**
 
 - ✅ Created 3 comprehensive integration tests (6 total tests, 38 assertions)
 - ✅ Test: Autosave triggers on checkpoint activation
@@ -540,11 +549,11 @@ These tests should be added to the existing test suites to complement the 6 inte
 
 ### Save Functionality Tests (add to `test_save_load_cycle.gd`)
 
-- [ ] **AT-01**: Manual save to empty slot creates file with correct structure
-- [ ] **AT-02**: Manual save to occupied slot overwrites correctly (verify timestamp updates)
-- [ ] **AT-03**: Autosave triggers on area completion action
-- [ ] **AT-04**: Autosave triggers after scene transition completes
-- [ ] **AT-05**: Autosave cooldown prevents spam (trigger multiple checkpoints < 5s apart)
+- [x] **AT-01**: Manual save to empty slot creates file with correct structure (covered by `test_save_creates_valid_file_structure`)
+- [x] **AT-02**: Manual save to occupied slot overwrites correctly (verify timestamp updates) - `test_manual_save_overwrites_with_timestamp_update`
+- [x] **AT-03**: Autosave triggers on area completion action - `test_autosave_triggers_on_area_completion`
+- [x] **AT-04**: Autosave triggers after scene transition completes - `test_autosave_triggers_on_scene_transition`
+- [x] **AT-05**: Autosave cooldown prevents spam (trigger multiple checkpoints < 5s apart) - `test_autosave_cooldown_prevents_spam`
 - [ ] **AT-06**: Overwrite confirmation required for occupied slots (test via save manager error codes)
 
 ### Load Functionality Tests (add to `test_save_load_cycle.gd`)
