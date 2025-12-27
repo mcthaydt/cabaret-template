@@ -35,6 +35,7 @@ var _pending_action: Dictionary = {}  # {action: "save"|"delete", slot_id: Strin
 @onready var _slot_list_container: VBoxContainer = %SlotListContainer
 @onready var _back_button: Button = %BackButton
 @onready var _confirmation_dialog: ConfirmationDialog = %ConfirmationDialog
+@onready var _loading_spinner: Control = %LoadingSpinner
 
 func _ready() -> void:
 	await super._ready()
@@ -53,11 +54,21 @@ func _subscribe_to_events() -> void:
 	U_ECSEventBus.subscribe(StringName("save_completed"), _on_save_completed)
 	U_ECSEventBus.subscribe(StringName("save_failed"), _on_save_failed)
 
+	# Subscribe to load events for spinner and button state
+	U_ECSEventBus.subscribe(StringName("load_started"), _on_load_started)
+	U_ECSEventBus.subscribe(StringName("load_completed"), _on_load_completed)
+	U_ECSEventBus.subscribe(StringName("load_failed"), _on_load_failed)
+
 func _exit_tree() -> void:
-	# Unsubscribe from events
+	# Unsubscribe from save events
 	U_ECSEventBus.unsubscribe(StringName("save_started"), _on_save_started)
 	U_ECSEventBus.unsubscribe(StringName("save_completed"), _on_save_completed)
 	U_ECSEventBus.unsubscribe(StringName("save_failed"), _on_save_failed)
+
+	# Unsubscribe from load events
+	U_ECSEventBus.unsubscribe(StringName("load_started"), _on_load_started)
+	U_ECSEventBus.unsubscribe(StringName("load_completed"), _on_load_completed)
+	U_ECSEventBus.unsubscribe(StringName("load_failed"), _on_load_failed)
 
 	# Disconnect from store
 	var store := get_store()
@@ -437,6 +448,54 @@ func _on_save_failed(_event: Dictionary) -> void:
 	var payload: Dictionary = _event.get("payload", {})
 	var error_code: int = payload.get("error_code", 0)
 	push_warning("UI_SaveLoadMenu: Save failed with error code %d" % error_code)
+
+## Event handlers for load events
+
+func _on_load_started(_event: Dictionary) -> void:
+	# Load started - show spinner and disable all buttons
+	_show_loading_spinner()
+	_set_buttons_enabled(false)
+
+func _on_load_completed(_event: Dictionary) -> void:
+	# Load completed - hide spinner and re-enable buttons
+	_hide_loading_spinner()
+	_set_buttons_enabled(true)
+
+func _on_load_failed(_event: Dictionary) -> void:
+	# Load failed - hide spinner and re-enable buttons
+	_hide_loading_spinner()
+	_set_buttons_enabled(true)
+
+	var payload: Dictionary = _event.get("payload", {})
+	var error_code: int = payload.get("error_code", 0)
+	push_warning("UI_SaveLoadMenu: Load failed with error code %d" % error_code)
+
+## Helper methods for spinner and button state
+
+func _show_loading_spinner() -> void:
+	if _loading_spinner != null:
+		_loading_spinner.visible = true
+
+func _hide_loading_spinner() -> void:
+	if _loading_spinner != null:
+		_loading_spinner.visible = false
+
+func _set_buttons_enabled(enabled: bool) -> void:
+	# Disable/enable back button
+	if _back_button != null:
+		_back_button.disabled = not enabled
+
+	# Disable/enable all slot buttons
+	if _slot_list_container != null:
+		for container in _slot_list_container.get_children():
+			if container is HBoxContainer:
+				var main_button := container.get_node_or_null("MainButton") as Button
+				if main_button != null:
+					main_button.disabled = not enabled
+
+				var delete_button := container.get_node_or_null("DeleteButton") as Button
+				if delete_button != null:
+					delete_button.disabled = not enabled
 
 func _on_panel_ready() -> void:
 	_connect_buttons()

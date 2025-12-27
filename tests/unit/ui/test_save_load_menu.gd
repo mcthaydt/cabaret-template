@@ -1,0 +1,153 @@
+extends GutTest
+
+const SaveLoadMenuScene := preload("res://scenes/ui/ui_save_load_menu.tscn")
+const M_StateStore := preload("res://scripts/state/m_state_store.gd")
+const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
+const RS_BootInitialState := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
+const RS_MenuInitialState := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
+const RS_GameplayInitialState := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
+const RS_SceneInitialState := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
+const RS_SettingsInitialState := preload("res://scripts/state/resources/rs_settings_initial_state.gd")
+const RS_NavigationInitialState := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
+const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const MockSaveManager := preload("res://tests/mocks/mock_save_manager.gd")
+
+var _test_save_manager: Node
+var _test_store: M_StateStore
+
+func before_each() -> void:
+	# Create and register mock save manager first
+	_test_save_manager = MockSaveManager.new()
+	add_child_autofree(_test_save_manager)
+	await wait_process_frames(2)
+
+	# Manually register with ServiceLocator since it may not exist in test
+	U_ServiceLocator.register(StringName("save_manager"), _test_save_manager)
+
+	# Create state store
+	_test_store = await _create_state_store()
+
+func after_each() -> void:
+	# Note: _test_save_manager and _test_store are freed by add_child_autofree()
+	# ServiceLocator will automatically clean up invalid references
+	pass
+
+func test_spinner_hidden_initially() -> void:
+	_prepare_save_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	var spinner := menu.get_node_or_null("%LoadingSpinner") as Control
+	assert_not_null(spinner, "LoadingSpinner should exist in scene")
+	assert_false(spinner.visible, "LoadingSpinner should be hidden initially")
+
+func test_spinner_shows_during_load() -> void:
+	_prepare_load_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	# Simulate loading a slot (mock will delay completion)
+	_test_save_manager.set_delayed_load(true, 0.5)  # 0.5 second delay
+
+	# Trigger load
+	menu._perform_load(StringName("slot_01"))
+	await wait_process_frames(2)
+
+	var spinner := menu.get_node("%LoadingSpinner") as Control
+	assert_true(spinner.visible, "LoadingSpinner should be visible during load")
+
+func test_spinner_hides_after_load_completes() -> void:
+	_prepare_load_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	# Simulate loading a slot with short delay
+	_test_save_manager.set_delayed_load(true, 0.1)
+
+	# Trigger load
+	menu._perform_load(StringName("slot_01"))
+	await wait_process_frames(2)
+
+	# Spinner should be visible during load
+	var spinner := menu.get_node("%LoadingSpinner") as Control
+	assert_true(spinner.visible, "LoadingSpinner should be visible during load")
+
+	# Wait for load to complete
+	await wait_seconds(0.2)
+
+	# Spinner should be hidden after load completes
+	assert_false(spinner.visible, "LoadingSpinner should be hidden after load completes")
+
+func test_buttons_disabled_during_load() -> void:
+	_prepare_load_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	# Simulate loading with delay
+	_test_save_manager.set_delayed_load(true, 0.5)
+
+	# Trigger load
+	menu._perform_load(StringName("slot_01"))
+	await wait_process_frames(2)
+
+	# All buttons should be disabled during load
+	var back_button := menu.get_node("%BackButton") as Button
+	assert_true(back_button.disabled, "Back button should be disabled during load")
+
+	# Check slot list buttons are also disabled
+	var slot_container := menu.get_node("%SlotListContainer")
+	for child in slot_container.get_children():
+		if child is HBoxContainer:
+			var main_button := child.get_node_or_null("MainButton") as Button
+			if main_button:
+				assert_true(main_button.disabled, "Slot buttons should be disabled during load")
+
+func test_buttons_enabled_after_load_completes() -> void:
+	_prepare_load_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	# Get back button reference before load
+	var back_button := menu.get_node("%BackButton") as Button
+	var initial_disabled := back_button.disabled
+
+	# Simulate loading with short delay
+	_test_save_manager.set_delayed_load(true, 0.1)
+
+	# Trigger load
+	menu._perform_load(StringName("slot_01"))
+	await wait_process_frames(2)
+
+	# Wait for load to complete
+	await wait_seconds(0.2)
+
+	# Back button should return to original state
+	assert_eq(back_button.disabled, initial_disabled, "Back button should return to original state after load")
+
+## Helper functions
+
+func _create_state_store() -> M_StateStore:
+	var store := M_StateStore.new()
+	store.settings = RS_StateStoreSettings.new()
+	store.settings.enable_persistence = false
+	store.boot_initial_state = RS_BootInitialState.new()
+	store.menu_initial_state = RS_MenuInitialState.new()
+	store.gameplay_initial_state = RS_GameplayInitialState.new()
+	store.scene_initial_state = RS_SceneInitialState.new()
+	store.settings_initial_state = RS_SettingsInitialState.new()
+	store.navigation_initial_state = RS_NavigationInitialState.new()
+	add_child_autofree(store)
+	await wait_process_frames(2)
+	return store
+
+func _instantiate_save_load_menu() -> Control:
+	var menu := SaveLoadMenuScene.instantiate()
+	add_child_autofree(menu)
+	await wait_process_frames(2)
+	return menu
+
+func _prepare_save_mode(store: M_StateStore) -> void:
+	if store != null:
+		store.dispatch(U_NavigationActions.set_save_load_mode(StringName("save")))
+		await wait_process_frames(2)
+
+func _prepare_load_mode(store: M_StateStore) -> void:
+	if store != null:
+		store.dispatch(U_NavigationActions.set_save_load_mode(StringName("load")))
+		await wait_process_frames(2)

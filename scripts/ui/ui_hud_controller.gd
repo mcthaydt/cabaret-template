@@ -12,7 +12,8 @@ const HUD_GROUP := StringName("hud_layers")
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
 @onready var health_label: Label = $MarginContainer/VBoxContainer/HealthBar/HealthLabel
-@onready var checkpoint_toast: Label = $MarginContainer/CheckpointToast
+@onready var toast_container: Control = $MarginContainer/ToastContainer
+@onready var checkpoint_toast: Label = $MarginContainer/ToastContainer/PanelContainer/MarginContainer/CheckpointToast
 @onready var interact_prompt: UI_ButtonPrompt = $MarginContainer/InteractPrompt
 
 var _store: I_StateStore = null
@@ -87,8 +88,8 @@ func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void
 	if _is_paused(state):
 		if interact_prompt != null:
 			interact_prompt.hide_prompt()
-		if checkpoint_toast != null:
-			checkpoint_toast.visible = false
+		if toast_container != null:
+			toast_container.visible = false
 			_toast_active = false
 
 func _update_display(state: Dictionary) -> void:
@@ -145,14 +146,14 @@ func _on_checkpoint_event(payload: Variant) -> void:
 	_show_checkpoint_toast(text)
 
 func _show_checkpoint_toast(text: String) -> void:
-	if checkpoint_toast == null:
+	if checkpoint_toast == null or toast_container == null:
 		return
 	# Do not show toasts while paused
 	if _store != null and _is_paused(_store.get_state()):
 		return
 	checkpoint_toast.text = text
-	checkpoint_toast.modulate.a = 0.0
-	checkpoint_toast.visible = true
+	toast_container.modulate.a = 0.0
+	toast_container.visible = true
 	_toast_active = true
 	# Avoid overlap with interact prompt while toast is visible
 	if interact_prompt != null:
@@ -162,13 +163,13 @@ func _show_checkpoint_toast(text: String) -> void:
 	tween.set_trans(Tween.TRANS_CUBIC)
 	tween.set_ease(Tween.EASE_IN_OUT)
 	# Fade in
-	tween.tween_property(checkpoint_toast, "modulate:a", 1.0, 0.2).from(0.0)
+	tween.tween_property(toast_container, "modulate:a", 1.0, 0.2).from(0.0)
 	# Hold
 	tween.tween_interval(1.0)
 	# Fade out
-	tween.tween_property(checkpoint_toast, "modulate:a", 0.0, 0.3)
+	tween.tween_property(toast_container, "modulate:a", 0.0, 0.3)
 	tween.finished.connect(func() -> void:
-		checkpoint_toast.visible = false
+		toast_container.visible = false
 		_toast_active = false
 		# Restore prompt if still relevant and not paused
 		if not _is_paused(_store.get_state()) and _active_prompt_id != 0 and interact_prompt != null:
@@ -244,7 +245,7 @@ func _on_save_started(payload: Variant) -> void:
 	var is_autosave: bool = data.get("is_autosave", false)
 
 	if is_autosave:
-		_show_checkpoint_toast("Saving...")
+		_show_checkpoint_toast("⏳ Saving...")
 
 func _on_save_completed(payload: Variant) -> void:
 	# Show "Game Saved" toast only for autosaves
