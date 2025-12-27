@@ -1,14 +1,15 @@
 # Save Manager Implementation Tasks
 
-**Progress:** 100% implementation + 40% automated tests (55 / 55 implementation tasks, 12 / 30 additional automated tests, 0 / 20 manual tests)
+**Progress:** 100% implementation + 53% automated tests (55 / 55 implementation tasks, 16 / 30 additional automated tests, 0 / 20 manual tests)
 
 **Recent Improvements (Phase 14 In Progress - 2025-12-27):**
 
-- ✅ Added 11 new integration tests for Phase 14 (16 total tests, 92 assertions)
-- ✅ AT-02 through AT-12: Save/load functionality, overwrite handling, playtime restoration, load blocking
-- ✅ All new tests passing (16/16 tests pass)
+- ✅ Added 15 new automated tests for Phase 14 (16 integration + 98 unit = 114 total)
+- ✅ AT-02 through AT-16: Save/load/delete functionality, overwrite handling, playtime restoration, load blocking
+- ✅ All tests passing (16/16 integration tests, 98/98 unit tests)
 - ✅ State pollution fixes: Use `reset_progress()` for clean test state
 - ✅ Relative playtime testing to handle accumulated time from previous tests
+- ✅ Delete tests: File removal, error codes, autosave protection
 
 **Phase 13 Complete (2025-12-26):**
 
@@ -566,10 +567,10 @@ These tests should be added to the existing test suites to complement the 6 inte
 
 ### Delete Functionality Tests (add to `test_save_manager.gd`)
 
-- [ ] **AT-13**: Delete slot removes .json, .bak, and .tmp files
-- [ ] **AT-14**: Delete slot returns ERR_FILE_NOT_FOUND for nonexistent slot
-- [ ] **AT-15**: Delete autosave slot returns ERR_UNAUTHORIZED
-- [ ] **AT-16**: After delete, slot_exists returns false
+- [x] **AT-13**: Delete slot removes .json, .bak, and .tmp files - `test_delete_slot_removes_all_files`
+- [x] **AT-14**: Delete slot returns ERR_FILE_NOT_FOUND for nonexistent slot - `test_delete_nonexistent_slot_returns_error`
+- [x] **AT-15**: Delete autosave slot returns ERR_UNAUTHORIZED - `test_delete_autosave_returns_unauthorized`
+- [x] **AT-16**: After delete, slot_exists returns false - `test_slot_exists_returns_false_after_delete`
 
 ### Error Handling Tests (add to `test_save_file_io.gd`)
 

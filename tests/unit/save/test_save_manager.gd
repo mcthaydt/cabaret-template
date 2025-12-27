@@ -1351,3 +1351,115 @@ func test_load_clears_navigation_overlay_stack_from_legacy_saves() -> void:
 		assert_false(nav_state.has("overlay_stack"), "overlay_stack should be cleared from legacy saves")
 		assert_false(nav_state.has("overlay_return_stack"), "overlay_return_stack should be cleared from legacy saves")
 		assert_false(nav_state.has("save_load_mode"), "save_load_mode should be cleared from legacy saves")
+
+## Phase 14: Delete Functionality Tests (AT-13 through AT-16)
+
+## AT-13: Delete slot removes .json, .bak, and .tmp files
+func test_delete_slot_removes_all_files() -> void:
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create save files (.json, .bak, .tmp) manually
+	var slot_path := TEST_SAVE_DIR + "slot_01"
+	var json_path := slot_path + ".json"
+	var bak_path := slot_path + ".json.bak"
+	var tmp_path := slot_path + ".json.tmp"
+
+	var test_data := {"header": {"save_version": 1}, "state": {}}
+
+	# Create .json file
+	var json_file := FileAccess.open(json_path, FileAccess.WRITE)
+	json_file.store_string(JSON.stringify(test_data))
+	json_file.close()
+
+	# Create .bak file
+	var bak_file := FileAccess.open(bak_path, FileAccess.WRITE)
+	bak_file.store_string(JSON.stringify(test_data))
+	bak_file.close()
+
+	# Create .tmp file
+	var tmp_file := FileAccess.open(tmp_path, FileAccess.WRITE)
+	tmp_file.store_string(JSON.stringify(test_data))
+	tmp_file.close()
+
+	# Verify all files exist
+	assert_true(FileAccess.file_exists(json_path), "JSON file should exist")
+	assert_true(FileAccess.file_exists(bak_path), "BAK file should exist")
+	assert_true(FileAccess.file_exists(tmp_path), "TMP file should exist")
+
+	# Delete the slot
+	var result: Error = _save_manager.delete_slot(StringName("slot_01"))
+	assert_eq(result, OK, "Delete should succeed")
+
+	# Verify all files were removed
+	assert_false(FileAccess.file_exists(json_path), "JSON file should be removed")
+	assert_false(FileAccess.file_exists(bak_path), "BAK file should be removed")
+	assert_false(FileAccess.file_exists(tmp_path), "TMP file should be removed")
+
+## AT-14: Delete slot returns ERR_FILE_NOT_FOUND for nonexistent slot
+func test_delete_nonexistent_slot_returns_error() -> void:
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Verify slot doesn't exist
+	assert_false(_save_manager.slot_exists(StringName("slot_02")), "Slot should not exist")
+
+	# Attempt to delete nonexistent slot
+	var result: Error = _save_manager.delete_slot(StringName("slot_02"))
+	assert_eq(result, ERR_FILE_NOT_FOUND, "Delete should return ERR_FILE_NOT_FOUND for nonexistent slot")
+
+## AT-15: Delete autosave slot returns ERR_UNAUTHORIZED
+func test_delete_autosave_returns_unauthorized() -> void:
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create autosave file
+	var autosave_path := TEST_SAVE_DIR + "autosave.json"
+	var test_data := {"header": {"save_version": 1}, "state": {}}
+	var file := FileAccess.open(autosave_path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(test_data))
+	file.close()
+
+	# Verify autosave exists
+	assert_true(FileAccess.file_exists(autosave_path), "Autosave should exist")
+
+	# Attempt to delete autosave slot
+	var result: Error = _save_manager.delete_slot(StringName("autosave"))
+	assert_eq(result, ERR_UNAUTHORIZED, "Delete should return ERR_UNAUTHORIZED for autosave slot")
+
+	# Verify autosave still exists (not deleted)
+	assert_true(FileAccess.file_exists(autosave_path), "Autosave should still exist after failed delete")
+
+## AT-16: After delete, slot_exists returns false
+func test_slot_exists_returns_false_after_delete() -> void:
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Create save file
+	var slot_path := TEST_SAVE_DIR + "slot_03.json"
+	var test_data := {"header": {"save_version": 1}, "state": {}}
+	var file := FileAccess.open(slot_path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(test_data))
+	file.close()
+
+	# Verify slot exists before delete
+	assert_true(_save_manager.slot_exists(StringName("slot_03")), "Slot should exist before delete")
+
+	# Delete the slot
+	var result: Error = _save_manager.delete_slot(StringName("slot_03"))
+	assert_eq(result, OK, "Delete should succeed")
+
+	# Verify slot_exists returns false after delete
+	assert_false(_save_manager.slot_exists(StringName("slot_03")), "Slot should not exist after delete")
