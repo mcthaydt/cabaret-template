@@ -875,16 +875,26 @@ func _sync_navigation_shell_with_scene(scene_id: StringName) -> void:
 		# navigation targets so UI state matches the actual loaded screen.
 		if scene_type == U_SCENE_REGISTRY.SceneType.END_GAME:
 			_navigation_reconciler.set_pending_scene_id(StringName(""))
+			pending_scene = StringName("")
 		else:
 			# If navigation has requested a DIFFERENT scene than the one that just
 			# finished loading, skip reconciliation entirely. This prevents races
 			# where a late _sync_navigation_shell_with_scene call for a previous
 			# scene overwrites the more recent navigation target.
 			if pending_scene != scene_id:
+				var pending_is_active: bool = pending_scene == _active_transition_target
+				var pending_in_queue: bool = _transition_queue_helper.contains_scene(pending_scene)
+
+				# If the pending scene isn't actively transitioning (or queued), treat it as stale.
+				# This can happen on manual transitions like load-from-save, where the navigation
+				# slice isn't the driver but a previous pending target was never cleared.
+				if not pending_is_active and not pending_in_queue:
+					_navigation_reconciler.set_pending_scene_id(StringName(""))
+					pending_scene = StringName("")
+				else:
+					return
+			else:
 				return
-			# If the pending navigation target matches the scene_id, the reducer
-			# has already updated base_scene_id. Treat this as in-sync and skip.
-			return
 
 	# T137c (Phase 10B-3): Dispatch navigation action from handler
 	var nav_action := handler.get_navigation_action(scene_id)
