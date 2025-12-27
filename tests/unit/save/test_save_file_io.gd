@@ -1,6 +1,7 @@
 extends BaseTest
 
 const TEST_DIR := "user://test/"
+const TEST_SAVE_DIR := "user://test/saves/"
 const TEST_FILE := "user://test/test_save.json"
 
 var _test_data: Dictionary = {
@@ -54,17 +55,26 @@ func _cleanup_test_files() -> void:
 ## ============================================================================
 
 func test_ensure_save_directory_creates_directory() -> void:
-	# Remove test directory
 	var user_dir := DirAccess.open("user://")
-	if user_dir.dir_exists("saves"):
-		user_dir.remove("saves")
+	# Remove test saves directory if it exists (keep tests isolated from production user://saves/)
+	if user_dir.dir_exists("test/saves"):
+		var test_dir := DirAccess.open(TEST_SAVE_DIR)
+		if test_dir:
+			test_dir.list_dir_begin()
+			var file_name: String = test_dir.get_next()
+			while file_name != "":
+				if not test_dir.current_is_dir():
+					test_dir.remove(file_name)
+				file_name = test_dir.get_next()
+			test_dir.list_dir_end()
+		user_dir.remove("test/saves")
 
 	# Call ensure_save_directory (will be implemented in m_save_file_io.gd)
 	var io: Variant = _create_file_io_helper()
-	io.call("ensure_save_directory")
+	io.call("ensure_save_directory", TEST_SAVE_DIR)
 
 	# Verify directory was created
-	assert_true(user_dir.dir_exists("saves"), "ensure_save_directory should create user://saves/ directory")
+	assert_true(user_dir.dir_exists("test/saves"), "ensure_save_directory should create the requested directory")
 
 func test_save_to_file_creates_json_file() -> void:
 	var io: Variant = _create_file_io_helper()

@@ -9,18 +9,17 @@ extends RefCounted
 ## - Corruption recovery (fallback to .bak if .json is invalid)
 ## - Orphaned .tmp file cleanup
 
-const SAVE_DIR := "user://saves/"
+const DEFAULT_SAVE_DIR := "user://saves/"
 
 ## Silent mode (suppresses informational warnings - used for tests)
 var silent_mode: bool = false
 
 ## Ensures the save directory exists, creating it if necessary
-func ensure_save_directory() -> void:
-	var dir := DirAccess.open("user://")
-	if not dir.dir_exists("saves"):
-		var error: Error = dir.make_dir_recursive_absolute(SAVE_DIR)
-		if error != OK:
-			push_error("Failed to create save directory: %s (error %d)" % [SAVE_DIR, error])
+func ensure_save_directory(save_dir: String = DEFAULT_SAVE_DIR) -> void:
+	var normalized_dir := _normalize_save_dir(save_dir)
+	var error: Error = DirAccess.make_dir_recursive_absolute(normalized_dir)
+	if error != OK:
+		push_error("Failed to create save directory: %s (error %d)" % [normalized_dir, error])
 
 ## Saves data to file using atomic write pattern
 ##
@@ -47,15 +46,13 @@ func save_to_file(file_path: String, data: Dictionary) -> Error:
 
 	# Step 2: If original exists, backup before overwriting
 	if FileAccess.file_exists(file_path):
-		var dir := DirAccess.open(file_path.get_base_dir())
-		var error: Error = dir.copy(file_path, bak_path)
+		var error: Error = DirAccess.copy_absolute(file_path, bak_path)
 		if error != OK:
 			push_warning("Failed to create backup: %s (error %d)" % [bak_path, error])
 			# Continue anyway - backup failure shouldn't block save
 
 	# Step 3: Atomic rename (tmp -> json)
-	var dir := DirAccess.open(file_path.get_base_dir())
-	var error: Error = dir.rename(tmp_path, file_path)
+	var error: Error = DirAccess.rename_absolute(tmp_path, file_path)
 	if error != OK:
 		push_error("Failed to rename temporary file: %s -> %s (error %d)" % [tmp_path, file_path, error])
 		return error
@@ -152,3 +149,11 @@ func _try_load_json(file_path: String) -> Dictionary:
 		return {}
 
 	return data as Dictionary
+
+func _normalize_save_dir(save_dir: String) -> String:
+	var normalized := save_dir
+	if normalized.is_empty():
+		normalized = DEFAULT_SAVE_DIR
+	if not normalized.ends_with("/"):
+		normalized += "/"
+	return normalized

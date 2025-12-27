@@ -1,6 +1,7 @@
 extends BaseTest
 
 const M_SAVE_MIGRATION_ENGINE := preload("res://scripts/managers/helpers/m_save_migration_engine.gd")
+const TEST_LEGACY_SAVE_PATH := "user://test_savegame.json"
 
 ## Phase 7: Save Migration System Tests
 ##
@@ -158,40 +159,37 @@ func test_migrate_handles_invalid_header() -> void:
 
 func test_should_import_legacy_save_returns_true_if_file_exists() -> void:
 	# Create a fake legacy save
-	var legacy_path := "user://savegame.json"
-	var file := FileAccess.open(legacy_path, FileAccess.WRITE)
+	var file := FileAccess.open(TEST_LEGACY_SAVE_PATH, FileAccess.WRITE)
 	file.store_string(JSON.stringify({"gameplay": {}}))
 	file.close()
 
-	var should_import: bool = M_SAVE_MIGRATION_ENGINE.should_import_legacy_save()
+	var should_import: bool = M_SAVE_MIGRATION_ENGINE.should_import_legacy_save(TEST_LEGACY_SAVE_PATH)
 
 	assert_true(should_import, "Should return true when legacy save exists")
 
 	# Cleanup
-	DirAccess.remove_absolute(legacy_path)
+	DirAccess.remove_absolute(TEST_LEGACY_SAVE_PATH)
 
 func test_should_import_legacy_save_returns_false_if_file_missing() -> void:
 	# Ensure no legacy save exists
-	var legacy_path := "user://savegame.json"
-	if FileAccess.file_exists(legacy_path):
-		DirAccess.remove_absolute(legacy_path)
+	if FileAccess.file_exists(TEST_LEGACY_SAVE_PATH):
+		DirAccess.remove_absolute(TEST_LEGACY_SAVE_PATH)
 
-	var should_import: bool = M_SAVE_MIGRATION_ENGINE.should_import_legacy_save()
+	var should_import: bool = M_SAVE_MIGRATION_ENGINE.should_import_legacy_save(TEST_LEGACY_SAVE_PATH)
 
 	assert_false(should_import, "Should return false when legacy save missing")
 
 func test_import_legacy_save_migrates_and_returns_save_data() -> void:
 	# Create a legacy save (v0 format)
-	var legacy_path := "user://savegame.json"
 	var legacy_data: Dictionary = {
 		"gameplay": {"player_health": 80, "playtime_seconds": 120},
 		"scene": {"current_scene_id": "gameplay_base"}
 	}
-	var file := FileAccess.open(legacy_path, FileAccess.WRITE)
+	var file := FileAccess.open(TEST_LEGACY_SAVE_PATH, FileAccess.WRITE)
 	file.store_string(JSON.stringify(legacy_data))
 	file.close()
 
-	var imported: Dictionary = M_SAVE_MIGRATION_ENGINE.import_legacy_save()
+	var imported: Dictionary = M_SAVE_MIGRATION_ENGINE.import_legacy_save(TEST_LEGACY_SAVE_PATH)
 
 	# Should be migrated to v1 format
 	assert_true(imported.has("header"), "Imported save should have header")
@@ -200,16 +198,15 @@ func test_import_legacy_save_migrates_and_returns_save_data() -> void:
 	assert_eq(int(imported["state"]["gameplay"]["player_health"]), 80, "Should preserve state data")
 
 	# Cleanup
-	if FileAccess.file_exists(legacy_path):
-		DirAccess.remove_absolute(legacy_path)
+	if FileAccess.file_exists(TEST_LEGACY_SAVE_PATH):
+		DirAccess.remove_absolute(TEST_LEGACY_SAVE_PATH)
 
 func test_import_legacy_save_deletes_original_file() -> void:
 	# Create a legacy save
-	var legacy_path := "user://savegame.json"
-	var file := FileAccess.open(legacy_path, FileAccess.WRITE)
+	var file := FileAccess.open(TEST_LEGACY_SAVE_PATH, FileAccess.WRITE)
 	file.store_string(JSON.stringify({"gameplay": {}}))
 	file.close()
 
-	M_SAVE_MIGRATION_ENGINE.import_legacy_save()
+	M_SAVE_MIGRATION_ENGINE.import_legacy_save(TEST_LEGACY_SAVE_PATH)
 
-	assert_false(FileAccess.file_exists(legacy_path), "Legacy save should be deleted after import")
+	assert_false(FileAccess.file_exists(TEST_LEGACY_SAVE_PATH), "Legacy save should be deleted after import")

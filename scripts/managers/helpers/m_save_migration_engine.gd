@@ -67,18 +67,18 @@ static func migrate(save_data: Dictionary) -> Dictionary:
 	return current_save
 
 ## Check if legacy save file exists
-static func should_import_legacy_save() -> bool:
-	return FileAccess.file_exists(LEGACY_SAVE_PATH)
+static func should_import_legacy_save(legacy_save_path: String = LEGACY_SAVE_PATH) -> bool:
+	return FileAccess.file_exists(legacy_save_path)
 
 ## Import legacy save file and migrate it
 ##
 ## Loads user://savegame.json, migrates to current version, and deletes original.
 ## Returns migrated save data.
-static func import_legacy_save() -> Dictionary:
+static func import_legacy_save(legacy_save_path: String = LEGACY_SAVE_PATH) -> Dictionary:
 	# Load legacy save
-	var file := FileAccess.open(LEGACY_SAVE_PATH, FileAccess.READ)
+	var file := FileAccess.open(legacy_save_path, FileAccess.READ)
 	if file == null:
-		push_error("M_SaveMigrationEngine: Failed to open legacy save at %s" % LEGACY_SAVE_PATH)
+		push_error("M_SaveMigrationEngine: Failed to open legacy save at %s" % legacy_save_path)
 		return {}
 
 	var json_string := file.get_as_text()
@@ -93,7 +93,7 @@ static func import_legacy_save() -> Dictionary:
 	var migrated := migrate(legacy_data as Dictionary)
 
 	# Delete original legacy save
-	DirAccess.remove_absolute(LEGACY_SAVE_PATH)
+	DirAccess.remove_absolute(legacy_save_path)
 
 	return migrated
 

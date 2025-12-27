@@ -84,24 +84,42 @@ func _ready() -> void:
 ## IMPORTANT: Must be called BEFORE adding manager to tree
 func set_save_directory(path: String) -> void:
 	_save_dir = path
+	if not _save_dir.ends_with("/"):
+		_save_dir += "/"
 
 ## Initialize save directory and cleanup orphaned files
 func _initialize_save_system() -> void:
 	var file_io := M_SAVE_FILE_IO.new()
 
-	# Ensure save directory exists
+	# Ensure production save directory exists (legacy behavior)
 	file_io.ensure_save_directory()
+
+	# Ensure configured save directory exists (tests/custom dirs)
+	var dir_error: Error = DirAccess.make_dir_recursive_absolute(_save_dir)
+	if dir_error != OK:
+		push_error("M_SaveManager: Failed to create save directory: %s (error %d)" % [_save_dir, dir_error])
 
 	# Clean up orphaned .tmp files from previous crashes
 	file_io.cleanup_tmp_files(_save_dir)
 
 	# Import legacy save file if it exists (one-time migration)
-	_import_legacy_save_if_exists()
+	# NOTE: Legacy saves are always located at user://savegame.json, so only perform
+	# migration when using the production save directory (prevents tests/custom dirs
+	# from deleting a real legacy save file).
+	if _save_dir == "user://saves/":
+		_import_legacy_save_if_exists()
 
 ## Import legacy save file (user://savegame.json) to autosave slot if it exists
 func _import_legacy_save_if_exists() -> void:
 	# Check if legacy save exists
 	if not M_SAVE_MIGRATION_ENGINE.should_import_legacy_save():
+		return
+
+	# Safety: If we already have an autosave in the current slot system, don't import legacy.
+	# This prevents repeatedly overwriting/“corrupting” the autosave if a stale legacy file
+	# (user://savegame.json) lingers on disk for any reason.
+	if slot_exists(SLOT_AUTOSAVE):
+		push_warning("M_SaveManager: Legacy save exists at user://savegame.json but autosave slot already exists; skipping import")
 		return
 
 	# Import and migrate legacy save
@@ -113,6 +131,7 @@ func _import_legacy_save_if_exists() -> void:
 
 	# Write migrated save to autosave slot
 	var autosave_path: String = _get_slot_file_path(SLOT_AUTOSAVE)
+	print("M_SaveManager: Importing legacy save user://savegame.json -> %s" % autosave_path)
 	var file_io := M_SAVE_FILE_IO.new()
 	var result: Error = file_io.save_to_file(autosave_path, migrated_save)
 
