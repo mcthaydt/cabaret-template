@@ -80,7 +80,8 @@ func test_checkpoint_event_triggers_autosave_request() -> void:
 	# Verify autosave was requested
 	assert_gt(_mock_save_manager.autosave_request_count, 0, "Checkpoint should trigger autosave request")
 
-func test_area_complete_action_triggers_autosave_request() -> void:
+func test_area_complete_action_does_not_trigger_autosave() -> void:
+	# Area complete alone should NOT trigger autosave - we wait for scene transition instead
 	_scheduler = M_AUTOSAVE_SCHEDULER.new()
 	add_child(_scheduler)
 	autofree(_scheduler)
@@ -100,8 +101,8 @@ func test_area_complete_action_triggers_autosave_request() -> void:
 
 	await get_tree().process_frame
 
-	# Verify autosave was requested
-	assert_gt(_mock_save_manager.autosave_request_count, 0, "Area complete action should trigger autosave request")
+	# Verify autosave was NOT requested
+	assert_eq(_mock_save_manager.autosave_request_count, 0, "Area complete action should NOT trigger autosave - we wait for scene transition instead")
 
 func test_scene_transition_completed_triggers_autosave_request() -> void:
 	_scheduler = M_AUTOSAVE_SCHEDULER.new()
@@ -169,18 +170,22 @@ func test_coalescing_multiple_requests_into_one_write() -> void:
 	add_child(_scheduler)
 	autofree(_scheduler)
 
-	# Set up state to allow autosave
-	_mock_store.set_slice(StringName("navigation"), {"shell": "gameplay"})
+	# Set up state to allow autosave (not in gameplay shell for transition test)
+	_mock_store.set_slice(StringName("navigation"), {"shell": "main_menu"})
 	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
 	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
 
 	await get_tree().process_frame
 
 	# Emit multiple events rapidly (within same frame)
-	U_ECSEventBus.publish(StringName("checkpoint_activated"), {"checkpoint_id": "checkpoint_1"})
+	# Two transition_completed events to gameplay scenes
 	_mock_store.dispatch({
-		"type": StringName("gameplay/mark_area_complete"),
-		"payload": "area_1"
+		"type": StringName("scene/transition_completed"),
+		"payload": {"scene_id": StringName("exterior")}
+	})
+	_mock_store.dispatch({
+		"type": StringName("scene/transition_completed"),
+		"payload": {"scene_id": StringName("interior_house")}
 	})
 
 	await get_tree().process_frame

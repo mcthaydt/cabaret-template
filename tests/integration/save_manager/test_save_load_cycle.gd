@@ -161,11 +161,11 @@ func test_save_creates_valid_file_structure() -> void:
 	assert_true(data.has("state"), "Save file should have state")
 
 	# Verify header structure
-	var header: Dictionary = data["header"]
-	assert_true(header.has("save_version"), "Header should have save_version")
-	assert_true(header.has("timestamp"), "Header should have timestamp")
-	assert_true(header.has("slot_id"), "Header should have slot_id")
-	assert_eq(header["slot_id"], StringName("slot_01"), "Slot ID should match")
+	var save_header: Dictionary = data["header"]
+	assert_true(save_header.has("save_version"), "Header should have save_version")
+	assert_true(save_header.has("timestamp"), "Header should have timestamp")
+	assert_true(save_header.has("slot_id"), "Header should have slot_id")
+	assert_eq(save_header["slot_id"], StringName("slot_01"), "Slot ID should match")
 
 func test_load_preserves_state_to_handoff() -> void:
 	# Create save manager
@@ -254,9 +254,16 @@ func test_autosave_triggers_on_checkpoint() -> void:
 
 	await get_tree().physics_frame
 
-	# Verify autosave file doesn't exist yet
+	# Delete any autosave from the transition_completed above (now triggers autosave for gameplay scenes)
 	var autosave_path := TEST_SAVE_DIR + "autosave.json"
-	assert_false(FileAccess.file_exists(autosave_path), "Autosave should not exist yet")
+	if FileAccess.file_exists(autosave_path):
+		DirAccess.remove_absolute(autosave_path)
+
+	# Reset autosave cooldown timer so checkpoint can trigger autosave immediately
+	_save_manager.get("_autosave_scheduler").set("_last_autosave_time", -1000.0)
+
+	# Verify autosave file doesn't exist
+	assert_false(FileAccess.file_exists(autosave_path), "Autosave should not exist after cleanup")
 
 	# Trigger checkpoint activation event
 	U_ECSEventBus.publish(StringName("checkpoint_activated"), {
@@ -529,9 +536,16 @@ func test_autosave_triggers_on_scene_transition() -> void:
 
 	await get_tree().physics_frame
 
-	# Verify autosave file doesn't exist yet
+	# Delete any autosave from the first transition_completed above
 	var autosave_path := TEST_SAVE_DIR + "autosave.json"
-	assert_false(FileAccess.file_exists(autosave_path), "Autosave should not exist yet")
+	if FileAccess.file_exists(autosave_path):
+		DirAccess.remove_absolute(autosave_path)
+
+	# Reset autosave cooldown timer so the next transition can trigger autosave immediately
+	_save_manager.get("_autosave_scheduler").set("_last_autosave_time", -1000.0)
+
+	# Verify autosave file doesn't exist
+	assert_false(FileAccess.file_exists(autosave_path), "Autosave should not exist after cleanup")
 
 	# Dispatch scene transition completed action (simulates transition to new scene)
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
@@ -559,7 +573,7 @@ func test_autosave_triggers_on_scene_transition() -> void:
 		var current_scene_id: StringName = header.get("current_scene_id", StringName(""))
 		assert_eq(current_scene_id, StringName("interior_house"), "Autosave should contain new scene_id")
 
-## AT-03: Autosave triggers on area completion action
+## AT-03: Area completion doesn't trigger autosave alone (waits for scene transition)
 func test_autosave_triggers_on_area_completion() -> void:
 	# Create save manager (autosave scheduler will be initialized automatically)
 	_save_manager = _create_save_manager()
@@ -577,20 +591,32 @@ func test_autosave_triggers_on_area_completion() -> void:
 
 	await get_tree().physics_frame
 
-	# Verify autosave file doesn't exist yet
+	# Delete any autosave from the transition_completed above
 	var autosave_path := TEST_SAVE_DIR + "autosave.json"
-	assert_false(FileAccess.file_exists(autosave_path), "Autosave should not exist yet")
+	if FileAccess.file_exists(autosave_path):
+		DirAccess.remove_absolute(autosave_path)
 
-	# Dispatch area completion action
+	# Dispatch area completion action (this should NOT trigger autosave anymore)
 	const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.mark_area_complete(StringName("test_area")))
 
-	# Wait for autosave scheduler to process action and trigger save
+	# Wait for autosave scheduler to process action
 	await get_tree().process_frame
 	await get_tree().physics_frame
 
-	# Verify autosave was created
-	assert_true(FileAccess.file_exists(autosave_path), "Autosave should be created after area completion")
+	# Verify autosave was NOT created (area completion alone doesn't trigger autosave)
+	assert_false(FileAccess.file_exists(autosave_path), "Autosave should NOT be created on area completion alone")
+
+	# Reset autosave cooldown timer so the transition can trigger autosave immediately
+	_save_manager.get("_autosave_scheduler").set("_last_autosave_time", -1000.0)
+
+	# Now transition to a new gameplay scene (this SHOULD trigger autosave)
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	await get_tree().process_frame
+	await get_tree().physics_frame
+
+	# Verify autosave was created after transition
+	assert_true(FileAccess.file_exists(autosave_path), "Autosave should be created after scene transition")
 
 	# Verify autosave contains the completed area
 	var file := FileAccess.open(autosave_path, FileAccess.READ)

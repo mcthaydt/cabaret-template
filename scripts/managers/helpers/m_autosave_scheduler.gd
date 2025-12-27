@@ -22,7 +22,6 @@ class_name M_AutosaveScheduler
 ## - CRITICAL: always trigger
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 
 enum Priority {
 	NORMAL = 0,

@@ -15,7 +15,7 @@ var _transition_type: String = ""
 func is_transitioning() -> bool:
 	return _is_transitioning
 
-func transition_to_scene(scene_id: StringName, transition_type: String = "", priority: int = 0) -> void:
+func transition_to_scene(scene_id: StringName, transition_type: String = "", _priority: int = 0) -> void:
 	_transition_called = true
 	_transition_target = scene_id
 	_transition_type = transition_type
