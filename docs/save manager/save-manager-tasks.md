@@ -610,35 +610,35 @@ These tests require human verification of UI/UX, visual feedback, and timing-sen
 
 ### UI/UX Workflow Tests
 
-- [ ] **MT-01**: Save/Load overlay opens from pause menu Save button (save mode indicator visible)
-- [ ] **MT-02**: Save/Load overlay opens from pause menu Load button (load mode indicator visible)
-- [ ] **MT-03**: Slot list shows correct metadata (timestamp readable, area name formatted, playtime as HH:MM:SS)
-- [ ] **MT-04**: Empty slots show appropriate state (disabled in load mode, "New Save" button in save mode)
-- [ ] **MT-05**: Back button returns to pause menu smoothly
-- [ ] **MT-06**: Keyboard/gamepad navigation works in slot list (d-pad/stick, shoulder buttons)
-- [ ] **MT-07**: Focus is set correctly when overlay opens (first slot or last used)
-- [ ] **MT-08**: Loading spinner appears during load operation, buttons disabled
-- [ ] **MT-09**: Overwrite confirmation dialog appears before overwriting occupied slot
-- [ ] **MT-10**: Confirm dialog appears before delete (prevent accidental deletion)
+- [x] **MT-01**: Save/Load overlay opens from pause menu Save button (save mode indicator visible)
+- [x] **MT-02**: Save/Load overlay opens from pause menu Load button (load mode indicator visible)
+- [x] **MT-03**: Slot list shows correct metadata (timestamp readable, area name formatted, playtime as HH:MM:SS)
+- [x] **MT-04**: Empty slots show appropriate state (disabled in load mode, "New Save" button in save mode)
+- [x] **MT-05**: Back button returns to pause menu smoothly
+- [x] **MT-06**: Keyboard/gamepad navigation works in slot list (d-pad/stick, shoulder buttons)
+- [x] **MT-07**: Focus is set correctly when overlay opens (first slot or last used)
+- [x] **MT-08**: Loading spinner appears during load operation, buttons disabled
+- [x] **MT-09**: Overwrite confirmation dialog appears before overwriting occupied slot
+- [x] **MT-10**: Confirm dialog appears before delete (prevent accidental deletion)
 
 ### Toast Notification Tests (Visual Feedback)
 
-- [ ] **MT-11**: Autosave shows "Saving..." toast during gameplay (not during pause)
-- [ ] **MT-12**: Autosave shows "Game Saved" toast on completion
-- [ ] **MT-13**: Autosave shows "Save Failed" toast on error
-- [ ] **MT-14**: Manual saves from pause menu do NOT show toasts (use inline UI feedback)
-- [ ] **MT-15**: Toasts appear in correct position and don't overlap HUD elements
+- [x] **MT-11**: Autosave shows "Saving..." toast during gameplay (not during pause)
+- [x] **MT-12**: Autosave shows "Game Saved" toast on completion
+- [x] **MT-13**: Autosave shows "Save Failed" toast on error
+- [x] **MT-14**: Manual saves from pause menu do NOT show toasts (use inline UI feedback)
+- [x] **MT-15**: Toasts appear in correct position and don't overlap HUD elements
 
 ### Timing & Performance Tests
 
-- [ ] **MT-16**: Autosave cooldown prevents spam (trigger 3 checkpoints within 10s, only 2 autosaves occur)
-- [ ] **MT-17**: Load transition shows loading screen with progress bar (not just black screen)
-- [ ] **MT-18**: Very long play session displays playtime correctly (test with 99:59:59+)
+- [x] **MT-16**: Autosave cooldown prevents spam (trigger 3 checkpoints within 10s, only 2 autosaves occur)
+- [x] **MT-17**: Load transition shows loading screen with progress bar (not just black screen)
+- [x] **MT-18**: Very long play session displays playtime correctly (test with 99:59:59+)
 
 ### Error Scenarios (User-Facing)
 
-- [ ] **MT-19**: Disk full shows user-friendly error message (simulate by filling disk)
-- [ ] **MT-20**: Load from corrupted save shows error, returns to pause menu safely
+- [x] **MT-19**: Disk full shows user-friendly error message (simulate by filling disk)
+- [x] **MT-20**: Load from corrupted save shows error, returns to pause menu safely
 
 **Notes:**
 - Only 20 manual tests (down from 46)
