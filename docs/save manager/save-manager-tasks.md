@@ -1,15 +1,15 @@
 # Save Manager Implementation Tasks
 
-**Progress:** 100% implementation + 53% automated tests (55 / 55 implementation tasks, 16 / 30 additional automated tests, 0 / 20 manual tests)
+**Progress:** 100% implementation + 100% automated tests (55 / 55 implementation tasks, 30 / 30 additional automated tests, 0 / 20 manual tests)
 
-**Recent Improvements (Phase 14 In Progress - 2025-12-27):**
+**Phase 14 Complete (2025-12-27):**
 
-- ✅ Added 15 new automated tests for Phase 14 (16 integration + 98 unit = 114 total)
-- ✅ AT-02 through AT-16: Save/load/delete functionality, overwrite handling, playtime restoration, load blocking
-- ✅ All tests passing (16/16 integration tests, 98/98 unit tests)
+- ✅ Added 19 new automated tests for Phase 14 (19 integration + 99 unit = 118 total)
+- ✅ AT-02 through AT-30: Complete save/load/delete/error/migration/edge case coverage
+- ✅ All tests passing (19/19 integration tests, 99/99 unit tests, 104+235 = 339 assertions)
 - ✅ State pollution fixes: Use `reset_progress()` for clean test state
 - ✅ Relative playtime testing to handle accumulated time from previous tests
-- ✅ Delete tests: File removal, error codes, autosave protection
+- ✅ Edge cases: Rapid save/load cycles, Unicode support, death blocking, legacy import safety
 
 **Phase 13 Complete (2025-12-26):**
 
@@ -572,28 +572,28 @@ These tests should be added to the existing test suites to complement the 6 inte
 - [x] **AT-15**: Delete autosave slot returns ERR_UNAUTHORIZED - `test_delete_autosave_returns_unauthorized`
 - [x] **AT-16**: After delete, slot_exists returns false - `test_slot_exists_returns_false_after_delete`
 
-### Error Handling Tests (add to `test_save_file_io.gd`)
+### Error Handling Tests (already in `test_save_file_io.gd` and `test_save_manager.gd`)
 
-- [ ] **AT-17**: Corrupted .json falls back to .bak on load
-- [ ] **AT-18**: Missing .json and .bak returns empty dict (graceful failure)
-- [ ] **AT-19**: Invalid JSON in .json falls back to .bak
-- [ ] **AT-20**: Invalid header type (string instead of dict) rejected with detailed error
-- [ ] **AT-21**: Missing current_scene_id rejected with validation error
+- [x] **AT-17**: Corrupted .json falls back to .bak on load - Already covered by `test_load_from_file_falls_back_to_backup_on_corrupted_json`
+- [x] **AT-18**: Missing .json and .bak returns empty dict (graceful failure) - Already covered by `test_load_from_file_returns_empty_dict_when_both_files_missing`
+- [x] **AT-19**: Invalid JSON in .json falls back to .bak - Already covered by `test_load_from_file_falls_back_to_backup_on_corrupted_json`
+- [x] **AT-20**: Invalid header type (string instead of dict) rejected with detailed error - Already covered by `test_load_rejects_save_with_invalid_header_type`
+- [x] **AT-21**: Missing current_scene_id rejected with validation error - Already covered by `test_load_rejects_save_with_missing_scene_id`
 
-### Migration Tests (already in `test_save_migrations.gd`, verify coverage)
+### Migration Tests (already in `test_save_migrations.gd`)
 
-- [ ] **AT-22**: v0 (headerless) save migrates to v1 with header
-- [ ] **AT-23**: v1 save returns unchanged (no migration needed)
-- [ ] **AT-24**: Legacy `user://savegame.json` imported to autosave slot
-- [ ] **AT-25**: Legacy import deletes original file after success
-- [ ] **AT-26**: Existing autosave blocks legacy import (safety check)
+- [x] **AT-22**: v0 (headerless) save migrates to v1 with header - Already covered by `test_migrate_v0_to_v1_wraps_state_in_header_structure`
+- [x] **AT-23**: v1 save returns unchanged (no migration needed) - Already covered by `test_migrate_v1_save_returns_unchanged`
+- [x] **AT-24**: Legacy `user://savegame.json` imported to autosave slot - Already covered by `test_import_legacy_save_migrates_and_returns_save_data`
+- [x] **AT-25**: Legacy import deletes original file after success - Already covered by `test_import_legacy_save_deletes_original_file`
+- [x] **AT-26**: Existing autosave blocks legacy import (safety check) - `test_existing_autosave_blocks_legacy_import`
 
 ### Edge Case Tests (add to `test_save_load_cycle.gd`)
 
-- [ ] **AT-27**: Rapid save/load/save cycle maintains data integrity
-- [ ] **AT-28**: Save with Unicode characters in area name
-- [ ] **AT-29**: Orphaned .tmp files cleaned up on manager initialization
-- [ ] **AT-30**: Autosave blocked when death_in_progress == true
+- [x] **AT-27**: Rapid save/load/save cycle maintains data integrity - `test_rapid_save_load_save_maintains_integrity`
+- [x] **AT-28**: Save with Unicode characters in area name - `test_save_with_unicode_area_name`
+- [x] **AT-29**: Orphaned .tmp files cleaned up on manager initialization - Already covered by `test_cleanup_tmp_files_removes_orphaned_tmp`
+- [x] **AT-30**: Autosave blocked when death_in_progress == true - `test_autosave_blocked_during_death`
 
 **Notes:**
 - These 30 automated tests should be added to existing test files
