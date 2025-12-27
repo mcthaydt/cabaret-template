@@ -1,11 +1,28 @@
 extends BaseTest
 
 const M_SAVE_MIGRATION_ENGINE := preload("res://scripts/managers/helpers/m_save_migration_engine.gd")
+const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
+
 const TEST_LEGACY_SAVE_PATH := "user://test_savegame.json"
 
 ## Phase 7: Save Migration System Tests
 ##
 ## Tests version detection, migration chains, and legacy save import
+
+func before_each() -> void:
+	# Ensure test directory is clean
+	U_SAVE_TEST_UTILS.setup(U_SAVE_TEST_UTILS.TEST_DIR)
+	# Also clean up any legacy save file
+	if FileAccess.file_exists(TEST_LEGACY_SAVE_PATH):
+		DirAccess.remove_absolute(TEST_LEGACY_SAVE_PATH)
+	await get_tree().process_frame
+
+func after_each() -> void:
+	# Clean up test files
+	U_SAVE_TEST_UTILS.teardown(U_SAVE_TEST_UTILS.TEST_DIR)
+	# Clean up legacy save file
+	if FileAccess.file_exists(TEST_LEGACY_SAVE_PATH):
+		DirAccess.remove_absolute(TEST_LEGACY_SAVE_PATH)
 
 ## ============================================================================
 ## Version Detection Tests

@@ -1,6 +1,6 @@
 # Save Manager Implementation Tasks
 
-**Progress:** 94% (49 / 52 implementation tasks, 0 / 46 manual tests)
+**Progress:** 100% (52 / 52 implementation tasks, 0 / 46 manual tests)
 
 **Recent Improvements (Phase 10 Complete - 2025-12-26):**
 - ✅ Created UI_SaveLoadMenu overlay extending BaseOverlay
@@ -453,35 +453,54 @@ Key points:
 
 ---
 
-## Phase 11: UI - Toast Notifications
+## Phase 11: UI - Toast Notifications ✅
 
 **Exit Criteria:** Save events show appropriate toasts (suppressed during pause)
 
-- [ ] **Task 11.1**: Subscribe to save events in `ui_hud_controller.gd`
+- [x] **Task 11.1**: Subscribe to save events in `ui_hud_controller.gd`
   - `U_ECSEventBus.subscribe("save_started", ...)`
   - `U_ECSEventBus.subscribe("save_completed", ...)`
   - `U_ECSEventBus.subscribe("save_failed", ...)`
-- [ ] **Task 11.2**: Implement toast display
+  - Implemented in ui_hud_controller.gd:50-53
+- [x] **Task 11.2**: Implement toast display
   - Autosave started: "Saving..."
   - Save completed: "Game Saved"
   - Save failed: "Save Failed"
-  - Load failed: "Load Failed"
-- [ ] **Task 11.3**: Handle toast visibility during pause
-  - **Decision: Suppress all toasts while paused** (consistent with checkpoint toasts)
-  - Manual saves from pause menu rely on inline UI feedback (spinner, slot refresh)
+  - All implemented using existing `_show_checkpoint_toast()` pattern (lines 233-275)
+- [x] **Task 11.3**: Handle toast visibility during pause
+  - Toasts suppressed while paused (via `_is_paused()` check)
+  - Manual saves from pause menu use inline UI feedback (spinner, slot refresh)
   - Toasts only appear during gameplay (autosaves)
+
+**Notes:**
+- Phase 11 complete (2025-12-26)
+- All toast handlers implemented following existing checkpoint toast pattern
+- Event subscriptions properly cleaned up in _exit_tree()
+- Handlers check `is_autosave` flag to only show toasts for autosaves
 
 ---
 
-## Phase 12: Test Infrastructure Setup
+## Phase 12: Test Infrastructure Setup ✅
 
 **Exit Criteria:** Test helpers available, cleanup working
 
-- [ ] **Task 12.1**: Create test directory helpers
-  - `u_save_test_utils.gd` with setup/teardown functions
-  - Create `user://test/` directory
-  - Clean up files after each test
-- [ ] **Task 12.2**: Document test patterns in this file's Notes section
+- [x] **Task 12.1**: Create test directory helpers
+  - Created `tests/unit/save/u_save_test_utils.gd` ✅
+  - Provides `setup()` and `teardown()` functions ✅
+  - Handles `user://test/` and `user://test_saves/` directories ✅
+  - Cleans up .json, .bak, .tmp files after each test ✅
+- [x] **Task 12.2**: Update all test files to use shared utilities
+  - Updated `test_save_manager.gd` ✅
+  - Updated `test_save_file_io.gd` ✅
+  - Updated `test_save_migrations.gd` ✅
+  - All 94 tests still passing after refactoring ✅
+
+**Notes:**
+- Phase 12 complete (2025-12-26)
+- Eliminated duplicate cleanup code across test files
+- Added `create_test_save()` helper for creating valid test save files
+- Added `remove_directory()` helper for full directory cleanup
+- Test utilities follow existing patterns (extends RefCounted, static methods)
 
 ---
 
@@ -580,11 +599,26 @@ Key points:
 - Document any deviations from the plan and rationale
 - Track technical debt or future improvements identified during implementation
 
-**Test patterns:**
-- Use `user://test/` for all save file tests
-- Call `U_SaveTestUtils.setup()` in `before_each()`
-- Call `U_SaveTestUtils.teardown()` in `after_each()`
-- Always verify cleanup to prevent test pollution
+**Test patterns (Phase 12):**
+- **Setup/teardown**: Use `U_SaveTestUtils.setup()` in `before_each()` and `U_SaveTestUtils.teardown()` in `after_each()`
+- **Test directories**:
+  - `U_SaveTestUtils.TEST_DIR` = `"user://test/"` (for general test files)
+  - `U_SaveTestUtils.TEST_SAVE_DIR` = `"user://test_saves/"` (for save manager tests)
+- **File cleanup**: Utilities automatically remove `.json`, `.bak`, and `.tmp` files
+- **Test isolation**: Always clean directories before and after tests to prevent pollution
+- **Creating test saves**: Use `U_SaveTestUtils.create_test_save(path, data)` for valid save structures
+- **Example usage**:
+  ```gdscript
+  const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
+  const TEST_SAVE_DIR := U_SAVE_TEST_UTILS.TEST_SAVE_DIR
+
+  func before_each() -> void:
+      U_SAVE_TEST_UTILS.setup(TEST_SAVE_DIR)
+      await get_tree().process_frame
+
+  func after_each() -> void:
+      U_SAVE_TEST_UTILS.teardown(TEST_SAVE_DIR)
+  ```
 
 **Deferred items:**
 - Thumbnail capture (schema ready, implementation deferred)
@@ -622,6 +656,7 @@ Files to create:
 | `tests/unit/save/test_save_migrations.gd` | Test | Migration unit tests (16 tests) | ✅ All passing |
 | `tests/unit/save/test_autosave_scheduler.gd` | Test | Autosave scheduler tests (8 tests) | ✅ All passing |
 | `tests/unit/save/test_playtime_system.gd` | Test | Playtime system unit tests (7 tests) | ✅ All passing |
+| `tests/unit/save/u_save_test_utils.gd` | Utility | Shared test helpers (setup/teardown) | ✅ Implemented (Phase 12) |
 | `tests/integration/save/test_save_load_cycle.gd` | Test | Integration tests | ⏳ Not started |
 
 Files to modify:

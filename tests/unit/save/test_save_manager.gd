@@ -3,8 +3,9 @@ extends BaseTest
 const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
 
-const TEST_SAVE_DIR := "user://test_saves/"
+const TEST_SAVE_DIR := U_SAVE_TEST_UTILS.TEST_SAVE_DIR
 
 var _save_manager: Node
 var _mock_store: MockStateStore
@@ -33,34 +34,15 @@ func before_each() -> void:
 	U_ServiceLocator.register(StringName("scene_manager"), _mock_scene_manager)
 
 	# Ensure test directory exists and is clean
-	_ensure_test_directory_clean()
+	U_SAVE_TEST_UTILS.setup(TEST_SAVE_DIR)
 
 	await get_tree().process_frame
 
 func after_each() -> void:
 	# Clean up test files
-	_cleanup_test_files()
+	U_SAVE_TEST_UTILS.teardown(TEST_SAVE_DIR)
 
 ## Test helpers
-
-func _ensure_test_directory_clean() -> void:
-	var dir := DirAccess.open("user://")
-	if not dir.dir_exists("test_saves"):
-		DirAccess.make_dir_recursive_absolute(TEST_SAVE_DIR)
-
-func _cleanup_test_files() -> void:
-	# Remove all test save files
-	var dir := DirAccess.open(TEST_SAVE_DIR)
-	if not dir:
-		return
-
-	dir.list_dir_begin()
-	var file_name: String = dir.get_next()
-	while file_name != "":
-		if not dir.current_is_dir() and (file_name.ends_with(".json") or file_name.ends_with(".bak") or file_name.ends_with(".tmp")):
-			dir.remove(file_name)
-		file_name = dir.get_next()
-	dir.list_dir_end()
 
 func _create_save_manager() -> Node:
 	var manager := M_SAVE_MANAGER.new()

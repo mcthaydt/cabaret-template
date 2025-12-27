@@ -1,8 +1,10 @@
 extends BaseTest
 
-const TEST_DIR := "user://test/"
-const TEST_SAVE_DIR := "user://test/saves/"
-const TEST_FILE := "user://test/test_save.json"
+const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
+
+const TEST_DIR := U_SAVE_TEST_UTILS.TEST_DIR
+const TEST_SAVE_DIR := TEST_DIR + "saves/"
+const TEST_FILE := TEST_DIR + "test_save.json"
 
 var _test_data: Dictionary = {
 	"header": {
@@ -17,30 +19,14 @@ var _test_data: Dictionary = {
 }
 
 func before_each() -> void:
-	# Create test directory
-	var dir := DirAccess.open("user://")
-	if not dir.dir_exists("test"):
-		dir.make_dir("test")
-
-	# Clean up any existing test files
-	_cleanup_test_files()
+	# Ensure test directory exists and is clean
+	U_SAVE_TEST_UTILS.setup(TEST_DIR)
 
 	await get_tree().process_frame
 
 func after_each() -> void:
 	# Clean up test files
-	_cleanup_test_files()
-
-func _cleanup_test_files() -> void:
-	var dir := DirAccess.open(TEST_DIR)
-	if dir:
-		dir.list_dir_begin()
-		var file_name: String = dir.get_next()
-		while file_name != "":
-			if not dir.current_is_dir():
-				dir.remove(file_name)
-			file_name = dir.get_next()
-		dir.list_dir_end()
+	U_SAVE_TEST_UTILS.teardown(TEST_DIR)
 
 ## ============================================================================
 ## Behavior Tests (silent_mode = true)
