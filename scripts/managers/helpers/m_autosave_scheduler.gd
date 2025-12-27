@@ -77,9 +77,19 @@ func _on_action_dispatched(action: Dictionary) -> void:
 	var action_type: StringName = action.get("type", StringName(""))
 
 	if action_type == ACTION_MARK_AREA_COMPLETE:
-		_request_autosave_if_allowed(Priority.HIGH)
+		# DON'T autosave on mark_area_complete - wait for transition_completed instead
+		# This ensures we save AFTER the scene transition, not before
+		pass
 	elif action_type == ACTION_TRANSITION_COMPLETED:
-		_request_autosave_if_allowed(Priority.NORMAL)
+		var payload: Dictionary = action.get("payload", {})
+		var scene_id: StringName = payload.get("scene_id", StringName(""))
+
+		# Check if transitioning to a gameplay scene (exterior, interior, etc.)
+		if _is_gameplay_scene(scene_id):
+			# For gameplay scenes, autosave even if shell isn't set to 'gameplay' yet
+			_request_autosave_for_gameplay_transition(Priority.HIGH)
+		else:
+			_request_autosave_if_allowed(Priority.NORMAL)
 
 func _request_autosave_if_allowed(priority: int) -> void:
 	# Enforce cooldown based on priority
@@ -133,6 +143,49 @@ func _is_autosave_allowed() -> bool:
 		return false
 
 	return true
+
+func _is_gameplay_scene(scene_id: StringName) -> bool:
+	# Check if this is a gameplay scene (not menu/victory/etc)
+	var gameplay_scenes := [
+		StringName("exterior"),
+		StringName("gameplay_base"),
+		StringName("interior_house"),
+		StringName("test_scene"),
+	]
+	return scene_id in gameplay_scenes
+
+func _request_autosave_for_gameplay_transition(priority: int) -> void:
+	# Special autosave for gameplay scene transitions
+	# Skips the shell check since shell might be transitioning
+	var now := Time.get_ticks_msec() / 1000.0
+	var time_since_last_save := now - _last_autosave_time
+
+	# Enforce cooldown
+	if priority == Priority.NORMAL and time_since_last_save < COOLDOWN_NORMAL:
+		return
+	elif priority == Priority.HIGH and time_since_last_save < COOLDOWN_HIGH:
+		return
+
+	# Check other blocking conditions (except shell)
+	if _state_store == null or _save_manager == null:
+		return
+
+	var state: Dictionary = _state_store.get_state()
+	var gameplay: Dictionary = state.get("gameplay", {})
+	if gameplay.get("death_in_progress", false):
+		return
+
+	var scene: Dictionary = state.get("scene", {})
+	if scene.get("is_transitioning", false):
+		return
+
+	if _save_manager.has_method("is_locked") and _save_manager.is_locked():
+		return
+
+	# Trigger autosave
+	_is_dirty = true
+	_pending_priority = maxi(_pending_priority, priority)
+	call_deferred("_perform_autosave")
 
 func _perform_autosave() -> void:
 	if not _is_dirty:
