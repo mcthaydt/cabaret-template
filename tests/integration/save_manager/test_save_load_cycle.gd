@@ -28,14 +28,36 @@ func before_each() -> void:
 	# Reset ECS event bus and ServiceLocator
 	U_ECSEventBus.reset()
 	U_ServiceLocator.clear()
+
+	# Clear StateHandoff thoroughly before creating new state store
 	U_STATE_HANDOFF.clear_all()
+	await get_tree().process_frame  # Let any pending _exit_tree() complete
 
 	# Create real state store with required initial state resources
+	# Provide ALL initial state resources to prevent sharing/caching across tests
+	const RS_BOOT_INITIAL_STATE := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
+	const RS_MENU_INITIAL_STATE := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
+	const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
+	const RS_SETTINGS_INITIAL_STATE := preload("res://scripts/state/resources/rs_settings_initial_state.gd")
+	const RS_DEBUG_INITIAL_STATE := preload("res://scripts/state/resources/rs_debug_initial_state.gd")
+
 	_state_store = M_STATE_STORE.new()
-	_state_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
+	_state_store.boot_initial_state = RS_BOOT_INITIAL_STATE.new()
+	_state_store.menu_initial_state = RS_MENU_INITIAL_STATE.new()
+	_state_store.navigation_initial_state = RS_NAVIGATION_INITIAL_STATE.new()
+	_state_store.settings_initial_state = RS_SETTINGS_INITIAL_STATE.new()
 	_state_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
+	_state_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
+	_state_store.debug_initial_state = RS_DEBUG_INITIAL_STATE.new()
+
+	# Note: DO NOT use autofree() - we manually manage lifecycle in after_each()
 	add_child(_state_store)
-	autofree(_state_store)
+
+	# Wait for state store to initialize
+	await get_tree().process_frame
+
+	# Clear handoff again AFTER state store initializes (prevents restoration)
+	U_STATE_HANDOFF.clear_all()
 
 	# Create mock scene manager (for transition calls)
 	_mock_scene_manager = Node.new()
@@ -43,7 +65,7 @@ func before_each() -> void:
 	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
 	_mock_scene_manager.set("_is_transitioning", false)
 	add_child(_mock_scene_manager)
-	autofree(_mock_scene_manager)
+	# Note: DO NOT use autofree() - we manually manage lifecycle in after_each()
 
 	# Register with ServiceLocator
 	U_ServiceLocator.register(StringName("state_store"), _state_store)
@@ -52,9 +74,24 @@ func before_each() -> void:
 	# Ensure test directory exists and is clean
 	_ensure_test_directory_clean()
 
+func after_each() -> void:
+	# Manually free managers before clearing StateHandoff to ensure clean shutdown
+	if _save_manager != null and is_instance_valid(_save_manager):
+		_save_manager.queue_free()
+		_save_manager = null
+	if _mock_scene_manager != null and is_instance_valid(_mock_scene_manager):
+		_mock_scene_manager.queue_free()
+		_mock_scene_manager = null
+	if _state_store != null and is_instance_valid(_state_store):
+		_state_store.queue_free()
+		_state_store = null
+
+	# Wait for nodes to be freed
 	await get_tree().process_frame
 
-func after_each() -> void:
+	# NOW clear StateHandoff after all nodes are freed
+	U_STATE_HANDOFF.clear_all()
+
 	# Clean up test files
 	_cleanup_test_files()
 
@@ -262,29 +299,25 @@ func test_manual_slots_independent_from_autosave() -> void:
 
 	# Initialize scene state with a valid current_scene_id
 	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+
+	# Reset health to 100 (avoids pollution issues from previous tests)
+	const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	_state_store.dispatch(U_GAMEPLAY_ACTIONS.reset_after_death())
 	await get_tree().physics_frame
 
-	# Verify initial health is 100.0
-	var initial_state: Dictionary = _state_store.get_state()
-	var initial_gameplay: Dictionary = initial_state.get("gameplay", {})
-	var initial_health: float = initial_gameplay.get("player_health", 0.0)
-	assert_eq(initial_health, 100.0, "Initial health should be 100.0")
-
-	# Save to autosave slot
+	# Save to autosave slot (captures health = 100)
 	var autosave_result: Error = _save_manager.save_to_slot(StringName("autosave"))
 	assert_eq(autosave_result, OK, "Autosave should succeed")
 
-	# Modify state - take 50 damage (100 - 50 = 50 health remaining)
-	# Use empty string for entity_id (reducer accepts empty for player damage)
-	const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+	# Modify state - take 50 damage (100 - 50 = 50)
 	_state_store.dispatch(U_GAMEPLAY_ACTIONS.take_damage("", 50.0))
 	await get_tree().physics_frame
 
-	# Verify health was reduced
+	# Verify health is now 50
 	var damaged_state: Dictionary = _state_store.get_state()
 	var damaged_gameplay: Dictionary = damaged_state.get("gameplay", {})
-	var damaged_health: float = damaged_gameplay.get("player_health", 0.0)
-	assert_eq(damaged_health, 50.0, "Health should be 50.0 after taking 50 damage")
+	var damaged_health: float = damaged_gameplay.get("player_health", 100.0)
+	assert_eq(damaged_health, 50.0, "Health should be 50 after taking 50 damage from 100")
 
 	# Save to manual slot 01
 	var manual_save_result: Error = _save_manager.save_to_slot(StringName("slot_01"))
@@ -322,9 +355,9 @@ func test_manual_slots_independent_from_autosave() -> void:
 		var manual_gameplay: Dictionary = manual_state.get("gameplay", {})
 		var manual_health: float = manual_gameplay.get("player_health", 100.0)
 
-		# Verify health values are different (autosave has full health, manual save has damage)
-		assert_eq(autosave_health, 100.0, "Autosave should have full health")
-		assert_eq(manual_health, 50.0, "Manual save should have damaged health")
+		# Verify health values are different (autosave has 100, manual save has 50)
+		assert_eq(autosave_health, 100.0, "Autosave should have health = 100")
+		assert_eq(manual_health, 50.0, "Manual save should have health = 50")
 		assert_ne(autosave_health, manual_health, "Autosave and manual save should have different health values")
 
 func test_comprehensive_state_roundtrip() -> void:
