@@ -446,6 +446,200 @@ func _on_apply_pressed():
 - ❌ Apply/Cancel buttons (use auto-save pattern)
 - ❌ Tab content overriding `_navigate_focus()` (conflicts with parent repeater)
 
+## Save Manager Patterns (Phase 13 Complete)
+
+### Overview
+
+M_SaveManager orchestrates save/load operations with atomic writes, migrations, and autosave scheduling. It does NOT define gameplay data—M_StateStore remains the single source of truth for serializable state.
+
+### Slot System
+
+- **1 autosave slot**: `SLOT_AUTOSAVE` (overwritten by autosave events, cannot be deleted)
+- **3 manual slots**: `SLOT_01`, `SLOT_02`, `SLOT_03` (user-created via pause menu)
+- **File location**: `user://saves/` (configurable for testing via `set_save_directory()`)
+- **File format**: `{header: {...}, state: {...}}` with version, timestamp, playtime, scene context
+
+### Save Operations
+
+```gdscript
+const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
+
+# Get manager (discoverable via ServiceLocator or group)
+var save_manager := U_ServiceLocator.get_service(StringName("save_manager")) as M_SaveManager
+
+# Manual save to slot
+save_manager.save_to_slot(StringName("slot_01"))  # Returns Error code
+
+# Check slot existence
+if save_manager.slot_exists(StringName("slot_01")):
+    # Slot has valid save file
+
+# Get metadata for UI display
+var metadata: Dictionary = save_manager.get_slot_metadata(StringName("slot_01"))
+# Returns: {save_version, timestamp, build_id, playtime_seconds, current_scene_id,
+#           last_checkpoint, target_spawn_point, area_name, slot_id, thumbnail_path}
+
+# Get all slot metadata
+var all_metadata: Array[Dictionary] = save_manager.get_all_slot_metadata()
+```
+
+### Load Operations
+
+```gdscript
+# Load from slot (applies state + transitions to saved scene)
+save_manager.load_from_slot(StringName("slot_01"))  # Returns Error code
+
+# Load workflow:
+# 1. Reads save file with .bak fallback on corruption
+# 2. Applies migrations (v0 → v1, etc.)
+# 3. Validates structure (header, state, current_scene_id)
+# 4. Applies loaded state to M_StateStore via apply_loaded_state()
+# 5. Transitions to saved scene_id via M_SceneManager (loading screen)
+# 6. Clears loading lock when transition completes
+```
+
+### Delete Operations
+
+```gdscript
+# Delete manual slot (autosave cannot be deleted)
+save_manager.delete_slot(StringName("slot_01"))  # Returns ERR_UNAUTHORIZED for autosave
+```
+
+### Autosave Triggers
+
+Autosaves trigger on **milestones** (low-frequency, meaningful events):
+
+- **Checkpoint activated**: `checkpoint_activated` ECS event
+- **Area completed**: `gameplay/mark_area_complete` Redux action
+- **Scene transition completed**: `scene/transition_completed` Redux action
+
+**Blocking conditions** (autosave suppressed):
+- `gameplay.death_in_progress == true` (no autosave during death)
+- `scene.is_transitioning == true` (no autosave during transitions)
+- `navigation.shell != "gameplay"` (only autosave during gameplay, not in menus)
+- Save/load operations in progress (`M_SaveManager.is_locked()`)
+
+**Cooldown/Priority**:
+- NORMAL priority: 5s cooldown (checkpoint, scene transition)
+- HIGH priority: 2s cooldown (area completion)
+- CRITICAL priority: always trigger (reserved for future use)
+
+### Autosave Scheduler (Internal)
+
+M_AutosaveScheduler (helper, child of M_SaveManager):
+- Subscribes to ECS events (`checkpoint_activated`) via `U_ECSEventBus`
+- Subscribes to Redux actions via `M_StateStore.action_dispatched` signal
+- Coalesces multiple requests within same frame (dirty flag pattern)
+- Enforces blocking conditions and cooldowns
+- Calls `M_SaveManager.request_autosave(priority)` when allowed
+
+### Playtime Tracking
+
+S_PlaytimeSystem (ECS system):
+- Tracks `gameplay.playtime_seconds` (increments every second during gameplay)
+- Pauses when: `navigation.shell != "gameplay"`, paused, or transitioning
+- Dispatches `U_GameplayActions.increment_playtime(seconds)` periodically
+- Playtime persists across scene transitions and saves/loads
+
+### File I/O Patterns
+
+**Atomic writes** (crash-safe):
+```
+1. Write to {slot}.json.tmp
+2. Backup existing {slot}.json to {slot}.json.bak
+3. Rename {slot}.json.tmp to {slot}.json
+```
+
+**Corruption recovery**:
+```
+Load order: {slot}.json → {slot}.json.bak (if .json missing/corrupted) → empty dict
+```
+
+**Orphaned .tmp cleanup**: On startup, remove all `.tmp` files from save directory
+
+### Migration System
+
+M_SaveMigrationEngine (helper):
+- Pure `Dictionary → Dictionary` transforms (no side effects)
+- Version detection from `header.save_version` (missing header = v0)
+- Sequential migration chain: `v0 → v1 → v2 → ...`
+- **v0 → v1 migration**: Wraps headerless saves in `{header, state}` structure
+
+**Legacy save import**:
+- On first launch, imports `user://savegame.json` (old format) to autosave slot
+- Applies v0 → v1 migration automatically
+- Deletes original `user://savegame.json` after successful import
+
+### Validation & Error Handling
+
+U_SaveValidator (utility):
+- Validates save file structure (header, state must be Dictionaries)
+- Validates required fields (`current_scene_id` must exist and be non-empty)
+- Returns detailed error messages with context (field name, expected/actual type)
+
+**Error codes**:
+- `OK`: Success
+- `ERR_BUSY`: Save/load already in progress
+- `ERR_INVALID_PARAMETER`: Invalid slot_id
+- `ERR_FILE_NOT_FOUND`: Slot doesn't exist
+- `ERR_FILE_CORRUPT`: Invalid/corrupted save file
+- `ERR_UNAUTHORIZED`: Attempted to delete autosave slot
+- `ERR_UNAVAILABLE`: Scene manager unavailable for load transition
+
+### UI Integration
+
+**Pause menu buttons** (`ui_pause_menu.gd`):
+```gdscript
+const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+
+# Save button pressed
+func _on_save_pressed():
+    store.dispatch(U_NavigationActions.set_save_load_mode(StringName("save")))
+    store.dispatch(U_NavigationActions.open_overlay(StringName("save_load_menu_overlay")))
+
+# Load button pressed
+func _on_load_pressed():
+    store.dispatch(U_NavigationActions.set_save_load_mode(StringName("load")))
+    store.dispatch(U_NavigationActions.open_overlay(StringName("save_load_menu_overlay")))
+```
+
+**Save/Load overlay** (`ui_save_load_menu.gd`):
+- Extends `BaseOverlay` (PROCESS_MODE_ALWAYS, background dimming)
+- Reads mode from `navigation.save_load_mode` on `_ready()`
+- Populates slot list from `M_SaveManager.get_all_slot_metadata()`
+- Shows overwrite confirmation dialog before saving to occupied slot
+- Shows inline spinner + disables buttons during load operation
+- Subscribes to save events (`save_started`, `save_completed`, `save_failed`) for UI refresh
+
+**Toast notifications** (`ui_hud_controller.gd`):
+- Subscribes to `U_ECSEventBus` save events
+- Shows toasts for autosaves ONLY (manual saves use inline UI feedback)
+- Suppressed during pause (toasts only appear during gameplay)
+- "Saving..." on `save_started`, "Game Saved" on `save_completed`, "Save Failed" on `save_failed`
+
+### Testing Patterns
+
+**Integration tests** (`tests/integration/save_manager/test_save_load_cycle.gd`):
+- Use `M_SaveManager.set_save_directory("user://test_saves/")` BEFORE adding to tree
+- Create real `M_StateStore` with initial state resources (not mock)
+- Set `navigation.shell = "gameplay"` to allow autosave triggers
+- Use empty string for player damage: `U_GameplayActions.take_damage("", amount)`
+- Wait for physics frame after dispatching actions to flush state updates
+
+**Unit tests** (Phase 0-8):
+- 94 unit tests covering manager lifecycle, slot registry, file I/O, migrations, validation
+- Use `MockStateStore` and `MockSceneManager` from `tests/mocks/`
+- Test directory helpers in `u_save_test_utils.gd` (setup/teardown)
+
+### Anti-Patterns
+
+- ❌ Calling `M_StateStore.save_state(filepath)` directly (bypasses save manager, no header/migrations)
+- ❌ Triggering autosave on high-frequency events (position updates, damage ticks)
+- ❌ Autosaving during death (`death_in_progress == true`)
+- ❌ Autosaving during scene transitions (`is_transitioning == true`)
+- ❌ Modifying state during load (let StateHandoff handle restoration)
+- ❌ Attempting to delete autosave slot (returns `ERR_UNAUTHORIZED`)
+
 ## Test Commands
 
 - Run ECS tests
