@@ -207,6 +207,63 @@
   - `device_changed` actions must originate from `M_InputDeviceManager`. `S_InputSystem` only reads `U_InputSelectors.get_active_device_type()` / `get_active_gamepad_id()`; dispatching from multiple sources causes duplicate logs and race conditions.
   - Gamepad hot-plug events dispatch `gamepad_connected` / `gamepad_disconnected` from the manager. Keep connection-dependent systems (e.g., vibration) subscribed to Redux state rather than polling the manager directly.
 
+## Save Manager Pitfalls (Phase 13 Complete)
+
+- **Autosave requires navigation.shell == "gameplay"**
+  - M_AutosaveScheduler blocks autosaves when `navigation.shell != "gameplay"` to prevent saves during menus/UI
+  - **Testing pitfall**: Tests that trigger autosave events must dispatch `U_NavigationActions.set_shell(StringName("gameplay"), StringName("scene_id"))` first, or autosave will silently fail
+  - Example:
+    ```gdscript
+    # ❌ WRONG - autosave won't trigger (shell defaults to empty or "main_menu")
+    U_ECSEventBus.publish(StringName("checkpoint_activated"), {...})
+
+    # ✅ CORRECT - set navigation shell to gameplay first
+    store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+    await get_tree().physics_frame
+    U_ECSEventBus.publish(StringName("checkpoint_activated"), {...})
+    ```
+
+- **Don't bypass M_SaveManager for saves**
+  - `M_StateStore.save_state(filepath)` writes raw state without header metadata, migrations, or atomic writes
+  - **Always use** `M_SaveManager.save_to_slot(slot_id)` for production saves to get:
+    - Header metadata (version, timestamp, playtime, scene context)
+    - Atomic writes with `.bak` backup
+    - Migration support for future schema changes
+  - Example:
+    ```gdscript
+    # ❌ WRONG - bypasses save manager (no header, no migrations, no atomic writes)
+    store.save_state("user://manual_save.json")
+
+    # ✅ CORRECT - uses save manager with full feature set
+    var save_manager := U_ServiceLocator.get_service(StringName("save_manager")) as M_SaveManager
+    save_manager.save_to_slot(StringName("slot_01"))
+    ```
+
+- **Autosave blocking conditions**
+  - Autosave is suppressed when:
+    - `gameplay.death_in_progress == true` (prevents "bad autosave" during death)
+    - `scene.is_transitioning == true` (prevents inconsistent snapshot during transition)
+    - `M_SaveManager.is_locked()` (save/load already in progress)
+  - These are **intentional blocks** to ensure save quality, not bugs
+  - Don't try to work around these blocks; let the autosave scheduler handle timing
+
+- **Entity ID for gameplay actions (testing)**
+  - `U_GameplayActions.take_damage(entity_id, amount)` expects either:
+    - Empty string `""` (reducer applies to player)
+    - `"E_Player"` (default player entity ID from `RS_GameplayInitialState`)
+  - **Testing pitfall**: Using `"player"` or other incorrect IDs will silently fail to apply damage
+  - Example:
+    ```gdscript
+    # ❌ WRONG - entity_id doesn't match player_entity_id
+    store.dispatch(U_GameplayActions.take_damage("player", 50.0))  # No effect!
+
+    # ✅ CORRECT - empty string applies to player
+    store.dispatch(U_GameplayActions.take_damage("", 50.0))
+
+    # ✅ CORRECT - explicit player entity ID
+    store.dispatch(U_GameplayActions.take_damage("E_Player", 50.0))
+    ```
+
 ## Dependency Lookup Rule
 
 - **Standard chain (preferred)**:

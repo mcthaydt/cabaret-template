@@ -9,9 +9,9 @@ class_name RS_SceneInitialState
 ##
 ## State Fields:
 ## - current_scene_id: Active scene identifier
-## - scene_stack: Array of overlay scenes (pause, settings, etc.)
+## - scene_stack: TRANSIENT - Array of overlay scenes (pause, settings, etc.)
 ## - is_transitioning: TRANSIENT - transition in progress flag
-## - transition_type: Current transition effect type (instant, fade, loading)
+## - transition_type: TRANSIENT - Current transition effect type (instant, fade, loading)
 ## - previous_scene_id: Scene we transitioned from (for history/back navigation)
 
 # Current active scene

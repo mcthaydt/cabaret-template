@@ -62,11 +62,33 @@ theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CheckpointToast" type="Label" parent="MarginContainer"]
+[node name="ToastContainer" type="Control" parent="MarginContainer"]
 visible = false
 modulate = Color(1, 1, 1, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
+size_flags_horizontal = 8
+size_flags_vertical = 0
+mouse_filter = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/ToastContainer"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -220.0
+offset_bottom = 50.0
+grow_horizontal = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/ToastContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="CheckpointToast" type="Label" parent="MarginContainer/ToastContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
 text = "Checkpoint"
 horizontal_alignment = 1
 vertical_alignment = 1

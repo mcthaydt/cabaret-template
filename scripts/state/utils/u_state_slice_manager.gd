@@ -84,7 +84,7 @@ static func initialize_slices(
 		scene_config.reducer = Callable(U_SceneReducer, "reduce")
 		scene_config.initial_state = scene_initial_state.to_dictionary()
 		scene_config.dependencies = []
-		scene_config.transient_fields = ["is_transitioning", "transition_type"]
+		scene_config.transient_fields = ["is_transitioning", "transition_type", "scene_stack"]
 		register_slice(slice_configs, state, scene_config)
 
 	# Debug slice

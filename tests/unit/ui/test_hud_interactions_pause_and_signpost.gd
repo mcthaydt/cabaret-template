@@ -73,7 +73,7 @@ func test_hud_prompt_and_signpost_pause_behavior() -> void:
 	# Signpost messages should be suppressed while paused
 	U_ECSEventBus.publish(StringName("signpost_message"), {"message": "Hello"})
 	await _await_frames(1)
-	assert_false(hud.get_node("MarginContainer/CheckpointToast").visible, "Toast should not show while paused")
+	assert_false(hud.get_node("MarginContainer/ToastContainer").visible, "Toast should not show while paused")
 
 	# Unpause: pop overlay
 	_store.dispatch(U_NavigationActions.close_pause())
@@ -83,5 +83,5 @@ func test_hud_prompt_and_signpost_pause_behavior() -> void:
 	# Publish signpost message now; toast should show and prompt should hide to avoid overlap
 	U_ECSEventBus.publish(StringName("signpost_message"), {"message": "Hello after pause"})
 	await _await_frames(1)
-	assert_true(hud.get_node("MarginContainer/CheckpointToast").visible, "Toast should show when not paused")
+	assert_true(hud.get_node("MarginContainer/ToastContainer").visible, "Toast should show when not paused")
 	assert_false(hud.get_node("MarginContainer/InteractPrompt").visible, "Prompt should hide while toast is visible")

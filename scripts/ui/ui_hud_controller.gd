@@ -12,7 +12,8 @@ const HUD_GROUP := StringName("hud_layers")
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
 @onready var health_label: Label = $MarginContainer/VBoxContainer/HealthBar/HealthLabel
-@onready var checkpoint_toast: Label = $MarginContainer/CheckpointToast
+@onready var toast_container: Control = $MarginContainer/ToastContainer
+@onready var checkpoint_toast: Label = $MarginContainer/ToastContainer/PanelContainer/MarginContainer/CheckpointToast
 @onready var interact_prompt: UI_ButtonPrompt = $MarginContainer/InteractPrompt
 
 var _store: I_StateStore = null
@@ -21,6 +22,9 @@ var _unsubscribe_checkpoint: Callable
 var _unsubscribe_interact_prompt_show: Callable
 var _unsubscribe_interact_prompt_hide: Callable
 var _unsubscribe_signpost: Callable
+var _unsubscribe_save_started: Callable
+var _unsubscribe_save_completed: Callable
+var _unsubscribe_save_failed: Callable
 var _active_prompt_id: int = 0
 var _last_prompt_action: StringName = StringName("interact")
 var _last_prompt_text: String = ""
@@ -44,6 +48,11 @@ func _ready() -> void:
 	_unsubscribe_interact_prompt_hide = U_ECSEventBus.subscribe(StringName("interact_prompt_hide"), _on_interact_prompt_hide)
 	_unsubscribe_signpost = U_ECSEventBus.subscribe(StringName("signpost_message"), _on_signpost_message)
 
+	# Subscribe to save events for autosave feedback (Phase 11)
+	_unsubscribe_save_started = U_ECSEventBus.subscribe(StringName("save_started"), _on_save_started)
+	_unsubscribe_save_completed = U_ECSEventBus.subscribe(StringName("save_completed"), _on_save_completed)
+	_unsubscribe_save_failed = U_ECSEventBus.subscribe(StringName("save_failed"), _on_save_failed)
+
 	_update_display(_store.get_state())
 
 func _exit_tree() -> void:
@@ -59,6 +68,12 @@ func _exit_tree() -> void:
 		_unsubscribe_interact_prompt_hide.call()
 	if _unsubscribe_signpost != null and _unsubscribe_signpost.is_valid():
 		_unsubscribe_signpost.call()
+	if _unsubscribe_save_started != null and _unsubscribe_save_started.is_valid():
+		_unsubscribe_save_started.call()
+	if _unsubscribe_save_completed != null and _unsubscribe_save_completed.is_valid():
+		_unsubscribe_save_completed.call()
+	if _unsubscribe_save_failed != null and _unsubscribe_save_failed.is_valid():
+		_unsubscribe_save_failed.call()
 
 func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void:
 	if _store == null:
@@ -73,8 +88,8 @@ func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void
 	if _is_paused(state):
 		if interact_prompt != null:
 			interact_prompt.hide_prompt()
-		if checkpoint_toast != null:
-			checkpoint_toast.visible = false
+		if toast_container != null:
+			toast_container.visible = false
 			_toast_active = false
 
 func _update_display(state: Dictionary) -> void:
@@ -131,14 +146,14 @@ func _on_checkpoint_event(payload: Variant) -> void:
 	_show_checkpoint_toast(text)
 
 func _show_checkpoint_toast(text: String) -> void:
-	if checkpoint_toast == null:
+	if checkpoint_toast == null or toast_container == null:
 		return
 	# Do not show toasts while paused
 	if _store != null and _is_paused(_store.get_state()):
 		return
 	checkpoint_toast.text = text
-	checkpoint_toast.modulate.a = 0.0
-	checkpoint_toast.visible = true
+	toast_container.modulate.a = 0.0
+	toast_container.visible = true
 	_toast_active = true
 	# Avoid overlap with interact prompt while toast is visible
 	if interact_prompt != null:
@@ -148,13 +163,13 @@ func _show_checkpoint_toast(text: String) -> void:
 	tween.set_trans(Tween.TRANS_CUBIC)
 	tween.set_ease(Tween.EASE_IN_OUT)
 	# Fade in
-	tween.tween_property(checkpoint_toast, "modulate:a", 1.0, 0.2).from(0.0)
+	tween.tween_property(toast_container, "modulate:a", 1.0, 0.2).from(0.0)
 	# Hold
 	tween.tween_interval(1.0)
 	# Fade out
-	tween.tween_property(checkpoint_toast, "modulate:a", 0.0, 0.3)
+	tween.tween_property(toast_container, "modulate:a", 0.0, 0.3)
 	tween.finished.connect(func() -> void:
-		checkpoint_toast.visible = false
+		toast_container.visible = false
 		_toast_active = false
 		# Restore prompt if still relevant and not paused
 		if not _is_paused(_store.get_state()) and _active_prompt_id != 0 and interact_prompt != null:
@@ -215,6 +230,50 @@ func _on_signpost_message(payload: Variant) -> void:
 	if _store != null and _is_paused(_store.get_state()):
 		return
 	_show_checkpoint_toast(text)
+
+## Phase 11: Save event handlers for autosave feedback
+
+func _on_save_started(payload: Variant) -> void:
+	# Show "Saving..." toast only for autosaves (not manual saves from menu)
+	if typeof(payload) != TYPE_DICTIONARY:
+		return
+	var event: Dictionary = payload
+	var inner_payload: Variant = event.get("payload", {})
+	if typeof(inner_payload) != TYPE_DICTIONARY:
+		return
+	var data: Dictionary = inner_payload
+	var is_autosave: bool = data.get("is_autosave", false)
+
+	if is_autosave:
+		_show_checkpoint_toast("⏳ Saving...")
+
+func _on_save_completed(payload: Variant) -> void:
+	# Show "Game Saved" toast only for autosaves
+	if typeof(payload) != TYPE_DICTIONARY:
+		return
+	var event: Dictionary = payload
+	var inner_payload: Variant = event.get("payload", {})
+	if typeof(inner_payload) != TYPE_DICTIONARY:
+		return
+	var data: Dictionary = inner_payload
+	var is_autosave: bool = data.get("is_autosave", false)
+
+	if is_autosave:
+		_show_checkpoint_toast("Game Saved")
+
+func _on_save_failed(payload: Variant) -> void:
+	# Show "Save Failed" toast for all failed saves (autosave or manual)
+	if typeof(payload) != TYPE_DICTIONARY:
+		return
+	var event: Dictionary = payload
+	var inner_payload: Variant = event.get("payload", {})
+	if typeof(inner_payload) != TYPE_DICTIONARY:
+		return
+	var data: Dictionary = inner_payload
+	var is_autosave: bool = data.get("is_autosave", false)
+
+	if is_autosave:
+		_show_checkpoint_toast("Save Failed")
 
 func _format_interact_prompt(action: StringName, prompt_text: String) -> String:
 	var action_label := _get_primary_input_label(action)

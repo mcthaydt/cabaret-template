@@ -12,9 +12,12 @@ const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selecto
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 
 const OVERLAY_SETTINGS := StringName("settings_menu_overlay")
+const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
 @onready var _resume_button: Button = %ResumeButton
 @onready var _settings_button: Button = %SettingsButton
+@onready var _save_button: Button = %SaveButton
+@onready var _load_button: Button = %LoadButton
 @onready var _quit_button: Button = %QuitButton
 
 var _last_device_type: int = M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE
@@ -30,6 +33,10 @@ func _configure_focus_neighbors() -> void:
 		buttons.append(_resume_button)
 	if _settings_button != null:
 		buttons.append(_settings_button)
+	if _save_button != null:
+		buttons.append(_save_button)
+	if _load_button != null:
+		buttons.append(_load_button)
 	if _quit_button != null:
 		buttons.append(_quit_button)
 
@@ -55,6 +62,12 @@ func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void
 		var shell: StringName = nav_state.get("shell", StringName())
 		if shell != StringName("gameplay"):
 			visible = false
+
+		# BUG FIX: Restore focus when overlay closes (in gameplay shell)
+		# When save/load menu or settings closes, refocus the pause menu
+		var overlay_stack: Array = nav_state.get("overlay_stack", [])
+		if shell == StringName("gameplay") and overlay_stack.is_empty() and visible:
+			_focus_resume()
 
 	# Preserve analog navigation behavior for gamepad switches
 	var state: Dictionary = store.get_state()
@@ -102,6 +115,10 @@ func _connect_buttons() -> void:
 		_resume_button.pressed.connect(_on_resume_pressed)
 	if _settings_button != null and not _settings_button.pressed.is_connected(_on_settings_pressed):
 		_settings_button.pressed.connect(_on_settings_pressed)
+	if _save_button != null and not _save_button.pressed.is_connected(_on_save_pressed):
+		_save_button.pressed.connect(_on_save_pressed)
+	if _load_button != null and not _load_button.pressed.is_connected(_on_load_pressed):
+		_load_button.pressed.connect(_on_load_pressed)
 	if _quit_button != null and not _quit_button.pressed.is_connected(_on_quit_pressed):
 		_quit_button.pressed.connect(_on_quit_pressed)
 
@@ -110,6 +127,20 @@ func _on_resume_pressed() -> void:
 
 func _on_settings_pressed() -> void:
 	_dispatch_navigation(U_NavigationActions.open_overlay(OVERLAY_SETTINGS))
+
+func _on_save_pressed() -> void:
+	var store := get_store()
+	if store == null:
+		return
+	store.dispatch(U_NavigationActions.set_save_load_mode(StringName("save")))
+	_dispatch_navigation(U_NavigationActions.open_overlay(OVERLAY_SAVE_LOAD))
+
+func _on_load_pressed() -> void:
+	var store := get_store()
+	if store == null:
+		return
+	store.dispatch(U_NavigationActions.set_save_load_mode(StringName("load")))
+	_dispatch_navigation(U_NavigationActions.open_overlay(OVERLAY_SAVE_LOAD))
 
 func _on_quit_pressed() -> void:
 	_dispatch_navigation(U_NavigationActions.return_to_main_menu())

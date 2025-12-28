@@ -10,12 +10,14 @@ class_name RS_NavigationInitialState
 ## - overlay_stack: Logical overlay stack (pause, settings overlays, etc.)
 ## - overlay_return_stack: Previous overlays for RETURN_TO_PREVIOUS_OVERLAY flows
 ## - active_menu_panel: Active panel within current shell (menu/main, pause/root, etc.)
+## - save_load_mode: Mode for save/load overlay ("save" or "load")
 
 @export var shell: StringName = StringName("main_menu")
 @export var base_scene_id: StringName = StringName("main_menu")
 @export var overlay_stack: Array[StringName] = []
 @export var overlay_return_stack: Array[StringName] = []
 @export var active_menu_panel: StringName = StringName("menu/main")
+@export var save_load_mode: StringName = StringName("")
 
 func to_dictionary() -> Dictionary:
 	return {
@@ -23,5 +25,6 @@ func to_dictionary() -> Dictionary:
 		"base_scene_id": base_scene_id,
 		"overlay_stack": overlay_stack.duplicate(true),
 		"overlay_return_stack": overlay_return_stack.duplicate(true),
-		"active_menu_panel": active_menu_panel
+		"active_menu_panel": active_menu_panel,
+		"save_load_mode": save_load_mode
 	}

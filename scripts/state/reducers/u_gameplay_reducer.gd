@@ -224,6 +224,17 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 
 			return reset_state
 
+		U_GameplayActions.ACTION_INCREMENT_PLAYTIME:
+			var new_state: Dictionary = state.duplicate(true)
+			var seconds: int = int(action.get("payload", 0))
+			new_state.playtime_seconds = int(new_state.get("playtime_seconds", 0)) + seconds
+			return new_state
+
+		U_GameplayActions.ACTION_SET_DEATH_IN_PROGRESS:
+			var new_state: Dictionary = state.duplicate(true)
+			new_state.death_in_progress = bool(action.get("payload", false))
+			return new_state
+
 		U_TransitionActions.ACTION_TRANSITION_TO_GAMEPLAY:
 			# Apply menu config to gameplay state
 			var new_state: Dictionary = state.duplicate(true)

@@ -95,9 +95,6 @@ func _ready() -> void:
 	# Ensure batching and input work even when the SceneTree is paused.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
-	# Schedule autosave if enabled
-	_setup_autosave_timer()
-
 	_is_ready = true
 	store_ready.emit()
 
@@ -111,28 +108,8 @@ func _exit_tree() -> void:
 	if is_in_group("state_store"):
 		remove_from_group("state_store")
 
-var _autosave_timer: Timer = null
-
-func _setup_autosave_timer() -> void:
-	var interval: float = U_STATE_REPOSITORY.get_autosave_interval(settings)
-	if interval <= 0.0:
-		return
-	if _autosave_timer == null:
-		_autosave_timer = Timer.new()
-		_autosave_timer.one_shot = false
-		_autosave_timer.autostart = true
-		add_child(_autosave_timer)
-		_autosave_timer.timeout.connect(_on_autosave_timeout)
-	_autosave_timer.wait_time = interval
-	if not _autosave_timer.is_stopped():
-		_autosave_timer.stop()
-	_autosave_timer.start()
-
 func is_ready() -> bool:
 	return _is_ready
-
-func _on_autosave_timeout() -> void:
-	_save_state_if_enabled()
 
 func _save_state_if_enabled() -> void:
 	var enable_logging := settings != null and settings.enable_debug_logging
@@ -352,6 +329,27 @@ func unsubscribe(callback: Callable) -> void:
 func get_state() -> Dictionary:
 	return _state.duplicate(true)
 
+## Get state with transient fields filtered out
+##
+## Returns a deep copy of state suitable for persistence, with:
+## - Transient slices removed (where config.is_transient == true)
+## - Transient fields removed (as defined in slice configs)
+## - Gameplay slice fully preserved (includes input fields)
+##
+## Used by M_SaveManager to prepare state for saving.
+func get_persistable_state() -> Dictionary:
+	const U_STATE_PERSISTENCE := preload("res://scripts/state/utils/u_state_persistence.gd")
+	return U_STATE_PERSISTENCE.filter_transient_fields(_state, _slice_configs)
+
+## Get slice configs for advanced state manipulation
+##
+## Returns a reference to the internal slice configs dictionary.
+## Used by save/load systems that need direct access to transient field definitions.
+##
+## WARNING: This is a reference, not a copy. Do not modify.
+func get_slice_configs() -> Dictionary:
+	return _slice_configs
+
 ## Get specific slice state (deep copy)
 ##
 ## Optional caller_slice parameter enables dependency validation:
@@ -451,6 +449,43 @@ func load_state(filepath: String) -> Error:
 	if err == OK:
 		state_loaded.emit(filepath)
 	return err
+
+## Apply loaded state directly from a dictionary
+##
+## Used by M_SaveManager to apply save file state without going through file I/O.
+## Merges loaded state with current state (loaded takes precedence).
+## Respects transient slice and field configurations.
+## Emits slice_updated for each modified slice.
+func apply_loaded_state(loaded_state: Dictionary) -> void:
+	for slice_name in loaded_state:
+		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
+
+		# Skip transient slices
+		if config != null and config.is_transient:
+			continue
+
+		var loaded_slice: Dictionary = loaded_state[slice_name]
+		if not loaded_slice is Dictionary:
+			continue
+
+		# Filter out transient fields from loaded data
+		var filtered_slice := loaded_slice.duplicate(true)
+		if config != null:
+			for transient_field in config.transient_fields:
+				if filtered_slice.has(transient_field):
+					filtered_slice.erase(transient_field)
+
+		# Merge with current state (loaded takes precedence)
+		if _state.has(slice_name):
+			var current_slice: Dictionary = _state[slice_name]
+			for key in filtered_slice:
+				current_slice[key] = filtered_slice[key]
+			_state[slice_name] = current_slice
+		else:
+			_state[slice_name] = filtered_slice
+
+		# Emit slice_updated signal
+		slice_updated.emit(slice_name, _state[slice_name])
 
 ## Preserve state to StateHandoff for scene transitions
 func _preserve_to_handoff() -> void:

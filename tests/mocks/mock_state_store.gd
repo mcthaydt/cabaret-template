@@ -14,6 +14,9 @@ class_name MockStateStore
 ## - clear_dispatched_actions(): Reset action history
 ## - reset(): Clear all state and history
 
+signal action_dispatched(action: Dictionary)
+signal slice_updated(slice_name: StringName, slice_state: Dictionary)
+
 var _state: Dictionary = {}
 var _subscribers: Array[Callable] = []
 var _dispatched_actions: Array[Dictionary] = []
@@ -33,6 +36,9 @@ func _init(initial_state: Dictionary = {}) -> void:
 
 func dispatch(action: Dictionary) -> void:
 	_dispatched_actions.append(action.duplicate(true))
+
+	# Emit action_dispatched signal (for autosave scheduler)
+	action_dispatched.emit(action.duplicate(true))
 
 	# Optionally apply simple reducers for common actions
 	var action_type: String = str(action.get("type", ""))
@@ -62,6 +68,35 @@ func get_state() -> Dictionary:
 
 func get_slice(slice_name: StringName) -> Dictionary:
 	return _state.get(slice_name, {}).duplicate(true)
+
+func get_persistable_state() -> Dictionary:
+	# Mock implementation - filter out known transient fields to match M_StateStore behavior
+	var filtered_state: Dictionary = _state.duplicate(true)
+
+	# Filter scene slice transient fields: is_transitioning, transition_type, scene_stack
+	if filtered_state.has("scene"):
+		var scene_slice: Dictionary = filtered_state["scene"].duplicate(true)
+		scene_slice.erase("is_transitioning")
+		scene_slice.erase("transition_type")
+		scene_slice.erase("scene_stack")  # KEY FIX: Don't persist overlay stack
+		filtered_state["scene"] = scene_slice
+
+	# Navigation slice is entirely transient - exclude it completely
+	filtered_state.erase("navigation")
+
+	return filtered_state
+
+func get_slice_configs() -> Dictionary:
+	# Mock implementation - return simplified configs for testing
+	return {
+		"scene": {
+			"transient_fields": [
+				StringName("is_transitioning"),
+				StringName("transition_type"),
+				StringName("scene_stack")
+			]
+		}
+	}
 
 func is_ready() -> bool:
 	return _is_ready

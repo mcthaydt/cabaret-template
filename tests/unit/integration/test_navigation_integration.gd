@@ -190,6 +190,31 @@ func test_sync_navigation_shell_does_not_override_pending_navigation() -> void:
 		"Syncing shell for a previous scene must not override a newer pending navigation target"
 	)
 
+func test_sync_navigation_shell_clears_stale_pending_navigation() -> void:
+	var manager := await _spawn_scene_manager()
+
+	# Emulate runtime post-bootstrap state. This test does not transition scenes;
+	# it focuses on the guard rails in _sync_navigation_shell_with_scene().
+	manager._initial_navigation_synced = true
+	manager._set_navigation_pending_scene_id(StringName("main_menu"))
+	manager._active_transition_target = StringName("")  # Pending scene is not actively transitioning.
+
+	# Navigation slice is stuck thinking main_menu is pending (stale) while a gameplay scene
+	# completes loading via a manual transition (e.g., load-from-save).
+	var nav_slice: Dictionary = _store.get_slice(StringName("navigation"))
+	nav_slice["shell"] = StringName("main_menu")
+	nav_slice["base_scene_id"] = StringName("main_menu")
+	_store._state[StringName("navigation")] = nav_slice.duplicate(true)
+
+	# The loaded scene is gameplay; syncing should clear the stale pending target and
+	# dispatch a navigation action to align shell/base_scene_id with the actual scene.
+	manager._sync_navigation_shell_with_scene(StringName("scene1"))
+	await wait_physics_frames(1)
+
+	nav_slice = _store.get_slice(StringName("navigation"))
+	assert_eq(nav_slice.get("base_scene_id"), StringName("scene1"), "Stale pending navigation should not block shell sync")
+	assert_eq(nav_slice.get("shell"), StringName("gameplay"), "Gameplay scene should run under gameplay shell")
+
 func test_manual_transition_to_touchscreen_settings_aligns_navigation() -> void:
 	var manager := await _spawn_scene_manager()
 

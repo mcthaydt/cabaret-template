@@ -212,10 +212,10 @@ func test_scene_slice_transient_fields_excluded_from_save() -> void:
 	# Verify transient fields are excluded from save file
 	assert_false(saved_scene_slice.has("is_transitioning"), "is_transitioning should be excluded from save")
 	assert_false(saved_scene_slice.has("transition_type"), "transition_type should be excluded from save")
+	assert_false(saved_scene_slice.has("scene_stack"), "scene_stack should be excluded from save")
 
 	# Verify non-transient fields ARE saved
 	assert_true(saved_scene_slice.has("current_scene_id"), "current_scene_id should be saved")
-	assert_true(saved_scene_slice.has("scene_stack"), "scene_stack should be saved")
 	assert_true(saved_scene_slice.has("previous_scene_id"), "previous_scene_id should be saved")
 
 func test_load_nonexistent_file_returns_error() -> void:

@@ -34,6 +34,7 @@ func _initialize_service_locator() -> void:
 	_register_if_exists(managers_node, "M_InputProfileManager", StringName("input_profile_manager"))
 	_register_if_exists(managers_node, "M_InputDeviceManager", StringName("input_device_manager"))
 	_register_if_exists(managers_node, "M_UIInputHandler", StringName("ui_input_handler"))
+	_register_if_exists(managers_node, "M_SaveManager", StringName("save_manager"))
 
 	# Register dependencies for validation
 	U_ServiceLocator.register_dependency(StringName("pause_manager"), StringName("state_store"))
@@ -43,6 +44,8 @@ func _initialize_service_locator() -> void:
 	U_ServiceLocator.register_dependency(StringName("camera_manager"), StringName("state_store"))
 	U_ServiceLocator.register_dependency(StringName("input_profile_manager"), StringName("state_store"))
 	U_ServiceLocator.register_dependency(StringName("input_device_manager"), StringName("state_store"))
+	U_ServiceLocator.register_dependency(StringName("save_manager"), StringName("state_store"))
+	U_ServiceLocator.register_dependency(StringName("save_manager"), StringName("scene_manager"))
 
 	# Validate all dependencies
 	if not U_ServiceLocator.validate_all():
