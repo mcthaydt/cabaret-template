@@ -7,9 +7,14 @@
 ---
 
 **Recent Updates (2025-12-28):**
+- **TDD Reorganization**: Phases 1, 2, and 5 now use Test-Driven Development (tests written before implementation)
+  - Phase 1: `test_debug_reducer.gd` and `test_debug_selectors.gd` written first
+  - Phase 2: `test_debug_telemetry.gd` written first
+  - Phase 5: `test_debug_toggles.gd` written first (integration tests with MockStateStore)
+  - Phase 8: Renamed to "Polish & Verification" - manual testing only
 - Corrected ServiceLocator API usage (`U_ServiceLocator.register(...)`, not `register_service(...)`)
 - Clarified ECS system enable/disable mechanism (`system.set_debug_disabled(...)`, not `process_mode`)
-- Added explicit task to exclude `debug` slice from save persistence (matches “no persistence” requirement)
+- Added explicit task to exclude `debug` slice from save persistence (matches "no persistence" requirement)
 
 ## Phase 0: Foundation
 
@@ -66,9 +71,22 @@
 
 ---
 
-## Phase 1: Debug State Extension
+## Phase 1: Debug State Extension (TDD)
 
 **Exit Criteria:** Can dispatch debug actions and query toggle state via selectors
+
+**Approach:** Test-Driven Development - write tests first (RED), then implement (GREEN)
+
+- [ ] **Task 1.0**: Create `tests/unit/debug/test_debug_reducer.gd` (RED)
+  - Test reducer is a pure function (same inputs = same outputs)
+  - Test reducer does not mutate original state (immutability)
+  - Test all action handling with expected state changes:
+    - `set_god_mode(true/false)` → `state.debug.god_mode`
+    - `set_infinite_jump(true/false)` → `state.debug.infinite_jump`
+    - `set_speed_modifier(2.0)` → `state.debug.speed_modifier`
+    - (etc. for all toggle actions)
+  - Test default values are correct
+  - **Tests will fail until Task 1.2 is complete**
 
 - [ ] **Task 1.1**: Extend `scripts/state/actions/u_debug_actions.gd`
   - Add action constants:
@@ -85,12 +103,22 @@
   - Add action creators for each
   - Register in `_static_init()`
 
-- [ ] **Task 1.2**: Extend `scripts/state/reducers/u_debug_reducer.gd`
+- [ ] **Task 1.2**: Extend `scripts/state/reducers/u_debug_reducer.gd` (GREEN)
   - Extend `DEFAULT_DEBUG_STATE` with all new fields
   - Add match cases for all new actions
   - Follow existing `_with_values()` pattern
+  - **Run tests from Task 1.0 - they should now pass**
 
-- [ ] **Task 1.3**: Implement `scripts/state/selectors/u_debug_selectors.gd`
+- [ ] **Task 1.3**: Create `tests/unit/debug/test_debug_selectors.gd` (RED)
+  - Test all selector return values with sample state:
+    - `is_god_mode(state)` returns true when enabled
+    - `get_speed_modifier(state)` returns correct float value
+    - (etc. for all selectors)
+  - Test null-safe access (missing debug slice returns defaults)
+  - Test with various state configurations
+  - **Tests will fail until Task 1.4 is complete**
+
+- [ ] **Task 1.4**: Implement `scripts/state/selectors/u_debug_selectors.gd` (GREEN)
   - **DEPENDENCY**: Task 1.2 must be complete first (reducer defines state fields)
   - Update stubs from Task 0.6 with real implementations
   - Use null-safe access: `state.get("debug", {}).get("field", default)`
@@ -106,8 +134,9 @@
     - `is_input_disabled(state) -> bool`
     - `get_time_scale(state) -> float`
   - Follow existing selector pattern
+  - **Run tests from Task 1.3 - they should now pass**
 
-- [ ] **Task 1.4**: Ensure `debug` slice is NOT persisted to save files
+- [ ] **Task 1.5**: Ensure `debug` slice is NOT persisted to save files
   - Requirement: debug toggles reset on launch; saves must not contain debug state
   - Implementation option A (preferred): Mark `debug` slice transient (like `navigation`) in slice config
   - Implementation option B: Filter `debug` slice out in the persistence pipeline (`get_persistable_state()` / persistence helper)
@@ -115,14 +144,28 @@
 
 **Notes:**
 - Debug state is transient (not persisted to saves)
+- TDD flow: Task 1.0 (RED) → Task 1.1-1.2 (GREEN) → Task 1.3 (RED) → Task 1.4 (GREEN)
 
 ---
 
-## Phase 2: Telemetry System
+## Phase 2: Telemetry System (TDD)
 
 **Exit Criteria:** Events logged to console and session; export to file/clipboard works
 
-- [ ] **Task 2.1**: Create `scripts/managers/helpers/u_debug_telemetry.gd`
+**Approach:** Test-Driven Development - write tests first (RED), then implement (GREEN)
+
+- [ ] **Task 2.0**: Create `tests/unit/debug/test_debug_telemetry.gd` (RED)
+  - Test log entry structure (has timestamp, level, category, message, data)
+  - Test log level enum values (DEBUG=0, INFO=1, WARN=2, ERROR=3)
+  - Test session log accumulation (entries added in order)
+  - Test `get_session_log()` returns array copy (not reference)
+  - Test `clear_session_log()` empties the log
+  - Test export JSON format structure:
+    - Has `session_start`, `session_end`, `build_id`, `entries`
+    - Entries array contains log dictionaries
+  - **Tests will fail until Task 2.1 is complete**
+
+- [ ] **Task 2.1**: Create `scripts/managers/helpers/u_debug_telemetry.gd` (GREEN)
   - Define `LogLevel` enum: `DEBUG = 0`, `INFO = 1`, `WARN = 2`, `ERROR = 3`
   - Static `_session_log: Array = []`
   - Static `_session_start_time: float`
@@ -131,6 +174,7 @@
   - Implement `get_session_log() -> Array`
   - Implement `clear_session_log()`
   - Log "Session started" as first entry during initialization (captures session start time)
+  - **Run tests from Task 2.0 - they should now pass**
 
 - [ ] **Task 2.2**: Create `scripts/managers/helpers/u_debug_console_formatter.gd`
   - Color constants for each level (using ANSI escape codes)
@@ -173,6 +217,7 @@
 **Notes:**
 - Telemetry only active in debug builds (M_DebugManager gates this)
 - Log cleanup runs on startup to prevent disk accumulation
+- TDD flow: Task 2.0 (RED) → Task 2.1 (GREEN) → Tasks 2.2-2.7 (no tests needed - wiring/IO)
 
 ---
 
@@ -296,37 +341,64 @@
 
 ---
 
-## Phase 5: ECS System Integration
+## Phase 5: ECS System Integration (TDD)
 
 **Exit Criteria:** All gameplay toggles affect game behavior
 
 **Rationale:** System integration moved before Toggle Menu so toggles work when UI is built.
 
-- [ ] **Task 5.1**: Modify `scripts/ecs/systems/s_health_system.gd`
+**Approach:** Test-Driven Development - write integration tests first (RED), then modify systems (GREEN)
+
+- [ ] **Task 5.0**: Create `tests/integration/debug/test_debug_toggles.gd` (RED)
+  - Use `MockStateStore` for fast, isolated testing (not real M_StateStore)
+  - Use `MockECSManager` for component queries
+  - Test god_mode prevents damage:
+    ```gdscript
+    mock_store.set_slice(StringName("debug"), {"god_mode": true})
+    # Trigger damage processing
+    # Assert no damage action dispatched
+    ```
+  - Test infinite_jump allows mid-air jump:
+    - Set `infinite_jump: true`, simulate airborne state
+    - Assert jump is allowed despite `is_on_floor() == false`
+  - Test speed_modifier multiplies velocity:
+    - Set `speed_modifier: 2.0`
+    - Assert resulting velocity is 2x base
+  - Test gravity_disabled skips gravity application:
+    - Set `disable_gravity: true`
+    - Assert no downward velocity added
+  - Test input_disabled skips input capture:
+    - Set `disable_input: true`
+    - Assert input component not updated
+  - Test time_scale sets Engine.time_scale (may need real manager for this one)
+  - **Tests will fail until Tasks 5.1-5.6 are complete**
+
+- [ ] **Task 5.1**: Modify `scripts/ecs/systems/s_health_system.gd` (GREEN)
   - Add state store query in `process_tick()`
   - Check `U_DebugSelectors.is_god_mode(state)`
   - Skip damage processing when true
 
-- [ ] **Task 5.2**: Modify `scripts/ecs/systems/s_jump_system.gd`
+- [ ] **Task 5.2**: Modify `scripts/ecs/systems/s_jump_system.gd` (GREEN)
   - Check `U_DebugSelectors.is_infinite_jump(state)`
   - Skip `is_on_floor()` check when true
 
-- [ ] **Task 5.3**: Modify `scripts/ecs/systems/s_movement_system.gd`
+- [ ] **Task 5.3**: Modify `scripts/ecs/systems/s_movement_system.gd` (GREEN)
   - Check `U_DebugSelectors.get_speed_modifier(state)`
   - Multiply velocity by modifier
 
-- [ ] **Task 5.4**: Modify `scripts/ecs/systems/s_gravity_system.gd`
+- [ ] **Task 5.4**: Modify `scripts/ecs/systems/s_gravity_system.gd` (GREEN)
   - Check `U_DebugSelectors.is_gravity_disabled(state)`
   - Skip gravity when true
 
-- [ ] **Task 5.5**: Modify `scripts/ecs/systems/s_input_system.gd`
+- [ ] **Task 5.5**: Modify `scripts/ecs/systems/s_input_system.gd` (GREEN)
   - Check `U_DebugSelectors.is_input_disabled(state)`
   - Skip input capture when true
 
-- [ ] **Task 5.6**: Implement time scale in M_DebugManager
+- [ ] **Task 5.6**: Implement time scale in M_DebugManager (GREEN)
   - Subscribe to `debug` slice changes
   - On `time_scale` change: set `Engine.time_scale`
   - Use `TWEEN_PROCESS_IDLE` for any overlay animations to ignore time scale
+  - **Run tests from Task 5.0 - all should now pass**
 
 - [ ] **Task 5.7**: Update AGENTS.md with Debug Manager Patterns
   - Add "Debug Manager Patterns" section documenting toggle query pattern for ECS systems
@@ -335,6 +407,7 @@
 
 **Notes:**
 - Systems already have state store injection support
+- TDD flow: Task 5.0 (RED) → Tasks 5.1-5.6 (GREEN) → Task 5.7 (docs)
 
 ---
 
@@ -432,29 +505,21 @@
 
 ---
 
-## Phase 8: Testing & Polish
+## Phase 8: Polish & Verification
 
 **Exit Criteria:** All tests pass; release build contains no debug code
 
-- [ ] **Task 8.1**: Create `tests/unit/debug/test_debug_telemetry.gd`
-  - Test log level filtering
-  - Test export format (JSON structure)
-  - Test session log structure
+**Note:** Unit and integration tests were written during TDD phases (1, 2, 5). This phase focuses on manual verification and release validation.
 
-- [ ] **Task 8.2**: Create `tests/unit/debug/test_debug_reducer.gd`
-  - Test all action handling
-  - Test state mutations
-  - Test default values
+- [ ] **Task 8.1**: Run all debug tests and verify green
+  - `tests/unit/debug/test_debug_reducer.gd` (written in Phase 1)
+  - `tests/unit/debug/test_debug_selectors.gd` (written in Phase 1)
+  - `tests/unit/debug/test_debug_telemetry.gd` (written in Phase 2)
+  - `tests/integration/debug/test_debug_toggles.gd` (written in Phase 5)
+  - Command: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/debug -gexit`
+  - Command: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/debug -gexit`
 
-- [ ] **Task 8.3**: Create `tests/unit/debug/test_debug_selectors.gd`
-  - Test all selector return values
-  - Test with various state configurations
-
-- [ ] **Task 8.4**: Create `tests/integration/debug/test_debug_toggles.gd`
-  - Test dispatch toggle → verify system behavior
-  - Test time scale → verify Engine.time_scale
-
-- [ ] **Task 8.5**: Manual testing checklist
+- [ ] **Task 8.2**: Manual testing checklist
   - [ ] F1 toggles performance HUD
   - [ ] F2 toggles ECS overlay
   - [ ] F3 toggles state overlay
@@ -466,12 +531,12 @@
   - [ ] Session log saves on exit
   - [ ] Release build has no debug UI
 
-- [ ] **Task 8.6**: Performance assessment
+- [ ] **Task 8.3**: Performance assessment
   - Measure HUD update overhead (target < 1ms)
   - Measure telemetry logging overhead (target < 0.1ms)
   - Verify no overhead in release build
 
-- [ ] **Task 8.7**: Release build verification
+- [ ] **Task 8.4**: Release build verification
   - Build release: `godot --headless --export-release "Windows Desktop" build/release.exe`
   - Or for macOS: `godot --headless --export-release "macOS" build/release.app`
   - Verify M_DebugManager `queue_free()` called (check via logging or breakpoint)
@@ -479,13 +544,14 @@
   - Verify no debug overlays appear
   - **Grep verification**: Search codebase for `m_debug_manager` references outside `/scripts/managers/` and `/scenes/debug/` folders
 
-- [ ] **Task 8.8**: Update AGENTS.md with Debug Overlays section
+- [ ] **Task 8.5**: Update AGENTS.md with Debug Overlays section
   - Document F1-F4 keyboard shortcuts
   - Document overlay purposes and access patterns
   - Document debug build gating pattern
 
 **Notes:**
-- Follow existing GUT test patterns
+- Tests already written via TDD in phases 1, 2, and 5
+- This phase focuses on integration verification and release validation
 
 ---
 
@@ -525,10 +591,10 @@
 | `scenes/debug/debug_ecs_overlay.gd` | Script | F2 controller | ⏳ Pending |
 | `scenes/debug/debug_toggle_menu.tscn` | Scene | F4 overlay | ⏳ Pending |
 | `scenes/debug/debug_toggle_menu.gd` | Script | F4 controller | ⏳ Pending |
-| `tests/unit/debug/test_debug_telemetry.gd` | Test | Telemetry tests | ⏳ Pending |
-| `tests/unit/debug/test_debug_reducer.gd` | Test | Reducer tests | ⏳ Pending |
-| `tests/unit/debug/test_debug_selectors.gd` | Test | Selector tests | ⏳ Pending |
-| `tests/integration/debug/test_debug_toggles.gd` | Test | Integration tests | ⏳ Pending |
+| `tests/unit/debug/test_debug_reducer.gd` | Test | Reducer tests (TDD - Phase 1) | ⏳ Pending |
+| `tests/unit/debug/test_debug_selectors.gd` | Test | Selector tests (TDD - Phase 1) | ⏳ Pending |
+| `tests/unit/debug/test_debug_telemetry.gd` | Test | Telemetry tests (TDD - Phase 2) | ⏳ Pending |
+| `tests/integration/debug/test_debug_toggles.gd` | Test | Integration tests (TDD - Phase 5) | ⏳ Pending |
 
 ### Files to Modify
 
