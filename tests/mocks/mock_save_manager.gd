@@ -13,6 +13,7 @@ var _is_saving: bool = false
 var _is_loading: bool = false
 var _delayed_load_enabled: bool = false
 var _delayed_load_duration: float = 0.0
+var _slot_exists_map: Dictionary = {}  # StringName -> bool
 
 func _init() -> void:
 	name = "MockSaveManager"
@@ -43,6 +44,11 @@ func reset() -> void:
 	_is_loading = false
 	_delayed_load_enabled = false
 	_delayed_load_duration = 0.0
+	_slot_exists_map.clear()
+
+## Test helper to configure which slots exist
+func set_slot_exists(slot_id: StringName, exists: bool) -> void:
+	_slot_exists_map[slot_id] = exists
 
 ## Test helper to enable delayed load simulation
 func set_delayed_load(enabled: bool, duration: float = 0.0) -> void:
@@ -54,21 +60,24 @@ func get_all_slot_metadata() -> Array[Dictionary]:
 	var metadata: Array[Dictionary] = []
 
 	# Return mock metadata for autosave and 3 manual slots
+	var autosave_exists := _slot_exists_map.get(SLOT_AUTOSAVE, false)
 	metadata.append({
 		"slot_id": SLOT_AUTOSAVE,
-		"exists": false,
-		"timestamp": "",
-		"area_name": "",
-		"playtime_seconds": 0
+		"exists": autosave_exists,
+		"timestamp": "2025-12-27T10:00:00Z" if autosave_exists else "",
+		"area_name": "Test Area" if autosave_exists else "",
+		"playtime_seconds": 3600 if autosave_exists else 0
 	})
 
 	for i in range(1, 4):
+		var slot_id := StringName("slot_0%d" % i)
+		var slot_exists := _slot_exists_map.get(slot_id, false)
 		metadata.append({
-			"slot_id": StringName("slot_0%d" % i),
-			"exists": false,
-			"timestamp": "",
-			"area_name": "",
-			"playtime_seconds": 0
+			"slot_id": slot_id,
+			"exists": slot_exists,
+			"timestamp": "2025-12-27T10:00:00Z" if slot_exists else "",
+			"area_name": "Test Area" if slot_exists else "",
+			"playtime_seconds": 3600 if slot_exists else 0
 		})
 
 	return metadata
@@ -128,4 +137,4 @@ func delete_slot(slot_id: StringName) -> Error:
 
 ## Mock implementation of slot_exists
 func slot_exists(slot_id: StringName) -> bool:
-	return false  # All slots empty by default in mock
+	return _slot_exists_map.get(slot_id, false)

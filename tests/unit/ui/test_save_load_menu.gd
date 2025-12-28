@@ -151,3 +151,161 @@ func _prepare_load_mode(store: M_StateStore) -> void:
 	if store != null:
 		store.dispatch(U_NavigationActions.set_save_load_mode(StringName("load")))
 		await wait_process_frames(2)
+
+## Focus configuration tests
+
+func test_horizontal_navigation_main_to_delete() -> void:
+	# Setup: Create populated slots (mock will return exists=true)
+	_test_save_manager.set_slot_exists(StringName("slot_01"), true)
+	_prepare_save_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	# Get the first slot's buttons
+	var slot_container := menu.get_node("%SlotListContainer")
+	var first_slot := slot_container.get_child(1) as HBoxContainer  # Index 0 is autosave, 1 is slot_01
+	assert_not_null(first_slot, "First manual slot should exist")
+
+	var main_button := first_slot.get_node_or_null("MainButton") as Button
+	var delete_button := first_slot.get_node_or_null("DeleteButton") as Button
+	assert_not_null(main_button, "Main button should exist")
+	assert_not_null(delete_button, "Delete button should exist")
+
+	# Verify horizontal navigation is configured
+	var right_neighbor_path := main_button.focus_neighbor_right
+	assert_ne(right_neighbor_path, NodePath(), "Main button should have right neighbor configured")
+
+	# Verify the right neighbor is the delete button
+	var right_neighbor := main_button.get_node_or_null(right_neighbor_path) as Button
+	assert_eq(right_neighbor, delete_button, "Main button's right neighbor should be delete button")
+
+func test_horizontal_navigation_delete_to_main() -> void:
+	# Setup: Create populated slot
+	_test_save_manager.set_slot_exists(StringName("slot_01"), true)
+	_prepare_save_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	# Get the first slot's buttons
+	var slot_container := menu.get_node("%SlotListContainer")
+	var first_slot := slot_container.get_child(1) as HBoxContainer
+	var main_button := first_slot.get_node("MainButton") as Button
+	var delete_button := first_slot.get_node("DeleteButton") as Button
+
+	# Verify horizontal navigation is configured
+	var left_neighbor_path := delete_button.focus_neighbor_left
+	assert_ne(left_neighbor_path, NodePath(), "Delete button should have left neighbor configured")
+
+	# Verify the left neighbor is the main button
+	var left_neighbor := delete_button.get_node_or_null(left_neighbor_path) as Button
+	assert_eq(left_neighbor, main_button, "Delete button's left neighbor should be main button")
+
+func test_vertical_navigation_main_buttons() -> void:
+	# Setup: Create two populated slots
+	_test_save_manager.set_slot_exists(StringName("slot_01"), true)
+	_test_save_manager.set_slot_exists(StringName("slot_02"), true)
+	_prepare_save_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	# Get slot buttons
+	var slot_container := menu.get_node("%SlotListContainer")
+	var first_slot := slot_container.get_child(1) as HBoxContainer  # slot_01
+	var second_slot := slot_container.get_child(2) as HBoxContainer  # slot_02
+
+	var first_main := first_slot.get_node("MainButton") as Button
+	var second_main := second_slot.get_node("MainButton") as Button
+
+	# Verify vertical navigation from first to second
+	var down_neighbor_path := first_main.focus_neighbor_bottom
+	assert_ne(down_neighbor_path, NodePath(), "First main button should have bottom neighbor")
+
+	var down_neighbor := first_main.get_node_or_null(down_neighbor_path) as Button
+	assert_eq(down_neighbor, second_main, "First main button's bottom neighbor should be second main button")
+
+func test_vertical_navigation_delete_buttons() -> void:
+	# Setup: Create two populated slots
+	_test_save_manager.set_slot_exists(StringName("slot_01"), true)
+	_test_save_manager.set_slot_exists(StringName("slot_02"), true)
+	_prepare_save_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	# Get slot buttons
+	var slot_container := menu.get_node("%SlotListContainer")
+	var first_slot := slot_container.get_child(1) as HBoxContainer  # slot_01
+	var second_slot := slot_container.get_child(2) as HBoxContainer  # slot_02
+
+	var first_delete := first_slot.get_node("DeleteButton") as Button
+	var second_delete := second_slot.get_node("DeleteButton") as Button
+
+	# Verify vertical navigation from first to second delete button
+	var down_neighbor_path := first_delete.focus_neighbor_bottom
+	assert_ne(down_neighbor_path, NodePath(), "First delete button should have bottom neighbor")
+
+	var down_neighbor := first_delete.get_node_or_null(down_neighbor_path) as Button
+	assert_eq(down_neighbor, second_delete, "First delete button's bottom neighbor should be second delete button")
+
+func test_autosave_no_horizontal_navigation() -> void:
+	# Setup: Autosave exists (delete button disabled)
+	_test_save_manager.set_slot_exists(M_SaveManager.SLOT_AUTOSAVE, true)
+	_prepare_save_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	# Get autosave slot (first child)
+	var slot_container := menu.get_node("%SlotListContainer")
+	var autosave_slot := slot_container.get_child(0) as HBoxContainer
+	var main_button := autosave_slot.get_node("MainButton") as Button
+	var delete_button := autosave_slot.get_node("DeleteButton") as Button
+
+	# Verify delete button is disabled
+	assert_true(delete_button.disabled, "Autosave delete button should be disabled")
+
+	# Verify no horizontal navigation (right neighbor should be empty)
+	var right_neighbor_path := main_button.focus_neighbor_right
+	assert_eq(right_neighbor_path, NodePath(), "Autosave main button should have no right neighbor (delete disabled)")
+
+func test_empty_slot_no_horizontal_navigation() -> void:
+	# Setup: Empty slot (delete button not visible)
+	_test_save_manager.set_slot_exists(StringName("slot_01"), false)
+	_prepare_save_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	# Get the empty slot
+	var slot_container := menu.get_node("%SlotListContainer")
+	var empty_slot := slot_container.get_child(1) as HBoxContainer  # slot_01
+	var main_button := empty_slot.get_node("MainButton") as Button
+	var delete_button := empty_slot.get_node("DeleteButton") as Button
+
+	# Verify delete button is not visible
+	assert_false(delete_button.visible, "Empty slot delete button should not be visible")
+
+	# Verify no horizontal navigation (right neighbor should be empty)
+	var right_neighbor_path := main_button.focus_neighbor_right
+	assert_eq(right_neighbor_path, NodePath(), "Empty slot main button should have no right neighbor (delete hidden)")
+
+func test_back_button_connects_to_main_buttons() -> void:
+	# Setup
+	_test_save_manager.set_slot_exists(StringName("slot_01"), true)
+	_prepare_save_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	# Get back button
+	var back_button := menu.get_node("%BackButton") as Button
+	var slot_container := menu.get_node("%SlotListContainer")
+
+	# Get last slot's main button
+	var last_slot := slot_container.get_child(slot_container.get_child_count() - 1) as HBoxContainer
+	var last_main_button := last_slot.get_node("MainButton") as Button
+
+	# Get first slot's main button
+	var first_slot := slot_container.get_child(0) as HBoxContainer
+	var first_main_button := first_slot.get_node("MainButton") as Button
+
+	# Verify last main button → down → back button
+	var last_down_path := last_main_button.focus_neighbor_bottom
+	assert_ne(last_down_path, NodePath(), "Last main button should have bottom neighbor")
+	var down_neighbor := last_main_button.get_node_or_null(last_down_path) as Button
+	assert_eq(down_neighbor, back_button, "Last main button's bottom neighbor should be back button")
+
+	# Verify back button → up → first main button
+	var back_up_path := back_button.focus_neighbor_top
+	assert_ne(back_up_path, NodePath(), "Back button should have top neighbor")
+	var up_neighbor := back_button.get_node_or_null(back_up_path) as Button
+	assert_eq(up_neighbor, first_main_button, "Back button's top neighbor should be first main button")
