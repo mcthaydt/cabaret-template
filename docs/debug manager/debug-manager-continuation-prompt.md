@@ -37,15 +37,16 @@ Read these files before starting work:
 | Log file cleanup | Auto-delete logs older than 7 days on startup |
 | ECS overlay pagination | Paginated with 50 entities per page, dirty flag pattern for updates |
 | Component value editing | Read-only (display only, no editing) |
-| Platform scope | Desktop-only; mobile excluded via `OS.is_debug_build()` |
+| Platform scope | Desktop-only; debug-build gated. Mobile lacks F-keys (optional extra gating via `OS.has_feature("mobile")`). |
 | Teleport implementation | PhysicsRayQueryParameters3D from camera through mouse position |
 
 ## Current Progress
 
-**Last Updated**: 2025-12-27
+**Last Updated**: 2025-12-28
 
 **Completed Phases**:
 - ⏳ **Phase 0**: Foundation - NOT STARTED
+  - Docs aligned (2025-12-28); implementation not started
 
 **Next Phase**: Phase 0 - Foundation
 
@@ -92,7 +93,7 @@ const DEFAULT_DEBUG_STATE := {
 
 ```gdscript
 {
-    "timestamp": 1234.567,       # Time.get_ticks_msec() / 1000.0
+    "timestamp": 1234.567,       # U_ECSUtils.get_current_time() (seconds)
     "level": "INFO",             # DEBUG, INFO, WARN, ERROR
     "category": "scene",         # StringName for filtering
     "message": "Scene loaded",   # Human-readable
@@ -106,19 +107,23 @@ const DEFAULT_DEBUG_STATE := {
 
 1. **Debug build gating**: All functionality gated by `OS.is_debug_build()` in `M_DebugManager._ready()`. Manager calls `queue_free()` in release builds.
 
-2. **Migrate F3 from M_StateStore**: The existing F3 handling in `M_StateStore._input()` should be moved to M_DebugManager for centralized control.
+2. **Debug state persistence**: Debug toggles must NOT be written to save files. Exclude the `debug` slice from persistence (mark it transient or filter it out).
 
-3. **Overlays use PROCESS_MODE_ALWAYS**: Debug overlays must continue updating when game is paused.
+3. **Migrate F3 from M_StateStore**: The existing F3 handling in `M_StateStore._input()` should be moved to M_DebugManager for centralized control.
 
-4. **Systems query debug state**: ECS systems check debug toggles via `U_DebugSelectors` before processing (e.g., skip damage if god_mode).
+4. **Overlays use PROCESS_MODE_ALWAYS**: Debug overlays must continue updating when game is paused.
 
-5. **Time scale affects physics**: Setting `Engine.time_scale` affects `_physics_process` delta automatically.
+5. **System enable/disable**: Use `system.set_debug_disabled(true/false)`; changing `process_mode` does not stop `M_ECSManager` from calling `process_tick()`.
 
-6. **Telemetry is static**: `U_DebugTelemetry` uses static methods for global access (similar to `U_ECSEventBus`).
+6. **Systems query debug state**: ECS systems check debug toggles via `U_DebugSelectors` before processing (e.g., skip damage if god_mode).
 
-7. **Visual debug aids require manual geometry**: Godot 4.5 does not expose runtime 3D collision shape visibility. Phase 7 must generate ImmediateMesh/ArrayMesh wireframes manually for collision shapes, trigger zones, etc.
+7. **Time scale affects physics**: Setting `Engine.time_scale` affects `_physics_process` delta automatically.
 
-8. **ECS overlay performance**: Use dirty flag pattern and 100ms throttling to avoid frame hitches with many entities.
+8. **Telemetry is static**: `U_DebugTelemetry` uses static methods for global access (similar to `U_ECSEventBus`).
+
+9. **Visual debug aids require manual geometry**: Godot 4.5 does not expose runtime 3D collision shape visibility. Phase 7 must generate ImmediateMesh/ArrayMesh wireframes manually for collision shapes, trigger zones, etc.
+
+10. **ECS overlay performance**: Use dirty flag pattern and 100ms throttling to avoid frame hitches with many entities.
 
 ## Input Actions to Add
 
@@ -146,7 +151,7 @@ scripts/debug/helpers/
 scripts/state/
   actions/u_debug_actions.gd            # EXTEND
   reducers/u_debug_reducer.gd           # EXTEND
-  selectors/u_debug_selectors.gd        # CREATE
+  selectors/u_debug_selectors.gd        # EXTEND
 
 scenes/debug/
   debug_perf_hud.tscn                   # F1

@@ -36,7 +36,7 @@ Developers need comprehensive, unified debugging tools during development, but c
 - **No release availability**: Debug features completely stripped from release builds (not hidden behind secret combos).
 - **No async file writes**: Synchronous logging acceptable for debug builds.
 - **No in-game console**: Command-line style input deferred; focus on visual toggles and overlays.
-- **No mobile touch alternatives**: F-key overlays are desktop-only; mobile builds exclude debug manager entirely via `OS.is_debug_build()` gating.
+- **No mobile touch alternatives**: F-key overlays are desktop-only; no touch UI equivalent is planned. Debug features are gated by `OS.is_debug_build()` (optional extra gating via `OS.has_feature("mobile")` if desired).
 
 ## User Experience
 
@@ -51,7 +51,7 @@ Developers need comprehensive, unified debugging tools during development, but c
    - Full-screen overlay for entity inspection.
    - Left panel: filterable entity list.
    - Center panel: component inspector with live values.
-   - Right panel: system execution order with timing.
+   - Right panel: system execution order (timing optional; requires instrumentation).
 
 3. **State Overlay (F3)** [Existing]:
    - Full state JSON view.
@@ -80,7 +80,7 @@ F1 → Performance HUD (corner overlay, toggleable)
 F2 → ECS Overlay (full-screen)
      ├── Entity List (filterable by tag/component)
      ├── Component Inspector (selected entity, live values)
-     └── System View (execution order, timing, enable/disable)
+     └── System View (execution order, enable/disable; timing optional)
 
 F3 → State Overlay (full-screen) [EXISTING]
      ├── State JSON view
@@ -176,6 +176,8 @@ const DEFAULT_DEBUG_STATE := {
 }
 ```
 
+**Persistence requirement**: Debug state must not be written to save files. Implementation must explicitly exclude the `debug` slice from persistence (mark slice transient or filter it out) so toggles reset on launch.
+
 ### ECS System Modifications
 
 | System | Toggle | Modification |
@@ -203,7 +205,7 @@ scripts/debug/helpers/
 scripts/state/
   actions/u_debug_actions.gd            # EXTEND
   reducers/u_debug_reducer.gd           # EXTEND
-  selectors/u_debug_selectors.gd        # EXTEND (or CREATE)
+  selectors/u_debug_selectors.gd        # EXTEND
 
 scenes/debug/
   debug_perf_hud.tscn                   # NEW (F1)
@@ -238,6 +240,8 @@ Ensures:
 - No telemetry subscriptions.
 - No input handling.
 - Zero runtime overhead.
+
+**Note**: Until the F3 overlay is migrated out of `M_StateStore._input()`, release builds must also disable the existing overlay toggle via export preset ProjectSettings (or add `OS.is_debug_build()` gating to the toggle).
 
 ### Risks / Mitigations
 

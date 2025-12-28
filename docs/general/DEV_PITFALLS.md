@@ -207,6 +207,10 @@
   - `device_changed` actions must originate from `M_InputDeviceManager`. `S_InputSystem` only reads `U_InputSelectors.get_active_device_type()` / `get_active_gamepad_id()`; dispatching from multiple sources causes duplicate logs and race conditions.
   - Gamepad hot-plug events dispatch `gamepad_connected` / `gamepad_disconnected` from the manager. Keep connection-dependent systems (e.g., vibration) subscribed to Redux state rather than polling the manager directly.
 
+- Debug features accidentally shipping in release builds
+  - The state debug overlay toggle is gated by the ProjectSetting `state/debug/enable_debug_overlay` and the InputMap action `toggle_debug_overlay` (F3). If you don’t override `state/debug/*` in export presets (or gate in code), release builds can ship debug UI and action history overhead.
+  - If you add more debug toggles to the `debug` slice, ensure it is excluded from save persistence so debug state never “sticks” across launches.
+
 ## Save Manager Pitfalls (Phase 13 Complete)
 
 - **Autosave requires navigation.shell == "gameplay"**

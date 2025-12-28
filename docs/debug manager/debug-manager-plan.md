@@ -1,6 +1,6 @@
 # Implementation Plan: Debug Manager System
 
-**Branch**: `debug-manager` | **Date**: 2025-12-27 | **Spec**: [debug-manager-prd.md](./debug-manager-prd.md)
+**Branch**: `debug-manager` | **Date**: 2025-12-28 | **Spec**: [debug-manager-prd.md](./debug-manager-prd.md)
 **Input**: Feature specification from `docs/debug manager/debug-manager-prd.md`
 
 ## Summary
@@ -77,7 +77,7 @@ scripts/debug/helpers/
 scripts/state/
 ├── actions/u_debug_actions.gd       # MODIFY - Add toggle actions
 ├── reducers/u_debug_reducer.gd      # MODIFY - Add toggle handling
-└── selectors/u_debug_selectors.gd   # CREATE - Toggle selectors
+└── selectors/u_debug_selectors.gd   # MODIFY - Toggle selectors (file exists)
 
 # Scenes
 scenes/debug/
@@ -104,9 +104,9 @@ scripts/ecs/systems/
 | 2 | Telemetry | Logging helper with levels and export | Phase 0 |
 | 3 | Perf HUD | F1 performance overlay | Phase 0, 1 |
 | 4 | ECS Overlay | F2 entity/component/system inspector | Phase 0, 1 |
-| 5 | Toggle Menu | F4 debug toggle UI | Phase 1 |
-| 6 | System Integration | ECS systems query debug state | Phase 1 |
-| 7 | Visual Aids | Collision/spawn/trigger visualization | Phase 1, 6 |
+| 5 | System Integration | ECS systems query debug state | Phase 1 |
+| 6 | Toggle Menu | F4 debug toggle UI | Phase 1 |
+| 7 | Visual Aids | Collision/spawn/trigger visualization | Phase 1, 5 |
 | 8 | Testing | Unit and integration tests | All |
 
 ## Work Breakdown
@@ -136,6 +136,9 @@ scripts/ecs/systems/
   - Move overlay instantiation logic
   - Keep performance metrics in M_StateStore
 
+- [ ] Ensure release builds disable debug overlay during migration
+  - Gate the existing F3 toggle logic with `OS.is_debug_build()` (or override ProjectSettings in export presets)
+
 **Exit criteria**: F1-F4 keys print debug messages; M_DebugManager registered in ServiceLocator.
 
 ### Phase 1: Debug State Extension (2-3 hours)
@@ -149,9 +152,13 @@ scripts/ecs/systems/
   - Extend `DEFAULT_DEBUG_STATE` with all toggle fields
   - Add match cases for all new actions
 
-- [ ] Create `scripts/state/selectors/u_debug_selectors.gd`
+- [ ] Extend `scripts/state/selectors/u_debug_selectors.gd`
   - Add selector for each toggle state
   - Follow existing selector pattern
+
+- [ ] Exclude debug slice from persistence
+  - Requirement: debug toggles reset on launch; saves must not contain debug state
+  - Mark the `debug` slice transient (preferred) or filter it out of the persistence pipeline
 
 **Exit criteria**: Can dispatch debug actions and query toggle state via selectors.
 
@@ -230,41 +237,13 @@ scripts/ecs/systems/
   - System list via `get_systems()`
   - Priority/execution order display
   - Query metrics timing display
-  - Enable/disable checkbox (sets `process_mode`)
+  - Enable/disable checkbox (calls `system.set_debug_disabled(true/false)`)
 
 - [ ] Wire F2 toggle in M_DebugManager
 
 **Exit criteria**: F2 shows entity browser; can select entity and see component values.
 
-### Phase 5: Toggle Menu (4-5 hours)
-
-- [ ] Create `scenes/debug/debug_toggle_menu.tscn`
-  - CanvasLayer with centered panel
-  - TabContainer with 3 tabs
-
-- [ ] Create `scenes/debug/debug_toggle_menu.gd`
-  - Tab 1: Gameplay Cheats
-    - God mode checkbox
-    - Infinite jump checkbox
-    - Speed modifier slider (0.25 - 4.0)
-    - Teleport button (deferred to Phase 7)
-  - Tab 2: Visual Debug
-    - Show collision shapes checkbox
-    - Show spawn points checkbox
-    - Show trigger zones checkbox
-    - Show entity labels checkbox
-  - Tab 3: System Toggles
-    - Disable gravity checkbox
-    - Disable input checkbox
-    - Time scale preset buttons (0, 0.25, 0.5, 1.0, 2.0, 4.0)
-    - Export telemetry button
-
-- [ ] Wire toggle changes to Redux dispatch
-- [ ] Wire F4 toggle in M_DebugManager
-
-**Exit criteria**: F4 opens toggle menu; toggling dispatches Redux actions.
-
-### Phase 6: ECS System Integration (3-4 hours)
+### Phase 5: ECS System Integration (3-4 hours)
 
 - [ ] Modify `scripts/ecs/systems/s_health_system.gd`
   - Query `U_DebugSelectors.is_god_mode(state)`
@@ -291,6 +270,34 @@ scripts/ecs/systems/
   - Apply via `Engine.time_scale`
 
 **Exit criteria**: All gameplay toggles affect game behavior.
+
+### Phase 6: Toggle Menu (4-5 hours)
+
+- [ ] Create `scenes/debug/debug_toggle_menu.tscn`
+  - CanvasLayer with centered panel
+  - TabContainer with 3 tabs
+
+- [ ] Create `scenes/debug/debug_toggle_menu.gd`
+  - Tab 1: Gameplay Cheats
+    - God mode checkbox
+    - Infinite jump checkbox
+    - Speed modifier slider (0.25 - 4.0)
+    - Teleport button (deferred to Phase 7)
+  - Tab 2: Visual Debug
+    - Show collision shapes checkbox
+    - Show spawn points checkbox
+    - Show trigger zones checkbox
+    - Show entity labels checkbox
+  - Tab 3: System Toggles
+    - Disable gravity checkbox
+    - Disable input checkbox
+    - Time scale preset buttons (0, 0.25, 0.5, 1.0, 2.0, 4.0)
+    - Export telemetry button
+
+- [ ] Wire toggle changes to Redux dispatch
+- [ ] Wire F4 toggle in M_DebugManager
+
+**Exit criteria**: F4 opens toggle menu; toggling dispatches Redux actions.
 
 ### Phase 7: Visual Debug Aids (4-5 hours)
 

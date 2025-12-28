@@ -2,7 +2,7 @@
 
 **Project**: Cabaret Template (Godot 4.5)
 **Created**: 2025-12-27
-**Last Updated**: 2025-12-27
+**Last Updated**: 2025-12-28
 **Status**: READY FOR IMPLEMENTATION
 **Scope**: Telemetry logging, debug toggles, ECS overlay, performance HUD
 
@@ -100,7 +100,7 @@ Extends existing `debug` slice (currently only has `disable_touchscreen`):
 | `show_trigger_zones` | bool | false | Render trigger zone outlines |
 | `show_entity_labels` | bool | false | Render entity ID labels above entities |
 
-**Note**: All debug state is transient (not persisted to save files).
+**Note**: Debug state must be transient (not persisted to save files). The current codebase persists the `debug` slice unless explicitly excluded; implementation must mark the slice transient or filter it out of persistence.
 
 ## Overlay Architecture
 
@@ -136,7 +136,7 @@ Extends existing `debug` slice (currently only has `disable_touchscreen`):
 
 ```gdscript
 {
-    "timestamp": 1234.567,       # Time.get_ticks_msec() / 1000.0
+    "timestamp": 1234.567,       # U_ECSUtils.get_current_time() (seconds)
     "level": "INFO",             # LogLevel enum name
     "category": "scene",         # StringName category for filtering
     "message": "Scene loaded",   # Human-readable message
@@ -161,7 +161,7 @@ Telemetry automatically logs these events when subscribed:
 **Redux Actions** (via `M_StateStore.action_dispatched`):
 - `scene/transition_completed` -> INFO, category: `scene`
 - `gameplay/take_damage` -> DEBUG, category: `gameplay`
-- `gameplay/respawn` -> INFO, category: `gameplay`
+- `gameplay/reset_after_death` -> INFO, category: `gameplay` (respawn equivalent)
 
 ### Export Formats
 
@@ -187,22 +187,22 @@ Telemetry automatically logs these events when subscribed:
 - **Entity list**: All registered entities via `M_ECSManager.get_all_entity_ids()`.
 - **Filter by tag**: TextEdit filter using `M_ECSManager.get_entities_by_tag()`.
 - **Filter by component**: Dropdown to filter entities with specific component type.
-- **Live updating**: List refreshes every frame to show new/removed entities.
+- **Live updating**: List refreshes via throttling/dirty flag (e.g., 100ms debounce) to avoid hitches during scene load.
 
 ### Component Inspector (Center Panel)
 
 - **Selected entity**: Click entity in list to inspect.
 - **Component list**: All components on entity via `M_ECSManager.get_components_for_entity()`.
 - **Property values**: Exported properties displayed with current values.
-- **Live updating**: Values refresh every `_process()` frame.
+- **Live updating**: Values refresh via throttling (e.g., every 100ms), not every frame.
 - **Read-only**: No editing (too complex for initial implementation).
 
 ### System Execution View (Right Panel)
 
 - **System list**: All systems via `M_ECSManager.get_systems()`.
 - **Execution order**: Sorted by priority (lower = earlier).
-- **Timing**: Last `process_tick()` duration in microseconds (if metrics enabled).
-- **Enable/disable toggle**: Checkbox to disable systems at runtime (for debugging).
+- **Timing**: Per-system `process_tick()` timing is not tracked by default; show execution order plus optional ECS query metrics instead.
+- **Enable/disable toggle**: Checkbox calls `system.set_debug_disabled(true/false)` (not `process_mode`).
 
 ## Performance HUD Features
 
@@ -354,6 +354,8 @@ This ensures:
 - No input handling for F-keys.
 - Zero runtime overhead in release.
 
+**Note**: Until the F3 overlay is migrated out of `M_StateStore._input()`, release builds must also disable the existing overlay toggle via export preset ProjectSettings (or add `OS.is_debug_build()` gating to the toggle).
+
 ## Testing Strategy
 
 ### Unit Tests
@@ -390,4 +392,4 @@ This ensures:
 | Visual debug aids | Manual geometry generation (no viewport debug settings for 3D) |
 | Log file cleanup | Auto-delete logs older than 7 days on startup |
 | Teleport implementation | PhysicsRayQueryParameters3D from camera through mouse position |
-| Platform scope | Desktop-only; mobile builds exclude via `OS.is_debug_build()` |
+| Platform scope | Desktop-only; debug-build gated. Mobile lacks F-keys (optional extra gating via `OS.has_feature("mobile")`). |

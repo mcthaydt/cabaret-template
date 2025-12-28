@@ -1,10 +1,15 @@
 # Debug Manager Implementation Tasks
 
-**Progress:** 0% (0 / 51 tasks complete)
+**Progress:** Not started (docs aligned 2025-12-28)
 
 **Status:** Ready for Implementation
 
 ---
+
+**Recent Updates (2025-12-28):**
+- Corrected ServiceLocator API usage (`U_ServiceLocator.register(...)`, not `register_service(...)`)
+- Clarified ECS system enable/disable mechanism (`system.set_debug_disabled(...)`, not `process_mode`)
+- Added explicit task to exclude `debug` slice from save persistence (matches “no persistence” requirement)
 
 ## Phase 0: Foundation
 
@@ -21,7 +26,8 @@
   - Position after existing managers
 
 - [ ] **Task 0.3**: Register in `scripts/scene_structure/main.gd`
-  - Add ServiceLocator registration: `U_ServiceLocator.register_service(StringName("debug_manager"), debug_manager_node)`
+  - Add registration alongside other managers:
+    - `_register_if_exists(managers_node, "M_DebugManager", StringName("debug_manager"))`
   - Follow existing manager registration pattern
 
 - [ ] **Task 0.4**: Add input actions to `project.godot`
@@ -41,14 +47,18 @@
   - Keep overlay instantiation code until M_DebugManager verified working
   - Test F3 works via M_DebugManager before removing
 
+- [ ] **Task 0.5c**: Ensure debug overlay is gated in release builds during migration
+  - Requirement: No debug overlay in release builds, even before M_DebugManager is complete
+  - Option A: Gate F3 toggle logic with `OS.is_debug_build()` (defensive even if ProjectSettings are wrong)
+  - Option B: Override ProjectSettings in export presets (`state/debug/enable_debug_overlay=false`, optionally `state/debug/enable_history=false`)
+
 - [ ] **Task 0.6**: Create skeleton `u_debug_selectors.gd`
-  - Create file at `scripts/state/selectors/u_debug_selectors.gd`
-  - Add stub methods returning default values:
+  - **NOTE:** `scripts/state/selectors/u_debug_selectors.gd` already exists for `disable_touchscreen`
+  - Extend it with stub methods returning default values for planned toggles (prevents preload errors when systems are modified in Phase 5):
     - `is_god_mode(state) -> bool: return false`
     - `is_infinite_jump(state) -> bool: return false`
     - `get_speed_modifier(state) -> float: return 1.0`
-    - (etc. for all selectors)
-  - Prevents preload errors when ECS systems are modified in Phase 5
+    - (etc. for all planned selectors)
 
 **Notes:**
 - F3 currently handled in `M_StateStore._input()` - migrated in 0.5a/0.5b
@@ -82,7 +92,7 @@
 
 - [ ] **Task 1.3**: Implement `scripts/state/selectors/u_debug_selectors.gd`
   - **DEPENDENCY**: Task 1.2 must be complete first (reducer defines state fields)
-  - Update skeleton from Task 0.6 with real implementations
+  - Update stubs from Task 0.6 with real implementations
   - Use null-safe access: `state.get("debug", {}).get("field", default)`
   - Add selectors:
     - `is_god_mode(state) -> bool`
@@ -96,6 +106,12 @@
     - `is_input_disabled(state) -> bool`
     - `get_time_scale(state) -> float`
   - Follow existing selector pattern
+
+- [ ] **Task 1.4**: Ensure `debug` slice is NOT persisted to save files
+  - Requirement: debug toggles reset on launch; saves must not contain debug state
+  - Implementation option A (preferred): Mark `debug` slice transient (like `navigation`) in slice config
+  - Implementation option B: Filter `debug` slice out in the persistence pipeline (`get_persistable_state()` / persistence helper)
+  - Verification: Save file `state` has no `debug` key; loading a save does not restore debug toggles
 
 **Notes:**
 - Debug state is transient (not persisted to saves)
@@ -268,7 +284,8 @@
 - [ ] **Task 4.6**: Implement system execution view
   - Query `M_ECSManager.get_systems()`
   - Display: name, priority, enabled state
-  - Checkbox to enable/disable (sets `process_mode`)
+  - Checkbox to enable/disable (calls `system.set_debug_disabled(true/false)`)
+  - Note: setting `process_mode` does NOT stop `M_ECSManager` from calling `process_tick()`
   - Show query metrics if available
 
 - [ ] **Task 4.7**: Wire F2 toggle in M_DebugManager
@@ -502,7 +519,6 @@
 | `scripts/debug/helpers/u_debug_perf_collector.gd` | Helper | Metrics collector | ⏳ Pending |
 | `scripts/debug/helpers/u_debug_frame_graph.gd` | Helper | Frame graph | ⏳ Pending |
 | `scripts/debug/helpers/u_debug_visual_aids.gd` | Helper | Visual debug aids | ⏳ Pending |
-| `scripts/state/selectors/u_debug_selectors.gd` | Selector | Toggle selectors | ⏳ Pending |
 | `scenes/debug/debug_perf_hud.tscn` | Scene | F1 overlay | ⏳ Pending |
 | `scenes/debug/debug_perf_hud.gd` | Script | F1 controller | ⏳ Pending |
 | `scenes/debug/debug_ecs_overlay.tscn` | Scene | F2 overlay | ⏳ Pending |
@@ -520,6 +536,10 @@
 |------|---------|--------|
 | `scripts/state/actions/u_debug_actions.gd` | Add toggle actions | ⏳ Pending |
 | `scripts/state/reducers/u_debug_reducer.gd` | Add toggle state | ⏳ Pending |
+| `scripts/state/selectors/u_debug_selectors.gd` | Add toggle selectors | ⏳ Pending |
+| `scripts/state/m_state_store.gd` | Migrate/remove F3 overlay toggle + release gating | ⏳ Pending |
+| `scripts/state/utils/u_state_slice_manager.gd` | Exclude debug slice from persistence | ⏳ Pending |
+| `export_presets.cfg` | Override `state/debug/*` for release exports (optional) | ⏳ Pending |
 | `scripts/ecs/systems/s_health_system.gd` | Add god_mode check | ⏳ Pending |
 | `scripts/ecs/systems/s_jump_system.gd` | Add infinite_jump check | ⏳ Pending |
 | `scripts/ecs/systems/s_movement_system.gd` | Add speed_modifier | ⏳ Pending |
