@@ -30,16 +30,12 @@ extends CanvasLayer
 
 # Note: No preloads needed - using global class names directly
 
-## ECS Manager reference (optional, may not exist in all scenes)
-var _ecs_manager: M_ECSManager = null
-
-## State Store reference (optional, may not exist during early initialization)
+## State Store reference (persistent, registered with ServiceLocator)
 var _state_store: M_StateStore = null
 
 
 func _ready() -> void:
-	# Attempt to get managers (may fail in some contexts)
-	_ecs_manager = U_ServiceLocator.get_service(StringName("ecs_manager")) as M_ECSManager
+	# Get state store (persistent in root.tscn, registered with ServiceLocator)
 	_state_store = U_ServiceLocator.get_service(StringName("state_store")) as M_StateStore
 
 
@@ -65,22 +61,27 @@ func _update_performance_metrics() -> void:
 	_draw_calls_label.text = "  Draw Calls: %d" % metrics.draw_calls
 	_object_count_label.text = "  Objects: %d" % metrics.object_count
 
-	# Update ECS metrics (if manager available)
-	if is_instance_valid(_ecs_manager):
-		var ecs_metrics: Array = _ecs_manager.get_query_metrics()
+	# Update ECS metrics (if manager available in current scene)
+	# Note: ECS manager is scene-specific, not registered with ServiceLocator
+	var ecs_manager := get_tree().get_first_node_in_group("ecs_manager") as M_ECSManager
+	if is_instance_valid(ecs_manager):
+		var ecs_metrics: Array = ecs_manager.get_query_metrics()
 		if ecs_metrics.size() > 0:
 			# Aggregate metrics from all queries
 			var total_calls := 0
+			var total_cache_hits := 0
 			var total_duration := 0.0
 			for metric in ecs_metrics:
 				if metric is Dictionary:
 					total_calls += int(metric.get("total_calls", 0))
+					total_cache_hits += int(metric.get("cache_hits", 0))
 					total_duration += float(metric.get("last_duration", 0.0))
-			var avg_duration := total_duration / float(ecs_metrics.size()) if ecs_metrics.size() > 0 else 0.0
-			_ecs_queries_label.text = "  ECS: %d queries, %d calls, %.2fms avg" % [
+			var avg_duration_sec := total_duration / float(ecs_metrics.size()) if ecs_metrics.size() > 0 else 0.0
+			var avg_duration_ms := avg_duration_sec * 1000.0  # Convert seconds to milliseconds
+			var cache_hit_rate := (float(total_cache_hits) / float(total_calls) * 100.0) if total_calls > 0 else 0.0
+			_ecs_queries_label.text = "  ECS: %d queries, %.0f%% cached" % [
 				ecs_metrics.size(),
-				total_calls,
-				avg_duration
+				cache_hit_rate
 			]
 		else:
 			_ecs_queries_label.text = "  ECS Queries: 0"
