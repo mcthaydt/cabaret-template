@@ -1,0 +1,185 @@
+[gd_scene load_steps=2 format=3 uid="uid://bqr7m3x4h8k2n"]
+
+[ext_resource type="Script" path="res://scenes/debug/debug_toggle_menu.gd" id="1_toggle_menu"]
+
+[node name="SC_DebugToggleMenu" type="CanvasLayer"]
+process_mode = 3
+layer = 100
+script = ExtResource("1_toggle_menu")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(500, 600)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "Debug Toggles (F4)"
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+text = "X"
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="TabContainer" type="TabContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Cheats" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="GodModeCheckBox" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Cheats"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "God Mode (No Damage)"
+
+[node name="InfiniteJumpCheckBox" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Cheats"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Infinite Jump (Mid-Air)"
+
+[node name="SpeedContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Cheats"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SpeedLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Cheats/SpeedContainer"]
+layout_mode = 2
+text = "Speed Multiplier:"
+
+[node name="SpeedRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Cheats/SpeedContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SpeedSlider" type="HSlider" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Cheats/SpeedContainer/SpeedRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.25
+max_value = 4.0
+step = 0.25
+value = 1.0
+
+[node name="SpeedValueLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Cheats/SpeedContainer/SpeedRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "1.00x"
+horizontal_alignment = 2
+
+[node name="TimeScaleContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Cheats"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TimeScaleLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Cheats/TimeScaleContainer"]
+layout_mode = 2
+text = "Time Scale:"
+
+[node name="TimeScaleRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Cheats/TimeScaleContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TimeScaleSlider" type="HSlider" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Cheats/TimeScaleContainer/TimeScaleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 4.0
+step = 0.25
+value = 1.0
+
+[node name="TimeScaleValueLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Cheats/TimeScaleContainer/TimeScaleRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "1.00x"
+horizontal_alignment = 2
+
+[node name="Visual" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ShowCollisionCheckBox" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Visual"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Show Collision Shapes"
+
+[node name="ShowSpawnPointsCheckBox" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Visual"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Show Spawn Points"
+
+[node name="ShowTriggersCheckBox" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Visual"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Show Trigger Zones"
+
+[node name="ShowLabelsCheckBox" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Visual"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Show Entity Labels"
+
+[node name="VisualNote" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Visual"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+text = "Note: Visual aids require Phase 7 implementation.
+Toggles will dispatch Redux actions but may not
+have visible effects yet."
+autowrap_mode = 3
+
+[node name="System" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DisableGravityCheckBox" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/System"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Disable Gravity"
+
+[node name="DisableInputCheckBox" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/System"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Disable Input"
+
+[node name="SystemNote" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/System"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+text = "Warning: Disabling input will freeze player controls.
+Use with caution - you may need to restart the game."
+autowrap_mode = 3
