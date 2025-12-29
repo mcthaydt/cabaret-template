@@ -330,7 +330,7 @@ func _configure_slot_focus() -> void:
 	if not main_buttons_vertical.is_empty():
 		var last_main_btn: Control = main_buttons_vertical[-1]
 		last_main_btn.focus_neighbor_bottom = last_main_btn.get_path_to(_back_button)
-		_back_button.focus_neighbor_top = _back_button.get_path_to(main_buttons_vertical[0])
+		_back_button.focus_neighbor_top = _back_button.get_path_to(last_main_btn)
 
 func _get_focused_slot_index() -> int:
 	# Returns the index of the currently focused slot container, or -1 if none

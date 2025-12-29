@@ -294,18 +294,14 @@ func test_back_button_connects_to_main_buttons() -> void:
 	var last_slot := slot_container.get_child(slot_container.get_child_count() - 1) as HBoxContainer
 	var last_main_button := last_slot.get_node("MainButton") as Button
 
-	# Get first slot's main button
-	var first_slot := slot_container.get_child(0) as HBoxContainer
-	var first_main_button := first_slot.get_node("MainButton") as Button
-
 	# Verify last main button → down → back button
 	var last_down_path := last_main_button.focus_neighbor_bottom
 	assert_ne(last_down_path, NodePath(), "Last main button should have bottom neighbor")
 	var down_neighbor := last_main_button.get_node_or_null(last_down_path) as Button
 	assert_eq(down_neighbor, back_button, "Last main button's bottom neighbor should be back button")
 
-	# Verify back button → up → first main button
+	# Verify back button → up → last main button
 	var back_up_path := back_button.focus_neighbor_top
 	assert_ne(back_up_path, NodePath(), "Back button should have top neighbor")
 	var up_neighbor := back_button.get_node_or_null(back_up_path) as Button
-	assert_eq(up_neighbor, first_main_button, "Back button's top neighbor should be first main button")
+	assert_eq(up_neighbor, last_main_button, "Back button's top neighbor should be last main button")
