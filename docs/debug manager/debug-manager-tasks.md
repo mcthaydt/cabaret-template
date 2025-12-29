@@ -1,12 +1,18 @@
 # Debug Manager Implementation Tasks
 
-**Progress:** Phase 2 Complete (2025-12-28)
+**Progress:** Phase 3 Complete (2025-12-28)
 
 **Status:** In Progress
 
 ---
 
 **Recent Updates (2025-12-28):**
+- **Phase 3 Complete**: Performance HUD (F1) fully implemented
+  - Created `U_DebugPerfCollector` helper for gathering FPS, memory, and rendering metrics
+  - Created `U_DebugFrameGraph` custom control with 60-sample circular buffer and color-coded thresholds
+  - Created `debug_perf_hud.tscn` scene with collapsible sections for Memory, Rendering, and ECS/State metrics
+  - Created `SC_DebugPerfHUD` controller with real-time metric updates
+  - F1 toggle already wired in M_DebugManager from Phase 0
 - **Phase 2 Complete**: Telemetry System fully implemented with TDD approach
   - Created 28 comprehensive unit tests for telemetry logging
   - Implemented `U_DebugTelemetry` with `add_log()` method (renamed from `log()` to avoid GDScript built-in conflict)
@@ -272,11 +278,11 @@
 
 ---
 
-## Phase 3: Performance HUD (F1)
+## Phase 3: Performance HUD (F1) ✅ COMPLETE (2025-12-28)
 
 **Exit Criteria:** F1 toggles performance HUD; metrics update in real-time
 
-- [ ] **Task 3.1**: Create `scripts/debug/helpers/u_debug_perf_collector.gd`
+- [x] **Task 3.1**: Create `scripts/debug/helpers/u_debug_perf_collector.gd`
   - Implement `get_metrics() -> Dictionary`:
     - `fps`: `Performance.get_monitor(Performance.TIME_FPS)`
     - `frame_time_ms`: `Performance.get_monitor(Performance.TIME_PROCESS) * 1000`
@@ -284,16 +290,18 @@
     - `memory_dynamic_mb`: `Performance.get_monitor(Performance.MEMORY_DYNAMIC) / 1048576`
     - `draw_calls`: `Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)`
     - `object_count`: `Performance.get_monitor(Performance.OBJECT_COUNT)`
+  - **Completed:** Static helper class with `get_metrics()` method ✅
 
-- [ ] **Task 3.2**: Create `scripts/debug/helpers/u_debug_frame_graph.gd`
+- [x] **Task 3.2**: Create `scripts/debug/helpers/u_debug_frame_graph.gd`
   - Extend `Control`
   - Circular buffer for 60 frame times
   - Implement `add_sample(frame_time_ms: float)`
   - Implement `_draw()` for line graph
   - Draw target line at 16.67ms (green)
   - Warning thresholds: yellow > 33.33ms, red > 50ms
+  - **Completed:** Custom control with color-coded performance visualization ✅
 
-- [ ] **Task 3.3**: Create `scenes/debug/debug_perf_hud.tscn`
+- [x] **Task 3.3**: Create `scenes/debug/debug_perf_hud.tscn`
   - CanvasLayer with layer 100 (above game, below other debug)
   - MarginContainer anchored top-left
   - VBoxContainer with:
@@ -302,8 +310,9 @@
     - Collapsible Memory section
     - Collapsible Draw section
     - Collapsible ECS/State section
+  - **Completed:** Scene with collapsible sections and toggle buttons ✅
 
-- [ ] **Task 3.4**: Create `scenes/debug/debug_perf_hud.gd`
+- [x] **Task 3.4**: Create `scenes/debug/debug_perf_hud.gd`
   - Extend `CanvasLayer`, class_name `SC_DebugPerfHUD`
   - `process_mode = PROCESS_MODE_ALWAYS`
   - In `_process()`:
@@ -312,13 +321,24 @@
     - Update ECS metrics via M_ECSManager
     - Update state metrics via M_StateStore
   - Implement section collapse/expand
+  - **Completed:** Controller with real-time metric updates and null-safe manager access ✅
 
-- [ ] **Task 3.5**: Wire F1 toggle in M_DebugManager
+- [x] **Task 3.5**: Wire F1 toggle in M_DebugManager
   - Instantiate overlay on first toggle
   - Show/hide on subsequent toggles
+  - **Completed:** Already implemented in Phase 0 ✅
 
-**Notes:**
-- HUD should be non-intrusive (corner position, minimal size)
+**Phase 3 Summary:**
+- All tasks complete (2025-12-28)
+- Performance HUD displays FPS, frame time graph, memory, rendering, and ECS/State metrics
+- Collapsible sections with toggle buttons for user control
+- Positioned in top-left corner as non-intrusive overlay
+- F1 key toggle fully functional via M_DebugManager
+- Files created:
+  - `scripts/debug/helpers/u_debug_perf_collector.gd`
+  - `scripts/debug/helpers/u_debug_frame_graph.gd`
+  - `scenes/debug/debug_perf_hud.tscn`
+  - `scenes/debug/debug_perf_hud.gd`
 
 ---
 
@@ -633,11 +653,11 @@
 | `scripts/managers/m_debug_manager.gd` | Manager | Core orchestrator | ✅ Complete (Phase 0) |
 | `scripts/managers/helpers/u_debug_telemetry.gd` | Helper | Logging helper | ✅ Complete (Phase 2) |
 | `scripts/managers/helpers/u_debug_console_formatter.gd` | Helper | Console colors | ✅ Complete (Phase 2) |
-| `scripts/debug/helpers/u_debug_perf_collector.gd` | Helper | Metrics collector | ⏳ Pending (Phase 3) |
-| `scripts/debug/helpers/u_debug_frame_graph.gd` | Helper | Frame graph | ⏳ Pending (Phase 3) |
+| `scripts/debug/helpers/u_debug_perf_collector.gd` | Helper | Metrics collector | ✅ Complete (Phase 3) |
+| `scripts/debug/helpers/u_debug_frame_graph.gd` | Helper | Frame graph | ✅ Complete (Phase 3) |
 | `scripts/debug/helpers/u_debug_visual_aids.gd` | Helper | Visual debug aids | ⏳ Pending (Phase 7) |
-| `scenes/debug/debug_perf_hud.tscn` | Scene | F1 overlay | ⏳ Pending (Phase 3) |
-| `scenes/debug/debug_perf_hud.gd` | Script | F1 controller | ⏳ Pending (Phase 3) |
+| `scenes/debug/debug_perf_hud.tscn` | Scene | F1 overlay | ✅ Complete (Phase 3) |
+| `scenes/debug/debug_perf_hud.gd` | Script | F1 controller | ✅ Complete (Phase 3) |
 | `scenes/debug/debug_ecs_overlay.tscn` | Scene | F2 overlay | ⏳ Pending (Phase 4) |
 | `scenes/debug/debug_ecs_overlay.gd` | Script | F2 controller | ⏳ Pending (Phase 4) |
 | `scenes/debug/debug_toggle_menu.tscn` | Scene | F4 overlay | ⏳ Pending (Phase 6) |

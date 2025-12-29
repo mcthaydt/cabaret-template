@@ -1,0 +1,147 @@
+[gd_scene load_steps=3 format=3 uid="uid://bj8qv3m4n5r2k"]
+
+[ext_resource type="Script" path="res://scenes/debug/debug_perf_hud.gd" id="1_perf_hud"]
+[ext_resource type="Script" path="res://scripts/debug/helpers/u_debug_frame_graph.gd" id="2_frame_graph"]
+
+[node name="SC_DebugPerfHUD" type="CanvasLayer"]
+process_mode = 3
+layer = 100
+script = ExtResource("1_perf_hud")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 0
+offset_right = 300.0
+offset_bottom = 400.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Performance (F1)"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="FPSLabel" type="Label" parent="MarginContainer/PanelContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "FPS: 60 (16.7ms)"
+
+[node name="FrameGraph" type="Control" parent="MarginContainer/PanelContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+script = ExtResource("2_frame_graph")
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="MemoryHeader" type="HBoxContainer" parent="MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="MemoryLabel" type="Label" parent="MarginContainer/PanelContainer/VBoxContainer/MemoryHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Memory"
+
+[node name="MemoryToggle" type="Button" parent="MarginContainer/PanelContainer/VBoxContainer/MemoryHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+text = "▼"
+
+[node name="MemoryDetails" type="VBoxContainer" parent="MarginContainer/PanelContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="StaticMemLabel" type="Label" parent="MarginContainer/PanelContainer/VBoxContainer/MemoryDetails"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "  Static: 0 MB"
+
+[node name="DynamicMemLabel" type="Label" parent="MarginContainer/PanelContainer/VBoxContainer/MemoryDetails"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "  Dynamic: 0 MB"
+
+[node name="HSeparator3" type="HSeparator" parent="MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="DrawHeader" type="HBoxContainer" parent="MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="DrawLabel" type="Label" parent="MarginContainer/PanelContainer/VBoxContainer/DrawHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Rendering"
+
+[node name="DrawToggle" type="Button" parent="MarginContainer/PanelContainer/VBoxContainer/DrawHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+text = "▼"
+
+[node name="DrawDetails" type="VBoxContainer" parent="MarginContainer/PanelContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="DrawCallsLabel" type="Label" parent="MarginContainer/PanelContainer/VBoxContainer/DrawDetails"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "  Draw Calls: 0"
+
+[node name="ObjectCountLabel" type="Label" parent="MarginContainer/PanelContainer/VBoxContainer/DrawDetails"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "  Objects: 0"
+
+[node name="HSeparator4" type="HSeparator" parent="MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ECSHeader" type="HBoxContainer" parent="MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ECSLabel" type="Label" parent="MarginContainer/PanelContainer/VBoxContainer/ECSHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "ECS/State"
+
+[node name="ECSToggle" type="Button" parent="MarginContainer/PanelContainer/VBoxContainer/ECSHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "▶"
+
+[node name="ECSDetails" type="VBoxContainer" parent="MarginContainer/PanelContainer/VBoxContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ECSQueriesLabel" type="Label" parent="MarginContainer/PanelContainer/VBoxContainer/ECSDetails"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "  ECS Queries: 0"
+
+[node name="StateDispatchesLabel" type="Label" parent="MarginContainer/PanelContainer/VBoxContainer/ECSDetails"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "  State Dispatches: 0"
+
+[connection signal="toggled" from="MarginContainer/PanelContainer/VBoxContainer/MemoryHeader/MemoryToggle" to="." method="_on_memory_toggle_toggled"]
+[connection signal="toggled" from="MarginContainer/PanelContainer/VBoxContainer/DrawHeader/DrawToggle" to="." method="_on_draw_toggle_toggled"]
+[connection signal="toggled" from="MarginContainer/PanelContainer/VBoxContainer/ECSHeader/ECSToggle" to="." method="_on_ecs_toggle_toggled"]
