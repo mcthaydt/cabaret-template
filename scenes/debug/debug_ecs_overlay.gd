@@ -266,7 +266,7 @@ func _update_component_inspector() -> void:
 				"process_mode", "process_priority", "process_physics_priority",
 				"process_thread_group", "physics_interpolation_mode",
 				"auto_translate_mode", "editor_description",
-				"component_type", "settings", "ecs_manager",
+				"component_type", "ecs_manager",
 				"unique_name_in_owner", "scene_file_path", "owner",
 				"multiplayer", "name", "transform", "position", "rotation",
 				"scale", "quaternion", "basis", "global_transform",
@@ -275,9 +275,56 @@ func _update_component_inspector() -> void:
 				continue
 
 			var value = component.get(property.name)
-			var prop_label := Label.new()
-			prop_label.text = "  %s: %s" % [property.name, str(value)]
-			_component_details_container.add_child(prop_label)
+
+			# If property is a Resource, make it expandable
+			if value is Resource and property.name == "settings":
+				var container := VBoxContainer.new()
+				_component_details_container.add_child(container)
+
+				# Resource header with toggle button
+				var header_box := HBoxContainer.new()
+				container.add_child(header_box)
+
+				var toggle_button := Button.new()
+				toggle_button.text = "▶"
+				toggle_button.toggle_mode = true
+				toggle_button.custom_minimum_size = Vector2(30, 0)
+				header_box.add_child(toggle_button)
+
+				var resource_label := Label.new()
+				resource_label.text = "%s: %s" % [property.name, value.get_class()]
+				header_box.add_child(resource_label)
+
+				# Resource properties container (hidden by default)
+				var resource_props := VBoxContainer.new()
+				resource_props.visible = false
+				container.add_child(resource_props)
+
+				# Get resource properties
+				var resource_property_list: Array = value.get_property_list()
+				for res_prop in resource_property_list:
+					if res_prop.name.begins_with("_"):
+						continue
+					if (res_prop.usage & PROPERTY_USAGE_EDITOR) == 0:
+						continue
+					if res_prop.name in ["script", "resource_path", "resource_name", "resource_scene_unique_id", "resource_local_to_scene"]:
+						continue
+
+					var res_value = value.get(res_prop.name)
+					var res_prop_label := Label.new()
+					res_prop_label.text = "    %s: %s" % [res_prop.name, str(res_value)]
+					resource_props.add_child(res_prop_label)
+
+				# Connect toggle
+				toggle_button.toggled.connect(func(pressed: bool):
+					resource_props.visible = pressed
+					toggle_button.text = "▼" if pressed else "▶"
+				)
+			else:
+				# Regular property
+				var prop_label := Label.new()
+				prop_label.text = "  %s: %s" % [property.name, str(value)]
+				_component_details_container.add_child(prop_label)
 
 		# Separator
 		var separator := HSeparator.new()
