@@ -23,6 +23,7 @@
 [ext_resource type="Script" uid="uid://d4j8yeejg30o6" path="res://scripts/managers/m_ui_input_handler.gd" id="21_ui_input_handler"]
 [ext_resource type="Script" uid="uid://cfcv553r6lbbf" path="res://scripts/managers/m_pause_manager.gd" id="22_pause_manager"]
 [ext_resource type="Script" path="res://scripts/managers/m_save_manager.gd" id="23_save_manager"]
+[ext_resource type="Script" path="res://scripts/managers/m_debug_manager.gd" id="24_debug_manager"]
 
 [node name="Root" type="Node"]
 script = ExtResource("10_main_root")
@@ -67,6 +68,9 @@ script = ExtResource("21_ui_input_handler")
 
 [node name="M_SaveManager" type="Node" parent="Managers"]
 script = ExtResource("23_save_manager")
+
+[node name="M_DebugManager" type="Node" parent="Managers"]
+script = ExtResource("24_debug_manager")
 
 [node name="ActiveSceneContainer" type="Node" parent="."]
 script = ExtResource("9_active_scene_container")

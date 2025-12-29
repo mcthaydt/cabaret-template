@@ -63,7 +63,6 @@ var _pending_immediate_updates: Dictionary = {}
 var _action_history: Array = []
 var _max_history_size: int = 1000
 var _enable_history: bool = true
-var _debug_overlay: CanvasLayer = null
 var _is_ready: bool = false
 
 # Performance tracking (T414)
@@ -139,44 +138,6 @@ func _flush_signal_batcher() -> int:
 		_perf_signal_emit_count += 1  # Track signal emissions
 	)
 	return pending_count
-
-## Handle input for debug overlay toggle via action
-##
-## Debug overlay spawns when the `toggle_debug_overlay` action is pressed.
-## Supports both action events (InputEventAction) and Input singleton state.
-func _input(event: InputEvent) -> void:
-	# Check if debug overlay is enabled via project settings
-	const PROJECT_SETTING_ENABLE_DEBUG_OVERLAY := "state/debug/enable_debug_overlay"
-	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_DEBUG_OVERLAY):
-		if not ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_DEBUG_OVERLAY, true):
-			return  # Debug overlay disabled in project settings
-	
-	if U_INPUT_CAPTURE_GUARD.is_capture_active():
-		return  # Suppress overlay toggle while input capture is active.
-	
-	# Toggle debug overlay with action (prefer explicit InputEventAction, fallback to Input state)
-	var toggle_pressed: bool = false
-	if event is InputEventAction:
-		var aev := event as InputEventAction
-		toggle_pressed = aev.action == "toggle_debug_overlay" and aev.pressed
-	else:
-		# Fallback to Input singleton so hardware mapping still works
-		toggle_pressed = Input.is_action_just_pressed("toggle_debug_overlay")
-
-	# Act on toggle
-	if toggle_pressed:
-		if _debug_overlay == null or not is_instance_valid(_debug_overlay):
-			# Spawn debug overlay
-			var overlay_scene := load("res://scenes/debug/debug_state_overlay.tscn")
-			if overlay_scene:
-				_debug_overlay = overlay_scene.instantiate()
-				add_child(_debug_overlay)
-				# Ensure group membership is immediate for tests querying by group.
-				_debug_overlay.add_to_group("state_debug_overlay")
-		else:
-			# Despawn debug overlay
-			_debug_overlay.queue_free()
-			_debug_overlay = null
 
 func _initialize_settings() -> void:
 	if settings == null:

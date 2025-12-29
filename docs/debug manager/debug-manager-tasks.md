@@ -20,54 +20,63 @@
 
 **Exit Criteria:** M_DebugManager registered, F1-F4 keys print debug messages
 
-- [ ] **Task 0.1**: Create `scripts/managers/m_debug_manager.gd`
+- [x] **Task 0.1**: Create `scripts/managers/m_debug_manager.gd`
   - Extend `Node`, class_name `M_DebugManager`
   - Add debug build check in `_ready()` with `queue_free()` for release
   - Add to `"debug_manager"` group
   - Preload overlay scenes (lazy instantiation)
 
-- [ ] **Task 0.2**: Add M_DebugManager to `scenes/root.tscn`
+- [x] **Task 0.2**: Add M_DebugManager to `scenes/root.tscn`
   - Add node under Managers section
   - Position after existing managers
+  - **Completed:** Added M_DebugManager as ExtResource and node in root.tscn
 
-- [ ] **Task 0.3**: Register in `scripts/scene_structure/main.gd`
+- [x] **Task 0.3**: Register in `scripts/scene_structure/main.gd`
   - Add registration alongside other managers:
     - `_register_if_exists(managers_node, "M_DebugManager", StringName("debug_manager"))`
   - Follow existing manager registration pattern
+  - **Completed:** Added registration and dependency on state_store
 
-- [ ] **Task 0.4**: Add input actions to `project.godot`
+- [x] **Task 0.4**: Add input actions to `project.godot`
   - `debug_toggle_perf` → F1
   - `debug_toggle_ecs` → F2
   - Note: `toggle_debug_overlay` (F3) already exists
   - `debug_toggle_menu` → F4
+  - **Completed:** Added F1, F2, F4 input actions
 
-- [ ] **Task 0.5a**: Implement F-key handling in M_DebugManager
+- [x] **Task 0.5a**: Implement F-key handling in M_DebugManager
   - Implement `_input(event)` method
   - Check for each debug action (F1, F2, F3, F4)
   - Call `_toggle_overlay(overlay_id)` for each
   - Guard against rapid toggle race condition (use instantiating flag)
+  - **Completed:** Implemented in m_debug_manager.gd with race condition guards
 
-- [ ] **Task 0.5b**: Remove F3 handling from M_StateStore
+- [x] **Task 0.5b**: Remove F3 handling from M_StateStore
   - Remove `_input()` method from `M_StateStore`
   - Keep overlay instantiation code until M_DebugManager verified working
   - Test F3 works via M_DebugManager before removing
+  - **Completed:** Removed _input() method and _debug_overlay variable
 
-- [ ] **Task 0.5c**: Ensure debug overlay is gated in release builds during migration
+- [x] **Task 0.5c**: Ensure debug overlay is gated in release builds during migration
   - Requirement: No debug overlay in release builds, even before M_DebugManager is complete
   - Option A: Gate F3 toggle logic with `OS.is_debug_build()` (defensive even if ProjectSettings are wrong)
   - Option B: Override ProjectSettings in export presets (`state/debug/enable_debug_overlay=false`, optionally `state/debug/enable_history=false`)
+  - **Completed:** M_DebugManager has OS.is_debug_build() check that queue_free's in release
 
-- [ ] **Task 0.6**: Create skeleton `u_debug_selectors.gd`
+- [x] **Task 0.6**: Create skeleton `u_debug_selectors.gd`
   - **NOTE:** `scripts/state/selectors/u_debug_selectors.gd` already exists for `disable_touchscreen`
   - Extend it with stub methods returning default values for planned toggles (prevents preload errors when systems are modified in Phase 5):
     - `is_god_mode(state) -> bool: return false`
     - `is_infinite_jump(state) -> bool: return false`
     - `get_speed_modifier(state) -> float: return 1.0`
     - (etc. for all planned selectors)
+  - **Completed:** Added all skeleton selector methods
 
 **Notes:**
-- F3 currently handled in `M_StateStore._input()` - migrated in 0.5a/0.5b
-- Skeleton selectors prevent editor errors during Phase 5 system modifications
+- F3 currently handled in `M_StateStore._input()` - migrated in 0.5a/0.5b ✅
+- Skeleton selectors prevent editor errors during Phase 5 system modifications ✅
+
+**Phase 0 Status: COMPLETE (2025-12-28)**
 
 ---
 
