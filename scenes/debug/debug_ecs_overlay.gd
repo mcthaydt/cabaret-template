@@ -284,7 +284,8 @@ func _populate_system_list() -> void:
 
 	for system in systems:
 		if system is BaseECSSystem:
-			var system_name: String = system.get_class()
+			# Get GDScript class name from script (get_class() returns engine class "Node")
+			var system_name: String = system.name  # Node name (e.g., "S_InputSystem")
 			var priority: int = system.execution_priority
 			var enabled: bool = not system.is_debug_disabled()
 			var status_icon: String = "✓" if enabled else "✗"
@@ -370,7 +371,8 @@ func _on_system_list_item_selected(index: int) -> void:
 	_selected_system = systems[index] as BaseECSSystem
 
 	if is_instance_valid(_selected_system):
-		_selected_system_label.text = _selected_system.get_class()
+		# Use node name instead of get_class() which returns "Node"
+		_selected_system_label.text = _selected_system.name
 		_system_enabled_checkbox.disabled = false
 		_system_enabled_checkbox.button_pressed = not _selected_system.is_debug_disabled()
 	else:
