@@ -244,12 +244,17 @@ func _update_component_inspector() -> void:
 		return
 
 	# Display each component type
+	var label_count := 0
 	for comp_type in components_dict.keys():
+		print("DEBUG: Processing component type: ", comp_type)
 		var components_array = components_dict[comp_type]  # Variant (dictionary lookup)
 		if not components_array is Array:
+			print("DEBUG: Component array is not Array, skipping")
 			continue
+		print("DEBUG: Component array size: ", components_array.size())
 		for component in components_array:
 			if not component is BaseECSComponent:
+				print("DEBUG: Component is not BaseECSComponent, skipping")
 				continue
 
 			# Component header
@@ -257,6 +262,8 @@ func _update_component_inspector() -> void:
 			header.text = String(component.component_type)
 			header.add_theme_font_size_override("font_size", 16)
 			_component_details_container.add_child(header)
+			label_count += 1
+			print("DEBUG: Added header label: ", header.text)
 
 			# Component properties (read-only display)
 			var property_list: Array = component.get_property_list()
