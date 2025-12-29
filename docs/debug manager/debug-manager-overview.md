@@ -56,7 +56,8 @@ M_DebugManager.toggle_overlay(overlay_id: StringName) -> void
 M_DebugManager.is_overlay_visible(overlay_id: StringName) -> bool
 
 # Telemetry logging (static helper, globally accessible)
-U_DebugTelemetry.log(level: LogLevel, category: StringName, message: String, data: Dictionary = {})
+# Note: add_log() instead of log() to avoid conflict with GDScript built-in
+U_DebugTelemetry.add_log(level: LogLevel, category: StringName, message: String, data: Dictionary = {})
 U_DebugTelemetry.log_debug(category: StringName, message: String, data: Dictionary = {})
 U_DebugTelemetry.log_info(category: StringName, message: String, data: Dictionary = {})
 U_DebugTelemetry.log_warn(category: StringName, message: String, data: Dictionary = {})

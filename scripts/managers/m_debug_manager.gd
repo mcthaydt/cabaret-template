@@ -159,6 +159,8 @@ func _subscribe_to_telemetry_events() -> void:
 	# ECS Events via U_ECSEventBus (subscribe/publish pattern, not signals)
 	U_ECS_EVENT_BUS.subscribe(StringName("checkpoint_activated"), _on_checkpoint_activated)
 	U_ECS_EVENT_BUS.subscribe(StringName("entity_death"), _on_entity_death)
+	U_ECS_EVENT_BUS.subscribe(StringName("damage_zone_entered"), _on_damage_zone_entered)
+	U_ECS_EVENT_BUS.subscribe(StringName("victory_triggered"), _on_victory_triggered)
 	U_ECS_EVENT_BUS.subscribe(StringName("save_started"), _on_save_started)
 	U_ECS_EVENT_BUS.subscribe(StringName("save_completed"), _on_save_completed)
 	U_ECS_EVENT_BUS.subscribe(StringName("save_failed"), _on_save_failed)
@@ -185,6 +187,16 @@ func _on_checkpoint_activated(payload: Variant) -> void:
 func _on_entity_death(payload: Variant) -> void:
 	var data: Dictionary = payload if payload is Dictionary else {}
 	U_DEBUG_TELEMETRY.log_info(StringName("gameplay"), "Entity death", data)
+
+
+func _on_damage_zone_entered(payload: Variant) -> void:
+	var data: Dictionary = payload if payload is Dictionary else {}
+	U_DEBUG_TELEMETRY.log_debug(StringName("gameplay"), "Damage zone entered", data)
+
+
+func _on_victory_triggered(payload: Variant) -> void:
+	var data: Dictionary = payload if payload is Dictionary else {}
+	U_DEBUG_TELEMETRY.log_info(StringName("gameplay"), "Victory triggered", data)
 
 
 func _on_save_started(payload: Variant) -> void:

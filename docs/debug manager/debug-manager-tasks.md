@@ -630,38 +630,38 @@
 
 | File | Type | Description | Status |
 |------|------|-------------|--------|
-| `scripts/managers/m_debug_manager.gd` | Manager | Core orchestrator | ⏳ Pending |
-| `scripts/managers/helpers/u_debug_telemetry.gd` | Helper | Logging helper | ⏳ Pending |
-| `scripts/managers/helpers/u_debug_console_formatter.gd` | Helper | Console colors | ⏳ Pending |
-| `scripts/debug/helpers/u_debug_perf_collector.gd` | Helper | Metrics collector | ⏳ Pending |
-| `scripts/debug/helpers/u_debug_frame_graph.gd` | Helper | Frame graph | ⏳ Pending |
-| `scripts/debug/helpers/u_debug_visual_aids.gd` | Helper | Visual debug aids | ⏳ Pending |
-| `scenes/debug/debug_perf_hud.tscn` | Scene | F1 overlay | ⏳ Pending |
-| `scenes/debug/debug_perf_hud.gd` | Script | F1 controller | ⏳ Pending |
-| `scenes/debug/debug_ecs_overlay.tscn` | Scene | F2 overlay | ⏳ Pending |
-| `scenes/debug/debug_ecs_overlay.gd` | Script | F2 controller | ⏳ Pending |
-| `scenes/debug/debug_toggle_menu.tscn` | Scene | F4 overlay | ⏳ Pending |
-| `scenes/debug/debug_toggle_menu.gd` | Script | F4 controller | ⏳ Pending |
-| `tests/unit/debug/test_debug_reducer.gd` | Test | Reducer tests (TDD - Phase 1) | ⏳ Pending |
-| `tests/unit/debug/test_debug_selectors.gd` | Test | Selector tests (TDD - Phase 1) | ⏳ Pending |
-| `tests/unit/debug/test_debug_telemetry.gd` | Test | Telemetry tests (TDD - Phase 2) | ⏳ Pending |
-| `tests/integration/debug/test_debug_toggles.gd` | Test | Integration tests (TDD - Phase 5) | ⏳ Pending |
+| `scripts/managers/m_debug_manager.gd` | Manager | Core orchestrator | ✅ Complete (Phase 0) |
+| `scripts/managers/helpers/u_debug_telemetry.gd` | Helper | Logging helper | ✅ Complete (Phase 2) |
+| `scripts/managers/helpers/u_debug_console_formatter.gd` | Helper | Console colors | ✅ Complete (Phase 2) |
+| `scripts/debug/helpers/u_debug_perf_collector.gd` | Helper | Metrics collector | ⏳ Pending (Phase 3) |
+| `scripts/debug/helpers/u_debug_frame_graph.gd` | Helper | Frame graph | ⏳ Pending (Phase 3) |
+| `scripts/debug/helpers/u_debug_visual_aids.gd` | Helper | Visual debug aids | ⏳ Pending (Phase 7) |
+| `scenes/debug/debug_perf_hud.tscn` | Scene | F1 overlay | ⏳ Pending (Phase 3) |
+| `scenes/debug/debug_perf_hud.gd` | Script | F1 controller | ⏳ Pending (Phase 3) |
+| `scenes/debug/debug_ecs_overlay.tscn` | Scene | F2 overlay | ⏳ Pending (Phase 4) |
+| `scenes/debug/debug_ecs_overlay.gd` | Script | F2 controller | ⏳ Pending (Phase 4) |
+| `scenes/debug/debug_toggle_menu.tscn` | Scene | F4 overlay | ⏳ Pending (Phase 6) |
+| `scenes/debug/debug_toggle_menu.gd` | Script | F4 controller | ⏳ Pending (Phase 6) |
+| `tests/unit/debug/test_debug_reducer.gd` | Test | Reducer tests (TDD - Phase 1) | ✅ Complete (Phase 1) |
+| `tests/unit/debug/test_debug_selectors.gd` | Test | Selector tests (TDD - Phase 1) | ✅ Complete (Phase 1) |
+| `tests/unit/debug/test_debug_telemetry.gd` | Test | Telemetry tests (TDD - Phase 2) | ✅ Complete (Phase 2) |
+| `tests/integration/debug/test_debug_toggles.gd` | Test | Integration tests (TDD - Phase 5) | ⏳ Pending (Phase 5) |
 
 ### Files to Modify
 
 | File | Changes | Status |
 |------|---------|--------|
-| `scripts/state/actions/u_debug_actions.gd` | Add toggle actions | ⏳ Pending |
-| `scripts/state/reducers/u_debug_reducer.gd` | Add toggle state | ⏳ Pending |
-| `scripts/state/selectors/u_debug_selectors.gd` | Add toggle selectors | ⏳ Pending |
-| `scripts/state/m_state_store.gd` | Migrate/remove F3 overlay toggle + release gating | ⏳ Pending |
-| `scripts/state/utils/u_state_slice_manager.gd` | Exclude debug slice from persistence | ⏳ Pending |
-| `export_presets.cfg` | Override `state/debug/*` for release exports (optional) | ⏳ Pending |
-| `scripts/ecs/systems/s_health_system.gd` | Add god_mode check | ⏳ Pending |
-| `scripts/ecs/systems/s_jump_system.gd` | Add infinite_jump check | ⏳ Pending |
-| `scripts/ecs/systems/s_movement_system.gd` | Add speed_modifier | ⏳ Pending |
-| `scripts/ecs/systems/s_gravity_system.gd` | Add disable check | ⏳ Pending |
-| `scripts/ecs/systems/s_input_system.gd` | Add disable check | ⏳ Pending |
-| `scenes/root.tscn` | Add M_DebugManager | ⏳ Pending |
-| `scripts/scene_structure/main.gd` | Register with ServiceLocator | ⏳ Pending |
-| `project.godot` | Add F1/F2/F4 input actions | ⏳ Pending |
+| `scripts/state/actions/u_debug_actions.gd` | Add toggle actions | ✅ Complete (Phase 1) |
+| `scripts/state/reducers/u_debug_reducer.gd` | Add toggle state | ✅ Complete (Phase 1) |
+| `scripts/state/selectors/u_debug_selectors.gd` | Add toggle selectors | ✅ Complete (Phase 1) |
+| `scripts/state/m_state_store.gd` | Migrate/remove F3 overlay toggle + release gating | ✅ Complete (Phase 0) |
+| `scripts/state/utils/u_state_slice_manager.gd` | Exclude debug slice from persistence | ✅ Complete (Phase 1) |
+| `export_presets.cfg` | Override `state/debug/*` for release exports (optional) | ⏳ Optional |
+| `scripts/ecs/systems/s_health_system.gd` | Add god_mode check | ⏳ Pending (Phase 5) |
+| `scripts/ecs/systems/s_jump_system.gd` | Add infinite_jump check | ⏳ Pending (Phase 5) |
+| `scripts/ecs/systems/s_movement_system.gd` | Add speed_modifier | ⏳ Pending (Phase 5) |
+| `scripts/ecs/systems/s_gravity_system.gd` | Add disable check | ⏳ Pending (Phase 5) |
+| `scripts/ecs/systems/s_input_system.gd` | Add disable check | ⏳ Pending (Phase 5) |
+| `scenes/root.tscn` | Add M_DebugManager | ✅ Complete (Phase 0) |
+| `scripts/scene_structure/main.gd` | Register with ServiceLocator | ✅ Complete (Phase 0) |
+| `project.godot` | Add F1/F2/F4 input actions | ✅ Complete (Phase 0) |
