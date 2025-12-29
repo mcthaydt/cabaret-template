@@ -78,19 +78,26 @@ func _ready() -> void:
 	add_to_group("state_store")
 	_initialize_settings()
 	_initialize_slices()
-		
+
 	# Validate all slice dependencies after registration
 	if not validate_slice_dependencies():
 		push_warning("M_StateStore: Some slice dependencies are invalid")
-	
+
 	# Restore state from StateHandoff AFTER slices are initialized
 	_restore_from_handoff()
 
 	# Auto-load persisted state if enabled and file exists
 	_try_autoload_state()
-	
-	_signal_batcher = U_SIGNAL_BATCHER.new()
-	set_physics_process(true)  # Enable physics processing for signal batching
+
+	# Only create signal batcher if batching is enabled
+	var should_batch: bool = settings != null and settings.enable_signal_batching
+	if should_batch:
+		_signal_batcher = U_SIGNAL_BATCHER.new()
+		set_physics_process(true)  # Enable physics processing for signal batching
+	else:
+		_signal_batcher = null  # Disable batching - signals will emit immediately
+		set_physics_process(false)  # No need for physics processing
+
 	# Ensure batching and input work even when the SceneTree is paused.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
@@ -148,15 +155,10 @@ func _initialize_settings() -> void:
 		var history_size: int = ProjectSettings.get_setting(PROJECT_SETTING_HISTORY_SIZE, 1000)
 		if settings.max_history_size != history_size:
 			settings.max_history_size = history_size
-	
+
 	# Apply history settings to instance variables
 	_max_history_size = settings.max_history_size
-	
-	# Check if history is enabled
-	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_HISTORY):
-		_enable_history = ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_HISTORY, true)
-	else:
-		_enable_history = true  # Default to enabled in debug builds
+	_enable_history = settings.enable_history
 
 func _initialize_slices() -> void:
 	U_STATE_SLICE_MANAGER.initialize_slices(
@@ -196,7 +198,8 @@ func dispatch(action: Dictionary) -> void:
 	# Performance tracking start
 	var perf_start: int = Time.get_ticks_usec()
 	var is_immediate: bool = bool(action.get(ACTION_FLAG_IMMEDIATE, false))
-	if _signal_batcher == null:
+	# Only create batcher if batching is enabled and not yet created
+	if _signal_batcher == null and settings != null and settings.enable_signal_batching:
 		_signal_batcher = U_SIGNAL_BATCHER.new()
 	_pending_immediate_updates.clear()
 	
@@ -234,9 +237,17 @@ func dispatch(action: Dictionary) -> void:
 
 	# Emit unbatched signal
 	action_dispatched.emit(action_copy)
-	
+
+	# Emit signals immediately if batching is disabled
+	if _signal_batcher == null and not _pending_immediate_updates.is_empty():
+		for slice_name in _pending_immediate_updates.keys():
+			var snapshot_variant: Variant = _pending_immediate_updates[slice_name]
+			if snapshot_variant is Dictionary:
+				var snapshot_dict := (snapshot_variant as Dictionary).duplicate(true)
+				slice_updated.emit(slice_name, snapshot_dict)
+				_perf_signal_emit_count += 1
 	# Flush batched slice updates immediately when requested.
-	if is_immediate:
+	elif is_immediate:
 		var emitted_count := _flush_signal_batcher()
 		if emitted_count == 0 and not _pending_immediate_updates.is_empty():
 			for slice_name in _pending_immediate_updates.keys():

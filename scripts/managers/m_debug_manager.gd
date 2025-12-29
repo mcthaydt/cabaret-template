@@ -53,6 +53,10 @@ var _instantiating: Dictionary = {}
 
 # State store reference
 var _store: M_STATE_STORE = null
+var _is_debug_logging_enabled: bool = true
+var _are_debug_overlays_enabled: bool = true
+
+const PROJECT_SETTING_ENABLE_DEBUG_OVERLAY := "state/debug/enable_debug_overlay"
 
 
 func _ready() -> void:
@@ -64,31 +68,34 @@ func _ready() -> void:
 	# Add to discovery group
 	add_to_group("debug_manager")
 
-	# Initialize telemetry system
-	U_DEBUG_TELEMETRY.log_info(StringName("system"), "Debug Manager initialized")
-
 	# Get state store reference
 	await get_tree().process_frame
 	_store = U_STATE_UTILS.get_store(self)
+	_is_debug_logging_enabled = _store != null and _store.settings != null and _store.settings.enable_debug_logging
+	_refresh_debug_overlays_enabled()
 
 	# Subscribe to debug state changes
 	if _store:
 		_store.slice_updated.connect(_on_slice_updated)
 
-	# Subscribe to events for telemetry logging
-	_subscribe_to_telemetry_events()
-
-	# Cleanup old log files (auto-delete >7 days)
-	_cleanup_old_logs()
+	if _is_debug_logging_enabled:
+		U_DEBUG_TELEMETRY.log_info(StringName("system"), "Debug Manager initialized")
+		_subscribe_to_telemetry_events()
+		_cleanup_old_logs()
 
 
 func _exit_tree() -> void:
 	# Auto-save session log on exit
-	if OS.is_debug_build():
+	if OS.is_debug_build() and _is_debug_logging_enabled:
 		_save_session_log()
 
 
 func _input(event: InputEvent) -> void:
+	_refresh_debug_overlays_enabled()
+	if not _are_debug_overlays_enabled:
+		_hide_all_overlays()
+		return
+
 	# Handle F-key toggles
 	if event.is_action_pressed("debug_toggle_perf"):
 		toggle_overlay(StringName("perf_hud"))
@@ -107,6 +114,11 @@ func _input(event: InputEvent) -> void:
 
 ## Toggle overlay visibility (instantiate on first call, show/hide on subsequent)
 func toggle_overlay(overlay_id: StringName) -> void:
+	_refresh_debug_overlays_enabled()
+	if not _are_debug_overlays_enabled:
+		_hide_all_overlays()
+		return
+
 	# Guard against rapid toggle race condition
 	if _instantiating.get(overlay_id, false):
 		return
@@ -141,11 +153,13 @@ func toggle_overlay(overlay_id: StringName) -> void:
 		_overlay_instances[overlay_id] = overlay_instance
 		_instantiating[overlay_id] = false
 
-		U_DEBUG_TELEMETRY.log_debug(StringName("debug"), "Overlay instantiated: %s" % overlay_id)
+		if _is_debug_logging_enabled:
+			U_DEBUG_TELEMETRY.log_debug(StringName("debug"), "Overlay instantiated: %s" % overlay_id)
 	else:
 		# Subsequent toggle - show/hide
 		overlay_instance.visible = not overlay_instance.visible
-		U_DEBUG_TELEMETRY.log_debug(StringName("debug"), "Overlay toggled: %s (visible=%s)" % [overlay_id, overlay_instance.visible])
+		if _is_debug_logging_enabled:
+			U_DEBUG_TELEMETRY.log_debug(StringName("debug"), "Overlay toggled: %s (visible=%s)" % [overlay_id, overlay_instance.visible])
 
 
 ## Get current overlay visibility state
@@ -154,8 +168,31 @@ func is_overlay_visible(overlay_id: StringName) -> bool:
 	return overlay_instance != null and overlay_instance.visible
 
 
+func _refresh_debug_overlays_enabled() -> void:
+	var enable_project_setting := true
+	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_DEBUG_OVERLAY):
+		enable_project_setting = bool(ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_DEBUG_OVERLAY, true))
+
+	var enable_store_setting := true
+	if _store != null and _store.settings != null:
+		enable_store_setting = bool(_store.settings.enable_debug_overlay)
+
+	_are_debug_overlays_enabled = enable_project_setting and enable_store_setting
+
+
+func _hide_all_overlays() -> void:
+	for overlay_id in _overlay_instances.keys():
+		var overlay_instance: Node = _overlay_instances.get(overlay_id)
+		if overlay_instance == null or not is_instance_valid(overlay_instance):
+			continue
+		overlay_instance.visible = false
+
+
 ## Subscribe to events for telemetry logging
 func _subscribe_to_telemetry_events() -> void:
+	if not _is_debug_logging_enabled:
+		return
+
 	# ECS Events via U_ECSEventBus (subscribe/publish pattern, not signals)
 	U_ECS_EVENT_BUS.subscribe(StringName("checkpoint_activated"), _on_checkpoint_activated)
 	U_ECS_EVENT_BUS.subscribe(StringName("entity_death"), _on_entity_death)
@@ -180,42 +217,58 @@ func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
 
 ## Telemetry event handlers (ECS EventBus callbacks receive payload parameter)
 func _on_checkpoint_activated(payload: Variant) -> void:
+	if not _is_debug_logging_enabled:
+		return
 	var data: Dictionary = payload if payload is Dictionary else {}
 	U_DEBUG_TELEMETRY.log_info(StringName("checkpoint"), "Checkpoint activated", data)
 
 
 func _on_entity_death(payload: Variant) -> void:
+	if not _is_debug_logging_enabled:
+		return
 	var data: Dictionary = payload if payload is Dictionary else {}
 	U_DEBUG_TELEMETRY.log_info(StringName("gameplay"), "Entity death", data)
 
 
 func _on_damage_zone_entered(payload: Variant) -> void:
+	if not _is_debug_logging_enabled:
+		return
 	var data: Dictionary = payload if payload is Dictionary else {}
 	U_DEBUG_TELEMETRY.log_debug(StringName("gameplay"), "Damage zone entered", data)
 
 
 func _on_victory_triggered(payload: Variant) -> void:
+	if not _is_debug_logging_enabled:
+		return
 	var data: Dictionary = payload if payload is Dictionary else {}
 	U_DEBUG_TELEMETRY.log_info(StringName("gameplay"), "Victory triggered", data)
 
 
 func _on_save_started(payload: Variant) -> void:
+	if not _is_debug_logging_enabled:
+		return
 	var data: Dictionary = payload if payload is Dictionary else {}
 	U_DEBUG_TELEMETRY.log_info(StringName("save"), "Save started", data)
 
 
 func _on_save_completed(payload: Variant) -> void:
+	if not _is_debug_logging_enabled:
+		return
 	var data: Dictionary = payload if payload is Dictionary else {}
 	U_DEBUG_TELEMETRY.log_info(StringName("save"), "Save completed", data)
 
 
 func _on_save_failed(payload: Variant) -> void:
+	if not _is_debug_logging_enabled:
+		return
 	var data: Dictionary = payload if payload is Dictionary else {}
 	U_DEBUG_TELEMETRY.log_error(StringName("save"), "Save failed", data)
 
 
 ## Handle Redux actions for telemetry
 func _on_action_dispatched(action: Dictionary) -> void:
+	if not _is_debug_logging_enabled:
+		return
 	var action_type: String = action.get("type", "")
 
 	match action_type:
@@ -232,6 +285,8 @@ func _on_action_dispatched(action: Dictionary) -> void:
 
 ## Cleanup old log files (>7 days)
 func _cleanup_old_logs() -> void:
+	if not _is_debug_logging_enabled:
+		return
 	var logs_dir := "user://logs/"
 
 	# Ensure directory exists
@@ -264,6 +319,8 @@ func _cleanup_old_logs() -> void:
 
 ## Save session log on exit
 func _save_session_log() -> void:
+	if not _is_debug_logging_enabled:
+		return
 	var logs_dir := "user://logs/"
 
 	# Ensure directory exists
@@ -278,6 +335,7 @@ func _save_session_log() -> void:
 	var error := U_DEBUG_TELEMETRY.export_to_file(file_path)
 
 	if error == OK:
-		print("Debug Manager: Session log saved to %s" % file_path)
+		if _is_debug_logging_enabled:
+			print("Debug Manager: Session log saved to %s" % file_path)
 	else:
 		push_error("Debug Manager: Failed to save session log: %s" % error)

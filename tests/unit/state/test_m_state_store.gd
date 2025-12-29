@@ -443,3 +443,145 @@ func test_history_respects_project_setting_state_debug_history_size() -> void:
 		ProjectSettings.set_setting("state/debug/history_size", original_setting)
 	else:
 		ProjectSettings.clear("state/debug/history_size")
+
+func test_enable_history_false_prevents_history_recording() -> void:
+	# Create a store with history disabled
+	var test_store: M_StateStore = M_StateStore.new()
+	test_store.settings = RS_StateStoreSettings.new()
+	test_store.settings.enable_history = false  # Disable history
+	test_store.gameplay_initial_state = RS_GameplayInitialState.new()
+	test_store.settings_initial_state = RS_SettingsInitialState.new()
+	add_child(test_store)
+	autofree(test_store)
+	await get_tree().process_frame
+
+	# Dispatch some actions
+	test_store.dispatch(U_GameplayActions.pause_game())
+	test_store.dispatch(U_GameplayActions.unpause_game())
+	test_store.dispatch(U_GameplayActions.pause_game())
+
+	var history: Array = test_store.get_action_history()
+	assert_eq(history.size(), 0, "History should be empty when enable_history is false")
+
+func test_enable_history_true_allows_history_recording() -> void:
+	# Create a store with history explicitly enabled
+	var test_store: M_StateStore = M_StateStore.new()
+	test_store.settings = RS_StateStoreSettings.new()
+	test_store.settings.enable_history = true  # Explicitly enable history
+	test_store.gameplay_initial_state = RS_GameplayInitialState.new()
+	test_store.settings_initial_state = RS_SettingsInitialState.new()
+	add_child(test_store)
+	autofree(test_store)
+	await get_tree().process_frame
+
+	# Dispatch some actions
+	test_store.dispatch(U_GameplayActions.pause_game())
+	test_store.dispatch(U_GameplayActions.unpause_game())
+
+	var history: Array = test_store.get_action_history()
+	assert_eq(history.size(), 2, "History should contain 2 actions when enable_history is true")
+
+func test_enable_history_defaults_to_true() -> void:
+	# Create a store with default settings
+	var test_store: M_StateStore = M_StateStore.new()
+	test_store.settings = RS_StateStoreSettings.new()
+	# Don't set enable_history - should default to true
+	test_store.gameplay_initial_state = RS_GameplayInitialState.new()
+	test_store.settings_initial_state = RS_SettingsInitialState.new()
+	add_child(test_store)
+	autofree(test_store)
+	await get_tree().process_frame
+
+	# Dispatch an action
+	test_store.dispatch(U_GameplayActions.pause_game())
+
+	var history: Array = test_store.get_action_history()
+	assert_eq(history.size(), 1, "History should be enabled by default")
+
+func test_enable_signal_batching_true_batches_signals_per_frame() -> void:
+	# Create a store with signal batching enabled
+	var test_store: M_StateStore = M_StateStore.new()
+	test_store.settings = RS_StateStoreSettings.new()
+	test_store.settings.enable_signal_batching = true  # Enable batching
+	test_store.settings.enable_persistence = false  # Prevent file I/O during tests
+	test_store.gameplay_initial_state = RS_GameplayInitialState.new()
+	test_store.settings_initial_state = RS_SettingsInitialState.new()
+	add_child(test_store)
+	autofree(test_store)
+	await get_tree().process_frame
+
+	# Track slice_updated emissions using class member variable
+	slice_updated_count = 0
+	test_store.slice_updated.connect(func(_slice_name: StringName, _slice_state: Dictionary) -> void:
+		slice_updated_count += 1
+	)
+
+	# Dispatch 3 actions that affect the same slice
+	test_store.dispatch(U_GameplayActions.pause_game())
+	test_store.dispatch(U_GameplayActions.unpause_game())
+	test_store.dispatch(U_GameplayActions.pause_game())
+
+	# Before physics frame, no signals should be emitted yet
+	assert_eq(slice_updated_count, 0, "Signals should be batched before physics frame")
+
+	# Wait for physics frame to flush batched signals
+	await get_tree().physics_frame
+	await get_tree().process_frame  # Ensure signal emission completes
+
+	# After physics frame, exactly 1 batched signal should be emitted
+	assert_eq(slice_updated_count, 1, "Batched signals should emit once per frame")
+
+func test_enable_signal_batching_false_emits_signals_immediately() -> void:
+	# Create a store with signal batching disabled
+	var test_store: M_StateStore = M_StateStore.new()
+	test_store.settings = RS_StateStoreSettings.new()
+	test_store.settings.enable_signal_batching = false  # Disable batching
+	test_store.settings.enable_persistence = false  # Prevent file I/O during tests
+	test_store.gameplay_initial_state = RS_GameplayInitialState.new()
+	test_store.settings_initial_state = RS_SettingsInitialState.new()
+	add_child(test_store)
+	autofree(test_store)
+	await get_tree().process_frame
+
+	# Track slice_updated emissions using class member variable
+	slice_updated_count = 0
+	test_store.slice_updated.connect(func(_slice_name: StringName, _slice_state: Dictionary) -> void:
+		slice_updated_count += 1
+	)
+
+	# Dispatch 3 actions
+	test_store.dispatch(U_GameplayActions.pause_game())
+	test_store.dispatch(U_GameplayActions.unpause_game())
+	test_store.dispatch(U_GameplayActions.pause_game())
+
+	# Signals should be emitted immediately (3 signals for 3 dispatches)
+	assert_eq(slice_updated_count, 3, "Signals should emit immediately when batching is disabled")
+
+func test_enable_signal_batching_defaults_to_true() -> void:
+	# Create a store with default settings
+	var test_store: M_StateStore = M_StateStore.new()
+	test_store.settings = RS_StateStoreSettings.new()
+	# Don't set enable_signal_batching - should default to true
+	test_store.settings.enable_persistence = false  # Prevent file I/O during tests
+	test_store.gameplay_initial_state = RS_GameplayInitialState.new()
+	test_store.settings_initial_state = RS_SettingsInitialState.new()
+	add_child(test_store)
+	autofree(test_store)
+	await get_tree().process_frame
+
+	# Track slice_updated emissions using class member variable
+	slice_updated_count = 0
+	test_store.slice_updated.connect(func(_slice_name: StringName, _slice_state: Dictionary) -> void:
+		slice_updated_count += 1
+	)
+
+	# Dispatch actions
+	test_store.dispatch(U_GameplayActions.pause_game())
+	test_store.dispatch(U_GameplayActions.unpause_game())
+
+	# Before physics frame, no signals should be emitted (batching is default)
+	assert_eq(slice_updated_count, 0, "Batching should be enabled by default")
+
+	await get_tree().physics_frame
+	await get_tree().process_frame  # Ensure signal emission completes
+	assert_eq(slice_updated_count, 1, "Batched signal should emit after physics frame")

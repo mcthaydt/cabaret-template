@@ -4,6 +4,5 @@
 
 [resource]
 script = ExtResource("1_state_settings")
-enable_persistence = false
-enable_debug_logging = true
 enable_debug_overlay = true
+enable_debug_logging = true
