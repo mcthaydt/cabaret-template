@@ -1,12 +1,15 @@
 # Debug Manager Implementation Tasks
 
-**Progress:** Not started (docs aligned 2025-12-28)
+**Progress:** Phase 0 Complete (2025-12-28)
 
-**Status:** Ready for Implementation
+**Status:** In Progress
 
 ---
 
 **Recent Updates (2025-12-28):**
+- **Phase 0 Complete**: M_DebugManager created, registered, and verified compiling successfully
+- **Stub Implementations**: Created U_DEBUG_TELEMETRY stub (full implementation in Phase 2)
+- **Integration Fixes**: Fixed ECS EventBus API mismatch, overlay preload failures, method naming conflicts
 - **TDD Reorganization**: Phases 1, 2, and 5 now use Test-Driven Development (tests written before implementation)
   - Phase 1: `test_debug_reducer.gd` and `test_debug_selectors.gd` written first
   - Phase 2: `test_debug_telemetry.gd` written first
