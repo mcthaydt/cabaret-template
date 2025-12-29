@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://bj8qv3m4n5r2k"]
 
-[ext_resource type="Script" path="res://scenes/debug/debug_perf_hud.gd" id="1_perf_hud"]
-[ext_resource type="Script" path="res://scripts/debug/helpers/u_debug_frame_graph.gd" id="2_frame_graph"]
+[ext_resource type="Script" uid="uid://gffv7dlekrd3" path="res://scenes/debug/debug_perf_hud.gd" id="1_perf_hud"]
+[ext_resource type="Script" uid="uid://drr8ywbs0rnf2" path="res://scripts/debug/helpers/u_debug_frame_graph.gd" id="2_frame_graph"]
 
 [node name="SC_DebugPerfHUD" type="CanvasLayer"]
 process_mode = 3
@@ -9,7 +9,6 @@ layer = 100
 script = ExtResource("1_perf_hud")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
-anchors_preset = 0
 offset_right = 300.0
 offset_bottom = 400.0
 theme_override_constants/margin_left = 10
