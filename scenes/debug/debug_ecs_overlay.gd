@@ -52,6 +52,10 @@ const INSPECTOR_UPDATE_INTERVAL := 0.1  # 100ms
 var _active_tag_filter: String = ""
 var _active_component_filter: StringName = StringName()
 
+## Resource expansion state (persists across inspector updates)
+## Key: "component_type:property_name", Value: bool (expanded or not)
+var _expanded_resources: Dictionary = {}
+
 
 func _ready() -> void:
 	# Get ECS manager from current scene (scene-specific, not in ServiceLocator)
@@ -278,6 +282,9 @@ func _update_component_inspector() -> void:
 
 			# If property is a Resource, make it expandable
 			if value is Resource and property.name == "settings":
+				# Generate unique key for this resource expansion state
+				var resource_key: String = "%s:%s" % [comp_type, property.name]
+
 				var container := VBoxContainer.new()
 				_component_details_container.add_child(container)
 
@@ -286,7 +293,6 @@ func _update_component_inspector() -> void:
 				container.add_child(header_box)
 
 				var toggle_button := Button.new()
-				toggle_button.text = "▶"
 				toggle_button.toggle_mode = true
 				toggle_button.custom_minimum_size = Vector2(30, 0)
 				header_box.add_child(toggle_button)
@@ -295,10 +301,15 @@ func _update_component_inspector() -> void:
 				resource_label.text = "%s: %s" % [property.name, value.get_class()]
 				header_box.add_child(resource_label)
 
-				# Resource properties container (hidden by default)
+				# Resource properties container
 				var resource_props := VBoxContainer.new()
-				resource_props.visible = false
 				container.add_child(resource_props)
+
+				# Restore expansion state from previous update (defaults to false)
+				var is_expanded: bool = _expanded_resources.get(resource_key, false)
+				resource_props.visible = is_expanded
+				toggle_button.button_pressed = is_expanded
+				toggle_button.text = "▼" if is_expanded else "▶"
 
 				# Get resource properties
 				var resource_property_list: Array = value.get_property_list()
@@ -315,8 +326,9 @@ func _update_component_inspector() -> void:
 					res_prop_label.text = "    %s: %s" % [res_prop.name, str(res_value)]
 					resource_props.add_child(res_prop_label)
 
-				# Connect toggle
+				# Connect toggle - update state and UI
 				toggle_button.toggled.connect(func(pressed: bool):
+					_expanded_resources[resource_key] = pressed
 					resource_props.visible = pressed
 					toggle_button.text = "▼" if pressed else "▶"
 				)
@@ -399,6 +411,9 @@ func _on_entity_list_item_selected(index: int) -> void:
 
 	_selected_entity_id = _filtered_entity_ids[entity_index]
 	_selected_entity_label.text = "Entity: %s" % String(_selected_entity_id)
+
+	# Clear resource expansion state when switching entities
+	_expanded_resources.clear()
 
 	# Immediately update inspector (don't wait for throttle)
 	_update_component_inspector()
