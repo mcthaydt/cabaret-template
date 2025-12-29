@@ -212,12 +212,22 @@ func _update_pagination_controls() -> void:
 ## Update component inspector for selected entity
 func _update_component_inspector() -> void:
 	if _selected_entity_id == StringName() or not is_instance_valid(_ecs_manager):
+		print("DEBUG: Early return - no entity_id or manager")
 		return
 
 	# Get entity from ID
 	var entity := _ecs_manager.get_entity_by_id(_selected_entity_id)
 	if not is_instance_valid(entity):
+		print("DEBUG: Entity lookup failed for ID: ", _selected_entity_id)
+		# Show error in UI
+		for child in _component_details_container.get_children():
+			child.queue_free()
+		var error_label := Label.new()
+		error_label.text = "Entity not found: %s" % String(_selected_entity_id)
+		_component_details_container.add_child(error_label)
 		return
+
+	print("DEBUG: Found entity: ", entity.name, " (", entity.get_class(), ")")
 
 	# Clear existing details
 	for child in _component_details_container.get_children():
@@ -225,6 +235,7 @@ func _update_component_inspector() -> void:
 
 	# Get components for selected entity (returns Dictionary: StringName -> Array)
 	var components_dict := _ecs_manager.get_components_for_entity(entity)
+	print("DEBUG: components_dict keys: ", components_dict.keys(), " size: ", components_dict.size())
 
 	if components_dict.is_empty():
 		var no_components_label := Label.new()
