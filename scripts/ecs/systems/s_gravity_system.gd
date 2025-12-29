@@ -13,6 +13,7 @@ class_name S_GravitySystem
 
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 
 func process_tick(delta: float) -> void:
 	# Skip processing if game is paused
@@ -27,7 +28,12 @@ func process_tick(delta: float) -> void:
 		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
 		if U_GameplaySelectors.get_is_paused(gameplay_state):
 			return
-	
+
+		# Phase 5: Debug Manager - Skip gravity when disabled
+		var state := store.get_state()
+		if U_DebugSelectors.is_gravity_disabled(state):
+			return
+
 	var manager := get_manager()
 	if manager == null:
 		return

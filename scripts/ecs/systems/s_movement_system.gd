@@ -7,6 +7,7 @@ class_name S_MovementSystem
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
@@ -79,6 +80,12 @@ func process_tick(delta: float) -> void:
 			if sprint_multiplier <= 0.0:
 				sprint_multiplier = 1.0
 			current_max_speed = movement_component.settings.max_speed * sprint_multiplier
+
+		# Phase 5: Debug Manager - Apply speed modifier
+		if store != null:
+			var redux_state := store.get_state()
+			var speed_modifier: float = U_DebugSelectors.get_speed_modifier(redux_state)
+			current_max_speed *= speed_modifier
 
 		var has_input: bool = input_vector.length() > 0.0
 		var desired_velocity: Vector3 = Vector3.ZERO

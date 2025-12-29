@@ -640,6 +640,114 @@ func _on_load_pressed():
 - ❌ Modifying state during load (let StateHandoff handle restoration)
 - ❌ Attempting to delete autosave slot (returns `ERR_UNAUTHORIZED`)
 
+## Debug Manager Patterns (Phase 5 Complete)
+
+### Overview
+`M_DebugManager` orchestrates all development-time debugging tools. Debug toggles are stored in the `debug` Redux slice and queried by ECS systems via `U_DebugSelectors`.
+
+### Debug Toggles Available
+- **god_mode**: Player takes no damage (S_HealthSystem)
+- **infinite_jump**: Player can jump in air without ground check (S_JumpSystem)
+- **speed_modifier**: Movement speed multiplier 0.25-4.0 (S_MovementSystem)
+- **disable_gravity**: Gravity system skips processing (S_GravitySystem)
+- **disable_input**: Input system skips processing (S_InputSystem)
+- **time_scale**: Engine.time_scale control 0.0-4.0 (M_DebugManager)
+
+### Using Debug Selectors in ECS Systems
+
+Systems query debug state via `U_DebugSelectors` in `process_tick()`:
+
+**Pattern 1: Early return (skip processing entirely)**
+```gdscript
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
+
+func process_tick(delta: float) -> void:
+	var store := U_StateUtils.get_store(self)
+	if store:
+		var state := store.get_state()
+		if U_DebugSelectors.is_gravity_disabled(state):
+			return  # Skip gravity entirely
+
+	# Normal gravity processing...
+```
+
+**Pattern 2: Conditional modification (skip specific checks)**
+```gdscript
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
+
+func process_tick(delta: float) -> void:
+	var store := U_StateUtils.get_store(self)
+	if store:
+		var state := store.get_state()
+		if U_DebugSelectors.is_god_mode(state):
+			return  # Skip damage processing
+
+	# Apply damage...
+```
+
+**Pattern 3: Value modification (multiply/scale values)**
+```gdscript
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
+
+func process_tick(delta: float) -> void:
+	var store := U_StateUtils.get_store(self)
+	var current_max_speed: float = movement_component.settings.max_speed
+
+	if store:
+		var state := store.get_state()
+		var speed_modifier: float = U_DebugSelectors.get_speed_modifier(state)
+		current_max_speed *= speed_modifier
+
+	# Apply modified speed...
+```
+
+**Pattern 4: Bypass condition (ignore normal checks)**
+```gdscript
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
+
+func process_tick(delta: float) -> void:
+	var store := U_StateUtils.get_store(self)
+	var infinite_jump_enabled := false
+	if store:
+		var state := store.get_state()
+		infinite_jump_enabled = U_DebugSelectors.is_infinite_jump(state)
+
+	# Only check ground requirement when infinite_jump is disabled
+	if not infinite_jump_enabled and not component.can_jump(now):
+		return
+
+	# Perform jump...
+```
+
+### Debug State Persistence
+- The `debug` slice is marked as **transient** (never persisted to save files)
+- Debug toggles reset to defaults on game restart
+- Use `U_DebugActions` to dispatch debug state changes:
+  ```gdscript
+  store.dispatch(U_DebugActions.set_god_mode(true))
+  store.dispatch(U_DebugActions.set_speed_modifier(2.0))
+  store.dispatch(U_DebugActions.set_time_scale(0.5))
+  ```
+
+### Integration with Dependency Injection (Testing)
+Systems support `@export var state_store: I_StateStore` for isolated testing with `MockStateStore`:
+```gdscript
+var mock_store := MockStateStore.new()
+var system := S_HealthSystem.new()
+system.state_store = mock_store
+mock_store.set_slice(StringName("debug"), {"god_mode": true})
+# Test system behavior with god_mode enabled
+```
+
+### F-Key Overlays
+- **F1**: Performance HUD (FPS, memory, draw calls, ECS/State metrics)
+- **F2**: ECS Overlay (entity browser, component inspector, system view)
+- **F3**: State Overlay (Redux state JSON viewer + action history)
+- **F4**: Toggle Menu (debug cheats, visual aids, system toggles)
+
+### Release Build Gating
+`M_DebugManager` automatically removes itself in release builds via `OS.is_debug_build()` check. All debug functionality is stripped with zero runtime overhead.
+
 ## Test Commands
 
 - Run ECS tests
