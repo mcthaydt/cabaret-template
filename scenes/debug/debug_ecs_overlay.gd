@@ -278,12 +278,12 @@ func _populate_system_list() -> void:
 	var systems := _ecs_manager.get_systems()
 
 	# Sort by priority (lower = earlier execution)
-	systems.sort_custom(func(a, b): return a.get_priority() < b.get_priority())
+	systems.sort_custom(func(a, b): return a.execution_priority < b.execution_priority)
 
 	for system in systems:
 		if system is BaseECSSystem:
 			var system_name: String = system.get_class()
-			var priority: int = system.get_priority()
+			var priority: int = system.execution_priority
 			var enabled: bool = not system.is_debug_disabled()
 			var status_icon: String = "✓" if enabled else "✗"
 			_system_list.add_item("%s %s (Priority: %d)" % [status_icon, system_name, priority])
@@ -360,7 +360,7 @@ func _on_system_list_item_selected(index: int) -> void:
 		return
 
 	var systems := _ecs_manager.get_systems()
-	systems.sort_custom(func(a, b): return a.get_priority() < b.get_priority())
+	systems.sort_custom(func(a, b): return a.execution_priority < b.execution_priority)
 
 	if index < 0 or index >= systems.size():
 		return
