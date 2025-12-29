@@ -159,7 +159,7 @@ When `get_tree().paused = true`:
 
 **UIOverlayStack** (CanvasLayer):
 ```gdscript
-# In root.tscn
+# In main.tscn
 UIOverlayStack (CanvasLayer)
 ├── layer = 100  # High layer for visibility
 ├── process_mode = PROCESS_MODE_ALWAYS
@@ -168,7 +168,7 @@ UIOverlayStack (CanvasLayer)
 
 **TransitionOverlay** (CanvasLayer):
 ```gdscript
-# In root.tscn
+# In main.tscn
 TransitionOverlay (CanvasLayer)
 ├── layer = 200  # Highest layer (covers everything)
 ├── process_mode = PROCESS_MODE_ALWAYS
@@ -213,10 +213,10 @@ TransitionOverlay (CanvasLayer)
 
 ### Root Scene Persistence
 
-**Critical Insight**: root.tscn never exits tree (never unloaded):
-- M_StateStore in root.tscn never calls `_exit_tree()` during normal operation
+**Critical Insight**: main.tscn never exits tree (never unloaded):
+- M_StateStore in main.tscn never calls `_exit_tree()` during normal operation
 - StateHandoff is safety mechanism for edge cases (hot reload, unexpected reload)
-- Primary persistence: root.tscn stays in memory entire session
+- Primary persistence: main.tscn stays in memory entire session
 - Child scenes (gameplay_base.tscn) DO call `_exit_tree()` when removed from ActiveSceneContainer
 
 **Testing Required**:
@@ -300,7 +300,7 @@ U_StateUtils.get_store: Multiple stores found, using first
 - Both stores join "state_store" group → systems find 2
 
 **Phase 2 Will Fix This**:
-- root.tscn: M_StateStore (persistent)
+- main.tscn: M_StateStore (persistent)
 - gameplay_base.tscn: NO M_StateStore (extracted)
 - Result: Only one store in tree → warning disappears
 
@@ -400,7 +400,7 @@ const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_ini
 **Validation**:
 - Create RS_SceneInitialState resource
 - Create SceneReducer with reduce() method
-- Assign scene_initial_state in root.tscn
+- Assign scene_initial_state in main.tscn
 - Verify scene slice appears in store.get_state()
 - Verify transient_fields excluded from save_state()
 
@@ -524,7 +524,7 @@ tween.finished.connect(func():
 - Quaternion interpolation is automatic when tweening rotation properties
 - `set_parallel(true)` ensures all three properties animate simultaneously
 - `TRANS_SINE` with `EASE_IN_OUT` provides smoothest visual result
-- Transition camera should be independent of scene tree (persist in root.tscn)
+- Transition camera should be independent of scene tree (persist in main.tscn)
 
 **Integration with Trans_Fade (FR-074)**:
 - Start camera blend and fade-out simultaneously
@@ -540,7 +540,7 @@ tween.finished.connect(func():
 2. **Process Mode**: Set `PROCESS_MODE_ALWAYS` on UI overlays, `PROCESS_MODE_PAUSABLE` on gameplay
 3. **Scene Lifecycle**: Hook StateHandoff into `_exit_tree()`/`_ready()` for automatic preservation
 4. **CanvasLayer Overlays**: Use high `layer` values (100-200) with `PROCESS_MODE_ALWAYS` for pause/transition overlays
-5. **Root Persistence**: root.tscn never unloads, StateHandoff is safety net for edge cases
+5. **Root Persistence**: main.tscn never unloads, StateHandoff is safety net for edge cases
 6. **Camera Blending**: Tween-based interpolation with TRANS_SINE/EASE_IN_OUT provides smooth camera transitions; blend position, rotation, and FOV in parallel over 0.5s
 
 ---

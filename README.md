@@ -13,13 +13,13 @@ Cabaret Template is an opinionated Godot 4.5 starter project for building a smal
 
 1. Install **Godot 4.5**.
 2. Open `project.godot` in Godot.
-3. Press Play: `scenes/root.tscn` boots persistent managers and loads the initial scene (`main_menu` by default).
+3. Press Play: `scenes/main.tscn` boots persistent managers and loads the initial scene (`main_menu` by default).
 
 ## What You Get
 
 ### Features
 
-- **Persistent root scene** (`scenes/root.tscn`) with global managers and containers
+- **Persistent root scene** (`scenes/main.tscn`) with global managers and containers
 - **Scene transitions** (`instant`, `fade`, `loading`) + transition queue with priorities
 - **UI overlay stack** (pause/settings/rebind/etc) driven by navigation state
 - **Scene registry**:
@@ -52,7 +52,7 @@ Cabaret Template is an opinionated Godot 4.5 starter project for building a smal
 
 ### Runtime structure
 
-`scenes/root.tscn` persists for the entire session:
+`scenes/main.tscn` persists for the entire session:
 
 ```
 Root
@@ -76,7 +76,7 @@ Gameplay scenes (e.g., `scenes/gameplay/gameplay_base.tscn`) each include their 
 
 ### Service discovery
 
-On boot, `scripts/scene_structure/main.gd` registers manager nodes in `U_ServiceLocator` for fast access and validates declared dependencies. Most code should use:
+On boot, `scripts/core/main.gd` registers manager nodes in `U_ServiceLocator` for fast access and validates declared dependencies. Most code should use:
 
 - `U_ServiceLocator` for global managers
 - `U_StateUtils` for store lookup/readiness
@@ -152,4 +152,3 @@ GODOT_BIN="/path/to/Godot" tools/run_gut_suite.sh -gdir=res://tests/unit
 - Manager dependency graph: `docs/architecture/dependency_graph.md`
 - ECS ↔ state contract: `docs/architecture/ecs_state_contract.md`
 - Scene registry workflow: `resources/scene_registry/README.md`
-

@@ -39,7 +39,7 @@ tests/
 ### Managers (`scripts/managers`)
 - `m_input_profile_manager.gd` – Loads/activates `RS_InputProfile`, applies bindings to `InputMap`, exposes profile APIs, emits `profile_switched`.
 - `m_input_device_manager.gd` – Detects active device, tracks last-used device, emits device-change signals, updates HUD prompt state.
-- Both managers live under `Managers` in `scenes/root.tscn` (siblings to `M_StateStore`/`M_SceneManager`) and join groups `"input_profile_manager"` / `"input_device_manager"`.
+- Both managers live under `Managers` in `scenes/main.tscn` (siblings to `M_StateStore`/`M_SceneManager`) and join groups `"input_profile_manager"` / `"input_device_manager"`.
 
 ### ECS Components (`scripts/ecs/components`)
 - `c_input_component.gd` – Existing keyboard/mouse component (extended but stays in place).
@@ -74,7 +74,7 @@ tests/
 
 ## Scenes & UI
 
-### Root Scene (`scenes/root.tscn`)
+### Root Scene (`scenes/main.tscn`)
 - Add `M_InputProfileManager` and `M_InputDeviceManager` under `Managers`.
 - Ensure both nodes call `process_mode = PROCESS_MODE_ALWAYS` so device detection/profile updates run during pause/transition windows.
 

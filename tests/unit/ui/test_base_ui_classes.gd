@@ -2,7 +2,6 @@ extends GutTest
 
 const BasePanel := preload("res://scripts/ui/base/base_panel.gd")
 const BaseOverlay := preload("res://scripts/ui/base/base_overlay.gd")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const RS_BootInitialState := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
 const RS_MenuInitialState := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
@@ -56,7 +55,7 @@ func test_base_panel_exposes_state_store_reference() -> void:
 	add_child_autofree(panel)
 	await wait_process_frames(3)
 
-	assert_is(panel.get_store(), M_StateStore,
+	assert_true(panel.get_store() is M_StateStore,
 		"BasePanel should store an M_StateStore reference after ready")
 	assert_eq(panel.get_store(), store,
 		"BasePanel should resolve the same store instance in the scene tree")

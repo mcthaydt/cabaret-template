@@ -74,7 +74,7 @@ func before_each() -> void:
 	_root_node.add_child(_scene_manager)
 
 	# Register managers with ServiceLocator (Phase 10B-7: T141c)
-	# This is normally done by root.tscn, but tests need to do it manually
+	# This is normally done by main.tscn, but tests need to do it manually
 	U_ServiceLocator.register(StringName("state_store"), _state_store)
 	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
 	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager)

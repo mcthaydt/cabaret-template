@@ -84,7 +84,7 @@ else:
 2. `M_SceneManager` - populates scene state (current_scene_id, scene_stack)
 3. `M_CursorManager` - executes cursor state changes
 
-**Required Node Order in root.tscn**:
+**Required Node Order in main.tscn**:
 ```
 Root
 └─ Managers

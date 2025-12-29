@@ -35,7 +35,7 @@ var _state_store: M_StateStore = null
 
 
 func _ready() -> void:
-	# Get state store (persistent in root.tscn, registered with ServiceLocator)
+	# Get state store (persistent in main.tscn, registered with ServiceLocator)
 	_state_store = U_ServiceLocator.get_service(StringName("state_store")) as M_StateStore
 
 

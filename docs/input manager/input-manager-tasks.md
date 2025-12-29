@@ -49,10 +49,10 @@
 - [x] Task 2.3: Create M_InputProfileManager (TDD) - FR-014, FR-015, FR-089
   - Notes (2025-11-07): Scaffolded manager, wired to root, and added unit tests:
     - Manager: `scripts/managers/m_input_profile_manager.gd`
-    - Wiring: `scenes/root.tscn`
+    - Wiring: `scenes/main.tscn`
     - Tests: `tests/unit/managers/test_m_input_profile_manager.gd`
 - [x] Task 2.4: Add M_InputProfileManager to Root Scene - FR-089
-  - Notes (2025-11-07): `M_InputProfileManager` node added under `Managers` in `scenes/root.tscn` and joins `input_profile_manager` group at runtime.
+  - Notes (2025-11-07): `M_InputProfileManager` node added under `Managers` in `scenes/main.tscn` and joins `input_profile_manager` group at runtime.
 - [x] Task 2.5: Create Profile Selection UI - FR-014
   - Notes (2025-11-07): Added `scenes/ui/input_profile_selector.tscn` with `scripts/ui/input_profile_selector.gd`. Lists available profiles and calls manager `switch_profile()`.
 - [x] Task 2.6: Integration Testing - FR-133
@@ -66,7 +66,7 @@
     - Integration test: `tests/unit/integration/test_input_profile_selector_overlay.gd` (push pause → open selector → verify overlay active)
 
 - [x] Task 2.8: Manual QA — Open Profile Selector from Pause Menu
-  - Steps: Run `scenes/root.tscn`, press ESC, click "Input Profiles".
+  - Steps: Run `scenes/main.tscn`, press ESC, click "Input Profiles".
   - Expected: Overlay appears with dropdown listing profiles.
 
 - [x] Task 2.9: Manual QA — Switch to Alternate (Arrows Only)
@@ -105,7 +105,7 @@
 - _Manual QA pending (2025-11-07): Physical controller pass has not been performed yet; keep the following scenarios unchecked until verified._
 
 - [x] Task 3.8: Manual QA — Basic Gamepad Input
-  - Steps: Connect gamepad, run `scenes/root.tscn`, press ESC to unpause
+  - Steps: Connect gamepad, run `scenes/main.tscn`, press ESC to unpause
   - Expected: Left stick moves player, right stick rotates camera (if implemented)
 
 - [x] Task 3.9: Manual QA — Device Switching (Keyboard → Gamepad)
@@ -174,7 +174,7 @@
   - Notes (2025-11-10): Implemented device manager with auto-detection for keyboard/mouse, gamepad, and touchscreen inputs.
     - Manager: `scripts/managers/m_input_device_manager.gd`
     - Tests: `tests/unit/managers/test_m_input_device_manager.gd`
-    - Wiring: Added to `scenes/root.tscn` under `Managers` (joins `input_device_manager` group)
+    - Wiring: Added to `scenes/main.tscn` under `Managers` (joins `input_device_manager` group)
     - Features: Device switching on input activity, gamepad hot-plug handling, last-used device tracking, state store integration
 - [x] Task 4.2: Implement Device Detection Logic (TDD) - FR-058, FR-060, FR-063, FR-064
   - Notes (2025-11-10): Device detection logic implemented in `M_InputDeviceManager._input()` and `_unhandled_input()`.
@@ -203,7 +203,7 @@
     - Tests: `tests/unit/ui/test_button_prompt.gd`, `tests/unit/ui/test_hud_button_prompts.gd`
     - Behavior: Listens to `M_InputDeviceManager.device_changed` signal, refreshes prompt texture/label dynamically
 - [x] Task 4.6: Add M_InputDeviceManager to Root Scene - FR-090
-  - Notes (2025-11-10): `M_InputDeviceManager` node added to `scenes/root.tscn` under `Managers` container.
+  - Notes (2025-11-10): `M_InputDeviceManager` node added to `scenes/main.tscn` under `Managers` container.
     - Process mode: `PROCESS_MODE_ALWAYS` to track device changes even when paused
     - Group membership: Joins `input_device_manager` group on `_ready()` for discovery via `get_tree().get_first_node_in_group()`
 - [x] Task 4.7: Integration Testing - FR-134
@@ -790,7 +790,7 @@
     ```
   - Visibility rules: HIDDEN during scene transitions, HIDDEN during pause menu, HIDDEN when gamepad/keyboard connected
   - Create `scenes/ui/mobile_controls.tscn`
-  - Add to `root.tscn`
+  - Add to `main.tscn`
   - **Expected:** Tests still PASS ✅
   - **User Decision Note:** Transitions hide controls (changed from "visible with gray" to "hidden" for cleaner visual)
   - **Performance Note:** Tween is GPU-accelerated, better for mobile battery life than _process() checks
@@ -1010,7 +1010,7 @@ The following tasks were deferred or absorbed into UI Manager:
 
 ### Architecture Constraints
 
-- **No autoloads**: Managers live in root.tscn with group discovery (e.g., "input_profile_manager", "input_device_manager")
+- **No autoloads**: Managers live in main.tscn with group discovery (e.g., "input_profile_manager", "input_device_manager")
 - **ECS integration**: Components/systems follow existing patterns (extend ECSComponent/ECSSystem)
 - **Redux patterns**: All state via actions/reducers/selectors (U_InputActions, U_InputSelectors)
 - **StateHandoff compatible**: Settings persist across scene transitions via settings reducer

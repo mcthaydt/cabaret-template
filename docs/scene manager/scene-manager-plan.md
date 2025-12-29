@@ -34,7 +34,7 @@ The Scene Manager system provides centralized scene flow control for a Zelda: Oc
 **Technical approach**:
 - M_SceneManager (new coordinator) dispatches scene actions to M_StateStore (existing Redux store)
 - Scene state slice tracks current_scene_id, scene_stack, is_transitioning
-- Root scene pattern: root.tscn persists throughout session, scenes load into ActiveSceneContainer
+- Root scene pattern: main.tscn persists throughout session, scenes load into ActiveSceneContainer
 - Per-scene M_ECSManager (existing pattern) with StateHandoff for gameplay state preservation
 - U_SceneRegistry (static class) defines scene metadata and door pairings
 - ECS integration via C_SceneTriggerComponent and S_SceneTriggerSystem
@@ -64,7 +64,7 @@ The Scene Manager system provides centralized scene flow control for a Zelda: Oc
 **Constraints**:
 - **No autoloads**: Scene-tree-based architecture, discovery via groups and parent traversal
 - **Per-scene M_ECSManager**: Each scene has own ECS instance, state preserved via M_StateStore
-- **Root scene persistence**: root.tscn remains loaded entire session, scenes load as children
+- **Root scene persistence**: main.tscn remains loaded entire session, scenes load as children
 - **Immutable state updates**: All reducers use .duplicate(true) for state changes
 - **Scene tree structure**: Must work with existing Godot scene tree, no singleton dependencies
 
@@ -82,7 +82,7 @@ The Scene Manager system provides centralized scene flow control for a Zelda: Oc
 
 **Architectural Constraints Check**:
 
-✅ **No Autoloads**: M_SceneManager will be in-scene node in root.tscn, discoverable via "scene_manager" group
+✅ **No Autoloads**: M_SceneManager will be in-scene node in main.tscn, discoverable via "scene_manager" group
 ✅ **Per-Scene ECS**: Maintains existing M_ECSManager pattern, one instance per active scene
 ✅ **State Management**: Integrates with existing M_StateStore (Redux) by adding "scene" slice
 ✅ **Scene Tree Based**: All managers live in scenes, no singleton configuration required
@@ -128,7 +128,7 @@ docs/scene_manager/
 ```text
 # Root Scene (persistent)
 scenes/
-└── root.tscn                   # Main scene, persists entire session
+└── main.tscn                   # Main scene, persists entire session
     ├── M_StateStore            # Redux store (existing, modified)
     ├── M_SceneManager          # Scene coordinator (NEW)
     ├── ActiveSceneContainer    # Container for active scene (NEW)
@@ -226,7 +226,7 @@ base_scene_template.tscn (uid://rygahxanlmio)
 
 **Target Architecture** (Scene Manager requires):
 ```
-root.tscn (NEW - will become main scene)
+main.tscn (NEW - will become main scene)
 ├── M_StateStore          ✅ Persists forever
 ├── M_SceneManager        ✅ Persists forever
 ├── M_CursorManager       ✅ Persists forever
@@ -248,9 +248,9 @@ gameplay_scene.tscn (loads into ActiveSceneContainer)
 
 | Change | Scope | Risk | Mitigation |
 |--------|-------|------|------------|
-| Create new root.tscn | **High** | Medium | Prototype in Phase 0, validate before committing |
+| Create new main.tscn | **High** | Medium | Prototype in Phase 0, validate before committing |
 | Extract gameplay from base_scene_template | **High** | High | Create new gameplay_scene.tscn, test ECS/Redux still work |
-| Update project.godot main scene | **Medium** | Low | Simple config change once root.tscn proven |
+| Update project.godot main scene | **Medium** | Low | Simple config change once main.tscn proven |
 | Migrate existing debug scenes | **High** | Medium | Keep old scenes working, migrate incrementally |
 | Update all scene references | **Medium** | Medium | Systematic search/replace, validate each |
 
@@ -262,9 +262,9 @@ gameplay_scene.tscn (loads into ActiveSceneContainer)
 - ✅ Can maintain backward compatibility during migration with careful phasing
 
 **Migration Strategy**:
-1. **Phase 0**: Prototype root.tscn with minimal managers, load base_scene_template as child, validate no regressions
-2. **Phase 1**: Create new root.tscn properly, extract gameplay_scene.tscn from base_scene_template, test thoroughly
-3. **Phase 1**: Switch project.godot to root.tscn only after validation
+1. **Phase 0**: Prototype main.tscn with minimal managers, load base_scene_template as child, validate no regressions
+2. **Phase 1**: Create new main.tscn properly, extract gameplay_scene.tscn from base_scene_template, test thoroughly
+3. **Phase 1**: Switch project.godot to main.tscn only after validation
 4. **Phase 2+**: Gradually migrate debug/test scenes to new structure
 
 **Decision Gate**: MUST validate Phase 0 prototype before proceeding. If scene restructuring breaks too much, reconsider architecture.
@@ -409,7 +409,7 @@ Before implementing Scene Manager, must restructure existing scenes:
    - **Blocker**: If tests not passing NOW, fix before restructuring
 
 1. **Create Production Root Scene** (2-3 hours)
-   - Create `scenes/root.tscn` (based on Phase 0 prototype)
+   - Create `scenes/main.tscn` (based on Phase 0 prototype)
    - Add M_StateStore (with boot/menu/gameplay/scene slices)
    - Add M_CursorManager
    - Add M_SceneManager (stub node for now)
@@ -427,8 +427,8 @@ Before implementing Scene Manager, must restructure existing scenes:
    - Test gameplay_base.tscn loads correctly when added as child
 
 3. **Integration Validation** (1 hour)
-   - Create test script in root.tscn that loads gameplay_base.tscn into ActiveSceneContainer
-   - Run game from root.tscn
+   - Create test script in main.tscn that loads gameplay_base.tscn into ActiveSceneContainer
+   - Run game from main.tscn
    - **Validate**: ECS works, Redux works, player moves, HUD updates
    - **Validate**: ALL ~314 tests still pass (no regressions from baseline)
    - **Blocker**: If ANY test fails, fix before proceeding
@@ -483,7 +483,7 @@ Before implementing Scene Manager, must restructure existing scenes:
    - Implement `scripts/scene_management/transitions/trans_instant.gd`
    - Implement `scripts/scene_management/transitions/trans_fade.gd` with Tween
    - **Input Blocking**: Block input during transition (set_input_as_handled() in fade)
-   - Update TransitionOverlay in root.tscn (ColorRect with modulate.a = 0)
+   - Update TransitionOverlay in main.tscn (ColorRect with modulate.a = 0)
    - Integrate with M_SceneManager.transition_to_scene()
    - **Test Pass**: Transition effect tests pass (including input blocking)
 
@@ -518,7 +518,7 @@ Before implementing Scene Manager, must restructure existing scenes:
    - **Test Pass**: All edge case tests pass
 
 **Acceptance Criteria** (ALL MUST PASS):
-- [ ] **Scene restructuring complete**: root.tscn is main scene, gameplay_base.tscn loads as child
+- [ ] **Scene restructuring complete**: main.tscn is main scene, gameplay_base.tscn loads as child
 - [ ] **No regressions**: ALL ~314 existing tests still pass (ECS + Redux + integration)
 - [ ] **Scene state slice**: Registered in M_StateStore, actions/reducer working, transient fields excluded
 - [ ] **M_SceneManager functional**: Can load/unload scenes via dispatch with priority queue
@@ -533,7 +533,7 @@ Before implementing Scene Manager, must restructure existing scenes:
 - Commit 1: Baseline test results (~314 passing) + research.md + data-model.md (Phase 0)
 - Commit 2: Root scene created + gameplay_base extracted (restructuring)
 - Commit 3: Integration validated (restructuring working, ~314 tests passing)
-- Commit 4: Main scene switched to root.tscn
+- Commit 4: Main scene switched to main.tscn
 - Commit 5: Scene slice + actions + reducer (with tests, transient field test)
 - Commit 6: U_SceneRegistry (with tests)
 - Commit 7: M_SceneManager core with priority queue (with tests)
@@ -617,7 +617,7 @@ Before implementing Scene Manager, must restructure existing scenes:
    - Create `loading_screen.tscn`
    - Implement `Trans_LoadingScreen`
    - Add progress bar updates during async loading
-   - Add LoadingOverlay to root.tscn
+   - Add LoadingOverlay to main.tscn
 
 2. **Scene Preloading** (2-3 hours)
    - Implement preload on startup for high-priority scenes
@@ -734,7 +734,7 @@ func _on_state_changed(action: Dictionary, new_state: Dictionary) -> void:
 ### Debug Overlay During Transitions
 
 The F3 debug overlay must remain accessible:
-- Overlay lives in root.tscn (persists)
+- Overlay lives in main.tscn (persists)
 - process_mode = PROCESS_MODE_ALWAYS (works during pause)
 - Should display scene slice state during transitions
 
@@ -743,7 +743,7 @@ The F3 debug overlay must remain accessible:
 During development:
 - Editing a loaded scene may cause Godot to reload it
 - M_SceneManager should handle unexpected scene changes gracefully
-- StateHandoff provides safety net if root.tscn reloads unexpectedly
+- StateHandoff provides safety net if main.tscn reloads unexpectedly
 
 ## Notes
 
@@ -757,14 +757,14 @@ During development:
 ### Breaking Changes (REVISED)
 - ❌ **NOT an additive feature** - requires scene hierarchy restructuring
 - ❌ **base_scene_template.tscn** demoted from main scene to gameplay template
-- ❌ **project.godot** main scene will change to root.tscn
+- ❌ **project.godot** main scene will change to main.tscn
 - ❌ **All debug/test scenes** may need updates to reference new structure
 - ✅ **ECS/Redux functionality** preserved through careful migration
 - ✅ **Backward compatibility** maintained during Phase 1 migration
 
 ### Migration Path
 1. **Phase 0**: Prototype restructuring, validate ECS/Redux still work
-2. **Phase 1**: Create root.tscn, extract gameplay_base.tscn, switch main scene
+2. **Phase 1**: Create main.tscn, extract gameplay_base.tscn, switch main scene
 3. **Phase 1**: Keep base_scene_template.tscn for now (old scenes reference it)
 4. **Phase 2+**: Gradually migrate debug/test scenes to new structure
 5. **Future**: Remove base_scene_template.tscn once all scenes migrated
@@ -846,7 +846,7 @@ During development:
 
 ### Proposed Architecture
 
-**M_SpawnManager** (Scene-based manager, added to root.tscn):
+**M_SpawnManager** (Scene-based manager, added to main.tscn):
 
 **Core Responsibilities**:
 1. **Player Spawning**
@@ -976,7 +976,7 @@ func _perform_transition(...) -> void:
 
 **Sub-Phase 12.1: Core Extraction** (8-10 hours)
 - Extract player spawn logic
-- M_SpawnManager in root.tscn
+- M_SpawnManager in main.tscn
 - Update M_SceneManager integration
 - Test coverage: spawn validation
 

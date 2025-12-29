@@ -33,7 +33,7 @@
 - `scripts/ecs/components/*`: Gameplay components with `@export` NodePaths and typed getters.
 - `scripts/ecs/systems/*`: Systems that query components by `StringName` and operate per-physics tick.
 - `scripts/ecs/resources/*`: `Resource` classes holding tunables consumed by components/systems.
-- `scenes/root.tscn`: Main scene (persistent managers + containers).
+- `scenes/main.tscn`: Main scene (persistent managers + containers).
 - `scenes/gameplay/*`: Gameplay scenes (dynamic loading, own M_ECSManager).
 - `tests/unit/*`: GUT test suites for ECS and state management.
 
@@ -81,7 +81,7 @@
 
 ## Scene Organization
 
-- **Root scene pattern (NEW - Phase 2)**: `scenes/root.tscn` persists throughout session
+- **Root scene pattern (NEW - Phase 2)**: `scenes/main.tscn` persists throughout session
   - Persistent managers: `M_StateStore`, `M_CursorManager`, `M_SceneManager`
   - Scene containers: `ActiveSceneContainer`, `UIOverlayStack`, `TransitionOverlay`, `LoadingOverlay`
   - Gameplay scenes load/unload as children of `ActiveSceneContainer`
@@ -771,9 +771,9 @@ mock_store.set_slice(StringName("debug"), {"god_mode": true})
   - Use `U_ServiceLocator.get_service(StringName("service_name"))` for fast, centralized manager access.
   - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`.
   - ServiceLocator provides O(1) Dictionary lookup vs O(n) tree traversal of group lookups.
-  - All services are registered at startup in `root.tscn` via `main.gd`.
+  - All services are registered at startup in `main.tscn` via `main.gd`.
   - Fallback to group lookup is available for backward compatibility and test environments.
 - Create a new gameplay scene
   - Duplicate `scenes/gameplay/gameplay_base.tscn` as starting point.
   - Keep M_ECSManager + Systems + Entities + Environment structure.
-  - Do NOT add M_StateStore or M_CursorManager (they live in root.tscn).
+  - Do NOT add M_StateStore or M_CursorManager (they live in main.tscn).

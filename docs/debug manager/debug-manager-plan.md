@@ -120,10 +120,10 @@ scripts/ecs/systems/
   - Implement `_input()` for F-key handling
   - Create overlay toggle logic (instantiate on first use, show/hide on subsequent)
 
-- [ ] Modify `scenes/root.tscn`
+- [ ] Modify `scenes/main.tscn`
   - Add `M_DebugManager` node under Managers
 
-- [ ] Modify `scripts/scene_structure/main.gd`
+- [ ] Modify `scripts/core/main.gd`
   - Register debug manager with ServiceLocator
 
 - [ ] Add input actions to `project.godot`

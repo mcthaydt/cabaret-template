@@ -76,12 +76,12 @@
   - Add to `"debug_manager"` group
   - Preload overlay scenes (lazy instantiation)
 
-- [x] **Task 0.2**: Add M_DebugManager to `scenes/root.tscn`
+- [x] **Task 0.2**: Add M_DebugManager to `scenes/main.tscn`
   - Add node under Managers section
   - Position after existing managers
-  - **Completed:** Added M_DebugManager as ExtResource and node in root.tscn
+  - **Completed:** Added M_DebugManager as ExtResource and node in main.tscn
 
-- [x] **Task 0.3**: Register in `scripts/scene_structure/main.gd`
+- [x] **Task 0.3**: Register in `scripts/core/main.gd`
   - Add registration alongside other managers:
     - `_register_if_exists(managers_node, "M_DebugManager", StringName("debug_manager"))`
   - Follow existing manager registration pattern
@@ -751,6 +751,6 @@
 | `scripts/ecs/systems/s_movement_system.gd` | Add speed_modifier | ✅ Complete (Phase 5) |
 | `scripts/ecs/systems/s_gravity_system.gd` | Add disable check | ✅ Complete (Phase 5) |
 | `scripts/ecs/systems/s_input_system.gd` | Add disable check | ✅ Complete (Phase 5) |
-| `scenes/root.tscn` | Add M_DebugManager | ✅ Complete (Phase 0) |
-| `scripts/scene_structure/main.gd` | Register with ServiceLocator | ✅ Complete (Phase 0) |
+| `scenes/main.tscn` | Add M_DebugManager | ✅ Complete (Phase 0) |
+| `scripts/core/main.gd` | Register with ServiceLocator | ✅ Complete (Phase 0) |
 | `project.godot` | Add F1/F2/F4 input actions | ✅ Complete (Phase 0) |

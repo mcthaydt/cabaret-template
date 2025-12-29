@@ -16,12 +16,12 @@ func _initialize_service_locator() -> void:
 		return
 
 	# Check if the critical manager exists (state_store is required for all others)
-	# If state_store doesn't exist, we're probably a gameplay scene loaded under root.tscn
+	# If state_store doesn't exist, we're probably a gameplay scene loaded under main.tscn
 	# which already initialized ServiceLocator, or we're in a test environment
 	var state_store_node := managers_node.get_node_or_null("M_StateStore")
 	if state_store_node == null:
 		# No state store in this scene - skip ServiceLocator initialization
-		# Tests or root.tscn handle their own ServiceLocator setup
+		# Tests or main.tscn handle their own ServiceLocator setup
 		return
 
 	# Register all services (use get_node_or_null to be defensive)
@@ -61,3 +61,4 @@ func _register_if_exists(parent: Node, node_name: String, service_name: StringNa
 	var node := parent.get_node_or_null(node_name)
 	if node != null:
 		U_ServiceLocator.register(service_name, node)
+

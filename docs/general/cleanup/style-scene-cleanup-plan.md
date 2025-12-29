@@ -64,7 +64,7 @@ Output: A short “current state” doc or section in tasks describing exactly w
     - Debug overlays and test/helper scenes.
 - Extend `SCENE_ORGANIZATION_GUIDE.md`:
   - Add a **Root Scene** section:
-    - Node layout for `scenes/root.tscn`.
+    - Node layout for `scenes/main.tscn`.
     - Role of `Managers`, `ActiveSceneContainer`, `UIOverlayStack`, `TransitionOverlay`, `LoadingOverlay`, `MobileControls`.
   - Update **Gameplay Scene** examples:
     - Reflect actual root naming (`GameplayRoot` or documented equivalent) and marker scripts.

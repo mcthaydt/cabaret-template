@@ -109,7 +109,7 @@ Same as exterior, but:
 
 ## Testing
 
-1. (Optional for manual testing only) Temporarily set `root.tscn` M_SceneManager `initial_scene_id = &"exterior"`. For normal gameplay and automated tests, keep `initial_scene_id = &"main_menu"`.
+1. (Optional for manual testing only) Temporarily set `main.tscn` M_SceneManager `initial_scene_id = &"exterior"`. For normal gameplay and automated tests, keep `initial_scene_id = &"main_menu"`.
 2. Run the game
 3. Walk to the green door (x=5)
 4. Should transition to interior (brown floor)

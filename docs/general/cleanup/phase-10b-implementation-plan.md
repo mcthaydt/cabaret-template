@@ -777,7 +777,7 @@ health_system.scene_manager = MockSceneManager.new()
 # docs/architecture/dependency_graph.md
 
 ## Manager Initialization Order
-1. M_StateStore (root.tscn, first child)
+1. M_StateStore (main.tscn, first child)
 2. M_CursorManager (depends on Input singleton)
 3. M_SceneManager (depends on M_StateStore)
 4. M_PauseManager (depends on M_StateStore, M_CursorManager)
@@ -792,7 +792,7 @@ health_system.scene_manager = MockSceneManager.new()
 
 **ASCII Diagram**:
 ```
-Root Scene (root.tscn)
+Root Scene (main.tscn)
 ├─ M_StateStore (singleton)
 │  └─ Subscribers: M_PauseManager, M_SpawnManager, S_CheckpointSystem
 ├─ M_SceneManager

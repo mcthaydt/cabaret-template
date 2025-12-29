@@ -56,7 +56,7 @@ The project already adheres strongly to its style and scene organization convent
    - Gameplay scenes match the *structure* of `SCENE_ORGANIZATION_GUIDE.md`, but:
      - Root nodes use names like `GameplayRoot` rather than the example `Main`, while still attaching `main.gd`.
      - New groupings (e.g., `E_Hazards`, `E_Objectives`) and controllers (e.g., `E_DoorTrigger`, `E_DeathZone`, `E_GoalZone`, `E_TutorialSign_Interior`) are not yet reflected in the guide’s examples.
-   - The root scene (`scenes/root.tscn`) has its own standardized pattern that is documented in AGENTS and PRDs but not consolidated into the Scene Organization Guide.
+   - The root scene (`scenes/main.tscn`) has its own standardized pattern that is documented in AGENTS and PRDs but not consolidated into the Scene Organization Guide.
 
 5. **Tooling doesn’t yet enforce the new “every file has a prefix” requirement**
    - `tests/unit/style/test_style_enforcement.gd` covers:
@@ -182,7 +182,7 @@ The project already adheres strongly to its style and scene organization convent
    - System nodes and priorities must match the documented category layout.
 
 5. **Root Scene**:
-   - `scenes/root.tscn` must be codified in the guide as the canonical root pattern:
+   - `scenes/main.tscn` must be codified in the guide as the canonical root pattern:
      - `Managers` node with all manager scripts.
      - `ActiveSceneContainer`, `UIOverlayStack`, `TransitionOverlay`, `LoadingOverlay`, `MobileControls`.
    - Any evolution (e.g., new managers) must be reflected in both the guide and the root scene.

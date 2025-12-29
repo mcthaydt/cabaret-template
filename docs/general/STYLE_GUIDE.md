@@ -472,7 +472,7 @@ Test files use `test_` prefix followed by the class being tested:
 
 ### Main Root Script (Exception)
 The project root node script is allowed to be unprefixed:
-- `scripts/scene_structure/main.gd`
+- `scripts/core/main.gd`
 
 ### ECS Event Bus Usage
 - ECS components publish gameplay-domain events via `U_ECSEventBus` (e.g., `health_changed`, `victory_triggered`, `damage_zone_entered`, `checkpoint_zone_entered`, `component_registered`); avoid custom signals for these flows.
@@ -801,8 +801,8 @@ EXCLUSIONS:
 
 ## Scene Roots
 
-- Gameplay scenes: name the 3D root `GameplayRoot` and attach `scripts/scene_structure/main.gd`.
-- Persistent root scene (`scenes/root.tscn`): name the root `Root`.
+- Gameplay scenes: name the 3D root `GameplayRoot` and attach `scripts/core/main.gd`.
+- Persistent root scene (`scenes/main.tscn`): name the root `Root`.
 - UI scenes: name root by purpose (e.g., `MainMenu`, `PauseMenu`, `SettingsMenu`).
 - Prototype scenes: prefer `PrototypeRoot` unless the scene’s purpose is clearer as a noun (e.g., `CameraBlendTest`).
 - Never keep Godot’s auto-suffixed names (e.g., `Main2`, `Main3`). If a duplicate occurs, rename back to the canonical name.

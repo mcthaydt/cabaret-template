@@ -102,7 +102,7 @@ When renaming container nodes, ensure ALL child node parent paths are updated to
 
 ---
 
-## Root Scene Organization (`scenes/root.tscn`)
+## Root Scene Organization (`scenes/main.tscn`)
 
 The **root scene** persists across the entire session and owns global managers and containers. It follows this structure:
 
@@ -175,7 +175,7 @@ Systems are organized into **four functional categories** for better visual orga
 - `S_SceneTriggerSystem` - Door and scene transition triggers
 - `S_VictorySystem` - Victory condition detection and endgame flows
 
-**Note:** `M_PauseManager` now lives in `root.tscn` (Phase 2 architecture) and is NOT included in gameplay scenes.
+**Note:** `M_PauseManager` now lives in `main.tscn` (Phase 2 architecture) and is NOT included in gameplay scenes.
 
 ### Physics Systems
 **Purpose:** Physics simulation and forces
@@ -496,7 +496,7 @@ Use this for doors, hazards, goals, and future interactables:
 ## Scene Manager Integration (Future)
 
 The upcoming Scene Manager system will:
-- Use `root.tscn` as persistent container
+- Use `main.tscn` as persistent container
 - Load gameplay scenes into `ActiveSceneContainer` node
 - Maintain per-scene `M_ECSManager` instances
 - Preserve this organizational structure

@@ -551,7 +551,7 @@
           scene_manager.transition_to_scene(StringName("game_over"), "fade", TransitionPriority.CRITICAL)
   ```
 
-- **Root scene architecture is mandatory**: As of Phase 2, the project uses a root scene pattern where `scenes/root.tscn` persists throughout the session. DO NOT create gameplay scenes with M_StateStore or M_CursorManager - these managers live ONLY in root.tscn. Each gameplay scene should have its own M_ECSManager instance.
+- **Root scene architecture is mandatory**: As of Phase 2, the project uses a root scene pattern where `scenes/main.tscn` persists throughout the session. DO NOT create gameplay scenes with M_StateStore or M_CursorManager - these managers live ONLY in main.tscn. Each gameplay scene should have its own M_ECSManager instance.
 
 - **Gameplay scenes must be self-contained**: When creating new gameplay scenes, duplicate `scenes/gameplay/gameplay_base.tscn` as a template. Include:
   - ✅ M_ECSManager (per-scene instance)
@@ -559,16 +559,16 @@
   - ✅ Entities (player, camera, spawn points)
   - ✅ SceneObjects (floors, blocks, props)
   - ✅ Environment (lighting, world environment)
-  - ❌ M_StateStore (lives in root.tscn)
-  - ❌ M_CursorManager (lives in root.tscn)
+  - ❌ M_StateStore (lives in main.tscn)
+  - ❌ M_CursorManager (lives in main.tscn)
 
-- **HUD and UI components must use U_StateUtils**: UI elements that need M_StateStore access MUST use `U_StateUtils.get_store(self)` instead of direct parent traversal. The store is in root.tscn while UI may be in child scenes. Add `await get_tree().process_frame` in `_ready()` before calling `get_store()` to avoid race conditions.
+- **HUD and UI components must use U_StateUtils**: UI elements that need M_StateStore access MUST use `U_StateUtils.get_store(self)` instead of direct parent traversal. The store is in main.tscn while UI may be in child scenes. Add `await get_tree().process_frame` in `_ready()` before calling `get_store()` to avoid race conditions.
 
-- **Never instantiate root.tscn in tests**: The root scene is the main scene and should never be instantiated in tests. Test individual gameplay scenes by instantiating them directly (e.g., `BASE_SCENE.instantiate()` for `base_scene_template.tscn` or `GAMEPLAY_BASE.instantiate()` for `gameplay_base.tscn`). The test harness provides its own scene tree root.
+- **Never instantiate main.tscn in tests**: The root scene is the main scene and should never be instantiated in tests. Test individual gameplay scenes by instantiating them directly (e.g., `BASE_SCENE.instantiate()` for `base_scene_template.tscn` or `GAMEPLAY_BASE.instantiate()` for `gameplay_base.tscn`). The test harness provides its own scene tree root.
 
 - **ActiveSceneContainer manages scene lifecycle**: Scene loading/unloading will be managed by M_SceneManager (Phase 3+) which adds/removes scenes as children of ActiveSceneContainer. Direct manipulation of ActiveSceneContainer children is not supported - use M_SceneManager's transition methods instead.
 
-- **UIDs must be managed by Godot**: When creating new scene files (like root.tscn), DO NOT manually specify UIDs in the scene header. Either omit the `uid=` parameter entirely or use `res://path/to/scene.tscn` paths in project.godot. Manually-specified UIDs cause "Unrecognized UID" errors because they're not registered in Godot's UID cache. Let Godot generate UIDs by opening and saving scenes in the editor.
+- **UIDs must be managed by Godot**: When creating new scene files (like main.tscn), DO NOT manually specify UIDs in the scene header. Either omit the `uid=` parameter entirely or use `res://path/to/scene.tscn` paths in project.godot. Manually-specified UIDs cause "Unrecognized UID" errors because they're not registered in Godot's UID cache. Let Godot generate UIDs by opening and saving scenes in the editor.
 
 - **StateHandoff works across scene transitions**: The existing StateHandoff system automatically preserves state when scenes are removed from the tree and restores it when they're added back. This works correctly with the root scene pattern - you'll see `[STATE] Preserved state to StateHandoff for scene transition` and `[STATE] Restored slice 'X' from StateHandoff` logs during scene changes.
 
@@ -634,7 +634,7 @@
   - **fade**: Menu → Gameplay transitions, smooth visual polish (0.2-0.5s)
   - **loading**: Large scene loads, async loading in Phase 8 (1.5s minimum duration)
 
-  **Note**: Loading transitions require LoadingOverlay in root.tscn. If LoadingOverlay is missing, loading transitions will fall back to instant.
+  **Note**: Loading transitions require LoadingOverlay in main.tscn. If LoadingOverlay is missing, loading transitions will fall back to instant.
 
 ### Phase 10-Specific Pitfalls (Camera Blending, Edge Cases, Performance)
 
