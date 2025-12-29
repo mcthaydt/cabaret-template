@@ -22,7 +22,7 @@ func _init() -> void:
 func _ready() -> void:
 	# Register with ServiceLocator if available
 	if has_node("/root/U_ServiceLocator"):
-		var locator = get_node("/root/U_ServiceLocator")
+		var locator: Node = get_node("/root/U_ServiceLocator")
 		if locator.has_method("register"):
 			locator.register(StringName("save_manager"), self)
 
@@ -60,7 +60,7 @@ func get_all_slot_metadata() -> Array[Dictionary]:
 	var metadata: Array[Dictionary] = []
 
 	# Return mock metadata for autosave and 3 manual slots
-	var autosave_exists := _slot_exists_map.get(SLOT_AUTOSAVE, false)
+	var autosave_exists: bool = _slot_exists_map.get(SLOT_AUTOSAVE, false)
 	metadata.append({
 		"slot_id": SLOT_AUTOSAVE,
 		"exists": autosave_exists,
@@ -70,8 +70,8 @@ func get_all_slot_metadata() -> Array[Dictionary]:
 	})
 
 	for i in range(1, 4):
-		var slot_id := StringName("slot_0%d" % i)
-		var slot_exists := _slot_exists_map.get(slot_id, false)
+		var slot_id: StringName = StringName("slot_0%d" % i)
+		var slot_exists: bool = _slot_exists_map.get(slot_id, false)
 		metadata.append({
 			"slot_id": slot_id,
 			"exists": slot_exists,
