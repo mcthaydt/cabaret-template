@@ -5,16 +5,16 @@ const RS_GamepadSettings := preload("res://scripts/ecs/resources/rs_gamepad_sett
 
 func test_component_initializes_component_type() -> void:
 	var component := C_GamepadComponent.new()
+	component.settings = RS_GamepadSettings.new()
 	add_child_autofree(component)
 	assert_eq(component.get_component_type(), C_GamepadComponent.COMPONENT_TYPE)
 
 func test_apply_deadzone_respects_settings_curve() -> void:
 	var component := C_GamepadComponent.new()
-	add_child_autofree(component)
 	var settings := RS_GamepadSettings.new()
 	settings.deadzone_curve = RS_GamepadSettings.DeadzoneCurve.CUBIC
 	component.settings = settings
-	component._on_required_settings_ready()
+	add_child_autofree(component)
 
 	var filtered := component.apply_deadzone(Vector2(0.8, 0.0), 0.2)
 	assert_true(filtered.length() > 0.0, "Values above deadzone should pass through")
@@ -22,10 +22,12 @@ func test_apply_deadzone_respects_settings_curve() -> void:
 
 func test_apply_rumble_honors_vibration_intensity_and_flags() -> void:
 	var component := C_GamepadComponent.new()
-	add_child_autofree(component)
+	var settings := RS_GamepadSettings.new()
+	settings.vibration_enabled = true
+	settings.vibration_intensity = 0.5
+	component.settings = settings
 	component.device_id = 1
-	component.vibration_enabled = true
-	component.vibration_intensity = 0.5
+	add_child_autofree(component)
 	var mock := MockVibration.new()
 	component.set_vibration_callables(Callable(mock, "record_start"), Callable(mock, "record_stop"))
 	component.apply_rumble(0.6, 0.8, 0.25)
@@ -35,14 +37,17 @@ func test_apply_rumble_honors_vibration_intensity_and_flags() -> void:
 	assert_almost_eq(call.weak, 0.3, 0.0001)
 	assert_almost_eq(call.strong, 0.4, 0.0001)
 	assert_almost_eq(call.duration, 0.25, 0.0001)
-	component.vibration_enabled = false
+	settings.vibration_enabled = false
 	component.apply_rumble(1.0, 1.0, 1.0)
 	assert_eq(mock.start_calls.size(), 1, "Disabled vibration should skip Input call")
 
-func test_apply_settings_from_dictionary_clamps_values() -> void:
+func test_update_settings_from_state_clamps_values() -> void:
 	var component := C_GamepadComponent.new()
+	var settings := RS_GamepadSettings.new()
+	component.settings = settings
 	add_child_autofree(component)
-	component.apply_settings_from_dictionary({
+
+	component.update_settings_from_state({
 		"left_stick_deadzone": 1.5,
 		"right_stick_deadzone": -0.5,
 		"vibration_intensity": 2.0,
@@ -51,10 +56,43 @@ func test_apply_settings_from_dictionary_clamps_values() -> void:
 		"deadzone_curve": RS_GamepadSettings.DeadzoneCurve.QUADRATIC,
 	})
 
-	assert_almost_eq(component.left_stick_deadzone, 1.0, 0.0001)
-	assert_almost_eq(component.right_stick_deadzone, 0.0, 0.0001)
-	assert_almost_eq(component.vibration_intensity, 1.0, 0.0001)
-	assert_false(component.vibration_enabled)
+	# Verify Resource was updated
+	assert_almost_eq(settings.left_stick_deadzone, 1.0, 0.0001)
+	assert_almost_eq(settings.right_stick_deadzone, 0.0, 0.0001)
+	assert_almost_eq(settings.vibration_intensity, 1.0, 0.0001)
+	assert_false(settings.vibration_enabled)
+	assert_true(settings.invert_y_axis)
+	assert_eq(settings.deadzone_curve, RS_GamepadSettings.DeadzoneCurve.QUADRATIC)
+
+func test_update_settings_from_state_handles_null_settings() -> void:
+	var component := C_GamepadComponent.new()
+	component.settings = RS_GamepadSettings.new()
+	add_child_autofree(component)
+	# Set to null AFTER adding to tree (validation already passed)
+	component.settings = null
+
+	# Should not crash
+	component.update_settings_from_state({
+		"left_stick_deadzone": 0.5,
+		"vibration_enabled": false,
+	})
+
+	# Should still be null
+	assert_null(component.settings)
+
+func test_apply_rumble_handles_null_settings() -> void:
+	var component := C_GamepadComponent.new()
+	component.settings = RS_GamepadSettings.new()
+	component.device_id = 1
+	add_child_autofree(component)
+	# Set to null AFTER adding to tree (validation already passed)
+	component.settings = null
+	var mock := MockVibration.new()
+	component.set_vibration_callables(Callable(mock, "record_start"), Callable(mock, "record_stop"))
+
+	# Should not crash, just return early
+	component.apply_rumble(0.5, 0.5, 0.1)
+	assert_eq(mock.start_calls.size(), 0, "Should not vibrate when settings is null")
 
 class MockVibration:
 	var start_calls: Array = []

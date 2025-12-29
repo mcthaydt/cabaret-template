@@ -146,7 +146,7 @@ func process_tick(_delta: float) -> void:
 				gamepad_component.button_states = gamepad_source.get_button_states()
 			gamepad_component.is_connected = is_gamepad_connected
 			gamepad_component.device_id = active_gamepad_id
-			gamepad_component.apply_settings_from_dictionary(_gamepad_settings_cache)
+			gamepad_component.update_settings_from_state(_gamepad_settings_cache)
 
 func _update_accessibility_from_state(state: Dictionary) -> void:
 	var settings_variant: Variant = state.get("settings", {})
