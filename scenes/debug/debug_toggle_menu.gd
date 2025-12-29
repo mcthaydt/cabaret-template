@@ -1,4 +1,4 @@
-extends Control
+extends CanvasLayer
 class_name SC_DebugToggleMenu
 
 ## Debug Toggle Menu (F4) - Phase 6
