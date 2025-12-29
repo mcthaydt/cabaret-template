@@ -6,7 +6,7 @@ class_name U_DebugTelemetry
 ## Provides structured logging with levels, categories, and automatic session export.
 ## Logs are accumulated in-memory and can be exported to file or clipboard.
 
-const U_DEBUG_CONSOLE_FORMATTER := preload("res://scripts/managers/helpers/u_debug_console_formatter.gd")
+const U_DEBUG_CONSOLE_FORMATTER := preload("res://scripts/utils/u_debug_console_formatter.gd")
 
 enum LogLevel {
 	DEBUG = 0,

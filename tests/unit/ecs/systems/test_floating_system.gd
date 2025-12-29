@@ -3,6 +3,7 @@ extends BaseTest
 const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const FLOATING_SYSTEM := preload("res://scripts/ecs/systems/s_floating_system.gd")
+const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 
 class FakeBody extends CharacterBody3D:
 	func _init() -> void:
@@ -77,7 +78,12 @@ func _setup_entity() -> Dictionary:
 	component.raycast_root_path = component.get_path_to(ray_root)
 
 
+	var store: MockStateStore = MOCK_STATE_STORE.new({
+		"gameplay": {},
+		"debug": {},
+	})
 	var system: S_FloatingSystem = FLOATING_SYSTEM.new()
+	system.state_store = store
 	manager.add_child(system)
 	await _pump()
 
@@ -88,6 +94,7 @@ func _setup_entity() -> Dictionary:
 		"system": system,
 		"ray_a": ray_a,
 		"ray_b": ray_b,
+		"store": store,
 	}
 
 func test_floating_system_applies_spring_force_and_aligns_to_surface_normal() -> void:
@@ -201,3 +208,20 @@ func test_floating_system_applies_fall_gravity_without_hits() -> void:
 
 	assert_lt(body.velocity.y, 0.0)
 	assert_almost_eq(body.velocity.y, -component.settings.fall_gravity * 0.2, 0.001)
+
+func test_floating_system_does_not_apply_fall_gravity_when_debug_gravity_disabled() -> void:
+	var context: Dictionary = await _setup_entity()
+	autofree_context(context)
+	var body: FakeBody = context["body"] as FakeBody
+	var component: C_FloatingComponent = context["component"] as C_FloatingComponent
+	var manager: M_ECSManager = context["manager"] as M_ECSManager
+	var store: MockStateStore = context["store"] as MockStateStore
+	store.set_slice(StringName("debug"), {"disable_gravity": true})
+
+	component.settings.fall_gravity = 12.0
+	component.settings.max_down_speed = 100.0
+	body.velocity = Vector3.ZERO
+
+	manager._physics_process(0.2)
+
+	assert_almost_eq(body.velocity.y, 0.0, 0.001)

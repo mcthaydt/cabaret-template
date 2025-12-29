@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_DebugConsoleFormatter
 
-## Debug Console Formatter - Color-coded console output for telemetry
+## Debug Console Formatter - Color-coded console output for telemetry (utility)
 ##
 ## Provides ANSI color codes and formatting for debug log entries displayed in the console.
 ## Separates presentation logic from telemetry logging logic.

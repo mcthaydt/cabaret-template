@@ -3,11 +3,17 @@ extends BaseECSSystem
 class_name S_FloatingSystem
 
 const FLOATING_TYPE := StringName("C_FloatingComponent")
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 ## Number of consecutive frames required to transition stable ground state
 ## 4 frames ≈ 67ms at 60fps, filters spring oscillations (~50ms) while staying responsive
 const STABLE_GROUND_FRAMES_REQUIRED := 4
 
 @export var debug_logs_enabled: bool = false
+
+## Injected state store (for testing)
+## If set, system uses this instead of U_StateUtils.get_store()
+## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
+@export var state_store: I_StateStore = null
 
 var _last_support_state: Dictionary = {}
 var _reported_ray_sets: Dictionary = {}
@@ -22,6 +28,20 @@ class SupportInfo:
 	var miss_ray_names: Array = []
 
 func process_tick(delta: float) -> void:
+	# Use injected store if available (Phase 10B-8)
+	var store: I_StateStore = null
+	if state_store != null:
+		store = state_store
+	else:
+		store = U_StateUtils.get_store(self)
+
+	var is_gravity_disabled := false
+	if store:
+		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
+		if U_GameplaySelectors.get_is_paused(gameplay_state):
+			return
+		is_gravity_disabled = U_DebugSelectors.is_gravity_disabled(store.get_state())
+
 	var manager := get_manager()
 	if manager == null:
 		return
@@ -95,22 +115,26 @@ func process_tick(delta: float) -> void:
 					support_active = true
 
 			if vel_along_normal > floating_component.settings.settle_speed_tolerance:
-				pass
+				if not is_gravity_disabled:
+					pass
 			elif within_height_tolerance and within_speed_tolerance:
-				velocity -= normal * vel_along_normal
-			else:
-				var frequency: float = max(floating_component.settings.hover_frequency, 0.0)
-				var damping_ratio: float = max(floating_component.settings.damping_ratio, 0.0)
-				if frequency > 0.0:
-					var omega: float = TAU * frequency
-					var accel_along_normal: float = (omega * omega * height_error) - (2.0 * damping_ratio * omega * vel_along_normal)
-					if height_error >= 0.0 and accel_along_normal < 0.0:
-						accel_along_normal = 0.0
-					velocity += normal * accel_along_normal * delta
-				else:
+				if not is_gravity_disabled:
 					velocity -= normal * vel_along_normal
+			else:
+				if not is_gravity_disabled:
+					var frequency: float = max(floating_component.settings.hover_frequency, 0.0)
+					var damping_ratio: float = max(floating_component.settings.damping_ratio, 0.0)
+					if frequency > 0.0:
+						var omega: float = TAU * frequency
+						var accel_along_normal: float = (omega * omega * height_error) - (2.0 * damping_ratio * omega * vel_along_normal)
+						if height_error >= 0.0 and accel_along_normal < 0.0:
+							accel_along_normal = 0.0
+						velocity += normal * accel_along_normal * delta
+					else:
+						velocity -= normal * vel_along_normal
 
-			velocity = _clamp_velocity_along_normal(velocity, normal, floating_component.settings.max_down_speed, floating_component.settings.max_up_speed)
+			if not is_gravity_disabled:
+				velocity = _clamp_velocity_along_normal(velocity, normal, floating_component.settings.max_down_speed, floating_component.settings.max_up_speed)
 
 			if floating_component.settings.align_to_normal and support.hit_count >= max(floating_component.settings.min_hits_for_alignment, 1):
 				body.up_direction = normal
@@ -145,8 +169,9 @@ func process_tick(delta: float) -> void:
 			floating_component.update_support_state(support_active, now)
 			floating_component.update_stable_ground_state(support_active, STABLE_GROUND_FRAMES_REQUIRED)
 		else:
-			velocity.y -= floating_component.settings.fall_gravity * delta
-			velocity.y = clamp(velocity.y, -floating_component.settings.max_down_speed, floating_component.settings.max_up_speed)
+			if not is_gravity_disabled:
+				velocity.y -= floating_component.settings.fall_gravity * delta
+				velocity.y = clamp(velocity.y, -floating_component.settings.max_down_speed, floating_component.settings.max_up_speed)
 			if debug_logs_enabled:
 				var prev2: Variant = _last_support_state.get(body, null)
 				if prev2 == null or (prev2 as bool) != false:
@@ -155,6 +180,10 @@ func process_tick(delta: float) -> void:
 
 			floating_component.update_support_state(false, now)
 			floating_component.update_stable_ground_state(false, STABLE_GROUND_FRAMES_REQUIRED)
+
+		# Phase 5: Debug Manager - Zero out Y velocity when gravity is disabled
+		if is_gravity_disabled:
+			velocity.y = 0.0
 
 		body.velocity = velocity
 

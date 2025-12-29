@@ -3,7 +3,7 @@ extends GutTest
 # Test suite for U_DebugTelemetry (Phase 2 - TDD RED)
 # Tests written BEFORE implementation to drive design
 
-const U_DEBUG_TELEMETRY := preload("res://scripts/managers/helpers/u_debug_telemetry.gd")
+const U_DEBUG_TELEMETRY := preload("res://scripts/utils/u_debug_telemetry.gd")
 
 func before_each() -> void:
 	# Clear session log before each test

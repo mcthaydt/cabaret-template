@@ -24,15 +24,15 @@ func process_tick(delta: float) -> void:
 	else:
 		store = U_StateUtils.get_store(self)
 
+	var is_gravity_disabled := false
 	if store:
 		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
 		if U_GameplaySelectors.get_is_paused(gameplay_state):
 			return
 
-		# Phase 5: Debug Manager - Skip gravity when disabled
+		# Phase 5: Debug Manager - Check if gravity is disabled
 		var state := store.get_state()
-		if U_DebugSelectors.is_gravity_disabled(state):
-			return
+		is_gravity_disabled = U_DebugSelectors.is_gravity_disabled(state)
 
 	var manager := get_manager()
 	if manager == null:
@@ -71,11 +71,17 @@ func process_tick(delta: float) -> void:
 		if body.is_on_floor():
 			continue
 
-		# Phase 16: Apply gravity_scale from state (for low-gravity zones, etc.)
-		var gravity_scale: float = 1.0
-		if store:
-			gravity_scale = U_PhysicsSelectors.get_gravity_scale(store.get_state())
-		
 		var velocity := body.velocity
-		velocity.y -= gravity * gravity_scale * delta
+
+		# Phase 5: Debug Manager - Zero out Y velocity when gravity is disabled
+		if is_gravity_disabled:
+			velocity.y = 0.0
+		else:
+			# Phase 16: Apply gravity_scale from state (for low-gravity zones, etc.)
+			var gravity_scale: float = 1.0
+			if store:
+				gravity_scale = U_PhysicsSelectors.get_gravity_scale(store.get_state())
+
+			velocity.y -= gravity * gravity_scale * delta
+
 		body.velocity = velocity

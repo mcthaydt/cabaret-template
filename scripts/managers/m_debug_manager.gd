@@ -22,7 +22,7 @@ const SCENE_DEBUG_STATE_OVERLAY := "res://scenes/debug/debug_state_overlay.tscn"
 const SCENE_DEBUG_TOGGLE_MENU := "res://scenes/debug/debug_toggle_menu.tscn"
 
 # Helper utilities
-const U_DEBUG_TELEMETRY := preload("res://scripts/managers/helpers/u_debug_telemetry.gd")
+const U_DEBUG_TELEMETRY := preload("res://scripts/utils/u_debug_telemetry.gd")
 
 # State imports
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
