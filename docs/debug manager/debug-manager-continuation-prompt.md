@@ -45,10 +45,21 @@ Read these files before starting work:
 **Last Updated**: 2025-12-28
 
 **Completed Phases**:
-- ⏳ **Phase 0**: Foundation - NOT STARTED
-  - Docs aligned (2025-12-28); implementation not started
+- ✅ **Phase 0**: Foundation (2025-12-28)
+  - M_DebugManager created and registered
+  - F1, F2, F4 input actions added
+  - F3 handling migrated from M_StateStore to M_DebugManager
+  - Skeleton selectors added
 
-**Next Phase**: Phase 0 - Foundation
+- ✅ **Phase 1**: Debug State Extension (2025-12-28)
+  - Added 10 debug actions (god mode, infinite jump, speed modifier, etc.)
+  - Extended debug reducer with all toggle states
+  - Implemented selectors for all debug toggles
+  - Marked debug slice as transient (never persisted to saves)
+  - Added 47 passing tests (25 reducer + 22 selector)
+  - Added transient slice exclusion test
+
+**Next Phase**: Phase 2 - Telemetry System (TDD)
 
 Check `debug-manager-tasks.md` for detailed task list and current phase. Look for `- [x]` vs `- [ ]`.
 
@@ -64,7 +75,7 @@ Follow existing codebase patterns:
 - **Overlays**: See `debug_state_overlay.gd` - CanvasLayer with PROCESS_MODE_ALWAYS
 - **Events**: See `u_ecs_event_bus.gd` - subscribe/publish pattern
 
-## Debug State Model
+## Debug State Model (✅ IMPLEMENTED in Phase 1)
 
 ```gdscript
 const DEFAULT_DEBUG_STATE := {
@@ -88,6 +99,8 @@ const DEFAULT_DEBUG_STATE := {
     "time_scale": 1.0,
 }
 ```
+
+**Status**: Actions, reducers, and selectors fully implemented and tested.
 
 ## Telemetry Log Entry Format
 
