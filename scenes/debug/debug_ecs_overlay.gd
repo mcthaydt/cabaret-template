@@ -248,6 +248,7 @@ func _update_component_inspector() -> void:
 	for comp_type in components_dict.keys():
 		print("DEBUG: Processing component type: ", comp_type)
 		var components_array = components_dict[comp_type]  # Variant (dictionary lookup)
+		print("DEBUG: Type of components_array: ", typeof(components_array), " value: ", components_array)
 		if not components_array is Array:
 			print("DEBUG: Component array is not Array, skipping")
 			continue
