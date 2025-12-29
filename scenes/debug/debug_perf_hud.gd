@@ -69,24 +69,33 @@ func _update_performance_metrics() -> void:
 
 	# Update ECS metrics (if manager available)
 	if is_instance_valid(_ecs_manager):
-		var ecs_metrics := _ecs_manager.get_query_metrics()
-		if ecs_metrics.has("total_queries"):
-			_ecs_queries_label.text = "  ECS Queries: %d (%.2fms avg)" % [
-				ecs_metrics.total_queries,
-				ecs_metrics.get("avg_time_ms", 0.0)
+		var ecs_metrics: Array = _ecs_manager.get_query_metrics()
+		if ecs_metrics.size() > 0:
+			# Aggregate metrics from all queries
+			var total_calls := 0
+			var total_duration := 0.0
+			for metric in ecs_metrics:
+				if metric is Dictionary:
+					total_calls += int(metric.get("total_calls", 0))
+					total_duration += float(metric.get("last_duration", 0.0))
+			var avg_duration := total_duration / float(ecs_metrics.size()) if ecs_metrics.size() > 0 else 0.0
+			_ecs_queries_label.text = "  ECS: %d queries, %d calls, %.2fms avg" % [
+				ecs_metrics.size(),
+				total_calls,
+				avg_duration
 			]
 		else:
-			_ecs_queries_label.text = "  ECS Queries: N/A"
+			_ecs_queries_label.text = "  ECS Queries: 0"
 	else:
 		_ecs_queries_label.text = "  ECS Queries: No Manager"
 
 	# Update State metrics (if store available)
 	if is_instance_valid(_state_store):
 		var state_metrics := _state_store.get_performance_metrics()
-		if state_metrics.has("total_dispatches"):
-			_state_dispatches_label.text = "  State Dispatches: %d (%.2fms avg)" % [
-				state_metrics.total_dispatches,
-				state_metrics.get("avg_time_ms", 0.0)
+		if state_metrics.has("dispatch_count"):
+			_state_dispatches_label.text = "  State: %d dispatches, %.3fms avg" % [
+				state_metrics.dispatch_count,
+				state_metrics.get("avg_dispatch_time_ms", 0.0)
 			]
 		else:
 			_state_dispatches_label.text = "  State Dispatches: N/A"

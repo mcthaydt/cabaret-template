@@ -82,8 +82,11 @@ func _draw_frame_samples(graph_width: float, graph_height: float) -> void:
 	var prev_point := Vector2.ZERO
 
 	for i in range(_sample_count):
-		# Read from circular buffer in correct order
-		var read_index := (_write_index + i) % MAX_SAMPLES
+		# Read from circular buffer in correct order (oldest to newest)
+		# If buffer not full: start from 0
+		# If buffer full: start from _write_index (oldest, about to be overwritten)
+		var oldest_index := 0 if _sample_count < MAX_SAMPLES else _write_index
+		var read_index := (oldest_index + i) % MAX_SAMPLES
 		var frame_time := _frame_times[read_index]
 
 		# Calculate position
