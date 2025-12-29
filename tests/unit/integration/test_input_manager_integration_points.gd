@@ -103,6 +103,7 @@ func test_gameplay_input_resets_between_scene_transitions() -> void:
 func test_input_system_end_to_end_updates_store_and_component() -> void:
 	_ensure_default_actions()
 	var store: M_StateStore = await _spawn_state_store()
+	store.dispatch(U_InputActions.update_mouse_sensitivity(1.0))
 
 	# Create M_InputDeviceManager (required by S_InputSystem for input sources)
 	var input_device_manager: M_InputDeviceManager = M_INPUT_DEVICE_MANAGER.new()
@@ -165,7 +166,8 @@ func test_input_system_end_to_end_updates_store_and_component() -> void:
 
 func _spawn_state_store() -> M_StateStore:
 	var store: M_StateStore = M_StateStore.new()
-	store.settings = DEFAULT_STATE_SETTINGS
+	store.settings = DEFAULT_STATE_SETTINGS.duplicate(true)
+	store.settings.enable_persistence = false
 	store.boot_initial_state = DEFAULT_BOOT_STATE
 	store.menu_initial_state = DEFAULT_MENU_STATE
 	store.gameplay_initial_state = DEFAULT_GAMEPLAY_STATE

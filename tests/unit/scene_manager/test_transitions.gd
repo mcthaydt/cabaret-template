@@ -144,23 +144,22 @@ func test_fade_transition_mid_callback() -> void:
 	assert_true(completion_tracker.is_complete, "Completion callback should be called")
 
 ## Test BaseTransitionEffect cleanup
-## @warning: Skipped in headless - tween timing unreliable without rendering
 func test_transition_cleans_up_tween() -> void:
-	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
-		pending("Skipped: Tween timing unreliable in headless mode")
-		return
 	var fade := Trans_Fade.new()
 	fade.duration = 0.1
 
 	var tracker := U_TransitionTestHelpers.create_completion_tracker()
 	fade.execute(_transition_overlay, tracker.get_callback())
 
-	# Wait for tween to complete
-	if fade._tween != null:
-		await U_TransitionTestHelpers.await_tween_or_timeout(fade._tween, get_tree(), 0.8)
+	await get_tree().process_frame
+	assert_not_null(fade._tween, "Fade should create a tween when duration > 0")
 
-	# Tween should be cleaned up after completion
-	assert_true(true, "Transition should clean up Tween")
+	var ok := await U_TransitionTestHelpers.await_tween_or_timeout(fade._tween, get_tree(), 1.2)
+	await get_tree().process_frame
+
+	assert_true(ok, "Tween did not finish within expected window")
+	assert_true(tracker.is_complete, "Completion callback should be called")
+	assert_null(fade._tween, "Tween reference should be cleared after completion")
 
 ## Test multiple transitions don't conflict
 func test_multiple_transitions_queued() -> void:
@@ -215,71 +214,47 @@ func test_transition_with_null_overlay() -> void:
 	assert_true(true, "Should handle null overlay gracefully")
 
 ## Test Trans_Fade Tween properties
-## @warning: Skipped in headless - tween timing unreliable without rendering
 func test_fade_transition_uses_tween() -> void:
-	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
-		pending("Skipped: Tween timing unreliable in headless mode")
-		return
 	var fade := Trans_Fade.new()
 	fade.duration = 0.2
 
 	fade.execute(_transition_overlay, func() -> void: pass)
 
-	# In paused trees, timers do not advance; use frame yields.
-	var alpha1: float
-	var alpha2: float
-	if get_tree().paused:
-		for i in range(3):
-			await get_tree().process_frame
-		alpha1 = _color_rect.modulate.a
-		for i in range(3):
-			await get_tree().process_frame
-		alpha2 = _color_rect.modulate.a
-	else:
-		await wait_seconds(0.05)
-		alpha1 = _color_rect.modulate.a
-		await wait_seconds(0.05)
-		alpha2 = _color_rect.modulate.a
+	await get_tree().process_frame
+	assert_not_null(fade._tween, "Fade should create a tween when duration > 0")
+
+	# Use frame yields (headless-safe) to detect alpha movement.
+	var alpha1: float = _color_rect.modulate.a
+	for i in range(3):
+		await get_tree().process_frame
+	var alpha2: float = _color_rect.modulate.a
 
 	# Alpha should be different, proving Tween is working
 	assert_ne(alpha1, alpha2, "Alpha should change during fade")
 
 ## Test input blocking mechanism
-## @warning: Skipped in headless - tween timing unreliable without rendering
 func test_input_blocking_enabled() -> void:
-	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
-		pending("Skipped: Tween timing unreliable in headless mode")
-		return
 	var fade := Trans_Fade.new()
 	fade.duration = 0.1
 	fade.block_input = true
 
+	# Make the change observable: default is STOP, so start from IGNORE.
+	_color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 	fade.execute(_transition_overlay, func() -> void: pass)
 
-	# During transition, check if input blocking is active
-	if get_tree().paused:
-		for i in range(3):
-			await get_tree().process_frame
-	else:
-		await wait_seconds(0.05)
+	await get_tree().process_frame
+	assert_eq(_color_rect.mouse_filter, Control.MOUSE_FILTER_STOP, "Input should be blocked during transition")
 
-	assert_true(true, "Input blocking should be enabled during transition")
-
-	if get_tree().paused:
-		for i in range(6):
-			await get_tree().process_frame
-	else:
-		await wait_seconds(0.1)
+	if fade._tween != null:
+		await U_TransitionTestHelpers.await_tween_or_timeout(fade._tween, get_tree(), 1.2)
+	await get_tree().process_frame
 
 	# After transition, input blocking should be disabled
-	assert_true(true, "Input blocking should be disabled after transition")
+	assert_eq(_color_rect.mouse_filter, Control.MOUSE_FILTER_IGNORE, "Input blocking should be disabled after transition")
 
 ## Test Trans_Fade configurable easing
-## @warning: Skipped in headless - tween timing unreliable without rendering
 func test_fade_transition_easing() -> void:
-	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
-		pending("Skipped: Tween timing unreliable in headless mode")
-		return
 	var fade := Trans_Fade.new()
 	fade.duration = 0.2
 	fade.easing_type = Tween.EASE_IN_OUT
@@ -288,10 +263,14 @@ func test_fade_transition_easing() -> void:
 	var tracker := U_TransitionTestHelpers.create_completion_tracker()
 	fade.execute(_transition_overlay, tracker.get_callback())
 
-	# Wait for completion with timeout
-	var completed: bool = await tracker.wait(get_tree(), 1.0)
+	await get_tree().process_frame
+	assert_not_null(fade._tween, "Fade should create a tween when duration > 0")
 
-	assert_true(completed, "Should complete with custom easing")
+	var ok := await U_TransitionTestHelpers.await_tween_or_timeout(fade._tween, get_tree(), 1.2)
+	await get_tree().process_frame
+
+	assert_true(ok, "Should complete with custom easing")
+	assert_true(tracker.is_complete, "Completion callback should be called")
 
 ## Test Trans_Instant with scene swap
 func test_instant_transition_scene_swap_timing() -> void:

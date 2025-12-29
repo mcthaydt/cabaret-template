@@ -11,6 +11,7 @@ const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd"
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
+const DEFAULT_GAMEPAD_SETTINGS := preload("res://resources/input/gamepad_settings/default_gamepad_settings.tres")
 
 var _store: M_StateStore
 
@@ -145,6 +146,7 @@ func _setup_system() -> Dictionary:
 	await _pump()
 
 	var component := C_GamepadComponent.new()
+	component.settings = DEFAULT_GAMEPAD_SETTINGS.duplicate(true)
 	component.device_id = 1
 	entity.add_child(component)
 	await _pump()

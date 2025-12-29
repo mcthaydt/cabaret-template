@@ -9,6 +9,7 @@ extends GutTest
 
 var store: M_StateStore
 var overlay: Node
+var debug_manager: M_DebugManager
 
 func before_each():
 	U_StateEventBus.reset()
@@ -24,6 +25,9 @@ func after_each():
 	if overlay and is_instance_valid(overlay):
 		overlay.queue_free()
 	overlay = null
+	if debug_manager and is_instance_valid(debug_manager):
+		debug_manager.queue_free()
+	debug_manager = null
 
 ## Test: Debug overlay instantiates without errors
 func test_debug_overlay_instantiates_without_errors():
@@ -103,4 +107,30 @@ func test_debug_overlay_displays_action_history():
 ## SKIPPED: F3 overlay toggle moved to M_DebugManager in Phase 0
 ## This will be re-implemented and tested in Phase 3 when overlay functionality is complete
 func test_debug_overlay_toggles_with_input_action():
-	pending("F3 overlay toggle moved to M_DebugManager - will be tested in Phase 3")
+	_ensure_action(StringName("toggle_debug_overlay"), KEY_F3)
+
+	debug_manager = M_DebugManager.new()
+	add_child_autofree(debug_manager)
+	await get_tree().process_frame
+	await get_tree().process_frame  # Allow store discovery
+
+	var toggle_event := InputEventKey.new()
+	toggle_event.pressed = true
+	toggle_event.keycode = KEY_F3
+	toggle_event.physical_keycode = KEY_F3
+
+	debug_manager._input(toggle_event)
+	await get_tree().process_frame
+	assert_true(debug_manager.is_overlay_visible(StringName("state_overlay")))
+
+	debug_manager._input(toggle_event)
+	await get_tree().process_frame
+	assert_false(debug_manager.is_overlay_visible(StringName("state_overlay")))
+
+func _ensure_action(action_name: StringName, keycode: int) -> void:
+	if not InputMap.has_action(action_name):
+		InputMap.add_action(action_name)
+	if InputMap.action_get_events(action_name).is_empty():
+		var event := InputEventKey.new()
+		event.physical_keycode = keycode
+		InputMap.action_add_event(action_name, event)

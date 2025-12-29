@@ -350,37 +350,41 @@ func _get_focused_slot_index() -> int:
 	return -1
 
 func _restore_focus_to_slot(slot_index: int) -> void:
-	# Restore focus to the slot at the given index, or first available slot
-	if _slot_list_container == null:
-		return
+		# Avoid `await` here: this method can be called during teardown and
+		# resuming after an await would error if the menu has been freed.
+		if _slot_list_container == null:
+			return
+		call_deferred("_restore_focus_to_slot_deferred", slot_index)
 
-	await get_tree().process_frame  # Wait for UI to settle
+func _restore_focus_to_slot_deferred(slot_index: int) -> void:
+		if _slot_list_container == null or not is_inside_tree():
+			return
 
-	var target_index: int = slot_index
-	var slot_count: int = _slot_list_container.get_child_count()
+		var target_index: int = slot_index
+		var slot_count: int = _slot_list_container.get_child_count()
 
-	# Clamp to valid range
-	if target_index >= slot_count:
-		target_index = slot_count - 1
-	if target_index < 0:
-		target_index = 0
+		# Clamp to valid range
+		if target_index >= slot_count:
+			target_index = slot_count - 1
+		if target_index < 0:
+			target_index = 0
 
-	# Find the main button in the target slot
-	if target_index < slot_count:
-		var slot_container := _slot_list_container.get_child(target_index)
-		if slot_container is HBoxContainer:
-			var main_button: Button = slot_container.get_node_or_null("MainButton") as Button
-			if main_button != null and not main_button.disabled and main_button.is_inside_tree():
-				main_button.grab_focus()
-				return
+		# Find the main button in the target slot
+		if target_index < slot_count:
+			var slot_container := _slot_list_container.get_child(target_index)
+			if slot_container is HBoxContainer:
+				var main_button: Button = slot_container.get_node_or_null("MainButton") as Button
+				if main_button != null and not main_button.disabled and main_button.is_inside_tree():
+					main_button.grab_focus()
+					return
 
-	# Fallback: focus first available button
-	for container in _slot_list_container.get_children():
-		if container is HBoxContainer:
-			var main_button: Button = container.get_node_or_null("MainButton") as Button
-			if main_button != null and not main_button.disabled and main_button.is_inside_tree():
-				main_button.grab_focus()
-				return
+		# Fallback: focus first available button
+		for container in _slot_list_container.get_children():
+			if container is HBoxContainer:
+				var main_button: Button = container.get_node_or_null("MainButton") as Button
+				if main_button != null and not main_button.disabled and main_button.is_inside_tree():
+					main_button.grab_focus()
+					return
 
 func _on_slot_item_pressed(slot_id: StringName, exists: bool) -> void:
 	if _mode == StringName("save"):

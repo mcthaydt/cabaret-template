@@ -429,14 +429,15 @@ func load_state(filepath: String) -> Error:
 ## Respects transient slice and field configurations.
 ## Emits slice_updated for each modified slice.
 func apply_loaded_state(loaded_state: Dictionary) -> void:
-	for slice_name in loaded_state:
+	for slice_key in loaded_state:
+		var slice_name: StringName = slice_key if slice_key is StringName else StringName(String(slice_key))
 		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
 
 		# Skip transient slices
 		if config != null and config.is_transient:
 			continue
 
-		var loaded_slice: Dictionary = loaded_state[slice_name]
+		var loaded_slice: Dictionary = loaded_state[slice_key]
 		if not loaded_slice is Dictionary:
 			continue
 
@@ -444,8 +445,11 @@ func apply_loaded_state(loaded_state: Dictionary) -> void:
 		var filtered_slice := loaded_slice.duplicate(true)
 		if config != null:
 			for transient_field in config.transient_fields:
+				var transient_key: String = String(transient_field)
 				if filtered_slice.has(transient_field):
 					filtered_slice.erase(transient_field)
+				if filtered_slice.has(transient_key):
+					filtered_slice.erase(transient_key)
 
 		# Merge with current state (loaded takes precedence)
 		if _state.has(slice_name):
@@ -461,16 +465,20 @@ func apply_loaded_state(loaded_state: Dictionary) -> void:
 
 ## Preserve state to StateHandoff for scene transitions
 func _preserve_to_handoff() -> void:
-	for slice_name in _state:
-		var slice_state: Dictionary = _state[slice_name]
+	for slice_key in _state:
+		var slice_name: StringName = slice_key if slice_key is StringName else StringName(String(slice_key))
+		var slice_state: Dictionary = _state[slice_key]
 		var preserved := slice_state.duplicate(true)
 		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
 		if config != null and config.is_transient:
 			continue
 		if config != null:
 			for transient_field in config.transient_fields:
+				var transient_key: String = String(transient_field)
 				if preserved.has(transient_field):
 					preserved.erase(transient_field)
+				if preserved.has(transient_key):
+					preserved.erase(transient_key)
 		U_STATE_HANDOFF.preserve_slice(slice_name, preserved)
 	
 ## Restore state from StateHandoff after scene transitions

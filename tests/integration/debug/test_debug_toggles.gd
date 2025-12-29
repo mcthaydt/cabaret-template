@@ -43,10 +43,13 @@ var _mock_manager: MockECSManager
 var _root: Node
 
 func before_each() -> void:
-	_mock_store = MockStateStore.new()
-	_mock_manager = MockECSManager.new()
 	_root = Node.new()
 	add_child_autofree(_root)
+
+	_mock_store = MockStateStore.new()
+	_mock_manager = MockECSManager.new()
+	_root.add_child(_mock_store)
+	_root.add_child(_mock_manager)
 
 func after_each() -> void:
 	_mock_store = null
