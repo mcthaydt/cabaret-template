@@ -1,12 +1,21 @@
 # Debug Manager Implementation Tasks
 
-**Progress:** Phase 3 Complete (2025-12-28)
+**Progress:** Phase 4 Complete (2025-12-28)
 
 **Status:** In Progress
 
 ---
 
 **Recent Updates (2025-12-28):**
+- **Phase 4 Complete**: ECS Overlay (F2) fully implemented
+  - Created `debug_ecs_overlay.tscn` scene with 3-panel layout (entity browser, component inspector, system view)
+  - Created `SC_DebugECSOverlay` controller with pagination, filtering, and live updates
+  - Entity list supports 50 entities per page with prev/next navigation
+  - Filter by tag (text input) and component type (dropdown)
+  - Component inspector displays read-only property values with 100ms throttle
+  - System execution view shows priority, enabled state, and toggle controls
+  - Event subscriptions with 100ms debounce prevent UI freeze during scene load
+  - F2 toggle already wired in M_DebugManager from Phase 0
 - **Phase 3 Complete**: Performance HUD (F1) fully implemented
   - Created `U_DebugPerfCollector` helper for gathering FPS, memory, and rendering metrics
   - Created `U_DebugFrameGraph` custom control with 60-sample circular buffer and color-coded thresholds
@@ -342,11 +351,11 @@
 
 ---
 
-## Phase 4: ECS Overlay (F2)
+## Phase 4: ECS Overlay (F2) ✅ COMPLETE (2025-12-28)
 
 **Exit Criteria:** F2 shows entity browser; can select entity and see component values
 
-- [ ] **Task 4.1**: Create `scenes/debug/debug_ecs_overlay.tscn`
+- [x] **Task 4.1**: Create `scenes/debug/debug_ecs_overlay.tscn`
   - CanvasLayer with layer 100
   - Full-screen panel with background
   - HSplitContainer for 3 columns:
@@ -354,57 +363,61 @@
     - Center: Component inspector (VBoxContainer + ScrollContainer)
     - Right: System view (VBoxContainer + ItemList)
   - Filter TextEdit above entity list
+  - **Completed:** Scene created with 3-panel HSplitContainer layout, ColorRect background for dimming ✅
 
-- [ ] **Task 4.2**: Create `scenes/debug/debug_ecs_overlay.gd`
+- [x] **Task 4.2**: Create `scenes/debug/debug_ecs_overlay.gd`
   - Extend `CanvasLayer`, class_name `SC_DebugECSOverlay`
   - `process_mode = PROCESS_MODE_ALWAYS`
   - Store references to M_ECSManager
   - Track selected entity
+  - **Completed:** Controller script created with all required state tracking ✅
 
-- [ ] **Task 4.3**: Implement entity list with pagination (50 per page)
+- [x] **Task 4.3**: Implement entity list with pagination (50 per page)
   - Use dirty flag pattern: only rebuild list when entities change
   - Subscribe to `entity_registered`/`entity_unregistered` events via U_ECSEventBus
   - **Add debounce**: accumulate changes for 100ms before rebuilding (prevents UI freeze during scene load)
-    ```gdscript
-    var _list_dirty := false
-    var _rebuild_timer := 0.0
-
-    func _on_entity_registered(_entity) -> void:
-        _list_dirty = true  # Just mark dirty, don't rebuild
-
-    func _process(delta: float) -> void:
-        if _list_dirty:
-            _rebuild_timer += delta
-            if _rebuild_timer >= 0.1:  # 100ms debounce
-                _rebuild_entity_list()
-                _list_dirty = false
-                _rebuild_timer = 0.0
-    ```
   - Paginate results: show 50 entities per page
   - Add prev/next page buttons and page indicator (e.g., "Page 1 of 3")
   - Populate ItemList with current page entity IDs
   - Handle selection: store selected entity, trigger inspector update
+  - **Completed:** Pagination implemented with debounce, prev/next buttons, and page indicator ✅
 
-- [ ] **Task 4.4**: Implement entity filtering
+- [x] **Task 4.4**: Implement entity filtering
   - Filter by tag: TextEdit → `M_ECSManager.get_entities_by_tag()`
   - Filter by component: OptionButton → filter list
   - Clear filter button
+  - **Completed:** Tag filter (LineEdit), component filter (OptionButton), and clear button implemented ✅
 
-- [ ] **Task 4.5**: Implement component inspector (read-only)
+- [x] **Task 4.5**: Implement component inspector (read-only)
   - On entity selection: Query `M_ECSManager.get_components_for_entity()`
   - For each component:
     - Display component type name
     - List exported properties with current values (read-only, no editing)
   - Throttled update (100ms interval, not every frame) to avoid performance issues
+  - **Completed:** Component inspector with 100ms throttled updates, displays component type and exported properties ✅
 
-- [ ] **Task 4.6**: Implement system execution view
+- [x] **Task 4.6**: Implement system execution view
   - Query `M_ECSManager.get_systems()`
   - Display: name, priority, enabled state
   - Checkbox to enable/disable (calls `system.set_debug_disabled(true/false)`)
   - Note: setting `process_mode` does NOT stop `M_ECSManager` from calling `process_tick()`
   - Show query metrics if available
+  - **Completed:** System list with priority, enabled state icons, and enable/disable checkbox ✅
 
-- [ ] **Task 4.7**: Wire F2 toggle in M_DebugManager
+- [x] **Task 4.7**: Wire F2 toggle in M_DebugManager
+  - **Completed:** F2 toggle already wired in Phase 0 ✅
+
+**Phase 4 Summary:**
+- All tasks complete (2025-12-28)
+- ECS overlay provides comprehensive entity browsing, component inspection, and system management
+- Debounced list updates prevent UI freeze during scene transitions
+- Throttled component inspector prevents performance degradation
+- Pagination supports large entity counts (50 per page)
+- Filtering by tag and component type for targeted debugging
+- System execution view with enable/disable controls
+- Files created:
+  - `scenes/debug/debug_ecs_overlay.tscn`
+  - `scenes/debug/debug_ecs_overlay.gd`
 
 **Notes:**
 - Pagination: 50 entities per page with prev/next buttons (resolved decision)
@@ -658,8 +671,8 @@
 | `scripts/debug/helpers/u_debug_visual_aids.gd` | Helper | Visual debug aids | ⏳ Pending (Phase 7) |
 | `scenes/debug/debug_perf_hud.tscn` | Scene | F1 overlay | ✅ Complete (Phase 3) |
 | `scenes/debug/debug_perf_hud.gd` | Script | F1 controller | ✅ Complete (Phase 3) |
-| `scenes/debug/debug_ecs_overlay.tscn` | Scene | F2 overlay | ⏳ Pending (Phase 4) |
-| `scenes/debug/debug_ecs_overlay.gd` | Script | F2 controller | ⏳ Pending (Phase 4) |
+| `scenes/debug/debug_ecs_overlay.tscn` | Scene | F2 overlay | ✅ Complete (Phase 4) |
+| `scenes/debug/debug_ecs_overlay.gd` | Script | F2 controller | ✅ Complete (Phase 4) |
 | `scenes/debug/debug_toggle_menu.tscn` | Scene | F4 overlay | ⏳ Pending (Phase 6) |
 | `scenes/debug/debug_toggle_menu.gd` | Script | F4 controller | ⏳ Pending (Phase 6) |
 | `tests/unit/debug/test_debug_reducer.gd` | Test | Reducer tests (TDD - Phase 1) | ✅ Complete (Phase 1) |
