@@ -208,13 +208,11 @@ func _update_pagination_controls() -> void:
 ## Update component inspector for selected entity
 func _update_component_inspector() -> void:
 	if _selected_entity_id == StringName() or not is_instance_valid(_ecs_manager):
-		print("DEBUG: Early return - no entity_id or manager")
 		return
 
 	# Get entity from ID
 	var entity := _ecs_manager.get_entity_by_id(_selected_entity_id)
 	if not is_instance_valid(entity):
-		print("DEBUG: Entity lookup failed for ID: ", _selected_entity_id)
 		# Show error in UI
 		for child in _component_details_container.get_children():
 			child.queue_free()
@@ -223,15 +221,12 @@ func _update_component_inspector() -> void:
 		_component_details_container.add_child(error_label)
 		return
 
-	print("DEBUG: Found entity: ", entity.name, " (", entity.get_class(), ")")
-
 	# Clear existing details
 	for child in _component_details_container.get_children():
 		child.queue_free()
 
-	# Get components for selected entity (returns Dictionary: StringName -> Array)
+	# Get components for selected entity (returns Dictionary: StringName -> Component)
 	var components_dict := _ecs_manager.get_components_for_entity(entity)
-	print("DEBUG: components_dict keys: ", components_dict.keys(), " size: ", components_dict.size())
 
 	if components_dict.is_empty():
 		var no_components_label := Label.new()
@@ -241,12 +236,10 @@ func _update_component_inspector() -> void:
 
 	# Display each component type
 	# NOTE: Dictionary maps StringName -> Component (not Array!)
-	var label_count := 0
 	for comp_type in components_dict.keys():
 		var component = components_dict[comp_type]  # Direct component instance
 
 		if not component is BaseECSComponent:
-			print("DEBUG: Skipping non-component: ", component)
 			continue
 
 		# Component header
@@ -254,19 +247,31 @@ func _update_component_inspector() -> void:
 		header.text = String(component.component_type)
 		header.add_theme_font_size_override("font_size", 16)
 		_component_details_container.add_child(header)
-		label_count += 1
 
-		# Component properties (read-only display)
+		# Component properties (read-only display - exported only)
 		var property_list: Array = component.get_property_list()
 		for property in property_list:
 			# Skip internal properties
 			if property.name.begins_with("_"):
 				continue
-			# Only show exported properties (PROPERTY_USAGE_STORAGE includes exported)
-			if (property.usage & PROPERTY_USAGE_STORAGE) == 0:
+
+			# Only show user-exported properties (exclude Node built-ins)
+			# PROPERTY_USAGE_EDITOR (4) means it shows in the editor inspector
+			if (property.usage & PROPERTY_USAGE_EDITOR) == 0:
 				continue
-			# Filter out internal GDScript properties
-			if property.name in ["script", "Script Variables"]:
+
+			# Filter out base Node properties and internal ECS properties
+			if property.name in [
+				"script", "Script Variables",
+				"process_mode", "process_priority", "process_physics_priority",
+				"process_thread_group", "physics_interpolation_mode",
+				"auto_translate_mode", "editor_description",
+				"component_type", "settings", "ecs_manager",
+				"unique_name_in_owner", "scene_file_path", "owner",
+				"multiplayer", "name", "transform", "position", "rotation",
+				"scale", "quaternion", "basis", "global_transform",
+				"global_position", "global_rotation", "top_level", "visibility_parent"
+			]:
 				continue
 
 			var value = component.get(property.name)
@@ -277,10 +282,6 @@ func _update_component_inspector() -> void:
 		# Separator
 		var separator := HSeparator.new()
 		_component_details_container.add_child(separator)
-
-	print("DEBUG: Finished - added ", label_count, " component headers")
-	print("DEBUG: Container child count: ", _component_details_container.get_child_count())
-	print("DEBUG: Container visible: ", _component_details_container.visible)
 
 
 ## Populate system list
