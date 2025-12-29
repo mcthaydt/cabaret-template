@@ -28,9 +28,7 @@ extends CanvasLayer
 @onready var _draw_toggle: Button = %DrawToggle
 @onready var _ecs_toggle: Button = %ECSToggle
 
-## Helper preloads
-const U_DebugPerfCollector := preload("res://scripts/debug/helpers/u_debug_perf_collector.gd")
-const U_ServiceLocator := preload("res://scripts/utils/u_service_locator.gd")
+# Note: No preloads needed - using global class names directly
 
 ## ECS Manager reference (optional, may not exist in all scenes)
 var _ecs_manager: M_ECSManager = null
@@ -61,7 +59,7 @@ func _update_performance_metrics() -> void:
 
 	# Update memory metrics
 	_static_mem_label.text = "  Static: %.1f MB" % metrics.memory_static_mb
-	_dynamic_mem_label.text = "  Dynamic: %.1f MB" % metrics.memory_dynamic_mb
+	_dynamic_mem_label.text = "  Peak: %.1f MB" % metrics.memory_static_max_mb
 
 	# Update rendering metrics
 	_draw_calls_label.text = "  Draw Calls: %d" % metrics.draw_calls

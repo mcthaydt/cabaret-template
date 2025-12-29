@@ -37,7 +37,7 @@ func test_reducer_is_pure_function() -> void:
 
 func test_reducer_does_not_mutate_original_state() -> void:
 	var state: Dictionary = U_DebugReducer.get_default_debug_state()
-	var original_god_mode := state.get("god_mode", false)
+	var original_god_mode: bool = state.get("god_mode", false)
 
 	var _reduced: Dictionary = U_DebugReducer.reduce(state, U_DebugActions.set_god_mode(true)) as Dictionary
 
