@@ -7,15 +7,21 @@
 ---
 
 **Recent Updates (2025-12-28):**
-- **Phase 4 Complete**: ECS Overlay (F2) fully implemented
+- **Phase 4 Complete + Audit Fixes**: ECS Overlay (F2) fully implemented and verified
   - Created `debug_ecs_overlay.tscn` scene with 3-panel layout (entity browser, component inspector, system view)
   - Created `SC_DebugECSOverlay` controller with pagination, filtering, and live updates
   - Entity list supports 50 entities per page with prev/next navigation
   - Filter by tag (text input) and component type (dropdown)
-  - Component inspector displays read-only property values with 100ms throttle
+  - Component inspector displays read-only **exported** properties with 100ms throttle
   - System execution view shows priority, enabled state, and toggle controls
   - Event subscriptions with 100ms debounce prevent UI freeze during scene load
   - F2 toggle already wired in M_DebugManager from Phase 0
+  - **Audit performed**: Fixed 1 critical bug, 2 major issues, 2 minor issues
+    - Fixed: `get_all_components()` doesn't exist (iterate entities instead)
+    - Fixed: `get_components_for_entity()` expects Node, not StringName
+    - Fixed: Component filter now uses PROPERTY_USAGE_STORAGE (exported only)
+    - Fixed: Conditional event cleanup in _exit_tree()
+    - Fixed: State overlay missing process_mode = 3 and layer = 100
 - **Phase 3 Complete**: Performance HUD (F1) fully implemented
   - Created `U_DebugPerfCollector` helper for gathering FPS, memory, and rendering metrics
   - Created `U_DebugFrameGraph` custom control with 60-sample circular buffer and color-coded thresholds

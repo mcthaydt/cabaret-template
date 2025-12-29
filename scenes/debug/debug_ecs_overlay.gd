@@ -73,9 +73,10 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
-	# Clean up event subscriptions
-	U_ECSEventBus.unsubscribe(StringName("entity_registered"), _on_entity_registered)
-	U_ECSEventBus.unsubscribe(StringName("entity_unregistered"), _on_entity_unregistered)
+	# Clean up event subscriptions (only if we subscribed)
+	if is_instance_valid(_ecs_manager):
+		U_ECSEventBus.unsubscribe(StringName("entity_registered"), _on_entity_registered)
+		U_ECSEventBus.unsubscribe(StringName("entity_unregistered"), _on_entity_unregistered)
 
 
 func _process(delta: float) -> void:
@@ -109,12 +110,17 @@ func _populate_component_filter() -> void:
 	if not is_instance_valid(_ecs_manager):
 		return
 
-	# Get all unique component types from registered components
+	# Get all unique component types from all registered entities
 	var component_types: Array[StringName] = []
-	var all_components := _ecs_manager.get_all_components()
-	for component in all_components:
-		if component is BaseECSComponent:
-			var comp_type := component.component_type
+	var entity_ids := _ecs_manager.get_all_entity_ids()
+
+	for entity_id in entity_ids:
+		var entity := _ecs_manager.get_entity_by_id(entity_id)
+		if not is_instance_valid(entity):
+			continue
+
+		var components_dict := _ecs_manager.get_components_for_entity(entity)
+		for comp_type in components_dict.keys():
 			if comp_type != StringName() and not component_types.has(comp_type):
 				component_types.append(comp_type)
 
@@ -170,10 +176,10 @@ func _apply_filters(entity_ids: Array[StringName]) -> Array[StringName]:
 
 		# Component filter
 		if _active_component_filter != StringName():
-			var components := _ecs_manager.get_components_for_entity(entity_id)
+			var components_dict := _ecs_manager.get_components_for_entity(entity)
 			var has_component := false
-			for component in components:
-				if component is BaseECSComponent and component.component_type == _active_component_filter:
+			for comp_type in components_dict.keys():
+				if comp_type == _active_component_filter:
 					has_component = true
 					break
 			if not has_component:
@@ -208,48 +214,58 @@ func _update_component_inspector() -> void:
 	if _selected_entity_id == StringName() or not is_instance_valid(_ecs_manager):
 		return
 
+	# Get entity from ID
+	var entity := _ecs_manager.get_entity_by_id(_selected_entity_id)
+	if not is_instance_valid(entity):
+		return
+
 	# Clear existing details
 	for child in _component_details_container.get_children():
 		child.queue_free()
 
-	# Get components for selected entity
-	var components := _ecs_manager.get_components_for_entity(_selected_entity_id)
+	# Get components for selected entity (returns Dictionary: StringName -> Array)
+	var components_dict := _ecs_manager.get_components_for_entity(entity)
 
-	if components.is_empty():
+	if components_dict.is_empty():
 		var no_components_label := Label.new()
 		no_components_label.text = "No components found"
 		_component_details_container.add_child(no_components_label)
 		return
 
-	# Display each component
-	for component in components:
-		if not component is BaseECSComponent:
-			continue
-
-		# Component header
-		var header := Label.new()
-		header.text = String(component.component_type)
-		header.add_theme_font_size_override("font_size", 16)
-		_component_details_container.add_child(header)
-
-		# Component properties (read-only display)
-		var property_list := component.get_property_list()
-		for property in property_list:
-			# Skip internal properties
-			if property.name.begins_with("_"):
-				continue
-			# Only show exported properties
-			if (property.usage & PROPERTY_USAGE_SCRIPT_VARIABLE) == 0:
+	# Display each component type
+	for comp_type in components_dict.keys():
+		var components_array: Array = components_dict[comp_type]
+		for component in components_array:
+			if not component is BaseECSComponent:
 				continue
 
-			var value = component.get(property.name)
-			var prop_label := Label.new()
-			prop_label.text = "  %s: %s" % [property.name, str(value)]
-			_component_details_container.add_child(prop_label)
+			# Component header
+			var header := Label.new()
+			header.text = String(component.component_type)
+			header.add_theme_font_size_override("font_size", 16)
+			_component_details_container.add_child(header)
 
-		# Separator
-		var separator := HSeparator.new()
-		_component_details_container.add_child(separator)
+			# Component properties (read-only display)
+			var property_list := component.get_property_list()
+			for property in property_list:
+				# Skip internal properties
+				if property.name.begins_with("_"):
+					continue
+				# Only show exported properties (PROPERTY_USAGE_STORAGE includes exported)
+				if (property.usage & PROPERTY_USAGE_STORAGE) == 0:
+					continue
+				# Filter out internal GDScript properties
+				if property.name in ["script", "Script Variables"]:
+					continue
+
+				var value = component.get(property.name)
+				var prop_label := Label.new()
+				prop_label.text = "  %s: %s" % [property.name, str(value)]
+				_component_details_container.add_child(prop_label)
+
+			# Separator
+			var separator := HSeparator.new()
+			_component_details_container.add_child(separator)
 
 
 ## Populate system list
