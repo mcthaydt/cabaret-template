@@ -246,7 +246,7 @@ func _update_component_inspector() -> void:
 			_component_details_container.add_child(header)
 
 			# Component properties (read-only display)
-			var property_list := component.get_property_list()
+			var property_list: Array = component.get_property_list()
 			for property in property_list:
 				# Skip internal properties
 				if property.name.begins_with("_"):
@@ -282,10 +282,10 @@ func _populate_system_list() -> void:
 
 	for system in systems:
 		if system is BaseECSSystem:
-			var system_name := system.get_class()
-			var priority := system.get_priority()
-			var enabled := not system.is_debug_disabled()
-			var status_icon := "✓" if enabled else "✗"
+			var system_name: String = system.get_class()
+			var priority: int = system.get_priority()
+			var enabled: bool = not system.is_debug_disabled()
+			var status_icon: String = "✓" if enabled else "✗"
 			_system_list.add_item("%s %s (Priority: %d)" % [status_icon, system_name, priority])
 
 
