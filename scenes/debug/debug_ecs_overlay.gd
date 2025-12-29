@@ -287,6 +287,10 @@ func _update_component_inspector() -> void:
 			var separator := HSeparator.new()
 			_component_details_container.add_child(separator)
 
+	print("DEBUG: Finished - added ", label_count, " component headers")
+	print("DEBUG: Container child count: ", _component_details_container.get_child_count())
+	print("DEBUG: Container visible: ", _component_details_container.visible)
+
 
 ## Populate system list
 func _populate_system_list() -> void:
