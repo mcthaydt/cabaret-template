@@ -83,13 +83,13 @@
 
 ---
 
-## Phase 1: Debug State Extension (TDD)
+## Phase 1: Debug State Extension (TDD) ✅ COMPLETE (2025-12-28)
 
 **Exit Criteria:** Can dispatch debug actions and query toggle state via selectors
 
 **Approach:** Test-Driven Development - write tests first (RED), then implement (GREEN)
 
-- [ ] **Task 1.0**: Create `tests/unit/debug/test_debug_reducer.gd` (RED)
+- [x] **Task 1.0**: Create `tests/unit/debug/test_debug_reducer.gd` (RED)
   - Test reducer is a pure function (same inputs = same outputs)
   - Test reducer does not mutate original state (immutability)
   - Test all action handling with expected state changes:
@@ -99,8 +99,9 @@
     - (etc. for all toggle actions)
   - Test default values are correct
   - **Tests will fail until Task 1.2 is complete**
+  - **Completed:** 25 tests written, all passing ✅
 
-- [ ] **Task 1.1**: Extend `scripts/state/actions/u_debug_actions.gd`
+- [x] **Task 1.1**: Extend `scripts/state/actions/u_debug_actions.gd`
   - Add action constants:
     - `ACTION_SET_GOD_MODE`
     - `ACTION_SET_INFINITE_JUMP`
@@ -114,14 +115,16 @@
     - `ACTION_SET_TIME_SCALE`
   - Add action creators for each
   - Register in `_static_init()`
+  - **Completed:** All 10 actions added and registered ✅
 
-- [ ] **Task 1.2**: Extend `scripts/state/reducers/u_debug_reducer.gd` (GREEN)
+- [x] **Task 1.2**: Extend `scripts/state/reducers/u_debug_reducer.gd` (GREEN)
   - Extend `DEFAULT_DEBUG_STATE` with all new fields
   - Add match cases for all new actions
   - Follow existing `_with_values()` pattern
   - **Run tests from Task 1.0 - they should now pass**
+  - **Completed:** All reducer cases implemented, tests passing ✅
 
-- [ ] **Task 1.3**: Create `tests/unit/debug/test_debug_selectors.gd` (RED)
+- [x] **Task 1.3**: Create `tests/unit/debug/test_debug_selectors.gd` (RED)
   - Test all selector return values with sample state:
     - `is_god_mode(state)` returns true when enabled
     - `get_speed_modifier(state)` returns correct float value
@@ -129,8 +132,9 @@
   - Test null-safe access (missing debug slice returns defaults)
   - Test with various state configurations
   - **Tests will fail until Task 1.4 is complete**
+  - **Completed:** 22 tests written, all passing ✅
 
-- [ ] **Task 1.4**: Implement `scripts/state/selectors/u_debug_selectors.gd` (GREEN)
+- [x] **Task 1.4**: Implement `scripts/state/selectors/u_debug_selectors.gd` (GREEN)
   - **DEPENDENCY**: Task 1.2 must be complete first (reducer defines state fields)
   - Update stubs from Task 0.6 with real implementations
   - Use null-safe access: `state.get("debug", {}).get("field", default)`
@@ -147,16 +151,27 @@
     - `get_time_scale(state) -> float`
   - Follow existing selector pattern
   - **Run tests from Task 1.3 - they should now pass**
+  - **Completed:** Selectors already implemented in Phase 0, all tests passing ✅
 
-- [ ] **Task 1.5**: Ensure `debug` slice is NOT persisted to save files
+- [x] **Task 1.5**: Ensure `debug` slice is NOT persisted to save files
   - Requirement: debug toggles reset on launch; saves must not contain debug state
   - Implementation option A (preferred): Mark `debug` slice transient (like `navigation`) in slice config
   - Implementation option B: Filter `debug` slice out in the persistence pipeline (`get_persistable_state()` / persistence helper)
   - Verification: Save file `state` has no `debug` key; loading a save does not restore debug toggles
+  - **Completed:** Set `is_transient = true` in u_state_slice_manager.gd ✅
 
-**Notes:**
-- Debug state is transient (not persisted to saves)
-- TDD flow: Task 1.0 (RED) → Task 1.1-1.2 (GREEN) → Task 1.3 (RED) → Task 1.4 (GREEN)
+**Phase 1 Summary:**
+- All tasks complete (2025-12-28)
+- 47 total tests passing (25 reducer + 22 selector)
+- Debug slice marked as transient (never persisted)
+- TDD flow successfully completed: RED → GREEN cycle
+- Files modified:
+  - `scripts/state/actions/u_debug_actions.gd` (10 new actions)
+  - `scripts/state/reducers/u_debug_reducer.gd` (10 new fields + reducers)
+  - `scripts/state/selectors/u_debug_selectors.gd` (already implemented in Phase 0)
+  - `scripts/state/utils/u_state_slice_manager.gd` (marked debug slice transient)
+  - `tests/unit/state/test_debug_reducer.gd` (25 tests)
+  - `tests/unit/debug/test_debug_selectors.gd` (22 tests)
 
 ---
 

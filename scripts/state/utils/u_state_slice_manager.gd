@@ -87,13 +87,14 @@ static func initialize_slices(
 		scene_config.transient_fields = ["is_transitioning", "transition_type", "scene_stack"]
 		register_slice(slice_configs, state, scene_config)
 
-	# Debug slice
+	# Debug slice (transient - never persisted to saves)
 	if debug_initial_state != null:
 		var debug_config := RS_StateSliceConfig.new(StringName("debug"))
 		debug_config.reducer = Callable(U_DebugReducer, "reduce")
 		debug_config.initial_state = debug_initial_state.to_dictionary()
 		debug_config.dependencies = []
 		debug_config.transient_fields = []
+		debug_config.is_transient = true
 		register_slice(slice_configs, state, debug_config)
 
 ## Register a single slice config into the given dictionaries.
