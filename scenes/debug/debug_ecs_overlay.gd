@@ -234,7 +234,9 @@ func _update_component_inspector() -> void:
 
 	# Display each component type
 	for comp_type in components_dict.keys():
-		var components_array: Array = components_dict[comp_type]
+		var components_array = components_dict[comp_type]  # Variant (dictionary lookup)
+		if not components_array is Array:
+			continue
 		for component in components_array:
 			if not component is BaseECSComponent:
 				continue
