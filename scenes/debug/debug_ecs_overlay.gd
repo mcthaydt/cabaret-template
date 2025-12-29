@@ -177,12 +177,8 @@ func _apply_filters(entity_ids: Array[StringName]) -> Array[StringName]:
 		# Component filter
 		if _active_component_filter != StringName():
 			var components_dict := _ecs_manager.get_components_for_entity(entity)
-			var has_component := false
-			for comp_type in components_dict.keys():
-				if comp_type == _active_component_filter:
-					has_component = true
-					break
-			if not has_component:
+			# Dictionary maps StringName -> Component (direct instance)
+			if not components_dict.has(_active_component_filter):
 				continue
 
 		result.append(entity_id)
@@ -244,49 +240,43 @@ func _update_component_inspector() -> void:
 		return
 
 	# Display each component type
+	# NOTE: Dictionary maps StringName -> Component (not Array!)
 	var label_count := 0
 	for comp_type in components_dict.keys():
-		print("DEBUG: Processing component type: ", comp_type)
-		var components_array = components_dict[comp_type]  # Variant (dictionary lookup)
-		print("DEBUG: Type of components_array: ", typeof(components_array), " value: ", components_array)
-		if not components_array is Array:
-			print("DEBUG: Component array is not Array, skipping")
+		var component = components_dict[comp_type]  # Direct component instance
+
+		if not component is BaseECSComponent:
+			print("DEBUG: Skipping non-component: ", component)
 			continue
-		print("DEBUG: Component array size: ", components_array.size())
-		for component in components_array:
-			if not component is BaseECSComponent:
-				print("DEBUG: Component is not BaseECSComponent, skipping")
+
+		# Component header
+		var header := Label.new()
+		header.text = String(component.component_type)
+		header.add_theme_font_size_override("font_size", 16)
+		_component_details_container.add_child(header)
+		label_count += 1
+
+		# Component properties (read-only display)
+		var property_list: Array = component.get_property_list()
+		for property in property_list:
+			# Skip internal properties
+			if property.name.begins_with("_"):
+				continue
+			# Only show exported properties (PROPERTY_USAGE_STORAGE includes exported)
+			if (property.usage & PROPERTY_USAGE_STORAGE) == 0:
+				continue
+			# Filter out internal GDScript properties
+			if property.name in ["script", "Script Variables"]:
 				continue
 
-			# Component header
-			var header := Label.new()
-			header.text = String(component.component_type)
-			header.add_theme_font_size_override("font_size", 16)
-			_component_details_container.add_child(header)
-			label_count += 1
-			print("DEBUG: Added header label: ", header.text)
+			var value = component.get(property.name)
+			var prop_label := Label.new()
+			prop_label.text = "  %s: %s" % [property.name, str(value)]
+			_component_details_container.add_child(prop_label)
 
-			# Component properties (read-only display)
-			var property_list: Array = component.get_property_list()
-			for property in property_list:
-				# Skip internal properties
-				if property.name.begins_with("_"):
-					continue
-				# Only show exported properties (PROPERTY_USAGE_STORAGE includes exported)
-				if (property.usage & PROPERTY_USAGE_STORAGE) == 0:
-					continue
-				# Filter out internal GDScript properties
-				if property.name in ["script", "Script Variables"]:
-					continue
-
-				var value = component.get(property.name)
-				var prop_label := Label.new()
-				prop_label.text = "  %s: %s" % [property.name, str(value)]
-				_component_details_container.add_child(prop_label)
-
-			# Separator
-			var separator := HSeparator.new()
-			_component_details_container.add_child(separator)
+		# Separator
+		var separator := HSeparator.new()
+		_component_details_container.add_child(separator)
 
 	print("DEBUG: Finished - added ", label_count, " component headers")
 	print("DEBUG: Container child count: ", _component_details_container.get_child_count())
