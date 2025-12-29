@@ -15,11 +15,11 @@ class_name M_DebugManager
 ##
 ## Note: This manager is automatically removed in release builds via OS.is_debug_build() check
 
-# Preload overlay scenes (lazy instantiation)
-const SC_DEBUG_PERF_HUD := preload("res://scenes/debug/debug_perf_hud.tscn")
-const SC_DEBUG_ECS_OVERLAY := preload("res://scenes/debug/debug_ecs_overlay.tscn")
-const SC_DEBUG_STATE_OVERLAY := preload("res://scenes/debug/debug_state_overlay.tscn")
-const SC_DEBUG_TOGGLE_MENU := preload("res://scenes/debug/debug_toggle_menu.tscn")
+# Overlay scene paths (lazy loaded at runtime to avoid Phase 0 preload failures)
+const SCENE_DEBUG_PERF_HUD := "res://scenes/debug/debug_perf_hud.tscn"
+const SCENE_DEBUG_ECS_OVERLAY := "res://scenes/debug/debug_ecs_overlay.tscn"
+const SCENE_DEBUG_STATE_OVERLAY := "res://scenes/debug/debug_state_overlay.tscn"
+const SCENE_DEBUG_TOGGLE_MENU := "res://scenes/debug/debug_toggle_menu.tscn"
 
 # Helper utilities
 const U_DEBUG_TELEMETRY := preload("res://scripts/managers/helpers/u_debug_telemetry.gd")
@@ -40,12 +40,12 @@ var _overlay_instances: Dictionary = {
 	StringName("toggle_menu"): null,
 }
 
-# Overlay scene mapping
-var _overlay_scenes: Dictionary = {
-	StringName("perf_hud"): SC_DEBUG_PERF_HUD,
-	StringName("ecs_overlay"): SC_DEBUG_ECS_OVERLAY,
-	StringName("state_overlay"): SC_DEBUG_STATE_OVERLAY,
-	StringName("toggle_menu"): SC_DEBUG_TOGGLE_MENU,
+# Overlay scene path mapping
+var _overlay_scene_paths: Dictionary = {
+	StringName("perf_hud"): SCENE_DEBUG_PERF_HUD,
+	StringName("ecs_overlay"): SCENE_DEBUG_ECS_OVERLAY,
+	StringName("state_overlay"): SCENE_DEBUG_STATE_OVERLAY,
+	StringName("toggle_menu"): SCENE_DEBUG_TOGGLE_MENU,
 }
 
 # Prevent race conditions during instantiation
@@ -115,12 +115,24 @@ func toggle_overlay(overlay_id: StringName) -> void:
 	var overlay_instance: Node = _overlay_instances.get(overlay_id)
 
 	if overlay_instance == null:
-		# First toggle - instantiate overlay
+		# First toggle - load and instantiate overlay
 		_instantiating[overlay_id] = true
-		var scene_resource: PackedScene = _overlay_scenes.get(overlay_id)
+		var scene_path: String = _overlay_scene_paths.get(overlay_id, "")
 
-		if scene_resource == null:
+		if scene_path.is_empty():
 			push_error("Debug Manager: Unknown overlay ID: %s" % overlay_id)
+			_instantiating[overlay_id] = false
+			return
+
+		# Lazy load scene (allows Phase 0 to work even if later phase scenes don't exist)
+		if not ResourceLoader.exists(scene_path):
+			push_warning("Debug Manager: Overlay scene not found (not implemented yet): %s" % scene_path)
+			_instantiating[overlay_id] = false
+			return
+
+		var scene_resource: PackedScene = load(scene_path)
+		if scene_resource == null:
+			push_error("Debug Manager: Failed to load overlay scene: %s" % scene_path)
 			_instantiating[overlay_id] = false
 			return
 
@@ -144,12 +156,12 @@ func is_overlay_visible(overlay_id: StringName) -> bool:
 
 ## Subscribe to events for telemetry logging
 func _subscribe_to_telemetry_events() -> void:
-	# ECS Events via U_ECSEventBus
-	U_ECS_EVENT_BUS.checkpoint_activated.connect(_on_checkpoint_activated)
-	U_ECS_EVENT_BUS.entity_death.connect(_on_entity_death)
-	U_ECS_EVENT_BUS.save_started.connect(_on_save_started)
-	U_ECS_EVENT_BUS.save_completed.connect(_on_save_completed)
-	U_ECS_EVENT_BUS.save_failed.connect(_on_save_failed)
+	# ECS Events via U_ECSEventBus (subscribe/publish pattern, not signals)
+	U_ECS_EVENT_BUS.subscribe(StringName("checkpoint_activated"), _on_checkpoint_activated)
+	U_ECS_EVENT_BUS.subscribe(StringName("entity_death"), _on_entity_death)
+	U_ECS_EVENT_BUS.subscribe(StringName("save_started"), _on_save_started)
+	U_ECS_EVENT_BUS.subscribe(StringName("save_completed"), _on_save_completed)
+	U_ECS_EVENT_BUS.subscribe(StringName("save_failed"), _on_save_failed)
 
 	# Redux actions via action_dispatched signal
 	if _store:
@@ -164,25 +176,30 @@ func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
 		Engine.time_scale = time_scale
 
 
-## Telemetry event handlers
-func _on_checkpoint_activated(checkpoint_id: StringName) -> void:
-	U_DEBUG_TELEMETRY.log_info(StringName("checkpoint"), "Checkpoint activated", {"checkpoint_id": checkpoint_id})
+## Telemetry event handlers (ECS EventBus callbacks receive payload parameter)
+func _on_checkpoint_activated(payload: Variant) -> void:
+	var data: Dictionary = payload if payload is Dictionary else {}
+	U_DEBUG_TELEMETRY.log_info(StringName("checkpoint"), "Checkpoint activated", data)
 
 
-func _on_entity_death(entity_id: StringName) -> void:
-	U_DEBUG_TELEMETRY.log_info(StringName("gameplay"), "Entity death", {"entity_id": entity_id})
+func _on_entity_death(payload: Variant) -> void:
+	var data: Dictionary = payload if payload is Dictionary else {}
+	U_DEBUG_TELEMETRY.log_info(StringName("gameplay"), "Entity death", data)
 
 
-func _on_save_started(slot_id: StringName) -> void:
-	U_DEBUG_TELEMETRY.log_info(StringName("save"), "Save started", {"slot_id": slot_id})
+func _on_save_started(payload: Variant) -> void:
+	var data: Dictionary = payload if payload is Dictionary else {}
+	U_DEBUG_TELEMETRY.log_info(StringName("save"), "Save started", data)
 
 
-func _on_save_completed(slot_id: StringName) -> void:
-	U_DEBUG_TELEMETRY.log_info(StringName("save"), "Save completed", {"slot_id": slot_id})
+func _on_save_completed(payload: Variant) -> void:
+	var data: Dictionary = payload if payload is Dictionary else {}
+	U_DEBUG_TELEMETRY.log_info(StringName("save"), "Save completed", data)
 
 
-func _on_save_failed(slot_id: StringName, error_code: int) -> void:
-	U_DEBUG_TELEMETRY.log_error(StringName("save"), "Save failed", {"slot_id": slot_id, "error_code": error_code})
+func _on_save_failed(payload: Variant) -> void:
+	var data: Dictionary = payload if payload is Dictionary else {}
+	U_DEBUG_TELEMETRY.log_error(StringName("save"), "Save failed", data)
 
 
 ## Handle Redux actions for telemetry
