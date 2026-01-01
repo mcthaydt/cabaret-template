@@ -13,6 +13,7 @@ const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actio
 const U_EntityActions := preload("res://scripts/state/actions/u_entity_actions.gd")
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 const PLAYER_RAGDOLL := preload("res://scenes/prefabs/prefab_player_ragdoll.tscn")
 
 ## Injected state store (for testing)
@@ -113,6 +114,12 @@ func _apply_damage(component: C_HealthComponent, entity_id: String) -> void:
 
 	if pending_damage <= 0.0 or component.is_dead():
 		return
+
+	# Phase 5: Debug Manager - God mode check
+	if _store != null:
+		var state := _store.get_state()
+		if U_DebugSelectors.is_god_mode(state):
+			return  # Skip damage when god mode is enabled
 
 	if component.is_invincible:
 		return  # Ignore damage during invincibility window

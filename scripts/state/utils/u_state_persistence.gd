@@ -36,7 +36,8 @@ static func filter_transient_fields(state: Dictionary, slice_configs: Dictionary
 			for key in slice_state:
 				var is_transient: bool = false
 				if config != null:
-					is_transient = config.transient_fields.has(key)
+					var key_str: String = String(key)
+					is_transient = config.transient_fields.has(key) or config.transient_fields.has(StringName(key_str))
 				if not is_transient:
 					filtered_slice[key] = slice_state[key]
 
@@ -114,8 +115,9 @@ static func load_state(filepath: String, state: Dictionary, slice_configs: Dicti
 
 			if config != null:
 				for transient_field in config.transient_fields:
-					if current_slice.has(transient_field) and not loaded_slice.has(transient_field):
-						loaded_slice[transient_field] = current_slice[transient_field]
+					var transient_key: String = String(transient_field)
+					if current_slice.has(transient_key) and not loaded_slice.has(transient_key):
+						loaded_slice[transient_key] = current_slice[transient_key]
 
 			state[slice_name] = loaded_slice.duplicate(true)
 

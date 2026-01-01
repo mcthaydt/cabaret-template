@@ -100,14 +100,14 @@
 
 ### Root Scene Creation
 
-- [x] T003 Create scenes/root.tscn with base Node
-- [x] T004 [P] Add M_StateStore to root.tscn (with boot/menu/gameplay/scene slices configured)
-- [x] T005 [P] Add M_CursorManager to root.tscn
-- [x] T006 [P] Add M_SceneManager stub node to root.tscn
-- [x] T007 [P] Add ActiveSceneContainer (Node type) to root.tscn
-- [x] T008 [P] Add UIOverlayStack (CanvasLayer, process_mode = PROCESS_MODE_ALWAYS) to root.tscn
-- [x] T009 [P] Add TransitionOverlay (CanvasLayer with ColorRect) to root.tscn
-- [x] T010 [P] Add LoadingOverlay (CanvasLayer, initially hidden) to root.tscn
+- [x] T003 Create scenes/main.tscn with base Node
+- [x] T004 [P] Add M_StateStore to main.tscn (with boot/menu/gameplay/scene slices configured)
+- [x] T005 [P] Add M_CursorManager to main.tscn
+- [x] T006 [P] Add M_SceneManager stub node to main.tscn
+- [x] T007 [P] Add ActiveSceneContainer (Node type) to main.tscn
+- [x] T008 [P] Add UIOverlayStack (CanvasLayer, process_mode = PROCESS_MODE_ALWAYS) to main.tscn
+- [x] T009 [P] Add TransitionOverlay (CanvasLayer with ColorRect) to main.tscn
+- [x] T010 [P] Add LoadingOverlay (CanvasLayer, initially hidden) to main.tscn
 
 ### Gameplay Scene Extraction
 
@@ -120,15 +120,15 @@
 
 ### Integration Validation
 
-- [x] T017 Create test script in root.tscn to load gameplay_base.tscn into ActiveSceneContainer - **tests/helpers/test_root_loader.gd**
-- [x] T018 Run game from root.tscn and validate ECS works (player moves, components register) - **PASSED**
+- [x] T017 Create test script in main.tscn to load gameplay_base.tscn into ActiveSceneContainer - **tests/helpers/test_root_loader.gd**
+- [x] T018 Run game from main.tscn and validate ECS works (player moves, components register) - **PASSED**
 - [x] T019 Validate Redux works (state updates, HUD updates) - **PASSED** (StateHandoff logs confirmed)
 - [x] T020 Run ALL ~212 tests and verify no regressions from baseline - **ALL PASSING** (212/212 ✅)
 - [x] T021 Fix any test failures before proceeding (BLOCKER if tests fail) - **NO FAILURES**
 
 ### Main Scene Switch
 
-- [x] T022 Update project.godot: run/main_scene to point to root.tscn - **res://scenes/root.tscn**
+- [x] T022 Update project.godot: run/main_scene to point to main.tscn - **res://scenes/main.tscn**
 - [x] T023 Launch game and validate no regressions - **PASSED** (exit code 0, no errors)
 - [x] T024 Validate debug overlay (F3) still works - **VERIFIED** (all systems functional)
 
@@ -193,7 +193,7 @@
 - [x] T053 [P] [US1] Create scripts/scene_management/transitions/trans_instant.gd - **COMPLETE** (synchronous callback)
 - [x] T054 [P] [US1] Create scripts/scene_management/transitions/trans_fade.gd with Tween - **COMPLETE** (fade out→in, mid_transition_callback, configurable easing)
 - [x] T055 [US1] Implement input blocking during transitions (set_input_as_handled) - **COMPLETE** (block_input property)
-- [x] T056 [US1] Update TransitionOverlay in root.tscn (ColorRect with modulate.a = 0) - **COMPLETE** (already configured in root.tscn)
+- [x] T056 [US1] Update TransitionOverlay in main.tscn (ColorRect with modulate.a = 0) - **COMPLETE** (already configured in main.tscn)
 - [x] T057 [US1] Integrate transition effects with M_SceneManager.transition_to_scene() - **COMPLETE** (M_SceneManager calls transition effects)
 - [x] T058 [US1] Run unit tests for transition effects (including input blocking) and verify they pass - **COMPLETE** (7/16 passing, Tween timing issues in headless mode)
 - [x] T059 [P] [US1] Create scenes/ui/main_menu.tscn (minimal: Label + Button to settings) - **COMPLETE** (Control with VBoxContainer, Label, Button)
@@ -478,7 +478,7 @@
 - [x] T130 [P] [US5] Create scenes/ui/loading_screen.tscn with ProgressBar
 - [x] T131 [P] [US5] Create scripts/scene_management/transitions/trans_loading_screen.gd
 - [x] T132 [US5] Implement Trans_LoadingScreen.update_progress(progress) for ProgressBar
-- [x] T133 [US5] Add LoadingOverlay reference in root.tscn
+- [x] T133 [US5] Add LoadingOverlay reference in main.tscn
 - [x] T134 [US5] Integrate loading_screen_transition with M_SceneManager
 - [x] T135 [US5] Implement transition type selection based on U_SceneRegistry metadata
 - [x] T136 [US5] Implement custom transition override per scene pair
@@ -1330,7 +1330,7 @@
   - Find camera in "main_camera" group
   - Return camera reference for blending
   - Log warning if not found (UI scenes don't need cameras)
-- [x] T224 Add M_SpawnManager node to `scenes/root.tscn` under Managers
+- [x] T224 Add M_SpawnManager node to `scenes/main.tscn` under Managers
 - [x] T225 Modify M_SceneManager._ready() to find M_SpawnManager via group
 - [x] T226 Replace M_SceneManager._restore_player_spawn_point() call with _spawn_manager.spawn_player_at_point()
   - Location: M_SceneManager._perform_transition() line ~435
@@ -1369,7 +1369,7 @@
 - [x] T239 Move _capture_camera_state() to M_CameraManager
 - [x] T240 Move _blend_camera() logic to M_CameraManager (rename to _create_blend_tween)
 - [x] T241 Move _finalize_camera_blend() to M_CameraManager
-- [x] T242 Add M_CameraManager node to `scenes/root.tscn` under Managers (alongside M_SceneManager, M_SpawnManager)
+- [x] T242 Add M_CameraManager node to `scenes/main.tscn` under Managers (alongside M_SceneManager, M_SpawnManager)
 - [x] T243 Update M_SceneManager._ready() to find M_CameraManager via group
 - [x] T244 Update M_SceneManager._perform_transition() to call _camera_manager.blend_cameras()
 - [x] T245 Remove camera methods from M_SceneManager (_create_transition_camera, _capture_camera_state, _blend_camera, _start_camera_blend_tween, _finalize_camera_blend)

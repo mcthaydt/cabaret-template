@@ -421,8 +421,8 @@ Game properly handles end-game scenarios (player death, level victory, game comp
 - **FR-082**: M_StateStore MUST persist via StateHandoff across scene transitions (existing mechanism)
 - **FR-083**: Each scene MUST have its own M_ECSManager (per-scene pattern, existing)
 - **FR-084**: Active gameplay scenes MUST load as children of ActiveSceneContainer node
-- **FR-085**: M_SceneManager MUST persist in root.tscn and survive scene transitions
-- **FR-086**: M_StateStore MUST be in root.tscn but recreated per scene instance via StateHandoff
+- **FR-085**: M_SceneManager MUST persist in main.tscn and survive scene transitions
+- **FR-086**: M_StateStore MUST be in main.tscn but recreated per scene instance via StateHandoff
 
 #### State Synchronization
 
@@ -476,29 +476,29 @@ The Scene Manager system must NOT use Godot autoload/singleton configuration. In
 
 - **Scene Tree Discovery**: Managers join groups (e.g., `scene_manager` group) and are discovered via tree traversal
 - **Parent Hierarchy Search**: Components/systems walk parent chain to find managers
-- **Root Scene Pattern**: Managers live in root.tscn which serves as persistent container
+- **Root Scene Pattern**: Managers live in main.tscn which serves as persistent container
 
 ### Bootstrap Pattern: Root Scene Architecture
 
 **Critical Clarification**: The bootstrap pattern defines how the game initializes and how scenes transition throughout the session.
 
 **Root Scene Lifecycle**:
-- `root.tscn` is set as the project's main scene in `project.godot`
-- `root.tscn` remains loaded throughout the entire game session (never unloaded)
+- `main.tscn` is set as the project's main scene in `project.godot`
+- `main.tscn` remains loaded throughout the entire game session (never unloaded)
 - Contains persistent managers: M_StateStore, M_SceneManager
 - Contains an `ActiveSceneContainer` node (Node or Control) where gameplay/menu scenes are added as children
 
 **Scene Transition Mechanism**:
-- Scene transitions DO NOT replace root.tscn
+- Scene transitions DO NOT replace main.tscn
 - Transitions work by: unload old child from ActiveSceneContainer → load new child into ActiveSceneContainer
-- M_StateStore persists because root.tscn persists (never exits scene tree)
-- M_SceneManager persists because root.tscn persists (never exits scene tree)
+- M_StateStore persists because main.tscn persists (never exits scene tree)
+- M_SceneManager persists because main.tscn persists (never exits scene tree)
 
 **StateHandoff Usage**:
 - StateHandoff is a **compatibility/safety mechanism**, not the primary persistence strategy
 - M_StateStore automatically calls `_preserve_to_handoff()` in `_exit_tree()` and `_restore_from_handoff()` in `_ready()`
-- In normal operation, root.tscn never exits, so StateHandoff is dormant
-- StateHandoff activates IF root.tscn is somehow reloaded (edge case, development/debug scenario)
+- In normal operation, main.tscn never exits, so StateHandoff is dormant
+- StateHandoff activates IF main.tscn is somehow reloaded (edge case, development/debug scenario)
 - This dual-mechanism design ensures state survival even in unexpected reload scenarios
 
 **Per-Scene M_ECSManager Pattern**:
@@ -509,7 +509,7 @@ The Scene Manager system must NOT use Godot autoload/singleton configuration. In
 - Components read from store on `_ready()`, systems dispatch updates to store on significant changes
 
 **Initial Bootstrap Flow**:
-1. Godot launches, loads root.tscn as main scene
+1. Godot launches, loads main.tscn as main scene
 2. M_StateStore initializes, registers all slices (boot, menu, gameplay, scene)
 3. M_SceneManager initializes, subscribes to scene slice updates
 4. M_SceneManager dispatches U_SceneActions.transition_to("main_menu") to load first scene
@@ -552,7 +552,7 @@ These questions were answered during architectural planning and integration with
 
 3. **ECS Manager Pattern**: ✅ **Per-scene (existing)** - Keep current architecture where each scene has own M_ECSManager. StateHandoff preserves state across transitions
 
-4. **Bootstrap Strategy**: ✅ **Root scene with persistent managers** - root.tscn set as main scene, remains loaded entire session. M_StateStore and M_SceneManager persist in root. Scenes load/unload as children of ActiveSceneContainer. StateHandoff is safety mechanism for edge cases, not primary persistence
+4. **Bootstrap Strategy**: ✅ **Root scene with persistent managers** - main.tscn set as main scene, remains loaded entire session. M_StateStore and M_SceneManager persist in root. Scenes load/unload as children of ActiveSceneContainer. StateHandoff is safety mechanism for edge cases, not primary persistence
 
 5. **Pause Implementation**: ✅ **Hybrid** - Use `get_tree().paused = true` with process_mode configuration, ECS systems manually check pause state
 
@@ -578,7 +578,7 @@ These questions were answered during architectural planning and integration with
 
 16. **Scene Slice Pattern**: ✅ **Hybrid (save data + transition tracking)** - scene_slice has persistent data (current_scene_id) AND transient data (is_transitioning). Mark transient fields in slice config
 
-17. **M_StateStore Lifecycle**: ✅ **Root persistence (primary)** - M_StateStore lives in root.tscn which never unloads. StateHandoff is automatic safety mechanism (calls in _exit_tree/_ready) but dormant in normal operation since root never exits. Both managers persist via root persistence
+17. **M_StateStore Lifecycle**: ✅ **Root persistence (primary)** - M_StateStore lives in main.tscn which never unloads. StateHandoff is automatic safety mechanism (calls in _exit_tree/_ready) but dormant in normal operation since root never exits. Both managers persist via root persistence
 
 18. **Missing State Handling**: ✅ **Fallback to last checkpoint** - If gameplay state corrupted or missing, load from last checkpoint save file to prevent total loss
 
@@ -586,7 +586,7 @@ These questions were answered during architectural planning and integration with
 
 20. **Scene Registry**: ✅ **Static GDScript class** - Fast, no file loading, easy validation, matches existing static utility pattern
 
-21. **Transition Effects**: ✅ **CanvasLayer overlay** - ColorRect in root.tscn for fades, keeps old scene visible during transition
+21. **Transition Effects**: ✅ **CanvasLayer overlay** - ColorRect in main.tscn for fades, keeps old scene visible during transition
 
 22. **Pause Stack**: ✅ **UIOverlayStack is source of truth** - Scene tree reality, scene_slice.scene_stack is just metadata for save/debug
 
@@ -656,7 +656,7 @@ These questions remain open for future iteration:
     s_scene_trigger_system.gd    # Trigger system
 
 /scenes/
-  root.tscn                     # Root with M_StateStore + M_SceneManager
+  main.tscn                     # Root with M_StateStore + M_SceneManager
   /ui/
     main_menu.tscn
     settings_menu.tscn
@@ -909,7 +909,7 @@ func _perform_transition(scene_id: String, transition_type: String) -> void:
     pass
 ```
 
-### Example 6: root.tscn Structure
+### Example 6: main.tscn Structure
 
 ```
 root (Node)
@@ -1089,7 +1089,7 @@ signal transition_completed
 var _overlay_node: CanvasLayer = null
 var _is_active: bool = false
 
-## Initialize with overlay node from root.tscn
+## Initialize with overlay node from main.tscn
 func initialize(overlay_node: CanvasLayer) -> void:
 	_overlay_node = overlay_node
 
@@ -1346,5 +1346,5 @@ func process_tick(delta: float) -> void:
 - **v1.1** (2025-10-27): Added architectural decisions section, resolved 12 critical design questions, added additional FRs (FR-059 through FR-072) for camera, history, and bootstrap requirements
 - **v2.0** (2025-10-27): **MAJOR REVISION** - Integrated with existing M_StateStore (Redux) and per-scene ECS architecture. Removed M_StateManager (use M_StateStore), removed singleton ECS (keep per-scene), removed hybrid player persistence (use state store only). Added FRs for Redux integration (scene slice, SceneActions, SceneReducer). Updated all architectural decisions to reflect existing systems.
 - **v2.1** (2025-10-27): Added 24 resolved questions covering all critical implementation details. Added 32 new FRs (FR-080 through FR-111) for state synchronization, scene slice management, player spawning, error handling, transition effects, and pause implementation. Clarified M_SceneManager controller pattern, component state sync frequency, scene slice transient fields, StateHandoff lifecycle, and error recovery strategies.
-- **v2.2** (2025-10-27): **AUDIT FIXES** - Corrected critical errors found in comprehensive audit: Fixed FR-005 (singleton → per-scene ECS), removed transition_state field ambiguity, standardized U_SceneActions naming, corrected file structure (u_scene_actions.gd location, removed .tres registry), added FR-112 for M_StateStore modification requirement, added RS_SceneInitialState to Key Entities. **MAJOR CLARIFICATION**: Added comprehensive Bootstrap Pattern section explaining root.tscn lifecycle, ActiveSceneContainer pattern, StateHandoff as safety mechanism vs primary persistence. Updated Resolved Questions #4 and #17 to reflect clarified architecture. Added 6 implementation examples with complete code patterns.
+- **v2.2** (2025-10-27): **AUDIT FIXES** - Corrected critical errors found in comprehensive audit: Fixed FR-005 (singleton → per-scene ECS), removed transition_state field ambiguity, standardized U_SceneActions naming, corrected file structure (u_scene_actions.gd location, removed .tres registry), added FR-112 for M_StateStore modification requirement, added RS_SceneInitialState to Key Entities. **MAJOR CLARIFICATION**: Added comprehensive Bootstrap Pattern section explaining main.tscn lifecycle, ActiveSceneContainer pattern, StateHandoff as safety mechanism vs primary persistence. Updated Resolved Questions #4 and #17 to reflect clarified architecture. Added 6 implementation examples with complete code patterns.
 - **v2.3** (2025-10-27): **COMPLETENESS UPDATE** - Filled remaining 5% gaps identified in audit. Added 5 new implementation examples (Examples 7-11): U_SceneRegistry static class with scene metadata and door pairing structure, BaseTransitionEffect base class interface, Trans_Fade implementation, C_SceneTriggerComponent with Area3D integration, S_SceneTriggerSystem for interaction handling. All examples include complete working code, validation methods, and integration patterns. PRD now 100% complete and implementation-ready for all phases.

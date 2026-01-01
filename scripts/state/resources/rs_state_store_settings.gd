@@ -19,8 +19,8 @@ class_name RS_StateStoreSettings
 @export var save_path_override: String = ""
 
 @export_group("Debug")
-@export var enable_debug_logging: bool = OS.is_debug_build()
 @export var enable_debug_overlay: bool = OS.is_debug_build()
+@export var enable_debug_logging: bool = OS.is_debug_build()
 
 ## Convert settings to dictionary for serialization
 func to_dictionary() -> Dictionary:
@@ -31,6 +31,6 @@ func to_dictionary() -> Dictionary:
 		"enable_persistence": enable_persistence,
 		"auto_save_interval": auto_save_interval,
 		"save_path_override": save_path_override,
-		"enable_debug_logging": enable_debug_logging,
 		"enable_debug_overlay": enable_debug_overlay,
+		"enable_debug_logging": enable_debug_logging,
 	}

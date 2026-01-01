@@ -1,6 +1,7 @@
 extends GutTest
 
 const GD_DIRECTORIES := [
+	"res://scripts/core",
 	"res://scripts/gameplay",
 	"res://scripts/ecs",
 	"res://scripts/state",
@@ -27,6 +28,7 @@ const SCRIPT_FILENAME_EXCEPTIONS := [
 
 # Valid prefixes by directory
 const SCRIPT_PREFIX_RULES := {
+	"res://scripts/core": ["u_"],  # u_ utilities + main.gd exception
 	"res://scripts/managers": ["m_"],
 	"res://scripts/ecs/systems": ["s_", "m_"],  # m_ for M_PauseManager
 	"res://scripts/ecs/components": ["c_"],
@@ -191,7 +193,7 @@ func test_resources_follow_naming_conventions() -> void:
 	assert_eq(violations.size(), 0, message)
 
 func test_scene_organization_root_structure() -> void:
-	var root_scene := load("res://scenes/root.tscn") as PackedScene
+	var root_scene := load("res://scenes/main.tscn") as PackedScene
 	assert_not_null(root_scene, "Root scene must exist")
 
 	# Use PackedScene.get_state() to check node structure without instantiation
@@ -258,11 +260,11 @@ func test_scene_organization_gameplay_structure() -> void:
 			has_systems = true
 		elif node_name == "Entities":
 			has_entities = true
-			entities_node_path = str(node_path)
+			entities_node_path = _normalize_scene_state_path(str(node_path))
 		elif node_name == "SP_SpawnPoints":
 			# Check if spawn points are under Entities
-			var path_str := str(node_path)
-			if path_str.begins_with(entities_node_path + "/") or path_str.contains("/Entities/"):
+			var path_str := _normalize_scene_state_path(str(node_path))
+			if path_str.begins_with(entities_node_path + "/") or path_str.contains("/Entities/") or path_str.begins_with("Entities/"):
 				has_spawn_points_in_entities = true
 
 	assert_true(has_managers, "Gameplay scene must have Managers node")
@@ -270,6 +272,14 @@ func test_scene_organization_gameplay_structure() -> void:
 	assert_true(has_entities, "Gameplay scene must have Entities node")
 	assert_true(has_spawn_points_in_entities,
 		"Spawn points must be under Entities node per SCENE_ORGANIZATION_GUIDE.md")
+
+func _normalize_scene_state_path(path: String) -> String:
+	var normalized := path
+	while normalized.begins_with("./"):
+		normalized = normalized.substr(2)
+	if normalized.begins_with("/"):
+		normalized = normalized.substr(1)
+	return normalized
 
 # Helper functions for prefix validation
 

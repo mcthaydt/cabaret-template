@@ -8,7 +8,7 @@ class_name U_ServiceLocator
 ## dependencies visible at startup.
 ##
 ## Usage:
-##   # Registration (typically in root.tscn _ready()):
+##   # Registration (typically in main.tscn _ready()):
 ##   U_ServiceLocator.register(StringName("state_store"), state_store_node)
 ##
 ##   # Retrieval (instead of get_tree().get_nodes_in_group("state_store")):

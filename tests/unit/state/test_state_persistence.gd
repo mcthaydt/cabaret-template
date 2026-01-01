@@ -218,6 +218,49 @@ func test_scene_slice_transient_fields_excluded_from_save() -> void:
 	assert_true(saved_scene_slice.has("current_scene_id"), "current_scene_id should be saved")
 	assert_true(saved_scene_slice.has("previous_scene_id"), "previous_scene_id should be saved")
 
+func test_entirely_transient_slices_excluded_from_save() -> void:
+	# Create store with debug and navigation slices (both marked is_transient = true)
+	var test_store := M_StateStore.new()
+	test_store.gameplay_initial_state = RS_GameplayInitialState.new()
+	test_store.debug_initial_state = RS_DebugInitialState.new()
+	test_store.navigation_initial_state = RS_NavigationInitialState.new()
+	add_child(test_store)
+	autofree(test_store)
+	await get_tree().process_frame
+
+	# Dispatch debug actions to set debug state
+	test_store.dispatch(U_DebugActions.set_god_mode(true))
+	test_store.dispatch(U_DebugActions.set_speed_modifier(2.0))
+
+	# Dispatch navigation actions to set navigation state
+	test_store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("gameplay_base")))
+
+	# Verify states are set
+	var debug_state: Dictionary = test_store.get_slice(StringName("debug"))
+	assert_true(debug_state.get("god_mode"), "god_mode should be true in state")
+	assert_almost_eq(debug_state.get("speed_modifier", 0.0), 2.0, 0.0001, "speed_modifier should be 2.0 in state")
+
+	var nav_state: Dictionary = test_store.get_slice(StringName("navigation"))
+	assert_eq(nav_state.get("shell"), StringName("gameplay"), "shell should be 'gameplay' in state")
+
+	# Save state
+	var save_result: Error = test_store.save_state(test_save_path)
+	assert_eq(save_result, OK, "Save should succeed")
+
+	# Read the saved file and check contents
+	var file: FileAccess = FileAccess.open(test_save_path, FileAccess.READ)
+	var json_text: String = file.get_as_text()
+	file.close()
+
+	var parsed: Dictionary = JSON.parse_string(json_text) as Dictionary
+
+	# Verify entirely transient slices are COMPLETELY excluded from save file
+	assert_false(parsed.has("debug"), "debug slice should be completely excluded from save (is_transient = true)")
+	assert_false(parsed.has("navigation"), "navigation slice should be completely excluded from save (is_transient = true)")
+
+	# Verify non-transient slices ARE saved
+	assert_true(parsed.has("gameplay"), "gameplay slice should be saved")
+
 func test_load_nonexistent_file_returns_error() -> void:
 	var result: Error = store.load_state("user://nonexistent_file.json")
 	assert_push_error("File does not exist")

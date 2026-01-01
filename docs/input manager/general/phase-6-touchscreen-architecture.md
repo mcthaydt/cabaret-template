@@ -524,14 +524,14 @@ Virtual controls are NOT managed by Scene Manager's overlay stack. They are pers
 
 **Mobile CanvasLayer - Root Scene Addition:**
 ```
-Root (scenes/root.tscn)
+Root (scenes/main.tscn)
 ├── Managers (Node)
 │   ├── M_StateStore
 │   ├── M_InputDeviceManager
 │   └── M_InputProfileManager
 ├── HUD_Overlay (CanvasLayer)
 │   └── ... (existing HUD elements)
-└── MobileControls (CanvasLayer)  ← NEW - Added to root.tscn
+└── MobileControls (CanvasLayer)  ← NEW - Added to main.tscn
     ├── VirtualJoystick (Control)
     └── VirtualButtons (Control)  ← Buttons instantiated dynamically from profile metadata
 ```
@@ -1719,7 +1719,7 @@ metadata: {
 - `scripts/ui/hud_controller.gd` (add safe area margin calculation and application - Gap Fill)
 
 **Root Scene:**
-- `scenes/root.tscn` (add MobileControls CanvasLayer)
+- `scenes/main.tscn` (add MobileControls CanvasLayer)
 
 **Documentation:**
 - `AGENTS.md` (add touchscreen patterns after Phase 6 completion)

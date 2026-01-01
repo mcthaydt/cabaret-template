@@ -1,6 +1,6 @@
 extends Node
 
-## Test script for root.tscn to load gameplay_base.tscn
+## Test script for main.tscn to load gameplay_base.tscn
 ##
 ## This is a temporary testing script for Phase 2 validation.
 ## It loads gameplay_base.tscn into the ActiveSceneContainer to test

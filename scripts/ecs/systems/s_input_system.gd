@@ -13,6 +13,7 @@ const KeyboardMouseSource := preload("res://scripts/input/sources/keyboard_mouse
 const U_GameplaySelectors := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 const C_GamepadComponent := preload("res://scripts/ecs/components/c_gamepad_component.gd")
 const ACTION_MOVE_STRENGTH := StringName("move")
 const ACTION_LOOK_STRENGTH := StringName("look")
@@ -91,6 +92,10 @@ func process_tick(_delta: float) -> void:
 		if U_GameplaySelectors.get_is_paused(gameplay_state):
 			return
 
+		# Phase 5: Debug Manager - Skip input when disabled
+		if U_DebugSelectors.is_input_disabled(state):
+			return
+
 	# Get active input source and delegate input capture
 	var input_source: I_InputSource = null
 	if _input_device_manager:
@@ -146,7 +151,7 @@ func process_tick(_delta: float) -> void:
 				gamepad_component.button_states = gamepad_source.get_button_states()
 			gamepad_component.is_connected = is_gamepad_connected
 			gamepad_component.device_id = active_gamepad_id
-			gamepad_component.apply_settings_from_dictionary(_gamepad_settings_cache)
+			gamepad_component.update_settings_from_state(_gamepad_settings_cache)
 
 func _update_accessibility_from_state(state: Dictionary) -> void:
 	var settings_variant: Variant = state.get("settings", {})

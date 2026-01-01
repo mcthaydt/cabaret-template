@@ -223,7 +223,7 @@ var _is_active: bool = false
 
 ## Methods
 
-# Initialize with overlay node from root.tscn
+# Initialize with overlay node from main.tscn
 func initialize(overlay_node: CanvasLayer) -> void
 
 # Start the transition effect (fade out, show loading screen, etc.)

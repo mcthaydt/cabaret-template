@@ -271,24 +271,66 @@ func _format_timestamp(iso_timestamp: String) -> String:
 
 	return "%s %s, %s %d:%s %s" % [month_name, day, year, hour_12, minute, am_pm]
 
+func _is_delete_button_focusable(delete_button: Button) -> bool:
+	## Helper to determine if a delete button should be in the focus chain
+	## Returns true if the button is visible AND enabled
+	return delete_button != null and delete_button.visible and not delete_button.disabled
+
 func _configure_slot_focus() -> void:
 	if _slot_list_container == null or _back_button == null:
 		return
 
-	var focusable_controls: Array[Control] = []
+	# Phase 1: Collect focusable controls per slot
+	var main_buttons_vertical: Array[Control] = []  # For vertical chain
+	var delete_buttons_vertical: Array[Control] = []  # For vertical chain (with null placeholders)
 
-	# Collect all focusable buttons from slot containers
 	for container in _slot_list_container.get_children():
 		if container is HBoxContainer:
-			# Get main button from slot container
-			var main_button: Button = container.get_node_or_null("MainButton") as Button
-			if main_button != null and not main_button.disabled:
-				focusable_controls.append(main_button)
+			var main_btn := container.get_node_or_null("MainButton") as Button
+			var delete_btn := container.get_node_or_null("DeleteButton") as Button
 
-	# Add back button at the end
-	if not focusable_controls.is_empty():
-		focusable_controls.append(_back_button)
-		U_FocusConfigurator.configure_vertical_focus(focusable_controls, true)
+			# Only include focusable main buttons
+			if main_btn != null and not main_btn.disabled:
+				main_buttons_vertical.append(main_btn)
+				# Track delete button if it's focusable (visible AND enabled)
+				if _is_delete_button_focusable(delete_btn):
+					delete_buttons_vertical.append(delete_btn)
+				else:
+					delete_buttons_vertical.append(null)  # Placeholder for alignment
+
+	# Phase 2: Configure vertical navigation
+	# Configure vertical chain for main buttons
+	if not main_buttons_vertical.is_empty():
+		U_FocusConfigurator.configure_vertical_focus(main_buttons_vertical, true)
+
+	# Configure vertical chain for delete buttons (only focusable ones)
+	var focusable_delete_buttons: Array[Control] = []
+	for delete_btn in delete_buttons_vertical:
+		if delete_btn != null:
+			focusable_delete_buttons.append(delete_btn)
+
+	if not focusable_delete_buttons.is_empty():
+		U_FocusConfigurator.configure_vertical_focus(focusable_delete_buttons, true)
+
+	# Phase 3: Configure horizontal navigation (main ↔ delete) within each slot
+	for i in range(main_buttons_vertical.size()):
+		var main_btn: Control = main_buttons_vertical[i]
+		var delete_btn: Control = delete_buttons_vertical[i] if i < delete_buttons_vertical.size() else null
+
+		if delete_btn != null:  # Only if focusable
+			# Main button → right → delete button
+			main_btn.focus_neighbor_right = main_btn.get_path_to(delete_btn)
+			# Delete button → left → main button
+			delete_btn.focus_neighbor_left = delete_btn.get_path_to(main_btn)
+		else:
+			# No horizontal navigation if delete is not focusable
+			main_btn.focus_neighbor_right = NodePath()
+
+	# Phase 4: Add back button and configure its vertical neighbor
+	if not main_buttons_vertical.is_empty():
+		var last_main_btn: Control = main_buttons_vertical[-1]
+		last_main_btn.focus_neighbor_bottom = last_main_btn.get_path_to(_back_button)
+		_back_button.focus_neighbor_top = _back_button.get_path_to(last_main_btn)
 
 func _get_focused_slot_index() -> int:
 	# Returns the index of the currently focused slot container, or -1 if none
@@ -308,37 +350,41 @@ func _get_focused_slot_index() -> int:
 	return -1
 
 func _restore_focus_to_slot(slot_index: int) -> void:
-	# Restore focus to the slot at the given index, or first available slot
-	if _slot_list_container == null:
-		return
+		# Avoid `await` here: this method can be called during teardown and
+		# resuming after an await would error if the menu has been freed.
+		if _slot_list_container == null:
+			return
+		call_deferred("_restore_focus_to_slot_deferred", slot_index)
 
-	await get_tree().process_frame  # Wait for UI to settle
+func _restore_focus_to_slot_deferred(slot_index: int) -> void:
+		if _slot_list_container == null or not is_inside_tree():
+			return
 
-	var target_index: int = slot_index
-	var slot_count: int = _slot_list_container.get_child_count()
+		var target_index: int = slot_index
+		var slot_count: int = _slot_list_container.get_child_count()
 
-	# Clamp to valid range
-	if target_index >= slot_count:
-		target_index = slot_count - 1
-	if target_index < 0:
-		target_index = 0
+		# Clamp to valid range
+		if target_index >= slot_count:
+			target_index = slot_count - 1
+		if target_index < 0:
+			target_index = 0
 
-	# Find the main button in the target slot
-	if target_index < slot_count:
-		var slot_container := _slot_list_container.get_child(target_index)
-		if slot_container is HBoxContainer:
-			var main_button: Button = slot_container.get_node_or_null("MainButton") as Button
-			if main_button != null and not main_button.disabled and main_button.is_inside_tree():
-				main_button.grab_focus()
-				return
+		# Find the main button in the target slot
+		if target_index < slot_count:
+			var slot_container := _slot_list_container.get_child(target_index)
+			if slot_container is HBoxContainer:
+				var main_button: Button = slot_container.get_node_or_null("MainButton") as Button
+				if main_button != null and not main_button.disabled and main_button.is_inside_tree():
+					main_button.grab_focus()
+					return
 
-	# Fallback: focus first available button
-	for container in _slot_list_container.get_children():
-		if container is HBoxContainer:
-			var main_button: Button = container.get_node_or_null("MainButton") as Button
-			if main_button != null and not main_button.disabled and main_button.is_inside_tree():
-				main_button.grab_focus()
-				return
+		# Fallback: focus first available button
+		for container in _slot_list_container.get_children():
+			if container is HBoxContainer:
+				var main_button: Button = container.get_node_or_null("MainButton") as Button
+				if main_button != null and not main_button.disabled and main_button.is_inside_tree():
+					main_button.grab_focus()
+					return
 
 func _on_slot_item_pressed(slot_id: StringName, exists: bool) -> void:
 	if _mode == StringName("save"):

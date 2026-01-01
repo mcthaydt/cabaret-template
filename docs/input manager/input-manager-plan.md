@@ -17,7 +17,7 @@ The Input Manager system provides comprehensive multi-device input support for t
 - **Performance targets**: < 16ms input latency, < 200ms profile switching, 90%+ code coverage
 
 **Technical approach**:
-- M_InputProfileManager and M_InputDeviceManager (new coordinators in root.tscn)
+- M_InputProfileManager and M_InputDeviceManager (new coordinators in main.tscn)
 - Input state managed in Redux store (gameplay slice transient, settings slice persistent)
 - Components (C_InputComponent, C_GamepadComponent) extended for multi-device support
 - Systems (S_InputSystem, S_TouchscreenSystem) handle device-specific input capture
@@ -82,7 +82,7 @@ The Input Manager system provides comprehensive multi-device input support for t
 
 **Architectural Constraints Check**:
 
-✅ **No Autoloads**: M_InputProfileManager and M_InputDeviceManager will be in-scene nodes in root.tscn, discoverable via groups ("input_profile_manager", "input_device_manager")
+✅ **No Autoloads**: M_InputProfileManager and M_InputDeviceManager will be in-scene nodes in main.tscn, discoverable via groups ("input_profile_manager", "input_device_manager")
 ✅ **ECS Integration**: All input components extend ECSComponent, all systems extend ECSSystem, follow auto-registration pattern
 ✅ **State Management**: Integrates with existing M_StateStore (Redux) by adding input state to gameplay and settings slices
 ✅ **Scene Tree Based**: All managers live in scenes, no singleton configuration required
@@ -129,7 +129,7 @@ docs/input_manager/
 ```text
 # Root Scene (persistent managers)
 scenes/
-└── root.tscn                   # Main scene, persists entire session (MODIFIED)
+└── main.tscn                   # Main scene, persists entire session (MODIFIED)
     ├── M_StateStore            # Redux store (existing, MODIFIED: add input actions/reducers)
     ├── M_SceneManager          # Scene coordinator (existing)
     ├── M_CursorManager         # Cursor state manager (existing)
@@ -245,7 +245,7 @@ tests/
 
 **File Count**:
 - **NEW files**: ~45-55 (22 scripts + 4 profile resources + 18-28 button prompt assets + 3 UI scenes)
-- **MODIFIED files**: 4 (root.tscn, C_InputComponent, S_InputSystem, U_GameplayReducer)
+- **MODIFIED files**: 4 (main.tscn, C_InputComponent, S_InputSystem, U_GameplayReducer)
 - **NEW tests**: 22 (14 unit + 8 integration)
 
 **Organization Note**: All files follow existing repo patterns - NO new `scripts/input/` directory:
@@ -263,17 +263,17 @@ The following architectural decisions address integration with existing systems 
 ### Decision 1: Manager Placement (No Autoloads)
 
 **Where M_InputProfileManager and M_InputDeviceManager Live:**
-- **Location**: `scenes/root.tscn` under `Managers/` node (parallel to M_StateStore, M_SceneManager, M_CursorManager)
+- **Location**: `scenes/main.tscn` under `Managers/` node (parallel to M_StateStore, M_SceneManager, M_CursorManager)
 - **Pattern**: In-scene nodes, discoverable via groups ("input_profile_manager", "input_device_manager")
 - **Reasoning**: Consistent with project's no-autoload constraint, follows existing manager patterns
 
 **Manager Scope:**
-- One instance per session (persist in root.tscn throughout game lifetime)
+- One instance per session (persist in main.tscn throughout game lifetime)
 - Initialize on _ready() before gameplay systems run
 - Add to groups for discovery: `add_to_group("input_profile_manager")`, `add_to_group("input_device_manager")`
 
 **Template Updates Required:**
-- ✅ Update `scenes/root.tscn` to include M_InputProfileManager and M_InputDeviceManager under Managers/ node
+- ✅ Update `scenes/main.tscn` to include M_InputProfileManager and M_InputDeviceManager under Managers/ node
 - ✅ Ensure managers call `add_to_group()` in `_ready()`
 - ✅ Systems find managers via `get_tree().get_first_node_in_group("input_profile_manager")`
 
@@ -543,7 +543,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
 
 **Constitution Alignment**:
 
-✅ **No Autoloads**: Managers are in-scene nodes in root.tscn
+✅ **No Autoloads**: Managers are in-scene nodes in main.tscn
 ✅ **ECS Integration**: Components/systems follow existing patterns
 ✅ **State Management**: Integrates with M_StateStore via actions/reducers/selectors
 ✅ **Scene Tree Based**: Discovery via groups, no singleton configuration
@@ -1211,12 +1211,12 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
 
 **Task 2.4: Add M_InputProfileManager to Root Scene** (30 min) - **Satisfies FR-089**
 - **Time estimate**: 30 min
-- Open `scenes/root.tscn` in Godot editor
+- Open `scenes/main.tscn` in Godot editor
 - Add M_InputProfileManager as child of Managers/ node (parallel to M_StateStore, M_SceneManager, M_CursorManager)
 - Save scene
-- **Files modified**: root.tscn
+- **Files modified**: main.tscn
 - **Acceptance**:
-  - [ ] M_InputProfileManager present in root.tscn under Managers/
+  - [ ] M_InputProfileManager present in main.tscn under Managers/
   - [ ] Scene loads without errors
   - [ ] Manager visible in scene tree
 
@@ -1271,7 +1271,7 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
 - [ ] **RS_InputProfile resource created**: Tests passing, resource saveable to .tres
 - [ ] **4 profiles created**: default, alternate, accessibility, gamepad_generic (.tres files)
 - [ ] **M_InputProfileManager implemented**: Tests passing, profile switching < 200ms, adds to group
-- [ ] **M_InputProfileManager in root.tscn**: Present under Managers/, scene loads without errors
+- [ ] **M_InputProfileManager in main.tscn**: Present under Managers/, scene loads without errors
 - [ ] **Profile selection UI created**: Dropdown with 4 options, triggers profile switching
 - [ ] **Tests passing**: test_rs_input_profile, test_input_profile_manager, test_profile_switching_flow
 - [ ] **No regressions**: All baseline tests still pass (100% pass rate)
@@ -1294,8 +1294,8 @@ static func validate_rebind(action: StringName, event: InputEvent, settings: RS_
 - **Files**: m_input_profile_manager.gd, test_input_profile_manager.gd
 
 **Commit 9**: M_InputProfileManager added to root scene
-- **Message**: "Phase 2.4: M_InputProfileManager added to root.tscn"
-- **Files**: root.tscn (modified)
+- **Message**: "Phase 2.4: M_InputProfileManager added to main.tscn"
+- **Files**: main.tscn (modified)
 
 **Commit 10**: Profile selection UI
 - **Message**: "Phase 2.5: Profile selection UI with dropdown"
@@ -1472,7 +1472,7 @@ For brevity in this document, I'm providing the task overview for Phases 3-7. Th
   - Metadata-driven button instantiation: Read `virtual_buttons` array from profile, create VirtualButton instances dynamically (Gap Fill)
   - Load saved positions from Redux on startup (joystick + buttons)
   - Scene: `mobile_controls.tscn` with VirtualJoystick + VirtualButtons container (buttons added dynamically)
-  - Add to `root.tscn` after HUD_Overlay
+  - Add to `main.tscn` after HUD_Overlay
   - Unit tests: emulation detection, console log, visibility rules, opacity rules, metadata-driven buttons, position loading
 
 **Task 6.6**: Create S_TouchscreenSystem (3-4 hours, TDD) - FR-052, FR-055
@@ -1608,7 +1608,7 @@ For brevity in this document, I'm providing the task overview for Phases 3-7. Th
 
 **Virtual Controls Per-Scene Instantiation**:
 - mobile_controls.tscn instantiated only on mobile platforms
-- Added to gameplay scenes, not root.tscn (per-scene UI)
+- Added to gameplay scenes, not main.tscn (per-scene UI)
 - S_TouchscreenSystem queries virtual controls in current scene
 
 **No Scene Manager Modifications Required**: Input Manager is purely additive, uses existing is_transitioning() check
@@ -1755,9 +1755,9 @@ For brevity in this document, I'm providing the task overview for Phases 3-7. Th
 - Systems find managers via `get_tree().get_first_node_in_group("input_profile_manager")`
 - Pattern consistent with existing managers (M_StateStore: "state_store", M_SceneManager: "scene_manager")
 
-**Root.tscn Structure** (FR-089, FR-090):
+**Main.tscn Structure** (FR-089, FR-090):
 ```
-root.tscn
+main.tscn
 ├── M_StateStore (existing)
 ├── M_SceneManager (existing)
 ├── M_CursorManager (existing)
@@ -2356,7 +2356,7 @@ func _apply_landing_vibration(fall_speed: float) -> void:
   - [ ] SC-020: Virtual controls perceived latency < 100ms
   - [ ] SC-021: Accessibility profiles enable comfortable play
   - [ ] SC-022: Button prompts always show correct input
-- [ ] Zero Godot autoloads added (managers in root.tscn with group discovery)
+- [ ] Zero Godot autoloads added (managers in main.tscn with group discovery)
 - [ ] All tests passing (22 new tests: 14 unit + 8 integration)
 - [ ] No regressions (all baseline tests still pass)
 
@@ -2398,7 +2398,7 @@ func _apply_landing_vibration(fall_speed: float) -> void:
 6. RS_InputProfile resource with tests
 7. 4 default input profiles (default, alternate, accessibility, gamepad)
 8. M_InputProfileManager with profile switching < 200ms
-9. M_InputProfileManager added to root.tscn
+9. M_InputProfileManager added to main.tscn
 10. Profile selection UI with dropdown
 11. Phase 2 complete: integration tests and validation
 
@@ -2416,7 +2416,7 @@ func _apply_landing_vibration(fall_speed: float) -> void:
 20. U_ButtonPromptRegistry with tests
 21. Button prompt assets (keyboard + gamepad icons)
 22. HUD button prompt integration
-23. Phase 4 complete: M_InputDeviceManager added to root.tscn and integration tests
+23. Phase 4 complete: M_InputDeviceManager added to main.tscn and integration tests
 
 ### Phase 5 Commits (6 commits)
 24. RS_RebindSettings resource with tests

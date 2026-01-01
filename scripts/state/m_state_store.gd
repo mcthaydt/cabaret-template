@@ -63,7 +63,6 @@ var _pending_immediate_updates: Dictionary = {}
 var _action_history: Array = []
 var _max_history_size: int = 1000
 var _enable_history: bool = true
-var _debug_overlay: CanvasLayer = null
 var _is_ready: bool = false
 
 # Performance tracking (T414)
@@ -79,19 +78,26 @@ func _ready() -> void:
 	add_to_group("state_store")
 	_initialize_settings()
 	_initialize_slices()
-		
+
 	# Validate all slice dependencies after registration
 	if not validate_slice_dependencies():
 		push_warning("M_StateStore: Some slice dependencies are invalid")
-	
+
 	# Restore state from StateHandoff AFTER slices are initialized
 	_restore_from_handoff()
 
 	# Auto-load persisted state if enabled and file exists
 	_try_autoload_state()
-	
-	_signal_batcher = U_SIGNAL_BATCHER.new()
-	set_physics_process(true)  # Enable physics processing for signal batching
+
+	# Only create signal batcher if batching is enabled
+	var should_batch: bool = settings != null and settings.enable_signal_batching
+	if should_batch:
+		_signal_batcher = U_SIGNAL_BATCHER.new()
+		set_physics_process(true)  # Enable physics processing for signal batching
+	else:
+		_signal_batcher = null  # Disable batching - signals will emit immediately
+		set_physics_process(false)  # No need for physics processing
+
 	# Ensure batching and input work even when the SceneTree is paused.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
@@ -140,44 +146,6 @@ func _flush_signal_batcher() -> int:
 	)
 	return pending_count
 
-## Handle input for debug overlay toggle via action
-##
-## Debug overlay spawns when the `toggle_debug_overlay` action is pressed.
-## Supports both action events (InputEventAction) and Input singleton state.
-func _input(event: InputEvent) -> void:
-	# Check if debug overlay is enabled via project settings
-	const PROJECT_SETTING_ENABLE_DEBUG_OVERLAY := "state/debug/enable_debug_overlay"
-	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_DEBUG_OVERLAY):
-		if not ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_DEBUG_OVERLAY, true):
-			return  # Debug overlay disabled in project settings
-	
-	if U_INPUT_CAPTURE_GUARD.is_capture_active():
-		return  # Suppress overlay toggle while input capture is active.
-	
-	# Toggle debug overlay with action (prefer explicit InputEventAction, fallback to Input state)
-	var toggle_pressed: bool = false
-	if event is InputEventAction:
-		var aev := event as InputEventAction
-		toggle_pressed = aev.action == "toggle_debug_overlay" and aev.pressed
-	else:
-		# Fallback to Input singleton so hardware mapping still works
-		toggle_pressed = Input.is_action_just_pressed("toggle_debug_overlay")
-
-	# Act on toggle
-	if toggle_pressed:
-		if _debug_overlay == null or not is_instance_valid(_debug_overlay):
-			# Spawn debug overlay
-			var overlay_scene := load("res://scenes/debug/debug_state_overlay.tscn")
-			if overlay_scene:
-				_debug_overlay = overlay_scene.instantiate()
-				add_child(_debug_overlay)
-				# Ensure group membership is immediate for tests querying by group.
-				_debug_overlay.add_to_group("state_debug_overlay")
-		else:
-			# Despawn debug overlay
-			_debug_overlay.queue_free()
-			_debug_overlay = null
-
 func _initialize_settings() -> void:
 	if settings == null:
 		settings = RS_StateStoreSettings.new()
@@ -187,15 +155,10 @@ func _initialize_settings() -> void:
 		var history_size: int = ProjectSettings.get_setting(PROJECT_SETTING_HISTORY_SIZE, 1000)
 		if settings.max_history_size != history_size:
 			settings.max_history_size = history_size
-	
+
 	# Apply history settings to instance variables
 	_max_history_size = settings.max_history_size
-	
-	# Check if history is enabled
-	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_HISTORY):
-		_enable_history = ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_HISTORY, true)
-	else:
-		_enable_history = true  # Default to enabled in debug builds
+	_enable_history = settings.enable_history
 
 func _initialize_slices() -> void:
 	U_STATE_SLICE_MANAGER.initialize_slices(
@@ -235,7 +198,8 @@ func dispatch(action: Dictionary) -> void:
 	# Performance tracking start
 	var perf_start: int = Time.get_ticks_usec()
 	var is_immediate: bool = bool(action.get(ACTION_FLAG_IMMEDIATE, false))
-	if _signal_batcher == null:
+	# Only create batcher if batching is enabled and not yet created
+	if _signal_batcher == null and settings != null and settings.enable_signal_batching:
 		_signal_batcher = U_SIGNAL_BATCHER.new()
 	_pending_immediate_updates.clear()
 	
@@ -273,9 +237,17 @@ func dispatch(action: Dictionary) -> void:
 
 	# Emit unbatched signal
 	action_dispatched.emit(action_copy)
-	
+
+	# Emit signals immediately if batching is disabled
+	if _signal_batcher == null and not _pending_immediate_updates.is_empty():
+		for slice_name in _pending_immediate_updates.keys():
+			var snapshot_variant: Variant = _pending_immediate_updates[slice_name]
+			if snapshot_variant is Dictionary:
+				var snapshot_dict := (snapshot_variant as Dictionary).duplicate(true)
+				slice_updated.emit(slice_name, snapshot_dict)
+				_perf_signal_emit_count += 1
 	# Flush batched slice updates immediately when requested.
-	if is_immediate:
+	elif is_immediate:
 		var emitted_count := _flush_signal_batcher()
 		if emitted_count == 0 and not _pending_immediate_updates.is_empty():
 			for slice_name in _pending_immediate_updates.keys():
@@ -457,14 +429,15 @@ func load_state(filepath: String) -> Error:
 ## Respects transient slice and field configurations.
 ## Emits slice_updated for each modified slice.
 func apply_loaded_state(loaded_state: Dictionary) -> void:
-	for slice_name in loaded_state:
+	for slice_key in loaded_state:
+		var slice_name: StringName = slice_key if slice_key is StringName else StringName(String(slice_key))
 		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
 
 		# Skip transient slices
 		if config != null and config.is_transient:
 			continue
 
-		var loaded_slice: Dictionary = loaded_state[slice_name]
+		var loaded_slice: Dictionary = loaded_state[slice_key]
 		if not loaded_slice is Dictionary:
 			continue
 
@@ -472,8 +445,11 @@ func apply_loaded_state(loaded_state: Dictionary) -> void:
 		var filtered_slice := loaded_slice.duplicate(true)
 		if config != null:
 			for transient_field in config.transient_fields:
+				var transient_key: String = String(transient_field)
 				if filtered_slice.has(transient_field):
 					filtered_slice.erase(transient_field)
+				if filtered_slice.has(transient_key):
+					filtered_slice.erase(transient_key)
 
 		# Merge with current state (loaded takes precedence)
 		if _state.has(slice_name):
@@ -489,16 +465,20 @@ func apply_loaded_state(loaded_state: Dictionary) -> void:
 
 ## Preserve state to StateHandoff for scene transitions
 func _preserve_to_handoff() -> void:
-	for slice_name in _state:
-		var slice_state: Dictionary = _state[slice_name]
+	for slice_key in _state:
+		var slice_name: StringName = slice_key if slice_key is StringName else StringName(String(slice_key))
+		var slice_state: Dictionary = _state[slice_key]
 		var preserved := slice_state.duplicate(true)
 		var config: RS_StateSliceConfig = _slice_configs.get(slice_name)
 		if config != null and config.is_transient:
 			continue
 		if config != null:
 			for transient_field in config.transient_fields:
+				var transient_key: String = String(transient_field)
 				if preserved.has(transient_field):
 					preserved.erase(transient_field)
+				if preserved.has(transient_key):
+					preserved.erase(transient_key)
 		U_STATE_HANDOFF.preserve_slice(slice_name, preserved)
 	
 ## Restore state from StateHandoff after scene transitions

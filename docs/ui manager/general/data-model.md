@@ -367,9 +367,9 @@ Reconciliation: compare navigation.overlay_stack with scene.scene_stack
 Apply changes: push_overlay() / pop_overlay() / transition_to_scene()
 ```
 
-### 6.2 root.tscn Integration
+### 6.2 main.tscn Integration
 
-The `ui_input_handler.gd` should be placed in `root.tscn` with the following requirements:
+The `ui_input_handler.gd` should be placed in `main.tscn` with the following requirements:
 
 **Node Setup**:
 - Add as child of root (sibling to M_SceneManager)

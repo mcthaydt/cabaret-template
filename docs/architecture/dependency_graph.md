@@ -4,7 +4,7 @@ This document visualizes **initialization order** and **runtime dependencies** b
 
 ---
 
-## Manager Initialization Order (`scenes/root.tscn`)
+## Manager Initialization Order (`scenes/main.tscn`)
 
 The root scene persists across the whole session. Manager ordering in the scene tree is intentional because some managers read/dispatch state during `_ready()`.
 
@@ -18,7 +18,7 @@ The root scene persists across the whole session. Manager ordering in the scene 
 8. `M_InputDeviceManager`
 9. `M_UIInputHandler`
 
-`scripts/scene_structure/main.gd` registers these into `U_ServiceLocator` and validates declared dependencies.
+`scripts/core/main.gd` registers these into `U_ServiceLocator` and validates declared dependencies.
 
 ---
 
@@ -55,7 +55,7 @@ This is the “shape” of the main control loop once a gameplay scene is loaded
 
 ```mermaid
 flowchart TD
-  subgraph RootScene[Root (scenes/root.tscn)]
+  subgraph RootScene[Root (scenes/main.tscn)]
     Store[M_StateStore]
     SceneManager[M_SceneManager]
     PauseManager[M_PauseManager]

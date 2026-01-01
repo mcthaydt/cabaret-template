@@ -33,7 +33,7 @@
 - `scripts/ecs/components/*`: Gameplay components with `@export` NodePaths and typed getters.
 - `scripts/ecs/systems/*`: Systems that query components by `StringName` and operate per-physics tick.
 - `scripts/ecs/resources/*`: `Resource` classes holding tunables consumed by components/systems.
-- `scenes/root.tscn`: Main scene (persistent managers + containers).
+- `scenes/main.tscn`: Main scene (persistent managers + containers).
 - `scenes/gameplay/*`: Gameplay scenes (dynamic loading, own M_ECSManager).
 - `tests/unit/*`: GUT test suites for ECS and state management.
 
@@ -81,7 +81,7 @@
 
 ## Scene Organization
 
-- **Root scene pattern (NEW - Phase 2)**: `scenes/root.tscn` persists throughout session
+- **Root scene pattern (NEW - Phase 2)**: `scenes/main.tscn` persists throughout session
   - Persistent managers: `M_StateStore`, `M_CursorManager`, `M_SceneManager`
   - Scene containers: `ActiveSceneContainer`, `UIOverlayStack`, `TransitionOverlay`, `LoadingOverlay`
   - Gameplay scenes load/unload as children of `ActiveSceneContainer`
@@ -640,6 +640,123 @@ func _on_load_pressed():
 - ❌ Modifying state during load (let StateHandoff handle restoration)
 - ❌ Attempting to delete autosave slot (returns `ERR_UNAUTHORIZED`)
 
+## Debug Manager Patterns (Phase 7 Complete)
+
+### Overview
+`M_DebugManager` orchestrates all development-time debugging tools. Debug toggles are stored in the `debug` Redux slice and queried by ECS systems via `U_DebugSelectors`.
+
+### Debug Toggles Available
+- **god_mode**: Player takes no damage (S_HealthSystem)
+- **infinite_jump**: Player can jump in air without ground check (S_JumpSystem)
+- **speed_modifier**: Movement speed multiplier 0.25-4.0 (S_MovementSystem)
+- **disable_gravity**: Gravity system skips processing (S_GravitySystem)
+- **disable_input**: Input system skips processing (S_InputSystem)
+- **time_scale**: Engine.time_scale control 0.0-4.0 (M_DebugManager)
+
+### Using Debug Selectors in ECS Systems
+
+Systems query debug state via `U_DebugSelectors` in `process_tick()`:
+
+**Pattern 1: Early return (skip processing entirely)**
+```gdscript
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
+
+func process_tick(delta: float) -> void:
+	var store := U_StateUtils.get_store(self)
+	if store:
+		var state := store.get_state()
+		if U_DebugSelectors.is_gravity_disabled(state):
+			return  # Skip gravity entirely
+
+	# Normal gravity processing...
+```
+
+**Pattern 2: Conditional modification (skip specific checks)**
+```gdscript
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
+
+func process_tick(delta: float) -> void:
+	var store := U_StateUtils.get_store(self)
+	if store:
+		var state := store.get_state()
+		if U_DebugSelectors.is_god_mode(state):
+			return  # Skip damage processing
+
+	# Apply damage...
+```
+
+**Pattern 3: Value modification (multiply/scale values)**
+```gdscript
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
+
+func process_tick(delta: float) -> void:
+	var store := U_StateUtils.get_store(self)
+	var current_max_speed: float = movement_component.settings.max_speed
+
+	if store:
+		var state := store.get_state()
+		var speed_modifier: float = U_DebugSelectors.get_speed_modifier(state)
+		current_max_speed *= speed_modifier
+
+	# Apply modified speed...
+```
+
+**Pattern 4: Bypass condition (ignore normal checks)**
+```gdscript
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
+
+func process_tick(delta: float) -> void:
+	var store := U_StateUtils.get_store(self)
+	var infinite_jump_enabled := false
+	if store:
+		var state := store.get_state()
+		infinite_jump_enabled = U_DebugSelectors.is_infinite_jump(state)
+
+	# Only check ground requirement when infinite_jump is disabled
+	if not infinite_jump_enabled and not component.can_jump(now):
+		return
+
+	# Perform jump...
+```
+
+### Debug State Persistence
+- The `debug` slice is marked as **transient** (never persisted to save files)
+- Debug toggles reset to defaults on game restart
+- Use `U_DebugActions` to dispatch debug state changes:
+  ```gdscript
+  store.dispatch(U_DebugActions.set_god_mode(true))
+  store.dispatch(U_DebugActions.set_speed_modifier(2.0))
+  store.dispatch(U_DebugActions.set_time_scale(0.5))
+  ```
+
+### Integration with Dependency Injection (Testing)
+Systems support `@export var state_store: I_StateStore` for isolated testing with `MockStateStore`:
+```gdscript
+var mock_store := MockStateStore.new()
+var system := S_HealthSystem.new()
+system.state_store = mock_store
+mock_store.set_slice(StringName("debug"), {"god_mode": true})
+# Test system behavior with god_mode enabled
+```
+
+### F-Key Overlays
+- **F1**: Performance HUD (FPS, memory, draw calls, ECS/State metrics)
+- **F2**: ECS Overlay (entity browser, component inspector, system view)
+- **F3**: State Overlay (Redux state JSON viewer + action history)
+- **F4**: Toggle Menu (debug cheats, visual aids, system toggles)
+
+### Visual Debug Aids
+- Implemented by `U_DebugVisualAids` (`scripts/debug/helpers/u_debug_visual_aids.gd`), created as a child of `M_DebugManager`.
+- Driven entirely by the `debug` slice visual toggles; rebuilds on `scene/transition_completed`, clears on `scene/transition_started`.
+- Coverage (Phase 7):
+  - Collision shapes: wireframe line meshes for Box/Sphere/Cylinder/Capsule CollisionShape3D nodes.
+  - Spawn points: markers for `sp_*` nodes under `Entities/SP_SpawnPoints`.
+  - Trigger zones: outlines for `BaseVolumeController` trigger areas.
+  - Entity labels: Label3D per `entity_id` (periodically refreshed while enabled).
+
+### Release Build Gating
+`M_DebugManager` automatically removes itself in release builds via `OS.is_debug_build()` check. All debug functionality is stripped with zero runtime overhead.
+
 ## Test Commands
 
 - Run ECS tests
@@ -663,9 +780,9 @@ func _on_load_pressed():
   - Use `U_ServiceLocator.get_service(StringName("service_name"))` for fast, centralized manager access.
   - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`.
   - ServiceLocator provides O(1) Dictionary lookup vs O(n) tree traversal of group lookups.
-  - All services are registered at startup in `root.tscn` via `main.gd`.
+  - All services are registered at startup in `main.tscn` via `main.gd`.
   - Fallback to group lookup is available for backward compatibility and test environments.
 - Create a new gameplay scene
   - Duplicate `scenes/gameplay/gameplay_base.tscn` as starting point.
   - Keep M_ECSManager + Systems + Entities + Environment structure.
-  - Do NOT add M_StateStore or M_CursorManager (they live in root.tscn).
+  - Do NOT add M_StateStore or M_CursorManager (they live in main.tscn).

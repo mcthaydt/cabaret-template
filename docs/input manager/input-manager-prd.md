@@ -365,8 +365,8 @@ See: docs/input_manager/input-manager-plan.md (Risks & Mitigations)
   - Measured by: Code review, Redux pattern audit
 
 - **SC-014**: Zero Godot autoloads added - all managers are in-scene nodes
-  - M_InputProfileManager in root.tscn
-  - M_InputDeviceManager in root.tscn
+  - M_InputProfileManager in main.tscn
+  - M_InputDeviceManager in main.tscn
   - Managers use groups for discovery
   - Measured by: project.godot inspection, autoload section empty
 
@@ -478,8 +478,8 @@ See: docs/input_manager/input-manager-plan.md (Risks & Mitigations)
      - JSON serialization for saved settings at `user://input_settings.json`
    - **Rationale**: Type-safe editor resources + human-readable persistence
 
-7. **Manager Location: PERSISTENT IN root.tscn (CONFIRMED)**
-   - **Decision**: Option A - M_InputProfileManager and M_InputDeviceManager in root.tscn
+7. **Manager Location: PERSISTENT IN main.tscn (CONFIRMED)**
+   - **Decision**: Option A - M_InputProfileManager and M_InputDeviceManager in main.tscn
    - **Implementation**: Add to root scene alongside M_StateStore, M_SceneManager
    - **Rationale**: Follows existing manager patterns, no autoloads, discoverable via groups
 
@@ -1298,8 +1298,8 @@ See: docs/input_manager/input-manager-plan.md (Edge Cases & Validation)
 
 ### Manager Integration
 
-- **FR-089**: M_InputProfileManager MUST be in-scene node (added to root.tscn, not autoload)
-- **FR-090**: M_InputDeviceManager MUST be in-scene node (added to root.tscn, not autoload)
+- **FR-089**: M_InputProfileManager MUST be in-scene node (added to main.tscn, not autoload)
+- **FR-090**: M_InputDeviceManager MUST be in-scene node (added to main.tscn, not autoload)
 - **FR-091**: Managers MUST add themselves to groups for discovery ("input_profile_manager", "input_device_manager")
 - **FR-092**: Managers MUST initialize on _ready() before gameplay systems run
 - **FR-093**: Managers MUST emit signals for state changes (profile_switched, device_changed)
@@ -2566,8 +2566,8 @@ tests/
 ### No Autoloads Pattern
 
 **Manager Discovery**:
-- M_InputProfileManager: Added to root.tscn, discovered via "input_profile_manager" group
-- M_InputDeviceManager: Added to root.tscn, discovered via "input_device_manager" group
+- M_InputProfileManager: Added to main.tscn, discovered via "input_profile_manager" group
+- M_InputDeviceManager: Added to main.tscn, discovered via "input_device_manager" group
 - No autoload singletons (maintains architectural consistency)
 
 **Discovery Pattern**:
@@ -2576,7 +2576,7 @@ var profile_mgr := get_tree().get_first_node_in_group("input_profile_manager") a
 var device_mgr := get_tree().get_first_node_in_group("input_device_manager") as M_InputDeviceManager
 ```
 
-**Root.tscn Structure**:
+**Main.tscn Structure**:
 ```
 Root (Node)
 ├─ M_StateStore
@@ -2594,7 +2594,7 @@ Root (Node)
 
 #### Step 1: Game Launch - Root Scene Loads
 
-**File**: `scenes/root.tscn` loaded as main scene
+**File**: `scenes/main.tscn` loaded as main scene
 
 **Managers Initialize** (in tree order):
 1. M_StateStore._ready()
@@ -2750,7 +2750,7 @@ func detect_gamepads() -> void:
 ```
 Time →
 
-[0ms] Game launch, root.tscn loads
+[0ms] Game launch, main.tscn loads
   ↓
 [10ms] M_StateStore._ready()
   ↓
@@ -2857,7 +2857,7 @@ See: docs/input_manager/input-manager-plan.md (Detailed Phases)
    
 
 **8. Where should M_InputProfileManager live?**
-   - **Resolution**: In-scene node in root.tscn (not autoload)
+   - **Resolution**: In-scene node in main.tscn (not autoload)
    - **Rationale**: Follows existing manager patterns (M_StateStore, M_SceneManager). Maintains architectural consistency.
    
 

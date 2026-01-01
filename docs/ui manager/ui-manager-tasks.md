@@ -579,7 +579,7 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
   - **Files**: Create `scripts/ui/ui_input_handler.gd`
   - **Architecture**:
     - Runs with `process_mode = PROCESS_MODE_ALWAYS`
-    - Lives in root.tscn alongside M_SceneManager
+    - Lives in main.tscn alongside M_SceneManager
     - Listens to `_unhandled_input()` for ui_* actions
   - **Input Routing Logic**:
     ```gdscript
@@ -608,7 +608,7 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
     ```
   - **Note**: CloseMode (RESUME_TO_GAMEPLAY vs RETURN_TO_PREVIOUS_OVERLAY) is handled by the reducer when processing NAV/CLOSE_TOP_OVERLAY, not by the input handler
   - **Acceptance**: All context-based routing works correctly
-- _Notes (2025-11-26)_: Created `scripts/ui/ui_input_handler.gd` with process_mode=ALWAYS, _unhandled_input() listening for ui_cancel/ui_pause, context matrix routing per flows-and-input.md section 3.2, and integrated into root.tscn under Managers group.
+- _Notes (2025-11-26)_: Created `scripts/ui/ui_input_handler.gd` with process_mode=ALWAYS, _unhandled_input() listening for ui_cancel/ui_pause, context matrix routing per flows-and-input.md section 3.2, and integrated into main.tscn under Managers group.
 
 - [x] T055 [TEST] Add tests for input routing across all contexts.
   - **Files**: Create `tests/unit/ui/test_ui_input_handler.gd`

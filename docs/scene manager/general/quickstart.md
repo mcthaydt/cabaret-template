@@ -21,7 +21,7 @@ The Scene Manager system provides robust scene transitions, state persistence, p
 
 ### Root Scene Pattern
 
-The project uses a persistent root scene (`scenes/root.tscn`) that remains loaded throughout the session:
+The project uses a persistent root scene (`scenes/main.tscn`) that remains loaded throughout the session:
 
 ```
 Root (Node)
@@ -102,8 +102,8 @@ scenes/gameplay/gameplay_base.tscn → scenes/gameplay/my_new_level.tscn
 - ✅ M_ECSManager (per-scene instance)
 - ✅ Systems (Core, Physics, Movement, Feedback)
 - ✅ Entities (player, camera, spawn points)
-- ❌ M_StateStore (lives in root.tscn only)
-- ❌ M_CursorManager (lives in root.tscn only)
+- ❌ M_StateStore (lives in main.tscn only)
+- ❌ M_CursorManager (lives in main.tscn only)
 
 For **UI scenes**, create a simple Control-based scene:
 
@@ -542,12 +542,12 @@ scene_manager._scene_cache.erase(StringName("large_scene"))
 - Use `"instant"` transitions for rapid UI navigation
 - Set cooldowns on door triggers (1-2 seconds)
 - Test bidirectional door pairings (ensure you can exit the way you entered)
-- Keep gameplay scenes self-contained (don't reference managers that live in root.tscn)
+- Keep gameplay scenes self-contained (don't reference managers that live in main.tscn)
 
 ### ❌ DON'T
 
 - Don't modify state directly (use actions/reducers)
-- Don't add `M_StateStore` or `M_CursorManager` to gameplay scenes (they belong in root.tscn)
+- Don't add `M_StateStore` or `M_CursorManager` to gameplay scenes (they belong in main.tscn)
 - Don't use non-uniform scaling on trigger nodes (scale the shape resource instead)
 - Don't position spawn markers inside trigger zones (causes ping-pong loops)
 - Don't forget to call `await get_tree().process_frame` before accessing store in `_ready()`
@@ -560,7 +560,7 @@ scene_manager._scene_cache.erase(StringName("large_scene"))
 
 ### File Locations
 
-- **Root scene**: `scenes/root.tscn`
+- **Root scene**: `scenes/main.tscn`
 - **Gameplay template**: `scenes/gameplay/gameplay_base.tscn`
 - **Scene registry**: `scripts/scene_management/u_scene_registry.gd`
 - **Scene manager**: `scripts/managers/m_scene_manager.gd`

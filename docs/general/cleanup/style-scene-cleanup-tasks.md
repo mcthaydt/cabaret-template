@@ -37,7 +37,7 @@ version: "1.0"
   - **Result**: 2 authorities identified - M_PauseManager and M_SceneManager (consolidation planned for Phase 2)
 - [x] T006 [P] Cross‑check current gameplay scenes (`base`, `exterior`, `interior_house`) against `SCENE_ORGANIZATION_GUIDE.md` and note any structural or naming differences.
   - **Result**: 9/10 compliance - excellent adherence, minor system roster update needed
-- [x] T007 [P] Cross‑check root scene (`scenes/root.tscn`) against documentation; list any patterns not yet captured in the guide.
+- [x] T007 [P] Cross‑check root scene (`scenes/main.tscn`) against documentation; list any patterns not yet captured in the guide.
   - **Result**: 10/10 perfect match - documented manager initialization order
 - [x] T008 [P] Cross‑check subsystem PRDs/plans (ECS, state store, scene manager, input manager, UI manager) and record where they diverge from the current implementation.
   - **Result**: 2/5 accurate (ECS, State Store), 3/5 outdated (Scene/Input/UI show "Draft" but production-complete)
@@ -86,7 +86,7 @@ version: "1.0"
 - Main menu (SceneType.MENU) MUST have cursor visible & unlocked
 - M_PauseManager must derive cursor state from BOTH pause state AND scene type
 - Tests need proper timing (await physics frames for M_PauseManager to react to scene state changes)
-- M_PauseManager must be added to root.tscn BUT with proper initialization order
+- M_PauseManager must be added to main.tscn BUT with proper initialization order
 - Scene slice subscription must happen AFTER M_StateStore and M_SceneManager are ready
 
 ### Core Authority Model
@@ -144,7 +144,7 @@ version: "1.0"
 
 ### Root Scene Integration
 
-- [x] T024a Add M_PauseManager to `root.tscn`:
+- [x] T024a Add M_PauseManager to `main.tscn`:
   - Add as child of Managers node.
   - Place AFTER M_StateStore, M_SceneManager, M_CursorManager in node order.
   - Verify initialization order in manager_ready signals.
@@ -219,7 +219,7 @@ version: "1.0"
 **Commit aca7cf9 "Phase 2 - 5 Failed Tests"**:
 - ✅ T020: Created `pause-cursor-authority-model.md` (comprehensive authority documentation)
 - ✅ T022: Removed pause/cursor control from M_SceneManager (only handles particles now)
-- ✅ T024a: Added M_PauseManager to root.tscn in correct initialization order
+- ✅ T024a: Added M_PauseManager to main.tscn in correct initialization order
 - ✅ T024b: Updated 5 integration tests (cursor_reactive_updates, particles_pause, pause_settings_flow, pause_system, scene_preloading)
 
 **Staged Changes (Post-aca7cf9 refinements)**:
@@ -324,14 +324,14 @@ version: "1.0"
    - `E_Objectives` in interior (should be `Objectives`)
    - Per guide line 275: only individual entities use `E_` prefix, not containers
 
-5. **UIInputHandler naming** in `root.tscn`:
+5. **UIInputHandler naming** in `main.tscn`:
    - Node name: `UIInputHandler`
    - Expected: `M_UIInputHandler`
    - Matches script naming issue #1 above
 
 6. **Base scene template outdated**:
    - Contains `M_StateStore`, `M_CursorManager` in gameplay scene
-   - These now live in `root.tscn` per Phase 2 architecture
+   - These now live in `main.tscn` per Phase 2 architecture
    - Template will mislead developers
 
 **Note on Spawn Point Scripts:**
@@ -357,7 +357,7 @@ version: "1.0"
 
 **Note on M_PauseManager:**
 - Not present in any gameplay scenes
-- Per current Phase 2 architecture, M_PauseManager lives in `root.tscn` only
+- Per current Phase 2 architecture, M_PauseManager lives in `main.tscn` only
 - SCENE_ORGANIZATION_GUIDE.md may need update (lines 146 show it in Core systems, but this appears outdated)
 
 #### Resources Audit Summary (57 files)
@@ -385,7 +385,7 @@ version: "1.0"
   - Move file from `scripts/ui/` to `scripts/managers/`
   - Update class name: `UIInputHandler` → `M_UIInputHandler`
   - Update all preload() statements and type hints
-  - Update `root.tscn` node name and script attachment
+  - Update `main.tscn` node name and script attachment
   - Run full test suite to verify no breakage
   - **Estimated Time:** 30-60 minutes
   - **Impact:** Breaking change, requires thorough testing
@@ -419,7 +419,7 @@ version: "1.0"
   - **Estimated Time:** 2 minutes
 
 - [x] T040b Update SCENE_ORGANIZATION_GUIDE.md:
-  - Clarify M_PauseManager location (root.tscn vs gameplay scenes)
+  - Clarify M_PauseManager location (main.tscn vs gameplay scenes)
   - Document M_GameplayInitializer if standard, or note as experimental
   - **Estimated Time:** 10 minutes
 
@@ -476,7 +476,7 @@ version: "1.0"
 1. `test_scripts_follow_prefix_conventions()` - Validates all scripts follow STYLE_GUIDE.md prefix matrix
 2. `test_scenes_follow_naming_conventions()` - Validates scene files use correct prefixes (gameplay_, ui_, prefab_, debug_)
 3. `test_resources_follow_naming_conventions()` - Validates UI screen definitions follow naming patterns
-4. `test_scene_organization_root_structure()` - Validates root.tscn contains required managers and containers
+4. `test_scene_organization_root_structure()` - Validates main.tscn contains required managers and containers
 5. `test_scene_organization_gameplay_structure()` - Validates gameplay scenes follow SCENE_ORGANIZATION_GUIDE.md structure
 
 **Test Results**: All 7 tests passing (18 assertions total)
@@ -1662,7 +1662,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Methods: `register(service_name, instance)`, `get_service(service_name)`, `has(service_name)`
   - Validate dependencies on `validate_all()`
   - Make dependency graph visible via `get_dependency_graph()`
-  - **Completed 2025-12-16**: Created U_ServiceLocator utility class with full API, integrated with root.tscn
+  - **Completed 2025-12-16**: Created U_ServiceLocator utility class with full API, integrated with main.tscn
 
 - [x] T141c **Migrate group lookups to ServiceLocator**:
   - Replace `get_tree().get_nodes_in_group("state_store")` with `U_ServiceLocator.get_service("state_store")`

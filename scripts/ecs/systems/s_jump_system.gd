@@ -9,6 +9,7 @@ const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 const EVENT_ENTITY_JUMPED := StringName("entity_jumped")
 const EVENT_ENTITY_LANDED := StringName("entity_landed")
+const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
@@ -132,7 +133,13 @@ func process_tick(_delta: float) -> void:
 			})
 			continue
 
-		if not component.can_jump(now):
+		# Phase 5: Debug Manager - Infinite jump check
+		var infinite_jump_enabled := false
+		if store != null:
+			var state := store.get_state()
+			infinite_jump_enabled = U_DebugSelectors.is_infinite_jump(state)
+
+		if not infinite_jump_enabled and not component.can_jump(now):
 			component.update_debug_snapshot({
 				"supported": supported_now,
 				"support_recent": support_recent,

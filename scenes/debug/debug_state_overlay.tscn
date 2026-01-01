@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://dnu6e742xivs0" path="res://scenes/debug/debug_state_overlay.gd" id="1_n7gxc"]
 
 [node name="SC_StateDebugOverlay" type="CanvasLayer"]
+process_mode = 3
+layer = 100
 script = ExtResource("1_n7gxc")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]

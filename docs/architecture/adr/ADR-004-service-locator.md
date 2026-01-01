@@ -38,7 +38,7 @@ Group lookup remains a fallback in some areas for backward compatibility and tes
 
 **Negative**
 
-- Introduces a global registry that must be kept in sync with `root.tscn`
+- Introduces a global registry that must be kept in sync with `main.tscn`
 - Overuse can hide dependencies if not paired with validation and documentation
 
 ## Alternatives Considered
@@ -49,5 +49,5 @@ Group lookup remains a fallback in some areas for backward compatibility and tes
 ## References
 
 - `scripts/core/u_service_locator.gd`
-- `scripts/scene_structure/main.gd`
-- `scenes/root.tscn`
+- `scripts/core/main.gd`
+- `scenes/main.tscn`

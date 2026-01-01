@@ -12,6 +12,7 @@ const RS_SettingsInitialState := preload("res://scripts/state/resources/rs_setti
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const DEFAULT_GAMEPAD_SETTINGS := preload("res://resources/input/gamepad_settings/default_gamepad_settings.tres")
 
 func before_each() -> void:
 	U_ECSEventBus.reset()
@@ -38,6 +39,7 @@ func test_landing_event_triggers_vibration_end_to_end() -> void:
 	await _pump()
 
 	var gamepad_component := C_GamepadComponent.new()
+	gamepad_component.settings = DEFAULT_GAMEPAD_SETTINGS.duplicate(true)
 	gamepad_component.device_id = 2  # Match the device ID used in motion events
 	entity.add_child(gamepad_component)
 	await _pump()

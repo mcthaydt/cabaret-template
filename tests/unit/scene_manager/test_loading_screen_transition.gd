@@ -41,12 +41,7 @@ func test_loading_real_progress_mid_callback_and_updates() -> void:
 	assert_true(ok and completion_tracker.is_complete, "Transition should complete when progress reaches 1.0")
 
 ## Fake path (no provider): should enforce minimum duration
-## @warning: Skipped in headless - wall-clock timing unreliable
 func test_loading_fake_progress_enforces_min_duration() -> void:
-	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
-		pending("Skipped: Wall-clock timing unreliable in headless mode")
-		return
-
 	var transition := Trans_LoadingScreen.new()
 	transition.min_duration = 0.1
 
@@ -60,5 +55,5 @@ func test_loading_fake_progress_enforces_min_duration() -> void:
 
 	var elapsed: float = (Time.get_ticks_msec() / 1000.0) - start_sec
 	assert_true(ok and tracker.is_complete, "Fake loading should complete")
-	assert_true(elapsed >= transition.min_duration - 0.01, "Fake loading should last at least min_duration")
-
+	if not (OS.has_feature("headless") or DisplayServer.get_name() == "headless"):
+		assert_true(elapsed >= transition.min_duration - 0.01, "Fake loading should last at least min_duration")
