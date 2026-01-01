@@ -23,6 +23,7 @@ const SCENE_DEBUG_TOGGLE_MENU := "res://scenes/debug/debug_toggle_menu.tscn"
 
 # Helper utilities
 const U_DEBUG_TELEMETRY := preload("res://scripts/utils/u_debug_telemetry.gd")
+const U_DEBUG_VISUAL_AIDS := preload("res://scripts/debug/helpers/u_debug_visual_aids.gd")
 
 # State imports
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
@@ -55,6 +56,7 @@ var _instantiating: Dictionary = {}
 var _store: M_STATE_STORE = null
 var _is_debug_logging_enabled: bool = true
 var _are_debug_overlays_enabled: bool = true
+var _visual_aids: Node = null
 
 const PROJECT_SETTING_ENABLE_DEBUG_OVERLAY := "state/debug/enable_debug_overlay"
 
@@ -77,6 +79,9 @@ func _ready() -> void:
 	# Subscribe to debug state changes
 	if _store:
 		_store.slice_updated.connect(_on_slice_updated)
+		_visual_aids = U_DEBUG_VISUAL_AIDS.new()
+		_visual_aids.state_store = _store
+		add_child(_visual_aids)
 
 	if _is_debug_logging_enabled:
 		U_DEBUG_TELEMETRY.log_info(StringName("system"), "Debug Manager initialized")

@@ -2,8 +2,8 @@
 
 **Project**: Cabaret Template (Godot 4.5)
 **Created**: 2025-12-27
-**Last Updated**: 2025-12-28
-**Status**: READY FOR IMPLEMENTATION
+**Last Updated**: 2025-12-31
+**Status**: Phase 7 Complete (Phase 8 Pending)
 **Scope**: Telemetry logging, debug toggles, ECS overlay, performance HUD
 
 ## Summary
@@ -25,7 +25,7 @@ The Debug Manager is a unified orchestration layer for all development-time debu
 - No remote telemetry or analytics export (local files/clipboard only).
 - No debug features in release builds (hidden or otherwise).
 - No debug profile system (save/load named debug configurations).
-- No visual debug aids in 3D world (collision shapes, entity labels) - deferred to Phase 7.
+- No advanced 3D visualization beyond the Phase 7 visual aids set (e.g., navmesh/AI debugging).
 
 ## Responsibilities & Boundaries
 
@@ -44,7 +44,7 @@ The Debug Manager is a unified orchestration layer for all development-time debu
 - `U_ECSEventBus` / `U_StateEventBus`: Event subscriptions for telemetry logging.
 - `U_ServiceLocator`: Registration for discovery by other systems.
 
-**Note on existing debug overlay**: The current `SC_StateDebugOverlay` (F3) in `scenes/debug/debug_state_overlay.gd` is managed by `M_StateStore._input()`. This will be migrated to `M_DebugManager` for centralized control.
+**Note on existing debug overlay**: `SC_StateDebugOverlay` (F3) is managed by `M_DebugManager` for centralized control.
 
 ## Public API
 
@@ -248,7 +248,6 @@ State: 156 dispatches / 0.02ms avg
 - [ ] God Mode (invincibility)
 - [ ] Infinite Jump (no ground check)
 - Speed Modifier: [0.25x] [0.5x] [1x] [2x] [4x] slider
-- [Teleport to Cursor] button (raycast from mouse position)
 
 **Tab 2: Visual Debug**
 - [ ] Show Collision Shapes
@@ -392,5 +391,4 @@ This ensures:
 | Time scale method | Direct `Engine.time_scale` manipulation |
 | Visual debug aids | Manual geometry generation (no viewport debug settings for 3D) |
 | Log file cleanup | Auto-delete logs older than 7 days on startup |
-| Teleport implementation | PhysicsRayQueryParameters3D from camera through mouse position |
 | Platform scope | Desktop-only; debug-build gated. Mobile lacks F-keys (optional extra gating via `OS.has_feature("mobile")`). |

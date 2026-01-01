@@ -157,9 +157,7 @@ text = "Show Entity Labels"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 12
-text = "Note: Visual aids require Phase 7 implementation.
-Toggles will dispatch Redux actions but may not
-have visible effects yet."
+text = "Note: Visual aids are debug-build only and update on scene transitions."
 autowrap_mode = 3
 
 [node name="System" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer"]

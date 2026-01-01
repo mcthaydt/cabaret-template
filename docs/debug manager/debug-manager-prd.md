@@ -5,7 +5,7 @@
 - **Feature name**: Debug Manager
 - **Owner**: TBD
 - **Target release**: TBD
-- **Status**: READY FOR IMPLEMENTATION
+- **Status**: Implemented (Phase 7 Complete; Phase 8 Pending)
 
 ## Problem Statement
 
@@ -23,7 +23,7 @@ Developers need comprehensive, unified debugging tools during development, but c
 
 - **Unified debug access**: Single F-key shortcuts (F1-F4) for all debug overlays, managed by one orchestrator.
 - **Structured telemetry**: Log levels (DEBUG/INFO/WARN/ERROR), categories, automatic event subscription, and export to files/clipboard.
-- **Gameplay cheats**: God mode, infinite jump, speed modifiers, teleportation for rapid testing.
+- **Gameplay cheats**: God mode, infinite jump, speed modifiers for rapid testing.
 - **ECS inspection**: Runtime entity browser, component inspector, system execution view.
 - **Performance HUD**: Lightweight, always-visible metrics (FPS, memory, draw calls, ECS/state performance).
 - **Visual debug aids**: Runtime toggles for collision shapes, spawn points, trigger zones, entity labels.
@@ -92,7 +92,7 @@ F4 → Toggle Menu (modal overlay)
      │   ├── [ ] God Mode
      │   ├── [ ] Infinite Jump
      │   ├── Speed Modifier slider (0.25x - 4x)
-     │   └── [Teleport to Cursor] button
+     │   └── (Teleport-to-cursor removed)
      ├── Tab 2: Visual Debug
      │   ├── [ ] Show Collision Shapes
      │   ├── [ ] Show Spawn Points
@@ -310,4 +310,3 @@ Ensures:
 | Log file cleanup | Auto-delete logs older than 7 days on startup |
 | ECS overlay pagination | Paginated with 50 entities per page |
 | Component value editing | Read-only (display only, no editing) |
-| Teleport method | Raycast from camera to mouse position |

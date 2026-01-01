@@ -38,11 +38,10 @@ Read these files before starting work:
 | ECS overlay pagination | Paginated with 50 entities per page, dirty flag pattern for updates |
 | Component value editing | Read-only (display only, no editing) |
 | Platform scope | Desktop-only; debug-build gated. Mobile lacks F-keys (optional extra gating via `OS.has_feature("mobile")`). |
-| Teleport implementation | PhysicsRayQueryParameters3D from camera through mouse position |
 
 ## Current Progress
 
-**Last Updated**: 2025-12-28
+**Last Updated**: 2025-12-31
 
 **Completed Phases**:
 - ✅ **Phase 0**: Foundation (2025-12-28)
@@ -59,7 +58,30 @@ Read these files before starting work:
   - Added 47 passing tests (25 reducer + 22 selector)
   - Added transient slice exclusion test
 
-**Next Phase**: Phase 2 - Telemetry System (TDD)
+ - ✅ **Phase 2**: Telemetry System (2025-12-28)
+   - U_DebugTelemetry + console formatter implemented
+   - Telemetry subscriptions added to M_DebugManager
+
+ - ✅ **Phase 3**: Performance HUD (2025-12-28)
+   - F1 overlay implemented
+
+ - ✅ **Phase 4**: ECS Overlay (2025-12-28)
+   - F2 overlay implemented (entity browser + component inspector + system view)
+
+ - ✅ **Phase 5**: ECS System Integration (2025-12-28)
+   - Health/Jump/Movement/Gravity/Input systems read debug selectors
+
+ - ✅ **Phase 6**: Toggle Menu (2025-12-28)
+   - F4 toggle menu implemented (Cheats/Visual/System tabs)
+
+- ✅ **Phase 7**: Visual Debug Aids (2025-12-31)
+  - `U_DebugVisualAids` implemented and instantiated by `M_DebugManager`
+  - Visual toggles now create/remove 3D helpers (collision wireframes, spawn markers, trigger outlines, entity labels)
+
+**Next Phase**: Phase 8 - Polish & Verification
+
+**Phase 8 Progress**:
+- ✅ Task 8.1: Debug unit/integration tests verified green (2025-12-31)
 
 Check `debug-manager-tasks.md` for detailed task list and current phase. Look for `- [x]` vs `- [ ]`.
 

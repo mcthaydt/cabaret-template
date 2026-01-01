@@ -640,7 +640,7 @@ func _on_load_pressed():
 - ❌ Modifying state during load (let StateHandoff handle restoration)
 - ❌ Attempting to delete autosave slot (returns `ERR_UNAUTHORIZED`)
 
-## Debug Manager Patterns (Phase 5 Complete)
+## Debug Manager Patterns (Phase 7 Complete)
 
 ### Overview
 `M_DebugManager` orchestrates all development-time debugging tools. Debug toggles are stored in the `debug` Redux slice and queried by ECS systems via `U_DebugSelectors`.
@@ -744,6 +744,15 @@ mock_store.set_slice(StringName("debug"), {"god_mode": true})
 - **F2**: ECS Overlay (entity browser, component inspector, system view)
 - **F3**: State Overlay (Redux state JSON viewer + action history)
 - **F4**: Toggle Menu (debug cheats, visual aids, system toggles)
+
+### Visual Debug Aids
+- Implemented by `U_DebugVisualAids` (`scripts/debug/helpers/u_debug_visual_aids.gd`), created as a child of `M_DebugManager`.
+- Driven entirely by the `debug` slice visual toggles; rebuilds on `scene/transition_completed`, clears on `scene/transition_started`.
+- Coverage (Phase 7):
+  - Collision shapes: wireframe line meshes for Box/Sphere/Cylinder/Capsule CollisionShape3D nodes.
+  - Spawn points: markers for `sp_*` nodes under `Entities/SP_SpawnPoints`.
+  - Trigger zones: outlines for `BaseVolumeController` trigger areas.
+  - Entity labels: Label3D per `entity_id` (periodically refreshed while enabled).
 
 ### Release Build Gating
 `M_DebugManager` automatically removes itself in release builds via `OS.is_debug_build()` check. All debug functionality is stripped with zero runtime overhead.

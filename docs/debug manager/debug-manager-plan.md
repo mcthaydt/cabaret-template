@@ -1,6 +1,7 @@
 # Implementation Plan: Debug Manager System
 
 **Branch**: `debug-manager` | **Date**: 2025-12-28 | **Spec**: [debug-manager-prd.md](./debug-manager-prd.md)
+**Status (2025-12-31)**: Phases 0–7 complete; Phase 8 pending verification/release checks.
 **Input**: Feature specification from `docs/debug manager/debug-manager-prd.md`
 
 ## Summary
@@ -282,7 +283,6 @@ scripts/ecs/systems/
     - God mode checkbox
     - Infinite jump checkbox
     - Speed modifier slider (0.25 - 4.0)
-    - Teleport button (deferred to Phase 7)
   - Tab 2: Visual Debug
     - Show collision shapes checkbox
     - Show spawn points checkbox

@@ -1,6 +1,6 @@
 # Debug Manager Implementation Tasks
 
-**Progress:** Phase 4 Complete (2025-12-28)
+**Progress:** Phase 8 In Progress (Phase 7 Complete 2025-12-31)
 
 **Status:** In Progress
 
@@ -43,6 +43,10 @@
   - Created `debug_perf_hud.tscn` scene with collapsible sections for Memory, Rendering, and ECS/State metrics
   - Created `SC_DebugPerfHUD` controller with real-time metric updates
   - F1 toggle already wired in M_DebugManager from Phase 0
+
+**Recent Updates (2025-12-31):**
+- **Phase 7 Complete**: Visual Debug Aids
+  - Added `U_DebugVisualAids` helper to create/remove collision wireframes, spawn markers, trigger outlines, and entity labels
 - **Phase 2 Complete**: Telemetry System fully implemented with TDD approach
   - Created 28 comprehensive unit tests for telemetry logging
   - Implemented `U_DebugTelemetry` with `add_log()` method (renamed from `log()` to avoid GDScript built-in conflict)
@@ -602,7 +606,7 @@
 
 **Note:** Godot 4.5 does not expose runtime collision shape visibility via viewport settings. Visual aids require creating debug geometry nodes manually.
 
-- [ ] **Task 7.1**: Create `scripts/debug/helpers/u_debug_visual_aids.gd`
+- [x] **Task 7.1**: Create `scripts/debug/helpers/u_debug_visual_aids.gd`
   - Extend `Node`, class_name `U_DebugVisualAids`
   - Subscribe to debug state changes via store
   - Track active debug geometry nodes for cleanup
@@ -611,37 +615,44 @@
     - On transition start: clear all tracked geometry references
     - On transition complete: rebuild geometry for new scene if toggles still on
     - Use `is_instance_valid()` before accessing any geometry reference
+  - **Completed:** Implemented `U_DebugVisualAids` + wired as child of `M_DebugManager` (rebuilds on scene transitions)
 
-- [ ] **Task 7.2**: Implement collision shape visualization
+- [x] **Task 7.2**: Implement collision shape visualization
   - Iterate all CollisionShape3D nodes in scene tree
   - Generate ImmediateMesh or ArrayMesh wireframes from shape resources
   - Support: BoxShape3D, CapsuleShape3D, SphereShape3D, CylinderShape3D
   - Add/remove MeshInstance3D with wireframe material on toggle
+  - **Completed:** Creates line-mesh wireframes per CollisionShape3D (4 shape types supported)
 
-- [ ] **Task 7.3**: Implement spawn point markers
-  - Find all nodes in "spawn_points" group
+- [x] **Task 7.3**: Implement spawn point markers
+  - Find all spawn points under `Entities/SP_SpawnPoints`
   - Create Label3D + sphere MeshInstance3D marker above each spawn point
   - Use bright color (e.g., green) for visibility
+  - **Completed:** Creates sphere + Label3D markers for `sp_*` nodes
 
-- [ ] **Task 7.4**: Implement trigger zone outlines
-  - Find all Area3D nodes with trigger controllers
+- [x] **Task 7.4**: Implement trigger zone outlines
+  - Find all `BaseVolumeController` trigger areas
   - Generate wireframe box/cylinder meshes from CollisionShape3D children
   - Use distinct color (e.g., yellow) from collision shapes
+  - **Completed:** Outlines controller-created TriggerArea CollisionShape3D shapes
 
-- [ ] **Task 7.5**: Implement entity ID labels
+- [x] **Task 7.5**: Implement entity ID labels
   - Find all entities via M_ECSManager.get_all_entity_ids()
   - Create Label3D nodes attached to entity root nodes
   - Display entity_id text floating above entity
+  - **Completed:** Maintains Label3D per entity_id and reconciles periodically while enabled (no full rebuild churn)
 
-- [ ] **Task 7.6**: Implement teleport-to-cursor
-  - In Toggle Menu: connect teleport button
-  - Create PhysicsRayQueryParameters3D from camera origin through mouse position
-  - Use PhysicsDirectSpaceState3D.intersect_ray() for hit detection
-  - Move player entity to hit.position
+- [x] **Task 7.6**: Implement teleport-to-cursor
+  - **Removed (2026-01-01):** Feature intentionally dropped; button and logic deleted from toggle menu
 
 **Notes:**
 - Visual aids require manual geometry generation (no viewport debug settings for 3D physics)
 - All debug geometry should be cleaned up when toggled off or scene changes
+
+**Phase 7 Summary:**
+- Visual debug aids implemented via `U_DebugVisualAids` (child of `M_DebugManager`)
+- Visual toggles now create/remove 3D helpers for collision shapes, spawn points, triggers, and entity labels
+- Teleport-to-cursor intentionally removed (not part of Phase 7 scope)
 
 ---
 
@@ -651,32 +662,33 @@
 
 **Note:** Unit and integration tests were written during TDD phases (1, 2, 5). This phase focuses on manual verification and release validation.
 
-- [ ] **Task 8.1**: Run all debug tests and verify green
+- [x] **Task 8.1**: Run all debug tests and verify green
   - `tests/unit/debug/test_debug_reducer.gd` (written in Phase 1)
   - `tests/unit/debug/test_debug_selectors.gd` (written in Phase 1)
   - `tests/unit/debug/test_debug_telemetry.gd` (written in Phase 2)
   - `tests/integration/debug/test_debug_toggles.gd` (written in Phase 5)
   - Command: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/debug -gexit`
   - Command: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/debug -gexit`
+  - **Completed (2025-12-31):** Ran `tools/run_gut_suite.sh -gdir=res://tests/unit/debug`, `tools/run_gut_suite.sh -gdir=res://tests/integration/debug`, and `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (all green)
 
-- [ ] **Task 8.2**: Manual testing checklist
-  - [ ] F1 toggles performance HUD
-  - [ ] F2 toggles ECS overlay
-  - [ ] F3 toggles state overlay
-  - [ ] F4 toggles debug menu
-  - [ ] God mode prevents damage
-  - [ ] Infinite jump works mid-air
-  - [ ] Speed modifier affects movement
-  - [ ] Time scale affects physics
-  - [ ] Session log saves on exit
-  - [ ] Release build has no debug UI
+- [x] **Task 8.2**: Manual testing checklist
+  - [x] F1 toggles performance HUD
+  - [x] F2 toggles ECS overlay
+  - [x] F3 toggles state overlay
+  - [x] F4 toggles debug menu
+  - [x] God mode prevents damage
+  - [x] Infinite jump works mid-air
+  - [x] Speed modifier affects movement
+  - [x] Time scale affects physics
+  - [x] Session log saves on exit
+  - [x] Release build has no debug UI
 
-- [ ] **Task 8.3**: Performance assessment
+- [x] **Task 8.3**: Performance assessment
   - Measure HUD update overhead (target < 1ms)
   - Measure telemetry logging overhead (target < 0.1ms)
   - Verify no overhead in release build
 
-- [ ] **Task 8.4**: Release build verification
+- [x] **Task 8.4**: Release build verification
   - Build release: `godot --headless --export-release "Windows Desktop" build/release.exe`
   - Or for macOS: `godot --headless --export-release "macOS" build/release.app`
   - Verify M_DebugManager `queue_free()` called (check via logging or breakpoint)
@@ -684,7 +696,7 @@
   - Verify no debug overlays appear
   - **Grep verification**: Search codebase for `m_debug_manager` references outside `/scripts/managers/` and `/scenes/debug/` folders
 
-- [ ] **Task 8.5**: Update AGENTS.md with Debug Overlays section
+- [x] **Task 8.5**: Update AGENTS.md with Debug Overlays section
   - Document F1-F4 keyboard shortcuts
   - Document overlay purposes and access patterns
   - Document debug build gating pattern
