@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="RS_VFXInitialState" format=3 uid="uid://dvfxinitialstate"]
+
+[ext_resource type="Script" path="res://scripts/state/resources/rs_vfx_initial_state.gd" id="1_vfx_state"]
+
+[resource]
+script = ExtResource("1_vfx_state")
