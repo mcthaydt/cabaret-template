@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RS_StateSliceConfig" load_steps=2 format=3 uid="uid://d152t2bhumb5c"]
+[gd_resource type="Resource" script_class="RS_StateSliceConfig" format=3 uid="uid://d152t2bhumb5c"]
 
 [ext_resource type="Script" uid="uid://ctedflab3yr5g" path="res://scripts/state/resources/rs_state_slice_config.gd" id="1_slice_config"]
 

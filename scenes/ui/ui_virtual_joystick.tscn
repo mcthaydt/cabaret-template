@@ -1,10 +1,10 @@
-[gd_scene load_steps=4 format=3 uid="uid://jbtongjvvs1u"]
+[gd_scene format=3 uid="uid://jbtongjvvs1u"]
 
 [ext_resource type="Script" uid="uid://b331pekm0mj6x" path="res://scripts/ui/ui_virtual_joystick.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://dmhf35w6nenfg" path="res://resources/button_prompts/mobile/joystick_base.png" id="2"]
 [ext_resource type="Texture2D" uid="uid://k7prfv2hq171" path="res://resources/button_prompts/mobile/joystick_thumb.png" id="3"]
 
-[node name="VirtualJoystick" type="Control"]
+[node name="VirtualJoystick" type="Control" unique_id=1137824657]
 custom_minimum_size = Vector2(180, 180)
 layout_mode = 3
 anchors_preset = 0
@@ -15,7 +15,7 @@ joystick_radius = 90.0
 base_texture = ExtResource("2")
 thumb_texture = ExtResource("3")
 
-[node name="BaseTexture" type="TextureRect" parent="."]
+[node name="BaseTexture" type="TextureRect" parent="." unique_id=16308760]
 unique_name_in_owner = true
 layout_mode = 0
 anchor_right = 1.0
@@ -23,7 +23,7 @@ anchor_bottom = 1.0
 mouse_filter = 2
 texture = ExtResource("2")
 
-[node name="ThumbTexture" type="TextureRect" parent="."]
+[node name="ThumbTexture" type="TextureRect" parent="." unique_id=1705897256]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 66.0

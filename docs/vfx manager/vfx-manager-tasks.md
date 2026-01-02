@@ -1,34 +1,34 @@
 # VFX Manager - Task Checklist
 
-**Progress:** 0% (0 / 20 tasks complete)
-**Unit Tests:** 0 / 60 passing
+**Progress:** 35% (7 / 20 tasks complete)
+**Unit Tests:** 33 / 60 passing
 **Integration Tests:** 0 / 35 passing
 **Manual QA:** 0 / 9 complete
 
 ---
 
-## Phase 0: Redux Foundation
+## Phase 0: Redux Foundation ✅ COMPLETE
 
-**Exit Criteria:** All 30 Redux tests pass (5 initial state + 15 reducer + 10 selectors), VFX slice registered in M_StateStore, no console errors
+**Exit Criteria:** All 30+ Redux tests pass (5 initial state + 15 reducer + 13 selectors), VFX slice registered in M_StateStore, no console errors
 
-- [ ] **Task 0.1 (Red)**: Write tests for VFX initial state resource
+- [x] **Task 0.1 (Red)**: Write tests for VFX initial state resource
   - Create `tests/unit/state/test_vfx_initial_state.gd`
   - Tests: `test_has_screen_shake_enabled_field`, `test_has_screen_shake_intensity_field`, `test_has_damage_flash_enabled_field`, `test_to_dictionary_returns_all_fields`, `test_defaults_match_reducer`
-  - All 5 tests failing as expected
+  - All 5 tests failing as expected ✅
 
-- [ ] **Task 0.2 (Green)**: Implement VFX initial state resource
+- [x] **Task 0.2 (Green)**: Implement VFX initial state resource
   - Create `scripts/state/resources/rs_vfx_initial_state.gd`
   - Exports: `screen_shake_enabled: bool`, `screen_shake_intensity: float`, `damage_flash_enabled: bool`
   - Implement `to_dictionary()` method merging with reducer defaults
-  - All 5 tests passing
+  - All 5 tests passing ✅
 
-- [ ] **Task 0.3 (Red)**: Write tests for VFX reducer
+- [x] **Task 0.3 (Red)**: Write tests for VFX reducer
   - Create `tests/unit/state/test_vfx_reducer.gd`
   - Tests: default state structure, `set_screen_shake_enabled` action, `set_screen_shake_intensity` action, `set_damage_flash_enabled` action
   - Critical tests: `test_set_screen_shake_intensity_clamp_lower` (-0.5 → 0.0), `test_set_screen_shake_intensity_clamp_upper` (3.5 → 2.0), `test_reducer_immutability` (old_state is not new_state)
-  - All 15 tests failing as expected
+  - All 15 tests failing as expected ✅
 
-- [ ] **Task 0.4 (Green)**: Implement VFX actions and reducer
+- [x] **Task 0.4 (Green)**: Implement VFX actions and reducer
   - Create `scripts/state/actions/u_vfx_actions.gd`
   - Action creators: `set_screen_shake_enabled(enabled: bool)`, `set_screen_shake_intensity(intensity: float)`, `set_damage_flash_enabled(enabled: bool)`
   - Create `scripts/state/reducers/u_vfx_reducer.gd`
@@ -36,41 +36,38 @@
   - Implement `get_default_vfx_state() -> Dictionary`
   - Intensity clamping: 0.0-2.0 range
   - Immutability helpers: `_merge_with_defaults`, `_with_values`, `_deep_copy`
-  - All 15 tests passing
+  - All 15 tests passing ✅
 
-- [ ] **Task 0.5 (Red)**: Write tests for VFX selectors
+- [x] **Task 0.5 (Red)**: Write tests for VFX selectors
   - Create `tests/unit/state/test_vfx_selectors.gd`
   - Tests: `is_screen_shake_enabled`, `get_screen_shake_intensity`, `is_damage_flash_enabled`
   - Edge cases: missing vfx slice, null state, missing fields
-  - All 10 tests failing as expected
+  - All 13 tests failing as expected ✅ (implemented 13 tests instead of 10)
 
-- [ ] **Task 0.6 (Green)**: Implement VFX selectors
+- [x] **Task 0.6 (Green)**: Implement VFX selectors
   - Create `scripts/state/selectors/u_vfx_selectors.gd`
   - Implement `is_screen_shake_enabled(state: Dictionary) -> bool`
   - Implement `get_screen_shake_intensity(state: Dictionary) -> float`
   - Implement `is_damage_flash_enabled(state: Dictionary) -> bool`
-  - All 10 tests passing
+  - All 13 tests passing ✅
 
-- [ ] **Task 0.7 (Green)**: Integrate VFX slice into M_StateStore
+- [x] **Task 0.7 (Green)**: Integrate VFX slice into M_StateStore
   - Modify `scripts/state/m_state_store.gd`:
-    - Line ~27: Add `const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")`
-    - Line ~56: Add `@export var vfx_initial_state: RS_VFXInitialState`
-    - Line ~164: Add `vfx_initial_state` parameter to `initialize_slices()` call
+    - Line ~27: Add `const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")` ✅
+    - Line ~56: Add `@export var vfx_initial_state: RS_VFXInitialState` ✅
+    - Line ~164: Add `vfx_initial_state` parameter to `initialize_slices()` call ✅
   - Modify `scripts/state/utils/u_state_slice_manager.gd`:
-    - Add `const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")` at top
-    - Add `vfx_initial_state: RS_VFXInitialState` parameter to `initialize_slices()` function signature
-    - Add VFX slice registration block (after debug slice, ~line 99):
-      ```gdscript
-      # VFX slice
-      if vfx_initial_state != null:
-          var vfx_config := RS_StateSliceConfig.new(StringName("vfx"))
-          vfx_config.reducer = Callable(U_VFXReducer, "reduce")
-          vfx_config.initial_state = vfx_initial_state.to_dictionary()
-          vfx_config.dependencies = []
-          vfx_config.transient_fields = []
-          register_slice(slice_configs, state, vfx_config)
-      ```
-  - VFX slice accessible via `state.vfx`
+    - Add `const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")` at top ✅
+    - Add `vfx_initial_state: RS_VFXInitialState` parameter to `initialize_slices()` function signature ✅
+    - Add VFX slice registration block (after debug slice, ~line 99) ✅
+  - VFX slice accessible via `state.vfx` ✅
+
+**Completion Notes:**
+- All 33 Redux tests passing (5 initial state + 15 reducer + 13 selectors)
+- VFX slice successfully integrated into M_StateStore
+- Style enforcement test passing for all new files
+- Intensity clamping working correctly (0.0-2.0 range)
+- Selectors handle edge cases (missing vfx slice, missing fields)
 
 ---
 

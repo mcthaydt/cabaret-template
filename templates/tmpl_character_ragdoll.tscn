@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://bpe1nw6kld0bb"]
+[gd_scene format=3 uid="uid://bpe1nw6kld0bb"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_character_ragdoll"]
 
@@ -18,21 +18,21 @@ diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.08627451, 0.3529412, 0.29803923, 1)
 
-[node name="CharacterRagdoll" type="RigidBody3D"]
+[node name="CharacterRagdoll" type="RigidBody3D" unique_id=100014750]
 mass = 70.0
 continuous_cd = true
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1996707911]
 shape = SubResource("CapsuleShape3D_character_ragdoll")
 
-[node name="VisualRoot" type="Node3D" parent="."]
+[node name="VisualRoot" type="Node3D" parent="." unique_id=680793287]
 
-[node name="Body_Mesh" type="MeshInstance3D" parent="VisualRoot"]
+[node name="Body_Mesh" type="MeshInstance3D" parent="VisualRoot" unique_id=886448401]
 transform = Transform3D(1, 0, 0, 0, 0.5518581, 0, 0, 0, 1, 0, -0.3421986, 0)
 mesh = SubResource("CapsuleMesh_character_ragdoll")
 surface_material_override/0 = SubResource("StandardMaterial3D_body")
 
-[node name="Direction_Mesh" type="MeshInstance3D" parent="VisualRoot/Body_Mesh"]
+[node name="Direction_Mesh" type="MeshInstance3D" parent="VisualRoot/Body_Mesh" unique_id=551293220]
 transform = Transform3D(0.39169633, 0, 0, 0, 0.15378642, 0, 0, 0, 0.36884245, -0.019476414, 0.6069238, -0.4746977)
 mesh = SubResource("BoxMesh_direction_indicator")
 surface_material_override/0 = SubResource("StandardMaterial3D_direction")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://behhuoexdtawd"]
+[gd_scene format=3 uid="uid://behhuoexdtawd"]
 
 [ext_resource type="Script" uid="uid://c0gmmilbk63f2" path="res://scripts/gameplay/e_victory_zone.gd" id="1_controller"]
 [ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/rs_goal_cylinder.tres" id="2_goal_settings"]
@@ -15,7 +15,7 @@ emission_energy_multiplier = 1.5
 material = SubResource("StandardMaterial3D_b3ofg")
 text = ":)"
 
-[node name="E_GoalZone" type="Node3D"]
+[node name="E_GoalZone" type="Node3D" unique_id=1687566861]
 script = ExtResource("1_controller")
 objective_id = &"goal_01"
 area_id = "interior_house"
@@ -24,15 +24,15 @@ visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePa
 entity_id = &"goalzone"
 tags = Array[StringName]([&"objective", &"goal"])
 
-[node name="Visual" type="CSGCylinder3D" parent="."]
+[node name="Visual" type="CSGCylinder3D" parent="." unique_id=916379116]
 radius = 1.5
 material = SubResource("Material_goal")
 
-[node name="GlowLight" type="OmniLight3D" parent="."]
+[node name="GlowLight" type="OmniLight3D" parent="." unique_id=1559230973]
 light_color = Color(1, 0.87451, 0.364706, 1)
 light_energy = 2.5
 
-[node name="Sparkles" type="CPUParticles3D" parent="."]
+[node name="Sparkles" type="CPUParticles3D" parent="." unique_id=371694099]
 amount = 80
 lifetime = 1.5
 preprocess = 0.5

@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://bh2k3n8yx1qrp"]
+[gd_scene format=3 uid="uid://bh2k3n8yx1qrp"]
 
 [ext_resource type="PackedScene" uid="uid://rygahxanlmio" path="res://templates/tmpl_base_scene.tscn" id="1_base"]
 [ext_resource type="Script" uid="uid://fp88anotjalr" path="res://tests/scenes/state_management/state_test_us1b.gd" id="2_script"]
 
-[node name="StateTestUS1b" instance=ExtResource("1_base")]
+[node name="StateTestUS1b" unique_id=1521026685 instance=ExtResource("1_base")]
 script = ExtResource("2_script")

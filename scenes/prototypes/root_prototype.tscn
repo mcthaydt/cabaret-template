@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://bjwvct7gp277c"]
+[gd_scene format=3 uid="uid://bjwvct7gp277c"]
 
 [ext_resource type="Resource" uid="uid://dq08aopcfbjyp" path="res://resources/state/default_boot_initial_state.tres" id="1_boot_state"]
 [ext_resource type="Resource" uid="uid://uygy4iikdf74" path="res://resources/state/default_gameplay_initial_state.tres" id="1_gameplay_state"]
@@ -9,9 +9,9 @@
 [ext_resource type="Script" uid="uid://bf1h0ro7i5h1b" path="res://scripts/state/m_state_store.gd" id="1_state_store"]
 [ext_resource type="Script" uid="uid://b763drfab8uoo" path="res://scripts/managers/m_cursor_manager.gd" id="2_cursor_manager"]
 
-[node name="Root" type="Node"]
+[node name="Root" type="Node" unique_id=329841640]
 
-[node name="M_StateStore" type="Node" parent="."]
+[node name="M_StateStore" type="Node" parent="." unique_id=2063026298]
 script = ExtResource("1_state_store")
 settings = ExtResource("1_state_settings")
 boot_initial_state = ExtResource("1_boot_state")
@@ -19,10 +19,10 @@ menu_initial_state = ExtResource("1_menu_state")
 navigation_initial_state = ExtResource("1_navigation_state")
 gameplay_initial_state = ExtResource("1_gameplay_state")
 
-[node name="M_CursorManager" type="Node" parent="."]
+[node name="M_CursorManager" type="Node" parent="." unique_id=511498478]
 script = ExtResource("2_cursor_manager")
 
-[node name="ActiveSceneContainer" type="Node" parent="."]
+[node name="ActiveSceneContainer" type="Node" parent="." unique_id=1298920458]
 
-[node name="PrototypeTest" type="Node" parent="."]
+[node name="PrototypeTest" type="Node" parent="." unique_id=1442322522]
 script = ExtResource("1_prototype_script")

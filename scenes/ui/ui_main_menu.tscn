@@ -1,9 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://blko7rgs3d4bo"]
+[gd_scene format=3 uid="uid://blko7rgs3d4bo"]
 
 [ext_resource type="Script" uid="uid://v4hfybawoxop" path="res://scripts/ui/ui_main_menu.gd" id="1_main_menu_script"]
 [ext_resource type="PackedScene" uid="uid://ddn5pq0hy1ou6" path="res://scenes/ui/ui_settings_menu.tscn" id="2_settings_menu_scene"]
 
-[node name="MainMenu" type="Control"]
+[node name="MainMenu" type="Control" unique_id=982096630]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -12,7 +12,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_main_menu_script")
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=28075082]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,43 +20,43 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MainPanel" type="VBoxContainer" parent="CenterContainer"]
+[node name="MainPanel" type="VBoxContainer" parent="CenterContainer" unique_id=901639786]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(240, 160)
 layout_mode = 2
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="CenterContainer/MainPanel"]
+[node name="TitleLabel" type="Label" parent="CenterContainer/MainPanel" unique_id=942197245]
 layout_mode = 2
 text = "Main Menu"
 horizontal_alignment = 1
 
-[node name="ContinueButton" type="Button" parent="CenterContainer/MainPanel"]
+[node name="ContinueButton" type="Button" parent="CenterContainer/MainPanel" unique_id=27830688]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Continue"
 
-[node name="NewGameButton" type="Button" parent="CenterContainer/MainPanel"]
+[node name="NewGameButton" type="Button" parent="CenterContainer/MainPanel" unique_id=342943689]
 unique_name_in_owner = true
 layout_mode = 2
 text = "New Game"
 
-[node name="LoadGameButton" type="Button" parent="CenterContainer/MainPanel"]
+[node name="LoadGameButton" type="Button" parent="CenterContainer/MainPanel" unique_id=1093992766]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Load Game"
 
-[node name="SettingsButton" type="Button" parent="CenterContainer/MainPanel"]
+[node name="SettingsButton" type="Button" parent="CenterContainer/MainPanel" unique_id=968035331]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Settings"
 
-[node name="QuitButton" type="Button" parent="CenterContainer/MainPanel"]
+[node name="QuitButton" type="Button" parent="CenterContainer/MainPanel" unique_id=871245266]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Quit"
 
-[node name="SettingsPanel" type="Control" parent="."]
+[node name="SettingsPanel" type="Control" parent="." unique_id=1162033626]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
@@ -66,5 +66,5 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="SettingsContent" parent="SettingsPanel" instance=ExtResource("2_settings_menu_scene")]
+[node name="SettingsContent" parent="SettingsPanel" unique_id=1806412124 instance=ExtResource("2_settings_menu_scene")]
 layout_mode = 1

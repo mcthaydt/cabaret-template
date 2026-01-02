@@ -32,8 +32,9 @@ static var were_addons_disabled : bool = true
 @warning_ignore("unsafe_property_access")
 @warning_ignore("untyped_declaration")
 static func _static_init() -> void:
-	were_addons_disabled = ProjectSettings.get(str(WARNING_PATH, 'exclude_addons'))
-	ProjectSettings.set(str(WARNING_PATH, 'exclude_addons'), true)
+	var exclude_addons_key := str(WARNING_PATH, 'exclude_addons')
+	were_addons_disabled = ProjectSettings.get_setting(exclude_addons_key, were_addons_disabled)
+	ProjectSettings.set(exclude_addons_key, true)
 
 	var WarningsManager = load('res://addons/gut/warnings_manager.gd')
 
@@ -49,7 +50,7 @@ static func _static_init() -> void:
 	#	test_warnings_manager.gd 	-> 46 errors
 	#	full run 					-> 165 errors.
 	if(WarningsManager.disabled):
-		ProjectSettings.set(str(WARNING_PATH, 'exclude_addons'), were_addons_disabled)
+		ProjectSettings.set(exclude_addons_key, were_addons_disabled)
 
 	# Force a reference to utils.gd by path.  Using the class_name would cause
 	# utils.gd to load when this script loads, before we could turn off the

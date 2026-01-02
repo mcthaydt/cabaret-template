@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RS_SceneTriggerSettings" load_steps=2 format=3 uid="uid://na7m34dl6a4d"]
+[gd_resource type="Resource" script_class="RS_SceneTriggerSettings" format=3 uid="uid://na7m34dl6a4d"]
 
 [ext_resource type="Script" uid="uid://bixdkfpow11mq" path="res://scripts/ecs/resources/rs_scene_trigger_settings.gd" id="1"]
 

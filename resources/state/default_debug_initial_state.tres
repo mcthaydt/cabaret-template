@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RS_DebugInitialState" load_steps=2 format=3 uid="uid://cxgny75sx0rxu"]
+[gd_resource type="Resource" script_class="RS_DebugInitialState" format=3 uid="uid://cxgny75sx0rxu"]
 
 [ext_resource type="Script" uid="uid://ban1snbxoip2r" path="res://scripts/state/resources/rs_debug_initial_state.gd" id="1_debug_state"]
 

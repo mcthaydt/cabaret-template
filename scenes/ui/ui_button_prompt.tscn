@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://bq8y7b2npl2g0"]
+[gd_scene format=3 uid="uid://bq8y7b2npl2g0"]
 
 [ext_resource type="Script" uid="uid://b3kp7csuskn3b" path="res://scripts/ui/ui_button_prompt.gd" id="1_button_prompt"]
 [ext_resource type="Texture2D" uid="uid://da5wjpwvjqj77" path="res://resources/button_prompts/mobile/button_background.png" id="2_mobile_button"]
@@ -14,38 +14,38 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[node name="ButtonPrompt" type="HBoxContainer"]
+[node name="ButtonPrompt" type="HBoxContainer" unique_id=1475440060]
 visible = false
 theme_override_constants/separation = 12
 alignment = 1
 script = ExtResource("1_button_prompt")
 
-[node name="TextIcon" type="PanelContainer" parent="."]
+[node name="TextIcon" type="PanelContainer" parent="." unique_id=401211313]
 visible = false
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("1")
 
-[node name="ButtonIcon" type="TextureRect" parent="TextIcon"]
+[node name="ButtonIcon" type="TextureRect" parent="TextIcon" unique_id=486597860]
 visible = false
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="TextIcon"]
+[node name="Label" type="Label" parent="TextIcon" unique_id=1921560241]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MobileButton" type="Control" parent="."]
+[node name="MobileButton" type="Control" parent="." unique_id=1358249025]
 visible = false
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 size_flags_vertical = 4
 
-[node name="ButtonTexture" type="TextureRect" parent="MobileButton"]
+[node name="ButtonTexture" type="TextureRect" parent="MobileButton" unique_id=387291736]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -56,7 +56,7 @@ texture = ExtResource("2_mobile_button")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ActionLabel" type="Label" parent="MobileButton"]
+[node name="ActionLabel" type="Label" parent="MobileButton" unique_id=1557359746]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -68,7 +68,7 @@ text = "Interact"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Text" type="Label" parent="."]
+[node name="Text" type="Label" parent="." unique_id=1763875455]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 horizontal_alignment = 1

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://qswlphcmkqma"]
 
-[node name="TestPauseMenu" type="Control"]
+[node name="TestPauseMenu" type="Control" unique_id=1302636507]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

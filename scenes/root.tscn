@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://ccv3ylnj0qbnm"]
+[gd_scene format=3 uid="uid://ccv3ylnj0qbnm"]
 
 [ext_resource type="Resource" uid="uid://dq08aopcfbjyp" path="res://resources/state/default_boot_initial_state.tres" id="1_boot_state"]
 [ext_resource type="Resource" uid="uid://uygy4iikdf74" path="res://resources/state/default_gameplay_initial_state.tres" id="2_gameplay_state"]
@@ -9,7 +9,7 @@
 [ext_resource type="Script" uid="uid://b763drfab8uoo" path="res://scripts/managers/m_cursor_manager.gd" id="7_cursor"]
 [ext_resource type="Script" uid="uid://cs887nkkeodno" path="res://scripts/managers/m_scene_manager.gd" id="8_scene_manager"]
 [ext_resource type="Script" uid="uid://bfj0ulqvmg3ry" path="res://scripts/scene_structure/marker_active_scene_container.gd" id="9_active_scene_container"]
-[ext_resource type="Script" uid="uid://b4tth4uu52xvk" path="res://scripts/scene_structure/main.gd" id="10_main_root"]
+[ext_resource type="Script" uid="uid://c1wtjv80qhbd5" path="res://scripts/scene_structure/main.gd" id="10_main_root"]
 [ext_resource type="Script" uid="uid://dmtpf2djqjecl" path="res://scripts/scene_structure/marker_managers_group.gd" id="11_managers_group"]
 [ext_resource type="PackedScene" uid="uid://clwc6tou4bgkr" path="res://scenes/ui/ui_loading_screen.tscn" id="12_loading_screen"]
 [ext_resource type="Script" uid="uid://8rsvee7kyx8v" path="res://scripts/managers/m_spawn_manager.gd" id="13_spawn_manager"]
@@ -22,15 +22,15 @@
 [ext_resource type="Resource" uid="uid://dtak7mhm8w170" path="res://resources/state/navigation_initial_state.tres" id="20_navigation_state"]
 [ext_resource type="Script" uid="uid://d4j8yeejg30o6" path="res://scripts/managers/m_ui_input_handler.gd" id="21_ui_input_handler"]
 [ext_resource type="Script" uid="uid://cfcv553r6lbbf" path="res://scripts/managers/m_pause_manager.gd" id="22_pause_manager"]
-[ext_resource type="Script" path="res://scripts/managers/m_save_manager.gd" id="23_save_manager"]
+[ext_resource type="Script" uid="uid://dpftch1maca77" path="res://scripts/managers/m_save_manager.gd" id="23_save_manager"]
 
-[node name="Root" type="Node"]
+[node name="Root" type="Node" unique_id=409084781]
 script = ExtResource("10_main_root")
 
-[node name="Managers" type="Node" parent="."]
+[node name="Managers" type="Node" parent="." unique_id=1344117290]
 script = ExtResource("11_managers_group")
 
-[node name="M_StateStore" type="Node" parent="Managers"]
+[node name="M_StateStore" type="Node" parent="Managers" unique_id=639390034]
 script = ExtResource("6_state_store")
 settings = ExtResource("4_state_settings")
 boot_initial_state = ExtResource("1_boot_state")
@@ -41,42 +41,42 @@ scene_initial_state = ExtResource("5_scene_state")
 settings_initial_state = ExtResource("15_settings_state")
 debug_initial_state = ExtResource("19_debug_state")
 
-[node name="M_CursorManager" type="Node" parent="Managers"]
+[node name="M_CursorManager" type="Node" parent="Managers" unique_id=396316100]
 script = ExtResource("7_cursor")
 
-[node name="M_SceneManager" type="Node" parent="Managers"]
+[node name="M_SceneManager" type="Node" parent="Managers" unique_id=2089301573]
 script = ExtResource("8_scene_manager")
 
-[node name="M_PauseManager" type="Node" parent="Managers"]
+[node name="M_PauseManager" type="Node" parent="Managers" unique_id=805561333]
 script = ExtResource("22_pause_manager")
 
-[node name="M_SpawnManager" type="Node" parent="Managers"]
+[node name="M_SpawnManager" type="Node" parent="Managers" unique_id=1708417968]
 script = ExtResource("13_spawn_manager")
 
-[node name="M_CameraManager" type="Node" parent="Managers"]
+[node name="M_CameraManager" type="Node" parent="Managers" unique_id=1185304610]
 script = ExtResource("14_camera_manager")
 
-[node name="M_InputProfileManager" type="Node" parent="Managers"]
+[node name="M_InputProfileManager" type="Node" parent="Managers" unique_id=564618929]
 script = ExtResource("16_input_profile_manager")
 
-[node name="M_InputDeviceManager" type="Node" parent="Managers"]
+[node name="M_InputDeviceManager" type="Node" parent="Managers" unique_id=842110690]
 script = ExtResource("17_input_device_manager")
 
-[node name="M_UIInputHandler" type="Node" parent="Managers"]
+[node name="M_UIInputHandler" type="Node" parent="Managers" unique_id=1281056009]
 script = ExtResource("21_ui_input_handler")
 
-[node name="M_SaveManager" type="Node" parent="Managers"]
+[node name="M_SaveManager" type="Node" parent="Managers" unique_id=1442466026]
 script = ExtResource("23_save_manager")
 
-[node name="ActiveSceneContainer" type="Node" parent="."]
+[node name="ActiveSceneContainer" type="Node" parent="." unique_id=8483924]
 script = ExtResource("9_active_scene_container")
 
-[node name="UIOverlayStack" type="CanvasLayer" parent="."]
+[node name="UIOverlayStack" type="CanvasLayer" parent="." unique_id=376285036]
 process_mode = 3
 
-[node name="TransitionOverlay" type="CanvasLayer" parent="."]
+[node name="TransitionOverlay" type="CanvasLayer" parent="." unique_id=1366387080]
 
-[node name="TransitionColorRect" type="ColorRect" parent="TransitionOverlay"]
+[node name="TransitionColorRect" type="ColorRect" parent="TransitionOverlay" unique_id=1316465376]
 modulate = Color(1, 1, 1, 0)
 anchors_preset = 15
 anchor_right = 1.0
@@ -86,11 +86,11 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="LoadingOverlay" type="CanvasLayer" parent="."]
+[node name="LoadingOverlay" type="CanvasLayer" parent="." unique_id=145968768]
 process_mode = 3
 layer = 100
 visible = false
 
-[node name="LoadingScreen" parent="LoadingOverlay" instance=ExtResource("12_loading_screen")]
+[node name="LoadingScreen" parent="LoadingOverlay" unique_id=863435494 instance=ExtResource("12_loading_screen")]
 
-[node name="MobileControls" parent="." instance=ExtResource("18_mobile_controls")]
+[node name="MobileControls" parent="." unique_id=416731305 instance=ExtResource("18_mobile_controls")]

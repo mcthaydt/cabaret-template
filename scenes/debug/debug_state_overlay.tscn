@@ -1,11 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://3b84vsgut2v8"]
+[gd_scene format=3 uid="uid://3b84vsgut2v8"]
 
 [ext_resource type="Script" uid="uid://dnu6e742xivs0" path="res://scenes/debug/debug_state_overlay.gd" id="1_n7gxc"]
 
-[node name="SC_StateDebugOverlay" type="CanvasLayer"]
+[node name="SC_StateDebugOverlay" type="CanvasLayer" unique_id=1593017502]
 script = ExtResource("1_n7gxc")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1318154875]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -16,31 +16,31 @@ theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="PanelContainer" type="PanelContainer" parent="MarginContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer" unique_id=1111043279]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/PanelContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/PanelContainer" unique_id=1325046132]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer" unique_id=521261869]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 10
 
-[node name="TitleLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1598003164]
 layout_mode = 2
 text = "State Store Debug Overlay (F3 to toggle)"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1967561465]
 layout_mode = 2
 
-[node name="StateLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+[node name="StateLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1442666611]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
@@ -48,10 +48,10 @@ text = "Current State: (loading...)"
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="HSeparator2" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1279039273]
 layout_mode = 2
 
-[node name="PerfLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+[node name="PerfLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1610802368]
 unique_name_in_owner = true
 layout_mode = 2
 text = "=== PERFORMANCE METRICS ===
@@ -60,22 +60,22 @@ Avg Time: 0.000000 ms
 Last Time: 0.000000 ms
 Signals: 0"
 
-[node name="HSeparator4" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+[node name="HSeparator4" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=103293094]
 layout_mode = 2
 
-[node name="HistoryLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+[node name="HistoryLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=448716513]
 layout_mode = 2
 text = "Action History (Last 20):"
 
-[node name="HistoryList" type="ItemList" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+[node name="HistoryList" type="ItemList" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=849648371]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 
-[node name="HSeparator3" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+[node name="HSeparator3" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1541084866]
 layout_mode = 2
 
-[node name="DetailLabel" type="RichTextLabel" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer"]
+[node name="DetailLabel" type="RichTextLabel" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1998186711]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2

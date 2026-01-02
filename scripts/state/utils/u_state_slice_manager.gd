@@ -7,6 +7,8 @@ class_name U_StateSliceManager
 ## orchestration while this helper owns slice registration, dependency
 ## validation, and reducer application.
 
+const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")
+
 ## Initialize core slices based on the provided initial state resources.
 ##
 ## Populates the given slice_configs and state dictionaries.
@@ -19,7 +21,8 @@ static func initialize_slices(
 	settings_initial_state: RS_SettingsInitialState,
 	gameplay_initial_state: RS_GameplayInitialState,
 	scene_initial_state: RS_SceneInitialState,
-	debug_initial_state: RS_DebugInitialState
+	debug_initial_state: RS_DebugInitialState,
+	vfx_initial_state: RS_VFXInitialState
 ) -> void:
 	# Boot slice
 	if boot_initial_state != null:
@@ -95,6 +98,15 @@ static func initialize_slices(
 		debug_config.dependencies = []
 		debug_config.transient_fields = []
 		register_slice(slice_configs, state, debug_config)
+
+	# VFX slice
+	if vfx_initial_state != null:
+		var vfx_config := RS_StateSliceConfig.new(StringName("vfx"))
+		vfx_config.reducer = Callable(U_VFX_REDUCER, "reduce")
+		vfx_config.initial_state = vfx_initial_state.to_dictionary()
+		vfx_config.dependencies = []
+		vfx_config.transient_fields = []
+		register_slice(slice_configs, state, vfx_config)
 
 ## Register a single slice config into the given dictionaries.
 static func register_slice(

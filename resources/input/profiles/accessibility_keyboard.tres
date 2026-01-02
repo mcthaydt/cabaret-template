@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RS_InputProfile" load_steps=2 format=3 uid="uid://wlx6ji1f6duv"]
+[gd_resource type="Resource" script_class="RS_InputProfile" format=3 uid="uid://wlx6ji1f6duv"]
 
 [ext_resource type="Script" uid="uid://ck3vmas5ece8s" path="res://scripts/ecs/resources/rs_input_profile.gd" id="1"]
 

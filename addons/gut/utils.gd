@@ -422,7 +422,7 @@ static func is_double(obj):
 static func is_native_class(thing):
 	var it_is = false
 	if(typeof(thing) == TYPE_OBJECT):
-		it_is = str(thing).begins_with("<GDScriptNativeClass#")
+		it_is = str(thing).contains("<GDScriptNativeClass#")
 	return it_is
 
 
@@ -440,7 +440,7 @@ static func is_instance(obj):
 # Checks if the passed in is a GDScript
 # ------------------------------------------------------------------------------
 static func is_gdscript(obj):
-	return typeof(obj) == TYPE_OBJECT and str(obj).begins_with('<GDScript#')
+	return typeof(obj) == TYPE_OBJECT and obj is Script
 
 
 # ------------------------------------------------------------------------------

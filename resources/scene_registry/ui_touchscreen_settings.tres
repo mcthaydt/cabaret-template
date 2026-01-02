@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RS_SceneRegistryEntry" load_steps=2 format=3 uid="uid://digpr7kxm404a"]
+[gd_resource type="Resource" script_class="RS_SceneRegistryEntry" format=3 uid="uid://digpr7kxm404a"]
 
 [ext_resource type="Script" uid="uid://cy1jmueffnilv" path="res://scripts/scene_management/resources/rs_scene_registry_entry.gd" id="1"]
 

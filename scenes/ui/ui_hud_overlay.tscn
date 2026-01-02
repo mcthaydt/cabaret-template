@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://c8v4h1sdtyhps"]
+[gd_scene format=3 uid="uid://c8v4h1sdtyhps"]
 
 [ext_resource type="Script" uid="uid://cygjaoalor57h" path="res://scripts/ui/ui_hud_controller.gd" id="1_hud"]
 [ext_resource type="PackedScene" uid="uid://bq8y7b2npl2g0" path="res://scenes/ui/ui_button_prompt.tscn" id="2_button_prompt"]
@@ -22,10 +22,10 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[node name="HUD" type="CanvasLayer"]
+[node name="HUD" type="CanvasLayer" unique_id=510794979]
 script = ExtResource("1_hud")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=2131435564]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -37,16 +37,16 @@ theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1541655827]
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
 
-[node name="PauseLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+[node name="PauseLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=1244268701]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 
-[node name="HealthBar" type="ProgressBar" parent="MarginContainer/VBoxContainer"]
+[node name="HealthBar" type="ProgressBar" parent="MarginContainer/VBoxContainer" unique_id=51153183]
 custom_minimum_size = Vector2(280, 26)
 layout_mode = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_hbg")
@@ -54,7 +54,7 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_hfill")
 value = 100.0
 show_percentage = false
 
-[node name="HealthLabel" type="Label" parent="MarginContainer/VBoxContainer/HealthBar"]
+[node name="HealthLabel" type="Label" parent="MarginContainer/VBoxContainer/HealthBar" unique_id=1471968397]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -62,7 +62,7 @@ theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ToastContainer" type="Control" parent="MarginContainer"]
+[node name="ToastContainer" type="Control" parent="MarginContainer" unique_id=1644489618]
 visible = false
 modulate = Color(1, 1, 1, 0)
 layout_mode = 2
@@ -70,7 +70,7 @@ size_flags_horizontal = 8
 size_flags_vertical = 0
 mouse_filter = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/ToastContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/ToastContainer" unique_id=1198822627]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -79,21 +79,21 @@ offset_left = -220.0
 offset_bottom = 50.0
 grow_horizontal = 0
 
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/ToastContainer/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/ToastContainer/PanelContainer" unique_id=1964910810]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 8
 
-[node name="CheckpointToast" type="Label" parent="MarginContainer/ToastContainer/PanelContainer/MarginContainer"]
+[node name="CheckpointToast" type="Label" parent="MarginContainer/ToastContainer/PanelContainer/MarginContainer" unique_id=401933528]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Checkpoint"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="InteractPrompt" parent="MarginContainer" instance=ExtResource("2_button_prompt")]
+[node name="InteractPrompt" parent="MarginContainer" unique_id=1511130595 instance=ExtResource("2_button_prompt")]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 8

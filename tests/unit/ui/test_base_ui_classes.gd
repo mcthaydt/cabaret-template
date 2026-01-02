@@ -2,7 +2,6 @@ extends GutTest
 
 const BasePanel := preload("res://scripts/ui/base/base_panel.gd")
 const BaseOverlay := preload("res://scripts/ui/base/base_overlay.gd")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const RS_BootInitialState := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
 const RS_MenuInitialState := preload("res://scripts/state/resources/rs_menu_initial_state.gd")

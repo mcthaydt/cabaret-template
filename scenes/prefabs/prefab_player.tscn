@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://d1cugdu6fb42l"]
+[gd_scene format=3 uid="uid://d1cugdu6fb42l"]
 
 [ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://templates/tmpl_character.tscn" id="1_character_template"]
 [ext_resource type="Script" uid="uid://bjjswu58u8b51" path="res://scripts/ecs/components/c_input_component.gd" id="2_input"]
@@ -6,16 +6,16 @@
 [ext_resource type="Resource" uid="uid://flpd0eijo5ab" path="res://resources/input/gamepad_settings/default_gamepad_settings.tres" id="4_gamepad_settings"]
 [ext_resource type="Script" uid="uid://dnbakyi8isnt1" path="res://scripts/ecs/components/c_player_tag_component.gd" id="5_player_tag"]
 
-[node name="E_PlayerRoot" groups=["player"] instance=ExtResource("1_character_template")]
+[node name="E_PlayerRoot" unique_id=526145796 groups=["player"] instance=ExtResource("1_character_template")]
 entity_id = &"player"
 tags = Array[StringName]([&"player", &"character"])
 
-[node name="C_InputComponent" type="Node" parent="Components" index="7"]
+[node name="C_InputComponent" type="Node" parent="Components" index="7" unique_id=273356595]
 script = ExtResource("2_input")
 
-[node name="C_GamepadComponent" type="Node" parent="Components" index="8"]
+[node name="C_GamepadComponent" type="Node" parent="Components" index="8" unique_id=1217574069]
 script = ExtResource("3_gamepad")
 settings = ExtResource("4_gamepad_settings")
 
-[node name="C_PlayerTagComponent" type="Node" parent="Components" index="9"]
+[node name="C_PlayerTagComponent" type="Node" parent="Components" index="9" unique_id=1282510621]
 script = ExtResource("5_player_tag")

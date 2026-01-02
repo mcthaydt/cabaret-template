@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://cwfxmqu368b47"]
+[gd_scene format=3 uid="uid://cwfxmqu368b47"]
 
 [ext_resource type="Script" uid="uid://di1xdxqpykgmi" path="res://scripts/ui/ui_input_profile_selector.gd" id="1"]
 
-[node name="InputProfileSelector" type="Control"]
+[node name="InputProfileSelector" type="Control" unique_id=1752064864]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,39 +11,39 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1330262731]
 layout_mode = 0
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 416.0
 offset_bottom = 56.0
 
-[node name="Label" type="Label" parent="HBoxContainer"]
+[node name="Label" type="Label" parent="HBoxContainer" unique_id=1531126514]
 layout_mode = 2
 text = "Input Profile:"
 
-[node name="ProfileButton" type="Button" parent="HBoxContainer"]
+[node name="ProfileButton" type="Button" parent="HBoxContainer" unique_id=1520765639]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ApplyButton" type="Button" parent="HBoxContainer"]
+[node name="ApplyButton" type="Button" parent="HBoxContainer" unique_id=1565512268]
 layout_mode = 2
 text = "Apply"
 
-[node name="PreviewContainer" type="VBoxContainer" parent="."]
+[node name="PreviewContainer" type="VBoxContainer" parent="." unique_id=302467223]
 layout_mode = 0
 offset_left = 16.0
 offset_top = 72.0
 offset_right = 640.0
 offset_bottom = 272.0
 
-[node name="HeaderLabel" type="Label" parent="PreviewContainer"]
+[node name="HeaderLabel" type="Label" parent="PreviewContainer" unique_id=23958039]
 layout_mode = 2
 autowrap_mode = 2
 
-[node name="DescriptionLabel" type="Label" parent="PreviewContainer"]
+[node name="DescriptionLabel" type="Label" parent="PreviewContainer" unique_id=769496223]
 layout_mode = 2
 autowrap_mode = 2
 
-[node name="BindingsContainer" type="VBoxContainer" parent="PreviewContainer"]
+[node name="BindingsContainer" type="VBoxContainer" parent="PreviewContainer" unique_id=1670878624]
 layout_mode = 2

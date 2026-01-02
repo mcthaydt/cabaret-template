@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://c5xb3dasm6kyj"]
+[gd_scene format=3 uid="uid://c5xb3dasm6kyj"]
 
 [ext_resource type="Script" uid="uid://dkx2dqrf7c2tw" path="res://scripts/ui/ui_edit_touch_controls_overlay.gd" id="1"]
 
-[node name="EditTouchControlsOverlay" type="Control"]
+[node name="EditTouchControlsOverlay" type="Control" unique_id=889243733]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=1220288775]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.05)
 
-[node name="GridOverlay" type="ColorRect" parent="."]
+[node name="GridOverlay" type="ColorRect" parent="." unique_id=2130414601]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -29,7 +29,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(1, 1, 1, 0.05)
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1566551144]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -43,53 +43,53 @@ offset_bottom = 120.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="PanelContainer" parent="CenterContainer"]
+[node name="Panel" type="PanelContainer" parent="CenterContainer" unique_id=118803639]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel"]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel" unique_id=1433548518]
 custom_minimum_size = Vector2(520, 240)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Title" type="Label" parent="CenterContainer/Panel/VBox"]
+[node name="Title" type="Label" parent="CenterContainer/Panel/VBox" unique_id=700404802]
 layout_mode = 2
 text = "Edit Touch Controls"
 horizontal_alignment = 1
 
-[node name="ToggleRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+[node name="ToggleRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=1291019013]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="DragModeCheck" type="CheckButton" parent="CenterContainer/Panel/VBox/ToggleRow"]
+[node name="DragModeCheck" type="CheckButton" parent="CenterContainer/Panel/VBox/ToggleRow" unique_id=1606151652]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Enable Drag Mode"
 
-[node name="Instructions" type="Label" parent="CenterContainer/Panel/VBox"]
+[node name="Instructions" type="Label" parent="CenterContainer/Panel/VBox" unique_id=1002408163]
 layout_mode = 2
 text = "Drag controls to reposition. Tap 'Save' when done."
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=2031130669]
 layout_mode = 2
 size_flags_horizontal = 3
 alignment = 2
 
-[node name="CancelButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+[node name="CancelButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1736597240]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Cancel"
 
-[node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+[node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1323491505]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Reset to Defaults"
 
-[node name="SaveButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+[node name="SaveButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1809533134]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Save Positions"

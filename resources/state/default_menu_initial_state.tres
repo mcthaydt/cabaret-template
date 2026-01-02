@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RS_MenuInitialState" load_steps=2 format=3 uid="uid://b26lupnu6qot0"]
+[gd_resource type="Resource" script_class="RS_MenuInitialState" format=3 uid="uid://b26lupnu6qot0"]
 
 [ext_resource type="Script" uid="uid://tjqrl3buxp8d" path="res://scripts/state/resources/rs_menu_initial_state.gd" id="1_menu"]
 

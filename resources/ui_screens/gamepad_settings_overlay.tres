@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RS_UIScreenDefinition" load_steps=2 format=3 uid="uid://8g2bo5xeu5q5"]
+[gd_resource type="Resource" script_class="RS_UIScreenDefinition" format=3 uid="uid://8g2bo5xeu5q5"]
 
 [ext_resource type="Script" uid="uid://cxwcn4lvbnkwv" path="res://scripts/ui/resources/rs_ui_screen_definition.gd" id="1"]
 

@@ -1,9 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://d2ageyb8ybl1m"]
+[gd_scene format=3 uid="uid://d2ageyb8ybl1m"]
 
 [ext_resource type="Script" uid="uid://fbgcii2acj1d" path="res://scripts/ui/ui_virtual_button.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://da5wjpwvjqj77" path="res://resources/button_prompts/mobile/button_background.png" id="2"]
 
-[node name="VirtualButton" type="Control"]
+[node name="VirtualButton" type="Control" unique_id=804602554]
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 3
 anchors_preset = 0
@@ -12,7 +12,7 @@ offset_bottom = 100.0
 script = ExtResource("1")
 button_texture = ExtResource("2")
 
-[node name="ButtonTexture" type="TextureRect" parent="."]
+[node name="ButtonTexture" type="TextureRect" parent="." unique_id=1344557202]
 unique_name_in_owner = true
 layout_mode = 0
 anchor_right = 1.0
@@ -20,7 +20,7 @@ anchor_bottom = 1.0
 mouse_filter = 2
 texture = ExtResource("2")
 
-[node name="ActionLabel" type="Label" parent="."]
+[node name="ActionLabel" type="Label" parent="." unique_id=383726098]
 unique_name_in_owner = true
 layout_mode = 0
 anchor_right = 1.0

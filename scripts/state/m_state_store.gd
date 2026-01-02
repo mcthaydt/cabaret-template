@@ -25,6 +25,7 @@ const U_NAVIGATION_REDUCER := preload("res://scripts/state/reducers/u_navigation
 const U_SCENE_REDUCER := preload("res://scripts/state/reducers/u_scene_reducer.gd")
 const U_SETTINGS_REDUCER := preload("res://scripts/state/reducers/u_settings_reducer.gd")
 const U_DEBUG_REDUCER := preload("res://scripts/state/reducers/u_debug_reducer.gd")
+const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")
 const U_INPUT_CAPTURE_GUARD := preload("res://scripts/utils/u_input_capture_guard.gd")
 const RS_BOOT_INITIAL_STATE := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
 const RS_MENU_INITIAL_STATE := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
@@ -32,6 +33,7 @@ const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/state/resources/rs_n
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_SETTINGS_INITIAL_STATE := preload("res://scripts/state/resources/rs_settings_initial_state.gd")
 const RS_DEBUG_INITIAL_STATE := preload("res://scripts/state/resources/rs_debug_initial_state.gd")
+const RS_VFX_INITIAL_STATE := preload("res://scripts/state/resources/rs_vfx_initial_state.gd")
 
 signal state_changed(action: Dictionary, new_state: Dictionary)
 signal slice_updated(slice_name: StringName, slice_state: Dictionary)
@@ -54,6 +56,7 @@ const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 @export var scene_initial_state: RS_SceneInitialState
 @export var settings_initial_state: RS_SettingsInitialState
 @export var debug_initial_state: RS_DebugInitialState
+@export var vfx_initial_state: RS_VFXInitialState
 
 var _state: Dictionary = {}
 var _subscribers: Array[Callable] = []
@@ -207,7 +210,8 @@ func _initialize_slices() -> void:
 		settings_initial_state,
 		gameplay_initial_state,
 		scene_initial_state,
-		debug_initial_state
+		debug_initial_state,
+		vfx_initial_state
 	)
 
 ## Normalize a deserialized state dictionary for tests.

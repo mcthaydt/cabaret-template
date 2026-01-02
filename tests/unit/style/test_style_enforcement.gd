@@ -28,27 +28,27 @@ const SCRIPT_FILENAME_EXCEPTIONS := [
 # Valid prefixes by directory
 const SCRIPT_PREFIX_RULES := {
 	"res://scripts/managers": ["m_"],
-	"res://scripts/ecs/systems": ["s_", "m_"],  # m_ for M_PauseManager
+	"res://scripts/ecs/systems": ["s_", "m_"], # m_ for M_PauseManager
 	"res://scripts/ecs/components": ["c_"],
 	"res://scripts/ecs/resources": ["rs_"],
-	"res://scripts/ecs/events": ["evn_", "base_"],  # evn_ for typed events, base_ for BaseECSEvent
-	"res://scripts/ecs": ["base_", "u_"],  # base_ecs_*.gd files, base_event_vfx_system.gd, u_ecs_event_bus.gd, u_entity_query.gd
+	"res://scripts/ecs/events": ["evn_", "base_"], # evn_ for typed events, base_ for BaseECSEvent
+	"res://scripts/ecs": ["base_", "u_"], # base_ecs_*.gd files, base_event_vfx_system.gd, u_ecs_event_bus.gd, u_entity_query.gd
 	"res://scripts/state/actions": ["u_"],
 	"res://scripts/state/reducers": ["u_"],
 	"res://scripts/state/selectors": ["u_"],
-	"res://scripts/state/resources": ["rs_"],  # State initial state resources
-	"res://scripts/state": ["u_", "m_"],  # m_state_store.gd is in root
-	"res://scripts/ui/resources": ["rs_"],  # UI screen definitions
-	"res://scripts/ui/base": ["base_"],  # base_*.gd UI base classes
-	"res://scripts/ui/utils": ["u_"],  # UI utilities
-	"res://scripts/ui": ["ui_", "u_"],  # ui_ for controllers, u_ for utilities
-	"res://scripts/gameplay": ["e_", "base_", "triggered_"],  # e_ for entities, base_ for base controllers, triggered_ for special controllers
-	"res://scripts/scene_structure": ["marker_"],  # marker_*.gd organizational scripts
-	"res://scripts/scene_management/transitions": ["trans_", "base_"],  # transition effects
-	"res://scripts/scene_management/resources": ["rs_"],  # scene registry resources
-	"res://scripts/scene_management/handlers": ["h_"],  # Scene type handlers (Phase 10B-3)
-	"res://scripts/scene_management": ["i_", "u_", "sp_"],  # i_scene_contract.gd, u_scene_registry.gd, u_transition_factory.gd, sp_spawn_point.gd
-	"res://scripts/events": ["base_"],  # base_event_bus.gd
+	"res://scripts/state/resources": ["rs_"], # State initial state resources
+	"res://scripts/state": ["u_", "m_"], # m_state_store.gd is in root
+	"res://scripts/ui/resources": ["rs_"], # UI screen definitions
+	"res://scripts/ui/base": ["base_"], # base_*.gd UI base classes
+	"res://scripts/ui/utils": ["u_"], # UI utilities
+	"res://scripts/ui": ["ui_", "u_"], # ui_ for controllers, u_ for utilities
+	"res://scripts/gameplay": ["e_", "base_", "triggered_"], # e_ for entities, base_ for base controllers, triggered_ for special controllers
+	"res://scripts/scene_structure": ["marker_"], # marker_*.gd organizational scripts
+	"res://scripts/scene_management/transitions": ["trans_", "base_"], # transition effects
+	"res://scripts/scene_management/resources": ["rs_"], # scene registry resources
+	"res://scripts/scene_management/handlers": ["h_"], # Scene type handlers (Phase 10B-3)
+	"res://scripts/scene_management": ["i_", "u_", "sp_"], # i_scene_contract.gd, u_scene_registry.gd, u_transition_factory.gd, sp_spawn_point.gd
+	"res://scripts/events": ["base_"], # base_event_bus.gd
 }
 
 func test_gd_files_use_tab_indentation() -> void:
@@ -262,7 +262,7 @@ func test_scene_organization_gameplay_structure() -> void:
 		elif node_name == "SP_SpawnPoints":
 			# Check if spawn points are under Entities
 			var path_str := str(node_path)
-			if path_str.begins_with(entities_node_path + "/") or path_str.contains("/Entities/"):
+			if path_str.begins_with(entities_node_path + "/") or path_str.contains("Entities/"):
 				has_spawn_points_in_entities = true
 
 	assert_true(has_managers, "Gameplay scene must have Managers node")

@@ -1,6 +1,6 @@
-[gd_scene load_steps=34 format=3 uid="uid://rygahxanlmio"]
+[gd_scene format=3 uid="uid://rygahxanlmio"]
 
-[ext_resource type="Script" uid="uid://b4tth4uu52xvk" path="res://scripts/scene_structure/main.gd" id="1_f2o31"]
+[ext_resource type="Script" uid="uid://c1wtjv80qhbd5" path="res://scripts/scene_structure/main.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://cf5gy8sa741bw" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
 [ext_resource type="Script" uid="uid://c2s8iwkj3ng5j" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
 [ext_resource type="Script" uid="uid://c3pmyueyktptt" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
@@ -47,130 +47,130 @@ background_mode = 1
 background_color = Color(0.3019608, 0.60784316, 0.9019608, 1)
 ambient_light_source = 3
 
-[node name="GameplayRoot" type="Node3D"]
+[node name="GameplayRoot" type="Node3D" unique_id=1664541665]
 script = ExtResource("1_f2o31")
 
-[node name="SceneObjects" type="Node3D" parent="."]
+[node name="SceneObjects" type="Node3D" parent="." unique_id=380547519]
 script = ExtResource("2_ph0bl")
 
-[node name="SO_Floor" type="CSGBox3D" parent="SceneObjects"]
+[node name="SO_Floor" type="CSGBox3D" parent="SceneObjects" unique_id=16870775]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
 material_override = SubResource("StandardMaterial3D_q3o1v")
 use_collision = true
 size = Vector3(25, 1, 25)
 material = SubResource("StandardMaterial3D_748a2")
 
-[node name="SO_Block" type="CSGBox3D" parent="SceneObjects"]
+[node name="SO_Block" type="CSGBox3D" parent="SceneObjects" unique_id=210348679]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.6780934, -0.77378076, 0)
 use_collision = true
 material = SubResource("StandardMaterial3D_748a2")
 
-[node name="SO_Block2" type="CSGBox3D" parent="SceneObjects"]
+[node name="SO_Block2" type="CSGBox3D" parent="SceneObjects" unique_id=215245920]
 transform = Transform3D(0.89320666, 0.44964638, 0, -0.44964638, 0.89320666, 0, 0, 0, 1, -5.180423, -0.7959937, -0.10645056)
 use_collision = true
 size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
 
-[node name="SO_Block3" type="CSGBox3D" parent="SceneObjects"]
+[node name="SO_Block3" type="CSGBox3D" parent="SceneObjects" unique_id=1982655511]
 transform = Transform3D(0.99974185, -0.022722274, 0, 0.022722274, 0.99974185, 0, 0, 0, 1, -5.180423, 0.09107876, -3.1731567)
 use_collision = true
 size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
 
-[node name="Environment" type="Node" parent="."]
+[node name="Environment" type="Node" parent="." unique_id=1586298579]
 script = ExtResource("2_8soux")
 
-[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment"]
+[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=1747947421]
 environment = SubResource("Environment_q3o1v")
 
-[node name="Env_DirectionalLight3D" type="DirectionalLight3D" parent="Environment"]
+[node name="Env_DirectionalLight3D" type="DirectionalLight3D" parent="Environment" unique_id=1230249966]
 transform = Transform3D(1, 0, 0, 0, 0.9385653, 0.34510165, 0, -0.34510165, 0.9385653, 0, 0, 0)
 light_color = Color(0.56078434, 0.827451, 1, 1)
 light_energy = 12.026
 light_indirect_energy = 4.482
 
-[node name="Systems" type="Node" parent="."]
+[node name="Systems" type="Node" parent="." unique_id=1259502083]
 script = ExtResource("3_ph0bl")
 
-[node name="Core" type="Node" parent="Systems"]
+[node name="Core" type="Node" parent="Systems" unique_id=507467547]
 script = ExtResource("3_systems_core")
 
-[node name="S_InputSystem" type="Node" parent="Systems/Core"]
+[node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=163643062]
 script = ExtResource("1_pybrx")
 
-[node name="M_PauseManager" type="Node" parent="Systems/Core"]
+[node name="M_PauseManager" type="Node" parent="Systems/Core" unique_id=1009653494]
 script = ExtResource("9_pause")
 
-[node name="Physics" type="Node" parent="Systems"]
+[node name="Physics" type="Node" parent="Systems" unique_id=369931067]
 script = ExtResource("3_systems_physics")
 
-[node name="S_GravitySystem" type="Node" parent="Systems/Physics"]
+[node name="S_GravitySystem" type="Node" parent="Systems/Physics" unique_id=686066566]
 script = ExtResource("3_xnqit")
 execution_priority = 60
 
-[node name="S_JumpSystem" type="Node" parent="Systems/Physics"]
+[node name="S_JumpSystem" type="Node" parent="Systems/Physics" unique_id=333652081]
 script = ExtResource("2_rfthe")
 execution_priority = 75
 
-[node name="Movement" type="Node" parent="Systems"]
+[node name="Movement" type="Node" parent="Systems" unique_id=2093270126]
 script = ExtResource("3_systems_movement")
 
-[node name="S_MovementSystem" type="Node" parent="Systems/Movement"]
+[node name="S_MovementSystem" type="Node" parent="Systems/Movement" unique_id=2145619546]
 script = ExtResource("4_vry44")
 execution_priority = 50
 
-[node name="S_FloatingSystem" type="Node" parent="Systems/Movement"]
+[node name="S_FloatingSystem" type="Node" parent="Systems/Movement" unique_id=1882707978]
 script = ExtResource("6_tnjgn")
 execution_priority = 70
 
-[node name="S_RotateToInputSystem" type="Node" parent="Systems/Movement"]
+[node name="S_RotateToInputSystem" type="Node" parent="Systems/Movement" unique_id=572200553]
 script = ExtResource("5_r0a6q")
 execution_priority = 80
 
-[node name="S_AlignWithSurfaceSystem" type="Node" parent="Systems/Movement"]
+[node name="S_AlignWithSurfaceSystem" type="Node" parent="Systems/Movement" unique_id=602470434]
 script = ExtResource("7_awem0")
 execution_priority = 90
 
-[node name="Feedback" type="Node" parent="Systems"]
+[node name="Feedback" type="Node" parent="Systems" unique_id=823703816]
 script = ExtResource("3_systems_feedback")
 
-[node name="S_LandingIndicatorSystem" type="Node" parent="Systems/Feedback"]
+[node name="S_LandingIndicatorSystem" type="Node" parent="Systems/Feedback" unique_id=609546858]
 script = ExtResource("8_ey5t3")
 execution_priority = 110
 
-[node name="S_JumpParticlesSystem" type="Node" parent="Systems/Feedback"]
+[node name="S_JumpParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=1488023223]
 script = ExtResource("9_jump_particles")
 settings = ExtResource("9_jump_particles_settings")
 execution_priority = 120
 
-[node name="S_JumpSoundSystem" type="Node" parent="Systems/Feedback"]
+[node name="S_JumpSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1670349761]
 script = ExtResource("9_jump_sound")
 execution_priority = 121
 
-[node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback"]
+[node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=1576361032]
 script = ExtResource("10_landing_particles")
 settings = ExtResource("10_landing_particles_settings")
 
-[node name="S_GamepadVibrationSystem" type="Node" parent="Systems/Feedback"]
+[node name="S_GamepadVibrationSystem" type="Node" parent="Systems/Feedback" unique_id=1053201916]
 script = ExtResource("22_gamepad_vibration")
 execution_priority = 122
 
-[node name="Managers" type="Node" parent="."]
+[node name="Managers" type="Node" parent="." unique_id=1062848349]
 script = ExtResource("12_klon2")
 
-[node name="M_ECSManager" type="Node" parent="Managers"]
+[node name="M_ECSManager" type="Node" parent="Managers" unique_id=1672682395]
 script = ExtResource("6_0e7m3")
 
-[node name="Entities" type="Node" parent="."]
+[node name="Entities" type="Node" parent="." unique_id=1237100906]
 script = ExtResource("16_8qi87")
 
-[node name="E_Player" parent="Entities" instance=ExtResource("7_4wxy1")]
+[node name="E_Player" parent="Entities" unique_id=1120420520 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
 
-[node name="E_CameraRoot" parent="Entities" instance=ExtResource("19_ph0bl")]
+[node name="E_CameraRoot" parent="Entities" unique_id=1177918532 instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
 
-[node name="SP_SpawnPoints" type="Node3D" parent="."]
+[node name="SP_SpawnPoints" type="Node3D" parent="." unique_id=978423780]
 script = ExtResource("21_spawnpoints")
 
-[node name="HUD" parent="." instance=ExtResource("11_hud")]
+[node name="HUD" parent="." unique_id=45178834 instance=ExtResource("11_hud")]

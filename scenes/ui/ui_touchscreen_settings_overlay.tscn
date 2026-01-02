@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://clnxfxn1asidv"]
+[gd_scene format=3 uid="uid://clnxfxn1asidv"]
 
 [ext_resource type="Script" uid="uid://dv0tmilymmp3j" path="res://scripts/ui/ui_touchscreen_settings_overlay.gd" id="1"]
 
-[node name="TouchscreenSettingsOverlay" type="Control"]
+[node name="TouchscreenSettingsOverlay" type="Control" unique_id=675052518]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=1370712602]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.5)
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=752848592]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -34,32 +34,32 @@ offset_bottom = 260.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="PanelContainer" parent="CenterContainer"]
+[node name="Panel" type="PanelContainer" parent="CenterContainer" unique_id=1929107398]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel"]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel" unique_id=249452335]
 custom_minimum_size = Vector2(560, 520)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Title" type="Label" parent="CenterContainer/Panel/VBox"]
+[node name="Title" type="Label" parent="CenterContainer/Panel/VBox" unique_id=1310404473]
 layout_mode = 2
 text = "Touchscreen Settings"
 horizontal_alignment = 1
 
-[node name="JoystickSizeRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+[node name="JoystickSizeRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=1619193681]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="JoystickSizeLabel" type="Label" parent="CenterContainer/Panel/VBox/JoystickSizeRow"]
+[node name="JoystickSizeLabel" type="Label" parent="CenterContainer/Panel/VBox/JoystickSizeRow" unique_id=2056439183]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Joystick Size"
 
-[node name="JoystickSizeSlider" type="HSlider" parent="CenterContainer/Panel/VBox/JoystickSizeRow"]
+[node name="JoystickSizeSlider" type="HSlider" parent="CenterContainer/Panel/VBox/JoystickSizeRow" unique_id=1218420599]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -68,22 +68,22 @@ max_value = 2.0
 step = 0.1
 value = 1.0
 
-[node name="JoystickSizeValue" type="Label" parent="CenterContainer/Panel/VBox/JoystickSizeRow"]
+[node name="JoystickSizeValue" type="Label" parent="CenterContainer/Panel/VBox/JoystickSizeRow" unique_id=287627212]
 unique_name_in_owner = true
 layout_mode = 2
 text = "1.00"
 horizontal_alignment = 1
 
-[node name="ButtonSizeRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+[node name="ButtonSizeRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=1687324593]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ButtonSizeLabel" type="Label" parent="CenterContainer/Panel/VBox/ButtonSizeRow"]
+[node name="ButtonSizeLabel" type="Label" parent="CenterContainer/Panel/VBox/ButtonSizeRow" unique_id=1463253879]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Button Size"
 
-[node name="ButtonSizeSlider" type="HSlider" parent="CenterContainer/Panel/VBox/ButtonSizeRow"]
+[node name="ButtonSizeSlider" type="HSlider" parent="CenterContainer/Panel/VBox/ButtonSizeRow" unique_id=1208991181]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -92,22 +92,22 @@ max_value = 2.0
 step = 0.1
 value = 1.0
 
-[node name="ButtonSizeValue" type="Label" parent="CenterContainer/Panel/VBox/ButtonSizeRow"]
+[node name="ButtonSizeValue" type="Label" parent="CenterContainer/Panel/VBox/ButtonSizeRow" unique_id=1752334675]
 unique_name_in_owner = true
 layout_mode = 2
 text = "1.00"
 horizontal_alignment = 1
 
-[node name="JoystickOpacityRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+[node name="JoystickOpacityRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=1858759963]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="JoystickOpacityLabel" type="Label" parent="CenterContainer/Panel/VBox/JoystickOpacityRow"]
+[node name="JoystickOpacityLabel" type="Label" parent="CenterContainer/Panel/VBox/JoystickOpacityRow" unique_id=1034153399]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Joystick Opacity"
 
-[node name="JoystickOpacitySlider" type="HSlider" parent="CenterContainer/Panel/VBox/JoystickOpacityRow"]
+[node name="JoystickOpacitySlider" type="HSlider" parent="CenterContainer/Panel/VBox/JoystickOpacityRow" unique_id=23851418]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -116,22 +116,22 @@ max_value = 1.0
 step = 0.05
 value = 0.7
 
-[node name="JoystickOpacityValue" type="Label" parent="CenterContainer/Panel/VBox/JoystickOpacityRow"]
+[node name="JoystickOpacityValue" type="Label" parent="CenterContainer/Panel/VBox/JoystickOpacityRow" unique_id=60089458]
 unique_name_in_owner = true
 layout_mode = 2
 text = "0.70"
 horizontal_alignment = 1
 
-[node name="ButtonOpacityRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+[node name="ButtonOpacityRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=1931363157]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ButtonOpacityLabel" type="Label" parent="CenterContainer/Panel/VBox/ButtonOpacityRow"]
+[node name="ButtonOpacityLabel" type="Label" parent="CenterContainer/Panel/VBox/ButtonOpacityRow" unique_id=1676869864]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Button Opacity"
 
-[node name="ButtonOpacitySlider" type="HSlider" parent="CenterContainer/Panel/VBox/ButtonOpacityRow"]
+[node name="ButtonOpacitySlider" type="HSlider" parent="CenterContainer/Panel/VBox/ButtonOpacityRow" unique_id=1883700590]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -140,22 +140,22 @@ max_value = 1.0
 step = 0.05
 value = 0.8
 
-[node name="ButtonOpacityValue" type="Label" parent="CenterContainer/Panel/VBox/ButtonOpacityRow"]
+[node name="ButtonOpacityValue" type="Label" parent="CenterContainer/Panel/VBox/ButtonOpacityRow" unique_id=803283778]
 unique_name_in_owner = true
 layout_mode = 2
 text = "0.80"
 horizontal_alignment = 1
 
-[node name="JoystickDeadzoneRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+[node name="JoystickDeadzoneRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=1863598328]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="JoystickDeadzoneLabel" type="Label" parent="CenterContainer/Panel/VBox/JoystickDeadzoneRow"]
+[node name="JoystickDeadzoneLabel" type="Label" parent="CenterContainer/Panel/VBox/JoystickDeadzoneRow" unique_id=925009840]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Joystick Deadzone"
 
-[node name="JoystickDeadzoneSlider" type="HSlider" parent="CenterContainer/Panel/VBox/JoystickDeadzoneRow"]
+[node name="JoystickDeadzoneSlider" type="HSlider" parent="CenterContainer/Panel/VBox/JoystickDeadzoneRow" unique_id=2124048799]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -163,39 +163,39 @@ max_value = 0.5
 step = 0.01
 value = 0.15
 
-[node name="JoystickDeadzoneValue" type="Label" parent="CenterContainer/Panel/VBox/JoystickDeadzoneRow"]
+[node name="JoystickDeadzoneValue" type="Label" parent="CenterContainer/Panel/VBox/JoystickDeadzoneRow" unique_id=212186094]
 unique_name_in_owner = true
 layout_mode = 2
 text = "0.15"
 horizontal_alignment = 1
 
-[node name="PreviewContainer" type="Control" parent="CenterContainer/Panel/VBox"]
+[node name="PreviewContainer" type="Control" parent="CenterContainer/Panel/VBox" unique_id=10384518]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(520, 220)
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=133667424]
 layout_mode = 2
 size_flags_horizontal = 3
 alignment = 2
 
-[node name="CancelButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+[node name="CancelButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=927025568]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Cancel"
 
-[node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+[node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=61448703]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Reset to Defaults"
 
-[node name="EditLayoutButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+[node name="EditLayoutButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1079759614]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Edit Layout"
 
-[node name="ApplyButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+[node name="ApplyButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1808149678]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Apply"
