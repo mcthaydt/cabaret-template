@@ -280,7 +280,7 @@ The Audio Manager SHALL:
 class_name M_AudioManager
 extends Node
 
-const U_SERVICE_LOCATOR := preload("res://scripts/utils/u_service_locator.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const U_AUDIO_SELECTORS := preload("res://scripts/state/selectors/u_audio_selectors.gd")
 
 var _state_store: I_StateStore
@@ -292,7 +292,7 @@ var _music_tween: Tween
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	add_to_group("audio_manager")
-	U_SERVICE_LOCATOR.register_service(StringName("audio_manager"), self)
+	U_ServiceLocator.register(StringName("audio_manager"), self)
 
 	_state_store = U_StateUtils.get_store(self)
 	if _state_store != null:
@@ -1357,7 +1357,7 @@ The system SHALL implement utility class for UI sound playback:
 class_name U_UISoundPlayer
 extends RefCounted
 
-const U_SERVICE_LOCATOR := preload("res://scripts/utils/u_service_locator.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 static func play_focus() -> void:
 	var audio_manager := _get_audio_manager()
@@ -1385,7 +1385,7 @@ static func play_slider_change() -> void:
 		audio_manager.play_sfx(StringName("ui_slider_tick"))
 
 static func _get_audio_manager() -> M_AudioManager:
-	return U_SERVICE_LOCATOR.get_service(StringName("audio_manager")) as M_AudioManager
+	return U_ServiceLocator.get_service(StringName("audio_manager")) as M_AudioManager
 ```
 
 **FR-040: UI Sound Integration Points**
@@ -1658,8 +1658,8 @@ func _update_volume_label(label: Label, value: float) -> void:
 
 **Deliverables**:
 1. `scripts/managers/m_audio_manager.gd`
-2. Update `scenes/main.tscn` - Add M_AudioManager
-3. Update `scenes/main.gd` - ServiceLocator registration
+2. Update `scenes/root.tscn` - Add M_AudioManager
+3. Update `scripts/scene_structure/main.gd` - ServiceLocator registration (Root bootstrap)
 4. `tests/unit/managers/test_audio_manager.gd` (30 tests)
 
 **Commit 1**: Manager scaffolding + bus layout creation
@@ -2104,15 +2104,15 @@ tests/integration/audio/
   )
   ```
 
-**2. scenes/main.tscn**:
+**2. scenes/root.tscn**:
 - Add `M_AudioManager` node under `Managers` group
 - Position after M_StateStore in tree
 
-**3. scenes/main.gd**:
+**3. scripts/scene_structure/main.gd**:
 - Add ServiceLocator registration:
   ```gdscript
   var audio_manager := get_node("Managers/M_AudioManager") as M_AudioManager
-  U_ServiceLocator.register_service(StringName("audio_manager"), audio_manager)
+  U_ServiceLocator.register(StringName("audio_manager"), audio_manager)
   ```
 
 **4. scripts/ui/base_panel.gd** (UI Sound Integration):

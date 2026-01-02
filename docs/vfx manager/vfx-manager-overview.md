@@ -10,6 +10,14 @@
 
 The VFX Manager is a persistent orchestration layer for screen-level visual effects. It coordinates screen shake (camera trauma), damage flash overlays, and future gameplay screen effects. The manager works alongside existing ECS particle systems (`S_JumpParticlesSystem`, `S_LandingParticlesSystem`, etc.) which remain unchanged. Post-processing effects (film grain, CRT, Lomo) are explicitly out of scope and will be handled by a future Display Manager.
 
+## Repo Reality Checks
+
+- Main scene is `scenes/root.tscn` (there is no `scenes/main.tscn` in this repo).
+- Service registration is bootstrapped by `scripts/scene_structure/main.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
+- `M_CameraManager` currently supports camera blending only; shake APIs will need to be added carefully so blending and shake don’t fight each other.
+- Tests should use real `U_ECSEventBus` and call `U_ECSEventBus.reset()` in `before_each()` to prevent subscription leaks.
+- `LoadingOverlay` in `scenes/root.tscn` uses `layer = 100`; if adding a damage flash overlay scene, pick an explicit layer below it (docs recommend `layer = 50`).
+
 ## Goals
 
 - Provide screen shake on damage, heavy landings, and impact events.
@@ -169,7 +177,7 @@ func clear_shake_offset() -> void:
 A `CanvasLayer` with `ColorRect` that flashes red on damage:
 
 ```
-CanvasLayer (layer 100 - above game, below UI)
+CanvasLayer (recommend layer 50 - above gameplay, below `LoadingOverlay.layer = 100` in `scenes/root.tscn`)
 └── ColorRect (full screen, red with alpha)
     └── AnimationPlayer or Tween for fade
 ```
@@ -273,8 +281,8 @@ scripts/state/
   reducers/u_vfx_reducer.gd
   selectors/u_vfx_selectors.gd
 
-scenes/vfx/
-  damage_flash_overlay.tscn
+scenes/ui/
+  ui_damage_flash_overlay.tscn
 ```
 
 ## Settings UI Integration
@@ -396,6 +404,6 @@ If implementing additional VFX features (particles, textures, shaders):
 | Heavy landing threshold | 15 units/sec fall velocity triggers shake |
 | Intensity slider range | 0.0-2.0 (can amplify beyond default) |
 | Camera offset application | Via M_CameraManager helper method (use a parent node to prevent gimbal lock) |
-| Flash layer order | CanvasLayer 100 (above game, below UI at 128+) |
+| Flash layer order | Explicit CanvasLayer layer (docs recommend 50; keep below `LoadingOverlay.layer = 100` in `scenes/root.tscn`) |
 | Settings persistence | Included in settings slice, persisted to save files |
 | Accessibility defaults | Both effects enabled by default, easy to disable |

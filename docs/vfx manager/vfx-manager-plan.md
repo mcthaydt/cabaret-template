@@ -129,7 +129,7 @@ func to_dictionary() -> Dictionary:
 class_name M_VFXManager
 extends Node
 
-const U_SERVICE_LOCATOR := preload("res://scripts/utils/u_service_locator.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 var _state_store: I_StateStore
 var _trauma: float = 0.0
 const TRAUMA_DECAY_RATE := 2.0
@@ -137,7 +137,7 @@ const TRAUMA_DECAY_RATE := 2.0
 func _ready() -> void:
     process_mode = PROCESS_MODE_ALWAYS
     add_to_group("vfx_manager")
-    U_SERVICE_LOCATOR.register_service(StringName("vfx_manager"), self)
+    U_ServiceLocator.register(StringName("vfx_manager"), self)
     # ... state store discovery
 
 func add_trauma(amount: float) -> void:
@@ -163,8 +163,8 @@ func get_trauma() -> float:
 ### Commit 3: Add to Main Scene
 
 **Modify**:
-- `scenes/main.tscn`: Add M_VFXManager node under Managers/
-- `scenes/main.gd`: Register with ServiceLocator
+- `scenes/root.tscn`: Add M_VFXManager node under Managers/
+- `scripts/scene_structure/main.gd`: Register with ServiceLocator (Root bootstrap)
 
 ---
 
@@ -238,13 +238,13 @@ func apply_shake_offset(offset: Vector2, rotation: float) -> void:
 ### Damage Flash Scene & Script
 
 **Files to create**:
-- `scenes/vfx/damage_flash_overlay.tscn`
+- `scenes/ui/ui_damage_flash_overlay.tscn`
 - `scripts/managers/helpers/u_damage_flash.gd`
 - `tests/unit/managers/helpers/test_damage_flash.gd` (10 tests)
 
 **Scene Structure**:
 ```
-CanvasLayer (layer=100)
+CanvasLayer (recommend layer=50; keep below `LoadingOverlay.layer = 100` in `scenes/root.tscn`)
 └── ColorRect (anchors=FULL_RECT, color=Color(1,0,0,0.3), alpha=0)
 ```
 
@@ -325,7 +325,7 @@ VBoxContainer
 
 3. **Shake Applied to Wrong Node**: Apply to parent, not camera directly
 
-4. **Flash Layer Order**: CanvasLayer 100 (above game 0-99, below UI 128+)
+4. **Flash Layer Order**: Pick an explicit layer below `LoadingOverlay.layer = 100` and below `TransitionOverlay` (fade-to-black should win); docs recommend `layer = 50`
 
 ---
 
@@ -362,8 +362,8 @@ scripts/state/
   reducers/u_vfx_reducer.gd
   selectors/u_vfx_selectors.gd
 
-scenes/vfx/
-  damage_flash_overlay.tscn
+scenes/ui/
+  ui_damage_flash_overlay.tscn
 
 tests/unit/
   state/

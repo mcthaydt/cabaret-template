@@ -10,6 +10,14 @@
 
 The Audio Manager is a persistent orchestration layer for all audio playback in the game. It manages background music with crossfading, sound effects (gameplay, UI, ambient, footsteps), and 3D spatial audio. Settings are stored in a Redux `audio` slice and applied to Godot audio buses. The manager follows the established ECS event-driven pattern, with sound systems mirroring the existing VFX particle systems.
 
+## Repo Reality Checks
+
+- Main scene is `scenes/root.tscn` (there is no `scenes/main.tscn` in this repo).
+- Service registration is bootstrapped by `scripts/scene_structure/main.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
+- `S_JumpSoundSystem` already exists at `scripts/ecs/systems/s_jump_sound_system.gd` but is currently a stub (clears requests; no playback yet).
+- `RS_GameplayInitialState` currently includes `gameplay.audio_settings` + `U_VisualSelectors.get_audio_settings()`; this is not used by any real audio playback path today.
+- `BaseEventVFXSystem` already exists and is used by particle systems (and currently by `S_JumpSoundSystem`); decide whether to reuse it for sound events or introduce a dedicated `BaseEventSFXSystem`.
+
 ## Goals
 
 - Provide centralized music playback with smooth crossfading between scenes/screens.

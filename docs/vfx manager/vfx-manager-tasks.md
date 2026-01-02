@@ -121,10 +121,10 @@
     - Decay trauma: `_trauma = maxf(_trauma - TRAUMA_DECAY_RATE * delta, 0.0)`
   - All 9 tests passing
 
-- [ ] **Task 1.5 (Green)**: Add M_VFXManager to main scene
-  - Modify `scenes/main.tscn`: Add M_VFXManager node under Managers/ hierarchy
+- [ ] **Task 1.5 (Green)**: Add M_VFXManager to root scene
+  - Modify `scenes/root.tscn`: Add M_VFXManager node under Managers/ hierarchy
   - Manager automatically registers with ServiceLocator on `_ready()`
-  - Verify discoverable via `U_SERVICE_LOCATOR.get_service(StringName("vfx_manager"))`
+  - Verify discoverable via `U_ServiceLocator.get_service(StringName("vfx_manager"))`
 
 ---
 
@@ -208,7 +208,7 @@
 - [ ] **Task 3.2 (Green)**: Wire VFX Manager to Camera Manager shake application
   - Modify `scripts/managers/m_vfx_manager.gd`
   - Add field: `var _camera_manager: M_CameraManager`, `var _screen_shake: U_ScreenShake`
-  - Discover camera manager in `_ready()`: `_camera_manager = U_SERVICE_LOCATOR.get_service(StringName("camera_manager"))`
+  - Discover camera manager in `_ready()`: `_camera_manager = U_ServiceLocator.get_service(StringName("camera_manager"))`
   - Initialize `_screen_shake = U_ScreenShake.new()` in `_ready()`
   - Update `_physics_process(delta: float) -> void`:
     ```gdscript
@@ -234,16 +234,16 @@
 **Exit Criteria:** All 10 damage flash tests pass, flash visible on damage, fade animation correct (0.4s duration), retrigger kills existing tween
 
 - [ ] **Task 4.1 (Green)**: Create damage flash overlay scene
-  - Create `scenes/vfx/damage_flash_overlay.tscn`
+  - Create `scenes/ui/ui_damage_flash_overlay.tscn` (CanvasLayer; recommend `layer = 50` to stay below `LoadingOverlay.layer = 100` in `scenes/root.tscn`)
   - Scene structure:
     ```
-    CanvasLayer (layer=100)
+	    CanvasLayer (layer=50)
     └── ColorRect (name="FlashRect")
         - Anchors: FULL_RECT (all sides to 0)
         - Color: Color(1.0, 0.0, 0.0, 0.3)  # Red, 30% opacity when active
         - Modulate.a: 0.0 (invisible by default)
     ```
-  - Layer 100 places flash above game (0-99) but below UI (128+)
+  - Recommend `layer = 50` to stay below `LoadingOverlay.layer = 100` in `scenes/root.tscn` (choose final layering based on whether you want UI tinted by the flash)
 
 - [ ] **Task 4.2 (Red)**: Write tests for U_DamageFlash helper
   - Create `tests/unit/managers/helpers/test_damage_flash.gd`
@@ -290,7 +290,7 @@
   - Add field: `var _damage_flash: U_DamageFlash`
   - Load and instance damage flash scene in `_ready()`:
     ```gdscript
-    var flash_scene := load("res://scenes/vfx/damage_flash_overlay.tscn")
+    var flash_scene := load("res://scenes/ui/ui_damage_flash_overlay.tscn")
     var flash_instance := flash_scene.instantiate()
     add_child(flash_instance)
     var flash_rect := flash_instance.get_node("FlashRect") as ColorRect
@@ -355,7 +355,7 @@
     @onready var _flash_enabled_toggle := %FlashEnabledToggle as CheckBox
 
     func _ready() -> void:
-        _state_store = U_SERVICE_LOCATOR.get_service(StringName("state_store"))
+        _state_store = U_ServiceLocator.get_service(StringName("state_store"))
         if _state_store == null:
             push_error("VFX Settings Tab: StateStore not found")
             return
@@ -472,11 +472,11 @@
 | `tests/unit/state/test_vfx_selectors.gd` | ⬜ Not Started | 0 | 10 tests for selectors |
 | `scripts/managers/m_vfx_manager.gd` | ⬜ Not Started | 1 | VFX manager with trauma system |
 | `tests/unit/managers/test_vfx_manager.gd` | ⬜ Not Started | 1 | 17 tests for manager lifecycle + trauma |
-| `scenes/main.tscn` | ⬜ Not Started | 1 | Modified to add M_VFXManager node |
+| `scenes/root.tscn` | ⬜ Not Started | 1 | Modified to add M_VFXManager node |
 | `scripts/managers/helpers/u_screen_shake.gd` | ⬜ Not Started | 2 | Screen shake helper with noise algorithm |
 | `tests/unit/managers/helpers/test_screen_shake.gd` | ⬜ Not Started | 2 | 15 tests for shake algorithm |
 | `scripts/managers/m_camera_manager.gd` | ⬜ Not Started | 3 | Modified to add shake parent + apply method |
-| `scenes/vfx/damage_flash_overlay.tscn` | ⬜ Not Started | 4 | Damage flash overlay scene (CanvasLayer 100) |
+| `scenes/ui/ui_damage_flash_overlay.tscn` | ⬜ Not Started | 4 | Damage flash overlay scene (CanvasLayer; recommend layer 50) |
 | `scripts/managers/helpers/u_damage_flash.gd` | ⬜ Not Started | 4 | Damage flash helper with tween fade |
 | `tests/unit/managers/helpers/test_damage_flash.gd` | ⬜ Not Started | 4 | 10 tests for damage flash |
 | `scenes/ui/settings/vfx_settings_tab.tscn` | ⬜ Not Started | 5 | VFX settings UI scene |
@@ -496,7 +496,7 @@
 - Overview: `docs/vfx manager/vfx-manager-overview.md`
 - PRD: `docs/vfx manager/vfx-manager-prd.md`
 - Plan: `docs/vfx manager/vfx-manager-plan.md`
-- Continuation prompt: "Continue implementing the VFX Manager following strict TDD. Pick up from Phase [N]."
+- Continuation prompt: `docs/vfx manager/vfx-manager-continuation-prompt.md`
 
 ---
 
@@ -527,7 +527,7 @@
 ### Decisions
 - **Shake Parent Node Approach**: Chosen to prevent gimbal lock and isolate shake from camera rotation. Alternative considered: direct camera manipulation (rejected due to gimbal issues at extreme angles).
 - **Quadratic Trauma Falloff**: Using `trauma * trauma` for shake_amount provides smoother, more natural-feeling shake decay. Linear falloff felt too abrupt.
-- **CanvasLayer 100 for Flash**: Places damage flash above game rendering (0-99) but below UI (128+), ensuring flash doesn't obscure critical UI elements.
+- **Damage Flash Layering**: Recommend `layer = 50` to ensure it stays below `LoadingOverlay.layer = 100` in `scenes/root.tscn`; decide whether it should be above/below `UIOverlayStack` based on desired UX.
 - **Auto-Save Settings**: Immediate Redux dispatch on UI change (no Apply button) provides instant feedback and simpler UX. Settings automatically persist via Redux→SaveManager integration.
 - **Intensity Range 0.0-2.0**: Allows users to completely disable shake (0.0), use normal intensity (1.0), or amplify for accessibility/preference (2.0). Clamping prevents excessive/negative values.
 
@@ -546,7 +546,7 @@
    ```
 2. **Test Subscription Leaks**: Always `U_ECSEventBus.reset()` in `before_each()` or tests will interfere with each other
 3. **Shake Applied to Wrong Node**: Apply to `_shake_parent`, not `_transition_camera` directly, or gimbal lock will occur
-4. **Flash Layer Order**: CanvasLayer must be 100 (above game 0-99, below UI 128+) or flash won't be visible / will obscure UI
+4. **Flash Layer Order**: Ensure damage flash layer is below `LoadingOverlay` and below `TransitionOverlay` (fade-to-black should win); set an explicit `CanvasLayer.layer` to avoid ambiguous draw order
 5. **Tween Kill Before Retrigger**: Always check `if _tween != null and _tween.is_valid(): _tween.kill()` before creating new tween, or multiple tweens will conflict
 
 ---

@@ -194,7 +194,7 @@ The VFX Manager SHALL:
 class_name M_VFXManager
 extends Node
 
-const U_SERVICE_LOCATOR := preload("res://scripts/utils/u_service_locator.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _state_store: I_StateStore
 var _camera_manager: M_CameraManager
@@ -204,7 +204,7 @@ var _event_unsubscribes: Array[Callable] = []
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
 	add_to_group("vfx_manager")
-	U_SERVICE_LOCATOR.register_service(StringName("vfx_manager"), self)
+	U_ServiceLocator.register(StringName("vfx_manager"), self)
 
 	_state_store = U_StateUtils.get_store(self)
 	_camera_manager = U_ServiceLocator.get_service(StringName("camera_manager")) as M_CameraManager
@@ -477,7 +477,7 @@ var _tween: Tween
 var _state_store: I_StateStore
 
 func _ready() -> void:
-	layer = 100  # Above game (0-99), below UI (128+)
+	layer = 50  # Recommended: keep below `LoadingOverlay.layer = 100` in `scenes/root.tscn` (choose final layering based on whether you want UI tinted)
 	_state_store = U_StateUtils.get_store(self)
 
 	_overlay.modulate = flash_color
@@ -731,8 +731,8 @@ func _on_damage_flash_toggle_toggled(button_pressed: bool) -> void:
 
 **Deliverables**:
 1. `scripts/managers/m_vfx_manager.gd` - Core manager
-2. Update `scenes/main.tscn` - Add M_VFXManager node
-3. Update `scenes/main.gd` - ServiceLocator registration
+2. Update `scenes/root.tscn` - Add M_VFXManager node (persistent root scene)
+3. Update `scripts/scene_structure/main.gd` - ServiceLocator registration (Root bootstrap)
 4. `tests/unit/managers/test_vfx_manager.gd` - 20 unit tests
 
 **Commit 1: Manager Scaffolding**
@@ -747,8 +747,8 @@ func _on_damage_flash_toggle_toggled(button_pressed: bool) -> void:
 
 **Commit 3: Public API and Tests**
 - Implement public API: `add_trauma()`, `set_trauma()`, `get_trauma()`
-- Write 20 unit tests with `MockStateStore` and `MockECSEventBus`
-- Add M_VFXManager to main.tscn, register in main.gd
+- Write 20 unit tests with `MockStateStore` + real `U_ECSEventBus` (call `U_ECSEventBus.reset()` in `before_each()` to prevent subscription leaks)
+- Add M_VFXManager to `scenes/root.tscn`, register in `scripts/scene_structure/main.gd`
 
 **Dependencies**: Phase 0, M_StateStore, U_ECSEventBus, U_ServiceLocator
 
@@ -821,11 +821,11 @@ func _on_damage_flash_toggle_toggled(button_pressed: bool) -> void:
 
 **Deliverables**:
 1. `scripts/managers/helpers/u_damage_flash.gd` - Flash helper
-2. `scenes/vfx/damage_flash_overlay.tscn` - CanvasLayer scene
+2. `scenes/ui/ui_damage_flash_overlay.tscn` - CanvasLayer scene
 3. `tests/unit/managers/helpers/test_damage_flash.gd` - 10 unit tests
 
 **Commit 1: Damage Flash Scene**
-- Create `damage_flash_overlay.tscn` with CanvasLayer (layer 100)
+- Create `ui_damage_flash_overlay.tscn` with CanvasLayer (recommend `layer = 50` to stay below `LoadingOverlay.layer = 100` in `scenes/root.tscn`)
 - Add ColorRect child covering full screen
 - Set flash_color = Color(1, 0, 0, 0.3)
 
@@ -1234,8 +1234,8 @@ scripts/state/reducers/
 scripts/state/selectors/
   u_vfx_selectors.gd                   # VFX state selectors (3 selectors)
 
-scenes/vfx/
-  damage_flash_overlay.tscn            # CanvasLayer with ColorRect
+scenes/ui/
+  ui_damage_flash_overlay.tscn         # CanvasLayer with ColorRect
 
 tests/unit/state/
   test_vfx_reducer.gd                  # Redux reducer tests (15 tests)
@@ -1268,15 +1268,15 @@ tests/integration/vfx/
 - **Modify `_create_transition_camera()`**: After creating transition camera, call `_create_shake_parent()` to reparent camera
 - **Note**: Parent node approach isolates shake from camera rotation, future-proofing for camera rotation features
 
-**2. scenes/main.tscn**:
+**2. scenes/root.tscn**:
 - Add `M_VFXManager` node under `Managers` group
 - Position after M_StateStore, M_CameraManager in tree
 
-**3. scenes/main.gd**:
+**3. scripts/scene_structure/main.gd**:
 - Add ServiceLocator registration:
   ```gdscript
   var vfx_manager := get_node("Managers/M_VFXManager") as M_VFXManager
-  U_ServiceLocator.register_service(StringName("vfx_manager"), vfx_manager)
+  U_ServiceLocator.register(StringName("vfx_manager"), vfx_manager)
   ```
 
 **4. M_StateStore** (`scripts/state/m_state_store.gd`):
@@ -1397,7 +1397,7 @@ func _ready() -> void:
 3. **Full Rollback** (remove feature):
    - Revert commits from Phase 5 → Phase 0
    - Restore previous version of M_CameraManager
-   - Remove M_VFXManager from main.tscn
+   - Remove M_VFXManager from `scenes/root.tscn`
 
 ### Backward Compatibility
 

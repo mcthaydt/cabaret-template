@@ -192,10 +192,10 @@
     ```
   - All tests passing
 
-- [ ] **Task 1.5 (Green)**: Add M_AudioManager to main scene
-  - Modify `scenes/main.tscn`: Add M_AudioManager node under Managers/ hierarchy
+- [ ] **Task 1.5 (Green)**: Add M_AudioManager to root scene
+  - Modify `scenes/root.tscn`: Add M_AudioManager node under Managers/ hierarchy
   - Manager automatically registers with ServiceLocator on `_ready()`
-  - Verify discoverable via `U_SERVICE_LOCATOR.get_service(StringName("audio_manager"))`
+  - Verify discoverable via `U_ServiceLocator.get_service(StringName("audio_manager"))`
 
 ---
 
@@ -870,7 +870,7 @@
         _inactive_ambient_player = _ambient_player_b
 
         # Subscribe to scene transitions
-        _state_store = U_SERVICE_LOCATOR.get_service(StringName("state_store"))
+        _state_store = U_ServiceLocator.get_service(StringName("state_store"))
         if _state_store != null:
             _state_store.subscribe_to_action(_on_action_dispatched)
 
@@ -995,7 +995,7 @@
             _last_tick_time = current_time
 
     static func _get_audio_manager() -> M_AudioManager:
-        return U_SERVICE_LOCATOR.get_service(StringName("audio_manager")) as M_AudioManager
+        return U_ServiceLocator.get_service(StringName("audio_manager")) as M_AudioManager
     ```
   - All 5 tests passing
 
@@ -1134,7 +1134,7 @@
     @onready var _spatial_audio_toggle := %SpatialAudioToggle as CheckBox
 
     func _ready() -> void:
-        _state_store = U_SERVICE_LOCATOR.get_service(StringName("state_store"))
+        _state_store = U_ServiceLocator.get_service(StringName("state_store"))
         if _state_store == null:
             push_error("Audio Settings Tab: StateStore not found")
             return
@@ -1412,7 +1412,7 @@
 - Overview: `docs/audio manager/audio-manager-overview.md`
 - PRD: `docs/audio manager/audio-manager-prd.md`
 - Plan: `docs/audio manager/audio-manager-plan.md`
-- Continuation prompt: "Continue implementing the Audio Manager following strict TDD. Pick up from Phase [N]."
+- Continuation prompt: `docs/audio manager/audio-manager-continuation-prompt.md`
 
 ---
 
