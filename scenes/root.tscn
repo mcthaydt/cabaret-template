@@ -24,6 +24,7 @@
 [ext_resource type="Script" uid="uid://cfcv553r6lbbf" path="res://scripts/managers/m_pause_manager.gd" id="22_pause_manager"]
 [ext_resource type="Script" uid="uid://dpftch1maca77" path="res://scripts/managers/m_save_manager.gd" id="23_save_manager"]
 [ext_resource type="Resource" uid="uid://dvfxinitialstate" path="res://resources/state/default_vfx_initial_state.tres" id="24_vfx_state"]
+[ext_resource type="Script" path="res://scripts/managers/m_vfx_manager.gd" id="25_vfx_manager"]
 
 [node name="Root" type="Node" unique_id=409084781]
 script = ExtResource("10_main_root")
@@ -57,6 +58,9 @@ script = ExtResource("13_spawn_manager")
 
 [node name="M_CameraManager" type="Node" parent="Managers" unique_id=1185304610]
 script = ExtResource("14_camera_manager")
+
+[node name="M_VFXManager" type="Node" parent="Managers"]
+script = ExtResource("25_vfx_manager")
 
 [node name="M_InputProfileManager" type="Node" parent="Managers" unique_id=564618929]
 script = ExtResource("16_input_profile_manager")

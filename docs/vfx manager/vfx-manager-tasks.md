@@ -1,7 +1,7 @@
 # VFX Manager - Task Checklist
 
-**Progress:** 35% (7 / 20 tasks complete)
-**Unit Tests:** 33 / 60 passing
+**Progress:** 60% (12 / 20 tasks complete)
+**Unit Tests:** 50 / 60 passing (Phase 0 Redux: 33/33, Phase 1 Manager: 17/17)
 **Integration Tests:** 0 / 35 passing
 **Manual QA:** 0 / 9 complete
 
@@ -75,12 +75,12 @@
 
 **Exit Criteria:** All 17 manager tests pass (8 lifecycle + 9 trauma system), manager discoverable via ServiceLocator, trauma accumulates and decays correctly
 
-- [ ] **Task 1.1 (Red)**: Write tests for manager scaffolding and lifecycle
+- [x] **Task 1.1 (Red)**: Write tests for manager scaffolding and lifecycle
   - Create `tests/unit/managers/test_vfx_manager.gd`
   - Tests: extends Node, group membership ("vfx_manager"), ServiceLocator registration, StateStore dependency discovery, trauma initialization, `add_trauma()` method, `get_trauma()` method, trauma clamping (max 1.0)
-  - All 8 tests failing as expected
+  - All 8 tests failing as expected ✅
 
-- [ ] **Task 1.2 (Green)**: Implement VFX manager scaffolding
+- [x] **Task 1.2 (Green)**: Implement VFX manager scaffolding
   - Create `scripts/managers/m_vfx_manager.gd`
   - Extend Node, add `@icon("res://resources/editor_icons/manager.svg")`
   - Add to "vfx_manager" group
@@ -89,15 +89,15 @@
   - Constant: `TRAUMA_DECAY_RATE := 2.0`
   - Implement `add_trauma(amount: float) -> void`: `_trauma = minf(_trauma + amount, 1.0)`
   - Implement `get_trauma() -> float`: `return _trauma`
-  - All 8 tests passing
+  - All 8 tests passing ✅
 
-- [ ] **Task 1.3 (Red)**: Write tests for ECS event subscriptions and trauma decay
+- [x] **Task 1.3 (Red)**: Write tests for ECS event subscriptions and trauma decay
   - Extend `tests/unit/managers/test_vfx_manager.gd`
   - Tests: `health_changed` event handler (damage amount → trauma 0.3-0.6 mapping), `entity_landed` event handler (fall speed > 15 → trauma 0.2-0.4), `entity_death` event handler (trauma 0.5), trauma decay in `_physics_process` (2.0/sec rate), trauma never goes negative
   - Use `U_ECSEventBus.reset()` in `before_each()`
-  - All 9 tests failing as expected
+  - All 9 tests failing as expected ✅
 
-- [ ] **Task 1.4 (Green)**: Implement ECS event subscriptions and trauma decay
+- [x] **Task 1.4 (Green)**: Implement ECS event subscriptions and trauma decay
   - Modify `scripts/managers/m_vfx_manager.gd`
   - Add fields: `_unsubscribe_health: Callable`, `_unsubscribe_landed: Callable`, `_unsubscribe_death: Callable`
   - Subscribe in `_ready()`:
@@ -108,20 +108,20 @@
     ```
   - Implement `_on_health_changed(event_data: Dictionary) -> void`:
     - Calculate damage magnitude from payload
-    - Map damage to trauma (0.3-0.6 range based on damage amount)
+    - Map damage to trauma (0.3-0.6 range based on damage amount using lerpf)
   - Implement `_on_landed(event_data: Dictionary) -> void`:
     - Extract fall speed from payload
-    - If speed > 15, add trauma 0.2-0.4 based on impact force
+    - If speed > 15, add trauma 0.2-0.4 based on impact force using lerpf
   - Implement `_on_death(event_data: Dictionary) -> void`:
     - Add trauma 0.5
   - Implement `_physics_process(delta: float) -> void`:
     - Decay trauma: `_trauma = maxf(_trauma - TRAUMA_DECAY_RATE * delta, 0.0)`
-  - All 9 tests passing
+  - All 17 tests passing ✅
 
-- [ ] **Task 1.5 (Green)**: Add M_VFXManager to root scene
+- [x] **Task 1.5 (Green)**: Add M_VFXManager to root scene
   - Modify `scenes/root.tscn`: Add M_VFXManager node under Managers/ hierarchy
   - Manager automatically registers with ServiceLocator on `_ready()`
-  - Verify discoverable via `U_ServiceLocator.get_service(StringName("vfx_manager"))`
+  - Verify discoverable via `U_ServiceLocator.get_service(StringName("vfx_manager"))` ✅
 
 ---
 

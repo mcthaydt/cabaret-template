@@ -2,36 +2,11 @@
 
 ## Current Status
 
-- **Implementation status**: Phase 0 Complete (Redux Foundation)
+- **Implementation status**: Phase 1 Complete (VFX Core Manager)
 - **Main scene**: `scenes/root.tscn` (project `run/main_scene` points here)
 - **Root bootstrap**: `scripts/scene_structure/main.gd` registers manager services via `U_ServiceLocator`
-- **Tests passing**: 33/33 Redux tests (5 initial state + 15 reducer + 13 selectors)
-
-## Phase 0 Completion Summary
-
-**Files Created:**
-- `scripts/state/resources/rs_vfx_initial_state.gd` - VFX initial state resource with screen shake and damage flash settings
-- `scripts/state/actions/u_vfx_actions.gd` - Action creators for VFX state mutations
-- `scripts/state/reducers/u_vfx_reducer.gd` - Pure reducer with intensity clamping (0.0-2.0)
-- `scripts/state/selectors/u_vfx_selectors.gd` - Selectors with edge case handling
-- `tests/unit/state/test_vfx_initial_state.gd` - 5 passing tests
-- `tests/unit/state/test_vfx_reducer.gd` - 15 passing tests
-- `tests/unit/state/test_vfx_selectors.gd` - 13 passing tests
-
-**Files Modified:**
-- `scripts/state/m_state_store.gd` - Added VFX reducer const, vfx_initial_state export, passed to initialize_slices
-- `scripts/state/utils/u_state_slice_manager.gd` - Added VFX slice registration after debug slice
-
-**VFX State Schema:**
-```gdscript
-{
-  "vfx": {
-    "screen_shake_enabled": bool,     # default: true
-    "screen_shake_intensity": float,  # default: 1.0, clamped 0.0-2.0
-    "damage_flash_enabled": bool      # default: true
-  }
-}
-```
+- **Tests passing**: 50/60 tests (33/33 Redux + 17/17 Manager)
+- **Manager added**: `M_VFXManager` added to `scenes/root.tscn` under `Managers/` hierarchy
 
 ## Before You Start
 
@@ -49,9 +24,22 @@
 
 ## Next Step
 
-- Start at **Phase 1** in `docs/vfx manager/vfx-manager-tasks.md` and complete tasks in order.
-- Phase 1 focuses on VFX Core Manager: trauma system, ECS event subscriptions, and basic manager lifecycle.
+- Start at **Phase 2** in `docs/vfx manager/vfx-manager-tasks.md` and complete tasks in order.
+- Phase 2 focuses on Screen Shake System: U_ScreenShake helper with FastNoiseLite algorithm, quadratic falloff, and noise-based offset/rotation.
 - After each completed phase:
   - Update `docs/vfx manager/vfx-manager-tasks.md` checkboxes + completion notes
   - Update this file with the new current status + "next step" ONLY
 
+## Phase 1 Completion Notes
+
+- **Completed Tasks**: Tasks 1.1-1.5 (manager scaffolding, ECS events, trauma system, scene integration)
+- **Files Created**:
+  - `scripts/managers/m_vfx_manager.gd` - VFX Manager with trauma system
+  - `tests/unit/managers/test_vfx_manager.gd` - 17 passing tests
+- **Files Modified**:
+  - `scenes/root.tscn` - Added M_VFXManager node under Managers/
+- **Key Learnings**:
+  - BaseEventBus automatically wraps payload in {"name", "payload", "timestamp"} structure
+  - Use `lerpf()` for value mapping, not `remap()` (doesn't exist in GDScript)
+  - Event handlers receive wrapped event with payload nested inside
+  - Trauma decay runs in `_physics_process` at 2.0/sec rate
