@@ -4,9 +4,10 @@ class_name UI_VFXSettingsOverlay
 
 ## VFX Settings Overlay UI Controller
 ##
-## Displays VFX settings (screen shake, damage flash) with auto-save pattern.
-## Changes are immediately dispatched to Redux - no Apply/Cancel buttons.
+## Displays VFX settings (screen shake, damage flash) with Apply/Cancel pattern.
+## Changes are applied only when user clicks Apply button.
 
+const RS_VFXInitialState := preload("res://scripts/state/resources/rs_vfx_initial_state.gd")
 const U_VFXSelectors := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 const U_VFXActions := preload("res://scripts/state/actions/u_vfx_actions.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
@@ -17,9 +18,12 @@ const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configura
 @onready var _intensity_slider: HSlider = %IntensitySlider
 @onready var _intensity_percentage: Label = %IntensityPercentage
 @onready var _flash_enabled_toggle: CheckButton = %FlashEnabledToggle
-@onready var _close_button: Button = %CloseButton
+@onready var _apply_button: Button = %ApplyButton
+@onready var _cancel_button: Button = %CancelButton
+@onready var _reset_button: Button = %ResetButton
 
 var _store_unsubscribe: Callable = Callable()
+var _updating_from_state: bool = false
 
 func _on_store_ready(store: M_StateStore) -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
@@ -45,11 +49,26 @@ func _configure_focus_neighbors() -> void:
 		vertical_controls.append(_intensity_slider)
 	if _flash_enabled_toggle != null:
 		vertical_controls.append(_flash_enabled_toggle)
-	if _close_button != null:
-		vertical_controls.append(_close_button)
 
 	if not vertical_controls.is_empty():
-		U_FocusConfigurator.configure_vertical_focus(vertical_controls, true)
+		U_FocusConfigurator.configure_vertical_focus(vertical_controls, false)
+
+	# Configure button row horizontal focus
+	var buttons: Array[Control] = []
+	if _cancel_button != null:
+		buttons.append(_cancel_button)
+	if _reset_button != null:
+		buttons.append(_reset_button)
+	if _apply_button != null:
+		buttons.append(_apply_button)
+
+	if not buttons.is_empty():
+		U_FocusConfigurator.configure_horizontal_focus(buttons, true)
+		# Connect vertical controls to button row
+		for button in buttons:
+			if _flash_enabled_toggle != null:
+				button.focus_neighbor_top = button.get_path_to(_flash_enabled_toggle)
+				button.focus_neighbor_bottom = button.get_path_to(_flash_enabled_toggle)
 
 func _connect_control_signals() -> void:
 	if _shake_enabled_toggle != null and not _shake_enabled_toggle.toggled.is_connected(_on_shake_enabled_toggled):
@@ -58,48 +77,72 @@ func _connect_control_signals() -> void:
 		_intensity_slider.value_changed.connect(_on_intensity_changed)
 	if _flash_enabled_toggle != null and not _flash_enabled_toggle.toggled.is_connected(_on_flash_enabled_toggled):
 		_flash_enabled_toggle.toggled.connect(_on_flash_enabled_toggled)
-	if _close_button != null and not _close_button.pressed.is_connected(_on_close_pressed):
-		_close_button.pressed.connect(_on_close_pressed)
+	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
+		_apply_button.pressed.connect(_on_apply_pressed)
+	if _cancel_button != null and not _cancel_button.pressed.is_connected(_close_overlay):
+		_cancel_button.pressed.connect(_close_overlay)
+	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
+		_reset_button.pressed.connect(_on_reset_pressed)
 
 func _on_state_changed(state: Dictionary) -> void:
 	if state == null or state.is_empty():
 		return
 
 	# Update UI from state (without triggering signals)
+	_updating_from_state = true
+
 	if _shake_enabled_toggle != null:
-		_shake_enabled_toggle.set_block_signals(true)
 		_shake_enabled_toggle.button_pressed = U_VFXSelectors.is_screen_shake_enabled(state)
-		_shake_enabled_toggle.set_block_signals(false)
 
 	if _intensity_slider != null:
-		_intensity_slider.set_block_signals(true)
 		var intensity := U_VFXSelectors.get_screen_shake_intensity(state)
 		_intensity_slider.value = intensity
-		_intensity_slider.set_block_signals(false)
 		_update_percentage_label(intensity)
 
 	if _flash_enabled_toggle != null:
-		_flash_enabled_toggle.set_block_signals(true)
 		_flash_enabled_toggle.button_pressed = U_VFXSelectors.is_damage_flash_enabled(state)
-		_flash_enabled_toggle.set_block_signals(false)
 
-func _on_shake_enabled_toggled(pressed: bool) -> void:
-	var store := get_store()
-	if store != null:
-		store.dispatch(U_VFXActions.set_screen_shake_enabled(pressed))
+	_updating_from_state = false
+
+func _on_shake_enabled_toggled(_pressed: bool) -> void:
+	# Changes only apply when user clicks Apply button
+	pass
 
 func _on_intensity_changed(value: float) -> void:
-	var store := get_store()
-	if store != null:
-		store.dispatch(U_VFXActions.set_screen_shake_intensity(value))
+	# Update percentage label immediately for visual feedback
 	_update_percentage_label(value)
 
-func _on_flash_enabled_toggled(pressed: bool) -> void:
-	var store := get_store()
-	if store != null:
-		store.dispatch(U_VFXActions.set_damage_flash_enabled(pressed))
+func _on_flash_enabled_toggled(_pressed: bool) -> void:
+	# Changes only apply when user clicks Apply button
+	pass
 
-func _on_close_pressed() -> void:
+func _on_apply_pressed() -> void:
+	var store := get_store()
+	if store == null:
+		_close_overlay()
+		return
+
+	# Capture all values BEFORE dispatching any actions
+	# (dispatching triggers state_changed which can modify UI values)
+	var shake_enabled := _shake_enabled_toggle.button_pressed
+	var shake_intensity := _intensity_slider.value
+	var flash_enabled := _flash_enabled_toggle.button_pressed
+
+	store.dispatch(U_VFXActions.set_screen_shake_enabled(shake_enabled))
+	store.dispatch(U_VFXActions.set_screen_shake_intensity(shake_intensity))
+	store.dispatch(U_VFXActions.set_damage_flash_enabled(flash_enabled))
+	_close_overlay()
+
+func _on_reset_pressed() -> void:
+	var defaults := RS_VFXInitialState.new()
+
+	_shake_enabled_toggle.button_pressed = defaults.screen_shake_enabled
+	_intensity_slider.value = defaults.screen_shake_intensity
+	_flash_enabled_toggle.button_pressed = defaults.damage_flash_enabled
+
+	_update_percentage_label(_intensity_slider.value)
+
+func _close_overlay() -> void:
 	var store := get_store()
 	if store == null:
 		return
@@ -113,7 +156,7 @@ func _on_close_pressed() -> void:
 		store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
 
 func _on_back_pressed() -> void:
-	_on_close_pressed()
+	_close_overlay()
 
 func _update_percentage_label(value: float) -> void:
 	if _intensity_percentage != null:

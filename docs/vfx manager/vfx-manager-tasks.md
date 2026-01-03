@@ -348,7 +348,7 @@
 
 ## Phase 5: Settings UI Integration ✅ COMPLETE
 
-**Exit Criteria:** Settings persist to save files, UI updates reflect in-game immediately, auto-save on change (no Apply button)
+**Exit Criteria:** Settings persist to save files, UI updates reflect in-game on Apply, Apply/Cancel/Reset pattern (consistent with gamepad/touchscreen settings)
 
 - [x] **Task 5.1 (Green)**: Create VFX settings overlay scene
   - Create `scenes/ui/settings/ui_vfx_settings_overlay.tscn`
@@ -452,11 +452,14 @@
 
 **Phase 5 Completion Notes:**
 - VFX settings overlay follows existing pattern (gamepad/touchscreen settings)
-- Auto-save pattern implemented (no Apply/Cancel buttons, immediate dispatch)
+- **Apply/Cancel/Reset pattern** implemented for UX consistency (user decision after audit)
+- Changes only apply when user clicks Apply button (safer, allows experimentation)
+- Cancel button closes overlay without saving changes
+- Reset button restores default values (shake ON, intensity 100%, flash ON)
 - UI registry and scene registry updated correctly
-- Focus navigation configured for gamepad support
-- All existing tests still passing
-- Completed: 2025-01-03
+- Focus navigation configured for gamepad support (vertical + horizontal button row)
+- All existing tests still passing (75/75)
+- Completed: 2025-01-03 (initial auto-save), Updated: 2025-01-03 (Apply/Cancel pattern)
 
 ---
 

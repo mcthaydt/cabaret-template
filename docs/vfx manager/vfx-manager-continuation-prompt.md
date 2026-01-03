@@ -15,7 +15,7 @@
 - **ServiceLocator registration**: Both `M_VFXManager` and `M_CameraManager` registered with ServiceLocator
 - **Settings UI**: VFX settings overlay created at `scenes/ui/settings/ui_vfx_settings_overlay.tscn`
 - **Settings integration**: "Visual Effects" button added to settings menu, registered in UI/scene registries
-- **Auto-save pattern**: Settings dispatch Redux actions immediately (no Apply/Cancel buttons)
+- **Apply/Cancel pattern**: Settings use Apply/Cancel/Reset buttons (consistent with gamepad/touchscreen settings)
 - **State persistence**: VFX settings persist via Redux state persistence (VFX slice)
 
 ## Before You Start
