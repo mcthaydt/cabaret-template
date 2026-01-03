@@ -17,12 +17,14 @@ const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configura
 @onready var _input_profiles_button: Button = %InputProfilesButton
 @onready var _gamepad_settings_button: Button = %GamepadSettingsButton
 @onready var _touchscreen_settings_button: Button = %TouchscreenSettingsButton
+@onready var _vfx_settings_button: Button = %VFXSettingsButton
 @onready var _rebind_controls_button: Button = %RebindControlsButton
 
 const SETTINGS_OVERLAY_ID := StringName("settings_menu_overlay")
 const OVERLAY_INPUT_PROFILE := StringName("input_profile_selector")
 const OVERLAY_GAMEPAD_SETTINGS := StringName("gamepad_settings")
 const OVERLAY_TOUCHSCREEN_SETTINGS := StringName("touchscreen_settings")
+const OVERLAY_VFX_SETTINGS := StringName("vfx_settings")
 const OVERLAY_INPUT_REBINDING := StringName("input_rebinding")
 
 var _last_device_type: int = -1
@@ -47,6 +49,8 @@ func _on_panel_ready() -> void:
 		_gamepad_settings_button.pressed.connect(_on_gamepad_settings_pressed)
 	if _touchscreen_settings_button != null and not _touchscreen_settings_button.pressed.is_connected(_on_touchscreen_settings_pressed):
 		_touchscreen_settings_button.pressed.connect(_on_touchscreen_settings_pressed)
+	if _vfx_settings_button != null and not _vfx_settings_button.pressed.is_connected(_on_vfx_settings_pressed):
+		_vfx_settings_button.pressed.connect(_on_vfx_settings_pressed)
 	if _rebind_controls_button != null and not _rebind_controls_button.pressed.is_connected(_on_rebind_controls_pressed):
 		_rebind_controls_button.pressed.connect(_on_rebind_controls_pressed)
 	_configure_focus_neighbors()
@@ -81,6 +85,9 @@ func _on_gamepad_settings_pressed() -> void:
 
 func _on_touchscreen_settings_pressed() -> void:
 	_open_settings_target(OVERLAY_TOUCHSCREEN_SETTINGS, StringName("touchscreen_settings"))
+
+func _on_vfx_settings_pressed() -> void:
+	_open_settings_target(OVERLAY_VFX_SETTINGS, StringName("vfx_settings"))
 
 func _on_rebind_controls_pressed() -> void:
 	_open_settings_target(OVERLAY_INPUT_REBINDING, StringName("input_rebinding"))
@@ -141,6 +148,8 @@ func _configure_focus_neighbors() -> void:
 		buttons.append(_gamepad_settings_button)
 	if _touchscreen_settings_button != null and _touchscreen_settings_button.visible:
 		buttons.append(_touchscreen_settings_button)
+	if _vfx_settings_button != null and _vfx_settings_button.visible:
+		buttons.append(_vfx_settings_button)
 	if _rebind_controls_button != null and _rebind_controls_button.visible:
 		buttons.append(_rebind_controls_button)
 	if _back_button != null and _back_button.visible:

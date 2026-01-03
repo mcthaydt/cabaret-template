@@ -69,6 +69,15 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 			5
 		)
 
+	if not scenes.has(StringName("vfx_settings")):
+		register_scene_callable.call(
+			StringName("vfx_settings"),
+			"res://scenes/ui/settings/ui_vfx_settings_overlay.tscn",
+			U_SceneRegistry.SceneType.UI,
+			"instant",
+			5
+		)
+
 	if not scenes.has(StringName("edit_touch_controls")):
 		register_scene_callable.call(
 			StringName("edit_touch_controls"),

@@ -53,6 +53,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Touchscreen Settings"
 
+[node name="VFXSettingsButton" type="Button" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Visual Effects"
+
 [node name="RebindControlsButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=470415140]
 unique_name_in_owner = true
 layout_mode = 2
