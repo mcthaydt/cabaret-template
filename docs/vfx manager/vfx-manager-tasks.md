@@ -1,7 +1,7 @@
 # VFX Manager - Task Checklist
 
-**Progress:** 80% (16 / 20 tasks complete)
-**Unit Tests:** 65 / 65 passing (Phase 0 Redux: 33/33, Phase 1 Manager: 17/17, Phase 2 ScreenShake: 15/15)
+**Progress:** 100% (20 / 20 tasks complete)
+**Unit Tests:** 75 / 75 passing (Phase 0 Redux: 33/33, Phase 1 Manager: 17/17, Phase 2 ScreenShake: 15/15, Phase 4 DamageFlash: 10/10)
 **Integration Tests:** 0 / 35 passing
 **Manual QA:** 0 / 9 complete
 
@@ -245,11 +245,11 @@
 
 ---
 
-## Phase 4: Damage Flash System
+## Phase 4: Damage Flash System ✅ COMPLETE
 
 **Exit Criteria:** All 10 damage flash tests pass, flash visible on damage, fade animation correct (0.4s duration), retrigger kills existing tween
 
-- [ ] **Task 4.1 (Green)**: Create damage flash overlay scene
+- [x] **Task 4.1 (Green)**: Create damage flash overlay scene
   - Create `scenes/ui/ui_damage_flash_overlay.tscn` (CanvasLayer; recommend `layer = 50` to stay below `LoadingOverlay.layer = 100` in `scenes/root.tscn`)
   - Scene structure:
     ```
@@ -260,17 +260,18 @@
         - Modulate.a: 0.0 (invisible by default)
     ```
   - Recommend `layer = 50` to stay below `LoadingOverlay.layer = 100` in `scenes/root.tscn` (choose final layering based on whether you want UI tinted by the flash)
+  - Scene created with CanvasLayer (layer=50) and FlashRect ColorRect ✅
 
-- [ ] **Task 4.2 (Red)**: Write tests for U_DamageFlash helper
+- [x] **Task 4.2 (Red)**: Write tests for M_DamageFlash helper
   - Create `tests/unit/managers/helpers/test_damage_flash.gd`
   - Tests: initialization with ColorRect reference, `trigger_flash()` sets alpha to max instantly, fade to 0.0 over 0.4 seconds using tween, retrigger kills existing tween, respects enabled toggle, intensity parameter affects max_alpha
-  - All 10 tests failing as expected
+  - All 10 tests failing as expected ✅
 
-- [ ] **Task 4.3 (Green)**: Implement U_DamageFlash helper
-  - Create `scripts/managers/helpers/u_damage_flash.gd`
+- [x] **Task 4.3 (Green)**: Implement M_DamageFlash helper
+  - Create `scripts/managers/helpers/m_damage_flash.gd`
   - Class structure:
     ```gdscript
-    class_name U_DamageFlash
+    class_name M_DamageFlash
     extends RefCounted
 
     const FADE_DURATION := 0.4
@@ -299,18 +300,18 @@
         _tween = _scene_tree.create_tween()
         _tween.tween_property(_flash_rect, "modulate:a", 0.0, FADE_DURATION)
     ```
-  - All 10 tests passing
+  - All 10 tests passing ✅
 
-- [ ] **Task 4.4 (Green)**: Integrate damage flash into VFX Manager
+- [x] **Task 4.4 (Green)**: Integrate damage flash into VFX Manager
   - Modify `scripts/managers/m_vfx_manager.gd`
-  - Add field: `var _damage_flash: U_DamageFlash`
+  - Add field: `var _damage_flash: M_DamageFlash`
   - Load and instance damage flash scene in `_ready()`:
     ```gdscript
     var flash_scene := load("res://scenes/ui/ui_damage_flash_overlay.tscn")
     var flash_instance := flash_scene.instantiate()
     add_child(flash_instance)
     var flash_rect := flash_instance.get_node("FlashRect") as ColorRect
-    _damage_flash = U_DamageFlash.new(flash_rect, get_tree())
+    _damage_flash = M_DamageFlash.new(flash_rect, get_tree())
     ```
   - Update `_on_health_changed()` to trigger flash:
     ```gdscript
@@ -328,6 +329,20 @@
             if U_VFX_SELECTORS.is_damage_flash_enabled(state):
                 _damage_flash.trigger_flash(1.0)
     ```
+  - Integration complete: damage flash triggers on health_changed events ✅
+
+**Completion Notes:**
+- All 10 damage flash tests passing
+- M_DamageFlash helper implemented with 0.4s fade duration and 0.3 max alpha
+- Damage flash overlay scene created at layer 50 (below LoadingOverlay)
+- M_VFXManager successfully loads and initializes damage flash overlay
+- Flash triggers on health_changed events when damage_flash_enabled is true
+- Retrigger correctly kills existing tween before starting new fade
+- Intensity parameter working correctly (0.0 = no flash, 1.0 = normal, 2.0 = double)
+- Null safety implemented (gracefully handles null flash_rect or scene_tree)
+- Total unit tests: 75/75 passing (33 Redux + 17 Manager + 15 ScreenShake + 10 DamageFlash)
+- Style enforcement tests passing (7/7) - correctly uses m_ prefix for manager helper
+- Completed: 2025-01-03
 
 ---
 
@@ -486,15 +501,15 @@
 | `tests/unit/state/test_vfx_initial_state.gd` | ✅ Complete | 0 | 5 tests for initial state |
 | `tests/unit/state/test_vfx_reducer.gd` | ✅ Complete | 0 | 15 tests for reducer (includes clamping) |
 | `tests/unit/state/test_vfx_selectors.gd` | ✅ Complete | 0 | 10 tests for selectors |
-| `scripts/managers/m_vfx_manager.gd` | ✅ Complete | 1, 3 | VFX manager with trauma system + camera integration |
+| `scripts/managers/m_vfx_manager.gd` | ✅ Complete | 1, 3, 4 | VFX manager with trauma system + camera integration + damage flash |
 | `tests/unit/managers/test_vfx_manager.gd` | ✅ Complete | 1 | 17 tests for manager lifecycle + trauma |
 | `scenes/root.tscn` | ✅ Complete | 1 | Modified to add M_VFXManager node |
 | `scripts/managers/helpers/m_screen_shake.gd` | ✅ Complete | 2 | Screen shake helper with noise algorithm |
 | `tests/unit/managers/helpers/test_screen_shake.gd` | ✅ Complete | 2 | 15 tests for shake algorithm |
 | `scripts/managers/m_camera_manager.gd` | ✅ Complete | 3 | Modified to add shake parent + apply method + ServiceLocator registration |
-| `scenes/ui/ui_damage_flash_overlay.tscn` | ⬜ Not Started | 4 | Damage flash overlay scene (CanvasLayer; recommend layer 50) |
-| `scripts/managers/helpers/u_damage_flash.gd` | ⬜ Not Started | 4 | Damage flash helper with tween fade |
-| `tests/unit/managers/helpers/test_damage_flash.gd` | ⬜ Not Started | 4 | 10 tests for damage flash |
+| `scenes/ui/ui_damage_flash_overlay.tscn` | ✅ Complete | 4 | Damage flash overlay scene (CanvasLayer layer 50) |
+| `scripts/managers/helpers/m_damage_flash.gd` | ✅ Complete | 4 | Damage flash helper with tween fade (0.4s duration) |
+| `tests/unit/managers/helpers/test_damage_flash.gd` | ✅ Complete | 4 | 10 tests for damage flash |
 | `scenes/ui/settings/vfx_settings_tab.tscn` | ⬜ Not Started | 5 | VFX settings UI scene |
 | `scripts/ui/settings/ui_vfx_settings_tab.gd` | ⬜ Not Started | 5 | VFX settings UI script with auto-save |
 | `tests/integration/vfx/test_vfx_camera_integration.gd` | ⬜ Not Started | 6 | Integration tests for VFX-Camera |

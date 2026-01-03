@@ -8,6 +8,7 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 const M_ScreenShake := preload("res://scripts/managers/helpers/m_screen_shake.gd")
+const M_DamageFlash := preload("res://scripts/managers/helpers/m_damage_flash.gd")
 ##
 ## Responsibilities:
 ## - Manages trauma system for screen shake (accumulates from damage/impacts, decays over time)
@@ -35,6 +36,9 @@ var _camera_manager: M_CameraManager = null
 
 ## Screen shake helper for calculating shake offset/rotation
 var _screen_shake: M_ScreenShake = null
+
+## Damage flash helper for triggering red flash overlay
+var _damage_flash: M_DamageFlash = null
 
 ## Current trauma level (0.0 = no shake, 1.0 = maximum shake)
 ## Trauma accumulates from damage/impacts and decays over time
@@ -67,6 +71,19 @@ func _ready() -> void:
 
 	# Initialize screen shake helper (VFX Phase 3: T3.2)
 	_screen_shake = M_ScreenShake.new()
+
+	# Load and initialize damage flash overlay (VFX Phase 4: T4.4)
+	var flash_scene: PackedScene = load("res://scenes/ui/ui_damage_flash_overlay.tscn")
+	if flash_scene != null:
+		var flash_instance: CanvasLayer = flash_scene.instantiate()
+		add_child(flash_instance)
+		var flash_rect: ColorRect = flash_instance.get_node("FlashRect") as ColorRect
+		if flash_rect != null:
+			_damage_flash = M_DamageFlash.new(flash_rect, get_tree())
+		else:
+			push_error("M_VFXManager: Failed to find FlashRect in damage flash overlay scene")
+	else:
+		push_error("M_VFXManager: Failed to load damage flash overlay scene")
 
 	# Subscribe to ECS events for trauma triggers
 	_unsubscribe_health = U_ECS_EVENT_BUS.subscribe(StringName("health_changed"), _on_health_changed)
@@ -120,7 +137,7 @@ func _physics_process(delta: float) -> void:
 
 ## Event handler for health_changed events
 ##
-## Maps damage amount to trauma in 0.3-0.6 range
+## Maps damage amount to trauma in 0.3-0.6 range and triggers damage flash
 func _on_health_changed(event_data: Dictionary) -> void:
 	var payload: Dictionary = event_data.get("payload", {})
 	var damage: float = payload.get("damage", 0.0)
@@ -130,6 +147,12 @@ func _on_health_changed(event_data: Dictionary) -> void:
 	var damage_ratio: float = clampf(damage / 100.0, 0.0, 1.0)
 	var trauma_amount: float = lerpf(0.3, 0.6, damage_ratio)
 	add_trauma(trauma_amount)
+
+	# Trigger damage flash if enabled (VFX Phase 4: T4.4)
+	if _state_store != null and _damage_flash != null:
+		var state: Dictionary = _state_store.get_state()
+		if U_VFX_SELECTORS.is_damage_flash_enabled(state):
+			_damage_flash.trigger_flash(1.0)
 
 ## Event handler for entity_landed events
 ##

@@ -459,12 +459,12 @@ func clear_shake_offset() -> void:
 
 ### Phase 4: Damage Flash System (FR-017 to FR-019)
 
-**FR-017: U_DamageFlash Helper**
-The system SHALL implement `U_DamageFlash` extending `CanvasLayer`:
+**FR-017: M_DamageFlash Helper**
+The system SHALL implement `M_DamageFlash` extending `RefCounted`:
 
 ```gdscript
-class_name U_DamageFlash
-extends CanvasLayer
+class_name M_DamageFlash
+extends RefCounted
 
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 
@@ -829,13 +829,13 @@ func _on_damage_flash_toggle_toggled(button_pressed: bool) -> void:
 - Add ColorRect child covering full screen
 - Set flash_color = Color(1, 0, 0, 0.3)
 
-**Commit 2: U_DamageFlash Script**
+**Commit 2: M_DamageFlash Script**
 - Implement `trigger(intensity)` with Tween fade
 - Respect `damage_flash_enabled` toggle
 - Multiple triggers restart animation (kill existing tween)
 
 **Commit 3: Manager Integration and Tests**
-- Add U_DamageFlash instance to M_VFXManager
+- Add M_DamageFlash instance to M_VFXManager
 - Implement `trigger_damage_flash()` and `is_damage_flash_active()`
 - Write 10 unit tests for flash behavior
 
@@ -1106,31 +1106,31 @@ func test_noise_generates_organic_movement():
 ```gdscript
 # Test flash trigger
 func test_flash_trigger_sets_alpha():
-	Given: U_DamageFlash with alpha = 0.0
+	Given: M_DamageFlash with alpha = 0.0
 	When: Call trigger(1.0)
 	Then: overlay.modulate.a = 0.4 (max_alpha)
 
 # Test flash fade
 func test_flash_fades_to_zero():
-	Given: U_DamageFlash with triggered flash
+	Given: M_DamageFlash with triggered flash
 	When: Wait fade_duration (0.4s)
 	Then: overlay.modulate.a = 0.0
 
 # Test multiple triggers
 func test_flash_multiple_triggers_restart():
-	Given: U_DamageFlash at alpha = 0.2 (mid-fade)
+	Given: M_DamageFlash at alpha = 0.2 (mid-fade)
 	When: Call trigger(1.0)
 	Then: alpha resets to 0.4, new tween starts
 
 # Test disabled toggle
 func test_flash_disabled_prevents_trigger():
-	Given: U_DamageFlash with damage_flash_enabled = false
+	Given: M_DamageFlash with damage_flash_enabled = false
 	When: Call trigger(1.0)
 	Then: overlay.modulate.a remains 0.0
 
 # Test intensity scaling
 func test_flash_intensity_scales_alpha():
-	Given: U_DamageFlash
+	Given: M_DamageFlash
 	When: Call trigger(0.5)
 	Then: overlay.modulate.a = 0.2 (max_alpha * 0.5)
 
