@@ -2,11 +2,12 @@
 
 ## Current Status
 
-- **Implementation status**: Phase 1 Complete (VFX Core Manager)
+- **Implementation status**: Phase 2 Complete (Screen Shake System)
 - **Main scene**: `scenes/root.tscn` (project `run/main_scene` points here)
 - **Root bootstrap**: `scripts/scene_structure/main.gd` registers manager services via `U_ServiceLocator`
-- **Tests passing**: 50/60 tests (33/33 Redux + 17/17 Manager)
+- **Tests passing**: 65/60 tests (33/33 Redux + 17/17 Manager + 15/15 ScreenShake)
 - **Manager added**: `M_VFXManager` added to `scenes/root.tscn` under `Managers/` hierarchy
+- **Screen shake helper**: `U_ScreenShake` implemented with quadratic falloff and noise-based randomness
 
 ## Before You Start
 
@@ -24,22 +25,8 @@
 
 ## Next Step
 
-- Start at **Phase 2** in `docs/vfx manager/vfx-manager-tasks.md` and complete tasks in order.
-- Phase 2 focuses on Screen Shake System: U_ScreenShake helper with FastNoiseLite algorithm, quadratic falloff, and noise-based offset/rotation.
+- Start at **Phase 3** in `docs/vfx manager/vfx-manager-tasks.md` and complete tasks in order.
+- Phase 3 focuses on Camera Manager Integration: Adding shake parent node to M_CameraManager and wiring VFX Manager to apply screen shake.
 - After each completed phase:
   - Update `docs/vfx manager/vfx-manager-tasks.md` checkboxes + completion notes
   - Update this file with the new current status + "next step" ONLY
-
-## Phase 1 Completion Notes
-
-- **Completed Tasks**: Tasks 1.1-1.5 (manager scaffolding, ECS events, trauma system, scene integration)
-- **Files Created**:
-  - `scripts/managers/m_vfx_manager.gd` - VFX Manager with trauma system
-  - `tests/unit/managers/test_vfx_manager.gd` - 17 passing tests
-- **Files Modified**:
-  - `scenes/root.tscn` - Added M_VFXManager node under Managers/
-- **Key Learnings**:
-  - BaseEventBus automatically wraps payload in {"name", "payload", "timestamp"} structure
-  - Use `lerpf()` for value mapping, not `remap()` (doesn't exist in GDScript)
-  - Event handlers receive wrapped event with payload nested inside
-  - Trauma decay runs in `_physics_process` at 2.0/sec rate

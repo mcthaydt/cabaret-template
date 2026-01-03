@@ -18,8 +18,8 @@ const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 ## - Extends Node with PROCESS_MODE_ALWAYS (runs even when paused)
 ## - Registers with ServiceLocator as "vfx_manager"
 ## - Discovers M_StateStore dependency for settings access
-## - Uses U_ScreenShake helper for shake calculations (quadratic falloff, noise-based)
-## - Uses U_DamageFlash helper for flash tween animations
+## - Uses M_ScreenShake helper for shake calculations (quadratic falloff, noise-based)
+## - Uses M_DamageFlash helper for flash tween animations
 
 ## Trauma decay rate (units per second)
 ## Trauma decays from 1.0 to 0.0 over 0.5 seconds at this rate

@@ -1,7 +1,7 @@
 # VFX Manager - Task Checklist
 
-**Progress:** 60% (12 / 20 tasks complete)
-**Unit Tests:** 50 / 60 passing (Phase 0 Redux: 33/33, Phase 1 Manager: 17/17)
+**Progress:** 70% (14 / 20 tasks complete)
+**Unit Tests:** 65 / 60 passing (Phase 0 Redux: 33/33, Phase 1 Manager: 17/17, Phase 2 ScreenShake: 15/15)
 **Integration Tests:** 0 / 35 passing
 **Manual QA:** 0 / 9 complete
 
@@ -125,20 +125,20 @@
 
 ---
 
-## Phase 2: Screen Shake System
+## Phase 2: Screen Shake System ✅ COMPLETE
 
 **Exit Criteria:** All 15 screen shake tests pass, shake algorithm validated with quadratic falloff, noise-based offset/rotation working
 
-- [ ] **Task 2.1 (Red)**: Write tests for U_ScreenShake helper
+- [x] **Task 2.1 (Red)**: Write tests for M_ScreenShake helper
   - Create `tests/unit/managers/helpers/test_screen_shake.gd`
   - Tests: initialization with FastNoiseLite, `calculate_shake()` returns Dictionary with offset and rotation keys, trauma 0.0 → zero shake, trauma 1.0 → full shake, quadratic falloff (trauma 0.5 → shake_amount 0.25), settings_multiplier scaling, noise-based randomness (different offsets over time), max_offset clamping, max_rotation clamping
-  - All 15 tests failing as expected
+  - All 15 tests failing as expected ✅
 
-- [ ] **Task 2.2 (Green)**: Implement U_ScreenShake helper
-  - Create `scripts/managers/helpers/u_screen_shake.gd`
+- [x] **Task 2.2 (Green)**: Implement M_ScreenShake helper
+  - Create `scripts/managers/helpers/m_screen_shake.gd`
   - Class structure:
     ```gdscript
-    class_name U_ScreenShake
+    class_name M_ScreenShake
     extends RefCounted
 
     var max_offset := Vector2(10.0, 8.0)
@@ -165,7 +165,15 @@
 
         return {"offset": offset, "rotation": rotation}
     ```
-  - All 15 tests passing
+  - All 15 tests passing ✅
+
+**Completion Notes:**
+- All 15 screen shake tests passing
+- Quadratic falloff algorithm validated (trauma^2 provides smooth decay)
+- Noise-based randomness working correctly (different offsets/rotations over time)
+- Fixed test flakiness by using separate helpers with same seed for ratio comparisons
+- max_offset and max_rotation bounds respected
+- FastNoiseLite integration working with configurable seed and frequency
 
 ---
 
@@ -204,9 +212,9 @@
 
 - [ ] **Task 3.2 (Green)**: Wire VFX Manager to Camera Manager shake application
   - Modify `scripts/managers/m_vfx_manager.gd`
-  - Add field: `var _camera_manager: M_CameraManager`, `var _screen_shake: U_ScreenShake`
+  - Add field: `var _camera_manager: M_CameraManager`, `var _screen_shake: M_ScreenShake`
   - Discover camera manager in `_ready()`: `_camera_manager = U_ServiceLocator.get_service(StringName("camera_manager"))`
-  - Initialize `_screen_shake = U_ScreenShake.new()` in `_ready()`
+  - Initialize `_screen_shake = M_ScreenShake.new()` in `_ready()`
   - Update `_physics_process(delta: float) -> void`:
     ```gdscript
     # Decay trauma
@@ -458,20 +466,20 @@
 
 | File Path | Status | Phase | Notes |
 |-----------|--------|-------|-------|
-| `scripts/state/resources/rs_vfx_initial_state.gd` | ⬜ Not Started | 0 | VFX initial state resource with 3 fields |
-| `scripts/state/actions/u_vfx_actions.gd` | ⬜ Not Started | 0 | 3 action creators for VFX settings |
-| `scripts/state/reducers/u_vfx_reducer.gd` | ⬜ Not Started | 0 | VFX reducer with intensity clamping |
-| `scripts/state/selectors/u_vfx_selectors.gd` | ⬜ Not Started | 0 | 3 selectors for VFX state |
-| `scripts/state/m_state_store.gd` | ⬜ Not Started | 0 | Modified to export vfx_initial_state |
-| `scripts/state/utils/u_state_slice_manager.gd` | ⬜ Not Started | 0 | Modified to register VFX slice |
-| `tests/unit/state/test_vfx_initial_state.gd` | ⬜ Not Started | 0 | 5 tests for initial state |
-| `tests/unit/state/test_vfx_reducer.gd` | ⬜ Not Started | 0 | 15 tests for reducer (includes clamping) |
-| `tests/unit/state/test_vfx_selectors.gd` | ⬜ Not Started | 0 | 10 tests for selectors |
-| `scripts/managers/m_vfx_manager.gd` | ⬜ Not Started | 1 | VFX manager with trauma system |
-| `tests/unit/managers/test_vfx_manager.gd` | ⬜ Not Started | 1 | 17 tests for manager lifecycle + trauma |
-| `scenes/root.tscn` | ⬜ Not Started | 1 | Modified to add M_VFXManager node |
-| `scripts/managers/helpers/u_screen_shake.gd` | ⬜ Not Started | 2 | Screen shake helper with noise algorithm |
-| `tests/unit/managers/helpers/test_screen_shake.gd` | ⬜ Not Started | 2 | 15 tests for shake algorithm |
+| `scripts/state/resources/rs_vfx_initial_state.gd` | ✅ Complete | 0 | VFX initial state resource with 3 fields |
+| `scripts/state/actions/u_vfx_actions.gd` | ✅ Complete | 0 | 3 action creators for VFX settings |
+| `scripts/state/reducers/u_vfx_reducer.gd` | ✅ Complete | 0 | VFX reducer with intensity clamping |
+| `scripts/state/selectors/u_vfx_selectors.gd` | ✅ Complete | 0 | 3 selectors for VFX state |
+| `scripts/state/m_state_store.gd` | ✅ Complete | 0 | Modified to export vfx_initial_state |
+| `scripts/state/utils/u_state_slice_manager.gd` | ✅ Complete | 0 | Modified to register VFX slice |
+| `tests/unit/state/test_vfx_initial_state.gd` | ✅ Complete | 0 | 5 tests for initial state |
+| `tests/unit/state/test_vfx_reducer.gd` | ✅ Complete | 0 | 15 tests for reducer (includes clamping) |
+| `tests/unit/state/test_vfx_selectors.gd` | ✅ Complete | 0 | 10 tests for selectors |
+| `scripts/managers/m_vfx_manager.gd` | ✅ Complete | 1 | VFX manager with trauma system |
+| `tests/unit/managers/test_vfx_manager.gd` | ✅ Complete | 1 | 17 tests for manager lifecycle + trauma |
+| `scenes/root.tscn` | ✅ Complete | 1 | Modified to add M_VFXManager node |
+| `scripts/managers/helpers/m_screen_shake.gd` | ✅ Complete | 2 | Screen shake helper with noise algorithm |
+| `tests/unit/managers/helpers/test_screen_shake.gd` | ✅ Complete | 2 | 15 tests for shake algorithm |
 | `scripts/managers/m_camera_manager.gd` | ⬜ Not Started | 3 | Modified to add shake parent + apply method |
 | `scenes/ui/ui_damage_flash_overlay.tscn` | ⬜ Not Started | 4 | Damage flash overlay scene (CanvasLayer; recommend layer 50) |
 | `scripts/managers/helpers/u_damage_flash.gd` | ⬜ Not Started | 4 | Damage flash helper with tween fade |
