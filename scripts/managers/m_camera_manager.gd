@@ -2,6 +2,8 @@
 class_name M_CameraManager
 extends Node
 
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+
 ## M_CameraManager - Camera Blending Management (Phase 12.2)
 ##
 ## Handles smooth camera blending during scene transitions using Tween interpolation.
@@ -38,12 +40,22 @@ var _transition_camera: Camera3D = null
 var _camera_blend_tween: Tween = null
 var _camera_blend_duration: float = 0.2  # Match fade transition duration
 
+## Screen shake parent node (VFX Phase 3: T3.1)
+## Used to apply shake offset/rotation without affecting camera directly (prevents gimbal lock)
+var _shake_parent: Node3D = null
+
 func _ready() -> void:
 	# Add to camera_manager group for discovery
 	add_to_group("camera_manager")
 
+	# Register with ServiceLocator (VFX Phase 3: T3.2 dependency)
+	U_SERVICE_LOCATOR.register(StringName("camera_manager"), self)
+
 	# Create transition camera for camera blending (Phase 10: T181)
 	_create_transition_camera()
+
+	# Create shake parent node for VFX screen shake (VFX Phase 3: T3.1)
+	_create_shake_parent()
 
 ## Blend cameras between old and new scene (T238)
 ##
@@ -156,6 +168,52 @@ func _create_transition_camera() -> void:
 	_transition_camera.name = "TransitionCamera"
 	add_child(_transition_camera)
 	_transition_camera.current = false  # Not active by default
+
+## Create shake parent node for screen shake (VFX Phase 3: T3.1)
+##
+## The shake parent is a Node3D that sits between M_CameraManager and the transition camera.
+## Applying shake offset/rotation to this parent prevents gimbal lock and isolates shake
+## from camera rotation, ensuring smooth shake at all camera angles.
+##
+## Hierarchy after creation:
+##   M_CameraManager
+##   └── ShakeParent (Node3D) ← shake offset/rotation applied here
+##       └── TransitionCamera (Camera3D)
+func _create_shake_parent() -> void:
+	_shake_parent = Node3D.new()
+	_shake_parent.name = "ShakeParent"
+	add_child(_shake_parent)
+
+	# Reparent transition camera under shake parent
+	remove_child(_transition_camera)
+	_shake_parent.add_child(_transition_camera)
+
+## Apply screen shake offset and rotation (VFX Phase 3: T3.1)
+##
+## Converts 2D screen-space offset to 3D camera-relative offset and applies
+## rotation around the Z axis (roll). The shake is applied to the shake parent
+## node, not the camera directly, to prevent gimbal lock.
+##
+## Parameters:
+##   offset: 2D screen-space offset in pixels (X=horizontal, Y=vertical)
+##   rotation: Z-axis rotation in radians (camera roll)
+##
+## Example:
+##   camera_manager.apply_shake_offset(Vector2(5.0, 3.0), 0.02)
+func apply_shake_offset(offset: Vector2, rotation: float) -> void:
+	if _shake_parent == null:
+		return
+
+	# Convert 2D screen offset to 3D using camera basis
+	# Right vector (X) for horizontal offset, Up vector (Y) for vertical offset
+	# Scale by 0.01 to convert pixels to reasonable 3D units
+	var right: Vector3 = _transition_camera.global_transform.basis.x
+	var up: Vector3 = _transition_camera.global_transform.basis.y
+	var offset_3d: Vector3 = right * offset.x * 0.01 + up * offset.y * 0.01
+
+	# Apply offset and rotation to shake parent
+	_shake_parent.position = offset_3d
+	_shake_parent.rotation.z = rotation
 
 ## Create blend tween to interpolate camera properties (T240)
 ##

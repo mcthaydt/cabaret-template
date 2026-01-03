@@ -6,6 +6,8 @@ class_name M_VFXManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
+const M_ScreenShake := preload("res://scripts/managers/helpers/m_screen_shake.gd")
 ##
 ## Responsibilities:
 ## - Manages trauma system for screen shake (accumulates from damage/impacts, decays over time)
@@ -27,6 +29,12 @@ const TRAUMA_DECAY_RATE := 2.0
 
 ## StateStore dependency for accessing VFX settings
 var _state_store: Node = null  # Type: I_StateStore (using Node for now)
+
+## Camera Manager dependency for applying screen shake
+var _camera_manager: M_CameraManager = null
+
+## Screen shake helper for calculating shake offset/rotation
+var _screen_shake: M_ScreenShake = null
 
 ## Current trauma level (0.0 = no shake, 1.0 = maximum shake)
 ## Trauma accumulates from damage/impacts and decays over time
@@ -51,6 +59,14 @@ func _ready() -> void:
 	_state_store = U_SERVICE_LOCATOR.try_get_service(StringName("state_store"))
 	if _state_store == null:
 		print_verbose("M_VFXManager: StateStore not found. VFX settings will not be applied.")
+
+	# Discover Camera Manager dependency (VFX Phase 3: T3.2)
+	_camera_manager = U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager"))
+	if _camera_manager == null:
+		print_verbose("M_VFXManager: Camera Manager not found. Screen shake will not be applied.")
+
+	# Initialize screen shake helper (VFX Phase 3: T3.2)
+	_screen_shake = M_ScreenShake.new()
 
 	# Subscribe to ECS events for trauma triggers
 	_unsubscribe_health = U_ECS_EVENT_BUS.subscribe(StringName("health_changed"), _on_health_changed)
@@ -86,10 +102,21 @@ func add_trauma(amount: float) -> void:
 func get_trauma() -> float:
 	return _trauma
 
-## Physics process - handles trauma decay
+## Physics process - handles trauma decay and screen shake application (VFX Phase 3: T3.2)
 func _physics_process(delta: float) -> void:
 	# Decay trauma over time (2.0/sec rate)
 	_trauma = maxf(_trauma - TRAUMA_DECAY_RATE * delta, 0.0)
+
+	# Apply screen shake if camera manager available and shake enabled in settings
+	if _camera_manager != null and _state_store != null and _screen_shake != null:
+		var state: Dictionary = _state_store.get_state()
+		if U_VFX_SELECTORS.is_screen_shake_enabled(state):
+			var intensity: float = U_VFX_SELECTORS.get_screen_shake_intensity(state)
+			var shake_data: Dictionary = _screen_shake.calculate_shake(_trauma, intensity, delta)
+			_camera_manager.apply_shake_offset(shake_data["offset"], shake_data["rotation"])
+		else:
+			# Reset shake when disabled (prevents lingering offset)
+			_camera_manager.apply_shake_offset(Vector2.ZERO, 0.0)
 
 ## Event handler for health_changed events
 ##
