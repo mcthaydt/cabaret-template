@@ -2,12 +2,14 @@
 
 ## Current Status
 
-- **Implementation status**: Phase 2 Complete (Screen Shake System)
+- **Implementation status**: Phase 3 Complete (Camera Manager Integration)
 - **Main scene**: `scenes/root.tscn` (project `run/main_scene` points here)
 - **Root bootstrap**: `scripts/scene_structure/main.gd` registers manager services via `U_ServiceLocator`
-- **Tests passing**: 65/60 tests (33/33 Redux + 17/17 Manager + 15/15 ScreenShake)
+- **Tests passing**: 65/65 tests (33/33 Redux + 17/17 Manager + 15/15 ScreenShake)
 - **Manager added**: `M_VFXManager` added to `scenes/root.tscn` under `Managers/` hierarchy
-- **Screen shake helper**: `U_ScreenShake` implemented with quadratic falloff and noise-based randomness
+- **Screen shake helper**: `M_ScreenShake` implemented with quadratic falloff and noise-based randomness
+- **Camera integration**: `M_CameraManager` has shake parent node hierarchy (ShakeParent → TransitionCamera); `M_VFXManager` applies shake via `apply_shake_offset()`
+- **ServiceLocator registration**: Both `M_VFXManager` and `M_CameraManager` registered with ServiceLocator
 
 ## Before You Start
 
@@ -20,13 +22,13 @@
 - There is **no** `scenes/main.tscn` in this project; add `M_VFXManager` to `scenes/root.tscn` under `Managers/`.
 - `U_ServiceLocator` lives at `res://scripts/core/u_service_locator.gd` and its API is `U_ServiceLocator.register(...)` / `get_service(...)` / `try_get_service(...)`.
 - There is **no** `MockECSEventBus` under `tests/mocks/`; use real `U_ECSEventBus` and call `U_ECSEventBus.reset()` in `before_each()` to prevent subscription leaks.
-- `M_CameraManager` currently supports camera blending only; shake APIs are not implemented yet.
+- `M_CameraManager` now supports both camera blending AND screen shake via `apply_shake_offset(offset: Vector2, rotation: float)`.
 - `LoadingOverlay` in `scenes/root.tscn` uses `layer = 100`; if you add a damage flash overlay scene, pick an explicit layer below it (docs recommend `layer = 50`).
 
 ## Next Step
 
-- Start at **Phase 3** in `docs/vfx manager/vfx-manager-tasks.md` and complete tasks in order.
-- Phase 3 focuses on Camera Manager Integration: Adding shake parent node to M_CameraManager and wiring VFX Manager to apply screen shake.
+- Start at **Phase 4** in `docs/vfx manager/vfx-manager-tasks.md` and complete tasks in order.
+- Phase 4 focuses on Damage Flash System: Creating damage flash overlay scene, implementing U_DamageFlash helper, and integrating with VFX Manager.
 - After each completed phase:
   - Update `docs/vfx manager/vfx-manager-tasks.md` checkboxes + completion notes
   - Update this file with the new current status + "next step" ONLY

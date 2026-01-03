@@ -1,7 +1,7 @@
 # VFX Manager - Task Checklist
 
-**Progress:** 70% (14 / 20 tasks complete)
-**Unit Tests:** 65 / 60 passing (Phase 0 Redux: 33/33, Phase 1 Manager: 17/17, Phase 2 ScreenShake: 15/15)
+**Progress:** 80% (16 / 20 tasks complete)
+**Unit Tests:** 65 / 65 passing (Phase 0 Redux: 33/33, Phase 1 Manager: 17/17, Phase 2 ScreenShake: 15/15)
 **Integration Tests:** 0 / 35 passing
 **Manual QA:** 0 / 9 complete
 
@@ -177,11 +177,11 @@
 
 ---
 
-## Phase 3: Camera Manager Integration
+## Phase 3: Camera Manager Integration ✅ COMPLETE
 
 **Exit Criteria:** Camera shake visible in-game, no gimbal lock at extreme camera angles, shake applied to parent node (not camera directly)
 
-- [ ] **Task 3.1 (Green)**: Integrate shake parent node into M_CameraManager
+- [x] **Task 3.1 (Green)**: Integrate shake parent node into M_CameraManager
   - Modify `scripts/managers/m_camera_manager.gd`
   - Add field: `var _shake_parent: Node3D = null`
   - Add method `_create_shake_parent() -> void`:
@@ -210,7 +210,7 @@
     ```
   - Shake parent approach prevents gimbal lock and isolates shake from camera rotation
 
-- [ ] **Task 3.2 (Green)**: Wire VFX Manager to Camera Manager shake application
+- [x] **Task 3.2 (Green)**: Wire VFX Manager to Camera Manager shake application
   - Modify `scripts/managers/m_vfx_manager.gd`
   - Add field: `var _camera_manager: M_CameraManager`, `var _screen_shake: M_ScreenShake`
   - Discover camera manager in `_ready()`: `_camera_manager = U_ServiceLocator.get_service(StringName("camera_manager"))`
@@ -231,6 +231,17 @@
             # Reset shake when disabled
             _camera_manager.apply_shake_offset(Vector2.ZERO, 0.0)
     ```
+
+**Completion Notes:**
+- All Phase 3 tasks completed successfully
+- M_CameraManager now has shake parent node hierarchy (ShakeParent → TransitionCamera)
+- M_CameraManager registered with ServiceLocator as "camera_manager"
+- M_VFXManager successfully discovers and applies shake via M_CameraManager
+- Screen shake applies to shake parent node, preventing gimbal lock
+- Shake respects VFX settings (enabled toggle, intensity multiplier 0.0-2.0)
+- All 65 unit tests passing (33 Redux + 17 Manager + 15 ScreenShake)
+- Trauma system fully integrated with camera shake application
+- Completed: 2025-01-02
 
 ---
 
@@ -475,12 +486,12 @@
 | `tests/unit/state/test_vfx_initial_state.gd` | ✅ Complete | 0 | 5 tests for initial state |
 | `tests/unit/state/test_vfx_reducer.gd` | ✅ Complete | 0 | 15 tests for reducer (includes clamping) |
 | `tests/unit/state/test_vfx_selectors.gd` | ✅ Complete | 0 | 10 tests for selectors |
-| `scripts/managers/m_vfx_manager.gd` | ✅ Complete | 1 | VFX manager with trauma system |
+| `scripts/managers/m_vfx_manager.gd` | ✅ Complete | 1, 3 | VFX manager with trauma system + camera integration |
 | `tests/unit/managers/test_vfx_manager.gd` | ✅ Complete | 1 | 17 tests for manager lifecycle + trauma |
 | `scenes/root.tscn` | ✅ Complete | 1 | Modified to add M_VFXManager node |
 | `scripts/managers/helpers/m_screen_shake.gd` | ✅ Complete | 2 | Screen shake helper with noise algorithm |
 | `tests/unit/managers/helpers/test_screen_shake.gd` | ✅ Complete | 2 | 15 tests for shake algorithm |
-| `scripts/managers/m_camera_manager.gd` | ⬜ Not Started | 3 | Modified to add shake parent + apply method |
+| `scripts/managers/m_camera_manager.gd` | ✅ Complete | 3 | Modified to add shake parent + apply method + ServiceLocator registration |
 | `scenes/ui/ui_damage_flash_overlay.tscn` | ⬜ Not Started | 4 | Damage flash overlay scene (CanvasLayer; recommend layer 50) |
 | `scripts/managers/helpers/u_damage_flash.gd` | ⬜ Not Started | 4 | Damage flash helper with tween fade |
 | `tests/unit/managers/helpers/test_damage_flash.gd` | ⬜ Not Started | 4 | 10 tests for damage flash |
