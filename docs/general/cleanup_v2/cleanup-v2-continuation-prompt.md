@@ -1,0 +1,79 @@
+# Cleanup V2 Continuation Prompt
+
+Use this prompt to resume Cleanup V2 work in a new session.
+
+---
+
+## Context
+
+Cleanup V2 is a focused maintenance pass to reduce scaling risk and improve long-term readability:
+
+1. **Reduce “big orchestrator” change risk** (notably `M_SceneManager` and `M_StateStore`) by extracting cohesive helpers and tightening boundaries.
+2. **Increase type/shape safety** for Redux actions/state by using action payload schemas for high-risk domains (scene/navigation/input/save).
+3. **Tighten enforcement** so naming/organization standards don’t drift (expand style/org tests to currently-uncovered core dirs).
+4. **Minor organization cleanups** (odd scene placements, inconsistent UI settings foldering, optional spawn-point ordering).
+
+Work should be **behavior-preserving by default** and executed with **TDD** where behavior/contracts change.
+
+---
+
+## Read First
+
+- `docs/general/STYLE_GUIDE.md`
+- `docs/general/SCENE_ORGANIZATION_GUIDE.md`
+- `docs/general/DEV_PITFALLS.md`
+- `docs/general/cleanup_v2/cleanup-v2-tasks.md`
+
+---
+
+## Decisions Locked (So Work Is Unambiguous)
+
+1. **Action validation:** Do **not** rewrite actions to “payload-only”. Extend `U_ActionRegistry` to validate **root action keys** (for `U_NavigationActions`) via `required_root_fields`.
+2. **Input sources naming:** Keep existing filenames under `scripts/input/sources/` and enforce via a **suffix rule**: `*_source.gd`.
+3. **UI overlay foldering:** Remove the one-off `scenes/ui/settings/` folder by moving `ui_vfx_settings_overlay.tscn` into `scenes/ui/`.
+
+---
+
+## Current Progress
+
+- Phase 0 started: tasks + continuation prompt created.
+- No code changes made yet.
+
+Next: Phase 0.3 baseline runs, then Phase 1 enforcement tightening.
+
+---
+
+## Ground Rules (TDD + Safety)
+
+1. **Follow TDD** for any contract change: Red → Green → Refactor.
+2. **Prefer characterization tests** before refactors of large orchestrators (lock in current behavior first).
+3. **Run style + scene org test** whenever moving/renaming scripts/scenes/resources:
+   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
+4. Keep public surfaces stable unless the tasks doc explicitly calls for policy changes.
+
+---
+
+## Suggested Execution Order (Lowest Risk → Highest Impact)
+
+1. **Baseline** (Phase 0.3): run unit + style suites and record results.
+2. **Enforcement tightening** (Phase 1): expand style/scene org tests to cover currently-unchecked dirs + recurse scene checks; enforce `scripts/input/sources/*_source.gd`.
+3. **Action schemas** (Phase 2): add schema tests + required_fields to “scene/navigation/input/save” actions.
+4. **Orchestrator decomposition** (Phase 3): characterization tests first, then extract one helper at a time.
+5. **Small org/UX polish** (Phase 4–5) as cleanup after the safety nets exist.
+
+---
+
+## Quick Start Prompt
+
+Copy this to start a new session:
+
+```
+I’m continuing Cleanup V2.
+
+Read:
+- docs/general/cleanup_v2/cleanup-v2-tasks.md
+- docs/general/STYLE_GUIDE.md
+- docs/general/SCENE_ORGANIZATION_GUIDE.md
+
+Start with Phase 0 Task 0.3 (baseline test runs), then continue in order. Follow TDD and update checkboxes as tasks complete.
+```
