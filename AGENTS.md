@@ -269,7 +269,7 @@
 ### Spawn Point Management
 
 - **Naming convention**: `sp_` prefix + descriptive name (e.g., `sp_entrance_from_exterior`)
-- **Container**: Place under `SP_SpawnPoints` (Node3D) in gameplay scenes
+- **Container**: Place under `Entities/SpawnPoints` (Node3D) in gameplay scenes
 - **Default spawn**: Name one marker `sp_default` for initial scene load
 - **Position**: Place spawn markers 2-3 units OUTSIDE trigger zones (prevents ping-pong)
 - **Automatic restoration**: M_SpawnManager applies spawn on scene load using:

@@ -821,7 +821,7 @@ EXCLUSIONS:
 ## Scene Node Naming (Non-script markers)
 
 - Entities: `E_` prefix, e.g., `E_Player`, `E_CameraRoot`.
-- Spawn container: `SP_SpawnPoints` (uses `spawn_points_group.gd`), placed at scene root.
+- Spawn container: `SpawnPoints` (uses `marker_spawn_points_group.gd`), placed under `Entities`.
 - Spawn markers: `sp_*` lowercase snake-case, e.g., `sp_entrance_from_exterior`, `sp_exit_from_house`.
   - Chosen to avoid collision with entity prefixes and to remain visually distinct.
 
@@ -831,7 +831,7 @@ EXCLUSIONS:
   - File: `scripts/scene_management/sp_spawn_point.gd`
   - Class: `SP_SpawnPoint`
   - Prefix pattern: `sp_*` (spawn point scripts live alongside `u_*`/`i_*` scene management helpers)
-  - Purpose: export an `RS_SpawnMetadata` resource on each `sp_*` node under `SP_SpawnPoints`.
+  - Purpose: export an `RS_SpawnMetadata` resource on each `sp_*` node under `SpawnPoints`.
 
 **Last Updated:** 2025-10-31
 **Version:** 1.0

@@ -178,7 +178,7 @@ The project already adheres strongly to its style and scene organization convent
 4. **Gameplay Scenes**:
    - Must follow the hierarchy defined in `SCENE_ORGANIZATION_GUIDE.md`:
      - Root Node3D with `main.gd`.
-     - `SceneObjects`, `Environment`, `Systems`, `Managers`, `Entities`, `SP_SpawnPoints`, `HUD` as appropriate.
+     - `SceneObjects`, `Environment`, `Systems`, `Managers`, `Entities`, `SpawnPoints`, `HUD` as appropriate.
    - System nodes and priorities must match the documented category layout.
 
 5. **Root Scene**:

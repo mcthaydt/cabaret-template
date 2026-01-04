@@ -1462,7 +1462,7 @@
 - [x] T288 Integrate U_SpawnRegistry with M_SpawnManager  
   - ✅ `M_SpawnManager.spawn_at_last_spawn()` now calls `U_SpawnRegistry.reload_from_scene(scene)` and gates all spawn ids through `_is_spawn_allowed()` (Phase 8 T082/T086).
 - [x] T289 Update scene templates to register spawn points in _ready()  
-  - ✅ Achieved via scene-attached `SP_SpawnPoint` nodes under `SP_SpawnPoints` in `gameplay_base`, `gameplay_exterior`, and `gameplay_interior_house` (no runtime registration needed; metadata is read directly from the scene).
+  - ✅ Achieved via scene-attached `SP_SpawnPoint` nodes under `SpawnPoints` in `gameplay_base`, `gameplay_exterior`, and `gameplay_interior_house` (no runtime registration needed; metadata is read directly from the scene).
 - [ ] T290 Add spawn_by_tag() method to M_SpawnManager - **DEFERRED**: Still not needed at current scale
 - [ ] T291 Document spawn registry patterns in quickstart - **DEFERRED**: Can be added when spawn_by_tag() is introduced; for now, see Phase 8 notes in `docs/general/cleanup/style-scene-cleanup-tasks.md`.
 

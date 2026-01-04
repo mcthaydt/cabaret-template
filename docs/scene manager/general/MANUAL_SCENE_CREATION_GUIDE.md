@@ -55,7 +55,7 @@ We tried programmatic scene generation (`U_SceneBuilder`) but it was **overengin
 
 ### 4. Add Spawn Point Marker
 
-1. Navigate to `Main > SP_SpawnPoints`
+1. Navigate to `Entities > SpawnPoints`
 2. Right-click → **Add Child Node** → Select `Node3D`
 3. Name it `sp_exit_from_house`
 4. Set Position: `x=0, y=0, z=0` (or wherever you want players to spawn when exiting interior)
@@ -96,7 +96,7 @@ Same as exterior, but:
 
 ### 4. Add Spawn Point Marker
 
-1. Add `Node3D` to `SP_SpawnPoints`
+1. Add `Node3D` to `SpawnPoints`
 2. Name it `sp_entrance_from_exterior`
 3. Position: `x=0, y=0, z=0` (where players spawn when entering from exterior)
 

@@ -283,7 +283,7 @@ These are intentionally explicit so the work can proceed without ambiguity:
     - `rg -n \"scenes/ui/settings/ui_vfx_settings_overlay\\.tscn\" -S .`
 
 - [x] **Task 4.3**: (Optional) Reorder gameplay Entities subtree for scanability
-  - Prefer `SP_SpawnPoints` first under `Entities` across gameplay scenes
+  - Prefer `SpawnPoints` first under `Entities` across gameplay scenes
   - Completed (2026-01-04): Reordered in `scenes/gameplay/gameplay_base.tscn`, `scenes/gameplay/gameplay_exterior.tscn`, and `scenes/gameplay/gameplay_interior_house.tscn`.
 - [x] **Task 4.4**: Plan + execute relocation of input-ish RS_* scripts currently under ECS
   - Moved to `scripts/input/resources/`:
@@ -307,6 +307,16 @@ These are intentionally explicit so the work can proceed without ambiguity:
 - [x] **Task 4.5**: Normalize objective container placement in gameplay scenes
   - Fix drift from `docs/general/SCENE_ORGANIZATION_GUIDE.md`: objective entities belong under `Entities/Objectives`.
   - Completed (2026-01-04): moved `E_FinalGoal` under `Entities/Objectives` in `scenes/gameplay/gameplay_exterior.tscn`.
+
+- [x] **Task 4.6**: Remove special-case spawn container prefix
+  - Standardize containers: spawn container is `SpawnPoints` (no `SP_` prefix), matching `Hazards`/`Objectives`.
+  - Updated:
+    - Gameplay scenes + templates + spawn registry path (`Entities/SpawnPoints`)
+    - Tests + style enforcement (spawn container must be under `Entities` and named `SpawnPoints`)
+  - Verification:
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/spawn_system`
+    - `tools/run_gut_suite.sh -gdir=res://tests/integration/spawn_system`
 
 ---
 

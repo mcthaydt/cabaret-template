@@ -145,7 +145,7 @@ For gameplay scenes, add spawn markers:
 
 ```
 E_Player (instance of templates/player_template.tscn)
-SP_SpawnPoints (Node3D)
+SpawnPoints (Node3D)
 ├─ sp_default (Node3D) - default spawn location
 ├─ sp_entrance_from_exterior (Node3D)
 └─ sp_exit_from_house (Node3D)
@@ -411,7 +411,7 @@ M_SceneManager: Scene 'my_scene' not found in U_SceneRegistry
 
 **Solutions**:
 1. Check spawn marker name matches `target_spawn_point` in door trigger
-2. Verify spawn marker is under `SP_SpawnPoints` container
+2. Verify spawn marker is under `SpawnPoints` container
 3. Ensure spawn marker naming uses `sp_` prefix (lowercase)
 
 Example:
@@ -420,7 +420,7 @@ Example:
 target_spawn_point: "sp_entrance_from_exterior"
 
 # In target scene:
-SP_SpawnPoints
+SpawnPoints
 └─ sp_entrance_from_exterior (Node3D at global_position where player should spawn)
 ```
 

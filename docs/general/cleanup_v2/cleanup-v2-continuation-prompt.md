@@ -63,6 +63,7 @@ Work should be **behavior-preserving by default** and executed with **TDD** wher
   - Task 4.4 complete: moved input RS resources from ECS into `scripts/input/resources/` and updated `.tres` + script references; style enforcement updated for the new directory.
   - Task 4.3 optional: complete (spawn point container ordered first under `Entities` across gameplay scenes).
   - Task 4.5 optional: complete (moved `E_FinalGoal` under `Entities/Objectives` in `gameplay_exterior` to match scene organization guide).
+  - Task 4.6 optional: complete (standardized spawn container to `SpawnPoints`; spawn registry + tests updated to use `Entities/SpawnPoints`).
 
 Next: Phase 5 small UX polish (Task 5.1).
 

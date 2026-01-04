@@ -60,7 +60,7 @@ GameplayRoot (Node3D) [main.gd]
 │  └─ M_StateStore
 │
 ├─ Entities (Node) [marker_entities_group.gd]
-│  ├─ SP_SpawnPoints (Node3D) [marker_spawn_points_group.gd]
+│  ├─ SpawnPoints (Node3D) [marker_spawn_points_group.gd]
 │  │  ├─ sp_entrance_from_exterior (Node3D) [marker_spawn_points_group.gd]
 │  │  ├─ sp_exit_from_house (Node3D) [marker_spawn_points_group.gd]
 │  │  └─ sp_default (Node3D) [marker_spawn_points_group.gd]
@@ -88,9 +88,9 @@ GameplayRoot (Node3D) [main.gd]
 
 **All child nodes MUST be properly nested under their parent containers:**
 
-1. **Spawn Points**: Individual spawn point markers (`sp_*`) must be children of the `SP_SpawnPoints` container node, NOT top-level siblings.
-   - ✅ Correct: `Entities/SP_SpawnPoints/sp_default`
-   - ❌ Wrong: `Entities/SP_SpawnPoints` and `SP_SpawnPoints#sp_default` as siblings
+1. **Spawn Points**: Individual spawn point markers (`sp_*`) must be children of the `SpawnPoints` container node, NOT top-level siblings.
+   - ✅ Correct: `Entities/SpawnPoints/sp_default`
+   - ❌ Wrong: `Entities/SpawnPoints` and `SpawnPoints#sp_default` as siblings
 
 2. **Entity Visual Children**: Meshes, lights, particles, and collision shapes must be children of their entity node, NOT siblings.
    - ✅ Correct: `Entities/Hazards/E_SpikeTrapA/MeshInstance3D`
@@ -321,7 +321,7 @@ All nodes should use **descriptive names with category prefixes** for clarity:
 
 - **Category Group Nodes:** Use descriptive names without prefixes
   - `Systems`, `Managers`, `Entities`, `SceneObjects`, `Environment`, `Core`, `Physics`, `Movement`, `Feedback`
-- **Spawn Points:** Use named Node3D markers under `SP_SpawnPoints` that describe the entry/exit.
+- **Spawn Points:** Use named Node3D markers under `SpawnPoints` that describe the entry/exit.
   - Examples: `sp_entrance_from_exterior`, `sp_exit_from_house`
   - Do not use generic markers like `E_PlayerSpawn` or `E_CameraSpawn`.
   - Container uses `SP_` prefix to indicate non-entity grouping.

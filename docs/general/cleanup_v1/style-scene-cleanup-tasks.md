@@ -309,8 +309,8 @@ version: "1.0"
 **High Severity Issues (6):**
 2. **Spawn point hierarchy violations** in ALL 3 gameplay scenes:
    - `gameplay_base.tscn`, `gameplay_exterior.tscn`, `gameplay_interior_house.tscn`
-   - Actual: `GameplayRoot/SP_SpawnPoints` (top-level)
-   - Expected: `GameplayRoot/Entities/SP_SpawnPoints` (per SCENE_ORGANIZATION_GUIDE.md lines 64-66)
+   - Actual: `GameplayRoot/SpawnPoints` (top-level)
+   - Expected: `GameplayRoot/Entities/SpawnPoints` (per SCENE_ORGANIZATION_GUIDE.md lines 64-66)
    - Impact: Breaks documented scene organization standard
 
 3. **Camera entity naming** inconsistent in 2 scenes:
@@ -404,7 +404,7 @@ version: "1.0"
   - **Estimated Time:** 20-30 minutes
 
 - [x] T038 Fix spawn point hierarchy in 3 gameplay scenes:
-  - Move `SP_SpawnPoints` under `Entities` node
+  - Move `SpawnPoints` under `Entities` node
   - **Estimated Time:** 10 minutes
   - **Note:** Individual spawn point marker scripts are correct (for editor icons)
 
@@ -1145,7 +1145,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Verify spawn_id values match actual Node names in `gameplay_base`, `gameplay_exterior`, and `gameplay_interior_house`.
 - [x] T086 Make spawn_at_last_spawn fully metadata-driven and scene-attached:
   - Replace folder-scanned metadata with scene-attached RS_SpawnMetadata:
-    - Rename/repurpose the existing SP_SpawnPoints children so each `sp_*` node uses a non-marker script (e.g., `sp_spawn_point.gd`) that exports an `RS_SpawnMetadata` resource.
+    - Rename/repurpose the existing SpawnPoints children so each `sp_*` node uses a non-marker script (e.g., `sp_spawn_point.gd`) that exports an `RS_SpawnMetadata` resource.
     - Marker scripts (like `marker_spawn_points_group.gd`) remain only on containers with no data; individual spawn points become data-bearing nodes with proper prefixes.
   - Update `_is_spawn_allowed()` / `spawn_at_last_spawn()` to build the registry from the current scene’s spawn point nodes (using their hooked resources) instead of only scanning `resources/spawn_metadata/`.
   - Ensure respawn selection always passes through U_SpawnRegistry for `target_spawn_point`, `last_checkpoint`, and `sp_default`, and that missing/misconfigured metadata fails loudly in tests.
