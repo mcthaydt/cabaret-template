@@ -2,8 +2,8 @@
 
 **Project**: Cabaret Template (Godot 4.5)
 **Created**: 2026-01-01
-**Last Updated**: 2026-01-01
-**Status**: READY FOR IMPLEMENTATION
+**Last Updated**: 2026-01-04
+**Status**: IMPLEMENTED (Phases 0-5); Phase 6 pending
 **Scope**: Screen shake, damage flash, gameplay visual effects (particle systems retained)
 
 ## Summary
@@ -14,7 +14,7 @@ The VFX Manager is a persistent orchestration layer for screen-level visual effe
 
 - Main scene is `scenes/root.tscn` (there is no `scenes/main.tscn` in this repo).
 - Service registration is bootstrapped by `scripts/scene_structure/main.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
-- `M_CameraManager` currently supports camera blending only; shake APIs will need to be added carefully so blending and shake don’t fight each other.
+- `M_CameraManager` supports both camera blending and screen shake via `apply_shake_offset(offset: Vector2, rotation: float)` (active scene camera, or TransitionCamera during blends).
 - Tests should use real `U_ECSEventBus` and call `U_ECSEventBus.reset()` in `before_each()` to prevent subscription leaks.
 - `LoadingOverlay` in `scenes/root.tscn` uses `layer = 100`; if adding a damage flash overlay scene, pick an explicit layer below it (docs recommend `layer = 50`).
 
@@ -68,12 +68,7 @@ The VFX Manager is a persistent orchestration layer for screen-level visual effe
 ```gdscript
 # Screen shake
 M_VFXManager.add_trauma(amount: float) -> void  # Adds trauma (0.0-1.0), clamped to max
-M_VFXManager.set_trauma(amount: float) -> void  # Sets trauma directly
 M_VFXManager.get_trauma() -> float              # Current trauma value
-
-# Damage flash
-M_VFXManager.trigger_damage_flash(intensity: float = 1.0) -> void
-M_VFXManager.is_damage_flash_active() -> bool
 
 # VFX selectors (query from Redux state)
 U_VFXSelectors.is_screen_shake_enabled(state: Dictionary) -> bool
@@ -116,7 +111,7 @@ func _physics_process(delta: float) -> void:
 | `max_offset` | Vector2(10, 8) | Maximum camera offset in pixels |
 | `max_rotation` | 0.05 | Maximum rotation in radians |
 | `decay_rate` | 2.0 | Trauma decay per second |
-| `noise_speed` | 5.0 | Perlin noise sample speed |
+| `noise_speed` | 50.0 | FastNoiseLite sample speed |
 
 ### Shake Calculation
 
@@ -142,33 +137,20 @@ func _apply_shake() -> void:
 
 | Event | Trauma Amount | Description |
 |-------|---------------|-------------|
-| `health_changed` | 0.3 - 0.6 | Based on damage amount (previous_health - new_health) |
-| `entity_landed` (heavy) | 0.2 - 0.4 | Based on fall velocity (abs(vertical_velocity)) |
+| `health_changed` | 0.3 - 0.6 | Based on damage amount (`previous_health - new_health`) |
+| `entity_landed` (heavy) | 0.2 - 0.4 | Based on fall velocity (`abs(vertical_velocity)`) |
 | `entity_death` | 0.5 | Death impact |
 | Explosion (future) | 0.6 - 0.8 | Area effect |
 
 ### Camera Manager Integration
 
-`M_CameraManager` needs the following methods added during implementation:
+`M_CameraManager` exposes:
 
 ```gdscript
-# TO BE ADDED to M_CameraManager during VFX Manager implementation
-var _shake_offset: Vector2 = Vector2.ZERO
-var _shake_rotation: float = 0.0
-
-func apply_shake_offset(offset: Vector2, rotation: float) -> void:
-    if _transition_camera:
-        # Apply offset relative to camera's forward/right vectors
-        _shake_offset = offset
-        _shake_rotation = rotation
-        # Apply to active camera in _physics_process
-
-func clear_shake_offset() -> void:
-    _shake_offset = Vector2.ZERO
-    _shake_rotation = 0.0
+func apply_shake_offset(offset: Vector2, rotation: float) -> void
 ```
 
-**Note**: These methods do not currently exist in `M_CameraManager`. They must be implemented as part of the VFX Manager feature to enable screen shake functionality.
+Shake is applied to a ShakeParent Node3D above the active camera (or above the TransitionCamera during blends) so shake does not fight camera blending and does not introduce gimbal lock.
 
 ## Damage Flash System
 

@@ -4,10 +4,10 @@
 **Owner**: Development Team
 **Feature Branch**: `feature/vfx-manager`
 **Created**: 2026-01-01
-**Last Updated**: 2026-01-01
-**Target Release**: Phase 1 (2 weeks)
-**Status**: READY FOR IMPLEMENTATION
-**Version**: 1.0
+**Last Updated**: 2026-01-04
+**Target Release**: Phase 6 (Testing & Integration)
+**Status**: IMPLEMENTED (Phases 0-5); Phase 6 pending
+**Version**: 1.1
 
 ## Problem Statement
 
@@ -297,32 +297,19 @@ func _physics_process(delta: float) -> void:
 ```
 
 **FR-010: Public API Methods**
-The manager SHALL expose the following public API:
+The manager SHALL expose a minimal public API for trauma control:
 
 ```gdscript
 ## Add trauma amount (accumulates up to 1.0)
 func add_trauma(amount: float) -> void:
 	_trauma = minf(_trauma + amount, 1.0)
 
-## Set trauma directly (clamped to 0.0-1.0)
-func set_trauma(amount: float) -> void:
-	_trauma = clampf(amount, 0.0, 1.0)
-
 ## Get current trauma value
 func get_trauma() -> float:
 	return _trauma
-
-## Trigger damage flash overlay
-func trigger_damage_flash(intensity: float = 1.0) -> void:
-	if _damage_flash != null:
-		_damage_flash.trigger(intensity)
-
-## Check if damage flash is currently active
-func is_damage_flash_active() -> bool:
-	if _damage_flash != null:
-		return _damage_flash.is_active()
-	return false
 ```
+
+Damage flash triggering remains an internal manager concern (wired from ECS events) until a concrete use-case requires a public API.
 
 ### Phase 2: Screen Shake System (FR-011 to FR-014)
 
@@ -404,58 +391,14 @@ When `screen_shake_enabled` is `false`, the system SHALL:
 ### Phase 3: Camera Manager Integration (FR-015 to FR-016)
 
 **FR-015: apply_shake_offset() Method**
-`M_CameraManager` SHALL add shake parent node and `apply_shake_offset(offset: Vector2, rotation: float)` method:
+`M_CameraManager` SHALL expose `apply_shake_offset(offset: Vector2, rotation: float) -> void` and apply shake to a ShakeParent Node3D above the active camera:
+- During camera blending, shake is applied to the TransitionCamera parent.
+- Otherwise, shake is applied to the active scene camera parent (inserting a runtime ShakeParent above the active camera if needed).
 
-```gdscript
-# scripts/managers/m_camera_manager.gd
-
-var _shake_offset: Vector2 = Vector2.ZERO
-var _shake_rotation: float = 0.0
-var _shake_parent: Node3D = null  # Parent node for shake offset
-
-## Create shake parent node (called in _ready after transition camera creation)
-func _create_shake_parent() -> void:
-	_shake_parent = Node3D.new()
-	_shake_parent.name = "ShakeParent"
-	add_child(_shake_parent)
-
-	# Reparent transition camera under shake parent
-	if _transition_camera != null:
-		remove_child(_transition_camera)
-		_shake_parent.add_child(_transition_camera)
-
-## Apply screen shake offset to camera (called by VFX Manager)
-## Uses parent node approach to isolate shake from camera rotation
-func apply_shake_offset(offset: Vector2, rotation: float) -> void:
-	_shake_offset = offset
-	_shake_rotation = rotation
-
-	if _shake_parent == null or _transition_camera == null:
-		return
-
-	# Convert 2D offset to 3D using camera basis vectors
-	var right := _transition_camera.global_transform.basis.x
-	var up := _transition_camera.global_transform.basis.y
-	var offset_3d := right * offset.x * 0.01 + up * offset.y * 0.01
-
-	# Apply shake to parent (leaves camera rotation independent)
-	_shake_parent.position = offset_3d
-	_shake_parent.rotation.z = rotation
-```
+Clearing shake is performed by calling `apply_shake_offset(Vector2.ZERO, 0.0)`.
 
 **FR-016: clear_shake_offset() Method**
-`M_CameraManager` SHALL add `clear_shake_offset()` method:
-
-```gdscript
-## Clear screen shake offset (called when trauma reaches zero)
-func clear_shake_offset() -> void:
-	if _shake_parent != null:
-		_shake_parent.position = Vector3.ZERO
-		_shake_parent.rotation = Vector3.ZERO
-
-	_shake_offset = Vector2.ZERO
-	_shake_rotation = 0.0
-```
+Optional convenience wrapper around `apply_shake_offset(Vector2.ZERO, 0.0)`.
 
 ### Phase 4: Damage Flash System (FR-017 to FR-019)
 
@@ -526,22 +469,18 @@ The settings UI SHALL integrate VFX controls with:
 - Screen shake toggle (CheckBox)
 - Screen shake intensity slider (HSlider, range 0.0-2.0, step 0.1)
 - Damage flash toggle (CheckBox)
-- Auto-save pattern (immediate Redux dispatch on change)
+- Apply/Cancel/Reset pattern (dispatch on Apply)
 
 ```gdscript
-# In settings panel VFX tab
+# In settings overlay Apply handler
 
-func _on_screen_shake_toggle_toggled(button_pressed: bool) -> void:
-	if _store != null:
-		_store.dispatch(U_VFXActions.set_screen_shake_enabled(button_pressed))
+func _on_apply_pressed() -> void:
+	if _store == null:
+		return
 
-func _on_shake_intensity_slider_value_changed(value: float) -> void:
-	if _store != null:
-		_store.dispatch(U_VFXActions.set_screen_shake_intensity(value))
-
-func _on_damage_flash_toggle_toggled(button_pressed: bool) -> void:
-	if _store != null:
-		_store.dispatch(U_VFXActions.set_damage_flash_enabled(button_pressed))
+	_store.dispatch(U_VFXActions.set_screen_shake_enabled(_shake_enabled_toggle.button_pressed))
+	_store.dispatch(U_VFXActions.set_screen_shake_intensity(_intensity_slider.value))
+	_store.dispatch(U_VFXActions.set_damage_flash_enabled(_flash_enabled_toggle.button_pressed))
 ```
 
 ## Key Entities
@@ -851,9 +790,9 @@ func _on_damage_flash_toggle_toggled(button_pressed: bool) -> void:
 
 **Deliverables**:
 1. VFX settings tab UI controls
-2. Auto-save pattern implementation
-3. `tests/integration/vfx/test_vfx_integration.gd` - 15 integration tests
-4. `tests/integration/vfx/test_vfx_settings_ui.gd` - 10 integration tests
+2. Apply/Cancel/Reset pattern implementation
+3. `tests/integration/vfx/test_vfx_camera_integration.gd` - integration tests
+4. `tests/integration/vfx/test_vfx_settings_ui.gd` - UI integration tests
 
 **Commit 1: Settings UI Controls**
 - Add VFX tab to settings panel (or Accessibility tab)
@@ -861,10 +800,10 @@ func _on_damage_flash_toggle_toggled(button_pressed: bool) -> void:
 - Screen shake intensity slider (HSlider, 0.0-2.0, step 0.1)
 - Damage flash toggle (CheckBox)
 
-**Commit 2: Auto-Save Pattern**
-- Connect toggle signals to immediate Redux dispatch
-- Connect slider `value_changed` to Redux dispatch
-- No Apply/Cancel buttons (settings apply instantly)
+**Commit 2: Apply/Cancel Pattern**
+- Changes remain local until Apply
+- Apply dispatches `U_VFXActions` updates
+- Cancel closes without dispatching changes
 
 **Commit 3: Integration Tests**
 - Write 15 integration tests for full VFX system
@@ -1305,8 +1244,8 @@ tests/integration/vfx/
   ```
 
 **5. Settings Panel UI** (existing architecture):
-- Add VFX tab to settings panel
-- Follow auto-save pattern (immediate dispatch on change)
+- Add VFX settings overlay to settings menu
+- Follow Apply/Cancel/Reset pattern (dispatch on Apply)
 - Use `U_FocusConfigurator` for gamepad focus navigation
 
 ### Integration Order

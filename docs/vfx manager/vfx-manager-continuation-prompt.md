@@ -6,17 +6,21 @@
 - **Main scene**: `scenes/root.tscn` (project `run/main_scene` points here)
 - **Root bootstrap**: `scripts/scene_structure/main.gd` registers manager services via `U_ServiceLocator`
 - **Tests passing**: 75/75 tests (33/33 Redux + 17/17 Manager + 15/15 ScreenShake + 10/10 DamageFlash)
+- **Phase 6 status**: Not started (integration tests + manual QA pending)
 - **Manager added**: `M_VFXManager` added to `scenes/root.tscn` under `Managers/` hierarchy
 - **Screen shake helper**: `M_ScreenShake` implemented with quadratic falloff and noise-based randomness
 - **Damage flash helper**: `M_DamageFlash` implemented with 0.4s fade duration and tween-based animation
 - **Damage flash overlay**: Scene created at `scenes/ui/ui_damage_flash_overlay.tscn` (CanvasLayer layer 50)
-- **Camera integration**: `M_CameraManager` has shake parent node hierarchy (ShakeParent → TransitionCamera); `M_VFXManager` applies shake via `apply_shake_offset()`
+- **Camera integration**: `M_CameraManager.apply_shake_offset()` applies shake to the active gameplay camera (or TransitionCamera during blends) via a ShakeParent Node3D
 - **Flash integration**: `M_VFXManager` loads damage flash overlay on `_ready()` and triggers flash on `health_changed` events when enabled
 - **ServiceLocator registration**: Both `M_VFXManager` and `M_CameraManager` registered with ServiceLocator
 - **Settings UI**: VFX settings overlay created at `scenes/ui/settings/ui_vfx_settings_overlay.tscn`
 - **Settings integration**: "Visual Effects" button added to settings menu, registered in UI/scene registries
 - **Apply/Cancel pattern**: Settings use Apply/Cancel/Reset buttons (consistent with gamepad/touchscreen settings)
 - **State persistence**: VFX settings persist via Redux state persistence (VFX slice)
+- **Post-audit fixes applied**:
+  - Fixed `M_StateStore.subscribe()` callback arity mismatch in `UI_VFXSettingsOverlay`
+  - Updated `M_VFXManager` to parse typed `health_changed` payload (`previous_health/new_health`) and `entity_landed` payload (`vertical_velocity`)
 
 ## Before You Start
 

@@ -1,9 +1,9 @@
 # VFX Manager - Task Checklist
 
-**Progress:** 100% (20 / 20 tasks complete)
+**Progress:** 20 / 26 tasks complete (Phases 0-5 complete; Phase 6 pending)
 **Unit Tests:** 75 / 75 passing (Phase 0 Redux: 33/33, Phase 1 Manager: 17/17, Phase 2 ScreenShake: 15/15, Phase 4 DamageFlash: 10/10)
-**Integration Tests:** 0 / 35 passing
-**Manual QA:** 0 / 9 complete
+**Integration Tests:** 0 / 35 passing (Phase 6 pending)
+**Manual QA:** 0 / 9 complete (Phase 6 pending)
 
 ---
 
@@ -241,7 +241,7 @@
 - Shake respects VFX settings (enabled toggle, intensity multiplier 0.0-2.0)
 - All 65 unit tests passing (33 Redux + 17 Manager + 15 ScreenShake)
 - Trauma system fully integrated with camera shake application
-- Completed: 2025-01-02
+- Completed: 2026-01-02
 
 ---
 
@@ -317,7 +317,13 @@
     ```gdscript
     func _on_health_changed(event_data: Dictionary) -> void:
         var payload := event_data.get("payload", {})
-        var damage := payload.get("damage", 0.0)
+        var previous_health := float(payload.get("previous_health", 0.0))
+        var new_health := float(payload.get("new_health", previous_health))
+        var is_dead := bool(payload.get("is_dead", false))
+        if is_dead:
+            return
+
+        var damage := maxf(previous_health - new_health, 0.0)
 
         # Add trauma based on damage
         var trauma_amount := remap(damage, 0.0, 100.0, 0.3, 0.6)
@@ -342,7 +348,7 @@
 - Null safety implemented (gracefully handles null flash_rect or scene_tree)
 - Total unit tests: 75/75 passing (33 Redux + 17 Manager + 15 ScreenShake + 10 DamageFlash)
 - Style enforcement tests passing (7/7) - correctly uses m_ prefix for manager helper
-- Completed: 2025-01-03
+- Completed: 2026-01-03
 
 ---
 
@@ -354,91 +360,42 @@
   - Create `scenes/ui/settings/ui_vfx_settings_overlay.tscn`
   - Scene structure:
     ```
-    VBoxContainer (name="VFXSettingsTab")
-    ├── Label (text="VISUAL EFFECTS", theme_variant="heading")
-    ├── HBoxContainer (name="ShakeEnabledRow")
-    │   ├── CheckBox (name="ShakeEnabledToggle")
-    │   └── Label (text="Screen Shake")
-    ├── HBoxContainer (name="ShakeIntensityRow")
-    │   ├── Label (text="Intensity")
-    │   ├── HSlider (name="IntensitySlider", min=0.0, max=2.0, step=0.1, value=1.0)
-    │   └── Label (name="IntensityPercentage", text="100%")
-    ├── HBoxContainer (name="FlashEnabledRow")
-    │   ├── CheckBox (name="FlashEnabledToggle")
-    │   └── Label (text="Damage Flash")
+    Control (name="VFXSettingsOverlay")  # BaseOverlay
+    ├── ColorRect (name="Background")
+    └── CenterContainer
+        └── PanelContainer
+            └── VBoxContainer
+                ├── Label (name="Title")
+                ├── HSeparator
+                ├── HBoxContainer (name="ShakeEnabledRow")
+                │   ├── Label (name="ShakeEnabledLabel")
+                │   └── CheckButton (name="ShakeEnabledToggle")
+                ├── HBoxContainer (name="ShakeIntensityRow")
+                │   ├── Label (name="IntensityLabel")
+                │   ├── HSlider (name="IntensitySlider", max=2.0, step=0.1, value=1.0)
+                │   └── Label (name="IntensityPercentage", text="100%")
+                ├── HSeparator
+                ├── HBoxContainer (name="FlashEnabledRow")
+                │   ├── Label (name="FlashEnabledLabel")
+                │   └── CheckButton (name="FlashEnabledToggle")
+                ├── Control (name="Spacer")
+                └── HBoxContainer (name="ButtonRow")
+                    ├── Button (name="CancelButton")
+                    ├── Button (name="ResetButton")
+                    └── Button (name="ApplyButton")
     ```
   - All controls use focus navigation for gamepad support
 
 - [x] **Task 5.2 (Green)**: Implement VFX settings overlay script
   - Created `scripts/ui/settings/ui_vfx_settings_overlay.gd`
-  - Extends BaseOverlay (follows existing pattern)
-  - Implemented script structure:
-    ```gdscript
-    extends VBoxContainer
-    class_name UI_VFXSettingsTab
-
-    var _state_store: I_StateStore
-    var _unsubscribe: Callable
-
-    @onready var _shake_enabled_toggle := %ShakeEnabledToggle as CheckBox
-    @onready var _intensity_slider := %IntensitySlider as HSlider
-    @onready var _intensity_percentage := %IntensityPercentage as Label
-    @onready var _flash_enabled_toggle := %FlashEnabledToggle as CheckBox
-
-    func _ready() -> void:
-        _state_store = U_ServiceLocator.get_service(StringName("state_store"))
-        if _state_store == null:
-            push_error("VFX Settings Tab: StateStore not found")
-            return
-
-        # Connect UI signals
-        _shake_enabled_toggle.toggled.connect(_on_shake_enabled_toggled)
-        _intensity_slider.value_changed.connect(_on_intensity_changed)
-        _flash_enabled_toggle.toggled.connect(_on_flash_enabled_toggled)
-
-        # Subscribe to state changes
-        _unsubscribe = _state_store.subscribe(_on_state_changed)
-        _on_state_changed(_state_store.get_state())
-
-    func _exit_tree() -> void:
-        if _unsubscribe.is_valid():
-            _unsubscribe.call()
-
-    func _on_state_changed(state: Dictionary) -> void:
-        # Update UI from state (without triggering signals)
-        _shake_enabled_toggle.set_block_signals(true)
-        _shake_enabled_toggle.button_pressed = U_VFX_SELECTORS.is_screen_shake_enabled(state)
-        _shake_enabled_toggle.set_block_signals(false)
-
-        _intensity_slider.set_block_signals(true)
-        var intensity := U_VFX_SELECTORS.get_screen_shake_intensity(state)
-        _intensity_slider.value = intensity
-        _intensity_slider.set_block_signals(false)
-        _update_percentage_label(intensity)
-
-        _flash_enabled_toggle.set_block_signals(true)
-        _flash_enabled_toggle.button_pressed = U_VFX_SELECTORS.is_damage_flash_enabled(state)
-        _flash_enabled_toggle.set_block_signals(false)
-
-    func _on_shake_enabled_toggled(pressed: bool) -> void:
-        if _state_store:
-            _state_store.dispatch(U_VFX_ACTIONS.set_screen_shake_enabled(pressed))
-
-    func _on_intensity_changed(value: float) -> void:
-        if _state_store:
-            _state_store.dispatch(U_VFX_ACTIONS.set_screen_shake_intensity(value))
-        _update_percentage_label(value)
-
-    func _on_flash_enabled_toggled(pressed: bool) -> void:
-        if _state_store:
-            _state_store.dispatch(U_VFX_ACTIONS.set_damage_flash_enabled(pressed))
-
-    func _update_percentage_label(value: float) -> void:
-        _intensity_percentage.text = "%d%%" % int(value * 100.0)
-    ```
-  - Auto-save pattern: immediate Redux dispatch on change (no Apply button needed)
-  - Uses `set_block_signals()` to prevent feedback loops when updating UI from state
-  - Subscribes to state changes and updates UI reactively
+  - Extends `BaseOverlay` and follows the existing settings overlay pattern (`UI_GamepadSettingsOverlay`, `UI_TouchscreenSettingsOverlay`)
+  - Uses `M_StateStore.subscribe()` for reactive initialization/updates (callback signature is `(action: Dictionary, state: Dictionary)`)
+  - **Apply/Cancel/Reset pattern**:
+    - Edits are local until Apply
+    - Apply dispatches: `U_VFXActions.set_screen_shake_enabled`, `set_screen_shake_intensity`, `set_damage_flash_enabled`
+    - Cancel closes without dispatching changes
+    - Reset restores default control values (still requires Apply to persist)
+  - Unsubscribes in `_exit_tree()` to prevent leaks
 
 - [x] **Task 5.3 (Green)**: Wire VFX settings into settings panel
   - Added "Visual Effects" button to `scenes/ui/ui_settings_menu.tscn`
@@ -459,13 +416,17 @@
 - UI registry and scene registry updated correctly
 - Focus navigation configured for gamepad support (vertical + horizontal button row)
 - All existing tests still passing (75/75)
-- Completed: 2025-01-03 (initial auto-save), Updated: 2025-01-03 (Apply/Cancel pattern)
+- Completed: 2026-01-03 (initial implementation), Updated: 2026-01-03 (Apply/Cancel pattern)
+- Post-audit fixes (2026-01-04):
+  - Fixed `M_StateStore.subscribe()` callback arity mismatch in `UI_VFXSettingsOverlay`
+  - Fixed `M_VFXManager` ECS event payload parsing to match typed event payloads (`previous_health/new_health`, `vertical_velocity`)
+  - Fixed `M_CameraManager.apply_shake_offset()` to affect the active scene camera (not just `TransitionCamera`)
 
 ---
 
 ## Phase 6: Testing & Integration
 
-**Exit Criteria:** All 95 tests pass (60 unit + 35 integration), manual playtest successful, no console errors
+**Exit Criteria:** All 110 tests pass (75 unit + 35 integration), manual playtest successful, no console errors
 
 - [ ] **Task 6.1 (Red)**: Write integration test for VFX-Camera interaction
   - Create `tests/integration/vfx/test_vfx_camera_integration.gd`
@@ -479,7 +440,7 @@
 
 - [ ] **Task 6.3 (Red)**: Write integration test for VFX settings UI
   - Create `tests/integration/vfx/test_vfx_settings_ui.gd`
-  - Tests: UI controls initialize from Redux state, toggling shake enabled dispatches action and updates state, changing intensity slider dispatches action and updates state, toggling flash enabled dispatches action and updates state, state changes update UI (bidirectional binding), settings persist to save file, settings restore from save file
+  - Tests: UI controls initialize from Redux state, changes do not dispatch until Apply, Apply dispatches actions and updates state, Cancel discards changes, Reset restores defaults (requires Apply), state changes update UI when not mid-edit, settings persist to save file, settings restore from save file
   - All tests failing as expected
 
 - [ ] **Task 6.4 (Green)**: Verify VFX settings UI integration passes tests
@@ -496,11 +457,11 @@
   - [ ] Flash respects enabled toggle (toggle off → no flash, toggle on → flash resumes)
   - [ ] Multiple hits restart fade (no stacking/flickering, tween killed and restarted)
   - [ ] Settings persist across save/load (change settings → save → quit → load → settings restored)
-  - [ ] UI updates reflect in game immediately (no delay, auto-save on change)
+  - [ ] UI updates reflect in game immediately on Apply (no delay after Apply)
 
 - [ ] **Task 6.6 (Testing)**: Run full test suite
   - Command: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit`
-  - Verify all 95 tests pass (60 unit + 35 integration)
+  - Verify all 110 tests pass (75 unit + 35 integration)
   - Verify no console errors or warnings
   - All tests passing, Phase 6 complete
 

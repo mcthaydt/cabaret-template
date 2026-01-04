@@ -1178,23 +1178,36 @@ if not _is_active_tab_visible():
 
 ### Auto-Save vs Apply/Cancel Pattern
 
-**Problem**: Apply/Cancel buttons add unnecessary complexity and UI clutter for Redux-based settings
+**Problem**: Inconsistent settings UX and mismatched state synchronization patterns cause confusing behavior (unexpected immediate changes, lost local edits, or settings that feel like they “didn’t save”).
 
-**Solution**: Dispatch Redux actions immediately on slider/toggle changes
+**Guideline**:
+- **Default: auto-save** (immediate dispatch) for simple, low-risk settings where each control maps cleanly to a single action.
+- **Use Apply/Cancel** when changes should be **atomic across multiple fields**, when there is a **preview/test mode**, or when changes are potentially disruptive and the user should confirm.
+
+**Auto-save (immediate dispatch)**:
 ```gdscript
-# ❌ WRONG - batching with Apply button
-var _pending_changes: Dictionary = {}
-func _on_slider_changed(value: float):
-    _pending_changes["deadzone"] = value  # Local state
-func _on_apply_pressed():
-    store.dispatch(U_InputActions.update_settings(_pending_changes))
+func _on_slider_changed(value: float) -> void:
+	store.dispatch(U_InputActions.update_gamepad_setting("left_stick_deadzone", value))
+```
 
-# ✅ CORRECT - auto-save (immediate dispatch)
-func _on_left_deadzone_changed(value: float):
-    store.dispatch(U_InputActions.update_gamepad_setting("left_stick_deadzone", value))
-    # ✅ Saved to Redux immediately
-    # ❌ No local "dirty state" tracking
-    # ❌ No Apply/Cancel buttons needed
+**Apply/Cancel (dispatch on Apply)**:
+```gdscript
+func _on_apply_pressed() -> void:
+	store.dispatch(U_VFXActions.set_screen_shake_enabled(_shake_enabled_toggle.button_pressed))
+	store.dispatch(U_VFXActions.set_screen_shake_intensity(_intensity_slider.value))
+```
+
+**Tip**: If using Apply/Cancel, guard against external state updates overwriting local edits while the overlay is open (see the `_has_local_edits` pattern in touchscreen settings).
+
+### M_StateStore.subscribe Callback Signature
+
+**Problem**: `M_StateStore.subscribe()` calls subscribers with **two arguments** `(action, state)`. If your callback only accepts one argument, it will throw at runtime when an action is dispatched.
+
+**Solution**: Match the signature:
+```gdscript
+func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
+	# Update UI from state
+	pass
 ```
 
 ### Tab Content vs Parent Navigation
