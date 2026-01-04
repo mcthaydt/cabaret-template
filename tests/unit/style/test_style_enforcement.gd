@@ -6,6 +6,12 @@ const GD_DIRECTORIES := [
 	"res://scripts/state",
 	"res://scripts/ui",
 	"res://scripts/managers",
+	"res://scripts/core",
+	"res://scripts/interfaces",
+	"res://scripts/utils",
+	"res://scripts/input",
+	"res://scripts/scene_management",
+	"res://scripts/events",
 	"res://scripts/scene_structure",
 	"res://tests/unit/interactables",
 	"res://tests/unit/input",
@@ -27,6 +33,11 @@ const SCRIPT_FILENAME_EXCEPTIONS := [
 
 # Valid prefixes by directory
 const SCRIPT_PREFIX_RULES := {
+	"res://scripts/core": ["u_"],
+	"res://scripts/interfaces": ["i_"],
+	"res://scripts/utils": ["u_"],
+	"res://scripts/input": ["u_", "i_"],
+	"res://scripts/input/sources": [""], # Wildcard: validated by suffix rule (see test_input_source_scripts_follow_suffix_rule)
 	"res://scripts/managers": ["m_"],
 	"res://scripts/ecs/systems": ["s_", "m_"], # m_ for M_PauseManager
 	"res://scripts/ecs/components": ["c_"],
@@ -141,6 +152,20 @@ func test_scripts_follow_prefix_conventions() -> void:
 		message += "\n\nSee STYLE_GUIDE.md for complete prefix matrix."
 	else:
 		message += " - all scripts compliant!"
+
+	assert_eq(violations.size(), 0, message)
+
+func test_input_source_scripts_follow_suffix_rule() -> void:
+	var violations: Array[String] = []
+
+	_check_script_suffix_directory("res://scripts/input/sources", "_source.gd", violations)
+
+	var message := "Input sources must follow documented naming patterns"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+		message += "\n\nSee STYLE_GUIDE.md input sources section."
+	else:
+		message += " - all input sources compliant!"
 
 	assert_eq(violations.size(), 0, message)
 
@@ -316,6 +341,25 @@ func _is_valid_script_name(filename: String, allowed_prefixes: Array) -> bool:
 func _is_exception(filename: String) -> bool:
 	return filename.begins_with("test_") or filename in SCRIPT_FILENAME_EXCEPTIONS
 
+func _check_script_suffix_directory(dir_path: String, required_suffix: String, violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_check_script_suffix_directory("%s/%s" % [dir_path, entry], required_suffix, violations)
+		elif entry.ends_with(".gd"):
+			if not entry.ends_with(required_suffix):
+				violations.append("%s/%s - must end with '%s'" % [
+					dir_path, entry, required_suffix
+				])
+		entry = dir.get_next()
+	dir.list_dir_end()
+
 func _check_scene_directory(dir_path: String, required_prefix: String, violations: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
@@ -324,7 +368,10 @@ func _check_scene_directory(dir_path: String, required_prefix: String, violation
 	dir.list_dir_begin()
 	var entry := dir.get_next()
 	while entry != "":
-		if not dir.current_is_dir() and entry.ends_with(".tscn"):
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_check_scene_directory("%s/%s" % [dir_path, entry], required_prefix, violations)
+		elif entry.ends_with(".tscn"):
 			if not entry.begins_with(required_prefix):
 				violations.append("%s/%s - must start with '%s'" % [
 					dir_path, entry, required_prefix
