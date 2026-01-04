@@ -317,6 +317,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 height = 1.0
 material = SubResource("StandardMaterial3D_spike")
 
+[node name="Objectives" type="Node" parent="Entities" unique_id=232368966]
+script = ExtResource("16_8qi87")
+
 [node name="E_Checkpoint_SafeZone" type="Node3D" parent="Entities" unique_id=1409158797]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.9000635, 0, -5.877161)
 script = ExtResource("43_checkpoint_zone_script")
@@ -341,22 +344,22 @@ tags = Array[StringName]([&"interactable", &"tutorial"])
 radius = 0.15387383
 material = SubResource("StandardMaterial3D_12vux")
 
-[node name="E_FinalGoal" type="Node3D" parent="Entities" unique_id=1110989240]
+[node name="E_FinalGoal" type="Node3D" parent="Entities/Objectives" unique_id=1110989240]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -5)
 script = ExtResource("41_goal_script")
 entity_id = &"finalgoal"
 tags = Array[StringName]([&"objective", &"endgame"])
 
-[node name="Visual" type="CSGCylinder3D" parent="Entities/E_FinalGoal" unique_id=349723653]
+[node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_FinalGoal" unique_id=349723653]
 radius = 1.5
 material = SubResource("StandardMaterial3D_goal")
 
-[node name="GlowLight" type="OmniLight3D" parent="Entities/E_FinalGoal" unique_id=1268342821]
+[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1268342821]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 light_color = Color(1, 0.87451, 0.364706, 1)
 light_energy = 2.5
 
-[node name="Sparkles" type="CPUParticles3D" parent="Entities/E_FinalGoal" unique_id=1724100335]
+[node name="Sparkles" type="CPUParticles3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1724100335]
 amount = 80
 lifetime = 1.5
 preprocess = 0.5
