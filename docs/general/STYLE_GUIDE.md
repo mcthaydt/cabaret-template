@@ -181,6 +181,13 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 | **Input Utilities** | `u_input_*.gd` | `U_Input*` | `u_input_rebind_utils.gd` → `U_InputRebindUtils`, `u_input_serialization.gd` → `U_InputSerialization` |
 | **Input Components** | `c_*_component.gd` | `C_*Component` | `c_input_component.gd` → `C_InputComponent`, `c_gamepad_component.gd` → `C_GamepadComponent` |
 | **Input Systems** | `s_*_system.gd` | `S_*System` | `s_input_system.gd` → `S_InputSystem`, `s_touchscreen_system.gd` → `S_TouchscreenSystem` |
+| **Input Sources** | `*_source.gd` (in `scripts/input/sources/`) | `*Source` | `keyboard_mouse_source.gd` → `KeyboardMouseSource` |
+
+##### Input Sources
+
+- Location: `scripts/input/sources/`
+- File pattern: `*_source.gd`
+- Class pattern (informational): `*Source`
 
 #### Scene Management Layer
 | Category | File Pattern | Class Pattern | Examples |

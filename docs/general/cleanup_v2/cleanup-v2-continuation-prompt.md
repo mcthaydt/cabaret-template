@@ -39,8 +39,12 @@ Work should be **behavior-preserving by default** and executed with **TDD** wher
 - Phase 0 complete:
   - Baseline style + unit suites pass (see tasks doc for warning notes).
   - Hotspot inventory recorded (largest scripts list + UI TODOs + `tmp_invalid_gameplay` references).
+- Phase 1 complete:
+  - Style enforcement now covers additional production dirs (`scripts/core`, `scripts/interfaces`, `scripts/utils`, `scripts/input`, `scripts/scene_management`, `scripts/events`).
+  - Input sources enforced via suffix rule: `scripts/input/sources/*_source.gd`.
+  - Scene naming checks recurse into subdirectories (e.g., `scenes/ui/settings/`).
 
-Next: Phase 1 enforcement tightening (Task 1.1).
+Next: Phase 2 action payload schemas (Task 2.1).
 
 ---
 

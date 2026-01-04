@@ -90,7 +90,7 @@ These are intentionally explicit so the work can proceed without ambiguity:
 
 **Exit Criteria:** Style enforcement covers all production script dirs and scene naming checks recurse into subfolders.
 
-- [ ] **Task 1.1 (Red)**: Expand indentation scanning to missing script dirs
+- [x] **Task 1.1 (Red)**: Expand indentation scanning to missing script dirs
   - File: `tests/unit/style/test_style_enforcement.gd`
   - Add to `GD_DIRECTORIES`:
     - `res://scripts/core`
@@ -101,7 +101,7 @@ These are intentionally explicit so the work can proceed without ambiguity:
     - `res://scripts/events`
   - Expected: style suite may fail until prefix/suffix rules are updated (Tasks 1.2–1.4).
 
-- [ ] **Task 1.2 (Red)**: Expand prefix rules for newly-covered dirs
+- [x] **Task 1.2 (Red)**: Expand prefix rules for newly-covered dirs
   - File: `tests/unit/style/test_style_enforcement.gd`
   - Add to `SCRIPT_PREFIX_RULES`:
     - `res://scripts/core`: `["u_"]`
@@ -111,7 +111,7 @@ These are intentionally explicit so the work can proceed without ambiguity:
     - `res://scripts/input/sources`: **do not** validate by prefix (validated by suffix in Task 1.3)
   - Add to `SCRIPT_FILENAME_EXCEPTIONS` only if truly necessary (keep exception list small).
 
-- [ ] **Task 1.3 (Green)**: Enforce input source filenames by suffix rule
+- [x] **Task 1.3 (Green)**: Enforce input source filenames by suffix rule
   - Files:
     - `tests/unit/style/test_style_enforcement.gd`
     - `docs/general/STYLE_GUIDE.md`
@@ -123,12 +123,12 @@ These are intentionally explicit so the work can proceed without ambiguity:
     - File pattern: `*_source.gd`
     - Class pattern (informational): `*Source`
 
-- [ ] **Task 1.4 (Green)**: Make scene naming checks recurse into subdirectories
+- [x] **Task 1.4 (Green)**: Make scene naming checks recurse into subdirectories
   - File: `tests/unit/style/test_style_enforcement.gd`
   - Update `_check_scene_directory(...)` to recurse so `scenes/ui/settings/` is validated.
   - Confirm `scenes/ui/**` (including subfolders) still enforces `ui_` prefix for `.tscn`.
 
-- [ ] **Task 1.5 (Green)**: Style suite is green with the new enforcement
+- [x] **Task 1.5 (Green)**: Style suite is green with the new enforcement
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
   - If the suite forces a legitimate exception, document it in `docs/general/STYLE_GUIDE.md` and encode it explicitly in the test.
 
