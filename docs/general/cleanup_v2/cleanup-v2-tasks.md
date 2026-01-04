@@ -304,6 +304,10 @@ These are intentionally explicit so the work can proceed without ambiguity:
   - Notes (2026-01-04):
     - Headless runs can require a local `.godot` UID/class-cache refresh after moving `class_name` scripts (see `docs/general/DEV_PITFALLS.md`).
 
+- [x] **Task 4.5**: Normalize objective container placement in gameplay scenes
+  - Fix drift from `docs/general/SCENE_ORGANIZATION_GUIDE.md`: objective entities belong under `Entities/Objectives`.
+  - Completed (2026-01-04): moved `E_FinalGoal` under `Entities/Objectives` in `scenes/gameplay/gameplay_exterior.tscn`.
+
 ---
 
 ## Phase 5: Small UX Polish (Low Risk)
