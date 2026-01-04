@@ -112,7 +112,11 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	# Restore main panel visibility and focus when overlay closes (in main_menu shell)
 	var shell: StringName = navigation_slice.get("shell", StringName(""))
 	var overlay_stack: Array = navigation_slice.get("overlay_stack", [])
-	if shell == StringName("main_menu") and overlay_stack.is_empty():
+	if shell == StringName("main_menu") and not overlay_stack.is_empty():
+		# Hide main menu options while overlays are open (e.g., Save/Load).
+		if _main_panel != null:
+			_main_panel.visible = false
+	elif shell == StringName("main_menu") and overlay_stack.is_empty():
 		# Restore visibility if panel was hidden
 		if _main_panel != null and not _main_panel.visible and _active_panel == PANEL_MAIN:
 			_main_panel.visible = true

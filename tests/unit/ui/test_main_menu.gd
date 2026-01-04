@@ -148,6 +148,19 @@ func test_new_game_confirmation_cancel_does_nothing() -> void:
 	assert_eq(nav_slice.get("shell"), StringName("main_menu"),
 		"Canceling New Game confirmation should stay on main menu")
 
+func test_load_game_overlay_hides_main_panel_options() -> void:
+	var store := await _create_state_store()
+	var menu := await _create_main_menu()
+	var main_panel: Control = menu.get_node("CenterContainer/MainPanel")
+
+	assert_true(main_panel.visible, "Main panel should start visible")
+
+	store.dispatch(U_NavigationActions.set_save_load_mode(StringName("load")))
+	store.dispatch(U_NavigationActions.open_overlay(StringName("save_load_menu_overlay")))
+	await wait_process_frames(2)
+
+	assert_false(main_panel.visible, "Main panel should hide while the save/load overlay is open")
+
 func _create_state_store() -> M_StateStore:
 	var store := M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()
