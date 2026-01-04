@@ -22,6 +22,7 @@ class_name M_AutosaveScheduler
 ## - CRITICAL: always trigger
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 
 enum Priority {
 	NORMAL = 0,
@@ -87,8 +88,9 @@ func _on_action_dispatched(action: Dictionary) -> void:
 		if _is_gameplay_scene(scene_id):
 			# For gameplay scenes, autosave even if shell isn't set to 'gameplay' yet
 			_request_autosave_for_gameplay_transition(Priority.HIGH)
-		else:
-			_request_autosave_if_allowed(Priority.NORMAL)
+		# Do not autosave on non-gameplay transitions (menu/endgame/ui). These can
+		# occur while navigation.shell still reflects gameplay and would overwrite
+		# the latest gameplay autosave with an unusable target scene (e.g., game_over).
 
 func _request_autosave_if_allowed(priority: int) -> void:
 	# Enforce cooldown based on priority
@@ -144,14 +146,23 @@ func _is_autosave_allowed() -> bool:
 	return true
 
 func _is_gameplay_scene(scene_id: StringName) -> bool:
-	# Check if this is a gameplay scene (not menu/victory/etc)
-	var gameplay_scenes := [
+	if scene_id == StringName(""):
+		return false
+
+	var scene_type: int = U_SCENE_REGISTRY.get_scene_type(scene_id)
+	if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
+		return true
+
+	# Fallback for tests or dev scenes not registered in the registry.
+	var fallback_gameplay_scenes := [
 		StringName("exterior"),
 		StringName("gameplay_base"),
 		StringName("interior_house"),
-		StringName("test_scene"),
+		StringName("scene1"),
+		StringName("scene2"),
+		StringName("scene3"),
 	]
-	return scene_id in gameplay_scenes
+	return scene_id in fallback_gameplay_scenes
 
 func _request_autosave_for_gameplay_transition(priority: int) -> void:
 	# Special autosave for gameplay scene transitions

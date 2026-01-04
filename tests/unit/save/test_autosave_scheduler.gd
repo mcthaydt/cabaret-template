@@ -127,6 +127,30 @@ func test_scene_transition_completed_triggers_autosave_request() -> void:
 	# Verify autosave was requested
 	assert_gt(_mock_save_manager.autosave_request_count, 0, "Scene transition completed should trigger autosave request")
 
+func test_endgame_transition_completed_does_not_trigger_autosave() -> void:
+	# Endgame transitions (e.g., game_over) should NOT overwrite autosaves,
+	# otherwise Main Menu "Continue" can load back into game_over.
+	_scheduler = M_AUTOSAVE_SCHEDULER.new()
+	add_child(_scheduler)
+	autofree(_scheduler)
+
+	# Set up state to allow autosave (gameplay shell, not dead, not transitioning)
+	_mock_store.set_slice(StringName("navigation"), {"shell": "gameplay"})
+	_mock_store.set_slice(StringName("gameplay"), {"death_in_progress": false})
+	_mock_store.set_slice(StringName("scene"), {"is_transitioning": false})
+
+	await get_tree().process_frame
+
+	_mock_store.dispatch({
+		"type": StringName("scene/transition_completed"),
+		"payload": {"scene_id": StringName("game_over")}
+	})
+
+	await get_tree().process_frame
+
+	assert_eq(_mock_save_manager.autosave_request_count, 0,
+		"Transitioning to game_over should not trigger autosave")
+
 func test_autosave_blocked_when_death_in_progress() -> void:
 	_scheduler = M_AUTOSAVE_SCHEDULER.new()
 	add_child(_scheduler)
