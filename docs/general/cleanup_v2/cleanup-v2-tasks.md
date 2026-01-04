@@ -282,8 +282,9 @@ These are intentionally explicit so the work can proceed without ambiguity:
   - Update any other references:
     - `rg -n \"scenes/ui/settings/ui_vfx_settings_overlay\\.tscn\" -S .`
 
-- [ ] **Task 4.3**: (Optional) Reorder gameplay Entities subtree for scanability
+- [x] **Task 4.3**: (Optional) Reorder gameplay Entities subtree for scanability
   - Prefer `SP_SpawnPoints` first under `Entities` across gameplay scenes
+  - Completed (2026-01-04): Reordered in `scenes/gameplay/gameplay_base.tscn`, `scenes/gameplay/gameplay_exterior.tscn`, and `scenes/gameplay/gameplay_interior_house.tscn`.
 - [x] **Task 4.4**: Plan + execute relocation of input-ish RS_* scripts currently under ECS
   - Moved to `scripts/input/resources/`:
     - `scripts/input/resources/rs_gamepad_settings.gd`

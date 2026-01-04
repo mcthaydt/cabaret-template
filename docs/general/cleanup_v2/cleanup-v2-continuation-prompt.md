@@ -61,7 +61,7 @@ Work should be **behavior-preserving by default** and executed with **TDD** wher
   - Task 4.1 complete: `scenes/tmp_invalid_gameplay.tscn` is still referenced by tests, so it remains in the repo.
   - Task 4.2 complete: moved `scenes/ui/settings/ui_vfx_settings_overlay.tscn` → `scenes/ui/ui_vfx_settings_overlay.tscn` and updated SceneRegistry/test references.
   - Task 4.4 complete: moved input RS resources from ECS into `scripts/input/resources/` and updated `.tres` + script references; style enforcement updated for the new directory.
-  - Task 4.3 optional: still pending (spawn point ordering consistency).
+  - Task 4.3 optional: complete (spawn point container ordered first under `Entities` across gameplay scenes).
 
 Next: Phase 5 small UX polish (Task 5.1).
 
