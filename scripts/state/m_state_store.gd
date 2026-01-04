@@ -18,6 +18,8 @@ const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_STATE_SLICE_MANAGER := preload("res://scripts/state/utils/u_state_slice_manager.gd")
 const U_STATE_REPOSITORY := preload("res://scripts/state/utils/u_state_repository.gd")
 const U_STATE_VALIDATOR := preload("res://scripts/state/utils/u_state_validator.gd")
+const U_ACTION_HISTORY_BUFFER := preload("res://scripts/state/utils/u_action_history_buffer.gd")
+const U_STORE_PERFORMANCE_METRICS := preload("res://scripts/state/utils/u_store_performance_metrics.gd")
 const U_BOOT_REDUCER := preload("res://scripts/state/reducers/u_boot_reducer.gd")
 const U_MENU_REDUCER := preload("res://scripts/state/reducers/u_menu_reducer.gd")
 const U_GAMEPLAY_REDUCER := preload("res://scripts/state/reducers/u_gameplay_reducer.gd")
@@ -63,17 +65,10 @@ var _subscribers: Array[Callable] = []
 var _slice_configs: Dictionary = {}
 var _signal_batcher: U_SignalBatcher = null
 var _pending_immediate_updates: Dictionary = {}
-var _action_history: Array = []
-var _max_history_size: int = 1000
-var _enable_history: bool = true
+var _action_history_buffer := U_ACTION_HISTORY_BUFFER.new()
 var _debug_overlay: CanvasLayer = null
 var _is_ready: bool = false
-
-# Performance tracking (T414)
-var _perf_dispatch_count: int = 0
-var _perf_total_dispatch_time_us: int = 0  # microseconds
-var _perf_signal_emit_count: int = 0
-var _perf_last_dispatch_time_us: int = 0
+var _performance_metrics := U_STORE_PERFORMANCE_METRICS.new()
 
 func _ready() -> void:
 	# Store must continue flushing batched slice_updated signals while paused so
@@ -139,7 +134,7 @@ func _flush_signal_batcher() -> int:
 		return 0
 	_signal_batcher.flush(func(slice_name: StringName, slice_state: Dictionary) -> void:
 		slice_updated.emit(slice_name, slice_state)
-		_perf_signal_emit_count += 1  # Track signal emissions
+		_performance_metrics.record_signal_emitted()
 	)
 	return pending_count
 
@@ -191,14 +186,14 @@ func _initialize_settings() -> void:
 		if settings.max_history_size != history_size:
 			settings.max_history_size = history_size
 	
-	# Apply history settings to instance variables
-	_max_history_size = settings.max_history_size
-	
 	# Check if history is enabled
+	var enable_history: bool = true
 	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_HISTORY):
-		_enable_history = ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_HISTORY, true)
+		enable_history = ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_HISTORY, true)
 	else:
-		_enable_history = true  # Default to enabled in debug builds
+		enable_history = true  # Default to enabled in debug builds
+
+	_action_history_buffer.configure(settings.max_history_size, enable_history)
 
 func _initialize_slices() -> void:
 	U_STATE_SLICE_MANAGER.initialize_slices(
@@ -237,7 +232,7 @@ func _normalize_spawn_reference(
 ## Dispatch an action to update state
 func dispatch(action: Dictionary) -> void:
 	# Performance tracking start
-	var perf_start: int = Time.get_ticks_usec()
+	var perf_start: int = _performance_metrics.start_dispatch()
 	var is_immediate: bool = bool(action.get(ACTION_FLAG_IMMEDIATE, false))
 	if _signal_batcher == null:
 		_signal_batcher = U_SIGNAL_BATCHER.new()
@@ -264,8 +259,7 @@ func dispatch(action: Dictionary) -> void:
 	)
 
 	# Record action in history AFTER reducer runs (includes state_after)
-	if _enable_history:
-		_record_action_in_history(action)
+	_action_history_buffer.record_action(action, _state)
 
 	# Create deep copy of action for subscribers
 	var action_copy: Dictionary = action.duplicate(true)
@@ -287,14 +281,11 @@ func dispatch(action: Dictionary) -> void:
 				if snapshot_variant is Dictionary:
 					var snapshot_dict := (snapshot_variant as Dictionary).duplicate(true)
 					slice_updated.emit(slice_name, snapshot_dict)
-					_perf_signal_emit_count += 1
+					_performance_metrics.record_signal_emitted()
 	_pending_immediate_updates.clear()
 	
 	# Performance tracking end
-	var perf_end: int = Time.get_ticks_usec()
-	_perf_last_dispatch_time_us = perf_end - perf_start
-	_perf_total_dispatch_time_us += _perf_last_dispatch_time_us
-	_perf_dispatch_count += 1
+	_performance_metrics.finish_dispatch(perf_start)
 
 ## Apply reducers to update state based on action
 ## Kept for backward compatibility; now delegates to U_StateSliceManager.
@@ -390,22 +381,6 @@ func validate_slice_dependencies() -> bool:
 	return U_STATE_SLICE_MANAGER.validate_slice_dependencies(_slice_configs)
 
 ## Record action in history with timestamp and state snapshot
-func _record_action_in_history(action: Dictionary) -> void:
-	var timestamp: float = U_ECSUtils.get_current_time()
-	var state_snapshot: Dictionary = _state.duplicate(true)
-	
-	var history_entry: Dictionary = {
-		"action": action.duplicate(true),
-		"timestamp": timestamp,
-		"state_after": state_snapshot
-	}
-	
-	_action_history.append(history_entry)
-	
-	# Prune oldest entries if exceeding max size (circular buffer)
-	while _action_history.size() > _max_history_size:
-		_action_history.remove_at(0)
-
 ## Get complete action history (deep copy)
 ##
 ## Returns array of history entries with format:
@@ -413,29 +388,14 @@ func _record_action_in_history(action: Dictionary) -> void:
 ##
 ## History is limited to max_history_size entries (circular buffer).
 func get_action_history() -> Array:
-	# Shallow copy for performance; entries themselves already contain deep-copied snapshots
-	return _action_history.duplicate(false)
+	return _action_history_buffer.get_action_history()
 
 ## Get last N actions from history (deep copy)
 ##
 ## Returns the most recent N action history entries.
 ## If N exceeds history size, returns all available entries.
 func get_last_n_actions(n: int) -> Array:
-	if n <= 0:
-		return []
-	
-	var history_size: int = _action_history.size()
-	if n >= history_size:
-		return _action_history.duplicate(false)
-	
-	# Get last n entries
-	var start_index: int = history_size - n
-	var result: Array = []
-	for i in range(start_index, history_size):
-		# Shallow copy entries; state snapshots inside entries are already deep copies
-		result.append(_action_history[i])
-
-	return result
+	return _action_history_buffer.get_last_n_actions(n)
 
 ## Save current state to JSON file
 ##
@@ -534,22 +494,8 @@ func _restore_from_handoff() -> void:
 ##   - last_dispatch_time_ms: Last dispatch time in milliseconds
 ##   - signal_emit_count: Total number of signals emitted
 func get_performance_metrics() -> Dictionary:
-	var avg_time_ms: float = 0.0
-	if _perf_dispatch_count > 0:
-		avg_time_ms = (_perf_total_dispatch_time_us / _perf_dispatch_count) / 1000.0
-	
-	var last_time_ms: float = _perf_last_dispatch_time_us / 1000.0
-	
-	return {
-		"dispatch_count": _perf_dispatch_count,
-		"avg_dispatch_time_ms": avg_time_ms,
-		"last_dispatch_time_ms": last_time_ms,
-		"signal_emit_count": _perf_signal_emit_count
-	}
+	return _performance_metrics.get_performance_metrics()
 
 ## Reset performance metrics (useful for profiling specific sections)
 func reset_performance_metrics() -> void:
-	_perf_dispatch_count = 0
-	_perf_total_dispatch_time_us = 0
-	_perf_signal_emit_count = 0
-	_perf_last_dispatch_time_us = 0
+	_performance_metrics.reset()
