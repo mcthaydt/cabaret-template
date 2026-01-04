@@ -6,6 +6,7 @@ class_name M_VFXManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 const M_ScreenShake := preload("res://scripts/managers/helpers/m_screen_shake.gd")
 const M_DamageFlash := preload("res://scripts/managers/helpers/m_damage_flash.gd")
@@ -29,7 +30,7 @@ const M_DamageFlash := preload("res://scripts/managers/helpers/m_damage_flash.gd
 const TRAUMA_DECAY_RATE := 2.0
 
 ## StateStore dependency for accessing VFX settings
-var _state_store: Node = null  # Type: I_StateStore (using Node for now)
+var _state_store: I_StateStore = null
 
 ## Camera Manager dependency for applying screen shake
 var _camera_manager: M_CameraManager = null
@@ -60,7 +61,7 @@ func _ready() -> void:
 	U_SERVICE_LOCATOR.register(StringName("vfx_manager"), self)
 
 	# Discover StateStore dependency
-	_state_store = U_SERVICE_LOCATOR.try_get_service(StringName("state_store"))
+	_state_store = U_STATE_UTILS.try_get_store(self)
 	if _state_store == null:
 		print_verbose("M_VFXManager: StateStore not found. VFX settings will not be applied.")
 
@@ -140,11 +141,25 @@ func _physics_process(delta: float) -> void:
 ## Maps damage amount to trauma in 0.3-0.6 range and triggers damage flash
 func _on_health_changed(event_data: Dictionary) -> void:
 	var payload: Dictionary = event_data.get("payload", {})
-	var damage: float = payload.get("damage", 0.0)
+	var is_dead: bool = bool(payload.get("is_dead", false))
+	if is_dead:
+		return
+
+	var damage_amount: float = 0.0
+	if payload.has("damage"):
+		# Backward-compatible payload shape used by older tests.
+		damage_amount = float(payload.get("damage", 0.0))
+	else:
+		var previous_health: float = float(payload.get("previous_health", 0.0))
+		var new_health: float = float(payload.get("new_health", previous_health))
+		damage_amount = maxf(previous_health - new_health, 0.0)
+
+	if damage_amount <= 0.0:
+		return
 
 	# Map damage (0-100) to trauma (0.3-0.6)
 	# Using lerpf: lerp between 0.3 and 0.6 based on damage/100
-	var damage_ratio: float = clampf(damage / 100.0, 0.0, 1.0)
+	var damage_ratio: float = clampf(damage_amount / 100.0, 0.0, 1.0)
 	var trauma_amount: float = lerpf(0.3, 0.6, damage_ratio)
 	add_trauma(trauma_amount)
 
@@ -159,7 +174,12 @@ func _on_health_changed(event_data: Dictionary) -> void:
 ## Adds trauma for high-speed impacts (fall speed > 15.0)
 func _on_landed(event_data: Dictionary) -> void:
 	var payload: Dictionary = event_data.get("payload", {})
-	var fall_speed: float = payload.get("fall_speed", 0.0)
+	var fall_speed: float = 0.0
+	if payload.has("fall_speed"):
+		# Backward-compatible payload shape used by older tests.
+		fall_speed = float(payload.get("fall_speed", 0.0))
+	else:
+		fall_speed = absf(float(payload.get("vertical_velocity", 0.0)))
 
 	# Only add trauma if fall speed exceeds threshold
 	if fall_speed > 15.0:
@@ -172,5 +192,9 @@ func _on_landed(event_data: Dictionary) -> void:
 ## Event handler for entity_death events
 ##
 ## Adds fixed trauma amount of 0.5
-func _on_death(event_data: Dictionary) -> void:
+func _on_death(_event_data: Dictionary) -> void:
 	add_trauma(0.5)
+	if _state_store != null and _damage_flash != null:
+		var state: Dictionary = _state_store.get_state()
+		if U_VFX_SELECTORS.is_damage_flash_enabled(state):
+			_damage_flash.trigger_flash(1.0)

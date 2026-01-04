@@ -31,7 +31,7 @@ func _on_store_ready(store: M_StateStore) -> void:
 		_store_unsubscribe = Callable()
 	if store != null:
 		_store_unsubscribe = store.subscribe(_on_state_changed)
-		_on_state_changed(store.get_state())
+		_on_state_changed({}, store.get_state())
 
 func _on_panel_ready() -> void:
 	_configure_focus_neighbors()
@@ -39,7 +39,7 @@ func _on_panel_ready() -> void:
 	# Initialize UI from state
 	var store := get_store()
 	if store != null:
-		_on_state_changed(store.get_state())
+		_on_state_changed({}, store.get_state())
 
 func _configure_focus_neighbors() -> void:
 	var vertical_controls: Array[Control] = []
@@ -84,7 +84,7 @@ func _connect_control_signals() -> void:
 	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
 		_reset_button.pressed.connect(_on_reset_pressed)
 
-func _on_state_changed(state: Dictionary) -> void:
+func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	if state == null or state.is_empty():
 		return
 

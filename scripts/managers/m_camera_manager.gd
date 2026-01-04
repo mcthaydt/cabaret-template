@@ -44,6 +44,11 @@ var _camera_blend_duration: float = 0.2  # Match fade transition duration
 ## Used to apply shake offset/rotation without affecting camera directly (prevents gimbal lock)
 var _shake_parent: Node3D = null
 
+const META_SHAKE_PARENT := &"_camera_manager_shake_parent"
+
+var _active_scene_camera: Camera3D = null
+var _active_scene_shake_parent: Node3D = null
+
 func _ready() -> void:
 	# Add to camera_manager group for discovery
 	add_to_group("camera_manager")
@@ -201,19 +206,106 @@ func _create_shake_parent() -> void:
 ## Example:
 ##   camera_manager.apply_shake_offset(Vector2(5.0, 3.0), 0.02)
 func apply_shake_offset(offset: Vector2, rotation: float) -> void:
-	if _shake_parent == null:
+	if _shake_parent == null or _transition_camera == null:
+		return
+
+	# During camera blending, the transition camera is the active viewport camera.
+	if _transition_camera.current:
+		_apply_shake_to_parent(_shake_parent, _transition_camera, offset, rotation)
+		return
+
+	# Ensure the transition camera shake doesn't "stick" between transitions.
+	_reset_shake_parent(_shake_parent)
+
+	var active_camera := _get_active_camera()
+	if active_camera == null:
+		_reset_cached_scene_shake()
+		return
+
+	# Avoid creating extra parents for the transition camera (should never happen, but be defensive).
+	if active_camera == _transition_camera:
+		_apply_shake_to_parent(_shake_parent, _transition_camera, offset, rotation)
+		return
+
+	# If the active camera changes, reset the previous camera's shake parent so offsets don't persist.
+	if active_camera != _active_scene_camera:
+		_reset_cached_scene_shake()
+		_active_scene_camera = active_camera
+		_active_scene_shake_parent = _ensure_shake_parent_for_camera(active_camera)
+
+	if _active_scene_shake_parent == null:
+		return
+
+	_apply_shake_to_parent(_active_scene_shake_parent, active_camera, offset, rotation)
+
+func _get_active_camera() -> Camera3D:
+	var viewport := get_viewport()
+	if viewport != null:
+		var viewport_camera := viewport.get_camera_3d()
+		if viewport_camera != null:
+			return viewport_camera
+	var tree := get_tree()
+	if tree == null:
+		return null
+	return tree.get_first_node_in_group("main_camera") as Camera3D
+
+func _ensure_shake_parent_for_camera(camera: Camera3D) -> Node3D:
+	if camera == null or not is_instance_valid(camera):
+		return null
+
+	var parent := camera.get_parent()
+	if parent is Node3D:
+		var parent_3d := parent as Node3D
+		if bool(parent_3d.get_meta(META_SHAKE_PARENT, false)):
+			return parent_3d
+
+	if parent == null:
+		return null
+
+	var shake_parent := Node3D.new()
+	shake_parent.name = "ShakeParent"
+	shake_parent.set_meta(META_SHAKE_PARENT, true)
+
+	var insert_index := camera.get_index()
+	parent.add_child(shake_parent)
+	parent.move_child(shake_parent, insert_index)
+
+	# Preserve camera transform when inserting shake parent above it.
+	camera.reparent(shake_parent, true)
+	return shake_parent
+
+func _apply_shake_to_parent(shake_parent: Node3D, camera: Camera3D, offset: Vector2, rotation: float) -> void:
+	if shake_parent == null or camera == null:
 		return
 
 	# Convert 2D screen offset to 3D using camera basis
 	# Right vector (X) for horizontal offset, Up vector (Y) for vertical offset
 	# Scale by 0.01 to convert pixels to reasonable 3D units
-	var right: Vector3 = _transition_camera.global_transform.basis.x
-	var up: Vector3 = _transition_camera.global_transform.basis.y
-	var offset_3d: Vector3 = right * offset.x * 0.01 + up * offset.y * 0.01
+	var right: Vector3 = camera.global_transform.basis.x
+	var up: Vector3 = camera.global_transform.basis.y
+	var offset_world: Vector3 = right * offset.x * 0.01 + up * offset.y * 0.01
 
-	# Apply offset and rotation to shake parent
-	_shake_parent.position = offset_3d
-	_shake_parent.rotation.z = rotation
+	# Convert world offset to local space if the shake parent has a 3D parent.
+	var parent_3d := shake_parent.get_parent() as Node3D
+	if parent_3d != null:
+		var offset_local: Vector3 = parent_3d.global_transform.basis.inverse() * offset_world
+		shake_parent.position = offset_local
+	else:
+		shake_parent.position = offset_world
+
+	shake_parent.rotation = Vector3(0.0, 0.0, rotation)
+
+func _reset_shake_parent(shake_parent: Node3D) -> void:
+	if shake_parent == null:
+		return
+	shake_parent.position = Vector3.ZERO
+	shake_parent.rotation = Vector3.ZERO
+
+func _reset_cached_scene_shake() -> void:
+	if _active_scene_shake_parent != null and is_instance_valid(_active_scene_shake_parent):
+		_reset_shake_parent(_active_scene_shake_parent)
+	_active_scene_camera = null
+	_active_scene_shake_parent = null
 
 ## Create blend tween to interpolate camera properties (T240)
 ##

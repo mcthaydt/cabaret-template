@@ -130,12 +130,13 @@ func test_health_changed_event_adds_trauma() -> void:
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	# Publish health_changed event with damage payload
+	# Publish health_changed event with typed payload shape (previous/new)
 	# Note: BaseEventBus wraps payload automatically with "name", "payload", "timestamp"
 	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {
 		"entity_id": "E_Player",
-		"damage": 50.0,
-		"new_health": 50.0
+		"previous_health": 100.0,
+		"new_health": 50.0,
+		"is_dead": false,
 	})
 	# Event bus is synchronous - check trauma immediately (before physics decay)
 
@@ -154,7 +155,9 @@ func test_health_changed_scales_trauma_with_damage() -> void:
 	# Low damage (10.0) should give low trauma (~0.33)
 	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {
 		"entity_id": "E_Player",
-		"damage": 10.0
+		"previous_health": 100.0,
+		"new_health": 90.0,
+		"is_dead": false,
 	})
 	# Check immediately (event bus is synchronous)
 
@@ -171,7 +174,9 @@ func test_health_changed_scales_trauma_with_damage() -> void:
 	# High damage (90.0) should give high trauma (~0.57)
 	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {
 		"entity_id": "E_Player",
-		"damage": 90.0
+		"previous_health": 100.0,
+		"new_health": 10.0,
+		"is_dead": false,
 	})
 	# Check immediately (event bus is synchronous)
 
@@ -188,7 +193,7 @@ func test_entity_landed_adds_trauma_for_high_speed() -> void:
 	# High fall speed (20.0 > 15.0 threshold) should add trauma
 	U_ECS_EVENT_BUS.publish(StringName("entity_landed"), {
 		"entity_id": "E_Player",
-		"fall_speed": 20.0,
+		"vertical_velocity": -20.0,
 		"position": Vector3.ZERO
 	})
 	# Check immediately (event bus is synchronous)
@@ -207,7 +212,7 @@ func test_entity_landed_ignores_low_speed() -> void:
 	# Low fall speed (10.0 < 15.0 threshold) should NOT add trauma
 	U_ECS_EVENT_BUS.publish(StringName("entity_landed"), {
 		"entity_id": "E_Player",
-		"fall_speed": 10.0,
+		"vertical_velocity": -10.0,
 		"position": Vector3.ZERO
 	})
 	# Check immediately (event bus is synchronous)
@@ -299,14 +304,22 @@ func test_multiple_events_accumulate_trauma() -> void:
 	await get_tree().process_frame
 
 	# First damage event
-	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {"damage": 50.0})
+	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {
+		"previous_health": 100.0,
+		"new_health": 50.0,
+		"is_dead": false,
+	})
 	# Check immediately (event bus is synchronous)
 
 	var trauma_after_first: float = _manager.get_trauma()
 	assert_true(trauma_after_first > 0.0, "First event should add trauma")
 
 	# Second damage event
-	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {"damage": 50.0})
+	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {
+		"previous_health": 100.0,
+		"new_health": 50.0,
+		"is_dead": false,
+	})
 	# Check immediately (event bus is synchronous)
 
 	var trauma_after_second: float = _manager.get_trauma()
