@@ -20,9 +20,15 @@ const ACTION_POP_OVERLAY := StringName("scene/pop_overlay")
 
 ## Static initializer - automatically registers actions
 static func _static_init() -> void:
-	U_ActionRegistry.register_action(ACTION_TRANSITION_STARTED)
-	U_ActionRegistry.register_action(ACTION_TRANSITION_COMPLETED)
-	U_ActionRegistry.register_action(ACTION_PUSH_OVERLAY)
+	U_ActionRegistry.register_action(ACTION_TRANSITION_STARTED, {
+		"required_fields": ["target_scene_id", "transition_type"]
+	})
+	U_ActionRegistry.register_action(ACTION_TRANSITION_COMPLETED, {
+		"required_fields": ["scene_id"]
+	})
+	U_ActionRegistry.register_action(ACTION_PUSH_OVERLAY, {
+		"required_fields": ["scene_id"]
+	})
 	U_ActionRegistry.register_action(ACTION_POP_OVERLAY)
 
 ## Mark start of scene transition

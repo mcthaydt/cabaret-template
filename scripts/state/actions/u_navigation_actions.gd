@@ -22,20 +22,30 @@ const ACTION_SET_SAVE_LOAD_MODE := StringName("navigation/set_save_load_mode")
 
 ## Register all navigation actions with the ActionRegistry
 static func _static_init() -> void:
-	U_ActionRegistry.register_action(ACTION_SET_SHELL)
+	U_ActionRegistry.register_action(ACTION_SET_SHELL, {
+		"required_root_fields": ["shell", "base_scene_id"]
+	})
 	U_ActionRegistry.register_action(ACTION_OPEN_PAUSE)
 	U_ActionRegistry.register_action(ACTION_CLOSE_PAUSE)
-	U_ActionRegistry.register_action(ACTION_OPEN_OVERLAY)
+	U_ActionRegistry.register_action(ACTION_OPEN_OVERLAY, {
+		"required_root_fields": ["screen_id"]
+	})
 	U_ActionRegistry.register_action(ACTION_CLOSE_TOP_OVERLAY)
-	U_ActionRegistry.register_action(ACTION_SET_MENU_PANEL)
+	U_ActionRegistry.register_action(ACTION_SET_MENU_PANEL, {
+		"required_root_fields": ["panel_id"]
+	})
 	U_ActionRegistry.register_action(ACTION_START_GAME)
 	U_ActionRegistry.register_action(ACTION_OPEN_ENDGAME)
 	U_ActionRegistry.register_action(ACTION_RETRY)
 	U_ActionRegistry.register_action(ACTION_SKIP_TO_CREDITS)
 	U_ActionRegistry.register_action(ACTION_SKIP_TO_MENU)
 	U_ActionRegistry.register_action(ACTION_RETURN_TO_MAIN_MENU)
-	U_ActionRegistry.register_action(ACTION_NAVIGATE_TO_UI_SCREEN)
-	U_ActionRegistry.register_action(ACTION_SET_SAVE_LOAD_MODE)
+	U_ActionRegistry.register_action(ACTION_NAVIGATE_TO_UI_SCREEN, {
+		"required_root_fields": ["scene_id"]
+	})
+	U_ActionRegistry.register_action(ACTION_SET_SAVE_LOAD_MODE, {
+		"required_root_fields": ["mode"]
+	})
 
 static func set_shell(shell: StringName, base_scene_id: StringName) -> Dictionary:
 	return {

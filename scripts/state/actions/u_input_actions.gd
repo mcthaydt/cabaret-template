@@ -33,26 +33,62 @@ const REBIND_MODE_ADD := "add"
 
 ## Static initializer - register all input actions.
 static func _static_init() -> void:
-	U_ActionRegistry.register_action(ACTION_UPDATE_MOVE_INPUT)
-	U_ActionRegistry.register_action(ACTION_UPDATE_LOOK_INPUT)
-	U_ActionRegistry.register_action(ACTION_UPDATE_JUMP_STATE)
-	U_ActionRegistry.register_action(ACTION_UPDATE_SPRINT_STATE)
-	U_ActionRegistry.register_action(ACTION_DEVICE_CHANGED)
-	U_ActionRegistry.register_action(ACTION_GAMEPAD_CONNECTED)
-	U_ActionRegistry.register_action(ACTION_GAMEPAD_DISCONNECTED)
-	U_ActionRegistry.register_action(ACTION_PROFILE_SWITCHED)
-	U_ActionRegistry.register_action(ACTION_REBIND_ACTION)
+	U_ActionRegistry.register_action(ACTION_UPDATE_MOVE_INPUT, {
+		"required_fields": ["move_vector"]
+	})
+	U_ActionRegistry.register_action(ACTION_UPDATE_LOOK_INPUT, {
+		"required_fields": ["look_delta"]
+	})
+	U_ActionRegistry.register_action(ACTION_UPDATE_JUMP_STATE, {
+		"required_fields": ["pressed", "just_pressed"]
+	})
+	U_ActionRegistry.register_action(ACTION_UPDATE_SPRINT_STATE, {
+		"required_fields": ["pressed"]
+	})
+	U_ActionRegistry.register_action(ACTION_DEVICE_CHANGED, {
+		"required_fields": ["device_type", "device_id", "timestamp"]
+	})
+	U_ActionRegistry.register_action(ACTION_GAMEPAD_CONNECTED, {
+		"required_fields": ["device_id"]
+	})
+	U_ActionRegistry.register_action(ACTION_GAMEPAD_DISCONNECTED, {
+		"required_fields": ["device_id"]
+	})
+	U_ActionRegistry.register_action(ACTION_PROFILE_SWITCHED, {
+		"required_fields": ["profile_id"]
+	})
+	U_ActionRegistry.register_action(ACTION_REBIND_ACTION, {
+		"required_fields": ["action", "mode"]
+	})
 	U_ActionRegistry.register_action(ACTION_RESET_BINDINGS)
-	U_ActionRegistry.register_action(ACTION_UPDATE_GAMEPAD_DEADZONE)
-	U_ActionRegistry.register_action(ACTION_TOGGLE_VIBRATION)
-	U_ActionRegistry.register_action(ACTION_SET_VIBRATION_INTENSITY)
-	U_ActionRegistry.register_action(ACTION_UPDATE_MOUSE_SENSITIVITY)
-	U_ActionRegistry.register_action(ACTION_UPDATE_ACCESSIBILITY)
+	U_ActionRegistry.register_action(ACTION_UPDATE_GAMEPAD_DEADZONE, {
+		"required_fields": ["stick", "deadzone"]
+	})
+	U_ActionRegistry.register_action(ACTION_TOGGLE_VIBRATION, {
+		"required_fields": ["enabled"]
+	})
+	U_ActionRegistry.register_action(ACTION_SET_VIBRATION_INTENSITY, {
+		"required_fields": ["intensity"]
+	})
+	U_ActionRegistry.register_action(ACTION_UPDATE_MOUSE_SENSITIVITY, {
+		"required_fields": ["sensitivity"]
+	})
+	U_ActionRegistry.register_action(ACTION_UPDATE_ACCESSIBILITY, {
+		"required_fields": ["field", "value"]
+	})
 	U_ActionRegistry.register_action(ACTION_LOAD_INPUT_SETTINGS)
-	U_ActionRegistry.register_action(ACTION_REMOVE_ACTION_BINDINGS)
-	U_ActionRegistry.register_action(ACTION_REMOVE_EVENT_FROM_ACTION)
-	U_ActionRegistry.register_action(ACTION_UPDATE_TOUCHSCREEN_SETTINGS)
-	U_ActionRegistry.register_action(ACTION_SAVE_VIRTUAL_CONTROL_POSITION)
+	U_ActionRegistry.register_action(ACTION_REMOVE_ACTION_BINDINGS, {
+		"required_fields": ["action"]
+	})
+	U_ActionRegistry.register_action(ACTION_REMOVE_EVENT_FROM_ACTION, {
+		"required_fields": ["action", "event"]
+	})
+	U_ActionRegistry.register_action(ACTION_UPDATE_TOUCHSCREEN_SETTINGS, {
+		"required_fields": ["settings"]
+	})
+	U_ActionRegistry.register_action(ACTION_SAVE_VIRTUAL_CONTROL_POSITION, {
+		"required_fields": ["control_name", "position"]
+	})
 
 ## Update move vector (keyboard, mouse, or stick).
 static func update_move_input(move_vector: Vector2) -> Dictionary:
