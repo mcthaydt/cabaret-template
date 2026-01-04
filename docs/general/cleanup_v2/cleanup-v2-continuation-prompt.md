@@ -57,7 +57,7 @@ Work should be **behavior-preserving by default** and executed with **TDD** wher
   - Extracted action history into `scripts/state/utils/u_action_history_buffer.gd` (store API unchanged).
   - Extracted perf metrics into `scripts/state/utils/u_store_performance_metrics.gd` (store API unchanged).
 
-- Phase 4 progress:
+- Phase 4 complete:
   - Task 4.1 complete: `scenes/tmp_invalid_gameplay.tscn` is still referenced by tests, so it remains in the repo.
   - Task 4.2 complete: moved `scenes/ui/settings/ui_vfx_settings_overlay.tscn` → `scenes/ui/ui_vfx_settings_overlay.tscn` and updated SceneRegistry/test references.
   - Task 4.4 complete: moved input RS resources from ECS into `scripts/input/resources/` and updated `.tres` + script references; style enforcement updated for the new directory.
@@ -65,7 +65,11 @@ Work should be **behavior-preserving by default** and executed with **TDD** wher
   - Task 4.5 optional: complete (moved `E_FinalGoal` under `Entities/Objectives` in `gameplay_exterior` to match scene organization guide).
   - Task 4.6 optional: complete (standardized spawn container to `SpawnPoints`; spawn registry + tests updated to use `Entities/SpawnPoints`).
 
-Next: Phase 5 small UX polish (Task 5.1).
+- Phase 5 complete:
+   - Save/Load menu now surfaces save/load/delete failures via a dedicated error label and keeps the overlay open on immediate load failures.
+   - Main menu now prompts for confirmation before starting a New Game when any saves exist.
+
+Next: Cleanup V2 tasks are complete. Verify suites are green and prepare merge/PR.
 
 ---
 
@@ -101,5 +105,9 @@ Read:
 - docs/general/STYLE_GUIDE.md
 - docs/general/SCENE_ORGANIZATION_GUIDE.md
 
-Start with Phase 0 Task 0.3 (baseline test runs), then continue in order. Follow TDD and update checkboxes as tasks complete.
+Confirm Phase 5 is complete, re-run:
+- tools/run_gut_suite.sh -gdir=res://tests/unit/style
+- tools/run_gut_suite.sh -gdir=res://tests/unit/ui
+
+Then ensure docs are up to date and prepare merge/PR.
 ```

@@ -324,7 +324,7 @@ These are intentionally explicit so the work can proceed without ambiguity:
 
 **Exit Criteria:** No TODOs remain in core UI flows; user gets actionable feedback.
 
-- [ ] **Task 5.1 (Red)**: Add failing UI tests for save/load/delete error feedback
+- [x] **Task 5.1 (Red)**: Add failing UI tests for save/load/delete error feedback
   - Files:
     - `tests/unit/ui/test_save_load_menu.gd`
     - `tests/mocks/mock_save_manager.gd` (extend mock to simulate non-OK results)
@@ -336,27 +336,31 @@ These are intentionally explicit so the work can proceed without ambiguity:
     - Save failure: menu shows a visible error label/message (non-empty).
     - Delete failure: menu shows a visible error label/message (non-empty).
     - Load failure (immediate error return): menu stays open (overlay not closed) and shows a visible error label/message.
+- Completed (2026-01-04): added failing tests for save/delete/load error messaging and extended MockSaveManager to return non-OK results.
 
-- [ ] **Task 5.2 (Green)**: Implement Save/Load menu error UI (and keep menu open on immediate load failure)
+- [x] **Task 5.2 (Green)**: Implement Save/Load menu error UI (and keep menu open on immediate load failure)
   - Files:
     - `scripts/ui/ui_save_load_menu.gd`
     - `scenes/ui/ui_save_load_menu.tscn` (add a dedicated error label/message node)
   - Requirements:
     - Provide a single place to surface operation errors (save/load/delete) in the menu.
     - Only close the overlay after `load_from_slot(...)` returns `OK` (so immediate errors remain visible in-menu).
+- Completed (2026-01-04): added `%ErrorLabel` to the overlay and surfaced save/load/delete errors in-menu; load only closes overlay after an `OK` return.
 
-- [ ] **Task 5.3 (Red)**: Add failing test for “New Game” confirmation when saves exist
+- [x] **Task 5.3 (Red)**: Add failing test for “New Game” confirmation when saves exist
   - Files:
     - `tests/unit/ui/test_main_menu.gd`
     - `tests/mocks/mock_save_manager.gd` (extend mock so tests can simulate “saves exist”)
   - Expected:
     - If any save exists, pressing New Game shows a confirmation dialog instead of immediately dispatching `navigation/start_game`.
+- Completed (2026-01-04): added failing confirmation tests for New Game when saves exist; extended MockSaveManager with `has_any_saves()` controls.
 
-- [ ] **Task 5.4 (Green)**: Implement “New Game” confirmation when saves exist
+- [x] **Task 5.4 (Green)**: Implement “New Game” confirmation when saves exist
   - File: `scripts/ui/ui_main_menu.gd` (resolves TODO at `scripts/ui/ui_main_menu.gd:181`)
   - Expected:
     - Confirm → dispatch `U_NavigationActions.start_game(DEFAULT_GAMEPLAY_SCENE)`
     - Cancel → do nothing (stay in main menu)
+- Completed (2026-01-04): added `NewGameConfirmDialog` and gate New Game behind confirmation when saves exist.
 
 ---
 
