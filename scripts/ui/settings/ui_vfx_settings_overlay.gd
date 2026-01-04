@@ -24,6 +24,7 @@ const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configura
 
 var _store_unsubscribe: Callable = Callable()
 var _updating_from_state: bool = false
+var _has_local_edits: bool = false
 
 func _on_store_ready(store: M_StateStore) -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
@@ -84,8 +85,17 @@ func _connect_control_signals() -> void:
 	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
 		_reset_button.pressed.connect(_on_reset_pressed)
 
-func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
+func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 	if state == null or state.is_empty():
+		return
+
+	var action_type: StringName = StringName("")
+	if action != null and action.has("type"):
+		action_type = action.get("type", StringName(""))
+
+	# Preserve local edits (Apply/Cancel pattern). Only reconcile from state when
+	# the user is not actively editing.
+	if _has_local_edits and action_type != StringName(""):
 		return
 
 	# Update UI from state (without triggering signals)
@@ -106,15 +116,22 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 
 func _on_shake_enabled_toggled(_pressed: bool) -> void:
 	# Changes only apply when user clicks Apply button
-	pass
+	if _updating_from_state:
+		return
+	_has_local_edits = true
 
 func _on_intensity_changed(value: float) -> void:
 	# Update percentage label immediately for visual feedback
 	_update_percentage_label(value)
+	if _updating_from_state:
+		return
+	_has_local_edits = true
 
 func _on_flash_enabled_toggled(_pressed: bool) -> void:
 	# Changes only apply when user clicks Apply button
-	pass
+	if _updating_from_state:
+		return
+	_has_local_edits = true
 
 func _on_apply_pressed() -> void:
 	var store := get_store()
@@ -128,6 +145,7 @@ func _on_apply_pressed() -> void:
 	var shake_intensity := _intensity_slider.value
 	var flash_enabled := _flash_enabled_toggle.button_pressed
 
+	_has_local_edits = false
 	store.dispatch(U_VFXActions.set_screen_shake_enabled(shake_enabled))
 	store.dispatch(U_VFXActions.set_screen_shake_intensity(shake_intensity))
 	store.dispatch(U_VFXActions.set_damage_flash_enabled(flash_enabled))
@@ -146,6 +164,8 @@ func _close_overlay() -> void:
 	var store := get_store()
 	if store == null:
 		return
+
+	_has_local_edits = false
 
 	var nav_slice: Dictionary = store.get_state().get("navigation", {})
 	var overlay_stack: Array = U_NavigationSelectors.get_overlay_stack(nav_slice)
