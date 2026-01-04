@@ -36,6 +36,7 @@ var _pending_action: Dictionary = {}  # {action: "save"|"delete", slot_id: Strin
 @onready var _back_button: Button = %BackButton
 @onready var _confirmation_dialog: ConfirmationDialog = %ConfirmationDialog
 @onready var _loading_spinner: Control = %LoadingSpinner
+@onready var _error_label: Label = %ErrorLabel
 
 func _ready() -> void:
 	await super._ready()
@@ -392,51 +393,54 @@ func _perform_save(slot_id: StringName) -> void:
 		push_error("UI_SaveLoadMenu: Cannot save, M_SaveManager not found")
 		return
 
+	_clear_error_message()
 	var result: Error = _save_manager.save_to_slot(slot_id)
 
 	if result != OK:
-		push_warning("UI_SaveLoadMenu: Save failed with error code %d" % result)
-		# TODO: Show error toast or inline message
-	else:
-		# Refresh UI to show updated metadata
-		call_deferred("_refresh_slot_list")
+		_show_error_message(_format_operation_error("Save", result))
+		return
+
+	call_deferred("_refresh_slot_list")
 
 func _perform_load(slot_id: StringName) -> void:
 	if _save_manager == null:
 		push_error("UI_SaveLoadMenu: Cannot load, M_SaveManager not found")
 		return
 
-	# Close the save/load menu immediately
-	# M_SceneManager's loading screen will take over
-	var store := get_store()
-	if store != null:
-		store.dispatch(U_NavigationActions.close_top_overlay())
-
+	_clear_error_message()
 	# Perform the load (scene transition + loading screen handled by M_SceneManager)
 	var result: Error = _save_manager.load_from_slot(slot_id)
 
 	if result != OK:
-		push_warning("UI_SaveLoadMenu: Load failed with error code %d" % result)
-		# TODO: Show error toast in gameplay (overlay already closed)
+		_show_error_message(_format_operation_error("Load", result))
+		return
+
+	# Close the save/load menu only after load_from_slot() starts successfully.
+	# Immediate failures should remain visible in the menu.
+	var store := get_store()
+	if store != null:
+		store.dispatch(U_NavigationActions.close_top_overlay())
 
 func _perform_delete(slot_id: StringName) -> void:
 	if _save_manager == null:
 		push_error("UI_SaveLoadMenu: Cannot delete, M_SaveManager not found")
 		return
 
+	_clear_error_message()
 	var result: Error = _save_manager.delete_slot(slot_id)
 
 	if result != OK:
-		push_warning("UI_SaveLoadMenu: Delete failed with error code %d" % result)
-		# TODO: Show error toast or inline message
-	else:
-		# Refresh UI to remove deleted slot
-		_refresh_slot_list()
+		_show_error_message(_format_operation_error("Delete", result))
+		return
+
+	# Refresh UI to remove deleted slot
+	_refresh_slot_list()
 
 ## Event handlers for save events
 
 func _on_save_started(_event: Dictionary) -> void:
 	# Save started - could show a brief "Saving..." indicator
+	_clear_error_message()
 	pass
 
 func _on_save_completed(_event: Dictionary) -> void:
@@ -447,12 +451,13 @@ func _on_save_failed(_event: Dictionary) -> void:
 	# Save failed - could show error message
 	var payload: Dictionary = _event.get("payload", {})
 	var error_code: int = payload.get("error_code", 0)
-	push_warning("UI_SaveLoadMenu: Save failed with error code %d" % error_code)
+	_show_error_message(_format_operation_error("Save", error_code))
 
 ## Event handlers for load events
 
 func _on_load_started(_event: Dictionary) -> void:
 	# Load started - show spinner and disable all buttons
+	_clear_error_message()
 	_show_loading_spinner()
 	_set_buttons_enabled(false)
 
@@ -468,7 +473,27 @@ func _on_load_failed(_event: Dictionary) -> void:
 
 	var payload: Dictionary = _event.get("payload", {})
 	var error_code: int = payload.get("error_code", 0)
-	push_warning("UI_SaveLoadMenu: Load failed with error code %d" % error_code)
+	_show_error_message(_format_operation_error("Load", error_code))
+
+func _clear_error_message() -> void:
+	if _error_label == null:
+		return
+
+	_error_label.visible = false
+	_error_label.text = ""
+
+func _show_error_message(message: String) -> void:
+	if _error_label == null:
+		return
+
+	_error_label.text = message
+	_error_label.visible = true
+
+func _format_operation_error(operation: String, error_code: int) -> String:
+	var readable: String = error_string(error_code)
+	if readable.is_empty():
+		readable = "Unknown error"
+	return "%s failed: %s" % [operation, readable]
 
 ## Helper methods for spinner and button state
 

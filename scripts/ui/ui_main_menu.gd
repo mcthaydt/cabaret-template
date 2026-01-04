@@ -24,6 +24,7 @@ const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 @onready var _load_game_button: Button = %LoadGameButton
 @onready var _settings_button: Button = %SettingsButton
 @onready var _quit_button: Button = %QuitButton
+@onready var _new_game_confirm_dialog: ConfirmationDialog = %NewGameConfirmDialog
 
 var _save_manager: Node = null  # M_SaveManager
 var _new_game_confirmation_pending: bool = false
@@ -96,6 +97,12 @@ func _connect_buttons() -> void:
 		_settings_button.pressed.connect(_on_settings_pressed)
 	if _quit_button != null and not _quit_button.pressed.is_connected(_on_quit_pressed):
 		_quit_button.pressed.connect(_on_quit_pressed)
+
+	if _new_game_confirm_dialog != null:
+		if not _new_game_confirm_dialog.confirmed.is_connected(_on_new_game_confirmed):
+			_new_game_confirm_dialog.confirmed.connect(_on_new_game_confirmed)
+		if not _new_game_confirm_dialog.canceled.is_connected(_on_new_game_canceled):
+			_new_game_confirm_dialog.canceled.connect(_on_new_game_canceled)
 
 func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	var navigation_slice: Dictionary = state.get("navigation", {})
@@ -178,9 +185,32 @@ func _on_new_game_pressed() -> void:
 	if store == null:
 		return
 
-	# TODO: Add confirmation dialog if saves exist
-	# For now, just start the game
+	if _should_confirm_new_game():
+		_show_new_game_confirmation()
+		return
+
 	store.dispatch(U_NavigationActions.start_game(DEFAULT_GAMEPLAY_SCENE))
+
+func _should_confirm_new_game() -> bool:
+	if _save_manager == null or not _save_manager.has_method("has_any_saves"):
+		return false
+	return bool(_save_manager.has_any_saves())
+
+func _show_new_game_confirmation() -> void:
+	_new_game_confirmation_pending = true
+	if _new_game_confirm_dialog == null:
+		return
+	_new_game_confirm_dialog.popup_centered()
+
+func _on_new_game_confirmed() -> void:
+	_new_game_confirmation_pending = false
+	var store := get_store()
+	if store == null:
+		return
+	store.dispatch(U_NavigationActions.start_game(DEFAULT_GAMEPLAY_SCENE))
+
+func _on_new_game_canceled() -> void:
+	_new_game_confirmation_pending = false
 
 func _on_load_game_pressed() -> void:
 	var store := get_store()

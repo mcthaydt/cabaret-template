@@ -120,6 +120,62 @@ func test_buttons_enabled_after_load_completes() -> void:
 	# Back button should return to original state
 	assert_eq(back_button.disabled, initial_disabled, "Back button should return to original state after load")
 
+func test_save_failure_shows_error_message() -> void:
+	_prepare_save_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	_test_save_manager.set_next_save_result(ERR_FILE_CANT_WRITE)
+	menu._perform_save(StringName("slot_01"))
+	await wait_process_frames(2)
+
+	var error_label := menu.get_node_or_null("%ErrorLabel") as Label
+	assert_not_null(error_label, "ErrorLabel should exist in scene")
+	assert_true(error_label.visible, "ErrorLabel should be visible after save failure")
+	assert_ne(error_label.text.strip_edges(), "", "ErrorLabel text should not be empty after save failure")
+
+func test_delete_failure_shows_error_message() -> void:
+	_prepare_save_mode(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	_test_save_manager.set_next_delete_result(ERR_FILE_CANT_OPEN)
+	menu._perform_delete(StringName("slot_01"))
+	await wait_process_frames(2)
+
+	var error_label := menu.get_node_or_null("%ErrorLabel") as Label
+	assert_not_null(error_label, "ErrorLabel should exist in scene")
+	assert_true(error_label.visible, "ErrorLabel should be visible after delete failure")
+	assert_ne(error_label.text.strip_edges(), "", "ErrorLabel text should not be empty after delete failure")
+
+func test_load_failure_keeps_overlay_open_and_shows_error_message() -> void:
+	_prepare_load_mode(_test_store)
+	await _open_save_load_overlay_in_gameplay(_test_store)
+	var menu := await _instantiate_save_load_menu()
+
+	var nav_state: Dictionary = _test_store.get_state().get("navigation", {})
+	var overlay_stack: Array = nav_state.get("overlay_stack", [])
+	assert_eq(
+		overlay_stack,
+		[StringName("save_load_menu_overlay")],
+		"Save/load overlay should be on stack before load"
+	)
+
+	_test_save_manager.set_next_load_result(ERR_FILE_NOT_FOUND)
+	menu._perform_load(StringName("slot_01"))
+	await wait_process_frames(2)
+
+	nav_state = _test_store.get_state().get("navigation", {})
+	overlay_stack = nav_state.get("overlay_stack", [])
+	assert_eq(
+		overlay_stack,
+		[StringName("save_load_menu_overlay")],
+		"Save/load overlay should remain on stack after immediate load failure"
+	)
+
+	var error_label := menu.get_node_or_null("%ErrorLabel") as Label
+	assert_not_null(error_label, "ErrorLabel should exist in scene")
+	assert_true(error_label.visible, "ErrorLabel should be visible after load failure")
+	assert_ne(error_label.text.strip_edges(), "", "ErrorLabel text should not be empty after load failure")
+
 ## Helper functions
 
 func _create_state_store() -> M_StateStore:
@@ -150,4 +206,11 @@ func _prepare_save_mode(store: M_StateStore) -> void:
 func _prepare_load_mode(store: M_StateStore) -> void:
 	if store != null:
 		store.dispatch(U_NavigationActions.set_save_load_mode(StringName("load")))
+		await wait_process_frames(2)
+
+func _open_save_load_overlay_in_gameplay(store: M_StateStore) -> void:
+	if store != null:
+		store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("exterior")))
+		store.dispatch(U_NavigationActions.open_pause())
+		store.dispatch(U_NavigationActions.open_overlay(StringName("save_load_menu_overlay")))
 		await wait_process_frames(2)

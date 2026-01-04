@@ -13,6 +13,11 @@ var _is_saving: bool = false
 var _is_loading: bool = false
 var _delayed_load_enabled: bool = false
 var _delayed_load_duration: float = 0.0
+var _next_save_result: Error = OK
+var _next_load_result: Error = OK
+var _next_delete_result: Error = OK
+var _has_any_saves: bool = false
+var _most_recent_save_slot: StringName = StringName("")
 
 func _init() -> void:
 	name = "MockSaveManager"
@@ -43,6 +48,36 @@ func reset() -> void:
 	_is_loading = false
 	_delayed_load_enabled = false
 	_delayed_load_duration = 0.0
+	_next_save_result = OK
+	_next_load_result = OK
+	_next_delete_result = OK
+	_has_any_saves = false
+	_most_recent_save_slot = StringName("")
+
+func set_next_save_result(result: Error) -> void:
+	_next_save_result = result
+
+func set_next_load_result(result: Error) -> void:
+	_next_load_result = result
+
+func set_next_delete_result(result: Error) -> void:
+	_next_delete_result = result
+
+func set_has_any_saves(has_saves: bool) -> void:
+	_has_any_saves = has_saves
+	if _has_any_saves and _most_recent_save_slot == StringName(""):
+		_most_recent_save_slot = StringName("slot_01")
+
+func set_most_recent_save_slot(slot_id: StringName) -> void:
+	_most_recent_save_slot = slot_id
+
+func has_any_saves() -> bool:
+	return _has_any_saves
+
+func get_most_recent_save_slot() -> StringName:
+	if not _has_any_saves:
+		return StringName("")
+	return _most_recent_save_slot
 
 ## Test helper to enable delayed load simulation
 func set_delayed_load(enabled: bool, duration: float = 0.0) -> void:
@@ -83,19 +118,35 @@ func save_to_slot(slot_id: StringName) -> Error:
 		"is_autosave": (slot_id == SLOT_AUTOSAVE)
 	})
 
-	# Simulate immediate save completion
-	await get_tree().process_frame
+	var result: Error = _next_save_result
+	_next_save_result = OK
 	_is_saving = false
 
 	# Emit save_completed event
-	U_ECSEventBus.publish(StringName("save_completed"), {
-		"slot_id": slot_id
-	})
+	if result == OK:
+		U_ECSEventBus.publish(StringName("save_completed"), {
+			"slot_id": slot_id
+		})
+	else:
+		U_ECSEventBus.publish(StringName("save_failed"), {
+			"slot_id": slot_id,
+			"error_code": result
+		})
 
-	return OK
+	return result
 
 ## Mock implementation of load_from_slot
 func load_from_slot(slot_id: StringName) -> Error:
+	var result: Error = _next_load_result
+	_next_load_result = OK
+
+	if result != OK:
+		U_ECSEventBus.publish(StringName("load_failed"), {
+			"slot_id": slot_id,
+			"error_code": result
+		})
+		return result
+
 	_is_loading = true
 
 	# Emit load_started event immediately
@@ -124,7 +175,9 @@ func _complete_load(slot_id: StringName) -> void:
 func delete_slot(slot_id: StringName) -> Error:
 	if slot_id == SLOT_AUTOSAVE:
 		return ERR_UNAUTHORIZED
-	return OK
+	var result: Error = _next_delete_result
+	_next_delete_result = OK
+	return result
 
 ## Mock implementation of slot_exists
 func slot_exists(slot_id: StringName) -> bool:

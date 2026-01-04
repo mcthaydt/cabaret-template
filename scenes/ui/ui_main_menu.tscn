@@ -68,3 +68,10 @@ grow_vertical = 2
 
 [node name="SettingsContent" parent="SettingsPanel" unique_id=1806412124 instance=ExtResource("2_settings_menu_scene")]
 layout_mode = 1
+
+[node name="NewGameConfirmDialog" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Confirm"
+initial_position = 2
+size = Vector2i(420, 120)
+dialog_text = "Start a new game? This will reset your current progress."

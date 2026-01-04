@@ -11,12 +11,16 @@ const RS_SettingsInitialState := preload("res://scripts/state/resources/rs_setti
 const RS_NavigationInitialState := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const MockSaveManager := preload("res://tests/mocks/mock_save_manager.gd")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
+	U_ServiceLocator.clear()
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()
+	U_ServiceLocator.clear()
 
 func test_main_panel_visible_by_default() -> void:
 	var store := await _create_state_store()
@@ -81,6 +85,69 @@ func test_play_button_dispatches_start_game_action() -> void:
 	assert_eq(nav_slice.get("base_scene_id"), StringName("exterior"),
 		"New Game button should target the exterior scene by default")
 
+func test_new_game_prompts_confirmation_when_saves_exist() -> void:
+	var store := await _create_state_store()
+	await _register_save_manager_with_saves()
+	var menu := await _create_main_menu()
+	var new_game_button: Button = menu.get_node("CenterContainer/MainPanel/NewGameButton")
+
+	new_game_button.emit_signal("pressed")
+	await wait_process_frames(2)
+
+	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
+	assert_eq(nav_slice.get("shell"), StringName("main_menu"),
+		"New Game should not start immediately when saves exist")
+
+	var dialog := menu.get_node_or_null("%NewGameConfirmDialog") as ConfirmationDialog
+	assert_not_null(dialog, "NewGameConfirmDialog should exist in scene")
+	if dialog == null:
+		return
+	assert_true(dialog.visible, "NewGameConfirmDialog should be visible when saves exist")
+
+func test_new_game_confirmation_confirm_starts_game() -> void:
+	var store := await _create_state_store()
+	await _register_save_manager_with_saves()
+	var menu := await _create_main_menu()
+	var new_game_button: Button = menu.get_node("CenterContainer/MainPanel/NewGameButton")
+
+	new_game_button.emit_signal("pressed")
+	await wait_process_frames(2)
+
+	var dialog := menu.get_node_or_null("%NewGameConfirmDialog") as ConfirmationDialog
+	assert_not_null(dialog, "NewGameConfirmDialog should exist in scene")
+	if dialog == null:
+		return
+
+	dialog.emit_signal("confirmed")
+	await wait_process_frames(2)
+
+	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
+	assert_eq(nav_slice.get("shell"), StringName("gameplay"),
+		"Confirming New Game should start gameplay shell")
+	assert_eq(nav_slice.get("base_scene_id"), StringName("exterior"),
+		"Confirming New Game should target the exterior scene by default")
+
+func test_new_game_confirmation_cancel_does_nothing() -> void:
+	var store := await _create_state_store()
+	await _register_save_manager_with_saves()
+	var menu := await _create_main_menu()
+	var new_game_button: Button = menu.get_node("CenterContainer/MainPanel/NewGameButton")
+
+	new_game_button.emit_signal("pressed")
+	await wait_process_frames(2)
+
+	var dialog := menu.get_node_or_null("%NewGameConfirmDialog") as ConfirmationDialog
+	assert_not_null(dialog, "NewGameConfirmDialog should exist in scene")
+	if dialog == null:
+		return
+
+	dialog.emit_signal("canceled")
+	await wait_process_frames(2)
+
+	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
+	assert_eq(nav_slice.get("shell"), StringName("main_menu"),
+		"Canceling New Game confirmation should stay on main menu")
+
 func _create_state_store() -> M_StateStore:
 	var store := M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()
@@ -101,6 +168,14 @@ func _create_main_menu() -> Control:
 	add_child_autofree(menu)
 	await wait_process_frames(3)
 	return menu
+
+func _register_save_manager_with_saves() -> Node:
+	var save_manager := MockSaveManager.new()
+	add_child_autofree(save_manager)
+	save_manager.set_has_any_saves(true)
+	U_ServiceLocator.register(StringName("save_manager"), save_manager)
+	await wait_process_frames(2)
+	return save_manager
 
 ## Test main menu ignores non-menu panels (like pause/root from gameplay)
 ## Reproduces bug: settings panel shows when transitioning to gameplay
