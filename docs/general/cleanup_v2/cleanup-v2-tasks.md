@@ -145,24 +145,24 @@ These are intentionally explicit so the work can proceed without ambiguity:
   - Key must exist
   - If value is `StringName` or `String`, it must not be empty
 
-- [ ] **Task 2.1 (Red)**: Add ActionRegistry tests for `required_root_fields`
+- [x] **Task 2.1 (Red)**: Add ActionRegistry tests for `required_root_fields`
   - File: `tests/unit/state/test_action_registry.gd`
   - Add tests:
     - missing required root field → `validate_action()` returns false + `push_error`
     - empty `StringName` required root field → `validate_action()` returns false + `push_error`
     - present required root field → passes
 
-- [ ] **Task 2.2 (Green)**: Implement `required_root_fields` support
+- [x] **Task 2.2 (Green)**: Implement `required_root_fields` support
   - File: `scripts/state/utils/u_action_registry.gd`
   - Preserve existing schema behavior (`required_fields` continues to validate payload dicts).
 
-- [ ] **Task 2.3 (Red)**: Add store-level test for schema failure propagation
+- [x] **Task 2.3 (Red)**: Add store-level test for schema failure propagation
   - File: `tests/unit/state/test_m_state_store.gd`
   - Add a test that dispatching an action failing schema:
     - emits `validation_failed` with a stable message
     - does not emit `action_dispatched`
 
-- [ ] **Task 2.4 (Green)**: Apply schemas to the “high-risk” action set (no action-shape changes)
+- [x] **Task 2.4 (Green)**: Apply schemas to the “high-risk” action set (no action-shape changes)
   - Files:
     - `scripts/state/actions/u_scene_actions.gd`
     - `scripts/state/actions/u_navigation_actions.gd`
@@ -198,7 +198,7 @@ These are intentionally explicit so the work can proceed without ambiguity:
       - `input/update_touchscreen_settings`: `required_fields = ["settings"]`
       - `input/save_virtual_control_position`: `required_fields = ["control_name", "position"]`
 
-- [ ] **Task 2.5 (Green)**: Verify state + style suites
+- [x] **Task 2.5 (Green)**: Verify state + style suites
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/state`
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
 

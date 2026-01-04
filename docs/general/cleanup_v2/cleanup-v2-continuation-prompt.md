@@ -43,8 +43,11 @@ Work should be **behavior-preserving by default** and executed with **TDD** wher
   - Style enforcement now covers additional production dirs (`scripts/core`, `scripts/interfaces`, `scripts/utils`, `scripts/input`, `scripts/scene_management`, `scripts/events`).
   - Input sources enforced via suffix rule: `scripts/input/sources/*_source.gd`.
   - Scene naming checks recurse into subdirectories (e.g., `scenes/ui/settings/`).
+- Phase 2 complete:
+  - `U_ActionRegistry` now supports `required_root_fields` (with non-empty checks for `StringName`/`String` fields).
+  - High-risk action schemas applied for scene/navigation/input actions.
 
-Next: Phase 2 action payload schemas (Task 2.1).
+Next: Phase 3 orchestrator decomposition (Task 3.1).
 
 ---
 
