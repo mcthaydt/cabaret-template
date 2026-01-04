@@ -110,6 +110,40 @@ func test_validate_with_schema_rejects_missing_field() -> void:
 	assert_push_error("Missing required payload field")
 	assert_false(result, "Action missing required field should fail")
 
+func test_validate_with_schema_rejects_missing_required_root_field() -> void:
+	var action_type := StringName("test/with_root_schema_missing")
+	var schema: Dictionary = {"required_root_fields": ["shell"]}
+
+	U_ActionRegistry.register_action(action_type, schema)
+
+	var action: Dictionary = {"type": action_type}
+
+	var result := U_ActionRegistry.validate_action(action)
+	assert_push_error("Missing required root field")
+	assert_false(result, "Action missing required root field should fail")
+
+func test_validate_with_schema_rejects_empty_required_root_field() -> void:
+	var action_type := StringName("test/with_root_schema_empty")
+	var schema: Dictionary = {"required_root_fields": ["shell"]}
+
+	U_ActionRegistry.register_action(action_type, schema)
+
+	var action: Dictionary = {"type": action_type, "shell": StringName()}
+
+	var result := U_ActionRegistry.validate_action(action)
+	assert_push_error("Required root field is empty")
+	assert_false(result, "Action with empty required root field should fail")
+
+func test_validate_with_schema_accepts_required_root_field() -> void:
+	var action_type := StringName("test/with_root_schema_valid")
+	var schema: Dictionary = {"required_root_fields": ["shell"]}
+
+	U_ActionRegistry.register_action(action_type, schema)
+
+	var action: Dictionary = {"type": action_type, "shell": StringName("gameplay")}
+
+	assert_true(U_ActionRegistry.validate_action(action), "Action with required root field should pass")
+
 func test_register_action_with_empty_type_errors() -> void:
 	var before_count := U_ActionRegistry.get_registered_actions().size()
 	

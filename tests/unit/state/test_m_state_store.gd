@@ -130,6 +130,27 @@ func test_dispatch_rejects_action_without_type() -> void:
 
 	assert_eq(validation_error, "Action missing 'type' field", "Should emit validation_failed")
 
+func test_dispatch_rejects_action_failing_schema_and_does_not_emit_action_dispatched() -> void:
+	var action_type := StringName("test/schema_failure")
+	U_ActionRegistry.register_action(action_type, {"required_root_fields": ["shell"]})
+
+	var dispatched_emitted := false
+	store.action_dispatched.connect(func(_action: Dictionary) -> void:
+		dispatched_emitted = true
+	)
+
+	store.validation_failed.connect(func(_action: Dictionary, error: String) -> void:
+		validation_error = error
+	)
+
+	store.dispatch({"type": action_type})
+	assert_push_error("Missing required root field")
+
+	await get_tree().process_frame
+
+	assert_eq(validation_error, "Action validation failed", "Schema failures should emit stable validation_failed message")
+	assert_false(dispatched_emitted, "Schema-failing actions should not emit action_dispatched")
+
 func test_unsubscribe_removes_callback() -> void:
 	# Register test actions
 	U_ActionRegistry.register_action(StringName("test1"))

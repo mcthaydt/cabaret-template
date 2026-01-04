@@ -63,24 +63,44 @@ static func clear() -> void:
 	_registered_actions.clear()
 
 ## Validate action payload against schema
-## Schema format: {"required_fields": ["field1", "field2"]}
+## Schema format: {"required_fields": ["field1", "field2"], "required_root_fields": ["fieldA"]}
 static func _validate_schema(action: Dictionary, schema: Dictionary) -> bool:
+	var required_root_fields: Array = schema.get("required_root_fields", [])
+	for field in required_root_fields:
+		if not action.has(field):
+			push_error("ActionRegistry: Missing required root field: ", field)
+			return false
+		var root_value: Variant = action.get(field)
+		if root_value is StringName and root_value == StringName():
+			push_error("ActionRegistry: Required root field is empty: ", field)
+			return false
+		if root_value is String and (root_value as String).is_empty():
+			push_error("ActionRegistry: Required root field is empty: ", field)
+			return false
+
+	var required_fields: Array = schema.get("required_fields", [])
+
 	if not action.has("payload"):
 		return true  # Payload is optional
-	
+
 	var payload: Variant = action.get("payload")
 	if payload == null:
 		return true  # Null payload is valid
-	
+
 	if not payload is Dictionary:
 		return true  # Non-dict payloads are valid (e.g., primitive values)
-	
+
 	var payload_dict: Dictionary = payload as Dictionary
-	var required_fields: Array = schema.get("required_fields", [])
-	
 	for field in required_fields:
 		if not payload_dict.has(field):
 			push_error("ActionRegistry: Missing required payload field: ", field)
+			return false
+		var payload_value: Variant = payload_dict.get(field)
+		if payload_value is StringName and payload_value == StringName():
+			push_error("ActionRegistry: Required payload field is empty: ", field)
+			return false
+		if payload_value is String and (payload_value as String).is_empty():
+			push_error("ActionRegistry: Required payload field is empty: ", field)
 			return false
 	
 	return true
