@@ -47,7 +47,13 @@ Work should be **behavior-preserving by default** and executed with **TDD** wher
   - `U_ActionRegistry` now supports `required_root_fields` (with non-empty checks for `StringName`/`String` fields).
   - High-risk action schemas applied for scene/navigation/input actions.
 
-Next: Phase 3 orchestrator decomposition (Task 3.1).
+ - Phase 3A (Scene Manager) complete:
+  - Recorded current size/dup seams for `scripts/managers/m_scene_manager.gd` (1039 lines; see tasks doc).
+  - Removed manager-local cache wrapper methods and routed caching/preload usage through `U_SceneCache`.
+  - Removed manager-local loader wrapper methods and routed scene load/unload through `U_SceneLoader`.
+  - Refactored `U_OverlayStackManager` to avoid reading `M_SceneManager` internals (now takes explicit callables/nodes); updated `M_SceneManager` + `U_NavigationReconciler` call sites.
+
+Next: Phase 3B (State Store) baseline + extractions (Tasks 3.5+).
 
 ---
 

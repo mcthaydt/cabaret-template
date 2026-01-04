@@ -101,16 +101,12 @@ func test_async_loading_completes_successfully() -> void:
 		return
 
 	# Load a scene using async method (if available)
-	if not _manager.has_method("_load_scene_async"):
-		pending("_load_scene_async() not implemented yet")
-		return
-
 	var progress_values: Array = []
 	var progress_callback := func(progress: float) -> void:
 		progress_values.append(progress)
 
 	var scene_path: String = U_SceneRegistry.get_scene_path(StringName("main_menu"))
-	var loaded_scene: Node = await _manager._load_scene_async(scene_path, progress_callback)
+	var loaded_scene: Node = await _manager._scene_loader.load_scene_async(scene_path, progress_callback, _manager._background_loads)
 
 	assert_not_null(loaded_scene, "Should load scene successfully")
 	assert_gt(progress_values.size(), 0, "Should have progress updates")
@@ -128,16 +124,12 @@ func test_async_loading_progress_updates() -> void:
 		pass_test("Skipped in headless mode")
 		return
 
-	if not _manager.has_method("_load_scene_async"):
-		pending("_load_scene_async() not implemented yet")
-		return
-
 	var progress_values: Array = []
 	var progress_callback := func(progress: float) -> void:
 		progress_values.append(progress)
 
 	var scene_path: String = U_SceneRegistry.get_scene_path(StringName("settings_menu"))
-	var loaded_scene: Node = await _manager._load_scene_async(scene_path, progress_callback)
+	var loaded_scene: Node = await _manager._scene_loader.load_scene_async(scene_path, progress_callback, _manager._background_loads)
 
 	# Always assert that scene loaded successfully
 	assert_not_null(loaded_scene, "Should load scene successfully")
@@ -154,22 +146,17 @@ func test_async_loading_progress_updates() -> void:
 
 ## Test 3: Critical scenes preloaded at startup
 func test_critical_scenes_preloaded_at_startup() -> void:
-	if not _manager.has_method("_is_scene_cached"):
-		pending("Scene cache not implemented yet")
-		return
-
-	# Trigger preload (if auto-preload is implemented)
-	if _manager.has_method("_preload_critical_scenes"):
-		_manager._preload_critical_scenes()
-		await wait_seconds(2.0)  # Wait for background loading
+	# Wait for background loading started by M_SceneManager._ready()
+	await wait_seconds(2.0)
 
 	# Check critical scenes (priority >= 10)
 	var critical_scenes := U_SceneRegistry.get_preloadable_scenes(10)
 
+	var scene_cache: Dictionary = _manager._scene_cache
 	var all_preloaded := true
 	for scene_data in critical_scenes:
 		var scene_path: String = scene_data.get("path", "")
-		if not _manager._is_scene_cached(scene_path):
+		if not scene_cache.has(scene_path):
 			all_preloaded = false
 			break
 
@@ -177,10 +164,6 @@ func test_critical_scenes_preloaded_at_startup() -> void:
 
 ## Test 4: Preloaded scenes transition faster than on-demand
 func test_preloaded_scene_transitions_fast() -> void:
-	if not _manager.has_method("_is_scene_cached"):
-		pending("Scene cache not implemented yet")
-		return
-
 	# Preload main_menu manually
 	if _manager.has_method("_preload_scene"):
 		var scene_path: String = U_SceneRegistry.get_scene_path(StringName("main_menu"))
@@ -203,10 +186,6 @@ func test_on_demand_scene_loads_async() -> void:
 		pass_test("Skipped in headless mode")
 		return
 
-	if not _manager.has_method("_load_scene_async"):
-		pending("Async loading not implemented yet")
-		return
-
 	# Load gameplay scene (should use async load)
 	_manager.transition_to_scene(StringName("exterior"), "loading")
 	await wait_seconds(2.0)  # Wait for loading transition
@@ -217,10 +196,6 @@ func test_on_demand_scene_loads_async() -> void:
 
 ## Test 6: Cache eviction when max count exceeded
 func test_cache_eviction_on_max_count() -> void:
-	if not _manager.has_method("_is_scene_cached") or not _manager.has_method("_add_to_cache"):
-		pending("Scene cache not implemented yet")
-		return
-
 	# Set max cache size to 3
 	if _manager.has_method("set"):
 		_manager.set("_max_cached_scenes", 3)
@@ -235,28 +210,24 @@ func test_cache_eviction_on_max_count() -> void:
 
 	for path in scene_paths:
 		var packed_scene := load(path) as PackedScene
-		if packed_scene and _manager.has_method("_add_to_cache"):
-			_manager._add_to_cache(path, packed_scene)
+		if packed_scene:
+			_manager._scene_cache_helper.add_to_cache(path, packed_scene)
 
 	await get_tree().process_frame
 
 	# Cache should have exactly 3 scenes (4th evicted LRU)
 	var cached_count := 0
 	for path in scene_paths:
-		if _manager._is_scene_cached(path):
+		if _manager._scene_cache_helper.is_scene_cached(path):
 			cached_count += 1
 
 	assert_lte(cached_count, 3, "Cache should evict when max count exceeded")
 
 ## Test 7: Cache eviction on memory pressure
 func test_cache_eviction_on_memory_pressure() -> void:
-	if not _manager.has_method("_get_cache_memory_usage"):
-		pending("Memory tracking not implemented yet")
-		return
-
 	# Note: Difficult to test memory pressure in unit tests
 	# This test just validates the method exists and returns reasonable values
-	var memory_usage: int = _manager._get_cache_memory_usage()
+	var memory_usage: int = _manager._scene_cache_helper._get_cache_memory_usage()
 	assert_gte(memory_usage, 0, "Memory usage should be non-negative")
 
 	pass_test("Memory tracking method exists")
@@ -280,8 +251,7 @@ func test_automatic_preload_hint_near_door() -> void:
 		is_loading = background_loads.has(scene_path)
 
 	var is_cached := false
-	if _manager.has_method("_is_scene_cached"):
-		is_cached = _manager._is_scene_cached(scene_path)
+	is_cached = _manager._scene_cache_helper.is_scene_cached(scene_path)
 
 	assert_true(is_loading or is_cached, "Hinted scene should be loading or cached")
 
@@ -312,10 +282,6 @@ func test_real_progress_in_loading_transition() -> void:
 	# Skip if headless
 	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
 		pass_test("Skipped in headless mode")
-		return
-
-	if not _manager.has_method("_load_scene_async"):
-		pending("Async loading not implemented yet")
 		return
 
 	# Load large scene with loading transition

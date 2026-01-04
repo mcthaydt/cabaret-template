@@ -209,23 +209,28 @@ These are intentionally explicit so the work can proceed without ambiguity:
 **Exit Criteria:** No behavior changes (tests remain green), and duplicated responsibilities are removed from orchestrator files.
 
 ### 3A) Scene Manager (`scripts/managers/m_scene_manager.gd`)
-- [ ] **Task 3.1 (Baseline)**: Record current size + duplicated seams
+- [x] **Task 3.1 (Baseline)**: Record current size + duplicated seams
   - Record line count: `scripts/managers/m_scene_manager.gd`
+    - 1039 lines (2026-01-04)
   - Confirm which of these remain implemented inside the manager and can be removed:
     - caching + background preload (helper: `scripts/scene_management/helpers/u_scene_cache.gd`)
+      - Still has manager wrapper methods: `_is_scene_cached`, `_get_cached_scene`, `_evict_cache_lru`, `_preload_critical_scenes`
     - scene load/unload + contract validation (helper: `scripts/scene_management/helpers/u_scene_loader.gd`)
+      - Still has manager wrapper methods: `_remove_current_scene`, `_load_scene`, `_load_scene_async`, `_validate_scene_contract`
     - transition orchestration (helper: `scripts/scene_management/u_transition_orchestrator.gd`)
+      - Already delegated via `_transition_orchestrator.execute_transition_effect(...)` in `_perform_transition(...)`
     - overlay stack operations (helper: `scripts/scene_management/helpers/u_overlay_stack_manager.gd`)
+      - Helper currently reads manager internals directly (`manager._ui_overlay_stack`, `manager._store`, `manager._load_scene`, etc.) and calls manager methods for focus/particles; Task 3.4 removes this coupling.
 
-- [ ] **Task 3.2 (Green)**: Delete manager-local cache duplicates (if unused) and route through `U_SceneCache`
+- [x] **Task 3.2 (Green)**: Delete manager-local cache duplicates (if unused) and route through `U_SceneCache`
   - Validate by search: `rg -n \"_is_scene_cached|_get_cached_scene|_evict_cache_lru|_preload_critical_scenes\" scripts/managers/m_scene_manager.gd`
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_manager`
 
-- [ ] **Task 3.3 (Green)**: Delete manager-local loader duplicates (if unused) and route through `U_SceneLoader`
+- [x] **Task 3.3 (Green)**: Delete manager-local loader duplicates (if unused) and route through `U_SceneLoader`
   - Validate by search: `rg -n \"func _load_scene\\(|func _load_scene_async\\(|func _remove_current_scene\\(\" scripts/managers/m_scene_manager.gd`
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/scene_manager`
 
-- [ ] **Task 3.4 (Refactor)**: Reduce hidden coupling in overlay helper
+- [x] **Task 3.4 (Refactor)**: Reduce hidden coupling in overlay helper
   - Refactor target: `scripts/scene_management/helpers/u_overlay_stack_manager.gd`
   - Goal: helper should not read `manager._private_fields` (e.g., `_ui_overlay_stack`, `_store`) directly.
   - Replace with explicit parameters (Callable + nodes) and update `M_SceneManager` call sites.

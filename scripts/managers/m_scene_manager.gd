@@ -215,7 +215,8 @@ func _ready() -> void:
 		push_error("M_SceneManager: U_SceneRegistry door pairing validation failed")
 
 	# Phase 8: Preload critical scenes in background (main_menu, pause_menu, loading_screen)
-	_preload_critical_scenes()
+	var critical_scenes: Array = U_SCENE_REGISTRY.get_preloadable_scenes(10)
+	_scene_cache_helper.preload_critical_scenes(critical_scenes)
 
 	# Load initial scene (main_menu) unless skipped for tests
 	if not skip_initial_scene_load:
@@ -237,7 +238,14 @@ func _request_navigation_reconciliation() -> void:
 		nav_state,
 		self,
 		_current_scene_id,
-		_overlay_helper
+		_overlay_helper,
+		Callable(_scene_loader, "load_scene"),
+		_ui_overlay_stack,
+		_store,
+		Callable(self, "_update_particles_and_focus"),
+		get_tree().root,
+		Callable(self, "_get_transition_queue_state"),
+		Callable(self, "_set_overlay_reconciliation_pending")
 	)
 
 
@@ -435,7 +443,7 @@ func _perform_transition(request) -> void:
 	_update_scene_history(request.scene_id)
 
 	# Phase 8: Check if scene is cached
-	var use_cached: bool = _is_scene_cached(scene_path)
+	var use_cached: bool = _scene_cache_helper.is_scene_cached(scene_path)
 
 	# Phase 8: Create progress callback for async loading
 	# T208: Array wrapper for closure to capture mutable value (see method doc comment)
@@ -463,23 +471,23 @@ func _perform_transition(request) -> void:
 	var scene_swap_callback := func() -> void:
 		# Remove current scene from ActiveSceneContainer
 		if _active_scene_container != null:
-			_remove_current_scene()
+			_scene_loader.remove_current_scene(_active_scene_container)
 
 		# Load new scene (Phase 8: async for loading transitions, cached if available, sync otherwise)
 		var new_scene: Node = null
 		if use_cached:
 			# Use cached scene (instant)
-			var cached := _get_cached_scene(scene_path)
-			if cached:
-				new_scene = cached.instantiate()
+			var cached_scene: PackedScene = _scene_cache_helper.get_cached_scene(scene_path)
+			if cached_scene != null:
+				new_scene = cached_scene.instantiate()
 				# For cached scenes with "loading" transition, we use fake progress,
 				# so avoid forcing progress to 100% here.
 		elif request.transition_type == "loading" and not (OS.has_feature("headless") or DisplayServer.get_name() == "headless"):
 			# Use async loading for "loading" transitions (Phase 8)
-			new_scene = await _load_scene_async(scene_path, progress_callback)
+			new_scene = await _scene_loader.load_scene_async(scene_path, progress_callback, _background_loads)
 		else:
 			# Use sync loading for other transitions (or headless mode)
-			new_scene = _load_scene(scene_path)
+			new_scene = _scene_loader.load_scene(scene_path)
 			# Update progress for loading transitions in headless/sync mode
 			if request.transition_type == "loading":
 				progress_callback.call(1.0)
@@ -501,7 +509,7 @@ func _perform_transition(request) -> void:
 
 		# Add new scene to ActiveSceneContainer
 		if _active_scene_container != null:
-			_add_scene(new_scene)
+			_scene_loader.add_scene(_active_scene_container, new_scene)
 		# Store for post-transition finalization
 		new_scene_ref[0] = new_scene
 
@@ -578,38 +586,26 @@ func _unfreeze_player_physics(scene: Node) -> void:
 func _find_player_in_scene(scene: Node) -> Node3D:
 	return _scene_loader.find_player_in_scene(scene)
 
-## Remove current scene from ActiveSceneContainer
-func _remove_current_scene() -> void:
-	_scene_loader.remove_current_scene(_active_scene_container)
-
-## Load scene via ResourceLoader (sync for now)
-func _load_scene(scene_path: String) -> Node:
-	return _scene_loader.load_scene(scene_path)
-
-## Load scene asynchronously with progress callback (Phase 8)
-##
-## Uses ResourceLoader.load_threaded_* for async loading with real progress updates.
-## Falls back to sync loading in headless mode.
-##
-## Parameters:
-##   scene_path: Resource path to .tscn file
-##   progress_callback: Callable(progress: float) called with 0.0-1.0 progress
-##
-## Returns: Instantiated Node or null on failure
-func _load_scene_async(scene_path: String, progress_callback: Callable) -> Node:
-	return await _scene_loader.load_scene_async(scene_path, progress_callback, _background_loads)
-
-## Add scene to ActiveSceneContainer
-func _add_scene(scene: Node) -> void:
-	_scene_loader.add_scene(_active_scene_container, scene)
-
 ## Push overlay scene onto UIOverlayStack
 func push_overlay(scene_id: StringName, force: bool = false) -> void:
-	_overlay_helper.push_overlay(self, scene_id, force)
+	_overlay_helper.push_overlay(
+		scene_id,
+		force,
+		Callable(_scene_loader, "load_scene"),
+		_ui_overlay_stack,
+		_store,
+		Callable(self, "_update_particles_and_focus")
+	)
 
 ## Pop top overlay from UIOverlayStack
 func pop_overlay() -> void:
-	_overlay_helper.pop_overlay(self)
+	var viewport: Viewport = get_tree().root
+	_overlay_helper.pop_overlay(
+		_ui_overlay_stack,
+		_store,
+		Callable(self, "_update_particles_and_focus"),
+		viewport
+	)
 
 ## Push overlay with automatic return navigation (Phase 6.5)
 ##
@@ -630,7 +626,16 @@ func pop_overlay() -> void:
 ##   push_overlay_with_return("settings_menu")  # Remember pause, replace → 1 overlay: settings
 ##   pop_overlay_with_return()                  # Restore pause → 1 overlay: pause
 func push_overlay_with_return(overlay_id: StringName) -> void:
-	_overlay_helper.push_overlay_with_return(self, overlay_id)
+	var viewport: Viewport = get_tree().root
+	_overlay_helper.push_overlay_with_return(
+		overlay_id,
+		_overlay_return_stack,
+		Callable(_scene_loader, "load_scene"),
+		_ui_overlay_stack,
+		_store,
+		Callable(self, "_update_particles_and_focus"),
+		viewport
+	)
 
 ## Pop overlay with automatic return navigation (Phase 6.5)
 ##
@@ -640,7 +645,18 @@ func push_overlay_with_return(overlay_id: StringName) -> void:
 ##
 ## This provides stack-based overlay navigation without hardcoded logic.
 func pop_overlay_with_return() -> void:
-	_overlay_helper.pop_overlay_with_return(self)
+	var viewport: Viewport = get_tree().root
+	var deferred_push_overlay_for_return: Callable = func(scene_id: StringName) -> void:
+		call_deferred("_push_overlay_for_return", scene_id)
+	_overlay_helper.pop_overlay_with_return(
+		_overlay_return_stack,
+		Callable(_scene_loader, "load_scene"),
+		_ui_overlay_stack,
+		_store,
+		Callable(self, "_update_particles_and_focus"),
+		viewport,
+		deferred_push_overlay_for_return
+	)
 
 ## Internal: deferred restore helper for return navigation
 func _push_overlay_for_return(scene_id: StringName) -> void:
@@ -650,17 +666,11 @@ func _push_overlay_for_return(scene_id: StringName) -> void:
 ##
 ## Returns StringName("") if no overlays are active.
 func _get_top_overlay_id() -> StringName:
-	return _overlay_helper.get_top_overlay_id(self)
+	return _overlay_helper.get_top_overlay_id(_ui_overlay_stack)
 
 ## Configure overlay scene for pause handling
 func _configure_overlay_scene(overlay_scene: Node, scene_id: StringName) -> void:
 	_overlay_helper.configure_overlay_scene(overlay_scene, scene_id)
-
-func _restore_focus_to_top_overlay() -> void:
-	_overlay_helper.restore_focus_to_top_overlay(self)
-
-func _find_first_focusable_in(root: Node) -> Control:
-	return _overlay_helper.find_first_focusable_in(root)
 
 ## Update particles and focus based on overlay stack
 ##
@@ -718,7 +728,14 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 		slice_state,
 		self,
 		_current_scene_id,
-		_overlay_helper
+		_overlay_helper,
+		Callable(_scene_loader, "load_scene"),
+		_ui_overlay_stack,
+		_store,
+		Callable(self, "_update_particles_and_focus"),
+		get_tree().root,
+		Callable(self, "_get_transition_queue_state"),
+		Callable(self, "_set_overlay_reconciliation_pending")
 	)
 
 func _is_scene_in_queue(scene_id: StringName) -> bool:
@@ -746,22 +763,32 @@ func _set_navigation_pending_scene_id(scene_id: StringName) -> void:
 func _get_navigation_pending_scene_id() -> StringName:
 	return _navigation_reconciler.get_pending_scene_id()
 
-## Helper for overlay stack manager to push overlay and verify success
-func _push_overlay_scene_from_navigation(scene_id: StringName) -> bool:
-	var before_count: int = 0
-	if _ui_overlay_stack != null:
-		before_count = _ui_overlay_stack.get_child_count()
-	push_overlay(scene_id)
-	if _ui_overlay_stack == null:
-		return false
-	var after_count: int = _ui_overlay_stack.get_child_count()
-	return after_count > before_count
-
 func _reconcile_overlay_stack(desired_overlay_ids: Array[StringName], current_stack: Array[StringName]) -> void:
-	_overlay_helper.reconcile_overlay_stack(self, desired_overlay_ids, current_stack)
+	var viewport: Viewport = get_tree().root
+	_overlay_helper.reconcile_overlay_stack(
+		desired_overlay_ids,
+		current_stack,
+		Callable(_scene_loader, "load_scene"),
+		_ui_overlay_stack,
+		_store,
+		Callable(self, "_update_particles_and_focus"),
+		viewport,
+		Callable(self, "_get_transition_queue_state"),
+		Callable(self, "_set_overlay_reconciliation_pending")
+	)
 
 func _reconcile_pending_navigation_overlays() -> void:
-	_navigation_reconciler.reconcile_pending_overlays(self, _overlay_helper)
+	_navigation_reconciler.reconcile_pending_overlays(
+		self,
+		_overlay_helper,
+		Callable(_scene_loader, "load_scene"),
+		_ui_overlay_stack,
+		_store,
+		Callable(self, "_update_particles_and_focus"),
+		get_tree().root,
+		Callable(self, "_get_transition_queue_state"),
+		Callable(self, "_set_overlay_reconciliation_pending")
+	)
 
 ## Ensure scene_stack metadata matches actual overlay stack
 func _sync_overlay_stack_state() -> void:
@@ -797,7 +824,7 @@ func _sync_overlay_stack_state() -> void:
 
 ## Collect overlay scene IDs from UIOverlayStack metadata
 func _get_overlay_scene_ids_from_ui() -> Array[StringName]:
-	return _overlay_helper.get_overlay_scene_ids_from_ui(self)
+	return _overlay_helper.get_overlay_scene_ids_from_ui(_ui_overlay_stack)
 
 ## Clear scene_stack metadata by dispatching pop actions
 func _clear_scene_stack_state(count: int) -> void:
@@ -813,7 +840,7 @@ func _overlay_stacks_match(stack_a: Array[StringName], stack_b: Array[StringName
 
 ## Update overlay visibility based on top overlay's hides_previous_overlays flag
 func _update_overlay_visibility(overlay_ids: Array[StringName]) -> void:
-	_overlay_helper.update_overlay_visibility(self, overlay_ids)
+	_overlay_helper.update_overlay_visibility(_ui_overlay_stack, overlay_ids)
 
 ## Get current scene ID from state
 func get_current_scene() -> StringName:
@@ -975,45 +1002,9 @@ func _update_scene_history(target_scene_id: StringName) -> void:
 ## Phase 8: Scene Cache Management
 ## ============================================================================
 
-## Check if scene is cached
-func _is_scene_cached(scene_path: String) -> bool:
-	return _scene_cache_helper.is_scene_cached(scene_path)
-
-## Get cached PackedScene (updates LRU access time)
-func _get_cached_scene(scene_path: String) -> PackedScene:
-	return _scene_cache_helper.get_cached_scene(scene_path)
-
-## Add PackedScene to cache (with eviction if needed)
-func _add_to_cache(scene_path: String, packed_scene: PackedScene) -> void:
-	_scene_cache_helper.add_to_cache(scene_path, packed_scene)
-
-## Check cache pressure and evict if necessary (hybrid policy)
-func _check_cache_pressure() -> void:
-	_scene_cache_helper._check_cache_pressure()
-
-## Evict least-recently-used scene from cache
-func _evict_cache_lru() -> void:
-	_scene_cache_helper._evict_cache_lru()
-
-## Get estimated cache memory usage in bytes
-func _get_cache_memory_usage() -> int:
-	return _scene_cache_helper._get_cache_memory_usage()
-
 ## ============================================================================
 ## Phase 8: Scene Preloading at Startup
 ## ============================================================================
-
-## Preload critical scenes at startup (Phase 8)
-##
-## Loads scenes with priority >= 10 in background for instant transitions.
-## Critical scenes: main_menu, pause_menu, loading_screen
-func _preload_critical_scenes() -> void:
-	var critical_scenes: Array = U_SCENE_REGISTRY.get_preloadable_scenes(10)
-	_scene_cache_helper.preload_critical_scenes(critical_scenes)
-
-## Start background polling loop for preloaded scenes (Phase 8)
-func _start_background_load_polling() -> void:
-	await _scene_cache_helper._start_background_load_polling()
 
 ## Hint to preload a scene in background (Phase 8)
 ##

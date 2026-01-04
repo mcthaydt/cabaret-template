@@ -69,6 +69,4 @@ func test_background_preload_completes_and_caches_scene() -> void:
         assert_true(not loads.has(scene_path) or loads.is_empty(), "Background load should be completed")
 
     # Scene should be cached
-    if _manager.has_method("_is_scene_cached"):
-        assert_true(_manager._is_scene_cached(scene_path), "Scene should be cached after background preload")
-
+    assert_true(_manager._scene_cache_helper.is_scene_cached(scene_path), "Scene should be cached after background preload")

@@ -15,18 +15,19 @@ const U_UI_REGISTRY := preload("res://scripts/ui/u_ui_registry.gd")
 
 const OVERLAY_META_SCENE_ID := StringName("_scene_manager_overlay_scene_id")
 
-func push_overlay(manager: Node, scene_id: StringName, force: bool) -> void:
+func push_overlay(scene_id: StringName, force: bool, load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable) -> void:
 	var scene_path: String = U_SCENE_REGISTRY.get_scene_path(scene_id)
 	if scene_path.is_empty():
 		push_warning("M_SceneManager: Scene '%s' not found for overlay" % scene_id)
 		return
 
-	var overlay_scene: Node = manager._load_scene(scene_path)
+	var overlay_scene: Node = null
+	if load_scene != null and load_scene.is_valid():
+		overlay_scene = load_scene.call(scene_path) as Node
 	if overlay_scene == null:
 		push_error("M_SceneManager: Failed to load overlay scene '%s'" % scene_id)
 		return
 
-	var ui_overlay_stack: CanvasLayer = manager._ui_overlay_stack
 	if ui_overlay_stack == null:
 		push_error("M_SceneManager: UIOverlayStack not found for overlay '%s'" % scene_id)
 		overlay_scene.queue_free()
@@ -35,14 +36,13 @@ func push_overlay(manager: Node, scene_id: StringName, force: bool) -> void:
 	_configure_overlay_scene(overlay_scene, scene_id)
 	ui_overlay_stack.add_child(overlay_scene)
 
-	var store = manager._store
-	if store != null:
+	if store != null and store.has_method("dispatch"):
 		store.dispatch(U_SCENE_ACTIONS.push_overlay(scene_id))
 
-	manager._update_particles_and_focus()
+	if on_overlay_stack_updated != null and on_overlay_stack_updated.is_valid():
+		on_overlay_stack_updated.call()
 
-func pop_overlay(manager: Node) -> void:
-	var ui_overlay_stack: CanvasLayer = manager._ui_overlay_stack
+func pop_overlay(ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable, viewport: Viewport) -> void:
 	if ui_overlay_stack == null:
 		return
 
@@ -50,8 +50,7 @@ func pop_overlay(manager: Node) -> void:
 	if overlay_count == 0:
 		return
 
-	var store = manager._store
-	if store != null:
+	if store != null and store.has_method("dispatch"):
 		store.dispatch(U_SCENE_ACTIONS.pop_overlay())
 
 	var top_overlay: Node = ui_overlay_stack.get_child(overlay_count - 1)
@@ -60,49 +59,51 @@ func pop_overlay(manager: Node) -> void:
 	top_overlay.queue_free()
 	ui_overlay_stack.remove_child(top_overlay)
 
-	manager._update_particles_and_focus()
-	manager._restore_focus_to_top_overlay()
+	if on_overlay_stack_updated != null and on_overlay_stack_updated.is_valid():
+		on_overlay_stack_updated.call()
+	_restore_focus_to_top_overlay(ui_overlay_stack, viewport)
 
-func push_overlay_with_return(manager: Node, overlay_id: StringName) -> void:
-	var current_top: StringName = _get_top_overlay_id(manager)
-	manager._overlay_return_stack.push_back(current_top)
+func push_overlay_with_return(overlay_id: StringName, overlay_return_stack: Array[StringName], load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable, viewport: Viewport) -> void:
+	var current_top: StringName = _get_top_overlay_id(ui_overlay_stack)
+	overlay_return_stack.push_back(current_top)
 
 	if not current_top.is_empty():
-		pop_overlay(manager)
+		pop_overlay(ui_overlay_stack, store, on_overlay_stack_updated, viewport)
 
-	push_overlay(manager, overlay_id, true)
+	push_overlay(overlay_id, true, load_scene, ui_overlay_stack, store, on_overlay_stack_updated)
 
-func pop_overlay_with_return(manager: Node) -> void:
-	pop_overlay(manager)
+func pop_overlay_with_return(overlay_return_stack: Array[StringName], load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable, viewport: Viewport, deferred_push_overlay_for_return: Callable) -> void:
+	pop_overlay(ui_overlay_stack, store, on_overlay_stack_updated, viewport)
 
-	if not manager._overlay_return_stack.is_empty():
-		var previous_overlay: StringName = manager._overlay_return_stack.pop_back()
+	if not overlay_return_stack.is_empty():
+		var previous_overlay: StringName = overlay_return_stack.pop_back()
 		if not previous_overlay.is_empty():
-			manager.call_deferred("_push_overlay_for_return", previous_overlay)
+			if deferred_push_overlay_for_return != null and deferred_push_overlay_for_return.is_valid():
+				deferred_push_overlay_for_return.call(previous_overlay)
 
 func configure_overlay_scene(overlay_scene: Node, scene_id: StringName) -> void:
 	_configure_overlay_scene(overlay_scene, scene_id)
 
-func restore_focus_to_top_overlay(manager: Node) -> void:
-	_restore_focus_to_top_overlay(manager)
+func restore_focus_to_top_overlay(ui_overlay_stack: CanvasLayer, viewport: Viewport) -> void:
+	_restore_focus_to_top_overlay(ui_overlay_stack, viewport)
 
 func find_first_focusable_in(root: Node) -> Control:
 	return _find_first_focusable_in(root)
 
-func get_top_overlay_id(manager: Node) -> StringName:
-	return _get_top_overlay_id(manager)
+func get_top_overlay_id(ui_overlay_stack: CanvasLayer) -> StringName:
+	return _get_top_overlay_id(ui_overlay_stack)
 
-func reconcile_overlay_stack(manager: Node, desired_overlay_ids: Array[StringName], current_stack: Array[StringName]) -> void:
-	_reconcile_overlay_stack(manager, desired_overlay_ids, current_stack)
+func reconcile_overlay_stack(desired_overlay_ids: Array[StringName], current_stack: Array[StringName], load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable, viewport: Viewport, get_transition_queue_state: Callable, set_overlay_reconciliation_pending: Callable) -> void:
+	_reconcile_overlay_stack(desired_overlay_ids, current_stack, load_scene, ui_overlay_stack, store, on_overlay_stack_updated, viewport, get_transition_queue_state, set_overlay_reconciliation_pending)
 
-func get_overlay_scene_ids_from_ui(manager: Node) -> Array[StringName]:
-	return _get_overlay_scene_ids_from_ui(manager)
+func get_overlay_scene_ids_from_ui(ui_overlay_stack: CanvasLayer) -> Array[StringName]:
+	return _get_overlay_scene_ids_from_ui(ui_overlay_stack)
 
 func overlay_stacks_match(stack_a: Array[StringName], stack_b: Array[StringName]) -> bool:
 	return _overlay_stacks_match(stack_a, stack_b)
 
-func update_overlay_visibility(manager: Node, overlay_ids: Array[StringName]) -> void:
-	_update_overlay_visibility(manager, overlay_ids)
+func update_overlay_visibility(ui_overlay_stack: CanvasLayer, overlay_ids: Array[StringName]) -> void:
+	_update_overlay_visibility(ui_overlay_stack, overlay_ids)
 
 func _configure_overlay_scene(overlay_scene: Node, scene_id: StringName) -> void:
 	if overlay_scene == null:
@@ -111,8 +112,7 @@ func _configure_overlay_scene(overlay_scene: Node, scene_id: StringName) -> void
 	overlay_scene.process_mode = Node.PROCESS_MODE_ALWAYS
 	overlay_scene.set_meta(OVERLAY_META_SCENE_ID, scene_id)
 
-func _restore_focus_to_top_overlay(manager: Node) -> void:
-	var ui_overlay_stack: CanvasLayer = manager._ui_overlay_stack
+func _restore_focus_to_top_overlay(ui_overlay_stack: CanvasLayer, viewport: Viewport) -> void:
 	if ui_overlay_stack == null:
 		return
 
@@ -124,7 +124,6 @@ func _restore_focus_to_top_overlay(manager: Node) -> void:
 	if top_overlay == null:
 		return
 
-	var viewport: Viewport = manager.get_tree().root
 	var focus_owner: Control = null
 	if viewport != null:
 		focus_owner = viewport.gui_get_focus_owner()
@@ -154,8 +153,7 @@ func _find_first_focusable_in(root: Node) -> Control:
 				return nested
 	return null
 
-func _get_top_overlay_id(manager: Node) -> StringName:
-	var ui_overlay_stack: CanvasLayer = manager._ui_overlay_stack
+func _get_top_overlay_id(ui_overlay_stack: CanvasLayer) -> StringName:
 	if ui_overlay_stack == null:
 		return StringName("")
 
@@ -173,33 +171,35 @@ func _get_top_overlay_id(manager: Node) -> StringName:
 
 	return StringName("")
 
-func _reconcile_overlay_stack(manager: Node, desired_overlay_ids: Array[StringName], current_stack: Array[StringName]) -> void:
-	# Check if transition is in progress (via helper methods)
+func _reconcile_overlay_stack(desired_overlay_ids: Array[StringName], current_stack: Array[StringName], load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable, viewport: Viewport, get_transition_queue_state: Callable, set_overlay_reconciliation_pending: Callable) -> void:
+	# Check if transition is in progress
 	var transition_state: Dictionary = {}
-	if manager.has_method("_get_transition_queue_state"):
-		transition_state = manager.call("_get_transition_queue_state")
+	if get_transition_queue_state != null and get_transition_queue_state.is_valid():
+		var state_variant: Variant = get_transition_queue_state.call()
+		if state_variant is Dictionary:
+			transition_state = state_variant
 
 	var is_processing: bool = transition_state.get("is_processing", false)
 	var queue_size: int = transition_state.get("queue_size", 0)
 
 	if is_processing or queue_size > 0:
-		if manager.has_method("_set_overlay_reconciliation_pending"):
-			manager.call("_set_overlay_reconciliation_pending", true)
+		if set_overlay_reconciliation_pending != null and set_overlay_reconciliation_pending.is_valid():
+			set_overlay_reconciliation_pending.call(true)
 		return
 
 	const MAX_STACK_DEPTH := 8
 	var desired_scene_stack: Array[StringName] = _map_overlay_ids_to_scene_ids(desired_overlay_ids)
 	if _overlay_stacks_match(current_stack, desired_scene_stack):
-		if manager.has_method("_set_overlay_reconciliation_pending"):
-			manager.call("_set_overlay_reconciliation_pending", false)
-		_update_overlay_visibility(manager, desired_overlay_ids)
+		if set_overlay_reconciliation_pending != null and set_overlay_reconciliation_pending.is_valid():
+			set_overlay_reconciliation_pending.call(false)
+		_update_overlay_visibility(ui_overlay_stack, desired_overlay_ids)
 		return
 
 	var normalized_current: Array[StringName] = current_stack.duplicate(true)
 	var prefix_len: int = _get_longest_matching_prefix(normalized_current, desired_scene_stack)
 
 	while normalized_current.size() > prefix_len:
-		manager.pop_overlay()
+		pop_overlay(ui_overlay_stack, store, on_overlay_stack_updated, viewport)
 		if not normalized_current.is_empty():
 			normalized_current.pop_back()
 
@@ -211,17 +211,21 @@ func _reconcile_overlay_stack(manager: Node, desired_overlay_ids: Array[StringNa
 		var scene_id: StringName = desired_scene_stack[i]
 		if scene_id == StringName(""):
 			continue
-		if not manager._push_overlay_scene_from_navigation(scene_id):
+		var before_count: int = ui_overlay_stack.get_child_count() if ui_overlay_stack != null else 0
+		push_overlay(scene_id, false, load_scene, ui_overlay_stack, store, on_overlay_stack_updated)
+		if ui_overlay_stack == null:
+			break
+		var after_count: int = ui_overlay_stack.get_child_count()
+		if after_count <= before_count:
 			break
 		normalized_current.append(scene_id)
 
-	if manager.has_method("_set_overlay_reconciliation_pending"):
-		manager.call("_set_overlay_reconciliation_pending", false)
-	_update_overlay_visibility(manager, desired_overlay_ids)
+	if set_overlay_reconciliation_pending != null and set_overlay_reconciliation_pending.is_valid():
+		set_overlay_reconciliation_pending.call(false)
+	_update_overlay_visibility(ui_overlay_stack, desired_overlay_ids)
 
-func _get_overlay_scene_ids_from_ui(manager: Node) -> Array[StringName]:
+func _get_overlay_scene_ids_from_ui(ui_overlay_stack: CanvasLayer) -> Array[StringName]:
 	var overlay_ids: Array[StringName] = []
-	var ui_overlay_stack: CanvasLayer = manager._ui_overlay_stack
 
 	if ui_overlay_stack == null:
 		return overlay_ids
@@ -250,8 +254,7 @@ func _overlay_stacks_match(stack_a: Array[StringName], stack_b: Array[StringName
 
 	return true
 
-func _update_overlay_visibility(manager: Node, overlay_ids: Array[StringName]) -> void:
-	var ui_overlay_stack: CanvasLayer = manager._ui_overlay_stack
+func _update_overlay_visibility(ui_overlay_stack: CanvasLayer, overlay_ids: Array[StringName]) -> void:
 	if ui_overlay_stack == null or overlay_ids.is_empty():
 		return
 
