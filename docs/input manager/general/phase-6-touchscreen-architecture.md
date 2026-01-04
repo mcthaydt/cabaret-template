@@ -919,7 +919,7 @@ func _save_position() -> void:
 
 ### 2.4 RS_TouchscreenSettings → RS_GamepadSettings Pattern
 
-**Reference:** `scripts/ecs/resources/rs_gamepad_settings.gd`
+**Reference:** `scripts/input/resources/rs_gamepad_settings.gd`
 
 **Structure:**
 ```gdscript
@@ -1677,7 +1677,7 @@ metadata: {
 - `resources/button_prompts/mobile/LICENSE_Kenney_Mobile.txt` (CC0 license)
 
 **Scripts:**
-- `scripts/ecs/resources/rs_touchscreen_settings.gd` (settings resource)
+- `scripts/input/resources/rs_touchscreen_settings.gd` (settings resource)
 - `scripts/ecs/systems/s_touchscreen_system.gd` (ECS system)
 - `scripts/ui/virtual_joystick.gd` (joystick component)
 - `scripts/ui/virtual_button.gd` (button component)

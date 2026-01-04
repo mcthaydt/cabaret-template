@@ -570,6 +570,10 @@
 
 - **UIDs must be managed by Godot**: When creating new scene files (like root.tscn), DO NOT manually specify UIDs in the scene header. Either omit the `uid=` parameter entirely or use `res://path/to/scene.tscn` paths in project.godot. Manually-specified UIDs cause "Unrecognized UID" errors because they're not registered in Godot's UID cache. Let Godot generate UIDs by opening and saving scenes in the editor.
 
+- **Moving `class_name` scripts can require cache regeneration**: Godot caches global script classes and resource UIDs under `.godot/` (ignored by git). If you move or rename a script that declares `class_name` (e.g., `RS_*` resources), headless loads can still point at the old path and `.tres`/`.tscn` parsing can fail.
+  - Fix: delete `.godot/global_script_class_cache.cfg` and `.godot/uid_cache.bin` (they regenerate), or open the project in the editor once to refresh caches, then rerun `tools/run_gut_suite.sh`.
+  - Symptom: errors like “Could not parse global class `RS_*` from `res://old/path.gd`” or “[ext_resource] referenced non-existent resource”.
+
 - **StateHandoff works across scene transitions**: The existing StateHandoff system automatically preserves state when scenes are removed from the tree and restores it when they're added back. This works correctly with the root scene pattern - you'll see `[STATE] Preserved state to StateHandoff for scene transition` and `[STATE] Restored slice 'X' from StateHandoff` logs during scene changes.
 
 - **M_SceneManager automatically manages cursor state**: As of Phase 3, M_SceneManager automatically sets cursor visibility based on scene type when scenes load:

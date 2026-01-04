@@ -358,7 +358,7 @@
 **Exit Criteria:** Settings persist to save files, UI updates reflect in-game on Apply, Apply/Cancel/Reset pattern (consistent with gamepad/touchscreen settings)
 
 - [x] **Task 5.1 (Green)**: Create VFX settings overlay scene
-  - Create `scenes/ui/settings/ui_vfx_settings_overlay.tscn`
+  - Create `scenes/ui/ui_vfx_settings_overlay.tscn`
   - Scene structure:
     ```
     Control (name="VFXSettingsOverlay")  # BaseOverlay
@@ -482,7 +482,7 @@
   - Modify `scripts/state/selectors/u_vfx_selectors.gd` (add selector)
 
 - [x] **Task 7.3 (Green)**: Add particles toggle to settings UI
-  - Modify `scenes/ui/settings/ui_vfx_settings_overlay.tscn` (add "Particles" row + toggle)
+  - Modify `scenes/ui/ui_vfx_settings_overlay.tscn` (add "Particles" row + toggle)
   - Modify `scripts/ui/settings/ui_vfx_settings_overlay.gd` (Apply/Cancel/Reset integration + focus)
 
 - [x] **Task 7.4 (Green)**: Gate particle spawning via `U_ParticleSpawner`
@@ -516,7 +516,7 @@
 | `scenes/ui/ui_damage_flash_overlay.tscn` | ✅ Complete | 4 | Damage flash overlay scene (CanvasLayer layer 50) |
 | `scripts/managers/helpers/m_damage_flash.gd` | ✅ Complete | 4 | Damage flash helper with tween fade (0.4s duration) |
 | `tests/unit/managers/helpers/test_damage_flash.gd` | ✅ Complete | 4 | 10 tests for damage flash |
-| `scenes/ui/settings/ui_vfx_settings_overlay.tscn` | ✅ Complete | 5 | VFX settings overlay scene |
+| `scenes/ui/ui_vfx_settings_overlay.tscn` | ✅ Complete | 5 | VFX settings overlay scene |
 | `scripts/ui/settings/ui_vfx_settings_overlay.gd` | ✅ Complete | 5, 7 | VFX settings overlay controller (Apply/Cancel/Reset) |
 | `tests/integration/vfx/test_vfx_camera_integration.gd` | ✅ Complete | 6 | 5 integration tests for VFX-Camera |
 | `tests/integration/vfx/test_vfx_settings_ui.gd` | ✅ Complete | 6, 7 | 8 integration tests for settings UI |

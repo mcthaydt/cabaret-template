@@ -268,13 +268,13 @@ These are intentionally explicit so the work can proceed without ambiguity:
 
 **Exit Criteria:** Project structure is more consistent; style tests updated if policy changes.
 
-- [ ] **Task 4.1**: Remove placeholder gameplay scene (if unused)
+- [x] **Task 4.1**: Remove placeholder gameplay scene (if unused)
   - Candidate: `scenes/tmp_invalid_gameplay.tscn`
   - Verify no references:
     - `rg -n \"tmp_invalid_gameplay\" -S .`
-  - If unreferenced: delete it.
+  - Still referenced by tests (`tests/integration/scene_manager/test_scene_contract_invocation.gd`, `tests/unit/scene_manager/test_scene_registry_resources.gd`), so do not delete.
 
-- [ ] **Task 4.2**: Normalize VFX settings overlay scene location (remove `scenes/ui/settings/`)
+- [x] **Task 4.2**: Normalize VFX settings overlay scene location (remove `scenes/ui/settings/`)
   - Move:
     - `scenes/ui/settings/ui_vfx_settings_overlay.tscn` → `scenes/ui/ui_vfx_settings_overlay.tscn`
   - Update SceneRegistry backfill path:
@@ -284,22 +284,24 @@ These are intentionally explicit so the work can proceed without ambiguity:
 
 - [ ] **Task 4.3**: (Optional) Reorder gameplay Entities subtree for scanability
   - Prefer `SP_SpawnPoints` first under `Entities` across gameplay scenes
-- [ ] **Task 4.4**: Plan + execute relocation of input-ish RS_* scripts currently under ECS
-  - Candidates:
-    - `scripts/ecs/resources/rs_gamepad_settings.gd`
-    - `scripts/ecs/resources/rs_input_profile.gd`
-    - `scripts/ecs/resources/rs_rebind_settings.gd`
-    - `scripts/ecs/resources/rs_touchscreen_settings.gd`
-  - Target new folder: `scripts/input/resources/`
-  - Update all references (scripts, tests, and `.tres` script paths).
-  - Use:
-    - `rg -n \"scripts/ecs/resources/rs_(gamepad_settings|input_profile|rebind_settings|touchscreen_settings)\\.gd\" -S .`
-    - `rg -n \"res://scripts/ecs/resources/rs_(gamepad_settings|input_profile|rebind_settings|touchscreen_settings)\\.gd\" resources -S`
-  - Update style enforcement rules:
-    - add `res://scripts/input/resources`: `["rs_"]`
-  - Run:
+- [x] **Task 4.4**: Plan + execute relocation of input-ish RS_* scripts currently under ECS
+  - Moved to `scripts/input/resources/`:
+    - `scripts/input/resources/rs_gamepad_settings.gd`
+    - `scripts/input/resources/rs_input_profile.gd`
+    - `scripts/input/resources/rs_rebind_settings.gd`
+    - `scripts/input/resources/rs_touchscreen_settings.gd`
+  - Updated all references (scripts, tests, and `.tres` script paths).
+  - Updated style enforcement rules:
+    - `tests/unit/style/test_style_enforcement.gd` includes `res://scripts/input/resources`: `["rs_"]`
+  - Verification:
     - `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
-    - plus the most relevant suites (`tests/unit/input_manager`, `tests/unit/resources`)
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources`
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/input_manager`
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers`
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/ui`
+    - `tools/run_gut_suite.sh -gdir=res://tests/unit/utils`
+  - Notes (2026-01-04):
+    - Headless runs can require a local `.godot` UID/class-cache refresh after moving `class_name` scripts (see `docs/general/DEV_PITFALLS.md`).
 
 ---
 

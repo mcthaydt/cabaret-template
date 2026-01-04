@@ -14,7 +14,7 @@
 - **Camera integration**: `M_CameraManager.apply_shake_offset()` applies shake to the active gameplay camera (or TransitionCamera during blends) via a ShakeParent Node3D
 - **Flash integration**: `M_VFXManager` loads damage flash overlay on `_ready()` and triggers flash on `health_changed` events when enabled
 - **ServiceLocator registration**: Both `M_VFXManager` and `M_CameraManager` registered with ServiceLocator
-- **Settings UI**: VFX settings overlay created at `scenes/ui/settings/ui_vfx_settings_overlay.tscn`
+- **Settings UI**: VFX settings overlay created at `scenes/ui/ui_vfx_settings_overlay.tscn`
 - **Settings integration**: "Visual Effects" button added to settings menu, registered in UI/scene registries
 - **Apply/Cancel pattern**: Settings use Apply/Cancel/Reset buttons (consistent with gamepad/touchscreen settings)
 - **State persistence**: VFX settings persist via Redux state persistence (VFX slice)

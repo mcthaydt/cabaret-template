@@ -40,7 +40,7 @@
 
 - [x] Task 2.1: Create RS_InputProfile Resource (TDD) - FR-011, FR-012
   - Notes (2025-11-07): Implemented resource and unit tests:
-    - Resource: `scripts/ecs/resources/rs_input_profile.gd`
+    - Resource: `scripts/input/resources/rs_input_profile.gd`
     - Tests: `tests/unit/resources/test_rs_input_profile.gd`
 - [x] Task 2.2: Create Default Input Profiles - FR-012
   - Notes (2025-11-07): Added built-in profiles under `resources/input/profiles/`:
@@ -88,7 +88,7 @@
 ## Phase 3: Gamepad Support
 
 - [x] Task 3.1: Create RS_GamepadSettings resource (TDD) - FR-036, FR-037, FR-038
-  - Notes (2025-11-07): Added `scripts/ecs/resources/rs_gamepad_settings.gd` plus default tuning at `resources/input/gamepad_settings/default_gamepad_settings.tres`; exercised via `tests/unit/resources/test_rs_gamepad_settings.gd`.
+  - Notes (2025-11-07): Added `scripts/input/resources/rs_gamepad_settings.gd` plus default tuning at `resources/input/gamepad_settings/default_gamepad_settings.tres`; exercised via `tests/unit/resources/test_rs_gamepad_settings.gd`.
 - [x] Task 3.2: Create C_GamepadComponent (TDD) - FR-039, FR-084
   - Notes (2025-11-07): Implemented `scripts/ecs/components/c_gamepad_component.gd` with stick state, deadzone helpers, vibration callables, and dictionary-based settings application. Covered by `tests/unit/ecs/components/test_c_gamepad_component.gd`.
 - [x] Task 3.3: Extend S_InputSystem for Gamepad Input (TDD) - FR-034, FR-035, FR-036, FR-037
@@ -215,7 +215,7 @@
 ## Phase 5: Rebinding System + Persistence
 
 - [x] Task 5.1: Create RS_RebindSettings resource (TDD) - FR-022
-  - Notes (2025-11-11): Added `scripts/ecs/resources/rs_rebind_settings.gd`, default settings resource at `resources/input/rebind_settings/default_rebind_settings.tres`, and unit coverage in `tests/unit/resources/test_rs_rebind_settings.gd`.
+  - Notes (2025-11-11): Added `scripts/input/resources/rs_rebind_settings.gd`, default settings resource at `resources/input/rebind_settings/default_rebind_settings.tres`, and unit coverage in `tests/unit/resources/test_rs_rebind_settings.gd`.
 - [x] Task 5.2: Create U_InputRebindUtils (TDD) - FR-021, FR-023, FR-027
   - Notes (2025-11-11): Implemented `scripts/utils/u_input_rebind_utils.gd` for validation, conflict detection, InputMap/profile rebinding, and event serialization. Added unit tests at `tests/unit/utils/test_u_input_rebind_utils.gd`.
 - [x] Task 5.3: Create Rebinding UI - FR-021, FR-024, FR-025, FR-026
@@ -315,13 +315,13 @@
 
 ### Issue 4: Consolidate Event Serialization
 - [x] Task 4.1: Audit U_InputRebindUtils serialization *(2025-11-19; `scripts/utils/u_input_rebind_utils.gd` now roundtrips keyboard/mouse/gamepad/touch events, preserves modifiers/pressure, and `tests/unit/utils/test_input_event_serialization_roundtrip.gd` covers each type + legacy schemas)*
-- [x] Task 4.2: Delete RS_InputProfile serialization *(2025-11-19; `scripts/ecs/resources/rs_input_profile.gd` delegates to U_InputRebindUtils for both directions, keeping action dictionaries canonical)*
+- [x] Task 4.2: Delete RS_InputProfile serialization *(2025-11-19; `scripts/input/resources/rs_input_profile.gd` delegates to U_InputRebindUtils for both directions, keeping action dictionaries canonical)*
 - [x] Task 4.3: Update U_InputSerialization / reducers to normalize via canonical schema *(2025-11-19; `scripts/utils/u_input_serialization.gd` and `scripts/state/reducers/u_input_reducer.gd` now sanitize dictionaries through the shared helper and recognize new device types)*
 - [x] Task 4.4: Simplify reducer normalization *(2025-11-19; reducer + selectors treat `screen_touch` / `screen_drag` as touch device type, avoiding divergent schemas)*
 - [x] Task 4.5: Add comprehensive roundtrip tests *(2025-11-19; new utils test suite validates event dicts ⇄ InputEvent conversions and RS_InputProfile serialization uses the shared helper)*
 
 ### Issue 5: Deduplicate Deadzone Logic
-- [x] Task 5.1: Standardize RS_GamepadSettings.apply_deadzone *(2025-11-19; `scripts/ecs/resources/rs_gamepad_settings.gd` exposes a static canonical helper with curve/Curve support and additional unit coverage)*
+- [x] Task 5.1: Standardize RS_GamepadSettings.apply_deadzone *(2025-11-19; `scripts/input/resources/rs_gamepad_settings.gd` exposes a static canonical helper with curve/Curve support and additional unit coverage)*
 - [x] Task 5.2: Remove S_InputSystem._apply_deadzone *(2025-11-19; system now calls the resource helper directly and `tests/unit/ecs/systems/test_input_system.gd` re-ran green)*
 - [x] Task 5.3: Remove C_GamepadComponent._apply_deadzone_manual *(2025-11-19; component delegates to RS_GamepadSettings and the component test suite verifies curve usage)*
 - [x] Task 5.4: Verify consistency across codebase *(2025-11-19; `scripts/ui/gamepad_settings_overlay.gd` and related previews use the shared helper, with UI + integration suites rerun)*
@@ -364,7 +364,7 @@
   - **TDD RED:** Write test in `tests/unit/resources/test_rs_input_profile.gd`
     - Test touchscreen profile roundtrip: create profile with virtual_buttons → to_dict() → from_dict() → verify fields match
     - Test save/load: save profile with touchscreen data → load from disk → verify virtual_buttons and virtual_joystick_position restored
-  - **TDD GREEN:** Fix `scripts/ecs/resources/rs_input_profile.gd`
+  - **TDD GREEN:** Fix `scripts/input/resources/rs_input_profile.gd`
     - Add to `to_dictionary()` (around line 53):
       ```gdscript
       "virtual_buttons": virtual_buttons.duplicate(true),
@@ -490,7 +490,7 @@
   - **Result:** Tests FAILED as expected (class doesn't exist) ❌
 
 - [x] Task 6.1.2: **GREEN** - Create minimal RS_TouchscreenSettings to pass tests *(2025-11-16)*
-  - Created `scripts/ecs/resources/rs_touchscreen_settings.gd`
+  - Created `scripts/input/resources/rs_touchscreen_settings.gd`
   - Implemented static `apply_touch_deadzone()` helper method
   - Added exports for virtual_joystick_size, joystick_deadzone, button_opacity
   - **Result:** Tests PASSED ✅

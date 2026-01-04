@@ -70,7 +70,7 @@ register_slice(slice_configs, state, vfx_config)
 ```
 ✓ vfx_settings found in scene registry:
   - scene_id: vfx_settings
-  - path: res://scenes/ui/settings/ui_vfx_settings_overlay.tscn
+  - path: res://scenes/ui/ui_vfx_settings_overlay.tscn
   - scene_type: 2 (UI)
   - default_transition: instant
   - preload_priority: 5

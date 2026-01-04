@@ -47,17 +47,23 @@ Work should be **behavior-preserving by default** and executed with **TDD** wher
   - `U_ActionRegistry` now supports `required_root_fields` (with non-empty checks for `StringName`/`String` fields).
   - High-risk action schemas applied for scene/navigation/input actions.
 
- - Phase 3A (Scene Manager) complete:
+- Phase 3A (Scene Manager) complete:
   - Recorded current size/dup seams for `scripts/managers/m_scene_manager.gd` (1039 lines; see tasks doc).
   - Removed manager-local cache wrapper methods and routed caching/preload usage through `U_SceneCache`.
   - Removed manager-local loader wrapper methods and routed scene load/unload through `U_SceneLoader`.
   - Refactored `U_OverlayStackManager` to avoid reading `M_SceneManager` internals (now takes explicit callables/nodes); updated `M_SceneManager` + `U_NavigationReconciler` call sites.
- - Phase 3B (State Store) complete:
+- Phase 3B (State Store) complete:
   - Recorded current size/dup seams for `scripts/state/m_state_store.gd` (555 lines; see tasks doc).
   - Extracted action history into `scripts/state/utils/u_action_history_buffer.gd` (store API unchanged).
   - Extracted perf metrics into `scripts/state/utils/u_store_performance_metrics.gd` (store API unchanged).
 
-Next: Phase 4 organization + naming cleanups (Task 4.1).
+- Phase 4 progress:
+  - Task 4.1 complete: `scenes/tmp_invalid_gameplay.tscn` is still referenced by tests, so it remains in the repo.
+  - Task 4.2 complete: moved `scenes/ui/settings/ui_vfx_settings_overlay.tscn` → `scenes/ui/ui_vfx_settings_overlay.tscn` and updated SceneRegistry/test references.
+  - Task 4.4 complete: moved input RS resources from ECS into `scripts/input/resources/` and updated `.tres` + script references; style enforcement updated for the new directory.
+  - Task 4.3 optional: still pending (spawn point ordering consistency).
+
+Next: Phase 5 small UX polish (Task 5.1).
 
 ---
 

@@ -1266,7 +1266,7 @@ RS_InputProfile was created first with minimal serialization. U_InputRebindUtils
 
 ### Implementation Snapshot (2025-11-19)
 - `scripts/utils/u_input_rebind_utils.gd` is now the canonical serializer/deserializer for keyboard, mouse, gamepad, and touchscreen events (modifiers, echo, pressure, vectors, legacy type strings), with exhaustive coverage in `tests/unit/utils/test_input_event_serialization_roundtrip.gd`.
-- `scripts/ecs/resources/rs_input_profile.gd`, `scripts/utils/u_input_serialization.gd`, and `scripts/state/reducers/u_input_reducer.gd` all delegate to the shared helper, ensuring saved profiles, Redux normalization, and custom bindings share one schema.
+- `scripts/input/resources/rs_input_profile.gd`, `scripts/utils/u_input_serialization.gd`, and `scripts/state/reducers/u_input_reducer.gd` all delegate to the shared helper, ensuring saved profiles, Redux normalization, and custom bindings share one schema.
 - Integration suites (`tests/unit/integration/test_rebinding_flow.gd`, `test_state_synchronization_flow.gd`) now operate on the unified schema and verified save/load + UI flows continue to pass.
 ### Refactoring Strategy
 
@@ -1336,7 +1336,7 @@ RS_InputProfile was created first with minimal serialization. U_InputRebindUtils
 #### Task 4.2: Delete RS_InputProfile serialization (TDD)
 **Estimated Time**: 30 minutes
 
-**Files**: `scripts/ecs/resources/rs_input_profile.gd`
+**Files**: `scripts/input/resources/rs_input_profile.gd`
 
 **Remove**:
 ```gdscript
@@ -1682,7 +1682,7 @@ static func apply_deadzone(input: Vector2, deadzone: float) -> Vector2:
 Each file implemented deadzone independently. RS_GamepadSettings was added last but other implementations weren't removed.
 
 ### Implementation Snapshot (2025-11-19)
-- `scripts/ecs/resources/rs_gamepad_settings.gd` now exposes a static `apply_deadzone()` helper with optional response curves/Curve resources and expanded unit coverage.
+- `scripts/input/resources/rs_gamepad_settings.gd` now exposes a static `apply_deadzone()` helper with optional response curves/Curve resources and expanded unit coverage.
 - `scripts/ecs/systems/s_input_system.gd`, `scripts/ecs/components/c_gamepad_component.gd`, and `scripts/ui/gamepad_settings_overlay.gd` all call the shared helper; redundant `_apply_deadzone*` routines were deleted along with their bespoke tests.
 - Component/system/UI suites plus `tests/unit/integration/test_device_detection_flow.gd` were re-run to confirm behavior parity under the canonical helper.
 ### Refactoring Strategy
@@ -1700,7 +1700,7 @@ Each file implemented deadzone independently. RS_GamepadSettings was added last 
 #### Task 5.1: Standardize RS_GamepadSettings.apply_deadzone (TDD)
 **Estimated Time**: 30 minutes
 
-**Files**: `scripts/ecs/resources/rs_gamepad_settings.gd`
+**Files**: `scripts/input/resources/rs_gamepad_settings.gd`
 
 **Standardize**:
 ```gdscript
