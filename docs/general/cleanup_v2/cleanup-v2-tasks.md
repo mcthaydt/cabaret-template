@@ -236,22 +236,28 @@ These are intentionally explicit so the work can proceed without ambiguity:
   - Replace with explicit parameters (Callable + nodes) and update `M_SceneManager` call sites.
 
 ### 3B) State Store (`scripts/state/m_state_store.gd`)
-- [ ] **Task 3.5 (Baseline)**: Record current size + extraction candidates
+- [x] **Task 3.5 (Baseline)**: Record current size + extraction candidates
   - Record line count: `scripts/state/m_state_store.gd`
+    - 555 lines (2026-01-04)
   - Identify action history + perf metrics code blocks and extraction seams.
+    - Action history: `_action_history` + `_record_action_in_history()` + `get_action_history()` + `get_last_n_actions()` (approx lines 66-68, 266-268, 392-438)
+    - Perf metrics: `_perf_*` fields + tracking in `dispatch()` + `_flush_signal_batcher()` + `get_performance_metrics()`/`reset_performance_metrics()` (approx lines 73-76, 142, 240, 294-297, 529-555)
 
-- [ ] **Task 3.6 (Red)**: Add characterization tests for batching cadence (if missing)
+- [x] **Task 3.6 (Red)**: Add characterization tests for batching cadence (if missing)
   - File: `tests/unit/state/test_m_state_store.gd`
   - Protect:
     - `slice_updated` batching behavior
     - `"immediate": true` flush behavior
+  - Already covered by:
+    - `test_multiple_dispatches_emit_single_slice_updated_signal_per_frame`
+    - `test_immediate_actions_flush_slice_updated_signal`
 
-- [ ] **Task 3.7 (Green)**: Extract action history buffer
+- [x] **Task 3.7 (Green)**: Extract action history buffer
   - Create helper: `scripts/state/utils/u_action_history_buffer.gd`
   - Move: history storage + helpers (`_record_action_in_history`, `get_action_history`, `get_last_n_actions`)
   - Keep `M_StateStore` API unchanged.
 
-- [ ] **Task 3.8 (Green)**: Extract perf metrics bookkeeping
+- [x] **Task 3.8 (Green)**: Extract perf metrics bookkeeping
   - Create helper: `scripts/state/utils/u_store_performance_metrics.gd`
   - Move: perf storage + helpers (`get_performance_metrics`, `reset_performance_metrics`)
   - Keep `M_StateStore` API unchanged.

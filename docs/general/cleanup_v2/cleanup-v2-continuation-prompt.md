@@ -52,8 +52,12 @@ Work should be **behavior-preserving by default** and executed with **TDD** wher
   - Removed manager-local cache wrapper methods and routed caching/preload usage through `U_SceneCache`.
   - Removed manager-local loader wrapper methods and routed scene load/unload through `U_SceneLoader`.
   - Refactored `U_OverlayStackManager` to avoid reading `M_SceneManager` internals (now takes explicit callables/nodes); updated `M_SceneManager` + `U_NavigationReconciler` call sites.
+ - Phase 3B (State Store) complete:
+  - Recorded current size/dup seams for `scripts/state/m_state_store.gd` (555 lines; see tasks doc).
+  - Extracted action history into `scripts/state/utils/u_action_history_buffer.gd` (store API unchanged).
+  - Extracted perf metrics into `scripts/state/utils/u_store_performance_metrics.gd` (store API unchanged).
 
-Next: Phase 3B (State Store) baseline + extractions (Tasks 3.5+).
+Next: Phase 4 organization + naming cleanups (Task 4.1).
 
 ---
 
