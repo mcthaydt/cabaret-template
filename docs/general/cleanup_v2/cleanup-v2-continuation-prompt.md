@@ -36,10 +36,11 @@ Work should be **behavior-preserving by default** and executed with **TDD** wher
 
 ## Current Progress
 
-- Phase 0 started: tasks + continuation prompt created.
-- No code changes made yet.
+- Phase 0 complete:
+  - Baseline style + unit suites pass (see tasks doc for warning notes).
+  - Hotspot inventory recorded (largest scripts list + UI TODOs + `tmp_invalid_gameplay` references).
 
-Next: Phase 0.3 baseline runs, then Phase 1 enforcement tightening.
+Next: Phase 1 enforcement tightening (Task 1.1).
 
 ---
 

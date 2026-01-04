@@ -27,17 +27,62 @@ These are intentionally explicit so the work can proceed without ambiguity:
 
 - [x] **Task 0.1**: Create this tasks document
 - [x] **Task 0.2**: Create continuation prompt (`docs/general/cleanup_v2/cleanup-v2-continuation-prompt.md`)
-- [ ] **Task 0.3**: Baseline test run + record results in this doc
+- [x] **Task 0.3**: Baseline test run + record results in this doc
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
   - Run: `tools/run_gut_suite.sh -gdir=res://tests/unit`
   - Record pass/fail + notable warnings in “Notes / Baseline Results” below
-- [ ] **Task 0.4**: Baseline “hotspot” inventory (no code changes)
+- [x] **Task 0.4**: Baseline “hotspot” inventory (no code changes)
   - Capture current largest scripts list (top 15) and paste results into this doc:
     - `rg --files scripts --glob '*.gd' | rg -v '\\.uid$' | xargs wc -l | sort -nr | head -n 20`
+    - Results (2026-01-04):
+      ```text
+         31373 total
+          1039 scripts/managers/m_scene_manager.gd
+           633 scripts/managers/m_save_manager.gd
+           604 scripts/managers/m_ecs_manager.gd
+           555 scripts/state/m_state_store.gd
+           521 scripts/ui/ui_save_load_menu.gd
+           506 scripts/state/reducers/u_input_reducer.gd
+           467 scripts/ui/ui_input_profile_selector.gd
+           449 scripts/ui/ui_input_rebinding_overlay.gd
+           435 scripts/managers/m_input_profile_manager.gd
+           428 scripts/ui/helpers/u_rebind_action_list_builder.gd
+           398 scripts/ui/ui_touchscreen_settings_overlay.gd
+           394 scripts/ecs/components/c_scene_trigger_component.gd
+           385 scripts/managers/m_camera_manager.gd
+           380 scripts/ui/ui_mobile_controls.gd
+           375 scripts/scene_management/transitions/trans_loading_screen.gd
+           356 scripts/managers/m_input_device_manager.gd
+           350 scripts/ui/u_button_prompt_registry.gd
+           350 scripts/state/reducers/u_navigation_reducer.gd
+           346 scripts/state/reducers/u_gameplay_reducer.gd
+      ```
   - Confirm any UX TODOs and paste file:line hits:
     - `rg -n \"TODO:\" scripts/ui | head -n 50`
+    - Results (2026-01-04):
+      ```text
+      scripts/ui/ui_save_load_menu.gd:399:		# TODO: Show error toast or inline message
+      scripts/ui/ui_save_load_menu.gd:420:		# TODO: Show error toast in gameplay (overlay already closed)
+      scripts/ui/ui_save_load_menu.gd:431:		# TODO: Show error toast or inline message
+      scripts/ui/ui_main_menu.gd:181:	# TODO: Add confirmation dialog if saves exist
+      ```
   - Confirm whether the placeholder scene is referenced anywhere:
     - `rg -n \"tmp_invalid_gameplay\" -S .`
+    - Results (2026-01-04):
+      ```text
+      ./tests/integration/scene_manager/test_scene_contract_invocation.gd:77:    if U_SceneRegistry._scenes.has(StringName("tmp_invalid_gameplay")):
+      ./tests/integration/scene_manager/test_scene_contract_invocation.gd:78:        U_SceneRegistry._scenes.erase(StringName("tmp_invalid_gameplay"))
+      ./tests/integration/scene_manager/test_scene_contract_invocation.gd:86:        StringName("tmp_invalid_gameplay"),
+      ./tests/integration/scene_manager/test_scene_contract_invocation.gd:87:        "res://scenes/tmp_invalid_gameplay.tscn",
+      ./tests/integration/scene_manager/test_scene_contract_invocation.gd:94:    _manager.transition_to_scene(StringName("tmp_invalid_gameplay"), "instant")
+      ./tests/integration/scene_manager/test_scene_contract_invocation.gd:99:    assert_eq(scene_state.get("current_scene_id", StringName(\"\")), StringName(\"tmp_invalid_gameplay\"))
+      ./tests/unit/scene_manager/test_scene_registry_resources.gd:28:    entry.scene_path = "res://scenes/tmp_invalid_gameplay.tscn"  # existing test scene path
+      ./tests/unit/scene_manager/test_scene_registry_resources.gd:46:    entry.scene_path = "res://scenes/tmp_invalid_gameplay.tscn"
+      ./docs/general/cleanup_v1/style-scene-cleanup-tasks.md:549:- [SKIP] T059 Delete orphaned temporary file `scenes/tmp_invalid_gameplay.tscn`:
+      ./docs/general/cleanup_v2/cleanup-v2-tasks.md:40:    - `rg -n \"tmp_invalid_gameplay\" -S .`
+      ./docs/general/cleanup_v2/cleanup-v2-tasks.md:216:  - Candidate: `scenes/tmp_invalid_gameplay.tscn`
+      ./docs/general/cleanup_v2/cleanup-v2-tasks.md:218:    - `rg -n \"tmp_invalid_gameplay\" -S .`
+      ```
 
 ---
 
@@ -290,7 +335,8 @@ These are intentionally explicit so the work can proceed without ambiguity:
 ## Notes / Baseline Results
 
 - Baseline test run (fill in after Task 0.3):
-  - Style: ☐ pass / ☐ fail
-  - Unit: ☐ pass / ☐ fail
+  - Style: ☒ pass / ☐ fail
+  - Unit: ☒ pass / ☐ fail
   - Notable warnings:
-    - ☐
+    - Godot macOS: `get_system_ca_certificates` returned empty string (`ret != noErr`)
+    - Shell env: `/bin/ps: Operation not permitted` (printed from Homebrew `shellenv.sh`)
