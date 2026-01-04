@@ -191,12 +191,6 @@ script = ExtResource("23_initializer")
 [node name="Entities" type="Node" parent="." unique_id=2082843038]
 script = ExtResource("16_8qi87")
 
-[node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
-
-[node name="E_CameraRoot" parent="Entities" unique_id=909307282 instance=ExtResource("19_ph0bl")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
-
 [node name="SP_SpawnPoints" type="Node3D" parent="Entities" unique_id=300005399]
 script = ExtResource("21_spawnpoints")
 
@@ -204,5 +198,11 @@ script = ExtResource("21_spawnpoints")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 4.4034653, 0)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("51_base_spawn_meta")
+
+[node name="E_Player" parent="Entities" unique_id=1084793980 instance=ExtResource("7_4wxy1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
+
+[node name="E_CameraRoot" parent="Entities" unique_id=909307282 instance=ExtResource("19_ph0bl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
 
 [node name="HUD" parent="." unique_id=1392038351 instance=ExtResource("11_hud")]

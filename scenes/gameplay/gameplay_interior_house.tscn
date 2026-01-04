@@ -229,6 +229,19 @@ script = ExtResource("6_0e7m3")
 [node name="Entities" type="Node" parent="." unique_id=1196709467]
 script = ExtResource("16_8qi87")
 
+[node name="SP_SpawnPoints" type="Node3D" parent="Entities" unique_id=758202858]
+script = ExtResource("21_spawnpoints")
+
+[node name="sp_default" type="Node3D" parent="Entities/SP_SpawnPoints" unique_id=217219573]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7123368, 1.0887601, 1.7809162)
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("51_interior_default_spawn_meta")
+
+[node name="sp_entrance_from_exterior" type="Node3D" parent="Entities/SP_SpawnPoints" unique_id=2089093483]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.3252916, -0.40663242, 1.4185565)
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("52_interior_entrance_spawn_meta")
+
 [node name="E_Player" parent="Entities" unique_id=1430318459 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.190454, 1.0887601, 1.7809162)
 
@@ -312,19 +325,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 light_color = Color(0.8, 0.9, 1, 1)
 light_energy = 1.5
 omni_range = 1.863689
-
-[node name="SP_SpawnPoints" type="Node3D" parent="Entities" unique_id=758202858]
-script = ExtResource("21_spawnpoints")
-
-[node name="sp_default" type="Node3D" parent="Entities/SP_SpawnPoints" unique_id=217219573]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7123368, 1.0887601, 1.7809162)
-script = ExtResource("50_spawn_point")
-spawn_metadata = ExtResource("51_interior_default_spawn_meta")
-
-[node name="sp_entrance_from_exterior" type="Node3D" parent="Entities/SP_SpawnPoints" unique_id=2089093483]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.3252916, -0.40663242, 1.4185565)
-script = ExtResource("50_spawn_point")
-spawn_metadata = ExtResource("52_interior_entrance_spawn_meta")
 
 [node name="HUD" parent="." unique_id=1421882679 instance=ExtResource("11_hud")]
 
