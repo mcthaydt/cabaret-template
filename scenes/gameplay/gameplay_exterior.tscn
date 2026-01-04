@@ -68,17 +68,9 @@ background_mode = 1
 background_color = Color(0.3019608, 0.60784316, 0.9019608, 1)
 ambient_light_source = 3
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_door"]
-shading_mode = 0
-albedo_color = Color(0.9828339, 0, 0.010878513, 1)
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spike"]
 albedo_color = Color(0.643137, 0.160784, 0.160784, 1)
 roughness = 0.25
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_12vux"]
-shading_mode = 0
-albedo_color = Color(0.9936808, 0.43250233, 3.85046e-07, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_goal"]
 albedo_color = Color(0.968627, 0.847059, 0.239216, 1)
@@ -91,6 +83,14 @@ emission_energy_multiplier = 1.5
 [sub_resource type="TextMesh" id="TextMesh_goal"]
 material = SubResource("StandardMaterial3D_goal_text")
 text = ":)"
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_door"]
+shading_mode = 0
+albedo_color = Color(0.9828339, 0, 0.010878513, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_12vux"]
+shading_mode = 0
+albedo_color = Color(0.9936808, 0.43250233, 3.85046e-07, 1)
 
 [node name="GameplayRoot" type="Node3D" unique_id=1536264933]
 script = ExtResource("1_f2o31")
@@ -249,29 +249,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7472486, -0.31296825, 1.402
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("53_exterior_exit_from_house_spawn_meta")
 
-[node name="E_Player" parent="Entities" unique_id=1656193659 instance=ExtResource("7_4wxy1")]
-
-[node name="E_CameraRoot" parent="Entities" unique_id=897740442 instance=ExtResource("19_ph0bl")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 4.5)
-
-[node name="E_PlayerCamera" parent="Entities/E_CameraRoot" index="0" unique_id=1000261679]
-fov = 80.0
-
-[node name="E_DoorTrigger" type="Node3D" parent="Entities" unique_id=2046371661]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
-script = ExtResource("30_door_controller")
-door_id = &"door_to_house"
-target_scene_id = &"interior_house"
-target_spawn_point = &"sp_entrance_from_exterior"
-entity_id = &"door_to_house"
-tags = Array[StringName]([&"trigger", &"door"])
-
-[node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger" unique_id=1461636394]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.40026855, 0)
-material_overlay = SubResource("StandardMaterial3D_door")
-radius = 0.7910156
-height = 2.0715332
-
 [node name="Hazards" type="Node" parent="Entities" unique_id=883428971]
 script = ExtResource("16_8qi87")
 
@@ -320,6 +297,50 @@ material = SubResource("StandardMaterial3D_spike")
 [node name="Objectives" type="Node" parent="Entities" unique_id=232368966]
 script = ExtResource("16_8qi87")
 
+[node name="E_FinalGoal" type="Node3D" parent="Entities/Objectives" unique_id=1110989240]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -5)
+script = ExtResource("41_goal_script")
+entity_id = &"finalgoal"
+tags = Array[StringName]([&"objective", &"endgame"])
+
+[node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_FinalGoal" unique_id=349723653]
+radius = 1.5
+material = SubResource("StandardMaterial3D_goal")
+
+[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1268342821]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+light_color = Color(1, 0.87451, 0.364706, 1)
+light_energy = 2.5
+
+[node name="Sparkles" type="CPUParticles3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1724100335]
+amount = 80
+lifetime = 1.5
+preprocess = 0.5
+mesh = SubResource("TextMesh_goal")
+
+[node name="E_Player" parent="Entities" unique_id=1656193659 instance=ExtResource("7_4wxy1")]
+
+[node name="E_CameraRoot" parent="Entities" unique_id=897740442 instance=ExtResource("19_ph0bl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 4.5)
+
+[node name="E_PlayerCamera" parent="Entities/E_CameraRoot" index="0" unique_id=1000261679]
+fov = 80.0
+
+[node name="E_DoorTrigger" type="Node3D" parent="Entities" unique_id=2046371661]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
+script = ExtResource("30_door_controller")
+door_id = &"door_to_house"
+target_scene_id = &"interior_house"
+target_spawn_point = &"sp_entrance_from_exterior"
+entity_id = &"door_to_house"
+tags = Array[StringName]([&"trigger", &"door"])
+
+[node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger" unique_id=1461636394]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.40026855, 0)
+material_overlay = SubResource("StandardMaterial3D_door")
+radius = 0.7910156
+height = 2.0715332
+
 [node name="E_Checkpoint_SafeZone" type="Node3D" parent="Entities" unique_id=1409158797]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.9000635, 0, -5.877161)
 script = ExtResource("43_checkpoint_zone_script")
@@ -343,27 +364,6 @@ tags = Array[StringName]([&"interactable", &"tutorial"])
 [node name="CSGSphere3D" type="CSGSphere3D" parent="Entities/E_TutorialSign" unique_id=656487587]
 radius = 0.15387383
 material = SubResource("StandardMaterial3D_12vux")
-
-[node name="E_FinalGoal" type="Node3D" parent="Entities/Objectives" unique_id=1110989240]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -5)
-script = ExtResource("41_goal_script")
-entity_id = &"finalgoal"
-tags = Array[StringName]([&"objective", &"endgame"])
-
-[node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_FinalGoal" unique_id=349723653]
-radius = 1.5
-material = SubResource("StandardMaterial3D_goal")
-
-[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1268342821]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-light_color = Color(1, 0.87451, 0.364706, 1)
-light_energy = 2.5
-
-[node name="Sparkles" type="CPUParticles3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1724100335]
-amount = 80
-lifetime = 1.5
-preprocess = 0.5
-mesh = SubResource("TextMesh_goal")
 
 [node name="HUD" parent="." unique_id=920632912 instance=ExtResource("11_hud")]
 
