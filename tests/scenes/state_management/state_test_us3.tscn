@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dcsrfffyc51tf"]
 
-[ext_resource type="Script" uid="uid://e8qfd5dygbuo" path="res://tests/scenes/state_management/state_test_us3.gd" id="1_boot_test"]
+[ext_resource type="Script" uid="uid://dbt4cimso716p" path="res://tests/scenes/state_management/state_test_us3.gd" id="1_boot_test"]
 [ext_resource type="PackedScene" uid="uid://rygahxanlmio" path="res://templates/tmpl_base_scene.tscn" id="2_base"]
 
 [node name="BootTest" unique_id=647788492 instance=ExtResource("2_base")]

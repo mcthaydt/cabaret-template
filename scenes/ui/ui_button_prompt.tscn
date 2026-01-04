@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bq8y7b2npl2g0"]
 
-[ext_resource type="Script" uid="uid://b3kp7csuskn3b" path="res://scripts/ui/ui_button_prompt.gd" id="1_button_prompt"]
+[ext_resource type="Script" uid="uid://q6x2oghxc63a" path="res://scripts/ui/ui_button_prompt.gd" id="1_button_prompt"]
 [ext_resource type="Texture2D" uid="uid://da5wjpwvjqj77" path="res://resources/button_prompts/mobile/button_background.png" id="2_mobile_button"]
 
 [sub_resource type="StyleBoxFlat" id="1"]

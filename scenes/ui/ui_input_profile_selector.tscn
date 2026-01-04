@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cwfxmqu368b47"]
 
-[ext_resource type="Script" uid="uid://di1xdxqpykgmi" path="res://scripts/ui/ui_input_profile_selector.gd" id="1"]
+[ext_resource type="Script" uid="uid://cpmu44cwo87rl" path="res://scripts/ui/ui_input_profile_selector.gd" id="1"]
 
 [node name="InputProfileSelector" type="Control" unique_id=1752064864]
 layout_mode = 3

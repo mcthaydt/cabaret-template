@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_InputProfile" format=3 uid="uid://dw5ijl0l4sero"]
 
-[ext_resource type="Script" uid="uid://ck3vmas5ece8s" path="res://scripts/ecs/resources/rs_input_profile.gd" id="1"]
+[ext_resource type="Script" uid="uid://bpsj6lrkkjfed" path="res://scripts/ecs/resources/rs_input_profile.gd" id="1"]
 
 [resource]
 script = ExtResource("1")

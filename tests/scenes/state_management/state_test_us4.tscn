@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://by3truxm22ncr"]
 
-[ext_resource type="Script" uid="uid://c22b41gogssad" path="res://tests/scenes/state_management/state_test_us4.gd" id="1_menu_test"]
+[ext_resource type="Script" uid="uid://1mrcykpwlw43" path="res://tests/scenes/state_management/state_test_us4.gd" id="1_menu_test"]
 [ext_resource type="PackedScene" uid="uid://rygahxanlmio" path="res://templates/tmpl_base_scene.tscn" id="2_base"]
 
 [node name="MenuTest" unique_id=1163234196 instance=ExtResource("2_base")]

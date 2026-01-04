@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_UIScreenDefinition" format=3 uid="uid://bqaoplnhmxva6"]
 
-[ext_resource type="Script" uid="uid://cxwcn4lvbnkwv" path="res://scripts/ui/resources/rs_ui_screen_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://bbfs8ty852g4t" path="res://scripts/ui/resources/rs_ui_screen_definition.gd" id="1"]
 
 [resource]
 script = ExtResource("1")

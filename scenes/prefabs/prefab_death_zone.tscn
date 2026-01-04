@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dyjqcg3o35ety"]
 
-[ext_resource type="Script" uid="uid://cpi8lux3xig4o" path="res://scripts/gameplay/e_hazard_zone.gd" id="1_controller"]
+[ext_resource type="Script" uid="uid://d3s28u56mkj1w" path="res://scripts/gameplay/e_hazard_zone.gd" id="1_controller"]
 [ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/rs_death_zone_volume.tres" id="2_death_settings"]
 
 [node name="E_DeathZone" type="Node3D" unique_id=71030271]

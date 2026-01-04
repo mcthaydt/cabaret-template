@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://clnxfxn1asidv"]
 
-[ext_resource type="Script" uid="uid://dv0tmilymmp3j" path="res://scripts/ui/ui_touchscreen_settings_overlay.gd" id="1"]
+[ext_resource type="Script" uid="uid://bnj3cqgud7aub" path="res://scripts/ui/ui_touchscreen_settings_overlay.gd" id="1"]
 
 [node name="TouchscreenSettingsOverlay" type="Control" unique_id=675052518]
 layout_mode = 3

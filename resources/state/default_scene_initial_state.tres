@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_SceneInitialState" format=3 uid="uid://com8t6o2gcr03"]
 
-[ext_resource type="Script" uid="uid://vjcu4l8j5rpa" path="res://scripts/state/resources/rs_scene_initial_state.gd" id="1_scene_state"]
+[ext_resource type="Script" uid="uid://boisprprybqsy" path="res://scripts/state/resources/rs_scene_initial_state.gd" id="1_scene_state"]
 
 [resource]
 script = ExtResource("1_scene_state")

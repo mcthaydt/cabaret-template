@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dcjm3807436f3"]
 
-[ext_resource type="Script" uid="uid://d0fwmy2l7muqc" path="res://scripts/gameplay/e_checkpoint_zone.gd" id="1_controller"]
+[ext_resource type="Script" uid="uid://bjl8dib6ewm08" path="res://scripts/gameplay/e_checkpoint_zone.gd" id="1_controller"]
 [ext_resource type="Resource" uid="uid://na7m34dl6a4d" path="res://resources/triggers/rs_checkpoint_box_2x3x2.tres" id="2_checkpoint_settings"]
 
 [node name="E_Checkpoint_SafeZone" type="Node3D" unique_id=910423304]

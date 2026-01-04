@@ -1,8 +1,8 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://1q1kn3435l12"]
 
-[ext_resource type="Script" path="res://scripts/ui/settings/ui_vfx_settings_overlay.gd" id="1"]
+[ext_resource type="Script" uid="uid://b7cbc5aekj8pt" path="res://scripts/ui/settings/ui_vfx_settings_overlay.gd" id="1"]
 
-[node name="VFXSettingsOverlay" type="Control"]
+[node name="VFXSettingsOverlay" type="Control" unique_id=1933874596]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=382435274]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -20,7 +20,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.5)
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=1959435959]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -34,103 +34,102 @@ offset_bottom = 180.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="PanelContainer" parent="CenterContainer"]
+[node name="Panel" type="PanelContainer" parent="CenterContainer" unique_id=531968714]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel"]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel" unique_id=169655934]
 custom_minimum_size = Vector2(520, 360)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Title" type="Label" parent="CenterContainer/Panel/VBox"]
+[node name="Title" type="Label" parent="CenterContainer/Panel/VBox" unique_id=479097257]
 layout_mode = 2
 text = "Visual Effects Settings"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HSeparator1" type="HSeparator" parent="CenterContainer/Panel/VBox"]
+[node name="HSeparator1" type="HSeparator" parent="CenterContainer/Panel/VBox" unique_id=1956785349]
 layout_mode = 2
 
-[node name="ShakeEnabledRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+[node name="ShakeEnabledRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=1918265323]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ShakeEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/ShakeEnabledRow"]
+[node name="ShakeEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/ShakeEnabledRow" unique_id=621040662]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Screen Shake"
 
-[node name="ShakeEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/ShakeEnabledRow"]
+[node name="ShakeEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/ShakeEnabledRow" unique_id=567053578]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 button_pressed = true
 
-[node name="ShakeIntensityRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+[node name="ShakeIntensityRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=58024301]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="IntensityLabel" type="Label" parent="CenterContainer/Panel/VBox/ShakeIntensityRow"]
+[node name="IntensityLabel" type="Label" parent="CenterContainer/Panel/VBox/ShakeIntensityRow" unique_id=613434608]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Shake Intensity"
 
-[node name="IntensitySlider" type="HSlider" parent="CenterContainer/Panel/VBox/ShakeIntensityRow"]
+[node name="IntensitySlider" type="HSlider" parent="CenterContainer/Panel/VBox/ShakeIntensityRow" unique_id=1031488075]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
 max_value = 2.0
 step = 0.1
 value = 1.0
 
-[node name="IntensityPercentage" type="Label" parent="CenterContainer/Panel/VBox/ShakeIntensityRow"]
+[node name="IntensityPercentage" type="Label" parent="CenterContainer/Panel/VBox/ShakeIntensityRow" unique_id=1337498857]
 unique_name_in_owner = true
 layout_mode = 2
 text = "100%"
 horizontal_alignment = 1
 
-[node name="HSeparator2" type="HSeparator" parent="CenterContainer/Panel/VBox"]
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/Panel/VBox" unique_id=969023436]
 layout_mode = 2
 
-[node name="FlashEnabledRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+[node name="FlashEnabledRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=105966182]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="FlashEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/FlashEnabledRow"]
+[node name="FlashEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/FlashEnabledRow" unique_id=1997847511]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Damage Flash"
 
-[node name="FlashEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/FlashEnabledRow"]
+[node name="FlashEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/FlashEnabledRow" unique_id=630126435]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 button_pressed = true
 
-[node name="Spacer" type="Control" parent="CenterContainer/Panel/VBox"]
+[node name="Spacer" type="Control" parent="CenterContainer/Panel/VBox" unique_id=393290215]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=378023102]
 layout_mode = 2
 size_flags_horizontal = 3
 alignment = 2
 
-[node name="CancelButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+[node name="CancelButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=231636240]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Cancel"
 
-[node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+[node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1298362725]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Reset to Defaults"
 
-[node name="ApplyButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow"]
+[node name="ApplyButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1039263468]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Apply"

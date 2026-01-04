@@ -1,9 +1,10 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cb7vlgdu0cxst"]
 
-[node name="DamageFlashOverlay" type="CanvasLayer"]
+[node name="DamageFlashOverlay" type="CanvasLayer" unique_id=639647066]
 layer = 50
 
-[node name="FlashRect" type="ColorRect" parent="."]
+[node name="FlashRect" type="ColorRect" parent="." unique_id=1539234429]
+modulate = Color(1, 1, 1, 0)
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -11,4 +12,3 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 0, 0, 0.3)
-modulate = Color(1, 1, 1, 0)
