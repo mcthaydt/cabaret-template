@@ -89,6 +89,7 @@ func test_controls_initialize_from_redux_state() -> void:
 	_store.dispatch(U_VFX_ACTIONS.set_screen_shake_enabled(false))
 	_store.dispatch(U_VFX_ACTIONS.set_screen_shake_intensity(1.5))
 	_store.dispatch(U_VFX_ACTIONS.set_damage_flash_enabled(false))
+	_store.dispatch(U_VFX_ACTIONS.set_particles_enabled(false))
 
 	var overlay := await _instantiate_overlay()
 
@@ -96,6 +97,7 @@ func test_controls_initialize_from_redux_state() -> void:
 	assert_almost_eq(overlay._intensity_slider.value, 1.5, 0.001, "Intensity slider should init from state")
 	assert_eq(overlay._intensity_percentage.text, "150%", "Intensity label should reflect slider value")
 	assert_false(overlay._flash_enabled_toggle.button_pressed, "Flash toggle should init from state")
+	assert_false(overlay._particles_enabled_toggle.button_pressed, "Particles toggle should init from state")
 
 
 func test_changes_do_not_dispatch_until_apply() -> void:
@@ -109,6 +111,7 @@ func test_changes_do_not_dispatch_until_apply() -> void:
 	overlay._shake_enabled_toggle.button_pressed = false
 	overlay._intensity_slider.value = 0.5
 	overlay._flash_enabled_toggle.button_pressed = false
+	overlay._particles_enabled_toggle.button_pressed = false
 	await get_tree().process_frame
 
 	assert_eq(_collect_vfx_action_types(dispatched).size(), 0,
@@ -126,6 +129,7 @@ func test_apply_dispatches_actions_and_updates_state() -> void:
 	overlay._shake_enabled_toggle.button_pressed = false
 	overlay._intensity_slider.value = 0.5
 	overlay._flash_enabled_toggle.button_pressed = false
+	overlay._particles_enabled_toggle.button_pressed = false
 
 	overlay._apply_button.emit_signal("pressed")
 	await get_tree().process_frame
@@ -135,11 +139,13 @@ func test_apply_dispatches_actions_and_updates_state() -> void:
 	assert_almost_eq(U_VFX_SELECTORS.get_screen_shake_intensity(state), 0.5, 0.001,
 		"Apply should persist shake intensity")
 	assert_false(U_VFX_SELECTORS.is_damage_flash_enabled(state), "Apply should persist flash enabled=false")
+	assert_false(U_VFX_SELECTORS.is_particles_enabled(state), "Apply should persist particles enabled=false")
 
 	var vfx_actions := _collect_vfx_action_types(dispatched)
 	assert_true(vfx_actions.has(U_VFX_ACTIONS.ACTION_SET_SCREEN_SHAKE_ENABLED), "Apply should dispatch set_screen_shake_enabled")
 	assert_true(vfx_actions.has(U_VFX_ACTIONS.ACTION_SET_SCREEN_SHAKE_INTENSITY), "Apply should dispatch set_screen_shake_intensity")
 	assert_true(vfx_actions.has(U_VFX_ACTIONS.ACTION_SET_DAMAGE_FLASH_ENABLED), "Apply should dispatch set_damage_flash_enabled")
+	assert_true(vfx_actions.has(U_VFX_ACTIONS.ACTION_SET_PARTICLES_ENABLED), "Apply should dispatch set_particles_enabled")
 
 
 func test_cancel_discards_changes() -> void:
@@ -153,6 +159,7 @@ func test_cancel_discards_changes() -> void:
 	overlay._shake_enabled_toggle.button_pressed = false
 	overlay._intensity_slider.value = 0.5
 	overlay._flash_enabled_toggle.button_pressed = false
+	overlay._particles_enabled_toggle.button_pressed = false
 
 	overlay._cancel_button.emit_signal("pressed")
 	await get_tree().process_frame
@@ -162,6 +169,7 @@ func test_cancel_discards_changes() -> void:
 	assert_almost_eq(U_VFX_SELECTORS.get_screen_shake_intensity(state), 1.0, 0.001,
 		"Cancel should not persist intensity edits")
 	assert_true(U_VFX_SELECTORS.is_damage_flash_enabled(state), "Cancel should not persist flash enabled edits")
+	assert_true(U_VFX_SELECTORS.is_particles_enabled(state), "Cancel should not persist particles enabled edits")
 
 	assert_eq(_collect_vfx_action_types(dispatched).size(), 0, "Cancel should not dispatch VFX actions")
 
@@ -171,6 +179,7 @@ func test_reset_restores_defaults_requires_apply() -> void:
 	_store.dispatch(U_VFX_ACTIONS.set_screen_shake_enabled(false))
 	_store.dispatch(U_VFX_ACTIONS.set_screen_shake_intensity(0.5))
 	_store.dispatch(U_VFX_ACTIONS.set_damage_flash_enabled(false))
+	_store.dispatch(U_VFX_ACTIONS.set_particles_enabled(false))
 
 	var overlay := await _instantiate_overlay()
 
@@ -186,6 +195,7 @@ func test_reset_restores_defaults_requires_apply() -> void:
 	assert_true(overlay._shake_enabled_toggle.button_pressed, "Reset should set shake enabled to default (true)")
 	assert_almost_eq(overlay._intensity_slider.value, 1.0, 0.001, "Reset should set intensity to default (1.0)")
 	assert_true(overlay._flash_enabled_toggle.button_pressed, "Reset should set flash enabled to default (true)")
+	assert_true(overlay._particles_enabled_toggle.button_pressed, "Reset should set particles enabled to default (true)")
 	assert_eq(_collect_vfx_action_types(dispatched).size(), 0, "Reset should not dispatch VFX actions by itself")
 
 	var state_after_reset: Dictionary = _store.get_state()
@@ -193,6 +203,7 @@ func test_reset_restores_defaults_requires_apply() -> void:
 	assert_almost_eq(U_VFX_SELECTORS.get_screen_shake_intensity(state_after_reset), 0.5, 0.001,
 		"Reset should not persist intensity until Apply")
 	assert_false(U_VFX_SELECTORS.is_damage_flash_enabled(state_after_reset), "Reset should not persist until Apply")
+	assert_false(U_VFX_SELECTORS.is_particles_enabled(state_after_reset), "Reset should not persist until Apply")
 
 	overlay._apply_button.emit_signal("pressed")
 	await get_tree().process_frame
@@ -202,6 +213,7 @@ func test_reset_restores_defaults_requires_apply() -> void:
 	assert_almost_eq(U_VFX_SELECTORS.get_screen_shake_intensity(state_after_apply), 1.0, 0.001,
 		"Apply should persist reset intensity")
 	assert_true(U_VFX_SELECTORS.is_damage_flash_enabled(state_after_apply), "Apply should persist reset flash enabled")
+	assert_true(U_VFX_SELECTORS.is_particles_enabled(state_after_apply), "Apply should persist reset particles enabled")
 
 
 func test_state_changes_refresh_ui_when_not_editing() -> void:
@@ -232,6 +244,7 @@ func test_settings_persist_and_restore_from_save_file() -> void:
 	_store.dispatch(U_VFX_ACTIONS.set_screen_shake_enabled(false))
 	_store.dispatch(U_VFX_ACTIONS.set_screen_shake_intensity(0.6))
 	_store.dispatch(U_VFX_ACTIONS.set_damage_flash_enabled(false))
+	_store.dispatch(U_VFX_ACTIONS.set_particles_enabled(false))
 
 	var save_err := _store.save_state(TEST_SAVE_PATH)
 	assert_eq(save_err, OK, "save_state should succeed")
@@ -253,6 +266,7 @@ func test_settings_persist_and_restore_from_save_file() -> void:
 	assert_almost_eq(U_VFX_SELECTORS.get_screen_shake_intensity(loaded_state), 0.6, 0.001,
 		"Loaded state should restore shake intensity")
 	assert_false(U_VFX_SELECTORS.is_damage_flash_enabled(loaded_state), "Loaded state should restore flash enabled")
+	assert_false(U_VFX_SELECTORS.is_particles_enabled(loaded_state), "Loaded state should restore particles enabled")
 
 	var overlay := VFX_SETTINGS_OVERLAY_SCENE.instantiate() as UI_VFXSettingsOverlay
 	add_child_autofree(overlay)
@@ -261,4 +275,4 @@ func test_settings_persist_and_restore_from_save_file() -> void:
 	assert_false(overlay._shake_enabled_toggle.button_pressed, "Overlay should initialize from loaded shake enabled")
 	assert_almost_eq(overlay._intensity_slider.value, 0.6, 0.001, "Overlay should initialize from loaded intensity")
 	assert_false(overlay._flash_enabled_toggle.button_pressed, "Overlay should initialize from loaded flash enabled")
-
+	assert_false(overlay._particles_enabled_toggle.button_pressed, "Overlay should initialize from loaded particles enabled")

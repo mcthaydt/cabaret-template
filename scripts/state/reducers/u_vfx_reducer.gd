@@ -12,6 +12,7 @@ const DEFAULT_VFX_STATE := {
 	"screen_shake_enabled": true,
 	"screen_shake_intensity": 1.0,
 	"damage_flash_enabled": true,
+	"particles_enabled": true,
 }
 
 const MIN_INTENSITY := 0.0
@@ -40,6 +41,11 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var payload: Dictionary = action.get("payload", {})
 			var enabled := bool(payload.get("enabled", true))
 			return _with_values(current, {"damage_flash_enabled": enabled})
+
+		U_VFXActions.ACTION_SET_PARTICLES_ENABLED:
+			var payload: Dictionary = action.get("payload", {})
+			var enabled := bool(payload.get("enabled", true))
+			return _with_values(current, {"particles_enabled": enabled})
 
 		_:
 			return null

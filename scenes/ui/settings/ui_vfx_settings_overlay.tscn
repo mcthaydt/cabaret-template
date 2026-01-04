@@ -110,6 +110,21 @@ layout_mode = 2
 size_flags_horizontal = 3
 button_pressed = true
 
+[node name="ParticlesEnabledRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ParticlesEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/ParticlesEnabledRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Particles"
+
+[node name="ParticlesEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/ParticlesEnabledRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+button_pressed = true
+
 [node name="Spacer" type="Control" parent="CenterContainer/Panel/VBox" unique_id=393290215]
 layout_mode = 2
 size_flags_vertical = 3

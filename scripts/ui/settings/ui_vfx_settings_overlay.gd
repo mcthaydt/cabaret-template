@@ -18,6 +18,7 @@ const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configura
 @onready var _intensity_slider: HSlider = %IntensitySlider
 @onready var _intensity_percentage: Label = %IntensityPercentage
 @onready var _flash_enabled_toggle: CheckButton = %FlashEnabledToggle
+@onready var _particles_enabled_toggle: CheckButton = %ParticlesEnabledToggle
 @onready var _apply_button: Button = %ApplyButton
 @onready var _cancel_button: Button = %CancelButton
 @onready var _reset_button: Button = %ResetButton
@@ -50,9 +51,15 @@ func _configure_focus_neighbors() -> void:
 		vertical_controls.append(_intensity_slider)
 	if _flash_enabled_toggle != null:
 		vertical_controls.append(_flash_enabled_toggle)
+	if _particles_enabled_toggle != null:
+		vertical_controls.append(_particles_enabled_toggle)
 
 	if not vertical_controls.is_empty():
 		U_FocusConfigurator.configure_vertical_focus(vertical_controls, false)
+
+	var last_vertical_control: Control = null
+	if not vertical_controls.is_empty():
+		last_vertical_control = vertical_controls[vertical_controls.size() - 1]
 
 	# Configure button row horizontal focus
 	var buttons: Array[Control] = []
@@ -67,9 +74,9 @@ func _configure_focus_neighbors() -> void:
 		U_FocusConfigurator.configure_horizontal_focus(buttons, true)
 		# Connect vertical controls to button row
 		for button in buttons:
-			if _flash_enabled_toggle != null:
-				button.focus_neighbor_top = button.get_path_to(_flash_enabled_toggle)
-				button.focus_neighbor_bottom = button.get_path_to(_flash_enabled_toggle)
+			if last_vertical_control != null:
+				button.focus_neighbor_top = button.get_path_to(last_vertical_control)
+				button.focus_neighbor_bottom = button.get_path_to(last_vertical_control)
 
 func _connect_control_signals() -> void:
 	if _shake_enabled_toggle != null and not _shake_enabled_toggle.toggled.is_connected(_on_shake_enabled_toggled):
@@ -78,6 +85,8 @@ func _connect_control_signals() -> void:
 		_intensity_slider.value_changed.connect(_on_intensity_changed)
 	if _flash_enabled_toggle != null and not _flash_enabled_toggle.toggled.is_connected(_on_flash_enabled_toggled):
 		_flash_enabled_toggle.toggled.connect(_on_flash_enabled_toggled)
+	if _particles_enabled_toggle != null and not _particles_enabled_toggle.toggled.is_connected(_on_particles_enabled_toggled):
+		_particles_enabled_toggle.toggled.connect(_on_particles_enabled_toggled)
 	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
 		_apply_button.pressed.connect(_on_apply_pressed)
 	if _cancel_button != null and not _cancel_button.pressed.is_connected(_close_overlay):
@@ -112,6 +121,9 @@ func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 	if _flash_enabled_toggle != null:
 		_flash_enabled_toggle.button_pressed = U_VFXSelectors.is_damage_flash_enabled(state)
 
+	if _particles_enabled_toggle != null:
+		_particles_enabled_toggle.button_pressed = U_VFXSelectors.is_particles_enabled(state)
+
 	_updating_from_state = false
 
 func _on_shake_enabled_toggled(_pressed: bool) -> void:
@@ -133,6 +145,12 @@ func _on_flash_enabled_toggled(_pressed: bool) -> void:
 		return
 	_has_local_edits = true
 
+func _on_particles_enabled_toggled(_pressed: bool) -> void:
+	# Changes only apply when user clicks Apply button
+	if _updating_from_state:
+		return
+	_has_local_edits = true
+
 func _on_apply_pressed() -> void:
 	var store := get_store()
 	if store == null:
@@ -144,11 +162,13 @@ func _on_apply_pressed() -> void:
 	var shake_enabled := _shake_enabled_toggle.button_pressed
 	var shake_intensity := _intensity_slider.value
 	var flash_enabled := _flash_enabled_toggle.button_pressed
+	var particles_enabled := _particles_enabled_toggle.button_pressed
 
 	_has_local_edits = false
 	store.dispatch(U_VFXActions.set_screen_shake_enabled(shake_enabled))
 	store.dispatch(U_VFXActions.set_screen_shake_intensity(shake_intensity))
 	store.dispatch(U_VFXActions.set_damage_flash_enabled(flash_enabled))
+	store.dispatch(U_VFXActions.set_particles_enabled(particles_enabled))
 	_close_overlay()
 
 func _on_reset_pressed() -> void:
@@ -157,6 +177,7 @@ func _on_reset_pressed() -> void:
 	_shake_enabled_toggle.button_pressed = defaults.screen_shake_enabled
 	_intensity_slider.value = defaults.screen_shake_intensity
 	_flash_enabled_toggle.button_pressed = defaults.damage_flash_enabled
+	_particles_enabled_toggle.button_pressed = defaults.particles_enabled
 
 	_update_percentage_label(_intensity_slider.value)
 

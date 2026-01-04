@@ -6,22 +6,28 @@ extends GutTest
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const DEFAULT_VFX_INITIAL_STATE := preload("res://resources/state/default_vfx_initial_state.tres")
+const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_VFXActions := preload("res://scripts/state/actions/u_vfx_actions.gd")
 const U_VFXSelectors := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 
 var _root: Node
 
 func before_each() -> void:
+	U_STATE_HANDOFF.clear_all()
 	_root = Node.new()
 	add_child_autofree(_root)
 
 func after_each() -> void:
+	U_STATE_HANDOFF.clear_all()
 	_root = null
 
 func _make_store() -> M_StateStore:
 	var store := M_STATE_STORE.new()
 	store.name = "M_StateStore"
 	store.settings = RS_STATE_STORE_SETTINGS.new()
+	store.settings.enable_persistence = false
+	store.settings.enable_debug_logging = false
+	store.settings.enable_debug_overlay = false
 	store.vfx_initial_state = DEFAULT_VFX_INITIAL_STATE
 	_root.add_child(store)
 	return store
@@ -57,6 +63,10 @@ func test_vfx_slice_has_default_values() -> void:
 		state["vfx"]["damage_flash_enabled"],
 		"damage_flash_enabled should default to true"
 	)
+	assert_true(
+		state["vfx"]["particles_enabled"],
+		"particles_enabled should default to true"
+	)
 
 # Test 3: VFX actions mutate VFX slice
 func test_vfx_actions_mutate_vfx_slice() -> void:
@@ -65,12 +75,17 @@ func test_vfx_actions_mutate_vfx_slice() -> void:
 
 	# Dispatch action to disable screen shake
 	store.dispatch(U_VFXActions.set_screen_shake_enabled(false))
+	store.dispatch(U_VFXActions.set_particles_enabled(false))
 	await get_tree().process_frame
 
 	var state: Dictionary = store.get_state()
 	assert_false(
 		state["vfx"]["screen_shake_enabled"],
 		"screen_shake_enabled should be false after action"
+	)
+	assert_false(
+		state["vfx"]["particles_enabled"],
+		"particles_enabled should be false after action"
 	)
 
 # Test 4: VFX intensity action clamps values
@@ -137,6 +152,11 @@ func test_multiple_vfx_mutations_preserve_fields() -> void:
 	assert_true(
 		state["vfx"]["damage_flash_enabled"],
 		"damage_flash_enabled should remain true (preserved)"
+	)
+	# Verify particles was preserved
+	assert_true(
+		state["vfx"]["particles_enabled"],
+		"particles_enabled should remain true (preserved)"
 	)
 
 # Test 7: VFX slice is independent of other slices

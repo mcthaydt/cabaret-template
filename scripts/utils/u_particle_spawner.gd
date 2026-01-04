@@ -1,6 +1,11 @@
 extends RefCounted
 class_name U_ParticleSpawner
 
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
+
+const STORE_SERVICE := StringName("state_store")
+
 ## Utility for spawning one-shot GPU particles with proper initialization
 ##
 ## Handles the complexity of:
@@ -60,6 +65,9 @@ func spawn_particles(
 ) -> GPUParticles3D:
 	if container == null or caller_node == null:
 		push_warning("U_ParticleSpawner: Cannot spawn particles - container or caller_node is null")
+		return null
+
+	if not _is_particles_enabled(caller_node.get_tree()):
 		return null
 
 	if config == null:
@@ -163,6 +171,9 @@ static func get_or_create_effects_container(tree: SceneTree) -> Node3D:
 			push_warning("U_ParticleSpawner: Cannot get effects container - tree is null")
 		return null
 
+	if not _is_particles_enabled(tree):
+		return null
+
 	# Look for existing container
 	var containers: Array[Node] = tree.get_nodes_in_group("effects_container")
 	if containers.size() > 0:
@@ -183,3 +194,20 @@ static func get_or_create_effects_container(tree: SceneTree) -> Node3D:
 	# Add to current scene root
 	current_scene.add_child(container)
 	return container
+
+static func _is_particles_enabled(tree: SceneTree) -> bool:
+	if tree == null:
+		return true
+
+	var store := U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE) as I_StateStore
+	if store == null:
+		store = tree.get_first_node_in_group(STORE_SERVICE) as I_StateStore
+
+	if store == null or not is_instance_valid(store):
+		return true
+
+	if not store.is_ready():
+		return true
+
+	var state: Dictionary = store.get_state()
+	return U_VFX_SELECTORS.is_particles_enabled(state)

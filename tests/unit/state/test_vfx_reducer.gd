@@ -21,6 +21,10 @@ func test_default_state_has_all_fields() -> void:
 		default_state.has("damage_flash_enabled"),
 		"Default state should have damage_flash_enabled"
 	)
+	assert_true(
+		default_state.has("particles_enabled"),
+		"Default state should have particles_enabled"
+	)
 
 # Test 2: Default values are sensible
 func test_default_state_has_sensible_values() -> void:
@@ -37,6 +41,10 @@ func test_default_state_has_sensible_values() -> void:
 	assert_true(
 		default_state["damage_flash_enabled"] is bool,
 		"damage_flash_enabled should be a boolean"
+	)
+	assert_true(
+		default_state["particles_enabled"] is bool,
+		"particles_enabled should be a boolean"
 	)
 
 	# Intensity should be in valid range
@@ -129,7 +137,29 @@ func test_set_damage_flash_enabled_false() -> void:
 		"damage_flash_enabled should be false"
 	)
 
-# Test 10: Reducer is immutable
+# Test 10: set_particles_enabled disables particles
+func test_set_particles_enabled_false() -> void:
+	var state := _make_vfx_state(true, 1.0, true, true)
+	var action := U_VFXActions.set_particles_enabled(false)
+	var reduced: Dictionary = U_VFXReducer.reduce(state, action)
+
+	assert_false(
+		reduced["particles_enabled"],
+		"particles_enabled should be false"
+	)
+
+# Test 11: set_particles_enabled enables particles
+func test_set_particles_enabled_true() -> void:
+	var state := _make_vfx_state(true, 1.0, true, false)
+	var action := U_VFXActions.set_particles_enabled(true)
+	var reduced: Dictionary = U_VFXReducer.reduce(state, action)
+
+	assert_true(
+		reduced["particles_enabled"],
+		"particles_enabled should be true"
+	)
+
+# Test 12: Reducer is immutable
 func test_reducer_immutability() -> void:
 	var state := _make_vfx_state(true, 1.0, true)
 	var action := U_VFXActions.set_screen_shake_enabled(false)
@@ -145,7 +175,7 @@ func test_reducer_immutability() -> void:
 		"Original state should remain unchanged"
 	)
 
-# Test 11: Unknown action returns null (no change)
+# Test 13: Unknown action returns null (no change)
 func test_unhandled_action_returns_null() -> void:
 	var state := _make_vfx_state(true, 1.0, true)
 	var action := {"type": StringName("vfx/unknown_action")}
@@ -156,7 +186,7 @@ func test_unhandled_action_returns_null() -> void:
 		"Unknown action should return null (indicating no change)"
 	)
 
-# Test 12: Multiple field updates preserve other fields
+# Test 14: Multiple field updates preserve other fields
 func test_updating_one_field_preserves_others() -> void:
 	var state := _make_vfx_state(true, 1.0, true)
 	var action := U_VFXActions.set_screen_shake_intensity(0.5)
@@ -170,8 +200,12 @@ func test_updating_one_field_preserves_others() -> void:
 		reduced["damage_flash_enabled"],
 		"damage_flash_enabled should be preserved"
 	)
+	assert_true(
+		reduced["particles_enabled"],
+		"particles_enabled should be preserved"
+	)
 
-# Test 13: Zero intensity is valid
+# Test 15: Zero intensity is valid
 func test_set_screen_shake_intensity_zero() -> void:
 	var state := _make_vfx_state(true, 1.0, true)
 	var action := U_VFXActions.set_screen_shake_intensity(0.0)
@@ -184,7 +218,7 @@ func test_set_screen_shake_intensity_zero() -> void:
 		"Zero intensity should be allowed"
 	)
 
-# Test 14: Max intensity (2.0) is valid
+# Test 16: Max intensity (2.0) is valid
 func test_set_screen_shake_intensity_max() -> void:
 	var state := _make_vfx_state(true, 1.0, true)
 	var action := U_VFXActions.set_screen_shake_intensity(2.0)
@@ -197,7 +231,7 @@ func test_set_screen_shake_intensity_max() -> void:
 		"Max intensity (2.0) should be allowed"
 	)
 
-# Test 15: Empty state initializes with defaults
+# Test 17: Empty state initializes with defaults
 func test_empty_state_initializes_defaults() -> void:
 	var action := U_VFXActions.set_screen_shake_enabled(true)
 	var reduced: Dictionary = U_VFXReducer.reduce({}, action)
@@ -214,15 +248,21 @@ func test_empty_state_initializes_defaults() -> void:
 		reduced.has("damage_flash_enabled"),
 		"Reducer should initialize flash for empty state"
 	)
+	assert_true(
+		reduced.has("particles_enabled"),
+		"Reducer should initialize particles_enabled for empty state"
+	)
 
 # Helper: Create VFX state for testing
 func _make_vfx_state(
 	shake_enabled: bool,
 	shake_intensity: float,
-	flash_enabled: bool
+	flash_enabled: bool,
+	particles_enabled: bool = true
 ) -> Dictionary:
 	return {
 		"screen_shake_enabled": shake_enabled,
 		"screen_shake_intensity": shake_intensity,
-		"damage_flash_enabled": flash_enabled
+		"damage_flash_enabled": flash_enabled,
+		"particles_enabled": particles_enabled
 	}

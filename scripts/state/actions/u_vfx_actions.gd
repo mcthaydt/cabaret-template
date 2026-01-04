@@ -11,11 +11,13 @@ const U_ActionRegistry := preload("res://scripts/state/utils/u_action_registry.g
 const ACTION_SET_SCREEN_SHAKE_ENABLED := StringName("vfx/set_screen_shake_enabled")
 const ACTION_SET_SCREEN_SHAKE_INTENSITY := StringName("vfx/set_screen_shake_intensity")
 const ACTION_SET_DAMAGE_FLASH_ENABLED := StringName("vfx/set_damage_flash_enabled")
+const ACTION_SET_PARTICLES_ENABLED := StringName("vfx/set_particles_enabled")
 
 static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SET_SCREEN_SHAKE_ENABLED)
 	U_ActionRegistry.register_action(ACTION_SET_SCREEN_SHAKE_INTENSITY)
 	U_ActionRegistry.register_action(ACTION_SET_DAMAGE_FLASH_ENABLED)
+	U_ActionRegistry.register_action(ACTION_SET_PARTICLES_ENABLED)
 
 ## Enable or disable screen shake effect
 static func set_screen_shake_enabled(enabled: bool) -> Dictionary:
@@ -41,6 +43,16 @@ static func set_screen_shake_intensity(intensity: float) -> Dictionary:
 static func set_damage_flash_enabled(enabled: bool) -> Dictionary:
 	return {
 		"type": ACTION_SET_DAMAGE_FLASH_ENABLED,
+		"payload": {
+			"enabled": enabled
+		},
+		"immediate": true
+	}
+
+## Enable or disable particle effects
+static func set_particles_enabled(enabled: bool) -> Dictionary:
+	return {
+		"type": ACTION_SET_PARTICLES_ENABLED,
 		"payload": {
 			"enabled": enabled
 		},
