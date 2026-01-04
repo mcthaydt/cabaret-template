@@ -2,11 +2,11 @@
 
 ## Current Status
 
-- **Implementation status**: Phase 5 Complete (Settings UI Integration)
+- **Implementation status**: Phase 7 Complete (Particles Toggle)
 - **Main scene**: `scenes/root.tscn` (project `run/main_scene` points here)
 - **Root bootstrap**: `scripts/scene_structure/main.gd` registers manager services via `U_ServiceLocator`
-- **Tests passing**: 75/75 VFX unit + 13/13 VFX integration (full suite: 1344 total, 1339 passing, 5 pending headless timing)
-- **Phase 6 status**: In progress (integration complete; manual QA pending)
+- **Tests passing**: 82/82 VFX unit + 13/13 VFX integration (style enforcement passing)
+- **Phase 6 status**: Complete (integration + manual QA)
 - **Manager added**: `M_VFXManager` added to `scenes/root.tscn` under `Managers/` hierarchy
 - **Screen shake helper**: `M_ScreenShake` implemented with quadratic falloff and noise-based randomness
 - **Damage flash helper**: `M_DamageFlash` implemented with 0.4s fade duration and tween-based animation
@@ -19,6 +19,7 @@
 - **Apply/Cancel pattern**: Settings use Apply/Cancel/Reset buttons (consistent with gamepad/touchscreen settings)
 - **State persistence**: VFX settings persist via Redux state persistence (VFX slice)
 - **Integration tests**: Added `tests/integration/vfx/test_vfx_camera_integration.gd` and `tests/integration/vfx/test_vfx_settings_ui.gd`
+- **Particles toggle**: Added `vfx.particles_enabled` (default true) and gated particle spawns via `U_ParticleSpawner`
 - **Post-audit fixes applied**:
   - Fixed `M_StateStore.subscribe()` callback arity mismatch in `UI_VFXSettingsOverlay`
   - Updated `M_VFXManager` to parse typed `health_changed` payload (`previous_health/new_health`) and `entity_landed` payload (`vertical_velocity`)
@@ -41,5 +42,5 @@
 
 ## Next Step
 
-- Complete **Task 6.5 (Manual QA)** in `docs/vfx manager/vfx-manager-tasks.md` (playtest checklist) and record results.
-- After manual QA passes, mark Phase 6 complete in `docs/vfx manager/vfx-manager-tasks.md` and update this continuation prompt with the next story only.
+- Manual playtest: verify `particles_enabled` toggles jump/landing/spawn particles in-game and persists across save/load.
+- Decide whether to expand beyond a global toggle (per-effect toggles, particle quality/intensity slider).

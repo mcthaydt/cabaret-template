@@ -1,55 +1,56 @@
 # VFX Manager - Task Checklist
 
-**Progress:** 25 / 26 tasks complete (Phases 0-5 complete; Phase 6 manual QA pending)
-**Unit Tests:** 75 / 75 passing (Phase 0 Redux: 33/33, Phase 1 Manager: 17/17, Phase 2 ScreenShake: 15/15, Phase 4 DamageFlash: 10/10)
+**Progress:** 30 / 30 tasks complete (Phases 0-7 complete)
+**Unit Tests:** 82 / 82 passing (Phase 0 Redux: 40/40, Phase 1 Manager: 17/17, Phase 2 ScreenShake: 15/15, Phase 4 DamageFlash: 10/10)
 **Integration Tests:** 13 / 13 passing (Phase 6 integration complete)
-**Manual QA:** 0 / 9 complete (Phase 6 pending)
+**Manual QA:** 9 / 9 complete (Phase 6 complete)
 
 ---
 
 ## Phase 0: Redux Foundation ✅ COMPLETE
 
-**Exit Criteria:** All 30+ Redux tests pass (5 initial state + 15 reducer + 13 selectors), VFX slice registered in M_StateStore, no console errors
+**Exit Criteria:** All 40 Redux tests pass (6 initial state + 17 reducer + 17 selectors), VFX slice registered in M_StateStore, no console errors
 
 - [x] **Task 0.1 (Red)**: Write tests for VFX initial state resource
   - Create `tests/unit/state/test_vfx_initial_state.gd`
-  - Tests: `test_has_screen_shake_enabled_field`, `test_has_screen_shake_intensity_field`, `test_has_damage_flash_enabled_field`, `test_to_dictionary_returns_all_fields`, `test_defaults_match_reducer`
-  - All 5 tests failing as expected ✅
+  - Tests: `test_has_screen_shake_enabled_field`, `test_has_screen_shake_intensity_field`, `test_has_damage_flash_enabled_field`, `test_has_particles_enabled_field`, `test_to_dictionary_returns_all_fields`, `test_defaults_match_reducer`
+  - All 6 tests failing as expected ✅
 
 - [x] **Task 0.2 (Green)**: Implement VFX initial state resource
   - Create `scripts/state/resources/rs_vfx_initial_state.gd`
-  - Exports: `screen_shake_enabled: bool`, `screen_shake_intensity: float`, `damage_flash_enabled: bool`
-  - Implement `to_dictionary()` method merging with reducer defaults
-  - All 5 tests passing ✅
+  - Exports: `screen_shake_enabled: bool`, `screen_shake_intensity: float`, `damage_flash_enabled: bool`, `particles_enabled: bool`
+  - Implement `to_dictionary()` for slice initialization
+  - All 6 tests passing ✅
 
 - [x] **Task 0.3 (Red)**: Write tests for VFX reducer
   - Create `tests/unit/state/test_vfx_reducer.gd`
-  - Tests: default state structure, `set_screen_shake_enabled` action, `set_screen_shake_intensity` action, `set_damage_flash_enabled` action
+  - Tests: default state structure, `set_screen_shake_enabled` action, `set_screen_shake_intensity` action, `set_damage_flash_enabled` action, `set_particles_enabled` action
   - Critical tests: `test_set_screen_shake_intensity_clamp_lower` (-0.5 → 0.0), `test_set_screen_shake_intensity_clamp_upper` (3.5 → 2.0), `test_reducer_immutability` (old_state is not new_state)
-  - All 15 tests failing as expected ✅
+  - All 17 tests failing as expected ✅
 
 - [x] **Task 0.4 (Green)**: Implement VFX actions and reducer
   - Create `scripts/state/actions/u_vfx_actions.gd`
-  - Action creators: `set_screen_shake_enabled(enabled: bool)`, `set_screen_shake_intensity(intensity: float)`, `set_damage_flash_enabled(enabled: bool)`
+  - Action creators: `set_screen_shake_enabled(enabled: bool)`, `set_screen_shake_intensity(intensity: float)`, `set_damage_flash_enabled(enabled: bool)`, `set_particles_enabled(enabled: bool)`
   - Create `scripts/state/reducers/u_vfx_reducer.gd`
   - Implement `reduce(state: Dictionary, action: Dictionary) -> Dictionary`
   - Implement `get_default_vfx_state() -> Dictionary`
   - Intensity clamping: 0.0-2.0 range
   - Immutability helpers: `_merge_with_defaults`, `_with_values`, `_deep_copy`
-  - All 15 tests passing ✅
+  - All 17 tests passing ✅
 
 - [x] **Task 0.5 (Red)**: Write tests for VFX selectors
   - Create `tests/unit/state/test_vfx_selectors.gd`
-  - Tests: `is_screen_shake_enabled`, `get_screen_shake_intensity`, `is_damage_flash_enabled`
+  - Tests: `is_screen_shake_enabled`, `get_screen_shake_intensity`, `is_damage_flash_enabled`, `is_particles_enabled`
   - Edge cases: missing vfx slice, null state, missing fields
-  - All 13 tests failing as expected ✅ (implemented 13 tests instead of 10)
+  - All 17 tests failing as expected ✅
 
 - [x] **Task 0.6 (Green)**: Implement VFX selectors
   - Create `scripts/state/selectors/u_vfx_selectors.gd`
   - Implement `is_screen_shake_enabled(state: Dictionary) -> bool`
   - Implement `get_screen_shake_intensity(state: Dictionary) -> float`
   - Implement `is_damage_flash_enabled(state: Dictionary) -> bool`
-  - All 13 tests passing ✅
+  - Implement `is_particles_enabled(state: Dictionary) -> bool`
+  - All 17 tests passing ✅
 
 - [x] **Task 0.7 (Green)**: Integrate VFX slice into M_StateStore
   - Modify `scripts/state/m_state_store.gd`:
@@ -63,7 +64,7 @@
   - VFX slice accessible via `state.vfx` ✅
 
 **Completion Notes:**
-- All 33 Redux tests passing (5 initial state + 15 reducer + 13 selectors)
+- All 40 Redux tests passing (6 initial state + 17 reducer + 17 selectors)
 - VFX slice successfully integrated into M_StateStore
 - Style enforcement test passing for all new files
 - Intensity clamping working correctly (0.0-2.0 range)
@@ -426,7 +427,7 @@
 
 ## Phase 6: Testing & Integration
 
-**Exit Criteria:** VFX unit tests (75) + VFX integration tests (13) pass, manual playtest successful, no console errors
+**Exit Criteria:** VFX unit tests (82) + VFX integration tests (13) pass, manual playtest successful, no console errors
 
 - [x] **Task 6.1 (Red)**: Write integration test for VFX-Camera interaction
   - Create `tests/integration/vfx/test_vfx_camera_integration.gd`
@@ -464,19 +465,48 @@
 
 ---
 
+## Phase 7: Particles Toggle ✅ COMPLETE
+
+**Exit Criteria:** Global particles toggle added to VFX settings, persisted in `vfx` slice, particle spawns suppressed when disabled
+
+- [x] **Task 7.1 (Red)**: Extend tests for `particles_enabled`
+  - Update Redux tests: `tests/unit/state/test_vfx_initial_state.gd`, `tests/unit/state/test_vfx_reducer.gd`, `tests/unit/state/test_vfx_selectors.gd`
+  - Update store integration: `tests/integration/state/test_vfx_slice_integration.gd` (includes `U_StateHandoff.clear_all()` to prevent state leaks)
+  - Update settings UI integration: `tests/integration/vfx/test_vfx_settings_ui.gd`
+  - Add particle gating test: `tests/unit/ecs/systems/test_spawn_particles_system.gd`
+
+- [x] **Task 7.2 (Green)**: Add `particles_enabled` to VFX Redux slice
+  - Modify `scripts/state/resources/rs_vfx_initial_state.gd` (add field + `to_dictionary()`)
+  - Modify `scripts/state/actions/u_vfx_actions.gd` (add action + creator)
+  - Modify `scripts/state/reducers/u_vfx_reducer.gd` (add reducer support)
+  - Modify `scripts/state/selectors/u_vfx_selectors.gd` (add selector)
+
+- [x] **Task 7.3 (Green)**: Add particles toggle to settings UI
+  - Modify `scenes/ui/settings/ui_vfx_settings_overlay.tscn` (add "Particles" row + toggle)
+  - Modify `scripts/ui/settings/ui_vfx_settings_overlay.gd` (Apply/Cancel/Reset integration + focus)
+
+- [x] **Task 7.4 (Green)**: Gate particle spawning via `U_ParticleSpawner`
+  - Modify `scripts/utils/u_particle_spawner.gd` to no-op when `U_VFXSelectors.is_particles_enabled(state) == false`
+
+**Completion Notes:**
+- Added global `particles_enabled` toggle (default true) and persisted via VFX slice
+- Particle systems continue to be ECS-driven; only global enable/disable behavior is standardized
+
+---
+
 ## File Reference
 
 | File Path | Status | Phase | Notes |
 |-----------|--------|-------|-------|
-| `scripts/state/resources/rs_vfx_initial_state.gd` | ✅ Complete | 0 | VFX initial state resource with 3 fields |
-| `scripts/state/actions/u_vfx_actions.gd` | ✅ Complete | 0 | 3 action creators for VFX settings |
-| `scripts/state/reducers/u_vfx_reducer.gd` | ✅ Complete | 0 | VFX reducer with intensity clamping |
-| `scripts/state/selectors/u_vfx_selectors.gd` | ✅ Complete | 0 | 3 selectors for VFX state |
+| `scripts/state/resources/rs_vfx_initial_state.gd` | ✅ Complete | 0, 7 | VFX initial state resource with 4 fields |
+| `scripts/state/actions/u_vfx_actions.gd` | ✅ Complete | 0, 7 | 4 action creators for VFX settings |
+| `scripts/state/reducers/u_vfx_reducer.gd` | ✅ Complete | 0, 7 | VFX reducer with intensity clamping |
+| `scripts/state/selectors/u_vfx_selectors.gd` | ✅ Complete | 0, 7 | 4 selectors for VFX state |
 | `scripts/state/m_state_store.gd` | ✅ Complete | 0 | Modified to export vfx_initial_state |
 | `scripts/state/utils/u_state_slice_manager.gd` | ✅ Complete | 0 | Modified to register VFX slice |
-| `tests/unit/state/test_vfx_initial_state.gd` | ✅ Complete | 0 | 5 tests for initial state |
-| `tests/unit/state/test_vfx_reducer.gd` | ✅ Complete | 0 | 15 tests for reducer (includes clamping) |
-| `tests/unit/state/test_vfx_selectors.gd` | ✅ Complete | 0 | 10 tests for selectors |
+| `tests/unit/state/test_vfx_initial_state.gd` | ✅ Complete | 0, 7 | 6 tests for initial state |
+| `tests/unit/state/test_vfx_reducer.gd` | ✅ Complete | 0, 7 | 17 tests for reducer (includes clamping) |
+| `tests/unit/state/test_vfx_selectors.gd` | ✅ Complete | 0, 7 | 17 tests for selectors |
 | `scripts/managers/m_vfx_manager.gd` | ✅ Complete | 1, 3, 4 | VFX manager with trauma system + camera integration + damage flash |
 | `tests/unit/managers/test_vfx_manager.gd` | ✅ Complete | 1 | 17 tests for manager lifecycle + trauma |
 | `scenes/root.tscn` | ✅ Complete | 1 | Modified to add M_VFXManager node |
@@ -487,9 +517,11 @@
 | `scripts/managers/helpers/m_damage_flash.gd` | ✅ Complete | 4 | Damage flash helper with tween fade (0.4s duration) |
 | `tests/unit/managers/helpers/test_damage_flash.gd` | ✅ Complete | 4 | 10 tests for damage flash |
 | `scenes/ui/settings/ui_vfx_settings_overlay.tscn` | ✅ Complete | 5 | VFX settings overlay scene |
-| `scripts/ui/settings/ui_vfx_settings_overlay.gd` | ✅ Complete | 5 | VFX settings overlay controller (Apply/Cancel/Reset) |
+| `scripts/ui/settings/ui_vfx_settings_overlay.gd` | ✅ Complete | 5, 7 | VFX settings overlay controller (Apply/Cancel/Reset) |
 | `tests/integration/vfx/test_vfx_camera_integration.gd` | ✅ Complete | 6 | 5 integration tests for VFX-Camera |
-| `tests/integration/vfx/test_vfx_settings_ui.gd` | ✅ Complete | 6 | 8 integration tests for settings UI |
+| `tests/integration/vfx/test_vfx_settings_ui.gd` | ✅ Complete | 6, 7 | 8 integration tests for settings UI |
+| `tests/unit/ecs/systems/test_spawn_particles_system.gd` | ✅ Complete | 7 | Verifies global particles toggle suppresses spawns |
+| `scripts/utils/u_particle_spawner.gd` | ✅ Complete | 7 | Gates particle spawns when particles are disabled |
 
 **Status Legend:**
 - ⬜ Not Started

@@ -1,9 +1,9 @@
 # VFX Manager - Implementation Plan
 
 **Project**: Cabaret Template (Godot 4.5)
-**Status**: Implemented (Phases 0-5); Phase 6 pending
+**Status**: Implemented (Phases 0-7 complete)
 **Estimated Duration**: 14 days
-**Test Count**: 110 tests (75 unit + 35 integration)
+**Test Count**: 95 tests (82 unit + 13 integration)
 **Methodology**: Test-Driven Development (Red-Green-Refactor)
 
 ---
@@ -20,7 +20,7 @@ The VFX Manager provides screen-level visual effects (screen shake, damage flash
 
 **Files to create**:
 - `scripts/state/resources/rs_vfx_initial_state.gd`
-- `tests/unit/state/test_vfx_initial_state.gd` (5 tests)
+- `tests/unit/state/test_vfx_initial_state.gd` (6 tests)
 
 **Implementation**:
 ```gdscript
@@ -28,25 +28,30 @@ The VFX Manager provides screen-level visual effects (screen shake, damage flash
 extends Resource
 class_name RS_VFXInitialState
 
-const U_VFXReducer := preload("res://scripts/state/reducers/u_vfx_reducer.gd")
-
+@export_group("Screen Shake")
 @export var screen_shake_enabled: bool = true
-@export var screen_shake_intensity: float = 1.0
+@export_range(0.0, 2.0, 0.1) var screen_shake_intensity: float = 1.0
+
+@export_group("Damage Flash")
 @export var damage_flash_enabled: bool = true
 
+@export_group("Particles")
+@export var particles_enabled: bool = true
+
 func to_dictionary() -> Dictionary:
-    var defaults := U_VFXReducer.get_default_vfx_state()
-    var merged := defaults.duplicate(true)
-    merged["screen_shake_enabled"] = screen_shake_enabled
-    merged["screen_shake_intensity"] = screen_shake_intensity
-    merged["damage_flash_enabled"] = damage_flash_enabled
-    return merged
+    return {
+        "screen_shake_enabled": screen_shake_enabled,
+        "screen_shake_intensity": screen_shake_intensity,
+        "damage_flash_enabled": damage_flash_enabled,
+        "particles_enabled": particles_enabled
+    }
 ```
 
 **Tests**:
 - test_has_screen_shake_enabled_field
 - test_has_screen_shake_intensity_field
 - test_has_damage_flash_enabled_field
+- test_has_particles_enabled_field
 - test_to_dictionary_returns_all_fields
 - test_defaults_match_reducer
 
@@ -60,7 +65,7 @@ func to_dictionary() -> Dictionary:
 - `tests/unit/state/test_vfx_reducer.gd` (15 tests)
 
 **Key Features**:
-- 3 action creators (set_screen_shake_enabled, set_screen_shake_intensity, set_damage_flash_enabled)
+- 4 action creators (set_screen_shake_enabled, set_screen_shake_intensity, set_damage_flash_enabled, set_particles_enabled)
 - Intensity clamping (0.0-2.0)
 - Immutability helpers (_merge_with_defaults, _with_values, _deep_copy)
 
@@ -75,7 +80,7 @@ func to_dictionary() -> Dictionary:
 
 **Files to create**:
 - `scripts/state/selectors/u_vfx_selectors.gd`
-- `tests/unit/state/test_vfx_selectors.gd` (10 tests)
+- `tests/unit/state/test_vfx_selectors.gd` (17 tests)
 
 **Files to modify**:
 - `scripts/state/m_state_store.gd`:
@@ -112,6 +117,7 @@ func to_dictionary() -> Dictionary:
 - `is_screen_shake_enabled(state: Dictionary) -> bool`
 - `get_screen_shake_intensity(state: Dictionary) -> float`
 - `is_damage_flash_enabled(state: Dictionary) -> bool`
+- `is_particles_enabled(state: Dictionary) -> bool`
 
 ---
 

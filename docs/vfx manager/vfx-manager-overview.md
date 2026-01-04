@@ -3,12 +3,12 @@
 **Project**: Cabaret Template (Godot 4.5)
 **Created**: 2026-01-01
 **Last Updated**: 2026-01-04
-**Status**: IMPLEMENTED (Phases 0-5); Phase 6 pending
+**Status**: IMPLEMENTED (Phases 0-7 complete)
 **Scope**: Screen shake, damage flash, gameplay visual effects (particle systems retained)
 
 ## Summary
 
-The VFX Manager is a persistent orchestration layer for screen-level visual effects. It coordinates screen shake (camera trauma), damage flash overlays, and future gameplay screen effects. The manager works alongside existing ECS particle systems (`S_JumpParticlesSystem`, `S_LandingParticlesSystem`, etc.) which remain unchanged. Post-processing effects (film grain, CRT, Lomo) are explicitly out of scope and will be handled by a future Display Manager.
+The VFX Manager is a persistent orchestration layer for screen-level visual effects. It coordinates screen shake (camera trauma), damage flash overlays, and future gameplay screen effects. The manager works alongside existing ECS particle systems (`S_JumpParticlesSystem`, `S_LandingParticlesSystem`, etc.) which remain ECS-based; particle spawning is globally gated by `vfx.particles_enabled` via `U_ParticleSpawner`. Post-processing effects (film grain, CRT, Lomo) are explicitly out of scope and will be handled by a future Display Manager.
 
 ## Repo Reality Checks
 
@@ -30,7 +30,7 @@ The VFX Manager is a persistent orchestration layer for screen-level visual effe
 
 - No post-processing effects (film grain, CRT, Lomo, color grading) - deferred to Display Manager.
 - No graphics quality settings (resolution, shadows, AA) - deferred to Display Manager.
-- No particle system changes (existing systems work correctly).
+- No per-effect particle tuning (particle systems remain ECS-based; only global enable/disable via VFX settings).
 - No complex shader effects (distortion, heat haze) for initial implementation.
 - No directional damage indicators (future enhancement).
 
@@ -53,6 +53,7 @@ The VFX Manager is a persistent orchestration layer for screen-level visual effe
 **Existing systems (unchanged)**
 
 - `U_ParticleSpawner`: GPU particle spawning utility.
+- `U_ParticleSpawner`: GPU particle spawning utility (gated by `vfx.particles_enabled`).
 - `BaseEventVFXSystem`: Base class for particle systems.
 - `S_JumpParticlesSystem`, `S_LandingParticlesSystem`, `S_SpawnParticlesSystem`: Particle effects.
 - `C_LandingIndicatorComponent` + `S_LandingIndicatorSystem`: Landing preview visual.
@@ -74,6 +75,7 @@ M_VFXManager.get_trauma() -> float              # Current trauma value
 U_VFXSelectors.is_screen_shake_enabled(state: Dictionary) -> bool
 U_VFXSelectors.get_screen_shake_intensity(state: Dictionary) -> float
 U_VFXSelectors.is_damage_flash_enabled(state: Dictionary) -> bool
+U_VFXSelectors.is_particles_enabled(state: Dictionary) -> bool
 ```
 
 ## VFX State Model
@@ -85,8 +87,9 @@ U_VFXSelectors.is_damage_flash_enabled(state: Dictionary) -> bool
 | `screen_shake_enabled` | bool | true | Global screen shake toggle |
 | `screen_shake_intensity` | float | 1.0 | Shake intensity multiplier (0.0-2.0) |
 | `damage_flash_enabled` | bool | true | Damage flash effect toggle |
+| `particles_enabled` | bool | true | Global particles toggle |
 
-**Note**: VFX settings persist to save files (included in settings slice).
+**Note**: VFX settings persist to save files (included in vfx slice).
 
 ## Screen Shake System
 

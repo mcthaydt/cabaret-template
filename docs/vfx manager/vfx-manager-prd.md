@@ -5,9 +5,9 @@
 **Feature Branch**: `feature/vfx-manager`
 **Created**: 2026-01-01
 **Last Updated**: 2026-01-04
-**Target Release**: Phase 6 (Testing & Integration)
-**Status**: IMPLEMENTED (Phases 0-5); Phase 6 pending
-**Version**: 1.1
+**Target Release**: Phase 7 (Particles Toggle)
+**Status**: IMPLEMENTED (Phases 0-7 complete)
+**Version**: 1.2
 
 ## Problem Statement
 
@@ -45,12 +45,13 @@ Players currently experience no visual feedback for impactful gameplay events li
 5. **Camera Manager Integration**: Add shake offset methods to existing camera manager
 6. **Event-Driven Architecture**: Subscribe to ECS events for trauma triggers
 7. **Settings Persistence**: VFX preferences saved with game progress
+8. **Particles Toggle**: Global enable/disable for particle VFX via Redux settings
 
 ## Non-Goals
 
 - **Post-Processing Effects** (film grain, CRT, Lomo, bloom, vignette persistent effects) - Deferred to Display Manager
 - **Graphics Quality Settings** (resolution, fullscreen, vsync, quality presets) - Deferred to Display Manager
-- **Particle System Changes** - Existing systems (`S_JumpParticlesSystem`, `S_LandingParticlesSystem`, etc.) remain unchanged
+- **Per-effect Particle Controls** - Particle systems remain ECS-driven; VFX settings provide only a global `particles_enabled` toggle
 - **Complex Shader Effects** (distortion, heat haze, chromatic aberration) - Out of scope for initial implementation
 - **Directional Damage Indicators** - Future enhancement
 - **WorldEnvironment Configuration** - Display Manager responsibility
@@ -67,6 +68,7 @@ The VFX system SHALL define a Redux slice named `vfx` with the following fields:
 | `screen_shake_enabled` | bool | true | true/false | Global screen shake toggle |
 | `screen_shake_intensity` | float | 1.0 | 0.0-2.0 | Shake intensity multiplier |
 | `damage_flash_enabled` | bool | true | true/false | Damage flash effect toggle |
+| `particles_enabled` | bool | true | true/false | Global particle effects toggle |
 
 **FR-002: VFX Action Creators**
 The system SHALL provide action creators in `U_VFXActions`:
@@ -78,12 +80,14 @@ extends RefCounted
 const ACTION_SET_SCREEN_SHAKE_ENABLED := StringName("vfx/set_screen_shake_enabled")
 const ACTION_SET_SCREEN_SHAKE_INTENSITY := StringName("vfx/set_screen_shake_intensity")
 const ACTION_SET_DAMAGE_FLASH_ENABLED := StringName("vfx/set_damage_flash_enabled")
+const ACTION_SET_PARTICLES_ENABLED := StringName("vfx/set_particles_enabled")
 
 ## Static initializer - automatically registers actions
 static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SET_SCREEN_SHAKE_ENABLED)
 	U_ActionRegistry.register_action(ACTION_SET_SCREEN_SHAKE_INTENSITY)
 	U_ActionRegistry.register_action(ACTION_SET_DAMAGE_FLASH_ENABLED)
+	U_ActionRegistry.register_action(ACTION_SET_PARTICLES_ENABLED)
 
 static func set_screen_shake_enabled(enabled: bool) -> Dictionary:
 	return {
@@ -100,6 +104,12 @@ static func set_screen_shake_intensity(intensity: float) -> Dictionary:
 static func set_damage_flash_enabled(enabled: bool) -> Dictionary:
 	return {
 		"type": ACTION_SET_DAMAGE_FLASH_ENABLED,
+		"payload": {"enabled": enabled}
+	}
+
+static func set_particles_enabled(enabled: bool) -> Dictionary:
+	return {
+		"type": ACTION_SET_PARTICLES_ENABLED,
 		"payload": {"enabled": enabled}
 	}
 ```
