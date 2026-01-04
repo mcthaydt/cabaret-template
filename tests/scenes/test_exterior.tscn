@@ -313,18 +313,18 @@ lifetime = 1.5
 preprocess = 0.5
 mesh = SubResource("TextMesh_goal")
 
-[node name="SP_SpawnPoints" type="Node3D" parent="." unique_id=1030480086]
+[node name="SpawnPoints" type="Node3D" parent="Entities" unique_id=1030480086]
 script = ExtResource("21_spawnpoints")
 
-[node name="sp_default" type="Node3D" parent="SP_SpawnPoints" unique_id=974682832]
+[node name="sp_default" type="Node3D" parent="Entities/SpawnPoints" unique_id=974682832]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3674707, 0)
 script = ExtResource("21_spawnpoints")
 
-[node name="sp_checkpoint_safe" type="Node3D" parent="SP_SpawnPoints" unique_id=610976137]
+[node name="sp_checkpoint_safe" type="Node3D" parent="Entities/SpawnPoints" unique_id=610976137]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1999226, 3.6344914, -2.3520212)
 script = ExtResource("21_spawnpoints")
 
-[node name="sp_exit_from_house" type="Node3D" parent="SP_SpawnPoints" unique_id=775004592]
+[node name="sp_exit_from_house" type="Node3D" parent="Entities/SpawnPoints" unique_id=775004592]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7472486, -0.31296825, 1.4028394)
 script = ExtResource("21_spawnpoints")
 

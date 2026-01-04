@@ -340,7 +340,7 @@ func test_spawn_at_last_spawn_uses_target_spawn_when_allowed_by_metadata() -> vo
 	state_store.dispatch(U_GAMEPLAY_ACTIONS.set_last_checkpoint(StringName("")))
 	await get_tree().physics_frame
 
-	# Scene layout mirrors production: Entities → SP_SpawnPoints → SP_SpawnPoint nodes
+	# Scene layout mirrors production: Entities → SpawnPoints → SP_SpawnPoint nodes
 	var entities := Node3D.new()
 	entities.name = "Entities"
 	test_scene.add_child(entities)
@@ -350,7 +350,7 @@ func test_spawn_at_last_spawn_uses_target_spawn_when_allowed_by_metadata() -> vo
 	entities.add_child(player)
 
 	var spawn_points_root := Node3D.new()
-	spawn_points_root.name = "SP_SpawnPoints"
+	spawn_points_root.name = "SpawnPoints"
 	entities.add_child(spawn_points_root)
 
 	# Target spawn (sp_entry) with ALWAYS metadata

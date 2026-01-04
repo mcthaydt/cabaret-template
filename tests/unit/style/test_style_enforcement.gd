@@ -285,7 +285,7 @@ func test_scene_organization_gameplay_structure() -> void:
 		elif node_name == "Entities":
 			has_entities = true
 			entities_node_path = str(node_path)
-		elif node_name == "SP_SpawnPoints":
+		elif node_name == "SpawnPoints":
 			# Check if spawn points are under Entities
 			var path_str := str(node_path)
 			if path_str.begins_with(entities_node_path + "/") or path_str.contains("Entities/"):

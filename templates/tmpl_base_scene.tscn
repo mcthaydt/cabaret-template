@@ -170,7 +170,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 1.9733102, 0)
 [node name="E_CameraRoot" parent="Entities" unique_id=1177918532 instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4.5)
 
-[node name="SP_SpawnPoints" type="Node3D" parent="." unique_id=978423780]
+[node name="SpawnPoints" type="Node3D" parent="Entities" unique_id=978423780]
 script = ExtResource("21_spawnpoints")
 
 [node name="HUD" parent="." unique_id=45178834 instance=ExtResource("11_hud")]

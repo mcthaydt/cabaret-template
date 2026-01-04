@@ -30,7 +30,7 @@ func before_each() -> void:
     _scene.name = "TestScene"
     add_child_autofree(_scene)
 
-    # Scene layout mirrors production: Entities → SP_SpawnPoints → SP_SpawnPoint nodes
+    # Scene layout mirrors production: Entities → SpawnPoints → SP_SpawnPoint nodes
     _entities = Node3D.new()
     _entities.name = "Entities"
     _scene.add_child(_entities)
@@ -40,7 +40,7 @@ func before_each() -> void:
     _entities.add_child(player)
 
     _spawn_points_root = Node3D.new()
-    _spawn_points_root.name = "SP_SpawnPoints"
+    _spawn_points_root.name = "SpawnPoints"
     _entities.add_child(_spawn_points_root)
 
     # Default spawn with metadata (ALWAYS) so it is eligible as fallback

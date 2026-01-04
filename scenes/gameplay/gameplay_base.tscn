@@ -191,10 +191,10 @@ script = ExtResource("23_initializer")
 [node name="Entities" type="Node" parent="." unique_id=2082843038]
 script = ExtResource("16_8qi87")
 
-[node name="SP_SpawnPoints" type="Node3D" parent="Entities" unique_id=300005399]
+[node name="SpawnPoints" type="Node3D" parent="Entities" unique_id=300005399]
 script = ExtResource("21_spawnpoints")
 
-[node name="sp_default" type="Node3D" parent="Entities/SP_SpawnPoints" unique_id=185028670]
+[node name="sp_default" type="Node3D" parent="Entities/SpawnPoints" unique_id=185028670]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15322971, 4.4034653, 0)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("51_base_spawn_meta")

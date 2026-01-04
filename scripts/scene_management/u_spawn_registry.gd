@@ -28,7 +28,7 @@ static func reload_registry(spawn_resources: Array = []) -> void:
 
 ## Reload registry entries from the current scene's spawn point nodes.
 ##
-## This scans for `SP_SpawnPoint` children under the `SP_SpawnPoints`
+## This scans for `SP_SpawnPoint` children under the `SpawnPoints`
 ## container and registers any attached RS_SpawnMetadata resources.
 static func reload_from_scene(scene: Node) -> void:
 	_spawns_by_id.clear()
@@ -36,8 +36,8 @@ static func reload_from_scene(scene: Node) -> void:
 	if scene == null:
 		return
 
-	# Convention: spawn points live under Entities/SP_SpawnPoints
-	var spawn_points_root: Node = scene.get_node_or_null("Entities/SP_SpawnPoints")
+	# Convention: spawn points live under Entities/SpawnPoints
+	var spawn_points_root: Node = scene.get_node_or_null("Entities/SpawnPoints")
 	if spawn_points_root == null:
 		return
 

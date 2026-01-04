@@ -231,20 +231,20 @@ script = ExtResource("31_j1c0c")
 [node name="Entities" type="Node" parent="." unique_id=2047551532]
 script = ExtResource("16_8qi87")
 
-[node name="SP_SpawnPoints" type="Node3D" parent="Entities" unique_id=1178039140]
+[node name="SpawnPoints" type="Node3D" parent="Entities" unique_id=1178039140]
 script = ExtResource("21_spawnpoints")
 
-[node name="sp_default" type="Node3D" parent="Entities/SP_SpawnPoints" unique_id=1132583600]
+[node name="sp_default" type="Node3D" parent="Entities/SpawnPoints" unique_id=1132583600]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3674707, 0)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("51_exterior_default_spawn_meta")
 
-[node name="sp_checkpoint_safe" type="Node3D" parent="Entities/SP_SpawnPoints" unique_id=1057341686]
+[node name="sp_checkpoint_safe" type="Node3D" parent="Entities/SpawnPoints" unique_id=1057341686]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1999226, 3.6344914, -2.3520212)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("52_exterior_checkpoint_spawn_meta")
 
-[node name="sp_exit_from_house" type="Node3D" parent="Entities/SP_SpawnPoints" unique_id=1527394242]
+[node name="sp_exit_from_house" type="Node3D" parent="Entities/SpawnPoints" unique_id=1527394242]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7472486, -0.31296825, 1.4028394)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("53_exterior_exit_from_house_spawn_meta")
