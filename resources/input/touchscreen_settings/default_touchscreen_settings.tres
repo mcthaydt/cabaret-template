@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_TouchscreenSettings" format=3 uid="uid://btdxa57dn2mtp"]
 
-[ext_resource type="Script" uid="uid://brfyyybm8vhtr" path="res://scripts/ecs/resources/rs_touchscreen_settings.gd" id="1"]
+[ext_resource type="Script" uid="uid://brfyyybm8vhtr" path="res://scripts/input/resources/rs_touchscreen_settings.gd" id="1"]
 
 [resource]
 script = ExtResource("1")

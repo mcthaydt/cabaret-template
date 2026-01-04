@@ -21,7 +21,7 @@ const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_VFX_ACTIONS := preload("res://scripts/state/actions/u_vfx_actions.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 
-const VFX_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/settings/ui_vfx_settings_overlay.tscn")
+const VFX_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/ui_vfx_settings_overlay.tscn")
 
 const TEST_SAVE_PATH := "user://test_vfx_settings_ui.json"
 

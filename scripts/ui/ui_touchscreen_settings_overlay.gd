@@ -4,7 +4,7 @@ class_name UI_TouchscreenSettingsOverlay
 
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const RS_TouchscreenSettings := preload("res://scripts/ecs/resources/rs_touchscreen_settings.gd")
+const RS_TouchscreenSettings := preload("res://scripts/input/resources/rs_touchscreen_settings.gd")
 const VirtualJoystickScene := preload("res://scenes/ui/ui_virtual_joystick.tscn")
 const VirtualButtonScene := preload("res://scenes/ui/ui_virtual_button.tscn")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")

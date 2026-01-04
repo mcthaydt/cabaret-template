@@ -7,7 +7,7 @@ extends I_InputSource
 ## Priority: 2 (overrides keyboard/mouse when active)
 
 const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
-const RS_GamepadSettings := preload("res://scripts/ecs/resources/rs_gamepad_settings.gd")
+const RS_GamepadSettings := preload("res://scripts/input/resources/rs_gamepad_settings.gd")
 
 var _left_stick_raw: Vector2 = Vector2.ZERO
 var _right_stick_raw: Vector2 = Vector2.ZERO

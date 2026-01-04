@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_RebindSettings" format=3 uid="uid://dm8hhgjax874v"]
 
-[ext_resource type="Script" uid="uid://0v8dmq4s3vui" path="res://scripts/ecs/resources/rs_rebind_settings.gd" id="1"]
+[ext_resource type="Script" uid="uid://0v8dmq4s3vui" path="res://scripts/input/resources/rs_rebind_settings.gd" id="1"]
 
 [resource]
 script = ExtResource("1")

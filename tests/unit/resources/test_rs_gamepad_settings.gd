@@ -1,6 +1,6 @@
 extends GutTest
 
-const RS_GamepadSettings := preload("res://scripts/ecs/resources/rs_gamepad_settings.gd")
+const RS_GamepadSettings := preload("res://scripts/input/resources/rs_gamepad_settings.gd")
 
 func test_defaults_match_spec() -> void:
 	var settings := RS_GamepadSettings.new()

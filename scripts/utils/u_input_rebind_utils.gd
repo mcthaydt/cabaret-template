@@ -1,8 +1,8 @@
 extends RefCounted
 class_name U_InputRebindUtils
 
-const RS_RebindSettings := preload("res://scripts/ecs/resources/rs_rebind_settings.gd")
-const RS_InputProfile := preload("res://scripts/ecs/resources/rs_input_profile.gd")
+const RS_RebindSettings := preload("res://scripts/input/resources/rs_rebind_settings.gd")
+const RS_InputProfile := preload("res://scripts/input/resources/rs_input_profile.gd")
 const U_InputEventSerialization := preload("res://scripts/utils/u_input_event_serialization.gd")
 const U_InputEventDisplay := preload("res://scripts/utils/u_input_event_display.gd")
 

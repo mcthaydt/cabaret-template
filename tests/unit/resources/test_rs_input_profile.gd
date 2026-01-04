@@ -1,6 +1,6 @@
 extends GutTest
 
-const RS_InputProfile = preload("res://scripts/ecs/resources/rs_input_profile.gd")
+const RS_InputProfile = preload("res://scripts/input/resources/rs_input_profile.gd")
 
 func test_defaults_and_setters() -> void:
 	var p := RS_InputProfile.new()
@@ -129,4 +129,3 @@ func test_default_keyboard_profiles_use_physical_keycode() -> void:
 					if key_event.keycode != 0 and key_event.physical_keycode == 0:
 						fail_test("Profile %s action '%s' has keycode=%d but physical_keycode=0 (should use physical_keycode)" %
 							[profile_path, action_name, key_event.keycode])
-

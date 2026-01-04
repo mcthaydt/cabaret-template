@@ -110,16 +110,16 @@ layout_mode = 2
 size_flags_horizontal = 3
 button_pressed = true
 
-[node name="ParticlesEnabledRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+[node name="ParticlesEnabledRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=125171345]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="ParticlesEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/ParticlesEnabledRow"]
+[node name="ParticlesEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/ParticlesEnabledRow" unique_id=1557170091]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Particles"
 
-[node name="ParticlesEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/ParticlesEnabledRow"]
+[node name="ParticlesEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/ParticlesEnabledRow" unique_id=1201343904]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3

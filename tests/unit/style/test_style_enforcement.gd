@@ -38,6 +38,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/utils": ["u_"],
 	"res://scripts/input": ["u_", "i_"],
 	"res://scripts/input/sources": [""], # Wildcard: validated by suffix rule (see test_input_source_scripts_follow_suffix_rule)
+	"res://scripts/input/resources": ["rs_"],
 	"res://scripts/managers": ["m_"],
 	"res://scripts/ecs/systems": ["s_", "m_"], # m_ for M_PauseManager
 	"res://scripts/ecs/components": ["c_"],

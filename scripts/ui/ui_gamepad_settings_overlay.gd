@@ -2,7 +2,7 @@
 extends "res://scripts/ui/base/base_overlay.gd"
 class_name UI_GamepadSettingsOverlay
 
-const RS_GamepadSettings := preload("res://scripts/ecs/resources/rs_gamepad_settings.gd")
+const RS_GamepadSettings := preload("res://scripts/input/resources/rs_gamepad_settings.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 const UI_GamepadStickPreview := preload("res://scripts/ui/ui_gamepad_stick_preview.gd")
