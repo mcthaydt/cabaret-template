@@ -8,6 +8,7 @@ class_name U_StateSliceManager
 ## validation, and reducer application.
 
 const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")
+const U_AUDIO_REDUCER := preload("res://scripts/state/reducers/u_audio_reducer.gd")
 
 ## Initialize core slices based on the provided initial state resources.
 ##
@@ -22,7 +23,8 @@ static func initialize_slices(
 	gameplay_initial_state: RS_GameplayInitialState,
 	scene_initial_state: RS_SceneInitialState,
 	debug_initial_state: RS_DebugInitialState,
-	vfx_initial_state: RS_VFXInitialState
+	vfx_initial_state: RS_VFXInitialState,
+	audio_initial_state: RS_AudioInitialState
 ) -> void:
 	# Boot slice
 	if boot_initial_state != null:
@@ -107,6 +109,15 @@ static func initialize_slices(
 		vfx_config.dependencies = []
 		vfx_config.transient_fields = []
 		register_slice(slice_configs, state, vfx_config)
+
+	# Audio slice
+	if audio_initial_state != null:
+		var audio_config := RS_StateSliceConfig.new(StringName("audio"))
+		audio_config.reducer = Callable(U_AUDIO_REDUCER, "reduce")
+		audio_config.initial_state = audio_initial_state.to_dictionary()
+		audio_config.dependencies = []
+		audio_config.transient_fields = []
+		register_slice(slice_configs, state, audio_config)
 
 ## Register a single slice config into the given dictionaries.
 static func register_slice(
@@ -216,4 +227,3 @@ static func _dictionaries_equal(a: Dictionary, b: Dictionary) -> bool:
 		if a[key] != b[key]:
 			return false
 	return true
-

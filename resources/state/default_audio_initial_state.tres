@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="RS_AudioInitialState" format=3]
+
+[ext_resource type="Script" path="res://scripts/state/resources/rs_audio_initial_state.gd" id="1_audio_state"]
+
+[resource]
+script = ExtResource("1_audio_state")
+
