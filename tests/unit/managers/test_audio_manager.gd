@@ -1,6 +1,6 @@
 extends GutTest
 
-# Test suite for M_AudioManager scaffolding and bus layout (Audio Phase 1)
+# Test suite for M_AudioManager scaffolding, bus layout, and music (Audio Phases 1-2)
 
 const M_AUDIO_MANAGER := preload("res://scripts/managers/m_audio_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
@@ -11,6 +11,12 @@ const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/state/resources/rs_n
 const RS_AUDIO_INITIAL_STATE := preload("res://scripts/state/resources/rs_audio_initial_state.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+
+const STREAM_MAIN_MENU := preload("res://resources/audio/music/placeholder_main_menu.ogg")
+const STREAM_GAMEPLAY := preload("res://resources/audio/music/placeholder_gameplay.ogg")
+const STREAM_PAUSE := preload("res://resources/audio/music/placeholder_pause.ogg")
 
 var _manager: Node
 var _store: Node
@@ -145,3 +151,78 @@ func _reset_audio_buses() -> void:
 	while AudioServer.bus_count > 1:
 		AudioServer.remove_bus(1)
 
+# ============================================================================
+# Phase 2 - Music system tests (Tasks 2.2-2.5)
+# ============================================================================
+
+func test_music_players_initialized_and_use_music_bus() -> void:
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	var player_a := _manager.get_node_or_null("MusicPlayerA") as AudioStreamPlayer
+	var player_b := _manager.get_node_or_null("MusicPlayerB") as AudioStreamPlayer
+
+	assert_not_null(player_a, "MusicPlayerA should exist")
+	assert_not_null(player_b, "MusicPlayerB should exist")
+	assert_eq(player_a.bus, "Music", "MusicPlayerA should use Music bus")
+	assert_eq(player_b.bus, "Music", "MusicPlayerB should use Music bus")
+
+func test_play_music_starts_requested_track() -> void:
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	_manager.play_music(StringName("main_menu"), 0.1)
+	await get_tree().process_frame
+
+	assert_true(_is_stream_playing(_manager, STREAM_MAIN_MENU), "Should be playing main_menu placeholder track")
+
+func test_scene_transition_completed_plays_music_for_scene() -> void:
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("main_menu")))
+	await get_tree().process_frame
+
+	assert_true(_is_stream_playing(_manager, STREAM_MAIN_MENU), "main_menu transition should start main_menu track")
+
+func test_pause_actions_switch_to_pause_track_and_restore() -> void:
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	_store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("gameplay_base")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	await get_tree().process_frame
+
+	assert_true(_is_stream_playing(_manager, STREAM_GAMEPLAY), "Should be playing gameplay track before pausing")
+
+	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
+	await get_tree().process_frame
+
+	assert_true(_is_stream_playing(_manager, STREAM_PAUSE), "open_pause should crossfade to pause track")
+
+	_store.dispatch(U_NAVIGATION_ACTIONS.close_pause())
+	await get_tree().process_frame
+
+	assert_true(_is_stream_playing(_manager, STREAM_GAMEPLAY), "close_pause should restore previous track")
+
+func _is_stream_playing(manager: Node, stream: AudioStream) -> bool:
+	var player_a := manager.get_node_or_null("MusicPlayerA") as AudioStreamPlayer
+	var player_b := manager.get_node_or_null("MusicPlayerB") as AudioStreamPlayer
+
+	if player_a != null and player_a.playing and player_a.stream == stream:
+		return true
+	if player_b != null and player_b.playing and player_b.stream == stream:
+		return true
+	return false

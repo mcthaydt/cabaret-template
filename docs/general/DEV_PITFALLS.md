@@ -44,6 +44,12 @@
 
 - **New `class_name` types can break type hints in headless tests**: When adding a brand-new helper script with `class_name Foo`, using `Foo` as a member variable annotation in an existing script can fail to parse under headless GUT runs (`Parse Error: Could not find type "Foo" in the current scope`). Prefer untyped members (or a base type like `RefCounted`) and instantiate via `preload("...").new()` until the class is reliably discovered/loaded.
 
+## Asset Import Pitfalls (Headless Tests)
+
+- **New assets used with `preload()` can fail until `.import` files exist**: If you add a new `*.ogg`, `*.png`, etc and immediately reference it via `preload("res://...")`, headless GUT runs can fail because Godot hasn’t generated the sidecar `*.import` file yet.
+  - **Fix**: Run a one-time import pass before running tests: `HOME="$PWD/.godot_user" /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
+  - Commit the generated `*.import` files (next to the asset); do not commit `.godot/imported` (it is cache and ignored).
+
 ## UI Navigation Pitfalls (Gamepad/Joystick)
 
 ### UI Navigation Deadzone Consistency

@@ -215,7 +215,7 @@
 
 **Exit Criteria:** Music crossfades smoothly between scenes (no pops/clicks), dual-player swap works correctly, pause overlay music transitions implemented
 
-- [ ] **Task 2.1 (Green)**: Create placeholder music assets
+- [x] **Task 2.1 (Green)**: Create placeholder music assets
   - Install Audacity (if not already installed)
   - Generate silent loops for testing:
     - `resources/audio/music/placeholder_main_menu.ogg`: Generate > Silence, 5 seconds, export as OGG Vorbis, loop enabled in Godot import settings
@@ -224,7 +224,7 @@
   - In Godot: Select each .ogg file → Import tab → Check "Loop" → Reimport
   - Placeholder assets allow testing crossfade system before real music exists
 
-- [ ] **Task 2.2 (Green)**: Implement music registry and dual-player setup
+- [x] **Task 2.2 (Green)**: Implement music registry and dual-player setup
   - Modify `scripts/managers/m_audio_manager.gd`
   - Add fields:
     ```gdscript
@@ -268,7 +268,7 @@
     _inactive_music_player = _music_player_b
     ```
 
-- [ ] **Task 2.3 (Green)**: Implement crossfade algorithm
+- [x] **Task 2.3 (Green)**: Implement crossfade algorithm
   - Modify `scripts/managers/m_audio_manager.gd`
   - Add public method `play_music(track_id: StringName, duration: float = 1.5) -> void`:
     ```gdscript
@@ -318,7 +318,7 @@
     ```
   - Crossfade uses cubic easing for smooth, professional-sounding transitions
 
-- [ ] **Task 2.4 (Green)**: Implement scene-based music transitions
+- [x] **Task 2.4 (Green)**: Implement scene-based music transitions
   - Modify `scripts/managers/m_audio_manager.gd`
   - Subscribe to scene transition actions in `_ready()`:
     ```gdscript
@@ -360,7 +360,7 @@
     _current_music_id = StringName("")
     ```
 
-- [ ] **Task 2.5 (Green)**: Implement pause overlay music handling
+- [x] **Task 2.5 (Green)**: Implement pause overlay music handling
   - Modify `scripts/managers/m_audio_manager.gd`
   - Add field: `var _pre_pause_music_id: StringName = StringName("")`
   - Update `_on_action_dispatched()` to handle overlay push/pop:
@@ -388,6 +388,15 @@
   - Pause overlay opens → crossfade to pause track (0.5s)
   - Pause overlay closes → restore previous track (0.5s)
   - Alternative approach (deferred): Apply low-pass filter instead of track change
+
+**Completion Notes:**
+- Added placeholder OGG tracks under `resources/audio/music/` and enabled looping via `.ogg.import` + headless reimport.
+- Implemented music registry + dual `AudioStreamPlayer` crossfade in `scripts/managers/m_audio_manager.gd`.
+- Implemented scene-based music switching via `scene/transition_completed` action and pause switching via `navigation/open_pause` + `navigation/close_pause` (store subscription callback includes the dispatched action).
+- Extended `tests/unit/managers/test_audio_manager.gd` with Phase 2 tests; all passing.
+- Verified GREEN: `tools/run_gut_suite.sh -gdir=res://tests/unit/state -gselect=test_audio -gexit`
+- Verified GREEN: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_audio -gexit`
+- Verified GREEN: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit`
 
 ---
 
