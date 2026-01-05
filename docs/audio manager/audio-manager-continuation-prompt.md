@@ -2,7 +2,7 @@
 
 ## Current Status
 
-- **Implementation status**: Phase 0–2 complete (Audio Redux slice + M_AudioManager bus layout + volume/mute + music crossfade + scene/pause music switching)
+- **Implementation status**: Phase 0–3 complete (Audio Redux slice + M_AudioManager bus layout + volume/mute + music crossfade + scene/pause music switching + BaseEventSFXSystem pattern)
 - **Main scene**: `scenes/root.tscn` (project `run/main_scene` points here)
 - **Root bootstrap**: `scripts/scene_structure/main.gd` registers manager services via `U_ServiceLocator`
 
@@ -22,7 +22,7 @@
 
 ## Next Step
 
-- Start at **Phase 3** in `docs/audio manager/audio-manager-tasks.md` and complete tasks in order.
+- Start at **Phase 4** in `docs/audio manager/audio-manager-tasks.md` and complete tasks in order.
 - After each completed phase:
   - Update `docs/audio manager/audio-manager-tasks.md` checkboxes + completion notes
   - Update this file with the new current status + “next step” ONLY

@@ -50,6 +50,7 @@
   - Query with `get_components(StringName)`, dedupe per-body where needed, and clamp/guard values (see movement/rotation/floating examples).
   - Use `U_ECSUtils.map_components_by_body()` when multiple systems need shared body→component dictionaries (avoids duplicate loops).
   - Auto-discovers `M_ECSManager` via parent traversal or `ecs_manager` group; no manual wiring needed.
+  - Event-driven request systems should extend `BaseEventVFXSystem` / `BaseEventSFXSystem` and implement `get_event_name()` + `create_request_from_payload()` to enqueue `requests`.
 - **Testing with Dependency Injection (Phase 10B-8)**
   - Systems support `@export` dependency injection for isolated testing with mocks.
   - **Inject ECS manager**: All systems inherit `@export var ecs_manager: I_ECSManager` from BaseECSSystem.

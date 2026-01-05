@@ -362,6 +362,7 @@
 - **Always add explicit types when pulling Variants**: Helpers such as `C_InputComponent.get_move_vector()` or `Time.get_ticks_msec()` return Variants. Define locals with `: Vector2`, `: float`, etc., instead of relying on inference, otherwise the parser fails with "typed as Variant" errors.
 - **Annotate Callable results**: `Callable.call()` and similar helpers also return Variants. When reducers or action handlers return dictionaries, capture them with explicit types (e.g., `var next_state: Dictionary = root.call(...)`) so tests load without Variant inference errors.
 - **Respect tab indentation in scripts**: Godot scripts under `res://` expect tabs. Mixing spaces causes parse errors that look unrelated to the actual change, so configure your editor accordingly before editing `.gd` files.
+- **Don't call `super._exit_tree()` unless the parent script defines it**: Calling `super._exit_tree()` only works when the parent script implements `_exit_tree()`. If the parent script does not define it, Godot fails to compile with `Cannot call the parent class' virtual function "_exit_tree()" because it hasn't been defined.` Prefer omitting the `super` call or adding an `_exit_tree()` stub to the parent script.
 
 ## ECS System Pitfalls
 

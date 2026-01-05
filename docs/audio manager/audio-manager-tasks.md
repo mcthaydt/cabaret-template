@@ -1,7 +1,7 @@
 # Audio Manager - Task Checklist
 
-**Progress:** 24% (12 / 50 tasks complete)
-**Unit Tests:** 58 / 180 passing (Phase 0 Redux: 51/51, Phase 1 Manager: 7/7)
+**Progress:** 28% (14 / 50 tasks complete)
+**Unit Tests:** 73 / 180 passing (Phase 0 Redux: 51/51, Phase 1 Manager: 7/7, Phase 3 Base SFX: 15/15)
 **Integration Tests:** 0 / 100 passing
 **Manual QA:** 0 / 20 complete
 
@@ -404,13 +404,13 @@
 
 **Exit Criteria:** All 15 base system tests pass, pattern established mirroring BaseEventVFXSystem, ready for individual SFX systems
 
-- [ ] **Task 3.1 (Red)**: Write tests for BaseEventSFXSystem
+- [x] **Task 3.1 (Red)**: Write tests for BaseEventSFXSystem
   - Create `tests/unit/ecs/test_base_event_sfx_system.gd`
   - Tests: extends BaseECSSystem, `requests` array initialization, `get_event_name()` abstract method, `create_request_from_payload()` abstract method, event subscription in `_ready()`, event handler appends to requests array, `_unsubscribe()` cleanup, multiple events accumulate requests
   - Use `U_ECSEventBus.reset()` in `before_each()`
-  - All 15 tests failing as expected
+  - All 15 tests failing as expected ✅
 
-- [ ] **Task 3.2 (Green)**: Implement BaseEventSFXSystem
+- [x] **Task 3.2 (Green)**: Implement BaseEventSFXSystem
   - Create `scripts/ecs/base_event_sfx_system.gd`
   - Mirror BaseEventVFXSystem structure:
     ```gdscript
@@ -459,7 +459,13 @@
         _unsubscribe()
         super._exit_tree()
     ```
-  - All 15 tests passing
+  - All 15 tests passing ✅
+
+**Completion Notes:**
+- Added `scripts/ecs/base_event_sfx_system.gd` mirroring BaseEventVFXSystem (subscribe/unsubscribe + request queue)
+- Added `tests/unit/ecs/test_base_event_sfx_system.gd` (15 tests) + `tests/test_doubles/ecs/event_sfx_system_stub.gd`
+- Verified GREEN: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/test_base_event_sfx_system.gd -gexit`
+- Verified GREEN: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit`
 
 ---
 
