@@ -1,26 +1,29 @@
 @icon("res://resources/editor_icons/system.svg")
 extends "res://scripts/ecs/base_event_sfx_system.gd"
-class_name S_JumpSoundSystem
+class_name S_VictorySoundSystem
 
-const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_jump_sound_settings.gd")
+const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_victory_sound_settings.gd")
 const SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
 
 @export var settings: SETTINGS_TYPE
 
 var _last_play_time: float = -INF
 
-## Alias for EventSFXSystem.requests to maintain backward compatibility
-var play_requests: Array:
-	get:
-		return requests
-
 func get_event_name() -> StringName:
-	return StringName("entity_jumped")
+	return StringName("victory_triggered")
 
 func create_request_from_payload(payload: Dictionary) -> Dictionary:
+	var position := Vector3.ZERO
+	var body := payload.get("body") as Node3D
+	if body != null and is_instance_valid(body):
+		position = body.global_position
+	else:
+		var position_variant: Variant = payload.get("position", Vector3.ZERO)
+		if position_variant is Vector3:
+			position = position_variant
+
 	return {
-		"position": payload.get("position", Vector3.ZERO),
-		"jump_force": payload.get("jump_force", 0.0),
+		"position": position,
 	}
 
 func process_tick(_delta: float) -> void:

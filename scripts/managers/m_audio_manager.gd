@@ -12,6 +12,7 @@ const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_AUDIO_SELECTORS := preload("res://scripts/state/selectors/u_audio_selectors.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const M_SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
 
 const _MUSIC_REGISTRY: Dictionary = {
 	StringName("main_menu"): {
@@ -50,6 +51,7 @@ func _ready() -> void:
 
 	_create_bus_layout()
 	_initialize_music_players()
+	M_SFX_SPAWNER.initialize(self)
 
 	if _state_store != null:
 		_unsubscribe = _state_store.subscribe(_on_state_changed)
@@ -60,6 +62,7 @@ func _exit_tree() -> void:
 		_unsubscribe.call()
 		_unsubscribe = Callable()
 	_state_store = null
+	M_SFX_SPAWNER.cleanup()
 
 	if _music_tween != null and _music_tween.is_valid():
 		_music_tween.kill()

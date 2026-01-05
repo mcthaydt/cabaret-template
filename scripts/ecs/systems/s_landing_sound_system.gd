@@ -1,26 +1,28 @@
 @icon("res://resources/editor_icons/system.svg")
 extends "res://scripts/ecs/base_event_sfx_system.gd"
-class_name S_JumpSoundSystem
+class_name S_LandingSoundSystem
 
-const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_jump_sound_settings.gd")
+const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_landing_sound_settings.gd")
 const SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
 
 @export var settings: SETTINGS_TYPE
 
 var _last_play_time: float = -INF
 
-## Alias for EventSFXSystem.requests to maintain backward compatibility
-var play_requests: Array:
-	get:
-		return requests
-
 func get_event_name() -> StringName:
-	return StringName("entity_jumped")
+	return StringName("entity_landed")
 
 func create_request_from_payload(payload: Dictionary) -> Dictionary:
+	var fall_speed := 0.0
+	if payload.has("fall_speed"):
+		fall_speed = float(payload.get("fall_speed", 0.0))
+	else:
+		var vertical_velocity_variant: Variant = payload.get("vertical_velocity", 0.0)
+		fall_speed = abs(float(vertical_velocity_variant))
+
 	return {
 		"position": payload.get("position", Vector3.ZERO),
-		"jump_force": payload.get("jump_force", 0.0),
+		"fall_speed": fall_speed,
 	}
 
 func process_tick(_delta: float) -> void:
@@ -45,6 +47,13 @@ func process_tick(_delta: float) -> void:
 		if request == null:
 			continue
 
+		var fall_speed_variant: Variant = request.get("fall_speed", 0.0)
+		var fall_speed: float = float(fall_speed_variant)
+		if fall_speed <= 5.0:
+			continue
+
+		var volume_adjustment := _remap_clamped(fall_speed, 5.0, 30.0, -6.0, 0.0)
+
 		var pitch_scale := 1.0
 		if pitch_variation > 0.0:
 			pitch_scale = randf_range(1.0 - pitch_variation, 1.0 + pitch_variation)
@@ -57,10 +66,16 @@ func process_tick(_delta: float) -> void:
 		SFX_SPAWNER.spawn_3d({
 			"audio_stream": stream,
 			"position": position,
-			"volume_db": settings.volume_db,
+			"volume_db": settings.volume_db + volume_adjustment,
 			"pitch_scale": pitch_scale,
 			"bus": "SFX",
 		})
 		_last_play_time = now
 
 	requests.clear()
+
+func _remap_clamped(value: float, in_min: float, in_max: float, out_min: float, out_max: float) -> float:
+	if is_equal_approx(in_min, in_max):
+		return out_min
+	var t := clampf((value - in_min) / (in_max - in_min), 0.0, 1.0)
+	return lerpf(out_min, out_max, t)

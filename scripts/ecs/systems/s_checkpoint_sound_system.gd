@@ -1,26 +1,20 @@
 @icon("res://resources/editor_icons/system.svg")
 extends "res://scripts/ecs/base_event_sfx_system.gd"
-class_name S_JumpSoundSystem
+class_name S_CheckpointSoundSystem
 
-const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_jump_sound_settings.gd")
+const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_checkpoint_sound_settings.gd")
 const SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
 
 @export var settings: SETTINGS_TYPE
 
 var _last_play_time: float = -INF
 
-## Alias for EventSFXSystem.requests to maintain backward compatibility
-var play_requests: Array:
-	get:
-		return requests
-
 func get_event_name() -> StringName:
-	return StringName("entity_jumped")
+	return StringName("checkpoint_activated")
 
 func create_request_from_payload(payload: Dictionary) -> Dictionary:
 	return {
-		"position": payload.get("position", Vector3.ZERO),
-		"jump_force": payload.get("jump_force", 0.0),
+		"spawn_point_id": payload.get("spawn_point_id", StringName("")),
 	}
 
 func process_tick(_delta: float) -> void:
@@ -45,14 +39,13 @@ func process_tick(_delta: float) -> void:
 		if request == null:
 			continue
 
+		var spawn_point_id_variant: Variant = request.get("spawn_point_id", StringName(""))
+		var spawn_point_id := spawn_point_id_variant as StringName
+		var position := _resolve_spawn_point_position(spawn_point_id)
+
 		var pitch_scale := 1.0
 		if pitch_variation > 0.0:
 			pitch_scale = randf_range(1.0 - pitch_variation, 1.0 + pitch_variation)
-
-		var position_variant: Variant = request.get("position", Vector3.ZERO)
-		var position: Vector3 = Vector3.ZERO
-		if position_variant is Vector3:
-			position = position_variant
 
 		SFX_SPAWNER.spawn_3d({
 			"audio_stream": stream,
@@ -64,3 +57,24 @@ func process_tick(_delta: float) -> void:
 		_last_play_time = now
 
 	requests.clear()
+
+func _resolve_spawn_point_position(spawn_point_id: StringName) -> Vector3:
+	if spawn_point_id == StringName(""):
+		return Vector3.ZERO
+
+	var tree := get_tree()
+	if tree == null:
+		return Vector3.ZERO
+
+	var root: Node = tree.current_scene
+	if root == null:
+		root = tree.root
+
+	if root == null:
+		return Vector3.ZERO
+
+	var node := root.find_child(String(spawn_point_id), true, false) as Node3D
+	if node == null or not is_instance_valid(node):
+		return Vector3.ZERO
+
+	return node.global_position
