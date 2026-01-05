@@ -6,7 +6,7 @@
 **Created**: 2026-01-01
 **Last Updated**: 2026-01-05
 **Target Release**: Phase 1 (3 weeks)
-**Status**: IN PROGRESS (Phase 2 complete)
+**Status**: IN PROGRESS (Phase 4 complete)
 **Version**: 1.0
 
 ## Problem Statement
@@ -441,8 +441,8 @@ func play_sfx_3d(sound_id: StringName, position: Vector3, volume_db: float = 0.0
 		push_error("SFX not found: %s" % sound_id)
 		return
 
-	# Use U_SFXSpawner pool for 3D sounds
-	U_SFXSpawner.spawn_3d({
+	# Use M_SFXSpawner pool for 3D sounds
+	M_SFXSpawner.spawn_3d({
 		"audio_stream": audio_stream,
 		"position": position,
 		"volume_db": volume_db,
@@ -734,7 +734,7 @@ func _extract_payload(event_data: Dictionary) -> Dictionary:
 	return {}
 
 func process_tick(_delta: float) -> void:
-	# Subclass implements sound spawning via U_SFXSpawner
+	# Subclass implements sound spawning via M_SFXSpawner
 	pass
 ```
 
@@ -778,7 +778,7 @@ func _spawn_sound(request: Dictionary) -> void:
 		"pitch_scale": randf_range(1.0 - settings.pitch_variation, 1.0 + settings.pitch_variation),
 		"bus": "SFX"
 	}
-	U_SFXSpawner.spawn_3d(config)
+	M_SFXSpawner.spawn_3d(config)
 ```
 
 ### Phase 4: SFX Systems (FR-024 to FR-030)
@@ -809,7 +809,7 @@ func process_tick(_delta: float) -> void:
 
 	for request in requests:
 		var position: Vector3 = request.get("position", Vector3.ZERO)
-		U_SFXSpawner.spawn_3d({
+		M_SFXSpawner.spawn_3d({
 			"audio_stream": settings.audio_stream,
 			"position": position,
 			"volume_db": settings.volume_db,
@@ -855,7 +855,7 @@ func process_tick(_delta: float) -> void:
 		else:
 			audio_stream = settings.hard_landing_stream
 
-		U_SFXSpawner.spawn_3d({
+		M_SFXSpawner.spawn_3d({
 			"audio_stream": audio_stream,
 			"position": position,
 			"volume_db": settings.volume_db,
@@ -891,7 +891,7 @@ func process_tick(_delta: float) -> void:
 
 	for request in requests:
 		var position: Vector3 = request.get("position", Vector3.ZERO)
-		U_SFXSpawner.spawn_3d({
+		M_SFXSpawner.spawn_3d({
 			"audio_stream": settings.audio_stream,
 			"position": position,
 			"volume_db": settings.volume_db,
@@ -926,7 +926,7 @@ func process_tick(_delta: float) -> void:
 		return
 
 	# Checkpoint sound plays at camera position (2D, not 3D)
-	# Uses manager's play_sfx() instead of U_SFXSpawner
+	# Uses manager's play_sfx() instead of M_SFXSpawner
 	var audio_manager := U_ServiceLocator.get_service(StringName("audio_manager")) as M_AudioManager
 	if audio_manager != null:
 		for _request in requests:
@@ -988,49 +988,62 @@ extends Resource
 @export var min_interval: float = 0.1     # Prevent spam (future enhancement)
 ```
 
-**FR-030: U_SFXSpawner Utility**
-The system SHALL implement `U_SFXSpawner` for pooled AudioStreamPlayer3D management:
+**FR-030: M_SFXSpawner Utility**
+The system SHALL implement `M_SFXSpawner` for pooled AudioStreamPlayer3D management:
 
 ```gdscript
-class_name U_SFXSpawner
+class_name M_SFXSpawner
 extends RefCounted
 
 const POOL_SIZE := 16  # Maximum concurrent 3D sounds
+const META_IN_USE := &"_sfx_in_use"
 
 static var _pool: Array[AudioStreamPlayer3D] = []
 static var _container: Node3D = null
 
-static func initialize(tree: SceneTree) -> void:
-	if _container != null:
+static func initialize(parent: Node) -> void:
+	if parent == null:
+		return
+
+	if _container != null and is_instance_valid(_container):
 		return
 
 	_container = Node3D.new()
-	_container.name = "SFXContainer"
-	tree.root.add_child(_container)
+	_container.name = "SFXPool"
+	parent.add_child(_container)
 
 	for i in range(POOL_SIZE):
 		var player := AudioStreamPlayer3D.new()
 		player.max_distance = 50.0
 		player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+		player.set_meta(META_IN_USE, false)
 		_container.add_child(player)
 		_pool.append(player)
 
-static func spawn_3d(config: Dictionary) -> void:
+static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
+	var audio_stream := config.get("audio_stream") as AudioStream
+	if audio_stream == null:
+		return null
+
 	var player := _get_available_player()
 	if player == null:
 		# Pool exhausted, skip sound
-		return
+		return null
 
-	player.stream = config.get("audio_stream")
+	player.set_meta(META_IN_USE, true)
+	player.stream = audio_stream
 	player.global_position = config.get("position", Vector3.ZERO)
 	player.volume_db = config.get("volume_db", 0.0)
 	player.pitch_scale = config.get("pitch_scale", 1.0)
 	player.bus = config.get("bus", "SFX")
 	player.play()
 
+	return player
+
 static func _get_available_player() -> AudioStreamPlayer3D:
 	for player in _pool:
-		if not player.playing:
+		var in_use := bool(player.get_meta(META_IN_USE, false))
+		if not in_use:
 			return player
 	return null  # Pool exhausted
 ```
@@ -1196,7 +1209,7 @@ func _play_footstep(surface_detector: C_SurfaceDetectorComponent, position: Vect
 
 	var audio_stream: AudioStream = sounds[randi() % sounds.size()]
 
-	U_SFXSpawner.spawn_3d({
+	M_SFXSpawner.spawn_3d({
 		"audio_stream": audio_stream,
 		"position": position,
 		"volume_db": settings.volume_db,
@@ -1721,15 +1734,15 @@ func _update_volume_label(label: Label, value: float) -> void:
 **Objective**: Implement 5 SFX systems + spawner utility
 
 **Deliverables**:
-1. `scripts/managers/helpers/u_sfx_spawner.gd`
+1. `scripts/managers/helpers/m_sfx_spawner.gd`
 2. `scripts/ecs/systems/s_jump_sound_system.gd` + settings resource
 3. `scripts/ecs/systems/s_landing_sound_system.gd` + settings resource
 4. `scripts/ecs/systems/s_death_sound_system.gd` + settings resource
 5. `scripts/ecs/systems/s_checkpoint_sound_system.gd` + settings resource
 6. `scripts/ecs/systems/s_victory_sound_system.gd` + settings resource
-7. `tests/unit/ecs/systems/test_*_sound_system.gd` (75 tests total)
+7. `tests/unit/ecs/systems/test_*_sound_system.gd` (49 tests total)
 
-**Commit 1**: U_SFXSpawner utility (pooled players)
+**Commit 1**: M_SFXSpawner utility (pooled players)
 **Commit 2**: S_JumpSoundSystem + tests
 **Commit 3**: S_LandingSoundSystem + tests
 **Commit 4**: S_DeathSoundSystem + S_CheckpointSoundSystem + tests
@@ -1984,7 +1997,7 @@ scripts/managers/
   m_audio_manager.gd
 scripts/managers/helpers/
   u_audio_player_pool.gd
-  u_sfx_spawner.gd
+  m_sfx_spawner.gd
   u_ui_sound_player.gd
 scripts/ecs/
   base_event_sfx_system.gd

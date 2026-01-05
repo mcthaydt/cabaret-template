@@ -2,7 +2,7 @@
 
 ## Current Status
 
-- **Implementation status**: Phase 0–3 complete (Audio Redux slice + M_AudioManager bus layout + volume/mute + music crossfade + scene/pause music switching + BaseEventSFXSystem pattern)
+- **Implementation status**: Phase 0–4 complete (Audio Redux slice + M_AudioManager bus layout + volume/mute + music crossfade + scene/pause music switching + BaseEventSFXSystem pattern + pooled 3D SFX + jump/land/death/checkpoint/victory SFX systems)
 - **Main scene**: `scenes/root.tscn` (project `run/main_scene` points here)
 - **Root bootstrap**: `scripts/scene_structure/main.gd` registers manager services via `U_ServiceLocator`
 
@@ -14,15 +14,15 @@
 
 ## Repo Reality Checks (Do Not Skip)
 
-- There is **no** `scenes/main.tscn` in this project; add `M_AudioManager` to `scenes/root.tscn` under `Managers/`.
+- There is **no** `scenes/main.tscn` in this project; `M_AudioManager` already exists in `scenes/root.tscn` under `Managers/`.
 - `U_ServiceLocator` lives at `res://scripts/core/u_service_locator.gd` and its API is `U_ServiceLocator.register(...)` / `get_service(...)` / `try_get_service(...)`.
-- There is already a stub `S_JumpSoundSystem` at `scripts/ecs/systems/s_jump_sound_system.gd` (currently clears requests; no playback yet).
+- `S_JumpSoundSystem` at `scripts/ecs/systems/s_jump_sound_system.gd` is implemented (event-driven SFX via BaseEventSFXSystem + pooled 3D spawner).
 - `RS_GameplayInitialState` currently includes a small `gameplay.audio_settings` dictionary + `U_VisualSelectors.get_audio_settings()`; it is not currently used by any real audio playback path.
-- There is no `resources/audio/` directory yet in this repo; any placeholder audio assets will need to be added with naming/prefix conventions in mind.
+- `resources/audio/` now exists (music + SFX placeholder assets already imported).
 
 ## Next Step
 
-- Start at **Phase 4** in `docs/audio manager/audio-manager-tasks.md` and complete tasks in order.
+- Start at **Phase 5** in `docs/audio manager/audio-manager-tasks.md` and complete tasks in order.
 - After each completed phase:
   - Update `docs/audio manager/audio-manager-tasks.md` checkboxes + completion notes
   - Update this file with the new current status + “next step” ONLY

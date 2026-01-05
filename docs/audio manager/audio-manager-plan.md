@@ -1,7 +1,7 @@
 # Audio Manager - Implementation Plan
 
 **Project**: Cabaret Template (Godot 4.5)
-**Status**: In Progress (Phase 2 complete)
+**Status**: In Progress (Phase 4 complete)
 **Estimated Duration**: 23 days
 **Test Count**: ~280 tests
 **Methodology**: Test-Driven Development (Red-Green-Refactor)
@@ -306,38 +306,43 @@ func _on_event(event_data: Dictionary) -> void:
 
 ## Phase 4: SFX Systems (Days 11-14)
 
-### U_SFXSpawner Utility
+### M_SFXSpawner Utility
 
 **Files to create**:
-- `scripts/managers/helpers/u_sfx_spawner.gd`
+- `scripts/managers/helpers/m_sfx_spawner.gd`
 - `tests/unit/managers/helpers/test_sfx_spawner.gd` (10 tests)
 
 **AudioStreamPlayer3D Pool**:
 ```gdscript
-class_name U_SFXSpawner
+class_name M_SFXSpawner
 extends RefCounted
 
 const POOL_SIZE := 16
+const META_IN_USE := &"_sfx_in_use"
+
 static var _pool: Array[AudioStreamPlayer3D] = []
 static var _container: Node3D = null
 
-static func spawn_3d(config: Dictionary) -> void:
+static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
     var player := _get_available_player()
     if player == null:
         push_warning("SFX pool exhausted")
-        return
+        return null
 
-    player.stream = config.get("audio_stream")
+    player.set_meta(META_IN_USE, true)
+    player.stream = config.get("audio_stream") as AudioStream
     player.global_position = config.get("position", Vector3.ZERO)
     player.volume_db = config.get("volume_db", 0.0)
     player.pitch_scale = config.get("pitch_scale", 1.0)
     player.bus = config.get("bus", "SFX")
     player.play()
+
+    return player
 ```
 
 ### Individual SFX Systems (5 systems)
 
-**NOTE**: `S_JumpSoundSystem` already exists as stub (`scripts/ecs/systems/s_jump_sound_system.gd`) extending `BaseEventVFXSystem`. It must be migrated to extend `BaseEventSFXSystem` during Phase 3.
+**NOTE**: `S_JumpSoundSystem` exists at `scripts/ecs/systems/s_jump_sound_system.gd` and serves as reference for event-driven SFX systems.
 
 Implement one system per commit:
 1. `S_JumpSoundSystem` (entity_jumped) - **MODIFY existing stub**
@@ -369,7 +374,7 @@ func process_tick(_delta: float) -> void:
         return
 
     for request in requests:
-        U_SFXSpawner.spawn_3d({
+        M_SFXSpawner.spawn_3d({
             "audio_stream": settings.audio_stream,
             "position": request.get("position"),
             "volume_db": settings.volume_db,
@@ -463,7 +468,7 @@ func process_tick(delta: float) -> void:
 func _play_footstep(position: Vector3, surface: SurfaceType) -> void:
     var sounds := settings.get_sounds_for_surface(surface)
     var stream := sounds.pick_random()
-    U_SFXSpawner.spawn_3d({
+    M_SFXSpawner.spawn_3d({
         "audio_stream": stream,
         "position": position,
         "volume_db": settings.volume_db,
@@ -679,7 +684,7 @@ func _on_master_mute_toggled(pressed: bool) -> void:
 scripts/managers/
   m_audio_manager.gd
   helpers/
-    u_sfx_spawner.gd
+    m_sfx_spawner.gd
     u_ui_sound_player.gd
 
 scripts/ecs/

@@ -1,7 +1,7 @@
 # Audio Manager - Task Checklist
 
-**Progress:** 28% (14 / 50 tasks complete)
-**Unit Tests:** 73 / 180 passing (Phase 0 Redux: 51/51, Phase 1 Manager: 7/7, Phase 3 Base SFX: 15/15)
+**Progress:** 53% (27 / 51 tasks complete)
+**Unit Tests:** 136 / 180 passing (Phase 0 Redux: 51/51, Phase 1 Manager: 7/7, Phase 2 Music: 4/4, Phase 3 Base SFX: 15/15, Phase 4 SFX Systems: 59/59)
 **Integration Tests:** 0 / 100 passing
 **Manual QA:** 0 / 20 complete
 
@@ -211,7 +211,7 @@
 
 ---
 
-## Phase 2: Music System
+## Phase 2: Music System ✅ COMPLETE
 
 **Exit Criteria:** Music crossfades smoothly between scenes (no pops/clicks), dual-player swap works correctly, pause overlay music transitions implemented
 
@@ -400,7 +400,7 @@
 
 ---
 
-## Phase 3: BaseEventSFXSystem Pattern
+## Phase 3: BaseEventSFXSystem Pattern ✅ COMPLETE
 
 **Exit Criteria:** All 15 base system tests pass, pattern established mirroring BaseEventVFXSystem, ready for individual SFX systems
 
@@ -469,65 +469,81 @@
 
 ---
 
-## Phase 4: SFX Systems
+## Phase 4: SFX Systems ✅ COMPLETE
 
 **Exit Criteria:** All 5 SFX systems play on correct events (jump, land, death, checkpoint, victory), pool manages 16 concurrent sounds, pitch variation adds organic feel
 
-- [ ] **Task 4.1 (Red)**: Write tests for U_SFXSpawner utility
+- [x] **Task 4.1 (Red)**: Write tests for M_SFXSpawner utility
   - Create `tests/unit/managers/helpers/test_sfx_spawner.gd`
   - Tests: pool initialization (16 players), `spawn_3d()` returns available player, player configuration (stream, position, volume, pitch, bus), pool exhaustion warning, player auto-returns to pool when finished
-  - All 10 tests failing as expected
+  - All 10 tests failing as expected ✅
 
-- [ ] **Task 4.2 (Green)**: Implement U_SFXSpawner utility
-  - Create `scripts/managers/helpers/u_sfx_spawner.gd`
+- [x] **Task 4.2 (Green)**: Implement M_SFXSpawner utility
+  - Create `scripts/managers/helpers/m_sfx_spawner.gd`
   - Class structure:
     ```gdscript
-    class_name U_SFXSpawner
+    class_name M_SFXSpawner
     extends RefCounted
 
     const POOL_SIZE := 16
+    const META_IN_USE := &"_sfx_in_use"
+
     static var _pool: Array[AudioStreamPlayer3D] = []
     static var _container: Node3D = null
 
     static func initialize(parent: Node) -> void:
-        if _container != null:
-            return  # Already initialized
+        if parent == null:
+            push_warning("M_SFXSpawner.initialize: parent is null")
+            return
 
+        if _container != null and is_instance_valid(_container):
+            return
+
+        _pool.clear()
         _container = Node3D.new()
         _container.name = "SFXPool"
         parent.add_child(_container)
 
-        for i in POOL_SIZE:
+        for i in range(POOL_SIZE):
             var player := AudioStreamPlayer3D.new()
             player.name = "SFXPlayer%d" % i
             player.max_distance = 50.0
             player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
-            player.finished.connect(_on_player_finished.bind(player))
+            player.set_meta(META_IN_USE, false)
+            player.finished.connect(Callable(M_SFXSpawner, "_on_player_finished").bind(player))
             _container.add_child(player)
             _pool.append(player)
 
-    static func spawn_3d(config: Dictionary) -> void:
+    static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
+        var audio_stream := config.get("audio_stream") as AudioStream
+        if audio_stream == null:
+            return null
+
         var player := _get_available_player()
         if player == null:
             push_warning("SFX pool exhausted (all 16 players in use)")
-            return
+            return null
 
-        player.stream = config.get("audio_stream")
+        player.set_meta(META_IN_USE, true)
+
+        player.stream = audio_stream
         player.global_position = config.get("position", Vector3.ZERO)
         player.volume_db = config.get("volume_db", 0.0)
         player.pitch_scale = config.get("pitch_scale", 1.0)
         player.bus = config.get("bus", "SFX")
         player.play()
 
+        return player
+
     static func _get_available_player() -> AudioStreamPlayer3D:
         for player in _pool:
-            if not player.playing:
+            var in_use := bool(player.get_meta(META_IN_USE, false))
+            if not in_use:
                 return player
-        return null  # Pool exhausted
+        return null
 
     static func _on_player_finished(player: AudioStreamPlayer3D) -> void:
-        # Player automatically becomes available when finished
-        pass
+        player.set_meta(META_IN_USE, false)
 
     static func cleanup() -> void:
         if _container != null:
@@ -535,14 +551,14 @@
             _container = null
         _pool.clear()
     ```
-  - All 10 tests passing
+  - All 10 tests passing ✅
 
-- [ ] **Task 4.3 (Green)**: Initialize SFX pool in Audio Manager
+- [x] **Task 4.3 (Green)**: Initialize SFX pool in Audio Manager
   - Modify `scripts/managers/m_audio_manager.gd`
-  - Add to `_ready()`: `U_SFXSpawner.initialize(self)`
+  - Add to `_ready()`: `M_SFXSpawner.initialize(self)`
   - Pool initialized when Audio Manager starts
 
-- [ ] **Task 4.4 (Red+Green)**: Implement S_JumpSoundSystem (event: entity_jumped)
+- [x] **Task 4.4 (Red+Green)**: Implement S_JumpSoundSystem (event: entity_jumped)
   - **NOTE**: File `scripts/ecs/systems/s_jump_sound_system.gd` already exists as stub (extends BaseEventVFXSystem). Migrate to BaseEventSFXSystem.
   - Create `scripts/ecs/resources/rs_jump_sound_settings.gd`:
     ```gdscript
@@ -581,7 +597,7 @@
             return
 
         for request in requests:
-            U_SFXSpawner.spawn_3d({
+            M_SFXSpawner.spawn_3d({
                 "audio_stream": settings.audio_stream,
                 "position": request.get("position"),
                 "volume_db": settings.volume_db,
@@ -594,9 +610,9 @@
 
         requests.clear()
     ```
-  - All tests passing
+  - All tests passing ✅
 
-- [ ] **Task 4.5 (Red+Green)**: Implement S_LandingSoundSystem (event: entity_landed)
+- [x] **Task 4.5 (Red+Green)**: Implement S_LandingSoundSystem (event: entity_landed)
   - Create `scripts/ecs/resources/rs_landing_sound_settings.gd` (same structure as jump)
   - Create placeholder asset: `resources/audio/sfx/placeholder_land.wav` (220Hz, 100ms)
   - Create `tests/unit/ecs/systems/test_landing_sound_system.gd`
@@ -627,7 +643,7 @@
             # Only play landing sound for significant falls
             if fall_speed > 5.0:
                 var volume_adjustment := remap(fall_speed, 5.0, 30.0, -6.0, 0.0)
-                U_SFXSpawner.spawn_3d({
+                M_SFXSpawner.spawn_3d({
                     "audio_stream": settings.audio_stream,
                     "position": request.get("position"),
                     "volume_db": settings.volume_db + volume_adjustment,
@@ -640,28 +656,33 @@
 
         requests.clear()
     ```
-  - All tests passing
+  - All tests passing ✅
 
-- [ ] **Task 4.6 (Red+Green)**: Implement S_DeathSoundSystem (event: entity_death)
+- [x] **Task 4.6 (Red+Green)**: Implement S_DeathSoundSystem (event: entity_death)
   - Create `scripts/ecs/resources/rs_death_sound_settings.gd`
   - Create placeholder asset: `resources/audio/sfx/placeholder_death.wav` (110Hz, 150ms)
   - Create `tests/unit/ecs/systems/test_death_sound_system.gd`
   - Create `scripts/ecs/systems/s_death_sound_system.gd` (mirror jump system pattern, event_name = "entity_death")
-  - All tests passing
+  - All tests passing ✅
 
-- [ ] **Task 4.7 (Red+Green)**: Implement S_CheckpointSoundSystem (event: checkpoint_activated)
+- [x] **Task 4.7 (Red+Green)**: Implement S_CheckpointSoundSystem (event: checkpoint_activated)
   - Create `scripts/ecs/resources/rs_checkpoint_sound_settings.gd`
   - Create placeholder asset: `resources/audio/sfx/placeholder_checkpoint.wav` (880Hz, 200ms)
   - Create `tests/unit/ecs/systems/test_checkpoint_sound_system.gd`
   - Create `scripts/ecs/systems/s_checkpoint_sound_system.gd` (event_name = "checkpoint_activated")
-  - All tests passing
+  - All tests passing ✅
 
-- [ ] **Task 4.8 (Red+Green)**: Implement S_VictorySoundSystem (event: victory_triggered)
+- [x] **Task 4.8 (Red+Green)**: Implement S_VictorySoundSystem (event: victory_triggered)
   - Create `scripts/ecs/resources/rs_victory_sound_settings.gd`
   - Create placeholder asset: `resources/audio/sfx/placeholder_victory.wav` (1760Hz, 300ms)
   - Create `tests/unit/ecs/systems/test_victory_sound_system.gd`
   - Create `scripts/ecs/systems/s_victory_sound_system.gd` (event_name = "victory_triggered")
-  - All tests passing
+  - All tests passing ✅
+
+**Completion Notes:**
+- Implemented pooled 3D spawner as `M_SFXSpawner` (`scripts/managers/helpers/m_sfx_spawner.gd`) to satisfy prefix enforcement for `scripts/managers/helpers/`.
+- Added placeholder WAV SFX under `resources/audio/sfx/` (with `.import` files).
+- Added unit tests for spawner + 5 SFX systems and verified GREEN (including `tests/unit/style/test_style_enforcement.gd`).
 
 ---
 
@@ -817,7 +838,7 @@
             return
 
         var stream := sounds.pick_random()
-        U_SFXSpawner.spawn_3d({
+        M_SFXSpawner.spawn_3d({
             "audio_stream": stream,
             "position": position,
             "volume_db": settings.volume_db,
@@ -1364,39 +1385,39 @@
 
 | File Path | Status | Phase | Notes |
 |-----------|--------|-------|-------|
-| `scripts/state/resources/rs_audio_initial_state.gd` | ⬜ Not Started | 0 | 9-field audio initial state |
-| `scripts/state/actions/u_audio_actions.gd` | ⬜ Not Started | 0 | 12 action creators |
-| `scripts/state/reducers/u_audio_reducer.gd` | ⬜ Not Started | 0 | Audio reducer with volume clamping |
-| `scripts/state/selectors/u_audio_selectors.gd` | ⬜ Not Started | 0 | 9 selectors for audio state |
-| `scripts/state/m_state_store.gd` | ⬜ Not Started | 0 | Modified to export audio_initial_state |
-| `scripts/state/utils/u_state_slice_manager.gd` | ⬜ Not Started | 0 | Modified to register audio slice |
-| `tests/unit/state/test_audio_initial_state.gd` | ⬜ Not Started | 0 | Tests for initial state resource |
-| `tests/unit/state/test_audio_reducer.gd` | ⬜ Not Started | 0 | 25 tests for reducer |
-| `tests/unit/state/test_audio_selectors.gd` | ⬜ Not Started | 0 | 15 tests for selectors |
-| `scripts/managers/m_audio_manager.gd` | ⬜ Not Started | 1 | Core manager with bus layout |
-| `tests/unit/managers/test_audio_manager.gd` | ⬜ Not Started | 1 | 30 tests for manager |
-| `resources/audio/music/placeholder_main_menu.ogg` | ⬜ Not Started | 2 | 5s silent loop |
-| `resources/audio/music/placeholder_gameplay.ogg` | ⬜ Not Started | 2 | 5s silent loop |
-| `resources/audio/music/placeholder_pause.ogg` | ⬜ Not Started | 2 | 5s silent loop |
-| `scripts/ecs/base_event_sfx_system.gd` | ⬜ Not Started | 3 | Base class for event-driven SFX |
-| `tests/unit/ecs/test_base_event_sfx_system.gd` | ⬜ Not Started | 3 | 15 tests for base system |
-| `scripts/managers/helpers/u_sfx_spawner.gd` | ⬜ Not Started | 4 | SFX pool manager (16 players) |
-| `tests/unit/managers/helpers/test_sfx_spawner.gd` | ⬜ Not Started | 4 | 10 tests for spawner |
-| `scripts/ecs/systems/s_jump_sound_system.gd` | ⬜ Not Started | 4 | Jump SFX system |
-| `scripts/ecs/resources/rs_jump_sound_settings.gd` | ⬜ Not Started | 4 | Jump settings resource |
-| `resources/audio/sfx/placeholder_jump.wav` | ⬜ Not Started | 4 | 440Hz, 100ms |
-| `scripts/ecs/systems/s_landing_sound_system.gd` | ⬜ Not Started | 4 | Landing SFX system |
-| `scripts/ecs/resources/rs_landing_sound_settings.gd` | ⬜ Not Started | 4 | Landing settings resource |
-| `resources/audio/sfx/placeholder_land.wav` | ⬜ Not Started | 4 | 220Hz, 100ms |
-| `scripts/ecs/systems/s_death_sound_system.gd` | ⬜ Not Started | 4 | Death SFX system |
-| `scripts/ecs/resources/rs_death_sound_settings.gd` | ⬜ Not Started | 4 | Death settings resource |
-| `resources/audio/sfx/placeholder_death.wav` | ⬜ Not Started | 4 | 110Hz, 150ms |
-| `scripts/ecs/systems/s_checkpoint_sound_system.gd` | ⬜ Not Started | 4 | Checkpoint SFX system |
-| `scripts/ecs/resources/rs_checkpoint_sound_settings.gd` | ⬜ Not Started | 4 | Checkpoint settings resource |
-| `resources/audio/sfx/placeholder_checkpoint.wav` | ⬜ Not Started | 4 | 880Hz, 200ms |
-| `scripts/ecs/systems/s_victory_sound_system.gd` | ⬜ Not Started | 4 | Victory SFX system |
-| `scripts/ecs/resources/rs_victory_sound_settings.gd` | ⬜ Not Started | 4 | Victory settings resource |
-| `resources/audio/sfx/placeholder_victory.wav` | ⬜ Not Started | 4 | 1760Hz, 300ms |
+| `scripts/state/resources/rs_audio_initial_state.gd` | ✅ Complete | 0 | 9-field audio initial state |
+| `scripts/state/actions/u_audio_actions.gd` | ✅ Complete | 0 | 12 action creators |
+| `scripts/state/reducers/u_audio_reducer.gd` | ✅ Complete | 0 | Audio reducer with volume clamping |
+| `scripts/state/selectors/u_audio_selectors.gd` | ✅ Complete | 0 | 9 selectors for audio state |
+| `scripts/state/m_state_store.gd` | ✅ Complete | 0 | Modified to export audio_initial_state |
+| `scripts/state/utils/u_state_slice_manager.gd` | ✅ Complete | 0 | Modified to register audio slice |
+| `tests/unit/state/test_audio_initial_state.gd` | ✅ Complete | 0 | Tests for initial state resource |
+| `tests/unit/state/test_audio_reducer.gd` | ✅ Complete | 0 | 25 tests for reducer |
+| `tests/unit/state/test_audio_selectors.gd` | ✅ Complete | 0 | 15 tests for selectors |
+| `scripts/managers/m_audio_manager.gd` | ✅ Complete | 1 | Core manager with bus layout + music |
+| `tests/unit/managers/test_audio_manager.gd` | ✅ Complete | 1 | 11 tests for manager/music |
+| `resources/audio/music/placeholder_main_menu.ogg` | ✅ Complete | 2 | 5s silent loop |
+| `resources/audio/music/placeholder_gameplay.ogg` | ✅ Complete | 2 | 5s silent loop |
+| `resources/audio/music/placeholder_pause.ogg` | ✅ Complete | 2 | 5s silent loop |
+| `scripts/ecs/base_event_sfx_system.gd` | ✅ Complete | 3 | Base class for event-driven SFX |
+| `tests/unit/ecs/test_base_event_sfx_system.gd` | ✅ Complete | 3 | 15 tests for base system |
+| `scripts/managers/helpers/m_sfx_spawner.gd` | ✅ Complete | 4 | SFX pool manager (16 players) |
+| `tests/unit/managers/helpers/test_sfx_spawner.gd` | ✅ Complete | 4 | 10 tests for spawner |
+| `scripts/ecs/systems/s_jump_sound_system.gd` | ✅ Complete | 4 | Jump SFX system |
+| `scripts/ecs/resources/rs_jump_sound_settings.gd` | ✅ Complete | 4 | Jump settings resource |
+| `resources/audio/sfx/placeholder_jump.wav` | ✅ Complete | 4 | 440Hz, 100ms |
+| `scripts/ecs/systems/s_landing_sound_system.gd` | ✅ Complete | 4 | Landing SFX system |
+| `scripts/ecs/resources/rs_landing_sound_settings.gd` | ✅ Complete | 4 | Landing settings resource |
+| `resources/audio/sfx/placeholder_land.wav` | ✅ Complete | 4 | 220Hz, 100ms |
+| `scripts/ecs/systems/s_death_sound_system.gd` | ✅ Complete | 4 | Death SFX system |
+| `scripts/ecs/resources/rs_death_sound_settings.gd` | ✅ Complete | 4 | Death settings resource |
+| `resources/audio/sfx/placeholder_death.wav` | ✅ Complete | 4 | 110Hz, 150ms |
+| `scripts/ecs/systems/s_checkpoint_sound_system.gd` | ✅ Complete | 4 | Checkpoint SFX system |
+| `scripts/ecs/resources/rs_checkpoint_sound_settings.gd` | ✅ Complete | 4 | Checkpoint settings resource |
+| `resources/audio/sfx/placeholder_checkpoint.wav` | ✅ Complete | 4 | 880Hz, 200ms |
+| `scripts/ecs/systems/s_victory_sound_system.gd` | ✅ Complete | 4 | Victory SFX system |
+| `scripts/ecs/resources/rs_victory_sound_settings.gd` | ✅ Complete | 4 | Victory settings resource |
+| `resources/audio/sfx/placeholder_victory.wav` | ✅ Complete | 4 | 1760Hz, 300ms |
 | `scripts/ecs/components/c_surface_detector_component.gd` | ⬜ Not Started | 5 | Surface type detector |
 | `tests/unit/ecs/components/test_surface_detector.gd` | ⬜ Not Started | 5 | 15 tests for surface detector |
 | `scripts/ecs/systems/s_footstep_sound_system.gd` | ⬜ Not Started | 5 | Footstep system (per-tick) |

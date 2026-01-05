@@ -3,7 +3,7 @@
 **Project**: Cabaret Template (Godot 4.5)
 **Created**: 2026-01-01
 **Last Updated**: 2026-01-05
-**Status**: IN PROGRESS (Phase 2 complete)
+**Status**: IN PROGRESS (Phase 4 complete)
 **Scope**: Music with crossfading, comprehensive SFX, ambient audio, footsteps, 3D spatial audio
 
 ## Summary
@@ -14,9 +14,10 @@ The Audio Manager is a persistent orchestration layer for all audio playback in 
 
 - Main scene is `scenes/root.tscn` (there is no `scenes/main.tscn` in this repo).
 - Service registration is bootstrapped by `scripts/scene_structure/main.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
-- `S_JumpSoundSystem` already exists at `scripts/ecs/systems/s_jump_sound_system.gd` but is currently a stub (clears requests; no playback yet).
+- `S_JumpSoundSystem` exists at `scripts/ecs/systems/s_jump_sound_system.gd` and is implemented (event-driven SFX via BaseEventSFXSystem + pooled 3D spawner).
 - `RS_GameplayInitialState` currently includes `gameplay.audio_settings` + `U_VisualSelectors.get_audio_settings()`; this is not used by any real audio playback path today.
-- `BaseEventVFXSystem` already exists and is used by particle systems (and currently by `S_JumpSoundSystem`); decide whether to reuse it for sound events or introduce a dedicated `BaseEventSFXSystem`.
+- `BaseEventSFXSystem` exists (mirrors BaseEventVFXSystem) and is used by event-driven sound systems.
+- Placeholder audio assets live under `resources/audio/` and are imported (see `resources/audio/music/` and `resources/audio/sfx/`).
 
 ## Goals
 
@@ -53,7 +54,7 @@ The Audio Manager is a persistent orchestration layer for all audio playback in 
 - `U_ECSEventBus`: Gameplay events (jump, land, death, etc.) trigger SFX systems.
 - `U_ServiceLocator`: Registration for discovery by other systems.
 
-**Note on ECS pattern**: Sound systems extend `BaseEventSFXSystem` (new base class mirroring `BaseEventVFXSystem`) and process sound requests in `process_tick()` via `U_SFXSpawner`.
+**Note on ECS pattern**: Sound systems extend `BaseEventSFXSystem` (mirrors `BaseEventVFXSystem`) and process sound requests in `process_tick()` via `M_SFXSpawner`.
 
 ## Public API
 
@@ -234,7 +235,7 @@ func process_tick(_delta: float) -> void:
     requests.clear()
 
 func _spawn_sound(_request: Dictionary) -> void:
-    # Subclass implements specific sound spawning via U_SFXSpawner
+    # Subclass implements specific sound spawning via M_SFXSpawner
     pass
 ```
 
@@ -252,27 +253,25 @@ func _spawn_sound(_request: Dictionary) -> void:
 
 ### SFX Spawner Utility
 
-`U_SFXSpawner` manages pooled AudioStreamPlayer3D instances:
+`M_SFXSpawner` manages pooled AudioStreamPlayer3D instances (see `scripts/managers/helpers/m_sfx_spawner.gd`):
 
 ```gdscript
-class_name U_SFXSpawner
+class_name M_SFXSpawner
+extends RefCounted
 
 const POOL_SIZE := 16  # Max concurrent 3D sounds
 
-static var _pool: Array[AudioStreamPlayer3D] = []
-static var _container: Node3D
+static func initialize(parent: Node) -> void:
+    # Creates "SFXPool" and pooled players under parent
+    pass
 
-static func spawn_3d(config: SFXConfig) -> void:
-    var player := _get_available_player()
-    if not player:
-        return  # Pool exhausted, skip sound
+static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
+    # {audio_stream, position, volume_db, pitch_scale, bus}
+    return null
 
-    player.stream = config.audio_stream
-    player.global_position = config.position
-    player.volume_db = config.volume_db
-    player.pitch_scale = config.pitch_scale
-    player.bus = config.bus
-    player.play()
+static func cleanup() -> void:
+    # Frees container + clears pool
+    pass
 ```
 
 ### Sound Settings Resources
@@ -408,7 +407,7 @@ scripts/managers/
 
 scripts/managers/helpers/
   u_audio_player_pool.gd
-  u_sfx_spawner.gd
+  m_sfx_spawner.gd
   u_ui_sound_player.gd
 
 scripts/ecs/
@@ -506,12 +505,12 @@ store.dispatch(U_AudioActions.set_spatial_audio_enabled(true))
 
 Use Godot Profiler (Debugger > Profiler) to measure actual overhead:
 - Monitor "Audio" category for bus processing
-- Check "Script Functions" for U_SFXSpawner and M_AudioManager
+- Check "Script Functions" for M_SFXSpawner and M_AudioManager
 - Reduce concurrent sound limit if CPU budget exceeded on target hardware
 
 ### Optimization Guidelines
 
-- If pool exhaustion occurs frequently, increase `POOL_SIZE` in `U_SFXSpawner`
+- If pool exhaustion occurs frequently, increase `POOL_SIZE` in `M_SFXSpawner`
 - Compress audio files (OGG for music/ambient, WAV for short SFX)
 - Keep music loops under 2MB, SFX under 50KB each
 - Disable spatial audio on low-end devices via settings
@@ -522,7 +521,7 @@ Use Godot Profiler (Debugger > Profiler) to measure actual overhead:
 
 - `U_AudioReducer`: Action handling, volume clamping, mute state.
 - `U_AudioSelectors`: Selector return values for all settings.
-- `U_SFXSpawner`: Pool management, sound spawning, cleanup.
+- `M_SFXSpawner`: Pool management, sound spawning, cleanup.
 - `BaseEventSFXSystem`: Event subscription, request queuing.
 
 ### Integration Tests
