@@ -2,6 +2,7 @@ extends "res://scripts/gameplay/base_interactable_controller.gd"
 class_name TriggeredInteractableController
 
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_InteractBlocker := preload("res://scripts/utils/u_interact_blocker.gd")
 
 enum TriggerMode {
 	AUTO = 0,
@@ -35,6 +36,9 @@ func _physics_process(delta: float) -> void:
 	if interact_action.is_empty():
 		return
 	if not is_player_in_zone():
+		return
+	# Block interact input during toast display + cooldown
+	if U_InteractBlocker.is_blocked():
 		return
 	var action_name := String(interact_action)
 	if not InputMap.has_action(action_name):

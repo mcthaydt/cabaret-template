@@ -7,6 +7,7 @@ const U_EntitySelectors := preload("res://scripts/state/selectors/u_entity_selec
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const UI_ButtonPrompt := preload("res://scripts/ui/ui_button_prompt.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const U_InteractBlocker := preload("res://scripts/utils/u_interact_blocker.gd")
 const HUD_GROUP := StringName("hud_layers")
 
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
@@ -91,6 +92,8 @@ func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void
 		if toast_container != null:
 			toast_container.visible = false
 			_toast_active = false
+		# Force unblock interact when paused (no interactions possible anyway)
+		U_InteractBlocker.force_unblock()
 
 func _update_display(state: Dictionary) -> void:
 	pause_label.text = ""
@@ -155,6 +158,8 @@ func _show_checkpoint_toast(text: String) -> void:
 	toast_container.modulate.a = 0.0
 	toast_container.visible = true
 	_toast_active = true
+	# Block interact input while toast is visible
+	U_InteractBlocker.block()
 	# Avoid overlap with interact prompt while toast is visible
 	if interact_prompt != null:
 		interact_prompt.hide_prompt()
@@ -171,6 +176,8 @@ func _show_checkpoint_toast(text: String) -> void:
 	tween.finished.connect(func() -> void:
 		toast_container.visible = false
 		_toast_active = false
+		# Unblock interact with cooldown (0.3s default)
+		U_InteractBlocker.unblock_with_cooldown(0.3)
 		# Restore prompt if still relevant and not paused
 		if not _is_paused(_store.get_state()) and _active_prompt_id != 0 and interact_prompt != null:
 			interact_prompt.show_prompt(_last_prompt_action, _last_prompt_text)

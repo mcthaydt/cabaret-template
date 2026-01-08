@@ -25,7 +25,7 @@
 [ext_resource type="Script" uid="uid://btp1m0ujliw32" path="res://scripts/managers/m_save_manager.gd" id="23_save_manager"]
 [ext_resource type="Resource" uid="uid://y6un2tn7ipre" path="res://resources/state/default_vfx_initial_state.tres" id="24_vfx_state"]
 [ext_resource type="Script" uid="uid://bctps6l17sqq5" path="res://scripts/managers/m_vfx_manager.gd" id="25_vfx_manager"]
-[ext_resource type="Resource" path="res://resources/state/default_audio_initial_state.tres" id="26_audio_state"]
+[ext_resource type="Resource" uid="uid://dkk1esxpemcty" path="res://resources/state/default_audio_initial_state.tres" id="26_audio_state"]
 [ext_resource type="Script" uid="uid://cdva4sfkl7tbx" path="res://scripts/managers/m_audio_manager.gd" id="27_audio_manager"]
 
 [node name="Root" type="Node" unique_id=409084781]
