@@ -19,8 +19,11 @@ func get_event_name() -> StringName:
 
 func create_request_from_payload(payload: Dictionary) -> Dictionary:
 	return {
+		"entity": payload.get("entity", null),
 		"position": payload.get("position", Vector3.ZERO),
+		"jump_time": payload.get("jump_time", 0.0),
 		"jump_force": payload.get("jump_force", 0.0),
+		"supported": payload.get("supported", false),
 	}
 
 func process_tick(_delta: float) -> void:

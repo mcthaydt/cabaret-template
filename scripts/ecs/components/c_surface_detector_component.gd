@@ -24,6 +24,9 @@ enum SurfaceType {
 
 var _raycast: RayCast3D
 
+func _init() -> void:
+	component_type = COMPONENT_TYPE
+
 func _ready() -> void:
 	super._ready()  # Register with ECS manager
 	_raycast = RayCast3D.new()
@@ -36,6 +39,16 @@ func _ready() -> void:
 ## Returns the surface type beneath this detector.
 ## Returns DEFAULT if no collision, collider is null, or metadata is missing/invalid.
 func detect_surface() -> SurfaceType:
+	# Ensure raycast is in the scene tree (it should be from _ready())
+	if _raycast == null or not is_instance_valid(_raycast):
+		return SurfaceType.DEFAULT
+
+	# Clear the raycast's exceptions to ensure clean detection
+	_raycast.clear_exceptions()
+
+	# Force raycast update to detect collision at current position
+	_raycast.force_raycast_update()
+
 	if not _raycast.is_colliding():
 		return SurfaceType.DEFAULT
 
