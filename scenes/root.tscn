@@ -26,7 +26,7 @@
 [ext_resource type="Resource" uid="uid://y6un2tn7ipre" path="res://resources/state/default_vfx_initial_state.tres" id="24_vfx_state"]
 [ext_resource type="Script" uid="uid://bctps6l17sqq5" path="res://scripts/managers/m_vfx_manager.gd" id="25_vfx_manager"]
 [ext_resource type="Resource" path="res://resources/state/default_audio_initial_state.tres" id="26_audio_state"]
-[ext_resource type="Script" path="res://scripts/managers/m_audio_manager.gd" id="27_audio_manager"]
+[ext_resource type="Script" uid="uid://cdva4sfkl7tbx" path="res://scripts/managers/m_audio_manager.gd" id="27_audio_manager"]
 
 [node name="Root" type="Node" unique_id=409084781]
 script = ExtResource("10_main_root")
@@ -65,7 +65,7 @@ script = ExtResource("14_camera_manager")
 [node name="M_VFXManager" type="Node" parent="Managers" unique_id=39027702]
 script = ExtResource("25_vfx_manager")
 
-[node name="M_AudioManager" type="Node" parent="Managers"]
+[node name="M_AudioManager" type="Node" parent="Managers" unique_id=666067318]
 script = ExtResource("27_audio_manager")
 
 [node name="M_InputProfileManager" type="Node" parent="Managers" unique_id=564618929]

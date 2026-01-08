@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="RS_JumpSoundSettings" format=3 uid="uid://cqh2bvx4r8jw6"]
+
+[ext_resource type="Script" uid="uid://b4dstjqy8x5pl" path="res://scripts/ecs/resources/rs_jump_sound_settings.gd" id="1_jump_sound"]
+[ext_resource type="AudioStream" uid="uid://ibu4rlqkeq7t" path="res://resources/audio/sfx/placeholder_jump.wav" id="2_audio"]
+
+[resource]
+script = ExtResource("1_jump_sound")
+audio_stream = ExtResource("2_audio")

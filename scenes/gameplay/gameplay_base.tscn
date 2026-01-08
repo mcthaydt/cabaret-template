@@ -23,12 +23,21 @@
 [ext_resource type="Script" uid="uid://cjramcicvprg1" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
 [ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/settings/jump_particles_default.tres" id="9_jump_particles_settings"]
 [ext_resource type="Script" uid="uid://c057v57rqs23t" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
+[ext_resource type="Resource" uid="uid://cqh2bvx4r8jw6" path="res://resources/settings/jump_sound_default.tres" id="9_jump_sound_settings"]
 [ext_resource type="Script" uid="uid://bcr30lnnbaa17" path="res://scripts/ecs/systems/s_playtime_system.gd" id="9_playtime"]
 [ext_resource type="Script" uid="uid://d2ik3s63sfvhn" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
 [ext_resource type="Script" uid="uid://c76twh3oe313h" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
 [ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/settings/landing_particles_default.tres" id="10_landing_particles_settings"]
+[ext_resource type="Script" uid="uid://cg60wkeo50rcd" path="res://scripts/ecs/systems/s_landing_sound_system.gd" id="10_landing_sound"]
+[ext_resource type="Resource" uid="uid://dv5m8y3nx0uin" path="res://resources/settings/landing_sound_default.tres" id="10_landing_sound_settings"]
+[ext_resource type="Script" uid="uid://oseq7c0hnar3" path="res://scripts/ecs/systems/s_death_sound_system.gd" id="11_death_sound"]
+[ext_resource type="Resource" uid="uid://cbkw5y4pf5xbh" path="res://resources/settings/death_sound_default.tres" id="11_death_sound_settings"]
 [ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/ui_hud_overlay.tscn" id="11_hud"]
+[ext_resource type="Script" uid="uid://b3h2umxcnkvd" path="res://scripts/ecs/systems/s_checkpoint_sound_system.gd" id="12_checkpoint_sound"]
+[ext_resource type="Resource" uid="uid://buw5xy8p0d3uc" path="res://resources/settings/checkpoint_sound_default.tres" id="12_checkpoint_sound_settings"]
 [ext_resource type="Script" uid="uid://evn7fqusp07e" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
+[ext_resource type="Script" uid="uid://uvv0alqmjm2u" path="res://scripts/ecs/systems/s_victory_sound_system.gd" id="13_victory_sound"]
+[ext_resource type="Resource" uid="uid://dv3s5a4nyjf05" path="res://resources/settings/victory_sound_default.tres" id="13_victory_sound_settings"]
 [ext_resource type="Script" uid="uid://jtue6ng08jt1" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://djo2trcoo4cta" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
@@ -169,7 +178,28 @@ execution_priority = 120
 
 [node name="S_JumpSoundSystem" type="Node" parent="Systems/Feedback" unique_id=525067636]
 script = ExtResource("9_jump_sound")
+settings = ExtResource("9_jump_sound_settings")
 execution_priority = 121
+
+[node name="S_LandingSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1473867220]
+script = ExtResource("10_landing_sound")
+settings = ExtResource("10_landing_sound_settings")
+execution_priority = 122
+
+[node name="S_DeathSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1502185122]
+script = ExtResource("11_death_sound")
+settings = ExtResource("11_death_sound_settings")
+execution_priority = 123
+
+[node name="S_CheckpointSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1535861818]
+script = ExtResource("12_checkpoint_sound")
+settings = ExtResource("12_checkpoint_sound_settings")
+execution_priority = 124
+
+[node name="S_VictorySoundSystem" type="Node" parent="Systems/Feedback" unique_id=1567105857]
+script = ExtResource("13_victory_sound")
+settings = ExtResource("13_victory_sound_settings")
+execution_priority = 125
 
 [node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=1280695130]
 script = ExtResource("10_landing_particles")
