@@ -120,12 +120,14 @@ func _on_drag_mode_toggled(pressed: bool) -> void:
 	_set_drag_mode(pressed)
 
 func _on_cancel_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
 	if _drag_mode_enabled:
 		_set_drag_mode(false)
 	_restore_original_positions()
 	_close_overlay()
 
 func _on_reset_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	var default_buttons: Array = []
 	var default_joystick_position: Vector2 = Vector2(-1, -1)
 	if _profile_manager != null and _profile_manager.has_method("reset_touchscreen_positions"):
@@ -196,6 +198,7 @@ func _apply_default_positions(default_buttons: Array, default_joystick_position:
 				break
 
 func _on_save_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	if _drag_mode_enabled:
 		_set_drag_mode(false)
 	_close_overlay()

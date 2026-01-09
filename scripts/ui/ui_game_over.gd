@@ -71,10 +71,12 @@ func _update_death_count(state: Dictionary = {}) -> void:
 	_death_count_label.text = "Deaths: %d" % deaths
 
 func _on_retry_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_dispatch_soft_reset()
 	_dispatch_navigation(U_NavigationActions.retry())
 
 func _on_menu_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_dispatch_soft_reset()
 	_dispatch_navigation(U_NavigationActions.return_to_main_menu())
 

@@ -80,12 +80,14 @@ func _restart_scroll_tween() -> void:
 	_start_scroll_tween()
 
 func _on_skip_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_return_to_main_menu()
 
 func _on_auto_return_timeout() -> void:
 	_return_to_main_menu()
 
 func _on_back_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
 	_return_to_main_menu()
 
 func _return_to_main_menu() -> void:

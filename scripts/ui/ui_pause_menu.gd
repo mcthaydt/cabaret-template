@@ -123,12 +123,15 @@ func _connect_buttons() -> void:
 		_quit_button.pressed.connect(_on_quit_pressed)
 
 func _on_resume_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_dispatch_navigation(U_NavigationActions.close_pause())
 
 func _on_settings_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_dispatch_navigation(U_NavigationActions.open_overlay(OVERLAY_SETTINGS))
 
 func _on_save_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	var store := get_store()
 	if store == null:
 		return
@@ -136,6 +139,7 @@ func _on_save_pressed() -> void:
 	_dispatch_navigation(U_NavigationActions.open_overlay(OVERLAY_SAVE_LOAD))
 
 func _on_load_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	var store := get_store()
 	if store == null:
 		return
@@ -143,10 +147,12 @@ func _on_load_pressed() -> void:
 	_dispatch_navigation(U_NavigationActions.open_overlay(OVERLAY_SAVE_LOAD))
 
 func _on_quit_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_dispatch_navigation(U_NavigationActions.return_to_main_menu())
 
 func _on_back_pressed() -> void:
-	_on_resume_pressed()
+	U_UISoundPlayer.play_cancel()
+	_dispatch_navigation(U_NavigationActions.close_pause())
 
 func _dispatch_navigation(action: Dictionary) -> void:
 	if action.is_empty():

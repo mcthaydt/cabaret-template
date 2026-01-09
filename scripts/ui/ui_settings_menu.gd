@@ -66,6 +66,7 @@ func _on_slice_updated(_slice_name: StringName, _slice_state: Dictionary) -> voi
 	_update_button_visibility(store.get_state())
 
 func _on_back_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
 	var store := get_store()
 	if store == null:
 		return
@@ -78,18 +79,23 @@ func _on_back_pressed() -> void:
 		store.dispatch(U_NavigationActions.return_to_main_menu())
 
 func _on_input_profiles_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_open_settings_target(OVERLAY_INPUT_PROFILE, StringName("input_profile_selector"))
 
 func _on_gamepad_settings_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_open_settings_target(OVERLAY_GAMEPAD_SETTINGS, StringName("gamepad_settings"))
 
 func _on_touchscreen_settings_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_open_settings_target(OVERLAY_TOUCHSCREEN_SETTINGS, StringName("touchscreen_settings"))
 
 func _on_vfx_settings_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_open_settings_target(OVERLAY_VFX_SETTINGS, StringName("vfx_settings"))
 
 func _on_rebind_controls_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_open_settings_target(OVERLAY_INPUT_REBINDING, StringName("input_rebinding"))
 
 func _update_button_visibility(state: Dictionary) -> void:

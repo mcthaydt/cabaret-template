@@ -148,30 +148,40 @@ func _connect_signals() -> void:
 		_has_local_edits = true
 		_log_local_slider_edit("virtual_joystick_size", value)
 		_update_slider_label(_joystick_size_label, value)
+		if not _updating_from_state:
+			U_UISoundPlayer.play_slider_tick()
 		_update_preview_from_sliders()
 	)
 	_button_size_slider.value_changed.connect(func(value: float) -> void:
 		_has_local_edits = true
 		_log_local_slider_edit("button_size", value)
 		_update_slider_label(_button_size_label, value)
+		if not _updating_from_state:
+			U_UISoundPlayer.play_slider_tick()
 		_update_preview_from_sliders()
 	)
 	_joystick_opacity_slider.value_changed.connect(func(value: float) -> void:
 		_has_local_edits = true
 		_log_local_slider_edit("virtual_joystick_opacity", value)
 		_update_slider_label(_joystick_opacity_label, value)
+		if not _updating_from_state:
+			U_UISoundPlayer.play_slider_tick()
 		_update_preview_from_sliders()
 	)
 	_button_opacity_slider.value_changed.connect(func(value: float) -> void:
 		_has_local_edits = true
 		_log_local_slider_edit("button_opacity", value)
 		_update_slider_label(_button_opacity_label, value)
+		if not _updating_from_state:
+			U_UISoundPlayer.play_slider_tick()
 		_update_preview_from_sliders()
 	)
 	_joystick_deadzone_slider.value_changed.connect(func(value: float) -> void:
 		_has_local_edits = true
 		_log_local_slider_edit("joystick_deadzone", value)
 		_update_slider_label(_joystick_deadzone_label, value)
+		if not _updating_from_state:
+			U_UISoundPlayer.play_slider_tick()
 		_update_preview_from_sliders()
 	)
 
@@ -257,6 +267,7 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	_update_preview_from_sliders()
 
 func _on_apply_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	var store := get_store()
 	if store == null:
 		_close_overlay()
@@ -281,10 +292,12 @@ func _on_apply_pressed() -> void:
 	_close_overlay()
 
 func _on_cancel_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
 	_has_local_edits = false
 	_close_overlay()
 
 func _on_reset_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_joystick_size_slider.value = _defaults.virtual_joystick_size
 	_button_size_slider.value = _defaults.button_size
 	_joystick_opacity_slider.value = _defaults.virtual_joystick_opacity
@@ -313,11 +326,13 @@ func _on_reset_pressed() -> void:
 	_has_local_edits = false
 
 func _on_edit_layout_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	var store := get_store()
 	if store != null:
 		store.dispatch(U_NavigationActions.open_overlay(StringName("edit_touch_controls")))
 
 func _on_back_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
 	print("[TouchscreenSettingsOverlay] _on_back_pressed invoked")
 	_close_overlay()
 

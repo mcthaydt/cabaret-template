@@ -37,6 +37,13 @@ const _MUSIC_REGISTRY: Dictionary = {
 	},
 }
 
+const _UI_SOUND_REGISTRY: Dictionary = {
+	StringName("ui_focus"): preload("res://resources/audio/sfx/placeholder_ui_focus.wav"),
+	StringName("ui_confirm"): preload("res://resources/audio/sfx/placeholder_ui_confirm.wav"),
+	StringName("ui_cancel"): preload("res://resources/audio/sfx/placeholder_ui_cancel.wav"),
+	StringName("ui_tick"): preload("res://resources/audio/sfx/placeholder_ui_tick.wav"),
+}
+
 var _state_store: I_StateStore = null
 var _unsubscribe: Callable
 
@@ -47,6 +54,8 @@ var _inactive_music_player: AudioStreamPlayer
 var _current_music_id: StringName = StringName("")
 var _pre_pause_music_id: StringName = StringName("")
 var _music_tween: Tween
+
+var _ui_player: AudioStreamPlayer
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -59,6 +68,7 @@ func _ready() -> void:
 
 	_create_bus_layout()
 	_initialize_music_players()
+	_initialize_ui_player()
 	M_SFX_SPAWNER.initialize(self)
 
 	if _state_store != null:
@@ -136,6 +146,31 @@ func _initialize_music_players() -> void:
 
 	_active_music_player = _music_player_a
 	_inactive_music_player = _music_player_b
+
+func _initialize_ui_player() -> void:
+	if _ui_player != null and is_instance_valid(_ui_player):
+		return
+
+	_ui_player = AudioStreamPlayer.new()
+	_ui_player.name = "UIPlayer"
+	_ui_player.bus = "UI"
+	add_child(_ui_player)
+
+func play_ui_sound(sound_id: StringName) -> void:
+	if sound_id.is_empty():
+		return
+	if not _UI_SOUND_REGISTRY.has(sound_id):
+		return
+
+	if _ui_player == null or not is_instance_valid(_ui_player):
+		_initialize_ui_player()
+
+	var stream := _UI_SOUND_REGISTRY[sound_id] as AudioStream
+	if stream == null:
+		return
+
+	_ui_player.stream = stream
+	_ui_player.play()
 
 static func _linear_to_db(linear: float) -> float:
 	if linear <= 0.0:

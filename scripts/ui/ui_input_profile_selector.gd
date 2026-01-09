@@ -235,6 +235,7 @@ func _update_button_text() -> void:
 func _cycle_profile(direction: int) -> void:
 	if _available_profiles.is_empty():
 		return
+	U_UISoundPlayer.play_slider_tick()
 	# Cycle in the given direction with wrap-around
 	_current_index = (_current_index + direction) % _available_profiles.size()
 	if _current_index < 0:
@@ -251,6 +252,7 @@ func _on_profile_button_pressed() -> void:
 	_cycle_profile(1)
 
 func _on_apply_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	if _manager == null:
 		_manager = _resolve_input_profile_manager()
 	if _manager != null and _available_profiles.is_empty():
@@ -280,6 +282,7 @@ func _close_overlay() -> void:
 			store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
 
 func _on_back_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
 	_close_overlay()
 
 func _transition_back_to_settings_scene() -> void:

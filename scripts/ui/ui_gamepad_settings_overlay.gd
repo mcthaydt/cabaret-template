@@ -90,12 +90,24 @@ func _configure_focus_neighbors() -> void:
 				button.focus_neighbor_bottom = button.get_path_to(_preview)
 
 func _connect_control_signals() -> void:
-	_left_slider.value_changed.connect(func(value): _update_slider_label(_left_label, value))
-	_right_slider.value_changed.connect(func(value): _update_slider_label(_right_label, value))
-	_vibration_slider.value_changed.connect(func(value): _update_slider_label(_vibration_label, value))
+	_left_slider.value_changed.connect(func(value: float) -> void:
+		_update_slider_label(_left_label, value)
+		if not _updating_from_state:
+			U_UISoundPlayer.play_slider_tick()
+	)
+	_right_slider.value_changed.connect(func(value: float) -> void:
+		_update_slider_label(_right_label, value)
+		if not _updating_from_state:
+			U_UISoundPlayer.play_slider_tick()
+	)
+	_vibration_slider.value_changed.connect(func(value: float) -> void:
+		_update_slider_label(_vibration_label, value)
+		if not _updating_from_state:
+			U_UISoundPlayer.play_slider_tick()
+	)
 	_vibration_checkbox.toggled.connect(_on_vibration_toggled)
 	_apply_button.pressed.connect(_on_apply_pressed)
-	_cancel_button.pressed.connect(_close_overlay)
+	_cancel_button.pressed.connect(_on_cancel_pressed)
 	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
 		_reset_button.pressed.connect(_on_reset_pressed)
 
@@ -146,6 +158,7 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 				_current_device_id = -1
 
 func _on_apply_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	var store := get_store()
 	if store == null:
 		_close_overlay()
@@ -165,6 +178,7 @@ func _on_apply_pressed() -> void:
 	_close_overlay()
 
 func _on_reset_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	var store := get_store()
 	var defaults := RS_GamepadSettings.new()
 
@@ -197,6 +211,11 @@ func _close_overlay() -> void:
 		store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
 
 func _on_back_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
+	_close_overlay()
+
+func _on_cancel_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
 	_close_overlay()
 
 func _process(delta: float) -> void:

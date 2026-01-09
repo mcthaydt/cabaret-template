@@ -342,6 +342,7 @@ func _restore_focus_to_slot(slot_index: int) -> void:
 				return
 
 func _on_slot_item_pressed(slot_id: StringName, exists: bool) -> void:
+	U_UISoundPlayer.play_confirm()
 	if _mode == StringName("save"):
 		if exists:
 			# Show overwrite confirmation
@@ -359,6 +360,7 @@ func _on_slot_item_pressed(slot_id: StringName, exists: bool) -> void:
 		# Empty slots are disabled in load mode, so this shouldn't happen
 
 func _on_delete_button_pressed(slot_id: StringName) -> void:
+	U_UISoundPlayer.play_confirm()
 	# Show delete confirmation
 	_show_confirmation(
 		"Delete this save file?",
@@ -374,6 +376,7 @@ func _show_confirmation(message: String, action_data: Dictionary) -> void:
 	_confirmation_dialog.popup_centered()
 
 func _on_confirmation_ok() -> void:
+	U_UISoundPlayer.play_confirm()
 	var action: String = _pending_action.get("action", "")
 	var slot_id: StringName = _pending_action.get("slot_id", StringName(""))
 
@@ -386,6 +389,7 @@ func _on_confirmation_ok() -> void:
 	_pending_action = {}
 
 func _on_confirmation_cancel() -> void:
+	U_UISoundPlayer.play_cancel()
 	_pending_action = {}
 
 func _perform_save(slot_id: StringName) -> void:
@@ -540,6 +544,7 @@ func _on_back_pressed_button() -> void:
 	_on_back_pressed()
 
 func _on_back_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
 	# Close this overlay and return to pause menu
 	var store := get_store()
 	if store != null:

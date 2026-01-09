@@ -4,6 +4,7 @@ class_name U_RebindActionListBuilder
 const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
+const U_UISoundPlayer := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
 
 const REPLACE_BUTTON_TEXT := "Replace"
 const ADD_BUTTON_TEXT := "Add Binding"
@@ -127,6 +128,7 @@ static func build_action_rows(
 			add_button.custom_minimum_size = Vector2(100, 32)
 			add_button.tooltip_text = "Add an additional binding for this action"
 			add_button.pressed.connect(func() -> void:
+				U_UISoundPlayer.play_confirm()
 				if overlay.has_method("_begin_capture"):
 					overlay._begin_capture(action, U_InputActions.REBIND_MODE_ADD)
 			)
@@ -137,6 +139,7 @@ static func build_action_rows(
 			replace_button.custom_minimum_size = Vector2(80, 32)
 			replace_button.tooltip_text = "Replace all bindings for this action"
 			replace_button.pressed.connect(func() -> void:
+				U_UISoundPlayer.play_confirm()
 				if overlay.has_method("_begin_capture"):
 					overlay._begin_capture(action, U_InputActions.REBIND_MODE_REPLACE)
 			)
@@ -147,6 +150,7 @@ static func build_action_rows(
 			reset_button.custom_minimum_size = Vector2(60, 32)
 			reset_button.tooltip_text = "Reset this action to default binding"
 			reset_button.pressed.connect(func() -> void:
+				U_UISoundPlayer.play_confirm()
 				if overlay.has_method("_reset_single_action"):
 					overlay._reset_single_action(action)
 			)

@@ -210,6 +210,7 @@ func _show_error(message: String) -> void:
 	_error_dialog.popup_centered()
 
 func _on_conflict_confirmed() -> void:
+	U_UISoundPlayer.play_confirm()
 	if _pending_event == null or _pending_action == StringName():
 		_cancel_capture("Rebind cancelled.")
 		return
@@ -220,11 +221,13 @@ func _on_conflict_confirmed() -> void:
 	_apply_binding(event, conflict)
 
 func _on_conflict_canceled() -> void:
+	U_UISoundPlayer.play_cancel()
 	_pending_event = null
 	_pending_conflict = StringName()
 	_cancel_capture("Rebind cancelled.")
 
 func _on_error_dismissed() -> void:
+	U_UISoundPlayer.play_confirm()
 	if not _is_capturing:
 		_refresh_bindings()
 
@@ -233,6 +236,7 @@ func _update_status(text: String) -> void:
 		_status_label.text = text
 
 func _on_close_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
 	if _is_capturing:
 		_cancel_capture()
 	_ensure_store_reference()
@@ -297,6 +301,7 @@ func _update_right_stick_scroll(delta: float) -> void:
 	_scroll.scroll_vertical = int(new_v)
 
 func _on_reset_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	if _is_capturing:
 		_cancel_capture()
 	# Show confirmation dialog before resetting
@@ -304,6 +309,7 @@ func _on_reset_pressed() -> void:
 		_reset_confirm_dialog.popup_centered()
 
 func _on_reset_confirmed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_set_reset_button_enabled(false)
 	if _profile_manager != null and _profile_manager.has_method("reset_to_defaults"):
 		_profile_manager.reset_to_defaults()
@@ -313,6 +319,7 @@ func _on_reset_confirmed() -> void:
 	_set_reset_button_enabled(_profile_manager != null and not _is_capturing)
 
 func _on_reset_canceled() -> void:
+	U_UISoundPlayer.play_cancel()
 	# User canceled the reset, do nothing
 	pass
 

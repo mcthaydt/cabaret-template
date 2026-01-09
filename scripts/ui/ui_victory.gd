@@ -88,14 +88,17 @@ func _update_display(state: Dictionary = {}) -> void:
 		_credits_button.disabled = not game_completed
 
 func _on_continue_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_reset_game_progress()
 	_dispatch_navigation(U_NavigationActions.retry(HUB_SCENE_ID))
 
 func _on_credits_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_reset_game_progress()
 	_dispatch_navigation(U_NavigationActions.skip_to_credits())
 
 func _on_menu_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	_reset_game_progress()
 	_dispatch_navigation(U_NavigationActions.return_to_main_menu())
 

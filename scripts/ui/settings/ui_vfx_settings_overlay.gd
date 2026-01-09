@@ -89,8 +89,8 @@ func _connect_control_signals() -> void:
 		_particles_enabled_toggle.toggled.connect(_on_particles_enabled_toggled)
 	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
 		_apply_button.pressed.connect(_on_apply_pressed)
-	if _cancel_button != null and not _cancel_button.pressed.is_connected(_close_overlay):
-		_cancel_button.pressed.connect(_close_overlay)
+	if _cancel_button != null and not _cancel_button.pressed.is_connected(_on_cancel_pressed):
+		_cancel_button.pressed.connect(_on_cancel_pressed)
 	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
 		_reset_button.pressed.connect(_on_reset_pressed)
 
@@ -137,6 +137,7 @@ func _on_intensity_changed(value: float) -> void:
 	_update_percentage_label(value)
 	if _updating_from_state:
 		return
+	U_UISoundPlayer.play_slider_tick()
 	_has_local_edits = true
 
 func _on_flash_enabled_toggled(_pressed: bool) -> void:
@@ -152,6 +153,7 @@ func _on_particles_enabled_toggled(_pressed: bool) -> void:
 	_has_local_edits = true
 
 func _on_apply_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	var store := get_store()
 	if store == null:
 		_close_overlay()
@@ -172,6 +174,7 @@ func _on_apply_pressed() -> void:
 	_close_overlay()
 
 func _on_reset_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	var defaults := RS_VFXInitialState.new()
 
 	_shake_enabled_toggle.button_pressed = defaults.screen_shake_enabled
@@ -197,6 +200,11 @@ func _close_overlay() -> void:
 		store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
 
 func _on_back_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
+	_close_overlay()
+
+func _on_cancel_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
 	_close_overlay()
 
 func _update_percentage_label(value: float) -> void:

@@ -161,6 +161,8 @@ func _apply_focus_after_layout() -> void:
 		focus_target.grab_focus()
 
 func _on_continue_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
+
 	# Load the most recent save
 	if _save_manager == null:
 		push_error("UI_MainMenu: Save manager not available for Continue")
@@ -185,6 +187,8 @@ func _on_continue_pressed() -> void:
 		push_error("UI_MainMenu: Failed to load save (error %d)" % result)
 
 func _on_new_game_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
+
 	var store := get_store()
 	if store == null:
 		return
@@ -207,6 +211,8 @@ func _show_new_game_confirmation() -> void:
 	_new_game_confirm_dialog.popup_centered()
 
 func _on_new_game_confirmed() -> void:
+	U_UISoundPlayer.play_confirm()
+
 	_new_game_confirmation_pending = false
 	var store := get_store()
 	if store == null:
@@ -214,9 +220,12 @@ func _on_new_game_confirmed() -> void:
 	store.dispatch(U_NavigationActions.start_game(DEFAULT_GAMEPLAY_SCENE))
 
 func _on_new_game_canceled() -> void:
+	U_UISoundPlayer.play_cancel()
 	_new_game_confirmation_pending = false
 
 func _on_load_game_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
+
 	var store := get_store()
 	if store == null:
 		return
@@ -230,16 +239,20 @@ func _on_load_game_pressed() -> void:
 	store.dispatch(U_NavigationActions.open_overlay(OVERLAY_SAVE_LOAD))
 
 func _on_settings_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
+
 	var store := get_store()
 	if store == null:
 		return
 	store.dispatch(U_NavigationActions.set_menu_panel(PANEL_SETTINGS))
 
 func _on_quit_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
 	# Quit the game
 	get_tree().quit()
 
 func _on_back_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
 	if _active_panel != PANEL_MAIN:
 		var store := get_store()
 		if store != null:

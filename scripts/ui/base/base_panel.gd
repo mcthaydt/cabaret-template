@@ -8,6 +8,7 @@ class_name BasePanel
 ## so concrete panels only need to implement their domain logic.
 
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_UISoundPlayer := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
 
 const BACK_ACTION_CANCEL := StringName("ui_cancel")
 const BACK_ACTION_PAUSE := StringName("ui_pause")
@@ -15,12 +16,31 @@ const BACK_ACTION_PAUSE := StringName("ui_pause")
 var _store: I_StateStore = null
 
 func _ready() -> void:
+	_connect_ui_sound_signals()
 	set_process_input(true)
 	set_process_unhandled_input(true)
 	set_process_unhandled_key_input(true)
 	await _ensure_store_ready()
 	_on_panel_ready()
 	await _apply_initial_focus()
+
+func _connect_ui_sound_signals() -> void:
+	var viewport := get_viewport()
+	if viewport == null:
+		return
+	if not viewport.gui_focus_changed.is_connected(_on_gui_focus_changed):
+		viewport.gui_focus_changed.connect(_on_gui_focus_changed)
+
+func _on_gui_focus_changed(control: Control) -> void:
+	if control == null:
+		return
+	if not is_visible_in_tree():
+		return
+	if control != self and not is_ancestor_of(control):
+		return
+	if not control.is_visible_in_tree():
+		return
+	U_UISoundPlayer.play_focus()
 
 func get_store() -> I_StateStore:
 	return _store
