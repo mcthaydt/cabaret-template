@@ -102,11 +102,13 @@ func _navigate_focus(direction: StringName) -> void:
 	# Handle left/right navigation between ProfileButton and ApplyButton
 	if focused == _profile_button and (direction == "ui_left" or direction == "ui_right"):
 		if _apply_button != null:
+			_arm_focus_sound(_profile_button)
 			_apply_button.grab_focus()
 		return
 
 	if focused == _apply_button and (direction == "ui_left" or direction == "ui_right"):
 		if _profile_button != null:
+			_arm_focus_sound(_apply_button)
 			_profile_button.grab_focus()
 		return
 

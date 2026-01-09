@@ -113,6 +113,7 @@ func _navigate_focus(direction: StringName) -> void:
 				next_control = focused.get_node_or_null(focused.focus_neighbor_right) as Control
 
 	if next_control != null and next_control.is_visible_in_tree():
+		_arm_focus_sound(focused)
 		next_control.grab_focus()
 
 func reset_analog_navigation() -> void:

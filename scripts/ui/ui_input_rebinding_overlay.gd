@@ -139,6 +139,8 @@ func _cancel_capture(message: String = "Select an action to rebind.") -> void:
 	U_RebindCaptureHandler.cancel_capture(self, message)
 
 func _input(event: InputEvent) -> void:
+	if not _is_capturing:
+		super._input(event)
 	U_RebindCaptureHandler.handle_input(self, event)
 
 func _handle_captured_event(event: InputEvent) -> void:
