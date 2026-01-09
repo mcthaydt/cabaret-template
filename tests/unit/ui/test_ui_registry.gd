@@ -39,6 +39,7 @@ func test_get_overlays_for_shell_returns_all_gameplay_overlays() -> void:
 		StringName("input_profile_selector"),
 		StringName("gamepad_settings"),
 		StringName("vfx_settings"),
+		StringName("audio_settings"),
 		StringName("touchscreen_settings"),
 		StringName("input_rebinding"),
 		StringName("edit_touch_controls"),
