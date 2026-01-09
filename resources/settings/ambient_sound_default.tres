@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="RS_AmbientSoundSettings" format=3 uid="uid://dxbvr8cy5qpwn"]
+
+[ext_resource type="Script" path="res://scripts/ecs/resources/rs_ambient_sound_settings.gd" id="1_t5vyp"]
+
+[resource]
+script = ExtResource("1_t5vyp")
+enabled = true

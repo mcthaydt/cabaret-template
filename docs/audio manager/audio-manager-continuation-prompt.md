@@ -2,19 +2,19 @@
 
 ## Current Status
 
-- **Implementation status**: Phase 0–5 complete and fully integrated
+- **Implementation status**: Phase 0–6 complete and fully integrated
   - Phase 0-4: Audio Redux slice + M_AudioManager bus layout + volume/mute + music crossfade + scene/pause music switching + BaseEventSFXSystem pattern + pooled 3D SFX + jump/land/death/checkpoint/victory SFX systems
   - Phase 5: Footstep System (C_SurfaceDetectorComponent + S_FootstepSoundSystem + 24 placeholder footstep assets + scene integration)
+  - Phase 6: Ambient System (S_AmbientSoundSystem + dual-player crossfade + scene-based ambient selection + 2 placeholder ambient assets + scene integration)
 - **Main scene**: `scenes/root.tscn` (project `run/main_scene` points here)
 - **Root bootstrap**: `scripts/scene_structure/main.gd` registers manager services via `U_ServiceLocator`
-- **Recent completions** (Phase 5 integration):
-  - `C_SurfaceDetectorComponent` at `scripts/ecs/components/c_surface_detector_component.gd` (extends BaseECSComponent, 6 surface types, 15/15 tests passing)
-  - `S_FootstepSoundSystem` at `scripts/ecs/systems/s_footstep_sound_system.gd` (per-tick system, velocity-based, 20/20 tests passing)
-  - `RS_FootstepSoundSettings` at `scripts/ecs/resources/rs_footstep_sound_settings.gd` (6 surface type arrays with 4 variations each)
-  - `resources/settings/footstep_sound_default.tres` (default settings resource with all 24 audio streams wired)
-  - 24 footstep placeholder WAV files in `resources/audio/footsteps/` (generated via Python script)
-  - Added `C_SurfaceDetectorComponent` to player prefab (`scenes/prefabs/prefab_player.tscn`)
-  - Added `S_FootstepSoundSystem` to all 3 gameplay scenes (gameplay_base, gameplay_exterior, gameplay_interior_house)
+- **Recent completions** (Phase 6 integration):
+  - `S_AmbientSoundSystem` at `scripts/ecs/systems/s_ambient_sound_system.gd` (dual-player crossfade, scene-based selection, extends BaseECSSystem)
+  - `RS_AmbientSoundSettings` at `scripts/ecs/resources/rs_ambient_sound_settings.gd` (enabled flag)
+  - `resources/settings/ambient_sound_default.tres` (default settings resource)
+  - 2 ambient placeholder WAV files in `resources/audio/ambient/` (exterior: 80Hz, interior: 120Hz, 10s loops)
+  - Added `S_AmbientSoundSystem` to all 3 gameplay scenes (gameplay_base, gameplay_exterior, gameplay_interior_house)
+  - All tests passing (10/10 - fixed type inference errors + added Ambient bus setup)
 
 ## Before You Start
 
@@ -34,20 +34,21 @@
 
 ## Test Status
 
-- **Unit tests**: 1341 / 1346 passing (99.6%)
+- **Unit tests**: 1351 / 1356 passing (99.6%)
   - Phase 0 Redux: 51/51 ✅
   - Phase 1 Manager: 11/11 ✅
   - Phase 2 Music: 4/4 ✅
   - Phase 3 Base SFX: 15/15 ✅
   - Phase 4 SFX Systems: 59/59 ✅
   - Phase 5 Footstep: 35/35 ✅
+  - Phase 6 Ambient: 10/10 ✅
 - **Pending tests**: 5 (scene transition timing tests - headless mode incompatible)
-- **Integration tests**: 0 / 100 (Phases 6-9 not started)
+- **Integration tests**: 0 / 100 (Phases 7-9 not started)
 
 ## Next Step
 
-- Start at **Phase 6 (Ambient System)** in `docs/audio manager/audio-manager-tasks.md` and complete tasks in order.
-- Phase 5 is now fully integrated into gameplay scenes and ready for manual testing.
+- Start at **Phase 7 (UI Sound Integration)** in `docs/audio manager/audio-manager-tasks.md` and complete tasks in order.
+- Phase 6 is now fully integrated into gameplay scenes and ready for manual testing.
 - After each completed phase:
   - Update `docs/audio manager/audio-manager-tasks.md` checkboxes + completion notes
   - Update this file with the new current status + "next step" ONLY

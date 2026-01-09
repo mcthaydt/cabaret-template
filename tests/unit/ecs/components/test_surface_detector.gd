@@ -6,18 +6,21 @@ extends GutTest
 const C_SURFACE_DETECTOR_SCRIPT := preload("res://scripts/ecs/components/c_surface_detector_component.gd")
 
 var detector: C_SurfaceDetectorComponent
-var detector_parent: Node3D  # Parent node for positioning
+var character_body: CharacterBody3D  # CharacterBody3D for the detector to attach to
 var static_body: StaticBody3D
 var collision_shape: CollisionShape3D
 
 func before_each() -> void:
-	# Create parent node for detector (needs 3D position)
-	detector_parent = Node3D.new()
-	add_child_autofree(detector_parent)
+	# Create CharacterBody3D for the detector to attach its raycast to
+	character_body = CharacterBody3D.new()
+	add_child_autofree(character_body)
 
-	# Create detector component as child of parent
+	# Create detector component as child of character body
 	detector = C_SurfaceDetectorComponent.new()
-	detector_parent.add_child(detector)
+	# Set character_body_path BEFORE adding to tree so _ready() can find it
+	# Use relative path ".." since detector will be direct child of character_body
+	detector.character_body_path = NodePath("..")
+	character_body.add_child(detector)
 	await get_tree().process_frame
 
 	# Create a static body for collision testing
@@ -34,27 +37,29 @@ func before_each() -> void:
 	static_body.add_child(collision_shape)
 	static_body.position = Vector3(0, -0.5, 0)
 
-	# Detector parent starts at origin
-	detector_parent.position = Vector3(0, 0, 0)
+	# Character body starts at origin
+	character_body.position = Vector3(0, 0, 0)
 
 	await get_tree().physics_frame
 
 func after_each() -> void:
 	detector = null
+	character_body = null
 	static_body = null
 	collision_shape = null
 
 # Test 1: Component initializes with raycast
 func test_component_initializes_raycast() -> void:
 	assert_not_null(detector, "Detector should exist")
-	var raycast := detector.get_node_or_null("RayCast3D") as RayCast3D
-	assert_not_null(raycast, "Should have RayCast3D child")
+	# Raycast is created as child of CharacterBody3D, not the detector itself
+	var raycast := character_body.get_node_or_null("SurfaceDetectorRay") as RayCast3D
+	assert_not_null(raycast, "Should have SurfaceDetectorRay child on CharacterBody3D")
 	assert_true(raycast.enabled, "RayCast should be enabled")
 
 # Test 2: Raycast configured correctly
 func test_raycast_configuration() -> void:
-	var raycast := detector.get_node("RayCast3D") as RayCast3D
-	assert_eq(raycast.target_position, Vector3(0, -1.0, 0), "Should cast downward 1 meter")
+	var raycast := character_body.get_node("SurfaceDetectorRay") as RayCast3D
+	assert_eq(raycast.target_position, Vector3(0, -2.0, 0), "Should cast downward 2 meters")
 	assert_eq(raycast.collision_mask, 1, "Should collide with layer 1 (world geometry)")
 
 # Test 3: SurfaceType enum has 6 values
@@ -70,7 +75,7 @@ func test_surface_type_enum() -> void:
 # Test 4: Returns DEFAULT when not colliding
 func test_returns_default_when_not_colliding() -> void:
 	# Position detector high above ground so raycast doesn't hit
-	detector_parent.position = Vector3(0, 10, 0)
+	character_body.position = Vector3(0, 10, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
@@ -93,7 +98,7 @@ func test_returns_default_when_collider_null() -> void:
 # Test 6: Reads surface_type metadata - GRASS
 func test_reads_grass_metadata() -> void:
 	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.GRASS)
-	detector_parent.position = Vector3(0, 0, 0)
+	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
@@ -104,7 +109,7 @@ func test_reads_grass_metadata() -> void:
 # Test 7: Reads surface_type metadata - STONE
 func test_reads_stone_metadata() -> void:
 	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.STONE)
-	detector_parent.position = Vector3(0, 0, 0)
+	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
@@ -115,7 +120,7 @@ func test_reads_stone_metadata() -> void:
 # Test 8: Reads surface_type metadata - WOOD
 func test_reads_wood_metadata() -> void:
 	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.WOOD)
-	detector_parent.position = Vector3(0, 0, 0)
+	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
@@ -126,7 +131,7 @@ func test_reads_wood_metadata() -> void:
 # Test 9: Reads surface_type metadata - METAL
 func test_reads_metal_metadata() -> void:
 	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.METAL)
-	detector_parent.position = Vector3(0, 0, 0)
+	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
@@ -137,7 +142,7 @@ func test_reads_metal_metadata() -> void:
 # Test 10: Reads surface_type metadata - WATER
 func test_reads_water_metadata() -> void:
 	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.WATER)
-	detector_parent.position = Vector3(0, 0, 0)
+	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
@@ -148,7 +153,7 @@ func test_reads_water_metadata() -> void:
 # Test 11: Falls back to DEFAULT if metadata missing
 func test_fallback_to_default_when_metadata_missing() -> void:
 	# Don't set any metadata
-	detector_parent.position = Vector3(0, 0, 0)
+	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
@@ -159,7 +164,7 @@ func test_fallback_to_default_when_metadata_missing() -> void:
 # Test 12: Falls back to DEFAULT if metadata is wrong type
 func test_fallback_to_default_when_metadata_wrong_type() -> void:
 	static_body.set_meta("surface_type", "invalid_string")
-	detector_parent.position = Vector3(0, 0, 0)
+	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
@@ -170,7 +175,7 @@ func test_fallback_to_default_when_metadata_wrong_type() -> void:
 # Test 13: detect_surface() can be called multiple times
 func test_detect_surface_callable_multiple_times() -> void:
 	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.GRASS)
-	detector_parent.position = Vector3(0, 0, 0)
+	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
@@ -188,7 +193,7 @@ func test_surface_changes_when_detector_moves() -> void:
 	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.GRASS)
 
 	# Detect GRASS
-	detector_parent.position = Vector3(0, 0, 0)
+	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
@@ -203,23 +208,23 @@ func test_surface_changes_when_detector_moves() -> void:
 	var surface2: int = detector.detect_surface()
 	assert_eq(surface2, C_SurfaceDetectorComponent.SurfaceType.METAL, "Should detect METAL after surface type changes")
 
-# Test 15: Raycast distance is 1 meter (functional test)
-func test_raycast_distance_one_meter() -> void:
-	# Position floor exactly 1.5 meters below detector (should NOT detect)
-	detector_parent.position = Vector3(0, 0, 0)
-	static_body.position = Vector3(0, -1.5, 0)
+# Test 15: Raycast distance is 2 meters (functional test)
+func test_raycast_distance_two_meters() -> void:
+	# Position floor exactly 2.5 meters below detector (should NOT detect)
+	character_body.position = Vector3(0, 0, 0)
+	static_body.position = Vector3(0, -2.5, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
 	var surface_type: int = detector.detect_surface()
 	assert_eq(surface_type, C_SurfaceDetectorComponent.SurfaceType.DEFAULT,
-		"Should not detect surface beyond 1 meter")
+		"Should not detect surface beyond 2 meters")
 
-	# Position floor exactly 0.5 meters below detector (SHOULD detect)
-	static_body.position = Vector3(0, -0.5, 0)
+	# Position floor exactly 1.5 meters below detector (SHOULD detect)
+	static_body.position = Vector3(0, -1.5, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
 	surface_type = detector.detect_surface()
 	assert_eq(surface_type, C_SurfaceDetectorComponent.SurfaceType.DEFAULT,
-		"Should detect surface within 1 meter (returns DEFAULT with no metadata)")
+		"Should detect surface within 2 meters (returns DEFAULT with no metadata)")

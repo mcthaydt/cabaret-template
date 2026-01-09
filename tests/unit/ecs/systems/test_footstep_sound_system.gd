@@ -70,8 +70,9 @@ func before_each() -> void:
 
 	# Create surface detector component
 	surface_detector = C_SurfaceDetectorComponent.new()
+	# Set character_body_path BEFORE adding to tree (use ".." since detector is child of entity)
+	surface_detector.character_body_path = NodePath("..")
 	entity.add_child(surface_detector)
-	surface_detector.character_body_path = surface_detector.get_path_to(entity)
 	autofree(surface_detector)
 	await get_tree().process_frame  # Wait for component to register
 
@@ -335,6 +336,8 @@ func test_multiple_entities_independent_footsteps() -> void:
 	autofree(entity2)
 
 	var detector2 := C_SurfaceDetectorComponent.new()
+	# Set character_body_path BEFORE adding to tree (use ".." since detector is child of entity)
+	detector2.character_body_path = NodePath("..")
 	entity2.add_child(detector2)
 	autofree(detector2)
 
