@@ -44,6 +44,8 @@
 
 - **New `class_name` types can break type hints in headless tests**: When adding a brand-new helper script with `class_name Foo`, using `Foo` as a member variable annotation in an existing script can fail to parse under headless GUT runs (`Parse Error: Could not find type "Foo" in the current scope`). Prefer untyped members (or a base type like `RefCounted`) and instantiate via `preload("...").new()` until the class is reliably discovered/loaded.
 
+- **Child scripts cannot redeclare parent members (incl. `const`)**: If a base class defines a member like `const U_Foo := preload("...")`, declaring another `const U_Foo := ...` in a derived script causes a parse error (`The member "U_Foo" already exists in parent class ...`). Prefer inheriting the constant, or use a different name in the child.
+
 ## Asset Import Pitfalls (Headless Tests)
 
 - **New assets used with `preload()` can fail until `.import` files exist**: If you add a new `*.ogg`, `*.png`, etc and immediately reference it via `preload("res://...")`, headless GUT runs can fail because Godot hasn’t generated the sidecar `*.import` file yet.

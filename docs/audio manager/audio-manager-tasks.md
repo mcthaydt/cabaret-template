@@ -1,8 +1,8 @@
 # Audio Manager - Task Checklist
 
-**Progress:** 100% (33 / 33 tasks complete for Phases 0-5)
-**Unit Tests:** 1341 / 1346 passing (Phase 0 Redux: 51/51, Phase 1 Manager: 11/11, Phase 2 Music: 4/4, Phase 3 Base SFX: 15/15, Phase 4 SFX Systems: 59/59, Phase 5 Footstep: 35/35)
-**Integration Tests:** 0 / 100 passing (Phases 6-9 not started)
+**Progress:** 82% (42 / 51 tasks complete through Phase 7)
+**Unit Tests:** 1363 / 1368 passing (5 pending: headless scene transition timing tests)
+**Integration Tests:** 0 / 100 passing (Phases 8-9 not started)
 **Manual QA:** 0 / 20 complete (Phase 10 not started)
 
 ---
@@ -1012,33 +1012,33 @@
 - Created `resources/settings/ambient_sound_default.tres` (default settings resource)
 - Added S_AmbientSoundSystem to all 3 gameplay scenes (gameplay_base, gameplay_exterior, gameplay_interior_house)
 - System implementation complete and integrated, ready for manual testing
-- Verified GREEN: All unit tests passing (1351/1356 total, 99.6%)
+- Verified GREEN: All unit tests passing (1363/1368 total; 5 pending headless timing tests)
 
 ---
 
-## Phase 7: UI Sound Integration
+## Phase 7: UI Sound Integration ✅ COMPLETE
 
 **Exit Criteria:** 5 UI sound tests pass, UI sounds play on focus/confirm/cancel, slider sounds throttled (max 10/sec), sounds play even during scene transitions
 
-- [ ] **Task 7.1 (Green)**: Create placeholder UI sound assets
+- [x] **Task 7.1 (Green)**: Create placeholder UI sound assets
   - Create `resources/audio/sfx/placeholder_ui_focus.wav` (1000Hz tone, 30ms, export as WAV)
   - Create `resources/audio/sfx/placeholder_ui_confirm.wav` (1200Hz tone, 50ms, export as WAV)
   - Create `resources/audio/sfx/placeholder_ui_cancel.wav` (800Hz tone, 50ms, export as WAV)
   - Create `resources/audio/sfx/placeholder_ui_tick.wav` (1400Hz tone, 20ms, export as WAV)
   - High-frequency tones are recognizable as UI sounds vs gameplay SFX
 
-- [ ] **Task 7.2 (Red)**: Write tests for U_UISoundPlayer utility
-  - Create `tests/unit/managers/helpers/test_ui_sound_player.gd`
-  - Tests: `play_focus()` dispatches UI sound action, `play_confirm()` dispatches, `play_cancel()` dispatches, `play_slider_tick()` dispatches with throttling (max 10/sec = 100ms interval)
-  - All 5 tests failing as expected
+- [x] **Task 7.2 (Red)**: Write tests for U_UISoundPlayer utility
+  - Create `tests/unit/ui/test_ui_sound_player.gd`
+  - Tests: `play_focus()`, `play_confirm()`, `play_cancel()`, and `play_slider_tick()` call AudioManager UI playback; slider tick throttled to max 10/sec (100ms interval)
+  - All 5 tests failing as expected ✅
 
-- [ ] **Task 7.3 (Green)**: Implement U_UISoundPlayer utility
-  - Create `scripts/managers/helpers/u_ui_sound_player.gd`:
+- [x] **Task 7.3 (Green)**: Implement U_UISoundPlayer utility
+  - Create `scripts/ui/utils/u_ui_sound_player.gd` (moved to UI utils to satisfy `tests/unit/style/test_style_enforcement.gd` prefix rules):
     ```gdscript
     class_name U_UISoundPlayer
     extends RefCounted
 
-    static var _last_tick_time: int = 0
+    static var _last_tick_time_ms: int = 0
 
     static func play_focus() -> void:
         var audio_mgr := _get_audio_manager()
@@ -1057,21 +1057,21 @@
 
     static func play_slider_tick() -> void:
         # Throttle to max 10/second (100ms interval)
-        var current_time := Time.get_ticks_msec()
-        if current_time - _last_tick_time < 100:
+        var current_time_ms := Time.get_ticks_msec()
+        if current_time_ms - _last_tick_time_ms < 100:
             return
 
         var audio_mgr := _get_audio_manager()
         if audio_mgr != null:
             audio_mgr.play_ui_sound(StringName("ui_tick"))
-            _last_tick_time = current_time
+            _last_tick_time_ms = current_time_ms
 
-    static func _get_audio_manager() -> M_AudioManager:
-        return U_ServiceLocator.get_service(StringName("audio_manager")) as M_AudioManager
+    static func _get_audio_manager() -> Node:
+        return U_ServiceLocator.try_get_service(StringName("audio_manager"))
     ```
   - All 5 tests passing
 
-- [ ] **Task 7.4 (Green)**: Add UI sound playback to Audio Manager
+- [x] **Task 7.4 (Green)**: Add UI sound playback to Audio Manager
   - Modify `scripts/managers/m_audio_manager.gd`
   - Add UI sound registry:
     ```gdscript
@@ -1102,20 +1102,12 @@
     ```
   - UI sounds play on UI bus, independent of scene transitions
 
-- [ ] **Task 7.5 (Green)**: Integrate UI sounds into BasePanel
-  - Modify `scripts/ui/base_panel.gd`
-  - Add to `_ready()`:
-    ```gdscript
-    focus_entered.connect(_on_focus_entered)
-    ```
-  - Add handler:
-    ```gdscript
-    func _on_focus_entered() -> void:
-        U_UISoundPlayer.play_focus()
-    ```
-  - Every panel/button that gains focus plays focus sound
+- [x] **Task 7.5 (Green)**: Integrate UI sounds into BasePanel
+  - Modify `scripts/ui/base/base_panel.gd`
+  - Subscribe to `Viewport.gui_focus_changed` and play focus sound for any focus changes inside the panel subtree
+  - Focus sound plays for buttons/sliders/etc (not just the panel root)
 
-- [ ] **Task 7.6 (Green)**: Add confirm/cancel sounds to common UI interactions
+- [x] **Task 7.6 (Green)**: Add confirm/cancel sounds to common UI interactions
   - Modify button handlers across UI scripts to call `U_UISoundPlayer.play_confirm()` on button press
   - Modify back/cancel button handlers to call `U_UISoundPlayer.play_cancel()`
   - Modify slider `value_changed` handlers to call `U_UISoundPlayer.play_slider_tick()`
@@ -1133,6 +1125,14 @@
         U_UISoundPlayer.play_slider_tick()
         # ... existing logic
     ```
+
+**Completion Notes:**
+- Created UI placeholder WAVs: `resources/audio/sfx/placeholder_ui_focus.wav`, `placeholder_ui_confirm.wav`, `placeholder_ui_cancel.wav`, `placeholder_ui_tick.wav`
+- Created `scripts/ui/utils/u_ui_sound_player.gd` (throttled slider tick; ServiceLocator lookup)
+- Added UI playback support to `scripts/managers/m_audio_manager.gd` (`UIPlayer` on `UI` bus + `_UI_SOUND_REGISTRY` + `play_ui_sound()`)
+- Integrated focus sound in `scripts/ui/base/base_panel.gd` via `Viewport.gui_focus_changed`
+- Added confirm/cancel/tick calls across common UI scripts (main menu, pause, settings, save/load, input rebinding, touchscreen/gamepad settings, etc.)
+- Verified GREEN: `tests/unit/style/test_style_enforcement.gd`, `tests/unit/ui/*`, full `tests/unit/*` (1363/1368 pass; 5 pending)
 
 ---
 
