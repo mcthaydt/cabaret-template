@@ -19,11 +19,13 @@ var _unsubscribe: Callable
 const _AMBIENT_REGISTRY: Dictionary = {
 	StringName("exterior"): {
 		"stream": preload("res://resources/audio/ambient/placeholder_exterior.wav"),
-		"scenes": [StringName("gameplay_base"), StringName("gameplay_exterior")]
+		# Scene IDs from u_scene_registry_loader.gd: gameplay_base, exterior
+		"scenes": [StringName("gameplay_base"), StringName("exterior")]
 	},
 	StringName("interior"): {
 		"stream": preload("res://resources/audio/ambient/placeholder_interior.wav"),
-		"scenes": [StringName("gameplay_interior_house"), StringName("interior_test")]
+		# Scene IDs from u_scene_registry_loader.gd: interior_house
+		"scenes": [StringName("interior_house"), StringName("interior_test")]
 	}
 }
 
@@ -48,6 +50,13 @@ func _ready() -> void:
 	_state_store = U_ServiceLocator.get_service(StringName("state_store"))
 	if _state_store != null:
 		_unsubscribe = _state_store.subscribe(_on_state_changed)
+
+		# Initialize ambient based on current scene state
+		# (transition_completed may have already been dispatched before we subscribed)
+		var scene_state: Dictionary = _state_store.get_slice(StringName("scene"))
+		var current_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
+		if current_scene_id != StringName(""):
+			_change_ambient_for_scene(current_scene_id)
 
 func _exit_tree() -> void:
 	if _unsubscribe.is_valid():
