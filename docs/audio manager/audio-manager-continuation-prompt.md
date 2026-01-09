@@ -6,14 +6,14 @@
   - Phase 0-4: Audio Redux slice + M_AudioManager bus layout + volume/mute + music crossfade + scene/pause music switching + BaseEventSFXSystem pattern + pooled 3D SFX + jump/land/death/checkpoint/victory SFX systems
   - Phase 5: Footstep System (C_SurfaceDetectorComponent + S_FootstepSoundSystem + 24 placeholder footstep assets + scene integration)
   - Phase 6: Ambient System (S_AmbientSoundSystem + dual-player crossfade + scene-based ambient selection + 2 placeholder ambient assets + scene integration)
-  - Phase 7: UI Sound Integration (U_UISoundPlayer + AudioManager UIPlayer + BasePanel focus sounds + common UI confirm/cancel/tick wiring)
+  - Phase 7: UI Sound Integration (U_UISoundPlayer + AudioManager UIPlayer + input-gated BasePanel focus sounds + common UI confirm/cancel/tick wiring)
 - **Main scene**: `scenes/root.tscn` (project `run/main_scene` points here)
 - **Root bootstrap**: `scripts/scene_structure/main.gd` registers manager services via `U_ServiceLocator`
 - **Recent completions** (Phase 7 integration):
   - `U_UISoundPlayer` at `scripts/ui/utils/u_ui_sound_player.gd` (focus/confirm/cancel/tick + 100ms tick throttle)
   - `tests/unit/ui/test_ui_sound_player.gd` (5/5 tests)
   - `M_AudioManager` UI playback at `scripts/managers/m_audio_manager.gd` (`UIPlayer` on UI bus + `_UI_SOUND_REGISTRY` + `play_ui_sound()`)
-  - `BasePanel` focus sounds at `scripts/ui/base/base_panel.gd` (plays focus sound via `Viewport.gui_focus_changed`)
+  - `BasePanel` focus sounds at `scripts/ui/base/base_panel.gd` (plays focus sound via `Viewport.gui_focus_changed`, armed only by player navigation input; initial focus silent)
   - `S_AmbientSoundSystem` at `scripts/ecs/systems/s_ambient_sound_system.gd` (dual-player crossfade, scene-based selection, extends BaseECSSystem)
   - `RS_AmbientSoundSettings` at `scripts/ecs/resources/rs_ambient_sound_settings.gd` (enabled flag)
   - `resources/settings/ambient_sound_default.tres` (default settings resource)

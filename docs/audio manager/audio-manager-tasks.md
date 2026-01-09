@@ -1104,8 +1104,10 @@
 
 - [x] **Task 7.5 (Green)**: Integrate UI sounds into BasePanel
   - Modify `scripts/ui/base/base_panel.gd`
-  - Subscribe to `Viewport.gui_focus_changed` and play focus sound for any focus changes inside the panel subtree
-  - Focus sound plays for buttons/sliders/etc (not just the panel root)
+  - Subscribe to `Viewport.gui_focus_changed` and play focus sound for focus changes inside the panel subtree
+  - **Input-gated**: focus sound only plays when player navigation input actually causes the focus move
+    - Initial/programmatic focus assignment is silent
+    - Ignore `InputEventJoypadMotion` arming (analog navigation arms at the focus-move call site)
 
 - [x] **Task 7.6 (Green)**: Add confirm/cancel sounds to common UI interactions
   - Modify button handlers across UI scripts to call `U_UISoundPlayer.play_confirm()` on button press
@@ -1130,7 +1132,7 @@
 - Created UI placeholder WAVs: `resources/audio/sfx/placeholder_ui_focus.wav`, `placeholder_ui_confirm.wav`, `placeholder_ui_cancel.wav`, `placeholder_ui_tick.wav`
 - Created `scripts/ui/utils/u_ui_sound_player.gd` (throttled slider tick; ServiceLocator lookup)
 - Added UI playback support to `scripts/managers/m_audio_manager.gd` (`UIPlayer` on `UI` bus + `_UI_SOUND_REGISTRY` + `play_ui_sound()`)
-- Integrated focus sound in `scripts/ui/base/base_panel.gd` via `Viewport.gui_focus_changed`
+- Integrated focus sound in `scripts/ui/base/base_panel.gd` via `Viewport.gui_focus_changed` + input arming (initial focus silent; analog nav arms at focus move)
 - Added confirm/cancel/tick calls across common UI scripts (main menu, pause, settings, save/load, input rebinding, touchscreen/gamepad settings, etc.)
 - Verified GREEN: `tests/unit/style/test_style_enforcement.gd`, `tests/unit/ui/*`, full `tests/unit/*` (1363/1368 pass; 5 pending)
 

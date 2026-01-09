@@ -54,6 +54,11 @@
 
 ## UI Navigation Pitfalls (Gamepad/Joystick)
 
+### Focus Sound Arming (Phase 7 - UI Audio)
+
+- **BasePanel focus sound is input-gated**: `BasePanel` only plays the focus sound when a focus change was preceded by player navigation input (and analog stick navigation arms at the actual focus move point).
+  - If a `BasePanel` subclass overrides `_input(event)`, it must call `super._input(event)` (or conditionally call it when not capturing input) or keyboard/D-pad focus moves will become silent.
+
 ### UI Navigation Deadzone Consistency
 
 - **Problem**: Inconsistent deadzone values between InputMap actions and device detection cause unpredictable gamepad navigation behavior. If `ui_up/down/left/right` actions use a 0.2 deadzone while device detection uses 0.25, analog stick values between 0.2-0.25 will trigger navigation but might not register as device input, creating timing inconsistencies. Additionally, stick drift (typical range 0.15-0.2) can cause false navigation triggers with low deadzones.
