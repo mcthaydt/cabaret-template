@@ -18,6 +18,7 @@ const STREAM_MAIN_MENU := preload("res://resources/audio/music/main_menu.mp3")
 const STREAM_EXTERIOR := preload("res://resources/audio/music/exterior.mp3")
 const STREAM_INTERIOR := preload("res://resources/audio/music/interior.mp3")
 const STREAM_PAUSE := preload("res://resources/audio/music/pause.mp3")
+const STREAM_CREDITS := preload("res://resources/audio/music/credits.mp3")
 
 var _manager: Node
 var _store: Node
@@ -259,6 +260,20 @@ func test_scene_transition_to_interior_house_plays_interior_music() -> void:
 	await get_tree().process_frame
 
 	assert_true(_is_stream_playing(_manager, STREAM_INTERIOR), "interior_house scene should play interior music")
+
+func test_scene_transition_to_credits_plays_credits_music() -> void:
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("credits")))
+	await get_tree().process_frame
+
+	assert_true(_is_stream_playing(_manager, STREAM_CREDITS), "credits scene should play credits music")
 
 func test_transition_between_exterior_and_interior() -> void:
 	_store = _make_store_with_audio_slice()

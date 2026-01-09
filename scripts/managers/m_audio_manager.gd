@@ -33,7 +33,7 @@ const _MUSIC_REGISTRY: Dictionary = {
 	},
 	StringName("credits"): {
 		"stream": preload("res://resources/audio/music/credits.mp3"),
-		"scenes": [StringName("endgame")],
+		"scenes": [StringName("credits")],
 	},
 }
 
