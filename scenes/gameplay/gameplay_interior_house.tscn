@@ -38,6 +38,8 @@
 [ext_resource type="Script" uid="uid://evn7fqusp07e" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
 [ext_resource type="Script" uid="uid://uvv0alqmjm2u" path="res://scripts/ecs/systems/s_victory_sound_system.gd" id="13_victory_sound"]
 [ext_resource type="Resource" uid="uid://dv3s5a4nyjf05" path="res://resources/settings/victory_sound_default.tres" id="13_victory_sound_settings"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_footstep_sound_system.gd" id="14_footstep_sound"]
+[ext_resource type="Resource" uid="uid://b3kx5fj7m8qwo" path="res://resources/settings/footstep_sound_default.tres" id="14_footstep_sound_settings"]
 [ext_resource type="Script" uid="uid://jtue6ng08jt1" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://wcj50ipurwwr" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
@@ -244,6 +246,11 @@ execution_priority = 124
 script = ExtResource("13_victory_sound")
 settings = ExtResource("13_victory_sound_settings")
 execution_priority = 125
+
+[node name="S_FootstepSoundSystem" type="Node" parent="Systems/Feedback" unique_id=-2049288393]
+script = ExtResource("14_footstep_sound")
+settings = ExtResource("14_footstep_sound_settings")
+execution_priority = 126
 
 [node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=2040651441]
 script = ExtResource("10_landing_particles")

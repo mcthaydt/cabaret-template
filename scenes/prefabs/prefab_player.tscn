@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://d2tbsapg26ux" path="res://scripts/ecs/components/c_gamepad_component.gd" id="3_gamepad"]
 [ext_resource type="Resource" uid="uid://flpd0eijo5ab" path="res://resources/input/gamepad_settings/default_gamepad_settings.tres" id="4_gamepad_settings"]
 [ext_resource type="Script" uid="uid://ddxwdrvpwjai5" path="res://scripts/ecs/components/c_player_tag_component.gd" id="5_player_tag"]
+[ext_resource type="Script" uid="uid://cmrnrx0lij1v2" path="res://scripts/ecs/components/c_surface_detector_component.gd" id="6_surface_detector"]
 
 [node name="E_PlayerRoot" unique_id=526145796 groups=["player"] instance=ExtResource("1_character_template")]
 entity_id = &"player"
@@ -19,3 +20,7 @@ settings = ExtResource("4_gamepad_settings")
 
 [node name="C_PlayerTagComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="9" unique_id=1282510621]
 script = ExtResource("5_player_tag")
+
+[node name="C_SurfaceDetectorComponent" type="Node" parent="Components" parent_id_path=PackedInt32Array(1373490017) index="10" unique_id=1856743521]
+script = ExtResource("6_surface_detector")
+character_body_path = NodePath("../../Player_Body")

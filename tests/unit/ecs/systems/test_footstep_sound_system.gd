@@ -71,6 +71,7 @@ func before_each() -> void:
 	# Create surface detector component
 	surface_detector = C_SurfaceDetectorComponent.new()
 	entity.add_child(surface_detector)
+	surface_detector.character_body_path = surface_detector.get_path_to(entity)
 	autofree(surface_detector)
 	await get_tree().process_frame  # Wait for component to register
 

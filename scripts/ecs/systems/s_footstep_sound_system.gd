@@ -16,6 +16,7 @@ class_name S_FootstepSoundSystem
 const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_footstep_sound_settings.gd")
 const SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
 const SURFACE_DETECTOR_TYPE := StringName("C_SurfaceDetectorComponent")
+const FLOATING_TYPE := StringName("C_FloatingComponent")
 
 @export var settings: SETTINGS_TYPE
 
@@ -48,38 +49,42 @@ func process_tick(delta: float) -> void:
 	if manager == null:
 		return
 
-	# Query entities that have surface detector components
+	# Query entities that have surface detector components (floating is optional)
 	var entities := manager.query_entities(
 		[SURFACE_DETECTOR_TYPE],
-		[]
+		[FLOATING_TYPE]
 	)
+	var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, FLOATING_TYPE)
 
 	for entity_query in entities:
 		var surface_detector := entity_query.get_component(SURFACE_DETECTOR_TYPE) as C_SurfaceDetectorComponent
 		if surface_detector == null:
 			continue
 
-		# Get the entity's CharacterBody3D (surface detector should be child of CharacterBody3D)
-		var body := _get_character_body(surface_detector)
+		# Get the entity's CharacterBody3D via the wired character_body_path
+		var body := surface_detector.get_character_body()
 		if body == null:
 			continue
 
+		# Get floating component if available (for hover-based characters)
+		var floating_component: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
+		if floating_component == null:
+			floating_component = floating_by_body.get(body, null) as C_FloatingComponent
+
 		# Process footstep logic for this entity
-		_process_entity_footstep(body, surface_detector, delta)
+		_process_entity_footstep(body, surface_detector, floating_component, delta)
 
-func _get_character_body(surface_detector: C_SurfaceDetectorComponent) -> CharacterBody3D:
-	"""Find the CharacterBody3D parent of the surface detector."""
-	var parent := surface_detector.get_parent()
-	while parent != null:
-		if parent is CharacterBody3D:
-			return parent
-		parent = parent.get_parent()
-	return null
-
-func _process_entity_footstep(body: CharacterBody3D, surface_detector: C_SurfaceDetectorComponent, delta: float) -> void:
+func _process_entity_footstep(body: CharacterBody3D, surface_detector: C_SurfaceDetectorComponent, floating_component: C_FloatingComponent, delta: float) -> void:
 	"""Process footstep logic for a single entity."""
 	# Check if entity is on the ground
-	if not body.is_on_floor():
+	# Support both traditional is_on_floor() and floating component's grounded state
+	var is_on_floor_raw: bool = body.is_on_floor()
+	var floating_grounded: bool = false
+	if floating_component != null:
+		floating_grounded = floating_component.grounded_stable
+	var is_grounded: bool = is_on_floor_raw or floating_grounded
+
+	if not is_grounded:
 		# Reset timer when airborne so footstep plays immediately on landing
 		_entity_timers.erase(body)
 		return

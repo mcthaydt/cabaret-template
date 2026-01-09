@@ -38,6 +38,8 @@
 [ext_resource type="Script" uid="uid://evn7fqusp07e" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
 [ext_resource type="Script" uid="uid://uvv0alqmjm2u" path="res://scripts/ecs/systems/s_victory_sound_system.gd" id="13_victory_sound"]
 [ext_resource type="Resource" uid="uid://dv3s5a4nyjf05" path="res://resources/settings/victory_sound_default.tres" id="13_victory_sound_settings"]
+[ext_resource type="Script" uid="uid://dy7qx4w4s2d1o" path="res://scripts/ecs/systems/s_footstep_sound_system.gd" id="14_footstep_sound"]
+[ext_resource type="Resource" uid="uid://b3kx5fj7m8qwo" path="res://resources/settings/footstep_sound_default.tres" id="14_footstep_sound_settings"]
 [ext_resource type="Script" uid="uid://jtue6ng08jt1" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://wcj50ipurwwr" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
@@ -107,24 +109,27 @@ script = ExtResource("1_f2o31")
 [node name="SceneObjects" type="Node3D" parent="." unique_id=1346780889]
 script = ExtResource("2_ph0bl")
 
-[node name="SO_Floor" type="CSGBox3D" parent="SceneObjects" unique_id=1652204604]
+[node name="SO_Floor_Grass" type="CSGBox3D" parent="SceneObjects" unique_id=1652204604]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
 material_override = SubResource("StandardMaterial3D_q3o1v")
 use_collision = true
 size = Vector3(25, 1, 25)
 material = SubResource("StandardMaterial3D_748a2")
+metadata/surface_type = 4
 
-[node name="SO_Block2" type="CSGBox3D" parent="SceneObjects" unique_id=952943046]
+[node name="SO_Block2_Stone" type="CSGBox3D" parent="SceneObjects" unique_id=952943046]
 transform = Transform3D(0.9999651, 0.008359998, 0, -0.008359998, 0.9999651, 0, 0, 0, 1, -5.180423, -1.1647629, -0.10645056)
 use_collision = true
 size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
+metadata/surface_type = 1
 
-[node name="SO_Block3" type="CSGBox3D" parent="SceneObjects" unique_id=105740316]
+[node name="SO_Block3_Stone" type="CSGBox3D" parent="SceneObjects" unique_id=105740316]
 transform = Transform3D(0.99974185, -0.022722274, 0, 0.022722274, 0.99974185, 0, 0, 0, 1, -5.180423, 0.09107876, -3.1731567)
 use_collision = true
 size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
+metadata/surface_type = 1
 
 [node name="Environment" type="Node" parent="." unique_id=1363665914]
 script = ExtResource("2_8soux")
@@ -239,6 +244,11 @@ execution_priority = 124
 script = ExtResource("13_victory_sound")
 settings = ExtResource("13_victory_sound_settings")
 execution_priority = 125
+
+[node name="S_FootstepSoundSystem" type="Node" parent="Systems/Feedback" unique_id=2145678902]
+script = ExtResource("14_footstep_sound")
+settings = ExtResource("14_footstep_sound_settings")
+execution_priority = 126
 
 [node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=1334571321]
 script = ExtResource("10_landing_particles")

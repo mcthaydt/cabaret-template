@@ -4,14 +4,17 @@ class_name C_SurfaceDetectorComponent
 
 const COMPONENT_TYPE := StringName("C_SurfaceDetectorComponent")
 
-## Component that detects surface types beneath the entity via raycast.
+## NodePath to the CharacterBody3D this detector is attached to.
+## Must be wired in the scene editor.
+@export_node_path("CharacterBody3D") var character_body_path: NodePath
+
+## Component that detects surface types beneath the entity.
 ##
-## Detects surface types by casting a ray downward and reading metadata
-## from collision objects. Used by S_FootstepSoundSystem to play
-## appropriate footstep sounds for different surfaces.
+## Uses CharacterBody3D's floor collision to detect surface types.
+## Surfaces are identified by collider name patterns (e.g., "grass", "stone", "wood").
+## Fallback to metadata if pattern matching fails.
 ##
-## Surface types are set via meta("surface_type") on collision objects:
-##   floor.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.GRASS)
+## Used by S_FootstepSoundSystem to play appropriate footstep sounds.
 
 enum SurfaceType {
 	DEFAULT,
@@ -29,24 +32,32 @@ func _init() -> void:
 
 func _ready() -> void:
 	super._ready()  # Register with ECS manager
+	_setup_raycast()
+
+func _setup_raycast() -> void:
+	"""Creates and attaches a raycast to the CharacterBody3D for surface detection."""
+	var body := get_character_body()
+	if body == null:
+		push_error("C_SurfaceDetectorComponent: character_body_path not set or invalid")
+		return
+
+	# Create raycast as child of CharacterBody3D so it follows the character
 	_raycast = RayCast3D.new()
-	_raycast.name = "RayCast3D"
+	_raycast.name = "SurfaceDetectorRay"
 	_raycast.enabled = true
-	_raycast.target_position = Vector3(0, -1.0, 0)  # Cast downward 1 meter
+	_raycast.target_position = Vector3(0, -2.0, 0)  # Cast 2m down
 	_raycast.collision_mask = 1  # Layer 1 = world geometry
-	add_child(_raycast)
+	_raycast.hit_from_inside = true  # Allow detection even if starting inside collider
+	body.add_child(_raycast)
 
 ## Returns the surface type beneath this detector.
-## Returns DEFAULT if no collision, collider is null, or metadata is missing/invalid.
+## Uses raycast to identify surfaces (works for both grounded and floating characters).
+## Returns DEFAULT if no collision or surface cannot be identified.
 func detect_surface() -> SurfaceType:
-	# Ensure raycast is in the scene tree (it should be from _ready())
 	if _raycast == null or not is_instance_valid(_raycast):
 		return SurfaceType.DEFAULT
 
-	# Clear the raycast's exceptions to ensure clean detection
-	_raycast.clear_exceptions()
-
-	# Force raycast update to detect collision at current position
+	# Force raycast update (it's attached to CharacterBody3D, so position is correct)
 	_raycast.force_raycast_update()
 
 	if not _raycast.is_colliding():
@@ -56,12 +67,59 @@ func detect_surface() -> SurfaceType:
 	if collider == null:
 		return SurfaceType.DEFAULT
 
+	# Try to identify surface by collider name pattern (case-insensitive)
+	var detected_type := _identify_surface_by_name(collider.name)
+	if detected_type != SurfaceType.DEFAULT:
+		return detected_type
+
+	# Fallback: Check for metadata (for manually tagged surfaces)
 	if collider.has_meta("surface_type"):
 		var surface_meta: Variant = collider.get_meta("surface_type")
-		# Verify metadata is a valid int (enum value)
 		if surface_meta is int:
 			return surface_meta as SurfaceType
-		else:
-			return SurfaceType.DEFAULT
 
 	return SurfaceType.DEFAULT
+
+## Identifies surface type by collider name patterns.
+## Returns DEFAULT if no pattern matches.
+func _identify_surface_by_name(collider_name: String) -> SurfaceType:
+	var name_lower := collider_name.to_lower()
+
+	# Check for grass/vegetation
+	if name_lower.contains("grass") or name_lower.contains("lawn") or name_lower.contains("turf"):
+		return SurfaceType.GRASS
+
+	# Check for stone/rock/concrete
+	if name_lower.contains("stone") or name_lower.contains("rock") or name_lower.contains("concrete") or name_lower.contains("brick"):
+		return SurfaceType.STONE
+
+	# Check for wood
+	if name_lower.contains("wood") or name_lower.contains("plank") or name_lower.contains("timber"):
+		return SurfaceType.WOOD
+
+	# Check for metal
+	if name_lower.contains("metal") or name_lower.contains("steel") or name_lower.contains("iron"):
+		return SurfaceType.METAL
+
+	# Check for water
+	if name_lower.contains("water") or name_lower.contains("liquid") or name_lower.contains("puddle"):
+		return SurfaceType.WATER
+
+	return SurfaceType.DEFAULT
+
+func _surface_type_to_string(type: SurfaceType) -> String:
+	match type:
+		SurfaceType.DEFAULT: return "DEFAULT"
+		SurfaceType.GRASS: return "GRASS"
+		SurfaceType.STONE: return "STONE"
+		SurfaceType.WOOD: return "WOOD"
+		SurfaceType.METAL: return "METAL"
+		SurfaceType.WATER: return "WATER"
+		_: return "UNKNOWN"
+
+## Returns the CharacterBody3D this component is attached to.
+## Returns null if character_body_path is not set or invalid.
+func get_character_body() -> CharacterBody3D:
+	if character_body_path.is_empty():
+		return null
+	return get_node_or_null(character_body_path) as CharacterBody3D
