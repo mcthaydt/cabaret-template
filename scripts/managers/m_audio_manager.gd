@@ -16,16 +16,24 @@ const M_SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd"
 
 const _MUSIC_REGISTRY: Dictionary = {
 	StringName("main_menu"): {
-		"stream": preload("res://resources/audio/music/placeholder_main_menu.ogg"),
-		"scene": StringName("main_menu"),
+		"stream": preload("res://resources/audio/music/main_menu.mp3"),
+		"scenes": [StringName("main_menu")],
 	},
-	StringName("gameplay"): {
-		"stream": preload("res://resources/audio/music/placeholder_gameplay.ogg"),
-		"scene": StringName("gameplay_base"),
+	StringName("exterior"): {
+		"stream": preload("res://resources/audio/music/exterior.mp3"),
+		"scenes": [StringName("exterior")],
+	},
+	StringName("interior"): {
+		"stream": preload("res://resources/audio/music/interior.mp3"),
+		"scenes": [StringName("interior_house")],
 	},
 	StringName("pause"): {
-		"stream": preload("res://resources/audio/music/placeholder_pause.ogg"),
-		"scene": StringName(""),  # Not tied to a specific scene
+		"stream": preload("res://resources/audio/music/pause.mp3"),
+		"scenes": [],  # Not tied to a specific scene
+	},
+	StringName("credits"): {
+		"stream": preload("res://resources/audio/music/credits.mp3"),
+		"scenes": [StringName("endgame")],
 	},
 }
 
@@ -56,6 +64,13 @@ func _ready() -> void:
 	if _state_store != null:
 		_unsubscribe = _state_store.subscribe(_on_state_changed)
 		_apply_audio_settings(_state_store.get_state())
+
+		# Initialize music based on current scene state
+		# (transition_completed may have already been dispatched before we subscribed)
+		var scene_state: Dictionary = _state_store.get_slice(StringName("scene"))
+		var current_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
+		if current_scene_id != StringName(""):
+			_change_music_for_scene(current_scene_id)
 
 func _exit_tree() -> void:
 	if _unsubscribe.is_valid():
@@ -132,13 +147,13 @@ func play_music(track_id: StringName, duration: float = 1.5) -> void:
 		return
 
 	if not _MUSIC_REGISTRY.has(track_id):
-		push_warning("Audio Manager: Unknown music track '%s'" % String(track_id))
+		push_warning("M_AudioManager: Unknown music track '%s'" % String(track_id))
 		return
 
 	var music_data: Dictionary = _MUSIC_REGISTRY[track_id]
 	var stream := music_data.get("stream") as AudioStream
 	if stream == null:
-		push_warning("Audio Manager: Music track '%s' has no stream" % String(track_id))
+		push_warning("M_AudioManager: Music track '%s' has no stream" % String(track_id))
 		return
 
 	_crossfade_music(stream, track_id, duration)
@@ -229,19 +244,27 @@ func _change_music_for_scene(scene_id: StringName) -> void:
 	var track_id := StringName("")
 	for candidate_track_id in _MUSIC_REGISTRY:
 		var music_data: Dictionary = _MUSIC_REGISTRY[candidate_track_id]
-		if music_data.get("scene", StringName("")) == scene_id:
+		var scenes := music_data.get("scenes", []) as Array
+		if scene_id in scenes:
 			track_id = candidate_track_id
 			break
+
+	# If no track found for this scene, keep current music playing (don't stop)
+	# This allows UI navigation (settings, pause menu panels, etc.) to not interrupt music
+	if track_id == StringName(""):
+		return
+
+	# If transitioning to main_menu, clear pause state (returning to main menu from pause)
+	if scene_id == StringName("main_menu") and _pre_pause_music_id != StringName(""):
+		_pre_pause_music_id = StringName("")
 
 	# If paused, only update the "return-to" track and keep pause music playing.
 	if _pre_pause_music_id != StringName(""):
 		_pre_pause_music_id = track_id
 		return
 
-	if track_id != StringName(""):
-		play_music(track_id, 2.0)
-	elif _current_music_id != StringName(""):
-		_stop_music(2.0)
+	# Change to the new track
+	play_music(track_id, 2.0)
 
 func _apply_audio_settings(state: Dictionary) -> void:
 	if state == null:

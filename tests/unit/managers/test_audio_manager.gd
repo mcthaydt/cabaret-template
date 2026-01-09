@@ -14,9 +14,10 @@ const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 
-const STREAM_MAIN_MENU := preload("res://resources/audio/music/placeholder_main_menu.ogg")
-const STREAM_GAMEPLAY := preload("res://resources/audio/music/placeholder_gameplay.ogg")
-const STREAM_PAUSE := preload("res://resources/audio/music/placeholder_pause.ogg")
+const STREAM_MAIN_MENU := preload("res://resources/audio/music/main_menu.mp3")
+const STREAM_EXTERIOR := preload("res://resources/audio/music/exterior.mp3")
+const STREAM_INTERIOR := preload("res://resources/audio/music/interior.mp3")
+const STREAM_PAUSE := preload("res://resources/audio/music/pause.mp3")
 
 var _manager: Node
 var _store: Node
@@ -201,11 +202,11 @@ func test_pause_actions_switch_to_pause_track_and_restore() -> void:
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	_store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("gameplay_base")))
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("gameplay_base")))
+	_store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
 	await get_tree().process_frame
 
-	assert_true(_is_stream_playing(_manager, STREAM_GAMEPLAY), "Should be playing gameplay track before pausing")
+	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "Should be playing exterior track before pausing")
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
 	await get_tree().process_frame
@@ -215,7 +216,7 @@ func test_pause_actions_switch_to_pause_track_and_restore() -> void:
 	_store.dispatch(U_NAVIGATION_ACTIONS.close_pause())
 	await get_tree().process_frame
 
-	assert_true(_is_stream_playing(_manager, STREAM_GAMEPLAY), "close_pause should restore previous track")
+	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "close_pause should restore previous track")
 
 func _is_stream_playing(manager: Node, stream: AudioStream) -> bool:
 	var player_a := manager.get_node_or_null("MusicPlayerA") as AudioStreamPlayer
@@ -226,3 +227,179 @@ func _is_stream_playing(manager: Node, stream: AudioStream) -> bool:
 	if player_b != null and player_b.playing and player_b.stream == stream:
 		return true
 	return false
+
+# ============================================================================
+# Regression tests for music system bugs
+# ============================================================================
+
+func test_scene_transition_to_exterior_plays_exterior_music() -> void:
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	await get_tree().process_frame
+
+	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "exterior scene should play exterior music")
+
+func test_scene_transition_to_interior_house_plays_interior_music() -> void:
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
+	await get_tree().process_frame
+
+	assert_true(_is_stream_playing(_manager, STREAM_INTERIOR), "interior_house scene should play interior music")
+
+func test_transition_between_exterior_and_interior() -> void:
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	# Start in exterior
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "Should play exterior music")
+
+	# Go to interior
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_INTERIOR), "Should crossfade to interior music")
+
+	# Return to exterior
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "Should crossfade back to exterior music")
+
+func test_return_to_main_menu_from_pause_clears_pause_state() -> void:
+	# Regression test for bug: pausing in gameplay, then returning to main menu
+	# would leave pause music playing forever
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	# Start in exterior
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "Should start with exterior music")
+
+	# Pause
+	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_PAUSE), "Should play pause music")
+
+	# Return to main menu (from pause overlay)
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("main_menu")))
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_MAIN_MENU), "Should play main menu music, not pause music")
+
+	# Continue to exterior again
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "Should play exterior music")
+
+	# Pause again
+	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_PAUSE), "Should play pause music again (not skip)")
+
+func test_unregistered_scene_keeps_current_music() -> void:
+	# Scenes without registered music should keep current track playing
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	# Start with main menu music
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("main_menu")))
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_MAIN_MENU), "Should play main menu music")
+
+	# Transition to unregistered scene (e.g., settings, which has no music)
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("settings_screen")))
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_MAIN_MENU), "Should keep main menu music playing")
+
+func test_playing_same_track_skips_crossfade() -> void:
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	# Play main menu music
+	_manager.play_music(StringName("main_menu"), 0.1)
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_MAIN_MENU), "Should play main menu music")
+
+	var player_a := _manager.get_node_or_null("MusicPlayerA") as AudioStreamPlayer
+	var player_b := _manager.get_node_or_null("MusicPlayerB") as AudioStreamPlayer
+	var active_player_before: AudioStreamPlayer = null
+	if player_a.playing:
+		active_player_before = player_a
+	else:
+		active_player_before = player_b
+
+	# Try to play same track again
+	_manager.play_music(StringName("main_menu"), 0.1)
+	await get_tree().process_frame
+
+	# Should not swap players (skip crossfade)
+	var active_player_after: AudioStreamPlayer = null
+	if player_a.playing:
+		active_player_after = player_a
+	else:
+		active_player_after = player_b
+
+	assert_eq(active_player_before, active_player_after, "Should not swap players when playing same track")
+
+func test_pause_while_paused_updates_return_track() -> void:
+	# If transitioning scenes while paused, should update the return-to track
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	# Start in exterior
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	await get_tree().process_frame
+
+	# Pause
+	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_PAUSE), "Should play pause music")
+
+	# Scene transitions to interior while paused (shouldn't happen often, but edge case)
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_PAUSE), "Should still play pause music")
+
+	# Unpause
+	_store.dispatch(U_NAVIGATION_ACTIONS.close_pause())
+	await get_tree().process_frame
+	assert_true(_is_stream_playing(_manager, STREAM_INTERIOR), "Should restore to interior music (updated return track)")
