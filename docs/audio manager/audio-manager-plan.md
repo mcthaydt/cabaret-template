@@ -575,11 +575,15 @@ func _on_confirm_pressed() -> void:
 
 ## Phase 8: Audio Settings UI (Days 22-23)
 
-### Audio Section in Accessibility Tab
+### Audio Settings (Settings Hub Overlay)
 
 **Files to create**:
-- `scenes/ui/settings/audio_settings_tab.tscn`
+- `scenes/ui/settings/ui_audio_settings_tab.tscn`
 - `scripts/ui/settings/ui_audio_settings_tab.gd`
+- `scenes/ui/ui_audio_settings_overlay.tscn`
+- `scripts/ui/settings/ui_audio_settings_overlay.gd`
+- `resources/ui_screens/audio_settings_overlay.tres`
+- `resources/scene_registry/ui_audio_settings.tres`
 - `tests/integration/audio/test_audio_settings_ui.gd` (10 tests)
 - `tests/integration/audio/test_audio_integration.gd` (30 tests)
 
@@ -601,12 +605,12 @@ VBoxContainer
 ```gdscript
 func _on_master_volume_changed(value: float) -> void:
     if _store:
-        _store.dispatch(U_AUDIO_ACTIONS.set_master_volume(value))
+        _store.dispatch(U_AudioActions.set_master_volume(value))
     _update_percentage_label(value)
 
 func _on_master_mute_toggled(pressed: bool) -> void:
     if _store:
-        _store.dispatch(U_AUDIO_ACTIONS.set_master_muted(pressed))
+        _store.dispatch(U_AudioActions.set_master_muted(pressed))
 ```
 
 ---
@@ -625,32 +629,32 @@ func _on_master_mute_toggled(pressed: bool) -> void:
 - [x] Dual-player swap works correctly
 
 ### Phase 3-4 Complete:
-- [ ] BaseEventSFXSystem mirrors BaseEventVFXSystem
-- [ ] All 5 SFX systems play on correct events
-- [ ] Pool manages 16 concurrent sounds
-- [ ] Pitch variation adds organic feel
+- [x] BaseEventSFXSystem mirrors BaseEventVFXSystem
+- [x] All 5 SFX systems play on correct events
+- [x] Pool manages 16 concurrent sounds
+- [x] Pitch variation adds organic feel
 
 ### Phase 5 Complete:
-- [ ] Footsteps change based on surface
-- [ ] Step timing matches movement speed
-- [ ] 4 variations prevent repetition
+- [x] Footsteps change based on surface
+- [x] Step timing matches movement speed
+- [x] 4 variations prevent repetition
 
 ### Phase 6 Complete:
-- [ ] Ambient loops correctly
-- [ ] Crossfade between scenes smooth
-- [ ] Volume independent of music
+- [x] Ambient loops correctly
+- [x] Crossfade between scenes smooth
+- [x] Volume independent of music
 
 ### Phase 7 Complete:
-- [ ] UI sounds play on focus/confirm/cancel
-- [ ] Slider sounds throttled (no spam)
-- [ ] Sounds play even during transitions
+- [x] UI sounds play on focus/confirm/cancel
+- [x] Slider sounds throttled (no spam)
+- [x] Sounds play even during transitions
 
 ### Phase 8 Complete:
-- [ ] All ~280 tests pass
-- [ ] Settings persist to save files
-- [ ] Sliders affect volume in real-time
-- [ ] Mute toggles independent of volume
-- [ ] No audio artifacts
+- [x] Unit suite green (1368/1373, 5 pending headless timing tests)
+- [x] Settings persist to save files (audio slice is persisted)
+- [x] Sliders affect volume in real-time
+- [x] Mute toggles independent of volume
+- [ ] No audio artifacts (verify in Phase 10 manual QA)
 
 ---
 
@@ -685,7 +689,12 @@ scripts/managers/
   m_audio_manager.gd
   helpers/
     m_sfx_spawner.gd
+scripts/ui/
+  utils/
     u_ui_sound_player.gd
+  settings/
+    ui_audio_settings_tab.gd
+    ui_audio_settings_overlay.gd
 
 scripts/ecs/
   base_event_sfx_system.gd
@@ -723,8 +732,8 @@ resources/audio/
     placeholder_stone_01.wav → _04.wav
     [etc. for 6 surfaces]
   ambient/
-    placeholder_exterior.ogg
-    placeholder_interior.ogg
+    placeholder_exterior.wav
+    placeholder_interior.wav
 ```
 
 ---

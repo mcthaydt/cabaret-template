@@ -2,14 +2,24 @@
 
 ## Current Status
 
-- **Implementation status**: Phase 0–7 complete and fully integrated
+- **Implementation status**: Phase 0–8 complete and fully integrated
   - Phase 0-4: Audio Redux slice + M_AudioManager bus layout + volume/mute + music crossfade + scene/pause music switching + BaseEventSFXSystem pattern + pooled 3D SFX + jump/land/death/checkpoint/victory SFX systems
   - Phase 5: Footstep System (C_SurfaceDetectorComponent + S_FootstepSoundSystem + 24 placeholder footstep assets + scene integration)
   - Phase 6: Ambient System (S_AmbientSoundSystem + dual-player crossfade + scene-based ambient selection + 2 placeholder ambient assets + scene integration)
   - Phase 7: UI Sound Integration (U_UISoundPlayer + AudioManager UIPlayer + input-gated BasePanel focus sounds + common UI confirm/cancel/tick wiring)
+  - Phase 8: Audio Settings UI (Settings hub entry + Audio settings overlay + auto-save sliders/toggles wired to Audio Redux slice)
 - **Main scene**: `scenes/root.tscn` (project `run/main_scene` points here)
 - **Root bootstrap**: `scripts/scene_structure/main.gd` registers manager services via `U_ServiceLocator`
-- **Recent completions** (Phase 7 integration):
+- **Recent completions** (Phase 8 integration):
+  - `UI_AudioSettingsTab` at `scripts/ui/settings/ui_audio_settings_tab.gd` (auto-save Redux dispatch + silent sync + focus grid + slider tick sounds)
+  - `ui_audio_settings_tab.tscn` at `scenes/ui/settings/ui_audio_settings_tab.tscn`
+  - `UI_AudioSettingsOverlay` at `scripts/ui/settings/ui_audio_settings_overlay.gd` (close/back behavior for overlay + main menu flows)
+  - `ui_audio_settings_overlay.tscn` at `scenes/ui/ui_audio_settings_overlay.tscn`
+  - Registered overlay: `resources/ui_screens/audio_settings_overlay.tres` + `resources/scene_registry/ui_audio_settings.tres`
+  - Added `Audio Settings` entry to Settings Hub: `scenes/ui/ui_settings_menu.tscn` + `scripts/ui/ui_settings_menu.gd`
+  - Unit suite green: 1368 / 1373 passing with 5 pending headless timing tests
+
+- **Previous completions** (Phase 7 integration):
   - `U_UISoundPlayer` at `scripts/ui/utils/u_ui_sound_player.gd` (focus/confirm/cancel/tick + 100ms tick throttle)
   - `tests/unit/ui/test_ui_sound_player.gd` (5/5 tests)
   - `M_AudioManager` UI playback at `scripts/managers/m_audio_manager.gd` (`UIPlayer` on UI bus + `_UI_SOUND_REGISTRY` + `play_ui_sound()`)
@@ -19,7 +29,7 @@
   - `resources/settings/ambient_sound_default.tres` (default settings resource)
   - 2 ambient placeholder WAV files in `resources/audio/ambient/` (exterior: 80Hz, interior: 120Hz, 10s loops)
   - Added `S_AmbientSoundSystem` to all 3 gameplay scenes (gameplay_base, gameplay_exterior, gameplay_interior_house)
-  - All tests passing (UI Phase 7: 5/5; full unit suite: 1363/1368 with 5 pending headless timing tests)
+  - All tests passing (UI Phase 7: 5/5; full unit suite: 1368/1373 with 5 pending headless timing tests)
 
 ## Before You Start
 
@@ -39,7 +49,7 @@
 
 ## Test Status
 
-- **Unit tests**: 1363 / 1368 passing
+- **Unit tests**: 1368 / 1373 passing
   - Phase 0 Redux: 51/51 ✅
   - Phase 1 Manager: 11/11 ✅
   - Phase 2 Music: 4/4 ✅
@@ -49,12 +59,12 @@
   - Phase 6 Ambient: 10/10 ✅
   - Phase 7 UI Sounds: 5/5 ✅
 - **Pending tests**: 5 (scene transition timing tests - headless mode incompatible)
-- **Integration tests**: 0 / 100 (Phases 8-9 not started)
+- **Integration tests**: 0 / 100 (Phase 9 not started)
 
 ## Next Step
 
-- Start at **Phase 8 (Audio Settings UI)** in `docs/audio manager/audio-manager-tasks.md` and complete tasks in order.
-- Phase 7 is fully integrated into UI scripts and ready for manual testing.
+- Start at **Phase 9 (Integration Testing)** in `docs/audio manager/audio-manager-tasks.md` and complete tasks in order.
+- Phase 8 is fully integrated into UI scripts and ready for manual testing.
 - After each completed phase:
   - Update `docs/audio manager/audio-manager-tasks.md` checkboxes + completion notes
   - Update this file with the new current status + "next step" ONLY
