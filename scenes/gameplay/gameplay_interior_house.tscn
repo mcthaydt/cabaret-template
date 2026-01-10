@@ -38,9 +38,9 @@
 [ext_resource type="Script" uid="uid://evn7fqusp07e" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
 [ext_resource type="Script" uid="uid://uvv0alqmjm2u" path="res://scripts/ecs/systems/s_victory_sound_system.gd" id="13_victory_sound"]
 [ext_resource type="Resource" uid="uid://dv3s5a4nyjf05" path="res://resources/settings/victory_sound_default.tres" id="13_victory_sound_settings"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_footstep_sound_system.gd" id="14_footstep_sound"]
+[ext_resource type="Script" uid="uid://dy7qx4w4s2d1o" path="res://scripts/ecs/systems/s_footstep_sound_system.gd" id="14_footstep_sound"]
 [ext_resource type="Resource" uid="uid://b3kx5fj7m8qwo" path="res://resources/settings/footstep_sound_default.tres" id="14_footstep_sound_settings"]
-[ext_resource type="Script" path="res://scripts/ecs/systems/s_ambient_sound_system.gd" id="15_ambient_sound"]
+[ext_resource type="Script" uid="uid://ca8difuomt17y" path="res://scripts/ecs/systems/s_ambient_sound_system.gd" id="15_ambient_sound"]
 [ext_resource type="Resource" uid="uid://dxbvr8cy5qpwn" path="res://resources/settings/ambient_sound_default.tres" id="15_ambient_sound_settings"]
 [ext_resource type="Script" uid="uid://jtue6ng08jt1" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/tmpl_camera.tscn" id="19_ph0bl"]
@@ -254,7 +254,7 @@ script = ExtResource("14_footstep_sound")
 settings = ExtResource("14_footstep_sound_settings")
 execution_priority = 126
 
-[node name="S_AmbientSoundSystem" type="Node" parent="Systems/Feedback" unique_id=2334567892]
+[node name="S_AmbientSoundSystem" type="Node" parent="Systems/Feedback" unique_id=-1960399404]
 script = ExtResource("15_ambient_sound")
 settings = ExtResource("15_ambient_sound_settings")
 execution_priority = 127

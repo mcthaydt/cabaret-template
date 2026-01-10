@@ -58,7 +58,7 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Visual Effects"
 
-[node name="AudioSettingsButton" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="AudioSettingsButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=125247589]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Audio Settings"
