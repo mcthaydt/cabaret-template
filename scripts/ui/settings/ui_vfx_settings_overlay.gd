@@ -184,6 +184,15 @@ func _on_reset_pressed() -> void:
 
 	_update_percentage_label(_intensity_slider.value)
 
+	# Apply immediately after reset (matches other settings panels)
+	_has_local_edits = false
+	var store := get_store()
+	if store != null:
+		store.dispatch(U_VFXActions.set_screen_shake_enabled(defaults.screen_shake_enabled))
+		store.dispatch(U_VFXActions.set_screen_shake_intensity(defaults.screen_shake_intensity))
+		store.dispatch(U_VFXActions.set_damage_flash_enabled(defaults.damage_flash_enabled))
+		store.dispatch(U_VFXActions.set_particles_enabled(defaults.particles_enabled))
+
 func _close_overlay() -> void:
 	var store := get_store()
 	if store == null:

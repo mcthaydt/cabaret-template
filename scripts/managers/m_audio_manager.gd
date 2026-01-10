@@ -321,3 +321,5 @@ func _apply_audio_settings(state: Dictionary) -> void:
 
 	AudioServer.set_bus_volume_db(ambient_idx, _linear_to_db(U_AUDIO_SELECTORS.get_ambient_volume(state)))
 	AudioServer.set_bus_mute(ambient_idx, U_AUDIO_SELECTORS.is_ambient_muted(state))
+
+	M_SFX_SPAWNER.set_spatial_audio_enabled(U_AUDIO_SELECTORS.is_spatial_audio_enabled(state))

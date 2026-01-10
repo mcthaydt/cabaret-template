@@ -1,7 +1,7 @@
 # Audio Manager - Task Checklist
 
 **Progress:** 88% (45 / 51 tasks complete through Phase 8)
-**Unit Tests:** 1368 / 1373 passing (5 pending: headless scene transition timing tests)
+**Unit Tests:** 1371 / 1376 passing (5 pending: headless scene transition timing tests)
 **Integration Tests:** 0 / 100 passing (Phase 9 not started)
 **Manual QA:** 0 / 20 complete (Phase 10 not started)
 
@@ -218,9 +218,9 @@
 - [x] **Task 2.1 (Green)**: Create placeholder music assets
   - Install Audacity (if not already installed)
   - Generate silent loops for testing:
-    - `resources/audio/music/placeholder_main_menu.ogg`: Generate > Silence, 5 seconds, export as OGG Vorbis, loop enabled in Godot import settings
-    - `resources/audio/music/placeholder_gameplay.ogg`: Generate > Silence, 5 seconds, export as OGG Vorbis, loop enabled
-    - `resources/audio/music/placeholder_pause.ogg`: Generate > Silence, 5 seconds, export as OGG Vorbis, loop enabled
+    - `resources/audio/music/placeholders/placeholder_main_menu.ogg`: Generate > Silence, 5 seconds, export as OGG Vorbis, loop enabled in Godot import settings
+    - `resources/audio/music/placeholders/placeholder_gameplay.ogg`: Generate > Silence, 5 seconds, export as OGG Vorbis, loop enabled
+    - `resources/audio/music/placeholders/placeholder_pause.ogg`: Generate > Silence, 5 seconds, export as OGG Vorbis, loop enabled
   - In Godot: Select each .ogg file → Import tab → Check "Loop" → Reimport
   - Placeholder assets allow testing crossfade system before real music exists
 
@@ -239,17 +239,25 @@
     ```gdscript
     const _MUSIC_REGISTRY: Dictionary = {
         StringName("main_menu"): {
-            "stream": preload("res://resources/audio/music/placeholder_main_menu.ogg"),
-            "scene": StringName("main_menu")
+            "stream": preload("res://resources/audio/music/main_menu.mp3"),
+            "scenes": [StringName("main_menu")],
         },
-        StringName("gameplay"): {
-            "stream": preload("res://resources/audio/music/placeholder_gameplay.ogg"),
-            "scene": StringName("gameplay_base")
+        StringName("exterior"): {
+            "stream": preload("res://resources/audio/music/exterior.mp3"),
+            "scenes": [StringName("exterior")],
+        },
+        StringName("interior"): {
+            "stream": preload("res://resources/audio/music/interior.mp3"),
+            "scenes": [StringName("interior_house")],
         },
         StringName("pause"): {
-            "stream": preload("res://resources/audio/music/placeholder_pause.ogg"),
-            "scene": StringName("")  # Not tied to specific scene
-        }
+            "stream": preload("res://resources/audio/music/pause.mp3"),
+            "scenes": [],  # Not tied to a specific scene
+        },
+        StringName("credits"): {
+            "stream": preload("res://resources/audio/music/credits.mp3"),
+            "scenes": [StringName("credits")],
+        },
     }
     ```
   - Add dual-player initialization in `_ready()`:
@@ -320,33 +328,45 @@
 
 - [x] **Task 2.4 (Green)**: Implement scene-based music transitions
   - Modify `scripts/managers/m_audio_manager.gd`
-  - Subscribe to scene transition actions in `_ready()`:
+  - Handle `scene/transition_completed` in the store subscription callback (signature includes the dispatched action):
     ```gdscript
-    if _state_store != null:
-        # Existing subscription...
-        _unsubscribe = _state_store.subscribe(_on_state_changed)
-        # Also subscribe to actions for scene transitions
-        _state_store.subscribe_to_action(_on_action_dispatched)
+    func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
+        _apply_audio_settings(state)
+        _handle_music_actions(action)
     ```
-  - Implement `_on_action_dispatched(action: Dictionary) -> void`:
+  - Implement `_handle_music_actions(action: Dictionary) -> void`:
     ```gdscript
-    var action_type := action.get("type", StringName(""))
-
-    if action_type == StringName("scene/transition_completed"):
-        var scene_id := action.get("payload", {}).get("scene_id", StringName(""))
-        _change_music_for_scene(scene_id)
+    var action_type: StringName = action.get("type", StringName(""))
+    match action_type:
+        U_SCENE_ACTIONS.ACTION_TRANSITION_COMPLETED:
+            var payload: Dictionary = action.get("payload", {})
+            var scene_id: StringName = payload.get("scene_id", StringName(""))
+            _change_music_for_scene(scene_id)
     ```
   - Implement `_change_music_for_scene(scene_id: StringName) -> void`:
     ```gdscript
-    for track_id in _MUSIC_REGISTRY:
-        var music_data := _MUSIC_REGISTRY[track_id]
-        if music_data["scene"] == scene_id:
-            play_music(track_id, 2.0)  # 2-second crossfade on scene transitions
-            return
+    var track_id := StringName("")
+    for candidate_track_id in _MUSIC_REGISTRY:
+        var music_data: Dictionary = _MUSIC_REGISTRY[candidate_track_id]
+        var scenes := music_data.get("scenes", []) as Array
+        if scene_id in scenes:
+            track_id = candidate_track_id
+            break
 
-    # No music found for this scene - fade out current music
-    if _current_music_id != StringName(""):
-        _stop_music(2.0)
+    # If no track found for this scene, keep current music playing (don't stop).
+    if track_id == StringName(""):
+        return
+
+    # If transitioning to main_menu, clear pause state (returning to main menu from pause).
+    if scene_id == StringName("main_menu") and _pre_pause_music_id != StringName(""):
+        _pre_pause_music_id = StringName("")
+
+    # If paused, only update the "return-to" track and keep pause music playing.
+    if _pre_pause_music_id != StringName(""):
+        _pre_pause_music_id = track_id
+        return
+
+    play_music(track_id, 2.0)  # 2-second crossfade on scene transitions
     ```
   - Add `_stop_music(duration: float) -> void`:
     ```gdscript
@@ -363,35 +383,27 @@
 - [x] **Task 2.5 (Green)**: Implement pause overlay music handling
   - Modify `scripts/managers/m_audio_manager.gd`
   - Add field: `var _pre_pause_music_id: StringName = StringName("")`
-  - Update `_on_action_dispatched()` to handle overlay push/pop:
+  - Handle pause open/close actions inside `_handle_music_actions(action)`:
     ```gdscript
-    func _on_action_dispatched(action: Dictionary) -> void:
-        var action_type := action.get("type", StringName(""))
-
-        match action_type:
-            StringName("navigation/overlay_pushed"):
-                var overlay_id := action.get("payload", {}).get("overlay_id", StringName(""))
-                if overlay_id == StringName("pause"):
-                    _pre_pause_music_id = _current_music_id
-                    play_music(StringName("pause"), 0.5)  # Quick 0.5s crossfade to pause music
-
-            StringName("navigation/overlay_popped"):
-                var overlay_id := action.get("payload", {}).get("overlay_id", StringName(""))
-                if overlay_id == StringName("pause") and _pre_pause_music_id != StringName(""):
-                    play_music(_pre_pause_music_id, 0.5)  # Restore previous music
-                    _pre_pause_music_id = StringName("")
-
-            StringName("scene/transition_completed"):
-                var scene_id := action.get("payload", {}).get("scene_id", StringName(""))
-                _change_music_for_scene(scene_id)
+    match action_type:
+        U_NAVIGATION_ACTIONS.ACTION_OPEN_PAUSE:
+            _pre_pause_music_id = _current_music_id
+            play_music(StringName("pause"), 0.5)  # Quick 0.5s crossfade to pause music
+        U_NAVIGATION_ACTIONS.ACTION_CLOSE_PAUSE:
+            if _pre_pause_music_id != StringName(""):
+                play_music(_pre_pause_music_id, 0.5)  # Restore previous music
+                _pre_pause_music_id = StringName("")
+            elif _current_music_id == StringName("pause"):
+                _stop_music(0.5)
     ```
   - Pause overlay opens → crossfade to pause track (0.5s)
   - Pause overlay closes → restore previous track (0.5s)
   - Alternative approach (deferred): Apply low-pass filter instead of track change
 
 **Completion Notes:**
-- Added placeholder OGG tracks under `resources/audio/music/` and enabled looping via `.ogg.import` + headless reimport.
-- Implemented music registry + dual `AudioStreamPlayer` crossfade in `scripts/managers/m_audio_manager.gd`.
+- Added placeholder OGG tracks under `resources/audio/music/placeholders/` and enabled looping via `.ogg.import` + headless reimport.
+- Music registry uses `resources/audio/music/*.mp3` (main_menu/exterior/interior/pause/credits).
+- Implemented dual `AudioStreamPlayer` crossfade in `scripts/managers/m_audio_manager.gd`.
 - Implemented scene-based music switching via `scene/transition_completed` action and pause switching via `navigation/open_pause` + `navigation/close_pause` (store subscription callback includes the dispatched action).
 - Extended `tests/unit/managers/test_audio_manager.gd` with Phase 2 tests; all passing.
 - Verified GREEN: `tools/run_gut_suite.sh -gdir=res://tests/unit/state -gselect=test_audio -gexit`
@@ -860,7 +872,7 @@
 - Created `resources/settings/footstep_sound_default.tres` with all 24 audio streams wired
 - Added `C_SurfaceDetectorComponent` to player prefab (`scenes/prefabs/prefab_player.tscn`)
 - Added `S_FootstepSoundSystem` to all 3 gameplay scenes (gameplay_base, gameplay_exterior, gameplay_interior_house)
-- Verified GREEN: All unit tests passing (1341/1346)
+- Verified GREEN: Full unit test suite (see header totals)
 
 ---
 
@@ -869,8 +881,8 @@
 **Exit Criteria:** 10 ambient tests pass, ambient loops correctly without gaps, scene-based crossfade works, volume independent of music
 
 - [x] **Task 6.1 (Green)**: Create placeholder ambient assets
-  - Create `resources/audio/ambient/placeholder_exterior.ogg` (10s silent loop, OGG Vorbis, loop enabled in Godot)
-  - Create `resources/audio/ambient/placeholder_interior.ogg` (10s silent loop, OGG Vorbis, loop enabled)
+  - Create `resources/audio/ambient/placeholder_exterior.wav` (10s loop, 80Hz tone, loop enabled in Godot)
+  - Create `resources/audio/ambient/placeholder_interior.wav` (10s loop, 120Hz tone, loop enabled)
   - Ensure loop points are seamless (no pops at loop boundary)
 
 - [x] **Task 6.2 (Red)**: Write tests for S_AmbientSoundSystem
@@ -893,6 +905,7 @@
     class_name S_AmbientSoundSystem
 
     const RS_AMBIENT_SOUND_SETTINGS := preload("res://scripts/ecs/resources/rs_ambient_sound_settings.gd")
+    const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
     @export var settings: RS_AMBIENT_SOUND_SETTINGS
 
     var _ambient_player_a: AudioStreamPlayer
@@ -901,16 +914,17 @@
     var _inactive_ambient_player: AudioStreamPlayer
     var _current_ambient_id: StringName = StringName("")
     var _ambient_tween: Tween
-    var _state_store: I_StateStore
+    var _state_store
+    var _unsubscribe: Callable
 
     const _AMBIENT_REGISTRY: Dictionary = {
         StringName("exterior"): {
-            "stream": preload("res://resources/audio/ambient/placeholder_exterior.ogg"),
-            "scenes": [StringName("gameplay_base"), StringName("main_menu")]
+            "stream": preload("res://resources/audio/ambient/placeholder_exterior.wav"),
+            "scenes": [StringName("gameplay_base"), StringName("exterior")]
         },
         StringName("interior"): {
-            "stream": preload("res://resources/audio/ambient/placeholder_interior.ogg"),
-            "scenes": [StringName("interior_test")]
+            "stream": preload("res://resources/audio/ambient/placeholder_interior.wav"),
+            "scenes": [StringName("interior_house"), StringName("interior_test")]
         }
     }
 
@@ -931,14 +945,27 @@
         _active_ambient_player = _ambient_player_a
         _inactive_ambient_player = _ambient_player_b
 
-        # Subscribe to scene transitions
+        # Subscribe to state changes
         _state_store = U_ServiceLocator.get_service(StringName("state_store"))
         if _state_store != null:
-            _state_store.subscribe_to_action(_on_action_dispatched)
+            _unsubscribe = _state_store.subscribe(_on_state_changed)
 
-    func _on_action_dispatched(action: Dictionary) -> void:
+            # Initialize ambient based on current scene state
+            # (transition_completed may have already been dispatched before we subscribed)
+            var scene_state: Dictionary = _state_store.get_slice(StringName("scene"))
+            var current_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
+            if current_scene_id != StringName(""):
+                _change_ambient_for_scene(current_scene_id)
+
+    func _exit_tree() -> void:
+        if _unsubscribe.is_valid():
+            _unsubscribe.call()
+            _unsubscribe = Callable()
+        _state_store = null
+
+    func _on_state_changed(action: Dictionary, _state: Dictionary) -> void:
         if action.get("type") == StringName("scene/transition_completed"):
-            var scene_id := action.get("payload", {}).get("scene_id", StringName(""))
+            var scene_id: StringName = action.get("payload", {}).get("scene_id", StringName(""))
             _change_ambient_for_scene(scene_id)
 
     func _change_ambient_for_scene(scene_id: StringName) -> void:
@@ -1012,7 +1039,7 @@
 - Created `resources/settings/ambient_sound_default.tres` (default settings resource)
 - Added S_AmbientSoundSystem to all 3 gameplay scenes (gameplay_base, gameplay_exterior, gameplay_interior_house)
 - System implementation complete and integrated, ready for manual testing
-- Verified GREEN: All unit tests passing (1363/1368 total; 5 pending headless timing tests)
+- Verified GREEN: Full unit test suite (see header totals)
 
 ---
 
@@ -1134,7 +1161,7 @@
 - Added UI playback support to `scripts/managers/m_audio_manager.gd` (`UIPlayer` on `UI` bus + `_UI_SOUND_REGISTRY` + `play_ui_sound()`)
 - Integrated focus sound in `scripts/ui/base/base_panel.gd` via `Viewport.gui_focus_changed` + input arming (initial focus silent; analog nav arms at focus move)
 - Added confirm/cancel/tick calls across common UI scripts (main menu, pause, settings, save/load, input rebinding, touchscreen/gamepad settings, etc.)
-- Verified GREEN: `tests/unit/style/test_style_enforcement.gd`, `tests/unit/ui/*`, full `tests/unit/*` (1363/1368 pass; 5 pending)
+- Verified GREEN: `tests/unit/style/test_style_enforcement.gd`, `tests/unit/ui/*`, full `tests/unit/*` (see header totals)
 
 ---
 
@@ -1183,7 +1210,10 @@
   - Add overlay wrapper `scenes/ui/ui_audio_settings_overlay.tscn` + `scripts/ui/settings/ui_audio_settings_overlay.gd`
   - Register overlay: `resources/ui_screens/audio_settings_overlay.tres` + `resources/scene_registry/ui_audio_settings.tres`
   - Audio settings persist via existing Redux state persistence (audio slice)
-  - Ran unit suite (1368 passing, 5 pending headless timing tests)
+  - Ran unit suite (1371 passing, 5 pending headless timing tests)
+
+**Completion Notes:**
+- Wired `spatial_audio_enabled` into 3D SFX playback: `scripts/managers/m_audio_manager.gd` updates `scripts/managers/helpers/m_sfx_spawner.gd` so disabling spatial audio turns off attenuation + panning.
 
 ---
 
@@ -1265,14 +1295,16 @@
 | `tests/unit/state/test_audio_reducer.gd` | ✅ Complete | 0 | 25 tests for reducer |
 | `tests/unit/state/test_audio_selectors.gd` | ✅ Complete | 0 | 15 tests for selectors |
 | `scripts/managers/m_audio_manager.gd` | ✅ Complete | 1 | Core manager with bus layout + music |
-| `tests/unit/managers/test_audio_manager.gd` | ✅ Complete | 1 | 11 tests for manager/music |
-| `resources/audio/music/placeholder_main_menu.ogg` | ✅ Complete | 2 | 5s silent loop |
-| `resources/audio/music/placeholder_gameplay.ogg` | ✅ Complete | 2 | 5s silent loop |
-| `resources/audio/music/placeholder_pause.ogg` | ✅ Complete | 2 | 5s silent loop |
+| `tests/unit/managers/test_audio_manager.gd` | ✅ Complete | 1 | 20 tests for manager/music |
+| `resources/audio/music/main_menu.mp3` | ✅ Complete | 2 | Menu music track |
+| `resources/audio/music/exterior.mp3` | ✅ Complete | 2 | Exterior gameplay music track |
+| `resources/audio/music/interior.mp3` | ✅ Complete | 2 | Interior gameplay music track |
+| `resources/audio/music/pause.mp3` | ✅ Complete | 2 | Pause overlay music track |
+| `resources/audio/music/credits.mp3` | ✅ Complete | 2 | Credits music track |
 | `scripts/ecs/base_event_sfx_system.gd` | ✅ Complete | 3 | Base class for event-driven SFX |
 | `tests/unit/ecs/test_base_event_sfx_system.gd` | ✅ Complete | 3 | 15 tests for base system |
-| `scripts/managers/helpers/m_sfx_spawner.gd` | ✅ Complete | 4 | SFX pool manager (16 players) |
-| `tests/unit/managers/helpers/test_sfx_spawner.gd` | ✅ Complete | 4 | 10 tests for spawner |
+| `scripts/managers/helpers/m_sfx_spawner.gd` | ✅ Complete | 4 | SFX pool manager (16 players) + spatial toggle |
+| `tests/unit/managers/helpers/test_sfx_spawner.gd` | ✅ Complete | 4 | 12 tests for spawner |
 | `scripts/ecs/systems/s_jump_sound_system.gd` | ✅ Complete | 4 | Jump SFX system |
 | `scripts/ecs/resources/rs_jump_sound_settings.gd` | ✅ Complete | 4 | Jump settings resource |
 | `resources/audio/sfx/placeholder_jump.wav` | ✅ Complete | 4 | 440Hz, 100ms |

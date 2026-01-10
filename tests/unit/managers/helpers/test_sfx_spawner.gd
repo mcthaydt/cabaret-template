@@ -105,6 +105,29 @@ func test_spawn_3d_applies_defaults_when_missing_fields() -> void:
 	assert_eq(player.pitch_scale, 1.0)
 	assert_eq(player.bus, "SFX")
 
+func test_spawn_3d_disables_attenuation_and_panning_when_spatial_audio_disabled() -> void:
+	U_SFX_SPAWNER.initialize(_parent)
+	U_SFX_SPAWNER.set_spatial_audio_enabled(false)
+
+	var stream := AudioStreamWAV.new()
+	var player := U_SFX_SPAWNER.spawn_3d({"audio_stream": stream})
+
+	assert_not_null(player)
+	assert_eq(player.attenuation_model, AudioStreamPlayer3D.ATTENUATION_DISABLED)
+	assert_eq(player.panning_strength, 0.0)
+
+func test_spawn_3d_restores_spatial_settings_when_spatial_audio_reenabled() -> void:
+	U_SFX_SPAWNER.initialize(_parent)
+	U_SFX_SPAWNER.set_spatial_audio_enabled(false)
+	U_SFX_SPAWNER.set_spatial_audio_enabled(true)
+
+	var stream := AudioStreamWAV.new()
+	var player := U_SFX_SPAWNER.spawn_3d({"audio_stream": stream})
+
+	assert_not_null(player)
+	assert_eq(player.attenuation_model, AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE)
+	assert_eq(player.panning_strength, 1.0)
+
 func test_pool_exhaustion_returns_null_and_warns() -> void:
 	U_SFX_SPAWNER.initialize(_parent)
 

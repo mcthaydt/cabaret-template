@@ -2,13 +2,13 @@
 
 **Project**: Cabaret Template (Godot 4.5)
 **Created**: 2026-01-01
-**Last Updated**: 2026-01-05
-**Status**: IN PROGRESS (Phase 4 complete)
+**Last Updated**: 2026-01-10
+**Status**: IN PROGRESS (Phase 0–8 complete)
 **Scope**: Music with crossfading, comprehensive SFX, ambient audio, footsteps, 3D spatial audio
 
 ## Summary
 
-The Audio Manager is a persistent orchestration layer for all audio playback in the game. It manages background music with crossfading, sound effects (gameplay, UI, ambient, footsteps), and 3D spatial audio. Settings are stored in a Redux `audio` slice and applied to Godot audio buses. The manager follows the established ECS event-driven pattern, with sound systems mirroring the existing VFX particle systems.
+The audio stack uses `M_AudioManager` (persistent manager) for bus layout + volume/mute + music crossfades + UI sounds, plus ECS systems for gameplay SFX/footsteps/ambient. Settings live in the Redux `audio` slice and are applied to Godot audio buses in real time.
 
 ## Repo Reality Checks
 
@@ -26,7 +26,7 @@ The Audio Manager is a persistent orchestration layer for all audio playback in 
 - Support full UI audio feedback (focus, confirm, cancel, tab switch, slider changes).
 - Play per-scene ambient audio tracks with crossfading.
 - Implement surface-aware footstep sounds.
-- Support 3D spatial audio with AudioListener3D integration.
+- Support 3D spatial audio (AudioStreamPlayer3D) with a user toggle to disable attenuation/panning.
 - Expose volume controls and mute toggles via Redux state for settings UI.
 
 ## Non-Goals
@@ -43,14 +43,14 @@ The Audio Manager is a persistent orchestration layer for all audio playback in 
 
 - Audio bus volume/mute control (Master, Music, SFX, Ambient).
 - Background music player with crossfade transitions.
-- SFX spawning API (pooled AudioStreamPlayer/AudioStreamPlayer3D).
-- UI sound playback coordination.
+- UI sound playback coordination (`UI` bus + `U_UISoundPlayer` helper).
+- 3D SFX pooling helper initialization (`M_SFXSpawner`) and spatial toggle wiring.
 - Redux `audio` slice subscription for settings changes.
 
 **Audio Manager depends on**
 
 - `M_StateStore`: Audio settings stored in `audio` Redux slice; manager subscribes for changes.
-- `M_SceneManager`: Scene transitions trigger music/ambient track changes.
+- `M_SceneManager`: Indirectly (dispatches scene transition actions consumed by music/ambient systems).
 - `U_ECSEventBus`: Gameplay events (jump, land, death, etc.) trigger SFX systems.
 - `U_ServiceLocator`: Registration for discovery by other systems.
 
@@ -59,25 +59,18 @@ The Audio Manager is a persistent orchestration layer for all audio playback in 
 ## Public API
 
 ```gdscript
-# Music control
-M_AudioManager.play_music(track_id: StringName, crossfade_duration: float = 1.0) -> void
-M_AudioManager.stop_music(fade_duration: float = 1.0) -> void
-M_AudioManager.get_current_music() -> StringName
+# Manager (persistent)
+M_AudioManager.play_music(track_id: StringName, duration: float = 1.5) -> void
+M_AudioManager.play_ui_sound(sound_id: StringName) -> void
 
-# SFX playback (2D - no position)
-M_AudioManager.play_sfx(sound_id: StringName, volume_db: float = 0.0, pitch_scale: float = 1.0) -> void
+# UI convenience (used by UI scripts)
+U_UISoundPlayer.play_focus() -> void
+U_UISoundPlayer.play_confirm() -> void
+U_UISoundPlayer.play_cancel() -> void
+U_UISoundPlayer.play_slider_tick() -> void
 
-# SFX playback (3D - positioned in world)
-M_AudioManager.play_sfx_3d(sound_id: StringName, position: Vector3, volume_db: float = 0.0) -> void
-
-# UI sounds (convenience methods)
-M_AudioManager.play_ui_focus() -> void
-M_AudioManager.play_ui_confirm() -> void
-M_AudioManager.play_ui_cancel() -> void
-
-# Ambient control
-M_AudioManager.play_ambient(track_id: StringName, crossfade_duration: float = 2.0) -> void
-M_AudioManager.stop_ambient(fade_duration: float = 2.0) -> void
+# 3D SFX pool (used by ECS sound systems / gameplay)
+M_SFXSpawner.spawn_3d(config: Dictionary) -> AudioStreamPlayer3D
 
 # Audio selectors (query from Redux state)
 U_AudioSelectors.get_master_volume(state: Dictionary) -> float
@@ -107,7 +100,7 @@ U_AudioSelectors.is_spatial_audio_enabled(state: Dictionary) -> bool
 | `ambient_muted` | bool | false | Ambient mute toggle |
 | `spatial_audio_enabled` | bool | true | 3D audio processing toggle |
 
-**Note**: Audio settings persist to save files (included in settings slice).
+**Note**: Audio settings persist to save files as part of the `audio` slice (non-transient).
 
 ## Audio Bus Layout
 
@@ -355,22 +348,10 @@ extends Resource
 Centralized utility for UI sound playback:
 
 ```gdscript
-class_name U_UISoundPlayer
-
-static func play_focus() -> void:
-    _get_audio_manager().play_sfx(StringName("ui_focus"))
-
-static func play_confirm() -> void:
-    _get_audio_manager().play_sfx(StringName("ui_confirm"))
-
-static func play_cancel() -> void:
-    _get_audio_manager().play_sfx(StringName("ui_cancel"))
-
-static func play_tab_switch() -> void:
-    _get_audio_manager().play_sfx(StringName("ui_tab_switch"))
-
-static func play_slider_change() -> void:
-    _get_audio_manager().play_sfx(StringName("ui_slider_tick"))
+U_UISoundPlayer.play_focus()
+U_UISoundPlayer.play_confirm()
+U_UISoundPlayer.play_cancel()
+U_UISoundPlayer.play_slider_tick()
 ```
 
 ### UI Event Integration
@@ -382,22 +363,23 @@ Base UI classes call sound player methods:
 | Focus gained | `ui_focus` | `BasePanel._on_focus_entered()` signal |
 | Button pressed | `ui_confirm` | Button `pressed` signal handler |
 | Back/Cancel | `ui_cancel` | `_on_back_pressed()` or B/Escape input |
-| Tab switch | `ui_tab_switch` | Tab button group `pressed` signal |
-| Slider change | `ui_slider_tick` | Slider `value_changed` signal (throttled) |
+| Slider change | `ui_tick` | Slider `value_changed` signal (throttled) |
 
 ## 3D Spatial Audio
 
-### AudioListener3D Integration
-
-- Player entity has `AudioListener3D` as child (or uses camera listener).
-- 3D sounds attenuate based on distance from listener.
-- Panning based on horizontal position relative to listener.
-
 ### Spatial Audio Settings
+
+3D sounds use `AudioStreamPlayer3D`. Ensure your active camera/player provides the 3D listener (e.g., add an `AudioListener3D` node) so panning/attenuation behave as expected.
 
 When `spatial_audio_enabled = false`:
 - 3D sounds play as 2D (no attenuation or panning).
 - Useful for accessibility or performance on low-end devices.
+
+Implementation:
+- Applied by `M_AudioManager` to `M_SFXSpawner` via `set_spatial_audio_enabled(...)`.
+- `M_SFXSpawner.spawn_3d(...)` configures `AudioStreamPlayer3D`:
+  - Enabled: inverse-distance attenuation, `panning_strength = 1.0`, `max_distance = 50`
+  - Disabled: `ATTENUATION_DISABLED`, `panning_strength = 0.0`
 
 ## File Structure
 
@@ -406,9 +388,14 @@ scripts/managers/
   m_audio_manager.gd
 
 scripts/managers/helpers/
-  u_audio_player_pool.gd
   m_sfx_spawner.gd
+
+scripts/ui/utils/
   u_ui_sound_player.gd
+
+scripts/ui/settings/
+  ui_audio_settings_tab.gd
+  ui_audio_settings_overlay.gd
 
 scripts/ecs/
   base_event_sfx_system.gd
@@ -433,7 +420,6 @@ scripts/ecs/resources/
   rs_victory_sound_settings.gd
   rs_footstep_sound_settings.gd
   rs_ambient_sound_settings.gd
-  rs_ui_sound_settings.gd
 
 scripts/state/
   resources/rs_audio_initial_state.gd
@@ -452,25 +438,16 @@ resources/
     landing_sound_default.tres
     footstep_sound_default.tres
     ambient_sound_default.tres
-    ui_sound_default.tres
 ```
 
 ## Settings UI Integration
 
-### Audio Section in Accessibility Tab
+### Audio Settings Overlay
 
-```
-┌─────────────────────────────────────┐
-│ AUDIO SETTINGS                      │
-├─────────────────────────────────────┤
-│ Master Volume    [████████░░] 80%  [🔊] │
-│ Music Volume     [██████████] 100% [🔊] │
-│ SFX Volume       [███████░░░] 70%  [🔊] │
-│ Ambient Volume   [█████░░░░░] 50%  [🔊] │
-├─────────────────────────────────────┤
-│ [✓] Spatial Audio (3D positioning)  │
-└─────────────────────────────────────┘
-```
+- Implemented as `UI_AudioSettingsOverlay` (`scenes/ui/ui_audio_settings_overlay.tscn`) and `UI_AudioSettingsTab` (`scenes/ui/settings/ui_audio_settings_tab.tscn`).
+- Opened from `UI_SettingsMenu`:
+  - Gameplay (pause/settings overlay): opens as an overlay (`overlay_id = "audio_settings"`).
+  - Main menu settings: navigates via `navigate_to_ui_screen(scene_id = "audio_settings")`.
 
 ### Redux Actions for Settings
 

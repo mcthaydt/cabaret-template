@@ -1,7 +1,7 @@
 # Audio Manager - Implementation Plan
 
 **Project**: Cabaret Template (Godot 4.5)
-**Status**: In Progress (Phase 4 complete)
+**Status**: In Progress (Phase 0–8 complete; Phase 9 next)
 **Estimated Duration**: 23 days
 **Test Count**: ~280 tests
 **Methodology**: Test-Driven Development (Red-Green-Refactor)
@@ -163,21 +163,34 @@ func _apply_audio_settings() -> void:
 ### Dual-Player Crossfading
 
 **Placeholder Assets** (create with Audacity: Generate > Silence, export as OGG):
-- `resources/audio/music/placeholder_main_menu.ogg` (5s silent loop)
-- `resources/audio/music/placeholder_gameplay.ogg` (5s silent loop)
+- `resources/audio/music/placeholders/placeholder_main_menu.ogg` (5s silent loop)
+- `resources/audio/music/placeholders/placeholder_gameplay.ogg` (5s silent loop)
+- `resources/audio/music/placeholders/placeholder_pause.ogg` (5s silent loop)
 
 **Music Registry**:
 ```gdscript
-var _music_registry: Dictionary = {
-    StringName("main_menu"): {
-        "stream": preload("res://resources/audio/music/placeholder_main_menu.ogg"),
-        "scene": StringName("main_menu")
-    },
-    StringName("gameplay"): {
-        "stream": preload("res://resources/audio/music/placeholder_gameplay.ogg"),
-        "scene": StringName("gameplay_base")
-    }
-}
+	const _MUSIC_REGISTRY: Dictionary = {
+		StringName("main_menu"): {
+			"stream": preload("res://resources/audio/music/main_menu.mp3"),
+			"scenes": [StringName("main_menu")],
+		},
+		StringName("exterior"): {
+			"stream": preload("res://resources/audio/music/exterior.mp3"),
+			"scenes": [StringName("exterior")],
+		},
+		StringName("interior"): {
+			"stream": preload("res://resources/audio/music/interior.mp3"),
+			"scenes": [StringName("interior_house")],
+		},
+		StringName("pause"): {
+			"stream": preload("res://resources/audio/music/pause.mp3"),
+			"scenes": [],
+		},
+		StringName("credits"): {
+			"stream": preload("res://resources/audio/music/credits.mp3"),
+			"scenes": [StringName("credits")],
+		},
+	}
 ```
 
 **Crossfade Algorithm**:
@@ -212,10 +225,17 @@ func _crossfade_music(new_stream: AudioStream, track_id: StringName, duration: f
 
 **Scene Transition Integration**:
 ```gdscript
-func _on_action_dispatched(action: Dictionary) -> void:
-    if action.get("type") == StringName("scene/transition_completed"):
-        var scene_id := action.get("payload", {}).get("scene_id", StringName(""))
-        _change_music_for_scene(scene_id)
+func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
+	_apply_audio_settings(state)
+	_handle_music_actions(action)
+
+func _handle_music_actions(action: Dictionary) -> void:
+	var action_type: StringName = action.get("type", StringName(""))
+	match action_type:
+		U_SCENE_ACTIONS.ACTION_TRANSITION_COMPLETED:
+			var payload: Dictionary = action.get("payload", {})
+			var scene_id: StringName = payload.get("scene_id", StringName(""))
+			_change_music_for_scene(scene_id)
 ```
 
 ### Pause Overlay Music Handling (FR-019)
@@ -225,25 +245,18 @@ When pause overlay opens, crossfade to pause track and restore on unpause:
 ```gdscript
 var _pre_pause_music_id: StringName = StringName("")
 
-func _on_action_dispatched(action: Dictionary) -> void:
-    var action_type := action.get("type", StringName(""))
-
-    match action_type:
-        StringName("navigation/overlay_pushed"):
-            var overlay_id := action.get("payload", {}).get("overlay_id", StringName(""))
-            if overlay_id == StringName("pause"):
-                _pre_pause_music_id = _current_music_id
-                play_music(StringName("pause"), 0.5)
-
-        StringName("navigation/overlay_popped"):
-            var overlay_id := action.get("payload", {}).get("overlay_id", StringName(""))
-            if overlay_id == StringName("pause") and _pre_pause_music_id != StringName(""):
-                play_music(_pre_pause_music_id, 0.5)
-                _pre_pause_music_id = StringName("")
-
-        StringName("scene/transition_completed"):
-            var scene_id := action.get("payload", {}).get("scene_id", StringName(""))
-            _change_music_for_scene(scene_id)
+func _handle_music_actions(action: Dictionary) -> void:
+	var action_type: StringName = action.get("type", StringName(""))
+	match action_type:
+		U_NAVIGATION_ACTIONS.ACTION_OPEN_PAUSE:
+			_pre_pause_music_id = _current_music_id
+			play_music(StringName("pause"), 0.5)
+		U_NAVIGATION_ACTIONS.ACTION_CLOSE_PAUSE:
+			if _pre_pause_music_id != StringName(""):
+				play_music(_pre_pause_music_id, 0.5)
+				_pre_pause_music_id = StringName("")
+			elif _current_music_id == StringName("pause"):
+				_stop_music(0.5)
 ```
 
 **Alternative**: Apply low-pass filter to current track instead of switching:
@@ -496,20 +509,26 @@ func _play_footstep(position: Vector3, surface: SurfaceType) -> void:
 ```gdscript
 var _ambient_player_a: AudioStreamPlayer
 var _ambient_player_b: AudioStreamPlayer
-var _ambient_registry: Dictionary = {
-    StringName("exterior"): preload("res://resources/audio/ambient/placeholder_exterior.ogg"),
-    StringName("interior"): preload("res://resources/audio/ambient/placeholder_interior.ogg")
+const _AMBIENT_REGISTRY: Dictionary = {
+	StringName("exterior"): {
+		"stream": preload("res://resources/audio/ambient/placeholder_exterior.wav"),
+		"scenes": [StringName("gameplay_base"), StringName("exterior")],
+	},
+	StringName("interior"): {
+		"stream": preload("res://resources/audio/ambient/placeholder_interior.wav"),
+		"scenes": [StringName("interior_house"), StringName("interior_test")],
+	},
 }
 
-func _on_scene_transition(scene_id: StringName) -> void:
-    var ambient_id := _get_ambient_for_scene(scene_id)
-    if ambient_id != _current_ambient:
-        _crossfade_ambient(ambient_id, 2.0)
+func _on_state_changed(action: Dictionary, _state: Dictionary) -> void:
+	if action.get("type") == StringName("scene/transition_completed"):
+		var scene_id: StringName = action.get("payload", {}).get("scene_id", StringName(""))
+		_change_ambient_for_scene(scene_id)
 ```
 
 **Placeholder Assets**:
-- `placeholder_exterior.ogg` (10s silent loop)
-- `placeholder_interior.ogg` (10s silent loop)
+- `placeholder_exterior.wav` (10s loop, 80Hz tone)
+- `placeholder_interior.wav` (10s loop, 120Hz tone)
 
 ---
 
@@ -518,8 +537,8 @@ func _on_scene_transition(scene_id: StringName) -> void:
 ### U_UISoundPlayer Utility
 
 **Files to create**:
-- `scripts/managers/helpers/u_ui_sound_player.gd`
-- `tests/unit/managers/helpers/test_ui_sound_player.gd` (5 tests)
+- `scripts/ui/utils/u_ui_sound_player.gd`
+- `tests/unit/ui/test_ui_sound_player.gd` (5 tests)
 
 **API**:
 ```gdscript
@@ -527,49 +546,49 @@ class_name U_UISoundPlayer
 extends RefCounted
 
 static func play_focus() -> void:
-    _get_audio_manager().play_sfx(StringName("ui_focus"))
+	_play(StringName("ui_focus"))
 
 static func play_confirm() -> void:
-    _get_audio_manager().play_sfx(StringName("ui_confirm"))
+	_play(StringName("ui_confirm"))
 
 static func play_cancel() -> void:
-    _get_audio_manager().play_sfx(StringName("ui_cancel"))
+	_play(StringName("ui_cancel"))
 
 static func play_slider_tick() -> void:
     # Throttled to 10/second
     if Time.get_ticks_msec() - _last_tick_time < 100:
         return
-    _get_audio_manager().play_sfx(StringName("ui_tick"))
+	_play(StringName("ui_tick"))
     _last_tick_time = Time.get_ticks_msec()
 ```
 
 ### BasePanel Integration
 
 **Files to modify**:
-- `scripts/ui/base_panel.gd`: Add `focus_entered` signal handler
+- `scripts/ui/base/base_panel.gd`: Input-gated focus sound via `Viewport.gui_focus_changed`
 - Button handlers: Add confirm/cancel sounds
-- Settings panel: Add tab switch sound
 - Sliders: Add throttled tick sound
 
 **Example**:
 ```gdscript
-# In BasePanel
-func _ready() -> void:
-    focus_entered.connect(_on_focus_entered)
-
-func _on_focus_entered() -> void:
-    U_UISoundPlayer.play_focus()
-
-# In button handlers
 func _on_confirm_pressed() -> void:
-    U_UISoundPlayer.play_confirm()
-    # ... existing logic
+	U_UISoundPlayer.play_confirm()
+	# ... existing logic
+
+func _on_back_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
+	# ... existing logic
+
+func _on_slider_value_changed(value: float) -> void:
+	U_UISoundPlayer.play_slider_tick()
+	# ... existing logic
 ```
 
 **Placeholder Assets** (create with Audacity: Generate > Tone at high frequency):
 - `placeholder_ui_focus.wav` (1000Hz, 30ms)
 - `placeholder_ui_confirm.wav` (1200Hz, 50ms)
 - `placeholder_ui_cancel.wav` (800Hz, 50ms)
+- `placeholder_ui_tick.wav` (1400Hz, 20ms)
 
 ---
 
@@ -584,8 +603,6 @@ func _on_confirm_pressed() -> void:
 - `scripts/ui/settings/ui_audio_settings_overlay.gd`
 - `resources/ui_screens/audio_settings_overlay.tres`
 - `resources/scene_registry/ui_audio_settings.tres`
-- `tests/integration/audio/test_audio_settings_ui.gd` (10 tests)
-- `tests/integration/audio/test_audio_integration.gd` (30 tests)
 
 **Scene Structure**:
 ```
@@ -612,6 +629,18 @@ func _on_master_mute_toggled(pressed: bool) -> void:
     if _store:
         _store.dispatch(U_AudioActions.set_master_muted(pressed))
 ```
+
+---
+
+## Phase 9: Integration Testing (Next)
+
+**Exit Criteria**: 100/100 audio integration tests pass (per `docs/audio manager/audio-manager-tasks.md`)
+
+**Files to create**:
+- `tests/integration/audio/test_audio_settings_ui.gd` (10 tests)
+- `tests/integration/audio/test_audio_integration.gd` (30 tests)
+- `tests/integration/audio/test_music_crossfade.gd` (30 tests)
+- `tests/integration/audio/test_sfx_pooling.gd` (30 tests)
 
 ---
 
@@ -650,10 +679,11 @@ func _on_master_mute_toggled(pressed: bool) -> void:
 - [x] Sounds play even during transitions
 
 ### Phase 8 Complete:
-- [x] Unit suite green (1368/1373, 5 pending headless timing tests)
+- [x] Unit suite green (1371/1376, 5 pending headless timing tests)
 - [x] Settings persist to save files (audio slice is persisted)
 - [x] Sliders affect volume in real-time
 - [x] Mute toggles independent of volume
+- [x] Spatial audio toggle affects 3D SFX (attenuation/panning on/off)
 - [ ] No audio artifacts (verify in Phase 10 manual QA)
 
 ---
@@ -721,8 +751,15 @@ scripts/state/
 
 resources/audio/
   music/
-    placeholder_main_menu.ogg
-    placeholder_gameplay.ogg
+    main_menu.mp3
+    exterior.mp3
+    interior.mp3
+    pause.mp3
+    credits.mp3
+    placeholders/
+      placeholder_main_menu.ogg
+      placeholder_gameplay.ogg
+      placeholder_pause.ogg
   sfx/
     placeholder_jump.wav
     placeholder_land.wav

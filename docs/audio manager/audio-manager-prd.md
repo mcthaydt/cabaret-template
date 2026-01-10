@@ -4,9 +4,9 @@
 **Owner**: Development Team
 **Feature Branch**: `feature/audio-manager`
 **Created**: 2026-01-01
-**Last Updated**: 2026-01-05
+**Last Updated**: 2026-01-10
 **Target Release**: Phase 1 (3 weeks)
-**Status**: IN PROGRESS (Phase 4 complete)
+**Status**: IN PROGRESS (Phase 0–8 complete; Phase 9 next)
 **Version**: 1.0
 
 ## Problem Statement
@@ -47,10 +47,10 @@ The game currently has no audio system. Players experience complete silence duri
 2. **SFX Systems**: Event-driven sound effects for all gameplay events via BaseEventSFXSystem
 3. **Footstep System**: Surface-aware footsteps with raycast detection (6 surface types)
 4. **Ambient System**: Per-scene ambient loops with crossfading
-5. **UI Sound Integration**: Menu navigation sounds (focus, confirm, cancel, tab switch, slider)
+5. **UI Sound Integration**: Menu navigation sounds (focus, confirm, cancel, slider tick)
 6. **Redux Integration**: Audio settings (4 volumes + 4 mutes + spatial toggle) in Redux state
 7. **Audio Bus Management**: Hierarchical bus layout (Master → Music/SFX/Ambient, SFX → UI/Footsteps)
-8. **3D Spatial Audio**: Position-based sound with AudioListener3D integration
+8. **3D Spatial Audio**: Position-based sound (AudioStreamPlayer3D) with a listener (AudioListener3D/camera) and an optional user toggle to disable attenuation/panning
 9. **Settings Persistence**: Audio preferences saved with game progress
 10. **Pooled Audio Players**: Efficient SFX spawning with 16-player pool for 3D sounds
 
@@ -385,83 +385,34 @@ func _create_audio_bus_layout() -> void:
 ```
 
 **FR-009: Music Playback API**
-The manager SHALL provide public methods for music playback:
+The manager SHALL provide a public method for music playback (manual override; music is primarily scene-driven via `scene/transition_completed` and pause actions):
 
 ```gdscript
-## Play music track with crossfade (if track already playing, no-op)
-func play_music(track_id: StringName, crossfade_duration: float = 1.0) -> void:
-	if track_id == _current_music_id:
-		return  # Same track already playing
-
-	var audio_stream := _get_music_stream(track_id)
-	if audio_stream == null:
-		push_error("Music track not found: %s" % track_id)
-		return
-
-	# Crossfade logic using dual players
-	_crossfade_music(audio_stream, track_id, crossfade_duration)
-
-## Stop music with fadeout
-func stop_music(fade_duration: float = 1.0) -> void:
-	if _current_music_id == StringName(""):
-		return
-
-	_fade_out_music(fade_duration)
-	_current_music_id = StringName("")
-
-## Get currently playing music track ID
-func get_current_music() -> StringName:
-	return _current_music_id
+func play_music(track_id: StringName, duration: float = 1.5) -> void
 ```
 
-**FR-010: SFX Playback API**
-The manager SHALL provide public methods for SFX playback:
+**FR-010: 3D SFX Pooling API**
+The audio stack SHALL provide a pooled 3D SFX helper for gameplay systems:
 
 ```gdscript
-## Play 2D SFX (no position, plays at full volume)
-func play_sfx(sound_id: StringName, volume_db: float = 0.0, pitch_scale: float = 1.0) -> void:
-	var audio_stream := _get_sfx_stream(sound_id)
-	if audio_stream == null:
-		push_error("SFX not found: %s" % sound_id)
-		return
-
-	var player := AudioStreamPlayer.new()
-	add_child(player)
-	player.stream = audio_stream
-	player.volume_db = volume_db
-	player.pitch_scale = pitch_scale
-	player.bus = "SFX"
-	player.finished.connect(player.queue_free)
-	player.play()
-
-## Play 3D SFX (positioned in world, uses spatial attenuation)
-func play_sfx_3d(sound_id: StringName, position: Vector3, volume_db: float = 0.0) -> void:
-	var audio_stream := _get_sfx_stream(sound_id)
-	if audio_stream == null:
-		push_error("SFX not found: %s" % sound_id)
-		return
-
-	# Use M_SFXSpawner pool for 3D sounds
-	M_SFXSpawner.spawn_3d({
-		"audio_stream": audio_stream,
-		"position": position,
-		"volume_db": volume_db,
-		"bus": "SFX"
-	})
+M_SFXSpawner.spawn_3d({
+	"audio_stream": stream,
+	"position": position,
+	"volume_db": volume_db,
+	"pitch_scale": pitch_scale,
+	"bus": "SFX",
+}) -> AudioStreamPlayer3D
 ```
 
-**FR-011: UI Sound Convenience Methods**
-The manager SHALL provide convenience methods for common UI sounds:
+**FR-011: UI Sound Playback**
+The manager SHALL provide UI sound playback, and UI scripts SHALL use `U_UISoundPlayer` for focus/confirm/cancel/tick:
 
 ```gdscript
-func play_ui_focus() -> void:
-	play_sfx(StringName("ui_focus"))
-
-func play_ui_confirm() -> void:
-	play_sfx(StringName("ui_confirm"))
-
-func play_ui_cancel() -> void:
-	play_sfx(StringName("ui_cancel"))
+M_AudioManager.play_ui_sound(sound_id: StringName) -> void
+U_UISoundPlayer.play_focus()
+U_UISoundPlayer.play_confirm()
+U_UISoundPlayer.play_cancel()
+U_UISoundPlayer.play_slider_tick()
 ```
 
 **FR-012: Manager Public API Summary**
@@ -469,22 +420,13 @@ Complete public API for M_AudioManager:
 
 ```gdscript
 # Music
-func play_music(track_id: StringName, crossfade_duration: float = 1.0) -> void
-func stop_music(fade_duration: float = 1.0) -> void
-func get_current_music() -> StringName
-
-# SFX
-func play_sfx(sound_id: StringName, volume_db: float = 0.0, pitch_scale: float = 1.0) -> void
-func play_sfx_3d(sound_id: StringName, position: Vector3, volume_db: float = 0.0) -> void
+func play_music(track_id: StringName, duration: float = 1.5) -> void
 
 # UI Sounds
-func play_ui_focus() -> void
-func play_ui_confirm() -> void
-func play_ui_cancel() -> void
+func play_ui_sound(sound_id: StringName) -> void
 
-# Ambient
-func play_ambient(track_id: StringName, crossfade_duration: float = 2.0) -> void
-func stop_ambient(fade_duration: float = 2.0) -> void
+# 3D SFX (helper; used by ECS sound systems)
+M_SFXSpawner.spawn_3d(config: Dictionary) -> AudioStreamPlayer3D
 ```
 
 ### Phase 2: Music System (FR-013 to FR-018)
@@ -925,18 +867,30 @@ func process_tick(_delta: float) -> void:
 		requests.clear()
 		return
 
-	# Checkpoint sound plays at camera position (2D, not 3D)
-	# Uses manager's play_sfx() instead of M_SFXSpawner
-	var audio_manager := U_ServiceLocator.get_service(StringName("audio_manager")) as M_AudioManager
-	if audio_manager != null:
-		for _request in requests:
-			audio_manager.play_sfx(
-				StringName("checkpoint"),
-				settings.volume_db,
-				1.0
-			)
+	var stream := settings.audio_stream as AudioStream
+	if stream == null:
+		requests.clear()
+		return
+
+	# Checkpoint sound plays at the activated checkpoint spawn point (3D).
+	for request in requests:
+		var spawn_point_id: StringName = request.get("spawn_point_id", StringName(""))
+		var position := _resolve_spawn_point_position(spawn_point_id)
+		M_SFXSpawner.spawn_3d({
+			"audio_stream": stream,
+			"position": position,
+			"volume_db": settings.volume_db,
+			"pitch_scale": 1.0,
+			"bus": "SFX"
+		})
 
 	requests.clear()
+
+func _resolve_spawn_point_position(spawn_point_id: StringName) -> Vector3:
+	if spawn_point_id == StringName(""):
+		return Vector3.ZERO
+	var node := get_tree().current_scene.find_child(String(spawn_point_id), true, false) as Node3D
+	return node.global_position if node != null else Vector3.ZERO
 ```
 
 **FR-029: S_VictorySoundSystem**
@@ -952,8 +906,17 @@ func get_event_name() -> StringName:
 	return StringName("victory_triggered")
 
 func create_request_from_payload(payload: Dictionary) -> Dictionary:
+	var position := Vector3.ZERO
+	var body := payload.get("body") as Node3D
+	if body != null and is_instance_valid(body):
+		position = body.global_position
+	else:
+		var position_variant: Variant = payload.get("position", Vector3.ZERO)
+		if position_variant is Vector3:
+			position = position_variant
+
 	return {
-		"entity_id": payload.get("entity_id", StringName("")),
+		"position": position,
 	}
 
 func process_tick(_delta: float) -> void:
@@ -961,15 +924,20 @@ func process_tick(_delta: float) -> void:
 		requests.clear()
 		return
 
-	# Victory fanfare plays at camera position (2D)
-	var audio_manager := U_ServiceLocator.get_service(StringName("audio_manager")) as M_AudioManager
-	if audio_manager != null:
-		for _request in requests:
-			audio_manager.play_sfx(
-				StringName("victory"),
-				settings.volume_db,
-				1.0
-			)
+	var stream := settings.audio_stream as AudioStream
+	if stream == null:
+		requests.clear()
+		return
+
+	for request in requests:
+		var position: Vector3 = request.get("position", Vector3.ZERO)
+		M_SFXSpawner.spawn_3d({
+			"audio_stream": stream,
+			"position": position,
+			"volume_db": settings.volume_db,
+			"pitch_scale": 1.0,
+			"bus": "SFX"
+		})
 
 	requests.clear()
 ```
@@ -1373,32 +1341,35 @@ extends RefCounted
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 static func play_focus() -> void:
-	var audio_manager := _get_audio_manager()
-	if audio_manager != null:
-		audio_manager.play_sfx(StringName("ui_focus"))
+	_play(StringName("ui_focus"))
 
 static func play_confirm() -> void:
-	var audio_manager := _get_audio_manager()
-	if audio_manager != null:
-		audio_manager.play_sfx(StringName("ui_confirm"))
+	_play(StringName("ui_confirm"))
 
 static func play_cancel() -> void:
-	var audio_manager := _get_audio_manager()
-	if audio_manager != null:
-		audio_manager.play_sfx(StringName("ui_cancel"))
+	_play(StringName("ui_cancel"))
 
-static func play_tab_switch() -> void:
-	var audio_manager := _get_audio_manager()
-	if audio_manager != null:
-		audio_manager.play_sfx(StringName("ui_tab_switch"))
+static func play_slider_tick() -> void:
+	# Throttled to max 10 ticks / second
+	var now_ms: int = Time.get_ticks_msec()
+	if now_ms - _last_tick_time_ms < 100:
+		return
+	if _play(StringName("ui_tick")):
+		_last_tick_time_ms = now_ms
 
-static func play_slider_change() -> void:
-	var audio_manager := _get_audio_manager()
-	if audio_manager != null:
-		audio_manager.play_sfx(StringName("ui_slider_tick"))
+static var _last_tick_time_ms: int = 0
 
-static func _get_audio_manager() -> M_AudioManager:
-	return U_ServiceLocator.get_service(StringName("audio_manager")) as M_AudioManager
+static func _play(sound_id: StringName) -> bool:
+	var audio_manager := _get_audio_manager()
+	if audio_manager == null:
+		return false
+	if not audio_manager.has_method("play_ui_sound"):
+		return false
+	audio_manager.call("play_ui_sound", sound_id)
+	return true
+
+static func _get_audio_manager() -> Node:
+	return U_ServiceLocator.try_get_service(StringName("audio_manager"))
 ```
 
 **FR-040: UI Sound Integration Points**
@@ -1406,23 +1377,10 @@ The system SHALL integrate UI sounds into existing UI architecture:
 
 **BasePanel focus sounds**:
 ```gdscript
-# In scripts/ui/base_panel.gd
-
-func _ready() -> void:
-	# ... existing setup ...
-
-	# Connect focus signals for all focusable children
-	_connect_focus_sounds(self)
-
-func _connect_focus_sounds(node: Node) -> void:
-	if node is Control and node.focus_mode != Control.FOCUS_NONE:
-		node.focus_entered.connect(_on_control_focus_entered)
-
-	for child in node.get_children():
-		_connect_focus_sounds(child)
-
-func _on_control_focus_entered() -> void:
-	U_UISoundPlayer.play_focus()
+# In scripts/ui/base/base_panel.gd
+# BasePanel plays focus sound on `Viewport.gui_focus_changed` for focus changes
+# within its subtree, and only when "armed" by real navigation input (initial
+# focus is silent).
 ```
 
 **Button press sounds**:
@@ -1438,27 +1396,12 @@ func _on_back_pressed() -> void:
 	# ... existing logic ...
 ```
 
-**Tab switch sounds**:
-```gdscript
-# In settings_panel.gd
-
-func _on_tab_button_pressed(button: BaseButton) -> void:
-	U_UISoundPlayer.play_tab_switch()
-	# ... existing tab switch logic ...
-```
-
 **Slider sounds (throttled)**:
 ```gdscript
 # In settings sliders
 
-var _last_slider_sound_time: float = 0.0
-const SLIDER_SOUND_INTERVAL := 0.1  # Max 10 sounds/second
-
 func _on_slider_value_changed(value: float) -> void:
-	var now := Time.get_ticks_msec() / 1000.0
-	if now - _last_slider_sound_time >= SLIDER_SOUND_INTERVAL:
-		U_UISoundPlayer.play_slider_change()
-		_last_slider_sound_time = now
+	U_UISoundPlayer.play_slider_tick()
 
 	# ... existing slider logic ...
 ```
@@ -1511,40 +1454,40 @@ func _update_volume_label(label: Label, value: float) -> void:
 
 ### Music Tracks
 
-**Format**: `.ogg` (Ogg Vorbis), stereo, 44.1kHz sample rate, looping
+**Format (current placeholders)**: `.mp3`, stereo (imported by Godot)
 
-| Asset Path | Duration | Loop Points | Description |
-|------------|----------|-------------|-------------|
-| `resources/audio/music/main_menu.ogg` | ~90s | Full loop | Calm menu theme |
-| `resources/audio/music/gameplay_exterior.ogg` | ~120s | Full loop | Upbeat outdoor platforming theme |
-| `resources/audio/music/gameplay_interior.ogg` | ~100s | Full loop | Mellow indoor theme |
-| `resources/audio/music/pause.ogg` | ~60s | Full loop | Filtered/ambient version of gameplay theme |
-| `resources/audio/music/credits.ogg` | ~150s | Full loop | Triumphant credits theme |
+| Asset Path | Description |
+|------------|-------------|
+| `resources/audio/music/main_menu.mp3` | Menu music track |
+| `resources/audio/music/exterior.mp3` | Exterior gameplay music track |
+| `resources/audio/music/interior.mp3` | Interior gameplay music track |
+| `resources/audio/music/pause.mp3` | Pause overlay music track |
+| `resources/audio/music/credits.mp3` | Credits music track |
+
+**Note**: Early silent-loop OGG placeholders live under `resources/audio/music/placeholders/`.
 
 ### Sound Effects (SFX)
 
 **Format**: `.wav` (PCM 16-bit), mono, 44.1kHz sample rate, one-shot
 
-| Asset Path | Duration | Description |
-|------------|----------|-------------|
-| `resources/audio/sfx/jump.wav` | ~0.3s | Jump takeoff sound |
-| `resources/audio/sfx/landing_soft.wav` | ~0.2s | Light landing (velocity < 15) |
-| `resources/audio/sfx/landing_hard.wav` | ~0.3s | Heavy landing (velocity >= 15) |
-| `resources/audio/sfx/death.wav` | ~1.0s | Death impact sound |
-| `resources/audio/sfx/checkpoint.wav` | ~0.8s | Checkpoint activation jingle |
-| `resources/audio/sfx/victory.wav` | ~2.0s | Victory fanfare |
+| Asset Path | Description |
+|------------|-------------|
+| `resources/audio/sfx/placeholder_jump.wav` | Placeholder jump sound |
+| `resources/audio/sfx/placeholder_land.wav` | Placeholder landing sound |
+| `resources/audio/sfx/placeholder_death.wav` | Placeholder death sound |
+| `resources/audio/sfx/placeholder_checkpoint.wav` | Placeholder checkpoint sound |
+| `resources/audio/sfx/placeholder_victory.wav` | Placeholder victory sound |
 
 ### UI Sounds
 
 **Format**: `.wav` (PCM 16-bit), mono, 44.1kHz, very short (<0.2s)
 
-| Asset Path | Duration | Description |
-|------------|----------|-------------|
-| `resources/audio/sfx/ui_focus.wav` | ~0.05s | Subtle focus change tick |
-| `resources/audio/sfx/ui_confirm.wav` | ~0.15s | Button press confirmation |
-| `resources/audio/sfx/ui_cancel.wav` | ~0.12s | Back/cancel button |
-| `resources/audio/sfx/ui_tab_switch.wav` | ~0.10s | Tab change sound |
-| `resources/audio/sfx/ui_slider_tick.wav` | ~0.03s | Slider value change tick |
+| Asset Path | Description |
+|------------|-------------|
+| `resources/audio/sfx/placeholder_ui_focus.wav` | Focus change |
+| `resources/audio/sfx/placeholder_ui_confirm.wav` | Confirm |
+| `resources/audio/sfx/placeholder_ui_cancel.wav` | Cancel |
+| `resources/audio/sfx/placeholder_ui_tick.wav` | Slider tick (throttled) |
 
 ### Footstep Sounds
 
@@ -1552,20 +1495,21 @@ func _update_volume_label(label: Label, value: float) -> void:
 
 | Asset Paths | Description |
 |-------------|-------------|
-| `resources/audio/footsteps/grass_01.wav` through `grass_04.wav` | Grass footsteps (soft, rustling) |
-| `resources/audio/footsteps/stone_01.wav` through `stone_04.wav` | Stone footsteps (hard, echoing) |
-| `resources/audio/footsteps/wood_01.wav` through `wood_04.wav` | Wood footsteps (hollow, creaking) |
-| `resources/audio/footsteps/metal_01.wav` through `metal_04.wav` | Metal footsteps (clanging, metallic) |
-| `resources/audio/footsteps/water_01.wav` through `water_04.wav` | Water footsteps (splashing, wet) |
+| `resources/audio/footsteps/placeholder_grass_01.wav` through `_04.wav` | Placeholder grass footsteps |
+| `resources/audio/footsteps/placeholder_stone_01.wav` through `_04.wav` | Placeholder stone footsteps |
+| `resources/audio/footsteps/placeholder_wood_01.wav` through `_04.wav` | Placeholder wood footsteps |
+| `resources/audio/footsteps/placeholder_metal_01.wav` through `_04.wav` | Placeholder metal footsteps |
+| `resources/audio/footsteps/placeholder_water_01.wav` through `_04.wav` | Placeholder water footsteps |
+| `resources/audio/footsteps/placeholder_default_01.wav` through `_04.wav` | Placeholder default footsteps |
 
 ### Ambient Tracks
 
-**Format**: `.ogg` (Ogg Vorbis), stereo, 44.1kHz, looping
+**Format (current placeholders)**: `.wav`, looping
 
-| Asset Path | Duration | Description |
-|------------|----------|-------------|
-| `resources/audio/ambient/exterior_ambience.ogg` | ~180s | Wind, birds, outdoor sounds |
-| `resources/audio/ambient/interior_ambience.ogg` | ~120s | Indoor hum, creaks, quiet atmosphere |
+| Asset Path | Description |
+|------------|-------------|
+| `resources/audio/ambient/placeholder_exterior.wav` | Placeholder exterior ambient loop |
+| `resources/audio/ambient/placeholder_interior.wav` | Placeholder interior ambient loop |
 
 ## Key Entities
 
@@ -1677,9 +1621,9 @@ func _update_volume_label(label: Label, value: float) -> void:
 
 **Commit 1**: Manager scaffolding + bus layout creation
 **Commit 2**: Redux subscription + volume application (linear to dB)
-**Commit 3**: SFX playback API (play_sfx, play_sfx_3d)
-**Commit 4**: UI sound convenience methods
-**Commit 5**: Unit tests (30 tests passing)
+**Commit 3**: SFX pool initialization + spatial toggle wiring
+**Commit 4**: UI sound playback (`play_ui_sound`) + `U_UISoundPlayer` utility
+**Commit 5**: Unit tests (see current suite totals)
 
 **Dependencies**: Phase 0, M_StateStore, U_ServiceLocator
 
@@ -1917,7 +1861,7 @@ func test_set_master_volume_clamp_upper():
 # ... (22 more tests for all actions)
 ```
 
-### Unit Tests: Manager Core (30 tests)
+### Unit Tests: Manager (20 tests)
 
 ```gdscript
 # test_audio_manager.gd
@@ -1932,12 +1876,12 @@ func test_manager_applies_volume_to_master_bus():
 	When: Slice updated signal received
 	Then: AudioServer.get_bus_volume_db("Master") ≈ -6.0dB
 
-func test_play_sfx_spawns_audio_player():
-	Given: Manager initialized
-	When: Call play_sfx(StringName("test"))
-	Then: AudioStreamPlayer created and playing
+	func test_spatial_audio_setting_updates_sfx_spawner():
+		Given: Manager initialized and subscribed to store
+		When: Dispatch U_AudioActions.set_spatial_audio_enabled(false)
+		Then: M_SFXSpawner.is_spatial_audio_enabled() == false
 
-# ... (27 more tests)
+	# ... (remaining tests)
 ```
 
 ### Integration Tests: Full Audio System (30 tests)
@@ -2019,7 +1963,6 @@ scripts/ecs/resources/
   rs_victory_sound_settings.gd
   rs_footstep_sound_settings.gd
   rs_ambient_sound_settings.gd
-  rs_ui_sound_settings.gd
 scripts/state/resources/
   rs_audio_initial_state.gd
 scripts/state/actions/
@@ -2030,43 +1973,47 @@ scripts/state/selectors/
   u_audio_selectors.gd
 resources/audio/
   music/
-    main_menu.ogg
-    gameplay_exterior.ogg
-    gameplay_interior.ogg
-    pause.ogg
-    credits.ogg
+    main_menu.mp3
+    exterior.mp3
+    interior.mp3
+    pause.mp3
+    credits.mp3
+    placeholders/
+      placeholder_main_menu.ogg
+      placeholder_gameplay.ogg
+      placeholder_pause.ogg
   sfx/
-    jump.wav
-    landing_soft.wav
-    landing_hard.wav
-    death.wav
-    checkpoint.wav
-    victory.wav
-    ui_focus.wav
-    ui_confirm.wav
-    ui_cancel.wav
-    ui_tab_switch.wav
-    ui_slider_tick.wav
+    placeholder_jump.wav
+    placeholder_land.wav
+    placeholder_death.wav
+    placeholder_checkpoint.wav
+    placeholder_victory.wav
+    placeholder_ui_focus.wav
+    placeholder_ui_confirm.wav
+    placeholder_ui_cancel.wav
+    placeholder_ui_tick.wav
   ambient/
-    exterior_ambience.ogg
-    interior_ambience.ogg
+    placeholder_exterior.wav
+    placeholder_interior.wav
   footsteps/
-    grass_01.wav through grass_04.wav
-    stone_01.wav through stone_04.wav
-    wood_01.wav through wood_04.wav
-    metal_01.wav through metal_04.wav
-    water_01.wav through water_04.wav
+    placeholder_grass_01.wav through _04.wav
+    placeholder_stone_01.wav through _04.wav
+    placeholder_wood_01.wav through _04.wav
+    placeholder_metal_01.wav through _04.wav
+    placeholder_water_01.wav through _04.wav
+    placeholder_default_01.wav through _04.wav
 resources/settings/
   jump_sound_default.tres
   landing_sound_default.tres
+  death_sound_default.tres
+  checkpoint_sound_default.tres
+  victory_sound_default.tres
   footstep_sound_default.tres
   ambient_sound_default.tres
-  ui_sound_default.tres
 tests/unit/state/
   test_audio_reducer.gd
 tests/unit/managers/
   test_audio_manager.gd
-  test_audio_music.gd
 tests/unit/managers/helpers/
   test_sfx_spawner.gd
   test_ui_sound_player.gd
@@ -2130,17 +2077,10 @@ tests/integration/audio/
 
 **4. scripts/ui/base_panel.gd** (UI Sound Integration):
 - Connect `focus_entered` signal to UI sound player:
-  ```gdscript
-  func _ready() -> void:
-      focus_entered.connect(_on_focus_entered)
-
-  func _on_focus_entered() -> void:
-      U_UISoundPlayer.play_focus()
-  ```
+  BasePanel focus sound is input-gated and driven by `Viewport.gui_focus_changed` (initial/programmatic focus changes are silent).
 
 **5. Button/UI Controls** (various locations):
 - Add confirm/cancel sounds to button handlers
-- Add tab switch sounds to tab navigation
 - Add slider sounds (throttled) to volume sliders
 
 ### Integration Order
@@ -2154,6 +2094,8 @@ tests/integration/audio/
 7. **Phase 6** (Ambient System): Depends on Phase 1
 8. **Phase 7** (UI Sounds): Depends on Phase 1, existing UI architecture
 9. **Phase 8** (Settings UI): Depends on all previous phases
+10. **Phase 9** (Integration Testing): Depends on Phase 0–8
+11. **Phase 10** (Manual QA): Depends on Phase 0–9
 
 ### External Dependencies
 
@@ -2162,11 +2104,10 @@ tests/integration/audio/
 - **U_ServiceLocator**: Manager discovery
 - **U_StateUtils**: Store lookup utility
 - **M_SceneManager**: Scene transition events for music/ambient crossfading
-- **AudioListener3D**: 3D audio positioning (player entity or camera)
+- **AudioListener3D**: Ensure a 3D listener exists for spatial audio to behave as expected
 
 ---
 
 **End of Audio Manager PRD**
-**Total Lines**: ~1085
-**Review Status**: Ready for Implementation
-**Next Steps**: Begin Phase 0 implementation (Redux Foundation)
+**Review Status**: Phases 0–8 implemented; Phase 9 pending
+**Next Steps**: Start Phase 9 integration tests (see `docs/audio manager/audio-manager-tasks.md`)

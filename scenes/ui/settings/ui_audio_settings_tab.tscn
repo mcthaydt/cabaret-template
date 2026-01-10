@@ -2,87 +2,142 @@
 
 [ext_resource type="Script" path="res://scripts/ui/settings/ui_audio_settings_tab.gd" id="1_ui_audio_settings_tab_script"]
 
+[sub_resource type="StyleBoxFlat" id="slider_bg"]
+bg_color = Color(0.25, 0.3, 0.4, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_top = 6.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxFlat" id="slider_fill"]
+bg_color = Color(0.15, 0.75, 0.30, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_top = 6.0
+content_margin_bottom = 6.0
+
 [node name="AudioSettingsTab" type="VBoxContainer"]
 script = ExtResource("1_ui_audio_settings_tab_script")
+theme_override_constants/separation = 12
 
 [node name="HeadingLabel" type="Label" parent="."]
 text = "AUDIO SETTINGS"
 
 [node name="MasterRow" type="HBoxContainer" parent="."]
+theme_override_constants/separation = 12
 
 [node name="MasterLabel" type="Label" parent="MasterRow"]
+custom_minimum_size = Vector2(120, 0)
 text = "Master Volume"
 
 [node name="MasterVolumeSlider" type="HSlider" parent="MasterRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+size_flags_horizontal = 3
 min_value = 0.0
 max_value = 1.0
 step = 0.05
 value = 1.0
+theme_override_styles/slider = SubResource("slider_bg")
+theme_override_styles/grabber_area = SubResource("slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("slider_fill")
 
 [node name="MasterPercentage" type="Label" parent="MasterRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
 text = "100%"
+horizontal_alignment = 2
 
 [node name="MasterMuteToggle" type="CheckBox" parent="MasterRow"]
 unique_name_in_owner = true
 text = "Mute"
 
 [node name="MusicRow" type="HBoxContainer" parent="."]
+theme_override_constants/separation = 12
 
 [node name="MusicLabel" type="Label" parent="MusicRow"]
+custom_minimum_size = Vector2(120, 0)
 text = "Music Volume"
 
 [node name="MusicVolumeSlider" type="HSlider" parent="MusicRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+size_flags_horizontal = 3
 min_value = 0.0
 max_value = 1.0
 step = 0.05
 value = 1.0
+theme_override_styles/slider = SubResource("slider_bg")
+theme_override_styles/grabber_area = SubResource("slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("slider_fill")
 
 [node name="MusicPercentage" type="Label" parent="MusicRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
 text = "100%"
+horizontal_alignment = 2
 
 [node name="MusicMuteToggle" type="CheckBox" parent="MusicRow"]
 unique_name_in_owner = true
 text = "Mute"
 
 [node name="SFXRow" type="HBoxContainer" parent="."]
+theme_override_constants/separation = 12
 
 [node name="SFXLabel" type="Label" parent="SFXRow"]
+custom_minimum_size = Vector2(120, 0)
 text = "SFX Volume"
 
 [node name="SFXVolumeSlider" type="HSlider" parent="SFXRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+size_flags_horizontal = 3
 min_value = 0.0
 max_value = 1.0
 step = 0.05
 value = 1.0
+theme_override_styles/slider = SubResource("slider_bg")
+theme_override_styles/grabber_area = SubResource("slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("slider_fill")
 
 [node name="SFXPercentage" type="Label" parent="SFXRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
 text = "100%"
+horizontal_alignment = 2
 
 [node name="SFXMuteToggle" type="CheckBox" parent="SFXRow"]
 unique_name_in_owner = true
 text = "Mute"
 
 [node name="AmbientRow" type="HBoxContainer" parent="."]
+theme_override_constants/separation = 12
 
 [node name="AmbientLabel" type="Label" parent="AmbientRow"]
+custom_minimum_size = Vector2(120, 0)
 text = "Ambient Volume"
 
 [node name="AmbientVolumeSlider" type="HSlider" parent="AmbientRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+size_flags_horizontal = 3
 min_value = 0.0
 max_value = 1.0
 step = 0.05
 value = 1.0
+theme_override_styles/slider = SubResource("slider_bg")
+theme_override_styles/grabber_area = SubResource("slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("slider_fill")
 
 [node name="AmbientPercentage" type="Label" parent="AmbientRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
 text = "100%"
+horizontal_alignment = 2
 
 [node name="AmbientMuteToggle" type="CheckBox" parent="AmbientRow"]
 unique_name_in_owner = true
@@ -97,3 +152,22 @@ unique_name_in_owner = true
 
 [node name="SpatialAudioLabel" type="Label" parent="SpatialAudioRow"]
 text = "Spatial Audio (3D positioning)"
+
+[node name="Spacer" type="Control" parent="."]
+size_flags_vertical = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="."]
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="CancelButton" type="Button" parent="ButtonRow"]
+unique_name_in_owner = true
+text = "Cancel"
+
+[node name="ResetButton" type="Button" parent="ButtonRow"]
+unique_name_in_owner = true
+text = "Reset to Defaults"
+
+[node name="ApplyButton" type="Button" parent="ButtonRow"]
+unique_name_in_owner = true
+text = "Apply"

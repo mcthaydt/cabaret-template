@@ -17,7 +17,8 @@
   - `ui_audio_settings_overlay.tscn` at `scenes/ui/ui_audio_settings_overlay.tscn`
   - Registered overlay: `resources/ui_screens/audio_settings_overlay.tres` + `resources/scene_registry/ui_audio_settings.tres`
   - Added `Audio Settings` entry to Settings Hub: `scenes/ui/ui_settings_menu.tscn` + `scripts/ui/ui_settings_menu.gd`
-  - Unit suite green: 1368 / 1373 passing with 5 pending headless timing tests
+  - Spatial audio toggle now updates `M_SFXSpawner` (3D SFX disable attenuation + panning when off)
+  - Unit suite green: 1371 / 1376 passing with 5 pending headless timing tests
 
 - **Previous completions** (Phase 7 integration):
   - `U_UISoundPlayer` at `scripts/ui/utils/u_ui_sound_player.gd` (focus/confirm/cancel/tick + 100ms tick throttle)
@@ -29,7 +30,7 @@
   - `resources/settings/ambient_sound_default.tres` (default settings resource)
   - 2 ambient placeholder WAV files in `resources/audio/ambient/` (exterior: 80Hz, interior: 120Hz, 10s loops)
   - Added `S_AmbientSoundSystem` to all 3 gameplay scenes (gameplay_base, gameplay_exterior, gameplay_interior_house)
-  - All tests passing (UI Phase 7: 5/5; full unit suite: 1368/1373 with 5 pending headless timing tests)
+  - All tests passing (UI Phase 7: 5/5; full unit suite: 1371/1376 with 5 pending headless timing tests)
 
 ## Before You Start
 
@@ -49,12 +50,12 @@
 
 ## Test Status
 
-- **Unit tests**: 1368 / 1373 passing
+- **Unit tests**: 1371 / 1376 passing
   - Phase 0 Redux: 51/51 ✅
-  - Phase 1 Manager: 11/11 ✅
-  - Phase 2 Music: 4/4 ✅
+  - Phase 1 Manager: 8/8 ✅
+  - Phase 2 Music: 12/12 ✅
   - Phase 3 Base SFX: 15/15 ✅
-  - Phase 4 SFX Systems: 59/59 ✅
+  - Phase 4 SFX Systems: 61/61 ✅
   - Phase 5 Footstep: 35/35 ✅
   - Phase 6 Ambient: 10/10 ✅
   - Phase 7 UI Sounds: 5/5 ✅

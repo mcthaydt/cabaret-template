@@ -13,6 +13,7 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const M_SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
 
 const STREAM_MAIN_MENU := preload("res://resources/audio/music/main_menu.mp3")
 const STREAM_EXTERIOR := preload("res://resources/audio/music/exterior.mp3")
@@ -137,6 +138,21 @@ func test_volume_and_mute_apply_to_buses_via_state_store() -> void:
 	# Volume remains unchanged when muted
 	assert_almost_eq(AudioServer.get_bus_volume_db(music_idx), -12.0412, 0.05)
 	assert_almost_eq(AudioServer.get_bus_volume_db(sfx_idx), -2.4988, 0.05)
+
+func test_spatial_audio_setting_updates_sfx_spawner() -> void:
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	assert_true(M_SFX_SPAWNER.is_spatial_audio_enabled(), "Precondition: spatial audio enabled by default")
+
+	_store.dispatch(U_AUDIO_ACTIONS.set_spatial_audio_enabled(false))
+
+	assert_false(M_SFX_SPAWNER.is_spatial_audio_enabled(), "Spatial audio toggle should update M_SFXSpawner")
 
 func _make_store_with_audio_slice() -> Node:
 	var store := M_STATE_STORE.new()

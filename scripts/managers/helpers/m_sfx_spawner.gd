@@ -4,8 +4,19 @@ class_name M_SFXSpawner
 const POOL_SIZE := 16
 const META_IN_USE := &"_sfx_in_use"
 
+const _DEFAULT_MAX_DISTANCE: float = 50.0
+const _DEFAULT_ATTENUATION_MODEL: int = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+const _DEFAULT_PANNING_STRENGTH: float = 1.0
+
+static var _spatial_audio_enabled: bool = true
 static var _pool: Array[AudioStreamPlayer3D] = []
 static var _container: Node3D = null
+
+static func set_spatial_audio_enabled(enabled: bool) -> void:
+	_spatial_audio_enabled = enabled
+
+static func is_spatial_audio_enabled() -> bool:
+	return _spatial_audio_enabled
 
 static func initialize(parent: Node) -> void:
 	if parent == null:
@@ -23,8 +34,9 @@ static func initialize(parent: Node) -> void:
 	for i in range(POOL_SIZE):
 		var player := AudioStreamPlayer3D.new()
 		player.name = "SFXPlayer%d" % i
-		player.max_distance = 50.0
-		player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+		player.max_distance = _DEFAULT_MAX_DISTANCE
+		player.attenuation_model = _DEFAULT_ATTENUATION_MODEL
+		player.panning_strength = _DEFAULT_PANNING_STRENGTH
 		player.set_meta(META_IN_USE, false)
 		player.finished.connect(Callable(M_SFXSpawner, "_on_player_finished").bind(player))
 		_container.add_child(player)
@@ -62,6 +74,8 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
 	if player.playing:
 		player.stop()
 
+	_configure_player_spatialization(player)
+
 	player.stream = audio_stream
 	player.global_position = position
 	player.volume_db = volume_db
@@ -70,6 +84,22 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
 	player.play()
 
 	return player
+
+static func _configure_player_spatialization(player: AudioStreamPlayer3D) -> void:
+	if player == null or not is_instance_valid(player):
+		return
+
+	if _spatial_audio_enabled:
+		player.attenuation_model = _DEFAULT_ATTENUATION_MODEL
+		player.panning_strength = _DEFAULT_PANNING_STRENGTH
+		player.max_distance = _DEFAULT_MAX_DISTANCE
+		return
+
+	# When disabled, make 3D playback behave like 2D:
+	# - No distance attenuation
+	# - No left/right panning
+	player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_DISABLED
+	player.panning_strength = 0.0
 
 static func _get_available_player() -> AudioStreamPlayer3D:
 	for player_variant in _pool:
@@ -95,3 +125,4 @@ static func cleanup() -> void:
 		_container.queue_free()
 	_container = null
 	_pool.clear()
+	_spatial_audio_enabled = true
