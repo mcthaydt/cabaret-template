@@ -2,7 +2,7 @@
 
 ## Current Status
 
-- **Implementation status**: Phase 0–9 complete and fully integrated
+- **Implementation status**: Phase 0–9 complete and fully integrated; Phase 10 in progress
   - Phase 0-4: Audio Redux slice + M_AudioManager bus layout + volume/mute + music crossfade + scene/pause music switching + BaseEventSFXSystem pattern + pooled 3D SFX + jump/land/death/checkpoint/victory SFX systems
   - Phase 5: Footstep System (C_SurfaceDetectorComponent + S_FootstepSoundSystem + 24 placeholder footstep assets + scene integration)
   - Phase 6: Ambient System (S_AmbientSoundSystem + dual-player crossfade + scene-based ambient selection + 2 placeholder ambient assets + scene integration)
@@ -16,6 +16,11 @@
   - Added shared helper: `tests/helpers/u_audio_test_helpers.gd`
   - Restored Apply/Cancel/Reset pattern for Audio Settings UI (Apply dispatches, Cancel discards; Reset applies defaults immediately)
   - Footstep cadence now scales with movement speed; SFX spawner now guards invalid config types and clamps pitch_scale
+
+- **Phase 10 fixes** (Manual QA follow-up):
+  - Pause overlay music now resumes the pre-pause track position (no restart): `scripts/managers/m_audio_manager.gd`
+  - Footstep cadence tuned to realistic timing at default movement speed (no per-tick spam): `scripts/ecs/systems/s_footstep_sound_system.gd`, `scripts/ecs/resources/rs_footstep_sound_settings.gd`, `resources/settings/footstep_sound_default.tres`
+  - Audio settings now preview volume/mute changes live while editing; Apply persists: `scripts/ui/settings/ui_audio_settings_tab.gd`, `scripts/managers/m_audio_manager.gd`
 
 - **Previous completions** (Phase 7 integration):
   - `U_UISoundPlayer` at `scripts/ui/utils/u_ui_sound_player.gd` (focus/confirm/cancel/tick + 100ms tick throttle)
@@ -61,7 +66,7 @@
 
 ## Next Step
 
-- Start at **Phase 10 (Manual QA)** in `docs/audio manager/audio-manager-tasks.md` and complete tasks in order.
+- Continue **Phase 10 (Manual QA)** in `docs/audio manager/audio-manager-tasks.md` and complete the remaining checklist items.
 - After each completed phase:
   - Update `docs/audio manager/audio-manager-tasks.md` checkboxes + completion notes
   - Update this file with the new current status + "next step" ONLY

@@ -1,7 +1,7 @@
 # Audio Manager - Implementation Plan
 
 **Project**: Cabaret Template (Godot 4.5)
-**Status**: In Progress (Phase 0–9 complete; Phase 10 next)
+**Status**: In Progress (Phase 0–9 complete; Phase 10 in progress)
 **Estimated Duration**: 23 days
 **Test Count**: 100 audio integration tests + unit suite
 **Methodology**: Test-Driven Development (Red-Green-Refactor)

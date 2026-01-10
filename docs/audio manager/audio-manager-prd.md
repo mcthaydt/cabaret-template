@@ -6,7 +6,7 @@
 **Created**: 2026-01-01
 **Last Updated**: 2026-01-10
 **Target Release**: Phase 1 (3 weeks)
-**Status**: IN PROGRESS (Phase 0–9 complete; Phase 10 next)
+**Status**: IN PROGRESS (Phase 0–9 complete; Phase 10 in progress)
 **Version**: 1.0
 
 ## Problem Statement
@@ -577,11 +577,13 @@ static func _linear_to_db(linear: float) -> float:
 ```
 
 **FR-019: Pause Overlay Music Handling**
-The music system SHALL handle pause overlay push/pop with partial crossfade:
+The music system SHALL handle pause overlay open/close with partial crossfade, and resume the pre-pause track from its previous playback position (no restart):
 
 ```gdscript
 # Track previous music state for pause overlay
 var _pre_pause_music_id: StringName = StringName("")
+var _pre_pause_music_position: float = 0.0
+var _is_pause_overlay_active: bool = false
 
 func _on_action_dispatched(action: Dictionary) -> void:
 	var action_type: StringName = action.get("type", StringName(""))
@@ -592,19 +594,22 @@ func _on_action_dispatched(action: Dictionary) -> void:
 			var scene_id: StringName = payload.get("scene_id", StringName(""))
 			_change_music_for_scene(scene_id)
 
-		StringName("navigation/overlay_pushed"):
-			var payload: Dictionary = action.get("payload", {})
-			var overlay_id: StringName = payload.get("overlay_id", StringName(""))
-			if overlay_id == StringName("pause"):
-				_pre_pause_music_id = _current_music_id
-				play_music(StringName("pause"), 0.5)  # 0.5s crossfade
+		StringName("navigation/open_pause"):
+			if _is_pause_overlay_active:
+				return
+			_is_pause_overlay_active = true
+			_pre_pause_music_id = _current_music_id
+			_pre_pause_music_position = _active_music_player.get_playback_position()
+			play_music(StringName("pause"), 0.5)  # 0.5s crossfade
 
-		StringName("navigation/overlay_popped"):
-			var payload: Dictionary = action.get("payload", {})
-			var overlay_id: StringName = payload.get("overlay_id", StringName(""))
-			if overlay_id == StringName("pause") and _pre_pause_music_id != StringName(""):
-				play_music(_pre_pause_music_id, 0.5)  # Restore previous track
-				_pre_pause_music_id = StringName("")
+		StringName("navigation/close_pause"):
+			if not _is_pause_overlay_active:
+				return
+			_is_pause_overlay_active = false
+			if _pre_pause_music_id != StringName(""):
+				play_music(_pre_pause_music_id, 0.5, _pre_pause_music_position)  # Restore previous track position
+			_pre_pause_music_id = StringName("")
+			_pre_pause_music_position = 0.0
 ```
 
 **Note**: Pause overlay approach uses separate pause track. Alternative approach (apply low-pass filter to current track) is deferred to future enhancement.
@@ -1434,14 +1439,35 @@ The settings UI SHALL integrate audio controls:
 func _on_master_volume_slider_changed(value: float) -> void:
 	_update_volume_label(_master_volume_label, value)
 	_has_local_edits = true
+	_preview_audio_settings()
 
 func _on_master_mute_toggled(button_pressed: bool) -> void:
 	_has_local_edits = true
+	_preview_audio_settings()
 
 # Similar for music, sfx, ambient...
 
 func _on_spatial_audio_toggled(button_pressed: bool) -> void:
 	_has_local_edits = true
+	_preview_audio_settings()
+
+func _preview_audio_settings() -> void:
+	# Preview changes immediately (no dispatch) so users can hear the effect while editing.
+	# Apply persists by dispatching; Cancel clears preview without dispatching.
+	var audio_mgr := U_ServiceLocator.try_get_service(StringName("audio_manager")) as M_AudioManager
+	if audio_mgr == null:
+		return
+	audio_mgr.set_audio_settings_preview({
+		"master_volume": _master_volume_slider.value,
+		"music_volume": _music_volume_slider.value,
+		"sfx_volume": _sfx_volume_slider.value,
+		"ambient_volume": _ambient_volume_slider.value,
+		"master_muted": _master_mute_toggle.button_pressed,
+		"music_muted": _music_mute_toggle.button_pressed,
+		"sfx_muted": _sfx_mute_toggle.button_pressed,
+		"ambient_muted": _ambient_mute_toggle.button_pressed,
+		"spatial_audio_enabled": _spatial_audio_toggle.button_pressed,
+	})
 
 func _on_apply_pressed() -> void:
 	# Dispatch all 9 fields, then close overlay.
@@ -1454,9 +1480,15 @@ func _on_apply_pressed() -> void:
 	_store.dispatch(U_AudioActions.set_sfx_muted(_sfx_mute_toggle.button_pressed))
 	_store.dispatch(U_AudioActions.set_ambient_muted(_ambient_mute_toggle.button_pressed))
 	_store.dispatch(U_AudioActions.set_spatial_audio_enabled(_spatial_audio_toggle.button_pressed))
+	var audio_mgr := U_ServiceLocator.try_get_service(StringName("audio_manager")) as M_AudioManager
+	if audio_mgr != null:
+		audio_mgr.clear_audio_settings_preview()
 
 func _on_cancel_pressed() -> void:
 	# Close overlay without dispatching changes.
+	var audio_mgr := U_ServiceLocator.try_get_service(StringName("audio_manager")) as M_AudioManager
+	if audio_mgr != null:
+		audio_mgr.clear_audio_settings_preview()
 	pass
 
 func _on_reset_pressed() -> void:
@@ -1841,8 +1873,8 @@ SFX pool SHALL manage 16 concurrent sounds:
 - Sound finishes → player returns to pool
 
 **SC-009: Footstep Interval**
-Footsteps SHALL play at correct interval (0.4s default):
-- Player moving → footstep every 0.4s
+Footsteps SHALL play at a realistic cadence (0.5s at reference_speed 6.0 by default) and scale with movement speed:
+- Player moving (default walk) → footstep every ~0.5s
 - Player stops → footsteps cease
 
 **SC-010: Surface Detection**

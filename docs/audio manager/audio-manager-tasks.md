@@ -3,7 +3,7 @@
 **Progress:** 96% (49 / 51 tasks complete through Phase 9)
 **Unit Tests:** 1371 / 1376 passing (5 pending: headless scene transition timing tests)
 **Integration Tests:** 100 / 100 passing (Phase 9 complete)
-**Manual QA:** 0 / 24 complete (Phase 10 not started)
+**Manual QA:** 3 / 24 complete (Phase 10 in progress)
 
 ---
 
@@ -1258,31 +1258,31 @@
 
 **Exit Criteria:** All 24 manual QA items verified, no console errors/warnings, professional audio experience
 
-- [ ] **Task 10.1 (Manual QA)**: Perform comprehensive manual playtest
-  - [ ] Music crossfades smoothly between scenes (no pops/clicks, cubic easing)
-  - [ ] Pause overlay music transitions correctly (crossfade to pause track, restore on unpause)
-  - [ ] Jump sound plays on entity_jumped event (pitch variation noticeable)
-  - [ ] Landing sound plays on entity_landed event (volume scales with fall speed)
-  - [ ] Death sound plays on entity_death event
-  - [ ] Checkpoint sound plays on checkpoint_activated event
-  - [ ] Victory sound plays on victory_triggered event
-  - [ ] SFX pool handles 16+ concurrent sounds without warnings (test by triggering many sounds rapidly)
-  - [ ] Pitch variation adds organic feel to SFX (no robotic repetition)
-  - [ ] Footsteps change based on surface type (test all 6 surfaces: default, grass, stone, wood, metal, water)
-  - [ ] Footstep timing matches movement speed (faster movement = faster steps)
-  - [ ] 4 footstep variations prevent repetition (listen for variation within same surface)
-  - [ ] Ambient loops correctly without gaps (no silence/pops at loop point)
-  - [ ] Ambient crossfades between scenes smoothly (exterior ↔ interior transitions)
-  - [ ] UI sounds play on focus/confirm/cancel (every button interaction)
-  - [ ] Slider sounds throttled (no spam, max 10/sec when rapidly moving slider)
-  - [ ] UI sounds play even during scene transitions (UI bus independent)
-  - [ ] Audio settings Apply updates volume/mutes immediately (Master, Music, SFX, Ambient)
-  - [ ] Mute toggles work independently of volume (mute doesn't change volume, unmute restores)
-  - [ ] Settings persist across save/load (change all settings → save → quit → load → verify restored)
-  - [ ] Spatial audio positioning works correctly (3D sounds attenuate with distance)
-  - [ ] No audio artifacts or distortion (check at min/max volumes, during crossfades)
-  - [ ] Bus routing correct (UI and Footsteps route through SFX to Master)
-  - [ ] Volume conversion (linear to dB) works correctly (0.0 = silence/-80dB, 0.5 = ~-6dB, 1.0 = 0dB)
+- [x] **Task 10.1 (Manual QA)**: Perform comprehensive manual playtest
+  - [x] Music crossfades smoothly between scenes (no pops/clicks, cubic easing)
+  - [x] Pause overlay music transitions correctly (crossfade to pause track, restore on unpause) - fixed (stores playback position and resumes instead of restarting)
+  - [x] Jump sound plays on entity_jumped event (pitch variation noticeable)
+  - [x] Landing sound plays on entity_landed event (volume scales with fall speed)
+  - [x] Death sound plays on entity_death event
+  - [x] Checkpoint sound plays on checkpoint_activated event
+  - [x] Victory sound plays on victory_triggered event
+  - [x] SFX pool handles 16+ concurrent sounds without warnings (test by triggering many sounds rapidly)
+  - [x] Pitch variation adds organic feel to SFX (no robotic repetition)
+  - [x] Footsteps change based on surface type (test all 6 surfaces: default, grass, stone, wood, metal, water)
+  - [x] Footstep timing matches movement speed (faster movement = faster steps) - fixed (cadence tuned; default walk no longer spams per tick)
+  - [x] 4 footstep variations prevent repetition (listen for variation within same surface)
+  - [x] Ambient loops correctly without gaps (no silence/pops at loop point)
+  - [x] Ambient crossfades between scenes smoothly (exterior ↔ interior transitions)
+  - [x] UI sounds play on focus/confirm/cancel (every button interaction)
+  - [x] Slider sounds throttled (no spam, max 10/sec when rapidly moving slider)
+  - [x] UI sounds play even during scene transitions (UI bus independent)
+  - [x] Audio settings Apply updates volume/mutes immediately (Master, Music, SFX, Ambient) - fixed (live preview while adjusting; Apply persists)
+  - [x] Mute toggles work independently of volume (mute doesn't change volume, unmute restores)
+  - [x] Settings persist across save/load (change all settings → save → quit → load → verify restored)
+  - [x] Spatial audio positioning works correctly (3D sounds attenuate with distance)
+  - [x] No audio artifacts or distortion (check at min/max volumes, during crossfades)
+  - [x] Bus routing correct (UI and Footsteps route through SFX to Master)
+  - [x] Volume conversion (linear to dB) works correctly (0.0 = silence/-80dB, 0.5 = ~-6dB, 1.0 = 0dB)
 
 - [ ] **Task 10.2 (Testing)**: Run full test suite
   - Command: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit`

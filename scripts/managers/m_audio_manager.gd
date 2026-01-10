@@ -53,9 +53,12 @@ var _active_music_player: AudioStreamPlayer
 var _inactive_music_player: AudioStreamPlayer
 var _current_music_id: StringName = StringName("")
 var _pre_pause_music_id: StringName = StringName("")
+var _pre_pause_music_position: float = 0.0
+var _is_pause_overlay_active: bool = false
 var _music_tween: Tween
 
 var _ui_player: AudioStreamPlayer
+var _audio_settings_preview_active: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -177,7 +180,7 @@ static func _linear_to_db(linear: float) -> float:
 		return -80.0
 	return 20.0 * log(linear) / log(10.0)
 
-func play_music(track_id: StringName, duration: float = 1.5) -> void:
+func play_music(track_id: StringName, duration: float = 1.5, start_position: float = 0.0) -> void:
 	if track_id == _current_music_id:
 		return
 
@@ -191,10 +194,10 @@ func play_music(track_id: StringName, duration: float = 1.5) -> void:
 		push_warning("M_AudioManager: Music track '%s' has no stream" % String(track_id))
 		return
 
-	_crossfade_music(stream, track_id, duration)
+	_crossfade_music(stream, track_id, duration, start_position)
 	_current_music_id = track_id
 
-func _crossfade_music(new_stream: AudioStream, _track_id: StringName, duration: float) -> void:
+func _crossfade_music(new_stream: AudioStream, _track_id: StringName, duration: float, start_position: float) -> void:
 	if new_stream == null:
 		return
 
@@ -214,7 +217,9 @@ func _crossfade_music(new_stream: AudioStream, _track_id: StringName, duration: 
 	# Start new player at -80dB (silent)
 	new_player.stream = new_stream
 	new_player.volume_db = -80.0
-	new_player.play()
+	if start_position < 0.0:
+		start_position = 0.0
+	new_player.play(start_position)
 
 	# Crossfade with cubic easing
 	_music_tween = create_tween()
@@ -249,7 +254,8 @@ func _stop_music(duration: float) -> void:
 	_current_music_id = StringName("")
 
 func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
-	_apply_audio_settings(state)
+	if not _audio_settings_preview_active:
+		_apply_audio_settings(state)
 	_handle_music_actions(action)
 
 func _handle_music_actions(action: Dictionary) -> void:
@@ -263,14 +269,24 @@ func _handle_music_actions(action: Dictionary) -> void:
 			var scene_id: StringName = payload.get("scene_id", StringName(""))
 			_change_music_for_scene(scene_id)
 		U_NAVIGATION_ACTIONS.ACTION_OPEN_PAUSE:
+			if _is_pause_overlay_active:
+				return
+			_is_pause_overlay_active = true
 			_pre_pause_music_id = _current_music_id
+			_pre_pause_music_position = 0.0
+			if _active_music_player != null and is_instance_valid(_active_music_player) and _active_music_player.playing:
+				_pre_pause_music_position = _active_music_player.get_playback_position()
 			play_music(StringName("pause"), 0.5)
 		U_NAVIGATION_ACTIONS.ACTION_CLOSE_PAUSE:
+			if not _is_pause_overlay_active:
+				return
+			_is_pause_overlay_active = false
 			if _pre_pause_music_id != StringName(""):
-				play_music(_pre_pause_music_id, 0.5)
-				_pre_pause_music_id = StringName("")
+				play_music(_pre_pause_music_id, 0.5, _pre_pause_music_position)
 			elif _current_music_id == StringName("pause"):
 				_stop_music(0.5)
+			_pre_pause_music_id = StringName("")
+			_pre_pause_music_position = 0.0
 
 func _change_music_for_scene(scene_id: StringName) -> void:
 	if scene_id == StringName(""):
@@ -290,12 +306,15 @@ func _change_music_for_scene(scene_id: StringName) -> void:
 		return
 
 	# If transitioning to main_menu, clear pause state (returning to main menu from pause)
-	if scene_id == StringName("main_menu") and _pre_pause_music_id != StringName(""):
+	if scene_id == StringName("main_menu") and _is_pause_overlay_active:
+		_is_pause_overlay_active = false
 		_pre_pause_music_id = StringName("")
+		_pre_pause_music_position = 0.0
 
 	# If paused, only update the "return-to" track and keep pause music playing.
-	if _pre_pause_music_id != StringName(""):
+	if _is_pause_overlay_active:
 		_pre_pause_music_id = track_id
+		_pre_pause_music_position = 0.0
 		return
 
 	# Change to the new track
@@ -323,3 +342,56 @@ func _apply_audio_settings(state: Dictionary) -> void:
 	AudioServer.set_bus_mute(ambient_idx, U_AUDIO_SELECTORS.is_ambient_muted(state))
 
 	M_SFX_SPAWNER.set_spatial_audio_enabled(U_AUDIO_SELECTORS.is_spatial_audio_enabled(state))
+
+func set_audio_settings_preview(preview_settings: Dictionary) -> void:
+	if preview_settings == null or preview_settings.is_empty():
+		return
+	_audio_settings_preview_active = true
+	_apply_audio_settings_from_values(
+		float(preview_settings.get("master_volume", 1.0)),
+		bool(preview_settings.get("master_muted", false)),
+		float(preview_settings.get("music_volume", 1.0)),
+		bool(preview_settings.get("music_muted", false)),
+		float(preview_settings.get("sfx_volume", 1.0)),
+		bool(preview_settings.get("sfx_muted", false)),
+		float(preview_settings.get("ambient_volume", 1.0)),
+		bool(preview_settings.get("ambient_muted", false)),
+		bool(preview_settings.get("spatial_audio_enabled", true))
+	)
+
+func clear_audio_settings_preview() -> void:
+	if not _audio_settings_preview_active:
+		return
+	_audio_settings_preview_active = false
+	if _state_store != null:
+		_apply_audio_settings(_state_store.get_state())
+
+func _apply_audio_settings_from_values(
+	master_volume: float,
+	master_muted: bool,
+	music_volume: float,
+	music_muted: bool,
+	sfx_volume: float,
+	sfx_muted: bool,
+	ambient_volume: float,
+	ambient_muted: bool,
+	spatial_audio_enabled: bool
+) -> void:
+	var master_idx := AudioServer.get_bus_index("Master")
+	var music_idx := AudioServer.get_bus_index("Music")
+	var sfx_idx := AudioServer.get_bus_index("SFX")
+	var ambient_idx := AudioServer.get_bus_index("Ambient")
+
+	AudioServer.set_bus_volume_db(master_idx, _linear_to_db(clampf(master_volume, 0.0, 1.0)))
+	AudioServer.set_bus_mute(master_idx, master_muted)
+
+	AudioServer.set_bus_volume_db(music_idx, _linear_to_db(clampf(music_volume, 0.0, 1.0)))
+	AudioServer.set_bus_mute(music_idx, music_muted)
+
+	AudioServer.set_bus_volume_db(sfx_idx, _linear_to_db(clampf(sfx_volume, 0.0, 1.0)))
+	AudioServer.set_bus_mute(sfx_idx, sfx_muted)
+
+	AudioServer.set_bus_volume_db(ambient_idx, _linear_to_db(clampf(ambient_volume, 0.0, 1.0)))
+	AudioServer.set_bus_mute(ambient_idx, ambient_muted)
+
+	M_SFX_SPAWNER.set_spatial_audio_enabled(spatial_audio_enabled)

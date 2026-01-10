@@ -12,6 +12,7 @@ const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_a
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 
 var _state_store: I_StateStore = null
+var _audio_manager: Node = null
 var _unsubscribe: Callable = Callable()
 var _updating_from_state: bool = false
 var _has_local_edits: bool = false
@@ -59,10 +60,13 @@ func _ready() -> void:
 		push_error("UI_AudioSettingsTab: StateStore not found")
 		return
 
+	_audio_manager = U_ServiceLocator.try_get_service(StringName("audio_manager"))
+
 	_unsubscribe = _state_store.subscribe(_on_state_changed)
 	_on_state_changed({}, _state_store.get_state())
 
 func _exit_tree() -> void:
+	_clear_audio_settings_preview()
 	if _unsubscribe != Callable() and _unsubscribe.is_valid():
 		_unsubscribe.call()
 		_unsubscribe = Callable()
@@ -240,12 +244,14 @@ func _on_master_volume_changed(value: float) -> void:
 		return
 	U_UISoundPlayer.play_slider_tick()
 	_has_local_edits = true
+	_update_audio_settings_preview_from_ui()
 
 func _on_master_mute_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
 	_update_mute_visuals_from_ui()
+	_update_audio_settings_preview_from_ui()
 
 # Music handlers
 func _on_music_volume_changed(value: float) -> void:
@@ -254,12 +260,14 @@ func _on_music_volume_changed(value: float) -> void:
 		return
 	U_UISoundPlayer.play_slider_tick()
 	_has_local_edits = true
+	_update_audio_settings_preview_from_ui()
 
 func _on_music_mute_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
 	_update_mute_visuals_from_ui()
+	_update_audio_settings_preview_from_ui()
 
 # SFX handlers
 func _on_sfx_volume_changed(value: float) -> void:
@@ -268,12 +276,14 @@ func _on_sfx_volume_changed(value: float) -> void:
 		return
 	U_UISoundPlayer.play_slider_tick()
 	_has_local_edits = true
+	_update_audio_settings_preview_from_ui()
 
 func _on_sfx_mute_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
 	_update_mute_visuals_from_ui()
+	_update_audio_settings_preview_from_ui()
 
 # Ambient handlers
 func _on_ambient_volume_changed(value: float) -> void:
@@ -282,22 +292,26 @@ func _on_ambient_volume_changed(value: float) -> void:
 		return
 	U_UISoundPlayer.play_slider_tick()
 	_has_local_edits = true
+	_update_audio_settings_preview_from_ui()
 
 func _on_ambient_mute_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
 	_update_mute_visuals_from_ui()
+	_update_audio_settings_preview_from_ui()
 
 # Spatial handler
 func _on_spatial_audio_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
+	_update_audio_settings_preview_from_ui()
 
 func _on_apply_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	if _state_store == null:
+		_clear_audio_settings_preview()
 		_close_overlay()
 		return
 
@@ -323,11 +337,13 @@ func _on_apply_pressed() -> void:
 	_state_store.dispatch(U_AudioActions.set_sfx_muted(sfx_muted))
 	_state_store.dispatch(U_AudioActions.set_ambient_muted(ambient_muted))
 	_state_store.dispatch(U_AudioActions.set_spatial_audio_enabled(spatial_enabled))
+	_clear_audio_settings_preview()
 	_close_overlay()
 
 func _on_cancel_pressed() -> void:
 	U_UISoundPlayer.play_cancel()
 	_has_local_edits = false
+	_clear_audio_settings_preview()
 	_close_overlay()
 
 func _on_reset_pressed() -> void:
@@ -368,6 +384,7 @@ func _on_reset_pressed() -> void:
 		_state_store.dispatch(U_AudioActions.set_sfx_muted(defaults.sfx_muted))
 		_state_store.dispatch(U_AudioActions.set_ambient_muted(defaults.ambient_muted))
 		_state_store.dispatch(U_AudioActions.set_spatial_audio_enabled(defaults.spatial_audio_enabled))
+	_clear_audio_settings_preview()
 
 func _set_slider_value_silently(slider: HSlider, value: float) -> void:
 	if slider == null:
@@ -439,3 +456,36 @@ func _close_overlay() -> void:
 		_state_store.dispatch(U_NavigationActions.close_top_overlay())
 	else:
 		_state_store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
+
+func _get_audio_manager() -> Node:
+	if _audio_manager != null and is_instance_valid(_audio_manager):
+		return _audio_manager
+	_audio_manager = U_ServiceLocator.try_get_service(StringName("audio_manager"))
+	return _audio_manager
+
+func _update_audio_settings_preview_from_ui() -> void:
+	var audio_mgr := _get_audio_manager()
+	if audio_mgr == null:
+		return
+	if not audio_mgr.has_method("set_audio_settings_preview"):
+		return
+
+	audio_mgr.call("set_audio_settings_preview", {
+		"master_volume": _master_volume_slider.value if _master_volume_slider != null else 1.0,
+		"master_muted": _master_mute_toggle.button_pressed if _master_mute_toggle != null else false,
+		"music_volume": _music_volume_slider.value if _music_volume_slider != null else 1.0,
+		"music_muted": _music_mute_toggle.button_pressed if _music_mute_toggle != null else false,
+		"sfx_volume": _sfx_volume_slider.value if _sfx_volume_slider != null else 1.0,
+		"sfx_muted": _sfx_mute_toggle.button_pressed if _sfx_mute_toggle != null else false,
+		"ambient_volume": _ambient_volume_slider.value if _ambient_volume_slider != null else 1.0,
+		"ambient_muted": _ambient_mute_toggle.button_pressed if _ambient_mute_toggle != null else false,
+		"spatial_audio_enabled": _spatial_audio_toggle.button_pressed if _spatial_audio_toggle != null else true,
+	})
+
+func _clear_audio_settings_preview() -> void:
+	var audio_mgr := _get_audio_manager()
+	if audio_mgr == null:
+		return
+	if not audio_mgr.has_method("clear_audio_settings_preview"):
+		return
+	audio_mgr.call("clear_audio_settings_preview")
