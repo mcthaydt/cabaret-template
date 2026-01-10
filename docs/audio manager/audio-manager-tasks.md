@@ -1,9 +1,9 @@
 # Audio Manager - Task Checklist
 
-**Progress:** 88% (45 / 51 tasks complete through Phase 8)
+**Progress:** 96% (49 / 51 tasks complete through Phase 9)
 **Unit Tests:** 1371 / 1376 passing (5 pending: headless scene transition timing tests)
-**Integration Tests:** 0 / 100 passing (Phase 9 not started)
-**Manual QA:** 0 / 20 complete (Phase 10 not started)
+**Integration Tests:** 100 / 100 passing (Phase 9 complete)
+**Manual QA:** 0 / 24 complete (Phase 10 not started)
 
 ---
 
@@ -1167,7 +1167,7 @@
 
 ## Phase 8: Audio Settings UI
 
-**Exit Criteria:** Settings persist to save files, sliders affect volume in real-time, mute toggles work independently of volume, no audio artifacts
+**Exit Criteria:** Settings persist to save files, Apply updates volume/mutes immediately (Cancel discards edits), mute toggles work independently of volume, no audio artifacts
 
 - [x] **Task 8.1 (Green)**: Create Audio settings tab scene
   - Create `scenes/ui/settings/ui_audio_settings_tab.tscn`
@@ -1199,11 +1199,16 @@
     ├── HBoxContainer (name="SpatialAudioRow")
     │   ├── CheckBox (name="SpatialAudioToggle")
     │   └── Label (text="Spatial Audio (3D positioning)")
+    ├── Control (name="Spacer", size_flags_vertical=expand)
+    ├── HBoxContainer (name="ButtonRow")
+    │   ├── Button (name="CancelButton", text="Cancel")
+    │   ├── Button (name="ResetButton", text="Reset to Defaults")
+    │   └── Button (name="ApplyButton", text="Apply")
     ```
   - All controls use focus navigation for gamepad support
 
 - [x] **Task 8.2 (Green)**: Implement Audio settings tab script
-  - Create `scripts/ui/settings/ui_audio_settings_tab.gd` (auto-save Redux dispatch + silent UI sync + gamepad focus grid + slider tick sounds)
+  - Create `scripts/ui/settings/ui_audio_settings_tab.gd` (Apply/Cancel pattern + silent UI sync + gamepad focus grid + slider tick sounds; Reset applies immediately)
 
 - [x] **Task 8.3 (Green)**: Wire Audio settings into Settings Hub
   - Add `Audio Settings` entry to `scenes/ui/ui_settings_menu.tscn` + `scripts/ui/ui_settings_menu.gd`
@@ -1221,31 +1226,37 @@
 
 **Exit Criteria:** 100 integration tests pass (10 settings UI + 30 full integration + 30 music crossfade + 30 SFX pooling)
 
-- [ ] **Task 9.1 (Red+Green)**: Write and verify audio settings UI integration tests
+- [x] **Task 9.1 (Red+Green)**: Write and verify audio settings UI integration tests
   - Create `tests/integration/audio/test_audio_settings_ui.gd`
-  - Tests (10): UI controls initialize from Redux state, all 4 volume sliders dispatch actions, all 4 mute toggles dispatch actions, spatial audio toggle dispatches, state changes update UI bidirectionally, settings persist to save file, settings restore from save file
+  - Tests (10): UI initializes from Redux state, edits do not dispatch until Apply, Apply dispatches 9 audio actions and updates state, Cancel discards edits, Reset applies defaults immediately (dispatches), state changes refresh UI when not editing, state changes do not override local edits, settings persist and restore from save file
   - All tests passing
 
-- [ ] **Task 9.2 (Red+Green)**: Write and verify full audio integration tests
+- [x] **Task 9.2 (Red+Green)**: Write and verify full audio integration tests
   - Create `tests/integration/audio/test_audio_integration.gd`
   - Tests (30): bus hierarchy correct, volume application (all 4 buses), mute application (all 4 buses), music crossfade on scene transition, pause overlay music swap, SFX systems trigger on events (5 systems), footstep system integration with movement, ambient system crossfade, UI sounds play during transitions, spatial audio positioning
   - All tests passing
 
-- [ ] **Task 9.3 (Red+Green)**: Write and verify music crossfade integration tests
+- [x] **Task 9.3 (Red+Green)**: Write and verify music crossfade integration tests
   - Create `tests/integration/audio/test_music_crossfade.gd`
   - Tests (30): dual-player swap, crossfade duration verification, volume curve (cubic easing), no audio pops/clicks, old player stops after fade, new player starts at -80dB, tween kill on retrigger, pause overlay crossfade, scene transition crossfade, music registry lookup
   - All tests passing
 
-- [ ] **Task 9.4 (Red+Green)**: Write and verify SFX pooling integration tests
+- [x] **Task 9.4 (Red+Green)**: Write and verify SFX pooling integration tests
   - Create `tests/integration/audio/test_sfx_pooling.gd`
   - Tests (30): pool initialization (16 players), player availability check, player configuration (stream, position, volume, pitch, bus), pool exhaustion warning, player auto-return when finished, concurrent playback (16+ sounds), pitch variation, spatial positioning, bus routing (UI, Footsteps to SFX), max_distance attenuation
   - All tests passing
+
+**Completion Notes:**
+- Added 4 integration suites under `tests/integration/audio/` (100 tests total).
+- Verified GREEN: `tools/run_gut_suite.sh -gdir=res://tests/integration/audio -ginclude_subdirs=true` (100/100 passing).
+- Restored Audio Settings UI Apply/Cancel pattern (Cancel discards; Apply dispatches). Reset applies defaults immediately.
+- Updated SFX spawner to guard invalid config types and clamp pitch_scale; footstep cadence now scales with movement speed.
 
 ---
 
 ## Phase 10: Manual QA
 
-**Exit Criteria:** All 20 manual QA items verified, no console errors/warnings, professional audio experience
+**Exit Criteria:** All 24 manual QA items verified, no console errors/warnings, professional audio experience
 
 - [ ] **Task 10.1 (Manual QA)**: Perform comprehensive manual playtest
   - [ ] Music crossfades smoothly between scenes (no pops/clicks, cubic easing)
@@ -1265,7 +1276,7 @@
   - [ ] UI sounds play on focus/confirm/cancel (every button interaction)
   - [ ] Slider sounds throttled (no spam, max 10/sec when rapidly moving slider)
   - [ ] UI sounds play even during scene transitions (UI bus independent)
-  - [ ] All volume sliders affect volume in real-time (Master, Music, SFX, Ambient - hear changes immediately)
+  - [ ] Audio settings Apply updates volume/mutes immediately (Master, Music, SFX, Ambient)
   - [ ] Mute toggles work independently of volume (mute doesn't change volume, unmute restores)
   - [ ] Settings persist across save/load (change all settings → save → quit → load → verify restored)
   - [ ] Spatial audio positioning works correctly (3D sounds attenuate with distance)
@@ -1349,15 +1360,16 @@
 | `resources/audio/sfx/placeholder_ui_tick.wav` | ✅ Complete | 7 | 1400Hz, 20ms |
 | `scripts/ui/base/base_panel.gd` | ✅ Complete | 7 | Modified for focus sounds |
 | `scenes/ui/settings/ui_audio_settings_tab.tscn` | ✅ Complete | 8 | Audio settings UI tab |
-| `scripts/ui/settings/ui_audio_settings_tab.gd` | ✅ Complete | 8 | Redux auto-save + UI sync |
+| `scripts/ui/settings/ui_audio_settings_tab.gd` | ✅ Complete | 8 | Apply/Cancel + UI sync |
 | `scenes/ui/ui_audio_settings_overlay.tscn` | ✅ Complete | 8 | Audio settings overlay wrapper |
 | `scripts/ui/settings/ui_audio_settings_overlay.gd` | ✅ Complete | 8 | Overlay close/back behavior |
 | `resources/ui_screens/audio_settings_overlay.tres` | ✅ Complete | 8 | UI registry definition |
 | `resources/scene_registry/ui_audio_settings.tres` | ✅ Complete | 8 | Scene registry entry |
-| `tests/integration/audio/test_audio_settings_ui.gd` | ⬜ Not Started | 9 | 10 integration tests |
-| `tests/integration/audio/test_audio_integration.gd` | ⬜ Not Started | 9 | 30 integration tests |
-| `tests/integration/audio/test_music_crossfade.gd` | ⬜ Not Started | 9 | 30 crossfade tests |
-| `tests/integration/audio/test_sfx_pooling.gd` | ⬜ Not Started | 9 | 30 pooling tests |
+| `tests/helpers/u_audio_test_helpers.gd` | ✅ Complete | 9 | Shared test helpers |
+| `tests/integration/audio/test_audio_settings_ui.gd` | ✅ Complete | 9 | 10 integration tests |
+| `tests/integration/audio/test_audio_integration.gd` | ✅ Complete | 9 | 30 integration tests |
+| `tests/integration/audio/test_music_crossfade.gd` | ✅ Complete | 9 | 30 crossfade tests |
+| `tests/integration/audio/test_sfx_pooling.gd` | ✅ Complete | 9 | 30 pooling tests |
 
 **Status Legend:**
 - ⬜ Not Started

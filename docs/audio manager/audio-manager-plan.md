@@ -1,9 +1,9 @@
 # Audio Manager - Implementation Plan
 
 **Project**: Cabaret Template (Godot 4.5)
-**Status**: In Progress (Phase 0–8 complete; Phase 9 next)
+**Status**: In Progress (Phase 0–9 complete; Phase 10 next)
 **Estimated Duration**: 23 days
-**Test Count**: ~280 tests
+**Test Count**: 100 audio integration tests + unit suite
 **Methodology**: Test-Driven Development (Red-Green-Refactor)
 
 ---
@@ -616,31 +616,42 @@ VBoxContainer
 ├── [Same for Music, SFX, Ambient]
 ├── HSeparator
 ├── CheckBox ("Spatial Audio (3D positioning)")
+├── Control (Spacer)
+├── HBoxContainer (ButtonRow)
+│   ├── Button ("Cancel")
+│   ├── Button ("Reset to Defaults")
+│   └── Button ("Apply")
 ```
 
-**Auto-Save Pattern**:
+**Apply/Cancel Pattern**:
 ```gdscript
 func _on_master_volume_changed(value: float) -> void:
-    if _store:
-        _store.dispatch(U_AudioActions.set_master_volume(value))
     _update_percentage_label(value)
+    _has_local_edits = true
 
 func _on_master_mute_toggled(pressed: bool) -> void:
-    if _store:
-        _store.dispatch(U_AudioActions.set_master_muted(pressed))
+    _has_local_edits = true
+
+func _on_apply_pressed() -> void:
+    _store.dispatch(U_AudioActions.set_master_volume(_master_volume_slider.value))
+    # ... dispatch all audio settings fields ...
+    _close_overlay()
 ```
 
 ---
 
-## Phase 9: Integration Testing (Next)
+## Phase 9: Integration Testing (Complete)
 
 **Exit Criteria**: 100/100 audio integration tests pass (per `docs/audio manager/audio-manager-tasks.md`)
 
-**Files to create**:
+**Files**:
 - `tests/integration/audio/test_audio_settings_ui.gd` (10 tests)
 - `tests/integration/audio/test_audio_integration.gd` (30 tests)
 - `tests/integration/audio/test_music_crossfade.gd` (30 tests)
 - `tests/integration/audio/test_sfx_pooling.gd` (30 tests)
+- `tests/helpers/u_audio_test_helpers.gd`
+
+**Status**: ✅ Complete — 100/100 passing via `tools/run_gut_suite.sh -gdir=res://tests/integration/audio -ginclude_subdirs=true`
 
 ---
 
@@ -681,7 +692,7 @@ func _on_master_mute_toggled(pressed: bool) -> void:
 ### Phase 8 Complete:
 - [x] Unit suite green (1371/1376, 5 pending headless timing tests)
 - [x] Settings persist to save files (audio slice is persisted)
-- [x] Sliders affect volume in real-time
+- [x] Apply updates volume/mutes immediately (Cancel discards edits)
 - [x] Mute toggles independent of volume
 - [x] Spatial audio toggle affects 3D SFX (attenuation/panning on/off)
 - [ ] No audio artifacts (verify in Phase 10 manual QA)
@@ -701,6 +712,10 @@ func _on_master_mute_toggled(pressed: bool) -> void:
 ## Testing Commands
 
 ```bash
+# Preferred wrapper (keeps user:// isolated in repo via HOME override)
+tools/run_gut_suite.sh -gdir=res://tests/integration/audio -ginclude_subdirs=true
+tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true
+
 # Run audio unit tests
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . \
   -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/managers -gselect=test_audio -gexit

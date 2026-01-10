@@ -3,7 +3,7 @@
 **Project**: Cabaret Template (Godot 4.5)
 **Created**: 2026-01-01
 **Last Updated**: 2026-01-10
-**Status**: IN PROGRESS (Phase 0–8 complete)
+**Status**: IN PROGRESS (Phase 0–9 complete)
 **Scope**: Music with crossfading, comprehensive SFX, ambient audio, footsteps, 3D spatial audio
 
 ## Summary
@@ -315,15 +315,15 @@ class_name RS_FootstepSoundSettings
 extends Resource
 
 @export var enabled: bool = true
-@export var step_interval: float = 0.4  # Seconds between steps
+@export var step_interval: float = 0.4  # Base seconds between steps (scaled by speed)
+@export var min_velocity: float = 1.0  # Minimum horizontal speed to trigger
+@export var volume_db: float = 0.0
+@export var default_sounds: Array[AudioStream]
 @export var grass_sounds: Array[AudioStream]
 @export var stone_sounds: Array[AudioStream]
 @export var wood_sounds: Array[AudioStream]
 @export var metal_sounds: Array[AudioStream]
 @export var water_sounds: Array[AudioStream]
-@export var default_sounds: Array[AudioStream]
-@export var volume_db: float = -6.0
-@export var pitch_variation: float = 0.15
 ```
 
 ## Ambient System
@@ -445,6 +445,7 @@ resources/
 ### Audio Settings Overlay
 
 - Implemented as `UI_AudioSettingsOverlay` (`scenes/ui/ui_audio_settings_overlay.tscn`) and `UI_AudioSettingsTab` (`scenes/ui/settings/ui_audio_settings_tab.tscn`).
+- Uses Apply/Cancel/Reset pattern: edits are local until Apply; Cancel discards; Reset applies defaults immediately.
 - Opened from `UI_SettingsMenu`:
   - Gameplay (pause/settings overlay): opens as an overlay (`overlay_id = "audio_settings"`).
   - Main menu settings: navigates via `navigate_to_ui_screen(scene_id = "audio_settings")`.
@@ -476,7 +477,7 @@ store.dispatch(U_AudioActions.set_spatial_audio_enabled(true))
 - **Pool exhaustion**: Log warning, skip sound (don't block gameplay)
 - **CPU**: < 0.5ms per frame for music crossfade + SFX spawning
 - **Memory**: ~50KB for manager + pools, plus loaded audio streams
-- **Footstep optimization**: Max 1 footstep per step_interval (0.4s), throttle if needed
+- **Footstep cadence**: Base interval `step_interval` scaled by movement speed (clamped to 0.1–`step_interval`)
 
 ### Profiling
 
@@ -503,6 +504,8 @@ Use Godot Profiler (Debugger > Profiler) to measure actual overhead:
 
 ### Integration Tests
 
+- Implemented 4 suites under `tests/integration/audio/` (100 tests total).
+- Run: `tools/run_gut_suite.sh -gdir=res://tests/integration/audio -ginclude_subdirs=true`
 - Music crossfade: Transition scenes -> verify crossfade behavior.
 - SFX playback: Dispatch gameplay event -> verify sound plays.
 - Settings application: Dispatch volume action -> verify bus volume updated.

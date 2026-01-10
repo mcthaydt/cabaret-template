@@ -395,7 +395,7 @@
     - Edits are local until Apply
     - Apply dispatches: `U_VFXActions.set_screen_shake_enabled`, `set_screen_shake_intensity`, `set_damage_flash_enabled`
     - Cancel closes without dispatching changes
-    - Reset restores default control values (still requires Apply to persist)
+    - Reset restores default control values and applies immediately (quick restore)
   - Unsubscribes in `_exit_tree()` to prevent leaks
 
 - [x] **Task 5.3 (Green)**: Wire VFX settings into settings panel
@@ -413,7 +413,7 @@
 - **Apply/Cancel/Reset pattern** implemented for UX consistency (user decision after audit)
 - Changes only apply when user clicks Apply button (safer, allows experimentation)
 - Cancel button closes overlay without saving changes
-- Reset button restores default values (shake ON, intensity 100%, flash ON)
+- Reset button restores default values (shake ON, intensity 100%, flash ON) and applies immediately
 - UI registry and scene registry updated correctly
 - Focus navigation configured for gamepad support (vertical + horizontal button row)
 - All existing tests still passing (75/75)
@@ -440,7 +440,7 @@
 
 - [x] **Task 6.3 (Red)**: Write integration test for VFX settings UI
   - Create `tests/integration/vfx/test_vfx_settings_ui.gd`
-  - Tests: UI controls initialize from Redux state, changes do not dispatch until Apply, Apply dispatches actions and updates state, Cancel discards changes, Reset restores defaults (requires Apply), state changes update UI when not mid-edit, settings persist to save file, settings restore from save file
+  - Tests: UI controls initialize from Redux state, changes do not dispatch until Apply, Apply dispatches actions and updates state, Cancel discards changes, Reset restores defaults (persists immediately), state changes update UI when not mid-edit, settings persist to save file, settings restore from save file
   - Implemented 8 integration tests ✅
 
 - [x] **Task 6.4 (Green)**: Verify VFX settings UI integration passes tests

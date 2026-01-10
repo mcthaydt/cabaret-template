@@ -479,7 +479,7 @@ The settings UI SHALL integrate VFX controls with:
 - Screen shake toggle (CheckBox)
 - Screen shake intensity slider (HSlider, range 0.0-2.0, step 0.1)
 - Damage flash toggle (CheckBox)
-- Apply/Cancel/Reset pattern (dispatch on Apply)
+- Apply/Cancel pattern (dispatch on Apply; Reset applies defaults immediately)
 
 ```gdscript
 # In settings overlay Apply handler
@@ -1255,7 +1255,7 @@ tests/integration/vfx/
 
 **5. Settings Panel UI** (existing architecture):
 - Add VFX settings overlay to settings menu
-- Follow Apply/Cancel/Reset pattern (dispatch on Apply)
+- Follow Apply/Cancel pattern (dispatch on Apply; Reset applies defaults immediately)
 - Use `U_FocusConfigurator` for gamepad focus navigation
 
 ### Integration Order

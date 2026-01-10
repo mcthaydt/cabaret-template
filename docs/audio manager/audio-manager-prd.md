@@ -6,7 +6,7 @@
 **Created**: 2026-01-01
 **Last Updated**: 2026-01-10
 **Target Release**: Phase 1 (3 weeks)
-**Status**: IN PROGRESS (Phase 0–8 complete; Phase 9 next)
+**Status**: IN PROGRESS (Phase 0–9 complete; Phase 10 next)
 **Version**: 1.0
 
 ## Problem Statement
@@ -1429,22 +1429,39 @@ The settings UI SHALL integrate audio controls:
 #   │   └── ... (same structure)
 #   └── CheckBox (Spatial Audio)
 
-# Auto-save pattern implementation:
+# Apply/Cancel pattern implementation:
 
 func _on_master_volume_slider_changed(value: float) -> void:
-	if _store != null:
-		_store.dispatch(U_AudioActions.set_master_volume(value))
 	_update_volume_label(_master_volume_label, value)
+	_has_local_edits = true
 
 func _on_master_mute_toggled(button_pressed: bool) -> void:
-	if _store != null:
-		_store.dispatch(U_AudioActions.set_master_muted(button_pressed))
+	_has_local_edits = true
 
 # Similar for music, sfx, ambient...
 
 func _on_spatial_audio_toggled(button_pressed: bool) -> void:
-	if _store != null:
-		_store.dispatch(U_AudioActions.set_spatial_audio_enabled(button_pressed))
+	_has_local_edits = true
+
+func _on_apply_pressed() -> void:
+	# Dispatch all 9 fields, then close overlay.
+	_store.dispatch(U_AudioActions.set_master_volume(_master_volume_slider.value))
+	_store.dispatch(U_AudioActions.set_music_volume(_music_volume_slider.value))
+	_store.dispatch(U_AudioActions.set_sfx_volume(_sfx_volume_slider.value))
+	_store.dispatch(U_AudioActions.set_ambient_volume(_ambient_volume_slider.value))
+	_store.dispatch(U_AudioActions.set_master_muted(_master_mute_toggle.button_pressed))
+	_store.dispatch(U_AudioActions.set_music_muted(_music_mute_toggle.button_pressed))
+	_store.dispatch(U_AudioActions.set_sfx_muted(_sfx_mute_toggle.button_pressed))
+	_store.dispatch(U_AudioActions.set_ambient_muted(_ambient_mute_toggle.button_pressed))
+	_store.dispatch(U_AudioActions.set_spatial_audio_enabled(_spatial_audio_toggle.button_pressed))
+
+func _on_cancel_pressed() -> void:
+	# Close overlay without dispatching changes.
+	pass
+
+func _on_reset_pressed() -> void:
+	# Reset UI controls to defaults and dispatch defaults immediately.
+	pass
 
 func _update_volume_label(label: Label, value: float) -> void:
 	label.text = "%d%%" % int(value * 100.0)
@@ -1767,17 +1784,17 @@ func _update_volume_label(label: Label, value: float) -> void:
 **Deliverables**:
 1. Audio settings tab UI
 2. 4 volume sliders + 4 mute toggles + spatial audio toggle
-3. Auto-save pattern (immediate Redux dispatch)
+3. Apply/Cancel/Reset pattern (dispatch on Apply; Reset applies immediately)
 4. `tests/integration/audio/test_audio_settings_ui.gd` (10 tests)
 
 **Commit 1**: Audio settings tab UI layout
 **Commit 2**: Volume slider + mute toggle wiring
-**Commit 3**: Auto-save pattern implementation
+**Commit 3**: Apply/Cancel pattern implementation
 **Commit 4**: Integration tests (10 tests passing)
 
 **Dependencies**: All previous phases
 
-**Success Criteria**: Settings UI updates Redux state, audio responds in real-time, persistence works
+**Success Criteria**: Apply updates Redux state (and audio) immediately, Cancel discards edits, persistence works
 
 ## Success Criteria
 
@@ -2109,5 +2126,5 @@ tests/integration/audio/
 ---
 
 **End of Audio Manager PRD**
-**Review Status**: Phases 0–8 implemented; Phase 9 pending
-**Next Steps**: Start Phase 9 integration tests (see `docs/audio manager/audio-manager-tasks.md`)
+**Review Status**: Phases 0–9 implemented; Phase 10 pending
+**Next Steps**: Start Phase 10 manual QA (see `docs/audio manager/audio-manager-tasks.md`)

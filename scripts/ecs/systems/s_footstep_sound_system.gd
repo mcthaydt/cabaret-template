@@ -99,11 +99,17 @@ func _process_entity_footstep(body: CharacterBody3D, surface_detector: C_Surface
 		return
 
 	# Update timer
-	var time_since_last_step: float = _entity_timers.get(body, settings.step_interval)
+	var base_interval: float = max(settings.step_interval, 0.1)
+	var effective_interval: float = base_interval
+	if speed > settings.min_velocity:
+		effective_interval = base_interval * (settings.min_velocity / speed)
+	effective_interval = clampf(effective_interval, 0.1, base_interval)
+
+	var time_since_last_step: float = _entity_timers.get(body, effective_interval)
 	time_since_last_step += delta
 
 	# Check if interval elapsed
-	if time_since_last_step < settings.step_interval:
+	if time_since_last_step < effective_interval:
 		_entity_timers[body] = time_since_last_step
 		return
 

@@ -13,7 +13,6 @@ const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigati
 
 var _state_store: I_StateStore = null
 var _unsubscribe: Callable = Callable()
-var _last_sfx_test_time: int = 0
 var _updating_from_state: bool = false
 var _has_local_edits: bool = false
 
@@ -187,12 +186,15 @@ func _configure_focus_neighbors() -> void:
 
 func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	var action_type: StringName = StringName("")
-	if _action.has("type"):
+	if _action != null and _action.has("type"):
 		action_type = _action.get("type", StringName(""))
 
 	# Preserve local edits (Apply/Cancel pattern). Only reconcile from state when
 	# the user is not actively editing.
 	if _has_local_edits and action_type != StringName(""):
+		return
+
+	if state == null:
 		return
 
 	# Update UI from state (without triggering signals)
@@ -226,6 +228,7 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	_set_toggle_value_silently(_spatial_audio_toggle, U_AudioSelectors.is_spatial_audio_enabled(state))
 
 	_updating_from_state = false
+	_has_local_edits = false
 
 	# Update mute visuals (dimming)
 	_update_mute_visuals(state)
@@ -242,6 +245,7 @@ func _on_master_mute_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
+	_update_mute_visuals_from_ui()
 
 # Music handlers
 func _on_music_volume_changed(value: float) -> void:
@@ -255,6 +259,7 @@ func _on_music_mute_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
+	_update_mute_visuals_from_ui()
 
 # SFX handlers
 func _on_sfx_volume_changed(value: float) -> void:
@@ -264,16 +269,11 @@ func _on_sfx_volume_changed(value: float) -> void:
 	U_UISoundPlayer.play_slider_tick()
 	_has_local_edits = true
 
-	# Play test SFX (throttled to 500ms) so user can hear the volume
-	var now := Time.get_ticks_msec()
-	if now - _last_sfx_test_time > 500:
-		U_UISoundPlayer.play_confirm()
-		_last_sfx_test_time = now
-
 func _on_sfx_mute_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
+	_update_mute_visuals_from_ui()
 
 # Ambient handlers
 func _on_ambient_volume_changed(value: float) -> void:
@@ -287,6 +287,7 @@ func _on_ambient_mute_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
+	_update_mute_visuals_from_ui()
 
 # Spatial handler
 func _on_spatial_audio_toggled(pressed: bool) -> void:
@@ -294,7 +295,6 @@ func _on_spatial_audio_toggled(pressed: bool) -> void:
 		return
 	_has_local_edits = true
 
-# Button handlers
 func _on_apply_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	if _state_store == null:
@@ -334,22 +334,29 @@ func _on_reset_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	var defaults := RS_AudioInitialState.new()
 
-	_master_volume_slider.value = defaults.master_volume
-	_music_volume_slider.value = defaults.music_volume
-	_sfx_volume_slider.value = defaults.sfx_volume
-	_ambient_volume_slider.value = defaults.ambient_volume
-	_master_mute_toggle.button_pressed = defaults.master_muted
-	_music_mute_toggle.button_pressed = defaults.music_muted
-	_sfx_mute_toggle.button_pressed = defaults.sfx_muted
-	_ambient_mute_toggle.button_pressed = defaults.ambient_muted
-	_spatial_audio_toggle.button_pressed = defaults.spatial_audio_enabled
+	_updating_from_state = true
+	_set_slider_value_silently(_master_volume_slider, defaults.master_volume)
+	_set_slider_value_silently(_music_volume_slider, defaults.music_volume)
+	_set_slider_value_silently(_sfx_volume_slider, defaults.sfx_volume)
+	_set_slider_value_silently(_ambient_volume_slider, defaults.ambient_volume)
+	_set_toggle_value_silently(_master_mute_toggle, defaults.master_muted)
+	_set_toggle_value_silently(_music_mute_toggle, defaults.music_muted)
+	_set_toggle_value_silently(_sfx_mute_toggle, defaults.sfx_muted)
+	_set_toggle_value_silently(_ambient_mute_toggle, defaults.ambient_muted)
+	_set_toggle_value_silently(_spatial_audio_toggle, defaults.spatial_audio_enabled)
+	_updating_from_state = false
 
-	_update_percentage_label(_master_percentage, _master_volume_slider.value)
-	_update_percentage_label(_music_percentage, _music_volume_slider.value)
-	_update_percentage_label(_sfx_percentage, _sfx_volume_slider.value)
-	_update_percentage_label(_ambient_percentage, _ambient_volume_slider.value)
+	_update_percentage_label(_master_percentage, defaults.master_volume)
+	_update_percentage_label(_music_percentage, defaults.music_volume)
+	_update_percentage_label(_sfx_percentage, defaults.sfx_volume)
+	_update_percentage_label(_ambient_percentage, defaults.ambient_volume)
+	_update_mute_visuals_from_values(
+		defaults.master_muted,
+		defaults.music_muted,
+		defaults.sfx_muted,
+		defaults.ambient_muted
+	)
 
-	# Apply immediately after reset
 	_has_local_edits = false
 	if _state_store != null:
 		_state_store.dispatch(U_AudioActions.set_master_volume(defaults.master_volume))
@@ -399,6 +406,27 @@ func _update_mute_visuals(state: Dictionary) -> void:
 		_sfx_row.modulate.a = 0.4 if sfx_dimmed else 1.0
 	if _ambient_row != null:
 		_ambient_row.modulate.a = 0.4 if ambient_dimmed else 1.0
+
+func _update_mute_visuals_from_ui() -> void:
+	_update_mute_visuals_from_values(
+		_master_mute_toggle.button_pressed if _master_mute_toggle != null else false,
+		_music_mute_toggle.button_pressed if _music_mute_toggle != null else false,
+		_sfx_mute_toggle.button_pressed if _sfx_mute_toggle != null else false,
+		_ambient_mute_toggle.button_pressed if _ambient_mute_toggle != null else false
+	)
+
+func _update_mute_visuals_from_values(master_muted: bool, music_muted: bool, sfx_muted: bool, ambient_muted: bool) -> void:
+	# Master row: dim only if master muted
+	if _master_row != null:
+		_master_row.modulate.a = 0.4 if master_muted else 1.0
+
+	# Child rows: dim if master OR individual muted
+	if _music_row != null:
+		_music_row.modulate.a = 0.4 if (master_muted or music_muted) else 1.0
+	if _sfx_row != null:
+		_sfx_row.modulate.a = 0.4 if (master_muted or sfx_muted) else 1.0
+	if _ambient_row != null:
+		_ambient_row.modulate.a = 0.4 if (master_muted or ambient_muted) else 1.0
 
 func _close_overlay() -> void:
 	if _state_store == null:

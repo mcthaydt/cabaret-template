@@ -46,7 +46,10 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
 	if config == null or config.is_empty():
 		return null
 
-	var audio_stream := config.get("audio_stream") as AudioStream
+	var audio_stream_variant: Variant = config.get("audio_stream", null)
+	var audio_stream: AudioStream = null
+	if audio_stream_variant is AudioStream:
+		audio_stream = audio_stream_variant as AudioStream
 	if audio_stream == null:
 		return null
 
@@ -67,6 +70,8 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
 
 	var pitch_scale_variant: Variant = config.get("pitch_scale", 1.0)
 	var pitch_scale: float = float(pitch_scale_variant)
+	if pitch_scale <= 0.0:
+		pitch_scale = 1.0
 
 	var bus_variant: Variant = config.get("bus", "SFX")
 	var bus: String = String(bus_variant)

@@ -5,6 +5,8 @@ extends GutTest
 
 const S_FOOTSTEP_SOUND_SYSTEM_SCRIPT := preload("res://scripts/ecs/systems/s_footstep_sound_system.gd")
 const M_SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
+const C_FLOATING_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_floating_component.gd")
+const RS_FLOATING_SETTINGS_SCRIPT := preload("res://scripts/ecs/resources/rs_floating_settings.gd")
 
 # NOTE: Footstep system tests are currently limited in headless mode because:
 # 1. Physics doesn't run properly (is_on_floor() always returns false)
@@ -222,14 +224,22 @@ func test_step_interval_timing() -> void:
 
 # Test 8: Timer resets when movement stops
 func test_timer_resets_when_movement_stops() -> void:
+	# Ensure the system treats the entity as grounded regardless of headless physics quirks.
+	var floating := C_FLOATING_COMPONENT_SCRIPT.new() as C_FloatingComponent
+	floating.settings = RS_FLOATING_SETTINGS_SCRIPT.new()
+	floating.grounded_stable = true
+	entity.add_child(floating)
+	autofree(floating)
+	await get_tree().process_frame
+
 	entity.velocity = Vector3(5, 0, 0)
 	entity.position = Vector3(0, 0, 0)
 
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
-	# Move for almost step_interval duration
-	for i in range(20):  # 0.32s < 0.4s
+	# Move briefly to establish a timer entry.
+	for i in range(5):
 		entity.move_and_slide()
 		system.process_tick(0.016)
 		await get_tree().physics_frame
@@ -237,29 +247,11 @@ func test_timer_resets_when_movement_stops() -> void:
 	# Stop moving
 	entity.velocity = Vector3.ZERO
 
-	# Process a few frames while stopped
-	for i in range(5):
-		entity.move_and_slide()
-		system.process_tick(0.016)
-		await get_tree().physics_frame
+	entity.move_and_slide()
+	system.process_tick(0.016)
+	await get_tree().physics_frame
 
-	# Start moving again
-	entity.velocity = Vector3(5, 0, 0)
-
-	# Process just a few frames (shouldn't trigger yet because timer reset)
-	for i in range(10):  # 0.16s < 0.4s
-		entity.move_and_slide()
-		system.process_tick(0.016)
-		await get_tree().physics_frame
-
-	var pool_players: Array[AudioStreamPlayer3D] = M_SFXSpawner._pool
-	var playing_count := 0
-	for player in pool_players:
-		if player.playing:
-			playing_count += 1
-
-	# Should be 0 because timer was reset
-	assert_eq(playing_count, 0, "Should reset timer when movement stops")
+	assert_false(system._entity_timers.has(entity), "Should reset timer when movement stops")
 
 # Test 9: Surface type affects sound selection (DEFAULT)
 # NOTE: Cannot fully test in headless mode due to is_on_floor() limitation

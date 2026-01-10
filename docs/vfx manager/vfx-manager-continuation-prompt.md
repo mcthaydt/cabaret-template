@@ -16,7 +16,7 @@
 - **ServiceLocator registration**: Both `M_VFXManager` and `M_CameraManager` registered with ServiceLocator
 - **Settings UI**: VFX settings overlay created at `scenes/ui/ui_vfx_settings_overlay.tscn`
 - **Settings integration**: "Visual Effects" button added to settings menu, registered in UI/scene registries
-- **Apply/Cancel pattern**: Settings use Apply/Cancel/Reset buttons (consistent with gamepad/touchscreen settings)
+- **Apply/Cancel pattern**: Edits apply on Apply; Cancel discards; Reset restores defaults and applies immediately
 - **State persistence**: VFX settings persist via Redux state persistence (VFX slice)
 - **Integration tests**: Added `tests/integration/vfx/test_vfx_camera_integration.gd` and `tests/integration/vfx/test_vfx_settings_ui.gd`
 - **Particles toggle**: Added `vfx.particles_enabled` (default true) and gated particle spawns via `U_ParticleSpawner`

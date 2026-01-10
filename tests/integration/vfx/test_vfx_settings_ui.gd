@@ -7,7 +7,7 @@ extends BaseTest
 ## - UI edits do not dispatch until Apply
 ## - Apply dispatches VFX actions and updates state
 ## - Cancel discards edits
-## - Reset updates UI to defaults (requires Apply to persist)
+## - Reset updates UI to defaults (persists immediately)
 ## - State updates refresh UI when not editing
 ## - State updates do not override local edits
 ## - VFX settings persist to save file and restore from save file
@@ -174,7 +174,7 @@ func test_cancel_discards_changes() -> void:
 	assert_eq(_collect_vfx_action_types(dispatched).size(), 0, "Cancel should not dispatch VFX actions")
 
 
-func test_reset_restores_defaults_requires_apply() -> void:
+func test_reset_restores_defaults_and_persists_immediately() -> void:
 	# Start from non-default state
 	_store.dispatch(U_VFX_ACTIONS.set_screen_shake_enabled(false))
 	_store.dispatch(U_VFX_ACTIONS.set_screen_shake_intensity(0.5))
@@ -191,29 +191,19 @@ func test_reset_restores_defaults_requires_apply() -> void:
 	overlay._reset_button.emit_signal("pressed")
 	await get_tree().process_frame
 
-	# Reset updates UI immediately (local edits), but should not change state until Apply.
+	# Reset updates UI immediately and persists to state (matches overlay behavior).
 	assert_true(overlay._shake_enabled_toggle.button_pressed, "Reset should set shake enabled to default (true)")
 	assert_almost_eq(overlay._intensity_slider.value, 1.0, 0.001, "Reset should set intensity to default (1.0)")
 	assert_true(overlay._flash_enabled_toggle.button_pressed, "Reset should set flash enabled to default (true)")
 	assert_true(overlay._particles_enabled_toggle.button_pressed, "Reset should set particles enabled to default (true)")
-	assert_eq(_collect_vfx_action_types(dispatched).size(), 0, "Reset should not dispatch VFX actions by itself")
+	assert_eq(_collect_vfx_action_types(dispatched).size(), 4, "Reset should dispatch VFX actions immediately")
 
 	var state_after_reset: Dictionary = _store.get_state()
-	assert_false(U_VFX_SELECTORS.is_screen_shake_enabled(state_after_reset), "Reset should not persist until Apply")
-	assert_almost_eq(U_VFX_SELECTORS.get_screen_shake_intensity(state_after_reset), 0.5, 0.001,
-		"Reset should not persist intensity until Apply")
-	assert_false(U_VFX_SELECTORS.is_damage_flash_enabled(state_after_reset), "Reset should not persist until Apply")
-	assert_false(U_VFX_SELECTORS.is_particles_enabled(state_after_reset), "Reset should not persist until Apply")
-
-	overlay._apply_button.emit_signal("pressed")
-	await get_tree().process_frame
-
-	var state_after_apply: Dictionary = _store.get_state()
-	assert_true(U_VFX_SELECTORS.is_screen_shake_enabled(state_after_apply), "Apply should persist reset shake enabled")
-	assert_almost_eq(U_VFX_SELECTORS.get_screen_shake_intensity(state_after_apply), 1.0, 0.001,
-		"Apply should persist reset intensity")
-	assert_true(U_VFX_SELECTORS.is_damage_flash_enabled(state_after_apply), "Apply should persist reset flash enabled")
-	assert_true(U_VFX_SELECTORS.is_particles_enabled(state_after_apply), "Apply should persist reset particles enabled")
+	assert_true(U_VFX_SELECTORS.is_screen_shake_enabled(state_after_reset), "Reset should persist shake enabled")
+	assert_almost_eq(U_VFX_SELECTORS.get_screen_shake_intensity(state_after_reset), 1.0, 0.001,
+		"Reset should persist intensity")
+	assert_true(U_VFX_SELECTORS.is_damage_flash_enabled(state_after_reset), "Reset should persist flash enabled")
+	assert_true(U_VFX_SELECTORS.is_particles_enabled(state_after_reset), "Reset should persist particles enabled")
 
 
 func test_state_changes_refresh_ui_when_not_editing() -> void:
