@@ -27,6 +27,8 @@ const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_SPAWN_REGISTRY := preload("res://scripts/scene_management/u_spawn_registry.gd")
+const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
+const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
 const SPAWN_CONDITION_ALWAYS := 0
 const SPAWN_CONDITION_CHECKPOINT_ONLY := 1
@@ -120,13 +122,20 @@ func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool:
 	player.global_position = spawn_point.global_position
 	player.global_rotation = spawn_point.global_rotation
 
-	# Freeze player physics to prevent falling during scene load/transition
+	# Zero velocity and freeze physics to prevent bobble on spawn
 	var player_body: CharacterBody3D = player as CharacterBody3D
 	if player_body != null:
+		# FIX: Zero velocity BEFORE freezing physics to prevent residual
+		# velocity from previous scene causing bobble when physics resume
+		player_body.velocity = Vector3.ZERO
 		# Disable physics processing - will be re-enabled by transition completion
 		player_body.set_physics_process(false)
 		# Store metadata so we know to re-enable it
 		player.set_meta("_spawn_physics_frozen", true)
+
+	# FIX: Reset floating component stable state to prevent stale ground detection
+	# causing incorrect jump/gravity decisions on first frames after spawn
+	_reset_floating_component_state(player)
 
 	# Publish player_spawned event for VFX systems (Phase 12.4)
 	EVENT_BUS.publish(StringName("player_spawned"), {
@@ -337,3 +346,39 @@ func _clear_target_spawn_point() -> void:
 	# Dispatch action to clear spawn point
 	var clear_action: Dictionary = U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName(""))
 	_state_store.dispatch(clear_action)
+
+## Reset floating component stable state on spawn
+##
+## Clears the hysteresis counters and stable ground state to prevent stale
+## ground detection from causing incorrect jump/gravity decisions on spawn.
+## Uses reset_recent_support() which clears:
+## - is_supported
+## - grounded_stable
+## - _consecutive_grounded_frames
+## - _consecutive_airborne_frames
+## - _last_support_time (set to expire grace period)
+func _reset_floating_component_state(player: Node3D) -> void:
+	if player == null:
+		return
+
+	# Search for C_FloatingComponent in player's children
+	var floating := _find_floating_component(player)
+	if floating == null:
+		return
+
+	# Reset stable state so ground detection starts fresh
+	var current_time: float = U_ECS_UTILS.get_current_time()
+	var grace_time: float = 0.1  # Match typical coyote time
+	floating.reset_recent_support(current_time, grace_time)
+
+## Find C_FloatingComponent in entity's children recursively
+func _find_floating_component(node: Node) -> C_FLOATING_COMPONENT:
+	if node is C_FLOATING_COMPONENT:
+		return node as C_FLOATING_COMPONENT
+
+	for child in node.get_children():
+		var found: C_FLOATING_COMPONENT = _find_floating_component(child)
+		if found != null:
+			return found
+
+	return null

@@ -576,11 +576,18 @@ func _perform_transition(request) -> void:
 
 	# Re-enable player physics after transition completes (prevents falling during load)
 	if new_scene_ref[0] != null:
-		_unfreeze_player_physics(new_scene_ref[0])
+		await _unfreeze_player_physics(new_scene_ref[0])
 
 ## Re-enable player physics after transition completes
+## Includes physics warmup frame to prevent bobble from stale collision state
 func _unfreeze_player_physics(scene: Node) -> void:
 	_scene_loader.unfreeze_player_physics(scene)
+
+	# FIX: Physics warmup frame - let CharacterBody3D refresh collision state
+	# before ECS systems start making decisions based on ground detection.
+	# Without this, the first physics frame may have stale collision cache,
+	# causing spring/bounce effects (bobble).
+	await get_tree().physics_frame
 
 ## Find player in scene tree
 func _find_player_in_scene(scene: Node) -> Node3D:

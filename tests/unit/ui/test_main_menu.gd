@@ -210,3 +210,36 @@ func test_ignores_non_menu_panel_ids() -> void:
 	# BUG: Currently fails - main menu interprets "pause/root" as "not main, so show settings"
 	assert_true(main_panel.visible, "Main panel should remain visible when non-menu panel is set")
 	assert_false(settings_panel.visible, "Settings panel should remain hidden when non-menu panel is set")
+
+## Regression test: Quit button should be hidden on mobile platforms
+func test_quit_button_hidden_on_mobile() -> void:
+	# This test can't actually override OS.has_feature() since it's built-in
+	# Instead, we verify the button visibility logic exists
+	var store := await _create_state_store()
+	var menu := await _create_main_menu()
+	var quit_button: Button = menu.get_node("CenterContainer/MainPanel/QuitButton")
+
+	assert_not_null(quit_button, "Quit button should exist in scene")
+
+	# On desktop (current test environment), quit button should be visible
+	# The actual mobile hiding logic is tested manually or with device-specific tests
+	if not OS.has_feature("mobile"):
+		assert_true(quit_button.visible, "Quit button should be visible on desktop")
+	else:
+		assert_false(quit_button.visible, "Quit button should be hidden on mobile")
+
+## Regression test: Quit button should not appear in focus chain when hidden
+func test_quit_button_excluded_from_focus_when_hidden() -> void:
+	var store := await _create_state_store()
+	var menu := await _create_main_menu()
+	var quit_button: Button = menu.get_node("CenterContainer/MainPanel/QuitButton")
+	var settings_button: Button = menu.get_node("CenterContainer/MainPanel/SettingsButton")
+
+	assert_not_null(quit_button, "Quit button should exist")
+	assert_not_null(settings_button, "Settings button should exist")
+
+	# If quit button is hidden, settings button's down neighbor should not be quit button
+	if not quit_button.visible:
+		var down_neighbor_path := settings_button.focus_neighbor_bottom
+		var down_neighbor := settings_button.get_node_or_null(down_neighbor_path) if down_neighbor_path != NodePath() else null
+		assert_ne(down_neighbor, quit_button, "Hidden quit button should not be in focus chain")
