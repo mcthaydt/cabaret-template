@@ -34,6 +34,10 @@ const SPAWN_CONDITION_ALWAYS := 0
 const SPAWN_CONDITION_CHECKPOINT_ONLY := 1
 const SPAWN_CONDITION_DISABLED := 2
 
+const META_SPAWN_PHYSICS_FROZEN := StringName("_spawn_physics_frozen")
+
+const SPAWN_HOVER_SNAP_MAX_DISTANCE := 0.75
+
 ## Internal references
 var _state_store: M_STATE_STORE = null
 
@@ -118,24 +122,38 @@ func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool:
 		_clear_target_spawn_point()
 		return false
 
+	var ecs_body: CharacterBody3D = _find_character_body(player)
+	var old_pos: Vector3 = player.global_position
+	var old_rot: Vector3 = player.global_rotation
+	var old_vel: Vector3 = Vector3.ZERO
+	var old_is_on_floor: bool = false
+	if ecs_body != null:
+		old_vel = ecs_body.velocity
+		old_is_on_floor = ecs_body.is_on_floor()
+
 	# Position player at spawn point
 	player.global_position = spawn_point.global_position
 	player.global_rotation = spawn_point.global_rotation
 
 	# Zero velocity and freeze physics to prevent bobble on spawn
-	var player_body: CharacterBody3D = player as CharacterBody3D
-	if player_body != null:
-		# FIX: Zero velocity BEFORE freezing physics to prevent residual
-		# velocity from previous scene causing bobble when physics resume
-		player_body.velocity = Vector3.ZERO
-		# Disable physics processing - will be re-enabled by transition completion
-		player_body.set_physics_process(false)
-		# Store metadata so we know to re-enable it
-		player.set_meta("_spawn_physics_frozen", true)
+	if ecs_body != null:
+		# Zero velocity BEFORE freezing to prevent residual velocity from previous
+		# scene causing bobble when physics resume.
+		ecs_body.velocity = Vector3.ZERO
+
+		# Disable physics processing - will be re-enabled by transition completion.
+		# Note: ECS systems can still call move_and_slide(), so systems must also
+		# respect META_SPAWN_PHYSICS_FROZEN.
+		ecs_body.set_physics_process(false)
+
+		# Store metadata so we know to re-enable it (root + body).
+		player.set_meta(META_SPAWN_PHYSICS_FROZEN, true)
+		ecs_body.set_meta(META_SPAWN_PHYSICS_FROZEN, true)
 
 	# FIX: Reset floating component stable state to prevent stale ground detection
 	# causing incorrect jump/gravity decisions on first frames after spawn
 	_reset_floating_component_state(player)
+	_snap_player_to_hover_height(player, ecs_body)
 
 	# Publish player_spawned event for VFX systems (Phase 12.4)
 	EVENT_BUS.publish(StringName("player_spawned"), {
@@ -382,3 +400,94 @@ func _find_floating_component(node: Node) -> C_FLOATING_COMPONENT:
 			return found
 
 	return null
+
+func _find_character_body(node: Node) -> CharacterBody3D:
+	if node is CharacterBody3D:
+		return node as CharacterBody3D
+
+	for child in node.get_children():
+		var child_node := child as Node
+		if child_node == null:
+			continue
+		var found := _find_character_body(child_node)
+		if found != null:
+			return found
+
+	return null
+
+class SpawnSupportInfo:
+	var has_hit: bool = false
+	var distance: float = 0.0
+	var normal: Vector3 = Vector3.ZERO
+	var hit_count: int = 0
+	var total_rays: int = 0
+
+func _snap_player_to_hover_height(player: Node3D, ecs_body: CharacterBody3D) -> void:
+	if player == null:
+		return
+
+	var floating := _find_floating_component(player)
+	if floating == null or floating.settings == null:
+		return
+
+	var rays: Array = floating.get_raycast_nodes()
+	if rays.is_empty():
+		return
+
+	var support: SpawnSupportInfo = _collect_spawn_support_data(rays)
+	if not support.has_hit:
+		return
+
+	var normal: Vector3 = support.normal
+	if normal.length() == 0.0:
+		normal = Vector3.UP
+	normal = normal.normalized()
+
+	var hover_height: float = floating.settings.hover_height
+	var height_error: float = hover_height - support.distance
+	var tolerance: float = max(floating.settings.height_tolerance, 0.0)
+	if abs(height_error) <= tolerance:
+		return
+
+	# Clamp snap to avoid large teleports when ground is far/missing.
+	height_error = clamp(height_error, -SPAWN_HOVER_SNAP_MAX_DISTANCE, SPAWN_HOVER_SNAP_MAX_DISTANCE)
+	player.global_position += normal * height_error
+
+	if ecs_body != null:
+		ecs_body.velocity = Vector3.ZERO
+
+func _collect_spawn_support_data(rays: Array) -> SpawnSupportInfo:
+	var data: SpawnSupportInfo = SpawnSupportInfo.new()
+	var min_distance: float = INF
+	var normal_sum: Vector3 = Vector3.ZERO
+	var hit_count: int = 0
+	data.total_rays = rays.size()
+
+	for ray in rays:
+		if ray == null:
+			continue
+
+		if ray.has_method("force_raycast_update"):
+			ray.force_raycast_update()
+
+		if not ray.is_colliding():
+			continue
+
+		data.has_hit = true
+		hit_count += 1
+
+		var origin: Vector3 = (ray as Node3D).global_transform.origin
+		var point: Vector3 = ray.get_collision_point()
+		var distance: float = origin.distance_to(point)
+		if distance < min_distance:
+			min_distance = distance
+
+		normal_sum += ray.get_collision_normal()
+
+	if data.has_hit:
+		data.distance = min_distance if min_distance != INF else 0.0
+		if hit_count > 0:
+			data.normal = normal_sum / hit_count
+		data.hit_count = hit_count
+
+	return data

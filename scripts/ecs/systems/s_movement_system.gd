@@ -13,6 +13,9 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 ## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
 @export var state_store: I_StateStore = null
 
+const META_SPAWN_PHYSICS_FROZEN := StringName("_spawn_physics_frozen")
+const META_SPAWN_PHYSICS_UNFREEZE_AT_FRAME := StringName("_spawn_physics_unfreeze_at_physics_frame")
+
 # State stability tracking to prevent flickering in state store
 const MIN_STABLE_FRAMES := 10  # Frames state must be stable before dispatching (~0.167s @ 60fps)
 var _floor_state_stable_frames: Dictionary = {}  # entity_id -> frames_stable
@@ -38,6 +41,7 @@ func process_tick(delta: float) -> void:
 	var body_state := {}
 	var bodies := []
 	var current_time := ECS_UTILS.get_current_time()
+	var current_physics_frame: int = Engine.get_physics_frames()
 
 	# Pull every entity that has movement + input; floating is optional for support checks.
 	var entities: Array = manager.query_entities(
@@ -70,6 +74,21 @@ func process_tick(delta: float) -> void:
 			bodies.append(body)
 
 		var velocity: Vector3 = state.velocity
+
+		if body.has_meta(META_SPAWN_PHYSICS_FROZEN):
+			_maybe_schedule_spawn_unfreeze(body, current_physics_frame)
+			state.velocity = Vector3.ZERO
+			movement_component.reset_dynamics_state()
+			movement_component.update_debug_snapshot({
+				"spawn_frozen": true,
+				"supported": false,
+				"has_input": false,
+				"is_sprinting": false,
+				"desired_velocity": Vector2.ZERO,
+				"current_velocity": Vector2.ZERO,
+				"dynamics_velocity": Vector2.ZERO,
+			})
+			continue
 
 		var input_vector: Vector2 = input_component.move_vector
 		var is_sprinting := input_component.is_sprinting()
@@ -174,6 +193,7 @@ func process_tick(delta: float) -> void:
 
 	for body in bodies:
 		var final_velocity: Vector3 = body_state[body].velocity
+
 		body.velocity = final_velocity
 		if body.has_method("move_and_slide"):
 			body.move_and_slide()
@@ -236,6 +256,32 @@ func process_tick(delta: float) -> void:
 				snapshot["is_on_floor"] = current_on_floor
 
 			store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
+
+func _maybe_schedule_spawn_unfreeze(body: CharacterBody3D, current_physics_frame: int) -> void:
+	if body == null or not body.has_meta(META_SPAWN_PHYSICS_UNFREEZE_AT_FRAME):
+		return
+
+	var unfreeze_variant: Variant = body.get_meta(META_SPAWN_PHYSICS_UNFREEZE_AT_FRAME)
+	var unfreeze_frame: int = -1
+	if unfreeze_variant is int:
+		unfreeze_frame = unfreeze_variant
+	elif unfreeze_variant is float:
+		unfreeze_frame = int(unfreeze_variant)
+
+	if unfreeze_frame < 0 or current_physics_frame < unfreeze_frame:
+		return
+
+	# Prevent re-scheduling; this runs while still frozen and unfreezes on the next frame.
+	body.remove_meta(META_SPAWN_PHYSICS_UNFREEZE_AT_FRAME)
+	body.call_deferred("remove_meta", META_SPAWN_PHYSICS_FROZEN)
+	body.call_deferred("set_physics_process", true)
+
+	var entity_root: Node = ECS_UTILS.find_entity_root(body, false)
+	if entity_root != null:
+		if entity_root.has_meta(META_SPAWN_PHYSICS_UNFREEZE_AT_FRAME):
+			entity_root.remove_meta(META_SPAWN_PHYSICS_UNFREEZE_AT_FRAME)
+		if entity_root.has_meta(META_SPAWN_PHYSICS_FROZEN):
+			entity_root.call_deferred("remove_meta", META_SPAWN_PHYSICS_FROZEN)
 
 func _get_desired_velocity(input_vector: Vector2, max_speed: float) -> Vector3:
 	var normalized = input_vector

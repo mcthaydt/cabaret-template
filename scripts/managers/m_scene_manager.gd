@@ -72,6 +72,7 @@ var _loading_overlay: CanvasLayer = null
 
 ## Transition queue helper
 var _transition_queue_helper := U_SCENE_TRANSITION_QUEUE.new()
+var _queue_processing_scheduled: bool = false
 
 ## Current scene tracking for reactive cursor updates
 var _current_scene_id: StringName = StringName("")
@@ -339,11 +340,13 @@ func transition_to_scene(scene_id: StringName, transition_type: String, priority
 	# Debug logs live in tests, not here
 
 	# Process queue if not already processing
-	if not _transition_queue_helper.is_processing():
-		_process_transition_queue()
+	if not _transition_queue_helper.is_processing() and not _queue_processing_scheduled:
+		_queue_processing_scheduled = true
+		call_deferred("_process_transition_queue")
 
 ## Process transition queue
 func _process_transition_queue() -> void:
+	_queue_processing_scheduled = false
 	if _transition_queue_helper.is_empty():
 		_transition_queue_helper.set_processing(false)
 		_active_transition_target = StringName("")
@@ -532,9 +535,11 @@ func _perform_transition(request) -> void:
 		# T137c (Phase 10B-3): Delegate scene-type-specific load behavior to handler
 		# Handlers encapsulate scene-type logic (metadata, spawning, etc.)
 		# Wait for scene tree to fully initialize before calling handler
-		await get_tree().process_frame
+		# Use physics_frame-only waits so transitions still progress while paused
+		# and so headless tests (which often advance only physics frames) don't hang.
 		await get_tree().physics_frame
-		await get_tree().process_frame  # Extra wait for deferred operations
+		await get_tree().physics_frame
+		await get_tree().physics_frame
 
 		# Check scene is still valid before handler call (can be freed during test cleanup)
 		if is_instance_valid(new_scene):
@@ -581,6 +586,8 @@ func _perform_transition(request) -> void:
 ## Re-enable player physics after transition completes
 ## Includes physics warmup frame to prevent bobble from stale collision state
 func _unfreeze_player_physics(scene: Node) -> void:
+	if scene == null:
+		return
 	_scene_loader.unfreeze_player_physics(scene)
 
 	# FIX: Physics warmup frame - let CharacterBody3D refresh collision state

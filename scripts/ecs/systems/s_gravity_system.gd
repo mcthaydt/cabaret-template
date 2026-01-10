@@ -34,6 +34,7 @@ func process_tick(delta: float) -> void:
 
 	var processed := {}
 	var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, FLOATING_TYPE)
+
 	var entities := manager.query_entities(
 		[
 			MOVEMENT_TYPE,
@@ -69,7 +70,7 @@ func process_tick(delta: float) -> void:
 		var gravity_scale: float = 1.0
 		if store:
 			gravity_scale = U_PhysicsSelectors.get_gravity_scale(store.get_state())
-		
-		var velocity := body.velocity
-		velocity.y -= gravity * gravity_scale * delta
-		body.velocity = velocity
+			
+			var velocity := body.velocity
+			velocity.y -= gravity * gravity_scale * delta
+			body.velocity = velocity

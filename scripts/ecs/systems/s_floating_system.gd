@@ -7,10 +7,7 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 ## 4 frames ≈ 67ms at 60fps, filters spring oscillations (~50ms) while staying responsive
 const STABLE_GROUND_FRAMES_REQUIRED := 4
 
-@export var debug_logs_enabled: bool = false
-
-var _last_support_state: Dictionary = {}
-var _reported_ray_sets: Dictionary = {}
+const META_SPAWN_PHYSICS_FROZEN := StringName("_spawn_physics_frozen")
 
 class SupportInfo:
 	var has_hit: bool = false
@@ -44,19 +41,27 @@ func process_tick(delta: float) -> void:
 		processed[body] = true
 
 		var rays: Array = floating_component.get_raycast_nodes()
-		if debug_logs_enabled and not _reported_ray_sets.has(body):
-			var names: Array = []
-			for r in rays:
-				if r is Node3D:
-					names.append((r as Node3D).name)
-			print("[Floating] %s rays=%d [%s]" % [str(body.name), rays.size(), ", ".join(PackedStringArray(names))])
-			_reported_ray_sets[body] = true
 		if rays.is_empty():
 			floating_component.update_support_state(false, now)
 			floating_component.update_stable_ground_state(false, STABLE_GROUND_FRAMES_REQUIRED)
 			continue
 
 		var support: SupportInfo = _collect_support_data(rays)
+		if body.has_meta(META_SPAWN_PHYSICS_FROZEN):
+			if support.has_hit:
+				var normal_frozen: Vector3 = support.normal
+				if normal_frozen.length() == 0.0:
+					normal_frozen = Vector3.UP
+				normal_frozen = normal_frozen.normalized()
+				floating_component.set_last_support_normal(normal_frozen, now)
+
+				floating_component.update_support_state(true, now)
+				floating_component.update_stable_ground_state(true, STABLE_GROUND_FRAMES_REQUIRED)
+			else:
+				floating_component.update_support_state(false, now)
+				floating_component.update_stable_ground_state(false, STABLE_GROUND_FRAMES_REQUIRED)
+			continue
+
 		var velocity: Vector3 = body.velocity
 
 		if support.has_hit:
@@ -67,7 +72,6 @@ func process_tick(delta: float) -> void:
 
 			# Record the last support normal for downstream systems (e.g., movement slope checks)
 			floating_component.set_last_support_normal(normal, now)
-
 
 			var distance: float = support.distance
 			var height_error: float = floating_component.settings.hover_height - distance
@@ -86,8 +90,10 @@ func process_tick(delta: float) -> void:
 
 			var within_height_tolerance: bool = abs(height_error) <= tol_height
 			var within_speed_tolerance: bool = abs(vel_along_normal) <= tol_vel
+
 			# Primary gate
 			var support_active: bool = (vel_along_normal <= tol_vel and height_error >= -tol_height)
+
 			# Edge-protection fallback: keep support only for small extra upward velocity
 			if floating_component.settings.edge_protection_enabled and not support_active and support.hit_count > 0 and height_error >= -tol_height:
 				var max_extra: float = max(floating_component.settings.edge_fallback_max_extra_vel, 0.0)
@@ -101,9 +107,10 @@ func process_tick(delta: float) -> void:
 			else:
 				var frequency: float = max(floating_component.settings.hover_frequency, 0.0)
 				var damping_ratio: float = max(floating_component.settings.damping_ratio, 0.0)
+				var accel_along_normal: float = 0.0
 				if frequency > 0.0:
 					var omega: float = TAU * frequency
-					var accel_along_normal: float = (omega * omega * height_error) - (2.0 * damping_ratio * omega * vel_along_normal)
+					accel_along_normal = (omega * omega * height_error) - (2.0 * damping_ratio * omega * vel_along_normal)
 					if height_error >= 0.0 and accel_along_normal < 0.0:
 						accel_along_normal = 0.0
 					velocity += normal * accel_along_normal * delta
@@ -115,43 +122,11 @@ func process_tick(delta: float) -> void:
 			if floating_component.settings.align_to_normal and support.hit_count >= max(floating_component.settings.min_hits_for_alignment, 1):
 				body.up_direction = normal
 
-
-			if debug_logs_enabled:
-				var prev: Variant = _last_support_state.get(body, null)
-				var reason := "ok"
-				if not support_active:
-					if vel_along_normal > floating_component.settings.settle_speed_tolerance:
-						reason = "vel_along_normal_exceeds_tolerance"
-					elif height_error < -floating_component.settings.height_tolerance:
-						reason = "below_min_height"
-					else:
-						reason = "other"
-				if prev == null or (prev as bool) != support_active or support.hit_count < support.total_rays:
-					var info := "[Floating] %s support=%s reason=%s dist=%.3f velN=%.3f height_err=%.3f hits=%d/%d hit=[%s] miss=[%s]" % [
-						str(body.name),
-						str(support_active),
-						reason,
-						support.distance,
-						vel_along_normal,
-						height_error,
-						support.hit_count,
-						support.total_rays,
-						", ".join(PackedStringArray(support.hit_ray_names)),
-						", ".join(PackedStringArray(support.miss_ray_names))
-					]
-					print(info)
-					_last_support_state[body] = support_active
-
 			floating_component.update_support_state(support_active, now)
 			floating_component.update_stable_ground_state(support_active, STABLE_GROUND_FRAMES_REQUIRED)
 		else:
 			velocity.y -= floating_component.settings.fall_gravity * delta
 			velocity.y = clamp(velocity.y, -floating_component.settings.max_down_speed, floating_component.settings.max_up_speed)
-			if debug_logs_enabled:
-				var prev2: Variant = _last_support_state.get(body, null)
-				if prev2 == null or (prev2 as bool) != false:
-					print("[Floating] %s support=false (no ray hits)" % str(body.name))
-					_last_support_state[body] = false
 
 			floating_component.update_support_state(false, now)
 			floating_component.update_stable_ground_state(false, STABLE_GROUND_FRAMES_REQUIRED)

@@ -9,6 +9,8 @@ const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 const EVENT_ENTITY_JUMPED := StringName("entity_jumped")
 const EVENT_ENTITY_LANDED := StringName("entity_landed")
+const META_SPAWN_PHYSICS_FROZEN := StringName("_spawn_physics_frozen")
+const META_SPAWN_SUPPRESS_LANDING_UNTIL_FRAME := StringName("_spawn_suppress_landing_until_physics_frame")
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
@@ -41,12 +43,13 @@ func process_tick(_delta: float) -> void:
 				if accessibility_variant is Dictionary:
 					var accessibility := accessibility_variant as Dictionary
 					accessibility_jump_buffer = float(accessibility.get("jump_buffer_time", accessibility_jump_buffer))
-	
+		
 	var manager := get_manager()
 	if manager == null:
 		return
-
+	
 	var now: float = ECS_UTILS.get_current_time()
+	var current_physics_frame: int = Engine.get_physics_frames()
 	# Jump requires input; floating is optional to extend support windows.
 	var entities: Array = manager.query_entities(
 		[
@@ -68,6 +71,14 @@ func process_tick(_delta: float) -> void:
 		var body = component.get_character_body()
 		if body == null:
 			continue
+
+		if body.has_meta(META_SPAWN_PHYSICS_FROZEN):
+			component.update_debug_snapshot({
+				"spawn_frozen": true,
+			})
+			continue
+		
+		var suppress_landing_event: bool = _is_spawn_landing_event_suppressed(body, current_physics_frame)
 
 		var floating_component: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
 		if floating_component == null:
@@ -91,16 +102,17 @@ func process_tick(_delta: float) -> void:
 		# Use immediate support with fall distance filter (no hysteresis delay)
 		var current_height: float = body.global_position.y
 		if component.check_landing_transition(supported_now, now, current_height):
-			var landing_payload: Dictionary = {
-				"entity": body,
-				"jump_component": component,
-				"floating_component": floating_component,
-				"velocity": body.velocity,
-				"position": body.global_position,
-				"landing_time": now,
-				"vertical_velocity": body.velocity.y,
-			}
-			U_ECSEventBus.publish(EVENT_ENTITY_LANDED, landing_payload)
+			if not suppress_landing_event:
+				var landing_payload: Dictionary = {
+					"entity": body,
+					"jump_component": component,
+					"floating_component": floating_component,
+					"velocity": body.velocity,
+					"position": body.global_position,
+					"landing_time": now,
+					"vertical_velocity": body.velocity.y,
+				}
+				U_ECSEventBus.publish(EVENT_ENTITY_LANDED, landing_payload)
 
 			# Phase 16: Update entity snapshot with floor state (Entity Coordination Pattern)
 			if store:
@@ -190,3 +202,23 @@ func _get_entity_id(body: Node) -> String:
 	if body.has_meta("entity_id"):
 		return body.get_meta("entity_id")
 	return body.name
+
+func _is_spawn_landing_event_suppressed(body: Node, current_physics_frame: int) -> bool:
+	if body == null or not body.has_meta(META_SPAWN_SUPPRESS_LANDING_UNTIL_FRAME):
+		return false
+	
+	var until_variant: Variant = body.get_meta(META_SPAWN_SUPPRESS_LANDING_UNTIL_FRAME)
+	var until_frame: int = -1
+	if until_variant is int:
+		until_frame = until_variant
+	elif until_variant is float:
+		until_frame = int(until_variant)
+	
+	if until_frame < 0 or current_physics_frame > until_frame:
+		body.remove_meta(META_SPAWN_SUPPRESS_LANDING_UNTIL_FRAME)
+		var entity_root: Node = ECS_UTILS.find_entity_root(body, false)
+		if entity_root != null and entity_root.has_meta(META_SPAWN_SUPPRESS_LANDING_UNTIL_FRAME):
+			entity_root.remove_meta(META_SPAWN_SUPPRESS_LANDING_UNTIL_FRAME)
+		return false
+	
+	return true
