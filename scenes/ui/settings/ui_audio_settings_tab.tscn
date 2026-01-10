@@ -1,173 +1,200 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://d14323kd04ar0"]
 
-[ext_resource type="Script" path="res://scripts/ui/settings/ui_audio_settings_tab.gd" id="1_ui_audio_settings_tab_script"]
+[ext_resource type="Script" uid="uid://c5qwywokxxeof" path="res://scripts/ui/settings/ui_audio_settings_tab.gd" id="1_ui_audio_settings_tab_script"]
 
 [sub_resource type="StyleBoxFlat" id="slider_bg"]
+content_margin_top = 6.0
+content_margin_bottom = 6.0
 bg_color = Color(0.25, 0.3, 0.4, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
-content_margin_top = 6.0
-content_margin_bottom = 6.0
 
 [sub_resource type="StyleBoxFlat" id="slider_fill"]
-bg_color = Color(0.15, 0.75, 0.30, 1)
+content_margin_top = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.15, 0.75, 0.3, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
-content_margin_top = 6.0
-content_margin_bottom = 6.0
 
-[node name="AudioSettingsTab" type="VBoxContainer"]
+[node name="AudioSettingsTab" type="VBoxContainer" unique_id=691694341]
+theme_override_constants/separation = 12
 script = ExtResource("1_ui_audio_settings_tab_script")
+
+[node name="HeadingLabel" type="Label" parent="." unique_id=560357912]
+layout_mode = 2
+text = "Audio Settings"
+horizontal_alignment = 1
+
+[node name="MasterRow" type="HBoxContainer" parent="." unique_id=1189375807]
+layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="HeadingLabel" type="Label" parent="."]
-text = "AUDIO SETTINGS"
-
-[node name="MasterRow" type="HBoxContainer" parent="."]
-theme_override_constants/separation = 12
-
-[node name="MasterLabel" type="Label" parent="MasterRow"]
+[node name="MasterLabel" type="Label" parent="MasterRow" unique_id=1820099348]
 custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
 text = "Master Volume"
 
-[node name="MasterVolumeSlider" type="HSlider" parent="MasterRow"]
+[node name="MasterVolumeSlider" type="HSlider" parent="MasterRow" unique_id=775751790]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
-max_value = 1.0
-step = 0.05
-value = 1.0
 theme_override_styles/slider = SubResource("slider_bg")
 theme_override_styles/grabber_area = SubResource("slider_fill")
 theme_override_styles/grabber_area_highlight = SubResource("slider_fill")
+max_value = 1.0
+step = 0.05
+value = 1.0
 
-[node name="MasterPercentage" type="Label" parent="MasterRow"]
+[node name="MasterPercentage" type="Label" parent="MasterRow" unique_id=581610980]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
 text = "100%"
 horizontal_alignment = 2
 
-[node name="MasterMuteToggle" type="CheckBox" parent="MasterRow"]
+[node name="MasterMuteToggle" type="CheckBox" parent="MasterRow" unique_id=665307851]
 unique_name_in_owner = true
+layout_mode = 2
 text = "Mute"
 
-[node name="MusicRow" type="HBoxContainer" parent="."]
+[node name="MusicRow" type="HBoxContainer" parent="." unique_id=414703009]
+layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="MusicLabel" type="Label" parent="MusicRow"]
+[node name="MusicLabel" type="Label" parent="MusicRow" unique_id=1652291463]
 custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
 text = "Music Volume"
 
-[node name="MusicVolumeSlider" type="HSlider" parent="MusicRow"]
+[node name="MusicVolumeSlider" type="HSlider" parent="MusicRow" unique_id=294841912]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
-max_value = 1.0
-step = 0.05
-value = 1.0
 theme_override_styles/slider = SubResource("slider_bg")
 theme_override_styles/grabber_area = SubResource("slider_fill")
 theme_override_styles/grabber_area_highlight = SubResource("slider_fill")
+max_value = 1.0
+step = 0.05
+value = 1.0
 
-[node name="MusicPercentage" type="Label" parent="MusicRow"]
+[node name="MusicPercentage" type="Label" parent="MusicRow" unique_id=1335042318]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
 text = "100%"
 horizontal_alignment = 2
 
-[node name="MusicMuteToggle" type="CheckBox" parent="MusicRow"]
+[node name="MusicMuteToggle" type="CheckBox" parent="MusicRow" unique_id=1115137830]
 unique_name_in_owner = true
+layout_mode = 2
 text = "Mute"
 
-[node name="SFXRow" type="HBoxContainer" parent="."]
+[node name="SFXRow" type="HBoxContainer" parent="." unique_id=880663707]
+layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="SFXLabel" type="Label" parent="SFXRow"]
+[node name="SFXLabel" type="Label" parent="SFXRow" unique_id=1229472761]
 custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
 text = "SFX Volume"
 
-[node name="SFXVolumeSlider" type="HSlider" parent="SFXRow"]
+[node name="SFXVolumeSlider" type="HSlider" parent="SFXRow" unique_id=1589877389]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
-max_value = 1.0
-step = 0.05
-value = 1.0
 theme_override_styles/slider = SubResource("slider_bg")
 theme_override_styles/grabber_area = SubResource("slider_fill")
 theme_override_styles/grabber_area_highlight = SubResource("slider_fill")
+max_value = 1.0
+step = 0.05
+value = 1.0
 
-[node name="SFXPercentage" type="Label" parent="SFXRow"]
+[node name="SFXPercentage" type="Label" parent="SFXRow" unique_id=2106245742]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
 text = "100%"
 horizontal_alignment = 2
 
-[node name="SFXMuteToggle" type="CheckBox" parent="SFXRow"]
+[node name="SFXMuteToggle" type="CheckBox" parent="SFXRow" unique_id=611451084]
 unique_name_in_owner = true
+layout_mode = 2
 text = "Mute"
 
-[node name="AmbientRow" type="HBoxContainer" parent="."]
+[node name="AmbientRow" type="HBoxContainer" parent="." unique_id=1044188688]
+layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="AmbientLabel" type="Label" parent="AmbientRow"]
+[node name="AmbientLabel" type="Label" parent="AmbientRow" unique_id=613768853]
 custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
 text = "Ambient Volume"
 
-[node name="AmbientVolumeSlider" type="HSlider" parent="AmbientRow"]
+[node name="AmbientVolumeSlider" type="HSlider" parent="AmbientRow" unique_id=1632129876]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
-max_value = 1.0
-step = 0.05
-value = 1.0
 theme_override_styles/slider = SubResource("slider_bg")
 theme_override_styles/grabber_area = SubResource("slider_fill")
 theme_override_styles/grabber_area_highlight = SubResource("slider_fill")
+max_value = 1.0
+step = 0.05
+value = 1.0
 
-[node name="AmbientPercentage" type="Label" parent="AmbientRow"]
+[node name="AmbientPercentage" type="Label" parent="AmbientRow" unique_id=262898015]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
 text = "100%"
 horizontal_alignment = 2
 
-[node name="AmbientMuteToggle" type="CheckBox" parent="AmbientRow"]
+[node name="AmbientMuteToggle" type="CheckBox" parent="AmbientRow" unique_id=352107044]
 unique_name_in_owner = true
+layout_mode = 2
 text = "Mute"
 
-[node name="Separator" type="HSeparator" parent="."]
+[node name="Separator" type="HSeparator" parent="." unique_id=92808905]
+layout_mode = 2
 
-[node name="SpatialAudioRow" type="HBoxContainer" parent="."]
+[node name="SpatialAudioRow" type="HBoxContainer" parent="." unique_id=1989431180]
+layout_mode = 2
 
-[node name="SpatialAudioToggle" type="CheckBox" parent="SpatialAudioRow"]
+[node name="SpatialAudioToggle" type="CheckBox" parent="SpatialAudioRow" unique_id=1248366068]
 unique_name_in_owner = true
+layout_mode = 2
 
-[node name="SpatialAudioLabel" type="Label" parent="SpatialAudioRow"]
+[node name="SpatialAudioLabel" type="Label" parent="SpatialAudioRow" unique_id=1740693856]
+layout_mode = 2
 text = "Spatial Audio (3D positioning)"
 
-[node name="Spacer" type="Control" parent="."]
+[node name="Spacer" type="Control" parent="." unique_id=1939131889]
+layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ButtonRow" type="HBoxContainer" parent="."]
+[node name="ButtonRow" type="HBoxContainer" parent="." unique_id=870200756]
+layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 2
 
-[node name="CancelButton" type="Button" parent="ButtonRow"]
+[node name="CancelButton" type="Button" parent="ButtonRow" unique_id=236099694]
 unique_name_in_owner = true
+layout_mode = 2
 text = "Cancel"
 
-[node name="ResetButton" type="Button" parent="ButtonRow"]
+[node name="ResetButton" type="Button" parent="ButtonRow" unique_id=1509556074]
 unique_name_in_owner = true
+layout_mode = 2
 text = "Reset to Defaults"
 
-[node name="ApplyButton" type="Button" parent="ButtonRow"]
+[node name="ApplyButton" type="Button" parent="ButtonRow" unique_id=1509867880]
 unique_name_in_owner = true
+layout_mode = 2
 text = "Apply"

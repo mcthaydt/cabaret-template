@@ -73,10 +73,14 @@ func _configure_focus_neighbors() -> void:
 	if not buttons.is_empty():
 		U_FocusConfigurator.configure_horizontal_focus(buttons, true)
 		# Connect vertical controls to button row
+		var first_button := buttons[0]
 		for button in buttons:
 			if last_vertical_control != null:
 				button.focus_neighbor_top = button.get_path_to(last_vertical_control)
 				button.focus_neighbor_bottom = button.get_path_to(last_vertical_control)
+		# Connect last vertical control to first button
+		if last_vertical_control != null:
+			last_vertical_control.focus_neighbor_bottom = last_vertical_control.get_path_to(first_button)
 
 func _connect_control_signals() -> void:
 	if _shake_enabled_toggle != null and not _shake_enabled_toggle.toggled.is_connected(_on_shake_enabled_toggled):

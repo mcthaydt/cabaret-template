@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_FootstepSoundSettings" format=3 uid="uid://b3kx5fj7m8qwo"]
 
-[ext_resource type="Script" path="res://scripts/ecs/resources/rs_footstep_sound_settings.gd" id="1_footstep"]
+[ext_resource type="Script" uid="uid://bcwbk48rxvdde" path="res://scripts/ecs/resources/rs_footstep_sound_settings.gd" id="1_footstep"]
 [ext_resource type="AudioStream" uid="uid://bkbpaqbaxdxd8" path="res://resources/audio/footsteps/placeholder_default_01.wav" id="2_default_01"]
 [ext_resource type="AudioStream" uid="uid://bf4p3k8danqao" path="res://resources/audio/footsteps/placeholder_default_02.wav" id="3_default_02"]
 [ext_resource type="AudioStream" uid="uid://dv5aelf1a8gj2" path="res://resources/audio/footsteps/placeholder_default_03.wav" id="4_default_03"]
@@ -28,8 +28,6 @@
 
 [resource]
 script = ExtResource("1_footstep")
-step_interval = 0.5
-reference_speed = 6.0
 default_sounds = Array[AudioStream]([ExtResource("2_default_01"), ExtResource("3_default_02"), ExtResource("4_default_03"), ExtResource("5_default_04")])
 grass_sounds = Array[AudioStream]([ExtResource("6_grass_01"), ExtResource("7_grass_02"), ExtResource("8_grass_03"), ExtResource("9_grass_04")])
 stone_sounds = Array[AudioStream]([ExtResource("10_stone_01"), ExtResource("11_stone_02"), ExtResource("12_stone_03"), ExtResource("13_stone_04")])
