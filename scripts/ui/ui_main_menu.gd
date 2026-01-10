@@ -56,6 +56,10 @@ func _update_button_visibility() -> void:
 	if _continue_button != null:
 		_continue_button.visible = has_saves
 
+	# Hide Quit button on mobile (mobile apps should use OS close mechanisms)
+	if _quit_button != null:
+		_quit_button.visible = not OS.has_feature("mobile")
+
 func _process(delta: float) -> void:
 	# Only run analog stick navigation from the main panel.
 	# When the settings panel (SettingsMenu) is active, its own BaseMenuScreen
@@ -75,7 +79,7 @@ func _configure_focus_neighbors() -> void:
 		main_buttons.append(_load_game_button)
 	if _settings_button != null:
 		main_buttons.append(_settings_button)
-	if _quit_button != null:
+	if _quit_button != null and _quit_button.visible:
 		main_buttons.append(_quit_button)
 
 	if not main_buttons.is_empty():

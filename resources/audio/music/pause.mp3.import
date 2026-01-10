@@ -12,7 +12,7 @@ dest_files=["res://.godot/imported/pause.mp3-f4b7e408995d129440e206c86b5ac405.mp
 
 [params]
 
-loop=false
+loop=true
 loop_offset=0
 bpm=0
 beat_count=0

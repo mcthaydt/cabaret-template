@@ -272,8 +272,28 @@ func _resolve_profile_id(preferred_id: String) -> String:
 	var candidate := String(preferred_id)
 	if not candidate.is_empty() and available_profiles.has(candidate):
 		return candidate
+
+	# On mobile, never use "default" (keyboard/mouse profile)
+	# Instead, prefer touchscreen profiles
+	if OS.has_feature("mobile"):
+		# Try touchscreen-specific defaults first
+		if available_profiles.has("default_touchscreen"):
+			return "default_touchscreen"
+		# Look for any touchscreen profile
+		for key in available_profiles.keys():
+			var profile := available_profiles[key] as RS_InputProfile
+			if profile != null and profile.device_type == 2:  # TOUCHSCREEN
+				return String(key)
+		# If no touchscreen profile exists, return first available (but not "default")
+		for key in available_profiles.keys():
+			if key != "default":
+				return String(key)
+
+	# On desktop, prefer "default" (keyboard/mouse)
 	if available_profiles.has("default"):
 		return "default"
+
+	# Fallback: return any available profile
 	for key in available_profiles.keys():
 		return String(key)
 	return ""

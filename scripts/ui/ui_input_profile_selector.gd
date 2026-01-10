@@ -12,11 +12,13 @@ const U_ButtonPromptRegistry := preload("res://scripts/ui/u_button_prompt_regist
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
-@onready var _profile_button: Button = $HBoxContainer/ProfileButton
-@onready var _apply_button: Button = $HBoxContainer/ApplyButton
-@onready var _header_label: Label = $PreviewContainer/HeaderLabel
-@onready var _description_label: Label = $PreviewContainer/DescriptionLabel
-@onready var _bindings_container: VBoxContainer = $PreviewContainer/BindingsContainer
+@onready var _profile_button: Button = $CenterContainer/Panel/MainContainer/ProfileRow/ProfileButton
+@onready var _apply_button: Button = %ApplyButton
+@onready var _cancel_button: Button = %CancelButton
+@onready var _reset_button: Button = %ResetButton
+@onready var _header_label: Label = $CenterContainer/Panel/MainContainer/PreviewContainer/HeaderLabel
+@onready var _description_label: Label = $CenterContainer/Panel/MainContainer/PreviewContainer/DescriptionLabel
+@onready var _bindings_container: VBoxContainer = $CenterContainer/Panel/MainContainer/PreviewContainer/BindingsContainer
 
 @export var debug_nav_logs: bool = false
 
@@ -43,6 +45,10 @@ func _on_panel_ready() -> void:
 		_profile_button.pressed.connect(_on_profile_button_pressed)
 	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
 		_apply_button.pressed.connect(_on_apply_pressed)
+	if _cancel_button != null and not _cancel_button.pressed.is_connected(_on_cancel_pressed):
+		_cancel_button.pressed.connect(_on_cancel_pressed)
+	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
+		_reset_button.pressed.connect(_on_reset_pressed)
 
 	_manager = _resolve_input_profile_manager()
 	if _manager == null:
@@ -91,28 +97,15 @@ func _navigate_focus(direction: StringName) -> void:
 	var focused := get_viewport().gui_get_focus_owner()
 	_nav_log("_navigate_focus(%s) focused=%s" % [direction, _describe_node(focused)])
 
-	# Handle up/down on ProfileButton: cycle profiles
-	if focused == _profile_button and (direction == "ui_up" or direction == "ui_down"):
-		if direction == "ui_up":
+	# Handle left/right on ProfileButton: cycle profiles (matches slider UX pattern)
+	if focused == _profile_button and (direction == "ui_left" or direction == "ui_right"):
+		if direction == "ui_left":
 			_cycle_profile(-1)
 		else:
 			_cycle_profile(1)
 		return
 
-	# Handle left/right navigation between ProfileButton and ApplyButton
-	if focused == _profile_button and (direction == "ui_left" or direction == "ui_right"):
-		if _apply_button != null:
-			_arm_focus_sound(_profile_button)
-			_apply_button.grab_focus()
-		return
-
-	if focused == _apply_button and (direction == "ui_left" or direction == "ui_right"):
-		if _profile_button != null:
-			_arm_focus_sound(_apply_button)
-			_profile_button.grab_focus()
-		return
-
-	# For any other navigation, use default behavior
+	# For any other navigation, use default behavior (focus neighbors handle button navigation)
 	super._navigate_focus(direction)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -131,32 +124,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	var viewport := get_viewport()
 	var focused := viewport.gui_get_focus_owner() if viewport != null else null
 
-	# Handle discrete button presses for profile cycling
+	# Handle discrete button presses for profile cycling (left/right like sliders)
 	if focused == _profile_button:
-		if event.is_action_pressed("ui_up"):
+		if event.is_action_pressed("ui_left"):
 			_cycle_profile(-1)
 			if viewport != null:
 				viewport.set_input_as_handled()
 			return
-		if event.is_action_pressed("ui_down"):
+		if event.is_action_pressed("ui_right"):
 			_cycle_profile(1)
 			if viewport != null:
 				viewport.set_input_as_handled()
 			return
-		if event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right"):
-			if _apply_button != null:
-				_apply_button.grab_focus()
-				if viewport != null:
-					viewport.set_input_as_handled()
-				return
-
-	if focused == _apply_button:
-		if event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right"):
-			if _profile_button != null:
-				_profile_button.grab_focus()
-				if viewport != null:
-					viewport.set_input_as_handled()
-				return
 
 	var action := ""
 	if event.is_action_pressed("ui_up"):
@@ -180,9 +159,23 @@ func _unhandled_input(event: InputEvent) -> void:
 	super._unhandled_input(event)
 
 func _configure_focus_neighbors() -> void:
-	# Don't set focus neighbors - we handle all navigation in _navigate_focus override
-	# This prevents the parent menu's repeater from also processing navigation
-	pass
+	# Configure button row horizontal focus
+	var buttons: Array[Control] = []
+	if _cancel_button != null:
+		buttons.append(_cancel_button)
+	if _reset_button != null:
+		buttons.append(_reset_button)
+	if _apply_button != null:
+		buttons.append(_apply_button)
+
+	if not buttons.is_empty():
+		U_FocusConfigurator.configure_horizontal_focus(buttons, true)
+		# Connect profile button to button row
+		if _profile_button != null:
+			_profile_button.focus_neighbor_bottom = _profile_button.get_path_to(buttons[0])
+			for button in buttons:
+				button.focus_neighbor_top = button.get_path_to(_profile_button)
+				button.focus_neighbor_bottom = button.get_path_to(_profile_button)
 
 func _populate_profiles() -> void:
 	if _manager == null:
@@ -206,13 +199,19 @@ func _populate_profiles() -> void:
 			var profile: RS_InputProfile = profiles_dict[id_key]
 			if profile == null:
 				continue
+			# On mobile, never show "default" (keyboard/mouse profile)
+			if OS.has_feature("mobile") and String(id_key) == "default":
+				continue
 			if profile.device_type == device_type:
 				device_filtered.append(String(id_key))
 		if not device_filtered.is_empty():
 			device_filtered.sort()
 			filtered_ids = device_filtered
-			# Ensure the current active profile is shown even if it doesn't match the current device filter.
-			if not active_id.is_empty() and not filtered_ids.has(active_id) and all_ids.has(active_id):
+			# Ensure the current active profile is shown even if it doesn't match the current device filter
+			# EXCEPT: never show "default" on mobile
+			var should_include_active := not active_id.is_empty() and not filtered_ids.has(active_id) and all_ids.has(active_id)
+			var is_default_on_mobile := OS.has_feature("mobile") and active_id == "default"
+			if should_include_active and not is_default_on_mobile:
 				filtered_ids.insert(0, active_id)
 
 	_available_profiles = filtered_ids
@@ -265,6 +264,42 @@ func _on_apply_pressed() -> void:
 	_manager.switch_profile(selected_profile)
 	_close_overlay()
 
+func _on_cancel_pressed() -> void:
+	U_UISoundPlayer.play_cancel()
+	_close_overlay()
+
+func _on_reset_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
+
+	# Get the default profile for the current device type
+	var store := get_store()
+	if store == null:
+		return
+
+	var state: Dictionary = store.get_state()
+	var device_type: int = U_InputSelectors.get_active_device_type(state)
+
+	# Get default profile ID based on device type
+	var default_profile_id: String = ""
+	if device_type == 0:  # KEYBOARD_MOUSE
+		# On mobile, never use "default" (keyboard/mouse profile)
+		if OS.has_feature("mobile"):
+			default_profile_id = "default_touchscreen"
+		else:
+			default_profile_id = "default"
+	elif device_type == 1:  # GAMEPAD
+		default_profile_id = "default_gamepad"
+	elif device_type == 2:  # TOUCHSCREEN
+		default_profile_id = "default_touchscreen"
+
+	# Update UI to show the default profile (user must press Apply to confirm)
+	if _available_profiles.has(default_profile_id):
+		_current_index = _available_profiles.find(default_profile_id)
+		_update_button_text()
+		_update_preview()
+	else:
+		push_warning("UI_InputProfileSelector: Default profile '%s' not found for device type %d" % [default_profile_id, device_type])
+
 func _close_overlay() -> void:
 	var store := get_store()
 	if store == null:
@@ -284,8 +319,8 @@ func _close_overlay() -> void:
 			store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
 
 func _on_back_pressed() -> void:
-	U_UISoundPlayer.play_cancel()
-	_close_overlay()
+	# Back button behavior matches Cancel button
+	_on_cancel_pressed()
 
 func _transition_back_to_settings_scene() -> void:
 	var store := get_store()
