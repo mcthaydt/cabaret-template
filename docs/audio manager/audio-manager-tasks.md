@@ -1284,7 +1284,7 @@
   - [x] Bus routing correct (UI and Footsteps route through SFX to Master)
   - [x] Volume conversion (linear to dB) works correctly (0.0 = silence/-80dB, 0.5 = ~-6dB, 1.0 = 0dB)
 
-- [ ] **Task 10.2 (Testing)**: Run full test suite
+- [x] **Task 10.2 (Testing)**: Run full test suite
   - Command: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -gexit`
   - Verify all ~280 tests pass (180 unit + 100 integration)
   - Verify no console errors or warnings
