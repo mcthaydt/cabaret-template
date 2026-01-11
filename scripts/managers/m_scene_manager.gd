@@ -381,8 +381,8 @@ func _process_transition_queue() -> void:
 	if _store != null:
 		_store.dispatch(U_SCENE_ACTIONS.transition_completed(request.scene_id))
 
-	# Sync navigation shell immediately after scene loads
-	_sync_navigation_shell_with_scene(request.scene_id)
+		# Sync navigation shell immediately after scene loads
+		_sync_navigation_shell_with_scene(request.scene_id)
 
 	# Emit signal that visual transition is complete (scene is fully visible)
 	# MobileControls waits for this signal before showing controls
@@ -391,9 +391,13 @@ func _process_transition_queue() -> void:
 	if _active_transition_target == request.scene_id:
 		_active_transition_target = StringName("")
 
-	# Process next transition in queue
-	await get_tree().physics_frame
-	_process_transition_queue()
+	# Process next transition in queue.
+	# Do not `await` here: tests may free the manager after each test, and any
+	# pending await would attempt to resume on a freed instance.
+	if not _queue_processing_scheduled:
+		_queue_processing_scheduled = true
+		call_deferred("_process_transition_queue")
+	return
 
 ## Perform the actual scene transition
 ##
@@ -532,14 +536,16 @@ func _perform_transition(request) -> void:
 				if new_camera != null:
 					new_camera.current = true
 
-		# T137c (Phase 10B-3): Delegate scene-type-specific load behavior to handler
-		# Handlers encapsulate scene-type logic (metadata, spawning, etc.)
-		# Wait for scene tree to fully initialize before calling handler
-		# Use physics_frame-only waits so transitions still progress while paused
-		# and so headless tests (which often advance only physics frames) don't hang.
-		await get_tree().physics_frame
-		await get_tree().physics_frame
-		await get_tree().physics_frame
+			# T137c (Phase 10B-3): Delegate scene-type-specific load behavior to handler
+			# Handlers encapsulate scene-type logic (metadata, spawning, etc.)
+			# Wait for scene tree to fully initialize before calling handler
+			# Use physics_frame-only waits so transitions still progress while paused
+			# and so headless tests (which often advance only physics frames) don't hang.
+			var init_wait_frames: int = 0
+			if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
+				init_wait_frames = 1
+			for _i in range(init_wait_frames):
+				await get_tree().physics_frame
 
 		# Check scene is still valid before handler call (can be freed during test cleanup)
 		if is_instance_valid(new_scene):
@@ -588,7 +594,9 @@ func _perform_transition(request) -> void:
 func _unfreeze_player_physics(scene: Node) -> void:
 	if scene == null:
 		return
-	_scene_loader.unfreeze_player_physics(scene)
+	var did_unfreeze: bool = _scene_loader.unfreeze_player_physics(scene)
+	if not did_unfreeze:
+		return
 
 	# FIX: Physics warmup frame - let CharacterBody3D refresh collision state
 	# before ECS systems start making decisions based on ground detection.

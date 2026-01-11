@@ -1,9 +1,8 @@
 extends GutTest
 
-## TDD regression test for InputProfileSelector navigation.
+## Regression test for InputProfileSelector navigation.
 ##
-## Bug: Pressing ui_up/ui_down while ProfileButton is focused does nothing; user must press ui_accept.
-## Expected: ui_up/ui_down cycles profiles immediately when ProfileButton has focus.
+## Expected: Pressing ui_left/ui_right while ProfileButton is focused cycles profiles immediately.
 
 const INPUT_PROFILE_SELECTOR_SCENE := preload("res://scenes/ui/ui_input_profile_selector.tscn")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
@@ -45,12 +44,12 @@ func before_each() -> void:
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-func test_ui_down_cycles_profile_when_profile_button_focused() -> void:
+func test_ui_right_cycles_profile_when_profile_button_focused() -> void:
 	var overlay := INPUT_PROFILE_SELECTOR_SCENE.instantiate() as Control
 	add_child_autofree(overlay)
 	await wait_process_frames(4)
 
-	var profile_button := overlay.get_node("HBoxContainer/ProfileButton") as Button
+	var profile_button := overlay.get_node_or_null("CenterContainer/Panel/MainContainer/ProfileRow/ProfileButton") as Button
 	assert_not_null(profile_button, "ProfileButton must exist")
 
 	profile_button.grab_focus()
@@ -59,12 +58,12 @@ func test_ui_down_cycles_profile_when_profile_button_focused() -> void:
 	var initial_text := profile_button.text
 	assert_true(not initial_text.is_empty(), "ProfileButton should have initial profile text")
 
-	var down_event := InputEventAction.new()
-	down_event.action = "ui_down"
-	down_event.pressed = true
+	var right_event := InputEventAction.new()
+	right_event.action = "ui_right"
+	right_event.pressed = true
 
-	overlay._unhandled_input(down_event)
+	overlay._unhandled_input(right_event)
 	await get_tree().process_frame
 
 	assert_ne(profile_button.text, initial_text,
-		"ui_down should cycle profile without requiring ui_accept")
+		"ui_right should cycle profile without requiring ui_accept")

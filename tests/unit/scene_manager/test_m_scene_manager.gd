@@ -94,18 +94,28 @@ func test_transition_to_scene_dispatches_started_action() -> void:
 
 ## Test transition queue CRITICAL priority
 func test_transition_queue_critical_priority() -> void:
+	# Track the order of completed transitions
+	var completed_scenes: Array[StringName] = []
+	_store.subscribe(func(action: Dictionary, _state: Dictionary) -> void:
+		if action.get("type") == U_SceneActions.ACTION_TRANSITION_COMPLETED:
+			var payload: Dictionary = action.get("payload", {})
+			var scene_id: StringName = payload.get("scene_id", StringName(""))
+			if not scene_id.is_empty():
+				completed_scenes.append(scene_id)
+	)
+
 	# Queue normal transition
 	_manager.transition_to_scene(StringName("scene1"), "instant", M_SceneManager.Priority.NORMAL)
 	# Queue critical transition (should jump queue)
 	_manager.transition_to_scene(StringName("scene2"), "instant", M_SceneManager.Priority.CRITICAL)
 
-	# Critical should process first
-	await wait_physics_frames(2)
+	# Wait for both transitions to complete
+	await wait_physics_frames(3)
 
-	var state: Dictionary = _store.get_state()
-	var scene_state: Dictionary = state.get("scene", {})
-	# After critical transition completes, current_scene_id should be scene2
-	assert_eq(scene_state.get("current_scene_id"), StringName("scene2"), "Critical priority should jump queue")
+	# Verify scene2 (CRITICAL) was processed before scene1 (NORMAL)
+	assert_eq(completed_scenes.size(), 2, "Both transitions should complete")
+	assert_eq(completed_scenes[0], StringName("scene2"), "Critical priority should process first")
+	assert_eq(completed_scenes[1], StringName("scene1"), "Normal priority should process second")
 
 ## Test transition queue HIGH priority
 func test_transition_queue_high_priority() -> void:

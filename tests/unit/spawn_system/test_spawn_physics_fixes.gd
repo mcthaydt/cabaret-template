@@ -197,6 +197,7 @@ func test_floating_component_reset_clears_stable_ground_state() -> void:
 	assert_false(floating.grounded_stable, "Grounded stable should be false after reset")
 	assert_eq(floating._consecutive_grounded_frames, 0, "Consecutive grounded frames should be zero")
 	assert_eq(floating._consecutive_airborne_frames, 0, "Consecutive airborne frames should be zero")
+	floating.free()
 
 func test_floating_component_reset_recent_support_clears_state() -> void:
 	# Arrange: Floating component with recent support
@@ -220,6 +221,7 @@ func test_floating_component_reset_recent_support_clears_state() -> void:
 	assert_eq(floating._consecutive_airborne_frames, 0, "Consecutive airborne should be zero")
 	# _last_support_time should be set to expire grace period
 	assert_true(floating._last_support_time < current_time - grace_time, "Support time should be expired")
+	floating.free()
 
 func test_floating_component_update_stable_requires_frames() -> void:
 	# Arrange: Fresh floating component
@@ -243,6 +245,7 @@ func test_floating_component_update_stable_requires_frames() -> void:
 
 	# Assert: Now stable
 	assert_true(floating.grounded_stable, "Should be stable after required frames")
+	floating.free()
 
 func test_floating_component_airborne_resets_grounded_counter() -> void:
 	# Arrange
@@ -256,6 +259,7 @@ func test_floating_component_airborne_resets_grounded_counter() -> void:
 	# Assert
 	assert_eq(floating._consecutive_grounded_frames, 0, "Grounded counter should reset on airborne")
 	assert_eq(floating._consecutive_airborne_frames, 1, "Airborne counter should increment")
+	floating.free()
 
 ## ============================================================================
 ## Integration: Full Spawn Flow Tests

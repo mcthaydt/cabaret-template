@@ -166,21 +166,32 @@ func validate_scene_contract(scene: Node, scene_id: StringName) -> void:
 		push_warning("Scene '%s' validation warning: %s" % [scene_id, warning])
 
 ## Re-enable player physics after transition completes
-func unfreeze_player_physics(scene: Node) -> void:
+func unfreeze_player_physics(scene: Node) -> bool:
 	if scene == null:
-		return
+		return false
 
 	var player: Node3D = find_player_in_scene(scene)
 	if player == null:
-		return
-
-	if not player.has_meta("_spawn_physics_frozen"):
-		return
+		return false
 
 	var player_body: CharacterBody3D = player as CharacterBody3D
+	if player_body == null:
+		player_body = _find_character_body_in(player)
+
+	var has_frozen_meta: bool = player.has_meta("_spawn_physics_frozen")
+	if not has_frozen_meta and player_body != null:
+		has_frozen_meta = player_body.has_meta("_spawn_physics_frozen")
+	if not has_frozen_meta:
+		return false
+
 	if player_body != null:
 		player_body.set_physics_process(true)
+		if player_body.has_meta("_spawn_physics_frozen"):
+			player_body.remove_meta("_spawn_physics_frozen")
+	if player.has_meta("_spawn_physics_frozen"):
 		player.remove_meta("_spawn_physics_frozen")
+
+	return player_body != null
 
 ## Find player in scene tree
 func find_player_in_scene(scene: Node) -> Node3D:
@@ -197,3 +208,15 @@ func find_player_in_scene(scene: Node) -> Node3D:
 
 	return null
 
+func _find_character_body_in(node: Node) -> CharacterBody3D:
+	if node == null:
+		return null
+	var body := node as CharacterBody3D
+	if body != null:
+		return body
+
+	for child in node.get_children():
+		var found: CharacterBody3D = _find_character_body_in(child)
+		if found != null:
+			return found
+	return null

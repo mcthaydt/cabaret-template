@@ -187,7 +187,8 @@ func test_apply_closes_overlays_and_resumes() -> void:
 
 	# Press Apply on the selector
 	var selector := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var apply_button := selector.get_node("HBoxContainer/ApplyButton") as Button
+	var apply_button := selector.get_node("CenterContainer/Panel/MainContainer/ButtonRow/ApplyButton") as Button
+	assert_not_null(apply_button, "ApplyButton should exist on input profile selector overlay")
 	apply_button.emit_signal("pressed")
 	_debug_overlay_snapshot("after ApplyButton pressed")
 
@@ -254,7 +255,7 @@ func test_profile_selector_shows_binding_preview() -> void:
 	await wait_physics_frames(4)
 
 	var selector := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var preview_container := selector.get_node("PreviewContainer") as VBoxContainer
+	var preview_container := selector.get_node("CenterContainer/Panel/MainContainer/PreviewContainer") as VBoxContainer
 	assert_not_null(preview_container, "PreviewContainer should exist on profile selector")
 	var header_label := preview_container.get_node("HeaderLabel") as Label
 	assert_not_null(header_label, "HeaderLabel should exist in preview container")

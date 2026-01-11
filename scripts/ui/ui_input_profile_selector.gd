@@ -52,7 +52,7 @@ func _on_panel_ready() -> void:
 
 	_manager = _resolve_input_profile_manager()
 	if _manager == null:
-		push_warning("InputProfileSelector: M_InputProfileManager not found")
+		_nav_log("InputProfileSelector: M_InputProfileManager not found")
 		_update_preview()
 		return
 	if _manager.has_signal("profile_switched") and not _manager.profile_switched.is_connected(_on_manager_profile_switched):

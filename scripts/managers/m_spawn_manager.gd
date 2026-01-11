@@ -48,7 +48,7 @@ func _ready() -> void:
 	# Find state store via ServiceLocator (Phase 10B-7: T141c)
 	# Gracefully handle missing store in test environments
 	await get_tree().process_frame
-	_state_store = U_ServiceLocator.get_service(StringName("state_store")) as M_STATE_STORE
+	_state_store = U_ServiceLocator.try_get_service(StringName("state_store")) as M_STATE_STORE
 
 	# Phase 10B (T133): Warn if M_StateStore missing for fail-fast feedback
 	if _state_store == null:

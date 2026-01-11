@@ -40,7 +40,7 @@ func test_resolve_profile_id_avoids_default_on_mobile() -> void:
 	else:
 		assert_eq(resolved_id, "default", "_resolve_profile_id should return 'default' on desktop")
 
-	manager.queue_free()
+	manager.free()
 
 ## Regression test: _resolve_profile_id with touchscreen preference on mobile
 func test_resolve_profile_id_prioritizes_touchscreen_on_mobile() -> void:
@@ -61,7 +61,7 @@ func test_resolve_profile_id_prioritizes_touchscreen_on_mobile() -> void:
 		# On desktop, keyboard profiles are fine
 		assert_eq(resolved_id, "alternate", "Should accept keyboard profile 'alternate' on desktop")
 
-	manager.queue_free()
+	manager.free()
 
 ## Regression test: Input profile selector filters out "default" on mobile
 func test_input_profile_selector_filters_default_on_mobile() -> void:

@@ -100,40 +100,32 @@
   3. **Handle all directions explicitly** in the override and return early without calling `super._navigate_focus(direction)`
 
   ```gdscript
-  # InputProfileSelector example - custom up/down for cycling, left/right for navigation
+  # InputProfileSelector example - custom left/right for cycling, up/down for navigation
   func _navigate_focus(direction: StringName) -> void:
       var focused := get_viewport().gui_get_focus_owner()
 
-      # Handle up/down on ProfileButton: cycle profiles
-      if focused == _profile_button and (direction == "ui_up" or direction == "ui_down"):
-          if direction == "ui_up":
+      # Handle left/right on ProfileButton: cycle profiles (matches slider UX)
+      if focused == _profile_button and (direction == "ui_left" or direction == "ui_right"):
+          if direction == "ui_left":
               _cycle_profile(-1)
           else:
               _cycle_profile(1)
-          return  # Don't call super - prevents parent from also processing
-
-      # Handle left/right navigation between buttons
-      if focused == _profile_button and (direction == "ui_left" or direction == "ui_right"):
-          _apply_button.grab_focus()
-          return
-
-      if focused == _apply_button and (direction == "ui_left" or direction == "ui_right"):
-          _profile_button.grab_focus()
-          return
+          return  # Don't call super - prevents other repeaters/parents from also processing
 
       # For any other cases, use default behavior
       super._navigate_focus(direction)
 
   func _configure_focus_neighbors() -> void:
-      # Don't set focus neighbors - prevents parent menu from processing navigation
-      pass
+      # Configure focus neighbors normally so ui_up/ui_down moves between rows.
+      # Only override the custom directions (above).
+      ...
   ```
 
 - **Why this works**: Without focus neighbors set, the parent menu's `_navigate_focus()` finds no valid `focus_neighbor_left/right` paths and does nothing. Only the overlay's override processes the input.
 
 - **When to use**: Any overlay that needs non-standard navigation (cycling values, custom layouts) instead of simple focus neighbor traversal.
 
-- **Real example**: `scripts/ui/ui_input_profile_selector.gd` - Uses up/down to cycle through profile names instead of navigating between controls, and left/right to move between the profile button and apply button.
+- **Real example**: `scripts/ui/ui_input_profile_selector.gd` - Uses left/right to cycle through profile names on the focused ProfileButton, while focus neighbors handle up/down navigation between UI rows.
 
 ### Avoid Await Before Wiring UI Signals
 

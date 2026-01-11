@@ -148,7 +148,7 @@ func _ensure_store_ready() -> void:
 	await tree.process_frame
 	if not is_inside_tree():
 		return
-	_store = U_StateUtils.get_store(self)
+	_store = U_StateUtils.try_get_store(self)
 	if _store != null:
 		_on_store_ready(_store)
 
