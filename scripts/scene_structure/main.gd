@@ -3,6 +3,8 @@ extends Node
 
 ## Main scene root script (dedicated editor icon + ServiceLocator bootstrap).
 
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+
 func _ready() -> void:
 	_initialize_service_locator()
 
@@ -35,6 +37,8 @@ func _initialize_service_locator() -> void:
 	_register_if_exists(managers_node, "M_InputDeviceManager", StringName("input_device_manager"))
 	_register_if_exists(managers_node, "M_UIInputHandler", StringName("ui_input_handler"))
 	_register_if_exists(managers_node, "M_SaveManager", StringName("save_manager"))
+	_register_if_exists(managers_node, "M_VFXManager", StringName("vfx_manager"))
+	_register_if_exists(managers_node, "M_AudioManager", StringName("audio_manager"))
 
 	# Register dependencies for validation
 	U_ServiceLocator.register_dependency(StringName("pause_manager"), StringName("state_store"))
@@ -46,6 +50,9 @@ func _initialize_service_locator() -> void:
 	U_ServiceLocator.register_dependency(StringName("input_device_manager"), StringName("state_store"))
 	U_ServiceLocator.register_dependency(StringName("save_manager"), StringName("state_store"))
 	U_ServiceLocator.register_dependency(StringName("save_manager"), StringName("scene_manager"))
+	U_ServiceLocator.register_dependency(StringName("vfx_manager"), StringName("state_store"))
+	U_ServiceLocator.register_dependency(StringName("vfx_manager"), StringName("camera_manager"))
+	U_ServiceLocator.register_dependency(StringName("audio_manager"), StringName("state_store"))
 
 	# Validate all dependencies
 	if not U_ServiceLocator.validate_all():

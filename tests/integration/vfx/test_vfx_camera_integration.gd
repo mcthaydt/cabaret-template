@@ -16,6 +16,7 @@ const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const RS_VFX_INITIAL_STATE := preload("res://scripts/state/resources/rs_vfx_initial_state.gd")
+const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
 
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
@@ -43,6 +44,10 @@ func before_each() -> void:
 	_store.settings.enable_debug_logging = false
 	_store.settings.enable_debug_overlay = false
 	_store.vfx_initial_state = RS_VFX_INITIAL_STATE.new()
+	# Set navigation shell to "gameplay" so VFX effects are not blocked
+	var nav_state := RS_NAVIGATION_INITIAL_STATE.new()
+	nav_state.shell = StringName("gameplay")
+	_store.navigation_initial_state = nav_state
 	add_child_autofree(_store)
 	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)
 	await get_tree().process_frame
@@ -251,22 +256,20 @@ func test_trauma_decay_reduces_shake_over_time() -> void:
 func test_multiple_damage_events_accumulate_trauma_clamped_to_one() -> void:
 	assert_eq(_vfx_manager.get_trauma(), 0.0, "Sanity check: trauma should start at 0")
 
-	# Two max-damage events add trauma twice (0.6 + 0.6), clamped to 1.0.
-	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {
+	# Two shake requests add trauma twice (0.6 + 0.6), clamped to 1.0.
+	U_ECS_EVENT_BUS.publish(StringName("screen_shake_request"), {
 		"entity_id": "E_Player",
-		"previous_health": 100.0,
-		"new_health": 0.0,
-		"is_dead": false,
+		"trauma_amount": 0.6,
+		"source": "test",
 	})
-	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {
+	U_ECS_EVENT_BUS.publish(StringName("screen_shake_request"), {
 		"entity_id": "E_Player",
-		"previous_health": 100.0,
-		"new_health": 0.0,
-		"is_dead": false,
+		"trauma_amount": 0.6,
+		"source": "test",
 	})
 
 	assert_almost_eq(_vfx_manager.get_trauma(), 1.0, 0.001,
-		"Multiple damage events should clamp trauma to 1.0")
+		"Multiple shake requests should clamp trauma to 1.0")
 
 	_vfx_manager._physics_process(0.0)
 	var shake_parent := _get_scene_shake_parent()

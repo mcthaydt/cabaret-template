@@ -8,14 +8,20 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
+const U_GameplaySelectors := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const M_ScreenShake := preload("res://scripts/managers/helpers/m_screen_shake.gd")
 const M_DamageFlash := preload("res://scripts/managers/helpers/m_damage_flash.gd")
+
+## VFX request event names
+const EVENT_SCREEN_SHAKE_REQUEST := StringName("screen_shake_request")
+const EVENT_DAMAGE_FLASH_REQUEST := StringName("damage_flash_request")
 ##
 ## Responsibilities:
-## - Manages trauma system for screen shake (accumulates from damage/impacts, decays over time)
+## - Executes visual feedback effects based on VFX requests
+## - Manages trauma system for screen shake (accumulates from requests, decays over time)
 ## - Coordinates with M_CameraManager to apply shake offsets
-## - Triggers damage flash overlay on health changes
-## - Subscribes to ECS events (health_changed, entity_landed, entity_death)
+## - Triggers damage flash overlay on flash requests
+## - Subscribes to VFX request events (screen_shake_request, damage_flash_request)
 ## - Respects VFX settings from Redux state (enable toggles, intensity multipliers)
 ##
 ## Architecture:
@@ -28,6 +34,14 @@ const M_DamageFlash := preload("res://scripts/managers/helpers/m_damage_flash.gd
 ## Trauma decay rate (units per second)
 ## Trauma decays from 1.0 to 0.0 over 0.5 seconds at this rate
 const TRAUMA_DECAY_RATE := 2.0
+
+## Injected StateStore dependency (for testing)
+## If set, manager uses this instead of auto-discovery
+@export var state_store: I_StateStore = null
+
+## Injected Camera Manager dependency (for testing)
+## If set, manager uses this instead of auto-discovery
+@export var camera_manager: M_CameraManager = null
 
 ## StateStore dependency for accessing VFX settings
 var _state_store: I_StateStore = null
@@ -45,10 +59,12 @@ var _damage_flash: M_DamageFlash = null
 ## Trauma accumulates from damage/impacts and decays over time
 var _trauma: float = 0.0
 
-## Unsubscribe callables for ECS event subscriptions
-var _unsubscribe_health: Callable
-var _unsubscribe_landed: Callable
-var _unsubscribe_death: Callable
+## Player entity ID for gating effects to player only
+var _player_entity_id: StringName = StringName("")
+
+## Unsubscribe callables for VFX request event subscriptions
+var _unsubscribe_shake: Callable
+var _unsubscribe_flash: Callable
 
 func _ready() -> void:
 	# Run even when game is paused (VFX should be visible in pause menu)
@@ -57,16 +73,21 @@ func _ready() -> void:
 	# Add to group for discoverability
 	add_to_group("vfx_manager")
 
-	# Register with ServiceLocator
-	U_SERVICE_LOCATOR.register(StringName("vfx_manager"), self)
+	# Note: ServiceLocator registration is now handled by main.gd (Phase 2)
 
-	# Discover StateStore dependency
-	_state_store = U_STATE_UTILS.try_get_store(self)
+	# Use injected StateStore if available, otherwise discover
+	if state_store != null:
+		_state_store = state_store
+	else:
+		_state_store = U_STATE_UTILS.try_get_store(self)
 	if _state_store == null:
 		print_verbose("M_VFXManager: StateStore not found. VFX settings will not be applied.")
 
-	# Discover Camera Manager dependency (VFX Phase 3: T3.2)
-	_camera_manager = U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager"))
+	# Use injected Camera Manager if available, otherwise discover
+	if camera_manager != null:
+		_camera_manager = camera_manager
+	else:
+		_camera_manager = U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager"))
 	if _camera_manager == null:
 		print_verbose("M_VFXManager: Camera Manager not found. Screen shake will not be applied.")
 
@@ -86,19 +107,16 @@ func _ready() -> void:
 	else:
 		push_error("M_VFXManager: Failed to load damage flash overlay scene")
 
-	# Subscribe to ECS events for trauma triggers
-	_unsubscribe_health = U_ECS_EVENT_BUS.subscribe(StringName("health_changed"), _on_health_changed)
-	_unsubscribe_landed = U_ECS_EVENT_BUS.subscribe(StringName("entity_landed"), _on_landed)
-	_unsubscribe_death = U_ECS_EVENT_BUS.subscribe(StringName("entity_death"), _on_death)
+	# Subscribe to VFX request events
+	_unsubscribe_shake = U_ECS_EVENT_BUS.subscribe(EVENT_SCREEN_SHAKE_REQUEST, _on_screen_shake_request)
+	_unsubscribe_flash = U_ECS_EVENT_BUS.subscribe(EVENT_DAMAGE_FLASH_REQUEST, _on_damage_flash_request)
 
 func _exit_tree() -> void:
-	# Unsubscribe from all ECS events to prevent memory leaks
-	if _unsubscribe_health.is_valid():
-		_unsubscribe_health.call()
-	if _unsubscribe_landed.is_valid():
-		_unsubscribe_landed.call()
-	if _unsubscribe_death.is_valid():
-		_unsubscribe_death.call()
+	# Unsubscribe from all VFX request events to prevent memory leaks
+	if _unsubscribe_shake.is_valid():
+		_unsubscribe_shake.call()
+	if _unsubscribe_flash.is_valid():
+		_unsubscribe_flash.call()
 
 ## Add trauma to the current trauma level
 ##
@@ -120,6 +138,56 @@ func add_trauma(amount: float) -> void:
 func get_trauma() -> float:
 	return _trauma
 
+## Check if the given entity is the player entity
+##
+## Returns true if entity_id matches the current player entity ID
+func _is_player_entity(entity_id: StringName) -> bool:
+	_update_player_entity_id()
+
+	if _player_entity_id.is_empty():
+		return false
+
+	return entity_id == _player_entity_id
+
+## Check if VFX should be blocked due to transitions or UI overlays
+##
+## Returns true if effects should be suppressed (during transitions, menus, non-gameplay shells)
+func _is_transition_blocked() -> bool:
+	if _state_store == null:
+		return false
+
+	var state: Dictionary = _state_store.get_state()
+
+	# Check scene transition state
+	var scene_slice: Dictionary = state.get("scene", {})
+	if scene_slice.get("is_transitioning", false):
+		return true
+
+	# Check if any UI overlay is active (scene_stack)
+	var stack: Array = scene_slice.get("scene_stack", [])
+	if stack.size() > 0:
+		return true
+
+	# Check navigation shell (block in non-gameplay shells)
+	var nav_slice: Dictionary = state.get("navigation", {})
+	var shell: StringName = nav_slice.get("shell", StringName(""))
+	if shell != StringName("gameplay"):
+		return true
+
+	return false
+
+## Update the cached player entity ID from state
+func _update_player_entity_id() -> void:
+	if _state_store == null:
+		# Default to "E_Player" when no state store available (for testing)
+		if _player_entity_id.is_empty():
+			_player_entity_id = StringName("E_Player")
+		return
+
+	var state: Dictionary = _state_store.get_state()
+	var gameplay_slice: Dictionary = state.get("gameplay", {})
+	_player_entity_id = StringName(gameplay_slice.get("player_entity_id", "E_Player"))
+
 ## Physics process - handles trauma decay and screen shake application (VFX Phase 3: T3.2)
 func _physics_process(delta: float) -> void:
 	# Decay trauma over time (2.0/sec rate)
@@ -136,65 +204,47 @@ func _physics_process(delta: float) -> void:
 			# Reset shake when disabled (prevents lingering offset)
 			_camera_manager.apply_shake_offset(Vector2.ZERO, 0.0)
 
-## Event handler for health_changed events
+## Event handler for screen shake request events
 ##
-## Maps damage amount to trauma in 0.3-0.6 range and triggers damage flash
-func _on_health_changed(event_data: Dictionary) -> void:
+## Adds trauma based on the request payload (with player-only and transition gating)
+func _on_screen_shake_request(event_data: Dictionary) -> void:
 	var payload: Dictionary = event_data.get("payload", {})
-	var is_dead: bool = bool(payload.get("is_dead", false))
-	if is_dead:
+	var entity_id := StringName(payload.get("entity_id", ""))
+
+	# Player-only gating
+	if not _is_player_entity(entity_id):
 		return
 
-	var damage_amount: float = 0.0
-	if payload.has("damage"):
-		# Backward-compatible payload shape used by older tests.
-		damage_amount = float(payload.get("damage", 0.0))
-	else:
-		var previous_health: float = float(payload.get("previous_health", 0.0))
-		var new_health: float = float(payload.get("new_health", previous_health))
-		damage_amount = maxf(previous_health - new_health, 0.0)
-
-	if damage_amount <= 0.0:
+	# Transition gating
+	if _is_transition_blocked():
 		return
 
-	# Map damage (0-100) to trauma (0.3-0.6)
-	# Using lerpf: lerp between 0.3 and 0.6 based on damage/100
-	var damage_ratio: float = clampf(damage_amount / 100.0, 0.0, 1.0)
-	var trauma_amount: float = lerpf(0.3, 0.6, damage_ratio)
+	var trauma_amount: float = float(payload.get("trauma_amount", 0.0))
+
+	if trauma_amount <= 0.0:
+		return
+
 	add_trauma(trauma_amount)
 
-	# Trigger damage flash if enabled (VFX Phase 4: T4.4)
-	if _state_store != null and _damage_flash != null:
-		var state: Dictionary = _state_store.get_state()
-		if U_VFX_SELECTORS.is_damage_flash_enabled(state):
-			_damage_flash.trigger_flash(1.0)
-
-## Event handler for entity_landed events
+## Event handler for damage flash request events
 ##
-## Adds trauma for high-speed impacts (fall speed > 15.0)
-func _on_landed(event_data: Dictionary) -> void:
+## Triggers damage flash with specified intensity if enabled in settings (with player-only and transition gating)
+func _on_damage_flash_request(event_data: Dictionary) -> void:
 	var payload: Dictionary = event_data.get("payload", {})
-	var fall_speed: float = 0.0
-	if payload.has("fall_speed"):
-		# Backward-compatible payload shape used by older tests.
-		fall_speed = float(payload.get("fall_speed", 0.0))
-	else:
-		fall_speed = absf(float(payload.get("vertical_velocity", 0.0)))
+	var entity_id := StringName(payload.get("entity_id", ""))
 
-	# Only add trauma if fall speed exceeds threshold
-	if fall_speed > 15.0:
-		# Map fall speed (15-30) to trauma (0.2-0.4)
-		# Using lerpf: lerp between 0.2 and 0.4 based on (fall_speed - 15) / (30 - 15)
-		var speed_ratio: float = clampf((fall_speed - 15.0) / 15.0, 0.0, 1.0)
-		var trauma_amount: float = lerpf(0.2, 0.4, speed_ratio)
-		add_trauma(trauma_amount)
+	# Player-only gating
+	if not _is_player_entity(entity_id):
+		return
 
-## Event handler for entity_death events
-##
-## Adds fixed trauma amount of 0.5
-func _on_death(_event_data: Dictionary) -> void:
-	add_trauma(0.5)
+	# Transition gating
+	if _is_transition_blocked():
+		return
+
+	var intensity: float = float(payload.get("intensity", 1.0))
+
+	# Check if damage flash is enabled in settings
 	if _state_store != null and _damage_flash != null:
 		var state: Dictionary = _state_store.get_state()
 		if U_VFX_SELECTORS.is_damage_flash_enabled(state):
-			_damage_flash.trigger_flash(1.0)
+			_damage_flash.trigger_flash(intensity)
