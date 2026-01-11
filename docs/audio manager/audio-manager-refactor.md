@@ -129,6 +129,53 @@ static func _validate_registrations() -> void  # Warn on duplicates, missing str
 - `resources/audio/ui/ui_tick.tres`
 - `resources/audio/scene_mappings/scene_audio_*.tres`
 
+### Mix Snapshots / Pause Behavior
+
+The `pause_behavior` field in RS_MusicTrackDefinition enables per-track behavior during pause:
+
+| Value | Behavior |
+|-------|----------|
+| `&"pause"` | Stop playback, resume from same position when unpaused |
+| `&"duck"` | Reduce volume (e.g., -12dB) during pause, restore on unpause |
+| `&"continue"` | Continue playing at full volume during pause |
+
+Implementation in M_AudioManager:
+```gdscript
+const DUCK_VOLUME_DB := -12.0
+const DUCK_FADE_DURATION := 0.3
+
+func _on_pause_state_changed(is_paused: bool) -> void:
+    var track_def := U_AudioRegistryLoader.get_music_track(_music_crossfader.get_current_track_id())
+    if track_def == null:
+        return
+
+    match track_def.pause_behavior:
+        &"pause":
+            if is_paused:
+                _music_crossfader.pause()
+            else:
+                _music_crossfader.resume()
+        &"duck":
+            if is_paused:
+                _duck_music(DUCK_VOLUME_DB, DUCK_FADE_DURATION)
+            else:
+                _unduck_music(DUCK_FADE_DURATION)
+        &"continue":
+            pass  # No action needed
+
+func _duck_music(target_db: float, duration: float) -> void:
+    var tween := create_tween()
+    tween.tween_method(_set_music_duck_offset, 0.0, target_db, duration)
+
+func _unduck_music(duration: float) -> void:
+    var tween := create_tween()
+    tween.tween_method(_set_music_duck_offset, _current_duck_offset, 0.0, duration)
+
+func _set_music_duck_offset(offset_db: float) -> void:
+    _current_duck_offset = offset_db
+    _apply_music_volume()
+```
+
 ---
 
 ## Phase 2: Crossfade Helper Extraction
@@ -451,6 +498,17 @@ func _update_preview() -> void:
 
 **Goal**: Extract shared helpers, add consistent pause/transition gating.
 
+### Standardized Request Schema
+
+All ECS sound systems use a consistent request Dictionary format:
+
+| Key | Type | Required | Description |
+|-----|------|----------|-------------|
+| `position` | `Vector3` | Yes | World position where sound should play |
+| `entity_id` | `StringName` | No | Optional entity reference for debugging |
+
+The `create_request_from_payload()` method in each system transforms event payloads into this schema. Publishers should include `position` in event payloads (resolved at publish time, not lookup time).
+
 ### New Base Helper Methods in BaseEventSFXSystem
 
 Add to `scripts/ecs/base_event_sfx_system.gd`:
@@ -595,7 +653,9 @@ func _on_entity_removed(entity: Node) -> void:
 
 ## Phase 7: SFX Spawner Improvements
 
-**Goal**: Voice stealing, per-sound configuration, bus fallback.
+**Goal**: Voice stealing, per-sound configuration, bus fallback, follow-emitter mode.
+
+**Note**: Current `spawn_3d()` uses Dictionary config API. This phase extends it while preserving the signature.
 
 ### Update M_SFXSpawner
 
@@ -603,19 +663,19 @@ func _on_entity_removed(entity: Node) -> void:
 const POOL_SIZE := 16
 const MAX_POOL_SIZE := 32  # For potential soft growth later
 
-var _pool: Array[AudioStreamPlayer3D] = []
-var _play_times: Dictionary = {}  # player -> start_time (for voice stealing)
+static var _pool: Array[AudioStreamPlayer3D] = []
+static var _play_times: Dictionary = {}  # player -> start_time (for voice stealing)
+static var _follow_targets: Dictionary = {}  # player -> Node3D (for follow emitter mode)
 
-## Spawn with voice stealing on exhaustion
-static func spawn_3d(
-    audio_stream: AudioStream,
-    position: Vector3,
-    volume_db: float = 0.0,
-    pitch_scale: float = 1.0,
-    bus: String = "SFX",
-    max_distance: float = -1.0,  # -1 = use default
-    attenuation_model: int = -1  # -1 = use default
-) -> AudioStreamPlayer3D:
+## Spawn with voice stealing on exhaustion (preserves Dictionary API)
+static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
+    if config == null or config.is_empty():
+        return null
+
+    var audio_stream_variant: Variant = config.get("audio_stream", null)
+    var audio_stream: AudioStream = null
+    if audio_stream_variant is AudioStream:
+        audio_stream = audio_stream_variant as AudioStream
     if audio_stream == null:
         push_warning("M_SFXSpawner: null audio stream")
         return null
@@ -626,10 +686,32 @@ static func spawn_3d(
         player = _steal_oldest_voice()
         if player == null:
             push_warning("SFX pool exhausted, could not steal voice")
+            _stats["drops"] += 1
             return null
 
-    # Validate bus
+    # Extract config values
+    var position: Vector3 = Vector3.ZERO
+    var pos_variant: Variant = config.get("position", Vector3.ZERO)
+    if pos_variant is Vector3:
+        position = pos_variant
+
+    var volume_db: float = float(config.get("volume_db", 0.0))
+    var pitch_scale: float = float(config.get("pitch_scale", 1.0))
+    if pitch_scale <= 0.0:
+        pitch_scale = 1.0
+
+    var bus: String = String(config.get("bus", "SFX"))
     var validated_bus := _validate_bus(bus)
+
+    # Optional per-sound spatialization overrides
+    var max_distance: float = float(config.get("max_distance", -1.0))
+    var attenuation_model: int = int(config.get("attenuation_model", -1))
+
+    # Optional follow emitter mode
+    var follow_target_variant: Variant = config.get("follow_target", null)
+    var follow_target: Node3D = null
+    if follow_target_variant is Node3D:
+        follow_target = follow_target_variant
 
     player.set_meta(META_IN_USE, true)
     _play_times[player] = Time.get_ticks_msec()
@@ -639,7 +721,16 @@ static func spawn_3d(
     player.pitch_scale = pitch_scale
     player.bus = validated_bus
     _configure_player_spatialization(player, max_distance, attenuation_model)
+
+    # Store follow target for _process updates
+    if follow_target != null and is_instance_valid(follow_target):
+        _follow_targets[player] = follow_target
+    else:
+        _follow_targets.erase(player)
+
     player.play()
+    _stats["spawns"] += 1
+    _update_peak_usage()
     return player
 
 static func _steal_oldest_voice() -> AudioStreamPlayer3D:
@@ -657,6 +748,8 @@ static func _steal_oldest_voice() -> AudioStreamPlayer3D:
     if oldest_player != null:
         oldest_player.stop()
         oldest_player.set_meta(META_IN_USE, false)
+        _follow_targets.erase(oldest_player)
+        _stats["steals"] += 1
 
     return oldest_player
 
@@ -679,7 +772,32 @@ static func _configure_player_spatialization(
     else:
         player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_DISABLED
         player.panning_strength = 0.0
+
+## Call from _process in container (or via SceneTree.process_frame signal)
+static func update_follow_targets() -> void:
+    for player in _follow_targets.keys():
+        if not is_instance_valid(player) or not player.playing:
+            _follow_targets.erase(player)
+            continue
+        var target: Node3D = _follow_targets.get(player)
+        if target == null or not is_instance_valid(target):
+            _follow_targets.erase(player)
+            continue
+        player.global_position = target.global_position
 ```
+
+### spawn_3d Config Reference
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `audio_stream` | `AudioStream` | **required** | The audio stream to play |
+| `position` | `Vector3` | `Vector3.ZERO` | Initial world position |
+| `volume_db` | `float` | `0.0` | Volume offset in decibels |
+| `pitch_scale` | `float` | `1.0` | Playback speed/pitch multiplier |
+| `bus` | `String` | `"SFX"` | Audio bus name (falls back to SFX if invalid) |
+| `max_distance` | `float` | `-1.0` | Max audible distance (-1 = use default 50.0) |
+| `attenuation_model` | `int` | `-1` | Godot attenuation model (-1 = use default) |
+| `follow_target` | `Node3D` | `null` | Entity to follow (enables follow-emitter mode) |
 
 ### Add Metrics/Debug Hooks
 
@@ -696,6 +814,14 @@ static func get_stats() -> Dictionary:
 
 static func reset_stats() -> void:
     _stats = {"spawns": 0, "steals": 0, "drops": 0, "peak_usage": 0}
+
+static func _update_peak_usage() -> void:
+    var in_use := 0
+    for player in _pool:
+        if player.get_meta(META_IN_USE, false):
+            in_use += 1
+    if in_use > _stats["peak_usage"]:
+        _stats["peak_usage"] = in_use
 ```
 
 ---
@@ -923,21 +1049,51 @@ func _on_apply_pressed() -> void:
 ### Test Patterns
 
 ```gdscript
-# Test voice stealing
+# Test voice stealing (uses Dictionary config API)
 func test_voice_stealing_on_pool_exhaustion() -> void:
+    M_SFXSpawner.reset_stats()
     # Fill pool with 16 sounds
     for i in range(16):
-        M_SFXSpawner.spawn_3d(_test_stream, Vector3.ZERO)
+        M_SFXSpawner.spawn_3d({
+            "audio_stream": _test_stream,
+            "position": Vector3.ZERO
+        })
 
     # 17th sound should steal oldest
-    var stolen := M_SFXSpawner.spawn_3d(_test_stream, Vector3.ZERO)
+    var stolen := M_SFXSpawner.spawn_3d({
+        "audio_stream": _test_stream,
+        "position": Vector3.ZERO
+    })
     assert_not_null(stolen)
     assert_eq(M_SFXSpawner.get_stats()["steals"], 1)
 
 # Test bus fallback
 func test_unknown_bus_falls_back_to_sfx() -> void:
-    var player := M_SFXSpawner.spawn_3d(_test_stream, Vector3.ZERO, 0.0, 1.0, "NonExistentBus")
+    var player := M_SFXSpawner.spawn_3d({
+        "audio_stream": _test_stream,
+        "position": Vector3.ZERO,
+        "bus": "NonExistentBus"
+    })
     assert_eq(player.bus, "SFX")
+
+# Test follow emitter mode
+func test_follow_emitter_updates_position() -> void:
+    var emitter := Node3D.new()
+    add_child(emitter)
+    emitter.global_position = Vector3(10, 0, 0)
+
+    var player := M_SFXSpawner.spawn_3d({
+        "audio_stream": _test_stream,
+        "position": emitter.global_position,
+        "follow_target": emitter
+    })
+
+    # Move emitter
+    emitter.global_position = Vector3(20, 0, 0)
+    M_SFXSpawner.update_follow_targets()
+
+    assert_eq(player.global_position, Vector3(20, 0, 0))
+    emitter.queue_free()
 ```
 
 ### Update AGENTS.md
@@ -950,20 +1106,31 @@ Add Audio Manager patterns section:
 - All audio tracks/sounds defined as resources in `resources/audio/`
 - Use `U_AudioRegistryLoader` for O(1) lookup by ID
 - Scene→audio mappings stored separately from track definitions
+- Per-track pause behavior: `"pause"`, `"duck"`, or `"continue"`
 
 ### Crossfade
 - Use `U_CrossfadePlayer` utility for music and ambient
 - Both managed by persistent M_AudioManager (not per-scene)
+- Mix snapshots via per-track `pause_behavior` field
 
 ### Bus Layout
-- Buses defined in project.godot, runtime validates
+- Buses defined in project.godot, runtime validates only
 - Use `U_AudioBusConstants` for bus name constants
 - Always use `get_bus_index_safe()` to handle missing buses
 
 ### SFX Spawner
+- Uses Dictionary config API: `spawn_3d(config: Dictionary)`
 - Voice stealing (oldest) on pool exhaustion
-- Per-sound spatialization via parameters
+- Per-sound spatialization via `max_distance`, `attenuation_model` config keys
+- Follow-emitter mode via `follow_target` config key
 - Bus fallback to "SFX" on unknown bus
+- Metrics via `get_stats()`: spawns, steals, drops, peak_usage
+
+### ECS Sound Systems
+- Standardized request schema: `{position: Vector3, entity_id?: StringName}`
+- Shared helpers in `BaseEventSFXSystem`: `_should_skip_processing()`, `_is_audio_blocked()`, `_is_throttled()`, `_spawn_sfx()`
+- Consistent pause/transition gating across all systems
+- Resolve entity positions at event publish time, not in sound system
 ```
 
 ---
