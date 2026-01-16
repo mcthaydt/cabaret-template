@@ -10,9 +10,9 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 - **Type Safety**: Add typed results and event constants
 - **Testing**: Add deterministic testing hooks and comprehensive coverage
 
-**Status**: In Progress (Phase 1 complete)
-**Current Phase**: Phase 2
-**Last Updated**: 2026-01-16
+**Status**: In Progress (Phase 2 complete)
+**Current Phase**: Phase 3
+**Last Updated**: 2026-01-17
 
 ---
 
@@ -305,7 +305,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Tests (Write First - TDD)
 
-- [ ] **T2.1**: Write test for VFX Manager dependency injection
+- [x] **T2.1**: Write test for VFX Manager dependency injection
   - Location: `tests/unit/managers/test_vfx_manager_injection.gd`
   - Extends: `GutTest`
   - Tests:
@@ -318,7 +318,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Implementation
 
-- [ ] **T2.2**: Add dependency injection exports to `M_VFXManager`
+- [x] **T2.2**: Add dependency injection exports to `M_VFXManager`
   - Location: `scripts/managers/m_vfx_manager.gd`
   - After line 27 (after constants), add:
     ```gdscript
@@ -341,7 +341,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
   - Tests GREEN ✅
 
-- [ ] **T2.3**: Update `main.gd` to register VFX Manager with ServiceLocator
+- [x] **T2.3**: Update `main.gd` to register VFX Manager with ServiceLocator
   - Location: `scripts/scene_structure/main.gd`
   - Find `_register_services()` or equivalent
   - After camera_manager registration, add:
@@ -351,23 +351,25 @@ This document tracks the refactoring of the existing VFX Manager system to impro
         U_SERVICE_LOCATOR.register(StringName("vfx_manager"), vfx_manager)
     ```
 
-- [ ] **T2.4**: Remove self-registration from `M_VFXManager`
+- [x] **T2.4**: Remove self-registration from `M_VFXManager`
   - Location: `scripts/managers/m_vfx_manager.gd`
   - Remove: Line 61 `U_SERVICE_LOCATOR.register(StringName("vfx_manager"), self)`
   - Keep: `add_to_group("vfx_manager")` for backward compatibility
 
 ### Verification
 
-- [ ] **T2.5**: Run Phase 2 tests
+- [x] **T2.5**: Run Phase 2 tests
   - Verify: Injection tests pass
   - Verify: Existing VFX tests still pass (discovery fallback)
+  - Ran: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/unit/managers/test_vfx_manager_injection.gd -gexit`
+  - Ran: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/unit/managers/test_vfx_manager.gd -gexit`
 
 - [ ] **T2.6**: Manual verification
   - Play game → verify VFX still works (discovery path)
   - Check console → no error messages about missing dependencies
 
 ### Commit Point
-- [ ] **Commit Phase 2**: "refactor(vfx): add dependency injection with discovery fallback"
+- [x] **Commit Phase 2**: "refactor(vfx): add dependency injection with discovery fallback" (`9cde55d`)
 
 ---
 

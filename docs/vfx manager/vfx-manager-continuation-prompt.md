@@ -1,17 +1,14 @@
 # VFX Manager - Continuation Prompt
 
-## Current Status (2026-01-16)
+## Current Status (2026-01-17)
 
-- **Refactor status**: Phase 1 complete (event architecture + request queue).
-- **Phase 1 commit**: `6860034`.
-- **Next phase**: Phase 2 (Service Locator & dependency injection).
-- **New ECS request events**: `Evn_ScreenShakeRequest`, `Evn_DamageFlashRequest`.
-- **New publisher systems**: `S_ScreenShakePublisherSystem`, `S_DamageFlashPublisherSystem`.
-- **Event name constants**: `U_ECSEventNames` (use constants instead of string literals).
-- **Manager behavior**: `M_VFXManager` subscribes to request events, enqueues, processes in `_physics_process()`.
-- **Scene wiring**: Publisher systems added under `Systems/Feedback` in `scenes/gameplay/gameplay_base.tscn`.
-- **Tests run**: ECS event unit tests, ECS system unit tests, VFX integration tests, style enforcement (all passing).
-- **Manual QA**: Pending Phase 1 manual verification.
+- **Refactor status**: Phase 2 complete (Service Locator + dependency injection).
+- **Phase 2 commit**: `9cde55d`.
+- **Next phase**: Phase 3 (Player-only & transition gating).
+- **Injection support**: `M_VFXManager` exposes `@export` `state_store` and `camera_manager` for tests.
+- **Service registration**: `scripts/scene_structure/main.gd` registers `M_VFXManager`; no self-registration.
+- **Tests run**: VFX injection unit tests + VFX manager unit tests (all passing).
+- **Manual QA**: Pending Phase 1 (T1.13) and Phase 2 (T2.6).
 
 ## Before You Start
 
@@ -25,8 +22,8 @@
 - `U_ECSEventNames` centralizes ECS event/service names; use constants for subscriptions.
 - Publisher systems publish typed requests via `U_ECSEventBus.publish_typed()`.
 - `M_VFXManager` processes request queues inside `_physics_process()`; event handlers only enqueue.
-- `M_VFXManager` still registers with ServiceLocator (Phase 2 will refactor this).
+- `M_VFXManager` no longer self-registers; `main.gd` handles ServiceLocator bootstrap.
 
 ## Next Step
 
-- Phase 2: add `@export` injection for state store and camera manager, register VFX manager in `scripts/scene_structure/main.gd`, remove self-registration.
+- Phase 3: implement player-only and transition gating + tests.
