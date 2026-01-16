@@ -2,13 +2,12 @@
 
 ## Current Status (2026-01-17)
 
-- **Refactor status**: Phase 3 complete (Player-only & transition gating).
-- **Phase 3 commit**: `4ec288a`.
-- **Next phase**: Phase 4 (Resource-Driven Configuration).
-- **Gating helpers**: `_is_player_entity()` and `_is_transition_blocked()` enforce player-only + transition/menu blocking.
-- **Scene selectors**: `U_SceneSelectors` added for transition + scene stack checks.
-- **Tests run**: unit managers, VFX integration, style enforcement (all passing).
-- **Manual QA**: Pending Phase 1 (T1.13), Phase 2 (T2.6), Phase 3 (T3.11).
+- **Refactor status**: Phase 4 complete (Resource-Driven Configuration).
+- **Phase 4 commit**: `1dae3c9`.
+- **Next phase**: Phase 5 (Typed Results & Helper Fixes).
+- **New resources**: `RS_ScreenShakeTuning` + `RS_ScreenShakeConfig` with defaults under `resources/vfx/`.
+- **Tests run**: `test_rs_screen_shake_tuning`, `test_s_screen_shake_publisher_system`, style enforcement (all passing; Godot aborted after summary with `recursive_mutex lock failed` on the publisher run).
+- **Manual QA**: Pending Phase 1 (T1.13), Phase 2 (T2.6), Phase 3 (T3.11), Phase 4 (T4.11).
 
 ## Before You Start
 
@@ -26,4 +25,4 @@
 
 ## Next Step
 
-- Phase 4: move tuning to resources (screen shake tuning/config).
+- Phase 5: add typed `ShakeResult`, fix alpha bug, update helper APIs, add testing hooks.

@@ -568,7 +568,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Tests (Write First - TDD)
 
-- [ ] **T4.1**: Write test for `RS_ScreenShakeTuning` calculations
+- [x] **T4.1**: Write test for `RS_ScreenShakeTuning` calculations
   - Location: `tests/unit/ecs/resources/test_rs_screen_shake_tuning.gd`
   - Tests:
     - `test_calculate_damage_trauma_zero_returns_zero`
@@ -580,7 +580,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     - `test_death_trauma_field_accessible`
   - Tests RED initially ✅
 
-- [ ] **T4.2**: Write test for publisher with tuning resource
+- [x] **T4.2**: Write test for publisher with tuning resource
   - Location: Update `tests/unit/ecs/systems/test_s_screen_shake_publisher_system.gd`
   - Add tests:
     - `test_uses_injected_tuning_resource`
@@ -590,7 +590,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Implementation
 
-- [ ] **T4.3**: Create `RS_ScreenShakeTuning` resource class
+- [x] **T4.3**: Create `RS_ScreenShakeTuning` resource class
   - Location: `scripts/ecs/resources/rs_screen_shake_tuning.gd`
   - Extends: `Resource`
   - Class name: `RS_ScreenShakeTuning`
@@ -629,7 +629,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
   - Tests GREEN ✅
 
-- [ ] **T4.4**: Create default tuning resource file
+- [x] **T4.4**: Create default tuning resource file
   - Location: `resources/vfx/rs_screen_shake_tuning.tres`
   - Format:
     ```
@@ -650,7 +650,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     death_trauma = 0.5
     ```
 
-- [ ] **T4.5**: Create `RS_ScreenShakeConfig` resource class
+- [x] **T4.5**: Create `RS_ScreenShakeConfig` resource class
   - Location: `scripts/ecs/resources/rs_screen_shake_config.gd`
   - Extends: `Resource`
   - Class name: `RS_ScreenShakeConfig`
@@ -661,11 +661,11 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     @export var noise_speed: float = 50.0
     ```
 
-- [ ] **T4.6**: Create default config resource file
+- [x] **T4.6**: Create default config resource file
   - Location: `resources/vfx/rs_screen_shake_config.tres`
   - Set default values from M_ScreenShake
 
-- [ ] **T4.7**: Update `S_ScreenShakePublisherSystem` to use tuning
+- [x] **T4.7**: Update `S_ScreenShakePublisherSystem` to use tuning
   - Add export:
     ```gdscript
     @export var tuning: RS_ScreenShakeTuning = null
@@ -701,8 +701,9 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
   - Remove all constants
   - Tests GREEN ✅
+  - Note: `tuning` is typed as `Resource` to avoid headless `class_name` parse errors (see DEV_PITFALLS).
 
-- [ ] **T4.8**: Update `M_ScreenShake` to accept config resource
+- [x] **T4.8**: Update `M_ScreenShake` to accept config resource
   - Add constructor parameter:
     ```gdscript
     func _init(config: RS_ScreenShakeConfig = null) -> void:
@@ -715,8 +716,9 @@ This document tracks the refactoring of the existing VFX Manager system to impro
         _noise.seed = randi()
         _noise.frequency = 1.0
     ```
+  - Note: `config` is typed as `Resource` to avoid headless `class_name` parse errors (see DEV_PITFALLS).
 
-- [ ] **T4.9**: Update `M_VFXManager` to use config resource
+- [x] **T4.9**: Update `M_VFXManager` to use config resource
   - Update `_ready()`:
     ```gdscript
     var shake_config := preload("res://resources/vfx/rs_screen_shake_config.tres")
@@ -727,9 +729,12 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Verification
 
-- [ ] **T4.10**: Run Phase 4 tests
+- [x] **T4.10**: Run Phase 4 tests
   - Verify: All resource calculation tests pass
   - Verify: Publisher system tests with tuning pass
+  - Ran: `tools/run_gut_suite.sh -gdir=res://tests/unit/ecs/resources -gexit`
+  - Ran: `tools/run_gut_suite.sh -gtest=res://tests/unit/ecs/systems/test_s_screen_shake_publisher_system.gd -gexit` (passes; Godot aborted after summary with `recursive_mutex lock failed`)
+  - Ran: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit`
 
 - [ ] **T4.11**: Manual verification
   - Play game → verify VFX still works with default resources
@@ -737,7 +742,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Play game → verify weaker shake on damage
 
 ### Commit Point
-- [ ] **Commit Phase 4**: "refactor(vfx): move tuning to resources"
+- [x] **Commit Phase 4**: "refactor(vfx): move tuning to resources" (`1dae3c9`)
 
 ---
 

@@ -56,6 +56,10 @@
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.
   - Player-only + transition gating: `M_VFXManager` filters requests via `_is_player_entity()` and `_is_transition_blocked()` using Redux `gameplay.player_entity_id`, `scene.is_transitioning`, `scene.scene_stack`, and `navigation.shell == "gameplay"`.
   - Use `U_ECSEventNames` constants for subscriptions instead of string literals.
+- VFX Tuning Resources (Phase 4)
+  - `RS_ScreenShakeTuning` defines trauma decay + damage/landing/death curves; defaults in `resources/vfx/rs_screen_shake_tuning.tres`.
+  - `RS_ScreenShakeConfig` defines shake offset/rotation/noise; defaults in `resources/vfx/rs_screen_shake_config.tres`.
+  - `S_ScreenShakePublisherSystem` reads tuning (export injection optional), `M_VFXManager` uses tuning for decay and config for `M_ScreenShake`.
 - **Testing with Dependency Injection (Phase 10B-8)**
   - Systems support `@export` dependency injection for isolated testing with mocks.
   - **Inject ECS manager**: All systems inherit `@export var ecs_manager: I_ECSManager` from BaseECSSystem.
