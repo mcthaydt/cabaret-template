@@ -20,7 +20,11 @@ var _noise: FastNoiseLite
 var _time: float = 0.0
 
 
-func _init() -> void:
+func _init(config: Resource = null) -> void:
+	if config != null:
+		max_offset = config.max_offset
+		max_rotation = config.max_rotation
+		noise_speed = config.noise_speed
 	_noise = FastNoiseLite.new()
 	_noise.seed = randi()
 	_noise.frequency = 1.0

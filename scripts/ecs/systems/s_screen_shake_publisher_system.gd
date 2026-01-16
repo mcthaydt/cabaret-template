@@ -10,16 +10,9 @@ class_name S_ScreenShakePublisherSystem
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
 const EVN_SCREEN_SHAKE_REQUEST := preload("res://scripts/ecs/events/evn_screen_shake_request.gd")
+const DEFAULT_TUNING := preload("res://resources/vfx/rs_screen_shake_tuning.tres")
 
-## Magic numbers (Phase 4 will move to RS_ScreenShakeTuning)
-const DAMAGE_MIN_TRAUMA := 0.3
-const DAMAGE_MAX_TRAUMA := 0.6
-const DAMAGE_MAX_VALUE := 100.0
-const LANDING_THRESHOLD := 15.0
-const LANDING_MAX_SPEED := 30.0
-const LANDING_MIN_TRAUMA := 0.2
-const LANDING_MAX_TRAUMA := 0.4
-const DEATH_TRAUMA := 0.5
+@export var tuning: Resource = null
 
 var _unsubscribe_health: Callable
 var _unsubscribe_landed: Callable
@@ -47,6 +40,11 @@ func _exit_tree() -> void:
 	if _unsubscribe_death.is_valid():
 		_unsubscribe_death.call()
 
+func _get_tuning() -> Resource:
+	if tuning != null:
+		return tuning
+	return DEFAULT_TUNING
+
 func _on_health_changed(event_data: Dictionary) -> void:
 	var payload: Dictionary = event_data.get("payload", {})
 	var entity_id: StringName = StringName(str(payload.get("entity_id", "")))
@@ -65,8 +63,9 @@ func _on_health_changed(event_data: Dictionary) -> void:
 	if damage_amount <= 0.0:
 		return
 
-	var damage_ratio: float = clampf(damage_amount / DAMAGE_MAX_VALUE, 0.0, 1.0)
-	var trauma_amount: float = lerpf(DAMAGE_MIN_TRAUMA, DAMAGE_MAX_TRAUMA, damage_ratio)
+	var trauma_amount: float = float(_get_tuning().calculate_damage_trauma(damage_amount))
+	if trauma_amount <= 0.0:
+		return
 
 	var event := EVN_SCREEN_SHAKE_REQUEST.new(entity_id, trauma_amount, StringName("damage"))
 	U_ECS_EVENT_BUS.publish_typed(event)
@@ -81,15 +80,9 @@ func _on_landed(event_data: Dictionary) -> void:
 	else:
 		fall_speed = absf(float(payload.get("vertical_velocity", 0.0)))
 
-	if fall_speed <= LANDING_THRESHOLD:
+	var trauma_amount: float = float(_get_tuning().calculate_landing_trauma(fall_speed))
+	if trauma_amount <= 0.0:
 		return
-
-	var speed_ratio: float = clampf(
-		(fall_speed - LANDING_THRESHOLD) / (LANDING_MAX_SPEED - LANDING_THRESHOLD),
-		0.0,
-		1.0
-	)
-	var trauma_amount: float = lerpf(LANDING_MIN_TRAUMA, LANDING_MAX_TRAUMA, speed_ratio)
 
 	var event := EVN_SCREEN_SHAKE_REQUEST.new(entity_id, trauma_amount, StringName("landing"))
 	U_ECS_EVENT_BUS.publish_typed(event)
@@ -98,5 +91,6 @@ func _on_death(event_data: Dictionary) -> void:
 	var payload: Dictionary = event_data.get("payload", {})
 	var entity_id: StringName = StringName(str(payload.get("entity_id", "")))
 
-	var event := EVN_SCREEN_SHAKE_REQUEST.new(entity_id, DEATH_TRAUMA, StringName("death"))
+	var trauma_amount: float = float(_get_tuning().death_trauma)
+	var event := EVN_SCREEN_SHAKE_REQUEST.new(entity_id, trauma_amount, StringName("death"))
 	U_ECS_EVENT_BUS.publish_typed(event)

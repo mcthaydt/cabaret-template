@@ -4,6 +4,7 @@ const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const SCREEN_SHAKE_PUBLISHER := preload("res://scripts/ecs/systems/s_screen_shake_publisher_system.gd")
 const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
+const RS_ScreenShakeTuning := preload("res://scripts/ecs/resources/rs_screen_shake_tuning.gd")
 
 const ENTITY_ID := StringName("player")
 
@@ -12,13 +13,15 @@ func before_each() -> void:
 	EVENT_BUS.reset()
 
 
-func _spawn_system():
+func _spawn_system(custom_tuning = null):
 	var manager = ECS_MANAGER.new()
 	add_child(manager)
 	autofree(manager)
 	await get_tree().process_frame
 
 	var system = SCREEN_SHAKE_PUBLISHER.new()
+	if custom_tuning != null:
+		system.tuning = custom_tuning
 	manager.add_child(system)
 	autofree(system)
 	await get_tree().process_frame
@@ -103,6 +106,62 @@ func test_damage_maps_to_trauma_range_0_3_to_0_6() -> void:
 	var trauma: float = float(payload.get("trauma_amount", 0.0))
 	assert_almost_eq(trauma, 0.45, 0.001, "Damage 50 should map to trauma 0.45")
 
+func test_uses_injected_tuning_resource() -> void:
+	var tuning := RS_ScreenShakeTuning.new()
+	tuning.damage_min_trauma = 0.0
+	tuning.damage_max_trauma = 1.0
+	tuning.damage_max_value = 10.0
+
+	await _spawn_system(tuning)
+	var captured := _capture_requests()
+
+	EVENT_BUS.publish(EVENT_NAMES.EVENT_HEALTH_CHANGED, {
+		"entity_id": ENTITY_ID,
+		"previous_health": 10.0,
+		"new_health": 5.0,
+		"is_dead": false,
+	})
+
+	assert_eq(captured.size(), 1, "Injected tuning should publish request")
+	var payload: Dictionary = captured[0].get("payload", {})
+	var trauma: float = float(payload.get("trauma_amount", 0.0))
+	assert_almost_eq(trauma, 0.5, 0.001, "Injected tuning should drive trauma calculation")
+
+func test_fallback_to_default_tuning_when_not_injected() -> void:
+	await _spawn_system()
+	var captured := _capture_requests()
+
+	EVENT_BUS.publish(EVENT_NAMES.EVENT_HEALTH_CHANGED, {
+		"entity_id": ENTITY_ID,
+		"previous_health": 100.0,
+		"new_health": 50.0,
+		"is_dead": false,
+	})
+
+	assert_eq(captured.size(), 1, "Default tuning should publish request")
+	var payload: Dictionary = captured[0].get("payload", {})
+	var trauma: float = float(payload.get("trauma_amount", 0.0))
+	assert_almost_eq(trauma, 0.45, 0.001, "Default tuning should match resource values")
+
+func test_custom_tuning_affects_trauma_calculation() -> void:
+	var tuning := RS_ScreenShakeTuning.new()
+	tuning.landing_threshold = 0.0
+	tuning.landing_max_speed = 10.0
+	tuning.landing_min_trauma = 0.8
+	tuning.landing_max_trauma = 1.0
+
+	await _spawn_system(tuning)
+	var captured := _capture_requests()
+
+	EVENT_BUS.publish(EVENT_NAMES.EVENT_ENTITY_LANDED, {
+		"entity_id": ENTITY_ID,
+		"vertical_velocity": -5.0,
+	})
+
+	assert_eq(captured.size(), 1, "Landing should publish request with custom tuning")
+	var payload: Dictionary = captured[0].get("payload", {})
+	var trauma: float = float(payload.get("trauma_amount", 0.0))
+	assert_almost_eq(trauma, 0.9, 0.001, "Custom tuning should affect landing trauma")
 
 func test_ignores_healing() -> void:
 	await _spawn_system()

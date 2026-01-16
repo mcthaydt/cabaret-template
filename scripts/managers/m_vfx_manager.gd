@@ -14,6 +14,8 @@ const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_select
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const M_ScreenShake := preload("res://scripts/managers/helpers/m_screen_shake.gd")
 const M_DamageFlash := preload("res://scripts/managers/helpers/m_damage_flash.gd")
+const SCREEN_SHAKE_TUNING := preload("res://resources/vfx/rs_screen_shake_tuning.tres")
+const SCREEN_SHAKE_CONFIG := preload("res://resources/vfx/rs_screen_shake_config.tres")
 ##
 ## Responsibilities:
 ## - Manages trauma system for screen shake (accumulates from damage/impacts, decays over time)
@@ -33,10 +35,6 @@ const M_DamageFlash := preload("res://scripts/managers/helpers/m_damage_flash.gd
 @export var state_store: I_StateStore = null
 @export var camera_manager: M_CameraManager = null
 
-## Trauma decay rate (units per second)
-## Trauma decays from 1.0 to 0.0 over 0.5 seconds at this rate
-const TRAUMA_DECAY_RATE := 2.0
-
 ## StateStore dependency for accessing VFX settings
 var _state_store: I_StateStore = null
 
@@ -52,6 +50,10 @@ var _damage_flash: M_DamageFlash = null
 ## Current trauma level (0.0 = no shake, 1.0 = maximum shake)
 ## Trauma accumulates from damage/impacts and decays over time
 var _trauma: float = 0.0
+
+## Trauma decay rate (units per second)
+## Trauma decays from 1.0 to 0.0 over 0.5 seconds at this rate
+var _trauma_decay_rate: float = 2.0
 
 ## Request queues for deterministic processing
 var _shake_requests: Array = []
@@ -84,7 +86,10 @@ func _ready() -> void:
 		print_verbose("M_VFXManager: Camera Manager not found. Screen shake will not be applied.")
 
 	# Initialize screen shake helper (VFX Phase 3: T3.2)
-	_screen_shake = M_ScreenShake.new()
+	var shake_config = SCREEN_SHAKE_CONFIG
+	_screen_shake = M_ScreenShake.new(shake_config)
+	var shake_tuning = SCREEN_SHAKE_TUNING
+	_trauma_decay_rate = float(shake_tuning.trauma_decay_rate)
 
 	# Load and initialize damage flash overlay (VFX Phase 4: T4.4)
 	var flash_scene: PackedScene = load("res://scenes/ui/ui_damage_flash_overlay.tscn")
@@ -183,7 +188,7 @@ func _physics_process(delta: float) -> void:
 	_flash_requests.clear()
 
 	# Decay trauma over time (2.0/sec rate)
-	_trauma = maxf(_trauma - TRAUMA_DECAY_RATE * delta, 0.0)
+	_trauma = maxf(_trauma - _trauma_decay_rate * delta, 0.0)
 
 	# Apply screen shake if camera manager available and shake enabled in settings
 	if _camera_manager != null and _state_store != null and _screen_shake != null:
