@@ -8,6 +8,7 @@ const M_VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
 
 var _manager: Node
 var _store: Node
@@ -121,49 +122,42 @@ func test_trauma_clamps_at_max_one() -> void:
 		"Trauma should remain at 1.0 when adding more")
 
 # ============================================================================
-# ECS Event Subscription Tests (Phase 1, Task 1.3)
+# ECS Request Event Subscription Tests (Phase 1, Task 1.3)
 # ============================================================================
 
-# Test 9: health_changed event triggers trauma based on damage amount
-func test_health_changed_event_adds_trauma() -> void:
+# Test 9: screen_shake_request event adds trauma
+func test_screen_shake_request_adds_trauma() -> void:
 	_manager = M_VFX_MANAGER.new()
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	# Publish health_changed event with typed payload shape (previous/new)
-	# Note: BaseEventBus wraps payload automatically with "name", "payload", "timestamp"
-	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {
+	# Publish screen_shake_request event
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
 		"entity_id": "E_Player",
-		"previous_health": 100.0,
-		"new_health": 50.0,
-		"is_dead": false,
+		"trauma_amount": 0.45,
+		"source": "damage",
 	})
-	# Event bus is synchronous - check trauma immediately (before physics decay)
 
-	# Should add trauma in 0.3-0.6 range based on damage (50.0)
-	# Expected: remap(50.0, 0.0, 100.0, 0.3, 0.6) = 0.45
+	_manager._physics_process(0.0)
+
 	var trauma: float = _manager.get_trauma()
-	assert_true(trauma >= 0.3 and trauma <= 0.6,
-		"health_changed event should add trauma in 0.3-0.6 range, got %f" % trauma)
+	assert_almost_eq(trauma, 0.45, 0.001, "screen_shake_request should add trauma")
 
-# Test 10: health_changed event scales trauma with damage amount
-func test_health_changed_scales_trauma_with_damage() -> void:
+# Test 10: screen_shake_request scales with trauma amount
+func test_screen_shake_request_scales_with_trauma_amount() -> void:
 	_manager = M_VFX_MANAGER.new()
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	# Low damage (10.0) should give low trauma (~0.33)
-	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
 		"entity_id": "E_Player",
-		"previous_health": 100.0,
-		"new_health": 90.0,
-		"is_dead": false,
+		"trauma_amount": 0.3,
+		"source": "damage",
 	})
-	# Check immediately (event bus is synchronous)
+	_manager._physics_process(0.0)
 
 	var low_trauma: float = _manager.get_trauma()
-	assert_true(low_trauma >= 0.3 and low_trauma < 0.4,
-		"Low damage should give low trauma, got %f" % low_trauma)
+	assert_almost_eq(low_trauma, 0.3, 0.001, "Request should add 0.3 trauma")
 
 	# Reset trauma - clear ServiceLocator to avoid warning about re-registration
 	U_SERVICE_LOCATOR.clear()
@@ -171,71 +165,62 @@ func test_health_changed_scales_trauma_with_damage() -> void:
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	# High damage (90.0) should give high trauma (~0.57)
-	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
 		"entity_id": "E_Player",
-		"previous_health": 100.0,
-		"new_health": 10.0,
-		"is_dead": false,
+		"trauma_amount": 0.6,
+		"source": "damage",
 	})
-	# Check immediately (event bus is synchronous)
+	_manager._physics_process(0.0)
 
 	var high_trauma: float = _manager.get_trauma()
-	assert_true(high_trauma > 0.5 and high_trauma <= 0.6,
-		"High damage should give high trauma, got %f" % high_trauma)
+	assert_almost_eq(high_trauma, 0.6, 0.001, "Request should add 0.6 trauma")
 
-# Test 11: entity_landed event adds trauma for high-speed impacts
-func test_entity_landed_adds_trauma_for_high_speed() -> void:
+# Test 11: screen_shake_request adds trauma for high-speed impacts
+func test_screen_shake_request_adds_trauma_for_high_speed() -> void:
 	_manager = M_VFX_MANAGER.new()
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	# High fall speed (20.0 > 15.0 threshold) should add trauma
-	U_ECS_EVENT_BUS.publish(StringName("entity_landed"), {
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
 		"entity_id": "E_Player",
-		"vertical_velocity": -20.0,
-		"position": Vector3.ZERO
+		"trauma_amount": 0.3,
+		"source": "landing",
 	})
-	# Check immediately (event bus is synchronous)
+	_manager._physics_process(0.0)
 
-	# Should add trauma in 0.2-0.4 range
 	var trauma: float = _manager.get_trauma()
-	assert_true(trauma >= 0.2 and trauma <= 0.4,
-		"High-speed landing should add trauma in 0.2-0.4 range, got %f" % trauma)
+	assert_almost_eq(trauma, 0.3, 0.001, "Landing request should add trauma")
 
-# Test 12: entity_landed event ignores low-speed impacts
-func test_entity_landed_ignores_low_speed() -> void:
+# Test 12: screen_shake_request ignores zero trauma
+func test_screen_shake_request_ignores_zero_trauma() -> void:
 	_manager = M_VFX_MANAGER.new()
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	# Low fall speed (10.0 < 15.0 threshold) should NOT add trauma
-	U_ECS_EVENT_BUS.publish(StringName("entity_landed"), {
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
 		"entity_id": "E_Player",
-		"vertical_velocity": -10.0,
-		"position": Vector3.ZERO
+		"trauma_amount": 0.0,
+		"source": "landing",
 	})
-	# Check immediately (event bus is synchronous)
+	_manager._physics_process(0.0)
 
-	assert_eq(_manager.get_trauma(), 0.0,
-		"Low-speed landing should not add trauma")
+	assert_eq(_manager.get_trauma(), 0.0, "Zero trauma request should not add trauma")
 
-# Test 13: entity_death event adds fixed trauma amount
-func test_entity_death_adds_fixed_trauma() -> void:
+# Test 13: screen_shake_request adds fixed trauma amount
+func test_screen_shake_request_adds_fixed_trauma() -> void:
 	_manager = M_VFX_MANAGER.new()
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	# Publish entity_death event
-	U_ECS_EVENT_BUS.publish(StringName("entity_death"), {
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
 		"entity_id": "E_Player",
-		"position": Vector3.ZERO
+		"trauma_amount": 0.5,
+		"source": "death",
 	})
-	# Check immediately (event bus is synchronous)
+	_manager._physics_process(0.0)
 
-	# Should add trauma 0.5
 	assert_almost_eq(_manager.get_trauma(), 0.5, 0.001,
-		"entity_death should add trauma 0.5")
+		"screen_shake_request should add trauma 0.5")
 
 # Test 14: Trauma decays over time in _physics_process
 func test_trauma_decays_over_time() -> void:
@@ -297,30 +282,35 @@ func test_trauma_never_goes_negative() -> void:
 	assert_eq(final_trauma, 0.0,
 		"Trauma should clamp at 0.0, got %f" % final_trauma)
 
-# Test 17: Multiple damage events accumulate trauma (clamped at 1.0)
+# Test 17: Multiple screen_shake_request events accumulate trauma (clamped at 1.0)
 func test_multiple_events_accumulate_trauma() -> void:
 	_manager = M_VFX_MANAGER.new()
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	# First damage event
-	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {
-		"previous_health": 100.0,
-		"new_health": 50.0,
-		"is_dead": false,
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
+		"entity_id": "E_Player",
+		"trauma_amount": 0.3,
+		"source": "damage",
 	})
-	# Check immediately (event bus is synchronous)
+	_manager._physics_process(0.0)
 
 	var trauma_after_first: float = _manager.get_trauma()
 	assert_true(trauma_after_first > 0.0, "First event should add trauma")
 
-	# Second damage event
-	U_ECS_EVENT_BUS.publish(StringName("health_changed"), {
-		"previous_health": 100.0,
-		"new_health": 50.0,
-		"is_dead": false,
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
+		"entity_id": "E_Player",
+		"trauma_amount": 0.3,
+		"source": "damage",
 	})
-	# Check immediately (event bus is synchronous)
+	_manager._physics_process(0.0)
+
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
+		"entity_id": "E_Player",
+		"trauma_amount": 0.6,
+		"source": "damage",
+	})
+	_manager._physics_process(0.0)
 
 	var trauma_after_second: float = _manager.get_trauma()
 	assert_true(trauma_after_second > trauma_after_first,

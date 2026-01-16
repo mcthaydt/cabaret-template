@@ -48,6 +48,8 @@
 [ext_resource type="Script" uid="uid://cjgp15knhrswe" path="res://scripts/ecs/systems/s_gamepad_vibration_system.gd" id="22_gamepad_vibration"]
 [ext_resource type="Script" uid="uid://boft6j2eiqobf" path="res://scripts/managers/m_gameplay_initializer.gd" id="23_initializer"]
 [ext_resource type="Script" uid="uid://ks2d8qdhrpmx" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="25_screen_shake_publisher"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="26_damage_flash_publisher"]
 [ext_resource type="Script" uid="uid://copwun5hc5uf2" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
 [ext_resource type="Resource" uid="uid://d3fqw081d4sgl" path="res://resources/spawn_metadata/gameplay_base_spawns.tres" id="51_base_spawn_meta"]
 
@@ -218,6 +220,12 @@ execution_priority = 127
 [node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=1280695130]
 script = ExtResource("10_landing_particles")
 settings = ExtResource("10_landing_particles_settings")
+
+[node name="S_ScreenShakePublisherSystem" type="Node" parent="Systems/Feedback" unique_id=1456789012]
+script = ExtResource("25_screen_shake_publisher")
+
+[node name="S_DamageFlashPublisherSystem" type="Node" parent="Systems/Feedback" unique_id=1456789013]
+script = ExtResource("26_damage_flash_publisher")
 
 [node name="S_GamepadVibrationSystem" type="Node" parent="Systems/Feedback" unique_id=1645687310]
 script = ExtResource("22_gamepad_vibration")
