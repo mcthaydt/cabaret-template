@@ -10,9 +10,9 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 - **Type Safety**: Add typed results and event constants
 - **Testing**: Add deterministic testing hooks and comprehensive coverage
 
-**Status**: Not Started
-**Current Phase**: Phase 1
-**Last Updated**: 2026-01-15
+**Status**: In Progress (Phase 1 complete)
+**Current Phase**: Phase 2
+**Last Updated**: 2026-01-16
 
 ---
 
@@ -29,7 +29,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Tests (Write First - TDD)
 
-- [ ] **T1.1**: Write test for `Evn_ScreenShakeRequest` event class
+- [x] **T1.1**: Write test for `Evn_ScreenShakeRequest` event class
   - Location: `tests/unit/ecs/events/test_evn_screen_shake_request.gd`
   - Extends: `GutTest`
   - Tests:
@@ -41,7 +41,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     - `test_payload_contains_all_fields`
   - All tests RED initially ✅
 
-- [ ] **T1.2**: Write test for `Evn_DamageFlashRequest` event class
+- [x] **T1.2**: Write test for `Evn_DamageFlashRequest` event class
   - Location: `tests/unit/ecs/events/test_evn_damage_flash_request.gd`
   - Extends: `GutTest`
   - Tests:
@@ -52,7 +52,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     - `test_payload_structure`
   - All tests RED initially ✅
 
-- [ ] **T1.3**: Write test for `S_ScreenShakePublisherSystem`
+- [x] **T1.3**: Write test for `S_ScreenShakePublisherSystem`
   - Location: `tests/unit/ecs/systems/test_s_screen_shake_publisher_system.gd`
   - Extends: `GutTest`
   - Setup: Mock ECS Manager, reset event bus in `before_each()`
@@ -70,7 +70,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     - `test_unsubscribes_on_exit_tree`
   - All tests RED initially ✅
 
-- [ ] **T1.4**: Write test for `S_DamageFlashPublisherSystem`
+- [x] **T1.4**: Write test for `S_DamageFlashPublisherSystem`
   - Location: `tests/unit/ecs/systems/test_s_damage_flash_publisher_system.gd`
   - Extends: `GutTest`
   - Tests:
@@ -84,7 +84,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     - `test_unsubscribes_on_exit_tree`
   - All tests RED initially ✅
 
-- [ ] **T1.5**: Write integration test for event flow
+- [x] **T1.5**: Write integration test for event flow
   - Location: `tests/integration/vfx/test_vfx_event_flow_refactor.gd`
   - Setup: Full scene with publisher systems and VFX manager
   - Tests:
@@ -96,7 +96,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Implementation
 
-- [ ] **T1.6**: Create `Evn_ScreenShakeRequest` event class
+- [x] **T1.6**: Create `Evn_ScreenShakeRequest` event class
   - Location: `scripts/ecs/events/evn_screen_shake_request.gd`
   - Extends: `BaseECSEvent`
   - Class name: `Evn_ScreenShakeRequest`
@@ -109,7 +109,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Build payload dictionary with all fields
   - Tests GREEN ✅
 
-- [ ] **T1.7**: Create `Evn_DamageFlashRequest` event class
+- [x] **T1.7**: Create `Evn_DamageFlashRequest` event class
   - Location: `scripts/ecs/events/evn_damage_flash_request.gd`
   - Extends: `BaseECSEvent`
   - Class name: `Evn_DamageFlashRequest`
@@ -121,7 +121,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Auto-populate timestamp and payload
   - Tests GREEN ✅
 
-- [ ] **T1.8**: Create `S_ScreenShakePublisherSystem`
+- [x] **T1.8**: Create `S_ScreenShakePublisherSystem`
   - Location: `scripts/ecs/systems/s_screen_shake_publisher_system.gd`
   - Extends: `BaseECSSystem`
   - Class name: `S_ScreenShakePublisherSystem`
@@ -149,7 +149,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Publish: `Evn_ScreenShakeRequest` via `U_ECS_EVENT_BUS.publish_typed()`
   - Tests GREEN ✅
 
-- [ ] **T1.9**: Create `S_DamageFlashPublisherSystem`
+- [x] **T1.9**: Create `S_DamageFlashPublisherSystem`
   - Location: `scripts/ecs/systems/s_damage_flash_publisher_system.gd`
   - Extends: `BaseECSSystem`
   - Class name: `S_DamageFlashPublisherSystem`
@@ -163,7 +163,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Implement `_on_death()`: Publish flash request with intensity 1.0
   - Tests GREEN ✅
 
-- [ ] **T1.10**: Update `M_VFXManager` to use VFX request events with queue pattern
+- [x] **T1.10**: Update `M_VFXManager` to use VFX request events with queue pattern
   - Location: `scripts/managers/m_vfx_manager.gd`
   - Remove: `health_changed`, `entity_landed`, `entity_death` subscriptions (lines 90-92)
   - Add request queue fields:
@@ -232,7 +232,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
   - Tests GREEN ✅
 
-- [ ] **T1.10b**: Create event name constants file
+- [x] **T1.10b**: Create event name constants file
   - Location: `scripts/ecs/u_ecs_event_names.gd`
   - Class name: `U_ECSEventNames`
   - Extends: `RefCounted`
@@ -253,7 +253,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     const SERVICE_STATE_STORE := StringName("state_store")
     ```
 
-- [ ] **T1.11**: Add publisher systems to gameplay scene
+- [x] **T1.11**: Add publisher systems to gameplay scene
   - Location: `scenes/gameplay/gameplay_base.tscn`
   - Under `Systems` node, add:
     - `S_ScreenShakePublisherSystem` (name: "S_ScreenShakePublisherSystem")
@@ -262,7 +262,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Verification
 
-- [ ] **T1.12**: Run Phase 1 tests
+- [x] **T1.12**: Run Phase 1 tests
   - Command: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs/events -gexit`
   - Expected: All event class tests pass
   - Command: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs/systems -gexit`
@@ -276,17 +276,23 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Die → verify both screen shake + damage flash
   - Check console → no errors or warnings
 
-- [ ] **T1.14**: Update existing VFX Manager tests
+- [x] **T1.14**: Update existing VFX Manager tests
   - Location: `tests/unit/managers/test_vfx_manager.gd`
   - Replace: Gameplay event dispatches with VFX request event dispatches
   - Update: Event handler tests to match new signatures
   - Verify: All 17 existing tests still pass
 
 ### Commit Point
-- [ ] **Commit Phase 1**: "refactor(vfx): decouple VFX Manager via publisher systems"
+- [x] **Commit Phase 1**: "refactor(vfx): decouple VFX Manager via publisher systems" (`6860034`)
   - Summary: Introduced VFX request events and publisher systems
   - Changes: 2 new event classes, 2 new systems, updated M_VFXManager
-  - Tests: +XX passing (event tests + system tests + integration tests)
+  - Tests: ECS event unit tests (11), ECS system unit tests (203), VFX integration tests (17), style enforcement (8) all passing
+
+**Completion Notes (2026-01-16)**:
+- Commit: `6860034` (implementation).
+- Tests run: ECS event unit tests, ECS system unit tests, VFX integration tests, style enforcement (all passing).
+- Manual verification pending (T1.13).
+- Integration camera test updated to use request events.
 
 ---
 

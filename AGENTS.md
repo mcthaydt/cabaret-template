@@ -51,6 +51,10 @@
   - Use `U_ECSUtils.map_components_by_body()` when multiple systems need shared body→component dictionaries (avoids duplicate loops).
   - Auto-discovers `M_ECSManager` via parent traversal or `ecs_manager` group; no manual wiring needed.
   - Event-driven request systems should extend `BaseEventVFXSystem` / `BaseEventSFXSystem` and implement `get_event_name()` + `create_request_from_payload()` to enqueue `requests`.
+- VFX Event Requests (Phase 1 refactor)
+  - Publisher systems translate gameplay events into VFX request events.
+  - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.
+  - Use `U_ECSEventNames` constants for subscriptions instead of string literals.
 - **Testing with Dependency Injection (Phase 10B-8)**
   - Systems support `@export` dependency injection for isolated testing with mocks.
   - **Inject ECS manager**: All systems inherit `@export var ecs_manager: I_ECSManager` from BaseECSSystem.

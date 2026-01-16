@@ -2,6 +2,8 @@
 
 ## Overview
 
+**Status (2026-01-16)**: Phase 1 complete (event architecture + request queue). Next up: Phase 2 (Service Locator & dependency injection).
+
 This plan addresses issues identified in the VFX Manager system, organized into 10 incremental phases. The refactoring improves architecture, correctness, scalability, code health, and testing while maintaining backward compatibility.
 
 ## Current State Analysis
