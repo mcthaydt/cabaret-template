@@ -1,7 +1,7 @@
 extends GutTest
 
 # Test suite for M_VFXManager scaffolding and lifecycle (Phase 1, Task 1.1)
-# Tests manager initialization, group membership, ServiceLocator registration,
+# Tests manager initialization, group membership, ServiceLocator bootstrap expectations,
 # StateStore discovery, and basic trauma system functionality
 
 const M_VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
@@ -41,15 +41,14 @@ func test_manager_adds_to_vfx_manager_group() -> void:
 	assert_true(_manager.is_in_group("vfx_manager"),
 		"M_VFXManager should be in 'vfx_manager' group")
 
-# Test 3: Manager registers with ServiceLocator
-func test_manager_registers_with_service_locator() -> void:
+# Test 3: Manager does not self-register with ServiceLocator
+func test_manager_does_not_self_register_with_service_locator() -> void:
 	_manager = M_VFX_MANAGER.new()
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	var service = U_SERVICE_LOCATOR.get_service(StringName("vfx_manager"))
-	assert_not_null(service, "M_VFXManager should register with ServiceLocator")
-	assert_eq(service, _manager, "ServiceLocator should return the VFX manager instance")
+	var service = U_SERVICE_LOCATOR.try_get_service(U_ECS_EVENT_NAMES.SERVICE_VFX_MANAGER)
+	assert_eq(service, null, "M_VFXManager should not self-register; main.gd handles registration")
 
 # Test 4: Manager discovers StateStore dependency
 func test_manager_discovers_state_store() -> void:

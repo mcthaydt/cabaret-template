@@ -21,10 +21,14 @@ const M_DamageFlash := preload("res://scripts/managers/helpers/m_damage_flash.gd
 ##
 ## Architecture:
 ## - Extends Node with PROCESS_MODE_ALWAYS (runs even when paused)
-## - Registers with ServiceLocator as "vfx_manager"
+## - Registered with ServiceLocator via scene bootstrap (main.gd)
 ## - Discovers M_StateStore dependency for settings access
 ## - Uses M_ScreenShake helper for shake calculations (quadratic falloff, noise-based)
 ## - Uses M_DamageFlash helper for flash tween animations
+
+## Injected dependencies (for testing)
+@export var state_store: I_StateStore = null
+@export var camera_manager: M_CameraManager = null
 
 ## Trauma decay rate (units per second)
 ## Trauma decays from 1.0 to 0.0 over 0.5 seconds at this rate
@@ -60,16 +64,19 @@ func _ready() -> void:
 	# Add to group for discoverability
 	add_to_group("vfx_manager")
 
-	# Register with ServiceLocator
-	U_SERVICE_LOCATOR.register(U_ECS_EVENT_NAMES.SERVICE_VFX_MANAGER, self)
-
-	# Discover StateStore dependency
-	_state_store = U_STATE_UTILS.try_get_store(self)
+	# Discover StateStore dependency (injection first)
+	if state_store != null:
+		_state_store = state_store
+	else:
+		_state_store = U_STATE_UTILS.try_get_store(self)
 	if _state_store == null:
 		print_verbose("M_VFXManager: StateStore not found. VFX settings will not be applied.")
 
-	# Discover Camera Manager dependency (VFX Phase 3: T3.2)
-	_camera_manager = U_SERVICE_LOCATOR.try_get_service(U_ECS_EVENT_NAMES.SERVICE_CAMERA_MANAGER)
+	# Discover Camera Manager dependency (VFX Phase 3: T3.2, injection first)
+	if camera_manager != null:
+		_camera_manager = camera_manager
+	else:
+		_camera_manager = U_SERVICE_LOCATOR.try_get_service(U_ECS_EVENT_NAMES.SERVICE_CAMERA_MANAGER)
 	if _camera_manager == null:
 		print_verbose("M_VFXManager: Camera Manager not found. Screen shake will not be applied.")
 

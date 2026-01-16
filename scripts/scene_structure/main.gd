@@ -31,6 +31,7 @@ func _initialize_service_locator() -> void:
 	_register_if_exists(managers_node, "M_PauseManager", StringName("pause_manager"))
 	_register_if_exists(managers_node, "M_SpawnManager", StringName("spawn_manager"))
 	_register_if_exists(managers_node, "M_CameraManager", StringName("camera_manager"))
+	_register_if_exists(managers_node, "M_VFXManager", StringName("vfx_manager"))
 	_register_if_exists(managers_node, "M_InputProfileManager", StringName("input_profile_manager"))
 	_register_if_exists(managers_node, "M_InputDeviceManager", StringName("input_device_manager"))
 	_register_if_exists(managers_node, "M_UIInputHandler", StringName("ui_input_handler"))
