@@ -6,6 +6,7 @@ extends GutTest
 
 const M_VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
@@ -126,9 +127,7 @@ func test_trauma_clamps_at_max_one() -> void:
 
 # Test 9: screen_shake_request event adds trauma
 func test_screen_shake_request_adds_trauma() -> void:
-	_manager = M_VFX_MANAGER.new()
-	add_child_autofree(_manager)
-	await get_tree().process_frame
+	_manager = await _create_manager_with_player_id(StringName("E_Player"))
 
 	# Publish screen_shake_request event
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
@@ -144,9 +143,7 @@ func test_screen_shake_request_adds_trauma() -> void:
 
 # Test 10: screen_shake_request scales with trauma amount
 func test_screen_shake_request_scales_with_trauma_amount() -> void:
-	_manager = M_VFX_MANAGER.new()
-	add_child_autofree(_manager)
-	await get_tree().process_frame
+	_manager = await _create_manager_with_player_id(StringName("E_Player"))
 
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
 		"entity_id": "E_Player",
@@ -158,11 +155,8 @@ func test_screen_shake_request_scales_with_trauma_amount() -> void:
 	var low_trauma: float = _manager.get_trauma()
 	assert_almost_eq(low_trauma, 0.3, 0.001, "Request should add 0.3 trauma")
 
-	# Reset trauma - clear ServiceLocator to avoid warning about re-registration
-	U_SERVICE_LOCATOR.clear()
-	_manager = M_VFX_MANAGER.new()
-	add_child_autofree(_manager)
-	await get_tree().process_frame
+	# Reset trauma with a fresh manager to validate scaling
+	_manager = await _create_manager_with_player_id(StringName("E_Player"))
 
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
 		"entity_id": "E_Player",
@@ -176,9 +170,7 @@ func test_screen_shake_request_scales_with_trauma_amount() -> void:
 
 # Test 11: screen_shake_request adds trauma for high-speed impacts
 func test_screen_shake_request_adds_trauma_for_high_speed() -> void:
-	_manager = M_VFX_MANAGER.new()
-	add_child_autofree(_manager)
-	await get_tree().process_frame
+	_manager = await _create_manager_with_player_id(StringName("E_Player"))
 
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
 		"entity_id": "E_Player",
@@ -192,9 +184,7 @@ func test_screen_shake_request_adds_trauma_for_high_speed() -> void:
 
 # Test 12: screen_shake_request ignores zero trauma
 func test_screen_shake_request_ignores_zero_trauma() -> void:
-	_manager = M_VFX_MANAGER.new()
-	add_child_autofree(_manager)
-	await get_tree().process_frame
+	_manager = await _create_manager_with_player_id(StringName("E_Player"))
 
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
 		"entity_id": "E_Player",
@@ -207,9 +197,7 @@ func test_screen_shake_request_ignores_zero_trauma() -> void:
 
 # Test 13: screen_shake_request adds fixed trauma amount
 func test_screen_shake_request_adds_fixed_trauma() -> void:
-	_manager = M_VFX_MANAGER.new()
-	add_child_autofree(_manager)
-	await get_tree().process_frame
+	_manager = await _create_manager_with_player_id(StringName("E_Player"))
 
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
 		"entity_id": "E_Player",
@@ -283,9 +271,7 @@ func test_trauma_never_goes_negative() -> void:
 
 # Test 17: Multiple screen_shake_request events accumulate trauma (clamped at 1.0)
 func test_multiple_events_accumulate_trauma() -> void:
-	_manager = M_VFX_MANAGER.new()
-	add_child_autofree(_manager)
-	await get_tree().process_frame
+	_manager = await _create_manager_with_player_id(StringName("E_Player"))
 
 	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
 		"entity_id": "E_Player",
@@ -316,3 +302,23 @@ func test_multiple_events_accumulate_trauma() -> void:
 		"Second event should accumulate trauma")
 	assert_true(trauma_after_second <= 1.0,
 		"Accumulated trauma should clamp at 1.0, got %f" % trauma_after_second)
+
+func _create_manager_with_player_id(player_id: StringName) -> M_VFXManager:
+	var store := MOCK_STATE_STORE.new()
+	store.set_slice(StringName("gameplay"), {
+		"player_entity_id": String(player_id)
+	})
+	store.set_slice(StringName("navigation"), {
+		"shell": StringName("gameplay")
+	})
+	store.set_slice(StringName("scene"), {
+		"is_transitioning": false,
+		"scene_stack": []
+	})
+	add_child_autofree(store)
+
+	var manager := M_VFX_MANAGER.new()
+	manager.state_store = store
+	add_child_autofree(manager)
+	await get_tree().process_frame
+	return manager

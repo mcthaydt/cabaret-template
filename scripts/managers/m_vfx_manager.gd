@@ -9,6 +9,9 @@ const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
+const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
+const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const M_ScreenShake := preload("res://scripts/managers/helpers/m_screen_shake.gd")
 const M_DamageFlash := preload("res://scripts/managers/helpers/m_damage_flash.gd")
 ##
@@ -133,6 +136,41 @@ func add_trauma(amount: float) -> void:
 func get_trauma() -> float:
 	return _trauma
 
+## Check if entity_id matches the player entity
+func _is_player_entity(entity_id: StringName) -> bool:
+	if _state_store == null:
+		return false  # Fallback: BLOCK VFX if no store (safer)
+	var state: Dictionary = _state_store.get_state()
+	var gameplay: Dictionary = state.get("gameplay", {})
+	var player_entity_id: StringName = StringName(str(gameplay.get("player_entity_id", "")))
+	if player_entity_id.is_empty():
+		return false  # Fallback: BLOCK VFX if no player registered (safer)
+	return entity_id == player_entity_id
+
+## Check if VFX should be blocked due to transitions or non-gameplay state
+func _is_transition_blocked() -> bool:
+	if _state_store == null:
+		return false
+	var state: Dictionary = _state_store.get_state()
+
+	# Block during scene transitions
+	var scene_slice: Dictionary = state.get("scene", {})
+	if U_SCENE_SELECTORS.is_transitioning(scene_slice):
+		return true
+
+	# Block if scene stack is not empty (loading/overlay scenes)
+	var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(scene_slice)
+	if not scene_stack.is_empty():
+		return true
+
+	# Block if not in gameplay shell
+	var nav_slice: Dictionary = state.get("navigation", {})
+	var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(nav_slice)
+	if shell != StringName("gameplay"):
+		return true
+
+	return false
+
 ## Physics process - handles trauma decay and screen shake application (VFX Phase 3: T3.2)
 func _physics_process(delta: float) -> void:
 	# Process queued requests (deterministic ordering)
@@ -160,10 +198,31 @@ func _physics_process(delta: float) -> void:
 
 ## Event handler for screen shake request events
 func _on_screen_shake_request(event_data: Dictionary) -> void:
+	var payload: Dictionary = event_data.get("payload", {})
+	var entity_id: StringName = StringName(str(payload.get("entity_id", "")))
+
+	# Gating: player-only and transition check
+	if not _is_player_entity(entity_id):
+		return
+	if _is_transition_blocked():
+		return
+
 	_shake_requests.append(event_data)
 
 ## Event handler for damage flash request events
 func _on_damage_flash_request(event_data: Dictionary) -> void:
+	if _state_store == null or _damage_flash == null:
+		return
+
+	var payload: Dictionary = event_data.get("payload", {})
+	var entity_id: StringName = StringName(str(payload.get("entity_id", "")))
+
+	# Gating: player-only and transition check
+	if not _is_player_entity(entity_id):
+		return
+	if _is_transition_blocked():
+		return
+
 	_flash_requests.append(event_data)
 
 func _process_shake_request(event_data: Dictionary) -> void:

@@ -15,6 +15,8 @@ const M_SCREEN_SHAKE := preload("res://scripts/managers/helpers/m_screen_shake.g
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/state/resources/rs_state_store_settings.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
+const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
 const RS_VFX_INITIAL_STATE := preload("res://scripts/state/resources/rs_vfx_initial_state.gd")
 
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
@@ -43,6 +45,12 @@ func before_each() -> void:
 	_store.settings.enable_persistence = false
 	_store.settings.enable_debug_logging = false
 	_store.settings.enable_debug_overlay = false
+	var gameplay_initial := RS_GAMEPLAY_INITIAL_STATE.new()
+	gameplay_initial.player_entity_id = "E_Player"
+	_store.gameplay_initial_state = gameplay_initial
+	var navigation_initial := RS_NAVIGATION_INITIAL_STATE.new()
+	navigation_initial.shell = StringName("gameplay")
+	_store.navigation_initial_state = navigation_initial
 	_store.vfx_initial_state = RS_VFX_INITIAL_STATE.new()
 	add_child_autofree(_store)
 	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)
