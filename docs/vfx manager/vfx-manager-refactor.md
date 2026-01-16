@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Status (2026-01-17)**: Phase 2 complete (Service Locator & dependency injection). Next up: Phase 3 (Player-only & transition gating).
+**Status (2026-01-17)**: Phase 3 complete (Player-only & transition gating). Next up: Phase 4 (Resource-Driven Configuration).
 
 This plan addresses issues identified in the VFX Manager system, organized into 10 incremental phases. The refactoring improves architecture, correctness, scalability, code health, and testing while maintaining backward compatibility.
 

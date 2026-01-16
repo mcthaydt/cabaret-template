@@ -2,13 +2,13 @@
 
 ## Current Status (2026-01-17)
 
-- **Refactor status**: Phase 2 complete (Service Locator + dependency injection).
-- **Phase 2 commit**: `9cde55d`.
-- **Next phase**: Phase 3 (Player-only & transition gating).
-- **Injection support**: `M_VFXManager` exposes `@export` `state_store` and `camera_manager` for tests.
-- **Service registration**: `scripts/scene_structure/main.gd` registers `M_VFXManager`; no self-registration.
-- **Tests run**: VFX injection unit tests + VFX manager unit tests (all passing).
-- **Manual QA**: Pending Phase 1 (T1.13) and Phase 2 (T2.6).
+- **Refactor status**: Phase 3 complete (Player-only & transition gating).
+- **Phase 3 commit**: `4ec288a`.
+- **Next phase**: Phase 4 (Resource-Driven Configuration).
+- **Gating helpers**: `_is_player_entity()` and `_is_transition_blocked()` enforce player-only + transition/menu blocking.
+- **Scene selectors**: `U_SceneSelectors` added for transition + scene stack checks.
+- **Tests run**: unit managers, VFX integration, style enforcement (all passing).
+- **Manual QA**: Pending Phase 1 (T1.13), Phase 2 (T2.6), Phase 3 (T3.11).
 
 ## Before You Start
 
@@ -26,4 +26,4 @@
 
 ## Next Step
 
-- Phase 3: implement player-only and transition gating + tests.
+- Phase 4: move tuning to resources (screen shake tuning/config).

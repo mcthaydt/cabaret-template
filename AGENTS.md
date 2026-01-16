@@ -54,6 +54,7 @@
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.
   - `M_VFXManager` subscribes to VFX request events and processes queues in `_physics_process()`.
+  - Player-only + transition gating: `M_VFXManager` filters requests via `_is_player_entity()` and `_is_transition_blocked()` using Redux `gameplay.player_entity_id`, `scene.is_transitioning`, `scene.scene_stack`, and `navigation.shell == "gameplay"`.
   - Use `U_ECSEventNames` constants for subscriptions instead of string literals.
 - **Testing with Dependency Injection (Phase 10B-8)**
   - Systems support `@export` dependency injection for isolated testing with mocks.

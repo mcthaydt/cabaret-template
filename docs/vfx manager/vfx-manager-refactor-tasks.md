@@ -382,7 +382,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Tests (Write First - TDD)
 
-- [ ] **T3.1**: Write test for `_is_player_entity()` helper
+- [x] **T3.1**: Write test for `_is_player_entity()` helper
   - Location: `tests/unit/managers/test_vfx_manager_player_gating.gd`
   - Tests:
     - `test_returns_true_for_player_entity_id`
@@ -392,7 +392,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Mock StateStore with `gameplay.player_entity_id` field
   - Tests RED initially ✅
 
-- [ ] **T3.2**: Write test for `_is_transition_blocked()` helper
+- [x] **T3.2**: Write test for `_is_transition_blocked()` helper
   - Location: `tests/unit/managers/test_vfx_manager_transition_gating.gd`
   - Tests:
     - `test_blocked_when_is_transitioning_true`
@@ -403,7 +403,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Mock StateStore with scene and navigation slices
   - Tests RED initially ✅
 
-- [ ] **T3.3**: Write integration test for player-only gating
+- [x] **T3.3**: Write integration test for player-only gating
   - Location: `tests/integration/vfx/test_vfx_player_only_gating.gd`
   - Setup: Create player entity (entity_id="player") and enemy entity
   - Publish: `screen_shake_request` with enemy entity_id → verify no shake
@@ -412,7 +412,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Publish: `damage_flash_request` with player entity_id → verify flash applied
   - Tests RED initially ✅
 
-- [ ] **T3.4**: Write integration test for transition blocking
+- [x] **T3.4**: Write integration test for transition blocking
   - Location: `tests/integration/vfx/test_vfx_transition_blocking.gd`
   - Setup: Create VFX manager with mock state store
   - Test: Normal gameplay (shell="gameplay", not transitioning) → VFX works
@@ -423,7 +423,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Implementation
 
-- [ ] **T3.5**: Add gating constants to `M_VFXManager`
+- [x] **T3.5**: Add gating constants to `M_VFXManager`
   - Add preload statements:
     ```gdscript
     const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
@@ -431,7 +431,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
     ```
 
-- [ ] **T3.5b**: Create `u_scene_selectors.gd` (REQUIRED - does not exist)
+- [x] **T3.5b**: Create `u_scene_selectors.gd` (REQUIRED - does not exist)
   - Location: `scripts/state/selectors/u_scene_selectors.gd`
   - Class name: `U_SceneSelectors`
   - Add selector:
@@ -449,7 +449,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
   - Follow existing selector patterns (u_navigation_selectors.gd, u_vfx_selectors.gd)
 
-- [ ] **T3.6**: Add `_is_player_entity()` helper to `M_VFXManager`
+- [x] **T3.6**: Add `_is_player_entity()` helper to `M_VFXManager`
   - Add method:
     ```gdscript
     ## Check if entity_id matches the player entity
@@ -465,7 +465,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
   - Tests GREEN ✅
 
-- [ ] **T3.7**: Add `_is_transition_blocked()` helper to `M_VFXManager`
+- [x] **T3.7**: Add `_is_transition_blocked()` helper to `M_VFXManager`
   - Add method:
     ```gdscript
     ## Check if VFX should be blocked due to transitions or non-gameplay state
@@ -494,7 +494,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
   - Tests GREEN ✅
 
-- [ ] **T3.8**: Update `_on_screen_shake_request()` with gating
+- [x] **T3.8**: Update `_on_screen_shake_request()` with gating
   - Add gating checks at start:
     ```gdscript
     func _on_screen_shake_request(event_data: Dictionary) -> void:
@@ -507,12 +507,11 @@ This document tracks the refactoring of the existing VFX Manager system to impro
         if _is_transition_blocked():
             return
 
-        var trauma_amount: float = float(payload.get("trauma_amount", 0.0))
-        add_trauma(trauma_amount)
+        _shake_requests.append(event_data)
     ```
   - Tests GREEN ✅
 
-- [ ] **T3.9**: Update `_on_damage_flash_request()` with gating
+- [x] **T3.9**: Update `_on_damage_flash_request()` with gating
   - Add gating checks:
     ```gdscript
     func _on_damage_flash_request(event_data: Dictionary) -> void:
@@ -528,20 +527,18 @@ This document tracks the refactoring of the existing VFX Manager system to impro
         if _is_transition_blocked():
             return
 
-        var state: Dictionary = _state_store.get_state()
-        if not U_VFX_SELECTORS.is_damage_flash_enabled(state):
-            return
-
-        var intensity: float = float(payload.get("intensity", 1.0))
-        _damage_flash.trigger_flash(intensity)
+        _flash_requests.append(event_data)
     ```
   - Tests GREEN ✅
 
 ### Verification
 
-- [ ] **T3.10**: Run Phase 3 tests
+- [x] **T3.10**: Run Phase 3 tests
   - Verify: All gating unit tests pass
   - Verify: All gating integration tests pass
+  - Ran: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/managers -gexit`
+  - Ran: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/vfx -gexit`
+  - Ran: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit`
 
 - [ ] **T3.11**: Manual verification
   - Play as player → take damage → VFX works
@@ -551,7 +548,14 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - TODO: Verify enemy damage doesn't trigger VFX (need enemy entity in test scene)
 
 ### Commit Point
-- [ ] **Commit Phase 3**: "feat(vfx): add player-only and transition gating"
+- [x] **Commit Phase 3**: "feat(vfx): add player-only and transition gating" (`4ec288a`)
+
+**Completion Notes (2026-01-17)**:
+- Added player-only gating and transition blocking helpers in `M_VFXManager`
+- Added `U_SceneSelectors` for scene slice checks
+- Added unit + integration gating tests and updated VFX integration setup for gameplay shell/player ID
+- Tests run: unit managers, VFX integration, style enforcement (all passing)
+- Manual verification still pending (T3.11)
 
 ---
 

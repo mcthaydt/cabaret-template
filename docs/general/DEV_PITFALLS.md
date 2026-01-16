@@ -273,6 +273,15 @@
     store.dispatch(U_GameplayActions.take_damage("E_Player", 50.0))
     ```
 
+## VFX Gating Pitfalls
+
+- **Player-only gating blocks when `player_entity_id` is missing**:
+  - `M_VFXManager` filters requests via `gameplay.player_entity_id`. If it is empty/missing, VFX requests are ignored.
+- **Transition gating blocks outside gameplay shell**:
+  - VFX is blocked when `navigation.shell != "gameplay"`, `scene.is_transitioning == true`, or `scene.scene_stack` is not empty.
+- **Testing setup**:
+  - Integration tests using `M_StateStore` must set `gameplay_initial_state.player_entity_id` and `navigation_initial_state.shell = "gameplay"` (or dispatch `U_NavigationActions.set_shell(...)`) before publishing VFX requests, otherwise gating will silently block effects.
+
 ## Dependency Lookup Rule
 
 - **Standard chain (preferred)**:
