@@ -6,6 +6,7 @@ const MAX_ALPHA := 0.3
 
 var _flash_rect: ColorRect
 var _tween: Tween
+var _tween_pause_mode: int = -1
 var _scene_tree: SceneTree
 
 
@@ -27,4 +28,6 @@ func trigger_flash(intensity: float = 1.0) -> void:
 
 	# Fade to 0 over FADE_DURATION
 	_tween = _scene_tree.create_tween()
+	_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_tween_pause_mode = Tween.TWEEN_PAUSE_PROCESS
 	_tween.tween_property(_flash_rect, "modulate:a", 0.0, FADE_DURATION)

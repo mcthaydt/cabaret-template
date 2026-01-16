@@ -1,6 +1,7 @@
 extends GutTest
 
 const M_DamageFlash := preload("res://scripts/managers/helpers/m_damage_flash.gd")
+const DAMAGE_FLASH_SCENE := preload("res://scenes/ui/ui_damage_flash_overlay.tscn")
 
 var _flash_rect: ColorRect
 var _damage_flash: M_DamageFlash
@@ -16,6 +17,14 @@ func test_initialization_with_color_rect() -> void:
 	_damage_flash = M_DamageFlash.new(_flash_rect, get_tree())
 
 	assert_not_null(_damage_flash, "M_DamageFlash should initialize")
+
+
+func test_flash_rect_color_alpha_is_1_0() -> void:
+	var scene_instance := DAMAGE_FLASH_SCENE.instantiate()
+	add_child_autofree(scene_instance)
+	var flash_rect := scene_instance.get_node("FlashRect") as ColorRect
+	assert_not_null(flash_rect, "FlashRect should exist in damage flash overlay scene")
+	assert_almost_eq(flash_rect.color.a, 1.0, 0.001, "FlashRect color alpha should be 1.0")
 
 
 func test_trigger_flash_sets_alpha_to_max_instantly() -> void:
@@ -48,6 +57,15 @@ func test_retrigger_kills_existing_tween() -> void:
 
 	assert_almost_eq(_flash_rect.modulate.a, 0.3, 0.01, "Retrigger should reset alpha to MAX_ALPHA")
 	assert_gt(_flash_rect.modulate.a, alpha_mid_fade, "Retrigger should increase alpha from mid-fade value")
+
+
+func test_tween_has_pause_mode_process() -> void:
+	_damage_flash = M_DamageFlash.new(_flash_rect, get_tree())
+
+	_damage_flash.trigger_flash()
+
+	assert_not_null(_damage_flash._tween, "Tween should be created on trigger")
+	assert_eq(_damage_flash._tween_pause_mode, Tween.TWEEN_PAUSE_PROCESS, "Tween pause mode should be PROCESS")
 
 
 func test_intensity_affects_max_alpha() -> void:

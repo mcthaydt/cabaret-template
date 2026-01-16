@@ -195,8 +195,8 @@ func _physics_process(delta: float) -> void:
 		var state: Dictionary = _state_store.get_state()
 		if U_VFX_SELECTORS.is_screen_shake_enabled(state):
 			var intensity: float = U_VFX_SELECTORS.get_screen_shake_intensity(state)
-			var shake_data: Dictionary = _screen_shake.calculate_shake(_trauma, intensity, delta)
-			_camera_manager.apply_shake_offset(shake_data["offset"], shake_data["rotation"])
+			var shake_result = _screen_shake.calculate_shake(_trauma, intensity, delta)
+			_camera_manager.apply_shake_offset(shake_result.offset, shake_result.rotation)
 		else:
 			# Reset shake when disabled (prevents lingering offset)
 			_camera_manager.apply_shake_offset(Vector2.ZERO, 0.0)

@@ -4,6 +4,7 @@ extends GutTest
 # Testing screen shake algorithm with quadratic falloff and noise-based offset/rotation
 
 const M_ScreenShake := preload("res://scripts/managers/helpers/m_screen_shake.gd")
+const ShakeResult := preload("res://scripts/managers/helpers/m_shake_result.gd")
 
 var _shake_helper: M_ScreenShake
 
@@ -21,49 +22,47 @@ func test_initialization_with_fast_noise_lite() -> void:
 	assert_not_null(_shake_helper, "ScreenShake helper should be initialized")
 	# We can't directly access _noise (private), but we can verify behavior
 	# by checking that calculate_shake produces noise-based results
-	var result: Dictionary = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
+	var result = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
 	assert_not_null(result, "calculate_shake should return a result")
 
 
-# Test 2: calculate_shake returns Dictionary
-func test_calculate_shake_returns_dictionary() -> void:
-	var result: Dictionary = _shake_helper.calculate_shake(0.5, 1.0, 0.016)
-	assert_true(result is Dictionary, "calculate_shake should return Dictionary")
+# Test 2: calculate_shake returns ShakeResult instance
+func test_calculate_shake_returns_shake_result_instance() -> void:
+	var result = _shake_helper.calculate_shake(0.5, 1.0, 0.016)
+	assert_true(result is ShakeResult, "calculate_shake should return ShakeResult")
 
 
-# Test 3: Dictionary has "offset" key with Vector2 value
-func test_result_has_offset_key() -> void:
-	var result: Dictionary = _shake_helper.calculate_shake(0.5, 1.0, 0.016)
-	assert_true(result.has("offset"), "Result should have 'offset' key")
-	assert_true(result["offset"] is Vector2, "Offset should be Vector2")
+# Test 3: Result has offset field with Vector2 value
+func test_result_has_offset_field() -> void:
+	var result = _shake_helper.calculate_shake(0.5, 1.0, 0.016)
+	assert_true(result.offset is Vector2, "Offset should be Vector2")
 
 
-# Test 4: Dictionary has "rotation" key with float value
-func test_result_has_rotation_key() -> void:
-	var result: Dictionary = _shake_helper.calculate_shake(0.5, 1.0, 0.016)
-	assert_true(result.has("rotation"), "Result should have 'rotation' key")
-	assert_true(result["rotation"] is float, "Rotation should be float")
+# Test 4: Result has rotation field with float value
+func test_result_has_rotation_field() -> void:
+	var result = _shake_helper.calculate_shake(0.5, 1.0, 0.016)
+	assert_true(result.rotation is float, "Rotation should be float")
 
 
 # Test 5: Trauma 0.0 produces zero offset
 func test_trauma_zero_produces_zero_offset() -> void:
-	var result: Dictionary = _shake_helper.calculate_shake(0.0, 1.0, 0.016)
-	var offset: Vector2 = result["offset"]
+	var result = _shake_helper.calculate_shake(0.0, 1.0, 0.016)
+	var offset: Vector2 = result.offset
 	assert_almost_eq(offset.x, 0.0, 0.01, "Offset X should be ~0 with trauma 0.0")
 	assert_almost_eq(offset.y, 0.0, 0.01, "Offset Y should be ~0 with trauma 0.0")
 
 
 # Test 6: Trauma 0.0 produces zero rotation
 func test_trauma_zero_produces_zero_rotation() -> void:
-	var result: Dictionary = _shake_helper.calculate_shake(0.0, 1.0, 0.016)
-	var rotation: float = result["rotation"]
+	var result = _shake_helper.calculate_shake(0.0, 1.0, 0.016)
+	var rotation: float = result.rotation
 	assert_almost_eq(rotation, 0.0, 0.01, "Rotation should be ~0 with trauma 0.0")
 
 
 # Test 7: Trauma 1.0 produces full shake (offset within max bounds)
 func test_trauma_one_produces_full_shake() -> void:
-	var result: Dictionary = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
-	var offset: Vector2 = result["offset"]
+	var result = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
+	var offset: Vector2 = result.offset
 	# With trauma 1.0 and multiplier 1.0, offset should be within max bounds
 	# max_offset defaults to (10.0, 8.0)
 	assert_true(abs(offset.x) <= 10.0, "Offset X should be within max bounds")
@@ -74,8 +73,8 @@ func test_trauma_one_produces_full_shake() -> void:
 
 # Test 8: Trauma 1.0 produces full rotation (within max bounds)
 func test_trauma_one_produces_full_rotation() -> void:
-	var result: Dictionary = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
-	var rotation: float = result["rotation"]
+	var result = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
+	var rotation: float = result.rotation
 	# max_rotation defaults to 0.05 radians
 	assert_true(abs(rotation) <= 0.05, "Rotation should be within max bounds")
 	# Should NOT be zero (noise produces values)
@@ -91,14 +90,14 @@ func test_quadratic_falloff() -> void:
 	var helper_full := M_ScreenShake.new()
 
 	# Set same seed for consistent comparison
-	helper_half._noise.seed = 12345
-	helper_full._noise.seed = 12345
+	helper_half.set_noise_seed_for_testing(12345)
+	helper_full.set_noise_seed_for_testing(12345)
 
-	var result_half: Dictionary = helper_half.calculate_shake(0.5, 1.0, 0.016)
-	var result_full: Dictionary = helper_full.calculate_shake(1.0, 1.0, 0.016)
+	var result_half = helper_half.calculate_shake(0.5, 1.0, 0.016)
+	var result_full = helper_full.calculate_shake(1.0, 1.0, 0.016)
 
-	var offset_half: Vector2 = result_half["offset"]
-	var offset_full: Vector2 = result_full["offset"]
+	var offset_half: Vector2 = result_half.offset
+	var offset_full: Vector2 = result_full.offset
 
 	# The ratio should be approximately 0.25 (quadratic falloff)
 	# With same noise samples, the ratio should be very close to trauma^2
@@ -113,14 +112,14 @@ func test_settings_multiplier_scales_offset() -> void:
 	var helper_doubled := M_ScreenShake.new()
 
 	# Set same seed for consistent comparison
-	helper_normal._noise.seed = 54321
-	helper_doubled._noise.seed = 54321
+	helper_normal.set_noise_seed_for_testing(54321)
+	helper_doubled.set_noise_seed_for_testing(54321)
 
-	var result_normal: Dictionary = helper_normal.calculate_shake(1.0, 1.0, 0.016)
-	var result_doubled: Dictionary = helper_doubled.calculate_shake(1.0, 2.0, 0.016)
+	var result_normal = helper_normal.calculate_shake(1.0, 1.0, 0.016)
+	var result_doubled = helper_doubled.calculate_shake(1.0, 2.0, 0.016)
 
-	var offset_normal: Vector2 = result_normal["offset"]
-	var offset_doubled: Vector2 = result_doubled["offset"]
+	var offset_normal: Vector2 = result_normal.offset
+	var offset_doubled: Vector2 = result_doubled.offset
 
 	# Doubled multiplier should produce ~2x offset
 	var ratio: float = offset_doubled.length() / offset_normal.length() if offset_normal.length() > 0 else 0.0
@@ -134,14 +133,14 @@ func test_settings_multiplier_scales_rotation() -> void:
 	var helper_doubled := M_ScreenShake.new()
 
 	# Set same seed for consistent comparison
-	helper_normal._noise.seed = 67890
-	helper_doubled._noise.seed = 67890
+	helper_normal.set_noise_seed_for_testing(67890)
+	helper_doubled.set_noise_seed_for_testing(67890)
 
-	var result_normal: Dictionary = helper_normal.calculate_shake(1.0, 1.0, 0.016)
-	var result_doubled: Dictionary = helper_doubled.calculate_shake(1.0, 2.0, 0.016)
+	var result_normal = helper_normal.calculate_shake(1.0, 1.0, 0.016)
+	var result_doubled = helper_doubled.calculate_shake(1.0, 2.0, 0.016)
 
-	var rotation_normal: float = result_normal["rotation"]
-	var rotation_doubled: float = result_doubled["rotation"]
+	var rotation_normal: float = result_normal.rotation
+	var rotation_doubled: float = result_doubled.rotation
 
 	# Doubled multiplier should produce ~2x rotation
 	var ratio: float = abs(rotation_doubled) / abs(rotation_normal) if abs(rotation_normal) > 0 else 0.0
@@ -150,13 +149,13 @@ func test_settings_multiplier_scales_rotation() -> void:
 
 # Test 12: Noise-based randomness produces different offsets over time
 func test_noise_produces_different_offsets() -> void:
-	var result1: Dictionary = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
-	var result2: Dictionary = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
-	var result3: Dictionary = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
+	var result1 = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
+	var result2 = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
+	var result3 = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
 
-	var offset1: Vector2 = result1["offset"]
-	var offset2: Vector2 = result2["offset"]
-	var offset3: Vector2 = result3["offset"]
+	var offset1: Vector2 = result1.offset
+	var offset2: Vector2 = result2.offset
+	var offset3: Vector2 = result3.offset
 
 	# Offsets should be different (noise advances over time)
 	assert_true(offset1.distance_to(offset2) > 0.1, "Offsets should differ over time")
@@ -165,13 +164,13 @@ func test_noise_produces_different_offsets() -> void:
 
 # Test 13: Noise-based randomness produces different rotations over time
 func test_noise_produces_different_rotations() -> void:
-	var result1: Dictionary = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
-	var result2: Dictionary = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
-	var result3: Dictionary = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
+	var result1 = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
+	var result2 = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
+	var result3 = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
 
-	var rotation1: float = result1["rotation"]
-	var rotation2: float = result2["rotation"]
-	var rotation3: float = result3["rotation"]
+	var rotation1: float = result1.rotation
+	var rotation2: float = result2.rotation
+	var rotation3: float = result3.rotation
 
 	# Rotations should be different (noise advances over time)
 	assert_true(abs(rotation1 - rotation2) > 0.001, "Rotations should differ over time")
@@ -182,8 +181,8 @@ func test_noise_produces_different_rotations() -> void:
 func test_max_offset_clamping() -> void:
 	# Test with extreme trauma and multiplier
 	for i in range(10):
-		var result: Dictionary = _shake_helper.calculate_shake(1.0, 10.0, 0.016)
-		var offset: Vector2 = result["offset"]
+		var result = _shake_helper.calculate_shake(1.0, 10.0, 0.016)
+		var offset: Vector2 = result.offset
 
 		# max_offset defaults to (10.0, 8.0), multiplier is 10.0
 		# So max possible offset is (100.0, 80.0)
@@ -195,9 +194,46 @@ func test_max_offset_clamping() -> void:
 func test_max_rotation_clamping() -> void:
 	# Test with extreme trauma and multiplier
 	for i in range(10):
-		var result: Dictionary = _shake_helper.calculate_shake(1.0, 10.0, 0.016)
-		var rotation: float = result["rotation"]
+		var result = _shake_helper.calculate_shake(1.0, 10.0, 0.016)
+		var rotation: float = result.rotation
 
 		# max_rotation defaults to 0.05 radians, multiplier is 10.0
 		# So max possible rotation is 0.5 radians
 		assert_true(abs(rotation) <= 0.5, "Rotation should not exceed max_rotation * multiplier")
+
+
+# Test 16: set_noise_seed_for_testing produces deterministic results
+func test_set_noise_seed_for_testing_makes_deterministic() -> void:
+	var helper_a := M_ScreenShake.new()
+	var helper_b := M_ScreenShake.new()
+
+	helper_a.set_noise_seed_for_testing(13579)
+	helper_b.set_noise_seed_for_testing(13579)
+
+	var result_a = helper_a.calculate_shake(1.0, 1.0, 0.016)
+	var result_b = helper_b.calculate_shake(1.0, 1.0, 0.016)
+
+	assert_almost_eq(result_a.offset.x, result_b.offset.x, 0.0001, "Offset X should match for same seed")
+	assert_almost_eq(result_a.offset.y, result_b.offset.y, 0.0001, "Offset Y should match for same seed")
+	assert_almost_eq(result_a.rotation, result_b.rotation, 0.0001, "Rotation should match for same seed")
+
+
+# Test 17: set_sample_time_for_testing freezes time
+func test_set_sample_time_for_testing_freezes_time() -> void:
+	_shake_helper.set_noise_seed_for_testing(24680)
+	_shake_helper.set_sample_time_for_testing(2.5)
+
+	var result1 = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
+	var result2 = _shake_helper.calculate_shake(1.0, 1.0, 0.5)
+
+	assert_almost_eq(result1.offset.x, result2.offset.x, 0.0001, "Offset X should stay fixed when time is frozen")
+	assert_almost_eq(result1.offset.y, result2.offset.y, 0.0001, "Offset Y should stay fixed when time is frozen")
+	assert_almost_eq(result1.rotation, result2.rotation, 0.0001, "Rotation should stay fixed when time is frozen")
+
+
+# Test 18: get_sample_time returns current time
+func test_get_sample_time_returns_current_time() -> void:
+	_shake_helper.set_sample_time_for_testing(3.25)
+	_shake_helper.calculate_shake(1.0, 1.0, 0.016)
+
+	assert_almost_eq(_shake_helper.get_sample_time(), 3.25, 0.0001, "get_sample_time should return the current time")
