@@ -10,8 +10,8 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 - **Type Safety**: Add typed results and event constants
 - **Testing**: Add deterministic testing hooks and comprehensive coverage
 
-**Status**: In Progress (Phase 2 complete)
-**Current Phase**: Phase 3
+**Status**: In Progress (Phase 5 complete)
+**Current Phase**: Phase 6
 **Last Updated**: 2026-01-17
 
 ---
@@ -755,7 +755,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Tests (Write First - TDD)
 
-- [ ] **T5.1**: Write test for `ShakeResult` class
+- [x] **T5.1**: Write test for `ShakeResult` class
   - Location: `tests/unit/managers/helpers/test_shake_result.gd`
   - Tests:
     - `test_constructor_with_defaults`
@@ -764,7 +764,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     - `test_rotation_field_accessible`
   - Tests RED initially ✅
 
-- [ ] **T5.2**: Write test for deterministic M_ScreenShake
+- [x] **T5.2**: Write test for deterministic M_ScreenShake
   - Location: Update `tests/unit/managers/helpers/test_screen_shake.gd`
   - Add tests:
     - `test_set_noise_seed_for_testing_makes_deterministic`
@@ -773,7 +773,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     - `test_calculate_shake_returns_shake_result_instance`
   - Tests RED initially ✅
 
-- [ ] **T5.3**: Write test for damage flash alpha correctness
+- [x] **T5.3**: Write test for damage flash alpha correctness
   - Location: Update `tests/unit/managers/helpers/test_damage_flash.gd`
   - Add tests:
     - `test_flash_rect_color_alpha_is_1_0` (scene fix)
@@ -782,8 +782,8 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Implementation
 
-- [ ] **T5.4**: Create `ShakeResult` class
-  - Location: `scripts/managers/helpers/shake_result.gd`
+- [x] **T5.4**: Create `ShakeResult` class
+  - Location: `scripts/managers/helpers/m_shake_result.gd`
   - Extends: `RefCounted`
   - Class name: `ShakeResult`
   - Fields:
@@ -799,7 +799,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
   - Tests GREEN ✅
 
-- [ ] **T5.5**: Add testing hooks to `M_ScreenShake`
+- [x] **T5.5**: Add testing hooks to `M_ScreenShake`
   - Add fields:
     ```gdscript
     var _test_seed: int = -1
@@ -838,21 +838,21 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
   - Tests GREEN ✅
 
-- [ ] **T5.6**: Update `M_VFXManager` to use `ShakeResult`
+- [x] **T5.6**: Update `M_VFXManager` to use `ShakeResult`
   - Update `_physics_process()`:
     ```gdscript
-    var shake_result: ShakeResult = _screen_shake.calculate_shake(_trauma, intensity, delta)
+    var shake_result = _screen_shake.calculate_shake(_trauma, intensity, delta)
     _camera_manager.apply_shake_offset(shake_result.offset, shake_result.rotation)
     ```
 
-- [ ] **T5.7**: Fix alpha bug in damage flash scene
+- [x] **T5.7**: Fix alpha bug in damage flash scene
   - Location: `scenes/ui/ui_damage_flash_overlay.tscn`
   - Find: FlashRect ColorRect node
   - Change: `color = Color(1.0, 0.0, 0.0, 0.3)` → `color = Color(1.0, 0.0, 0.0, 1.0)`
   - Reason: `color.a` multiplies with `modulate.a` (0.3 * 0.3 = 0.09 actual)
   - Tests GREEN ✅
 
-- [ ] **T5.8**: Add tween pause mode to `M_DamageFlash`
+- [x] **T5.8**: Add tween pause mode to `M_DamageFlash`
   - Location: `scripts/managers/helpers/m_damage_flash.gd`
   - Update `trigger_flash()` after tween creation:
     ```gdscript
@@ -865,10 +865,12 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Verification
 
-- [ ] **T5.9**: Run Phase 5 tests
+- [x] **T5.9**: Run Phase 5 tests
   - Verify: ShakeResult tests pass
   - Verify: Deterministic shake tests pass
   - Verify: Alpha correctness tests pass
+  - Ran: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers/helpers -gexit`
+  - Ran: `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit`
 
 - [ ] **T5.10**: Manual verification
   - Play game → take damage → verify damage flash is CLEARLY visible (red tint)
@@ -876,7 +878,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Pause game → take damage → verify flash still animates
 
 ### Commit Point
-- [ ] **Commit Phase 5**: "fix(vfx): correct alpha bug and add typed results"
+- [x] **Commit Phase 5**: "fix(vfx): correct alpha bug and add typed results" (`994da2e`)
 
 ---
 

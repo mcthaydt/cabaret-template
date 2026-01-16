@@ -541,7 +541,7 @@ _tween.tween_property(_flash_rect, "modulate:a", 0.0, FADE_DURATION)
 
 ### New Typed Result Class
 
-**File**: `scripts/managers/helpers/shake_result.gd`
+**File**: `scripts/managers/helpers/m_shake_result.gd`
 
 ```gdscript
 class_name ShakeResult
@@ -563,7 +563,7 @@ func _init(p_offset: Vector2 = Vector2.ZERO, p_rotation: float = 0.0) -> void:
 
 Add testing hooks and typed return:
 ```gdscript
-const ShakeResult := preload("res://scripts/managers/helpers/shake_result.gd")
+const ShakeResult := preload("res://scripts/managers/helpers/m_shake_result.gd")
 
 var _test_seed: int = -1
 var _test_time: float = -1.0
@@ -599,7 +599,7 @@ func calculate_shake(trauma: float, intensity_multiplier: float, delta: float) -
 ### Update M_VFXManager to Use ShakeResult
 
 ```gdscript
-var shake_result: ShakeResult = _screen_shake.calculate_shake(_trauma, intensity, delta)
+var shake_result = _screen_shake.calculate_shake(_trauma, intensity, delta)
 _camera_manager.apply_shake_offset(shake_result.offset, shake_result.rotation)
 ```
 

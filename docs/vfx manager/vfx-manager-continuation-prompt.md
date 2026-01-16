@@ -2,12 +2,12 @@
 
 ## Current Status (2026-01-17)
 
-- **Refactor status**: Phase 4 complete (Resource-Driven Configuration).
-- **Phase 4 commit**: `1dae3c9`.
-- **Next phase**: Phase 5 (Typed Results & Helper Fixes).
-- **New resources**: `RS_ScreenShakeTuning` + `RS_ScreenShakeConfig` with defaults under `resources/vfx/`.
-- **Tests run**: `test_rs_screen_shake_tuning`, `test_s_screen_shake_publisher_system`, style enforcement (all passing; Godot aborted after summary with `recursive_mutex lock failed` on the publisher run).
-- **Manual QA**: Pending Phase 1 (T1.13), Phase 2 (T2.6), Phase 3 (T3.11), Phase 4 (T4.11).
+- **Refactor status**: Phase 5 complete (Typed Results & Helper Fixes).
+- **Phase 5 commit**: `994da2e`.
+- **Next phase**: Phase 6 (Preload & Publisher Cleanup).
+- **New helper**: `m_shake_result.gd` (ShakeResult).
+- **Tests run**: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers/helpers -gexit`, `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit`.
+- **Manual QA**: Pending Phase 1 (T1.13), Phase 2 (T2.6), Phase 3 (T3.11), Phase 4 (T4.11), Phase 5 (T5.10).
 
 ## Before You Start
 
@@ -25,4 +25,4 @@
 
 ## Next Step
 
-- Phase 5: add typed `ShakeResult`, fix alpha bug, update helper APIs, add testing hooks.
+- Phase 6: preload damage flash scene, remove runtime load, and apply publisher cleanup.

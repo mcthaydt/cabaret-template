@@ -323,11 +323,11 @@ Damage flash triggering remains an internal manager concern (wired from ECS even
 
 ### Phase 2: Screen Shake System (FR-011 to FR-014)
 
-**FR-011: U_ScreenShake Helper**
-The system SHALL implement `U_ScreenShake` helper class for trauma-based shake calculation using `FastNoiseLite`:
+**FR-011: M_ScreenShake Helper**
+The system SHALL implement `M_ScreenShake` helper class for trauma-based shake calculation using `FastNoiseLite`:
 
 ```gdscript
-class_name U_ScreenShake
+class_name M_ScreenShake
 extends RefCounted
 
 var max_offset := Vector2(10.0, 8.0)  # Maximum pixel offset (X, Y)
@@ -342,7 +342,7 @@ func _init() -> void:
 	_noise.noise_type = FastNoiseLite.TYPE_PERLIN
 	_noise.frequency = 1.0
 
-func calculate_shake(trauma: float, settings_multiplier: float, delta: float) -> Dictionary:
+func calculate_shake(trauma: float, settings_multiplier: float, delta: float) -> ShakeResult:
 	_time += delta * noise_speed
 
 	# Quadratic falloff for smooth feel
@@ -355,10 +355,7 @@ func calculate_shake(trauma: float, settings_multiplier: float, delta: float) ->
 
 	var rotation := max_rotation * shake_amount * _noise.get_noise_1d(_time + 200.0) * settings_multiplier
 
-	return {
-		"offset": offset,
-		"rotation": rotation
-	}
+	return ShakeResult.new(offset, rotation)
 ```
 
 **FR-012: Shake Parameters**
@@ -387,9 +384,9 @@ func _apply_shake() -> void:
 		return
 
 	var settings_multiplier := U_VFXSelectors.get_screen_shake_intensity(state)
-	var shake_data := _screen_shake.calculate_shake(_trauma, settings_multiplier, get_physics_process_delta_time())
+	var shake_result := _screen_shake.calculate_shake(_trauma, settings_multiplier, get_physics_process_delta_time())
 
-	_camera_manager.apply_shake_offset(shake_data["offset"], shake_data["rotation"])
+	_camera_manager.apply_shake_offset(shake_result.offset, shake_result.rotation)
 ```
 
 **FR-014: Shake Toggle Behavior**
@@ -714,8 +711,8 @@ func _on_apply_pressed() -> void:
 2. Shake algorithm integration in M_VFXManager
 3. `tests/unit/managers/helpers/test_screen_shake.gd` - 15 unit tests
 
-**Commit 1: U_ScreenShake Helper**
-- Create `U_ScreenShake` class with FastNoiseLite
+**Commit 1: M_ScreenShake Helper**
+- Create `M_ScreenShake` class with FastNoiseLite
 - Implement `calculate_shake()` with quadratic falloff
 - Parameters: max_offset, max_rotation, noise_speed
 
@@ -1019,33 +1016,33 @@ func test_death_event_triggers_trauma_and_flash():
 ```gdscript
 # Test zero trauma
 func test_shake_offset_zero_trauma():
-	Given: U_ScreenShake with trauma = 0.0
+	Given: M_ScreenShake with trauma = 0.0
 	When: calculate_shake(0.0, 1.0, 0.016)
-	Then: offset = Vector2.ZERO, rotation = 0.0
+	Then: shake_result.offset = Vector2.ZERO, shake_result.rotation = 0.0
 
 # Test max trauma
 func test_shake_offset_max_trauma():
-	Given: U_ScreenShake with trauma = 1.0
+	Given: M_ScreenShake with trauma = 1.0
 	When: calculate_shake(1.0, 1.0, 0.016)
-	Then: offset magnitude <= Vector2(10, 8), rotation <= 0.05
+	Then: shake_result.offset magnitude <= Vector2(10, 8), shake_result.rotation <= 0.05
 
 # Test intensity multiplier
 func test_shake_respects_intensity_multiplier():
-	Given: U_ScreenShake
+	Given: M_ScreenShake
 	When: calculate_shake(0.5, 2.0, 0.016)
-	Then: offset magnitude ~2x baseline
+	Then: shake_result.offset magnitude ~2x baseline
 
 # Test quadratic falloff
 func test_shake_quadratic_falloff():
-	Given: U_ScreenShake
+	Given: M_ScreenShake
 	When: calculate_shake(0.5, 1.0, 0.016)
 	Then: shake_amount = 0.5 * 0.5 = 0.25 (verify in offset calculation)
 
 # Test noise variation
 func test_noise_generates_organic_movement():
-	Given: U_ScreenShake
+	Given: M_ScreenShake
 	When: calculate_shake at t=0.0, t=0.1, t=0.2
-	Then: offset values differ (noise varies over time)
+	Then: shake_result.offset values differ (noise varies over time)
 
 # ... (10 more tests for noise, parameters, edge cases)
 ```
@@ -1153,7 +1150,7 @@ func test_ui_reflects_redux_state():
 
 **Phase 2-5** (Features):
 1. Write integration test for feature (e.g., shake triggers on damage)
-2. Write unit tests for components (e.g., U_ScreenShake calculations)
+2. Write unit tests for components (e.g., M_ScreenShake calculations)
 3. Run tests → Fail (red)
 4. Implement feature
 5. Run tests → Pass (green)
@@ -1371,7 +1368,7 @@ if not loaded_state.has("vfx"):
 
 **Memory Footprint**:
 - M_VFXManager: ~2KB
-- U_ScreenShake: ~1KB (noise instance)
+- M_ScreenShake: ~1KB (noise instance)
 - Damage flash scene: ~5KB (CanvasLayer + ColorRect)
 - **Total**: ~8KB memory overhead
 
