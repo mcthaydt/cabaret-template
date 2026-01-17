@@ -198,6 +198,7 @@ func _on_reset_pressed() -> void:
 	_particles_enabled_toggle.button_pressed = defaults.particles_enabled
 
 	_update_percentage_label(_intensity_slider.value)
+	_update_vfx_settings_preview_from_ui()
 
 	# Apply immediately after reset (matches other settings panels)
 	_has_local_edits = false
@@ -209,6 +210,7 @@ func _on_reset_pressed() -> void:
 		store.dispatch(U_VFXActions.set_particles_enabled(defaults.particles_enabled))
 
 func _close_overlay() -> void:
+	_clear_vfx_settings_preview()
 	var store := get_store()
 	if store == null:
 		return
