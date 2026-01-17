@@ -258,10 +258,9 @@ func _on_apply_pressed() -> void:
 		_manager = _resolve_input_profile_manager()
 	if _manager != null and _available_profiles.is_empty():
 		_populate_profiles()
-	if _manager == null or _available_profiles.is_empty():
-		return
-	var selected_profile := _available_profiles[_current_index]
-	_manager.switch_profile(selected_profile)
+	if _manager != null and not _available_profiles.is_empty():
+		var selected_profile := _available_profiles[_current_index]
+		_manager.switch_profile(selected_profile)
 	_close_overlay()
 
 func _on_cancel_pressed() -> void:
