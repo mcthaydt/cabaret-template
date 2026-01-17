@@ -86,7 +86,7 @@ func execute_transition_effect(transition_type: String, scene_swap_callback: Cal
 		var empty_progress := func(_p: float) -> void: pass
 		_execute_loading_transition(transition_effect, overlays.get("loading_overlay"), wrapped_swap, wrapped_completion, empty_progress)
 	else:
-		_execute_instant_transition(transition_effect, overlays.get("transition_overlay"), wrapped_swap, wrapped_completion)
+		await _execute_instant_transition(transition_effect, overlays.get("transition_overlay"), wrapped_swap, wrapped_completion)
 
 	# Wait for transition to complete
 	var tree := Engine.get_main_loop() as SceneTree
@@ -154,11 +154,15 @@ func _execute_loading_transition(effect: Trans_LoadingScreen, overlay: CanvasLay
 
 ## Execute instant transition
 func _execute_instant_transition(effect, overlay: CanvasLayer, scene_swap: Callable, complete: Callable) -> void:
-	# For instant transitions, scene swap happens in completion callback
-	effect.execute(overlay, func() -> void:
-		scene_swap.call()
+	# Instant transitions must await scene swap so completion fires after spawn/async work.
+	if effect != null:
+		effect.execute(overlay, func() -> void: pass)
+
+	if scene_swap != null and scene_swap.is_valid():
+		await scene_swap.call()
+
+	if complete != null and complete.is_valid():
 		complete.call()
-	)
 
 ## Create progress callback for loading transitions
 func _create_progress_callback(transition_effect, use_cached: bool) -> Callable:
