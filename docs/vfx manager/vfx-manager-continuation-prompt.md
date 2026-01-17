@@ -2,12 +2,13 @@
 
 ## Current Status (2026-01-16)
 
-- **Refactor status**: Phase 6 complete (Preload & Publisher Cleanup).
+- **Refactor status**: Phase 7 complete (Testing Improvements).
 - **Phase 5 commit**: `994da2e`.
 - **Phase 6 commit**: `b288afc`.
-- **Next phase**: Phase 7 (Testing Improvements).
+- **Phase 7 commit**: `5a882b7`.
+- **Next phase**: Phase 8 (UI Settings Preview).
 - **New helper**: `m_shake_result.gd` (ShakeResult).
-- **Tests run**: `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/test_vfx_manager_cleanup.gd -gexit`, `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit`.
+- **Tests run**: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit`.
 - **Manual QA**: Pending Phase 1 (T1.13), Phase 2 (T2.6), Phase 3 (T3.11), Phase 4 (T4.11), Phase 5 (T5.10).
 
 ## Before You Start
@@ -26,4 +27,4 @@
 
 ## Next Step
 
-- Phase 7: add comprehensive gating + behavior tests and run full test suite.
+- Phase 8: add live preview support in `M_VFXManager` and UI settings overlay.

@@ -10,8 +10,8 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 - **Type Safety**: Add typed results and event constants
 - **Testing**: Add deterministic testing hooks and comprehensive coverage
 
-**Status**: In Progress (Phase 6 implementation complete, commit pending)
-**Current Phase**: Phase 6
+**Status**: In Progress (Phase 7 complete)
+**Current Phase**: Phase 8
 **Last Updated**: 2026-01-16
 
 ---
@@ -947,7 +947,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Implementation
 
-- [ ] **T7.1**: Create comprehensive player gating integration test
+- [x] **T7.1**: Create comprehensive player gating integration test
   - Location: `tests/integration/vfx/test_vfx_player_gating_comprehensive.gd`
   - Tests:
     - Enemy takes damage → no shake, no flash
@@ -957,7 +957,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     - Enemy lands → no shake
     - Player lands → shake
 
-- [ ] **T7.2**: Create comprehensive transition gating integration test
+- [x] **T7.2**: Create comprehensive transition gating integration test
   - Location: `tests/integration/vfx/test_vfx_transition_gating_comprehensive.gd`
   - Tests:
     - Normal gameplay → VFX works
@@ -967,18 +967,18 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     - shell="endgame" → VFX blocked
     - Transition completes → VFX resumes
 
-- [ ] **T7.3**: Update existing integration tests
+- [x] **T7.3**: Update existing integration tests
   - Update: `tests/integration/vfx/test_vfx_camera_integration.gd`
   - Add: Gating verification to existing tests
   - Verify: Existing 5 tests still pass
 
-- [ ] **T7.4**: Update existing unit tests for new architecture
+- [x] **T7.4**: Update existing unit tests for new architecture
   - Update: `tests/unit/managers/test_vfx_manager.gd`
   - Replace: Old event structure with new VFX request events
   - Add: Request queue verification
   - Verify: All 17 original tests still pass
 
-- [ ] **T7.5**: Add deterministic shake tests
+- [x] **T7.5**: Add deterministic shake tests
   - Location: Update `tests/unit/managers/helpers/test_screen_shake.gd`
   - Add tests using seed and time control:
     - `test_same_seed_produces_same_results`
@@ -987,14 +987,15 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Verification
 
-- [ ] **T7.6**: Run full test suite
+- [x] **T7.6**: Run full test suite
   - Command: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit`
   - Expected: All tests pass (existing + new)
   - Track: Total test count before/after
+  - Notes: 1799 tests, 5 pending (headless timing skips)
 
 ### Commit Point
 
-- [ ] **Commit Phase 7**: "test(vfx): add comprehensive gating and behavior tests"
+- [x] **Commit Phase 7**: "test(vfx): add comprehensive gating and behavior tests" (`5a882b7`)
 
 ---
 
