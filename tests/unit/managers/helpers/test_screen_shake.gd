@@ -237,3 +237,53 @@ func test_get_sample_time_returns_current_time() -> void:
 	_shake_helper.calculate_shake(1.0, 1.0, 0.016)
 
 	assert_almost_eq(_shake_helper.get_sample_time(), 3.25, 0.0001, "get_sample_time should return the current time")
+
+
+# Test 19: Same seed produces identical shake results
+func test_same_seed_produces_same_results() -> void:
+	var helper_a := M_ScreenShake.new()
+	var helper_b := M_ScreenShake.new()
+
+	helper_a.set_noise_seed_for_testing(112233)
+	helper_b.set_noise_seed_for_testing(112233)
+	helper_a.set_sample_time_for_testing(4.5)
+	helper_b.set_sample_time_for_testing(4.5)
+
+	var result_a: ShakeResult = helper_a.calculate_shake(1.0, 1.0, 0.016)
+	var result_b: ShakeResult = helper_b.calculate_shake(1.0, 1.0, 0.016)
+
+	assert_almost_eq(result_a.offset.x, result_b.offset.x, 0.0001, "Offset X should match for same seed")
+	assert_almost_eq(result_a.offset.y, result_b.offset.y, 0.0001, "Offset Y should match for same seed")
+	assert_almost_eq(result_a.rotation, result_b.rotation, 0.0001, "Rotation should match for same seed")
+
+
+# Test 20: Different seeds produce different shake results
+func test_different_seeds_produce_different_results() -> void:
+	var helper_a := M_ScreenShake.new()
+	var helper_b := M_ScreenShake.new()
+
+	helper_a.set_noise_seed_for_testing(1)
+	helper_b.set_noise_seed_for_testing(2)
+	helper_a.set_sample_time_for_testing(4.5)
+	helper_b.set_sample_time_for_testing(4.5)
+
+	var result_a: ShakeResult = helper_a.calculate_shake(1.0, 1.0, 0.016)
+	var result_b: ShakeResult = helper_b.calculate_shake(1.0, 1.0, 0.016)
+
+	var offset_delta: float = result_a.offset.distance_to(result_b.offset)
+	var rotation_delta: float = absf(result_a.rotation - result_b.rotation)
+	assert_true(offset_delta > 0.0001 or rotation_delta > 0.0001,
+		"Different seeds should produce different shake results")
+
+
+# Test 21: Frozen time produces identical shake results
+func test_frozen_time_produces_same_results() -> void:
+	_shake_helper.set_noise_seed_for_testing(13579)
+	_shake_helper.set_sample_time_for_testing(2.75)
+
+	var result1: ShakeResult = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
+	var result2: ShakeResult = _shake_helper.calculate_shake(1.0, 1.0, 0.5)
+
+	assert_almost_eq(result1.offset.x, result2.offset.x, 0.0001, "Offset X should stay fixed when time is frozen")
+	assert_almost_eq(result1.offset.y, result2.offset.y, 0.0001, "Offset Y should stay fixed when time is frozen")
+	assert_almost_eq(result1.rotation, result2.rotation, 0.0001, "Rotation should stay fixed when time is frozen")

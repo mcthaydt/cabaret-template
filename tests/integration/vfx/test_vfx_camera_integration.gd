@@ -17,12 +17,14 @@ const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/state/resources/rs_state_store_settings.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_VFX_INITIAL_STATE := preload("res://scripts/state/resources/rs_vfx_initial_state.gd")
 
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_VFX_ACTIONS := preload("res://scripts/state/actions/u_vfx_actions.gd")
 
 const SHAKE_PARENT_META := &"_camera_manager_shake_parent"
@@ -51,6 +53,7 @@ func before_each() -> void:
 	var navigation_initial := RS_NAVIGATION_INITIAL_STATE.new()
 	navigation_initial.shell = StringName("gameplay")
 	_store.navigation_initial_state = navigation_initial
+	_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
 	_store.vfx_initial_state = RS_VFX_INITIAL_STATE.new()
 	add_child_autofree(_store)
 	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)
@@ -108,6 +111,11 @@ func _get_scene_shake_parent() -> Node3D:
 	if bool(parent.get_meta(SHAKE_PARENT_META, false)):
 		return parent
 	return null
+
+
+func _ensure_shake_parent() -> Node3D:
+	_camera_manager.apply_shake_offset(Vector2.ZERO, 0.0)
+	return _get_scene_shake_parent()
 
 
 func _set_shake_sample_time(time_value: float) -> void:
@@ -283,3 +291,27 @@ func test_multiple_damage_events_accumulate_trauma_clamped_to_one() -> void:
 
 	assert_true(shake_parent.position.length() > 0.0001 or absf(shake_parent.rotation.z) > 0.0001,
 		"Shake should be applied when trauma is clamped at 1.0")
+
+
+func test_screen_shake_request_blocked_during_transition() -> void:
+	var shake_parent := _ensure_shake_parent()
+	assert_not_null(shake_parent, "ShakeParent should exist before gating test")
+	if shake_parent == null:
+		return
+
+	_store.dispatch(U_SCENE_ACTIONS.transition_started(StringName("test_scene"), "fade"))
+
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
+		"entity_id": "E_Player",
+		"trauma_amount": 0.6,
+		"source": "damage",
+	})
+
+	_vfx_manager._physics_process(0.0)
+
+	assert_almost_eq(_vfx_manager.get_trauma(), 0.0, 0.0001,
+		"Shake requests should be blocked during transitions")
+	assert_almost_eq(shake_parent.position, Vector3.ZERO, Vector3(0.0001, 0.0001, 0.0001),
+		"ShakeParent should remain at zero offset during transitions")
+	assert_almost_eq(shake_parent.rotation, Vector3.ZERO, Vector3(0.0001, 0.0001, 0.0001),
+		"ShakeParent should remain at zero rotation during transitions")

@@ -141,6 +141,24 @@ func test_screen_shake_request_adds_trauma() -> void:
 	var trauma: float = _manager.get_trauma()
 	assert_almost_eq(trauma, 0.45, 0.001, "screen_shake_request should add trauma")
 
+# Test 9b: screen_shake_request is queued until _physics_process
+func test_screen_shake_request_waits_for_physics_process() -> void:
+	_manager = await _create_manager_with_player_id(StringName("E_Player"))
+
+	U_ECS_EVENT_BUS.publish(U_ECS_EVENT_NAMES.EVENT_SCREEN_SHAKE_REQUEST, {
+		"entity_id": "E_Player",
+		"trauma_amount": 0.4,
+		"source": "damage",
+	})
+
+	assert_almost_eq(_manager.get_trauma(), 0.0, 0.0001,
+		"Trauma should not update until physics processing")
+
+	_manager._physics_process(0.0)
+
+	assert_almost_eq(_manager.get_trauma(), 0.4, 0.0001,
+		"Queued shake request should be processed during physics")
+
 # Test 10: screen_shake_request scales with trauma amount
 func test_screen_shake_request_scales_with_trauma_amount() -> void:
 	_manager = await _create_manager_with_player_id(StringName("E_Player"))
