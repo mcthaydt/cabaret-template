@@ -13,6 +13,7 @@ const U_VFXActions := preload("res://scripts/state/actions/u_vfx_actions.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 @onready var _shake_enabled_toggle: CheckButton = %ShakeEnabledToggle
 @onready var _intensity_slider: HSlider = %IntensitySlider
@@ -26,6 +27,11 @@ const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configura
 var _store_unsubscribe: Callable = Callable()
 var _updating_from_state: bool = false
 var _has_local_edits: bool = false
+var _vfx_manager: M_VFXManager = null
+
+func _ready() -> void:
+	await super._ready()
+	_vfx_manager = U_ServiceLocator.try_get_service(StringName("vfx_manager")) as M_VFXManager
 
 func _on_store_ready(store: M_StateStore) -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
@@ -134,7 +140,9 @@ func _on_shake_enabled_toggled(_pressed: bool) -> void:
 	# Changes only apply when user clicks Apply button
 	if _updating_from_state:
 		return
+	U_UISoundPlayer.play_toggle()
 	_has_local_edits = true
+	_update_vfx_settings_preview_from_ui()
 
 func _on_intensity_changed(value: float) -> void:
 	# Update percentage label immediately for visual feedback
@@ -143,12 +151,17 @@ func _on_intensity_changed(value: float) -> void:
 		return
 	U_UISoundPlayer.play_slider_tick()
 	_has_local_edits = true
+	_update_vfx_settings_preview_from_ui()
+	if _vfx_manager != null:
+		_vfx_manager.trigger_test_shake(value)
 
 func _on_flash_enabled_toggled(_pressed: bool) -> void:
 	# Changes only apply when user clicks Apply button
 	if _updating_from_state:
 		return
+	U_UISoundPlayer.play_toggle()
 	_has_local_edits = true
+	_update_vfx_settings_preview_from_ui()
 
 func _on_particles_enabled_toggled(_pressed: bool) -> void:
 	# Changes only apply when user clicks Apply button
@@ -218,13 +231,30 @@ func _on_back_pressed() -> void:
 
 func _on_cancel_pressed() -> void:
 	U_UISoundPlayer.play_cancel()
+	_has_local_edits = false
+	_clear_vfx_settings_preview()
 	_close_overlay()
+
+func _update_vfx_settings_preview_from_ui() -> void:
+	if _vfx_manager == null:
+		return
+	_vfx_manager.set_vfx_settings_preview({
+		"screen_shake_enabled": _shake_enabled_toggle.button_pressed if _shake_enabled_toggle != null else true,
+		"screen_shake_intensity": _intensity_slider.value if _intensity_slider != null else 1.0,
+		"damage_flash_enabled": _flash_enabled_toggle.button_pressed if _flash_enabled_toggle != null else true,
+	})
+
+func _clear_vfx_settings_preview() -> void:
+	if _vfx_manager == null:
+		return
+	_vfx_manager.clear_vfx_settings_preview()
 
 func _update_percentage_label(value: float) -> void:
 	if _intensity_percentage != null:
 		_intensity_percentage.text = "%d%%" % int(value * 100.0)
 
 func _exit_tree() -> void:
+	_clear_vfx_settings_preview()
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
 		_store_unsubscribe.call()
 	_store_unsubscribe = Callable()

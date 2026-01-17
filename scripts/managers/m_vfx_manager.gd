@@ -63,6 +63,10 @@ var _flash_requests: Array = []
 ## Unsubscribe callables for ECS event subscriptions
 var _event_unsubscribes: Array[Callable] = []
 
+## Preview settings overrides (used by settings UI)
+var _preview_settings: Dictionary = {}
+var _is_previewing: bool = false
+
 func _ready() -> void:
 	# Run even when game is paused (VFX should be visible in pause menu)
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -142,6 +146,46 @@ func add_trauma(amount: float) -> void:
 func get_trauma() -> float:
 	return _trauma
 
+## Apply temporary preview settings (for UI testing)
+func set_vfx_settings_preview(settings: Dictionary) -> void:
+	_preview_settings = settings.duplicate(true)
+	_is_previewing = true
+
+## Clear preview and revert to Redux state
+func clear_vfx_settings_preview() -> void:
+	_preview_settings.clear()
+	_is_previewing = false
+
+## Trigger a test shake for preview purposes
+func trigger_test_shake(intensity: float = 1.0) -> void:
+	if not _get_screen_shake_enabled():
+		return
+	add_trauma(0.3 * intensity)
+
+## Get effective screen shake enabled (preview or state)
+func _get_screen_shake_enabled() -> bool:
+	if _is_previewing and _preview_settings.has("screen_shake_enabled"):
+		return bool(_preview_settings.get("screen_shake_enabled", true))
+	if _state_store == null:
+		return true
+	return U_VFX_SELECTORS.is_screen_shake_enabled(_state_store.get_state())
+
+## Get effective screen shake intensity (preview or state)
+func _get_screen_shake_intensity() -> float:
+	if _is_previewing and _preview_settings.has("screen_shake_intensity"):
+		return float(_preview_settings.get("screen_shake_intensity", 1.0))
+	if _state_store == null:
+		return 1.0
+	return U_VFX_SELECTORS.get_screen_shake_intensity(_state_store.get_state())
+
+## Get effective damage flash enabled (preview or state)
+func _get_damage_flash_enabled() -> bool:
+	if _is_previewing and _preview_settings.has("damage_flash_enabled"):
+		return bool(_preview_settings.get("damage_flash_enabled", true))
+	if _state_store == null:
+		return true
+	return U_VFX_SELECTORS.is_damage_flash_enabled(_state_store.get_state())
+
 ## Check if entity_id matches the player entity
 func _is_player_entity(entity_id: StringName) -> bool:
 	if _state_store == null:
@@ -191,11 +235,10 @@ func _physics_process(delta: float) -> void:
 	# Decay trauma over time (2.0/sec rate)
 	_trauma = maxf(_trauma - _trauma_decay_rate * delta, 0.0)
 
-	# Apply screen shake if camera manager available and shake enabled in settings
+	# Apply screen shake if camera manager available and shake enabled in settings/preview
 	if _camera_manager != null and _state_store != null and _screen_shake != null:
-		var state: Dictionary = _state_store.get_state()
-		if U_VFX_SELECTORS.is_screen_shake_enabled(state):
-			var intensity: float = U_VFX_SELECTORS.get_screen_shake_intensity(state)
+		if _get_screen_shake_enabled():
+			var intensity: float = _get_screen_shake_intensity()
 			var shake_result = _screen_shake.calculate_shake(_trauma, intensity, delta)
 			_camera_manager.apply_shake_offset(shake_result.offset, shake_result.rotation)
 		else:
@@ -239,8 +282,7 @@ func _process_shake_request(event_data: Dictionary) -> void:
 func _process_flash_request(event_data: Dictionary) -> void:
 	if _state_store == null or _damage_flash == null:
 		return
-	var state: Dictionary = _state_store.get_state()
-	if not U_VFX_SELECTORS.is_damage_flash_enabled(state):
+	if not _get_damage_flash_enabled():
 		return
 	var payload: Dictionary = event_data.get("payload", {})
 	var intensity: float = float(payload.get("intensity", 1.0))

@@ -321,6 +321,42 @@ func test_multiple_events_accumulate_trauma() -> void:
 	assert_true(trauma_after_second <= 1.0,
 		"Accumulated trauma should clamp at 1.0, got %f" % trauma_after_second)
 
+# Test 18: trigger_test_shake adds 0.3 trauma
+func test_trigger_test_shake_adds_0_3_trauma() -> void:
+	_manager = M_VFX_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	_manager.trigger_test_shake()
+
+	assert_almost_eq(_manager.get_trauma(), 0.3, 0.001,
+		"trigger_test_shake should add 0.3 trauma")
+
+# Test 19: trigger_test_shake scales trauma with intensity
+func test_trigger_test_shake_with_intensity_scales_trauma() -> void:
+	_manager = M_VFX_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	_manager.trigger_test_shake(0.5)
+
+	assert_almost_eq(_manager.get_trauma(), 0.15, 0.001,
+		"trigger_test_shake(0.5) should add 0.15 trauma")
+
+# Test 20: test shake respects preview settings
+func test_test_shake_respects_preview_settings() -> void:
+	_manager = M_VFX_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	_manager.set_vfx_settings_preview({
+		"screen_shake_enabled": false,
+	})
+	_manager.trigger_test_shake()
+
+	assert_eq(_manager.get_trauma(), 0.0,
+		"Preview disable should prevent test shake trauma")
+
 func _create_manager_with_player_id(player_id: StringName) -> M_VFXManager:
 	var store := MOCK_STATE_STORE.new()
 	store.set_slice(StringName("gameplay"), {
