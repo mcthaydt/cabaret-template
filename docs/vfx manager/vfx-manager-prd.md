@@ -4,10 +4,10 @@
 **Owner**: Development Team
 **Feature Branch**: `feature/vfx-manager`
 **Created**: 2026-01-01
-**Last Updated**: 2026-01-04
-**Target Release**: Phase 7 (Particles Toggle)
-**Status**: IMPLEMENTED (Phases 0-7 complete)
-**Version**: 1.2
+**Last Updated**: 2026-01-16
+**Target Release**: Phase 8 (Settings Preview)
+**Status**: IMPLEMENTED (Phases 0-8 complete)
+**Version**: 1.3
 
 ## Problem Statement
 
@@ -46,6 +46,7 @@ Players currently experience no visual feedback for impactful gameplay events li
 6. **Event-Driven Architecture**: Subscribe to ECS events for trauma triggers
 7. **Settings Persistence**: VFX preferences saved with game progress
 8. **Particles Toggle**: Global enable/disable for particle VFX via Redux settings
+9. **Settings Preview**: Live preview for screen shake settings in the UI
 
 ## Non-Goals
 

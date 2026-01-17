@@ -10,7 +10,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 - **Type Safety**: Add typed results and event constants
 - **Testing**: Add deterministic testing hooks and comprehensive coverage
 
-**Status**: In Progress (Phase 7 complete)
+**Status**: In Progress (Phase 8 implementation complete; verification pending)
 **Current Phase**: Phase 8
 **Last Updated**: 2026-01-16
 
@@ -1005,7 +1005,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Tests (Write First - TDD)
 
-- [ ] **T8.1**: Write test for preview settings
+- [x] **T8.1**: Write test for preview settings
   - Location: `tests/unit/managers/test_vfx_manager_preview.gd`
   - Tests:
     - `test_set_preview_overrides_redux_state`
@@ -1015,7 +1015,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     - `test_preview_affects_flash_enabled`
   - Tests RED initially ✅
 
-- [ ] **T8.2**: Write test for test shake trigger
+- [x] **T8.2**: Write test for test shake trigger
   - Location: Update `tests/unit/managers/test_vfx_manager.gd`
   - Add tests:
     - `test_trigger_test_shake_adds_0_3_trauma`
@@ -1025,7 +1025,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Implementation
 
-- [ ] **T8.3**: Add preview state to `M_VFXManager`
+- [x] **T8.3**: Add preview state to `M_VFXManager`
   - Add fields:
 
     ```gdscript
@@ -1033,7 +1033,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     var _is_previewing: bool = false
     ```
 
-- [ ] **T8.4**: Add preview methods to `M_VFXManager`
+- [x] **T8.4**: Add preview methods to `M_VFXManager`
   - Add methods:
 
     ```gdscript
@@ -1054,7 +1054,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
   - Tests GREEN ✅
 
-- [ ] **T8.5**: Add preview getters to `M_VFXManager`
+- [x] **T8.5**: Add preview getters to `M_VFXManager`
   - Add methods:
 
     ```gdscript
@@ -1083,7 +1083,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
         return U_VFX_SELECTORS.is_damage_flash_enabled(_state_store.get_state())
     ```
 
-- [ ] **T8.6**: Update `_physics_process()` to use preview getters
+- [x] **T8.6**: Update `_physics_process()` to use preview getters
   - Replace:
 
     ```gdscript
@@ -1096,7 +1096,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
         var intensity := _get_screen_shake_intensity()
     ```
 
-- [ ] **T8.7**: Update `UI_VFXSettingsOverlay` to use preview
+- [x] **T8.7**: Update `UI_VFXSettingsOverlay` to use preview
   - Location: `scripts/ui/settings/ui_vfx_settings_overlay.gd`
   - Add in `_ready()`:
 
@@ -1157,7 +1157,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
         _close_overlay()
     ```
 
-- [ ] **T8.8**: Update enable toggle handlers to trigger preview
+- [x] **T8.8**: Update enable toggle handlers to trigger preview
   - Update `_on_shake_enabled_changed()`:
 
     ```gdscript
@@ -1188,7 +1188,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Commit Point
 
-- [ ] **Commit Phase 8**: "feat(vfx): add live preview to settings UI"
+- [x] **Commit Phase 8**: "feat(vfx): add live preview to settings UI"
 
 ---
 

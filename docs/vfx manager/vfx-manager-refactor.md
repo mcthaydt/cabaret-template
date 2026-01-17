@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Status (2026-01-16)**: Phase 7 complete (Testing Improvements). Next up: Phase 8 (UI Settings Preview).
+**Status (2026-01-16)**: Phase 8 complete (UI Settings Preview). Next up: Phase 9 (Documentation Updates).
 
 This plan addresses issues identified in the VFX Manager system, organized into 10 incremental phases. The refactoring improves architecture, correctness, scalability, code health, and testing while maintaining backward compatibility.
 
@@ -12,7 +12,7 @@ This plan addresses issues identified in the VFX Manager system, organized into 
 1. **Alpha bug** - Resolved in Phase 5 (damage flash alpha corrected).
 2. **No gating** - Resolved in Phase 3 (player-only + transition blocking).
 3. **Magic numbers** - Resolved in Phase 4 (tuning resources).
-4. **Missing preview** - Open (VFX settings still uses Apply/Cancel without live preview).
+4. **Missing preview** - Resolved in Phase 8 (settings preview + test shake).
 5. **Tight coupling** - Resolved in Phase 1 (publisher systems + request events).
 6. **Runtime load** - Resolved in Phase 6 (preload damage flash scene).
 7. **Individual unsubscribes** - Resolved in Phase 6 (unsubscribe array cleanup).

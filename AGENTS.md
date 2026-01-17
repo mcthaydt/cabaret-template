@@ -60,6 +60,9 @@
   - `RS_ScreenShakeTuning` defines trauma decay + damage/landing/death curves; defaults in `resources/vfx/rs_screen_shake_tuning.tres`.
   - `RS_ScreenShakeConfig` defines shake offset/rotation/noise; defaults in `resources/vfx/rs_screen_shake_config.tres`.
   - `S_ScreenShakePublisherSystem` reads tuning (export injection optional), `M_VFXManager` uses tuning for decay and config for `M_ScreenShake`.
+- VFX Settings Preview (Phase 8)
+  - `M_VFXManager` supports temporary overrides via `set_vfx_settings_preview(...)` and `clear_vfx_settings_preview()`.
+  - `UI_VFXSettingsOverlay` pushes preview updates on toggle/slider changes and calls `trigger_test_shake()` on intensity changes; preview is cleared on cancel or overlay exit.
 - **Testing with Dependency Injection (Phase 10B-8)**
   - Systems support `@export` dependency injection for isolated testing with mocks.
   - **Inject ECS manager**: All systems inherit `@export var ecs_manager: I_ECSManager` from BaseECSSystem.
