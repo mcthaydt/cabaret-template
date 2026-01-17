@@ -2,20 +2,20 @@
 
 ## Overview
 
-**Status (2026-01-17)**: Phase 3 complete (Player-only & transition gating). Next up: Phase 4 (Resource-Driven Configuration).
+**Status (2026-01-16)**: Phase 6 implementation complete (Preload & Publisher Cleanup), commit pending. Next up: Phase 7 (Testing Improvements).
 
 This plan addresses issues identified in the VFX Manager system, organized into 10 incremental phases. The refactoring improves architecture, correctness, scalability, code health, and testing while maintaining backward compatibility.
 
 ## Current State Analysis
 
 ### Verified Issues
-1. **Alpha bug** - `scenes/ui/ui_damage_flash_overlay.tscn:14` has `color.a = 0.3`, combined with `modulate.a = 0.3` gives `0.09` actual alpha instead of intended `0.3`
-2. **No gating** - VFX triggers for all entities (player and non-player), no transition blocking
-3. **Magic numbers** - Hardcoded trauma values throughout `m_vfx_manager.gd` (lines 30, 162-163, 185-189, 196)
-4. **Missing preview** - VFX settings has Apply/Cancel but no live preview (unlike audio settings which previews changes)
-5. **Tight coupling** - VFX Manager subscribes directly to gameplay events instead of VFX-specific request events
-6. **Runtime load** - Uses `load()` instead of `preload()` for damage flash scene (line 77)
-7. **Individual unsubscribes** - Three separate unsubscribe callables instead of array (lines 49-51)
+1. **Alpha bug** - Resolved in Phase 5 (damage flash alpha corrected).
+2. **No gating** - Resolved in Phase 3 (player-only + transition blocking).
+3. **Magic numbers** - Resolved in Phase 4 (tuning resources).
+4. **Missing preview** - Open (VFX settings still uses Apply/Cancel without live preview).
+5. **Tight coupling** - Resolved in Phase 1 (publisher systems + request events).
+6. **Runtime load** - Resolved in Phase 6 (preload damage flash scene).
+7. **Individual unsubscribes** - Resolved in Phase 6 (unsubscribe array cleanup).
 
 ### Key Files
 - `scripts/managers/m_vfx_manager.gd` (201 lines)

@@ -10,9 +10,9 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 - **Type Safety**: Add typed results and event constants
 - **Testing**: Add deterministic testing hooks and comprehensive coverage
 
-**Status**: In Progress (Phase 5 complete)
+**Status**: In Progress (Phase 6 implementation complete, commit pending)
 **Current Phase**: Phase 6
-**Last Updated**: 2026-01-17
+**Last Updated**: 2026-01-16
 
 ---
 
@@ -890,7 +890,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Tests (Write First - TDD)
 
-- [ ] **T6.1**: Write test for preload usage
+- [x] **T6.1**: Write test for preload usage
   - Location: `tests/unit/managers/test_vfx_manager_cleanup.gd`
   - Tests:
     - `test_damage_flash_scene_preloaded`
@@ -899,7 +899,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Implementation
 
-- [ ] **T6.2**: Add preload for damage flash scene
+- [x] **T6.2**: Add preload for damage flash scene
   - Add constant at top of `M_VFXManager`:
 
     ```gdscript
@@ -918,7 +918,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
   - Reason: Compile-time loading, faster startup
 
-- [ ] **T6.3**: Apply same pattern to publisher systems
+- [x] **T6.3**: Apply same pattern to publisher systems
   - Update: `S_ScreenShakePublisherSystem` with unsubscribe array
   - Update: `S_DamageFlashPublisherSystem` with unsubscribe array
   - Replace individual fields with `Array[Callable]`
@@ -926,11 +926,12 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Verification
 
-- [ ] **T6.4**: Run Phase 6 tests
+- [x] **T6.4**: Run Phase 6 tests
   - Verify: Cleanup tests pass
   - Verify: No memory leaks reported
+  - Notes: `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/test_vfx_manager_cleanup.gd -gexit`
 
-- [ ] **T6.5**: Code review
+- [x] **T6.5**: Code review
   - Search: `load("res://scenes/ui/ui_damage_flash_overlay.tscn")` → 0 results
   - Verify: Only `preload()` used
 
