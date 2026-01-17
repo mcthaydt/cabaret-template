@@ -2,9 +2,10 @@
 
 ## Current Status (2026-01-16)
 
-- **Refactor status**: Phase 6 implementation complete (Preload & Publisher Cleanup), commit pending.
+- **Refactor status**: Phase 6 complete (Preload & Publisher Cleanup).
 - **Phase 5 commit**: `994da2e`.
-- **Next phase**: Phase 6 commit + docs, then Phase 7 (Testing Improvements).
+- **Phase 6 commit**: `b288afc`.
+- **Next phase**: Phase 7 (Testing Improvements).
 - **New helper**: `m_shake_result.gd` (ShakeResult).
 - **Tests run**: `tools/run_gut_suite.sh -gtest=res://tests/unit/managers/test_vfx_manager_cleanup.gd -gexit`, `tools/run_gut_suite.sh -gtest=res://tests/unit/style/test_style_enforcement.gd -gexit`.
 - **Manual QA**: Pending Phase 1 (T1.13), Phase 2 (T2.6), Phase 3 (T3.11), Phase 4 (T4.11), Phase 5 (T5.10).
@@ -25,4 +26,4 @@
 
 ## Next Step
 
-- Commit Phase 6 implementation, then commit doc updates separately, then proceed to Phase 7 tests.
+- Phase 7: add comprehensive gating + behavior tests and run full test suite.

@@ -937,7 +937,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Commit Point
 
-- [ ] **Commit Phase 6**: "refactor(vfx): consolidate cleanup and use preload"
+- [x] **Commit Phase 6**: "refactor(vfx): consolidate cleanup and use preload" (`b288afc`)
 
 ---
 

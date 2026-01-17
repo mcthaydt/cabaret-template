@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Status (2026-01-16)**: Phase 6 implementation complete (Preload & Publisher Cleanup), commit pending. Next up: Phase 7 (Testing Improvements).
+**Status (2026-01-16)**: Phase 6 complete (Preload & Publisher Cleanup). Next up: Phase 7 (Testing Improvements).
 
 This plan addresses issues identified in the VFX Manager system, organized into 10 incremental phases. The refactoring improves architecture, correctness, scalability, code health, and testing while maintaining backward compatibility.
 
