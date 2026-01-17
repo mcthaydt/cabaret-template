@@ -112,7 +112,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			var damage_state: Dictionary = state.duplicate(true)
 			var damage_payload: Dictionary = action.get("payload", {})
 			var damage_entity: String = String(damage_payload.get("entity_id", ""))
-			var player_id_damage: String = String(state.get("player_entity_id", "E_Player"))
+			var player_id_damage: String = String(state.get("player_entity_id", "player"))
 			if damage_entity.is_empty() or damage_entity == player_id_damage:
 				var current_health: float = float(damage_state.get("player_health", 0.0))
 				var max_health: float = float(damage_state.get("player_max_health", current_health))
@@ -124,7 +124,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			var heal_state: Dictionary = state.duplicate(true)
 			var heal_payload: Dictionary = action.get("payload", {})
 			var heal_entity: String = String(heal_payload.get("entity_id", ""))
-			var player_id_heal: String = String(state.get("player_entity_id", "E_Player"))
+			var player_id_heal: String = String(state.get("player_entity_id", "player"))
 			if heal_entity.is_empty() or heal_entity == player_id_heal:
 				var current_health_heal: float = float(heal_state.get("player_health", 0.0))
 				var max_health_heal: float = float(heal_state.get("player_max_health", current_health_heal))
@@ -136,7 +136,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			var death_state: Dictionary = state.duplicate(true)
 			var death_payload: Dictionary = action.get("payload", {})
 			var death_entity: String = String(death_payload.get("entity_id", ""))
-			var tracked_player: String = String(state.get("player_entity_id", "E_Player"))
+			var tracked_player: String = String(state.get("player_entity_id", "player"))
 			if death_entity.is_empty() or death_entity == tracked_player:
 				death_state.player_health = 0.0
 			return death_state
@@ -185,7 +185,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			reset_state.target_spawn_point = StringName("")
 			reset_state.last_checkpoint = StringName("")
 
-			var player_id: String = String(reset_state.get("player_entity_id", "E_Player"))
+			var player_id: String = String(reset_state.get("player_entity_id", "player"))
 			var updated_entities: Dictionary = {}
 			if reset_state.has("entities"):
 				var entities_copy: Dictionary = reset_state["entities"].duplicate(true)
@@ -212,7 +212,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			reset_state.player_health = max_health_reset
 			reset_state.last_victory_objective = StringName("")
 
-			var player_id: String = String(reset_state.get("player_entity_id", "E_Player"))
+			var player_id: String = String(reset_state.get("player_entity_id", "player"))
 			if reset_state.has("entities"):
 				var entities_copy: Dictionary = reset_state["entities"].duplicate(true)
 				if entities_copy.has(player_id):

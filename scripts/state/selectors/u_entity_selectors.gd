@@ -56,7 +56,7 @@ static func get_entity_health(state: Dictionary, entity_id: Variant) -> float:
 		return float(entity.get("health"))
 
 	var gameplay: Dictionary = state.get("gameplay", {})
-	var player_id: String = String(gameplay.get("player_entity_id", "E_Player"))
+	var player_id: String = String(gameplay.get("player_entity_id", "player"))
 	# Convert entity_id to String for comparison
 	var id_string := String(entity_id) if entity_id is StringName else str(entity_id)
 	if id_string == player_id:
@@ -72,7 +72,7 @@ static func get_entity_max_health(state: Dictionary, entity_id: Variant) -> floa
 		return float(entity.get("max_health"))
 
 	var gameplay: Dictionary = state.get("gameplay", {})
-	var player_id: String = String(gameplay.get("player_entity_id", "E_Player"))
+	var player_id: String = String(gameplay.get("player_entity_id", "player"))
 	# Convert entity_id to String for comparison
 	var id_string := String(entity_id) if entity_id is StringName else str(entity_id)
 	if id_string == player_id:
@@ -98,7 +98,7 @@ static func get_player_entity_id(state: Dictionary) -> String:
 	var entities: Array = get_entities_by_type(state, "player")
 	if entities.size() > 0:
 		return entities[0]["id"]
-	return state.get("gameplay", {}).get("player_entity_id", "E_Player")
+	return state.get("gameplay", {}).get("player_entity_id", "player")
 
 ## Get player position (convenience)
 static func get_player_position(state: Dictionary) -> Vector3:

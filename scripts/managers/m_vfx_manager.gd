@@ -189,13 +189,18 @@ func _get_damage_flash_enabled() -> bool:
 ## Check if entity_id matches the player entity
 func _is_player_entity(entity_id: StringName) -> bool:
 	if _state_store == null:
+		print("[VFX DEBUG] _is_player_entity: no state_store!")
 		return false  # Fallback: BLOCK VFX if no store (safer)
 	var state: Dictionary = _state_store.get_state()
 	var gameplay: Dictionary = state.get("gameplay", {})
 	var player_entity_id: StringName = StringName(str(gameplay.get("player_entity_id", "")))
+	print("[VFX DEBUG] _is_player_entity: comparing entity_id='%s' vs player_entity_id='%s'" % [entity_id, player_entity_id])
 	if player_entity_id.is_empty():
+		print("[VFX DEBUG] _is_player_entity: player_entity_id is empty!")
 		return false  # Fallback: BLOCK VFX if no player registered (safer)
-	return entity_id == player_entity_id
+	var matches: bool = entity_id == player_entity_id
+	print("[VFX DEBUG] _is_player_entity: match=%s" % matches)
+	return matches
 
 ## Check if VFX should be blocked due to transitions or non-gameplay state
 func _is_transition_blocked() -> bool:
@@ -206,17 +211,20 @@ func _is_transition_blocked() -> bool:
 	# Block during scene transitions
 	var scene_slice: Dictionary = state.get("scene", {})
 	if U_SCENE_SELECTORS.is_transitioning(scene_slice):
+		print("[VFX DEBUG] _is_transition_blocked: is_transitioning=true")
 		return true
 
 	# Block if scene stack is not empty (loading/overlay scenes)
 	var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(scene_slice)
 	if not scene_stack.is_empty():
+		print("[VFX DEBUG] _is_transition_blocked: scene_stack not empty: %s" % [scene_stack])
 		return true
 
 	# Block if not in gameplay shell
 	var nav_slice: Dictionary = state.get("navigation", {})
 	var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(nav_slice)
 	if shell != StringName("gameplay"):
+		print("[VFX DEBUG] _is_transition_blocked: shell='%s' (not gameplay)" % shell)
 		return true
 
 	return false
@@ -250,12 +258,17 @@ func _on_screen_shake_request(event_data: Dictionary) -> void:
 	var payload: Dictionary = event_data.get("payload", {})
 	var entity_id: StringName = StringName(str(payload.get("entity_id", "")))
 
+	print("[VFX DEBUG] _on_screen_shake_request: entity_id='%s'" % entity_id)
+
 	# Gating: player-only and transition check
 	if not _is_player_entity(entity_id):
+		print("[VFX DEBUG] BLOCKED by player gating")
 		return
 	if _is_transition_blocked():
+		print("[VFX DEBUG] BLOCKED by transition gating")
 		return
 
+	print("[VFX DEBUG] Shake request ACCEPTED")
 	_shake_requests.append(event_data)
 
 ## Event handler for damage flash request events

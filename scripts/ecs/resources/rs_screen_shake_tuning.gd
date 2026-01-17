@@ -6,7 +6,7 @@ class_name RS_ScreenShakeTuning
 
 @export_group("Damage")
 @export var damage_min_trauma: float = 0.3
-@export var damage_max_trauma: float = 0.6
+@export var damage_max_trauma: float = 1.0
 @export var damage_max_value: float = 100.0
 
 @export_group("Landing")

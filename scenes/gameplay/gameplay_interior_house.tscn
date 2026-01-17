@@ -47,7 +47,9 @@
 [ext_resource type="Script" uid="uid://wcj50ipurwwr" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
 [ext_resource type="Script" uid="uid://djo2trcoo4cta" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://ks2d8qdhrpmx" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
+[ext_resource type="Script" uid="uid://drve6d2eb04mc" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="29_screen_shake_publisher"]
 [ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres" id="30_auc1c"]
+[ext_resource type="Script" uid="uid://b7x5w7g6yhraa" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
 [ext_resource type="Script" uid="uid://81p10p1v8f73" path="res://scripts/gameplay/e_door_trigger_controller.gd" id="30_door_controller"]
 [ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/rs_death_zone_volume.tres" id="44_death_settings"]
 [ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/rs_goal_cylinder.tres" id="44_goal_settings"]
@@ -263,6 +265,12 @@ execution_priority = 127
 script = ExtResource("10_landing_particles")
 settings = ExtResource("10_landing_particles_settings")
 execution_priority = 122
+
+[node name="S_ScreenShakePublisherSystem" type="Node" parent="Systems/Feedback" unique_id=1857909746]
+script = ExtResource("29_screen_shake_publisher")
+
+[node name="S_DamageFlashPublisherSystem" type="Node" parent="Systems/Feedback" unique_id=640524226]
+script = ExtResource("30_damage_flash_publisher")
 
 [node name="Managers" type="Node" parent="." unique_id=951226643]
 script = ExtResource("12_klon2")

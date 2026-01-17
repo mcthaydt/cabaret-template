@@ -25,7 +25,7 @@ const INPUT_REDUCER := preload("res://scripts/state/reducers/u_input_reducer.gd"
 @export var jump_just_pressed: bool = false
 
 # Player health + progression
-@export var player_entity_id: String = "E_Player"
+@export var player_entity_id: String = "player"
 @export var player_health: float = 100.0
 @export var player_max_health: float = 100.0
 @export var death_count: int = 0

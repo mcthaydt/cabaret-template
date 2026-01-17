@@ -18,7 +18,7 @@ const HUD_GROUP := StringName("hud_layers")
 @onready var interact_prompt: UI_ButtonPrompt = $MarginContainer/InteractPrompt
 
 var _store: I_StateStore = null
-var _player_entity_id: String = "E_Player"
+var _player_entity_id: String = "player"
 var _unsubscribe_checkpoint: Callable
 var _unsubscribe_interact_prompt_show: Callable
 var _unsubscribe_interact_prompt_hide: Callable
@@ -40,7 +40,7 @@ func _ready() -> void:
 		push_error("HUD: Could not find M_StateStore")
 		return
 
-	_player_entity_id = String(_store.get_slice(StringName("gameplay")).get("player_entity_id", "E_Player"))
+	_player_entity_id = String(_store.get_slice(StringName("gameplay")).get("player_entity_id", "player"))
 	_store.slice_updated.connect(_on_slice_updated)
 
 	# Subscribe to checkpoint events for player feedback

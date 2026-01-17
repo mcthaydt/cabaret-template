@@ -28,7 +28,7 @@ var _state_store: I_StateStore = null
 var _store_unsubscribe: Callable = Callable()
 var _event_unsubscribes: Array[Callable] = []
 var _gamepad_settings: Dictionary = {}
-var _player_entity_id: String = "E_Player"
+var _player_entity_id: String = "player"
 var _last_input_state: Dictionary = {}
 
 func on_configured() -> void:

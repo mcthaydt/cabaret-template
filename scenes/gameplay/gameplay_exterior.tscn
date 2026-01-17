@@ -48,6 +48,8 @@
 [ext_resource type="Script" uid="uid://djo2trcoo4cta" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://ks2d8qdhrpmx" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
 [ext_resource type="Script" uid="uid://cjgp15knhrswe" path="res://scripts/ecs/systems/s_gamepad_vibration_system.gd" id="28_jpc3c"]
+[ext_resource type="Script" uid="uid://drve6d2eb04mc" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="29_screen_shake_publisher"]
+[ext_resource type="Script" uid="uid://b7x5w7g6yhraa" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
 [ext_resource type="Script" uid="uid://81p10p1v8f73" path="res://scripts/gameplay/e_door_trigger_controller.gd" id="30_door_controller"]
 [ext_resource type="Script" uid="uid://boft6j2eiqobf" path="res://scripts/managers/m_gameplay_initializer.gd" id="31_j1c0c"]
 [ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://assets/textures/tex_icon.svg" id="39_u0c34"]
@@ -261,6 +263,12 @@ execution_priority = 127
 script = ExtResource("10_landing_particles")
 settings = ExtResource("10_landing_particles_settings")
 execution_priority = 122
+
+[node name="S_ScreenShakePublisherSystem" type="Node" parent="Systems/Feedback" unique_id=808799209]
+script = ExtResource("29_screen_shake_publisher")
+
+[node name="S_DamageFlashPublisherSystem" type="Node" parent="Systems/Feedback" unique_id=2062333997]
+script = ExtResource("30_damage_flash_publisher")
 
 [node name="S_GamepadVibrationSystem" type="Node" parent="Systems/Feedback" unique_id=721938151]
 script = ExtResource("28_jpc3c")

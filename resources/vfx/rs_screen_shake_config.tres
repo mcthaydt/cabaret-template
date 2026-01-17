@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="RS_ScreenShakeConfig" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="RS_ScreenShakeConfig" format=3 uid="uid://d3qoeikklkch3"]
 
-[ext_resource type="Script" path="res://scripts/ecs/resources/rs_screen_shake_config.gd" id="1"]
+[ext_resource type="Script" uid="uid://lx2mrr82syjx" path="res://scripts/ecs/resources/rs_screen_shake_config.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
-max_offset = Vector2(10, 8)
-max_rotation = 0.05
+max_offset = Vector2(18, 14)
+max_rotation = 0.12
 noise_speed = 50.0

@@ -63,7 +63,7 @@ func _process_component(component: C_HealthComponent, entity_id: String, delta: 
 		var desired_health: float = -1.0
 		if _store != null:
 			var gameplay: Dictionary = _store.get_slice(StringName("gameplay"))
-			var player_id: String = String(gameplay.get("player_entity_id", "E_Player"))
+			var player_id: String = String(gameplay.get("player_entity_id", "player"))
 			if entity_id == player_id:
 				desired_health = float(gameplay.get("player_health", -1.0))
 		if desired_health >= 0.0:
@@ -290,17 +290,13 @@ func _ensure_dependencies_ready() -> bool:
 func _get_entity_id(component: C_HealthComponent) -> String:
 	var entity := U_ECSUtils.find_entity_root(component)
 	if entity != null:
-		if entity.has_meta("entity_id"):
-			return String(entity.get_meta("entity_id"))
-		return String(entity.name)
+		return String(U_ECSUtils.get_entity_id(entity))
 
 	var body := component.get_character_body()
 	if body != null:
-		if body.has_meta("entity_id"):
-			return String(body.get_meta("entity_id"))
-		return String(body.name)
+		return String(U_ECSUtils.get_entity_id(body))
 
 	var entity_node := component.get_parent()
 	if entity_node != null:
-		return String(entity_node.name)
+		return String(U_ECSUtils.get_entity_id(entity_node))
 	return ""

@@ -83,7 +83,9 @@ func _register_with_manager() -> void:
 	# Otherwise, auto-discover
 	var manager := ECS_UTILS.get_manager(self) as I_ECSManager
 	if manager == null:
+		print("[ECS SYSTEM DEBUG] %s: Could not find ECS manager!" % name)
 		return
+	print("[ECS SYSTEM DEBUG] %s: Found manager, registering..." % name)
 	manager.register_system(self)
 
 func _notify_manager_priority_changed() -> void:
