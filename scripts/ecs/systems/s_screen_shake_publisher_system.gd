@@ -14,31 +14,27 @@ const DEFAULT_TUNING := preload("res://resources/vfx/rs_screen_shake_tuning.tres
 
 @export var tuning: Resource = null
 
-var _unsubscribe_health: Callable
-var _unsubscribe_landed: Callable
-var _unsubscribe_death: Callable
+var _event_unsubscribes: Array[Callable] = []
 
 func on_configured() -> void:
-	_unsubscribe_health = U_ECS_EVENT_BUS.subscribe(
+	_event_unsubscribes.append(U_ECS_EVENT_BUS.subscribe(
 		U_ECS_EVENT_NAMES.EVENT_HEALTH_CHANGED,
 		_on_health_changed
-	)
-	_unsubscribe_landed = U_ECS_EVENT_BUS.subscribe(
+	))
+	_event_unsubscribes.append(U_ECS_EVENT_BUS.subscribe(
 		U_ECS_EVENT_NAMES.EVENT_ENTITY_LANDED,
 		_on_landed
-	)
-	_unsubscribe_death = U_ECS_EVENT_BUS.subscribe(
+	))
+	_event_unsubscribes.append(U_ECS_EVENT_BUS.subscribe(
 		U_ECS_EVENT_NAMES.EVENT_ENTITY_DEATH,
 		_on_death
-	)
+	))
 
 func _exit_tree() -> void:
-	if _unsubscribe_health.is_valid():
-		_unsubscribe_health.call()
-	if _unsubscribe_landed.is_valid():
-		_unsubscribe_landed.call()
-	if _unsubscribe_death.is_valid():
-		_unsubscribe_death.call()
+	for unsubscribe in _event_unsubscribes:
+		if unsubscribe.is_valid():
+			unsubscribe.call()
+	_event_unsubscribes.clear()
 
 func _get_tuning() -> Resource:
 	if tuning != null:

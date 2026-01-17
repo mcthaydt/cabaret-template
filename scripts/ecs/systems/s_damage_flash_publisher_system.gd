@@ -11,24 +11,23 @@ const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
 const EVN_DAMAGE_FLASH_REQUEST := preload("res://scripts/ecs/events/evn_damage_flash_request.gd")
 
-var _unsubscribe_health: Callable
-var _unsubscribe_death: Callable
+var _event_unsubscribes: Array[Callable] = []
 
 func on_configured() -> void:
-	_unsubscribe_health = U_ECS_EVENT_BUS.subscribe(
+	_event_unsubscribes.append(U_ECS_EVENT_BUS.subscribe(
 		U_ECS_EVENT_NAMES.EVENT_HEALTH_CHANGED,
 		_on_health_changed
-	)
-	_unsubscribe_death = U_ECS_EVENT_BUS.subscribe(
+	))
+	_event_unsubscribes.append(U_ECS_EVENT_BUS.subscribe(
 		U_ECS_EVENT_NAMES.EVENT_ENTITY_DEATH,
 		_on_death
-	)
+	))
 
 func _exit_tree() -> void:
-	if _unsubscribe_health.is_valid():
-		_unsubscribe_health.call()
-	if _unsubscribe_death.is_valid():
-		_unsubscribe_death.call()
+	for unsubscribe in _event_unsubscribes:
+		if unsubscribe.is_valid():
+			unsubscribe.call()
+	_event_unsubscribes.clear()
 
 func _on_health_changed(event_data: Dictionary) -> void:
 	var payload: Dictionary = event_data.get("payload", {})

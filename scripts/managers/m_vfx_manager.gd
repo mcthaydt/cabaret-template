@@ -14,6 +14,7 @@ const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_select
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const M_ScreenShake := preload("res://scripts/managers/helpers/m_screen_shake.gd")
 const M_DamageFlash := preload("res://scripts/managers/helpers/m_damage_flash.gd")
+const DAMAGE_FLASH_SCENE := preload("res://scenes/ui/ui_damage_flash_overlay.tscn")
 const SCREEN_SHAKE_TUNING := preload("res://resources/vfx/rs_screen_shake_tuning.tres")
 const SCREEN_SHAKE_CONFIG := preload("res://resources/vfx/rs_screen_shake_config.tres")
 ##
@@ -92,7 +93,7 @@ func _ready() -> void:
 	_trauma_decay_rate = float(shake_tuning.trauma_decay_rate)
 
 	# Load and initialize damage flash overlay (VFX Phase 4: T4.4)
-	var flash_scene: PackedScene = load("res://scenes/ui/ui_damage_flash_overlay.tscn")
+	var flash_scene: PackedScene = DAMAGE_FLASH_SCENE
 	if flash_scene != null:
 		var flash_instance: CanvasLayer = flash_scene.instantiate()
 		add_child(flash_instance)
