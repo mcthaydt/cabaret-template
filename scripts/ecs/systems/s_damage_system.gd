@@ -114,14 +114,10 @@ func _tick_cooldowns(zone_id: int, delta: float) -> Dictionary:
 	return cooldowns
 
 func _get_entity_id(body: Node) -> String:
-	var entity := U_ECSUtils.find_entity_root(body)
-	if entity != null:
-		if entity.has_meta("entity_id"):
-			return String(entity.get_meta("entity_id"))
-		return String(entity.name)
-	if body.has_meta("entity_id"):
-		return String(body.get_meta("entity_id"))
-	return String(body.name)
+	var entity := U_ECSUtils.find_entity_root(body, true)
+	if entity == null:
+		return ""
+	return String(U_ECSUtils.get_entity_id(entity))
 
 func _cleanup_stale_zones(zones: Array) -> void:
 	var valid_ids: Array[int] = []

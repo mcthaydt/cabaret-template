@@ -56,6 +56,12 @@ func _ready() -> void:
 
 	_update_display(_store.get_state())
 
+func _process(_delta: float) -> void:
+	if _store == null or not is_instance_valid(_store):
+		return
+	# Keep HUD visibility in sync even if a slice update arrives between frames.
+	_update_display(_store.get_state())
+
 func _exit_tree() -> void:
 	if is_in_group(HUD_GROUP):
 		remove_from_group(HUD_GROUP)

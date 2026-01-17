@@ -50,9 +50,6 @@ const H_MENU_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h
 const H_UI_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_ui_scene_handler.gd")
 const H_ENDGAME_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_endgame_scene_handler.gd")
 
-const OVERLAY_META_SCENE_ID := StringName("_scene_manager_overlay_scene_id")
-const PARTICLE_META_ORIG_SPEED := StringName("_scene_manager_particle_orig_speed")
-
 ## Priority enum (re-exported from U_SceneTransitionQueue for external callers)
 enum Priority {
 	NORMAL = U_SCENE_TRANSITION_QUEUE.Priority.NORMAL,
@@ -134,6 +131,8 @@ var _is_background_polling_active:
 var _scene_loader := U_SCENE_LOADER.new()
 var _overlay_helper := U_OVERLAY_STACK_MANAGER.new()
 var _transition_orchestrator := U_TRANSITION_ORCHESTRATOR.new()
+var _spawned_scene_roots: Dictionary = {}  # instance_id -> WeakRef
+var _particle_original_speeds: Dictionary = {}
 
 ## Scene type handlers (T137a: Phase 10B-3)
 ## Maps SceneType enum values to handler instances
@@ -512,7 +511,7 @@ func _perform_transition(request) -> void:
 		# T137c (Phase 10B-3): Set gameplay metadata BEFORE adding to tree
 		# This must happen before _ready() calls fire, so M_GameplayInitializer sees it
 		if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
-			new_scene.set_meta("_scene_manager_spawned", true)
+			mark_scene_spawned(new_scene)
 
 		# Add new scene to ActiveSceneContainer
 		if _active_scene_container != null:
@@ -710,28 +709,54 @@ func _update_particles_and_focus() -> void:
 	# This is a workaround - M_PauseManager controls actual pause via get_tree().paused
 	_set_particles_paused(should_pause)
 
+func has_scene_been_spawned(scene_root: Node) -> bool:
+	_prune_spawned_scene_roots()
+	if scene_root == null:
+		return false
+	var id := scene_root.get_instance_id()
+	if not _spawned_scene_roots.has(id):
+		return false
+	var ref: WeakRef = _spawned_scene_roots[id] as WeakRef
+	return ref != null and ref.get_ref() != null
+
+func mark_scene_spawned(scene_root: Node) -> void:
+	if scene_root == null:
+		return
+	_spawned_scene_roots[scene_root.get_instance_id()] = weakref(scene_root)
+
+func _prune_spawned_scene_roots() -> void:
+	var stale: Array = []
+	for id in _spawned_scene_roots.keys():
+		var ref: WeakRef = _spawned_scene_roots[id] as WeakRef
+		if ref == null or ref.get_ref() == null:
+			stale.append(id)
+	for id in stale:
+		_spawned_scene_roots.erase(id)
+
 ## Recursively collect particle nodes and set speed_scale to pause/resume simulation
 func _set_particles_paused(should_pause: bool) -> void:
 	if _active_scene_container == null:
 		return
+	_prune_spawned_scene_roots()
 
 	var particles: Array = []
 	_collect_particle_nodes(_active_scene_container, particles)
+	_prune_particle_speed_cache()
 
 	for p in particles:
 		# Store original speed once
 		if should_pause:
-			if not p.has_meta(PARTICLE_META_ORIG_SPEED):
+			if not _particle_original_speeds.has(p):
 				var current: Variant = p.get("speed_scale")
 				var orig_speed: float = (current as float) if current is float else 1.0
-				p.set_meta(PARTICLE_META_ORIG_SPEED, orig_speed)
+				_particle_original_speeds[p] = orig_speed
 			p.set("speed_scale", 0.0)
 		else:
 			# Restore on resume
-			if p.has_meta(PARTICLE_META_ORIG_SPEED):
-				var orig: Variant = p.get_meta(PARTICLE_META_ORIG_SPEED)
+			if _particle_original_speeds.has(p):
+				var orig: Variant = _particle_original_speeds.get(p, 1.0)
 				p.set("speed_scale", float(orig) if orig is float else 1.0)
-				p.set_meta(PARTICLE_META_ORIG_SPEED, null)
+				_particle_original_speeds.erase(p)
 
 func _collect_particle_nodes(node: Node, out: Array) -> void:
 	# Check for both 2D and 3D particle node types
@@ -740,6 +765,15 @@ func _collect_particle_nodes(node: Node, out: Array) -> void:
 
 	for child in node.get_children():
 		_collect_particle_nodes(child, out)
+
+func _prune_particle_speed_cache() -> void:
+	var stale: Array = []
+	for particle_variant in _particle_original_speeds.keys():
+		var particle_node := particle_variant as Node
+		if particle_node == null or not is_instance_valid(particle_node):
+			stale.append(particle_variant)
+	for key in stale:
+		_particle_original_speeds.erase(key)
 
 func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 	if slice_name != StringName("navigation"):

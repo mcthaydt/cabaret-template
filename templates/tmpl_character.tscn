@@ -17,6 +17,7 @@
 [ext_resource type="Script" uid="uid://bxkvcqencog6c" path="res://scripts/ecs/base_ecs_entity.gd" id="15_ecsentity"]
 [ext_resource type="Script" uid="uid://ciaqjl0ck107e" path="res://scripts/ecs/components/c_health_component.gd" id="17_health"]
 [ext_resource type="Resource" uid="uid://bay3xmfxc8da0" path="res://resources/settings/health_settings.tres" id="18_health_settings"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_spawn_state_component.gd" id="19_spawn_state"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_6mvan"]
 
@@ -100,6 +101,10 @@ target_position = Vector3(0, -1.7, 0)
 
 [node name="Components" type="Node" parent="." unique_id=1373490017]
 script = ExtResource("3_8l4b7")
+
+[node name="C_SpawnStateComponent" type="Node" parent="Components"]
+script = ExtResource("19_spawn_state")
+character_body_path = NodePath("../../Player_Body")
 
 [node name="C_MovementComponent" type="Node" parent="Components" unique_id=1558546231]
 script = ExtResource("1_6m9bm")

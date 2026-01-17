@@ -28,13 +28,14 @@ const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_SPAWN_REGISTRY := preload("res://scripts/scene_management/u_spawn_registry.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
+const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
 const SPAWN_CONDITION_ALWAYS := 0
 const SPAWN_CONDITION_CHECKPOINT_ONLY := 1
 const SPAWN_CONDITION_DISABLED := 2
 
-const META_SPAWN_PHYSICS_FROZEN := StringName("_spawn_physics_frozen")
+const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
 const SPAWN_HOVER_SNAP_MAX_DISTANCE := 0.75
 
@@ -130,6 +131,7 @@ func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool:
 	if ecs_body != null:
 		old_vel = ecs_body.velocity
 		old_is_on_floor = ecs_body.is_on_floor()
+	var spawn_state: C_SpawnStateComponent = _ensure_spawn_state_component(player, ecs_body)
 
 	# Position player at spawn point
 	player.global_position = spawn_point.global_position
@@ -143,12 +145,12 @@ func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool:
 
 		# Disable physics processing - will be re-enabled by transition completion.
 		# Note: ECS systems can still call move_and_slide(), so systems must also
-		# respect META_SPAWN_PHYSICS_FROZEN.
+		# respect spawn state freeze flag.
 		ecs_body.set_physics_process(false)
 
-		# Store metadata so we know to re-enable it (root + body).
-		player.set_meta(META_SPAWN_PHYSICS_FROZEN, true)
-		ecs_body.set_meta(META_SPAWN_PHYSICS_FROZEN, true)
+		if spawn_state != null:
+			var current_frame: int = Engine.get_physics_frames()
+			spawn_state.mark_frozen(-1, current_frame + 1)
 
 	# FIX: Reset floating component stable state to prevent stale ground detection
 	# causing incorrect jump/gravity decisions on first frames after spawn
@@ -364,6 +366,47 @@ func _clear_target_spawn_point() -> void:
 	# Dispatch action to clear spawn point
 	var clear_action: Dictionary = U_GAMEPLAY_ACTIONS.set_target_spawn_point(StringName(""))
 	_state_store.dispatch(clear_action)
+
+func _ensure_spawn_state_component(player: Node, ecs_body: CharacterBody3D) -> C_SpawnStateComponent:
+	var existing := _find_spawn_state_component(player)
+	if existing != null:
+		_set_spawn_component_body_path(existing, ecs_body, player)
+		return existing
+
+	if player == null:
+		return null
+
+	var components_root := player.get_node_or_null("Components")
+	if components_root == null:
+		components_root = Node.new()
+		components_root.name = "Components"
+		player.add_child(components_root)
+
+	var component := C_SPAWN_STATE_COMPONENT.new()
+	components_root.add_child(component)
+	_set_spawn_component_body_path(component, ecs_body, player)
+	return component
+
+func _find_spawn_state_component(node: Node) -> C_SpawnStateComponent:
+	if node == null:
+		return null
+
+	if node is C_SpawnStateComponent:
+		return node as C_SpawnStateComponent
+
+	for child in node.get_children():
+		var found := _find_spawn_state_component(child)
+		if found != null:
+			return found
+
+	return null
+
+func _set_spawn_component_body_path(component: C_SpawnStateComponent, ecs_body: CharacterBody3D, player: Node) -> void:
+	if component == null or ecs_body == null or player == null:
+		return
+	# Use the player to build the path so the component does not have to be in the tree yet.
+	if component.character_body_path.is_empty():
+		component.character_body_path = player.get_path_to(ecs_body)
 
 ## Reset floating component stable state on spawn
 ##

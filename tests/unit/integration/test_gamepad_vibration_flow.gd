@@ -75,8 +75,8 @@ func test_landing_event_triggers_vibration_end_to_end() -> void:
 
 	# Publish landing event for the player
 	var body := Node3D.new()
-	autofree(body)
-	body.set_meta("entity_id", "E_Player")
+	body.name = "Body"
+	entity.add_child(body)
 	U_ECSEventBus.publish(StringName("entity_landed"), {"entity": body})
 	await wait_physics_frames(2) # Allow event to be processed
 
@@ -87,7 +87,7 @@ func _pump() -> void:
 
 class TestEntity extends Node3D:
 	func _init() -> void:
-		name = "E_TestEntity"
+		name = "E_Player"
 
 class MockVibration:
 	var start_calls: Array = []

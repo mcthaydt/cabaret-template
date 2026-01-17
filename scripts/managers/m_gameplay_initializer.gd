@@ -18,6 +18,7 @@ extends Node
 ## - Only spawns if player is NOT already at spawn point
 
 const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
+const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
 
 func _ready() -> void:
 	# Get scene root early for metadata check
@@ -26,9 +27,8 @@ func _ready() -> void:
 		scene_root = scene_root.get_parent()
 
 	# Check if M_SceneManager already spawned the player BEFORE waiting
-	# This prevents race condition since metadata is set synchronously
-	# M_SceneManager sets metadata on scene root to indicate it handled spawning
-	if scene_root != null and scene_root.has_meta("_scene_manager_spawned"):
+	var scene_manager: M_SCENE_MANAGER = U_ServiceLocator.try_get_service(StringName("scene_manager")) as M_SCENE_MANAGER
+	if scene_manager != null and scene_manager.has_scene_been_spawned(scene_root):
 		# Scene was loaded via M_SceneManager, which already called spawn_at_last_spawn
 		# Skip redundant spawn to avoid clearing target_spawn_point twice
 		return
@@ -42,7 +42,7 @@ func _ready() -> void:
 		return
 
 	# Find spawn manager via ServiceLocator (Phase 10B-7: T141c)
-	var spawn_manager: M_SPAWN_MANAGER = U_ServiceLocator.get_service(StringName("spawn_manager")) as M_SPAWN_MANAGER
+	var spawn_manager: M_SPAWN_MANAGER = U_ServiceLocator.try_get_service(StringName("spawn_manager")) as M_SPAWN_MANAGER
 	if spawn_manager == null:
 		# No spawn manager available (e.g., running scene standalone in editor)
 		# Silently skip - this is expected behavior

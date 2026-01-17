@@ -2,7 +2,6 @@ extends RefCounted
 
 class_name U_ECSUtils
 
-const META_ENTITY_ROOT := StringName("_ecs_entity_root")
 const ENTITY_GROUP := StringName("ecs_entity")
 const MANAGER_GROUP := StringName("ecs_manager")
 const ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/base_ecs_entity.gd")
@@ -47,25 +46,24 @@ static func find_entity_root(from_node: Node, warn_on_missing: bool = false) -> 
 	if from_node == null:
 		return null
 
+	var manager := get_manager(from_node)
 	var visited: Array[Node] = []
 	var current: Node = from_node
 	while current != null:
 		visited.append(current)
-		if current.has_meta(META_ENTITY_ROOT):
-			var stored_value: Variant = current.get_meta(META_ENTITY_ROOT)
-			var stored_node: Node = stored_value as Node
-			if stored_node != null and is_instance_valid(stored_node):
-				return _cache_entity_root(stored_node, visited)
-
+		if manager != null and manager.has_method("get_cached_entity_for"):
+			var cached: Node = manager.call("get_cached_entity_for", current) as Node
+			if cached != null and is_instance_valid(cached):
+				return _cache_entity_root(manager, cached, visited)
 		var current_script: Script = current.get_script()
 		if current_script == ECS_ENTITY_SCRIPT:
-			return _cache_entity_root(current, visited)
+			return _cache_entity_root(manager, current, visited)
 
 		if current.is_in_group(ENTITY_GROUP):
-			return _cache_entity_root(current, visited)
+			return _cache_entity_root(manager, current, visited)
 
 		if String(current.name).begins_with("E_"):
-			return _cache_entity_root(current, visited)
+			return _cache_entity_root(manager, current, visited)
 
 		current = current.get_parent()
 
@@ -209,14 +207,14 @@ static func _node_has_manager_methods(candidate: Node) -> bool:
 		return false
 	return candidate.has_method("register_component") and candidate.has_method("register_system")
 
-static func _cache_entity_root(entity: Node, visited: Array[Node]) -> Node:
+static func _cache_entity_root(manager: Node, entity: Node, visited: Array[Node]) -> Node:
 	if entity == null:
 		return null
-	entity.set_meta(META_ENTITY_ROOT, entity)
-	for node in visited:
-		if node == null:
-			continue
-		node.set_meta(META_ENTITY_ROOT, entity)
+	if manager != null and manager.has_method("cache_entity_for_node"):
+		for node in visited:
+			if node == null:
+				continue
+			manager.call("cache_entity_for_node", node, entity)
 	return entity
 
 static func _warn_missing_manager_methods(candidate: Node) -> void:

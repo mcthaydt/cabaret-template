@@ -7,14 +7,13 @@ class_name S_MovementSystem
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
+const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
+const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
 ## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
 @export var state_store: I_StateStore = null
-
-const META_SPAWN_PHYSICS_FROZEN := StringName("_spawn_physics_frozen")
-const META_SPAWN_PHYSICS_UNFREEZE_AT_FRAME := StringName("_spawn_physics_unfreeze_at_physics_frame")
 
 # State stability tracking to prevent flickering in state store
 const MIN_STABLE_FRAMES := 10  # Frames state must be stable before dispatching (~0.167s @ 60fps)
@@ -42,6 +41,7 @@ func process_tick(delta: float) -> void:
 	var bodies := []
 	var current_time := ECS_UTILS.get_current_time()
 	var current_physics_frame: int = Engine.get_physics_frames()
+	var spawn_state_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, SPAWN_STATE_TYPE)
 
 	# Pull every entity that has movement + input; floating is optional for support checks.
 	var entities: Array = manager.query_entities(
@@ -64,6 +64,7 @@ func process_tick(delta: float) -> void:
 		if body == null:
 			continue
 
+		var spawn_state: C_SpawnStateComponent = spawn_state_by_body.get(body, null) as C_SpawnStateComponent
 		var state = body_state.get(body, null)
 		if state == null:
 			state = {
@@ -75,8 +76,8 @@ func process_tick(delta: float) -> void:
 
 		var velocity: Vector3 = state.velocity
 
-		if body.has_meta(META_SPAWN_PHYSICS_FROZEN):
-			_maybe_schedule_spawn_unfreeze(body, current_physics_frame)
+		if spawn_state != null and spawn_state.is_physics_frozen:
+			_maybe_schedule_spawn_unfreeze(body, spawn_state, current_physics_frame)
 			state.velocity = Vector3.ZERO
 			movement_component.reset_dynamics_state()
 			movement_component.update_debug_snapshot({
@@ -257,31 +258,16 @@ func process_tick(delta: float) -> void:
 
 			store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, snapshot))
 
-func _maybe_schedule_spawn_unfreeze(body: CharacterBody3D, current_physics_frame: int) -> void:
-	if body == null or not body.has_meta(META_SPAWN_PHYSICS_UNFREEZE_AT_FRAME):
+func _maybe_schedule_spawn_unfreeze(body: CharacterBody3D, spawn_state: C_SpawnStateComponent, current_physics_frame: int) -> void:
+	if body == null or spawn_state == null:
 		return
 
-	var unfreeze_variant: Variant = body.get_meta(META_SPAWN_PHYSICS_UNFREEZE_AT_FRAME)
-	var unfreeze_frame: int = -1
-	if unfreeze_variant is int:
-		unfreeze_frame = unfreeze_variant
-	elif unfreeze_variant is float:
-		unfreeze_frame = int(unfreeze_variant)
-
+	var unfreeze_frame: int = spawn_state.unfreeze_at_frame
 	if unfreeze_frame < 0 or current_physics_frame < unfreeze_frame:
 		return
 
-	# Prevent re-scheduling; this runs while still frozen and unfreezes on the next frame.
-	body.remove_meta(META_SPAWN_PHYSICS_UNFREEZE_AT_FRAME)
-	body.call_deferred("remove_meta", META_SPAWN_PHYSICS_FROZEN)
+	spawn_state.clear_spawn_state()
 	body.call_deferred("set_physics_process", true)
-
-	var entity_root: Node = ECS_UTILS.find_entity_root(body, false)
-	if entity_root != null:
-		if entity_root.has_meta(META_SPAWN_PHYSICS_UNFREEZE_AT_FRAME):
-			entity_root.remove_meta(META_SPAWN_PHYSICS_UNFREEZE_AT_FRAME)
-		if entity_root.has_meta(META_SPAWN_PHYSICS_FROZEN):
-			entity_root.call_deferred("remove_meta", META_SPAWN_PHYSICS_FROZEN)
 
 func _get_desired_velocity(input_vector: Vector2, max_speed: float) -> Vector3:
 	var normalized = input_vector
@@ -346,23 +332,24 @@ func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
 func _get_entity_id(body: Node) -> String:
 	if body == null:
 		return ""
-	var entity_root: Node = ECS_UTILS.find_entity_root(body, false)
+	var entity_root: Node = ECS_UTILS.find_entity_root(body, true)
 	if entity_root != null:
 		return String(ECS_UTILS.get_entity_id(entity_root))
-	if body.has_meta("entity_id"):
-		return String(body.get_meta("entity_id"))
-	return String(body.name)
+	return ""
 
 ## Phase 16: Get entity type from body
 func _get_entity_type(body: Node) -> String:
-	if body.has_meta("entity_type"):
-		return body.get_meta("entity_type")
-	# Infer from node name
-	var name_lower: String = body.name.to_lower()
+	var source_node: Node = ECS_UTILS.find_entity_root(body, true)
+	if source_node == null:
+		source_node = body
+	return _infer_entity_type_from_name(source_node.name)
+
+func _infer_entity_type_from_name(name_text: String) -> String:
+	var name_lower: String = name_text.to_lower()
 	if "player" in name_lower:
 		return "player"
-	elif "enemy" in name_lower:
+	if "enemy" in name_lower:
 		return "enemy"
-	elif "npc" in name_lower:
+	if "npc" in name_lower:
 		return "npc"
 	return "unknown"

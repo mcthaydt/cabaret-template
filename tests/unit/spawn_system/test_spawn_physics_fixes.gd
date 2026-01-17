@@ -13,6 +13,7 @@ const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gam
 const U_SCENE_LOADER := preload("res://scripts/scene_management/helpers/u_scene_loader.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const RS_FLOATING_SETTINGS := preload("res://scripts/ecs/resources/rs_floating_settings.gd")
+const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 
 var spawn_manager: M_SPAWN_MANAGER
 var state_store: M_STATE_STORE
@@ -49,6 +50,15 @@ func after_each() -> void:
 		state_store.queue_free()
 	if test_scene and is_instance_valid(test_scene):
 		test_scene.queue_free()
+
+func _get_spawn_state_component(node: Node) -> C_SpawnStateComponent:
+	return node.find_child("C_SpawnStateComponent", true, false) as C_SpawnStateComponent
+
+func _attach_spawn_state_component(node: Node) -> C_SpawnStateComponent:
+	var component := C_SPAWN_STATE_COMPONENT.new()
+	node.add_child(component)
+	component.character_body_path = component.get_path_to(node)
+	return component
 
 ## ============================================================================
 ## FIX 1: Velocity Zeroing Tests
@@ -89,7 +99,9 @@ func test_spawn_zeros_velocity_before_freezing_physics() -> void:
 
 	# Assert: Even though physics is frozen, velocity should already be zero
 	assert_eq(player.velocity, Vector3.ZERO, "Velocity should be zero even when physics frozen")
-	assert_true(player.has_meta("_spawn_physics_frozen"), "Physics should be frozen")
+	var spawn_state := _get_spawn_state_component(player)
+	assert_not_null(spawn_state, "Spawn state component should be created")
+	assert_true(spawn_state.is_physics_frozen, "Physics should be frozen")
 
 func test_spawn_velocity_zero_with_high_velocity_values() -> void:
 	# Arrange: Extreme velocity values
@@ -135,7 +147,8 @@ func test_unfreeze_player_physics_enables_physics_process() -> void:
 	var player := CharacterBody3D.new()
 	player.name = "E_Player"
 	player.set_physics_process(false)
-	player.set_meta("_spawn_physics_frozen", true)
+	var spawn_state := _attach_spawn_state_component(player)
+	spawn_state.is_physics_frozen = true
 	test_scene.add_child(player)
 
 	# Act
@@ -143,10 +156,10 @@ func test_unfreeze_player_physics_enables_physics_process() -> void:
 
 	# Assert
 	assert_true(player.is_physics_processing(), "Physics processing should be enabled")
-	assert_false(player.has_meta("_spawn_physics_frozen"), "Frozen metadata should be removed")
+	assert_false(spawn_state.is_physics_frozen, "Frozen state should be cleared")
 
-func test_unfreeze_does_nothing_without_frozen_meta() -> void:
-	# Arrange: Player without frozen metadata (normal state)
+func test_unfreeze_does_nothing_without_frozen_flag() -> void:
+	# Arrange: Player without frozen flag (normal state)
 	var player := CharacterBody3D.new()
 	player.name = "E_Player"
 	player.set_physics_process(false)  # Disabled but no frozen meta
@@ -174,7 +187,9 @@ func test_spawn_freezes_physics_for_later_warmup() -> void:
 
 	# Assert: Physics should be frozen, awaiting warmup
 	assert_false(player.is_physics_processing(), "Physics should be frozen after spawn")
-	assert_true(player.has_meta("_spawn_physics_frozen"), "Should have frozen meta for warmup")
+	var spawn_state := _get_spawn_state_component(player)
+	assert_not_null(spawn_state, "Spawn state component should exist after spawn")
+	assert_true(spawn_state.is_physics_frozen, "Should be marked frozen for warmup")
 
 ## ============================================================================
 ## FIX 3: Floating Component Reset Tests
@@ -286,7 +301,9 @@ func test_spawn_full_flow_zeros_velocity_and_freezes_physics() -> void:
 	assert_almost_eq(player.global_position, spawn_point.global_position, Vector3(0.01, 0.01, 0.01), "Position should match spawn point")
 	assert_eq(player.velocity, Vector3.ZERO, "Velocity should be zeroed")
 	assert_false(player.is_physics_processing(), "Physics should be frozen")
-	assert_true(player.has_meta("_spawn_physics_frozen"), "Should have frozen meta")
+	var spawn_state := _get_spawn_state_component(player)
+	assert_not_null(spawn_state, "Spawn state component should exist")
+	assert_true(spawn_state.is_physics_frozen, "Should be marked frozen")
 
 func test_unfreeze_after_spawn_enables_clean_physics_state() -> void:
 	# Arrange: Spawn then unfreeze
@@ -303,6 +320,7 @@ func test_unfreeze_after_spawn_enables_clean_physics_state() -> void:
 	spawn_manager.spawn_player_at_point(test_scene, StringName("sp_test"))
 
 	# Assert pre-unfreeze state
+	var spawn_state := _get_spawn_state_component(player)
 	assert_eq(player.velocity, Vector3.ZERO, "Velocity should be zero before unfreeze")
 	assert_false(player.is_physics_processing(), "Physics should be frozen before unfreeze")
 
@@ -311,5 +329,6 @@ func test_unfreeze_after_spawn_enables_clean_physics_state() -> void:
 
 	# Assert post-unfreeze state
 	assert_true(player.is_physics_processing(), "Physics should be enabled after unfreeze")
-	assert_false(player.has_meta("_spawn_physics_frozen"), "Frozen meta should be removed")
+	assert_not_null(spawn_state, "Spawn state component should persist")
+	assert_false(spawn_state.is_physics_frozen, "Frozen state should be removed")
 	assert_eq(player.velocity, Vector3.ZERO, "Velocity should still be zero after unfreeze")

@@ -51,10 +51,15 @@ func test_get_manager_returns_null_when_manager_missing() -> void:
 	assert_null(located)
 
 func test_find_entity_root_detects_ecs_entity() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+	await get_tree().process_frame
+
 	var entity_script := load("res://scripts/ecs/base_ecs_entity.gd")
 	var entity := entity_script.new() as Node3D
 	entity.name = "E_Base"
-	add_child(entity)
+	manager.add_child(entity)
 	autofree(entity)
 
 	var component := Node.new()
@@ -64,7 +69,7 @@ func test_find_entity_root_detects_ecs_entity() -> void:
 
 	var located := ECS_UTILS.find_entity_root(component)
 	assert_eq(located, entity)
-	assert_true(component.has_meta(StringName("_ecs_entity_root")))
+	assert_eq(manager.get_cached_entity_for(component), entity)
 
 func test_find_entity_root_falls_back_to_prefix() -> void:
 	var entity := Node3D.new()

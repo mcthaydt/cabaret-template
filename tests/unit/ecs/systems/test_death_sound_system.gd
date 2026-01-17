@@ -52,7 +52,7 @@ func _get_in_use_players() -> Array[AudioStreamPlayer3D]:
 		var player := player_variant as AudioStreamPlayer3D
 		if player == null:
 			continue
-		if bool(player.get_meta(&"_sfx_in_use", false)):
+		if SFX_SPAWNER.is_player_in_use(player):
 			players.append(player)
 	return players
 

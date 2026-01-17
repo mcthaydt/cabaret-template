@@ -2,7 +2,6 @@ extends RefCounted
 class_name M_SFXSpawner
 
 const POOL_SIZE := 16
-const META_IN_USE := &"_sfx_in_use"
 
 const _DEFAULT_MAX_DISTANCE: float = 50.0
 const _DEFAULT_ATTENUATION_MODEL: int = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
@@ -11,6 +10,7 @@ const _DEFAULT_PANNING_STRENGTH: float = 1.0
 static var _spatial_audio_enabled: bool = true
 static var _pool: Array[AudioStreamPlayer3D] = []
 static var _container: Node3D = null
+static var _player_in_use: Dictionary = {}
 
 static func set_spatial_audio_enabled(enabled: bool) -> void:
 	_spatial_audio_enabled = enabled
@@ -27,6 +27,7 @@ static func initialize(parent: Node) -> void:
 		return
 
 	_pool.clear()
+	_player_in_use.clear()
 	_container = Node3D.new()
 	_container.name = "SFXPool"
 	parent.add_child(_container)
@@ -37,7 +38,7 @@ static func initialize(parent: Node) -> void:
 		player.max_distance = _DEFAULT_MAX_DISTANCE
 		player.attenuation_model = _DEFAULT_ATTENUATION_MODEL
 		player.panning_strength = _DEFAULT_PANNING_STRENGTH
-		player.set_meta(META_IN_USE, false)
+		_player_in_use[player] = false
 		player.finished.connect(Callable(M_SFXSpawner, "_on_player_finished").bind(player))
 		_container.add_child(player)
 		_pool.append(player)
@@ -58,7 +59,7 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
 		push_warning("SFX pool exhausted (all 16 players in use)")
 		return null
 
-	player.set_meta(META_IN_USE, true)
+	_player_in_use[player] = true
 
 	var position_variant: Variant = config.get("position", Vector3.ZERO)
 	var position: Vector3 = Vector3.ZERO
@@ -113,21 +114,27 @@ static func _get_available_player() -> AudioStreamPlayer3D:
 			continue
 		if not is_instance_valid(player):
 			continue
-		var in_use := bool(player.get_meta(META_IN_USE, false))
+		var in_use := bool(_player_in_use.get(player, false))
 		if not in_use:
 			return player
 	return null
+
+static func is_player_in_use(player: AudioStreamPlayer3D) -> bool:
+	if player == null:
+		return false
+	return bool(_player_in_use.get(player, false))
 
 static func _on_player_finished(player: AudioStreamPlayer3D) -> void:
 	if player == null:
 		return
 	if not is_instance_valid(player):
 		return
-	player.set_meta(META_IN_USE, false)
+	_player_in_use[player] = false
 
 static func cleanup() -> void:
 	if _container != null and is_instance_valid(_container):
 		_container.queue_free()
 	_container = null
 	_pool.clear()
+	_player_in_use.clear()
 	_spatial_audio_enabled = true

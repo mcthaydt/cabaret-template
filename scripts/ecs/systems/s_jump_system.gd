@@ -9,8 +9,8 @@ const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 const EVENT_ENTITY_JUMPED := StringName("entity_jumped")
 const EVENT_ENTITY_LANDED := StringName("entity_landed")
-const META_SPAWN_PHYSICS_FROZEN := StringName("_spawn_physics_frozen")
-const META_SPAWN_SUPPRESS_LANDING_UNTIL_FRAME := StringName("_spawn_suppress_landing_until_physics_frame")
+const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
+const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
@@ -61,6 +61,7 @@ func process_tick(_delta: float) -> void:
 		]
 	)
 	var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, FLOATING_TYPE)
+	var spawn_state_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, SPAWN_STATE_TYPE)
 
 	for entity_query in entities:
 		var component: C_JumpComponent = entity_query.get_component(JUMP_TYPE)
@@ -72,13 +73,14 @@ func process_tick(_delta: float) -> void:
 		if body == null:
 			continue
 
-		if body.has_meta(META_SPAWN_PHYSICS_FROZEN):
+		var spawn_state: C_SpawnStateComponent = spawn_state_by_body.get(body, null) as C_SpawnStateComponent
+		if spawn_state != null and spawn_state.is_physics_frozen:
 			component.update_debug_snapshot({
 				"spawn_frozen": true,
 			})
 			continue
 		
-		var suppress_landing_event: bool = _is_spawn_landing_event_suppressed(body, current_physics_frame)
+		var suppress_landing_event: bool = _is_spawn_landing_event_suppressed(spawn_state, current_physics_frame)
 
 		var floating_component: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
 		if floating_component == null:
@@ -201,29 +203,19 @@ func process_tick(_delta: float) -> void:
 func _get_entity_id(body: Node) -> String:
 	if body == null:
 		return ""
-	var entity_root: Node = ECS_UTILS.find_entity_root(body, false)
+	var entity_root: Node = ECS_UTILS.find_entity_root(body, true)
 	if entity_root != null:
 		return String(ECS_UTILS.get_entity_id(entity_root))
-	if body.has_meta("entity_id"):
-		return String(body.get_meta("entity_id"))
-	return String(body.name)
+	return ""
 
-func _is_spawn_landing_event_suppressed(body: Node, current_physics_frame: int) -> bool:
-	if body == null or not body.has_meta(META_SPAWN_SUPPRESS_LANDING_UNTIL_FRAME):
+func _is_spawn_landing_event_suppressed(spawn_state: C_SpawnStateComponent, current_physics_frame: int) -> bool:
+	if spawn_state == null:
 		return false
-	
-	var until_variant: Variant = body.get_meta(META_SPAWN_SUPPRESS_LANDING_UNTIL_FRAME)
-	var until_frame: int = -1
-	if until_variant is int:
-		until_frame = until_variant
-	elif until_variant is float:
-		until_frame = int(until_variant)
-	
+
+	var until_frame: int = spawn_state.suppress_landing_until_frame
 	if until_frame < 0 or current_physics_frame > until_frame:
-		body.remove_meta(META_SPAWN_SUPPRESS_LANDING_UNTIL_FRAME)
-		var entity_root: Node = ECS_UTILS.find_entity_root(body, false)
-		if entity_root != null and entity_root.has_meta(META_SPAWN_SUPPRESS_LANDING_UNTIL_FRAME):
-			entity_root.remove_meta(META_SPAWN_SUPPRESS_LANDING_UNTIL_FRAME)
+		if until_frame >= 0:
+			spawn_state.suppress_landing_until_frame = -1
 		return false
-	
+
 	return true

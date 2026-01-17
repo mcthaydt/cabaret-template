@@ -251,7 +251,7 @@ func _spawn_ragdoll(component: C_HealthComponent, entity_id: String) -> void:
 		_rng.randf_range(-3.0, 3.0),
 		_rng.randf_range(-6.0, 6.0)
 	)
-	ragdoll.set_meta("player_ragdoll", true)
+	ragdoll.add_to_group("player_ragdoll")
 
 	_entity_refs[entity_id] = weakref(entity_root)
 	_entity_original_visibility[entity_id] = entity_root.visible

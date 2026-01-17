@@ -45,6 +45,7 @@
   - Prefer `@export` NodePaths with typed getters that use `get_node_or_null(...) as Type` and return `null` on empty paths.
   - Keep null-safe call sites; systems assume absent paths disable behavior rather than error.
   - If you expose debug state, copy via `snapshot.duplicate(true)` to avoid aliasing.
+  - Spawn freeze/unfreeze state lives in `C_SpawnStateComponent` (`is_physics_frozen`, `unfreeze_at_frame`, `suppress_landing_until_frame`); systems gate movement/jump/floating via this component.
 - Systems
   - Extend `BaseECSSystem`; implement `process_tick(delta)` (invoked from `_physics_process`).
   - Query with `get_components(StringName)`, dedupe per-body where needed, and clamp/guard values (see movement/rotation/floating examples).
@@ -83,6 +84,7 @@
   - Ensure exactly one `M_ECSManager` in-scene. It auto-adds to `ecs_manager` group on `_ready()`.
   - Emits `component_added`/`component_removed` and calls `component.on_registered(self)`.
   - `get_components()` strips out null entries automatically; only guard for missing components when logic truly requires it.
+  - Entity root caching is dictionary-backed in `M_ECSManager`/`U_ECSUtils` (no metadata tags); `BaseECSEntity` registers itself with the manager for lookups.
 - Entities (Phase 6 - Entity IDs & Tags)
   - All entities extend `BaseECSEntity` (Node3D with entity_id and tags exports).
   - **Entity IDs**: Auto-generated from node name (`E_Player` → `"player"`), or manually set via `entity_id` export. Cached after first access. Duplicate IDs automatically get `_{instance_id}` suffix.

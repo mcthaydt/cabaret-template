@@ -200,7 +200,7 @@ func _find_ragdoll_instance() -> RigidBody3D:
 func _find_ragdoll_recursive(root: Node) -> RigidBody3D:
 	for child in root.get_children():
 		var body := child as RigidBody3D
-		if body != null and body.has_meta("player_ragdoll") and body.get_meta("player_ragdoll") == true:
+		if body != null and body.is_in_group("player_ragdoll"):
 			return body
 		var nested := _find_ragdoll_recursive(child)
 		if nested != null:

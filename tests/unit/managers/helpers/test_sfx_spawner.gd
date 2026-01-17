@@ -145,10 +145,10 @@ func test_player_marked_in_use_and_cleared_on_finished() -> void:
 
 	var stream := AudioStreamWAV.new()
 	var player := U_SFX_SPAWNER.spawn_3d({"audio_stream": stream})
-	assert_true(bool(player.get_meta(&"_sfx_in_use", false)))
+	assert_true(U_SFX_SPAWNER.is_player_in_use(player))
 
 	player.emit_signal("finished")
-	assert_false(bool(player.get_meta(&"_sfx_in_use", true)))
+	assert_false(U_SFX_SPAWNER.is_player_in_use(player))
 
 func test_player_auto_returns_to_pool_when_finished() -> void:
 	U_SFX_SPAWNER.initialize(_parent)

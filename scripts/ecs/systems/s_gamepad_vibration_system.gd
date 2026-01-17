@@ -190,7 +190,9 @@ func _is_player_entity(entity_id: String) -> bool:
 func _get_entity_id_from_node(entity: Node) -> String:
 	if entity == null:
 		return ""
-	if entity.has_meta("entity_id"):
-		var meta_value: Variant = entity.get_meta("entity_id")
-		return String(meta_value)
+	if not entity.is_inside_tree():
+		return String(entity.name)
+	var entity_root: Node = ECS_UTILS.find_entity_root(entity, true)
+	if entity_root != null:
+		return String(ECS_UTILS.get_entity_id(entity_root))
 	return String(entity.name)

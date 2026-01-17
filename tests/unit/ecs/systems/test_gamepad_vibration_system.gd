@@ -27,9 +27,7 @@ func test_entity_landing_triggers_vibration() -> void:
 	var mock: MockVibration = context["mock"] as MockVibration
 	var system: S_GamepadVibrationSystem = context["system"]
 
-	var body := Node3D.new()
-	autofree(body)
-	body.set_meta("entity_id", "E_Player")
+	var body := _make_player_body()
 	U_ECSEventBus.publish(StringName("entity_landed"), {"entity": body})
 	await wait_physics_frames(2)
 
@@ -53,9 +51,7 @@ func test_vibration_disabled_blocks_events() -> void:
 	_store.dispatch(U_InputActions.toggle_vibration(false))
 	await _pump()
 
-	var body := Node3D.new()
-	autofree(body)
-	body.set_meta("entity_id", "E_Player")
+	var body := _make_player_body()
 	U_ECSEventBus.publish(StringName("entity_landed"), {"entity": body})
 	assert_eq(mock.start_calls.size(), 0, "Disabled vibration should skip rumble")
 
@@ -90,9 +86,7 @@ func test_vibration_blocked_when_keyboard_mouse_active() -> void:
 	await _pump()
 
 	# When: Landing event occurs (would normally trigger vibration)
-	var body := Node3D.new()
-	autofree(body)
-	body.set_meta("entity_id", "E_Player")
+	var body := _make_player_body()
 	U_ECSEventBus.publish(StringName("entity_landed"), {"entity": body})
 	await wait_physics_frames(2)
 
@@ -116,9 +110,7 @@ func test_vibration_triggers_when_gamepad_active() -> void:
 	await _pump()
 
 	# When: Landing event occurs
-	var body := Node3D.new()
-	autofree(body)
-	body.set_meta("entity_id", "E_Player")
+	var body := _make_player_body()
 	U_ECSEventBus.publish(StringName("entity_landed"), {"entity": body})
 	await wait_physics_frames(2)
 
@@ -187,6 +179,17 @@ func _setup_system() -> Dictionary:
 
 func _pump() -> void:
 	await get_tree().process_frame
+
+func _make_player_body() -> Node3D:
+	var base_entity := preload("res://scripts/ecs/base_ecs_entity.gd").new()
+	base_entity.name = "E_Player"
+	add_child_autofree(base_entity)
+	var body := Node3D.new()
+	body.name = "Body"
+	base_entity.add_child(body)
+	# Ensure the node is fully in the tree before events are published.
+	body.set_physics_process(false)
+	return body
 
 class MockVibration:
 	var start_calls: Array = []

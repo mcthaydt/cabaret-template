@@ -5,7 +5,7 @@
 Remove `get_meta()`/`set_meta()` usage throughout the codebase in favor of explicit, type-safe alternatives (components, properties, dictionaries).
 
 **Priority:** Low (architectural consistency, not blocking)
-**Status:** Not Started
+**Status:** In Progress (surface detector review pending)
 
 ---
 
@@ -153,34 +153,34 @@ Remove `get_meta()`/`set_meta()` usage throughout the codebase in favor of expli
 ## Task Checklist
 
 ### Phase 1: Spawn State (High Impact)
-- [ ] Create `C_SpawnStateComponent` with frozen/unfreeze fields
-- [ ] Update `M_SpawnManager` to add component instead of metadata
-- [ ] Update `S_MovementSystem` to query component
-- [ ] Update `S_JumpSystem` to query component
-- [ ] Update `S_FloatingSystem` to query component
-- [ ] Update `U_SceneLoader` to check component
-- [ ] Remove all `META_SPAWN_*` constants
+- [x] Create `C_SpawnStateComponent` with frozen/unfreeze fields
+- [x] Update `M_SpawnManager` to add component instead of metadata
+- [x] Update `S_MovementSystem` to query component
+- [x] Update `S_JumpSystem` to query component
+- [x] Update `S_FloatingSystem` to query component
+- [x] Update `U_SceneLoader` to check component
+- [x] Remove all `META_SPAWN_*` constants
 - [ ] Test spawn/respawn flows
 
 ### Phase 2: Entity ID Fallbacks
-- [ ] Audit entities not extending `BaseECSEntity`
-- [ ] Remove `entity_id`/`entity_type` metadata fallbacks from systems
-- [ ] Update `_get_entity_id()` helpers to fail explicitly if entity root missing
+- [x] Audit entities not extending `BaseECSEntity`
+- [x] Remove `entity_id`/`entity_type` metadata fallbacks from systems
+- [x] Update `_get_entity_id()` helpers to fail explicitly if entity root missing
 
 ### Phase 3: ECS Infrastructure
-- [ ] Add `Dictionary` in `M_ECSManager` for node→entity lookup
-- [ ] Update `U_ECSUtils.find_entity_root()` to use manager lookup
-- [ ] Remove `META_ENTITY_ROOT` and `META_ENTITY_TRACKED`
+- [x] Add `Dictionary` in `M_ECSManager` for node→entity lookup
+- [x] Update `U_ECSUtils.find_entity_root()` to use manager lookup
+- [x] Remove `META_ENTITY_ROOT` and `META_ENTITY_TRACKED`
 
 ### Phase 4: Manager Cleanup
-- [ ] Refactor `M_SFXSpawner` pool tracking to Dictionary
-- [ ] Refactor `U_OverlayStackManager` scene_id tracking to Dictionary
-- [ ] Refactor `M_CameraManager` shake parent to direct reference
-- [ ] Refactor `M_SceneManager` spawned tracking to Dictionary
-- [ ] Refactor `Trans_Fade` mouse filter storage to local Dictionary
+- [x] Refactor `M_SFXSpawner` pool tracking to Dictionary
+- [x] Refactor `U_OverlayStackManager` scene_id tracking to Dictionary
+- [x] Refactor `M_CameraManager` shake parent to direct reference
+- [x] Refactor `M_SceneManager` spawned tracking to Dictionary
+- [x] Refactor `Trans_Fade` mouse filter storage to local Dictionary
 
 ### Phase 5: Miscellaneous
-- [ ] Replace `player_ragdoll` metadata with group membership
+- [x] Replace `player_ragdoll` metadata with group membership
 - [ ] Evaluate `surface_type` metadata (may keep for level geometry)
 
 ---

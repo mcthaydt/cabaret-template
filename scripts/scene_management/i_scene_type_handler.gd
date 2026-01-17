@@ -16,7 +16,7 @@
 ##     return U_SCENE_REGISTRY.SceneType.GAMEPLAY
 ##
 ## func on_load(scene: Node, scene_id: StringName, managers: Dictionary) -> void:
-##     scene.set_meta("_scene_manager_spawned", true)
+##     scene_manager.mark_scene_spawned(scene)
 ##     var spawn_manager = managers.get("spawn_manager")
 ##     if spawn_manager != null:
 ##         await spawn_manager.spawn_at_last_spawn(scene)

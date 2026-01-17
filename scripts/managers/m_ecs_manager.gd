@@ -8,8 +8,6 @@ signal component_removed(component_type: StringName, component: BaseECSComponent
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_ECS_QUERY_METRICS := preload("res://scripts/ecs/helpers/u_ecs_query_metrics.gd")
-const META_ENTITY_ROOT := StringName("_ecs_entity_root")
-const META_ENTITY_TRACKED := StringName("_ecs_tracked_entity")
 const PROJECT_SETTING_QUERY_METRICS_ENABLED := "ecs/debug/query_metrics_enabled"
 const PROJECT_SETTING_QUERY_METRICS_CAPACITY := "ecs/debug/query_metrics_capacity"
 
@@ -21,6 +19,7 @@ var _systems: Array[BaseECSSystem] = []
 var _sorted_systems: Array[BaseECSSystem] = []
 var _systems_dirty: bool = true
 var _entity_component_map: Dictionary = {}
+var _node_entity_cache: Dictionary = {}  # instance_id → entity root
 var _query_cache: Dictionary = {}
 var _time_provider: Callable = Callable(U_ECS_UTILS, "get_current_time")
 var _query_metrics_helper := U_ECS_QUERY_METRICS.new()
@@ -29,6 +28,7 @@ var _query_metrics_helper := U_ECS_QUERY_METRICS.new()
 var _entities_by_id: Dictionary = {}  # StringName → Node
 var _entities_by_tag: Dictionary = {}  # StringName → Array[Node]
 var _registered_entities: Dictionary = {}  # Node → StringName (entity_id)
+var _tracked_entities: Dictionary = {}  # Node → bool (tree_exited connection)
 
 @export var query_metrics_enabled: bool:
 	get:
@@ -134,6 +134,16 @@ func get_components_for_entity(entity: Node) -> Dictionary:
 	if not _entity_component_map.has(entity):
 		return {}
 	return (_entity_component_map[entity] as Dictionary).duplicate(true)
+
+func get_cached_entity_for(node: Node) -> Node:
+	if node == null:
+		return null
+	return _node_entity_cache.get(node.get_instance_id(), null) as Node
+
+func cache_entity_for_node(node: Node, entity: Node) -> void:
+	if node == null or entity == null:
+		return
+	_node_entity_cache[node.get_instance_id()] = entity
 
 func set_time_provider(provider: Callable) -> void:
 	if provider == Callable():
@@ -283,6 +293,8 @@ func register_entity(entity: Node) -> void:
 	_entities_by_id[entity_id] = entity
 	_registered_entities[entity] = entity_id
 	_index_entity_tags(entity)
+	_node_entity_cache[entity.get_instance_id()] = entity
+	_ensure_entity_exit_tracking(entity)
 
 	U_ECS_EVENT_BUS.publish(EVENT_ENTITY_REGISTERED, {
 		"entity_id": entity_id,
@@ -301,6 +313,8 @@ func unregister_entity(entity: Node) -> void:
 	_entities_by_id.erase(entity_id)
 	_registered_entities.erase(entity)
 	_unindex_entity_tags(entity)
+	_node_entity_cache.erase(entity.get_instance_id())
+	_tracked_entities.erase(entity)
 
 	U_ECS_EVENT_BUS.publish(EVENT_ENTITY_UNREGISTERED, {
 		"entity_id": entity_id,
@@ -451,13 +465,11 @@ func _track_component(component: BaseECSComponent, type_name: StringName) -> voi
 	if not _registered_entities.has(entity):
 		register_entity(entity)
 
-	component.set_meta(META_ENTITY_ROOT, entity)
+	_node_entity_cache[component.get_instance_id()] = entity
 
 	if not _entity_component_map.has(entity):
 		_entity_component_map[entity] = {}
-		if not entity.has_meta(META_ENTITY_TRACKED):
-			entity.set_meta(META_ENTITY_TRACKED, true)
-			entity.connect("tree_exited", Callable(self, "_on_tracked_entity_exited").bind(entity), Object.CONNECT_ONE_SHOT)
+		_ensure_entity_exit_tracking(entity)
 
 	var tracked_components: Dictionary = _entity_component_map[entity]
 	tracked_components[type_name] = component
@@ -465,10 +477,8 @@ func _track_component(component: BaseECSComponent, type_name: StringName) -> voi
 	_invalidate_query_cache()
 
 func _untrack_component(component: BaseECSComponent, type_name: StringName) -> void:
-	var entity: Node = null
-	if component.has_meta(META_ENTITY_ROOT):
-		entity = component.get_meta(META_ENTITY_ROOT) as Node
-		component.remove_meta(META_ENTITY_ROOT)
+	var entity: Node = _node_entity_cache.get(component.get_instance_id(), null) as Node
+	_node_entity_cache.erase(component.get_instance_id())
 
 	if entity == null:
 		entity = _find_entity_for_component(component)
@@ -489,6 +499,14 @@ func _untrack_component(component: BaseECSComponent, type_name: StringName) -> v
 		_entity_component_map[entity] = tracked_components
 	_invalidate_query_cache()
 
+func _ensure_entity_exit_tracking(entity: Node) -> void:
+	if entity == null:
+		return
+	if _tracked_entities.has(entity):
+		return
+	_tracked_entities[entity] = true
+	entity.connect("tree_exited", Callable(self, "_on_tracked_entity_exited").bind(entity), Object.CONNECT_ONE_SHOT)
+
 func _get_entity_for_component(component: BaseECSComponent, warn_on_missing: bool = true) -> Node:
 	if component == null:
 		return null
@@ -507,9 +525,15 @@ func _find_entity_for_component(component: BaseECSComponent) -> Node:
 	return null
 
 func _on_tracked_entity_exited(entity: Node) -> void:
+	var tracked_components: Dictionary = _entity_component_map.get(entity, {})
+	for component_variant in tracked_components.values():
+		var comp := component_variant as BaseECSComponent
+		if comp != null:
+			_node_entity_cache.erase(comp.get_instance_id())
+
 	_entity_component_map.erase(entity)
-	if entity.has_meta(META_ENTITY_TRACKED):
-		entity.remove_meta(META_ENTITY_TRACKED)
+	_node_entity_cache.erase(entity.get_instance_id())
+	_tracked_entities.erase(entity)
 	_invalidate_query_cache()
 
 func _get_smallest_component_type(required: Array[StringName]) -> StringName:

@@ -43,7 +43,7 @@ func _count_in_use_players() -> int:
 			continue
 		if not is_instance_valid(player):
 			continue
-		if bool(player.get_meta(&"_sfx_in_use", false)):
+		if M_SFX_SPAWNER.is_player_in_use(player):
 			count += 1
 	return count
 
@@ -92,7 +92,7 @@ func test_spawn_returns_player_and_marks_in_use() -> void:
 	var stream := AudioStreamWAV.new()
 	var player := M_SFX_SPAWNER.spawn_3d({"audio_stream": stream})
 	assert_not_null(player)
-	assert_true(bool(player.get_meta(&"_sfx_in_use", false)))
+	assert_true(M_SFX_SPAWNER.is_player_in_use(player))
 	assert_eq(_count_in_use_players(), 1)
 
 
@@ -144,10 +144,10 @@ func test_spawn_defaults_missing_fields() -> void:
 func test_finished_signal_clears_in_use_meta() -> void:
 	var stream := AudioStreamWAV.new()
 	var player := M_SFX_SPAWNER.spawn_3d({"audio_stream": stream})
-	assert_true(bool(player.get_meta(&"_sfx_in_use", false)))
+	assert_true(M_SFX_SPAWNER.is_player_in_use(player))
 
 	player.emit_signal("finished")
-	assert_false(bool(player.get_meta(&"_sfx_in_use", true)))
+	assert_false(M_SFX_SPAWNER.is_player_in_use(player))
 
 
 func test_finished_player_is_reused_by_next_spawn() -> void:

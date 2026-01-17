@@ -3,6 +3,7 @@ class_name M_CameraManager
 extends Node
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const META_SHAKE_PARENT := &"_camera_manager_shake_parent"
 
 ## M_CameraManager - Camera Blending Management (Phase 12.2)
 ##
@@ -43,8 +44,7 @@ var _camera_blend_duration: float = 0.2  # Match fade transition duration
 ## Screen shake parent node (VFX Phase 3: T3.1)
 ## Used to apply shake offset/rotation without affecting camera directly (prevents gimbal lock)
 var _shake_parent: Node3D = null
-
-const META_SHAKE_PARENT := &"_camera_manager_shake_parent"
+var _shake_parents: Dictionary = {}
 
 var _active_scene_camera: Camera3D = null
 var _active_scene_shake_parent: Node3D = null
@@ -188,6 +188,7 @@ func _create_shake_parent() -> void:
 	_shake_parent = Node3D.new()
 	_shake_parent.name = "ShakeParent"
 	add_child(_shake_parent)
+	_shake_parents[_shake_parent] = true
 
 	# Reparent transition camera under shake parent
 	remove_child(_transition_camera)
@@ -256,7 +257,10 @@ func _ensure_shake_parent_for_camera(camera: Camera3D) -> Node3D:
 	var parent := camera.get_parent()
 	if parent is Node3D:
 		var parent_3d := parent as Node3D
+		if _shake_parents.has(parent_3d):
+			return parent_3d
 		if bool(parent_3d.get_meta(META_SHAKE_PARENT, false)):
+			_shake_parents[parent_3d] = true
 			return parent_3d
 
 	if parent == null:
@@ -264,6 +268,7 @@ func _ensure_shake_parent_for_camera(camera: Camera3D) -> Node3D:
 
 	var shake_parent := Node3D.new()
 	shake_parent.name = "ShakeParent"
+	_shake_parents[shake_parent] = true
 	shake_parent.set_meta(META_SHAKE_PARENT, true)
 
 	var insert_index := camera.get_index()

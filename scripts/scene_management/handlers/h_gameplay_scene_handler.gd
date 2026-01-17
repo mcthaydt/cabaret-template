@@ -4,7 +4,7 @@
 ## and setting metadata to prevent M_GameplayInitializer race conditions.
 ##
 ## Responsibilities:
-## - Set "_scene_manager_spawned" metadata flag
+## - Record scene as spawned in M_SceneManager
 ## - Spawn player at target spawn point via M_SpawnManager
 ## - Return "gameplay" shell for navigation state
 ## - Dispatch start_game() navigation action
@@ -23,7 +23,7 @@ func get_scene_type() -> int:
 ## Initializes gameplay scene with spawn manager integration.
 ##
 ## Awaits M_SpawnManager to position player at target spawn point.
-## Note: The "_scene_manager_spawned" metadata flag is set by M_SceneManager
+## Note: Scene spawn bookkeeping is handled by M_SceneManager
 ## BEFORE the scene is added to the tree (to prevent M_GameplayInitializer race).
 ##
 ## Parameters:

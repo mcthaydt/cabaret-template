@@ -12,6 +12,7 @@ class_name U_SceneLoader
 
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const I_SCENE_CONTRACT := preload("res://scripts/scene_management/i_scene_contract.gd")
+const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 
 ## Load scene via ResourceLoader (sync)
 func load_scene(scene_path: String) -> Node:
@@ -178,18 +179,17 @@ func unfreeze_player_physics(scene: Node) -> bool:
 	if player_body == null:
 		player_body = _find_character_body_in(player)
 
-	var has_frozen_meta: bool = player.has_meta("_spawn_physics_frozen")
-	if not has_frozen_meta and player_body != null:
-		has_frozen_meta = player_body.has_meta("_spawn_physics_frozen")
-	if not has_frozen_meta:
+	var spawn_state: C_SpawnStateComponent = _find_spawn_state_component(player)
+	if player_body == null and spawn_state != null:
+		player_body = spawn_state.get_character_body()
+
+	if spawn_state == null or not spawn_state.is_physics_frozen:
 		return false
 
 	if player_body != null:
 		player_body.set_physics_process(true)
-		if player_body.has_meta("_spawn_physics_frozen"):
-			player_body.remove_meta("_spawn_physics_frozen")
-	if player.has_meta("_spawn_physics_frozen"):
-		player.remove_meta("_spawn_physics_frozen")
+	if spawn_state != null:
+		spawn_state.clear_spawn_state()
 
 	return player_body != null
 
@@ -219,4 +219,18 @@ func _find_character_body_in(node: Node) -> CharacterBody3D:
 		var found: CharacterBody3D = _find_character_body_in(child)
 		if found != null:
 			return found
+	return null
+
+func _find_spawn_state_component(node: Node) -> C_SpawnStateComponent:
+	if node == null:
+		return null
+
+	if node is C_SpawnStateComponent:
+		return node as C_SpawnStateComponent
+
+	for child in node.get_children():
+		var found: C_SpawnStateComponent = _find_spawn_state_component(child)
+		if found != null:
+			return found
+
 	return null

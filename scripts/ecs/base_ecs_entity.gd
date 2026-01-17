@@ -4,7 +4,6 @@ class_name BaseECSEntity
 
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
-const META_ENTITY_ROOT := StringName("_ecs_entity_root")
 const ENTITY_GROUP := StringName("ecs_entity")
 
 @export var add_legacy_group: bool = false
@@ -14,9 +13,11 @@ const ENTITY_GROUP := StringName("ecs_entity")
 var _cached_entity_id: StringName = StringName("")
 
 func _ready() -> void:
-	set_meta(META_ENTITY_ROOT, self)
 	if add_legacy_group and not is_in_group(ENTITY_GROUP):
 		add_to_group(ENTITY_GROUP)
+	var manager: Node = U_ECS_UTILS.get_manager(self)
+	if manager != null and manager.has_method("cache_entity_for_node"):
+		manager.call("cache_entity_for_node", self, self)
 
 ## Returns the unique identifier for this entity.
 ## If entity_id is empty, generates an ID from the node name and caches it.

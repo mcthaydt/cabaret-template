@@ -113,7 +113,7 @@ func _get_in_use_sfx_players() -> Array[AudioStreamPlayer3D]:
 			continue
 		if not is_instance_valid(player):
 			continue
-		if bool(player.get_meta(&"_sfx_in_use", false)):
+		if M_SFX_SPAWNER.is_player_in_use(player):
 			in_use.append(player)
 	return in_use
 
@@ -125,7 +125,7 @@ func _reset_sfx_pool_usage() -> void:
 			continue
 		if not is_instance_valid(player):
 			continue
-		player.set_meta(&"_sfx_in_use", false)
+		M_SFX_SPAWNER._player_in_use[player] = false
 		if player.playing:
 			player.stop()
 

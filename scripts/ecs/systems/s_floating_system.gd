@@ -7,7 +7,8 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 ## 4 frames ≈ 67ms at 60fps, filters spring oscillations (~50ms) while staying responsive
 const STABLE_GROUND_FRAMES_REQUIRED := 4
 
-const META_SPAWN_PHYSICS_FROZEN := StringName("_spawn_physics_frozen")
+const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
+const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
 class SupportInfo:
 	var has_hit: bool = false
@@ -26,6 +27,7 @@ func process_tick(delta: float) -> void:
 	var processed: Dictionary = {}
 	var now: float = ECS_UTILS.get_current_time()
 	var entities := manager.query_entities([FLOATING_TYPE])
+	var spawn_state_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, SPAWN_STATE_TYPE)
 
 	for entity_query in entities:
 		var floating_component: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
@@ -47,7 +49,8 @@ func process_tick(delta: float) -> void:
 			continue
 
 		var support: SupportInfo = _collect_support_data(rays)
-		if body.has_meta(META_SPAWN_PHYSICS_FROZEN):
+		var spawn_state: C_SpawnStateComponent = spawn_state_by_body.get(body, null) as C_SpawnStateComponent
+		if spawn_state != null and spawn_state.is_physics_frozen:
 			if support.has_hit:
 				var normal_frozen: Vector3 = support.normal
 				if normal_frozen.length() == 0.0:
