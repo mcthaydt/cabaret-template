@@ -160,7 +160,6 @@ func has_pending_heal() -> bool:
 
 func _publish_health_changed(previous_health: float, new_health: float) -> void:
 	var entity_id := _get_entity_id()
-	print("[HEALTH DEBUG] _publish_health_changed: entity_id='%s', previous=%s, new=%s" % [entity_id, previous_health, new_health])
 	var health_event := Evn_HealthChanged.new(
 		entity_id,
 		previous_health,
@@ -168,7 +167,6 @@ func _publish_health_changed(previous_health: float, new_health: float) -> void:
 		_is_dead
 	)
 	U_ECSEventBus.publish_typed(health_event)
-	print("[HEALTH DEBUG] Event published")
 
 func _publish_death_event(previous_health: float) -> void:
 	var death_event := Evn_EntityDeath.new(

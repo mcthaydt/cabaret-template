@@ -16,12 +16,7 @@ const DEFAULT_TUNING := preload("res://resources/vfx/rs_screen_shake_tuning.tres
 
 var _event_unsubscribes: Array[Callable] = []
 
-func _ready() -> void:
-	print("[SHAKE PUBLISHER DEBUG] _ready() called for %s" % name)
-	super._ready()
-
 func on_configured() -> void:
-	print("[SHAKE PUBLISHER DEBUG] on_configured() called - subscribing to events")
 	_event_unsubscribes.append(U_ECS_EVENT_BUS.subscribe(
 		U_ECS_EVENT_NAMES.EVENT_HEALTH_CHANGED,
 		_on_health_changed
@@ -34,7 +29,6 @@ func on_configured() -> void:
 		U_ECS_EVENT_NAMES.EVENT_ENTITY_DEATH,
 		_on_death
 	))
-	print("[SHAKE PUBLISHER DEBUG] Subscribed to %d events" % _event_unsubscribes.size())
 
 func _exit_tree() -> void:
 	for unsubscribe in _event_unsubscribes:
@@ -48,12 +42,10 @@ func _get_tuning() -> Resource:
 	return DEFAULT_TUNING
 
 func _on_health_changed(event_data: Dictionary) -> void:
-	print("[SHAKE PUBLISHER DEBUG] _on_health_changed received: %s" % [event_data])
 	var payload: Dictionary = event_data.get("payload", {})
 	var entity_id: StringName = StringName(str(payload.get("entity_id", "")))
 	var is_dead: bool = bool(payload.get("is_dead", false))
 	if is_dead:
-		print("[SHAKE PUBLISHER DEBUG] Skipped: is_dead=true")
 		return
 
 	var damage_amount: float = 0.0
@@ -65,15 +57,12 @@ func _on_health_changed(event_data: Dictionary) -> void:
 		damage_amount = maxf(previous_health - new_health, 0.0)
 
 	if damage_amount <= 0.0:
-		print("[SHAKE PUBLISHER DEBUG] Skipped: damage_amount=%s" % damage_amount)
 		return
 
 	var trauma_amount: float = float(_get_tuning().calculate_damage_trauma(damage_amount))
 	if trauma_amount <= 0.0:
-		print("[SHAKE PUBLISHER DEBUG] Skipped: trauma_amount=%s" % trauma_amount)
 		return
 
-	print("[SHAKE PUBLISHER DEBUG] Publishing screen_shake_request: entity_id='%s', trauma=%s" % [entity_id, trauma_amount])
 	var event := EVN_SCREEN_SHAKE_REQUEST.new(entity_id, trauma_amount, StringName("damage"))
 	U_ECS_EVENT_BUS.publish_typed(event)
 
