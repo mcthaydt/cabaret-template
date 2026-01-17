@@ -140,7 +140,6 @@ func _on_shake_enabled_toggled(_pressed: bool) -> void:
 	# Changes only apply when user clicks Apply button
 	if _updating_from_state:
 		return
-	U_UISoundPlayer.play_toggle()
 	_has_local_edits = true
 	_update_vfx_settings_preview_from_ui()
 
@@ -159,7 +158,6 @@ func _on_flash_enabled_toggled(_pressed: bool) -> void:
 	# Changes only apply when user clicks Apply button
 	if _updating_from_state:
 		return
-	U_UISoundPlayer.play_toggle()
 	_has_local_edits = true
 	_update_vfx_settings_preview_from_ui()
 
