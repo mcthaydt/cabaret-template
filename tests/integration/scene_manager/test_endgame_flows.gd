@@ -361,15 +361,19 @@ func test_victory_continue_and_credits_buttons_route_correctly() -> void:
 	assert_eq(float(gameplay_state.get("player_health", -1.0)), float(gameplay_state.get("player_max_health", -1.0)),
 		"Reset should restore player health to max")
 	var entity_snapshots: Variant = gameplay_state.get("entities", {})
-	if entity_snapshots is Dictionary and (entity_snapshots as Dictionary).has("E_Player"):
-		var player_snapshot: Dictionary = (entity_snapshots as Dictionary)["E_Player"]
-		assert_eq(float(player_snapshot.get("health", -1.0)), float(gameplay_state.get("player_max_health", -1.0)),
-			"Reset should restore snapshot health")
-		assert_false(player_snapshot.get("is_dead", true),
-			"Reset should clear snapshot is_dead flag")
-	else:
-		assert_true(entity_snapshots.is_empty(),
-			"Reset should not retain non-player snapshots")
+	var player_entity_id: String = String(gameplay_state.get("player_entity_id", "player"))
+	if entity_snapshots is Dictionary:
+		var snapshot_dict: Dictionary = entity_snapshots as Dictionary
+		if snapshot_dict.has(player_entity_id):
+			var player_snapshot: Dictionary = snapshot_dict[player_entity_id]
+			assert_eq(float(player_snapshot.get("health", -1.0)), float(gameplay_state.get("player_max_health", -1.0)),
+				"Reset should restore snapshot health")
+			assert_false(player_snapshot.get("is_dead", true),
+				"Reset should clear snapshot is_dead flag")
+			assert_eq(snapshot_dict.size(), 1, "Reset should remove non-player snapshots")
+		else:
+			assert_true(snapshot_dict.is_empty(),
+				"Reset should not retain non-player snapshots")
 
 	_scene_manager.transition_to_scene(StringName("victory"), "instant")
 	await wait_physics_frames(3)

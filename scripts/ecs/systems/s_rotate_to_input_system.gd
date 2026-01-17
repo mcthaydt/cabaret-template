@@ -117,6 +117,11 @@ func _apply_second_order_rotation(component: C_RotateToInputComponent, target: N
 
 ## Phase 16: Get entity ID from node for state coordination
 func _get_entity_id(node: Node) -> String:
+	if node == null:
+		return ""
+	var entity_root: Node = ECS_UTILS.find_entity_root(node, false)
+	if entity_root != null:
+		return String(ECS_UTILS.get_entity_id(entity_root))
 	if node.has_meta("entity_id"):
-		return node.get_meta("entity_id")
-	return node.name
+		return String(node.get_meta("entity_id"))
+	return String(node.name)

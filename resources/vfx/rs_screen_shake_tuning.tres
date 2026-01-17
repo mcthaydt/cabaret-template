@@ -6,7 +6,7 @@
 script = ExtResource("1")
 trauma_decay_rate = 2.0
 damage_min_trauma = 0.3
-damage_max_trauma = 1.0
+damage_max_trauma = 0.6
 damage_max_value = 100.0
 landing_threshold = 15.0
 landing_max_speed = 30.0

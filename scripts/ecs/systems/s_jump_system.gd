@@ -199,9 +199,14 @@ func process_tick(_delta: float) -> void:
 
 ## Phase 16: Get entity ID from body for state coordination
 func _get_entity_id(body: Node) -> String:
+	if body == null:
+		return ""
+	var entity_root: Node = ECS_UTILS.find_entity_root(body, false)
+	if entity_root != null:
+		return String(ECS_UTILS.get_entity_id(entity_root))
 	if body.has_meta("entity_id"):
-		return body.get_meta("entity_id")
-	return body.name
+		return String(body.get_meta("entity_id"))
+	return String(body.name)
 
 func _is_spawn_landing_event_suppressed(body: Node, current_physics_frame: int) -> bool:
 	if body == null or not body.has_meta(META_SPAWN_SUPPRESS_LANDING_UNTIL_FRAME):

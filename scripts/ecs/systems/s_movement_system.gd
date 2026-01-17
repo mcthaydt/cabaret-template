@@ -344,11 +344,14 @@ func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
 
 ## Phase 16: Get entity ID from body for state coordination
 func _get_entity_id(body: Node) -> String:
-	# Use metadata if available
+	if body == null:
+		return ""
+	var entity_root: Node = ECS_UTILS.find_entity_root(body, false)
+	if entity_root != null:
+		return String(ECS_UTILS.get_entity_id(entity_root))
 	if body.has_meta("entity_id"):
-		return body.get_meta("entity_id")
-	# Fallback to node name
-	return body.name
+		return String(body.get_meta("entity_id"))
+	return String(body.name)
 
 ## Phase 16: Get entity type from body
 func _get_entity_type(body: Node) -> String:
