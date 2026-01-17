@@ -5,11 +5,14 @@ const RS_STATE_STORE_SETTINGS := preload("res://scripts/state/resources/rs_state
 const RS_AUDIO_INITIAL_STATE := preload("res://scripts/state/resources/rs_audio_initial_state.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_AUDIO_SERIALIZATION := preload("res://scripts/utils/u_audio_serialization.gd")
 
 
 static func reset_audio_buses() -> void:
 	while AudioServer.bus_count > 1:
 		AudioServer.remove_bus(1)
+	remove_test_file(U_AUDIO_SERIALIZATION.SAVE_PATH)
+	remove_test_file(U_AUDIO_SERIALIZATION.BACKUP_PATH)
 
 
 static func create_state_store(include_scene_slice: bool = true) -> M_StateStore:

@@ -10,6 +10,7 @@ const RS_SETTINGS_INITIAL_STATE := preload("res://scripts/state/resources/rs_set
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
 const RS_AUDIO_INITIAL_STATE := preload("res://scripts/state/resources/rs_audio_initial_state.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_AUDIO_SERIALIZATION := preload("res://scripts/utils/u_audio_serialization.gd")
 const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
@@ -168,6 +169,10 @@ func _make_store_with_audio_slice() -> Node:
 func _reset_audio_buses() -> void:
 	while AudioServer.bus_count > 1:
 		AudioServer.remove_bus(1)
+	if FileAccess.file_exists(U_AUDIO_SERIALIZATION.SAVE_PATH):
+		DirAccess.remove_absolute(U_AUDIO_SERIALIZATION.SAVE_PATH)
+	if FileAccess.file_exists(U_AUDIO_SERIALIZATION.BACKUP_PATH):
+		DirAccess.remove_absolute(U_AUDIO_SERIALIZATION.BACKUP_PATH)
 
 # ============================================================================
 # Phase 2 - Music system tests (Tasks 2.2-2.5)

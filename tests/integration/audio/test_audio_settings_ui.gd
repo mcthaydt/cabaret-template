@@ -6,7 +6,7 @@ extends BaseTest
 ## - UI initializes from Redux state
 ## - UI edits do not dispatch until Apply (Apply/Cancel pattern)
 ## - Reset applies defaults immediately
-## - Settings persist to save file and restore from save file
+## - Settings persist to audio settings file and restore across sessions
 
 const M_AUDIO_MANAGER := preload("res://scripts/managers/m_audio_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
@@ -15,13 +15,15 @@ const RS_AUDIO_INITIAL_STATE := preload("res://scripts/state/resources/rs_audio_
 
 const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd")
 const U_AUDIO_SELECTORS := preload("res://scripts/state/selectors/u_audio_selectors.gd")
+const U_AUDIO_SERIALIZATION := preload("res://scripts/utils/u_audio_serialization.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
 const AUDIO_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/ui_audio_settings_overlay.tscn")
 
-const TEST_SAVE_PATH := "user://test_audio_settings_ui.json"
+const AUDIO_SETTINGS_PATH := U_AUDIO_SERIALIZATION.SAVE_PATH
+const AUDIO_SETTINGS_BACKUP_PATH := U_AUDIO_SERIALIZATION.BACKUP_PATH
 
 var _store: M_StateStore
 var _audio_manager: M_AudioManager
@@ -41,11 +43,11 @@ func before_each() -> void:
 	add_child_autofree(_audio_manager)
 
 	await get_tree().process_frame
-	_remove_test_save_file()
+	_remove_test_settings_files()
 
 
 func after_each() -> void:
-	_remove_test_save_file()
+	_remove_test_settings_files()
 	U_STATE_HANDOFF.clear_all()
 	U_AUDIO_TEST_HELPERS.reset_audio_buses()
 	super.after_each()
@@ -79,8 +81,9 @@ func _get_tab(overlay: Node) -> UI_AudioSettingsTab:
 	return overlay.get_node_or_null("CenterContainer/Panel/VBox/AudioSettingsTab") as UI_AudioSettingsTab
 
 
-func _remove_test_save_file() -> void:
-	U_AUDIO_TEST_HELPERS.remove_test_file(TEST_SAVE_PATH)
+func _remove_test_settings_files() -> void:
+	U_AUDIO_TEST_HELPERS.remove_test_file(AUDIO_SETTINGS_PATH)
+	U_AUDIO_TEST_HELPERS.remove_test_file(AUDIO_SETTINGS_BACKUP_PATH)
 
 func _collect_audio_action_types(actions: Array[Dictionary]) -> Array[StringName]:
 	var types: Array[StringName] = []
@@ -287,7 +290,7 @@ func test_spatial_audio_toggle_applies_on_apply() -> void:
 	assert_false(U_AUDIO_SELECTORS.is_spatial_audio_enabled(state))
 
 
-func test_settings_persist_and_restore_from_save_file() -> void:
+func test_settings_persist_and_restore_from_settings_file() -> void:
 	var overlay := await _instantiate_overlay()
 	var tab := _get_tab(overlay)
 
@@ -298,15 +301,14 @@ func test_settings_persist_and_restore_from_save_file() -> void:
 
 	tab._apply_button.emit_signal("pressed")
 	await get_tree().process_frame
+	await get_tree().process_frame
 
 	var state_before_save: Dictionary = _store.get_state()
 	assert_false(U_AUDIO_SELECTORS.is_spatial_audio_enabled(state_before_save), "State should update spatial audio")
 	assert_true(U_AUDIO_SELECTORS.is_ambient_muted(state_before_save), "State should update ambient muted")
 	assert_almost_eq(U_AUDIO_SELECTORS.get_music_volume(state_before_save), 0.2, 0.001, "State should update music volume")
 
-	var save_err := _store.save_state(TEST_SAVE_PATH)
-	assert_eq(save_err, OK, "save_state should succeed")
-	assert_true(FileAccess.file_exists(TEST_SAVE_PATH), "save_state should create a file")
+	assert_true(FileAccess.file_exists(AUDIO_SETTINGS_PATH), "audio settings file should be created")
 
 	# Load into a new store instance and ensure UI initializes from loaded state.
 	var store_2 := _create_state_store()
@@ -319,9 +321,7 @@ func test_settings_persist_and_restore_from_save_file() -> void:
 	var audio_manager_2 := M_AUDIO_MANAGER.new()
 	add_child_autofree(audio_manager_2)
 	await get_tree().process_frame
-
-	var load_err := store_2.load_state(TEST_SAVE_PATH)
-	assert_eq(load_err, OK, "load_state should succeed")
+	await get_tree().process_frame
 
 	var loaded_state: Dictionary = store_2.get_state()
 	assert_false(U_AUDIO_SELECTORS.is_spatial_audio_enabled(loaded_state), "Loaded state should restore spatial audio")
