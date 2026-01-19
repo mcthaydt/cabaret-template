@@ -127,17 +127,17 @@ static func get_active_camera(from_node: Node) -> Camera3D:
 	if from_node == null:
 		return null
 
-	var viewport: Viewport = from_node.get_viewport()
-	if viewport != null:
-		var viewport_camera: Camera3D = viewport.get_camera_3d()
-		if viewport_camera != null:
-			return viewport_camera
-
 	var camera_manager := U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager"))
 	if camera_manager != null and camera_manager.has_method("get_main_camera"):
 		var main_camera := camera_manager.call("get_main_camera") as Camera3D
 		if main_camera != null and is_instance_valid(main_camera):
 			return main_camera
+
+	var viewport: Viewport = from_node.get_viewport()
+	if viewport != null:
+		var viewport_camera: Camera3D = viewport.get_camera_3d()
+		if viewport_camera != null:
+			return viewport_camera
 
 	return get_singleton_from_group(from_node, StringName("main_camera"), false) as Camera3D
 

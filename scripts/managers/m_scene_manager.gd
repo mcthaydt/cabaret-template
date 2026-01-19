@@ -529,11 +529,18 @@ func _perform_transition(request) -> void:
 			_camera_manager.blend_cameras(null, new_scene, 0.2, old_camera_state)
 		else:
 			# No blending (instant transition or no camera) - just activate new camera if present
-			var new_cameras: Array = get_tree().get_nodes_in_group("main_camera")
-			if not new_cameras.is_empty():
-				var new_camera: Camera3D = new_cameras[0] as Camera3D
-				if new_camera != null:
-					new_camera.current = true
+			var new_camera: Camera3D = null
+			if _camera_manager != null and _camera_manager.has_method("initialize_scene_camera"):
+				new_camera = _camera_manager.initialize_scene_camera(new_scene)
+			else:
+				var camera_manager := U_ServiceLocator.try_get_service(StringName("camera_manager"))
+				if camera_manager != null:
+					if camera_manager.has_method("initialize_scene_camera"):
+						new_camera = camera_manager.initialize_scene_camera(new_scene)
+					elif camera_manager.has_method("get_main_camera"):
+						new_camera = camera_manager.get_main_camera()
+			if new_camera != null:
+				new_camera.current = true
 
 			# T137c (Phase 10B-3): Delegate scene-type-specific load behavior to handler
 			# Handlers encapsulate scene-type logic (metadata, spawning, etc.)

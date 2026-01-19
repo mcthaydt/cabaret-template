@@ -110,6 +110,22 @@ func _await_camera_tween_created(timeout_sec: float = 0.5) -> Tween:
 			return tween
 	return null
 
+func _find_camera(node: Node) -> Camera3D:
+	if node == null:
+		return null
+	if node is Camera3D:
+		return node as Camera3D
+	for child in node.get_children():
+		var found := _find_camera(child)
+		if found != null:
+			return found
+	return null
+
+func _get_active_scene_camera() -> Camera3D:
+	if _active_scene_container == null or _active_scene_container.get_child_count() == 0:
+		return null
+	return _find_camera(_active_scene_container.get_child(0))
+
 ## T178: Test camera position blending during scene transition
 ##
 ## Validates that camera position interpolates smoothly from old scene camera
@@ -121,10 +137,8 @@ func test_camera_position_blending() -> void:
 	await wait_physics_frames(3)
 
 	# Find camera in exterior scene
-	var cameras_before: Array = get_tree().get_nodes_in_group("main_camera")
-	assert_eq(cameras_before.size(), 1, "Should have exactly one main camera in exterior")
-
-	var camera_before: Camera3D = cameras_before[0] as Camera3D
+	var camera_before: Camera3D = _get_active_scene_camera()
+	assert_not_null(camera_before, "Should find camera in exterior")
 	var position_before: Vector3 = camera_before.global_position
 
 	# Debug: verify scene/camera managers are wired and old camera capture works
@@ -155,10 +169,8 @@ func test_camera_position_blending() -> void:
 	await wait_physics_frames(15)
 
 	# Find camera in interior scene
-	var cameras_after: Array = get_tree().get_nodes_in_group("main_camera")
-	assert_eq(cameras_after.size(), 1, "Should have exactly one main camera in interior")
-
-	var camera_after: Camera3D = cameras_after[0] as Camera3D
+	var camera_after: Camera3D = _get_active_scene_camera()
+	assert_not_null(camera_after, "Should find camera in interior")
 	var position_after: Vector3 = camera_after.global_position
 
 	# Validate cameras have different positions (exterior higher than interior)
@@ -190,8 +202,8 @@ func test_camera_rotation_blending() -> void:
 	_manager.transition_to_scene(StringName("exterior"), "instant")
 	await wait_physics_frames(3)
 
-	var cameras_before: Array = get_tree().get_nodes_in_group("main_camera")
-	var camera_before: Camera3D = cameras_before[0] as Camera3D
+	var camera_before: Camera3D = _get_active_scene_camera()
+	assert_not_null(camera_before, "Should find exterior camera")
 	var rotation_before: Vector3 = camera_before.global_rotation
 
 	# Transition with fade
@@ -205,8 +217,8 @@ func test_camera_rotation_blending() -> void:
 	# Complete transition
 	await wait_physics_frames(15)
 
-	var cameras_after: Array = get_tree().get_nodes_in_group("main_camera")
-	var camera_after: Camera3D = cameras_after[0] as Camera3D
+	var camera_after: Camera3D = _get_active_scene_camera()
+	assert_not_null(camera_after, "Should find interior camera")
 	var rotation_after: Vector3 = camera_after.global_rotation
 
 	# Validate blend completed (rotations may be identical, but blend logic ran)
@@ -224,8 +236,8 @@ func test_camera_fov_blending() -> void:
 	_manager.transition_to_scene(StringName("exterior"), "instant")
 	await wait_physics_frames(3)
 
-	var cameras_before: Array = get_tree().get_nodes_in_group("main_camera")
-	var camera_before: Camera3D = cameras_before[0] as Camera3D
+	var camera_before: Camera3D = _get_active_scene_camera()
+	assert_not_null(camera_before, "Should find exterior camera")
 	var fov_before: float = camera_before.fov
 
 	# Transition to interior (FOV 65°)
@@ -239,8 +251,8 @@ func test_camera_fov_blending() -> void:
 	# Complete transition
 	await wait_physics_frames(15)
 
-	var cameras_after: Array = get_tree().get_nodes_in_group("main_camera")
-	var camera_after: Camera3D = cameras_after[0] as Camera3D
+	var camera_after: Camera3D = _get_active_scene_camera()
+	assert_not_null(camera_after, "Should find interior camera")
 	var fov_after: float = camera_after.fov
 
 	# Validate FOVs differ (exterior wider than interior)
@@ -262,8 +274,8 @@ func _test_camera_transitions_smooth_DISABLED() -> void:
 	_manager.transition_to_scene(StringName("exterior"), "instant")
 	await wait_physics_frames(3)
 
-	var cameras_before: Array = get_tree().get_nodes_in_group("main_camera")
-	var camera_before: Camera3D = cameras_before[0] as Camera3D
+	var camera_before: Camera3D = _get_active_scene_camera()
+	assert_not_null(camera_before, "Should find exterior camera")
 	var start_pos: Vector3 = camera_before.global_position
 
 	# Start transition with fade (0.2s duration)
@@ -340,9 +352,8 @@ func test_camera_blend_with_fade_transition() -> void:
 	assert_lt(duration, 1.0, "Fade + camera blend should complete within 1 second")
 
 	# Validate cameras switched after transition
-	var cameras_after: Array = get_tree().get_nodes_in_group("main_camera")
-	assert_eq(cameras_after.size(), 1, "Should have one camera after transition")
-	var camera_after: Camera3D = cameras_after[0] as Camera3D
+	var camera_after: Camera3D = _get_active_scene_camera()
+	assert_not_null(camera_after, "Should have one camera after transition")
 
 	# In headless mode, only verify new camera exists (timing unreliable)
 	if _is_headless():
@@ -389,8 +400,8 @@ func test_instant_transition_camera_blend_zero_duration() -> void:
 	_manager.transition_to_scene(StringName("exterior"), "instant")
 	await wait_physics_frames(3)
 
-	var cameras_before: Array = get_tree().get_nodes_in_group("main_camera")
-	var camera_before: Camera3D = cameras_before[0] as Camera3D
+	var camera_before: Camera3D = _get_active_scene_camera()
+	assert_not_null(camera_before, "Should find exterior camera")
 	var position_before: Vector3 = camera_before.global_position
 
 	# Instant transition to interior
@@ -398,8 +409,8 @@ func test_instant_transition_camera_blend_zero_duration() -> void:
 	await wait_physics_frames(6)  # Extended wait for spawn operations
 
 	# Validate transition completed instantly
-	var cameras_after: Array = get_tree().get_nodes_in_group("main_camera")
-	var camera_after: Camera3D = cameras_after[0] as Camera3D
+	var camera_after: Camera3D = _get_active_scene_camera()
+	assert_not_null(camera_after, "Should find interior camera")
 	var position_after: Vector3 = camera_after.global_position
 
 	# Positions should differ (cameras have different heights)

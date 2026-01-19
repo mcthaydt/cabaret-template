@@ -7,5 +7,5 @@ script = ExtResource("1_ecsentity")
 entity_id = &"camera"
 tags = Array[StringName]([&"camera"])
 
-[node name="E_PlayerCamera" type="Camera3D" parent="." unique_id=1000261679 groups=["main_camera"]]
+[node name="E_PlayerCamera" type="Camera3D" parent="." unique_id=1000261679]
 current = true

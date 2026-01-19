@@ -219,11 +219,13 @@ func _find_player_entity(scene: Node) -> Node3D:
 ## Returns:
 ##   Camera3D if found, null otherwise (UI scenes don't need cameras)
 func initialize_scene_camera(scene: Node) -> Camera3D:
-	var cameras: Array = get_tree().get_nodes_in_group("main_camera")
-	if cameras.is_empty():
-		return null
-
-	return cameras[0] as Camera3D
+	var camera_manager := U_ServiceLocator.try_get_service(StringName("camera_manager"))
+	if camera_manager != null:
+		if camera_manager.has_method("initialize_scene_camera"):
+			return camera_manager.initialize_scene_camera(scene)
+		if camera_manager.has_method("get_main_camera"):
+			return camera_manager.get_main_camera() as Camera3D
+	return null
 
 ## Recursive helper to find nodes by exact name
 ##

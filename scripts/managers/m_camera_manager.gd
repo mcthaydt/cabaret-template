@@ -90,6 +90,7 @@ func blend_cameras(old_scene: Node, new_scene: Node, duration: float, old_state:
 	if new_camera == null:
 		push_warning("M_CameraManager: No camera in new scene for blending")
 		return
+	register_main_camera(new_camera)
 
 	# Position transition camera at old state
 	_transition_camera.global_position = old_state.global_position
@@ -104,7 +105,7 @@ func blend_cameras(old_scene: Node, new_scene: Node, duration: float, old_state:
 
 ## Capture camera state from scene (T239)
 ##
-## Finds main camera in scene via "main_camera" group and captures
+## Finds a camera in the scene (preferring the registered main camera) and captures
 ## its global position, rotation, and FOV for blending.
 ##
 ## Parameters:
@@ -127,7 +128,7 @@ func capture_camera_state(scene: Node) -> CameraState:
 
 ## Initialize scene camera (for external use)
 ##
-## Finds camera in "main_camera" group for potential external access.
+## Finds camera in the scene (preferring the registered main camera) for potential external access.
 ## UI scenes may not have cameras, so returns null gracefully.
 ##
 ## Parameters:
@@ -138,17 +139,20 @@ func initialize_scene_camera(scene: Node) -> Camera3D:
 	if scene == null:
 		return null
 
-	return _find_camera_in_scene(scene)
+	var camera := _find_camera_in_scene(scene)
+	if camera != null:
+		register_main_camera(camera)
+	return camera
 
 ## Find camera within specific scene subtree
 ##
-## Recursively searches scene's children for a Camera3D node in "main_camera" group.
+## Recursively searches scene's children for a Camera3D node.
 ## Unlike get_tree().get_nodes_in_group(), this searches only within the scene subtree.
 ##
 ## Parameters:
 ##   scene: Root node of scene to search within
 ##
-## Returns: First Camera3D found in "main_camera" group, or null if none found
+## Returns: First Camera3D found in scene subtree, or null if none found
 func _find_camera_in_scene(scene: Node) -> Camera3D:
 	if scene == null:
 		return null
