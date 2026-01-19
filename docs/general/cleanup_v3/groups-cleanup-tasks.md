@@ -6,6 +6,7 @@ Remove `add_to_group()`/`is_in_group()`/`get_nodes_in_group()` usage throughout 
 
 **Priority:** Low (architectural consistency)
 **Status:** In Progress (Phase 0 Complete)
+**Continuation Prompt:** `docs/general/cleanup_v3/groups-cleanup-continuation-prompt.md`
 
 ---
 
@@ -354,7 +355,7 @@ camera_manager.register_main_camera(camera)
 
 Create camera tracking methods before updating any consumers.
 
-- [ ] Add to `m_camera_manager.gd`:
+- [x] Add to `m_camera_manager.gd`:
   ```gdscript
   var _main_camera: Camera3D = null
 
@@ -367,8 +368,8 @@ Create camera tracking methods before updating any consumers.
   func get_main_camera() -> Camera3D:
       return _main_camera
   ```
-- [ ] Update `_on_scene_registered()` (line 156) to use `register_main_camera()` instead of group check
-- [ ] Run camera tests to verify infrastructure works:
+- [x] Update `_on_scene_registered()` (line 156) to use `register_main_camera()` instead of group check *(manager has no scene registration hook; `_find_camera_in_scene()` now prefers the registered main camera when present)*
+- [x] Run camera tests to verify infrastructure works:
   ```bash
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/camera_system -gdir=res://tests/integration/camera_system -gexit
   ```
