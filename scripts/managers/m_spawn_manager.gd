@@ -210,7 +210,7 @@ func _find_player_entity(scene: Node) -> Node3D:
 
 ## Initialize scene camera (T223)
 ##
-## Finds camera in "main_camera" group for potential blending.
+## Resolves the registered main camera via the camera manager for potential blending.
 ## This method is a placeholder for future camera initialization needs.
 ##
 ## Parameters:
