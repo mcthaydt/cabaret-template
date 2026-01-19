@@ -107,7 +107,7 @@ Scene Tree
 ```
 [1] Scene Loads
      ↓
-[2] M_ECSManager._ready() → joins "ecs_manager" group
+[2] M_ECSManager._ready() → registers with ServiceLocator (per-scene instance)
      ↓
 [3] Components._ready() → locate manager → register(self)
      ↓
@@ -173,7 +173,7 @@ var _systems: Array[BaseECSSystem] = []
 ```gdscript
 # Lines 12-16
 # Ensures single instance per scene tree
-# Joins "ecs_manager" group for discovery
+# Registers with ServiceLocator for discovery
 ```
 
 **Signals**:
@@ -181,10 +181,11 @@ var _systems: Array[BaseECSSystem] = []
 - `unregistered(component: BaseECSComponent)` - Fired when component unregisters
 
 **Discovery Pattern**:
-- Joins `"ecs_manager"` scene tree group on `_ready()`
-- Components/systems find it via:
-  1. Parent hierarchy walk (check `has_method("register_component")`)
-  2. Fallback to `get_tree().get_nodes_in_group("ecs_manager")[0]`
+- Registers itself with `U_ServiceLocator` on `_ready()` (one instance per gameplay scene)
+- Components/systems find it via `U_ECSUtils.get_manager()`:
+  1. @export injection (tests)
+  2. Parent hierarchy walk (duck-typed `register_component`/`register_system`)
+  3. ServiceLocator fallback
 
 **Query Cache & Metrics**:
 - `M_ECSManager` memoizes `query_entities()` responses by required/optional signature to short-circuit repeat calls.
@@ -227,11 +228,10 @@ var _manager: M_ECSManager = null  # Cached manager reference
 #### `_locate_manager() -> M_ECSManager` (lines 40-55)
 ```gdscript
 # Discovery algorithm:
-# 1. Walk up parent hierarchy
-# 2. Check if node has method "register_component" (duck typing)
-# 3. If found, cache and return
-# 4. If not found in parents, search scene tree group "ecs_manager"
-# 5. Assert fails if no manager found (fail-fast philosophy)
+# 1. Check for injected `ecs_manager` (test hook)
+# 2. Walk up parent hierarchy (duck-typed `register_component`/`register_system`)
+# 3. Fallback to `U_ServiceLocator.try_get_service("ecs_manager")`
+# 4. Returns null if no manager found (component remains unregistered)
 ```
 
 #### `_exit_tree() -> void` (lines 57-60)
@@ -685,8 +685,7 @@ func process_tick(_delta: float) -> void:
          │      Check: node.has_method("register_component")
          │      If found: return node
          │
-         └─ [3b] Fallback: search scene tree group
-                get_tree().get_nodes_in_group("ecs_manager")[0]
+         └─ [3b] Fallback: resolve via ServiceLocator ("ecs_manager")
          ↓
 [4] _manager = located_manager  (cache reference)
          ↓
@@ -831,14 +830,12 @@ func _locate_manager() -> M_ECSManager:
     # ... fallback to step 2
 ```
 
-**Step 2: Scene Tree Group Search** (fallback)
+**Step 2: ServiceLocator Fallback**
 ```gdscript
 func _locate_manager() -> M_ECSManager:
     # ... parent walk failed
-    var managers = get_tree().get_nodes_in_group("ecs_manager")
-    if managers.size() > 0:
-        return managers[0]
-    # ... assert fails if still not found
+    var manager := U_ServiceLocator.try_get_service(StringName("ecs_manager")) as M_ECSManager
+    return manager
 ```
 
 **Why This Pattern?**
@@ -851,7 +848,7 @@ func _locate_manager() -> M_ECSManager:
 
 **Scene Load**:
 ```
-1. M_ECSManager._ready()       → joins "ecs_manager" group
+1. M_ECSManager._ready()       → registers with ServiceLocator ("ecs_manager")
 2. Components._ready()          → locate manager, register
 3. Systems._ready()             → locate manager, cache reference
 4. Game loop starts
@@ -938,7 +935,7 @@ func test_movement_system_applies_velocity():
 
 **Entity Identification Contract**:
 - Attach `scripts/ecs/base_ecs_entity.gd` to every gameplay entity root. The script registers the node with the ECS manager so component discovery becomes deterministic without relying on naming.
-- Legacy prefixes (`E_`) and the optional `ecs_entity` group remain as fallbacks; enable the `add_legacy_group` export if you need to interop with older scenes during migration.
+- Entities are discovered via `BaseECSEntity` and the `E_` prefix; the legacy `ecs_entity` group fallback has been removed.
 - The manager caches discovered roots in its instance-id dictionary, so reparenting or renaming should continue to satisfy the script/prefix contract without relying on metadata.
 
 ### 6.2 Auto-Registration
@@ -1107,6 +1104,11 @@ static func get_active_camera(from_node: Node) -> Camera3D:
     """Resolve the active gameplay camera without relying on NodePaths."""
     if from_node == null:
         return null
+    var camera_manager := U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager"))
+    if camera_manager != null and camera_manager.has_method("get_main_camera"):
+        var main_camera := camera_manager.call("get_main_camera") as Camera3D
+        if main_camera != null and is_instance_valid(main_camera):
+            return main_camera
     var viewport := from_node.get_viewport()
     if viewport != null:
         var camera := viewport.get_camera_3d()
@@ -1115,34 +1117,26 @@ static func get_active_camera(from_node: Node) -> Camera3D:
     return get_singleton_from_group(from_node, StringName("main_camera"), false) as Camera3D
 ```
 
-#### 2. Standard Group Naming Convention
+#### 2. Cross-Tree Reference Strategy
 
-| Group Name | Purpose | Cardinality | Usage Example |
-|------------|---------|-------------|---------------|
-| `ecs_manager` | ECS manager singleton | 1 | `U_ECSUtils.get_manager(node)` |
-| `main_camera` | Active gameplay camera | 1 | `U_ECSUtils.get_active_camera(node)` |
-| `main_player` | Player entity root | 1 | `get_singleton_from_group(node, "main_player")` |
-| `spawn_points` | Entity spawn locations | N | `get_nodes_from_group(node, "spawn_points")` |
-| `interactables` | World objects for interaction | N | `get_nodes_from_group(node, "interactables")` |
+- Prefer explicit references and ServiceLocator for managers/cameras/entities.
+- Group helpers remain only as legacy fallbacks; do not introduce new group dependencies.
 
-**Convention**: Lowercase with underscores. Singletons prefixed with `main_`.
+| Reference | Preferred Lookup | Notes |
+|-----------|------------------|-------|
+| `ecs_manager` | `U_ECSUtils.get_manager()` (injection → parent → ServiceLocator) | Group path removed |
+| `main_camera` | `M_CameraManager.get_main_camera()` via ServiceLocator | Legacy group fallback only |
+| `main_player` | Explicit scene references | Avoid group reliance |
+| `spawn_points` | Typed scene paths or registries | Group helper only for legacy content |
+| `interactables` | Controller registration | Group usage deprecated |
 
 #### 3. Resolution Priority (for any cross-tree reference)
 
 ```
-1. Native Godot API (if available)
-   ├─ get_viewport().get_camera_3d()
-   ├─ get_tree().current_scene
-   └─ get_tree().root
-        ↓
-2. Group Discovery
-   └─ get_tree().get_nodes_in_group("group_name")
-        ↓
-3. Parent Hierarchy (same-tree optimization)
-   └─ Walk parents checking has_method() or is_instance_of()
-        ↓
-4. Fallback
-   └─ Return null + warning
+1. Injected dependency (tests) or ServiceLocator registration
+2. Parent hierarchy (same-tree optimization)
+3. Legacy group helpers (avoid in new code)
+4. Return null + warning
 ```
 
 #### 4. Specialized Helpers Use General Pattern
@@ -1167,15 +1161,21 @@ static func get_manager(from_node: Node) -> M_ECSManager:
     """Get ECS manager (same-tree optimization + cross-tree fallback)"""
     if from_node == null:
         return null
-    # Priority 1: Parent hierarchy (faster for same-tree)
+    # Priority 1: Injected manager (tests)
+    if "ecs_manager" in from_node:
+        var injected := from_node.get("ecs_manager")
+        if injected != null and is_instance_valid(injected):
+            return injected as M_ECSManager
+
+    # Priority 2: Parent hierarchy (faster for same-tree)
     var current := from_node.get_parent()
     while current != null:
-        if current.has_method("query_entities"):
+        if current.has_method("register_component") and current.has_method("register_system"):
             return current as M_ECSManager
         current = current.get_parent()
 
-    # Priority 2: Fallback to group
-    return get_singleton_from_group(from_node, StringName("ecs_manager"), false) as M_ECSManager
+    # Priority 3: ServiceLocator fallback
+    return U_ServiceLocator.try_get_service(StringName("ecs_manager")) as M_ECSManager
 
 # Testing hook (capture warnings in unit tests)
 static func set_warning_handler(handler: Callable) -> void:

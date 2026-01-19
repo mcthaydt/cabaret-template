@@ -31,6 +31,7 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 - Phase 5 complete: Production manager lookups migrated off groups (scene manager node finder, input rebinding overlay, button prompt). Full suite run is green using unit+integration dirs.
 - Phase 6 complete: Removed group fallback from `U_StateUtils` lookup helpers (get_store/try_get_store/await_store_ready). Full unit+integration suite passes via `-gdir=res://tests/unit -gdir=res://tests/integration -gexit`.
 - Phase 7 complete: Manager group registrations removed (all managers), M_ECSManager registers with ServiceLocator and `U_ECSUtils.get_manager()` now falls back to ServiceLocator, and full unit+integration suite is green via `-gdir=res://tests/unit -gdir=res://tests/integration -gexit`.
+- Phase 8 complete: Removed legacy ECS entity group fallback and `add_legacy_group` flag; entity detection now relies on `BaseECSEntity` and `E_` naming. ECS unit suite passes via `-gdir=res://tests/unit/ecs -gexit`.
 
 ---
 
@@ -46,6 +47,6 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 
 ## Next Step
 
-- Phase 8: remove ECS entity group usage (`ENTITY_GROUP`/`add_legacy_group`).
+- Phase 9: migrate HUD/mobile controls off UI groups to explicit manager registration.
 - Targeted tests:
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit`
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ui -gexit`

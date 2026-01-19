@@ -557,15 +557,16 @@ Notes:
 
 ### Phase 8: Entity Group Removal
 
-- [ ] Remove `is_in_group(ENTITY_GROUP)` check from `u_ecs_utils.gd:62`
-- [ ] Remove `ENTITY_GROUP` constant from `u_ecs_utils.gd:5`
-- [ ] Remove `add_legacy_group` export from `base_ecs_entity.gd:9`
-- [ ] Remove `ENTITY_GROUP` constant from `base_ecs_entity.gd:7`
-- [ ] Remove conditional `add_to_group()` from `base_ecs_entity.gd:16-17`
-- [ ] Run ECS tests:
+- [x] Remove `is_in_group(ENTITY_GROUP)` check from `u_ecs_utils.gd:62`
+- [x] Remove `ENTITY_GROUP` constant from `u_ecs_utils.gd:5`
+- [x] Remove `add_legacy_group` export from `base_ecs_entity.gd:9`
+- [x] Remove `ENTITY_GROUP` constant from `base_ecs_entity.gd:7`
+- [x] Remove conditional `add_to_group()` from `base_ecs_entity.gd:16-17`
+- [x] Run ECS tests:
   ```bash
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit
   ```
+  - ECS unit suite green via command above.
 
 ### Phase 9: UI Group Migration
 
@@ -682,8 +683,8 @@ grep -r "add_to_group\|is_in_group\|get_nodes_in_group" scripts/
 - `U_ServiceLocator` is robust and ready (verified 2026-01-19)
 - **40+ test files** use `add_to_group()` for setup - each is documented above
 - Camera tracking is critical path - affects spawn and scene transitions
-- `ecs_manager` group is special - gameplay scenes have their own M_ECSManager instance (not in root.tscn), so it does NOT use ServiceLocator
+- Gameplay scenes each own an `M_ECSManager` instance; managers self-register with ServiceLocator (no groups)
 - Some `is_in_group()` checks are for Godot built-in groups - review individually
 - **Always add `U_ServiceLocator.clear()` to test cleanup** to prevent cross-test pollution
-- The `add_legacy_group` flag in `BaseECSEntity` is already `false` by default - entity group is opt-in
+- Entity detection now relies on `BaseECSEntity` + `E_` naming; the legacy `ecs_entity` group has been removed
 - If any phase causes test failures, **stop and fix before proceeding**
