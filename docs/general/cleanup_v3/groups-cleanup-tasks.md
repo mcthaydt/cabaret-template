@@ -385,7 +385,7 @@ Create camera tracking methods before updating any consumers.
 
 ### Phase 3: Production Camera Code Migration
 
-- [ ] Update `m_scene_manager.gd:532`:
+- [x] Update `m_scene_manager.gd:532`:
   ```gdscript
   # OLD
   var new_cameras: Array = get_tree().get_nodes_in_group("main_camera")
@@ -396,7 +396,7 @@ Create camera tracking methods before updating any consumers.
   if camera_manager and camera_manager.has_method("get_main_camera"):
       new_camera = camera_manager.get_main_camera()
   ```
-- [ ] Update `m_spawn_manager.gd:222`:
+- [x] Update `m_spawn_manager.gd:222`:
   ```gdscript
   # OLD
   var cameras: Array = get_tree().get_nodes_in_group("main_camera")
@@ -419,8 +419,8 @@ Create camera tracking methods before updating any consumers.
   ```
   - Add `_find_camera_by_type()` helper that recursively finds Camera3D nodes by type
   - Camera already named `E_PlayerCamera` in `tmpl_camera.tscn` (no renaming needed)
-- [ ] **Template cleanup** - Remove `groups=["main_camera"]` from `templates/tmpl_camera.tscn:10`
-- [ ] Run integration tests:
+- [x] **Template cleanup** - Remove `groups=["main_camera"]` from `templates/tmpl_camera.tscn:10`
+- [x] Run integration tests (2026-02-08): all scene manager integration suites passing; warnings only for intentionally missing managers/overlays in test scaffolds.
   ```bash
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/scene_manager -gexit
   ```

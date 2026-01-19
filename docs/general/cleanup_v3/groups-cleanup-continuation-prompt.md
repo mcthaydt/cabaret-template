@@ -26,6 +26,7 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 - Baseline full-suite run from Phase 0 checklist is still unchecked (see tasks doc).
 - Phase 1 complete: added main camera registration helpers to `M_CameraManager`, `_find_camera_in_scene()` honors the registered camera, and camera unit/integration suites are green.
 - Phase 2 complete: migrated camera-related tests off `add_to_group("main_camera")`, added ServiceLocator fallback in `U_ECSUtils.get_active_camera()`, cleared ServiceLocator in camera suites, and switched `i_scene_contract.gd` to type-based camera validation. Camera unit/integration suites are green.
+- Phase 3 complete: Scene manager and spawn manager now rely on camera manager main-camera APIs (no `main_camera` group lookups), `tmpl_camera` no longer declares the group tag, and scene manager integration suites pass (warnings only for intentionally missing managers/overlays in tests).
 
 ---
 
@@ -41,6 +42,6 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 
 ## Next Step
 
-- Phase 3: update production camera consumers to use ServiceLocator/main-camera APIs (scene manager + spawn manager) and remove template group tag; then run scene manager integration tests.
+- Phase 4: migrate manager-centric tests off groups to ServiceLocator registration/clear in setup/teardown (state_store, input_profile_manager, scene_manager, spawn_manager, save_manager test helpers).
 - Targeted tests:
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/scene_manager -gexit`
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ui -gexit`
