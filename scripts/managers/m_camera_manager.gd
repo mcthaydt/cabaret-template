@@ -48,6 +48,7 @@ var _shake_parents: Dictionary = {}
 
 var _active_scene_camera: Camera3D = null
 var _active_scene_shake_parent: Node3D = null
+var _main_camera: Camera3D = null
 
 func _ready() -> void:
 	# Add to camera_manager group for discovery
@@ -152,6 +153,10 @@ func _find_camera_in_scene(scene: Node) -> Camera3D:
 	if scene == null:
 		return null
 
+	if _main_camera != null and is_instance_valid(_main_camera):
+		if scene == _main_camera or scene.is_ancestor_of(_main_camera):
+			return _main_camera
+
 	# Check if this node is a camera in the main_camera group
 	if scene is Camera3D and scene.is_in_group("main_camera"):
 		return scene as Camera3D
@@ -240,6 +245,9 @@ func apply_shake_offset(offset: Vector2, rotation: float) -> void:
 	_apply_shake_to_parent(_active_scene_shake_parent, active_camera, offset, rotation)
 
 func _get_active_camera() -> Camera3D:
+	if _main_camera != null and is_instance_valid(_main_camera):
+		return _main_camera
+
 	var viewport := get_viewport()
 	if viewport != null:
 		var viewport_camera := viewport.get_camera_3d()
@@ -249,6 +257,18 @@ func _get_active_camera() -> Camera3D:
 	if tree == null:
 		return null
 	return tree.get_first_node_in_group("main_camera") as Camera3D
+
+func register_main_camera(camera: Camera3D) -> void:
+	if camera != null and is_instance_valid(camera):
+		_main_camera = camera
+		return
+	_main_camera = null
+
+func unregister_main_camera() -> void:
+	_main_camera = null
+
+func get_main_camera() -> Camera3D:
+	return _main_camera
 
 func _ensure_shake_parent_for_camera(camera: Camera3D) -> Node3D:
 	if camera == null or not is_instance_valid(camera):
