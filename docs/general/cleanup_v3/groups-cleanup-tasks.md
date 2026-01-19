@@ -436,51 +436,58 @@ Update tests to use `U_ServiceLocator.register()` instead of `add_to_group()`.
 
 #### state_store tests
 
-- [ ] `test_pause_menu_navigation.gd:15`:
+- [x] `test_pause_menu_navigation.gd:15`:
   ```gdscript
   # OLD: _store.add_to_group("state_store")
   # NEW:
   U_ServiceLocator.register(StringName("state_store"), _store)
   ```
-- [ ] Add `after_each()` with `U_ServiceLocator.clear()`
-- [ ] `test_input_profile_selector.gd:32` - same pattern
-- [ ] `test_ui_input_handler.gd:229` - same pattern
+- [x] Add `after_each()` with `U_ServiceLocator.clear()`
+- [x] `test_input_profile_selector.gd:32` - same pattern
+- [x] `test_ui_input_handler.gd:229` - same pattern
 
 #### input_profile_manager tests
 
-- [ ] `test_input_profile_selector.gd:43`:
+- [x] `test_input_profile_selector.gd:43`:
   ```gdscript
   # OLD: _manager.add_to_group("input_profile_manager")
   # NEW:
   U_ServiceLocator.register(StringName("input_profile_manager"), _manager)
   ```
-- [ ] `test_edit_touch_controls_overlay.gd:38` - same pattern
-- [ ] `test_touchscreen_settings_overlay.gd:27` - same pattern
-- [ ] `test_input_rebinding_overlay.gd:421` - same pattern
+- [x] `test_edit_touch_controls_overlay.gd:38` - same pattern
+- [x] `test_touchscreen_settings_overlay.gd:27` - same pattern
+- [x] `test_input_rebinding_overlay.gd:421` - same pattern
 
 #### scene_manager tests
 
-- [ ] `test_input_rebinding_overlay.gd:38`:
+- [x] `test_input_rebinding_overlay.gd:38`:
   ```gdscript
   # OLD: _scene_manager_mock.add_to_group("scene_manager")
   # NEW:
   U_ServiceLocator.register(StringName("scene_manager"), _scene_manager_mock)
   ```
-- [ ] `test_triggered_interactable_controller.gd:205` - same pattern
-- [ ] `test_e_door_trigger_controller.gd:22` - same pattern
-- [ ] `test_victory_system_example.gd:195` - same pattern
-- [ ] `test_health_system.gd:266` - same pattern
-- [ ] `test_damage_system.gd:287` - same pattern
+- [x] `test_triggered_interactable_controller.gd:205` - same pattern
+- [x] `test_e_door_trigger_controller.gd:22` - same pattern
+- [x] `test_victory_system_example.gd:195` - same pattern
+- [x] `test_health_system.gd:266` - same pattern
+- [x] `test_damage_system.gd:287` - same pattern
 
 #### Other manager tests
 
-- [ ] `test_spawn_system_basic.gd:18` - spawn_manager
-- [ ] `mock_save_manager.gd:24` - save_manager
+- [x] `test_spawn_system_basic.gd:18` - spawn_manager
+- [x] `mock_save_manager.gd:24` - save_manager (register only when unregistered to avoid duplicate warnings)
 
-#### Verify UI tests pass
+#### Verify UI tests pass (Ran 2026-02-08 - green)
 
 ```bash
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ui -gexit
+```
+
+Additional targeted test runs (2026-02-08):
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/gameplay -gexit
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/spawn_system -gexit
 ```
 
 ### Phase 5: Production Manager Code Migration
