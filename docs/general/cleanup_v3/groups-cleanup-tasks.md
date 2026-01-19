@@ -492,28 +492,30 @@ Additional targeted test runs (2026-02-08):
 
 ### Phase 5: Production Manager Code Migration
 
-- [ ] Update `u_scene_manager_node_finder.gd:88`:
+- [x] Update `u_scene_manager_node_finder.gd:88`:
   ```gdscript
   # OLD: var stores := tree.get_nodes_in_group("state_store")
   # NEW:
   var store := U_ServiceLocator.try_get_service(StringName("state_store"))
   ```
-- [ ] Update `ui_input_rebinding_overlay.gd:153`:
+- [x] Update `ui_input_rebinding_overlay.gd:153`:
   ```gdscript
   # OLD: var stores := get_tree().get_nodes_in_group("state_store")
   # NEW:
   var store := U_ServiceLocator.try_get_service(StringName("state_store"))
   ```
-- [ ] Update `ui_button_prompt.gd:197`:
+- [x] Update `ui_button_prompt.gd:197`:
   ```gdscript
   # OLD: if node.is_in_group("input_device_manager"):
   # NEW:
   var manager := U_ServiceLocator.try_get_service(StringName("input_device_manager"))
   if manager == node:
   ```
-- [ ] Run full test suite:
+- [x] Run full test suite (2026-02-08):
   ```bash
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit
+  # Command used with dirs:
+  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gdir=res://tests/integration -gexit
   ```
 
 ### Phase 6: Remove Group Fallback from Utilities
