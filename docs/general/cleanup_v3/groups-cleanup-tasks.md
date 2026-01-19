@@ -9,6 +9,46 @@ Remove `add_to_group()`/`is_in_group()`/`get_nodes_in_group()` usage throughout 
 
 ---
 
+## Pre-work Audit (2026-01-19)
+
+### Current Usage Counts
+
+| Pattern | Production Files | Test Files | Total |
+|---------|-----------------|------------|-------|
+| `add_to_group()` | 14 | 40 | 54 |
+| `get_nodes_in_group()` | 10 | 26 | 36 |
+| `is_in_group()` | 10 | 9 | 19 |
+
+### ServiceLocator State
+
+`U_ServiceLocator` exists and is robust (`scripts/core/u_service_locator.gd`). However, there is **inconsistent registration**:
+
+**Registered via `main.gd` (centralized):**
+- `state_store`, `cursor_manager`, `scene_manager`, `pause_manager`, `spawn_manager`
+- `camera_manager`, `vfx_manager`, `input_profile_manager`, `input_device_manager`
+- `ui_input_handler`, `save_manager`
+
+**Self-registers only (NOT in main.gd):**
+- `audio_manager` - `M_AudioManager` calls `U_ServiceLocator.register()` in its own `_ready()` but is not listed in `main.gd`
+
+**Dual registration (both patterns):**
+- `save_manager` - Listed in `main.gd` AND self-registers in `m_save_manager.gd:62`
+
+### Blockers / Prerequisites
+
+1. **Standardize registration pattern** - Before removing groups, decide:
+   - Option A: All managers registered centrally in `main.gd` (current majority pattern)
+   - Option B: All managers self-register with ServiceLocator (M_AudioManager pattern)
+   - Recommendation: Option A for explicit dependency visibility
+
+2. **Add `audio_manager` to `main.gd`** - Currently missing, relies on self-registration
+
+3. **Remove duplicate `save_manager` self-registration** - Already in `main.gd`
+
+4. **Test files use groups extensively** - 40+ test files add nodes to groups for setup; these need ServiceLocator registration instead
+
+---
+
 ## Why Remove Groups?
 
 - **String-based lookups** - typo-prone, no compile-time safety
@@ -141,13 +181,19 @@ Remove `add_to_group()`/`is_in_group()`/`get_nodes_in_group()` usage throughout 
 
 ## Task Checklist
 
+### Phase 0: ServiceLocator Prerequisites
+- [ ] Decide registration pattern (centralized in `main.gd` vs self-registration)
+- [ ] Add `M_AudioManager` registration to `main.gd` (currently missing)
+- [ ] Remove duplicate self-registration from `m_save_manager.gd:62`
+- [ ] Verify all 12 managers are in `main.gd` registration list
+- [ ] Run tests to confirm ServiceLocator works without groups
+
 ### Phase 1: Service Locator Migration
-- [ ] Audit all manager `add_to_group()` calls
-- [ ] Ensure all managers register with `U_ServiceLocator`
 - [ ] Replace `get_nodes_in_group("state_store")` → `U_ServiceLocator.get_service()`
 - [ ] Replace `get_nodes_in_group("input_device_manager")` → `U_ServiceLocator.get_service()`
 - [ ] Remove `add_to_group()` from all 12 managers
 - [ ] Remove group cleanup in `_exit_tree()` for managers
+- [ ] Update test files to use `U_ServiceLocator.register()` instead of `add_to_group()`
 
 ### Phase 2: Entity Group Removal
 - [ ] Add entity lookup method to `M_ECSManager` if not present
@@ -189,6 +235,8 @@ Remove `add_to_group()`/`is_in_group()`/`get_nodes_in_group()` usage throughout 
 ## Notes
 
 - Run tests after each phase
-- `U_ServiceLocator` must be robust before Phase 1
-- Some group queries may be in test files - update those too
+- `U_ServiceLocator` is robust and ready (verified 2026-01-19)
+- **40+ test files** use `add_to_group()` for setup - significant test refactoring required
 - Camera tracking is critical path - affects spawn and scene transitions
+- `ecs_manager` group is special - used by gameplay scenes that have their own M_ECSManager instance (not in root.tscn)
+- Some `is_in_group()` checks are for Godot built-in groups (e.g., checking node types) - review individually

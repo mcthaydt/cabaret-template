@@ -4,6 +4,3 @@
 
 [resource]
 script = ExtResource("1")
-max_offset = Vector2(18, 14)
-max_rotation = 0.12
-noise_speed = 50.0

@@ -80,7 +80,7 @@ func test_pause_menu_hidden_when_transitioning_to_main_menu() -> void:
 
 	# Simulate clicking "Quit to Main Menu" - this clears overlays AND changes shell
 	store.dispatch(U_NavigationActions.return_to_main_menu())
-	await wait_process_frames(5)
+	await wait_physics_frames(2)
 
 	# Pause menu should be hidden because we're transitioning to main menu shell
 	assert_false(pause_menu.visible, "Pause menu should be hidden when transitioning to main menu")
