@@ -146,6 +146,7 @@ func _setup_system() -> Dictionary:
 	component.set_vibration_callables(Callable(mock, "record"), Callable())
 
 	var system := S_GamepadVibrationSystem.new()
+	system.state_store = _store  # Inject store to avoid ServiceLocator dependency in tests
 	manager.add_child(system)
 	await _pump()
 	await _pump()  # Wait extra frame for deferred system registration

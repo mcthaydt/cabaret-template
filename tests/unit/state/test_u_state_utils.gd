@@ -2,10 +2,13 @@ extends GutTest
 
 ## Tests for U_StateUtils helper functions
 
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+
 var store: M_StateStore
 var benchmark_ran: bool = false
 
 func before_each() -> void:
+	U_ServiceLocator.clear()
 	store = M_StateStore.new()
 	add_child(store)
 	autofree(store)  # Use autofree for proper cleanup
@@ -15,6 +18,7 @@ func before_each() -> void:
 func after_each() -> void:
 	# Cleanup handled by autofree
 	store = null
+	U_ServiceLocator.clear()
 
 func test_get_store_finds_store_in_tree() -> void:
 	var found_store: M_StateStore = U_StateUtils.get_store(self)
@@ -23,12 +27,11 @@ func test_get_store_finds_store_in_tree() -> void:
 	assert_eq(found_store, store, "Should return the correct store")
 
 func test_get_store_errors_if_no_store() -> void:
-	# Remove store from group to simulate absence (don't queue_free as it's autofreed)
-	store.remove_from_group("state_store")
-	await get_tree().process_frame
+	# Clear ServiceLocator to simulate absence (store remains in tree but is not registered)
+	U_ServiceLocator.clear()
 
 	var found_store: M_StateStore = U_StateUtils.get_store(self)
-	assert_push_error("No M_StateStore")
+	assert_push_error("No M_StateStore registered in ServiceLocator")
 	assert_null(found_store, "Should return null if no store")
 
 func test_get_store_errors_if_node_invalid() -> void:

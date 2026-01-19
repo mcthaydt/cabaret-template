@@ -20,6 +20,7 @@ const U_STATE_REPOSITORY := preload("res://scripts/state/utils/u_state_repositor
 const U_STATE_VALIDATOR := preload("res://scripts/state/utils/u_state_validator.gd")
 const U_ACTION_HISTORY_BUFFER := preload("res://scripts/state/utils/u_action_history_buffer.gd")
 const U_STORE_PERFORMANCE_METRICS := preload("res://scripts/state/utils/u_store_performance_metrics.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_BOOT_REDUCER := preload("res://scripts/state/reducers/u_boot_reducer.gd")
 const U_MENU_REDUCER := preload("res://scripts/state/reducers/u_menu_reducer.gd")
 const U_GAMEPLAY_REDUCER := preload("res://scripts/state/reducers/u_gameplay_reducer.gd")
@@ -78,6 +79,9 @@ func _ready() -> void:
 	# pause menus and overlay reconciliation remain responsive.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("state_store")
+	var service_name := StringName("state_store")
+	if not U_SERVICE_LOCATOR.has(service_name):
+		U_SERVICE_LOCATOR.register(service_name, self)
 	_initialize_settings()
 	_initialize_slices()
 		

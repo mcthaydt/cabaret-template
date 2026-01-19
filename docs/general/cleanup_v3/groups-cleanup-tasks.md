@@ -522,7 +522,7 @@ Additional targeted test runs (2026-02-08):
 
 Only after all tests pass with ServiceLocator.
 
-- [ ] Remove group fallback from `u_state_utils.gd:34-48`:
+- [x] Remove group fallback from `u_state_utils.gd:34-48`:
   ```gdscript
   # REMOVE this block:
   # Priority 3: Group lookup (backward compatibility)
@@ -530,8 +530,9 @@ Only after all tests pass with ServiceLocator.
       var tree: SceneTree = node.get_tree()
       ...
   ```
-- [ ] Run tests to verify nothing depends on group fallback
-- [ ] If tests fail, identify which tests still need group fallback and fix them first
+- [x] Run tests to verify nothing depends on group fallback
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gdir=res://tests/integration -gexit`
+- [x] If tests fail, identify which tests still need group fallback and fix them first
 
 ### Phase 7: Remove Manager Group Registration
 

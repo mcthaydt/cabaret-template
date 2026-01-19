@@ -125,9 +125,6 @@ func test_input_system_recovers_when_state_store_initializes_late() -> void:
 	add_child_autofree(store)
 	await _pump()
 
-	# Register state_store with ServiceLocator so systems can find it
-	U_ServiceLocator.register(StringName("state_store"), store)
-
 	var ecs_manager := M_ECSManager.new()
 	add_child_autofree(ecs_manager)
 	await _pump()
@@ -143,6 +140,7 @@ func test_input_system_recovers_when_state_store_initializes_late() -> void:
 	await _pump()
 
 	var system := S_InputSystem.new()
+	system.state_store = store
 	ecs_manager.add_child(system)
 	await _pump()
 
@@ -176,9 +174,6 @@ func _setup_environment() -> Dictionary:
 	add_child_autofree(store)
 	await _pump()
 
-	# Register state_store with ServiceLocator so systems can find it
-	U_ServiceLocator.register(StringName("state_store"), store)
-
 	var device_manager := M_InputDeviceManager.new()
 	add_child_autofree(device_manager)
 	await _pump()
@@ -201,6 +196,7 @@ func _setup_environment() -> Dictionary:
 	await _pump()
 
 	var system := S_InputSystem.new()
+	system.state_store = store
 	ecs_manager.add_child(system)
 	await _pump()
 

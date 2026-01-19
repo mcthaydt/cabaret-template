@@ -9,13 +9,12 @@ class_name U_StateUtils
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const STORE_GROUP := StringName("state_store")
 
-## Get the I_StateStore from injection, ServiceLocator, or groups
-## Returns null if no store found or node is invalid
+## Get the I_StateStore from injection or ServiceLocator.
+## Returns null if no store found or node is invalid.
 ##
 ## Lookup order (Phase 10B-8):
 ##   1. Check if node has 'state_store' @export (for test injection)
 ##   2. ServiceLocator (fast, centralized)
-##   3. Group lookup (backward compatibility)
 static func get_store(node: Node) -> I_StateStore:
 	if node == null or not is_instance_valid(node):
 		push_error("U_StateUtils.get_store: Invalid node")
@@ -30,32 +29,17 @@ static func get_store(node: Node) -> I_StateStore:
 	# Priority 2: ServiceLocator (production pattern)
 	var store := U_ServiceLocator.try_get_service(STORE_GROUP) as I_StateStore
 
-	# Priority 3: Group lookup (backward compatibility)
 	if store == null:
-		var tree: SceneTree = node.get_tree()
-		if tree == null:
-			push_error("U_StateUtils.get_store: Node not in tree")
-			return null
-
-		var store_group: Array = tree.get_nodes_in_group(STORE_GROUP)
-		if store_group.is_empty():
-			push_error("U_StateUtils.get_store: No M_StateStore in 'state_store' group")
-			return null
-
-		if store_group.size() > 1:
-			push_warning("U_StateUtils.get_store: Multiple stores found, using first")
-
-		store = store_group[0] as I_StateStore
+		push_error("U_StateUtils.get_store: No M_StateStore registered in ServiceLocator")
 
 	return store
 
-## Try to get the I_StateStore from injection, ServiceLocator, or groups (silent)
+## Try to get the I_StateStore from injection or ServiceLocator (silent)
 ## Returns null if no store found or node is invalid.
 ##
 ## Lookup order:
 ##   1. Check if node has 'state_store' @export (for test injection)
 ##   2. ServiceLocator (fast, centralized)
-##   3. Group lookup (backward compatibility)
 static func try_get_store(node: Node) -> I_StateStore:
 	if node == null or not is_instance_valid(node):
 		return null
@@ -70,13 +54,7 @@ static func try_get_store(node: Node) -> I_StateStore:
 	var store := U_ServiceLocator.try_get_service(STORE_GROUP) as I_StateStore
 	if store != null:
 		return store
-
-	# Priority 3: Group lookup (backward compatibility)
-	var tree: SceneTree = node.get_tree()
-	if tree == null:
-		return null
-
-	return tree.get_first_node_in_group(STORE_GROUP) as I_StateStore
+	return null
 
 static func await_store_ready(node: Node, max_frames: int = 120) -> I_StateStore:
 	if node == null or not is_instance_valid(node):
@@ -90,12 +68,19 @@ static func await_store_ready(node: Node, max_frames: int = 120) -> I_StateStore
 
 	var frames_waited := 0
 	while frames_waited <= max_frames:
-		# Try ServiceLocator first (silent lookup to avoid error spam during waiting)
-		var store := U_ServiceLocator.try_get_service(STORE_GROUP) as I_StateStore
+		if node == null or not is_instance_valid(node):
+			push_error("U_StateUtils.await_store_ready: Node became invalid while waiting")
+			return null
 
-		# Fallback to group lookup if ServiceLocator not initialized yet
+		var store: I_StateStore = null
+		if "state_store" in node:
+			var injected: Variant = node.get("state_store")
+			if injected != null and is_instance_valid(injected):
+				store = injected as I_StateStore
+
 		if store == null:
-			store = tree.get_first_node_in_group(STORE_GROUP) as I_StateStore
+			# ServiceLocator may be registered on a later frame; recheck each loop.
+			store = U_ServiceLocator.try_get_service(STORE_GROUP) as I_StateStore
 
 		if store != null:
 			if store.is_ready():

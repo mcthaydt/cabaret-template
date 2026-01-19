@@ -7,7 +7,7 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 ## Context
 
 - Goal: remove `add_to_group()` / `is_in_group()` / `get_nodes_in_group()` usage in favor of ServiceLocator, explicit registration helpers, and typed references.
-- Fallback chain already exists (exports → ServiceLocator → group); migration will remove the final group tier after consumers/tests move to ServiceLocator.
+- Fallback chain previously included groups (exports → ServiceLocator → group); state utils now rely on injection + ServiceLocator only, and remaining group tiers will be removed as consumers migrate.
 - Camera/HUD/mobile controls/effects containers will gain explicit registration APIs in their managers as part of this work.
 
 ---
@@ -29,6 +29,7 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 - Phase 3 complete: Scene manager and spawn manager now rely on camera manager main-camera APIs (no `main_camera` group lookups), `tmpl_camera` no longer declares the group tag, and scene manager integration suites pass (warnings only for intentionally missing managers/overlays in tests).
 - Phase 4 complete: Manager-centric tests now register via ServiceLocator (state_store, input_profile_manager, scene_manager, spawn_manager, save_manager). MockSaveManager only registers when unregistered to avoid duplicate warnings. UI suite is green plus gameplay/spawn integration suites validated.
 - Phase 5 complete: Production manager lookups migrated off groups (scene manager node finder, input rebinding overlay, button prompt). Full suite run is green using unit+integration dirs.
+- Phase 6 complete: Removed group fallback from `U_StateUtils` lookup helpers (get_store/try_get_store/await_store_ready). Full unit+integration suite passes via `-gdir=res://tests/unit -gdir=res://tests/integration -gexit`.
 
 ---
 
@@ -44,6 +45,6 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 
 ## Next Step
 
-- Phase 6: remove group fallback from utilities (`u_state_utils.gd`) after confirming all consumers are on ServiceLocator/injection.
+- Phase 7: remove manager group registration now that utilities/tests no longer rely on group fallback.
 - Targeted tests:
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit`
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gdir=res://tests/integration -gexit` (full suite)

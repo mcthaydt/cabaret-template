@@ -129,6 +129,7 @@ func test_input_system_end_to_end_updates_store_and_component() -> void:
 	await get_tree().process_frame
 
 	var system: S_InputSystem = S_INPUT_SYSTEM.new()
+	system.state_store = store
 	manager.add_child(system)
 	await get_tree().process_frame
 
@@ -174,11 +175,6 @@ func _spawn_state_store() -> M_StateStore:
 	add_child(store)
 	autofree(store)
 	await get_tree().process_frame
-	# Register state_store with ServiceLocator so systems can find it
-	# (replace any existing registration since tests may spawn multiple stores)
-	if U_ServiceLocator.has(StringName("state_store")):
-		U_ServiceLocator.get_service(StringName("state_store"))  # Just to validate
-	U_ServiceLocator.register(StringName("state_store"), store)
 	return store
 
 func _cleanup_node(node: Node) -> void:

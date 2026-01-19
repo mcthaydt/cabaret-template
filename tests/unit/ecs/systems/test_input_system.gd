@@ -48,9 +48,6 @@ func _setup_entity() -> Dictionary:
 	autofree(store)
 	await _pump()
 
-	# Register state_store with ServiceLocator so systems can find it
-	U_ServiceLocator.register(StringName("state_store"), store)
-
 	# Create M_InputDeviceManager (required by S_InputSystem)
 	var input_device_manager := InputDeviceManagerScript.new()
 	add_child(input_device_manager)
@@ -75,6 +72,7 @@ func _setup_entity() -> Dictionary:
 	await _pump()
 
 	var system = InputSystemScript.new()
+	system.state_store = store
 	manager.add_child(system)
 	await _pump()
 

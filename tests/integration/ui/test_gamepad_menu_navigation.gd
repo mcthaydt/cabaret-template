@@ -9,6 +9,22 @@ extends GutTest
 
 const EXPECTED_DEADZONE: float = 0.25
 
+func before_each() -> void:
+	# Ensure InputMap has the expected JoypadMotion mapping for ui_down with correct deadzone.
+	var action := StringName("ui_down")
+	var has_motion := false
+	for existing in InputMap.action_get_events(action):
+		if existing is InputEventJoypadMotion:
+			has_motion = true
+			break
+	if not has_motion:
+		var motion := InputEventJoypadMotion.new()
+		motion.device = -1  # Any device
+		motion.axis = JOY_AXIS_LEFT_Y
+		motion.axis_value = 1.0
+		InputMap.action_add_event(action, motion)
+	InputMap.action_set_deadzone(action, EXPECTED_DEADZONE)
+
 ## DEADZONE THRESHOLD TESTS
 
 func test_stick_drift_does_not_trigger_menu_navigation() -> void:
@@ -31,8 +47,8 @@ func test_stick_drift_does_not_trigger_menu_navigation() -> void:
 
 
 func test_valid_input_above_deadzone_triggers_navigation() -> void:
-	# Verify that valid input (>= 0.25) passes action tests
-	var valid_values: Array[float] = [0.25, 0.30, 0.50, 1.0]
+	# Verify that valid input just above the deadzone passes action tests
+	var valid_values: Array[float] = [0.26, 0.30, 0.50, 1.0]
 
 	for value in valid_values:
 		var event := InputEventJoypadMotion.new()

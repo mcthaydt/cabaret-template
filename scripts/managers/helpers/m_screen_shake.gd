@@ -58,7 +58,11 @@ func calculate_shake(trauma: float, settings_multiplier: float, delta: float):
 	) * settings_multiplier
 
 	# Calculate camera rotation using a third noise sample
-	var rotation := max_rotation * shake_amount * _noise.get_noise_1d(_time + 200.0) * settings_multiplier
+	var rotation_noise := _noise.get_noise_1d(_time + 200.0)
+	# Guard against rare 0 output by sampling an alternate time to ensure a non-zero shake
+	if abs(rotation_noise) < 0.0001 and shake_amount > 0.0:
+		rotation_noise = _noise.get_noise_1d(_time + 201.2345)
+	var rotation := max_rotation * shake_amount * rotation_noise * settings_multiplier
 
 	return ShakeResult.new(offset, rotation)
 

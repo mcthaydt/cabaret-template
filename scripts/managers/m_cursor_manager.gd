@@ -13,6 +13,8 @@ class_name M_CursorManager
 
 signal cursor_state_changed(locked: bool, visible: bool)
 
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+
 ## Current lock state of the cursor
 var _is_locked: bool = true
 ## Current visibility state of the cursor
@@ -20,6 +22,9 @@ var _is_visible: bool = false
 
 func _ready() -> void:
 	add_to_group("cursor_manager")
+	var service_name := StringName("cursor_manager")
+	if not U_SERVICE_LOCATOR.has(service_name):
+		U_SERVICE_LOCATOR.register(service_name, self)
 	# Set initial state: hidden and locked
 	_apply_cursor_state(true, false)
 
