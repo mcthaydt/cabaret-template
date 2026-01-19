@@ -150,17 +150,12 @@ func _apply_binding(event: InputEvent, conflict_action: StringName) -> void:
 	await U_RebindCaptureHandler.apply_binding(self, event, conflict_action)
 
 func _resolve_preferred_store() -> I_StateStore:
-	var stores := get_tree().get_nodes_in_group("state_store")
-	var fallback_store: I_StateStore = null
-	for entry in stores:
-		var candidate := entry as I_StateStore
-		if candidate == null:
-			continue
-		if "dispatched_actions" in candidate:
-			return candidate
-		if fallback_store == null:
-			fallback_store = candidate
-	return fallback_store
+	var store := U_ServiceLocator.try_get_service(StringName("state_store")) as I_StateStore
+	if store != null and is_instance_valid(store):
+		if "dispatched_actions" in store:
+			return store
+		return store
+	return null
 
 func _ensure_store_reference() -> void:
 	if _store != null and is_instance_valid(_store):

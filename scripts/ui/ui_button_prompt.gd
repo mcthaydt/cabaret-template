@@ -174,7 +174,7 @@ func _bind_device_manager() -> void:
 		if manager == null:
 			var tree := get_tree()
 			if tree != null:
-				manager = tree.get_first_node_in_group("input_device_manager") as M_InputDeviceManager
+				manager = _find_device_manager_in_tree(tree)
 	if manager == null:
 		return
 	_device_manager = manager
@@ -194,8 +194,21 @@ func _connect_tree_node_added_signal() -> void:
 func _on_tree_node_added(node: Node) -> void:
 	if node == null:
 		return
-	if node.is_in_group("input_device_manager"):
+	if node is M_InputDeviceManager:
 		_bind_device_manager()
+
+func _find_device_manager_in_tree(tree: SceneTree) -> M_InputDeviceManager:
+	var root := tree.get_root()
+	if root == null:
+		return null
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var candidate: Node = stack.pop_back()
+		if candidate is M_InputDeviceManager:
+			return candidate as M_InputDeviceManager
+		for child in candidate.get_children():
+			stack.append(child)
+	return null
 
 func _on_device_changed_signal(device_type: int, _device_id: int, _timestamp: float) -> void:
 	_device_type = device_type

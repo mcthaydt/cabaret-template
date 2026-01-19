@@ -81,12 +81,5 @@ static func ensure_store_reference(current_store: Node, manager: Node) -> Node:
 	if current_store != null and is_instance_valid(current_store):
 		return current_store
 
-	var tree := manager.get_tree()
-	if tree == null:
-		return null
-
-	var stores := tree.get_nodes_in_group("state_store")
-	if stores.size() > 0:
-		return stores[0] as M_STATE_STORE
-
-	return null
+	var store := U_SERVICE_LOCATOR.try_get_service(StringName("state_store")) as M_STATE_STORE
+	return store
