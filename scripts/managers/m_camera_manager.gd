@@ -22,8 +22,8 @@ const META_SHAKE_PARENT := &"_camera_manager_shake_parent"
 ##
 ## Architecture:
 ## - Scene-based manager (not autoload)
-## - Added to "camera_manager" group in _ready()
-## - Discovered via get_tree().get_first_node_in_group("camera_manager")
+## - Registered with ServiceLocator in _ready()
+## - Discovered via ServiceLocator lookup
 
 ## Camera state capture for blending (Phase 10)
 class CameraState:
@@ -51,9 +51,6 @@ var _active_scene_shake_parent: Node3D = null
 var _main_camera: Camera3D = null
 
 func _ready() -> void:
-	# Add to camera_manager group for discovery
-	add_to_group("camera_manager")
-
 	# Register with ServiceLocator (VFX Phase 3: T3.2 dependency)
 	U_SERVICE_LOCATOR.register(StringName("camera_manager"), self)
 

@@ -64,10 +64,10 @@ func after_each() -> void:
 	_ui_overlay_stack = null
 	_transition_overlay = null
 
-## Test manager adds itself to scene_manager group
-func test_manager_joins_scene_manager_group() -> void:
-	var managers_in_group: Array = get_tree().get_nodes_in_group("scene_manager")
-	assert_true(_manager in managers_in_group, "Manager should be in scene_manager group")
+## Test manager is registered with ServiceLocator
+func test_manager_registers_with_service_locator() -> void:
+	var service := U_ServiceLocator.get_service(StringName("scene_manager"))
+	assert_eq(service, _manager, "Manager should be registered with ServiceLocator")
 
 ## Test manager finds M_StateStore via group
 func test_manager_finds_state_store() -> void:

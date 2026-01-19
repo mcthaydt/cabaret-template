@@ -66,7 +66,6 @@ var _loading_persisted_settings: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	add_to_group("audio_manager")
 	U_SERVICE_LOCATOR.register(StringName("audio_manager"), self)
 
 	_create_bus_layout()

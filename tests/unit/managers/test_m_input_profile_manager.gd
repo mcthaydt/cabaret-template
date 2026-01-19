@@ -128,9 +128,8 @@ func after_each() -> void:
 	_store = null
 	_mgr = null
 
-func test_manager_joins_group_and_loads_default_if_available() -> void:
-	var in_group := get_tree().get_nodes_in_group("input_profile_manager")
-	assert_true(_mgr in in_group, "Manager should join input_profile_manager group")
+func test_manager_sets_process_mode_and_loads_default_if_available() -> void:
+	assert_eq(_mgr.process_mode, Node.PROCESS_MODE_ALWAYS, "Manager should process while paused")
 
 	# Default profile may or may not be available; manager should not crash.
 	assert_true(true, "Manager initialized without errors")

@@ -139,6 +139,8 @@ func test_input_profile_selector_navigation_allows_up_down() -> void:
 	var store := await _create_state_store()
 	var manager := M_InputProfileManager.new()
 	add_child_autofree(manager)
+	U_ServiceLocator.register(StringName("state_store"), store)
+	U_ServiceLocator.register(StringName("input_profile_manager"), manager)
 	await wait_process_frames(2)
 
 	var selector := UI_InputProfileSelector.instantiate()

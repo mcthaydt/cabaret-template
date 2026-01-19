@@ -3,6 +3,7 @@ extends GutTest
 ## Tests for M_StateStore core functionality
 
 const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var store: M_StateStore
 var callback_called: bool = false
@@ -18,6 +19,7 @@ var last_slice_name: StringName = StringName()
 func before_each() -> void:
 	# CRITICAL: Reset state bus between tests to prevent subscription leaks
 	U_StateEventBus.reset()
+	U_ServiceLocator.clear()
 	
 	# Reset test variables
 	callback_called = false
@@ -43,13 +45,15 @@ func after_each() -> void:
 	# Cleanup handled by autofree
 	store = null
 	U_StateEventBus.reset()
+	U_ServiceLocator.clear()
 
 func test_store_instantiates_as_node() -> void:
 	assert_not_null(store, "Store should be created")
 	assert_true(store is Node, "Store should extend Node")
 
-func test_store_adds_to_state_store_group() -> void:
-	assert_true(store.is_in_group("state_store"), "Store should be in 'state_store' group")
+func test_store_registers_with_service_locator() -> void:
+	var service := U_ServiceLocator.try_get_service(StringName("state_store"))
+	assert_eq(service, store, "Store should register with ServiceLocator")
 
 func test_is_ready_flag_updates_after_initialization() -> void:
 	var temp_store := M_StateStore.new()

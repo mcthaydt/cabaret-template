@@ -11,7 +11,7 @@ class_name M_SaveManager
 ## - Emit save/load events for UI integration
 ## - Block autosaves during critical operations (death, loading)
 ##
-## Discovery: Add to "save_manager" group, discoverable via ServiceLocator
+## Discovery: Registered with ServiceLocator
 ##
 ## Dependencies:
 ## - M_StateStore: State access and dispatch
@@ -55,9 +55,6 @@ var _loading_target_scene: StringName = StringName("")
 var _transition_complete_unsubscribe: Callable
 
 func _ready() -> void:
-	# Add to save_manager group for discovery
-	add_to_group("save_manager")
-
 	# Register with ServiceLocator
 	U_ServiceLocator.register(StringName("save_manager"), self)
 

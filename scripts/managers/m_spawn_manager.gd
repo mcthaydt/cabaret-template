@@ -13,14 +13,13 @@ extends Node
 ## - Clear spawn point state after use
 ##
 ## Integration:
-## - Discovers M_StateStore via "state_store" group
+## - Discovers M_StateStore via ServiceLocator
 ## - Called by M_SceneManager during scene transitions
 ## - Uses gameplay state to read target_spawn_point
 ##
 ## Architecture:
 ## - Scene-based manager (not autoload)
-## - Added to "spawn_manager" group in _ready()
-## - Discovered via get_tree().get_first_node_in_group("spawn_manager")
+## - Discovered via ServiceLocator registration (root.tscn) or manual registration in tests
 
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
@@ -43,9 +42,6 @@ const SPAWN_HOVER_SNAP_MAX_DISTANCE := 0.75
 var _state_store: M_STATE_STORE = null
 
 func _ready() -> void:
-	# Add to spawn_manager group for discovery
-	add_to_group("spawn_manager")
-
 	# Find state store via ServiceLocator (Phase 10B-7: T141c)
 	# Gracefully handle missing store in test environments
 	await get_tree().process_frame
@@ -53,7 +49,7 @@ func _ready() -> void:
 
 	# Phase 10B (T133): Warn if M_StateStore missing for fail-fast feedback
 	if _state_store == null:
-		push_warning("M_SpawnManager: M_StateStore dependency not found. Ensure M_StateStore exists in scene tree and is in 'state_store' group")
+		push_warning("M_SpawnManager: M_StateStore dependency not found. Ensure M_StateStore is registered with ServiceLocator")
 
 ## Spawn player at specified spawn point (T220)
 ##

@@ -11,7 +11,7 @@ class_name M_SceneManager
 ## - Dispatch scene actions to M_StateStore
 ## - Subscribe to scene state changes
 ##
-## Discovery: Add to "scene_manager" group, discoverable via get_tree().get_nodes_in_group()
+## Discovery: Registered via ServiceLocator during scene bootstrap
 ##
 ## Signals:
 ## - transition_visual_complete(scene_id): Emitted when fade-in completes and scene is fully visible
@@ -152,9 +152,6 @@ var skip_initial_scene_load: bool = false
 @export var initial_scene_id: StringName = StringName("main_menu")
 
 func _ready() -> void:
-	# Add to scene_manager group for discovery
-	add_to_group("scene_manager")
-
 	# Find managers via ServiceLocator (Phase 10B-7: T141c)
 	await get_tree().process_frame  # Wait for ServiceLocator to initialize
 
@@ -183,7 +180,7 @@ func _ready() -> void:
 	# Find M_CameraManager via ServiceLocator (Phase 12.2: T243)
 	_camera_manager = U_ServiceLocator.try_get_service(StringName("camera_manager"))
 	if not _camera_manager:
-		push_warning("M_SceneManager: No M_CameraManager found in 'camera_manager' group")
+		push_warning("M_SceneManager: No M_CameraManager registered with ServiceLocator")
 
 	# Find container nodes (delegates to helper)
 	var containers := U_SCENE_MANAGER_NODE_FINDER.find_containers(self)

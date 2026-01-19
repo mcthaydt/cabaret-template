@@ -21,16 +21,11 @@ var _is_locked: bool = true
 var _is_visible: bool = false
 
 func _ready() -> void:
-	add_to_group("cursor_manager")
 	var service_name := StringName("cursor_manager")
 	if not U_SERVICE_LOCATOR.has(service_name):
 		U_SERVICE_LOCATOR.register(service_name, self)
 	# Set initial state: hidden and locked
 	_apply_cursor_state(true, false)
-
-func _exit_tree() -> void:
-	if is_in_group("cursor_manager"):
-		remove_from_group("cursor_manager")
 
 ## Sets both cursor lock and visibility states
 func set_cursor_state(locked: bool, visible: bool) -> void:

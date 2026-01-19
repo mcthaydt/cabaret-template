@@ -54,11 +54,9 @@ func _on_device_changed(device_type: int, device_id: int, timestamp: float) -> v
 		"timestamp": timestamp,
 	})
 
-func test_manager_adds_to_group_and_defaults_to_keyboard() -> void:
+func test_manager_defaults_to_keyboard() -> void:
 	var connected: Array = Input.get_connected_joypads()
 	var expected_connected: bool = not connected.is_empty()
-	var nodes: Array = get_tree().get_nodes_in_group("input_device_manager")
-	assert_true(_manager in nodes, "Manager should join input_device_manager group")
 	assert_eq(_manager.get_active_device(), M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE, "Default device should be keyboard/mouse")
 	assert_eq(_manager.get_gamepad_device_id(), -1, "No active gamepad on startup")
 	assert_eq(

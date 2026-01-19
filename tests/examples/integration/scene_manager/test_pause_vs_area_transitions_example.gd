@@ -116,20 +116,16 @@ func _test_esc_ignored_during_door_fade_transition_DISABLED() -> void:
 	assert_not_null(player_body, "Player_Body should exist")
 
 	# Ensure ECS manager has registered the player entity components
-	var ecs_mgrs: Array = get_tree().get_nodes_in_group("ecs_manager")
-	if not ecs_mgrs.is_empty():
-		var ecs_mgr: Node = ecs_mgrs[0]
+	var ecs_mgr := U_ServiceLocator.try_get_service(StringName("ecs_manager"))
+	if ecs_mgr != null:
 		var player_entity: Node = _find_in_tree(exterior_scene, StringName("E_Player"))
 		var comp_map: Dictionary = (ecs_mgr.call("get_components_for_entity", player_entity) if ecs_mgr.has_method("get_components_for_entity") else {})
 		assert_true(comp_map.has(StringName("C_PlayerTagComponent")), "Player entity should have player tag component")
 
 	# When: Player enters AUTO trigger and ESC is pressed during the fade
 	# Pre-check: verify the SceneManager instance used by triggers is our instance
-	var mgrs: Array = get_tree().get_nodes_in_group("scene_manager")
-	assert_eq(mgrs.size(), 1, "Exactly one SceneManager should be present")
-	if not mgrs.is_empty():
-		var grp_mgr: Node = mgrs[0]
-		assert_true(grp_mgr == _scene_manager, "SceneManager group instance should match local instance")
+	var registered_mgr := U_ServiceLocator.try_get_service(StringName("scene_manager"))
+	assert_eq(registered_mgr, _scene_manager, "SceneManager instance should match ServiceLocator registration")
 
 	# Resolve door controller and ensure we emit on its TriggerArea
 	var door_controller: Node = _find_in_tree(exterior_scene, StringName("E_DoorTrigger"))

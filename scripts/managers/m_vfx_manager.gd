@@ -71,9 +71,6 @@ func _ready() -> void:
 	# Run even when game is paused (VFX should be visible in pause menu)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
-	# Add to group for discoverability
-	add_to_group("vfx_manager")
-
 	# Discover StateStore dependency (injection first)
 	if state_store != null:
 		_state_store = state_store

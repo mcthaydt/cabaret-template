@@ -1,6 +1,7 @@
 extends BaseTest
 
 const CURSOR_MANAGER := preload("res://scripts/managers/m_cursor_manager.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var _signal_fired := false
 var _last_locked_state := false
@@ -12,9 +13,13 @@ func _on_cursor_state_changed(locked: bool, visible: bool) -> void:
 	_last_visible_state = visible
 
 func before_each() -> void:
+	U_SERVICE_LOCATOR.clear()
 	_signal_fired = false
 	_last_locked_state = false
 	_last_visible_state = false
+
+func after_each() -> void:
+	U_SERVICE_LOCATOR.clear()
 
 func test_manager_initializes_with_locked_and_hidden_cursor() -> void:
 	var manager := CURSOR_MANAGER.new()
@@ -114,13 +119,14 @@ func test_cursor_manager_does_not_handle_pause_input() -> void:
 	assert_true(manager.is_cursor_locked(), "Cursor should still be locked (no input handling)")
 	assert_false(manager.is_cursor_visible(), "Cursor should still be hidden (no input handling)")
 
-func test_manager_adds_to_cursor_manager_group() -> void:
+func test_manager_registers_with_service_locator() -> void:
 	var manager := CURSOR_MANAGER.new()
 	add_child(manager)
 	autofree(manager)
 	await get_tree().process_frame
 
-	assert_true(manager.is_in_group("cursor_manager"), "Manager should be in cursor_manager group")
+	var service := U_SERVICE_LOCATOR.get_service(StringName("cursor_manager"))
+	assert_eq(service, manager, "Manager should register with ServiceLocator")
 
 func test_locked_cursor_uses_captured_mode() -> void:
 	var manager := CURSOR_MANAGER.new()

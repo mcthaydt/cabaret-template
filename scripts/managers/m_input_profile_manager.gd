@@ -46,7 +46,6 @@ var _tracked_custom_actions: Array[StringName] = []
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	add_to_group("input_profile_manager")
 	U_InputMapBootstrapper.ensure_required_actions(
 		U_InputMapBootstrapper.REQUIRED_ACTIONS,
 		U_InputMapBootstrapper.should_patch_missing_actions()

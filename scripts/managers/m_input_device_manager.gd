@@ -42,7 +42,6 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process_input(true)
 	set_process_unhandled_input(true)
-	add_to_group("input_device_manager")
 	_register_input_sources()
 	_register_existing_gamepads()
 	_connect_joypad_signals()
@@ -62,8 +61,6 @@ func _register_input_sources() -> void:
 	]
 
 func _exit_tree() -> void:
-	if is_in_group("input_device_manager"):
-		remove_from_group("input_device_manager")
 	_disconnect_joypad_signals()
 	_state_store = null
 

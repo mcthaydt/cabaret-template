@@ -15,7 +15,7 @@ static var _manager_method_warnings: Dictionary = {}
 ## Lookup order (Phase 10B-8):
 ##   1. Check if node has 'ecs_manager' @export (for test injection)
 ##   2. Parent traversal (existing pattern)
-##   3. Group lookup (existing fallback)
+##   3. ServiceLocator lookup (manager registration replaces group fallback)
 static func get_manager(from_node: Node) -> Node:
 	if from_node == null:
 		return null
@@ -34,8 +34,8 @@ static func get_manager(from_node: Node) -> Node:
 		_warn_missing_manager_methods(current)
 		current = current.get_parent()
 
-	# Priority 3: Group lookup (existing fallback)
-	var manager: Node = get_singleton_from_group(from_node, MANAGER_GROUP, false)
+	# Priority 3: ServiceLocator lookup (manager should self-register)
+	var manager: Node = U_SERVICE_LOCATOR.try_get_service(MANAGER_GROUP)
 	if manager != null:
 		if _node_has_manager_methods(manager):
 			return manager

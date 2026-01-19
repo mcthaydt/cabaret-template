@@ -8,6 +8,7 @@ signal component_removed(component_type: StringName, component: BaseECSComponent
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_ECS_QUERY_METRICS := preload("res://scripts/ecs/helpers/u_ecs_query_metrics.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const PROJECT_SETTING_QUERY_METRICS_ENABLED := "ecs/debug/query_metrics_enabled"
 const PROJECT_SETTING_QUERY_METRICS_CAPACITY := "ecs/debug/query_metrics_capacity"
 
@@ -43,13 +44,12 @@ var _tracked_entities: Dictionary = {}  # Node → bool (tree_exited connection)
 		_query_metrics_helper.set_query_metrics_capacity(value)
 
 func _ready() -> void:
-	add_to_group("ecs_manager")
+	var service_name := StringName("ecs_manager")
+	var existing := U_SERVICE_LOCATOR.try_get_service(service_name)
+	if existing != self:
+		U_SERVICE_LOCATOR.register(service_name, self)
 	set_physics_process(true)
 	_initialize_query_metric_settings()
-
-func _exit_tree() -> void:
-	if is_in_group("ecs_manager"):
-		remove_from_group("ecs_manager")
 
 func _initialize_query_metric_settings() -> void:
 	var default_enabled: bool = OS.is_debug_build() or Engine.is_editor_hint()

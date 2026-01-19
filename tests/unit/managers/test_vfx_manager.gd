@@ -1,7 +1,7 @@
 extends GutTest
 
 # Test suite for M_VFXManager scaffolding and lifecycle (Phase 1, Task 1.1)
-# Tests manager initialization, group membership, ServiceLocator bootstrap expectations,
+# Tests manager initialization, ServiceLocator bootstrap expectations,
 # StateStore discovery, and basic trauma system functionality
 
 const M_VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
@@ -33,14 +33,13 @@ func test_manager_extends_node() -> void:
 
 	assert_true(_manager is Node, "M_VFXManager should extend Node")
 
-# Test 2: Manager adds itself to "vfx_manager" group
-func test_manager_adds_to_vfx_manager_group() -> void:
+# Test 2: Manager runs while paused
+func test_manager_sets_process_mode_always() -> void:
 	_manager = M_VFX_MANAGER.new()
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	assert_true(_manager.is_in_group("vfx_manager"),
-		"M_VFXManager should be in 'vfx_manager' group")
+	assert_eq(_manager.process_mode, Node.PROCESS_MODE_ALWAYS, "M_VFXManager should run while paused")
 
 # Test 3: Manager does not self-register with ServiceLocator
 func test_manager_does_not_self_register_with_service_locator() -> void:
@@ -63,11 +62,8 @@ func test_manager_discovers_state_store() -> void:
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	# Manager should have discovered the store
-	# We'll verify this by checking that the manager doesn't push errors
-	# The actual internal field is private, so we trust initialization
-	assert_true(_manager.is_in_group("vfx_manager"),
-		"Manager should initialize successfully when StateStore is present")
+	var resolved_store: M_STATE_STORE = _manager.get("_state_store") as M_STATE_STORE
+	assert_eq(resolved_store, _store, "Manager should discover the registered StateStore")
 
 # Test 5: Trauma initializes to 0.0
 func test_trauma_initializes_to_zero() -> void:

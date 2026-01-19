@@ -14,7 +14,7 @@ extends Node
 ##
 ## Integration:
 ## - Add as child of gameplay scene root
-## - Discovers M_SpawnManager via "spawn_manager" group
+## - Discovers M_SpawnManager via ServiceLocator
 ## - Only spawns if player is NOT already at spawn point
 
 const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")

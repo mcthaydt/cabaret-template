@@ -43,12 +43,11 @@ func test_manager_extends_node() -> void:
 
 	assert_true(_manager is Node, "M_AudioManager should extend Node")
 
-func test_manager_adds_to_audio_manager_group() -> void:
+func test_manager_sets_process_mode_always() -> void:
 	_manager = M_AUDIO_MANAGER.new()
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	assert_true(_manager.is_in_group("audio_manager"), "M_AudioManager should be in 'audio_manager' group")
 	assert_eq(_manager.process_mode, Node.PROCESS_MODE_ALWAYS, "M_AudioManager should process even when tree paused")
 
 func test_manager_registers_with_service_locator() -> void:

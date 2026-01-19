@@ -78,7 +78,6 @@ func _ready() -> void:
 	# Store must continue flushing batched slice_updated signals while paused so
 	# pause menus and overlay reconciliation remain responsive.
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	add_to_group("state_store")
 	var service_name := StringName("state_store")
 	if not U_SERVICE_LOCATOR.has(service_name):
 		U_SERVICE_LOCATOR.register(service_name, self)
@@ -109,9 +108,6 @@ func _exit_tree() -> void:
 
 	# Save state to disk on shutdown if persistence enabled
 	_save_state_if_enabled()
-	
-	if is_in_group("state_store"):
-		remove_from_group("state_store")
 
 func is_ready() -> bool:
 	return _is_ready

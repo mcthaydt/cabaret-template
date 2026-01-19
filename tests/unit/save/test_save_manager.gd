@@ -56,15 +56,15 @@ func test_manager_extends_node() -> void:
 	assert_true(_save_manager is Node, "Save manager should extend Node")
 	autofree(_save_manager)
 
-func test_manager_adds_to_save_manager_group() -> void:
+func test_manager_uses_configured_save_directory() -> void:
 	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
 
 	await get_tree().process_frame
 
-	var nodes_in_group: Array = get_tree().get_nodes_in_group("save_manager")
-	assert_true(nodes_in_group.has(_save_manager), "Manager should add itself to 'save_manager' group")
+	var configured_dir: String = String(_save_manager.get("_save_dir"))
+	assert_true(configured_dir.begins_with(TEST_SAVE_DIR), "Manager should respect custom save directory")
 
 func test_manager_registers_with_service_locator() -> void:
 	_save_manager = _create_save_manager()
