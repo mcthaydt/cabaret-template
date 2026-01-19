@@ -376,60 +376,12 @@ Create camera tracking methods before updating any consumers.
 
 ### Phase 2: Camera Test Migration (36 occurrences)
 
-Update each test file to use the new camera registration method.
-
-#### test_camera_manager.gd (18 occurrences)
-
-- [ ] Line 52: `test_blends_between_cameras_on_scene_change` - old_camera
-- [ ] Line 62: `test_blends_between_cameras_on_scene_change` - new_camera
-- [ ] Line 85: `test_stores_old_camera_state_before_blend` - old_camera
-- [ ] Line 93: `test_stores_old_camera_state_before_blend` - new_camera
-- [ ] Line 112: `test_applies_blend_duration_from_transition` - old_camera
-- [ ] Line 120: `test_applies_blend_duration_from_transition` - new_camera
-- [ ] Line 139: `test_handles_missing_old_camera_gracefully` - old_camera
-- [ ] Line 146: `test_handles_missing_old_camera_gracefully` - new_camera
-- [ ] Line 163: `test_handles_missing_new_camera_gracefully` - old_camera
-- [ ] Line 170: `test_handles_missing_new_camera_gracefully` - new_camera
-- [ ] Line 189: `test_completes_blend_within_duration` - old_camera
-- [ ] Line 197: `test_completes_blend_within_duration` - new_camera
-- [ ] Line 220: `test_captures_camera_state_correctly`
-- [ ] Line 237: `test_stores_state_in_handoff`
-- [ ] Line 253: `test_handles_null_scene_gracefully`
-- [ ] Line 285: `test_blend_uses_captured_start_state`
-- [ ] Line 313: `test_blend_handles_rapid_scene_changes` - old_camera
-- [ ] Line 320: `test_blend_handles_rapid_scene_changes` - new_camera
-
-#### test_camera_state.gd (12 occurrences)
-
-- [ ] Line 34: `test_camera_state_stores_all_properties`
-- [ ] Line 57: `test_camera_state_uses_global_transforms`
-- [ ] Line 75: `test_capture_handles_multiple_cameras_uses_first` - camera1
-- [ ] Line 81: `test_capture_handles_multiple_cameras_uses_first` - camera2
-- [ ] Line 133: Additional camera test
-- [ ] Line 160: State capture test - old_camera
-- [ ] Line 167: State capture test - new_camera
-- [ ] Line 183: State capture test - old_camera
-- [ ] Line 193: State capture test - new_camera
-- [ ] Line 215: Edge case - old_camera
-- [ ] Line 223: Edge case - new_camera
-- [ ] Line 242: Edge case - old_camera
-- [ ] Line 249: Edge case - new_camera1
-- [ ] Line 257: Edge case - new_camera2
-
-#### Other camera test files
-
-- [ ] `test_vfx_camera_integration.gd:72`
-- [ ] `test_scene_contract.gd:36`
-- [ ] `test_scene_contract.gd:58`
-- [ ] `test_scene_contract.gd:104`
-- [ ] `perf_ecs_baseline.gd:65`
-- [ ] `test_u_ecs_utils.gd:215`
-
-#### Verify camera tests pass
-
-```bash
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/camera_system -gdir=res://tests/integration/camera_system -gexit
-```
+- [x] Updated camera/system tests, VFX integration, scene contract validation tests, perf baseline, and ECS utils tests to use camera registration / type-based lookup (removed all `add_to_group("main_camera")` usage).
+- [x] Added ServiceLocator main-camera fallback in `U_ECSUtils.get_active_camera()` and cleared ServiceLocator in camera-related tests to prevent duplicate registration warnings.
+- [x] Verify camera tests pass:
+  ```bash
+  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/camera_system -gdir=res://tests/integration/camera_system -gexit
+  ```
 
 ### Phase 3: Production Camera Code Migration
 
@@ -455,8 +407,8 @@ Update each test file to use the new camera registration method.
   if camera_manager and camera_manager.has_method("get_main_camera"):
       camera = camera_manager.get_main_camera()
   ```
-- [ ] Remove `is_in_group("main_camera")` from `m_camera_manager.gd:156` - use internal tracking instead
-- [ ] **Scene contract camera validation** - Update `i_scene_contract.gd:80-82`:
+- [x] Remove `is_in_group("main_camera")` from `m_camera_manager.gd:156` - use internal tracking instead *(done in Phase 2 alongside registration updates)*
+- [x] **Scene contract camera validation** - Update `i_scene_contract.gd:80-82`:
   ```gdscript
   # OLD: var camera: Node = _find_node_in_group(scene, "main_camera")
   # NEW: Find Camera3D by type (not group)
