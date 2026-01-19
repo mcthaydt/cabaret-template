@@ -11,6 +11,7 @@ const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
 const BaseOverlay := preload("res://scripts/ui/base/base_overlay.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _store: TestStateStore
 var _profile_manager: ProfileManagerStub
@@ -25,17 +26,19 @@ func before_each() -> void:
 	_store.gameplay_initial_state = RS_GameplayInitialState.new()
 	_store.settings_initial_state = RS_SettingsInitialState.new()
 	add_child_autofree(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
 	await _pump()
 	await _pump()
 
 	_profile_manager = ProfileManagerStub.new()
 	add_child_autofree(_profile_manager)
 	_profile_manager.store_ref = _store
+	U_ServiceLocator.register(StringName("input_profile_manager"), _profile_manager)
 	await _pump()
 
 	_scene_manager_mock = SceneManagerMock.new()
 	add_child_autofree(_scene_manager_mock)
-	_scene_manager_mock.add_to_group("scene_manager")
+	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager_mock)
 
 func after_each() -> void:
 	if _profile_manager != null:
@@ -44,6 +47,7 @@ func after_each() -> void:
 	_store = null
 	_scene_manager_mock = null
 	U_StateHandoff.clear_all()
+	U_ServiceLocator.clear()
 
 func test_analog_navigation_uses_repeater_only() -> void:
 	var overlay: BaseOverlay = OverlayScene.instantiate() as BaseOverlay
@@ -418,7 +422,6 @@ class ProfileManagerStub extends Node:
 		active_profile.set_events_for_action(StringName("pause"), _make_event_array(_make_key_event(Key.KEY_ESCAPE)))
 
 	func _ready() -> void:
-		add_to_group("input_profile_manager")
 		for key in active_profile.action_mappings.keys():
 			var action: StringName = StringName(key)
 			_tracked_actions.append(action)

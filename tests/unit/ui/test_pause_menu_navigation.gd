@@ -7,18 +7,22 @@ extends GutTest
 
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _store: M_StateStore
 
 func before_each() -> void:
 	_store = M_StateStore.new()
-	_store.add_to_group("state_store")
 	add_child_autofree(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
 	# Set shell to gameplay
 	_store.dispatch(U_NavigationActions.start_game(StringName("gameplay_base")))
 	await get_tree().physics_frame
+
+func after_each() -> void:
+	U_ServiceLocator.clear()
 
 func test_pause_opens_with_correct_overlay_stack() -> void:
 	# GIVEN: Gameplay with no overlays

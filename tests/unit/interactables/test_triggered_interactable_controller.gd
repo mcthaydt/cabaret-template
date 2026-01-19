@@ -5,6 +5,7 @@ const BASE_INTERACTABLE_CONTROLLER := preload("res://scripts/gameplay/base_inter
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 class TransitioningSceneManager:
 	extends Node
@@ -202,7 +203,6 @@ func test_activation_blocked_during_scene_transition() -> void:
 	scene_manager.transitioning = true
 	add_child(scene_manager)
 	autofree(scene_manager)
-	scene_manager.add_to_group("scene_manager")
 	# Register scene_manager with ServiceLocator so controllers can find it
 	U_ServiceLocator.register(StringName("scene_manager"), scene_manager)
 
@@ -219,3 +219,6 @@ func test_activation_blocked_during_scene_transition() -> void:
 	scene_manager.transitioning = false
 	assert_true(controller.activate(player_entity),
 		"Activation should succeed once the scene manager finishes transitioning.")
+
+func after_each() -> void:
+	U_ServiceLocator.clear()

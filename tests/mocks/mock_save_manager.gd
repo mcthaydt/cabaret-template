@@ -4,6 +4,7 @@ extends Node
 ## Tracks autosave requests without actually performing saves
 
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 const SLOT_AUTOSAVE := StringName("autosave")
 
@@ -21,14 +22,11 @@ var _most_recent_save_slot: StringName = StringName("")
 
 func _init() -> void:
 	name = "MockSaveManager"
-	add_to_group("save_manager")
 
 func _ready() -> void:
-	# Register with ServiceLocator if available
-	if has_node("/root/U_ServiceLocator"):
-		var locator = get_node("/root/U_ServiceLocator")
-		if locator.has_method("register"):
-			locator.register(StringName("save_manager"), self)
+	var existing := U_ServiceLocator.try_get_service(StringName("save_manager"))
+	if existing == null:
+		U_ServiceLocator.register(StringName("save_manager"), self)
 
 func request_autosave(priority: int = 0) -> void:
 	autosave_request_count += 1

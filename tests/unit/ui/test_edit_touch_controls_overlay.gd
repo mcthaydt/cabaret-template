@@ -14,6 +14,7 @@ const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd"
 const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _store: TestStateStore
 var _profile_manager_mock: ProfileManagerMock
@@ -31,11 +32,12 @@ func before_each() -> void:
 	_store.scene_initial_state.current_scene_id = StringName("gameplay_base")
 	_store.settings_initial_state = RS_SettingsInitialState.new()
 	add_child_autofree(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
 	await _pump_frames(2)
 
 	_profile_manager_mock = ProfileManagerMock.new()
 	add_child_autofree(_profile_manager_mock)
-	_profile_manager_mock.add_to_group("input_profile_manager")
+	U_ServiceLocator.register(StringName("input_profile_manager"), _profile_manager_mock)
 
 	_mobile_controls = await _create_mobile_controls()
 
@@ -44,6 +46,7 @@ func after_each() -> void:
 	_store = null
 	_profile_manager_mock = null
 	_mobile_controls = null
+	U_ServiceLocator.clear()
 
 func test_drag_mode_toggle_enables_and_disables_repositioning() -> void:
 	var overlay := await _create_overlay()

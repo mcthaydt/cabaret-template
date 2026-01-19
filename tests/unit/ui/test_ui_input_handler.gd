@@ -12,6 +12,7 @@ const RS_NavigationInitialState := preload("res://scripts/state/resources/rs_nav
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_NavigationReducer := preload("res://scripts/state/reducers/u_navigation_reducer.gd")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _store: M_StateStore = null
 var _input_handler: M_UIInputHandler = null
@@ -27,6 +28,7 @@ func after_each() -> void:
 	if _store != null:
 		_store.queue_free()
 	U_StateHandoff.clear_all()
+	U_ServiceLocator.clear()
 
 
 ## GAMEPLAY CONTEXT TESTS
@@ -226,8 +228,8 @@ func _create_state_store() -> M_StateStore:
 	store.gameplay_initial_state = RS_GameplayInitialState.new()
 	store.scene_initial_state = RS_SceneInitialState.new()
 	store.settings_initial_state = RS_SettingsInitialState.new()
-	store.add_to_group("state_store")
 	add_child_autofree(store)
+	U_ServiceLocator.register(StringName("state_store"), store)
 	await wait_process_frames(2)
 	return store
 

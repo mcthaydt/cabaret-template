@@ -8,6 +8,7 @@ const RS_SettingsInitialState := preload("res://scripts/state/resources/rs_setti
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _store: TestStateStore
 var _profile_manager_mock: ProfileManagerMock
@@ -19,17 +20,19 @@ func before_each() -> void:
 	_store.gameplay_initial_state = RS_GameplayInitialState.new()
 	_store.settings_initial_state = RS_SettingsInitialState.new()
 	add_child_autofree(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
 	await _pump()
 	await _pump()
 
 	_profile_manager_mock = ProfileManagerMock.new()
 	add_child_autofree(_profile_manager_mock)
-	_profile_manager_mock.add_to_group("input_profile_manager")
+	U_ServiceLocator.register(StringName("input_profile_manager"), _profile_manager_mock)
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()
 	_store = null
 	_profile_manager_mock = null
+	U_ServiceLocator.clear()
 
 func test_overlay_populates_values_from_store() -> void:
 	var settings := {

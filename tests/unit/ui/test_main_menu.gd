@@ -186,7 +186,6 @@ func _register_save_manager_with_saves() -> Node:
 	var save_manager := MockSaveManager.new()
 	add_child_autofree(save_manager)
 	save_manager.set_has_any_saves(true)
-	U_ServiceLocator.register(StringName("save_manager"), save_manager)
 	await wait_process_frames(2)
 	return save_manager
 

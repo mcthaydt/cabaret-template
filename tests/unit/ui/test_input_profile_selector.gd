@@ -12,6 +12,7 @@ const RS_MenuInitialState := preload("res://scripts/state/resources/rs_menu_init
 const RS_GameplayInitialState := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
 const RS_SceneInitialState := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_SettingsInitialState := preload("res://scripts/state/resources/rs_settings_initial_state.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 class MockInputProfileManager:
 	extends Node
@@ -29,7 +30,6 @@ var _store: M_StateStore
 
 func before_each() -> void:
 	_store = M_StateStore.new()
-	_store.add_to_group("state_store")
 	_store.settings = RS_StateStoreSettings.new()
 	_store.settings.enable_persistence = false
 	_store.boot_initial_state = RS_BootInitialState.new()
@@ -38,11 +38,15 @@ func before_each() -> void:
 	_store.scene_initial_state = RS_SceneInitialState.new()
 	_store.settings_initial_state = RS_SettingsInitialState.new()
 	add_child_autofree(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
 
 	_manager = MockInputProfileManager.new()
-	_manager.add_to_group("input_profile_manager")
 	add_child_autofree(_manager)
+	U_ServiceLocator.register(StringName("input_profile_manager"), _manager)
 	await get_tree().process_frame
+
+func after_each() -> void:
+	U_ServiceLocator.clear()
 
 func test_ui_right_cycles_profile_when_profile_button_focused() -> void:
 	var overlay := INPUT_PROFILE_SELECTOR_SCENE.instantiate() as Control

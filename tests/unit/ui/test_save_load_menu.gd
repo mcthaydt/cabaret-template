@@ -17,21 +17,18 @@ var _test_save_manager: Node
 var _test_store: M_StateStore
 
 func before_each() -> void:
+	U_ServiceLocator.clear()
 	# Create and register mock save manager first
 	_test_save_manager = MockSaveManager.new()
 	add_child_autofree(_test_save_manager)
 	await wait_process_frames(2)
-
-	# Manually register with ServiceLocator since it may not exist in test
-	U_ServiceLocator.register(StringName("save_manager"), _test_save_manager)
 
 	# Create state store
 	_test_store = await _create_state_store()
 
 func after_each() -> void:
 	# Note: _test_save_manager and _test_store are freed by add_child_autofree()
-	# ServiceLocator will automatically clean up invalid references
-	pass
+	U_ServiceLocator.clear()
 
 func test_spinner_hidden_initially() -> void:
 	_prepare_save_mode(_test_store)

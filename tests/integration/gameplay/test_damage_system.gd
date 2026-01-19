@@ -22,6 +22,7 @@ const HEALTH_SETTINGS_PATH := "res://scripts/ecs/resources/rs_health_settings.gd
 const HEALTH_SETTINGS_RESOURCE := "res://resources/settings/health_settings.tres"
 const DAMAGE_COMPONENT_PATH := "res://scripts/ecs/components/c_damage_zone_component.gd"
 const DAMAGE_SYSTEM_PATH := "res://scripts/ecs/systems/s_damage_system.gd"
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _root: Node
 var _state_store: M_StateStore
@@ -37,9 +38,11 @@ func before_each() -> void:
 	_state_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
 	_state_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
 	_root.add_child(_state_store)
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
 
 	_scene_manager_stub = TestSceneManager.new()
 	_root.add_child(_scene_manager_stub)
+	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager_stub)
 
 	_ecs_manager = M_ECS_MANAGER.new()
 	_root.add_child(_ecs_manager)
@@ -51,6 +54,7 @@ func after_each() -> void:
 	_state_store = null
 	_ecs_manager = null
 	_scene_manager_stub = null
+	U_ServiceLocator.clear()
 
 ## Create player entity with health and required systems
 func _prepare_damage_fixture() -> Dictionary:
@@ -282,9 +286,6 @@ class TestSceneManager:
 
 	var transition_calls: Array = []
 	var _is_transitioning: bool = false
-
-	func _ready() -> void:
-		add_to_group("scene_manager")
 
 	func transition_to_scene(scene_id: StringName, transition_type: String, priority: int = M_SCENE_MANAGER.Priority.NORMAL) -> void:
 		transition_calls.append({

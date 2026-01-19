@@ -5,6 +5,7 @@ const C_SceneTriggerComponent := preload("res://scripts/ecs/components/c_scene_t
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 ## Minimal stub SceneManager for unit tests
 class TestSceneManager:
@@ -17,9 +18,6 @@ class TestSceneManager:
 
 	var Priority := PriorityWrapper.new()
 	var transition_calls: Array = []
-
-	func _ready() -> void:
-		add_to_group("scene_manager")
 
 	func transition_to_scene(scene_id: StringName, transition_type: String, priority: int = 0) -> void:
 		transition_calls.append({
@@ -63,6 +61,9 @@ func before_each() -> void:
 	U_ServiceLocator.register(StringName("state_store"), store)
 	U_ServiceLocator.register(StringName("scene_manager"), mgr)
 
+func after_each() -> void:
+	U_ServiceLocator.clear()
+
 func _create_controller() -> E_DoorTriggerController:
 	var controller := E_DoorTriggerController.new()
 	controller.component_factory = Callable(self, "_create_scene_trigger_stub")
@@ -99,10 +100,10 @@ func test_activation_calls_component_trigger() -> void:
 	assert_not_null(component, "Stub component expected for activation test.")
 
 	# Validate minimal environment
-	var state_store_nodes: Array = get_tree().get_nodes_in_group("state_store")
-	var scene_mgr_nodes: Array = get_tree().get_nodes_in_group("scene_manager")
-	assert_eq(state_store_nodes.size(), 1, "State store should be present for transition dispatch")
-	assert_eq(scene_mgr_nodes.size(), 1, "Scene manager stub should be present for transition calls")
+	assert_not_null(U_ServiceLocator.try_get_service(StringName("state_store")),
+		"State store should be registered for transition dispatch")
+	assert_not_null(U_ServiceLocator.try_get_service(StringName("scene_manager")),
+		"Scene manager stub should be registered for transition calls")
 
 	component.trigger_called = false
 	var dummy_player := _make_dummy_player()
