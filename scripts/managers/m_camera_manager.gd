@@ -157,12 +157,13 @@ func _find_camera_in_scene(scene: Node) -> Camera3D:
 		if scene == _main_camera or scene.is_ancestor_of(_main_camera):
 			return _main_camera
 
-	# Check if this node is a camera in the main_camera group
-	if scene is Camera3D and scene.is_in_group("main_camera"):
+	if scene is Camera3D:
 		return scene as Camera3D
 
 	# Recursively search children
 	for child in scene.get_children():
+		if child is Camera3D:
+			return child as Camera3D
 		var found_camera: Camera3D = _find_camera_in_scene(child)
 		if found_camera != null:
 			return found_camera

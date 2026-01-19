@@ -31,9 +31,8 @@ func test_valid_gameplay_scene_passes_validation() -> void:
 	player.name = "E_Player"
 	scene.add_child(player)
 
-	# Add required camera in group
+	# Add required camera
 	var camera := Camera3D.new()
-	camera.add_to_group("main_camera")
 	scene.add_child(camera)
 
 	# Add required sp_default spawn point
@@ -55,7 +54,6 @@ func test_gameplay_scene_missing_player_fails() -> void:
 
 	# Add camera and spawn but NO player
 	var camera := Camera3D.new()
-	camera.add_to_group("main_camera")
 	scene.add_child(camera)
 
 	var spawn := Node3D.new()
@@ -101,7 +99,6 @@ func test_gameplay_scene_missing_sp_default_fails() -> void:
 	scene.add_child(player)
 
 	var camera := Camera3D.new()
-	camera.add_to_group("main_camera")
 	scene.add_child(camera)
 
 	# Validate

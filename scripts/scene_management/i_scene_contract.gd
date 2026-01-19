@@ -68,7 +68,7 @@ func validate_scene(scene: Node, scene_type: SceneType) -> Dictionary:
 ##
 ## Gameplay scenes MUST have:
 ## - Player entity (node name starting with "E_Player")
-## - Camera in "main_camera" group
+## - Camera
 ## - sp_default spawn point
 func _validate_gameplay_scene(scene: Node, result: Dictionary) -> void:
 	# Check for player entity
@@ -76,10 +76,10 @@ func _validate_gameplay_scene(scene: Node, result: Dictionary) -> void:
 	if player == null:
 		result.errors.append("Gameplay scene missing player entity (expected node name starting with 'E_Player')")
 
-	# Check for camera in main_camera group (search within scene, not tree)
-	var camera: Node = _find_node_in_group(scene, "main_camera")
+	# Check for camera in scene (search within scene, not tree)
+	var camera: Camera3D = _find_camera_by_type(scene)
 	if camera == null:
-		result.errors.append("Gameplay scene missing camera (expected camera in 'main_camera' group)")
+		result.errors.append("Gameplay scene missing camera (expected Camera3D in scene)")
 
 	# Check for sp_default spawn point
 	var sp_default: Node = _find_node_by_name(scene, "sp_default")
@@ -144,22 +144,21 @@ func _find_node_by_name(node: Node, target_name: String) -> Node:
 
 	return null
 
-## Find first node in group
+## Find first Camera3D in scene
 ##
-## Recursively searches scene tree for node in specified group.
+## Recursively searches scene tree for the first Camera3D node.
 ##
 ## Parameters:
 ##   node: Current node to check
-##   group_name: Group to search for
 ##
 ## Returns:
-##   First matching Node, or null if not found
-func _find_node_in_group(node: Node, group_name: String) -> Node:
-	if node.is_in_group(group_name):
-		return node
+##   First Camera3D found, or null if none exist
+func _find_camera_by_type(node: Node) -> Camera3D:
+	if node is Camera3D:
+		return node as Camera3D
 
 	for child in node.get_children():
-		var found: Node = _find_node_in_group(child, group_name)
+		var found: Camera3D = _find_camera_by_type(child)
 		if found != null:
 			return found
 

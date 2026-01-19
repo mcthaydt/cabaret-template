@@ -62,7 +62,6 @@ func _setup_camera() -> void:
 	var camera := Camera3D.new()
 	camera.name = "PerfCamera"
 	camera.current = true
-	camera.add_to_group("main_camera")
 	_origin.add_child(camera)
 
 func _setup_manager_and_systems() -> void:

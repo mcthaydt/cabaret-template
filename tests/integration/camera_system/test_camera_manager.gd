@@ -8,12 +8,14 @@ extends GutTest
 const M_CAMERA_MANAGER := preload("res://scripts/managers/m_camera_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var camera_manager: M_CAMERA_MANAGER
 var state_store: M_STATE_STORE
 var test_scene: Node3D
 
 func before_each() -> void:
+	U_SERVICE_LOCATOR.clear()
 	# Create state store
 	state_store = M_STATE_STORE.new()
 	state_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
@@ -37,6 +39,7 @@ func after_each() -> void:
 		state_store.queue_free()
 	if test_scene and is_instance_valid(test_scene):
 		test_scene.queue_free()
+	U_SERVICE_LOCATOR.clear()
 
 ## ============================================================================
 ## Camera Blending Tests (T232)
@@ -49,7 +52,6 @@ func test_blend_cameras_interpolates_position() -> void:
 	add_child_autofree(old_scene)
 
 	var old_camera := Camera3D.new()
-	old_camera.add_to_group("main_camera")
 	old_camera.position = Vector3(0, 10, 0)
 	old_scene.add_child(old_camera)
 
@@ -59,9 +61,9 @@ func test_blend_cameras_interpolates_position() -> void:
 	add_child_autofree(new_scene)
 
 	var new_camera := Camera3D.new()
-	new_camera.add_to_group("main_camera")
 	new_camera.position = Vector3(5, 2, 3)
 	new_scene.add_child(new_camera)
+	camera_manager.register_main_camera(new_camera)
 
 	# Act: Blend cameras
 	camera_manager.blend_cameras(old_scene, new_scene, 0.2)
@@ -82,7 +84,6 @@ func test_blend_cameras_interpolates_rotation() -> void:
 	add_child_autofree(old_scene)
 
 	var old_camera := Camera3D.new()
-	old_camera.add_to_group("main_camera")
 	old_camera.rotation_degrees = Vector3(0, 0, 0)
 	old_scene.add_child(old_camera)
 
@@ -90,9 +91,9 @@ func test_blend_cameras_interpolates_rotation() -> void:
 	add_child_autofree(new_scene)
 
 	var new_camera := Camera3D.new()
-	new_camera.add_to_group("main_camera")
 	new_camera.rotation_degrees = Vector3(0, 90, 0)  # Face east
 	new_scene.add_child(new_camera)
+	camera_manager.register_main_camera(new_camera)
 
 	# Act
 	camera_manager.blend_cameras(old_scene, new_scene, 0.2)
@@ -109,7 +110,6 @@ func test_blend_cameras_interpolates_fov() -> void:
 	add_child_autofree(old_scene)
 
 	var old_camera := Camera3D.new()
-	old_camera.add_to_group("main_camera")
 	old_camera.fov = 70.0
 	old_scene.add_child(old_camera)
 
@@ -117,9 +117,9 @@ func test_blend_cameras_interpolates_fov() -> void:
 	add_child_autofree(new_scene)
 
 	var new_camera := Camera3D.new()
-	new_camera.add_to_group("main_camera")
 	new_camera.fov = 50.0
 	new_scene.add_child(new_camera)
+	camera_manager.register_main_camera(new_camera)
 
 	# Act
 	camera_manager.blend_cameras(old_scene, new_scene, 0.2)
@@ -136,15 +136,14 @@ func test_blend_cameras_activates_transition_camera() -> void:
 	add_child_autofree(old_scene)
 
 	var old_camera := Camera3D.new()
-	old_camera.add_to_group("main_camera")
 	old_scene.add_child(old_camera)
 
 	var new_scene := Node3D.new()
 	add_child_autofree(new_scene)
 
 	var new_camera := Camera3D.new()
-	new_camera.add_to_group("main_camera")
 	new_scene.add_child(new_camera)
+	camera_manager.register_main_camera(new_camera)
 
 	# Act
 	camera_manager.blend_cameras(old_scene, new_scene, 0.2)
@@ -160,15 +159,14 @@ func test_blend_cameras_completes_within_duration() -> void:
 	add_child_autofree(old_scene)
 
 	var old_camera := Camera3D.new()
-	old_camera.add_to_group("main_camera")
 	old_scene.add_child(old_camera)
 
 	var new_scene := Node3D.new()
 	add_child_autofree(new_scene)
 
 	var new_camera := Camera3D.new()
-	new_camera.add_to_group("main_camera")
 	new_scene.add_child(new_camera)
+	camera_manager.register_main_camera(new_camera)
 
 	# Act
 	var start_time := Time.get_ticks_msec()
@@ -186,7 +184,6 @@ func test_blend_cameras_handles_instant_duration() -> void:
 	add_child_autofree(old_scene)
 
 	var old_camera := Camera3D.new()
-	old_camera.add_to_group("main_camera")
 	old_camera.position = Vector3(0, 10, 0)
 	old_scene.add_child(old_camera)
 
@@ -194,9 +191,9 @@ func test_blend_cameras_handles_instant_duration() -> void:
 	add_child_autofree(new_scene)
 
 	var new_camera := Camera3D.new()
-	new_camera.add_to_group("main_camera")
 	new_camera.position = Vector3(5, 2, 3)
 	new_scene.add_child(new_camera)
+	camera_manager.register_main_camera(new_camera)
 
 	# Act: Instant blend (duration = 0)
 	camera_manager.blend_cameras(old_scene, new_scene, 0.0)
@@ -217,9 +214,9 @@ func test_capture_camera_state_saves_position() -> void:
 	add_child_autofree(scene)
 
 	var camera := Camera3D.new()
-	camera.add_to_group("main_camera")
 	camera.position = Vector3(1, 2, 3)
 	scene.add_child(camera)
+	camera_manager.register_main_camera(camera)
 
 	# Act
 	var state = camera_manager.capture_camera_state(scene)
@@ -234,9 +231,9 @@ func test_capture_camera_state_saves_rotation() -> void:
 	add_child_autofree(scene)
 
 	var camera := Camera3D.new()
-	camera.add_to_group("main_camera")
 	camera.rotation_degrees = Vector3(15, 45, 0)
 	scene.add_child(camera)
+	camera_manager.register_main_camera(camera)
 
 	# Act
 	var state = camera_manager.capture_camera_state(scene)
@@ -250,9 +247,9 @@ func test_capture_camera_state_saves_fov() -> void:
 	add_child_autofree(scene)
 
 	var camera := Camera3D.new()
-	camera.add_to_group("main_camera")
 	camera.fov = 85.0
 	scene.add_child(camera)
+	camera_manager.register_main_camera(camera)
 
 	# Act
 	var state = camera_manager.capture_camera_state(scene)
@@ -275,21 +272,21 @@ func test_capture_camera_state_returns_null_if_no_camera() -> void:
 ## Camera Handoff Tests (T234)
 ## ============================================================================
 
-func test_initialize_scene_camera_finds_camera_in_group() -> void:
+func test_initialize_scene_camera_finds_camera_in_scene() -> void:
 	# Arrange
 	var scene := Node3D.new()
 	add_child_autofree(scene)
 
 	var camera := Camera3D.new()
 	camera.name = "MainCamera"
-	camera.add_to_group("main_camera")
 	scene.add_child(camera)
+	camera_manager.register_main_camera(camera)
 
 	# Act
 	var found_camera: Camera3D = camera_manager.initialize_scene_camera(scene)
 
 	# Assert
-	assert_not_null(found_camera, "Should find camera in main_camera group")
+	assert_not_null(found_camera, "Should find camera in scene")
 	assert_eq(found_camera.name, "MainCamera")
 
 func test_initialize_scene_camera_returns_null_for_ui_scenes() -> void:
@@ -310,15 +307,14 @@ func test_blend_cameras_finalizes_by_activating_new_camera() -> void:
 	add_child_autofree(old_scene)
 
 	var old_camera := Camera3D.new()
-	old_camera.add_to_group("main_camera")
 	old_scene.add_child(old_camera)
 
 	var new_scene := Node3D.new()
 	add_child_autofree(new_scene)
 
 	var new_camera := Camera3D.new()
-	new_camera.add_to_group("main_camera")
 	new_scene.add_child(new_camera)
+	camera_manager.register_main_camera(new_camera)
 
 	# Act: Blend and wait for completion
 	camera_manager.blend_cameras(old_scene, new_scene, 0.1)

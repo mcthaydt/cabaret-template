@@ -5,11 +5,13 @@ extends GutTest
 ## Tests edge cases for CameraState creation, validation, and camera discovery.
 
 const M_CAMERA_MANAGER := preload("res://scripts/managers/m_camera_manager.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var camera_manager: M_CAMERA_MANAGER
 var test_scene: Node3D
 
 func before_each() -> void:
+	U_SERVICE_LOCATOR.clear()
 	camera_manager = M_CAMERA_MANAGER.new()
 	add_child_autofree(camera_manager)
 	await get_tree().process_frame
@@ -23,6 +25,7 @@ func after_each() -> void:
 		camera_manager.queue_free()
 	if test_scene and is_instance_valid(test_scene):
 		test_scene.queue_free()
+	U_SERVICE_LOCATOR.clear()
 
 ## ============================================================================
 ## CameraState Creation Tests
@@ -31,11 +34,11 @@ func after_each() -> void:
 func test_camera_state_stores_all_properties() -> void:
 	# Arrange
 	var camera := Camera3D.new()
-	camera.add_to_group("main_camera")
 	camera.position = Vector3(1, 2, 3)
 	camera.rotation_degrees = Vector3(10, 20, 30)
 	camera.fov = 60.0
 	test_scene.add_child(camera)
+	camera_manager.register_main_camera(camera)
 
 	# Act
 	var state = camera_manager.capture_camera_state(test_scene)
@@ -54,9 +57,9 @@ func test_camera_state_uses_global_transforms() -> void:
 	test_scene.add_child(container)
 
 	var camera := Camera3D.new()
-	camera.add_to_group("main_camera")
 	camera.position = Vector3(5, 0, 0)  # Local position
 	container.add_child(camera)
+	camera_manager.register_main_camera(camera)
 
 	# Act
 	var state = camera_manager.capture_camera_state(test_scene)
@@ -69,16 +72,15 @@ func test_camera_state_uses_global_transforms() -> void:
 ## ============================================================================
 
 func test_capture_handles_multiple_cameras_uses_first() -> void:
-	# Arrange: Multiple cameras in group
+	# Arrange: Multiple cameras with first registered
 	var camera1 := Camera3D.new()
 	camera1.name = "Camera1"
-	camera1.add_to_group("main_camera")
 	camera1.position = Vector3(1, 0, 0)
 	test_scene.add_child(camera1)
+	camera_manager.register_main_camera(camera1)
 
 	var camera2 := Camera3D.new()
 	camera2.name = "Camera2"
-	camera2.add_to_group("main_camera")
 	camera2.position = Vector3(10, 0, 0)
 	test_scene.add_child(camera2)
 
@@ -104,18 +106,19 @@ func test_capture_returns_null_for_empty_scene() -> void:
 	# Assert
 	assert_null(state, "Should return null for scene without camera")
 
-func test_capture_handles_camera_not_in_group() -> void:
+func test_capture_handles_camera_not_in_group_when_registered() -> void:
 	# Arrange: Camera exists but not in "main_camera" group
 	var camera := Camera3D.new()
 	camera.name = "SomeCamera"
-	# NOT added to main_camera group
 	test_scene.add_child(camera)
+	camera_manager.register_main_camera(camera)
 
 	# Act
 	var state = camera_manager.capture_camera_state(test_scene)
 
 	# Assert
-	assert_null(state, "Should not find camera if not in main_camera group")
+	assert_not_null(state, "Should find camera even if it is not in the main_camera group")
+	assert_eq(state.global_position, camera.global_position)
 
 ## ============================================================================
 ## Camera Initialization Tests
@@ -130,8 +133,8 @@ func test_initialize_scene_camera_finds_deeply_nested_camera() -> void:
 	level1.add_child(level2)
 
 	var camera := Camera3D.new()
-	camera.add_to_group("main_camera")
 	level2.add_child(camera)
+	camera_manager.register_main_camera(camera)
 
 	# Act
 	var found_camera := camera_manager.initialize_scene_camera(test_scene)
@@ -157,15 +160,14 @@ func test_transition_camera_exists_after_blend() -> void:
 	add_child_autofree(old_scene)
 
 	var old_camera := Camera3D.new()
-	old_camera.add_to_group("main_camera")
 	old_scene.add_child(old_camera)
 
 	var new_scene := Node3D.new()
 	add_child_autofree(new_scene)
 
 	var new_camera := Camera3D.new()
-	new_camera.add_to_group("main_camera")
 	new_scene.add_child(new_camera)
+	camera_manager.register_main_camera(new_camera)
 
 	# Act
 	camera_manager.blend_cameras(old_scene, new_scene, 0.1)
@@ -180,7 +182,6 @@ func test_transition_camera_positioned_at_old_camera() -> void:
 	add_child_autofree(old_scene)
 
 	var old_camera := Camera3D.new()
-	old_camera.add_to_group("main_camera")
 	old_camera.position = Vector3(5, 10, 15)
 	old_camera.rotation_degrees = Vector3(0, 45, 0)
 	old_camera.fov = 75.0
@@ -190,8 +191,8 @@ func test_transition_camera_positioned_at_old_camera() -> void:
 	add_child_autofree(new_scene)
 
 	var new_camera := Camera3D.new()
-	new_camera.add_to_group("main_camera")
 	new_scene.add_child(new_camera)
+	camera_manager.register_main_camera(new_camera)
 
 	# Act
 	camera_manager.blend_cameras(old_scene, new_scene, 0.2)
@@ -212,7 +213,6 @@ func test_zero_duration_blend_completes_instantly() -> void:
 	add_child_autofree(old_scene)
 
 	var old_camera := Camera3D.new()
-	old_camera.add_to_group("main_camera")
 	old_camera.position = Vector3(0, 0, 0)
 	old_scene.add_child(old_camera)
 
@@ -220,9 +220,9 @@ func test_zero_duration_blend_completes_instantly() -> void:
 	add_child_autofree(new_scene)
 
 	var new_camera := Camera3D.new()
-	new_camera.add_to_group("main_camera")
 	new_camera.position = Vector3(100, 100, 100)
 	new_scene.add_child(new_camera)
+	camera_manager.register_main_camera(new_camera)
 
 	# Act: Instant blend
 	camera_manager.blend_cameras(old_scene, new_scene, 0.0)
@@ -239,14 +239,12 @@ func test_blend_kills_existing_tween_before_starting_new() -> void:
 	add_child_autofree(old_scene)
 
 	var old_camera := Camera3D.new()
-	old_camera.add_to_group("main_camera")
 	old_scene.add_child(old_camera)
 
 	var new_scene1 := Node3D.new()
 	add_child_autofree(new_scene1)
 
 	var new_camera1 := Camera3D.new()
-	new_camera1.add_to_group("main_camera")
 	new_camera1.position = Vector3(10, 0, 0)
 	new_scene1.add_child(new_camera1)
 
@@ -254,13 +252,14 @@ func test_blend_kills_existing_tween_before_starting_new() -> void:
 	add_child_autofree(new_scene2)
 
 	var new_camera2 := Camera3D.new()
-	new_camera2.add_to_group("main_camera")
 	new_camera2.position = Vector3(0, 10, 0)
 	new_scene2.add_child(new_camera2)
 
 	# Act: Start first blend, then immediately start second
+	camera_manager.register_main_camera(new_camera1)
 	camera_manager.blend_cameras(old_scene, new_scene1, 0.5)
 	await wait_physics_frames(2)
+	camera_manager.register_main_camera(new_camera2)
 	camera_manager.blend_cameras(old_scene, new_scene2, 0.5)
 	await wait_physics_frames(35)  # Wait for 0.5 second blend to complete (30 frames + buffer)
 

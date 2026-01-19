@@ -5,6 +5,7 @@ class_name U_ECSUtils
 const ENTITY_GROUP := StringName("ecs_entity")
 const MANAGER_GROUP := StringName("ecs_manager")
 const ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/base_ecs_entity.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 static var _warning_handler: Callable = Callable()
 static var _manager_method_warnings: Dictionary = {}
@@ -131,6 +132,12 @@ static func get_active_camera(from_node: Node) -> Camera3D:
 		var viewport_camera: Camera3D = viewport.get_camera_3d()
 		if viewport_camera != null:
 			return viewport_camera
+
+	var camera_manager := U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager"))
+	if camera_manager != null and camera_manager.has_method("get_main_camera"):
+		var main_camera := camera_manager.call("get_main_camera") as Camera3D
+		if main_camera != null and is_instance_valid(main_camera):
+			return main_camera
 
 	return get_singleton_from_group(from_node, StringName("main_camera"), false) as Camera3D
 

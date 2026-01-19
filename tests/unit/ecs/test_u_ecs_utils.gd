@@ -5,12 +5,16 @@ const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 const FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const MOVEMENT_COMPONENT := preload("res://scripts/ecs/components/c_movement_component.gd")
 const FLOATING_SETTINGS := preload("res://scripts/ecs/resources/rs_floating_settings.gd")
+const CAMERA_MANAGER := preload("res://scripts/managers/m_camera_manager.gd")
+const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 func before_each() -> void:
+	U_SERVICE_LOCATOR.clear()
 	ECS_UTILS.reset_warning_handler()
 
 func after_each() -> void:
 	ECS_UTILS.reset_warning_handler()
+	U_SERVICE_LOCATOR.clear()
 
 func test_get_manager_returns_parent_manager() -> void:
 	var manager: M_ECSManager = ECS_MANAGER.new()
@@ -203,18 +207,23 @@ func test_get_active_camera_uses_viewport_camera_first() -> void:
 	var active_camera := ECS_UTILS.get_active_camera(seeker)
 	assert_eq(active_camera, camera)
 
-func test_get_active_camera_falls_back_to_group() -> void:
+func test_get_active_camera_uses_camera_manager_when_viewport_missing() -> void:
 	var viewport := get_viewport()
 	var existing_camera := viewport.get_camera_3d()
 	if existing_camera != null:
 		existing_camera.current = false
 	await get_tree().process_frame
 
+	var camera_manager := CAMERA_MANAGER.new()
+	add_child(camera_manager)
+	autofree(camera_manager)
+	await get_tree().process_frame
+
 	var camera := Camera3D.new()
 	camera.current = false
-	camera.add_to_group(StringName("main_camera"))
-	add_child(camera)
-	autofree(camera)
+	camera_manager.add_child(camera)
+	camera_manager.register_main_camera(camera)
+	await get_tree().process_frame
 
 	var seeker := Node.new()
 	add_child(seeker)

@@ -69,11 +69,11 @@ func before_each() -> void:
 
 	_camera = Camera3D.new()
 	_camera.name = "TestMainCamera"
-	_camera.add_to_group("main_camera")
 	_camera.current = true
 	_camera.position = Vector3(0.0, 1.0, 0.0)
 	_camera.rotation = Vector3(0.2, 0.3, 0.0)
 	_camera_root.add_child(_camera)
+	_camera_manager.register_main_camera(_camera)
 	await get_tree().process_frame
 
 	_vfx_manager = M_VFX_MANAGER.new()
@@ -86,6 +86,7 @@ func before_each() -> void:
 func after_each() -> void:
 	U_ECS_EVENT_BUS.reset()
 	U_STATE_HANDOFF.clear_all()
+	U_SERVICE_LOCATOR.clear()
 	super.after_each()
 
 
