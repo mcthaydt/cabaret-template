@@ -4,17 +4,12 @@ class_name BaseECSEntity
 
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 
-const ENTITY_GROUP := StringName("ecs_entity")
-
-@export var add_legacy_group: bool = false
 @export var entity_id: StringName = StringName("")
 @export var tags: Array[StringName] = []
 
 var _cached_entity_id: StringName = StringName("")
 
 func _ready() -> void:
-	if add_legacy_group and not is_in_group(ENTITY_GROUP):
-		add_to_group(ENTITY_GROUP)
 	var manager: Node = U_ECS_UTILS.get_manager(self)
 	if manager != null and manager.has_method("cache_entity_for_node"):
 		manager.call("cache_entity_for_node", self, self)

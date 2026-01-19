@@ -2,7 +2,6 @@ extends RefCounted
 
 class_name U_ECSUtils
 
-const ENTITY_GROUP := StringName("ecs_entity")
 const MANAGER_GROUP := StringName("ecs_manager")
 const ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/base_ecs_entity.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
@@ -58,9 +57,6 @@ static func find_entity_root(from_node: Node, warn_on_missing: bool = false) -> 
 				return _cache_entity_root(manager, cached, visited)
 		var current_script: Script = current.get_script()
 		if current_script == ECS_ENTITY_SCRIPT:
-			return _cache_entity_root(manager, current, visited)
-
-		if current.is_in_group(ENTITY_GROUP):
 			return _cache_entity_root(manager, current, visited)
 
 		if String(current.name).begins_with("E_"):
