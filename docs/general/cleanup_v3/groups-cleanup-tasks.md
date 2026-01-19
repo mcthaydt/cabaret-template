@@ -536,20 +536,24 @@ Only after all tests pass with ServiceLocator.
 
 ### Phase 7: Remove Manager Group Registration
 
-- [ ] `m_state_store.gd:80` - Remove `add_to_group("state_store")`
-- [ ] `m_ecs_manager.gd:46` - Remove `add_to_group("ecs_manager")`
-- [ ] `m_scene_manager.gd` - Remove `add_to_group("scene_manager")`
-- [ ] `m_audio_manager.gd:69` - Remove `add_to_group("audio_manager")`
-- [ ] `m_vfx_manager.gd` - Remove `add_to_group("vfx_manager")`
-- [ ] `m_spawn_manager.gd` - Remove `add_to_group("spawn_manager")`
-- [ ] `m_camera_manager.gd` - Remove `add_to_group("camera_manager")`
-- [ ] `m_save_manager.gd` - Remove `add_to_group("save_manager")`
-- [ ] `m_input_device_manager.gd:64` - Remove `add_to_group("input_device_manager")`
-- [ ] `m_input_profile_manager.gd` - Remove `add_to_group("input_profile_manager")`
-- [ ] `m_cursor_manager.gd:26` - Remove `add_to_group("cursor_manager")`
-- [ ] `m_pause_manager.gd` - Remove `add_to_group("pause_manager")`
-- [ ] Remove duplicate check `is_in_group()` calls in managers (prevents double registration)
-- [ ] Run full test suite
+- [x] `m_state_store.gd:80` - Remove `add_to_group("state_store")`
+- [x] `m_ecs_manager.gd:46` - Remove `add_to_group("ecs_manager")`
+- [x] `m_scene_manager.gd` - Remove `add_to_group("scene_manager")`
+- [x] `m_audio_manager.gd:69` - Remove `add_to_group("audio_manager")`
+- [x] `m_vfx_manager.gd` - Remove `add_to_group("vfx_manager")`
+- [x] `m_spawn_manager.gd` - Remove `add_to_group("spawn_manager")`
+- [x] `m_camera_manager.gd` - Remove `add_to_group("camera_manager")`
+- [x] `m_save_manager.gd` - Remove `add_to_group("save_manager")`
+- [x] `m_input_device_manager.gd:64` - Remove `add_to_group("input_device_manager")`
+- [x] `m_input_profile_manager.gd` - Remove `add_to_group("input_profile_manager")`
+- [x] `m_cursor_manager.gd:26` - Remove `add_to_group("cursor_manager")`
+- [x] `m_pause_manager.gd` - Remove `add_to_group("pause_manager")`
+- [x] Remove duplicate check `is_in_group()` calls in managers (prevents double registration)
+- [x] Run full test suite
+
+Notes:
+- M_ECSManager now self-registers with ServiceLocator and `U_ECSUtils.get_manager()` falls back to ServiceLocator for discovery (replaces group fallback).
+- Full unit+integration suite run via `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gdir=res://tests/integration -gexit` (2026-02-09).
 
 ### Phase 8: Entity Group Removal
 

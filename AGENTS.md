@@ -26,7 +26,7 @@
 - `scripts/managers/m_ecs_manager.gd`: Registers components/systems; exposes `get_components(StringName)` and emits component signals.
 - `scripts/managers/m_scene_manager.gd`: Scene transition coordinator (Phase 3+); manages ActiveSceneContainer.
 - `scripts/managers/m_save_manager.gd`: Save/load coordinator; manages save slots, atomic writes, migrations, and autosave scheduling.
-- `scripts/state/m_state_store.gd`: Redux store; adds to "state_store" group for discovery via `U_StateUtils.get_store()`.
+- `scripts/state/m_state_store.gd`: Redux store; registers with ServiceLocator for discovery via `U_StateUtils.get_store()`.
 - `scripts/ui/u_ui_registry.gd` + `resources/ui_screens/`: UI registry definitions (`RS_UIScreenDefinition`) for base screens and overlays.
 - `scripts/ecs/base_ecs_component.gd`: Base for components. Auto-registers with manager; exposes `get_snapshot()` hook.
 - `scripts/ecs/base_ecs_system.gd`: Base for systems. Implement `process_tick(delta)`; runs via `_physics_process`.
@@ -50,7 +50,7 @@
   - Extend `BaseECSSystem`; implement `process_tick(delta)` (invoked from `_physics_process`).
   - Query with `get_components(StringName)`, dedupe per-body where needed, and clamp/guard values (see movement/rotation/floating examples).
   - Use `U_ECSUtils.map_components_by_body()` when multiple systems need shared body→component dictionaries (avoids duplicate loops).
-  - Auto-discovers `M_ECSManager` via parent traversal or `ecs_manager` group; no manual wiring needed.
+  - Auto-discovers `M_ECSManager` via parent traversal or ServiceLocator (`ecs_manager`); no manual wiring needed.
   - Event-driven request systems should extend `BaseEventVFXSystem` / `BaseEventSFXSystem` and implement `get_event_name()` + `create_request_from_payload()` to enqueue `requests`.
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.
@@ -68,7 +68,7 @@
   - Systems support `@export` dependency injection for isolated testing with mocks.
   - **Inject ECS manager**: All systems inherit `@export var ecs_manager: I_ECSManager` from BaseECSSystem.
   - **Inject state store**: 9 state-dependent systems have `@export var state_store: I_StateStore` (S_HealthSystem, S_VictorySystem, S_CheckpointSystem, S_InputSystem, S_GamepadVibrationSystem, S_GravitySystem, S_MovementSystem, S_JumpSystem, S_RotateToInputSystem).
-  - **Injection priority chain**: U_StateUtils.get_store() and U_ECSUtils.get_manager() check @export injection first, then fall back to ServiceLocator/groups. Production code unchanged (auto-discovery if not injected).
+  - **Injection priority chain**: U_StateUtils.get_store() and U_ECSUtils.get_manager() check @export injection first, then fall back to ServiceLocator. Production code unchanged (auto-discovery if not injected).
   - **Mock classes**: Use `MockStateStore` and `MockECSManager` from `tests/mocks/` for isolated testing.
   - **Example test pattern**:
     ```gdscript
@@ -81,7 +81,7 @@
     ```
   - **Mock helpers**: `MockStateStore.get_dispatched_actions()` verifies actions; `MockStateStore.set_slice()` sets up test state; `MockECSManager.add_component_to_entity()` populates components.
 - Manager
-  - Ensure exactly one `M_ECSManager` in-scene. It auto-adds to `ecs_manager` group on `_ready()`.
+  - Ensure exactly one `M_ECSManager` in-scene. It registers with ServiceLocator on `_ready()`.
   - Emits `component_added`/`component_removed` and calls `component.on_registered(self)`.
   - `get_components()` strips out null entries automatically; only guard for missing components when logic truly requires it.
   - Entity root caching is dictionary-backed in `M_ECSManager`/`U_ECSUtils` (no metadata tags); `BaseECSEntity` registers itself with the manager for lookups.

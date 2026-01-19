@@ -52,6 +52,10 @@
   - **Fix**: Run a one-time import pass before running tests: `HOME="$PWD/.godot_user" /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
   - Commit the generated `*.import` files (next to the asset); do not commit `.godot/imported` (it is cache and ignored).
 
+## Test Execution Pitfalls
+
+- **GUT needs recursive dirs**: `-gdir` is not recursive by default; suites in nested folders are silently skipped if you point at a parent. Always pass each test root explicitly (e.g., `-gdir=res://tests/unit -gdir=res://tests/integration`) or list the concrete leaf directories you added to ensure new suites actually run.
+
 ## UI Navigation Pitfalls (Gamepad/Joystick)
 
 ### Focus Sound Arming (Phase 7 - UI Audio)
