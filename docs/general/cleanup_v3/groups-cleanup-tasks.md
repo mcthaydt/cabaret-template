@@ -5,7 +5,7 @@
 Remove `add_to_group()`/`is_in_group()`/`get_nodes_in_group()` usage throughout the codebase in favor of explicit, type-safe alternatives (manager dictionaries, direct references, tag components).
 
 **Priority:** Low (architectural consistency)
-**Status:** In Progress (Phase 0 Complete)
+**Status:** In Progress (Phases 0-11 complete; monitoring for regressions)
 **Continuation Prompt:** `docs/general/cleanup_v3/groups-cleanup-continuation-prompt.md`
 
 ---
@@ -323,13 +323,7 @@ camera_manager.register_main_camera(camera)
 
 ### Category C: Generic Group Tests (ECS Utils)
 
-| File | Line | Usage | Migration |
-|------|------|-------|-----------|
-| `test_u_ecs_utils.gd` | 151 | `singleton.add_to_group(group_name)` | Test-specific, may keep for testing group utils |
-| `test_u_ecs_utils.gd` | 177 | `node.add_to_group(group_name)` | Test-specific, may keep for testing group utils |
-| `test_input_manager_integration_points.gd` | 35 | `manager.add_to_group("test_manager_group")` | Custom test group, not production |
-
-**Note:** Some of these are testing the group utility functions themselves. These may need to remain as-is until we remove the utility functions entirely.
+All remaining group-based test scaffolding has been removed or refactored to ServiceLocator (updated 2026-01-19).
 
 ---
 
@@ -346,10 +340,11 @@ camera_manager.register_main_camera(camera)
 - [x] Add missing dependency registrations to `main.gd`:
   - Added: `vfx_manager` → `state_store`, `camera_manager`
   - Added: `audio_manager` → `state_store`
-- [ ] Run all tests to confirm baseline passes:
+- [x] Run all tests to confirm baseline passes:
   ```bash
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gdir=res://tests/integration -gexit
   ```
+  - Ran 2026-01-19 via command above (all passing).
 
 ### Phase 1: Camera Manager Infrastructure
 
@@ -634,8 +629,8 @@ Notes:
 
 ### Phase 11: Miscellaneous Cleanup
 
-- [ ] Remove `MANAGER_GROUP` constant from `u_ecs_utils.gd:6`
-- [ ] Update `u_ecs_utils.gd:244` to check ServiceLocator instead:
+- [x] Remove `MANAGER_GROUP` constant from `u_ecs_utils.gd:6`
+- [x] Update `u_ecs_utils.gd:244` to check ServiceLocator instead:
   ```gdscript
   # OLD: if candidate.is_in_group(MANAGER_GROUP):
   # NEW:
@@ -644,22 +639,23 @@ Notes:
       if U_ServiceLocator.get_service(service_name) == candidate:
           return true
   ```
-- [ ] Review `i_scene_contract.gd:158` - determine if generic group check needed
-- [ ] Remove `get_singleton_from_group()` from `u_ecs_utils.gd:98-112`
-- [ ] Remove `get_nodes_from_group()` from `u_ecs_utils.gd:114-123`
-- [ ] Remove ragdoll group usage from `s_health_system.gd` (store spawned ragdoll reference per entity/system instead of `add_to_group`)
-- [ ] Remove debug overlay group usage from `m_state_store.gd` (have debug overlay call `register_debug_overlay()` and store direct ref)
-- [ ] Replace overlay stack meta usage in `u_overlay_stack_manager.gd` with typed identifiers/properties on overlays (no meta)
-- [ ] Remove meta usage in `m_camera_manager.gd` shake parent handling (use exported bool/typed flag instead of meta)
-- [ ] Remove `meta("surface_type")` lookup in `c_surface_detector_component.gd` (use explicit exported property/resource/component on colliders)
-- [ ] Search for any remaining group/meta usage:
+- [x] Review `i_scene_contract.gd:158` - determine if generic group check needed
+- [x] Remove `get_singleton_from_group()` from `u_ecs_utils.gd:98-112`
+- [x] Remove `get_nodes_from_group()` from `u_ecs_utils.gd:114-123`
+- [x] Remove ragdoll group usage from `s_health_system.gd` (store spawned ragdoll reference per entity/system instead of `add_to_group`)
+- [x] Remove debug overlay group usage from `m_state_store.gd` (have debug overlay call `register_debug_overlay()` and store direct ref)
+- [x] Replace overlay stack meta usage in `u_overlay_stack_manager.gd` with typed identifiers/properties on overlays (no meta)
+- [x] Remove meta usage in `m_camera_manager.gd` shake parent handling (use exported bool/typed flag instead of meta)
+- [x] Remove `meta("surface_type")` lookup in `c_surface_detector_component.gd` (use explicit exported property/resource/component on colliders)
+- [x] Search for any remaining group/meta usage:
   ```bash
   grep -r "add_to_group\|is_in_group\|get_nodes_in_group\|has_meta\|set_meta\|get_meta" scripts/
   ```
-- [ ] Final full test suite run:
+- [x] Final full test suite run:
   ```bash
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gexit
   ```
+  - 2026-01-19: Full unit+integration command green; test scaffolding now uses ServiceLocator (no group/meta usage remaining).
 
 ---
 

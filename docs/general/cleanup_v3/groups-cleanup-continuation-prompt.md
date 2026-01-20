@@ -34,7 +34,7 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 - Phase 8 complete: Removed legacy ECS entity group fallback and `add_legacy_group` flag; entity detection now relies on `BaseECSEntity` and `E_` naming. ECS unit suite passes via `-gdir=res://tests/unit/ecs -gexit`.
 - Phase 9 complete: HUD/mobile controls now register with managers (scene manager/input device manager); loading screen transition hides HUD via manager lookup. UI unit suite passes via `-gdir=res://tests/unit/ui -gexit`.
 - Phase 10 complete: Effects container managed via `M_VFXManager` registration; `U_ParticleSpawner` only uses the manager (no groups/meta). VFX integration suites and full unit+integration suite pass.
-- Phase 11 scope expanded to include removal of remaining group/meta usages (ragdoll group, state debug overlay group, overlay stack meta IDs, camera shake parent meta, surface detector meta).
+- Phase 11 complete: Remaining group/meta cleanup verified (ragdoll/debug overlay/overlay stack/camera shake/surface detector/`U_ECSUtils` helpers). Last group-based test scaffold now uses ServiceLocator. Full unit+integration command green on 2026-01-19.
 
 ---
 
@@ -50,6 +50,4 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 
 ## Next Step
 
-- Phase 11: remove remaining group/meta usages (ragdoll group, debug overlay group, overlay stack meta, camera shake meta, surface detector meta, `U_ECSUtils` group helpers).
-- Targeted tests:
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gdir=res://tests/integration -gexit`
+- Monitor for regressions; keep running the full unit+integration command (`-gdir=res://tests/unit -gdir=res://tests/integration -gexit`) after changes touching manager discovery/overlay/VFX flows. Update tasks/prompt if new group/meta usage appears.

@@ -28,16 +28,15 @@ func test_state_store_discovery_via_utils() -> void:
 	assert_eq(found, store)
 	await _cleanup_node(store)
 
-func test_manager_discovery_via_group_lookup() -> void:
+func test_service_locator_registers_manager() -> void:
 	var manager: Node = Node.new()
 	manager.name = "M_TestManager"
 	add_child(manager)
-	manager.add_to_group("test_manager_group")
 	autofree(manager)
-	await get_tree().process_frame
 
-	var found: Node = get_tree().get_first_node_in_group("test_manager_group")
-	assert_eq(found, manager, "get_first_node_in_group should return manager in group")
+	U_ServiceLocator.register(StringName("test_manager"), manager)
+	var found: Node = U_ServiceLocator.try_get_service(StringName("test_manager"))
+	assert_eq(found, manager, "ServiceLocator should return registered manager")
 
 func test_ecs_component_auto_registers_with_manager() -> void:
 	var ecs_manager: M_ECSManager = M_ECSManager.new()
