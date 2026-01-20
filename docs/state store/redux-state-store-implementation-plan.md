@@ -5,6 +5,8 @@
 
 ---
 
+> **Cleanup note (2026-03)**: This plan still references group-based manager discovery. Groups have been removed in cleanup_v3; use ServiceLocator and @export injection instead when wiring the state store.
+
 ## Revision History
 
 **v2.0** (2025-10-25): Comprehensive revision addressing 14 critical gaps:

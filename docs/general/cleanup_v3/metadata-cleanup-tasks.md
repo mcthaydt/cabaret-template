@@ -160,7 +160,7 @@ Remove `get_meta()`/`set_meta()` usage throughout the codebase in favor of expli
 - [x] Update `S_FloatingSystem` to query component
 - [x] Update `U_SceneLoader` to check component
 - [x] Remove all `META_SPAWN_*` constants
-- [ ] Test spawn/respawn flows
+- [x] Test spawn/respawn flows (full unit+integration run via GUT headless command on 2026-01-19)
 
 ### Phase 2: Entity ID Fallbacks
 - [x] Audit entities not extending `BaseECSEntity`
@@ -181,7 +181,8 @@ Remove `get_meta()`/`set_meta()` usage throughout the codebase in favor of expli
 
 ### Phase 5: Miscellaneous
 - [x] Replace `player_ragdoll` metadata with group membership
-- [ ] Evaluate `surface_type` metadata (may keep for level geometry)
+- [x] Evaluate `surface_type` metadata (may keep for level geometry)
+  - Decision: keep the provider method pattern (no metadata tags required) for static geometry compatibility.
 
 ---
 
@@ -189,4 +190,5 @@ Remove `get_meta()`/`set_meta()` usage throughout the codebase in favor of expli
 
 - Run tests after each phase
 - Some metadata (surface_type) may be acceptable for static data
+- Surface detection remains provider-method-based; no metadata tags should be added for `surface_type`
 - Prioritize spawn state cleanup if it causes issues during audio refactor

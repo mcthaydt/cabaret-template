@@ -6,6 +6,8 @@
 
 ## Summary
 
+> **Cleanup note (2026-03)**: Any references to adding managers to groups for discovery are outdated. Rely on ServiceLocator registration and @export injection per cleanup_v3.
+
 The Input Manager system provides comprehensive multi-device input support for the game, enabling keyboard/mouse, gamepad, and touchscreen inputs with rebinding, profiles, and accessibility features. The system integrates with the existing ECS architecture and Redux-based M_StateStore while maintaining the project's no-autoload pattern. Key features include:
 
 - **Multi-device support**: Keyboard/mouse, gamepad (analog + digital), touchscreen (virtual controls)

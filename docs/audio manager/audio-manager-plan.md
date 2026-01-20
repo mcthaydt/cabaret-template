@@ -8,6 +8,8 @@
 
 ---
 
+> **Cleanup note (2026-03)**: Group-based discovery and `set_meta(META_IN_USE)` pooling guidance in this document are obsolete. The codebase now uses ServiceLocator for manager lookup and Dictionary-backed pool tracking (see cleanup_v3 notes).
+
 ## Overview
 
 The Audio Manager provides comprehensive audio system with music, SFX, footsteps, ambient, and UI sounds. Features Redux integration, bus layout management, dual-player crossfading, and event-driven SFX systems.
