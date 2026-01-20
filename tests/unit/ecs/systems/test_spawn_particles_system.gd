@@ -69,9 +69,8 @@ func test_creates_particles_on_player_spawn_event() -> void:
 	await wait_physics_frames(1)
 
 	# Effects container should exist under current_scene
-	var containers := get_tree().get_nodes_in_group("effects_container")
-	assert_false(containers.is_empty(), "Effects container should be created")
-	var container: Node3D = containers[0] as Node3D
+	var container: Node3D = _root_scene.get_node_or_null("EffectsContainer") as Node3D
+	assert_not_null(container, "Effects container should be created")
 
 	# At least one GPUParticles3D should be spawned under container
 	var has_particles := false

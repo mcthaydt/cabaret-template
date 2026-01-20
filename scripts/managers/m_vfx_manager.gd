@@ -66,6 +66,7 @@ var _event_unsubscribes: Array[Callable] = []
 ## Preview settings overrides (used by settings UI)
 var _preview_settings: Dictionary = {}
 var _is_previewing: bool = false
+var _effects_container: Node = null
 
 func _ready() -> void:
 	# Run even when game is paused (VFX should be visible in pause menu)
@@ -152,6 +153,15 @@ func set_vfx_settings_preview(settings: Dictionary) -> void:
 func clear_vfx_settings_preview() -> void:
 	_preview_settings.clear()
 	_is_previewing = false
+
+func set_effects_container(container: Node) -> void:
+	_effects_container = container
+
+func get_effects_container() -> Node:
+	if _effects_container != null and is_instance_valid(_effects_container):
+		return _effects_container
+	_effects_container = null
+	return null
 
 ## Trigger a test shake for preview purposes
 func trigger_test_shake(intensity: float = 1.0) -> void:

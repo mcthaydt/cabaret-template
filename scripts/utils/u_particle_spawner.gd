@@ -3,6 +3,7 @@ class_name U_ParticleSpawner
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
+const M_VFXManager := preload("res://scripts/managers/m_vfx_manager.gd")
 
 const STORE_SERVICE := StringName("state_store")
 
@@ -174,10 +175,11 @@ static func get_or_create_effects_container(tree: SceneTree) -> Node3D:
 	if not _is_particles_enabled(tree):
 		return null
 
-	# Look for existing container
-	var containers: Array[Node] = tree.get_nodes_in_group("effects_container")
-	if containers.size() > 0:
-		return containers[0] as Node3D
+	var manager := U_SERVICE_LOCATOR.try_get_service(StringName("vfx_manager")) as M_VFXManager
+	if manager != null and manager.has_method("get_effects_container"):
+		var registered_container := manager.get_effects_container() as Node3D
+		if registered_container != null and is_instance_valid(registered_container):
+			return registered_container
 
 	# Check if we have a valid scene to add container to BEFORE creating it
 	var current_scene: Node = tree.current_scene
@@ -189,10 +191,11 @@ static func get_or_create_effects_container(tree: SceneTree) -> Node3D:
 	# Create new container
 	var container := Node3D.new()
 	container.name = "EffectsContainer"
-	container.add_to_group("effects_container")
 
 	# Add to current scene root
 	current_scene.add_child(container)
+	if manager != null and manager.has_method("set_effects_container"):
+		manager.set_effects_container(container)
 	return container
 
 static func _is_particles_enabled(tree: SceneTree) -> bool:
@@ -200,9 +203,6 @@ static func _is_particles_enabled(tree: SceneTree) -> bool:
 		return true
 
 	var store := U_SERVICE_LOCATOR.try_get_service(STORE_SERVICE) as I_StateStore
-	if store == null:
-		store = tree.get_first_node_in_group(STORE_SERVICE) as I_StateStore
-
 	if store == null or not is_instance_valid(store):
 		return true
 
