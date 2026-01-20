@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://ddxwdrvpwjai5" path="res://scripts/ecs/components/c_player_tag_component.gd" id="5_player_tag"]
 [ext_resource type="Script" uid="uid://cmrnrx0lij1v2" path="res://scripts/ecs/components/c_surface_detector_component.gd" id="6_surface_detector"]
 
-[node name="E_PlayerRoot" unique_id=526145796 groups=["player"] instance=ExtResource("1_character_template")]
+[node name="E_PlayerRoot" unique_id=526145796 instance=ExtResource("1_character_template")]
 entity_id = &"player"
 tags = Array[StringName]([&"player", &"character"])
 
