@@ -603,7 +603,7 @@ Notes:
 
 ### Phase 10: VFX Container Migration
 
-- [ ] Add to `M_VFXManager`:
+- [x] Add to `M_VFXManager`:
   ```gdscript
   var _effects_container: Node = null
 
@@ -613,7 +613,7 @@ Notes:
   func get_effects_container() -> Node:
       return _effects_container
   ```
-- [ ] Update `u_particle_spawner.gd:178,192`:
+- [x] Update `u_particle_spawner.gd:178,192`:
   ```gdscript
   # OLD: var containers: Array[Node] = tree.get_nodes_in_group("effects_container")
   # NEW:
@@ -622,10 +622,14 @@ Notes:
   if vfx_manager and vfx_manager.has_method("get_effects_container"):
       container = vfx_manager.get_effects_container()
   ```
-- [ ] Remove `add_to_group("effects_container")` from container node
-- [ ] Run VFX tests:
+- [x] Remove `add_to_group("effects_container")` from container node
+- [x] Run VFX tests:
   ```bash
-  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/vfx -gdir=res://tests/integration/vfx -gexit
+  # VFX integration suites (unit dir not present):
+  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/vfx -gexit
+
+  # Full coverage:
+  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gdir=res://tests/integration -gexit
   ```
 
 ### Phase 11: Miscellaneous Cleanup
@@ -643,9 +647,14 @@ Notes:
 - [ ] Review `i_scene_contract.gd:158` - determine if generic group check needed
 - [ ] Remove `get_singleton_from_group()` from `u_ecs_utils.gd:98-112`
 - [ ] Remove `get_nodes_from_group()` from `u_ecs_utils.gd:114-123`
-- [ ] Search for any remaining group usage:
+- [ ] Remove ragdoll group usage from `s_health_system.gd` (store spawned ragdoll reference per entity/system instead of `add_to_group`)
+- [ ] Remove debug overlay group usage from `m_state_store.gd` (have debug overlay call `register_debug_overlay()` and store direct ref)
+- [ ] Replace overlay stack meta usage in `u_overlay_stack_manager.gd` with typed identifiers/properties on overlays (no meta)
+- [ ] Remove meta usage in `m_camera_manager.gd` shake parent handling (use exported bool/typed flag instead of meta)
+- [ ] Remove `meta("surface_type")` lookup in `c_surface_detector_component.gd` (use explicit exported property/resource/component on colliders)
+- [ ] Search for any remaining group/meta usage:
   ```bash
-  grep -r "add_to_group\|is_in_group\|get_nodes_in_group" scripts/
+  grep -r "add_to_group\|is_in_group\|get_nodes_in_group\|has_meta\|set_meta\|get_meta" scripts/
   ```
 - [ ] Final full test suite run:
   ```bash
