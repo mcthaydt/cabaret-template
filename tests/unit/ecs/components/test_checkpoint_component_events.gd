@@ -15,7 +15,6 @@ func test_checkpoint_publishes_zone_entered_for_player() -> void:
 
 	var entity := Node3D.new()
 	entity.name = "E_Player"
-	entity.set_meta("entity_id", StringName("player"))
 	manager.add_child(entity)
 
 	var player_tag := C_PlayerTagComponent.new()

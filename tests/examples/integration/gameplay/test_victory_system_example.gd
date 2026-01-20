@@ -75,7 +75,6 @@ func _prepare_victory_fixture() -> Dictionary:
 
 	var player_body := CharacterBody3D.new()
 	player_body.name = "Body"
-	player_body.set_meta("entity_id", "E_Player")
 	player_entity.add_child(player_body)
 
 	var player_tag_component: Node = player_tag_script.new()

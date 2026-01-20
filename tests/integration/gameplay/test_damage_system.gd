@@ -96,7 +96,6 @@ func _prepare_damage_fixture() -> Dictionary:
 
 	var body := CharacterBody3D.new()
 	body.name = "Body"
-	body.set_meta("entity_id", "E_Player")
 	player_entity.add_child(body)
 
 	var player_tag_component: Node = player_tag_script.new()

@@ -136,7 +136,6 @@ func _prepare_player_with_health() -> Dictionary:
 
 	var body := CharacterBody3D.new()
 	body.name = "Body"
-	body.set_meta("entity_id", "E_Player")
 	player_entity.add_child(body)
 
 	var player_tag := PLAYER_TAG_COMPONENT.new()

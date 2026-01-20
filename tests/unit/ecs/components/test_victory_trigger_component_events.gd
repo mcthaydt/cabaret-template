@@ -15,7 +15,6 @@ func test_publish_victory_events_on_player_enter() -> void:
 
 	var entity := Node3D.new()
 	entity.name = "E_Player"
-	entity.set_meta("entity_id", StringName("player"))
 	manager.add_child(entity)
 
 	var player_tag := C_PlayerTagComponent.new()
@@ -61,7 +60,6 @@ func test_trigger_once_blocks_republish() -> void:
 
 	var entity := Node3D.new()
 	entity.name = "E_Player"
-	entity.set_meta("entity_id", StringName("player"))
 	manager.add_child(entity)
 
 	var player_tag := C_PlayerTagComponent.new()

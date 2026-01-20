@@ -92,7 +92,6 @@ func _prepare_health_fixture() -> Dictionary:
 
 	var character_body := CharacterBody3D.new()
 	character_body.name = "Body"
-	character_body.set_meta("entity_id", "E_Player")
 	player_entity.add_child(character_body)
 
 	var player_tag_component: Node = player_tag_script.new()
