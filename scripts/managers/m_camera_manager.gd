@@ -3,7 +3,6 @@ class_name M_CameraManager
 extends Node
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const META_SHAKE_PARENT := &"_camera_manager_shake_parent"
 
 ## M_CameraManager - Camera Blending Management (Phase 12.2)
 ##
@@ -255,10 +254,7 @@ func _get_active_camera() -> Camera3D:
 		var viewport_camera := viewport.get_camera_3d()
 		if viewport_camera != null:
 			return viewport_camera
-	var tree := get_tree()
-	if tree == null:
-		return null
-	return tree.get_first_node_in_group("main_camera") as Camera3D
+	return null
 
 func register_main_camera(camera: Camera3D) -> void:
 	if camera != null and is_instance_valid(camera):
@@ -272,6 +268,14 @@ func unregister_main_camera() -> void:
 func get_main_camera() -> Camera3D:
 	return _main_camera
 
+func get_shake_parent_for_camera(camera: Camera3D) -> Node3D:
+	if camera == null or not is_instance_valid(camera):
+		return null
+	var parent := camera.get_parent() as Node3D
+	if parent != null and _shake_parents.has(parent):
+		return parent
+	return null
+
 func _ensure_shake_parent_for_camera(camera: Camera3D) -> Node3D:
 	if camera == null or not is_instance_valid(camera):
 		return null
@@ -281,9 +285,6 @@ func _ensure_shake_parent_for_camera(camera: Camera3D) -> Node3D:
 		var parent_3d := parent as Node3D
 		if _shake_parents.has(parent_3d):
 			return parent_3d
-		if bool(parent_3d.get_meta(META_SHAKE_PARENT, false)):
-			_shake_parents[parent_3d] = true
-			return parent_3d
 
 	if parent == null:
 		return null
@@ -291,7 +292,6 @@ func _ensure_shake_parent_for_camera(camera: Camera3D) -> Node3D:
 	var shake_parent := Node3D.new()
 	shake_parent.name = "ShakeParent"
 	_shake_parents[shake_parent] = true
-	shake_parent.set_meta(META_SHAKE_PARENT, true)
 
 	var insert_index := camera.get_index()
 	parent.add_child(shake_parent)

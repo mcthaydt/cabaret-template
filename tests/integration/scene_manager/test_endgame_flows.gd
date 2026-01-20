@@ -194,19 +194,6 @@ func _prepare_victory_system() -> Dictionary:
 		"system": victory_system
 	}
 
-func _find_ragdoll_instance() -> RigidBody3D:
-	return _find_ragdoll_recursive(_test_scene)
-
-func _find_ragdoll_recursive(root: Node) -> RigidBody3D:
-	for child in root.get_children():
-		var body := child as RigidBody3D
-		if body != null and body.is_in_group("player_ragdoll"):
-			return body
-		var nested := _find_ragdoll_recursive(child)
-		if nested != null:
-			return nested
-	return null
-
 func _get_active_scene_instance() -> Node:
 	if _active_scene_container == null:
 		return null
@@ -226,7 +213,8 @@ func test_death_spawns_ragdoll_and_transitions_to_game_over() -> void:
 
 	await wait_physics_frames(2)
 
-	var ragdoll := _find_ragdoll_instance()
+	var health_system: S_HealthSystem = fixture["system"]
+	var ragdoll := health_system.get_ragdoll_for_entity(StringName("E_Player"))
 	assert_not_null(ragdoll, "Ragdoll instance should spawn on death")
 
 	await wait_seconds(0.6)

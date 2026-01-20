@@ -88,12 +88,12 @@ func after_each() -> void:
 func test_syncs_state_from_preexisting_ui_overlays() -> void:
 	# Arrange: two overlay nodes already present with scene_id metadata
 	var overlay1 := Node.new()
-	overlay1.set_meta(StringName("_scene_manager_overlay_scene_id"), StringName("pause_menu"))
+	U_OverlayStackManager.register_overlay_scene_id(overlay1, StringName("pause_menu"))
 	_ui_overlay_stack.add_child(overlay1)
 	autofree(overlay1)
 
 	var overlay2 := Node.new()
-	overlay2.set_meta(StringName("_scene_manager_overlay_scene_id"), StringName("settings_menu"))
+	U_OverlayStackManager.register_overlay_scene_id(overlay2, StringName("settings_menu"))
 	_ui_overlay_stack.add_child(overlay2)
 	autofree(overlay2)
 
@@ -140,7 +140,7 @@ func test_restores_focus_to_underlying_overlay_after_pop() -> void:
 	# Arrange: two overlays already on the stack (pause below settings)
 	var pause_overlay := Control.new()
 	pause_overlay.name = "PauseOverlay"
-	pause_overlay.set_meta(StringName("_scene_manager_overlay_scene_id"), StringName("pause_menu"))
+	U_OverlayStackManager.register_overlay_scene_id(pause_overlay, StringName("pause_menu"))
 	var pause_button := Button.new()
 	pause_button.name = "ResumeButton"
 	pause_overlay.add_child(pause_button)
@@ -149,7 +149,7 @@ func test_restores_focus_to_underlying_overlay_after_pop() -> void:
 
 	var settings_overlay := Control.new()
 	settings_overlay.name = "SettingsOverlay"
-	settings_overlay.set_meta(StringName("_scene_manager_overlay_scene_id"), StringName("settings_menu"))
+	U_OverlayStackManager.register_overlay_scene_id(settings_overlay, StringName("settings_menu"))
 	var settings_button := Button.new()
 	settings_button.name = "BackButton"
 	settings_overlay.add_child(settings_button)

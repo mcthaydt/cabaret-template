@@ -129,6 +129,9 @@ func _process(_delta: float) -> void:
 	# Physics flush handles batching even when tree is paused (PROCESS_MODE_ALWAYS).
 	pass
 
+func _on_debug_overlay_tree_exiting() -> void:
+	_debug_overlay = null
+
 func _flush_signal_batcher() -> int:
 	if _signal_batcher == null:
 		return 0
@@ -172,12 +175,24 @@ func _input(event: InputEvent) -> void:
 			if overlay_scene:
 				_debug_overlay = overlay_scene.instantiate()
 				add_child(_debug_overlay)
-				# Ensure group membership is immediate for tests querying by group.
-				_debug_overlay.add_to_group("state_debug_overlay")
+				register_debug_overlay(_debug_overlay)
 		else:
 			# Despawn debug overlay
 			_debug_overlay.queue_free()
-			_debug_overlay = null
+			register_debug_overlay(null)
+
+func register_debug_overlay(overlay: CanvasLayer) -> void:
+	if overlay != null and is_instance_valid(overlay):
+		_debug_overlay = overlay
+		if not overlay.tree_exiting.is_connected(_on_debug_overlay_tree_exiting):
+			overlay.tree_exiting.connect(_on_debug_overlay_tree_exiting, CONNECT_ONE_SHOT)
+		return
+	_debug_overlay = null
+
+func get_debug_overlay() -> CanvasLayer:
+	if _debug_overlay != null and is_instance_valid(_debug_overlay):
+		return _debug_overlay
+	return null
 
 func _initialize_settings() -> void:
 	if settings == null:

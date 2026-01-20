@@ -116,9 +116,6 @@ func _find_entity_root(component: BaseECSComponent) -> Node:
 		# Check for E_ prefix (entity naming convention)
 		if current.name.begins_with("E_"):
 			return current
-		# Check for ecs_entity group membership
-		if current.is_in_group("ecs_entity"):
-			return current
 		current = current.get_parent()
 	# Fallback to immediate parent
 	return component.get_parent()

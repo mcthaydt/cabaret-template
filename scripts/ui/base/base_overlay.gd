@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/utility.svg")
-extends "res://scripts/ui/base/base_menu_screen.gd"
+extends BaseMenuScreen
 class_name BaseOverlay
 
 ## Base class for overlay scenes that stack on top of gameplay/menus.
@@ -17,6 +17,7 @@ class_name BaseOverlay
 
 ## Optional: reference to existing background panel (if you want custom control)
 @export var custom_background_panel: ColorRect = null
+var overlay_scene_id: StringName = StringName("")
 
 var _background_panel: ColorRect = null
 
@@ -41,6 +42,12 @@ func _ready() -> void:
 			_create_background_panel()
 
 	await super._ready()
+
+func set_overlay_scene_id(scene_id: StringName) -> void:
+	overlay_scene_id = scene_id
+
+func get_overlay_scene_id() -> StringName:
+	return overlay_scene_id
 
 func _create_background_panel() -> void:
 	_background_panel = ColorRect.new()

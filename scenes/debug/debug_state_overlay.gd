@@ -19,9 +19,6 @@ var _store: M_StateStore
 var _history_entries: Array = []
 
 func _ready() -> void:
-	# Add to group for test detection
-	add_to_group("state_debug_overlay")
-	
 	# Wait for scene tree to be fully ready
 	await get_tree().process_frame
 	
@@ -30,6 +27,7 @@ func _ready() -> void:
 	if not _store:
 		push_error("SC_StateDebugOverlay: Could not find M_StateStore")
 		return
+	_store.register_debug_overlay(self)
 	
 	# Subscribe to store signals
 	_store.action_dispatched.connect(_on_action_dispatched)
@@ -42,6 +40,8 @@ func _exit_tree() -> void:
 	if _store and is_instance_valid(_store):
 		if _store.action_dispatched.is_connected(_on_action_dispatched):
 			_store.action_dispatched.disconnect(_on_action_dispatched)
+		if _store.has_method("register_debug_overlay"):
+			_store.register_debug_overlay(null)
 
 func _process(_delta: float) -> void:
 	# Update state display every frame

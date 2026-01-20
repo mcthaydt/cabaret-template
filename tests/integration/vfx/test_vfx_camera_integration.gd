@@ -27,8 +27,6 @@ const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_VFX_ACTIONS := preload("res://scripts/state/actions/u_vfx_actions.gd")
 
-const SHAKE_PARENT_META := &"_camera_manager_shake_parent"
-
 var _store: M_StateStore
 var _camera_manager: M_CameraManager
 var _vfx_manager: M_VFXManager
@@ -106,12 +104,7 @@ func _make_screen_shake_deterministic() -> void:
 func _get_scene_shake_parent() -> Node3D:
 	if _camera == null or not is_instance_valid(_camera):
 		return null
-	var parent := _camera.get_parent() as Node3D
-	if parent == null:
-		return null
-	if bool(parent.get_meta(SHAKE_PARENT_META, false)):
-		return parent
-	return null
+	return _camera_manager.get_shake_parent_for_camera(_camera)
 
 
 func _ensure_shake_parent() -> Node3D:

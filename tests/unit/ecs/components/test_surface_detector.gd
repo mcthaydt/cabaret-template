@@ -1,9 +1,10 @@
 extends GutTest
 
 # Test suite for C_SurfaceDetectorComponent
-# Tests surface detection via raycast and metadata
+# Tests surface detection via raycast and explicit surface providers
 
 const C_SURFACE_DETECTOR_SCRIPT := preload("res://scripts/ecs/components/c_surface_detector_component.gd")
+const MARKER_SURFACE_TYPE := preload("res://scripts/ecs/markers/marker_surface_type.gd")
 
 var detector: C_SurfaceDetectorComponent
 var character_body: CharacterBody3D  # CharacterBody3D for the detector to attach to
@@ -96,8 +97,8 @@ func test_returns_default_when_collider_null() -> void:
 		"Should return DEFAULT when collider is null")
 
 # Test 6: Reads surface_type metadata - GRASS
-func test_reads_grass_metadata() -> void:
-	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.GRASS)
+func test_reads_grass_provider_value() -> void:
+	_set_surface_type(C_SurfaceDetectorComponent.SurfaceType.GRASS)
 	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -107,8 +108,8 @@ func test_reads_grass_metadata() -> void:
 		"Should read GRASS from metadata")
 
 # Test 7: Reads surface_type metadata - STONE
-func test_reads_stone_metadata() -> void:
-	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.STONE)
+func test_reads_stone_provider_value() -> void:
+	_set_surface_type(C_SurfaceDetectorComponent.SurfaceType.STONE)
 	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -118,8 +119,8 @@ func test_reads_stone_metadata() -> void:
 		"Should read STONE from metadata")
 
 # Test 8: Reads surface_type metadata - WOOD
-func test_reads_wood_metadata() -> void:
-	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.WOOD)
+func test_reads_wood_provider_value() -> void:
+	_set_surface_type(C_SurfaceDetectorComponent.SurfaceType.WOOD)
 	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -129,8 +130,8 @@ func test_reads_wood_metadata() -> void:
 		"Should read WOOD from metadata")
 
 # Test 9: Reads surface_type metadata - METAL
-func test_reads_metal_metadata() -> void:
-	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.METAL)
+func test_reads_metal_provider_value() -> void:
+	_set_surface_type(C_SurfaceDetectorComponent.SurfaceType.METAL)
 	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -140,8 +141,8 @@ func test_reads_metal_metadata() -> void:
 		"Should read METAL from metadata")
 
 # Test 10: Reads surface_type metadata - WATER
-func test_reads_water_metadata() -> void:
-	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.WATER)
+func test_reads_water_provider_value() -> void:
+	_set_surface_type(C_SurfaceDetectorComponent.SurfaceType.WATER)
 	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -151,7 +152,7 @@ func test_reads_water_metadata() -> void:
 		"Should read WATER from metadata")
 
 # Test 11: Falls back to DEFAULT if metadata missing
-func test_fallback_to_default_when_metadata_missing() -> void:
+func test_fallback_to_default_when_provider_missing() -> void:
 	# Don't set any metadata
 	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
@@ -162,8 +163,8 @@ func test_fallback_to_default_when_metadata_missing() -> void:
 		"Should fallback to DEFAULT when metadata missing")
 
 # Test 12: Falls back to DEFAULT if metadata is wrong type
-func test_fallback_to_default_when_metadata_wrong_type() -> void:
-	static_body.set_meta("surface_type", "invalid_string")
+func test_fallback_to_default_when_provider_invalid() -> void:
+	_set_surface_type(99)
 	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -174,7 +175,7 @@ func test_fallback_to_default_when_metadata_wrong_type() -> void:
 
 # Test 13: detect_surface() can be called multiple times
 func test_detect_surface_callable_multiple_times() -> void:
-	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.GRASS)
+	_set_surface_type(C_SurfaceDetectorComponent.SurfaceType.GRASS)
 	character_body.position = Vector3(0, 0, 0)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -190,7 +191,7 @@ func test_detect_surface_callable_multiple_times() -> void:
 # Test 14: Surface type changes when detector moves
 func test_surface_changes_when_detector_moves() -> void:
 	# Set first floor to GRASS
-	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.GRASS)
+	_set_surface_type(C_SurfaceDetectorComponent.SurfaceType.GRASS)
 
 	# Detect GRASS
 	character_body.position = Vector3(0, 0, 0)
@@ -201,7 +202,7 @@ func test_surface_changes_when_detector_moves() -> void:
 	assert_eq(surface1, C_SurfaceDetectorComponent.SurfaceType.GRASS, "Should detect GRASS")
 
 	# Change floor surface type to METAL (simpler than moving detector)
-	static_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.METAL)
+	_set_surface_type(C_SurfaceDetectorComponent.SurfaceType.METAL)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 
@@ -227,4 +228,8 @@ func test_raycast_distance_two_meters() -> void:
 
 	surface_type = detector.detect_surface()
 	assert_eq(surface_type, C_SurfaceDetectorComponent.SurfaceType.DEFAULT,
-		"Should detect surface within 2 meters (returns DEFAULT with no metadata)")
+		"Should detect surface within 2 meters (returns DEFAULT with no provider override)")
+
+func _set_surface_type(surface_type: int) -> void:
+	static_body.set_script(MARKER_SURFACE_TYPE)
+	static_body.set("surface_type", surface_type)

@@ -85,10 +85,8 @@ func test_settings_with_return_to_pause_using_new_api() -> void:
 	# Then: Still one overlay (pause REPLACED with settings)
 	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay (settings replaces pause)")
 	# Verify the overlay is settings_menu
-	var top := _ui_overlay_stack.get_child(0)
-	assert_true(top.has_meta(StringName("_scene_manager_overlay_scene_id")), "Overlay should have scene_id metadata")
-	var sid: Variant = top.get_meta(StringName("_scene_manager_overlay_scene_id"))
-	assert_true(StringName(sid) == StringName("settings_menu"), "Top overlay should be settings_menu")
+	var top_id := _scene_manager._overlay_helper.get_top_overlay_id(_ui_overlay_stack)
+	assert_true(StringName(top_id) == StringName("settings_menu"), "Top overlay should be settings_menu")
 
 	# When: Return from settings with automatic restoration (Phase 6.5)
 	# This pops settings, then restores pause from return stack
@@ -97,7 +95,5 @@ func test_settings_with_return_to_pause_using_new_api() -> void:
 
 	# Then: Back to one overlay (pause_menu automatically restored)
 	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have pause overlay after returning")
-	top = _ui_overlay_stack.get_child(0)
-	assert_true(top.has_meta(StringName("_scene_manager_overlay_scene_id")))
-	sid = top.get_meta(StringName("_scene_manager_overlay_scene_id"))
-	assert_true(StringName(sid) == StringName("pause_menu"), "Top overlay should be pause_menu")
+	top_id = _scene_manager._overlay_helper.get_top_overlay_id(_ui_overlay_stack)
+	assert_true(StringName(top_id) == StringName("pause_menu"), "Top overlay should be pause_menu")

@@ -329,9 +329,8 @@ func test_pop_overlay_with_return_restores_previous() -> void:
 
 	# Then: Settings is removed, pause_menu is restored
 	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Should have one overlay")
-	var top_overlay: Node = _ui_overlay_stack.get_child(0)
-	var scene_id: Variant = top_overlay.get_meta(StringName("_scene_manager_overlay_scene_id"))
-	assert_eq(StringName(scene_id), StringName("pause_menu"), "Top overlay should be pause_menu")
+	var top_overlay_id := _manager._overlay_helper.get_top_overlay_id(_ui_overlay_stack)
+	assert_eq(top_overlay_id, StringName("pause_menu"), "Top overlay should be pause_menu")
 	assert_eq(_manager._overlay_return_stack.size(), 0, "Return stack should be empty")
 
 ## Test pop_overlay_with_return with empty return stack

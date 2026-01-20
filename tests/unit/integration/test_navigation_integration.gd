@@ -11,8 +11,6 @@ const M_PauseManager := preload("res://scripts/managers/m_pause_manager.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 
-const OVERLAY_META_SCENE_ID := StringName("_scene_manager_overlay_scene_id")
-
 var _store: M_StateStore
 var _active_scene_container: Node
 var _ui_overlay_stack: CanvasLayer
@@ -265,14 +263,10 @@ func test_manual_transition_to_touchscreen_settings_aligns_navigation() -> void:
 func _get_top_overlay_scene_id() -> StringName:
 	if _ui_overlay_stack == null or _ui_overlay_stack.get_child_count() == 0:
 		return StringName("")
-	var overlay := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1)
-	if overlay.has_meta(OVERLAY_META_SCENE_ID):
-		var meta_value: Variant = overlay.get_meta(OVERLAY_META_SCENE_ID)
-		if meta_value is StringName:
-			return meta_value
-		elif meta_value is String:
-			return StringName(meta_value)
-	return StringName(overlay.name)
+	var manager := U_ServiceLocator.try_get_service(StringName("scene_manager")) as M_SceneManager
+	if manager != null and is_instance_valid(manager):
+		return manager._overlay_helper.get_top_overlay_id(_ui_overlay_stack)
+	return StringName("")
 
 func _spawn_scene_manager() -> M_SceneManager:
 	var manager := M_SceneManager.new()

@@ -2,14 +2,14 @@ extends RefCounted
 
 class_name U_ECSUtils
 
-const MANAGER_GROUP := StringName("ecs_manager")
+const ECS_MANAGER_SERVICE := StringName("ecs_manager")
 const ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/base_ecs_entity.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 static var _warning_handler: Callable = Callable()
 static var _manager_method_warnings: Dictionary = {}
 
-## Get the M_ECSManager from injection, parent traversal, or groups
+## Get the M_ECSManager from injection, parent traversal, or ServiceLocator
 ##
 ## Lookup order (Phase 10B-8):
 ##   1. Check if node has 'ecs_manager' @export (for test injection)
@@ -34,7 +34,7 @@ static func get_manager(from_node: Node) -> Node:
 		current = current.get_parent()
 
 	# Priority 3: ServiceLocator lookup (manager should self-register)
-	var manager: Node = U_SERVICE_LOCATOR.try_get_service(MANAGER_GROUP)
+	var manager: Node = U_SERVICE_LOCATOR.try_get_service(ECS_MANAGER_SERVICE)
 	if manager != null:
 		if _node_has_manager_methods(manager):
 			return manager
@@ -92,33 +92,6 @@ static func map_components_by_body(manager: I_ECSManager, component_type: String
 
 	return result
 
-static func get_singleton_from_group(from_node: Node, group_name: StringName, warn_on_missing: bool = true) -> Node:
-	if from_node == null:
-		return null
-
-	var tree: SceneTree = from_node.get_tree()
-	if tree == null:
-		return null
-
-	var nodes: Array = tree.get_nodes_in_group(group_name)
-	if not nodes.is_empty():
-		return nodes[0]
-
-	if warn_on_missing:
-		_emit_warning("U_ECSUtils: No node found in group '%s'" % String(group_name))
-	return null
-
-static func get_nodes_from_group(from_node: Node, group_name: StringName) -> Array:
-	if from_node == null:
-		return []
-
-	var tree: SceneTree = from_node.get_tree()
-	if tree == null:
-		return []
-
-	var nodes: Array = tree.get_nodes_in_group(group_name)
-	return nodes.duplicate()
-
 static func get_active_camera(from_node: Node) -> Camera3D:
 	if from_node == null:
 		return null
@@ -135,7 +108,7 @@ static func get_active_camera(from_node: Node) -> Camera3D:
 		if viewport_camera != null:
 			return viewport_camera
 
-	return get_singleton_from_group(from_node, StringName("main_camera"), false) as Camera3D
+	return null
 
 ## Returns the entity ID for the given entity node.
 ## Calls entity.get_entity_id() if available, otherwise generates from name.
@@ -243,8 +216,6 @@ static func _is_potential_manager(candidate: Node) -> bool:
 	if candidate == null:
 		return false
 	if candidate is M_ECSManager:
-		return true
-	if candidate.is_in_group(MANAGER_GROUP):
 		return true
 	return String(candidate.name).begins_with("M_")
 

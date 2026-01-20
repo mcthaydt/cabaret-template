@@ -251,7 +251,6 @@ func _spawn_ragdoll(component: C_HealthComponent, entity_id: String) -> void:
 		_rng.randf_range(-3.0, 3.0),
 		_rng.randf_range(-6.0, 6.0)
 	)
-	ragdoll.add_to_group("player_ragdoll")
 
 	_entity_refs[entity_id] = weakref(entity_root)
 	_entity_original_visibility[entity_id] = entity_root.visible
@@ -277,6 +276,16 @@ func _restore_entity_state(entity_id: String) -> void:
 	_entity_refs.erase(entity_id)
 	_entity_original_visibility.erase(entity_id)
 	_ragdoll_spawned.erase(entity_id)
+
+func get_ragdoll_for_entity(entity_id: StringName) -> RigidBody3D:
+	var key := String(entity_id)
+	if key.begins_with("E_"):
+		key = key.substr(2).to_lower()
+	var ragdoll_ref_candidate: Variant = _ragdoll_instances.get(key)
+	if ragdoll_ref_candidate is WeakRef:
+		var ragdoll_ref: WeakRef = ragdoll_ref_candidate
+		return ragdoll_ref.get_ref() as RigidBody3D
+	return null
 
 func _ensure_dependencies_ready() -> bool:
 	if _store == null:

@@ -12,9 +12,34 @@ class_name U_OverlayStackManager
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_UI_REGISTRY := preload("res://scripts/ui/u_ui_registry.gd")
-const OVERLAY_META_SCENE_ID := StringName("_scene_manager_overlay_scene_id")
 
 var _overlay_scene_ids: Dictionary = {}
+static var _overlay_id_registry: Dictionary = {}
+
+static func register_overlay_scene_id(overlay: Node, scene_id: StringName) -> void:
+	if overlay == null or scene_id == StringName(""):
+		return
+	_overlay_id_registry[overlay.get_instance_id()] = {
+		"ref": weakref(overlay),
+		"id": scene_id
+	}
+
+static func clear_overlay_scene_id(overlay: Node) -> void:
+	if overlay == null:
+		return
+	_overlay_id_registry.erase(overlay.get_instance_id())
+
+static func get_registered_overlay_scene_id(overlay: Node) -> StringName:
+	if overlay == null:
+		return StringName("")
+	var data: Dictionary = _overlay_id_registry.get(overlay.get_instance_id(), {})
+	if data.is_empty():
+		return StringName("")
+	var overlay_ref: WeakRef = data.get("ref")
+	if overlay_ref == null or overlay_ref.get_ref() == null:
+		_overlay_id_registry.erase(overlay.get_instance_id())
+		return StringName("")
+	return _normalize_scene_id(data.get("id", StringName("")))
 
 func push_overlay(scene_id: StringName, force: bool, load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable) -> void:
 	var scene_path: String = U_SCENE_REGISTRY.get_scene_path(scene_id)
@@ -58,6 +83,7 @@ func pop_overlay(ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_
 	# Ensure the node is queued for deletion while it is still in the scene tree.
 	# Calling queue_free() after remove_child() can leave it orphaned in tests.
 	_overlay_scene_ids.erase(top_overlay)
+	clear_overlay_scene_id(top_overlay)
 	top_overlay.queue_free()
 	ui_overlay_stack.remove_child(top_overlay)
 
@@ -112,8 +138,8 @@ func _configure_overlay_scene(overlay_scene: Node, scene_id: StringName) -> void
 		return
 
 	overlay_scene.process_mode = Node.PROCESS_MODE_ALWAYS
-	_overlay_scene_ids[overlay_scene] = scene_id
-	overlay_scene.set_meta(OVERLAY_META_SCENE_ID, scene_id)
+	_cache_overlay_scene_id(overlay_scene, scene_id)
+	_apply_overlay_scene_id_property(overlay_scene, scene_id)
 
 func _restore_focus_to_top_overlay(ui_overlay_stack: CanvasLayer, viewport: Viewport) -> void:
 	if ui_overlay_stack == null:
@@ -165,20 +191,7 @@ func _get_top_overlay_id(ui_overlay_stack: CanvasLayer) -> StringName:
 		return StringName("")
 
 	var top_overlay: Node = ui_overlay_stack.get_child(overlay_count - 1)
-	var scene_id: StringName = _overlay_scene_ids.get(top_overlay, StringName(""))
-	if scene_id != StringName(""):
-		return scene_id
-	if top_overlay.has_meta(OVERLAY_META_SCENE_ID):
-		var meta_value: Variant = top_overlay.get_meta(OVERLAY_META_SCENE_ID)
-		if meta_value is StringName:
-			scene_id = meta_value
-		elif meta_value is String:
-			scene_id = StringName(meta_value)
-		if scene_id != StringName(""):
-			_overlay_scene_ids[top_overlay] = scene_id
-			return scene_id
-
-	return StringName("")
+	return _resolve_overlay_scene_id(top_overlay)
 
 func _reconcile_overlay_stack(desired_overlay_ids: Array[StringName], current_stack: Array[StringName], load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable, viewport: Viewport, get_transition_queue_state: Callable, set_overlay_reconciliation_pending: Callable) -> void:
 	# Check if transition is in progress
@@ -240,21 +253,60 @@ func _get_overlay_scene_ids_from_ui(ui_overlay_stack: CanvasLayer) -> Array[Stri
 		return overlay_ids
 
 	for child in ui_overlay_stack.get_children():
-		var scene_id: StringName = _overlay_scene_ids.get(child, StringName(""))
-		if scene_id == StringName("") and child.has_meta(OVERLAY_META_SCENE_ID):
-			var meta_value: Variant = child.get_meta(OVERLAY_META_SCENE_ID)
-			if meta_value is StringName:
-				scene_id = meta_value
-			elif meta_value is String:
-				scene_id = StringName(meta_value)
-			if scene_id != StringName(""):
-				_overlay_scene_ids[child] = scene_id
+		var scene_id: StringName = _resolve_overlay_scene_id(child)
 		if scene_id != StringName(""):
 			overlay_ids.append(scene_id)
 		else:
 			push_warning("M_SceneManager: Overlay missing scene_id mapping")
 
 	return overlay_ids
+
+func _resolve_overlay_scene_id(overlay_scene: Node) -> StringName:
+	if overlay_scene == null:
+		return StringName("")
+
+	var cached: StringName = _overlay_scene_ids.get(overlay_scene, StringName(""))
+	if cached != StringName(""):
+		return cached
+
+	var registered: StringName = get_registered_overlay_scene_id(overlay_scene)
+	if registered != StringName(""):
+		_cache_overlay_scene_id(overlay_scene, registered)
+		return registered
+
+	var property_id := _get_overlay_scene_id_property(overlay_scene)
+	if property_id != StringName(""):
+		_cache_overlay_scene_id(overlay_scene, property_id)
+		return property_id
+
+	return StringName("")
+
+func _cache_overlay_scene_id(overlay_scene: Node, scene_id: StringName) -> void:
+	if overlay_scene == null or scene_id == StringName(""):
+		return
+	_overlay_scene_ids[overlay_scene] = scene_id
+	register_overlay_scene_id(overlay_scene, scene_id)
+
+func _apply_overlay_scene_id_property(overlay_scene: Node, scene_id: StringName) -> void:
+	if overlay_scene == null or scene_id == StringName(""):
+		return
+	if overlay_scene.has_method("set_overlay_scene_id"):
+		overlay_scene.call("set_overlay_scene_id", scene_id)
+
+func _get_overlay_scene_id_property(overlay_scene: Node) -> StringName:
+	if overlay_scene == null:
+		return StringName("")
+	if overlay_scene.has_method("get_overlay_scene_id"):
+		var value: Variant = overlay_scene.call("get_overlay_scene_id")
+		return _normalize_scene_id(value)
+	return StringName("")
+
+static func _normalize_scene_id(value: Variant) -> StringName:
+	if value is StringName:
+		return value
+	if value is String:
+		return StringName(value)
+	return StringName("")
 
 func _overlay_stacks_match(stack_a: Array[StringName], stack_b: Array[StringName]) -> bool:
 	if stack_a.size() != stack_b.size():

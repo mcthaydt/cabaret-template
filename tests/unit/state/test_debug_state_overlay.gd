@@ -105,8 +105,8 @@ func test_debug_overlay_toggles_with_input_action():
 	assert_true(store.has_method("_input"), "M_StateStore should have _input method")
 
 	# Check if overlay is initially hidden/not present
-	var overlays_before := get_tree().get_nodes_in_group("state_debug_overlay")
-	var initial_count := overlays_before.size()
+	var initial_overlay := store.get_debug_overlay()
+	assert_null(initial_overlay, "Debug overlay should start absent")
 
 	# Simulate toggle_debug_overlay action being pressed
 	var action_event := InputEventAction.new()
@@ -119,8 +119,8 @@ func test_debug_overlay_toggles_with_input_action():
 	await get_tree().process_frame
 
 	# Verify overlay was spawned
-	var overlays_after := get_tree().get_nodes_in_group("state_debug_overlay")
-	assert_gt(overlays_after.size(), initial_count, "Action press should spawn debug overlay")
+	var overlay_after := store.get_debug_overlay()
+	assert_not_null(overlay_after, "Action press should spawn debug overlay")
 
 	# Simulate action release (not strictly required but mirrors real input)
 	action_event.pressed = false
@@ -134,5 +134,5 @@ func test_debug_overlay_toggles_with_input_action():
 	await get_tree().process_frame
 
 	# Verify overlay was removed
-	var overlays_final := get_tree().get_nodes_in_group("state_debug_overlay")
-	assert_eq(overlays_final.size(), initial_count, "Second action press should remove debug overlay")
+	var overlay_final := store.get_debug_overlay()
+	assert_null(overlay_final, "Second action press should remove debug overlay")

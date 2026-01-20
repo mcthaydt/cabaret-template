@@ -7,6 +7,7 @@ const S_FOOTSTEP_SOUND_SYSTEM_SCRIPT := preload("res://scripts/ecs/systems/s_foo
 const M_SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
 const C_FLOATING_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const RS_FLOATING_SETTINGS_SCRIPT := preload("res://scripts/ecs/resources/rs_floating_settings.gd")
+const MARKER_SURFACE_TYPE := preload("res://scripts/ecs/markers/marker_surface_type.gd")
 
 # NOTE: Footstep system tests are currently limited in headless mode because:
 # 1. Physics doesn't run properly (is_on_floor() always returns false)
@@ -256,7 +257,7 @@ func test_timer_resets_when_movement_stops() -> void:
 # Test 9: Surface type affects sound selection (DEFAULT)
 # NOTE: Cannot fully test in headless mode due to is_on_floor() limitation
 func test_plays_default_surface_sounds() -> void:
-	floor_body.set_meta("surface_type", C_SurfaceDetectorComponent.SurfaceType.DEFAULT)
+	_set_surface_type(C_SurfaceDetectorComponent.SurfaceType.DEFAULT)
 
 	# Verify sounds array is configured
 	assert_gt(settings.default_sounds.size(), 0, "Should have default sounds")
@@ -278,6 +279,10 @@ func test_plays_grass_surface_sounds() -> void:
 func test_multiple_variations_available() -> void:
 	# Load all 4 default variations
 	assert_eq(settings.default_sounds.size(), 4, "Should have 4 sound variations")
+
+func _set_surface_type(surface_type: int) -> void:
+	floor_body.set_script(MARKER_SURFACE_TYPE)
+	floor_body.set("surface_type", surface_type)
 
 	# Verify each variation is unique
 	var unique_streams := {}

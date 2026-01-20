@@ -12,7 +12,7 @@ const COMPONENT_TYPE := StringName("C_SurfaceDetectorComponent")
 ##
 ## Uses CharacterBody3D's floor collision to detect surface types.
 ## Surfaces are identified by collider name patterns (e.g., "grass", "stone", "wood").
-## Fallback to metadata if pattern matching fails.
+## Fallback to surface-type providers when pattern matching fails.
 ##
 ## Used by S_FootstepSoundSystem to play appropriate footstep sounds.
 
@@ -72,11 +72,9 @@ func detect_surface() -> SurfaceType:
 	if detected_type != SurfaceType.DEFAULT:
 		return detected_type
 
-	# Fallback: Check for metadata (for manually tagged surfaces)
-	if collider.has_meta("surface_type"):
-		var surface_meta: Variant = collider.get_meta("surface_type")
-		if surface_meta is int:
-			return surface_meta as SurfaceType
+	var provided_type := _get_surface_type_from_provider(collider)
+	if provided_type != SurfaceType.DEFAULT:
+		return provided_type
 
 	return SurfaceType.DEFAULT
 
@@ -105,6 +103,17 @@ func _identify_surface_by_name(collider_name: String) -> SurfaceType:
 	if name_lower.contains("water") or name_lower.contains("liquid") or name_lower.contains("puddle"):
 		return SurfaceType.WATER
 
+	return SurfaceType.DEFAULT
+
+func _get_surface_type_from_provider(collider: Object) -> SurfaceType:
+	if collider == null:
+		return SurfaceType.DEFAULT
+	if collider.has_method("get_surface_type"):
+		var surface_value: Variant = collider.call("get_surface_type")
+		if surface_value is int:
+			var normalized: int = surface_value
+			if normalized >= SurfaceType.DEFAULT and normalized <= SurfaceType.WATER:
+				return normalized as SurfaceType
 	return SurfaceType.DEFAULT
 
 func _surface_type_to_string(type: SurfaceType) -> String:
