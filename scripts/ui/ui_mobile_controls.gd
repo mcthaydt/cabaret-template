@@ -50,7 +50,6 @@ var _awaiting_transition_signal: bool = false  # True when waiting for transitio
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process(true)
-	add_to_group("mobile_controls")
 	visible = false
 
 	if not _should_enable():
@@ -62,6 +61,8 @@ func _ready() -> void:
 		_controls_root = Control.new()
 		_controls_root.name = "Controls"
 		add_child(_controls_root)
+
+	_register_with_input_device_manager()
 
 	_profile = _load_touchscreen_profile()
 	_cache_profile_positions()
@@ -98,6 +99,7 @@ func _exit_tree() -> void:
 	_state_store = null
 	_is_fading = false
 	_fade_elapsed = 0.0
+	_unregister_from_input_device_manager()
 
 func _should_enable() -> bool:
 	if force_enable:
@@ -105,6 +107,16 @@ func _should_enable() -> bool:
 	if OS.has_feature("mobile"):
 		return true
 	return _is_emulate_mode()
+
+func _register_with_input_device_manager() -> void:
+	var input_manager := U_ServiceLocator.try_get_service(StringName("input_device_manager")) as M_InputDeviceManager
+	if input_manager != null:
+		input_manager.register_mobile_controls(self)
+
+func _unregister_from_input_device_manager() -> void:
+	var input_manager := U_ServiceLocator.try_get_service(StringName("input_device_manager")) as M_InputDeviceManager
+	if input_manager != null:
+		input_manager.unregister_mobile_controls(self)
 
 func _is_emulate_mode() -> bool:
 	if emulate_mobile_override:

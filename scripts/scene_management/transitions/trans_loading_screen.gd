@@ -4,6 +4,7 @@ class_name Trans_LoadingScreen
 const LOADING_SCREEN_SCENE := preload("res://scenes/ui/ui_loading_screen.tscn")
 const HUD_GROUP := StringName("hud_layers")
 const U_TweenManager = preload("res://scripts/scene_management/u_tween_manager.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 ## Loading screen transition effect
 ##
@@ -50,7 +51,7 @@ var _tip_label: Label = null
 var _status_label: Label = null
 var _tween: Tween = null
 var _start_time: float = 0.0
-var _temporarily_hidden_hud_nodes: Array[CanvasItem] = []
+var _temporarily_hidden_hud_nodes: Array[Node] = []
 
 ## Execute loading screen transition
 ##
@@ -286,15 +287,13 @@ func _hide_hud_layers(tree: SceneTree) -> void:
 	if tree == null:
 		return
 
-	var hud_nodes: Array = tree.get_nodes_in_group(HUD_GROUP)
-	for node in hud_nodes:
-		var canvas_item := node as CanvasItem
-		if canvas_item == null:
-			continue
-		if canvas_item.visible:
-			canvas_item.hide()
-			if not _temporarily_hidden_hud_nodes.has(canvas_item):
-				_temporarily_hidden_hud_nodes.append(canvas_item)
+	var hud := _resolve_hud_controller(tree)
+	if hud == null:
+		return
+
+	_toggle_visibility(hud, false)
+	if not _temporarily_hidden_hud_nodes.has(hud):
+		_temporarily_hidden_hud_nodes.append(hud)
 
 ## Restore previously hidden HUD CanvasLayers
 func _restore_hidden_hud_layers() -> void:
@@ -303,7 +302,7 @@ func _restore_hidden_hud_layers() -> void:
 
 	for canvas_item in _temporarily_hidden_hud_nodes:
 		if is_instance_valid(canvas_item):
-			canvas_item.show()
+			_toggle_visibility(canvas_item, true)
 	_temporarily_hidden_hud_nodes.clear()
 
 ## Get a random loading tip
@@ -315,6 +314,30 @@ func _get_random_tip() -> String:
 
 	var index: int = randi() % loading_tips.size()
 	return loading_tips[index]
+
+func _resolve_hud_controller(tree: SceneTree) -> CanvasLayer:
+	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager"))
+	if scene_manager != null and scene_manager.has_method("get_hud_controller"):
+		var hud := scene_manager.call("get_hud_controller") as CanvasLayer
+		if hud != null and is_instance_valid(hud):
+			return hud
+
+	if tree != null:
+		var fallback := tree.get_first_node_in_group(HUD_GROUP) as CanvasLayer
+		if fallback != null and is_instance_valid(fallback):
+			return fallback
+	return null
+
+func _toggle_visibility(node: Node, is_visible: bool) -> void:
+	if node == null:
+		return
+	if "visible" in node:
+		node.set("visible", is_visible)
+	elif node.has_method("show") and node.has_method("hide"):
+		if is_visible:
+			node.call("show")
+		else:
+			node.call("hide")
 
 ## Find LoadingScreen Control in overlay
 func _find_loading_screen(overlay: CanvasLayer) -> Control:

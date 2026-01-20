@@ -26,6 +26,7 @@ var _joy_connection_bound: bool = false
 var _has_dispatched_initial_state: bool = false
 var _pending_device_events: Array[Dictionary] = []
 var _last_gamepad_signal_time: float = 0.0
+var _mobile_controls: Node = null
 
 # Input sources
 var _keyboard_mouse_source: KeyboardMouseSource = null
@@ -63,6 +64,22 @@ func _register_input_sources() -> void:
 func _exit_tree() -> void:
 	_disconnect_joypad_signals()
 	_state_store = null
+	_mobile_controls = null
+
+func register_mobile_controls(controls: Node) -> void:
+	if controls == null:
+		return
+	_mobile_controls = controls
+
+func unregister_mobile_controls(controls: Node = null) -> void:
+	if controls == null or controls == _mobile_controls:
+		_mobile_controls = null
+
+func get_mobile_controls() -> Node:
+	if _mobile_controls != null and is_instance_valid(_mobile_controls):
+		return _mobile_controls
+	_mobile_controls = null
+	return null
 
 func _input(event: InputEvent) -> void:
 	if event == null:

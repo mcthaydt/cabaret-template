@@ -7,6 +7,7 @@ const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_a
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 
 @onready var _drag_mode_check: CheckButton = %DragModeCheck
 @onready var _cancel_button: Button = %CancelButton
@@ -24,7 +25,7 @@ var _drag_mode_enabled: bool = false
 var _original_positions: Dictionary = {}
 
 func _on_panel_ready() -> void:
-	_mobile_controls = get_tree().get_first_node_in_group("mobile_controls") as UI_MobileControls
+	_mobile_controls = _resolve_mobile_controls()
 	_profile_manager = _resolve_input_profile_manager()
 
 	_configure_focus_neighbors()
@@ -48,6 +49,26 @@ func _resolve_input_profile_manager() -> Node:
 	if tree == null:
 		return null
 	return tree.get_first_node_in_group("input_profile_manager")
+
+func _resolve_mobile_controls() -> UI_MobileControls:
+	var input_manager := U_ServiceLocator.try_get_service(StringName("input_device_manager")) as M_InputDeviceManager
+	if input_manager != null and input_manager.has_method("get_mobile_controls"):
+		var controls := input_manager.get_mobile_controls() as UI_MobileControls
+		if controls != null and is_instance_valid(controls):
+			return controls
+
+	var tree := get_tree()
+	if tree != null:
+		var matches := tree.get_root().find_children("*", "UI_MobileControls", true, false)
+		if not matches.is_empty():
+			var first_match := matches[0] as UI_MobileControls
+			if first_match != null and is_instance_valid(first_match):
+				return first_match
+
+		var fallback := tree.get_first_node_in_group("mobile_controls") as UI_MobileControls
+		if fallback != null and is_instance_valid(fallback):
+			return fallback
+	return null
 
 func _configure_focus_neighbors() -> void:
 	var buttons: Array[Control] = []

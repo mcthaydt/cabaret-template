@@ -17,6 +17,7 @@ const C_InputComponent := preload("res://scripts/ecs/components/c_input_componen
 const UI_VirtualJoystick := preload("res://scripts/ui/ui_virtual_joystick.gd")
 const UI_VirtualButton := preload("res://scripts/ui/ui_virtual_button.gd")
 const UI_MobileControls := preload("res://scripts/ui/ui_mobile_controls.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 @export var force_enable: bool = false
 @export var emulate_mobile_override: bool = false
@@ -86,7 +87,7 @@ func _get_state_store() -> I_StateStore:
 
 func _ensure_controls_ready() -> bool:
 	if _mobile_controls == null or not is_instance_valid(_mobile_controls):
-		_mobile_controls = get_tree().get_first_node_in_group("mobile_controls") as UI_MobileControls
+		_mobile_controls = _resolve_mobile_controls()
 		_button_map.clear()
 		_joystick = null
 		if _mobile_controls != null and is_instance_valid(_mobile_controls):
@@ -111,6 +112,26 @@ func _cache_buttons(buttons: Array) -> void:
 			continue
 		var vb := button as UI_VirtualButton
 		_button_map[String(vb.action)] = vb
+
+func _resolve_mobile_controls() -> UI_MobileControls:
+	var manager := U_ServiceLocator.try_get_service(StringName("input_device_manager")) as M_InputDeviceManager
+	if manager != null and manager.has_method("get_mobile_controls"):
+		var controls := manager.get_mobile_controls() as UI_MobileControls
+		if controls != null and is_instance_valid(controls):
+			return controls
+
+	var tree := get_tree()
+	if tree != null:
+		var matches := tree.get_root().find_children("*", "UI_MobileControls", true, false)
+		if not matches.is_empty():
+			var first_match := matches[0] as UI_MobileControls
+			if first_match != null and is_instance_valid(first_match):
+				return first_match
+
+		var fallback := tree.get_first_node_in_group("mobile_controls") as UI_MobileControls
+		if fallback != null and is_instance_valid(fallback):
+			return fallback
+	return null
 
 func _get_move_vector() -> Vector2:
 	if _joystick == null or not is_instance_valid(_joystick):

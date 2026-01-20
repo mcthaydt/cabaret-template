@@ -66,6 +66,7 @@ var _active_scene_container: Node = null
 var _ui_overlay_stack: CanvasLayer = null
 var _transition_overlay: CanvasLayer = null
 var _loading_overlay: CanvasLayer = null
+var _hud_controller: CanvasLayer = null
 
 ## Transition queue helper
 var _transition_queue_helper := U_SCENE_TRANSITION_QUEUE.new()
@@ -256,6 +257,21 @@ func _register_scene_type_handlers() -> void:
 	_scene_type_handlers[U_SCENE_REGISTRY.SceneType.MENU] = H_MENU_SCENE_HANDLER.new()
 	_scene_type_handlers[U_SCENE_REGISTRY.SceneType.UI] = H_UI_SCENE_HANDLER.new()
 	_scene_type_handlers[U_SCENE_REGISTRY.SceneType.END_GAME] = H_ENDGAME_SCENE_HANDLER.new()
+
+func register_hud_controller(hud: CanvasLayer) -> void:
+	if hud == null:
+		return
+	_hud_controller = hud
+
+func unregister_hud_controller(hud: CanvasLayer = null) -> void:
+	if hud == null or hud == _hud_controller:
+		_hud_controller = null
+
+func get_hud_controller() -> CanvasLayer:
+	if _hud_controller != null and is_instance_valid(_hud_controller):
+		return _hud_controller
+	_hud_controller = null
+	return null
 
 
 func _exit_tree() -> void:

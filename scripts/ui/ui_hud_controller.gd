@@ -8,7 +8,7 @@ const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const UI_ButtonPrompt := preload("res://scripts/ui/ui_button_prompt.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_InteractBlocker := preload("res://scripts/utils/u_interact_blocker.gd")
-const HUD_GROUP := StringName("hud_layers")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
@@ -32,8 +32,8 @@ var _last_prompt_text: String = ""
 var _toast_active: bool = false
 
 func _ready() -> void:
-	add_to_group(HUD_GROUP)
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_register_with_scene_manager()
 	_store = U_StateUtils.get_store(self)
 
 	if _store == null:
@@ -63,8 +63,7 @@ func _process(_delta: float) -> void:
 	_update_display(_store.get_state())
 
 func _exit_tree() -> void:
-	if is_in_group(HUD_GROUP):
-		remove_from_group(HUD_GROUP)
+	_unregister_from_scene_manager()
 	if _store != null and _store.slice_updated.is_connected(_on_slice_updated):
 		_store.slice_updated.disconnect(_on_slice_updated)
 	if _unsubscribe_checkpoint != null and _unsubscribe_checkpoint.is_valid():
@@ -81,6 +80,16 @@ func _exit_tree() -> void:
 		_unsubscribe_save_completed.call()
 	if _unsubscribe_save_failed != null and _unsubscribe_save_failed.is_valid():
 		_unsubscribe_save_failed.call()
+
+func _register_with_scene_manager() -> void:
+	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager"))
+	if scene_manager != null and scene_manager.has_method("register_hud_controller"):
+		scene_manager.register_hud_controller(self)
+
+func _unregister_from_scene_manager() -> void:
+	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager"))
+	if scene_manager != null and scene_manager.has_method("unregister_hud_controller"):
+		scene_manager.unregister_hud_controller(self)
 
 func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void:
 	if _store == null:

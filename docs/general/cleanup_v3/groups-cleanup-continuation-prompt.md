@@ -32,6 +32,7 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 - Phase 6 complete: Removed group fallback from `U_StateUtils` lookup helpers (get_store/try_get_store/await_store_ready). Full unit+integration suite passes via `-gdir=res://tests/unit -gdir=res://tests/integration -gexit`.
 - Phase 7 complete: Manager group registrations removed (all managers), M_ECSManager registers with ServiceLocator and `U_ECSUtils.get_manager()` now falls back to ServiceLocator, and full unit+integration suite is green via `-gdir=res://tests/unit -gdir=res://tests/integration -gexit`.
 - Phase 8 complete: Removed legacy ECS entity group fallback and `add_legacy_group` flag; entity detection now relies on `BaseECSEntity` and `E_` naming. ECS unit suite passes via `-gdir=res://tests/unit/ecs -gexit`.
+- Phase 9 complete: HUD/mobile controls now register with managers (scene manager/input device manager); loading screen transition hides HUD via manager lookup. UI unit suite passes via `-gdir=res://tests/unit/ui -gexit`.
 
 ---
 
@@ -47,6 +48,6 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 
 ## Next Step
 
-- Phase 9: migrate HUD/mobile controls off UI groups to explicit manager registration.
+- Phase 10: migrate effects container off group to VFX manager registration.
 - Targeted tests:
-  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ui -gexit`
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/vfx -gdir=res://tests/integration/vfx -gexit`

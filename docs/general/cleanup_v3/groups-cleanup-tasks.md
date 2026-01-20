@@ -570,21 +570,21 @@ Notes:
 
 ### Phase 9: UI Group Migration
 
-- [ ] Create HUD tracking mechanism in `M_SceneManager`:
+- [x] Create HUD tracking mechanism in `M_SceneManager`:
   ```gdscript
-  var _hud_controller: Node = null
+  var _hud_controller: CanvasLayer = null
 
-  func register_hud_controller(hud: Node) -> void:
+  func register_hud_controller(hud: CanvasLayer) -> void:
       _hud_controller = hud
 
-  func get_hud_controller() -> Node:
+  func get_hud_controller() -> CanvasLayer:
       return _hud_controller
   ```
-- [ ] Update `trans_loading_screen.gd:289` to use new mechanism
-- [ ] Remove `add_to_group(HUD_GROUP)` from `ui_hud_controller.gd:35`
-- [ ] Remove HUD group cleanup from `ui_hud_controller.gd:60`
-- [ ] Remove `is_in_group(HUD_GROUP)` check from `ui_hud_controller.gd:66`
-- [ ] Track mobile controls in `M_InputDeviceManager`:
+- [x] Update `trans_loading_screen.gd:289` to use new mechanism
+- [x] Remove `add_to_group(HUD_GROUP)` from `ui_hud_controller.gd:35`
+- [x] Remove HUD group cleanup from `ui_hud_controller.gd:60`
+- [x] Remove `is_in_group(HUD_GROUP)` check from `ui_hud_controller.gd:66`
+- [x] Track mobile controls in `M_InputDeviceManager`:
   ```gdscript
   var _mobile_controls: Node = null
 
@@ -594,8 +594,12 @@ Notes:
   func get_mobile_controls() -> Node:
       return _mobile_controls
   ```
-- [ ] Remove `add_to_group("mobile_controls")` from `ui_mobile_controls.gd:53`
-- [ ] Run UI tests
+- [x] Remove `add_to_group("mobile_controls")` from `ui_mobile_controls.gd:53`
+- [x] Run UI tests:
+  ```bash
+  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ui -gexit
+  ```
+  - UI unit suite green via command above.
 
 ### Phase 10: VFX Container Migration
 
