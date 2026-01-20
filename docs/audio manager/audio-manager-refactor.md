@@ -454,16 +454,11 @@ class_name M_AudioManager
 class_name U_AudioUtils
 extends RefCounted
 
-static func get_audio_manager(from_node: Node = null) -> I_AudioManager:
+static func get_audio_manager() -> I_AudioManager:
     var manager := U_ServiceLocator.try_get_service(StringName("audio_manager"))
-    if manager != null:
-        return manager as I_AudioManager
-    # Fallback to group lookup
-    if from_node != null:
-        var managers := from_node.get_tree().get_nodes_in_group("audio_manager")
-        if not managers.is_empty():
-            return managers[0] as I_AudioManager
-    return null
+    if manager == null:
+        return null
+    return manager as I_AudioManager
 ```
 
 ### Update U_UISoundPlayer
@@ -484,7 +479,7 @@ static func _play(sound_id: StringName) -> bool:
 var _audio_manager: I_AudioManager = null
 
 func _ready() -> void:
-    _audio_manager = U_AudioUtils.get_audio_manager(self)
+    _audio_manager = U_AudioUtils.get_audio_manager()
     # ...
 
 func _update_preview() -> void:
@@ -666,6 +661,7 @@ const MAX_POOL_SIZE := 32  # For potential soft growth later
 static var _pool: Array[AudioStreamPlayer3D] = []
 static var _play_times: Dictionary = {}  # player -> start_time (for voice stealing)
 static var _follow_targets: Dictionary = {}  # player -> Node3D (for follow emitter mode)
+static var _player_in_use: Dictionary = {}  # player -> bool
 
 ## Spawn with voice stealing on exhaustion (preserves Dictionary API)
 static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
@@ -713,8 +709,8 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
     if follow_target_variant is Node3D:
         follow_target = follow_target_variant
 
-    player.set_meta(META_IN_USE, true)
     _play_times[player] = Time.get_ticks_msec()
+    _player_in_use[player] = true
     player.stream = audio_stream
     player.global_position = position
     player.volume_db = volume_db
@@ -738,7 +734,7 @@ static func _steal_oldest_voice() -> AudioStreamPlayer3D:
     var oldest_time: int = Time.get_ticks_msec()
 
     for player in _pool:
-        if not player.get_meta(META_IN_USE, false):
+        if not _player_in_use.get(player, false):
             continue
         var start_time: int = _play_times.get(player, 0)
         if start_time < oldest_time:
@@ -747,7 +743,7 @@ static func _steal_oldest_voice() -> AudioStreamPlayer3D:
 
     if oldest_player != null:
         oldest_player.stop()
-        oldest_player.set_meta(META_IN_USE, false)
+        _player_in_use[oldest_player] = false
         _follow_targets.erase(oldest_player)
         _stats["steals"] += 1
 
@@ -818,7 +814,7 @@ static func reset_stats() -> void:
 static func _update_peak_usage() -> void:
     var in_use := 0
     for player in _pool:
-        if player.get_meta(META_IN_USE, false):
+        if _player_in_use.get(player, false):
             in_use += 1
     if in_use > _stats["peak_usage"]:
         _stats["peak_usage"] = in_use

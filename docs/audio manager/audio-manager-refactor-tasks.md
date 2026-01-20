@@ -288,15 +288,13 @@ This document tracks the refactoring tasks for the existing Audio Manager system
 ### 5.3 Utility Helper - Tests
 - [ ] 🧪 Create `tests/unit/utils/test_u_audio_utils.gd`
   - [ ] Test get_audio_manager() with ServiceLocator
-  - [ ] Test get_audio_manager() group fallback
   - [ ] Test get_audio_manager() returns null when missing
   - [ ] Test returns I_AudioManager type
 
 ### 5.4 Utility Helper - Implementation
 - [ ] Create `scripts/utils/u_audio_utils.gd`
   - [ ] Implement static get_audio_manager(from_node: Node = null) -> I_AudioManager
-  - [ ] Check ServiceLocator first
-  - [ ] Fall back to group lookup if from_node provided
+  - [ ] Resolve via ServiceLocator only (no group fallback)
   - [ ] Return null if not found
 
 ### 5.5 Update Call Sites
@@ -450,7 +448,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
   - [ ] Implement _steal_oldest_voice() -> AudioStreamPlayer3D
     - [ ] Find oldest playing player by _play_times
     - [ ] Stop oldest player
-    - [ ] Clear metadata and follow_targets
+    - [ ] Clear usage flags and follow_targets
     - [ ] Increment _stats["steals"]
     - [ ] Return player
   - [ ] Update spawn_3d() to call _steal_oldest_voice() on pool exhaustion
