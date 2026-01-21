@@ -69,6 +69,11 @@ var _is_previewing: bool = false
 var _effects_container: Node = null
 
 func _ready() -> void:
+	# Register Service
+	var service_name := StringName("vfx_manager")
+	if not U_SERVICE_LOCATOR.has(service_name):
+		U_SERVICE_LOCATOR.register(service_name, self)
+
 	# Run even when game is paused (VFX should be visible in pause menu)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
@@ -196,12 +201,12 @@ func _get_damage_flash_enabled() -> bool:
 ## Check if entity_id matches the player entity
 func _is_player_entity(entity_id: StringName) -> bool:
 	if _state_store == null:
-		return false  # Fallback: BLOCK VFX if no store (safer)
+		return false # Fallback: BLOCK VFX if no store (safer)
 	var state: Dictionary = _state_store.get_state()
 	var gameplay: Dictionary = state.get("gameplay", {})
 	var player_entity_id: StringName = StringName(str(gameplay.get("player_entity_id", "")))
 	if player_entity_id.is_empty():
-		return false  # Fallback: BLOCK VFX if no player registered (safer)
+		return false # Fallback: BLOCK VFX if no player registered (safer)
 	var matches: bool = entity_id == player_entity_id
 	return matches
 
