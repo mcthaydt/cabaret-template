@@ -11,6 +11,7 @@ const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigati
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const I_SaveManager := preload("res://scripts/interfaces/i_save_manager.gd")
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
@@ -50,8 +51,9 @@ func _discover_save_manager() -> void:
 func _update_button_visibility() -> void:
 	# Show Continue button only if saves exist
 	var has_saves: bool = false
-	if _save_manager != null and _save_manager.has_method("has_any_saves"):
-		has_saves = _save_manager.has_any_saves()
+	var typed_save_manager := _save_manager as I_SaveManager
+	if typed_save_manager != null:
+		has_saves = typed_save_manager.has_any_saves()
 
 	if _continue_button != null:
 		_continue_button.visible = has_saves
@@ -204,9 +206,10 @@ func _on_new_game_pressed() -> void:
 	store.dispatch(U_NavigationActions.start_game(DEFAULT_GAMEPLAY_SCENE))
 
 func _should_confirm_new_game() -> bool:
-	if _save_manager == null or not _save_manager.has_method("has_any_saves"):
+	var typed_save_manager := _save_manager as I_SaveManager
+	if typed_save_manager == null:
 		return false
-	return bool(_save_manager.has_any_saves())
+	return typed_save_manager.has_any_saves()
 
 func _show_new_game_confirmation() -> void:
 	_new_game_confirmation_pending = true

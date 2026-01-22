@@ -23,6 +23,7 @@ class_name M_AutosaveScheduler
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
+const I_SaveManager := preload("res://scripts/interfaces/i_save_manager.gd")
 
 enum Priority {
 	NORMAL = 0,
@@ -140,7 +141,8 @@ func _is_autosave_allowed() -> bool:
 		return false
 
 	# Check if save manager is locked
-	if _save_manager.has_method("is_locked") and _save_manager.is_locked():
+	var typed_save_manager := _save_manager as I_SaveManager
+	if typed_save_manager != null and typed_save_manager.is_locked():
 		return false
 
 	return true
@@ -189,7 +191,8 @@ func _request_autosave_for_gameplay_transition(priority: int) -> void:
 	if scene.get("is_transitioning", false):
 		return
 
-	if _save_manager.has_method("is_locked") and _save_manager.is_locked():
+	var typed_save_manager := _save_manager as I_SaveManager
+	if typed_save_manager != null and typed_save_manager.is_locked():
 		return
 
 	# Trigger autosave
@@ -207,8 +210,9 @@ func _perform_autosave() -> void:
 	_pending_priority = Priority.NORMAL
 
 	# Request autosave from save manager
-	if _save_manager != null and _save_manager.has_method("request_autosave"):
-		_save_manager.request_autosave(priority)
+	var typed_save_manager := _save_manager as I_SaveManager
+	if typed_save_manager != null:
+		typed_save_manager.request_autosave(priority)
 		_last_autosave_time = Time.get_ticks_msec() / 1000.0
 
 func _exit_tree() -> void:

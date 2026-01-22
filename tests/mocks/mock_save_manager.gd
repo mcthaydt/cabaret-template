@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/interfaces/i_save_manager.gd"
 
 ## Mock Save Manager for autosave scheduler tests
 ## Tracks autosave requests without actually performing saves

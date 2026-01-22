@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/manager.svg")
-extends Node
+extends "res://scripts/interfaces/i_save_manager.gd"
 class_name M_SaveManager
 
 ## Save Manager - Coordinates save/load timing, slot management, and disk IO
