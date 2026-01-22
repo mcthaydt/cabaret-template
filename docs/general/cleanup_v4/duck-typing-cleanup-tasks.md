@@ -160,32 +160,34 @@ Remove `has_method()` duck typing patterns in favor of explicit interface-based 
 
 ---
 
-### Phase 4: Create I_SaveManager Interface
+### Phase 4: Create I_SaveManager Interface ✅ COMPLETE
 
 **New file:** `scripts/interfaces/i_save_manager.gd`
 
-- [ ] Create interface extending Node
-- [ ] Add `func is_locked() -> bool`
-- [ ] Add `func request_autosave(_priority: int = 0) -> void`
-- [ ] Add `func has_any_saves() -> bool`
-- [ ] Add `func save_to_slot(_slot_id: StringName) -> Error`
-- [ ] Add `func load_from_slot(_slot_id: StringName) -> Error`
+- [x] Create interface extending Node
+- [x] Add `func is_locked() -> bool`
+- [x] Add `func request_autosave(_priority: int = 0) -> void`
+- [x] Add `func has_any_saves() -> bool`
+- [x] Add `func save_to_slot(_slot_id: StringName) -> Error`
+- [x] Add `func load_from_slot(_slot_id: StringName) -> Error`
 
 **Files to modify:**
 
-- [ ] `scripts/managers/m_save_manager.gd` - Change `extends Node` to `extends I_SaveManager`
-- [ ] `scripts/managers/helpers/m_autosave_scheduler.gd:143,192,210` - Use typed cast
-- [ ] `scripts/ui/ui_main_menu.gd:53,207` - Use typed cast
+- [x] `scripts/managers/m_save_manager.gd` - Changed to `extends "res://scripts/interfaces/i_save_manager.gd"`
+- [x] `scripts/managers/helpers/m_autosave_scheduler.gd:143,192,210` - Used `as I_SaveManager` typed cast, added preload
+- [x] `scripts/ui/ui_main_menu.gd:53,207` - Used `as I_SaveManager` typed cast, added preload
 
 **Mock update:** `tests/mocks/mock_save_manager.gd`
 
-- [ ] Change `extends Node` to `extends I_SaveManager` (already has all methods)
+- [x] Changed to `extends "res://scripts/interfaces/i_save_manager.gd"` (already had all methods)
 
 **Verification:**
 
 ```bash
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/save -gexit
 ```
+
+**Results:** All 100 save manager tests passing (2026-01-22)
 
 ---
 

@@ -47,7 +47,12 @@ Use this prompt to resume the duck typing cleanup effort (cleanup_v4).
   - Updated MockSceneManagerWithTransition with all interface methods
   - Removed 10 `has_method()` checks from consumer files
   - All 111 ECS tests passing, 93/98 scene manager tests passing
-- Phase 4 (I_SaveManager interface): Not started
+- Phase 4 (I_SaveManager interface): ✅ COMPLETE (2026-01-22)
+  - Created I_SaveManager interface with 5 methods
+  - Updated M_SaveManager to extend interface
+  - Updated MockSaveManager to extend interface
+  - Removed 5 `has_method()` checks from consumer files (m_autosave_scheduler.gd, ui_main_menu.gd)
+  - All 100 save manager tests passing
 - Phase 5 (I_CameraManager interface): Not started
 - Phase 6 (I_AudioManager interface): Not started
 - Phase 7 (I_InputProfileManager/I_InputDeviceManager): Not started
@@ -100,10 +105,10 @@ if typed_mgr != null:
 
 ## Next Step
 
-- Begin Phase 4: Create I_SaveManager interface
-  - Create new `scripts/interfaces/i_save_manager.gd` file
-  - Add interface methods as identified in Phase 4 tasks
-  - Update `scripts/managers/m_save_manager.gd` to extend I_SaveManager
-  - Create mock implementation for testing if needed
-  - Update consumer files to replace `has_method()` with `as I_SaveManager`
-  - Run save manager tests to verify
+- Begin Phase 5: Create I_CameraManager interface
+  - Create new `scripts/interfaces/i_camera_manager.gd` file
+  - Add interface methods as identified in Phase 5 tasks
+  - Update `scripts/managers/m_camera_manager.gd` to extend I_CameraManager
+  - Update mock implementation for testing
+  - Update consumer files to replace `has_method()` with `as I_CameraManager`
+  - Run VFX tests to verify
