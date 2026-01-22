@@ -6,9 +6,10 @@ const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
 
 class TransitioningSceneManager:
-	extends Node
+	extends I_SCENE_MANAGER
 
 	var transitioning: bool = false
 
@@ -68,7 +69,7 @@ func _initialize_context() -> Dictionary:
 		"player_body": player["body"],
 	}
 
-func _arm(controller: Node3D) -> void:
+func _arm(_controller: Node3D) -> void:
 	await _pump_physics_frames(2)
 
 func test_auto_mode_activates_on_enter() -> void:
