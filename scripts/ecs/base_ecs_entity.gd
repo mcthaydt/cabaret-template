@@ -1,8 +1,9 @@
 @icon("res://resources/editor_icons/entities.svg")
-extends Node3D
+extends I_ECSEntity
 class_name BaseECSEntity
 
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+const I_ECS_MANAGER := preload("res://scripts/interfaces/i_ecs_manager.gd")
 
 @export var entity_id: StringName = StringName("")
 @export var tags: Array[StringName] = []
@@ -10,9 +11,9 @@ const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 var _cached_entity_id: StringName = StringName("")
 
 func _ready() -> void:
-	var manager: Node = U_ECS_UTILS.get_manager(self)
-	if manager != null and manager.has_method("cache_entity_for_node"):
-		manager.call("cache_entity_for_node", self, self)
+	var manager := U_ECS_UTILS.get_manager(self) as I_ECSManager
+	if manager != null:
+		manager.cache_entity_for_node(self, self)
 
 ## Returns the unique identifier for this entity.
 ## If entity_id is empty, generates an ID from the node name and caches it.
@@ -68,6 +69,6 @@ func remove_tag(tag: StringName) -> void:
 
 ## Notifies the ECS manager that this entity's tags have changed.
 func _notify_tags_changed() -> void:
-	var manager: Node = U_ECS_UTILS.get_manager(self)
-	if manager != null and manager.has_method("update_entity_tags"):
+	var manager := U_ECS_UTILS.get_manager(self) as I_ECSManager
+	if manager != null:
 		manager.update_entity_tags(self)

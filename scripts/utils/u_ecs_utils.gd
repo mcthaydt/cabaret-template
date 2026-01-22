@@ -5,6 +5,7 @@ class_name U_ECSUtils
 const ECS_MANAGER_SERVICE := StringName("ecs_manager")
 const ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/base_ecs_entity.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const I_ECS_ENTITY := preload("res://scripts/interfaces/i_ecs_entity.gd")
 
 static var _warning_handler: Callable = Callable()
 static var _manager_method_warnings: Dictionary = {}
@@ -117,8 +118,9 @@ static func get_active_camera(from_node: Node) -> Camera3D:
 static func get_entity_id(entity: Node) -> StringName:
 	if entity == null:
 		return StringName("")
-	if entity.has_method("get_entity_id"):
-		return entity.get_entity_id()
+	var typed_entity := entity as I_ECSEntity
+	if typed_entity != null:
+		return typed_entity.get_entity_id()
 
 	# Fallback: generate ID from node name
 	var node_name := String(entity.name)
@@ -131,13 +133,9 @@ static func get_entity_id(entity: Node) -> StringName:
 static func get_entity_tags(entity: Node) -> Array[StringName]:
 	if entity == null:
 		return []
-	if entity.has_method("get_tags"):
-		var tags_variant: Variant = entity.get_tags()
-		if tags_variant is Array:
-			var result: Array[StringName] = []
-			for tag in tags_variant:
-				result.append(StringName(tag))
-			return result
+	var typed_entity := entity as I_ECSEntity
+	if typed_entity != null:
+		return typed_entity.get_tags()
 	return []
 
 ## Builds a snapshot dictionary for an entity node.

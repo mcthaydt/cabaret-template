@@ -9,6 +9,7 @@ const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_ECS_QUERY_METRICS := preload("res://scripts/ecs/helpers/u_ecs_query_metrics.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const I_ECS_ENTITY := preload("res://scripts/interfaces/i_ecs_entity.gd")
 const PROJECT_SETTING_QUERY_METRICS_ENABLED := "ecs/debug/query_metrics_enabled"
 const PROJECT_SETTING_QUERY_METRICS_CAPACITY := "ecs/debug/query_metrics_capacity"
 
@@ -287,8 +288,9 @@ func register_entity(entity: Node) -> void:
 		var new_id := StringName("%s_%d" % [String(entity_id), entity.get_instance_id()])
 		print_verbose("M_ECSManager: Duplicate entity ID '%s' - renamed to '%s'" % [String(entity_id), String(new_id)])
 		entity_id = new_id
-		if entity.has_method("set_entity_id"):
-			entity.set_entity_id(entity_id)
+		var typed_entity := entity as I_ECSEntity
+		if typed_entity != null:
+			typed_entity.set_entity_id(entity_id)
 
 	_entities_by_id[entity_id] = entity
 	_registered_entities[entity] = entity_id
@@ -398,8 +400,9 @@ func update_entity_tags(entity: Node) -> void:
 func _get_entity_id(entity: Node) -> StringName:
 	if entity == null:
 		return StringName("")
-	if entity.has_method("get_entity_id"):
-		return entity.get_entity_id()
+	var typed_entity := entity as I_ECSEntity
+	if typed_entity != null:
+		return typed_entity.get_entity_id()
 
 	# Fallback: generate ID from node name
 	var node_name := String(entity.name)
@@ -439,21 +442,18 @@ func _unindex_entity_tags(entity: Node) -> void:
 func _get_entity_tags(entity: Node) -> Array[StringName]:
 	if entity == null:
 		return []
-	if entity.has_method("get_tags"):
-		var tags_variant: Variant = entity.get_tags()
-		if tags_variant is Array:
-			var result: Array[StringName] = []
-			for tag in tags_variant:
-				result.append(StringName(tag))
-			return result
+	var typed_entity := entity as I_ECSEntity
+	if typed_entity != null:
+		return typed_entity.get_tags()
 	return []
 
 ## Checks if an entity has a specific tag.
 func _entity_has_tag(entity: Node, tag: StringName) -> bool:
 	if entity == null:
 		return false
-	if entity.has_method("has_tag"):
-		return entity.has_tag(tag)
+	var typed_entity := entity as I_ECSEntity
+	if typed_entity != null:
+		return typed_entity.has_tag(tag)
 	return _get_entity_tags(entity).has(tag)
 
 func _track_component(component: BaseECSComponent, type_name: StringName) -> void:
