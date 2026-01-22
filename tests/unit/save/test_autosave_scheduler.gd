@@ -2,10 +2,11 @@ extends BaseTest
 
 const M_AUTOSAVE_SCHEDULER := preload("res://scripts/managers/helpers/m_autosave_scheduler.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
+const MOCK_SAVE_MANAGER := preload("res://tests/mocks/mock_save_manager.gd")
 
 var _scheduler: Node
 var _mock_store: MockStateStore
-var _mock_save_manager: Node
+var _mock_save_manager
 
 # Priority constants (duplicated from scheduler for testing)
 enum Priority {
@@ -27,9 +28,7 @@ func before_each() -> void:
 	autofree(_mock_store)
 
 	# Create mock save manager
-	_mock_save_manager = Node.new()
-	_mock_save_manager.name = "MockSaveManager"
-	_mock_save_manager.set_script(load("res://tests/mocks/mock_save_manager.gd"))
+	_mock_save_manager = MOCK_SAVE_MANAGER.new()
 	add_child(_mock_save_manager)
 	autofree(_mock_save_manager)
 
