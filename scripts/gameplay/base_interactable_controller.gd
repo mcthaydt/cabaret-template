@@ -3,6 +3,7 @@ class_name BaseInteractableController
 
 # U_ECS_UTILS inherited from BaseECSEntity (via base_volume_controller.gd)
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
+const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
 const SCENE_MANAGER_GROUP := StringName("scene_manager")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 
@@ -216,8 +217,8 @@ func _is_transition_blocked() -> bool:
 			return true
 	# Check if scene manager is transitioning via ServiceLocator (Phase 10B-7: T141c)
 	# Use try_get_service to avoid errors in test environments
-	var manager := U_ServiceLocator.try_get_service(SCENE_MANAGER_GROUP)
-	if manager != null and manager.has_method("is_transitioning") and manager.is_transitioning():
+	var manager := U_ServiceLocator.try_get_service(SCENE_MANAGER_GROUP) as I_SceneManager
+	if manager != null and manager.is_transitioning():
 		return true
 	return false
 

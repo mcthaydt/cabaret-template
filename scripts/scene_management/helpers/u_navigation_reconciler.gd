@@ -12,6 +12,7 @@ const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_regist
 const U_UI_REGISTRY := preload("res://scripts/ui/u_ui_registry.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_OVERLAY_STACK_MANAGER := preload("res://scripts/scene_management/helpers/u_overlay_stack_manager.gd")
+const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
 
 ## Internal state for reconciliation
 var _navigation_pending_scene_id: StringName = StringName("")
@@ -144,8 +145,9 @@ func reconcile_base_scene(
 	if transition_type.is_empty():
 		transition_type = "instant"
 
-	if manager.has_method("transition_to_scene"):
-		manager.call("transition_to_scene", desired_scene_id, transition_type, priority)
+	var typed_manager := manager as I_SceneManager
+	if typed_manager != null:
+		typed_manager.transition_to_scene(desired_scene_id, transition_type, priority)
 		_navigation_pending_scene_id = desired_scene_id
 
 ## Reconcile pending overlay reconciliation (deferred)

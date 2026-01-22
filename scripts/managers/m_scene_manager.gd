@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/manager.svg")
-extends Node
+extends "res://scripts/interfaces/i_scene_manager.gd"
 class_name M_SceneManager
 
 ## Scene Manager - Coordinates scene transitions and overlays
@@ -338,7 +338,7 @@ func _load_initial_scene() -> void:
 	transition_to_scene(initial_scene_id, "instant", Priority.CRITICAL)
 
 ## Transition to a new scene
-func transition_to_scene(scene_id: StringName, transition_type: String, priority: int = Priority.NORMAL) -> void:
+func transition_to_scene(scene_id: StringName, transition_type: String = "fade", priority: int = Priority.NORMAL) -> void:
 	# Validate scene exists in registry
 	var scene_data: Dictionary = U_SCENE_REGISTRY.get_scene(scene_id)
 	if scene_data.is_empty():
@@ -647,6 +647,17 @@ func pop_overlay() -> void:
 		Callable(self, "_update_particles_and_focus"),
 		viewport
 	)
+
+## Suppress pause menu activation for the current frame
+##
+## Used when auto-triggering scene transitions to prevent ESC key
+## from opening pause menu on the same frame.
+##
+## Note: Stub implementation (Phase: Duck Typing Cleanup Phase 3)
+## Full implementation would coordinate with M_PauseManager
+func suppress_pause_for_current_frame() -> void:
+	# TODO: Implement pause suppression logic
+	pass
 
 ## Push overlay with automatic return navigation (Phase 6.5)
 ##

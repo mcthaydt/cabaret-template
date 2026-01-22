@@ -22,6 +22,7 @@ const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actio
 const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
+const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
 const PLAYER_TAG_COMPONENT_TYPE := StringName("C_PlayerTagComponent")
 const RS_SceneTriggerSettings := preload("res://scripts/ecs/resources/rs_scene_trigger_settings.gd")
 
@@ -237,8 +238,8 @@ func _on_body_entered(body: Node3D) -> void:
 		if trigger_mode == TriggerMode.AUTO and _can_trigger():
 			# Notify SceneManager to suppress same-frame ESC pause via ServiceLocator (Phase 10B-7: T141c)
 			# Use try_get_service to avoid errors in test environments
-			var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager"))
-			if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
+			var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SceneManager
+			if mgr != null:
 				mgr.suppress_pause_for_current_frame()
 
 			_trigger_transition()
@@ -280,8 +281,8 @@ func _can_trigger() -> bool:
 
 	# Also check SceneManager if available via ServiceLocator (Phase 10B-7: T141c)
 	# Use try_get_service to avoid errors in test environments
-	var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager"))
-	if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
+	var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SceneManager
+	if mgr != null and mgr.is_transitioning():
 		return false
 
 	return true
@@ -343,8 +344,8 @@ func trigger_interact() -> void:
 		# door-triggered transitions when interact is used.
 		# Get scene manager via ServiceLocator (Phase 10B-7: T141c)
 		# Use try_get_service to avoid errors in test environments
-		var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager"))
-		if mgr != null and mgr.has_method("suppress_pause_for_current_frame"):
+		var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SceneManager
+		if mgr != null:
 			mgr.suppress_pause_for_current_frame()
 
 		_trigger_transition()
@@ -366,8 +367,8 @@ func _can_trigger_interact() -> bool:
 
 	# Also check SceneManager if available via ServiceLocator (Phase 10B-7: T141c)
 	# Use try_get_service to avoid errors in test environments
-	var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager"))
-	if mgr != null and mgr.has_method("is_transitioning") and mgr.is_transitioning():
+	var mgr := U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SceneManager
+	if mgr != null and mgr.is_transitioning():
 		return false
 
 	return true
@@ -390,5 +391,6 @@ func _hint_preload_target_scene() -> void:
 		return
 
 	# Call Scene Manager's hint method (if available)
-	if scene_manager.has_method("hint_preload_scene"):
-		scene_manager.hint_preload_scene(scene_path)
+	var typed_manager := scene_manager as I_SceneManager
+	if typed_manager != null:
+		typed_manager.hint_preload_scene(scene_path)

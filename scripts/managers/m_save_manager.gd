@@ -18,6 +18,7 @@ class_name M_SaveManager
 ## - M_SceneManager: Scene transitions during load
 
 const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
+const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const M_SAVE_FILE_IO := preload("res://scripts/managers/helpers/m_save_file_io.gd")
@@ -253,8 +254,9 @@ func load_from_slot(slot_id: StringName) -> Error:
 		return ERR_BUSY
 
 	# Check if scene manager is currently transitioning
-	if _scene_manager and _scene_manager.has_method("is_transitioning"):
-		if _scene_manager.is_transitioning():
+	var typed_scene_manager := _scene_manager as I_SceneManager
+	if typed_scene_manager != null:
+		if typed_scene_manager.is_transitioning():
 			return ERR_BUSY
 
 	# Validate slot_id
@@ -329,8 +331,9 @@ func load_from_slot(slot_id: StringName) -> Error:
 
 	# Trigger scene transition with loading screen
 	# Note: M_StateStore will restore state from handoff after scene loads
-	if _scene_manager and _scene_manager.has_method("transition_to_scene"):
-		_scene_manager.transition_to_scene(target_scene_id, transition_type)
+	var scene_mgr := _scene_manager as I_SceneManager
+	if scene_mgr != null:
+		scene_mgr.transition_to_scene(target_scene_id, transition_type)
 	else:
 		# No scene manager - clear handoff, unsubscribe, and fail gracefully
 		U_STATE_HANDOFF.clear_all()
