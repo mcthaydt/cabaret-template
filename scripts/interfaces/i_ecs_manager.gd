@@ -48,3 +48,30 @@ func register_component(_component: BaseECSComponent) -> void:
 ## @param system: BaseECSSystem instance to register
 func register_system(_system: BaseECSSystem) -> void:
 	push_error("I_ECSManager.register_system not implemented")
+
+## Cache entity root for a node
+##
+## @param node: Node to cache entity for
+## @param entity: Entity root to associate with the node
+func cache_entity_for_node(_node: Node, _entity: Node) -> void:
+	push_error("I_ECSManager.cache_entity_for_node not implemented")
+
+## Get cached entity root for a node
+##
+## @param node: Node to look up cached entity for
+## @return Node: Cached entity root, or null if not cached
+func get_cached_entity_for(_node: Node) -> Node:
+	push_error("I_ECSManager.get_cached_entity_for not implemented")
+	return null
+
+## Update entity tags in the manager's tag index
+##
+## @param entity: Entity node whose tags should be re-indexed
+func update_entity_tags(_entity: Node) -> void:
+	push_error("I_ECSManager.update_entity_tags not implemented")
+
+## Mark systems as dirty to trigger re-sorting
+##
+## Used when system priority changes at runtime
+func mark_systems_dirty() -> void:
+	push_error("I_ECSManager.mark_systems_dirty not implemented")

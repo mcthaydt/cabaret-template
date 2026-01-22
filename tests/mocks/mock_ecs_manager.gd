@@ -19,6 +19,8 @@ const U_ENTITY_QUERY := preload("res://scripts/ecs/u_entity_query.gd")
 var _components: Dictionary = {}  # StringName → Array[BaseECSComponent]
 var _entity_components: Dictionary = {}  # Node → Dictionary[StringName, BaseECSComponent]
 var _registered_systems: Array[BaseECSSystem] = []
+var _entity_cache: Dictionary = {}  # Node → Node (cached entity roots)
+var _systems_dirty: bool = false
 
 func get_components(component_type: StringName) -> Array:
 	if not _components.has(component_type):
@@ -88,6 +90,23 @@ func register_system(system: BaseECSSystem) -> void:
 	if system != null and not _registered_systems.has(system):
 		_registered_systems.append(system)
 
+func cache_entity_for_node(_node: Node, _entity: Node) -> void:
+	if _node == null or _entity == null:
+		return
+	_entity_cache[_node] = _entity
+
+func get_cached_entity_for(_node: Node) -> Node:
+	if _node == null:
+		return null
+	return _entity_cache.get(_node, null) as Node
+
+func update_entity_tags(_entity: Node) -> void:
+	# No-op for mock - tag indexing not implemented
+	pass
+
+func mark_systems_dirty() -> void:
+	_systems_dirty = true
+
 ## Test helpers
 
 ## Pre-register a component for an entity
@@ -108,6 +127,8 @@ func reset() -> void:
 	_components.clear()
 	_entity_components.clear()
 	_registered_systems.clear()
+	_entity_cache.clear()
+	_systems_dirty = false
 
 ## Find the entity root for a component
 func _find_entity_root(component: BaseECSComponent) -> Node:

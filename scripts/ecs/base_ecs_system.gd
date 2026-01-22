@@ -45,17 +45,11 @@ func get_manager() -> I_ECSManager:
 func get_components(component_type: StringName) -> Array:
 	if _manager == null:
 		return []
-	if not _manager.has_method("get_components"):
-		_warn_missing_manager_method("get_components")
-		return []
 	var components: Array = _manager.get_components(component_type)
 	return components.duplicate()
 
 func query_entities(required: Array[StringName], optional: Array[StringName] = []) -> Array:
 	if _manager == null:
-		return []
-	if not _manager.has_method("query_entities"):
-		_warn_missing_manager_method("query_entities")
 		return []
 	return _manager.query_entities(required, optional)
 
@@ -76,8 +70,7 @@ func _physics_process(delta: float) -> void:
 func _register_with_manager() -> void:
 	# Use injected manager if available (Phase 10B-8)
 	if ecs_manager != null:
-		if ecs_manager.has_method("register_system"):
-			ecs_manager.register_system(self)
+		ecs_manager.register_system(self)
 		return
 
 	# Otherwise, auto-discover
@@ -88,8 +81,6 @@ func _register_with_manager() -> void:
 
 func _notify_manager_priority_changed() -> void:
 	if _manager == null:
-		return
-	if not _manager.has_method("mark_systems_dirty"):
 		return
 	_manager.mark_systems_dirty()
 

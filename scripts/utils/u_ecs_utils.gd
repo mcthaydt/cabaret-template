@@ -51,10 +51,12 @@ static func find_entity_root(from_node: Node, warn_on_missing: bool = false) -> 
 	var current: Node = from_node
 	while current != null:
 		visited.append(current)
-		if manager != null and manager.has_method("get_cached_entity_for"):
-			var cached: Node = manager.call("get_cached_entity_for", current) as Node
-			if cached != null and is_instance_valid(cached):
-				return _cache_entity_root(manager, cached, visited)
+		if manager != null:
+			var typed_manager := manager as I_ECSManager
+			if typed_manager != null:
+				var cached: Node = typed_manager.get_cached_entity_for(current)
+				if cached != null and is_instance_valid(cached):
+					return _cache_entity_root(manager, cached, visited)
 		var current_script: Script = current.get_script()
 		if current_script == ECS_ENTITY_SCRIPT:
 			return _cache_entity_root(manager, current, visited)
@@ -181,16 +183,17 @@ static func reset_warning_handler() -> void:
 static func _node_has_manager_methods(candidate: Node) -> bool:
 	if candidate == null:
 		return false
-	return candidate.has_method("register_component") and candidate.has_method("register_system")
+	return candidate is I_ECSManager
 
 static func _cache_entity_root(manager: Node, entity: Node, visited: Array[Node]) -> Node:
 	if entity == null:
 		return null
-	if manager != null and manager.has_method("cache_entity_for_node"):
+	var typed_manager := manager as I_ECSManager
+	if typed_manager != null:
 		for node in visited:
 			if node == null:
 				continue
-			manager.call("cache_entity_for_node", node, entity)
+			typed_manager.cache_entity_for_node(node, entity)
 	return entity
 
 static func _warn_missing_manager_methods(candidate: Node) -> void:
