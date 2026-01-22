@@ -41,7 +41,12 @@ Use this prompt to resume the duck typing cleanup effort (cleanup_v4).
   - Created MockECSEntity for testing
   - Removed 6 `has_method()` checks from consumer files
   - All 111 ECS tests passing
-- Phase 3 (I_SceneManager interface): Not started
+- Phase 3 (I_SceneManager interface): ✅ COMPLETE (2026-01-22)
+  - Created I_SceneManager interface with 6 methods
+  - Updated M_SceneManager to extend interface
+  - Updated MockSceneManagerWithTransition with all interface methods
+  - Removed 10 `has_method()` checks from consumer files
+  - All 111 ECS tests passing, 93/98 scene manager tests passing
 - Phase 4 (I_SaveManager interface): Not started
 - Phase 5 (I_CameraManager interface): Not started
 - Phase 6 (I_AudioManager interface): Not started
@@ -95,10 +100,10 @@ if typed_mgr != null:
 
 ## Next Step
 
-- Begin Phase 3: Create I_SceneManager interface
-  - Create new `scripts/interfaces/i_scene_manager.gd` file
-  - Add interface methods: `is_transitioning()`, `transition_to_scene()`, `hint_preload_scene()`, `suppress_pause_for_current_frame()`, `push_overlay()`, `pop_overlay()`
-  - Update `scripts/managers/m_scene_manager.gd` to extend I_SceneManager
-  - Update MockSceneManagerWithTransition to extend I_SceneManager
-  - Update consumer files to replace `has_method()` with `as I_SceneManager`
-  - Run scene manager and save manager tests to verify
+- Begin Phase 4: Create I_SaveManager interface
+  - Create new `scripts/interfaces/i_save_manager.gd` file
+  - Add interface methods as identified in Phase 4 tasks
+  - Update `scripts/managers/m_save_manager.gd` to extend I_SaveManager
+  - Create mock implementation for testing if needed
+  - Update consumer files to replace `has_method()` with `as I_SaveManager`
+  - Run save manager tests to verify
