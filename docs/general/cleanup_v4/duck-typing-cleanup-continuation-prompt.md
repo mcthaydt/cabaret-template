@@ -30,7 +30,11 @@ Use this prompt to resume the duck typing cleanup effort (cleanup_v4).
 
 - Plan created and documented
 - Phase 0 (preparation): Not started
-- Phase 1 (I_ECSManager expansion): Not started
+- Phase 1 (I_ECSManager expansion): ✅ COMPLETE (2026-01-22)
+  - Added 4 methods to I_ECSManager interface
+  - Updated MockECSManager with implementations
+  - Removed 6 `has_method()` checks from consumer files
+  - All 111 ECS tests passing
 - Phase 2 (I_ECSEntity interface): Not started
 - Phase 3 (I_SceneManager interface): Not started
 - Phase 4 (I_SaveManager interface): Not started
@@ -86,8 +90,10 @@ if typed_mgr != null:
 
 ## Next Step
 
-- Begin Phase 1: Expand I_ECSManager interface
-  - Add missing methods to `scripts/interfaces/i_ecs_manager.gd`
-  - Update `tests/mocks/mock_ecs_manager.gd` with implementations
-  - Update consumer files to remove `has_method()` checks
+- Begin Phase 2: Create I_ECSEntity interface
+  - Create new `scripts/interfaces/i_ecs_entity.gd` file
+  - Add interface methods: `get_entity_id()`, `set_entity_id()`, `get_tags()`, `has_tag()`, `add_tag()`, `remove_tag()`
+  - Update `scripts/ecs/base_ecs_entity.gd` to extend I_ECSEntity
+  - Create `tests/mocks/mock_ecs_entity.gd` with all interface methods
+  - Update consumer files to replace `has_method()` with `is I_ECSEntity`
   - Run ECS tests to verify

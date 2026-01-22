@@ -57,7 +57,7 @@ Remove `has_method()` duck typing patterns in favor of explicit interface-based 
 
 ## Task Checklist
 
-### Phase 1: Expand I_ECSManager Interface
+### Phase 1: Expand I_ECSManager Interface ✅ COMPLETE
 
 **Files to modify:**
 - `scripts/interfaces/i_ecs_manager.gd` - Add missing methods
@@ -65,27 +65,29 @@ Remove `has_method()` duck typing patterns in favor of explicit interface-based 
 
 **Methods to add to I_ECSManager:**
 
-- [ ] `func cache_entity_for_node(_node: Node, _entity: Node) -> void`
-- [ ] `func get_cached_entity_for(_node: Node) -> Node`
-- [ ] `func update_entity_tags(_entity: Node) -> void`
-- [ ] `func mark_systems_dirty() -> void`
+- [x] `func cache_entity_for_node(_node: Node, _entity: Node) -> void`
+- [x] `func get_cached_entity_for(_node: Node) -> Node`
+- [x] `func update_entity_tags(_entity: Node) -> void`
+- [x] `func mark_systems_dirty() -> void`
 
 **Consumer updates:**
 
-- [ ] `scripts/ecs/base_ecs_system.gd:48,57,79,92` - Remove `has_method()` checks, methods exist on interface
-- [ ] `scripts/utils/u_ecs_utils.gd:54,184,189` - Replace `has_method()` with `is I_ECSManager` type check
+- [x] `scripts/ecs/base_ecs_system.gd:48,57,79,92` - Remove `has_method()` checks, methods exist on interface
+- [x] `scripts/utils/u_ecs_utils.gd:54,184,189` - Replace `has_method()` with `is I_ECSManager` type check
 
 **Mock updates:**
 
-- [ ] Add `_entity_cache: Dictionary` to MockECSManager
-- [ ] Add `_systems_dirty: bool` to MockECSManager
-- [ ] Implement `cache_entity_for_node()`, `get_cached_entity_for()`, `update_entity_tags()`, `mark_systems_dirty()`
+- [x] Add `_entity_cache: Dictionary` to MockECSManager
+- [x] Add `_systems_dirty: bool` to MockECSManager
+- [x] Implement `cache_entity_for_node()`, `get_cached_entity_for()`, `update_entity_tags()`, `mark_systems_dirty()`
 
 **Verification:**
 
 ```bash
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit
 ```
+
+**Results:** All 111 ECS tests passing (2026-01-22)
 
 ---
 
