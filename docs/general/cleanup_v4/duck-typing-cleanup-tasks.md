@@ -91,34 +91,36 @@ Remove `has_method()` duck typing patterns in favor of explicit interface-based 
 
 ---
 
-### Phase 2: Create I_ECSEntity Interface
+### Phase 2: Create I_ECSEntity Interface ✅ COMPLETE
 
 **New file:** `scripts/interfaces/i_ecs_entity.gd`
 
-- [ ] Create interface extending Node3D
-- [ ] Add `func get_entity_id() -> StringName`
-- [ ] Add `func set_entity_id(_id: StringName) -> void`
-- [ ] Add `func get_tags() -> Array[StringName]`
-- [ ] Add `func has_tag(_tag: StringName) -> bool`
-- [ ] Add `func add_tag(_tag: StringName) -> void`
-- [ ] Add `func remove_tag(_tag: StringName) -> void`
+- [x] Create interface extending Node3D
+- [x] Add `func get_entity_id() -> StringName`
+- [x] Add `func set_entity_id(_id: StringName) -> void`
+- [x] Add `func get_tags() -> Array[StringName]`
+- [x] Add `func has_tag(_tag: StringName) -> bool`
+- [x] Add `func add_tag(_tag: StringName) -> void`
+- [x] Add `func remove_tag(_tag: StringName) -> void`
 
 **Files to modify:**
 
-- [ ] `scripts/ecs/base_ecs_entity.gd` - Change `extends Node3D` to `extends I_ECSEntity`
-- [ ] `scripts/managers/m_ecs_manager.gd:182,290,401,442,455` - Replace `has_method()` with `is I_ECSEntity`
-- [ ] `scripts/utils/u_ecs_utils.gd:118,132` - Replace `has_method()` with `is I_ECSEntity`
+- [x] `scripts/ecs/base_ecs_entity.gd` - Change `extends Node3D` to `extends I_ECSEntity`
+- [x] `scripts/managers/m_ecs_manager.gd:290,401,442,455` - Replace `has_method()` with `as I_ECSEntity`
+- [x] `scripts/utils/u_ecs_utils.gd:118,132` - Replace `has_method()` with `as I_ECSEntity`
 
 **New mock:** `tests/mocks/mock_ecs_entity.gd`
 
-- [ ] Create MockECSEntity extending I_ECSEntity
-- [ ] Implement all interface methods
+- [x] Create MockECSEntity extending I_ECSEntity
+- [x] Implement all interface methods
 
 **Verification:**
 
 ```bash
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit
 ```
+
+**Results:** All 111 ECS tests passing (2026-01-22)
 
 ---
 
