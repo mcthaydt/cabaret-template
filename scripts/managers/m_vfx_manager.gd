@@ -69,11 +69,6 @@ var _is_previewing: bool = false
 var _effects_container: Node = null
 
 func _ready() -> void:
-	# Register Service
-	var service_name := StringName("vfx_manager")
-	if not U_SERVICE_LOCATOR.has(service_name):
-		U_SERVICE_LOCATOR.register(service_name, self)
-
 	# Run even when game is paused (VFX should be visible in pause menu)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
