@@ -61,6 +61,8 @@ func test_trauma_zero_produces_zero_rotation() -> void:
 
 # Test 7: Trauma 1.0 produces full shake (offset within max bounds)
 func test_trauma_one_produces_full_shake() -> void:
+	# Set deterministic seed to avoid flakiness
+	_shake_helper.set_noise_seed_for_testing(42)
 	var result = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
 	var offset: Vector2 = result.offset
 	# With trauma 1.0 and multiplier 1.0, offset should be within max bounds
@@ -73,6 +75,8 @@ func test_trauma_one_produces_full_shake() -> void:
 
 # Test 8: Trauma 1.0 produces full rotation (within max bounds)
 func test_trauma_one_produces_full_rotation() -> void:
+	# Set deterministic seed to avoid flakiness
+	_shake_helper.set_noise_seed_for_testing(42)
 	var result = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
 	var rotation: float = result.rotation
 	# max_rotation defaults to 0.05 radians
