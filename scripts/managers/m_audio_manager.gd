@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/manager.svg")
-extends Node
+extends "res://scripts/interfaces/i_audio_manager.gd"
 class_name M_AudioManager
 
 ## Audio Manager (Phases 1-2)

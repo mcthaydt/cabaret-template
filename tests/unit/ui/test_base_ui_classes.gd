@@ -11,15 +11,7 @@ const RS_SceneInitialState := preload("res://scripts/state/resources/rs_scene_in
 const RS_SettingsInitialState := preload("res://scripts/state/resources/rs_settings_initial_state.gd")
 const OverlayStub := preload("res://tests/test_doubles/ui/overlay_stub.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-
-
-class MockAudioManager:
-	extends Node
-
-	var played: Array[StringName] = []
-
-	func play_ui_sound(sound_id: StringName) -> void:
-		played.append(sound_id)
+const MockAudioManager := preload("res://tests/mocks/mock_audio_manager.gd")
 
 
 var _mock_audio_manager: MockAudioManager

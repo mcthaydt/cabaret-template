@@ -10,6 +10,7 @@ const U_UISoundPlayer := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
 const RS_AudioInitialState := preload("res://scripts/state/resources/rs_audio_initial_state.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
+const I_AUDIO_MANAGER := preload("res://scripts/interfaces/i_audio_manager.gd")
 
 var _state_store: I_StateStore = null
 var _audio_manager: Node = null
@@ -464,13 +465,11 @@ func _get_audio_manager() -> Node:
 	return _audio_manager
 
 func _update_audio_settings_preview_from_ui() -> void:
-	var audio_mgr := _get_audio_manager()
+	var audio_mgr := _get_audio_manager() as I_AUDIO_MANAGER
 	if audio_mgr == null:
 		return
-	if not audio_mgr.has_method("set_audio_settings_preview"):
-		return
 
-	audio_mgr.call("set_audio_settings_preview", {
+	audio_mgr.set_audio_settings_preview({
 		"master_volume": _master_volume_slider.value if _master_volume_slider != null else 1.0,
 		"master_muted": _master_mute_toggle.button_pressed if _master_mute_toggle != null else false,
 		"music_volume": _music_volume_slider.value if _music_volume_slider != null else 1.0,
@@ -483,9 +482,7 @@ func _update_audio_settings_preview_from_ui() -> void:
 	})
 
 func _clear_audio_settings_preview() -> void:
-	var audio_mgr := _get_audio_manager()
+	var audio_mgr := _get_audio_manager() as I_AUDIO_MANAGER
 	if audio_mgr == null:
 		return
-	if not audio_mgr.has_method("clear_audio_settings_preview"):
-		return
-	audio_mgr.call("clear_audio_settings_preview")
+	audio_mgr.clear_audio_settings_preview()

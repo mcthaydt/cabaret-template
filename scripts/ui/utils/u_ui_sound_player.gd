@@ -7,6 +7,7 @@ class_name U_UISoundPlayer
 ## trigger focus/confirm/cancel/tick sounds without direct manager references.
 
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const I_AUDIO_MANAGER := preload("res://scripts/interfaces/i_audio_manager.gd")
 
 const _TICK_THROTTLE_MS: int = 100  # Max 10 ticks / second
 
@@ -39,12 +40,10 @@ static func play_slider_tick() -> void:
 
 
 static func _play(sound_id: StringName) -> bool:
-	var audio_mgr := _get_audio_manager()
+	var audio_mgr := _get_audio_manager() as I_AUDIO_MANAGER
 	if audio_mgr == null:
 		return false
-	if not audio_mgr.has_method("play_ui_sound"):
-		return false
-	audio_mgr.call("play_ui_sound", sound_id)
+	audio_mgr.play_ui_sound(sound_id)
 	return true
 
 
