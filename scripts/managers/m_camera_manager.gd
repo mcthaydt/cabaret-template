@@ -1,6 +1,6 @@
 @icon("res://resources/editor_icons/manager.svg")
 class_name M_CameraManager
-extends Node
+extends "res://scripts/interfaces/i_camera_manager.gd"
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 

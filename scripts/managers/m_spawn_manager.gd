@@ -23,12 +23,14 @@ extends Node
 
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_SPAWN_REGISTRY := preload("res://scripts/scene_management/u_spawn_registry.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 
 const SPAWN_CONDITION_ALWAYS := 0
 const SPAWN_CONDITION_CHECKPOINT_ONLY := 1
@@ -215,12 +217,12 @@ func _find_player_entity(scene: Node) -> Node3D:
 ## Returns:
 ##   Camera3D if found, null otherwise (UI scenes don't need cameras)
 func initialize_scene_camera(scene: Node) -> Camera3D:
-	var camera_manager := U_ServiceLocator.try_get_service(StringName("camera_manager"))
+	var camera_manager := U_ServiceLocator.try_get_service(StringName("camera_manager")) as I_CAMERA_MANAGER
 	if camera_manager != null:
-		if camera_manager.has_method("initialize_scene_camera"):
-			return camera_manager.initialize_scene_camera(scene)
-		if camera_manager.has_method("get_main_camera"):
-			return camera_manager.get_main_camera() as Camera3D
+		var camera := camera_manager.initialize_scene_camera(scene)
+		if camera != null:
+			return camera
+		return camera_manager.get_main_camera()
 	return null
 
 ## Recursive helper to find nodes by exact name

@@ -7,6 +7,7 @@ class_name M_VFXManager
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
+const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
@@ -34,13 +35,13 @@ const SCREEN_SHAKE_CONFIG := preload("res://resources/vfx/rs_screen_shake_config
 
 ## Injected dependencies (for testing)
 @export var state_store: I_StateStore = null
-@export var camera_manager: M_CameraManager = null
+@export var camera_manager: I_CAMERA_MANAGER = null
 
 ## StateStore dependency for accessing VFX settings
 var _state_store: I_StateStore = null
 
 ## Camera Manager dependency for applying screen shake
-var _camera_manager: M_CameraManager = null
+var _camera_manager: I_CAMERA_MANAGER = null
 
 ## Screen shake helper for calculating shake offset/rotation
 var _screen_shake: M_ScreenShake = null

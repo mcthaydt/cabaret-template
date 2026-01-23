@@ -6,6 +6,7 @@ const ECS_MANAGER_SERVICE := StringName("ecs_manager")
 const ECS_ENTITY_SCRIPT := preload("res://scripts/ecs/base_ecs_entity.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const I_ECS_ENTITY := preload("res://scripts/interfaces/i_ecs_entity.gd")
+const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 
 static var _warning_handler: Callable = Callable()
 static var _manager_method_warnings: Dictionary = {}
@@ -99,9 +100,9 @@ static func get_active_camera(from_node: Node) -> Camera3D:
 	if from_node == null:
 		return null
 
-	var camera_manager := U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager"))
-	if camera_manager != null and camera_manager.has_method("get_main_camera"):
-		var main_camera := camera_manager.call("get_main_camera") as Camera3D
+	var camera_manager := U_SERVICE_LOCATOR.try_get_service(StringName("camera_manager")) as I_CAMERA_MANAGER
+	if camera_manager != null:
+		var main_camera := camera_manager.get_main_camera()
 		if main_camera != null and is_instance_valid(main_camera):
 			return main_camera
 

@@ -1,7 +1,9 @@
-extends M_CameraManager
+extends "res://scripts/interfaces/i_camera_manager.gd"
 class_name MockCameraManager
 
 ## Lightweight mock camera manager for VFX tests.
+##
+## Phase 5 (cleanup_v4): Updated to extend I_CameraManager interface
 ##
 ## Records the last shake request without creating cameras or registering services.
 
@@ -11,6 +13,15 @@ var apply_calls: int = 0
 
 func _ready() -> void:
 	# Override to skip base setup and ServiceLocator registration.
+	pass
+
+func get_main_camera() -> Camera3D:
+	return null
+
+func initialize_scene_camera(_scene: Node) -> Camera3D:
+	return null
+
+func finalize_blend_to_scene(_new_scene: Node) -> void:
 	pass
 
 func apply_shake_offset(offset: Vector2, rotation: float) -> void:

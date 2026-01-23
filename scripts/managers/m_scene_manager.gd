@@ -28,6 +28,7 @@ const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_regist
 const U_UI_REGISTRY := preload("res://scripts/ui/u_ui_registry.gd")
 const U_TRANSITION_FACTORY := preload("res://scripts/scene_management/u_transition_factory.gd")
 const I_SCENE_CONTRACT := preload("res://scripts/scene_management/i_scene_contract.gd")
+const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const U_SCENE_CACHE := preload("res://scripts/scene_management/helpers/u_scene_cache.gd")
 const U_SCENE_LOADER := preload("res://scripts/scene_management/helpers/u_scene_loader.gd")
 const U_OVERLAY_STACK_MANAGER := preload("res://scripts/scene_management/helpers/u_overlay_stack_manager.gd")
@@ -61,7 +62,7 @@ enum Priority {
 var _store: I_StateStore = null
 var _cursor_manager: M_CursorManager = null
 var _spawn_manager: Node = null  # M_SpawnManager (Phase 12.1)
-var _camera_manager: Node = null  # M_CameraManager (Phase 12.2)
+var _camera_manager: I_CAMERA_MANAGER = null
 var _active_scene_container: Node = null
 var _ui_overlay_stack: CanvasLayer = null
 var _transition_overlay: CanvasLayer = null
@@ -543,14 +544,13 @@ func _perform_transition(request) -> void:
 		else:
 			# No blending (instant transition or no camera) - just activate new camera if present
 			var new_camera: Camera3D = null
-			if _camera_manager != null and _camera_manager.has_method("initialize_scene_camera"):
+			if _camera_manager != null:
 				new_camera = _camera_manager.initialize_scene_camera(new_scene)
 			else:
-				var camera_manager := U_ServiceLocator.try_get_service(StringName("camera_manager"))
+				var camera_manager := U_ServiceLocator.try_get_service(StringName("camera_manager")) as I_CAMERA_MANAGER
 				if camera_manager != null:
-					if camera_manager.has_method("initialize_scene_camera"):
-						new_camera = camera_manager.initialize_scene_camera(new_scene)
-					elif camera_manager.has_method("get_main_camera"):
+					new_camera = camera_manager.initialize_scene_camera(new_scene)
+					if new_camera == null:
 						new_camera = camera_manager.get_main_camera()
 			if new_camera != null:
 				new_camera.current = true
@@ -601,7 +601,7 @@ func _perform_transition(request) -> void:
 		var active_tween: Tween = _camera_manager.get("_camera_blend_tween")
 		has_active_blend = active_tween != null and active_tween.is_running()
 
-	if not has_active_blend and _camera_manager != null and new_scene_ref[0] != null and _camera_manager.has_method("finalize_blend_to_scene"):
+	if not has_active_blend and _camera_manager != null and new_scene_ref[0] != null:
 		_camera_manager.finalize_blend_to_scene(new_scene_ref[0])
 
 	# Re-enable player physics after transition completes (prevents falling during load)
