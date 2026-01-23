@@ -191,33 +191,36 @@ Remove `has_method()` duck typing patterns in favor of explicit interface-based 
 
 ---
 
-### Phase 5: Create I_CameraManager Interface
+### Phase 5: Create I_CameraManager Interface ✅ COMPLETE
 
 **New file:** `scripts/interfaces/i_camera_manager.gd`
 
-- [ ] Create interface extending Node
-- [ ] Add `func get_main_camera() -> Camera3D`
-- [ ] Add `func initialize_scene_camera(_scene: Node) -> Camera3D`
-- [ ] Add `func finalize_blend_to_scene(_new_scene: Node) -> void`
-- [ ] Add `func apply_shake_offset(_offset: Vector2, _rotation: float) -> void`
+- [x] Create interface extending Node
+- [x] Add `func get_main_camera() -> Camera3D`
+- [x] Add `func initialize_scene_camera(_scene: Node) -> Camera3D`
+- [x] Add `func finalize_blend_to_scene(_new_scene: Node) -> void`
+- [x] Add `func apply_shake_offset(_offset: Vector2, _rotation: float) -> void`
 
 **Files to modify:**
 
-- [ ] `scripts/managers/m_camera_manager.gd` - Change `extends Node` to `extends I_CameraManager`
-- [ ] `scripts/utils/u_ecs_utils.gd:100` - Use typed cast
-- [ ] `scripts/managers/m_scene_manager.gd:546,551,604` - Use typed cast
-- [ ] `scripts/managers/m_spawn_manager.gd:220,222` - Use typed cast
+- [x] `scripts/managers/m_camera_manager.gd` - Changed to `extends "res://scripts/interfaces/i_camera_manager.gd"`
+- [x] `scripts/utils/u_ecs_utils.gd:103` - Used `as I_CAMERA_MANAGER` typed cast
+- [x] `scripts/managers/m_scene_manager.gd:547,550,604` - Used `as I_CAMERA_MANAGER` typed cast, removed has_method() checks
+- [x] `scripts/managers/m_spawn_manager.gd:219` - Used `as I_CAMERA_MANAGER` typed cast
+- [x] `scripts/managers/m_vfx_manager.gd:38,44` - Updated export and internal variable types to I_CAMERA_MANAGER
 
 **Mock update:** `tests/mocks/mock_camera_manager.gd`
 
-- [ ] Change `extends M_CameraManager` to `extends I_CameraManager`
-- [ ] Add missing interface methods
+- [x] Changed to `extends "res://scripts/interfaces/i_camera_manager.gd"`
+- [x] Added missing interface methods (get_main_camera, initialize_scene_camera, finalize_blend_to_scene)
 
 **Verification:**
 
 ```bash
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/vfx -gexit
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/managers -gtest="*vfx*" -gexit
 ```
+
+**Results:** All 90 VFX tests passing (2026-01-22)
 
 ---
 

@@ -53,7 +53,13 @@ Use this prompt to resume the duck typing cleanup effort (cleanup_v4).
   - Updated MockSaveManager to extend interface
   - Removed 5 `has_method()` checks from consumer files (m_autosave_scheduler.gd, ui_main_menu.gd)
   - All 100 save manager tests passing
-- Phase 5 (I_CameraManager interface): Not started
+- Phase 5 (I_CameraManager interface): ✅ COMPLETE (2026-01-22)
+  - Created I_CameraManager interface with 4 methods
+  - Updated M_CameraManager to extend interface
+  - Updated MockCameraManager to extend interface
+  - Removed 5 `has_method()` checks from consumer files (u_ecs_utils.gd, m_scene_manager.gd, m_spawn_manager.gd)
+  - Updated M_VFXManager export and internal variable types to use interface
+  - All 90 VFX tests passing
 - Phase 6 (I_AudioManager interface): Not started
 - Phase 7 (I_InputProfileManager/I_InputDeviceManager): Not started
 - Phase 8 (I_VFXManager interface): Not started
@@ -105,10 +111,10 @@ if typed_mgr != null:
 
 ## Next Step
 
-- Begin Phase 5: Create I_CameraManager interface
-  - Create new `scripts/interfaces/i_camera_manager.gd` file
-  - Add interface methods as identified in Phase 5 tasks
-  - Update `scripts/managers/m_camera_manager.gd` to extend I_CameraManager
-  - Update mock implementation for testing
-  - Update consumer files to replace `has_method()` with `as I_CameraManager`
-  - Run VFX tests to verify
+- Begin Phase 6: Create I_AudioManager interface
+  - Create new `scripts/interfaces/i_audio_manager.gd` file
+  - Add interface methods as identified in Phase 6 tasks
+  - Update `scripts/managers/m_audio_manager.gd` to extend I_AudioManager
+  - Create new MockAudioManager for testing
+  - Update consumer files to replace `has_method()` with `as I_AudioManager`
+  - Run Audio tests to verify
