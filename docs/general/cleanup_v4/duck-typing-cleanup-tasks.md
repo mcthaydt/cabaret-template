@@ -290,27 +290,29 @@ Remove `has_method()` duck typing patterns in favor of explicit interface-based 
 
 ---
 
-### Phase 8: Create I_VFXManager Interface
+### Phase 8: Create I_VFXManager Interface ✅ COMPLETE
 
 **New file:** `scripts/interfaces/i_vfx_manager.gd`
 
-- [ ] Create interface extending Node
-- [ ] Add `func get_effects_container() -> Node`
-- [ ] Add `func set_effects_container(_container: Node) -> void`
-- [ ] Add `func set_vfx_settings_preview(_settings: Dictionary) -> void`
-- [ ] Add `func clear_vfx_settings_preview() -> void`
-- [ ] Add `func trigger_test_shake(_intensity: float = 1.0) -> void`
+- [x] Create interface extending Node
+- [x] Add `func get_effects_container() -> Node`
+- [x] Add `func set_effects_container(_container: Node) -> void`
+- [x] Add `func set_vfx_settings_preview(_settings: Dictionary) -> void`
+- [x] Add `func clear_vfx_settings_preview() -> void`
+- [x] Add `func trigger_test_shake(_intensity: float = 1.0) -> void`
 
 **Files to modify:**
 
-- [ ] `scripts/managers/m_vfx_manager.gd` - Extend I_VFXManager
-- [ ] `scripts/utils/u_particle_spawner.gd:179,197` - Use typed cast
+- [x] `scripts/managers/m_vfx_manager.gd` - Changed to `extends "res://scripts/interfaces/i_vfx_manager.gd"`
+- [x] `scripts/utils/u_particle_spawner.gd:179,197` - Used `as I_VFX_MANAGER` typed cast, removed has_method() checks
 
 **Verification:**
 
 ```bash
-/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/vfx -gexit
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/managers -gtest="*vfx*" -gexit
 ```
+
+**Results:** All 90 VFX tests passing (2026-01-23)
 
 ---
 

@@ -73,7 +73,11 @@ Use this prompt to resume the duck typing cleanup effort (cleanup_v4).
   - Removed duplicate const from M_InputProfileManager
   - Removed 10 `has_method()` checks from consumer files (ui_input_rebinding_overlay.gd, ui_input_profile_selector.gd, ui_edit_touch_controls_overlay.gd, ui_touchscreen_settings_overlay.gd, s_touchscreen_system.gd)
   - All 7 input tests passing
-- Phase 8 (I_VFXManager interface): Not started
+- Phase 8 (I_VFXManager interface): ✅ COMPLETE (2026-01-23)
+  - Created I_VFXManager interface with 5 methods
+  - Updated M_VFXManager to extend interface
+  - Removed 2 `has_method()` checks from consumer files (u_particle_spawner.gd)
+  - All 90 VFX tests passing
 - Phase 9 (I_RebindOverlay interface): Not started
 
 ---
@@ -122,15 +126,23 @@ if typed_mgr != null:
 
 ## Next Step
 
-- Begin Phase 8: Create I_VFXManager interface
-  - Create new `scripts/interfaces/i_vfx_manager.gd` file
-  - Add interface methods as identified in Phase 8 tasks:
-    - get_effects_container()
-    - set_effects_container()
-    - set_vfx_settings_preview()
-    - clear_vfx_settings_preview()
-    - trigger_test_shake()
-  - Update `scripts/managers/m_vfx_manager.gd` to extend I_VFXManager
-  - Create mock if needed for testing
-  - Update consumer files to replace `has_method()` with typed casts
-  - Run VFX tests to verify
+- Begin Phase 9: Create I_RebindOverlay interface
+  - Create new `scripts/interfaces/i_rebind_overlay.gd` file
+  - Add interface methods as identified in Phase 9 tasks (11 methods):
+    - begin_capture()
+    - reset_single_action()
+    - connect_row_focus_handlers()
+    - is_reserved()
+    - refresh_bindings()
+    - set_reset_button_enabled()
+    - configure_focus_neighbors()
+    - apply_focus()
+    - get_active_device_category()
+    - is_binding_custom()
+    - get_active_profile()
+  - Update `scripts/ui/ui_input_rebinding_overlay.gd` to extend I_RebindOverlay
+  - Make private methods public (remove underscore prefix where needed)
+  - Update consumer files to replace `has_method()` with typed casts:
+    - `scripts/ui/helpers/u_rebind_action_list_builder.gd` (14 checks)
+    - `scripts/ui/helpers/u_touchscreen_preview_builder.gd` (1 check)
+  - Run UI tests to verify
