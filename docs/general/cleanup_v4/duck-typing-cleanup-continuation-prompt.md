@@ -60,7 +60,12 @@ Use this prompt to resume the duck typing cleanup effort (cleanup_v4).
   - Removed 5 `has_method()` checks from consumer files (u_ecs_utils.gd, m_scene_manager.gd, m_spawn_manager.gd)
   - Updated M_VFXManager export and internal variable types to use interface
   - All 90 VFX tests passing
-- Phase 6 (I_AudioManager interface): Not started
+- Phase 6 (I_AudioManager interface): ✅ COMPLETE (2026-01-22)
+  - Created I_AudioManager interface with 3 methods
+  - Updated M_AudioManager to extend interface
+  - Created MockAudioManager for testing
+  - Removed 3 `has_method()` checks from consumer files (u_ui_sound_player.gd, ui_audio_settings_tab.gd)
+  - All 5 audio tests passing
 - Phase 7 (I_InputProfileManager/I_InputDeviceManager): Not started
 - Phase 8 (I_VFXManager interface): Not started
 - Phase 9 (I_RebindOverlay interface): Not started
@@ -111,10 +116,13 @@ if typed_mgr != null:
 
 ## Next Step
 
-- Begin Phase 6: Create I_AudioManager interface
-  - Create new `scripts/interfaces/i_audio_manager.gd` file
-  - Add interface methods as identified in Phase 6 tasks
-  - Update `scripts/managers/m_audio_manager.gd` to extend I_AudioManager
-  - Create new MockAudioManager for testing
-  - Update consumer files to replace `has_method()` with `as I_AudioManager`
-  - Run Audio tests to verify
+- Begin Phase 7: Create I_InputProfileManager and I_InputDeviceManager interfaces
+  - Create new `scripts/interfaces/i_input_profile_manager.gd` file
+  - Add interface methods: get_active_profile(), reset_to_defaults(), reset_action(), reset_touchscreen_positions()
+  - Update `scripts/managers/m_input_profile_manager.gd` to extend I_InputProfileManager
+  - Create new `scripts/interfaces/i_input_device_manager.gd` file
+  - Add interface methods: get_mobile_controls(), get_active_device()
+  - Update `scripts/managers/m_input_device_manager.gd` to extend I_InputDeviceManager
+  - Create mocks if needed for testing
+  - Update consumer files to replace `has_method()` with typed casts
+  - Run Input tests to verify
