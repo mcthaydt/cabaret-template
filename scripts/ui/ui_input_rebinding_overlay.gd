@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/utility.svg")
-extends "res://scripts/ui/base/base_overlay.gd"
+extends "res://scripts/interfaces/i_rebind_overlay.gd"
 class_name UI_InputRebindingOverlay
 
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
@@ -453,3 +453,39 @@ func _navigate_focus(direction: StringName) -> void:
 ## Returns: "keyboard", "mouse", "gamepad", or "unknown"
 func _get_event_device_type(event: InputEvent) -> String:
 	return U_RebindActionListBuilder.get_event_device_type(event)
+
+# Public interface methods (delegate to private implementations)
+# Phase 9: Duck Typing Cleanup - Added to implement I_RebindOverlay interface
+
+func begin_capture(action: StringName, mode: String) -> void:
+	_begin_capture(action, mode)
+
+func reset_single_action(action: StringName) -> void:
+	_reset_single_action(action)
+
+func connect_row_focus_handlers(row: Control, add_button: Button, replace_button: Button, reset_button: Button) -> void:
+	_connect_row_focus_handlers(row, add_button, replace_button, reset_button)
+
+func is_reserved(action: StringName) -> bool:
+	return _is_reserved(action)
+
+func refresh_bindings() -> void:
+	_refresh_bindings()
+
+func set_reset_button_enabled(enabled: bool) -> void:
+	_set_reset_button_enabled(enabled)
+
+func configure_focus_neighbors() -> void:
+	_configure_focus_neighbors()
+
+func apply_focus() -> void:
+	_apply_focus()
+
+func get_active_device_category() -> String:
+	return _get_active_device_category()
+
+func is_binding_custom(action: StringName) -> bool:
+	return _is_binding_custom(action)
+
+func get_active_profile() -> RS_InputProfile:
+	return _get_active_profile()

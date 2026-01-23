@@ -5,6 +5,7 @@ const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 const U_UISoundPlayer := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
+const I_REBIND_OVERLAY := preload("res://scripts/interfaces/i_rebind_overlay.gd")
 
 const REPLACE_BUTTON_TEXT := "Replace"
 const ADD_BUTTON_TEXT := "Add Binding"
@@ -72,6 +73,11 @@ static func build_action_rows(
 	if action_list == null:
 		return
 
+	var typed_overlay := overlay as I_REBIND_OVERLAY
+	if typed_overlay == null:
+		push_error("U_RebindActionListBuilder: overlay must be I_RebindOverlay")
+		return
+
 	for child in action_list.get_children():
 		child.queue_free()
 	action_rows.clear()
@@ -129,8 +135,7 @@ static func build_action_rows(
 			add_button.tooltip_text = "Add an additional binding for this action"
 			add_button.pressed.connect(func() -> void:
 				U_UISoundPlayer.play_confirm()
-				if overlay.has_method("_begin_capture"):
-					overlay._begin_capture(action, U_InputActions.REBIND_MODE_ADD)
+				typed_overlay.begin_capture(action, U_InputActions.REBIND_MODE_ADD)
 			)
 			button_row.add_child(add_button)
 
@@ -140,8 +145,7 @@ static func build_action_rows(
 			replace_button.tooltip_text = "Replace all bindings for this action"
 			replace_button.pressed.connect(func() -> void:
 				U_UISoundPlayer.play_confirm()
-				if overlay.has_method("_begin_capture"):
-					overlay._begin_capture(action, U_InputActions.REBIND_MODE_REPLACE)
+				typed_overlay.begin_capture(action, U_InputActions.REBIND_MODE_REPLACE)
 			)
 			button_row.add_child(replace_button)
 
@@ -151,8 +155,7 @@ static func build_action_rows(
 			reset_button.tooltip_text = "Reset this action to default binding"
 			reset_button.pressed.connect(func() -> void:
 				U_UISoundPlayer.play_confirm()
-				if overlay.has_method("_reset_single_action"):
-					overlay._reset_single_action(action)
+				typed_overlay.reset_single_action(action)
 			)
 			button_row.add_child(reset_button)
 
@@ -175,10 +178,9 @@ static func build_action_rows(
 				"category_header": category_header
 			}
 
-			if overlay.has_method("_connect_row_focus_handlers"):
-				overlay._connect_row_focus_handlers(row, add_button, replace_button, reset_button)
+			typed_overlay.connect_row_focus_handlers(row, add_button, replace_button, reset_button)
 
-			if overlay.has_method("_is_reserved") and overlay._is_reserved(action):
+			if typed_overlay.is_reserved(action):
 				add_button.disabled = true
 				replace_button.disabled = true
 				reset_button.disabled = true
@@ -188,18 +190,15 @@ static func build_action_rows(
 
 			_add_spacer(action_list, ROW_SPACING)
 
-	if overlay.has_method("_refresh_bindings"):
-		overlay._refresh_bindings()
-	if overlay.has_method("_set_reset_button_enabled"):
-		overlay._set_reset_button_enabled(overlay._profile_manager != null and not overlay._is_capturing)
-	if overlay.has_method("_configure_focus_neighbors"):
-		overlay._configure_focus_neighbors()
+	typed_overlay.refresh_bindings()
+	typed_overlay.set_reset_button_enabled(overlay._profile_manager != null and not overlay._is_capturing)
+	typed_overlay.configure_focus_neighbors()
 
-	if not focusable_actions.is_empty() and overlay.has_method("_apply_focus"):
+	if not focusable_actions.is_empty():
 		overlay._focused_action_index = 0
 		overlay._is_on_bottom_row = false
 		overlay._row_button_index = 0
-		overlay._apply_focus()
+		typed_overlay.apply_focus()
 	else:
 		overlay._focused_action_index = -1
 		overlay._is_on_bottom_row = false
@@ -208,10 +207,11 @@ static func refresh_bindings(overlay: Node, action_rows: Dictionary) -> void:
 	if overlay == null:
 		return
 
-	if not overlay.has_method("_get_active_device_category"):
+	var typed_overlay := overlay as I_REBIND_OVERLAY
+	if typed_overlay == null:
 		return
 
-	var device_category: String = overlay._get_active_device_category()
+	var device_category: String = typed_overlay.get_active_device_category()
 	var device_type_for_registry: int = M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE
 	if device_category == "gamepad":
 		device_type_for_registry = M_InputDeviceManager.DeviceType.GAMEPAD
@@ -250,7 +250,7 @@ static func refresh_bindings(overlay: Node, action_rows: Dictionary) -> void:
 		else:
 			_populate_binding_visuals(binding_container, action, display_events, device_type_for_registry)
 
-		var is_custom: bool = overlay._is_binding_custom(action) if overlay.has_method("_is_binding_custom") else false
+		var is_custom: bool = typed_overlay.is_binding_custom(action)
 		if is_custom and name_label != null:
 			name_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.4, 1.0))
 			binding_container.modulate = Color(1.0, 0.8, 0.4, 1.0)
@@ -261,7 +261,7 @@ static func refresh_bindings(overlay: Node, action_rows: Dictionary) -> void:
 		var add_button: Button = data.get("add_button")
 		var replace_button: Button = data.get("replace_button")
 		var reset_button: Button = data.get("reset_button")
-		var reserved: bool = overlay._is_reserved(action) if overlay.has_method("_is_reserved") else false
+		var reserved: bool = typed_overlay.is_reserved(action)
 
 		if add_button != null:
 			if reserved:
@@ -299,8 +299,8 @@ static func refresh_bindings(overlay: Node, action_rows: Dictionary) -> void:
 			else:
 				reset_button.disabled = overlay._is_capturing
 
-	if not overlay._is_capturing and overlay.has_method("_set_reset_button_enabled"):
-		overlay._set_reset_button_enabled(overlay._profile_manager != null)
+	if not overlay._is_capturing:
+		typed_overlay.set_reset_button_enabled(overlay._profile_manager != null)
 
 static func format_action_name(action: StringName) -> String:
 	var text := String(action)
@@ -340,9 +340,10 @@ static func _collect_actions(overlay: Node) -> Array[StringName]:
 			actions.append(action)
 			seen[action] = true
 
+	var typed_overlay := overlay as I_REBIND_OVERLAY
 	var profile: Object = null
-	if overlay.has_method("_get_active_profile"):
-		profile = overlay._get_active_profile()
+	if typed_overlay != null:
+		profile = typed_overlay.get_active_profile()
 
 	if profile != null and "action_mappings" in profile:
 		for key in profile.action_mappings.keys():
