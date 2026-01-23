@@ -25,7 +25,7 @@ func test_loads_valid_resource_entry_and_skips_duplicates() -> void:
     # Create a valid resource entry .tres
     var entry := RS_SceneRegistryEntry.new()
     entry.scene_id = _tmp_scene_id
-    entry.scene_path = "res://scenes/tmp_invalid_gameplay.tscn"  # existing test scene path
+    entry.scene_path = "res://tests/scenes/tmp_invalid_gameplay.tscn"  # existing test scene path
     entry.scene_type = 1  # GAMEPLAY
     entry.default_transition = "instant"
     entry.preload_priority = 0
@@ -43,7 +43,7 @@ func test_loader_accepts_trailing_slash_dir_path() -> void:
     # Ensure our temp entry exists on disk
     var entry := RS_SceneRegistryEntry.new()
     entry.scene_id = _tmp_scene_id
-    entry.scene_path = "res://scenes/tmp_invalid_gameplay.tscn"
+    entry.scene_path = "res://tests/scenes/tmp_invalid_gameplay.tscn"
     entry.scene_type = 1  # GAMEPLAY
     entry.default_transition = "instant"
     entry.preload_priority = 0

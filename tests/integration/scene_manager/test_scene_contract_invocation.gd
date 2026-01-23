@@ -84,7 +84,7 @@ func test_transition_invokes_validation_for_non_test_scene() -> void:
     # Register a temporary gameplay scene outside res://tests path
     U_SceneRegistry._register_scene(
         StringName("tmp_invalid_gameplay"),
-        "res://scenes/tmp_invalid_gameplay.tscn",
+		"res://tests/scenes/tmp_invalid_gameplay.tscn",
         U_SceneRegistry.SceneType.UI,  # Use UI to avoid contract warnings/errors
         "instant",
         0
