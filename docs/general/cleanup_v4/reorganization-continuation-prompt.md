@@ -18,7 +18,7 @@
 ## Current Status
 
 - **Phase**: 1 (Quick Wins)
-- **Completed**: 2/23 (8.7%)
+- **Completed**: 3/23 (13.0%)
 - **Current batch**: Batch 1 - Zero-Risk Quick Wins
 
 ---
@@ -26,8 +26,7 @@
 ## Resume Here
 
 **Next tasks to execute (Batch 1)**:
-1. Task 3: Move prototype scripts to `tests/prototypes/`
-2. Task 4: Move ECS helpers to `scripts/utils/ecs/`
+1. Task 4: Move ECS helpers to `scripts/utils/ecs/`
 
 See `reorganization-tasks.md` for full details, commands, and verification steps.
 

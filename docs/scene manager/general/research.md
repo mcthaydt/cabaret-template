@@ -234,7 +234,7 @@ TransitionOverlay (CanvasLayer)
 
 **Created Files**:
 - `scenes/root_prototype.tscn`: Minimal root scene with M_StateStore and ActiveSceneContainer
-- `scripts/prototypes/prototype_scene_restructuring.gd`: Validation test script
+- `tests/prototypes/prototype_scene_restructuring.gd`: Validation test script
 
 **Prototype Structure**:
 ```
@@ -445,7 +445,7 @@ const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_ini
 
 **Created Files**:
 - `scenes/prototypes/camera_blend_test.tscn`: Test scene with two Camera3D nodes and blend camera
-- `scripts/prototypes/prototype_camera_blending.gd`: Validation test script
+- `tests/prototypes/prototype_camera_blending.gd`: Validation test script
 
 **Test Setup**:
 ```

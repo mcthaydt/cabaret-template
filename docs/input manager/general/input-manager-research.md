@@ -11,7 +11,7 @@ This document records the findings from Phase 0 tasks (0.1‑0.6) so future phas
 
 ## 0.3 Prototype – Gamepad Detection & Latency
 
-Asset: `scripts/prototypes/prototype_gamepad.gd` (tests: `tests/unit/prototypes/test_prototype_gamepad.gd`)
+Asset: `tests/prototypes/prototype_gamepad.gd` (tests: `tests/unit/prototypes/test_prototype_gamepad.gd`)
 
 | Criteria | Finding |
 | --- | --- |
@@ -24,7 +24,7 @@ Asset: `scripts/prototypes/prototype_gamepad.gd` (tests: `tests/unit/prototypes/
 
 ## 0.4 Prototype – Touchscreen Input
 
-Asset: `scripts/prototypes/prototype_touch.gd` (tests: `tests/unit/prototypes/test_prototype_touch.gd`)
+Asset: `tests/prototypes/prototype_touch.gd` (tests: `tests/unit/prototypes/test_prototype_touch.gd`)
 
 - Virtual joystick math clamps drags to unit circle; 0.2 deadzone zeroes subtle taps.
 - Multi-touch: separate IDs keep joystick + button presses independent (one finger can drag joystick while another holds HUD button).
@@ -35,7 +35,7 @@ Asset: `scripts/prototypes/prototype_touch.gd` (tests: `tests/unit/prototypes/te
 
 ## 0.5 Prototype – Keyboard/Mouse Latency Benchmark
 
-Asset: `scripts/prototypes/benchmark_input_latency.gd` (tests: `tests/unit/prototypes/test_benchmark_input_latency.gd`)
+Asset: `tests/prototypes/benchmark_input_latency.gd` (tests: `tests/unit/prototypes/test_benchmark_input_latency.gd`)
 
 | Device | Sample Latency | Status |
 | --- | --- | --- |
@@ -49,7 +49,7 @@ Notes:
 
 ## 0.6 Prototype – InputMap Modification Safety
 
-Asset: `scripts/prototypes/prototype_inputmap_safety.gd` (tests: `tests/unit/prototypes/test_prototype_inputmap_safety.gd`)
+Asset: `tests/prototypes/prototype_inputmap_safety.gd` (tests: `tests/unit/prototypes/test_prototype_inputmap_safety.gd`)
 
 - Captures default events per action, duplicates deeply, and restores them without mutating stored references.
 - Removing bindings uses `InputEvent.is_match`, so equivalent event instances remove correctly (important for serialized bindings).

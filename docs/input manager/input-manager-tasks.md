@@ -14,10 +14,10 @@
 
 - [x] Task 0.1: Run Baseline Tests - FR-128 *(2025-11-06, GUT suite green)*
 - [x] Task 0.2: Review Project Patterns *(2025-11-06, patterns logged in research)*
-- [x] Task 0.3: Prototype Gamepad Input Detection (TDD) - FR-033, FR-034, FR-035 *(scripts/prototypes/prototype_gamepad.gd + tests/unit/prototypes/test_prototype_gamepad.gd)*
-- [x] Task 0.4: Prototype Touchscreen Input (TDD) - FR-046, FR-047, FR-048 *(scripts/prototypes/prototype_touch.gd + tests/unit/prototypes/test_prototype_touch.gd)*
-- [x] Task 0.5: Measure Baseline Input Latency - FR-116 *(scripts/prototypes/benchmark_input_latency.gd + tests/unit/prototypes/test_benchmark_input_latency.gd)*
-- [x] Task 0.6: Validate InputMap Modification Safety (TDD) - FR-015, FR-017 *(scripts/prototypes/prototype_inputmap_safety.gd + tests/unit/prototypes/test_prototype_inputmap_safety.gd)*
+- [x] Task 0.3: Prototype Gamepad Input Detection (TDD) - FR-033, FR-034, FR-035 *(tests/prototypes/prototype_gamepad.gd + tests/unit/prototypes/test_prototype_gamepad.gd)*
+- [x] Task 0.4: Prototype Touchscreen Input (TDD) - FR-046, FR-047, FR-048 *(tests/prototypes/prototype_touch.gd + tests/unit/prototypes/test_prototype_touch.gd)*
+- [x] Task 0.5: Measure Baseline Input Latency - FR-116 *(tests/prototypes/benchmark_input_latency.gd + tests/unit/prototypes/test_benchmark_input_latency.gd)*
+- [x] Task 0.6: Validate InputMap Modification Safety (TDD) - FR-015, FR-017 *(tests/prototypes/prototype_inputmap_safety.gd + tests/unit/prototypes/test_prototype_inputmap_safety.gd)*
 - [x] Task 0.7: Design File Structure (Resources in scripts/ecs/resources/, NO scripts/input/) *(docs/input manager/general/input-manager-file-structure.md)*
 - [x] Task 0.8: Create Research Documentation *(docs/input manager/general/input-manager-research.md)*
 - [x] Task 0.9: Integration Point Validation (TDD) - Test manager discovery, state dispatch, ECS registration *(tests/unit/integration/test_input_manager_integration_points.gd)*

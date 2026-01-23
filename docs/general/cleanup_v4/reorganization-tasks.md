@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (2/23 tasks complete)
+**Status**: In Progress (3/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -14,12 +14,12 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 
 | Phase | Tasks | Completed | Risk Level |
 |-------|-------|-----------|------------|
-| Phase 1: Quick Wins | 4 | 2/4 | Low |
+| Phase 1: Quick Wins | 4 | 3/4 | Low |
 | Phase 2: Naming Fixes | 4 | 0/4 | Medium |
 | Phase 3: Folder Restructuring | 8 | 0/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **2/23 (8.7%)** | - |
+| **TOTAL** | **23** | **3/23 (13.0%)** | - |
 
 ---
 
@@ -90,29 +90,31 @@ git add . && git commit -m "refactor: move prototype scenes to tests folder"
 
 ---
 
-### Task 3: Move Prototype Scripts PENDING
+### Task 3: Move Prototype Scripts COMPLETE
 
-- [ ] Create `tests/prototypes/` directory
-- [ ] Move all 6 files from `scripts/prototypes/`:
+- [x] Create `tests/prototypes/` directory
+- [x] Move all 6 files from `scripts/prototypes/`:
   - `prototype_gamepad.gd`
   - `prototype_touch.gd`
   - `prototype_inputmap_safety.gd`
   - `benchmark_input_latency.gd`
   - `prototype_scene_restructuring.gd`
   - `prototype_camera_blending.gd`
-- [ ] Move corresponding `.uid` files
-- [ ] Remove `scripts/prototypes/` directory
-- [ ] Verify no references (grep for `res://scripts/prototypes`)
+- [x] Move corresponding `.uid` files
+- [x] Remove `scripts/prototypes/` directory
+- [x] Verify no references (grep for `res://scripts/prototypes`)
 
-**Status**: READY TO EXECUTE
+**Status**: COMPLETE (2026-01-23)
 **Files affected**: 6 (.gd files) + 6 (.uid files) = 12 total
-**References expected**: 0
+**References expected**: Yes (tests + prototype scenes)
 **Risk**: Low
+**Notes**: Removed `class_name` from prototype scripts and loosened adapter typing to avoid global class conflicts in headless tests.
 
 **Execution Commands**:
 ```bash
 mkdir -p tests/prototypes
-git mv scripts/prototypes/* tests/prototypes/
+git mv scripts/prototypes/*.gd tests/prototypes/
+mv scripts/prototypes/*.gd.uid tests/prototypes/
 rmdir scripts/prototypes
 grep -r "res://scripts/prototypes" . --include="*.gd" --include="*.tscn"
 git add . && git commit -m "refactor: move prototype scripts to tests folder"
@@ -642,7 +644,7 @@ scripts/events/
 
 ### Batch 1: Zero-Risk Quick Wins (Execute First)
 - Task 2: Move prototype scenes (done)
-- Task 3: Move prototype scripts
+- Task 3: Move prototype scripts (done)
 - Task 4: Move ECS helpers
 
 ### Batch 2: Naming Fixes (Needs Scanning)

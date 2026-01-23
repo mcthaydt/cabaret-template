@@ -718,7 +718,7 @@ But this is **NOT NECESSARY** since the component is already updated!
 
 **Reference Implementations:**
 - `scripts/ui/button_prompt.gd` (UI component pattern)
-- `scripts/prototypes/prototype_touch.gd` (touch handling logic)
+- `tests/prototypes/prototype_touch.gd` (touch handling logic)
 
 **VirtualJoystick Structure:**
 ```gdscript

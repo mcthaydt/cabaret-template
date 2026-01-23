@@ -70,7 +70,7 @@ tests/
 ### UI + Utilities
 - `scripts/ui/input_prompts/u_button_prompt_registry.gd` – Maps logical actions to prompt textures.
 - `scripts/ui/mobile_controls/virtual_joystick.gd` / `virtual_button.gd` – Control scripts instanced in `mobile_controls.tscn`.
-- Prototypes stay under `scripts/prototypes/` (already housing gamepad, touch, latency, InputMap research helpers).
+- Prototypes stay under `tests/prototypes/` (already housing gamepad, touch, latency, InputMap research helpers).
 
 ## Scenes & UI
 
