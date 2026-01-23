@@ -51,3 +51,22 @@ func push_overlay(_scene_id: StringName, _force: bool = false) -> void:
 ## Pop the top overlay scene from the overlay stack.
 func pop_overlay() -> void:
 	push_error("I_SceneManager.pop_overlay not implemented")
+
+## Register HUD controller for transition coordination
+##
+## @param hud: CanvasLayer HUD controller to register
+func register_hud_controller(_hud: CanvasLayer) -> void:
+	push_error("I_SceneManager.register_hud_controller not implemented")
+
+## Unregister HUD controller
+##
+## @param hud: Optional CanvasLayer to unregister (null = unregister current)
+func unregister_hud_controller(_hud: CanvasLayer = null) -> void:
+	push_error("I_SceneManager.unregister_hud_controller not implemented")
+
+## Get the registered HUD controller
+##
+## @return CanvasLayer: Current HUD controller, or null if none registered
+func get_hud_controller() -> CanvasLayer:
+	push_error("I_SceneManager.get_hud_controller not implemented")
+	return null

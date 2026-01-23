@@ -9,6 +9,7 @@ const UI_ButtonPrompt := preload("res://scripts/ui/ui_button_prompt.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_InteractBlocker := preload("res://scripts/utils/u_interact_blocker.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
 
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
@@ -82,13 +83,13 @@ func _exit_tree() -> void:
 		_unsubscribe_save_failed.call()
 
 func _register_with_scene_manager() -> void:
-	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager"))
-	if scene_manager != null and scene_manager.has_method("register_hud_controller"):
+	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SceneManager
+	if scene_manager != null:
 		scene_manager.register_hud_controller(self)
 
 func _unregister_from_scene_manager() -> void:
-	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager"))
-	if scene_manager != null and scene_manager.has_method("unregister_hud_controller"):
+	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SceneManager
+	if scene_manager != null:
 		scene_manager.unregister_hud_controller(self)
 
 func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void:

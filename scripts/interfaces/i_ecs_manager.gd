@@ -70,6 +70,14 @@ func get_cached_entity_for(_node: Node) -> Node:
 func update_entity_tags(_entity: Node) -> void:
 	push_error("I_ECSManager.update_entity_tags not implemented")
 
+## Get entity by its unique ID
+##
+## @param id: StringName entity ID to look up
+## @return Node: Entity node with matching ID, or null if not found
+func get_entity_by_id(_id: StringName) -> Node:
+	push_error("I_ECSManager.get_entity_by_id not implemented")
+	return null
+
 ## Mark systems as dirty to trigger re-sorting
 ##
 ## Used when system priority changes at runtime

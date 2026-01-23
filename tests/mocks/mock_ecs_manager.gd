@@ -21,6 +21,7 @@ var _entity_components: Dictionary = {}  # Node → Dictionary[StringName, BaseE
 var _registered_systems: Array[BaseECSSystem] = []
 var _entity_cache: Dictionary = {}  # Node → Node (cached entity roots)
 var _systems_dirty: bool = false
+var _entity_by_id: Dictionary = {}  # StringName → Node (entity ID lookup)
 
 func get_components(component_type: StringName) -> Array:
 	if not _components.has(component_type):
@@ -104,6 +105,9 @@ func update_entity_tags(_entity: Node) -> void:
 	# No-op for mock - tag indexing not implemented
 	pass
 
+func get_entity_by_id(id: StringName) -> Node:
+	return _entity_by_id.get(id, null) as Node
+
 func mark_systems_dirty() -> void:
 	_systems_dirty = true
 
@@ -129,6 +133,11 @@ func reset() -> void:
 	_registered_systems.clear()
 	_entity_cache.clear()
 	_systems_dirty = false
+	_entity_by_id.clear()
+
+## Register an entity by ID (test helper)
+func register_entity_id(entity_id: StringName, entity: Node) -> void:
+	_entity_by_id[entity_id] = entity
 
 ## Find the entity root for a component
 func _find_entity_root(component: BaseECSComponent) -> Node:

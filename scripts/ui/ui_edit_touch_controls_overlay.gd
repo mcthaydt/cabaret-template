@@ -156,8 +156,7 @@ func _on_reset_pressed() -> void:
 	var typed_manager := _profile_manager as I_INPUT_PROFILE_MANAGER
 	if typed_manager != null:
 		default_buttons = typed_manager.reset_touchscreen_positions()
-	if _profile_manager != null and _profile_manager.has_method("get_default_joystick_position"):
-		default_joystick_position = _profile_manager.get_default_joystick_position()
+		default_joystick_position = typed_manager.get_default_joystick_position()
 
 	var default_button_positions: Dictionary = {}
 	for default_data in default_buttons:
@@ -196,12 +195,8 @@ func _apply_default_positions(default_buttons: Array, default_joystick_position:
 
 	# Apply joystick default position
 	var joystick := _mobile_controls.get_node_or_null("Controls/VirtualJoystick") as Control
-	if joystick != null and _profile_manager != null and _profile_manager.has_method("get_default_joystick_position"):
-		var default_pos: Vector2 = default_joystick_position
-		if default_pos == Vector2(-1, -1):
-			default_pos = _profile_manager.get_default_joystick_position()
-		if default_pos is Vector2 and default_pos != Vector2(-1, -1):
-			joystick.position = default_pos
+	if joystick != null and default_joystick_position != Vector2(-1, -1):
+		joystick.position = default_joystick_position
 
 	# Apply button default positions
 	var buttons: Array = _mobile_controls.get_buttons()

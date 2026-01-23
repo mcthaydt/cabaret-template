@@ -40,3 +40,12 @@ func reset_action(_action: StringName) -> void:
 func reset_touchscreen_positions() -> Array[Dictionary]:
 	push_error("I_InputProfileManager.reset_touchscreen_positions not implemented")
 	return []
+
+## Get default joystick position
+##
+## Returns the default position for the virtual joystick from the default profile
+##
+## @return Vector2: Default joystick position, or Vector2(-1, -1) if not configured
+func get_default_joystick_position() -> Vector2:
+	push_error("I_InputProfileManager.get_default_joystick_position not implemented")
+	return Vector2(-1, -1)

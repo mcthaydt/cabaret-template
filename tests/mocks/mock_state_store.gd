@@ -101,6 +101,15 @@ func get_slice_configs() -> Dictionary:
 func is_ready() -> bool:
 	return _is_ready
 
+func apply_loaded_state(loaded_state: Dictionary) -> void:
+	# Replace state with loaded state
+	_state = loaded_state.duplicate(true)
+	# Emit slice_updated for each slice
+	for slice_name in loaded_state.keys():
+		var slice_data: Dictionary = loaded_state.get(slice_name, {})
+		if slice_data is Dictionary:
+			slice_updated.emit(StringName(slice_name), slice_data.duplicate(true))
+
 ## Test helpers
 
 ## Pre-configure a state slice for testing

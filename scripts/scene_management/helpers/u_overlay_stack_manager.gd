@@ -12,6 +12,7 @@ class_name U_OverlayStackManager
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_UI_REGISTRY := preload("res://scripts/ui/u_ui_registry.gd")
+const I_StateStore := preload("res://scripts/interfaces/i_state_store.gd")
 
 var _overlay_scene_ids: Dictionary = {}
 static var _overlay_id_registry: Dictionary = {}
@@ -62,8 +63,9 @@ func push_overlay(scene_id: StringName, force: bool, load_scene: Callable, ui_ov
 	_configure_overlay_scene(overlay_scene, scene_id)
 	ui_overlay_stack.add_child(overlay_scene)
 
-	if store != null and store.has_method("dispatch"):
-		store.dispatch(U_SCENE_ACTIONS.push_overlay(scene_id))
+	var typed_store := store as I_StateStore
+	if typed_store != null:
+		typed_store.dispatch(U_SCENE_ACTIONS.push_overlay(scene_id))
 
 	if on_overlay_stack_updated != null and on_overlay_stack_updated.is_valid():
 		on_overlay_stack_updated.call()
@@ -76,8 +78,9 @@ func pop_overlay(ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_
 	if overlay_count == 0:
 		return
 
-	if store != null and store.has_method("dispatch"):
-		store.dispatch(U_SCENE_ACTIONS.pop_overlay())
+	var typed_store := store as I_StateStore
+	if typed_store != null:
+		typed_store.dispatch(U_SCENE_ACTIONS.pop_overlay())
 
 	var top_overlay: Node = ui_overlay_stack.get_child(overlay_count - 1)
 	# Ensure the node is queued for deletion while it is still in the scene tree.

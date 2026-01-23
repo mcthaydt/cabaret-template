@@ -53,8 +53,9 @@ func process_tick(_delta: float) -> void:
 			continue
 
 		var position := Vector3.ZERO
-		if manager != null and manager.has_method("get_entity_by_id"):
-			var entity := manager.get_entity_by_id(entity_id) as Node
+		var typed_manager := manager as I_ECSManager
+		if typed_manager != null:
+			var entity := typed_manager.get_entity_by_id(entity_id) as Node
 			var entity_3d := entity as Node3D
 			if entity_3d != null and is_instance_valid(entity_3d):
 				position = entity_3d.global_position

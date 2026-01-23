@@ -837,11 +837,11 @@ func test_load_from_slot_preserves_state_to_handoff() -> void:
 	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
 	assert_eq(result, OK, "Load should succeed")
 
-	# Verify state was preserved to handoff
-	var restored_gameplay: Dictionary = U_STATE_HANDOFF.restore_slice(StringName("gameplay"))
-	assert_false(restored_gameplay.is_empty(), "Gameplay state should be preserved to handoff")
-	assert_eq(int(restored_gameplay.get("playtime_seconds")), 500, "Preserved state should match saved data")
-	assert_eq(restored_gameplay.get("player_health"), 50.0, "Preserved state should include health")
+	# Verify state was applied to store (via apply_loaded_state interface method)
+	var restored_gameplay: Dictionary = _mock_store.get_slice(StringName("gameplay"))
+	assert_false(restored_gameplay.is_empty(), "Gameplay state should be applied to store")
+	assert_eq(restored_gameplay.get("playtime_seconds"), 500, "Applied state should match saved data")
+	assert_eq(restored_gameplay.get("player_health"), 50.0, "Applied state should include health")
 
 func test_load_from_slot_triggers_scene_transition() -> void:
 	_save_manager = _create_save_manager()
@@ -1072,8 +1072,8 @@ func test_load_falls_back_to_backup_when_main_file_invalid() -> void:
 	assert_eq(result, OK, "Should successfully load from backup when main file is corrupted")
 
 	# Verify state was loaded from backup (should have playtime=100, the first save)
-	var gameplay_state: Dictionary = U_STATE_HANDOFF.restore_slice(StringName("gameplay"))
-	assert_eq(int(gameplay_state.get("playtime_seconds")), 100, "Should load data from backup file")
+	var gameplay_state: Dictionary = _mock_store.get_slice(StringName("gameplay"))
+	assert_eq(gameplay_state.get("playtime_seconds"), 100, "Should load data from backup file")
 
 func test_load_fails_when_both_main_and_backup_corrupted() -> void:
 	_save_manager = _create_save_manager()

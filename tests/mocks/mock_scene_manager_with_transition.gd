@@ -12,6 +12,7 @@ var _is_transitioning: bool = false
 var _transition_called: bool = false
 var _transition_target: StringName = StringName("")
 var _transition_type: String = ""
+var _hud_controller: CanvasLayer = null
 
 func is_transitioning() -> bool:
 	return _is_transitioning
@@ -32,3 +33,12 @@ func push_overlay(_scene_id: StringName, _force: bool = false) -> void:
 
 func pop_overlay() -> void:
 	pass
+
+func register_hud_controller(hud: CanvasLayer) -> void:
+	_hud_controller = hud
+
+func unregister_hud_controller(_hud: CanvasLayer = null) -> void:
+	_hud_controller = null
+
+func get_hud_controller() -> CanvasLayer:
+	return _hud_controller

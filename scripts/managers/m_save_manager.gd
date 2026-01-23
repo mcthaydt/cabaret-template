@@ -309,8 +309,9 @@ func load_from_slot(slot_id: StringName) -> Error:
 
 	# Apply loaded state directly to M_StateStore
 	# This updates all slices immediately before scene transition
-	if _state_store.has_method("apply_loaded_state"):
-		_state_store.apply_loaded_state(loaded_state)
+	var typed_store := _state_store as I_StateStore
+	if typed_store != null:
+		typed_store.apply_loaded_state(loaded_state)
 	else:
 		# Fallback: preserve to StateHandoff (legacy behavior)
 		for slice_name in loaded_state:

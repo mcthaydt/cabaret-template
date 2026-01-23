@@ -47,3 +47,11 @@ func get_slice(_slice_name: StringName) -> Dictionary:
 func is_ready() -> bool:
 	push_error("I_StateStore.is_ready not implemented")
 	return false
+
+## Apply loaded state from save file
+##
+## Directly updates all slices with loaded state data
+##
+## @param loaded_state: Dictionary containing state slices to restore
+func apply_loaded_state(_loaded_state: Dictionary) -> void:
+	push_error("I_StateStore.apply_loaded_state not implemented")

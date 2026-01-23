@@ -5,6 +5,7 @@ const LOADING_SCREEN_SCENE := preload("res://scenes/ui/ui_loading_screen.tscn")
 const HUD_GROUP := StringName("hud_layers")
 const U_TweenManager = preload("res://scripts/scene_management/u_tween_manager.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
 
 ## Loading screen transition effect
 ##
@@ -316,9 +317,9 @@ func _get_random_tip() -> String:
 	return loading_tips[index]
 
 func _resolve_hud_controller(tree: SceneTree) -> CanvasLayer:
-	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager"))
-	if scene_manager != null and scene_manager.has_method("get_hud_controller"):
-		var hud := scene_manager.call("get_hud_controller") as CanvasLayer
+	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SceneManager
+	if scene_manager != null:
+		var hud := scene_manager.get_hud_controller() as CanvasLayer
 		if hud != null and is_instance_valid(hud):
 			return hud
 
