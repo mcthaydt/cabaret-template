@@ -176,14 +176,14 @@ func test_apply_closes_overlays_and_resumes() -> void:
 	var pause_menu := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	var settings_button := pause_menu.get_node("CenterContainer/VBoxContainer/SettingsButton") as Button
 	settings_button.emit_signal("pressed")
-	await wait_physics_frames(2)
-	_debug_overlay_snapshot("after SettingsButton pressed + wait(2)")
+	await wait_physics_frames(4)
+	_debug_overlay_snapshot("after SettingsButton pressed + wait(4)")
 
 	var settings_overlay := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	var profiles_button := settings_overlay.get_node("CenterContainer/VBoxContainer/InputProfilesButton") as Button
 	profiles_button.emit_signal("pressed")
-	await wait_physics_frames(2)
-	_debug_overlay_snapshot("after InputProfilesButton pressed + wait(2)")
+	await wait_physics_frames(4)
+	_debug_overlay_snapshot("after InputProfilesButton pressed + wait(4)")
 
 	# Press Apply on the selector
 	var selector := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
@@ -191,6 +191,9 @@ func test_apply_closes_overlays_and_resumes() -> void:
 	assert_not_null(apply_button, "ApplyButton should exist on input profile selector overlay")
 	apply_button.emit_signal("pressed")
 	_debug_overlay_snapshot("after ApplyButton pressed")
+
+	# Allow a few frames for the action to propagate and reconciliation to start
+	await wait_physics_frames(2)
 
 	# Wait for overlay stack to reconcile (overlay pop happens asynchronously via Redux/navigation)
 	# Manual polling loop with timeout for reliability.
