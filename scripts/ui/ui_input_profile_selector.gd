@@ -11,6 +11,7 @@ const RS_InputProfile := preload("res://scripts/input/resources/rs_input_profile
 const U_ButtonPromptRegistry := preload("res://scripts/ui/u_button_prompt_registry.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 
 @onready var _profile_button: Button = $CenterContainer/Panel/MainContainer/ProfileRow/ProfileButton
 @onready var _apply_button: Button = %ApplyButton
@@ -361,7 +362,8 @@ func _get_selected_profile() -> RS_InputProfile:
 		return null
 
 	var profile_id := _available_profiles[_current_index]
-	if not _manager.has_method("get_active_profile") and not ("available_profiles" in _manager):
+	var typed_manager := _manager as I_INPUT_PROFILE_MANAGER
+	if typed_manager == null and not ("available_profiles" in _manager):
 		return null
 
 	if "available_profiles" in _manager:

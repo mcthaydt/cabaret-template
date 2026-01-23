@@ -15,6 +15,7 @@ const U_RebindActionListBuilder := preload("res://scripts/ui/helpers/u_rebind_ac
 const U_RebindCaptureHandler := preload("res://scripts/ui/helpers/u_rebind_capture_handler.gd")
 const U_RebindFocusNavigation := preload("res://scripts/ui/helpers/u_rebind_focus_navigation.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/default_rebind_settings.tres")
 
 @onready var _action_list: VBoxContainer = %ActionList
@@ -121,11 +122,10 @@ func _build_action_rows() -> void:
 	)
 
 func _get_active_profile() -> RS_InputProfile:
-	if _profile_manager == null:
-		return null
-	if _profile_manager.has_method("get_active_profile"):
-		return _profile_manager.get_active_profile()
-	if "active_profile" in _profile_manager:
+	var typed_manager := _profile_manager as I_INPUT_PROFILE_MANAGER
+	if typed_manager != null:
+		return typed_manager.get_active_profile()
+	if _profile_manager != null and "active_profile" in _profile_manager:
 		return _profile_manager.active_profile
 	return null
 
@@ -308,8 +308,9 @@ func _on_reset_pressed() -> void:
 func _on_reset_confirmed() -> void:
 	U_UISoundPlayer.play_confirm()
 	_set_reset_button_enabled(false)
-	if _profile_manager != null and _profile_manager.has_method("reset_to_defaults"):
-		_profile_manager.reset_to_defaults()
+	var typed_manager := _profile_manager as I_INPUT_PROFILE_MANAGER
+	if typed_manager != null:
+		typed_manager.reset_to_defaults()
 		# Note: bindings_reset signal will trigger _refresh_bindings() automatically
 	else:
 		_show_error("Reset to defaults unavailable.")
@@ -351,8 +352,9 @@ func _reset_single_action(action: StringName) -> void:
 	if _is_reserved(action):
 		_show_error("Cannot reset reserved action.")
 		return
-	if _profile_manager != null and _profile_manager.has_method("reset_action"):
-		_profile_manager.reset_action(action)
+	var typed_manager := _profile_manager as I_INPUT_PROFILE_MANAGER
+	if typed_manager != null:
+		typed_manager.reset_action(action)
 		_refresh_bindings()
 		_update_status("Action '{action}' reset to default.".format({
 			"action": U_RebindActionListBuilder.format_action_name(action)

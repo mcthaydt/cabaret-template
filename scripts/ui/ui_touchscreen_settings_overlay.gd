@@ -12,6 +12,7 @@ const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigati
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 const U_TouchscreenPreviewBuilder := preload("res://scripts/ui/helpers/u_touchscreen_preview_builder.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 
 @onready var _joystick_size_slider: HSlider = %JoystickSizeSlider
 @onready var _button_size_slider: HSlider = %ButtonSizeSlider
@@ -312,8 +313,9 @@ func _on_reset_pressed() -> void:
 
 	_update_preview_from_sliders()
 
-	if _profile_manager != null and _profile_manager.has_method("reset_touchscreen_positions"):
-		_profile_manager.reset_touchscreen_positions()
+	var typed_manager := _profile_manager as I_INPUT_PROFILE_MANAGER
+	if typed_manager != null:
+		typed_manager.reset_touchscreen_positions()
 	var store := get_store()
 	if store != null:
 		store.dispatch(U_InputActions.update_touchscreen_settings({

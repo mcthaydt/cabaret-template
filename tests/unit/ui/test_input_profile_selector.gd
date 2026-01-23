@@ -13,11 +13,24 @@ const RS_GameplayInitialState := preload("res://scripts/state/resources/rs_gamep
 const RS_SceneInitialState := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
 const RS_SettingsInitialState := preload("res://scripts/state/resources/rs_settings_initial_state.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const I_InputProfileManager := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 
 class MockInputProfileManager:
-	extends Node
+	extends I_InputProfileManager
 
 	signal profile_switched(profile_id: String)
+
+	func get_active_profile() -> RS_InputProfile:
+		return null
+
+	func reset_to_defaults() -> void:
+		pass
+
+	func reset_action(_action: StringName) -> void:
+		pass
+
+	func reset_touchscreen_positions() -> Array[Dictionary]:
+		return []
 
 	func get_available_profile_ids() -> Array[String]:
 		return ["profile_a", "profile_b", "profile_c"]

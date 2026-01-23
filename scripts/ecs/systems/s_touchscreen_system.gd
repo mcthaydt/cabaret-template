@@ -18,6 +18,7 @@ const UI_VirtualJoystick := preload("res://scripts/ui/ui_virtual_joystick.gd")
 const UI_VirtualButton := preload("res://scripts/ui/ui_virtual_button.gd")
 const UI_MobileControls := preload("res://scripts/ui/ui_mobile_controls.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const I_INPUT_DEVICE_MANAGER := preload("res://scripts/interfaces/i_input_device_manager.gd")
 
 @export var force_enable: bool = false
 @export var emulate_mobile_override: bool = false
@@ -114,8 +115,8 @@ func _cache_buttons(buttons: Array) -> void:
 		_button_map[String(vb.action)] = vb
 
 func _resolve_mobile_controls() -> UI_MobileControls:
-	var manager := U_ServiceLocator.try_get_service(StringName("input_device_manager")) as M_InputDeviceManager
-	if manager != null and manager.has_method("get_mobile_controls"):
+	var manager := U_ServiceLocator.try_get_service(StringName("input_device_manager")) as I_INPUT_DEVICE_MANAGER
+	if manager != null:
 		var controls := manager.get_mobile_controls() as UI_MobileControls
 		if controls != null and is_instance_valid(controls):
 			return controls

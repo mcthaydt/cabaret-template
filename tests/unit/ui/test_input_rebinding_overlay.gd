@@ -12,6 +12,7 @@ const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd
 const BaseOverlay := preload("res://scripts/ui/base/base_overlay.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const I_InputProfileManager := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 
 var _store: TestStateStore
 var _profile_manager: ProfileManagerStub
@@ -404,7 +405,7 @@ func test_reset_button_invokes_manager_and_updates_status() -> void:
 	var status_label: Label = overlay.get_node("%StatusLabel")
 	assert_eq(status_label.text, "Bindings reset to defaults.", "Overlay should update status after reset")
 
-class ProfileManagerStub extends Node:
+class ProfileManagerStub extends I_InputProfileManager:
 	signal profile_switched(profile_id: String)
 	signal bindings_reset()
 	signal custom_binding_added(action: StringName, event: InputEvent)
@@ -446,6 +447,17 @@ class ProfileManagerStub extends Node:
 			return
 		_unsubscribe = store_ref.subscribe(_on_store_changed)
 		_apply_state_snapshot(store_ref.get_state())
+
+	func get_active_profile() -> RS_InputProfile:
+		return active_profile
+
+	func reset_action(_action: StringName) -> void:
+		# Not used in this test
+		pass
+
+	func reset_touchscreen_positions() -> Array[Dictionary]:
+		# Not used in this test
+		return []
 
 	func reset_to_defaults() -> void:
 		reset_call_count += 1

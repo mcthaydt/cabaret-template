@@ -9,6 +9,7 @@ const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd"
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const I_InputProfileManager := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 
 var _store: TestStateStore
 var _profile_manager_mock: ProfileManagerMock
@@ -358,11 +359,21 @@ class SceneManagerStub extends Node:
 		last_transition_type = transition_type
 		last_priority = priority
 
-class ProfileManagerMock extends Node:
+class ProfileManagerMock extends I_InputProfileManager:
 	var reset_called: bool = false
 
-	func reset_touchscreen_positions() -> void:
+	func get_active_profile() -> RS_InputProfile:
+		return null
+
+	func reset_to_defaults() -> void:
+		pass
+
+	func reset_action(_action: StringName) -> void:
+		pass
+
+	func reset_touchscreen_positions() -> Array[Dictionary]:
 		reset_called = true
+		return []
 
 class TestStateStore extends M_StateStore:
 	var dispatched_actions: Array = []

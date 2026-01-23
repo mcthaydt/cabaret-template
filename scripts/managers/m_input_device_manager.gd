@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/manager.svg")
-extends Node
+extends "res://scripts/interfaces/i_input_device_manager.gd"
 class_name M_InputDeviceManager
 
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")

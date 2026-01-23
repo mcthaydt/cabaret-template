@@ -1,8 +1,7 @@
 @icon("res://resources/editor_icons/manager.svg")
-extends Node
+extends "res://scripts/interfaces/i_input_profile_manager.gd"
 class_name M_InputProfileManager
 
-const RS_InputProfile = preload("res://scripts/input/resources/rs_input_profile.gd")
 const U_InputSerialization := preload("res://scripts/utils/u_input_serialization.gd")
 const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
 const M_InputProfileLoader := preload("res://scripts/managers/helpers/m_input_profile_loader.gd")

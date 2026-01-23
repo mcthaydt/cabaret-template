@@ -8,6 +8,8 @@ const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigati
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
+const I_INPUT_DEVICE_MANAGER := preload("res://scripts/interfaces/i_input_device_manager.gd")
+const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 
 @onready var _drag_mode_check: CheckButton = %DragModeCheck
 @onready var _cancel_button: Button = %CancelButton
@@ -51,8 +53,8 @@ func _resolve_input_profile_manager() -> Node:
 	return tree.get_first_node_in_group("input_profile_manager")
 
 func _resolve_mobile_controls() -> UI_MobileControls:
-	var input_manager := U_ServiceLocator.try_get_service(StringName("input_device_manager")) as M_InputDeviceManager
-	if input_manager != null and input_manager.has_method("get_mobile_controls"):
+	var input_manager := U_ServiceLocator.try_get_service(StringName("input_device_manager")) as I_INPUT_DEVICE_MANAGER
+	if input_manager != null:
 		var controls := input_manager.get_mobile_controls() as UI_MobileControls
 		if controls != null and is_instance_valid(controls):
 			return controls
@@ -151,8 +153,9 @@ func _on_reset_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	var default_buttons: Array = []
 	var default_joystick_position: Vector2 = Vector2(-1, -1)
-	if _profile_manager != null and _profile_manager.has_method("reset_touchscreen_positions"):
-		default_buttons = _profile_manager.reset_touchscreen_positions()
+	var typed_manager := _profile_manager as I_INPUT_PROFILE_MANAGER
+	if typed_manager != null:
+		default_buttons = typed_manager.reset_touchscreen_positions()
 	if _profile_manager != null and _profile_manager.has_method("get_default_joystick_position"):
 		default_joystick_position = _profile_manager.get_default_joystick_position()
 

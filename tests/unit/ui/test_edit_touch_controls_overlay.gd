@@ -15,6 +15,7 @@ const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd"
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const I_InputProfileManager := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 
 var _store: TestStateStore
 var _profile_manager_mock: ProfileManagerMock
@@ -188,7 +189,7 @@ func assert_vector_almost_eq(a: Vector2, b: Vector2, tolerance: float, message: 
 	assert_almost_eq(a.x, b.x, tolerance, message + " (x)")
 	assert_almost_eq(a.y, b.y, tolerance, message + " (y)")
 
-class ProfileManagerMock extends Node:
+class ProfileManagerMock extends I_InputProfileManager:
 	var reset_called: bool = false
 	var default_joystick_position: Vector2 = Vector2(120, 300)
 	var default_button_positions: Array = [
@@ -197,6 +198,15 @@ class ProfileManagerMock extends Node:
 		{"action": StringName("interact"), "position": Vector2(288, 260)},
 		{"action": StringName("pause"), "position": Vector2(811, 72)}
 	]
+
+	func get_active_profile() -> RS_InputProfile:
+		return null
+
+	func reset_to_defaults() -> void:
+		pass
+
+	func reset_action(_action: StringName) -> void:
+		pass
 
 	func reset_touchscreen_positions() -> Array[Dictionary]:
 		reset_called = true
