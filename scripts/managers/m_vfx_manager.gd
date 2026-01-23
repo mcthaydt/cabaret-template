@@ -1,5 +1,5 @@
 @icon("res://resources/editor_icons/manager.svg")
-extends Node
+extends "res://scripts/interfaces/i_vfx_manager.gd"
 class_name M_VFXManager
 
 ## VFX Manager - Coordinates visual feedback effects (screen shake, damage flash)
