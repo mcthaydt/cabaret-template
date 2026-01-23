@@ -18,7 +18,7 @@
 ## Current Status
 
 - **Phase**: 1 (Quick Wins)
-- **Completed**: 1/23 (4.3%)
+- **Completed**: 2/23 (8.7%)
 - **Current batch**: Batch 1 - Zero-Risk Quick Wins
 
 ---
@@ -26,9 +26,8 @@
 ## Resume Here
 
 **Next tasks to execute (Batch 1)**:
-1. Task 2: Move prototype scenes to `tests/scenes/prototypes/`
-2. Task 3: Move prototype scripts to `tests/prototypes/`
-3. Task 4: Move ECS helpers to `scripts/utils/ecs/`
+1. Task 3: Move prototype scripts to `tests/prototypes/`
+2. Task 4: Move ECS helpers to `scripts/utils/ecs/`
 
 See `reorganization-tasks.md` for full details, commands, and verification steps.
 
@@ -59,7 +58,7 @@ If tests fail: `git reset --hard HEAD`, analyze, retry.
 
 | Batch | Tasks | Status |
 |-------|-------|--------|
-| 1: Quick Wins | 2-4 | Ready |
+| 1: Quick Wins | 2-4 | In progress |
 | 2: Naming Fixes | 5-8 | Needs scans |
 | 3: Folder Restructure | 9-16 | Ready |
 | 4: Organization | 17-23 | Optional |

@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (1/23 tasks complete)
+**Status**: In Progress (2/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -14,12 +14,12 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 
 | Phase | Tasks | Completed | Risk Level |
 |-------|-------|-----------|------------|
-| Phase 1: Quick Wins | 4 | 1/4 | Low |
+| Phase 1: Quick Wins | 4 | 2/4 | Low |
 | Phase 2: Naming Fixes | 4 | 0/4 | Medium |
 | Phase 3: Folder Restructuring | 8 | 0/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **1/23 (4.3%)** | - |
+| **TOTAL** | **23** | **2/23 (8.7%)** | - |
 
 ---
 
@@ -61,17 +61,17 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 
 ---
 
-### Task 2: Move Prototype Scenes PENDING
+### Task 2: Move Prototype Scenes COMPLETE
 
-- [ ] Create `tests/scenes/prototypes/` directory
-- [ ] Move `scenes/prototypes/camera_blend_test.tscn`
-- [ ] Move `scenes/prototypes/root_prototype.tscn`
-- [ ] Remove `scenes/prototypes/` directory
-- [ ] Verify no references (grep for `res://scenes/prototypes`)
-- [ ] Move test-only scene `scenes/tmp_invalid_gameplay.tscn` -> `tests/scenes/tmp_invalid_gameplay.tscn`
-- [ ] Update test references that load `res://scenes/tmp_invalid_gameplay.tscn` to the new path
+- [x] Create `tests/scenes/prototypes/` directory
+- [x] Move `scenes/prototypes/camera_blend_test.tscn`
+- [x] Move `scenes/prototypes/root_prototype.tscn`
+- [x] Remove `scenes/prototypes/` directory
+- [x] Verify no references (grep for `res://scenes/prototypes`)
+- [x] Move test-only scene `scenes/tmp_invalid_gameplay.tscn` -> `tests/scenes/tmp_invalid_gameplay.tscn`
+- [x] Update test references that load `res://scenes/tmp_invalid_gameplay.tscn` to the new path
 
-**Status**: READY TO EXECUTE
+**Status**: COMPLETE (2026-01-23)
 **Files affected**: 3
 **References expected**: Yes (tests only)
 **Risk**: Low
@@ -641,7 +641,7 @@ scripts/events/
 ## Execution Strategy
 
 ### Batch 1: Zero-Risk Quick Wins (Execute First)
-- Task 2: Move prototype scenes
+- Task 2: Move prototype scenes (done)
 - Task 3: Move prototype scripts
 - Task 4: Move ECS helpers
 
