@@ -66,7 +66,13 @@ Use this prompt to resume the duck typing cleanup effort (cleanup_v4).
   - Created MockAudioManager for testing
   - Removed 3 `has_method()` checks from consumer files (u_ui_sound_player.gd, ui_audio_settings_tab.gd)
   - All 5 audio tests passing
-- Phase 7 (I_InputProfileManager/I_InputDeviceManager): Not started
+- Phase 7 (I_InputProfileManager/I_InputDeviceManager): ✅ COMPLETE (2026-01-22)
+  - Created I_InputProfileManager interface with 4 methods
+  - Created I_InputDeviceManager interface with 2 methods
+  - Updated M_InputProfileManager and M_InputDeviceManager to extend interfaces
+  - Removed duplicate const from M_InputProfileManager
+  - Removed 10 `has_method()` checks from consumer files (ui_input_rebinding_overlay.gd, ui_input_profile_selector.gd, ui_edit_touch_controls_overlay.gd, ui_touchscreen_settings_overlay.gd, s_touchscreen_system.gd)
+  - All 7 input tests passing
 - Phase 8 (I_VFXManager interface): Not started
 - Phase 9 (I_RebindOverlay interface): Not started
 
@@ -116,13 +122,15 @@ if typed_mgr != null:
 
 ## Next Step
 
-- Begin Phase 7: Create I_InputProfileManager and I_InputDeviceManager interfaces
-  - Create new `scripts/interfaces/i_input_profile_manager.gd` file
-  - Add interface methods: get_active_profile(), reset_to_defaults(), reset_action(), reset_touchscreen_positions()
-  - Update `scripts/managers/m_input_profile_manager.gd` to extend I_InputProfileManager
-  - Create new `scripts/interfaces/i_input_device_manager.gd` file
-  - Add interface methods: get_mobile_controls(), get_active_device()
-  - Update `scripts/managers/m_input_device_manager.gd` to extend I_InputDeviceManager
-  - Create mocks if needed for testing
+- Begin Phase 8: Create I_VFXManager interface
+  - Create new `scripts/interfaces/i_vfx_manager.gd` file
+  - Add interface methods as identified in Phase 8 tasks:
+    - get_effects_container()
+    - set_effects_container()
+    - set_vfx_settings_preview()
+    - clear_vfx_settings_preview()
+    - trigger_test_shake()
+  - Update `scripts/managers/m_vfx_manager.gd` to extend I_VFXManager
+  - Create mock if needed for testing
   - Update consumer files to replace `has_method()` with typed casts
-  - Run Input tests to verify
+  - Run VFX tests to verify
