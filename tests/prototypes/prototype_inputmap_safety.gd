@@ -1,14 +1,13 @@
 extends RefCounted
-class_name PrototypeInputMapSafety
 
 ## Research helper that validates runtime InputMap modifications.
 ##
 ## Wraps InputMap calls via an adapter so we can capture defaults, mutate
 ## bindings, and restore them safely without corrupting `project.godot`.
 
-var _adapter: InputMapAdapter
+var _adapter: RefCounted
 
-func _init(adapter: InputMapAdapter = null) -> void:
+func _init(adapter: RefCounted = null) -> void:
 	_adapter = adapter if adapter != null else InputMapAdapter.new()
 
 func capture_defaults(actions: Array[StringName]) -> Dictionary:

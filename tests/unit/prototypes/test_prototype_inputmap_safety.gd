@@ -1,6 +1,6 @@
 extends GutTest
 
-const PrototypeInputMapSafety := preload("res://scripts/prototypes/prototype_inputmap_safety.gd")
+const PrototypeInputMapSafety := preload("res://tests/prototypes/prototype_inputmap_safety.gd")
 
 func test_capture_and_restore_preserves_defaults() -> void:
 	var adapter := MockInputMapAdapter.new()
@@ -71,7 +71,7 @@ func _make_key_event(keycode: int) -> InputEventKey:
 	event.physical_keycode = keycode
 	return event
 
-class MockInputMapAdapter extends PrototypeInputMapSafety.InputMapAdapter:
+class MockInputMapAdapter extends RefCounted:
 	var _actions: Dictionary = {}
 
 	func has_action(action_name: StringName) -> bool:

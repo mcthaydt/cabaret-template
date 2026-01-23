@@ -1,5 +1,4 @@
 extends RefCounted
-class_name PrototypeGamepad
 
 ## Research prototype for validating multi-device input behavior.
 ##
@@ -10,11 +9,11 @@ class_name PrototypeGamepad
 const TARGET_LATENCY_MS := 16.0
 const DEFAULT_DEADZONE := 0.2
 
-var _adapter: InputAdapter
+var _adapter: RefCounted
 var _time_provider: Callable
 var _pending_latency_event_us: int = -1
 
-func _init(adapter: InputAdapter = null, time_provider: Callable = Callable()) -> void:
+func _init(adapter: RefCounted = null, time_provider: Callable = Callable()) -> void:
 	_adapter = adapter if adapter != null else InputAdapter.new()
 	if time_provider.is_valid():
 		_time_provider = time_provider

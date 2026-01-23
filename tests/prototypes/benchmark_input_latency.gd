@@ -1,5 +1,4 @@
 extends RefCounted
-class_name BenchmarkInputLatency
 
 ## Prototype helper for measuring keyboard and mouse input latency.
 ##

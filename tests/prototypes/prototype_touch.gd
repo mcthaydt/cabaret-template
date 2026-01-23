@@ -1,5 +1,4 @@
 extends RefCounted
-class_name PrototypeTouch
 
 ## Research prototype for validating touchscreen input handling.
 ##

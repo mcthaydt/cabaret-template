@@ -1,6 +1,6 @@
 extends GutTest
 
-const PrototypeTouch := preload("res://scripts/prototypes/prototype_touch.gd")
+const PrototypeTouch := preload("res://tests/prototypes/prototype_touch.gd")
 
 func test_joystick_handles_press_drag_and_deadzone() -> void:
 	var prototype := PrototypeTouch.new()

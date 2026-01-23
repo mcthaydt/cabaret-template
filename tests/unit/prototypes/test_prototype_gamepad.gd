@@ -1,6 +1,6 @@
 extends GutTest
 
-const PrototypeGamepad := preload("res://scripts/prototypes/prototype_gamepad.gd")
+const PrototypeGamepad := preload("res://tests/prototypes/prototype_gamepad.gd")
 
 func test_list_connected_devices_reports_metadata() -> void:
 	var adapter := MockAdapter.new()
@@ -76,7 +76,7 @@ func test_compare_latency_reports_per_device_results() -> void:
 	assert_true(summary.all_within_target)
 	assert_almost_eq(summary.gamepad.average_ms, 10.5, 0.001)
 
-class MockAdapter extends PrototypeGamepad.InputAdapter:
+class MockAdapter extends RefCounted:
 	var connected_ids: Array = []
 	var names: Dictionary = {}
 	var guids: Dictionary = {}

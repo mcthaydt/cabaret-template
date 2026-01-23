@@ -1,6 +1,6 @@
 extends GutTest
 
-const BenchmarkInputLatency := preload("res://scripts/prototypes/benchmark_input_latency.gd")
+const BenchmarkInputLatency := preload("res://tests/prototypes/benchmark_input_latency.gd")
 
 func test_keyboard_latency_records_sample_under_target() -> void:
 	var mock_time := MockTimeProvider.new([1_000, 15_000])
