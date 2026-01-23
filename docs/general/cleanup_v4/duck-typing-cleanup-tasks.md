@@ -316,34 +316,38 @@ Remove `has_method()` duck typing patterns in favor of explicit interface-based 
 
 ---
 
-### Phase 9: Create I_RebindOverlay Interface
+### Phase 9: Create I_RebindOverlay Interface ✅ COMPLETE
 
 **New file:** `scripts/interfaces/i_rebind_overlay.gd`
 
-- [ ] Create interface extending Control
-- [ ] Add `func begin_capture(_action: StringName, _device_category: String, _slot: int) -> void`
-- [ ] Add `func reset_single_action(_action: StringName) -> void`
-- [ ] Add `func connect_row_focus_handlers(_row: Control) -> void`
-- [ ] Add `func is_reserved(_action: StringName) -> bool`
-- [ ] Add `func refresh_bindings() -> void`
-- [ ] Add `func set_reset_button_enabled(_enabled: bool) -> void`
-- [ ] Add `func configure_focus_neighbors() -> void`
-- [ ] Add `func apply_focus() -> void`
-- [ ] Add `func get_active_device_category() -> String`
-- [ ] Add `func is_binding_custom(_action: StringName, _device_category: String) -> bool`
-- [ ] Add `func get_active_profile()` (returns profile or null)
+- [x] Create interface extending BaseOverlay
+- [x] Add `func begin_capture(_action: StringName, _mode: String) -> void`
+- [x] Add `func reset_single_action(_action: StringName) -> void`
+- [x] Add `func connect_row_focus_handlers(_row: Control, _add_button: Button, _replace_button: Button, _reset_button: Button) -> void`
+- [x] Add `func is_reserved(_action: StringName) -> bool`
+- [x] Add `func refresh_bindings() -> void`
+- [x] Add `func set_reset_button_enabled(_enabled: bool) -> void`
+- [x] Add `func configure_focus_neighbors() -> void`
+- [x] Add `func apply_focus() -> void`
+- [x] Add `func get_active_device_category() -> String`
+- [x] Add `func is_binding_custom(_action: StringName) -> bool`
+- [x] Add `func get_active_profile() -> RS_InputProfile`
 
 **Files to modify:**
 
-- [ ] `scripts/ui/ui_input_rebinding_overlay.gd` - Extend I_RebindOverlay, make methods public (remove underscore prefix)
-- [ ] `scripts/ui/helpers/u_rebind_action_list_builder.gd` - Replace all 14 `has_method()` checks with typed cast
-- [ ] `scripts/ui/helpers/u_touchscreen_preview_builder.gd:46` - Use typed cast for button refresh
+- [x] `scripts/ui/ui_input_rebinding_overlay.gd` - Changed to `extends "res://scripts/interfaces/i_rebind_overlay.gd"`, added public wrapper methods (delegating to existing private methods)
+- [x] `scripts/ui/helpers/u_rebind_action_list_builder.gd` - Used `as I_REBIND_OVERLAY` typed cast, removed all 14 `has_method()` checks
+- [-] `scripts/ui/helpers/u_touchscreen_preview_builder.gd:46` - Out of scope (has_method() call is for dynamically instantiated virtual button, not rebind overlay)
 
 **Verification:**
 
 ```bash
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ui -gexit
 ```
+
+**Results:** All 155 UI tests passing (2026-01-23)
+
+**Note:** The has_method() call in u_touchscreen_preview_builder.gd (line 46) is unrelated to the I_RebindOverlay interface - it checks if a dynamically instantiated virtual button scene has a _refresh_label method, which is appropriate defensive programming for scene instantiation.
 
 ---
 
