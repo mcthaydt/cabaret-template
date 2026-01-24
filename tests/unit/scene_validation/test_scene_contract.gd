@@ -5,7 +5,7 @@ extends GutTest
 ## Tests validation system that catches scene configuration errors at load time.
 ## Validates gameplay scenes have required nodes (player, camera, spawns).
 
-const I_SCENE_CONTRACT := preload("res://scripts/scene_management/i_scene_contract.gd")
+const I_SCENE_CONTRACT := preload("res://scripts/interfaces/i_scene_contract.gd")
 
 var validator: I_SCENE_CONTRACT
 
