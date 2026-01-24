@@ -22,6 +22,13 @@
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import
   ```
 
+## Godot Script Class Cache
+
+- **Refresh global class cache after moving `class_name` scripts**: Moving scripts that declare `class_name` can leave the global class cache pointing at old paths, causing scenes to instantiate with base `Control` nodes and missing methods in headless tests. **Fix**: run a headless import pass to rebuild the class cache:
+  ```
+  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import
+  ```
+
 ## Godot UI Pitfalls
 
 - **Full-screen overlay containers block input by default**: When creating HUD overlays or full-screen UI containers (using `anchors_preset = 15`), the container will block ALL mouse input to UI elements below it, even if the container's children only occupy a small portion of the screen. This happens because Control nodes use `mouse_filter = MOUSE_FILTER_STOP` (value 0) by default, which intercepts and stops mouse events from propagating.

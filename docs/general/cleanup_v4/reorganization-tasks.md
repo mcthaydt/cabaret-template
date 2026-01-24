@@ -512,7 +512,7 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 
 ## Phase 4: Organization Improvements (Medium Risk)
 
-### Task 17: Organize UI Scripts by Screen Type PENDING
+### Task 17: Organize UI Scripts by Screen Type COMPLETE
 
 **Proposed Organization**:
 ```
@@ -525,15 +525,16 @@ scripts/ui/
   └── resources/   (existing 1 file)
 ```
 
-- [ ] Create subdirectories: `menus/`, `overlays/`, `hud/`
-- [ ] Scan all UI script references
-- [ ] Move 18+ UI scripts to appropriate subdirectories
-- [ ] Update all references
-- [ ] Run UI tests
+- [x] Create subdirectories: `menus/`, `overlays/`, `hud/`
+- [x] Scan all UI script references
+- [x] Move 20 UI scripts to appropriate subdirectories (menus/overlays/hud + utils registries)
+- [x] Update all references
+- [x] Run UI tests
 
-**Status**: CAN BE DEFERRED
-**Files affected**: 18+ moves + many references
+**Status**: COMPLETE (2026-01-24)
+**Files affected**: 20 scripts + 20 .uid files moved (40 total) + references updated (scenes/tests/scripts)
 **Risk**: Medium
+**Notes**: Ran `--headless --import` to refresh global class cache after moving `class_name` scripts; UI tests green afterward.
 
 ---
 
