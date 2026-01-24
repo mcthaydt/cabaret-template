@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (13/23 tasks complete)
+**Status**: In Progress (14/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -16,10 +16,10 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 |-------|-------|-----------|------------|
 | Phase 1: Quick Wins | 4 | 4/4 | Low |
 | Phase 2: Naming Fixes | 4 | 4/4 | Medium |
-| Phase 3: Folder Restructuring | 8 | 5/8 | High |
+| Phase 3: Folder Restructuring | 8 | 6/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **13/23 (56.5%)** | - |
+| **TOTAL** | **23** | **14/23 (60.9%)** | - |
 
 ---
 
@@ -430,17 +430,18 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 
 ---
 
-### Task 14: Consolidate UI Resources PENDING
+### Task 14: Consolidate UI Resources COMPLETE
 
-- [ ] Scan for all references to `scripts/ui/resources/`
-- [ ] Create `scripts/resources/ui/` directory
-- [ ] Move `scripts/ui/resources/` -> `scripts/resources/ui/`
-- [ ] Update all references
-- [ ] Run UI tests
+- [x] Scan for all references to `scripts/ui/resources/`
+- [x] Create `scripts/resources/ui/` directory
+- [x] Move `scripts/ui/resources/` -> `scripts/resources/ui/`
+- [x] Update all references
+- [x] Run UI tests
 
-**Status**: NEEDS REFERENCE SCAN
-**Files affected**: Unknown
+**Status**: COMPLETE (2026-01-24)
+**Files affected**: 1 move + 15 reference updates (16 total)
 **Risk**: Medium
+**Notes**: Ran UI tests after a headless `--import` refresh to rebuild script class cache.
 
 **Path Update Command**:
 ```bash
@@ -679,7 +680,8 @@ scripts/events/
 - Task 11: Move button prompt assets (done)
 - Task 12: Move editor icons (done)
 - Task 13: Consolidate ECS resources (done)
-- Task 14-16: Consolidate resources and interfaces
+- Task 14: Consolidate UI resources (done)
+- Task 15-16: Consolidate resources and interfaces
 
 ### Batch 4: Organization (Optional)
 - Tasks 17-23: Polish and cleanup
