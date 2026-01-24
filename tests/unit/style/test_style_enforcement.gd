@@ -52,7 +52,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/state/selectors": ["u_"],
 	"res://scripts/state/resources": ["rs_"], # State initial state resources
 	"res://scripts/state": ["u_", "m_"], # m_state_store.gd is in root
-	"res://scripts/ui/resources": ["rs_"], # UI screen definitions
+	"res://scripts/resources/ui": ["rs_"], # UI screen definitions
 	"res://scripts/ui/base": ["base_"], # base_*.gd UI base classes
 	"res://scripts/ui/utils": ["u_"], # UI utilities
 	"res://scripts/ui": ["ui_", "u_"], # ui_ for controllers, u_ for utilities
