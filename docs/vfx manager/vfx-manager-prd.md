@@ -201,7 +201,7 @@ The VFX Manager SHALL:
 - Maintain single instance pattern (only one VFX manager in scene tree)
 
 ```gdscript
-@icon("res://resources/editor_icons/manager.svg")
+@icon("res://assets/editor_icons/manager.svg")
 class_name M_VFXManager
 extends Node
 

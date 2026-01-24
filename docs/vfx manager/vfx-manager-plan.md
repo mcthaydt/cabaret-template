@@ -24,7 +24,7 @@ The VFX Manager provides screen-level visual effects (screen shake, damage flash
 
 **Implementation**:
 ```gdscript
-@icon("res://resources/editor_icons/resource.svg")
+@icon("res://assets/editor_icons/resource.svg")
 extends Resource
 class_name RS_VFXInitialState
 
@@ -131,7 +131,7 @@ func to_dictionary() -> Dictionary:
 
 **Manager Structure**:
 ```gdscript
-@icon("res://resources/editor_icons/manager.svg")
+@icon("res://assets/editor_icons/manager.svg")
 class_name M_VFXManager
 extends Node
 

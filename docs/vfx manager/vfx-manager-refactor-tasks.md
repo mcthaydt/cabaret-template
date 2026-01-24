@@ -125,7 +125,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Location: `scripts/ecs/systems/s_screen_shake_publisher_system.gd`
   - Extends: `BaseECSSystem`
   - Class name: `S_ScreenShakePublisherSystem`
-  - Add icon: `@icon("res://resources/editor_icons/system.svg")`
+  - Add icon: `@icon("res://assets/editor_icons/system.svg")`
   - Constants (temporary, Phase 4 will move to resources):
     ```gdscript
     const DAMAGE_MIN_TRAUMA := 0.3
@@ -153,7 +153,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Location: `scripts/ecs/systems/s_damage_flash_publisher_system.gd`
   - Extends: `BaseECSSystem`
   - Class name: `S_DamageFlashPublisherSystem`
-  - Add icon: `@icon("res://resources/editor_icons/system.svg")`
+  - Add icon: `@icon("res://assets/editor_icons/system.svg")`
   - Fields:
     - `var _unsubscribe_health: Callable`
     - `var _unsubscribe_death: Callable`

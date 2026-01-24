@@ -285,7 +285,7 @@ When adding new organizational groups:
 2. Use this template:
 
 ```gdscript
-@icon("res://resources/editor_icons/your_icon.svg")
+@icon("res://assets/editor_icons/your_icon.svg")
 extends Node
 
 ## Marker script for [Category Name] ([brief description]).

@@ -184,7 +184,7 @@ func after_each():
 - [x] T046 [US1a] Add method `to_dictionary() -> Dictionary` to RS_StateStoreSettings for serialization
 - [x] T047 [US1a] Create default resource `resources/state/default_state_store_settings.tres` with defaults
 - [x] T048 [US1a] Create `scripts/state/m_state_store.gd` extending Node with class_name M_StateStore
-- [x] T049 [US1a] Add @icon annotation: `@icon("res://resources/editor_icons/state_store.svg")` (create icon later if needed)
+- [x] T049 [US1a] Add @icon annotation: `@icon("res://assets/editor_icons/state_store.svg")` (create icon later if needed)
 - [x] T050 [US1a] Add @export to M_StateStore: `@export var settings: RS_StateStoreSettings`
 - [x] T051 [US1a] Add signals to M_StateStore: `state_changed(action: Dictionary, new_state: Dictionary)`, `slice_updated(slice_name: StringName, slice_state: Dictionary)`, `action_dispatched(action: Dictionary)`, `validation_failed(action: Dictionary, error: String)`
 - [x] T052 [US1a] Add private vars to M_StateStore: `_state: Dictionary = {}`, `_subscribers: Array[Callable] = []`, `_slice_configs: Dictionary = {}` (slice_name -> RS_StateSliceConfig)

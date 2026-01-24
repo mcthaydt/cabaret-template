@@ -284,7 +284,7 @@ func _remove_pause_filter() -> void:
 
 **Structure** (identical to BaseEventVFXSystem):
 ```gdscript
-@icon("res://resources/editor_icons/system.svg")
+@icon("res://assets/editor_icons/system.svg")
 extends BaseECSSystem
 class_name BaseEventSFXSystem
 

@@ -433,10 +433,10 @@ tests/
 | All resources | `Resource` | ✅ `@export` properties | ✅ |
 
 **Icon Decorators**:
-- ✅ All components: `@icon("res://resources/editor_icons/component.svg")`
-- ✅ All systems: `@icon("res://resources/editor_icons/system.svg")`
-- ✅ Manager: `@icon("res://resources/editor_icons/manager.svg")`
-- ✅ Entity: `@icon("res://resources/editor_icons/entities.svg")`
+- ✅ All components: `@icon("res://assets/editor_icons/component.svg")`
+- ✅ All systems: `@icon("res://assets/editor_icons/system.svg")`
+- ✅ Manager: `@icon("res://assets/editor_icons/manager.svg")`
+- ✅ Entity: `@icon("res://assets/editor_icons/entities.svg")`
 
 ---
 

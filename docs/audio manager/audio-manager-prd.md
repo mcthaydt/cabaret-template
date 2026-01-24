@@ -276,7 +276,7 @@ The Audio Manager SHALL:
 - Maintain single instance pattern
 
 ```gdscript
-@icon("res://resources/editor_icons/manager.svg")
+@icon("res://assets/editor_icons/manager.svg")
 class_name M_AudioManager
 extends Node
 

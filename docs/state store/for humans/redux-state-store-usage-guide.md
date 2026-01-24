@@ -875,7 +875,7 @@ func _exit_tree() -> void:
 **Full implementation** (`scripts/ecs/systems/m_pause_manager.gd`):
 
 ```gdscript
-@icon("res://resources/editor_icons/system.svg")
+@icon("res://assets/editor_icons/system.svg")
 extends BaseECSSystem
 class_name M_PauseManager
 
@@ -962,7 +962,7 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 **Simplified implementation** (`scripts/ecs/systems/s_health_system.gd`):
 
 ```gdscript
-@icon("res://resources/editor_icons/system.svg")
+@icon("res://assets/editor_icons/system.svg")
 extends BaseECSSystem
 class_name S_HealthSystem
 

@@ -352,7 +352,7 @@ Following M_ECSManager pattern:
 1. Copy existing manager icon: `resources/editor_icons/manager.svg`
 2. Rename to `state_store.svg`
 3. Modify color to distinguish from manager icon
-4. Use in M_StateStore: `@icon("res://resources/editor_icons/state_store.svg")`
+4. Use in M_StateStore: `@icon("res://assets/editor_icons/state_store.svg")`
 
 ---
 
@@ -504,7 +504,7 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 
 ```gdscript
 # scripts/state/m_state_store.gd
-@icon("res://resources/editor_icons/state_store.svg")
+@icon("res://assets/editor_icons/state_store.svg")
 extends Node
 class_name M_StateStore
 
@@ -1497,7 +1497,7 @@ Complete working examples showing how ECS systems integrate with the state store
 
 ```gdscript
 # scripts/ecs/systems/s_movement_system.gd
-@icon("res://resources/editor_icons/system.svg")
+@icon("res://assets/editor_icons/system.svg")
 extends BaseECSSystem
 class_name S_MovementSystem
 
@@ -1569,7 +1569,7 @@ func _on_state_changed(action: Dictionary, new_state: Dictionary) -> void:
 
 ```gdscript
 # scripts/ecs/systems/s_input_system.gd
-@icon("res://resources/editor_icons/system.svg")
+@icon("res://assets/editor_icons/system.svg")
 extends BaseECSSystem
 class_name S_InputSystem
 

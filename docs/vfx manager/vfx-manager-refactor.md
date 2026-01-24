@@ -94,7 +94,7 @@ func _init(p_entity_id: StringName, p_intensity: float, p_source: StringName) ->
 
 **File**: `scripts/ecs/systems/s_screen_shake_publisher_system.gd`
 ```gdscript
-@icon("res://resources/editor_icons/system.svg")
+@icon("res://assets/editor_icons/system.svg")
 extends BaseECSSystem
 class_name S_ScreenShakePublisherSystem
 
@@ -186,7 +186,7 @@ func _on_death(event_data: Dictionary) -> void:
 
 **File**: `scripts/ecs/systems/s_damage_flash_publisher_system.gd`
 ```gdscript
-@icon("res://resources/editor_icons/system.svg")
+@icon("res://assets/editor_icons/system.svg")
 extends BaseECSSystem
 class_name S_DamageFlashPublisherSystem
 

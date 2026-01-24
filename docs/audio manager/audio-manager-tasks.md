@@ -102,7 +102,7 @@
 
 - [x] **Task 1.2 (Green)**: Implement Audio manager scaffolding and bus layout
   - Create `scripts/managers/m_audio_manager.gd`
-  - Extend Node, add `@icon("res://resources/editor_icons/manager.svg")`
+  - Extend Node, add `@icon("res://assets/editor_icons/manager.svg")`
   - Add to "audio_manager" group
   - `_ready()`: Set `process_mode = PROCESS_MODE_ALWAYS`, register with ServiceLocator, discover M_StateStore
   - Private field: `_state_store: I_StateStore`
@@ -426,7 +426,7 @@
   - Create `scripts/ecs/base_event_sfx_system.gd`
   - Mirror BaseEventVFXSystem structure:
     ```gdscript
-    @icon("res://resources/editor_icons/system.svg")
+    @icon("res://assets/editor_icons/system.svg")
     extends BaseECSSystem
     class_name BaseEventSFXSystem
 
@@ -574,7 +574,7 @@
   - **NOTE**: File `scripts/ecs/systems/s_jump_sound_system.gd` already exists as stub (extends BaseEventVFXSystem). Migrate to BaseEventSFXSystem.
   - Create `scripts/ecs/resources/rs_jump_sound_settings.gd`:
     ```gdscript
-    @icon("res://resources/editor_icons/resource.svg")
+    @icon("res://assets/editor_icons/resource.svg")
     extends Resource
     class_name RS_JumpSoundSettings
 
@@ -710,7 +710,7 @@
 - [x] **Task 5.2 (Green)**: Implement C_SurfaceDetectorComponent
   - Create `scripts/ecs/components/c_surface_detector_component.gd`:
     ```gdscript
-    @icon("res://resources/editor_icons/component.svg")
+    @icon("res://assets/editor_icons/component.svg")
     extends BaseECSComponent  # Changed from Node3D for ECS registration
     class_name C_SurfaceDetectorComponent
 
@@ -769,7 +769,7 @@
 - [x] **Task 5.5 (Green)**: Implement RS_FootstepSoundSettings resource
   - Create `scripts/ecs/resources/rs_footstep_sound_settings.gd`:
     ```gdscript
-    @icon("res://resources/editor_icons/resource.svg")
+    @icon("res://assets/editor_icons/resource.svg")
     extends Resource
     class_name RS_FootstepSoundSettings
 
@@ -893,7 +893,7 @@
 - [x] **Task 6.3 (Green)**: Implement S_AmbientSoundSystem
   - Create `scripts/ecs/resources/rs_ambient_sound_settings.gd`:
     ```gdscript
-    @icon("res://resources/editor_icons/resource.svg")
+    @icon("res://assets/editor_icons/resource.svg")
     extends Resource
     class_name RS_AmbientSoundSettings
 

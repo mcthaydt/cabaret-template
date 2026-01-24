@@ -298,7 +298,7 @@ All phases followed TDD: Write tests → Verify tests fail → Implement → Ver
 
 3. **Missing Icons** (commit 0e0c843):
    - Problem: M_PauseManager and S_HealthSystem appeared with default script icon
-   - Solution: Added `@icon("res://resources/editor_icons/system.svg")` annotations
+   - Solution: Added `@icon("res://assets/editor_icons/system.svg")` annotations
    - Documented requirement in DEV_PITFALLS.md
 
 **DEV_PITFALLS.md Updates**:

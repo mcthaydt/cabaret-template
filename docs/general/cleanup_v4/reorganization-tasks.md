@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (11/23 tasks complete)
+**Status**: In Progress (12/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -16,10 +16,10 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 |-------|-------|-----------|------------|
 | Phase 1: Quick Wins | 4 | 4/4 | Low |
 | Phase 2: Naming Fixes | 4 | 4/4 | Medium |
-| Phase 3: Folder Restructuring | 8 | 3/8 | High |
+| Phase 3: Folder Restructuring | 8 | 4/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **11/23 (47.8%)** | - |
+| **TOTAL** | **23** | **12/23 (52.2%)** | - |
 
 ---
 
@@ -390,17 +390,18 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 
 ---
 
-### Task 12: Move Editor Icons to assets/editor_icons/ PENDING
+### Task 12: Move Editor Icons to assets/editor_icons/ COMPLETE
 
-- [ ] Scan for all references to `resources/editor_icons/`
-- [ ] Create `assets/editor_icons/` directory
-- [ ] Move `resources/editor_icons/` -> `assets/editor_icons/` (34 files)
-- [ ] Update all references
-- [ ] Verify icons display in Godot editor
+- [x] Scan for all references to `resources/editor_icons/`
+- [x] Create `assets/editor_icons/` directory
+- [x] Move `resources/editor_icons/` -> `assets/editor_icons/` (34 files)
+- [x] Update all references
+- [x] Verify icons display in Godot editor
 
-**Status**: NEEDS REFERENCE SCAN
+**Status**: COMPLETE (2026-01-24)
 **Files affected**: 34 moves + unknown references
 **Risk**: Medium
+**Notes**: Updated `.import` source paths and ran style enforcement tests after the move.
 
 ---
 
@@ -675,7 +676,8 @@ scripts/events/
 - Task 9: Move templates (done)
 - Task 10: Move audio assets (done)
 - Task 11: Move button prompt assets (done)
-- Task 12-16: Consolidate resources and interfaces
+- Task 12: Move editor icons (done)
+- Task 13-16: Consolidate resources and interfaces
 
 ### Batch 4: Organization (Optional)
 - Tasks 17-23: Polish and cleanup

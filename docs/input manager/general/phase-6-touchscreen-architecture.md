@@ -450,7 +450,7 @@ func _handle_touch_input() -> void:
 
 **S_TouchscreenSystem Structure:**
 ```gdscript
-@icon("res://resources/editor_icons/system.svg")
+@icon("res://assets/editor_icons/system.svg")
 extends BaseECSSystem
 class_name S_TouchscreenSystem
 
@@ -722,7 +722,7 @@ But this is **NOT NECESSARY** since the component is already updated!
 
 **VirtualJoystick Structure:**
 ```gdscript
-@icon("res://resources/editor_icons/utility.svg")
+@icon("res://assets/editor_icons/utility.svg")
 extends Control
 class_name VirtualJoystick
 
@@ -825,7 +825,7 @@ func _save_position() -> void:
 
 **Similar Structure:**
 ```gdscript
-@icon("res://resources/editor_icons/utility.svg")
+@icon("res://assets/editor_icons/utility.svg")
 extends Control
 class_name VirtualButton
 
@@ -923,7 +923,7 @@ func _save_position() -> void:
 
 **Structure:**
 ```gdscript
-@icon("res://resources/editor_icons/resource.svg")
+@icon("res://assets/editor_icons/resource.svg")
 extends Resource
 class_name RS_TouchscreenSettings
 

@@ -83,7 +83,7 @@
 
 - [x] **Task 1.2 (Green)**: Implement VFX manager scaffolding
   - Create `scripts/managers/m_vfx_manager.gd`
-  - Extend Node, add `@icon("res://resources/editor_icons/manager.svg")`
+  - Extend Node, add `@icon("res://assets/editor_icons/manager.svg")`
   - Add to "vfx_manager" group
   - `_ready()`: Set `process_mode = PROCESS_MODE_ALWAYS`, register with ServiceLocator, discover M_StateStore
   - Private fields: `_state_store: I_StateStore`, `_trauma: float = 0.0`
