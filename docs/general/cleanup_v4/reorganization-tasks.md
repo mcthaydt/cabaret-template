@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (14/23 tasks complete)
+**Status**: In Progress (15/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -16,10 +16,10 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 |-------|-------|-----------|------------|
 | Phase 1: Quick Wins | 4 | 4/4 | Low |
 | Phase 2: Naming Fixes | 4 | 4/4 | Medium |
-| Phase 3: Folder Restructuring | 8 | 6/8 | High |
+| Phase 3: Folder Restructuring | 8 | 7/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **14/23 (60.9%)** | - |
+| **TOTAL** | **23** | **15/23 (65.2%)** | - |
 
 ---
 
@@ -451,27 +451,28 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 
 ---
 
-### Task 15: Consolidate State Resources PENDING
+### Task 15: Consolidate State Resources COMPLETE
 
-- [ ] Scan for all references to `scripts/state/resources/`
-- [ ] Create `scripts/resources/state/` directory
-- [ ] Move `scripts/state/resources/` -> `scripts/resources/state/`
-- [ ] Update all references
-- [ ] Run state tests
-- [ ] Scan for all references to `scripts/input/resources/`
-- [ ] Create `scripts/resources/input/` directory
-- [ ] Move `scripts/input/resources/` -> `scripts/resources/input/`
-- [ ] Update all references
-- [ ] Run input tests
-- [ ] Scan for all references to `scripts/scene_management/resources/`
-- [ ] Create `scripts/resources/scene_management/` directory
-- [ ] Move `scripts/scene_management/resources/` -> `scripts/resources/scene_management/`
-- [ ] Update all references (includes `.tres` under `resources/scene_registry/`)
-- [ ] Run scene manager tests
+- [x] Scan for all references to `scripts/state/resources/`
+- [x] Create `scripts/resources/state/` directory
+- [x] Move `scripts/state/resources/` -> `scripts/resources/state/`
+- [x] Update all references
+- [x] Run state tests
+- [x] Scan for all references to `scripts/input/resources/`
+- [x] Create `scripts/resources/input/` directory
+- [x] Move `scripts/input/resources/` -> `scripts/resources/input/`
+- [x] Update all references
+- [x] Run input tests
+- [x] Scan for all references to `scripts/scene_management/resources/`
+- [x] Create `scripts/resources/scene_management/` directory
+- [x] Move `scripts/scene_management/resources/` -> `scripts/resources/scene_management/`
+- [x] Update all references (includes `.tres` under `resources/scene_registry/`)
+- [x] Run scene manager tests
 
-**Status**: NEEDS REFERENCE SCAN
-**Files affected**: Unknown
+**Status**: COMPLETE (2026-01-24)
+**Files affected**: 17 moves + 149 reference updates (166 total)
 **Risk**: High - broad reference updates across resources + scripts
+**Notes**: Ran state/input/scene tests after a headless `--import` refresh to rebuild script class cache.
 
 **Path Update Commands**:
 ```bash
@@ -681,7 +682,8 @@ scripts/events/
 - Task 12: Move editor icons (done)
 - Task 13: Consolidate ECS resources (done)
 - Task 14: Consolidate UI resources (done)
-- Task 15-16: Consolidate resources and interfaces
+- Task 15: Consolidate state resources (done)
+- Task 16: Move scattered interfaces
 
 ### Batch 4: Organization (Optional)
 - Tasks 17-23: Polish and cleanup

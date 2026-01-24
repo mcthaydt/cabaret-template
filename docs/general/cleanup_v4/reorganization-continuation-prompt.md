@@ -18,7 +18,7 @@
 ## Current Status
 
 - **Phase**: 3 (Folder Restructure)
-- **Completed**: 14/23 (60.9%)
+- **Completed**: 15/23 (65.2%)
 - **Current batch**: Batch 3 - Folder Restructure
 
 ---
@@ -26,7 +26,7 @@
 ## Resume Here
 
 **Next tasks to execute (Batch 3)**:
-1. Task 15: Consolidate state resources (`scripts/state/resources/` -> `scripts/resources/state/`)
+1. Task 16: Move scattered interfaces (`scripts/*/i_*.gd` -> `scripts/interfaces/`)
 
 See `reorganization-tasks.md` for full details, commands, and verification steps.
 
@@ -59,7 +59,7 @@ If tests fail: `git reset --hard HEAD`, analyze, retry.
 |-------|-------|--------|
 | 1: Quick Wins | 2-4 | Complete |
 | 2: Naming Fixes | 5-8 | Complete |
-| 3: Folder Restructure | 9-16 | In progress (Task 14 complete) |
+| 3: Folder Restructure | 9-16 | In progress (Task 15 complete) |
 | 4: Organization | 17-23 | Optional |
 
 ---
