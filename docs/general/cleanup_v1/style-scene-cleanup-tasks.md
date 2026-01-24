@@ -497,18 +497,18 @@ version: "1.0"
   - ✅ Marked refactor as COMPLETE in PRD/plan (Batches 1-4 complete, debugger tooling de-scoped)
   - ✅ Updated continuation prompt with completion summary
   - ✅ All future items clearly marked as deferred
-- [x] T051 Reconcile State Store documentation (`docs/state store/*`) with current implementation:
+- [x] T051 Reconcile State Store documentation (`docs/state_store/*`) with current implementation:
   - ✅ PRD already marked PRODUCTION READY (Phases 1-16.5 complete, mock data removed)
   - ✅ Entity coordination pattern documented and complete
   - ✅ Tasks/plan aligned with reality
-- [x] T052 Reconcile Scene Manager documentation (`docs/scene manager/*`) with current implementation:
+- [x] T052 Reconcile Scene Manager documentation (`docs/scene_manager/*`) with current implementation:
   - ✅ Marked as PRODUCTION READY in PRD (all phases complete, post-hardening complete)
   - ✅ Continuation prompt already shows completion status
   - ✅ All features (overlay, navigation, camera blending, spawn manager, preloading) implemented
-- [x] T053 Reconcile Input Manager documentation (`docs/input manager/*`) with current implementation:
+- [x] T053 Reconcile Input Manager documentation (`docs/input_manager/*`) with current implementation:
   - ✅ Marked as PRODUCTION READY in PRD
   - ✅ All features (profiles, rebinding, touchscreen, button prompts, device manager) implemented
-- [x] T054 Reconcile UI Manager documentation (`docs/ui manager/*`) with current implementation:
+- [x] T054 Reconcile UI Manager documentation (`docs/ui_manager/*`) with current implementation:
   - ✅ Marked as PRODUCTION READY in PRD
   - ✅ All features (navigation slice, UI registry, settings hub, overlay management) implemented
 - [x] T055 Ensure each subsystem's continuation prompt is updated to:
@@ -518,7 +518,7 @@ version: "1.0"
   - ✅ Input Manager: Added Style & Organization section
   - ✅ UI Manager: Added style references and UI→Redux→Scene Manager rule note
 - [x] T056 Codify "UI → Redux → Scene Manager" rule:
-  - ✅ Added "Architectural Rule: UI → Redux → Scene Manager" section to `docs/ui manager/ui-manager-prd.md`
+  - ✅ Added "Architectural Rule: UI → Redux → Scene Manager" section to `docs/ui_manager/ui-manager-prd.md`
   - ✅ Documented core principle with correct/incorrect examples
   - ✅ Explained rationale (single source of truth, testability, predictability, consistency)
   - ✅ Inventoried 4 violations:
@@ -1154,7 +1154,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - Toggle conditions (e.g., set a checkpoint spawn to DISABLED) and confirm M_SpawnManager falls back as expected.
   - Watch logs for unexpected spawn-related errors or missing metadata warnings.
 - [x] T087 Reconcile spawn registry tasks/docs across subsystems:
-  - Update `docs/scene manager/scene-manager-tasks.md` and related PRD/plan references (T287/T288) to reflect the scene-attached spawn metadata design (RS_SpawnMetadata exported on `*_spawn_point` scripts).
+  - Update `docs/scene_manager/scene-manager-tasks.md` and related PRD/plan references (T287/T288) to reflect the scene-attached spawn metadata design (RS_SpawnMetadata exported on `*_spawn_point` scripts).
   - Cross-link Phase 8 tasks (T080–T086) so future contributors see a single, up-to-date source of truth for spawn registry work and understand that marker scripts are data-less, while spawn point nodes own their metadata via exported resources.
 
 ---

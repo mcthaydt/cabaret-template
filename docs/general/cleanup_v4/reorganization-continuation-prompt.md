@@ -18,15 +18,17 @@
 ## Current Status
 
 - **Phase**: 4 (Organization)
-- **Completed**: 19/23 (82.6%)
-- **Current batch**: Batch 4 - Organization
+- **Completed**: 20/23 (87.0%)
+- **Current batch**: Phase 5 - Polish
 
 ---
 
 ## Resume Here
 
-**Next tasks to execute (Batch 4)**:
-1. Task 20: Rename docs folders (spaces -> snake_case)
+**Next tasks to execute (Phase 5 - Polish)**:
+1. Task 21: Consolidate utilities into domain subfolders
+2. Task 22: Clean up unused test files
+3. Task 23: (see reorganization-tasks.md)
 
 See `reorganization-tasks.md` for full details, commands, and verification steps.
 
@@ -60,7 +62,7 @@ If tests fail: `git reset --hard HEAD`, analyze, retry.
 | 1: Quick Wins | 2-4 | Complete |
 | 2: Naming Fixes | 5-8 | Complete |
 | 3: Folder Restructure | 9-16 | Complete |
-| 4: Organization | 17-23 | In progress (Task 20 next) |
+| 4: Organization | 17-23 | Complete |
 
 ---
 

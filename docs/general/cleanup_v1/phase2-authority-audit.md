@@ -79,14 +79,14 @@ Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 ### 📄 Documentation References (Not Code)
 
 Files containing `get_tree().paused` references in documentation/examples:
-- `docs/ui manager/general/flows-and-input.md`
+- `docs/ui_manager/general/flows-and-input.md`
 - `docs/general/cleanup/style-scene-cleanup-tasks.md`
 - `docs/general/cleanup/pause-cursor-authority-model.md`
 - `docs/general/DEV_PITFALLS.md`
-- `docs/scene manager/scene-manager-tasks.md`
-- `docs/scene manager/general/research.md`
-- `docs/scene manager/scene-manager-prd.md`
-- `docs/scene manager/scene-manager-plan.md`
+- `docs/scene_manager/scene-manager-tasks.md`
+- `docs/scene_manager/general/research.md`
+- `docs/scene_manager/scene-manager-prd.md`
+- `docs/scene_manager/scene-manager-plan.md`
 
 **Status**: ✅ DOCUMENTATION ONLY - Not executable code.
 
@@ -119,8 +119,8 @@ Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 ### 📄 Documentation References (Not Code)
 
 Files containing `Input.mouse_mode` references in documentation/examples:
-- `docs/input manager/input-manager-plan.md`
-- `docs/input manager/input-manager-prd.md`
+- `docs/input_manager/input-manager-plan.md`
+- `docs/input_manager/input-manager-prd.md`
 - `docs/general/cleanup/style-scene-cleanup-tasks.md`
 - `docs/general/cleanup/pause-cursor-authority-model.md`
 - `docs/general/DEV_PITFALLS.md`
@@ -153,7 +153,7 @@ _cursor_manager.set_cursor_state(true, false)  # locked, hidden
 ### 📄 Documentation References (Not Code)
 
 Files containing `set_cursor_state` references in documentation/examples:
-- `docs/state store/for humans/redux-state-store-usage-guide.md`
+- `docs/state_store/for humans/redux-state-store-usage-guide.md`
 - `docs/general/cleanup/style-scene-cleanup-tasks.md`
 - `docs/general/cleanup/pause-cursor-authority-model.md`
 - `docs/general/DEV_PITFALLS.md:482` (outdated reference to M_SceneManager calling it)

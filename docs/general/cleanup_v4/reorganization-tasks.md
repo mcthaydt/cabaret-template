@@ -582,23 +582,23 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 
 ---
 
-### Task 20: Rename Docs Folders (Spaces -> Snake_Case) PENDING
+### Task 20: Rename Docs Folders (Spaces -> Snake_Case) COMPLETE
 
 **Rationale**: Documentation folders use spaces instead of snake_case convention
 
 Rename these 10 folders in `docs/`:
-- [ ] `"audio manager"` -> `audio_manager`
-- [ ] `"display manager"` -> `display_manager`
-- [ ] `"input manager"` -> `input_manager`
-- [ ] `"save manager"` -> `save_manager`
-- [ ] `"scene manager"` -> `scene_manager`
-- [ ] `"state store"` -> `state_store`
-- [ ] `"ui manager"` -> `ui_manager`
-- [ ] `"vfx manager"` -> `vfx_manager`
-- [ ] Update any documentation that references these folders
+- [x] `"audio manager"` -> `audio_manager`
+- [x] `"display manager"` -> `display_manager`
+- [x] `"input manager"` -> `input_manager`
+- [x] `"save manager"` -> `save_manager`
+- [x] `"scene manager"` -> `scene_manager`
+- [x] `"state store"` -> `state_store`
+- [x] `"ui manager"` -> `ui_manager`
+- [x] `"vfx manager"` -> `vfx_manager`
+- [x] Update any documentation that references these folders
 
-**Status**: READY TO EXECUTE
-**Files affected**: 10 folder renames
+**Status**: COMPLETE (2026-01-24)
+**Files affected**: 10 folder renames + doc reference updates
 **Risk**: LOW - documentation only
 
 ---

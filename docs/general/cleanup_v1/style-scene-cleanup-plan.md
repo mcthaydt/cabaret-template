@@ -147,10 +147,10 @@ No new gameplay logic in this phase; purely enforcement.
 
 - For each major subsystem:
   - **ECS** – `docs/ecs/*`
-  - **State Store** – `docs/state store/*`
-  - **Scene Manager** – `docs/scene manager/*`
-  - **Input Manager** – `docs/input manager/*`
-  - **UI Manager** – `docs/ui manager/*`
+  - **State Store** – `docs/state_store/*`
+  - **Scene Manager** – `docs/scene_manager/*`
+  - **Input Manager** – `docs/input_manager/*`
+  - **UI Manager** – `docs/ui_manager/*`
   - Reconcile:
     - PRDs: Mark completed phases/features as such, remove outdated “not implemented yet” text.
     - Plans: Annotate cancelled/deferred items explicitly.

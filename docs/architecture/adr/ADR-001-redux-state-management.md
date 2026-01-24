@@ -46,6 +46,6 @@ Adopt a Redux-style architecture implemented by `M_StateStore`:
 
 ## References
 
-- `docs/state store/redux-state-store-prd.md`
+- `docs/state_store/redux-state-store-prd.md`
 - `scripts/state/m_state_store.gd`
 

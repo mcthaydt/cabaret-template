@@ -91,10 +91,10 @@ When you complete a phase (e.g., Phase 0 or Phase 1):
 - `AGENTS.md`
 
 - `docs/ecs/ecs_architecture.md`
-- `docs/state store/redux-state-store-prd.md`
-- `docs/scene manager/scene-manager-prd.md`
-- `docs/input manager/input-manager-prd.md`
-- `docs/ui manager/ui-manager-prd.md`
+- `docs/state_store/redux-state-store-prd.md`
+- `docs/scene_manager/scene-manager-prd.md`
+- `docs/input_manager/input-manager-prd.md`
+- `docs/ui_manager/ui-manager-prd.md`
 
 - `docs/general/cleanup/phase-10b-implementation-plan.md` (Architectural Hardening detailed plan)
 

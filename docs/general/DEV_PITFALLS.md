@@ -964,10 +964,10 @@ If they disagree with current pause state, force a resync.
 
 ### Documentation References
 
-- UI Manager PRD: `docs/ui manager/ui-manager-prd.md`
-- Input Manager PRD: `docs/input manager/input-manager-prd.md`
-- Navigation Data Model: `docs/ui manager/general/data-model.md`
-- Input/UI Flow Matrix: `docs/ui manager/general/flows-and-input.md`
+- UI Manager PRD: `docs/ui_manager/ui-manager-prd.md`
+- Input Manager PRD: `docs/input_manager/input-manager-prd.md`
+- Navigation Data Model: `docs/ui_manager/general/data-model.md`
+- Input/UI Flow Matrix: `docs/ui_manager/general/flows-and-input.md`
 
 ## UI Navigation Pitfalls
 
