@@ -17,16 +17,16 @@
 
 ## Current Status
 
-- **Phase**: 3 (Folder Restructure)
-- **Completed**: 15/23 (65.2%)
-- **Current batch**: Batch 3 - Folder Restructure
+- **Phase**: 4 (Organization)
+- **Completed**: 16/23 (69.6%)
+- **Current batch**: Batch 4 - Organization
 
 ---
 
 ## Resume Here
 
-**Next tasks to execute (Batch 3)**:
-1. Task 16: Move scattered interfaces (`scripts/*/i_*.gd` -> `scripts/interfaces/`)
+**Next tasks to execute (Batch 4)**:
+1. Task 17: Organize UI scripts by screen type (`scripts/ui/*` -> `scripts/ui/menus|overlays|hud`)
 
 See `reorganization-tasks.md` for full details, commands, and verification steps.
 
@@ -59,8 +59,8 @@ If tests fail: `git reset --hard HEAD`, analyze, retry.
 |-------|-------|--------|
 | 1: Quick Wins | 2-4 | Complete |
 | 2: Naming Fixes | 5-8 | Complete |
-| 3: Folder Restructure | 9-16 | In progress (Task 15 complete) |
-| 4: Organization | 17-23 | Optional |
+| 3: Folder Restructure | 9-16 | Complete |
+| 4: Organization | 17-23 | In progress (Task 17 next) |
 
 ---
 

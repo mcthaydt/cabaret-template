@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (15/23 tasks complete)
+**Status**: In Progress (16/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -16,10 +16,10 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 |-------|-------|-----------|------------|
 | Phase 1: Quick Wins | 4 | 4/4 | Low |
 | Phase 2: Naming Fixes | 4 | 4/4 | Medium |
-| Phase 3: Folder Restructuring | 8 | 7/8 | High |
+| Phase 3: Folder Restructuring | 8 | 8/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **15/23 (65.2%)** | - |
+| **TOTAL** | **23** | **16/23 (69.6%)** | - |
 
 ---
 
@@ -491,21 +491,22 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 
 ---
 
-### Task 16: Move Scattered Interfaces PENDING
+### Task 16: Move Scattered Interfaces COMPLETE
 
 **Rationale**: Interface scripts should be centralized under `scripts/interfaces/`.
 
-- [ ] Move these interface scripts to `scripts/interfaces/`:
+- [x] Move these interface scripts to `scripts/interfaces/`:
   - `scripts/scene_management/i_scene_contract.gd`
   - `scripts/scene_management/i_scene_type_handler.gd`
   - `scripts/scene_management/i_transition_effect.gd`
   - `scripts/input/i_input_source.gd`
-- [ ] Update all references
-- [ ] Run scene manager tests
+- [x] Update all references
+- [x] Run scene manager tests
 
-**Status**: READY TO EXECUTE
-**Files affected**: 4 moves + unknown references
+**Status**: COMPLETE (2026-01-24)
+**Files affected**: 4 moves + 4 reference updates (8 total)
 **Risk**: Low
+**Notes**: Ran headless `--import` to refresh global class cache after interface moves; scene manager + style tests green.
 
 ---
 
