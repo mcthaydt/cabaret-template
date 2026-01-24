@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for UI registry definitions and lookup helpers.
 
-const UIRegistry := preload("res://scripts/ui/u_ui_registry.gd")
+const UIRegistry := preload("res://scripts/ui/utils/u_ui_registry.gd")
 const RS_UIScreenDefinition := preload("res://scripts/resources/ui/rs_ui_screen_definition.gd")
 
 func before_each() -> void:

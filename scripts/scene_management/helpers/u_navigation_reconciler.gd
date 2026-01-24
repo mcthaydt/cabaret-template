@@ -9,7 +9,7 @@ class_name U_NavigationReconciler
 ## - Helper methods: stack comparison, ID mapping
 
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
-const U_UI_REGISTRY := preload("res://scripts/ui/u_ui_registry.gd")
+const U_UI_REGISTRY := preload("res://scripts/ui/utils/u_ui_registry.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_OVERLAY_STACK_MANAGER := preload("res://scripts/scene_management/helpers/u_overlay_stack_manager.gd")
 const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")

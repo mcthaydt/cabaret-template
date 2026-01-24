@@ -9,7 +9,7 @@ const RS_MenuInitialState := preload("res://scripts/resources/state/rs_menu_init
 const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_ButtonPromptRegistry := preload("res://scripts/ui/u_button_prompt_registry.gd")
+const U_ButtonPromptRegistry := preload("res://scripts/ui/utils/u_button_prompt_registry.gd")
 const DeviceType := M_InputDeviceManager.DeviceType
 
 var _store: M_StateStore

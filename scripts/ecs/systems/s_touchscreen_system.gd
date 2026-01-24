@@ -14,9 +14,9 @@ const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selecto
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 const C_InputComponent := preload("res://scripts/ecs/components/c_input_component.gd")
-const UI_VirtualJoystick := preload("res://scripts/ui/ui_virtual_joystick.gd")
-const UI_VirtualButton := preload("res://scripts/ui/ui_virtual_button.gd")
-const UI_MobileControls := preload("res://scripts/ui/ui_mobile_controls.gd")
+const UI_VirtualJoystick := preload("res://scripts/ui/hud/ui_virtual_joystick.gd")
+const UI_VirtualButton := preload("res://scripts/ui/hud/ui_virtual_button.gd")
+const UI_MobileControls := preload("res://scripts/ui/hud/ui_mobile_controls.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const I_INPUT_DEVICE_MANAGER := preload("res://scripts/interfaces/i_input_device_manager.gd")
 

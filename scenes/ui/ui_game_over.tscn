@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dbcudtme76aba"]
 
-[ext_resource type="Script" uid="uid://bumgamqyyiu8s" path="res://scripts/ui/ui_game_over.gd" id="1"]
+[ext_resource type="Script" uid="uid://bumgamqyyiu8s" path="res://scripts/ui/menus/ui_game_over.gd" id="1"]
 
 [node name="GameOver" type="Control" unique_id=1010098499]
 layout_mode = 3

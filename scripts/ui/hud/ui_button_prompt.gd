@@ -4,7 +4,7 @@ class_name UI_ButtonPrompt
 
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_ButtonPromptRegistry := preload("res://scripts/ui/u_button_prompt_registry.gd")
+const U_ButtonPromptRegistry := preload("res://scripts/ui/utils/u_button_prompt_registry.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 

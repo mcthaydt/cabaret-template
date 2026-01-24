@@ -1,8 +1,8 @@
 extends GutTest
 
 const MobileControlsScene := preload("res://scenes/ui/ui_mobile_controls.tscn")
-const UI_VirtualJoystick := preload("res://scripts/ui/ui_virtual_joystick.gd")
-const UI_VirtualButton := preload("res://scripts/ui/ui_virtual_button.gd")
+const UI_VirtualJoystick := preload("res://scripts/ui/hud/ui_virtual_joystick.gd")
+const UI_VirtualButton := preload("res://scripts/ui/hud/ui_virtual_button.gd")
 const S_TouchscreenSystem := preload("res://scripts/ecs/systems/s_touchscreen_system.gd")
 const M_ECSManager := preload("res://scripts/managers/m_ecs_manager.gd")
 const C_InputComponent := preload("res://scripts/ecs/components/c_input_component.gd")

@@ -2,7 +2,7 @@ extends GutTest
 
 const OverlayScene := preload("res://scenes/ui/ui_edit_touch_controls_overlay.tscn")
 const MobileControlsScene := preload("res://scenes/ui/ui_mobile_controls.tscn")
-const UI_VirtualButton := preload("res://scripts/ui/ui_virtual_button.gd")
+const UI_VirtualButton := preload("res://scripts/ui/hud/ui_virtual_button.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")

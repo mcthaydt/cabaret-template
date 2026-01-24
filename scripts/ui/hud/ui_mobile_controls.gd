@@ -3,8 +3,8 @@ class_name UI_MobileControls
 
 const VIRTUAL_JOYSTICK_SCENE := preload("res://scenes/ui/ui_virtual_joystick.tscn")
 const VIRTUAL_BUTTON_SCENE := preload("res://scenes/ui/ui_virtual_button.tscn")
-const UI_VirtualJoystick := preload("res://scripts/ui/ui_virtual_joystick.gd")
-const UI_VirtualButton := preload("res://scripts/ui/ui_virtual_button.gd")
+const UI_VirtualJoystick := preload("res://scripts/ui/hud/ui_virtual_joystick.gd")
+const UI_VirtualButton := preload("res://scripts/ui/hud/ui_virtual_button.gd")
 const RS_InputProfile := preload("res://scripts/resources/input/rs_input_profile.gd")
 const RS_TouchscreenSettings := preload("res://scripts/resources/input/rs_touchscreen_settings.gd")
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c5xb3dasm6kyj"]
 
-[ext_resource type="Script" uid="uid://0g6ub7lehdqc" path="res://scripts/ui/ui_edit_touch_controls_overlay.gd" id="1"]
+[ext_resource type="Script" uid="uid://0g6ub7lehdqc" path="res://scripts/ui/overlays/ui_edit_touch_controls_overlay.gd" id="1"]
 
 [node name="EditTouchControlsOverlay" type="Control" unique_id=889243733]
 layout_mode = 3

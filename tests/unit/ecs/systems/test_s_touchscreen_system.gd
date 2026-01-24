@@ -18,8 +18,8 @@ const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selecto
 const U_DebugActions := preload("res://scripts/state/actions/u_debug_actions.gd")
 const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const UI_VirtualButton := preload("res://scripts/ui/ui_virtual_button.gd")
-const UI_VirtualJoystick := preload("res://scripts/ui/ui_virtual_joystick.gd")
+const UI_VirtualButton := preload("res://scripts/ui/hud/ui_virtual_button.gd")
+const UI_VirtualJoystick := preload("res://scripts/ui/hud/ui_virtual_joystick.gd")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
