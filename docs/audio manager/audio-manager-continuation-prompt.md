@@ -19,7 +19,7 @@
 
 - **Phase 10 fixes** (Manual QA follow-up):
   - Pause overlay music now resumes the pre-pause track position (no restart): `scripts/managers/m_audio_manager.gd`
-  - Footstep cadence tuned to realistic timing at default movement speed (no per-tick spam): `scripts/ecs/systems/s_footstep_sound_system.gd`, `scripts/ecs/resources/rs_footstep_sound_settings.gd`, `resources/settings/footstep_sound_default.tres`
+  - Footstep cadence tuned to realistic timing at default movement speed (no per-tick spam): `scripts/ecs/systems/s_footstep_sound_system.gd`, `scripts/ecs/resources/rs_footstep_sound_settings.gd`, `resources/base_settings/audio/footstep_sound_default.tres`
   - Audio settings now preview volume/mute changes live while editing; Apply persists: `scripts/ui/settings/ui_audio_settings_tab.gd`, `scripts/managers/m_audio_manager.gd`
 
 - **Previous completions** (Phase 7 integration):
@@ -29,7 +29,7 @@
   - `BasePanel` focus sounds at `scripts/ui/base/base_panel.gd` (plays focus sound via `Viewport.gui_focus_changed`, armed only by player navigation input; initial focus silent)
   - `S_AmbientSoundSystem` at `scripts/ecs/systems/s_ambient_sound_system.gd` (dual-player crossfade, scene-based selection, extends BaseECSSystem)
   - `RS_AmbientSoundSettings` at `scripts/ecs/resources/rs_ambient_sound_settings.gd` (enabled flag)
-  - `resources/settings/ambient_sound_default.tres` (default settings resource)
+  - `resources/base_settings/audio/ambient_sound_default.tres` (default settings resource)
   - 2 ambient placeholder WAV files in `resources/audio/ambient/` (exterior: 80Hz, interior: 120Hz, 10s loops)
   - Added `S_AmbientSoundSystem` to all 3 gameplay scenes (gameplay_base, gameplay_exterior, gameplay_interior_house)
   - All tests passing (UI Phase 7: 5/5; full unit suite: 1371/1376 with 5 pending headless timing tests)

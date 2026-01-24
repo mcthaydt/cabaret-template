@@ -283,7 +283,7 @@ The following architectural decisions address integration with existing systems 
 
 **Where Input Profile .tres Files Live:**
 - **Location**: `resources/input_profiles/` (NEW directory)
-- **Pattern**: Follows existing `resources/settings/` convention for ECS settings
+- **Pattern**: Follows existing `resources/base_settings/` convention for ECS settings
 - **File Structure**:
   ```
   resources/

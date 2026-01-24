@@ -18,7 +18,7 @@
 ## Current Status
 
 - **Phase**: 4 (Organization)
-- **Completed**: 17/23 (73.9%)
+- **Completed**: 18/23 (78.3%)
 - **Current batch**: Batch 4 - Organization
 
 ---
@@ -26,9 +26,8 @@
 ## Resume Here
 
 **Next tasks to execute (Batch 4)**:
-1. Task 18: Split settings by domain (`resources/settings` -> `resources/base_settings/*`)
-2. Task 19: Move loose trigger settings (`resources/rs_scene_trigger_settings.tres`)
-3. Task 20: Rename docs folders (spaces -> snake_case)
+1. Task 19: Move loose trigger settings (`resources/rs_scene_trigger_settings.tres`)
+2. Task 20: Rename docs folders (spaces -> snake_case)
 
 See `reorganization-tasks.md` for full details, commands, and verification steps.
 
@@ -62,7 +61,7 @@ If tests fail: `git reset --hard HEAD`, analyze, retry.
 | 1: Quick Wins | 2-4 | Complete |
 | 2: Naming Fixes | 5-8 | Complete |
 | 3: Folder Restructure | 9-16 | Complete |
-| 4: Organization | 17-23 | In progress (Task 18 next) |
+| 4: Organization | 17-23 | In progress (Task 19 next) |
 
 ---
 

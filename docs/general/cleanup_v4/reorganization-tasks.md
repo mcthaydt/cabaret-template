@@ -320,7 +320,7 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 - [x] Update all references (83 files):
   - `scripts/managers/m_audio_manager.gd` (lines 20-46: preloads)
   - `scripts/ecs/systems/s_ambient_sound_system.gd`
-  - Base settings `.tres` files (in `resources/settings/`)
+  - Base settings `.tres` files (in `resources/base_settings/`)
   - 3 test files
   - 75+ `.import` files (will auto-regenerate)
 - [x] Run audio tests
@@ -339,7 +339,7 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 
 **Critical Files for Manual Verification**:
 - `scripts/managers/m_audio_manager.gd` (lines 18-46: preloads)
-- `resources/settings/*_sound_default.tres` (6 files)
+- `resources/base_settings/*_sound_default.tres` (6 files)
 - `tests/unit/managers/test_audio_manager.gd`
 
 **Test Command**:
@@ -538,7 +538,7 @@ scripts/ui/
 
 ---
 
-### Task 18: Split Settings by Domain PENDING
+### Task 18: Split Settings by Domain COMPLETE
 
 **RESOLVED - Naming Convention**: Use `rs_*_settings.gd` for resource scripts and `rs_*_default.tres` for default instances. This is consistent with existing patterns.
 
@@ -550,15 +550,16 @@ resources/base_settings/
   └── input/     (input profile settings)
 ```
 
-- [ ] Rename `resources/settings/` -> `resources/base_settings/`
-- [ ] Create domain subdirectories under `resources/base_settings/`
-- [ ] Move base settings files into the correct domain subdirectories
-- [ ] Update all references
-- [ ] Run tests
+- [x] Rename `resources/settings/` -> `resources/base_settings/`
+- [x] Create domain subdirectories under `resources/base_settings/`
+- [x] Move base settings files into the correct domain subdirectories
+- [x] Update all references
+- [x] Run tests
 
-**Status**: CAN BE DEFERRED
-**Files affected**: 17 moves + unknown references
+**Status**: COMPLETE (2026-01-24)
+**Files affected**: 17 `.tres` moves + 1 `.uid` + references (scenes/tests/scripts/docs)
 **Risk**: Low
+**Notes**: Updated documentation references to new domain paths; style enforcement tests green.
 
 **Path Update Command**:
 ```bash

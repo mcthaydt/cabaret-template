@@ -1453,7 +1453,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 - [ ] T117 Create save manager settings:
   - [ ] T117a Create `scripts/managers/resources/rs_save_manager_settings.gd`
   - [ ] T117b Add fields: `manual_slot_count`, `auto_save_enabled`, `show_auto_save_in_list`, `confirm_overwrite`, `confirm_delete`
-  - [ ] T117c Create default `.tres` at `resources/settings/save_manager_settings.tres`
+  - [ ] T117c Create default `.tres` at `resources/base_settings/save_manager_settings.tres`
 
 ### Phase 10.7: Testing
 

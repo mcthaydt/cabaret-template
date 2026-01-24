@@ -655,7 +655,7 @@
   - Properties: death_animation_duration (2.5) - delay before game_over transition for cinematic death
   - Pattern: Extend Resource, follow RS_JumpSettings structure
 
-- [x] T145.6 Create resources/settings/health_settings.tres (default values in resources/settings/health_settings.tres)
+- [x] T145.6 Create resources/base_settings/gameplay/health_settings.tres (default values in resources/base_settings/gameplay/health_settings.tres)
   - Instance of RS_HealthSettings with default values
   - default_max_health = 100.0
   - invincibility_duration = 1.0
@@ -855,7 +855,7 @@
 **Files Created**:
 - `scripts/ecs/components/c_health_component.gd`
 - `scripts/ecs/resources/rs_health_settings.gd`
-- `resources/settings/health_settings.tres`
+- `resources/base_settings/gameplay/health_settings.tres`
 - `scripts/ecs/systems/s_health_system.gd`
 - `scripts/ecs/components/c_damage_zone_component.gd`
 - `scripts/ecs/systems/s_damage_system.gd`

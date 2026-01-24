@@ -129,7 +129,7 @@ The following architectural decisions have been made to address critical gaps in
 **Where .tres Files Live:**
 - **Location**: `resources/state/` (NEW directory)
 - **NOT**: `scripts/state/resources/` (this mixes code and data)
-- **Pattern**: Follows existing `resources/settings/` convention
+- **Pattern**: Follows existing `resources/base_settings/` convention
 
 **File Structure:**
 ```
@@ -1803,7 +1803,7 @@ func process_tick(delta: float) -> void:
 
 ### Q: Where do .tres files go?
 
-**A**: In `resources/state/` (NOT `scripts/state/resources/`). Follows ECS pattern of `resources/settings/*.tres`.
+**A**: In `resources/state/` (NOT `scripts/state/resources/`). Follows ECS pattern of `resources/base_settings/*.tres`.
 
 ---
 

@@ -2051,7 +2051,7 @@ resources/audio/
     placeholder_metal_01.wav through _04.wav
     placeholder_water_01.wav through _04.wav
     placeholder_default_01.wav through _04.wav
-resources/settings/
+resources/base_settings/
   jump_sound_default.tres
   landing_sound_default.tres
   death_sound_default.tres

@@ -6,7 +6,7 @@
   - `scripts/ecs`: Lightweight ECS built on Nodes (components + systems + manager).
 - Scenes and resources:
   - `templates/`: Base scene and player scene that wire components/systems together.
-  - `resources/`: Default `*Settings.tres` for component configs; update when adding new exported fields.
+  - `resources/base_settings/`: Default `*Settings.tres` for component configs (domain subfolders); update defaults when adding new exported fields.
 - Documentation to consult (do not duplicate here):
   - General pitfalls: `docs/general/DEV_PITFALLS.md`
 - Before adding or modifying code, re-read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md` to stay aligned with testing and formatting requirements.
