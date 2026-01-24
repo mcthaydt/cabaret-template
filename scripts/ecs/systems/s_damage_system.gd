@@ -8,7 +8,7 @@ const DAMAGE_COMPONENT_TYPE := StringName("C_DamageZoneComponent")
 const HEALTH_COMPONENT_TYPE := StringName("C_HealthComponent")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 const U_ECSUtils := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const EVENT_DAMAGE_ZONE_ENTERED := StringName("damage_zone_entered")
 const EVENT_DAMAGE_ZONE_EXITED := StringName("damage_zone_exited")
 

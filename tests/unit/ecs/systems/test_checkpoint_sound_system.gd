@@ -4,7 +4,7 @@ const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const CHECKPOINT_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_checkpoint_sound_system.gd")
 const CHECKPOINT_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_checkpoint_sound_settings.gd")
 const SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
-const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 const TEST_EVENT := StringName("checkpoint_activated")
 

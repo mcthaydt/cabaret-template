@@ -39,7 +39,7 @@ const RS_LANDING_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_landi
 const RS_VICTORY_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_victory_sound_settings.gd")
 
 const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")

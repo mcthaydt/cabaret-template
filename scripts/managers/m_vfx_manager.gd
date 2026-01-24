@@ -5,8 +5,8 @@ class_name M_VFXManager
 ## VFX Manager - Coordinates visual feedback effects (screen shake, damage flash)
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")

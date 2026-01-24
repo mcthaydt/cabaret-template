@@ -4,8 +4,8 @@ const M_VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()

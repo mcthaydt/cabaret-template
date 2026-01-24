@@ -1,6 +1,6 @@
 extends BaseTest
 
-const ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 const EVENT_NAME := StringName("test_event")
 const OTHER_EVENT := StringName("other_event")

@@ -1,7 +1,7 @@
 extends BaseTest
 
 const BASE_SCENE := preload("res://scenes/templates/tmpl_base_scene.tscn")
-const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const JUMP_PARTICLE_SYSTEM := preload("res://scripts/ecs/systems/s_jump_particles_system.gd")
 const JUMP_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_jump_sound_system.gd")
 const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")

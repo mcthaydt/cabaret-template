@@ -7,9 +7,9 @@ class_name S_DamageFlashPublisherSystem
 ## Subscribes to: health_changed, entity_death
 ## Publishes: damage_flash_request
 
-const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
-const EVN_DAMAGE_FLASH_REQUEST := preload("res://scripts/ecs/events/evn_damage_flash_request.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const EVN_DAMAGE_FLASH_REQUEST := preload("res://scripts/events/ecs/evn_damage_flash_request.gd")
 
 var _event_unsubscribes: Array[Callable] = []
 

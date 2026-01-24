@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for BootReducer pure functions
 
-const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
+const U_StateEventBus := preload("res://scripts/events/state/u_state_event_bus.gd")
 const StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")
 const U_BootActions := preload("res://scripts/state/actions/u_boot_actions.gd")

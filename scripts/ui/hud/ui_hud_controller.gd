@@ -4,7 +4,7 @@ class_name UI_HudController
 
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_EntitySelectors := preload("res://scripts/state/selectors/u_entity_selectors.gd")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const UI_ButtonPrompt := preload("res://scripts/ui/hud/ui_button_prompt.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_InteractBlocker := preload("res://scripts/utils/u_interact_blocker.gd")

@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for M_StateStore core functionality
 
-const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
+const U_StateEventBus := preload("res://scripts/events/state/u_state_event_bus.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var store: M_StateStore

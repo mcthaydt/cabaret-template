@@ -5,8 +5,8 @@ const SCREEN_SHAKE_PUBLISHER := preload("res://scripts/ecs/systems/s_screen_shak
 const DAMAGE_FLASH_PUBLISHER := preload("res://scripts/ecs/systems/s_damage_flash_publisher_system.gd")
 const VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
-const EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 
 const PLAYER_ID := StringName("player")
 const ENEMY_ID := StringName("enemy")

@@ -1,7 +1,7 @@
 extends "res://scripts/gameplay/base_interactable_controller.gd"
 class_name TriggeredInteractableController
 
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_InteractBlocker := preload("res://scripts/utils/u_interact_blocker.gd")
 
 enum TriggerMode {

@@ -2,8 +2,8 @@ extends GutTest
 
 ## Tests for U_StateEventBus isolation and reset behavior
 
-const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_StateEventBus := preload("res://scripts/events/state/u_state_event_bus.gd")
+const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 var callback_count: int = 0
 var received_events: Array = []

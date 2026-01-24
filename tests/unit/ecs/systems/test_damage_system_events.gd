@@ -6,7 +6,7 @@ const C_DamageZoneComponent := preload("res://scripts/ecs/components/c_damage_zo
 const C_PlayerTagComponent := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const C_HealthComponent := preload("res://scripts/ecs/components/c_health_component.gd")
 const RS_HealthSettings := preload("res://scripts/resources/ecs/rs_health_settings.gd")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 func before_each() -> void:
 	U_ECSEventBus.reset()

@@ -1,6 +1,6 @@
 extends GutTest
 
-const SCREEN_SHAKE_EVENT := preload("res://scripts/ecs/events/evn_screen_shake_request.gd")
+const SCREEN_SHAKE_EVENT := preload("res://scripts/events/ecs/evn_screen_shake_request.gd")
 
 const ENTITY_ID := StringName("player")
 const TRAUMA_AMOUNT := 0.45

@@ -1,6 +1,6 @@
 extends GutTest
 
-const DAMAGE_FLASH_EVENT := preload("res://scripts/ecs/events/evn_damage_flash_request.gd")
+const DAMAGE_FLASH_EVENT := preload("res://scripts/events/ecs/evn_damage_flash_request.gd")
 
 const ENTITY_ID := StringName("player")
 const INTENSITY := 1.0

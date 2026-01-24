@@ -20,8 +20,8 @@ const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_n
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_VFX_INITIAL_STATE := preload("res://scripts/resources/state/rs_vfx_initial_state.gd")
 
-const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")

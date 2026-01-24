@@ -5,7 +5,7 @@ const ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
 const ECS_SYSTEM := preload("res://scripts/ecs/base_ecs_system.gd")
 const PLAYER_SCENE := preload("res://scenes/prefabs/prefab_player.tscn")
 const BASE_SCENE := preload("res://scenes/templates/tmpl_base_scene.tscn")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 class FakeComponent extends BaseECSComponent:
 	const TYPE := StringName("C_FakeComponent")

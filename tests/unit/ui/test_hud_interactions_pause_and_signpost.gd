@@ -9,7 +9,7 @@ const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gamep
 const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_NavigationInitialState := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 var _store: M_StateStore

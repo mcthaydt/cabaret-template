@@ -10,7 +10,7 @@ const RS_GameplayInitialState := preload("res://resources/state/default_gameplay
 const RS_SceneInitialState := preload("res://resources/state/default_scene_initial_state.tres")
 const RS_SettingsInitialState := preload("res://resources/state/default_settings_initial_state.tres")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const DeviceType := M_InputDeviceManager.DeviceType
 
 var _store: M_StateStore

@@ -13,7 +13,7 @@ class_name BaseEventSFXSystem
 ## - get_event_name() -> StringName
 ## - create_request_from_payload(payload: Dictionary) -> Dictionary
 
-const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 ## Queue of SFX requests to be processed in process_tick().
 var requests: Array = []

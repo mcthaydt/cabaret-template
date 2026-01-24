@@ -11,7 +11,7 @@ const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gamep
 const RS_SettingsInitialState := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 func before_each() -> void:
 	U_ECSEventBus.reset()

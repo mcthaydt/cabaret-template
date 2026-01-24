@@ -6,7 +6,7 @@ const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const ECS_ENTITY := preload("res://scripts/ecs/base_ecs_entity.gd")
 const ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 var _manager: M_ECSManager = null
 

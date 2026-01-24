@@ -7,9 +7,9 @@ class_name S_ScreenShakePublisherSystem
 ## Subscribes to: health_changed, entity_landed, entity_death
 ## Publishes: screen_shake_request
 
-const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
-const U_ECS_EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
-const EVN_SCREEN_SHAKE_REQUEST := preload("res://scripts/ecs/events/evn_screen_shake_request.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
+const EVN_SCREEN_SHAKE_REQUEST := preload("res://scripts/events/ecs/evn_screen_shake_request.gd")
 const DEFAULT_TUNING := preload("res://resources/vfx/rs_screen_shake_tuning.tres")
 
 @export var tuning: Resource = null

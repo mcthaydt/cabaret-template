@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for MenuReducer pure functions
 
-const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
+const U_StateEventBus := preload("res://scripts/events/state/u_state_event_bus.gd")
 const StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const RS_MenuInitialState := preload("res://scripts/resources/state/rs_menu_initial_state.gd")
 const U_MenuActions := preload("res://scripts/state/actions/u_menu_actions.gd")

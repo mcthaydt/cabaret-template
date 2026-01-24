@@ -4,7 +4,7 @@ extends GutTest
 
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const S_SPAWN_PARTICLES := preload("res://scripts/ecs/systems/s_spawn_particles_system.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_VFX_INITIAL_STATE := preload("res://scripts/resources/state/rs_vfx_initial_state.gd")

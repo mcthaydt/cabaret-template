@@ -2,7 +2,7 @@ extends GutTest
 
 ## Tests for navigation slice reducer, selectors, and initial state
 
-const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
+const U_StateEventBus := preload("res://scripts/events/state/u_state_event_bus.gd")
 const StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_NavigationInitialState := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")

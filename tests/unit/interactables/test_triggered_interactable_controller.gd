@@ -4,7 +4,7 @@ const TRIGGERED_INTERACTABLE_CONTROLLER := preload("res://scripts/gameplay/trigg
 const BASE_INTERACTABLE_CONTROLLER := preload("res://scripts/gameplay/base_interactable_controller.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
-const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
 

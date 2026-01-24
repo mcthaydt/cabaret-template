@@ -6,7 +6,7 @@ signal component_added(component_type: StringName, component: BaseECSComponent)
 signal component_removed(component_type: StringName, component: BaseECSComponent)
 
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_QUERY_METRICS := preload("res://scripts/utils/ecs/u_ecs_query_metrics.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const I_ECS_ENTITY := preload("res://scripts/interfaces/i_ecs_entity.gd")

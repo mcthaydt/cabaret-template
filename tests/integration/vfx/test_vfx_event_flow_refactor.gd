@@ -9,10 +9,10 @@ const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
 const RS_VFX_INITIAL_STATE := preload("res://scripts/resources/state/rs_vfx_initial_state.gd")
-const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
+const EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 
 const ENTITY_ID := StringName("player")
 
