@@ -879,7 +879,7 @@ Systems can't communicate events without:
 
 **Create Global Event Bus**:
 ```gdscript
-# scripts/ecs/u_ecs_event_bus.gd
+# scripts/events/ecs/u_ecs_event_bus.gd
 extends Node
 class_name U_ECSEventBus
 

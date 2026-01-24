@@ -167,7 +167,7 @@ class_name BaseEventSFXSystem
 
 ## Base class for SFX systems that respond to ECS events (mirrors BaseEventVFXSystem)
 
-const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
+const EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 ## Queue of sound requests to be processed in process_tick()
 var requests: Array = []

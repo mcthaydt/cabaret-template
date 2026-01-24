@@ -461,8 +461,8 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 
 **Files**:
 - `scripts/events/base_event_bus.gd` — abstract base class
-- `scripts/state/u_state_event_bus.gd` — state domain bus with static delegates
-- `scripts/ecs/u_ecs_event_bus.gd` — update to extend base and delegate statics internally
+- `scripts/events/state/u_state_event_bus.gd` — state domain bus with static delegates
+- `scripts/events/ecs/u_ecs_event_bus.gd` — update to extend base and delegate statics internally
 
 **Changes**:
 1. Implement subscribe/unsubscribe/publish/reset/history in base

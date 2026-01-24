@@ -35,6 +35,7 @@
 - `scripts/ecs/systems/*`: Systems that query components by `StringName` and operate per-physics tick.
 - `scripts/ecs/resources/*`: `Resource` classes holding tunables consumed by components/systems.
 - `scripts/utils/ecs/u_ecs_utils.gd`: ECS helpers (manager lookup, time, component mapping). Input helpers live in `scripts/utils/input/`.
+- `scripts/events/ecs/`: ECS event bus + typed ECS events; `scripts/events/state/` holds `U_StateEventBus` (state-domain bus).
 - `scenes/root.tscn`: Main scene (persistent managers + containers).
 - `scenes/gameplay/*`: Gameplay scenes (dynamic loading, own M_ECSManager).
 - `tests/unit/*`: GUT test suites for ECS and state management.

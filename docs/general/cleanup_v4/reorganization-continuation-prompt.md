@@ -18,7 +18,7 @@
 ## Current Status
 
 - **Phase**: 5 (Polish)
-- **Completed**: 21/23 (91.3%)
+- **Completed**: 22/23 (95.7%)
 - **Current batch**: Phase 5 - Polish
 
 ---
@@ -27,7 +27,6 @@
 
 **Next tasks to execute (Phase 5 - Polish)**:
 1. Task 22: Clean up unused test files
-2. Task 23: Consolidate event code under `scripts/events/` (see reorganization-tasks.md)
 
 See `reorganization-tasks.md` for full details, commands, and verification steps.
 

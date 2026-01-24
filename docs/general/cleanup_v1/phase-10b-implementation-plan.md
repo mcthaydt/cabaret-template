@@ -475,26 +475,26 @@ static func sanitize_completed_areas(areas: Array) -> Array:
 
 **Typed Event Classes**:
 ```gdscript
-# scripts/ecs/events/health_changed_event.gd
+# scripts/events/ecs/health_changed_event.gd
 class_name HealthChangedEvent extends Resource
 var entity_id: StringName
 var old_health: float
 var new_health: float
 var damage_amount: float
 
-# scripts/ecs/events/entity_death_event.gd
+# scripts/events/ecs/entity_death_event.gd
 class_name EntityDeathEvent extends Resource
 var entity_id: StringName
 var entity_node: Node3D
 var death_reason: String
 
-# scripts/ecs/events/victory_triggered_event.gd
+# scripts/events/ecs/victory_triggered_event.gd
 class_name VictoryTriggeredEvent extends Resource
 var trigger_entity_id: StringName
 var player_entity_id: StringName
 var target_scene: StringName
 
-# scripts/ecs/events/checkpoint_activated_event.gd
+# scripts/events/ecs/checkpoint_activated_event.gd
 class_name CheckpointActivatedEvent extends Resource
 var checkpoint_id: StringName
 var spawn_point_id: StringName
@@ -514,10 +514,10 @@ func subscribe(event_name: StringName, callback: Callable, priority: int = 0) ->
 - Track subscription source (for debugging)
 
 **Files Created**:
-- `scripts/ecs/events/health_changed_event.gd`
-- `scripts/ecs/events/entity_death_event.gd`
-- `scripts/ecs/events/victory_triggered_event.gd`
-- `scripts/ecs/events/checkpoint_activated_event.gd`
+- `scripts/events/ecs/health_changed_event.gd`
+- `scripts/events/ecs/entity_death_event.gd`
+- `scripts/events/ecs/victory_triggered_event.gd`
+- `scripts/events/ecs/checkpoint_activated_event.gd`
 
 **Files Modified**:
 - `scripts/events/base_event_bus.gd` (add priority support)
@@ -963,7 +963,7 @@ Centralize manager lookup in ServiceLocator.
 - `scripts/state/utils/u_state_repository.gd` (new, 200-250 lines)
 
 ### Phase 10B-6
-- `scripts/ecs/events/*.gd` (4 new event classes)
+- `scripts/events/ecs/*.gd` (4 new event classes)
 - `docs/ecs/ecs_events.md` (new)
 
 ### Phase 10B-7

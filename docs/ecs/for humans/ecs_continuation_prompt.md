@@ -39,7 +39,7 @@ The ECS architecture refactor has been successfully delivered. All planned work 
 - `scripts/managers/m_ecs_manager.gd` - Entity queries, component tracking, priority-sorted execution
 - `scripts/ecs/base_ecs_system.gd` - Execution priority, query passthrough
 - `scripts/ecs/u_entity_query.gd` - Multi-component query results
-- `scripts/ecs/u_ecs_event_bus.gd` - Static event pub/sub
+- `scripts/events/ecs/u_ecs_event_bus.gd` - Static event pub/sub
 - All systems in `scripts/ecs/systems/` - Use `query_entities()` instead of NodePaths
 - All components in `scripts/ecs/components/` - No component→component NodePaths
 

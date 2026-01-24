@@ -213,7 +213,7 @@ The current implementation is ready for:
 
 **Key files to review:**
 - `scripts/managers/m_ecs_manager.gd:209-272` - Query implementation
-- `scripts/ecs/u_ecs_event_bus.gd` - Event system
+- `scripts/events/ecs/u_ecs_event_bus.gd` - Event system
 - `scripts/ecs/u_entity_query.gd` - Query results
 - `tests/integration/test_ecs_full_refactor.gd` - Integration test
 

@@ -87,7 +87,7 @@ Epic 2 – Multi-Component Query System (18 points)
 
 Epic 3 – Event Bus System (8 points)
 
-- [x] Story 3.1: Implement U_ECSEventBus static class (4 points) — Added `scripts/ecs/u_ecs_event_bus.gd` with `subscribe()`, `publish()`, `unsubscribe()`, `clear()`, `reset()` leveraging `U_ECSUtils.get_current_time()`; covered by new `tests/unit/ecs/test_ecs_event_bus.gd` (GUT `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
+- [x] Story 3.1: Implement U_ECSEventBus static class (4 points) — Added `scripts/events/ecs/u_ecs_event_bus.gd` with `subscribe()`, `publish()`, `unsubscribe()`, `clear()`, `reset()` leveraging `U_ECSUtils.get_current_time()`; covered by new `tests/unit/ecs/test_ecs_event_bus.gd` (GUT `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
 - [x] Story 3.2: Add event history buffer and debugging (2 points) — `U_ECSEventBus` now tracks a rolling 1,000 event history with `get_event_history()`, `clear_history()`, and `set_history_limit()` helpers; payloads are deep-copied and stored with `name`/`timestamp` metadata and covered by new GUT specs (`tests/unit/ecs/test_ecs_event_bus.gd`, `-gdir=res://tests/unit/ecs -gselect=test_ecs_event_bus -gexit`)
 - [x] Story 3.3: Integrate event publication in S_JumpSystem (1 point) — `S_JumpSystem` now emits `entity_jumped` events with body/component context (entity, input, floating support, velocity, jump_time, support flags); enforced via `tests/unit/ecs/systems/test_jump_system.gd` (GUT `-gdir=res://tests/unit/ecs/systems -gselect=test_jump_system -gexit`)
 - [x] Story 3.4: Create sample event subscribers (particles, sound) (1 point) — Added `S_JumpParticlesSystem` and `S_JumpSoundSystem` listeners that capture spawn/audio requests from `entity_jumped` events; covered by new `tests/unit/ecs/systems/test_jump_event_subscribers.gd` (GUT `-gdir=res://tests/unit/ecs/systems -gselect=test_jump_event_subscribers -gexit`)
@@ -126,7 +126,7 @@ Testing & Documentation (7 points)
 | `BaseECSComponent` | `scripts/ecs/base_ecs_component.gd` | `BaseECSComponent` |
 | `U_ECSUtils` (NEW) | `scripts/utils/ecs/u_ecs_utils.gd` | `U_ECSUtils` |
 | `U_EntityQuery` (NEW) | `scripts/ecs/u_entity_query.gd` | `U_EntityQuery` |
-| `U_ECSEventBus` (NEW) | `scripts/ecs/u_ecs_event_bus.gd` | `U_ECSEventBus` |
+| `U_ECSEventBus` (NEW) | `scripts/events/ecs/u_ecs_event_bus.gd` | `U_ECSEventBus` |
 | Systems | `scripts/ecs/systems/s_*_system.gd` | `S_*System` |
 | Components | `scripts/ecs/components/c_*_component.gd` | `C_*Component` |
 
@@ -772,7 +772,7 @@ Goal: Implement event system for cross-system communication, remove NodePath cou
   - Assert: Subscriber callback called with payload
 
 - [x] 1.1b – GREEN: Implement U_ECSEventBus as purely static class (NOT a Node, NOT in scene tree)
-- Create `scripts/ecs/u_ecs_event_bus.gd`:
+- Create `scripts/events/ecs/u_ecs_event_bus.gd`:
 ```gdscript
 # Purely static class (NOT a Node, NOT in scene tree)
 class_name U_ECSEventBus

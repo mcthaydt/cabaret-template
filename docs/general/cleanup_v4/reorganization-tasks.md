@@ -644,7 +644,7 @@ scripts/utils/
 
 ---
 
-### Task 23: Consolidate Event Code Under scripts/events/ PENDING
+### Task 23: Consolidate Event Code Under scripts/events/ COMPLETE
 
 **RESOLVED - Design**: Consolidate under `scripts/events/` with this structure:
 ```
@@ -654,14 +654,15 @@ scripts/events/
   └── state/  (State bus + typed state events)
 ```
 
-- [ ] Move files into `scripts/events/` domain subfolders:
-  - `U_ECSEventBus`, `U_ECSEventNames`, and `scripts/ecs/events/*`
-  - `U_StateEventBus`
-- [ ] Update all references (preloads, docs)
-- [ ] Run unit tests + style enforcement
+- [x] Move files into `scripts/events/` domain subfolders:
+  - `U_ECSEventBus`, `U_ECSEventNames`, and `scripts/events/ecs/*`
+  - `U_StateEventBus` to `scripts/events/state/`
+- [x] Update all references (preloads, docs)
+- [x] Run unit tests + style enforcement
 
-**Status**: DESIGN CONFIRMED - NEEDS REFERENCE SCAN
+**Status**: COMPLETE (2026-01-24)
 **Risk**: Medium/High - potentially many call sites
+**Notes**: Moved ECS event bus + typed events into `scripts/events/ecs/` and state bus into `scripts/events/state/`. Updated code/test/doc references and style enforcement rules. Ran headless import to refresh class cache, then ECS/state/style tests.
 
 ---
 

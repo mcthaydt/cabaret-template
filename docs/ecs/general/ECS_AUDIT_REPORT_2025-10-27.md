@@ -34,7 +34,7 @@ All core ECS architectural elements are **fully implemented and operational**:
 | **BaseECSComponent** | ✅ Complete | `scripts/ecs/base_ecs_component.gd` | Base class with validation hooks |
 | **BaseECSSystem** | ✅ Complete | `scripts/ecs/base_ecs_system.gd` | Priority-based execution, query API |
 | **U_EntityQuery** | ✅ Complete | `scripts/ecs/u_entity_query.gd` | Query result wrapper with type safety |
-| **U_ECSEventBus** | ✅ Complete | `scripts/ecs/u_ecs_event_bus.gd` | Pub/sub with history buffer |
+| **U_ECSEventBus** | ✅ Complete | `scripts/events/ecs/u_ecs_event_bus.gd` | Pub/sub with history buffer |
 | **ECSEntity** | ✅ Complete | `scripts/ecs/base_ecs_entity.gd` | Entity root marker |
 | **U_ECSUtils** | ✅ Complete | `scripts/utils/ecs/u_ecs_utils.gd` | Centralized utilities |
 
@@ -668,7 +668,7 @@ The ECS system is **ready for production use** with:
 - `scripts/ecs/base_ecs_component.gd` (49 lines)
 - `scripts/ecs/base_ecs_system.gd` (101 lines)
 - `scripts/ecs/u_entity_query.gd` (28 lines)
-- `scripts/ecs/u_ecs_event_bus.gd` (60 lines)
+- `scripts/events/ecs/u_ecs_event_bus.gd` (60 lines)
 - `scripts/ecs/base_ecs_entity.gd` (13 lines)
 - `scripts/utils/ecs/u_ecs_utils.gd` (193 lines)
 - `scripts/ecs/event_vfx_system.gd` (77 lines)
