@@ -35,7 +35,7 @@ folder_colors={
 "res://assets/": "green",
 "res://docs/": "red",
 "res://resources/": "blue",
-"res://resources/editor_icons/": "blue",
+"res://assets/editor_icons/": "blue",
 "res://scenes/": "green",
 "res://scenes/templates/": "green",
 "res://scripts/": "blue",

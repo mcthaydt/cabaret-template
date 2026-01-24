@@ -1,4 +1,4 @@
-@icon("res://resources/editor_icons/spawn_points.svg")
+@icon("res://assets/editor_icons/spawn_points.svg")
 extends Node3D
 
 ## Marker script for the SpawnPoints container. Provides a distinct editor icon

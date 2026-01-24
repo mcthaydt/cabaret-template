@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ct4k4scfssbwc"
-path="res://.godot/imported/systems_movement.svg-fbdf947fbba21e5182f6fbc27429118f.ctex"
+uid="uid://wi3aqxfgoqup"
+path="res://.godot/imported/systems_physics.svg-221b7bf706681437a9c4cb0f05046c57.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://resources/editor_icons/systems_movement.svg"
-dest_files=["res://.godot/imported/systems_movement.svg-fbdf947fbba21e5182f6fbc27429118f.ctex"]
+source_file="res://assets/editor_icons/systems_physics.svg"
+dest_files=["res://.godot/imported/systems_physics.svg-221b7bf706681437a9c4cb0f05046c57.ctex"]
 
 [params]
 

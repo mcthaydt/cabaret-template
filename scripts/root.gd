@@ -1,4 +1,4 @@
-@icon("res://resources/editor_icons/main_root.svg")
+@icon("res://assets/editor_icons/main_root.svg")
 extends Node
 
 ## Root scene script (dedicated editor icon + ServiceLocator bootstrap).

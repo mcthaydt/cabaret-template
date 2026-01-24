@@ -1,4 +1,4 @@
-@icon("res://resources/editor_icons/utility.svg")
+@icon("res://assets/editor_icons/utility.svg")
 class_name U_InteractBlocker
 extends RefCounted
 

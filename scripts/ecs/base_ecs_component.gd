@@ -1,4 +1,4 @@
-@icon("res://resources/editor_icons/component.svg")
+@icon("res://assets/editor_icons/component.svg")
 extends Node
 
 class_name BaseECSComponent

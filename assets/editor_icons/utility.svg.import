@@ -10,7 +10,7 @@ metadata={
 
 [deps]
 
-source_file="res://resources/editor_icons/utility.svg"
+source_file="res://assets/editor_icons/utility.svg"
 dest_files=["res://.godot/imported/utility.svg-26e255a058bece2ca86e8182eea39381.ctex"]
 
 [params]

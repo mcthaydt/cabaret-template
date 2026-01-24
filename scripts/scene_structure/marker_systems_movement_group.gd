@@ -1,4 +1,4 @@
-@icon("res://resources/editor_icons/systems_movement.svg")
+@icon("res://assets/editor_icons/systems_movement.svg")
 extends Node
 
 ## Marker script for Movement systems group (character locomotion and positioning).

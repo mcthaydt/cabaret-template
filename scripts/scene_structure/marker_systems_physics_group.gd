@@ -1,4 +1,4 @@
-@icon("res://resources/editor_icons/systems_physics.svg")
+@icon("res://assets/editor_icons/systems_physics.svg")
 extends Node
 
 ## Marker script for Physics systems group (gravity, jumping, physics-driven behavior).

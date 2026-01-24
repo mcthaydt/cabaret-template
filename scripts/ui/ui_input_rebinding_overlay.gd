@@ -1,4 +1,4 @@
-@icon("res://resources/editor_icons/utility.svg")
+@icon("res://assets/editor_icons/utility.svg")
 extends "res://scripts/interfaces/i_rebind_overlay.gd"
 class_name UI_InputRebindingOverlay
 

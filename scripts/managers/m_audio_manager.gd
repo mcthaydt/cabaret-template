@@ -1,4 +1,4 @@
-@icon("res://resources/editor_icons/manager.svg")
+@icon("res://assets/editor_icons/manager.svg")
 extends "res://scripts/interfaces/i_audio_manager.gd"
 class_name M_AudioManager
 

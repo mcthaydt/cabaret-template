@@ -10,7 +10,7 @@ metadata={
 
 [deps]
 
-source_file="res://resources/editor_icons/manager.svg"
+source_file="res://assets/editor_icons/manager.svg"
 dest_files=["res://.godot/imported/manager.svg-a16896186dfc8958039ed4502fadc230.ctex"]
 
 [params]

@@ -1,4 +1,4 @@
-@icon("res://resources/editor_icons/manager.svg")
+@icon("res://assets/editor_icons/manager.svg")
 
 extends I_StateStore
 class_name M_StateStore
