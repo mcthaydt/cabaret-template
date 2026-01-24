@@ -1,6 +1,7 @@
 extends BaseTest
 
 const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
+const U_SAVE_FILE_IO := preload("res://scripts/managers/helpers/u_save_file_io.gd")
 
 const TEST_DIR := U_SAVE_TEST_UTILS.TEST_DIR
 const TEST_SAVE_DIR := TEST_DIR + "saves/"
@@ -55,7 +56,7 @@ func test_ensure_save_directory_creates_directory() -> void:
 			test_dir.list_dir_end()
 		user_dir.remove("test/saves")
 
-	# Call ensure_save_directory (will be implemented in m_save_file_io.gd)
+	# Call ensure_save_directory (will be implemented in u_save_file_io.gd)
 	var io: Variant = _create_file_io_helper()
 	io.call("ensure_save_directory", TEST_SAVE_DIR)
 
@@ -211,7 +212,7 @@ func test_load_from_file_returns_empty_for_empty_file() -> void:
 ## ============================================================================
 
 func test_corrupted_json_emits_parse_error() -> void:
-	var io := M_SaveFileIO.new()  # silent_mode = false (default)
+	var io := U_SAVE_FILE_IO.new()  # silent_mode = false (default)
 
 	# Create corrupted file (no backup to avoid recovery warnings)
 	var file := FileAccess.open(TEST_FILE, FileAccess.WRITE)
@@ -225,7 +226,7 @@ func test_corrupted_json_emits_parse_error() -> void:
 	assert_push_error("JSON parse error")
 
 func test_missing_file_returns_empty_silently() -> void:
-	var io := M_SaveFileIO.new()  # silent_mode = false
+	var io := U_SAVE_FILE_IO.new()  # silent_mode = false
 
 	# Try to load nonexistent file (no .bak either)
 	var result: Dictionary = io.load_from_file("user://test/nonexistent_never_created.json")
@@ -234,7 +235,7 @@ func test_missing_file_returns_empty_silently() -> void:
 	assert_true(result.is_empty(), "Should return empty dict for missing file")
 
 func test_invalid_dictionary_type_emits_error() -> void:
-	var io := M_SaveFileIO.new()  # silent_mode = false
+	var io := U_SAVE_FILE_IO.new()  # silent_mode = false
 
 	# Create file with array instead of dictionary (valid JSON, wrong type, no backup)
 	var file := FileAccess.open(TEST_FILE, FileAccess.WRITE)
@@ -252,7 +253,7 @@ func test_invalid_dictionary_type_emits_error() -> void:
 func _create_file_io_helper() -> Variant:
 	# This will load the file IO helper once it's implemented
 	# For now, we're writing the tests first (TDD Red phase)
-	var io_class: GDScript = load("res://scripts/managers/helpers/m_save_file_io.gd")
+	var io_class: GDScript = load("res://scripts/managers/helpers/u_save_file_io.gd")
 	var io: Variant = io_class.new()
 	# Enable silent mode to suppress informational warnings in tests
 	io.silent_mode = true

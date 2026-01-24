@@ -1,5 +1,5 @@
 extends Node
-class_name M_AutosaveScheduler
+class_name U_AutosaveScheduler
 
 ## Autosave Scheduler (Phase 6)
 ##

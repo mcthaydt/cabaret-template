@@ -4,7 +4,7 @@ extends GutTest
 # Tests per-tick footstep sound generation based on movement and surface type
 
 const S_FOOTSTEP_SOUND_SYSTEM_SCRIPT := preload("res://scripts/ecs/systems/s_footstep_sound_system.gd")
-const M_SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
+const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 const C_FLOATING_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const RS_FLOATING_SETTINGS_SCRIPT := preload("res://scripts/ecs/resources/rs_floating_settings.gd")
 const MARKER_SURFACE_TYPE := preload("res://scripts/ecs/markers/marker_surface_type.gd")
@@ -22,7 +22,7 @@ var surface_detector: C_SurfaceDetectorComponent
 var floor_body: StaticBody3D
 var settings: RS_FootstepSoundSettings
 
-# Spy to track M_SFXSpawner.spawn_3d calls
+# Spy to track U_SFXSpawner.spawn_3d calls
 var spawned_sounds: Array[Dictionary] = []
 
 func before_each() -> void:
@@ -46,7 +46,7 @@ func before_each() -> void:
 	add_child_autofree(manager)
 
 	# Initialize SFX spawner
-	M_SFXSpawner.initialize(manager)
+	U_SFX_SPAWNER.initialize(manager)
 
 	# Create system (must be child of manager)
 	system = S_FootstepSoundSystem.new()
@@ -97,7 +97,7 @@ func before_each() -> void:
 	await get_tree().physics_frame
 
 func after_each() -> void:
-	M_SFXSpawner.cleanup()
+	U_SFX_SPAWNER.cleanup()
 	system = null
 	manager = null
 	entity = null
@@ -134,7 +134,7 @@ func test_system_disabled_when_not_enabled() -> void:
 		await get_tree().physics_frame
 
 	# No sounds should have been spawned
-	var pool_players: Array[AudioStreamPlayer3D] = M_SFXSpawner._pool
+	var pool_players: Array[AudioStreamPlayer3D] = U_SFX_SPAWNER._pool
 	var playing_count := 0
 	for player in pool_players:
 		if player.playing:
@@ -152,7 +152,7 @@ func test_no_footsteps_below_velocity_threshold() -> void:
 		system.process_tick(0.016)
 		await get_tree().physics_frame
 
-	var pool_players: Array[AudioStreamPlayer3D] = M_SFXSpawner._pool
+	var pool_players: Array[AudioStreamPlayer3D] = U_SFX_SPAWNER._pool
 	var playing_count := 0
 	for player in pool_players:
 		if player.playing:
@@ -175,7 +175,7 @@ func test_no_footsteps_when_airborne() -> void:
 		system.process_tick(0.016)
 		await get_tree().physics_frame
 
-	var pool_players: Array[AudioStreamPlayer3D] = M_SFXSpawner._pool
+	var pool_players: Array[AudioStreamPlayer3D] = U_SFX_SPAWNER._pool
 	var playing_count := 0
 	for player in pool_players:
 		if player.stream != null:
@@ -362,7 +362,7 @@ func test_volume_setting_applied() -> void:
 		await get_tree().physics_frame
 
 	# Verify volume was set (checking spawner was called with correct volume)
-	# Since we can't directly spy on M_SFXSpawner without modifying it,
+	# Since we can't directly spy on U_SFXSpawner without modifying it,
 	# we just verify the system didn't crash with custom volume
 	assert_true(true, "System should handle custom volume setting")
 
@@ -389,7 +389,7 @@ func test_min_velocity_threshold_adjustable() -> void:
 		system.process_tick(0.016)
 		await get_tree().physics_frame
 
-	var pool_players: Array[AudioStreamPlayer3D] = M_SFXSpawner._pool
+	var pool_players: Array[AudioStreamPlayer3D] = U_SFX_SPAWNER._pool
 	var playing_count := 0
 	for player in pool_players:
 		if player.playing:

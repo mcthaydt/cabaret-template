@@ -1,9 +1,9 @@
-class_name M_ScreenShake
+class_name U_ScreenShake
 extends RefCounted
 
 # Screen shake helper with quadratic falloff and noise-based offset/rotation
 # Used by M_VFXManager to apply camera shake based on trauma
-const ShakeResult := preload("res://scripts/managers/helpers/m_shake_result.gd")
+const U_ShakeResult := preload("res://scripts/managers/helpers/u_shake_result.gd")
 
 # Maximum screen offset in pixels (X, Y)
 var max_offset := Vector2(10.0, 8.0)
@@ -40,7 +40,7 @@ func _init(config: Resource = null) -> void:
 ## @param trauma: Current trauma level (0.0-1.0), decays over time
 ## @param settings_multiplier: User settings multiplier (0.0-2.0), affects intensity
 ## @param delta: Time delta in seconds
-## @return ShakeResult containing offset (Vector2) and rotation (float)
+## @return U_ShakeResult containing offset (Vector2) and rotation (float)
 func calculate_shake(trauma: float, settings_multiplier: float, delta: float):
 	# Advance or override noise time for variation
 	if _test_time >= 0.0:
@@ -64,7 +64,7 @@ func calculate_shake(trauma: float, settings_multiplier: float, delta: float):
 		rotation_noise = _noise.get_noise_1d(_time + 201.2345)
 	var rotation := max_rotation * shake_amount * rotation_noise * settings_multiplier
 
-	return ShakeResult.new(offset, rotation)
+	return U_ShakeResult.new(offset, rotation)
 
 
 func set_noise_seed_for_testing(seed: int) -> void:

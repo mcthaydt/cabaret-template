@@ -1,4 +1,4 @@
-class_name ShakeResult
+class_name U_ShakeResult
 extends RefCounted
 
 var offset: Vector2

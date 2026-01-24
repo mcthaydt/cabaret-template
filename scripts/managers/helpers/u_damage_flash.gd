@@ -1,4 +1,4 @@
-class_name M_DamageFlash
+class_name U_DamageFlash
 extends RefCounted
 
 const FADE_DURATION := 0.4

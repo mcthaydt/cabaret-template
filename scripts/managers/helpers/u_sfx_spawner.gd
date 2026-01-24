@@ -1,5 +1,5 @@
 extends RefCounted
-class_name M_SFXSpawner
+class_name U_SFXSpawner
 
 const POOL_SIZE := 16
 
@@ -20,7 +20,7 @@ static func is_spatial_audio_enabled() -> bool:
 
 static func initialize(parent: Node) -> void:
 	if parent == null:
-		push_warning("M_SFXSpawner.initialize: parent is null")
+		push_warning("U_SFXSpawner.initialize: parent is null")
 		return
 
 	if _container != null and is_instance_valid(_container):
@@ -39,7 +39,7 @@ static func initialize(parent: Node) -> void:
 		player.attenuation_model = _DEFAULT_ATTENUATION_MODEL
 		player.panning_strength = _DEFAULT_PANNING_STRENGTH
 		_player_in_use[player] = false
-		player.finished.connect(Callable(M_SFXSpawner, "_on_player_finished").bind(player))
+		player.finished.connect(Callable(U_SFXSpawner, "_on_player_finished").bind(player))
 		_container.add_child(player)
 		_pool.append(player)
 

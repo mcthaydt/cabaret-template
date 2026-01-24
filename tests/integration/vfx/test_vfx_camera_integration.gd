@@ -11,7 +11,7 @@ extends BaseTest
 
 const M_VFX_MANAGER := preload("res://scripts/managers/m_vfx_manager.gd")
 const M_CAMERA_MANAGER := preload("res://scripts/managers/m_camera_manager.gd")
-const M_SCREEN_SHAKE := preload("res://scripts/managers/helpers/m_screen_shake.gd")
+const M_SCREEN_SHAKE := preload("res://scripts/managers/helpers/u_screen_shake.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/state/resources/rs_state_store_settings.gd")
@@ -89,7 +89,7 @@ func after_each() -> void:
 
 
 func _make_screen_shake_deterministic() -> void:
-	var screen_shake: M_ScreenShake = _vfx_manager.get("_screen_shake") as M_ScreenShake
+	var screen_shake = _vfx_manager.get("_screen_shake")
 	if screen_shake == null:
 		return
 
@@ -113,7 +113,7 @@ func _ensure_shake_parent() -> Node3D:
 
 
 func _set_shake_sample_time(time_value: float) -> void:
-	var screen_shake: M_ScreenShake = _vfx_manager.get("_screen_shake") as M_ScreenShake
+	var screen_shake = _vfx_manager.get("_screen_shake")
 	if screen_shake == null:
 		return
 	screen_shake._time = time_value

@@ -1,5 +1,5 @@
 extends RefCounted
-class_name M_SaveMigrationEngine
+class_name U_SaveMigrationEngine
 
 ## Save Migration Engine (Phase 7)
 ##
@@ -78,7 +78,7 @@ static func import_legacy_save(legacy_save_path: String = LEGACY_SAVE_PATH) -> D
 	# Load legacy save
 	var file := FileAccess.open(legacy_save_path, FileAccess.READ)
 	if file == null:
-		push_error("M_SaveMigrationEngine: Failed to open legacy save at %s" % legacy_save_path)
+		push_error("U_SaveMigrationEngine: Failed to open legacy save at %s" % legacy_save_path)
 		return {}
 
 	var json_string := file.get_as_text()
@@ -86,7 +86,7 @@ static func import_legacy_save(legacy_save_path: String = LEGACY_SAVE_PATH) -> D
 
 	var legacy_data: Variant = JSON.parse_string(json_string)
 	if not legacy_data is Dictionary:
-		push_error("M_SaveMigrationEngine: Legacy save is not a valid Dictionary")
+		push_error("U_SaveMigrationEngine: Legacy save is not a valid Dictionary")
 		return {}
 
 	# Migrate to current version

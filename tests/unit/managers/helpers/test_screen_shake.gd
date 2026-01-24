@@ -1,16 +1,16 @@
 extends GutTest
 
-# Phase 2 Task 2.1 (Red): Tests for M_ScreenShake helper
+# Phase 2 Task 2.1 (Red): Tests for U_ScreenShake helper
 # Testing screen shake algorithm with quadratic falloff and noise-based offset/rotation
 
-const M_ScreenShake := preload("res://scripts/managers/helpers/m_screen_shake.gd")
-const ShakeResult := preload("res://scripts/managers/helpers/m_shake_result.gd")
+const U_ScreenShake := preload("res://scripts/managers/helpers/u_screen_shake.gd")
+const U_ShakeResult := preload("res://scripts/managers/helpers/u_shake_result.gd")
 
-var _shake_helper: M_ScreenShake
+var _shake_helper: U_ScreenShake
 
 
 func before_each() -> void:
-	_shake_helper = M_ScreenShake.new()
+	_shake_helper = U_ScreenShake.new()
 
 
 func after_each() -> void:
@@ -26,10 +26,10 @@ func test_initialization_with_fast_noise_lite() -> void:
 	assert_not_null(result, "calculate_shake should return a result")
 
 
-# Test 2: calculate_shake returns ShakeResult instance
+# Test 2: calculate_shake returns U_ShakeResult instance
 func test_calculate_shake_returns_shake_result_instance() -> void:
 	var result = _shake_helper.calculate_shake(0.5, 1.0, 0.016)
-	assert_true(result is ShakeResult, "calculate_shake should return ShakeResult")
+	assert_true(result is U_ShakeResult, "calculate_shake should return U_ShakeResult")
 
 
 # Test 3: Result has offset field with Vector2 value
@@ -90,8 +90,8 @@ func test_quadratic_falloff() -> void:
 	# With trauma 0.5, shake_amount should be 0.5 * 0.5 = 0.25
 	# This means the shake should be ~25% of max intensity
 	# Use separate helpers with same seed to get consistent noise samples
-	var helper_half := M_ScreenShake.new()
-	var helper_full := M_ScreenShake.new()
+	var helper_half := U_ScreenShake.new()
+	var helper_full := U_ScreenShake.new()
 
 	# Set same seed for consistent comparison
 	helper_half.set_noise_seed_for_testing(12345)
@@ -112,8 +112,8 @@ func test_quadratic_falloff() -> void:
 # Test 10: settings_multiplier scales offset
 func test_settings_multiplier_scales_offset() -> void:
 	# Use separate helpers with same seed to get consistent noise samples
-	var helper_normal := M_ScreenShake.new()
-	var helper_doubled := M_ScreenShake.new()
+	var helper_normal := U_ScreenShake.new()
+	var helper_doubled := U_ScreenShake.new()
 
 	# Set same seed for consistent comparison
 	helper_normal.set_noise_seed_for_testing(54321)
@@ -133,8 +133,8 @@ func test_settings_multiplier_scales_offset() -> void:
 # Test 11: settings_multiplier scales rotation
 func test_settings_multiplier_scales_rotation() -> void:
 	# Use separate helpers with same seed to get consistent noise samples
-	var helper_normal := M_ScreenShake.new()
-	var helper_doubled := M_ScreenShake.new()
+	var helper_normal := U_ScreenShake.new()
+	var helper_doubled := U_ScreenShake.new()
 
 	# Set same seed for consistent comparison
 	helper_normal.set_noise_seed_for_testing(67890)
@@ -208,8 +208,8 @@ func test_max_rotation_clamping() -> void:
 
 # Test 16: set_noise_seed_for_testing produces deterministic results
 func test_set_noise_seed_for_testing_makes_deterministic() -> void:
-	var helper_a := M_ScreenShake.new()
-	var helper_b := M_ScreenShake.new()
+	var helper_a := U_ScreenShake.new()
+	var helper_b := U_ScreenShake.new()
 
 	helper_a.set_noise_seed_for_testing(13579)
 	helper_b.set_noise_seed_for_testing(13579)
@@ -245,16 +245,16 @@ func test_get_sample_time_returns_current_time() -> void:
 
 # Test 19: Same seed produces identical shake results
 func test_same_seed_produces_same_results() -> void:
-	var helper_a := M_ScreenShake.new()
-	var helper_b := M_ScreenShake.new()
+	var helper_a := U_ScreenShake.new()
+	var helper_b := U_ScreenShake.new()
 
 	helper_a.set_noise_seed_for_testing(112233)
 	helper_b.set_noise_seed_for_testing(112233)
 	helper_a.set_sample_time_for_testing(4.5)
 	helper_b.set_sample_time_for_testing(4.5)
 
-	var result_a: ShakeResult = helper_a.calculate_shake(1.0, 1.0, 0.016)
-	var result_b: ShakeResult = helper_b.calculate_shake(1.0, 1.0, 0.016)
+	var result_a: U_ShakeResult = helper_a.calculate_shake(1.0, 1.0, 0.016)
+	var result_b: U_ShakeResult = helper_b.calculate_shake(1.0, 1.0, 0.016)
 
 	assert_almost_eq(result_a.offset.x, result_b.offset.x, 0.0001, "Offset X should match for same seed")
 	assert_almost_eq(result_a.offset.y, result_b.offset.y, 0.0001, "Offset Y should match for same seed")
@@ -263,16 +263,16 @@ func test_same_seed_produces_same_results() -> void:
 
 # Test 20: Different seeds produce different shake results
 func test_different_seeds_produce_different_results() -> void:
-	var helper_a := M_ScreenShake.new()
-	var helper_b := M_ScreenShake.new()
+	var helper_a := U_ScreenShake.new()
+	var helper_b := U_ScreenShake.new()
 
 	helper_a.set_noise_seed_for_testing(1)
 	helper_b.set_noise_seed_for_testing(2)
 	helper_a.set_sample_time_for_testing(4.5)
 	helper_b.set_sample_time_for_testing(4.5)
 
-	var result_a: ShakeResult = helper_a.calculate_shake(1.0, 1.0, 0.016)
-	var result_b: ShakeResult = helper_b.calculate_shake(1.0, 1.0, 0.016)
+	var result_a: U_ShakeResult = helper_a.calculate_shake(1.0, 1.0, 0.016)
+	var result_b: U_ShakeResult = helper_b.calculate_shake(1.0, 1.0, 0.016)
 
 	var offset_delta: float = result_a.offset.distance_to(result_b.offset)
 	var rotation_delta: float = absf(result_a.rotation - result_b.rotation)
@@ -285,8 +285,8 @@ func test_frozen_time_produces_same_results() -> void:
 	_shake_helper.set_noise_seed_for_testing(13579)
 	_shake_helper.set_sample_time_for_testing(2.75)
 
-	var result1: ShakeResult = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
-	var result2: ShakeResult = _shake_helper.calculate_shake(1.0, 1.0, 0.5)
+	var result1: U_ShakeResult = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
+	var result2: U_ShakeResult = _shake_helper.calculate_shake(1.0, 1.0, 0.5)
 
 	assert_almost_eq(result1.offset.x, result2.offset.x, 0.0001, "Offset X should stay fixed when time is frozen")
 	assert_almost_eq(result1.offset.y, result2.offset.y, 0.0001, "Offset Y should stay fixed when time is frozen")

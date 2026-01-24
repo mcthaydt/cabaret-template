@@ -1,5 +1,5 @@
 extends RefCounted
-class_name M_InputProfileLoader
+class_name U_InputProfileLoader
 
 const RS_InputProfile = preload("res://scripts/input/resources/rs_input_profile.gd")
 

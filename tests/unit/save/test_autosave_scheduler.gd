@@ -1,6 +1,6 @@
 extends BaseTest
 
-const M_AUTOSAVE_SCHEDULER := preload("res://scripts/managers/helpers/m_autosave_scheduler.gd")
+const M_AUTOSAVE_SCHEDULER := preload("res://scripts/managers/helpers/u_autosave_scheduler.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_SAVE_MANAGER := preload("res://tests/mocks/mock_save_manager.gd")
 

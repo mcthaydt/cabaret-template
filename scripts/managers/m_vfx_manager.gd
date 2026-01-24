@@ -13,8 +13,8 @@ const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.
 const U_GAMEPLAY_SELECTORS := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
 const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const M_ScreenShake := preload("res://scripts/managers/helpers/m_screen_shake.gd")
-const M_DamageFlash := preload("res://scripts/managers/helpers/m_damage_flash.gd")
+const U_ScreenShake := preload("res://scripts/managers/helpers/u_screen_shake.gd")
+const U_DamageFlash := preload("res://scripts/managers/helpers/u_damage_flash.gd")
 const DAMAGE_FLASH_SCENE := preload("res://scenes/ui/ui_damage_flash_overlay.tscn")
 const SCREEN_SHAKE_TUNING := preload("res://resources/vfx/rs_screen_shake_tuning.tres")
 const SCREEN_SHAKE_CONFIG := preload("res://resources/vfx/rs_screen_shake_config.tres")
@@ -30,8 +30,8 @@ const SCREEN_SHAKE_CONFIG := preload("res://resources/vfx/rs_screen_shake_config
 ## - Extends Node with PROCESS_MODE_ALWAYS (runs even when paused)
 ## - Registered with ServiceLocator via scene bootstrap (main.gd)
 ## - Discovers M_StateStore dependency for settings access
-## - Uses M_ScreenShake helper for shake calculations (quadratic falloff, noise-based)
-## - Uses M_DamageFlash helper for flash tween animations
+## - Uses U_ScreenShake helper for shake calculations (quadratic falloff, noise-based)
+## - Uses U_DamageFlash helper for flash tween animations
 
 ## Injected dependencies (for testing)
 @export var state_store: I_StateStore = null
@@ -44,10 +44,10 @@ var _state_store: I_StateStore = null
 var _camera_manager: I_CAMERA_MANAGER = null
 
 ## Screen shake helper for calculating shake offset/rotation
-var _screen_shake: M_ScreenShake = null
+var _screen_shake: U_ScreenShake = null
 
 ## Damage flash helper for triggering red flash overlay
-var _damage_flash: M_DamageFlash = null
+var _damage_flash: U_DamageFlash = null
 
 ## Current trauma level (0.0 = no shake, 1.0 = maximum shake)
 ## Trauma accumulates from damage/impacts and decays over time
@@ -91,7 +91,7 @@ func _ready() -> void:
 
 	# Initialize screen shake helper (VFX Phase 3: T3.2)
 	var shake_config = SCREEN_SHAKE_CONFIG
-	_screen_shake = M_ScreenShake.new(shake_config)
+	_screen_shake = U_ScreenShake.new(shake_config)
 	var shake_tuning = SCREEN_SHAKE_TUNING
 	_trauma_decay_rate = float(shake_tuning.trauma_decay_rate)
 
@@ -102,7 +102,7 @@ func _ready() -> void:
 		add_child(flash_instance)
 		var flash_rect: ColorRect = flash_instance.get_node("FlashRect") as ColorRect
 		if flash_rect != null:
-			_damage_flash = M_DamageFlash.new(flash_rect, get_tree())
+			_damage_flash = U_DamageFlash.new(flash_rect, get_tree())
 		else:
 			push_error("M_VFXManager: Failed to find FlashRect in damage flash overlay scene")
 	else:

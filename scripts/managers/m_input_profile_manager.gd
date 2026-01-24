@@ -4,7 +4,7 @@ class_name M_InputProfileManager
 
 const U_InputSerialization := preload("res://scripts/utils/u_input_serialization.gd")
 const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
-const M_InputProfileLoader := preload("res://scripts/managers/helpers/m_input_profile_loader.gd")
+const U_InputProfileLoader := preload("res://scripts/managers/helpers/u_input_profile_loader.gd")
 const U_InputMapBootstrapper := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
@@ -36,7 +36,7 @@ var store_ref: I_StateStore = null
 
 var _state_store: I_StateStore = null
 var _unsubscribe: Callable = Callable()
-var _profile_loader := M_InputProfileLoader.new()
+var _profile_loader := U_InputProfileLoader.new()
 var _pause_gate_enabled: bool = false
 var _save_debounce_scheduled: bool = false
 var _current_profile_id: String = ""

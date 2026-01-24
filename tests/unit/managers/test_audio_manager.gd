@@ -14,7 +14,7 @@ const U_AUDIO_SERIALIZATION := preload("res://scripts/utils/u_audio_serializatio
 const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const M_SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
+const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 
 const STREAM_MAIN_MENU := preload("res://resources/audio/music/main_menu.mp3")
 const STREAM_EXTERIOR := preload("res://resources/audio/music/exterior.mp3")
@@ -148,11 +148,11 @@ func test_spatial_audio_setting_updates_sfx_spawner() -> void:
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	assert_true(M_SFX_SPAWNER.is_spatial_audio_enabled(), "Precondition: spatial audio enabled by default")
+	assert_true(U_SFX_SPAWNER.is_spatial_audio_enabled(), "Precondition: spatial audio enabled by default")
 
 	_store.dispatch(U_AUDIO_ACTIONS.set_spatial_audio_enabled(false))
 
-	assert_false(M_SFX_SPAWNER.is_spatial_audio_enabled(), "Spatial audio toggle should update M_SFXSpawner")
+	assert_false(U_SFX_SPAWNER.is_spatial_audio_enabled(), "Spatial audio toggle should update U_SFXSpawner")
 
 func _make_store_with_audio_slice() -> Node:
 	var store := M_STATE_STORE.new()

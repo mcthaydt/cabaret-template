@@ -4,6 +4,7 @@ const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
+const U_SAVE_FILE_IO := preload("res://scripts/managers/helpers/u_save_file_io.gd")
 
 const TEST_SAVE_DIR := U_SAVE_TEST_UTILS.TEST_SAVE_DIR
 
@@ -474,7 +475,7 @@ func test_save_to_slot_writes_file_with_header_and_state() -> void:
 	assert_true(FileAccess.file_exists(file_path), "Save file should exist after save")
 
 	# Load and verify contents
-	var file_io := M_SaveFileIO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	file_io.silent_mode = true
 	var loaded_data: Dictionary = file_io.load_from_file(file_path)
 
@@ -518,7 +519,7 @@ func test_save_to_slot_calls_get_persistable_state() -> void:
 
 	# Load the saved file and verify structure
 	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
-	var file_io := M_SaveFileIO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	file_io.silent_mode = true
 	var loaded_data: Dictionary = file_io.load_from_file(file_path)
 
@@ -889,7 +890,7 @@ func test_load_rejects_save_with_invalid_header_type() -> void:
 
 	# Write invalid save directly
 	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
-	var file_io := M_SaveFileIO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	file_io.save_to_file(file_path, invalid_save)
 
 	# Setup mock scene manager
@@ -920,7 +921,7 @@ func test_load_rejects_save_with_invalid_state_type() -> void:
 
 	# Write invalid save directly
 	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
-	var file_io := M_SaveFileIO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	file_io.save_to_file(file_path, invalid_save)
 
 	# Setup mock scene manager
@@ -954,7 +955,7 @@ func test_load_rejects_save_with_missing_scene_id() -> void:
 
 	# Write invalid save directly
 	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
-	var file_io := M_SaveFileIO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	file_io.save_to_file(file_path, invalid_save)
 
 	# Setup mock scene manager
@@ -987,7 +988,7 @@ func test_load_rejects_save_with_empty_scene_id() -> void:
 
 	# Write invalid save directly
 	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
-	var file_io := M_SaveFileIO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	file_io.save_to_file(file_path, invalid_save)
 
 	# Setup mock scene manager
@@ -1021,7 +1022,7 @@ func test_load_accepts_save_with_minimal_valid_structure() -> void:
 
 	# Write minimal save
 	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
-	var file_io := M_SaveFileIO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	file_io.save_to_file(file_path, minimal_save)
 
 	# Setup mock scene manager
@@ -1105,7 +1106,7 @@ func test_load_fails_when_both_main_and_backup_corrupted() -> void:
 	_mock_scene_manager.set_script(load("res://tests/mocks/mock_scene_manager_with_transition.gd"))
 	_mock_scene_manager.set("_is_transitioning", false)
 
-	# Load should fail - M_SaveFileIO will emit errors about corruption
+	# Load should fail - U_SaveFileIO will emit errors about corruption
 	var result: Error = _save_manager.load_from_slot(StringName("slot_01"))
 	assert_eq(result, ERR_FILE_CORRUPT, "Should fail when both main and backup are corrupted")
 	# Multiple errors expected (from FileIO backup recovery + validation failure)
@@ -1137,7 +1138,7 @@ func test_save_does_not_persist_overlay_stack() -> void:
 
 	# Load the saved file and verify scene_stack was NOT persisted
 	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
-	var file_io := M_SaveFileIO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	file_io.silent_mode = true
 	var loaded_data: Dictionary = file_io.load_from_file(file_path)
 
@@ -1178,7 +1179,7 @@ func test_load_clears_overlay_state_from_loaded_scene() -> void:
 
 	# Write the legacy save file directly
 	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
-	var file_io := M_SaveFileIO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	file_io.save_to_file(file_path, save_with_overlay)
 
 	# Setup mock scene manager
@@ -1234,7 +1235,7 @@ func test_load_uses_loading_transition_type() -> void:
 ## ============================================================================
 
 func test_is_locked_returns_false_when_not_saving_or_loading() -> void:
-	# BUG FIX #1: M_SaveManager needs public is_locked() method for M_AutosaveScheduler
+	# BUG FIX #1: M_SaveManager needs public is_locked() method for U_AutosaveScheduler
 	_save_manager = _create_save_manager()
 	add_child(_save_manager)
 	autofree(_save_manager)
@@ -1330,7 +1331,7 @@ func test_load_clears_navigation_overlay_stack_from_legacy_saves() -> void:
 
 	# Write the legacy save file directly
 	var file_path: String = _save_manager.call("_get_slot_file_path", StringName("slot_01"))
-	var file_io := M_SaveFileIO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	file_io.save_to_file(file_path, legacy_save_with_overlays)
 
 	# Setup mock scene manager

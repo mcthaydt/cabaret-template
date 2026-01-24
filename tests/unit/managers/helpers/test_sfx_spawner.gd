@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
+const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 
 var _parent: Node3D
 

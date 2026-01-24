@@ -4,7 +4,7 @@ extends GutTest
 ## Ensures "default" (keyboard/mouse) profile is never used on mobile
 
 const M_InputProfileManager := preload("res://scripts/managers/m_input_profile_manager.gd")
-const M_InputProfileLoader := preload("res://scripts/managers/helpers/m_input_profile_loader.gd")
+const U_InputProfileLoader := preload("res://scripts/managers/helpers/u_input_profile_loader.gd")
 const RS_InputProfile := preload("res://scripts/input/resources/rs_input_profile.gd")
 const UI_InputProfileSelector := preload("res://scenes/ui/ui_input_profile_selector.tscn")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
@@ -23,7 +23,7 @@ func after_each() -> void:
 ## Regression test: _resolve_profile_id should never return "default" on mobile
 func test_resolve_profile_id_avoids_default_on_mobile() -> void:
 	var manager := M_InputProfileManager.new()
-	var loader := M_InputProfileLoader.new()
+	var loader := U_InputProfileLoader.new()
 	manager.available_profiles = loader.load_available_profiles()
 
 	# Simulate mobile platform by checking available profiles
@@ -45,7 +45,7 @@ func test_resolve_profile_id_avoids_default_on_mobile() -> void:
 ## Regression test: _resolve_profile_id with touchscreen preference on mobile
 func test_resolve_profile_id_prioritizes_touchscreen_on_mobile() -> void:
 	var manager := M_InputProfileManager.new()
-	var loader := M_InputProfileLoader.new()
+	var loader := U_InputProfileLoader.new()
 	manager.available_profiles = loader.load_available_profiles()
 
 	# Test that even if we pass a keyboard profile ID, it's rejected on mobile

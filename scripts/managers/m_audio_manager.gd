@@ -14,7 +14,7 @@ const U_AUDIO_SELECTORS := preload("res://scripts/state/selectors/u_audio_select
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_AUDIO_SERIALIZATION := preload("res://scripts/utils/u_audio_serialization.gd")
-const M_SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
+const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 
 const _MUSIC_REGISTRY: Dictionary = {
 	StringName("main_menu"): {
@@ -71,7 +71,7 @@ func _ready() -> void:
 	_create_bus_layout()
 	_initialize_music_players()
 	_initialize_ui_player()
-	M_SFX_SPAWNER.initialize(self)
+	U_SFX_SPAWNER.initialize(self)
 
 	await _initialize_store_async()
 
@@ -82,7 +82,7 @@ func _exit_tree() -> void:
 		_unsubscribe.call()
 		_unsubscribe = Callable()
 	_state_store = null
-	M_SFX_SPAWNER.cleanup()
+	U_SFX_SPAWNER.cleanup()
 
 	if _music_tween != null and _music_tween.is_valid():
 		_music_tween.kill()
@@ -384,7 +384,7 @@ func _apply_audio_settings(state: Dictionary) -> void:
 	AudioServer.set_bus_volume_db(ambient_idx, _linear_to_db(U_AUDIO_SELECTORS.get_ambient_volume(state)))
 	AudioServer.set_bus_mute(ambient_idx, U_AUDIO_SELECTORS.is_ambient_muted(state))
 
-	M_SFX_SPAWNER.set_spatial_audio_enabled(U_AUDIO_SELECTORS.is_spatial_audio_enabled(state))
+	U_SFX_SPAWNER.set_spatial_audio_enabled(U_AUDIO_SELECTORS.is_spatial_audio_enabled(state))
 
 func _load_persisted_audio_settings() -> bool:
 	var persisted := U_AUDIO_SERIALIZATION.load_settings()
@@ -499,4 +499,4 @@ func _apply_audio_settings_from_values(
 	AudioServer.set_bus_volume_db(ambient_idx, _linear_to_db(clampf(ambient_volume, 0.0, 1.0)))
 	AudioServer.set_bus_mute(ambient_idx, ambient_muted)
 
-	M_SFX_SPAWNER.set_spatial_audio_enabled(spatial_audio_enabled)
+	U_SFX_SPAWNER.set_spatial_audio_enabled(spatial_audio_enabled)

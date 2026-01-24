@@ -3,7 +3,7 @@ extends "res://scripts/ecs/base_event_sfx_system.gd"
 class_name S_DeathSoundSystem
 
 const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_death_sound_settings.gd")
-const SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
+const SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 
 @export var settings: SETTINGS_TYPE
 

@@ -14,7 +14,7 @@ class_name S_FootstepSoundSystem
 ## continuous movement state rather than discrete events.
 
 const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_footstep_sound_settings.gd")
-const SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
+const SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 const SURFACE_DETECTOR_TYPE := StringName("C_SurfaceDetectorComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 
@@ -141,7 +141,7 @@ func _play_footstep(body: CharacterBody3D, surface_detector: C_SurfaceDetectorCo
 	# Get position from body
 	var position := body.global_position
 
-	# Spawn 3D sound via M_SFXSpawner
+	# Spawn 3D sound via U_SFXSpawner
 	SFX_SPAWNER.spawn_3d({
 		"audio_stream": stream,
 		"position": position,

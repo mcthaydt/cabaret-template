@@ -12,7 +12,7 @@ extends BaseTest
 
 const M_AUDIO_MANAGER := preload("res://scripts/managers/m_audio_manager.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const M_SFX_SPAWNER := preload("res://scripts/managers/helpers/m_sfx_spawner.gd")
+const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
@@ -78,7 +78,7 @@ func before_each() -> void:
 
 func after_each() -> void:
 	get_tree().paused = false
-	M_SFX_SPAWNER.cleanup()
+	U_SFX_SPAWNER.cleanup()
 	U_ECS_EVENT_BUS.reset()
 	U_STATE_HANDOFF.clear_all()
 	U_AUDIO_TEST_HELPERS.reset_audio_buses()
@@ -107,25 +107,25 @@ func _is_music_stream_playing(stream: AudioStream) -> bool:
 
 func _get_in_use_sfx_players() -> Array[AudioStreamPlayer3D]:
 	var in_use: Array[AudioStreamPlayer3D] = []
-	for player_variant in M_SFX_SPAWNER._pool:
+	for player_variant in U_SFX_SPAWNER._pool:
 		var player := player_variant as AudioStreamPlayer3D
 		if player == null:
 			continue
 		if not is_instance_valid(player):
 			continue
-		if M_SFX_SPAWNER.is_player_in_use(player):
+		if U_SFX_SPAWNER.is_player_in_use(player):
 			in_use.append(player)
 	return in_use
 
 
 func _reset_sfx_pool_usage() -> void:
-	for player_variant in M_SFX_SPAWNER._pool:
+	for player_variant in U_SFX_SPAWNER._pool:
 		var player := player_variant as AudioStreamPlayer3D
 		if player == null:
 			continue
 		if not is_instance_valid(player):
 			continue
-		M_SFX_SPAWNER._player_in_use[player] = false
+		U_SFX_SPAWNER._player_in_use[player] = false
 		if player.playing:
 			player.stop()
 
@@ -213,18 +213,18 @@ func test_mute_does_not_change_volume_db() -> void:
 
 func test_spatial_audio_toggle_updates_sfx_spawner_and_player_spatialization() -> void:
 	_store.dispatch(U_AUDIO_ACTIONS.set_spatial_audio_enabled(false))
-	assert_false(M_SFX_SPAWNER.is_spatial_audio_enabled(), "Spawner should reflect spatial_audio_enabled=false")
+	assert_false(U_SFX_SPAWNER.is_spatial_audio_enabled(), "Spawner should reflect spatial_audio_enabled=false")
 
-	var player_off := M_SFX_SPAWNER.spawn_3d({"audio_stream": AudioStreamWAV.new()})
+	var player_off := U_SFX_SPAWNER.spawn_3d({"audio_stream": AudioStreamWAV.new()})
 	assert_not_null(player_off)
 	assert_eq(player_off.attenuation_model, AudioStreamPlayer3D.ATTENUATION_DISABLED)
 	assert_eq(player_off.panning_strength, 0.0)
 
 	_store.dispatch(U_AUDIO_ACTIONS.set_spatial_audio_enabled(true))
-	assert_true(M_SFX_SPAWNER.is_spatial_audio_enabled(), "Spawner should reflect spatial_audio_enabled=true")
+	assert_true(U_SFX_SPAWNER.is_spatial_audio_enabled(), "Spawner should reflect spatial_audio_enabled=true")
 
 	player_off.emit_signal("finished")
-	var player_on := M_SFX_SPAWNER.spawn_3d({"audio_stream": AudioStreamWAV.new()})
+	var player_on := U_SFX_SPAWNER.spawn_3d({"audio_stream": AudioStreamWAV.new()})
 	assert_not_null(player_on)
 	assert_eq(player_on.attenuation_model, AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE)
 	assert_eq(player_on.panning_strength, 1.0)

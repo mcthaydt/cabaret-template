@@ -21,8 +21,8 @@ const I_STATE_STORE := preload("res://scripts/interfaces/i_state_store.gd")
 const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
-const M_SAVE_FILE_IO := preload("res://scripts/managers/helpers/m_save_file_io.gd")
-const M_SAVE_MIGRATION_ENGINE := preload("res://scripts/managers/helpers/m_save_migration_engine.gd")
+const U_SAVE_FILE_IO := preload("res://scripts/managers/helpers/u_save_file_io.gd")
+const U_SAVE_MIGRATION_ENGINE := preload("res://scripts/managers/helpers/u_save_migration_engine.gd")
 const U_SAVE_VALIDATOR := preload("res://scripts/utils/u_save_validator.gd")
 
 ## Save file format version
@@ -43,7 +43,7 @@ var _save_dir: String = "user://saves/"
 ## Internal references
 var _state_store: I_StateStore = null
 var _scene_manager: Node = null  # M_SceneManager
-var _autosave_scheduler: Node = null  # M_AutosaveScheduler
+var _autosave_scheduler: Node = null  # U_AutosaveScheduler
 
 ## Lock flags to prevent concurrent operations
 var _is_saving: bool = false
@@ -87,7 +87,7 @@ func set_save_directory(path: String) -> void:
 
 ## Initialize save directory and cleanup orphaned files
 func _initialize_save_system() -> void:
-	var file_io := M_SAVE_FILE_IO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 
 	# Ensure production save directory exists (legacy behavior)
 	file_io.ensure_save_directory()
@@ -110,7 +110,7 @@ func _initialize_save_system() -> void:
 ## Import legacy save file (user://savegame.json) to autosave slot if it exists
 func _import_legacy_save_if_exists() -> void:
 	# Check if legacy save exists
-	if not M_SAVE_MIGRATION_ENGINE.should_import_legacy_save():
+	if not U_SAVE_MIGRATION_ENGINE.should_import_legacy_save():
 		return
 
 	# Safety: If we already have an autosave in the current slot system, don't import legacy.
@@ -121,7 +121,7 @@ func _import_legacy_save_if_exists() -> void:
 		return
 
 	# Import and migrate legacy save
-	var migrated_save: Dictionary = M_SAVE_MIGRATION_ENGINE.import_legacy_save()
+	var migrated_save: Dictionary = U_SAVE_MIGRATION_ENGINE.import_legacy_save()
 
 	if migrated_save.is_empty():
 		push_error("M_SaveManager: Failed to import legacy save")
@@ -130,7 +130,7 @@ func _import_legacy_save_if_exists() -> void:
 	# Write migrated save to autosave slot
 	var autosave_path: String = _get_slot_file_path(SLOT_AUTOSAVE)
 	print("M_SaveManager: Importing legacy save user://savegame.json -> %s" % autosave_path)
-	var file_io := M_SAVE_FILE_IO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	var result: Error = file_io.save_to_file(autosave_path, migrated_save)
 
 	if result == OK:
@@ -141,9 +141,9 @@ func _import_legacy_save_if_exists() -> void:
 ## Initialize autosave scheduler as child node
 func _initialize_autosave_scheduler() -> void:
 	# Load and instantiate the autosave scheduler script
-	var scheduler_script := load("res://scripts/managers/helpers/m_autosave_scheduler.gd")
+	var scheduler_script := load("res://scripts/managers/helpers/u_autosave_scheduler.gd")
 	_autosave_scheduler = scheduler_script.new()
-	_autosave_scheduler.name = "M_AutosaveScheduler"
+	_autosave_scheduler.name = "U_AutosaveScheduler"
 
 	# Add as child node
 	add_child(_autosave_scheduler)
@@ -169,7 +169,7 @@ func _is_loading_locked() -> bool:
 ## Check if save/load operations are currently locked
 ##
 ## Returns true if either a save or load operation is in progress.
-## Used by M_AutosaveScheduler to prevent autosaves during save/load operations.
+## Used by U_AutosaveScheduler to prevent autosaves during save/load operations.
 func is_locked() -> bool:
 	return _is_saving or _is_loading
 
@@ -177,7 +177,7 @@ func is_locked() -> bool:
 ## Public API - Save Operations
 ## ============================================================================
 
-## Request an autosave (called by M_AutosaveScheduler)
+## Request an autosave (called by U_AutosaveScheduler)
 ##
 ## Always saves to the autosave slot. Priority parameter is reserved for future
 ## cooldown enforcement but currently unused.
@@ -223,7 +223,7 @@ func save_to_slot(slot_id: StringName) -> Error:
 
 	# Write to file atomically
 	var file_path: String = _get_slot_file_path(slot_id)
-	var file_io := M_SAVE_FILE_IO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	var result: Error = file_io.save_to_file(file_path, save_data)
 
 	# Clear lock
@@ -410,7 +410,7 @@ func get_slot_metadata(slot_id: StringName) -> Dictionary:
 
 	# Read header from save file
 	var file_path: String = _get_slot_file_path(slot_id)
-	var file_io := M_SAVE_FILE_IO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	file_io.silent_mode = true  # Don't spam warnings for missing files
 	var save_data: Dictionary = file_io.load_from_file(file_path)
 
@@ -519,7 +519,7 @@ func _clear_loading_lock() -> void:
 ## - Success: {"header": Dictionary, "state": Dictionary, "scene_id": StringName}
 ## - Failure: {"error": Error}
 func _validate_and_load_save_file(file_path: String) -> Dictionary:
-	var file_io := M_SAVE_FILE_IO.new()
+	var file_io := U_SAVE_FILE_IO.new()
 	file_io.silent_mode = true  # Don't spam warnings during load
 	var save_data: Dictionary = file_io.load_from_file(file_path)
 
@@ -529,7 +529,7 @@ func _validate_and_load_save_file(file_path: String) -> Dictionary:
 		return {"error": ERR_FILE_CORRUPT}
 
 	# Apply migrations to upgrade old save files (v0 → v1, etc.)
-	save_data = M_SAVE_MIGRATION_ENGINE.migrate(save_data)
+	save_data = U_SAVE_MIGRATION_ENGINE.migrate(save_data)
 
 	# Validate save structure using U_SaveValidator
 	var validation_result: Dictionary = U_SAVE_VALIDATOR.validate_save_structure(save_data)
