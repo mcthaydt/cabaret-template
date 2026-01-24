@@ -21,7 +21,7 @@ enum ActionType {
 @export var button_texture: Texture2D
 
 const DEFAULT_SIZE := Vector2(100, 100)
-const DEFAULT_TEXTURE_PATH := "res://resources/button_prompts/mobile/button_background.png"
+const DEFAULT_TEXTURE_PATH := "res://assets/button_prompts/mobile/button_background.png"
 const PRESSED_SCALE := Vector2(0.95, 0.95)
 const RELEASED_SCALE := Vector2.ONE
 const PRESSED_MODULATE := Color(0.8, 0.8, 0.8, 1.0)

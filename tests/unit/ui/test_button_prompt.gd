@@ -53,25 +53,25 @@ func _register_default_prompts() -> void:
 	U_ButtonPromptRegistry.register_prompt(
 		StringName("interact"),
 		DeviceType.KEYBOARD_MOUSE,
-		"res://resources/button_prompts/keyboard/key_e.png",
+		"res://assets/button_prompts/keyboard/key_e.png",
 		"E"
 	)
 	U_ButtonPromptRegistry.register_prompt(
 		StringName("interact"),
 		DeviceType.GAMEPAD,
-		"res://resources/button_prompts/gamepad/button_west.png",
+		"res://assets/button_prompts/gamepad/button_west.png",
 		"West"
 	)
 	U_ButtonPromptRegistry.register_prompt(
 		StringName("jump"),
 		DeviceType.KEYBOARD_MOUSE,
-		"res://resources/button_prompts/keyboard/key_space.png",
+		"res://assets/button_prompts/keyboard/key_space.png",
 		"Space"
 	)
 	U_ButtonPromptRegistry.register_prompt(
 		StringName("jump"),
 		DeviceType.GAMEPAD,
-		"res://resources/button_prompts/gamepad/button_south.png",
+		"res://assets/button_prompts/gamepad/button_south.png",
 		"South"
 	)
 
@@ -112,7 +112,7 @@ func test_show_prompt_updates_icon_and_text() -> void:
 
 func test_missing_icon_falls_back_to_text_label() -> void:
 	var action := StringName("custom_action")
-	U_ButtonPromptRegistry.register_prompt(action, DeviceType.GAMEPAD, "res://resources/button_prompts/gamepad/missing_button.png")
+	U_ButtonPromptRegistry.register_prompt(action, DeviceType.GAMEPAD, "res://assets/button_prompts/gamepad/missing_button.png")
 
 	_device_manager._on_joy_connection_changed(0, true)
 	await _await_frames(1)

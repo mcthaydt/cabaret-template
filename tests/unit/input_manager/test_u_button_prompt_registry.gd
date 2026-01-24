@@ -13,7 +13,7 @@ func after_each() -> void:
 
 func test_register_prompt_provides_binding_label() -> void:
 	var action := StringName("test_prompt_action")
-	var texture_path := "res://resources/button_prompts/keyboard/key_e.png"
+	var texture_path := "res://assets/button_prompts/keyboard/key_e.png"
 	U_ButtonPromptRegistry.register_prompt(action, DEVICE_TYPE.KEYBOARD_MOUSE, texture_path, "E")
 
 	var label := U_ButtonPromptRegistry.get_binding_label(action, DEVICE_TYPE.KEYBOARD_MOUSE)
@@ -30,7 +30,7 @@ func test_get_prompt_text_uses_keyboard_binding_label() -> void:
 
 func test_get_prompt_text_returns_gamepad_label_from_registry_metadata() -> void:
 	var action := StringName("test_gamepad_action")
-	var texture_path := "res://resources/button_prompts/gamepad/button_west.png"
+	var texture_path := "res://assets/button_prompts/gamepad/button_west.png"
 	U_ButtonPromptRegistry.register_prompt(action, DEVICE_TYPE.GAMEPAD, texture_path, "West")
 	var text := U_ButtonPromptRegistry.get_prompt_text(action, DEVICE_TYPE.GAMEPAD)
 	assert_eq(text, "Press [West]", "Gamepad fallback should derive label from registered prompt metadata")

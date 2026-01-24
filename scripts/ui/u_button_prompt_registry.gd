@@ -16,10 +16,10 @@ static func _ensure_initialized() -> void:
 
 static func _initialize_registry() -> void:
 	_prompt_registry.clear()
-	var keyboard_base := "res://resources/button_prompts/keyboard/"
-	var gamepad_base := "res://resources/button_prompts/gamepad/"
+	var keyboard_base := "res://assets/button_prompts/keyboard/"
+	var gamepad_base := "res://assets/button_prompts/gamepad/"
 
-	var mobile_base := "res://resources/button_prompts/mobile/"
+	var mobile_base := "res://assets/button_prompts/mobile/"
 
 	_assign_prompt(StringName("ui_accept"), DEVICE_KEYBOARD_MOUSE, keyboard_base + "key_space.png", "Enter")
 	_assign_prompt(StringName("ui_accept"), DEVICE_GAMEPAD, gamepad_base + "face_buttons_south.png", "A")

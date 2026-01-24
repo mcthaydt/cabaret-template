@@ -134,7 +134,7 @@ static func get_texture_for_event(event: InputEvent) -> Texture2D:
 				key_name = "dpad_right"
 				folder = "gamepad"
 		if not key_name.is_empty():
-			var path := "res://resources/button_prompts/%s/%s.png" % [folder, key_name]
+			var path := "res://assets/button_prompts/%s/%s.png" % [folder, key_name]
 			if ResourceLoader.exists(path):
 				return load(path)
 
@@ -172,7 +172,7 @@ static func get_texture_for_event(event: InputEvent) -> Texture2D:
 				button_name = "dpad_right"
 
 		if not button_name.is_empty():
-			var path := "res://resources/button_prompts/gamepad/%s.png" % button_name
+			var path := "res://assets/button_prompts/gamepad/%s.png" % button_name
 			if ResourceLoader.exists(path):
 				return load(path)
 
@@ -205,7 +205,7 @@ static func get_texture_for_event(event: InputEvent) -> Texture2D:
 					stick_name = "rs_down"
 
 		if not stick_name.is_empty():
-			var path := "res://resources/button_prompts/gamepad/%s.png" % stick_name
+			var path := "res://assets/button_prompts/gamepad/%s.png" % stick_name
 			if ResourceLoader.exists(path):
 				return load(path)
 

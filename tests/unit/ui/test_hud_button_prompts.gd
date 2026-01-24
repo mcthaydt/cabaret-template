@@ -86,7 +86,7 @@ func test_interact_prompt_updates_icon_on_device_switch() -> void:
 
 func test_interact_prompt_falls_back_to_text_when_icon_missing() -> void:
 	var action := StringName("custom_prompt_action")
-	U_ButtonPromptRegistry.register_prompt(action, DeviceType.GAMEPAD, "res://resources/button_prompts/gamepad/missing_button.png")
+	U_ButtonPromptRegistry.register_prompt(action, DeviceType.GAMEPAD, "res://assets/button_prompts/gamepad/missing_button.png")
 
 	_device_manager._on_joy_connection_changed(2, true)
 	await _await_frames(1)
