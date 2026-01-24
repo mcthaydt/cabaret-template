@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (8/23 tasks complete)
+**Status**: In Progress (9/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -16,10 +16,10 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 |-------|-------|-----------|------------|
 | Phase 1: Quick Wins | 4 | 4/4 | Low |
 | Phase 2: Naming Fixes | 4 | 4/4 | Medium |
-| Phase 3: Folder Restructuring | 8 | 0/8 | High |
+| Phase 3: Folder Restructuring | 8 | 1/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **8/23 (34.8%)** | - |
+| **TOTAL** | **23** | **9/23 (39.1%)** | - |
 
 ---
 
@@ -278,25 +278,26 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 
 ## Phase 3: Folder Restructuring (High Risk)
 
-### Task 9: Move Templates to scenes/templates/ PENDING
+### Task 9: Move Templates to scenes/templates/ COMPLETE
 
-- [ ] Create `scenes/templates/` directory
-- [ ] Move all 4 template files:
+- [x] Create `scenes/templates/` directory
+- [x] Move all 4 template files:
   - `templates/tmpl_base_scene.tscn`
   - `templates/tmpl_camera.tscn`
   - `templates/tmpl_character.tscn`
   - `templates/tmpl_character_ragdoll.tscn`
-- [ ] Update all references (21 files):
+- [x] Update all references (21 files):
   - `project.godot` (main scene reference)
   - 6 scene files
   - 5 test files
   - 9 documentation files
-- [ ] Remove `templates/` directory
-- [ ] Run tests and verify scenes load
+- [x] Remove `templates/` directory
+- [x] Run tests and verify scenes load
 
-**Status**: READY TO EXECUTE
+**Status**: COMPLETE (2026-01-24)
 **Files affected**: 4 moves + 21 reference updates
 **Risk**: Medium
+**Notes**: Refreshed UID cache via headless `--import` to avoid template instancing warnings; ran ECS + integration + style enforcement tests.
 
 **Path Update Command**:
 ```bash
@@ -664,12 +665,12 @@ scripts/events/
 
 ### Batch 2: Naming Fixes (Needs Scanning)
 - Task 5: Fix manager helper prefixes (done)
-- Task 6: Rename interactables
-- Task 7: Convert surface marker
-- Task 8: Rename main.gd (CRITICAL)
+- Task 6: Rename interactables (done)
+- Task 7: Convert surface marker (done)
+- Task 8: Rename main.gd (CRITICAL, done)
 
 ### Batch 3: Folder Restructuring (High Impact)
-- Task 9: Move templates
+- Task 9: Move templates (done)
 - Task 10-11: Move audio/button prompt assets (CRITICAL)
 - Task 12-16: Consolidate resources and interfaces
 

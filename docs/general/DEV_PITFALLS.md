@@ -17,6 +17,11 @@
   [gd_scene load_steps=3 format=3]  # Let Godot add UID when you save in editor
   ```
 
+- **Refresh UID cache after moving scenes**: Moving `.tscn` files can leave `.godot/uid_cache.bin` pointing at old paths, which triggers instance warnings like "node ... has been removed or moved" and causes missing nodes in headless tests. **Fix**: refresh the UID cache by opening the project once in the editor or running:
+  ```
+  /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import
+  ```
+
 ## Godot UI Pitfalls
 
 - **Full-screen overlay containers block input by default**: When creating HUD overlays or full-screen UI containers (using `anchors_preset = 15`), the container will block ALL mouse input to UI elements below it, even if the container's children only occupy a small portion of the screen. This happens because Control nodes use `mouse_filter = MOUSE_FILTER_STOP` (value 0) by default, which intercepts and stops mouse events from propagating.
