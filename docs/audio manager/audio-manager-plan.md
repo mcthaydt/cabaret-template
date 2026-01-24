@@ -321,15 +321,15 @@ func _on_event(event_data: Dictionary) -> void:
 
 ## Phase 4: SFX Systems (Days 11-14)
 
-### M_SFXSpawner Utility
+### U_SFXSpawner Utility
 
 **Files to create**:
-- `scripts/managers/helpers/m_sfx_spawner.gd`
+- `scripts/managers/helpers/u_sfx_spawner.gd`
 - `tests/unit/managers/helpers/test_sfx_spawner.gd` (10 tests)
 
 **AudioStreamPlayer3D Pool**:
 ```gdscript
-class_name M_SFXSpawner
+class_name U_SFXSpawner
 extends RefCounted
 
 const POOL_SIZE := 16
@@ -389,7 +389,7 @@ func process_tick(_delta: float) -> void:
         return
 
     for request in requests:
-        M_SFXSpawner.spawn_3d({
+        U_SFXSpawner.spawn_3d({
             "audio_stream": settings.audio_stream,
             "position": request.get("position"),
             "volume_db": settings.volume_db,
@@ -483,7 +483,7 @@ func process_tick(delta: float) -> void:
 func _play_footstep(position: Vector3, surface: SurfaceType) -> void:
     var sounds := settings.get_sounds_for_surface(surface)
     var stream := sounds.pick_random()
-    M_SFXSpawner.spawn_3d({
+    U_SFXSpawner.spawn_3d({
         "audio_stream": stream,
         "position": position,
         "volume_db": settings.volume_db,
@@ -735,7 +735,7 @@ tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true
 scripts/managers/
   m_audio_manager.gd
   helpers/
-    m_sfx_spawner.gd
+    u_sfx_spawner.gd
 scripts/ui/
   utils/
     u_ui_sound_player.gd

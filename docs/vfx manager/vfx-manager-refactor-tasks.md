@@ -663,7 +663,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 - [x] **T4.6**: Create default config resource file
   - Location: `resources/vfx/rs_screen_shake_config.tres`
-  - Set default values from M_ScreenShake
+  - Set default values from U_ScreenShake
 
 - [x] **T4.7**: Update `S_ScreenShakePublisherSystem` to use tuning
   - Add export:
@@ -703,7 +703,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Tests GREEN ✅
   - Note: `tuning` is typed as `Resource` to avoid headless `class_name` parse errors (see DEV_PITFALLS).
 
-- [x] **T4.8**: Update `M_ScreenShake` to accept config resource
+- [x] **T4.8**: Update `U_ScreenShake` to accept config resource
   - Add constructor parameter:
     ```gdscript
     func _init(config: RS_ScreenShakeConfig = null) -> void:
@@ -722,7 +722,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Update `_ready()`:
     ```gdscript
     var shake_config := preload("res://resources/vfx/rs_screen_shake_config.tres")
-    _screen_shake = M_ScreenShake.new(shake_config)
+    _screen_shake = U_ScreenShake.new(shake_config)
     ```
   - Remove `TRAUMA_DECAY_RATE` constant
   - Load decay rate from tuning resource if needed
@@ -751,11 +751,11 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 **Goal**: Fix alpha bug, improve helper APIs, add testing hooks.
 
 **Current State**: Dictionary return from `calculate_shake()`, alpha bug in scene
-**Target State**: Typed `ShakeResult`, alpha = 1.0 in scene, tween pause mode
+**Target State**: Typed `U_ShakeResult`, alpha = 1.0 in scene, tween pause mode
 
 ### Tests (Write First - TDD)
 
-- [x] **T5.1**: Write test for `ShakeResult` class
+- [x] **T5.1**: Write test for `U_ShakeResult` class
   - Location: `tests/unit/managers/helpers/test_shake_result.gd`
   - Tests:
     - `test_constructor_with_defaults`
@@ -764,7 +764,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     - `test_rotation_field_accessible`
   - Tests RED initially ✅
 
-- [x] **T5.2**: Write test for deterministic M_ScreenShake
+- [x] **T5.2**: Write test for deterministic U_ScreenShake
   - Location: Update `tests/unit/managers/helpers/test_screen_shake.gd`
   - Add tests:
     - `test_set_noise_seed_for_testing_makes_deterministic`
@@ -782,10 +782,10 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 ### Implementation
 
-- [x] **T5.4**: Create `ShakeResult` class
-  - Location: `scripts/managers/helpers/m_shake_result.gd`
+- [x] **T5.4**: Create `U_ShakeResult` class
+  - Location: `scripts/managers/helpers/u_shake_result.gd`
   - Extends: `RefCounted`
-  - Class name: `ShakeResult`
+  - Class name: `U_ShakeResult`
   - Fields:
     ```gdscript
     var offset: Vector2
@@ -799,7 +799,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
   - Tests GREEN ✅
 
-- [x] **T5.5**: Add testing hooks to `M_ScreenShake`
+- [x] **T5.5**: Add testing hooks to `U_ScreenShake`
   - Add fields:
     ```gdscript
     var _test_seed: int = -1
@@ -820,7 +820,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
   - Update `calculate_shake()`:
     ```gdscript
-    func calculate_shake(trauma: float, intensity_multiplier: float, delta: float) -> ShakeResult:
+    func calculate_shake(trauma: float, intensity_multiplier: float, delta: float) -> U_ShakeResult:
         if _test_time >= 0.0:
             _time = _test_time
         else:
@@ -834,11 +834,11 @@ This document tracks the refactoring of the existing VFX Manager system to impro
         )
         var rotation_amount := _noise.get_noise_1d(_time + 200.0) * max_rotation * shake_amount
 
-        return ShakeResult.new(offset, rotation_amount)
+        return U_ShakeResult.new(offset, rotation_amount)
     ```
   - Tests GREEN ✅
 
-- [x] **T5.6**: Update `M_VFXManager` to use `ShakeResult`
+- [x] **T5.6**: Update `M_VFXManager` to use `U_ShakeResult`
   - Update `_physics_process()`:
     ```gdscript
     var shake_result = _screen_shake.calculate_shake(_trauma, intensity, delta)
@@ -852,8 +852,8 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Reason: `color.a` multiplies with `modulate.a` (0.3 * 0.3 = 0.09 actual)
   - Tests GREEN ✅
 
-- [x] **T5.8**: Add tween pause mode to `M_DamageFlash`
-  - Location: `scripts/managers/helpers/m_damage_flash.gd`
+- [x] **T5.8**: Add tween pause mode to `U_DamageFlash`
+  - Location: `scripts/managers/helpers/u_damage_flash.gd`
   - Update `trigger_flash()` after tween creation:
     ```gdscript
     _tween = _scene_tree.create_tween()
@@ -866,7 +866,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 ### Verification
 
 - [x] **T5.9**: Run Phase 5 tests
-  - Verify: ShakeResult tests pass
+  - Verify: U_ShakeResult tests pass
   - Verify: Deterministic shake tests pass
   - Verify: Alpha correctness tests pass
   - Ran: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers/helpers -gexit`
@@ -1341,7 +1341,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 3. **Player-Only Gating**: Only `gameplay.player_entity_id` triggers VFX
 4. **Transition Blocking**: No VFX during transitions, menus, or overlays
 5. **Resource-Driven**: All tuning moved to `RS_ScreenShakeTuning` and `RS_ScreenShakeConfig`
-6. **Type Safety**: `ShakeResult` typed result, `Evn_*Request` event classes
+6. **Type Safety**: `U_ShakeResult` typed result, `Evn_*Request` event classes
 7. **Testability**: Dependency injection, deterministic shake via testing hooks
 8. **Cleanup**: Unsubscribe array pattern, preload instead of load
 

@@ -44,7 +44,7 @@ The Save Manager is a persistent orchestration layer that coordinates save/load 
 - `U_SceneRegistry`: scene metadata and display names for area_name header field.
 - Service discovery: ServiceLocator first, group fallback (consistent with other managers).
 
-**Note on file format**: Save Manager writes its OWN file format (`{header, state}`) using `m_save_file_io.gd`. It does NOT use `M_StateStore.save_state(filepath)` directly because that method writes raw state without our header wrapper. The Save Manager:
+**Note on file format**: Save Manager writes its OWN file format (`{header, state}`) using `u_save_file_io.gd`. It does NOT use `M_StateStore.save_state(filepath)` directly because that method writes raw state without our header wrapper. The Save Manager:
 1. Gets state snapshot via `M_StateStore.get_state()`
 2. Builds header metadata (playtime, timestamp, scene_id, etc.)
 3. Writes combined `{header, state}` via atomic file IO helper

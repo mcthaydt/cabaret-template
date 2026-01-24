@@ -44,7 +44,7 @@ The audio stack uses `M_AudioManager` (persistent manager) for bus layout + volu
 - Audio bus volume/mute control (Master, Music, SFX, Ambient).
 - Background music player with crossfade transitions.
 - UI sound playback coordination (`UI` bus + `U_UISoundPlayer` helper).
-- 3D SFX pooling helper initialization (`M_SFXSpawner`) and spatial toggle wiring.
+- 3D SFX pooling helper initialization (`U_SFXSpawner`) and spatial toggle wiring.
 - Redux `audio` slice subscription for settings changes.
 
 **Audio Manager depends on**
@@ -54,7 +54,7 @@ The audio stack uses `M_AudioManager` (persistent manager) for bus layout + volu
 - `U_ECSEventBus`: Gameplay events (jump, land, death, etc.) trigger SFX systems.
 - `U_ServiceLocator`: Registration for discovery by other systems.
 
-**Note on ECS pattern**: Sound systems extend `BaseEventSFXSystem` (mirrors `BaseEventVFXSystem`) and process sound requests in `process_tick()` via `M_SFXSpawner`.
+**Note on ECS pattern**: Sound systems extend `BaseEventSFXSystem` (mirrors `BaseEventVFXSystem`) and process sound requests in `process_tick()` via `U_SFXSpawner`.
 
 ## Public API
 
@@ -70,7 +70,7 @@ U_UISoundPlayer.play_cancel() -> void
 U_UISoundPlayer.play_slider_tick() -> void
 
 # 3D SFX pool (used by ECS sound systems / gameplay)
-M_SFXSpawner.spawn_3d(config: Dictionary) -> AudioStreamPlayer3D
+U_SFXSpawner.spawn_3d(config: Dictionary) -> AudioStreamPlayer3D
 
 # Audio selectors (query from Redux state)
 U_AudioSelectors.get_master_volume(state: Dictionary) -> float
@@ -228,7 +228,7 @@ func process_tick(_delta: float) -> void:
     requests.clear()
 
 func _spawn_sound(_request: Dictionary) -> void:
-    # Subclass implements specific sound spawning via M_SFXSpawner
+    # Subclass implements specific sound spawning via U_SFXSpawner
     pass
 ```
 
@@ -246,10 +246,10 @@ func _spawn_sound(_request: Dictionary) -> void:
 
 ### SFX Spawner Utility
 
-`M_SFXSpawner` manages pooled AudioStreamPlayer3D instances (see `scripts/managers/helpers/m_sfx_spawner.gd`):
+`U_SFXSpawner` manages pooled AudioStreamPlayer3D instances (see `scripts/managers/helpers/u_sfx_spawner.gd`):
 
 ```gdscript
-class_name M_SFXSpawner
+class_name U_SFXSpawner
 extends RefCounted
 
 const POOL_SIZE := 16  # Max concurrent 3D sounds
@@ -376,8 +376,8 @@ When `spatial_audio_enabled = false`:
 - Useful for accessibility or performance on low-end devices.
 
 Implementation:
-- Applied by `M_AudioManager` to `M_SFXSpawner` via `set_spatial_audio_enabled(...)`.
-- `M_SFXSpawner.spawn_3d(...)` configures `AudioStreamPlayer3D`:
+- Applied by `M_AudioManager` to `U_SFXSpawner` via `set_spatial_audio_enabled(...)`.
+- `U_SFXSpawner.spawn_3d(...)` configures `AudioStreamPlayer3D`:
   - Enabled: inverse-distance attenuation, `panning_strength = 1.0`, `max_distance = 50`
   - Disabled: `ATTENUATION_DISABLED`, `panning_strength = 0.0`
 
@@ -388,7 +388,7 @@ scripts/managers/
   m_audio_manager.gd
 
 scripts/managers/helpers/
-  m_sfx_spawner.gd
+  u_sfx_spawner.gd
 
 scripts/ui/utils/
   u_ui_sound_player.gd
@@ -483,12 +483,12 @@ store.dispatch(U_AudioActions.set_spatial_audio_enabled(true))
 
 Use Godot Profiler (Debugger > Profiler) to measure actual overhead:
 - Monitor "Audio" category for bus processing
-- Check "Script Functions" for M_SFXSpawner and M_AudioManager
+- Check "Script Functions" for U_SFXSpawner and M_AudioManager
 - Reduce concurrent sound limit if CPU budget exceeded on target hardware
 
 ### Optimization Guidelines
 
-- If pool exhaustion occurs frequently, increase `POOL_SIZE` in `M_SFXSpawner`
+- If pool exhaustion occurs frequently, increase `POOL_SIZE` in `U_SFXSpawner`
 - Compress audio files (OGG for music/ambient, WAV for short SFX)
 - Keep music loops under 2MB, SFX under 50KB each
 - Disable spatial audio on low-end devices via settings
@@ -499,7 +499,7 @@ Use Godot Profiler (Debugger > Profiler) to measure actual overhead:
 
 - `U_AudioReducer`: Action handling, volume clamping, mute state.
 - `U_AudioSelectors`: Selector return values for all settings.
-- `M_SFXSpawner`: Pool management, sound spawning, cleanup.
+- `U_SFXSpawner`: Pool management, sound spawning, cleanup.
 - `BaseEventSFXSystem`: Event subscription, request queuing.
 
 ### Integration Tests

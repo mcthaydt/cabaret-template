@@ -60,7 +60,7 @@
 - VFX Tuning Resources (Phase 4)
   - `RS_ScreenShakeTuning` defines trauma decay + damage/landing/death curves; defaults in `resources/vfx/rs_screen_shake_tuning.tres`.
   - `RS_ScreenShakeConfig` defines shake offset/rotation/noise; defaults in `resources/vfx/rs_screen_shake_config.tres`.
-  - `S_ScreenShakePublisherSystem` reads tuning (export injection optional), `M_VFXManager` uses tuning for decay and config for `M_ScreenShake`.
+  - `S_ScreenShakePublisherSystem` reads tuning (export injection optional), `M_VFXManager` uses tuning for decay and config for `U_ScreenShake`.
 - VFX Settings Preview (Phase 8)
   - `M_VFXManager` supports temporary overrides via `set_vfx_settings_preview(...)` and `clear_vfx_settings_preview()`.
   - `UI_VFXSettingsOverlay` pushes preview updates on toggle/slider changes and calls `trigger_test_shake()` on intensity changes; preview is cleared on cancel or overlay exit.
@@ -146,12 +146,12 @@
 
 - When core scripts approach 400–500 lines, prefer extracting pure helpers instead of adding more responsibilities:
   - Scene management helpers: `scripts/scene_management/helpers/u_scene_registry_loader.gd`
-  - Input helpers: `scripts/managers/helpers/m_input_profile_loader.gd`
+  - Input helpers: `scripts/managers/helpers/u_input_profile_loader.gd`
   - ECS helpers: `scripts/ecs/helpers/u_ecs_query_metrics.gd`
   - UI helpers/builders: `scripts/ui/helpers/u_rebind_action_list_builder.gd`, `scripts/ui/helpers/u_touchscreen_preview_builder.gd`
 - Helper scripts:
   - Live under a `helpers/` subdirectory next to their parent domain.
-  - Use existing prefixes (`u_` for utilities, `m_` for manager loaders) plus a descriptive suffix (e.g., `_loader`, `_builder`, `_metrics`).
+  - Use existing prefixes (`u_` for utilities/loaders) plus a descriptive suffix (e.g., `_loader`, `_builder`, `_metrics`).
   - Expose small, focused APIs that keep managers/systems under ~400 lines while preserving behavior.
 
 ## Conventions and Gotchas
@@ -541,7 +541,7 @@ Autosaves trigger on **milestones** (low-frequency, meaningful events):
 
 ### Autosave Scheduler (Internal)
 
-M_AutosaveScheduler (helper, child of M_SaveManager):
+U_AutosaveScheduler (helper, child of M_SaveManager):
 - Subscribes to ECS events (`checkpoint_activated`) via `U_ECSEventBus`
 - Subscribes to Redux actions via `M_StateStore.action_dispatched` signal
 - Coalesces multiple requests within same frame (dirty flag pattern)
@@ -574,7 +574,7 @@ Load order: {slot}.json → {slot}.json.bak (if .json missing/corrupted) → emp
 
 ### Migration System
 
-M_SaveMigrationEngine (helper):
+U_SaveMigrationEngine (helper):
 - Pure `Dictionary → Dictionary` transforms (no side effects)
 - Version detection from `header.save_version` (missing header = v0)
 - Sequential migration chain: `v0 → v1 → v2 → ...`

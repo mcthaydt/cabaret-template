@@ -145,7 +145,7 @@ Reuse checkpoint toast pattern (`ui_hud_controller.gd`):
 - **ServiceLocator**: Primary discovery mechanism (with group fallback)
 - **U_ECSEventBus**: For publishing save events (toast notifications subscribe)
 
-**Note**: Save Manager writes its OWN file format (`{header, state}`) using `m_save_file_io.gd`. It does NOT call `M_StateStore.save_state(filepath)` directly because that method writes raw state without the header wrapper.
+**Note**: Save Manager writes its OWN file format (`{header, state}`) using `u_save_file_io.gd`. It does NOT call `M_StateStore.save_state(filepath)` directly because that method writes raw state without the header wrapper.
 
 ### Gameplay Slice Additions
 

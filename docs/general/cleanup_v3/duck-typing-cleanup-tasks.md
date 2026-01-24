@@ -174,7 +174,7 @@ Remove `has_method()` duck typing patterns in favor of explicit interface-based 
 **Files to modify:**
 
 - [x] `scripts/managers/m_save_manager.gd` - Changed to `extends "res://scripts/interfaces/i_save_manager.gd"`
-- [x] `scripts/managers/helpers/m_autosave_scheduler.gd:143,192,210` - Used `as I_SaveManager` typed cast, added preload
+- [x] `scripts/managers/helpers/u_autosave_scheduler.gd:143,192,210` - Used `as I_SaveManager` typed cast, added preload
 - [x] `scripts/ui/ui_main_menu.gd:53,207` - Used `as I_SaveManager` typed cast, added preload
 
 **Mock update:** `tests/mocks/mock_save_manager.gd`

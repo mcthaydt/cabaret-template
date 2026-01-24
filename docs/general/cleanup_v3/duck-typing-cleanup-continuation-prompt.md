@@ -51,7 +51,7 @@ Use this prompt to resume the duck typing cleanup effort (cleanup_v4).
   - Created I_SaveManager interface with 5 methods
   - Updated M_SaveManager to extend interface
   - Updated MockSaveManager to extend interface
-  - Removed 5 `has_method()` checks from consumer files (m_autosave_scheduler.gd, ui_main_menu.gd)
+  - Removed 5 `has_method()` checks from consumer files (u_autosave_scheduler.gd, ui_main_menu.gd)
   - All 100 save manager tests passing
 - Phase 5 (I_CameraManager interface): ✅ COMPLETE (2026-01-22)
   - Created I_CameraManager interface with 4 methods

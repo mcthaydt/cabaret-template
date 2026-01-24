@@ -176,22 +176,22 @@ func get_trauma() -> float:
 
 ## Phase 2: Screen Shake System (Days 5-7)
 
-### Commit 1: M_ScreenShake Helper
+### Commit 1: U_ScreenShake Helper
 
 **Files to create**:
-- `scripts/managers/helpers/m_screen_shake.gd`
+- `scripts/managers/helpers/u_screen_shake.gd`
 - `tests/unit/managers/helpers/test_screen_shake.gd` (15 tests)
 
 **Shake Algorithm**:
 ```gdscript
-class_name M_ScreenShake
+class_name U_ScreenShake
 extends RefCounted
 
 var max_offset := Vector2(10.0, 8.0)
 var max_rotation := 0.05
 var _noise: FastNoiseLite
 
-func calculate_shake(trauma: float, settings_multiplier: float, delta: float) -> ShakeResult:
+func calculate_shake(trauma: float, settings_multiplier: float, delta: float) -> U_ShakeResult:
     _time += delta * noise_speed
     var shake_amount := trauma * trauma  # Quadratic falloff
 
@@ -202,7 +202,7 @@ func calculate_shake(trauma: float, settings_multiplier: float, delta: float) ->
 
     var rotation := max_rotation * shake_amount * _noise.get_noise_1d(_time + 200.0) * settings_multiplier
 
-    return ShakeResult.new(offset, rotation)
+    return U_ShakeResult.new(offset, rotation)
 ```
 
 ---

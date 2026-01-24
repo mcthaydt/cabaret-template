@@ -324,11 +324,11 @@ Damage flash triggering remains an internal manager concern (wired from ECS even
 
 ### Phase 2: Screen Shake System (FR-011 to FR-014)
 
-**FR-011: M_ScreenShake Helper**
-The system SHALL implement `M_ScreenShake` helper class for trauma-based shake calculation using `FastNoiseLite`:
+**FR-011: U_ScreenShake Helper**
+The system SHALL implement `U_ScreenShake` helper class for trauma-based shake calculation using `FastNoiseLite`:
 
 ```gdscript
-class_name M_ScreenShake
+class_name U_ScreenShake
 extends RefCounted
 
 var max_offset := Vector2(10.0, 8.0)  # Maximum pixel offset (X, Y)
@@ -343,7 +343,7 @@ func _init() -> void:
 	_noise.noise_type = FastNoiseLite.TYPE_PERLIN
 	_noise.frequency = 1.0
 
-func calculate_shake(trauma: float, settings_multiplier: float, delta: float) -> ShakeResult:
+func calculate_shake(trauma: float, settings_multiplier: float, delta: float) -> U_ShakeResult:
 	_time += delta * noise_speed
 
 	# Quadratic falloff for smooth feel
@@ -356,7 +356,7 @@ func calculate_shake(trauma: float, settings_multiplier: float, delta: float) ->
 
 	var rotation := max_rotation * shake_amount * _noise.get_noise_1d(_time + 200.0) * settings_multiplier
 
-	return ShakeResult.new(offset, rotation)
+	return U_ShakeResult.new(offset, rotation)
 ```
 
 **FR-012: Shake Parameters**
@@ -410,11 +410,11 @@ Optional convenience wrapper around `apply_shake_offset(Vector2.ZERO, 0.0)`.
 
 ### Phase 4: Damage Flash System (FR-017 to FR-019)
 
-**FR-017: M_DamageFlash Helper**
-The system SHALL implement `M_DamageFlash` extending `RefCounted`:
+**FR-017: U_DamageFlash Helper**
+The system SHALL implement `U_DamageFlash` extending `RefCounted`:
 
 ```gdscript
-class_name M_DamageFlash
+class_name U_DamageFlash
 extends RefCounted
 
 const U_VFX_SELECTORS := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
@@ -712,8 +712,8 @@ func _on_apply_pressed() -> void:
 2. Shake algorithm integration in M_VFXManager
 3. `tests/unit/managers/helpers/test_screen_shake.gd` - 15 unit tests
 
-**Commit 1: M_ScreenShake Helper**
-- Create `M_ScreenShake` class with FastNoiseLite
+**Commit 1: U_ScreenShake Helper**
+- Create `U_ScreenShake` class with FastNoiseLite
 - Implement `calculate_shake()` with quadratic falloff
 - Parameters: max_offset, max_rotation, noise_speed
 
@@ -776,13 +776,13 @@ func _on_apply_pressed() -> void:
 - Add ColorRect child covering full screen
 - Set flash_color = Color(1, 0, 0, 0.3)
 
-**Commit 2: M_DamageFlash Script**
+**Commit 2: U_DamageFlash Script**
 - Implement `trigger(intensity)` with Tween fade
 - Respect `damage_flash_enabled` toggle
 - Multiple triggers restart animation (kill existing tween)
 
 **Commit 3: Manager Integration and Tests**
-- Add M_DamageFlash instance to M_VFXManager
+- Add U_DamageFlash instance to M_VFXManager
 - Implement `trigger_damage_flash()` and `is_damage_flash_active()`
 - Write 10 unit tests for flash behavior
 
@@ -1017,31 +1017,31 @@ func test_death_event_triggers_trauma_and_flash():
 ```gdscript
 # Test zero trauma
 func test_shake_offset_zero_trauma():
-	Given: M_ScreenShake with trauma = 0.0
+	Given: U_ScreenShake with trauma = 0.0
 	When: calculate_shake(0.0, 1.0, 0.016)
 	Then: shake_result.offset = Vector2.ZERO, shake_result.rotation = 0.0
 
 # Test max trauma
 func test_shake_offset_max_trauma():
-	Given: M_ScreenShake with trauma = 1.0
+	Given: U_ScreenShake with trauma = 1.0
 	When: calculate_shake(1.0, 1.0, 0.016)
 	Then: shake_result.offset magnitude <= Vector2(10, 8), shake_result.rotation <= 0.05
 
 # Test intensity multiplier
 func test_shake_respects_intensity_multiplier():
-	Given: M_ScreenShake
+	Given: U_ScreenShake
 	When: calculate_shake(0.5, 2.0, 0.016)
 	Then: shake_result.offset magnitude ~2x baseline
 
 # Test quadratic falloff
 func test_shake_quadratic_falloff():
-	Given: M_ScreenShake
+	Given: U_ScreenShake
 	When: calculate_shake(0.5, 1.0, 0.016)
 	Then: shake_amount = 0.5 * 0.5 = 0.25 (verify in offset calculation)
 
 # Test noise variation
 func test_noise_generates_organic_movement():
-	Given: M_ScreenShake
+	Given: U_ScreenShake
 	When: calculate_shake at t=0.0, t=0.1, t=0.2
 	Then: shake_result.offset values differ (noise varies over time)
 
@@ -1053,31 +1053,31 @@ func test_noise_generates_organic_movement():
 ```gdscript
 # Test flash trigger
 func test_flash_trigger_sets_alpha():
-	Given: M_DamageFlash with alpha = 0.0
+	Given: U_DamageFlash with alpha = 0.0
 	When: Call trigger(1.0)
 	Then: overlay.modulate.a = 0.4 (max_alpha)
 
 # Test flash fade
 func test_flash_fades_to_zero():
-	Given: M_DamageFlash with triggered flash
+	Given: U_DamageFlash with triggered flash
 	When: Wait fade_duration (0.4s)
 	Then: overlay.modulate.a = 0.0
 
 # Test multiple triggers
 func test_flash_multiple_triggers_restart():
-	Given: M_DamageFlash at alpha = 0.2 (mid-fade)
+	Given: U_DamageFlash at alpha = 0.2 (mid-fade)
 	When: Call trigger(1.0)
 	Then: alpha resets to 0.4, new tween starts
 
 # Test disabled toggle
 func test_flash_disabled_prevents_trigger():
-	Given: M_DamageFlash with damage_flash_enabled = false
+	Given: U_DamageFlash with damage_flash_enabled = false
 	When: Call trigger(1.0)
 	Then: overlay.modulate.a remains 0.0
 
 # Test intensity scaling
 func test_flash_intensity_scales_alpha():
-	Given: M_DamageFlash
+	Given: U_DamageFlash
 	When: Call trigger(0.5)
 	Then: overlay.modulate.a = 0.2 (max_alpha * 0.5)
 
@@ -1151,7 +1151,7 @@ func test_ui_reflects_redux_state():
 
 **Phase 2-5** (Features):
 1. Write integration test for feature (e.g., shake triggers on damage)
-2. Write unit tests for components (e.g., M_ScreenShake calculations)
+2. Write unit tests for components (e.g., U_ScreenShake calculations)
 3. Run tests → Fail (red)
 4. Implement feature
 5. Run tests → Pass (green)
@@ -1369,7 +1369,7 @@ if not loaded_state.has("vfx"):
 
 **Memory Footprint**:
 - M_VFXManager: ~2KB
-- M_ScreenShake: ~1KB (noise instance)
+- U_ScreenShake: ~1KB (noise instance)
 - Damage flash scene: ~5KB (CanvasLayer + ColorRect)
 - **Total**: ~8KB memory overhead
 

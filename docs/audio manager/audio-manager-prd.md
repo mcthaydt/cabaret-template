@@ -395,7 +395,7 @@ func play_music(track_id: StringName, duration: float = 1.5) -> void
 The audio stack SHALL provide a pooled 3D SFX helper for gameplay systems:
 
 ```gdscript
-M_SFXSpawner.spawn_3d({
+U_SFXSpawner.spawn_3d({
 	"audio_stream": stream,
 	"position": position,
 	"volume_db": volume_db,
@@ -426,7 +426,7 @@ func play_music(track_id: StringName, duration: float = 1.5) -> void
 func play_ui_sound(sound_id: StringName) -> void
 
 # 3D SFX (helper; used by ECS sound systems)
-M_SFXSpawner.spawn_3d(config: Dictionary) -> AudioStreamPlayer3D
+U_SFXSpawner.spawn_3d(config: Dictionary) -> AudioStreamPlayer3D
 ```
 
 ### Phase 2: Music System (FR-013 to FR-018)
@@ -681,7 +681,7 @@ func _extract_payload(event_data: Dictionary) -> Dictionary:
 	return {}
 
 func process_tick(_delta: float) -> void:
-	# Subclass implements sound spawning via M_SFXSpawner
+	# Subclass implements sound spawning via U_SFXSpawner
 	pass
 ```
 
@@ -725,7 +725,7 @@ func _spawn_sound(request: Dictionary) -> void:
 		"pitch_scale": randf_range(1.0 - settings.pitch_variation, 1.0 + settings.pitch_variation),
 		"bus": "SFX"
 	}
-	M_SFXSpawner.spawn_3d(config)
+	U_SFXSpawner.spawn_3d(config)
 ```
 
 ### Phase 4: SFX Systems (FR-024 to FR-030)
@@ -756,7 +756,7 @@ func process_tick(_delta: float) -> void:
 
 	for request in requests:
 		var position: Vector3 = request.get("position", Vector3.ZERO)
-		M_SFXSpawner.spawn_3d({
+		U_SFXSpawner.spawn_3d({
 			"audio_stream": settings.audio_stream,
 			"position": position,
 			"volume_db": settings.volume_db,
@@ -802,7 +802,7 @@ func process_tick(_delta: float) -> void:
 		else:
 			audio_stream = settings.hard_landing_stream
 
-		M_SFXSpawner.spawn_3d({
+		U_SFXSpawner.spawn_3d({
 			"audio_stream": audio_stream,
 			"position": position,
 			"volume_db": settings.volume_db,
@@ -838,7 +838,7 @@ func process_tick(_delta: float) -> void:
 
 	for request in requests:
 		var position: Vector3 = request.get("position", Vector3.ZERO)
-		M_SFXSpawner.spawn_3d({
+		U_SFXSpawner.spawn_3d({
 			"audio_stream": settings.audio_stream,
 			"position": position,
 			"volume_db": settings.volume_db,
@@ -881,7 +881,7 @@ func process_tick(_delta: float) -> void:
 	for request in requests:
 		var spawn_point_id: StringName = request.get("spawn_point_id", StringName(""))
 		var position := _resolve_spawn_point_position(spawn_point_id)
-		M_SFXSpawner.spawn_3d({
+		U_SFXSpawner.spawn_3d({
 			"audio_stream": stream,
 			"position": position,
 			"volume_db": settings.volume_db,
@@ -936,7 +936,7 @@ func process_tick(_delta: float) -> void:
 
 	for request in requests:
 		var position: Vector3 = request.get("position", Vector3.ZERO)
-		M_SFXSpawner.spawn_3d({
+		U_SFXSpawner.spawn_3d({
 			"audio_stream": stream,
 			"position": position,
 			"volume_db": settings.volume_db,
@@ -961,11 +961,11 @@ extends Resource
 @export var min_interval: float = 0.1     # Prevent spam (future enhancement)
 ```
 
-**FR-030: M_SFXSpawner Utility**
-The system SHALL implement `M_SFXSpawner` for pooled AudioStreamPlayer3D management:
+**FR-030: U_SFXSpawner Utility**
+The system SHALL implement `U_SFXSpawner` for pooled AudioStreamPlayer3D management:
 
 ```gdscript
-class_name M_SFXSpawner
+class_name U_SFXSpawner
 extends RefCounted
 
 const POOL_SIZE := 16  # Maximum concurrent 3D sounds
@@ -1182,7 +1182,7 @@ func _play_footstep(surface_detector: C_SurfaceDetectorComponent, position: Vect
 
 	var audio_stream: AudioStream = sounds[randi() % sounds.size()]
 
-	M_SFXSpawner.spawn_3d({
+	U_SFXSpawner.spawn_3d({
 		"audio_stream": audio_stream,
 		"position": position,
 		"volume_db": settings.volume_db,
@@ -1727,7 +1727,7 @@ func _update_volume_label(label: Label, value: float) -> void:
 **Objective**: Implement 5 SFX systems + spawner utility
 
 **Deliverables**:
-1. `scripts/managers/helpers/m_sfx_spawner.gd`
+1. `scripts/managers/helpers/u_sfx_spawner.gd`
 2. `scripts/ecs/systems/s_jump_sound_system.gd` + settings resource
 3. `scripts/ecs/systems/s_landing_sound_system.gd` + settings resource
 4. `scripts/ecs/systems/s_death_sound_system.gd` + settings resource
@@ -1735,7 +1735,7 @@ func _update_volume_label(label: Label, value: float) -> void:
 6. `scripts/ecs/systems/s_victory_sound_system.gd` + settings resource
 7. `tests/unit/ecs/systems/test_*_sound_system.gd` (49 tests total)
 
-**Commit 1**: M_SFXSpawner utility (pooled players)
+**Commit 1**: U_SFXSpawner utility (pooled players)
 **Commit 2**: S_JumpSoundSystem + tests
 **Commit 3**: S_LandingSoundSystem + tests
 **Commit 4**: S_DeathSoundSystem + S_CheckpointSoundSystem + tests
@@ -1928,7 +1928,7 @@ func test_manager_applies_volume_to_master_bus():
 	func test_spatial_audio_setting_updates_sfx_spawner():
 		Given: Manager initialized and subscribed to store
 		When: Dispatch U_AudioActions.set_spatial_audio_enabled(false)
-		Then: M_SFXSpawner.is_spatial_audio_enabled() == false
+		Then: U_SFXSpawner.is_spatial_audio_enabled() == false
 
 	# ... (remaining tests)
 ```
@@ -1990,7 +1990,7 @@ scripts/managers/
   m_audio_manager.gd
 scripts/managers/helpers/
   u_audio_player_pool.gd
-  m_sfx_spawner.gd
+  u_sfx_spawner.gd
   u_ui_sound_player.gd
 scripts/ecs/
   base_event_sfx_system.gd

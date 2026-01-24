@@ -485,16 +485,16 @@
 
 **Exit Criteria:** All 5 SFX systems play on correct events (jump, land, death, checkpoint, victory), pool manages 16 concurrent sounds, pitch variation adds organic feel
 
-- [x] **Task 4.1 (Red)**: Write tests for M_SFXSpawner utility
+- [x] **Task 4.1 (Red)**: Write tests for U_SFXSpawner utility
   - Create `tests/unit/managers/helpers/test_sfx_spawner.gd`
   - Tests: pool initialization (16 players), `spawn_3d()` returns available player, player configuration (stream, position, volume, pitch, bus), pool exhaustion warning, player auto-returns to pool when finished
   - All 10 tests failing as expected ✅
 
-- [x] **Task 4.2 (Green)**: Implement M_SFXSpawner utility
-  - Create `scripts/managers/helpers/m_sfx_spawner.gd`
+- [x] **Task 4.2 (Green)**: Implement U_SFXSpawner utility
+  - Create `scripts/managers/helpers/u_sfx_spawner.gd`
   - Class structure:
     ```gdscript
-    class_name M_SFXSpawner
+    class_name U_SFXSpawner
     extends RefCounted
 
     const POOL_SIZE := 16
@@ -505,7 +505,7 @@
 
     static func initialize(parent: Node) -> void:
         if parent == null:
-            push_warning("M_SFXSpawner.initialize: parent is null")
+            push_warning("U_SFXSpawner.initialize: parent is null")
             return
 
         if _container != null and is_instance_valid(_container):
@@ -522,7 +522,7 @@
             player.max_distance = 50.0
             player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
             player.set_meta(META_IN_USE, false)
-            player.finished.connect(Callable(M_SFXSpawner, "_on_player_finished").bind(player))
+            player.finished.connect(Callable(U_SFXSpawner, "_on_player_finished").bind(player))
             _container.add_child(player)
             _pool.append(player)
 
@@ -567,7 +567,7 @@
 
 - [x] **Task 4.3 (Green)**: Initialize SFX pool in Audio Manager
   - Modify `scripts/managers/m_audio_manager.gd`
-  - Add to `_ready()`: `M_SFXSpawner.initialize(self)`
+  - Add to `_ready()`: `U_SFXSpawner.initialize(self)`
   - Pool initialized when Audio Manager starts
 
 - [x] **Task 4.4 (Red+Green)**: Implement S_JumpSoundSystem (event: entity_jumped)
@@ -609,7 +609,7 @@
             return
 
         for request in requests:
-            M_SFXSpawner.spawn_3d({
+            U_SFXSpawner.spawn_3d({
                 "audio_stream": settings.audio_stream,
                 "position": request.get("position"),
                 "volume_db": settings.volume_db,
@@ -655,7 +655,7 @@
             # Only play landing sound for significant falls
             if fall_speed > 5.0:
                 var volume_adjustment := remap(fall_speed, 5.0, 30.0, -6.0, 0.0)
-                M_SFXSpawner.spawn_3d({
+                U_SFXSpawner.spawn_3d({
                     "audio_stream": settings.audio_stream,
                     "position": request.get("position"),
                     "volume_db": settings.volume_db + volume_adjustment,
@@ -692,7 +692,7 @@
   - All tests passing ✅
 
 **Completion Notes:**
-- Implemented pooled 3D spawner as `M_SFXSpawner` (`scripts/managers/helpers/m_sfx_spawner.gd`) to satisfy prefix enforcement for `scripts/managers/helpers/`.
+- Implemented pooled 3D spawner as `U_SFXSpawner` (`scripts/managers/helpers/u_sfx_spawner.gd`) to satisfy prefix enforcement for `scripts/managers/helpers/`.
 - Added placeholder WAV SFX under `resources/audio/sfx/` (with `.import` files).
 - Added unit tests for spawner + 5 SFX systems and verified GREEN (including `tests/unit/style/test_style_enforcement.gd`).
 
@@ -854,7 +854,7 @@
             return
 
         var stream := sounds.pick_random()
-        M_SFXSpawner.spawn_3d({
+        U_SFXSpawner.spawn_3d({
             "audio_stream": stream,
             "position": position,
             "volume_db": settings.volume_db,
@@ -1218,7 +1218,7 @@
   - Ran unit suite (1371 passing, 5 pending headless timing tests)
 
 **Completion Notes:**
-- Wired `spatial_audio_enabled` into 3D SFX playback: `scripts/managers/m_audio_manager.gd` updates `scripts/managers/helpers/m_sfx_spawner.gd` so disabling spatial audio turns off attenuation + panning.
+- Wired `spatial_audio_enabled` into 3D SFX playback: `scripts/managers/m_audio_manager.gd` updates `scripts/managers/helpers/u_sfx_spawner.gd` so disabling spatial audio turns off attenuation + panning.
 
 ---
 
@@ -1314,7 +1314,7 @@
 | `resources/audio/music/credits.mp3` | ✅ Complete | 2 | Credits music track |
 | `scripts/ecs/base_event_sfx_system.gd` | ✅ Complete | 3 | Base class for event-driven SFX |
 | `tests/unit/ecs/test_base_event_sfx_system.gd` | ✅ Complete | 3 | 15 tests for base system |
-| `scripts/managers/helpers/m_sfx_spawner.gd` | ✅ Complete | 4 | SFX pool manager (16 players) + spatial toggle |
+| `scripts/managers/helpers/u_sfx_spawner.gd` | ✅ Complete | 4 | SFX pool manager (16 players) + spatial toggle |
 | `tests/unit/managers/helpers/test_sfx_spawner.gd` | ✅ Complete | 4 | 12 tests for spawner |
 | `scripts/ecs/systems/s_jump_sound_system.gd` | ✅ Complete | 4 | Jump SFX system |
 | `scripts/ecs/resources/rs_jump_sound_settings.gd` | ✅ Complete | 4 | Jump settings resource |

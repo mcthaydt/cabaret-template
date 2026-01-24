@@ -196,7 +196,7 @@ version: "1.0"
     - `scripts/ecs/systems/s_input_system.gd` (added actions/events)
     - `scripts/ecs/systems/s_scene_trigger_system.gd` (added interact action/events)
   - Input system authority (expected runtime mutation):
-    - `scripts/managers/m_input_profile_manager.gd` / `scripts/managers/helpers/m_input_profile_loader.gd` (apply profiles to InputMap)
+    - `scripts/managers/m_input_profile_manager.gd` / `scripts/managers/helpers/u_input_profile_loader.gd` (apply profiles to InputMap)
     - `scripts/utils/u_input_rebind_utils.gd` (apply rebind results)
   - UI virtual controls (touchscreen):
     - `scripts/ui/ui_virtual_button.gd` (ensures action exists for virtual buttons)

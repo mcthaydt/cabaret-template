@@ -130,16 +130,16 @@
 
 **Exit Criteria:** All 15 screen shake tests pass, shake algorithm validated with quadratic falloff, noise-based offset/rotation working
 
-- [x] **Task 2.1 (Red)**: Write tests for M_ScreenShake helper
+- [x] **Task 2.1 (Red)**: Write tests for U_ScreenShake helper
   - Create `tests/unit/managers/helpers/test_screen_shake.gd`
   - Tests: initialization with FastNoiseLite, `calculate_shake()` returns Dictionary with offset and rotation keys, trauma 0.0 → zero shake, trauma 1.0 → full shake, quadratic falloff (trauma 0.5 → shake_amount 0.25), settings_multiplier scaling, noise-based randomness (different offsets over time), max_offset clamping, max_rotation clamping
   - All 15 tests failing as expected ✅
 
-- [x] **Task 2.2 (Green)**: Implement M_ScreenShake helper
-  - Create `scripts/managers/helpers/m_screen_shake.gd`
+- [x] **Task 2.2 (Green)**: Implement U_ScreenShake helper
+  - Create `scripts/managers/helpers/u_screen_shake.gd`
   - Class structure:
     ```gdscript
-    class_name M_ScreenShake
+    class_name U_ScreenShake
     extends RefCounted
 
     var max_offset := Vector2(10.0, 8.0)
@@ -213,9 +213,9 @@
 
 - [x] **Task 3.2 (Green)**: Wire VFX Manager to Camera Manager shake application
   - Modify `scripts/managers/m_vfx_manager.gd`
-  - Add field: `var _camera_manager: M_CameraManager`, `var _screen_shake: M_ScreenShake`
+  - Add field: `var _camera_manager: M_CameraManager`, `var _screen_shake: U_ScreenShake`
   - Discover camera manager in `_ready()`: `_camera_manager = U_ServiceLocator.get_service(StringName("camera_manager"))`
-  - Initialize `_screen_shake = M_ScreenShake.new()` in `_ready()`
+  - Initialize `_screen_shake = U_ScreenShake.new()` in `_ready()`
   - Update `_physics_process(delta: float) -> void`:
     ```gdscript
     # Decay trauma
@@ -263,16 +263,16 @@
   - Recommend `layer = 50` to stay below `LoadingOverlay.layer = 100` in `scenes/root.tscn` (choose final layering based on whether you want UI tinted by the flash)
   - Scene created with CanvasLayer (layer=50) and FlashRect ColorRect ✅
 
-- [x] **Task 4.2 (Red)**: Write tests for M_DamageFlash helper
+- [x] **Task 4.2 (Red)**: Write tests for U_DamageFlash helper
   - Create `tests/unit/managers/helpers/test_damage_flash.gd`
   - Tests: initialization with ColorRect reference, `trigger_flash()` sets alpha to max instantly, fade to 0.0 over 0.4 seconds using tween, retrigger kills existing tween, respects enabled toggle, intensity parameter affects max_alpha
   - All 10 tests failing as expected ✅
 
-- [x] **Task 4.3 (Green)**: Implement M_DamageFlash helper
-  - Create `scripts/managers/helpers/m_damage_flash.gd`
+- [x] **Task 4.3 (Green)**: Implement U_DamageFlash helper
+  - Create `scripts/managers/helpers/u_damage_flash.gd`
   - Class structure:
     ```gdscript
-    class_name M_DamageFlash
+    class_name U_DamageFlash
     extends RefCounted
 
     const FADE_DURATION := 0.4
@@ -305,14 +305,14 @@
 
 - [x] **Task 4.4 (Green)**: Integrate damage flash into VFX Manager
   - Modify `scripts/managers/m_vfx_manager.gd`
-  - Add field: `var _damage_flash: M_DamageFlash`
+  - Add field: `var _damage_flash: U_DamageFlash`
   - Load and instance damage flash scene in `_ready()`:
     ```gdscript
     var flash_scene := load("res://scenes/ui/ui_damage_flash_overlay.tscn")
     var flash_instance := flash_scene.instantiate()
     add_child(flash_instance)
     var flash_rect := flash_instance.get_node("FlashRect") as ColorRect
-    _damage_flash = M_DamageFlash.new(flash_rect, get_tree())
+    _damage_flash = U_DamageFlash.new(flash_rect, get_tree())
     ```
   - Update `_on_health_changed()` to trigger flash:
     ```gdscript
@@ -340,7 +340,7 @@
 
 **Completion Notes:**
 - All 10 damage flash tests passing
-- M_DamageFlash helper implemented with 0.4s fade duration and 0.3 max alpha
+- U_DamageFlash helper implemented with 0.4s fade duration and 0.3 max alpha
 - Damage flash overlay scene created at layer 50 (below LoadingOverlay)
 - M_VFXManager successfully loads and initializes damage flash overlay
 - Flash triggers on health_changed events when damage_flash_enabled is true
@@ -510,11 +510,11 @@
 | `scripts/managers/m_vfx_manager.gd` | ✅ Complete | 1, 3, 4 | VFX manager with trauma system + camera integration + damage flash |
 | `tests/unit/managers/test_vfx_manager.gd` | ✅ Complete | 1 | 17 tests for manager lifecycle + trauma |
 | `scenes/root.tscn` | ✅ Complete | 1 | Modified to add M_VFXManager node |
-| `scripts/managers/helpers/m_screen_shake.gd` | ✅ Complete | 2 | Screen shake helper with noise algorithm |
+| `scripts/managers/helpers/u_screen_shake.gd` | ✅ Complete | 2 | Screen shake helper with noise algorithm |
 | `tests/unit/managers/helpers/test_screen_shake.gd` | ✅ Complete | 2 | 15 tests for shake algorithm |
 | `scripts/managers/m_camera_manager.gd` | ✅ Complete | 3 | Modified to add shake parent + apply method + ServiceLocator registration |
 | `scenes/ui/ui_damage_flash_overlay.tscn` | ✅ Complete | 4 | Damage flash overlay scene (CanvasLayer layer 50) |
-| `scripts/managers/helpers/m_damage_flash.gd` | ✅ Complete | 4 | Damage flash helper with tween fade (0.4s duration) |
+| `scripts/managers/helpers/u_damage_flash.gd` | ✅ Complete | 4 | Damage flash helper with tween fade (0.4s duration) |
 | `tests/unit/managers/helpers/test_damage_flash.gd` | ✅ Complete | 4 | 10 tests for damage flash |
 | `scenes/ui/ui_vfx_settings_overlay.tscn` | ✅ Complete | 5 | VFX settings overlay scene |
 | `scripts/ui/settings/ui_vfx_settings_overlay.gd` | ✅ Complete | 5, 7 | VFX settings overlay controller (Apply/Cancel/Reset) |

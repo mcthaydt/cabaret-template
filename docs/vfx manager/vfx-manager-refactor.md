@@ -19,8 +19,8 @@ This plan addresses issues identified in the VFX Manager system, organized into 
 
 ### Key Files
 - `scripts/managers/m_vfx_manager.gd` (201 lines)
-- `scripts/managers/helpers/m_screen_shake.gd` (52 lines)
-- `scripts/managers/helpers/m_damage_flash.gd` (31 lines)
+- `scripts/managers/helpers/u_screen_shake.gd` (52 lines)
+- `scripts/managers/helpers/u_damage_flash.gd` (31 lines)
 - `scenes/ui/ui_damage_flash_overlay.tscn`
 - `scripts/ui/settings/ui_vfx_settings_overlay.gd` (231 lines)
 
@@ -528,9 +528,9 @@ To:
 color = Color(1, 0, 0, 1.0)
 ```
 
-### Add Tween Pause Mode in M_DamageFlash
+### Add Tween Pause Mode in U_DamageFlash
 
-**File**: `scripts/managers/helpers/m_damage_flash.gd`
+**File**: `scripts/managers/helpers/u_damage_flash.gd`
 
 Add pause mode after creating tween (line 29):
 ```gdscript
@@ -541,10 +541,10 @@ _tween.tween_property(_flash_rect, "modulate:a", 0.0, FADE_DURATION)
 
 ### New Typed Result Class
 
-**File**: `scripts/managers/helpers/m_shake_result.gd`
+**File**: `scripts/managers/helpers/u_shake_result.gd`
 
 ```gdscript
-class_name ShakeResult
+class_name U_ShakeResult
 extends RefCounted
 
 ## Typed result from screen shake calculation.
@@ -557,13 +557,13 @@ func _init(p_offset: Vector2 = Vector2.ZERO, p_rotation: float = 0.0) -> void:
 	rotation = p_rotation
 ```
 
-### Update M_ScreenShake
+### Update U_ScreenShake
 
-**File**: `scripts/managers/helpers/m_screen_shake.gd`
+**File**: `scripts/managers/helpers/u_screen_shake.gd`
 
 Add testing hooks and typed return:
 ```gdscript
-const ShakeResult := preload("res://scripts/managers/helpers/m_shake_result.gd")
+const U_ShakeResult := preload("res://scripts/managers/helpers/u_shake_result.gd")
 
 var _test_seed: int = -1
 var _test_time: float = -1.0
@@ -579,7 +579,7 @@ func set_sample_time_for_testing(time: float) -> void:
 func get_sample_time() -> float:
 	return _time
 
-func calculate_shake(trauma: float, intensity_multiplier: float, delta: float) -> ShakeResult:
+func calculate_shake(trauma: float, intensity_multiplier: float, delta: float) -> U_ShakeResult:
 	if _test_time >= 0.0:
 		_time = _test_time
 	else:
@@ -593,10 +593,10 @@ func calculate_shake(trauma: float, intensity_multiplier: float, delta: float) -
 	)
 	var rotation_amount := _noise.get_noise_1d(_time + 200.0) * max_rotation * shake_amount
 
-	return ShakeResult.new(offset, rotation_amount)
+	return U_ShakeResult.new(offset, rotation_amount)
 ```
 
-### Update M_VFXManager to Use ShakeResult
+### Update M_VFXManager to Use U_ShakeResult
 
 ```gdscript
 var shake_result = _screen_shake.calculate_shake(_trauma, intensity, delta)
@@ -729,8 +729,8 @@ var flash_instance: CanvasLayer = DAMAGE_FLASH_SCENE.instantiate()
 
 1. `tests/integration/vfx/test_vfx_player_gating.gd` - Verify only player entity triggers VFX
 2. `tests/integration/vfx/test_vfx_transition_gating.gd` - Verify VFX blocked during transitions
-3. `tests/unit/managers/helpers/test_m_screen_shake.gd` - Deterministic tests with seed
-4. `tests/unit/managers/helpers/test_m_damage_flash.gd` - Alpha correctness tests
+3. `tests/unit/managers/helpers/test_screen_shake.gd` - Deterministic tests with seed
+4. `tests/unit/managers/helpers/test_damage_flash.gd` - Alpha correctness tests
 
 ### Update Existing Tests
 

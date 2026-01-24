@@ -24,7 +24,7 @@ This plan addresses issues identified in the Audio Manager system, organized int
 ### Key Files
 
 - `scripts/managers/m_audio_manager.gd` (~400 lines)
-- `scripts/managers/helpers/m_sfx_spawner.gd` (~133 lines)
+- `scripts/managers/helpers/u_sfx_spawner.gd` (~133 lines)
 - `scripts/ecs/systems/s_ambient_sound_system.gd` (~130 lines)
 - `scripts/ecs/systems/s_footstep_sound_system.gd` (~150 lines)
 - `scripts/ecs/systems/s_jump_sound_system.gd`, `s_landing_sound_system.gd`, `s_death_sound_system.gd`, `s_checkpoint_sound_system.gd`, `s_victory_sound_system.gd`
@@ -566,7 +566,7 @@ func _extract_position(request: Dictionary) -> Vector3:
 
 ## Shared SFX spawning (matches current spawn_3d Dictionary API)
 func _spawn_sfx(stream: AudioStream, position: Vector3, volume_db: float, pitch_scale: float, bus: StringName = &"SFX") -> void:
-    M_SFXSpawner.spawn_3d({
+    U_SFXSpawner.spawn_3d({
         "audio_stream": stream,
         "position": position,
         "volume_db": volume_db,
@@ -652,7 +652,7 @@ func _on_entity_removed(entity: Node) -> void:
 
 **Note**: Current `spawn_3d()` uses Dictionary config API. This phase extends it while preserving the signature.
 
-### Update M_SFXSpawner
+### Update U_SFXSpawner
 
 ```gdscript
 const POOL_SIZE := 16
@@ -673,7 +673,7 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
     if audio_stream_variant is AudioStream:
         audio_stream = audio_stream_variant as AudioStream
     if audio_stream == null:
-        push_warning("M_SFXSpawner: null audio stream")
+        push_warning("U_SFXSpawner: null audio stream")
         return null
 
     var player := _get_available_player()
@@ -1047,25 +1047,25 @@ func _on_apply_pressed() -> void:
 ```gdscript
 # Test voice stealing (uses Dictionary config API)
 func test_voice_stealing_on_pool_exhaustion() -> void:
-    M_SFXSpawner.reset_stats()
+    U_SFXSpawner.reset_stats()
     # Fill pool with 16 sounds
     for i in range(16):
-        M_SFXSpawner.spawn_3d({
+        U_SFXSpawner.spawn_3d({
             "audio_stream": _test_stream,
             "position": Vector3.ZERO
         })
 
     # 17th sound should steal oldest
-    var stolen := M_SFXSpawner.spawn_3d({
+    var stolen := U_SFXSpawner.spawn_3d({
         "audio_stream": _test_stream,
         "position": Vector3.ZERO
     })
     assert_not_null(stolen)
-    assert_eq(M_SFXSpawner.get_stats()["steals"], 1)
+    assert_eq(U_SFXSpawner.get_stats()["steals"], 1)
 
 # Test bus fallback
 func test_unknown_bus_falls_back_to_sfx() -> void:
-    var player := M_SFXSpawner.spawn_3d({
+    var player := U_SFXSpawner.spawn_3d({
         "audio_stream": _test_stream,
         "position": Vector3.ZERO,
         "bus": "NonExistentBus"
@@ -1078,7 +1078,7 @@ func test_follow_emitter_updates_position() -> void:
     add_child(emitter)
     emitter.global_position = Vector3(10, 0, 0)
 
-    var player := M_SFXSpawner.spawn_3d({
+    var player := U_SFXSpawner.spawn_3d({
         "audio_stream": _test_stream,
         "position": emitter.global_position,
         "follow_target": emitter
@@ -1086,7 +1086,7 @@ func test_follow_emitter_updates_position() -> void:
 
     # Move emitter
     emitter.global_position = Vector3(20, 0, 0)
-    M_SFXSpawner.update_follow_targets()
+    U_SFXSpawner.update_follow_targets()
 
     assert_eq(player.global_position, Vector3(20, 0, 0))
     emitter.queue_free()
@@ -1185,7 +1185,7 @@ Add Audio Manager patterns section:
 
 ### Modified Files
 - `scripts/managers/m_audio_manager.gd` - Major refactor
-- `scripts/managers/helpers/m_sfx_spawner.gd` - Voice stealing, config
+- `scripts/managers/helpers/u_sfx_spawner.gd` - Voice stealing, config
 - `scripts/ecs/base_event_sfx_system.gd` - Shared helpers
 - `scripts/ecs/systems/s_jump_sound_system.gd` - Simplify
 - `scripts/ecs/systems/s_landing_sound_system.gd` - Simplify

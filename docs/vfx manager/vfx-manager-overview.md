@@ -185,7 +185,7 @@ CanvasLayer (recommend layer 50 - above gameplay, below `LoadingOverlay.layer = 
 ### Flash Implementation
 
 ```gdscript
-class_name M_DamageFlash
+class_name U_DamageFlash
 extends CanvasLayer
 
 @onready var _overlay: ColorRect = $ColorRect
@@ -344,7 +344,7 @@ Use Godot Profiler (Debugger > Profiler) to measure actual overhead:
 - `U_VFXReducer`: Action handling, intensity clamping, toggle state.
 - `U_VFXSelectors`: Selector return values for all settings.
 - `U_ScreenShake`: Trauma accumulation, decay, noise sampling.
-- `M_DamageFlash`: Trigger, fade animation, settings respect.
+- `U_DamageFlash`: Trigger, fade animation, settings respect.
 
 ### Integration Tests
 

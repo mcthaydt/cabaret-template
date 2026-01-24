@@ -66,7 +66,7 @@ Remove `get_meta()`/`set_meta()` usage throughout the codebase in favor of expli
 
 | File | Lines | Usage |
 |------|-------|-------|
-| `m_sfx_spawner.gd` | 40, 61, 116, 126 | `META_IN_USE` for pool tracking |
+| `u_sfx_spawner.gd` | 40, 61, 116, 126 | `META_IN_USE` for pool tracking |
 
 **Proposed Solution:**
 - Use parallel `Dictionary[AudioStreamPlayer3D, bool]` for in-use tracking
@@ -173,7 +173,7 @@ Remove `get_meta()`/`set_meta()` usage throughout the codebase in favor of expli
 - [x] Remove `META_ENTITY_ROOT` and `META_ENTITY_TRACKED`
 
 ### Phase 4: Manager Cleanup
-- [x] Refactor `M_SFXSpawner` pool tracking to Dictionary
+- [x] Refactor `U_SFXSpawner` pool tracking to Dictionary
 - [x] Refactor `U_OverlayStackManager` scene_id tracking to Dictionary
 - [x] Refactor `M_CameraManager` shake parent to direct reference
 - [x] Refactor `M_SceneManager` spawned tracking to Dictionary

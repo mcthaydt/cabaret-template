@@ -223,7 +223,7 @@
 ## Save Manager Pitfalls (Phase 13 Complete)
 
 - **Autosave requires navigation.shell == "gameplay"**
-  - M_AutosaveScheduler blocks autosaves when `navigation.shell != "gameplay"` to prevent saves during menus/UI
+  - U_AutosaveScheduler blocks autosaves when `navigation.shell != "gameplay"` to prevent saves during menus/UI
   - **Testing pitfall**: Tests that trigger autosave events must dispatch `U_NavigationActions.set_shell(StringName("gameplay"), StringName("scene_id"))` first, or autosave will silently fail
   - Example:
     ```gdscript

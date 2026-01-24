@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (4/23 tasks complete)
+**Status**: In Progress (5/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -15,11 +15,11 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 | Phase | Tasks | Completed | Risk Level |
 |-------|-------|-----------|------------|
 | Phase 1: Quick Wins | 4 | 4/4 | Low |
-| Phase 2: Naming Fixes | 4 | 0/4 | Medium |
+| Phase 2: Naming Fixes | 4 | 1/4 | Medium |
 | Phase 3: Folder Restructuring | 8 | 0/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **4/23 (17.4%)** | - |
+| **TOTAL** | **23** | **5/23 (21.7%)** | - |
 
 ---
 
@@ -156,12 +156,12 @@ git add . && git commit -m "refactor: consolidate ECS helpers to scripts/utils/e
 
 ## Phase 2: Naming Convention Fixes (Medium Risk)
 
-### Task 5: Fix Manager Helper Prefixes (m_ -> u_) PENDING
+### Task 5: Fix Manager Helper Prefixes (m_ -> u_) COMPLETE
 
 **Rationale**: These are utility classes, not managers. Current `m_` prefix is misleading.
 
-- [ ] Scan for all references to these 8 files
-- [ ] Rename files and update class names:
+- [x] Scan for all references to these 8 files
+- [x] Rename files and update class names:
   - `m_autosave_scheduler.gd` -> `u_autosave_scheduler.gd`
   - `m_damage_flash.gd` -> `u_damage_flash.gd`
   - `m_input_profile_loader.gd` -> `u_input_profile_loader.gd`
@@ -169,13 +169,16 @@ git add . && git commit -m "refactor: consolidate ECS helpers to scripts/utils/e
   - `m_save_migration_engine.gd` -> `u_save_migration_engine.gd`
   - `m_screen_shake.gd` -> `u_screen_shake.gd`
   - `m_sfx_spawner.gd` -> `u_sfx_spawner.gd`
-  - `m_shake_result.gd` -> `u_shake_result.gd` (or `rs_` if it's a resource)
-- [ ] Update all references (preloads, class names, variable names)
-- [ ] Run affected tests
+  - `m_shake_result.gd` -> `u_shake_result.gd` (class renamed to `U_ShakeResult`)
+- [x] Update all references (preloads, class names, variable names)
+- [x] Run affected tests + style enforcement
 
-**Status**: NEEDS REFERENCE SCAN
-**Files affected**: 8 helpers + unknown references
+**Status**: COMPLETE (2026-01-24)
+**Files affected**: 8 helpers + references (scripts/tests/docs)
 **Risk**: Medium
+**Notes**:
+- Updated style guide + style enforcement to allow `u_` helper scripts under `scripts/managers/helpers`.
+- Updated tests to use preloaded helper scripts to avoid headless class cache issues.
 
 **Reference Scan Command**:
 ```bash
@@ -649,8 +652,9 @@ scripts/events/
 - Task 3: Move prototype scripts (done)
 - Task 4: Move ECS helpers (done)
 
+
 ### Batch 2: Naming Fixes (Needs Scanning)
-- Task 5: Fix manager helper prefixes
+- Task 5: Fix manager helper prefixes (done)
 - Task 6: Rename interactables
 - Task 7: Convert surface marker
 - Task 8: Rename main.gd (CRITICAL)

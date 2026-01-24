@@ -330,7 +330,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
   - [ ] Test _is_throttled() enforcing min_interval
   - [ ] Test _calculate_pitch() clamping variation to 0.0-0.95
   - [ ] Test _extract_position() from request Dictionary
-  - [ ] Test _spawn_sfx() calls M_SFXSpawner.spawn_3d()
+  - [ ] Test _spawn_sfx() calls U_SFXSpawner.spawn_3d()
 
 ### 6.2 Base System Helpers - Implementation
 - [ ] 🔧 Update `scripts/ecs/base_event_sfx_system.gd`
@@ -350,7 +350,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
     - [ ] Return randf_range(1.0 - clamped, 1.0 + clamped)
   - [ ] Add method: _extract_position(request: Dictionary) -> Vector3
   - [ ] Add method: _spawn_sfx(stream, position, volume_db, pitch_scale, bus)
-    - [ ] Call M_SFXSpawner.spawn_3d() with Dictionary config
+    - [ ] Call U_SFXSpawner.spawn_3d() with Dictionary config
 
 ### 6.3 Standardize Request Schema
 - [ ] 📝 Document request schema in base_event_sfx_system.gd:
@@ -443,7 +443,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
   - [ ] Test reset_stats() clears counters
 
 ### 7.2 Voice Stealing - Implementation
-- [ ] 🔧 Update `scripts/managers/helpers/m_sfx_spawner.gd`
+- [ ] 🔧 Update `scripts/managers/helpers/u_sfx_spawner.gd`
   - [ ] Add field: `static var _play_times: Dictionary = {}` (player -> start_time)
   - [ ] Implement _steal_oldest_voice() -> AudioStreamPlayer3D
     - [ ] Find oldest playing player by _play_times
@@ -460,7 +460,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
 - [ ] Test _validate_bus() with invalid bus pushes warning
 
 ### 7.4 Bus Fallback - Implementation
-- [ ] 🔧 Update `scripts/managers/helpers/m_sfx_spawner.gd`
+- [ ] 🔧 Update `scripts/managers/helpers/u_sfx_spawner.gd`
   - [ ] Implement _validate_bus(bus: String) -> String
     - [ ] Check AudioServer.get_bus_index(bus) != -1
     - [ ] Return "SFX" if not found
@@ -473,7 +473,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
 - [ ] Add test respects _spatial_audio_enabled flag
 
 ### 7.6 Per-Sound Spatialization - Implementation
-- [ ] 🔧 Update `scripts/managers/helpers/m_sfx_spawner.gd`
+- [ ] 🔧 Update `scripts/managers/helpers/u_sfx_spawner.gd`
   - [ ] Implement _configure_player_spatialization(player, max_distance, attenuation_model)
     - [ ] Apply max_distance if > 0, else use default (50.0)
     - [ ] Apply attenuation_model if >= 0, else use default
@@ -489,7 +489,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
   - [ ] Test follow_target cleanup when playback stops
 
 ### 7.8 Follow-Emitter Mode - Implementation
-- [ ] 🔧 Update `scripts/managers/helpers/m_sfx_spawner.gd`
+- [ ] 🔧 Update `scripts/managers/helpers/u_sfx_spawner.gd`
   - [ ] Add field: `static var _follow_targets: Dictionary = {}` (player -> Node3D)
   - [ ] Update spawn_3d() to extract follow_target from config
     - [ ] Store in _follow_targets if valid Node3D
@@ -505,7 +505,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
 - [ ] Test _update_peak_usage() tracks max concurrent
 
 ### 7.10 Stats & Metrics - Implementation
-- [ ] 🔧 Update `scripts/managers/helpers/m_sfx_spawner.gd`
+- [ ] 🔧 Update `scripts/managers/helpers/u_sfx_spawner.gd`
   - [ ] Add field: `static var _stats: Dictionary = {spawns: 0, steals: 0, drops: 0, peak_usage: 0}`
   - [ ] Implement get_stats() returning _stats.duplicate()
   - [ ] Implement reset_stats() clearing counters
@@ -613,7 +613,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
   - [ ] U_AudioRegistryLoader
   - [ ] U_CrossfadePlayer
   - [ ] U_AudioBusConstants
-  - [ ] M_SFXSpawner (voice stealing, follow-emitter)
+  - [ ] U_SFXSpawner (voice stealing, follow-emitter)
   - [ ] U_AudioUtils
 - [ ] Review test coverage for refactored systems
   - [ ] All 5 event-driven sound systems
@@ -643,7 +643,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
 - [ ] 📝 Create `docs/audio manager/AUDIO_MANAGER_GUIDE.md`
   - [ ] Quick start guide
   - [ ] Adding new music tracks (create .tres, register in loader)
-  - [ ] Adding new sound effects (create .tres, use M_SFXSpawner)
+  - [ ] Adding new sound effects (create .tres, use U_SFXSpawner)
   - [ ] Configuring scene audio mappings
   - [ ] Understanding bus layout
   - [ ] Troubleshooting common issues
@@ -662,7 +662,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
 - [ ] Run style enforcement: `tests/unit/style/test_style_enforcement.gd`
 
 ### 10.7 Performance Verification
-- [ ] Measure SFX pool usage stats: `M_SFXSpawner.get_stats()`
+- [ ] Measure SFX pool usage stats: `U_SFXSpawner.get_stats()`
 - [ ] Verify voice stealing is rare (<5% of spawns)
 - [ ] Verify no audio dropouts during intense gameplay
 - [ ] Profile state subscription overhead (should be minimal with hash optimization)
@@ -767,7 +767,7 @@ This document tracks the refactoring tasks for the existing Audio Manager system
 
 ### Modified Files (12)
 - M_AudioManager (major refactor)
-- M_SFXSpawner (voice stealing, config, follow-emitter)
+- U_SFXSpawner (voice stealing, config, follow-emitter)
 - BaseEventSFXSystem (shared helpers)
 - 5 event sound systems (jump, landing, death, checkpoint, victory)
 - S_FootstepSoundSystem (timer cleanup)

@@ -136,12 +136,12 @@
     - **Tier 1: Behavior Tests** (silent_mode = true): 12 tests verify functional correctness
     - **Tier 2: Logging Tests** (silent_mode = false): 2 tests verify error emission with `[ExpectedError]` output
   - All 14 tests passing, 24 assertions passing
-- [x] **Task 3.2 (Green)**: Implement `m_save_file_io.gd` with atomic operations
+- [x] **Task 3.2 (Green)**: Implement `u_save_file_io.gd` with atomic operations
   - `ensure_save_directory()` -> `DirAccess.make_dir_recursive_absolute("user://saves")` ✅
   - `save_to_file(path, data)` -> write `.tmp`, backup `.bak`, rename to `.json` ✅
   - `load_from_file(path)` -> try `.json`, fallback to `.bak` if `.json` missing ✅
   - Clean up orphaned `.tmp` files on startup ✅
-  - Created `scripts/managers/helpers/m_save_file_io.gd` (155 lines, class_name helper)
+  - Created `scripts/managers/helpers/u_save_file_io.gd` (155 lines, class_name helper)
   - Added `silent_mode` flag for test environments
 - [x] **Task 3.3 (Refactor)**: Extract file path utilities if needed
   - No refactoring needed - file is clean and concise at 155 lines
@@ -176,7 +176,7 @@
   - Set `_is_saving = true`, emit `save_started` event via U_ECSEventBus
   - Get state via `M_StateStore.get_persistable_state()` (transient fields already filtered)
   - Build header via `_build_metadata(slot_id)`
-  - Write combined `{header, state}` via `M_SaveFileIO.save_to_file()`
+  - Write combined `{header, state}` via `U_SaveFileIO.save_to_file()`
   - Clear `_is_saving = false`, emit `save_completed` or `save_failed`
   - Method is 52 lines, clean and focused
 - [x] **Task 4.3**: Transient field filtering (already implemented)
@@ -198,7 +198,7 @@
 
 **API Completion (Post-Phase 4):**
 - [x] Implemented `delete_slot()` - Removes save files (.json, .bak, .tmp), rejects autosave deletion (ERR_UNAUTHORIZED)
-- [x] Fixed `get_slot_metadata()` - Now reads headers from existing save files via M_SaveFileIO
+- [x] Fixed `get_slot_metadata()` - Now reads headers from existing save files via U_SaveFileIO
 - [x] 5 new tests for delete and metadata reading (45/46 total passing, 119 assertions)
 - Save Manager now at 331 lines (still well under 400 limit)
 
@@ -242,7 +242,7 @@ Key points:
   - Check `M_SceneManager.is_transitioning()` and reject if true ✅
   - Check slot exists, reject with ERR_FILE_NOT_FOUND if missing ✅
   - Set `_is_loading = true` at start ✅
-  - Read and validate save file via M_SaveFileIO ✅
+  - Read and validate save file via U_SaveFileIO ✅
   - Validate save file structure (header, state, current_scene_id) ✅
   - Preserve all state slices to StateHandoff for scene transition ✅
   - Transition to `current_scene_id` via M_SceneManager.transition_to_scene() ✅
@@ -276,7 +276,7 @@ Key points:
   - Test autosave blocked when `death_in_progress == true` ✅
   - Test autosave blocked when `scene.is_transitioning == true` ✅
   - 8/8 autosave scheduler tests passing
-- [x] **Task 6.2 (Green)**: Implement `m_autosave_scheduler.gd`
+- [x] **Task 6.2 (Green)**: Implement `u_autosave_scheduler.gd`
   - Subscribe to ECS event: `checkpoint_activated` ✅
   - Subscribe to Redux actions: `gameplay/mark_area_complete`, `scene/transition_completed` ✅
   - Check `gameplay.death_in_progress == false` before allowing save ✅
@@ -284,7 +284,7 @@ Key points:
   - Check `save_manager.is_locked() == false` before allowing save ✅
   - Dirty flag + priority tracking for coalescing ✅
   - Call deferred to coalesce within same frame ✅
-  - File: `scripts/managers/helpers/m_autosave_scheduler.gd` (146 lines)
+  - File: `scripts/managers/helpers/u_autosave_scheduler.gd` (146 lines)
 - [x] **Task 6.3 (Refactor)**: Extract trigger evaluation helpers
   - No refactoring needed - file is clean at 146 lines ✅
 
@@ -308,12 +308,12 @@ Key points:
   - Test invalid header handling ✅
   - Test legacy `user://savegame.json` detection and import ✅
   - 16/16 migration tests passing
-- [x] **Task 7.2 (Green)**: Implement `m_save_migration_engine.gd`
+- [x] **Task 7.2 (Green)**: Implement `u_save_migration_engine.gd`
   - Version detection from header (missing header = v0) ✅
   - Simple if/elif migration chain (extensible for v1->v2, v2->v3, etc.) ✅
   - Pure `Dictionary -> Dictionary` transforms (no side effects) ✅
   - Sequential migration application for multi-version jumps ✅
-  - File: `scripts/managers/helpers/m_save_migration_engine.gd` (158 lines)
+  - File: `scripts/managers/helpers/u_save_migration_engine.gd` (158 lines)
 - [x] **Task 7.3**: Implement v0 -> v1 migration
   - Detect headerless saves (no `header` key) ✅
   - Wrap in `{header: {...}, state: {...}}` structure ✅
@@ -696,9 +696,9 @@ Files to create:
 | File | Type | Description | Status |
 |------|------|-------------|--------|
 | `scripts/managers/m_save_manager.gd` | Manager | Main orchestrator | ✅ Implemented |
-| `scripts/managers/helpers/m_save_file_io.gd` | Helper | Atomic file operations | ✅ Implemented |
-| `scripts/managers/helpers/m_autosave_scheduler.gd` | Helper | Autosave timing and coalescing | ✅ Implemented |
-| `scripts/managers/helpers/m_save_migration_engine.gd` | Helper | Version migrations | ✅ Implemented |
+| `scripts/managers/helpers/u_save_file_io.gd` | Helper | Atomic file operations | ✅ Implemented |
+| `scripts/managers/helpers/u_autosave_scheduler.gd` | Helper | Autosave timing and coalescing | ✅ Implemented |
+| `scripts/managers/helpers/u_save_migration_engine.gd` | Helper | Version migrations | ✅ Implemented |
 | `scripts/utils/u_save_validator.gd` | Utility | Save file validation | ✅ Implemented (Phase 8) |
 | `scripts/ecs/systems/s_playtime_system.gd` | System | Playtime tracking ECS system | ✅ Implemented |
 | `scripts/ui/ui_save_load_menu.gd` | UI | Combined save/load overlay controller | ✅ Implemented |
