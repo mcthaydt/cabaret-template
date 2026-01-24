@@ -222,19 +222,25 @@ grep -rn "e_door_trigger_controller\|e_checkpoint_zone\|e_hazard_zone\|e_victory
 
 **Rationale**: `marker_surface_type.gd` is functionally a component but uses incorrect prefix.
 
+- [ ] Reference scan (scripts/scenes/tests):
+  - `rg -n "marker_surface_type" -g"*.gd" -g"*.tscn" -g"*.tres"`
 - [ ] Create `scripts/ecs/components/c_surface_type_component.gd`
   - Extend `BaseECSComponent`
   - Add `COMPONENT_TYPE := StringName("C_SurfaceTypeComponent")`
+  - In `_init()`: `component_type = COMPONENT_TYPE`
   - Port `surface_type` export and `get_surface_type()` method
-- [ ] Update `scenes/gameplay/gameplay_exterior.tscn` to use new component
-- [ ] Update `tests/unit/ecs/systems/test_footstep_sound_system.gd`
-- [ ] Update `tests/unit/ecs/components/test_surface_detector.gd` (if exists)
+- [ ] Update scenes to use the component (preserve node names if referenced elsewhere):
+  - `scenes/gameplay/gameplay_exterior.tscn`
+  - `scenes/gameplay/gameplay_interior_house.tscn` (if present in scan)
+- [ ] Update test references:
+  - `tests/unit/ecs/systems/test_footstep_sound_system.gd`
+  - `tests/unit/ecs/components/test_surface_detector.gd` (if present in scan)
 - [ ] Delete `scripts/ecs/markers/marker_surface_type.gd`
-- [ ] Update the exterior and interior scenes to use the component
-- [ ] Run ECS tests
+- [ ] Run ECS tests:
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit`
 
 **Status**: READY TO PLAN
-**Files affected**: 4 (1 new, 1 delete, 2 updates)
+**Files affected**: 4+ (1 new, 1 delete, 2+ updates depending on scan)
 **Risk**: Low
 
 ---
