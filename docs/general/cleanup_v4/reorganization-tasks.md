@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (3/23 tasks complete)
+**Status**: In Progress (4/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -14,12 +14,12 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 
 | Phase | Tasks | Completed | Risk Level |
 |-------|-------|-----------|------------|
-| Phase 1: Quick Wins | 4 | 3/4 | Low |
+| Phase 1: Quick Wins | 4 | 4/4 | Low |
 | Phase 2: Naming Fixes | 4 | 0/4 | Medium |
 | Phase 3: Folder Restructuring | 8 | 0/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **3/23 (13.0%)** | - |
+| **TOTAL** | **23** | **4/23 (17.4%)** | - |
 
 ---
 
@@ -122,25 +122,26 @@ git add . && git commit -m "refactor: move prototype scripts to tests folder"
 
 ---
 
-### Task 4: Move ECS Helpers to Utils PENDING
+### Task 4: Move ECS Helpers to Utils COMPLETE
 
-- [ ] Create `scripts/utils/ecs/` directory
-- [ ] Move `scripts/ecs/helpers/u_ecs_query_metrics.gd`
-- [ ] Move corresponding `.uid` file
-- [ ] Remove `scripts/ecs/helpers/` directory
-- [ ] Update reference in `scripts/managers/m_ecs_manager.gd`
-- [ ] Run ECS tests to verify
+- [x] Create `scripts/utils/ecs/` directory
+- [x] Move `scripts/ecs/helpers/u_ecs_query_metrics.gd`
+- [x] Move corresponding `.uid` file
+- [x] Remove `scripts/ecs/helpers/` directory
+- [x] Update reference in `scripts/managers/m_ecs_manager.gd`
+- [x] Run ECS tests to verify
 
-**Status**: READY TO EXECUTE
+**Status**: COMPLETE (2026-01-23)
 **Files affected**: 1 (.gd) + 1 (.uid) = 2 total
 **References to update**: 1 (m_ecs_manager.gd)
 **Risk**: Low
+**Notes**: Removed `class_name` from the helper to avoid global class cache conflicts in headless tests.
 
 **Execution Commands**:
 ```bash
 mkdir -p scripts/utils/ecs
 git mv scripts/ecs/helpers/u_ecs_query_metrics.gd scripts/utils/ecs/
-git mv scripts/ecs/helpers/u_ecs_query_metrics.gd.uid scripts/utils/ecs/
+mv scripts/ecs/helpers/u_ecs_query_metrics.gd.uid scripts/utils/ecs/
 rmdir scripts/ecs/helpers
 # Update reference
 find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
@@ -225,6 +226,7 @@ grep -rn "e_door_trigger_controller\|e_checkpoint_zone\|e_hazard_zone\|e_victory
 - [ ] Update `tests/unit/ecs/systems/test_footstep_sound_system.gd`
 - [ ] Update `tests/unit/ecs/components/test_surface_detector.gd` (if exists)
 - [ ] Delete `scripts/ecs/markers/marker_surface_type.gd`
+- [ ] Update the exterior and interior scenes to use the component
 - [ ] Run ECS tests
 
 **Status**: READY TO PLAN
@@ -645,7 +647,7 @@ scripts/events/
 ### Batch 1: Zero-Risk Quick Wins (Execute First)
 - Task 2: Move prototype scenes (done)
 - Task 3: Move prototype scripts (done)
-- Task 4: Move ECS helpers
+- Task 4: Move ECS helpers (done)
 
 ### Batch 2: Naming Fixes (Needs Scanning)
 - Task 5: Fix manager helper prefixes

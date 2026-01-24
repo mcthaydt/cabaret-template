@@ -17,16 +17,19 @@
 
 ## Current Status
 
-- **Phase**: 1 (Quick Wins)
-- **Completed**: 3/23 (13.0%)
-- **Current batch**: Batch 1 - Zero-Risk Quick Wins
+- **Phase**: 2 (Naming Fixes)
+- **Completed**: 4/23 (17.4%)
+- **Current batch**: Batch 2 - Naming Fixes
 
 ---
 
 ## Resume Here
 
-**Next tasks to execute (Batch 1)**:
-1. Task 4: Move ECS helpers to `scripts/utils/ecs/`
+**Next tasks to execute (Batch 2)**:
+1. Task 5: Fix manager helper prefixes (`m_` -> `u_`)
+2. Task 6: Rename interactable controllers (`e_` -> `inter_`)
+3. Task 7: Convert surface marker to component
+4. Task 8: Rename `main.gd`
 
 See `reorganization-tasks.md` for full details, commands, and verification steps.
 
@@ -57,7 +60,7 @@ If tests fail: `git reset --hard HEAD`, analyze, retry.
 
 | Batch | Tasks | Status |
 |-------|-------|--------|
-| 1: Quick Wins | 2-4 | In progress |
+| 1: Quick Wins | 2-4 | Complete |
 | 2: Naming Fixes | 5-8 | Needs scans |
 | 3: Folder Restructure | 9-16 | Ready |
 | 4: Organization | 17-23 | Optional |

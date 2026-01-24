@@ -1271,7 +1271,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 #### ECS Manager (500 → ~380 lines)
 
-- [x] T094a Create `scripts/ecs/helpers/u_ecs_query_metrics.gd`:
+- [x] T094a Create `scripts/utils/ecs/u_ecs_query_metrics.gd`:
   - Extract: `_record_query_metrics`, `_compare_query_metrics`, `_enforce_query_metric_capacity`
   - Extract: `_compare_metric_keys_by_recency`, `get_query_metrics`, `clear_query_metrics`
 
