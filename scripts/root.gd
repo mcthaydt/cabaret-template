@@ -1,7 +1,7 @@
 @icon("res://resources/editor_icons/main_root.svg")
 extends Node
 
-## Main scene root script (dedicated editor icon + ServiceLocator bootstrap).
+## Root scene script (dedicated editor icon + ServiceLocator bootstrap).
 
 func _ready() -> void:
 	_initialize_service_locator()

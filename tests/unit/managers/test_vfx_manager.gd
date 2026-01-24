@@ -48,7 +48,7 @@ func test_manager_does_not_self_register_with_service_locator() -> void:
 	await get_tree().process_frame
 
 	var service = U_SERVICE_LOCATOR.try_get_service(U_ECS_EVENT_NAMES.SERVICE_VFX_MANAGER)
-	assert_eq(service, null, "M_VFXManager should not self-register; main.gd handles registration")
+	assert_eq(service, null, "M_VFXManager should not self-register; root.gd handles registration")
 
 # Test 4: Manager discovers StateStore dependency
 func test_manager_discovers_state_store() -> void:

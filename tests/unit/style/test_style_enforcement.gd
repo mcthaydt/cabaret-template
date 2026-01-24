@@ -28,7 +28,7 @@ const TRIGGER_RESOURCE_FILES := [
 ]
 
 const SCRIPT_FILENAME_EXCEPTIONS := [
-	"main.gd" # Root bootstrap script (intentionally unprefixed)
+	"root.gd" # Root bootstrap script (intentionally unprefixed)
 ]
 
 # Valid prefixes by directory

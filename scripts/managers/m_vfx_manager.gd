@@ -28,7 +28,7 @@ const SCREEN_SHAKE_CONFIG := preload("res://resources/vfx/rs_screen_shake_config
 ##
 ## Architecture:
 ## - Extends Node with PROCESS_MODE_ALWAYS (runs even when paused)
-## - Registered with ServiceLocator via scene bootstrap (main.gd)
+## - Registered with ServiceLocator via scene bootstrap (root.gd)
 ## - Discovers M_StateStore dependency for settings access
 ## - Uses U_ScreenShake helper for shake calculations (quadratic falloff, noise-based)
 ## - Uses U_DamageFlash helper for flash tween animations
