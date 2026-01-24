@@ -76,6 +76,7 @@ These rules apply to **production** assets under `res://scenes/**` and `res://re
 | **Gameplay Scenes** | `gameplay_*.tscn` | `gameplay_base.tscn`, `gameplay_exterior.tscn` |
 | **UI Scenes** | `ui_*.tscn` | `ui_main_menu.tscn`, `ui_pause_menu.tscn` |
 | **Prefab Scenes** | `prefab_*.tscn` | `prefab_death_zone.tscn`, `prefab_checkpoint.tscn` |
+| **Template Scenes** | `tmpl_*.tscn` | `tmpl_character.tscn`, `tmpl_base_scene.tscn` |
 | **Debug Scenes** | `debug_*.tscn` | `debug_state_overlay.tscn` |
 | **UI Screen Definitions** | `resources/ui_screens/*_screen.tres` | `main_menu_screen.tres` |
 | **Scene Registry Entries** | `resources/scene_registry/*.tres` | `gameplay_base_entry.tres` |
@@ -790,6 +791,7 @@ FILE PREFIXES:
   sh_ = shader
   t_  = tool
   p_  = plugin
+  tmpl_ = template scenes
   test_ = test files
 
 CASING:
