@@ -745,9 +745,9 @@ var _is_repositioning: bool = false
 func _ready() -> void:
 	# Load textures from Kenney.nl assets
 	if base_texture == null:
-		base_texture = load("res://resources/button_prompts/stick_base.png")
+		base_texture = load("res://assets/button_prompts/stick_base.png")
 	if thumb_texture == null:
-		thumb_texture = load("res://resources/button_prompts/stick_thumb.png")
+		thumb_texture = load("res://assets/button_prompts/stick_thumb.png")
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
@@ -844,7 +844,7 @@ var _is_repositioning: bool = false
 func _ready() -> void:
 	# Load textures from Kenney.nl assets
 	if button_texture == null:
-		button_texture = load("res://resources/button_prompts/button_background.png")
+		button_texture = load("res://assets/button_prompts/button_background.png")
 	if button_icon == null:
 		# Load action-specific icon (jump = button_south, sprint = button_east, etc.)
 		button_icon = _load_action_icon()

@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (10/23 tasks complete)
+**Status**: In Progress (11/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -16,10 +16,10 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 |-------|-------|-----------|------------|
 | Phase 1: Quick Wins | 4 | 4/4 | Low |
 | Phase 2: Naming Fixes | 4 | 4/4 | Medium |
-| Phase 3: Folder Restructuring | 8 | 2/8 | High |
+| Phase 3: Folder Restructuring | 8 | 3/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **10/23 (43.5%)** | - |
+| **TOTAL** | **23** | **11/23 (47.8%)** | - |
 
 ---
 
@@ -350,11 +350,11 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 
 ---
 
-### Task 11: Move Button Prompts to assets/button_prompts/ PENDING
+### Task 11: Move Button Prompts to assets/button_prompts/ COMPLETE
 
-- [ ] Create `assets/button_prompts/` directory structure
-- [ ] Move `resources/button_prompts/` -> `assets/button_prompts/` (80+ files including subdirs)
-- [ ] Update all references (53 files):
+- [x] Create `assets/button_prompts/` directory structure
+- [x] Move `resources/button_prompts/` -> `assets/button_prompts/` (80+ files including subdirs)
+- [x] Update all references (53 files):
   - `scripts/ui/u_button_prompt_registry.gd` (lines 18-49: hardcoded paths)
   - `scripts/ui/ui_virtual_joystick.gd`
   - `scripts/ui/ui_virtual_button.gd`
@@ -362,12 +362,13 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
   - 3 scene files
   - 2 test files
   - 46+ `.import` files (will auto-regenerate)
-- [ ] Run input tests
-- [ ] Verify button prompts display correctly
+- [x] Run input tests
+- [x] Verify button prompts display correctly
 
-**Status**: READY TO EXECUTE
+**Status**: COMPLETE (2026-01-24)
 **Files affected**: 80+ moves + 53 reference updates
 **Risk**: CRITICAL
+**Notes**: Updated `.import` source paths and ran `tests/unit/input` after the move.
 
 **Path Update Command**:
 ```bash
@@ -673,7 +674,7 @@ scripts/events/
 ### Batch 3: Folder Restructuring (High Impact)
 - Task 9: Move templates (done)
 - Task 10: Move audio assets (done)
-- Task 11: Move button prompt assets (CRITICAL)
+- Task 11: Move button prompt assets (done)
 - Task 12-16: Consolidate resources and interfaces
 
 ### Batch 4: Organization (Optional)

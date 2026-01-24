@@ -964,7 +964,7 @@ See: docs/input_manager/input-manager-plan.md (Edge Cases & Validation)
 **System Behavior**:
 1. M_InputDeviceManager emits device_changed(GAMEPAD)
 2. HUD calls U_ButtonPromptRegistry.get_prompt("jump", GAMEPAD)
-3. Registry attempts to load "res://resources/button_prompts/gamepad/south.png"
+3. Registry attempts to load "res://assets/button_prompts/gamepad/south.png"
 4. ResourceLoader.load() returns null (file not found)
 5. U_ButtonPromptRegistry.get_prompt_text("jump", GAMEPAD) called as fallback
 6. Returns text label: "Press [South]"

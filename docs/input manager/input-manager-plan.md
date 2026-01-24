@@ -2318,7 +2318,7 @@ func _apply_landing_vibration(fall_speed: float) -> void:
 **Expected Behavior**:
 1. M_InputDeviceManager.device_changed signal emits (GAMEPAD)
 2. HUD calls U_ButtonPromptRegistry.get_prompt(StringName("jump"), DeviceType.GAMEPAD)
-3. Registry attempts to load "res://resources/button_prompts/gamepad/button_a.png"
+3. Registry attempts to load "res://assets/button_prompts/gamepad/button_a.png"
 4. Load fails (file missing)
 5. Fall back to text label: U_ButtonPromptRegistry.get_prompt_text(StringName("jump"), DeviceType.GAMEPAD)
 6. Returns "A" (text fallback)

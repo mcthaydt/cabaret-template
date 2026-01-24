@@ -644,8 +644,8 @@
   - Add TextureRect children for base and thumb visuals
   - Add `@export var base_texture: Texture2D` and `@export var thumb_texture: Texture2D` to script
   - Set texture defaults in scene inspector:
-    - `base_texture`: `res://resources/button_prompts/mobile/joystick_base.png`
-    - `thumb_texture`: `res://resources/button_prompts/mobile/joystick_thumb.png`
+    - `base_texture`: `res://assets/button_prompts/mobile/joystick_base.png`
+    - `thumb_texture`: `res://assets/button_prompts/mobile/joystick_thumb.png`
   - Add programmatic fallback in `_ready()` if textures null (load defaults)
   - Configure Control size: 240x240 (120px radius * 2)
   - Add `@export var joystick_radius: float = 120.0` to script
@@ -743,7 +743,7 @@
   - Create `scenes/ui/virtual_button.tscn` with Control root
   - Add TextureRect child for button visual
   - Add `@export var button_texture: Texture2D` to script
-  - Set texture default in scene: `res://resources/button_prompts/mobile/button_background.png`
+  - Set texture default in scene: `res://assets/button_prompts/mobile/button_background.png`
   - Add programmatic fallback in `_ready()` if texture null
   - **Visual feedback on press:**
     - Modulate color: `modulate = Color(0.8, 0.8, 0.8, 1.0)` when pressed
