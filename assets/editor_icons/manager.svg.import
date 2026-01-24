@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dk2m5leja5p2p"
-path="res://.godot/imported/manager.svg-a16896186dfc8958039ed4502fadc230.ctex"
+path="res://.godot/imported/manager.svg-fae33214cea990ca7eac843bb27e98d6.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/editor_icons/manager.svg"
-dest_files=["res://.godot/imported/manager.svg-a16896186dfc8958039ed4502fadc230.ctex"]
+dest_files=["res://.godot/imported/manager.svg-fae33214cea990ca7eac843bb27e98d6.ctex"]
 
 [params]
 

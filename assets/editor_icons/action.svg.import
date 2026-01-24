@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bummmxubevtxf"
-path="res://.godot/imported/action.svg-cc11c1e4506bd2f3e177886a558cb163.ctex"
+path="res://.godot/imported/action.svg-1970cf4745a9834370813c7a2b380f0b.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/editor_icons/action.svg"
-dest_files=["res://.godot/imported/action.svg-cc11c1e4506bd2f3e177886a558cb163.ctex"]
+dest_files=["res://.godot/imported/action.svg-1970cf4745a9834370813c7a2b380f0b.ctex"]
 
 [params]
 
