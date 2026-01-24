@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (6/23 tasks complete)
+**Status**: In Progress (7/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -15,11 +15,11 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 | Phase | Tasks | Completed | Risk Level |
 |-------|-------|-----------|------------|
 | Phase 1: Quick Wins | 4 | 4/4 | Low |
-| Phase 2: Naming Fixes | 4 | 2/4 | Medium |
+| Phase 2: Naming Fixes | 4 | 3/4 | Medium |
 | Phase 3: Folder Restructuring | 8 | 0/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **6/23 (26.1%)** | - |
+| **TOTAL** | **23** | **7/23 (30.4%)** | - |
 
 ---
 
@@ -218,30 +218,31 @@ grep -rn "e_door_trigger_controller\|e_checkpoint_zone\|e_hazard_zone\|e_victory
 
 ---
 
-### Task 7: Convert Surface Marker to Component PENDING
+### Task 7: Convert Surface Marker to Component COMPLETE
 
 **Rationale**: `marker_surface_type.gd` is functionally a component but uses incorrect prefix.
 
-- [ ] Reference scan (scripts/scenes/tests):
+- [x] Reference scan (scripts/scenes/tests):
   - `rg -n "marker_surface_type" -g"*.gd" -g"*.tscn" -g"*.tres"`
-- [ ] Create `scripts/ecs/components/c_surface_type_component.gd`
+- [x] Create `scripts/ecs/components/c_surface_type_component.gd`
   - Extend `BaseECSComponent`
   - Add `COMPONENT_TYPE := StringName("C_SurfaceTypeComponent")`
   - In `_init()`: `component_type = COMPONENT_TYPE`
   - Port `surface_type` export and `get_surface_type()` method
-- [ ] Update scenes to use the component (preserve node names if referenced elsewhere):
+- [x] Update scenes to use the component (preserve node names if referenced elsewhere):
   - `scenes/gameplay/gameplay_exterior.tscn`
   - `scenes/gameplay/gameplay_interior_house.tscn` (if present in scan)
-- [ ] Update test references:
+- [x] Update test references:
   - `tests/unit/ecs/systems/test_footstep_sound_system.gd`
   - `tests/unit/ecs/components/test_surface_detector.gd` (if present in scan)
-- [ ] Delete `scripts/ecs/markers/marker_surface_type.gd`
-- [ ] Run ECS tests:
+- [x] Delete `scripts/ecs/markers/marker_surface_type.gd`
+- [x] Run ECS tests:
   - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit`
 
-**Status**: READY TO PLAN
-**Files affected**: 4+ (1 new, 1 delete, 2+ updates depending on scan)
+**Status**: COMPLETE (2026-01-24)
+**Files affected**: 5 (1 new, 1 delete, 3 updates)
 **Risk**: Low
+**Notes**: Ran ECS + style tests; GUT still logs stale cache errors for the removed script until Godot refreshes local caches.
 
 ---
 

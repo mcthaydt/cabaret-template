@@ -18,7 +18,7 @@
 ## Current Status
 
 - **Phase**: 2 (Naming Fixes)
-- **Completed**: 6/23 (26.1%)
+- **Completed**: 7/23 (30.4%)
 - **Current batch**: Batch 2 - Naming Fixes
 
 ---
@@ -26,8 +26,7 @@
 ## Resume Here
 
 **Next tasks to execute (Batch 2)**:
-1. Task 7: Convert surface marker to component
-2. Task 8: Rename `main.gd`
+1. Task 8: Rename `main.gd`
 
 See `reorganization-tasks.md` for full details, commands, and verification steps.
 
@@ -59,7 +58,7 @@ If tests fail: `git reset --hard HEAD`, analyze, retry.
 | Batch | Tasks | Status |
 |-------|-------|--------|
 | 1: Quick Wins | 2-4 | Complete |
-| 2: Naming Fixes | 5-8 | In progress (Task 6 complete) |
+| 2: Naming Fixes | 5-8 | In progress (Task 7 complete) |
 | 3: Folder Restructure | 9-16 | Ready |
 | 4: Organization | 17-23 | Optional |
 
