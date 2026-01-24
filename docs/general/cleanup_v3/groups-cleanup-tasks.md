@@ -24,7 +24,7 @@ Remove `add_to_group()`/`is_in_group()`/`get_nodes_in_group()` usage throughout 
 
 `U_ServiceLocator` exists and is robust (`scripts/core/u_service_locator.gd`).
 
-**Registered via `main.gd` (centralized) - 12 services:**
+**Registered via `root.gd` (centralized) - 12 services:**
 
 - `state_store`, `cursor_manager`, `scene_manager`, `pause_manager`, `spawn_manager`
 - `camera_manager`, `vfx_manager`, `audio_manager`, `input_profile_manager`, `input_device_manager`
@@ -32,11 +32,11 @@ Remove `add_to_group()`/`is_in_group()`/`get_nodes_in_group()` usage throughout 
 
 **Dual registration (centralized + self-register) - 3 managers:**
 
-- `save_manager` - Listed in `main.gd` AND self-registers in `m_save_manager.gd:62`
-- `audio_manager` - Listed in `main.gd` AND self-registers in `m_audio_manager.gd:70`
-- `camera_manager` - Listed in `main.gd` AND self-registers in `m_camera_manager.gd:57`
+- `save_manager` - Listed in `root.gd` AND self-registers in `m_save_manager.gd:62`
+- `audio_manager` - Listed in `root.gd` AND self-registers in `m_audio_manager.gd:70`
+- `camera_manager` - Listed in `root.gd` AND self-registers in `m_camera_manager.gd:57`
 
-**Dependency registrations in `main.gd`:**
+**Dependency registrations in `root.gd`:**
 
 - `pause_manager` → `state_store`, `cursor_manager`
 - `spawn_manager` → `state_store`
@@ -52,7 +52,7 @@ Remove `add_to_group()`/`is_in_group()`/`get_nodes_in_group()` usage throughout 
 
 1. ✅ **Standardize registration pattern** - Decision: Do both centralized + self-registration as fallback
 
-2. ✅ **Add `audio_manager` to `main.gd`** - Added in Phase 0
+2. ✅ **Add `audio_manager` to `root.gd`** - Added in Phase 0
 
 3. ~~**Remove duplicate `save_manager` self-registration**~~ - Kept for fallback pattern (intentional)
 
@@ -332,12 +332,12 @@ All remaining group-based test scaffolding has been removed or refactored to Ser
 ### Phase 0: ServiceLocator Prerequisites ✅
 
 - [x] **Decision made**: Do both centralized registration AND self-registration as fallback
-- [x] Add `M_AudioManager` registration to `main.gd:35` (after `M_VFXManager`)
-  - File: `scripts/scene_structure/main.gd`
+- [x] Add `M_AudioManager` registration to `root.gd:35` (after `M_VFXManager`)
+  - File: `scripts/root.gd`
   - Added: `_register_if_exists(managers_node, "M_AudioManager", StringName("audio_manager"))`
 - [x] Keep self-registration in managers (provides fallback for gameplay scenes)
-- [x] Verify all 12 managers listed in `main.gd`
-- [x] Add missing dependency registrations to `main.gd`:
+- [x] Verify all 12 managers listed in `root.gd`
+- [x] Add missing dependency registrations to `root.gd`:
   - Added: `vfx_manager` → `state_store`, `camera_manager`
   - Added: `audio_manager` → `state_store`
 - [x] Run all tests to confirm baseline passes:

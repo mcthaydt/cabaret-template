@@ -66,7 +66,7 @@ version: "1.0"
   - Manager responsibilities at a high level.
   - **Result**: Root scene section already present (lines 78-116), added manager initialization order
 - [x] T014 Refresh **Gameplay Scene** examples in `SCENE_ORGANIZATION_GUIDE.md`:
-  - Align root naming (e.g., `GameplayRoot` with `main.gd`).
+  - Align root naming (e.g., `GameplayRoot` with `root.gd`).
   - Include examples for hazard, victory, and signpost controllers under `Entities`.
   - **Result**: Updated all 4 system categories with complete current roster (19 systems total)
 - [x] T015 Extend **Interactable Controllers** section with:

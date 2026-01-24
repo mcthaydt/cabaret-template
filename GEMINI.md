@@ -667,7 +667,7 @@ func _on_load_pressed():
   - Use `U_ServiceLocator.get_service(StringName("service_name"))` for fast, centralized manager access.
   - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`.
   - ServiceLocator provides O(1) Dictionary lookup vs O(n) tree traversal of group lookups.
-  - All services are registered at startup in `root.tscn` via `main.gd`.
+  - All services are registered at startup in `root.tscn` via `root.gd`.
   - Fallback to group lookup is available for backward compatibility and test environments.
 - Create a new gameplay scene
   - Duplicate `scenes/gameplay/gameplay_base.tscn` as starting point.

@@ -679,7 +679,7 @@ func _on_apply_pressed() -> void:
 **Deliverables**:
 1. `scripts/managers/m_vfx_manager.gd` - Core manager
 2. Update `scenes/root.tscn` - Add M_VFXManager node (persistent root scene)
-3. Update `scripts/scene_structure/main.gd` - ServiceLocator registration (Root bootstrap)
+3. Update `scripts/root.gd` - ServiceLocator registration (Root bootstrap)
 4. `tests/unit/managers/test_vfx_manager.gd` - 20 unit tests
 
 **Commit 1: Manager Scaffolding**
@@ -695,7 +695,7 @@ func _on_apply_pressed() -> void:
 **Commit 3: Public API and Tests**
 - Implement public API: `add_trauma()`, `set_trauma()`, `get_trauma()`
 - Write 20 unit tests with `MockStateStore` + real `U_ECSEventBus` (call `U_ECSEventBus.reset()` in `before_each()` to prevent subscription leaks)
-- Add M_VFXManager to `scenes/root.tscn`, register in `scripts/scene_structure/main.gd`
+- Add M_VFXManager to `scenes/root.tscn`, register in `scripts/root.gd`
 
 **Dependencies**: Phase 0, M_StateStore, U_ECSEventBus, U_ServiceLocator
 
@@ -1219,7 +1219,7 @@ tests/integration/vfx/
 - Add `M_VFXManager` node under `Managers` group
 - Position after M_StateStore, M_CameraManager in tree
 
-**3. scripts/scene_structure/main.gd**:
+**3. scripts/root.gd**:
 - Add ServiceLocator registration:
   ```gdscript
   var vfx_manager := get_node("Managers/M_VFXManager") as M_VFXManager

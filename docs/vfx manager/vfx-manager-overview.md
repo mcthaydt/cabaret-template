@@ -13,7 +13,7 @@ The VFX Manager is a persistent orchestration layer for screen-level visual effe
 ## Repo Reality Checks
 
 - Main scene is `scenes/root.tscn` (there is no `scenes/main.tscn` in this repo).
-- Service registration is bootstrapped by `scripts/scene_structure/main.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
+- Service registration is bootstrapped by `scripts/root.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
 - `M_CameraManager` supports both camera blending and screen shake via `apply_shake_offset(offset: Vector2, rotation: float)` (active scene camera, or TransitionCamera during blends).
 - Tests should use real `U_ECSEventBus` and call `U_ECSEventBus.reset()` in `before_each()` to prevent subscription leaks.
 - `LoadingOverlay` in `scenes/root.tscn` uses `layer = 100`; if adding a damage flash overlay scene, pick an explicit layer below it (docs recommend `layer = 50`).

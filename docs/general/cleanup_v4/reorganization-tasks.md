@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (7/23 tasks complete)
+**Status**: In Progress (8/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -15,11 +15,11 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 | Phase | Tasks | Completed | Risk Level |
 |-------|-------|-----------|------------|
 | Phase 1: Quick Wins | 4 | 4/4 | Low |
-| Phase 2: Naming Fixes | 4 | 3/4 | Medium |
+| Phase 2: Naming Fixes | 4 | 4/4 | Medium |
 | Phase 3: Folder Restructuring | 8 | 0/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **7/23 (30.4%)** | - |
+| **TOTAL** | **23** | **8/23 (34.8%)** | - |
 
 ---
 
@@ -246,21 +246,22 @@ grep -rn "e_door_trigger_controller\|e_checkpoint_zone\|e_hazard_zone\|e_victory
 
 ---
 
-### Task 8: Rename main.gd to root.gd PENDING
+### Task 8: Rename main.gd to root.gd COMPLETE
 
 **Rationale**: Script is attached to `root.tscn`, should be named `root.gd` for clarity.
 
-- [ ] Scan for all references to `main.gd` (33 known)
-- [ ] Move `scripts/scene_structure/main.gd` -> `scripts/root.gd`
-- [ ] Update CRITICAL reference in `scenes/root.tscn` (line 11)
-- [ ] Update all gameplay scene references
-- [ ] Update all documentation references (AGENTS.md, PRDs, etc.)
-- [ ] Run full test suite
+- [x] Scan for all references to `main.gd` (33 known)
+- [x] Move `scripts/scene_structure/main.gd` -> `scripts/root.gd`
+- [x] Update CRITICAL reference in `scenes/root.tscn` (line 11)
+- [x] Update all gameplay scene references
+- [x] Update all documentation references (AGENTS.md, PRDs, etc.)
+- [x] Run full test suite
 - [ ] Verify root scene loads in Godot editor
 
-**Status**: NEEDS CAREFUL EXECUTION
+**Status**: COMPLETE (2026-01-24)
 **Files affected**: 1 move + 33 reference updates
 **Risk**: HIGH - breaks root scene if done incorrectly
+**Notes**: Full test suite run after UID refresh (user confirmed green). Open root.tscn in editor to regenerate any caches if needed.
 
 **Path Update Command**:
 ```bash
@@ -592,7 +593,7 @@ Rename these 10 folders in `docs/`:
 
 ---
 
-## Phase 5: Optional Polish
+## Phase 5: Polish
 
 ### Task 21: Consolidate Utilities into Domain Subfolders PENDING
 

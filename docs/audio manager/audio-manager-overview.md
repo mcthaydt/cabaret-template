@@ -13,7 +13,7 @@ The audio stack uses `M_AudioManager` (persistent manager) for bus layout + volu
 ## Repo Reality Checks
 
 - Main scene is `scenes/root.tscn` (there is no `scenes/main.tscn` in this repo).
-- Service registration is bootstrapped by `scripts/scene_structure/main.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
+- Service registration is bootstrapped by `scripts/root.gd` using `U_ServiceLocator` (`res://scripts/core/u_service_locator.gd`).
 - `S_JumpSoundSystem` exists at `scripts/ecs/systems/s_jump_sound_system.gd` and is implemented (event-driven SFX via BaseEventSFXSystem + pooled 3D spawner).
 - `RS_GameplayInitialState` currently includes `gameplay.audio_settings` + `U_VisualSelectors.get_audio_settings()`; this is not used by any real audio playback path today.
 - `BaseEventSFXSystem` exists (mirrors BaseEventVFXSystem) and is used by event-driven sound systems.

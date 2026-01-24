@@ -283,7 +283,7 @@ Add publisher systems to `scenes/gameplay/gameplay_base.tscn` under Systems node
 
 **Goal**: Centralize registration and add explicit dependency declarations.
 
-### Changes to `scripts/scene_structure/main.gd`
+### Changes to `scripts/root.gd`
 
 Add VFX manager to service registration (after camera_manager):
 ```gdscript
@@ -322,7 +322,7 @@ func _ready() -> void:
 	# ... rest of _ready()
 ```
 
-Remove self-registration from M_VFXManager (line 61) since main.gd handles it.
+Remove self-registration from M_VFXManager (line 61) since root.gd handles it.
 
 ---
 

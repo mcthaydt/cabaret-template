@@ -143,7 +143,7 @@ For all **production** scripts, scenes, and resources under:
 every file must:
 
 - Use one of the documented prefixes for its category (e.g., `m_`, `s_`, `c_`, `rs_`, `u_`, `ui_`, `gameplay_`, `debug_`), **or**
-- Be explicitly listed as an exception (e.g., `main.gd`).
+- Be explicitly listed as an exception (e.g., `root.gd`).
 
 If you introduce a new category that does not fit the existing table, update this guide and add a test to enforce the new pattern.
 
@@ -482,7 +482,7 @@ Test files use `test_` prefix followed by the class being tested:
 
 ### Main Root Script (Exception)
 The project root node script is allowed to be unprefixed:
-- `scripts/scene_structure/main.gd`
+- `scripts/root.gd`
 
 ### ECS Event Bus Usage
 - ECS components publish gameplay-domain events via `U_ECSEventBus` (e.g., `health_changed`, `victory_triggered`, `damage_zone_entered`, `checkpoint_zone_entered`, `component_registered`); avoid custom signals for these flows.
@@ -811,7 +811,7 @@ EXCLUSIONS:
 
 ## Scene Roots
 
-- Gameplay scenes: name the 3D root `GameplayRoot` and attach `scripts/scene_structure/main.gd`.
+- Gameplay scenes: name the 3D root `GameplayRoot` and attach `scripts/root.gd`.
 - Persistent root scene (`scenes/root.tscn`): name the root `Root`.
 - UI scenes: name root by purpose (e.g., `MainMenu`, `PauseMenu`, `SettingsMenu`).
 - Prototype scenes: prefer `PrototypeRoot` unless the scene’s purpose is clearer as a noun (e.g., `CameraBlendTest`).

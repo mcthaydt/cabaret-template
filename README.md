@@ -76,7 +76,7 @@ Gameplay scenes (e.g., `scenes/gameplay/gameplay_base.tscn`) each include their 
 
 ### Service discovery
 
-On boot, `scripts/scene_structure/main.gd` registers manager nodes in `U_ServiceLocator` for fast access and validates declared dependencies. Most code should use:
+On boot, `scripts/root.gd` registers manager nodes in `U_ServiceLocator` for fast access and validates declared dependencies. Most code should use:
 
 - `U_ServiceLocator` for global managers
 - `U_StateUtils` for store lookup/readiness

@@ -54,7 +54,7 @@ The project already adheres strongly to its style and scene organization convent
 
 4. **Scene organization examples are slightly out of sync with reality**
    - Gameplay scenes match the *structure* of `SCENE_ORGANIZATION_GUIDE.md`, but:
-     - Root nodes use names like `GameplayRoot` rather than the example `Main`, while still attaching `main.gd`.
+     - Root nodes use names like `GameplayRoot` rather than the example `Main`, while still attaching `root.gd`.
      - New groupings (e.g., `E_Hazards`, `E_Objectives`) and controllers (e.g., `E_DoorTrigger`, `E_DeathZone`, `E_GoalZone`, `E_TutorialSign_Interior`) are not yet reflected in the guide’s examples.
    - The root scene (`scenes/root.tscn`) has its own standardized pattern that is documented in AGENTS and PRDs but not consolidated into the Scene Organization Guide.
 
@@ -166,7 +166,7 @@ The project already adheres strongly to its style and scene organization convent
 
 2. **Class Names**:
    - Must use the appropriate prefix for their category (`M_`, `S_`, `C_`, `RS_`, `U_`, `Base*`, `SC_*`, etc.).
-   - Base and marker scripts must be documented as acceptable exceptions (e.g., `BaseECSSystem`, `main.gd`).
+   - Base and marker scripts must be documented as acceptable exceptions (e.g., `BaseECSSystem`, `root.gd`).
 
 3. **Scenes & Resources**:
    - Gameplay scenes under `scenes/gameplay` must use consistent naming (e.g., `gameplay_*` or `sc_*` pattern acceptable if documented).
@@ -177,7 +177,7 @@ The project already adheres strongly to its style and scene organization convent
 
 4. **Gameplay Scenes**:
    - Must follow the hierarchy defined in `SCENE_ORGANIZATION_GUIDE.md`:
-     - Root Node3D with `main.gd`.
+     - Root Node3D with `root.gd`.
      - `SceneObjects`, `Environment`, `Systems`, `Managers`, `Entities`, `SpawnPoints`, `HUD` as appropriate.
    - System nodes and priorities must match the documented category layout.
 

@@ -68,7 +68,7 @@ All in `scripts/scene_structure/` - Added `marker_` prefix:
 
 | Old Filename | New Filename | Commit |
 |--------------|--------------|--------|
-| `main_root_node.gd` | `main.gd` | 5bf119e |
+| `main_root_node.gd` | `root.gd` | 5bf119e |
 | `entities_group.gd` | `marker_entities_group.gd` | 5bf119e |
 | `systems_core_group.gd` | `marker_systems_core_group.gd` | 5bf119e |
 | `systems_physics_group.gd` | `marker_systems_physics_group.gd` | 5bf119e |

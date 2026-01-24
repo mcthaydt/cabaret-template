@@ -22,7 +22,7 @@ Use this prompt to resume the groups cleanup effort (cleanup_v3).
 
 ## Current Progress
 
-- Phase 0 marked complete in tasks doc (centralized registrations decided; audio manager added to `main.gd`; fallbacks kept).
+- Phase 0 marked complete in tasks doc (centralized registrations decided; audio manager added to `root.gd`; fallbacks kept).
 - Baseline full-suite run from Phase 0 checklist is still unchecked (see tasks doc).
 - Phase 1 complete: added main camera registration helpers to `M_CameraManager`, `_find_camera_in_scene()` honors the registered camera, and camera unit/integration suites are green.
 - Phase 2 complete: migrated camera-related tests off `add_to_group("main_camera")`, added ServiceLocator fallback in `U_ECSUtils.get_active_camera()`, cleared ServiceLocator in camera suites, and switched `i_scene_contract.gd` to type-based camera validation. Camera unit/integration suites are green.

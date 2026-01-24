@@ -18,13 +18,13 @@ The root scene persists across the whole session. Manager ordering in the scene 
 8. `M_InputDeviceManager`
 9. `M_UIInputHandler`
 
-`scripts/scene_structure/main.gd` registers these into `U_ServiceLocator` and validates declared dependencies.
+`scripts/root.gd` registers these into `U_ServiceLocator` and validates declared dependencies.
 
 ---
 
 ## Service Locator Dependencies
 
-`U_ServiceLocator` dependency declarations are registered by `main.gd` at startup:
+`U_ServiceLocator` dependency declarations are registered by `root.gd` at startup:
 
 - `pause_manager` → `state_store`, `cursor_manager`
 - `spawn_manager` → `state_store`

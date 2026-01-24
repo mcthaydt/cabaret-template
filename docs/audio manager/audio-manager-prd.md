@@ -1665,7 +1665,7 @@ func _update_volume_label(label: Label, value: float) -> void:
 **Deliverables**:
 1. `scripts/managers/m_audio_manager.gd`
 2. Update `scenes/root.tscn` - Add M_AudioManager
-3. Update `scripts/scene_structure/main.gd` - ServiceLocator registration (Root bootstrap)
+3. Update `scripts/root.gd` - ServiceLocator registration (Root bootstrap)
 4. `tests/unit/managers/test_audio_manager.gd` (30 tests)
 
 **Commit 1**: Manager scaffolding + bus layout creation
@@ -2117,7 +2117,7 @@ tests/integration/audio/
 - Add `M_AudioManager` node under `Managers` group
 - Position after M_StateStore in tree
 
-**3. scripts/scene_structure/main.gd**:
+**3. scripts/root.gd**:
 - Add ServiceLocator registration:
   ```gdscript
   var audio_manager := get_node("Managers/M_AudioManager") as M_AudioManager

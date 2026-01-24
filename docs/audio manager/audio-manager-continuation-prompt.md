@@ -10,7 +10,7 @@
   - Phase 8: Audio Settings UI (Settings hub entry + Audio settings overlay + Apply/Cancel/Reset pattern wired to Audio Redux slice)
   - Phase 9: Integration Testing (100/100 audio integration tests passing across 4 suites)
 - **Main scene**: `scenes/root.tscn` (project `run/main_scene` points here)
-- **Root bootstrap**: `scripts/scene_structure/main.gd` registers manager services via `U_ServiceLocator`
+- **Root bootstrap**: `scripts/root.gd` registers manager services via `U_ServiceLocator`
 - **Recent completions** (Phase 9 integration testing):
   - Added 4 integration suites (100 tests): `tests/integration/audio/test_audio_settings_ui.gd`, `tests/integration/audio/test_audio_integration.gd`, `tests/integration/audio/test_music_crossfade.gd`, `tests/integration/audio/test_sfx_pooling.gd`
   - Added shared helper: `tests/helpers/u_audio_test_helpers.gd`

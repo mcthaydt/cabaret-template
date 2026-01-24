@@ -24,7 +24,7 @@
 - `U_ECSEventNames` centralizes ECS event/service names; use constants for subscriptions.
 - Publisher systems publish typed requests via `U_ECSEventBus.publish_typed()`.
 - `M_VFXManager` processes request queues inside `_physics_process()`; event handlers only enqueue.
-- `M_VFXManager` no longer self-registers; `main.gd` handles ServiceLocator bootstrap.
+- `M_VFXManager` no longer self-registers; `root.gd` handles ServiceLocator bootstrap.
 
 ## Next Step
 

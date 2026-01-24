@@ -170,7 +170,7 @@ func get_trauma() -> float:
 
 **Modify**:
 - `scenes/root.tscn`: Add M_VFXManager node under Managers/
-- `scripts/scene_structure/main.gd`: Register with ServiceLocator (Root bootstrap)
+- `scripts/root.gd`: Register with ServiceLocator (Root bootstrap)
 
 ---
 

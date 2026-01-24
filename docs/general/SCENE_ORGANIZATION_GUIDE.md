@@ -24,7 +24,7 @@ This guide documents the standardized scene tree organization used throughout Pr
 All **gameplay scenes** (e.g., `gameplay_base.tscn`, `gameplay_exterior.tscn`, `gameplay_interior_house.tscn`) should follow this hierarchy:
 
 ```
-GameplayRoot (Node3D) [main.gd]
+GameplayRoot (Node3D) [root.gd]
 ├─ SceneObjects (Node3D) [marker_scene_objects_group.gd]
 │  ├─ SO_Floor (CSGBox3D)
 │  ├─ SO_Block (CSGBox3D)
@@ -82,7 +82,7 @@ GameplayRoot (Node3D) [main.gd]
    └─ (UI elements)
 ```
 
-`GameplayRoot` is the canonical root name for gameplay scenes; it must use the `main.gd` root script.
+`GameplayRoot` is the canonical root name for gameplay scenes; it must use the `root.gd` root script.
 
 ### Important: Node Hierarchy Rules
 
@@ -107,7 +107,7 @@ When renaming container nodes, ensure ALL child node parent paths are updated to
 The **root scene** persists across the entire session and owns global managers and containers. It follows this structure:
 
 ```
-Root (Node) [main.gd]
+Root (Node) [root.gd]
 ├─ Managers (Node) [marker_managers_group.gd]
 │  ├─ M_StateStore
 │  ├─ M_CursorManager

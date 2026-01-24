@@ -341,8 +341,8 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
   - Tests GREEN ✅
 
-- [x] **T2.3**: Update `main.gd` to register VFX Manager with ServiceLocator
-  - Location: `scripts/scene_structure/main.gd`
+- [x] **T2.3**: Update `root.gd` to register VFX Manager with ServiceLocator
+  - Location: `scripts/root.gd`
   - Find `_register_services()` or equivalent
   - After camera_manager registration, add:
     ```gdscript

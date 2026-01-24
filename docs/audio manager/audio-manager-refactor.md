@@ -1195,7 +1195,7 @@ Add Audio Manager patterns section:
 - `scripts/ecs/systems/s_footstep_sound_system.gd` - Timer cleanup
 - `scripts/ui/utils/u_ui_sound_player.gd` - Per-sound throttles
 - `scripts/ui/settings/ui_audio_settings_tab.gd` - Type-safe, Redux preview
-- `scripts/scene_structure/main.gd` - Service registration
+- `scripts/root.gd` - Service registration
 - `AGENTS.md` - Add audio patterns
 
 ### Deleted Files
