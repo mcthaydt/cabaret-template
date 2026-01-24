@@ -358,7 +358,7 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
   - `scripts/ui/u_button_prompt_registry.gd` (lines 18-49: hardcoded paths)
   - `scripts/ui/ui_virtual_joystick.gd`
   - `scripts/ui/ui_virtual_button.gd`
-  - `scripts/utils/u_input_event_display.gd`
+  - `scripts/utils/input/u_input_event_display.gd`
   - 3 scene files
   - 2 test files
   - 46+ `.import` files (will auto-regenerate)
@@ -605,7 +605,7 @@ Rename these 10 folders in `docs/`:
 
 ## Phase 5: Polish
 
-### Task 21: Consolidate Utilities into Domain Subfolders PENDING
+### Task 21: Consolidate Utilities into Domain Subfolders COMPLETE
 
 **RESOLVED - Scope**: Create these domain folders under `scripts/utils/`:
 - `ecs/` (required - Task 4 creates this)
@@ -622,13 +622,14 @@ scripts/utils/
   └── state/
 ```
 
-- [ ] Decide the minimum set of domain folders to introduce (ecs is required)
-- [ ] Move domain-specific utility scripts into the corresponding subfolders
-- [ ] Update all references (preloads, docs)
-- [ ] Run unit tests + style enforcement
+- [x] Decide the minimum set of domain folders to introduce (ecs is required)
+- [x] Move domain-specific utility scripts into the corresponding subfolders
+- [x] Update all references (preloads, docs)
+- [x] Run unit tests + style enforcement
 
-**Status**: CAN BE DEFERRED
+**Status**: COMPLETE (2026-01-24)
 **Risk**: Medium - widespread reference updates depending on scope
+**Notes**: Moved ECS utilities into `scripts/utils/ecs/` and input utilities into `scripts/utils/input/`; updated code + doc references. Ran unit utils + ECS tests and style enforcement.
 
 ---
 

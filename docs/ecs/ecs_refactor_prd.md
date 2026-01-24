@@ -495,7 +495,7 @@ func query_entities(
 #### 4. U_ECSUtils (New Utility Class)
 
 ```gdscript
-# scripts/utils/u_ecs_utils.gd
+# scripts/utils/ecs/u_ecs_utils.gd
 class_name U_ECSUtils
 
 static func get_manager(from_node: Node) -> M_ECSManager:

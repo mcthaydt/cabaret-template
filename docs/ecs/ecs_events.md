@@ -403,7 +403,7 @@ var my_data: String
 func _init(p_my_data: String) -> void:
     my_data = p_my_data
 
-    const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+    const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
     timestamp = U_ECS_UTILS.get_current_time()
 
     _payload = {

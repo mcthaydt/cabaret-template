@@ -329,7 +329,7 @@ func _component_ready() -> void:
 
 **Implemented Utility**:
 ```gdscript
-# scripts/utils/u_ecs_utils.gd
+# scripts/utils/ecs/u_ecs_utils.gd
 static func get_current_time() -> float:
 	return float(Time.get_ticks_msec()) / 1000.0
 ```

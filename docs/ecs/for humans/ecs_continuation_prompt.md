@@ -35,7 +35,7 @@ The ECS architecture refactor has been successfully delivered. All planned work 
 
 ### Key Implementation Files
 
-- `scripts/utils/u_ecs_utils.gd` - Shared helpers (manager, time, body mapping, cross-tree references)
+- `scripts/utils/ecs/u_ecs_utils.gd` - Shared helpers (manager, time, body mapping, cross-tree references)
 - `scripts/managers/m_ecs_manager.gd` - Entity queries, component tracking, priority-sorted execution
 - `scripts/ecs/base_ecs_system.gd` - Execution priority, query passthrough
 - `scripts/ecs/u_entity_query.gd` - Multi-component query results

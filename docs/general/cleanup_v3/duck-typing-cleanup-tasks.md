@@ -73,7 +73,7 @@ Remove `has_method()` duck typing patterns in favor of explicit interface-based 
 **Consumer updates:**
 
 - [x] `scripts/ecs/base_ecs_system.gd:48,57,79,92` - Remove `has_method()` checks, methods exist on interface
-- [x] `scripts/utils/u_ecs_utils.gd:54,184,189` - Replace `has_method()` with `is I_ECSManager` type check
+- [x] `scripts/utils/ecs/u_ecs_utils.gd:54,184,189` - Replace `has_method()` with `is I_ECSManager` type check
 
 **Mock updates:**
 
@@ -107,7 +107,7 @@ Remove `has_method()` duck typing patterns in favor of explicit interface-based 
 
 - [x] `scripts/ecs/base_ecs_entity.gd` - Change `extends Node3D` to `extends I_ECSEntity`
 - [x] `scripts/managers/m_ecs_manager.gd:290,401,442,455` - Replace `has_method()` with `as I_ECSEntity`
-- [x] `scripts/utils/u_ecs_utils.gd:118,132` - Replace `has_method()` with `as I_ECSEntity`
+- [x] `scripts/utils/ecs/u_ecs_utils.gd:118,132` - Replace `has_method()` with `as I_ECSEntity`
 
 **New mock:** `tests/mocks/mock_ecs_entity.gd`
 
@@ -204,7 +204,7 @@ Remove `has_method()` duck typing patterns in favor of explicit interface-based 
 **Files to modify:**
 
 - [x] `scripts/managers/m_camera_manager.gd` - Changed to `extends "res://scripts/interfaces/i_camera_manager.gd"`
-- [x] `scripts/utils/u_ecs_utils.gd:103` - Used `as I_CAMERA_MANAGER` typed cast
+- [x] `scripts/utils/ecs/u_ecs_utils.gd:103` - Used `as I_CAMERA_MANAGER` typed cast
 - [x] `scripts/managers/m_scene_manager.gd:547,550,604` - Used `as I_CAMERA_MANAGER` typed cast, removed has_method() checks
 - [x] `scripts/managers/m_spawn_manager.gd:219` - Used `as I_CAMERA_MANAGER` typed cast
 - [x] `scripts/managers/m_vfx_manager.gd:38,44` - Updated export and internal variable types to I_CAMERA_MANAGER

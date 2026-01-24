@@ -17,8 +17,8 @@
 
 ## Current Status
 
-- **Phase**: 4 (Organization)
-- **Completed**: 20/23 (87.0%)
+- **Phase**: 5 (Polish)
+- **Completed**: 21/23 (91.3%)
 - **Current batch**: Phase 5 - Polish
 
 ---
@@ -26,9 +26,8 @@
 ## Resume Here
 
 **Next tasks to execute (Phase 5 - Polish)**:
-1. Task 21: Consolidate utilities into domain subfolders
-2. Task 22: Clean up unused test files
-3. Task 23: (see reorganization-tasks.md)
+1. Task 22: Clean up unused test files
+2. Task 23: Consolidate event code under `scripts/events/` (see reorganization-tasks.md)
 
 See `reorganization-tasks.md` for full details, commands, and verification steps.
 
@@ -62,7 +61,8 @@ If tests fail: `git reset --hard HEAD`, analyze, retry.
 | 1: Quick Wins | 2-4 | Complete |
 | 2: Naming Fixes | 5-8 | Complete |
 | 3: Folder Restructure | 9-16 | Complete |
-| 4: Organization | 17-23 | Complete |
+| 4: Organization | 17-20 | Complete |
+| 5: Polish | 21-23 | In progress (Task 22 next) |
 
 ---
 

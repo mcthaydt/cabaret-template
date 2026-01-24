@@ -51,7 +51,7 @@ func _init(p_entity_id: StringName, p_trauma_amount: float, p_source: StringName
 	trauma_amount = p_trauma_amount
 	source = p_source
 
-	const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+	const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 	timestamp = U_ECS_UTILS.get_current_time()
 
 	_payload = {
@@ -80,7 +80,7 @@ func _init(p_entity_id: StringName, p_intensity: float, p_source: StringName) ->
 	intensity = p_intensity
 	source = p_source
 
-	const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+	const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 	timestamp = U_ECS_UTILS.get_current_time()
 
 	_payload = {

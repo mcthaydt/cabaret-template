@@ -598,7 +598,7 @@ version: "1.0"
 
 - [x] T061a Add const preload at top (following BaseECSComponent pattern):
   ```gdscript
-  const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+  const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
   ```
 - [x] T061b Add export variables:
   ```gdscript
@@ -676,7 +676,7 @@ version: "1.0"
   - After finding entity root, call `register_entity(entity)` if not already registered
   - This auto-registers entities when their first component registers
 
-**Step 3: Update `scripts/utils/u_ecs_utils.gd`**
+**Step 3: Update `scripts/utils/ecs/u_ecs_utils.gd`**
 
 - [x] T061s Add `static func get_entity_id(entity: Node) -> StringName`:
   - Call `entity.get_entity_id()` if method exists
@@ -717,7 +717,7 @@ version: "1.0"
 - [x] T062g Modify `get_entity_type()`, `get_entity_health()`, `get_entity_max_health()`:
   - Update to use Variant entity_id parameter
 
-**Step 3: Add snapshot builder to `scripts/utils/u_ecs_utils.gd`**
+**Step 3: Add snapshot builder to `scripts/utils/ecs/u_ecs_utils.gd`**
 
 - [x] T062h Add `static func build_entity_snapshot(entity: Node) -> Dictionary`:
   - Include `entity_id` (as String)
@@ -1251,11 +1251,11 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
 
 ### Phase 9D: Input Rebind Utils Split (509 → ~180 lines)
 
-- [x] T093a Create `scripts/utils/u_input_event_serialization.gd`:
+- [x] T093a Create `scripts/utils/input/u_input_event_serialization.gd`:
   - Extract: `event_to_dict`, `dict_to_event`
   - Extract: All `_*_to_dict` and `_dict_to_*` helper methods
 
-- [x] T093b Create `scripts/utils/u_input_event_display.gd`:
+- [x] T093b Create `scripts/utils/input/u_input_event_display.gd`:
   - Extract: `format_event_label`, `_format_joypad_button_label`, `_format_joypad_axis_label`
   - Extract: `get_texture_for_event`
 

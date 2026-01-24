@@ -1265,8 +1265,8 @@ func _normalize_custom_bindings(bindings: Variant) -> Dictionary:
 RS_InputProfile was created first with minimal serialization. U_InputRebindUtils was added later with complete serialization. Code wasn't refactored to use single implementation.
 
 ### Implementation Snapshot (2025-11-19)
-- `scripts/utils/u_input_rebind_utils.gd` is now the canonical serializer/deserializer for keyboard, mouse, gamepad, and touchscreen events (modifiers, echo, pressure, vectors, legacy type strings), with exhaustive coverage in `tests/unit/utils/test_input_event_serialization_roundtrip.gd`.
-- `scripts/input/resources/rs_input_profile.gd`, `scripts/utils/u_input_serialization.gd`, and `scripts/state/reducers/u_input_reducer.gd` all delegate to the shared helper, ensuring saved profiles, Redux normalization, and custom bindings share one schema.
+- `scripts/utils/input/u_input_rebind_utils.gd` is now the canonical serializer/deserializer for keyboard, mouse, gamepad, and touchscreen events (modifiers, echo, pressure, vectors, legacy type strings), with exhaustive coverage in `tests/unit/utils/test_input_event_serialization_roundtrip.gd`.
+- `scripts/input/resources/rs_input_profile.gd`, `scripts/utils/input/u_input_serialization.gd`, and `scripts/state/reducers/u_input_reducer.gd` all delegate to the shared helper, ensuring saved profiles, Redux normalization, and custom bindings share one schema.
 - Integration suites (`tests/unit/integration/test_rebinding_flow.gd`, `test_state_synchronization_flow.gd`) now operate on the unified schema and verified save/load + UI flows continue to pass.
 ### Refactoring Strategy
 
@@ -1283,7 +1283,7 @@ RS_InputProfile was created first with minimal serialization. U_InputRebindUtils
 #### Task 4.1: Audit U_InputRebindUtils serialization (TDD)
 **Estimated Time**: 30 minutes
 
-**Files**: `scripts/utils/u_input_rebind_utils.gd`
+**Files**: `scripts/utils/input/u_input_rebind_utils.gd`
 
 **Verify Completeness**:
 ```gdscript
@@ -1405,7 +1405,7 @@ static func from_dictionary(dict: Dictionary) -> RS_InputProfile:
 #### Task 4.3: Update U_InputSerialization to normalize schema (TDD)
 **Estimated Time**: 30 minutes
 
-**Files**: `scripts/utils/u_input_serialization.gd`
+**Files**: `scripts/utils/input/u_input_serialization.gd`
 
 **Ensure Consistency**:
 ```gdscript

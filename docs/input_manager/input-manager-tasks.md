@@ -217,11 +217,11 @@
 - [x] Task 5.1: Create RS_RebindSettings resource (TDD) - FR-022
   - Notes (2025-11-11): Added `scripts/input/resources/rs_rebind_settings.gd`, default settings resource at `resources/input/rebind_settings/default_rebind_settings.tres`, and unit coverage in `tests/unit/resources/test_rs_rebind_settings.gd`.
 - [x] Task 5.2: Create U_InputRebindUtils (TDD) - FR-021, FR-023, FR-027
-  - Notes (2025-11-11): Implemented `scripts/utils/u_input_rebind_utils.gd` for validation, conflict detection, InputMap/profile rebinding, and event serialization. Added unit tests at `tests/unit/utils/test_u_input_rebind_utils.gd`.
+  - Notes (2025-11-11): Implemented `scripts/utils/input/u_input_rebind_utils.gd` for validation, conflict detection, InputMap/profile rebinding, and event serialization. Added unit tests at `tests/unit/utils/test_u_input_rebind_utils.gd`.
 - [x] Task 5.3: Create Rebinding UI - FR-021, FR-024, FR-025, FR-026
   - Notes (2025-11-11): Added `scenes/ui/input_rebinding_overlay.tscn` with `scripts/ui/input_rebinding_overlay.gd`, conflict/error dialogs, and action list rendering powered by `U_InputRebindUtils`. Automated UI coverage lives at `tests/unit/ui/test_input_rebinding_overlay.gd`.
 - [x] Task 5.4: Implement Input Settings Persistence (TDD) - FR-094, FR-095, FR-096, FR-102, FR-103
-  - Notes (2025-11-11): Added `scripts/utils/u_input_serialization.gd`, persistence hooks in `scripts/managers/m_input_profile_manager.gd`, new bulk-load action in `scripts/state/actions/u_input_actions.gd`, reducer merge logic, and unit coverage in `tests/unit/managers/test_m_input_profile_manager.gd`.
+  - Notes (2025-11-11): Added `scripts/utils/input/u_input_serialization.gd`, persistence hooks in `scripts/managers/m_input_profile_manager.gd`, new bulk-load action in `scripts/state/actions/u_input_actions.gd`, reducer merge logic, and unit coverage in `tests/unit/managers/test_m_input_profile_manager.gd`.
 - [x] Task 5.5: Handle Custom Bindings Load/Save (TDD) - FR-029, FR-098
   - Notes (2025-11-12): `M_InputProfileManager.load_custom_bindings()` now resolves saved or fallback profiles and reapplies pending bindings before clearing cache. Added explicit save payload assertions in `tests/unit/managers/test_m_input_profile_manager.gd`; new coverage validates reload path and JSON serialization includes `custom_bindings`.
 - [x] Task 5.6: Implement Reset to Default (TDD) - FR-030
@@ -314,9 +314,9 @@
 - [x] Task 3.4: Integration testing *(2025-11-19; new `tests/unit/integration/test_manager_initialization_order.gd` exercises store-first / manager-first sequencing, hot reloads, and 100-iteration stress runs)*
 
 ### Issue 4: Consolidate Event Serialization
-- [x] Task 4.1: Audit U_InputRebindUtils serialization *(2025-11-19; `scripts/utils/u_input_rebind_utils.gd` now roundtrips keyboard/mouse/gamepad/touch events, preserves modifiers/pressure, and `tests/unit/utils/test_input_event_serialization_roundtrip.gd` covers each type + legacy schemas)*
+- [x] Task 4.1: Audit U_InputRebindUtils serialization *(2025-11-19; `scripts/utils/input/u_input_rebind_utils.gd` now roundtrips keyboard/mouse/gamepad/touch events, preserves modifiers/pressure, and `tests/unit/utils/test_input_event_serialization_roundtrip.gd` covers each type + legacy schemas)*
 - [x] Task 4.2: Delete RS_InputProfile serialization *(2025-11-19; `scripts/input/resources/rs_input_profile.gd` delegates to U_InputRebindUtils for both directions, keeping action dictionaries canonical)*
-- [x] Task 4.3: Update U_InputSerialization / reducers to normalize via canonical schema *(2025-11-19; `scripts/utils/u_input_serialization.gd` and `scripts/state/reducers/u_input_reducer.gd` now sanitize dictionaries through the shared helper and recognize new device types)*
+- [x] Task 4.3: Update U_InputSerialization / reducers to normalize via canonical schema *(2025-11-19; `scripts/utils/input/u_input_serialization.gd` and `scripts/state/reducers/u_input_reducer.gd` now sanitize dictionaries through the shared helper and recognize new device types)*
 - [x] Task 4.4: Simplify reducer normalization *(2025-11-19; reducer + selectors treat `screen_touch` / `screen_drag` as touch device type, avoiding divergent schemas)*
 - [x] Task 4.5: Add comprehensive roundtrip tests *(2025-11-19; new utils test suite validates event dicts ⇄ InputEvent conversions and RS_InputProfile serialization uses the shared helper)*
 
@@ -947,7 +947,7 @@
   - Result: Added coverage for defaults merge + Vector2 dict deserialization (pass)
 
 - [x] Task 6.12.2: **GREEN** - Fix `_sanitize_loaded_settings()` to merge with defaults
-  - Update `scripts/utils/u_input_serialization.gd`
+  - Update `scripts/utils/input/u_input_serialization.gd`
   - Import: `const U_InputReducer = preload("res://scripts/state/reducers/u_input_reducer.gd")`
   - After deserializing touchscreen_settings, merge with defaults:
 
