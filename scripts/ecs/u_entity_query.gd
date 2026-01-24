@@ -2,7 +2,7 @@ extends RefCounted
 
 class_name U_EntityQuery
 
-const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 var entity: Node = null
 

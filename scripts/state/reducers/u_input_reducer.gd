@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_InputReducer
 
-const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
+const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 
 const DEFAULT_GAMEPLAY_INPUT_STATE := {

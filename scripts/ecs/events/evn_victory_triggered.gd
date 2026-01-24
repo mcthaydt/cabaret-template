@@ -15,7 +15,7 @@ func _init(p_entity_id: StringName, p_trigger_node: Node, p_body: Node3D) -> voi
 	trigger_node = p_trigger_node
 	body = p_body
 
-	const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+	const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 	timestamp = U_ECS_UTILS.get_current_time()
 
 	_payload = {

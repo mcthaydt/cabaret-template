@@ -29,7 +29,7 @@ const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_SPAWN_REGISTRY := preload("res://scripts/scene_management/u_spawn_registry.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
-const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 
 const SPAWN_CONDITION_ALWAYS := 0

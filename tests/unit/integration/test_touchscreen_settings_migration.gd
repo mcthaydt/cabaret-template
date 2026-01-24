@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_InputSerialization := preload("res://scripts/utils/u_input_serialization.gd")
+const U_InputSerialization := preload("res://scripts/utils/input/u_input_serialization.gd")
 const U_InputReducer := preload("res://scripts/state/reducers/u_input_reducer.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 

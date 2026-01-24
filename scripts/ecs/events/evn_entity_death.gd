@@ -17,7 +17,7 @@ func _init(p_entity_id: StringName, p_previous: float, p_new: float, p_is_dead: 
 	new_health = p_new
 	is_dead = p_is_dead
 
-	const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+	const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 	timestamp = U_ECS_UTILS.get_current_time()
 
 	_payload = {

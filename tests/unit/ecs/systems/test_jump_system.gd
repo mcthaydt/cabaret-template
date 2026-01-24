@@ -6,7 +6,7 @@ const InputComponentScript = preload("res://scripts/ecs/components/c_input_compo
 const JumpSystemScript = preload("res://scripts/ecs/systems/s_jump_system.gd")
 const FloatingComponentScript = preload("res://scripts/ecs/components/c_floating_component.gd")
 const EventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
-const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 class FakeBody extends CharacterBody3D:
 	var grounded := true

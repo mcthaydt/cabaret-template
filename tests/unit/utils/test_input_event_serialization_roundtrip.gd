@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
+const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
 
 func test_key_event_roundtrip_preserves_modifiers() -> void:
 	var event := InputEventKey.new()

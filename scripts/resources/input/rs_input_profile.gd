@@ -3,7 +3,7 @@ class_name RS_InputProfile
 
 ## Input profile resource defining bindings and metadata.
 
-const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
+const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
 
 @export var profile_name: String = "Default"
 @export_enum("Keyboard/Mouse:0", "Gamepad:1", "Touchscreen:2") var device_type: int = 0

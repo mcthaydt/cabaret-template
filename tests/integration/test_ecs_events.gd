@@ -4,7 +4,7 @@ const BASE_SCENE := preload("res://scenes/templates/tmpl_base_scene.tscn")
 const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const JUMP_PARTICLE_SYSTEM := preload("res://scripts/ecs/systems/s_jump_particles_system.gd")
 const JUMP_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_jump_sound_system.gd")
-const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
 
 const EVENT_JUMPED := StringName("entity_jumped")

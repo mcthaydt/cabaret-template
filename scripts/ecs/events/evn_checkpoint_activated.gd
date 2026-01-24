@@ -13,7 +13,7 @@ func _init(p_checkpoint_id: StringName, p_spawn_point_id: StringName) -> void:
 	checkpoint_id = p_checkpoint_id
 	spawn_point_id = p_spawn_point_id
 
-	const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+	const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 	timestamp = U_ECS_UTILS.get_current_time()
 
 	_payload = {

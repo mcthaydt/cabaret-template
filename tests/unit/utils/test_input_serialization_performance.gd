@@ -1,7 +1,7 @@
 extends GutTest
 
-const U_InputSerialization := preload("res://scripts/utils/u_input_serialization.gd")
-const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
+const U_InputSerialization := preload("res://scripts/utils/input/u_input_serialization.gd")
+const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
 
 func before_each() -> void:
 	_cleanup_input_settings_files()

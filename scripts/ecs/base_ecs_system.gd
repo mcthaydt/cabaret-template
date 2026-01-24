@@ -3,7 +3,7 @@ extends Node
 
 class_name BaseECSSystem
 
-const ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 static var _missing_manager_method_warnings: Dictionary = {}
 
 var _manager: I_ECSManager

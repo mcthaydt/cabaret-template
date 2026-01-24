@@ -6,7 +6,7 @@ class_name BaseEventBus
 ## Concrete subclasses (U_ECSEventBus, U_StateEventBus) extend this and expose
 ## static APIs that delegate to private instances, maintaining domain isolation.
 
-const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
+const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const DEFAULT_MAX_HISTORY_SIZE := 1000
 
 var _subscribers: Dictionary = {}

@@ -22,7 +22,7 @@ class_name S_CheckpointSystem
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
-const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
+const U_ECSUtils := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const EVENT_CHECKPOINT_ZONE_ENTERED := StringName("checkpoint_zone_entered")
 const EVENT_CHECKPOINT_ACTIVATED := StringName("checkpoint_activated")
 

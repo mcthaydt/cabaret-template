@@ -2,7 +2,7 @@ extends RefCounted
 class_name U_InputSerialization
 
 const U_InputReducer := preload("res://scripts/state/reducers/u_input_reducer.gd")
-const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
+const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
 
 const SAVE_PATH := "user://input_settings.json"
 const BACKUP_PATH := "user://input_settings.json.backup"
