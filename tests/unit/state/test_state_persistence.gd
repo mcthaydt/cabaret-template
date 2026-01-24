@@ -3,7 +3,7 @@ extends GutTest
 ## Tests for state persistence (save/load)
 
 const U_StateEventBus := preload("res://scripts/state/u_state_event_bus.gd")
-const RS_SceneInitialState := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
+const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd")
 
 var store: M_StateStore

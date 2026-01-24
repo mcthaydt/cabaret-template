@@ -8,9 +8,9 @@ const U_TransitionActions := preload("res://scripts/state/actions/u_transition_a
 const U_BootActions := preload("res://scripts/state/actions/u_boot_actions.gd")
 const U_MenuActions := preload("res://scripts/state/actions/u_menu_actions.gd")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const RS_BootInitialState := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
-const RS_MenuInitialState := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
-const RS_GameplayInitialState := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
+const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")
+const RS_MenuInitialState := preload("res://scripts/resources/state/rs_menu_initial_state.gd")
+const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 
 func before_each() -> void:
 	U_StateEventBus.reset()

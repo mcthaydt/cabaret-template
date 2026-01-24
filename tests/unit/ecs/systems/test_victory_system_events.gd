@@ -4,8 +4,8 @@ const S_VictorySystem := preload("res://scripts/ecs/systems/s_victory_system.gd"
 const C_VictoryTriggerComponent := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 const M_ECSManager := preload("res://scripts/managers/m_ecs_manager.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
-const RS_GameplayInitialState := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
+const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
+const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 

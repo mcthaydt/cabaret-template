@@ -1,8 +1,8 @@
 extends GutTest
 
 const U_InputRebindUtils := preload("res://scripts/utils/u_input_rebind_utils.gd")
-const RS_RebindSettings := preload("res://scripts/input/resources/rs_rebind_settings.gd")
-const RS_InputProfile := preload("res://scripts/input/resources/rs_input_profile.gd")
+const RS_RebindSettings := preload("res://scripts/resources/input/rs_rebind_settings.gd")
+const RS_InputProfile := preload("res://scripts/resources/input/rs_input_profile.gd")
 const U_RebindActionListBuilder := preload("res://scripts/ui/helpers/u_rebind_action_list_builder.gd")
 
 var _created_actions: Array[StringName] = []

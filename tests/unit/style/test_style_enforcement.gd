@@ -38,7 +38,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/utils": ["u_"],
 	"res://scripts/input": ["u_", "i_"],
 	"res://scripts/input/sources": [""], # Wildcard: validated by suffix rule (see test_input_source_scripts_follow_suffix_rule)
-	"res://scripts/input/resources": ["rs_"],
+	"res://scripts/resources/input": ["rs_"],
 	"res://scripts/managers": ["m_"],
 	"res://scripts/managers/helpers": ["u_"],
 	"res://scripts/ecs/systems": ["s_", "m_"], # m_ for M_PauseManager
@@ -50,7 +50,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/state/actions": ["u_"],
 	"res://scripts/state/reducers": ["u_"],
 	"res://scripts/state/selectors": ["u_"],
-	"res://scripts/state/resources": ["rs_"], # State initial state resources
+	"res://scripts/resources/state": ["rs_"], # State initial state resources
 	"res://scripts/state": ["u_", "m_"], # m_state_store.gd is in root
 	"res://scripts/resources/ui": ["rs_"], # UI screen definitions
 	"res://scripts/ui/base": ["base_"], # base_*.gd UI base classes
@@ -59,7 +59,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/gameplay": ["e_", "inter_", "base_", "triggered_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers
 	"res://scripts/scene_structure": ["marker_"], # marker_*.gd organizational scripts
 	"res://scripts/scene_management/transitions": ["trans_", "base_"], # transition effects
-	"res://scripts/scene_management/resources": ["rs_"], # scene registry resources
+	"res://scripts/resources/scene_management": ["rs_"], # scene registry resources
 	"res://scripts/scene_management/handlers": ["h_"], # Scene type handlers (Phase 10B-3)
 	"res://scripts/scene_management": ["i_", "u_", "sp_"], # i_scene_contract.gd, u_scene_registry.gd, u_transition_factory.gd, sp_spawn_point.gd
 	"res://scripts/events": ["base_"], # base_event_bus.gd

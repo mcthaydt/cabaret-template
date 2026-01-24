@@ -1,7 +1,7 @@
 extends GutTest
 
 const C_GamepadComponent := preload("res://scripts/ecs/components/c_gamepad_component.gd")
-const RS_GamepadSettings := preload("res://scripts/input/resources/rs_gamepad_settings.gd")
+const RS_GamepadSettings := preload("res://scripts/resources/input/rs_gamepad_settings.gd")
 
 func test_component_initializes_component_type() -> void:
 	var component := C_GamepadComponent.new()

@@ -1,6 +1,6 @@
 extends GutTest
 
-const RS_TouchscreenSettings := preload("res://scripts/input/resources/rs_touchscreen_settings.gd")
+const RS_TouchscreenSettings := preload("res://scripts/resources/input/rs_touchscreen_settings.gd")
 
 func test_defaults_match_spec() -> void:
 	var settings := RS_TouchscreenSettings.new()

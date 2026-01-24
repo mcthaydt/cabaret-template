@@ -7,7 +7,7 @@ extends GutTest
 
 const M_CAMERA_MANAGER := preload("res://scripts/managers/m_camera_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var camera_manager: M_CAMERA_MANAGER

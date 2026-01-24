@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_GameplayInitialState" format=3 uid="uid://uygy4iikdf74"]
 
-[ext_resource type="Script" uid="uid://c80g431hqm7ot" path="res://scripts/state/resources/rs_gameplay_initial_state.gd" id="1_default"]
+[ext_resource type="Script" uid="uid://c80g431hqm7ot" path="res://scripts/resources/state/rs_gameplay_initial_state.gd" id="1_default"]
 
 [resource]
 script = ExtResource("1_default")

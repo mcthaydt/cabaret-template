@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_GamepadSettings" format=3 uid="uid://flpd0eijo5ab"]
 
-[ext_resource type="Script" uid="uid://d0vee127clyye" path="res://scripts/input/resources/rs_gamepad_settings.gd" id="1"]
+[ext_resource type="Script" uid="uid://d0vee127clyye" path="res://scripts/resources/input/rs_gamepad_settings.gd" id="1"]
 
 [resource]
 script = ExtResource("1")

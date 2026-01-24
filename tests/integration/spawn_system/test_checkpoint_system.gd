@@ -7,7 +7,7 @@ const S_CHECKPOINT_SYSTEM := preload("res://scripts/ecs/systems/s_checkpoint_sys
 const C_CHECKPOINT_COMPONENT := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
 const C_PLAYER_TAG := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_GAMEPLAY_INITIAL := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
+const RS_GAMEPLAY_INITIAL := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 
 var _manager: M_ECSManager

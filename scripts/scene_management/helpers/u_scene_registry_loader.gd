@@ -1,7 +1,7 @@
 extends RefCounted
 class_name U_SceneRegistryLoader
 
-const RS_SceneRegistryEntry := preload("res://scripts/scene_management/resources/rs_scene_registry_entry.gd")
+const RS_SceneRegistryEntry := preload("res://scripts/resources/scene_management/rs_scene_registry_entry.gd")
 
 func load_resource_entries(scenes: Dictionary, register_scene_callable: Callable) -> void:
 	if register_scene_callable == Callable() or not register_scene_callable.is_valid():

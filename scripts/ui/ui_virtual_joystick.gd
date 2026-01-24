@@ -3,7 +3,7 @@ class_name UI_VirtualJoystick
 
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const RS_TouchscreenSettings := preload("res://scripts/input/resources/rs_touchscreen_settings.gd")
+const RS_TouchscreenSettings := preload("res://scripts/resources/input/rs_touchscreen_settings.gd")
 
 signal joystick_moved(vector: Vector2)
 signal joystick_released

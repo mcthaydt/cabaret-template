@@ -2,7 +2,7 @@ extends GutTest
 
 # Tests for RS_VFXInitialState resource (Phase 0 - Task 0.1)
 
-const RS_VFXInitialState := preload("res://scripts/state/resources/rs_vfx_initial_state.gd")
+const RS_VFXInitialState := preload("res://scripts/resources/state/rs_vfx_initial_state.gd")
 
 var initial_state: RS_VFXInitialState
 

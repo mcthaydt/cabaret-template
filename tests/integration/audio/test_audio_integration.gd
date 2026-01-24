@@ -18,10 +18,10 @@ const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_component.gd")
 const C_SURFACE_DETECTOR_COMPONENT := preload("res://scripts/ecs/components/c_surface_detector_component.gd")
 
-const RS_AUDIO_INITIAL_STATE := preload("res://scripts/state/resources/rs_audio_initial_state.gd")
+const RS_AUDIO_INITIAL_STATE := preload("res://scripts/resources/state/rs_audio_initial_state.gd")
 const RS_FLOATING_SETTINGS := preload("res://scripts/resources/ecs/rs_floating_settings.gd")
 const RS_FOOTSTEP_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_footstep_sound_settings.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/state/resources/rs_state_store_settings.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_AMBIENT_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_ambient_sound_settings.gd")
 
 const S_AMBIENT_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_ambient_sound_system.gd")

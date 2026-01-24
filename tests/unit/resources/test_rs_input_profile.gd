@@ -1,6 +1,6 @@
 extends GutTest
 
-const RS_InputProfile = preload("res://scripts/input/resources/rs_input_profile.gd")
+const RS_InputProfile = preload("res://scripts/resources/input/rs_input_profile.gd")
 
 func test_defaults_and_setters() -> void:
 	var p := RS_InputProfile.new()

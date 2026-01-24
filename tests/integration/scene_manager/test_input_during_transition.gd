@@ -5,9 +5,9 @@ extends GutTest
 
 const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
-const RS_SceneInitialState := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
-const RS_NavigationInitialState := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
+const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
+const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
+const RS_NavigationInitialState := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 
 var _root: Node

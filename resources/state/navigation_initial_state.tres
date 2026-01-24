@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_NavigationInitialState" format=3 uid="uid://dtak7mhm8w170"]
 
-[ext_resource type="Script" uid="uid://dyraaplfpmt8g" path="res://scripts/state/resources/rs_navigation_initial_state.gd" id="1_navigation_state"]
+[ext_resource type="Script" uid="uid://dyraaplfpmt8g" path="res://scripts/resources/state/rs_navigation_initial_state.gd" id="1_navigation_state"]
 
 [resource]
 script = ExtResource("1_navigation_state")

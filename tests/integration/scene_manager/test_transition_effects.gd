@@ -8,8 +8,8 @@ extends GutTest
 
 const M_SceneManager = preload("res://scripts/managers/m_scene_manager.gd")
 const M_StateStore = preload("res://scripts/state/m_state_store.gd")
-const RS_SceneInitialState = preload("res://scripts/state/resources/rs_scene_initial_state.gd")
-const RS_StateStoreSettings = preload("res://scripts/state/resources/rs_state_store_settings.gd")
+const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_initial_state.gd")
+const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
 

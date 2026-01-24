@@ -4,7 +4,7 @@ class_name U_SceneRegistry
 ## Static scene metadata registry
 ##
 ## T212: Now supports resource-based scene registration via RS_SceneRegistryEntry
-const RS_SceneRegistryEntry := preload("res://scripts/scene_management/resources/rs_scene_registry_entry.gd")
+const RS_SceneRegistryEntry := preload("res://scripts/resources/scene_management/rs_scene_registry_entry.gd")
 const U_SceneRegistryLoader := preload("res://scripts/scene_management/helpers/u_scene_registry_loader.gd")
 ##
 ## Central registry for all scenes in the game. Provides scene metadata,

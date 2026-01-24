@@ -9,7 +9,7 @@ class_name I_InputProfileManager
 ## - M_InputProfileManager (production)
 ## - MockInputProfileManager (testing, if needed)
 
-const RS_InputProfile = preload("res://scripts/input/resources/rs_input_profile.gd")
+const RS_InputProfile = preload("res://scripts/resources/input/rs_input_profile.gd")
 
 ## Get the currently active input profile
 ##

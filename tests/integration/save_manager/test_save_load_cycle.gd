@@ -15,8 +15,8 @@ const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
-const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
-const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 
 const TEST_SAVE_DIR := "user://test_saves/"
 
@@ -35,11 +35,11 @@ func before_each() -> void:
 
 	# Create real state store with required initial state resources
 	# Provide ALL initial state resources to prevent sharing/caching across tests
-	const RS_BOOT_INITIAL_STATE := preload("res://scripts/state/resources/rs_boot_initial_state.gd")
-	const RS_MENU_INITIAL_STATE := preload("res://scripts/state/resources/rs_menu_initial_state.gd")
-	const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/state/resources/rs_navigation_initial_state.gd")
-	const RS_SETTINGS_INITIAL_STATE := preload("res://scripts/state/resources/rs_settings_initial_state.gd")
-	const RS_DEBUG_INITIAL_STATE := preload("res://scripts/state/resources/rs_debug_initial_state.gd")
+	const RS_BOOT_INITIAL_STATE := preload("res://scripts/resources/state/rs_boot_initial_state.gd")
+	const RS_MENU_INITIAL_STATE := preload("res://scripts/resources/state/rs_menu_initial_state.gd")
+	const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
+	const RS_SETTINGS_INITIAL_STATE := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
+	const RS_DEBUG_INITIAL_STATE := preload("res://scripts/resources/state/rs_debug_initial_state.gd")
 
 	_state_store = M_STATE_STORE.new()
 	_state_store.boot_initial_state = RS_BOOT_INITIAL_STATE.new()

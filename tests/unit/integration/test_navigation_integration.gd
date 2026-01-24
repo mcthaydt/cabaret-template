@@ -2,8 +2,8 @@ extends BaseTest
 
 const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/state/resources/rs_state_store_settings.gd")
-const RS_SceneInitialState := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
+const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
+const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const M_CursorManager := preload("res://scripts/managers/m_cursor_manager.gd")
 const M_SpawnManager := preload("res://scripts/managers/m_spawn_manager.gd")
 const M_CameraManager := preload("res://scripts/managers/m_camera_manager.gd")

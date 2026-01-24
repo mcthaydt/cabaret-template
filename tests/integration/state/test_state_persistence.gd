@@ -4,9 +4,9 @@ extends GutTest
 ## Covers core fields: health, checkpoints, settings, completed areas, and entity snapshots.
 
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
-const RS_STATE_STORE_SETTINGS := preload("res://scripts/state/resources/rs_state_store_settings.gd")
-const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/state/resources/rs_gameplay_initial_state.gd")
-const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
+const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
+const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_EntityActions := preload("res://scripts/state/actions/u_entity_actions.gd")
