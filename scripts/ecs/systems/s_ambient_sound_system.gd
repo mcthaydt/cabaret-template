@@ -18,12 +18,12 @@ var _unsubscribe: Callable
 
 const _AMBIENT_REGISTRY: Dictionary = {
 	StringName("exterior"): {
-		"stream": preload("res://resources/audio/ambient/placeholder_exterior.wav"),
+		"stream": preload("res://assets/audio/ambient/placeholder_exterior.wav"),
 		# Scene IDs from u_scene_registry_loader.gd: gameplay_base, exterior
 		"scenes": [StringName("gameplay_base"), StringName("exterior")]
 	},
 	StringName("interior"): {
-		"stream": preload("res://resources/audio/ambient/placeholder_interior.wav"),
+		"stream": preload("res://assets/audio/ambient/placeholder_interior.wav"),
 		# Scene IDs from u_scene_registry_loader.gd: interior_house
 		"scenes": [StringName("interior_house"), StringName("interior_test")]
 	}

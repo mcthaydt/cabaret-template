@@ -18,32 +18,32 @@ const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd"
 
 const _MUSIC_REGISTRY: Dictionary = {
 	StringName("main_menu"): {
-		"stream": preload("res://resources/audio/music/main_menu.mp3"),
+		"stream": preload("res://assets/audio/music/main_menu.mp3"),
 		"scenes": [StringName("main_menu")],
 	},
 	StringName("exterior"): {
-		"stream": preload("res://resources/audio/music/exterior.mp3"),
+		"stream": preload("res://assets/audio/music/exterior.mp3"),
 		"scenes": [StringName("exterior")],
 	},
 	StringName("interior"): {
-		"stream": preload("res://resources/audio/music/interior.mp3"),
+		"stream": preload("res://assets/audio/music/interior.mp3"),
 		"scenes": [StringName("interior_house")],
 	},
 	StringName("pause"): {
-		"stream": preload("res://resources/audio/music/pause.mp3"),
+		"stream": preload("res://assets/audio/music/pause.mp3"),
 		"scenes": [],  # Not tied to a specific scene
 	},
 	StringName("credits"): {
-		"stream": preload("res://resources/audio/music/credits.mp3"),
+		"stream": preload("res://assets/audio/music/credits.mp3"),
 		"scenes": [StringName("credits")],
 	},
 }
 
 const _UI_SOUND_REGISTRY: Dictionary = {
-	StringName("ui_focus"): preload("res://resources/audio/sfx/placeholder_ui_focus.wav"),
-	StringName("ui_confirm"): preload("res://resources/audio/sfx/placeholder_ui_confirm.wav"),
-	StringName("ui_cancel"): preload("res://resources/audio/sfx/placeholder_ui_cancel.wav"),
-	StringName("ui_tick"): preload("res://resources/audio/sfx/placeholder_ui_tick.wav"),
+	StringName("ui_focus"): preload("res://assets/audio/sfx/placeholder_ui_focus.wav"),
+	StringName("ui_confirm"): preload("res://assets/audio/sfx/placeholder_ui_confirm.wav"),
+	StringName("ui_cancel"): preload("res://assets/audio/sfx/placeholder_ui_cancel.wav"),
+	StringName("ui_tick"): preload("res://assets/audio/sfx/placeholder_ui_tick.wav"),
 }
 
 var _state_store: I_StateStore = null

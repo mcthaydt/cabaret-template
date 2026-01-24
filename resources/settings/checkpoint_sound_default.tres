@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="RS_CheckpointSoundSettings" format=3 uid="uid://buw5xy8p0d3uc"]
 
 [ext_resource type="Script" uid="uid://8heuc3q5e1fu" path="res://scripts/ecs/resources/rs_checkpoint_sound_settings.gd" id="1_checkpoint_sound"]
-[ext_resource type="AudioStream" uid="uid://bppnviwsnjs1w" path="res://resources/audio/sfx/placeholder_checkpoint.wav" id="2_audio"]
+[ext_resource type="AudioStream" uid="uid://bppnviwsnjs1w" path="res://assets/audio/sfx/placeholder_checkpoint.wav" id="2_audio"]
 
 [resource]
 script = ExtResource("1_checkpoint_sound")

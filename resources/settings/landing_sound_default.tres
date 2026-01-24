@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="RS_LandingSoundSettings" format=3 uid="uid://dv5m8y3nx0uin"]
 
 [ext_resource type="Script" uid="uid://damyer747cncb" path="res://scripts/ecs/resources/rs_landing_sound_settings.gd" id="1_landing_sound"]
-[ext_resource type="AudioStream" uid="uid://c2fn17vjgygr4" path="res://resources/audio/sfx/placeholder_land.wav" id="2_audio"]
+[ext_resource type="AudioStream" uid="uid://c2fn17vjgygr4" path="res://assets/audio/sfx/placeholder_land.wav" id="2_audio"]
 
 [resource]
 script = ExtResource("1_landing_sound")

@@ -38,7 +38,7 @@ func before_each() -> void:
 
 	# Load placeholder sounds (just use default for now)
 	for i in range(4):
-		settings.default_sounds.append(load("res://resources/audio/footsteps/placeholder_default_0%d.wav" % (i + 1)))
+		settings.default_sounds.append(load("res://assets/audio/footsteps/placeholder_default_0%d.wav" % (i + 1)))
 
 	# Create ECS manager
 	manager = M_ECSManager.new()
@@ -269,7 +269,7 @@ func test_plays_grass_surface_sounds() -> void:
 	# Load grass sounds
 	settings.grass_sounds.clear()
 	for i in range(4):
-		settings.grass_sounds.append(load("res://resources/audio/footsteps/placeholder_grass_0%d.wav" % (i + 1)))
+		settings.grass_sounds.append(load("res://assets/audio/footsteps/placeholder_grass_0%d.wav" % (i + 1)))
 
 	# Verify sounds loaded correctly
 	assert_eq(settings.grass_sounds.size(), 4, "Should have 4 grass sounds")

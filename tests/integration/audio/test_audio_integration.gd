@@ -47,12 +47,12 @@ const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_UISOUND_PLAYER := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
-const STREAM_MAIN_MENU := preload("res://resources/audio/music/main_menu.mp3")
-const STREAM_EXTERIOR := preload("res://resources/audio/music/exterior.mp3")
-const STREAM_PAUSE := preload("res://resources/audio/music/pause.mp3")
+const STREAM_MAIN_MENU := preload("res://assets/audio/music/main_menu.mp3")
+const STREAM_EXTERIOR := preload("res://assets/audio/music/exterior.mp3")
+const STREAM_PAUSE := preload("res://assets/audio/music/pause.mp3")
 
-const STREAM_AMBIENT_EXTERIOR := preload("res://resources/audio/ambient/placeholder_exterior.wav")
-const STREAM_AMBIENT_INTERIOR := preload("res://resources/audio/ambient/placeholder_interior.wav")
+const STREAM_AMBIENT_EXTERIOR := preload("res://assets/audio/ambient/placeholder_exterior.wav")
+const STREAM_AMBIENT_INTERIOR := preload("res://assets/audio/ambient/placeholder_interior.wav")
 
 var _store: M_StateStore
 var _audio_manager: M_AudioManager
@@ -237,7 +237,7 @@ func test_ui_sound_focus_routes_through_ui_bus() -> void:
 
 	U_UISOUND_PLAYER.play_focus()
 	# Focus SFX is very short; it may finish within a single frame on slow CI/headless runs.
-	assert_eq(ui_player.stream, preload("res://resources/audio/sfx/placeholder_ui_focus.wav"))
+	assert_eq(ui_player.stream, preload("res://assets/audio/sfx/placeholder_ui_focus.wav"))
 	assert_true(ui_player.playing, "UI focus sound should start playing immediately after play()")
 
 
@@ -247,7 +247,7 @@ func test_ui_sounds_play_while_tree_paused() -> void:
 
 	get_tree().paused = true
 	U_UISOUND_PLAYER.play_confirm()
-	assert_eq(ui_player.stream, preload("res://resources/audio/sfx/placeholder_ui_confirm.wav"))
+	assert_eq(ui_player.stream, preload("res://assets/audio/sfx/placeholder_ui_confirm.wav"))
 	assert_true(ui_player.playing, "UI confirm sound should start playing immediately after play()")
 	get_tree().paused = false
 
