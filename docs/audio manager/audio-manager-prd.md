@@ -459,23 +459,23 @@ The system SHALL maintain a registry mapping track IDs to AudioStream resources 
 ```gdscript
 var _music_registry: Dictionary = {
 	StringName("main_menu"): {
-		"stream": preload("res://resources/audio/music/main_menu.ogg"),
+		"stream": preload("res://assets/audio/music/main_menu.ogg"),
 		"scene": StringName("main_menu")
 	},
 	StringName("gameplay_exterior"): {
-		"stream": preload("res://resources/audio/music/gameplay_exterior.ogg"),
+		"stream": preload("res://assets/audio/music/gameplay_exterior.ogg"),
 		"scene": StringName("gameplay_exterior")
 	},
 	StringName("gameplay_interior"): {
-		"stream": preload("res://resources/audio/music/gameplay_interior.ogg"),
+		"stream": preload("res://assets/audio/music/gameplay_interior.ogg"),
 		"scene": StringName("gameplay_interior_house")
 	},
 	StringName("pause"): {
-		"stream": preload("res://resources/audio/music/pause.ogg"),
+		"stream": preload("res://assets/audio/music/pause.ogg"),
 		"scene": StringName("")  # Used for pause overlay
 	},
 	StringName("credits"): {
-		"stream": preload("res://resources/audio/music/credits.ogg"),
+		"stream": preload("res://assets/audio/music/credits.ogg"),
 		"scene": StringName("credits")
 	}
 }
@@ -1245,11 +1245,11 @@ var _ambient_tween: Tween
 
 var _ambient_registry: Dictionary = {
 	StringName("exterior_ambience"): {
-		"stream": preload("res://resources/audio/ambient/exterior_ambience.ogg"),
+		"stream": preload("res://assets/audio/ambient/exterior_ambience.ogg"),
 		"scene": StringName("gameplay_exterior")
 	},
 	StringName("interior_ambience"): {
-		"stream": preload("res://resources/audio/ambient/interior_ambience.ogg"),
+		"stream": preload("res://assets/audio/ambient/interior_ambience.ogg"),
 		"scene": StringName("gameplay_interior_house")
 	}
 }

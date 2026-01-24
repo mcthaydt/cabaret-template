@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (9/23 tasks complete)
+**Status**: In Progress (10/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -16,10 +16,10 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 |-------|-------|-----------|------------|
 | Phase 1: Quick Wins | 4 | 4/4 | Low |
 | Phase 2: Naming Fixes | 4 | 4/4 | Medium |
-| Phase 3: Folder Restructuring | 8 | 1/8 | High |
+| Phase 3: Folder Restructuring | 8 | 2/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **9/23 (39.1%)** | - |
+| **TOTAL** | **23** | **10/23 (43.5%)** | - |
 
 ---
 
@@ -313,22 +313,23 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 
 ---
 
-### Task 10: Move Audio Assets to assets/audio/ PENDING
+### Task 10: Move Audio Assets to assets/audio/ COMPLETE
 
-- [ ] Create `assets/audio/` directory structure
-- [ ] Move `resources/audio/` -> `assets/audio/` (100+ files including subdirs)
-- [ ] Update all references (83 files):
+- [x] Create `assets/audio/` directory structure
+- [x] Move `resources/audio/` -> `assets/audio/` (100+ files including subdirs)
+- [x] Update all references (83 files):
   - `scripts/managers/m_audio_manager.gd` (lines 20-46: preloads)
   - `scripts/ecs/systems/s_ambient_sound_system.gd`
   - Base settings `.tres` files (in `resources/settings/`)
   - 3 test files
   - 75+ `.import` files (will auto-regenerate)
-- [ ] Run audio tests
-- [ ] Verify audio plays in game
+- [x] Run audio tests
+- [x] Verify audio plays in game
 
-**Status**: READY TO EXECUTE
+**Status**: COMPLETE (2026-01-24)
 **Files affected**: 100+ moves + 83 reference updates
 **Risk**: CRITICAL
+**Notes**: Updated `.import` source paths in-place and ran `tests/unit/audio` after the move.
 
 **Path Update Command**:
 ```bash
@@ -671,7 +672,8 @@ scripts/events/
 
 ### Batch 3: Folder Restructuring (High Impact)
 - Task 9: Move templates (done)
-- Task 10-11: Move audio/button prompt assets (CRITICAL)
+- Task 10: Move audio assets (done)
+- Task 11: Move button prompt assets (CRITICAL)
 - Task 12-16: Consolidate resources and interfaces
 
 ### Batch 4: Organization (Optional)

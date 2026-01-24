@@ -173,23 +173,23 @@ func _apply_audio_settings() -> void:
 ```gdscript
 	const _MUSIC_REGISTRY: Dictionary = {
 		StringName("main_menu"): {
-			"stream": preload("res://resources/audio/music/main_menu.mp3"),
+			"stream": preload("res://assets/audio/music/main_menu.mp3"),
 			"scenes": [StringName("main_menu")],
 		},
 		StringName("exterior"): {
-			"stream": preload("res://resources/audio/music/exterior.mp3"),
+			"stream": preload("res://assets/audio/music/exterior.mp3"),
 			"scenes": [StringName("exterior")],
 		},
 		StringName("interior"): {
-			"stream": preload("res://resources/audio/music/interior.mp3"),
+			"stream": preload("res://assets/audio/music/interior.mp3"),
 			"scenes": [StringName("interior_house")],
 		},
 		StringName("pause"): {
-			"stream": preload("res://resources/audio/music/pause.mp3"),
+			"stream": preload("res://assets/audio/music/pause.mp3"),
 			"scenes": [],
 		},
 		StringName("credits"): {
-			"stream": preload("res://resources/audio/music/credits.mp3"),
+			"stream": preload("res://assets/audio/music/credits.mp3"),
 			"scenes": [StringName("credits")],
 		},
 	}
@@ -513,11 +513,11 @@ var _ambient_player_a: AudioStreamPlayer
 var _ambient_player_b: AudioStreamPlayer
 const _AMBIENT_REGISTRY: Dictionary = {
 	StringName("exterior"): {
-		"stream": preload("res://resources/audio/ambient/placeholder_exterior.wav"),
+		"stream": preload("res://assets/audio/ambient/placeholder_exterior.wav"),
 		"scenes": [StringName("gameplay_base"), StringName("exterior")],
 	},
 	StringName("interior"): {
-		"stream": preload("res://resources/audio/ambient/placeholder_interior.wav"),
+		"stream": preload("res://assets/audio/ambient/placeholder_interior.wav"),
 		"scenes": [StringName("interior_house"), StringName("interior_test")],
 	},
 }

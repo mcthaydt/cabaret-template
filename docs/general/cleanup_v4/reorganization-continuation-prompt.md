@@ -18,7 +18,7 @@
 ## Current Status
 
 - **Phase**: 3 (Folder Restructure)
-- **Completed**: 9/23 (39.1%)
+- **Completed**: 10/23 (43.5%)
 - **Current batch**: Batch 3 - Folder Restructure
 
 ---
@@ -26,8 +26,7 @@
 ## Resume Here
 
 **Next tasks to execute (Batch 3)**:
-1. Task 10: Move audio assets to `assets/audio/`
-2. Task 11: Move button prompts to `assets/button_prompts/`
+1. Task 11: Move button prompts to `assets/button_prompts/`
 
 See `reorganization-tasks.md` for full details, commands, and verification steps.
 
@@ -60,7 +59,7 @@ If tests fail: `git reset --hard HEAD`, analyze, retry.
 |-------|-------|--------|
 | 1: Quick Wins | 2-4 | Complete |
 | 2: Naming Fixes | 5-8 | Complete |
-| 3: Folder Restructure | 9-16 | In progress (Task 9 complete) |
+| 3: Folder Restructure | 9-16 | In progress (Task 10 complete) |
 | 4: Organization | 17-23 | Optional |
 
 ---
