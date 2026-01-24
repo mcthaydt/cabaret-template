@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (12/23 tasks complete)
+**Status**: In Progress (13/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -16,10 +16,10 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 |-------|-------|-----------|------------|
 | Phase 1: Quick Wins | 4 | 4/4 | Low |
 | Phase 2: Naming Fixes | 4 | 4/4 | Medium |
-| Phase 3: Folder Restructuring | 8 | 4/8 | High |
+| Phase 3: Folder Restructuring | 8 | 5/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **12/23 (52.2%)** | - |
+| **TOTAL** | **23** | **13/23 (56.5%)** | - |
 
 ---
 
@@ -405,16 +405,17 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 
 ---
 
-### Task 13: Consolidate ECS Resources PENDING
+### Task 13: Consolidate ECS Resources COMPLETE
 
-- [ ] Create `scripts/resources/ecs/` directory
-- [ ] Move `scripts/ecs/resources/` -> `scripts/resources/ecs/`
-- [ ] Update all references (67 files: scripts, .tres, tests)
-- [ ] Run ECS tests
+- [x] Create `scripts/resources/ecs/` directory
+- [x] Move `scripts/ecs/resources/` -> `scripts/resources/ecs/`
+- [x] Update all references (scripts, .tres, tests)
+- [x] Run ECS tests
 
-**Status**: READY TO EXECUTE
-**Files affected**: Many moves + 67 reference updates
+**Status**: COMPLETE (2026-01-24)
+**Files affected**: 19 moves + 62 reference updates (81 total)
 **Risk**: HIGH
+**Notes**: Ran ECS tests after a headless `--import` refresh to rebuild script class cache.
 
 **Path Update Command**:
 ```bash
@@ -677,7 +678,8 @@ scripts/events/
 - Task 10: Move audio assets (done)
 - Task 11: Move button prompt assets (done)
 - Task 12: Move editor icons (done)
-- Task 13-16: Consolidate resources and interfaces
+- Task 13: Consolidate ECS resources (done)
+- Task 14-16: Consolidate resources and interfaces
 
 ### Batch 4: Organization (Optional)
 - Tasks 17-23: Polish and cleanup
