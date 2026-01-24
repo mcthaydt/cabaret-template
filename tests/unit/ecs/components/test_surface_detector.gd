@@ -4,7 +4,7 @@ extends GutTest
 # Tests surface detection via raycast and explicit surface providers
 
 const C_SURFACE_DETECTOR_SCRIPT := preload("res://scripts/ecs/components/c_surface_detector_component.gd")
-const MARKER_SURFACE_TYPE := preload("res://scripts/ecs/markers/marker_surface_type.gd")
+const C_SURFACE_TYPE_COMPONENT := preload("res://scripts/ecs/components/c_surface_type_component.gd")
 
 var detector: C_SurfaceDetectorComponent
 var character_body: CharacterBody3D  # CharacterBody3D for the detector to attach to
@@ -231,5 +231,5 @@ func test_raycast_distance_two_meters() -> void:
 		"Should detect surface within 2 meters (returns DEFAULT with no provider override)")
 
 func _set_surface_type(surface_type: int) -> void:
-	static_body.set_script(MARKER_SURFACE_TYPE)
+	static_body.set_script(C_SURFACE_TYPE_COMPONENT)
 	static_body.set("surface_type", surface_type)

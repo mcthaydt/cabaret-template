@@ -66,7 +66,7 @@
 [ext_resource type="Resource" uid="uid://bi0ygx0nsog1s" path="res://resources/spawn_metadata/gameplay_exterior_spawns.tres" id="51_exterior_default_spawn_meta"]
 [ext_resource type="Resource" uid="uid://cvgjhiir8koeu" path="res://resources/spawn_metadata/gameplay_exterior_checkpoint_spawns.tres" id="52_exterior_checkpoint_spawn_meta"]
 [ext_resource type="Resource" uid="uid://t1jgkqtr1hke" path="res://resources/spawn_metadata/gameplay_exterior_exit_from_house_spawn.tres" id="53_exterior_exit_from_house_spawn_meta"]
-[ext_resource type="Script" uid="uid://cejqqgo6a4sdt" path="res://scripts/ecs/markers/marker_surface_type.gd" id="54_surface_marker"]
+[ext_resource type="Script" uid="uid://cejqqgo6a4sdt" path="res://scripts/ecs/components/c_surface_type_component.gd" id="54_surface_marker"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
