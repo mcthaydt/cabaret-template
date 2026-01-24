@@ -401,7 +401,7 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 **Status**: COMPLETE (2026-01-24)
 **Files affected**: 34 moves + unknown references
 **Risk**: Medium
-**Notes**: Updated `.import` source paths and ran style enforcement tests after the move.
+**Notes**: Updated `.import` source paths and ran style enforcement tests after the move. Manual editor verification still needed to confirm icons display correctly.
 
 ---
 
