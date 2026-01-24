@@ -4,7 +4,7 @@ const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const SCREEN_SHAKE_PUBLISHER := preload("res://scripts/ecs/systems/s_screen_shake_publisher_system.gd")
 const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 const EVENT_NAMES := preload("res://scripts/ecs/u_ecs_event_names.gd")
-const RS_ScreenShakeTuning := preload("res://scripts/ecs/resources/rs_screen_shake_tuning.gd")
+const RS_ScreenShakeTuning := preload("res://scripts/resources/ecs/rs_screen_shake_tuning.gd")
 
 const ENTITY_ID := StringName("player")
 

@@ -7,7 +7,7 @@ class_name C_HealthComponent
 ## applies them, handles regeneration, and triggers death sequences.
 
 const COMPONENT_TYPE := StringName("C_HealthComponent")
-const RS_HealthSettings := preload("res://scripts/ecs/resources/rs_health_settings.gd")
+const RS_HealthSettings := preload("res://scripts/resources/ecs/rs_health_settings.gd")
 const EVENT_HEALTH_CHANGED := StringName("health_changed")
 const EVENT_ENTITY_DEATH := StringName("entity_death")
 

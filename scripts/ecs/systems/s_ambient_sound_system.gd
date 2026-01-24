@@ -2,7 +2,7 @@
 extends BaseECSSystem
 class_name S_AmbientSoundSystem
 
-const RS_AMBIENT_SOUND_SETTINGS := preload("res://scripts/ecs/resources/rs_ambient_sound_settings.gd")
+const RS_AMBIENT_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_ambient_sound_settings.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 @export var settings: RS_AMBIENT_SOUND_SETTINGS

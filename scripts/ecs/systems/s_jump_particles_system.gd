@@ -2,7 +2,7 @@
 extends BaseEventVFXSystem
 class_name S_JumpParticlesSystem
 
-const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_jump_particles_settings.gd")
+const SETTINGS_TYPE := preload("res://scripts/resources/ecs/rs_jump_particles_settings.gd")
 const PARTICLE_SPAWNER := preload("res://scripts/utils/u_particle_spawner.gd")
 
 @export var settings: SETTINGS_TYPE

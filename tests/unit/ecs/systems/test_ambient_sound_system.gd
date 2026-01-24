@@ -1,7 +1,7 @@
 extends GutTest
 
 const AMBIENT_SOUND_SYSTEM_SCRIPT := preload("res://scripts/ecs/systems/s_ambient_sound_system.gd")
-const AMBIENT_SOUND_SETTINGS_SCRIPT := preload("res://scripts/ecs/resources/rs_ambient_sound_settings.gd")
+const AMBIENT_SOUND_SETTINGS_SCRIPT := preload("res://scripts/resources/ecs/rs_ambient_sound_settings.gd")
 const MOCK_STATE_STORE_SCRIPT := preload("res://tests/mocks/mock_state_store.gd")
 
 var system

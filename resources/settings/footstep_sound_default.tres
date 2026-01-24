@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_FootstepSoundSettings" format=3 uid="uid://b3kx5fj7m8qwo"]
 
-[ext_resource type="Script" uid="uid://bcwbk48rxvdde" path="res://scripts/ecs/resources/rs_footstep_sound_settings.gd" id="1_footstep"]
+[ext_resource type="Script" uid="uid://bcwbk48rxvdde" path="res://scripts/resources/ecs/rs_footstep_sound_settings.gd" id="1_footstep"]
 [ext_resource type="AudioStream" uid="uid://bkbpaqbaxdxd8" path="res://assets/audio/footsteps/placeholder_default_01.wav" id="2_default_01"]
 [ext_resource type="AudioStream" uid="uid://bf4p3k8danqao" path="res://assets/audio/footsteps/placeholder_default_02.wav" id="3_default_02"]
 [ext_resource type="AudioStream" uid="uid://dv5aelf1a8gj2" path="res://assets/audio/footsteps/placeholder_default_03.wav" id="4_default_03"]

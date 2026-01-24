@@ -2,7 +2,7 @@ extends BaseTest
 
 const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const PARTICLE_SYSTEM := preload("res://scripts/ecs/systems/s_jump_particles_system.gd")
-const SETTINGS := preload("res://scripts/ecs/resources/rs_jump_particles_settings.gd")
+const SETTINGS := preload("res://scripts/resources/ecs/rs_jump_particles_settings.gd")
 const EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 
 const EVENT_NAME := StringName("entity_jumped")

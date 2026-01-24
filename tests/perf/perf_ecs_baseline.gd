@@ -24,12 +24,12 @@ const C_ROTATE := preload("res://scripts/ecs/components/c_rotate_to_input_compon
 const C_ALIGN := preload("res://scripts/ecs/components/c_align_with_surface_component.gd")
 const C_LANDING := preload("res://scripts/ecs/components/c_landing_indicator_component.gd")
 
-const RS_MOVEMENT := preload("res://scripts/ecs/resources/rs_movement_settings.gd")
-const RS_JUMP := preload("res://scripts/ecs/resources/rs_jump_settings.gd")
-const RS_FLOATING := preload("res://scripts/ecs/resources/rs_floating_settings.gd")
-const RS_ROTATE := preload("res://scripts/ecs/resources/rs_rotate_to_input_settings.gd")
-const RS_ALIGN := preload("res://scripts/ecs/resources/rs_align_settings.gd")
-const RS_LANDING := preload("res://scripts/ecs/resources/rs_landing_indicator_settings.gd")
+const RS_MOVEMENT := preload("res://scripts/resources/ecs/rs_movement_settings.gd")
+const RS_JUMP := preload("res://scripts/resources/ecs/rs_jump_settings.gd")
+const RS_FLOATING := preload("res://scripts/resources/ecs/rs_floating_settings.gd")
+const RS_ROTATE := preload("res://scripts/resources/ecs/rs_rotate_to_input_settings.gd")
+const RS_ALIGN := preload("res://scripts/resources/ecs/rs_align_settings.gd")
+const RS_LANDING := preload("res://scripts/resources/ecs/rs_landing_indicator_settings.gd")
 
 var _origin: Node
 var _manager: M_ECSManager

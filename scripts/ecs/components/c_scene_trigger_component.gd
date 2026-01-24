@@ -24,7 +24,7 @@ const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_ECSUtils := preload("res://scripts/utils/u_ecs_utils.gd")
 const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
 const PLAYER_TAG_COMPONENT_TYPE := StringName("C_PlayerTagComponent")
-const RS_SceneTriggerSettings := preload("res://scripts/ecs/resources/rs_scene_trigger_settings.gd")
+const RS_SceneTriggerSettings := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
 
 ## Trigger mode enum
 enum TriggerMode {

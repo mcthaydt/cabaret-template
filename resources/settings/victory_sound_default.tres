@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_VictorySoundSettings" format=3 uid="uid://dv3s5a4nyjf05"]
 
-[ext_resource type="Script" uid="uid://ce24jt55db0fi" path="res://scripts/ecs/resources/rs_victory_sound_settings.gd" id="1_victory_sound"]
+[ext_resource type="Script" uid="uid://ce24jt55db0fi" path="res://scripts/resources/ecs/rs_victory_sound_settings.gd" id="1_victory_sound"]
 [ext_resource type="AudioStream" uid="uid://lvhkuqexd1v2" path="res://assets/audio/sfx/placeholder_victory.wav" id="2_audio"]
 
 [resource]

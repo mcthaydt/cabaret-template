@@ -19,10 +19,10 @@ const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_c
 const C_SURFACE_DETECTOR_COMPONENT := preload("res://scripts/ecs/components/c_surface_detector_component.gd")
 
 const RS_AUDIO_INITIAL_STATE := preload("res://scripts/state/resources/rs_audio_initial_state.gd")
-const RS_FLOATING_SETTINGS := preload("res://scripts/ecs/resources/rs_floating_settings.gd")
-const RS_FOOTSTEP_SOUND_SETTINGS := preload("res://scripts/ecs/resources/rs_footstep_sound_settings.gd")
+const RS_FLOATING_SETTINGS := preload("res://scripts/resources/ecs/rs_floating_settings.gd")
+const RS_FOOTSTEP_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_footstep_sound_settings.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/state/resources/rs_state_store_settings.gd")
-const RS_AMBIENT_SOUND_SETTINGS := preload("res://scripts/ecs/resources/rs_ambient_sound_settings.gd")
+const RS_AMBIENT_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_ambient_sound_settings.gd")
 
 const S_AMBIENT_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_ambient_sound_system.gd")
 const S_CHECKPOINT_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_checkpoint_sound_system.gd")
@@ -32,11 +32,11 @@ const S_JUMP_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_jump_sound_sys
 const S_LANDING_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_landing_sound_system.gd")
 const S_VICTORY_SOUND_SYSTEM := preload("res://scripts/ecs/systems/s_victory_sound_system.gd")
 
-const RS_CHECKPOINT_SOUND_SETTINGS := preload("res://scripts/ecs/resources/rs_checkpoint_sound_settings.gd")
-const RS_DEATH_SOUND_SETTINGS := preload("res://scripts/ecs/resources/rs_death_sound_settings.gd")
-const RS_JUMP_SOUND_SETTINGS := preload("res://scripts/ecs/resources/rs_jump_sound_settings.gd")
-const RS_LANDING_SOUND_SETTINGS := preload("res://scripts/ecs/resources/rs_landing_sound_settings.gd")
-const RS_VICTORY_SOUND_SETTINGS := preload("res://scripts/ecs/resources/rs_victory_sound_settings.gd")
+const RS_CHECKPOINT_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_checkpoint_sound_settings.gd")
+const RS_DEATH_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_death_sound_settings.gd")
+const RS_JUMP_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_jump_sound_settings.gd")
+const RS_LANDING_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_landing_sound_settings.gd")
+const RS_VICTORY_SOUND_SETTINGS := preload("res://scripts/resources/ecs/rs_victory_sound_settings.gd")
 
 const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/ecs/u_ecs_event_bus.gd")

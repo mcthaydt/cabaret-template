@@ -2,7 +2,7 @@
 extends "res://scripts/ecs/base_ecs_entity.gd"
 class_name BaseVolumeController
 
-const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/ecs/resources/rs_scene_trigger_settings.gd")
+const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
 
 signal trigger_area_ready(area: Area3D)
 

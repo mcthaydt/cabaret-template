@@ -1,6 +1,6 @@
 extends GutTest
 
-const RS_ScreenShakeTuning := preload("res://scripts/ecs/resources/rs_screen_shake_tuning.gd")
+const RS_ScreenShakeTuning := preload("res://scripts/resources/ecs/rs_screen_shake_tuning.gd")
 
 func test_calculate_damage_trauma_zero_returns_zero() -> void:
 	var tuning := RS_ScreenShakeTuning.new()

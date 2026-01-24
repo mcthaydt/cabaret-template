@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_AlignSettings" format=3 uid="uid://dhkl8uuw4aeeh"]
 
-[ext_resource type="Script" uid="uid://b5uidb4lgas8w" path="res://scripts/ecs/resources/rs_align_settings.gd" id="1_0"]
+[ext_resource type="Script" uid="uid://b5uidb4lgas8w" path="res://scripts/resources/ecs/rs_align_settings.gd" id="1_0"]
 
 [resource]
 script = ExtResource("1_0")

@@ -1,7 +1,7 @@
 extends BaseTest
 
 const C_HealthComponent := preload("res://scripts/ecs/components/c_health_component.gd")
-const RS_HealthSettings := preload("res://scripts/ecs/resources/rs_health_settings.gd")
+const RS_HealthSettings := preload("res://scripts/resources/ecs/rs_health_settings.gd")
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 
 func before_each() -> void:

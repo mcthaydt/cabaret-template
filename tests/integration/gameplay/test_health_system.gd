@@ -21,7 +21,7 @@ const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_
 const PLAYER_TAG_COMPONENT_PATH := "res://scripts/ecs/components/c_player_tag_component.gd"
 const HEALTH_COMPONENT_PATH := "res://scripts/ecs/components/c_health_component.gd"
 const HEALTH_SYSTEM_PATH := "res://scripts/ecs/systems/s_health_system.gd"
-const HEALTH_SETTINGS_PATH := "res://scripts/ecs/resources/rs_health_settings.gd"
+const HEALTH_SETTINGS_PATH := "res://scripts/resources/ecs/rs_health_settings.gd"
 const HEALTH_SETTINGS_RESOURCE := "res://resources/settings/health_settings.tres"
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 

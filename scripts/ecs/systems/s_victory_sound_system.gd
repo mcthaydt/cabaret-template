@@ -2,7 +2,7 @@
 extends "res://scripts/ecs/base_event_sfx_system.gd"
 class_name S_VictorySoundSystem
 
-const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_victory_sound_settings.gd")
+const SETTINGS_TYPE := preload("res://scripts/resources/ecs/rs_victory_sound_settings.gd")
 const SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 
 @export var settings: SETTINGS_TYPE

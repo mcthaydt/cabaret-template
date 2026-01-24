@@ -4,7 +4,7 @@ const BASE_INTERACTABLE_CONTROLLER := preload("res://scripts/gameplay/base_inter
 const BASE_VOLUME_CONTROLLER := preload("res://scripts/gameplay/base_volume_controller.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
-const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/ecs/resources/rs_scene_trigger_settings.gd")
+const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 
 class FakeArea3D extends Area3D:

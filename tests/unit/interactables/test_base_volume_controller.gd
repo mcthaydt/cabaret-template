@@ -1,7 +1,7 @@
 extends BaseTest
 
 const BASE_VOLUME_CONTROLLER := preload("res://scripts/gameplay/base_volume_controller.gd")
-const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/ecs/resources/rs_scene_trigger_settings.gd")
+const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
 
 func _pump_frames(count: int = 1) -> void:
 	for _i in count:

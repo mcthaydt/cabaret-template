@@ -13,7 +13,7 @@ class_name S_FootstepSoundSystem
 ## This is a per-tick system (not event-driven) because footsteps are based on
 ## continuous movement state rather than discrete events.
 
-const SETTINGS_TYPE := preload("res://scripts/ecs/resources/rs_footstep_sound_settings.gd")
+const SETTINGS_TYPE := preload("res://scripts/resources/ecs/rs_footstep_sound_settings.gd")
 const SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 const SURFACE_DETECTOR_TYPE := StringName("C_SurfaceDetectorComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")

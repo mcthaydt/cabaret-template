@@ -6,7 +6,7 @@ extends GutTest
 const S_FOOTSTEP_SOUND_SYSTEM_SCRIPT := preload("res://scripts/ecs/systems/s_footstep_sound_system.gd")
 const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 const C_FLOATING_COMPONENT_SCRIPT := preload("res://scripts/ecs/components/c_floating_component.gd")
-const RS_FLOATING_SETTINGS_SCRIPT := preload("res://scripts/ecs/resources/rs_floating_settings.gd")
+const RS_FLOATING_SETTINGS_SCRIPT := preload("res://scripts/resources/ecs/rs_floating_settings.gd")
 const C_SURFACE_TYPE_COMPONENT := preload("res://scripts/ecs/components/c_surface_type_component.gd")
 
 # NOTE: Footstep system tests are currently limited in headless mode because:
