@@ -1,5 +1,4 @@
 extends RefCounted
-class_name U_ECSQueryMetrics
 
 ## ECS query metrics helper
 ##
@@ -147,4 +146,3 @@ func _compare_metric_keys_by_recency(a: String, b: String) -> bool:
 	if is_equal_approx(time_a, time_b):
 		return String(a) < String(b)
 	return time_a > time_b
-
