@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (16/23 tasks complete)
+**Status**: In Progress (17/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -18,8 +18,8 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 | Phase 2: Naming Fixes | 4 | 4/4 | Medium |
 | Phase 3: Folder Restructuring | 8 | 8/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
-| Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **16/23 (69.6%)** | - |
+| Phase 5: Optional Polish | 3 | 1/3 | Medium |
+| **TOTAL** | **23** | **17/23 (73.9%)** | - |
 
 ---
 
@@ -633,14 +633,21 @@ scripts/utils/
 
 ---
 
-### Task 22: Clean Up Unused Test Files PENDING
+### Task 22: Clean Up Unused Test Files COMPLETE
 
-- [ ] Audit `tests/` directory for orphaned files
-- [ ] Remove unused test files
-- [ ] Consolidate test helpers if needed
+- [x] Audit `tests/` directory for orphaned files
+- [x] Remove unused test files
+- [x] Consolidate test helpers if needed
 
-**Status**: CAN BE DEFERRED
+**Status**: COMPLETE (2026-01-24)
 **Risk**: Low
+**Files removed**: 17 orphaned files + 18 .uid files (35 total)
+**Notes**:
+- Removed `tests/examples/` (4 example tests not used)
+- Removed `tests/helpers/test_root_loader.gd` (temporary Phase 2 script)
+- Removed `tests/scenes/test_pause_menu.tscn` (not referenced)
+- Removed `tests/scenes/state_management/` (6 manual test scripts, not GUT-compatible)
+- Test count reduced from 254 to 243 .gd files
 
 ---
 
@@ -767,6 +774,6 @@ After reorganization completion:
 
 ---
 
-**Last Updated**: 2026-01-23
-**Status**: In Progress (1/23 complete - 4.3%)
-**Next Batch**: Batch 1 (Tasks 2-4) - Zero-risk quick wins
+**Last Updated**: 2026-01-24
+**Status**: In Progress (17/23 complete - 73.9%)
+**Remaining Tasks**: Phase 4 (Tasks 17-20 deferred or low priority), Phase 5 (Task 23 complete)
