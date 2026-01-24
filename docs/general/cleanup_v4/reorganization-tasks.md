@@ -569,15 +569,15 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 
 ---
 
-### Task 19: Move Loose Trigger Settings PENDING
+### Task 19: Move Loose Trigger Settings COMPLETE
 
-- [ ] Create `resources/triggers/` directory
-- [ ] Move `resources/rs_scene_trigger_settings.tres` -> `resources/triggers/`
-- [ ] Update references
-- [ ] Run tests
+- [x] Create `resources/triggers/` directory
+- [x] Move `resources/triggers/rs_scene_trigger_settings.tres` -> `resources/triggers/`
+- [x] Update references
+- [x] Run tests
 
-**Status**: READY TO EXECUTE
-**Files affected**: 1 move + unknown references
+**Status**: COMPLETE (2026-01-24)
+**Files affected**: 1 move + references (docs/tests)
 **Risk**: Low
 
 ---

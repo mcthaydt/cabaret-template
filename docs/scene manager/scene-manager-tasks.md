@@ -364,7 +364,7 @@
 
 ### Refinement: Trigger Geometry (Shape-Agnostic)
 
-- [x] R-TRIG-01 Add RS_SceneTriggerSettings resource with shape enum (Box, Cylinder), cylinder radius/height, box size, local offset, and player mask - **COMPLETE** (scripts/ecs/resources/rs_scene_trigger_settings.gd, resources/rs_scene_trigger_settings.tres)
+- [x] R-TRIG-01 Add RS_SceneTriggerSettings resource with shape enum (Box, Cylinder), cylinder radius/height, box size, local offset, and player mask - **COMPLETE** (scripts/ecs/resources/rs_scene_trigger_settings.gd, resources/triggers/rs_scene_trigger_settings.tres)
 - [x] R-TRIG-02 Refactor C_SceneTriggerComponent to construct `CollisionShape3D` from settings; default to Cylinder (radius=1.0, height=3.0, offset=Vector3(0,1.5,0)) while preserving guards and signals - **COMPLETE**
 - [x] R-TRIG-03 Update gameplay scenes/templates to assign RS_SceneTriggerSettings explicitly where desired (optional; component has sensible defaults) - **COMPLETE**
   - exterior.tscn uses component defaults (cylinder, matches CSGCylinder3D door visual)
@@ -412,7 +412,7 @@
 - `scenes/gameplay/interior_house.tscn` - Interior area with door_to_exterior trigger
 - `tests/utils/test_scene_generation.gd` - Scene generation validation tests
  - `scripts/ecs/resources/rs_scene_trigger_settings.gd` - Trigger geometry/resource settings (shape-agnostic)
- - `resources/rs_scene_trigger_settings.tres` - Default trigger settings (Cylinder)
+ - `resources/triggers/rs_scene_trigger_settings.tres` - Default trigger settings (Cylinder)
 
 ---
 

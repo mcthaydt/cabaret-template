@@ -51,7 +51,7 @@ script = ExtResource("trigger_component")
 door_id = &"door_main"
 target_scene_id = &"interior"
 target_spawn_point = &"sp_entrance"
-settings = ExtResource("res://resources/rs_scene_trigger_settings.tres")
+settings = ExtResource("res://resources/triggers/rs_scene_trigger_settings.tres")
 ```
 
 **When to use:**
@@ -220,7 +220,7 @@ Standard location for trigger settings:
 
 ```
 resources/
-├── rs_scene_trigger_settings.tres          # Default settings
+├── rs_scene_trigger_settings.tres          # Default settings (in resources/triggers/)
 └── triggers/                               # Custom settings
     ├── rs_cylinder_wide_door_trigger_settings.tres
     ├── rs_trigger_wide_gate.tres
