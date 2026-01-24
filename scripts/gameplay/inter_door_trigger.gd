@@ -1,5 +1,5 @@
 extends "res://scripts/gameplay/triggered_interactable_controller.gd"
-class_name E_DoorTriggerController
+class_name Inter_DoorTrigger
 
 ## Door trigger authored as a single E_* entity.
 ## Relies on TriggeredInteractableController for player detection
@@ -63,7 +63,7 @@ func _ensure_component(area: Area3D) -> void:
 
 	var instance := _instantiate_component()
 	if instance == null:
-		push_error("E_DoorTriggerController: Unable to instantiate C_SceneTriggerComponent.")
+		push_error("Inter_DoorTrigger: Unable to instantiate C_SceneTriggerComponent.")
 		return
 
 	instance.name = _resolve_component_name()
@@ -79,7 +79,7 @@ func _instantiate_component() -> C_SceneTriggerComponent:
 		var created: Variant = component_factory.call()
 		if created is C_SceneTriggerComponent:
 			return created as C_SceneTriggerComponent
-		push_warning("E_DoorTriggerController: component_factory returned incompatible instance.")
+		push_warning("Inter_DoorTrigger: component_factory returned incompatible instance.")
 	return C_SceneTriggerComponent.new()
 
 func _resolve_component_name() -> String:

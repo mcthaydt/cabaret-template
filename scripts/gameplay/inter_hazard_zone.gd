@@ -1,5 +1,5 @@
 extends "res://scripts/gameplay/base_volume_controller.gd"
-class_name E_HazardZone
+class_name Inter_HazardZone
 
 const C_DamageZoneComponent := preload("res://scripts/ecs/components/c_damage_zone_component.gd")
 
@@ -52,7 +52,7 @@ func _ensure_component(area: Area3D) -> void:
 
 	var instance := _instantiate_component()
 	if instance == null:
-		push_error("E_HazardZone: Unable to instantiate C_DamageZoneComponent.")
+		push_error("Inter_HazardZone: Unable to instantiate C_DamageZoneComponent.")
 		return
 
 	instance.name = _resolve_component_name()
@@ -69,7 +69,7 @@ func _instantiate_component() -> C_DamageZoneComponent:
 		var created: Variant = component_factory.call()
 		if created is C_DamageZoneComponent:
 			return created as C_DamageZoneComponent
-		push_warning("E_HazardZone: component_factory returned incompatible instance.")
+		push_warning("Inter_HazardZone: component_factory returned incompatible instance.")
 	return C_DamageZoneComponent.new()
 
 func _resolve_component_name() -> String:

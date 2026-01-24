@@ -1,6 +1,6 @@
 extends BaseTest
 
-const E_CheckpointZone := preload("res://scripts/gameplay/e_checkpoint_zone.gd")
+const Inter_CheckpointZone := preload("res://scripts/gameplay/inter_checkpoint_zone.gd")
 const C_CheckpointComponent := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
 
 class TestCheckpointComponent:
@@ -16,8 +16,8 @@ func _pump_frames(count: int = 1) -> void:
 	for _i in count:
 		await get_tree().process_frame
 
-func _create_controller() -> E_CheckpointZone:
-	var controller := E_CheckpointZone.new()
+func _create_controller() -> Inter_CheckpointZone:
+	var controller := Inter_CheckpointZone.new()
 	controller.component_factory = Callable(self, "_create_checkpoint_stub")
 	controller.checkpoint_id = StringName("cp_test")
 	controller.spawn_point_id = StringName("sp_test")

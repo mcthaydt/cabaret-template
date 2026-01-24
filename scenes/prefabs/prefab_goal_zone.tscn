@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://behhuoexdtawd"]
 
-[ext_resource type="Script" uid="uid://bbl52npr4prun" path="res://scripts/gameplay/e_victory_zone.gd" id="1_controller"]
+[ext_resource type="Script" uid="uid://bbl52npr4prun" path="res://scripts/gameplay/inter_victory_zone.gd" id="1_controller"]
 [ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/rs_goal_cylinder.tres" id="2_goal_settings"]
 
 [sub_resource type="StandardMaterial3D" id="Material_goal"]

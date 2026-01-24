@@ -1,6 +1,6 @@
 extends BaseTest
 
-const E_HazardZone := preload("res://scripts/gameplay/e_hazard_zone.gd")
+const Inter_HazardZone := preload("res://scripts/gameplay/inter_hazard_zone.gd")
 const C_DamageZoneComponent := preload("res://scripts/ecs/components/c_damage_zone_component.gd")
 
 class TestDamageZoneComponent:
@@ -16,8 +16,8 @@ func _pump_frames(count: int = 1) -> void:
 	for _i in count:
 		await get_tree().process_frame
 
-func _create_controller() -> E_HazardZone:
-	var controller := E_HazardZone.new()
+func _create_controller() -> Inter_HazardZone:
+	var controller := Inter_HazardZone.new()
 	controller.component_factory = Callable(self, "_create_damage_zone_stub")
 	controller.damage_amount = 42.0
 	controller.is_instant_death = true

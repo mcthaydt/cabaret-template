@@ -1,6 +1,6 @@
 extends BaseTest
 
-const E_VictoryZone := preload("res://scripts/gameplay/e_victory_zone.gd")
+const Inter_VictoryZone := preload("res://scripts/gameplay/inter_victory_zone.gd")
 const C_VictoryTriggerComponent := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 
 class TestVictoryComponent:
@@ -16,8 +16,8 @@ func _pump_frames(count: int = 1) -> void:
 	for _i in count:
 		await get_tree().process_frame
 
-func _create_controller() -> E_VictoryZone:
-	var controller := E_VictoryZone.new()
+func _create_controller() -> Inter_VictoryZone:
+	var controller := Inter_VictoryZone.new()
 	controller.component_factory = Callable(self, "_create_victory_stub")
 	controller.objective_id = StringName("objective_test")
 	controller.area_id = "area_test"

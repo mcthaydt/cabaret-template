@@ -1,14 +1,14 @@
 extends BaseTest
 
-const E_Signpost := preload("res://scripts/gameplay/e_signpost.gd")
+const Inter_Signpost := preload("res://scripts/gameplay/inter_signpost.gd")
 const U_ECSEventBus := preload("res://scripts/ecs/u_ecs_event_bus.gd")
 
 func _pump_frames(count: int = 1) -> void:
 	for _i in count:
 		await get_tree().process_frame
 
-func _create_signpost() -> E_Signpost:
-	var signpost := E_Signpost.new()
+func _create_signpost() -> Inter_Signpost:
+	var signpost := Inter_Signpost.new()
 	signpost.message = "Hello there"
 	add_child(signpost)
 	autofree(signpost)
@@ -17,7 +17,7 @@ func _create_signpost() -> E_Signpost:
 
 func test_defaults_to_interact_mode() -> void:
 	var signpost := await _create_signpost()
-	assert_eq(signpost.trigger_mode, E_Signpost.TriggerMode.INTERACT)
+	assert_eq(signpost.trigger_mode, Inter_Signpost.TriggerMode.INTERACT)
 	assert_eq(signpost.cooldown_duration, 0.0)
 
 func test_emits_signal_on_activation() -> void:
@@ -27,7 +27,7 @@ func test_emits_signal_on_activation() -> void:
 		"message": "",
 		"count": 0
 	}
-	signpost.signpost_activated.connect(func(message: String, _node: E_Signpost) -> void:
+	signpost.signpost_activated.connect(func(message: String, _node: Inter_Signpost) -> void:
 		received.message = message
 		received.count += 1
 	)

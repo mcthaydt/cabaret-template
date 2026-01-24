@@ -1,5 +1,5 @@
 extends "res://scripts/gameplay/base_volume_controller.gd"
-class_name E_CheckpointZone
+class_name Inter_CheckpointZone
 
 const C_CheckpointComponent := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
 
@@ -44,7 +44,7 @@ func _ensure_component(area: Area3D) -> void:
 
 	var instance := _instantiate_component()
 	if instance == null:
-		push_error("E_CheckpointZone: Unable to instantiate C_CheckpointComponent.")
+		push_error("Inter_CheckpointZone: Unable to instantiate C_CheckpointComponent.")
 		return
 
 	instance.name = _resolve_component_name()
@@ -67,7 +67,7 @@ func _instantiate_component() -> C_CheckpointComponent:
 		var created: Variant = component_factory.call()
 		if created is C_CheckpointComponent:
 			return created as C_CheckpointComponent
-		push_warning("E_CheckpointZone: component_factory returned incompatible instance.")
+		push_warning("Inter_CheckpointZone: component_factory returned incompatible instance.")
 	return C_CheckpointComponent.new()
 
 func _resolve_component_name() -> String:

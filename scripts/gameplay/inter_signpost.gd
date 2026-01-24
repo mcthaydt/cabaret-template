@@ -1,9 +1,9 @@
 extends "res://scripts/gameplay/triggered_interactable_controller.gd"
-class_name E_Signpost
+class_name Inter_Signpost
 
 const SIGNPOST_MESSAGE_EVENT := StringName("signpost_message")
 
-signal signpost_activated(message: String, signpost: E_Signpost)
+signal signpost_activated(message: String, signpost: Inter_Signpost)
 
 @export var message: String = ""
 @export var repeatable: bool = true

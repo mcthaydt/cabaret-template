@@ -1,6 +1,6 @@
 extends BaseTest
 
-const E_DoorTriggerController := preload("res://scripts/gameplay/e_door_trigger_controller.gd")
+const Inter_DoorTrigger := preload("res://scripts/gameplay/inter_door_trigger.gd")
 const C_SceneTriggerComponent := preload("res://scripts/ecs/components/c_scene_trigger_component.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/state/resources/rs_scene_initial_state.gd")
@@ -64,8 +64,8 @@ func before_each() -> void:
 func after_each() -> void:
 	U_ServiceLocator.clear()
 
-func _create_controller() -> E_DoorTriggerController:
-	var controller := E_DoorTriggerController.new()
+func _create_controller() -> Inter_DoorTrigger:
+	var controller := Inter_DoorTrigger.new()
 	controller.component_factory = Callable(self, "_create_scene_trigger_stub")
 	controller.door_id = StringName("door_test")
 	controller.target_scene_id = StringName("scene_test")
