@@ -28,6 +28,7 @@ We use a **prefix + suffix** naming convention that provides:
 | **Event Buses** | `U_` | `EventBus` | `U_ECSEventBus`, `U_StateEventBus` |
 | **Typed Events** | `Evn_` | `*Event` suffix omitted | `Evn_HealthChanged`, `Evn_EntityDeath` |
 | **Registries** | `U_` | `Registry` | `U_SceneRegistry` |
+| **Interactable Controllers** | `Inter_` | none | `Inter_DoorTrigger`, `Inter_Signpost` |
 | **Scenes** | `SC_` | `Scene` | `SC_PlayerScene` |
 | **Shaders** | `SH_` | `Shader` | `SH_WaterShader` |
 | **Tools** | `T_` | `Tool` | `T_LevelEditorTool` |
@@ -55,6 +56,7 @@ The following patterns apply to **production** scripts under `res://scripts/**`.
 | **Event Buses** | `u_*_event_bus.gd` | `u_state_event_bus.gd`, `u_ecs_event_bus.gd` |
 | **Typed Events** | `evn_*.gd` | `evn_health_changed.gd`, `evn_entity_death.gd`, `evn_victory_triggered.gd` |
 | **UI Controllers** | `ui_*_screen.gd` / `ui_*_overlay.gd` / `ui_*_panel.gd` | `ui_main_menu_screen.gd`, `ui_pause_menu_overlay.gd` |
+| **Interactable Controllers** | `inter_*.gd` | `inter_door_trigger.gd`, `inter_signpost.gd` |
 | **Base Classes** | `base_*.gd` | `base_panel.gd`, `base_menu_screen.gd`, `base_overlay.gd`, `base_ecs_component.gd` |
 | **Marker Scripts** | `marker_*.gd` | `marker_entities_group.gd`, `marker_active_scene_container.gd`, `marker_managers_group.gd` |
 | **Transition Effects** | `trans_*.gd` | `trans_fade.gd`, `trans_loading_screen.gd`, `trans_instant.gd` |

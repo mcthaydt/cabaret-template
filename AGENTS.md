@@ -109,16 +109,16 @@
 - Templates: `templates/tmpl_base_scene.tscn` (legacy reference), `templates/tmpl_character.tscn` (generic), `templates/tmpl_camera.tscn`
 - Marker scripts: `scripts/scene_structure/*` (11 total) provide visual organization
 - Systems organized by category: Core / Physics / Movement / Feedback
-- Naming: Node names use prefixes matching their script types (E_, S_, C_, M_, SO_, Env_)
+- Naming: Node names use prefixes matching their script types (E_, Inter_, S_, C_, M_, SO_, Env_)
 
 ### Interactable Controllers
 
-- Controllers live in `scripts/gameplay/` and replace ad-hoc `C_*` nodes; create a single `E_*` node per interactable:
+- Controllers live in `scripts/gameplay/` and replace ad-hoc `C_*` nodes; create a single `Inter_*` controller per interactable (node names may remain `E_*` in scenes):
   - Base stack: `base_volume_controller.gd`, `base_interactable_controller.gd`, `triggered_interactable_controller.gd`
-  - Concrete controllers: `e_door_trigger_controller.gd`, `e_checkpoint_zone.gd`, `e_hazard_zone.gd`, `e_victory_zone.gd`, `e_signpost.gd`
+  - Concrete controllers: `inter_door_trigger.gd`, `inter_checkpoint_zone.gd`, `inter_hazard_zone.gd`, `inter_victory_zone.gd`, `inter_signpost.gd`, `inter_endgame_goal_zone.gd`
 - Controllers auto-create/adopt `Area3D` volumes using `RS_SceneTriggerSettings`—never author separate component or Area children manually.
 - `triggered_interactable_controller.gd` publishes `interact_prompt_show` / `interact_prompt_hide` events; HUD renders the prompt label.
-- `e_signpost.gd` emits `signpost_message` events; HUD reuses the checkpoint toast UI for signpost text.
+- `inter_signpost.gd` emits `signpost_message` events; HUD reuses the checkpoint toast UI for signpost text.
 - Exterior/interior scenes are now fixtures built on controllers; core flow routes through `gameplay_base` instead of these fixtures.
 - Controller `settings` are auto-duplicated (`resource_local_to_scene = true`). Assign shared `.tres` files freely—each controller keeps a unique copy.
 - Passive volumes (`E_CheckpointZone`, `E_HazardZone`, `E_VictoryZone`) keep `ignore_initial_overlap = false` so respawns inside the volume re-register automatically. Triggered interactables (doors, signposts) leave it `true` to avoid instant re-activation.
@@ -135,7 +135,8 @@
 - **Components:** `c_*` prefix (e.g., `c_movement_component.gd` → `C_MovementComponent`)
 - **Systems:** `s_*` prefix (e.g., `s_gravity_system.gd` → `S_GravitySystem`)
 - **Resources:** `rs_*` prefix (e.g., `rs_jump_settings.gd` → `RS_JumpSettings`)
-- **Entities:** `e_*` prefix (e.g., `e_player.gd` → `E_Player`, `e_checkpoint_zone.gd` → `E_CheckpointZone`)
+- **Entities:** `e_*` prefix (e.g., `e_player.gd` → `E_Player`)
+- **Interactable Controllers:** `inter_*` prefix (e.g., `inter_door_trigger.gd` → `Inter_DoorTrigger`)
 - **UI Scripts:** `ui_*` prefix (e.g., `ui_main_menu.gd` → `UI_MainMenu`)
 - **Marker Scripts:** `marker_*` prefix (e.g., `marker_entities_group.gd`, `marker_active_scene_container.gd`)
 - **Transitions:** `trans_*` prefix (e.g., `trans_fade.gd` → `Trans_Fade`)

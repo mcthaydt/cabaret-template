@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (5/23 tasks complete)
+**Status**: In Progress (6/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -15,11 +15,11 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 | Phase | Tasks | Completed | Risk Level |
 |-------|-------|-----------|------------|
 | Phase 1: Quick Wins | 4 | 4/4 | Low |
-| Phase 2: Naming Fixes | 4 | 1/4 | Medium |
+| Phase 2: Naming Fixes | 4 | 2/4 | Medium |
 | Phase 3: Folder Restructuring | 8 | 0/8 | High |
 | Phase 4: Organization | 4 | 0/4 | Medium |
 | Phase 5: Optional Polish | 3 | 0/3 | Medium |
-| **TOTAL** | **23** | **5/23 (21.7%)** | - |
+| **TOTAL** | **23** | **6/23 (26.1%)** | - |
 
 ---
 
@@ -187,28 +187,29 @@ grep -rn "m_autosave_scheduler\|m_damage_flash\|m_input_profile_loader\|m_save_f
 
 ---
 
-### Task 6: Rename Interactable Controllers (e_ -> inter_) PENDING
+### Task 6: Rename Interactable Controllers (e_ -> inter_) COMPLETE
 
 **Rationale**: Interactable controllers need distinct prefix from regular entities. New `inter_` prefix clarifies purpose.
 
 **RESOLVED**: `e_endgame_goal_zone.gd` IS an interactable and should be renamed to `inter_endgame_goal_zone.gd`.
 
-- [ ] Scan for all references to these 6 files
-- [ ] Rename files and update class names:
+- [x] Scan for all references to these 6 files
+- [x] Rename files and update class names:
   - `e_door_trigger_controller.gd` -> `inter_door_trigger.gd`
   - `e_checkpoint_zone.gd` -> `inter_checkpoint_zone.gd`
   - `e_hazard_zone.gd` -> `inter_hazard_zone.gd`
   - `e_victory_zone.gd` -> `inter_victory_zone.gd`
   - `e_signpost.gd` -> `inter_signpost.gd`
   - `e_endgame_goal_zone.gd` -> `inter_endgame_goal_zone.gd`
-- [ ] Update all scene references
-- [ ] Update class names (E_* -> Inter_*)
-- [ ] Update STYLE_GUIDE.md to document `inter_` prefix
-- [ ] Run affected tests
+- [x] Update all scene references
+- [x] Update class names (E_* -> Inter_*)
+- [x] Update STYLE_GUIDE.md to document `inter_` prefix
+- [x] Run affected tests
 
-**Status**: NEEDS REFERENCE SCAN
+**Status**: COMPLETE (2026-01-24)
 **Files affected**: 6 files + scene references
 **Risk**: Medium
+**Notes**: Updated style enforcement to allow `inter_` in gameplay scripts. Ran interactables + style tests.
 
 **Reference Scan Command**:
 ```bash
