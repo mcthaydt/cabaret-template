@@ -37,8 +37,8 @@ folder_colors={
 "res://resources/": "blue",
 "res://resources/editor_icons/": "blue",
 "res://scenes/": "green",
+"res://scenes/templates/": "green",
 "res://scripts/": "blue",
-"res://templates/": "green",
 "res://tests/": "red"
 }
 

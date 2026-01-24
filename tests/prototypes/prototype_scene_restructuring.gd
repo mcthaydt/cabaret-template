@@ -15,7 +15,7 @@ var _active_scene_container: Node = null
 var _loaded_scene: Node = null
 var _store: I_StateStore = null
 
-const BASE_SCENE_PATH := "res://templates/tmpl_base_scene.tscn"
+const BASE_SCENE_PATH := "res://scenes/templates/tmpl_base_scene.tscn"
 
 func _ready() -> void:
 	print("\n" + "=".repeat(60))

@@ -27,7 +27,7 @@
 [ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/ui_hud_overlay.tscn" id="11_hud"]
 [ext_resource type="Script" uid="uid://evn7fqusp07e" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
 [ext_resource type="Script" uid="uid://jtue6ng08jt1" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
-[ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://templates/tmpl_camera.tscn" id="19_ph0bl"]
+[ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://djo2trcoo4cta" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://cjgp15knhrswe" path="res://scripts/ecs/systems/s_gamepad_vibration_system.gd" id="22_gamepad_vibration"]
 

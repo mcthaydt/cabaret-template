@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c5p7n2jyx8qhq"]
 
-[ext_resource type="PackedScene" uid="uid://rygahxanlmio" path="res://templates/tmpl_base_scene.tscn" id="1_base"]
+[ext_resource type="PackedScene" uid="uid://rygahxanlmio" path="res://scenes/templates/tmpl_base_scene.tscn" id="1_base"]
 [ext_resource type="Script" uid="uid://drllg0manooh" path="res://tests/scenes/state_management/state_test_us1a.gd" id="2_script"]
 
 [node name="StateTestUS1a" unique_id=998121579 instance=ExtResource("1_base")]

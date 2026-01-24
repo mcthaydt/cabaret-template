@@ -1,7 +1,7 @@
 extends BaseTest
 
 const U_ECS_UTILS := preload("res://scripts/utils/u_ecs_utils.gd")
-const SCENE_BASE := preload("res://templates/tmpl_base_scene.tscn")
+const SCENE_BASE := preload("res://scenes/templates/tmpl_base_scene.tscn")
 const SCENE_EXTERIOR := preload("res://scenes/gameplay/gameplay_exterior.tscn")
 const SCENE_INTERIOR := preload("res://scenes/gameplay/gameplay_interior_house.tscn")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
