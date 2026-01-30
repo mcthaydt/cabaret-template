@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cj4k2r8yam5tn"]
 
-[ext_resource type="Script" uid="uid://cfv3xcqrj2gor" path="res://scripts/ui/overlays/ui_save_load_menu.gd" id="1_save_load_menu_script"]
+[ext_resource type="Script" uid="uid://dakn6ewgpm168" path="res://scripts/ui/overlays/ui_save_load_menu.gd" id="1_save_load_menu_script"]
 
 [node name="SaveLoadMenu" type="Control" unique_id=1330759390]
 process_mode = 3

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://jbtongjvvs1u"]
 
-[ext_resource type="Script" uid="uid://bn1d42givqpjk" path="res://scripts/ui/hud/ui_virtual_joystick.gd" id="1"]
+[ext_resource type="Script" uid="uid://bh7stfgjpnvpe" path="res://scripts/ui/hud/ui_virtual_joystick.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://dmhf35w6nenfg" path="res://assets/button_prompts/mobile/joystick_base.png" id="2"]
 [ext_resource type="Texture2D" uid="uid://k7prfv2hq171" path="res://assets/button_prompts/mobile/joystick_thumb.png" id="3"]
 

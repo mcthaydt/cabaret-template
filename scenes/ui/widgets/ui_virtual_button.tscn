@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://d2ageyb8ybl1m"]
 
-[ext_resource type="Script" uid="uid://bu2k5po0wvf2n" path="res://scripts/ui/hud/ui_virtual_button.gd" id="1"]
+[ext_resource type="Script" uid="uid://bkaxvgfiil3pg" path="res://scripts/ui/hud/ui_virtual_button.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://da5wjpwvjqj77" path="res://assets/button_prompts/mobile/button_background.png" id="2"]
 
 [node name="VirtualButton" type="Control" unique_id=804602554]

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_SceneTriggerSettings" format=3 uid="uid://b2rj71hlyc628"]
 
-[ext_resource type="Script" uid="uid://b1221otamum5e" path="res://scripts/resources/ecs/rs_scene_trigger_settings.gd" id="1_settings_script"]
+[ext_resource type="Script" uid="uid://dne23xgb30j2k" path="res://scripts/resources/ecs/rs_scene_trigger_settings.gd" id="1_settings_script"]
 
 [resource]
 script = ExtResource("1_settings_script")

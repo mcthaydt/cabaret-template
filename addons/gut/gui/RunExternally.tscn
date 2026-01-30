@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cftcb0e6g7tu1"]
 
-[ext_resource type="Script" uid="uid://b5wmk75q2ivp3" path="res://addons/gut/gui/RunExternally.gd" id="1_lrqqi"]
+[ext_resource type="Script" uid="uid://c4wekwkoc2fbw" path="res://addons/gut/gui/RunExternally.gd" id="1_lrqqi"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_haowt"]
 bg_color = Color(0.025935074, 0.17817128, 0.30283752, 1)

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dtmxqtns6y8yp"]
 
-[ext_resource type="Script" uid="uid://36imwctwbx23" path="res://tests/prototypes/prototype_camera_blending.gd" id="1_camera_blend_script"]
+[ext_resource type="Script" uid="uid://ckp5n4yoxcgm4" path="res://tests/prototypes/prototype_camera_blending.gd" id="1_camera_blend_script"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_1"]
 

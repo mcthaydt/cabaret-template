@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dls5r5f6157nq"]
 
-[ext_resource type="Script" uid="uid://eyajf4eeimll" path="res://addons/gut/gui/ResultsTree.gd" id="1_b4uub"]
+[ext_resource type="Script" uid="uid://b4na4gnkrlfo4" path="res://addons/gut/gui/ResultsTree.gd" id="1_b4uub"]
 
 [node name="ResultsTree" type="Tree" unique_id=546688879]
 offset_right = 1082.0

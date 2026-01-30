@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://1q1kn3435l12"]
 
-[ext_resource type="Script" uid="uid://b7cbc5aekj8pt" path="res://scripts/ui/settings/ui_vfx_settings_overlay.gd" id="1"]
+[ext_resource type="Script" uid="uid://clcpgk47326m8" path="res://scripts/ui/settings/ui_vfx_settings_overlay.gd" id="1"]
 
 [node name="VFXSettingsOverlay" type="Control" unique_id=1933874596]
 layout_mode = 3

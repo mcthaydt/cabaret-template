@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://d14323kd04ar0"]
 
-[ext_resource type="Script" uid="uid://c5qwywokxxeof" path="res://scripts/ui/settings/ui_audio_settings_tab.gd" id="1_ui_audio_settings_tab_script"]
+[ext_resource type="Script" uid="uid://bd68hrkwcgknt" path="res://scripts/ui/settings/ui_audio_settings_tab.gd" id="1_ui_audio_settings_tab_script"]
 
 [sub_resource type="StyleBoxFlat" id="slider_bg"]
 content_margin_top = 6.0

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bvrqqgjpyouse"]
 
-[ext_resource type="Script" uid="uid://b7o0bwot00gvc" path="res://addons/gut/gui/ResizeHandle.gd" id="1_oi5ed"]
+[ext_resource type="Script" uid="uid://c4rcnfs40mdhv" path="res://addons/gut/gui/ResizeHandle.gd" id="1_oi5ed"]
 
 [node name="ResizeHandle" type="ColorRect" unique_id=1867718504]
 custom_minimum_size = Vector2(20, 20)

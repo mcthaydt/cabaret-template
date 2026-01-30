@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_AudioInitialState" format=3 uid="uid://dkk1esxpemcty"]
 
-[ext_resource type="Script" uid="uid://by6lmb1i08vdp" path="res://scripts/resources/state/rs_audio_initial_state.gd" id="1_audio_state"]
+[ext_resource type="Script" uid="uid://cr4wrmg2g5tky" path="res://scripts/resources/state/rs_audio_initial_state.gd" id="1_audio_state"]
 
 [resource]
 script = ExtResource("1_audio_state")

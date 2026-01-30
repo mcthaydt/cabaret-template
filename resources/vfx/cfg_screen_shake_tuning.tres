@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="RS_ScreenShakeTuning" format=3 uid="uid://dw2cx6xjgb5ij"]
 
-[ext_resource type="Script" uid="uid://cisyabsygnj55" path="res://scripts/resources/ecs/rs_screen_shake_tuning.gd" id="1"]
+[ext_resource type="Script" uid="uid://canbv2p64si35" path="res://scripts/resources/ecs/rs_screen_shake_tuning.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
