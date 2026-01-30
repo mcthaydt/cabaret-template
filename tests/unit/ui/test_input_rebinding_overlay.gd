@@ -1,6 +1,6 @@
 extends GutTest
 
-const OverlayScene := preload("res://scenes/ui/ui_input_rebinding_overlay.tscn")
+const OverlayScene := preload("res://scenes/ui/overlays/ui_input_rebinding_overlay.tscn")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_InputProfile := preload("res://scripts/resources/input/rs_input_profile.gd")
 const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")

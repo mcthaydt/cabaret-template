@@ -106,7 +106,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
 - [x] T010 [TDD] Define initial navigation state resource.
   - **Files**:
     - Create `scripts/state/resources/rs_navigation_initial_state.gd`
-    - Create `resources/state/navigation_initial_state.tres`
+    - Create `resources/state/cfg_navigation_initial_state.tres`
   - **Initial State Shape**:
     ```gdscript
     {
@@ -140,7 +140,7 @@ These tasks must be completed before UI Manager implementation can proceed. They
 - [x] T012 [TDD] Register navigation slice in `M_StateStore._initialize_slices()`.
   - **Files**:
     - Modify `scripts/state/m_state_store.gd`
-    - Create `resources/state/navigation_slice_config.tres`
+    - Create `resources/state/cfg_navigation_slice_config.tres`
   - **Config**:
     - `slice_name`: "navigation"
     - `is_transient`: true (entire slice is transient)
@@ -655,7 +655,7 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
 - [x] T060c [FIX] Fix navigation reducer to use UI registry for parent validation.
   - **Files**:
     - `scripts/state/reducers/u_navigation_reducer.gd`
-    - `resources/ui_screens/edit_touch_controls_overlay.tres`
+    - `resources/ui_screens/cfg_edit_touch_controls_overlay.tres`
     - `scenes/ui/edit_touch_controls_overlay.tscn`
   - **Issue**: Edit Touch Controls overlay couldn't be opened from Touchscreen Settings because `_is_overlay_allowed_for_parent` was hardcoded to only allow pause_menu as immediate parent
   - **Root Cause**: Navigation reducer had hardcoded parent validation instead of using UI registry's `allowed_parents` field
@@ -672,7 +672,7 @@ These tasks remove direct pause/ESC input handling from existing systems, consol
   - **Files**:
     - `scripts/ui/resources/rs_ui_screen_definition.gd`
     - `scripts/managers/m_scene_manager.gd`
-    - `resources/ui_screens/edit_touch_controls_overlay.tres`
+    - `resources/ui_screens/cfg_edit_touch_controls_overlay.tres`
     - `scenes/ui/mobile_controls.tscn`
   - **Issue**: Edit Touch Controls has transparent background but pause/touchscreen settings overlays underneath still visible, cluttering view
   - **Solution**:
@@ -838,9 +838,9 @@ Issues discovered during testing that need to be addressed:
 - `scripts/ui/ui_input_handler.gd`
 
 **Resources:**
-- `resources/state/navigation_initial_state.tres`
-- `resources/state/navigation_slice_config.tres`
-- `resources/ui_screens/*.tres` (11 screen definitions)
+- `resources/state/cfg_navigation_initial_state.tres`
+- `resources/state/cfg_navigation_slice_config.tres`
+- `resources/ui_screens/cfg_*.tres` (11 screen definitions)
 
 **Tests:**
 - `tests/unit/state/test_navigation_state.gd`

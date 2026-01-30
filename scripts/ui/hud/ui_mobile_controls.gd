@@ -1,8 +1,8 @@
 extends CanvasLayer
 class_name UI_MobileControls
 
-const VIRTUAL_JOYSTICK_SCENE := preload("res://scenes/ui/ui_virtual_joystick.tscn")
-const VIRTUAL_BUTTON_SCENE := preload("res://scenes/ui/ui_virtual_button.tscn")
+const VIRTUAL_JOYSTICK_SCENE := preload("res://scenes/ui/widgets/ui_virtual_joystick.tscn")
+const VIRTUAL_BUTTON_SCENE := preload("res://scenes/ui/widgets/ui_virtual_button.tscn")
 const UI_VirtualJoystick := preload("res://scripts/ui/hud/ui_virtual_joystick.gd")
 const UI_VirtualButton := preload("res://scripts/ui/hud/ui_virtual_button.gd")
 const RS_InputProfile := preload("res://scripts/resources/input/rs_input_profile.gd")
@@ -21,7 +21,7 @@ const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_man
 @export_range(0.0, 1.0, 0.05) var idle_opacity: float = 0.3
 @export_range(0.0, 1.0, 0.05) var active_opacity: float = 1.0
 
-const DEFAULT_TOUCHSCREEN_PROFILE_PATH := "res://resources/input/profiles/default_touchscreen.tres"
+const DEFAULT_TOUCHSCREEN_PROFILE_PATH := "res://resources/input/profiles/cfg_default_touchscreen.tres"
 const SHELL_GAMEPLAY := StringName("gameplay")
 const EDIT_OVERLAY_ID := StringName("edit_touch_controls")
 

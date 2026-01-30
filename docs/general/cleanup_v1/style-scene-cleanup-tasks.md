@@ -1432,7 +1432,7 @@ All entities inherit from `base_ecs_entity.gd` (directly or via `base_volume_con
   - [ ] T113d Disable Load/Delete for empty slots in LOAD mode
 
 - [ ] T114 Register overlay in UI system:
-  - [ ] T114a Create `resources/ui_screens/save_slot_selector_overlay.tres` (RS_UIScreenDefinition)
+  - [ ] T114a Create `resources/ui_screens/cfg_save_slot_selector_overlay.tres` (RS_UIScreenDefinition)
   - [ ] T114b Register scene in `U_SceneRegistry`
   - [ ] T114c Add to `U_UIRegistry._register_all_screens()`
 

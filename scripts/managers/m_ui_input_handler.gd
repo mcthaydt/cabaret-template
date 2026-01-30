@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/manager.svg")
+@icon("res://assets/editor_icons/icn_manager.svg")
 extends Node
 class_name M_UIInputHandler
 

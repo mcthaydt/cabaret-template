@@ -89,7 +89,7 @@ On boot, `scripts/root.gd` registers manager nodes in `U_ServiceLocator` for fas
 - Update project name/icon: `project.godot`
   - `config/name`
   - `config/icon`
-- Replace sample scenes under `scenes/gameplay/` and update `resources/scene_registry/*.tres` accordingly
+- Replace sample scenes under `scenes/gameplay/` and update `resources/scene_registry/cfg_*_entry.tres` accordingly
 - Review `resources/input/profiles/` and tune defaults under `resources/input/*`
 - Replace placeholder art under `assets/`
 - Skim the conventions docs:
@@ -103,7 +103,7 @@ On boot, `scripts/root.gd` registers manager nodes in `U_ServiceLocator` for fas
 2. Keep the standard scene tree structure (see `docs/general/SCENE_ORGANIZATION_GUIDE.md`).
 3. Register it via a resource entry:
    - Create an `RS_SceneRegistryEntry` under `resources/scene_registry/`
-   - See `resources/scene_registry/README.md`
+   - See `docs/scene_manager/ADDING_SCENES_GUIDE.md`
 
 ### Add an ECS component
 
@@ -126,7 +126,7 @@ On boot, `scripts/root.gd` registers manager nodes in `U_ServiceLocator` for fas
 
 ### UI screens & overlays
 
-- Screen metadata lives in `resources/ui_screens/*.tres` (`RS_UIScreenDefinition`).
+- Screen metadata lives in `resources/ui_screens/cfg_*.tres` (`RS_UIScreenDefinition`).
 - `U_UIRegistry` preloads/registers definitions for export determinism; add new screens there.
 - UI typically drives flow by dispatching navigation actions (rather than calling the scene manager directly).
 
@@ -151,5 +151,5 @@ GODOT_BIN="/path/to/Godot" tools/run_gut_suite.sh -gdir=res://tests/unit
 - Scene tree conventions: `docs/general/SCENE_ORGANIZATION_GUIDE.md`
 - Manager dependency graph: `docs/architecture/dependency_graph.md`
 - ECS ↔ state contract: `docs/architecture/ecs_state_contract.md`
-- Scene registry workflow: `resources/scene_registry/README.md`
+- Scene registry workflow: `docs/scene_manager/ADDING_SCENES_GUIDE.md`
 

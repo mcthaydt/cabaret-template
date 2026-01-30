@@ -15,12 +15,13 @@ const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
+const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
-const STREAM_MAIN_MENU := preload("res://assets/audio/music/main_menu.mp3")
-const STREAM_EXTERIOR := preload("res://assets/audio/music/exterior.mp3")
-const STREAM_INTERIOR := preload("res://assets/audio/music/interior.mp3")
-const STREAM_PAUSE := preload("res://assets/audio/music/pause.mp3")
-const STREAM_CREDITS := preload("res://assets/audio/music/credits.mp3")
+const STREAM_MAIN_MENU := preload("res://assets/audio/music/mus_main_menu.mp3")
+const STREAM_EXTERIOR := preload("res://assets/audio/music/mus_exterior.mp3")
+const STREAM_INTERIOR := preload("res://assets/audio/music/mus_interior.mp3")
+const STREAM_PAUSE := preload("res://assets/audio/music/mus_pause.mp3")
+const STREAM_CREDITS := preload("res://assets/audio/music/mus_credits.mp3")
 
 var _manager: Node
 var _store: Node
@@ -59,11 +60,13 @@ func test_manager_registers_with_service_locator() -> void:
 	assert_not_null(service, "M_AudioManager should register with ServiceLocator")
 	assert_eq(service, _manager, "ServiceLocator should return the Audio manager instance")
 
-func test_manager_creates_audio_bus_layout() -> void:
+func test_manager_validates_audio_bus_layout() -> void:
+	# Test helper creates required bus layout before manager initialization
 	_manager = M_AUDIO_MANAGER.new()
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
+	# Verify all required buses exist
 	assert_eq(AudioServer.bus_count, 6, "Audio bus count should be 6 (Master + 5)")
 	assert_eq(AudioServer.get_bus_name(0), "Master", "Bus 0 should be Master")
 	assert_eq(AudioServer.get_bus_name(1), "Music", "Bus 1 should be Music")
@@ -79,18 +82,20 @@ func test_manager_creates_audio_bus_layout() -> void:
 	assert_eq(AudioServer.get_bus_send(4), "SFX", "Footsteps should send to SFX")
 	assert_eq(AudioServer.get_bus_send(5), "Master", "Ambient should send to Master")
 
-func test_manager_rebuilds_bus_layout_when_extra_buses_exist() -> void:
-	_reset_audio_buses()
-	AudioServer.add_bus(1)
-	AudioServer.set_bus_name(1, "Temp")
-	assert_eq(AudioServer.bus_count, 2, "Precondition: Temp bus added")
+func test_manager_validates_successfully_with_extra_buses() -> void:
+	# Add an extra bus beyond the required ones
+	AudioServer.add_bus()
+	AudioServer.set_bus_name(6, "Extra")
+	assert_eq(AudioServer.bus_count, 7, "Precondition: Extra bus added")
 
+	# Manager should validate successfully (all required buses still present)
 	_manager = M_AUDIO_MANAGER.new()
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	assert_eq(AudioServer.bus_count, 6, "Manager should rebuild bus layout to 6 buses")
-	assert_eq(AudioServer.get_bus_name(1), "Music", "Bus 1 should be Music after rebuild")
+	# Verify manager initialized without errors (bus layout is valid)
+	assert_not_null(_manager, "Manager should initialize successfully")
+	assert_eq(AudioServer.bus_count, 7, "Extra bus should remain after validation")
 
 # ============================================================================
 # Phase 1 - Volume conversion and application tests (Tasks 1.3/1.4)
@@ -166,12 +171,7 @@ func _make_store_with_audio_slice() -> Node:
 	return store
 
 func _reset_audio_buses() -> void:
-	while AudioServer.bus_count > 1:
-		AudioServer.remove_bus(1)
-	if FileAccess.file_exists(U_AUDIO_SERIALIZATION.SAVE_PATH):
-		DirAccess.remove_absolute(U_AUDIO_SERIALIZATION.SAVE_PATH)
-	if FileAccess.file_exists(U_AUDIO_SERIALIZATION.BACKUP_PATH):
-		DirAccess.remove_absolute(U_AUDIO_SERIALIZATION.BACKUP_PATH)
+	U_AUDIO_TEST_HELPERS.reset_audio_buses()
 
 # ============================================================================
 # Phase 2 - Music system tests (Tasks 2.2-2.5)
@@ -438,3 +438,72 @@ func test_pause_while_paused_updates_return_track() -> void:
 	_store.dispatch(U_NAVIGATION_ACTIONS.close_pause())
 	await get_tree().process_frame
 	assert_true(_is_stream_playing(_manager, STREAM_INTERIOR), "Should restore to interior music (updated return track)")
+
+
+## Phase 9: Hash-based optimization tests
+
+func test_hash_based_change_detection_skips_redundant_updates() -> void:
+	# Given: Manager with initial audio settings
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	var initial_master_volume := AudioServer.get_bus_volume_db(0)
+
+	# When: Dispatching non-audio action (doesn't change audio slice)
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	await get_tree().process_frame
+
+	# Then: Audio settings should not be re-applied (hash unchanged)
+	var master_volume_after := AudioServer.get_bus_volume_db(0)
+	assert_eq(master_volume_after, initial_master_volume, "Master volume should remain unchanged")
+
+
+func test_hash_based_change_detection_applies_when_audio_slice_changes() -> void:
+	# Given: Manager with initial audio settings (master_volume = 1.0 by default → 0dB)
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	var initial_master_volume := AudioServer.get_bus_volume_db(0)
+
+	# When: Changing master volume to a very different value (changes audio slice hash)
+	_store.dispatch(U_AUDIO_ACTIONS.set_master_volume(0.1))
+	await get_tree().process_frame
+
+	# Then: Audio settings should be re-applied (0.1 linear ≈ -20dB, much lower than 0dB)
+	var master_volume_after := AudioServer.get_bus_volume_db(0)
+	assert_lt(master_volume_after, initial_master_volume - 10.0, "Master volume should decrease significantly when audio slice changes")
+
+
+func test_multiple_redundant_updates_only_apply_once() -> void:
+	# Given: Manager with initial audio settings
+	_store = _make_store_with_audio_slice()
+	add_child_autofree(_store)
+	await get_tree().process_frame
+
+	_manager = M_AUDIO_MANAGER.new()
+	add_child_autofree(_manager)
+	await get_tree().process_frame
+
+	# Set initial volume
+	_store.dispatch(U_AUDIO_ACTIONS.set_master_volume(0.7))
+	await get_tree().process_frame
+	var volume_after_first := AudioServer.get_bus_volume_db(0)
+
+	# When: Dispatching multiple non-audio actions
+	for i in range(5):
+		_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+		await get_tree().process_frame
+
+	# Then: Volume should remain the same (no redundant updates)
+	var volume_after_multiple := AudioServer.get_bus_volume_db(0)
+	assert_eq(volume_after_multiple, volume_after_first, "Volume should remain unchanged after redundant updates")

@@ -1,8 +1,8 @@
 extends GutTest
 
-const GameOverScene := preload("res://scenes/ui/ui_game_over.tscn")
-const VictoryScene := preload("res://scenes/ui/ui_victory.tscn")
-const CreditsScene := preload("res://scenes/ui/ui_credits.tscn")
+const GameOverScene := preload("res://scenes/ui/menus/ui_game_over.tscn")
+const VictoryScene := preload("res://scenes/ui/menus/ui_victory.tscn")
+const CreditsScene := preload("res://scenes/ui/menus/ui_credits.tscn")
 
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")

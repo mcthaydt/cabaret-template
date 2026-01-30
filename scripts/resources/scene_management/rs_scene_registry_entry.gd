@@ -14,7 +14,7 @@ class_name RS_SceneRegistryEntry
 ##
 ## **Usage:**
 ## 1. Create new RS_SceneRegistryEntry resource in editor
-## 2. Save to `resources/scene_registry/<scene_name>.tres`
+## 2. Save to `resources/scene_registry/cfg_<scene_name>_entry.tres`
 ## 3. Scene will be auto-loaded on startup
 ##
 ## **Example:**
@@ -26,7 +26,7 @@ class_name RS_SceneRegistryEntry
 ## entry.scene_type = SceneType.GAMEPLAY
 ## entry.default_transition = "fade"
 ## entry.preload_priority = 5
-## ResourceSaver.save(entry, "res://resources/scene_registry/my_level.tres")
+## ResourceSaver.save(entry, "res://resources/scene_registry/cfg_my_level_entry.tres")
 ## ```
 
 ## Unique identifier for this scene (e.g., "main_menu", "level_01")

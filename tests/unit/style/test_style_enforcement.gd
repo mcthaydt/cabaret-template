@@ -24,7 +24,7 @@ const TRIGGER_RESOURCE_DIRECTORIES := [
 ]
 
 const TRIGGER_RESOURCE_FILES := [
-	"res://resources/triggers/rs_scene_trigger_settings.tres"
+	"res://resources/triggers/cfg_scene_trigger_settings.tres"
 ]
 
 const SCRIPT_FILENAME_EXCEPTIONS := [

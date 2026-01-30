@@ -1,9 +1,14 @@
-@icon("res://assets/editor_icons/system.svg")
+@icon("res://assets/editor_icons/icn_system.svg")
 extends "res://scripts/ecs/base_event_sfx_system.gd"
 class_name S_CheckpointSoundSystem
 
+## Checkpoint Sound System (Phase 6 - Refactored)
+##
+## Plays checkpoint activation sounds using base class helpers.
+## Position is now resolved in S_CheckpointSystem and included in event payload,
+## eliminating O(n) find_child() traversal.
+
 const SETTINGS_TYPE := preload("res://scripts/resources/ecs/rs_checkpoint_sound_settings.gd")
-const SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 
 @export var settings: SETTINGS_TYPE
 
@@ -14,40 +19,39 @@ func get_event_name() -> StringName:
 
 func create_request_from_payload(payload: Dictionary) -> Dictionary:
 	return {
-		"spawn_point_id": payload.get("spawn_point_id", StringName("")),
+		"position": payload.get("position", Vector3.ZERO),
 	}
 
+func _get_audio_stream() -> AudioStream:
+	if settings == null:
+		return null
+	return settings.audio_stream
+
 func process_tick(_delta: float) -> void:
-	if settings == null or not settings.enabled:
+	# Phase 6: Use shared helpers from base class
+	if _should_skip_processing():
+		return
+
+	if _is_audio_blocked():
 		requests.clear()
 		return
 
-	var stream := settings.audio_stream as AudioStream
-	if stream == null:
-		requests.clear()
-		return
-
+	var stream := _get_audio_stream()
 	var min_interval: float = max(settings.min_interval, 0.0)
 	var now: float = ECS_UTILS.get_current_time()
-	var pitch_variation: float = clampf(settings.pitch_variation, 0.0, 0.95)
 
 	for request_variant in requests:
-		if min_interval > 0.0 and now - _last_play_time < min_interval:
+		if _is_throttled(min_interval, now):
 			continue
 
 		var request := request_variant as Dictionary
 		if request == null:
 			continue
 
-		var spawn_point_id_variant: Variant = request.get("spawn_point_id", StringName(""))
-		var spawn_point_id := spawn_point_id_variant as StringName
-		var position := _resolve_spawn_point_position(spawn_point_id)
+		var position := _extract_position(request)
+		var pitch_scale := _calculate_pitch(settings.pitch_variation)
 
-		var pitch_scale := 1.0
-		if pitch_variation > 0.0:
-			pitch_scale = randf_range(1.0 - pitch_variation, 1.0 + pitch_variation)
-
-		SFX_SPAWNER.spawn_3d({
+		_spawn_sfx({
 			"audio_stream": stream,
 			"position": position,
 			"volume_db": settings.volume_db,
@@ -57,24 +61,3 @@ func process_tick(_delta: float) -> void:
 		_last_play_time = now
 
 	requests.clear()
-
-func _resolve_spawn_point_position(spawn_point_id: StringName) -> Vector3:
-	if spawn_point_id == StringName(""):
-		return Vector3.ZERO
-
-	var tree := get_tree()
-	if tree == null:
-		return Vector3.ZERO
-
-	var root: Node = tree.current_scene
-	if root == null:
-		root = tree.root
-
-	if root == null:
-		return Vector3.ZERO
-
-	var node := root.find_child(String(spawn_point_id), true, false) as Node3D
-	if node == null or not is_instance_valid(node):
-		return Vector3.ZERO
-
-	return node.global_position

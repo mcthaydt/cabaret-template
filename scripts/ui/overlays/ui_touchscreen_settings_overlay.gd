@@ -1,12 +1,12 @@
-@icon("res://assets/editor_icons/utility.svg")
+@icon("res://assets/editor_icons/icn_utility.svg")
 extends "res://scripts/ui/base/base_overlay.gd"
 class_name UI_TouchscreenSettingsOverlay
 
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
 const RS_TouchscreenSettings := preload("res://scripts/resources/input/rs_touchscreen_settings.gd")
-const VirtualJoystickScene := preload("res://scenes/ui/ui_virtual_joystick.tscn")
-const VirtualButtonScene := preload("res://scenes/ui/ui_virtual_button.tscn")
+const VirtualJoystickScene := preload("res://scenes/ui/widgets/ui_virtual_joystick.tscn")
+const VirtualButtonScene := preload("res://scenes/ui/widgets/ui_virtual_button.tscn")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
@@ -40,7 +40,7 @@ var _store_unsubscribe: Callable = Callable()
 var _profile_manager: Node = null
 var _preview_joystick: Control = null
 var _preview_buttons: Array[Control] = []
-var _defaults: RS_TouchscreenSettings = preload("res://resources/input/touchscreen_settings/default_touchscreen_settings.tres")
+var _defaults: RS_TouchscreenSettings = preload("res://resources/input/touchscreen_settings/cfg_default_touchscreen_settings.tres")
 var _preview_builder := U_TouchscreenPreviewBuilder.new()
 var _updating_from_state: bool = false
 var _has_local_edits: bool = false

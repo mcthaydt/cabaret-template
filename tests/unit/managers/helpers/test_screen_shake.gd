@@ -153,6 +153,8 @@ func test_settings_multiplier_scales_rotation() -> void:
 
 # Test 12: Noise-based randomness produces different offsets over time
 func test_noise_produces_different_offsets() -> void:
+	# Set deterministic seed to avoid flakiness
+	_shake_helper.set_noise_seed_for_testing(54321)
 	var result1 = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
 	var result2 = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
 	var result3 = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
@@ -168,6 +170,8 @@ func test_noise_produces_different_offsets() -> void:
 
 # Test 13: Noise-based randomness produces different rotations over time
 func test_noise_produces_different_rotations() -> void:
+	# Set deterministic seed to avoid flakiness
+	_shake_helper.set_noise_seed_for_testing(67890)
 	var result1 = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
 	var result2 = _shake_helper.calculate_shake(1.0, 1.0, 0.016)
 	var result3 = _shake_helper.calculate_shake(1.0, 1.0, 0.016)

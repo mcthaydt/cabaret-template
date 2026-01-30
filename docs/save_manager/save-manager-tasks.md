@@ -704,7 +704,7 @@ Files to create:
 | `scripts/ui/ui_save_load_menu.gd` | UI | Combined save/load overlay controller | ✅ Implemented |
 | `scripts/ui/ui_save_slot_item.gd` | UI | Slot item component | ⏸️ Deferred (using simple Buttons) |
 | `scenes/ui/ui_save_load_menu.tscn` | Scene | Combined save/load overlay scene | ✅ Implemented |
-| `resources/ui_screens/save_load_menu_overlay.tres` | Resource | Combined overlay definition | ✅ Implemented (Phase 9) |
+| `resources/ui_screens/cfg_save_load_menu_overlay.tres` | Resource | Combined overlay definition | ✅ Implemented (Phase 9) |
 | `tests/unit/save/test_save_manager.gd` | Test | Manager unit tests (86 tests) | ✅ All passing |
 | `tests/unit/save/test_save_file_io.gd` | Test | File IO unit tests (14 tests) | ✅ All passing |
 | `tests/unit/save/test_save_migrations.gd` | Test | Migration unit tests (16 tests) | ✅ All passing |

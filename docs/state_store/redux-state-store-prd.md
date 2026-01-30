@@ -216,7 +216,7 @@ Developer creates a fully-functional gameplay state slice demonstrating all Redu
 **Deliverables**:
 - `scripts/state/reducers/gameplay_reducer.gd` - Reducer with switch-case for action types
 - `scripts/state/resources/rs_gameplay_initial_state.gd` - Default gameplay state script
-- `resources/state/default_gameplay_initial_state.tres` - Default gameplay state data
+- `resources/state/cfg_default_gameplay_initial_state.tres` - Default gameplay state data
 - Reducer registration in `M_StateStore`
 - State update logic in `dispatch()` using `.duplicate(true)`
 - `tests/unit/state/test_gameplay_slice_reducers.gd` - Reducer pure function tests

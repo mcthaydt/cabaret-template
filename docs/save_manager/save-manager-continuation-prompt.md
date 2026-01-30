@@ -103,7 +103,7 @@ Follow existing codebase patterns:
 2. **Remove from M_StateStore**: `_autosave_timer`, `_setup_autosave_timer()`, `_on_autosave_timeout()`
 
 3. **Scene registration required**: UI overlays need BOTH:
-   - `resources/ui_screens/save_load_menu_overlay.tres`
+   - `resources/ui_screens/cfg_save_load_menu_overlay.tres`
    - Registration in `U_SceneRegistry` with `SceneType.UI`
 
 4. **Autosave anti-triggers**: Never autosave during death, mid-transition, or high-frequency updates.

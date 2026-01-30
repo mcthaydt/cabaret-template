@@ -1,11 +1,11 @@
 extends BaseTest
 
-const DEFAULT_STATE_SETTINGS := preload("res://resources/state/default_state_store_settings.tres")
-const DEFAULT_BOOT_STATE := preload("res://resources/state/default_boot_initial_state.tres")
-const DEFAULT_MENU_STATE := preload("res://resources/state/default_menu_initial_state.tres")
-const DEFAULT_GAMEPLAY_STATE := preload("res://resources/state/default_gameplay_initial_state.tres")
-const DEFAULT_SCENE_STATE := preload("res://resources/state/default_scene_initial_state.tres")
-const DEFAULT_SETTINGS_STATE := preload("res://resources/state/default_settings_initial_state.tres")
+const DEFAULT_STATE_SETTINGS := preload("res://resources/state/cfg_default_state_store_settings.tres")
+const DEFAULT_BOOT_STATE := preload("res://resources/state/cfg_default_boot_initial_state.tres")
+const DEFAULT_MENU_STATE := preload("res://resources/state/cfg_default_menu_initial_state.tres")
+const DEFAULT_GAMEPLAY_STATE := preload("res://resources/state/cfg_default_gameplay_initial_state.tres")
+const DEFAULT_SCENE_STATE := preload("res://resources/state/cfg_default_scene_initial_state.tres")
+const DEFAULT_SETTINGS_STATE := preload("res://resources/state/cfg_default_settings_initial_state.tres")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const M_INPUT_DEVICE_MANAGER := preload("res://scripts/managers/m_input_device_manager.gd")

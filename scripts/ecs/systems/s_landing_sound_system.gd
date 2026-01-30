@@ -1,9 +1,13 @@
-@icon("res://assets/editor_icons/system.svg")
+@icon("res://assets/editor_icons/icn_system.svg")
 extends "res://scripts/ecs/base_event_sfx_system.gd"
 class_name S_LandingSoundSystem
 
+## Landing Sound System (Phase 6 - Refactored)
+##
+## Plays landing sounds using base class helpers with pause/transition blocking.
+## Volume scales with fall speed (5-30 units).
+
 const SETTINGS_TYPE := preload("res://scripts/resources/ecs/rs_landing_sound_settings.gd")
-const SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 
 @export var settings: SETTINGS_TYPE
 
@@ -25,22 +29,26 @@ func create_request_from_payload(payload: Dictionary) -> Dictionary:
 		"fall_speed": fall_speed,
 	}
 
+func _get_audio_stream() -> AudioStream:
+	if settings == null:
+		return null
+	return settings.audio_stream
+
 func process_tick(_delta: float) -> void:
-	if settings == null or not settings.enabled:
+	# Phase 6: Use shared helpers from base class
+	if _should_skip_processing():
+		return
+
+	if _is_audio_blocked():
 		requests.clear()
 		return
 
-	var stream := settings.audio_stream as AudioStream
-	if stream == null:
-		requests.clear()
-		return
-
+	var stream := _get_audio_stream()
 	var min_interval: float = max(settings.min_interval, 0.0)
 	var now: float = ECS_UTILS.get_current_time()
-	var pitch_variation: float = clampf(settings.pitch_variation, 0.0, 0.95)
 
 	for request_variant in requests:
-		if min_interval > 0.0 and now - _last_play_time < min_interval:
+		if _is_throttled(min_interval, now):
 			continue
 
 		var request := request_variant as Dictionary
@@ -53,17 +61,10 @@ func process_tick(_delta: float) -> void:
 			continue
 
 		var volume_adjustment := _remap_clamped(fall_speed, 5.0, 30.0, -6.0, 0.0)
+		var position := _extract_position(request)
+		var pitch_scale := _calculate_pitch(settings.pitch_variation)
 
-		var pitch_scale := 1.0
-		if pitch_variation > 0.0:
-			pitch_scale = randf_range(1.0 - pitch_variation, 1.0 + pitch_variation)
-
-		var position_variant: Variant = request.get("position", Vector3.ZERO)
-		var position: Vector3 = Vector3.ZERO
-		if position_variant is Vector3:
-			position = position_variant
-
-		SFX_SPAWNER.spawn_3d({
+		_spawn_sfx({
 			"audio_stream": stream,
 			"position": position,
 			"volume_db": settings.volume_db + volume_adjustment,

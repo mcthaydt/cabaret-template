@@ -182,7 +182,7 @@ func after_each():
 - [x] T044 [P] [US1a] Create `scripts/state/resources/rs_state_store_settings.gd` extending Resource
 - [x] T045 [US1a] Add @export properties to RS_StateStoreSettings: max_history_size (int, default 1000), enable_debug (bool), enable_time_travel (bool), performance_monitoring (bool)
 - [x] T046 [US1a] Add method `to_dictionary() -> Dictionary` to RS_StateStoreSettings for serialization
-- [x] T047 [US1a] Create default resource `resources/state/default_state_store_settings.tres` with defaults
+- [x] T047 [US1a] Create default resource `resources/state/cfg_default_state_store_settings.tres` with defaults
 - [x] T048 [US1a] Create `scripts/state/m_state_store.gd` extending Node with class_name M_StateStore
 - [x] T049 [US1a] Add @icon annotation: `@icon("res://assets/editor_icons/state_store.svg")` (create icon later if needed)
 - [x] T050 [US1a] Add @export to M_StateStore: `@export var settings: RS_StateStoreSettings`
@@ -315,7 +315,7 @@ func after_each():
 - [x] T116 [P] [US1c] Create `scripts/state/resources/rs_gameplay_initial_state.gd` extending Resource with class_name RS_GameplayInitialState
 - [x] T117 [US1c] Add @export properties: paused (bool, default false), health (int, default 100), score (int, default 0), level (int, default 1)
 - [x] T118 [US1c] Add `func to_dictionary() -> Dictionary` method returning all @export properties as Dictionary
-- [x] T119 [US1c] Create default resource file `resources/state/default_gameplay_initial_state.tres`
+- [x] T119 [US1c] Create default resource file `resources/state/cfg_default_gameplay_initial_state.tres`
 - [x] T120 [US1c] Set default values in .tres via Godot editor: paused=false, health=100, score=0, level=1
 
 **Gameplay Reducer:**
@@ -880,7 +880,7 @@ func after_each():
 - [x] T336 [P] [US3] Create `scripts/state/resources/rs_boot_initial_state.gd` extending Resource
 - [x] T337 [US3] Add @export properties: loading_progress (float, 0.0-1.0), phase (String), error_message (String), is_ready (bool)
 - [x] T338 [US3] Add `to_dictionary() -> Dictionary` method
-- [x] T339 [US3] Create default resource `resources/state/default_boot_initial_state.tres` with defaults
+- [x] T339 [US3] Create default resource `resources/state/cfg_default_boot_initial_state.tres` with defaults
 - [x] T340 [P] [US3] Create `scripts/state/actions/u_boot_actions.gd` as class_name U_BootActions
 - [x] T341 [US3] Add constants: ACTION_UPDATE_LOADING_PROGRESS, ACTION_BOOT_ERROR, ACTION_BOOT_COMPLETE
 - [x] T342 [US3] Implement action creators with explicit `: Dictionary` return types
@@ -936,7 +936,7 @@ func after_each():
 - [x] T363 [P] [US4] Create `scripts/state/resources/rs_menu_initial_state.gd` extending Resource
 - [x] T364 [US4] Add @export properties: active_screen (String), pending_character (String), pending_difficulty (String), available_saves (Array)
 - [x] T365 [US4] Add `to_dictionary() -> Dictionary` method
-- [x] T366 [US4] Create default resource `resources/state/default_menu_initial_state.tres`
+- [x] T366 [US4] Create default resource `resources/state/cfg_default_menu_initial_state.tres`
 - [x] T367 [P] [US4] Create `scripts/state/actions/u_menu_actions.gd` as class_name U_MenuActions
 - [x] T368 [US4] Add constants: ACTION_NAVIGATE_TO_SCREEN, ACTION_SELECT_CHARACTER, ACTION_SELECT_DIFFICULTY, ACTION_LOAD_SAVE_FILES
 - [x] T369 [US4] Implement action creators with `: Dictionary` return types

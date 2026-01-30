@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="RS_AmbientTrackDefinition" format=3 uid="uid://cii40mpcqspej"]
+
+[ext_resource type="Script" uid="uid://crcc6lucrapjf" path="res://scripts/ecs/resources/rs_ambient_track_definition.gd" id="1"]
+[ext_resource type="AudioStream" uid="uid://dtbx8ceyiaowp" path="res://tests/assets/audio/ambient/amb_placeholder_interior.wav" id="2"]
+
+[resource]
+script = ExtResource("1")
+ambient_id = &"interior"
+stream = ExtResource("2")

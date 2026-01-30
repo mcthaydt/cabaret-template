@@ -1,7 +1,7 @@
 extends "res://scripts/scene_management/transitions/base_transition_effect.gd"
 class_name Trans_LoadingScreen
 
-const LOADING_SCREEN_SCENE := preload("res://scenes/ui/ui_loading_screen.tscn")
+const LOADING_SCREEN_SCENE := preload("res://scenes/ui/hud/ui_loading_screen.tscn")
 const HUD_GROUP := StringName("hud_layers")
 const U_TweenManager = preload("res://scripts/scene_management/u_tween_manager.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")

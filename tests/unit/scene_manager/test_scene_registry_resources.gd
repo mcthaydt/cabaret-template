@@ -5,7 +5,7 @@ extends GutTest
 const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
 const RS_SceneRegistryEntry := preload("res://scripts/resources/scene_management/rs_scene_registry_entry.gd")
 
-var _tmp_path := "res://resources/scene_registry/tmp_registry_test.tres"
+var _tmp_path := "res://resources/scene_registry/cfg_tmp_registry_test_entry.tres"
 var _tmp_scene_id := StringName("tmp_registry_test_scene")
 var _scenes_backup: Dictionary
 
@@ -14,8 +14,8 @@ func after_each() -> void:
     if _scenes_backup != null:
         U_SceneRegistry._scenes = _scenes_backup  # restore previous registry
     var da := DirAccess.open("res://resources/scene_registry/")
-    if da and da.file_exists("tmp_registry_test.tres"):
-        da.remove("tmp_registry_test.tres")
+    if da and da.file_exists("cfg_tmp_registry_test_entry.tres"):
+        da.remove("cfg_tmp_registry_test_entry.tres")
 
 func test_loads_valid_resource_entry_and_skips_duplicates() -> void:
     # Backup and clear scenes to avoid duplicate warnings from existing .tres files

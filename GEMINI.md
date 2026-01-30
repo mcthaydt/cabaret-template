@@ -351,7 +351,7 @@ store.dispatch(U_NavigationActions.set_menu_panel(StringName("menu/settings")))
 
 ### UI Registry
 
-- **Resource-based**: All screens defined in `resources/ui_screens/*.tres`
+- **Resource-based**: All screens defined in `resources/ui_screens/cfg_*.tres`
 - **Screen definition**: `RS_UIScreenDefinition` with `screen_id`, `kind`, `scene_id`, `allowed_shells`, `close_mode`
 - **Validation**: Registry validates parent-child relationships and scene references
 

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="RS_MusicTrackDefinition" format=3 uid="uid://bs866wekodi47"]
+
+[ext_resource type="Script" uid="uid://ci2o84kbhvcx6" path="res://scripts/ecs/resources/rs_music_track_definition.gd" id="1"]
+[ext_resource type="AudioStream" uid="uid://cvf0iuf0nu4h" path="res://assets/audio/music/mus_main_menu.mp3" id="2"]
+
+[resource]
+script = ExtResource("1")
+track_id = &"main_menu"
+stream = ExtResource("2")

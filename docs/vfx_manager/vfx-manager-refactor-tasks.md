@@ -630,7 +630,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
   - Tests GREEN ✅
 
 - [x] **T4.4**: Create default tuning resource file
-  - Location: `resources/vfx/rs_screen_shake_tuning.tres`
+  - Location: `resources/vfx/cfg_screen_shake_tuning.tres`
   - Format:
     ```
     [gd_resource type="Resource" script_class="RS_ScreenShakeTuning" load_steps=2 format=3]
@@ -662,7 +662,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
     ```
 
 - [x] **T4.6**: Create default config resource file
-  - Location: `resources/vfx/rs_screen_shake_config.tres`
+  - Location: `resources/vfx/cfg_screen_shake_config.tres`
   - Set default values from U_ScreenShake
 
 - [x] **T4.7**: Update `S_ScreenShakePublisherSystem` to use tuning
@@ -676,7 +676,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
         if tuning != null:
             return tuning
         # Fallback to default
-        return preload("res://resources/vfx/rs_screen_shake_tuning.tres")
+        return preload("res://resources/vfx/cfg_screen_shake_tuning.tres")
     ```
   - Replace constants with tuning calls:
     ```gdscript
@@ -721,7 +721,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 - [x] **T4.9**: Update `M_VFXManager` to use config resource
   - Update `_ready()`:
     ```gdscript
-    var shake_config := preload("res://resources/vfx/rs_screen_shake_config.tres")
+    var shake_config := preload("res://resources/vfx/cfg_screen_shake_config.tres")
     _screen_shake = U_ScreenShake.new(shake_config)
     ```
   - Remove `TRAUMA_DECAY_RATE` constant
@@ -738,7 +738,7 @@ This document tracks the refactoring of the existing VFX Manager system to impro
 
 - [ ] **T4.11**: Manual verification
   - Play game → verify VFX still works with default resources
-  - Edit `rs_screen_shake_tuning.tres` → change `damage_min_trauma` to 0.1
+  - Edit `cfg_screen_shake_tuning.tres` → change `damage_min_trauma` to 0.1
   - Play game → verify weaker shake on damage
 
 ### Commit Point

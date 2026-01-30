@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/manager.svg")
+@icon("res://assets/editor_icons/icn_manager.svg")
 extends "res://scripts/interfaces/i_vfx_manager.gd"
 class_name M_VFXManager
 
@@ -15,9 +15,9 @@ const U_SCENE_SELECTORS := preload("res://scripts/state/selectors/u_scene_select
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_ScreenShake := preload("res://scripts/managers/helpers/u_screen_shake.gd")
 const U_DamageFlash := preload("res://scripts/managers/helpers/u_damage_flash.gd")
-const DAMAGE_FLASH_SCENE := preload("res://scenes/ui/ui_damage_flash_overlay.tscn")
-const SCREEN_SHAKE_TUNING := preload("res://resources/vfx/rs_screen_shake_tuning.tres")
-const SCREEN_SHAKE_CONFIG := preload("res://resources/vfx/rs_screen_shake_config.tres")
+const DAMAGE_FLASH_SCENE := preload("res://scenes/ui/overlays/ui_damage_flash_overlay.tscn")
+const SCREEN_SHAKE_TUNING := preload("res://resources/vfx/cfg_screen_shake_tuning.tres")
+const SCREEN_SHAKE_CONFIG := preload("res://resources/vfx/cfg_screen_shake_config.tres")
 ##
 ## Responsibilities:
 ## - Manages trauma system for screen shake (accumulates from damage/impacts, decays over time)

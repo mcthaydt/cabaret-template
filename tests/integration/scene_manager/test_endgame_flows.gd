@@ -25,7 +25,7 @@ const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
 const HEALTH_SYSTEM := preload("res://scripts/ecs/systems/s_health_system.gd")
-const HEALTH_SETTINGS_RESOURCE := preload("res://resources/base_settings/gameplay/health_settings.tres")
+const HEALTH_SETTINGS_RESOURCE := preload("res://resources/base_settings/gameplay/cfg_health_settings.tres")
 
 const VICTORY_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 const VICTORY_SYSTEM := preload("res://scripts/ecs/systems/s_victory_system.gd")

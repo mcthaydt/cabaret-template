@@ -91,7 +91,7 @@ func test_touchscreen_fields_serialize_roundtrip() -> void:
 	assert_eq(p2.virtual_buttons[1]["position"], Vector2(800, 350), "Button 1 position restored")
 
 func test_touchscreen_profile_loads_with_virtual_buttons() -> void:
-	var profile: RS_InputProfile = load("res://resources/input/profiles/default_touchscreen.tres")
+	var profile: RS_InputProfile = load("res://resources/input/profiles/cfg_default_touchscreen.tres")
 	assert_not_null(profile, "Touchscreen profile should load")
 	assert_eq(profile.device_type, 2, "Device type should be touchscreen")
 	assert_eq(profile.virtual_buttons.size(), 4, "Should have 4 virtual buttons")
@@ -101,16 +101,16 @@ func test_touchscreen_profile_loads_with_virtual_buttons() -> void:
 		assert_true(button.has("position"), "Button should have position")
 
 func test_touchscreen_profile_has_joystick_position() -> void:
-	var profile: RS_InputProfile = load("res://resources/input/profiles/default_touchscreen.tres")
+	var profile: RS_InputProfile = load("res://resources/input/profiles/cfg_default_touchscreen.tres")
 	assert_ne(profile.virtual_joystick_position, Vector2(-1, -1), "Should have joystick position")
 
 ## Test that default keyboard profiles use physical_keycode (not keycode)
 ## This ensures keyboard input works correctly with Godot's input system
 func test_default_keyboard_profiles_use_physical_keycode() -> void:
 	var profiles := [
-		"res://resources/input/profiles/default_keyboard.tres",
-		"res://resources/input/profiles/alternate_keyboard.tres",
-		"res://resources/input/profiles/accessibility_keyboard.tres"
+		"res://resources/input/profiles/cfg_default_keyboard.tres",
+		"res://resources/input/profiles/cfg_alternate_keyboard.tres",
+		"res://resources/input/profiles/cfg_accessibility_keyboard.tres"
 	]
 
 	for profile_path in profiles:

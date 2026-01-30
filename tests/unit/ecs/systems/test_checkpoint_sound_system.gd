@@ -75,7 +75,7 @@ func test_get_event_name_is_checkpoint_activated() -> void:
 	autofree(system)
 	assert_eq(system.get_event_name(), TEST_EVENT)
 
-func test_event_queues_request_with_spawn_point_id() -> void:
+func test_event_queues_request_with_position() -> void:
 	var manager := _spawn_manager()
 	await _pump()
 
@@ -84,10 +84,10 @@ func test_event_queues_request_with_spawn_point_id() -> void:
 	manager.add_child(system)
 	await _pump()
 
-	EVENT_BUS.publish(TEST_EVENT, {"spawn_point_id": StringName("sp_test")})
+	EVENT_BUS.publish(TEST_EVENT, {"position": Vector3(1, 2, 3)})
 
 	assert_eq(system.requests.size(), 1)
-	assert_eq(system.requests[0].get("spawn_point_id"), StringName("sp_test"))
+	assert_eq(system.requests[0].get("position"), Vector3(1, 2, 3))
 
 func test_process_tick_with_null_settings_clears_requests_and_spawns_nothing() -> void:
 	var manager := _spawn_manager()
@@ -98,7 +98,7 @@ func test_process_tick_with_null_settings_clears_requests_and_spawns_nothing() -
 	manager.add_child(system)
 	await _pump()
 
-	EVENT_BUS.publish(TEST_EVENT, {"spawn_point_id": StringName("sp_test")})
+	EVENT_BUS.publish(TEST_EVENT, {"position": Vector3(1, 2, 3)})
 	assert_eq(system.requests.size(), 1)
 
 	system.process_tick(0.016)
@@ -119,21 +119,15 @@ func test_process_tick_when_disabled_clears_requests_and_spawns_nothing() -> voi
 	manager.add_child(system)
 	await _pump()
 
-	EVENT_BUS.publish(TEST_EVENT, {"spawn_point_id": StringName("sp_test")})
+	EVENT_BUS.publish(TEST_EVENT, {"position": Vector3(1, 2, 3)})
 	system.process_tick(0.016)
 
 	assert_eq(system.requests.size(), 0)
 	assert_eq(_get_in_use_players().size(), 0)
 
-func test_checkpoint_spawns_sound_at_spawn_point_position_when_present() -> void:
+func test_checkpoint_spawns_sound_at_position_from_payload() -> void:
 	var manager := _spawn_manager()
 	await _pump()
-
-	var spawn_point := Node3D.new()
-	spawn_point.name = "sp_test"
-	add_child(spawn_point)
-	autofree(spawn_point)
-	spawn_point.global_position = Vector3(7, 8, 9)
 
 	var system := CHECKPOINT_SOUND_SYSTEM.new()
 	autofree(system)
@@ -142,7 +136,7 @@ func test_checkpoint_spawns_sound_at_spawn_point_position_when_present() -> void
 	manager.add_child(system)
 	await _pump()
 
-	EVENT_BUS.publish(TEST_EVENT, {"spawn_point_id": StringName("sp_test")})
+	EVENT_BUS.publish(TEST_EVENT, {"position": Vector3(7, 8, 9)})
 	system.process_tick(0.016)
 
 	var used := _get_in_use_players()
@@ -168,7 +162,7 @@ func test_spawned_player_applies_volume_and_bus() -> void:
 	manager.add_child(system)
 	await _pump()
 
-	EVENT_BUS.publish(TEST_EVENT, {"spawn_point_id": StringName("sp_test")})
+	EVENT_BUS.publish(TEST_EVENT, {"position": Vector3(1, 2, 3)})
 	system.process_tick(0.016)
 
 	var used := _get_in_use_players()
@@ -195,7 +189,7 @@ func test_pitch_variation_zero_results_in_default_pitch_scale() -> void:
 	manager.add_child(system)
 	await _pump()
 
-	EVENT_BUS.publish(TEST_EVENT, {"spawn_point_id": StringName("sp_test")})
+	EVENT_BUS.publish(TEST_EVENT, {"position": Vector3(1, 2, 3)})
 	system.process_tick(0.016)
 
 	var used := _get_in_use_players()
@@ -221,8 +215,8 @@ func test_min_interval_prevents_multiple_spawns_in_same_tick() -> void:
 	manager.add_child(system)
 	await _pump()
 
-	EVENT_BUS.publish(TEST_EVENT, {"spawn_point_id": StringName("sp_test")})
-	EVENT_BUS.publish(TEST_EVENT, {"spawn_point_id": StringName("sp_test")})
+	EVENT_BUS.publish(TEST_EVENT, {"position": Vector3(1, 2, 3)})
+	EVENT_BUS.publish(TEST_EVENT, {"position": Vector3(1, 2, 3)})
 	system.process_tick(0.016)
 
 	var used := _get_in_use_players()

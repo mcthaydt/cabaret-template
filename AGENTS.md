@@ -5,8 +5,9 @@
 - Project type: Godot 4.5 (GDScript). Core area:
   - `scripts/ecs`: Lightweight ECS built on Nodes (components + systems + manager).
 - Scenes and resources:
-  - `templates/`: Base scene and player scene that wire components/systems together.
+  - `scenes/templates/`: Base scene, character, and camera templates that wire components/systems together.
   - `resources/base_settings/`: Default `*Settings.tres` for component configs (domain subfolders); update defaults when adding new exported fields.
+  - `assets/audio/`, `assets/button_prompts/`, `assets/editor_icons/`: Shared asset libraries for audio, input glyphs, and editor UI.
 - Documentation to consult (do not duplicate here):
   - General pitfalls: `docs/general/DEV_PITFALLS.md`
 - Before adding or modifying code, re-read `docs/general/DEV_PITFALLS.md` and `docs/general/STYLE_GUIDE.md` to stay aligned with testing and formatting requirements.
@@ -29,11 +30,12 @@
 - `scripts/state/m_state_store.gd`: Redux store; registers with ServiceLocator for discovery via `U_StateUtils.get_store()`.
 - `scripts/ui/utils/u_ui_registry.gd` + `resources/ui_screens/`: UI registry definitions (`RS_UIScreenDefinition`) for base screens and overlays.
 - UI controllers are grouped by screen type: `scripts/ui/menus/`, `scripts/ui/overlays/`, `scripts/ui/hud/` (utilities live in `scripts/ui/utils/`).
+- UI scenes organized by type: `scenes/ui/menus/`, `scenes/ui/overlays/`, `scenes/ui/hud/`, `scenes/ui/widgets/` (cleanup v4.5).
 - `scripts/ecs/base_ecs_component.gd`: Base for components. Auto-registers with manager; exposes `get_snapshot()` hook.
 - `scripts/ecs/base_ecs_system.gd`: Base for systems. Implement `process_tick(delta)`; runs via `_physics_process`.
 - `scripts/ecs/components/*`: Gameplay components with `@export` NodePaths and typed getters.
 - `scripts/ecs/systems/*`: Systems that query components by `StringName` and operate per-physics tick.
-- `scripts/ecs/resources/*`: `Resource` classes holding tunables consumed by components/systems.
+- `scripts/resources/ecs/*`: `Resource` classes holding tunables consumed by components/systems.
 - `scripts/utils/ecs/u_ecs_utils.gd`: ECS helpers (manager lookup, time, component mapping). Input helpers live in `scripts/utils/input/`.
 - `scripts/events/ecs/`: ECS event bus + typed ECS events; `scripts/events/state/` holds `U_StateEventBus` (state-domain bus).
 - `scenes/root.tscn`: Main scene (persistent managers + containers).
@@ -61,8 +63,8 @@
   - Player-only + transition gating: `M_VFXManager` filters requests via `_is_player_entity()` and `_is_transition_blocked()` using Redux `gameplay.player_entity_id`, `scene.is_transitioning`, `scene.scene_stack`, and `navigation.shell == "gameplay"`.
   - Use `U_ECSEventNames` constants for subscriptions instead of string literals.
 - VFX Tuning Resources (Phase 4)
-  - `RS_ScreenShakeTuning` defines trauma decay + damage/landing/death curves; defaults in `resources/vfx/rs_screen_shake_tuning.tres`.
-  - `RS_ScreenShakeConfig` defines shake offset/rotation/noise; defaults in `resources/vfx/rs_screen_shake_config.tres`.
+  - `RS_ScreenShakeTuning` defines trauma decay + damage/landing/death curves; defaults in `resources/vfx/cfg_screen_shake_tuning.tres`.
+  - `RS_ScreenShakeConfig` defines shake offset/rotation/noise; defaults in `resources/vfx/cfg_screen_shake_config.tres`.
   - `S_ScreenShakePublisherSystem` reads tuning (export injection optional), `M_VFXManager` uses tuning for decay and config for `U_ScreenShake`.
 - VFX Settings Preview (Phase 8)
   - `M_VFXManager` supports temporary overrides via `set_vfx_settings_preview(...)` and `clear_vfx_settings_preview()`.
@@ -109,7 +111,7 @@
   - Contains: Systems, Entities, SceneObjects, Environment
   - HUD uses `U_StateUtils.get_store(self)` to find M_StateStore via "state_store" group
 - Node tree structure: See `docs/scene_organization/SCENE_ORGANIZATION_GUIDE.md`
-- Templates: `templates/tmpl_base_scene.tscn` (legacy reference), `templates/tmpl_character.tscn` (generic), `templates/tmpl_camera.tscn`
+- Templates: `scenes/templates/tmpl_base_scene.tscn`, `scenes/templates/tmpl_character.tscn`, `scenes/templates/tmpl_camera.tscn`
 - Marker scripts: `scripts/scene_structure/*` (11 total) provide visual organization
 - Systems organized by category: Core / Physics / Movement / Feedback
 - Naming: Node names use prefixes matching their script types (E_, Inter_, S_, C_, M_, SO_, Env_)
@@ -146,12 +148,30 @@
 - **Interfaces:** `i_*` prefix (e.g., `i_scene_contract.gd` → `I_SCENE_CONTRACT`)
 - **Prefabs:** `prefab_*` prefix for scenes (e.g., `prefab_death_zone.tscn`)
 
+### Resource Instance and Asset Prefixes
+
+Resource **instances** (`.tres` files) use `cfg_` prefix to distinguish from Resource **class definitions** (`.gd` files use `rs_`):
+- `cfg_movement_default.tres` = instance of `RS_MovementSettings` class
+- `cfg_jump_default.tres` = instance of `RS_JumpSettings` class
+- `cfg_gameplay_base_entry.tres` = scene registry entry
+
+Production asset files use type-specific prefixes:
+- `tex_` = textures (e.g., `tex_shadow_blob.png`)
+- `mus_` = music (e.g., `mus_main_menu.ogg`)
+- `sfx_` = sound effects (e.g., `sfx_jump.wav`)
+- `amb_` = ambient sounds (e.g., `amb_exterior.wav`)
+- `fst_` = footsteps (e.g., `fst_grass_01.wav`)
+- `icn_` = editor icons (e.g., `icn_component.svg`)
+- `fnt_` = fonts (e.g., `fnt_ui_default.ttf`)
+
+**Test assets:** Placeholder assets for testing live in `tests/assets/audio/` and `tests/assets/textures/` (moved from production `assets/` during cleanup v4.5).
+
 ### Helper Extraction Pattern (Large Files)
 
 - When core scripts approach 400–500 lines, prefer extracting pure helpers instead of adding more responsibilities:
   - Scene management helpers: `scripts/scene_management/helpers/u_scene_registry_loader.gd`
   - Input helpers: `scripts/managers/helpers/u_input_profile_loader.gd`
-  - ECS helpers: `scripts/ecs/helpers/u_ecs_query_metrics.gd`
+  - ECS helpers: `scripts/utils/ecs/u_ecs_query_metrics.gd`
   - UI helpers/builders: `scripts/ui/helpers/u_rebind_action_list_builder.gd`, `scripts/ui/helpers/u_touchscreen_preview_builder.gd`
 - Helper scripts:
   - Live under a `helpers/` subdirectory next to their parent domain.
@@ -168,9 +188,9 @@
 - Copy semantics
   - Use `.duplicate(true)` for deep copies of `Dictionary`/`Array` before mutating; the codebase relies on immutability patterns both in ECS snapshots and state.
 - Scenes and NodePaths
-- Wire `@export` NodePaths in scenes; missing paths intentionally short-circuit behavior in systems. See `templates/tmpl_character.tscn` + `scenes/prefabs/prefab_player.tscn` for patterns.
+- Wire `@export` NodePaths in scenes; missing paths intentionally short-circuit behavior in systems. See `scenes/templates/tmpl_character.tscn` + `scenes/prefabs/prefab_player.tscn` for patterns.
 - Resources
-  - New exported fields in `*Settings.gd` require updating default `.tres` under `resources/` and any scene using them.
+  - New exported fields in `*Settings.gd` require updating default `.tres` under `resources/base_settings/` and any scene using them.
   - Trigger settings automatically clamp `player_mask` to at least layer 1; configure the desired mask on the resource instead of zeroing it at runtime.
 - Tabs and warnings
   - Keep tab indentation in `.gd` files; tests use native method stubs on engine classes—suppress with `@warning_ignore("native_method_override")` where applicable (details in `docs/general/developer_pitfalls.md`).
@@ -366,7 +386,7 @@ store.dispatch(U_NavigationActions.set_menu_panel(StringName("menu/settings")))
 
 ### UI Registry
 
-- **Resource-based**: All screens defined in `resources/ui_screens/*.tres`
+- **Resource-based**: All screens defined in `resources/ui_screens/cfg_*.tres`
 - **Screen definition**: `RS_UIScreenDefinition` with `screen_id`, `kind`, `scene_id`, `allowed_shells`, `close_mode`
 - **Validation**: Registry validates parent-child relationships and scene references
 
@@ -659,6 +679,195 @@ func _on_load_pressed():
 - ❌ Modifying state during load (let StateHandoff handle restoration)
 - ❌ Attempting to delete autosave slot (returns `ERR_UNAUTHORIZED`)
 
+## Audio Manager Patterns (Phase 10 Complete)
+
+### Registry & Data Architecture
+
+- **Resource-driven definitions**: All audio assets defined as resources, not hard-coded dictionaries
+  - `RS_MusicTrackDefinition`: Music tracks with fade duration, volume, loop, pause behavior
+  - `RS_AmbientTrackDefinition`: Ambient tracks with fade duration, volume, loop
+  - `RS_UISoundDefinition`: UI sounds with volume, pitch variation, throttle_ms
+  - `RS_SceneAudioMapping`: Maps scenes to music/ambient tracks
+- **Registry loader**: `U_AudioRegistryLoader.initialize()` populates O(1) lookup dictionaries
+  - `get_music_track(track_id)` → RS_MusicTrackDefinition or null
+  - `get_ambient_track(ambient_id)` → RS_AmbientTrackDefinition or null
+  - `get_ui_sound(sound_id)` → RS_UISoundDefinition or null
+  - `get_audio_for_scene(scene_id)` → RS_SceneAudioMapping or null
+- **Registration pattern**:
+  ```gdscript
+  # In U_AudioRegistryLoader._register_music_tracks()
+  var track := preload("res://resources/audio/tracks/music_main_menu.tres")
+  _music_tracks[track.track_id] = track
+  ```
+
+### Crossfade Patterns
+
+- **U_CrossfadePlayer**: Reusable dual-player crossfader for music and ambient
+  - **Initialization**: `var crossfader := U_CrossfadePlayer.new(owner_node, &"Music")`
+  - **Crossfade**: `crossfader.crossfade_to(stream, track_id, duration, start_position)`
+    - Swaps active/inactive players
+    - Starts new player at -80dB, fades to 0dB
+    - Fades old player out to -80dB
+    - Uses parallel Tween (TRANS_CUBIC, EASE_IN_OUT)
+  - **Stop**: `crossfader.stop(duration)` - fades active player out
+  - **Pause/Resume**: `crossfader.pause()` / `crossfader.resume()` - stores/restores playback position
+  - **Query**: `crossfader.get_current_track_id()`, `crossfader.is_playing()`
+  - **Cleanup**: `crossfader.cleanup()` - frees both players
+- **Usage in M_AudioManager**:
+  ```gdscript
+  _music_crossfader = U_CrossfadePlayer.new(self, &"Music")
+  _ambient_crossfader = U_CrossfadePlayer.new(self, &"Ambient")
+  ```
+
+### Bus Layout & Validation
+
+- **Editor-defined buses**: Bus layout defined in `default_bus_layout.tres`, not created at runtime
+  - Master (0) → Music (1), SFX (2) → UI (3), Footsteps (4), Ambient (5)
+- **Constants**: `U_AudioBusConstants` defines bus names and validation
+  - `BUS_MASTER`, `BUS_MUSIC`, `BUS_SFX`, `BUS_UI`, `BUS_FOOTSTEPS`, `BUS_AMBIENT`
+  - `REQUIRED_BUSES` array for validation
+- **Validation**: Non-destructive validation at startup
+  ```gdscript
+  if not U_AudioBusConstants.validate_bus_layout():
+      push_error("Audio bus layout invalid - check default_bus_layout.tres")
+  ```
+- **Safe bus access**: `U_AudioBusConstants.get_bus_index_safe(bus_name)` returns Master (0) on failure
+
+### SFX Spawner Patterns
+
+- **Dictionary-based API**: `U_SFXSpawner.spawn_3d(config: Dictionary)` for flexible configuration
+  ```gdscript
+  U_SFXSpawner.spawn_3d({
+      "stream": audio_stream,
+      "position": global_position,
+      "volume_db": -6.0,
+      "pitch_scale": 1.2,
+      "bus": "SFX",
+      "max_distance": 100.0,
+      "attenuation_model": AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE,
+      "follow_target": entity_node  # Optional: player follows entity
+  })
+  ```
+- **Voice stealing**: Automatically steals oldest playing sound when pool exhausted (>16 sounds)
+  - Tracks play times in `_play_times` dictionary
+  - `_steal_oldest_voice()` finds and stops oldest player
+  - Stats tracking: `U_SFXSpawner.get_stats()` returns `{spawns, steals, drops, peak_usage}`
+- **Bus fallback**: `_validate_bus(bus)` returns "SFX" if bus not found, warns on invalid bus
+- **Per-sound spatialization**: Override max_distance and attenuation_model per-sound
+  - Respects `_spatial_audio_enabled` flag (disables attenuation/panning when false)
+- **Follow-emitter mode**: Sound follows moving entity via `follow_target` config
+  - `update_follow_targets()` called each frame to sync positions
+  - Automatic cleanup when entity freed or playback stops
+- **Stats & metrics**: `reset_stats()` clears counters, `_update_peak_usage()` tracks max concurrent
+
+### ECS Sound Systems Patterns
+
+- **Request-driven architecture**: Systems extend `BaseEventSFXSystem`, subscribe to ECS events
+  - Implement `get_event_name()` → StringName (e.g., `"entity_jumped"`)
+  - Implement `create_request_from_payload(payload)` → Dictionary `{position: Vector3, entity_id: StringName}`
+  - Implement `_get_audio_stream()` → AudioStream (from settings resource)
+- **Standard request schema**:
+  ```gdscript
+  {
+      "position": Vector3,  # Required - extracted via _extract_position()
+      "entity_id": StringName  # Optional - for debugging
+  }
+  ```
+- **Shared helpers in BaseEventSFXSystem**:
+  - `_should_skip_processing()` → checks settings enabled, stream exists
+  - `_is_audio_blocked()` → pause/transition/shell gating (returns true if audio should not play)
+  - `_is_throttled(min_interval, now)` → enforces minimum time between plays
+  - `_calculate_pitch(pitch_variation)` → clamps variation to 0.0-0.95, returns randomized pitch
+  - `_extract_position(request)` → safely extracts position from request Dictionary
+  - `_spawn_sfx(stream, position, volume_db, pitch_scale, bus)` → delegates to U_SFXSpawner.spawn_3d()
+- **Pause/transition gating**: All sound systems check before playing
+  ```gdscript
+  func process_tick(delta: float) -> void:
+      if _is_audio_blocked():  # Checks pause, transition, shell != "gameplay"
+          requests.clear()
+          return
+  ```
+- **State store injection**: Systems support `@export var state_store: I_StateStore` for testing
+  - `_is_audio_blocked()` tries injected store first, falls back to `U_StateUtils.try_get_store()`
+- **Position resolution**: Resolve entity positions at event **publish time**, not in sound systems
+  - ✅ Include position in event payload: `U_ECSEventBus.publish("entity_jumped", {position: global_position})`
+  - ❌ Avoid O(n) lookups in sound systems: `get_entity_by_id()`, `find_child()`
+
+### UI Sound Patterns
+
+- **U_UISoundPlayer**: Lightweight helper wrapping M_AudioManager UI sound playback
+  ```gdscript
+  U_UISoundPlayer.play_focus()    # UI navigation focus
+  U_UISoundPlayer.play_confirm()  # UI confirm/select
+  U_UISoundPlayer.play_cancel()   # UI cancel/back
+  U_UISoundPlayer.play_slider_tick()  # Slider value change
+  ```
+- **Per-sound throttling**: `RS_UISoundDefinition.throttle_ms` prevents rapid repeated plays
+  - `throttle_ms = 100` → blocks plays within 100ms window
+  - `throttle_ms = 0` → no throttle, all plays allowed
+  - Tracked per sound_id in `_last_play_times` dictionary
+- **Polyphony**: M_AudioManager uses 4 round-robin players for overlapping UI sounds
+  - `UI_SOUND_POLYPHONY = 4` → up to 4 simultaneous UI sounds
+  - `_ui_sound_index` cycles through players (0-3)
+- **Usage in UI controllers**:
+  ```gdscript
+  func _on_button_focus_entered() -> void:
+      U_UISoundPlayer.play_focus()
+
+  func _on_confirm_pressed() -> void:
+      U_UISoundPlayer.play_confirm()
+  ```
+
+### State-Driven Audio Settings
+
+- **Hash-based optimization**: M_AudioManager only applies settings when audio slice changes
+  ```gdscript
+  var audio_slice: Dictionary = state.get("audio", {})
+  var audio_hash := audio_slice.hash()
+  if audio_hash != _last_audio_hash:
+      _apply_audio_settings(state)
+      _last_audio_hash = audio_hash
+  ```
+- **Settings preview mode**: Temporary overrides via `set_audio_settings_preview(preview_dict)`
+  - Used by UI_VFXSettingsOverlay for real-time previews
+  - `clear_audio_settings_preview()` restores persisted settings
+  - `_audio_settings_preview_active` flag prevents hash updates during preview
+- **Audio persistence**: Audio settings auto-save to disk when changed
+  - `_schedule_audio_save()` debounces writes (500ms delay)
+  - Only actions with `action_type.begins_with("audio/")` trigger save
+
+### Scene-Based Audio Transitions
+
+- **Automatic music/ambient**: M_AudioManager subscribes to `scene/transition_completed` action
+  ```gdscript
+  func _change_audio_for_scene(scene_id: StringName) -> void:
+      var mapping := U_AudioRegistryLoader.get_audio_for_scene(scene_id)
+      if mapping.music_track_id != StringName(""):
+          play_music(mapping.music_track_id, 2.0)  # 2s crossfade
+      if mapping.ambient_track_id != StringName(""):
+          play_ambient(mapping.ambient_track_id, 2.0)
+  ```
+- **Pause music handling**: ACTION_OPEN_PAUSE → play "pause" track, ACTION_CLOSE_PAUSE → restore pre-pause track
+  - Stores `_pre_pause_music_id` and `_pre_pause_music_position` for restoration
+- **Cross-scene persistence**: Music and ambient managed by M_AudioManager (persistent), not per-scene systems
+
+### Common Patterns
+
+- **Access audio manager**: `U_AudioUtils.get_audio_manager()` (ServiceLocator lookup)
+- **Play music**: `audio_mgr.play_music(StringName("main_menu"), 1.5)` - 1.5s crossfade
+- **Play ambient**: `audio_mgr.play_ambient(StringName("exterior"), 2.0)` - 2s crossfade
+- **Play UI sound**: `audio_mgr.play_ui_sound(StringName("ui_confirm"))` - round-robin polyphony
+- **Spawn 3D SFX**: `U_SFXSpawner.spawn_3d({stream: sfx, position: pos, bus: "SFX"})`
+
+### Anti-Patterns
+
+- ❌ Hard-coding audio streams in scripts (use resource definitions instead)
+- ❌ Creating bus layout at runtime (define in default_bus_layout.tres)
+- ❌ O(n) entity lookups in sound systems (include position in event payload)
+- ❌ Playing audio during pause/transitions (use `_is_audio_blocked()` gating)
+- ❌ Spawning >16 simultaneous SFX without voice stealing (pool will exhaust)
+- ❌ Bypassing throttle_ms for rapid UI sounds (causes audio spam)
+
 ## Test Commands
 
 - Run ECS tests
@@ -680,7 +889,7 @@ func _on_load_pressed():
   - In `process_tick()`: no await needed (store already registered).
 - Access managers via ServiceLocator (Phase 10B-7: T141)
   - Use `U_ServiceLocator.get_service(StringName("service_name"))` for fast, centralized manager access.
-  - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`.
+  - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`.
   - ServiceLocator provides O(1) Dictionary lookup vs O(n) tree traversal of group lookups.
   - All services are registered at startup in `root.tscn` via `root.gd`.
   - Fallback to group lookup is available for backward compatibility and test environments.

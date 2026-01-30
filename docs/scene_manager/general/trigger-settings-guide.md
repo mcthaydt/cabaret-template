@@ -51,7 +51,7 @@ script = ExtResource("trigger_component")
 door_id = &"door_main"
 target_scene_id = &"interior"
 target_spawn_point = &"sp_entrance"
-settings = ExtResource("res://resources/triggers/rs_scene_trigger_settings.tres")
+settings = ExtResource("res://resources/triggers/cfg_scene_trigger_settings.tres")
 ```
 
 **When to use:**
@@ -64,7 +64,7 @@ settings = ExtResource("res://resources/triggers/rs_scene_trigger_settings.tres"
 Create a custom settings resource for special cases:
 
 ```gdscript
-# Create: resources/triggers/rs_cylinder_wide_door_trigger_settings.tres
+# Create: resources/triggers/cfg_cylinder_wide_door_trigger_settings.tres
 [resource]
 shape_type = 1  # CYLINDER
 cyl_radius = 1.0
@@ -78,7 +78,7 @@ script = ExtResource("trigger_component")
 door_id = &"door_wide"
 target_scene_id = &"hall"
 target_spawn_point = &"sp_entrance"
-settings = ExtResource("res://resources/triggers/rs_cylinder_wide_door_trigger_settings.tres")
+settings = ExtResource("res://resources/triggers/cfg_cylinder_wide_door_trigger_settings.tres")
 ```
 
 **When to use:**
@@ -164,7 +164,7 @@ target_spawn_point = &"sp_entrance_from_exterior"
 ### Example 2: Wide Gate (Custom Box Settings)
 
 ```gdscript
-# Create: resources/triggers/rs_trigger_wide_gate.tres
+# Create: resources/triggers/cfg_trigger_wide_gate.tres
 [resource]
 script = ExtResource("rs_scene_trigger_settings")
 shape_type = 0  # BOX
@@ -180,13 +180,13 @@ script = ExtResource("trigger_component")
 door_id = &"gate_fortress"
 target_scene_id = &"fortress_interior"
 target_spawn_point = &"sp_gate_entrance"
-settings = ExtResource("res://resources/triggers/rs_trigger_wide_gate.tres")
+settings = ExtResource("res://resources/triggers/cfg_trigger_wide_gate.tres")
 ```
 
 ### Example 3: Small Hatch (Custom Cylinder Settings)
 
 ```gdscript
-# Create: resources/triggers/rs_trigger_hatch.tres
+# Create: resources/triggers/cfg_trigger_hatch.tres
 [resource]
 script = ExtResource("rs_scene_trigger_settings")
 shape_type = 1  # CYLINDER
@@ -203,7 +203,7 @@ script = ExtResource("trigger_component")
 door_id = &"hatch_basement"
 target_scene_id = &"basement"
 target_spawn_point = &"sp_hatch_bottom"
-settings = ExtResource("res://resources/triggers/rs_trigger_hatch.tres")
+settings = ExtResource("res://resources/triggers/cfg_trigger_hatch.tres")
 ```
 
 ## Best Practices
@@ -220,11 +220,11 @@ Standard location for trigger settings:
 
 ```
 resources/
-├── rs_scene_trigger_settings.tres          # Default settings (in resources/triggers/)
-└── triggers/                               # Custom settings
-    ├── rs_cylinder_wide_door_trigger_settings.tres
-    ├── rs_trigger_wide_gate.tres
-    └── rs_trigger_hatch.tres
+├── cfg_scene_trigger_settings.tres          # Default settings (in resources/triggers/)
+└── triggers/                                # Custom settings
+    ├── cfg_cylinder_wide_door_trigger_settings.tres
+    ├── cfg_trigger_wide_gate.tres
+    └── cfg_trigger_hatch.tres
 ```
 
 ## Related Components

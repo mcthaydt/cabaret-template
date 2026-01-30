@@ -44,7 +44,7 @@
     - Tests: `tests/unit/resources/test_rs_input_profile.gd`
 - [x] Task 2.2: Create Default Input Profiles - FR-012
   - Notes (2025-11-07): Added built-in profiles under `resources/input/profiles/`:
-    - `default_keyboard.tres`, `alternate_keyboard.tres`, `accessibility_keyboard.tres`
+    - `cfg_default_keyboard.tres`, `cfg_alternate_keyboard.tres`, `cfg_accessibility_keyboard.tres`
     - Profiles include metadata; action mappings will be expanded alongside manager TDD.
 - [x] Task 2.3: Create M_InputProfileManager (TDD) - FR-014, FR-015, FR-089
   - Notes (2025-11-07): Scaffolded manager, wired to root, and added unit tests:
@@ -60,7 +60,7 @@
 
 - [x] Task 2.7: Wire Profile Selector Overlay - FR-014
   - Notes (2025-11-07): Registered `input_profile_selector` in Scene Registry and wired into Pause Menu.
-    - Scene registry entry: `resources/scene_registry/ui_input_profile_selector.tres`
+    - Scene registry entry: `resources/scene_registry/cfg_ui_input_profile_selector_entry.tres`
     - Pause Menu: Added button and handler to open overlay with return.
     - Overlay scene: `scenes/ui/input_profile_selector.tscn` with script `scripts/ui/input_profile_selector.gd`
     - Integration test: `tests/unit/integration/test_input_profile_selector_overlay.gd` (push pause → open selector → verify overlay active)
@@ -88,7 +88,7 @@
 ## Phase 3: Gamepad Support
 
 - [x] Task 3.1: Create RS_GamepadSettings resource (TDD) - FR-036, FR-037, FR-038
-  - Notes (2025-11-07): Added `scripts/input/resources/rs_gamepad_settings.gd` plus default tuning at `resources/input/gamepad_settings/default_gamepad_settings.tres`; exercised via `tests/unit/resources/test_rs_gamepad_settings.gd`.
+  - Notes (2025-11-07): Added `scripts/input/resources/rs_gamepad_settings.gd` plus default tuning at `resources/input/gamepad_settings/cfg_default_gamepad_settings.tres`; exercised via `tests/unit/resources/test_rs_gamepad_settings.gd`.
 - [x] Task 3.2: Create C_GamepadComponent (TDD) - FR-039, FR-084
   - Notes (2025-11-07): Implemented `scripts/ecs/components/c_gamepad_component.gd` with stick state, deadzone helpers, vibration callables, and dictionary-based settings application. Covered by `tests/unit/ecs/components/test_c_gamepad_component.gd`.
 - [x] Task 3.3: Extend S_InputSystem for Gamepad Input (TDD) - FR-034, FR-035, FR-036, FR-037
@@ -215,7 +215,7 @@
 ## Phase 5: Rebinding System + Persistence
 
 - [x] Task 5.1: Create RS_RebindSettings resource (TDD) - FR-022
-  - Notes (2025-11-11): Added `scripts/input/resources/rs_rebind_settings.gd`, default settings resource at `resources/input/rebind_settings/default_rebind_settings.tres`, and unit coverage in `tests/unit/resources/test_rs_rebind_settings.gd`.
+  - Notes (2025-11-11): Added `scripts/input/resources/rs_rebind_settings.gd`, default settings resource at `resources/input/rebind_settings/cfg_default_rebind_settings.tres`, and unit coverage in `tests/unit/resources/test_rs_rebind_settings.gd`.
 - [x] Task 5.2: Create U_InputRebindUtils (TDD) - FR-021, FR-023, FR-027
   - Notes (2025-11-11): Implemented `scripts/utils/input/u_input_rebind_utils.gd` for validation, conflict detection, InputMap/profile rebinding, and event serialization. Added unit tests at `tests/unit/utils/test_u_input_rebind_utils.gd`.
 - [x] Task 5.3: Create Rebinding UI - FR-021, FR-024, FR-025, FR-026
@@ -334,19 +334,19 @@
 - ✅ **Positioning:** Drag-to-reposition overlay (separate `EditTouchControlsOverlay` screen accessed via Pause Menu → Touchscreen Settings → Edit Layout)
 - ✅ **Visibility:** HIDDEN during scene transitions (cleaner visual), HIDDEN during pause menu
 - ✅ **Opacity:** Dynamic fade (30% opacity after 2s idle, full opacity on touch)
-- ✅ **Button Set:** Complete - 4 buttons (Jump, Sprint, Interact, Pause) in default_touchscreen.tres
+- ✅ **Button Set:** Complete - 4 buttons (Jump, Sprint, Interact, Pause) in cfg_default_touchscreen.tres
 - ✅ **Auto-hide:** When gamepad OR keyboard connected (M_InputDeviceManager integration)
 - ✅ **Orientation:** Landscape only (no rotation support in Phase 6)
 - ✅ **Assets:** Kenney.nl Mobile pack (joystick_base.png, joystick_thumb.png, button_background.png)
 - ✅ **Testing:** Physical device available for on-hardware QA; desktop `--emulate-mobile` flag retained as optional smoke fallback alongside unit tests
-- ✅ **Reset:** Default touchscreen profile (`default_touchscreen.tres`) with metadata-driven button configuration
+- ✅ **Reset:** Default touchscreen profile (`cfg_default_touchscreen.tres`) with metadata-driven button configuration
 
 **Architecture Validation (2025-11-16):**
 - ✅ **Viewport Scaling:** CORRECT - Uses 960x540 with stretch mode, no hardcoded phone dimensions found
 - ✅ **Redux State:** READY - touchscreen_settings slice exists, just needs position fields added
 - ✅ **Device Detection:** WORKING - M_InputDeviceManager already handles InputEventScreenTouch/Drag
 - ✅ **ECS Pattern:** READY - S_TouchscreenSystem can reuse existing C_InputComponent (no new component needed)
-- ✅ **Profile System:** EXTENSIBLE - Just needs default_touchscreen.tres added to existing profiles
+- ✅ **Profile System:** EXTENSIBLE - Just needs cfg_default_touchscreen.tres added to existing profiles
 
 **What Went Wrong in backup-input-manager:**
 - ❌ Hardcoded phone dimensions (1080x1920) instead of viewport-relative coords
@@ -384,7 +384,7 @@
   - Extend `tests/unit/resources/test_rs_input_profile.gd` with:
     ```gdscript
     func test_touchscreen_profile_loads_with_virtual_buttons():
-        var profile: RS_InputProfile = load("res://resources/input/profiles/default_touchscreen.tres")
+        var profile: RS_InputProfile = load("res://resources/input/profiles/cfg_default_touchscreen.tres")
         assert_not_null(profile, "Touchscreen profile should load")
         assert_eq(profile.device_type, 2, "Device type should be touchscreen")
         assert_eq(profile.virtual_buttons.size(), 4, "Should have 4 virtual buttons")
@@ -394,13 +394,13 @@
             assert_true(button.has("position"), "Button should have position")
 
     func test_touchscreen_profile_has_joystick_position():
-        var profile: RS_InputProfile = load("res://resources/input/profiles/default_touchscreen.tres")
+        var profile: RS_InputProfile = load("res://resources/input/profiles/cfg_default_touchscreen.tres")
         assert_ne(profile.virtual_joystick_position, Vector2(-1, -1), "Should have joystick position")
     ```
   - **Expected result:** Tests FAIL (profile doesn't exist yet) ❌
 
-- [x] Task 6.0.2: **GREEN** - Create minimal profile to pass tests *(2025-11-16, resources/input/profiles/default_touchscreen.tres created)*
-  - Create `resources/input/profiles/default_touchscreen.tres`
+- [x] Task 6.0.2: **GREEN** - Create minimal profile to pass tests *(2025-11-16, resources/input/profiles/cfg_default_touchscreen.tres created)*
+  - Create `resources/input/profiles/cfg_default_touchscreen.tres`
   - Set minimum fields to make tests pass:
     - `profile_name: "Default (Touchscreen)"`
     - `device_type: 2` (TOUCHSCREEN)
@@ -427,7 +427,7 @@
   - Edit `scripts/managers/m_input_profile_manager.gd`
   - Add to `_load_available_profiles()`:
     ```gdscript
-    var default_touchscreen_res := load("res://resources/input/profiles/default_touchscreen.tres")
+    var default_touchscreen_res := load("res://resources/input/profiles/cfg_default_touchscreen.tres")
     if default_touchscreen_res is RS_InputProfile:
         available_profiles["default_touchscreen"] = default_touchscreen_res
     ```
@@ -497,7 +497,7 @@
 
 - [x] Task 6.1.3: **REFACTOR** - Add remaining exports and default resource *(2025-11-16)*
   - Added full exports: `virtual_joystick_opacity`, `button_size`, `button_opacity`
-  - Created `resources/input/touchscreen_settings/default_touchscreen_settings.tres`
+  - Created `resources/input/touchscreen_settings/cfg_default_touchscreen_settings.tres`
   - **Result:** Tests still PASSED (4/4 tests, 11 assertions) ✅
 
 ### Task 6.2: Add Redux State Integration (TDD)
@@ -930,7 +930,7 @@
   - Expected: Position saved, persists after restart
 - [x] Task 6.9.7: Reset to defaults
   - Customize positions, tap "Reset Touchscreen Positions"
-  - Expected: Positions revert to default_touchscreen.tres values
+  - Expected: Positions revert to cfg_default_touchscreen.tres values
 
 ### Task 6.12: Add Save File Migration Support (TDD) - FR-056-H - NEW (Gap Fill)
 

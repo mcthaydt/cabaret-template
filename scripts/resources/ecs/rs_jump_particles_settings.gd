@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/utility.svg")
+@icon("res://assets/editor_icons/icn_utility.svg")
 extends Resource
 class_name RS_JumpParticlesSettings
 

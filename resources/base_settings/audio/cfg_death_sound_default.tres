@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="RS_DeathSoundSettings" format=3 uid="uid://cbkw5y4pf5xbh"]
+
+[ext_resource type="Script" uid="uid://cvq7bkr1r30y6" path="res://scripts/resources/ecs/rs_death_sound_settings.gd" id="1_death_sound"]
+[ext_resource type="AudioStream" uid="uid://b4plkae3xo7aq" path="res://tests/assets/audio/sfx/sfx_placeholder_death.wav" id="2_audio"]
+
+[resource]
+script = ExtResource("1_death_sound")
+audio_stream = ExtResource("2_audio")

@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/system.svg")
+@icon("res://assets/editor_icons/icn_system.svg")
 extends BaseECSSystem
 class_name S_FootstepSoundSystem
 
@@ -26,6 +26,10 @@ var _entity_timers: Dictionary = {}
 
 ## Injected state store (for testing and pause detection)
 @export var state_store: I_StateStore = null
+
+func _exit_tree() -> void:
+	# Phase 6.10: Clean up entity timers to prevent memory leaks
+	_entity_timers.clear()
 
 func process_tick(delta: float) -> void:
 	# Early exit if disabled or no settings

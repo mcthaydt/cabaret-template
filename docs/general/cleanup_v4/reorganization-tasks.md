@@ -5,7 +5,7 @@
 Comprehensive reorganization of the cabaret-ball Godot project to improve folder structure clarity, enforce consistent naming conventions, and improve developer navigability.
 
 **Scope**: 614 GDScript files, 76 scene files, 200+ file references
-**Status**: In Progress (17/23 tasks complete)
+**Status**: Complete (23/23 tasks complete)
 **Continuation Prompt**: `docs/general/cleanup_v4/reorganization-continuation-prompt.md`
 
 ---
@@ -17,9 +17,9 @@ Comprehensive reorganization of the cabaret-ball Godot project to improve folder
 | Phase 1: Quick Wins | 4 | 4/4 | Low |
 | Phase 2: Naming Fixes | 4 | 4/4 | Medium |
 | Phase 3: Folder Restructuring | 8 | 8/8 | High |
-| Phase 4: Organization | 4 | 0/4 | Medium |
-| Phase 5: Optional Polish | 3 | 1/3 | Medium |
-| **TOTAL** | **23** | **17/23 (73.9%)** | - |
+| Phase 4: Organization | 4 | 4/4 | Medium |
+| Phase 5: Optional Polish | 3 | 3/3 | Medium |
+| **TOTAL** | **23** | **23/23 (100%)** | - |
 
 ---
 
@@ -572,7 +572,7 @@ find . \( -name "*.gd" -o -name "*.tres" -o -name "*.tscn" \) -type f \
 ### Task 19: Move Loose Trigger Settings COMPLETE
 
 - [x] Create `resources/triggers/` directory
-- [x] Move `resources/triggers/rs_scene_trigger_settings.tres` -> `resources/triggers/`
+- [x] Move `resources/triggers/cfg_scene_trigger_settings.tres` -> `resources/triggers/`
 - [x] Update references
 - [x] Run tests
 
@@ -763,17 +763,17 @@ After reorganization completion:
 
 ## Success Criteria
 
-- [ ] All 23 tasks completed (or consciously deferred for Phase 5)
-- [ ] All unit tests passing (1468/1473 or better)
-- [ ] Style enforcement tests passing
-- [ ] Scenes load in Godot editor
-- [ ] No broken preload/load paths
-- [ ] STYLE_GUIDE.md updated
-- [ ] AGENTS.md updated
-- [ ] Documentation updated
+- [x] All 23 tasks completed (or consciously deferred for Phase 5)
+- [x] All unit tests passing (1468/1473 or better) *(per user report 2026-01-24)*
+- [x] Style enforcement tests passing *(per user report 2026-01-24)*
+- [ ] Scenes load in Godot editor *(manual verification pending)*
+- [x] No broken preload/load paths *(covered by tests + reference sweeps)*
+- [x] STYLE_GUIDE.md updated
+- [x] AGENTS.md updated
+- [x] Documentation updated
 
 ---
 
 **Last Updated**: 2026-01-24
-**Status**: In Progress (17/23 complete - 73.9%)
-**Remaining Tasks**: Phase 4 (Tasks 17-20 deferred or low priority), Phase 5 (Task 23 complete)
+**Status**: Complete (23/23 complete - 100%)
+**Remaining Tasks**: None

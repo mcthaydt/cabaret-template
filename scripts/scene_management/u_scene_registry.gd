@@ -53,7 +53,7 @@ static func _static_init() -> void:
 ## Register all scenes with metadata
 ##
 ## T212: CRITICAL scenes kept hardcoded for safety. Non-critical scenes moved to
-## resources/scene_registry/*.tres files for non-coder editing.
+## resources/scene_registry/cfg_*_entry.tres files for non-coder editing.
 ##
 ## CRITICAL (hardcoded for boot safety):
 ## - main_menu: Game entry point, must always work
@@ -71,7 +71,7 @@ static func _register_scenes() -> void:
 	# Main Menu (game entry point)
 	_register_scene(
 		StringName("main_menu"),
-		"res://scenes/ui/ui_main_menu.tscn",
+		"res://scenes/ui/menus/ui_main_menu.tscn",
 		SceneType.MENU,
 		"fade",
 		10  # Critical path - preload at startup (Phase 8)
@@ -80,7 +80,7 @@ static func _register_scenes() -> void:
 	# Settings Menu (user-designated critical)
 	_register_scene(
 		StringName("settings_menu"),
-		"res://scenes/ui/ui_settings_menu.tscn",
+		"res://scenes/ui/menus/ui_settings_menu.tscn",
 		SceneType.UI,
 		"instant",
 		10  # Upgraded to critical priority per user request
@@ -89,7 +89,7 @@ static func _register_scenes() -> void:
 	# Pause Menu (preloaded at startup)
 	_register_scene(
 		StringName("pause_menu"),
-		"res://scenes/ui/ui_pause_menu.tscn",
+		"res://scenes/ui/menus/ui_pause_menu.tscn",
 		SceneType.UI,
 		"instant",
 		10  # Critical path - preload at startup (Phase 8)
@@ -98,7 +98,7 @@ static func _register_scenes() -> void:
 	# Save/Load Menu (preloaded at startup)
 	_register_scene(
 		StringName("save_load_menu"),
-		"res://scenes/ui/ui_save_load_menu.tscn",
+		"res://scenes/ui/overlays/ui_save_load_menu.tscn",
 		SceneType.UI,
 		"instant",
 		10  # Critical path - accessed from pause menu
@@ -107,7 +107,7 @@ static func _register_scenes() -> void:
 	# Loading Screen (preloaded at startup)
 	_register_scene(
 		StringName("loading_screen"),
-		"res://scenes/ui/ui_loading_screen.tscn",
+		"res://scenes/ui/hud/ui_loading_screen.tscn",
 		SceneType.UI,
 		"instant",
 		10  # Critical path - preload at startup (Phase 8)
@@ -138,9 +138,9 @@ static func _register_scenes() -> void:
 		0
 	)
 
-	# NON-CRITICAL SCENES - Migrated to resources/scene_registry/*.tres
+	# NON-CRITICAL SCENES - Migrated to resources/scene_registry/cfg_*_entry.tres
 	# These scenes are now loaded via _load_resource_entries()
-	# See: resources/scene_registry/README.md for details
+	# See: docs/scene_manager/ADDING_SCENES_GUIDE.md for details
 
 ## Load scene entries from resource files (T212)
 ##
@@ -157,7 +157,7 @@ static func _register_scenes() -> void:
 ## **Non-coder workflow**:
 ## 1. Create new RS_SceneRegistryEntry resource in editor
 ## 2. Configure scene_id, scene_path, scene_type, etc.
-## 3. Save as resources/scene_registry/<name>.tres
+## 3. Save as resources/scene_registry/cfg_<name>_entry.tres
 ## 4. Scene auto-loads on next game start
 static func _load_resource_entries() -> void:
 	_loader.load_resource_entries(_scenes, Callable(U_SceneRegistry, "_register_scene"))

@@ -402,7 +402,7 @@
   - Added "Visual Effects" button to `scenes/ui/ui_settings_menu.tscn`
   - Registered VFX settings in `U_UIRegistry` (screen_id: `vfx_settings`)
   - Registered scene in `U_SceneRegistryLoader.backfill_default_gameplay_scenes()`
-  - Created UI screen definition at `resources/ui_screens/vfx_settings_overlay.tres`
+  - Created UI screen definition at `resources/ui_screens/cfg_vfx_settings_overlay.tres`
   - Wired button handler in `scripts/ui/ui_settings_menu.gd` to open overlay
   - Settings saved to Redux state (VFX slice) and persist via state persistence system
   - All tests passing: 75/75 (33 Redux + 17 Manager + 15 ScreenShake + 10 DamageFlash)

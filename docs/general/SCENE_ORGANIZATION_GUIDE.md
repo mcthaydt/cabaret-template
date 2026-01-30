@@ -479,7 +479,7 @@ Notes & pitfalls
 Use a small Resource to drive volume creation consistently across components.
 
 - File: `scripts/ecs/resources/rs_scene_trigger_settings.gd`
-- Example preset: `resources/triggers/rs_checkpoint_box_2x3x2.tres`
+- Example preset: `resources/triggers/cfg_checkpoint_box_2x3x2.tres`
   - Script reference included in the resource file
   - Fields: `shape_type`, `box_size`/`cyl_radius`+`cyl_height`, `local_offset`, `player_mask`
 

@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/component.svg")
+@icon("res://assets/editor_icons/icn_component.svg")
 extends BaseECSComponent
 class_name C_HealthComponent
 
@@ -169,11 +169,13 @@ func _publish_health_changed(previous_health: float, new_health: float) -> void:
 	U_ECSEventBus.publish_typed(health_event)
 
 func _publish_death_event(previous_health: float) -> void:
+	var position := _get_entity_position()
 	var death_event := Evn_EntityDeath.new(
 		_get_entity_id(),
 		previous_health,
 		current_health,
-		true
+		true,
+		position
 	)
 	U_ECSEventBus.publish_typed(death_event)
 
@@ -187,3 +189,17 @@ func _get_entity_id() -> StringName:
 		return ECS_UTILS.get_entity_id(body)
 
 	return StringName(String(name).to_lower())
+
+func _get_entity_position() -> Vector3:
+	var entity := ECS_UTILS.find_entity_root(self)
+	if entity is Node3D:
+		return (entity as Node3D).global_position
+
+	var body := get_character_body()
+	if body != null:
+		return body.global_position
+
+	if get_parent() is Node3D:
+		return (get_parent() as Node3D).global_position
+
+	return Vector3.ZERO

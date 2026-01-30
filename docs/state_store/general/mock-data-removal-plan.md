@@ -101,7 +101,7 @@ Files that need refactoring:
 
 **State Structure:**
 - `scripts/state/resources/rs_gameplay_initial_state.gd` - Remove health, score, level fields
-- `resources/state/default_gameplay_initial_state.tres` - Update to match
+- `resources/state/cfg_default_gameplay_initial_state.tres` - Update to match
 
 **Actions:**
 - `scripts/state/actions/u_gameplay_actions.gd` - Remove 5 mock actions

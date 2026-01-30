@@ -159,15 +159,25 @@ func test_finished_player_is_reused_by_next_spawn() -> void:
 	assert_eq(second, first)
 
 
-func test_pool_exhaustion_returns_null_and_warns() -> void:
+func test_pool_exhaustion_triggers_voice_stealing() -> void:
+	# Phase 7: Pool exhaustion now triggers voice stealing instead of returning null
+	U_SFX_SPAWNER.reset_stats()
 	var stream := AudioStreamWAV.new()
+	var players: Array[AudioStreamPlayer3D] = []
+
 	for _i in range(16):
 		var player := U_SFX_SPAWNER.spawn_3d({"audio_stream": stream})
 		assert_not_null(player)
+		players.append(player)
 
-	var exhausted := U_SFX_SPAWNER.spawn_3d({"audio_stream": stream})
-	assert_null(exhausted)
-	assert_engine_error("SFX pool exhausted")
+	# 17th spawn should trigger voice stealing (steals oldest player)
+	var stolen := U_SFX_SPAWNER.spawn_3d({"audio_stream": stream})
+	assert_not_null(stolen, "Should steal voice instead of returning null")
+	assert_true(players.has(stolen), "Stolen player should be from the pool")
+
+	# Verify stats tracked the steal
+	var stats := U_SFX_SPAWNER.get_stats()
+	assert_eq(stats["steals"], 1, "Should track 1 voice steal")
 
 
 func test_concurrent_playback_uses_16_unique_players() -> void:

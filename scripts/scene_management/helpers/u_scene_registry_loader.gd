@@ -54,7 +54,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("gamepad_settings")):
 		register_scene_callable.call(
 			StringName("gamepad_settings"),
-			"res://scenes/ui/ui_gamepad_settings_overlay.tscn",
+			"res://scenes/ui/overlays/ui_gamepad_settings_overlay.tscn",
 			U_SceneRegistry.SceneType.UI,
 			"instant",
 			5
@@ -63,7 +63,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("touchscreen_settings")):
 		register_scene_callable.call(
 			StringName("touchscreen_settings"),
-			"res://scenes/ui/ui_touchscreen_settings_overlay.tscn",
+			"res://scenes/ui/overlays/ui_touchscreen_settings_overlay.tscn",
 			U_SceneRegistry.SceneType.UI,
 			"instant",
 			5
@@ -72,7 +72,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("vfx_settings")):
 		register_scene_callable.call(
 			StringName("vfx_settings"),
-			"res://scenes/ui/ui_vfx_settings_overlay.tscn",
+			"res://scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn",
 			U_SceneRegistry.SceneType.UI,
 			"instant",
 			5
@@ -81,7 +81,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("audio_settings")):
 		register_scene_callable.call(
 			StringName("audio_settings"),
-			"res://scenes/ui/ui_audio_settings_overlay.tscn",
+			"res://scenes/ui/overlays/settings/ui_audio_settings_overlay.tscn",
 			U_SceneRegistry.SceneType.UI,
 			"instant",
 			5
@@ -90,7 +90,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("edit_touch_controls")):
 		register_scene_callable.call(
 			StringName("edit_touch_controls"),
-			"res://scenes/ui/ui_edit_touch_controls_overlay.tscn",
+			"res://scenes/ui/overlays/ui_edit_touch_controls_overlay.tscn",
 			U_SceneRegistry.SceneType.UI,
 			"instant",
 			5
@@ -99,7 +99,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("input_profile_selector")):
 		register_scene_callable.call(
 			StringName("input_profile_selector"),
-			"res://scenes/ui/ui_input_profile_selector.tscn",
+			"res://scenes/ui/overlays/ui_input_profile_selector.tscn",
 			U_SceneRegistry.SceneType.UI,
 			"instant",
 			5
@@ -108,7 +108,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("input_rebinding")):
 		register_scene_callable.call(
 			StringName("input_rebinding"),
-			"res://scenes/ui/ui_input_rebinding_overlay.tscn",
+			"res://scenes/ui/overlays/ui_input_rebinding_overlay.tscn",
 			U_SceneRegistry.SceneType.UI,
 			"instant",
 			5
@@ -117,7 +117,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("game_over")):
 		register_scene_callable.call(
 			StringName("game_over"),
-			"res://scenes/ui/ui_game_over.tscn",
+			"res://scenes/ui/menus/ui_game_over.tscn",
 			U_SceneRegistry.SceneType.END_GAME,
 			"fade",
 			8
@@ -126,7 +126,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("victory")):
 		register_scene_callable.call(
 			StringName("victory"),
-			"res://scenes/ui/ui_victory.tscn",
+			"res://scenes/ui/menus/ui_victory.tscn",
 			U_SceneRegistry.SceneType.END_GAME,
 			"fade",
 			5
@@ -135,7 +135,7 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 	if not scenes.has(StringName("credits")):
 		register_scene_callable.call(
 			StringName("credits"),
-			"res://scenes/ui/ui_credits.tscn",
+			"res://scenes/ui/menus/ui_credits.tscn",
 			U_SceneRegistry.SceneType.END_GAME,
 			"fade",
 			0

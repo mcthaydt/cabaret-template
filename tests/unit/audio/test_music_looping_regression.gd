@@ -4,7 +4,7 @@ extends GutTest
 ## Verifies that all music tracks loop properly
 
 func test_main_menu_music_loops() -> void:
-	var stream: AudioStream = load("res://assets/audio/music/main_menu.mp3")
+	var stream: AudioStream = load("res://assets/audio/music/mus_main_menu.mp3")
 	assert_not_null(stream, "Main menu music should load")
 
 	if stream is AudioStreamMP3:
@@ -15,7 +15,7 @@ func test_main_menu_music_loops() -> void:
 		assert_true(ogg_stream.loop, "Main menu music should have loop enabled")
 
 func test_exterior_music_loops() -> void:
-	var stream: AudioStream = load("res://assets/audio/music/exterior.mp3")
+	var stream: AudioStream = load("res://assets/audio/music/mus_exterior.mp3")
 	assert_not_null(stream, "Exterior music should load")
 
 	if stream is AudioStreamMP3:
@@ -26,7 +26,7 @@ func test_exterior_music_loops() -> void:
 		assert_true(ogg_stream.loop, "Exterior music should have loop enabled")
 
 func test_interior_music_loops() -> void:
-	var stream: AudioStream = load("res://assets/audio/music/interior.mp3")
+	var stream: AudioStream = load("res://assets/audio/music/mus_interior.mp3")
 	assert_not_null(stream, "Interior music should load")
 
 	if stream is AudioStreamMP3:
@@ -37,7 +37,7 @@ func test_interior_music_loops() -> void:
 		assert_true(ogg_stream.loop, "Interior music should have loop enabled")
 
 func test_pause_music_loops() -> void:
-	var stream: AudioStream = load("res://assets/audio/music/pause.mp3")
+	var stream: AudioStream = load("res://assets/audio/music/mus_pause.mp3")
 	assert_not_null(stream, "Pause music should load")
 
 	if stream is AudioStreamMP3:
@@ -48,7 +48,7 @@ func test_pause_music_loops() -> void:
 		assert_true(ogg_stream.loop, "Pause music should have loop enabled")
 
 func test_credits_music_loops() -> void:
-	var stream: AudioStream = load("res://assets/audio/music/credits.mp3")
+	var stream: AudioStream = load("res://assets/audio/music/mus_credits.mp3")
 	assert_not_null(stream, "Credits music should load")
 
 	if stream is AudioStreamMP3:

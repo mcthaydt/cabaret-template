@@ -17,10 +17,10 @@ const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_TRANSITION_TEST_HELPERS := preload("res://tests/helpers/u_transition_test_helpers.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
-const STREAM_MAIN_MENU := preload("res://assets/audio/music/main_menu.mp3")
-const STREAM_EXTERIOR := preload("res://assets/audio/music/exterior.mp3")
-const STREAM_INTERIOR := preload("res://assets/audio/music/interior.mp3")
-const STREAM_PAUSE := preload("res://assets/audio/music/pause.mp3")
+const STREAM_MAIN_MENU := preload("res://assets/audio/music/mus_main_menu.mp3")
+const STREAM_EXTERIOR := preload("res://assets/audio/music/mus_exterior.mp3")
+const STREAM_INTERIOR := preload("res://assets/audio/music/mus_interior.mp3")
+const STREAM_PAUSE := preload("res://assets/audio/music/mus_pause.mp3")
 
 var _store: M_StateStore
 var _audio_manager: M_AudioManager
@@ -78,7 +78,7 @@ func _is_playing_stream(stream: AudioStream) -> bool:
 
 
 func _await_music_tween(timeout_sec: float = 1.0) -> bool:
-	var tween := _audio_manager._music_tween
+	var tween: Tween = _audio_manager._music_crossfader._tween
 	return await U_TRANSITION_TEST_HELPERS.await_tween_or_timeout(tween, get_tree(), timeout_sec)
 
 
@@ -90,14 +90,14 @@ func test_music_players_exist_and_use_music_bus() -> void:
 
 
 func test_active_music_player_initially_player_a() -> void:
-	assert_eq(_audio_manager._active_music_player, _player_a())
-	assert_eq(_audio_manager._inactive_music_player, _player_b())
+	assert_eq(_audio_manager._music_crossfader._active_player, _player_a())
+	assert_eq(_audio_manager._music_crossfader._inactive_player, _player_b())
 
 
 func test_play_music_swaps_active_to_player_b() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await get_tree().process_frame
-	assert_eq(_audio_manager._active_music_player, _player_b())
+	assert_eq(_audio_manager._music_crossfader._active_player, _player_b())
 
 
 func test_second_play_music_swaps_active_back_to_player_a() -> void:
@@ -105,52 +105,52 @@ func test_second_play_music_swaps_active_back_to_player_a() -> void:
 	await _await_music_tween(0.5)
 	_audio_manager.play_music(StringName("exterior"), 0.01)
 	await get_tree().process_frame
-	assert_eq(_audio_manager._active_music_player, _player_a())
+	assert_eq(_audio_manager._music_crossfader._active_player, _player_a())
 
 
 func test_play_music_sets_current_music_id() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await get_tree().process_frame
-	assert_eq(_audio_manager._current_music_id, StringName("main_menu"))
+	assert_eq(_audio_manager._music_crossfader._current_track_id, StringName("main_menu"))
 
 
 func test_play_music_same_track_is_noop() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await _await_music_tween(0.5)
 
-	var tween_before := _audio_manager._music_tween
+	var tween_before: Tween = _audio_manager._music_crossfader._tween
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await get_tree().process_frame
 
-	assert_eq(_audio_manager._music_tween, tween_before, "Replaying same track should not restart tween")
+	assert_eq(_audio_manager._music_crossfader._tween, tween_before, "Replaying same track should not restart tween")
 
 
 func test_play_music_unknown_track_warns_and_does_not_change_current_id() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await _await_music_tween(0.5)
 
-	var current_before := _audio_manager._current_music_id
+	var current_before: StringName = _audio_manager._music_crossfader._current_track_id
 	_audio_manager.play_music(StringName("unknown_track"), 0.01)
 	assert_engine_error("Unknown music track")
-	assert_eq(_audio_manager._current_music_id, current_before)
+	assert_eq(_audio_manager._music_crossfader._current_track_id, current_before)
 
 
 func test_new_player_starts_at_minus_80_db() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.2)
-	assert_almost_eq(_audio_manager._active_music_player.volume_db, -80.0, 0.001)
+	assert_almost_eq(_audio_manager._music_crossfader._active_player.volume_db, -80.0, 0.001)
 
 
 func test_new_player_fades_in_to_zero_db() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	var completed := await _await_music_tween(0.5)
 	assert_true(completed, "Tween should complete quickly")
-	assert_almost_eq(_audio_manager._active_music_player.volume_db, 0.0, 0.1)
+	assert_almost_eq(_audio_manager._music_crossfader._active_player.volume_db, 0.0, 0.1)
 
 
 func test_old_player_stops_after_crossfade() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await _await_music_tween(0.5)
-	var old_player := _audio_manager._active_music_player
+	var old_player: AudioStreamPlayer = _audio_manager._music_crossfader._active_player
 
 	_audio_manager.play_music(StringName("exterior"), 0.05)
 	await get_tree().process_frame
@@ -166,7 +166,7 @@ func test_crossfade_when_old_not_playing_only_fades_in_new() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await get_tree().process_frame
 
-	var inactive := _audio_manager._inactive_music_player
+	var inactive: AudioStreamPlayer = _audio_manager._music_crossfader._inactive_player
 	assert_false(inactive.playing, "Old/inactive player should not start playing when previously silent")
 
 
@@ -174,25 +174,25 @@ func test_negative_duration_clamps_to_zero() -> void:
 	_audio_manager.play_music(StringName("main_menu"), -1.0)
 	await get_tree().process_frame
 	assert_true(_is_playing_stream(STREAM_MAIN_MENU))
-	assert_almost_eq(_audio_manager._active_music_player.volume_db, 0.0, 0.1)
+	assert_almost_eq(_audio_manager._music_crossfader._active_player.volume_db, 0.0, 0.1)
 
 
 func test_duration_zero_crossfade_completes_immediately() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.0)
 	await get_tree().process_frame
 	assert_true(_is_playing_stream(STREAM_MAIN_MENU))
-	assert_almost_eq(_audio_manager._active_music_player.volume_db, 0.0, 0.1)
+	assert_almost_eq(_audio_manager._music_crossfader._active_player.volume_db, 0.0, 0.1)
 
 
 func test_retrigger_kills_previous_tween_and_starts_new_one() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.5)
 	await get_tree().process_frame
-	var tween_1 := _audio_manager._music_tween
+	var tween_1: Tween = _audio_manager._music_crossfader._tween
 	assert_not_null(tween_1)
 
 	_audio_manager.play_music(StringName("exterior"), 0.5)
 	await get_tree().process_frame
-	var tween_2 := _audio_manager._music_tween
+	var tween_2: Tween = _audio_manager._music_crossfader._tween
 	assert_not_null(tween_2)
 	assert_ne(tween_1, tween_2, "Retrigger should replace the tween")
 
@@ -200,7 +200,7 @@ func test_retrigger_kills_previous_tween_and_starts_new_one() -> void:
 func test_crossfade_keeps_old_playing_until_tween_finishes() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await _await_music_tween(0.5)
-	var old_player := _audio_manager._active_music_player
+	var old_player: AudioStreamPlayer = _audio_manager._music_crossfader._active_player
 
 	_audio_manager.play_music(StringName("exterior"), 0.2)
 	await get_tree().process_frame
@@ -212,7 +212,7 @@ func test_crossfade_keeps_old_playing_until_tween_finishes() -> void:
 func test_crossfade_fades_out_old_player_volume_mid_fade() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await _await_music_tween(0.5)
-	var old_player := _audio_manager._active_music_player
+	var old_player: AudioStreamPlayer = _audio_manager._music_crossfader._active_player
 	assert_almost_eq(old_player.volume_db, 0.0, 0.1)
 
 	_audio_manager.play_music(StringName("exterior"), 0.4)
@@ -227,7 +227,7 @@ func test_cubic_ease_in_out_is_not_linear_at_quarter_time() -> void:
 	# Use a longer duration and sample early to distinguish cubic ease-in from linear.
 	_audio_manager.play_music(StringName("main_menu"), 2.0)
 	await get_tree().process_frame
-	var new_player := _audio_manager._active_music_player
+	var new_player: AudioStreamPlayer = _audio_manager._music_crossfader._active_player
 
 	await get_tree().create_timer(0.1).timeout
 	assert_lt(new_player.volume_db, -76.5, "Cubic ease-in should still be quieter than linear early in the fade")
@@ -236,7 +236,7 @@ func test_cubic_ease_in_out_is_not_linear_at_quarter_time() -> void:
 func test_cubic_ease_in_out_is_near_full_volume_at_three_quarter_time() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.4)
 	await get_tree().process_frame
-	var new_player := _audio_manager._active_music_player
+	var new_player: AudioStreamPlayer = _audio_manager._music_crossfader._active_player
 
 	await get_tree().create_timer(0.3).timeout
 	assert_gt(new_player.volume_db, -15.0, "Cubic ease-out should be near full volume at 3/4 time")
@@ -301,7 +301,7 @@ func test_close_pause_stops_pause_music_if_no_pre_pause_track() -> void:
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.close_pause())
 	await get_tree().process_frame
-	assert_eq(_audio_manager._current_music_id, StringName(""))
+	assert_eq(_audio_manager._music_crossfader._current_track_id, StringName(""))
 
 	# close_pause should fade out and then stop pause music when there is no return track.
 	var completed := await _await_music_tween(1.5)
@@ -338,29 +338,29 @@ func test_stop_music_clears_current_music_id() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await _await_music_tween(0.5)
 
-	_audio_manager._stop_music(0.01)
+	_audio_manager.stop_music(0.01)
 	await get_tree().process_frame
-	assert_eq(_audio_manager._current_music_id, StringName(""))
+	assert_eq(_audio_manager._music_crossfader._current_track_id, StringName(""))
 
 
 func test_stop_music_fades_out_active_player() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await _await_music_tween(0.5)
-	var player := _audio_manager._active_music_player
+	var player: AudioStreamPlayer = _audio_manager._music_crossfader._active_player
 	assert_true(player.playing)
 
-	_audio_manager._stop_music(0.05)
+	_audio_manager.stop_music(0.05)
 	# Do not assume a per-frame delta smaller than the fade duration; just ensure the stop isn't synchronous.
 	assert_true(player.playing, "Player should not stop immediately when fade duration > 0")
-	assert_not_null(_audio_manager._music_tween, "Stop should create a tween for fade-out")
+	assert_not_null(_audio_manager._music_crossfader._tween, "Stop should create a tween for fade-out")
 
 
 func test_stop_music_stops_player_after_fade() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await _await_music_tween(0.5)
-	var player := _audio_manager._active_music_player
+	var player: AudioStreamPlayer = _audio_manager._music_crossfader._active_player
 
-	_audio_manager._stop_music(0.01)
+	_audio_manager.stop_music(0.01)
 	var completed := await _await_music_tween(0.5)
 	assert_true(completed)
 	assert_false(player.playing, "Player should stop after stop tween completes")

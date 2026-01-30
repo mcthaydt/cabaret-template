@@ -1,6 +1,6 @@
 extends GutTest
 
-const OverlayScene := preload("res://scenes/ui/ui_gamepad_settings_overlay.tscn")
+const OverlayScene := preload("res://scenes/ui/overlays/ui_gamepad_settings_overlay.tscn")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")

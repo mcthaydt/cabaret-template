@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/system.svg")
+@icon("res://assets/editor_icons/icn_system.svg")
 extends BaseECSSystem
 class_name S_CheckpointSystem
 
@@ -71,9 +71,13 @@ func _on_checkpoint_zone_entered(event: Dictionary) -> void:
 		var action: Dictionary = U_GAMEPLAY_ACTIONS.set_last_checkpoint(spawn_point_id)
 		_store.dispatch(action)
 
+	# Phase 6: Resolve spawn point position here instead of in sound system (perf optimization)
+	var spawn_position := _resolve_spawn_point_position(spawn_point_id)
+
 	var checkpoint_event := Evn_CheckpointActivated.new(
 		checkpoint.checkpoint_id,
-		checkpoint.spawn_point_id
+		checkpoint.spawn_point_id,
+		spawn_position
 	)
 	U_ECSEventBus.publish_typed(checkpoint_event)
 
@@ -82,3 +86,26 @@ func _exit_tree() -> void:
 		if unsubscribe != null and unsubscribe is Callable and (unsubscribe as Callable).is_valid():
 			(unsubscribe as Callable).call()
 	_event_unsubscribes.clear()
+
+## Phase 6: Resolve spawn point position to include in event (performance optimization)
+## This eliminates O(n) find_child() traversal in S_CheckpointSoundSystem
+func _resolve_spawn_point_position(spawn_point_id: StringName) -> Vector3:
+	if spawn_point_id == StringName(""):
+		return Vector3.ZERO
+
+	var tree := get_tree()
+	if tree == null:
+		return Vector3.ZERO
+
+	var root: Node = tree.current_scene
+	if root == null:
+		root = tree.root
+
+	if root == null:
+		return Vector3.ZERO
+
+	var node := root.find_child(String(spawn_point_id), true, false) as Node3D
+	if node == null or not is_instance_valid(node):
+		return Vector3.ZERO
+
+	return node.global_position

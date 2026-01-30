@@ -1,6 +1,6 @@
 extends GutTest
 
-const VirtualJoystickScene := preload("res://scenes/ui/ui_virtual_joystick.tscn")
+const VirtualJoystickScene := preload("res://scenes/ui/widgets/ui_virtual_joystick.tscn")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")

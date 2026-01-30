@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/manager.svg")
+@icon("res://assets/editor_icons/icn_manager.svg")
 extends "res://scripts/interfaces/i_audio_manager.gd"
 class_name M_AudioManager
 
@@ -15,62 +15,39 @@ const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_AUDIO_SERIALIZATION := preload("res://scripts/utils/u_audio_serialization.gd")
 const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
+const U_AUDIO_REGISTRY_LOADER := preload("res://scripts/managers/helpers/u_audio_registry_loader.gd")
+const U_AUDIO_BUS_CONSTANTS := preload("res://scripts/managers/helpers/u_audio_bus_constants.gd")
+const U_CrossfadePlayer := preload("res://scripts/managers/helpers/u_crossfade_player.gd")
 
-const _MUSIC_REGISTRY: Dictionary = {
-	StringName("main_menu"): {
-		"stream": preload("res://assets/audio/music/main_menu.mp3"),
-		"scenes": [StringName("main_menu")],
-	},
-	StringName("exterior"): {
-		"stream": preload("res://assets/audio/music/exterior.mp3"),
-		"scenes": [StringName("exterior")],
-	},
-	StringName("interior"): {
-		"stream": preload("res://assets/audio/music/interior.mp3"),
-		"scenes": [StringName("interior_house")],
-	},
-	StringName("pause"): {
-		"stream": preload("res://assets/audio/music/pause.mp3"),
-		"scenes": [],  # Not tied to a specific scene
-	},
-	StringName("credits"): {
-		"stream": preload("res://assets/audio/music/credits.mp3"),
-		"scenes": [StringName("credits")],
-	},
-}
-
-const _UI_SOUND_REGISTRY: Dictionary = {
-	StringName("ui_focus"): preload("res://assets/audio/sfx/placeholder_ui_focus.wav"),
-	StringName("ui_confirm"): preload("res://assets/audio/sfx/placeholder_ui_confirm.wav"),
-	StringName("ui_cancel"): preload("res://assets/audio/sfx/placeholder_ui_cancel.wav"),
-	StringName("ui_tick"): preload("res://assets/audio/sfx/placeholder_ui_tick.wav"),
-}
+const UI_SOUND_POLYPHONY := 4
 
 var _state_store: I_StateStore = null
 var _unsubscribe: Callable
 
-var _music_player_a: AudioStreamPlayer
-var _music_player_b: AudioStreamPlayer
-var _active_music_player: AudioStreamPlayer
-var _inactive_music_player: AudioStreamPlayer
-var _current_music_id: StringName = StringName("")
+var _music_crossfader: U_CrossfadePlayer
+var _ambient_crossfader: U_CrossfadePlayer
 var _pre_pause_music_id: StringName = StringName("")
 var _pre_pause_music_position: float = 0.0
 var _is_pause_overlay_active: bool = false
-var _music_tween: Tween
 
-var _ui_player: AudioStreamPlayer
+var _ui_sound_players: Array[AudioStreamPlayer] = []
+var _ui_sound_index: int = 0
 var _audio_settings_preview_active: bool = false
 var _audio_save_debounce_scheduled: bool = false
 var _loading_persisted_settings: bool = false
+var _last_audio_hash: int = 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	U_SERVICE_LOCATOR.register(StringName("audio_manager"), self)
 
-	_create_bus_layout()
-	_initialize_music_players()
-	_initialize_ui_player()
+	if not U_AUDIO_BUS_CONSTANTS.validate_bus_layout():
+		push_error("M_AudioManager: Invalid audio bus layout. Please configure buses in Project Settings → Audio → Buses")
+
+	U_AUDIO_REGISTRY_LOADER.initialize()
+	_music_crossfader = U_CrossfadePlayer.new(self, &"Music")
+	_ambient_crossfader = U_CrossfadePlayer.new(self, &"Ambient")
+	_setup_ui_sound_players()
 	U_SFX_SPAWNER.initialize(self)
 
 	await _initialize_store_async()
@@ -84,14 +61,13 @@ func _exit_tree() -> void:
 	_state_store = null
 	U_SFX_SPAWNER.cleanup()
 
-	if _music_tween != null and _music_tween.is_valid():
-		_music_tween.kill()
-	_music_tween = null
+	if _music_crossfader != null:
+		_music_crossfader.cleanup()
+		_music_crossfader = null
 
-	if _music_player_a != null and is_instance_valid(_music_player_a):
-		_music_player_a.stop()
-	if _music_player_b != null and is_instance_valid(_music_player_b):
-		_music_player_b.stop()
+	if _ambient_crossfader != null:
+		_ambient_crossfader.cleanup()
+		_ambient_crossfader = null
 
 func _initialize_store_async() -> void:
 	var store := await _await_store_ready_soft()
@@ -106,12 +82,12 @@ func _initialize_store_async() -> void:
 	if not applied_persisted:
 		_apply_audio_settings(_state_store.get_state())
 
-	# Initialize music based on current scene state
+	# Initialize audio based on current scene state
 	# (transition_completed may have already been dispatched before we subscribed)
 	var scene_state: Dictionary = _state_store.get_slice(StringName("scene"))
 	var current_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
 	if current_scene_id != StringName(""):
-		_change_music_for_scene(current_scene_id)
+		_change_audio_for_scene(current_scene_id)
 
 func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
 	var tree := get_tree()
@@ -132,161 +108,117 @@ func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
 
 	return null
 
-func _create_bus_layout() -> void:
-	# Clear existing buses beyond Master (bus 0)
-	while AudioServer.bus_count > 1:
-		AudioServer.remove_bus(1)
+func _setup_ui_sound_players() -> void:
+	_ui_sound_players.clear()
+	for i in range(UI_SOUND_POLYPHONY):
+		var player := AudioStreamPlayer.new()
+		player.name = "UIPlayer_%d" % i
+		player.bus = "UI"
+		add_child(player)
+		_ui_sound_players.append(player)
 
-	# Create bus hierarchy
-	# Master (bus 0) - already exists
-	# ├── Music (bus 1)
-	# ├── SFX (bus 2)
-	# │   ├── UI (bus 3)
-	# │   └── Footsteps (bus 4)
-	# └── Ambient (bus 5)
-
-	AudioServer.add_bus(1)  # Music
-	AudioServer.set_bus_name(1, "Music")
-	AudioServer.set_bus_send(1, "Master")
-
-	AudioServer.add_bus(2)  # SFX
-	AudioServer.set_bus_name(2, "SFX")
-	AudioServer.set_bus_send(2, "Master")
-
-	AudioServer.add_bus(3)  # UI
-	AudioServer.set_bus_name(3, "UI")
-	AudioServer.set_bus_send(3, "SFX")
-
-	AudioServer.add_bus(4)  # Footsteps
-	AudioServer.set_bus_name(4, "Footsteps")
-	AudioServer.set_bus_send(4, "SFX")
-
-	AudioServer.add_bus(5)  # Ambient
-	AudioServer.set_bus_name(5, "Ambient")
-	AudioServer.set_bus_send(5, "Master")
-
-func _initialize_music_players() -> void:
-	if _music_player_a == null or not is_instance_valid(_music_player_a):
-		_music_player_a = AudioStreamPlayer.new()
-		_music_player_a.name = "MusicPlayerA"
-		_music_player_a.bus = "Music"
-		add_child(_music_player_a)
-
-	if _music_player_b == null or not is_instance_valid(_music_player_b):
-		_music_player_b = AudioStreamPlayer.new()
-		_music_player_b.name = "MusicPlayerB"
-		_music_player_b.bus = "Music"
-		add_child(_music_player_b)
-
-	_active_music_player = _music_player_a
-	_inactive_music_player = _music_player_b
-
-func _initialize_ui_player() -> void:
-	if _ui_player != null and is_instance_valid(_ui_player):
-		return
-
-	_ui_player = AudioStreamPlayer.new()
-	_ui_player.name = "UIPlayer"
-	_ui_player.bus = "UI"
-	add_child(_ui_player)
-
+## Override: I_AudioManager.play_ui_sound
 func play_ui_sound(sound_id: StringName) -> void:
 	if sound_id.is_empty():
 		return
-	if not _UI_SOUND_REGISTRY.has(sound_id):
+
+	var sound_def := U_AUDIO_REGISTRY_LOADER.get_ui_sound(sound_id)
+	if sound_def == null:
 		return
 
-	if _ui_player == null or not is_instance_valid(_ui_player):
-		_initialize_ui_player()
-
-	var stream := _UI_SOUND_REGISTRY[sound_id] as AudioStream
+	var stream := sound_def.stream
 	if stream == null:
 		return
 
-	_ui_player.stream = stream
-	_ui_player.play()
+	# Use round-robin player selection
+	if _ui_sound_players.is_empty():
+		_setup_ui_sound_players()
+
+	var player := _ui_sound_players[_ui_sound_index]
+	_ui_sound_index = (_ui_sound_index + 1) % UI_SOUND_POLYPHONY
+
+	# Apply sound definition settings
+	player.stream = stream
+	player.volume_db = sound_def.volume_db
+
+	# Apply pitch variation (randomized within range)
+	if sound_def.pitch_variation > 0.0:
+		var variation := clampf(sound_def.pitch_variation, 0.0, 0.95)
+		player.pitch_scale = randf_range(1.0 - variation, 1.0 + variation)
+	else:
+		player.pitch_scale = 1.0
+
+	player.play()
 
 static func _linear_to_db(linear: float) -> float:
 	if linear <= 0.0:
 		return -80.0
 	return 20.0 * log(linear) / log(10.0)
 
+## Override: I_AudioManager.play_music
 func play_music(track_id: StringName, duration: float = 1.5, start_position: float = 0.0) -> void:
-	if track_id == _current_music_id:
+	if _music_crossfader == null:
 		return
 
-	if not _MUSIC_REGISTRY.has(track_id):
+	if track_id == _music_crossfader.get_current_track_id():
+		return
+
+	var track_def := U_AUDIO_REGISTRY_LOADER.get_music_track(track_id)
+	if track_def == null:
 		push_warning("M_AudioManager: Unknown music track '%s'" % String(track_id))
 		return
 
-	var music_data: Dictionary = _MUSIC_REGISTRY[track_id]
-	var stream := music_data.get("stream") as AudioStream
+	var stream := track_def.stream
 	if stream == null:
 		push_warning("M_AudioManager: Music track '%s' has no stream" % String(track_id))
 		return
 
-	_crossfade_music(stream, track_id, duration, start_position)
-	_current_music_id = track_id
+	_music_crossfader.crossfade_to(stream, track_id, duration, start_position)
 
-func _crossfade_music(new_stream: AudioStream, _track_id: StringName, duration: float, start_position: float) -> void:
-	if new_stream == null:
+## Override: I_AudioManager.stop_music
+func stop_music(duration: float = 1.5) -> void:
+	if _music_crossfader == null:
 		return
 
-	# Kill existing tween
-	if _music_tween != null and _music_tween.is_valid():
-		_music_tween.kill()
+	_music_crossfader.stop(duration)
 
-	# Swap active/inactive players
-	var old_player := _active_music_player
-	var new_player := _inactive_music_player
-	_active_music_player = new_player
-	_inactive_music_player = old_player
-
-	if new_player == null or old_player == null:
+## Override: I_AudioManager.play_ambient
+func play_ambient(ambient_id: StringName, duration: float = 2.0) -> void:
+	if _ambient_crossfader == null:
 		return
 
-	# Start new player at -80dB (silent)
-	new_player.stream = new_stream
-	new_player.volume_db = -80.0
-	if start_position < 0.0:
-		start_position = 0.0
-	new_player.play(start_position)
-
-	# Crossfade with cubic easing
-	_music_tween = create_tween()
-	_music_tween.set_parallel(true)
-	_music_tween.set_trans(Tween.TRANS_CUBIC)
-	_music_tween.set_ease(Tween.EASE_IN_OUT)
-
-	if duration < 0.0:
-		duration = 0.0
-
-	# Fade out old player (if playing)
-	if old_player.playing:
-		_music_tween.tween_property(old_player, "volume_db", -80.0, duration)
-		_music_tween.chain().tween_callback(old_player.stop)
-
-	# Fade in new player
-	_music_tween.tween_property(new_player, "volume_db", 0.0, duration)
-
-func _stop_music(duration: float) -> void:
-	if _music_tween != null and _music_tween.is_valid():
-		_music_tween.kill()
-
-	if _active_music_player == null:
+	if ambient_id == _ambient_crossfader.get_current_track_id():
 		return
 
-	if duration < 0.0:
-		duration = 0.0
+	var ambient_def := U_AUDIO_REGISTRY_LOADER.get_ambient_track(ambient_id)
+	if ambient_def == null:
+		push_warning("M_AudioManager: Unknown ambient track '%s'" % String(ambient_id))
+		return
 
-	_music_tween = create_tween()
-	_music_tween.tween_property(_active_music_player, "volume_db", -80.0, duration)
-	_music_tween.chain().tween_callback(_active_music_player.stop)
-	_current_music_id = StringName("")
+	var stream := ambient_def.stream
+	if stream == null:
+		push_warning("M_AudioManager: Ambient track '%s' has no stream" % String(ambient_id))
+		return
+
+	_ambient_crossfader.crossfade_to(stream, ambient_id, duration)
+
+## Override: I_AudioManager.stop_ambient
+func stop_ambient(duration: float = 2.0) -> void:
+	if _ambient_crossfader == null:
+		return
+
+	_ambient_crossfader.stop(duration)
 
 func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
+	# Phase 9: Hash-based optimization - only apply audio settings when slice changes
 	if not _audio_settings_preview_active:
-		_apply_audio_settings(state)
+		var audio_slice: Variant = state.get("audio", {})
+		if audio_slice is Dictionary:
+			var audio_hash := (audio_slice as Dictionary).hash()
+			if audio_hash != _last_audio_hash:
+				_apply_audio_settings(state)
+				_last_audio_hash = audio_hash
+
 	_handle_music_actions(action)
 	_handle_audio_persistence(action)
 
@@ -299,24 +231,24 @@ func _handle_music_actions(action: Dictionary) -> void:
 		U_SCENE_ACTIONS.ACTION_TRANSITION_COMPLETED:
 			var payload: Dictionary = action.get("payload", {})
 			var scene_id: StringName = payload.get("scene_id", StringName(""))
-			_change_music_for_scene(scene_id)
+			_change_audio_for_scene(scene_id)
 		U_NAVIGATION_ACTIONS.ACTION_OPEN_PAUSE:
-			if _is_pause_overlay_active:
+			if _is_pause_overlay_active or _music_crossfader == null:
 				return
 			_is_pause_overlay_active = true
-			_pre_pause_music_id = _current_music_id
+			_pre_pause_music_id = _music_crossfader.get_current_track_id()
 			_pre_pause_music_position = 0.0
-			if _active_music_player != null and is_instance_valid(_active_music_player) and _active_music_player.playing:
-				_pre_pause_music_position = _active_music_player.get_playback_position()
+			if _music_crossfader.is_playing():
+				_pre_pause_music_position = _music_crossfader.get_playback_position()
 			play_music(StringName("pause"), 0.5)
 		U_NAVIGATION_ACTIONS.ACTION_CLOSE_PAUSE:
-			if not _is_pause_overlay_active:
+			if not _is_pause_overlay_active or _music_crossfader == null:
 				return
 			_is_pause_overlay_active = false
 			if _pre_pause_music_id != StringName(""):
 				play_music(_pre_pause_music_id, 0.5, _pre_pause_music_position)
-			elif _current_music_id == StringName("pause"):
-				_stop_music(0.5)
+			elif _music_crossfader.get_current_track_id() == StringName("pause"):
+				stop_music(0.5)
 			_pre_pause_music_id = StringName("")
 			_pre_pause_music_position = 0.0
 
@@ -331,37 +263,42 @@ func _handle_audio_persistence(action: Dictionary) -> void:
 	if action_name.begins_with("audio/"):
 		_schedule_audio_save()
 
-func _change_music_for_scene(scene_id: StringName) -> void:
+func _change_audio_for_scene(scene_id: StringName) -> void:
 	if scene_id == StringName(""):
 		return
 
-	var track_id := StringName("")
-	for candidate_track_id in _MUSIC_REGISTRY:
-		var music_data: Dictionary = _MUSIC_REGISTRY[candidate_track_id]
-		var scenes := music_data.get("scenes", []) as Array
-		if scene_id in scenes:
-			track_id = candidate_track_id
-			break
+	var scene_mapping := U_AUDIO_REGISTRY_LOADER.get_audio_for_scene(scene_id)
+	if scene_mapping == null:
+		# No mapping for this scene, keep current audio playing
+		return
 
+	# Handle music
+	var music_track_id := scene_mapping.music_track_id
 	# If no track found for this scene, keep current music playing (don't stop)
 	# This allows UI navigation (settings, pause menu panels, etc.) to not interrupt music
-	if track_id == StringName(""):
-		return
+	if music_track_id != StringName("") and not music_track_id.is_empty():
+		# If transitioning to main_menu, clear pause state (returning to main menu from pause)
+		if scene_id == StringName("main_menu") and _is_pause_overlay_active:
+			_is_pause_overlay_active = false
+			_pre_pause_music_id = StringName("")
+			_pre_pause_music_position = 0.0
 
-	# If transitioning to main_menu, clear pause state (returning to main menu from pause)
-	if scene_id == StringName("main_menu") and _is_pause_overlay_active:
-		_is_pause_overlay_active = false
-		_pre_pause_music_id = StringName("")
-		_pre_pause_music_position = 0.0
+		# If paused, only update the "return-to" track and keep pause music playing.
+		if _is_pause_overlay_active:
+			_pre_pause_music_id = music_track_id
+			_pre_pause_music_position = 0.0
+		else:
+			# Change to the new music track
+			play_music(music_track_id, 2.0)
 
-	# If paused, only update the "return-to" track and keep pause music playing.
-	if _is_pause_overlay_active:
-		_pre_pause_music_id = track_id
-		_pre_pause_music_position = 0.0
-		return
-
-	# Change to the new track
-	play_music(track_id, 2.0)
+	# Handle ambient
+	var ambient_track_id := scene_mapping.ambient_track_id
+	if ambient_track_id != StringName("") and not ambient_track_id.is_empty():
+		# Crossfade to the new ambient track
+		play_ambient(ambient_track_id, 2.0)
+	elif _ambient_crossfader != null and _ambient_crossfader.is_playing():
+		# No ambient for this scene - stop current ambient
+		stop_ambient(2.0)
 
 func _apply_audio_settings(state: Dictionary) -> void:
 	if state == null:
@@ -448,6 +385,7 @@ func _get_audio_settings_snapshot() -> Dictionary:
 		return (audio_variant as Dictionary).duplicate(true)
 	return {}
 
+## Override: I_AudioManager.set_audio_settings_preview
 func set_audio_settings_preview(preview_settings: Dictionary) -> void:
 	if preview_settings == null or preview_settings.is_empty():
 		return
@@ -464,6 +402,7 @@ func set_audio_settings_preview(preview_settings: Dictionary) -> void:
 		bool(preview_settings.get("spatial_audio_enabled", true))
 	)
 
+## Override: I_AudioManager.clear_audio_settings_preview
 func clear_audio_settings_preview() -> void:
 	if not _audio_settings_preview_active:
 		return

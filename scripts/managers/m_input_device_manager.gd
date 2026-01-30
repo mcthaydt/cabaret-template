@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/manager.svg")
+@icon("res://assets/editor_icons/icn_manager.svg")
 extends "res://scripts/interfaces/i_input_device_manager.gd"
 class_name M_InputDeviceManager
 

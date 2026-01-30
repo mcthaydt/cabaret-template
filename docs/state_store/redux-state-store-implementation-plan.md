@@ -493,7 +493,7 @@ Implement the chosen option from Prerequisites step 4. Recommended: Option C (Du
 - `scripts/state/utils/u_state_utils.gd` (access helper - NEW)
 - `scripts/state/resources/rs_state_slice_config.gd` (slice metadata)
 - `scripts/state/resources/rs_state_store_settings.gd` (store config)
-- `resources/state/default_state_store_settings.tres` (default config)
+- `resources/state/cfg_default_state_store_settings.tres` (default config)
 - `tests/unit/state/test_m_state_store.gd` (store tests)
 - `tests/unit/state/test_u_state_utils.gd` (utility tests - NEW)
 
@@ -688,7 +688,7 @@ class_name RS_StateStoreSettings
 Create default .tres file:
 1. Open Godot editor
 2. Create new `RS_StateStoreSettings` resource
-3. Save as `resources/state/default_state_store_settings.tres`
+3. Save as `resources/state/cfg_default_state_store_settings.tres`
 4. Set default values (max_history_size=1000, etc.)
 
 **Tests**: test_m_state_store.gd
@@ -1304,7 +1304,7 @@ func to_dictionary() -> Dictionary:
 	}
 ```
 
-Open `resources/state/default_gameplay_initial_state.tres` in Godot, set `default_ammo = 30`, save.
+Open `resources/state/cfg_default_gameplay_initial_state.tres` in Godot, set `default_ammo = 30`, save.
 
 **Step 4: Add Reducer Case** (3 min)
 

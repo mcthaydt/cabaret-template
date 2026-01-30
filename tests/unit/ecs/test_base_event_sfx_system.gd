@@ -225,3 +225,103 @@ func test_resubscribe_does_not_duplicate_callbacks() -> void:
 	EVENT_BUS.publish(TEST_EVENT_NAME, {"value": "test"})
 
 	assert_eq(system.requests.size(), 1)
+
+## Phase 6: Helper Method Tests
+
+func test_should_skip_processing_with_null_settings() -> void:
+	var system := SFX_SYSTEM_STUB.new()
+	system.settings = null
+	autofree(system)
+
+	assert_true(system._should_skip_processing())
+
+func test_should_skip_processing_with_disabled_settings() -> void:
+	var system := SFX_SYSTEM_STUB.new()
+	system.settings = {"enabled": false}
+	autofree(system)
+
+	assert_true(system._should_skip_processing())
+
+func test_should_skip_processing_with_null_stream() -> void:
+	var system := SFX_SYSTEM_STUB.new()
+	system.settings = {"enabled": true}
+	autofree(system)
+
+	# _get_audio_stream() returns null by default
+	assert_true(system._should_skip_processing())
+
+func test_should_skip_processing_returns_false_when_ready() -> void:
+	var system := SFX_SYSTEM_STUB.new()
+	system.settings = {"enabled": true}
+	system.mock_audio_stream = AudioStreamGenerator.new()
+	autofree(system)
+
+	assert_false(system._should_skip_processing())
+
+func test_should_skip_processing_clears_requests_on_skip() -> void:
+	var system := SFX_SYSTEM_STUB.new()
+	system.settings = null
+	system.requests.append({"test": "data"})
+	autofree(system)
+
+	assert_true(system._should_skip_processing())
+	assert_eq(system.requests.size(), 0)
+
+func test_is_throttled_enforces_min_interval() -> void:
+	var system := SFX_SYSTEM_STUB.new()
+	autofree(system)
+
+	var now: float = 10.0
+	var min_interval: float = 2.0
+
+	# First call should not be throttled (last_play_time = -INF)
+	assert_false(system._is_throttled(min_interval, now))
+
+	# Simulate playing sound
+	system._last_play_time = now
+
+	# Immediate retry should be throttled
+	assert_true(system._is_throttled(min_interval, now + 0.5))
+
+	# After min_interval, should not be throttled
+	assert_false(system._is_throttled(min_interval, now + 2.1))
+
+func test_calculate_pitch_clamps_variation() -> void:
+	var system := SFX_SYSTEM_STUB.new()
+	autofree(system)
+
+	# Test clamping to 0.95 max
+	var pitch := system._calculate_pitch(1.5)
+	assert_between(pitch, 0.05, 1.95, "Clamped to 0.95: should be 1.0 +/- 0.95")
+
+	# Test normal variation
+	pitch = system._calculate_pitch(0.2)
+	assert_between(pitch, 0.8, 1.2, "Normal variation: should be 1.0 +/- 0.2")
+
+	# Test zero variation returns 1.0
+	pitch = system._calculate_pitch(0.0)
+	assert_eq(pitch, 1.0)
+
+func test_extract_position_from_request() -> void:
+	var system := SFX_SYSTEM_STUB.new()
+	autofree(system)
+
+	var request := {"position": Vector3(1.0, 2.0, 3.0)}
+	var position := system._extract_position(request)
+	assert_eq(position, Vector3(1.0, 2.0, 3.0))
+
+func test_extract_position_returns_zero_when_missing() -> void:
+	var system := SFX_SYSTEM_STUB.new()
+	autofree(system)
+
+	var request := {}
+	var position := system._extract_position(request)
+	assert_eq(position, Vector3.ZERO)
+
+func test_extract_position_returns_zero_on_invalid_type() -> void:
+	var system := SFX_SYSTEM_STUB.new()
+	autofree(system)
+
+	var request := {"position": "not a vector"}
+	var position := system._extract_position(request)
+	assert_eq(position, Vector3.ZERO)

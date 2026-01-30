@@ -150,9 +150,9 @@ func test_reset_touchscreen_positions_returns_defaults() -> void:
 
 func test_get_default_joystick_position_returns_profile_value() -> void:
 	var pos: Vector2 = _mgr.get_default_joystick_position()
-	# default_touchscreen.tres defines virtual_joystick_position = Vector2(82, 390)
+	# cfg_default_touchscreen.tres defines virtual_joystick_position = Vector2(82, 390)
 	assert_ne(pos, Vector2(-1, -1), "Should return valid joystick position, not sentinel")
-	assert_eq(pos, Vector2(82, 390), "Should match default_touchscreen.tres value")
+	assert_eq(pos, Vector2(82, 390), "Should match cfg_default_touchscreen.tres value")
 
 func test_switch_profile_requires_pause() -> void:
 	await _await_manager_initialized()

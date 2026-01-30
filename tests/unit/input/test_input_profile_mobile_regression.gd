@@ -6,7 +6,7 @@ extends GutTest
 const M_InputProfileManager := preload("res://scripts/managers/m_input_profile_manager.gd")
 const U_InputProfileLoader := preload("res://scripts/managers/helpers/u_input_profile_loader.gd")
 const RS_InputProfile := preload("res://scripts/resources/input/rs_input_profile.gd")
-const UI_InputProfileSelector := preload("res://scenes/ui/ui_input_profile_selector.tscn")
+const UI_InputProfileSelector := preload("res://scenes/ui/overlays/ui_input_profile_selector.tscn")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")

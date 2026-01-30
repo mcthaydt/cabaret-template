@@ -145,11 +145,11 @@ Key insight: Phase 6 does NOT need `C_TouchscreenComponent`!
 **✅ Profile System is Extensible**
 
 Existing profiles:
-- `default_keyboard.tres` (WASD + Space + Shift)
-- `alternate_keyboard.tres` (Arrows + Space + Shift)
-- `default_gamepad.tres` (Gamepad bindings)
+- `cfg_default_keyboard.tres` (WASD + Space + Shift)
+- `cfg_alternate_keyboard.tres` (Arrows + Space + Shift)
+- `cfg_default_gamepad.tres` (Gamepad bindings)
 
-**To Add:** `default_touchscreen.tres` with virtual button metadata (4 buttons: jump, sprint, interact, pause)
+**To Add:** `cfg_default_touchscreen.tres` with virtual button metadata (4 buttons: jump, sprint, interact, pause)
 
 ### 0.3 Architecture Gaps Summary
 
@@ -172,7 +172,7 @@ Existing profiles:
 
 **Gap 4: No Touchscreen Profile**
 - Exists: Keyboard and gamepad profiles
-- Missing: `default_touchscreen.tres` with virtual button metadata
+- Missing: `cfg_default_touchscreen.tres` with virtual button metadata
 - Impact: No reset-to-defaults capability, no metadata-driven button configuration
 
 **Gap 5: No Resource Class**
@@ -617,7 +617,7 @@ Like keyboard and gamepad profiles, we need default touchscreen profiles for res
 
 **Touchscreen Profile Structure (RS_InputProfile):**
 ```gdscript
-# resources/input/profiles/default_touchscreen.tres
+# resources/input/profiles/cfg_default_touchscreen.tres
 profile_name: "Default (Touchscreen)"
 device_type: 2  # DeviceType.TOUCHSCREEN
 action_mappings: {}  # Touchscreen doesn't use InputMap
@@ -671,7 +671,7 @@ func _get_default_touchscreen_profile() -> RS_InputProfile:
 	if available_profiles.has("default_touchscreen"):
 		return available_profiles["default_touchscreen"]
 	# Otherwise load directly
-	return load("res://resources/input/profiles/default_touchscreen.tres") as RS_InputProfile
+	return load("res://resources/input/profiles/cfg_default_touchscreen.tres") as RS_InputProfile
 ```
 
 ### 1.6 S_InputSystem Integration
@@ -974,7 +974,7 @@ static func apply_touch_deadzone(touch_vector: Vector2, deadzone: float) -> Vect
 - Position saved to Redux on drag end via `U_InputActions.save_virtual_control_position()`
 
 **Reset to Defaults:**
-- Load `default_touchscreen.tres` profile
+- Load `cfg_default_touchscreen.tres` profile
 - Apply metadata positions to Redux
 - Same pattern as keyboard/gamepad reset
 
@@ -1497,7 +1497,7 @@ static func set_disable_touchscreen(enabled: bool) -> Dictionary:
 
 **Default Touchscreen Profile:**
 ```gdscript
-# resources/input/profiles/default_touchscreen.tres
+# resources/input/profiles/cfg_default_touchscreen.tres
 profile_name: "Default (Touchscreen)"
 profile_type: "touchscreen"
 device_type: DeviceType.TOUCHSCREEN
@@ -1659,7 +1659,7 @@ metadata: {
 1. **Update input-manager-tasks.md** with expanded Phase 6 tasks
 2. **Update input-manager-plan.md** with implementation specification
 3. **Update input-manager-prd.md** with clarified requirements
-4. **Create default_touchscreen.tres** profile resource
+4. **Create cfg_default_touchscreen.tres** profile resource
 5. **Begin implementation** (Task 6.0: Profile, then 6.1: Settings Resource)
 
 ---
@@ -1669,8 +1669,8 @@ metadata: {
 ### New Files to Create
 
 **Resources:**
-- `resources/input/profiles/default_touchscreen.tres` (touchscreen profile with metadata-driven buttons)
-- `resources/input/touchscreen_settings/default_touchscreen_settings.tres` (settings resource)
+- `resources/input/profiles/cfg_default_touchscreen.tres` (touchscreen profile with metadata-driven buttons)
+- `resources/input/touchscreen_settings/cfg_default_touchscreen_settings.tres` (settings resource)
 - `resources/button_prompts/mobile/joystick_base.png` (Kenney.nl asset)
 - `resources/button_prompts/mobile/joystick_thumb.png` (Kenney.nl asset)
 - `resources/button_prompts/mobile/button_background.png` (Kenney.nl asset)

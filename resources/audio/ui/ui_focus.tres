@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="RS_UISoundDefinition" format=3 uid="uid://bb1i2nr4gfsa7"]
+
+[ext_resource type="Script" uid="uid://bcan1it8fea2t" path="res://scripts/ecs/resources/rs_ui_sound_definition.gd" id="1"]
+[ext_resource type="AudioStream" uid="uid://b5ect41kkfh5s" path="res://tests/assets/audio/sfx/sfx_placeholder_ui_focus.wav" id="2"]
+
+[resource]
+script = ExtResource("1")
+sound_id = &"ui_focus"
+stream = ExtResource("2")

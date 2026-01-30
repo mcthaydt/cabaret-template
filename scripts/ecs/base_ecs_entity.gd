@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/entities.svg")
+@icon("res://assets/editor_icons/icn_entities.svg")
 extends I_ECSEntity
 class_name BaseECSEntity
 

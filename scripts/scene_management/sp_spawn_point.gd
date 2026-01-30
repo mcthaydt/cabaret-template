@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/spawn_points.svg")
+@icon("res://assets/editor_icons/icn_spawn_points.svg")
 extends Node3D
 class_name SP_SpawnPoint
 

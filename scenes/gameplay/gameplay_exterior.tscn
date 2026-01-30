@@ -21,27 +21,25 @@
 [ext_resource type="Script" uid="uid://clfv1t1w0mxtl" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
 [ext_resource type="Script" uid="uid://b5xt2jl71iacb" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
 [ext_resource type="Script" uid="uid://cjramcicvprg1" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
-[ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/base_settings/gameplay/rs_jump_particles_default.tres" id="9_jump_particles_settings"]
+[ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/base_settings/gameplay/cfg_jump_particles_default.tres" id="9_jump_particles_settings"]
 [ext_resource type="Script" uid="uid://c057v57rqs23t" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
-[ext_resource type="Resource" uid="uid://cqh2bvx4r8jw6" path="res://resources/base_settings/audio/rs_jump_sound_default.tres" id="9_jump_sound_settings"]
+[ext_resource type="Resource" uid="uid://cqh2bvx4r8jw6" path="res://resources/base_settings/audio/cfg_jump_sound_default.tres" id="9_jump_sound_settings"]
 [ext_resource type="Script" uid="uid://bcr30lnnbaa17" path="res://scripts/ecs/systems/s_playtime_system.gd" id="9_playtime"]
 [ext_resource type="Script" uid="uid://d2ik3s63sfvhn" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
 [ext_resource type="Script" uid="uid://c76twh3oe313h" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
-[ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/base_settings/gameplay/rs_landing_particles_default.tres" id="10_landing_particles_settings"]
+[ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/base_settings/gameplay/cfg_landing_particles_default.tres" id="10_landing_particles_settings"]
 [ext_resource type="Script" uid="uid://cg60wkeo50rcd" path="res://scripts/ecs/systems/s_landing_sound_system.gd" id="10_landing_sound"]
-[ext_resource type="Resource" uid="uid://dv5m8y3nx0uin" path="res://resources/base_settings/audio/rs_landing_sound_default.tres" id="10_landing_sound_settings"]
+[ext_resource type="Resource" uid="uid://dv5m8y3nx0uin" path="res://resources/base_settings/audio/cfg_landing_sound_default.tres" id="10_landing_sound_settings"]
 [ext_resource type="Script" uid="uid://oseq7c0hnar3" path="res://scripts/ecs/systems/s_death_sound_system.gd" id="11_death_sound"]
-[ext_resource type="Resource" uid="uid://cbkw5y4pf5xbh" path="res://resources/base_settings/audio/rs_death_sound_default.tres" id="11_death_sound_settings"]
-[ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/ui_hud_overlay.tscn" id="11_hud"]
+[ext_resource type="Resource" uid="uid://cbkw5y4pf5xbh" path="res://resources/base_settings/audio/cfg_death_sound_default.tres" id="11_death_sound_settings"]
+[ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/hud/ui_hud_overlay.tscn" id="11_hud"]
 [ext_resource type="Script" uid="uid://b3h2umxcnkvd" path="res://scripts/ecs/systems/s_checkpoint_sound_system.gd" id="12_checkpoint_sound"]
-[ext_resource type="Resource" uid="uid://buw5xy8p0d3uc" path="res://resources/base_settings/audio/rs_checkpoint_sound_default.tres" id="12_checkpoint_sound_settings"]
+[ext_resource type="Resource" uid="uid://buw5xy8p0d3uc" path="res://resources/base_settings/audio/cfg_checkpoint_sound_default.tres" id="12_checkpoint_sound_settings"]
 [ext_resource type="Script" uid="uid://evn7fqusp07e" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
 [ext_resource type="Script" uid="uid://uvv0alqmjm2u" path="res://scripts/ecs/systems/s_victory_sound_system.gd" id="13_victory_sound"]
-[ext_resource type="Resource" uid="uid://dv3s5a4nyjf05" path="res://resources/base_settings/audio/rs_victory_sound_default.tres" id="13_victory_sound_settings"]
+[ext_resource type="Resource" uid="uid://dv3s5a4nyjf05" path="res://resources/base_settings/audio/cfg_victory_sound_default.tres" id="13_victory_sound_settings"]
 [ext_resource type="Script" uid="uid://dy7qx4w4s2d1o" path="res://scripts/ecs/systems/s_footstep_sound_system.gd" id="14_footstep_sound"]
-[ext_resource type="Resource" uid="uid://b3kx5fj7m8qwo" path="res://resources/base_settings/audio/rs_footstep_sound_default.tres" id="14_footstep_sound_settings"]
-[ext_resource type="Script" uid="uid://ca8difuomt17y" path="res://scripts/ecs/systems/s_ambient_sound_system.gd" id="15_ambient_sound"]
-[ext_resource type="Resource" uid="uid://dxbvr8cy5qpwn" path="res://resources/base_settings/audio/rs_ambient_sound_default.tres" id="15_ambient_sound_settings"]
+[ext_resource type="Resource" uid="uid://b3kx5fj7m8qwo" path="res://resources/base_settings/audio/cfg_footstep_sound_default.tres" id="14_footstep_sound_settings"]
 [ext_resource type="Script" uid="uid://jtue6ng08jt1" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://wcj50ipurwwr" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
@@ -55,17 +53,17 @@
 [ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://assets/textures/tex_icon.svg" id="39_u0c34"]
 [ext_resource type="Script" uid="uid://b8m43twvf2xfg" path="res://scripts/gameplay/inter_endgame_goal_zone.gd" id="41_goal_script"]
 [ext_resource type="Script" uid="uid://jbuefdw0xp6c" path="res://scripts/ecs/systems/s_checkpoint_system.gd" id="42_checkpoint_system"]
-[ext_resource type="Resource" uid="uid://na7m34dl6a4d" path="res://resources/triggers/rs_checkpoint_box_2x3x2.tres" id="43_checkpoint_settings"]
+[ext_resource type="Resource" uid="uid://na7m34dl6a4d" path="res://resources/triggers/cfg_checkpoint_box_2x3x2.tres" id="43_checkpoint_settings"]
 [ext_resource type="Script" uid="uid://bjl8dib6ewm08" path="res://scripts/gameplay/inter_checkpoint_zone.gd" id="43_checkpoint_zone_script"]
-[ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/rs_death_zone_volume.tres" id="44_death_settings"]
+[ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/cfg_death_zone_volume.tres" id="44_death_settings"]
 [ext_resource type="Script" uid="uid://d3s28u56mkj1w" path="res://scripts/gameplay/inter_hazard_zone.gd" id="44_hazard_controller"]
-[ext_resource type="Resource" uid="uid://c8u21l3ag26ky" path="res://resources/triggers/rs_spike_trap_volume.tres" id="44_spike_settings"]
+[ext_resource type="Resource" uid="uid://c8u21l3ag26ky" path="res://resources/triggers/cfg_spike_trap_volume.tres" id="44_spike_settings"]
 [ext_resource type="Script" uid="uid://cbeicx0bm3gew" path="res://scripts/gameplay/inter_signpost.gd" id="45_signpost_controller"]
-[ext_resource type="Resource" uid="uid://b2ehbrq1l8yro" path="res://resources/triggers/rs_signpost_cylinder.tres" id="45_signpost_settings"]
+[ext_resource type="Resource" uid="uid://b2ehbrq1l8yro" path="res://resources/triggers/cfg_signpost_cylinder.tres" id="45_signpost_settings"]
 [ext_resource type="Script" uid="uid://copwun5hc5uf2" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
-[ext_resource type="Resource" uid="uid://bi0ygx0nsog1s" path="res://resources/spawn_metadata/gameplay_exterior_spawns.tres" id="51_exterior_default_spawn_meta"]
-[ext_resource type="Resource" uid="uid://cvgjhiir8koeu" path="res://resources/spawn_metadata/gameplay_exterior_checkpoint_spawns.tres" id="52_exterior_checkpoint_spawn_meta"]
-[ext_resource type="Resource" uid="uid://t1jgkqtr1hke" path="res://resources/spawn_metadata/gameplay_exterior_exit_from_house_spawn.tres" id="53_exterior_exit_from_house_spawn_meta"]
+[ext_resource type="Resource" uid="uid://bi0ygx0nsog1s" path="res://resources/spawn_metadata/cfg_sp_exterior.tres" id="51_exterior_default_spawn_meta"]
+[ext_resource type="Resource" uid="uid://cvgjhiir8koeu" path="res://resources/spawn_metadata/cfg_sp_exterior_checkpoint.tres" id="52_exterior_checkpoint_spawn_meta"]
+[ext_resource type="Resource" uid="uid://t1jgkqtr1hke" path="res://resources/spawn_metadata/cfg_sp_exterior_exit_from_house.tres" id="53_exterior_exit_from_house_spawn_meta"]
 [ext_resource type="Script" uid="uid://cejqqgo6a4sdt" path="res://scripts/ecs/components/c_surface_type_component.gd" id="54_surface_marker"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
@@ -120,6 +118,8 @@ material_override = SubResource("StandardMaterial3D_q3o1v")
 use_collision = true
 size = Vector3(25, 1, 25)
 material = SubResource("StandardMaterial3D_748a2")
+
+[node name="C_SurfaceTypeComponent" type="Node" parent="SceneObjects/SO_Floor_Grass" unique_id=1396290437]
 script = ExtResource("54_surface_marker")
 surface_type = 4
 
@@ -128,6 +128,8 @@ transform = Transform3D(0.9999651, 0.008359998, 0, -0.008359998, 0.9999651, 0, 0
 use_collision = true
 size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
+
+[node name="C_SurfaceTypeComponent" type="Node" parent="SceneObjects/SO_Block2_Stone" unique_id=938611261]
 script = ExtResource("54_surface_marker")
 surface_type = 1
 
@@ -136,6 +138,8 @@ transform = Transform3D(0.99974185, -0.022722274, 0, 0.022722274, 0.99974185, 0,
 use_collision = true
 size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
+
+[node name="C_SurfaceTypeComponent" type="Node" parent="SceneObjects/SO_Block3_Stone" unique_id=972343641]
 script = ExtResource("54_surface_marker")
 surface_type = 1
 
@@ -257,11 +261,6 @@ execution_priority = 125
 script = ExtResource("14_footstep_sound")
 settings = ExtResource("14_footstep_sound_settings")
 execution_priority = 126
-
-[node name="S_AmbientSoundSystem" type="Node" parent="Systems/Feedback" unique_id=-2060399405]
-script = ExtResource("15_ambient_sound")
-settings = ExtResource("15_ambient_sound_settings")
-execution_priority = 127
 
 [node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=1334571321]
 script = ExtResource("10_landing_particles")

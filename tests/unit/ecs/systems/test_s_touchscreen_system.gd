@@ -1,6 +1,6 @@
 extends BaseTest
 
-const MobileControlsScene := preload("res://scenes/ui/ui_mobile_controls.tscn")
+const MobileControlsScene := preload("res://scenes/ui/hud/ui_mobile_controls.tscn")
 const M_ECSManager := preload("res://scripts/managers/m_ecs_manager.gd")
 const S_TouchscreenSystem := preload("res://scripts/ecs/systems/s_touchscreen_system.gd")
 const C_InputComponent := preload("res://scripts/ecs/components/c_input_component.gd")

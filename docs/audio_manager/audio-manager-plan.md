@@ -603,8 +603,8 @@ func _on_slider_value_changed(value: float) -> void:
 - `scripts/ui/settings/ui_audio_settings_tab.gd`
 - `scenes/ui/ui_audio_settings_overlay.tscn`
 - `scripts/ui/settings/ui_audio_settings_overlay.gd`
-- `resources/ui_screens/audio_settings_overlay.tres`
-- `resources/scene_registry/ui_audio_settings.tres`
+- `resources/ui_screens/cfg_audio_settings_overlay.tres`
+- `resources/scene_registry/cfg_ui_audio_settings_entry.tres`
 
 **Scene Structure**:
 ```

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://jd1xkl5ignjh"]
 
 [ext_resource type="Script" uid="uid://d3s28u56mkj1w" path="res://scripts/gameplay/inter_hazard_zone.gd" id="1_controller"]
-[ext_resource type="Resource" uid="uid://c8u21l3ag26ky" path="res://resources/triggers/rs_spike_trap_volume.tres" id="2_spike_settings"]
+[ext_resource type="Resource" uid="uid://c8u21l3ag26ky" path="res://resources/triggers/cfg_spike_trap_volume.tres" id="2_spike_settings"]
 
 [sub_resource type="StandardMaterial3D" id="Material_spike"]
 albedo_color = Color(0.643137, 0.160784, 0.160784, 1)

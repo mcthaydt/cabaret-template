@@ -85,7 +85,7 @@
 
 **Completion Notes:**
 - Added 51 Redux unit tests (11 initial state + 25 reducer + 15 selectors)
-- Added default resource `resources/state/default_audio_initial_state.tres` and wired into `scenes/root.tscn`
+- Added default resource `resources/state/cfg_default_audio_initial_state.tres` and wired into `scenes/root.tscn`
 - Updated `.godot/global_script_class_cache.cfg` to register `RS_AudioInitialState` so typed exports resolve in headless tests
 - Verified GREEN: `tools/run_gut_suite.sh -gdir=res://tests/unit/state -gexit` (226/226 passing)
 
@@ -869,7 +869,7 @@
 - Added `scripts/ecs/systems/s_footstep_sound_system.gd` as per-tick system (20/20 tests passing)
 - Added `scripts/ecs/resources/rs_footstep_sound_settings.gd` with 6 surface type arrays
 - Generated 24 placeholder footstep WAV files (4 variations × 6 surfaces) via Python script
-- Created `resources/base_settings/audio/footstep_sound_default.tres` with all 24 audio streams wired
+- Created `resources/base_settings/audio/cfg_footstep_sound_default.tres` with all 24 audio streams wired
 - Added `C_SurfaceDetectorComponent` to player prefab (`scenes/prefabs/prefab_player.tscn`)
 - Added `S_FootstepSoundSystem` to all 3 gameplay scenes (gameplay_base, gameplay_exterior, gameplay_interior_house)
 - Verified GREEN: Full unit test suite (see header totals)
@@ -1036,7 +1036,7 @@
 - Created `tests/unit/ecs/systems/test_ambient_sound_system.gd` (10/10 tests passing)
 - Created `scripts/ecs/resources/rs_ambient_sound_settings.gd` (enabled flag)
 - Created `scripts/ecs/systems/s_ambient_sound_system.gd` (dual-player crossfade pattern, scene-based ambient selection)
-- Created `resources/base_settings/audio/ambient_sound_default.tres` (default settings resource)
+- Created `resources/base_settings/audio/cfg_ambient_sound_default.tres` (default settings resource)
 - Added S_AmbientSoundSystem to all 3 gameplay scenes (gameplay_base, gameplay_exterior, gameplay_interior_house)
 - System implementation complete and integrated, ready for manual testing
 - Verified GREEN: Full unit test suite (see header totals)
@@ -1213,7 +1213,7 @@
 - [x] **Task 8.3 (Green)**: Wire Audio settings into Settings Hub
   - Add `Audio Settings` entry to `scenes/ui/ui_settings_menu.tscn` + `scripts/ui/ui_settings_menu.gd`
   - Add overlay wrapper `scenes/ui/ui_audio_settings_overlay.tscn` + `scripts/ui/settings/ui_audio_settings_overlay.gd`
-  - Register overlay: `resources/ui_screens/audio_settings_overlay.tres` + `resources/scene_registry/ui_audio_settings.tres`
+  - Register overlay: `resources/ui_screens/cfg_audio_settings_overlay.tres` + `resources/scene_registry/cfg_ui_audio_settings_entry.tres`
   - Audio settings persist via existing Redux state persistence (audio slice)
   - Ran unit suite (1371 passing, 5 pending headless timing tests)
 
@@ -1342,7 +1342,7 @@
 | `resources/audio/footsteps/placeholder_wood_01-04.wav` | ✅ Complete | 5 | 4 variations (300Hz) |
 | `resources/audio/footsteps/placeholder_metal_01-04.wav` | ✅ Complete | 5 | 4 variations (400Hz) |
 | `resources/audio/footsteps/placeholder_water_01-04.wav` | ✅ Complete | 5 | 4 variations (150Hz) |
-| `resources/base_settings/audio/footstep_sound_default.tres` | ✅ Complete | 5 | Default footstep settings |
+| `resources/base_settings/audio/cfg_footstep_sound_default.tres` | ✅ Complete | 5 | Default footstep settings |
 | `scenes/prefabs/prefab_player.tscn` | ✅ Complete | 5 | Added C_SurfaceDetectorComponent |
 | `scenes/gameplay/gameplay_base.tscn` | ✅ Complete | 5 | Added S_FootstepSoundSystem |
 | `scenes/gameplay/gameplay_exterior.tscn` | ✅ Complete | 5 | Added S_FootstepSoundSystem |
@@ -1363,8 +1363,8 @@
 | `scripts/ui/settings/ui_audio_settings_tab.gd` | ✅ Complete | 8 | Apply/Cancel + UI sync |
 | `scenes/ui/ui_audio_settings_overlay.tscn` | ✅ Complete | 8 | Audio settings overlay wrapper |
 | `scripts/ui/settings/ui_audio_settings_overlay.gd` | ✅ Complete | 8 | Overlay close/back behavior |
-| `resources/ui_screens/audio_settings_overlay.tres` | ✅ Complete | 8 | UI registry definition |
-| `resources/scene_registry/ui_audio_settings.tres` | ✅ Complete | 8 | Scene registry entry |
+| `resources/ui_screens/cfg_audio_settings_overlay.tres` | ✅ Complete | 8 | UI registry definition |
+| `resources/scene_registry/cfg_ui_audio_settings_entry.tres` | ✅ Complete | 8 | Scene registry entry |
 | `tests/helpers/u_audio_test_helpers.gd` | ✅ Complete | 9 | Shared test helpers |
 | `tests/integration/audio/test_audio_settings_ui.gd` | ✅ Complete | 9 | 10 integration tests |
 | `tests/integration/audio/test_audio_integration.gd` | ✅ Complete | 9 | 30 integration tests |

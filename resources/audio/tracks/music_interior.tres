@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="RS_MusicTrackDefinition" format=3 uid="uid://w4nx58rvyhb8"]
+
+[ext_resource type="Script" uid="uid://ci2o84kbhvcx6" path="res://scripts/ecs/resources/rs_music_track_definition.gd" id="1"]
+[ext_resource type="AudioStream" uid="uid://qm1yf1t6cig1" path="res://assets/audio/music/mus_interior.mp3" id="2"]
+
+[resource]
+script = ExtResource("1")
+track_id = &"interior"
+stream = ExtResource("2")

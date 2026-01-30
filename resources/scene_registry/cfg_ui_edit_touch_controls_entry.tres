@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RS_SceneRegistryEntry" format=3 uid="uid://b1grhw24ajqe0"]
+
+[ext_resource type="Script" uid="uid://bk4pwrudharch" path="res://scripts/resources/scene_management/rs_scene_registry_entry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+scene_id = "edit_touch_controls"
+scene_path = "res://scenes/ui/overlays/ui_edit_touch_controls_overlay.tscn"
+scene_type = 2
+default_transition = "instant"
+preload_priority = 5

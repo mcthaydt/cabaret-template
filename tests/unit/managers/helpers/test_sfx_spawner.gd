@@ -128,17 +128,20 @@ func test_spawn_3d_restores_spatial_settings_when_spatial_audio_reenabled() -> v
 	assert_eq(player.attenuation_model, AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE)
 	assert_eq(player.panning_strength, 1.0)
 
-func test_pool_exhaustion_returns_null_and_warns() -> void:
+func test_pool_exhaustion_triggers_voice_stealing() -> void:
 	U_SFX_SPAWNER.initialize(_parent)
 
 	var stream := AudioStreamWAV.new()
+	var players: Array[AudioStreamPlayer3D] = []
 	for _i in range(16):
 		var player := U_SFX_SPAWNER.spawn_3d({"audio_stream": stream})
 		assert_not_null(player)
+		players.append(player)
 
-	var exhausted := U_SFX_SPAWNER.spawn_3d({"audio_stream": stream})
-	assert_null(exhausted)
-	assert_engine_error("SFX pool exhausted")
+	# 17th spawn should trigger voice stealing (not return null)
+	var stolen := U_SFX_SPAWNER.spawn_3d({"audio_stream": stream})
+	assert_not_null(stolen, "Should steal voice instead of returning null")
+	assert_true(players.has(stolen), "Stolen player should be from the pool")
 
 func test_player_marked_in_use_and_cleared_on_finished() -> void:
 	U_SFX_SPAWNER.initialize(_parent)

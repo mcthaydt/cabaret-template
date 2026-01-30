@@ -1418,13 +1418,13 @@ For brevity in this document, I'm providing the task overview for Phases 3-7. Th
 - Conditional instantiation: `if OS.has_feature("mobile") or _emulate_mobile_mode`
 
 **Profile Manager:**
-- Default touchscreen profile (`default_touchscreen.tres`) with position metadata
+- Default touchscreen profile (`cfg_default_touchscreen.tres`) with position metadata
 - `reset_touchscreen_positions()` method loads profile and dispatches to Redux
 
 ### Tasks Overview (Phase 6)
 
 **Task 6.0**: Create Default Touchscreen Profile (1-2 hours, TDD) - NEW
-  - Create `resources/input/profiles/default_touchscreen.tres`
+  - Create `resources/input/profiles/cfg_default_touchscreen.tres`
   - Metadata-driven buttons: Define `virtual_buttons` array with actions (jump, sprint, interact, pause) and positions
   - Extend M_InputProfileManager with `reset_touchscreen_positions()`
   - Position metadata: joystick bottom-left (120, 520), buttons bottom-right (920-820, 480-620)
@@ -1439,7 +1439,7 @@ For brevity in this document, I'm providing the task overview for Phases 3-7. Th
 **Task 6.1**: Create RS_TouchscreenSettings Resource (1-2 hours, TDD) - FR-101
   - Exports: joystick_size, opacity, deadzone, radius, button_size
   - Static helper: `apply_touch_deadzone(vector, deadzone) -> Vector2`
-  - Default resource: `resources/input/touchscreen_settings/default_touchscreen_settings.tres`
+  - Default resource: `resources/input/touchscreen_settings/cfg_default_touchscreen_settings.tres`
   - Unit tests for deadzone calculation and resource loading
 
 **Task 6.2**: Add Redux State Integration (2-3 hours, TDD)
@@ -1842,7 +1842,7 @@ func _input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()  # Consume event
 
 	# Validate rebind
-	var rebind_settings := load("res://resources/input/default_rebind_settings.tres") as RS_RebindSettings
+	var rebind_settings := load("res://resources/input/rebind_settings/cfg_default_rebind_settings.tres") as RS_RebindSettings
 	var validation := U_InputRebindUtils.validate_rebind(action_to_rebind, event, rebind_settings)
 
 	if not validation.valid:

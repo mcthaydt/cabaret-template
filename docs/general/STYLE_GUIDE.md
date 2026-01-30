@@ -76,12 +76,48 @@ These rules apply to **production** assets under `res://scenes/**` and `res://re
 | **Gameplay Scenes** | `gameplay_*.tscn` | `gameplay_base.tscn`, `gameplay_exterior.tscn` |
 | **UI Scenes** | `ui_*.tscn` | `ui_main_menu.tscn`, `ui_pause_menu.tscn` |
 | **Prefab Scenes** | `prefab_*.tscn` | `prefab_death_zone.tscn`, `prefab_checkpoint.tscn` |
-| **Template Scenes** | `tmpl_*.tscn` | `tmpl_character.tscn`, `tmpl_base_scene.tscn` |
 | **Debug Scenes** | `debug_*.tscn` | `debug_state_overlay.tscn` |
-| **UI Screen Definitions** | `resources/ui_screens/*_screen.tres` | `main_menu_screen.tres` |
-| **Scene Registry Entries** | `resources/scene_registry/*.tres` | `gameplay_base_entry.tres` |
+| **UI Screen Definitions** | `resources/ui_screens/cfg_*_screen.tres` / `cfg_*_overlay.tres` | `cfg_main_menu_screen.tres` |
+| **Scene Registry Entries** | `resources/scene_registry/cfg_*_entry.tres` | `cfg_gameplay_base_entry.tres` |
 
 **Note**: All UI scenes now use `ui_` prefix. Legacy unprefixed UI scenes have been migrated to this pattern.
+
+### Resource Instance Prefixes (cfg_)
+
+Resource **instances** (`.tres` files) use the `cfg_` prefix to distinguish them from Resource **class definitions** (`.gd` files which use `rs_`).
+
+| Category | Pattern | Example |
+|----------|---------|---------|
+| **Base Settings** | `cfg_*_default.tres` | `cfg_movement_default.tres`, `cfg_jump_default.tres` |
+| **Input Resources** | `cfg_*.tres` | `cfg_input_profile_default.tres` |
+| **State Initial Values** | `cfg_*_initial_state.tres` | `cfg_gameplay_initial_state.tres` |
+| **Scene Registry Entries** | `cfg_*_entry.tres` | `cfg_gameplay_base_entry.tres` |
+| **UI Screen Definitions** | `cfg_*_screen.tres` | `cfg_main_menu_screen.tres` |
+| **Spawn Metadata** | `cfg_sp_*.tres` | `cfg_sp_entrance.tres` |
+| **VFX Configs** | `cfg_*.tres` | `cfg_screen_shake_config.tres` |
+| **Trigger Settings** | `cfg_*.tres` | `cfg_scene_trigger_default.tres` |
+
+**Rationale**: The `rs_` prefix was being used for both class definitions (`rs_movement_settings.gd`) and instances (`movement_default.tres`). The `cfg_` prefix disambiguates:
+- `rs_movement_settings.gd` = the Resource class definition
+- `cfg_movement_default.tres` = an instance of that class with default values
+
+### Asset File Prefixes
+
+All asset files under `res://assets/**` must use type-specific prefixes:
+
+| Type | Prefix | Location | Example |
+|------|--------|----------|---------|
+| **Textures** | `tex_` | `assets/textures/` | `tex_shadow_blob.png` |
+| **Materials** | `mat_` | `assets/materials/` | `mat_player_body.tres` |
+| **Music** | `mus_` | `assets/audio/music/` | `mus_main_menu.ogg` |
+| **SFX** | `sfx_` | `assets/audio/sfx/` | `sfx_jump.wav` |
+| **Ambient** | `amb_` | `assets/audio/ambient/` | `amb_exterior_wind.wav` |
+| **Footsteps** | `fst_` | `assets/audio/footsteps/` | `fst_grass_01.wav` |
+| **Editor Icons** | `icn_` | `assets/editor_icons/` | `icn_component.svg` |
+| **Fonts** | `fnt_` | `assets/fonts/` | `fnt_ui_default.ttf` |
+
+**Exceptions:**
+- **Button prompts**: Use device-specific folder organization (`keyboard/`, `gamepad/`, etc.) instead of prefixes
 
 ### Test, Prototype, and Debug Scripts
 
@@ -232,14 +268,32 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 scripts/
 ├── ecs/
 │   ├── components/
-│   ├── systems/
-│   └── resources/
+│   └── systems/
+├── events/
+├── interfaces/
+├── managers/
+├── resources/
+│   ├── ecs/
+│   ├── input/
+│   ├── scene_management/
+│   ├── state/
+│   └── ui/
 ├── state/
-├── scenes/
-├── shaders/
-├── tools/
+├── ui/
 ├── utils/
+│   ├── ecs/
+│   └── input/
 └── helpers/
+
+scenes/
+├── gameplay/
+├── templates/
+└── ui/
+
+assets/
+├── audio/
+├── button_prompts/
+└── editor_icons/
 
 tests/
 └── unit/
@@ -308,7 +362,7 @@ func set_velocity(new_velocity: Vector3) -> void:
 
 ### Resource Example
 
-**File:** `scripts/ecs/resources/rs_movement_settings.gd`
+**File:** `scripts/resources/ecs/rs_movement_settings.gd`
 
 ```gdscript
 class_name RS_MovementSettings
@@ -497,6 +551,45 @@ Scene files use descriptive snake_case names without prefixes:
 - `debug_hud.tscn`
 
 Note: If a scene has a dedicated script, the script uses `SC_` prefix, but the scene file itself does not.
+
+### Component Attachment Rules
+
+**IMPORTANT:** ECS components (`c_*_component.gd` scripts extending `BaseECSComponent`) must NOT be attached directly to specialized node types. They must be attached to `Node` or `Node3D` nodes only.
+
+**Prohibited attachment targets:**
+- `CSGBox3D`, `CSGCylinder3D`, `CSGMesh3D`, and other CSG nodes
+- `CharacterBody3D`, `RigidBody3D`, `StaticBody3D`
+- `Area3D`
+- `MeshInstance3D`
+- Any other specialized Godot node types
+
+**Correct Pattern:**
+```
+E_PlayerRoot (Node3D with BaseECSEntity)
+└── Components (Node with marker_components_group.gd)
+    ├── C_InputComponent (Node with c_input_component.gd)
+    ├── C_GamepadComponent (Node with c_gamepad_component.gd)
+    └── C_MovementComponent (Node with c_movement_component.gd)
+```
+
+**Correct Pattern for Scene Objects:**
+```
+SO_Floor_Grass (CSGBox3D)
+└── C_SurfaceTypeComponent (Node with c_surface_type_component.gd)
+```
+
+**Incorrect Pattern:**
+```
+SO_Floor_Grass (CSGBox3D with c_surface_type_component.gd)  ❌ WRONG
+```
+
+**Rationale:**
+1. Components should be portable and not tied to specific node inheritance
+2. The ECS pattern expects components to be separate from visual/physics nodes
+3. This ensures consistent component discovery via `M_ECSManager`
+4. Attaching components to specialized nodes creates tight coupling
+
+**Enforcement:** `tests/unit/style/test_component_structure.gd` validates this rule.
 
 ---
 
@@ -764,6 +857,7 @@ var c_movement: C_MovementComponent
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2025-10-18 | Initial style guide created with prefix+suffix conventions |
+| 1.1 | 2026-01-24 | Added cfg_ prefix for resource instances, asset file prefixes, component attachment rules (cleanup v4.5) |
 
 ---
 
@@ -774,25 +868,37 @@ CLASS PREFIXES:
   S_  = System         (ECS systems)
   C_  = Component      (ECS components)
   M_  = Manager        (Singletons/managers)
-  RS_ = Resource/Settings
+  RS_ = Resource/Settings (class definitions)
   U_  = Utils          (Static helpers)
   SC_ = Scene          (Scene scripts)
   SH_ = Shader         (Custom shaders)
   T_  = Tool           (@tool scripts)
   P_  = Plugin         (Editor plugins)
 
-FILE PREFIXES:
+FILE PREFIXES (scripts):
   s_  = system
   c_  = component
   m_  = manager
-  rs_ = resource/settings
+  rs_ = resource/settings (class definitions)
   u_  = utils
   sc_ = scene
   sh_ = shader
   t_  = tool
   p_  = plugin
-  tmpl_ = template scenes
   test_ = test files
+
+RESOURCE INSTANCE PREFIXES (.tres files):
+  cfg_ = config/settings instances (e.g., cfg_movement_default.tres)
+
+ASSET FILE PREFIXES:
+  tex_ = textures      (e.g., tex_shadow_blob.png)
+  mat_ = materials     (e.g., mat_player_body.tres)
+  mus_ = music         (e.g., mus_main_menu.ogg)
+  sfx_ = sound effects (e.g., sfx_jump.wav)
+  amb_ = ambient audio (e.g., amb_exterior.wav)
+  fst_ = footsteps     (e.g., fst_grass_01.wav)
+  icn_ = editor icons  (e.g., icn_component.svg)
+  fnt_ = fonts         (e.g., fnt_ui_default.ttf)
 
 CASING:
   Classes:   PascalCase with Prefix_Suffix
@@ -803,10 +909,11 @@ CASING:
   Constants: UPPER_SNAKE_CASE
 
 EXCLUSIONS:
-  ✓ Apply to scripts/, tests/
+  ✓ Apply to scripts/, tests/, resources/, assets/
   ✗ Do NOT apply to addons/
   ✗ Do NOT prefix Godot built-ins
   ✗ Do NOT prefix base classes
+  ✗ Button prompts use device folders, not prefixes
 ```
 
 ---
@@ -837,6 +944,6 @@ EXCLUSIONS:
   - Prefix pattern: `sp_*` (spawn point scripts live alongside `u_*`/`i_*` scene management helpers)
   - Purpose: export an `RS_SpawnMetadata` resource on each `sp_*` node under `SpawnPoints`.
 
-**Last Updated:** 2025-10-31
-**Version:** 1.0
+**Last Updated:** 2026-01-24
+**Version:** 1.1
 **Status:** Active - Ready for Implementation

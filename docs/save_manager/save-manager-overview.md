@@ -235,7 +235,7 @@ Single overlay scene (`ui_save_load_menu.tscn`) with mode switching:
 
 **Registration requirements**:
 1. Scene in `U_SceneRegistry` with `SceneType.UI`
-2. Overlay definition in `resources/ui_screens/save_load_menu_overlay.tres`
+2. Overlay definition in `resources/ui_screens/cfg_save_load_menu_overlay.tres`
 
 ### Toast Notifications
 

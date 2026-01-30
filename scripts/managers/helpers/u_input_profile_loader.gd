@@ -6,27 +6,27 @@ const RS_InputProfile = preload("res://scripts/resources/input/rs_input_profile.
 func load_available_profiles() -> Dictionary:
 	var profiles: Dictionary = {}
 
-	var default_res := load("res://resources/input/profiles/default_keyboard.tres")
+	var default_res := load("res://resources/input/profiles/cfg_default_keyboard.tres")
 	if default_res is RS_InputProfile:
 		profiles["default"] = default_res
 
-	var alternate_res := load("res://resources/input/profiles/alternate_keyboard.tres")
+	var alternate_res := load("res://resources/input/profiles/cfg_alternate_keyboard.tres")
 	if alternate_res is RS_InputProfile:
 		profiles["alternate"] = alternate_res
 
-	var accessibility_res := load("res://resources/input/profiles/accessibility_keyboard.tres")
+	var accessibility_res := load("res://resources/input/profiles/cfg_accessibility_keyboard.tres")
 	if accessibility_res is RS_InputProfile:
 		profiles["accessibility"] = accessibility_res
 
-	var default_gamepad_res := load("res://resources/input/profiles/default_gamepad.tres")
+	var default_gamepad_res := load("res://resources/input/profiles/cfg_default_gamepad.tres")
 	if default_gamepad_res is RS_InputProfile:
 		profiles["default_gamepad"] = default_gamepad_res
 
-	var accessibility_gamepad_res := load("res://resources/input/profiles/accessibility_gamepad.tres")
+	var accessibility_gamepad_res := load("res://resources/input/profiles/cfg_accessibility_gamepad.tres")
 	if accessibility_gamepad_res is RS_InputProfile:
 		profiles["accessibility_gamepad"] = accessibility_gamepad_res
 
-	var default_touchscreen_res := load("res://resources/input/profiles/default_touchscreen.tres")
+	var default_touchscreen_res := load("res://resources/input/profiles/cfg_default_touchscreen.tres")
 	if default_touchscreen_res is RS_InputProfile:
 		profiles["default_touchscreen"] = default_touchscreen_res
 

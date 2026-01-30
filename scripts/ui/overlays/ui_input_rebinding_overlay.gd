@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/utility.svg")
+@icon("res://assets/editor_icons/icn_utility.svg")
 extends "res://scripts/interfaces/i_rebind_overlay.gd"
 class_name UI_InputRebindingOverlay
 
@@ -16,7 +16,7 @@ const U_RebindCaptureHandler := preload("res://scripts/ui/helpers/u_rebind_captu
 const U_RebindFocusNavigation := preload("res://scripts/ui/helpers/u_rebind_focus_navigation.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
-const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/default_rebind_settings.tres")
+const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/cfg_default_rebind_settings.tres")
 
 @onready var _action_list: VBoxContainer = %ActionList
 @onready var _status_label: Label = %StatusLabel

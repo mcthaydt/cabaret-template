@@ -91,9 +91,9 @@ tests/
 
 - `resources/input/profiles/*.tres` – Built-in `RS_InputProfile` assets (default, accessibility, gamepad).
 - `resources/input/gamepad_settings/*.tres` – `RS_GamepadSettings` variants per device family.
-- `resources/input/touch/*.tres` – `RS_TouchscreenSettings` presets (phone/tablet layout).
+- `resources/input/touchscreen_settings/*.tres` – `RS_TouchscreenSettings` presets (phone/tablet layout).
 - `resources/ui/button_prompts/` – PNG textures sourced from the Kenney Input Prompts pack (64×64). Reference them via `Texture2D` in prompt registry.
-- `resources/state/default_input_settings_state.tres` – Initial state used by `M_StateStore` when creating the settings slice.
+- `resources/state/cfg_default_settings_initial_state.tres` – Initial state used by `M_StateStore` when creating the settings slice.
 
 ## Tests
 
@@ -117,7 +117,7 @@ tests/
   - `gameplay.input` – transient actions (move/look/jump) already covered.
   - `settings.input_settings` – persistent overrides (active profile id, custom bindings, sensitivity).
 - When adding new fields, update:
-  1. `resources/state/default_input_settings_state.tres`
+  1. `resources/state/cfg_default_settings_initial_state.tres`
   2. `u_input_settings_reducer.gd` defaults
   3. Serialization schema version in `u_input_serialization.gd`
 

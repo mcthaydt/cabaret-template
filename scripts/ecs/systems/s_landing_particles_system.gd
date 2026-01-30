@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/system.svg")
+@icon("res://assets/editor_icons/icn_system.svg")
 extends BaseEventVFXSystem
 class_name S_LandingParticlesSystem
 

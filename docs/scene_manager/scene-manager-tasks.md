@@ -364,11 +364,11 @@
 
 ### Refinement: Trigger Geometry (Shape-Agnostic)
 
-- [x] R-TRIG-01 Add RS_SceneTriggerSettings resource with shape enum (Box, Cylinder), cylinder radius/height, box size, local offset, and player mask - **COMPLETE** (scripts/ecs/resources/rs_scene_trigger_settings.gd, resources/triggers/rs_scene_trigger_settings.tres)
+- [x] R-TRIG-01 Add RS_SceneTriggerSettings resource with shape enum (Box, Cylinder), cylinder radius/height, box size, local offset, and player mask - **COMPLETE** (scripts/ecs/resources/rs_scene_trigger_settings.gd, resources/triggers/cfg_scene_trigger_settings.tres)
 - [x] R-TRIG-02 Refactor C_SceneTriggerComponent to construct `CollisionShape3D` from settings; default to Cylinder (radius=1.0, height=3.0, offset=Vector3(0,1.5,0)) while preserving guards and signals - **COMPLETE**
 - [x] R-TRIG-03 Update gameplay scenes/templates to assign RS_SceneTriggerSettings explicitly where desired (optional; component has sensible defaults) - **COMPLETE**
   - exterior.tscn uses component defaults (cylinder, matches CSGCylinder3D door visual)
-  - Created example custom cylinder trigger settings resource (resources/triggers/rs_cylinder_wide_door_trigger_settings.tres)
+  - Created example custom cylinder trigger settings resource (resources/triggers/cfg_cylinder_wide_door_trigger_settings.tres)
   - Comprehensive usage guide created (docs/scene_manager/trigger-settings-guide.md) showing when/how to use custom settings
 
 ### Integration Tests for User Story 3
@@ -412,7 +412,7 @@
 - `scenes/gameplay/interior_house.tscn` - Interior area with door_to_exterior trigger
 - `tests/utils/test_scene_generation.gd` - Scene generation validation tests
  - `scripts/ecs/resources/rs_scene_trigger_settings.gd` - Trigger geometry/resource settings (shape-agnostic)
- - `resources/triggers/rs_scene_trigger_settings.tres` - Default trigger settings (Cylinder)
+ - `resources/triggers/cfg_scene_trigger_settings.tres` - Default trigger settings (Cylinder)
 
 ---
 
@@ -655,7 +655,7 @@
   - Properties: death_animation_duration (2.5) - delay before game_over transition for cinematic death
   - Pattern: Extend Resource, follow RS_JumpSettings structure
 
-- [x] T145.6 Create resources/base_settings/gameplay/health_settings.tres (default values in resources/base_settings/gameplay/health_settings.tres)
+- [x] T145.6 Create resources/base_settings/gameplay/cfg_health_settings.tres (default values in resources/base_settings/gameplay/cfg_health_settings.tres)
   - Instance of RS_HealthSettings with default values
   - default_max_health = 100.0
   - invincibility_duration = 1.0
@@ -855,7 +855,7 @@
 **Files Created**:
 - `scripts/ecs/components/c_health_component.gd`
 - `scripts/ecs/resources/rs_health_settings.gd`
-- `resources/base_settings/gameplay/health_settings.tres`
+- `resources/base_settings/gameplay/cfg_health_settings.tres`
 - `scripts/ecs/systems/s_health_system.gd`
 - `scripts/ecs/components/c_damage_zone_component.gd`
 - `scripts/ecs/systems/s_damage_system.gd`
@@ -1234,13 +1234,13 @@
   - **Implementation**:
     1. Create `scripts/scene_management/resources/rs_scene_registry_entry.gd`
     2. Define @export fields: scene_id, scene_path, scene_type, default_transition, preload_priority
-    3. Create base resource file: `resources/scene_registry/template.tres`
+    3. Create base resource file: `resources/scene_registry/cfg_template_entry.tres`
     4. Update U_SceneRegistry to scan `resources/scene_registry/` folder for .tres files
     5. Load all RS_SceneRegistryEntry resources on _static_init()
     6. Maintain backward compatibility with hardcoded _register_scene() calls
   - **Files**:
     - NEW: scripts/scene_management/resources/rs_scene_registry_entry.gd (~60 lines)
-    - NEW: resources/scene_registry/template.tres (example resource)
+    - NEW: resources/scene_registry/cfg_template_entry.tres (example resource)
     - MODIFY: scripts/scene_management/u_scene_registry.gd (add resource loading)
   - **Effort**: 4-5 hours
   - **Impact**: +10% user-friendliness (85% → 95%)

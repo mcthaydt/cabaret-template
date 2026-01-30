@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/system.svg")
+@icon("res://assets/editor_icons/icn_system.svg")
 extends BaseECSSystem
 class_name S_ScreenShakePublisherSystem
 
@@ -10,7 +10,7 @@ class_name S_ScreenShakePublisherSystem
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const EVN_SCREEN_SHAKE_REQUEST := preload("res://scripts/events/ecs/evn_screen_shake_request.gd")
-const DEFAULT_TUNING := preload("res://resources/vfx/rs_screen_shake_tuning.tres")
+const DEFAULT_TUNING := preload("res://resources/vfx/cfg_screen_shake_tuning.tres")
 
 @export var tuning: Resource = null
 

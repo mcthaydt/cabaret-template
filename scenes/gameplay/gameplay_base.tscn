@@ -21,27 +21,25 @@
 [ext_resource type="Script" uid="uid://clfv1t1w0mxtl" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
 [ext_resource type="Script" uid="uid://b5xt2jl71iacb" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
 [ext_resource type="Script" uid="uid://cjramcicvprg1" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
-[ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/base_settings/gameplay/rs_jump_particles_default.tres" id="9_jump_particles_settings"]
+[ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/base_settings/gameplay/cfg_jump_particles_default.tres" id="9_jump_particles_settings"]
 [ext_resource type="Script" uid="uid://c057v57rqs23t" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
-[ext_resource type="Resource" uid="uid://cqh2bvx4r8jw6" path="res://resources/base_settings/audio/rs_jump_sound_default.tres" id="9_jump_sound_settings"]
+[ext_resource type="Resource" uid="uid://cqh2bvx4r8jw6" path="res://resources/base_settings/audio/cfg_jump_sound_default.tres" id="9_jump_sound_settings"]
 [ext_resource type="Script" uid="uid://bcr30lnnbaa17" path="res://scripts/ecs/systems/s_playtime_system.gd" id="9_playtime"]
 [ext_resource type="Script" uid="uid://d2ik3s63sfvhn" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
 [ext_resource type="Script" uid="uid://c76twh3oe313h" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
-[ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/base_settings/gameplay/rs_landing_particles_default.tres" id="10_landing_particles_settings"]
+[ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/base_settings/gameplay/cfg_landing_particles_default.tres" id="10_landing_particles_settings"]
 [ext_resource type="Script" uid="uid://cg60wkeo50rcd" path="res://scripts/ecs/systems/s_landing_sound_system.gd" id="10_landing_sound"]
-[ext_resource type="Resource" uid="uid://dv5m8y3nx0uin" path="res://resources/base_settings/audio/rs_landing_sound_default.tres" id="10_landing_sound_settings"]
+[ext_resource type="Resource" uid="uid://dv5m8y3nx0uin" path="res://resources/base_settings/audio/cfg_landing_sound_default.tres" id="10_landing_sound_settings"]
 [ext_resource type="Script" uid="uid://oseq7c0hnar3" path="res://scripts/ecs/systems/s_death_sound_system.gd" id="11_death_sound"]
-[ext_resource type="Resource" uid="uid://cbkw5y4pf5xbh" path="res://resources/base_settings/audio/rs_death_sound_default.tres" id="11_death_sound_settings"]
-[ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/ui_hud_overlay.tscn" id="11_hud"]
+[ext_resource type="Resource" uid="uid://cbkw5y4pf5xbh" path="res://resources/base_settings/audio/cfg_death_sound_default.tres" id="11_death_sound_settings"]
+[ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/hud/ui_hud_overlay.tscn" id="11_hud"]
 [ext_resource type="Script" uid="uid://b3h2umxcnkvd" path="res://scripts/ecs/systems/s_checkpoint_sound_system.gd" id="12_checkpoint_sound"]
-[ext_resource type="Resource" uid="uid://buw5xy8p0d3uc" path="res://resources/base_settings/audio/rs_checkpoint_sound_default.tres" id="12_checkpoint_sound_settings"]
+[ext_resource type="Resource" uid="uid://buw5xy8p0d3uc" path="res://resources/base_settings/audio/cfg_checkpoint_sound_default.tres" id="12_checkpoint_sound_settings"]
 [ext_resource type="Script" uid="uid://evn7fqusp07e" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
 [ext_resource type="Script" uid="uid://uvv0alqmjm2u" path="res://scripts/ecs/systems/s_victory_sound_system.gd" id="13_victory_sound"]
-[ext_resource type="Resource" uid="uid://dv3s5a4nyjf05" path="res://resources/base_settings/audio/rs_victory_sound_default.tres" id="13_victory_sound_settings"]
+[ext_resource type="Resource" uid="uid://dv3s5a4nyjf05" path="res://resources/base_settings/audio/cfg_victory_sound_default.tres" id="13_victory_sound_settings"]
 [ext_resource type="Script" uid="uid://dy7qx4w4s2d1o" path="res://scripts/ecs/systems/s_footstep_sound_system.gd" id="14_footstep_sound"]
-[ext_resource type="Resource" uid="uid://b3kx5fj7m8qwo" path="res://resources/base_settings/audio/rs_footstep_sound_default.tres" id="14_footstep_sound_settings"]
-[ext_resource type="Script" uid="uid://ca8difuomt17y" path="res://scripts/ecs/systems/s_ambient_sound_system.gd" id="15_ambient_sound"]
-[ext_resource type="Resource" uid="uid://dxbvr8cy5qpwn" path="res://resources/base_settings/audio/rs_ambient_sound_default.tres" id="15_ambient_sound_settings"]
+[ext_resource type="Resource" uid="uid://b3kx5fj7m8qwo" path="res://resources/base_settings/audio/cfg_footstep_sound_default.tres" id="14_footstep_sound_settings"]
 [ext_resource type="Script" uid="uid://jtue6ng08jt1" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://djo2trcoo4cta" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
@@ -51,7 +49,7 @@
 [ext_resource type="Script" uid="uid://drve6d2eb04mc" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="25_screen_shake_publisher"]
 [ext_resource type="Script" uid="uid://b7x5w7g6yhraa" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="26_damage_flash_publisher"]
 [ext_resource type="Script" uid="uid://copwun5hc5uf2" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
-[ext_resource type="Resource" uid="uid://d3fqw081d4sgl" path="res://resources/spawn_metadata/gameplay_base_spawns.tres" id="51_base_spawn_meta"]
+[ext_resource type="Resource" uid="uid://d3fqw081d4sgl" path="res://resources/spawn_metadata/cfg_sp_base.tres" id="51_base_spawn_meta"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -211,11 +209,6 @@ execution_priority = 125
 script = ExtResource("14_footstep_sound")
 settings = ExtResource("14_footstep_sound_settings")
 execution_priority = 126
-
-[node name="S_AmbientSoundSystem" type="Node" parent="Systems/Feedback" unique_id=2134567890]
-script = ExtResource("15_ambient_sound")
-settings = ExtResource("15_ambient_sound_settings")
-execution_priority = 127
 
 [node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=1280695130]
 script = ExtResource("10_landing_particles")

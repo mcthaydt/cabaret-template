@@ -467,7 +467,7 @@ class_name RS_ScreenShakeConfig
 @export var noise_speed: float = 50.0
 ```
 
-### Default Resource File: `resources/vfx/rs_screen_shake_tuning.tres`
+### Default Resource File: `resources/vfx/cfg_screen_shake_tuning.tres`
 
 ```
 [gd_resource type="Resource" script_class="RS_ScreenShakeTuning" load_steps=2 format=3]
@@ -506,7 +506,7 @@ func _get_tuning() -> RS_ScreenShakeTuning:
 	if tuning != null:
 		return tuning
 	# Fallback to default
-	return preload("res://resources/vfx/rs_screen_shake_tuning.tres")
+	return preload("res://resources/vfx/cfg_screen_shake_tuning.tres")
 ```
 
 ---

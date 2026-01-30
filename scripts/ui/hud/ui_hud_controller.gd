@@ -1,4 +1,4 @@
-@icon("res://assets/editor_icons/utility.svg")
+@icon("res://assets/editor_icons/icn_utility.svg")
 extends CanvasLayer
 class_name UI_HudController
 

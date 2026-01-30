@@ -20,7 +20,7 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
-const AUDIO_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/ui_audio_settings_overlay.tscn")
+const AUDIO_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/settings/ui_audio_settings_overlay.tscn")
 
 const AUDIO_SETTINGS_PATH := U_AUDIO_SERIALIZATION.SAVE_PATH
 const AUDIO_SETTINGS_BACKUP_PATH := U_AUDIO_SERIALIZATION.BACKUP_PATH

@@ -4,7 +4,7 @@ extends GutTest
 ##
 ## Expected: Pressing ui_left/ui_right while ProfileButton is focused cycles profiles immediately.
 
-const INPUT_PROFILE_SELECTOR_SCENE := preload("res://scenes/ui/ui_input_profile_selector.tscn")
+const INPUT_PROFILE_SELECTOR_SCENE := preload("res://scenes/ui/overlays/ui_input_profile_selector.tscn")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")

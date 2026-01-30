@@ -1,6 +1,6 @@
 extends GutTest
 
-const SettingsMenuScene := preload("res://scenes/ui/ui_settings_menu.tscn")
+const SettingsMenuScene := preload("res://scenes/ui/menus/ui_settings_menu.tscn")
 const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")

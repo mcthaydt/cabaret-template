@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://cyu3l6we2jq23" path="res://scenes/templates/tmpl_character.tscn" id="1_character_template"]
 [ext_resource type="Script" uid="uid://bhbvyrtlwrjdx" path="res://scripts/ecs/components/c_input_component.gd" id="2_input"]
 [ext_resource type="Script" uid="uid://d2tbsapg26ux" path="res://scripts/ecs/components/c_gamepad_component.gd" id="3_gamepad"]
-[ext_resource type="Resource" uid="uid://flpd0eijo5ab" path="res://resources/input/gamepad_settings/default_gamepad_settings.tres" id="4_gamepad_settings"]
+[ext_resource type="Resource" uid="uid://flpd0eijo5ab" path="res://resources/input/gamepad_settings/cfg_default_gamepad_settings.tres" id="4_gamepad_settings"]
 [ext_resource type="Script" uid="uid://ddxwdrvpwjai5" path="res://scripts/ecs/components/c_player_tag_component.gd" id="5_player_tag"]
 [ext_resource type="Script" uid="uid://cmrnrx0lij1v2" path="res://scripts/ecs/components/c_surface_detector_component.gd" id="6_surface_detector"]
 

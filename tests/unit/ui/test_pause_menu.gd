@@ -1,6 +1,6 @@
 extends GutTest
 
-const PauseMenuScene := preload("res://scenes/ui/ui_pause_menu.tscn")
+const PauseMenuScene := preload("res://scenes/ui/menus/ui_pause_menu.tscn")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")
