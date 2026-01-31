@@ -102,6 +102,9 @@ func _initialize_save_system() -> void:
 	# Clean up orphaned .tmp files from previous crashes
 	file_io.cleanup_tmp_files(_save_dir)
 
+	# Clean up orphaned thumbnail files (no matching .json save)
+	_cleanup_orphaned_thumbnails()
+
 	# Import legacy save file if it exists (one-time migration)
 	# NOTE: Legacy saves are always located at user://savegame.json, so only perform
 	# migration when using the production save directory (prevents tests/custom dirs
@@ -139,6 +142,29 @@ func _import_legacy_save_if_exists() -> void:
 		print("M_SaveManager: Successfully imported legacy save to autosave slot")
 	else:
 		push_error("M_SaveManager: Failed to write imported legacy save (error %d)" % result)
+
+## Clean up orphaned thumbnail files (no matching .json save)
+func _cleanup_orphaned_thumbnails() -> void:
+	var dir := DirAccess.open(_save_dir)
+	if dir == null:
+		push_error("M_SaveManager: Failed to open save directory for thumbnail cleanup")
+		return
+
+	dir.list_dir_begin()
+	var file_name: String = dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.ends_with("_thumb.png"):
+			var base_name: String = file_name.get_basename()
+			var slot_base: String = base_name.trim_suffix("_thumb")
+			var save_path: String = _get_slot_file_path(StringName(slot_base))
+			if not FileAccess.file_exists(save_path):
+				var remove_error: Error = dir.remove(file_name)
+				if remove_error != OK:
+					push_error("M_SaveManager: Failed to remove orphaned thumbnail: %s (error %d)" % [file_name, remove_error])
+				else:
+					push_error("M_SaveManager: Removed orphaned thumbnail: %s" % file_name)
+		file_name = dir.get_next()
+	dir.list_dir_end()
 
 ## Initialize autosave scheduler as child node
 func _initialize_autosave_scheduler() -> void:
@@ -372,6 +398,7 @@ func delete_slot(slot_id: StringName) -> Error:
 	var file_path: String = _get_slot_file_path(slot_id)
 	var bak_path: String = file_path + ".bak"
 	var tmp_path: String = file_path + ".tmp"
+	var thumbnail_path: String = _get_thumbnail_file_path(slot_id)
 
 	var dir := DirAccess.open(_save_dir)
 	if not dir:
@@ -392,6 +419,12 @@ func delete_slot(slot_id: StringName) -> Error:
 	# Delete temp file if it exists (cleanup)
 	if FileAccess.file_exists(tmp_path):
 		dir.remove(tmp_path.get_file())
+
+	# Delete thumbnail file if it exists
+	if FileAccess.file_exists(thumbnail_path):
+		var thumb_error: Error = dir.remove(thumbnail_path.get_file())
+		if thumb_error != OK:
+			push_error("M_SaveManager: Failed to delete thumbnail file: %s (error %d)" % [thumbnail_path, thumb_error])
 
 	return OK
 

@@ -46,8 +46,8 @@ static func cleanup_test_files(save_dir: String) -> void:
 	var file_name: String = dir.get_next()
 	while file_name != "":
 		if not dir.current_is_dir():
-			# Remove save files (.json, .bak, .tmp)
-			if file_name.ends_with(".json") or file_name.ends_with(".bak") or file_name.ends_with(".tmp"):
+			# Remove save files (.json, .bak, .tmp, .png)
+			if file_name.ends_with(".json") or file_name.ends_with(".bak") or file_name.ends_with(".tmp") or file_name.ends_with(".png"):
 				var err := dir.remove(file_name)
 				if err != OK:
 					push_warning("U_SaveTestUtils: Failed to remove file: %s (error %d)" % [file_name, err])
