@@ -23,6 +23,7 @@ const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_SAVE_FILE_IO := preload("res://scripts/managers/helpers/u_save_file_io.gd")
 const U_SAVE_MIGRATION_ENGINE := preload("res://scripts/managers/helpers/u_save_migration_engine.gd")
+const U_SCREENSHOT_CAPTURE := preload("res://scripts/managers/helpers/u_screenshot_capture.gd")
 const U_SAVE_VALIDATOR := preload("res://scripts/utils/u_save_validator.gd")
 
 ## Save file format version
@@ -44,6 +45,7 @@ var _save_dir: String = "user://saves/"
 var _state_store: I_StateStore = null
 var _scene_manager: Node = null  # M_SceneManager
 var _autosave_scheduler: Node = null  # U_AutosaveScheduler
+var _screenshot_capture: U_ScreenshotCapture = null
 
 ## Lock flags to prevent concurrent operations
 var _is_saving: bool = false
@@ -214,6 +216,9 @@ func save_to_slot(slot_id: StringName) -> Error:
 
 	# Build header metadata
 	var header: Dictionary = _build_metadata(slot_id)
+	var thumbnail_path: String = _try_save_thumbnail(slot_id)
+	if not thumbnail_path.is_empty():
+		header["thumbnail_path"] = thumbnail_path
 
 	# Combine header + state
 	var save_data := {
@@ -592,6 +597,64 @@ func _build_metadata(slot_id: StringName) -> Dictionary:
 ## Get file path for a slot
 func _get_slot_file_path(slot_id: StringName) -> String:
 	return _save_dir + String(slot_id) + ".json"
+
+## Get thumbnail file path for a slot
+func _get_thumbnail_file_path(slot_id: StringName) -> String:
+	return _save_dir + String(slot_id) + "_thumb.png"
+
+## Attempt to capture and save a thumbnail for the given slot.
+## Returns the thumbnail path if saved successfully, otherwise an empty string.
+func _try_save_thumbnail(slot_id: StringName) -> String:
+	var image: Image = _get_thumbnail_image_for_slot(slot_id)
+	if image == null:
+		return ""
+
+	var capture := _get_screenshot_capture()
+	var resized: Image = capture.resize_to_thumbnail(image)
+	if resized == null:
+		return ""
+
+	var thumbnail_path := _get_thumbnail_file_path(slot_id)
+	var error: Error = _write_thumbnail_image(resized, thumbnail_path)
+	if error != OK:
+		return ""
+
+	return thumbnail_path
+
+## Resolve which image to use for the slot.
+## Autosave captures live; manual saves use cached image from pause.
+func _get_thumbnail_image_for_slot(slot_id: StringName) -> Image:
+	if slot_id == SLOT_AUTOSAVE:
+		return _capture_autosave_image()
+	return _get_cached_manual_image()
+
+## Capture a live viewport image for autosaves.
+func _capture_autosave_image() -> Image:
+	var viewport := get_viewport()
+	var capture := _get_screenshot_capture()
+	return capture.capture_viewport(viewport)
+
+## Fetch cached screenshot for manual saves.
+func _get_cached_manual_image() -> Image:
+	var cache := _get_screenshot_cache()
+	if cache == null:
+		return null
+	if cache.has_method("get_cached_screenshot"):
+		return cache.call("get_cached_screenshot")
+	return null
+
+## Write a thumbnail image to disk.
+func _write_thumbnail_image(image: Image, path: String) -> Error:
+	var capture := _get_screenshot_capture()
+	return capture.save_to_file(image, path)
+
+func _get_screenshot_cache() -> Node:
+	return U_ServiceLocator.try_get_service(StringName("screenshot_cache"))
+
+func _get_screenshot_capture() -> U_ScreenshotCapture:
+	if _screenshot_capture == null:
+		_screenshot_capture = U_SCREENSHOT_CAPTURE.new()
+	return _screenshot_capture
 
 ## Get current timestamp in ISO 8601 format
 func _get_iso8601_timestamp() -> String:
