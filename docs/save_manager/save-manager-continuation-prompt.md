@@ -38,23 +38,39 @@ Read these files before starting work:
 | Legacy migration | Import `user://savegame.json` to autosave on first launch |
 | Concurrent protection | `_is_saving` and `_is_loading` lock flags |
 | Settings autosave | Removed; only checkpoint/area events trigger saves |
+| Thumbnail format | PNG, 320x180 (16:9), ~50-100KB per file |
+| Thumbnail path | `user://saves/{slot_id}_thumb.png` alongside JSON |
+| Thumbnail capture | Autosave=live viewport, Manual save=cached from before pause |
+| Screenshot cache | Single Image in memory, captured on ACTION_OPEN_PAUSE |
 
 ## Current Progress
 
-**Last Updated**: 2025-12-25
+**Last Updated**: 2026-01-30
 
 **Completed Phases**:
 - ✅ **Phase 0**: Preparation & Existing Code Migration (5 tasks)
-  - Removed M_StateStore autosave timer
-  - Added playtime_seconds field and S_PlaytimeSystem (7/7 tests passing)
-  - Added death_in_progress flag to gameplay slice
 - ✅ **Phase 1**: Manager Lifecycle and Discovery (3 tasks)
-  - Created M_SaveManager with ServiceLocator registration
-  - Discovers M_StateStore and M_SceneManager dependencies
-  - Initializes lock flags (_is_saving, _is_loading)
-  - Tests: 6/6 passing in test_save_manager.gd
+- ✅ **Phase 2**: Slot Registry and Metadata (3 tasks + edge case tests)
+- ✅ **Phase 3**: File I/O with Atomic Writes and Backups (3 tasks)
+- ✅ **Phase 4**: Save Workflow - Manual Saves (4 tasks)
+- ✅ **Phase 5**: Load Workflow with M_SceneManager Integration (3 tasks)
+- ✅ **Phase 6**: Autosave Scheduler and Coalescing (3 tasks)
+- ✅ **Phase 7**: Migration System (5 tasks)
+- ✅ **Phase 8**: Error Handling and Corruption Recovery (3 tasks)
+- ✅ **Phase 9**: UI - Pause Menu Integration (6 tasks)
+- ✅ **Phase 10**: UI - Save/Load Overlay Screen (7 tasks)
+- ✅ **Phase 11**: UI - Toast Notifications (3 tasks)
+- ✅ **Phase 12**: Test Infrastructure Setup (2 tasks)
+- ✅ **Phase 13**: Integration Tests for Full Save/Load Cycle (3 tasks)
+- ✅ **Phase 14**: Automated Tests - Additional Coverage (30 tests)
+- ✅ **Phase 15**: Manual Testing / QA Checklist (20 tests)
 
-**Next Phase**: Phase 2 - Slot Registry and Metadata
+**Test Status**:
+- 99 unit tests passing (save manager, file I/O, migrations, autosave scheduler, playtime)
+- 19 integration tests passing
+- 339 total assertions
+
+**Next Phase**: Phase 16 - Screenshot/Thumbnail Capture for Save Slots
 
 Check `save-manager-tasks.md` for detailed task list and current phase. Look for `- [x]` vs `- [ ]`.
 
@@ -63,15 +79,12 @@ Check `save-manager-tasks.md` for detailed task list and current phase. Look for
 Follow existing codebase patterns:
 
 - **Managers**: See `m_scene_manager.gd` - ServiceLocator registration, group fallback
-  - M_SaveManager follows this pattern (Phase 1 complete)
-- **Helpers**: See `scripts/managers/helpers/` - extracted logic with `m_` prefix
-  - Will extract file I/O, slot registry, scheduler, migrations in later phases
+- **Helpers**: See `scripts/managers/helpers/` - extracted logic (u_save_file_io.gd, u_autosave_scheduler.gd, u_save_migration_engine.gd)
 - **Actions**: See `u_gameplay_actions.gd` - const action names, static creators, registry
 - **ECS Systems**: See `s_checkpoint_system.gd` - extends BaseECSSystem
-  - S_PlaytimeSystem implemented (Phase 0 complete)
 - **Overlays**: See `ui_pause_menu.gd` and `base_overlay.gd`
 - **Events**: See `u_ecs_event_bus.gd` - `publish(event_name, payload)`
-  - Will emit save_started, save_completed, save_failed events
+  - Emits save_started, save_completed, save_failed events
 
 ## File Format
 
@@ -86,7 +99,7 @@ Follow existing codebase patterns:
     "last_checkpoint": "sp_checkpoint_1",
     "target_spawn_point": "sp_checkpoint_1",
     "area_name": "Main Hall",
-    "thumbnail_path": null
+    "thumbnail_path": "user://saves/slot_01_thumb.png"
   },
   "state": {
     "gameplay": { ... },
@@ -100,21 +113,48 @@ Follow existing codebase patterns:
 
 1. **Do NOT use `M_StateStore.save_state(filepath)`** - that writes raw state without header. Save Manager builds its own format using `get_state()` + header metadata.
 
-2. **Remove from M_StateStore**: `_autosave_timer`, `_setup_autosave_timer()`, `_on_autosave_timeout()`
+2. **Autosave anti-triggers**: Never autosave during death, mid-transition, or high-frequency updates.
 
-3. **Scene registration required**: UI overlays need BOTH:
-   - `resources/ui_screens/cfg_save_load_menu_overlay.tres`
-   - Registration in `U_SceneRegistry` with `SceneType.UI`
+3. **Screenshot capture requires two strategies**:
+   - **Autosave**: Capture live viewport at save time (gameplay is active)
+   - **Manual save**: Use cached screenshot from BEFORE pause menu opened (game is paused when user saves)
 
-4. **Autosave anti-triggers**: Never autosave during death, mid-transition, or high-frequency updates.
+4. **Thumbnail file management**: Screenshots stored as `{slot_id}_thumb.png` alongside JSON saves. Clean up on slot deletion.
 
-## Next Steps
+## Next Steps (Phase 16)
 
-1. Check `save-manager-tasks.md` for current phase
-2. Find the first unchecked task `- [ ]`
-3. Follow TDD: Red → Green → Refactor
-4. Mark tasks complete as you finish them
-5. Run manual tests from Phase 14 when feature-complete
+Phase 16 is split into sub-phases:
+
+**Phase 16A: Screenshot Cache Infrastructure**
+1. Create `u_screenshot_capture.gd` helper for viewport capture and resize
+2. Create `m_screenshot_cache.gd` manager to cache screenshot on pause
+3. Subscribe to `ACTION_OPEN_PAUSE` to capture before menu shows
+
+**Phase 16B: Save Integration**
+4. Add live capture to autosave path
+5. Add cache retrieval to manual save path
+6. Update `_build_metadata()` for thumbnail path
+
+**Phase 16C: Cleanup**
+7. Update `delete_slot()` to remove thumbnail files
+8. Add orphaned thumbnail cleanup on startup
+
+**Phase 16D: UI Display**
+9. Update slot item layout with TextureRect
+10. Implement async thumbnail loading
+11. Create placeholder texture for missing thumbnails
+
+**Phase 16E: Testing**
+12. Unit tests for capture utility and cache manager
+13. Integration tests for save/load with thumbnails
+14. Mobile-specific testing (performance, touch controls visibility)
+
+**Mobile Considerations:**
+- Touch controls (CanvasLayer) appear in autosave screenshots - decision needed: accept or hide
+- Memory: Resize captured Image immediately to reduce footprint (4K capture = ~32MB before resize)
+- Performance: Capture/resize/encode may cause frame drop on low-end devices
+
+Check `save-manager-tasks.md` for detailed task breakdown (18 tasks total).
 
 ---
 
@@ -123,11 +163,22 @@ Follow existing codebase patterns:
 Copy this to start a new session:
 
 ```
-I'm continuing implementation of the Save Manager.
+I'm continuing implementation of the Save Manager - Phase 16: Screenshot/Thumbnail Capture.
 
 Read the documentation at:
 - docs/save_manager/save-manager-overview.md
 - docs/save_manager/save-manager-tasks.md
 
-Check which phase I'm on and continue with the next unchecked task. Follow TDD and mark tasks complete as you finish them.
+The core save system (Phases 0-15) is complete with 118 tests passing.
+
+Phase 16 adds screenshot thumbnails to save slots and is split into sub-phases:
+- 16A: Screenshot cache infrastructure (capture on pause for manual saves)
+- 16B: Save integration (autosave captures live, manual saves use cache)
+- 16C: Cleanup (delete thumbnails with saves, orphan cleanup)
+- 16D: UI display (async loading, placeholder for missing)
+- 16E: Testing
+
+IMPORTANT: Manual saves cannot capture at save time (game is paused, showing menu). A screenshot cache must capture BEFORE pause menu opens.
+
+Continue with the next unchecked task. Follow TDD and mark tasks complete as you finish them.
 ```
