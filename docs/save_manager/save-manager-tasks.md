@@ -1,6 +1,6 @@
 # Save Manager Implementation Tasks
 
-**Progress:** Phases 0-15 complete (55 / 55 tasks, 118 tests passing) | Phase 16 in progress (6 / 17 tasks)
+**Progress:** Phases 0-15 complete (55 / 55 tasks, 118 tests passing) | Phase 16 in progress (9 / 17 tasks)
 
 **Phase 14 Complete (2025-12-27):**
 
@@ -730,7 +730,7 @@ Screenshot capture requires **two different strategies** because of when saves o
 
 **Exit Criteria:** Thumbnails captured on save, differentiated by save type
 
-- [ ] **Task 16C.1 (Red)**: Write tests for save integration with thumbnails
+- [x] **Task 16C.1 (Red)**: Write tests for save integration with thumbnails
   - Add tests to `tests/unit/save/test_save_manager.gd` or create new file
   - Test autosave creates `{slot_id}_thumb.png` file (live capture)
   - Test manual save creates thumbnail from cache
@@ -738,9 +738,9 @@ Screenshot capture requires **two different strategies** because of when saves o
   - Test `thumbnail_path` in metadata matches actual file path when successful
   - Test `thumbnail_path` is empty string when capture fails/skipped
   - Test thumbnail capture failure doesn't block save operation
-  - All tests should fail initially (Red state)
+  - Added `tests/unit/save/test_save_thumbnails.gd`
 
-- [ ] **Task 16C.2 (Green)**: Implement thumbnail capture in save workflow
+- [x] **Task 16C.2 (Green)**: Implement thumbnail capture in save workflow
   - In `M_SaveManager.save_to_slot()`:
     - For autosave (`slot_id == SLOT_AUTOSAVE`): Capture live viewport via `U_ScreenshotCapture`
     - For manual save: Get cached screenshot via `M_ScreenshotCache.get_cached_screenshot()`
@@ -750,10 +750,10 @@ Screenshot capture requires **two different strategies** because of when saves o
   - Clear cache after successful manual save (optional)
   - All tests should pass (Green state)
 
-- [ ] **Task 16C.3 (Refactor)**: Clean up save integration if needed
+- [x] **Task 16C.3 (Refactor)**: Clean up save integration if needed
   - Extract thumbnail path generation to helper method
   - Ensure consistent error handling patterns
-  - No new functionality, only code quality improvements
+  - No refactor needed
 
 ### Phase 16D: Cleanup and Deletion (TDD)
 

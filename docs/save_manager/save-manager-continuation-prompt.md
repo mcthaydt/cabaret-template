@@ -3,8 +3,8 @@
 ## Current Status (2026-01-31)
 
 **Status:** Phase 16 In Progress - Screenshot/Thumbnail Capture
-**Current Phase:** Phase 16C (Save Integration)
-**Next Action:** Task 16C.1 - Write tests for save integration with thumbnails
+**Current Phase:** Phase 16D (Cleanup and Deletion)
+**Next Action:** Task 16D.1 - Write tests for thumbnail cleanup
 
 ## Prerequisites Completed
 
@@ -36,8 +36,8 @@
 - UI overlays: `ui_pause_menu.gd`, `ui_save_load_menu.gd`, `ui_save_toast.gd`
 
 **Tests:**
-- Added `tests/unit/save/test_screenshot_cache.gd` (8 tests passing)
-- Last run: `tools/run_gut_suite.sh -gtest=res://tests/unit/save/test_screenshot_cache.gd -gexit` (8/8 passed)
+- Added `tests/unit/save/test_save_thumbnails.gd` (4 tests passing)
+- Last run: `tools/run_gut_suite.sh -gtest=res://tests/unit/save/test_save_thumbnails.gd -gexit` (4/4 passed)
 
 **Save Format:**
 ```json
@@ -81,10 +81,10 @@ Phase 16 adds screenshot thumbnails (320x180 PNG) to save slots. Split into sub-
 - Cache uses gameplay-only capture on `ACTION_OPEN_PAUSE`
 - Added unit tests for cache lifecycle + pause event handling
 
-**Phase 16C: Save Integration (3 tasks)**
-- Add live capture to autosave path
-- Add cache retrieval to manual save path
-- Update `_build_metadata()` for thumbnail path
+**Phase 16C: Save Integration (3 tasks) - ✅ Complete**
+- `M_SaveManager` now captures thumbnails for autosave (live) and manual saves (cache)
+- `thumbnail_path` written when capture succeeds; failures do not block save
+- Added tests for autosave/manual/no-cache/error paths
 
 **Phase 16D: Cleanup (2 tasks)**
 - Update `delete_slot()` to remove thumbnail files
