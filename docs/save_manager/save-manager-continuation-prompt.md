@@ -3,8 +3,8 @@
 ## Current Status (2026-01-31)
 
 **Status:** Phase 16 In Progress - Screenshot/Thumbnail Capture
-**Current Phase:** Phase 16D (Cleanup and Deletion)
-**Next Action:** Task 16D.1 - Write tests for thumbnail cleanup
+**Current Phase:** Phase 16E (UI Display)
+**Next Action:** Task 16E.1 - Write tests for UI thumbnail display
 
 ## Prerequisites Completed
 
@@ -37,7 +37,8 @@
 
 **Tests:**
 - Added `tests/unit/save/test_save_thumbnails.gd` (4 tests passing)
-- Last run: `tools/run_gut_suite.sh -gtest=res://tests/unit/save/test_save_thumbnails.gd -gexit` (4/4 passed)
+- Added `tests/unit/save/test_thumbnail_cleanup.gd` (4 tests passing)
+- Last run: `tools/run_gut_suite.sh -gtest=res://tests/unit/save/test_thumbnail_cleanup.gd -gexit` (4/4 passed)
 
 **Save Format:**
 ```json
@@ -86,9 +87,9 @@ Phase 16 adds screenshot thumbnails (320x180 PNG) to save slots. Split into sub-
 - `thumbnail_path` written when capture succeeds; failures do not block save
 - Added tests for autosave/manual/no-cache/error paths
 
-**Phase 16D: Cleanup (2 tasks)**
-- Update `delete_slot()` to remove thumbnail files
-- Add orphaned thumbnail cleanup on startup
+**Phase 16D: Cleanup (2 tasks) - ✅ Complete**
+- `delete_slot()` removes thumbnail files
+- Orphaned thumbnail cleanup runs on startup
 
 **Phase 16E: UI Display (3 tasks)**
 - Update slot item layout with TextureRect

@@ -759,15 +759,16 @@ Screenshot capture requires **two different strategies** because of when saves o
 
 **Exit Criteria:** Thumbnails deleted with saves, orphaned thumbnails cleaned on startup
 
-- [ ] **Task 16D.1 (Red)**: Write tests for thumbnail cleanup
+- [x] **Task 16D.1 (Red)**: Write tests for thumbnail cleanup
   - Test `delete_slot()` removes `{slot_id}_thumb.png` along with save files
   - Test orphaned thumbnail cleanup on manager initialization
   - Test cleanup only removes `.png` files without matching `.json`
   - Test cleanup logs actions for debugging
   - Update `U_SaveTestUtils` to add `.png` to cleanup patterns
+  - Added `tests/unit/save/test_thumbnail_cleanup.gd`
   - All tests should fail initially (Red state)
 
-- [ ] **Task 16D.2 (Green)**: Implement thumbnail cleanup
+- [x] **Task 16D.2 (Green)**: Implement thumbnail cleanup
   - In `M_SaveManager.delete_slot()`: Also delete `{slot_id}_thumb.png` if it exists
   - In `M_SaveManager._initialize_save_system()`: Add orphaned thumbnail cleanup
     - Scan for `*_thumb.png` files in save directory
@@ -776,8 +777,8 @@ Screenshot capture requires **two different strategies** because of when saves o
   - Update `U_SaveTestUtils.teardown()` to clean `.png` files
   - All tests should pass (Green state)
 
-- [ ] **Task 16D.3 (Refactor)**: Clean up deletion logic if needed
-  - Extract orphaned file scanning to helper method
+- [x] **Task 16D.3 (Refactor)**: Clean up deletion logic if needed
+  - Extract orphaned file scanning to helper method (`_cleanup_orphaned_thumbnails`)
   - Ensure consistent DirAccess patterns
   - No new functionality, only code quality improvements
 
