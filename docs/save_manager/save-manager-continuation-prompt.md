@@ -168,6 +168,7 @@ I'm continuing implementation of the Save Manager - Phase 16: Screenshot/Thumbna
 Read the documentation at:
 - docs/save_manager/save-manager-overview.md
 - docs/save_manager/save-manager-tasks.md
+- docs/save_manager/save-manager-continuation-prompt.md
 
 The core save system (Phases 0-15) is complete with 118 tests passing.
 

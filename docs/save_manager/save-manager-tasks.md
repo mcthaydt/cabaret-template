@@ -651,7 +651,7 @@ These tests require human verification of UI/UX, visual feedback, and timing-sen
 
 **Exit Criteria:** Save slots display screenshot thumbnails, screenshots captured correctly for both autosave and manual saves, cleaned up on delete
 
-**Progress:** 0 / 18 tasks
+**Progress:** 0 / 17 tasks
 
 ### Overview
 
@@ -664,146 +664,162 @@ Screenshot capture requires **two different strategies** because of when saves o
 
 **Key insight:** When a user presses "Save" from the pause menu, the game is paused and showing UI. We cannot capture gameplay at that moment. We must cache a screenshot **before** the pause menu opens.
 
-### Phase 16A: Screenshot Cache Infrastructure
+### Phase 16A: Screenshot Capture Utility (TDD)
 
-**Exit Criteria:** Screenshot cached on pause, available for manual saves
+**Exit Criteria:** U_ScreenshotCapture utility tested and implemented
 
-- [ ] **Task 16A.1**: Create screenshot capture utility
+- [ ] **Task 16A.1 (Red)**: Write tests for screenshot capture utility
+  - Create `tests/unit/save/test_screenshot_capture.gd`
+  - Test `capture_viewport()` returns Image with correct dimensions
+  - Test `resize_to_thumbnail()` maintains aspect ratio (320x180 default)
+  - Test `save_to_file()` creates valid PNG readable by Godot
+  - Test null viewport returns null gracefully
+  - Test null image returns error on save
+  - Test resize with INTERPOLATE_LANCZOS quality
+  - All tests should fail initially (Red state)
+
+- [ ] **Task 16A.2 (Green)**: Implement screenshot capture utility
   - Create `scripts/managers/helpers/u_screenshot_capture.gd`
   - `capture_viewport(viewport: Viewport) -> Image` - captures current frame as Image
   - `resize_to_thumbnail(image: Image, width: int, height: int) -> Image` - resize with INTERPOLATE_LANCZOS
   - `save_to_file(image: Image, path: String) -> Error` - saves as PNG
   - Default thumbnail size: 320x180 (16:9 ratio)
   - Handle edge cases: null viewport, null image, capture failure returns null
+  - All tests should pass (Green state)
 
-- [ ] **Task 16A.2**: Create screenshot cache manager
+- [ ] **Task 16A.3 (Refactor)**: Clean up capture utility if needed
+  - Extract constants (THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)
+  - Ensure consistent error handling patterns
+  - No new functionality, only code quality improvements
+
+### Phase 16B: Screenshot Cache Manager (TDD)
+
+**Exit Criteria:** M_ScreenshotCache manager tested and implemented
+
+- [ ] **Task 16B.1 (Red)**: Write tests for screenshot cache manager
+  - Create `tests/unit/save/test_screenshot_cache.gd`
+  - Test `cache_current_frame()` stores valid Image
+  - Test `get_cached_screenshot()` returns cached Image
+  - Test `get_cached_screenshot()` returns null when empty
+  - Test `clear_cache()` frees memory and returns null on subsequent get
+  - Test `has_cached_screenshot()` returns correct boolean
+  - Test cache only captures during gameplay shell (not menus)
+  - Test cache is populated on `ACTION_OPEN_PAUSE` event
+  - Test cache survives multiple pause/unpause cycles until cleared
+  - Test ServiceLocator registration as `"screenshot_cache"`
+  - All tests should fail initially (Red state)
+
+- [ ] **Task 16B.2 (Green)**: Implement screenshot cache manager
   - Create `scripts/managers/m_screenshot_cache.gd`
   - Single cached Image (most recent gameplay frame before pause)
   - `cache_current_frame()` - captures and stores viewport screenshot
   - `get_cached_screenshot() -> Image` - returns cached image or null
   - `clear_cache()` - clears cached image (frees memory)
   - `has_cached_screenshot() -> bool` - check if cache is populated
+  - Subscribe to state store `action_dispatched` signal
+  - On `ACTION_OPEN_PAUSE`: Call `cache_current_frame()` if `navigation.shell == "gameplay"`
   - Register with ServiceLocator as `"screenshot_cache"`
+  - All tests should pass (Green state)
 
-- [ ] **Task 16A.3**: Subscribe to pause events for cache capture
-  - In `m_screenshot_cache.gd`, subscribe to state store `action_dispatched`
-  - On `ACTION_OPEN_PAUSE`: Call `cache_current_frame()` immediately
-  - On `ACTION_CLOSE_PAUSE` (resume without save): Optionally clear cache after delay
-  - Only capture if `navigation.shell == "gameplay"` (don't cache menu screenshots)
+- [ ] **Task 16B.3 (Refactor)**: Clean up cache manager if needed
+  - Ensure proper cleanup in `_exit_tree()`
+  - Verify memory is properly freed on `clear_cache()`
+  - No new functionality, only code quality improvements
 
-- [ ] **Task 16A.4**: Unit tests for screenshot cache
-  - Test `cache_current_frame()` stores valid Image
-  - Test `get_cached_screenshot()` returns cached Image
-  - Test `clear_cache()` frees memory and returns null on get
-  - Test cache only captures during gameplay shell
-  - Test cache survives multiple pause/unpause cycles until cleared
+### Phase 16C: Save Integration (TDD)
 
-### Phase 16B: Save Integration (Differentiated Capture)
+**Exit Criteria:** Thumbnails captured on save, differentiated by save type
 
-**Exit Criteria:** Autosaves capture live, manual saves use cache, thumbnails saved to disk
+- [ ] **Task 16C.1 (Red)**: Write tests for save integration with thumbnails
+  - Add tests to `tests/unit/save/test_save_manager.gd` or create new file
+  - Test autosave creates `{slot_id}_thumb.png` file (live capture)
+  - Test manual save creates thumbnail from cache
+  - Test manual save without cache proceeds without thumbnail (graceful degradation)
+  - Test `thumbnail_path` in metadata matches actual file path when successful
+  - Test `thumbnail_path` is empty string when capture fails/skipped
+  - Test thumbnail capture failure doesn't block save operation
+  - All tests should fail initially (Red state)
 
-- [ ] **Task 16B.1**: Add screenshot capture to autosave path
-  - In `M_SaveManager.save_to_slot()`, detect if `slot_id == SLOT_AUTOSAVE`
-  - For autosave: Capture live viewport via `U_ScreenshotCapture.capture_viewport()`
+- [ ] **Task 16C.2 (Green)**: Implement thumbnail capture in save workflow
+  - In `M_SaveManager.save_to_slot()`:
+    - For autosave (`slot_id == SLOT_AUTOSAVE`): Capture live viewport via `U_ScreenshotCapture`
+    - For manual save: Get cached screenshot via `M_ScreenshotCache.get_cached_screenshot()`
   - Save thumbnail to `user://saves/{slot_id}_thumb.png`
-  - Update `thumbnail_path` in header metadata
+  - Update `_build_metadata()` to set `thumbnail_path` dynamically
   - Handle capture failure gracefully (save proceeds, `thumbnail_path` remains empty)
+  - Clear cache after successful manual save (optional)
+  - All tests should pass (Green state)
 
-- [ ] **Task 16B.2**: Add screenshot retrieval to manual save path
-  - In `M_SaveManager.save_to_slot()`, detect if `slot_id != SLOT_AUTOSAVE`
-  - For manual save: Get cached screenshot via `M_ScreenshotCache.get_cached_screenshot()`
-  - If cache is null, proceed without thumbnail (graceful degradation)
-  - Save cached Image to disk as PNG
-  - Update `thumbnail_path` in header metadata
-  - Clear cache after successful save (optional - prevents stale reuse)
+- [ ] **Task 16C.3 (Refactor)**: Clean up save integration if needed
+  - Extract thumbnail path generation to helper method
+  - Ensure consistent error handling patterns
+  - No new functionality, only code quality improvements
 
-- [ ] **Task 16B.3**: Update `_build_metadata()` for thumbnail path
-  - Change `"thumbnail_path": ""` to dynamic value based on capture success
-  - If thumbnail saved successfully: `"thumbnail_path": "user://saves/{slot_id}_thumb.png"`
-  - If thumbnail failed/skipped: `"thumbnail_path": ""`
-
-- [ ] **Task 16B.4**: Integration tests for differentiated capture
-  - Test autosave creates thumbnail file (live capture)
-  - Test manual save uses cached screenshot
-  - Test manual save without cache proceeds without thumbnail
-  - Test `thumbnail_path` in metadata matches actual file existence
-
-### Phase 16C: Cleanup and Deletion
+### Phase 16D: Cleanup and Deletion (TDD)
 
 **Exit Criteria:** Thumbnails deleted with saves, orphaned thumbnails cleaned on startup
 
-- [ ] **Task 16C.1**: Update `delete_slot()` to remove thumbnail
-  - In `M_SaveManager.delete_slot()`, after deleting `.json`, `.bak`, `.tmp`:
-  - Also delete `{slot_id}_thumb.png` if it exists
-  - Use same `DirAccess` pattern as existing deletion
+- [ ] **Task 16D.1 (Red)**: Write tests for thumbnail cleanup
+  - Test `delete_slot()` removes `{slot_id}_thumb.png` along with save files
+  - Test orphaned thumbnail cleanup on manager initialization
+  - Test cleanup only removes `.png` files without matching `.json`
+  - Test cleanup logs actions for debugging
+  - Update `U_SaveTestUtils` to add `.png` to cleanup patterns
+  - All tests should fail initially (Red state)
 
-- [ ] **Task 16C.2**: Add orphaned thumbnail cleanup on startup
-  - In `M_SaveManager._initialize_save_system()`, after `cleanup_tmp_files()`:
-  - Scan for `*_thumb.png` files in save directory
-  - For each `.png`, check if matching `.json` save exists
-  - Delete orphaned `.png` files (thumbnail without save)
-  - Log cleanup actions for debugging
+- [ ] **Task 16D.2 (Green)**: Implement thumbnail cleanup
+  - In `M_SaveManager.delete_slot()`: Also delete `{slot_id}_thumb.png` if it exists
+  - In `M_SaveManager._initialize_save_system()`: Add orphaned thumbnail cleanup
+    - Scan for `*_thumb.png` files in save directory
+    - For each `.png`, check if matching `.json` save exists
+    - Delete orphaned `.png` files
+  - Update `U_SaveTestUtils.teardown()` to clean `.png` files
+  - All tests should pass (Green state)
 
-- [ ] **Task 16C.3**: Update `U_SaveTestUtils` for thumbnail cleanup
-  - Add `.png` to file patterns cleaned in `teardown()`
-  - Ensure test isolation includes thumbnail files
+- [ ] **Task 16D.3 (Refactor)**: Clean up deletion logic if needed
+  - Extract orphaned file scanning to helper method
+  - Ensure consistent DirAccess patterns
+  - No new functionality, only code quality improvements
 
-### Phase 16D: UI Display
+### Phase 16E: UI Display (TDD)
 
-**Exit Criteria:** Thumbnails visible in save/load overlay, async loading, placeholder for missing
+**Exit Criteria:** Thumbnails visible in save/load overlay with async loading
 
-- [ ] **Task 16D.1**: Update slot item layout for thumbnail
+- [ ] **Task 16E.1 (Red)**: Write tests for UI thumbnail display
+  - Test slot item layout includes TextureRect for thumbnail
+  - Test placeholder texture shown when `thumbnail_path` is empty
+  - Test placeholder texture shown when thumbnail file missing
+  - Test actual thumbnail displayed when file exists
+  - Test async loading doesn't block UI (may need integration test)
+  - All tests should fail initially (Red state)
+
+- [ ] **Task 16E.2 (Green)**: Implement UI thumbnail display
+  - Create placeholder texture: `resources/ui/tex_save_slot_placeholder.png`
   - In `ui_save_load_menu.gd` `_create_slot_item()`:
-  - Create HBoxContainer layout: `[TextureRect] [VBox: SlotInfo] [DeleteButton]`
-  - TextureRect: 80x45 size (maintains 16:9 ratio), `expand_mode = EXPAND_IGNORE_SIZE`, `stretch_mode = STRETCH_KEEP_ASPECT_CENTERED`
-  - Move existing text (slot name, timestamp, area, playtime) into VBoxContainer
-  - Store TextureRect reference for async texture loading
+    - Create HBoxContainer layout: `[TextureRect] [VBox: SlotInfo] [Buttons]`
+    - TextureRect: 80x45 size (16:9 ratio), `expand_mode = EXPAND_IGNORE_SIZE`
+  - Implement `_load_thumbnail_async(texture_rect: TextureRect, path: String)`
+    - Use `ResourceLoader.load_threaded_request()` for async loading
+    - Show placeholder during load and when missing
+  - All tests should pass (Green state)
 
-- [ ] **Task 16D.2**: Implement async thumbnail loading
-  - Create helper method `_load_thumbnail_async(texture_rect: TextureRect, path: String)`
-  - Use `ResourceLoader.load_threaded_request(path, "Image")`
-  - Poll with `load_threaded_get_status()` or use callback
-  - On load complete: Create `ImageTexture.create_from_image()` and assign to TextureRect
-  - Show placeholder texture during loading (gray rectangle or icon)
+- [ ] **Task 16E.3 (Refactor)**: Clean up UI code if needed
+  - Extract thumbnail loading to separate helper if complex
+  - Ensure proper cleanup of pending loads on overlay close
+  - No new functionality, only code quality improvements
 
-- [ ] **Task 16D.3**: Create placeholder texture for missing thumbnails
-  - Create default placeholder texture (gray with "No Image" text or icon)
-  - Store as resource: `resources/ui/tex_save_slot_placeholder.png`
-  - Use placeholder when `thumbnail_path` is empty or file missing
-  - Use placeholder during async load
+### Phase 16F: Manual Testing
 
-- [ ] **Task 16D.4**: Update scene file with thumbnail layout
-  - Slot items are created dynamically, so no scene changes needed for slots
-  - Ensure ScrollContainer and SlotListContainer sizing accommodates larger slot items
-  - Test with 4 slots visible (may need to adjust `custom_minimum_size`)
+**Exit Criteria:** Visual verification and mobile platform testing
 
-### Phase 16E: Testing
+- [ ] **Task 16F.1**: Manual visual testing
+  - Verify thumbnails display correctly in save/load overlay
+  - Verify placeholder appears for empty slots
+  - Verify autosave captures live gameplay (not pause menu)
+  - Verify manual save uses cached pre-pause screenshot
+  - Verify delete removes thumbnail from disk
 
-**Exit Criteria:** All screenshot functionality tested, edge cases covered
-
-- [ ] **Task 16E.1**: Unit tests for `U_ScreenshotCapture`
-  - Test `capture_viewport()` returns Image with correct dimensions
-  - Test `resize_to_thumbnail()` maintains aspect ratio
-  - Test `save_to_file()` creates valid PNG readable by Godot
-  - Test null viewport returns null gracefully
-  - Test null image returns error on save
-
-- [ ] **Task 16E.2**: Unit tests for `M_ScreenshotCache`
-  - Test cache stores and retrieves Image
-  - Test cache clears correctly
-  - Test cache only captures during gameplay shell
-  - Test cache is populated on `ACTION_OPEN_PAUSE`
-
-- [ ] **Task 16E.3**: Integration tests for save/load with thumbnails
-  - Test autosave creates `autosave_thumb.png`
-  - Test manual save creates `slot_01_thumb.png` from cache
-  - Test delete removes both `.json` and `_thumb.png`
-  - Test orphaned thumbnail cleanup on startup
-  - Test load without thumbnail works (backwards compatibility)
-  - Test UI displays placeholder for missing thumbnail
-  - Test UI displays actual thumbnail when present
-
-- [ ] **Task 16E.4**: Mobile-specific testing (manual)
+- [ ] **Task 16F.2**: Mobile-specific testing
   - Test on low-end Android device for performance during autosave capture
   - Verify touch controls visibility in autosave screenshots (document expected behavior)
   - Test memory usage with multiple save/load cycles (no memory leaks)
@@ -1004,9 +1020,9 @@ Files to create:
 | `scripts/ecs/systems/s_playtime_system.gd` | System | Playtime tracking ECS system | ✅ Implemented |
 | `scripts/ui/ui_save_load_menu.gd` | UI | Combined save/load overlay controller | ✅ Implemented |
 | `scripts/ui/ui_save_slot_item.gd` | UI | Slot item component | ⏸️ Deferred (using simple Buttons) |
-| `scripts/managers/helpers/u_screenshot_capture.gd` | Helper | Screenshot capture and resize | ⏳ Phase 16A |
-| `scripts/managers/m_screenshot_cache.gd` | Manager | Caches screenshot on pause for manual saves | ⏳ Phase 16A |
-| `resources/ui/tex_save_slot_placeholder.png` | Asset | Placeholder for missing thumbnails | ⏳ Phase 16D |
+| `scripts/managers/helpers/u_screenshot_capture.gd` | Helper | Screenshot capture and resize | ⏳ Phase 16A.2 (Green) |
+| `scripts/managers/m_screenshot_cache.gd` | Manager | Caches screenshot on pause for manual saves | ⏳ Phase 16B.2 (Green) |
+| `resources/ui/tex_save_slot_placeholder.png` | Asset | Placeholder for missing thumbnails | ⏳ Phase 16E.2 (Green) |
 | `scenes/ui/ui_save_load_menu.tscn` | Scene | Combined save/load overlay scene | ✅ Implemented |
 | `resources/ui_screens/cfg_save_load_menu_overlay.tres` | Resource | Combined overlay definition | ✅ Implemented (Phase 9) |
 | `tests/unit/save/test_save_manager.gd` | Test | Manager unit tests (86 tests) | ✅ All passing |
@@ -1016,8 +1032,8 @@ Files to create:
 | `tests/unit/save/test_playtime_system.gd` | Test | Playtime system unit tests (7 tests) | ✅ All passing |
 | `tests/unit/save/u_save_test_utils.gd` | Utility | Shared test helpers (setup/teardown) | ✅ Implemented (Phase 12) |
 | `tests/integration/save/test_save_load_cycle.gd` | Test | Integration tests | ⏳ Not started |
-| `tests/unit/save/test_screenshot_capture.gd` | Test | Screenshot capture unit tests | ⏳ Phase 16E |
-| `tests/unit/save/test_screenshot_cache.gd` | Test | Screenshot cache unit tests | ⏳ Phase 16E |
+| `tests/unit/save/test_screenshot_capture.gd` | Test | Screenshot capture unit tests | ⏳ Phase 16A.1 (Red) |
+| `tests/unit/save/test_screenshot_cache.gd` | Test | Screenshot cache unit tests | ⏳ Phase 16B.1 (Red) |
 
 Files to modify:
 
