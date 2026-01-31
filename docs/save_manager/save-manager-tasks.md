@@ -1,6 +1,6 @@
 # Save Manager Implementation Tasks
 
-**Progress:** Phases 0-15 complete (55 / 55 tasks, 118 tests passing) | Phase 16 pending (0 / 17 tasks)
+**Progress:** Phases 0-15 complete (55 / 55 tasks, 118 tests passing) | Phase 16 in progress (3 / 17 tasks)
 
 **Phase 14 Complete (2025-12-27):**
 
@@ -668,7 +668,7 @@ Screenshot capture requires **two different strategies** because of when saves o
 
 **Exit Criteria:** U_ScreenshotCapture utility tested and implemented
 
-- [ ] **Task 16A.1 (Red)**: Write tests for screenshot capture utility
+- [x] **Task 16A.1 (Red)**: Write tests for screenshot capture utility
   - Create `tests/unit/save/test_screenshot_capture.gd`
   - Test `capture_viewport()` returns Image with correct dimensions
   - Test `resize_to_thumbnail()` maintains aspect ratio (320x180 default)
@@ -676,18 +676,18 @@ Screenshot capture requires **two different strategies** because of when saves o
   - Test null viewport returns null gracefully
   - Test null image returns error on save
   - Test resize with INTERPOLATE_LANCZOS quality
-  - All tests should fail initially (Red state)
+  - Headless run marks viewport capture test as pending (renderer limitation)
 
-- [ ] **Task 16A.2 (Green)**: Implement screenshot capture utility
+- [x] **Task 16A.2 (Green)**: Implement screenshot capture utility
   - Create `scripts/managers/helpers/u_screenshot_capture.gd`
   - `capture_viewport(viewport: Viewport) -> Image` - captures current frame as Image
   - `resize_to_thumbnail(image: Image, width: int, height: int) -> Image` - resize with INTERPOLATE_LANCZOS
   - `save_to_file(image: Image, path: String) -> Error` - saves as PNG
   - Default thumbnail size: 320x180 (16:9 ratio)
   - Handle edge cases: null viewport, null image, capture failure returns null
-  - All tests should pass (Green state)
+  - All tests pass (headless: 1 pending due to viewport capture)
 
-- [ ] **Task 16A.3 (Refactor)**: Clean up capture utility if needed
+- [x] **Task 16A.3 (Refactor)**: Clean up capture utility if needed
   - Extract constants (THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)
   - Ensure consistent error handling patterns
   - No new functionality, only code quality improvements
