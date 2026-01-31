@@ -3,8 +3,8 @@
 ## Current Status (2026-01-31)
 
 **Status:** Phase 16 In Progress - Screenshot/Thumbnail Capture
-**Current Phase:** Phase 16B (Screenshot Cache Manager)
-**Next Action:** Task 16B.1 - Write tests for screenshot cache manager
+**Current Phase:** Phase 16C (Save Integration)
+**Next Action:** Task 16C.1 - Write tests for save integration with thumbnails
 
 ## Prerequisites Completed
 
@@ -36,8 +36,8 @@
 - UI overlays: `ui_pause_menu.gd`, `ui_save_load_menu.gd`, `ui_save_toast.gd`
 
 **Tests:**
-- Added `tests/unit/save/test_screenshot_capture.gd` (6 tests; 1 pending in headless for viewport capture)
-- Last run: `tools/run_gut_suite.sh -gtest=res://tests/unit/save/test_screenshot_capture.gd -gexit` (5 passed, 1 pending)
+- Added `tests/unit/save/test_screenshot_cache.gd` (8 tests passing)
+- Last run: `tools/run_gut_suite.sh -gtest=res://tests/unit/save/test_screenshot_cache.gd -gexit` (8/8 passed)
 
 **Save Format:**
 ```json
@@ -76,10 +76,10 @@ Phase 16 adds screenshot thumbnails (320x180 PNG) to save slots. Split into sub-
 - Added `u_screenshot_capture.gd` helper with thumbnail constants + Lanczos resize
 - Added unit tests for capture/resize/save (viewport capture test pending in headless)
 
-**Phase 16B: Screenshot Cache Manager (3 tasks) - ⏳ Next**
-- Create `m_screenshot_cache.gd` manager to cache screenshot on pause
-- Subscribe to `ACTION_OPEN_PAUSE` to capture before menu shows
-- Add tests for cache lifecycle and ServiceLocator registration
+**Phase 16B: Screenshot Cache Manager (3 tasks) - ✅ Complete**
+- Added `m_screenshot_cache.gd` manager with ServiceLocator registration
+- Cache uses gameplay-only capture on `ACTION_OPEN_PAUSE`
+- Added unit tests for cache lifecycle + pause event handling
 
 **Phase 16C: Save Integration (3 tasks)**
 - Add live capture to autosave path

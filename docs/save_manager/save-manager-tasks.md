@@ -1,6 +1,6 @@
 # Save Manager Implementation Tasks
 
-**Progress:** Phases 0-15 complete (55 / 55 tasks, 118 tests passing) | Phase 16 in progress (3 / 17 tasks)
+**Progress:** Phases 0-15 complete (55 / 55 tasks, 118 tests passing) | Phase 16 in progress (6 / 17 tasks)
 
 **Phase 14 Complete (2025-12-27):**
 
@@ -696,7 +696,7 @@ Screenshot capture requires **two different strategies** because of when saves o
 
 **Exit Criteria:** M_ScreenshotCache manager tested and implemented
 
-- [ ] **Task 16B.1 (Red)**: Write tests for screenshot cache manager
+- [x] **Task 16B.1 (Red)**: Write tests for screenshot cache manager
   - Create `tests/unit/save/test_screenshot_cache.gd`
   - Test `cache_current_frame()` stores valid Image
   - Test `get_cached_screenshot()` returns cached Image
@@ -707,9 +707,9 @@ Screenshot capture requires **two different strategies** because of when saves o
   - Test cache is populated on `ACTION_OPEN_PAUSE` event
   - Test cache survives multiple pause/unpause cycles until cleared
   - Test ServiceLocator registration as `"screenshot_cache"`
-  - All tests should fail initially (Red state)
+  - All tests pass (headless-safe via injected image override)
 
-- [ ] **Task 16B.2 (Green)**: Implement screenshot cache manager
+- [x] **Task 16B.2 (Green)**: Implement screenshot cache manager
   - Create `scripts/managers/m_screenshot_cache.gd`
   - Single cached Image (most recent gameplay frame before pause)
   - `cache_current_frame()` - captures and stores viewport screenshot
@@ -721,10 +721,10 @@ Screenshot capture requires **two different strategies** because of when saves o
   - Register with ServiceLocator as `"screenshot_cache"`
   - All tests should pass (Green state)
 
-- [ ] **Task 16B.3 (Refactor)**: Clean up cache manager if needed
+- [x] **Task 16B.3 (Refactor)**: Clean up cache manager if needed
   - Ensure proper cleanup in `_exit_tree()`
   - Verify memory is properly freed on `clear_cache()`
-  - No new functionality, only code quality improvements
+  - No refactor needed
 
 ### Phase 16C: Save Integration (TDD)
 
