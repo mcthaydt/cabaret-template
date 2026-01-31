@@ -2,9 +2,9 @@
 
 ## Current Status (2026-01-31)
 
-**Status:** Phase 16 In Progress - Screenshot/Thumbnail Capture
-**Current Phase:** Phase 16E (UI Display)
-**Next Action:** Task 16E.1 - Write tests for UI thumbnail display
+**Status:** Phase 16 Complete - Screenshot/Thumbnail Capture
+**Current Phase:** Phase 16F (Manual Testing) - ✅ Complete
+**Next Action:** Optional Task 16E.3 refactor if cleanup is still desired; otherwise ready for next feature phase
 
 ## Prerequisites Completed
 
@@ -38,7 +38,8 @@
 **Tests:**
 - Added `tests/unit/save/test_save_thumbnails.gd` (4 tests passing)
 - Added `tests/unit/save/test_thumbnail_cleanup.gd` (4 tests passing)
-- Last run: `tools/run_gut_suite.sh -gtest=res://tests/unit/save/test_thumbnail_cleanup.gd -gexit` (4/4 passed)
+- Added UI thumbnail tests in `tests/unit/ui/test_save_load_menu.gd`
+- Last run: `tools/run_gut_suite.sh -gtest=res://tests/unit/ui/test_save_load_menu.gd -gexit` (12/12 passed)
 
 **Save Format:**
 ```json
@@ -69,7 +70,7 @@ Redux-style state architecture with save/load orchestration:
 5. **Phases 12-15:** Test infrastructure and comprehensive testing
 6. **Phase 16:** Screenshot/thumbnail capture for save slots
 
-## Phase 16 Summary (IN PROGRESS)
+## Phase 16 Summary (COMPLETE)
 
 Phase 16 adds screenshot thumbnails (320x180 PNG) to save slots. Split into sub-phases:
 
@@ -91,13 +92,13 @@ Phase 16 adds screenshot thumbnails (320x180 PNG) to save slots. Split into sub-
 - `delete_slot()` removes thumbnail files
 - Orphaned thumbnail cleanup runs on startup
 
-**Phase 16E: UI Display (3 tasks)**
-- Update slot item layout with TextureRect
-- Implement async thumbnail loading
-- Create placeholder texture for missing thumbnails
+**Phase 16E: UI Display (3 tasks) - ✅ Complete**
+- Slot item layout includes thumbnail TextureRect
+- Async thumbnail loading implemented with placeholder fallback
+- Placeholder texture added for missing thumbnails
 
-**Phase 16F: Manual Testing (2 tasks)**
-- Visual verification + mobile-specific testing
+**Phase 16F: Manual Testing (2 tasks) - ✅ Complete**
+- Manual verification on PC + mobile passed (2026-01-31)
 
 **Key Design Decisions:**
 - **Autosave**: Capture live viewport at save time (gameplay is active)

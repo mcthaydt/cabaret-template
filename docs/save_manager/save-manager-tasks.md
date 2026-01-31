@@ -815,19 +815,21 @@ Screenshot capture requires **two different strategies** because of when saves o
 
 **Exit Criteria:** Visual verification and mobile platform testing
 
-- [ ] **Task 16F.1**: Manual visual testing
+- [x] **Task 16F.1**: Manual visual testing
   - Verify thumbnails display correctly in save/load overlay
   - Verify placeholder appears for empty slots
   - Verify autosave captures live gameplay (not pause menu)
   - Verify manual save uses cached pre-pause screenshot
   - Verify delete removes thumbnail from disk
+  - Notes: Manual PC verification passed (2026-01-31)
 
-- [ ] **Task 16F.2**: Mobile-specific testing
+- [x] **Task 16F.2**: Mobile-specific testing
   - Test on low-end Android device for performance during autosave capture
   - Verify touch controls visibility in autosave screenshots (document expected behavior)
   - Test memory usage with multiple save/load cycles (no memory leaks)
   - Test both portrait and landscape orientations
   - Verify `user://` file access works correctly on iOS and Android
+  - Notes: Manual mobile verification passed (2026-01-31); accepted current touch-control visibility
 
 ---
 
@@ -897,7 +899,7 @@ func _on_action_dispatched(action: Dictionary) -> void:
 | Async loading | ResourceLoader threaded | Prevents UI stutter on overlay open |
 | Missing thumbnail | Placeholder texture | Graceful degradation, clear visual |
 | Cache clear timing | After successful save | Prevents stale screenshot reuse |
-| Touch controls in autosave | **TBD** - Accept visible OR hide temporarily | Affects mobile screenshot appearance |
+| Touch controls in autosave | Accepted current behavior (verified 2026-01-31) | Affects mobile screenshot appearance |
 
 ### Anti-Patterns
 
