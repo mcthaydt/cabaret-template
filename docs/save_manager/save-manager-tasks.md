@@ -786,15 +786,16 @@ Screenshot capture requires **two different strategies** because of when saves o
 
 **Exit Criteria:** Thumbnails visible in save/load overlay with async loading
 
-- [ ] **Task 16E.1 (Red)**: Write tests for UI thumbnail display
+- [x] **Task 16E.1 (Red)**: Write tests for UI thumbnail display
   - Test slot item layout includes TextureRect for thumbnail
   - Test placeholder texture shown when `thumbnail_path` is empty
   - Test placeholder texture shown when thumbnail file missing
   - Test actual thumbnail displayed when file exists
   - Test async loading doesn't block UI (may need integration test)
   - All tests should fail initially (Red state)
+  - Added tests in `tests/unit/ui/test_save_load_menu.gd` + metadata override hook in `MockSaveManager`
 
-- [ ] **Task 16E.2 (Green)**: Implement UI thumbnail display
+- [x] **Task 16E.2 (Green)**: Implement UI thumbnail display
   - Create placeholder texture: `resources/ui/tex_save_slot_placeholder.png`
   - In `ui_save_load_menu.gd` `_create_slot_item()`:
     - Create HBoxContainer layout: `[TextureRect] [VBox: SlotInfo] [Buttons]`
@@ -803,6 +804,7 @@ Screenshot capture requires **two different strategies** because of when saves o
     - Use `ResourceLoader.load_threaded_request()` for async loading
     - Show placeholder during load and when missing
   - All tests should pass (Green state)
+  - Added thumbnail TextureRect + placeholder + async loader with `user://` fallback
 
 - [ ] **Task 16E.3 (Refactor)**: Clean up UI code if needed
   - Extract thumbnail loading to separate helper if complex
