@@ -232,6 +232,7 @@ func test_scene_organization_root_structure() -> void:
 	var has_scene_manager := false
 	var has_cursor_manager := false
 	var has_pause_manager := false
+	var has_screenshot_cache := false
 	var has_active_scene_container := false
 	var has_ui_overlay_stack := false
 
@@ -250,6 +251,8 @@ func test_scene_organization_root_structure() -> void:
 			has_cursor_manager = true
 		elif node_name == "M_PauseManager" and path_str.contains("Managers"):
 			has_pause_manager = true
+		elif node_name == "M_ScreenshotCache" and path_str.contains("Managers"):
+			has_screenshot_cache = true
 		elif node_name == "ActiveSceneContainer":
 			has_active_scene_container = true
 		elif node_name == "UIOverlayStack":
@@ -260,6 +263,7 @@ func test_scene_organization_root_structure() -> void:
 	assert_true(has_scene_manager, "Root scene must have M_SceneManager in Managers")
 	assert_true(has_cursor_manager, "Root scene must have M_CursorManager in Managers")
 	assert_true(has_pause_manager, "Root scene must have M_PauseManager in Managers")
+	assert_true(has_screenshot_cache, "Root scene must have M_ScreenshotCache in Managers")
 	assert_true(has_active_scene_container, "Root scene must have ActiveSceneContainer")
 	assert_true(has_ui_overlay_stack, "Root scene must have UIOverlayStack")
 

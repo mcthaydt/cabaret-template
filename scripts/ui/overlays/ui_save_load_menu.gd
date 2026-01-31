@@ -413,8 +413,15 @@ func _restore_focus_to_slot(slot_index: int) -> void:
 	# Restore focus to the slot at the given index, or first available slot
 	if _slot_list_container == null:
 		return
+	if not is_inside_tree():
+		return
 
-	await get_tree().process_frame  # Wait for UI to settle
+	var tree := get_tree()
+	if tree == null:
+		return
+	await tree.process_frame  # Wait for UI to settle
+	if not is_inside_tree() or _slot_list_container == null:
+		return
 
 	var target_index: int = slot_index
 	var slot_count: int = _slot_list_container.get_child_count()
