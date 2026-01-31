@@ -800,8 +800,7 @@ func _collect_particle_nodes(node: Node, out: Array) -> void:
 func _prune_particle_speed_cache() -> void:
 	var stale: Array = []
 	for particle_variant in _particle_original_speeds.keys():
-		var particle_node := particle_variant as Node
-		if particle_node == null or not is_instance_valid(particle_node):
+		if not is_instance_valid(particle_variant):
 			stale.append(particle_variant)
 	for key in stale:
 		_particle_original_speeds.erase(key)
