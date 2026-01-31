@@ -8,6 +8,8 @@ const RESIZE_INTERPOLATION := Image.INTERPOLATE_LANCZOS
 func capture_viewport(viewport: Viewport) -> Image:
 	if viewport == null:
 		return null
+	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
+		return null
 
 	var texture: Texture2D = viewport.get_texture()
 	if texture == null:

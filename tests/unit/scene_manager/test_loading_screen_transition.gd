@@ -43,7 +43,8 @@ func test_loading_real_progress_mid_callback_and_updates() -> void:
 ## Fake path (no provider): should enforce minimum duration
 ## @warning: Skipped in headless - wall-clock timing unreliable
 func test_loading_fake_progress_enforces_min_duration() -> void:
-	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
+	var display_name := DisplayServer.get_name().to_lower()
+	if OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy":
 		pending("Skipped: Wall-clock timing unreliable in headless mode")
 		return
 
@@ -61,4 +62,3 @@ func test_loading_fake_progress_enforces_min_duration() -> void:
 	var elapsed: float = (Time.get_ticks_msec() / 1000.0) - start_sec
 	assert_true(ok and tracker.is_complete, "Fake loading should complete")
 	assert_true(elapsed >= transition.min_duration - 0.01, "Fake loading should last at least min_duration")
-

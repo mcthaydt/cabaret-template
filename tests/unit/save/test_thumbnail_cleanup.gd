@@ -59,7 +59,6 @@ func test_initialize_cleanup_removes_orphaned_thumbnail() -> void:
 
 	await _add_save_manager_and_wait()
 
-	assert_push_error("orphaned thumbnail")
 	assert_false(FileAccess.file_exists(orphan_path), "Initialization should remove orphaned thumbnails")
 
 func test_cleanup_preserves_thumbnail_with_matching_save() -> void:
@@ -74,18 +73,17 @@ func test_cleanup_preserves_thumbnail_with_matching_save() -> void:
 
 	await _add_save_manager_and_wait()
 
-	assert_push_error("orphaned thumbnail")
 	assert_true(FileAccess.file_exists(valid_thumb), "Cleanup should keep thumbnails with matching save files")
 	assert_false(FileAccess.file_exists(orphan_thumb), "Cleanup should remove thumbnails without matching save files")
 
-func test_cleanup_logs_orphaned_thumbnail_removal() -> void:
+func test_cleanup_removes_orphaned_thumbnail_without_error() -> void:
 	var orphan_slot := StringName("slot_log")
 	var orphan_thumb := _get_thumbnail_path(orphan_slot)
 	_create_dummy_thumbnail(orphan_thumb)
 
 	await _add_save_manager_and_wait()
 
-	assert_push_error("orphaned thumbnail")
+	assert_false(FileAccess.file_exists(orphan_thumb), "Cleanup should remove orphaned thumbnails without raising errors")
 
 ## Helpers
 

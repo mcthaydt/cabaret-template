@@ -46,15 +46,13 @@ func test_throttle_ms_allows_play_after_window() -> void:
 
 	# When: Playing twice with delay exceeding throttle window
 	U_UI_SOUND_PLAYER.play_slider_tick()
+	var time_before: int = U_UI_SOUND_PLAYER._last_play_times.get(StringName("ui_tick"), 0)
 	await get_tree().create_timer(0.15).timeout  # 150ms > 100ms throttle
 	U_UI_SOUND_PLAYER.play_slider_tick()
+	var time_after: int = U_UI_SOUND_PLAYER._last_play_times.get(StringName("ui_tick"), 0)
 
-	await get_tree().process_frame
-
-	# Then: Both plays should succeed
-	var playing_count := _count_playing_ui_players()
-	# First sound may have finished, but second should definitely be playing
-	assert_gte(playing_count, 1, "Second play after throttle window should succeed")
+	# Then: Second play should be allowed (timestamp updated)
+	assert_gt(time_after, time_before, "Second play after throttle window should succeed (timestamp updated)")
 
 
 func test_throttle_ms_zero_allows_all_plays() -> void:

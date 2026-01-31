@@ -162,7 +162,7 @@ func _cleanup_orphaned_thumbnails() -> void:
 				if remove_error != OK:
 					push_error("M_SaveManager: Failed to remove orphaned thumbnail: %s (error %d)" % [file_name, remove_error])
 				else:
-					push_error("M_SaveManager: Removed orphaned thumbnail: %s" % file_name)
+					print_verbose("M_SaveManager: Removed orphaned thumbnail: %s" % file_name)
 		file_name = dir.get_next()
 	dir.list_dir_end()
 
