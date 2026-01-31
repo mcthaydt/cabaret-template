@@ -12,8 +12,12 @@ const RS_NavigationInitialState := preload("res://scripts/resources/state/rs_nav
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const MockSaveManager := preload("res://tests/mocks/mock_save_manager.gd")
+const U_SAVE_TEST_UTILS := preload("res://tests/unit/save/u_save_test_utils.gd")
 
-var _test_save_manager: Node
+const PLACEHOLDER_TEXTURE_PATH := "res://resources/ui/tex_save_slot_placeholder.png"
+const TEST_THUMB_DIR := "user://test_ui_thumbs/"
+
+var _test_save_manager: MockSaveManager
 var _test_store: M_StateStore
 
 func before_each() -> void:
@@ -25,9 +29,11 @@ func before_each() -> void:
 
 	# Create state store
 	_test_store = await _create_state_store()
+	U_SAVE_TEST_UTILS.setup(TEST_THUMB_DIR)
 
 func after_each() -> void:
 	# Note: _test_save_manager and _test_store are freed by add_child_autofree()
+	U_SAVE_TEST_UTILS.teardown(TEST_THUMB_DIR)
 	U_ServiceLocator.clear()
 
 func test_spinner_hidden_initially() -> void:
@@ -173,6 +179,93 @@ func test_load_failure_keeps_overlay_open_and_shows_error_message() -> void:
 	assert_true(error_label.visible, "ErrorLabel should be visible after load failure")
 	assert_ne(error_label.text.strip_edges(), "", "ErrorLabel text should not be empty after load failure")
 
+func test_slot_item_includes_thumbnail_texture_rect() -> void:
+	_prepare_save_mode(_test_store)
+	_test_save_manager.set_slot_metadata([
+		_build_slot_metadata(StringName("slot_01"), true, "")
+	])
+	var menu := await _instantiate_save_load_menu()
+
+	var slot_container := _get_slot_container(menu, StringName("slot_01"))
+	assert_not_null(slot_container, "Slot container should exist for slot_01")
+
+	var thumbnail_rect := _find_thumbnail_rect(slot_container)
+	assert_not_null(thumbnail_rect, "Slot item should include a thumbnail TextureRect")
+
+func test_placeholder_shown_when_thumbnail_path_empty() -> void:
+	_prepare_save_mode(_test_store)
+	_test_save_manager.set_slot_metadata([
+		_build_slot_metadata(StringName("slot_01"), true, "")
+	])
+	var menu := await _instantiate_save_load_menu()
+	await wait_process_frames(2)
+
+	var slot_container := _get_slot_container(menu, StringName("slot_01"))
+	var thumbnail_rect := _find_thumbnail_rect(slot_container)
+	assert_not_null(thumbnail_rect, "Thumbnail TextureRect should exist for slot_01")
+	if thumbnail_rect == null:
+		return
+	assert_not_null(thumbnail_rect.texture, "Placeholder texture should be assigned when thumbnail_path is empty")
+	if thumbnail_rect.texture == null:
+		return
+	assert_eq(
+		thumbnail_rect.texture.resource_path,
+		PLACEHOLDER_TEXTURE_PATH,
+		"Placeholder texture should be used when thumbnail_path is empty"
+	)
+
+func test_placeholder_shown_when_thumbnail_file_missing() -> void:
+	_prepare_save_mode(_test_store)
+	var missing_path := TEST_THUMB_DIR + "slot_01_thumb.png"
+	_test_save_manager.set_slot_metadata([
+		_build_slot_metadata(StringName("slot_01"), true, missing_path)
+	])
+	var menu := await _instantiate_save_load_menu()
+	await wait_process_frames(2)
+
+	var slot_container := _get_slot_container(menu, StringName("slot_01"))
+	var thumbnail_rect := _find_thumbnail_rect(slot_container)
+	assert_not_null(thumbnail_rect, "Thumbnail TextureRect should exist for slot_01")
+	if thumbnail_rect == null:
+		return
+	assert_not_null(thumbnail_rect.texture, "Placeholder texture should be shown when thumbnail file is missing")
+	if thumbnail_rect.texture == null:
+		return
+	assert_eq(
+		thumbnail_rect.texture.resource_path,
+		PLACEHOLDER_TEXTURE_PATH,
+		"Placeholder texture should be used when thumbnail file is missing"
+	)
+
+func test_thumbnail_displayed_when_file_exists() -> void:
+	_prepare_save_mode(_test_store)
+	var thumbnail_path := TEST_THUMB_DIR + "slot_01_thumb.png"
+	_create_test_thumbnail(thumbnail_path)
+	_test_save_manager.set_slot_metadata([
+		_build_slot_metadata(StringName("slot_01"), true, thumbnail_path)
+	])
+	var menu := await _instantiate_save_load_menu()
+
+	var slot_container := _get_slot_container(menu, StringName("slot_01"))
+	var thumbnail_rect := _find_thumbnail_rect(slot_container)
+	assert_not_null(thumbnail_rect, "Thumbnail TextureRect should exist for slot_01")
+	if thumbnail_rect == null:
+		return
+	await _await_texture_path(thumbnail_rect, thumbnail_path)
+
+	assert_not_null(thumbnail_rect.texture, "Thumbnail texture should load when file exists")
+	assert_ne(
+		thumbnail_rect.texture.resource_path,
+		PLACEHOLDER_TEXTURE_PATH,
+		"Thumbnail TextureRect should not use placeholder when file exists"
+	)
+	if not thumbnail_rect.texture.resource_path.is_empty():
+		assert_eq(
+			thumbnail_rect.texture.resource_path,
+			thumbnail_path,
+			"Thumbnail TextureRect should load the file-based thumbnail"
+		)
+
 ## Helper functions
 
 func _create_state_store() -> M_StateStore:
@@ -211,3 +304,45 @@ func _open_save_load_overlay_in_gameplay(store: M_StateStore) -> void:
 		store.dispatch(U_NavigationActions.open_pause())
 		store.dispatch(U_NavigationActions.open_overlay(StringName("save_load_menu_overlay")))
 		await wait_process_frames(2)
+
+func _build_slot_metadata(slot_id: StringName, exists: bool, thumbnail_path: String) -> Dictionary:
+	return {
+		"slot_id": slot_id,
+		"exists": exists,
+		"timestamp": "2025-12-26T10:00:00Z",
+		"area_name": "Test Area",
+		"playtime_seconds": 123,
+		"thumbnail_path": thumbnail_path
+	}
+
+func _get_slot_container(menu: Control, slot_id: StringName) -> HBoxContainer:
+	if menu == null:
+		return null
+	var list_container := menu.get_node_or_null("%SlotListContainer")
+	if list_container == null:
+		return null
+	return list_container.get_node_or_null("Slot_" + String(slot_id)) as HBoxContainer
+
+func _find_thumbnail_rect(container: Node) -> TextureRect:
+	if container == null:
+		return null
+	if container is TextureRect:
+		return container
+	for child in container.get_children():
+		var found := _find_thumbnail_rect(child)
+		if found != null:
+			return found
+	return null
+
+func _create_test_thumbnail(path: String) -> void:
+	var image := Image.create(32, 18, false, Image.FORMAT_RGBA8)
+	image.fill(Color(1, 0, 0, 1))
+	image.save_png(path)
+
+func _await_texture_path(texture_rect: TextureRect, expected_path: String, max_frames: int = 30) -> void:
+	if texture_rect == null:
+		return
+	for _i in max_frames:
+		if texture_rect.texture != null and texture_rect.texture.resource_path == expected_path:
+			return
+		await wait_process_frames(1)

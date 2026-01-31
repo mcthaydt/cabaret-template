@@ -20,6 +20,8 @@ var _next_load_result: Error = OK
 var _next_delete_result: Error = OK
 var _has_any_saves: bool = false
 var _most_recent_save_slot: StringName = StringName("")
+var _slot_metadata_override: Array[Dictionary] = []
+var _use_slot_metadata_override: bool = false
 
 func _init() -> void:
 	name = "MockSaveManager"
@@ -52,6 +54,8 @@ func reset() -> void:
 	_next_delete_result = OK
 	_has_any_saves = false
 	_most_recent_save_slot = StringName("")
+	_slot_metadata_override.clear()
+	_use_slot_metadata_override = false
 
 func set_next_save_result(result: Error) -> void:
 	_next_save_result = result
@@ -70,6 +74,14 @@ func set_has_any_saves(has_saves: bool) -> void:
 func set_most_recent_save_slot(slot_id: StringName) -> void:
 	_most_recent_save_slot = slot_id
 
+func set_slot_metadata(metadata: Array[Dictionary]) -> void:
+	_slot_metadata_override = metadata.duplicate(true)
+	_use_slot_metadata_override = true
+
+func clear_slot_metadata_override() -> void:
+	_slot_metadata_override.clear()
+	_use_slot_metadata_override = false
+
 func has_any_saves() -> bool:
 	return _has_any_saves
 
@@ -85,6 +97,8 @@ func set_delayed_load(enabled: bool, duration: float = 0.0) -> void:
 
 ## Mock implementation of get_all_slot_metadata
 func get_all_slot_metadata() -> Array[Dictionary]:
+	if _use_slot_metadata_override:
+		return _slot_metadata_override.duplicate(true)
 	var metadata: Array[Dictionary] = []
 
 	# Return mock metadata for autosave and 3 manual slots
