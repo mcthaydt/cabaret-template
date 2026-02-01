@@ -521,7 +521,8 @@ func _calculate_fit_scale(control: Control, desired_scale: float, available_size
 		return desired_scale
 	if available_size.x <= 0.0 or available_size.y <= 0.0:
 		return desired_scale
-	var min_size: Vector2 = control.get_combined_minimum_size()
+	var fit_target: Control = _resolve_fit_target(control)
+	var min_size: Vector2 = fit_target.get_combined_minimum_size()
 	if min_size.x <= 0.0 or min_size.y <= 0.0:
 		return desired_scale
 	var scale_x: float = available_size.x / min_size.x
@@ -530,6 +531,15 @@ func _calculate_fit_scale(control: Control, desired_scale: float, available_size
 	if fit_limit <= 0.0:
 		return desired_scale
 	return min(desired_scale, fit_limit)
+
+func _resolve_fit_target(control: Control) -> Control:
+	if control == null:
+		return control
+	if control.has_meta(StringName("ui_scale_fit_target")):
+		var target = control.get_meta(StringName("ui_scale_fit_target"))
+		if target is Control and is_instance_valid(target):
+			return target as Control
+	return control
 
 func _get_viewport_rect(control: Control) -> Rect2:
 	if control == null:

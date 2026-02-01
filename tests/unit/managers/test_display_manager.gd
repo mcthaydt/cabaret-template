@@ -159,6 +159,21 @@ func test_fit_scale_clamps_control_to_available_size() -> void:
 	var fit_scale: float = manager._calculate_fit_scale(control, 2.0, Vector2(800, 600))
 	assert_almost_eq(fit_scale, 0.75, 0.001, "Fit scale should clamp to available size")
 
+func test_fit_scale_uses_meta_fit_target_when_set() -> void:
+	var manager := M_DISPLAY_MANAGER.new()
+	add_child_autofree(manager)
+
+	var root := Control.new()
+	add_child_autofree(root)
+
+	var child := Control.new()
+	child.custom_minimum_size = Vector2(1000, 800)
+	root.add_child(child)
+	root.set_meta(StringName("ui_scale_fit_target"), child)
+
+	var fit_scale: float = manager._calculate_fit_scale(root, 2.0, Vector2(800, 600))
+	assert_almost_eq(fit_scale, 0.75, 0.001, "Fit scale should honor meta fit target size")
+
 func test_safe_area_padding_sets_offsets_for_full_anchors() -> void:
 	var manager := M_DISPLAY_MANAGER.new()
 	add_child_autofree(manager)
