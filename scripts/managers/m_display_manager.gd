@@ -500,13 +500,84 @@ func _apply_ui_scale_to_node(node: Node, scale: float) -> void:
 		layer.transform = Transform2D().scaled(Vector2(scale, scale))
 		return
 	if node is Control:
-		var control := node as Control
-		control.scale = Vector2(scale, scale)
+		var control: Control = node as Control
+		var viewport_rect: Rect2 = _get_viewport_rect(control)
+		var safe_rect: Rect2 = _get_safe_area_rect(viewport_rect)
+		_apply_safe_area_padding(control, viewport_rect.size, safe_rect)
+		var applied_scale: float = _calculate_fit_scale(control, scale, safe_rect.size)
+		var pivot_size: Vector2 = control.size
+		if pivot_size == Vector2.ZERO:
+			pivot_size = control.get_combined_minimum_size()
+		control.pivot_offset = pivot_size * 0.5
+		control.scale = Vector2(applied_scale, applied_scale)
 		return
 	if node is Node2D:
 		var node_2d := node as Node2D
 		node_2d.scale = Vector2(scale, scale)
 		return
+
+func _calculate_fit_scale(control: Control, desired_scale: float, available_size: Vector2) -> float:
+	if control == null:
+		return desired_scale
+	if available_size.x <= 0.0 or available_size.y <= 0.0:
+		return desired_scale
+	var min_size: Vector2 = control.get_combined_minimum_size()
+	if min_size.x <= 0.0 or min_size.y <= 0.0:
+		return desired_scale
+	var scale_x: float = available_size.x / min_size.x
+	var scale_y: float = available_size.y / min_size.y
+	var fit_limit: float = min(scale_x, scale_y)
+	if fit_limit <= 0.0:
+		return desired_scale
+	return min(desired_scale, fit_limit)
+
+func _get_viewport_rect(control: Control) -> Rect2:
+	if control == null:
+		return Rect2()
+	var viewport: Viewport = control.get_viewport()
+	if viewport == null:
+		return Rect2()
+	return viewport.get_visible_rect()
+
+func _get_safe_area_rect(viewport_rect: Rect2) -> Rect2:
+	if viewport_rect.size == Vector2.ZERO:
+		return viewport_rect
+	if not _is_display_server_available():
+		return viewport_rect
+	if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_WINDOWED and not OS.has_feature("mobile"):
+		return viewport_rect
+	var screen: int = DisplayServer.window_get_current_screen()
+	var safe_rect_i: Rect2i = DisplayServer.screen_get_usable_rect(screen)
+	if safe_rect_i.size == Vector2i.ZERO:
+		return viewport_rect
+	var safe_rect: Rect2 = Rect2(Vector2(safe_rect_i.position), Vector2(safe_rect_i.size))
+	var viewport_bounds: Rect2 = Rect2(Vector2.ZERO, viewport_rect.size)
+	var clamped: Rect2 = safe_rect.intersection(viewport_bounds)
+	if clamped.size == Vector2.ZERO:
+		return viewport_rect
+	return clamped
+
+func _apply_safe_area_padding(control: Control, viewport_size: Vector2, safe_rect: Rect2) -> void:
+	if control == null:
+		return
+	if not _is_full_anchor(control):
+		return
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return
+	var left: float = max(safe_rect.position.x, 0.0)
+	var top: float = max(safe_rect.position.y, 0.0)
+	var right: float = max(viewport_size.x - (safe_rect.position.x + safe_rect.size.x), 0.0)
+	var bottom: float = max(viewport_size.y - (safe_rect.position.y + safe_rect.size.y), 0.0)
+	control.offset_left = left
+	control.offset_top = top
+	control.offset_right = -right
+	control.offset_bottom = -bottom
+
+func _is_full_anchor(control: Control) -> bool:
+	return is_equal_approx(control.anchor_left, 0.0) \
+		and is_equal_approx(control.anchor_top, 0.0) \
+		and is_equal_approx(control.anchor_right, 1.0) \
+		and is_equal_approx(control.anchor_bottom, 1.0)
 
 func register_ui_scale_root(node: Node) -> void:
 	if node == null:
