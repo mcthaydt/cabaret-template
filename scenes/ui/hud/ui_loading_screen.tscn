@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://clwc6tou4bgkr"]
 
 [node name="LoadingScreen" type="Control" unique_id=1622492159]
+groups=["ui_scalable"]
 process_mode = 3
 layout_mode = 3
 anchors_preset = 15

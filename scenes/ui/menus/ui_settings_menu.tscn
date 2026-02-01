@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dnt7vw1x370bc" path="res://scripts/ui/menus/ui_settings_menu.gd" id="1_settings_menu_script"]
 
 [node name="SettingsMenu" type="Control" unique_id=327220458]
+groups=["ui_scalable"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

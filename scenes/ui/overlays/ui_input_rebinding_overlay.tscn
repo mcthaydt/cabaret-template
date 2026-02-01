@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://d0y5pdih30xo0" path="res://scripts/ui/overlays/ui_input_rebinding_overlay.gd" id="1"]
 
 [node name="InputRebindingOverlay" type="Control" unique_id=142623892]
+groups=["ui_scalable"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

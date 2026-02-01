@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dnudhjs6mrfo5" path="res://scripts/ui/menus/ui_game_over.gd" id="1"]
 
 [node name="GameOver" type="Control" unique_id=1010098499]
+groups=["ui_scalable"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

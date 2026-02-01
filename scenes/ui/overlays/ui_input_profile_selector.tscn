@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bhkuj2s600glu" path="res://scripts/ui/overlays/ui_input_profile_selector.gd" id="1"]
 
 [node name="InputProfileSelector" type="Control" unique_id=358970070]
+groups=["ui_scalable"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

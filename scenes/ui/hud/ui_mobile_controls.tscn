@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://detd2l75ews08" path="res://scripts/ui/hud/ui_mobile_controls.gd" id="1"]
 
 [node name="MobileControls" type="CanvasLayer" unique_id=1745358577]
+groups=["ui_scalable"]
 process_mode = 3
 layer = 50
 visible = false

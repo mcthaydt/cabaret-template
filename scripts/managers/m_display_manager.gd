@@ -15,6 +15,7 @@ const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_pr
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
+const UI_SCALABLE_GROUP := StringName("ui_scalable")
 
 const WINDOW_PRESETS := {
 	"1280x720": Vector2i(1280, 720),
@@ -29,6 +30,8 @@ const QUALITY_PRESET_PATHS := {
 	"high": "res://resources/display/cfg_quality_presets/cfg_quality_high.tres",
 	"ultra": "res://resources/display/cfg_quality_presets/cfg_quality_ultra.tres",
 }
+const MIN_UI_SCALE := 0.5
+const MAX_UI_SCALE := 2.0
 
 ## Injected dependency (tests)
 @export var state_store: I_StateStore = null
@@ -38,6 +41,7 @@ var _last_display_hash: int = 0
 var _display_settings_preview_active: bool = false
 var _preview_settings: Dictionary = {}
 var _quality_preset_cache: Dictionary = {}
+var _current_ui_scale: float = 1.0
 
 # Post-process overlay (Phase 3C)
 var _post_process_layer: U_PostProcessLayer = null
@@ -53,9 +57,16 @@ func _ready() -> void:
 	add_to_group(SERVICE_NAME)
 	U_SERVICE_LOCATOR.register(SERVICE_NAME, self)
 
+	var tree := get_tree()
+	if tree != null and not tree.node_added.is_connected(_on_tree_node_added):
+		tree.node_added.connect(_on_tree_node_added)
+
 	await _initialize_store_async()
 
 func _exit_tree() -> void:
+	var tree := get_tree()
+	if tree != null and tree.node_added.is_connected(_on_tree_node_added):
+		tree.node_added.disconnect(_on_tree_node_added)
 	if _state_store != null and _state_store.has_signal("slice_updated"):
 		if _state_store.slice_updated.is_connected(_on_slice_updated):
 			_state_store.slice_updated.disconnect(_on_slice_updated)
@@ -150,6 +161,7 @@ func _apply_display_settings(state: Dictionary) -> void:
 	_apply_window_settings(effective_settings)
 	_apply_quality_settings(effective_settings)
 	_apply_post_process_settings(effective_settings)
+	_apply_ui_scale_settings(effective_settings)
 
 func _build_effective_settings(state: Dictionary) -> Dictionary:
 	var settings: Dictionary = {}
@@ -177,6 +189,11 @@ func _apply_quality_settings(display_settings: Dictionary) -> void:
 	var state := {"display": display_settings}
 	var preset := U_DISPLAY_SELECTORS.get_quality_preset(state)
 	apply_quality_preset(preset)
+
+func _apply_ui_scale_settings(display_settings: Dictionary) -> void:
+	var state := {"display": display_settings}
+	var scale := U_DISPLAY_SELECTORS.get_ui_scale(state)
+	set_ui_scale(scale)
 
 func _apply_post_process_settings(display_settings: Dictionary) -> void:
 	if not _ensure_post_process_layer():
@@ -264,6 +281,18 @@ func _apply_lut_settings(state: Dictionary) -> void:
 		StringName("lut_texture"),
 		definition.texture
 	)
+
+func set_ui_scale(scale: float) -> void:
+	var clamped_scale := clampf(scale, MIN_UI_SCALE, MAX_UI_SCALE)
+	_current_ui_scale = clamped_scale
+	var tree := get_tree()
+	if tree == null:
+		return
+	var ui_nodes := tree.get_nodes_in_group(UI_SCALABLE_GROUP)
+	for node in ui_nodes:
+		if not _is_group_root(node, UI_SCALABLE_GROUP):
+			continue
+		_apply_ui_scale_to_node(node, clamped_scale)
 
 func apply_window_size_preset(preset: String) -> void:
 	if not WINDOW_PRESETS.has(preset):
@@ -469,4 +498,34 @@ func _is_hex_string(value: String) -> bool:
 		var is_lower := code >= 97 and code <= 102
 		if not (is_digit or is_upper or is_lower):
 			return false
+	return true
+
+func _on_tree_node_added(node: Node) -> void:
+	if node == null or not node.is_in_group(UI_SCALABLE_GROUP):
+		return
+	if not _is_group_root(node, UI_SCALABLE_GROUP):
+		return
+	_apply_ui_scale_to_node(node, _current_ui_scale)
+
+func _apply_ui_scale_to_node(node: Node, scale: float) -> void:
+	if node is CanvasLayer:
+		var layer := node as CanvasLayer
+		layer.transform = Transform2D().scaled(Vector2(scale, scale))
+		return
+	if node is Control:
+		var control := node as Control
+		control.scale = Vector2(scale, scale)
+		return
+	if node is Node2D:
+		var node_2d := node as Node2D
+		node_2d.scale = Vector2(scale, scale)
+
+func _is_group_root(node: Node, group_name: StringName) -> bool:
+	if node == null:
+		return false
+	var parent := node.get_parent()
+	while parent != null:
+		if parent.is_in_group(group_name):
+			return false
+		parent = parent.get_parent()
 	return true

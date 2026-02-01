@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://d14323kd04ar0" path="res://scenes/ui/overlays/settings/ui_audio_settings_tab.tscn" id="2_ui_audio_settings_tab_scene"]
 
 [node name="AudioSettingsOverlay" type="Control" unique_id=1474768974]
+groups=["ui_scalable"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

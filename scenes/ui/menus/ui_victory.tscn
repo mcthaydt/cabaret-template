@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://kbb5lnp3ts58" path="res://scripts/ui/menus/ui_victory.gd" id="1"]
 
 [node name="Victory" type="Control" unique_id=1385982108]
+groups=["ui_scalable"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://bq8y7b2npl2g0" path="res://scenes/ui/hud/ui_button_prompt.tscn" id="3"]
 
 [node name="GamepadSettingsOverlay" type="Control" unique_id=837029059]
+groups=["ui_scalable"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

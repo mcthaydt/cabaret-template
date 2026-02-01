@@ -23,6 +23,7 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [node name="HUD" type="CanvasLayer" unique_id=510794979]
+groups=["ui_scalable"]
 script = ExtResource("1_hud")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=2131435564]

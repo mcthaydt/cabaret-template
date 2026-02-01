@@ -103,6 +103,45 @@ func test_clear_preview_restores_state_and_clears_flag() -> void:
 	var applied: Dictionary = _manager.get("_last_applied_settings")
 	assert_eq(applied.get("ui_scale"), 1.0, "Clear preview should restore ui_scale from state")
 
+func test_set_ui_scale_clamps_to_min() -> void:
+	var manager := M_DISPLAY_MANAGER.new()
+	add_child_autofree(manager)
+
+	var layer := CanvasLayer.new()
+	layer.add_to_group("ui_scalable")
+	add_child_autofree(layer)
+
+	manager.set_ui_scale(0.1)
+
+	var scale := _get_canvas_layer_scale(layer)
+	assert_vector_almost_eq(scale, Vector2.ONE * 0.5, 0.001, "UI scale should clamp to minimum")
+
+func test_set_ui_scale_clamps_to_max() -> void:
+	var manager := M_DISPLAY_MANAGER.new()
+	add_child_autofree(manager)
+
+	var layer := CanvasLayer.new()
+	layer.add_to_group("ui_scalable")
+	add_child_autofree(layer)
+
+	manager.set_ui_scale(5.0)
+
+	var scale := _get_canvas_layer_scale(layer)
+	assert_vector_almost_eq(scale, Vector2.ONE * 2.0, 0.001, "UI scale should clamp to maximum")
+
+func test_set_ui_scale_applies_to_canvas_layers_in_group() -> void:
+	var manager := M_DISPLAY_MANAGER.new()
+	add_child_autofree(manager)
+
+	var layer := CanvasLayer.new()
+	layer.add_to_group("ui_scalable")
+	add_child_autofree(layer)
+
+	manager.set_ui_scale(1.5)
+
+	var scale := _get_canvas_layer_scale(layer)
+	assert_vector_almost_eq(scale, Vector2.ONE * 1.5, 0.001, "UI scale should apply to CanvasLayers in group")
+
 func test_apply_window_size_preset_sets_window_size() -> void:
 	if _skip_window_tests():
 		return
@@ -247,3 +286,13 @@ func _restore_window_state(snapshot: Dictionary) -> void:
 		bool(snapshot.get("borderless", false))
 	)
 	DisplayServer.window_set_vsync_mode(snapshot.get("vsync", DisplayServer.window_get_vsync_mode()))
+
+func _get_canvas_layer_scale(layer: CanvasLayer) -> Vector2:
+	var transform := layer.transform
+	var scale_x := transform.x.length()
+	var scale_y := transform.y.length()
+	return Vector2(scale_x, scale_y)
+
+func assert_vector_almost_eq(a: Vector2, b: Vector2, tolerance: float, message: String = "") -> void:
+	assert_almost_eq(a.x, b.x, tolerance, message + " (x)")
+	assert_almost_eq(a.y, b.y, tolerance, message + " (y)")

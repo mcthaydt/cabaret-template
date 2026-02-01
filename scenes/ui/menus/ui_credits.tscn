@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://3hp7vaqgkdtf" path="res://scripts/ui/menus/ui_credits.gd" id="1"]
 
 [node name="Credits" type="Control" unique_id=1208454239]
+groups=["ui_scalable"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://cw60fmfvog2hu" path="res://scripts/ui/overlays/ui_edit_touch_controls_overlay.gd" id="1"]
 
 [node name="EditTouchControlsOverlay" type="Control" unique_id=889243733]
+groups=["ui_scalable"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
