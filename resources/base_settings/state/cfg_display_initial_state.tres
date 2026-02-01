@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="RS_DisplayInitialState" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/state/rs_display_initial_state.gd" id="1_display_initial_state"]
+
+[resource]
+script = ExtResource("1_display_initial_state")
+window_size_preset = "1920x1080"
+window_mode = "windowed"
+vsync_enabled = true
+quality_preset = "high"
+film_grain_enabled = false
+film_grain_intensity = 0.1
+outline_enabled = false
+outline_thickness = 2
+outline_color = "000000"
+dither_enabled = false
+dither_intensity = 0.5
+dither_pattern = "bayer"
+lut_enabled = false
+lut_resource = ""
+lut_intensity = 1.0
+ui_scale = 1.0
+color_blind_mode = "normal"
+high_contrast_enabled = false
+color_blind_shader_enabled = false
