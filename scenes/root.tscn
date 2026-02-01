@@ -26,6 +26,7 @@
 [ext_resource type="Resource" uid="uid://y6un2tn7ipre" path="res://resources/state/cfg_default_vfx_initial_state.tres" id="24_vfx_state"]
 [ext_resource type="Script" uid="uid://c5ksp2cp6i8vk" path="res://scripts/managers/m_vfx_manager.gd" id="25_vfx_manager"]
 [ext_resource type="Resource" uid="uid://dkk1esxpemcty" path="res://resources/state/cfg_default_audio_initial_state.tres" id="26_audio_state"]
+[ext_resource type="Resource" path="res://resources/base_settings/state/cfg_display_initial_state.tres" id="29_display_state"]
 [ext_resource type="Script" uid="uid://cvkyx46wvkak8" path="res://scripts/managers/m_audio_manager.gd" id="27_audio_manager"]
 [ext_resource type="Script" uid="uid://i7j2l0pc7frq" path="res://scripts/managers/m_screenshot_cache.gd" id="28_screenshot_cache"]
 
@@ -47,6 +48,7 @@ settings_initial_state = ExtResource("15_settings_state")
 debug_initial_state = ExtResource("19_debug_state")
 vfx_initial_state = ExtResource("24_vfx_state")
 audio_initial_state = ExtResource("26_audio_state")
+display_initial_state = ExtResource("29_display_state")
 
 [node name="M_CursorManager" type="Node" parent="Managers" unique_id=396316100]
 script = ExtResource("7_cursor")
