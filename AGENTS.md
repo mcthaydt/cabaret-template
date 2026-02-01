@@ -109,7 +109,7 @@
 - **Gameplay scenes**: Each has own `M_ECSManager` instance
   - Example: `scenes/gameplay/gameplay_base.tscn`
   - Contains: Systems, Entities, SceneObjects, Environment
-  - HUD uses `U_StateUtils.get_store(self)` to find M_StateStore via "state_store" group
+  - HUD uses `U_StateUtils.get_store(self)` to find M_StateStore via ServiceLocator (or injected store)
 - Node tree structure: See `docs/scene_organization/SCENE_ORGANIZATION_GUIDE.md`
 - Templates: `scenes/templates/tmpl_base_scene.tscn`, `scenes/templates/tmpl_character.tscn`, `scenes/templates/tmpl_camera.tscn`
 - Marker scripts: `scripts/scene_structure/*` (11 total) provide visual organization
@@ -180,6 +180,10 @@ Production asset files use type-specific prefixes:
 
 ## Conventions and Gotchas
 
+- **Groups are NOT used**
+  - This codebase does NOT use Godot's groups feature for manager discovery or node organization
+  - Use `U_ServiceLocator` for all manager lookups instead of `get_tree().get_first_node_in_group()`
+  - Groups add hidden coupling that's hard to track; ServiceLocator provides explicit registration with O(1) lookup
 - GDScript typing
   - Annotate locals receiving Variants (e.g., from `Callable.call()`, `JSON.parse_string`, `Time.get_ticks_msec()` calc). Prefer explicit `: float`, `: int`, `: Dictionary`, etc.
   - Use `StringName` for action/component identifiers; keep constants like `const MOVEMENT_TYPE := StringName("C_MovementComponent")`.
@@ -261,7 +265,7 @@ Production asset files use type-specific prefixes:
 
 ### Scene Transitions
 
-- **Get scene manager**: `get_tree().get_first_node_in_group("scene_manager") as M_SceneManager`
+- **Get scene manager**: `U_ServiceLocator.get_service(StringName("scene_manager")) as M_SceneManager`
 - **Basic transition**: `scene_manager.transition_to_scene(StringName("scene_id"))`
 - **Override transition type**: `scene_manager.transition_to_scene(StringName("scene_id"), "fade")`
 - **Priority transitions**: `scene_manager.transition_to_scene(StringName("game_over"), "fade", M_SceneManager.Priority.CRITICAL)`
@@ -340,7 +344,7 @@ Production asset files use type-specific prefixes:
 ### Camera Blending
 
 - **Automatic blending**: Gameplay → Gameplay transitions blend camera position, rotation, FOV
-- **Requirements**: Both scenes must have camera in "main_camera" group
+- **Requirements**: Both scenes must have a Camera3D discoverable by `M_CameraManager` (or registered via `register_main_camera()`)
 - **Transition type**: Only works with `"fade"` transitions (not instant/loading)
 - **Scene-specific setup**: Configure camera per-scene (e.g., exterior: FOV 80°, interior: FOV 65°)
 - **Implementation**: Uses transition camera + Tween (0.2s, TRANS_CUBIC, EASE_IN_OUT)
@@ -503,7 +507,7 @@ M_SaveManager orchestrates save/load operations with atomic writes, migrations, 
 ```gdscript
 const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
 
-# Get manager (discoverable via ServiceLocator or group)
+# Get manager (discoverable via ServiceLocator)
 var save_manager := U_ServiceLocator.get_service(StringName("save_manager")) as M_SaveManager
 
 # Manual save to slot
@@ -928,22 +932,25 @@ Post-processing effects render via `ui_post_process_overlay.tscn`:
 
 ### UI Scaling
 
-Group-based scaling for consistent UI size adjustment:
+UIScaleRoot registration for consistent UI size adjustment:
 
 ```gdscript
-# M_DisplayManager queries "ui_scalable" group
+# UIScaleRoot helper registers parent UI roots
+func _ready() -> void:
+    U_DisplayUtils.register_ui_scale_root(get_parent())
+
+# M_DisplayManager applies scale to registered roots
 func set_ui_scale(scale: float) -> void:
     scale = clampf(scale, 0.5, 2.0)
-    for node in get_tree().get_nodes_in_group(&"ui_scalable"):
-        if _is_group_root(node):  # Prevent nested scaling
-            if node is CanvasLayer:
-                node.transform = Transform2D().scaled(Vector2(scale, scale))
-            elif node is Control:
-                node.scale = Vector2(scale, scale)
+    for node in _ui_scale_roots:
+        if node is CanvasLayer:
+            node.transform = Transform2D().scaled(Vector2(scale, scale))
+        elif node is Control:
+            node.scale = Vector2(scale, scale)
 ```
 
-**Group membership rules:**
-- ✅ Add "ui_scalable" to menu/overlay/HUD root CanvasLayers
+**Registration rules:**
+- ✅ Add UIScaleRoot helper node to menu/overlay/HUD root nodes
 - ❌ Do NOT add to post-process overlay (layer 100, not UI)
 - ❌ Do NOT add to nested widgets (inherit scaling from parents)
 
@@ -1005,8 +1012,8 @@ func _apply_window_mode(mode: String) -> void:
 
 - ❌ Mutating DisplayServer from non-main thread (use `call_deferred()`)
 - ❌ Applying settings without hash check (causes redundant DisplayServer calls)
-- ❌ Adding post-process overlay to "ui_scalable" group (it's not UI)
-- ❌ Adding nested widgets to "ui_scalable" group (causes compounding scale)
+- ❌ Adding UIScaleRoot to the post-process overlay (it's not UI)
+- ❌ Adding UIScaleRoot to nested widgets (causes compounding scale)
 - ❌ Using instant/sync applies during preview mode (blocks preview hash)
 - ❌ Relying on display settings auto-save (unlike audio, display uses M_SaveManager)
 
@@ -1026,15 +1033,14 @@ func _apply_window_mode(mode: String) -> void:
 - Add a new ECS System
   - Create `scripts/ecs/systems/s_your_system.gd` extending `BaseECSSystem`; implement `process_tick(delta)`; query with your component's `StringName`; drop the node under a running scene—auto-configured.
 - Find M_StateStore from any node
-  - Use `U_StateUtils.get_store(self)` to find the store (internally uses U_ServiceLocator with fallback to group lookup).
+  - Use `U_StateUtils.get_store(self)` to find the store (internally uses U_ServiceLocator or injected store).
   - In `_ready()`: add `await get_tree().process_frame` BEFORE calling `get_store()` to avoid race conditions.
   - In `process_tick()`: no await needed (store already registered).
 - Access managers via ServiceLocator (Phase 10B-7: T141)
   - Use `U_ServiceLocator.get_service(StringName("service_name"))` for fast, centralized manager access.
   - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`, `"display_manager"`.
-  - ServiceLocator provides O(1) Dictionary lookup vs O(n) tree traversal of group lookups.
+  - ServiceLocator provides O(1) Dictionary lookup vs O(n) scene-tree traversal.
   - All services are registered at startup in `root.tscn` via `root.gd`.
-  - Fallback to group lookup is available for backward compatibility and test environments.
 - Create a new gameplay scene
   - Duplicate `scenes/gameplay/gameplay_base.tscn` as starting point.
   - Keep M_ECSManager + Systems + Entities + Environment structure.

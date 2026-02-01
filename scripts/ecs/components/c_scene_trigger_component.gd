@@ -302,14 +302,10 @@ func _trigger_transition() -> void:
 	var spawn_action: Dictionary = U_GameplayActions.set_target_spawn_point(target_spawn_point)
 	store.dispatch(spawn_action)
 
-	# Resolve scene manager via ServiceLocator, then group fallback (backward compatibility)
+	# Resolve scene manager via ServiceLocator
 	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager"))
 	if scene_manager == null:
-		var tree := get_tree()
-		if tree != null:
-			scene_manager = tree.get_first_node_in_group("scene_manager")
-	if scene_manager == null:
-		push_error("C_SceneTriggerComponent: No M_SceneManager available (ServiceLocator or group)")
+		push_error("C_SceneTriggerComponent: No M_SceneManager available")
 		return
 
 	# Trigger scene transition

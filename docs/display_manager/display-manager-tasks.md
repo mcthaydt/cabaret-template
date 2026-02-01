@@ -188,6 +188,8 @@ Before starting Phase 0, verify:
   - Create `scripts/interfaces/i_display_manager.gd`
   - Define `set_display_settings_preview(settings: Dictionary) -> void`
   - Define `clear_display_settings_preview() -> void`
+  - Define `register_ui_scale_root(node: Node) -> void`
+  - Define `unregister_ui_scale_root(node: Node) -> void`
   - Define `get_active_palette() -> Resource`
   - All methods push_error for unimplemented
   - Notes: Completed 2026-02-01 (created `scripts/interfaces/i_display_manager.gd`, palette returns Resource to avoid headless class cache issues)
@@ -199,7 +201,6 @@ Before starting Phase 0, verify:
 - [x] **Task 1B.1 (Red)**: Write tests for M_DisplayManager lifecycle
   - Create `tests/unit/managers/test_display_manager.gd`
   - Test extends I_DisplayManager
-  - Test adds to "display_manager" group
   - Test registers with ServiceLocator
   - Test discovers state store dependency via `U_StateUtils.try_get_store()`
   - Test subscribes to `slice_updated` signal
@@ -209,6 +210,7 @@ Before starting Phase 0, verify:
   - Test preview mode sets `_display_settings_preview_active` flag
   - Test preview mode overrides state
   - Test `clear_display_settings_preview()` restores state and clears flag
+  - Test `register_ui_scale_root()` applies current scale
   - **Target: 11 tests**
   - Notes: Completed 2026-02-01 (added 11 tests in `tests/unit/managers/test_display_manager.gd`)
 
@@ -388,21 +390,22 @@ Before starting Phase 0, verify:
 
 - [x] **Task 4.1 (Red)**: Write tests for UI scale application
   - Test `set_ui_scale()` clamps to valid range
-  - Test `set_ui_scale()` applies to CanvasLayers in group
+  - Test `set_ui_scale()` applies to registered CanvasLayers
+  - Test `register_ui_scale_root()` applies current scale
   - **Target: 3 tests**
   - Notes: Completed 2026-02-01
 
 - [x] **Task 4.2 (Green)**: Implement UI scale application
   - Implement `set_ui_scale(scale)` in M_DisplayManager
-  - Query nodes in "ui_scalable" group
-  - Apply transform scale to CanvasLayers
-  - Notes: Completed 2026-02-01 (clamps scale + applies to CanvasLayer/Control group roots)
+  - Track registered UI scale roots (register/unregister)
+  - Apply transform scale to CanvasLayers/Controls
+  - Notes: Completed 2026-02-01 (clamps scale + applies to registered UI roots)
 
-- [x] **Task 4.3**: Add UI layers to scalable group
-  - Add "ui_scalable" group to menu CanvasLayers
-  - Add "ui_scalable" group to overlay CanvasLayers
-  - Add "ui_scalable" group to HUD CanvasLayers
-  - Notes: Completed 2026-02-01 (menus/overlays/HUD roots tagged)
+- [x] **Task 4.3**: Add UIScaleRoot helper nodes
+  - Add UIScaleRoot helper node to menu scenes
+  - Add UIScaleRoot helper node to overlay scenes
+  - Add UIScaleRoot helper node to HUD scenes
+  - Notes: Completed 2026-02-01 (menus/overlays/HUD roots register for scaling)
 
 ---
 
@@ -494,7 +497,7 @@ Before starting Phase 0, verify:
   - Add Display tab button to existing settings panel (SettingsPanel)
   - Add to ButtonGroup for tab radio behavior
   - Configure focus navigation between tabs
-  - Add to "ui_scalable" group for UI scaling support
+  - Add UIScaleRoot helper node for UI scaling support
 
 ---
 
@@ -693,8 +696,9 @@ Before starting Phase 0, verify:
 | `scripts/state/u_action_registry.gd` | Register all 19 U_DisplayActions action types |
 | `scenes/root.tscn` | Add M_DisplayManager node under Managers/, assign cfg_display_initial_state.tres |
 | `scripts/root.gd` | Register M_DisplayManager with ServiceLocator via `_register_if_exists()` |
-| `scenes/ui/menus/*.tscn` | Add "ui_scalable" group to CanvasLayers |
-| `scenes/ui/overlays/*.tscn` | Add "ui_scalable" group to CanvasLayers |
-| `scenes/ui/hud/*.tscn` | Add "ui_scalable" group to CanvasLayers |
+| `scripts/ui/helpers/u_ui_scale_root.gd` | Helper node to register UI roots for scaling |
+| `scenes/ui/menus/*.tscn` | Add UIScaleRoot helper node |
+| `scenes/ui/overlays/*.tscn` | Add UIScaleRoot helper node |
+| `scenes/ui/hud/*.tscn` | Add UIScaleRoot helper node |
 | `AGENTS.md` | Add Display Manager Patterns section (after Audio Manager) |
 | `docs/general/DEV_PITFALLS.md` | Add Display-specific pitfalls if discovered |

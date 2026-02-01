@@ -1,13 +1,16 @@
 [gd_scene format=3 uid="uid://bbq72nhhlq7bc"]
 
 [ext_resource type="Script" uid="uid://detd2l75ews08" path="res://scripts/ui/hud/ui_mobile_controls.gd" id="1"]
+[ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="MobileControls" type="CanvasLayer" unique_id=1745358577]
-groups=["ui_scalable"]
 process_mode = 3
 layer = 50
 visible = false
 script = ExtResource("1")
+
+[node name="UIScaleRoot" type="Node" parent="." unique_id=302795941]
+script = ExtResource("ui_scale_root")
 
 [node name="Controls" type="Control" parent="." unique_id=799195855]
 layout_mode = 3

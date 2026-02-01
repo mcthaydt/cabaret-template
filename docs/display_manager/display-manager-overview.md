@@ -201,15 +201,18 @@ Fixed 960x600 internal resolution (always). Window size presets scale the output
 - Applied to CanvasLayer root nodes via `Control.scale`
 - Default: 1.0
 - Persisted in display slice
+- UI root scenes register via `U_UIScaleRoot` helper node
 
 ### Application
 
 ```gdscript
+func register_ui_scale_root(root: Node) -> void:
+    _ui_scale_roots.append(root)
+    _apply_ui_scale_to_node(root, _current_ui_scale)
+
 func _apply_ui_scale(scale: float) -> void:
-    var ui_layers := get_tree().get_nodes_in_group("ui_scalable")
-    for layer in ui_layers:
-        if layer is CanvasLayer:
-            layer.scale = Vector2(scale, scale)
+    for root in _ui_scale_roots:
+        _apply_ui_scale_to_node(root, scale)
 ```
 
 ## Color Blind Accessibility
@@ -505,7 +508,6 @@ M_DisplayManager registers with ServiceLocator on `_ready()`:
 ```gdscript
 func _ready() -> void:
     process_mode = PROCESS_MODE_ALWAYS
-    add_to_group("display_manager")
     U_ServiceLocator.register(StringName("display_manager"), self)
     _discover_state_store()
 ```

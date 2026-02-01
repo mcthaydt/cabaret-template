@@ -85,10 +85,6 @@ func _ready() -> void:
 	# Connect to SceneManager's transition_visual_complete signal
 	# This tells us when fade-in animation completes and scene is fully visible
 	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager"))
-	if scene_manager == null:
-		var tree := get_tree()
-		if tree != null:
-			scene_manager = tree.get_first_node_in_group("scene_manager")
 	if scene_manager != null and scene_manager.has_signal("transition_visual_complete"):
 		scene_manager.transition_visual_complete.connect(_on_transition_visual_complete)
 

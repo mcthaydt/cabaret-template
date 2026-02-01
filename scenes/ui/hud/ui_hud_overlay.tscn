@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://db0jsbtv3khyu" path="res://scripts/ui/hud/ui_hud_controller.gd" id="1_hud"]
 [ext_resource type="PackedScene" uid="uid://bq8y7b2npl2g0" path="res://scenes/ui/hud/ui_button_prompt.tscn" id="2_button_prompt"]
+[ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hbg"]
 bg_color = Color(0.121569, 0.121569, 0.121569, 0.85)
@@ -23,8 +24,10 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [node name="HUD" type="CanvasLayer" unique_id=510794979]
-groups=["ui_scalable"]
 script = ExtResource("1_hud")
+
+[node name="UIScaleRoot" type="Node" parent="." unique_id=984066284]
+script = ExtResource("ui_scale_root")
 
 [node name="MarginContainer" type="MarginContainer" parent="." unique_id=2131435564]
 anchors_preset = 15

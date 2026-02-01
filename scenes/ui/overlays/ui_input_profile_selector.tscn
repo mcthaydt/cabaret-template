@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://cwfxmqu368b47"]
 
 [ext_resource type="Script" uid="uid://bhkuj2s600glu" path="res://scripts/ui/overlays/ui_input_profile_selector.gd" id="1"]
+[ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="InputProfileSelector" type="Control" unique_id=358970070]
-groups=["ui_scalable"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,6 +11,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+
+[node name="UIScaleRoot" type="Node" parent="." unique_id=1762069587]
+script = ExtResource("ui_scale_root")
 
 [node name="Background" type="ColorRect" parent="." unique_id=1998850101]
 layout_mode = 1

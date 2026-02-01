@@ -2,7 +2,6 @@ extends "res://scripts/scene_management/transitions/base_transition_effect.gd"
 class_name Trans_LoadingScreen
 
 const LOADING_SCREEN_SCENE := preload("res://scenes/ui/hud/ui_loading_screen.tscn")
-const HUD_GROUP := StringName("hud_layers")
 const U_TweenManager = preload("res://scripts/scene_management/u_tween_manager.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
@@ -71,7 +70,7 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 	_start_time = Time.get_ticks_msec() / 1000.0
 
 	_temporarily_hidden_hud_nodes.clear()
-	_hide_hud_layers(overlay.get_tree())
+	_hide_hud_layers()
 
 	# Find loading screen UI
 	_loading_screen = _find_loading_screen(overlay)
@@ -132,7 +131,7 @@ func _execute_with_real_progress(overlay: CanvasLayer, callback: Callable, origi
 		await mid_transition_callback.call()
 		# Guard against overlay being freed during scene swap
 		if is_instance_valid(overlay) and overlay.get_tree():
-			_hide_hud_layers(overlay.get_tree())
+			_hide_hud_layers()
 		mid_transition_fired = true
 
 	while true:
@@ -199,7 +198,7 @@ func _execute_with_fake_progress(overlay: CanvasLayer, callback: Callable, origi
 	_tween.tween_callback(func() -> void:
 		if mid_transition_callback.is_valid():
 			await mid_transition_callback.call()
-		_hide_hud_layers(overlay.get_tree())
+		_hide_hud_layers()
 	)
 
 	# Phase 3: Animate 50→100% (slower actual load phase)
@@ -284,11 +283,8 @@ func update_progress(progress: float) -> void:
 		_progress_bar.value = clamp(progress, 0.0, 100.0)
 
 ## Hide HUD CanvasLayers while the loading screen is active
-func _hide_hud_layers(tree: SceneTree) -> void:
-	if tree == null:
-		return
-
-	var hud := _resolve_hud_controller(tree)
+func _hide_hud_layers() -> void:
+	var hud := _resolve_hud_controller()
 	if hud == null:
 		return
 
@@ -316,17 +312,12 @@ func _get_random_tip() -> String:
 	var index: int = randi() % loading_tips.size()
 	return loading_tips[index]
 
-func _resolve_hud_controller(tree: SceneTree) -> CanvasLayer:
+func _resolve_hud_controller() -> CanvasLayer:
 	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SceneManager
 	if scene_manager != null:
 		var hud := scene_manager.get_hud_controller() as CanvasLayer
 		if hud != null and is_instance_valid(hud):
 			return hud
-
-	if tree != null:
-		var fallback := tree.get_first_node_in_group(HUD_GROUP) as CanvasLayer
-		if fallback != null and is_instance_valid(fallback):
-			return fallback
 	return null
 
 func _toggle_visibility(node: Node, is_visible: bool) -> void:

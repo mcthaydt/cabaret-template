@@ -15,7 +15,6 @@ const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_pr
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
-const UI_SCALABLE_GROUP := StringName("ui_scalable")
 
 const WINDOW_PRESETS := {
 	"1280x720": Vector2i(1280, 720),
@@ -42,6 +41,7 @@ var _display_settings_preview_active: bool = false
 var _preview_settings: Dictionary = {}
 var _quality_preset_cache: Dictionary = {}
 var _current_ui_scale: float = 1.0
+var _ui_scale_roots: Array[Node] = []
 
 # Post-process overlay (Phase 3C)
 var _post_process_layer: U_PostProcessLayer = null
@@ -54,23 +54,16 @@ var _apply_count: int = 0
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	add_to_group(SERVICE_NAME)
 	U_SERVICE_LOCATOR.register(SERVICE_NAME, self)
-
-	var tree := get_tree()
-	if tree != null and not tree.node_added.is_connected(_on_tree_node_added):
-		tree.node_added.connect(_on_tree_node_added)
 
 	await _initialize_store_async()
 
 func _exit_tree() -> void:
-	var tree := get_tree()
-	if tree != null and tree.node_added.is_connected(_on_tree_node_added):
-		tree.node_added.disconnect(_on_tree_node_added)
 	if _state_store != null and _state_store.has_signal("slice_updated"):
 		if _state_store.slice_updated.is_connected(_on_slice_updated):
 			_state_store.slice_updated.disconnect(_on_slice_updated)
 	_state_store = null
+	_ui_scale_roots.clear()
 
 func _initialize_store_async() -> void:
 	var store := await _await_store_ready_soft()
@@ -285,14 +278,15 @@ func _apply_lut_settings(state: Dictionary) -> void:
 func set_ui_scale(scale: float) -> void:
 	var clamped_scale := clampf(scale, MIN_UI_SCALE, MAX_UI_SCALE)
 	_current_ui_scale = clamped_scale
-	var tree := get_tree()
-	if tree == null:
+	if _ui_scale_roots.is_empty():
 		return
-	var ui_nodes := tree.get_nodes_in_group(UI_SCALABLE_GROUP)
-	for node in ui_nodes:
-		if not _is_group_root(node, UI_SCALABLE_GROUP):
+	var valid_roots: Array[Node] = []
+	for node in _ui_scale_roots:
+		if node == null or not is_instance_valid(node):
 			continue
+		valid_roots.append(node)
 		_apply_ui_scale_to_node(node, clamped_scale)
+	_ui_scale_roots = valid_roots
 
 func apply_window_size_preset(preset: String) -> void:
 	if not WINDOW_PRESETS.has(preset):
@@ -500,13 +494,6 @@ func _is_hex_string(value: String) -> bool:
 			return false
 	return true
 
-func _on_tree_node_added(node: Node) -> void:
-	if node == null or not node.is_in_group(UI_SCALABLE_GROUP):
-		return
-	if not _is_group_root(node, UI_SCALABLE_GROUP):
-		return
-	_apply_ui_scale_to_node(node, _current_ui_scale)
-
 func _apply_ui_scale_to_node(node: Node, scale: float) -> void:
 	if node is CanvasLayer:
 		var layer := node as CanvasLayer
@@ -520,12 +507,15 @@ func _apply_ui_scale_to_node(node: Node, scale: float) -> void:
 		var node_2d := node as Node2D
 		node_2d.scale = Vector2(scale, scale)
 
-func _is_group_root(node: Node, group_name: StringName) -> bool:
+func register_ui_scale_root(node: Node) -> void:
 	if node == null:
-		return false
-	var parent := node.get_parent()
-	while parent != null:
-		if parent.is_in_group(group_name):
-			return false
-		parent = parent.get_parent()
-	return true
+		return
+	if _ui_scale_roots.has(node):
+		return
+	_ui_scale_roots.append(node)
+	_apply_ui_scale_to_node(node, _current_ui_scale)
+
+func unregister_ui_scale_root(node: Node) -> void:
+	if node == null:
+		return
+	_ui_scale_roots.erase(node)

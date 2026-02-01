@@ -437,7 +437,6 @@ var _preview_settings: Dictionary = {}
 
 func _ready() -> void:
     process_mode = PROCESS_MODE_ALWAYS
-    add_to_group("display_manager")
     U_SERVICE_LOCATOR.register(StringName("display_manager"), self)
     _initialize_store_async()
 
@@ -501,7 +500,6 @@ static func get_display_manager() -> M_DisplayManager:
 **Tests**:
 - test_manager_extends_i_display_manager
 - test_manager_registers_with_service_locator
-- test_manager_adds_to_group
 - test_manager_discovers_state_store
 - test_manager_subscribes_to_slice_updates
 - test_settings_applied_on_ready
@@ -510,6 +508,7 @@ static func get_display_manager() -> M_DisplayManager:
 - test_preview_mode_sets_active_flag
 - test_preview_mode_overrides_state
 - test_clear_preview_restores_state
+- test_register_ui_scale_root_applies_current_scale
 
 ---
 
@@ -775,18 +774,16 @@ void fragment() {
 ```gdscript
 func set_ui_scale(scale: float) -> void:
     scale = clampf(scale, 0.5, 2.0)
-    var ui_layers := get_tree().get_nodes_in_group("ui_scalable")
-    for layer in ui_layers:
-        if layer is CanvasLayer:
-            # Scale transform
-            layer.transform = Transform2D().scaled(Vector2(scale, scale))
+    for root in _ui_scale_roots:
+        if root is CanvasLayer:
+            root.transform = Transform2D().scaled(Vector2(scale, scale))
 
 func _apply_ui_scale(state: Dictionary) -> void:
     var scale := U_DisplaySelectors.get_ui_scale(state)
     set_ui_scale(scale)
 ```
 
-**Files to modify** (add to "ui_scalable" group):
+**Files to modify** (add UIScaleRoot helper node):
 - `scenes/ui/menus/*.tscn`
 - `scenes/ui/overlays/*.tscn`
 - `scenes/ui/hud/*.tscn`

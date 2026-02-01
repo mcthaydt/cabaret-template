@@ -1,0 +1,37 @@
+@icon("res://assets/editor_icons/icn_utility.svg")
+extends Node
+class_name U_UIScaleRoot
+
+## Registers a UI root node with the display manager for scaling.
+
+const U_DISPLAY_UTILS := preload("res://scripts/utils/display/u_display_utils.gd")
+
+var _registered: bool = false
+
+func _ready() -> void:
+	_register()
+
+func _exit_tree() -> void:
+	_unregister()
+
+func _register() -> void:
+	if _registered:
+		return
+	var target := get_parent()
+	if target == null:
+		return
+	var manager := U_DISPLAY_UTILS.get_display_manager()
+	if manager == null:
+		return
+	manager.register_ui_scale_root(target)
+	_registered = true
+
+func _unregister() -> void:
+	if not _registered:
+		return
+	var target := get_parent()
+	if target != null:
+		var manager := U_DISPLAY_UTILS.get_display_manager()
+		if manager != null:
+			manager.unregister_ui_scale_root(target)
+	_registered = false

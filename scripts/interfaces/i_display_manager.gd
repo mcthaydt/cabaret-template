@@ -24,6 +24,18 @@ func set_display_settings_preview(_settings: Dictionary) -> void:
 func clear_display_settings_preview() -> void:
 	push_error("I_DisplayManager.clear_display_settings_preview not implemented")
 
+## Register a UI scale root for display scaling.
+##
+## @param _node: CanvasLayer/Control/Node2D root to scale
+func register_ui_scale_root(_node: Node) -> void:
+	push_error("I_DisplayManager.register_ui_scale_root not implemented")
+
+## Unregister a UI scale root.
+##
+## @param _node: CanvasLayer/Control/Node2D root to stop scaling
+func unregister_ui_scale_root(_node: Node) -> void:
+	push_error("I_DisplayManager.unregister_ui_scale_root not implemented")
+
 ## Get the currently active UI color palette
 ##
 ## Returns the palette resource used for accessibility color adjustments.

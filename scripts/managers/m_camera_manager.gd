@@ -143,7 +143,7 @@ func initialize_scene_camera(scene: Node) -> Camera3D:
 ## Find camera within specific scene subtree
 ##
 ## Recursively searches scene's children for a Camera3D node.
-## Unlike get_tree().get_nodes_in_group(), this searches only within the scene subtree.
+## Unlike a global scene-tree search, this searches only within the scene subtree.
 ##
 ## Parameters:
 ##   scene: Root node of scene to search within

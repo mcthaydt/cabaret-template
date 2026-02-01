@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="RS_LUTDefinition" format=3]
+[gd_resource type="Resource" script_class="RS_LUTDefinition" format=3 uid="uid://yp7bttafefka"]
 
-[ext_resource type="Script" path="res://scripts/resources/display/rs_lut_definition.gd" id="1_lut_definition"]
-[ext_resource type="Texture2D" path="res://resources/luts/tex_lut_warm.png" id="2_lut_texture"]
+[ext_resource type="Script" uid="uid://10vx4c2e2evl" path="res://scripts/resources/display/rs_lut_definition.gd" id="1_lut_definition"]
+[ext_resource type="Texture2D" uid="uid://c00k4vu034ivh" path="res://resources/luts/tex_lut_warm.png" id="2_lut_texture"]
 
 [resource]
 script = ExtResource("1_lut_definition")

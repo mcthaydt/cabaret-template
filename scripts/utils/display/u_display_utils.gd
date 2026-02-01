@@ -16,3 +16,13 @@ static func get_display_manager() -> I_DISPLAY_MANAGER:
 	if manager != null and manager is I_DISPLAY_MANAGER:
 		return manager as I_DISPLAY_MANAGER
 	return null
+
+static func register_ui_scale_root(node: Node) -> void:
+	var manager := get_display_manager()
+	if manager != null:
+		manager.register_ui_scale_root(node)
+
+static func unregister_ui_scale_root(node: Node) -> void:
+	var manager := get_display_manager()
+	if manager != null:
+		manager.unregister_ui_scale_root(node)

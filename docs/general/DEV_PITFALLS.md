@@ -304,7 +304,9 @@
 - **Standard chain (preferred)**:
   1. `@export` injection (tests)
   2. `U_ServiceLocator.try_get_service(StringName("..."))` (production)
-  3. Group lookup / tree traversal only as a compatibility fallback
+  3. **DO NOT use groups** - The codebase does not use Godot's groups feature for manager discovery
+
+- **Why no groups**: Groups add hidden coupling that's hard to track in code. ServiceLocator provides explicit, type-safe manager registration with O(1) lookup. Use `U_ServiceLocator` for all manager discovery instead of `get_tree().get_first_node_in_group()`
 
 - **State store**:
   - Required callers: `U_StateUtils.get_store(node)` / `U_StateUtils.await_store_ready(node)`
@@ -1324,7 +1326,7 @@ control.pivot_offset = control.size / 2  # Center pivot
 control.scale = Vector2(scale, scale)
 ```
 
-**Why this matters**: At 2.0x scale, a Control anchored to top-left will expand rightward/downward, potentially pushing content off-screen. The group-based scaling in M_DisplayManager handles CanvasLayers and Control roots correctly, but custom UI scaling implementations must account for this.
+**Why this matters**: At 2.0x scale, a Control anchored to top-left will expand rightward/downward, potentially pushing content off-screen. The UIScaleRoot registration in M_DisplayManager handles CanvasLayers and Control roots correctly, but custom UI scaling implementations must account for this.
 
 ### Post-Process Layer Ordering
 
@@ -1335,7 +1337,7 @@ control.scale = Vector2(scale, scale)
 - Post-process effects render at layer 100 (above gameplay, below UI overlays)
 - UI overlays render at layer 128+ (settings, pause, etc.)
 
-**Do NOT add post-process overlay to "ui_scalable" group** - it's not UI and should not scale with UI settings.
+**Do NOT add UIScaleRoot to the post-process overlay** - it's not UI and should not scale with UI settings.
 
 ### Headless DisplayServer Limitations
 

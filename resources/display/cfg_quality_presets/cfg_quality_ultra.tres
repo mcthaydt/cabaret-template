@@ -1,10 +1,9 @@
-[gd_resource type="Resource" script_class="RS_QualityPreset" format=3]
+[gd_resource type="Resource" script_class="RS_QualityPreset" format=3 uid="uid://caw1yixtiencv"]
 
-[ext_resource type="Script" path="res://scripts/resources/display/rs_quality_preset.gd" id="1_quality_preset"]
+[ext_resource type="Script" uid="uid://c8set0jfhy4pg" path="res://scripts/resources/display/rs_quality_preset.gd" id="1_quality_preset"]
 
 [resource]
 script = ExtResource("1_quality_preset")
 preset_name = "ultra"
 shadow_quality = "high"
 anti_aliasing = "msaa_8x"
-post_processing_enabled = true

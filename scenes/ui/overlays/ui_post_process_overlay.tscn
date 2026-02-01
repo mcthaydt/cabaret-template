@@ -1,16 +1,17 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://d8f3hr42dgv4"]
 
-[ext_resource type="Shader" path="res://assets/shaders/sh_film_grain_shader.gdshader" id="1_film_grain"]
-[ext_resource type="Shader" path="res://assets/shaders/sh_outline_shader.gdshader" id="2_outline"]
-[ext_resource type="Shader" path="res://assets/shaders/sh_dither_shader.gdshader" id="3_dither"]
-[ext_resource type="Shader" path="res://assets/shaders/sh_lut_shader.gdshader" id="4_lut"]
-[ext_resource type="Texture2D" path="res://resources/textures/tex_bayer_8x8.png" id="5_bayer"]
-[ext_resource type="Texture2D" path="res://resources/luts/tex_lut_neutral.png" id="6_lut_neutral"]
+[ext_resource type="Shader" uid="uid://dnr1bhr1xtam3" path="res://assets/shaders/sh_film_grain_shader.gdshader" id="1_film_grain"]
+[ext_resource type="Shader" uid="uid://cl43m4u5dh1ka" path="res://assets/shaders/sh_outline_shader.gdshader" id="2_outline"]
+[ext_resource type="Shader" uid="uid://c7ja1gq2xahli" path="res://assets/shaders/sh_dither_shader.gdshader" id="3_dither"]
+[ext_resource type="Shader" uid="uid://goc30a8wml54" path="res://assets/shaders/sh_lut_shader.gdshader" id="4_lut"]
+[ext_resource type="Texture2D" uid="uid://ctscnh7xerpg7" path="res://resources/textures/tex_bayer_8x8.png" id="5_bayer"]
+[ext_resource type="Texture2D" uid="uid://ynchf4sgcby0" path="res://resources/luts/tex_lut_neutral.png" id="6_lut_neutral"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_film_grain"]
 shader = ExtResource("1_film_grain")
 shader_parameter/intensity = 0.1
 shader_parameter/grain_scale = 1.0
+shader_parameter/time = 0.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
 shader = ExtResource("2_outline")
@@ -30,10 +31,10 @@ shader = ExtResource("4_lut")
 shader_parameter/intensity = 1.0
 shader_parameter/lut_texture = ExtResource("6_lut_neutral")
 
-[node name="PostProcessOverlay" type="CanvasLayer"]
+[node name="PostProcessOverlay" type="CanvasLayer" unique_id=1028032310]
 layer = 100
 
-[node name="FilmGrainRect" type="ColorRect" parent="."]
+[node name="FilmGrainRect" type="ColorRect" parent="." unique_id=1864572536]
 visible = false
 material = SubResource("ShaderMaterial_film_grain")
 anchors_preset = 15
@@ -43,7 +44,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="OutlineRect" type="ColorRect" parent="."]
+[node name="OutlineRect" type="ColorRect" parent="." unique_id=2048037266]
 visible = false
 material = SubResource("ShaderMaterial_outline")
 anchors_preset = 15
@@ -53,7 +54,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="DitherRect" type="ColorRect" parent="."]
+[node name="DitherRect" type="ColorRect" parent="." unique_id=1352989090]
 visible = false
 material = SubResource("ShaderMaterial_dither")
 anchors_preset = 15
@@ -63,7 +64,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="LUTRect" type="ColorRect" parent="."]
+[node name="LUTRect" type="ColorRect" parent="." unique_id=497147974]
 visible = false
 material = SubResource("ShaderMaterial_lut")
 anchors_preset = 15

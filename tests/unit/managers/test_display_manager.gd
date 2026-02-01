@@ -26,13 +26,6 @@ func test_manager_extends_interface() -> void:
 
 	assert_true(_manager is I_DISPLAY_MANAGER, "M_DisplayManager should extend I_DisplayManager")
 
-func test_manager_added_to_group() -> void:
-	_manager = M_DISPLAY_MANAGER.new()
-	add_child_autofree(_manager)
-	await get_tree().process_frame
-
-	assert_true(_manager.is_in_group("display_manager"), "M_DisplayManager should add itself to display_manager group")
-
 func test_manager_registers_with_service_locator() -> void:
 	_manager = M_DISPLAY_MANAGER.new()
 	add_child_autofree(_manager)
@@ -108,8 +101,8 @@ func test_set_ui_scale_clamps_to_min() -> void:
 	add_child_autofree(manager)
 
 	var layer := CanvasLayer.new()
-	layer.add_to_group("ui_scalable")
 	add_child_autofree(layer)
+	manager.register_ui_scale_root(layer)
 
 	manager.set_ui_scale(0.1)
 
@@ -121,26 +114,39 @@ func test_set_ui_scale_clamps_to_max() -> void:
 	add_child_autofree(manager)
 
 	var layer := CanvasLayer.new()
-	layer.add_to_group("ui_scalable")
 	add_child_autofree(layer)
+	manager.register_ui_scale_root(layer)
 
 	manager.set_ui_scale(5.0)
 
 	var scale := _get_canvas_layer_scale(layer)
 	assert_vector_almost_eq(scale, Vector2.ONE * 2.0, 0.001, "UI scale should clamp to maximum")
 
-func test_set_ui_scale_applies_to_canvas_layers_in_group() -> void:
+func test_set_ui_scale_applies_to_registered_canvas_layers() -> void:
 	var manager := M_DISPLAY_MANAGER.new()
 	add_child_autofree(manager)
 
 	var layer := CanvasLayer.new()
-	layer.add_to_group("ui_scalable")
 	add_child_autofree(layer)
+	manager.register_ui_scale_root(layer)
 
 	manager.set_ui_scale(1.5)
 
 	var scale := _get_canvas_layer_scale(layer)
-	assert_vector_almost_eq(scale, Vector2.ONE * 1.5, 0.001, "UI scale should apply to CanvasLayers in group")
+	assert_vector_almost_eq(scale, Vector2.ONE * 1.5, 0.001, "UI scale should apply to registered CanvasLayers")
+
+func test_register_ui_scale_root_applies_current_scale() -> void:
+	var manager := M_DISPLAY_MANAGER.new()
+	add_child_autofree(manager)
+
+	manager.set_ui_scale(1.5)
+
+	var layer := CanvasLayer.new()
+	add_child_autofree(layer)
+	manager.register_ui_scale_root(layer)
+
+	var scale := _get_canvas_layer_scale(layer)
+	assert_vector_almost_eq(scale, Vector2.ONE * 1.5, 0.001, "Registering should apply the current UI scale")
 
 func test_apply_window_size_preset_sets_window_size() -> void:
 	if _skip_window_tests():
