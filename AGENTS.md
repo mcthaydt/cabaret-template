@@ -2,7 +2,7 @@
 
 ## Start Here
 
-- Project type: Godot 4.5 (GDScript). Core area:
+- Project type: Godot 4.6 (GDScript). Core area:
   - `scripts/ecs`: Lightweight ECS built on Nodes (components + systems + manager).
 - Scenes and resources:
   - `scenes/templates/`: Base scene, character, and camera templates that wire components/systems together.
