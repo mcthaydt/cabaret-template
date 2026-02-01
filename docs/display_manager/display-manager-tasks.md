@@ -591,7 +591,7 @@ Before starting Phase 0, verify:
 
 - **Plan**: `docs/display_manager/display-manager-plan.md`
 - **Overview**: `docs/display_manager/display-manager-overview.md`
-- **Continuation prompt**: `docs/display_manager/display-manager-continuation-prompt.md` (to be created when starting implementation)
+- **Continuation prompt**: `docs/display_manager/display-manager-continuation-prompt.md`
 
 ---
 
