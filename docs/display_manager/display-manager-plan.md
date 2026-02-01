@@ -264,7 +264,7 @@ static func _with_values(state: Dictionary, values: Dictionary) -> Dictionary:
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 
 # Line ~65, add export:
-@export var display_initial_state: RS_DisplayInitialState
+@export var display_initial_state: Resource
 
 # Lines 217-229, add as 12th param to initialize_slices() call:
 U_STATE_SLICE_MANAGER.initialize_slices(
@@ -301,7 +301,7 @@ static func initialize_slices(
     debug_initial_state: RS_DebugInitialState,
     vfx_initial_state: RS_VFXInitialState,
     audio_initial_state: RS_AudioInitialState,
-    display_initial_state: RS_DisplayInitialState  # ADD THIS
+    display_initial_state: Resource  # ADD THIS (Resource to avoid headless class cache issues)
 ) -> void:
 
 # After line 120 (after audio slice block), add:

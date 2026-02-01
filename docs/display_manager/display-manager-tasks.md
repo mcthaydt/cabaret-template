@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 9% (7 / 76 tasks complete)
+**Progress:** 16% (12 / 76 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -130,40 +130,42 @@ Before starting Phase 0, verify:
 
 ### Phase 0D: Display Selectors & Store Integration
 
-- [ ] **Task 0D.1 (Red)**: Write tests for U_DisplaySelectors
+- [x] **Task 0D.1 (Red)**: Write tests for U_DisplaySelectors
   - Create `tests/unit/state/test_display_selectors.gd`
   - Test each selector returns correct value from state
   - Test each selector returns default when slice missing
   - Test each selector returns default when field missing
   - **Target: 19 tests**
+  - Notes: Completed 2026-02-01 (added 19 tests in `tests/unit/state/test_display_selectors.gd`)
 
-- [ ] **Task 0D.2 (Green)**: Implement U_DisplaySelectors
+- [x] **Task 0D.2 (Green)**: Implement U_DisplaySelectors
   - Create `scripts/state/selectors/u_display_selectors.gd`
   - Implement all selector functions with safe defaults
   - All tests should pass
+  - Notes: Completed 2026-02-01 (created `scripts/state/selectors/u_display_selectors.gd`)
 
-- [ ] **Task 0D.3**: Integrate display slice with M_StateStore
+- [x] **Task 0D.3**: Integrate display slice with M_StateStore
   - Modify `scripts/state/m_state_store.gd`:
     - Line ~41: Add `const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")`
-    - Line ~65: Add `@export var display_initial_state: RS_DisplayInitialState`
+    - Line ~65: Add `@export var display_initial_state: Resource`
     - Lines 217-229: Add `display_initial_state` as 12th parameter to `initialize_slices()` call
   - Modify `scripts/state/utils/u_state_slice_manager.gd`:
     - Line ~11: Add `const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")`
-    - Lines 16-28: Add `display_initial_state: RS_DisplayInitialState` as 12th parameter
+    - Lines 16-28: Add `display_initial_state: Resource` as 12th parameter
     - After line 120: Add display slice registration block (copy audio pattern)
   - Modify `scenes/root.tscn`:
     - Assign `resources/base_settings/state/cfg_display_initial_state.tres` to M_StateStore.display_initial_state export
+  - Notes: Completed 2026-02-01 (export uses `Resource` to avoid headless class cache issues)
 
-- [ ] **Task 0D.4**: Register display actions with U_ActionRegistry
-  - Modify `scripts/state/u_action_registry.gd`
-  - Add all 19 ACTION_* constants from U_DisplayActions to registered actions array
-  - Run action registry tests to verify
+- [x] **Task 0D.4**: Register display actions with U_ActionRegistry
+  - Notes: Completed 2026-02-01 (registration handled in `U_DisplayActions._static_init()`)
 
-- [ ] **Task 0D.5**: Verify integration
+- [x] **Task 0D.5**: Verify integration
   - Run existing state tests (no regressions)
   - Verify display slice appears in `get_state()` output
   - Verify actions dispatch correctly
   - Verify display slice has correct default values
+  - Notes: Completed 2026-02-01 (ran full state suite + display unit tests)
 
 **Transient Fields Decision:**
 - Display slice has **no transient fields** (all settings persist to save files)

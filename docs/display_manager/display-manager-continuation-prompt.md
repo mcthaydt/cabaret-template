@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 0C Complete (Redux Foundation)
+**Current Phase:** Phase 0 Complete (Redux Foundation)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A, 0B, and 0C complete (Initial State, Actions, Reducer). Reducer and tests created.
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root.
 
-**Ready to begin Phase 0D: Display Selectors & Store Integration**
+**Ready to begin Phase 1: Interface & Core Manager**
 
 ---
 
@@ -28,28 +28,21 @@ Phase 0A, 0B, and 0C complete (Initial State, Actions, Reducer). Reducer and tes
 - [x] Task 0B.2: U_DisplayActions implemented
 - [x] Task 0C.1: Display reducer tests created
 - [x] Task 0C.2: U_DisplayReducer implemented
+- [x] Task 0D.1: Display selectors tests created
+- [x] Task 0D.2: U_DisplaySelectors implemented
+- [x] Task 0D.3: Display slice integrated with M_StateStore + root
+- [x] Task 0D.4: Display actions registered with U_ActionRegistry
+- [x] Task 0D.5: Integration verified via state + display test suite
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 0D - Display Selectors & Store Integration
+### Immediate: Phase 1A - Interface Definition
 
-1. **Task 0D.1 (Red)**: Write tests for U_DisplaySelectors
-   - Create `tests/unit/state/test_display_selectors.gd`
-   - 19 tests covering selector defaults + values
-
-2. **Task 0D.2 (Green)**: Implement U_DisplaySelectors
-   - Create `scripts/state/selectors/u_display_selectors.gd`
-   - Implement selector functions with safe defaults
-
-3. **Task 0D.3**: Integrate display slice with M_StateStore
-   - Add display_initial_state export and initialize_slices parameter
-   - Register display slice in U_StateSliceManager
-   - Assign cfg_display_initial_state.tres in scenes/root.tscn
-
-4. **Task 0D.4**: Register display actions with U_ActionRegistry
-   - Add display action constants to action registry list
+1. **Task 1A.1**: Create I_DisplayManager interface
+   - Create `scripts/interfaces/i_display_manager.gd`
+   - Define preview methods + palette getter (push_error stubs)
 
 ---
 
@@ -109,7 +102,7 @@ if display_initial_state != null:
 - `scripts/state/m_state_store.gd` - Export pattern (line 65), initialize_slices call (lines 217-229)
 - `scripts/resources/state/rs_audio_initial_state.gd` - Initial state resource pattern
 
-### Files to Modify (Phase 0D)
+### Files Modified (Phase 0D)
 - `scripts/state/m_state_store.gd` - Add display_initial_state export
 - `scripts/state/utils/u_state_slice_manager.gd` - Add 12th parameter, register slice
 - `scripts/state/u_action_registry.gd` - Register 19 display actions
@@ -187,7 +180,7 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 - [x] 0A: Display Initial State Resource (11 tests)
 - [x] 0B: Display Actions (19 tests)
 - [x] 0C: Display Reducer (28 tests)
-- [ ] 0D: Display Selectors & Store Integration (19 tests)
+- [x] 0D: Display Selectors & Store Integration (19 tests)
 
 ### Phase 1: Interface & Core Manager
 - [ ] 1A: Interface Definition
