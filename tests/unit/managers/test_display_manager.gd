@@ -103,6 +103,115 @@ func test_clear_preview_restores_state_and_clears_flag() -> void:
 	var applied: Dictionary = _manager.get("_last_applied_settings")
 	assert_eq(applied.get("ui_scale"), 1.0, "Clear preview should restore ui_scale from state")
 
+func test_apply_window_size_preset_sets_window_size() -> void:
+	if _skip_window_tests():
+		return
+
+	var manager := M_DISPLAY_MANAGER.new()
+	var snapshot := _capture_window_state()
+
+	manager.apply_window_size_preset("1280x720")
+	await get_tree().process_frame
+
+	assert_eq(DisplayServer.window_get_size(), Vector2i(1280, 720), "Window size preset should set window size")
+
+	_restore_window_state(snapshot)
+	manager.free()
+
+func test_apply_window_size_preset_invalid_is_noop() -> void:
+	if _skip_window_tests():
+		return
+
+	var manager := M_DISPLAY_MANAGER.new()
+	var snapshot := _capture_window_state()
+
+	manager.apply_window_size_preset("not_a_real_preset")
+	await get_tree().process_frame
+
+	assert_eq(DisplayServer.window_get_size(), snapshot.get("size"), "Invalid preset should not change window size")
+
+	_restore_window_state(snapshot)
+	manager.free()
+
+func test_set_window_mode_fullscreen_calls_display_server() -> void:
+	if _skip_window_tests():
+		return
+
+	var manager := M_DISPLAY_MANAGER.new()
+	var snapshot := _capture_window_state()
+
+	manager.set_window_mode("fullscreen")
+	await get_tree().process_frame
+
+	assert_eq(DisplayServer.window_get_mode(), DisplayServer.WINDOW_MODE_FULLSCREEN, "Fullscreen mode should update DisplayServer")
+
+	_restore_window_state(snapshot)
+	manager.free()
+
+func test_set_window_mode_windowed_calls_display_server() -> void:
+	if _skip_window_tests():
+		return
+
+	var manager := M_DISPLAY_MANAGER.new()
+	var snapshot := _capture_window_state()
+
+	manager.set_window_mode("windowed")
+	await get_tree().process_frame
+
+	assert_eq(DisplayServer.window_get_mode(), DisplayServer.WINDOW_MODE_WINDOWED, "Windowed mode should update DisplayServer")
+	assert_false(
+		DisplayServer.window_get_flag(DisplayServer.WINDOW_FLAG_BORDERLESS),
+		"Windowed mode should clear borderless flag"
+	)
+
+	_restore_window_state(snapshot)
+	manager.free()
+
+func test_set_window_mode_borderless_calls_display_server() -> void:
+	if _skip_window_tests():
+		return
+
+	var manager := M_DISPLAY_MANAGER.new()
+	var snapshot := _capture_window_state()
+
+	manager.set_window_mode("borderless")
+	await get_tree().process_frame
+
+	assert_eq(DisplayServer.window_get_mode(), DisplayServer.WINDOW_MODE_FULLSCREEN, "Borderless mode should use fullscreen window mode")
+	assert_true(
+		DisplayServer.window_get_flag(DisplayServer.WINDOW_FLAG_BORDERLESS),
+		"Borderless mode should enable borderless flag"
+	)
+
+	_restore_window_state(snapshot)
+	manager.free()
+
+func test_set_vsync_enabled_calls_display_server() -> void:
+	if _skip_window_tests():
+		return
+
+	var manager := M_DISPLAY_MANAGER.new()
+	var snapshot := _capture_window_state()
+
+	manager.set_vsync_enabled(true)
+	await get_tree().process_frame
+	assert_eq(
+		DisplayServer.window_get_vsync_mode(),
+		DisplayServer.VSYNC_ENABLED,
+		"VSync enabled should update DisplayServer"
+	)
+
+	manager.set_vsync_enabled(false)
+	await get_tree().process_frame
+	assert_eq(
+		DisplayServer.window_get_vsync_mode(),
+		DisplayServer.VSYNC_DISABLED,
+		"VSync disabled should update DisplayServer"
+	)
+
+	_restore_window_state(snapshot)
+	manager.free()
+
 func _setup_manager_with_store(display_state: Dictionary) -> void:
 	_store = MOCK_STATE_STORE.new()
 	_store.set_slice(StringName("display"), display_state)
@@ -112,3 +221,29 @@ func _setup_manager_with_store(display_state: Dictionary) -> void:
 	_manager = M_DISPLAY_MANAGER.new()
 	add_child_autofree(_manager)
 	await get_tree().process_frame
+
+func _skip_window_tests() -> bool:
+	var display_name := DisplayServer.get_name().to_lower()
+	if OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy":
+		pending("Skipped: DisplayServer window operations unavailable in headless mode")
+		return true
+	return false
+
+func _capture_window_state() -> Dictionary:
+	return {
+		"size": DisplayServer.window_get_size(),
+		"mode": DisplayServer.window_get_mode(),
+		"borderless": DisplayServer.window_get_flag(DisplayServer.WINDOW_FLAG_BORDERLESS),
+		"vsync": DisplayServer.window_get_vsync_mode(),
+	}
+
+func _restore_window_state(snapshot: Dictionary) -> void:
+	if snapshot.is_empty():
+		return
+	DisplayServer.window_set_size(snapshot.get("size", DisplayServer.window_get_size()))
+	DisplayServer.window_set_mode(snapshot.get("mode", DisplayServer.window_get_mode()))
+	DisplayServer.window_set_flag(
+		DisplayServer.WINDOW_FLAG_BORDERLESS,
+		bool(snapshot.get("borderless", false))
+	)
+	DisplayServer.window_set_vsync_mode(snapshot.get("vsync", DisplayServer.window_get_vsync_mode()))

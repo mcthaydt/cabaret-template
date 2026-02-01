@@ -7,9 +7,18 @@ class_name M_DisplayManager
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
+
+const WINDOW_PRESETS := {
+	"1280x720": Vector2i(1280, 720),
+	"1600x900": Vector2i(1600, 900),
+	"1920x1080": Vector2i(1920, 1080),
+	"2560x1440": Vector2i(2560, 1440),
+	"3840x2160": Vector2i(3840, 2160),
+}
 
 ## Injected dependency (tests)
 @export var state_store: I_StateStore = null
@@ -107,8 +116,10 @@ func get_active_palette() -> Resource:
 	return null
 
 func _apply_display_settings(state: Dictionary) -> void:
-	_last_applied_settings = _build_effective_settings(state)
+	var effective_settings := _build_effective_settings(state)
+	_last_applied_settings = effective_settings
 	_apply_count += 1
+	_apply_window_settings(effective_settings)
 
 func _build_effective_settings(state: Dictionary) -> Dictionary:
 	var settings: Dictionary = {}
@@ -121,6 +132,75 @@ func _build_effective_settings(state: Dictionary) -> Dictionary:
 		for key in _preview_settings.keys():
 			settings[key] = _preview_settings[key]
 	return settings
+
+func _apply_window_settings(display_settings: Dictionary) -> void:
+	var state := {"display": display_settings}
+	var window_preset := U_DISPLAY_SELECTORS.get_window_size_preset(state)
+	var window_mode := U_DISPLAY_SELECTORS.get_window_mode(state)
+	var vsync_enabled := U_DISPLAY_SELECTORS.is_vsync_enabled(state)
+
+	apply_window_size_preset(window_preset)
+	set_window_mode(window_mode)
+	set_vsync_enabled(vsync_enabled)
+
+func apply_window_size_preset(preset: String) -> void:
+	if not WINDOW_PRESETS.has(preset):
+		push_warning("M_DisplayManager: Invalid window preset '%s'" % preset)
+		return
+	if not _is_display_server_available():
+		return
+	if is_inside_tree():
+		call_deferred("_apply_window_size_preset_now", preset)
+	else:
+		_apply_window_size_preset_now(preset)
+
+func set_window_mode(mode: String) -> void:
+	if not _is_display_server_available():
+		return
+	if is_inside_tree():
+		call_deferred("_set_window_mode_now", mode)
+	else:
+		_set_window_mode_now(mode)
+
+func set_vsync_enabled(enabled: bool) -> void:
+	if not _is_display_server_available():
+		return
+	if is_inside_tree():
+		call_deferred("_set_vsync_enabled_now", enabled)
+	else:
+		_set_vsync_enabled_now(enabled)
+
+func _apply_window_size_preset_now(preset: String) -> void:
+	if not WINDOW_PRESETS.has(preset):
+		return
+	var size: Vector2i = WINDOW_PRESETS[preset]
+	DisplayServer.window_set_size(size)
+	var screen_size := DisplayServer.screen_get_size()
+	var window_pos := (screen_size - size) / 2
+	DisplayServer.window_set_position(window_pos)
+
+func _set_window_mode_now(mode: String) -> void:
+	match mode:
+		"fullscreen":
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		"borderless":
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+		"windowed":
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+		_:
+			push_warning("M_DisplayManager: Invalid window mode '%s'" % mode)
+
+func _set_vsync_enabled_now(enabled: bool) -> void:
+	if enabled:
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED)
+	else:
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+
+func _is_display_server_available() -> bool:
+	var display_name := DisplayServer.get_name().to_lower()
+	return not (OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy")
 
 func _get_display_hash(state: Dictionary) -> int:
 	if state == null:
