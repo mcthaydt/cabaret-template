@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 1A Complete (Interface Definition)
+**Current Phase:** Phase 1B In Progress (Manager Scaffolding)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added.
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding tests + manager stub complete.
 
-**Ready to begin Phase 1B: Manager Scaffolding**
+**Phase 1B remaining:** add manager to root scene + create U_DisplayUtils helper.
 
 ---
 
@@ -34,20 +34,22 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 0D.4: Display actions registered with U_ActionRegistry
 - [x] Task 0D.5: Integration verified via state + display test suite
 - [x] Task 1A.1: I_DisplayManager interface created
+- [x] Task 1B.1: M_DisplayManager lifecycle tests created
+- [x] Task 1B.2: M_DisplayManager scaffold implemented
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 1B - Manager Scaffolding
+### Immediate: Phase 1B - Manager Scaffolding (Remaining)
 
-1. **Task 1B.1 (Red)**: Write tests for M_DisplayManager lifecycle
-   - Create `tests/unit/managers/test_display_manager.gd`
-   - 11 tests covering lifecycle, hashing, preview mode
+1. **Task 1B.3**: Add manager to main scene
+   - Add M_DisplayManager node to `scenes/root.tscn` under Managers/
+   - Register in `scripts/root.gd` after state_store is ready
 
-2. **Task 1B.2 (Green)**: Implement M_DisplayManager scaffold
-   - Create `scripts/managers/m_display_manager.gd`
-   - Add state store DI + preview handling + hash updates
+2. **Task 1B.4**: Create U_DisplayUtils helper
+   - Create `scripts/utils/display/u_display_utils.gd`
+   - Implement `get_display_manager()` helper
 
 ---
 
@@ -189,7 +191,7 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 
 ### Phase 1: Interface & Core Manager
 - [x] 1A: Interface Definition
-- [ ] 1B: Manager Scaffolding (11 tests)
+- [ ] 1B: Manager Scaffolding (Tasks 1B.3-1B.4 remaining)
 
 ### Phase 2: Display/Graphics Settings
 - [ ] 2A: Window Size & Mode

@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 16% (12 / 76 tasks complete)
+**Progress:** 18% (14 / 76 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -195,7 +195,7 @@ Before starting Phase 0, verify:
 
 ### Phase 1B: Manager Scaffolding
 
-- [ ] **Task 1B.1 (Red)**: Write tests for M_DisplayManager lifecycle
+- [x] **Task 1B.1 (Red)**: Write tests for M_DisplayManager lifecycle
   - Create `tests/unit/managers/test_display_manager.gd`
   - Test extends I_DisplayManager
   - Test adds to "display_manager" group
@@ -209,8 +209,9 @@ Before starting Phase 0, verify:
   - Test preview mode overrides state
   - Test `clear_display_settings_preview()` restores state and clears flag
   - **Target: 11 tests**
+  - Notes: Completed 2026-02-01 (added 11 tests in `tests/unit/managers/test_display_manager.gd`)
 
-- [ ] **Task 1B.2 (Green)**: Implement M_DisplayManager scaffold
+- [x] **Task 1B.2 (Green)**: Implement M_DisplayManager scaffold
   - Create `scripts/managers/m_display_manager.gd` extending I_DisplayManager
   - Add `@export var state_store: I_StateStore` for DI
   - Add `var _last_display_hash: int = 0` for change detection
@@ -232,6 +233,7 @@ Before starting Phase 0, verify:
     ```
   - Implement preview mode methods
   - All tests should pass
+  - Notes: Completed 2026-02-01 (created `scripts/managers/m_display_manager.gd`)
 
 - [ ] **Task 1B.3**: Add manager to main scene
   - Add M_DisplayManager node to `scenes/root.tscn` under Managers/
