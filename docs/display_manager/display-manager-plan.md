@@ -61,7 +61,7 @@ class_name RS_DisplayInitialState
 @export_range(0.0, 1.0, 0.05) var lut_intensity: float = 1.0
 
 @export_group("UI")
-@export_range(0.5, 2.0, 0.1) var ui_scale: float = 1.0
+@export_range(0.8, 1.3, 0.1) var ui_scale: float = 1.0
 
 @export_group("Accessibility")
 @export_enum("normal", "deuteranopia", "protanopia", "tritanopia") var color_blind_mode: String = "normal"
@@ -186,7 +186,7 @@ static func set_window_mode(mode: String) -> Dictionary:
 **Key Features**:
 - Intensity clamping (0.0-1.0 for film_grain, dither, lut)
 - Thickness clamping (1-5 for outline)
-- UI scale clamping (0.5-2.0)
+- UI scale clamping (0.8-1.3)
 - Immutability helpers (_merge_with_defaults, _with_values, _deep_copy)
 - Valid window presets: ["1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160"]
 - Valid window modes: ["windowed", "fullscreen", "borderless"]
@@ -221,7 +221,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
             var thickness: int = clampi(payload.get("thickness", 2), 1, 5)
             return _with_values(state, {"outline_thickness": thickness})
         U_DisplayActions.ACTION_SET_UI_SCALE:
-            var scale: float = clampf(payload.get("scale", 1.0), 0.5, 2.0)
+            var scale: float = clampf(payload.get("scale", 1.0), 0.8, 1.3)
             return _with_values(state, {"ui_scale": scale})
         # ... handle all other actions
 
@@ -239,8 +239,8 @@ static func _with_values(state: Dictionary, values: Dictionary) -> Dictionary:
 - test_set_film_grain_intensity_clamp_upper (1.5 → 1.0)
 - test_set_outline_thickness_clamp_lower (0 → 1)
 - test_set_outline_thickness_clamp_upper (10 → 5)
-- test_set_ui_scale_clamp_lower (0.2 → 0.5)
-- test_set_ui_scale_clamp_upper (3.0 → 2.0)
+- test_set_ui_scale_clamp_lower (0.2 → 0.8)
+- test_set_ui_scale_clamp_upper (3.0 → 1.3)
 - test_invalid_window_preset_ignored
 - test_invalid_window_mode_ignored
 - test_invalid_quality_preset_ignored
@@ -773,7 +773,7 @@ void fragment() {
 **Implementation**:
 ```gdscript
 func set_ui_scale(scale: float) -> void:
-    scale = clampf(scale, 0.5, 2.0)
+    scale = clampf(scale, 0.8, 1.3)
     for root in _ui_scale_roots:
         if root is CanvasLayer:
             root.transform = Transform2D().scaled(Vector2(scale, scale))
@@ -951,7 +951,7 @@ ScrollContainer
     ├── Label ("UI SCALE")
     ├── HBoxContainer
     │   ├── Label
-    │   ├── HSlider (0.5-2.0)
+    │   ├── HSlider (0.8-1.3)
     │   └── Label (scale value)
 ```
 
@@ -989,7 +989,7 @@ ScrollContainer
 - Window mode changes apply to DisplayServer
 - Quality presets update rendering settings
 - Post-processing effects enable/disable correctly
-- UI scale affects CanvasLayer transforms
+- UI scale adjusts font sizes only (no layout scaling)
 - Color blind palettes load and emit signals
 - Settings persist across save/load
 
@@ -1024,7 +1024,7 @@ ScrollContainer
 
 ### Phase 4 Complete:
 - [ ] UI scale slider affects all UI elements
-- [ ] Scale range 0.5x-2.0x works correctly
+- [ ] Scale range 0.8x-1.3x works correctly
 - [ ] UI remains usable at extreme scales
 
 ### Phase 5 Complete:

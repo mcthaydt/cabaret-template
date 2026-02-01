@@ -1314,9 +1314,11 @@ func _apply_window_mode(mode: String) -> void:
 
 ### UI Scale Transform Origin
 
-**Problem**: UI scaling via `Control.scale` or `CanvasLayer.transform` can cause UI elements to shift off-screen because scaling happens around the node's origin (top-left by default).
+**Problem**: Layout scaling via `Control.scale` or `CanvasLayer.transform` can push UI off-screen because scaling happens around the node's origin (top-left by default).
 
-**Solution**: When applying UI scale to Control nodes, ensure pivot is centered or adjust position to compensate:
+**Current behavior (2026-02-01)**: UI scale is **font-only** (no layout scaling). This avoids transform-origin issues entirely.
+
+**If you reintroduce layout scaling**: Center the pivot or compensate position to avoid drift:
 ```gdscript
 # For CanvasLayer - no pivot issue, transform is applied uniformly
 canvas_layer.transform = Transform2D().scaled(Vector2(scale, scale))
@@ -1326,7 +1328,7 @@ control.pivot_offset = control.size / 2  # Center pivot
 control.scale = Vector2(scale, scale)
 ```
 
-**Why this matters**: At 2.0x scale, a Control anchored to top-left will expand rightward/downward, potentially pushing content off-screen. The UIScaleRoot registration in M_DisplayManager handles CanvasLayers and Control roots correctly, but custom UI scaling implementations must account for this.
+**Why this matters**: At high scales, a Control anchored to top-left will expand rightward/downward and can clip. Use pivoting or a centered container if layout scaling returns.
 
 ### Post-Process Layer Ordering
 

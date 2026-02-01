@@ -197,7 +197,7 @@ Fixed 960x600 internal resolution (always). Window size presets scale the output
 
 ## UI Scaling
 
-- Global scale factor: 0.5x - 2.0x (step 0.1)
+- Global scale factor: 0.8x - 1.3x (step 0.1, font-only)
 - Applied to CanvasLayer root nodes via `Control.scale`
 - Default: 1.0
 - Persisted in display slice
@@ -565,7 +565,7 @@ if display_initial_state != null:
 - Fullscreen toggle works on all target platforms.
 - VSync toggle affects actual frame timing.
 - Each post-processing effect visually distinguishable when enabled.
-- UI scale slider affects all UI elements proportionally.
+- UI scale slider affects font sizes only (layout is unchanged).
 - Each color blind palette provides distinct, accessible colors.
 - High contrast mode increases visibility of all UI elements.
 
@@ -591,7 +591,7 @@ Common mistakes to avoid:
 | Post-process order | Fixed internally (not user-configurable) |
 | Shader location | `assets/shaders/` with `sh_` prefix + `_shader` suffix |
 | Viewport resolution | Fixed 960x600 internal, window presets scale output |
-| UI scale range | 0.5x - 2.0x with 0.1 step |
+| UI scale range | 0.8x - 1.3x with 0.1 step |
 | Quality preset levels | Low, Medium, High, Ultra |
 | Settings persistence | Included in display slice, persisted to save files |
 | Outline color format | Hex string (e.g., "000000") for easy serialization |

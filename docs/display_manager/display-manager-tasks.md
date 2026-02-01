@@ -103,7 +103,7 @@ Before starting Phase 0, verify:
   - Test `dither_intensity` clamping (0.0-1.0)
   - Test `lut_intensity` clamping (0.0-1.0)
   - Test `outline_thickness` clamping (1-5)
-  - Test `ui_scale` clamping (0.5-2.0)
+  - Test `ui_scale` clamping (0.8-1.3)
   - Test invalid `window_size_preset` ignored
   - Test invalid `window_mode` ignored
   - Test invalid `quality_preset` ignored
@@ -386,7 +386,7 @@ Before starting Phase 0, verify:
 
 ## Phase 4: UI Scaling
 
-**Exit Criteria:** UI scale slider affects all UI elements proportionally (0.5x-2.0x)
+**Exit Criteria:** UI scale slider affects font sizes only (0.8x-1.3x)
 
 - [x] **Task 4.1 (Red)**: Write tests for UI scale application
   - Test `set_ui_scale()` clamps to valid range
@@ -562,8 +562,8 @@ Before starting Phase 0, verify:
 - [ ] **MT-08**: Dither patterns (bayer/noise) distinguishable
 - [ ] **MT-09**: LUT color grading applies correctly
 - [ ] **MT-10**: UI scale slider affects all UI elements proportionally
-- [ ] **MT-11**: UI remains usable at 0.5x scale
-- [ ] **MT-12**: UI remains usable at 2.0x scale
+- [ ] **MT-11**: UI remains usable at 0.8x scale
+- [ ] **MT-12**: UI remains usable at 1.3x scale
 - [ ] **MT-13**: Each color blind palette provides distinct colors
 - [ ] **MT-14**: High contrast mode increases visibility
 - [ ] **MT-15**: Color blind shader filter simulates correctly
