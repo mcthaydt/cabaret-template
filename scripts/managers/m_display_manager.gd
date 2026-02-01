@@ -8,6 +8,7 @@ class_name M_DisplayManager
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
+const RS_QUALITY_PRESET := preload("res://scripts/resources/display/rs_quality_preset.gd")
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
@@ -19,6 +20,12 @@ const WINDOW_PRESETS := {
 	"2560x1440": Vector2i(2560, 1440),
 	"3840x2160": Vector2i(3840, 2160),
 }
+const QUALITY_PRESET_PATHS := {
+	"low": "res://resources/display/cfg_quality_presets/cfg_quality_low.tres",
+	"medium": "res://resources/display/cfg_quality_presets/cfg_quality_medium.tres",
+	"high": "res://resources/display/cfg_quality_presets/cfg_quality_high.tres",
+	"ultra": "res://resources/display/cfg_quality_presets/cfg_quality_ultra.tres",
+}
 
 ## Injected dependency (tests)
 @export var state_store: I_StateStore = null
@@ -27,6 +34,7 @@ var _state_store: I_StateStore = null
 var _last_display_hash: int = 0
 var _display_settings_preview_active: bool = false
 var _preview_settings: Dictionary = {}
+var _quality_preset_cache: Dictionary = {}
 
 # Cached values for inspection/tests (Phase 1B)
 var _last_applied_settings: Dictionary = {}
@@ -120,6 +128,7 @@ func _apply_display_settings(state: Dictionary) -> void:
 	_last_applied_settings = effective_settings
 	_apply_count += 1
 	_apply_window_settings(effective_settings)
+	_apply_quality_settings(effective_settings)
 
 func _build_effective_settings(state: Dictionary) -> Dictionary:
 	var settings: Dictionary = {}
@@ -142,6 +151,11 @@ func _apply_window_settings(display_settings: Dictionary) -> void:
 	apply_window_size_preset(window_preset)
 	set_window_mode(window_mode)
 	set_vsync_enabled(vsync_enabled)
+
+func _apply_quality_settings(display_settings: Dictionary) -> void:
+	var state := {"display": display_settings}
+	var preset := U_DISPLAY_SELECTORS.get_quality_preset(state)
+	apply_quality_preset(preset)
 
 func apply_window_size_preset(preset: String) -> void:
 	if not WINDOW_PRESETS.has(preset):
@@ -201,9 +215,79 @@ func _set_vsync_enabled_now(enabled: bool) -> void:
 	else:
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 
+func apply_quality_preset(preset: String) -> void:
+	if preset.is_empty():
+		return
+	if not _is_rendering_available():
+		return
+
+	var config := _load_quality_preset(preset)
+	if config == null:
+		return
+
+	_apply_shadow_quality(String(config.shadow_quality))
+	_apply_anti_aliasing(String(config.anti_aliasing))
+
+func _load_quality_preset(preset: String) -> Resource:
+	if _quality_preset_cache.has(preset):
+		return _quality_preset_cache[preset]
+
+	var path: String = String(QUALITY_PRESET_PATHS.get(preset, ""))
+	if path.is_empty():
+		push_warning("M_DisplayManager: Unknown quality preset '%s'" % preset)
+		return null
+
+	var resource := load(path)
+	if resource == null or not (resource is RS_QUALITY_PRESET):
+		push_warning("M_DisplayManager: Failed to load quality preset '%s' (%s)" % [preset, path])
+		return null
+
+	_quality_preset_cache[preset] = resource
+	return resource
+
+func _apply_shadow_quality(shadow_quality: String) -> void:
+	match shadow_quality:
+		"off":
+			RenderingServer.directional_shadow_atlas_set_size(0, false)
+		"low":
+			RenderingServer.directional_shadow_atlas_set_size(1024, false)
+		"medium":
+			RenderingServer.directional_shadow_atlas_set_size(2048, true)
+		"high":
+			RenderingServer.directional_shadow_atlas_set_size(4096, true)
+		_:
+			push_warning("M_DisplayManager: Unknown shadow quality '%s'" % shadow_quality)
+
+func _apply_anti_aliasing(anti_aliasing: String) -> void:
+	var viewport := get_viewport()
+	if viewport == null:
+		return
+
+	match anti_aliasing:
+		"none":
+			viewport.msaa_3d = Viewport.MSAA_DISABLED
+			viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
+		"fxaa":
+			viewport.msaa_3d = Viewport.MSAA_DISABLED
+			viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
+		"msaa_2x":
+			viewport.msaa_3d = Viewport.MSAA_2X
+			viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
+		"msaa_4x":
+			viewport.msaa_3d = Viewport.MSAA_4X
+			viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
+		"msaa_8x":
+			viewport.msaa_3d = Viewport.MSAA_8X
+			viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
+		_:
+			push_warning("M_DisplayManager: Unknown anti-aliasing '%s'" % anti_aliasing)
+
 func _is_display_server_available() -> bool:
 	var display_name := DisplayServer.get_name().to_lower()
 	return not (OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy")
+
+func _is_rendering_available() -> bool:
+	return not (OS.has_feature("headless") or OS.has_feature("server"))
 
 func _get_display_hash(state: Dictionary) -> int:
 	if state == null:
