@@ -27,7 +27,7 @@ class_name RS_DisplayInitialState
 @export_range(0.0, 1.0, 0.05) var lut_intensity: float = 1.0
 
 @export_group("UI")
-@export_range(0.5, 2.0, 0.1) var ui_scale: float = 1.0
+@export_range(0.8, 1.3, 0.1) var ui_scale: float = 1.0
 
 @export_group("Accessibility")
 @export_enum("normal", "deuteranopia", "protanopia", "tritanopia") var color_blind_mode: String = "normal"

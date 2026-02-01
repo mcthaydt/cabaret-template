@@ -29,8 +29,8 @@ const QUALITY_PRESET_PATHS := {
 	"high": "res://resources/display/cfg_quality_presets/cfg_quality_high.tres",
 	"ultra": "res://resources/display/cfg_quality_presets/cfg_quality_ultra.tres",
 }
-const MIN_UI_SCALE := 0.5
-const MAX_UI_SCALE := 2.0
+const MIN_UI_SCALE := 0.8
+const MAX_UI_SCALE := 1.3
 
 ## Injected dependency (tests)
 @export var state_store: I_StateStore = null
@@ -496,50 +496,47 @@ func _is_hex_string(value: String) -> bool:
 
 func _apply_ui_scale_to_node(node: Node, scale: float) -> void:
 	if node is CanvasLayer:
-		var layer := node as CanvasLayer
-		layer.transform = Transform2D().scaled(Vector2(scale, scale))
+		_apply_font_scale_to_tree(node, scale)
 		return
 	if node is Control:
 		var control: Control = node as Control
 		var viewport_rect: Rect2 = _get_viewport_rect(control)
 		var safe_rect: Rect2 = _get_safe_area_rect(viewport_rect)
 		_apply_safe_area_padding(control, viewport_rect.size, safe_rect)
-		var applied_scale: float = _calculate_fit_scale(control, scale, safe_rect.size)
-		var pivot_size: Vector2 = control.size
-		if pivot_size == Vector2.ZERO:
-			pivot_size = control.get_combined_minimum_size()
-		control.pivot_offset = pivot_size * 0.5
-		control.scale = Vector2(applied_scale, applied_scale)
+		_apply_font_scale_to_tree(control, scale)
 		return
-	if node is Node2D:
-		var node_2d := node as Node2D
-		node_2d.scale = Vector2(scale, scale)
+	_apply_font_scale_to_tree(node, scale)
+
+func _apply_font_scale_to_tree(node: Node, scale: float) -> void:
+	if node == null:
 		return
+	if node is Control:
+		_apply_font_scale_to_control(node as Control, scale)
+	var children: Array = node.get_children()
+	for child in children:
+		if child is Node:
+			_apply_font_scale_to_tree(child, scale)
 
-func _calculate_fit_scale(control: Control, desired_scale: float, available_size: Vector2) -> float:
+func _apply_font_scale_to_control(control: Control, scale: float) -> void:
 	if control == null:
-		return desired_scale
-	if available_size.x <= 0.0 or available_size.y <= 0.0:
-		return desired_scale
-	var fit_target: Control = _resolve_fit_target(control)
-	var min_size: Vector2 = fit_target.get_combined_minimum_size()
-	if min_size.x <= 0.0 or min_size.y <= 0.0:
-		return desired_scale
-	var scale_x: float = available_size.x / min_size.x
-	var scale_y: float = available_size.y / min_size.y
-	var fit_limit: float = min(scale_x, scale_y)
-	if fit_limit <= 0.0:
-		return desired_scale
-	return min(desired_scale, fit_limit)
+		return
+	var base_size: int = _get_font_base_size(control)
+	if base_size <= 0:
+		return
+	var scaled_size: int = int(round(float(base_size) * scale))
+	if scaled_size <= 0:
+		scaled_size = 1
+	control.add_theme_font_size_override("font_size", scaled_size)
 
-func _resolve_fit_target(control: Control) -> Control:
+func _get_font_base_size(control: Control) -> int:
 	if control == null:
-		return control
-	if control.has_meta(StringName("ui_scale_fit_target")):
-		var target = control.get_meta(StringName("ui_scale_fit_target"))
-		if target is Control and is_instance_valid(target):
-			return target as Control
-	return control
+		return 0
+	var meta_key: StringName = StringName("ui_scale_font_base")
+	if control.has_meta(meta_key):
+		return int(control.get_meta(meta_key))
+	var base_size: int = control.get_theme_font_size("font_size")
+	control.set_meta(meta_key, base_size)
+	return base_size
 
 func _get_viewport_rect(control: Control) -> Rect2:
 	if control == null:

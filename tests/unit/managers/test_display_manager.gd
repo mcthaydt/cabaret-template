@@ -100,79 +100,57 @@ func test_set_ui_scale_clamps_to_min() -> void:
 	var manager := M_DISPLAY_MANAGER.new()
 	add_child_autofree(manager)
 
-	var layer := CanvasLayer.new()
-	add_child_autofree(layer)
-	manager.register_ui_scale_root(layer)
+	var label := Label.new()
+	label.add_theme_font_size_override("font_size", 20)
+	add_child_autofree(label)
+	manager.register_ui_scale_root(label)
 
 	manager.set_ui_scale(0.1)
 
-	var scale := _get_canvas_layer_scale(layer)
-	assert_vector_almost_eq(scale, Vector2.ONE * 0.5, 0.001, "UI scale should clamp to minimum")
+	assert_eq(label.get_theme_font_size("font_size"), 16, "UI scale should clamp to minimum")
 
 func test_set_ui_scale_clamps_to_max() -> void:
 	var manager := M_DISPLAY_MANAGER.new()
 	add_child_autofree(manager)
 
-	var layer := CanvasLayer.new()
-	add_child_autofree(layer)
-	manager.register_ui_scale_root(layer)
+	var label := Label.new()
+	label.add_theme_font_size_override("font_size", 20)
+	add_child_autofree(label)
+	manager.register_ui_scale_root(label)
 
 	manager.set_ui_scale(5.0)
 
-	var scale := _get_canvas_layer_scale(layer)
-	assert_vector_almost_eq(scale, Vector2.ONE * 2.0, 0.001, "UI scale should clamp to maximum")
+	assert_eq(label.get_theme_font_size("font_size"), 26, "UI scale should clamp to maximum")
 
-func test_set_ui_scale_applies_to_registered_canvas_layers() -> void:
-	var manager := M_DISPLAY_MANAGER.new()
-	add_child_autofree(manager)
-
-	var layer := CanvasLayer.new()
-	add_child_autofree(layer)
-	manager.register_ui_scale_root(layer)
-
-	manager.set_ui_scale(1.5)
-
-	var scale := _get_canvas_layer_scale(layer)
-	assert_vector_almost_eq(scale, Vector2.ONE * 1.5, 0.001, "UI scale should apply to registered CanvasLayers")
-
-func test_register_ui_scale_root_applies_current_scale() -> void:
-	var manager := M_DISPLAY_MANAGER.new()
-	add_child_autofree(manager)
-
-	manager.set_ui_scale(1.5)
-
-	var layer := CanvasLayer.new()
-	add_child_autofree(layer)
-	manager.register_ui_scale_root(layer)
-
-	var scale := _get_canvas_layer_scale(layer)
-	assert_vector_almost_eq(scale, Vector2.ONE * 1.5, 0.001, "Registering should apply the current UI scale")
-
-func test_fit_scale_clamps_control_to_available_size() -> void:
-	var manager := M_DISPLAY_MANAGER.new()
-	add_child_autofree(manager)
-
-	var control := Control.new()
-	control.custom_minimum_size = Vector2(1000, 800)
-	add_child_autofree(control)
-
-	var fit_scale: float = manager._calculate_fit_scale(control, 2.0, Vector2(800, 600))
-	assert_almost_eq(fit_scale, 0.75, 0.001, "Fit scale should clamp to available size")
-
-func test_fit_scale_uses_meta_fit_target_when_set() -> void:
+func test_set_ui_scale_applies_font_scale_to_controls() -> void:
 	var manager := M_DISPLAY_MANAGER.new()
 	add_child_autofree(manager)
 
 	var root := Control.new()
 	add_child_autofree(root)
+	var label := Label.new()
+	label.add_theme_font_size_override("font_size", 20)
+	root.add_child(label)
+	manager.register_ui_scale_root(root)
 
-	var child := Control.new()
-	child.custom_minimum_size = Vector2(1000, 800)
-	root.add_child(child)
-	root.set_meta(StringName("ui_scale_fit_target"), child)
+	manager.set_ui_scale(1.2)
 
-	var fit_scale: float = manager._calculate_fit_scale(root, 2.0, Vector2(800, 600))
-	assert_almost_eq(fit_scale, 0.75, 0.001, "Fit scale should honor meta fit target size")
+	assert_eq(label.get_theme_font_size("font_size"), 24, "UI scale should apply to registered controls")
+
+func test_register_ui_scale_root_applies_current_scale() -> void:
+	var manager := M_DISPLAY_MANAGER.new()
+	add_child_autofree(manager)
+
+	manager.set_ui_scale(1.2)
+
+	var root := Control.new()
+	add_child_autofree(root)
+	var label := Label.new()
+	label.add_theme_font_size_override("font_size", 20)
+	root.add_child(label)
+	manager.register_ui_scale_root(root)
+
+	assert_eq(label.get_theme_font_size("font_size"), 24, "Registering should apply the current UI scale")
 
 func test_safe_area_padding_sets_offsets_for_full_anchors() -> void:
 	var manager := M_DISPLAY_MANAGER.new()
@@ -338,13 +316,3 @@ func _restore_window_state(snapshot: Dictionary) -> void:
 		bool(snapshot.get("borderless", false))
 	)
 	DisplayServer.window_set_vsync_mode(snapshot.get("vsync", DisplayServer.window_get_vsync_mode()))
-
-func _get_canvas_layer_scale(layer: CanvasLayer) -> Vector2:
-	var transform := layer.transform
-	var scale_x := transform.x.length()
-	var scale_y := transform.y.length()
-	return Vector2(scale_x, scale_y)
-
-func assert_vector_almost_eq(a: Vector2, b: Vector2, tolerance: float, message: String = "") -> void:
-	assert_almost_eq(a.x, b.x, tolerance, message + " (x)")
-	assert_almost_eq(a.y, b.y, tolerance, message + " (y)")

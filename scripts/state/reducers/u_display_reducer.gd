@@ -47,8 +47,8 @@ const MIN_INTENSITY := 0.0
 const MAX_INTENSITY := 1.0
 const MIN_OUTLINE_THICKNESS := 1
 const MAX_OUTLINE_THICKNESS := 5
-const MIN_UI_SCALE := 0.5
-const MAX_UI_SCALE := 2.0
+const MIN_UI_SCALE := 0.8
+const MAX_UI_SCALE := 1.3
 
 static func get_default_display_state() -> Dictionary:
 	return DEFAULT_DISPLAY_STATE.duplicate(true)

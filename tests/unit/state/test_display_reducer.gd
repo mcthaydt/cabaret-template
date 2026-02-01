@@ -203,7 +203,7 @@ func test_set_ui_scale_clamps() -> void:
 	var action := U_DisplayActions.set_ui_scale(3.0)
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_almost_eq(float(reduced.get("ui_scale", 0.0)), 2.0, 0.0001)
+	assert_almost_eq(float(reduced.get("ui_scale", 0.0)), 1.3, 0.0001)
 
 # Test 22: invalid window_size_preset ignored
 func test_invalid_window_size_preset_ignored() -> void:
