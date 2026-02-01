@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 4% (3 / 76 tasks complete)
+**Progress:** 7% (5 / 76 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -61,7 +61,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0B: Display Actions
 
-- [ ] **Task 0B.1 (Red)**: Write tests for U_DisplayActions
+- [x] **Task 0B.1 (Red)**: Write tests for U_DisplayActions
   - Create `tests/unit/state/test_display_actions.gd`
   - Test `set_window_size_preset(preset)` action structure
   - Test `set_window_mode(mode)` action structure
@@ -83,12 +83,14 @@ Before starting Phase 0, verify:
   - Test `set_high_contrast_enabled(enabled)` action structure
   - Test `set_color_blind_shader_enabled(enabled)` action structure
   - **Target: 19 tests**
+  - Notes: Completed 2026-02-01 (added 19 tests in `tests/unit/state/test_display_actions.gd`)
 
-- [ ] **Task 0B.2 (Green)**: Implement U_DisplayActions
+- [x] **Task 0B.2 (Green)**: Implement U_DisplayActions
   - Create `scripts/state/actions/u_display_actions.gd`
   - Add all action type constants (StringName)
   - Implement all static action creator functions
   - All tests should pass
+  - Notes: Completed 2026-02-01 (created `scripts/state/actions/u_display_actions.gd`)
 
 ---
 

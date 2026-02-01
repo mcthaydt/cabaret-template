@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 0A Complete (Redux Foundation)
+**Current Phase:** Phase 0B Complete (Redux Foundation)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A complete (Display Initial State Resource). Tests, resource, and default instance created.
+Phase 0A and 0B complete (Display Initial State Resource + Display Actions). Actions and tests created.
 
-**Ready to begin Phase 0B: Display Actions**
+**Ready to begin Phase 0C: Display Reducer**
 
 ---
 
@@ -24,20 +24,22 @@ Phase 0A complete (Display Initial State Resource). Tests, resource, and default
 - [x] Task 0A.1: Display initial state tests created
 - [x] Task 0A.2: RS_DisplayInitialState resource implemented
 - [x] Task 0A.3: Default display initial state resource created
+- [x] Task 0B.1: Display actions tests created
+- [x] Task 0B.2: U_DisplayActions implemented
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 0B - Display Actions
+### Immediate: Phase 0C - Display Reducer
 
-1. **Task 0B.1 (Red)**: Write tests for U_DisplayActions
-   - Create `tests/unit/state/test_display_actions.gd`
-   - 19 tests covering all display actions
+1. **Task 0C.1 (Red)**: Write tests for U_DisplayReducer
+   - Create `tests/unit/state/test_display_reducer.gd`
+   - 28 tests covering reducer behavior + validation
 
-2. **Task 0B.2 (Green)**: Implement U_DisplayActions
-   - Create `scripts/state/actions/u_display_actions.gd`
-   - Define 19 action constants + creators
+2. **Task 0C.2 (Green)**: Implement U_DisplayReducer
+   - Create `scripts/state/reducers/u_display_reducer.gd`
+   - Add validation constants and reducer logic
 
 ---
 
@@ -173,7 +175,7 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 
 ### Phase 0: Redux Foundation
 - [x] 0A: Display Initial State Resource (11 tests)
-- [ ] 0B: Display Actions (19 tests)
+- [x] 0B: Display Actions (19 tests)
 - [ ] 0C: Display Reducer (28 tests)
 - [ ] 0D: Display Selectors & Store Integration (19 tests)
 
