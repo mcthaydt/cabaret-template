@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 25% (19 / 76 tasks complete)
+**Progress:** 29% (22 / 76 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -307,7 +307,7 @@ Before starting Phase 0, verify:
 
 ### Phase 3A: Post-Process Overlay & Helper
 
-- [ ] **Task 3A.1 (Red)**: Write tests for U_PostProcessLayer helper
+- [x] **Task 3A.1 (Red)**: Write tests for U_PostProcessLayer helper
   - Create `tests/unit/managers/helpers/test_post_process_layer.gd`
   - Test `initialize(canvas_layer)` caches effect rects
   - Test `set_effect_enabled()` toggles visibility
@@ -315,19 +315,22 @@ Before starting Phase 0, verify:
   - Test handles null rect gracefully
   - Test handles null material gracefully
   - **Target: 8 tests**
+  - Notes: Completed 2026-02-01 (added 8 helper tests)
 
-- [ ] **Task 3A.2 (Green)**: Implement U_PostProcessLayer helper
+- [x] **Task 3A.2 (Green)**: Implement U_PostProcessLayer helper
   - Create `scripts/managers/helpers/u_post_process_layer.gd`
   - Implement `initialize()` to cache ColorRect references
   - Implement `set_effect_enabled(effect_name, enabled)`
   - Implement `set_effect_parameter(effect_name, param, value)`
   - All tests should pass
+  - Notes: Completed 2026-02-01 (helper caches rects + toggles + shader params)
 
-- [ ] **Task 3A.3**: Create post-process overlay scene
+- [x] **Task 3A.3**: Create post-process overlay scene
   - Create `scenes/ui/overlays/ui_post_process_overlay.tscn`
   - CanvasLayer (layer 100, mouse_filter IGNORE)
   - Add FilmGrainRect, OutlineRect, DitherRect, LUTRect ColorRects
   - Each covers full screen, starts hidden
+  - Notes: Completed 2026-02-01 (overlay scene with full-screen hidden rects)
 
 ---
 

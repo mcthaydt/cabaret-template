@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 2B Complete (Quality Presets)
+**Current Phase:** Phase 3A Complete (Post-Process Overlay & Helper)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring).
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented.
 
-**Ready to begin Phase 3A: Post-Process Overlay & Helper**
+**Ready to begin Phase 3B: Shaders**
 
 ---
 
@@ -43,16 +43,21 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 2B.1: RS_QualityPreset resource created
 - [x] Task 2B.2: Quality preset configs created (low/medium/high/ultra)
 - [x] Task 2B.3: Quality preset application wired in M_DisplayManager
+- [x] Task 3A.1: Post-process helper tests created
+- [x] Task 3A.2: U_PostProcessLayer helper implemented
+- [x] Task 3A.3: Post-process overlay scene created
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 3A - Post-Process Overlay & Helper
+### Immediate: Phase 3B - Shaders
 
-1. **Task 3A.1**: Write tests for U_PostProcessLayer helper
-2. **Task 3A.2**: Implement U_PostProcessLayer helper
-3. **Task 3A.3**: Create post-process overlay scene
+1. **Task 3B.1**: Create Film Grain shader
+2. **Task 3B.2**: Create Outline shader
+3. **Task 3B.3**: Create Dither shader + Bayer texture
+4. **Task 3B.4**: Create LUT shader + default LUT resources
+5. **Task 3B.5**: Wire shaders to overlay scene
 
 ---
 
@@ -201,7 +206,7 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 - [x] 2B: Quality Presets (2B.1-2B.3 complete)
 
 ### Phase 3: Post-Processing System
-- [ ] 3A: Post-Process Overlay & Helper (8 tests)
+- [x] 3A: Post-Process Overlay & Helper (8 tests)
 - [ ] 3B: Shaders (4 shaders)
 - [ ] 3C: Manager Integration
 
