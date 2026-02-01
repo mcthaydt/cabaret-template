@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 0B Complete (Redux Foundation)
+**Current Phase:** Phase 0C Complete (Redux Foundation)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A and 0B complete (Display Initial State Resource + Display Actions). Actions and tests created.
+Phase 0A, 0B, and 0C complete (Initial State, Actions, Reducer). Reducer and tests created.
 
-**Ready to begin Phase 0C: Display Reducer**
+**Ready to begin Phase 0D: Display Selectors & Store Integration**
 
 ---
 
@@ -26,20 +26,30 @@ Phase 0A and 0B complete (Display Initial State Resource + Display Actions). Act
 - [x] Task 0A.3: Default display initial state resource created
 - [x] Task 0B.1: Display actions tests created
 - [x] Task 0B.2: U_DisplayActions implemented
+- [x] Task 0C.1: Display reducer tests created
+- [x] Task 0C.2: U_DisplayReducer implemented
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 0C - Display Reducer
+### Immediate: Phase 0D - Display Selectors & Store Integration
 
-1. **Task 0C.1 (Red)**: Write tests for U_DisplayReducer
-   - Create `tests/unit/state/test_display_reducer.gd`
-   - 28 tests covering reducer behavior + validation
+1. **Task 0D.1 (Red)**: Write tests for U_DisplaySelectors
+   - Create `tests/unit/state/test_display_selectors.gd`
+   - 19 tests covering selector defaults + values
 
-2. **Task 0C.2 (Green)**: Implement U_DisplayReducer
-   - Create `scripts/state/reducers/u_display_reducer.gd`
-   - Add validation constants and reducer logic
+2. **Task 0D.2 (Green)**: Implement U_DisplaySelectors
+   - Create `scripts/state/selectors/u_display_selectors.gd`
+   - Implement selector functions with safe defaults
+
+3. **Task 0D.3**: Integrate display slice with M_StateStore
+   - Add display_initial_state export and initialize_slices parameter
+   - Register display slice in U_StateSliceManager
+   - Assign cfg_display_initial_state.tres in scenes/root.tscn
+
+4. **Task 0D.4**: Register display actions with U_ActionRegistry
+   - Add display action constants to action registry list
 
 ---
 
@@ -176,7 +186,7 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 ### Phase 0: Redux Foundation
 - [x] 0A: Display Initial State Resource (11 tests)
 - [x] 0B: Display Actions (19 tests)
-- [ ] 0C: Display Reducer (28 tests)
+- [x] 0C: Display Reducer (28 tests)
 - [ ] 0D: Display Selectors & Store Integration (19 tests)
 
 ### Phase 1: Interface & Core Manager

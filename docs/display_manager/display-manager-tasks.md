@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 7% (5 / 76 tasks complete)
+**Progress:** 9% (7 / 76 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -96,7 +96,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0C: Display Reducer
 
-- [ ] **Task 0C.1 (Red)**: Write tests for U_DisplayReducer
+- [x] **Task 0C.1 (Red)**: Write tests for U_DisplayReducer
   - Create `tests/unit/state/test_display_reducer.gd`
   - Test each action type updates correct field
   - Test `film_grain_intensity` clamping (0.0-1.0)
@@ -112,13 +112,15 @@ Before starting Phase 0, verify:
   - Test reducer returns same state for unknown action
   - Test reducer immutability (old_state !== new_state)
   - **Target: 28 tests**
+  - Notes: Completed 2026-02-01 (added 28 tests in `tests/unit/state/test_display_reducer.gd`)
 
-- [ ] **Task 0C.2 (Green)**: Implement U_DisplayReducer
+- [x] **Task 0C.2 (Green)**: Implement U_DisplayReducer
   - Create `scripts/state/reducers/u_display_reducer.gd`
   - Add validation constants (VALID_WINDOW_PRESETS, VALID_WINDOW_MODES, etc.)
   - Implement `reduce(state, action)` with match statement
   - Implement `_with_values()` helper for immutable updates
   - All tests should pass
+  - Notes: Completed 2026-02-01 (created `scripts/state/reducers/u_display_reducer.gd`)
 
 - [ ] **Task 0C.3 (Refactor)**: Extract helper methods if needed
   - Ensure all validation logic is clean and consistent
