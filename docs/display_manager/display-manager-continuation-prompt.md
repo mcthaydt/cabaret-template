@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 2B In Progress (Quality Presets)
+**Current Phase:** Phase 2B Complete (Quality Presets)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality preset resource + preset configs added.
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring).
 
-**Ready to complete Phase 2B: Apply quality presets in M_DisplayManager**
+**Ready to begin Phase 3A: Post-Process Overlay & Helper**
 
 ---
 
@@ -42,18 +42,17 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 2A.2: Window operations implemented (presets, mode, vsync)
 - [x] Task 2B.1: RS_QualityPreset resource created
 - [x] Task 2B.2: Quality preset configs created (low/medium/high/ultra)
+- [x] Task 2B.3: Quality preset application wired in M_DisplayManager
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 2B - Quality Presets
+### Immediate: Phase 3A - Post-Process Overlay & Helper
 
-1. **Task 2B.3**: Implement quality preset application
-   - Add `apply_quality_preset(preset)` to `M_DisplayManager`
-   - Apply shadow quality via `RenderingServer`
-   - Apply anti-aliasing via viewport settings
-   - Wire to `_apply_display_settings()`
+1. **Task 3A.1**: Write tests for U_PostProcessLayer helper
+2. **Task 3A.2**: Implement U_PostProcessLayer helper
+3. **Task 3A.3**: Create post-process overlay scene
 
 ---
 
@@ -199,7 +198,7 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 
 ### Phase 2: Display/Graphics Settings
 - [x] 2A: Window Size & Mode
-- [ ] 2B: Quality Presets (2B.1-2B.2 complete)
+- [x] 2B: Quality Presets (2B.1-2B.3 complete)
 
 ### Phase 3: Post-Processing System
 - [ ] 3A: Post-Process Overlay & Helper (8 tests)

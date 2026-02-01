@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 24% (18 / 76 tasks complete)
+**Progress:** 25% (19 / 76 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -292,11 +292,12 @@ Before starting Phase 0, verify:
   - Create `resources/display/cfg_quality_presets/cfg_quality_ultra.tres`
   - Notes: Completed 2026-02-01 (added low/medium/high/ultra preset configs)
 
-- [ ] **Task 2B.3**: Implement quality preset application
+- [x] **Task 2B.3**: Implement quality preset application
   - Add `apply_quality_preset(preset)` to M_DisplayManager
   - Apply shadow quality via RenderingServer
   - Apply anti-aliasing via viewport settings
   - Wire to `_apply_display_settings()`
+  - Notes: Completed 2026-02-01 (apply_quality_preset + cache + RenderingServer/viewport wiring)
 
 ---
 
