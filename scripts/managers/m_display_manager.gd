@@ -8,7 +8,10 @@ class_name M_DisplayManager
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
+const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/u_post_process_layer.gd")
 const RS_QUALITY_PRESET := preload("res://scripts/resources/display/rs_quality_preset.gd")
+const RS_LUT_DEFINITION := preload("res://scripts/resources/display/rs_lut_definition.gd")
+const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
@@ -35,6 +38,11 @@ var _last_display_hash: int = 0
 var _display_settings_preview_active: bool = false
 var _preview_settings: Dictionary = {}
 var _quality_preset_cache: Dictionary = {}
+
+# Post-process overlay (Phase 3C)
+var _post_process_layer: U_PostProcessLayer = null
+var _post_process_overlay: CanvasLayer = null
+var _film_grain_active: bool = false
 
 # Cached values for inspection/tests (Phase 1B)
 var _last_applied_settings: Dictionary = {}
@@ -66,6 +74,18 @@ func _initialize_store_async() -> void:
 	var state := _state_store.get_state()
 	_apply_display_settings(state)
 	_last_display_hash = _get_display_hash(state)
+
+func _process(_delta: float) -> void:
+	if not _film_grain_active:
+		return
+	if _post_process_layer == null:
+		return
+	var time_seconds: float = float(Time.get_ticks_msec()) / 1000.0
+	_post_process_layer.set_effect_parameter(
+		U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN,
+		StringName("time"),
+		time_seconds
+	)
 
 func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
 	var tree := get_tree()
@@ -129,6 +149,7 @@ func _apply_display_settings(state: Dictionary) -> void:
 	_apply_count += 1
 	_apply_window_settings(effective_settings)
 	_apply_quality_settings(effective_settings)
+	_apply_post_process_settings(effective_settings)
 
 func _build_effective_settings(state: Dictionary) -> Dictionary:
 	var settings: Dictionary = {}
@@ -156,6 +177,93 @@ func _apply_quality_settings(display_settings: Dictionary) -> void:
 	var state := {"display": display_settings}
 	var preset := U_DISPLAY_SELECTORS.get_quality_preset(state)
 	apply_quality_preset(preset)
+
+func _apply_post_process_settings(display_settings: Dictionary) -> void:
+	if not _ensure_post_process_layer():
+		return
+	var state := {"display": display_settings}
+	_apply_film_grain_settings(state)
+	_apply_outline_settings(state)
+	_apply_dither_settings(state)
+	_apply_lut_settings(state)
+
+func _apply_film_grain_settings(state: Dictionary) -> void:
+	var enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state)
+	_film_grain_active = enabled
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN, enabled)
+	var intensity := U_DISPLAY_SELECTORS.get_film_grain_intensity(state)
+	_post_process_layer.set_effect_parameter(
+		U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN,
+		StringName("intensity"),
+		intensity
+	)
+
+func _apply_outline_settings(state: Dictionary) -> void:
+	var enabled := U_DISPLAY_SELECTORS.is_outline_enabled(state)
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_OUTLINE, enabled)
+	var thickness := U_DISPLAY_SELECTORS.get_outline_thickness(state)
+	var outline_color := _parse_outline_color(U_DISPLAY_SELECTORS.get_outline_color(state))
+	_post_process_layer.set_effect_parameter(
+		U_POST_PROCESS_LAYER.EFFECT_OUTLINE,
+		StringName("thickness"),
+		thickness
+	)
+	_post_process_layer.set_effect_parameter(
+		U_POST_PROCESS_LAYER.EFFECT_OUTLINE,
+		StringName("outline_color"),
+		outline_color
+	)
+
+func _apply_dither_settings(state: Dictionary) -> void:
+	var enabled := U_DISPLAY_SELECTORS.is_dither_enabled(state)
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_DITHER, enabled)
+	var intensity := U_DISPLAY_SELECTORS.get_dither_intensity(state)
+	var pattern := U_DISPLAY_SELECTORS.get_dither_pattern(state)
+	var pattern_mode := 0
+	match pattern:
+		"bayer":
+			pattern_mode = 0
+		"noise":
+			pattern_mode = 1
+		_:
+			pattern_mode = 0
+	_post_process_layer.set_effect_parameter(
+		U_POST_PROCESS_LAYER.EFFECT_DITHER,
+		StringName("intensity"),
+		intensity
+	)
+	_post_process_layer.set_effect_parameter(
+		U_POST_PROCESS_LAYER.EFFECT_DITHER,
+		StringName("pattern_mode"),
+		pattern_mode
+	)
+
+func _apply_lut_settings(state: Dictionary) -> void:
+	var enabled := U_DISPLAY_SELECTORS.is_lut_enabled(state)
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_LUT, enabled)
+	var intensity := U_DISPLAY_SELECTORS.get_lut_intensity(state)
+	_post_process_layer.set_effect_parameter(
+		U_POST_PROCESS_LAYER.EFFECT_LUT,
+		StringName("intensity"),
+		intensity
+	)
+
+	var lut_path := U_DISPLAY_SELECTORS.get_lut_resource(state)
+	if lut_path.is_empty():
+		return
+	var resource: Resource = load(lut_path)
+	if resource == null or not (resource is RS_LUT_DEFINITION):
+		push_warning("M_DisplayManager: Invalid LUT resource '%s'" % lut_path)
+		return
+	var definition := resource as RS_LUT_DEFINITION
+	if definition.texture == null:
+		push_warning("M_DisplayManager: LUT texture missing for '%s'" % lut_path)
+		return
+	_post_process_layer.set_effect_parameter(
+		U_POST_PROCESS_LAYER.EFFECT_LUT,
+		StringName("lut_texture"),
+		definition.texture
+	)
 
 func apply_window_size_preset(preset: String) -> void:
 	if not WINDOW_PRESETS.has(preset):
@@ -296,3 +404,69 @@ func _get_display_hash(state: Dictionary) -> int:
 	if slice is Dictionary:
 		return (slice as Dictionary).hash()
 	return 0
+
+func _ensure_post_process_layer() -> bool:
+	if _post_process_layer != null:
+		return true
+	_setup_post_process_overlay()
+	return _post_process_layer != null
+
+func _setup_post_process_overlay() -> void:
+	if _post_process_overlay != null and is_instance_valid(_post_process_overlay):
+		_post_process_layer = U_POST_PROCESS_LAYER.new()
+		_post_process_layer.initialize(_post_process_overlay)
+		return
+
+	var tree := get_tree()
+	if tree != null:
+		var existing := tree.root.find_child("PostProcessOverlay", true, false)
+		if existing is CanvasLayer:
+			_post_process_overlay = existing
+		elif existing != null:
+			push_warning("M_DisplayManager: PostProcessOverlay found but is not a CanvasLayer")
+
+	if _post_process_overlay == null:
+		var overlay_scene: PackedScene = POST_PROCESS_OVERLAY_SCENE
+		if overlay_scene == null:
+			push_error("M_DisplayManager: Failed to load post-process overlay scene")
+			return
+		var overlay_instance := overlay_scene.instantiate()
+		if overlay_instance is CanvasLayer:
+			_post_process_overlay = overlay_instance
+			add_child(_post_process_overlay)
+		else:
+			push_error("M_DisplayManager: Post-process overlay root is not a CanvasLayer")
+			return
+
+	_post_process_layer = U_POST_PROCESS_LAYER.new()
+	_post_process_layer.initialize(_post_process_overlay)
+
+func _parse_outline_color(hex_value: String) -> Color:
+	var value := hex_value.strip_edges()
+	if value.is_empty():
+		return Color(0, 0, 0, 1)
+	if value.begins_with("#"):
+		value = value.substr(1)
+	if value.length() != 6 and value.length() != 8:
+		return Color(0, 0, 0, 1)
+	if not _is_hex_string(value):
+		return Color(0, 0, 0, 1)
+
+	var r: int = value.substr(0, 2).hex_to_int()
+	var g: int = value.substr(2, 2).hex_to_int()
+	var b: int = value.substr(4, 2).hex_to_int()
+	var a: int = 255
+	if value.length() == 8:
+		a = value.substr(6, 2).hex_to_int()
+	return Color8(r, g, b, a)
+
+func _is_hex_string(value: String) -> bool:
+	var length := value.length()
+	for i in length:
+		var code := value.unicode_at(i)
+		var is_digit := code >= 48 and code <= 57
+		var is_upper := code >= 65 and code <= 70
+		var is_lower := code >= 97 and code <= 102
+		if not (is_digit or is_upper or is_lower):
+			return false
+	return true
