@@ -4,6 +4,7 @@ extends GutTest
 
 const M_DISPLAY_MANAGER := preload("res://scripts/managers/m_display_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
+const I_DISPLAY_MANAGER := preload("res://scripts/interfaces/i_display_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
 var _manager: Node
@@ -23,7 +24,7 @@ func test_manager_extends_interface() -> void:
 	_manager = M_DISPLAY_MANAGER.new()
 	add_child_autofree(_manager)
 
-	assert_true(_manager is I_DisplayManager, "M_DisplayManager should extend I_DisplayManager")
+	assert_true(_manager is I_DISPLAY_MANAGER, "M_DisplayManager should extend I_DisplayManager")
 
 func test_manager_added_to_group() -> void:
 	_manager = M_DISPLAY_MANAGER.new()
