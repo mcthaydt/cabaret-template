@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 3A Complete (Post-Process Overlay & Helper)
+**Current Phase:** Phase 3B Complete (Shaders)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented.
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, outline, dither, LUT), LUT resources added, and overlay wired with shader materials.
 
-**Ready to begin Phase 3B: Shaders**
+**Ready to begin Phase 3C: Manager Integration**
 
 ---
 
@@ -46,18 +46,20 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 3A.1: Post-process helper tests created
 - [x] Task 3A.2: U_PostProcessLayer helper implemented
 - [x] Task 3A.3: Post-process overlay scene created
+- [x] Task 3B.1: Film Grain shader created
+- [x] Task 3B.2: Outline shader created
+- [x] Task 3B.3: Dither shader + Bayer texture created
+- [x] Task 3B.4: LUT shader + LUT resources created
+- [x] Task 3B.5: Overlay wired with shader materials
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 3B - Shaders
+### Immediate: Phase 3C - Manager Integration
 
-1. **Task 3B.1**: Create Film Grain shader
-2. **Task 3B.2**: Create Outline shader
-3. **Task 3B.3**: Create Dither shader + Bayer texture
-4. **Task 3B.4**: Create LUT shader + default LUT resources
-5. **Task 3B.5**: Wire shaders to overlay scene
+1. **Task 3C.1**: Integrate post-process overlay with manager
+2. **Task 3C.2**: Add time update for film grain
 
 ---
 

@@ -651,10 +651,10 @@ func apply_quality_preset(preset: String) -> void:
 **Scene Structure** (`ui_post_process_overlay.tscn`):
 ```
 CanvasLayer (layer 100, mouse_filter IGNORE)
-├── FilmGrainRect (ColorRect, full screen, sh_film_grain.gdshader)
-├── OutlineRect (ColorRect, full screen, sh_outline.gdshader)
-├── DitherRect (ColorRect, full screen, sh_dither.gdshader)
-└── LUTRect (ColorRect, full screen, sh_lut.gdshader)
+├── FilmGrainRect (ColorRect, full screen, sh_film_grain_shader.gdshader)
+├── OutlineRect (ColorRect, full screen, sh_outline_shader.gdshader)
+├── DitherRect (ColorRect, full screen, sh_dither_shader.gdshader)
+└── LUTRect (ColorRect, full screen, sh_lut_shader.gdshader)
 ```
 
 **Effect Stack Management**:
@@ -697,7 +697,7 @@ func set_effect_parameter(effect_name: String, param: String, value: Variant) ->
 ### Commit 2: Film Grain Shader
 
 **Files to create**:
-- `assets/shaders/sh_film_grain.gdshader`
+- `assets/shaders/sh_film_grain_shader.gdshader`
 
 **Shader** (simplified):
 ```glsl
@@ -723,7 +723,7 @@ void fragment() {
 ### Commit 3: Outline Shader
 
 **Files to create**:
-- `assets/shaders/sh_outline.gdshader`
+- `assets/shaders/sh_outline_shader.gdshader`
 
 **Sobel Edge Detection**:
 ```glsl
@@ -745,7 +745,7 @@ void fragment() {
 ### Commit 4: Dither Shader
 
 **Files to create**:
-- `assets/shaders/sh_dither.gdshader`
+- `assets/shaders/sh_dither_shader.gdshader`
 - `resources/textures/tex_bayer_8x8.png`
 
 ---
@@ -753,10 +753,14 @@ void fragment() {
 ### Commit 5: LUT Color Grading Shader
 
 **Files to create**:
-- `assets/shaders/sh_lut.gdshader`
+- `assets/shaders/sh_lut_shader.gdshader`
+- `scripts/resources/display/rs_lut_definition.gd`
 - `resources/luts/cfg_lut_neutral.tres` (identity LUT)
 - `resources/luts/cfg_lut_warm.tres`
 - `resources/luts/cfg_lut_cool.tres`
+- `resources/luts/tex_lut_neutral.png`
+- `resources/luts/tex_lut_warm.png`
+- `resources/luts/tex_lut_cool.png`
 
 ---
 
@@ -1108,6 +1112,7 @@ scripts/resources/state/
 
 scripts/resources/display/
   rs_quality_preset.gd              # Quality preset resource class
+  rs_lut_definition.gd              # LUT definition resource class
 
 scripts/resources/ui/
   rs_ui_color_palette.gd            # Color palette resource class
@@ -1125,10 +1130,10 @@ scripts/ui/settings/
   ui_display_settings_tab.gd        # Settings UI controller
 
 assets/shaders/
-  sh_film_grain.gdshader
-  sh_outline.gdshader
-  sh_dither.gdshader
-  sh_lut.gdshader
+  sh_film_grain_shader.gdshader
+  sh_outline_shader.gdshader
+  sh_dither_shader.gdshader
+  sh_lut_shader.gdshader
   sh_colorblind_daltonize.gdshader
 
 resources/base_settings/state/
@@ -1151,6 +1156,9 @@ resources/luts/
   cfg_lut_neutral.tres
   cfg_lut_warm.tres
   cfg_lut_cool.tres
+  tex_lut_neutral.png
+  tex_lut_warm.png
+  tex_lut_cool.png
 
 resources/textures/
   tex_bayer_8x8.png                  # Bayer dither pattern

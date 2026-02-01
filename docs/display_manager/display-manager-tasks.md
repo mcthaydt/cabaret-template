@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 29% (22 / 76 tasks complete)
+**Progress:** 36% (27 / 76 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -336,29 +336,34 @@ Before starting Phase 0, verify:
 
 ### Phase 3B: Shaders
 
-- [ ] **Task 3B.1**: Create Film Grain shader
-  - Create `assets/shaders/sh_film_grain.gdshader`
-  - Uniforms: `intensity` (0.0-1.0), `time`
-  - Noise-based grain effect
+- [x] **Task 3B.1**: Create Film Grain shader
+  - Create `assets/shaders/sh_film_grain_shader.gdshader`
+  - Uniforms: `intensity` (0.0-1.0), `grain_scale`
+  - Noise-based grain effect (uses `TIME` for animation)
+  - Notes: Completed 2026-02-01
 
-- [ ] **Task 3B.2**: Create Outline shader
-  - Create `assets/shaders/sh_outline.gdshader`
-  - Uniforms: `thickness` (1-5), `outline_color`
+- [x] **Task 3B.2**: Create Outline shader
+  - Create `assets/shaders/sh_outline_shader.gdshader`
+  - Uniforms: `thickness` (1-5), `outline_color`, `edge_threshold`
   - Sobel edge detection
+  - Notes: Completed 2026-02-01
 
-- [ ] **Task 3B.3**: Create Dither shader
-  - Create `assets/shaders/sh_dither.gdshader`
-  - Uniforms: `intensity` (0.0-1.0), `pattern` (0=bayer, 1=noise)
+- [x] **Task 3B.3**: Create Dither shader
+  - Create `assets/shaders/sh_dither_shader.gdshader`
+  - Uniforms: `intensity` (0.0-1.0), `pattern_mode` (0=bayer, 1=noise), `levels`
   - Create `resources/textures/tex_bayer_8x8.png`
+  - Notes: Completed 2026-02-01
 
-- [ ] **Task 3B.4**: Create LUT shader
-  - Create `assets/shaders/sh_lut.gdshader`
+- [x] **Task 3B.4**: Create LUT shader
+  - Create `assets/shaders/sh_lut_shader.gdshader`
   - Uniforms: `lut_texture`, `intensity` (0.0-1.0)
-  - Create default LUT resources in `resources/luts/`
+  - Create LUT definitions + textures in `resources/luts/`
+  - Notes: Completed 2026-02-01 (added `rs_lut_definition.gd`, cfg/tex LUT assets)
 
-- [ ] **Task 3B.5**: Wire shaders to overlay scene
+- [x] **Task 3B.5**: Wire shaders to overlay scene
   - Assign shader materials to each ColorRect
-  - Add shader materials to each effect rect
+  - Add shader materials + default parameters to each effect rect
+  - Notes: Completed 2026-02-01
 
 ---
 
@@ -634,6 +639,7 @@ Before starting Phase 0, verify:
 | `scripts/managers/helpers/u_palette_manager.gd` | Helper | Color blind palette management |
 | `scripts/utils/display/u_display_utils.gd` | Utility | Display manager lookup helper |
 | `scripts/resources/display/rs_quality_preset.gd` | Resource | Quality preset definition |
+| `scripts/resources/display/rs_lut_definition.gd` | Resource | LUT definition |
 | `scripts/resources/ui/rs_ui_color_palette.gd` | Resource | Color palette definition |
 | `resources/display/cfg_quality_presets/cfg_quality_low.tres` | Instance | Low quality preset |
 | `resources/display/cfg_quality_presets/cfg_quality_medium.tres` | Instance | Medium quality preset |
@@ -644,12 +650,18 @@ Before starting Phase 0, verify:
 | `resources/ui_themes/cfg_palette_protanopia.tres` | Instance | Protanopia palette |
 | `resources/ui_themes/cfg_palette_tritanopia.tres` | Instance | Tritanopia palette |
 | `resources/ui_themes/cfg_palette_high_contrast.tres` | Instance | High contrast palette |
-| `assets/shaders/sh_film_grain.gdshader` | Shader | Film grain effect |
-| `assets/shaders/sh_outline.gdshader` | Shader | Outline effect |
-| `assets/shaders/sh_dither.gdshader` | Shader | Dither effect |
-| `assets/shaders/sh_lut.gdshader` | Shader | LUT color grading |
+| `assets/shaders/sh_film_grain_shader.gdshader` | Shader | Film grain effect |
+| `assets/shaders/sh_outline_shader.gdshader` | Shader | Outline effect |
+| `assets/shaders/sh_dither_shader.gdshader` | Shader | Dither effect |
+| `assets/shaders/sh_lut_shader.gdshader` | Shader | LUT color grading |
 | `assets/shaders/sh_colorblind_daltonize.gdshader` | Shader | Color blind simulation |
 | `resources/textures/tex_bayer_8x8.png` | Texture | Bayer dither pattern |
+| `resources/luts/cfg_lut_neutral.tres` | Instance | Neutral LUT definition |
+| `resources/luts/cfg_lut_warm.tres` | Instance | Warm LUT definition |
+| `resources/luts/cfg_lut_cool.tres` | Instance | Cool LUT definition |
+| `resources/luts/tex_lut_neutral.png` | Texture | Neutral LUT texture |
+| `resources/luts/tex_lut_warm.png` | Texture | Warm LUT texture |
+| `resources/luts/tex_lut_cool.png` | Texture | Cool LUT texture |
 | `scenes/ui/overlays/ui_post_process_overlay.tscn` | Scene | Post-process overlay (layer 100) |
 | `scenes/ui/overlays/ui_display_settings_tab.tscn` | Scene | Display settings UI tab |
 | `scripts/ui/settings/ui_display_settings_tab.gd` | UI | Display settings controller |

@@ -305,6 +305,7 @@ scripts/resources/state/
 
 scripts/resources/display/
   rs_quality_preset.gd              # Quality preset resource class
+  rs_lut_definition.gd              # LUT definition resource class
 
 scripts/resources/ui/
   rs_ui_color_palette.gd            # Color palette resource class
@@ -319,13 +320,15 @@ scripts/state/selectors/
   u_display_selectors.gd
 
 assets/shaders/
-  sh_film_grain.gdshader
-  sh_outline.gdshader
-  sh_dither.gdshader
-  sh_lut.gdshader
+  sh_film_grain_shader.gdshader
+  sh_outline_shader.gdshader
+  sh_dither_shader.gdshader
+  sh_lut_shader.gdshader
+
+resources/base_settings/state/
+  cfg_display_initial_state.tres    # Default display settings instance
 
 resources/display/
-  cfg_display_defaults.tres         # Default display settings
   cfg_quality_presets/              # Quality preset configurations
     cfg_quality_low.tres
     cfg_quality_medium.tres
@@ -338,6 +341,17 @@ resources/ui_themes/
   cfg_palette_protanopia.tres
   cfg_palette_tritanopia.tres
   cfg_palette_high_contrast.tres
+
+resources/luts/
+  cfg_lut_neutral.tres
+  cfg_lut_warm.tres
+  cfg_lut_cool.tres
+  tex_lut_neutral.png
+  tex_lut_warm.png
+  tex_lut_cool.png
+
+resources/textures/
+  tex_bayer_8x8.png
 
 scenes/ui/overlays/
   ui_post_process_overlay.tscn      # CanvasLayer with effect ColorRects
@@ -412,7 +426,7 @@ store.dispatch(U_DisplayActions.set_outline_color("000000"))
 store.dispatch(U_DisplayActions.set_dither_enabled(true))
 store.dispatch(U_DisplayActions.set_dither_pattern("bayer"))
 store.dispatch(U_DisplayActions.set_lut_enabled(true))
-store.dispatch(U_DisplayActions.set_lut_resource("res://resources/luts/warm.tres"))
+store.dispatch(U_DisplayActions.set_lut_resource("res://resources/luts/cfg_lut_warm.tres"))
 store.dispatch(U_DisplayActions.set_lut_intensity(0.8))
 # UI
 store.dispatch(U_DisplayActions.set_ui_scale(1.2))
@@ -573,7 +587,7 @@ Common mistakes to avoid:
 | Color blind implementation | Theme Resources (RS_UIColorPalette) for precise control |
 | Post-process architecture | CanvasLayer + ColorRect + shader (not Compositor) |
 | Post-process order | Fixed internally (not user-configurable) |
-| Shader location | `assets/shaders/` with `sh_` prefix |
+| Shader location | `assets/shaders/` with `sh_` prefix + `_shader` suffix |
 | Viewport resolution | Fixed 960x600 internal, window presets scale output |
 | UI scale range | 0.5x - 2.0x with 0.1 step |
 | Quality preset levels | Low, Medium, High, Ultra |
