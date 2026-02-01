@@ -177,7 +177,7 @@ func test_set_window_mode_borderless_calls_display_server() -> void:
 	manager.set_window_mode("borderless")
 	await get_tree().process_frame
 
-	assert_eq(DisplayServer.window_get_mode(), DisplayServer.WINDOW_MODE_FULLSCREEN, "Borderless mode should use fullscreen window mode")
+	assert_eq(DisplayServer.window_get_mode(), DisplayServer.WINDOW_MODE_WINDOWED, "Borderless mode should use windowed mode")
 	assert_true(
 		DisplayServer.window_get_flag(DisplayServer.WINDOW_FLAG_BORDERLESS),
 		"Borderless mode should enable borderless flag"

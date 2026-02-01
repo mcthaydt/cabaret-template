@@ -145,7 +145,6 @@ func _apply_window_settings(display_settings: Dictionary) -> void:
 
 func apply_window_size_preset(preset: String) -> void:
 	if not WINDOW_PRESETS.has(preset):
-		push_warning("M_DisplayManager: Invalid window preset '%s'" % preset)
 		return
 	if not _is_display_server_available():
 		return
@@ -183,9 +182,13 @@ func _set_window_mode_now(mode: String) -> void:
 	match mode:
 		"fullscreen":
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 		"borderless":
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+			var screen_size := DisplayServer.screen_get_size()
+			DisplayServer.window_set_size(screen_size)
+			DisplayServer.window_set_position(Vector2i.ZERO)
 		"windowed":
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
