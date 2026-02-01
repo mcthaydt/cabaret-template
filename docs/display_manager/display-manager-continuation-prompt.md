@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 3C Complete (Post-Process Manager Integration)
+**Current Phase:** Phase 4 Complete (UI Scaling)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, outline, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates).
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, outline, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + ui_scalable group wiring; applies to CanvasLayer/Control roots and handles newly added UI nodes).
 
-**Ready to begin Phase 4: UI Scaling**
+**Ready to begin Phase 5: Color Blind Accessibility**
 
 ---
 
@@ -53,16 +53,19 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 3B.5: Overlay wired with shader materials
 - [x] Task 3C.1: Post-process overlay integration in M_DisplayManager
 - [x] Task 3C.2: Film grain time update wired in _process()
+- [x] Task 4.1: UI scale application tests created
+- [x] Task 4.2: UI scale application implemented in M_DisplayManager
+- [x] Task 4.3: UI scenes added to ui_scalable group
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 4 - UI Scaling
+### Immediate: Phase 5 - Color Blind Accessibility
 
-1. **Task 4.1**: Write tests for UI scale application
-2. **Task 4.2**: Implement UI scale application
-3. **Task 4.3**: Add UI layers to scalable group
+1. **Task 5A**: Color palette resource + tests
+2. **Task 5B**: Palette manager helper + tests
+3. **Task 5C**: Color blind shader (optional)
 
 ---
 

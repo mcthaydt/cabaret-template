@@ -385,20 +385,23 @@ Before starting Phase 0, verify:
 
 **Exit Criteria:** UI scale slider affects all UI elements proportionally (0.5x-2.0x)
 
-- [ ] **Task 4.1 (Red)**: Write tests for UI scale application
+- [x] **Task 4.1 (Red)**: Write tests for UI scale application
   - Test `set_ui_scale()` clamps to valid range
   - Test `set_ui_scale()` applies to CanvasLayers in group
   - **Target: 3 tests**
+  - Notes: Completed 2026-02-01
 
-- [ ] **Task 4.2 (Green)**: Implement UI scale application
+- [x] **Task 4.2 (Green)**: Implement UI scale application
   - Implement `set_ui_scale(scale)` in M_DisplayManager
   - Query nodes in "ui_scalable" group
   - Apply transform scale to CanvasLayers
+  - Notes: Completed 2026-02-01 (clamps scale + applies to CanvasLayer/Control group roots)
 
-- [ ] **Task 4.3**: Add UI layers to scalable group
+- [x] **Task 4.3**: Add UI layers to scalable group
   - Add "ui_scalable" group to menu CanvasLayers
   - Add "ui_scalable" group to overlay CanvasLayers
   - Add "ui_scalable" group to HUD CanvasLayers
+  - Notes: Completed 2026-02-01 (menus/overlays/HUD roots tagged)
 
 ---
 
