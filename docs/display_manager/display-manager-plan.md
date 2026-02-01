@@ -404,7 +404,7 @@ func set_display_settings_preview(_settings: Dictionary) -> void:
 func clear_display_settings_preview() -> void:
     push_error("I_DisplayManager.clear_display_settings_preview not implemented")
 
-func get_active_palette() -> RS_UIColorPalette:
+func get_active_palette() -> Resource:
     push_error("I_DisplayManager.get_active_palette not implemented")
     return null
 ```

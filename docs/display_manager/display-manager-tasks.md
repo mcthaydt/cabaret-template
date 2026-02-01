@@ -183,12 +183,13 @@ Before starting Phase 0, verify:
 
 ### Phase 1A: Interface Definition
 
-- [ ] **Task 1A.1**: Create I_DisplayManager interface
+- [x] **Task 1A.1**: Create I_DisplayManager interface
   - Create `scripts/interfaces/i_display_manager.gd`
   - Define `set_display_settings_preview(settings: Dictionary) -> void`
   - Define `clear_display_settings_preview() -> void`
-  - Define `get_active_palette() -> RS_UIColorPalette`
+  - Define `get_active_palette() -> Resource`
   - All methods push_error for unimplemented
+  - Notes: Completed 2026-02-01 (created `scripts/interfaces/i_display_manager.gd`, palette returns Resource to avoid headless class cache issues)
 
 ---
 

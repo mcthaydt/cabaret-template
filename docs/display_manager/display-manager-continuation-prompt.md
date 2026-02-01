@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 0 Complete (Redux Foundation)
+**Current Phase:** Phase 1A Complete (Interface Definition)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root.
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added.
 
-**Ready to begin Phase 1: Interface & Core Manager**
+**Ready to begin Phase 1B: Manager Scaffolding**
 
 ---
 
@@ -33,16 +33,21 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 0D.3: Display slice integrated with M_StateStore + root
 - [x] Task 0D.4: Display actions registered with U_ActionRegistry
 - [x] Task 0D.5: Integration verified via state + display test suite
+- [x] Task 1A.1: I_DisplayManager interface created
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 1A - Interface Definition
+### Immediate: Phase 1B - Manager Scaffolding
 
-1. **Task 1A.1**: Create I_DisplayManager interface
-   - Create `scripts/interfaces/i_display_manager.gd`
-   - Define preview methods + palette getter (push_error stubs)
+1. **Task 1B.1 (Red)**: Write tests for M_DisplayManager lifecycle
+   - Create `tests/unit/managers/test_display_manager.gd`
+   - 11 tests covering lifecycle, hashing, preview mode
+
+2. **Task 1B.2 (Green)**: Implement M_DisplayManager scaffold
+   - Create `scripts/managers/m_display_manager.gd`
+   - Add state store DI + preview handling + hash updates
 
 ---
 
@@ -183,7 +188,7 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 - [x] 0D: Display Selectors & Store Integration (19 tests)
 
 ### Phase 1: Interface & Core Manager
-- [ ] 1A: Interface Definition
+- [x] 1A: Interface Definition
 - [ ] 1B: Manager Scaffolding (11 tests)
 
 ### Phase 2: Display/Graphics Settings
