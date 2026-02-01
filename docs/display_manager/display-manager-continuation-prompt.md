@@ -215,11 +215,11 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 
 ### Phase 3: Post-Processing System
 - [x] 3A: Post-Process Overlay & Helper (8 tests)
-- [ ] 3B: Shaders (4 shaders)
-- [ ] 3C: Manager Integration
+- [x] 3B: Shaders (4 shaders)
+- [x] 3C: Manager Integration
 
 ### Phase 4: UI Scaling
-- [ ] UI scale application (3 tests)
+- [x] UI scale application (3 tests)
 
 ### Phase 5: Color Blind Accessibility
 - [ ] 5A: Color Palette Resource (5 tests)

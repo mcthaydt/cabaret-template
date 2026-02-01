@@ -868,6 +868,148 @@ func _on_load_pressed():
 - ❌ Spawning >16 simultaneous SFX without voice stealing (pool will exhaust)
 - ❌ Bypassing throttle_ms for rapid UI sounds (causes audio spam)
 
+## Display Manager Patterns (Phase 4 Complete)
+
+### Overview
+
+M_DisplayManager handles window settings, post-processing effects, UI scaling, and accessibility features. It follows the same hash-based optimization and preview mode patterns as M_AudioManager.
+
+### Hash-Based Change Detection
+
+Same pattern as audio manager - only applies settings when display slice hash changes:
+
+```gdscript
+var _last_display_hash: int = 0
+var _display_settings_preview_active: bool = false
+
+func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
+    if slice_name != &"display" or _display_settings_preview_active:
+        return
+    var state := state_store.get_state()
+    var display_slice: Dictionary = state.get("display", {})
+    var display_hash := display_slice.hash()
+    if display_hash != _last_display_hash:
+        _apply_display_settings(state)
+        _last_display_hash = display_hash
+```
+
+### Preview Mode
+
+Temporary overrides for settings UI (real-time preview without persisting):
+
+```gdscript
+# Push preview
+display_manager.set_display_settings_preview({
+    "film_grain_enabled": true,
+    "film_grain_intensity": 0.3
+})
+
+# Clear preview (restores persisted state)
+display_manager.clear_display_settings_preview()
+```
+
+### ServiceLocator Registration
+
+Access display manager via ServiceLocator:
+
+```gdscript
+var display_manager := U_ServiceLocator.get_service(StringName("display_manager")) as I_DisplayManager
+# Or use helper
+var display_manager := U_DisplayUtils.get_display_manager()
+```
+
+### Post-Process Overlay (Layer 100)
+
+Post-processing effects render via `ui_post_process_overlay.tscn`:
+- **CanvasLayer**: Layer 100 (above gameplay at 0, below UI overlays)
+- **Effects**: FilmGrainRect, OutlineRect, DitherRect, LUTRect
+- **Shaders**: Each rect has a ShaderMaterial with configurable uniforms
+- **Time Updates**: Film grain shader receives `TIME` updates in `_process()`
+
+### UI Scaling
+
+Group-based scaling for consistent UI size adjustment:
+
+```gdscript
+# M_DisplayManager queries "ui_scalable" group
+func set_ui_scale(scale: float) -> void:
+    scale = clampf(scale, 0.5, 2.0)
+    for node in get_tree().get_nodes_in_group(&"ui_scalable"):
+        if _is_group_root(node):  # Prevent nested scaling
+            if node is CanvasLayer:
+                node.transform = Transform2D().scaled(Vector2(scale, scale))
+            elif node is Control:
+                node.scale = Vector2(scale, scale)
+```
+
+**Group membership rules:**
+- ✅ Add "ui_scalable" to menu/overlay/HUD root CanvasLayers
+- ❌ Do NOT add to post-process overlay (layer 100, not UI)
+- ❌ Do NOT add to nested widgets (inherit scaling from parents)
+
+### Display Slice State Shape
+
+```gdscript
+{
+    "display": {
+        # Graphics
+        "window_size_preset": "1920x1080",  # Valid: 1280x720, 1600x900, 1920x1080, 2560x1440, 3840x2160
+        "window_mode": "windowed",          # Valid: windowed, fullscreen, borderless
+        "vsync_enabled": true,
+        "quality_preset": "high",           # Valid: low, medium, high, ultra
+
+        # Post-Processing
+        "film_grain_enabled": false,
+        "film_grain_intensity": 0.1,        # Clamped: 0.0-1.0
+        "outline_enabled": false,
+        "outline_thickness": 2,             # Clamped: 1-5
+        "outline_color": "000000",
+        "dither_enabled": false,
+        "dither_intensity": 0.5,            # Clamped: 0.0-1.0
+        "dither_pattern": "bayer",          # Valid: bayer, noise
+        "lut_enabled": false,
+        "lut_resource": "",
+        "lut_intensity": 1.0,               # Clamped: 0.0-1.0
+
+        # UI
+        "ui_scale": 1.0,                    # Clamped: 0.5-2.0
+
+        # Accessibility
+        "color_blind_mode": "normal",       # Valid: normal, deuteranopia, protanopia, tritanopia
+        "high_contrast_enabled": false,
+        "color_blind_shader_enabled": false,
+    }
+}
+```
+
+### Thread Safety
+
+DisplayServer calls must be deferred for thread safety:
+
+```gdscript
+func set_window_mode(mode: String) -> void:
+    call_deferred("_apply_window_mode", mode)
+
+func _apply_window_mode(mode: String) -> void:
+    match mode:
+        "fullscreen":
+            DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+        "borderless":
+            DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+            DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+        _:  # windowed
+            DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+```
+
+### Anti-Patterns
+
+- ❌ Mutating DisplayServer from non-main thread (use `call_deferred()`)
+- ❌ Applying settings without hash check (causes redundant DisplayServer calls)
+- ❌ Adding post-process overlay to "ui_scalable" group (it's not UI)
+- ❌ Adding nested widgets to "ui_scalable" group (causes compounding scale)
+- ❌ Using instant/sync applies during preview mode (blocks preview hash)
+- ❌ Relying on display settings auto-save (unlike audio, display uses M_SaveManager)
+
 ## Test Commands
 
 - Run ECS tests
@@ -889,7 +1031,7 @@ func _on_load_pressed():
   - In `process_tick()`: no await needed (store already registered).
 - Access managers via ServiceLocator (Phase 10B-7: T141)
   - Use `U_ServiceLocator.get_service(StringName("service_name"))` for fast, centralized manager access.
-  - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`.
+  - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`, `"display_manager"`.
   - ServiceLocator provides O(1) Dictionary lookup vs O(n) tree traversal of group lookups.
   - All services are registered at startup in `root.tscn` via `root.gd`.
   - Fallback to group lookup is available for backward compatibility and test environments.

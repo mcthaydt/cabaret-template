@@ -1290,6 +1290,72 @@ ui_focus_next={
 }
 ```
 
+## Display Manager Pitfalls
+
+### DisplayServer Thread Safety
+
+**Problem**: Calling DisplayServer methods from non-main threads causes crashes or undefined behavior
+
+**Solution**: Always use `call_deferred()` for DisplayServer operations:
+```gdscript
+# ❌ WRONG - direct call may be from wrong thread
+func set_window_mode(mode: String) -> void:
+    DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+
+# ✅ CORRECT - deferred to main thread
+func set_window_mode(mode: String) -> void:
+    call_deferred("_apply_window_mode", mode)
+
+func _apply_window_mode(mode: String) -> void:
+    DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+```
+
+### UI Scale Transform Origin
+
+**Problem**: UI scaling via `Control.scale` or `CanvasLayer.transform` can cause UI elements to shift off-screen because scaling happens around the node's origin (top-left by default).
+
+**Solution**: When applying UI scale to Control nodes, ensure pivot is centered or adjust position to compensate:
+```gdscript
+# For CanvasLayer - no pivot issue, transform is applied uniformly
+canvas_layer.transform = Transform2D().scaled(Vector2(scale, scale))
+
+# For Control - may need pivot adjustment
+control.pivot_offset = control.size / 2  # Center pivot
+control.scale = Vector2(scale, scale)
+```
+
+**Why this matters**: At 2.0x scale, a Control anchored to top-left will expand rightward/downward, potentially pushing content off-screen. The group-based scaling in M_DisplayManager handles CanvasLayers and Control roots correctly, but custom UI scaling implementations must account for this.
+
+### Post-Process Layer Ordering
+
+**Problem**: Post-process effects rendering on wrong layer obscure UI or fail to affect gameplay
+
+**Solution**: Post-process overlay uses CanvasLayer at layer 100:
+- Gameplay renders at layer 0 (default)
+- Post-process effects render at layer 100 (above gameplay, below UI overlays)
+- UI overlays render at layer 128+ (settings, pause, etc.)
+
+**Do NOT add post-process overlay to "ui_scalable" group** - it's not UI and should not scale with UI settings.
+
+### Headless DisplayServer Limitations
+
+**Problem**: DisplayServer operations fail or behave unexpectedly in headless mode (CI, tests)
+
+**Solution**: Tests that verify DisplayServer calls should be marked pending in headless mode:
+```gdscript
+func test_window_mode_fullscreen() -> void:
+    if DisplayServer.get_name() == "headless":
+        pending("Skipped: DisplayServer unavailable in headless mode")
+        return
+    # ... test logic
+```
+
+**Affected operations**:
+- `DisplayServer.window_set_mode()` - window mode changes
+- `DisplayServer.window_set_size()` - window resizing
+- `DisplayServer.window_set_vsync_mode()` - vsync toggle
+- Viewport texture capture
+
 ## Style & Resource Hygiene
 
 - `.gd` files under `scripts/` (and the gameplay/unit tests that exercise them) must use tab indentation. The style suite (`tests/unit/style/test_style_enforcement.gd`) fails immediately on leading spaces, so run it before committing editor-authored changes.
