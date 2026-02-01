@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_LUTDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/display/rs_lut_definition.gd" id="1_lut_definition"]
+[ext_resource type="Texture2D" path="res://resources/luts/tex_lut_neutral.png" id="2_lut_texture"]
+
+[resource]
+script = ExtResource("1_lut_definition")
+lut_id = &"neutral"
+display_name = "Neutral"
+texture = ExtResource("2_lut_texture")
