@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 36% (27 / 76 tasks complete)
+**Progress:** 38% (29 / 76 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -369,13 +369,15 @@ Before starting Phase 0, verify:
 
 ### Phase 3C: Manager Integration
 
-- [ ] **Task 3C.1**: Integrate post-process overlay with manager
+- [x] **Task 3C.1**: Integrate post-process overlay with manager
   - M_DisplayManager instantiates/discovers overlay
   - Create U_PostProcessLayer instance
   - Wire `_apply_display_settings()` to effect toggles/parameters
+  - Notes: Completed 2026-02-01
 
-- [ ] **Task 3C.2**: Add time update for film grain
+- [x] **Task 3C.2**: Add time update for film grain
   - Pass engine time to film grain shader in `_process()`
+  - Notes: Completed 2026-02-01
 
 ---
 

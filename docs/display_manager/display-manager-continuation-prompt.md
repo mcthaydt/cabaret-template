@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 3B Complete (Shaders)
+**Current Phase:** Phase 3C Complete (Post-Process Manager Integration)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, outline, dither, LUT), LUT resources added, and overlay wired with shader materials.
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, outline, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates).
 
-**Ready to begin Phase 3C: Manager Integration**
+**Ready to begin Phase 4: UI Scaling**
 
 ---
 
@@ -51,15 +51,18 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 3B.3: Dither shader + Bayer texture created
 - [x] Task 3B.4: LUT shader + LUT resources created
 - [x] Task 3B.5: Overlay wired with shader materials
+- [x] Task 3C.1: Post-process overlay integration in M_DisplayManager
+- [x] Task 3C.2: Film grain time update wired in _process()
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 3C - Manager Integration
+### Immediate: Phase 4 - UI Scaling
 
-1. **Task 3C.1**: Integrate post-process overlay with manager
-2. **Task 3C.2**: Add time update for film grain
+1. **Task 4.1**: Write tests for UI scale application
+2. **Task 4.2**: Implement UI scale application
+3. **Task 4.3**: Add UI layers to scalable group
 
 ---
 
