@@ -257,7 +257,7 @@ Before starting Phase 0, verify:
 
 ### Phase 2A: Window Size & Mode
 
-- [ ] **Task 2A.1 (Red)**: Write tests for window operations
+- [x] **Task 2A.1 (Red)**: Write tests for window operations
   - Add tests to `test_display_manager.gd`
   - Test `apply_window_size_preset()` with valid preset
   - Test `apply_window_size_preset()` with invalid preset (no-op)
@@ -266,13 +266,15 @@ Before starting Phase 0, verify:
   - Test `set_window_mode("borderless")` calls DisplayServer
   - Test `set_vsync_enabled(true/false)` calls DisplayServer
   - **Target: 6 tests** (may require mocking DisplayServer in tests)
+  - Notes: Completed 2026-02-01 (6 tests added; pending in headless DisplayServer)
 
-- [ ] **Task 2A.2 (Green)**: Implement window operations
+- [x] **Task 2A.2 (Green)**: Implement window operations
   - Add `WINDOW_PRESETS` dictionary (preset string -> Vector2i)
   - Implement `apply_window_size_preset(preset)`
   - Implement `set_window_mode(mode)`
   - Implement `set_vsync_enabled(enabled)`
   - Call deferred for thread safety
+  - Notes: Completed 2026-02-01 (implemented in `scripts/managers/m_display_manager.gd`)
 
 ---
 

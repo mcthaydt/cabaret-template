@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 1B Complete (Manager Scaffolding)
+**Current Phase:** Phase 2A Complete (Window Size & Mode)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root.
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless).
 
-**Ready to begin Phase 2A: Window Size & Mode**
+**Ready to begin Phase 2B: Quality Presets**
 
 ---
 
@@ -38,20 +38,20 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 1B.2: M_DisplayManager scaffold implemented
 - [x] Task 1B.3: M_DisplayManager added to root + ServiceLocator registration
 - [x] Task 1B.4: U_DisplayUtils helper created
+- [x] Task 2A.1: Window operation tests added (DisplayServer calls, headless pending)
+- [x] Task 2A.2: Window operations implemented (presets, mode, vsync)
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 2A - Window Size & Mode
+### Immediate: Phase 2B - Quality Presets
 
-1. **Task 2A.1 (Red)**: Write tests for window operations
-   - Add tests to `test_display_manager.gd`
-   - Validate window preset + mode application calls DisplayServer
+1. **Task 2B.1**: Create RS_QualityPreset resource
+   - Add `scripts/resources/display/rs_quality_preset.gd`
 
-2. **Task 2A.2 (Green)**: Implement window operations
-   - Add `WINDOW_PRESETS` dictionary
-   - Implement `apply_window_size_preset`, `set_window_mode`, `set_vsync_enabled`
+2. **Task 2B.2**: Create quality preset instances
+   - Add `resources/display/cfg_quality_presets/` entries
 
 ---
 
@@ -196,7 +196,7 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 - [x] 1B: Manager Scaffolding (Tasks 1B.1-1B.4 complete)
 
 ### Phase 2: Display/Graphics Settings
-- [ ] 2A: Window Size & Mode
+- [x] 2A: Window Size & Mode
 - [ ] 2B: Quality Presets
 
 ### Phase 3: Post-Processing System
