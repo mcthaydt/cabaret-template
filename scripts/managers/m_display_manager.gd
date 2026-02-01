@@ -506,6 +506,7 @@ func _apply_ui_scale_to_node(node: Node, scale: float) -> void:
 	if node is Node2D:
 		var node_2d := node as Node2D
 		node_2d.scale = Vector2(scale, scale)
+		return
 
 func register_ui_scale_root(node: Node) -> void:
 	if node == null:

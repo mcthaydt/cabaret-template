@@ -4,3 +4,4 @@
 
 [resource]
 script = ExtResource("1_display_initial_state")
+ui_scale = 2.0

@@ -239,6 +239,8 @@ func save_to_slot(slot_id: StringName) -> Error:
 	var state: Dictionary = _state_store.get_persistable_state()
 	if state.has("audio"):
 		state.erase("audio")
+	if state.has("display"):
+		state.erase("display")
 
 	# Build header metadata
 	var header: Dictionary = _build_metadata(slot_id)
@@ -315,6 +317,8 @@ func load_from_slot(slot_id: StringName) -> Error:
 	var target_scene_id: StringName = validation_result["scene_id"]
 	if loaded_state.has("audio"):
 		loaded_state.erase("audio")
+	if loaded_state.has("display"):
+		loaded_state.erase("display")
 
 	# BUG FIX: Clear scene_stack from loaded state to prevent pausing on load
 	# Legacy saves may have scene_stack persisted (before it was marked transient)
