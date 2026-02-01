@@ -28,6 +28,7 @@
 [ext_resource type="Resource" uid="uid://dkk1esxpemcty" path="res://resources/state/cfg_default_audio_initial_state.tres" id="26_audio_state"]
 [ext_resource type="Resource" path="res://resources/base_settings/state/cfg_display_initial_state.tres" id="29_display_state"]
 [ext_resource type="Script" uid="uid://cvkyx46wvkak8" path="res://scripts/managers/m_audio_manager.gd" id="27_audio_manager"]
+[ext_resource type="Script" path="res://scripts/managers/m_display_manager.gd" id="30_display_manager"]
 [ext_resource type="Script" uid="uid://i7j2l0pc7frq" path="res://scripts/managers/m_screenshot_cache.gd" id="28_screenshot_cache"]
 
 [node name="Root" type="Node" unique_id=409084781]
@@ -70,6 +71,9 @@ script = ExtResource("25_vfx_manager")
 
 [node name="M_AudioManager" type="Node" parent="Managers" unique_id=666067318]
 script = ExtResource("27_audio_manager")
+
+[node name="M_DisplayManager" type="Node" parent="Managers"]
+script = ExtResource("30_display_manager")
 
 [node name="M_ScreenshotCache" type="Node" parent="Managers" unique_id=593113830]
 script = ExtResource("28_screenshot_cache")
