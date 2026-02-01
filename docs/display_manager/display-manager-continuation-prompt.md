@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 1B In Progress (Manager Scaffolding)
+**Current Phase:** Phase 1B Complete (Manager Scaffolding)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding tests + manager stub complete.
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root.
 
-**Phase 1B remaining:** add manager to root scene + create U_DisplayUtils helper.
+**Ready to begin Phase 2A: Window Size & Mode**
 
 ---
 
@@ -36,20 +36,22 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 1A.1: I_DisplayManager interface created
 - [x] Task 1B.1: M_DisplayManager lifecycle tests created
 - [x] Task 1B.2: M_DisplayManager scaffold implemented
+- [x] Task 1B.3: M_DisplayManager added to root + ServiceLocator registration
+- [x] Task 1B.4: U_DisplayUtils helper created
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 1B - Manager Scaffolding (Remaining)
+### Immediate: Phase 2A - Window Size & Mode
 
-1. **Task 1B.3**: Add manager to main scene
-   - Add M_DisplayManager node to `scenes/root.tscn` under Managers/
-   - Register in `scripts/root.gd` after state_store is ready
+1. **Task 2A.1 (Red)**: Write tests for window operations
+   - Add tests to `test_display_manager.gd`
+   - Validate window preset + mode application calls DisplayServer
 
-2. **Task 1B.4**: Create U_DisplayUtils helper
-   - Create `scripts/utils/display/u_display_utils.gd`
-   - Implement `get_display_manager()` helper
+2. **Task 2A.2 (Green)**: Implement window operations
+   - Add `WINDOW_PRESETS` dictionary
+   - Implement `apply_window_size_preset`, `set_window_mode`, `set_vsync_enabled`
 
 ---
 
@@ -191,7 +193,7 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 
 ### Phase 1: Interface & Core Manager
 - [x] 1A: Interface Definition
-- [ ] 1B: Manager Scaffolding (Tasks 1B.3-1B.4 remaining)
+- [x] 1B: Manager Scaffolding (Tasks 1B.1-1B.4 complete)
 
 ### Phase 2: Display/Graphics Settings
 - [ ] 2A: Window Size & Mode

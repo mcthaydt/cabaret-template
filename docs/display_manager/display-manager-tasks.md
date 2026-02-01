@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 18% (14 / 76 tasks complete)
+**Progress:** 21% (16 / 76 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -235,17 +235,19 @@ Before starting Phase 0, verify:
   - All tests should pass
   - Notes: Completed 2026-02-01 (created `scripts/managers/m_display_manager.gd`)
 
-- [ ] **Task 1B.3**: Add manager to main scene
+- [x] **Task 1B.3**: Add manager to main scene
   - Add M_DisplayManager node to `scenes/root.tscn` under Managers/
   - Position after M_AudioManager
   - Update `scripts/root.gd`:
     - Add: `_register_if_exists(managers_node, "M_DisplayManager", StringName("display_manager"))`
     - Display manager depends on state_store (register after state_store is ready)
+  - Notes: Completed 2026-02-01 (added M_DisplayManager node + root registration)
 
-- [ ] **Task 1B.4**: Create U_DisplayUtils helper
+- [x] **Task 1B.4**: Create U_DisplayUtils helper
   - Create `scripts/utils/display/u_display_utils.gd`
   - Implement `static func get_display_manager() -> M_DisplayManager`
   - Pattern: `return U_ServiceLocator.get_service(StringName("display_manager")) as M_DisplayManager`
+  - Notes: Completed 2026-02-01 (helper returns I_DisplayManager via ServiceLocator)
 
 ---
 
