@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 21% (16 / 76 tasks complete)
+**Progress:** 24% (18 / 76 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -280,15 +280,17 @@ Before starting Phase 0, verify:
 
 ### Phase 2B: Quality Presets
 
-- [ ] **Task 2B.1**: Create RS_QualityPreset resource
+- [x] **Task 2B.1**: Create RS_QualityPreset resource
   - Create `scripts/resources/display/rs_quality_preset.gd`
   - Add fields: `preset_name`, `shadow_quality`, `anti_aliasing`, `post_processing_enabled`
+  - Notes: Completed 2026-02-01 (created resource with shadow/AA/post-processing fields)
 
-- [ ] **Task 2B.2**: Create quality preset instances
+- [x] **Task 2B.2**: Create quality preset instances
   - Create `resources/display/cfg_quality_presets/cfg_quality_low.tres`
   - Create `resources/display/cfg_quality_presets/cfg_quality_medium.tres`
   - Create `resources/display/cfg_quality_presets/cfg_quality_high.tres`
   - Create `resources/display/cfg_quality_presets/cfg_quality_ultra.tres`
+  - Notes: Completed 2026-02-01 (added low/medium/high/ultra preset configs)
 
 - [ ] **Task 2B.3**: Implement quality preset application
   - Add `apply_quality_preset(preset)` to M_DisplayManager

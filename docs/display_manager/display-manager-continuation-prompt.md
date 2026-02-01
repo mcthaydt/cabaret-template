@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 2A Complete (Window Size & Mode)
+**Current Phase:** Phase 2B In Progress (Quality Presets)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless).
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality preset resource + preset configs added.
 
-**Ready to begin Phase 2B: Quality Presets**
+**Ready to complete Phase 2B: Apply quality presets in M_DisplayManager**
 
 ---
 
@@ -40,6 +40,8 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 1B.4: U_DisplayUtils helper created
 - [x] Task 2A.1: Window operation tests added (DisplayServer calls, headless pending)
 - [x] Task 2A.2: Window operations implemented (presets, mode, vsync)
+- [x] Task 2B.1: RS_QualityPreset resource created
+- [x] Task 2B.2: Quality preset configs created (low/medium/high/ultra)
 
 ---
 
@@ -47,11 +49,11 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 
 ### Immediate: Phase 2B - Quality Presets
 
-1. **Task 2B.1**: Create RS_QualityPreset resource
-   - Add `scripts/resources/display/rs_quality_preset.gd`
-
-2. **Task 2B.2**: Create quality preset instances
-   - Add `resources/display/cfg_quality_presets/` entries
+1. **Task 2B.3**: Implement quality preset application
+   - Add `apply_quality_preset(preset)` to `M_DisplayManager`
+   - Apply shadow quality via `RenderingServer`
+   - Apply anti-aliasing via viewport settings
+   - Wire to `_apply_display_settings()`
 
 ---
 
@@ -197,7 +199,7 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 
 ### Phase 2: Display/Graphics Settings
 - [x] 2A: Window Size & Mode
-- [ ] 2B: Quality Presets
+- [ ] 2B: Quality Presets (2B.1-2B.2 complete)
 
 ### Phase 3: Post-Processing System
 - [ ] 3A: Post-Process Overlay & Helper (8 tests)
