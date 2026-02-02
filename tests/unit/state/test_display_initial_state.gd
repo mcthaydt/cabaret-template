@@ -72,7 +72,7 @@ func test_has_outline_fields() -> void:
 		"RS_DisplayInitialState should have outline_color field"
 	)
 	assert_eq(initial_state.outline_enabled, false)
-	assert_eq(initial_state.outline_thickness, 2)
+	assert_almost_eq(initial_state.outline_thickness, 0.5, 0.0001)
 	assert_eq(initial_state.outline_color, "000000")
 
 # Test 7: Has dither fields

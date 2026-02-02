@@ -4,4 +4,13 @@
 
 [resource]
 script = ExtResource("1_display_initial_state")
-ui_scale = 2.0
+window_size_preset = "1280x720"
+film_grain_enabled = true
+outline_enabled = true
+outline_thickness = 0.2
+outline_color = "e45c5f"
+dither_enabled = true
+dither_intensity = 1.0
+lut_enabled = true
+lut_resource = "uid://rk44envlh681"
+lut_intensity = 0.3

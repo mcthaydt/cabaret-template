@@ -34,6 +34,7 @@ var _toast_active: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_reparent_to_root_hud_layer()
 	_register_with_scene_manager()
 	_store = U_StateUtils.get_store(self)
 
@@ -237,6 +238,29 @@ func _on_interact_prompt_hide(payload: Variant) -> void:
 		return
 	_active_prompt_id = 0
 	interact_prompt.hide_prompt()
+
+func _reparent_to_root_hud_layer() -> void:
+	# Reparent HUD to root HUDLayer to escape SubViewport rendering
+	var tree := get_tree()
+	if tree == null:
+		return
+
+	var root_hud_layer := tree.root.find_child("HUDLayer", true, false)
+	if root_hud_layer == null:
+		push_warning("HUD: Could not find HUDLayer in root - HUD will render inside viewport")
+		return
+
+	var current_parent := get_parent()
+	if current_parent == null or current_parent == root_hud_layer:
+		return
+
+	# Reparent to root HUD layer
+	current_parent.remove_child(self)
+	root_hud_layer.add_child(self)
+
+	# Set layer to 6 to render AFTER post-processing (layers 1-5) but BEFORE UI overlays (layer 10)
+	# When CanvasLayers are nested, child layer number determines render order, not parent
+	layer = 6
 
 func _on_signpost_message(payload: Variant) -> void:
 	var text: String = ""

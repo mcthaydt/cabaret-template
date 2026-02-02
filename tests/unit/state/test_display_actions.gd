@@ -69,11 +69,11 @@ func test_set_outline_enabled_action() -> void:
 
 # Test 8: set_outline_thickness action
 func test_set_outline_thickness_action() -> void:
-	var action: Dictionary = U_DisplayActions.set_outline_thickness(4)
+	var action: Dictionary = U_DisplayActions.set_outline_thickness(4.0)
 	var payload: Dictionary = action.get("payload", {})
 
 	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_OUTLINE_THICKNESS)
-	assert_eq(payload.get("thickness"), 4)
+	assert_almost_eq(float(payload.get("thickness", 0.0)), 4.0, 0.0001)
 	assert_eq(action.get("immediate"), true)
 
 # Test 9: set_outline_color action

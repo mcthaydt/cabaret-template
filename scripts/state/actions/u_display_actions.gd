@@ -107,7 +107,7 @@ static func set_outline_enabled(enabled: bool) -> Dictionary:
 		"immediate": true,
 	}
 
-static func set_outline_thickness(thickness: int) -> Dictionary:
+static func set_outline_thickness(thickness: float) -> Dictionary:
 	return {
 		"type": ACTION_SET_OUTLINE_THICKNESS,
 		"payload": {"thickness": thickness},

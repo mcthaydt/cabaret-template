@@ -29,7 +29,7 @@ const DEFAULT_DISPLAY_STATE := {
 	"film_grain_enabled": false,
 	"film_grain_intensity": 0.1,
 	"outline_enabled": false,
-	"outline_thickness": 2,
+	"outline_thickness": 0.5,
 	"outline_color": "000000",
 	"dither_enabled": false,
 	"dither_intensity": 0.5,
@@ -45,8 +45,8 @@ const DEFAULT_DISPLAY_STATE := {
 
 const MIN_INTENSITY := 0.0
 const MAX_INTENSITY := 1.0
-const MIN_OUTLINE_THICKNESS := 1
-const MAX_OUTLINE_THICKNESS := 5
+const MIN_OUTLINE_THICKNESS := 0.1
+const MAX_OUTLINE_THICKNESS := 3.0
 const MIN_UI_SCALE := 0.8
 const MAX_UI_SCALE := 1.3
 
@@ -102,8 +102,8 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 
 		U_DisplayActions.ACTION_SET_OUTLINE_THICKNESS:
 			var payload: Dictionary = action.get("payload", {})
-			var raw_thickness: int = int(payload.get("thickness", MIN_OUTLINE_THICKNESS))
-			var clamped_thickness := clampi(raw_thickness, MIN_OUTLINE_THICKNESS, MAX_OUTLINE_THICKNESS)
+			var raw_thickness: float = float(payload.get("thickness", MIN_OUTLINE_THICKNESS))
+			var clamped_thickness := clampf(raw_thickness, MIN_OUTLINE_THICKNESS, MAX_OUTLINE_THICKNESS)
 			return _with_values(current, {"outline_thickness": clamped_thickness})
 
 		U_DisplayActions.ACTION_SET_OUTLINE_COLOR:

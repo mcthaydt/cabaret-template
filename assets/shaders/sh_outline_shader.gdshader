@@ -1,6 +1,6 @@
 shader_type canvas_item;
 
-uniform int thickness : hint_range(1, 5) = 2;
+uniform float thickness : hint_range(0.1, 3.0) = 0.5;
 uniform vec3 outline_color : source_color = vec3(0.0);
 uniform float edge_threshold : hint_range(0.0, 1.0) = 0.2;
 uniform sampler2D screen_texture : hint_screen_texture;
@@ -10,7 +10,7 @@ float _luminance(vec3 color) {
 }
 
 void fragment() {
-	vec2 texel = SCREEN_PIXEL_SIZE * float(thickness);
+	vec2 texel = SCREEN_PIXEL_SIZE * thickness;
 	float tl = _luminance(texture(screen_texture, SCREEN_UV + texel * vec2(-1.0, -1.0)).rgb);
 	float tc = _luminance(texture(screen_texture, SCREEN_UV + texel * vec2(0.0, -1.0)).rgb);
 	float tr = _luminance(texture(screen_texture, SCREEN_UV + texel * vec2(1.0, -1.0)).rgb);

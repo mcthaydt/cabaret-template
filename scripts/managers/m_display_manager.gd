@@ -8,13 +8,17 @@ class_name M_DisplayManager
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
+const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/u_post_process_layer.gd")
+const U_PALETTE_MANAGER := preload("res://scripts/managers/helpers/u_palette_manager.gd")
 const RS_QUALITY_PRESET := preload("res://scripts/resources/display/rs_quality_preset.gd")
 const RS_LUT_DEFINITION := preload("res://scripts/resources/display/rs_lut_definition.gd")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
+const NAVIGATION_SLICE_NAME := StringName("navigation")
+const SHELL_GAMEPLAY := StringName("gameplay")
 
 const WINDOW_PRESETS := {
 	"1280x720": Vector2i(1280, 720),
@@ -42,10 +46,11 @@ var _preview_settings: Dictionary = {}
 var _quality_preset_cache: Dictionary = {}
 var _current_ui_scale: float = 1.0
 var _ui_scale_roots: Array[Node] = []
+var _palette_manager: RefCounted = null
 
 # Post-process overlay (Phase 3C)
 var _post_process_layer: U_PostProcessLayer = null
-var _post_process_overlay: CanvasLayer = null
+var _post_process_overlay: Node = null
 var _film_grain_active: bool = false
 
 # Cached values for inspection/tests (Phase 1B)
@@ -112,16 +117,18 @@ func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
 	return null
 
 func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
-	if slice_name != DISPLAY_SLICE_NAME or _display_settings_preview_active:
-		return
 	if _state_store == null:
 		return
 
-	var state := _state_store.get_state()
-	var display_hash := _get_display_hash(state)
-	if display_hash != _last_display_hash:
-		_apply_display_settings(state)
-		_last_display_hash = display_hash
+	if slice_name == DISPLAY_SLICE_NAME and not _display_settings_preview_active:
+		var state := _state_store.get_state()
+		var display_hash := _get_display_hash(state)
+		if display_hash != _last_display_hash:
+			_apply_display_settings(state)
+			_last_display_hash = display_hash
+
+	if slice_name == NAVIGATION_SLICE_NAME:
+		_update_overlay_visibility()
 
 ## Override: I_DisplayManager.set_display_settings_preview
 func set_display_settings_preview(settings: Dictionary) -> void:
@@ -145,7 +152,13 @@ func clear_display_settings_preview() -> void:
 
 ## Override: I_DisplayManager.get_active_palette
 func get_active_palette() -> Resource:
-	return null
+	if _palette_manager == null:
+		_palette_manager = U_PALETTE_MANAGER.new()
+		if not _last_applied_settings.is_empty():
+			_apply_accessibility_settings(_last_applied_settings)
+		else:
+			_palette_manager.set_color_blind_mode("normal", false)
+	return _palette_manager.get_active_palette()
 
 func _apply_display_settings(state: Dictionary) -> void:
 	var effective_settings := _build_effective_settings(state)
@@ -155,6 +168,7 @@ func _apply_display_settings(state: Dictionary) -> void:
 	_apply_quality_settings(effective_settings)
 	_apply_post_process_settings(effective_settings)
 	_apply_ui_scale_settings(effective_settings)
+	_apply_accessibility_settings(effective_settings)
 
 func _build_effective_settings(state: Dictionary) -> Dictionary:
 	var settings: Dictionary = {}
@@ -188,6 +202,14 @@ func _apply_ui_scale_settings(display_settings: Dictionary) -> void:
 	var scale := U_DISPLAY_SELECTORS.get_ui_scale(state)
 	set_ui_scale(scale)
 
+func _apply_accessibility_settings(display_settings: Dictionary) -> void:
+	if _palette_manager == null:
+		_palette_manager = U_PALETTE_MANAGER.new()
+	var state := {"display": display_settings}
+	var mode := U_DISPLAY_SELECTORS.get_color_blind_mode(state)
+	var high_contrast := U_DISPLAY_SELECTORS.is_high_contrast_enabled(state)
+	_palette_manager.set_color_blind_mode(mode, high_contrast)
+
 func _apply_post_process_settings(display_settings: Dictionary) -> void:
 	if not _ensure_post_process_layer():
 		return
@@ -196,6 +218,7 @@ func _apply_post_process_settings(display_settings: Dictionary) -> void:
 	_apply_outline_settings(state)
 	_apply_dither_settings(state)
 	_apply_lut_settings(state)
+	_apply_color_blind_shader_settings(state)
 
 func _apply_film_grain_settings(state: Dictionary) -> void:
 	var enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state)
@@ -262,17 +285,45 @@ func _apply_lut_settings(state: Dictionary) -> void:
 	if lut_path.is_empty():
 		return
 	var resource: Resource = load(lut_path)
-	if resource == null or not (resource is RS_LUT_DEFINITION):
-		push_warning("M_DisplayManager: Invalid LUT resource '%s'" % lut_path)
+	if resource == null:
+		push_warning("M_DisplayManager: Failed to load LUT resource '%s'" % lut_path)
 		return
-	var definition := resource as RS_LUT_DEFINITION
-	if definition.texture == null:
-		push_warning("M_DisplayManager: LUT texture missing for '%s'" % lut_path)
+
+	var lut_texture: Texture2D = null
+	if resource is Texture2D:
+		lut_texture = resource as Texture2D
+	elif resource is RS_LUT_DEFINITION:
+		var definition := resource as RS_LUT_DEFINITION
+		if definition.texture == null:
+			push_warning("M_DisplayManager: LUT texture missing for '%s'" % lut_path)
+			return
+		lut_texture = definition.texture
+	else:
+		push_warning("M_DisplayManager: Invalid LUT resource '%s' (expected Texture2D or RS_LUTDefinition)" % lut_path)
 		return
+
 	_post_process_layer.set_effect_parameter(
 		U_POST_PROCESS_LAYER.EFFECT_LUT,
 		StringName("lut_texture"),
-		definition.texture
+		lut_texture
+	)
+
+func _apply_color_blind_shader_settings(state: Dictionary) -> void:
+	var enabled := U_DISPLAY_SELECTORS.is_color_blind_shader_enabled(state)
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_COLOR_BLIND, enabled)
+	var mode := U_DISPLAY_SELECTORS.get_color_blind_mode(state)
+	var mode_value := _get_color_blind_mode_value(mode)
+	if not enabled:
+		mode_value = 0
+	_post_process_layer.set_effect_parameter(
+		U_POST_PROCESS_LAYER.EFFECT_COLOR_BLIND,
+		StringName("mode"),
+		mode_value
+	)
+	_post_process_layer.set_effect_parameter(
+		U_POST_PROCESS_LAYER.EFFECT_COLOR_BLIND,
+		StringName("intensity"),
+		1.0
 	)
 
 func set_ui_scale(scale: float) -> void:
@@ -438,31 +489,40 @@ func _setup_post_process_overlay() -> void:
 	if _post_process_overlay != null and is_instance_valid(_post_process_overlay):
 		_post_process_layer = U_POST_PROCESS_LAYER.new()
 		_post_process_layer.initialize(_post_process_overlay)
+		_update_overlay_visibility()
 		return
 
 	var tree := get_tree()
 	if tree != null:
+		# PostProcessOverlay is now inside GameViewport, not directly in root
 		var existing := tree.root.find_child("PostProcessOverlay", true, false)
-		if existing is CanvasLayer:
+		if existing is Node:
 			_post_process_overlay = existing
 		elif existing != null:
-			push_warning("M_DisplayManager: PostProcessOverlay found but is not a CanvasLayer")
+			push_warning("M_DisplayManager: PostProcessOverlay found but is not a Node")
 
 	if _post_process_overlay == null:
+		# Fallback: try to find GameViewport and add overlay there
+		var game_viewport := tree.root.find_child("GameViewport", true, false) as SubViewport
+		if game_viewport == null:
+			push_error("M_DisplayManager: GameViewport not found, cannot add post-process overlay")
+			return
+
 		var overlay_scene: PackedScene = POST_PROCESS_OVERLAY_SCENE
 		if overlay_scene == null:
 			push_error("M_DisplayManager: Failed to load post-process overlay scene")
 			return
 		var overlay_instance := overlay_scene.instantiate()
-		if overlay_instance is CanvasLayer:
+		if overlay_instance is Node:
 			_post_process_overlay = overlay_instance
-			add_child(_post_process_overlay)
+			game_viewport.add_child(_post_process_overlay)
 		else:
-			push_error("M_DisplayManager: Post-process overlay root is not a CanvasLayer")
+			push_error("M_DisplayManager: Post-process overlay root is not a Node")
 			return
 
 	_post_process_layer = U_POST_PROCESS_LAYER.new()
 	_post_process_layer.initialize(_post_process_overlay)
+	_update_overlay_visibility()
 
 func _parse_outline_color(hex_value: String) -> Color:
 	var value := hex_value.strip_edges()
@@ -482,6 +542,16 @@ func _parse_outline_color(hex_value: String) -> Color:
 	if value.length() == 8:
 		a = value.substr(6, 2).hex_to_int()
 	return Color8(r, g, b, a)
+
+func _get_color_blind_mode_value(mode: String) -> int:
+	match mode:
+		"deuteranopia":
+			return 1
+		"protanopia":
+			return 2
+		"tritanopia":
+			return 3
+	return 0
 
 func _is_hex_string(value: String) -> bool:
 	var length := value.length()
@@ -598,3 +668,19 @@ func unregister_ui_scale_root(node: Node) -> void:
 	if node == null:
 		return
 	_ui_scale_roots.erase(node)
+
+func _update_overlay_visibility() -> void:
+	if _post_process_overlay == null or not is_instance_valid(_post_process_overlay):
+		return
+	if _state_store == null:
+		return
+
+	var state := _state_store.get_state()
+	var navigation_state: Dictionary = state.get("navigation", {})
+	var shell := U_NAVIGATION_SELECTORS.get_shell(navigation_state)
+	var should_show := shell == SHELL_GAMEPLAY
+
+	# The overlay root is a Node, so we need to hide/show its CanvasLayer children
+	for child in _post_process_overlay.get_children():
+		if child is CanvasLayer:
+			child.visible = should_show

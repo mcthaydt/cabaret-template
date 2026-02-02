@@ -30,6 +30,7 @@
 [ext_resource type="Script" uid="uid://i7j2l0pc7frq" path="res://scripts/managers/m_screenshot_cache.gd" id="28_screenshot_cache"]
 [ext_resource type="Resource" path="res://resources/base_settings/state/cfg_display_initial_state.tres" id="29_display_state"]
 [ext_resource type="Script" uid="uid://c7ge3x7wa2nvr" path="res://scripts/managers/m_display_manager.gd" id="30_display_manager"]
+[ext_resource type="PackedScene" uid="uid://d8f3hr42dgv4" path="res://scenes/ui/overlays/ui_post_process_overlay.tscn" id="31_post_process"]
 
 [node name="Root" type="Node" unique_id=409084781]
 script = ExtResource("10_main_root")
@@ -90,11 +91,30 @@ script = ExtResource("21_ui_input_handler")
 [node name="M_SaveManager" type="Node" parent="Managers" unique_id=1442466026]
 script = ExtResource("23_save_manager")
 
-[node name="ActiveSceneContainer" type="Node" parent="." unique_id=8483924]
+[node name="GameViewportContainer" type="SubViewportContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="GameViewport" type="SubViewport" parent="GameViewportContainer"]
+handle_input_locally = false
+size = Vector2i(1152, 648)
+render_target_update_mode = 4
+
+[node name="ActiveSceneContainer" type="Node" parent="GameViewportContainer/GameViewport" unique_id=8483924]
 script = ExtResource("9_active_scene_container")
+
+[node name="PostProcessOverlay" parent="GameViewportContainer/GameViewport" instance=ExtResource("31_post_process")]
+
+[node name="HUDLayer" type="CanvasLayer" parent="."]
+layer = 6
 
 [node name="UIOverlayStack" type="CanvasLayer" parent="." unique_id=376285036]
 process_mode = 3
+layer = 10
 
 [node name="TransitionOverlay" type="CanvasLayer" parent="." unique_id=1366387080]
 

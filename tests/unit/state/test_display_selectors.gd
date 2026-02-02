@@ -12,7 +12,7 @@ const DEFAULTS := {
 	"film_grain_enabled": false,
 	"film_grain_intensity": 0.1,
 	"outline_enabled": false,
-	"outline_thickness": 2,
+	"outline_thickness": 0.5,
 	"outline_color": "000000",
 	"dither_enabled": false,
 	"dither_intensity": 0.5,
@@ -99,12 +99,12 @@ func test_is_outline_enabled_returns_value_and_defaults() -> void:
 # Test 8: outline_thickness selector
 func test_get_outline_thickness_returns_value_and_defaults() -> void:
 	var state := _make_state()
-	state["display"]["outline_thickness"] = 4
-	assert_eq(U_DisplaySelectors.get_outline_thickness(state), 4)
-	assert_eq(U_DisplaySelectors.get_outline_thickness({}), DEFAULTS["outline_thickness"])
+	state["display"]["outline_thickness"] = 4.0
+	assert_almost_eq(U_DisplaySelectors.get_outline_thickness(state), 4.0, 0.0001)
+	assert_almost_eq(U_DisplaySelectors.get_outline_thickness({}), DEFAULTS["outline_thickness"], 0.0001)
 	var missing_field := _make_state()
 	missing_field["display"].erase("outline_thickness")
-	assert_eq(U_DisplaySelectors.get_outline_thickness(missing_field), DEFAULTS["outline_thickness"])
+	assert_almost_eq(U_DisplaySelectors.get_outline_thickness(missing_field), DEFAULTS["outline_thickness"], 0.0001)
 
 # Test 9: outline_color selector
 func test_get_outline_color_returns_value_and_defaults() -> void:

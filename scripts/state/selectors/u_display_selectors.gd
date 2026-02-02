@@ -34,9 +34,9 @@ static func is_outline_enabled(state: Dictionary) -> bool:
 	var display := _get_display_slice(state)
 	return bool(display.get("outline_enabled", false))
 
-static func get_outline_thickness(state: Dictionary) -> int:
+static func get_outline_thickness(state: Dictionary) -> float:
 	var display := _get_display_slice(state)
-	return int(display.get("outline_thickness", 2))
+	return float(display.get("outline_thickness", 0.5))
 
 static func get_outline_color(state: Dictionary) -> String:
 	var display := _get_display_slice(state)

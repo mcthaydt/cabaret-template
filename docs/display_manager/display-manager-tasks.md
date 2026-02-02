@@ -415,29 +415,32 @@ Before starting Phase 0, verify:
 
 ### Phase 5A: Color Palette Resource
 
-- [ ] **Task 5A.1 (Red)**: Write tests for RS_UIColorPalette
+- [x] **Task 5A.1 (Red)**: Write tests for RS_UIColorPalette
   - Create `tests/unit/resources/test_ui_color_palette.gd`
   - Test all fields exist with correct types
   - Test palette_id is StringName
   - Test color fields are Color type
   - **Target: 5 tests**
+  - Notes: Completed 2026-02-01 (added 5 tests in `tests/unit/resources/test_ui_color_palette.gd`)
 
-- [ ] **Task 5A.2 (Green)**: Implement RS_UIColorPalette resource
+- [x] **Task 5A.2 (Green)**: Implement RS_UIColorPalette resource
   - Create `scripts/resources/ui/rs_ui_color_palette.gd`
   - Add fields: palette_id, primary, secondary, success, warning, danger, info, background, text
+  - Notes: Completed 2026-02-01 (created `scripts/resources/ui/rs_ui_color_palette.gd`)
 
-- [ ] **Task 5A.3**: Create palette resource instances
+- [x] **Task 5A.3**: Create palette resource instances
   - Create `resources/ui_themes/cfg_palette_normal.tres`
   - Create `resources/ui_themes/cfg_palette_deuteranopia.tres`
   - Create `resources/ui_themes/cfg_palette_protanopia.tres`
   - Create `resources/ui_themes/cfg_palette_tritanopia.tres`
   - Create `resources/ui_themes/cfg_palette_high_contrast.tres`
+  - Notes: Completed 2026-02-01 (added 5 palette resources under `resources/ui_themes/`)
 
 ---
 
 ### Phase 5B: Palette Manager Helper
 
-- [ ] **Task 5B.1 (Red)**: Write tests for U_PaletteManager
+- [x] **Task 5B.1 (Red)**: Write tests for U_PaletteManager
   - Create `tests/unit/managers/helpers/test_palette_manager.gd`
   - Test `set_color_blind_mode()` loads correct palette
   - Test `set_color_blind_mode()` emits `active_palette_changed` signal
@@ -445,30 +448,35 @@ Before starting Phase 0, verify:
   - Test `get_active_palette()` returns current palette
   - Test palettes are cached after first load
   - **Target: 8 tests**
+  - Notes: Completed 2026-02-01 (added 8 tests in `tests/unit/managers/helpers/test_palette_manager.gd`)
 
-- [ ] **Task 5B.2 (Green)**: Implement U_PaletteManager helper
+- [x] **Task 5B.2 (Green)**: Implement U_PaletteManager helper
   - Create `scripts/managers/helpers/u_palette_manager.gd`
   - Add `active_palette_changed` signal
   - Implement palette loading with cache
   - Implement fallback to "normal" on invalid mode
+  - Notes: Completed 2026-02-01 (created `scripts/managers/helpers/u_palette_manager.gd`)
 
-- [ ] **Task 5B.3**: Integrate with M_DisplayManager
+- [x] **Task 5B.3**: Integrate with M_DisplayManager
   - M_DisplayManager creates/owns U_PaletteManager instance
   - Wire `set_color_blind_mode()` to state changes
   - Expose `get_active_palette()` via manager
+  - Notes: Completed 2026-02-01 (manager applies palette updates + exposes active palette)
 
 ---
 
-### Phase 5C: Color Blind Shader (Optional)
+### Phase 5C: Color Blind Shader 
 
-- [ ] **Task 5C.1**: Create daltonization shader
+- [x] **Task 5C.1**: Create daltonization shader
   - Create `assets/shaders/sh_colorblind_daltonize.gdshader`
   - Uniforms: `mode` (0=off, 1=deuteranopia, 2=protanopia, 3=tritanopia)
   - Color transformation matrices for simulation
+  - Notes: Completed 2026-02-01 (added `sh_colorblind_daltonize.gdshader`)
 
-- [ ] **Task 5C.2**: Add to post-process overlay
+- [x] **Task 5C.2**: Add to post-process overlay
   - Add ColorBlindRect to overlay scene
   - Wire `color_blind_shader_enabled` and `color_blind_mode` to shader
+  - Notes: Completed 2026-02-01 (overlay + U_PostProcessLayer + M_DisplayManager wiring)
 
 ---
 

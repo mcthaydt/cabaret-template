@@ -7,23 +7,25 @@ const EFFECT_FILM_GRAIN := StringName("film_grain")
 const EFFECT_OUTLINE := StringName("outline")
 const EFFECT_DITHER := StringName("dither")
 const EFFECT_LUT := StringName("lut")
+const EFFECT_COLOR_BLIND := StringName("color_blind")
 
 const EFFECT_NODE_PATHS := {
-	EFFECT_FILM_GRAIN: NodePath("FilmGrainRect"),
-	EFFECT_OUTLINE: NodePath("OutlineRect"),
-	EFFECT_DITHER: NodePath("DitherRect"),
-	EFFECT_LUT: NodePath("LUTRect"),
+	EFFECT_FILM_GRAIN: NodePath("FilmGrainLayer/FilmGrainRect"),
+	EFFECT_OUTLINE: NodePath("OutlineLayer/OutlineRect"),
+	EFFECT_DITHER: NodePath("DitherLayer/DitherRect"),
+	EFFECT_LUT: NodePath("LUTLayer/LUTRect"),
+	EFFECT_COLOR_BLIND: NodePath("ColorBlindLayer/ColorBlindRect"),
 }
 
 var _effect_rects: Dictionary = {}
 
-func initialize(canvas_layer: CanvasLayer) -> void:
+func initialize(root_node: Node) -> void:
 	_effect_rects.clear()
-	if canvas_layer == null:
+	if root_node == null:
 		return
 	for effect_name in EFFECT_NODE_PATHS.keys():
 		var path: NodePath = EFFECT_NODE_PATHS[effect_name]
-		var rect := canvas_layer.get_node_or_null(path) as ColorRect
+		var rect := root_node.get_node_or_null(path) as ColorRect
 		if rect != null:
 			_effect_rects[effect_name] = rect
 

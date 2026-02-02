@@ -60,7 +60,8 @@ func test_back_button_returns_to_main_panel() -> void:
 	var store := await _create_state_store()
 	var menu := await _create_main_menu()
 	var settings_button: Button = menu.get_node("CenterContainer/MainPanel/SettingsButton")
-	var back_button: Button = menu.get_node("SettingsPanel/SettingsContent/CenterContainer/VBoxContainer/BackButton")
+	var settings_content: Control = menu.get_node("SettingsPanel/SettingsContent")
+	var back_button: Button = settings_content.get_node("%BackButton")
 
 	settings_button.emit_signal("pressed")
 	await wait_process_frames(2)

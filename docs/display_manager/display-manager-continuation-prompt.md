@@ -1,16 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-01
-**Current Phase:** Phase 4 Complete (UI Scaling)
+**Current Phase:** Phase 5 Complete (Color Blind Accessibility)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, outline, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + UIScaleRoot registration; applies to CanvasLayer/Control roots and updates newly registered UI nodes).
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, outline, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + UIScaleRoot registration; applies to CanvasLayer/Control roots and updates newly registered UI nodes). Phase 5 color blind accessibility complete (palette resource + instances, palette manager helper + tests, color blind shader + overlay wiring, manager integration).
 
-**Ready to begin Phase 5: Color Blind Accessibility**
+**Ready to begin Phase 6: Settings UI Integration**
 
 ---
 
@@ -56,16 +56,18 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 4.1: UI scale application tests created
 - [x] Task 4.2: UI scale application implemented in M_DisplayManager
 - [x] Task 4.3: UI scenes register UIScaleRoot helper nodes (no scene tree groups)
+- [x] Task 5A: UI color palette resource + palette instances created
+- [x] Task 5B: U_PaletteManager helper + tests + manager integration
+- [x] Task 5C: Color blind daltonization shader + overlay wiring
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 5 - Color Blind Accessibility
+### Immediate: Phase 6 - Settings UI Integration
 
-1. **Task 5A**: Color palette resource + tests
-2. **Task 5B**: Palette manager helper + tests
-3. **Task 5C**: Color blind shader (optional)
+1. **Task 6A**: Display settings tab (scene + controller + settings panel integration)
+2. **Task 6B**: Accessibility settings section wiring
 
 ---
 
@@ -222,9 +224,9 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 - [x] UI scale application (3 tests)
 
 ### Phase 5: Color Blind Accessibility
-- [ ] 5A: Color Palette Resource (5 tests)
-- [ ] 5B: Palette Manager Helper (8 tests)
-- [ ] 5C: Color Blind Shader
+- [x] 5A: Color Palette Resource (5 tests)
+- [x] 5B: Palette Manager Helper (8 tests)
+- [x] 5C: Color Blind Shader
 
 ### Phase 6: Settings UI Integration
 - [ ] 6A: Display Settings Tab

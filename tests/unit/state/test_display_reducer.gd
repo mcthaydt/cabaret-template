@@ -40,7 +40,7 @@ func test_default_state_has_expected_defaults() -> void:
 	assert_eq(default_state.get("film_grain_enabled"), false)
 	assert_almost_eq(float(default_state.get("film_grain_intensity", 0.0)), 0.1, 0.0001)
 	assert_eq(default_state.get("outline_enabled"), false)
-	assert_eq(default_state.get("outline_thickness"), 2)
+	assert_almost_eq(float(default_state.get("outline_thickness", 0.0)), 0.5, 0.0001)
 	assert_eq(default_state.get("outline_color"), "000000")
 	assert_eq(default_state.get("dither_enabled"), false)
 	assert_almost_eq(float(default_state.get("dither_intensity", 0.0)), 0.5, 0.0001)
@@ -192,10 +192,10 @@ func test_set_lut_intensity_clamps() -> void:
 # Test 20: set_outline_thickness clamps
 func test_set_outline_thickness_clamps() -> void:
 	var state := _make_display_state()
-	var action := U_DisplayActions.set_outline_thickness(10)
+	var action := U_DisplayActions.set_outline_thickness(10.0)
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_eq(reduced.get("outline_thickness"), 5)
+	assert_almost_eq(float(reduced.get("outline_thickness", 0.0)), 3.0, 0.0001)
 
 # Test 21: set_ui_scale clamps
 func test_set_ui_scale_clamps() -> void:

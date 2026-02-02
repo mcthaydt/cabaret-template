@@ -6,6 +6,7 @@
 [ext_resource type="Shader" uid="uid://goc30a8wml54" path="res://assets/shaders/sh_lut_shader.gdshader" id="4_lut"]
 [ext_resource type="Texture2D" uid="uid://ctscnh7xerpg7" path="res://resources/textures/tex_bayer_8x8.png" id="5_bayer"]
 [ext_resource type="Texture2D" uid="uid://ynchf4sgcby0" path="res://resources/luts/tex_lut_neutral.png" id="6_lut_neutral"]
+[ext_resource type="Shader" uid="uid://cbb5bncshtrb" path="res://assets/shaders/sh_colorblind_daltonize.gdshader" id="7_color_blind"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_film_grain"]
 shader = ExtResource("1_film_grain")
@@ -15,7 +16,7 @@ shader_parameter/time = 0.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
 shader = ExtResource("2_outline")
-shader_parameter/thickness = 2
+shader_parameter/thickness = 0.5
 shader_parameter/outline_color = Color(0, 0, 0, 1)
 shader_parameter/edge_threshold = 0.2
 
@@ -31,10 +32,17 @@ shader = ExtResource("4_lut")
 shader_parameter/intensity = 1.0
 shader_parameter/lut_texture = ExtResource("6_lut_neutral")
 
-[node name="PostProcessOverlay" type="CanvasLayer" unique_id=1028032310]
-layer = 100
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_color_blind"]
+shader = ExtResource("7_color_blind")
+shader_parameter/mode = 0
+shader_parameter/intensity = 1.0
 
-[node name="FilmGrainRect" type="ColorRect" parent="." unique_id=1864572536]
+[node name="PostProcessOverlay" type="Node" unique_id=59672493]
+
+[node name="FilmGrainLayer" type="CanvasLayer" parent="." unique_id=1768934360]
+follow_viewport_enabled = true
+
+[node name="FilmGrainRect" type="ColorRect" parent="FilmGrainLayer" unique_id=1040366653]
 visible = false
 material = SubResource("ShaderMaterial_film_grain")
 anchors_preset = 15
@@ -44,7 +52,11 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="OutlineRect" type="ColorRect" parent="." unique_id=2048037266]
+[node name="OutlineLayer" type="CanvasLayer" parent="." unique_id=744498354]
+layer = 2
+follow_viewport_enabled = true
+
+[node name="OutlineRect" type="ColorRect" parent="OutlineLayer" unique_id=1741336407]
 visible = false
 material = SubResource("ShaderMaterial_outline")
 anchors_preset = 15
@@ -54,7 +66,11 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="DitherRect" type="ColorRect" parent="." unique_id=1352989090]
+[node name="DitherLayer" type="CanvasLayer" parent="." unique_id=1283421453]
+layer = 3
+follow_viewport_enabled = true
+
+[node name="DitherRect" type="ColorRect" parent="DitherLayer" unique_id=366136202]
 visible = false
 material = SubResource("ShaderMaterial_dither")
 anchors_preset = 15
@@ -64,9 +80,27 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="LUTRect" type="ColorRect" parent="." unique_id=497147974]
+[node name="LUTLayer" type="CanvasLayer" parent="." unique_id=2021417999]
+layer = 4
+follow_viewport_enabled = true
+
+[node name="LUTRect" type="ColorRect" parent="LUTLayer" unique_id=1535269892]
 visible = false
 material = SubResource("ShaderMaterial_lut")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ColorBlindLayer" type="CanvasLayer" parent="." unique_id=1289700024]
+layer = 5
+follow_viewport_enabled = true
+
+[node name="ColorBlindRect" type="ColorRect" parent="ColorBlindLayer" unique_id=1293833393]
+visible = false
+material = SubResource("ShaderMaterial_color_blind")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

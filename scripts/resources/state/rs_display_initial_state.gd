@@ -17,13 +17,13 @@ class_name RS_DisplayInitialState
 @export var film_grain_enabled: bool = false
 @export_range(0.0, 1.0, 0.05) var film_grain_intensity: float = 0.1
 @export var outline_enabled: bool = false
-@export_range(1, 5, 1) var outline_thickness: int = 2
+@export_range(0.1, 3.0, 0.1) var outline_thickness: float = 0.5
 @export var outline_color: String = "000000"
 @export var dither_enabled: bool = false
 @export_range(0.0, 1.0, 0.05) var dither_intensity: float = 0.5
 @export_enum("bayer", "noise") var dither_pattern: String = "bayer"
 @export var lut_enabled: bool = false
-@export var lut_resource: String = ""
+@export_file("*.png", "*.tres") var lut_resource: String = ""
 @export_range(0.0, 1.0, 0.05) var lut_intensity: float = 1.0
 
 @export_group("UI")
