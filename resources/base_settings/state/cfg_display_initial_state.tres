@@ -6,11 +6,9 @@
 script = ExtResource("1_display_initial_state")
 window_size_preset = "1280x720"
 film_grain_enabled = true
-crt_enabled = true
 crt_scanline_intensity = 0.05
 crt_curvature = 10.0
 dither_enabled = true
 dither_intensity = 1.0
-lut_enabled = true
 lut_resource = "uid://rk44envlh681"
 lut_intensity = 0.05

@@ -1,15 +1,13 @@
-[gd_resource type="Resource" script_class="RS_UIColorPalette" format=3]
+[gd_resource type="Resource" script_class="RS_UIColorPalette" format=3 uid="uid://cn0e48h57x0ch"]
 
-[ext_resource type="Script" path="res://scripts/resources/ui/rs_ui_color_palette.gd" id="1_palette"]
+[ext_resource type="Script" uid="uid://iix7qrhtq3i5" path="res://scripts/resources/ui/rs_ui_color_palette.gd" id="1_palette"]
 
 [resource]
 script = ExtResource("1_palette")
 palette_id = &"deuteranopia"
-primary = Color(0.0, 0.447, 0.698, 1)
-secondary = Color(0.902, 0.624, 0.0, 1)
-success = Color(0.0, 0.62, 0.451, 1)
+primary = Color(0, 0.447, 0.698, 1)
+secondary = Color(0.902, 0.624, 0, 1)
+success = Color(0, 0.62, 0.451, 1)
 warning = Color(0.941, 0.894, 0.259, 1)
-danger = Color(0.835, 0.369, 0.0, 1)
+danger = Color(0.835, 0.369, 0, 1)
 info = Color(0.337, 0.706, 0.914, 1)
-background = Color(0.08, 0.09, 0.11, 1)
-text = Color(0.95, 0.95, 0.95, 1)

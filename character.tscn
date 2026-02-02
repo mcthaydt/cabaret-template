@@ -1,15 +1,13 @@
 [gd_scene format=4 uid="uid://bxvpqns2proau"]
 
 [ext_resource type="PackedScene" uid="uid://cc74p6tfegtqu" path="res://Character.glb" id="1_glpr6"]
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_glpr6"]
-load_path = "res://.godot/imported/Character_Image Color Quantizer (1) 11.04.png-a4c20b84412576fe3b3fd36888e36e2f.s3tc.ctex"
+[ext_resource type="Texture2D" uid="uid://bb85rwswyeyjx" path="res://assets/textures/tex_character_albedo.png" id="2_texture"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pjt0s"]
 resource_name = "BaseCharacterMat"
 cull_mode = 2
 shading_mode = 0
-albedo_texture = SubResource("CompressedTexture2D_glpr6")
+albedo_texture = ExtResource("2_texture")
 texture_filter = 0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_ng25s"]
@@ -48,6 +46,6 @@ shadow_mesh = SubResource("ArrayMesh_ng25s")
 
 [node name="Character" unique_id=269059755 instance=ExtResource("1_glpr6")]
 
-[node name="BaseCharacter" parent="." index="0" unique_id=645497783]
+[node name="BaseCharacter" parent="." index="0" unique_id=1457762097]
 transform = Transform3D(-1.311341e-07, 0, 2.9999998, 0, 3, 0, -2.9999986, 0, -1.3113416e-07, 0, 0, 0)
 mesh = SubResource("ArrayMesh_wa5vi")

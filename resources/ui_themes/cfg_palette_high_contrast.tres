@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="RS_UIColorPalette" format=3]
+[gd_resource type="Resource" script_class="RS_UIColorPalette" format=3 uid="uid://be5b1j7dlvn4w"]
 
-[ext_resource type="Script" path="res://scripts/resources/ui/rs_ui_color_palette.gd" id="1_palette"]
+[ext_resource type="Script" uid="uid://iix7qrhtq3i5" path="res://scripts/resources/ui/rs_ui_color_palette.gd" id="1_palette"]
 
 [resource]
 script = ExtResource("1_palette")
