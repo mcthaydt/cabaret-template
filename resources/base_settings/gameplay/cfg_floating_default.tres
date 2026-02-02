@@ -4,4 +4,6 @@
 
 [resource]
 script = ExtResource("1_0")
-hover_height = 2.2
+hover_height = 1.5
+hover_frequency = 2.5
+damping_ratio = 1.2
