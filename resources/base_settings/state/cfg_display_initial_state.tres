@@ -13,4 +13,4 @@ dither_enabled = true
 dither_intensity = 1.0
 lut_enabled = true
 lut_resource = "uid://rk44envlh681"
-lut_intensity = 0.3
+lut_intensity = 0.05
