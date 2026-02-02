@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://c73j55wmytawk" path="res://scripts/ecs/components/c_movement_component.gd" id="1_6m9bm"]
 [ext_resource type="Texture2D" uid="uid://dm23qd3lalkrv" path="res://assets/textures/tex_shadow_blob.png" id="1_m3alx"]
+[ext_resource type="PackedScene" uid="uid://cc74p6tfegtqu" path="res://Character.glb" id="1_character"]
 [ext_resource type="Script" uid="uid://cmo0nwrics1c2" path="res://scripts/ecs/components/c_jump_component.gd" id="2_h3hux"]
 [ext_resource type="Script" uid="uid://bob8u843dmbh7" path="res://scripts/scene_structure/marker_components_group.gd" id="3_8l4b7"]
 [ext_resource type="Script" uid="uid://861c8cv2he7d" path="res://scripts/ecs/components/c_rotate_to_input_component.gd" id="4_4etni"]
@@ -19,14 +20,6 @@
 [ext_resource type="Resource" uid="uid://bay3xmfxc8da0" path="res://resources/base_settings/gameplay/cfg_health_settings.tres" id="18_health_settings"]
 [ext_resource type="Script" uid="uid://dx3dwbjtpqx2k" path="res://scripts/ecs/components/c_spawn_state_component.gd" id="19_spawn_state"]
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_6mvan"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6mvan"]
-shading_mode = 0
-diffuse_mode = 3
-specular_mode = 1
-albedo_color = Color(0.11764706, 0.7372549, 0.4509804, 1)
-
 [sub_resource type="BoxMesh" id="BoxMesh_yiwtw"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yiwtw"]
@@ -43,10 +36,8 @@ tags = Array[StringName]([&"character"])
 
 [node name="Player_Body" type="CharacterBody3D" parent="." unique_id=312897681]
 
-[node name="Body_Mesh" type="CSGMesh3D" parent="Player_Body" unique_id=1005709362]
-transform = Transform3D(1, 0, 0, 0, 0.5518581, 0, 0, 0, 1, 0, -0.78115296, 0)
-mesh = SubResource("CapsuleMesh_6mvan")
-material = SubResource("StandardMaterial3D_6mvan")
+[node name="Body_Mesh" parent="Player_Body" unique_id=1005709362 instance=ExtResource("1_character")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 
 [node name="Direction_Mesh" type="MeshInstance3D" parent="Player_Body/Body_Mesh" unique_id=1099865446]
 transform = Transform3D(0.39169633, 0, 0, 0, 0.15378642, 0, 0, 0, 0.36884245, -0.019476414, 0.6069238, -0.4746977)
