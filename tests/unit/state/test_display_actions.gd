@@ -58,31 +58,31 @@ func test_set_film_grain_intensity_action() -> void:
 	assert_eq(payload.get("intensity"), 0.25)
 	assert_eq(action.get("immediate"), true)
 
-# Test 7: set_outline_enabled action
-func test_set_outline_enabled_action() -> void:
-	var action: Dictionary = U_DisplayActions.set_outline_enabled(true)
+# Test 7: set_crt_enabled action
+func test_set_crt_enabled_action() -> void:
+	var action: Dictionary = U_DisplayActions.set_crt_enabled(true)
 	var payload: Dictionary = action.get("payload", {})
 
-	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_OUTLINE_ENABLED)
+	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_CRT_ENABLED)
 	assert_eq(payload.get("enabled"), true)
 	assert_eq(action.get("immediate"), true)
 
-# Test 8: set_outline_thickness action
-func test_set_outline_thickness_action() -> void:
-	var action: Dictionary = U_DisplayActions.set_outline_thickness(4.0)
+# Test 8: set_crt_scanline_intensity action
+func test_set_crt_scanline_intensity_action() -> void:
+	var action: Dictionary = U_DisplayActions.set_crt_scanline_intensity(0.5)
 	var payload: Dictionary = action.get("payload", {})
 
-	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_OUTLINE_THICKNESS)
-	assert_almost_eq(float(payload.get("thickness", 0.0)), 4.0, 0.0001)
+	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_CRT_SCANLINE_INTENSITY)
+	assert_almost_eq(float(payload.get("intensity", 0.0)), 0.5, 0.0001)
 	assert_eq(action.get("immediate"), true)
 
-# Test 9: set_outline_color action
-func test_set_outline_color_action() -> void:
-	var action: Dictionary = U_DisplayActions.set_outline_color("ff00ff")
+# Test 9: set_crt_curvature action
+func test_set_crt_curvature_action() -> void:
+	var action: Dictionary = U_DisplayActions.set_crt_curvature(5.0)
 	var payload: Dictionary = action.get("payload", {})
 
-	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_OUTLINE_COLOR)
-	assert_eq(payload.get("color"), "ff00ff")
+	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_CRT_CURVATURE)
+	assert_almost_eq(float(payload.get("curvature", 0.0)), 5.0, 0.0001)
 	assert_eq(action.get("immediate"), true)
 
 # Test 10: set_dither_enabled action

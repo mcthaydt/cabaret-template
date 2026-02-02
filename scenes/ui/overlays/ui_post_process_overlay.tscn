@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://d8f3hr42dgv4"]
 
 [ext_resource type="Shader" uid="uid://dnr1bhr1xtam3" path="res://assets/shaders/sh_film_grain_shader.gdshader" id="1_film_grain"]
-[ext_resource type="Shader" uid="uid://cl43m4u5dh1ka" path="res://assets/shaders/sh_outline_shader.gdshader" id="2_outline"]
+[ext_resource type="Shader" path="res://assets/shaders/sh_crt_shader.gdshader" id="2_crt"]
 [ext_resource type="Shader" uid="uid://c7ja1gq2xahli" path="res://assets/shaders/sh_dither_shader.gdshader" id="3_dither"]
 [ext_resource type="Shader" uid="uid://goc30a8wml54" path="res://assets/shaders/sh_lut_shader.gdshader" id="4_lut"]
 [ext_resource type="Texture2D" uid="uid://ctscnh7xerpg7" path="res://resources/textures/tex_bayer_8x8.png" id="5_bayer"]
@@ -14,11 +14,14 @@ shader_parameter/intensity = 0.1
 shader_parameter/grain_scale = 1.0
 shader_parameter/time = 0.0
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
-shader = ExtResource("2_outline")
-shader_parameter/thickness = 0.5
-shader_parameter/outline_color = Color(0, 0, 0, 1)
-shader_parameter/edge_threshold = 0.2
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
+shader = ExtResource("2_crt")
+shader_parameter/scanline_intensity = 0.3
+shader_parameter/scanline_count = 200.0
+shader_parameter/curvature = 2.0
+shader_parameter/vignette_intensity = 0.3
+shader_parameter/chromatic_aberration = 0.002
+shader_parameter/brightness = 1.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_dither"]
 shader = ExtResource("3_dither")
@@ -52,13 +55,13 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="OutlineLayer" type="CanvasLayer" parent="." unique_id=744498354]
+[node name="CRTLayer" type="CanvasLayer" parent="." unique_id=744498354]
 layer = 2
 follow_viewport_enabled = true
 
-[node name="OutlineRect" type="ColorRect" parent="OutlineLayer" unique_id=1741336407]
+[node name="CRTRect" type="ColorRect" parent="CRTLayer" unique_id=1741336407]
 visible = false
-material = SubResource("ShaderMaterial_outline")
+material = SubResource("ShaderMaterial_crt")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

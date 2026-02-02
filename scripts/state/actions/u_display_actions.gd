@@ -17,9 +17,9 @@ const ACTION_SET_QUALITY_PRESET := StringName("display/set_quality_preset")
 # Post-Processing
 const ACTION_SET_FILM_GRAIN_ENABLED := StringName("display/set_film_grain_enabled")
 const ACTION_SET_FILM_GRAIN_INTENSITY := StringName("display/set_film_grain_intensity")
-const ACTION_SET_OUTLINE_ENABLED := StringName("display/set_outline_enabled")
-const ACTION_SET_OUTLINE_THICKNESS := StringName("display/set_outline_thickness")
-const ACTION_SET_OUTLINE_COLOR := StringName("display/set_outline_color")
+const ACTION_SET_CRT_ENABLED := StringName("display/set_crt_enabled")
+const ACTION_SET_CRT_SCANLINE_INTENSITY := StringName("display/set_crt_scanline_intensity")
+const ACTION_SET_CRT_CURVATURE := StringName("display/set_crt_curvature")
 const ACTION_SET_DITHER_ENABLED := StringName("display/set_dither_enabled")
 const ACTION_SET_DITHER_INTENSITY := StringName("display/set_dither_intensity")
 const ACTION_SET_DITHER_PATTERN := StringName("display/set_dither_pattern")
@@ -42,9 +42,9 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SET_QUALITY_PRESET)
 	U_ActionRegistry.register_action(ACTION_SET_FILM_GRAIN_ENABLED)
 	U_ActionRegistry.register_action(ACTION_SET_FILM_GRAIN_INTENSITY)
-	U_ActionRegistry.register_action(ACTION_SET_OUTLINE_ENABLED)
-	U_ActionRegistry.register_action(ACTION_SET_OUTLINE_THICKNESS)
-	U_ActionRegistry.register_action(ACTION_SET_OUTLINE_COLOR)
+	U_ActionRegistry.register_action(ACTION_SET_CRT_ENABLED)
+	U_ActionRegistry.register_action(ACTION_SET_CRT_SCANLINE_INTENSITY)
+	U_ActionRegistry.register_action(ACTION_SET_CRT_CURVATURE)
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_ENABLED)
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_INTENSITY)
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_PATTERN)
@@ -100,24 +100,24 @@ static func set_film_grain_intensity(intensity: float) -> Dictionary:
 		"immediate": true,
 	}
 
-static func set_outline_enabled(enabled: bool) -> Dictionary:
+static func set_crt_enabled(enabled: bool) -> Dictionary:
 	return {
-		"type": ACTION_SET_OUTLINE_ENABLED,
+		"type": ACTION_SET_CRT_ENABLED,
 		"payload": {"enabled": enabled},
 		"immediate": true,
 	}
 
-static func set_outline_thickness(thickness: float) -> Dictionary:
+static func set_crt_scanline_intensity(intensity: float) -> Dictionary:
 	return {
-		"type": ACTION_SET_OUTLINE_THICKNESS,
-		"payload": {"thickness": thickness},
+		"type": ACTION_SET_CRT_SCANLINE_INTENSITY,
+		"payload": {"intensity": intensity},
 		"immediate": true,
 	}
 
-static func set_outline_color(color: String) -> Dictionary:
+static func set_crt_curvature(curvature: float) -> Dictionary:
 	return {
-		"type": ACTION_SET_OUTLINE_COLOR,
-		"payload": {"color": color},
+		"type": ACTION_SET_CRT_CURVATURE,
+		"payload": {"curvature": curvature},
 		"immediate": true,
 	}
 

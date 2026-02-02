@@ -215,7 +215,7 @@ func _apply_post_process_settings(display_settings: Dictionary) -> void:
 		return
 	var state := {"display": display_settings}
 	_apply_film_grain_settings(state)
-	_apply_outline_settings(state)
+	_apply_crt_settings(state)
 	_apply_dither_settings(state)
 	_apply_lut_settings(state)
 	_apply_color_blind_shader_settings(state)
@@ -231,20 +231,20 @@ func _apply_film_grain_settings(state: Dictionary) -> void:
 		intensity
 	)
 
-func _apply_outline_settings(state: Dictionary) -> void:
-	var enabled := U_DISPLAY_SELECTORS.is_outline_enabled(state)
-	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_OUTLINE, enabled)
-	var thickness := U_DISPLAY_SELECTORS.get_outline_thickness(state)
-	var outline_color := _parse_outline_color(U_DISPLAY_SELECTORS.get_outline_color(state))
+func _apply_crt_settings(state: Dictionary) -> void:
+	var enabled := U_DISPLAY_SELECTORS.is_crt_enabled(state)
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_CRT, enabled)
+	var scanline_intensity := U_DISPLAY_SELECTORS.get_crt_scanline_intensity(state)
+	var curvature := U_DISPLAY_SELECTORS.get_crt_curvature(state)
 	_post_process_layer.set_effect_parameter(
-		U_POST_PROCESS_LAYER.EFFECT_OUTLINE,
-		StringName("thickness"),
-		thickness
+		U_POST_PROCESS_LAYER.EFFECT_CRT,
+		StringName("scanline_intensity"),
+		scanline_intensity
 	)
 	_post_process_layer.set_effect_parameter(
-		U_POST_PROCESS_LAYER.EFFECT_OUTLINE,
-		StringName("outline_color"),
-		outline_color
+		U_POST_PROCESS_LAYER.EFFECT_CRT,
+		StringName("curvature"),
+		curvature
 	)
 
 func _apply_dither_settings(state: Dictionary) -> void:
@@ -523,25 +523,6 @@ func _setup_post_process_overlay() -> void:
 	_post_process_layer = U_POST_PROCESS_LAYER.new()
 	_post_process_layer.initialize(_post_process_overlay)
 	_update_overlay_visibility()
-
-func _parse_outline_color(hex_value: String) -> Color:
-	var value := hex_value.strip_edges()
-	if value.is_empty():
-		return Color(0, 0, 0, 1)
-	if value.begins_with("#"):
-		value = value.substr(1)
-	if value.length() != 6 and value.length() != 8:
-		return Color(0, 0, 0, 1)
-	if not _is_hex_string(value):
-		return Color(0, 0, 0, 1)
-
-	var r: int = value.substr(0, 2).hex_to_int()
-	var g: int = value.substr(2, 2).hex_to_int()
-	var b: int = value.substr(4, 2).hex_to_int()
-	var a: int = 255
-	if value.length() == 8:
-		a = value.substr(6, 2).hex_to_int()
-	return Color8(r, g, b, a)
 
 func _get_color_blind_mode_value(mode: String) -> int:
 	match mode:

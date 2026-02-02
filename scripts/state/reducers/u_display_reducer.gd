@@ -28,9 +28,9 @@ const DEFAULT_DISPLAY_STATE := {
 	"quality_preset": "high",
 	"film_grain_enabled": false,
 	"film_grain_intensity": 0.1,
-	"outline_enabled": false,
-	"outline_thickness": 0.5,
-	"outline_color": "000000",
+	"crt_enabled": false,
+	"crt_scanline_intensity": 0.3,
+	"crt_curvature": 2.0,
 	"dither_enabled": false,
 	"dither_intensity": 0.5,
 	"dither_pattern": "bayer",
@@ -45,8 +45,8 @@ const DEFAULT_DISPLAY_STATE := {
 
 const MIN_INTENSITY := 0.0
 const MAX_INTENSITY := 1.0
-const MIN_OUTLINE_THICKNESS := 0.1
-const MAX_OUTLINE_THICKNESS := 3.0
+const MIN_CRT_CURVATURE := 0.0
+const MAX_CRT_CURVATURE := 10.0
 const MIN_UI_SCALE := 0.8
 const MAX_UI_SCALE := 1.3
 
@@ -95,21 +95,22 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var clamped_intensity := clampf(raw_intensity, MIN_INTENSITY, MAX_INTENSITY)
 			return _with_values(current, {"film_grain_intensity": clamped_intensity})
 
-		U_DisplayActions.ACTION_SET_OUTLINE_ENABLED:
+		U_DisplayActions.ACTION_SET_CRT_ENABLED:
 			var payload: Dictionary = action.get("payload", {})
 			var enabled := bool(payload.get("enabled", false))
-			return _with_values(current, {"outline_enabled": enabled})
+			return _with_values(current, {"crt_enabled": enabled})
 
-		U_DisplayActions.ACTION_SET_OUTLINE_THICKNESS:
+		U_DisplayActions.ACTION_SET_CRT_SCANLINE_INTENSITY:
 			var payload: Dictionary = action.get("payload", {})
-			var raw_thickness: float = float(payload.get("thickness", MIN_OUTLINE_THICKNESS))
-			var clamped_thickness := clampf(raw_thickness, MIN_OUTLINE_THICKNESS, MAX_OUTLINE_THICKNESS)
-			return _with_values(current, {"outline_thickness": clamped_thickness})
+			var raw_intensity: float = float(payload.get("intensity", 0.3))
+			var clamped_intensity := clampf(raw_intensity, MIN_INTENSITY, MAX_INTENSITY)
+			return _with_values(current, {"crt_scanline_intensity": clamped_intensity})
 
-		U_DisplayActions.ACTION_SET_OUTLINE_COLOR:
+		U_DisplayActions.ACTION_SET_CRT_CURVATURE:
 			var payload: Dictionary = action.get("payload", {})
-			var color: String = String(payload.get("color", ""))
-			return _with_values(current, {"outline_color": color})
+			var raw_curvature: float = float(payload.get("curvature", 2.0))
+			var clamped_curvature := clampf(raw_curvature, MIN_CRT_CURVATURE, MAX_CRT_CURVATURE)
+			return _with_values(current, {"crt_curvature": clamped_curvature})
 
 		U_DisplayActions.ACTION_SET_DITHER_ENABLED:
 			var payload: Dictionary = action.get("payload", {})

@@ -13,12 +13,12 @@ class_name RS_DisplayInitialState
 @export_enum("low", "medium", "high", "ultra") var quality_preset: String = "high"
 
 @export_group("Post-Processing")
-# Note: Effect order is fixed internally (Film Grain -> Outline -> Dither -> LUT), not user-configurable.
+# Note: Effect order is fixed internally (Film Grain -> CRT -> Dither -> LUT), not user-configurable.
 @export var film_grain_enabled: bool = false
 @export_range(0.0, 1.0, 0.05) var film_grain_intensity: float = 0.1
-@export var outline_enabled: bool = false
-@export_range(0.1, 3.0, 0.1) var outline_thickness: float = 0.5
-@export var outline_color: String = "000000"
+@export var crt_enabled: bool = false
+@export_range(0.0, 1.0, 0.05) var crt_scanline_intensity: float = 0.3
+@export_range(0.0, 10.0, 0.5) var crt_curvature: float = 2.0
 @export var dither_enabled: bool = false
 @export_range(0.0, 1.0, 0.05) var dither_intensity: float = 0.5
 @export_enum("bayer", "noise") var dither_pattern: String = "bayer"
@@ -43,9 +43,9 @@ func to_dictionary() -> Dictionary:
 		"quality_preset": quality_preset,
 		"film_grain_enabled": film_grain_enabled,
 		"film_grain_intensity": film_grain_intensity,
-		"outline_enabled": outline_enabled,
-		"outline_thickness": outline_thickness,
-		"outline_color": outline_color,
+		"crt_enabled": crt_enabled,
+		"crt_scanline_intensity": crt_scanline_intensity,
+		"crt_curvature": crt_curvature,
 		"dither_enabled": dither_enabled,
 		"dither_intensity": dither_intensity,
 		"dither_pattern": dither_pattern,

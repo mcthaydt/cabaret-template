@@ -57,23 +57,23 @@ func test_has_film_grain_fields() -> void:
 	assert_eq(initial_state.film_grain_enabled, false)
 	assert_eq(initial_state.film_grain_intensity, 0.1)
 
-# Test 6: Has outline fields
-func test_has_outline_fields() -> void:
+# Test 6: Has CRT fields
+func test_has_crt_fields() -> void:
 	assert_true(
-		"outline_enabled" in initial_state,
-		"RS_DisplayInitialState should have outline_enabled field"
+		"crt_enabled" in initial_state,
+		"RS_DisplayInitialState should have crt_enabled field"
 	)
 	assert_true(
-		"outline_thickness" in initial_state,
-		"RS_DisplayInitialState should have outline_thickness field"
+		"crt_scanline_intensity" in initial_state,
+		"RS_DisplayInitialState should have crt_scanline_intensity field"
 	)
 	assert_true(
-		"outline_color" in initial_state,
-		"RS_DisplayInitialState should have outline_color field"
+		"crt_curvature" in initial_state,
+		"RS_DisplayInitialState should have crt_curvature field"
 	)
-	assert_eq(initial_state.outline_enabled, false)
-	assert_almost_eq(initial_state.outline_thickness, 0.5, 0.0001)
-	assert_eq(initial_state.outline_color, "000000")
+	assert_eq(initial_state.crt_enabled, false)
+	assert_almost_eq(initial_state.crt_scanline_intensity, 0.3, 0.0001)
+	assert_almost_eq(initial_state.crt_curvature, 2.0, 0.0001)
 
 # Test 7: Has dither fields
 func test_has_dither_fields() -> void:
@@ -148,9 +148,9 @@ func test_to_dictionary_returns_all_fields() -> void:
 
 	assert_true(dict.has("film_grain_enabled"), "to_dictionary should include film_grain_enabled")
 	assert_true(dict.has("film_grain_intensity"), "to_dictionary should include film_grain_intensity")
-	assert_true(dict.has("outline_enabled"), "to_dictionary should include outline_enabled")
-	assert_true(dict.has("outline_thickness"), "to_dictionary should include outline_thickness")
-	assert_true(dict.has("outline_color"), "to_dictionary should include outline_color")
+	assert_true(dict.has("crt_enabled"), "to_dictionary should include crt_enabled")
+	assert_true(dict.has("crt_scanline_intensity"), "to_dictionary should include crt_scanline_intensity")
+	assert_true(dict.has("crt_curvature"), "to_dictionary should include crt_curvature")
 	assert_true(dict.has("dither_enabled"), "to_dictionary should include dither_enabled")
 	assert_true(dict.has("dither_intensity"), "to_dictionary should include dither_intensity")
 	assert_true(dict.has("dither_pattern"), "to_dictionary should include dither_pattern")

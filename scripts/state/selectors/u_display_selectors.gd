@@ -30,17 +30,17 @@ static func get_film_grain_intensity(state: Dictionary) -> float:
 	var display := _get_display_slice(state)
 	return float(display.get("film_grain_intensity", 0.1))
 
-static func is_outline_enabled(state: Dictionary) -> bool:
+static func is_crt_enabled(state: Dictionary) -> bool:
 	var display := _get_display_slice(state)
-	return bool(display.get("outline_enabled", false))
+	return bool(display.get("crt_enabled", false))
 
-static func get_outline_thickness(state: Dictionary) -> float:
+static func get_crt_scanline_intensity(state: Dictionary) -> float:
 	var display := _get_display_slice(state)
-	return float(display.get("outline_thickness", 0.5))
+	return float(display.get("crt_scanline_intensity", 0.3))
 
-static func get_outline_color(state: Dictionary) -> String:
+static func get_crt_curvature(state: Dictionary) -> float:
 	var display := _get_display_slice(state)
-	return String(display.get("outline_color", "000000"))
+	return float(display.get("crt_curvature", 2.0))
 
 static func is_dither_enabled(state: Dictionary) -> bool:
 	var display := _get_display_slice(state)

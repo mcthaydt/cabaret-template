@@ -20,7 +20,6 @@
 [ext_resource type="Script" uid="uid://dx3dwbjtpqx2k" path="res://scripts/ecs/components/c_spawn_state_component.gd" id="19_spawn_state"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_6mvan"]
-height = 2.5
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6mvan"]
 shading_mode = 0
@@ -45,7 +44,7 @@ tags = Array[StringName]([&"character"])
 [node name="Player_Body" type="CharacterBody3D" parent="." unique_id=312897681]
 
 [node name="Body_Mesh" type="CSGMesh3D" parent="Player_Body" unique_id=1005709362]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1351281, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.23395288, 0)
 mesh = SubResource("CapsuleMesh_6mvan")
 material = SubResource("StandardMaterial3D_6mvan")
 
@@ -60,39 +59,45 @@ modulate = Color(1, 1, 1, 0.49803922)
 texture = ExtResource("1_m3alx")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player_Body" unique_id=1174621009]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.89695925, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.33601815, 0)
 shape = SubResource("CapsuleShape3D_16kfq")
 
 [node name="HoverRays" type="Node3D" parent="Player_Body" unique_id=125732774]
 
 [node name="Center" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=2090294656]
-target_position = Vector3(0, -2, 0)
+target_position = Vector3(0, -1.7, 0)
 
 [node name="Forward" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1587196027]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.3)
-target_position = Vector3(0, -2, 0)
+target_position = Vector3(0, -1.7, 0)
 
 [node name="Back" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1819381193]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.3)
-target_position = Vector3(0, -2, 0)
+target_position = Vector3(0, -1.7, 0)
 
 [node name="Left" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=38065460]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 0, 0)
+target_position = Vector3(0, -2.2, 0)
 
 [node name="Right" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1313980861]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0, 0)
+target_position = Vector3(0, -2.2, 0)
 
 [node name="ForwardLeft" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=2113602555]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.21, 0, 0.21)
+target_position = Vector3(0, -2.2, 0)
 
 [node name="ForwardRight" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1382398280]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.21, 0, 0.21)
+target_position = Vector3(0, -2.2, 0)
 
 [node name="BackLeft" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=1041709853]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.21, 0, -0.21)
+target_position = Vector3(0, -2.2, 0)
 
 [node name="BackRight" type="RayCast3D" parent="Player_Body/HoverRays" unique_id=326573186]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.21, 0, -0.21)
+target_position = Vector3(0, -2.2, 0)
 
 [node name="Components" type="Node" parent="." unique_id=1373490017]
 script = ExtResource("3_8l4b7")

@@ -15,9 +15,9 @@ func test_default_state_has_all_fields() -> void:
 	assert_true(default_state.has("quality_preset"))
 	assert_true(default_state.has("film_grain_enabled"))
 	assert_true(default_state.has("film_grain_intensity"))
-	assert_true(default_state.has("outline_enabled"))
-	assert_true(default_state.has("outline_thickness"))
-	assert_true(default_state.has("outline_color"))
+	assert_true(default_state.has("crt_enabled"))
+	assert_true(default_state.has("crt_scanline_intensity"))
+	assert_true(default_state.has("crt_curvature"))
 	assert_true(default_state.has("dither_enabled"))
 	assert_true(default_state.has("dither_intensity"))
 	assert_true(default_state.has("dither_pattern"))
@@ -39,9 +39,9 @@ func test_default_state_has_expected_defaults() -> void:
 	assert_eq(default_state.get("quality_preset"), "high")
 	assert_eq(default_state.get("film_grain_enabled"), false)
 	assert_almost_eq(float(default_state.get("film_grain_intensity", 0.0)), 0.1, 0.0001)
-	assert_eq(default_state.get("outline_enabled"), false)
-	assert_almost_eq(float(default_state.get("outline_thickness", 0.0)), 0.5, 0.0001)
-	assert_eq(default_state.get("outline_color"), "000000")
+	assert_eq(default_state.get("crt_enabled"), false)
+	assert_almost_eq(float(default_state.get("crt_scanline_intensity", 0.0)), 0.3, 0.0001)
+	assert_almost_eq(float(default_state.get("crt_curvature", 0.0)), 2.0, 0.0001)
 	assert_eq(default_state.get("dither_enabled"), false)
 	assert_almost_eq(float(default_state.get("dither_intensity", 0.0)), 0.5, 0.0001)
 	assert_eq(default_state.get("dither_pattern"), "bayer")
@@ -93,21 +93,21 @@ func test_set_film_grain_enabled_updates_field() -> void:
 
 	assert_eq(reduced.get("film_grain_enabled"), true)
 
-# Test 8: set_outline_enabled updates field
-func test_set_outline_enabled_updates_field() -> void:
+# Test 8: set_crt_enabled updates field
+func test_set_crt_enabled_updates_field() -> void:
 	var state := _make_display_state()
-	var action := U_DisplayActions.set_outline_enabled(true)
+	var action := U_DisplayActions.set_crt_enabled(true)
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_eq(reduced.get("outline_enabled"), true)
+	assert_eq(reduced.get("crt_enabled"), true)
 
-# Test 9: set_outline_color updates field
-func test_set_outline_color_updates_field() -> void:
+# Test 9: set_crt_curvature updates field
+func test_set_crt_curvature_updates_field() -> void:
 	var state := _make_display_state()
-	var action := U_DisplayActions.set_outline_color("ff00ff")
+	var action := U_DisplayActions.set_crt_curvature(5.0)
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_eq(reduced.get("outline_color"), "ff00ff")
+	assert_almost_eq(float(reduced.get("crt_curvature", 0.0)), 5.0, 0.0001)
 
 # Test 10: set_dither_enabled updates field
 func test_set_dither_enabled_updates_field() -> void:
@@ -189,13 +189,13 @@ func test_set_lut_intensity_clamps() -> void:
 
 	assert_almost_eq(float(reduced.get("lut_intensity", 0.0)), 1.0, 0.0001)
 
-# Test 20: set_outline_thickness clamps
-func test_set_outline_thickness_clamps() -> void:
+# Test 20: set_crt_scanline_intensity clamps
+func test_set_crt_scanline_intensity_clamps() -> void:
 	var state := _make_display_state()
-	var action := U_DisplayActions.set_outline_thickness(10.0)
+	var action := U_DisplayActions.set_crt_scanline_intensity(10.0)
 	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
 
-	assert_almost_eq(float(reduced.get("outline_thickness", 0.0)), 3.0, 0.0001)
+	assert_almost_eq(float(reduced.get("crt_scanline_intensity", 0.0)), 1.0, 0.0001)
 
 # Test 21: set_ui_scale clamps
 func test_set_ui_scale_clamps() -> void:

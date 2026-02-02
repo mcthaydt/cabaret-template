@@ -11,9 +11,9 @@ const DEFAULTS := {
 	"quality_preset": "high",
 	"film_grain_enabled": false,
 	"film_grain_intensity": 0.1,
-	"outline_enabled": false,
-	"outline_thickness": 0.5,
-	"outline_color": "000000",
+	"crt_enabled": false,
+	"crt_scanline_intensity": 0.3,
+	"crt_curvature": 2.0,
 	"dither_enabled": false,
 	"dither_intensity": 0.5,
 	"dither_pattern": "bayer",
@@ -86,35 +86,35 @@ func test_get_film_grain_intensity_returns_value_and_defaults() -> void:
 	missing_field["display"].erase("film_grain_intensity")
 	assert_almost_eq(U_DisplaySelectors.get_film_grain_intensity(missing_field), DEFAULTS["film_grain_intensity"], 0.0001)
 
-# Test 7: outline_enabled selector
-func test_is_outline_enabled_returns_value_and_defaults() -> void:
+# Test 7: crt_enabled selector
+func test_is_crt_enabled_returns_value_and_defaults() -> void:
 	var state := _make_state()
-	state["display"]["outline_enabled"] = true
-	assert_true(U_DisplaySelectors.is_outline_enabled(state))
-	assert_false(U_DisplaySelectors.is_outline_enabled({}))
+	state["display"]["crt_enabled"] = true
+	assert_true(U_DisplaySelectors.is_crt_enabled(state))
+	assert_false(U_DisplaySelectors.is_crt_enabled({}))
 	var missing_field := _make_state()
-	missing_field["display"].erase("outline_enabled")
-	assert_false(U_DisplaySelectors.is_outline_enabled(missing_field))
+	missing_field["display"].erase("crt_enabled")
+	assert_false(U_DisplaySelectors.is_crt_enabled(missing_field))
 
-# Test 8: outline_thickness selector
-func test_get_outline_thickness_returns_value_and_defaults() -> void:
+# Test 8: crt_scanline_intensity selector
+func test_get_crt_scanline_intensity_returns_value_and_defaults() -> void:
 	var state := _make_state()
-	state["display"]["outline_thickness"] = 4.0
-	assert_almost_eq(U_DisplaySelectors.get_outline_thickness(state), 4.0, 0.0001)
-	assert_almost_eq(U_DisplaySelectors.get_outline_thickness({}), DEFAULTS["outline_thickness"], 0.0001)
+	state["display"]["crt_scanline_intensity"] = 4.0
+	assert_almost_eq(U_DisplaySelectors.get_crt_scanline_intensity(state), 4.0, 0.0001)
+	assert_almost_eq(U_DisplaySelectors.get_crt_scanline_intensity({}), DEFAULTS["crt_scanline_intensity"], 0.0001)
 	var missing_field := _make_state()
-	missing_field["display"].erase("outline_thickness")
-	assert_almost_eq(U_DisplaySelectors.get_outline_thickness(missing_field), DEFAULTS["outline_thickness"], 0.0001)
+	missing_field["display"].erase("crt_scanline_intensity")
+	assert_almost_eq(U_DisplaySelectors.get_crt_scanline_intensity(missing_field), DEFAULTS["crt_scanline_intensity"], 0.0001)
 
-# Test 9: outline_color selector
-func test_get_outline_color_returns_value_and_defaults() -> void:
+# Test 9: crt_curvature selector
+func test_get_crt_curvature_returns_value_and_defaults() -> void:
 	var state := _make_state()
-	state["display"]["outline_color"] = "ff00ff"
-	assert_eq(U_DisplaySelectors.get_outline_color(state), "ff00ff")
-	assert_eq(U_DisplaySelectors.get_outline_color({}), DEFAULTS["outline_color"])
+	state["display"]["crt_curvature"] = 5.0
+	assert_almost_eq(U_DisplaySelectors.get_crt_curvature(state), 5.0, 0.0001)
+	assert_almost_eq(U_DisplaySelectors.get_crt_curvature({}), DEFAULTS["crt_curvature"], 0.0001)
 	var missing_field := _make_state()
-	missing_field["display"].erase("outline_color")
-	assert_eq(U_DisplaySelectors.get_outline_color(missing_field), DEFAULTS["outline_color"])
+	missing_field["display"].erase("crt_curvature")
+	assert_almost_eq(U_DisplaySelectors.get_crt_curvature(missing_field), DEFAULTS["crt_curvature"], 0.0001)
 
 # Test 10: dither_enabled selector
 func test_is_dither_enabled_returns_value_and_defaults() -> void:
