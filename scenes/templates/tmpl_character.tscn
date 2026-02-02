@@ -37,7 +37,7 @@ tags = Array[StringName]([&"character"])
 [node name="Player_Body" type="CharacterBody3D" parent="." unique_id=312897681]
 
 [node name="Body_Mesh" parent="Player_Body" unique_id=1005709362 instance=ExtResource("1_character")]
-transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, -0.5, 0)
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, -0.5, 0)
 
 [node name="Direction_Mesh" type="MeshInstance3D" parent="Player_Body/Body_Mesh" unique_id=1099865446]
 transform = Transform3D(0.39169633, 0, 0, 0, 0.15378642, 0, 0, 0, 0.36884245, -0.019476414, 0.6069238, -0.4746977)
