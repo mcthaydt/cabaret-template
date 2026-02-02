@@ -31,6 +31,7 @@
 [ext_resource type="Resource" path="res://resources/base_settings/state/cfg_display_initial_state.tres" id="29_display_state"]
 [ext_resource type="Script" uid="uid://c7ge3x7wa2nvr" path="res://scripts/managers/m_display_manager.gd" id="30_display_manager"]
 [ext_resource type="PackedScene" uid="uid://d8f3hr42dgv4" path="res://scenes/ui/overlays/ui_post_process_overlay.tscn" id="31_post_process"]
+[ext_resource type="Script" path="res://scripts/ui/utils/u_viewport_resizer.gd" id="32_viewport_resizer"]
 
 [node name="Root" type="Node" unique_id=409084781]
 script = ExtResource("10_main_root")
@@ -98,6 +99,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 stretch = true
+script = ExtResource("32_viewport_resizer")
 
 [node name="GameViewport" type="SubViewport" parent="GameViewportContainer"]
 handle_input_locally = false

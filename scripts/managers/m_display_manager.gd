@@ -569,11 +569,9 @@ func _apply_ui_scale_to_node(node: Node, scale: float) -> void:
 		_apply_font_scale_to_tree(node, scale)
 		return
 	if node is Control:
-		var control: Control = node as Control
-		var viewport_rect: Rect2 = _get_viewport_rect(control)
-		var safe_rect: Rect2 = _get_safe_area_rect(viewport_rect)
-		_apply_safe_area_padding(control, viewport_rect.size, safe_rect)
-		_apply_font_scale_to_tree(control, scale)
+		# Safe area padding disabled - it interferes with fullscreen overlays
+		# UI elements should use proper anchors instead
+		_apply_font_scale_to_tree(node, scale)
 		return
 	_apply_font_scale_to_tree(node, scale)
 
