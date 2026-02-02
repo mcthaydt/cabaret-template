@@ -465,7 +465,7 @@ Before starting Phase 0, verify:
 
 ---
 
-### Phase 5C: Color Blind Shader 
+### Phase 5C: Color Blind Shader
 
 - [x] **Task 5C.1**: Create daltonization shader
   - Create `assets/shaders/sh_colorblind_daltonize.gdshader`
