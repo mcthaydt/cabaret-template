@@ -19,8 +19,8 @@ func test_initialize_caches_effect_rects() -> void:
 		"Film grain rect should be cached"
 	)
 	assert_not_null(
-		_helper.get_effect_rect(U_PostProcessLayer.EFFECT_OUTLINE),
-		"Outline rect should be cached"
+		_helper.get_effect_rect(U_PostProcessLayer.EFFECT_CRT),
+		"CRT rect should be cached"
 	)
 	assert_not_null(
 		_helper.get_effect_rect(U_PostProcessLayer.EFFECT_DITHER),
@@ -45,13 +45,13 @@ func test_initialize_handles_null_canvas_layer() -> void:
 
 func test_set_effect_enabled_toggles_visibility() -> void:
 	_helper.initialize(_root_node)
-	var rect := _helper.get_effect_rect(U_PostProcessLayer.EFFECT_OUTLINE)
-	assert_not_null(rect, "Outline rect should exist")
+	var rect := _helper.get_effect_rect(U_PostProcessLayer.EFFECT_CRT)
+	assert_not_null(rect, "CRT rect should exist")
 
-	_helper.set_effect_enabled(U_PostProcessLayer.EFFECT_OUTLINE, true)
+	_helper.set_effect_enabled(U_PostProcessLayer.EFFECT_CRT, true)
 	assert_true(rect.visible, "set_effect_enabled(true) should show rect")
 
-	_helper.set_effect_enabled(U_PostProcessLayer.EFFECT_OUTLINE, false)
+	_helper.set_effect_enabled(U_PostProcessLayer.EFFECT_CRT, false)
 	assert_false(rect.visible, "set_effect_enabled(false) should hide rect")
 
 func test_set_effect_enabled_handles_missing_effect() -> void:
@@ -103,7 +103,7 @@ func test_set_effect_parameter_ignores_non_shader_material() -> void:
 func _create_effect_rects(root: Node) -> void:
 	var layers := [
 		{layer_name = "FilmGrainLayer", rect_name = "FilmGrainRect"},
-		{layer_name = "OutlineLayer", rect_name = "OutlineRect"},
+		{layer_name = "CRTLayer", rect_name = "CRTRect"},
 		{layer_name = "DitherLayer", rect_name = "DitherRect"},
 		{layer_name = "LUTLayer", rect_name = "LUTRect"},
 		{layer_name = "ColorBlindLayer", rect_name = "ColorBlindRect"}

@@ -236,6 +236,7 @@ func _apply_crt_settings(state: Dictionary) -> void:
 	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_CRT, enabled)
 	var scanline_intensity := U_DISPLAY_SELECTORS.get_crt_scanline_intensity(state)
 	var curvature := U_DISPLAY_SELECTORS.get_crt_curvature(state)
+	var chromatic_aberration := U_DISPLAY_SELECTORS.get_crt_chromatic_aberration(state)
 	_post_process_layer.set_effect_parameter(
 		U_POST_PROCESS_LAYER.EFFECT_CRT,
 		StringName("scanline_intensity"),
@@ -245,6 +246,11 @@ func _apply_crt_settings(state: Dictionary) -> void:
 		U_POST_PROCESS_LAYER.EFFECT_CRT,
 		StringName("curvature"),
 		curvature
+	)
+	_post_process_layer.set_effect_parameter(
+		U_POST_PROCESS_LAYER.EFFECT_CRT,
+		StringName("chromatic_aberration"),
+		chromatic_aberration
 	)
 
 func _apply_dither_settings(state: Dictionary) -> void:

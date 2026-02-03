@@ -20,6 +20,7 @@ const ACTION_SET_FILM_GRAIN_INTENSITY := StringName("display/set_film_grain_inte
 const ACTION_SET_CRT_ENABLED := StringName("display/set_crt_enabled")
 const ACTION_SET_CRT_SCANLINE_INTENSITY := StringName("display/set_crt_scanline_intensity")
 const ACTION_SET_CRT_CURVATURE := StringName("display/set_crt_curvature")
+const ACTION_SET_CRT_CHROMATIC_ABERRATION := StringName("display/set_crt_chromatic_aberration")
 const ACTION_SET_DITHER_ENABLED := StringName("display/set_dither_enabled")
 const ACTION_SET_DITHER_INTENSITY := StringName("display/set_dither_intensity")
 const ACTION_SET_DITHER_PATTERN := StringName("display/set_dither_pattern")
@@ -45,6 +46,7 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SET_CRT_ENABLED)
 	U_ActionRegistry.register_action(ACTION_SET_CRT_SCANLINE_INTENSITY)
 	U_ActionRegistry.register_action(ACTION_SET_CRT_CURVATURE)
+	U_ActionRegistry.register_action(ACTION_SET_CRT_CHROMATIC_ABERRATION)
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_ENABLED)
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_INTENSITY)
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_PATTERN)
@@ -118,6 +120,13 @@ static func set_crt_curvature(curvature: float) -> Dictionary:
 	return {
 		"type": ACTION_SET_CRT_CURVATURE,
 		"payload": {"curvature": curvature},
+		"immediate": true,
+	}
+
+static func set_crt_chromatic_aberration(aberration: float) -> Dictionary:
+	return {
+		"type": ACTION_SET_CRT_CHROMATIC_ABERRATION,
+		"payload": {"aberration": aberration},
 		"immediate": true,
 	}
 

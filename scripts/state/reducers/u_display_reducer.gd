@@ -31,6 +31,7 @@ const DEFAULT_DISPLAY_STATE := {
 	"crt_enabled": false,
 	"crt_scanline_intensity": 0.3,
 	"crt_curvature": 2.0,
+	"crt_chromatic_aberration": 0.002,
 	"dither_enabled": false,
 	"dither_intensity": 0.5,
 	"dither_pattern": "bayer",
@@ -47,6 +48,8 @@ const MIN_INTENSITY := 0.0
 const MAX_INTENSITY := 1.0
 const MIN_CRT_CURVATURE := 0.0
 const MAX_CRT_CURVATURE := 10.0
+const MIN_CRT_CHROMATIC_ABERRATION := 0.0
+const MAX_CRT_CHROMATIC_ABERRATION := 0.01
 const MIN_UI_SCALE := 0.8
 const MAX_UI_SCALE := 1.3
 
@@ -111,6 +114,12 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var raw_curvature: float = float(payload.get("curvature", 2.0))
 			var clamped_curvature := clampf(raw_curvature, MIN_CRT_CURVATURE, MAX_CRT_CURVATURE)
 			return _with_values(current, {"crt_curvature": clamped_curvature})
+
+		U_DisplayActions.ACTION_SET_CRT_CHROMATIC_ABERRATION:
+			var payload: Dictionary = action.get("payload", {})
+			var raw_aberration: float = float(payload.get("aberration", 0.002))
+			var clamped_aberration := clampf(raw_aberration, MIN_CRT_CHROMATIC_ABERRATION, MAX_CRT_CHROMATIC_ABERRATION)
+			return _with_values(current, {"crt_chromatic_aberration": clamped_aberration})
 
 		U_DisplayActions.ACTION_SET_DITHER_ENABLED:
 			var payload: Dictionary = action.get("payload", {})

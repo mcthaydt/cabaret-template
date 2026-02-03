@@ -19,6 +19,7 @@ class_name RS_DisplayInitialState
 @export var crt_enabled: bool = false
 @export_range(0.0, 1.0, 0.05) var crt_scanline_intensity: float = 0.3
 @export_range(0.0, 10.0, 0.5) var crt_curvature: float = 2.0
+@export_range(0.0, 0.01, 0.0001) var crt_chromatic_aberration: float = 0.002
 @export var dither_enabled: bool = false
 @export_range(0.0, 1.0, 0.05) var dither_intensity: float = 0.5
 @export_enum("bayer", "noise") var dither_pattern: String = "bayer"
@@ -46,6 +47,7 @@ func to_dictionary() -> Dictionary:
 		"crt_enabled": crt_enabled,
 		"crt_scanline_intensity": crt_scanline_intensity,
 		"crt_curvature": crt_curvature,
+		"crt_chromatic_aberration": crt_chromatic_aberration,
 		"dither_enabled": dither_enabled,
 		"dither_intensity": dither_intensity,
 		"dither_pattern": dither_pattern,
