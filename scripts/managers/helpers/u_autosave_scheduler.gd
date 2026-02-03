@@ -85,7 +85,7 @@ func _on_action_dispatched(action: Dictionary) -> void:
 		var payload: Dictionary = action.get("payload", {})
 		var scene_id: StringName = payload.get("scene_id", StringName(""))
 
-		# Check if transitioning to a gameplay scene (exterior, interior, etc.)
+	# Check if transitioning to a gameplay scene (alleyway, interior, etc.)
 		if _is_gameplay_scene(scene_id):
 			# For gameplay scenes, autosave even if shell isn't set to 'gameplay' yet
 			_request_autosave_for_gameplay_transition(Priority.HIGH)
@@ -157,7 +157,7 @@ func _is_gameplay_scene(scene_id: StringName) -> bool:
 
 	# Fallback for tests or dev scenes not registered in the registry.
 	var fallback_gameplay_scenes := [
-		StringName("exterior"),
+		StringName("alleyway"),
 		StringName("gameplay_base"),
 		StringName("interior_house"),
 		StringName("scene1"),

@@ -331,7 +331,7 @@ func _get_victory_target_scene(trigger: C_VictoryTriggerComponent) -> StringName
 		C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:
 			return StringName("victory")
 		_:
-			return StringName("exterior")
+			return StringName("alleyway")
 
 ## Load initial scene on startup
 func _load_initial_scene() -> void:

@@ -33,10 +33,10 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 			8
 		)
 
-	if not scenes.has(StringName("exterior")):
+	if not scenes.has(StringName("alleyway")):
 		register_scene_callable.call(
-			StringName("exterior"),
-			"res://scenes/gameplay/gameplay_exterior.tscn",
+			StringName("alleyway"),
+			"res://scenes/gameplay/gameplay_alleyway.tscn",
 			U_SceneRegistry.SceneType.GAMEPLAY,
 			"loading",
 			6

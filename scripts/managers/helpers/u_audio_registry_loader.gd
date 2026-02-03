@@ -93,13 +93,13 @@ static func _register_scene_audio_mappings() -> void:
 
 	# Load scene mapping resources
 	var main_menu := preload("res://resources/audio/scene_mappings/scene_main_menu.tres") as RS_SceneAudioMapping
-	var exterior := preload("res://resources/audio/scene_mappings/scene_exterior.tres") as RS_SceneAudioMapping
+	var alleyway := preload("res://resources/audio/scene_mappings/scene_alleyway.tres") as RS_SceneAudioMapping
 	var interior_house := preload("res://resources/audio/scene_mappings/scene_interior_house.tres") as RS_SceneAudioMapping
 	var credits := preload("res://resources/audio/scene_mappings/scene_credits.tres") as RS_SceneAudioMapping
 
 	# Register in dictionary
 	_scene_audio_map[StringName("main_menu")] = main_menu
-	_scene_audio_map[StringName("exterior")] = exterior
+	_scene_audio_map[StringName("alleyway")] = alleyway
 	_scene_audio_map[StringName("interior_house")] = interior_house
 	_scene_audio_map[StringName("credits")] = credits
 

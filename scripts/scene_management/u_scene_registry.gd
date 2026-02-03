@@ -63,7 +63,7 @@ static func _static_init() -> void:
 ## - test scenes: Required for test suite
 ##
 ## NON-CRITICAL (migrated to .tres resources):
-## - gameplay_base, exterior, interior_house → resources/scene_registry/
+## - gameplay_base, alleyway, interior_house → resources/scene_registry/
 ## - game_over, victory, credits → resources/scene_registry/
 static func _register_scenes() -> void:
 	# CRITICAL SCENES - Keep hardcoded for safety
@@ -171,38 +171,29 @@ static func _backfill_default_gameplay_scenes() -> void:
 
 ## Register door pairings for seamless area transitions
 static func _register_door_pairings() -> void:
-	# Exterior → Interior Bar (main door)
+	# Alleyway → Interior Bar
 	_register_door_exit(
-		StringName("exterior"),
-		StringName("door_to_house"),
-		StringName("interior_bar"),
-		StringName("sp_entrance_from_exterior"),
-		"fade"
-	)
-
-	# Interior Bar → Exterior
-	_register_door_exit(
-		StringName("interior_bar"),
-		StringName("door_to_exterior"),
-		StringName("exterior"),
-		StringName("sp_exit_from_house"),
-		"fade"
-	)
-
-	# Exterior → Interior Bar (second door)
-	_register_door_exit(
-		StringName("exterior"),
+		StringName("alleyway"),
 		StringName("door_to_bar"),
 		StringName("interior_bar"),
 		StringName("sp_entrance_from_exterior"),
 		"fade"
 	)
 
-	# Interior House → Exterior (kept for backward compatibility)
+	# Interior Bar → Alleyway
+	_register_door_exit(
+		StringName("interior_bar"),
+		StringName("door_to_exterior"),
+		StringName("alleyway"),
+		StringName("sp_exit_from_bar"),
+		"fade"
+	)
+
+	# Interior House → Alleyway (kept for backward compatibility)
 	_register_door_exit(
 		StringName("interior_house"),
 		StringName("door_to_exterior"),
-		StringName("exterior"),
+		StringName("alleyway"),
 		StringName("sp_exit_from_house"),
 		"fade"
 	)

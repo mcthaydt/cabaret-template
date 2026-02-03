@@ -5,7 +5,7 @@ class_name UI_Victory
 ## Victory screen controller (Phase 9)
 ##
 ## Displays completion stats and dispatches navigation actions:
-## - Continue: Return to gameplay hub (exterior).
+## - Continue: Return to gameplay hub (alleyway).
 ## - Credits: Skip to credits (visible after completion).
 ## - Menu: Return to main menu.
 
@@ -18,7 +18,7 @@ const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configura
 @onready var _credits_button: Button = $MarginContainer/VBoxContainer/ButtonRow/CreditsButton
 @onready var _menu_button: Button = $MarginContainer/VBoxContainer/ButtonRow/MenuButton
 
-const HUB_SCENE_ID := StringName("exterior")
+const HUB_SCENE_ID := StringName("alleyway")
 
 var _store_unsubscribe: Callable = Callable()
 
