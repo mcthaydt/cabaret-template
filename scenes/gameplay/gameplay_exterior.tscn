@@ -81,9 +81,8 @@ specular_mode = 1
 background_mode = 1
 background_color = Color(0.3019608, 0.60784316, 0.9019608, 1)
 ambient_light_source = 3
-tonemap_mode = 3
-tonemap_exposure = 0.72
-tonemap_white = 2.91
+tonemap_mode = 1
+adjustment_enabled = true
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spike"]
 albedo_color = Color(0.643137, 0.160784, 0.160784, 1)

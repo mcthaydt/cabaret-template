@@ -1,74 +1,57 @@
 shader_type canvas_item;
 
-// Professional dithering with blue noise and improved ordered dithering
+// Dithering effect with ordered Bayer pattern
 uniform float intensity : hint_range(0.0, 1.0) = 0.5;
-uniform int levels : hint_range(2, 16) = 8;
-uniform int pattern_mode : hint_range(0, 2) = 0; // 0 = bayer, 1 = blue noise, 2 = triangular
-uniform sampler2D bayer_texture : hint_default_black;
+uniform int levels : hint_range(2, 16) = 4;
+uniform int pattern_mode : hint_range(0, 1) = 0; // 0 = bayer, 1 = noise
 uniform sampler2D screen_texture : hint_screen_texture;
 
-// Improved random for blue noise simulation
+// Fast hash for noise pattern
 float _hash12(vec2 p) {
 	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
 	p3 += dot(p3, p3.yzx + 33.33);
 	return fract((p3.x + p3.y) * p3.z);
 }
 
-// Blue noise approximation (better than white noise)
-float _blue_noise(vec2 pixel_pos) {
-	// Multi-scale noise for blue noise characteristics
-	float noise = 0.0;
-	float scale = 1.0;
-	float amplitude = 1.0;
+// 8x8 Bayer matrix pattern (classic ordered dithering)
+float _bayer8x8(vec2 pixel_pos) {
+	int x = int(mod(pixel_pos.x, 8.0));
+	int y = int(mod(pixel_pos.y, 8.0));
 
-	for (int i = 0; i < 3; i++) {
-		vec2 pos = pixel_pos * scale;
-		noise += _hash12(pos) * amplitude;
-		scale *= 2.0;
-		amplitude *= 0.5;
-	}
+	// Bayer 8x8 matrix values (0-63) / 64.0
+	int bayer[64] = int[](
+		 0, 32,  8, 40,  2, 34, 10, 42,
+		48, 16, 56, 24, 50, 18, 58, 26,
+		12, 44,  4, 36, 14, 46,  6, 38,
+		60, 28, 52, 20, 62, 30, 54, 22,
+		 3, 35, 11, 43,  1, 33,  9, 41,
+		51, 19, 59, 27, 49, 17, 57, 25,
+		15, 47,  7, 39, 13, 45,  5, 37,
+		63, 31, 55, 23, 61, 29, 53, 21
+	);
 
-	return fract(noise);
+	return float(bayer[y * 8 + x]) / 64.0;
 }
 
-// Triangular dithering (better than uniform for perceptual quality)
-float _triangular_dither(vec2 pixel_pos) {
-	float r1 = _hash12(pixel_pos);
-	float r2 = _hash12(pixel_pos + vec2(1.0, 1.0));
-	return (r1 + r2) * 0.5;
-}
-
-// Enhanced Bayer matrix sampling
-float _bayer_dither(vec2 pixel_pos) {
-	ivec2 size = textureSize(bayer_texture, 0);
-	if (size.x <= 0 || size.y <= 0) {
-		return _blue_noise(pixel_pos);
-	}
-
-	vec2 bayer_size = vec2(size);
-	vec2 bayer_uv = (mod(pixel_pos, bayer_size) + vec2(0.5)) / bayer_size;
-	return texture(bayer_texture, bayer_uv).r;
-}
-
+// Get dither threshold value
 float _get_threshold(vec2 pixel_pos) {
 	if (pattern_mode == 1) {
-		return _blue_noise(pixel_pos);
-	} else if (pattern_mode == 2) {
-		return _triangular_dither(pixel_pos);
+		return _hash12(pixel_pos);
 	} else {
-		return _bayer_dither(pixel_pos);
+		return _bayer8x8(pixel_pos);
 	}
 }
 
-// Improved color quantization with error diffusion
-vec3 _quantize_color(vec3 color, float threshold, float level_count) {
-	// Add dither threshold
-	vec3 dithered = color + (threshold - 0.5) / level_count;
+// Quantize color with dithering
+vec3 _dither_color(vec3 color, float threshold, float level_count) {
+	// Scale threshold based on number of levels
+	float dither_amount = 1.0 / level_count;
+	vec3 dithered = color + (threshold - 0.5) * dither_amount;
 
-	// Quantize to levels
-	vec3 quantized = floor(dithered * level_count) / level_count;
+	// Quantize to discrete levels
+	vec3 quantized = floor(dithered * level_count + 0.5) / level_count;
 
-	return quantized;
+	return clamp(quantized, 0.0, 1.0);
 }
 
 void fragment() {
@@ -81,19 +64,9 @@ void fragment() {
 	// Get dither threshold
 	float threshold = _get_threshold(pixel_pos);
 
-	// Quantize with dithering
+	// Apply dithering
 	float level_count = max(2.0, float(levels));
-	vec3 dithered = _quantize_color(base.rgb, threshold, level_count);
-
-	// Preserve luminance for better quality
-	float original_luma = dot(base.rgb, vec3(0.299, 0.587, 0.114));
-	float dithered_luma = dot(dithered, vec3(0.299, 0.587, 0.114));
-
-	// Adjust to match original brightness
-	if (dithered_luma > 0.0) {
-		dithered *= original_luma / dithered_luma;
-		dithered = clamp(dithered, 0.0, 1.0);
-	}
+	vec3 dithered = _dither_color(base.rgb, threshold, level_count);
 
 	// Blend with original based on intensity
 	vec3 result = mix(base.rgb, dithered, intensity);

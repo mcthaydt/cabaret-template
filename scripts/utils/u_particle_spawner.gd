@@ -34,7 +34,7 @@ class ParticleConfig:
 	## Initial velocity of particles
 	var initial_velocity: float = 3.0
 	## Offset from spawn position
-	var spawn_offset: Vector3 = Vector3.DOWN
+	var spawn_offset: Vector3 = Vector3(0, -0.5, 0)
 	## Optional custom process material
 	var process_material: Material = null
 
@@ -44,7 +44,7 @@ class ParticleConfig:
 		p_scale: float = 0.1,
 		p_spread_angle: float = 45.0,
 		p_initial_velocity: float = 3.0,
-		p_spawn_offset: Vector3 = Vector3.DOWN,
+		p_spawn_offset: Vector3 = Vector3(0, -0.5, 0),
 		p_process_material: Material = null
 	) -> void:
 		emission_count = p_emission_count

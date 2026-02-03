@@ -21,7 +21,7 @@ func test_particle_config_defaults() -> void:
 	assert_eq(config.scale, 0.1)
 	assert_eq(config.spread_angle, 45.0)
 	assert_eq(config.initial_velocity, 3.0)
-	assert_eq(config.spawn_offset, Vector3.DOWN)
+	assert_eq(config.spawn_offset, Vector3(0, -0.5, 0))
 	assert_null(config.process_material)
 
 func test_particle_config_custom_values() -> void:
