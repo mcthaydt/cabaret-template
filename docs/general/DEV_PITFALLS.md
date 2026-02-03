@@ -54,6 +54,10 @@
 
 ## GDScript Typing Pitfalls
 
+- **Headless import treats some warnings as errors**: In headless `--import` runs, warnings like “variable type inferred from Variant” can be treated as errors and prevent scripts from loading. Prefer explicit types when a value is `Variant`-typed at the source (e.g., `var script_obj: Script = get_script()` instead of `var script_obj := get_script()`).
+
+- **String(enum_value) parse error**: GDScript does not accept `String(enum_value)` for enum values (e.g., `C_SurfaceDetectorComponent.SurfaceType`). Use `str(enum_value)` or cast to `int` first (`String(int(enum_value))`).
+
 - **New `class_name` types can break type hints in headless tests**: When adding a brand-new helper script with `class_name Foo`, using `Foo` as a member variable annotation in an existing script can fail to parse under headless GUT runs (`Parse Error: Could not find type "Foo" in the current scope`). Prefer untyped members (or a base type like `RefCounted`) and instantiate via `preload("...").new()` until the class is reliably discovered/loaded.
 
 - **Child scripts cannot redeclare parent members (incl. `const`)**: If a base class defines a member like `const U_Foo := preload("...")`, declaring another `const U_Foo := ...` in a derived script causes a parse error (`The member "U_Foo" already exists in parent class ...`). Prefer inheriting the constant, or use a different name in the child.
