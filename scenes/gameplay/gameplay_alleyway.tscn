@@ -263,6 +263,7 @@ transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -4.1
 script = ExtResource("41_goal_script")
 objective_id = &"final_goal"
 area_id = "alleyway"
+required_area = "interior_bar"
 settings = ExtResource("44_goal_settings")
 visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePath("GlowLight")])
 entity_id = &"finalgoal"
