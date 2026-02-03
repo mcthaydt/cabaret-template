@@ -319,7 +319,7 @@
 - Door trigger re-entry can cause ping-pong transitions:
   - Ensure `C_SceneTriggerComponent` guards are active (cooldown + `is_transitioning` checks).
   - Keep spawn markers positioned outside trigger volumes to avoid immediate re-trigger on load.
-  - Avoid leaving `initial_scene_id = exterior` outside of manual tests; prefer `main_menu` to follow the flow and reduce confusion.
+- Avoid leaving `initial_scene_id = alleyway` outside of manual tests; prefer `main_menu` to follow the flow and reduce confusion.
 
 - Trigger geometry pitfalls (Cylinder default):
   - `CylinderShape3D` is Y-up; do not rotate unless your door axis demands it.

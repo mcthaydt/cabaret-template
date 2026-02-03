@@ -48,7 +48,7 @@ ResourceSaver.save(entry, "res://resources/scene_registry/cfg_my_level_entry.tre
 
 **Currently migrated scenes (see .tres files in this directory)**:
 - `cfg_gameplay_base_entry.tres`: GAMEPLAY, loading, priority 8
-- `cfg_exterior_entry.tres`: GAMEPLAY, fade, priority 6
+- `cfg_alleyway_entry.tres`: GAMEPLAY, loading, priority 6
 - `cfg_interior_house_entry.tres`: GAMEPLAY, fade, priority 6
 - `cfg_ui_game_over_entry.tres`: END_GAME, fade, priority 8
 - `cfg_ui_victory_entry.tres`: END_GAME, fade, priority 5
