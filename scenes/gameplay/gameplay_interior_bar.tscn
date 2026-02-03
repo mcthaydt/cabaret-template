@@ -85,6 +85,7 @@ script = ExtResource("1_f2o31")
 script = ExtResource("2_ph0bl")
 
 [node name="NewInterior" parent="SceneObjects" unique_id=1438821753 instance=ExtResource("3_oot58")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.8506856, 0, 0.6794058)
 
 [node name="Environment" type="Node" parent="." unique_id=124727212]
 script = ExtResource("2_8soux")
@@ -148,7 +149,6 @@ execution_priority = 70
 
 [node name="S_RotateToInputSystem" type="Node" parent="Systems/Movement" unique_id=1161155006]
 script = ExtResource("5_r0a6q")
-debug_rotation_logging = true
 debug_rotation_log_interval_frames = 3
 execution_priority = 80
 
@@ -222,12 +222,12 @@ script = ExtResource("16_8qi87")
 script = ExtResource("21_spawnpoints")
 
 [node name="sp_default" type="Node3D" parent="Entities/SpawnPoints" unique_id=2016792290]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.8506856, 1, 0.6794058)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("51_bar_default_spawn_meta")
 
 [node name="sp_entrance_from_exterior" type="Node3D" parent="Entities/SpawnPoints" unique_id=474428565]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9246339, 1.5384963, 3.8387284)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -5.7408953, 1.5384963, -1.1389236)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("52_bar_entrance_spawn_meta")
 
@@ -235,7 +235,7 @@ spawn_metadata = ExtResource("52_bar_entrance_spawn_meta")
 script = ExtResource("16_8qi87")
 
 [node name="E_DeathZone" type="Node3D" parent="Entities/Hazards" unique_id=2142744412]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.8506856, -10, 0.6794058)
 script = ExtResource("44_hazard_controller")
 is_instant_death = true
 settings = ExtResource("44_death_settings")
@@ -246,7 +246,7 @@ tags = Array[StringName]([&"hazard", &"death"])
 script = ExtResource("16_8qi87")
 
 [node name="E_GoalZone" type="Node3D" parent="Entities/Objectives" unique_id=1434112409]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.640191, 0.9881649, -5)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.019804, 0.9881649, -4.0965447)
 script = ExtResource("44_victory_controller")
 objective_id = &"goal_bar"
 area_id = "interior_bar"
@@ -271,17 +271,17 @@ preprocess = 0.5
 mesh = SubResource("TextMesh_goal")
 
 [node name="E_Player" parent="Entities" unique_id=1535353491 instance=ExtResource("7_4wxy1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8506856, 1, 0.6794058)
 
 [node name="E_CameraRoot" parent="Entities" unique_id=153420920 instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 7.147382)
 
 [node name="E_PlayerCamera" parent="Entities/E_CameraRoot" index="0" unique_id=1000261679]
-transform = Transform3D(-4.3711385e-08, -0.5, 0.8660253, 0, 0.8660254, 0.49999997, -0.99999994, 2.1855694e-08, -3.785517e-08, 8.1, 6.117, -7.528)
+transform = Transform3D(0.99999994, 0, 0, 0, 0.8660254, 0.49999997, 0, -0.5, 0.8660253, -1.2474375, 6.117, 1.6184931)
 fov = 28.8
 
 [node name="E_DoorTrigger" type="Node3D" parent="Entities" unique_id=616346955]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1.4971395, 5.4273953)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -7.4135427, 1.4971395, -5.7386756)
 script = ExtResource("30_door_controller")
 door_id = &"door_to_exterior"
 target_scene_id = &"exterior"

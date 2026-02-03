@@ -6,3 +6,4 @@
 script = ExtResource("1")
 spawn_id = &"sp_default"
 tags = Array[StringName]([&"default"])
+face_camera_on_spawn = true

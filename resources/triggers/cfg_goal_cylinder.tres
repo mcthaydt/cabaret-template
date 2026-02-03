@@ -4,7 +4,6 @@
 
 [resource]
 script = ExtResource("1")
-cyl_radius = 1.5
 cyl_height = 2.5
 local_offset = Vector3(0, 1.25, 0)
 ignore_initial_overlap = false

@@ -51,6 +51,15 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 			6
 		)
 
+	if not scenes.has(StringName("interior_bar")):
+		register_scene_callable.call(
+			StringName("interior_bar"),
+			"res://scenes/gameplay/gameplay_interior_bar.tscn",
+			U_SceneRegistry.SceneType.GAMEPLAY,
+			"loading",
+			6
+		)
+
 	if not scenes.has(StringName("gamepad_settings")):
 		register_scene_callable.call(
 			StringName("gamepad_settings"),
