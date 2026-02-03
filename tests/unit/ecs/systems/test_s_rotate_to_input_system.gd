@@ -8,6 +8,12 @@ const RotateSystemScript := preload("res://scripts/ecs/systems/s_rotate_to_input
 func _pump() -> void:
 	await get_tree().process_frame
 
+func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
+	var normal := plane_normal.normalized()
+	if normal.length() == 0.0:
+		return Vector3.ZERO
+	return vector - normal * vector.dot(normal)
+
 func _setup_context() -> Dictionary:
 	# Create M_StateStore first (required by systems)
 	var store := M_StateStore.new()
@@ -129,6 +135,44 @@ func test_rotate_system_uses_second_order_for_smooth_turn() -> void:
 	assert_true(first_rotation < 0.0)
 	assert_true(second_error <= first_error + 0.00001)
 	assert_true(abs(second_rotation) <= PI / 2.0 + 0.00001)
+
+## Tests camera-relative rotation matches movement input mapping
+func test_rotates_camera_relative_to_input_direction() -> void:
+	var context := await _setup_context()
+	autofree_context(context)
+	var input: C_InputComponent = context["input"]
+	var target: Node3D = context["target"]
+	var manager: M_ECSManager = context["manager"]
+
+	var camera := Camera3D.new()
+	add_child(camera)
+	autofree(camera)
+	camera.rotation_degrees = Vector3(0.0, 90.0, 0.0)
+	camera.current = true
+	await _pump()
+
+	input.set_move_vector(Vector2(0.0, -1.0))
+	manager._physics_process(1.0)
+
+	var up_dir := Vector3.UP
+	var cam_forward := -camera.global_transform.basis.z
+	cam_forward = _project_onto_plane(cam_forward, up_dir)
+	if cam_forward.length() == 0.0:
+		cam_forward = _project_onto_plane(Vector3.FORWARD, up_dir)
+	cam_forward = cam_forward.normalized()
+
+	var cam_right := camera.global_transform.basis.x
+	cam_right = _project_onto_plane(cam_right, up_dir)
+	if cam_right.length() == 0.0:
+		cam_right = cam_forward.cross(up_dir)
+	cam_right = cam_right.normalized()
+
+	var forward_input: float = -input.move_vector.y
+	var desired_dir: Vector3 = (cam_right * input.move_vector.x) + (cam_forward * forward_input)
+	desired_dir = desired_dir.normalized()
+	var expected: float = atan2(-desired_dir.x, -desired_dir.z)
+
+	assert_almost_eq(wrapf(target.rotation.y, -PI, PI), expected, 0.001)
 
 ## Tests that second-order state resets without input
 func test_rotate_system_resets_second_order_state_without_input() -> void:

@@ -8,3 +8,4 @@ spawn_id = &"sp_checkpoint_safe"
 tags = Array[StringName]([&"checkpoint"])
 priority = 10
 condition = 1
+face_camera_on_spawn = true

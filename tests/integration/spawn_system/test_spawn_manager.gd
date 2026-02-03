@@ -9,6 +9,8 @@ const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const SP_SPAWN_POINT := preload("res://scripts/scene_management/sp_spawn_point.gd")
+const RS_SPAWN_METADATA := preload("res://scripts/resources/scene_management/rs_spawn_metadata.gd")
 
 var spawn_manager: M_SpawnManager
 var state_store: M_StateStore
@@ -38,6 +40,12 @@ func after_each() -> void:
 		state_store.queue_free()
 	if test_scene and is_instance_valid(test_scene):
 		test_scene.queue_free()
+
+func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
+	var normal := plane_normal.normalized()
+	if normal.length() == 0.0:
+		return Vector3.ZERO
+	return vector - normal * vector.dot(normal)
 
 ## ============================================================================
 ## Spawn Point Discovery Tests
@@ -149,6 +157,38 @@ func test_spawn_applies_spawn_point_rotation_to_player() -> void:
 
 	# Assert
 	assert_almost_eq(player.global_rotation, spawn_point.global_rotation, Vector3(0.01, 0.01, 0.01), "Player should inherit spawn point rotation")
+
+func test_spawn_faces_active_camera_when_metadata_requests() -> void:
+	# Arrange: active camera
+	var camera := Camera3D.new()
+	camera.rotation_degrees = Vector3(0.0, 90.0, 0.0)
+	camera.current = true
+	test_scene.add_child(camera)
+	autofree(camera)
+
+	# Arrange: spawn point with metadata flag
+	var spawn_point := SP_SPAWN_POINT.new()
+	spawn_point.name = "sp_test_spawn"
+	var metadata := RS_SPAWN_METADATA.new()
+	metadata.spawn_id = StringName("sp_test_spawn")
+	metadata.face_camera_on_spawn = true
+	spawn_point.spawn_metadata = metadata
+	test_scene.add_child(spawn_point)
+	autofree(spawn_point)
+
+	var player := CharacterBody3D.new()
+	player.name = "E_Player"
+	test_scene.add_child(player)
+
+	# Act
+	spawn_manager.spawn_player_at_point(test_scene, StringName("sp_test_spawn"))
+
+	# Assert
+	var cam_forward := -camera.global_transform.basis.z
+	cam_forward = _project_onto_plane(cam_forward, Vector3.UP)
+	cam_forward = cam_forward.normalized()
+	var expected: float = atan2(-cam_forward.x, -cam_forward.z)
+	assert_almost_eq(wrapf(player.global_rotation.y, -PI, PI), expected, 0.001, "Player should face camera yaw on spawn")
 
 func test_spawn_finds_player_by_e_player_prefix() -> void:
 	# Arrange: Multiple entities, only one is player

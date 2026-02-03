@@ -171,16 +171,34 @@ static func _backfill_default_gameplay_scenes() -> void:
 
 ## Register door pairings for seamless area transitions
 static func _register_door_pairings() -> void:
-	# Exterior → Interior House
+	# Exterior → Interior Bar (main door)
 	_register_door_exit(
 		StringName("exterior"),
 		StringName("door_to_house"),
-		StringName("interior_house"),
+		StringName("interior_bar"),
 		StringName("sp_entrance_from_exterior"),
 		"fade"
 	)
 
-	# Interior House → Exterior
+	# Interior Bar → Exterior
+	_register_door_exit(
+		StringName("interior_bar"),
+		StringName("door_to_exterior"),
+		StringName("exterior"),
+		StringName("sp_exit_from_house"),
+		"fade"
+	)
+
+	# Exterior → Interior Bar (second door)
+	_register_door_exit(
+		StringName("exterior"),
+		StringName("door_to_bar"),
+		StringName("interior_bar"),
+		StringName("sp_entrance_from_exterior"),
+		"fade"
+	)
+
+	# Interior House → Exterior (kept for backward compatibility)
 	_register_door_exit(
 		StringName("interior_house"),
 		StringName("door_to_exterior"),

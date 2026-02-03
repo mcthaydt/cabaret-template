@@ -99,12 +99,11 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 stretch = true
-stretch_shrink = 1
 script = ExtResource("32_viewport_resizer")
 
 [node name="GameViewport" type="SubViewport" parent="GameViewportContainer" unique_id=228930101]
 handle_input_locally = false
-size = Vector2i(1280, 720)
+size = Vector2i(960, 600)
 render_target_update_mode = 4
 
 [node name="ActiveSceneContainer" type="Node" parent="GameViewportContainer/GameViewport" unique_id=8483924]

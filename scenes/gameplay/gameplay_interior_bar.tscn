@@ -1,0 +1,302 @@
+[gd_scene format=3 uid="uid://duro3xf1h5saj"]
+
+[ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
+[ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
+[ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
+[ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
+[ext_resource type="Script" uid="uid://dmljrhrqv5ei4" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
+[ext_resource type="PackedScene" uid="uid://b5uf74g7fac4a" path="res://new_interior.tscn" id="3_oot58"]
+[ext_resource type="Script" uid="uid://gaammkurp23b" path="res://scripts/scene_structure/marker_systems_group.gd" id="3_ph0bl"]
+[ext_resource type="Script" uid="uid://cg10jkb2k5551" path="res://scripts/scene_structure/marker_systems_core_group.gd" id="3_systems_core"]
+[ext_resource type="Script" uid="uid://dl32cj7p543rh" path="res://scripts/scene_structure/marker_systems_feedback_group.gd" id="3_systems_feedback"]
+[ext_resource type="Script" uid="uid://wp8ordbinat2" path="res://scripts/scene_structure/marker_systems_movement_group.gd" id="3_systems_movement"]
+[ext_resource type="Script" uid="uid://ceou3w83ojcku" path="res://scripts/scene_structure/marker_systems_physics_group.gd" id="3_systems_physics"]
+[ext_resource type="Script" uid="uid://b85bi31g464hs" path="res://scripts/ecs/systems/s_gravity_system.gd" id="3_xnqit"]
+[ext_resource type="Script" uid="uid://h5ym8nprt7dw" path="res://scripts/ecs/systems/s_movement_system.gd" id="4_vry44"]
+[ext_resource type="Script" uid="uid://dtyibtpldqj48" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
+[ext_resource type="Script" uid="uid://cxvneotjjmt2h" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
+[ext_resource type="Script" uid="uid://bybk18c838a4x" path="res://scripts/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
+[ext_resource type="PackedScene" uid="uid://d1cugdu6fb42l" path="res://scenes/prefabs/prefab_player.tscn" id="7_4wxy1"]
+[ext_resource type="Script" uid="uid://c5tv5b4g5a2ya" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
+[ext_resource type="Script" uid="uid://ddf4k6uippbnm" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
+[ext_resource type="Script" uid="uid://dciojb5mih6gh" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
+[ext_resource type="Script" uid="uid://vbqdwstwybck" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
+[ext_resource type="Script" uid="uid://bxqd4f7hk7hte" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
+[ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/base_settings/gameplay/cfg_jump_particles_default.tres" id="9_jump_particles_settings"]
+[ext_resource type="Script" uid="uid://qeq48m3npch6" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
+[ext_resource type="Resource" uid="uid://cqh2bvx4r8jw6" path="res://resources/base_settings/audio/cfg_jump_sound_default.tres" id="9_jump_sound_settings"]
+[ext_resource type="Script" uid="uid://bneiabwmn5nl7" path="res://scripts/ecs/systems/s_playtime_system.gd" id="9_playtime"]
+[ext_resource type="Script" uid="uid://cfddnuq1oriyb" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
+[ext_resource type="Script" uid="uid://bry3i70sfhmiv" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
+[ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/base_settings/gameplay/cfg_landing_particles_default.tres" id="10_landing_particles_settings"]
+[ext_resource type="Script" uid="uid://dcninbk24e6ve" path="res://scripts/ecs/systems/s_landing_sound_system.gd" id="10_landing_sound"]
+[ext_resource type="Resource" uid="uid://dv5m8y3nx0uin" path="res://resources/base_settings/audio/cfg_landing_sound_default.tres" id="10_landing_sound_settings"]
+[ext_resource type="Script" uid="uid://bcy243ogwqv5f" path="res://scripts/ecs/systems/s_death_sound_system.gd" id="11_death_sound"]
+[ext_resource type="Resource" uid="uid://cbkw5y4pf5xbh" path="res://resources/base_settings/audio/cfg_death_sound_default.tres" id="11_death_sound_settings"]
+[ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/hud/ui_hud_overlay.tscn" id="11_hud"]
+[ext_resource type="Script" uid="uid://buguhw0x2x6og" path="res://scripts/ecs/systems/s_checkpoint_sound_system.gd" id="12_checkpoint_sound"]
+[ext_resource type="Resource" uid="uid://buw5xy8p0d3uc" path="res://resources/base_settings/audio/cfg_checkpoint_sound_default.tres" id="12_checkpoint_sound_settings"]
+[ext_resource type="Script" uid="uid://d0omtagbm74cs" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
+[ext_resource type="Script" uid="uid://dfn1e3onqcmj4" path="res://scripts/ecs/systems/s_victory_sound_system.gd" id="13_victory_sound"]
+[ext_resource type="Resource" uid="uid://dv3s5a4nyjf05" path="res://resources/base_settings/audio/cfg_victory_sound_default.tres" id="13_victory_sound_settings"]
+[ext_resource type="Script" uid="uid://b3qbubetb1sko" path="res://scripts/ecs/systems/s_footstep_sound_system.gd" id="14_footstep_sound"]
+[ext_resource type="Resource" uid="uid://b3kx5fj7m8qwo" path="res://resources/base_settings/audio/cfg_footstep_sound_default.tres" id="14_footstep_sound_settings"]
+[ext_resource type="Script" uid="uid://bdp7886fufa8v" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
+[ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="19_ph0bl"]
+[ext_resource type="Script" uid="uid://csqsmkkv5ite7" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
+[ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
+[ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
+[ext_resource type="Script" uid="uid://be4ht4ijvdrjy" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="29_screen_shake_publisher"]
+[ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/cfg_cylinder_wide_door_trigger_settings.tres" id="30_auc1c"]
+[ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
+[ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="30_door_controller"]
+[ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/cfg_death_zone_volume.tres" id="44_death_settings"]
+[ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/cfg_goal_cylinder.tres" id="44_goal_settings"]
+[ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="44_hazard_controller"]
+[ext_resource type="Script" uid="uid://bcgud5qw85qv0" path="res://scripts/gameplay/inter_victory_zone.gd" id="44_victory_controller"]
+[ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
+[ext_resource type="Resource" uid="uid://x5s2ppq71575" path="res://resources/spawn_metadata/cfg_sp_interior_bar.tres" id="51_bar_default_spawn_meta"]
+[ext_resource type="Resource" uid="uid://btpa3gv1g0gl7" path="res://resources/spawn_metadata/cfg_sp_interior_bar_entrance.tres" id="52_bar_entrance_spawn_meta"]
+
+[sub_resource type="Environment" id="Environment_bar"]
+background_mode = 1
+ambient_light_source = 3
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_goal"]
+albedo_color = Color(0.968627, 0.847059, 0.239216, 1)
+emission_enabled = true
+emission = Color(1, 0.843137, 0.223529, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_goal_text"]
+
+[sub_resource type="TextMesh" id="TextMesh_goal"]
+material = SubResource("StandardMaterial3D_goal_text")
+text = ":)"
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_door"]
+shading_mode = 0
+albedo_color = Color(0.9828339, 0, 0.010878513, 1)
+
+[node name="GameplayRoot" type="Node3D" unique_id=118760861]
+script = ExtResource("1_f2o31")
+
+[node name="SceneObjects" type="Node3D" parent="." unique_id=1984456615]
+script = ExtResource("2_ph0bl")
+
+[node name="NewInterior" parent="SceneObjects" unique_id=1438821753 instance=ExtResource("3_oot58")]
+
+[node name="Environment" type="Node" parent="." unique_id=124727212]
+script = ExtResource("2_8soux")
+
+[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=828583278]
+environment = SubResource("Environment_bar")
+
+[node name="Systems" type="Node" parent="." unique_id=1629993424]
+script = ExtResource("3_ph0bl")
+
+[node name="Core" type="Node" parent="Systems" unique_id=2069599387]
+script = ExtResource("3_systems_core")
+
+[node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=35777903]
+script = ExtResource("1_pybrx")
+require_captured_cursor = true
+
+[node name="S_TouchscreenSystem" type="Node" parent="Systems/Core" unique_id=1064091042]
+script = ExtResource("24_touchscreen_system")
+
+[node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1713677020]
+script = ExtResource("9_health")
+execution_priority = 200
+
+[node name="S_DamageSystem" type="Node" parent="Systems/Core" unique_id=1570471402]
+script = ExtResource("9_damage")
+execution_priority = 250
+
+[node name="S_VictorySystem" type="Node" parent="Systems/Core" unique_id=873580954]
+script = ExtResource("9_victory")
+execution_priority = 300
+
+[node name="S_PlaytimeSystem" type="Node" parent="Systems/Core" unique_id=2060998520]
+script = ExtResource("9_playtime")
+execution_priority = 200
+
+[node name="S_SceneTriggerSystem" type="Node" parent="Systems/Core" unique_id=808878891]
+script = ExtResource("20_scene_trigger_system")
+
+[node name="Physics" type="Node" parent="Systems" unique_id=324850956]
+script = ExtResource("3_systems_physics")
+
+[node name="S_GravitySystem" type="Node" parent="Systems/Physics" unique_id=832594094]
+script = ExtResource("3_xnqit")
+execution_priority = 60
+
+[node name="S_JumpSystem" type="Node" parent="Systems/Physics" unique_id=1346400571]
+script = ExtResource("2_rfthe")
+execution_priority = 75
+
+[node name="Movement" type="Node" parent="Systems" unique_id=1818230892]
+script = ExtResource("3_systems_movement")
+
+[node name="S_MovementSystem" type="Node" parent="Systems/Movement" unique_id=636172549]
+script = ExtResource("4_vry44")
+execution_priority = 50
+
+[node name="S_FloatingSystem" type="Node" parent="Systems/Movement" unique_id=1238556242]
+script = ExtResource("6_tnjgn")
+execution_priority = 70
+
+[node name="S_RotateToInputSystem" type="Node" parent="Systems/Movement" unique_id=1161155006]
+script = ExtResource("5_r0a6q")
+debug_rotation_logging = true
+debug_rotation_log_interval_frames = 3
+execution_priority = 80
+
+[node name="S_AlignWithSurfaceSystem" type="Node" parent="Systems/Movement" unique_id=1254633706]
+script = ExtResource("7_awem0")
+execution_priority = 90
+
+[node name="Feedback" type="Node" parent="Systems" unique_id=825942742]
+script = ExtResource("3_systems_feedback")
+
+[node name="S_LandingIndicatorSystem" type="Node" parent="Systems/Feedback" unique_id=537561770]
+script = ExtResource("8_ey5t3")
+execution_priority = 110
+
+[node name="S_JumpParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=108491135]
+script = ExtResource("9_jump_particles")
+settings = ExtResource("9_jump_particles_settings")
+execution_priority = 120
+
+[node name="S_JumpSoundSystem" type="Node" parent="Systems/Feedback" unique_id=2055924269]
+script = ExtResource("9_jump_sound")
+settings = ExtResource("9_jump_sound_settings")
+execution_priority = 121
+
+[node name="S_LandingSoundSystem" type="Node" parent="Systems/Feedback" unique_id=2112041019]
+script = ExtResource("10_landing_sound")
+settings = ExtResource("10_landing_sound_settings")
+execution_priority = 122
+
+[node name="S_DeathSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1979455779]
+script = ExtResource("11_death_sound")
+settings = ExtResource("11_death_sound_settings")
+execution_priority = 123
+
+[node name="S_CheckpointSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1907994055]
+script = ExtResource("12_checkpoint_sound")
+settings = ExtResource("12_checkpoint_sound_settings")
+execution_priority = 124
+
+[node name="S_VictorySoundSystem" type="Node" parent="Systems/Feedback" unique_id=47236834]
+script = ExtResource("13_victory_sound")
+settings = ExtResource("13_victory_sound_settings")
+execution_priority = 125
+
+[node name="S_FootstepSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1682967547]
+script = ExtResource("14_footstep_sound")
+settings = ExtResource("14_footstep_sound_settings")
+execution_priority = 126
+
+[node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=821071650]
+script = ExtResource("10_landing_particles")
+settings = ExtResource("10_landing_particles_settings")
+execution_priority = 122
+
+[node name="S_ScreenShakePublisherSystem" type="Node" parent="Systems/Feedback" unique_id=412904982]
+script = ExtResource("29_screen_shake_publisher")
+
+[node name="S_DamageFlashPublisherSystem" type="Node" parent="Systems/Feedback" unique_id=1774483696]
+script = ExtResource("30_damage_flash_publisher")
+
+[node name="Managers" type="Node" parent="." unique_id=1732814566]
+script = ExtResource("12_klon2")
+
+[node name="M_ECSManager" type="Node" parent="Managers" unique_id=1346681444]
+script = ExtResource("6_0e7m3")
+
+[node name="Entities" type="Node" parent="." unique_id=1869671019]
+script = ExtResource("16_8qi87")
+
+[node name="SpawnPoints" type="Node3D" parent="Entities" unique_id=921320548]
+script = ExtResource("21_spawnpoints")
+
+[node name="sp_default" type="Node3D" parent="Entities/SpawnPoints" unique_id=2016792290]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("51_bar_default_spawn_meta")
+
+[node name="sp_entrance_from_exterior" type="Node3D" parent="Entities/SpawnPoints" unique_id=474428565]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9246339, 1.5384963, 3.8387284)
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("52_bar_entrance_spawn_meta")
+
+[node name="Hazards" type="Node" parent="Entities" unique_id=1212714382]
+script = ExtResource("16_8qi87")
+
+[node name="E_DeathZone" type="Node3D" parent="Entities/Hazards" unique_id=2142744412]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
+script = ExtResource("44_hazard_controller")
+is_instant_death = true
+settings = ExtResource("44_death_settings")
+entity_id = &"deathzone_bar"
+tags = Array[StringName]([&"hazard", &"death"])
+
+[node name="Objectives" type="Node" parent="Entities" unique_id=1431982543]
+script = ExtResource("16_8qi87")
+
+[node name="E_GoalZone" type="Node3D" parent="Entities/Objectives" unique_id=1434112409]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.640191, 0.9881649, -5)
+script = ExtResource("44_victory_controller")
+objective_id = &"goal_bar"
+area_id = "interior_bar"
+settings = ExtResource("44_goal_settings")
+visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePath("GlowLight")])
+entity_id = &"goalzone_bar"
+tags = Array[StringName]([&"objective", &"goal"])
+
+[node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_GoalZone" unique_id=1272881135]
+radius = 1.5
+material = SubResource("StandardMaterial3D_goal")
+
+[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_GoalZone" unique_id=1169942121]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+light_color = Color(1, 0.87451, 0.364706, 1)
+light_energy = 2.0
+
+[node name="Sparkles" type="CPUParticles3D" parent="Entities/Objectives/E_GoalZone" unique_id=1076928555]
+amount = 80
+lifetime = 1.5
+preprocess = 0.5
+mesh = SubResource("TextMesh_goal")
+
+[node name="E_Player" parent="Entities" unique_id=1535353491 instance=ExtResource("7_4wxy1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="E_CameraRoot" parent="Entities" unique_id=153420920 instance=ExtResource("19_ph0bl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 7.147382)
+
+[node name="E_PlayerCamera" parent="Entities/E_CameraRoot" index="0" unique_id=1000261679]
+transform = Transform3D(-4.3711385e-08, -0.5, 0.8660253, 0, 0.8660254, 0.49999997, -0.99999994, 2.1855694e-08, -3.785517e-08, 8.1, 6.117, -7.528)
+fov = 28.8
+
+[node name="E_DoorTrigger" type="Node3D" parent="Entities" unique_id=616346955]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1.4971395, 5.4273953)
+script = ExtResource("30_door_controller")
+door_id = &"door_to_exterior"
+target_scene_id = &"exterior"
+target_spawn_point = &"sp_exit_from_bar"
+settings = ExtResource("30_auc1c")
+visual_paths = Array[NodePath]([NodePath("DoorVisual")])
+entity_id = &"door_to_exterior"
+tags = Array[StringName]([&"trigger", &"door"])
+
+[node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger" unique_id=863395501]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.57354736, 0)
+material_overlay = SubResource("StandardMaterial3D_door")
+radius = 0.7910156
+height = 2.0715332
+
+[node name="HUD" parent="." unique_id=1864878923 instance=ExtResource("11_hud")]
+
+[editable path="Entities/E_CameraRoot"]
