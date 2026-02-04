@@ -342,7 +342,9 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 
 	_set_toggle_value_silently(_lut_toggle, U_DisplaySelectors.is_lut_enabled(state))
 	var lut_resource := U_DisplaySelectors.get_lut_resource(state)
-	_select_option_value(_lut_option, _lut_resource_values, _normalize_lut_resource(lut_resource))
+	var normalized_lut := _normalize_lut_resource(lut_resource)
+	_ensure_lut_option_present(normalized_lut)
+	_select_option_value(_lut_option, _lut_resource_values, normalized_lut)
 	var lut_intensity := U_DisplaySelectors.get_lut_intensity(state)
 	_set_slider_value_silently(_lut_intensity_slider, lut_intensity)
 	_update_percentage_label(_lut_intensity_value, lut_intensity)
@@ -524,7 +526,9 @@ func _on_reset_pressed() -> void:
 	_select_option_value(_dither_pattern_option, _dither_pattern_values, defaults.dither_pattern)
 
 	_set_toggle_value_silently(_lut_toggle, defaults.lut_enabled)
-	_select_option_value(_lut_option, _lut_resource_values, _normalize_lut_resource(defaults.lut_resource))
+	var normalized_default_lut := _normalize_lut_resource(defaults.lut_resource)
+	_ensure_lut_option_present(normalized_default_lut)
+	_select_option_value(_lut_option, _lut_resource_values, normalized_default_lut)
 	_set_slider_value_silently(_lut_intensity_slider, defaults.lut_intensity)
 	_update_percentage_label(_lut_intensity_value, defaults.lut_intensity)
 
@@ -617,6 +621,33 @@ func _update_float_label(label: Label, value: float, decimals: int) -> void:
 	if label == null:
 		return
 	label.text = "%.*f" % [decimals, value]
+
+func _ensure_lut_option_present(value: String) -> void:
+	if value.is_empty():
+		return
+	if _lut_option == null:
+		return
+	if _lut_resource_values.has(value):
+		return
+	var label := _get_lut_label(value)
+	_lut_option.add_item(label)
+	_lut_resource_values.append(value)
+
+func _get_lut_label(value: String) -> String:
+	if value.is_empty():
+		return "None"
+	var resource := load(value)
+	if resource is RS_LUT_DEFINITION:
+		var definition := resource as RS_LUT_DEFINITION
+		if not definition.display_name.is_empty():
+			return definition.display_name
+		return value.get_file().trim_suffix(".tres")
+	if resource is Texture2D:
+		return value.get_file().trim_suffix(".png")
+	var file_name := value.get_file()
+	if not file_name.is_empty():
+		return file_name
+	return value
 
 func _normalize_lut_resource(value: String) -> String:
 	if value.is_empty():
