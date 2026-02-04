@@ -1,14 +1,14 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-04
-**Current Phase:** Phase 6 Complete (Settings UI Integration)
+**Current Phase:** Phase 7 Complete (Integration Testing)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, CRT, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + UIScaleRoot registration; applies to CanvasLayer/Control roots and updates newly registered UI nodes). Phase 5 color blind accessibility complete (palette resource + instances, palette manager helper + tests, color blind shader + overlay wiring, manager integration). Phase 6 settings UI integration complete (display settings overlay + tab, accessibility section wiring, settings menu integration, registry entries). Display settings UI now uses Apply/Cancel + preview (no auto-save).
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, CRT, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + UIScaleRoot registration; applies to CanvasLayer/Control roots and updates newly registered UI nodes). Phase 5 color blind accessibility complete (palette resource + instances, palette manager helper + tests, color blind shader + overlay wiring, manager integration). Phase 6 settings UI integration complete (display settings overlay + tab, accessibility section wiring, settings menu integration, registry entries). Display settings UI now uses Apply/Cancel + preview (no auto-save). Phase 7 integration tests added for display settings UI, post-processing overlay wiring, and color blind palette switching/persistence.
 
 ---
 
@@ -59,16 +59,18 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 5C: Color blind daltonization shader + overlay wiring
 - [x] Task 6A: Display settings tab + overlay + settings menu integration
 - [x] Task 6B: Accessibility section wiring (color blind mode, high contrast, shader toggle)
+- [x] Task 7.1: Display settings integration tests
+- [x] Task 7.2: Post-processing integration tests
+- [x] Task 7.3: Color blind palette integration tests
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 7 - Integration Testing
+### Immediate: Phase 8 - Manual Testing
 
-1. **Task 7.1**: Display settings integration tests
-2. **Task 7.2**: Post-processing integration tests
-3. **Task 7.3**: Color blind palette integration tests
+1. **Task 8**: Run manual verification checklist (MT-01 → MT-17)
+2. **Task 9**: Documentation updates (AGENTS.md, DEV_PITFALLS.md if applicable)
 
 ---
 
@@ -235,7 +237,7 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 - [x] 6B: Accessibility Settings Section
 
 ### Phase 7: Integration Testing
-- [ ] Integration tests (30 tests)
+- [x] Integration tests (30 tests)
 
 ### Phase 8: Manual Testing
 - [ ] Visual verification (17 items)

@@ -534,28 +534,31 @@ Before starting Phase 0, verify:
 
 ### Integration Tests
 
-- [ ] **Task 7.1**: Create display settings integration tests
+- [x] **Task 7.1**: Create display settings integration tests
   - Create `tests/integration/display/test_display_settings.gd`
   - Test window mode changes apply to DisplayServer
   - Test quality presets update rendering settings
   - Test settings persist across scene transitions
   - Test settings persist in save files
   - **Target: 15 tests**
+  - Notes: Completed 2026-02-04 (created `tests/integration/display/test_display_settings.gd` with 15 tests)
 
-- [ ] **Task 7.2**: Create post-processing integration tests
+- [x] **Task 7.2**: Create post-processing integration tests
   - Create `tests/integration/display/test_post_processing.gd`
   - Test each effect enables/disables correctly
   - Test effect parameters update shader uniforms
   - Test preview mode overrides persisted settings
   - Test clear preview restores persisted settings
   - **Target: 10 tests**
+  - Notes: Completed 2026-02-04 (created `tests/integration/display/test_post_processing.gd` with 10 tests)
 
-- [ ] **Task 7.3**: Create color blind palette integration tests
+- [x] **Task 7.3**: Create color blind palette integration tests
   - Create `tests/integration/display/test_color_blind_palettes.gd`
   - Test all 5 palettes load correctly
   - Test palette switching emits signal
   - Test high contrast mode applies correctly
   - **Target: 5 tests**
+  - Notes: Completed 2026-02-04 (created `tests/integration/display/test_color_blind_palettes.gd` with 5 tests)
 
 ---
 
