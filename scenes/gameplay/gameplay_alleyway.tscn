@@ -64,30 +64,13 @@
 [ext_resource type="Resource" uid="uid://cvgjhiir8koeu" path="res://resources/spawn_metadata/cfg_sp_exterior_checkpoint.tres" id="52_exterior_checkpoint_spawn_meta"]
 [ext_resource type="Resource" uid="uid://t1jgkqtr1hke" path="res://resources/spawn_metadata/cfg_sp_exterior_exit_from_house.tres" id="53_exterior_exit_from_house_spawn_meta"]
 [ext_resource type="Resource" uid="uid://xfndjst2gnk5" path="res://resources/spawn_metadata/cfg_sp_exterior_exit_from_bar.tres" id="54_exterior_exit_from_bar_spawn_meta"]
+[ext_resource type="Material" uid="uid://dtyyrgwkln3r4" path="res://assets/materials/mat_fade_hazard.tres" id="55_fade_hazard"]
+[ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="56_fade_goal"]
+[ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="57_fade_door"]
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
 ambient_light_source = 3
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spike"]
-albedo_color = Color(0.643137, 0.160784, 0.160784, 1)
-roughness = 0.25
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_goal"]
-albedo_color = Color(0.968627, 0.847059, 0.239216, 1)
-emission_enabled = true
-emission = Color(1, 0.843137, 0.223529, 1)
-emission_energy_multiplier = 1.5
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_goal_text"]
-
-[sub_resource type="TextMesh" id="TextMesh_goal"]
-material = SubResource("StandardMaterial3D_goal_text")
-text = ":)"
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_door"]
-shading_mode = 0
-albedo_color = Color(0.9828339, 0, 0.010878513, 1)
 
 [node name="GameplayRoot" type="Node3D" unique_id=118760861]
 script = ExtResource("1_f2o31")
@@ -276,12 +259,12 @@ tags = Array[StringName]([&"hazard", &"trap"])
 
 [node name="MeshInstance3D" type="CSGBox3D" parent="Entities/Hazards/E_SpikeTrapA" unique_id=1048643914]
 size = Vector3(1.5, 0.5, 1.5)
-material = SubResource("StandardMaterial3D_spike")
+material = ExtResource("55_fade_hazard")
 
 [node name="SpikeTips" type="CSGCylinder3D" parent="Entities/Hazards/E_SpikeTrapA" unique_id=2069655188]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 height = 1.0
-material = SubResource("StandardMaterial3D_spike")
+material = ExtResource("55_fade_hazard")
 
 [node name="E_SpikeTrapB" type="Node3D" parent="Entities/Hazards" unique_id=353656775]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -3.834928)
@@ -293,12 +276,12 @@ tags = Array[StringName]([&"hazard", &"trap"])
 
 [node name="MeshInstance3D" type="CSGBox3D" parent="Entities/Hazards/E_SpikeTrapB" unique_id=2139788207]
 size = Vector3(1.5, 0.5, 1.5)
-material = SubResource("StandardMaterial3D_spike")
+material = ExtResource("55_fade_hazard")
 
 [node name="SpikeTips" type="CSGCylinder3D" parent="Entities/Hazards/E_SpikeTrapB" unique_id=1209266588]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 height = 1.0
-material = SubResource("StandardMaterial3D_spike")
+material = ExtResource("55_fade_hazard")
 
 [node name="Objectives" type="Node" parent="Entities" unique_id=1431982543]
 script = ExtResource("16_8qi87")
@@ -310,24 +293,18 @@ required_area = "interior_bar"
 objective_id = &"final_goal"
 area_id = "alleyway"
 settings = ExtResource("44_goal_settings")
-visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePath("GlowLight")])
+visual_paths = Array[NodePath]([NodePath("Visual"), NodePath(""), NodePath("GlowLight")])
 entity_id = &"finalgoal"
 tags = Array[StringName]([&"objective", &"endgame"])
 
 [node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1272881135]
 radius = 1.5
-material = SubResource("StandardMaterial3D_goal")
+material = ExtResource("56_fade_goal")
 
 [node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1169942121]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 light_color = Color(1, 0.87451, 0.364706, 1)
 light_energy = 2.0
-
-[node name="Sparkles" type="CPUParticles3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1076928555]
-amount = 80
-lifetime = 1.5
-preprocess = 0.5
-mesh = SubResource("TextMesh_goal")
 
 [node name="E_Player" parent="Entities" unique_id=1535353491 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3674707, 0)
@@ -352,9 +329,9 @@ tags = Array[StringName]([&"trigger", &"door"])
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger" unique_id=863395501]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.57354736, 0)
-material_overlay = SubResource("StandardMaterial3D_door")
 radius = 0.7910156
 height = 2.0715332
+material = ExtResource("57_fade_door")
 
 [node name="E_Checkpoint_SafeZone" type="Node3D" parent="Entities" unique_id=1409158797]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1599712, 1.0014925, 1.26685)

@@ -31,9 +31,6 @@ var requests: Array = []
 @export var state_store: I_StateStore = null
 
 var _unsubscribe_callable: Callable = Callable()
-var _debug_logged_skip: bool = false
-var _debug_logged_block: bool = false
-var _debug_logged_event: bool = false
 
 func _ready() -> void:
 	super._ready()
@@ -74,13 +71,6 @@ func _on_event(event_data: Dictionary) -> void:
 	var request := create_request_from_payload(payload)
 	if request.is_empty():
 		return
-	if not _debug_logged_event:
-		_debug_logged_event = true
-		var event_name := get_event_name()
-		print("BaseEventSFXSystem: event received %s at %s" % [
-			String(event_name),
-			String(get_path())
-		])
 	requests.append(request.duplicate(true))
 
 func _extract_payload(event_data: Dictionary) -> Dictionary:
@@ -99,33 +89,21 @@ func _get_audio_stream() -> AudioStream:
 ## Clears requests if should skip.
 func _should_skip_processing() -> bool:
 	if not "settings" in self or self.get("settings") == null:
-		if not _debug_logged_skip:
-			_debug_logged_skip = true
-			print("BaseEventSFXSystem: %s skipped (settings null)" % String(get_path()))
 		requests.clear()
 		return true
 
 	var settings_dict: Variant = self.get("settings")
 	if settings_dict is Dictionary:
 		if not settings_dict.get("enabled", false):
-			if not _debug_logged_skip:
-				_debug_logged_skip = true
-				print("BaseEventSFXSystem: %s skipped (settings disabled)" % String(get_path()))
 			requests.clear()
 			return true
 	elif settings_dict is Resource:
 		if "enabled" in settings_dict and not settings_dict.get("enabled"):
-			if not _debug_logged_skip:
-				_debug_logged_skip = true
-				print("BaseEventSFXSystem: %s skipped (settings disabled)" % String(get_path()))
 			requests.clear()
 			return true
 
 	var stream := _get_audio_stream()
 	if stream == null:
-		if not _debug_logged_skip:
-			_debug_logged_skip = true
-			print("BaseEventSFXSystem: %s skipped (audio stream null)" % String(get_path()))
 		requests.clear()
 		return true
 
@@ -166,18 +144,9 @@ func _is_audio_blocked() -> bool:
 	return false
 
 func _log_blocked(is_paused: bool, is_transitioning: bool, shell: StringName) -> void:
-	if _debug_logged_block:
-		return
 	if requests.is_empty():
 		return
-	_debug_logged_block = true
-	print("BaseEventSFXSystem: blocked %s paused=%s transitioning=%s shell=%s requests=%d" % [
-		String(get_path()),
-		is_paused,
-		is_transitioning,
-		String(shell),
-		requests.size()
-	])
+
 
 ## Check if sound should be throttled based on min_interval.
 ## Uses _last_play_time field (must be defined in subclass).

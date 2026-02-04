@@ -2,10 +2,7 @@
 
 [ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="1_controller"]
 [ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/cfg_cylinder_wide_door_trigger_settings.tres" id="2_8x6vi"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_door"]
-shading_mode = 0
-albedo_color = Color(0.9828339, 0, 0.010878513, 1)
+[ext_resource type="Material" path="res://assets/materials/mat_fade_door.tres" id="3_fade_material"]
 
 [node name="E_DoorTrigger" type="Node3D" unique_id=195825082]
 script = ExtResource("1_controller")
@@ -18,6 +15,6 @@ tags = Array[StringName]([&"trigger", &"door"])
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="." unique_id=835283937]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.40026855, 0)
-material_overlay = SubResource("StandardMaterial3D_door")
+material = ExtResource("3_fade_material")
 radius = 0.7910156
 height = 2.0715332

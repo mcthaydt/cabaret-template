@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://bhnn3psvefgpq"]
+
+[ext_resource type="Shader" uid="uid://ctduc0gtb7cbq" path="res://assets/shaders/sh_vertical_fade.gdshader" id="1"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1")
+shader_parameter/color = Color(0, 1, 0, 0.7)
+shader_parameter/fade_start = -1.0
+shader_parameter/fade_height = 2.0

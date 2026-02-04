@@ -23,8 +23,6 @@ static var _stats: Dictionary = {
 	"peak_usage": 0
 }
 static var _warned_uninitialized: bool = false
-static var _debug_logged_spawn_info: bool = false
-static var _debug_logged_init_context: bool = false
 
 static func set_spatial_audio_enabled(enabled: bool) -> void:
 	_spatial_audio_enabled = enabled
@@ -96,18 +94,6 @@ static func initialize(parent: Node) -> void:
 	_container = Node3D.new()
 	_container.name = "SFXPool"
 	parent.add_child(_container)
-	if (OS.is_debug_build() or Engine.is_editor_hint()) and not OS.has_feature("headless"):
-		print("U_SFXSpawner: initialized under %s" % str(_container.get_path()))
-		if not _debug_logged_init_context:
-			_debug_logged_init_context = true
-			var parent_vp: Viewport = parent.get_viewport()
-			var container_vp: Viewport = _container.get_viewport()
-			print("U_SFXSpawner: init parent=%s parent_vp=%s container_vp=%s parent_inside_tree=%s" % [
-				str(parent.get_path()),
-				str(parent_vp.get_path()) if parent_vp != null else "<none>",
-				str(container_vp.get_path()) if container_vp != null else "<none>",
-				parent.is_inside_tree()
-			])
 
 	for i in range(POOL_SIZE):
 		var player := AudioStreamPlayer3D.new()
@@ -204,67 +190,6 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
 	player.pitch_scale = pitch_scale
 	player.bus = bus
 	player.play()
-
-	if not _debug_logged_spawn_info:
-		_debug_logged_spawn_info = true
-		var container_viewport: Viewport = _container.get_viewport()
-		var emitter_viewport: Viewport = emitter.get_viewport() if emitter != null else null
-		var container_world: World3D = _container.get_world_3d()
-		var emitter_world: World3D = emitter.get_world_3d() if emitter != null else null
-		var container_world_id: int = container_world.get_instance_id() if container_world != null else -1
-		var emitter_world_id: int = emitter_world.get_instance_id() if emitter_world != null else -1
-		var container_vp_path: String = str(container_viewport.get_path()) if container_viewport != null else "<none>"
-		var emitter_vp_path: String = str(emitter_viewport.get_path()) if emitter_viewport != null else "<none>"
-
-		var container_cam: Camera3D = container_viewport.get_camera_3d() if container_viewport != null else null
-		var emitter_cam: Camera3D = emitter_viewport.get_camera_3d() if emitter_viewport != null else null
-
-		var container_audio_3d_enabled: Variant = null
-		var emitter_audio_3d_enabled: Variant = null
-		if container_viewport != null:
-			container_audio_3d_enabled = container_viewport.get("audio_listener_enable_3d")
-		if emitter_viewport != null:
-			emitter_audio_3d_enabled = emitter_viewport.get("audio_listener_enable_3d")
-
-		var master_idx: int = AudioServer.get_bus_index("Master")
-		var sfx_idx: int = AudioServer.get_bus_index("SFX")
-		var bus_idx: int = AudioServer.get_bus_index(bus)
-		var master_vol: float = AudioServer.get_bus_volume_db(master_idx) if master_idx >= 0 else 0.0
-		var sfx_vol: float = AudioServer.get_bus_volume_db(sfx_idx) if sfx_idx >= 0 else 0.0
-		var bus_vol: float = AudioServer.get_bus_volume_db(bus_idx) if bus_idx >= 0 else 0.0
-		var master_muted: bool = AudioServer.is_bus_mute(master_idx) if master_idx >= 0 else false
-		var sfx_muted: bool = AudioServer.is_bus_mute(sfx_idx) if sfx_idx >= 0 else false
-		var bus_muted: bool = AudioServer.is_bus_mute(bus_idx) if bus_idx >= 0 else false
-
-		var bus_send: StringName = AudioServer.get_bus_send(bus_idx) if bus_idx >= 0 else StringName("")
-		var sfx_send: StringName = AudioServer.get_bus_send(sfx_idx) if sfx_idx >= 0 else StringName("")
-
-		print("U_SFXSpawner: spawn bus=%s container_vp=%s emitter_vp=%s container_world=%d emitter_world=%d master_vol=%.2f master_muted=%s sfx_vol=%.2f sfx_muted=%s" % [
-			bus,
-			container_vp_path,
-			emitter_vp_path,
-			container_world_id,
-			emitter_world_id,
-			master_vol,
-			master_muted,
-			sfx_vol,
-			sfx_muted
-		])
-		print("U_SFXSpawner: spawn ctx container_cam=%s emitter_cam=%s container_audio3d=%s emitter_audio3d=%s bus_vol=%.2f bus_muted=%s bus_send=%s sfx_send=%s player=%s playing=%s paused=%s max_dist=%.2f atten_model=%d" % [
-			str(container_cam.get_path()) if container_cam != null else "<none>",
-			str(emitter_cam.get_path()) if emitter_cam != null else "<none>",
-			str(container_audio_3d_enabled),
-			str(emitter_audio_3d_enabled),
-			bus_vol,
-			bus_muted,
-			str(bus_send),
-			str(sfx_send),
-			str(player.get_path()) if player != null else "<none>",
-			player.playing if player != null else false,
-			player.stream_paused if player != null else false,
-			player.max_distance if player != null else 0.0,
-			player.attenuation_model if player != null else -1
-		])
 
 	# Store play time for voice stealing
 	_play_times[player] = Time.get_ticks_msec()
