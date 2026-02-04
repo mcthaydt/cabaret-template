@@ -7,6 +7,8 @@ const I_VFX_MANAGER := preload("res://scripts/interfaces/i_vfx_manager.gd")
 
 const STORE_SERVICE := StringName("state_store")
 
+static var _default_draw_material: StandardMaterial3D = null
+
 ## Utility for spawning one-shot GPU particles with proper initialization
 ##
 ## Handles the complexity of:
@@ -107,6 +109,7 @@ func _create_particle_node(config: ParticleConfig) -> GPUParticles3D:
 func _setup_draw_pass(particles: GPUParticles3D, config: ParticleConfig) -> void:
 	var quad_mesh := QuadMesh.new()
 	quad_mesh.size = Vector2(config.scale, config.scale)
+	quad_mesh.material = _get_default_draw_material()
 	particles.draw_pass_1 = quad_mesh
 
 ## Set up the process material (physics/movement behavior)
@@ -125,6 +128,16 @@ func _setup_process_material(particles: GPUParticles3D, config: ParticleConfig) 
 	material.initial_velocity_max = config.initial_velocity * 1.2
 	material.gravity = Vector3(0, -9.8, 0)
 	particles.process_material = material
+
+static func _get_default_draw_material() -> StandardMaterial3D:
+	if _default_draw_material != null:
+		return _default_draw_material
+
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = Color(1, 1, 1, 1)
+	_default_draw_material = material
+	return _default_draw_material
 
 ## Defer particle activation to work around GPU buffer initialization bug
 ## Requires 2-frame delay for GPU to initialize before emitting
