@@ -40,6 +40,8 @@ var _last_audio_hash: int = 0
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	U_SERVICE_LOCATOR.register(StringName("audio_manager"), self)
+	if OS.is_debug_build() or Engine.is_editor_hint():
+		print("M_AudioManager: ready at %s" % String(get_path()))
 
 	if not U_AUDIO_BUS_CONSTANTS.validate_bus_layout():
 		push_error("M_AudioManager: Invalid audio bus layout. Please configure buses in Project Settings → Audio → Buses")
@@ -48,7 +50,13 @@ func _ready() -> void:
 	_music_crossfader = U_CrossfadePlayer.new(self, &"Music")
 	_ambient_crossfader = U_CrossfadePlayer.new(self, &"Ambient")
 	_setup_ui_sound_players()
-	U_SFX_SPAWNER.initialize(self)
+	var sfx_parent := _resolve_sfx_parent()
+	if OS.is_debug_build() or Engine.is_editor_hint():
+		print("M_AudioManager: initializing SFXPool under %s (vp=%s)" % [
+			str(sfx_parent.get_path()) if sfx_parent != null else "<null>",
+			str(sfx_parent.get_viewport().get_path()) if sfx_parent != null and sfx_parent.get_viewport() != null else "<none>"
+		])
+	U_SFX_SPAWNER.initialize(sfx_parent)
 
 	await _initialize_store_async()
 
@@ -116,6 +124,21 @@ func _setup_ui_sound_players() -> void:
 		player.bus = "UI"
 		add_child(player)
 		_ui_sound_players.append(player)
+
+func _resolve_sfx_parent() -> Node:
+	var tree := get_tree()
+	if tree == null:
+		return self
+
+	var game_viewport := tree.root.find_child("GameViewport", true, false)
+	if game_viewport is SubViewport:
+		return game_viewport
+	if game_viewport is Viewport:
+		return game_viewport
+
+	if OS.is_debug_build() or Engine.is_editor_hint():
+		print("M_AudioManager: GameViewport not found (yet). Using self for SFXPool parent.")
+	return self
 
 ## Override: I_AudioManager.play_ui_sound
 func play_ui_sound(sound_id: StringName) -> void:

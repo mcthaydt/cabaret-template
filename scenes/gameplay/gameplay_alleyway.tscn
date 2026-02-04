@@ -44,7 +44,6 @@
 [ext_resource type="Script" uid="uid://bdp7886fufa8v" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
 [ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="19_ph0bl"]
 [ext_resource type="Script" uid="uid://csqsmkkv5ite7" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
-[ext_resource type="Script" uid="uid://djud6o4c7psxg" path="res://scripts/ecs/systems/s_checkpoint_system.gd" id="42_checkpoint_system"]
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
 [ext_resource type="Script" uid="uid://be4ht4ijvdrjy" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="29_screen_shake_publisher"]
@@ -52,14 +51,14 @@
 [ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
 [ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="30_door_controller"]
 [ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://assets/textures/tex_icon.svg" id="39_u0c34"]
-[ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/cfg_death_zone_volume.tres" id="44_death_settings"]
-[ext_resource type="Resource" uid="uid://c8u21l3ag26ky" path="res://resources/triggers/cfg_spike_trap_volume.tres" id="44_spike_settings"]
+[ext_resource type="Script" uid="uid://cly8oyjtrr3ev" path="res://scripts/gameplay/inter_endgame_goal_zone.gd" id="41_goal_script"]
+[ext_resource type="Script" uid="uid://djud6o4c7psxg" path="res://scripts/ecs/systems/s_checkpoint_system.gd" id="42_checkpoint_system"]
 [ext_resource type="Resource" uid="uid://na7m34dl6a4d" path="res://resources/triggers/cfg_checkpoint_box_2x3x2.tres" id="43_checkpoint_settings"]
 [ext_resource type="Script" uid="uid://cnqqo6qh71pqh" path="res://scripts/gameplay/inter_checkpoint_zone.gd" id="43_checkpoint_zone_script"]
+[ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/cfg_death_zone_volume.tres" id="44_death_settings"]
 [ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/cfg_goal_cylinder.tres" id="44_goal_settings"]
 [ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="44_hazard_controller"]
-[ext_resource type="Script" uid="uid://cly8oyjtrr3ev" path="res://scripts/gameplay/inter_endgame_goal_zone.gd" id="41_goal_script"]
-[ext_resource type="Script" uid="uid://bcgud5qw85qv0" path="res://scripts/gameplay/inter_victory_zone.gd" id="44_victory_controller"]
+[ext_resource type="Resource" uid="uid://c8u21l3ag26ky" path="res://resources/triggers/cfg_spike_trap_volume.tres" id="44_spike_settings"]
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
 [ext_resource type="Resource" uid="uid://bi0ygx0nsog1s" path="res://resources/spawn_metadata/cfg_sp_exterior.tres" id="51_exterior_default_spawn_meta"]
 [ext_resource type="Resource" uid="uid://cvgjhiir8koeu" path="res://resources/spawn_metadata/cfg_sp_exterior_checkpoint.tres" id="52_exterior_checkpoint_spawn_meta"]
@@ -242,7 +241,7 @@ script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("51_exterior_default_spawn_meta")
 
 [node name="sp_checkpoint_safe" type="Node3D" parent="Entities/SpawnPoints" unique_id=474428565]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4096093, -0.05000639, -0.5544181)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8532863, -0.05000639, -0.5544181)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("52_exterior_checkpoint_spawn_meta")
 
@@ -268,7 +267,7 @@ entity_id = &"deathzone_alleyway"
 tags = Array[StringName]([&"hazard", &"death"])
 
 [node name="E_SpikeTrapA" type="Node3D" parent="Entities/Hazards" unique_id=2072822935]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.8646226, 0, -2.5110316)
 script = ExtResource("44_hazard_controller")
 settings = ExtResource("44_spike_settings")
 visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
@@ -285,7 +284,7 @@ height = 1.0
 material = SubResource("StandardMaterial3D_spike")
 
 [node name="E_SpikeTrapB" type="Node3D" parent="Entities/Hazards" unique_id=353656775]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 3)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -3.834928)
 script = ExtResource("44_hazard_controller")
 settings = ExtResource("44_spike_settings")
 visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
@@ -307,9 +306,9 @@ script = ExtResource("16_8qi87")
 [node name="E_FinalGoal" type="Node3D" parent="Entities/Objectives" unique_id=1434112409]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -4.12, 1.108, 0.833)
 script = ExtResource("41_goal_script")
+required_area = "interior_bar"
 objective_id = &"final_goal"
 area_id = "alleyway"
-required_area = "interior_bar"
 settings = ExtResource("44_goal_settings")
 visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePath("GlowLight")])
 entity_id = &"finalgoal"
@@ -358,7 +357,7 @@ radius = 0.7910156
 height = 2.0715332
 
 [node name="E_Checkpoint_SafeZone" type="Node3D" parent="Entities" unique_id=1409158797]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4096093, 0, -0.5544181)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1599712, 1.0014925, 1.26685)
 script = ExtResource("43_checkpoint_zone_script")
 checkpoint_id = &"cp_alleyway"
 spawn_point_id = &"sp_checkpoint_safe"

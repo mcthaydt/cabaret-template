@@ -1,15 +1,13 @@
 [gd_scene format=4 uid="uid://cu8fqmdlsv4e8"]
 
 [ext_resource type="PackedScene" uid="uid://beujlsseax1wc" path="res://NewExterior.glb" id="1_k2sk4"]
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_k2sk4"]
-load_path = "res://.godot/imported/NewExterior_Image Color Quantizer (3).png-f47515f0f7005d6bac1cf07a59c57c9b.s3tc.ctex"
+[ext_resource type="Texture2D" uid="uid://bxpegecjah68r" path="res://NewExterior_Image Color Quantizer (3).png" id="2_ph3k1"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ph3k1"]
 resource_name = "tripo_mat_d5f3dd21-3c5b-49b0-9793-7a4ff4babba3"
 cull_mode = 2
 shading_mode = 0
-albedo_texture = SubResource("CompressedTexture2D_k2sk4")
+albedo_texture = ExtResource("2_ph3k1")
 texture_filter = 0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_j4lwy"]
