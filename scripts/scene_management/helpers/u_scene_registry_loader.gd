@@ -87,6 +87,15 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 			5
 		)
 
+	if not scenes.has(StringName("display_settings")):
+		register_scene_callable.call(
+			StringName("display_settings"),
+			"res://scenes/ui/overlays/settings/ui_display_settings_overlay.tscn",
+			U_SceneRegistry.SceneType.UI,
+			"instant",
+			5
+		)
+
 	if not scenes.has(StringName("audio_settings")):
 		register_scene_callable.call(
 			StringName("audio_settings"),

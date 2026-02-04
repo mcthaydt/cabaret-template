@@ -1,0 +1,428 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/settings/ui_display_settings_tab.gd" id="1"]
+
+[node name="DisplaySettingsTab" type="VBoxContainer" unique_id=1430844904]
+theme_override_constants/separation = 12
+script = ExtResource("1")
+
+[node name="HeadingLabel" type="Label" parent="." unique_id=1568954157]
+layout_mode = 2
+text = "Display Settings"
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="." unique_id=1239616416]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+follow_focus = true
+
+[node name="Content" type="VBoxContainer" parent="Scroll" unique_id=70840007]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="GraphicsLabel" type="Label" parent="Scroll/Content" unique_id=1981928633]
+layout_mode = 2
+text = "Graphics"
+
+[node name="GraphicsSeparator" type="HSeparator" parent="Scroll/Content" unique_id=694695344]
+layout_mode = 2
+
+[node name="WindowSizeRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1659315599]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="WindowSizeLabel" type="Label" parent="Scroll/Content/WindowSizeRow" unique_id=838017465]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Window Size"
+
+[node name="WindowSizeOption" type="OptionButton" parent="Scroll/Content/WindowSizeRow" unique_id=170062200]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="WindowModeRow" type="HBoxContainer" parent="Scroll/Content" unique_id=2078993102]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="WindowModeLabel" type="Label" parent="Scroll/Content/WindowModeRow" unique_id=1713915707]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Window Mode"
+
+[node name="WindowModeOption" type="OptionButton" parent="Scroll/Content/WindowModeRow" unique_id=56824920]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VSyncRow" type="HBoxContainer" parent="Scroll/Content" unique_id=590294122]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="VSyncLabel" type="Label" parent="Scroll/Content/VSyncRow" unique_id=119608634]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "VSync"
+
+[node name="VSyncToggle" type="CheckBox" parent="Scroll/Content/VSyncRow" unique_id=292214891]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Enabled"
+
+[node name="QualityRow" type="HBoxContainer" parent="Scroll/Content" unique_id=191450495]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="QualityLabel" type="Label" parent="Scroll/Content/QualityRow" unique_id=118234327]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Quality Preset"
+
+[node name="QualityPresetOption" type="OptionButton" parent="Scroll/Content/QualityRow" unique_id=311413577]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PostProcessLabel" type="Label" parent="Scroll/Content" unique_id=1842585046]
+layout_mode = 2
+text = "Post-Processing"
+
+[node name="PostProcessSeparator" type="HSeparator" parent="Scroll/Content" unique_id=1885367714]
+layout_mode = 2
+
+[node name="FilmGrainToggleRow" type="HBoxContainer" parent="Scroll/Content" unique_id=2035760504]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="FilmGrainLabel" type="Label" parent="Scroll/Content/FilmGrainToggleRow" unique_id=1282325968]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Film Grain"
+
+[node name="FilmGrainToggle" type="CheckBox" parent="Scroll/Content/FilmGrainToggleRow" unique_id=1057063816]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Enabled"
+
+[node name="FilmGrainIntensityRow" type="HBoxContainer" parent="Scroll/Content" unique_id=2135816396]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="FilmGrainIntensityLabel" type="Label" parent="Scroll/Content/FilmGrainIntensityRow" unique_id=748445178]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Film Grain Intensity"
+
+[node name="FilmGrainIntensitySlider" type="HSlider" parent="Scroll/Content/FilmGrainIntensityRow" unique_id=1726548931]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 0.1
+
+[node name="FilmGrainIntensityValue" type="Label" parent="Scroll/Content/FilmGrainIntensityRow" unique_id=283070260]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "10%"
+horizontal_alignment = 2
+
+[node name="CRTToggleRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1415833584]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CRTLabel" type="Label" parent="Scroll/Content/CRTToggleRow" unique_id=717014369]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "CRT Filter"
+
+[node name="CRTToggle" type="CheckBox" parent="Scroll/Content/CRTToggleRow" unique_id=60950158]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Enabled"
+
+[node name="CRTScanlineRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1634562765]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CRTScanlineLabel" type="Label" parent="Scroll/Content/CRTScanlineRow" unique_id=511703439]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Scanline Intensity"
+
+[node name="CRTScanlineSlider" type="HSlider" parent="Scroll/Content/CRTScanlineRow" unique_id=1665001192]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 0.3
+
+[node name="CRTScanlineValue" type="Label" parent="Scroll/Content/CRTScanlineRow" unique_id=93240871]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "30%"
+horizontal_alignment = 2
+
+[node name="CRTCurvatureRow" type="HBoxContainer" parent="Scroll/Content" unique_id=353302997]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CRTCurvatureLabel" type="Label" parent="Scroll/Content/CRTCurvatureRow" unique_id=327571493]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "CRT Curvature"
+
+[node name="CRTCurvatureSlider" type="HSlider" parent="Scroll/Content/CRTCurvatureRow" unique_id=7427491]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 10.0
+step = 0.5
+value = 2.0
+
+[node name="CRTCurvatureValue" type="Label" parent="Scroll/Content/CRTCurvatureRow" unique_id=1909384396]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "2.0"
+horizontal_alignment = 2
+
+[node name="CRTAberrationRow" type="HBoxContainer" parent="Scroll/Content" unique_id=2017793714]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CRTAberrationLabel" type="Label" parent="Scroll/Content/CRTAberrationRow" unique_id=1781892675]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Chromatic Aberration"
+
+[node name="CRTAberrationSlider" type="HSlider" parent="Scroll/Content/CRTAberrationRow" unique_id=1098124664]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 0.01
+step = 0.0001
+value = 0.002
+
+[node name="CRTAberrationValue" type="Label" parent="Scroll/Content/CRTAberrationRow" unique_id=1816175688]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "0.0020"
+horizontal_alignment = 2
+
+[node name="DitherToggleRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1022226584]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DitherLabel" type="Label" parent="Scroll/Content/DitherToggleRow" unique_id=1677296145]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Dither"
+
+[node name="DitherToggle" type="CheckBox" parent="Scroll/Content/DitherToggleRow" unique_id=1974081778]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Enabled"
+
+[node name="DitherIntensityRow" type="HBoxContainer" parent="Scroll/Content" unique_id=428023682]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DitherIntensityLabel" type="Label" parent="Scroll/Content/DitherIntensityRow" unique_id=722881927]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Dither Intensity"
+
+[node name="DitherIntensitySlider" type="HSlider" parent="Scroll/Content/DitherIntensityRow" unique_id=1837866962]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 0.5
+
+[node name="DitherIntensityValue" type="Label" parent="Scroll/Content/DitherIntensityRow" unique_id=837171890]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "50%"
+horizontal_alignment = 2
+
+[node name="DitherPatternRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1260222103]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DitherPatternLabel" type="Label" parent="Scroll/Content/DitherPatternRow" unique_id=1416618449]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Dither Pattern"
+
+[node name="DitherPatternOption" type="OptionButton" parent="Scroll/Content/DitherPatternRow" unique_id=1778153742]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LUTToggleRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1047099864]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LUTLabel" type="Label" parent="Scroll/Content/LUTToggleRow" unique_id=857076560]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "LUT"
+
+[node name="LUTToggle" type="CheckBox" parent="Scroll/Content/LUTToggleRow" unique_id=1209604005]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Enabled"
+
+[node name="LUTResourceRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1319258287]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LUTResourceLabel" type="Label" parent="Scroll/Content/LUTResourceRow" unique_id=2072511956]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "LUT Preset"
+
+[node name="LUTOption" type="OptionButton" parent="Scroll/Content/LUTResourceRow" unique_id=312278793]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LUTIntensityRow" type="HBoxContainer" parent="Scroll/Content" unique_id=855280533]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LUTIntensityLabel" type="Label" parent="Scroll/Content/LUTIntensityRow" unique_id=928202970]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "LUT Intensity"
+
+[node name="LUTIntensitySlider" type="HSlider" parent="Scroll/Content/LUTIntensityRow" unique_id=1922175587]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="LUTIntensityValue" type="Label" parent="Scroll/Content/LUTIntensityRow" unique_id=1974229185]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="UILabel" type="Label" parent="Scroll/Content" unique_id=645734907]
+layout_mode = 2
+text = "UI"
+
+[node name="UISeparator" type="HSeparator" parent="Scroll/Content" unique_id=1925498500]
+layout_mode = 2
+
+[node name="UIScaleRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1426821952]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="UIScaleLabel" type="Label" parent="Scroll/Content/UIScaleRow" unique_id=1809474116]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "UI Scale"
+
+[node name="UIScaleSlider" type="HSlider" parent="Scroll/Content/UIScaleRow" unique_id=894070753]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.8
+max_value = 1.3
+step = 0.1
+value = 1.0
+
+[node name="UIScaleValue" type="Label" parent="Scroll/Content/UIScaleRow" unique_id=23857366]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="AccessibilityLabel" type="Label" parent="Scroll/Content" unique_id=1402092905]
+layout_mode = 2
+text = "Accessibility"
+
+[node name="AccessibilitySeparator" type="HSeparator" parent="Scroll/Content" unique_id=2050586582]
+layout_mode = 2
+
+[node name="ColorBlindModeRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1525602580]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ColorBlindModeLabel" type="Label" parent="Scroll/Content/ColorBlindModeRow" unique_id=327611118]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Color Blind Mode"
+
+[node name="ColorBlindModeOption" type="OptionButton" parent="Scroll/Content/ColorBlindModeRow" unique_id=216077999]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HighContrastRow" type="HBoxContainer" parent="Scroll/Content" unique_id=26228037]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HighContrastLabel" type="Label" parent="Scroll/Content/HighContrastRow" unique_id=1045680518]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "High Contrast"
+
+[node name="HighContrastToggle" type="CheckBox" parent="Scroll/Content/HighContrastRow" unique_id=2019903621]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Enabled"
+
+[node name="ColorBlindShaderRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1172638024]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ColorBlindShaderLabel" type="Label" parent="Scroll/Content/ColorBlindShaderRow" unique_id=354472923]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Color Blind Shader"
+
+[node name="ColorBlindShaderToggle" type="CheckBox" parent="Scroll/Content/ColorBlindShaderRow" unique_id=780018259]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Enabled"
+
+[node name="ButtonSeparator" type="HSeparator" parent="." unique_id=575784747]
+layout_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="." unique_id=1117002993]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="ResetButton" type="Button" parent="ButtonRow" unique_id=10348877]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Reset to Defaults"
+
+[node name="BackButton" type="Button" parent="ButtonRow" unique_id=2146537011]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Back"

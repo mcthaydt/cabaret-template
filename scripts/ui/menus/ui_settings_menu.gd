@@ -18,6 +18,7 @@ const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configura
 @onready var _gamepad_settings_button: Button = %GamepadSettingsButton
 @onready var _touchscreen_settings_button: Button = %TouchscreenSettingsButton
 @onready var _vfx_settings_button: Button = %VFXSettingsButton
+@onready var _display_settings_button: Button = %DisplaySettingsButton
 @onready var _audio_settings_button: Button = %AudioSettingsButton
 @onready var _rebind_controls_button: Button = %RebindControlsButton
 
@@ -26,6 +27,7 @@ const OVERLAY_INPUT_PROFILE := StringName("input_profile_selector")
 const OVERLAY_GAMEPAD_SETTINGS := StringName("gamepad_settings")
 const OVERLAY_TOUCHSCREEN_SETTINGS := StringName("touchscreen_settings")
 const OVERLAY_VFX_SETTINGS := StringName("vfx_settings")
+const OVERLAY_DISPLAY_SETTINGS := StringName("display_settings")
 const OVERLAY_AUDIO_SETTINGS := StringName("audio_settings")
 const OVERLAY_INPUT_REBINDING := StringName("input_rebinding")
 
@@ -53,6 +55,8 @@ func _on_panel_ready() -> void:
 		_touchscreen_settings_button.pressed.connect(_on_touchscreen_settings_pressed)
 	if _vfx_settings_button != null and not _vfx_settings_button.pressed.is_connected(_on_vfx_settings_pressed):
 		_vfx_settings_button.pressed.connect(_on_vfx_settings_pressed)
+	if _display_settings_button != null and not _display_settings_button.pressed.is_connected(_on_display_settings_pressed):
+		_display_settings_button.pressed.connect(_on_display_settings_pressed)
 	if _audio_settings_button != null and not _audio_settings_button.pressed.is_connected(_on_audio_settings_pressed):
 		_audio_settings_button.pressed.connect(_on_audio_settings_pressed)
 	if _rebind_controls_button != null and not _rebind_controls_button.pressed.is_connected(_on_rebind_controls_pressed):
@@ -97,6 +101,10 @@ func _on_touchscreen_settings_pressed() -> void:
 func _on_vfx_settings_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	_open_settings_target(OVERLAY_VFX_SETTINGS, StringName("vfx_settings"))
+
+func _on_display_settings_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
+	_open_settings_target(OVERLAY_DISPLAY_SETTINGS, StringName("display_settings"))
 
 func _on_audio_settings_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
@@ -164,6 +172,8 @@ func _configure_focus_neighbors() -> void:
 		buttons.append(_touchscreen_settings_button)
 	if _vfx_settings_button != null and _vfx_settings_button.visible:
 		buttons.append(_vfx_settings_button)
+	if _display_settings_button != null and _display_settings_button.visible:
+		buttons.append(_display_settings_button)
 	if _audio_settings_button != null and _audio_settings_button.visible:
 		buttons.append(_audio_settings_button)
 	if _rebind_controls_button != null and _rebind_controls_button.visible:

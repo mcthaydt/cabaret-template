@@ -66,6 +66,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Visual Effects"
 
+[node name="DisplaySettingsButton" type="Button" parent="ScrollContainer/VBoxContainer" unique_id=1702409007]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Display Settings"
+
 [node name="AudioSettingsButton" type="Button" parent="ScrollContainer/VBoxContainer" unique_id=125247589]
 unique_name_in_owner = true
 layout_mode = 2
