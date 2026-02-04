@@ -26,6 +26,8 @@ enum SurfaceType {
 }
 
 var _raycast: RayCast3D
+var _enable_attempts: int = 0
+const _MAX_ENABLE_ATTEMPTS := 20
 
 func _init() -> void:
 	component_type = COMPONENT_TYPE
@@ -44,11 +46,31 @@ func _setup_raycast() -> void:
 	# Create raycast as child of CharacterBody3D so it follows the character
 	_raycast = RayCast3D.new()
 	_raycast.name = "SurfaceDetectorRay"
-	_raycast.enabled = true
+	# Do not enable immediately: when running inside the editor (GUT, tool runs),
+	# there may be no valid 3D physics space, and RayCast3D will spam engine errors.
+	_raycast.enabled = false
 	_raycast.target_position = Vector3(0, -2.0, 0)  # Cast 2m down
 	_raycast.collision_mask = 1  # Layer 1 = world geometry
 	_raycast.hit_from_inside = true  # Allow detection even if starting inside collider
 	body.add_child(_raycast)
+	call_deferred("_try_enable_raycast")
+
+func _try_enable_raycast() -> void:
+	if _raycast == null or not is_instance_valid(_raycast):
+		return
+	if _raycast.enabled:
+		return
+	if not _raycast.is_inside_tree():
+		return
+
+	var world := _raycast.get_world_3d()
+	if world == null or not world.space.is_valid():
+		_enable_attempts += 1
+		if _enable_attempts < _MAX_ENABLE_ATTEMPTS:
+			call_deferred("_try_enable_raycast")
+		return
+
+	_raycast.enabled = true
 
 ## Returns the surface type beneath this detector.
 ## Uses raycast to identify surfaces (works for both grounded and floating characters).
@@ -58,7 +80,8 @@ func detect_surface() -> SurfaceType:
 		return SurfaceType.DEFAULT
 	if not _raycast.is_inside_tree():
 		return SurfaceType.DEFAULT
-	if _raycast.get_world_3d() == null:
+	var world := _raycast.get_world_3d()
+	if world == null or not world.space.is_valid():
 		return SurfaceType.DEFAULT
 
 	# Force raycast update (it's attached to CharacterBody3D, so position is correct)
