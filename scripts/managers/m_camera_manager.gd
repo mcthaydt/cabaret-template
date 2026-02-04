@@ -375,16 +375,21 @@ func _create_blend_tween(to_camera: Camera3D, duration: float) -> void:
 ##
 ## Parameters:
 ##   new_camera: Camera to activate after blend completes
-func _finalize_camera_blend(new_camera: Camera3D) -> void:
+func _finalize_camera_blend(new_camera: Variant) -> void:
 	if new_camera == null:
 		return
+	if not is_instance_valid(new_camera):
+		return
+	if not (new_camera is Camera3D):
+		return
+	var camera := new_camera as Camera3D
 
 	# Deactivate transition camera
 	if _transition_camera != null:
 		_transition_camera.current = false
 
 	# Activate new scene camera
-	new_camera.current = true
+	camera.current = true
 
 ## Force finalize camera blend to the camera found in the given scene
 ##

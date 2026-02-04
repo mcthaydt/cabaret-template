@@ -45,7 +45,7 @@ const U_UISOUND_PLAYER := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
 const STREAM_MAIN_MENU := preload("res://assets/audio/music/mus_main_menu.mp3")
-const STREAM_EXTERIOR := preload("res://assets/audio/music/mus_exterior.mp3")
+const STREAM_ALLEYWAY := preload("res://assets/audio/music/mus_alleyway.mp3")
 const STREAM_PAUSE := preload("res://assets/audio/music/mus_pause.mp3")
 
 const STREAM_AMBIENT_EXTERIOR := preload("res://tests/assets/audio/ambient/amb_placeholder_exterior.wav")
@@ -264,14 +264,14 @@ func test_scene_transition_action_switches_to_main_menu_music() -> void:
 	assert_true(_is_music_stream_playing(STREAM_MAIN_MENU))
 
 
-func test_scene_transition_action_switches_to_exterior_music() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+func test_scene_transition_action_switches_to_alleyway_music() -> void:
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
-	assert_true(_is_music_stream_playing(STREAM_EXTERIOR))
+	assert_true(_is_music_stream_playing(STREAM_ALLEYWAY))
 
 
 func test_open_pause_switches_to_pause_music() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
@@ -280,14 +280,14 @@ func test_open_pause_switches_to_pause_music() -> void:
 
 
 func test_close_pause_restores_previous_music() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
 	await get_tree().process_frame
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.close_pause())
 	await get_tree().process_frame
-	assert_true(_is_music_stream_playing(STREAM_EXTERIOR))
+	assert_true(_is_music_stream_playing(STREAM_ALLEYWAY))
 
 
 func _is_ambient_stream_playing(stream: AudioStream) -> bool:
@@ -301,13 +301,13 @@ func _is_ambient_stream_playing(stream: AudioStream) -> bool:
 
 
 func test_ambient_manager_starts_exterior_ambient_on_scene_transition() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 	assert_true(_is_ambient_stream_playing(STREAM_AMBIENT_EXTERIOR))
 
 
 func test_ambient_manager_switches_to_interior_ambient_on_scene_transition() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
 	await get_tree().process_frame
@@ -315,7 +315,7 @@ func test_ambient_manager_switches_to_interior_ambient_on_scene_transition() -> 
 
 
 func test_ambient_manager_stops_ambient_when_no_ambient_for_scene() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 	assert_true(_is_ambient_stream_playing(STREAM_AMBIENT_EXTERIOR))
 
@@ -427,7 +427,10 @@ func test_victory_sfx_system_spawns_sound_on_victory_triggered_event() -> void:
 func _create_basic_footstep_fixture() -> Dictionary:
 	var manager := M_ECS_MANAGER.new()
 	manager.name = "M_ECSManager"
+	# Prevent manager-driven physics ticks; footstep tests manually invoke process_tick.
+	manager.process_mode = Node.PROCESS_MODE_DISABLED
 	add_child_autofree(manager)
+	manager.set_physics_process(false)
 
 	var settings := RS_FOOTSTEP_SOUND_SETTINGS.new()
 	settings.enabled = true

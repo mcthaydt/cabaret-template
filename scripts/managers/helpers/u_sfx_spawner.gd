@@ -245,8 +245,12 @@ static func _steal_oldest_voice() -> AudioStreamPlayer3D:
 	var oldest_time: int = 2147483647  # Max int
 
 	for player_variant in _pool:
+		if player_variant == null:
+			continue
+		if not is_instance_valid(player_variant):
+			continue
 		var player := player_variant as AudioStreamPlayer3D
-		if player == null or not is_instance_valid(player):
+		if player == null:
 			continue
 		if not player.playing:
 			continue
@@ -285,10 +289,12 @@ static func _update_peak_usage() -> void:
 
 static func _get_available_player() -> AudioStreamPlayer3D:
 	for player_variant in _pool:
+		if player_variant == null:
+			continue
+		if not is_instance_valid(player_variant):
+			continue
 		var player := player_variant as AudioStreamPlayer3D
 		if player == null:
-			continue
-		if not is_instance_valid(player):
 			continue
 		var in_use := bool(_player_in_use.get(player, false))
 		if not in_use:

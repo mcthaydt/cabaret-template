@@ -34,7 +34,8 @@ var _toast_active: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_reparent_to_root_hud_layer()
+	# Defer reparent to avoid modifying the tree while the scene is still entering.
+	call_deferred("_reparent_to_root_hud_layer")
 	_register_with_scene_manager()
 	_store = U_StateUtils.get_store(self)
 

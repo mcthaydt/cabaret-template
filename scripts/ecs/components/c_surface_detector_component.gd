@@ -56,6 +56,10 @@ func _setup_raycast() -> void:
 func detect_surface() -> SurfaceType:
 	if _raycast == null or not is_instance_valid(_raycast):
 		return SurfaceType.DEFAULT
+	if not _raycast.is_inside_tree():
+		return SurfaceType.DEFAULT
+	if _raycast.get_world_3d() == null:
+		return SurfaceType.DEFAULT
 
 	# Force raycast update (it's attached to CharacterBody3D, so position is correct)
 	_raycast.force_raycast_update()

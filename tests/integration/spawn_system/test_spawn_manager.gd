@@ -11,6 +11,7 @@ const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gam
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const SP_SPAWN_POINT := preload("res://scripts/scene_management/sp_spawn_point.gd")
 const RS_SPAWN_METADATA := preload("res://scripts/resources/scene_management/rs_spawn_metadata.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var spawn_manager: M_SpawnManager
 var state_store: M_StateStore
@@ -21,6 +22,7 @@ func before_each() -> void:
 	state_store = M_STATE_STORE.new()
 	state_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
 	add_child_autofree(state_store)
+	U_ServiceLocator.register(StringName("state_store"), state_store)
 	await get_tree().process_frame
 
 	# Create spawn manager
@@ -40,6 +42,7 @@ func after_each() -> void:
 		state_store.queue_free()
 	if test_scene and is_instance_valid(test_scene):
 		test_scene.queue_free()
+	U_ServiceLocator.clear()
 
 func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
 	var normal := plane_normal.normalized()

@@ -25,6 +25,7 @@ func before_each() -> void:
 	# Create and register mock save manager first
 	_test_save_manager = MockSaveManager.new()
 	add_child_autofree(_test_save_manager)
+	U_ServiceLocator.register(StringName("save_manager"), _test_save_manager)
 	await wait_process_frames(2)
 
 	# Create state store
@@ -286,6 +287,12 @@ func _instantiate_save_load_menu() -> Control:
 	var menu := SaveLoadMenuScene.instantiate()
 	add_child_autofree(menu)
 	await wait_process_frames(2)
+	# Ensure save manager is resolved and slot list is populated for assertions.
+	if menu.get("_save_manager") == null:
+		menu.call("_discover_save_manager")
+	menu.call("_refresh_slot_list")
+	await wait_process_frames(2)
+	await _wait_for_slot_list(menu)
 	return menu
 
 func _prepare_save_mode(store: M_StateStore) -> void:
@@ -300,7 +307,7 @@ func _prepare_load_mode(store: M_StateStore) -> void:
 
 func _open_save_load_overlay_in_gameplay(store: M_StateStore) -> void:
 	if store != null:
-		store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("exterior")))
+		store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("alleyway")))
 		store.dispatch(U_NavigationActions.open_pause())
 		store.dispatch(U_NavigationActions.open_overlay(StringName("save_load_menu_overlay")))
 		await wait_process_frames(2)
@@ -333,6 +340,15 @@ func _find_thumbnail_rect(container: Node) -> TextureRect:
 		if found != null:
 			return found
 	return null
+
+func _wait_for_slot_list(menu: Control, max_frames: int = 10) -> void:
+	if menu == null:
+		return
+	for _i in max_frames:
+		var list_container := menu.get_node_or_null("%SlotListContainer")
+		if list_container != null and list_container.get_child_count() > 0:
+			return
+		await wait_process_frames(1)
 
 func _create_test_thumbnail(path: String) -> void:
 	var image := Image.create(32, 18, false, Image.FORMAT_RGBA8)

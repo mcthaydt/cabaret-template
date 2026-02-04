@@ -287,6 +287,10 @@ func _setup_manager_with_store(display_state: Dictionary) -> void:
 	add_child_autofree(_store)
 	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)
 
+	var game_viewport := SubViewport.new()
+	game_viewport.name = "GameViewport"
+	add_child_autofree(game_viewport)
+
 	_manager = M_DISPLAY_MANAGER.new()
 	add_child_autofree(_manager)
 	await get_tree().process_frame

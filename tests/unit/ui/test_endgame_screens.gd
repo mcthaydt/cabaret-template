@@ -162,7 +162,7 @@ func _create_state_store() -> M_StateStore:
 	return store
 
 func _prepare_endgame_state(store: M_StateStore, end_scene: StringName) -> void:
-	store.dispatch(U_NavigationActions.start_game(StringName("exterior")))
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
 	store.dispatch(U_NavigationActions.open_endgame(end_scene))
 
 func _prepare_credits_state(store: M_StateStore) -> void:

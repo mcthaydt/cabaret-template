@@ -13,6 +13,7 @@ const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_st
 const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager
@@ -24,10 +25,12 @@ func before_each() -> void:
 	# Clear ServiceLocator first to ensure clean state between tests
 	U_ServiceLocator.clear()
 
-	# Create root scene structure
-	_root_scene = Node.new()
-	_root_scene.name = "Root"
+	# Create root scene structure (includes HUDLayer + overlays)
+	var root_ctx := U_SceneTestHelpers.create_root_with_containers(true)
+	_root_scene = root_ctx["root"]
 	add_child_autofree(_root_scene)
+	_active_scene_container = root_ctx["active_scene_container"]
+	_ui_overlay_stack = root_ctx["ui_overlay_stack"]
 
 	# Create state store with all slices - register IMMEDIATELY after adding to tree
 	# so other managers can find it in their _ready()
@@ -39,24 +42,7 @@ func before_each() -> void:
 	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
-	# Create scene containers
-	_active_scene_container = Node.new()
-	_active_scene_container.name = "ActiveSceneContainer"
-	_root_scene.add_child(_active_scene_container)
-
-	_ui_overlay_stack = CanvasLayer.new()
-	_ui_overlay_stack.name = "UIOverlayStack"
-	_ui_overlay_stack.process_mode = Node.PROCESS_MODE_ALWAYS
-	_root_scene.add_child(_ui_overlay_stack)
-
-	# Create transition overlay
-	var transition_overlay := CanvasLayer.new()
-	transition_overlay.name = "TransitionOverlay"
-	var color_rect := ColorRect.new()
-	color_rect.name = "TransitionColorRect"
-	color_rect.modulate.a = 0.0
-	transition_overlay.add_child(color_rect)
-	_root_scene.add_child(transition_overlay)
+	U_SceneTestHelpers.register_scene_manager_dependencies(_root_scene)
 
 	# Create scene manager - register IMMEDIATELY after adding to tree
 	_manager = M_SceneManager.new()
@@ -67,6 +53,14 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 func after_each() -> void:
+	# Remove root early to stop any active scene processing
+	if _manager != null and is_instance_valid(_manager):
+		await U_SceneTestHelpers.wait_for_transition_idle(_manager)
+	if _root_scene != null and is_instance_valid(_root_scene):
+		_root_scene.queue_free()
+		await get_tree().process_frame
+		await get_tree().physics_frame
+
 	# Clear ServiceLocator to prevent state leakage
 	U_ServiceLocator.clear()
 

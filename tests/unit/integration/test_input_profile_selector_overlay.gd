@@ -83,6 +83,13 @@ func before_each() -> void:
 	loading_overlay.name = "LoadingOverlay"
 	add_child_autofree(loading_overlay)
 
+	_store = M_StateStore.new()
+	_store.settings = RS_StateStoreSettings.new()
+	_store.scene_initial_state = RS_SceneInitialState.new()
+	add_child_autofree(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
+	await get_tree().process_frame
+
 	_cursor_manager = M_CursorManager.new()
 	add_child_autofree(_cursor_manager)
 	U_ServiceLocator.register(StringName("cursor_manager"), _cursor_manager)
@@ -90,19 +97,10 @@ func before_each() -> void:
 	_spawn_manager = M_SpawnManager.new()
 	add_child_autofree(_spawn_manager)
 	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
-	await get_tree().process_frame
 
 	_camera_manager = M_CameraManager.new()
 	add_child_autofree(_camera_manager)
 	U_ServiceLocator.register(StringName("camera_manager"), _camera_manager)
-	await get_tree().process_frame
-
-	_store = M_StateStore.new()
-	_store.settings = RS_StateStoreSettings.new()
-	_store.scene_initial_state = RS_SceneInitialState.new()
-	add_child_autofree(_store)
-	U_ServiceLocator.register(StringName("state_store"), _store)
-	await get_tree().process_frame
 
 	_profile_manager = M_InputProfileManager.new()
 	add_child_autofree(_profile_manager)

@@ -18,7 +18,7 @@ const U_TRANSITION_TEST_HELPERS := preload("res://tests/helpers/u_transition_tes
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
 const STREAM_MAIN_MENU := preload("res://assets/audio/music/mus_main_menu.mp3")
-const STREAM_EXTERIOR := preload("res://assets/audio/music/mus_exterior.mp3")
+const STREAM_ALLEYWAY := preload("res://assets/audio/music/mus_alleyway.mp3")
 const STREAM_INTERIOR := preload("res://assets/audio/music/mus_interior.mp3")
 const STREAM_PAUSE := preload("res://assets/audio/music/mus_pause.mp3")
 
@@ -103,7 +103,7 @@ func test_play_music_swaps_active_to_player_b() -> void:
 func test_second_play_music_swaps_active_back_to_player_a() -> void:
 	_audio_manager.play_music(StringName("main_menu"), 0.01)
 	await _await_music_tween(0.5)
-	_audio_manager.play_music(StringName("exterior"), 0.01)
+	_audio_manager.play_music(StringName("alleyway"), 0.01)
 	await get_tree().process_frame
 	assert_eq(_audio_manager._music_crossfader._active_player, _player_a())
 
@@ -152,7 +152,7 @@ func test_old_player_stops_after_crossfade() -> void:
 	await _await_music_tween(0.5)
 	var old_player: AudioStreamPlayer = _audio_manager._music_crossfader._active_player
 
-	_audio_manager.play_music(StringName("exterior"), 0.05)
+	_audio_manager.play_music(StringName("alleyway"), 0.05)
 	await get_tree().process_frame
 	assert_true(old_player.playing, "Old player should still be playing during fade")
 
@@ -190,7 +190,7 @@ func test_retrigger_kills_previous_tween_and_starts_new_one() -> void:
 	var tween_1: Tween = _audio_manager._music_crossfader._tween
 	assert_not_null(tween_1)
 
-	_audio_manager.play_music(StringName("exterior"), 0.5)
+	_audio_manager.play_music(StringName("alleyway"), 0.5)
 	await get_tree().process_frame
 	var tween_2: Tween = _audio_manager._music_crossfader._tween
 	assert_not_null(tween_2)
@@ -202,7 +202,7 @@ func test_crossfade_keeps_old_playing_until_tween_finishes() -> void:
 	await _await_music_tween(0.5)
 	var old_player: AudioStreamPlayer = _audio_manager._music_crossfader._active_player
 
-	_audio_manager.play_music(StringName("exterior"), 0.2)
+	_audio_manager.play_music(StringName("alleyway"), 0.2)
 	await get_tree().process_frame
 	assert_true(old_player.playing)
 
@@ -215,7 +215,7 @@ func test_crossfade_fades_out_old_player_volume_mid_fade() -> void:
 	var old_player: AudioStreamPlayer = _audio_manager._music_crossfader._active_player
 	assert_almost_eq(old_player.volume_db, 0.0, 0.1)
 
-	_audio_manager.play_music(StringName("exterior"), 0.4)
+	_audio_manager.play_music(StringName("alleyway"), 0.4)
 	await get_tree().process_frame
 	await get_tree().create_timer(0.1).timeout
 
@@ -264,16 +264,16 @@ func test_transition_to_unknown_scene_does_not_stop_current_music() -> void:
 
 
 func test_open_pause_stores_pre_pause_music_id() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
 	await get_tree().process_frame
-	assert_eq(_audio_manager._pre_pause_music_id, StringName("exterior"))
+	assert_eq(_audio_manager._pre_pause_music_id, StringName("alleyway"))
 
 
 func test_open_pause_switches_to_pause_track() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
@@ -282,14 +282,14 @@ func test_open_pause_switches_to_pause_track() -> void:
 
 
 func test_close_pause_restores_pre_pause_track() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
 	await get_tree().process_frame
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.close_pause())
 	await get_tree().process_frame
-	assert_true(_is_playing_stream(STREAM_EXTERIOR))
+	assert_true(_is_playing_stream(STREAM_ALLEYWAY))
 
 
 func test_close_pause_stops_pause_music_if_no_pre_pause_track() -> void:
@@ -310,7 +310,7 @@ func test_close_pause_stops_pause_music_if_no_pre_pause_track() -> void:
 
 
 func test_scene_change_while_paused_updates_return_track_only() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
 	await get_tree().process_frame
@@ -323,11 +323,11 @@ func test_scene_change_while_paused_updates_return_track_only() -> void:
 
 
 func test_transition_to_main_menu_clears_pre_pause_state() -> void:
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
 	await get_tree().process_frame
-	assert_eq(_audio_manager._pre_pause_music_id, StringName("exterior"))
+	assert_eq(_audio_manager._pre_pause_music_id, StringName("alleyway"))
 
 	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("main_menu")))
 	await get_tree().process_frame

@@ -29,6 +29,8 @@ const HEALTH_SETTINGS_RESOURCE := preload("res://resources/base_settings/gamepla
 
 const VICTORY_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 const VICTORY_SYSTEM := preload("res://scripts/ecs/systems/s_victory_system.gd")
+const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
+const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 
 var _root: Node
 var _state_store: M_STATE_STORE
@@ -44,41 +46,23 @@ var _systems_core: Node
 
 func before_each() -> void:
 	U_STATE_HANDOFF.clear_all()
+	U_ServiceLocator.clear()
 
-	_root = Node.new()
+	var root_ctx := U_SceneTestHelpers.create_root_with_containers(true)
+	_root = root_ctx["root"]
 	add_child_autofree(_root)
+	_active_scene_container = root_ctx["active_scene_container"]
+	_ui_overlay_stack = root_ctx["ui_overlay_stack"]
+	_transition_overlay = root_ctx["transition_overlay"]
+	_loading_overlay = root_ctx["loading_overlay"]
 
 	_state_store = M_STATE_STORE.new()
 	_state_store.settings = RS_STATE_STORE_SETTINGS.new()
 	_state_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
 	_state_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
 	_root.add_child(_state_store)
-
-	_active_scene_container = Node.new()
-	_active_scene_container.name = "ActiveSceneContainer"
-	_root.add_child(_active_scene_container)
-
-	_ui_overlay_stack = CanvasLayer.new()
-	_ui_overlay_stack.name = "UIOverlayStack"
-	_ui_overlay_stack.process_mode = Node.PROCESS_MODE_ALWAYS
-	_root.add_child(_ui_overlay_stack)
-
-	_transition_overlay = CanvasLayer.new()
-	_transition_overlay.name = "TransitionOverlay"
-	var color_rect := ColorRect.new()
-	color_rect.name = "TransitionColorRect"
-	color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	color_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-	color_rect.color = Color.BLACK
-	color_rect.modulate.a = 0.0
-	_transition_overlay.add_child(color_rect)
-	_root.add_child(_transition_overlay)
-
-	_loading_overlay = CanvasLayer.new()
-	_loading_overlay.name = "LoadingOverlay"
-	_loading_overlay.visible = false
-	_loading_overlay.process_mode = Node.PROCESS_MODE_ALWAYS
-	_root.add_child(_loading_overlay)
+	U_ServiceLocator.register(StringName("state_store"), _state_store)
+	U_SceneTestHelpers.register_scene_manager_dependencies(_root)
 
 	# Create gameplay scene scaffold inside ActiveSceneContainer
 	_test_scene = Node3D.new()
@@ -100,20 +84,27 @@ func before_each() -> void:
 	_ecs_manager = M_ECS_MANAGER.new()
 	_ecs_manager.name = "M_ECSManager"
 	_test_scene.add_child(_ecs_manager)
+	U_SFX_SPAWNER.initialize(_ecs_manager)
 
 	_scene_manager = M_SCENE_MANAGER.new()
 	_scene_manager.skip_initial_scene_load = true
-	_scene_manager.initial_scene_id = StringName("exterior")
+	_scene_manager.initial_scene_id = StringName("alleyway")
 	_root.add_child(_scene_manager)
 
 	# Register managers with ServiceLocator (Phase 10B-7: T141c)
-	U_ServiceLocator.register(StringName("state_store"), _state_store)
 	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager)
 
 	await get_tree().process_frame
 	await wait_physics_frames(1)
 
 func after_each() -> void:
+	if _scene_manager != null and is_instance_valid(_scene_manager):
+		await U_SceneTestHelpers.wait_for_transition_idle(_scene_manager)
+	if _root != null and is_instance_valid(_root):
+		_root.queue_free()
+		await get_tree().process_frame
+		await get_tree().physics_frame
+
 	# Clear ServiceLocator to prevent state leakage
 	U_ServiceLocator.clear()
 
@@ -226,7 +217,7 @@ func test_death_spawns_ragdoll_and_transitions_to_game_over() -> void:
 	assert_eq(nav_state.get("base_scene_id"), StringName("game_over"),
 		"Navigation base scene should point to game_over when game_over loads")
 
-func test_game_over_retry_resets_health_and_returns_to_exterior() -> void:
+func test_game_over_retry_resets_health_and_returns_to_alleyway() -> void:
 	_scene_manager.transition_to_scene(StringName("game_over"), "instant")
 	await wait_physics_frames(3)
 
@@ -252,8 +243,8 @@ func test_game_over_retry_resets_health_and_returns_to_exterior() -> void:
 	assert_almost_eq(float(gameplay_state.get("player_health", 0.0)),
 		float(gameplay_state.get("player_max_health", 100.0)), 0.01,
 		"Retry should restore player health to max")
-	assert_eq(_scene_manager.get_current_scene(), StringName("exterior"),
-		"Retry should transition back to exterior scene")
+	assert_eq(_scene_manager.get_current_scene(), StringName("alleyway"),
+		"Retry should transition back to alleyway scene")
 
 func test_victory_triggers_victory_scene_when_area_completed() -> void:
 	var setup := await _prepare_victory_system()
@@ -330,8 +321,8 @@ func test_victory_continue_and_credits_buttons_route_correctly() -> void:
 
 	continue_button.emit_signal("pressed")
 	await wait_seconds(0.4)
-	assert_eq(_scene_manager.get_current_scene(), StringName("exterior"),
-		"Continue should return to exterior hub")
+	assert_eq(_scene_manager.get_current_scene(), StringName("alleyway"),
+		"Continue should return to alleyway hub")
 	await wait_physics_frames(2)
 	gameplay_state = _state_store.get_state().get("gameplay", {})
 	assert_false(bool(gameplay_state.get("game_completed", true)),

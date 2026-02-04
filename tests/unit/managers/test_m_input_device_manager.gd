@@ -239,7 +239,7 @@ func test_gamepad_disconnect_ignored_when_overlay_active() -> void:
 	_dispatched_actions.clear()
 	_device_events.clear()
 
-	_store.dispatch(U_NavigationActions.start_game(StringName("exterior")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
 	_store.dispatch(U_NavigationActions.open_pause())
 	await get_tree().process_frame
 	var dispatched_before: int = _dispatched_actions.size()

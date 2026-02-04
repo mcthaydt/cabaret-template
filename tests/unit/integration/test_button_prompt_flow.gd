@@ -11,6 +11,7 @@ const RS_SceneInitialState := preload("res://resources/state/cfg_default_scene_i
 const RS_SettingsInitialState := preload("res://resources/state/cfg_default_settings_initial_state.tres")
 const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const DeviceType := M_InputDeviceManager.DeviceType
 
 var _store: M_StateStore
@@ -29,12 +30,17 @@ func before_each() -> void:
 	_store.scene_initial_state = RS_SceneInitialState
 	_store.settings_initial_state = RS_SettingsInitialState
 	add_child_autofree(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
 
 	_device_manager = M_InputDeviceManager.new()
 	add_child_autofree(_device_manager)
 
+	var hud_layer := CanvasLayer.new()
+	hud_layer.name = "HUDLayer"
+	add_child_autofree(hud_layer)
+
 	_hud = HUD_SCENE.instantiate()
-	add_child_autofree(_hud)
+	hud_layer.add_child(_hud)
 
 	await _await_frames(2)
 	var keyboard_event := InputEventKey.new()
@@ -45,6 +51,7 @@ func before_each() -> void:
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()
+	U_ServiceLocator.clear()
 	_store = null
 	_device_manager = null
 	_hud = null

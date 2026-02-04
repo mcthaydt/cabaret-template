@@ -9,6 +9,8 @@ const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_s
 const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_NavigationInitialState := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 
 var _root: Node
 var _store: M_StateStore
@@ -18,9 +20,14 @@ var _active: Node
 var _transition_overlay: CanvasLayer
 
 func before_each() -> void:
-    _root = Node.new()
-    _root.name = "Root"
+    U_ServiceLocator.clear()
+
+    var root_ctx := U_SceneTestHelpers.create_root_with_containers(true)
+    _root = root_ctx["root"]
     add_child_autofree(_root)
+    _active = root_ctx["active_scene_container"]
+    _ui = root_ctx["ui_overlay_stack"]
+    _transition_overlay = root_ctx["transition_overlay"]
 
     _store = M_StateStore.new()
     _store.settings = RS_StateStoreSettings.new()
@@ -31,46 +38,23 @@ func before_each() -> void:
     U_ServiceLocator.register(StringName("state_store"), _store)
     await get_tree().process_frame
 
-    _active = Node.new()
-    _active.name = "ActiveSceneContainer"
-    _root.add_child(_active)
-
-    _ui = CanvasLayer.new()
-    _ui.name = "UIOverlayStack"
-    _root.add_child(_ui)
-
-    _transition_overlay = CanvasLayer.new()
-    _transition_overlay.name = "TransitionOverlay"
-    var cr := ColorRect.new()
-    cr.name = "TransitionColorRect"
-    _transition_overlay.add_child(cr)
-    _root.add_child(_transition_overlay)
-
-    # Register overlays via ServiceLocator for M_SceneManager discovery
-    U_ServiceLocator.register(StringName("transition_overlay"), _transition_overlay)
+    U_SceneTestHelpers.register_scene_manager_dependencies(_root)
 
     _manager = M_SceneManager.new()
     _manager.skip_initial_scene_load = true
     _root.add_child(_manager)
+    U_ServiceLocator.register(StringName("scene_manager"), _manager)
     await get_tree().process_frame
 
 func after_each() -> void:
-    # 1. Clear ServiceLocator first (prevents cross-test pollution)
+    if _manager != null and is_instance_valid(_manager):
+        await U_SceneTestHelpers.wait_for_transition_idle(_manager)
+    if _root != null and is_instance_valid(_root):
+        _root.queue_free()
+        await get_tree().process_frame
+        await get_tree().physics_frame
+
     U_ServiceLocator.clear()
-
-    # 2. Clear active scenes loaded by M_SceneManager
-    if _active and is_instance_valid(_active):
-        for child in _active.get_children():
-            child.queue_free()
-
-    # 3. Clear UI overlay stack
-    if _ui and is_instance_valid(_ui):
-        for child in _ui.get_children():
-            child.queue_free()
-
-    # 4. Wait for queue_free to process
-    await get_tree().process_frame
-    await get_tree().physics_frame
 
     _root = null
     _store = null
@@ -105,4 +89,3 @@ func test_pause_action_does_not_interfere_with_transition() -> void:
     # Verify transition completed successfully
     var scene_state: Dictionary = _store.get_slice(StringName("scene"))
     assert_false(scene_state.get("is_transitioning", false), "Transition should complete")
-

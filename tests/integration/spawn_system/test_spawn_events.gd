@@ -6,6 +6,7 @@ const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _spawn_manager: M_SpawnManager
 var _store: M_StateStore
@@ -17,6 +18,7 @@ func before_each() -> void:
 	_store = M_STATE_STORE.new()
 	_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL.new()
 	add_child_autofree(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
 	_spawn_manager = M_SPAWN_MANAGER.new()
@@ -32,6 +34,7 @@ func after_each() -> void:
 	_store = null
 	_scene = null
 	U_ECS_EVENT_BUS.reset()
+	U_ServiceLocator.clear()
 
 func test_spawn_player_at_point_publishes_player_spawned_event() -> void:
 	# Arrange: player and spawn point

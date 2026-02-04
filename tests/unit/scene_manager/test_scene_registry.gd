@@ -76,31 +76,31 @@ func test_get_door_exit_returns_metadata() -> void:
 	assert_true(exit_data is Dictionary, "get_door_exit should return a Dictionary")
 
 ## Test door pairing - entering interior
-func test_door_pairing_exterior_to_interior() -> void:
+func test_door_pairing_alleyway_to_interior_bar() -> void:
 	var exit_data: Dictionary = U_SceneRegistry.get_door_exit(
-		StringName("exterior"),
-		StringName("door_to_house")
+		StringName("alleyway"),
+		StringName("door_to_bar")
 	)
-	assert_false(exit_data.is_empty(), "Door exit metadata should exist for exterior → interior_house")
-	assert_eq(exit_data.get("target_scene_id", StringName()), StringName("interior_house"))
+	assert_false(exit_data.is_empty(), "Door exit metadata should exist for alleyway → interior_bar")
+	assert_eq(exit_data.get("target_scene_id", StringName()), StringName("interior_bar"))
 	assert_eq(exit_data.get("target_spawn_point", StringName()), StringName("sp_entrance_from_exterior"))
 	assert_eq(exit_data.get("transition_type", ""), "fade")
 
 ## Test door pairing - exiting interior
-func test_door_pairing_interior_to_exterior() -> void:
+func test_door_pairing_interior_bar_to_alleyway() -> void:
 	var exit_data: Dictionary = U_SceneRegistry.get_door_exit(
-		StringName("interior_house"),
+		StringName("interior_bar"),
 		StringName("door_to_exterior")
 	)
-	assert_false(exit_data.is_empty(), "Door exit metadata should exist for interior_house → exterior")
-	assert_eq(exit_data.get("target_scene_id", StringName()), StringName("exterior"))
-	assert_eq(exit_data.get("target_spawn_point", StringName()), StringName("sp_exit_from_house"))
+	assert_false(exit_data.is_empty(), "Door exit metadata should exist for interior_bar → alleyway")
+	assert_eq(exit_data.get("target_scene_id", StringName()), StringName("alleyway"))
+	assert_eq(exit_data.get("target_spawn_point", StringName()), StringName("sp_exit_from_bar"))
 	assert_eq(exit_data.get("transition_type", ""), "fade")
 
 ## Test invalid door ID returns empty dict
 func test_invalid_door_id_returns_empty() -> void:
 	var exit_data: Dictionary = U_SceneRegistry.get_door_exit(
-		StringName("exterior"),
+		StringName("alleyway"),
 		StringName("nonexistent_door_id")
 	)
 	assert_true(exit_data.is_empty(), "Unknown door id should return empty exit data")
@@ -115,7 +115,7 @@ func test_validation_allows_one_way_pairings() -> void:
 	# a return pairing. Current validation only enforces target existence,
 	# so it should still return true and not emit errors.
 	U_SceneRegistry._register_door_exit(
-		StringName("exterior"),
+		StringName("alleyway"),
 		StringName("door_one_way_test"),
 		StringName("main_menu"),
 		StringName("sp_none"),
@@ -123,7 +123,7 @@ func test_validation_allows_one_way_pairings() -> void:
 	)
 	assert_true(U_SceneRegistry.validate_door_pairings(), "Validation should pass when all targets exist (one-way is allowed)")
 	# Cleanup injected test data
-	var exits: Dictionary = U_SceneRegistry._door_exits.get(StringName("exterior"), {})
+	var exits: Dictionary = U_SceneRegistry._door_exits.get(StringName("alleyway"), {})
 	if exits is Dictionary and exits.has(StringName("door_one_way_test")):
 		exits.erase(StringName("door_one_way_test"))
 
@@ -208,8 +208,9 @@ func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
 	var scenes_backup: Dictionary = (U_SceneRegistry._scenes as Dictionary).duplicate(true)
 
 	U_SceneRegistry._scenes.erase(StringName("gameplay_base"))
-	U_SceneRegistry._scenes.erase(StringName("exterior"))
+	U_SceneRegistry._scenes.erase(StringName("alleyway"))
 	U_SceneRegistry._scenes.erase(StringName("interior_house"))
+	U_SceneRegistry._scenes.erase(StringName("interior_bar"))
 
 	U_SceneRegistry._backfill_default_gameplay_scenes()
 
@@ -217,12 +218,16 @@ func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
 	assert_false(gameplay_base.is_empty(), "gameplay_base should be registered by backfill")
 	assert_eq(String(gameplay_base.get("default_transition", "")), "loading", "gameplay_base backfill should prefer loading transition")
 
-	var exterior: Dictionary = U_SceneRegistry.get_scene(StringName("exterior"))
-	assert_false(exterior.is_empty(), "exterior should be registered by backfill")
-	assert_eq(String(exterior.get("default_transition", "")), "loading", "exterior backfill should prefer loading transition")
+	var alleyway: Dictionary = U_SceneRegistry.get_scene(StringName("alleyway"))
+	assert_false(alleyway.is_empty(), "alleyway should be registered by backfill")
+	assert_eq(String(alleyway.get("default_transition", "")), "loading", "alleyway backfill should prefer loading transition")
 
 	var interior: Dictionary = U_SceneRegistry.get_scene(StringName("interior_house"))
 	assert_false(interior.is_empty(), "interior_house should be registered by backfill")
 	assert_eq(String(interior.get("default_transition", "")), "loading", "interior_house backfill should prefer loading transition")
+
+	var interior_bar: Dictionary = U_SceneRegistry.get_scene(StringName("interior_bar"))
+	assert_false(interior_bar.is_empty(), "interior_bar should be registered by backfill")
+	assert_eq(String(interior_bar.get("default_transition", "")), "loading", "interior_bar backfill should prefer loading transition")
 
 	U_SceneRegistry._scenes = scenes_backup

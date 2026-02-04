@@ -204,7 +204,7 @@ func test_coalescing_multiple_requests_into_one_write() -> void:
 	# Two transition_completed events to gameplay scenes
 	_mock_store.dispatch({
 		"type": StringName("scene/transition_completed"),
-		"payload": {"scene_id": StringName("exterior")}
+		"payload": {"scene_id": StringName("alleyway")}
 	})
 	_mock_store.dispatch({
 		"type": StringName("scene/transition_completed"),

@@ -9,6 +9,7 @@ const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_pause_manager.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 
 var _root: Node
 var _store: M_STATE_STORE
@@ -19,8 +20,13 @@ var _active: Node
 var _ui_stack: CanvasLayer
 
 func before_each() -> void:
-	_root = Node.new()
+	U_ServiceLocator.clear()
+
+	var root_ctx := U_SceneTestHelpers.create_root_with_containers(true)
+	_root = root_ctx["root"]
 	add_child_autofree(_root)
+	_active = root_ctx["active_scene_container"]
+	_ui_stack = root_ctx["ui_overlay_stack"]
 
 	_store = M_STATE_STORE.new()
 	_store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
@@ -29,19 +35,6 @@ func before_each() -> void:
 
 	_cursor = M_CURSOR_MANAGER.new()
 	_root.add_child(_cursor)
-
-	_active = Node.new()
-	_active.name = "ActiveSceneContainer"
-	_root.add_child(_active)
-
-	_ui_stack = CanvasLayer.new()
-	_ui_stack.name = "UIOverlayStack"
-	_ui_stack.process_mode = Node.PROCESS_MODE_ALWAYS
-	_root.add_child(_ui_stack)
-
-	var transition_overlay := CanvasLayer.new()
-	transition_overlay.name = "TransitionOverlay"
-	_root.add_child(transition_overlay)
 
 	_scene_manager = M_SCENE_MANAGER.new()
 	_scene_manager.skip_initial_scene_load = true
@@ -57,9 +50,18 @@ func before_each() -> void:
 	U_ServiceLocator.register(StringName("cursor_manager"), _cursor)
 	U_ServiceLocator.register(StringName("pause_manager"), _pause_system)
 
+	U_SceneTestHelpers.register_scene_manager_dependencies(_root, false, true, true)
+
 	await get_tree().process_frame
 
 func after_each() -> void:
+	if _scene_manager != null and is_instance_valid(_scene_manager):
+		await U_SceneTestHelpers.wait_for_transition_idle(_scene_manager)
+	if _root != null and is_instance_valid(_root):
+		_root.queue_free()
+		await get_tree().process_frame
+		await get_tree().physics_frame
+
 	# Clear ServiceLocator to prevent state leakage
 	U_ServiceLocator.clear()
 
@@ -83,4 +85,3 @@ func test_gpu_particles_speed_scale_toggles_on_pause_overlay() -> void:
 
 	# Then: Particle speed_scale restored to original value
 	assert_eq(particles.speed_scale, 0.5, "Particles speed_scale should be restored on resume")
-

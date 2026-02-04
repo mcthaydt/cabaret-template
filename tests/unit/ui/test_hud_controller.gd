@@ -7,8 +7,9 @@ const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gam
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
-func test_hud_controller_uses_process_mode_always() -> void:
+func _create_store() -> M_StateStore:
 	var store := M_STATE_STORE.new()
 	store.settings = RS_STATE_STORE_SETTINGS.new()
 	store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
@@ -16,7 +17,22 @@ func test_hud_controller_uses_process_mode_always() -> void:
 	store.navigation_initial_state = RS_NAVIGATION_INITIAL_STATE.new()
 	add_child(store)
 	autofree(store)
+	U_ServiceLocator.register(StringName("state_store"), store)
+	return store
+
+func _ensure_hud_layer() -> void:
+	var existing := get_tree().root.find_child("HUDLayer", true, false)
+	if existing != null:
+		return
+	var hud_layer := CanvasLayer.new()
+	hud_layer.name = "HUDLayer"
+	add_child(hud_layer)
+	autofree(hud_layer)
+
+func test_hud_controller_uses_process_mode_always() -> void:
+	var store := _create_store()
 	await get_tree().process_frame
+	_ensure_hud_layer()
 
 	var hud := HUD_SCENE.instantiate()
 	add_child(hud)
@@ -27,15 +43,10 @@ func test_hud_controller_uses_process_mode_always() -> void:
 		"HUD controller should process even when the scene tree is paused.")
 
 func test_health_bar_hides_when_menus_open() -> void:
-	var store := M_STATE_STORE.new()
-	store.settings = RS_STATE_STORE_SETTINGS.new()
-	store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
-	store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
-	store.navigation_initial_state = RS_NAVIGATION_INITIAL_STATE.new()
-	add_child(store)
-	autofree(store)
+	var store := _create_store()
 	await get_tree().process_frame
-	store.dispatch(U_NavigationActions.start_game(StringName("exterior")))
+	_ensure_hud_layer()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
 	await wait_process_frames(1)
 
 	var hud := HUD_SCENE.instantiate()
@@ -71,17 +82,12 @@ func test_health_bar_hides_when_menus_open() -> void:
 ## Test health bar stays hidden when transitioning from gameplay to main menu
 ## Reproduces bug: health bar flashes when quitting to main menu from pause
 func test_health_bar_hidden_when_transitioning_to_main_menu() -> void:
-	var store := M_STATE_STORE.new()
-	store.settings = RS_STATE_STORE_SETTINGS.new()
-	store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
-	store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
-	store.navigation_initial_state = RS_NAVIGATION_INITIAL_STATE.new()
-	add_child(store)
-	autofree(store)
+	var store := _create_store()
 	await get_tree().process_frame
 
 	# Start in gameplay with pause menu open
-	store.dispatch(U_NavigationActions.start_game(StringName("exterior")))
+	_ensure_hud_layer()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
 	await wait_process_frames(1)
 
 	var hud := HUD_SCENE.instantiate()

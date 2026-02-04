@@ -13,6 +13,8 @@ const RS_NavigationInitialState := preload("res://scripts/resources/state/rs_nav
 const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 
 var _root: Node
 var _store: M_StateStore
@@ -21,8 +23,10 @@ var _pause_system: M_PauseManager
 var _manager: M_SceneManager
 
 func before_each() -> void:
-    _root = Node.new()
-    _root.name = "Root"
+    U_ServiceLocator.clear()
+
+    var root_ctx := U_SceneTestHelpers.create_root_with_containers(true)
+    _root = root_ctx["root"]
     add_child_autofree(_root)
 
     # State store with all slices so subscriptions work in tests
@@ -38,29 +42,7 @@ func before_each() -> void:
     U_ServiceLocator.register(StringName("state_store"), _store)
     await get_tree().process_frame
 
-    # Required containers/nodes for manager
-    var active_container := Node.new()
-    active_container.name = "ActiveSceneContainer"
-    _root.add_child(active_container)
-
-    var overlay := CanvasLayer.new()
-    overlay.name = "UIOverlayStack"
-    _root.add_child(overlay)
-
-    var transition_overlay := CanvasLayer.new()
-    transition_overlay.name = "TransitionOverlay"
-    var color_rect := ColorRect.new()
-    color_rect.name = "TransitionColorRect"
-    transition_overlay.add_child(color_rect)
-    _root.add_child(transition_overlay)
-
-    var loading := CanvasLayer.new()
-    loading.name = "LoadingOverlay"
-    _root.add_child(loading)
-
-    # Register overlays via ServiceLocator for M_SceneManager discovery
-    U_ServiceLocator.register(StringName("transition_overlay"), transition_overlay)
-    U_ServiceLocator.register(StringName("loading_overlay"), loading)
+    U_SceneTestHelpers.register_scene_manager_dependencies(_root, false, true, true)
 
     # Cursor manager for reactive updates
     _cursor = M_CursorManager.new()
@@ -73,30 +55,23 @@ func before_each() -> void:
     _manager = M_SceneManager.new()
     _manager.skip_initial_scene_load = true
     _root.add_child(_manager)
+    U_ServiceLocator.register(StringName("scene_manager"), _manager)
 
     # Pause system (coordinates cursor state with scene type)
     _pause_system = M_PauseManager.new()
     _root.add_child(_pause_system)
+    U_ServiceLocator.register(StringName("pause_manager"), _pause_system)
     await get_tree().process_frame
 
 func after_each() -> void:
-    # Clear ServiceLocator first (prevents cross-test pollution)
+    if _manager != null and is_instance_valid(_manager):
+        await U_SceneTestHelpers.wait_for_transition_idle(_manager)
+    if _root != null and is_instance_valid(_root):
+        _root.queue_free()
+        await get_tree().process_frame
+        await get_tree().physics_frame
+
     U_ServiceLocator.clear()
-
-    # Clear containers
-    var active_container := _root.get_node_or_null("ActiveSceneContainer") if _root else null
-    if active_container and is_instance_valid(active_container):
-        for child in active_container.get_children():
-            child.queue_free()
-
-    var overlay := _root.get_node_or_null("UIOverlayStack") if _root else null
-    if overlay and is_instance_valid(overlay):
-        for child in overlay.get_children():
-            child.queue_free()
-
-    # Wait for cleanup
-    await get_tree().process_frame
-    await get_tree().physics_frame
 
     _root = null
     _store = null
@@ -150,4 +125,3 @@ func test_cursor_visible_after_popping_overlay_from_menu_scene() -> void:
     # doesn't check scene type when overlay_count == 0
     assert_false(_cursor.is_cursor_locked(), "Cursor should remain unlocked after popping overlay from menu")
     assert_true(_cursor.is_cursor_visible(), "Cursor should remain visible after popping overlay from menu")
-

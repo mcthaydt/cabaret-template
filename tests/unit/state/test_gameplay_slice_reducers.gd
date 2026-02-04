@@ -109,7 +109,7 @@ func test_reset_progress_restores_initial_fields() -> void:
 		"player_health": 12.0,
 		"player_max_health": 100.0,
 		"death_count": 5,
-		"completed_areas": ["exterior", "interior_house"],
+		"completed_areas": ["alleyway", "interior_house"],
 		"last_victory_objective": StringName("final_goal"),
 		"game_completed": true,
 		"target_spawn_point": StringName("spawn_exit"),

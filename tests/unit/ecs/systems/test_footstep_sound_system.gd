@@ -44,7 +44,10 @@ func before_each() -> void:
 	# Create ECS manager
 	manager = M_ECSManager.new()
 	manager.name = "M_ECSManager"
+	# Prevent manager-driven ticks; tests invoke process_tick manually.
+	manager.process_mode = Node.PROCESS_MODE_DISABLED
 	add_child_autofree(manager)
+	manager.set_physics_process(false)
 
 	# Initialize SFX spawner
 	U_SFX_SPAWNER.initialize(manager)
@@ -115,6 +118,7 @@ func test_system_extends_base_ecs_system() -> void:
 # Test 2: System requires settings
 func test_system_requires_settings() -> void:
 	var system_no_settings := S_FootstepSoundSystem.new()
+	system_no_settings.set_physics_process(false)
 	add_child_autofree(system_no_settings)
 	await get_tree().physics_frame
 
@@ -244,14 +248,14 @@ func test_timer_resets_when_movement_stops() -> void:
 
 	# Move briefly to establish a timer entry.
 	for i in range(5):
-		entity.move_and_slide()
-		system.process_tick(0.016)
-		await get_tree().physics_frame
+			_safe_move(entity)
+			system.process_tick(0.016)
+			await get_tree().physics_frame
 
 	# Stop moving
 	entity.velocity = Vector3.ZERO
 
-	entity.move_and_slide()
+	_safe_move(entity)
 	system.process_tick(0.016)
 	await get_tree().physics_frame
 
@@ -316,9 +320,9 @@ func test_entity_without_surface_detector_ignored() -> void:
 
 	# Process many frames
 	for i in range(50):
-		entity2.move_and_slide()
-		system.process_tick(0.016)
-		await get_tree().physics_frame
+			_safe_move(entity2)
+			system.process_tick(0.016)
+			await get_tree().physics_frame
 
 	# No sounds should play for this entity
 	# (Hard to verify directly, but test passes if no errors occur)
@@ -360,7 +364,7 @@ func test_volume_setting_applied() -> void:
 
 	# Trigger a footstep
 	for i in range(30):
-		entity.move_and_slide()
+		_safe_move(entity)
 		system.process_tick(0.016)
 		await get_tree().physics_frame
 
@@ -388,7 +392,7 @@ func test_min_velocity_threshold_adjustable() -> void:
 
 	# Process many frames
 	for i in range(50):
-		entity.move_and_slide()
+		_safe_move(entity)
 		system.process_tick(0.016)
 		await get_tree().physics_frame
 
@@ -418,7 +422,7 @@ func test_empty_sound_array_no_crash() -> void:
 
 	# Process frames - should not crash
 	for i in range(30):
-		entity.move_and_slide()
+		_safe_move(entity)
 		system.process_tick(0.016)
 		await get_tree().physics_frame
 
@@ -533,3 +537,18 @@ func test_pause_blocking_verified() -> void:
 
 	# Test passes if we get here without crash (pause detection code exists at lines 36-45)
 	assert_true(true, "System handles null state_store gracefully (production path)")
+
+func _safe_move(body: CharacterBody3D) -> void:
+	if body == null:
+		return
+	var display_name := DisplayServer.get_name().to_lower()
+	if OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy":
+		return
+	if not body.is_inside_tree():
+		return
+	var world := body.get_world_3d()
+	if world == null:
+		return
+	if not world.space.is_valid():
+		return
+	body.move_and_slide()

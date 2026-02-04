@@ -18,6 +18,11 @@ func before_each() -> void:
 	# Register state_store with ServiceLocator so managers can find it
 	U_ServiceLocator.register(StringName("state_store"), _state_store)
 
+	# Provide HUDLayer for HUD reparenting in gameplay scenes.
+	var hud_layer := CanvasLayer.new()
+	hud_layer.name = "HUDLayer"
+	add_child_autofree(hud_layer)
+
 	# Create spawn_manager (required by gameplay scenes)
 	_spawn_manager = M_SPAWN_MANAGER.new()
 	add_child_autofree(_spawn_manager)

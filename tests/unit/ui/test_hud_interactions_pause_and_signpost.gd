@@ -30,7 +30,7 @@ func before_each() -> void:
 	_store.navigation_initial_state = RS_NavigationInitialState.new()
 	add_child_autofree(_store)
 	await get_tree().process_frame
-	_store.dispatch(U_NavigationActions.start_game(StringName("exterior")))
+	_store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
 	await get_tree().process_frame
 
 	# Add HUD

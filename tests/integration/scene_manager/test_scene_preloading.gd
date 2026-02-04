@@ -15,6 +15,7 @@ const RS_NavigationInitialState = preload("res://scripts/resources/state/rs_navi
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_ServiceLocator = preload("res://scripts/core/u_service_locator.gd")
+const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager
@@ -27,10 +28,11 @@ func before_each() -> void:
 	# Clear ServiceLocator first to ensure clean state between tests
 	U_ServiceLocator.clear()
 
-	# Create root scene structure
-	_root_scene = Node.new()
-	_root_scene.name = "Root"
+	# Create root scene structure (includes HUDLayer + overlays)
+	var root_ctx := U_SceneTestHelpers.create_root_with_containers(true)
+	_root_scene = root_ctx["root"]
 	add_child_autofree(_root_scene)
+	_active_scene_container = root_ctx["active_scene_container"]
 
 	# Create state store with all slices - register IMMEDIATELY after adding to tree
 	# so other managers can find it in their _ready()
@@ -43,31 +45,12 @@ func before_each() -> void:
 	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
+	U_SceneTestHelpers.register_scene_manager_dependencies(_root_scene, false, true, true)
+
 	# Create cursor manager (Phase 2: T024b - required for M_PauseManager) - register immediately
 	_cursor = M_CursorManager.new()
 	_root_scene.add_child(_cursor)
 	U_ServiceLocator.register(StringName("cursor_manager"), _cursor)
-
-	# Create scene containers
-	_active_scene_container = Node.new()
-	_active_scene_container.name = "ActiveSceneContainer"
-	_root_scene.add_child(_active_scene_container)
-
-	# Create UI overlay stack (required for pause system)
-	var ui_overlay_stack := CanvasLayer.new()
-	ui_overlay_stack.name = "UIOverlayStack"
-	ui_overlay_stack.process_mode = Node.PROCESS_MODE_ALWAYS
-	_root_scene.add_child(ui_overlay_stack)
-
-	# Create transition overlay
-	var transition_overlay := CanvasLayer.new()
-	transition_overlay.name = "TransitionOverlay"
-	_root_scene.add_child(transition_overlay)
-
-	# Create loading overlay
-	var loading_overlay := CanvasLayer.new()
-	loading_overlay.name = "LoadingOverlay"
-	_root_scene.add_child(loading_overlay)
 
 	# Create scene manager - register immediately
 	_manager = M_SceneManager.new()
@@ -83,6 +66,14 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 func after_each() -> void:
+	# Remove root early to stop any active scene processing
+	if _manager != null and is_instance_valid(_manager):
+		await U_SceneTestHelpers.wait_for_transition_idle(_manager)
+	if _root_scene != null and is_instance_valid(_root_scene):
+		_root_scene.queue_free()
+		await get_tree().process_frame
+		await get_tree().physics_frame
+
 	# Clear ServiceLocator to prevent state leakage
 	U_ServiceLocator.clear()
 
@@ -187,12 +178,12 @@ func test_on_demand_scene_loads_async() -> void:
 		return
 
 	# Load gameplay scene (should use async load)
-	_manager.transition_to_scene(StringName("exterior"), "loading")
+	_manager.transition_to_scene(StringName("alleyway"), "loading")
 	await wait_seconds(2.0)  # Wait for loading transition
 
 	var state: Dictionary = _store.get_state()
 	var scene_state: Dictionary = state.get("scene", {})
-	assert_eq(scene_state.get("current_scene_id"), StringName("exterior"), "Should load gameplay scene")
+	assert_eq(scene_state.get("current_scene_id"), StringName("alleyway"), "Should load gameplay scene")
 
 ## Test 6: Cache eviction when max count exceeded
 func test_cache_eviction_on_max_count() -> void:
@@ -205,7 +196,7 @@ func test_cache_eviction_on_max_count() -> void:
 		U_SceneRegistry.get_scene_path(StringName("main_menu")),
 		U_SceneRegistry.get_scene_path(StringName("settings_menu")),
 		U_SceneRegistry.get_scene_path(StringName("pause_menu")),
-		U_SceneRegistry.get_scene_path(StringName("exterior"))
+		U_SceneRegistry.get_scene_path(StringName("alleyway"))
 	]
 
 	for path in scene_paths:
@@ -285,12 +276,12 @@ func test_real_progress_in_loading_transition() -> void:
 		return
 
 	# Load large scene with loading transition
-	_manager.transition_to_scene(StringName("exterior"), "loading")
+	_manager.transition_to_scene(StringName("alleyway"), "loading")
 
 	# Wait for transition
 	await wait_seconds(2.0)
 
 	var state: Dictionary = _store.get_state()
 	var scene_state: Dictionary = state.get("scene", {})
-	assert_eq(scene_state.get("current_scene_id"), StringName("exterior"), "Should complete transition")
+	assert_eq(scene_state.get("current_scene_id"), StringName("alleyway"), "Should complete transition")
 	assert_false(scene_state.get("is_transitioning", false), "Should not be transitioning after completion")

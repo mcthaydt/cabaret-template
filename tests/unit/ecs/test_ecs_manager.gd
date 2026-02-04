@@ -75,6 +75,12 @@ func before_each() -> void:
 	# Register state_store with ServiceLocator so scenes can find it
 	U_ServiceLocator.register(StringName("state_store"), _state_store)
 
+	# Provide HUDLayer for HUD reparenting in template scenes.
+	var hud_layer := CanvasLayer.new()
+	hud_layer.name = "HUDLayer"
+	add_child(hud_layer)
+	autofree(hud_layer)
+
 func _on_component_added(component_type, received) -> void:
 	_added_calls += 1
 	assert_eq(component_type, FakeComponent.TYPE)
