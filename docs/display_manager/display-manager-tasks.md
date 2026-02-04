@@ -488,38 +488,43 @@ Before starting Phase 0, verify:
 
 ### Phase 6A: Display Settings Tab
 
-- [ ] **Task 6A.1**: Create display settings tab scene
-  - Create `scenes/ui/overlays/ui_display_settings_tab.tscn` (matches audio pattern)
+- [x] **Task 6A.1**: Create display settings tab scene
+  - Create `scenes/ui/overlays/settings/ui_display_settings_tab.tscn` (matches audio pattern)
   - Layout: Window Size, Window Mode, VSync, Quality, Post-Processing, UI Scale sections
   - Use OptionButton for dropdowns, CheckBox for toggles, HSlider for intensities
   - Extend Control (NOT BaseMenuScreen) to avoid nested repeater conflicts
+  - Notes: Completed 2026-02-04 (scrollable tab + sectioned layout)
 
-- [ ] **Task 6A.2**: Implement display settings tab controller
+- [x] **Task 6A.2**: Implement display settings tab controller
   - Create `scripts/ui/settings/ui_display_settings_tab.gd`
   - Subscribe to store for initial values via `U_StateUtils.get_store(self)`
   - Dispatch Redux actions on control changes (auto-save pattern - immediate dispatch, no Apply button)
   - Wire all controls to corresponding U_DisplayActions
   - Use `U_FocusConfigurator` for focus chains
+  - Notes: Completed 2026-02-04 (auto-save + LUT picker + UI scale/accessibility wiring)
 
-- [ ] **Task 6A.3**: Integrate with settings panel
+- [x] **Task 6A.3**: Integrate with settings panel
   - Add Display tab button to existing settings panel (SettingsPanel)
   - Add to ButtonGroup for tab radio behavior
   - Configure focus navigation between tabs
   - Add UIScaleRoot helper node for UI scaling support
+  - Notes: Completed 2026-02-04 (added settings menu button + overlay + UIScaleRoot; no ButtonGroup needed in current menu layout)
 
 ---
 
 ### Phase 6B: Accessibility Settings Section
 
-- [ ] **Task 6B.1**: Add color blind options to accessibility tab
+- [x] **Task 6B.1**: Add color blind options to accessibility tab
   - Add Color Mode dropdown (normal, deuteranopia, protanopia, tritanopia)
   - Add High Contrast checkbox
   - Add Color Blind Shader Filter checkbox
+  - Notes: Completed 2026-02-04 (accessibility section added to display settings tab)
 
-- [ ] **Task 6B.2**: Wire accessibility controls
+- [x] **Task 6B.2**: Wire accessibility controls
   - Dispatch `set_color_blind_mode()` action on dropdown change
   - Dispatch `set_high_contrast_enabled()` action on checkbox change
   - Dispatch `set_color_blind_shader_enabled()` action on checkbox change
+  - Notes: Completed 2026-02-04 (auto-save wiring via U_DisplayActions)
 
 ---
 

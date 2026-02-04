@@ -1,16 +1,14 @@
 # Display Manager - Continuation Prompt
 
-**Last Updated:** 2026-02-01
-**Current Phase:** Phase 5 Complete (Color Blind Accessibility)
+**Last Updated:** 2026-02-04
+**Current Phase:** Phase 6 Complete (Settings UI Integration)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, outline, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + UIScaleRoot registration; applies to CanvasLayer/Control roots and updates newly registered UI nodes). Phase 5 color blind accessibility complete (palette resource + instances, palette manager helper + tests, color blind shader + overlay wiring, manager integration).
-
-**Ready to begin Phase 6: Settings UI Integration**
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, CRT, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + UIScaleRoot registration; applies to CanvasLayer/Control roots and updates newly registered UI nodes). Phase 5 color blind accessibility complete (palette resource + instances, palette manager helper + tests, color blind shader + overlay wiring, manager integration). Phase 6 settings UI integration complete (display settings overlay + tab, accessibility section wiring, settings menu integration, registry entries).
 
 ---
 
@@ -59,15 +57,18 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 5A: UI color palette resource + palette instances created
 - [x] Task 5B: U_PaletteManager helper + tests + manager integration
 - [x] Task 5C: Color blind daltonization shader + overlay wiring
+- [x] Task 6A: Display settings tab + overlay + settings menu integration
+- [x] Task 6B: Accessibility section wiring (color blind mode, high contrast, shader toggle)
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 6 - Settings UI Integration
+### Immediate: Phase 7 - Integration Testing
 
-1. **Task 6A**: Display settings tab (scene + controller + settings panel integration)
-2. **Task 6B**: Accessibility settings section wiring
+1. **Task 7.1**: Display settings integration tests
+2. **Task 7.2**: Post-processing integration tests
+3. **Task 7.3**: Color blind palette integration tests
 
 ---
 
@@ -149,9 +150,10 @@ if display_initial_state != null:
         # Post-Processing
         "film_grain_enabled": false,
         "film_grain_intensity": 0.1,
-        "outline_enabled": false,
-        "outline_thickness": 2,
-        "outline_color": "000000",
+        "crt_enabled": false,
+        "crt_scanline_intensity": 0.3,
+        "crt_curvature": 2.0,
+        "crt_chromatic_aberration": 0.002,
         "dither_enabled": false,
         "dither_intensity": 0.5,
         "dither_pattern": "bayer",
@@ -229,8 +231,8 @@ const VALID_DITHER_PATTERNS := ["bayer", "noise"]
 - [x] 5C: Color Blind Shader
 
 ### Phase 6: Settings UI Integration
-- [ ] 6A: Display Settings Tab
-- [ ] 6B: Accessibility Settings Section
+- [x] 6A: Display Settings Tab
+- [x] 6B: Accessibility Settings Section
 
 ### Phase 7: Integration Testing
 - [ ] Integration tests (30 tests)
