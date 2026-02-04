@@ -380,18 +380,58 @@ func _apply_window_size_preset_now(preset: String) -> void:
 	var window_pos := (screen_size - size) / 2
 	DisplayServer.window_set_position(window_pos)
 
-func _set_window_mode_now(mode: String) -> void:
+func _set_window_mode_now(mode: String, attempt: int = 0) -> void:
+	# macOS can abort if we attempt to change window style masks (borderless) while
+	# fullscreen or while a fullscreen transition is still in progress.
+	#
+	# To avoid this, we:
+	# - never toggle WINDOW_FLAG_BORDERLESS while already fullscreen
+	# - when leaving fullscreen, we exit fullscreen first, then retry on a later frame
+	#   before toggling style flags.
+	if attempt > 8:
+		push_warning("M_DisplayManager: Window mode '%s' did not settle after retries" % mode)
+		return
+
+	var current_mode := DisplayServer.window_get_mode()
+	var is_fullscreen := current_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or current_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
+	var is_macos := OS.get_name() == "macOS"
+
 	match mode:
 		"fullscreen":
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+			# Ensure the style is set while windowed, then enter fullscreen.
+			if is_fullscreen:
+				return
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 		"borderless":
+			# Exit fullscreen first, then apply style flags on a later frame.
+			if is_fullscreen:
+				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+				call_deferred("_set_window_mode_now", mode, attempt + 1)
+				return
+			# Even after leaving fullscreen, macOS can still be mid-transition.
+			# Give it an extra frame before touching the style mask.
+			if is_macos and attempt == 1:
+				call_deferred("_set_window_mode_now", mode, attempt + 1)
+				return
+
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
 			var screen_size := DisplayServer.screen_get_size()
 			DisplayServer.window_set_size(screen_size)
 			DisplayServer.window_set_position(Vector2i.ZERO)
 		"windowed":
+			# Exit fullscreen first, then apply style flags on a later frame.
+			if is_fullscreen:
+				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+				call_deferred("_set_window_mode_now", mode, attempt + 1)
+				return
+			# Even after leaving fullscreen, macOS can still be mid-transition.
+			# Give it an extra frame before touching the style mask.
+			if is_macos and attempt == 1:
+				call_deferred("_set_window_mode_now", mode, attempt + 1)
+				return
+
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 		_:
@@ -471,6 +511,10 @@ func _apply_anti_aliasing(anti_aliasing: String) -> void:
 			push_warning("M_DisplayManager: Unknown anti-aliasing '%s'" % anti_aliasing)
 
 func _is_display_server_available() -> bool:
+	if Engine.is_editor_hint():
+		# Window operations mutate the host window. In editor/GUT-in-editor runs this
+		# targets the editor window and can crash on macOS.
+		return false
 	var display_name := DisplayServer.get_name().to_lower()
 	return not (OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy")
 

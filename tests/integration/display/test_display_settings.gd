@@ -98,6 +98,9 @@ func _await_deferred(frames: int = 2) -> void:
 
 func _skip_window_tests() -> bool:
 	var display_name := DisplayServer.get_name().to_lower()
+	if Engine.is_editor_hint():
+		pending("Skipped: DisplayServer window operations are not safe in editor runs")
+		return true
 	if OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy":
 		pending("Skipped: DisplayServer window operations unavailable in headless mode")
 		return true
@@ -120,13 +123,36 @@ func _capture_window_state() -> Dictionary:
 func _restore_window_state(snapshot: Dictionary) -> void:
 	if snapshot.is_empty():
 		return
-	DisplayServer.window_set_size(snapshot.get("size", DisplayServer.window_get_size()))
-	DisplayServer.window_set_mode(snapshot.get("mode", DisplayServer.window_get_mode()))
-	DisplayServer.window_set_flag(
-		DisplayServer.WINDOW_FLAG_BORDERLESS,
-		bool(snapshot.get("borderless", false))
-	)
-	DisplayServer.window_set_vsync_mode(snapshot.get("vsync", DisplayServer.window_get_vsync_mode()))
+
+	var target_size: Vector2i = snapshot.get("size", DisplayServer.window_get_size())
+	var target_mode: int = int(snapshot.get("mode", DisplayServer.window_get_mode()))
+	var target_borderless := bool(snapshot.get("borderless", false))
+	var target_vsync: int = int(snapshot.get("vsync", DisplayServer.window_get_vsync_mode()))
+
+	# macOS can abort if we attempt to change style masks (borderless) while fullscreen.
+	var current_mode := DisplayServer.window_get_mode()
+	var current_is_fullscreen := current_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or current_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
+	var target_is_fullscreen := target_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or target_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
+	if OS.get_name() == "macOS" and current_is_fullscreen and not target_is_fullscreen:
+		# Exiting fullscreen is asynchronous; avoid touching WINDOW_FLAG_BORDERLESS mid-transition.
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		DisplayServer.window_set_size(target_size)
+		DisplayServer.window_set_vsync_mode(target_vsync)
+		return
+
+	if current_is_fullscreen:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+
+	if target_is_fullscreen:
+		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, target_borderless)
+		DisplayServer.window_set_size(target_size)
+		DisplayServer.window_set_mode(target_mode)
+	else:
+		DisplayServer.window_set_mode(target_mode)
+		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, target_borderless)
+		DisplayServer.window_set_size(target_size)
+
+	DisplayServer.window_set_vsync_mode(target_vsync)
 
 func test_controls_initialize_from_redux_state() -> void:
 	_store.dispatch(U_DISPLAY_ACTIONS.set_window_mode("borderless"))
