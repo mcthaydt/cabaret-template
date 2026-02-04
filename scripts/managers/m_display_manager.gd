@@ -528,8 +528,18 @@ func _is_display_server_available() -> bool:
 		# Window operations mutate the host window. In editor/GUT-in-editor runs this
 		# targets the editor window and can crash on macOS.
 		return false
+	if OS.get_name() == "macOS" and _is_gut_running():
+		# GUT runs inside the editor binary; window style changes during tests can
+		# crash macOS (NSWindow styleMask exceptions).
+		return false
 	var display_name := DisplayServer.get_name().to_lower()
 	return not (OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy")
+
+func _is_gut_running() -> bool:
+	var tree := get_tree()
+	if tree == null or tree.root == null:
+		return false
+	return tree.root.find_child("GutRunner", true, false) != null
 
 func _is_rendering_available() -> bool:
 	return not (OS.has_feature("headless") or OS.has_feature("server"))

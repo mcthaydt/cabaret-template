@@ -297,6 +297,9 @@ func _setup_manager_with_store(display_state: Dictionary) -> void:
 
 func _skip_window_tests() -> bool:
 	var display_name := DisplayServer.get_name().to_lower()
+	if OS.get_name() == "macOS":
+		pending("Skipped: macOS window operations can crash (NSWindow styleMask)")
+		return true
 	if Engine.is_editor_hint():
 		pending("Skipped: DisplayServer window operations are not safe in editor runs")
 		return true
