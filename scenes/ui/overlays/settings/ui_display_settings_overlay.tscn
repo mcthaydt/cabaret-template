@@ -1,8 +1,8 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://px6b7wnbsond"]
 
-[ext_resource type="Script" path="res://scripts/ui/settings/ui_display_settings_overlay.gd" id="1"]
+[ext_resource type="Script" uid="uid://q88hk01vh3xt" path="res://scripts/ui/settings/ui_display_settings_overlay.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn" id="2"]
-[ext_resource type="Script" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="3"]
+[ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="3"]
 
 [node name="DisplaySettingsOverlay" type="Control" unique_id=1641471768]
 layout_mode = 3

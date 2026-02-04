@@ -248,9 +248,9 @@ func test_timer_resets_when_movement_stops() -> void:
 
 	# Move briefly to establish a timer entry.
 	for i in range(5):
-			_safe_move(entity)
-			system.process_tick(0.016)
-			await get_tree().physics_frame
+		_safe_move(entity)
+		system.process_tick(0.016)
+		await get_tree().physics_frame
 
 	# Stop moving
 	entity.velocity = Vector3.ZERO
@@ -320,9 +320,9 @@ func test_entity_without_surface_detector_ignored() -> void:
 
 	# Process many frames
 	for i in range(50):
-			_safe_move(entity2)
-			system.process_tick(0.016)
-			await get_tree().physics_frame
+		_safe_move(entity2)
+		system.process_tick(0.016)
+		await get_tree().physics_frame
 
 	# No sounds should play for this entity
 	# (Hard to verify directly, but test passes if no errors occur)
@@ -541,14 +541,23 @@ func test_pause_blocking_verified() -> void:
 func _safe_move(body: CharacterBody3D) -> void:
 	if body == null:
 		return
+	# GUT tests can run in-editor (or in a headless runner) where 3D physics spaces
+	# are not available. Calling move_and_slide() in those contexts spams:
+	# "Parameter \"space\" is null."
+	if Engine.is_editor_hint():
+		return
 	var display_name := DisplayServer.get_name().to_lower()
 	if OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy":
 		return
 	if not body.is_inside_tree():
 		return
 	var world := body.get_world_3d()
-	if world == null:
+	if world == null or not world.space.is_valid():
 		return
-	if not world.space.is_valid():
+	var body_rid := body.get_rid()
+	if not body_rid.is_valid():
+		return
+	var space_rid := PhysicsServer3D.body_get_space(body_rid)
+	if not space_rid.is_valid():
 		return
 	body.move_and_slide()
