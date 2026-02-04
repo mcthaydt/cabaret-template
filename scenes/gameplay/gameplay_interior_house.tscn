@@ -58,8 +58,8 @@
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
 [ext_resource type="Resource" uid="uid://bqktd616pidot" path="res://resources/spawn_metadata/cfg_sp_interior_house.tres" id="51_interior_default_spawn_meta"]
 [ext_resource type="Resource" uid="uid://5a5jc4dpye3i" path="res://resources/spawn_metadata/cfg_sp_interior_house_entrance.tres" id="52_interior_entrance_spawn_meta"]
-[ext_resource type="Material" path="res://assets/materials/mat_fade_goal.tres" id="53_fade_goal"]
-[ext_resource type="Material" path="res://assets/materials/mat_fade_door.tres" id="54_fade_door"]
+[ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="53_fade_goal"]
+[ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="54_fade_door"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -340,9 +340,9 @@ tags = Array[StringName]([&"trigger", &"door"])
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger" unique_id=1631340724]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.57354736, 0)
-material = ExtResource("54_fade_door")
 radius = 0.7910156
 height = 2.0715332
+material = ExtResource("54_fade_door")
 
 [node name="E_TutorialSign_Interior" type="Node3D" parent="Entities" unique_id=141776314]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.14, 0, 2)

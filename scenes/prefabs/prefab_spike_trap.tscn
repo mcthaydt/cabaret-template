@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="1_controller"]
 [ext_resource type="Resource" uid="uid://c8u21l3ag26ky" path="res://resources/triggers/cfg_spike_trap_volume.tres" id="2_spike_settings"]
-[ext_resource type="Material" path="res://assets/materials/mat_fade_hazard.tres" id="3_fade_material"]
+[ext_resource type="Material" uid="uid://dtyyrgwkln3r4" path="res://assets/materials/mat_fade_hazard.tres" id="3_fade_material"]
 
 [node name="E_SpikeTrap" type="Node3D" unique_id=1483592070]
 script = ExtResource("1_controller")
