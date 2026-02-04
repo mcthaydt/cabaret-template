@@ -52,11 +52,31 @@
   
   **Real example**: `scenes/ui/hud_overlay.tscn` uses a full-screen MarginContainer to provide consistent margins for HUD elements. Without `mouse_filter = 2`, it blocked all clicks to test scene buttons below it, even though the HUD labels only occupied the top-left corner.
 
+## Godot Audio Pitfalls
+
+- **3D audio is disabled by default in SubViewports**: If gameplay is rendered in a `SubViewport` (e.g. `scenes/root.tscn` → `GameViewport`), `AudioStreamPlayer3D` can appear to “play” (logs show `playing=true`) but produce **no audible sound** because the SubViewport is not mixing 3D audio.
+
+  **Symptom**:
+  - 3D SFX never audible in gameplay scenes
+  - Debug/logs show the sound is spawned and `playing=true`
+  - Viewport reports `audio_listener_enable_3d=false`
+
+  **Fix**: enable 3D audio on the gameplay viewport:
+  ```gdscript
+  # In scenes/root.tscn:
+  [node name="GameViewport" type="SubViewport" parent="GameViewportContainer"]
+  audio_listener_enable_3d = true
+  ```
+
+- **3D audio is viewport/world scoped**: `AudioStreamPlayer3D` must exist in the same `Viewport`/`World3D` as the active listener (the viewport’s current `Camera3D`). If you parent your SFX pool under `/root` while gameplay runs in `GameViewport`, 3D SFX can be silent even though they are “playing”.
+
 ## GDScript Typing Pitfalls
 
 - **Headless import treats some warnings as errors**: In headless `--import` runs, warnings like “variable type inferred from Variant” can be treated as errors and prevent scripts from loading. Prefer explicit types when a value is `Variant`-typed at the source (e.g., `var script_obj: Script = get_script()` instead of `var script_obj := get_script()`).
 
 - **String(enum_value) parse error**: GDScript does not accept `String(enum_value)` for enum values (e.g., `C_SurfaceDetectorComponent.SurfaceType`). Use `str(enum_value)` or cast to `int` first (`String(int(enum_value))`).
+
+- **Avoid `String(...)` as a generic cast in debug logs**: `String(some_variant)` can throw at runtime for some types (e.g., `NodePath`). Prefer `str(...)` for debug prints unless you know the Variant type is safe for `String()`.
 
 - **New `class_name` types can break type hints in headless tests**: When adding a brand-new helper script with `class_name Foo`, using `Foo` as a member variable annotation in an existing script can fail to parse under headless GUT runs (`Parse Error: Could not find type "Foo" in the current scope`). Prefer untyped members (or a base type like `RefCounted`) and instantiate via `preload("...").new()` until the class is reliably discovered/loaded.
 
