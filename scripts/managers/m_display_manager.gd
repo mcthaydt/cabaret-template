@@ -41,6 +41,7 @@ const MAX_UI_SCALE := 1.3
 
 var _state_store: I_StateStore = null
 var _last_display_hash: int = 0
+var _last_window_hash: int = 0
 var _display_settings_preview_active: bool = false
 var _preview_settings: Dictionary = {}
 var _quality_preset_cache: Dictionary = {}
@@ -164,7 +165,12 @@ func _apply_display_settings(state: Dictionary) -> void:
 	var effective_settings := _build_effective_settings(state)
 	_last_applied_settings = effective_settings
 	_apply_count += 1
-	_apply_window_settings(effective_settings)
+
+	var window_hash := _get_window_hash(effective_settings)
+	if window_hash != _last_window_hash:
+		_apply_window_settings(effective_settings)
+		_last_window_hash = window_hash
+
 	_apply_quality_settings(effective_settings)
 	_apply_post_process_settings(effective_settings)
 	_apply_ui_scale_settings(effective_settings)
@@ -395,13 +401,16 @@ func _set_window_mode_now(mode: String, attempt: int = 0) -> void:
 	var current_mode := DisplayServer.window_get_mode()
 	var is_fullscreen := current_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or current_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
 	var is_macos := OS.get_name() == "macOS"
+	var is_borderless := DisplayServer.window_get_flag(DisplayServer.WINDOW_FLAG_BORDERLESS)
 
 	match mode:
 		"fullscreen":
 			# Ensure the style is set while windowed, then enter fullscreen.
 			if is_fullscreen:
 				return
-			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+			# Avoid redundant style-mask changes; these can crash on macOS in some states.
+			if is_borderless:
+				DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 		"borderless":
 			# Exit fullscreen first, then apply style flags on a later frame.
@@ -416,7 +425,9 @@ func _set_window_mode_now(mode: String, attempt: int = 0) -> void:
 				return
 
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+			# Avoid redundant style-mask changes; these can crash on macOS in some states.
+			if not is_borderless:
+				DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
 			var screen_size := DisplayServer.screen_get_size()
 			DisplayServer.window_set_size(screen_size)
 			DisplayServer.window_set_position(Vector2i.ZERO)
@@ -433,7 +444,9 @@ func _set_window_mode_now(mode: String, attempt: int = 0) -> void:
 				return
 
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+			# Avoid redundant style-mask changes; these can crash on macOS in some states.
+			if is_borderless:
+				DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 		_:
 			push_warning("M_DisplayManager: Invalid window mode '%s'" % mode)
 
@@ -511,7 +524,7 @@ func _apply_anti_aliasing(anti_aliasing: String) -> void:
 			push_warning("M_DisplayManager: Unknown anti-aliasing '%s'" % anti_aliasing)
 
 func _is_display_server_available() -> bool:
-	if Engine.is_editor_hint() or OS.has_feature("editor"):
+	if Engine.is_editor_hint():
 		# Window operations mutate the host window. In editor/GUT-in-editor runs this
 		# targets the editor window and can crash on macOS.
 		return false
@@ -528,6 +541,14 @@ func _get_display_hash(state: Dictionary) -> int:
 	if slice is Dictionary:
 		return (slice as Dictionary).hash()
 	return 0
+
+func _get_window_hash(display_settings: Dictionary) -> int:
+	if display_settings == null:
+		return 0
+	var preset: Variant = display_settings.get("window_size_preset", "")
+	var mode: Variant = display_settings.get("window_mode", "")
+	var vsync: Variant = display_settings.get("vsync_enabled", true)
+	return [preset, mode, vsync].hash()
 
 func _ensure_post_process_layer() -> bool:
 	if _post_process_layer != null:

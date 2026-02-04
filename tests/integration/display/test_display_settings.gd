@@ -98,7 +98,7 @@ func _await_deferred(frames: int = 2) -> void:
 
 func _skip_window_tests() -> bool:
 	var display_name := DisplayServer.get_name().to_lower()
-	if Engine.is_editor_hint() or OS.has_feature("editor"):
+	if Engine.is_editor_hint():
 		pending("Skipped: DisplayServer window operations are not safe in editor runs")
 		return true
 	if OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy":
