@@ -297,7 +297,7 @@ func _setup_manager_with_store(display_state: Dictionary) -> void:
 
 func _skip_window_tests() -> bool:
 	var display_name := DisplayServer.get_name().to_lower()
-	if Engine.is_editor_hint():
+	if Engine.is_editor_hint() or OS.has_feature("editor"):
 		pending("Skipped: DisplayServer window operations are not safe in editor runs")
 		return true
 	if OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy":

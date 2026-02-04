@@ -511,7 +511,7 @@ func _apply_anti_aliasing(anti_aliasing: String) -> void:
 			push_warning("M_DisplayManager: Unknown anti-aliasing '%s'" % anti_aliasing)
 
 func _is_display_server_available() -> bool:
-	if Engine.is_editor_hint():
+	if Engine.is_editor_hint() or OS.has_feature("editor"):
 		# Window operations mutate the host window. In editor/GUT-in-editor runs this
 		# targets the editor window and can crash on macOS.
 		return false
