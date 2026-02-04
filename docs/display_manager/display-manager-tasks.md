@@ -482,7 +482,7 @@ Before starting Phase 0, verify:
 
 ## Phase 6: Settings UI Integration
 
-**Exit Criteria:** Display settings tab works, accessibility section works, auto-save pattern followed
+**Exit Criteria:** Display settings tab works, accessibility section works, Apply/Cancel preview pattern followed
 
 **Note:** Settings UI uses the **overlay pattern** (like `ui_audio_settings_tab.tscn` in `scenes/ui/overlays/`), not a separate `scenes/ui/settings/` directory.
 
@@ -498,10 +498,10 @@ Before starting Phase 0, verify:
 - [x] **Task 6A.2**: Implement display settings tab controller
   - Create `scripts/ui/settings/ui_display_settings_tab.gd`
   - Subscribe to store for initial values via `U_StateUtils.get_store(self)`
-  - Dispatch Redux actions on control changes (auto-save pattern - immediate dispatch, no Apply button)
+  - Use Apply/Cancel + preview pattern (set preview on change, dispatch on Apply)
   - Wire all controls to corresponding U_DisplayActions
   - Use `U_FocusConfigurator` for focus chains
-  - Notes: Completed 2026-02-04 (auto-save + LUT picker + UI scale/accessibility wiring)
+  - Notes: Completed 2026-02-04 (apply/cancel + preview + LUT picker + UI scale/accessibility wiring)
 
 - [x] **Task 6A.3**: Integrate with settings panel
   - Add Display tab button to existing settings panel (SettingsPanel)
@@ -521,10 +521,10 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-04 (accessibility section added to display settings tab)
 
 - [x] **Task 6B.2**: Wire accessibility controls
-  - Dispatch `set_color_blind_mode()` action on dropdown change
-  - Dispatch `set_high_contrast_enabled()` action on checkbox change
-  - Dispatch `set_color_blind_shader_enabled()` action on checkbox change
-  - Notes: Completed 2026-02-04 (auto-save wiring via U_DisplayActions)
+  - Dispatch `set_color_blind_mode()` action on Apply (preview on change)
+  - Dispatch `set_high_contrast_enabled()` action on Apply (preview on change)
+  - Dispatch `set_color_blind_shader_enabled()` action on Apply (preview on change)
+  - Notes: Completed 2026-02-04 (Apply/Cancel + preview wiring via U_DisplayActions)
 
 ---
 
