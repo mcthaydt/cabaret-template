@@ -3,6 +3,7 @@ extends VBoxContainer
 class_name UI_DisplaySettingsTab
 
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
+const U_DisplayUtils := preload("res://scripts/utils/display/u_display_utils.gd")
 const U_DisplaySelectors := preload("res://scripts/state/selectors/u_display_selectors.gd")
 const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
@@ -47,8 +48,10 @@ const COLOR_BLIND_MODE_OPTIONS := [
 ]
 
 var _state_store: I_StateStore = null
+var _display_manager: I_DisplayManager = null
 var _unsubscribe: Callable = Callable()
 var _updating_from_state: bool = false
+var _has_local_edits: bool = false
 
 var _window_size_values: Array[String] = []
 var _window_mode_values: Array[String] = []
@@ -91,8 +94,9 @@ var _lut_resource_values: Array[String] = []
 @onready var _high_contrast_toggle: CheckBox = %HighContrastToggle
 @onready var _color_blind_shader_toggle: CheckBox = %ColorBlindShaderToggle
 
+@onready var _cancel_button: Button = %CancelButton
 @onready var _reset_button: Button = %ResetButton
-@onready var _back_button: Button = %BackButton
+@onready var _apply_button: Button = %ApplyButton
 
 func _ready() -> void:
 	_connect_signals()
@@ -104,10 +108,13 @@ func _ready() -> void:
 		push_error("UI_DisplaySettingsTab: StateStore not found")
 		return
 
+	_display_manager = U_DisplayUtils.get_display_manager()
+
 	_unsubscribe = _state_store.subscribe(_on_state_changed)
 	_on_state_changed({}, _state_store.get_state())
 
 func _exit_tree() -> void:
+	_clear_display_settings_preview()
 	if _unsubscribe != Callable() and _unsubscribe.is_valid():
 		_unsubscribe.call()
 		_unsubscribe = Callable()
@@ -160,10 +167,12 @@ func _connect_signals() -> void:
 	if _color_blind_shader_toggle != null and not _color_blind_shader_toggle.toggled.is_connected(_on_color_blind_shader_toggled):
 		_color_blind_shader_toggle.toggled.connect(_on_color_blind_shader_toggled)
 
+	if _cancel_button != null and not _cancel_button.pressed.is_connected(_on_cancel_pressed):
+		_cancel_button.pressed.connect(_on_cancel_pressed)
 	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
 		_reset_button.pressed.connect(_on_reset_pressed)
-	if _back_button != null and not _back_button.pressed.is_connected(_on_back_pressed):
-		_back_button.pressed.connect(_on_back_pressed)
+	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
+		_apply_button.pressed.connect(_on_apply_pressed)
 
 func _populate_option_buttons() -> void:
 	_populate_option_button(_window_size_option, WINDOW_SIZE_OPTIONS, _window_size_values)
@@ -291,10 +300,12 @@ func _configure_focus_neighbors() -> void:
 		U_FocusConfigurator.configure_vertical_focus(focusables, false)
 
 	var buttons: Array[Control] = []
+	if _cancel_button != null:
+		buttons.append(_cancel_button)
 	if _reset_button != null:
 		buttons.append(_reset_button)
-	if _back_button != null:
-		buttons.append(_back_button)
+	if _apply_button != null:
+		buttons.append(_apply_button)
 
 	if not buttons.is_empty():
 		U_FocusConfigurator.configure_horizontal_focus(buttons, true)
@@ -305,8 +316,17 @@ func _configure_focus_neighbors() -> void:
 				button.focus_neighbor_top = button.get_path_to(last_focus)
 				button.focus_neighbor_bottom = button.get_path_to(last_focus)
 
-func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
+func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 	if state == null:
+		return
+
+	var action_type: StringName = StringName("")
+	if action != null and action.has("type"):
+		action_type = action.get("type", StringName(""))
+
+	# Preserve local edits (Apply/Cancel pattern). Only reconcile from state when
+	# the user is not actively editing.
+	if _has_local_edits and action_type != StringName(""):
 		return
 
 	_updating_from_state = true
@@ -358,6 +378,7 @@ func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	_set_toggle_value_silently(_color_blind_shader_toggle, U_DisplaySelectors.is_color_blind_shader_enabled(state))
 
 	_updating_from_state = false
+	_has_local_edits = false
 
 func _on_window_size_selected(index: int) -> void:
 	if _updating_from_state:
@@ -365,7 +386,8 @@ func _on_window_size_selected(index: int) -> void:
 	if index < 0 or index >= _window_size_values.size():
 		return
 	U_UISoundPlayer.play_confirm()
-	_dispatch_action(U_DisplayActions.set_window_size_preset(_window_size_values[index]))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_window_mode_selected(index: int) -> void:
 	if _updating_from_state:
@@ -373,13 +395,15 @@ func _on_window_mode_selected(index: int) -> void:
 	if index < 0 or index >= _window_mode_values.size():
 		return
 	U_UISoundPlayer.play_confirm()
-	_dispatch_action(U_DisplayActions.set_window_mode(_window_mode_values[index]))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_vsync_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_confirm()
-	_dispatch_action(U_DisplayActions.set_vsync_enabled(pressed))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_quality_preset_selected(index: int) -> void:
 	if _updating_from_state:
@@ -387,60 +411,69 @@ func _on_quality_preset_selected(index: int) -> void:
 	if index < 0 or index >= _quality_preset_values.size():
 		return
 	U_UISoundPlayer.play_confirm()
-	_dispatch_action(U_DisplayActions.set_quality_preset(_quality_preset_values[index]))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_film_grain_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_confirm()
-	_dispatch_action(U_DisplayActions.set_film_grain_enabled(pressed))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_film_grain_intensity_changed(value: float) -> void:
 	_update_percentage_label(_film_grain_intensity_value, value)
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_slider_tick()
-	_dispatch_action(U_DisplayActions.set_film_grain_intensity(value))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_crt_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_confirm()
-	_dispatch_action(U_DisplayActions.set_crt_enabled(pressed))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_crt_scanline_changed(value: float) -> void:
 	_update_percentage_label(_crt_scanline_value, value)
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_slider_tick()
-	_dispatch_action(U_DisplayActions.set_crt_scanline_intensity(value))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_crt_curvature_changed(value: float) -> void:
 	_update_float_label(_crt_curvature_value, value, 1)
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_slider_tick()
-	_dispatch_action(U_DisplayActions.set_crt_curvature(value))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_crt_aberration_changed(value: float) -> void:
 	_update_float_label(_crt_aberration_value, value, 4)
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_slider_tick()
-	_dispatch_action(U_DisplayActions.set_crt_chromatic_aberration(value))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_dither_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_confirm()
-	_dispatch_action(U_DisplayActions.set_dither_enabled(pressed))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_dither_intensity_changed(value: float) -> void:
 	_update_percentage_label(_dither_intensity_value, value)
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_slider_tick()
-	_dispatch_action(U_DisplayActions.set_dither_intensity(value))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_dither_pattern_selected(index: int) -> void:
 	if _updating_from_state:
@@ -448,13 +481,15 @@ func _on_dither_pattern_selected(index: int) -> void:
 	if index < 0 or index >= _dither_pattern_values.size():
 		return
 	U_UISoundPlayer.play_confirm()
-	_dispatch_action(U_DisplayActions.set_dither_pattern(_dither_pattern_values[index]))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_lut_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_confirm()
-	_dispatch_action(U_DisplayActions.set_lut_enabled(pressed))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_lut_selected(index: int) -> void:
 	if _updating_from_state:
@@ -462,21 +497,24 @@ func _on_lut_selected(index: int) -> void:
 	if index < 0 or index >= _lut_resource_values.size():
 		return
 	U_UISoundPlayer.play_confirm()
-	_dispatch_action(U_DisplayActions.set_lut_resource(_lut_resource_values[index]))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_lut_intensity_changed(value: float) -> void:
 	_update_percentage_label(_lut_intensity_value, value)
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_slider_tick()
-	_dispatch_action(U_DisplayActions.set_lut_intensity(value))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_ui_scale_changed(value: float) -> void:
 	_update_scale_label(_ui_scale_value, value)
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_slider_tick()
-	_dispatch_action(U_DisplayActions.set_ui_scale(value))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_color_blind_mode_selected(index: int) -> void:
 	if _updating_from_state:
@@ -484,19 +522,22 @@ func _on_color_blind_mode_selected(index: int) -> void:
 	if index < 0 or index >= _color_blind_mode_values.size():
 		return
 	U_UISoundPlayer.play_confirm()
-	_dispatch_action(U_DisplayActions.set_color_blind_mode(_color_blind_mode_values[index]))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_high_contrast_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_confirm()
-	_dispatch_action(U_DisplayActions.set_high_contrast_enabled(pressed))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_color_blind_shader_toggled(pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_confirm()
-	_dispatch_action(U_DisplayActions.set_color_blind_shader_enabled(pressed))
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
 
 func _on_reset_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
@@ -541,29 +582,22 @@ func _on_reset_pressed() -> void:
 
 	_updating_from_state = false
 
-	_dispatch_action(U_DisplayActions.set_window_size_preset(defaults.window_size_preset))
-	_dispatch_action(U_DisplayActions.set_window_mode(defaults.window_mode))
-	_dispatch_action(U_DisplayActions.set_vsync_enabled(defaults.vsync_enabled))
-	_dispatch_action(U_DisplayActions.set_quality_preset(defaults.quality_preset))
-	_dispatch_action(U_DisplayActions.set_film_grain_enabled(defaults.film_grain_enabled))
-	_dispatch_action(U_DisplayActions.set_film_grain_intensity(defaults.film_grain_intensity))
-	_dispatch_action(U_DisplayActions.set_crt_enabled(defaults.crt_enabled))
-	_dispatch_action(U_DisplayActions.set_crt_scanline_intensity(defaults.crt_scanline_intensity))
-	_dispatch_action(U_DisplayActions.set_crt_curvature(defaults.crt_curvature))
-	_dispatch_action(U_DisplayActions.set_crt_chromatic_aberration(defaults.crt_chromatic_aberration))
-	_dispatch_action(U_DisplayActions.set_dither_enabled(defaults.dither_enabled))
-	_dispatch_action(U_DisplayActions.set_dither_intensity(defaults.dither_intensity))
-	_dispatch_action(U_DisplayActions.set_dither_pattern(defaults.dither_pattern))
-	_dispatch_action(U_DisplayActions.set_lut_enabled(defaults.lut_enabled))
-	_dispatch_action(U_DisplayActions.set_lut_resource(defaults.lut_resource))
-	_dispatch_action(U_DisplayActions.set_lut_intensity(defaults.lut_intensity))
-	_dispatch_action(U_DisplayActions.set_ui_scale(defaults.ui_scale))
-	_dispatch_action(U_DisplayActions.set_color_blind_mode(defaults.color_blind_mode))
-	_dispatch_action(U_DisplayActions.set_high_contrast_enabled(defaults.high_contrast_enabled))
-	_dispatch_action(U_DisplayActions.set_color_blind_shader_enabled(defaults.color_blind_shader_enabled))
+	_has_local_edits = false
+	_dispatch_display_settings(defaults)
+	_clear_display_settings_preview()
 
-func _on_back_pressed() -> void:
+func _on_cancel_pressed() -> void:
 	U_UISoundPlayer.play_cancel()
+	_has_local_edits = false
+	_clear_display_settings_preview()
+	_close_overlay()
+
+func _on_apply_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
+	var settings := _get_display_settings_from_ui()
+	_has_local_edits = false
+	_dispatch_display_settings(settings)
+	_clear_display_settings_preview()
 	_close_overlay()
 
 func _close_overlay() -> void:
@@ -578,10 +612,96 @@ func _close_overlay() -> void:
 	else:
 		_state_store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
 
-func _dispatch_action(action: Dictionary) -> void:
+func _update_display_settings_preview_from_ui() -> void:
+	if _display_manager == null:
+		_display_manager = U_DisplayUtils.get_display_manager()
+	if _display_manager == null:
+		return
+	_display_manager.set_display_settings_preview(_get_display_settings_from_ui())
+
+func _clear_display_settings_preview() -> void:
+	if _display_manager == null:
+		_display_manager = U_DisplayUtils.get_display_manager()
+	if _display_manager == null:
+		return
+	_display_manager.clear_display_settings_preview()
+
+func _dispatch_display_settings(settings: Variant) -> void:
 	if _state_store == null:
 		return
-	_state_store.dispatch(action)
+	var values: Dictionary = {}
+	if settings is RS_DisplayInitialState:
+		values = (settings as RS_DisplayInitialState).to_dictionary()
+	elif settings is Dictionary:
+		values = settings as Dictionary
+	else:
+		return
+
+	_state_store.dispatch(U_DisplayActions.set_window_size_preset(String(values.get("window_size_preset", ""))))
+	_state_store.dispatch(U_DisplayActions.set_window_mode(String(values.get("window_mode", ""))))
+	_state_store.dispatch(U_DisplayActions.set_vsync_enabled(bool(values.get("vsync_enabled", true))))
+	_state_store.dispatch(U_DisplayActions.set_quality_preset(String(values.get("quality_preset", ""))))
+	_state_store.dispatch(U_DisplayActions.set_film_grain_enabled(bool(values.get("film_grain_enabled", false))))
+	_state_store.dispatch(U_DisplayActions.set_film_grain_intensity(float(values.get("film_grain_intensity", 0.1))))
+	_state_store.dispatch(U_DisplayActions.set_crt_enabled(bool(values.get("crt_enabled", false))))
+	_state_store.dispatch(U_DisplayActions.set_crt_scanline_intensity(float(values.get("crt_scanline_intensity", 0.3))))
+	_state_store.dispatch(U_DisplayActions.set_crt_curvature(float(values.get("crt_curvature", 2.0))))
+	_state_store.dispatch(U_DisplayActions.set_crt_chromatic_aberration(float(values.get("crt_chromatic_aberration", 0.002))))
+	_state_store.dispatch(U_DisplayActions.set_dither_enabled(bool(values.get("dither_enabled", false))))
+	_state_store.dispatch(U_DisplayActions.set_dither_intensity(float(values.get("dither_intensity", 0.5))))
+	_state_store.dispatch(U_DisplayActions.set_dither_pattern(String(values.get("dither_pattern", ""))))
+	_state_store.dispatch(U_DisplayActions.set_lut_enabled(bool(values.get("lut_enabled", false))))
+	_state_store.dispatch(U_DisplayActions.set_lut_resource(String(values.get("lut_resource", ""))))
+	_state_store.dispatch(U_DisplayActions.set_lut_intensity(float(values.get("lut_intensity", 1.0))))
+	_state_store.dispatch(U_DisplayActions.set_ui_scale(float(values.get("ui_scale", 1.0))))
+	_state_store.dispatch(U_DisplayActions.set_color_blind_mode(String(values.get("color_blind_mode", ""))))
+	_state_store.dispatch(U_DisplayActions.set_high_contrast_enabled(bool(values.get("high_contrast_enabled", false))))
+	_state_store.dispatch(U_DisplayActions.set_color_blind_shader_enabled(bool(values.get("color_blind_shader_enabled", false))))
+
+func _get_display_settings_from_ui() -> Dictionary:
+	var defaults := _get_default_display_state()
+	return {
+		"window_size_preset": _get_selected_value(_window_size_option, _window_size_values, defaults.window_size_preset),
+		"window_mode": _get_selected_value(_window_mode_option, _window_mode_values, defaults.window_mode),
+		"vsync_enabled": _get_toggle_value(_vsync_toggle, defaults.vsync_enabled),
+		"quality_preset": _get_selected_value(_quality_preset_option, _quality_preset_values, defaults.quality_preset),
+		"film_grain_enabled": _get_toggle_value(_film_grain_toggle, defaults.film_grain_enabled),
+		"film_grain_intensity": _get_slider_value(_film_grain_intensity_slider, defaults.film_grain_intensity),
+		"crt_enabled": _get_toggle_value(_crt_toggle, defaults.crt_enabled),
+		"crt_scanline_intensity": _get_slider_value(_crt_scanline_slider, defaults.crt_scanline_intensity),
+		"crt_curvature": _get_slider_value(_crt_curvature_slider, defaults.crt_curvature),
+		"crt_chromatic_aberration": _get_slider_value(_crt_aberration_slider, defaults.crt_chromatic_aberration),
+		"dither_enabled": _get_toggle_value(_dither_toggle, defaults.dither_enabled),
+		"dither_intensity": _get_slider_value(_dither_intensity_slider, defaults.dither_intensity),
+		"dither_pattern": _get_selected_value(_dither_pattern_option, _dither_pattern_values, defaults.dither_pattern),
+		"lut_enabled": _get_toggle_value(_lut_toggle, defaults.lut_enabled),
+		"lut_resource": _get_selected_value(_lut_option, _lut_resource_values, _normalize_lut_resource(defaults.lut_resource)),
+		"lut_intensity": _get_slider_value(_lut_intensity_slider, defaults.lut_intensity),
+		"ui_scale": _get_slider_value(_ui_scale_slider, defaults.ui_scale),
+		"color_blind_mode": _get_selected_value(_color_blind_mode_option, _color_blind_mode_values, defaults.color_blind_mode),
+		"high_contrast_enabled": _get_toggle_value(_high_contrast_toggle, defaults.high_contrast_enabled),
+		"color_blind_shader_enabled": _get_toggle_value(_color_blind_shader_toggle, defaults.color_blind_shader_enabled),
+	}
+
+func _get_selected_value(button: OptionButton, values: Array[String], fallback: String) -> String:
+	if values.is_empty():
+		return fallback
+	if button == null:
+		return fallback if not fallback.is_empty() else values[0]
+	var idx := button.selected
+	if idx < 0 or idx >= values.size():
+		idx = 0
+	return values[idx]
+
+func _get_slider_value(slider: HSlider, fallback: float) -> float:
+	if slider == null:
+		return fallback
+	return slider.value
+
+func _get_toggle_value(toggle: BaseButton, fallback: bool) -> bool:
+	if toggle == null:
+		return fallback
+	return toggle.button_pressed
 
 func _set_slider_value_silently(slider: HSlider, value: float) -> void:
 	if slider == null:
