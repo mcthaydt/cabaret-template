@@ -908,7 +908,7 @@ uniform int mode : hint_range(0, 3) = 0;  // 0=off, 1=deuteranopia, 2=protanopia
 ### Commit 1: Display Settings Tab
 
 **Files to create**:
-- `scenes/ui/settings/ui_display_settings_tab.tscn`
+- `scenes/ui/overlays/settings/ui_display_settings_tab.tscn`
 - `scripts/ui/settings/ui_display_settings_tab.gd`
 
 **Scene Structure**:
@@ -1163,6 +1163,7 @@ resources/textures/
 scenes/ui/overlays/
   ui_post_process_overlay.tscn      # CanvasLayer with effect ColorRects (layer 100)
   ui_display_settings_tab.tscn      # Display settings tab (matches audio pattern)
+  ui_display_settings_overlay.tscn  # Display settings overlay wrapper
 
 docs/display_manager/
   display-manager-overview.md

@@ -685,7 +685,8 @@ Before starting Phase 0, verify:
 | `resources/luts/tex_lut_warm.png` | Texture | Warm LUT texture |
 | `resources/luts/tex_lut_cool.png` | Texture | Cool LUT texture |
 | `scenes/ui/overlays/ui_post_process_overlay.tscn` | Scene | Post-process overlay (layer 100) |
-| `scenes/ui/overlays/ui_display_settings_tab.tscn` | Scene | Display settings UI tab |
+| `scenes/ui/overlays/settings/ui_display_settings_tab.tscn` | Scene | Display settings UI tab |
+| `scenes/ui/overlays/settings/ui_display_settings_overlay.tscn` | Scene | Display settings overlay wrapper |
 | `scripts/ui/settings/ui_display_settings_tab.gd` | UI | Display settings controller |
 | `docs/display_manager/display-manager-continuation-prompt.md` | Doc | Implementation continuation prompt |
 | `tests/unit/state/test_display_initial_state.gd` | Test | Initial state tests (11) |
