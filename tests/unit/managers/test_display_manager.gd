@@ -4,6 +4,7 @@ extends GutTest
 
 const M_DISPLAY_MANAGER := preload("res://scripts/managers/m_display_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
+const MOCK_WINDOW_OPS := preload("res://tests/mocks/mock_window_ops.gd")
 const I_DISPLAY_MANAGER := preload("res://scripts/interfaces/i_display_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 
@@ -173,112 +174,95 @@ func test_safe_area_padding_sets_offsets_for_full_anchors() -> void:
 	assert_almost_eq(control.offset_bottom, -30.0, 0.001, "Safe area bottom padding should apply")
 
 func test_apply_window_size_preset_sets_window_size() -> void:
-	if _skip_window_tests():
-		return
-
 	var manager := M_DISPLAY_MANAGER.new()
-	var snapshot := _capture_window_state()
+	var ops = MOCK_WINDOW_OPS.new()
+	ops.screen_size = Vector2i(1920, 1080)
+	manager.window_ops = ops
 
 	manager.apply_window_size_preset("1280x720")
-	await get_tree().process_frame
-
-	assert_eq(DisplayServer.window_get_size(), Vector2i(1280, 720), "Window size preset should set window size")
-
-	_restore_window_state(snapshot)
+	assert_eq(ops.window_size, Vector2i(1280, 720), "Window size preset should set window size")
+	assert_eq(ops.window_position, Vector2i(320, 180), "Window size preset should center the window")
 	manager.free()
 
 func test_apply_window_size_preset_invalid_is_noop() -> void:
-	if _skip_window_tests():
-		return
-
 	var manager := M_DISPLAY_MANAGER.new()
-	var snapshot := _capture_window_state()
+	var ops = MOCK_WINDOW_OPS.new()
+	ops.window_size = Vector2i(900, 700)
+	manager.window_ops = ops
 
 	manager.apply_window_size_preset("not_a_real_preset")
-	await get_tree().process_frame
-
-	assert_eq(DisplayServer.window_get_size(), snapshot.get("size"), "Invalid preset should not change window size")
-
-	_restore_window_state(snapshot)
+	assert_eq(ops.window_size, Vector2i(900, 700), "Invalid preset should not change window size")
+	assert_eq(ops.calls.size(), 0, "Invalid preset should not call window ops")
 	manager.free()
 
 func test_set_window_mode_fullscreen_calls_display_server() -> void:
-	if _skip_window_tests():
-		return
-
 	var manager := M_DISPLAY_MANAGER.new()
-	var snapshot := _capture_window_state()
+	var ops = MOCK_WINDOW_OPS.new()
+	ops.window_mode = DisplayServer.WINDOW_MODE_WINDOWED
+	ops.borderless = true
+	manager.window_ops = ops
 
 	manager.set_window_mode("fullscreen")
-	await get_tree().process_frame
-
-	assert_eq(DisplayServer.window_get_mode(), DisplayServer.WINDOW_MODE_FULLSCREEN, "Fullscreen mode should update DisplayServer")
-
-	_restore_window_state(snapshot)
+	assert_eq(ops.window_mode, DisplayServer.WINDOW_MODE_FULLSCREEN, "Fullscreen mode should update window ops mode")
+	assert_eq(ops.get_call_count("window_set_flag"), 0, "Fullscreen should not toggle window style flags")
 	manager.free()
 
 func test_set_window_mode_windowed_calls_display_server() -> void:
-	if _skip_window_tests():
-		return
-
 	var manager := M_DISPLAY_MANAGER.new()
-	var snapshot := _capture_window_state()
+	var ops = MOCK_WINDOW_OPS.new()
+	ops.window_mode = DisplayServer.WINDOW_MODE_WINDOWED
+	ops.borderless = true
+	manager.window_ops = ops
 
 	manager.set_window_mode("windowed")
-	await get_tree().process_frame
-
-	assert_eq(DisplayServer.window_get_mode(), DisplayServer.WINDOW_MODE_WINDOWED, "Windowed mode should update DisplayServer")
-	assert_false(
-		DisplayServer.window_get_flag(DisplayServer.WINDOW_FLAG_BORDERLESS),
-		"Windowed mode should clear borderless flag"
-	)
-
-	_restore_window_state(snapshot)
+	assert_eq(ops.window_mode, DisplayServer.WINDOW_MODE_WINDOWED, "Windowed mode should update window ops mode")
+	assert_false(ops.borderless, "Windowed mode should clear borderless flag")
 	manager.free()
 
 func test_set_window_mode_borderless_calls_display_server() -> void:
-	if _skip_window_tests():
-		return
-
 	var manager := M_DISPLAY_MANAGER.new()
-	var snapshot := _capture_window_state()
+	var ops = MOCK_WINDOW_OPS.new()
+	ops.window_mode = DisplayServer.WINDOW_MODE_WINDOWED
+	ops.borderless = false
+	ops.screen_size = Vector2i(2560, 1440)
+	manager.window_ops = ops
 
 	manager.set_window_mode("borderless")
+	assert_eq(ops.window_mode, DisplayServer.WINDOW_MODE_WINDOWED, "Borderless mode should use windowed mode")
+	assert_true(ops.borderless, "Borderless mode should enable borderless flag")
+	assert_eq(ops.window_size, Vector2i(2560, 1440), "Borderless mode should resize to screen size")
+	assert_eq(ops.window_position, Vector2i.ZERO, "Borderless mode should move to origin")
+	manager.free()
+
+func test_set_window_mode_borderless_defers_style_mask_after_fullscreen_on_macos() -> void:
+	var manager := M_DISPLAY_MANAGER.new()
+	var ops = MOCK_WINDOW_OPS.new()
+	ops.os_name = "macOS"
+	ops.window_mode = DisplayServer.WINDOW_MODE_FULLSCREEN
+	ops.borderless = false
+	manager.window_ops = ops
+
+	manager.set_window_mode("borderless")
+	assert_eq(ops.get_call_count("window_set_flag"), 0, "Borderless flag should not change while exiting fullscreen")
+
 	await get_tree().process_frame
+	assert_eq(ops.get_call_count("window_set_flag"), 0, "macOS should wait an extra frame before touching style masks")
 
-	assert_eq(DisplayServer.window_get_mode(), DisplayServer.WINDOW_MODE_WINDOWED, "Borderless mode should use windowed mode")
-	assert_true(
-		DisplayServer.window_get_flag(DisplayServer.WINDOW_FLAG_BORDERLESS),
-		"Borderless mode should enable borderless flag"
-	)
-
-	_restore_window_state(snapshot)
+	await get_tree().process_frame
+	assert_true(ops.borderless, "Borderless flag should settle after retries")
 	manager.free()
 
 func test_set_vsync_enabled_calls_display_server() -> void:
-	if _skip_window_tests():
-		return
-
 	var manager := M_DISPLAY_MANAGER.new()
-	var snapshot := _capture_window_state()
+	var ops = MOCK_WINDOW_OPS.new()
+	ops.vsync_mode = DisplayServer.VSYNC_DISABLED
+	manager.window_ops = ops
 
 	manager.set_vsync_enabled(true)
-	await get_tree().process_frame
-	assert_eq(
-		DisplayServer.window_get_vsync_mode(),
-		DisplayServer.VSYNC_ENABLED,
-		"VSync enabled should update DisplayServer"
-	)
+	assert_eq(ops.vsync_mode, DisplayServer.VSYNC_ENABLED, "VSync enabled should update window ops")
 
 	manager.set_vsync_enabled(false)
-	await get_tree().process_frame
-	assert_eq(
-		DisplayServer.window_get_vsync_mode(),
-		DisplayServer.VSYNC_DISABLED,
-		"VSync disabled should update DisplayServer"
-	)
-
-	_restore_window_state(snapshot)
+	assert_eq(ops.vsync_mode, DisplayServer.VSYNC_DISABLED, "VSync disabled should update window ops")
 	manager.free()
 
 func _setup_manager_with_store(display_state: Dictionary) -> void:
@@ -295,57 +279,4 @@ func _setup_manager_with_store(display_state: Dictionary) -> void:
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-func _skip_window_tests() -> bool:
-	var display_name := DisplayServer.get_name().to_lower()
-	if OS.get_name() == "macOS":
-		pending("Skipped: macOS window operations can crash (NSWindow styleMask)")
-		return true
-	if Engine.is_editor_hint():
-		pending("Skipped: DisplayServer window operations are not safe in editor runs")
-		return true
-	if OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy":
-		pending("Skipped: DisplayServer window operations unavailable in headless mode")
-		return true
-	return false
-
-func _capture_window_state() -> Dictionary:
-	return {
-		"size": DisplayServer.window_get_size(),
-		"mode": DisplayServer.window_get_mode(),
-		"borderless": DisplayServer.window_get_flag(DisplayServer.WINDOW_FLAG_BORDERLESS),
-		"vsync": DisplayServer.window_get_vsync_mode(),
-	}
-
-func _restore_window_state(snapshot: Dictionary) -> void:
-	if snapshot.is_empty():
-		return
-
-	var target_size: Vector2i = snapshot.get("size", DisplayServer.window_get_size())
-	var target_mode: int = int(snapshot.get("mode", DisplayServer.window_get_mode()))
-	var target_borderless := bool(snapshot.get("borderless", false))
-	var target_vsync: int = int(snapshot.get("vsync", DisplayServer.window_get_vsync_mode()))
-
-	# macOS can abort if we attempt to change style masks (borderless) while fullscreen.
-	var current_mode := DisplayServer.window_get_mode()
-	var current_is_fullscreen := current_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or current_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
-	var target_is_fullscreen := target_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or target_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
-	if OS.get_name() == "macOS" and current_is_fullscreen and not target_is_fullscreen:
-		# Exiting fullscreen is asynchronous; avoid touching WINDOW_FLAG_BORDERLESS mid-transition.
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		DisplayServer.window_set_size(target_size)
-		DisplayServer.window_set_vsync_mode(target_vsync)
-		return
-
-	if current_is_fullscreen:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-
-	if target_is_fullscreen:
-		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, target_borderless)
-		DisplayServer.window_set_size(target_size)
-		DisplayServer.window_set_mode(target_mode)
-	else:
-		DisplayServer.window_set_mode(target_mode)
-		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, target_borderless)
-		DisplayServer.window_set_size(target_size)
-
-	DisplayServer.window_set_vsync_mode(target_vsync)
+ 

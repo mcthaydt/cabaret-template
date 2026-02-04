@@ -11,6 +11,7 @@ const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_se
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/u_post_process_layer.gd")
 const U_PALETTE_MANAGER := preload("res://scripts/managers/helpers/u_palette_manager.gd")
+const U_DISPLAY_SERVER_WINDOW_OPS := preload("res://scripts/utils/display/u_display_server_window_ops.gd")
 const RS_QUALITY_PRESET := preload("res://scripts/resources/display/rs_quality_preset.gd")
 const RS_LUT_DEFINITION := preload("res://scripts/resources/display/rs_lut_definition.gd")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
@@ -38,8 +39,10 @@ const MAX_UI_SCALE := 1.3
 
 ## Injected dependency (tests)
 @export var state_store: I_StateStore = null
+var window_ops: I_WindowOps = null
 
 var _state_store: I_StateStore = null
+var _window_ops: I_WindowOps = null
 var _last_display_hash: int = 0
 var _last_window_hash: int = 0
 var _display_settings_preview_active: bool = false
@@ -194,8 +197,9 @@ func _apply_window_settings(display_settings: Dictionary) -> void:
 	var window_mode := U_DISPLAY_SELECTORS.get_window_mode(state)
 	var vsync_enabled := U_DISPLAY_SELECTORS.is_vsync_enabled(state)
 
-	apply_window_size_preset(window_preset)
 	set_window_mode(window_mode)
+	if window_mode == "windowed":
+		apply_window_size_preset(window_preset)
 	set_vsync_enabled(vsync_enabled)
 
 func _apply_quality_settings(display_settings: Dictionary) -> void:
@@ -381,10 +385,11 @@ func _apply_window_size_preset_now(preset: String) -> void:
 	if not WINDOW_PRESETS.has(preset):
 		return
 	var size: Vector2i = WINDOW_PRESETS[preset]
-	DisplayServer.window_set_size(size)
-	var screen_size := DisplayServer.screen_get_size()
+	var ops := _get_window_ops()
+	ops.window_set_size(size)
+	var screen_size := ops.screen_get_size()
 	var window_pos := (screen_size - size) / 2
-	DisplayServer.window_set_position(window_pos)
+	ops.window_set_position(window_pos)
 
 func _set_window_mode_now(mode: String, attempt: int = 0) -> void:
 	# macOS can abort if we attempt to change window style masks (borderless) while
@@ -398,63 +403,72 @@ func _set_window_mode_now(mode: String, attempt: int = 0) -> void:
 		push_warning("M_DisplayManager: Window mode '%s' did not settle after retries" % mode)
 		return
 
-	var current_mode := DisplayServer.window_get_mode()
+	var ops := _get_window_ops()
+	var current_mode := ops.window_get_mode()
 	var is_fullscreen := current_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or current_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
-	var is_macos := OS.get_name() == "macOS"
-	var is_borderless := DisplayServer.window_get_flag(DisplayServer.WINDOW_FLAG_BORDERLESS)
+	var is_macos := ops.get_os_name() == "macOS"
+	var is_borderless := ops.window_get_flag(DisplayServer.WINDOW_FLAG_BORDERLESS)
 
 	match mode:
 		"fullscreen":
-			# Ensure the style is set while windowed, then enter fullscreen.
+			# Enter fullscreen without touching style masks; macOS can crash on styleMask changes.
 			if is_fullscreen:
 				return
-			# Avoid redundant style-mask changes; these can crash on macOS in some states.
-			if is_borderless:
-				DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+			ops.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 		"borderless":
 			# Exit fullscreen first, then apply style flags on a later frame.
 			if is_fullscreen:
-				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+				ops.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 				call_deferred("_set_window_mode_now", mode, attempt + 1)
 				return
 			# Even after leaving fullscreen, macOS can still be mid-transition.
 			# Give it an extra frame before touching the style mask.
 			if is_macos and attempt == 1:
-				call_deferred("_set_window_mode_now", mode, attempt + 1)
+				var main_loop := Engine.get_main_loop()
+				if main_loop is SceneTree:
+					await (main_loop as SceneTree).process_frame
+					_set_window_mode_now(mode, attempt + 1)
+				else:
+					call_deferred("_set_window_mode_now", mode, attempt + 1)
 				return
 
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+			ops.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			# Avoid redundant style-mask changes; these can crash on macOS in some states.
 			if not is_borderless:
-				DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
-			var screen_size := DisplayServer.screen_get_size()
-			DisplayServer.window_set_size(screen_size)
-			DisplayServer.window_set_position(Vector2i.ZERO)
+				ops.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+			var screen_size := ops.screen_get_size()
+			ops.window_set_size(screen_size)
+			ops.window_set_position(Vector2i.ZERO)
 		"windowed":
 			# Exit fullscreen first, then apply style flags on a later frame.
 			if is_fullscreen:
-				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+				ops.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 				call_deferred("_set_window_mode_now", mode, attempt + 1)
 				return
 			# Even after leaving fullscreen, macOS can still be mid-transition.
 			# Give it an extra frame before touching the style mask.
 			if is_macos and attempt == 1:
-				call_deferred("_set_window_mode_now", mode, attempt + 1)
+				var main_loop := Engine.get_main_loop()
+				if main_loop is SceneTree:
+					await (main_loop as SceneTree).process_frame
+					_set_window_mode_now(mode, attempt + 1)
+				else:
+					call_deferred("_set_window_mode_now", mode, attempt + 1)
 				return
 
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+			ops.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			# Avoid redundant style-mask changes; these can crash on macOS in some states.
 			if is_borderless:
-				DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+				ops.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 		_:
 			push_warning("M_DisplayManager: Invalid window mode '%s'" % mode)
 
 func _set_vsync_enabled_now(enabled: bool) -> void:
+	var ops := _get_window_ops()
 	if enabled:
-		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED)
+		ops.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED)
 	else:
-		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+		ops.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 
 func apply_quality_preset(preset: String) -> void:
 	if preset.is_empty():
@@ -524,16 +538,20 @@ func _apply_anti_aliasing(anti_aliasing: String) -> void:
 			push_warning("M_DisplayManager: Unknown anti-aliasing '%s'" % anti_aliasing)
 
 func _is_display_server_available() -> bool:
-	if Engine.is_editor_hint():
+	var ops := _get_window_ops()
+	if ops == null or not ops.is_available():
+		return false
+
+	if ops.is_real_window_backend() and Engine.is_editor_hint():
 		# Window operations mutate the host window. In editor/GUT-in-editor runs this
 		# targets the editor window and can crash on macOS.
 		return false
-	if OS.get_name() == "macOS" and _is_gut_running():
+	if ops.is_real_window_backend() and ops.get_os_name() == "macOS" and _is_gut_running():
 		# GUT runs inside the editor binary; window style changes during tests can
 		# crash macOS (NSWindow styleMask exceptions).
 		return false
-	var display_name := DisplayServer.get_name().to_lower()
-	return not (OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy")
+
+	return true
 
 func _is_gut_running() -> bool:
 	var tree := get_tree()
@@ -681,10 +699,11 @@ func _get_safe_area_rect(viewport_rect: Rect2) -> Rect2:
 		return viewport_rect
 	if not _is_display_server_available():
 		return viewport_rect
-	if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_WINDOWED and not OS.has_feature("mobile"):
+	var ops := _get_window_ops()
+	if ops.window_get_mode() == DisplayServer.WINDOW_MODE_WINDOWED and not OS.has_feature("mobile"):
 		return viewport_rect
-	var screen: int = DisplayServer.window_get_current_screen()
-	var safe_rect_i: Rect2i = DisplayServer.screen_get_usable_rect(screen)
+	var screen: int = ops.window_get_current_screen()
+	var safe_rect_i: Rect2i = ops.screen_get_usable_rect(screen)
 	if safe_rect_i.size == Vector2i.ZERO:
 		return viewport_rect
 	var safe_rect: Rect2 = Rect2(Vector2(safe_rect_i.position), Vector2(safe_rect_i.size))
@@ -715,6 +734,13 @@ func _is_full_anchor(control: Control) -> bool:
 		and is_equal_approx(control.anchor_top, 0.0) \
 		and is_equal_approx(control.anchor_right, 1.0) \
 		and is_equal_approx(control.anchor_bottom, 1.0)
+
+func _get_window_ops() -> I_WindowOps:
+	if window_ops != null:
+		return window_ops
+	if _window_ops == null:
+		_window_ops = U_DISPLAY_SERVER_WINDOW_OPS.new()
+	return _window_ops
 
 func register_ui_scale_root(node: Node) -> void:
 	if node == null:

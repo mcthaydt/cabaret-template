@@ -15,6 +15,7 @@ const M_DISPLAY_MANAGER := preload("res://scripts/managers/m_display_manager.gd"
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
+const MOCK_WINDOW_OPS := preload("res://tests/mocks/mock_window_ops.gd")
 
 const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
@@ -31,6 +32,7 @@ const TEST_SAVE_PATH := "user://test_display_settings_ui.json"
 var _store: M_StateStore
 var _display_manager: M_DisplayManager
 var _post_process_overlay: Node
+var _window_ops: MockWindowOps
 
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()
@@ -46,6 +48,9 @@ func before_each() -> void:
 	add_child_autofree(_post_process_overlay)
 
 	_display_manager = M_DISPLAY_MANAGER.new()
+	_window_ops = MOCK_WINDOW_OPS.new()
+	_window_ops.os_name = "macOS"
+	_display_manager.window_ops = _window_ops
 	add_child_autofree(_display_manager)
 
 	await get_tree().process_frame
@@ -96,66 +101,12 @@ func _await_deferred(frames: int = 2) -> void:
 	for _i in range(frames):
 		await get_tree().process_frame
 
-func _skip_window_tests() -> bool:
-	var display_name := DisplayServer.get_name().to_lower()
-	if OS.get_name() == "macOS":
-		pending("Skipped: macOS window operations can crash (NSWindow styleMask)")
-		return true
-	if Engine.is_editor_hint():
-		pending("Skipped: DisplayServer window operations are not safe in editor runs")
-		return true
-	if OS.has_feature("headless") or OS.has_feature("server") or display_name == "headless" or display_name == "dummy":
-		pending("Skipped: DisplayServer window operations unavailable in headless mode")
-		return true
-	return false
-
 func _skip_rendering_tests() -> bool:
 	if OS.has_feature("headless") or OS.has_feature("server"):
 		pending("Skipped: RenderingServer unavailable in headless mode")
 		return true
 	return false
 
-func _capture_window_state() -> Dictionary:
-	return {
-		"size": DisplayServer.window_get_size(),
-		"mode": DisplayServer.window_get_mode(),
-		"borderless": DisplayServer.window_get_flag(DisplayServer.WINDOW_FLAG_BORDERLESS),
-		"vsync": DisplayServer.window_get_vsync_mode(),
-	}
-
-func _restore_window_state(snapshot: Dictionary) -> void:
-	if snapshot.is_empty():
-		return
-
-	var target_size: Vector2i = snapshot.get("size", DisplayServer.window_get_size())
-	var target_mode: int = int(snapshot.get("mode", DisplayServer.window_get_mode()))
-	var target_borderless := bool(snapshot.get("borderless", false))
-	var target_vsync: int = int(snapshot.get("vsync", DisplayServer.window_get_vsync_mode()))
-
-	# macOS can abort if we attempt to change style masks (borderless) while fullscreen.
-	var current_mode := DisplayServer.window_get_mode()
-	var current_is_fullscreen := current_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or current_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
-	var target_is_fullscreen := target_mode == DisplayServer.WINDOW_MODE_FULLSCREEN or target_mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
-	if OS.get_name() == "macOS" and current_is_fullscreen and not target_is_fullscreen:
-		# Exiting fullscreen is asynchronous; avoid touching WINDOW_FLAG_BORDERLESS mid-transition.
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		DisplayServer.window_set_size(target_size)
-		DisplayServer.window_set_vsync_mode(target_vsync)
-		return
-
-	if current_is_fullscreen:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-
-	if target_is_fullscreen:
-		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, target_borderless)
-		DisplayServer.window_set_size(target_size)
-		DisplayServer.window_set_mode(target_mode)
-	else:
-		DisplayServer.window_set_mode(target_mode)
-		DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, target_borderless)
-		DisplayServer.window_set_size(target_size)
-
-	DisplayServer.window_set_vsync_mode(target_vsync)
 
 func test_controls_initialize_from_redux_state() -> void:
 	_store.dispatch(U_DISPLAY_ACTIONS.set_window_mode("borderless"))
@@ -352,41 +303,25 @@ func test_state_changes_do_not_override_local_edits() -> void:
 	assert_almost_eq(tab._film_grain_intensity_slider.value, 0.2, 0.001, "Local edits should not be overridden")
 
 func test_window_mode_change_applies_to_display_server() -> void:
-	if _skip_window_tests():
-		return
-
-	var snapshot := _capture_window_state()
 	_store.dispatch(U_DISPLAY_ACTIONS.set_window_mode("fullscreen"))
 	await _await_deferred()
 
-	assert_eq(DisplayServer.window_get_mode(), DisplayServer.WINDOW_MODE_FULLSCREEN, "Fullscreen mode should apply")
-	_restore_window_state(snapshot)
+	assert_eq(_window_ops.window_mode, DisplayServer.WINDOW_MODE_FULLSCREEN, "Fullscreen mode should apply to window ops")
 
 func test_window_size_preset_applies_to_display_server() -> void:
-	if _skip_window_tests():
-		return
-
-	var snapshot := _capture_window_state()
 	_store.dispatch(U_DISPLAY_ACTIONS.set_window_size_preset("1280x720"))
 	await _await_deferred()
 
-	assert_eq(DisplayServer.window_get_size(), Vector2i(1280, 720), "Window size preset should apply")
-	_restore_window_state(snapshot)
+	assert_eq(_window_ops.window_size, Vector2i(1280, 720), "Window size preset should apply to window ops")
 
 func test_vsync_toggle_applies_to_display_server() -> void:
-	if _skip_window_tests():
-		return
-
-	var snapshot := _capture_window_state()
 	_store.dispatch(U_DISPLAY_ACTIONS.set_vsync_enabled(true))
 	await _await_deferred()
-	assert_eq(DisplayServer.window_get_vsync_mode(), DisplayServer.VSYNC_ENABLED, "VSync enabled should apply")
+	assert_eq(_window_ops.vsync_mode, DisplayServer.VSYNC_ENABLED, "VSync enabled should apply to window ops")
 
 	_store.dispatch(U_DISPLAY_ACTIONS.set_vsync_enabled(false))
 	await _await_deferred()
-	assert_eq(DisplayServer.window_get_vsync_mode(), DisplayServer.VSYNC_DISABLED, "VSync disabled should apply")
-
-	_restore_window_state(snapshot)
+	assert_eq(_window_ops.vsync_mode, DisplayServer.VSYNC_DISABLED, "VSync disabled should apply to window ops")
 
 func test_quality_preset_updates_viewport_aa() -> void:
 	if _skip_rendering_tests():
