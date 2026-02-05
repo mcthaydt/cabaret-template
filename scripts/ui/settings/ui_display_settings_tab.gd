@@ -4,6 +4,7 @@ class_name UI_DisplaySettingsTab
 
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_DisplayUtils := preload("res://scripts/utils/display/u_display_utils.gd")
+const U_DisplayOptionCatalog := preload("res://scripts/utils/display/u_display_option_catalog.gd")
 const U_DisplaySelectors := preload("res://scripts/state/selectors/u_display_selectors.gd")
 const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
 const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
@@ -13,39 +14,6 @@ const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigati
 const RS_DisplayInitialState := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 const RS_LUT_DEFINITION := preload("res://scripts/resources/display/rs_lut_definition.gd")
 const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/base_settings/state/cfg_display_initial_state.tres")
-
-const WINDOW_SIZE_OPTIONS := [
-	{"id": "1280x720", "label": "1280x720"},
-	{"id": "1600x900", "label": "1600x900"},
-	{"id": "1920x1080", "label": "1920x1080"},
-	{"id": "2560x1440", "label": "2560x1440"},
-	{"id": "3840x2160", "label": "3840x2160"},
-]
-
-const WINDOW_MODE_OPTIONS := [
-	{"id": "windowed", "label": "Windowed"},
-	{"id": "fullscreen", "label": "Fullscreen"},
-	{"id": "borderless", "label": "Borderless"},
-]
-
-const QUALITY_PRESET_OPTIONS := [
-	{"id": "low", "label": "Low"},
-	{"id": "medium", "label": "Medium"},
-	{"id": "high", "label": "High"},
-	{"id": "ultra", "label": "Ultra"},
-]
-
-const DITHER_PATTERN_OPTIONS := [
-	{"id": "bayer", "label": "Bayer"},
-	{"id": "noise", "label": "Noise"},
-]
-
-const COLOR_BLIND_MODE_OPTIONS := [
-	{"id": "normal", "label": "Normal"},
-	{"id": "deuteranopia", "label": "Deuteranopia"},
-	{"id": "protanopia", "label": "Protanopia"},
-	{"id": "tritanopia", "label": "Tritanopia"},
-]
 
 var _state_store: I_StateStore = null
 var _display_manager: I_DisplayManager = null
@@ -175,11 +143,31 @@ func _connect_signals() -> void:
 		_apply_button.pressed.connect(_on_apply_pressed)
 
 func _populate_option_buttons() -> void:
-	_populate_option_button(_window_size_option, WINDOW_SIZE_OPTIONS, _window_size_values)
-	_populate_option_button(_window_mode_option, WINDOW_MODE_OPTIONS, _window_mode_values)
-	_populate_option_button(_quality_preset_option, QUALITY_PRESET_OPTIONS, _quality_preset_values)
-	_populate_option_button(_dither_pattern_option, DITHER_PATTERN_OPTIONS, _dither_pattern_values)
-	_populate_option_button(_color_blind_mode_option, COLOR_BLIND_MODE_OPTIONS, _color_blind_mode_values)
+	_populate_option_button(
+		_window_size_option,
+		U_DisplayOptionCatalog.get_window_size_option_entries(),
+		_window_size_values
+	)
+	_populate_option_button(
+		_window_mode_option,
+		U_DisplayOptionCatalog.get_window_mode_option_entries(),
+		_window_mode_values
+	)
+	_populate_option_button(
+		_quality_preset_option,
+		U_DisplayOptionCatalog.get_quality_option_entries(),
+		_quality_preset_values
+	)
+	_populate_option_button(
+		_dither_pattern_option,
+		U_DisplayOptionCatalog.get_dither_pattern_option_entries(),
+		_dither_pattern_values
+	)
+	_populate_option_button(
+		_color_blind_mode_option,
+		U_DisplayOptionCatalog.get_color_blind_mode_option_entries(),
+		_color_blind_mode_values
+	)
 	_populate_lut_options()
 
 func _populate_option_button(button: OptionButton, options: Array, values: Array[String]) -> void:

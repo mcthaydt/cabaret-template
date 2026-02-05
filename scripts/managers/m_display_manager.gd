@@ -12,7 +12,7 @@ const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigat
 const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/u_post_process_layer.gd")
 const U_PALETTE_MANAGER := preload("res://scripts/managers/helpers/u_palette_manager.gd")
 const U_DISPLAY_SERVER_WINDOW_OPS := preload("res://scripts/utils/display/u_display_server_window_ops.gd")
-const RS_QUALITY_PRESET := preload("res://scripts/resources/display/rs_quality_preset.gd")
+const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
 const RS_LUT_DEFINITION := preload("res://scripts/resources/display/rs_lut_definition.gd")
 const RS_UI_COLOR_PALETTE := preload("res://scripts/resources/ui/rs_ui_color_palette.gd")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
@@ -22,19 +22,6 @@ const DISPLAY_SLICE_NAME := StringName("display")
 const NAVIGATION_SLICE_NAME := StringName("navigation")
 const SHELL_GAMEPLAY := StringName("gameplay")
 
-const WINDOW_PRESETS := {
-	"1280x720": Vector2i(1280, 720),
-	"1600x900": Vector2i(1600, 900),
-	"1920x1080": Vector2i(1920, 1080),
-	"2560x1440": Vector2i(2560, 1440),
-	"3840x2160": Vector2i(3840, 2160),
-}
-const QUALITY_PRESET_PATHS := {
-	"low": "res://resources/display/cfg_quality_presets/cfg_quality_low.tres",
-	"medium": "res://resources/display/cfg_quality_presets/cfg_quality_medium.tres",
-	"high": "res://resources/display/cfg_quality_presets/cfg_quality_high.tres",
-	"ultra": "res://resources/display/cfg_quality_presets/cfg_quality_ultra.tres",
-}
 const MIN_UI_SCALE := 0.8
 const MAX_UI_SCALE := 1.3
 
@@ -48,12 +35,12 @@ var _last_display_hash: int = 0
 var _last_window_hash: int = 0
 var _display_settings_preview_active: bool = false
 var _preview_settings: Dictionary = {}
-var _quality_preset_cache: Dictionary = {}
 var _current_ui_scale: float = 1.0
 var _ui_scale_roots: Array[Node] = []
 var _palette_manager: RefCounted = null
 var _ui_theme: Theme = null
 var _ui_theme_palette_id: StringName = StringName("")
+var _window_mode_retry_frame: int = -1
 
 # Post-process overlay (Phase 3C)
 var _post_process_layer: U_PostProcessLayer = null
@@ -363,7 +350,8 @@ func set_ui_scale(scale: float) -> void:
 	_ui_scale_roots = valid_roots
 
 func apply_window_size_preset(preset: String) -> void:
-	if not WINDOW_PRESETS.has(preset):
+	var preset_resource: Resource = U_DISPLAY_OPTION_CATALOG.get_window_size_preset_by_id(preset)
+	if preset_resource == null:
 		return
 	if not _is_display_server_available():
 		return
@@ -389,9 +377,15 @@ func set_vsync_enabled(enabled: bool) -> void:
 		_set_vsync_enabled_now(enabled)
 
 func _apply_window_size_preset_now(preset: String) -> void:
-	if not WINDOW_PRESETS.has(preset):
+	var preset_resource: Resource = U_DISPLAY_OPTION_CATALOG.get_window_size_preset_by_id(preset)
+	if preset_resource == null:
 		return
-	var size: Vector2i = WINDOW_PRESETS[preset]
+	var size: Vector2i = Vector2i(0, 0)
+	var size_value: Variant = preset_resource.get("size")
+	if size_value is Vector2i:
+		size = size_value
+	if size == Vector2i.ZERO:
+		return
 	var ops := _get_window_ops()
 	ops.window_set_size(size)
 	var screen_size := ops.screen_get_size()
@@ -461,17 +455,18 @@ func _set_window_mode_now(mode: String, attempt: int = 0) -> void:
 			push_warning("M_DisplayManager: Invalid window mode '%s'" % mode)
 
 func _schedule_window_mode_retry_next_frame(mode: String, attempt: int) -> void:
+	_window_mode_retry_frame = Engine.get_process_frames()
 	var main_loop := Engine.get_main_loop()
 	if main_loop is SceneTree:
-		# Use a physics timer to ensure we wait a full frame boundary.
-		# Idle timers with 0.0s can fire within the same idle phase and skip the
-		# intended "extra frame" delay that prevents macOS styleMask crashes.
-		var timer := (main_loop as SceneTree).create_timer(0.0, true, true)
+		var timer := (main_loop as SceneTree).create_timer(0.0)
 		timer.timeout.connect(_on_window_mode_retry.bind(mode, attempt))
 		return
 	call_deferred("_set_window_mode_now", mode, attempt)
 
 func _on_window_mode_retry(mode: String, attempt: int) -> void:
+	if Engine.get_process_frames() <= _window_mode_retry_frame:
+		_schedule_window_mode_retry_next_frame(mode, attempt)
+		return
 	_set_window_mode_now(mode, attempt)
 
 func _set_vsync_enabled_now(enabled: bool) -> void:
@@ -495,20 +490,10 @@ func apply_quality_preset(preset: String) -> void:
 	_apply_anti_aliasing(String(config.anti_aliasing))
 
 func _load_quality_preset(preset: String) -> Resource:
-	if _quality_preset_cache.has(preset):
-		return _quality_preset_cache[preset]
-
-	var path: String = String(QUALITY_PRESET_PATHS.get(preset, ""))
-	if path.is_empty():
+	var resource := U_DISPLAY_OPTION_CATALOG.get_quality_preset_by_id(preset)
+	if resource == null:
 		push_warning("M_DisplayManager: Unknown quality preset '%s'" % preset)
 		return null
-
-	var resource := load(path)
-	if resource == null or not (resource is RS_QUALITY_PRESET):
-		push_warning("M_DisplayManager: Failed to load quality preset '%s' (%s)" % [preset, path])
-		return null
-
-	_quality_preset_cache[preset] = resource
 	return resource
 
 func _apply_shadow_quality(shadow_quality: String) -> void:

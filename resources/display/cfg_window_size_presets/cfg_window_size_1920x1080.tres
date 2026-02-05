@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_WindowSizePreset" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/display/rs_window_size_preset.gd" id="1_window_size_preset"]
+
+[resource]
+script = ExtResource("1_window_size_preset")
+preset_id = &"1920x1080"
+size = Vector2i(1920, 1080)
+label = "1920x1080"
+sort_order = 30

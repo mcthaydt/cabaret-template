@@ -8,18 +8,7 @@ class_name U_DisplayReducer
 ## validation and clamping.
 
 const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
-
-const VALID_WINDOW_PRESETS := [
-	"1280x720",
-	"1600x900",
-	"1920x1080",
-	"2560x1440",
-	"3840x2160",
-]
-const VALID_WINDOW_MODES := ["windowed", "fullscreen", "borderless"]
-const VALID_QUALITY_PRESETS := ["low", "medium", "high", "ultra"]
-const VALID_COLOR_BLIND_MODES := ["normal", "deuteranopia", "protanopia", "tritanopia"]
-const VALID_DITHER_PATTERNS := ["bayer", "noise"]
+const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
 
 const DEFAULT_DISPLAY_STATE := {
 	"window_size_preset": "1920x1080",
@@ -64,14 +53,14 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 		U_DisplayActions.ACTION_SET_WINDOW_SIZE_PRESET:
 			var payload: Dictionary = action.get("payload", {})
 			var preset: String = String(payload.get("preset", ""))
-			if not VALID_WINDOW_PRESETS.has(preset):
+			if not _is_valid_window_preset(preset):
 				return null
 			return _with_values(current, {"window_size_preset": preset})
 
 		U_DisplayActions.ACTION_SET_WINDOW_MODE:
 			var payload: Dictionary = action.get("payload", {})
 			var mode: String = String(payload.get("mode", ""))
-			if not VALID_WINDOW_MODES.has(mode):
+			if not _is_valid_window_mode(mode):
 				return null
 			return _with_values(current, {"window_mode": mode})
 
@@ -83,7 +72,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 		U_DisplayActions.ACTION_SET_QUALITY_PRESET:
 			var payload: Dictionary = action.get("payload", {})
 			var preset: String = String(payload.get("preset", ""))
-			if not VALID_QUALITY_PRESETS.has(preset):
+			if not _is_valid_quality_preset(preset):
 				return null
 			return _with_values(current, {"quality_preset": preset})
 
@@ -135,7 +124,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 		U_DisplayActions.ACTION_SET_DITHER_PATTERN:
 			var payload: Dictionary = action.get("payload", {})
 			var pattern: String = String(payload.get("pattern", ""))
-			if not VALID_DITHER_PATTERNS.has(pattern):
+			if not _is_valid_dither_pattern(pattern):
 				return null
 			return _with_values(current, {"dither_pattern": pattern})
 
@@ -164,7 +153,7 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 		U_DisplayActions.ACTION_SET_COLOR_BLIND_MODE:
 			var payload: Dictionary = action.get("payload", {})
 			var mode: String = String(payload.get("mode", ""))
-			if not VALID_COLOR_BLIND_MODES.has(mode):
+			if not _is_valid_color_blind_mode(mode):
 				return null
 			return _with_values(current, {"color_blind_mode": mode})
 
@@ -201,3 +190,18 @@ static func _deep_copy(value: Variant) -> Variant:
 	if value is Array:
 		return (value as Array).duplicate(true)
 	return value
+
+static func _is_valid_window_preset(preset: String) -> bool:
+	return U_DISPLAY_OPTION_CATALOG.get_window_size_ids().has(preset)
+
+static func _is_valid_quality_preset(preset: String) -> bool:
+	return U_DISPLAY_OPTION_CATALOG.get_quality_ids().has(preset)
+
+static func _is_valid_window_mode(mode: String) -> bool:
+	return U_DISPLAY_OPTION_CATALOG.get_window_mode_ids().has(mode)
+
+static func _is_valid_dither_pattern(pattern: String) -> bool:
+	return U_DISPLAY_OPTION_CATALOG.get_dither_pattern_ids().has(pattern)
+
+static func _is_valid_color_blind_mode(mode: String) -> bool:
+	return U_DISPLAY_OPTION_CATALOG.get_color_blind_mode_ids().has(mode)

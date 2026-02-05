@@ -5,6 +5,8 @@
 [resource]
 script = ExtResource("1_quality_preset")
 preset_name = "low"
+display_name = "Low"
+sort_order = 10
 shadow_quality = "off"
 anti_aliasing = "none"
 post_processing_enabled = false
