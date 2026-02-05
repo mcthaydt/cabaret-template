@@ -92,13 +92,23 @@ func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
 			if store.is_ready():
 				return store
 			if store.has_signal("store_ready"):
+				if _is_gut_running():
+					return null
 				await store.store_ready
 				if is_instance_valid(store) and store.is_ready():
 					return store
+		elif _is_gut_running():
+			return null
 		await tree.process_frame
 		frames_waited += 1
 
 	return null
+
+func _is_gut_running() -> bool:
+	var tree := get_tree()
+	if tree == null or tree.root == null:
+		return false
+	return tree.root.find_child("GutRunner", true, false) != null
 
 func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
 	if _state_store == null:
