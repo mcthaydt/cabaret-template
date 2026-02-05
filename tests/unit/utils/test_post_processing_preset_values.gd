@@ -19,35 +19,36 @@ func test_heavy_preset_has_higher_intensities() -> void:
 	var heavy := U_PostProcessingPresetValues.get_preset_values("heavy")
 	var medium := U_PostProcessingPresetValues.get_preset_values("medium")
 
-	# THEN: Heavy should have higher intensities than medium
+	# THEN: Heavy should have higher intensities than medium (or equal for dither which is maxed)
 	assert_true(heavy.get("film_grain_intensity") > medium.get("film_grain_intensity"), "Heavy film grain should be higher")
 	assert_true(heavy.get("crt_scanline_intensity") > medium.get("crt_scanline_intensity"), "Heavy scanlines should be higher")
-	assert_true(heavy.get("dither_intensity") > medium.get("dither_intensity"), "Heavy dither should be higher")
+	assert_true(heavy.get("crt_curvature") > medium.get("crt_curvature"), "Heavy curvature should be higher")
+	assert_true(heavy.get("dither_intensity") >= medium.get("dither_intensity"), "Heavy dither should be >= medium (both maxed at 1.0)")
 
 func test_medium_preset_has_default_values() -> void:
 	# GIVEN: Medium preset values
 	var medium := U_PostProcessingPresetValues.get_preset_values("medium")
 
-	# THEN: Should match documented defaults
-	assert_eq(medium.get("film_grain_intensity"), 0.1, "Medium film grain should be 0.1")
-	assert_eq(medium.get("crt_scanline_intensity"), 0.3, "Medium scanlines should be 0.3")
-	assert_eq(medium.get("crt_curvature"), 2.0, "Medium curvature should be 2.0")
-	assert_eq(medium.get("crt_chromatic_aberration"), 0.002, "Medium aberration should be 0.002")
-	assert_eq(medium.get("dither_intensity"), 0.5, "Medium dither should be 0.5")
+	# THEN: Should match current defaults from cfg_display_initial_state.tres
+	assert_eq(medium.get("film_grain_intensity"), 0.2, "Medium film grain should be 0.2")
+	assert_eq(medium.get("crt_scanline_intensity"), 0.25, "Medium scanlines should be 0.25")
+	assert_eq(medium.get("crt_curvature"), 0.0, "Medium curvature should be 0.0")
+	assert_eq(medium.get("crt_chromatic_aberration"), 0.001, "Medium aberration should be 0.001")
+	assert_eq(medium.get("dither_intensity"), 1.0, "Medium dither should be 1.0")
 
 func test_get_value_returns_specific_field() -> void:
 	# WHEN: Getting a specific field from heavy preset
 	var grain: float = U_PostProcessingPresetValues.get_value("heavy", "film_grain_intensity")
 
 	# THEN: Should return the heavy preset's film grain intensity
-	assert_eq(grain, 0.2, "Heavy film grain should be 0.2")
+	assert_eq(grain, 0.35, "Heavy film grain should be 0.35")
 
 func test_invalid_preset_returns_medium_defaults() -> void:
 	# WHEN: Getting values for invalid preset
 	var values := U_PostProcessingPresetValues.get_preset_values("invalid")
 
 	# THEN: Should return medium values as default
-	assert_eq(values.get("film_grain_intensity"), 0.1, "Should default to medium")
+	assert_eq(values.get("film_grain_intensity"), 0.2, "Should default to medium")
 
 func test_is_valid_preset() -> void:
 	# THEN: Valid presets should return true
