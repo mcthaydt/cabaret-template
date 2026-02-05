@@ -9,6 +9,7 @@ const U_DISPLAY_SERVER_WINDOW_OPS := preload("res://scripts/utils/display/u_disp
 var _owner: Node = null
 var _window_ops: I_WindowOps = null
 var _window_mode_retry_frame: int = -1
+var _last_window_size_preset: String = ""
 
 func initialize(owner: Node) -> void:
 	_owner = owner
@@ -22,6 +23,7 @@ func apply_settings(display_settings: Dictionary) -> void:
 	var window_mode := U_DISPLAY_SELECTORS.get_window_mode(state)
 	var vsync_enabled := U_DISPLAY_SELECTORS.is_vsync_enabled(state)
 
+	_last_window_size_preset = window_preset
 	set_window_mode(window_mode)
 	if window_mode == "windowed":
 		apply_window_size_preset(window_preset)
@@ -31,6 +33,7 @@ func apply_window_size_preset(preset: String) -> void:
 	var preset_resource: Resource = U_DISPLAY_OPTION_CATALOG.get_window_size_preset_by_id(preset)
 	if preset_resource == null:
 		return
+	_last_window_size_preset = preset
 	if not is_display_server_available():
 		return
 	if _should_defer():
@@ -149,6 +152,8 @@ func _set_window_mode_now(mode: String, attempt: int = 0) -> void:
 			# Avoid redundant style-mask changes; these can crash on macOS in some states.
 			if is_borderless:
 				ops.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
+			if is_borderless or attempt > 0:
+				_reapply_windowed_size()
 		_:
 			push_warning("U_DisplayWindowApplier: Invalid window mode '%s'" % mode)
 
@@ -181,6 +186,14 @@ func _is_gut_running() -> bool:
 	if tree == null or tree.root == null:
 		return false
 	return tree.root.find_child("GutRunner", true, false) != null
+
+func _reapply_windowed_size() -> void:
+	if _last_window_size_preset == "":
+		return
+	if _should_defer():
+		call_deferred("_apply_window_size_preset_now", _last_window_size_preset)
+	else:
+		_apply_window_size_preset_now(_last_window_size_preset)
 
 func _get_window_ops() -> I_WindowOps:
 	if _window_ops != null:
