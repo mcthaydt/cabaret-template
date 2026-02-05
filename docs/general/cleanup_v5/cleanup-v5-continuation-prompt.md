@@ -15,6 +15,35 @@
   - Extract focused appliers (window/quality/post-process/ui scale/theme)
   - Improve player UX without regressing stability
 
+## Required Readings (Do Not Skip)
+
+- `AGENTS.md` - project conventions, testing, and update rules.
+- `docs/general/DEV_PITFALLS.md` - known gotchas (imports, class cache, UI pitfalls).
+- `docs/general/STYLE_GUIDE.md` - naming, formatting, prefix rules.
+- `docs/general/cleanup_v5/cleanup-v5-continuation-prompt.md` - this file (keep current).
+- `docs/general/cleanup_v4.5/reorganization-continuation-prompt.md` - most recent cleanup patterns.
+- `docs/general/cleanup_v4/` docs - prior cleanup conventions and pitfalls.
+- Display manager docs (if working Phase 3+):
+  - `docs/display_manager/display-manager-continuation-prompt.md`
+  - `docs/display_manager/display-manager-tasks.md`
+
+## Process for Completion (Every Phase)
+
+1. Start with the next unchecked task list section (define it if missing).
+2. Plan the smallest safe batch of moves/renames; verify references before executing.
+3. Execute filesystem changes → update references → run headless import if scenes/scripts moved.
+4. Run relevant tests (style suite mandatory after any moves/renames).
+5. Update any task checklist with [x] and completion notes (commit hash, tests run, deviations).
+6. Update this continuation prompt with status, tests run, and next step.
+7. Update `AGENTS.md` and/or `DEV_PITFALLS.md` if new patterns or pitfalls emerged.
+8. Commit with a clear message; commit documentation updates separately from implementation.
+
+## Test / Document / Commit Checklist
+
+- **Test**: Run the smallest relevant suite first; expand to integration/regression as needed.
+- **Document**: Update task checklist + this prompt; update `AGENTS.md`/`DEV_PITFALLS.md` when required.
+- **Commit**: Keep code and docs in separate commits and include the commit hash in task notes.
+
 ## Confirmed Decisions
 
 - Add `assets/models/` and enforce `mdl_` prefix (models).
