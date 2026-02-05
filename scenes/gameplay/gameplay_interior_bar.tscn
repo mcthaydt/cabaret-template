@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
 [ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
 [ext_resource type="Script" uid="uid://dmljrhrqv5ei4" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
-[ext_resource type="PackedScene" uid="uid://b5uf74g7fac4a" path="res://scenes/prefabs/prefab_new_interior.tscn" id="3_oot58"]
+[ext_resource type="PackedScene" uid="uid://b5uf74g7fac4a" path="res://scenes/prefabs/prefab_bar.tscn" id="3_oot58"]
 [ext_resource type="Script" uid="uid://gaammkurp23b" path="res://scripts/scene_structure/marker_systems_group.gd" id="3_ph0bl"]
 [ext_resource type="Script" uid="uid://cg10jkb2k5551" path="res://scripts/scene_structure/marker_systems_core_group.gd" id="3_systems_core"]
 [ext_resource type="Script" uid="uid://dl32cj7p543rh" path="res://scripts/scene_structure/marker_systems_feedback_group.gd" id="3_systems_feedback"]
