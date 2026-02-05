@@ -114,24 +114,26 @@ Completion Notes (2026-02-05): LUT PNGs removed after reference check; style sui
 
 ## Phase 4 - Display Module Refactor (Modular + UX + Designer-Friendly)
 
-- [ ] Confirm display manager test coverage baseline:
+- [x] Confirm display manager test coverage baseline:
   - Unit: `tests/unit/managers/test_display_manager.gd`
   - Integration: `tests/integration/display/*`
 
 ### 4A - Data-Driven Option Catalogs (Single Source of Truth)
 
-- [ ] Introduce a central catalog (`U_DisplayOptionCatalog` or equivalent) that provides:
+- [x] Introduce a central catalog (`U_DisplayOptionCatalog` or equivalent) that provides:
   - Window size presets + lookup size by ID
   - Quality presets + lookup resource by ID
   - Window mode / dither pattern / color blind mode option lists
-- [ ] Make quality presets discoverable from `res://resources/display/cfg_quality_presets/` (drop-in `.tres` files appear in UI).
-- [ ] Add window size presets as resources (designer-friendly):
+- [x] Make quality presets discoverable from `res://resources/display/cfg_quality_presets/` (drop-in `.tres` files appear in UI).
+- [x] Add window size presets as resources (designer-friendly):
   - Directory: `res://resources/display/cfg_window_size_presets/`
   - Resource type: `RS_WindowSizePreset` with `preset_id`, `size`, `label`, `sort_order`
-- [ ] Update both `M_DisplayManager` and `UI_DisplaySettingsTab` to use the catalog (remove duplicated hard-coded lists).
-- [ ] Add coverage:
+- [x] Update both `M_DisplayManager` and `UI_DisplaySettingsTab` to use the catalog (remove duplicated hard-coded lists).
+- [x] Add coverage:
   - Unit tests for catalog discovery + sorting + fallback behavior
   - Style enforcement remains unchanged (no new prefix categories required)
+
+Completion Notes (2026-02-05): Added `U_DisplayOptionCatalog`, `RS_WindowSizePreset`, window size presets, and catalog-backed option lists for window/quality/dither/color blind; reducer + UI now pull from catalog. Tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/utils -ginclude_subdirs=true`, `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true`, `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (warnings: macOS CA cert, InputMap bootstrapper, ObjectDB leak, particle spawner deferred errors). Commit: b0680e8.
 
 ### 4B - Extract Appliers (Modular, Testable)
 

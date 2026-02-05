@@ -1,14 +1,14 @@
 # Display Manager - Continuation Prompt
 
-**Last Updated:** 2026-02-04
-**Current Phase:** Phase 7 Complete (Integration Testing)
+**Last Updated:** 2026-02-05
+**Current Phase:** Cleanup V5 Phase 10A Complete (Option Catalogs)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, CRT, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + UIScaleRoot registration; applies to CanvasLayer/Control roots and updates newly registered UI nodes). Phase 5 color blind accessibility complete (palette resource + instances, palette manager helper + tests, color blind shader + overlay wiring, manager integration). Minimal UI theme binding now applies palette text colors to common UI controls and is covered by display manager unit tests. Phase 6 settings UI integration complete (display settings overlay + tab, accessibility section wiring, settings menu integration, registry entries). Display settings UI now uses Apply/Cancel + preview (no auto-save). Phase 7 integration tests added for display settings UI, post-processing overlay wiring, and color blind palette switching/persistence.
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, CRT, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + UIScaleRoot registration; applies to CanvasLayer/Control roots and updates newly registered UI nodes). Phase 5 color blind accessibility complete (palette resource + instances, palette manager helper + tests, color blind shader + overlay wiring, manager integration). Minimal UI theme binding now applies palette text colors to common UI controls and is covered by display manager unit tests. Phase 6 settings UI integration complete (display settings overlay + tab, accessibility section wiring, settings menu integration, registry entries). Display settings UI now uses Apply/Cancel + preview (no auto-save). Phase 7 integration tests added for display settings UI, post-processing overlay wiring, and color blind palette switching/persistence. Cleanup v5 Phase 10A complete: data-driven option catalogs added (window size presets, quality preset metadata, option lists) and UI/reducer/manager now pull from catalog.
 
 ---
 
@@ -64,12 +64,19 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 7.2: Post-processing integration tests
 - [x] Task 7.3: Color blind palette integration tests
 - [x] Task 7.4: UI scale/theme integration tests (CI-safe)
+- [x] Task 10A: Data-driven option catalogs (U_DisplayOptionCatalog + RS_WindowSizePreset + catalog-backed UI/reducer/manager)
 
 ---
 
 ## Next Steps
 
-### Immediate: Phase 8 - Manual Testing
+### Immediate: Cleanup V5 Phase 10B
+
+1. **Task 10B**: Extract display appliers (window/quality/post-process/ui scale/theme)
+2. **Task 10C**: Confirm/revert flow for window changes
+3. **Task 10D**: Settings UI polish (contextual enable/disable + focus clarity)
+
+### Later: Phase 8 - Manual Testing
 
 1. **Task 8**: Run manual verification checklist (MT-01 → MT-17)
 2. **Task 9**: Documentation updates (AGENTS.md, DEV_PITFALLS.md if applicable)
@@ -178,15 +185,15 @@ if display_initial_state != null:
 
 ---
 
-## Validation Constants
+## Validation Sources
 
-```gdscript
-const VALID_WINDOW_PRESETS := ["1280x720", "1600x900", "1920x1080", "2560x1440", "3840x2160"]
-const VALID_WINDOW_MODES := ["windowed", "fullscreen", "borderless"]
-const VALID_QUALITY_PRESETS := ["low", "medium", "high", "ultra"]
-const VALID_COLOR_BLIND_MODES := ["normal", "deuteranopia", "protanopia", "tritanopia"]
-const VALID_DITHER_PATTERNS := ["bayer", "noise"]
-```
+Validation for window modes, dither patterns, color blind modes, and preset IDs now comes from `U_DisplayOptionCatalog` (data-driven presets + static option lists). Defaults currently include:
+
+- Window presets: 1280x720, 1600x900, 1920x1080, 2560x1440, 3840x2160
+- Window modes: windowed, fullscreen, borderless
+- Quality presets: low, medium, high, ultra
+- Color blind modes: normal, deuteranopia, protanopia, tritanopia
+- Dither patterns: bayer, noise
 
 ---
 

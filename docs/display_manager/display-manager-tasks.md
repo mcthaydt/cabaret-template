@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 39% (30 / 76 tasks complete)
+**Progress:** 38% (31 / 81 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -626,6 +626,24 @@ Before starting Phase 0, verify:
   - Add Display-specific pitfalls discovered during implementation
   - Document DisplayServer thread safety requirements
   - Document UI scale transform origin issue
+
+---
+
+## Phase 10: Cleanup V5 Display Refactor
+
+**Exit Criteria:** Display module refactor complete (catalogs, appliers, confirm flow) without regressions
+
+- [x] **Task 10A**: Data-driven option catalogs
+  - Add `U_DisplayOptionCatalog` as single source for option lists
+  - Add `RS_WindowSizePreset` + window size preset resources
+  - Make quality presets discoverable via resource directory
+  - Update manager/UI/reducer to use catalog
+  - Notes: Completed 2026-02-05 (commit b0680e8; unit utils/managers + integration display tests)
+
+- [ ] **Task 10B**: Extract display appliers (window/quality/post-process/ui scale/theme)
+- [ ] **Task 10C**: Confirm/revert flow for window changes (Apply/Cancel + preview remains)
+- [ ] **Task 10D**: Settings UI polish (contextual enable/disable + focus clarity)
+- [ ] **Task 10E**: Remove dead code after tests prove unused
 
 ---
 
