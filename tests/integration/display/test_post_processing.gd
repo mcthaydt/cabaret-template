@@ -13,7 +13,6 @@ const M_DISPLAY_MANAGER := preload("res://scripts/managers/m_display_manager.gd"
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
-const RS_LUT_DEFINITION := preload("res://scripts/resources/display/rs_lut_definition.gd")
 
 const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
@@ -22,7 +21,6 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
-const LUT_RESOURCE_PATH := "res://resources/luts/cfg_lut_neutral.tres"
 
 var _store: M_StateStore
 var _display_manager: M_DisplayManager
@@ -127,37 +125,6 @@ func test_dither_parameters_update_shader_uniforms() -> void:
 		"Dither intensity should update shader parameter")
 	assert_eq(int(_get_shader_param(rect, StringName("pattern_mode"))), 1,
 		"Dither pattern 'noise' should set pattern_mode to 1")
-
-func test_lut_toggle_updates_visibility() -> void:
-	var rect := _get_effect_rect(U_POST_PROCESS_LAYER.EFFECT_LUT)
-	assert_not_null(rect, "LUT rect should exist")
-	assert_false(rect.visible, "LUT should be disabled by default")
-
-	_store.dispatch(U_DISPLAY_ACTIONS.set_lut_enabled(true))
-	await get_tree().process_frame
-
-	assert_true(rect.visible, "LUT should be enabled after dispatch")
-
-func test_lut_parameters_update_shader_uniforms() -> void:
-	var rect := _get_effect_rect(U_POST_PROCESS_LAYER.EFFECT_LUT)
-	assert_not_null(rect, "LUT rect should exist")
-
-	_store.dispatch(U_DISPLAY_ACTIONS.set_lut_enabled(true))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_lut_resource(LUT_RESOURCE_PATH))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_lut_intensity(0.6))
-	await get_tree().process_frame
-
-	var resource := load(LUT_RESOURCE_PATH)
-	var expected_texture: Texture2D = null
-	if resource is RS_LUT_DEFINITION:
-		var definition := resource as RS_LUT_DEFINITION
-		expected_texture = definition.texture
-
-	assert_true(rect.visible, "LUT should be enabled after dispatch")
-	assert_almost_eq(float(_get_shader_param(rect, StringName("intensity"))), 0.6, 0.001,
-		"LUT intensity should update shader parameter")
-	assert_eq(_get_shader_param(rect, StringName("lut_texture")), expected_texture,
-		"LUT texture should be applied to shader parameter")
 
 func test_color_blind_shader_mode_updates() -> void:
 	var rect := _get_effect_rect(U_POST_PROCESS_LAYER.EFFECT_COLOR_BLIND)

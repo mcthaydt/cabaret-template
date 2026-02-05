@@ -3,14 +3,7 @@
 [ext_resource type="Shader" uid="uid://dnr1bhr1xtam3" path="res://assets/shaders/sh_film_grain_shader.gdshader" id="1_film_grain"]
 [ext_resource type="Shader" uid="uid://bingg7gwd5ywn" path="res://assets/shaders/sh_crt_shader.gdshader" id="2_crt"]
 [ext_resource type="Shader" uid="uid://c7ja1gq2xahli" path="res://assets/shaders/sh_dither_shader.gdshader" id="3_dither"]
-[ext_resource type="Shader" uid="uid://goc30a8wml54" path="res://assets/shaders/sh_lut_shader.gdshader" id="4_lut"]
-[ext_resource type="Texture2D" uid="uid://ynchf4sgcby0" path="res://resources/luts/tex_lut_neutral.png" id="6_lut_neutral"]
 [ext_resource type="Shader" uid="uid://cbb5bncshtrb" path="res://assets/shaders/sh_colorblind_daltonize.gdshader" id="7_color_blind"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_lut"]
-shader = ExtResource("4_lut")
-shader_parameter/intensity = 1.0
-shader_parameter/lut_texture = ExtResource("6_lut_neutral")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_film_grain"]
 shader = ExtResource("1_film_grain")
@@ -39,19 +32,6 @@ shader_parameter/mode = 0
 shader_parameter/intensity = 1.0
 
 [node name="PostProcessOverlay" type="Node" unique_id=59672493]
-
-[node name="LUTLayer" type="CanvasLayer" parent="." unique_id=2021417999]
-follow_viewport_enabled = true
-
-[node name="LUTRect" type="ColorRect" parent="LUTLayer" unique_id=1535269892]
-visible = false
-material = SubResource("ShaderMaterial_lut")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
 
 [node name="FilmGrainLayer" type="CanvasLayer" parent="." unique_id=1768934360]
 layer = 2

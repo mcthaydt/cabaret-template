@@ -10,7 +10,7 @@
 
 ## Overview
 
-The Display Manager handles visual post-processing effects (Film Grain, Outline, Dither, LUT), graphics settings (window size, fullscreen, VSync, quality presets), UI scaling, and color blind accessibility. Implementation follows established codebase patterns for Redux slices, managers, and settings UI integration.
+The Display Manager handles visual post-processing effects (Film Grain, Outline, Dither), graphics settings (window size, fullscreen, VSync, quality presets), UI scaling, and color blind accessibility. Implementation follows established codebase patterns for Redux slices, managers, and settings UI integration.
 
 ## Key Patterns to Follow
 
@@ -47,7 +47,7 @@ class_name RS_DisplayInitialState
 @export_enum("low", "medium", "high", "ultra") var quality_preset: String = "high"
 
 @export_group("Post-Processing")
-# Note: Effect order is fixed internally (Film Grain → Outline → Dither → LUT), not user-configurable
+# Note: Effect order is fixed internally (Film Grain → Outline → Dither), not user-configurable
 @export var film_grain_enabled: bool = false
 @export_range(0.0, 1.0, 0.05) var film_grain_intensity: float = 0.1
 @export var outline_enabled: bool = false
@@ -56,9 +56,6 @@ class_name RS_DisplayInitialState
 @export var dither_enabled: bool = false
 @export_range(0.0, 1.0, 0.05) var dither_intensity: float = 0.5
 @export_enum("bayer", "noise") var dither_pattern: String = "bayer"
-@export var lut_enabled: bool = false
-@export var lut_resource: String = ""
-@export_range(0.0, 1.0, 0.05) var lut_intensity: float = 1.0
 
 @export_group("UI")
 @export_range(0.8, 1.3, 0.1) var ui_scale: float = 1.0
@@ -82,9 +79,6 @@ func to_dictionary() -> Dictionary:
         "dither_enabled": dither_enabled,
         "dither_intensity": dither_intensity,
         "dither_pattern": dither_pattern,
-        "lut_enabled": lut_enabled,
-        "lut_resource": lut_resource,
-        "lut_intensity": lut_intensity,
         "ui_scale": ui_scale,
         "color_blind_mode": color_blind_mode,
         "high_contrast_enabled": high_contrast_enabled,
@@ -99,7 +93,6 @@ func to_dictionary() -> Dictionary:
 - test_has_film_grain_fields
 - test_has_outline_fields
 - test_has_dither_fields
-- test_has_lut_fields
 - test_has_ui_scale_field
 - test_has_accessibility_fields
 - test_to_dictionary_returns_all_fields
@@ -133,9 +126,6 @@ const ACTION_SET_OUTLINE_COLOR := StringName("display/set_outline_color")
 const ACTION_SET_DITHER_ENABLED := StringName("display/set_dither_enabled")
 const ACTION_SET_DITHER_INTENSITY := StringName("display/set_dither_intensity")
 const ACTION_SET_DITHER_PATTERN := StringName("display/set_dither_pattern")
-const ACTION_SET_LUT_ENABLED := StringName("display/set_lut_enabled")
-const ACTION_SET_LUT_RESOURCE := StringName("display/set_lut_resource")
-const ACTION_SET_LUT_INTENSITY := StringName("display/set_lut_intensity")
 
 # UI
 const ACTION_SET_UI_SCALE := StringName("display/set_ui_scale")
@@ -167,9 +157,6 @@ static func set_window_mode(mode: String) -> Dictionary:
 - test_set_dither_enabled_action
 - test_set_dither_intensity_action
 - test_set_dither_pattern_action
-- test_set_lut_enabled_action
-- test_set_lut_resource_action
-- test_set_lut_intensity_action
 - test_set_ui_scale_action
 - test_set_color_blind_mode_action
 - test_set_high_contrast_enabled_action
@@ -184,7 +171,7 @@ static func set_window_mode(mode: String) -> Dictionary:
 - `tests/unit/state/test_display_reducer.gd` (28 tests)
 
 **Key Features**:
-- Intensity clamping (0.0-1.0 for film_grain, dither, lut)
+- Intensity clamping (0.0-1.0 for film_grain, dither)
 - Thickness clamping (1-5 for outline)
 - UI scale clamping (0.8-1.3)
 - Immutability helpers (_merge_with_defaults, _with_values, _deep_copy)
@@ -361,15 +348,6 @@ static func get_dither_intensity(state: Dictionary) -> float:
 
 static func get_dither_pattern(state: Dictionary) -> String:
     return state.get("display", {}).get("dither_pattern", "bayer")
-
-static func is_lut_enabled(state: Dictionary) -> bool:
-    return state.get("display", {}).get("lut_enabled", false)
-
-static func get_lut_resource(state: Dictionary) -> String:
-    return state.get("display", {}).get("lut_resource", "")
-
-static func get_lut_intensity(state: Dictionary) -> float:
-    return state.get("display", {}).get("lut_intensity", 1.0)
 
 static func get_ui_scale(state: Dictionary) -> float:
     return state.get("display", {}).get("ui_scale", 1.0)
@@ -652,8 +630,7 @@ func apply_quality_preset(preset: String) -> void:
 CanvasLayer (layer 100, mouse_filter IGNORE)
 ├── FilmGrainRect (ColorRect, full screen, sh_film_grain_shader.gdshader)
 ├── OutlineRect (ColorRect, full screen, sh_outline_shader.gdshader)
-├── DitherRect (ColorRect, full screen, sh_dither_shader.gdshader)
-└── LUTRect (ColorRect, full screen, sh_lut_shader.gdshader)
+└── DitherRect (ColorRect, full screen, sh_dither_shader.gdshader)
 ```
 
 **Effect Stack Management**:
@@ -673,7 +650,6 @@ func _cache_effect_rects() -> void:
     _effect_rects["film_grain"] = _canvas_layer.get_node_or_null("FilmGrainRect")
     _effect_rects["outline"] = _canvas_layer.get_node_or_null("OutlineRect")
     _effect_rects["dither"] = _canvas_layer.get_node_or_null("DitherRect")
-    _effect_rects["lut"] = _canvas_layer.get_node_or_null("LUTRect")
 
 func set_effect_enabled(effect_name: String, enabled: bool) -> void:
     var rect: ColorRect = _effect_rects.get(effect_name)
@@ -689,7 +665,7 @@ func set_effect_parameter(effect_name: String, param: String, value: Variant) ->
         shader_material.set_shader_parameter(param, value)
 ```
 
-**Note**: Effect order is fixed by the scene structure (Film Grain → Outline → Dither → LUT). This is not user-configurable.
+**Note**: Effect order is fixed by the scene structure (Film Grain → Outline → Dither). This is not user-configurable.
 
 ---
 
@@ -746,20 +722,6 @@ void fragment() {
 **Files to create**:
 - `assets/shaders/sh_dither_shader.gdshader`
 - `resources/textures/tex_bayer_8x8.png`
-
----
-
-### Commit 5: LUT Color Grading Shader
-
-**Files to create**:
-- `assets/shaders/sh_lut_shader.gdshader`
-- `scripts/resources/display/rs_lut_definition.gd`
-- `resources/luts/cfg_lut_neutral.tres` (identity LUT)
-- `resources/luts/cfg_lut_warm.tres`
-- `resources/luts/cfg_lut_cool.tres`
-- `resources/luts/tex_lut_neutral.png`
-- `resources/luts/tex_lut_warm.png`
-- `resources/luts/tex_lut_cool.png`
 
 ---
 
@@ -943,10 +905,6 @@ ScrollContainer
     ├── HBoxContainer (Dither Pattern)
     │   ├── Label
     │   └── OptionButton (bayer/noise)
-    ├── CheckBox (LUT)
-    ├── HBoxContainer (LUT File)
-    │   ├── Label
-    │   └── OptionButton
     ├── HSeparator
     ├── Label ("UI SCALE")
     ├── HBoxContainer
@@ -1019,7 +977,6 @@ ScrollContainer
 - [ ] Film Grain effect visible when enabled
 - [ ] Outline effect draws edges correctly
 - [ ] Dither patterns (bayer/noise) distinguishable
-- [ ] LUT color grading applies correctly
 - [ ] Post-process overlay renders above gameplay (layer 100)
 
 ### Phase 4 Complete:
@@ -1109,7 +1066,6 @@ scripts/resources/state/
 
 scripts/resources/display/
   rs_quality_preset.gd              # Quality preset resource class
-  rs_lut_definition.gd              # LUT definition resource class
 
 scripts/resources/ui/
   rs_ui_color_palette.gd            # Color palette resource class
@@ -1130,7 +1086,6 @@ assets/shaders/
   sh_film_grain_shader.gdshader
   sh_outline_shader.gdshader
   sh_dither_shader.gdshader
-  sh_lut_shader.gdshader
   sh_colorblind_daltonize.gdshader
 
 resources/base_settings/state/
@@ -1148,14 +1103,6 @@ resources/ui_themes/
   cfg_palette_protanopia.tres
   cfg_palette_tritanopia.tres
   cfg_palette_high_contrast.tres
-
-resources/luts/
-  cfg_lut_neutral.tres
-  cfg_lut_warm.tres
-  cfg_lut_cool.tres
-  tex_lut_neutral.png
-  tex_lut_warm.png
-  tex_lut_cool.png
 
 resources/textures/
   tex_bayer_8x8.png                  # Bayer dither pattern

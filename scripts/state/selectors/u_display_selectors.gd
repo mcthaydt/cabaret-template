@@ -58,18 +58,6 @@ static func get_dither_pattern(state: Dictionary) -> String:
 	var display := _get_display_slice(state)
 	return String(display.get("dither_pattern", "bayer"))
 
-static func is_lut_enabled(state: Dictionary) -> bool:
-	var display := _get_display_slice(state)
-	return bool(display.get("lut_enabled", false))
-
-static func get_lut_resource(state: Dictionary) -> String:
-	var display := _get_display_slice(state)
-	return String(display.get("lut_resource", ""))
-
-static func get_lut_intensity(state: Dictionary) -> float:
-	var display := _get_display_slice(state)
-	return float(display.get("lut_intensity", 1.0))
-
 static func get_ui_scale(state: Dictionary) -> float:
 	var display := _get_display_slice(state)
 	return float(display.get("ui_scale", 1.0))

@@ -27,10 +27,6 @@ func test_initialize_caches_effect_rects() -> void:
 		"Dither rect should be cached"
 	)
 	assert_not_null(
-		_helper.get_effect_rect(U_PostProcessLayer.EFFECT_LUT),
-		"LUT rect should be cached"
-	)
-	assert_not_null(
 		_helper.get_effect_rect(U_PostProcessLayer.EFFECT_COLOR_BLIND),
 		"Color blind rect should be cached"
 	)
@@ -92,12 +88,12 @@ func test_set_effect_parameter_handles_null_material() -> void:
 
 func test_set_effect_parameter_ignores_non_shader_material() -> void:
 	_helper.initialize(_root_node)
-	var rect := _helper.get_effect_rect(U_PostProcessLayer.EFFECT_LUT)
-	assert_not_null(rect, "LUT rect should exist")
+	var rect := _helper.get_effect_rect(U_PostProcessLayer.EFFECT_DITHER)
+	assert_not_null(rect, "Dither rect should exist")
 
 	var material := CanvasItemMaterial.new()
 	rect.material = material
-	_helper.set_effect_parameter(U_PostProcessLayer.EFFECT_LUT, StringName("intensity"), 0.2)
+	_helper.set_effect_parameter(U_PostProcessLayer.EFFECT_DITHER, StringName("intensity"), 0.2)
 	assert_eq(rect.material, material, "Non-shader materials should be left unchanged")
 
 func _create_effect_rects(root: Node) -> void:
@@ -105,7 +101,6 @@ func _create_effect_rects(root: Node) -> void:
 		{layer_name = "FilmGrainLayer", rect_name = "FilmGrainRect"},
 		{layer_name = "CRTLayer", rect_name = "CRTRect"},
 		{layer_name = "DitherLayer", rect_name = "DitherRect"},
-		{layer_name = "LUTLayer", rect_name = "LUTRect"},
 		{layer_name = "ColorBlindLayer", rect_name = "ColorBlindRect"}
 	]
 	for layer_data in layers:

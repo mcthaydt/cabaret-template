@@ -21,9 +21,6 @@ func test_default_state_has_all_fields() -> void:
 	assert_true(default_state.has("dither_enabled"))
 	assert_true(default_state.has("dither_intensity"))
 	assert_true(default_state.has("dither_pattern"))
-	assert_true(default_state.has("lut_enabled"))
-	assert_true(default_state.has("lut_resource"))
-	assert_true(default_state.has("lut_intensity"))
 	assert_true(default_state.has("ui_scale"))
 	assert_true(default_state.has("color_blind_mode"))
 	assert_true(default_state.has("high_contrast_enabled"))
@@ -45,9 +42,6 @@ func test_default_state_has_expected_defaults() -> void:
 	assert_eq(default_state.get("dither_enabled"), false)
 	assert_almost_eq(float(default_state.get("dither_intensity", 0.0)), 0.5, 0.0001)
 	assert_eq(default_state.get("dither_pattern"), "bayer")
-	assert_eq(default_state.get("lut_enabled"), false)
-	assert_eq(default_state.get("lut_resource"), "")
-	assert_almost_eq(float(default_state.get("lut_intensity", 0.0)), 1.0, 0.0001)
 	assert_almost_eq(float(default_state.get("ui_scale", 0.0)), 1.0, 0.0001)
 	assert_eq(default_state.get("color_blind_mode"), "normal")
 	assert_eq(default_state.get("high_contrast_enabled"), false)
@@ -125,23 +119,7 @@ func test_set_dither_pattern_updates_field() -> void:
 
 	assert_eq(reduced.get("dither_pattern"), "noise")
 
-# Test 12: set_lut_enabled updates field
-func test_set_lut_enabled_updates_field() -> void:
-	var state := _make_display_state()
-	var action := U_DisplayActions.set_lut_enabled(true)
-	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
-
-	assert_eq(reduced.get("lut_enabled"), true)
-
-# Test 13: set_lut_resource updates field
-func test_set_lut_resource_updates_field() -> void:
-	var state := _make_display_state()
-	var action := U_DisplayActions.set_lut_resource("res://assets/luts/test.cube")
-	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
-
-	assert_eq(reduced.get("lut_resource"), "res://assets/luts/test.cube")
-
-# Test 14: set_color_blind_mode updates field
+# Test 12: set_color_blind_mode updates field
 func test_set_color_blind_mode_updates_field() -> void:
 	var state := _make_display_state()
 	var action := U_DisplayActions.set_color_blind_mode("deuteranopia")
@@ -149,7 +127,7 @@ func test_set_color_blind_mode_updates_field() -> void:
 
 	assert_eq(reduced.get("color_blind_mode"), "deuteranopia")
 
-# Test 15: set_high_contrast_enabled updates field
+# Test 13: set_high_contrast_enabled updates field
 func test_set_high_contrast_enabled_updates_field() -> void:
 	var state := _make_display_state()
 	var action := U_DisplayActions.set_high_contrast_enabled(true)
@@ -157,7 +135,7 @@ func test_set_high_contrast_enabled_updates_field() -> void:
 
 	assert_eq(reduced.get("high_contrast_enabled"), true)
 
-# Test 16: set_color_blind_shader_enabled updates field
+# Test 14: set_color_blind_shader_enabled updates field
 func test_set_color_blind_shader_enabled_updates_field() -> void:
 	var state := _make_display_state()
 	var action := U_DisplayActions.set_color_blind_shader_enabled(true)
@@ -165,7 +143,7 @@ func test_set_color_blind_shader_enabled_updates_field() -> void:
 
 	assert_eq(reduced.get("color_blind_shader_enabled"), true)
 
-# Test 17: set_film_grain_intensity clamps
+# Test 15: set_film_grain_intensity clamps
 func test_set_film_grain_intensity_clamps() -> void:
 	var state := _make_display_state()
 	var action := U_DisplayActions.set_film_grain_intensity(2.0)
@@ -173,7 +151,7 @@ func test_set_film_grain_intensity_clamps() -> void:
 
 	assert_almost_eq(float(reduced.get("film_grain_intensity", 0.0)), 1.0, 0.0001)
 
-# Test 18: set_dither_intensity clamps
+# Test 16: set_dither_intensity clamps
 func test_set_dither_intensity_clamps() -> void:
 	var state := _make_display_state()
 	var action := U_DisplayActions.set_dither_intensity(-1.0)
@@ -181,15 +159,7 @@ func test_set_dither_intensity_clamps() -> void:
 
 	assert_almost_eq(float(reduced.get("dither_intensity", 0.0)), 0.0, 0.0001)
 
-# Test 19: set_lut_intensity clamps
-func test_set_lut_intensity_clamps() -> void:
-	var state := _make_display_state()
-	var action := U_DisplayActions.set_lut_intensity(5.0)
-	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
-
-	assert_almost_eq(float(reduced.get("lut_intensity", 0.0)), 1.0, 0.0001)
-
-# Test 20: set_crt_scanline_intensity clamps
+# Test 17: set_crt_scanline_intensity clamps
 func test_set_crt_scanline_intensity_clamps() -> void:
 	var state := _make_display_state()
 	var action := U_DisplayActions.set_crt_scanline_intensity(10.0)
@@ -197,7 +167,7 @@ func test_set_crt_scanline_intensity_clamps() -> void:
 
 	assert_almost_eq(float(reduced.get("crt_scanline_intensity", 0.0)), 1.0, 0.0001)
 
-# Test 21: set_ui_scale clamps
+# Test 18: set_ui_scale clamps
 func test_set_ui_scale_clamps() -> void:
 	var state := _make_display_state()
 	var action := U_DisplayActions.set_ui_scale(3.0)
@@ -205,7 +175,7 @@ func test_set_ui_scale_clamps() -> void:
 
 	assert_almost_eq(float(reduced.get("ui_scale", 0.0)), 1.3, 0.0001)
 
-# Test 22: invalid window_size_preset ignored
+# Test 19: invalid window_size_preset ignored
 func test_invalid_window_size_preset_ignored() -> void:
 	var state := _make_display_state()
 	var action := U_DisplayActions.set_window_size_preset("999x999")
@@ -213,7 +183,7 @@ func test_invalid_window_size_preset_ignored() -> void:
 
 	assert_null(reduced, "Invalid window_size_preset should return null")
 
-# Test 23: invalid window_mode ignored
+# Test 20: invalid window_mode ignored
 func test_invalid_window_mode_ignored() -> void:
 	var state := _make_display_state()
 	var action := U_DisplayActions.set_window_mode("invalid")
@@ -221,7 +191,7 @@ func test_invalid_window_mode_ignored() -> void:
 
 	assert_null(reduced, "Invalid window_mode should return null")
 
-# Test 24: invalid quality_preset ignored
+# Test 21: invalid quality_preset ignored
 func test_invalid_quality_preset_ignored() -> void:
 	var state := _make_display_state()
 	var action := U_DisplayActions.set_quality_preset("potato")
@@ -229,7 +199,7 @@ func test_invalid_quality_preset_ignored() -> void:
 
 	assert_null(reduced, "Invalid quality_preset should return null")
 
-# Test 25: invalid color_blind_mode ignored
+# Test 22: invalid color_blind_mode ignored
 func test_invalid_color_blind_mode_ignored() -> void:
 	var state := _make_display_state()
 	var action := U_DisplayActions.set_color_blind_mode("achromatopsia")
@@ -237,7 +207,7 @@ func test_invalid_color_blind_mode_ignored() -> void:
 
 	assert_null(reduced, "Invalid color_blind_mode should return null")
 
-# Test 26: invalid dither_pattern ignored
+# Test 23: invalid dither_pattern ignored
 func test_invalid_dither_pattern_ignored() -> void:
 	var state := _make_display_state()
 	var action := U_DisplayActions.set_dither_pattern("ordered")
@@ -245,7 +215,7 @@ func test_invalid_dither_pattern_ignored() -> void:
 
 	assert_null(reduced, "Invalid dither_pattern should return null")
 
-# Test 27: unknown action returns null
+# Test 24: unknown action returns null
 func test_unhandled_action_returns_null() -> void:
 	var state := _make_display_state()
 	var action := {"type": StringName("display/unknown_action")}
@@ -253,7 +223,7 @@ func test_unhandled_action_returns_null() -> void:
 
 	assert_null(reduced, "Unknown action should return null (no change)")
 
-# Test 28: reducer immutability
+# Test 25: reducer immutability
 func test_reducer_immutability() -> void:
 	var state := _make_display_state()
 	var original_copy: Dictionary = state.duplicate(true)

@@ -24,9 +24,6 @@ const DEFAULT_DISPLAY_STATE := {
 	"dither_enabled": false,
 	"dither_intensity": 0.5,
 	"dither_pattern": "bayer",
-	"lut_enabled": false,
-	"lut_resource": "",
-	"lut_intensity": 1.0,
 	"ui_scale": 1.0,
 	"color_blind_mode": "normal",
 	"high_contrast_enabled": false,
@@ -127,22 +124,6 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			if not _is_valid_dither_pattern(pattern):
 				return null
 			return _with_values(current, {"dither_pattern": pattern})
-
-		U_DisplayActions.ACTION_SET_LUT_ENABLED:
-			var payload: Dictionary = action.get("payload", {})
-			var enabled := bool(payload.get("enabled", false))
-			return _with_values(current, {"lut_enabled": enabled})
-
-		U_DisplayActions.ACTION_SET_LUT_RESOURCE:
-			var payload: Dictionary = action.get("payload", {})
-			var resource: String = String(payload.get("resource", ""))
-			return _with_values(current, {"lut_resource": resource})
-
-		U_DisplayActions.ACTION_SET_LUT_INTENSITY:
-			var payload: Dictionary = action.get("payload", {})
-			var raw_intensity: float = float(payload.get("intensity", 1.0))
-			var clamped_intensity := clampf(raw_intensity, MIN_INTENSITY, MAX_INTENSITY)
-			return _with_values(current, {"lut_intensity": clamped_intensity})
 
 		U_DisplayActions.ACTION_SET_UI_SCALE:
 			var payload: Dictionary = action.get("payload", {})

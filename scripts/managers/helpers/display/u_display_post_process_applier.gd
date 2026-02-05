@@ -5,7 +5,6 @@ extends RefCounted
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
 const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/u_post_process_layer.gd")
-const RS_LUT_DEFINITION := preload("res://scripts/resources/display/rs_lut_definition.gd")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
 
 var _owner: Node = null
@@ -28,7 +27,6 @@ func apply_settings(display_settings: Dictionary) -> void:
 	_apply_film_grain_settings(state)
 	_apply_crt_settings(state)
 	_apply_dither_settings(state)
-	_apply_lut_settings(state)
 	_apply_color_blind_shader_settings(state)
 
 func process_film_grain_time() -> void:
@@ -109,43 +107,6 @@ func _apply_dither_settings(state: Dictionary) -> void:
 		pattern_mode
 	)
 
-func _apply_lut_settings(state: Dictionary) -> void:
-	var enabled := U_DISPLAY_SELECTORS.is_lut_enabled(state)
-	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_LUT, enabled)
-	var intensity := U_DISPLAY_SELECTORS.get_lut_intensity(state)
-	_post_process_layer.set_effect_parameter(
-		U_POST_PROCESS_LAYER.EFFECT_LUT,
-		StringName("intensity"),
-		intensity
-	)
-
-	var lut_path := U_DISPLAY_SELECTORS.get_lut_resource(state)
-	if lut_path.is_empty():
-		return
-	var resource: Resource = load(lut_path)
-	if resource == null:
-		push_warning("U_DisplayPostProcessApplier: Failed to load LUT resource '%s'" % lut_path)
-		return
-
-	var lut_texture: Texture2D = null
-	if resource is Texture2D:
-		lut_texture = resource as Texture2D
-	elif resource is RS_LUT_DEFINITION:
-		var definition := resource as RS_LUT_DEFINITION
-		if definition.texture == null:
-			push_warning("U_DisplayPostProcessApplier: LUT texture missing for '%s'" % lut_path)
-			return
-		lut_texture = definition.texture
-	else:
-		push_warning("U_DisplayPostProcessApplier: Invalid LUT resource '%s' (expected Texture2D or RS_LUTDefinition)" % lut_path)
-		return
-
-	_post_process_layer.set_effect_parameter(
-		U_POST_PROCESS_LAYER.EFFECT_LUT,
-		StringName("lut_texture"),
-		lut_texture
-	)
-
 func _apply_color_blind_shader_settings(state: Dictionary) -> void:
 	var enabled := U_DISPLAY_SELECTORS.is_color_blind_shader_enabled(state)
 	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_COLOR_BLIND, enabled)
@@ -180,7 +141,6 @@ func _disable_post_process_effects() -> void:
 	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN, false)
 	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_CRT, false)
 	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_DITHER, false)
-	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_LUT, false)
 
 func _ensure_post_process_layer() -> bool:
 	if _post_process_layer != null:

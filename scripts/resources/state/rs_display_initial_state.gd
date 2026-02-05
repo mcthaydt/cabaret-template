@@ -13,7 +13,7 @@ class_name RS_DisplayInitialState
 @export_enum("low", "medium", "high", "ultra") var quality_preset: String = "high"
 
 @export_group("Post-Processing")
-# Note: Effect order is fixed internally (Film Grain -> CRT -> Dither -> LUT), not user-configurable.
+# Note: Effect order is fixed internally (Film Grain -> Dither -> CRT), not user-configurable.
 @export var film_grain_enabled: bool = false
 @export_range(0.0, 1.0, 0.05) var film_grain_intensity: float = 0.1
 @export var crt_enabled: bool = false
@@ -23,9 +23,6 @@ class_name RS_DisplayInitialState
 @export var dither_enabled: bool = false
 @export_range(0.0, 1.0, 0.05) var dither_intensity: float = 0.5
 @export_enum("bayer", "noise") var dither_pattern: String = "bayer"
-@export var lut_enabled: bool = false
-@export_file("*.png", "*.tres") var lut_resource: String = ""
-@export_range(0.0, 1.0, 0.05) var lut_intensity: float = 1.0
 
 @export_group("UI")
 @export_range(0.8, 1.3, 0.1) var ui_scale: float = 1.0
@@ -51,9 +48,6 @@ func to_dictionary() -> Dictionary:
 		"dither_enabled": dither_enabled,
 		"dither_intensity": dither_intensity,
 		"dither_pattern": dither_pattern,
-		"lut_enabled": lut_enabled,
-		"lut_resource": lut_resource,
-		"lut_intensity": lut_intensity,
 		"ui_scale": ui_scale,
 		"color_blind_mode": color_blind_mode,
 		"high_contrast_enabled": high_contrast_enabled,

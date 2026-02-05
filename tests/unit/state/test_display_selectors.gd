@@ -17,9 +17,6 @@ const DEFAULTS := {
 	"dither_enabled": false,
 	"dither_intensity": 0.5,
 	"dither_pattern": "bayer",
-	"lut_enabled": false,
-	"lut_resource": "",
-	"lut_intensity": 1.0,
 	"ui_scale": 1.0,
 	"color_blind_mode": "normal",
 	"high_contrast_enabled": false,
@@ -146,37 +143,7 @@ func test_get_dither_pattern_returns_value_and_defaults() -> void:
 	missing_field["display"].erase("dither_pattern")
 	assert_eq(U_DisplaySelectors.get_dither_pattern(missing_field), DEFAULTS["dither_pattern"])
 
-# Test 13: lut_enabled selector
-func test_is_lut_enabled_returns_value_and_defaults() -> void:
-	var state := _make_state()
-	state["display"]["lut_enabled"] = true
-	assert_true(U_DisplaySelectors.is_lut_enabled(state))
-	assert_false(U_DisplaySelectors.is_lut_enabled({}))
-	var missing_field := _make_state()
-	missing_field["display"].erase("lut_enabled")
-	assert_false(U_DisplaySelectors.is_lut_enabled(missing_field))
-
-# Test 14: lut_resource selector
-func test_get_lut_resource_returns_value_and_defaults() -> void:
-	var state := _make_state()
-	state["display"]["lut_resource"] = "res://assets/luts/test.cube"
-	assert_eq(U_DisplaySelectors.get_lut_resource(state), "res://assets/luts/test.cube")
-	assert_eq(U_DisplaySelectors.get_lut_resource({}), DEFAULTS["lut_resource"])
-	var missing_field := _make_state()
-	missing_field["display"].erase("lut_resource")
-	assert_eq(U_DisplaySelectors.get_lut_resource(missing_field), DEFAULTS["lut_resource"])
-
-# Test 15: lut_intensity selector
-func test_get_lut_intensity_returns_value_and_defaults() -> void:
-	var state := _make_state()
-	state["display"]["lut_intensity"] = 0.6
-	assert_almost_eq(U_DisplaySelectors.get_lut_intensity(state), 0.6, 0.0001)
-	assert_almost_eq(U_DisplaySelectors.get_lut_intensity({}), DEFAULTS["lut_intensity"], 0.0001)
-	var missing_field := _make_state()
-	missing_field["display"].erase("lut_intensity")
-	assert_almost_eq(U_DisplaySelectors.get_lut_intensity(missing_field), DEFAULTS["lut_intensity"], 0.0001)
-
-# Test 16: ui_scale selector
+# Test 13: ui_scale selector
 func test_get_ui_scale_returns_value_and_defaults() -> void:
 	var state := _make_state()
 	state["display"]["ui_scale"] = 1.5
@@ -186,7 +153,7 @@ func test_get_ui_scale_returns_value_and_defaults() -> void:
 	missing_field["display"].erase("ui_scale")
 	assert_almost_eq(U_DisplaySelectors.get_ui_scale(missing_field), DEFAULTS["ui_scale"], 0.0001)
 
-# Test 17: color_blind_mode selector
+# Test 14: color_blind_mode selector
 func test_get_color_blind_mode_returns_value_and_defaults() -> void:
 	var state := _make_state()
 	state["display"]["color_blind_mode"] = "deuteranopia"
@@ -196,7 +163,7 @@ func test_get_color_blind_mode_returns_value_and_defaults() -> void:
 	missing_field["display"].erase("color_blind_mode")
 	assert_eq(U_DisplaySelectors.get_color_blind_mode(missing_field), DEFAULTS["color_blind_mode"])
 
-# Test 18: high_contrast_enabled selector
+# Test 15: high_contrast_enabled selector
 func test_is_high_contrast_enabled_returns_value_and_defaults() -> void:
 	var state := _make_state()
 	state["display"]["high_contrast_enabled"] = true
@@ -206,7 +173,7 @@ func test_is_high_contrast_enabled_returns_value_and_defaults() -> void:
 	missing_field["display"].erase("high_contrast_enabled")
 	assert_false(U_DisplaySelectors.is_high_contrast_enabled(missing_field))
 
-# Test 19: color_blind_shader_enabled selector
+# Test 16: color_blind_shader_enabled selector
 func test_is_color_blind_shader_enabled_returns_value_and_defaults() -> void:
 	var state := _make_state()
 	state["display"]["color_blind_shader_enabled"] = true

@@ -58,12 +58,6 @@ static func _apply_display(store: I_StateStore, display: Dictionary) -> void:
 		store.dispatch(U_DISPLAY_ACTIONS.set_dither_intensity(float(display.get("dither_intensity", 0.5))))
 	if display.has("dither_pattern"):
 		store.dispatch(U_DISPLAY_ACTIONS.set_dither_pattern(String(display.get("dither_pattern", ""))))
-	if display.has("lut_enabled"):
-		store.dispatch(U_DISPLAY_ACTIONS.set_lut_enabled(bool(display.get("lut_enabled", false))))
-	if display.has("lut_resource"):
-		store.dispatch(U_DISPLAY_ACTIONS.set_lut_resource(String(display.get("lut_resource", ""))))
-	if display.has("lut_intensity"):
-		store.dispatch(U_DISPLAY_ACTIONS.set_lut_intensity(float(display.get("lut_intensity", 1.0))))
 	if display.has("ui_scale"):
 		store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(float(display.get("ui_scale", 1.0))))
 	if display.has("color_blind_mode"):

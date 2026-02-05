@@ -21,7 +21,7 @@ The Display Manager handles visual post-processing effects, graphics quality set
 
 ## Goals
 
-- Provide stacking post-processing effects (Film Grain, Outline, Dither, LUT) via CanvasLayer + shader.
+- Provide stacking post-processing effects (Film Grain, Dither, CRT) via CanvasLayer + shader.
 - Manage display/graphics settings (window size, fullscreen, VSync, quality presets).
 - Apply global UI scaling to CanvasLayer roots.
 - Support color blind accessibility via UI palette modes and optional full-screen shader filters.
@@ -42,7 +42,7 @@ The Display Manager handles visual post-processing effects, graphics quality set
 **Display Manager owns**
 
 - Post-processing effect overlay (CanvasLayer + ColorRect + shader).
-- Post-processing effect stack (Film Grain, Outline, Dither, LUT).
+- Post-processing effect stack (Film Grain, Dither, CRT, optional color blind filter).
 - Graphics settings application (window mode, VSync, quality presets).
 - UI scaling factor application to CanvasLayer roots.
 - Color blind palette loading and application.
@@ -97,15 +97,13 @@ U_DisplaySelectors.get_ui_scale(state: Dictionary) -> float
 U_DisplaySelectors.get_color_blind_mode(state: Dictionary) -> String
 U_DisplaySelectors.is_film_grain_enabled(state: Dictionary) -> bool
 U_DisplaySelectors.get_film_grain_intensity(state: Dictionary) -> float
-U_DisplaySelectors.is_outline_enabled(state: Dictionary) -> bool
-U_DisplaySelectors.get_outline_thickness(state: Dictionary) -> int
-U_DisplaySelectors.get_outline_color(state: Dictionary) -> String
+U_DisplaySelectors.is_crt_enabled(state: Dictionary) -> bool
+U_DisplaySelectors.get_crt_scanline_intensity(state: Dictionary) -> float
+U_DisplaySelectors.get_crt_curvature(state: Dictionary) -> float
+U_DisplaySelectors.get_crt_chromatic_aberration(state: Dictionary) -> float
 U_DisplaySelectors.is_dither_enabled(state: Dictionary) -> bool
 U_DisplaySelectors.get_dither_intensity(state: Dictionary) -> float
 U_DisplaySelectors.get_dither_pattern(state: Dictionary) -> String
-U_DisplaySelectors.is_lut_enabled(state: Dictionary) -> bool
-U_DisplaySelectors.get_lut_resource(state: Dictionary) -> String
-U_DisplaySelectors.get_lut_intensity(state: Dictionary) -> float
 ```
 
 ## Redux State Model (`display` slice)
@@ -122,15 +120,13 @@ U_DisplaySelectors.get_lut_intensity(state: Dictionary) -> float
         # Post-Processing (effect order is fixed internally, not user-configurable)
         "film_grain_enabled": false,
         "film_grain_intensity": 0.1,
-        "outline_enabled": false,
-        "outline_thickness": 2,
-        "outline_color": "000000",  # Hex color string
+        "crt_enabled": false,
+        "crt_scanline_intensity": 0.3,
+        "crt_curvature": 2.0,
+        "crt_chromatic_aberration": 0.002,
         "dither_enabled": false,
         "dither_intensity": 0.5,
         "dither_pattern": "bayer",  # "bayer" or "noise"
-        "lut_enabled": false,
-        "lut_resource": "",
-        "lut_intensity": 1.0,
 
         # UI
         "ui_scale": 1.0,
@@ -153,14 +149,13 @@ The Display Manager uses a CanvasLayer + ColorRect + shader approach for layered
 
 ### Effect Stack
 
-Effects execute in a fixed internal order (Film Grain → Outline → Dither → LUT). The order is not user-configurable:
+Effects execute in a fixed internal order (Film Grain → Dither → CRT → Color Blind). The order is not user-configurable:
 
 | Effect | Toggle | Parameters | Description |
 |--------|--------|------------|-------------|
 | Film Grain | `film_grain_enabled` | `intensity` (0.0-1.0) | Noise overlay for cinematic look |
-| Outline | `outline_enabled` | `thickness` (1-5px), `color` (hex) | Edge detection sobel filter |
 | Dither | `dither_enabled` | `intensity` (0.0-1.0), `pattern` (bayer/noise) | Ordered or noise dithering |
-| LUT | `lut_enabled` | `lut_resource` (path), `intensity` (0.0-1.0) | Color grading via lookup table |
+| CRT | `crt_enabled` | `scanline_intensity` (0.0-1.0), `curvature` (0.0-10.0), `chromatic_aberration` (0.0-0.01) | Scanlines, curvature, and chromatic aberration |
 
 ## Display/Graphics Settings
 
@@ -287,7 +282,7 @@ func _apply_palette(mode: String) -> void:
 Optional simulation shaders for testing accessibility or user preference:
 
 - `color_blind_shader_enabled`: Toggle for full-screen color filter
-- Applied via additional ColorRect in post-process overlay (after LUT in stack)
+- Applied via additional ColorRect in post-process overlay (after CRT in stack)
 - Uses daltonization algorithms to simulate color blindness
 
 ## File Structure
@@ -308,7 +303,6 @@ scripts/resources/state/
 
 scripts/resources/display/
   rs_quality_preset.gd              # Quality preset resource class
-  rs_lut_definition.gd              # LUT definition resource class
 
 scripts/resources/ui/
   rs_ui_color_palette.gd            # Color palette resource class
@@ -324,9 +318,9 @@ scripts/state/selectors/
 
 assets/shaders/
   sh_film_grain_shader.gdshader
-  sh_outline_shader.gdshader
+  sh_crt_shader.gdshader
   sh_dither_shader.gdshader
-  sh_lut_shader.gdshader
+  sh_colorblind_daltonize.gdshader
 
 resources/base_settings/state/
   cfg_display_initial_state.tres    # Default display settings instance
@@ -344,14 +338,6 @@ resources/ui_themes/
   cfg_palette_protanopia.tres
   cfg_palette_tritanopia.tres
   cfg_palette_high_contrast.tres
-
-resources/luts/
-  cfg_lut_neutral.tres
-  cfg_lut_warm.tres
-  cfg_lut_cool.tres
-  tex_lut_neutral.png
-  tex_lut_warm.png
-  tex_lut_cool.png
 
 resources/textures/
   tex_bayer_8x8.png
@@ -382,12 +368,10 @@ Display settings are placed in the "Video" tab:
 ├─────────────────────────────────────┤
 │ [✓] Film Grain                      │
 │     Intensity  [████████░░] 50%     │
-│ [✓] Outline                         │
-│     Thickness  [▼ 2px            ]  │
 │ [✓] Dither                          │
 │     Pattern    [▼ Bayer          ]  │
-│ [✓] LUT Color Grading               │
-│     LUT File   [▼ Default        ]  │
+│ [✓] CRT                             │
+│     Scanlines  [█████░░░░] 30%      │
 ├─────────────────────────────────────┤
 │ UI SCALE                            │
 ├─────────────────────────────────────┤
@@ -423,14 +407,12 @@ store.dispatch(U_DisplayActions.set_quality_preset("high"))
 # Post-Processing
 store.dispatch(U_DisplayActions.set_film_grain_enabled(true))
 store.dispatch(U_DisplayActions.set_film_grain_intensity(0.5))
-store.dispatch(U_DisplayActions.set_outline_enabled(true))
-store.dispatch(U_DisplayActions.set_outline_thickness(2))
-store.dispatch(U_DisplayActions.set_outline_color("000000"))
 store.dispatch(U_DisplayActions.set_dither_enabled(true))
 store.dispatch(U_DisplayActions.set_dither_pattern("bayer"))
-store.dispatch(U_DisplayActions.set_lut_enabled(true))
-store.dispatch(U_DisplayActions.set_lut_resource("res://resources/luts/cfg_lut_warm.tres"))
-store.dispatch(U_DisplayActions.set_lut_intensity(0.8))
+store.dispatch(U_DisplayActions.set_crt_enabled(true))
+store.dispatch(U_DisplayActions.set_crt_scanline_intensity(0.3))
+store.dispatch(U_DisplayActions.set_crt_curvature(2.0))
+store.dispatch(U_DisplayActions.set_crt_chromatic_aberration(0.002))
 # UI
 store.dispatch(U_DisplayActions.set_ui_scale(1.2))
 
@@ -447,9 +429,8 @@ store.dispatch(U_DisplayActions.set_color_blind_shader_enabled(true))
 - **CPU**: < 0.05ms per frame for settings application (only on state change)
 - **GPU**: Post-processing budget dependent on enabled effects
   - Film Grain: ~0.2ms
-  - Outline: ~0.5ms (sobel filter)
   - Dither: ~0.1ms
-  - LUT: ~0.1ms
+  - CRT: ~0.5ms (scanlines + curvature)
 - **Memory**: ~50KB (manager + palettes + effect resources)
 
 ### Optimization Guidelines
@@ -594,6 +575,4 @@ Common mistakes to avoid:
 | UI scale range | 0.8x - 1.3x with 0.1 step |
 | Quality preset levels | Low, Medium, High, Ultra |
 | Settings persistence | Included in display slice, persisted to `user://global_settings.json` |
-| Outline color format | Hex string (e.g., "000000") for easy serialization |
 | Dither patterns | "bayer" (ordered) and "noise" (random) options |
-| LUT intensity | 0.0-1.0 for blend between original and graded |

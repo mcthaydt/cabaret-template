@@ -112,34 +112,7 @@ func test_set_dither_pattern_action() -> void:
 	assert_eq(payload.get("pattern"), "noise")
 	assert_eq(action.get("immediate"), true)
 
-# Test 13: set_lut_enabled action
-func test_set_lut_enabled_action() -> void:
-	var action: Dictionary = U_DisplayActions.set_lut_enabled(true)
-	var payload: Dictionary = action.get("payload", {})
-
-	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_LUT_ENABLED)
-	assert_eq(payload.get("enabled"), true)
-	assert_eq(action.get("immediate"), true)
-
-# Test 14: set_lut_resource action
-func test_set_lut_resource_action() -> void:
-	var action: Dictionary = U_DisplayActions.set_lut_resource("res://assets/luts/test.cube")
-	var payload: Dictionary = action.get("payload", {})
-
-	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_LUT_RESOURCE)
-	assert_eq(payload.get("resource"), "res://assets/luts/test.cube")
-	assert_eq(action.get("immediate"), true)
-
-# Test 15: set_lut_intensity action
-func test_set_lut_intensity_action() -> void:
-	var action: Dictionary = U_DisplayActions.set_lut_intensity(0.9)
-	var payload: Dictionary = action.get("payload", {})
-
-	assert_eq(action.get("type"), U_DisplayActions.ACTION_SET_LUT_INTENSITY)
-	assert_eq(payload.get("intensity"), 0.9)
-	assert_eq(action.get("immediate"), true)
-
-# Test 16: set_ui_scale action
+# Test 13: set_ui_scale action
 func test_set_ui_scale_action() -> void:
 	var action: Dictionary = U_DisplayActions.set_ui_scale(1.5)
 	var payload: Dictionary = action.get("payload", {})
@@ -148,7 +121,7 @@ func test_set_ui_scale_action() -> void:
 	assert_eq(payload.get("scale"), 1.5)
 	assert_eq(action.get("immediate"), true)
 
-# Test 17: set_color_blind_mode action
+# Test 14: set_color_blind_mode action
 func test_set_color_blind_mode_action() -> void:
 	var action: Dictionary = U_DisplayActions.set_color_blind_mode("deuteranopia")
 	var payload: Dictionary = action.get("payload", {})
@@ -157,7 +130,7 @@ func test_set_color_blind_mode_action() -> void:
 	assert_eq(payload.get("mode"), "deuteranopia")
 	assert_eq(action.get("immediate"), true)
 
-# Test 18: set_high_contrast_enabled action
+# Test 15: set_high_contrast_enabled action
 func test_set_high_contrast_enabled_action() -> void:
 	var action: Dictionary = U_DisplayActions.set_high_contrast_enabled(true)
 	var payload: Dictionary = action.get("payload", {})
@@ -166,7 +139,7 @@ func test_set_high_contrast_enabled_action() -> void:
 	assert_eq(payload.get("enabled"), true)
 	assert_eq(action.get("immediate"), true)
 
-# Test 19: set_color_blind_shader_enabled action
+# Test 16: set_color_blind_shader_enabled action
 func test_set_color_blind_shader_enabled_action() -> void:
 	var action: Dictionary = U_DisplayActions.set_color_blind_shader_enabled(true)
 	var payload: Dictionary = action.get("payload", {})

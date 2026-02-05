@@ -93,25 +93,7 @@ func test_has_dither_fields() -> void:
 	assert_eq(initial_state.dither_intensity, 0.5)
 	assert_eq(initial_state.dither_pattern, "bayer")
 
-# Test 8: Has LUT fields
-func test_has_lut_fields() -> void:
-	assert_true(
-		"lut_enabled" in initial_state,
-		"RS_DisplayInitialState should have lut_enabled field"
-	)
-	assert_true(
-		"lut_resource" in initial_state,
-		"RS_DisplayInitialState should have lut_resource field"
-	)
-	assert_true(
-		"lut_intensity" in initial_state,
-		"RS_DisplayInitialState should have lut_intensity field"
-	)
-	assert_eq(initial_state.lut_enabled, false)
-	assert_eq(initial_state.lut_resource, "")
-	assert_eq(initial_state.lut_intensity, 1.0)
-
-# Test 9: Has ui_scale field
+# Test 8: Has ui_scale field
 func test_has_ui_scale_field() -> void:
 	assert_true(
 		"ui_scale" in initial_state,
@@ -119,7 +101,7 @@ func test_has_ui_scale_field() -> void:
 	)
 	assert_eq(initial_state.ui_scale, 1.0)
 
-# Test 10: Has accessibility fields
+# Test 9: Has accessibility fields
 func test_has_accessibility_fields() -> void:
 	assert_true(
 		"color_blind_mode" in initial_state,
@@ -137,7 +119,7 @@ func test_has_accessibility_fields() -> void:
 	assert_eq(initial_state.high_contrast_enabled, false)
 	assert_eq(initial_state.color_blind_shader_enabled, false)
 
-# Test 11: to_dictionary returns all fields
+# Test 10: to_dictionary returns all fields
 func test_to_dictionary_returns_all_fields() -> void:
 	var dict: Dictionary = initial_state.to_dictionary()
 
@@ -154,9 +136,6 @@ func test_to_dictionary_returns_all_fields() -> void:
 	assert_true(dict.has("dither_enabled"), "to_dictionary should include dither_enabled")
 	assert_true(dict.has("dither_intensity"), "to_dictionary should include dither_intensity")
 	assert_true(dict.has("dither_pattern"), "to_dictionary should include dither_pattern")
-	assert_true(dict.has("lut_enabled"), "to_dictionary should include lut_enabled")
-	assert_true(dict.has("lut_resource"), "to_dictionary should include lut_resource")
-	assert_true(dict.has("lut_intensity"), "to_dictionary should include lut_intensity")
 
 	assert_true(dict.has("ui_scale"), "to_dictionary should include ui_scale")
 	assert_true(dict.has("color_blind_mode"), "to_dictionary should include color_blind_mode")

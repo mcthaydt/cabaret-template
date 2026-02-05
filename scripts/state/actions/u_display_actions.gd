@@ -24,9 +24,6 @@ const ACTION_SET_CRT_CHROMATIC_ABERRATION := StringName("display/set_crt_chromat
 const ACTION_SET_DITHER_ENABLED := StringName("display/set_dither_enabled")
 const ACTION_SET_DITHER_INTENSITY := StringName("display/set_dither_intensity")
 const ACTION_SET_DITHER_PATTERN := StringName("display/set_dither_pattern")
-const ACTION_SET_LUT_ENABLED := StringName("display/set_lut_enabled")
-const ACTION_SET_LUT_RESOURCE := StringName("display/set_lut_resource")
-const ACTION_SET_LUT_INTENSITY := StringName("display/set_lut_intensity")
 
 # UI
 const ACTION_SET_UI_SCALE := StringName("display/set_ui_scale")
@@ -50,9 +47,6 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_ENABLED)
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_INTENSITY)
 	U_ActionRegistry.register_action(ACTION_SET_DITHER_PATTERN)
-	U_ActionRegistry.register_action(ACTION_SET_LUT_ENABLED)
-	U_ActionRegistry.register_action(ACTION_SET_LUT_RESOURCE)
-	U_ActionRegistry.register_action(ACTION_SET_LUT_INTENSITY)
 	U_ActionRegistry.register_action(ACTION_SET_UI_SCALE)
 	U_ActionRegistry.register_action(ACTION_SET_COLOR_BLIND_MODE)
 	U_ActionRegistry.register_action(ACTION_SET_HIGH_CONTRAST_ENABLED)
@@ -148,27 +142,6 @@ static func set_dither_pattern(pattern: String) -> Dictionary:
 	return {
 		"type": ACTION_SET_DITHER_PATTERN,
 		"payload": {"pattern": pattern},
-		"immediate": true,
-	}
-
-static func set_lut_enabled(enabled: bool) -> Dictionary:
-	return {
-		"type": ACTION_SET_LUT_ENABLED,
-		"payload": {"enabled": enabled},
-		"immediate": true,
-	}
-
-static func set_lut_resource(resource: String) -> Dictionary:
-	return {
-		"type": ACTION_SET_LUT_RESOURCE,
-		"payload": {"resource": resource},
-		"immediate": true,
-	}
-
-static func set_lut_intensity(intensity: float) -> Dictionary:
-	return {
-		"type": ACTION_SET_LUT_INTENSITY,
-		"payload": {"intensity": intensity},
 		"immediate": true,
 	}
 

@@ -38,7 +38,6 @@ Before starting Phase 0, verify:
   - Test film grain fields (`film_grain_enabled`, `film_grain_intensity`)
   - Test outline fields (`outline_enabled`, `outline_thickness`, `outline_color`)
   - Test dither fields (`dither_enabled`, `dither_intensity`, `dither_pattern`)
-  - Test LUT fields (`lut_enabled`, `lut_resource`, `lut_intensity`)
   - Test `ui_scale` field exists with default `1.0`
   - Test accessibility fields (`color_blind_mode`, `high_contrast_enabled`, `color_blind_shader_enabled`)
   - Test `to_dictionary()` returns all fields
@@ -75,9 +74,6 @@ Before starting Phase 0, verify:
   - Test `set_dither_enabled(enabled)` action structure
   - Test `set_dither_intensity(intensity)` action structure
   - Test `set_dither_pattern(pattern)` action structure
-  - Test `set_lut_enabled(enabled)` action structure
-  - Test `set_lut_resource(resource)` action structure
-  - Test `set_lut_intensity(intensity)` action structure
   - Test `set_ui_scale(scale)` action structure
   - Test `set_color_blind_mode(mode)` action structure
   - Test `set_high_contrast_enabled(enabled)` action structure
@@ -101,7 +97,6 @@ Before starting Phase 0, verify:
   - Test each action type updates correct field
   - Test `film_grain_intensity` clamping (0.0-1.0)
   - Test `dither_intensity` clamping (0.0-1.0)
-  - Test `lut_intensity` clamping (0.0-1.0)
   - Test `outline_thickness` clamping (1-5)
   - Test `ui_scale` clamping (0.8-1.3)
   - Test invalid `window_size_preset` ignored
@@ -306,7 +301,7 @@ Before starting Phase 0, verify:
 
 ## Phase 3: Post-Processing System
 
-**Exit Criteria:** Film Grain, CRT, Dither, LUT effects work via CanvasLayer + shaders
+**Exit Criteria:** Film Grain, CRT, Dither effects work via CanvasLayer + shaders
 
 ### Phase 3A: Post-Process Overlay & Helper
 
@@ -331,7 +326,7 @@ Before starting Phase 0, verify:
 - [x] **Task 3A.3**: Create post-process overlay scene
   - Create `scenes/ui/overlays/ui_post_process_overlay.tscn`
   - CanvasLayer (layer 100, mouse_filter IGNORE)
-  - Add FilmGrainRect, OutlineRect, DitherRect, LUTRect ColorRects
+  - Add FilmGrainRect, OutlineRect, DitherRect ColorRects
   - Each covers full screen, starts hidden
   - Notes: Completed 2026-02-01 (overlay scene with full-screen hidden rects)
 
@@ -357,13 +352,7 @@ Before starting Phase 0, verify:
   - Create `resources/textures/tex_bayer_8x8.png`
   - Notes: Completed 2026-02-01
 
-- [x] **Task 3B.4**: Create LUT shader
-  - Create `assets/shaders/sh_lut_shader.gdshader`
-  - Uniforms: `lut_texture`, `intensity` (0.0-1.0)
-  - Create LUT definitions + textures in `resources/luts/`
-  - Notes: Completed 2026-02-01 (added `rs_lut_definition.gd`, cfg/tex LUT assets)
-
-- [x] **Task 3B.5**: Wire shaders to overlay scene
+- [x] **Task 3B.4**: Wire shaders to overlay scene
   - Assign shader materials to each ColorRect
   - Add shader materials + default parameters to each effect rect
   - Notes: Completed 2026-02-01
@@ -590,19 +579,18 @@ Before starting Phase 0, verify:
 - [x] **MT-02**: Fullscreen toggle works
 - [x] **MT-03**: Borderless windowed mode works
 - [x] **MT-04**: VSync toggle affects frame timing
-- [ ] **MT-05**: Quality preset changes are visually noticeable
+- [x] **MT-05**: Quality preset changes are visually noticeable
 - [x] **MT-06**: Film Grain effect visible when enabled
 - [x] **MT-07**: CRT filter visible when enabled (scanlines/curvature/aberration)
 - [x] **MT-08**: Dither patterns (bayer/noise) distinguishable
-- [x] **MT-09**: LUT color grading applies correctly
-- [ ] **MT-10**: UI scale slider affects all UI elements proportionally
-- [ ] **MT-11**: UI remains usable at 0.8x scale
-- [ ] **MT-12**: UI remains usable at 1.3x scale
-- [ ] **MT-13**: Color blind shader modes (deuteranopia/protanopia/tritanopia) are visually distinct
+- [x] **MT-10**: UI scale slider affects all UI elements proportionally
+- [x] **MT-11**: UI remains usable at 0.8x scale
+- [x] **MT-12**: UI remains usable at 1.3x scale
+- [x] **MT-13**: Color blind shader modes (deuteranopia/protanopia/tritanopia) are visually distinct
 - [ ] **MT-14**: High contrast toggle selects high-contrast palette (text colors update)
 - [ ] **MT-15**: Color blind shader filter simulates correctly
-- [ ] **MT-16**: Settings persist after quit and relaunch
-- [ ] **MT-17**: Post-process overlay renders above gameplay but below UI
+- [x] **MT-16**: Settings persist after quit and relaunch
+- [x] **MT-17**: Post-process overlay renders above gameplay but below UI
 
 ---
 

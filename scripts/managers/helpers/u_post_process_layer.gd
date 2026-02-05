@@ -6,14 +6,12 @@ class_name U_PostProcessLayer
 const EFFECT_FILM_GRAIN := StringName("film_grain")
 const EFFECT_CRT := StringName("crt")
 const EFFECT_DITHER := StringName("dither")
-const EFFECT_LUT := StringName("lut")
 const EFFECT_COLOR_BLIND := StringName("color_blind")
 
 const EFFECT_NODE_PATHS := {
 	EFFECT_FILM_GRAIN: NodePath("FilmGrainLayer/FilmGrainRect"),
 	EFFECT_CRT: NodePath("CRTLayer/CRTRect"),
 	EFFECT_DITHER: NodePath("DitherLayer/DitherRect"),
-	EFFECT_LUT: NodePath("LUTLayer/LUTRect"),
 	EFFECT_COLOR_BLIND: NodePath("ColorBlindLayer/ColorBlindRect"),
 }
 

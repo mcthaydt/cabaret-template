@@ -927,7 +927,7 @@ var display_manager := U_DisplayUtils.get_display_manager()
 
 Post-processing effects render via `ui_post_process_overlay.tscn`:
 - **CanvasLayer**: Layer 100 (above gameplay at 0, below UI overlays)
-- **Effects**: FilmGrainRect, OutlineRect, DitherRect, LUTRect
+- **Effects**: FilmGrainRect, DitherRect, CRTRect, ColorBlindRect
 - **Shaders**: Each rect has a ShaderMaterial with configurable uniforms
 - **Time Updates**: Film grain shader receives `TIME` updates in `_process()`
 
@@ -969,18 +969,16 @@ func set_ui_scale(scale: float) -> void:
         # Post-Processing
         "film_grain_enabled": false,
         "film_grain_intensity": 0.1,        # Clamped: 0.0-1.0
-        "outline_enabled": false,
-        "outline_thickness": 2,             # Clamped: 1-5
-        "outline_color": "000000",
+        "crt_enabled": false,
+        "crt_scanline_intensity": 0.3,      # Clamped: 0.0-1.0
+        "crt_curvature": 2.0,
+        "crt_chromatic_aberration": 0.002,
         "dither_enabled": false,
         "dither_intensity": 0.5,            # Clamped: 0.0-1.0
         "dither_pattern": "bayer",          # Valid: bayer, noise
-        "lut_enabled": false,
-        "lut_resource": "",
-        "lut_intensity": 1.0,               # Clamped: 0.0-1.0
 
         # UI
-        "ui_scale": 1.0,                    # Clamped: 0.5-2.0
+        "ui_scale": 1.0,                    # Clamped: 0.8-1.3
 
         # Accessibility
         "color_blind_mode": "normal",       # Valid: normal, deuteranopia, protanopia, tritanopia

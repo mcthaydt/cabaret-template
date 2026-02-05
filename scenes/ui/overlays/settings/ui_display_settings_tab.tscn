@@ -274,59 +274,6 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="LUTToggleRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1047099864]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="LUTLabel" type="Label" parent="Scroll/Content/LUTToggleRow" unique_id=857076560]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "LUT"
-
-[node name="LUTToggle" type="CheckBox" parent="Scroll/Content/LUTToggleRow" unique_id=1209604005]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Enabled"
-
-[node name="LUTResourceRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1319258287]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="LUTResourceLabel" type="Label" parent="Scroll/Content/LUTResourceRow" unique_id=2072511956]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "LUT Preset"
-
-[node name="LUTOption" type="OptionButton" parent="Scroll/Content/LUTResourceRow" unique_id=312278793]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="LUTIntensityRow" type="HBoxContainer" parent="Scroll/Content" unique_id=855280533]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="LUTIntensityLabel" type="Label" parent="Scroll/Content/LUTIntensityRow" unique_id=928202970]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "LUT Intensity"
-
-[node name="LUTIntensitySlider" type="HSlider" parent="Scroll/Content/LUTIntensityRow" unique_id=1922175587]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-max_value = 1.0
-step = 0.05
-value = 1.0
-
-[node name="LUTIntensityValue" type="Label" parent="Scroll/Content/LUTIntensityRow" unique_id=1974229185]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-text = "100%"
-horizontal_alignment = 2
-
 [node name="UILabel" type="Label" parent="Scroll/Content" unique_id=645734907]
 layout_mode = 2
 text = "UI"

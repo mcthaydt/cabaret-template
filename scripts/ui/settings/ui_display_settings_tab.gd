@@ -12,7 +12,6 @@ const U_UISoundPlayer := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const RS_DisplayInitialState := preload("res://scripts/resources/state/rs_display_initial_state.gd")
-const RS_LUT_DEFINITION := preload("res://scripts/resources/display/rs_lut_definition.gd")
 const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/base_settings/state/cfg_display_initial_state.tres")
 const WINDOW_CONFIRM_SECONDS := 10
 const WINDOW_CONFIRM_TEXT := "Keep these display changes? Reverting in %ds."
@@ -33,7 +32,6 @@ var _window_mode_values: Array[String] = []
 var _quality_preset_values: Array[String] = []
 var _dither_pattern_values: Array[String] = []
 var _color_blind_mode_values: Array[String] = []
-var _lut_resource_values: Array[String] = []
 
 @onready var _window_size_option: OptionButton = %WindowSizeOption
 @onready var _window_mode_option: OptionButton = %WindowModeOption
@@ -56,11 +54,6 @@ var _lut_resource_values: Array[String] = []
 @onready var _dither_intensity_slider: HSlider = %DitherIntensitySlider
 @onready var _dither_intensity_value: Label = %DitherIntensityValue
 @onready var _dither_pattern_option: OptionButton = %DitherPatternOption
-
-@onready var _lut_toggle: CheckBox = %LUTToggle
-@onready var _lut_option: OptionButton = %LUTOption
-@onready var _lut_intensity_slider: HSlider = %LUTIntensitySlider
-@onready var _lut_intensity_value: Label = %LUTIntensityValue
 
 @onready var _ui_scale_slider: HSlider = %UIScaleSlider
 @onready var _ui_scale_value: Label = %UIScaleValue
@@ -130,13 +123,6 @@ func _connect_signals() -> void:
 	if _dither_pattern_option != null and not _dither_pattern_option.item_selected.is_connected(_on_dither_pattern_selected):
 		_dither_pattern_option.item_selected.connect(_on_dither_pattern_selected)
 
-	if _lut_toggle != null and not _lut_toggle.toggled.is_connected(_on_lut_toggled):
-		_lut_toggle.toggled.connect(_on_lut_toggled)
-	if _lut_option != null and not _lut_option.item_selected.is_connected(_on_lut_selected):
-		_lut_option.item_selected.connect(_on_lut_selected)
-	if _lut_intensity_slider != null and not _lut_intensity_slider.value_changed.is_connected(_on_lut_intensity_changed):
-		_lut_intensity_slider.value_changed.connect(_on_lut_intensity_changed)
-
 	if _ui_scale_slider != null and not _ui_scale_slider.value_changed.is_connected(_on_ui_scale_changed):
 		_ui_scale_slider.value_changed.connect(_on_ui_scale_changed)
 
@@ -191,7 +177,6 @@ func _populate_option_buttons() -> void:
 		U_DisplayOptionCatalog.get_color_blind_mode_option_entries(),
 		_color_blind_mode_values
 	)
-	_populate_lut_options()
 
 func _populate_option_button(button: OptionButton, options: Array, values: Array[String]) -> void:
 	if button == null:
@@ -207,60 +192,6 @@ func _populate_option_button(button: OptionButton, options: Array, values: Array
 				label = value
 			button.add_item(label)
 			values.append(value)
-
-func _populate_lut_options() -> void:
-	if _lut_option == null:
-		return
-
-	_lut_option.clear()
-	_lut_resource_values.clear()
-
-	_lut_option.add_item("None")
-	_lut_resource_values.append("")
-
-	var definition_paths: Array[String] = []
-	var texture_paths: Array[String] = []
-	var used_textures: Dictionary = {}
-	var dir := DirAccess.open("res://resources/luts")
-	if dir != null:
-		dir.list_dir_begin()
-		var file_name := dir.get_next()
-		while file_name != "":
-			if not dir.current_is_dir():
-				if file_name.ends_with(".tres"):
-					var path := "res://resources/luts/" + file_name
-					definition_paths.append(path)
-				elif file_name.ends_with(".png"):
-					var texture_path := "res://resources/luts/" + file_name
-					texture_paths.append(texture_path)
-			file_name = dir.get_next()
-		dir.list_dir_end()
-
-	definition_paths.sort()
-	texture_paths.sort()
-
-	for path in definition_paths:
-		var resource := load(path)
-		if resource == null:
-			continue
-		if resource is RS_LUT_DEFINITION:
-			var definition := resource as RS_LUT_DEFINITION
-			var label := definition.display_name
-			if label.is_empty():
-				label = path.get_file().trim_suffix(".tres")
-			_lut_option.add_item(label)
-			_lut_resource_values.append(path)
-			if definition.texture != null:
-				var texture_path := definition.texture.resource_path
-				if texture_path != "":
-					used_textures[texture_path] = true
-
-	for texture_path in texture_paths:
-		if used_textures.has(texture_path):
-			continue
-		var texture_label := texture_path.get_file().trim_suffix(".png")
-		_lut_option.add_item(texture_label)
-		_lut_resource_values.append(texture_path)
 
 func _configure_focus_neighbors() -> void:
 	var focusables: Array[Control] = []
@@ -291,12 +222,6 @@ func _configure_focus_neighbors() -> void:
 		focusables.append(_dither_intensity_slider)
 	if _dither_pattern_option != null:
 		focusables.append(_dither_pattern_option)
-	if _lut_toggle != null:
-		focusables.append(_lut_toggle)
-	if _lut_option != null:
-		focusables.append(_lut_option)
-	if _lut_intensity_slider != null:
-		focusables.append(_lut_intensity_slider)
 
 	if _ui_scale_slider != null:
 		focusables.append(_ui_scale_slider)
@@ -344,8 +269,6 @@ func _configure_tooltips() -> void:
 		_dither_intensity_slider.tooltip_text = "Controls dithering strength."
 	if _dither_pattern_option != null:
 		_dither_pattern_option.tooltip_text = "Selects the dither pattern."
-	if _lut_intensity_slider != null:
-		_lut_intensity_slider.tooltip_text = "Blends between original and LUT color."
 	if _ui_scale_slider != null:
 		_ui_scale_slider.tooltip_text = "Scales the UI size."
 
@@ -366,10 +289,6 @@ func _update_dependent_controls() -> void:
 	var dither_enabled := _get_toggle_value(_dither_toggle, defaults.dither_enabled)
 	_set_control_group_enabled(_dither_intensity_slider, dither_enabled)
 	_set_control_group_enabled(_dither_pattern_option, dither_enabled)
-
-	var lut_enabled := _get_toggle_value(_lut_toggle, defaults.lut_enabled)
-	_set_control_group_enabled(_lut_option, lut_enabled)
-	_set_control_group_enabled(_lut_intensity_slider, lut_enabled)
 
 func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 	if state == null:
@@ -414,15 +333,6 @@ func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 	_set_slider_value_silently(_dither_intensity_slider, dither_intensity)
 	_update_percentage_label(_dither_intensity_value, dither_intensity)
 	_select_option_value(_dither_pattern_option, _dither_pattern_values, U_DisplaySelectors.get_dither_pattern(state))
-
-	_set_toggle_value_silently(_lut_toggle, U_DisplaySelectors.is_lut_enabled(state))
-	var lut_resource := U_DisplaySelectors.get_lut_resource(state)
-	var normalized_lut := _normalize_lut_resource(lut_resource)
-	_ensure_lut_option_present(normalized_lut)
-	_select_option_value(_lut_option, _lut_resource_values, normalized_lut)
-	var lut_intensity := U_DisplaySelectors.get_lut_intensity(state)
-	_set_slider_value_silently(_lut_intensity_slider, lut_intensity)
-	_update_percentage_label(_lut_intensity_value, lut_intensity)
 
 	var ui_scale := U_DisplaySelectors.get_ui_scale(state)
 	_set_slider_value_silently(_ui_scale_slider, ui_scale)
@@ -540,30 +450,6 @@ func _on_dither_pattern_selected(index: int) -> void:
 	_has_local_edits = true
 	_update_display_settings_preview_from_ui()
 
-func _on_lut_toggled(pressed: bool) -> void:
-	if _updating_from_state:
-		return
-	U_UISoundPlayer.play_confirm()
-	_has_local_edits = true
-	_update_display_settings_preview_from_ui()
-
-func _on_lut_selected(index: int) -> void:
-	if _updating_from_state:
-		return
-	if index < 0 or index >= _lut_resource_values.size():
-		return
-	U_UISoundPlayer.play_confirm()
-	_has_local_edits = true
-	_update_display_settings_preview_from_ui()
-
-func _on_lut_intensity_changed(value: float) -> void:
-	_update_percentage_label(_lut_intensity_value, value)
-	if _updating_from_state:
-		return
-	U_UISoundPlayer.play_slider_tick()
-	_has_local_edits = true
-	_update_display_settings_preview_from_ui()
-
 func _on_ui_scale_changed(value: float) -> void:
 	_update_scale_label(_ui_scale_value, value)
 	if _updating_from_state:
@@ -621,13 +507,6 @@ func _on_reset_pressed() -> void:
 	_set_slider_value_silently(_dither_intensity_slider, defaults.dither_intensity)
 	_update_percentage_label(_dither_intensity_value, defaults.dither_intensity)
 	_select_option_value(_dither_pattern_option, _dither_pattern_values, defaults.dither_pattern)
-
-	_set_toggle_value_silently(_lut_toggle, defaults.lut_enabled)
-	var normalized_default_lut := _normalize_lut_resource(defaults.lut_resource)
-	_ensure_lut_option_present(normalized_default_lut)
-	_select_option_value(_lut_option, _lut_resource_values, normalized_default_lut)
-	_set_slider_value_silently(_lut_intensity_slider, defaults.lut_intensity)
-	_update_percentage_label(_lut_intensity_value, defaults.lut_intensity)
 
 	_set_slider_value_silently(_ui_scale_slider, defaults.ui_scale)
 	_update_scale_label(_ui_scale_value, defaults.ui_scale)
@@ -715,9 +594,6 @@ func _dispatch_display_settings(settings: Variant, skip_window_actions: bool = f
 	_state_store.dispatch(U_DisplayActions.set_dither_enabled(bool(values.get("dither_enabled", false))))
 	_state_store.dispatch(U_DisplayActions.set_dither_intensity(float(values.get("dither_intensity", 0.5))))
 	_state_store.dispatch(U_DisplayActions.set_dither_pattern(String(values.get("dither_pattern", ""))))
-	_state_store.dispatch(U_DisplayActions.set_lut_enabled(bool(values.get("lut_enabled", false))))
-	_state_store.dispatch(U_DisplayActions.set_lut_resource(String(values.get("lut_resource", ""))))
-	_state_store.dispatch(U_DisplayActions.set_lut_intensity(float(values.get("lut_intensity", 1.0))))
 	_state_store.dispatch(U_DisplayActions.set_ui_scale(float(values.get("ui_scale", 1.0))))
 	_state_store.dispatch(U_DisplayActions.set_color_blind_mode(String(values.get("color_blind_mode", ""))))
 	_state_store.dispatch(U_DisplayActions.set_high_contrast_enabled(bool(values.get("high_contrast_enabled", false))))
@@ -849,9 +725,6 @@ func _get_display_settings_from_ui() -> Dictionary:
 		"dither_enabled": _get_toggle_value(_dither_toggle, defaults.dither_enabled),
 		"dither_intensity": _get_slider_value(_dither_intensity_slider, defaults.dither_intensity),
 		"dither_pattern": _get_selected_value(_dither_pattern_option, _dither_pattern_values, defaults.dither_pattern),
-		"lut_enabled": _get_toggle_value(_lut_toggle, defaults.lut_enabled),
-		"lut_resource": _get_selected_value(_lut_option, _lut_resource_values, _normalize_lut_resource(defaults.lut_resource)),
-		"lut_intensity": _get_slider_value(_lut_intensity_slider, defaults.lut_intensity),
 		"ui_scale": _get_slider_value(_ui_scale_slider, defaults.ui_scale),
 		"color_blind_mode": _get_selected_value(_color_blind_mode_option, _color_blind_mode_values, defaults.color_blind_mode),
 		"high_contrast_enabled": _get_toggle_value(_high_contrast_toggle, defaults.high_contrast_enabled),
@@ -926,44 +799,6 @@ func _update_float_label(label: Label, value: float, decimals: int) -> void:
 	if label == null:
 		return
 	label.text = "%.*f" % [decimals, value]
-
-func _ensure_lut_option_present(value: String) -> void:
-	if value.is_empty():
-		return
-	if _lut_option == null:
-		return
-	if _lut_resource_values.has(value):
-		return
-	var label := _get_lut_label(value)
-	_lut_option.add_item(label)
-	_lut_resource_values.append(value)
-
-func _get_lut_label(value: String) -> String:
-	if value.is_empty():
-		return "None"
-	var resource := load(value)
-	if resource is RS_LUT_DEFINITION:
-		var definition := resource as RS_LUT_DEFINITION
-		if not definition.display_name.is_empty():
-			return definition.display_name
-		return value.get_file().trim_suffix(".tres")
-	if resource is Texture2D:
-		return value.get_file().trim_suffix(".png")
-	var file_name := value.get_file()
-	if not file_name.is_empty():
-		return file_name
-	return value
-
-func _normalize_lut_resource(value: String) -> String:
-	if value.is_empty():
-		return value
-	if value.begins_with("uid://"):
-		var resource := load(value)
-		if resource != null:
-			var path := resource.resource_path
-			if path != "":
-				return path
-	return value
 
 func _get_default_display_state() -> RS_DisplayInitialState:
 	if DEFAULT_DISPLAY_INITIAL_STATE != null:
