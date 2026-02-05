@@ -154,26 +154,6 @@ func test_register_ui_scale_root_applies_current_scale() -> void:
 
 	assert_eq(label.get_theme_font_size("font_size"), 24, "Registering should apply the current UI scale")
 
-func test_safe_area_padding_sets_offsets_for_full_anchors() -> void:
-	var manager := M_DISPLAY_MANAGER.new()
-	add_child_autofree(manager)
-
-	var control := Control.new()
-	control.anchor_left = 0.0
-	control.anchor_top = 0.0
-	control.anchor_right = 1.0
-	control.anchor_bottom = 1.0
-	add_child_autofree(control)
-
-	var viewport_size := Vector2(1000, 800)
-	var safe_rect := Rect2(Vector2(50, 30), Vector2(900, 740))
-	manager._apply_safe_area_padding(control, viewport_size, safe_rect)
-
-	assert_almost_eq(control.offset_left, 50.0, 0.001, "Safe area left padding should apply")
-	assert_almost_eq(control.offset_top, 30.0, 0.001, "Safe area top padding should apply")
-	assert_almost_eq(control.offset_right, -50.0, 0.001, "Safe area right padding should apply")
-	assert_almost_eq(control.offset_bottom, -30.0, 0.001, "Safe area bottom padding should apply")
-
 func test_apply_window_size_preset_sets_window_size() -> void:
 	var manager := M_DISPLAY_MANAGER.new()
 	var ops = MOCK_WINDOW_OPS.new()

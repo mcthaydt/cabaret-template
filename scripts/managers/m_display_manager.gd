@@ -278,50 +278,6 @@ func _get_window_hash(display_settings: Dictionary) -> int:
 	var vsync: Variant = display_settings.get("vsync_enabled", true)
 	return [preset, mode, vsync].hash()
 
-func _is_hex_string(value: String) -> bool:
-	var length := value.length()
-	for i in length:
-		var code := value.unicode_at(i)
-		var is_digit := code >= 48 and code <= 57
-		var is_upper := code >= 65 and code <= 70
-		var is_lower := code >= 97 and code <= 102
-		if not (is_digit or is_upper or is_lower):
-			return false
-	return true
-
-func _get_viewport_rect(control: Control) -> Rect2:
-	if control == null:
-		return Rect2()
-	var viewport: Viewport = control.get_viewport()
-	if viewport == null:
-		return Rect2()
-	return viewport.get_visible_rect()
-
-func _get_safe_area_rect(viewport_rect: Rect2) -> Rect2:
-	if viewport_rect.size == Vector2.ZERO:
-		return viewport_rect
-	if not _is_display_server_available():
-		return viewport_rect
-	var ops := _get_window_ops()
-	if ops.window_get_mode() == DisplayServer.WINDOW_MODE_WINDOWED and not OS.has_feature("mobile"):
-		return viewport_rect
-	var screen: int = ops.window_get_current_screen()
-	var safe_rect_i: Rect2i = ops.screen_get_usable_rect(screen)
-	if safe_rect_i.size == Vector2i.ZERO:
-		return viewport_rect
-	var safe_rect: Rect2 = Rect2(Vector2(safe_rect_i.position), Vector2(safe_rect_i.size))
-	var viewport_bounds: Rect2 = Rect2(Vector2.ZERO, viewport_rect.size)
-	var clamped: Rect2 = safe_rect.intersection(viewport_bounds)
-	if clamped.size == Vector2.ZERO:
-		return viewport_rect
-	return clamped
-
-func _apply_safe_area_padding(control: Control, viewport_size: Vector2, safe_rect: Rect2) -> void:
-	_ensure_appliers()
-	if _ui_scale_applier == null:
-		return
-	_ui_scale_applier.apply_safe_area_padding(control, viewport_size, safe_rect)
-
 func _get_window_ops() -> I_WindowOps:
 	if window_ops != null:
 		return window_ops

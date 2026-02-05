@@ -44,22 +44,6 @@ func unregister_ui_scale_root(node: Node) -> void:
 		return
 	_ui_scale_roots.erase(node)
 
-func apply_safe_area_padding(control: Control, viewport_size: Vector2, safe_rect: Rect2) -> void:
-	if control == null:
-		return
-	if not _is_full_anchor(control):
-		return
-	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
-		return
-	var left: float = max(safe_rect.position.x, 0.0)
-	var top: float = max(safe_rect.position.y, 0.0)
-	var right: float = max(viewport_size.x - (safe_rect.position.x + safe_rect.size.x), 0.0)
-	var bottom: float = max(viewport_size.y - (safe_rect.position.y + safe_rect.size.y), 0.0)
-	control.offset_left = left
-	control.offset_top = top
-	control.offset_right = -right
-	control.offset_bottom = -bottom
-
 func _apply_ui_scale_to_node(node: Node, scale: float) -> void:
 	if node is CanvasLayer:
 		_apply_font_scale_to_tree(node, scale)
@@ -101,9 +85,3 @@ func _get_font_base_size(control: Control) -> int:
 	var base_size: int = control.get_theme_font_size("font_size")
 	control.set_meta(meta_key, base_size)
 	return base_size
-
-func _is_full_anchor(control: Control) -> bool:
-	return is_equal_approx(control.anchor_left, 0.0) \
-		and is_equal_approx(control.anchor_top, 0.0) \
-		and is_equal_approx(control.anchor_right, 1.0) \
-		and is_equal_approx(control.anchor_bottom, 1.0)
