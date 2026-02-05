@@ -62,7 +62,7 @@
 - [x] Run style tests:
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
 
-Completion Notes (2026-02-05): Removed all listed duplicate/legacy directories (all empty/untracked). Tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`. Commit: n/a (no tracked file removals; docs-only update).
+Completion Notes (2026-02-05): Removed all listed duplicate/legacy directories (all empty/untracked). Tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`. Commit: e6fd729 (docs-only; no tracked file removals).
 
 ## Phase 2 - Normalize Root-Level Content (Medium Risk)
 
