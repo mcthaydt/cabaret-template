@@ -68,7 +68,7 @@ Completion Notes (2026-02-05): Removed all listed duplicate/legacy directories (
 
 ### 2A - Introduce Models Directory + Test Enforcement
 
-- [ ] Create `assets/models/` (if missing)
+- [x] Create `assets/models/` (if missing)
 - [ ] Extend `tests/unit/style/test_asset_prefixes.gd`:
   - Add `assets/models` => `mdl_` + extensions (at least `.glb`, `.fbx`, `.gltf`)
   - Add `assets/materials` => `mat_` + extensions (at least `.tres`, `.res`)
@@ -78,24 +78,27 @@ Completion Notes (2026-02-05): Removed all listed duplicate/legacy directories (
 
 ### 2B - Move/Rename Root-Level Scenes and Assets
 
-- [ ] Move and rename root-level scenes into `scenes/prefabs/`:
-  - `character.tscn` -> `scenes/prefabs/prefab_*.tscn`
-  - `new_exterior.tscn` -> `scenes/prefabs/prefab_*.tscn`
-  - `new_interior.tscn` -> `scenes/prefabs/prefab_*.tscn`
-- [ ] Move and rename root-level models into `assets/models/`:
-  - `Character.glb` -> `assets/models/mdl_*.glb`
-  - `NewExterior.glb` -> `assets/models/mdl_*.glb`
-  - `NewInterior.glb` -> `assets/models/mdl_*.glb`
-- [ ] Move and rename root-level textures into `assets/textures/`:
-  - `NewExterior_Image Color Quantizer (3).png` -> `assets/textures/tex_*.png` (or remove if unused)
-  - `NewInterior_Image Color Quantizer (2).png` -> `assets/textures/tex_*.png` (or remove if unused)
-- [ ] Update references in:
+- [x] Move and rename root-level scenes into `scenes/prefabs/`:
+  - `character.tscn` -> `scenes/prefabs/prefab_character.tscn`
+  - `new_exterior.tscn` -> `scenes/prefabs/prefab_new_exterior.tscn`
+  - `new_interior.tscn` -> `scenes/prefabs/prefab_new_interior.tscn`
+- [x] Move and rename root-level models into `assets/models/`:
+  - `Character.glb` -> `assets/models/mdl_character.glb`
+  - `NewExterior.glb` -> `assets/models/mdl_new_exterior.glb`
+  - `NewInterior.glb` -> `assets/models/mdl_new_interior.glb`
+- [x] Move and rename root-level textures into `assets/textures/`:
+  - `NewExterior_Image Color Quantizer (3).png` -> `assets/textures/tex_alleyway.png`
+  - `NewInterior_Image Color Quantizer (2).png` -> `assets/textures/tex_bar.png`
+  - `Character_Image Color Quantizer (1) 11.04.png` -> `assets/textures/tex_character.png`
+- [x] Update references in:
   - `scenes/templates/*`
   - `scenes/gameplay/*`
   - Any `ExtResource(...)` paths in `.tscn`/`.tres`
-- [ ] Run headless import to refresh UID/script caches after moves:
+- [x] Run headless import to refresh UID/script caches after moves:
   - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
-- [ ] Run style tests again
+- [x] Run style tests again
+
+Completion Notes (2026-02-05): Phase 2B moves complete (prefabs/models/textures) and references updated. Set GLB import `gltf/embedded_image_handling=0` to avoid extracted textures with spaces; removed generated PNGs and reran headless import (cleared `.godot/uid_cache.bin` after UID warnings). Tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`. Commit: 3a7b476.
 
 ## Phase 3 - Remove Unused LUT PNGs (Low Risk)
 

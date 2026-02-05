@@ -2,9 +2,11 @@
 
 ## Current Status
 
-- Phase: Phase 1 complete (filesystem hygiene). Next: Phase 2 normalization.
-- Important: Working tree was clean at time of Phase 1 (2026-02-05); empty copy-artifact directories and legacy docs folders removed.
-- Tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (2026-02-05).
+- Phase: Phase 2B complete (root-level prefab/model/texture moves). Phase 2A partial (models dir created; tests still pending).
+- Important: Working tree was clean at time of Phase 2B (2026-02-05). Root-level scenes/models/textures moved and references updated. GLB import settings switched to keep embedded images (`gltf/embedded_image_handling=0`) to avoid extracted PNGs with spaces.
+- Tests: 
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (2026-02-05)
+  - Headless import: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (2026-02-05, twice; cleared `.godot/uid_cache.bin` after UID warnings)
 
 ## Goals
 
@@ -74,19 +76,13 @@
   - `Character.glb`, `NewExterior.glb`, `NewInterior.glb`
   - `NewExterior_Image Color Quantizer (3).png`, `NewInterior_Image Color Quantizer (2).png`
 
-## Next Steps (Phase 2)
+## Next Steps (Phase 2A+ / Phase 3)
 
-1. Execute Phase 2 normalization:
-   - Create `assets/models/`
-   - Move/rename root-level scenes into `scenes/prefabs/` with `prefab_` naming
-   - Move/rename models to `assets/models/mdl_*.glb`
-   - Move/rename textures to `assets/textures/tex_*.png` (or delete if truly unused)
-   - Update references and run headless `--import` to refresh caches
-2. Remove unused LUT PNGs (and `.import` files) after confirming no references.
-3. Extend style enforcement:
+1. Finish Phase 2A enforcement work:
    - Update `tests/unit/style/test_asset_prefixes.gd` for `mdl_`, `mat_`, `sh_`
    - Add a test that fails on spaces in production `res://` paths
-4. Refactor Display Manager in small, test-backed steps (helper extraction, de-dup catalogs, remove dead code).
+2. Remove unused LUT PNGs (and `.import` files) after confirming no references.
+3. Refactor Display Manager in small, test-backed steps (helper extraction, de-dup catalogs, remove dead code).
    - Add data-driven option catalogs (quality + window size presets)
    - Add confirm/revert countdown for window changes
    - Polish settings UI (contextual enabling, focus, microcopy)
