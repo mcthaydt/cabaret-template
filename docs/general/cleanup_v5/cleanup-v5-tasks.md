@@ -152,18 +152,20 @@ Completion Notes (2026-02-05): Extracted display appliers and refactored `M_Disp
 
 ### 4C - Confirm Display Changes (10s) / Revert (Player UX)
 
-- [ ] Add a confirm flow for risky window changes (mode/size):
+- [x] Add a confirm flow for risky window changes (mode/size):
   - When the user presses **Apply** and mode/size changed, show a confirm dialog with a 10s countdown.
   - **Do not dispatch** window actions to Redux until the player confirms.
   - If timer expires or user chooses **Revert**, restore previous window settings and keep the overlay usable.
   - If player chooses **Keep**, dispatch window actions and clear preview mode as normal.
-- [ ] Ensure the dialog is gamepad-friendly:
+- [x] Ensure the dialog is gamepad-friendly:
   - Focus defaults to “Keep”
   - Back button = Revert
   - Countdown text updates reliably (no await-before-signal pitfalls)
-- [ ] Add integration tests:
+- [x] Add integration tests:
   - Confirm flow blocks dispatch until confirmed
   - Revert path restores prior window ops state
+
+Completion Notes (2026-02-05): Added confirm dialog + countdown timer for window mode/size apply, delayed window dispatch until keep, and revert path restores prior window settings; integration tests updated for confirm flow. Tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`, `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (warning: macOS CA cert). Commit: fa402e7.
 
 ### 4D - Settings UI Polish (Clarity + Accessibility)
 

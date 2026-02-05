@@ -642,7 +642,8 @@ Before starting Phase 0, verify:
 
 - [x] **Task 10B**: Extract display appliers (window/quality/post-process/ui scale/theme)
   - Notes: Completed 2026-02-05 (commit 1cb45a5; ran style, unit/managers, integration/display suites)
-- [ ] **Task 10C**: Confirm/revert flow for window changes (Apply/Cancel + preview remains)
+- [x] **Task 10C**: Confirm/revert flow for window changes (Apply/Cancel + preview remains)
+  - Notes: Completed 2026-02-05 (commit fa402e7; ran style + integration/display suites; warning: macOS CA cert).
 - [ ] **Task 10D**: Settings UI polish (contextual enable/disable + focus clarity)
 - [ ] **Task 10E**: Remove dead code after tests prove unused
 
