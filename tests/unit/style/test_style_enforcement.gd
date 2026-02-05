@@ -27,6 +27,13 @@ const TRIGGER_RESOURCE_FILES := [
 	"res://resources/triggers/cfg_scene_trigger_settings.tres"
 ]
 
+const PRODUCTION_PATH_DIRECTORIES := [
+	"res://assets",
+	"res://scenes",
+	"res://scripts",
+	"res://resources"
+]
+
 const SCRIPT_FILENAME_EXCEPTIONS := [
 	"root.gd" # Root bootstrap script (intentionally unprefixed)
 ]
@@ -139,6 +146,23 @@ func _resource_has_script_reference(path: String) -> bool:
 	file.close()
 	return has_script
 
+func _collect_paths_with_spaces(dir_path: String, violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if entry.find(" ") != -1:
+			violations.append(path)
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				_collect_paths_with_spaces(path, violations)
+		entry = dir.get_next()
+	dir.list_dir_end()
+
 # ============================================================================
 # Phase 4 - Comprehensive Prefix Validation Tests
 # ============================================================================
@@ -216,6 +240,21 @@ func test_resources_follow_naming_conventions() -> void:
 		message += "\n\nSee STYLE_GUIDE.md resource naming table."
 	else:
 		message += " - all resources compliant!"
+
+	assert_eq(violations.size(), 0, message)
+
+func test_production_paths_have_no_spaces() -> void:
+	var violations: Array[String] = []
+
+	for dir_path in PRODUCTION_PATH_DIRECTORIES:
+		_collect_paths_with_spaces(dir_path, violations)
+
+	var message := "Production res:// paths must not include spaces"
+	if violations.size() > 0:
+		message += ":\n" + "\n".join(violations)
+		message += "\n\nRename files/directories to remove spaces."
+	else:
+		message += " - all paths compliant!"
 
 	assert_eq(violations.size(), 0, message)
 

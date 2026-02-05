@@ -10,6 +10,21 @@ const ASSET_PREFIX_RULES := {
 		"extensions": [".png", ".svg", ".jpg"],
 		"description": "Textures"
 	},
+	"res://assets/models": {
+		"prefix": "mdl_",
+		"extensions": [".glb", ".gltf", ".fbx"],
+		"description": "Models"
+	},
+	"res://assets/materials": {
+		"prefix": "mat_",
+		"extensions": [".tres", ".res"],
+		"description": "Materials"
+	},
+	"res://assets/shaders": {
+		"prefix": "sh_",
+		"extensions": [".gdshader", ".gdshader.uid"],
+		"description": "Shaders"
+	},
 	"res://assets/audio/music": {
 		"prefix": "mus_",
 		"extensions": [".mp3", ".ogg", ".wav"],
