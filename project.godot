@@ -20,6 +20,7 @@ boot_splash/minimum_display_time=5
 
 window/size/viewport_width=960
 window/size/viewport_height=600
+window/size/resizable=false
 window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="viewport"

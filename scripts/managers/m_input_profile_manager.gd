@@ -2,7 +2,7 @@
 extends "res://scripts/interfaces/i_input_profile_manager.gd"
 class_name M_InputProfileManager
 
-const U_InputSerialization := preload("res://scripts/utils/input/u_input_serialization.gd")
+const U_GlobalSettingsSerialization := preload("res://scripts/utils/u_global_settings_serialization.gd")
 const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
 const U_InputProfileLoader := preload("res://scripts/managers/helpers/u_input_profile_loader.gd")
 const U_InputMapBootstrapper := preload("res://scripts/input/u_input_map_bootstrapper.gd")
@@ -11,20 +11,6 @@ const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd"
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-
-const PERSIST_ACTIONS := [
-	U_InputActions.ACTION_REBIND_ACTION,
-	U_InputActions.ACTION_RESET_BINDINGS,
-	U_InputActions.ACTION_UPDATE_GAMEPAD_DEADZONE,
-	U_InputActions.ACTION_TOGGLE_VIBRATION,
-	U_InputActions.ACTION_SET_VIBRATION_INTENSITY,
-	U_InputActions.ACTION_UPDATE_MOUSE_SENSITIVITY,
-	U_InputActions.ACTION_UPDATE_ACCESSIBILITY,
-	U_InputActions.ACTION_PROFILE_SWITCHED,
-	U_InputActions.ACTION_REMOVE_ACTION_BINDINGS,
-	U_InputActions.ACTION_UPDATE_TOUCHSCREEN_SETTINGS,
-	U_InputActions.ACTION_SAVE_VIRTUAL_CONTROL_POSITION
-]
 
 signal profile_switched(profile_id: String)
 signal bindings_reset()
@@ -38,7 +24,6 @@ var _state_store: I_StateStore = null
 var _unsubscribe: Callable = Callable()
 var _profile_loader := U_InputProfileLoader.new()
 var _pause_gate_enabled: bool = false
-var _save_debounce_scheduled: bool = false
 var _current_profile_id: String = ""
 var _last_bindings_signature: int = 0
 var _tracked_custom_actions: Array[StringName] = []
@@ -238,9 +223,6 @@ func _on_store_changed(action: Dictionary, state: Dictionary) -> void:
 	if is_reset_action:
 		bindings_reset.emit()
 
-	if action_type in PERSIST_ACTIONS:
-		_schedule_save()
-
 func _load_available_profiles() -> void:
 	# Built-in profiles (resources/input/profiles)
 	# Note: Use optional chaining; missing files are tolerated in early phases.
@@ -370,10 +352,14 @@ func save_custom_bindings() -> bool:
 	var snapshot := _gather_settings_snapshot()
 	if snapshot.is_empty():
 		return false
-	return U_InputSerialization.save_settings(snapshot)
+	return U_GlobalSettingsSerialization.save_settings({"input_settings": snapshot})
 
 func load_custom_bindings() -> bool:
-	var payload := U_InputSerialization.load_settings()
+	var loaded := U_GlobalSettingsSerialization.load_settings()
+	var input_variant: Variant = loaded.get("input_settings", {})
+	if not (input_variant is Dictionary):
+		return false
+	var payload := input_variant as Dictionary
 	if payload.is_empty():
 		return false
 
@@ -404,19 +390,6 @@ func reset_action(action: StringName) -> void:
 
 func _apply_profile_to_input_map(profile: RS_InputProfile) -> void:
 	_profile_loader.apply_profile_to_input_map(profile)
-
-func _schedule_save() -> void:
-	if _save_debounce_scheduled:
-		return
-	_save_debounce_scheduled = true
-	call_deferred("_flush_pending_save")
-
-func _flush_pending_save() -> void:
-	_save_debounce_scheduled = false
-	var snapshot := _gather_settings_snapshot()
-	if snapshot.is_empty():
-		return
-	U_InputSerialization.save_settings(snapshot)
 
 func _gather_settings_snapshot() -> Dictionary:
 	var store := _get_state_store()

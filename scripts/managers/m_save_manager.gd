@@ -347,6 +347,8 @@ func load_from_slot(slot_id: StringName) -> Error:
 	var typed_store := _state_store as I_StateStore
 	if typed_store != null:
 		typed_store.apply_loaded_state(loaded_state)
+		if typed_store.has_method("apply_global_settings_from_disk"):
+			typed_store.call("apply_global_settings_from_disk")
 	else:
 		# Fallback: preserve to StateHandoff (legacy behavior)
 		for slice_name in loaded_state:

@@ -20,6 +20,8 @@ const U_STATE_REPOSITORY := preload("res://scripts/state/utils/u_state_repositor
 const U_STATE_VALIDATOR := preload("res://scripts/state/utils/u_state_validator.gd")
 const U_ACTION_HISTORY_BUFFER := preload("res://scripts/state/utils/u_action_history_buffer.gd")
 const U_STORE_PERFORMANCE_METRICS := preload("res://scripts/state/utils/u_store_performance_metrics.gd")
+const U_GLOBAL_SETTINGS_APPLIER := preload("res://scripts/state/utils/u_global_settings_applier.gd")
+const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_BOOT_REDUCER := preload("res://scripts/state/reducers/u_boot_reducer.gd")
 const U_MENU_REDUCER := preload("res://scripts/state/reducers/u_menu_reducer.gd")
@@ -75,6 +77,9 @@ var _action_history_buffer := U_ACTION_HISTORY_BUFFER.new()
 var _debug_overlay: CanvasLayer = null
 var _is_ready: bool = false
 var _performance_metrics := U_STORE_PERFORMANCE_METRICS.new()
+var _global_settings_loading: bool = false
+var _global_settings_save_debounce: bool = false
+var _global_settings_last_hash: int = 0
 
 func _ready() -> void:
 	# Store must continue flushing batched slice_updated signals while paused so
@@ -95,6 +100,9 @@ func _ready() -> void:
 
 	# Auto-load persisted state if enabled and file exists
 	_try_autoload_state()
+
+	# Apply global settings after load/restore so preferences override saved state.
+	apply_global_settings_from_disk()
 	
 	_signal_batcher = U_SIGNAL_BATCHER.new()
 	set_physics_process(true)  # Enable physics processing for signal batching
@@ -107,6 +115,9 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	# Preserve state for scene transitions via StateHandoff
 	_preserve_to_handoff()
+
+	if _global_settings_save_debounce:
+		_flush_global_settings_save()
 
 	# Save state to disk on shutdown if persistence enabled
 	_save_state_if_enabled()
@@ -121,6 +132,67 @@ func _save_state_if_enabled() -> void:
 func _try_autoload_state() -> void:
 	var enable_logging := settings != null and settings.enable_debug_logging
 	U_STATE_REPOSITORY.try_autoload_state(settings, _state, _slice_configs, enable_logging)
+
+func apply_global_settings_from_disk() -> void:
+	if not _is_global_settings_persistence_enabled():
+		return
+
+	var result := U_GLOBAL_SETTINGS_SERIALIZATION.load_settings_with_meta()
+	var settings_variant: Variant = result.get("settings", {})
+	if not (settings_variant is Dictionary):
+		return
+
+	var loaded_settings := settings_variant as Dictionary
+	if loaded_settings.is_empty():
+		_global_settings_last_hash = U_GLOBAL_SETTINGS_SERIALIZATION.build_settings_from_state(_state).hash()
+		return
+
+	_global_settings_loading = true
+	U_GLOBAL_SETTINGS_APPLIER.apply(self, loaded_settings)
+	_global_settings_loading = false
+	_global_settings_last_hash = U_GLOBAL_SETTINGS_SERIALIZATION.build_settings_from_state(_state).hash()
+
+	if bool(result.get("migrated", false)):
+		U_GLOBAL_SETTINGS_SERIALIZATION.save_settings(loaded_settings)
+
+func _is_global_settings_persistence_enabled() -> bool:
+	return settings != null and settings.enable_global_settings_persistence
+
+func _maybe_schedule_global_settings_save(action: Dictionary) -> void:
+	if not _is_global_settings_persistence_enabled():
+		return
+	if _global_settings_loading:
+		return
+	if action == null or action.is_empty():
+		return
+
+	var action_type: Variant = action.get("type", StringName(""))
+	if U_GLOBAL_SETTINGS_SERIALIZATION.is_global_settings_action(action_type):
+		_schedule_global_settings_save()
+
+func _schedule_global_settings_save() -> void:
+	if _global_settings_save_debounce:
+		return
+	_global_settings_save_debounce = true
+	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
+		_flush_global_settings_save()
+	else:
+		call_deferred("_flush_global_settings_save")
+
+func _flush_global_settings_save() -> void:
+	_global_settings_save_debounce = false
+	if not _is_global_settings_persistence_enabled():
+		return
+
+	var snapshot := U_GLOBAL_SETTINGS_SERIALIZATION.build_settings_from_state(_state)
+	if snapshot.is_empty():
+		return
+	var snapshot_hash := snapshot.hash()
+	if snapshot_hash == _global_settings_last_hash:
+		return
+	var saved := U_GLOBAL_SETTINGS_SERIALIZATION.save_settings(snapshot)
+	if saved:
+		_global_settings_last_hash = snapshot_hash
 
 func _physics_process(_delta: float) -> void:
 	# Flush batched signals once per physics frame
@@ -308,6 +380,7 @@ func dispatch(action: Dictionary) -> void:
 	
 	# Performance tracking end
 	_performance_metrics.finish_dispatch(perf_start)
+	_maybe_schedule_global_settings_save(action_copy)
 
 ## Apply reducers to update state based on action
 ## Kept for backward compatibility; now delegates to U_StateSliceManager.

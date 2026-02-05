@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_InputSerialization := preload("res://scripts/utils/input/u_input_serialization.gd")
+const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
 const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
 
 func before_each() -> void:
@@ -12,18 +12,18 @@ func after_each() -> void:
 func test_save_operation_completes_under_100ms() -> void:
 	var settings := _make_large_settings_dataset()
 	var start := Time.get_ticks_msec()
-	var success := U_InputSerialization.save_settings(settings)
+	var success := U_GLOBAL_SETTINGS_SERIALIZATION.save_settings({"input_settings": settings})
 	var elapsed := Time.get_ticks_msec() - start
 	assert_true(success, "Save should succeed")
 	assert_true(elapsed <= 100, "Expected save < 100ms, took %sms" % elapsed)
 
 func test_load_operation_completes_under_100ms() -> void:
 	var settings := _make_large_settings_dataset()
-	var save_success := U_InputSerialization.save_settings(settings)
+	var save_success := U_GLOBAL_SETTINGS_SERIALIZATION.save_settings({"input_settings": settings})
 	assert_true(save_success, "Precondition save should succeed")
 
 	var start := Time.get_ticks_msec()
-	var loaded := U_InputSerialization.load_settings()
+	var loaded := U_GLOBAL_SETTINGS_SERIALIZATION.load_settings()
 	var elapsed := Time.get_ticks_msec() - start
 	assert_true(loaded is Dictionary, "Load should return dictionary")
 	assert_true(elapsed <= 100, "Expected load < 100ms, took %sms" % elapsed)
@@ -82,7 +82,7 @@ func _cleanup_input_settings_files() -> void:
 	var dir := DirAccess.open("user://")
 	if dir == null:
 		return
-	if dir.file_exists("input_settings.json"):
-		dir.remove("input_settings.json")
-	if dir.file_exists("input_settings.json.backup"):
-		dir.remove("input_settings.json.backup")
+	if dir.file_exists("global_settings.json"):
+		dir.remove("global_settings.json")
+	if dir.file_exists("global_settings.json.backup"):
+		dir.remove("global_settings.json.backup")

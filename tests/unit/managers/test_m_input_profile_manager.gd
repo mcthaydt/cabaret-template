@@ -36,10 +36,10 @@ func _cleanup_input_settings_files() -> void:
 	var dir := DirAccess.open("user://")
 	if dir == null:
 		return
-	if dir.file_exists("input_settings.json"):
-		dir.remove("input_settings.json")
-	if dir.file_exists("input_settings.json.backup"):
-		dir.remove("input_settings.json.backup")
+	if dir.file_exists("global_settings.json"):
+		dir.remove("global_settings.json")
+	if dir.file_exists("global_settings.json.backup"):
+		dir.remove("global_settings.json.backup")
 
 func _ensure_jump_action_exists() -> void:
 	if not InputMap.has_action("jump"):
@@ -83,9 +83,12 @@ func _write_input_settings_file(profile_id: String, keycode: Key) -> void:
 		"accessibility": {}
 	}
 
-	var file := FileAccess.open("user://input_settings.json", FileAccess.WRITE)
+	var file := FileAccess.open("user://global_settings.json", FileAccess.WRITE)
 	assert_not_null(file)
-	file.store_string(JSON.stringify(sample))
+	file.store_string(JSON.stringify({
+		"version": "1.0.0",
+		"input_settings": sample
+	}))
 	file.flush()
 	file = null
 
@@ -232,9 +235,9 @@ func test_apply_profile_only_modifies_defined_actions() -> void:
 func test_save_custom_bindings_writes_input_settings_file() -> void:
 	var result: bool = _mgr.save_custom_bindings()
 	assert_true(result, "Saving custom bindings should succeed")
-	assert_true(FileAccess.file_exists("user://input_settings.json"), "Settings file should exist after save")
+	assert_true(FileAccess.file_exists("user://global_settings.json"), "Settings file should exist after save")
 
-	var file: FileAccess = FileAccess.open("user://input_settings.json", FileAccess.READ)
+	var file: FileAccess = FileAccess.open("user://global_settings.json", FileAccess.READ)
 	assert_not_null(file, "Should be able to open settings file")
 	var data: Variant = JSON.parse_string(file.get_as_text())
 	file = null
@@ -242,7 +245,8 @@ func test_save_custom_bindings_writes_input_settings_file() -> void:
 	if data is Dictionary:
 		var data_dict: Dictionary = data
 		assert_eq(data_dict.get("version", ""), "1.0.0", "Settings file should include schema version")
-		assert_true(data_dict.has("active_profile_id"), "Settings file should include active profile id")
+		var input_settings: Dictionary = data_dict.get("input_settings", {})
+		assert_true(input_settings.has("active_profile_id"), "Settings file should include active profile id")
 
 func test_load_settings_applies_custom_bindings_and_profile() -> void:
 	# Remove the manager created in before_each to control initialization order.
@@ -478,15 +482,16 @@ func test_save_custom_bindings_includes_custom_bindings_payload() -> void:
 	var saved: bool = _mgr.save_custom_bindings()
 	assert_true(saved, "Explicit save should succeed after rebind")
 
-	var file: FileAccess = FileAccess.open("user://input_settings.json", FileAccess.READ)
+	var file: FileAccess = FileAccess.open("user://global_settings.json", FileAccess.READ)
 	assert_not_null(file, "Saved file should exist for inspection")
 	var data_variant: Variant = JSON.parse_string(file.get_as_text())
 	file = null
 	assert_true(data_variant is Dictionary, "Serialized data should decode to dictionary")
 	var data: Dictionary = data_variant if data_variant is Dictionary else {}
 
-	assert_true(data.has("custom_bindings"), "Payload should include custom_bindings dictionary")
-	var bindings_value: Variant = data.get("custom_bindings", {})
+	var input_settings: Dictionary = data.get("input_settings", {})
+	assert_true(input_settings.has("custom_bindings"), "Payload should include custom_bindings dictionary")
+	var bindings_value: Variant = input_settings.get("custom_bindings", {})
 	assert_true(bindings_value is Dictionary, "custom_bindings should be dictionary")
 	var bindings: Dictionary = bindings_value if bindings_value is Dictionary else {}
 	assert_true(bindings.has("jump"), "Jump entry should be present in saved bindings")

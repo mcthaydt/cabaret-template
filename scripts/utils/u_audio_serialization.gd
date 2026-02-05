@@ -41,6 +41,19 @@ static func save_settings(settings: Dictionary) -> bool:
 	file.flush()
 	return true
 
+static func serialize_settings(settings: Dictionary) -> Dictionary:
+	if settings == null:
+		return {}
+	var payload := _prepare_save_payload(settings)
+	if payload.has("version"):
+		payload.erase("version")
+	return payload
+
+static func deserialize_settings(data: Dictionary) -> Dictionary:
+	if data == null:
+		return {}
+	return _sanitize_loaded_settings(data)
+
 static func _prepare_save_payload(settings: Dictionary) -> Dictionary:
 	var defaults := U_AUDIO_REDUCER.get_default_audio_state()
 	var payload: Dictionary = {}
