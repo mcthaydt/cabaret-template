@@ -9,6 +9,7 @@ class_name U_DisplayReducer
 
 const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
+const U_PostProcessingPresetValues := preload("res://scripts/utils/display/u_post_processing_preset_values.gd")
 
 const DEFAULT_DISPLAY_STATE := {
 	"window_size_preset": "1920x1080",
@@ -79,7 +80,16 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var preset: String = String(payload.get("preset", ""))
 			if not _is_valid_post_processing_preset(preset):
 				return null
-			return _with_values(current, {"post_processing_preset": preset})
+			# Apply preset values to individual intensity settings
+			var preset_values := U_PostProcessingPresetValues.get_preset_values(preset)
+			return _with_values(current, {
+				"post_processing_preset": preset,
+				"film_grain_intensity": preset_values.get("film_grain_intensity", current.get("film_grain_intensity", 0.1)),
+				"crt_scanline_intensity": preset_values.get("crt_scanline_intensity", current.get("crt_scanline_intensity", 0.3)),
+				"crt_curvature": preset_values.get("crt_curvature", current.get("crt_curvature", 2.0)),
+				"crt_chromatic_aberration": preset_values.get("crt_chromatic_aberration", current.get("crt_chromatic_aberration", 0.002)),
+				"dither_intensity": preset_values.get("dither_intensity", current.get("dither_intensity", 0.5)),
+			})
 
 		U_DisplayActions.ACTION_SET_FILM_GRAIN_ENABLED:
 			var payload: Dictionary = action.get("payload", {})

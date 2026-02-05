@@ -233,5 +233,47 @@ func test_reducer_immutability() -> void:
 	assert_ne(state, reduced, "Reducer should return a new state object")
 	assert_eq(state, original_copy, "Original state should remain unchanged")
 
+# Test 26: post-processing preset applies intensity values
+func test_post_processing_preset_applies_intensity_values() -> void:
+	var state := _make_display_state()
+	var action := U_DisplayActions.set_post_processing_preset("heavy")
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	# THEN: State should update preset and apply heavy intensity values
+	assert_eq(reduced.get("post_processing_preset"), "heavy", "Should set preset to heavy")
+	assert_eq(reduced.get("film_grain_intensity"), 0.35, "Should apply heavy film grain intensity")
+	assert_eq(reduced.get("crt_scanline_intensity"), 0.45, "Should apply heavy scanline intensity")
+	assert_eq(reduced.get("crt_curvature"), 3.0, "Should apply heavy curvature")
+	assert_eq(reduced.get("crt_chromatic_aberration"), 0.004, "Should apply heavy aberration")
+	assert_eq(reduced.get("dither_intensity"), 1.0, "Should apply heavy dither intensity")
+
+# Test 27: post-processing preset light values
+func test_post_processing_preset_light_applies_correct_values() -> void:
+	var state := _make_display_state()
+	var action := U_DisplayActions.set_post_processing_preset("light")
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	# THEN: State should update preset and apply light intensity values
+	assert_eq(reduced.get("post_processing_preset"), "light", "Should set preset to light")
+	assert_eq(reduced.get("film_grain_intensity"), 0.05, "Should apply light film grain intensity")
+	assert_eq(reduced.get("crt_scanline_intensity"), 0.15, "Should apply light scanline intensity")
+	assert_eq(reduced.get("crt_curvature"), 1.0, "Should apply light curvature")
+	assert_eq(reduced.get("crt_chromatic_aberration"), 0.001, "Should apply light aberration")
+	assert_eq(reduced.get("dither_intensity"), 0.25, "Should apply light dither intensity")
+
+# Test 28: post-processing preset medium values
+func test_post_processing_preset_medium_applies_current_defaults() -> void:
+	var state := _make_display_state()
+	var action := U_DisplayActions.set_post_processing_preset("medium")
+	var reduced: Dictionary = U_DisplayReducer.reduce(state, action)
+
+	# THEN: State should update preset and apply medium (current default) intensity values
+	assert_eq(reduced.get("post_processing_preset"), "medium", "Should set preset to medium")
+	assert_eq(reduced.get("film_grain_intensity"), 0.2, "Should apply medium film grain intensity")
+	assert_eq(reduced.get("crt_scanline_intensity"), 0.25, "Should apply medium scanline intensity")
+	assert_eq(reduced.get("crt_curvature"), 0.0, "Should apply medium curvature")
+	assert_eq(reduced.get("crt_chromatic_aberration"), 0.001, "Should apply medium aberration")
+	assert_eq(reduced.get("dither_intensity"), 1.0, "Should apply medium dither intensity")
+
 func _make_display_state() -> Dictionary:
 	return U_DisplayReducer.get_default_display_state()

@@ -30,6 +30,7 @@ var _pending_window_settings: Dictionary = {}
 var _window_size_values: Array[String] = []
 var _window_mode_values: Array[String] = []
 var _quality_preset_values: Array[String] = []
+var _post_processing_preset_values: Array[String] = []
 var _dither_pattern_values: Array[String] = []
 var _color_blind_mode_values: Array[String] = []
 
@@ -37,6 +38,8 @@ var _color_blind_mode_values: Array[String] = []
 @onready var _window_mode_option: OptionButton = %WindowModeOption
 @onready var _vsync_toggle: CheckBox = %VSyncToggle
 @onready var _quality_preset_option: OptionButton = %QualityPresetOption
+
+@onready var _post_processing_preset_option: OptionButton = %PostProcessPresetOption
 
 @onready var _film_grain_toggle: CheckBox = %FilmGrainToggle
 @onready var _film_grain_intensity_slider: HSlider = %FilmGrainIntensitySlider
@@ -102,6 +105,9 @@ func _connect_signals() -> void:
 		_vsync_toggle.toggled.connect(_on_vsync_toggled)
 	if _quality_preset_option != null and not _quality_preset_option.item_selected.is_connected(_on_quality_preset_selected):
 		_quality_preset_option.item_selected.connect(_on_quality_preset_selected)
+
+	if _post_processing_preset_option != null and not _post_processing_preset_option.item_selected.is_connected(_on_post_processing_preset_selected):
+		_post_processing_preset_option.item_selected.connect(_on_post_processing_preset_selected)
 
 	if _film_grain_toggle != null and not _film_grain_toggle.toggled.is_connected(_on_film_grain_toggled):
 		_film_grain_toggle.toggled.connect(_on_film_grain_toggled)
@@ -169,6 +175,11 @@ func _populate_option_buttons() -> void:
 		_quality_preset_values
 	)
 	_populate_option_button(
+		_post_processing_preset_option,
+		U_DisplayOptionCatalog.get_post_processing_preset_option_entries(),
+		_post_processing_preset_values
+	)
+	_populate_option_button(
 		_dither_pattern_option,
 		U_DisplayOptionCatalog.get_dither_pattern_option_entries(),
 		_dither_pattern_values
@@ -205,6 +216,9 @@ func _configure_focus_neighbors() -> void:
 		focusables.append(_vsync_toggle)
 	if _quality_preset_option != null:
 		focusables.append(_quality_preset_option)
+
+	if _post_processing_preset_option != null:
+		focusables.append(_post_processing_preset_option)
 
 	if _film_grain_toggle != null:
 		focusables.append(_film_grain_toggle)
@@ -334,6 +348,8 @@ func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 	_set_toggle_value_silently(_vsync_toggle, U_DisplaySelectors.is_vsync_enabled(state))
 	_select_option_value(_quality_preset_option, _quality_preset_values, U_DisplaySelectors.get_quality_preset(state))
 
+	_select_option_value(_post_processing_preset_option, _post_processing_preset_values, U_DisplaySelectors.get_post_processing_preset(state))
+
 	_set_toggle_value_silently(_film_grain_toggle, U_DisplaySelectors.is_film_grain_enabled(state))
 	var film_grain_intensity := U_DisplaySelectors.get_film_grain_intensity(state)
 	_set_slider_value_silently(_film_grain_intensity_slider, film_grain_intensity)
@@ -399,6 +415,15 @@ func _on_quality_preset_selected(index: int) -> void:
 	if _updating_from_state:
 		return
 	if index < 0 or index >= _quality_preset_values.size():
+		return
+	U_UISoundPlayer.play_confirm()
+	_has_local_edits = true
+	_update_display_settings_preview_from_ui()
+
+func _on_post_processing_preset_selected(index: int) -> void:
+	if _updating_from_state:
+		return
+	if index < 0 or index >= _post_processing_preset_values.size():
 		return
 	U_UISoundPlayer.play_confirm()
 	_has_local_edits = true
@@ -609,6 +634,7 @@ func _dispatch_display_settings(settings: Variant, skip_window_actions: bool = f
 		_state_store.dispatch(U_DisplayActions.set_window_mode(String(values.get("window_mode", ""))))
 	_state_store.dispatch(U_DisplayActions.set_vsync_enabled(bool(values.get("vsync_enabled", true))))
 	_state_store.dispatch(U_DisplayActions.set_quality_preset(String(values.get("quality_preset", ""))))
+	_state_store.dispatch(U_DisplayActions.set_post_processing_preset(String(values.get("post_processing_preset", ""))))
 	_state_store.dispatch(U_DisplayActions.set_film_grain_enabled(bool(values.get("film_grain_enabled", false))))
 	_state_store.dispatch(U_DisplayActions.set_film_grain_intensity(float(values.get("film_grain_intensity", 0.1))))
 	_state_store.dispatch(U_DisplayActions.set_crt_enabled(bool(values.get("crt_enabled", false))))
@@ -740,6 +766,7 @@ func _get_display_settings_from_ui() -> Dictionary:
 		"window_mode": _get_selected_value(_window_mode_option, _window_mode_values, defaults.window_mode),
 		"vsync_enabled": _get_toggle_value(_vsync_toggle, defaults.vsync_enabled),
 		"quality_preset": _get_selected_value(_quality_preset_option, _quality_preset_values, defaults.quality_preset),
+		"post_processing_preset": _get_selected_value(_post_processing_preset_option, _post_processing_preset_values, defaults.post_processing_preset),
 		"film_grain_enabled": _get_toggle_value(_film_grain_toggle, defaults.film_grain_enabled),
 		"film_grain_intensity": _get_slider_value(_film_grain_intensity_slider, defaults.film_grain_intensity),
 		"crt_enabled": _get_toggle_value(_crt_toggle, defaults.crt_enabled),
