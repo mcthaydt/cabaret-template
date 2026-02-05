@@ -181,9 +181,11 @@ Completion Notes (2026-02-05): Added dependent control enable/disable rules (win
 
 ### 4E - Remove Dead Code (Only After Proof)
 
-- [ ] Remove dead/unused code in `M_DisplayManager` only after tests prove unused:
+- [x] Remove dead/unused code in `M_DisplayManager` only after tests prove unused:
   - `_is_hex_string()`
   - safe-area padding helpers (if truly unused)
+
+Completion Notes (2026-02-05): Removed unused hex/safe-area helpers from `M_DisplayManager` and safe-area padding helper in UI scale applier; removed related unit test. Tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true` (warning: macOS CA cert). Commit: d28f741.
 
 ### 4F - Run Targeted Test Suites
 

@@ -646,7 +646,8 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-05 (commit fa402e7; ran style + integration/display suites; warning: macOS CA cert).
 - [x] **Task 10D**: Settings UI polish (contextual enable/disable + focus clarity)
   - Notes: Completed 2026-02-05 (commit c924062; ran integration/display suite; warning: macOS CA cert).
-- [ ] **Task 10E**: Remove dead code after tests prove unused
+- [x] **Task 10E**: Remove dead code after tests prove unused
+  - Notes: Completed 2026-02-05 (commit d28f741; ran unit/managers suite; warning: macOS CA cert).
 
 ---
 
