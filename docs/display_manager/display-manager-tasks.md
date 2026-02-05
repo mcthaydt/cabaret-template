@@ -169,7 +169,7 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-01 (ran full state suite + display unit tests)
 
 **Transient Fields Decision:**
-- Display slice has **no transient fields** (all settings persist to save files)
+- Display slice has **no transient fields** (settings persist to `user://global_settings.json`, not save slots)
 - `transient_fields = []` in slice config
 
 **Notes:**
@@ -549,7 +549,7 @@ Before starting Phase 0, verify:
   - Test window mode changes apply to DisplayServer
   - Test quality presets update rendering settings
   - Test settings persist across scene transitions
-  - Test settings persist in save files
+  - Test settings persist via `user://global_settings.json` (not save slots)
   - **Target: 15 tests**
   - Notes: Completed 2026-02-04 (created `tests/integration/display/test_display_settings.gd` with 15 tests)
 
@@ -586,15 +586,15 @@ Before starting Phase 0, verify:
 ### Visual Verification Checklist
 
 - **Note (2026-02-04)**: UI palette resources load and persist, and a minimal UI theme binding applies palette text colors to common UI controls. Full styling still relies on per-control overrides and future theme expansion.
-- [ ] **MT-01**: Window size presets resize window correctly
-- [ ] **MT-02**: Fullscreen toggle works
-- [ ] **MT-03**: Borderless windowed mode works
-- [ ] **MT-04**: VSync toggle affects frame timing
+- [x] **MT-01**: Window size presets resize window correctly
+- [x] **MT-02**: Fullscreen toggle works
+- [x] **MT-03**: Borderless windowed mode works
+- [x] **MT-04**: VSync toggle affects frame timing
 - [ ] **MT-05**: Quality preset changes are visually noticeable
-- [ ] **MT-06**: Film Grain effect visible when enabled
-- [ ] **MT-07**: CRT filter visible when enabled (scanlines/curvature/aberration)
-- [ ] **MT-08**: Dither patterns (bayer/noise) distinguishable
-- [ ] **MT-09**: LUT color grading applies correctly
+- [x] **MT-06**: Film Grain effect visible when enabled
+- [x] **MT-07**: CRT filter visible when enabled (scanlines/curvature/aberration)
+- [x] **MT-08**: Dither patterns (bayer/noise) distinguishable
+- [x] **MT-09**: LUT color grading applies correctly
 - [ ] **MT-10**: UI scale slider affects all UI elements proportionally
 - [ ] **MT-11**: UI remains usable at 0.8x scale
 - [ ] **MT-12**: UI remains usable at 1.3x scale
@@ -657,10 +657,10 @@ Before starting Phase 0, verify:
 - Document any deviations from the plan and rationale
 
 **Key Decisions:**
-- Display slice has **no transient fields** - all settings persist to save files
+- Display slice has **no transient fields** - settings persist to `user://global_settings.json` (not save slots)
 - Settings UI uses **overlay pattern** in `scenes/ui/overlays/` (not separate settings directory)
 - Post-process overlay uses **layer 100** (above gameplay layer 0, below UI overlays)
-- Display settings **do NOT auto-save to disk** on change (unlike audio) - rely on M_SaveManager
+- Display settings auto-save via global settings persistence (M_StateStore → `user://global_settings.json`); M_SaveManager excludes display slice
 
 **Prerequisite check:**
 - [ ] Audio Manager Phase 0 complete (audio_initial_state exists in u_state_slice_manager)

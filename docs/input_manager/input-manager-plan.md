@@ -41,7 +41,7 @@ The Input Manager system provides comprehensive multi-device input support for t
 - GUT (Godot Unit Testing framework)
 
 **Storage**:
-- Input settings: `user://input_settings.json` (JSON-based persistence)
+- Input settings: `user://global_settings.json` (JSON-based persistence)
 - Input profiles: `resources/input_profiles/*.tres` (Godot Resource files)
 - Button prompts: `resources/button_prompts/{keyboard,gamepad}/*.png` (texture assets)
 
@@ -2150,7 +2150,7 @@ func _apply_landing_vibration(fall_speed: float) -> void:
 
 ### Edge Case 4: Save File Contains Invalid Custom Bindings
 
-**Scenario**: Player manually edits user://input_settings.json, introduces invalid keycode or malformed dictionary
+**Scenario**: Player manually edits user://global_settings.json, introduces invalid keycode or malformed dictionary
 
 **Expected Behavior**:
 1. M_InputProfileManager.load_settings() attempts to parse JSON
@@ -2546,7 +2546,7 @@ func _apply_landing_vibration(fall_speed: float) -> void:
    - Test reserved action protection
 
 4. **test_input_persistence.gd** (~150 lines) - **Satisfies FR-136**
-   - Test settings save to user://input_settings.json
+   - Test settings save to user://global_settings.json
    - Test settings load on game start
    - Test StateHandoff across scene transitions
 

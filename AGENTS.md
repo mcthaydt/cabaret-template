@@ -202,6 +202,7 @@ Production asset files use type-specific prefixes:
   - `M_StateStore` emits `slice_updated` once per physics frame; do not also flush on idle frames.
   - Actions that need same-frame visibility (e.g., input rebinds) must set `"immediate": true` on the dispatched payload; the store now flushes batched slice updates immediately for these actions.
   - Gameplay input fields are transient across scene transitions (StateHandoff) but are persisted to disk on save/load.
+  - Global settings persist via `user://global_settings.json` (display/audio/vfx/input + gameplay preferences). Controlled by `RS_StateStoreSettings.enable_global_settings_persistence`; legacy `audio_settings.json`/`input_settings.json` migrate on load.
 - State load normalization
   - `M_StateStore.load_state()` sanitizes unknown `current_scene_id`, `target_spawn_point`, and `last_checkpoint` values, falling back to `gameplay_base` / `sp_default` and deduping `completed_areas`.
 - Style enforcement

@@ -1020,7 +1020,7 @@ The following tasks were deferred or absorbed into UI Manager:
 - **Performance targets** (Non-Negotiable):
   - Input latency: < 16ms (one frame @ 60 FPS)
   - Profile switching: < 200ms (anytime, not restricted to pause)
-  - Save/load: < 100ms (JSON at user://input_settings.json)
+  - Save/load: < 100ms (JSON at user://global_settings.json)
   - Mobile virtual controls: 60 FPS on mid-range devices
 
 ### Architectural Decisions (Clarified)
@@ -1033,7 +1033,7 @@ The following tasks were deferred or absorbed into UI Manager:
 - **Rebinding conflicts**: Show confirm dialog listing conflicts. Player confirms swap or cancels.
 - **Unmapped gamepads**: Use raw button indices (button_0, button_1, etc.) as fallback. Players can rebind manually.
 - **Undo/redo**: No undo stack. Provide "Reset to Defaults" button only.
-- **Persistence**: JSON at `user://input_settings.json` with structured schema validation.
+- **Persistence**: JSON at `user://global_settings.json` with structured schema validation.
 
 ## Links
 

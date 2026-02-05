@@ -143,7 +143,7 @@ U_DisplaySelectors.get_lut_intensity(state: Dictionary) -> float
 }
 ```
 
-**Note**: Display settings persist to save files (included in display slice).
+**Note**: Display settings persist to `user://global_settings.json` (not save slots).
 
 ## Post-Processing System (CanvasLayer + Shader)
 
@@ -536,7 +536,7 @@ if display_initial_state != null:
 ```
 
 **Key Points:**
-- No transient fields - all display settings persist to save files
+- No transient fields - display settings persist to `user://global_settings.json` (not save slots)
 - No dependencies on other slices
 - Registered as 12th slice (after audio)
 
@@ -593,7 +593,7 @@ Common mistakes to avoid:
 | Viewport resolution | Fixed 960x600 internal, window presets scale output |
 | UI scale range | 0.8x - 1.3x with 0.1 step |
 | Quality preset levels | Low, Medium, High, Ultra |
-| Settings persistence | Included in display slice, persisted to save files |
+| Settings persistence | Included in display slice, persisted to `user://global_settings.json` |
 | Outline color format | Hex string (e.g., "000000") for easy serialization |
 | Dither patterns | "bayer" (ordered) and "noise" (random) options |
 | LUT intensity | 0.0-1.0 for blend between original and graded |

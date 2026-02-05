@@ -1035,7 +1035,7 @@ ScrollContainer
 
 ### Phase 6-7 Complete:
 - [ ] All ~120 tests pass (90 unit + 30 integration)
-- [ ] Settings persist to save files (no transient fields)
+- [ ] Settings persist to `user://global_settings.json` (no transient fields)
 - [ ] Settings UI controls work correctly
 - [ ] Manual playtest: all effects visually correct
 
