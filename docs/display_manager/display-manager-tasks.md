@@ -644,7 +644,8 @@ Before starting Phase 0, verify:
   - Notes: Completed 2026-02-05 (commit 1cb45a5; ran style, unit/managers, integration/display suites)
 - [x] **Task 10C**: Confirm/revert flow for window changes (Apply/Cancel + preview remains)
   - Notes: Completed 2026-02-05 (commit fa402e7; ran style + integration/display suites; warning: macOS CA cert).
-- [ ] **Task 10D**: Settings UI polish (contextual enable/disable + focus clarity)
+- [x] **Task 10D**: Settings UI polish (contextual enable/disable + focus clarity)
+  - Notes: Completed 2026-02-05 (commit c924062; ran integration/display suite; warning: macOS CA cert).
 - [ ] **Task 10E**: Remove dead code after tests prove unused
 
 ---

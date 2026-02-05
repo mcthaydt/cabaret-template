@@ -169,13 +169,15 @@ Completion Notes (2026-02-05): Added confirm dialog + countdown timer for window
 
 ### 4D - Settings UI Polish (Clarity + Accessibility)
 
-- [ ] Contextual enable/disable:
+- [x] Contextual enable/disable:
   - Window size row disabled unless in `windowed` mode
   - Effect intensity sliders disabled unless effect enabled
-- [ ] Improve readability and UX:
+- [x] Improve readability and UX:
   - Grouping + microcopy where players need clarity (e.g., CRT parameters)
   - Focus neighbors remain deterministic; ScrollContainer follow-focus works
-- [ ] Confirm flow integrates cleanly with Apply/Cancel + preview (no auto-save regression).
+- [x] Confirm flow integrates cleanly with Apply/Cancel + preview (no auto-save regression).
+
+Completion Notes (2026-02-05): Added dependent control enable/disable rules (windowed-only size, effect intensity gating) with tooltip microcopy for clarity; confirm flow remains Apply/Cancel + preview. Tests: `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (warning: macOS CA cert). Commit: c924062.
 
 ### 4E - Remove Dead Code (Only After Proof)
 
