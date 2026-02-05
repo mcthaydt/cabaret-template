@@ -71,6 +71,7 @@ var _color_blind_mode_values: Array[String] = []
 func _ready() -> void:
 	_connect_signals()
 	_populate_option_buttons()
+	_hide_desktop_only_controls_on_mobile()
 	_configure_focus_neighbors()
 	_configure_tooltips()
 
@@ -195,11 +196,12 @@ func _populate_option_button(button: OptionButton, options: Array, values: Array
 
 func _configure_focus_neighbors() -> void:
 	var focusables: Array[Control] = []
-	if _window_size_option != null:
+	# Only add visible controls to the focusables list (respects mobile platform hiding)
+	if _window_size_option != null and _window_size_option.get_parent().visible:
 		focusables.append(_window_size_option)
-	if _window_mode_option != null:
+	if _window_mode_option != null and _window_mode_option.get_parent().visible:
 		focusables.append(_window_mode_option)
-	if _vsync_toggle != null:
+	if _vsync_toggle != null and _vsync_toggle.get_parent().visible:
 		focusables.append(_vsync_toggle)
 	if _quality_preset_option != null:
 		focusables.append(_quality_preset_option)
@@ -232,9 +234,6 @@ func _configure_focus_neighbors() -> void:
 	if _color_blind_shader_toggle != null:
 		focusables.append(_color_blind_shader_toggle)
 
-	if not focusables.is_empty():
-		U_FocusConfigurator.configure_vertical_focus(focusables, false)
-
 	var buttons: Array[Control] = []
 	if _cancel_button != null:
 		buttons.append(_cancel_button)
@@ -243,14 +242,16 @@ func _configure_focus_neighbors() -> void:
 	if _apply_button != null:
 		buttons.append(_apply_button)
 
+	# Add buttons to focusables for vertical wrapping
+	for button in buttons:
+		focusables.append(button)
+
+	if not focusables.is_empty():
+		U_FocusConfigurator.configure_vertical_focus(focusables, true)
+
+	# Configure horizontal navigation between buttons
 	if not buttons.is_empty():
 		U_FocusConfigurator.configure_horizontal_focus(buttons, true)
-		var last_focus := focusables[focusables.size() - 1] if not focusables.is_empty() else null
-		if last_focus != null:
-			last_focus.focus_neighbor_bottom = last_focus.get_path_to(buttons[0])
-			for button in buttons:
-				button.focus_neighbor_top = button.get_path_to(last_focus)
-				button.focus_neighbor_bottom = button.get_path_to(last_focus)
 
 func _configure_tooltips() -> void:
 	if _window_size_option != null:
@@ -271,6 +272,29 @@ func _configure_tooltips() -> void:
 		_dither_pattern_option.tooltip_text = "Selects the dither pattern."
 	if _ui_scale_slider != null:
 		_ui_scale_slider.tooltip_text = "Scales the UI size."
+
+func _hide_desktop_only_controls_on_mobile() -> void:
+	# Hide desktop-only controls on mobile platforms
+	if not OS.has_feature("mobile"):
+		return
+
+	# Hide window size control and its parent row
+	if _window_size_option != null:
+		var window_size_row := _window_size_option.get_parent()
+		if window_size_row is Control:
+			(window_size_row as Control).visible = false
+
+	# Hide window mode control and its parent row
+	if _window_mode_option != null:
+		var window_mode_row := _window_mode_option.get_parent()
+		if window_mode_row is Control:
+			(window_mode_row as Control).visible = false
+
+	# Hide vsync control and its parent row
+	if _vsync_toggle != null:
+		var vsync_row := _vsync_toggle.get_parent()
+		if vsync_row is Control:
+			(vsync_row as Control).visible = false
 
 func _update_dependent_controls() -> void:
 	var defaults := _get_default_display_state()
