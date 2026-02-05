@@ -212,3 +212,19 @@ func test_overlay_visibility_respects_navigation_shell() -> void:
 	_store.dispatch(U_NAVIGATION_ACTIONS.set_shell(StringName("gameplay"), StringName("gameplay_base")))
 	await get_tree().physics_frame
 	assert_true(film_layer.visible, "Overlay should show when shell is gameplay")
+
+func test_quality_preset_low_disables_post_processing_effects() -> void:
+	var rect := _get_effect_rect(U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN)
+	assert_not_null(rect, "Film grain rect should exist")
+
+	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
+	await get_tree().process_frame
+	assert_true(rect.visible, "Setup: film grain should be enabled from state")
+
+	_store.dispatch(U_DISPLAY_ACTIONS.set_quality_preset("low"))
+	await get_tree().process_frame
+	assert_false(rect.visible, "Low quality should disable post-processing effects")
+
+	_store.dispatch(U_DISPLAY_ACTIONS.set_quality_preset("high"))
+	await get_tree().process_frame
+	assert_true(rect.visible, "Restoring quality should reapply post-processing effects")

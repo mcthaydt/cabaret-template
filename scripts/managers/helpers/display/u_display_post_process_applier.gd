@@ -3,6 +3,7 @@ extends RefCounted
 ## Applies post-process settings to the display overlay.
 
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
+const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
 const U_POST_PROCESS_LAYER := preload("res://scripts/managers/helpers/u_post_process_layer.gd")
 const RS_LUT_DEFINITION := preload("res://scripts/resources/display/rs_lut_definition.gd")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
@@ -19,6 +20,11 @@ func apply_settings(display_settings: Dictionary) -> void:
 	if not _ensure_post_process_layer():
 		return
 	var state := {"display": display_settings}
+	var quality_preset := U_DISPLAY_SELECTORS.get_quality_preset(state)
+	if not _is_post_processing_enabled(quality_preset):
+		_disable_post_process_effects()
+		_apply_color_blind_shader_settings(state)
+		return
 	_apply_film_grain_settings(state)
 	_apply_crt_settings(state)
 	_apply_dither_settings(state)
@@ -157,6 +163,24 @@ func _apply_color_blind_shader_settings(state: Dictionary) -> void:
 		StringName("intensity"),
 		1.0
 	)
+
+func _is_post_processing_enabled(quality_preset: String) -> bool:
+	if quality_preset.is_empty():
+		return true
+	var preset: Resource = U_DISPLAY_OPTION_CATALOG.get_quality_preset_by_id(quality_preset)
+	if preset == null:
+		return true
+	var enabled_value: Variant = preset.get("post_processing_enabled")
+	if enabled_value is bool:
+		return enabled_value
+	return true
+
+func _disable_post_process_effects() -> void:
+	_film_grain_active = false
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN, false)
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_CRT, false)
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_DITHER, false)
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_LUT, false)
 
 func _ensure_post_process_layer() -> bool:
 	if _post_process_layer != null:
