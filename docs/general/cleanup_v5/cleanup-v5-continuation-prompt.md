@@ -10,7 +10,10 @@
 - Restore consistency with the repo's established cleanup_v1-v4.5 conventions.
 - Remove "copy artifact" directories (e.g., `* 2`) and other out-of-band clutter.
 - Normalize root-level scenes/models/textures into the canonical folder layout and naming rules.
-- Refactor `M_DisplayManager` to reduce responsibility sprawl using helper extraction patterns, without changing behavior.
+- Refactor the display module (`M_DisplayManager` + display settings UI) to be modular, scalable, and designer-friendly:
+  - Centralize option catalogs (data-driven where possible)
+  - Extract focused appliers (window/quality/post-process/ui scale/theme)
+  - Improve player UX without regressing stability
 
 ## Confirmed Decisions
 
@@ -22,6 +25,9 @@
 - Remove unused LUT PNGs:
   - `resources/luts/Astia sRGB.png`
   - `resources/luts/Presetpro Fuji Film.png`
+- Display settings UI stays **Apply/Cancel + preview** (no auto-save).
+- Add a **Confirm display changes (10s) / Revert** flow for window mode/size changes.
+- Make display option catalogs **data-driven** (quality/window presets) to avoid duplicated hard-coded lists.
 
 ## Known Cleanup Targets (From Initial Audit)
 
@@ -53,6 +59,9 @@
    - Update `tests/unit/style/test_asset_prefixes.gd` for `mdl_`, `mat_`, `sh_`
    - Add a test that fails on spaces in production `res://` paths
 6. Refactor Display Manager in small, test-backed steps (helper extraction, de-dup catalogs, remove dead code).
+   - Add data-driven option catalogs (quality + window size presets)
+   - Add confirm/revert countdown for window changes
+   - Polish settings UI (contextual enabling, focus, microcopy)
 
 ## Tests To Run
 
@@ -67,4 +76,3 @@
 - After moving `.tscn` or `class_name` scripts, run a headless import to refresh UID/script caches:
   - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
 - Avoid introducing spaces in any production `res://` paths; cleanup_v5 will add enforcement for this.
-

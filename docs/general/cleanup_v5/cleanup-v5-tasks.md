@@ -4,7 +4,10 @@
 
 - Bring repo back into the same conventions enforced by `docs/general/STYLE_GUIDE.md` and `tests/unit/style/*`.
 - Normalize out-of-band files/folders (especially root-level assets/scenes and duplicated `* 2` directories).
-- Refactor `M_DisplayManager` to be consistent with helper extraction patterns (behavior-preserving).
+- Refactor the display module (`M_DisplayManager` + display settings UI) to be modular, scalable, and designer-friendly:
+  - Centralize option catalogs (data-driven where possible)
+  - Extract focused “appliers” (window/quality/post-process/ui scale/theme)
+  - Improve player UX (Apply/Cancel + preview, confirm/revert for risky window changes)
 
 ## Constraints (Non-Negotiable)
 
@@ -23,6 +26,9 @@
 - Remove unused LUT PNGs:
   - `resources/luts/Astia sRGB.png`
   - `resources/luts/Presetpro Fuji Film.png`
+- Display settings UI stays **Apply/Cancel + preview** (no auto-save).
+- Add a **Confirm display changes (10s) / Revert** flow for window mode/size changes.
+- Make display option catalogs **data-driven** (quality/window presets) to avoid duplicated hard-coded lists.
 
 ## Phase 0 - Baseline & Inventory (Read-Only)
 
@@ -97,27 +103,77 @@
 - [ ] Delete both PNGs and their `.import` files (if present)
 - [ ] Run style tests
 
-## Phase 4 - Display Manager Refactor (Behavior-Preserving)
+## Phase 4 - Display Module Refactor (Modular + UX + Designer-Friendly)
 
 - [ ] Confirm display manager test coverage baseline:
   - Unit: `tests/unit/managers/test_display_manager.gd`
   - Integration: `tests/integration/display/*`
-- [ ] Extract helpers under `scripts/managers/helpers/display/` (proposed):
-  - `u_display_window_applier.gd`
-  - `u_display_quality_applier.gd`
-  - `u_display_post_process_applier.gd`
-  - `u_display_ui_scale_applier.gd`
-  - `u_display_ui_theme_applier.gd`
-- [ ] De-duplicate option catalogs between `M_DisplayManager` and `UI_DisplaySettingsTab`
-- [ ] Remove dead/unused code in `M_DisplayManager` (after tests prove unused):
+
+### 4A - Data-Driven Option Catalogs (Single Source of Truth)
+
+- [ ] Introduce a central catalog (`U_DisplayOptionCatalog` or equivalent) that provides:
+  - Window size presets + lookup size by ID
+  - Quality presets + lookup resource by ID
+  - Window mode / dither pattern / color blind mode option lists
+- [ ] Make quality presets discoverable from `res://resources/display/cfg_quality_presets/` (drop-in `.tres` files appear in UI).
+- [ ] Add window size presets as resources (designer-friendly):
+  - Directory: `res://resources/display/cfg_window_size_presets/`
+  - Resource type: `RS_WindowSizePreset` with `preset_id`, `size`, `label`, `sort_order`
+- [ ] Update both `M_DisplayManager` and `UI_DisplaySettingsTab` to use the catalog (remove duplicated hard-coded lists).
+- [ ] Add coverage:
+  - Unit tests for catalog discovery + sorting + fallback behavior
+  - Style enforcement remains unchanged (no new prefix categories required)
+
+### 4B - Extract Appliers (Modular, Testable)
+
+- [ ] Extract focused appliers under `scripts/managers/helpers/display/` (proposed):
+  - `u_display_window_applier.gd` (mode/size/vsync + platform guards)
+  - `u_display_quality_applier.gd` (quality preset application + viewport wiring)
+  - `u_display_post_process_applier.gd` (effect toggles/params via `U_PostProcessLayer`)
+  - `u_display_ui_scale_applier.gd` (UIScaleRoot registration + font scaling)
+  - `u_display_ui_theme_applier.gd` (palette → Theme binding)
+- [ ] Keep `M_DisplayManager` as the orchestrator:
+  - Builds effective settings (Redux slice + preview overlay)
+  - Hash-gates expensive work
+  - Delegates to appliers (DI-friendly for tests)
+
+### 4C - Confirm Display Changes (10s) / Revert (Player UX)
+
+- [ ] Add a confirm flow for risky window changes (mode/size):
+  - When the user presses **Apply** and mode/size changed, show a confirm dialog with a 10s countdown.
+  - **Do not dispatch** window actions to Redux until the player confirms.
+  - If timer expires or user chooses **Revert**, restore previous window settings and keep the overlay usable.
+  - If player chooses **Keep**, dispatch window actions and clear preview mode as normal.
+- [ ] Ensure the dialog is gamepad-friendly:
+  - Focus defaults to “Keep”
+  - Back button = Revert
+  - Countdown text updates reliably (no await-before-signal pitfalls)
+- [ ] Add integration tests:
+  - Confirm flow blocks dispatch until confirmed
+  - Revert path restores prior window ops state
+
+### 4D - Settings UI Polish (Clarity + Accessibility)
+
+- [ ] Contextual enable/disable:
+  - Window size row disabled unless in `windowed` mode
+  - Effect intensity sliders disabled unless effect enabled
+- [ ] Improve readability and UX:
+  - Grouping + microcopy where players need clarity (e.g., CRT parameters)
+  - Focus neighbors remain deterministic; ScrollContainer follow-focus works
+- [ ] Confirm flow integrates cleanly with Apply/Cancel + preview (no auto-save regression).
+
+### 4E - Remove Dead Code (Only After Proof)
+
+- [ ] Remove dead/unused code in `M_DisplayManager` only after tests prove unused:
   - `_is_hex_string()`
   - safe-area padding helpers (if truly unused)
-- [ ] Run targeted test suites:
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true`
-  - `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true`
+
+### 4F - Run Targeted Test Suites
+
+- [ ] `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
+- [ ] `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true`
+- [ ] `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true`
 
 ## Notes
 
 - If any move/rename touches `.tscn` files created/edited outside the editor, re-read `docs/general/DEV_PITFALLS.md` regarding UIDs and class cache refresh.
-
