@@ -137,16 +137,18 @@ Completion Notes (2026-02-05): Added `U_DisplayOptionCatalog`, `RS_WindowSizePre
 
 ### 4B - Extract Appliers (Modular, Testable)
 
-- [ ] Extract focused appliers under `scripts/managers/helpers/display/` (proposed):
+- [x] Extract focused appliers under `scripts/managers/helpers/display/` (proposed):
   - `u_display_window_applier.gd` (mode/size/vsync + platform guards)
   - `u_display_quality_applier.gd` (quality preset application + viewport wiring)
   - `u_display_post_process_applier.gd` (effect toggles/params via `U_PostProcessLayer`)
   - `u_display_ui_scale_applier.gd` (UIScaleRoot registration + font scaling)
   - `u_display_ui_theme_applier.gd` (palette → Theme binding)
-- [ ] Keep `M_DisplayManager` as the orchestrator:
+- [x] Keep `M_DisplayManager` as the orchestrator:
   - Builds effective settings (Redux slice + preview overlay)
   - Hash-gates expensive work
   - Delegates to appliers (DI-friendly for tests)
+
+Completion Notes (2026-02-05): Extracted display appliers and refactored `M_DisplayManager` to delegate. Tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`, `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true`, `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (warnings: macOS CA cert, InputMap bootstrapper, ObjectDB leak). Commit: 1cb45a5.
 
 ### 4C - Confirm Display Changes (10s) / Revert (Player UX)
 

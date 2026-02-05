@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 38% (31 / 81 tasks complete)
+**Progress:** 40% (32 / 81 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -640,7 +640,8 @@ Before starting Phase 0, verify:
   - Update manager/UI/reducer to use catalog
   - Notes: Completed 2026-02-05 (commit b0680e8; unit utils/managers + integration display tests)
 
-- [ ] **Task 10B**: Extract display appliers (window/quality/post-process/ui scale/theme)
+- [x] **Task 10B**: Extract display appliers (window/quality/post-process/ui scale/theme)
+  - Notes: Completed 2026-02-05 (commit 1cb45a5; ran style, unit/managers, integration/display suites)
 - [ ] **Task 10C**: Confirm/revert flow for window changes (Apply/Cancel + preview remains)
 - [ ] **Task 10D**: Settings UI polish (contextual enable/disable + focus clarity)
 - [ ] **Task 10E**: Remove dead code after tests prove unused

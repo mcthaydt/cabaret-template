@@ -1,14 +1,16 @@
 # Display Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-05
-**Current Phase:** Cleanup V5 Phase 10A Complete (Option Catalogs)
+**Current Phase:** Cleanup V5 Phase 10B Complete (Display Appliers)
 **Branch:** `display-manager`
 
 ---
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, CRT, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + UIScaleRoot registration; applies to CanvasLayer/Control roots and updates newly registered UI nodes). Phase 5 color blind accessibility complete (palette resource + instances, palette manager helper + tests, color blind shader + overlay wiring, manager integration). Minimal UI theme binding now applies palette text colors to common UI controls and is covered by display manager unit tests. Phase 6 settings UI integration complete (display settings overlay + tab, accessibility section wiring, settings menu integration, registry entries). Display settings UI now uses Apply/Cancel + preview (no auto-save). Phase 7 integration tests added for display settings UI, post-processing overlay wiring, and color blind palette switching/persistence. Cleanup v5 Phase 10A complete: data-driven option catalogs added (window size presets, quality preset metadata, option lists) and UI/reducer/manager now pull from catalog.
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, CRT, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + UIScaleRoot registration; applies to CanvasLayer/Control roots and updates newly registered UI nodes). Phase 5 color blind accessibility complete (palette resource + instances, palette manager helper + tests, color blind shader + overlay wiring, manager integration). Minimal UI theme binding now applies palette text colors to common UI controls and is covered by display manager unit tests. Phase 6 settings UI integration complete (display settings overlay + tab, accessibility section wiring, settings menu integration, registry entries). Display settings UI now uses Apply/Cancel + preview (no auto-save). Phase 7 integration tests added for display settings UI, post-processing overlay wiring, and color blind palette switching/persistence. Cleanup v5 Phase 10A complete: data-driven option catalogs added (window size presets, quality preset metadata, option lists) and UI/reducer/manager now pull from catalog. Cleanup v5 Phase 10B complete: extracted display appliers (window/quality/post-process/ui scale/theme) and refactored M_DisplayManager to delegate.
+
+Tests (2026-02-05): `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`, `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true`, `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true` (warnings: macOS CA cert, InputMap bootstrapper, ObjectDB leak).
 
 ---
 
@@ -65,16 +67,16 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 7.3: Color blind palette integration tests
 - [x] Task 7.4: UI scale/theme integration tests (CI-safe)
 - [x] Task 10A: Data-driven option catalogs (U_DisplayOptionCatalog + RS_WindowSizePreset + catalog-backed UI/reducer/manager)
+- [x] Task 10B: Extracted display appliers (window/quality/post-process/ui scale/theme)
 
 ---
 
 ## Next Steps
 
-### Immediate: Cleanup V5 Phase 10B
+### Immediate: Cleanup V5 Phase 10C
 
-1. **Task 10B**: Extract display appliers (window/quality/post-process/ui scale/theme)
-2. **Task 10C**: Confirm/revert flow for window changes
-3. **Task 10D**: Settings UI polish (contextual enable/disable + focus clarity)
+1. **Task 10C**: Confirm/revert flow for window changes
+2. **Task 10D**: Settings UI polish (contextual enable/disable + focus clarity)
 
 ### Later: Phase 8 - Manual Testing
 

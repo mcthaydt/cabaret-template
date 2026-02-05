@@ -2,9 +2,10 @@
 
 ## Current Status
 
-- Phase: Phase 2A complete (asset prefix + no-space enforcement). Phase 2B complete (root-level prefab/model/texture moves + prefab rename). Phase 3 complete (unused LUTs removed). Phase 4A complete (data-driven display option catalogs).
+- Phase: Phase 2A complete (asset prefix + no-space enforcement). Phase 2B complete (root-level prefab/model/texture moves + prefab rename). Phase 3 complete (unused LUTs removed). Phase 4A complete (data-driven display option catalogs). Phase 4B complete (display applier extraction).
 - Important: Working tree was clean at time of Phase 2B (2026-02-05). Root-level scenes/models/textures moved and references updated; prefab names finalized as `prefab_alleyway.tscn` and `prefab_bar.tscn`. GLB import settings switched to keep embedded images (`gltf/embedded_image_handling=0`) to avoid extracted PNGs with spaces.
 - Phase 4A notes: `U_DisplayOptionCatalog` added; `RS_WindowSizePreset` resources + quality preset metadata; UI + reducer now source window/quality/dither/color blind options from catalog. Commit: b0680e8.
+- Phase 4B notes: Extracted display appliers (window/quality/post-process/ui scale/theme) and refactored `M_DisplayManager` to delegate. Commit: 1cb45a5.
 - Tests: 
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (2026-02-05)
   - Headless import: `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import` (2026-02-05, twice; cleared `.godot/uid_cache.bin` after UID warnings, rerun after prefab rename)
@@ -82,9 +83,8 @@
 
 ## Next Steps (Phase 4)
 
-1. Proceed to Phase 4B (extract display appliers) with small, test-backed steps.
-2. Phase 4C: Add confirm/revert countdown for window changes.
-3. Phase 4D: Settings UI polish (contextual enabling, focus, microcopy).
+1. Phase 4C: Add confirm/revert countdown for window changes.
+2. Phase 4D: Settings UI polish (contextual enabling, focus, microcopy).
 
 ## Tests To Run
 
