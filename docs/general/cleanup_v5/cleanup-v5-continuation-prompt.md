@@ -2,8 +2,9 @@
 
 ## Current Status
 
-- Phase: Planning only (no cleanup_v5 implementation started yet).
-- Important: The repo currently has unrelated WIP changes in the working tree. Cleanup_v5 implementation should not begin until that WIP is resolved (commit or stash) so we can reason about diffs and keep commits focused.
+- Phase: Phase 1 complete (filesystem hygiene). Next: Phase 2 normalization.
+- Important: Working tree was clean at time of Phase 1 (2026-02-05); empty copy-artifact directories and legacy docs folders removed.
+- Tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (2026-02-05).
 
 ## Goals
 
@@ -73,21 +74,19 @@
   - `Character.glb`, `NewExterior.glb`, `NewInterior.glb`
   - `NewExterior_Image Color Quantizer (3).png`, `NewInterior_Image Color Quantizer (2).png`
 
-## Next Steps (When Implementation Starts)
+## Next Steps (Phase 2)
 
-1. Resolve current repo WIP (commit or stash) so cleanup_v5 can proceed with clean, reviewable diffs.
-2. Execute Phase 1 filesystem hygiene (delete unused `* 2` dirs and empty legacy docs dirs).
-3. Execute Phase 2 normalization:
+1. Execute Phase 2 normalization:
    - Create `assets/models/`
    - Move/rename root-level scenes into `scenes/prefabs/` with `prefab_` naming
    - Move/rename models to `assets/models/mdl_*.glb`
    - Move/rename textures to `assets/textures/tex_*.png` (or delete if truly unused)
    - Update references and run headless `--import` to refresh caches
-4. Remove unused LUT PNGs (and `.import` files) after confirming no references.
-5. Extend style enforcement:
+2. Remove unused LUT PNGs (and `.import` files) after confirming no references.
+3. Extend style enforcement:
    - Update `tests/unit/style/test_asset_prefixes.gd` for `mdl_`, `mat_`, `sh_`
    - Add a test that fails on spaces in production `res://` paths
-6. Refactor Display Manager in small, test-backed steps (helper extraction, de-dup catalogs, remove dead code).
+4. Refactor Display Manager in small, test-backed steps (helper extraction, de-dup catalogs, remove dead code).
    - Add data-driven option catalogs (quality + window size presets)
    - Add confirm/revert countdown for window changes
    - Polish settings UI (contextual enabling, focus, microcopy)

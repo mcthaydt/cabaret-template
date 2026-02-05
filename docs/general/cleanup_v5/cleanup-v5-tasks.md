@@ -41,7 +41,7 @@
 
 ## Phase 1 - Filesystem Hygiene (Low Risk)
 
-- [ ] Delete empty/unused duplicate directories that end with ` 2`:
+- [x] Delete empty/unused duplicate directories that end with ` 2`:
   - `scenes/ui/widgets 2`
   - `scenes/ui/overlays 2`
   - `resources/input/touchscreen_settings 2`
@@ -55,12 +55,14 @@
   - `docs/scene_manager/general 2`
   - `assets/audio/music 2`
   - `assets/button_prompts/keyboard 2`
-- [ ] Delete empty legacy docs directories with spaces that duplicate canonical folders:
+- [x] Delete empty legacy docs directories with spaces that duplicate canonical folders:
   - `docs/debug manager`
   - `docs/input manager`
   - `docs/ui manager`
-- [ ] Run style tests:
+- [x] Run style tests:
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
+
+Completion Notes (2026-02-05): Removed all listed duplicate/legacy directories (all empty/untracked). Tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`. Commit: n/a (no tracked file removals; docs-only update).
 
 ## Phase 2 - Normalize Root-Level Content (Medium Risk)
 
