@@ -54,7 +54,7 @@ func test_post_processing_preset_dropdown_has_three_options() -> void:
 	assert_true(second_text.to_lower() == "medium", "Second option should be Medium")
 	assert_true(third_text.to_lower() == "heavy", "Third option should be Heavy")
 
-func test_selecting_preset_dispatches_action() -> void:
+func test_selecting_preset_updates_state() -> void:
 	# GIVEN: Display settings tab with preset dropdown
 	var scene := load("res://scenes/ui/overlays/settings/ui_display_settings_tab.tscn")
 	_tab = scene.instantiate()
@@ -63,28 +63,21 @@ func test_selecting_preset_dispatches_action() -> void:
 
 	var preset_option: OptionButton = _tab.find_child("PostProcessPresetOption", true, false)
 
-	# Track dispatched actions
-	var dispatched_actions: Array = []
-	var original_dispatch := _store.dispatch
-	_store.dispatch = func(action: Dictionary) -> void:
-		dispatched_actions.append(action)
-		original_dispatch.call(action)
-
-	# WHEN: Selecting the "heavy" preset (index 2)
+	# WHEN: User changes selection to "heavy" preset (index 2)
 	preset_option.select(2)
 	preset_option.item_selected.emit(2)
 	await get_tree().process_frame
 
-	# THEN: Should dispatch set_post_processing_preset action with "heavy"
-	var found_action := false
-	for action in dispatched_actions:
-		if action.get("type") == U_DisplayActions.ACTION_SET_POST_PROCESSING_PRESET:
-			var payload: Dictionary = action.get("payload", {})
-			assert_eq(payload.get("preset"), "heavy", "Should dispatch action with heavy preset")
-			found_action = true
-			break
+	# Click apply button to commit changes
+	var apply_button: Button = _tab.find_child("ApplyButton", true, false)
+	if apply_button != null:
+		apply_button.pressed.emit()
+		await get_tree().process_frame
 
-	assert_true(found_action, "Should have dispatched set_post_processing_preset action")
+	# THEN: State should be updated with heavy preset
+	var state := _store.get_state()
+	var display_state: Dictionary = state.get("display", {})
+	assert_eq(display_state.get("post_processing_preset"), "heavy", "State should have heavy preset after selection")
 
 func test_medium_preset_is_default_selection() -> void:
 	# GIVEN: Display settings tab is loaded with default state
