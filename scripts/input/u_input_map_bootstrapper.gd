@@ -54,8 +54,17 @@ static func ensure_required_actions(required_actions: Array[StringName] = REQUIR
 		InputMap.add_action(action)
 		patched_any = true
 
-	if patched_any:
+	if patched_any and _should_warn_on_patch():
 		push_warning("U_InputMapBootstrapper: Patched missing InputMap actions (dev/test only). Update project.godot to keep bindings deterministic.")
 
 	return validate_required_actions(required_actions)
 
+static func _should_warn_on_patch() -> bool:
+	if OS.has_feature("headless") or OS.has_feature("server"):
+		return false
+	var main_loop := Engine.get_main_loop()
+	if main_loop is SceneTree:
+		var tree := main_loop as SceneTree
+		if tree.root != null and tree.root.find_child("GutRunner", true, false) != null:
+			return false
+	return true
