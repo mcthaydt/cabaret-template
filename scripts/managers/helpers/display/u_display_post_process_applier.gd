@@ -11,9 +11,12 @@ var _owner: Node = null
 var _post_process_layer: U_PostProcessLayer = null
 var _post_process_overlay: Node = null
 var _film_grain_active: bool = false
+var _ui_color_blind_layer: CanvasLayer = null
+var _ui_color_blind_rect: ColorRect = null
 
 func initialize(owner: Node) -> void:
 	_owner = owner
+	_setup_ui_color_blind_layer()
 
 func apply_settings(display_settings: Dictionary) -> void:
 	if not _ensure_post_process_layer():
@@ -125,6 +128,9 @@ func _apply_color_blind_shader_settings(state: Dictionary) -> void:
 		1.0
 	)
 
+	# Apply color blind filter to UI layer as well
+	_apply_ui_color_blind_shader(enabled, mode_value)
+
 func _is_post_processing_enabled(quality_preset: String) -> bool:
 	if quality_preset.is_empty():
 		return true
@@ -204,3 +210,62 @@ func _get_tree() -> SceneTree:
 	if main_loop is SceneTree:
 		return main_loop as SceneTree
 	return null
+
+func _setup_ui_color_blind_layer() -> void:
+	var tree := _get_tree()
+	if tree == null or tree.root == null:
+		push_warning("U_DisplayPostProcessApplier: Cannot setup UI color blind layer, tree/root not available")
+		return
+
+	# Check if already exists
+	var existing := tree.root.find_child("UIColorBlindLayer", false, false)
+	if existing is CanvasLayer:
+		_ui_color_blind_layer = existing as CanvasLayer
+		_ui_color_blind_rect = _ui_color_blind_layer.find_child("ColorBlindRect", false, false) as ColorRect
+		return
+
+	# Create UI color blind layer (layer 11, above UIOverlayStack which is layer 10)
+	_ui_color_blind_layer = CanvasLayer.new()
+	_ui_color_blind_layer.name = "UIColorBlindLayer"
+	_ui_color_blind_layer.layer = 11
+
+	# Load the color blind shader
+	var shader: Shader = load("res://assets/shaders/sh_colorblind_daltonize.gdshader")
+	if shader == null:
+		push_error("U_DisplayPostProcessApplier: Failed to load color blind shader")
+		return
+
+	# Create shader material
+	var material := ShaderMaterial.new()
+	material.shader = shader
+	material.set_shader_parameter("mode", 0)
+	material.set_shader_parameter("intensity", 1.0)
+
+	# Create ColorRect that covers the entire screen
+	_ui_color_blind_rect = ColorRect.new()
+	_ui_color_blind_rect.name = "ColorBlindRect"
+	_ui_color_blind_rect.material = material
+	_ui_color_blind_rect.anchors_preset = Control.PRESET_FULL_RECT
+	_ui_color_blind_rect.anchor_right = 1.0
+	_ui_color_blind_rect.anchor_bottom = 1.0
+	_ui_color_blind_rect.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_ui_color_blind_rect.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_ui_color_blind_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ui_color_blind_rect.visible = false
+
+	# Add to scene tree
+	_ui_color_blind_layer.add_child(_ui_color_blind_rect)
+	tree.root.add_child(_ui_color_blind_layer)
+
+func _apply_ui_color_blind_shader(enabled: bool, mode_value: int) -> void:
+	if _ui_color_blind_rect == null or not is_instance_valid(_ui_color_blind_rect):
+		return
+
+	# Set visibility
+	_ui_color_blind_rect.visible = enabled
+
+	# Update shader parameters
+	var material := _ui_color_blind_rect.material as ShaderMaterial
+	if material != null:
+		material.set_shader_parameter("mode", mode_value)
+		material.set_shader_parameter("intensity", 1.0)
