@@ -306,7 +306,7 @@ Before starting Phase 0, verify:
 
 ## Phase 3: Post-Processing System
 
-**Exit Criteria:** Film Grain, Outline, Dither, LUT effects work via CanvasLayer + shaders
+**Exit Criteria:** Film Grain, CRT, Dither, LUT effects work via CanvasLayer + shaders
 
 ### Phase 3A: Post-Process Overlay & Helper
 
@@ -480,6 +480,16 @@ Before starting Phase 0, verify:
 
 ---
 
+### Phase 5D: UI Theme Binding (Minimal)
+
+- [x] **Task 5D.1**: Bind palette text color to UI theme
+  - Apply palette text color to common UI controls (Label, Button, CheckBox, OptionButton, LineEdit, RichTextLabel)
+  - Apply theme to registered UI roots via M_DisplayManager
+  - Add unit tests in `tests/unit/managers/test_display_manager.gd`
+  - Notes: Completed 2026-02-04 (minimal palette-to-theme binding)
+
+---
+
 ## Phase 6: Settings UI Integration
 
 **Exit Criteria:** Display settings tab works, accessibility section works, Apply/Cancel preview pattern followed
@@ -560,6 +570,13 @@ Before starting Phase 0, verify:
   - **Target: 5 tests**
   - Notes: Completed 2026-02-04 (created `tests/integration/display/test_color_blind_palettes.gd` with 5 tests)
 
+- [x] **Task 7.4**: Create UI scale/theme integration tests (CI-safe)
+  - Create `tests/integration/display/test_ui_scale_and_theme.gd`
+  - Test UI scale updates registered controls
+  - Test high contrast palette updates theme text color
+  - **Target: 2 tests**
+  - Notes: Completed 2026-02-04 (added CI-safe UI scale + theme binding tests)
+
 ---
 
 ## Phase 8: Manual Testing
@@ -568,20 +585,21 @@ Before starting Phase 0, verify:
 
 ### Visual Verification Checklist
 
+- **Note (2026-02-04)**: UI palette resources load and persist, and a minimal UI theme binding applies palette text colors to common UI controls. Full styling still relies on per-control overrides and future theme expansion.
 - [ ] **MT-01**: Window size presets resize window correctly
 - [ ] **MT-02**: Fullscreen toggle works
 - [ ] **MT-03**: Borderless windowed mode works
 - [ ] **MT-04**: VSync toggle affects frame timing
 - [ ] **MT-05**: Quality preset changes are visually noticeable
 - [ ] **MT-06**: Film Grain effect visible when enabled
-- [ ] **MT-07**: Outline effect draws edges correctly
+- [ ] **MT-07**: CRT filter visible when enabled (scanlines/curvature/aberration)
 - [ ] **MT-08**: Dither patterns (bayer/noise) distinguishable
 - [ ] **MT-09**: LUT color grading applies correctly
 - [ ] **MT-10**: UI scale slider affects all UI elements proportionally
 - [ ] **MT-11**: UI remains usable at 0.8x scale
 - [ ] **MT-12**: UI remains usable at 1.3x scale
-- [ ] **MT-13**: Each color blind palette provides distinct colors
-- [ ] **MT-14**: High contrast mode increases visibility
+- [ ] **MT-13**: Color blind shader modes (deuteranopia/protanopia/tritanopia) are visually distinct
+- [ ] **MT-14**: High contrast toggle selects high-contrast palette (text colors update)
 - [ ] **MT-15**: Color blind shader filter simulates correctly
 - [ ] **MT-16**: Settings persist after quit and relaunch
 - [ ] **MT-17**: Post-process overlay renders above gameplay but below UI
@@ -676,7 +694,8 @@ Before starting Phase 0, verify:
 | `resources/ui_themes/cfg_palette_tritanopia.tres` | Instance | Tritanopia palette |
 | `resources/ui_themes/cfg_palette_high_contrast.tres` | Instance | High contrast palette |
 | `assets/shaders/sh_film_grain_shader.gdshader` | Shader | Film grain effect |
-| `assets/shaders/sh_outline_shader.gdshader` | Shader | Outline effect |
+| `assets/shaders/sh_crt_shader.gdshader` | Shader | CRT filter effect |
+| `assets/shaders/sh_outline_shader.gdshader` | Shader | Outline effect (not currently wired) |
 | `assets/shaders/sh_dither_shader.gdshader` | Shader | Dither effect |
 | `assets/shaders/sh_lut_shader.gdshader` | Shader | LUT color grading |
 | `assets/shaders/sh_colorblind_daltonize.gdshader` | Shader | Color blind simulation |
@@ -687,7 +706,7 @@ Before starting Phase 0, verify:
 | `resources/luts/tex_lut_neutral.png` | Texture | Neutral LUT texture |
 | `resources/luts/tex_lut_warm.png` | Texture | Warm LUT texture |
 | `resources/luts/tex_lut_cool.png` | Texture | Cool LUT texture |
-| `scenes/ui/overlays/ui_post_process_overlay.tscn` | Scene | Post-process overlay (layer 100) |
+| `scenes/ui/overlays/ui_post_process_overlay.tscn` | Scene | Post-process overlay (instanced in GameViewport) |
 | `scenes/ui/overlays/settings/ui_display_settings_tab.tscn` | Scene | Display settings UI tab |
 | `scenes/ui/overlays/settings/ui_display_settings_overlay.tscn` | Scene | Display settings overlay wrapper |
 | `scripts/ui/settings/ui_display_settings_tab.gd` | UI | Display settings controller |

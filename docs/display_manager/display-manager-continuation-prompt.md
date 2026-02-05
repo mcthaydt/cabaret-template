@@ -8,7 +8,7 @@
 
 ## Current Status
 
-Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, CRT, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + UIScaleRoot registration; applies to CanvasLayer/Control roots and updates newly registered UI nodes). Phase 5 color blind accessibility complete (palette resource + instances, palette manager helper + tests, color blind shader + overlay wiring, manager integration). Phase 6 settings UI integration complete (display settings overlay + tab, accessibility section wiring, settings menu integration, registry entries). Display settings UI now uses Apply/Cancel + preview (no auto-save). Phase 7 integration tests added for display settings UI, post-processing overlay wiring, and color blind palette switching/persistence.
+Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integration). Display slice is registered and wired in root. Phase 1A interface stub added. Phase 1B scaffolding complete and manager registered in root. Phase 2A window size/mode operations implemented with DisplayServer tests (pending in headless). Phase 2B quality presets applied in M_DisplayManager (resource + configs + RenderingServer/viewport wiring). Phase 3A post-process helper + overlay scene implemented. Phase 3B shaders authored (film grain, CRT, dither, LUT), LUT resources added, and overlay wired with shader materials. Phase 3C manager integration complete (overlay discovery/instantiation + shader parameter wiring + film grain time updates). Phase 4 UI scaling implemented (set_ui_scale + UIScaleRoot registration; applies to CanvasLayer/Control roots and updates newly registered UI nodes). Phase 5 color blind accessibility complete (palette resource + instances, palette manager helper + tests, color blind shader + overlay wiring, manager integration). Minimal UI theme binding now applies palette text colors to common UI controls and is covered by display manager unit tests. Phase 6 settings UI integration complete (display settings overlay + tab, accessibility section wiring, settings menu integration, registry entries). Display settings UI now uses Apply/Cancel + preview (no auto-save). Phase 7 integration tests added for display settings UI, post-processing overlay wiring, and color blind palette switching/persistence.
 
 ---
 
@@ -45,7 +45,7 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 3A.2: U_PostProcessLayer helper implemented
 - [x] Task 3A.3: Post-process overlay scene created
 - [x] Task 3B.1: Film Grain shader created
-- [x] Task 3B.2: Outline shader created
+- [x] Task 3B.2: CRT shader created (Outline shader exists but is not currently wired)
 - [x] Task 3B.3: Dither shader + Bayer texture created
 - [x] Task 3B.4: LUT shader + LUT resources created
 - [x] Task 3B.5: Overlay wired with shader materials
@@ -57,11 +57,13 @@ Phase 0A–0D complete (Initial State, Actions, Reducer, Selectors + Store Integ
 - [x] Task 5A: UI color palette resource + palette instances created
 - [x] Task 5B: U_PaletteManager helper + tests + manager integration
 - [x] Task 5C: Color blind daltonization shader + overlay wiring
+- [x] Task 5D: Minimal UI theme binding (palette text colors + tests)
 - [x] Task 6A: Display settings tab + overlay + settings menu integration
 - [x] Task 6B: Accessibility section wiring (color blind mode, high contrast, shader toggle)
 - [x] Task 7.1: Display settings integration tests
 - [x] Task 7.2: Post-processing integration tests
 - [x] Task 7.3: Color blind palette integration tests
+- [x] Task 7.4: UI scale/theme integration tests (CI-safe)
 
 ---
 
