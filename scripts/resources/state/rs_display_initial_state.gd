@@ -13,6 +13,7 @@ class_name RS_DisplayInitialState
 @export_enum("low", "medium", "high", "ultra") var quality_preset: String = "high"
 
 @export_group("Post-Processing")
+@export_enum("light", "medium", "heavy") var post_processing_preset: String = "medium"
 # Note: Effect order is fixed internally (Film Grain -> Dither -> CRT), not user-configurable.
 @export var film_grain_enabled: bool = false
 @export_range(0.0, 1.0, 0.05) var film_grain_intensity: float = 0.1
@@ -39,6 +40,7 @@ func to_dictionary() -> Dictionary:
 		"window_mode": window_mode,
 		"vsync_enabled": vsync_enabled,
 		"quality_preset": quality_preset,
+		"post_processing_preset": post_processing_preset,
 		"film_grain_enabled": film_grain_enabled,
 		"film_grain_intensity": film_grain_intensity,
 		"crt_enabled": crt_enabled,

@@ -27,6 +27,12 @@ const COLOR_BLIND_MODE_OPTIONS := [
 	{"id": "tritanopia", "label": "Tritanopia"},
 ]
 
+const POST_PROCESSING_PRESET_OPTIONS := [
+	{"id": "light", "label": "Light"},
+	{"id": "medium", "label": "Medium"},
+	{"id": "heavy", "label": "Heavy"},
+]
+
 static var _quality_presets_loaded: bool = false
 static var _quality_presets: Array = []
 static var _quality_presets_by_id: Dictionary = {}
@@ -71,6 +77,9 @@ static func get_dither_pattern_option_entries() -> Array[Dictionary]:
 
 static func get_color_blind_mode_option_entries() -> Array[Dictionary]:
 	return _duplicate_option_entries(COLOR_BLIND_MODE_OPTIONS)
+
+static func get_post_processing_preset_option_entries() -> Array[Dictionary]:
+	return _duplicate_option_entries(POST_PROCESSING_PRESET_OPTIONS)
 
 static func get_window_size_preset_by_id(preset_id: String) -> Resource:
 	_ensure_window_size_presets()
@@ -121,6 +130,9 @@ static func get_dither_pattern_ids() -> Array[String]:
 
 static func get_color_blind_mode_ids() -> Array[String]:
 	return _extract_option_ids(COLOR_BLIND_MODE_OPTIONS)
+
+static func get_post_processing_preset_ids() -> Array[String]:
+	return _extract_option_ids(POST_PROCESSING_PRESET_OPTIONS)
 
 static func _ensure_quality_presets() -> void:
 	if _quality_presets_loaded:

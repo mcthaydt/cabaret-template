@@ -15,6 +15,7 @@ const DEFAULT_DISPLAY_STATE := {
 	"window_mode": "windowed",
 	"vsync_enabled": true,
 	"quality_preset": "high",
+	"post_processing_preset": "medium",
 	"film_grain_enabled": false,
 	"film_grain_intensity": 0.1,
 	"crt_enabled": false,
@@ -72,6 +73,13 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			if not _is_valid_quality_preset(preset):
 				return null
 			return _with_values(current, {"quality_preset": preset})
+
+		U_DisplayActions.ACTION_SET_POST_PROCESSING_PRESET:
+			var payload: Dictionary = action.get("payload", {})
+			var preset: String = String(payload.get("preset", ""))
+			if not _is_valid_post_processing_preset(preset):
+				return null
+			return _with_values(current, {"post_processing_preset": preset})
 
 		U_DisplayActions.ACTION_SET_FILM_GRAIN_ENABLED:
 			var payload: Dictionary = action.get("payload", {})
@@ -186,3 +194,6 @@ static func _is_valid_dither_pattern(pattern: String) -> bool:
 
 static func _is_valid_color_blind_mode(mode: String) -> bool:
 	return U_DISPLAY_OPTION_CATALOG.get_color_blind_mode_ids().has(mode)
+
+static func _is_valid_post_processing_preset(preset: String) -> bool:
+	return U_DISPLAY_OPTION_CATALOG.get_post_processing_preset_ids().has(preset)

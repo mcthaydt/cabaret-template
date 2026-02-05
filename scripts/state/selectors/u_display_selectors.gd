@@ -22,6 +22,10 @@ static func get_quality_preset(state: Dictionary) -> String:
 	var display := _get_display_slice(state)
 	return String(display.get("quality_preset", "high"))
 
+static func get_post_processing_preset(state: Dictionary) -> String:
+	var display := _get_display_slice(state)
+	return String(display.get("post_processing_preset", "medium"))
+
 static func is_film_grain_enabled(state: Dictionary) -> bool:
 	var display := _get_display_slice(state)
 	return bool(display.get("film_grain_enabled", false))
