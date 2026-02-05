@@ -69,12 +69,14 @@ Completion Notes (2026-02-05): Removed all listed duplicate/legacy directories (
 ### 2A - Introduce Models Directory + Test Enforcement
 
 - [x] Create `assets/models/` (if missing)
-- [ ] Extend `tests/unit/style/test_asset_prefixes.gd`:
+- [x] Extend `tests/unit/style/test_asset_prefixes.gd`:
   - Add `assets/models` => `mdl_` + extensions (at least `.glb`, `.fbx`, `.gltf`)
   - Add `assets/materials` => `mat_` + extensions (at least `.tres`, `.res`)
   - Add `assets/shaders` => `sh_` + extensions (at least `.gdshader`)
-- [ ] Add a style test that fails on spaces in production `res://` paths (scenes/resources/scripts/assets)
-- [ ] Run style tests
+- [x] Add a style test that fails on spaces in production `res://` paths (scenes/resources/scripts/assets)
+- [x] Run style tests
+
+Completion Notes (2026-02-05): Added prefix enforcement for models/materials/shaders and a no-spaces production path test. Tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`. Commit: a39e818.
 
 ### 2B - Move/Rename Root-Level Scenes and Assets
 
@@ -102,11 +104,13 @@ Completion Notes (2026-02-05): Phase 2B moves complete (prefabs/models/textures)
 
 ## Phase 3 - Remove Unused LUT PNGs (Low Risk)
 
-- [ ] Confirm no references to:
+- [x] Confirm no references to:
   - `resources/luts/Astia sRGB.png`
   - `resources/luts/Presetpro Fuji Film.png`
-- [ ] Delete both PNGs and their `.import` files (if present)
-- [ ] Run style tests
+- [x] Delete both PNGs and their `.import` files (if present)
+- [x] Run style tests
+
+Completion Notes (2026-02-05): LUT PNGs removed after reference check; style suite passed. Commit: a39e818.
 
 ## Phase 4 - Display Module Refactor (Modular + UX + Designer-Friendly)
 

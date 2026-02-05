@@ -2,7 +2,7 @@
 
 ## Current Status
 
-- Phase: Phase 2B complete (root-level prefab/model/texture moves + prefab rename). Phase 2A partial (models dir created; tests still pending).
+- Phase: Phase 2A complete (asset prefix + no-space enforcement). Phase 2B complete (root-level prefab/model/texture moves + prefab rename). Phase 3 complete (unused LUTs removed).
 - Important: Working tree was clean at time of Phase 2B (2026-02-05). Root-level scenes/models/textures moved and references updated; prefab names finalized as `prefab_alleyway.tscn` and `prefab_bar.tscn`. GLB import settings switched to keep embedded images (`gltf/embedded_image_handling=0`) to avoid extracted PNGs with spaces.
 - Tests: 
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (2026-02-05)
@@ -76,13 +76,9 @@
   - `Character.glb`, `NewExterior.glb`, `NewInterior.glb`
   - `NewExterior_Image Color Quantizer (3).png`, `NewInterior_Image Color Quantizer (2).png`
 
-## Next Steps (Phase 2A+ / Phase 3)
+## Next Steps (Phase 4)
 
-1. Finish Phase 2A enforcement work:
-   - Update `tests/unit/style/test_asset_prefixes.gd` for `mdl_`, `mat_`, `sh_`
-   - Add a test that fails on spaces in production `res://` paths
-2. Remove unused LUT PNGs (and `.import` files) after confirming no references.
-3. Refactor Display Manager in small, test-backed steps (helper extraction, de-dup catalogs, remove dead code).
+1. Refactor Display Manager in small, test-backed steps (helper extraction, de-dup catalogs, remove dead code).
    - Add data-driven option catalogs (quality + window size presets)
    - Add confirm/revert countdown for window changes
    - Polish settings UI (contextual enabling, focus, microcopy)
