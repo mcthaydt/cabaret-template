@@ -16,6 +16,8 @@ const RS_LUT_DEFINITION := preload("res://scripts/resources/display/rs_lut_defin
 const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/base_settings/state/cfg_display_initial_state.tres")
 const WINDOW_CONFIRM_SECONDS := 10
 const WINDOW_CONFIRM_TEXT := "Keep these display changes? Reverting in %ds."
+const ENABLED_ROW_MODULATE := Color(1, 1, 1, 1)
+const DISABLED_ROW_MODULATE := Color(1, 1, 1, 0.45)
 
 var _state_store: I_StateStore = null
 var _display_manager: I_DisplayManager = null
@@ -77,6 +79,7 @@ func _ready() -> void:
 	_connect_signals()
 	_populate_option_buttons()
 	_configure_focus_neighbors()
+	_configure_tooltips()
 
 	_state_store = U_StateUtils.get_store(self)
 	if _state_store == null:
@@ -324,6 +327,50 @@ func _configure_focus_neighbors() -> void:
 				button.focus_neighbor_top = button.get_path_to(last_focus)
 				button.focus_neighbor_bottom = button.get_path_to(last_focus)
 
+func _configure_tooltips() -> void:
+	if _window_size_option != null:
+		_window_size_option.tooltip_text = "Available only in Windowed mode."
+	if _window_mode_option != null:
+		_window_mode_option.tooltip_text = "Borderless fills the screen without changing display mode."
+	if _film_grain_intensity_slider != null:
+		_film_grain_intensity_slider.tooltip_text = "Controls film grain strength."
+	if _crt_scanline_slider != null:
+		_crt_scanline_slider.tooltip_text = "Darkens horizontal scanlines."
+	if _crt_curvature_slider != null:
+		_crt_curvature_slider.tooltip_text = "Simulates CRT screen curvature."
+	if _crt_aberration_slider != null:
+		_crt_aberration_slider.tooltip_text = "Adds subtle color fringing."
+	if _dither_intensity_slider != null:
+		_dither_intensity_slider.tooltip_text = "Controls dithering strength."
+	if _dither_pattern_option != null:
+		_dither_pattern_option.tooltip_text = "Selects the dither pattern."
+	if _lut_intensity_slider != null:
+		_lut_intensity_slider.tooltip_text = "Blends between original and LUT color."
+	if _ui_scale_slider != null:
+		_ui_scale_slider.tooltip_text = "Scales the UI size."
+
+func _update_dependent_controls() -> void:
+	var defaults := _get_default_display_state()
+	var window_mode := _get_selected_value(_window_mode_option, _window_mode_values, defaults.window_mode)
+	var windowed := window_mode == "windowed"
+	_set_control_group_enabled(_window_size_option, windowed)
+
+	var film_grain_enabled := _get_toggle_value(_film_grain_toggle, defaults.film_grain_enabled)
+	_set_control_group_enabled(_film_grain_intensity_slider, film_grain_enabled)
+
+	var crt_enabled := _get_toggle_value(_crt_toggle, defaults.crt_enabled)
+	_set_control_group_enabled(_crt_scanline_slider, crt_enabled)
+	_set_control_group_enabled(_crt_curvature_slider, crt_enabled)
+	_set_control_group_enabled(_crt_aberration_slider, crt_enabled)
+
+	var dither_enabled := _get_toggle_value(_dither_toggle, defaults.dither_enabled)
+	_set_control_group_enabled(_dither_intensity_slider, dither_enabled)
+	_set_control_group_enabled(_dither_pattern_option, dither_enabled)
+
+	var lut_enabled := _get_toggle_value(_lut_toggle, defaults.lut_enabled)
+	_set_control_group_enabled(_lut_option, lut_enabled)
+	_set_control_group_enabled(_lut_intensity_slider, lut_enabled)
+
 func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 	if state == null:
 		return
@@ -386,6 +433,7 @@ func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 	_set_toggle_value_silently(_color_blind_shader_toggle, U_DisplaySelectors.is_color_blind_shader_enabled(state))
 
 	_updating_from_state = false
+	_update_dependent_controls()
 	_has_local_edits = false
 
 func _on_window_size_selected(index: int) -> void:
@@ -589,6 +637,7 @@ func _on_reset_pressed() -> void:
 	_set_toggle_value_silently(_color_blind_shader_toggle, defaults.color_blind_shader_enabled)
 
 	_updating_from_state = false
+	_update_dependent_controls()
 
 	_has_local_edits = false
 	_dispatch_display_settings(defaults)
@@ -627,6 +676,7 @@ func _close_overlay() -> void:
 		_state_store.dispatch(U_NavigationActions.set_shell(StringName("main_menu"), StringName("settings_menu")))
 
 func _update_display_settings_preview_from_ui() -> void:
+	_update_dependent_controls()
 	if _display_manager == null:
 		_display_manager = U_DisplayUtils.get_display_manager()
 	if _display_manager == null:
@@ -841,6 +891,16 @@ func _set_toggle_value_silently(toggle: BaseButton, pressed: bool) -> void:
 	toggle.set_block_signals(true)
 	toggle.button_pressed = pressed
 	toggle.set_block_signals(false)
+
+func _set_control_group_enabled(control: Control, enabled: bool) -> void:
+	if control == null:
+		return
+	if "disabled" in control:
+		control.disabled = not enabled
+	control.focus_mode = Control.FOCUS_ALL if enabled else Control.FOCUS_NONE
+	var row := control.get_parent()
+	if row is Control:
+		(row as Control).modulate = ENABLED_ROW_MODULATE if enabled else DISABLED_ROW_MODULATE
 
 func _select_option_value(button: OptionButton, values: Array[String], value: String) -> void:
 	if button == null:
