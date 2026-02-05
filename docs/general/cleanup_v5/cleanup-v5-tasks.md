@@ -98,7 +98,7 @@ Completion Notes (2026-02-05): Removed all listed duplicate/legacy directories (
   - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import`
 - [x] Run style tests again
 
-Completion Notes (2026-02-05): Phase 2B moves complete (prefabs/models/textures) and references updated. Set GLB import `gltf/embedded_image_handling=0` to avoid extracted textures with spaces; removed generated PNGs and reran headless import (cleared `.godot/uid_cache.bin` after UID warnings). Tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`. Commit: 3a7b476.
+Completion Notes (2026-02-05): Phase 2B moves complete (prefabs/models/textures) and references updated. Set GLB import `gltf/embedded_image_handling=0` to avoid extracted textures with spaces; removed generated PNGs and reran headless import (cleared `.godot/uid_cache.bin` after UID warnings). Tests: `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (rerun after prefab rename). Commits: 3a7b476 (normalize root assets), 7e01424 (rename prefab scenes to alleyway/bar).
 
 ## Phase 3 - Remove Unused LUT PNGs (Low Risk)
 
