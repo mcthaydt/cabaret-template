@@ -189,9 +189,11 @@ Completion Notes (2026-02-05): Removed unused hex/safe-area helpers from `M_Disp
 
 ### 4F - Run Targeted Test Suites
 
-- [ ] `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
-- [ ] `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true`
-- [ ] `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true`
+- [x] `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
+- [x] `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -ginclude_subdirs=true`
+- [x] `tools/run_gut_suite.sh -gdir=res://tests/integration/display -ginclude_subdirs=true`
+
+Completion Notes (2026-02-05): Ran style, unit/managers, and integration/display suites. Warnings: macOS CA cert during unit/managers + integration/display runs.
 
 ## Notes
 
