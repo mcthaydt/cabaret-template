@@ -3,8 +3,8 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bxpegecjah68r"
-path.s3tc="res://.godot/imported/NewExterior_Image Color Quantizer (3).png-f47515f0f7005d6bac1cf07a59c57c9b.s3tc.ctex"
-path.etc2="res://.godot/imported/NewExterior_Image Color Quantizer (3).png-f47515f0f7005d6bac1cf07a59c57c9b.etc2.ctex"
+path.s3tc="res://.godot/imported/tex_alleyway.png-03bf3c3952f767e56280bf8ba08ba061.s3tc.ctex"
+path.etc2="res://.godot/imported/tex_alleyway.png-03bf3c3952f767e56280bf8ba08ba061.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -15,8 +15,8 @@ generator_parameters={
 
 [deps]
 
-source_file="res://NewExterior_Image Color Quantizer (3).png"
-dest_files=["res://.godot/imported/NewExterior_Image Color Quantizer (3).png-f47515f0f7005d6bac1cf07a59c57c9b.s3tc.ctex", "res://.godot/imported/NewExterior_Image Color Quantizer (3).png-f47515f0f7005d6bac1cf07a59c57c9b.etc2.ctex"]
+source_file="res://assets/textures/tex_alleyway.png"
+dest_files=["res://.godot/imported/tex_alleyway.png-03bf3c3952f767e56280bf8ba08ba061.s3tc.ctex", "res://.godot/imported/tex_alleyway.png-03bf3c3952f767e56280bf8ba08ba061.etc2.ctex"]
 
 [params]
 

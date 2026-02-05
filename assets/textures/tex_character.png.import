@@ -3,8 +3,8 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://j7v44r57ay5k"
-path.s3tc="res://.godot/imported/Character_Image Color Quantizer (1) 11.04.png-a4c20b84412576fe3b3fd36888e36e2f.s3tc.ctex"
-path.etc2="res://.godot/imported/Character_Image Color Quantizer (1) 11.04.png-a4c20b84412576fe3b3fd36888e36e2f.etc2.ctex"
+path.s3tc="res://.godot/imported/tex_character.png-510ce74b53a6cb107789294750bdc50b.s3tc.ctex"
+path.etc2="res://.godot/imported/tex_character.png-510ce74b53a6cb107789294750bdc50b.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -15,8 +15,8 @@ generator_parameters={
 
 [deps]
 
-source_file="res://Character_Image Color Quantizer (1) 11.04.png"
-dest_files=["res://.godot/imported/Character_Image Color Quantizer (1) 11.04.png-a4c20b84412576fe3b3fd36888e36e2f.s3tc.ctex", "res://.godot/imported/Character_Image Color Quantizer (1) 11.04.png-a4c20b84412576fe3b3fd36888e36e2f.etc2.ctex"]
+source_file="res://assets/textures/tex_character.png"
+dest_files=["res://.godot/imported/tex_character.png-510ce74b53a6cb107789294750bdc50b.s3tc.ctex", "res://.godot/imported/tex_character.png-510ce74b53a6cb107789294750bdc50b.etc2.ctex"]
 
 [params]
 

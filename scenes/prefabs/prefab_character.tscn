@@ -1,6 +1,6 @@
 [gd_scene format=4 uid="uid://bxvpqns2proau"]
 
-[ext_resource type="PackedScene" uid="uid://cc74p6tfegtqu" path="res://Character.glb" id="1_glpr6"]
+[ext_resource type="PackedScene" uid="uid://cc74p6tfegtqu" path="res://assets/models/mdl_character.glb" id="1_glpr6"]
 [ext_resource type="Texture2D" uid="uid://bb85rwswyeyjx" path="res://assets/textures/tex_character_albedo.png" id="2_texture"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pjt0s"]

@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://tyc24baxv7x0"
-path="res://.godot/imported/NewInterior.glb-b648f64d6d18efb83fa54328a948226f.scn"
+uid="uid://beujlsseax1wc"
+path="res://.godot/imported/mdl_new_exterior.glb-1b88d8501583034a737e79c1b12f5329.scn"
 
 [deps]
 
-source_file="res://NewInterior.glb"
-dest_files=["res://.godot/imported/NewInterior.glb-b648f64d6d18efb83fa54328a948226f.scn"]
+source_file="res://assets/models/mdl_new_exterior.glb"
+dest_files=["res://.godot/imported/mdl_new_exterior.glb-1b88d8501583034a737e79c1b12f5329.scn"]
 
 [params]
 
@@ -39,4 +39,4 @@ materials/extract_format=0
 materials/extract_path=""
 _subresources={}
 gltf/naming_version=2
-gltf/embedded_image_handling=1
+gltf/embedded_image_handling=0

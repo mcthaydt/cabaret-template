@@ -3,8 +3,8 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dhrxh6bg2ca1l"
-path.s3tc="res://.godot/imported/NewInterior_Image Color Quantizer (2).png-441e8a1a4b273beab3c731564ece8d3e.s3tc.ctex"
-path.etc2="res://.godot/imported/NewInterior_Image Color Quantizer (2).png-441e8a1a4b273beab3c731564ece8d3e.etc2.ctex"
+path.s3tc="res://.godot/imported/tex_bar.png-5c0446f3867995d7ed0fb8a735942aa6.s3tc.ctex"
+path.etc2="res://.godot/imported/tex_bar.png-5c0446f3867995d7ed0fb8a735942aa6.etc2.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
@@ -15,8 +15,8 @@ generator_parameters={
 
 [deps]
 
-source_file="res://NewInterior_Image Color Quantizer (2).png"
-dest_files=["res://.godot/imported/NewInterior_Image Color Quantizer (2).png-441e8a1a4b273beab3c731564ece8d3e.s3tc.ctex", "res://.godot/imported/NewInterior_Image Color Quantizer (2).png-441e8a1a4b273beab3c731564ece8d3e.etc2.ctex"]
+source_file="res://assets/textures/tex_bar.png"
+dest_files=["res://.godot/imported/tex_bar.png-5c0446f3867995d7ed0fb8a735942aa6.s3tc.ctex", "res://.godot/imported/tex_bar.png-5c0446f3867995d7ed0fb8a735942aa6.etc2.ctex"]
 
 [params]
 
