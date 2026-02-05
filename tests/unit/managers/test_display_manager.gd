@@ -7,6 +7,7 @@ const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_WINDOW_OPS := preload("res://tests/mocks/mock_window_ops.gd")
 const I_DISPLAY_MANAGER := preload("res://scripts/interfaces/i_display_manager.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const RS_UI_COLOR_PALETTE := preload("res://scripts/resources/ui/rs_ui_color_palette.gd")
 
 var _manager: Node
 var _store: Node
@@ -264,6 +265,56 @@ func test_set_vsync_enabled_calls_display_server() -> void:
 	manager.set_vsync_enabled(false)
 	assert_eq(ops.vsync_mode, DisplayServer.VSYNC_DISABLED, "VSync disabled should update window ops")
 	manager.free()
+
+func test_palette_theme_binding_applies_to_registered_controls() -> void:
+	var manager := M_DISPLAY_MANAGER.new()
+	add_child_autofree(manager)
+
+	var root := Control.new()
+	add_child_autofree(root)
+	var label := Label.new()
+	root.add_child(label)
+	manager.register_ui_scale_root(root)
+
+	manager._apply_accessibility_settings({
+		"color_blind_mode": "normal",
+		"high_contrast_enabled": false,
+	})
+
+	var palette := manager.get_active_palette()
+	assert_not_null(palette, "Palette should be available after applying accessibility settings")
+	assert_true(palette is RS_UI_COLOR_PALETTE, "Palette should be RS_UIColorPalette")
+	var typed_palette := palette as RS_UI_COLOR_PALETTE
+
+	assert_true(
+		label.get_theme_color("font_color").is_equal_approx(typed_palette.text),
+		"Label font color should bind to palette text color"
+	)
+
+func test_register_ui_scale_root_applies_current_palette_theme() -> void:
+	var manager := M_DISPLAY_MANAGER.new()
+	add_child_autofree(manager)
+
+	manager._apply_accessibility_settings({
+		"color_blind_mode": "normal",
+		"high_contrast_enabled": true,
+	})
+
+	var palette := manager.get_active_palette()
+	assert_not_null(palette, "Palette should be available after applying accessibility settings")
+	assert_true(palette is RS_UI_COLOR_PALETTE, "Palette should be RS_UIColorPalette")
+	var typed_palette := palette as RS_UI_COLOR_PALETTE
+
+	var root := Control.new()
+	add_child_autofree(root)
+	var label := Label.new()
+	root.add_child(label)
+	manager.register_ui_scale_root(root)
+
+	assert_true(
+		label.get_theme_color("font_color").is_equal_approx(typed_palette.text),
+		"Registering should apply the current palette theme"
+	)
 
 func _setup_manager_with_store(display_state: Dictionary) -> void:
 	_store = MOCK_STATE_STORE.new()

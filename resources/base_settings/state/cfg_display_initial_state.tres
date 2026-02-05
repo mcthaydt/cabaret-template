@@ -4,14 +4,3 @@
 
 [resource]
 script = ExtResource("1_display_initial_state")
-window_size_preset = "1280x720"
-window_mode = "fullscreen"
-film_grain_enabled = true
-crt_enabled = true
-crt_scanline_intensity = 0.05
-crt_curvature = 0.0
-crt_chromatic_aberration = 0.00019999999999999
-dither_enabled = true
-dither_intensity = 1.0
-lut_resource = "uid://bssk8srofb83"
-lut_intensity = 0.5

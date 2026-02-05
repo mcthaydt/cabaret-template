@@ -14,6 +14,7 @@ const U_PALETTE_MANAGER := preload("res://scripts/managers/helpers/u_palette_man
 const U_DISPLAY_SERVER_WINDOW_OPS := preload("res://scripts/utils/display/u_display_server_window_ops.gd")
 const RS_QUALITY_PRESET := preload("res://scripts/resources/display/rs_quality_preset.gd")
 const RS_LUT_DEFINITION := preload("res://scripts/resources/display/rs_lut_definition.gd")
+const RS_UI_COLOR_PALETTE := preload("res://scripts/resources/ui/rs_ui_color_palette.gd")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
 
 const SERVICE_NAME := StringName("display_manager")
@@ -51,6 +52,8 @@ var _quality_preset_cache: Dictionary = {}
 var _current_ui_scale: float = 1.0
 var _ui_scale_roots: Array[Node] = []
 var _palette_manager: RefCounted = null
+var _ui_theme: Theme = null
+var _ui_theme_palette_id: StringName = StringName("")
 
 # Post-process overlay (Phase 3C)
 var _post_process_layer: U_PostProcessLayer = null
@@ -158,11 +161,14 @@ func clear_display_settings_preview() -> void:
 func get_active_palette() -> Resource:
 	if _palette_manager == null:
 		_palette_manager = U_PALETTE_MANAGER.new()
-		if not _last_applied_settings.is_empty():
-			_apply_accessibility_settings(_last_applied_settings)
-		else:
+	if not _last_applied_settings.is_empty():
+		_apply_accessibility_settings(_last_applied_settings)
+	else:
+		if _palette_manager.get_active_palette() == null:
 			_palette_manager.set_color_blind_mode("normal", false)
-	return _palette_manager.get_active_palette()
+	var palette: Resource = _palette_manager.get_active_palette()
+	_apply_ui_theme_from_palette(palette)
+	return palette
 
 func _apply_display_settings(state: Dictionary) -> void:
 	var effective_settings := _build_effective_settings(state)
@@ -219,6 +225,7 @@ func _apply_accessibility_settings(display_settings: Dictionary) -> void:
 	var mode := U_DISPLAY_SELECTORS.get_color_blind_mode(state)
 	var high_contrast := U_DISPLAY_SELECTORS.is_high_contrast_enabled(state)
 	_palette_manager.set_color_blind_mode(mode, high_contrast)
+	_apply_ui_theme_from_palette(_palette_manager.get_active_palette())
 
 func _apply_post_process_settings(display_settings: Dictionary) -> void:
 	if not _ensure_post_process_layer():
@@ -424,12 +431,7 @@ func _set_window_mode_now(mode: String, attempt: int = 0) -> void:
 			# Even after leaving fullscreen, macOS can still be mid-transition.
 			# Give it an extra frame before touching the style mask.
 			if is_macos and attempt == 1:
-				var main_loop := Engine.get_main_loop()
-				if main_loop is SceneTree:
-					await (main_loop as SceneTree).process_frame
-					_set_window_mode_now(mode, attempt + 1)
-				else:
-					call_deferred("_set_window_mode_now", mode, attempt + 1)
+				_schedule_window_mode_retry_next_frame(mode, attempt + 1)
 				return
 
 			ops.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
@@ -448,12 +450,7 @@ func _set_window_mode_now(mode: String, attempt: int = 0) -> void:
 			# Even after leaving fullscreen, macOS can still be mid-transition.
 			# Give it an extra frame before touching the style mask.
 			if is_macos and attempt == 1:
-				var main_loop := Engine.get_main_loop()
-				if main_loop is SceneTree:
-					await (main_loop as SceneTree).process_frame
-					_set_window_mode_now(mode, attempt + 1)
-				else:
-					call_deferred("_set_window_mode_now", mode, attempt + 1)
+				_schedule_window_mode_retry_next_frame(mode, attempt + 1)
 				return
 
 			ops.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
@@ -462,6 +459,20 @@ func _set_window_mode_now(mode: String, attempt: int = 0) -> void:
 				ops.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, false)
 		_:
 			push_warning("M_DisplayManager: Invalid window mode '%s'" % mode)
+
+func _schedule_window_mode_retry_next_frame(mode: String, attempt: int) -> void:
+	var main_loop := Engine.get_main_loop()
+	if main_loop is SceneTree:
+		# Use a physics timer to ensure we wait a full frame boundary.
+		# Idle timers with 0.0s can fire within the same idle phase and skip the
+		# intended "extra frame" delay that prevents macOS styleMask crashes.
+		var timer := (main_loop as SceneTree).create_timer(0.0, true, true)
+		timer.timeout.connect(_on_window_mode_retry.bind(mode, attempt))
+		return
+	call_deferred("_set_window_mode_now", mode, attempt)
+
+func _on_window_mode_retry(mode: String, attempt: int) -> void:
+	_set_window_mode_now(mode, attempt)
 
 func _set_vsync_enabled_now(enabled: bool) -> void:
 	var ops := _get_window_ops()
@@ -514,7 +525,7 @@ func _apply_shadow_quality(shadow_quality: String) -> void:
 			push_warning("M_DisplayManager: Unknown shadow quality '%s'" % shadow_quality)
 
 func _apply_anti_aliasing(anti_aliasing: String) -> void:
-	var viewport := get_viewport()
+	var viewport := _get_render_target_viewport()
 	if viewport == null:
 		return
 
@@ -536,6 +547,14 @@ func _apply_anti_aliasing(anti_aliasing: String) -> void:
 			viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
 		_:
 			push_warning("M_DisplayManager: Unknown anti-aliasing '%s'" % anti_aliasing)
+
+func _get_render_target_viewport() -> Viewport:
+	var tree := get_tree()
+	if tree != null and tree.root != null:
+		var game_viewport := tree.root.find_child("GameViewport", true, false)
+		if game_viewport is Viewport:
+			return game_viewport as Viewport
+	return get_viewport()
 
 func _is_display_server_available() -> bool:
 	var ops := _get_window_ops()
@@ -749,11 +768,64 @@ func register_ui_scale_root(node: Node) -> void:
 		return
 	_ui_scale_roots.append(node)
 	_apply_ui_scale_to_node(node, _current_ui_scale)
+	_apply_ui_theme_to_node(node)
 
 func unregister_ui_scale_root(node: Node) -> void:
 	if node == null:
 		return
 	_ui_scale_roots.erase(node)
+
+func _apply_ui_theme_from_palette(palette: Resource) -> void:
+	if palette == null:
+		return
+	if not (palette is RS_UI_COLOR_PALETTE):
+		return
+	var typed_palette := palette as RS_UI_COLOR_PALETTE
+	if _ui_theme == null:
+		_ui_theme = Theme.new()
+	var should_update := _ui_theme_palette_id != typed_palette.palette_id
+	if should_update:
+		_configure_ui_theme(_ui_theme, typed_palette)
+		_ui_theme_palette_id = typed_palette.palette_id
+	_apply_ui_theme_to_roots()
+
+func _configure_ui_theme(theme: Theme, palette: RS_UI_COLOR_PALETTE) -> void:
+	var text_color := palette.text
+	var text_types: Array[String] = [
+		"Label",
+		"Button",
+		"CheckBox",
+		"OptionButton",
+		"LineEdit",
+		"RichTextLabel",
+	]
+	for type_name in text_types:
+		theme.set_color("font_color", type_name, text_color)
+
+func _apply_ui_theme_to_roots() -> void:
+	if _ui_theme == null:
+		return
+	if _ui_scale_roots.is_empty():
+		return
+	var valid_roots: Array[Node] = []
+	for node in _ui_scale_roots:
+		if node == null or not is_instance_valid(node):
+			continue
+		valid_roots.append(node)
+		_apply_ui_theme_to_node(node)
+	_ui_scale_roots = valid_roots
+
+func _apply_ui_theme_to_node(node: Node) -> void:
+	if node == null or _ui_theme == null:
+		return
+	if node is Control:
+		var control := node as Control
+		if control.theme == null or control.theme == _ui_theme:
+			control.theme = _ui_theme
+	var children: Array = node.get_children()
+	for child in children:
+		if child is Node:
+			_apply_ui_theme_to_node(child)
 
 func _update_overlay_visibility() -> void:
 	if _post_process_overlay == null or not is_instance_valid(_post_process_overlay):
