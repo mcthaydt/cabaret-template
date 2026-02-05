@@ -15,14 +15,10 @@ class_name RS_DisplayInitialState
 @export_group("Post-Processing")
 @export_enum("light", "medium", "heavy") var post_processing_preset: String = "medium"
 # Note: Effect order is fixed internally (Film Grain -> Dither -> CRT), not user-configurable.
+# Note: Intensity values are loaded from post_processing_preset resource.
 @export var film_grain_enabled: bool = false
-@export_range(0.0, 1.0, 0.05) var film_grain_intensity: float = 0.1
 @export var crt_enabled: bool = false
-@export_range(0.0, 1.0, 0.05) var crt_scanline_intensity: float = 0.3
-@export_range(0.0, 10.0, 0.5) var crt_curvature: float = 2.0
-@export_range(0.0, 0.01, 0.0001) var crt_chromatic_aberration: float = 0.002
 @export var dither_enabled: bool = false
-@export_range(0.0, 1.0, 0.05) var dither_intensity: float = 0.5
 @export_enum("bayer", "noise") var dither_pattern: String = "bayer"
 
 @export_group("UI")
@@ -35,6 +31,10 @@ class_name RS_DisplayInitialState
 
 ## Convert resource to Dictionary for state store
 func to_dictionary() -> Dictionary:
+	# Load intensity values from preset
+	const U_PostProcessingPresetValues := preload("res://scripts/utils/display/u_post_processing_preset_values.gd")
+	var preset_values := U_PostProcessingPresetValues.get_preset_values(post_processing_preset)
+
 	return {
 		"window_size_preset": window_size_preset,
 		"window_mode": window_mode,
@@ -42,13 +42,13 @@ func to_dictionary() -> Dictionary:
 		"quality_preset": quality_preset,
 		"post_processing_preset": post_processing_preset,
 		"film_grain_enabled": film_grain_enabled,
-		"film_grain_intensity": film_grain_intensity,
+		"film_grain_intensity": preset_values.get("film_grain_intensity", 0.2),
 		"crt_enabled": crt_enabled,
-		"crt_scanline_intensity": crt_scanline_intensity,
-		"crt_curvature": crt_curvature,
-		"crt_chromatic_aberration": crt_chromatic_aberration,
+		"crt_scanline_intensity": preset_values.get("crt_scanline_intensity", 0.25),
+		"crt_curvature": preset_values.get("crt_curvature", 0.0),
+		"crt_chromatic_aberration": preset_values.get("crt_chromatic_aberration", 0.001),
 		"dither_enabled": dither_enabled,
-		"dither_intensity": dither_intensity,
+		"dither_intensity": preset_values.get("dither_intensity", 1.0),
 		"dither_pattern": dither_pattern,
 		"ui_scale": ui_scale,
 		"color_blind_mode": color_blind_mode,

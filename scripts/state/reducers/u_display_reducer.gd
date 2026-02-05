@@ -18,18 +18,14 @@ const DEFAULT_DISPLAY_STATE := {
 	"quality_preset": "high",
 	"post_processing_preset": "medium",
 	"film_grain_enabled": false,
-	"film_grain_intensity": 0.1,
 	"crt_enabled": false,
-	"crt_scanline_intensity": 0.3,
-	"crt_curvature": 2.0,
-	"crt_chromatic_aberration": 0.002,
 	"dither_enabled": false,
-	"dither_intensity": 0.5,
 	"dither_pattern": "bayer",
 	"ui_scale": 1.0,
 	"color_blind_mode": "normal",
 	"high_contrast_enabled": false,
 	"color_blind_shader_enabled": false,
+	# Note: Intensity values are loaded from post_processing_preset in get_default_display_state()
 }
 
 const MIN_INTENSITY := 0.0
@@ -42,7 +38,16 @@ const MIN_UI_SCALE := 0.8
 const MAX_UI_SCALE := 1.3
 
 static func get_default_display_state() -> Dictionary:
-	return DEFAULT_DISPLAY_STATE.duplicate(true)
+	var state := DEFAULT_DISPLAY_STATE.duplicate(true)
+	# Load intensity values from the default preset (medium)
+	var preset: String = state.get("post_processing_preset", "medium")
+	var preset_values := U_PostProcessingPresetValues.get_preset_values(preset)
+	state["film_grain_intensity"] = preset_values.get("film_grain_intensity", 0.2)
+	state["crt_scanline_intensity"] = preset_values.get("crt_scanline_intensity", 0.25)
+	state["crt_curvature"] = preset_values.get("crt_curvature", 0.0)
+	state["crt_chromatic_aberration"] = preset_values.get("crt_chromatic_aberration", 0.001)
+	state["dither_intensity"] = preset_values.get("dither_intensity", 1.0)
+	return state
 
 static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 	var current := _merge_with_defaults(DEFAULT_DISPLAY_STATE, state)

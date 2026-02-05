@@ -6,10 +6,5 @@
 script = ExtResource("1_display_initial_state")
 post_processing_preset = "medium"
 film_grain_enabled = true
-film_grain_intensity = 0.2
 crt_enabled = true
-crt_scanline_intensity = 0.25
-crt_curvature = 0.0
-crt_chromatic_aberration = 0.001
 dither_enabled = true
-dither_intensity = 1.0
