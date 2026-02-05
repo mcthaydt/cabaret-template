@@ -14,12 +14,17 @@ const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigati
 const RS_DisplayInitialState := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 const RS_LUT_DEFINITION := preload("res://scripts/resources/display/rs_lut_definition.gd")
 const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/base_settings/state/cfg_display_initial_state.tres")
+const WINDOW_CONFIRM_SECONDS := 10
+const WINDOW_CONFIRM_TEXT := "Keep these display changes? Reverting in %ds."
 
 var _state_store: I_StateStore = null
 var _display_manager: I_DisplayManager = null
 var _unsubscribe: Callable = Callable()
 var _updating_from_state: bool = false
 var _has_local_edits: bool = false
+var _window_confirm_active: bool = false
+var _window_confirm_seconds_left: int = 0
+var _pending_window_settings: Dictionary = {}
 
 var _window_size_values: Array[String] = []
 var _window_mode_values: Array[String] = []
@@ -65,6 +70,8 @@ var _lut_resource_values: Array[String] = []
 @onready var _cancel_button: Button = %CancelButton
 @onready var _reset_button: Button = %ResetButton
 @onready var _apply_button: Button = %ApplyButton
+@onready var _window_confirm_dialog: ConfirmationDialog = %WindowConfirmDialog
+@onready var _window_confirm_timer: Timer = %WindowConfirmTimer
 
 func _ready() -> void:
 	_connect_signals()
@@ -82,6 +89,8 @@ func _ready() -> void:
 	_on_state_changed({}, _state_store.get_state())
 
 func _exit_tree() -> void:
+	_stop_window_confirm_timer()
+	_window_confirm_active = false
 	_clear_display_settings_preview()
 	if _unsubscribe != Callable() and _unsubscribe.is_valid():
 		_unsubscribe.call()
@@ -141,6 +150,17 @@ func _connect_signals() -> void:
 		_reset_button.pressed.connect(_on_reset_pressed)
 	if _apply_button != null and not _apply_button.pressed.is_connected(_on_apply_pressed):
 		_apply_button.pressed.connect(_on_apply_pressed)
+	if _window_confirm_dialog != null:
+		_configure_window_confirm_dialog()
+		if not _window_confirm_dialog.confirmed.is_connected(_on_window_confirm_keep):
+			_window_confirm_dialog.confirmed.connect(_on_window_confirm_keep)
+		if not _window_confirm_dialog.canceled.is_connected(_on_window_confirm_revert):
+			_window_confirm_dialog.canceled.connect(_on_window_confirm_revert)
+		if _window_confirm_dialog.has_signal("close_requested"):
+			if not _window_confirm_dialog.close_requested.is_connected(_on_window_confirm_revert):
+				_window_confirm_dialog.close_requested.connect(_on_window_confirm_revert)
+	if _window_confirm_timer != null and not _window_confirm_timer.timeout.is_connected(_on_window_confirm_timer_timeout):
+		_window_confirm_timer.timeout.connect(_on_window_confirm_timer_timeout)
 
 func _populate_option_buttons() -> void:
 	_populate_option_button(
@@ -314,7 +334,7 @@ func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 
 	# Preserve local edits (Apply/Cancel pattern). Only reconcile from state when
 	# the user is not actively editing.
-	if _has_local_edits and action_type != StringName(""):
+	if (_has_local_edits or _window_confirm_active) and action_type != StringName(""):
 		return
 
 	_updating_from_state = true
@@ -583,6 +603,12 @@ func _on_cancel_pressed() -> void:
 func _on_apply_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	var settings := _get_display_settings_from_ui()
+	if _state_store == null:
+		return
+	var state := _state_store.get_state()
+	if _requires_window_confirmation(settings, state):
+		_begin_window_confirm(settings)
+		return
 	_has_local_edits = false
 	_dispatch_display_settings(settings)
 	_clear_display_settings_preview()
@@ -614,7 +640,7 @@ func _clear_display_settings_preview() -> void:
 		return
 	_display_manager.clear_display_settings_preview()
 
-func _dispatch_display_settings(settings: Variant) -> void:
+func _dispatch_display_settings(settings: Variant, skip_window_actions: bool = false) -> void:
 	if _state_store == null:
 		return
 	var values: Dictionary = {}
@@ -625,8 +651,9 @@ func _dispatch_display_settings(settings: Variant) -> void:
 	else:
 		return
 
-	_state_store.dispatch(U_DisplayActions.set_window_size_preset(String(values.get("window_size_preset", ""))))
-	_state_store.dispatch(U_DisplayActions.set_window_mode(String(values.get("window_mode", ""))))
+	if not skip_window_actions:
+		_state_store.dispatch(U_DisplayActions.set_window_size_preset(String(values.get("window_size_preset", ""))))
+		_state_store.dispatch(U_DisplayActions.set_window_mode(String(values.get("window_mode", ""))))
 	_state_store.dispatch(U_DisplayActions.set_vsync_enabled(bool(values.get("vsync_enabled", true))))
 	_state_store.dispatch(U_DisplayActions.set_quality_preset(String(values.get("quality_preset", ""))))
 	_state_store.dispatch(U_DisplayActions.set_film_grain_enabled(bool(values.get("film_grain_enabled", false))))
@@ -645,6 +672,116 @@ func _dispatch_display_settings(settings: Variant) -> void:
 	_state_store.dispatch(U_DisplayActions.set_color_blind_mode(String(values.get("color_blind_mode", ""))))
 	_state_store.dispatch(U_DisplayActions.set_high_contrast_enabled(bool(values.get("high_contrast_enabled", false))))
 	_state_store.dispatch(U_DisplayActions.set_color_blind_shader_enabled(bool(values.get("color_blind_shader_enabled", false))))
+
+func _dispatch_window_settings(values: Dictionary) -> void:
+	if _state_store == null:
+		return
+	_state_store.dispatch(U_DisplayActions.set_window_size_preset(String(values.get("window_size_preset", ""))))
+	_state_store.dispatch(U_DisplayActions.set_window_mode(String(values.get("window_mode", ""))))
+
+func _requires_window_confirmation(settings: Dictionary, state: Dictionary) -> bool:
+	if state == null:
+		return false
+	var current_size := U_DisplaySelectors.get_window_size_preset(state)
+	var current_mode := U_DisplaySelectors.get_window_mode(state)
+	var next_size := String(settings.get("window_size_preset", ""))
+	var next_mode := String(settings.get("window_mode", ""))
+	return next_size != current_size or next_mode != current_mode
+
+func _begin_window_confirm(settings: Dictionary) -> void:
+	_pending_window_settings = {
+		"window_size_preset": String(settings.get("window_size_preset", "")),
+		"window_mode": String(settings.get("window_mode", "")),
+	}
+	_window_confirm_active = true
+	_window_confirm_seconds_left = WINDOW_CONFIRM_SECONDS
+	_has_local_edits = false
+	_dispatch_display_settings(settings, true)
+	_show_window_confirm_dialog()
+
+func _show_window_confirm_dialog() -> void:
+	if _window_confirm_dialog == null:
+		return
+	_update_window_confirm_text()
+	_window_confirm_dialog.popup_centered()
+	_start_window_confirm_timer()
+	var ok_button := _get_window_confirm_ok_button()
+	if ok_button != null:
+		ok_button.grab_focus()
+
+func _start_window_confirm_timer() -> void:
+	if _window_confirm_timer == null:
+		return
+	_window_confirm_timer.stop()
+	_window_confirm_timer.start()
+
+func _stop_window_confirm_timer() -> void:
+	if _window_confirm_timer == null:
+		return
+	_window_confirm_timer.stop()
+
+func _update_window_confirm_text() -> void:
+	if _window_confirm_dialog == null:
+		return
+	_window_confirm_dialog.dialog_text = WINDOW_CONFIRM_TEXT % _window_confirm_seconds_left
+
+func _configure_window_confirm_dialog() -> void:
+	if _window_confirm_dialog == null:
+		return
+	var ok_button := _get_window_confirm_ok_button()
+	if ok_button != null:
+		ok_button.text = "Keep"
+	var cancel_button := _get_window_confirm_cancel_button()
+	if cancel_button != null:
+		cancel_button.text = "Revert"
+
+func _get_window_confirm_ok_button() -> Button:
+	if _window_confirm_dialog == null:
+		return null
+	if not _window_confirm_dialog.has_method("get_ok_button"):
+		return null
+	return _window_confirm_dialog.get_ok_button()
+
+func _get_window_confirm_cancel_button() -> Button:
+	if _window_confirm_dialog == null:
+		return null
+	if not _window_confirm_dialog.has_method("get_cancel_button"):
+		return null
+	return _window_confirm_dialog.get_cancel_button()
+
+func _on_window_confirm_timer_timeout() -> void:
+	if not _window_confirm_active:
+		return
+	_window_confirm_seconds_left -= 1
+	if _window_confirm_seconds_left <= 0:
+		_on_window_confirm_revert()
+		return
+	_update_window_confirm_text()
+
+func _on_window_confirm_keep() -> void:
+	U_UISoundPlayer.play_confirm()
+	_finalize_window_confirm(true)
+
+func _on_window_confirm_revert() -> void:
+	U_UISoundPlayer.play_cancel()
+	_finalize_window_confirm(false)
+
+func _finalize_window_confirm(keep_changes: bool) -> void:
+	_stop_window_confirm_timer()
+	_window_confirm_active = false
+	if _window_confirm_dialog != null and _window_confirm_dialog.visible:
+		_window_confirm_dialog.hide()
+	if keep_changes:
+		_dispatch_window_settings(_pending_window_settings)
+		_pending_window_settings.clear()
+		_clear_display_settings_preview()
+		_close_overlay()
+		return
+
+	_pending_window_settings.clear()
+	_clear_display_settings_preview()
+	if _state_store != null:
+		_on_state_changed({}, _state_store.get_state())
 
 func _get_display_settings_from_ui() -> Dictionary:
 	var defaults := _get_default_display_state()

@@ -200,6 +200,9 @@ func test_apply_dispatches_actions_and_updates_state() -> void:
 
 	tab._apply_button.emit_signal("pressed")
 	await get_tree().process_frame
+	if tab._window_confirm_dialog != null and tab._window_confirm_dialog.visible:
+		tab._window_confirm_dialog.emit_signal("confirmed")
+		await get_tree().process_frame
 
 	var display_actions := _collect_display_action_types(dispatched)
 	assert_eq(display_actions.size(), 20, "Apply should dispatch all display actions")
@@ -227,6 +230,60 @@ func test_apply_clears_preview_flag() -> void:
 	await get_tree().process_frame
 
 	assert_false(bool(_display_manager.get("_display_settings_preview_active")), "Apply should clear preview mode")
+
+func test_apply_with_window_change_requires_confirm() -> void:
+	var overlay := await _instantiate_overlay()
+	var tab := _get_tab(overlay)
+
+	var dispatched: Array[Dictionary] = []
+	_store.action_dispatched.connect(func(action: Dictionary) -> void:
+		dispatched.append(action)
+	)
+
+	var mode_idx := tab._window_mode_values.find("fullscreen")
+	tab._window_mode_option.select(mode_idx)
+	await get_tree().process_frame
+
+	tab._apply_button.emit_signal("pressed")
+	await get_tree().process_frame
+
+	var display_actions := _collect_display_action_types(dispatched)
+	assert_false(
+		display_actions.has(U_DISPLAY_ACTIONS.ACTION_SET_WINDOW_MODE),
+		"Window mode should not dispatch until confirmed"
+	)
+	assert_false(
+		display_actions.has(U_DISPLAY_ACTIONS.ACTION_SET_WINDOW_SIZE_PRESET),
+		"Window size should not dispatch until confirmed"
+	)
+	assert_true(tab._window_confirm_dialog.visible, "Confirm dialog should appear on window changes")
+
+	if tab._window_confirm_dialog != null and tab._window_confirm_dialog.visible:
+		tab._window_confirm_dialog.emit_signal("canceled")
+		await get_tree().process_frame
+
+func test_window_confirm_revert_restores_window_ops() -> void:
+	_store.dispatch(U_DISPLAY_ACTIONS.set_window_mode("windowed"))
+	await _await_deferred()
+
+	var overlay := await _instantiate_overlay()
+	var tab := _get_tab(overlay)
+
+	var mode_idx := tab._window_mode_values.find("fullscreen")
+	tab._window_mode_option.select(mode_idx)
+	tab._window_mode_option.emit_signal("item_selected", mode_idx)
+	await _await_deferred()
+
+	tab._apply_button.emit_signal("pressed")
+	await _await_deferred()
+
+	assert_eq(_window_ops.window_mode, DisplayServer.WINDOW_MODE_FULLSCREEN, "Preview should apply fullscreen mode")
+
+	if tab._window_confirm_dialog != null:
+		tab._window_confirm_dialog.emit_signal("canceled")
+		await _await_deferred()
+
+	assert_eq(_window_ops.window_mode, DisplayServer.WINDOW_MODE_WINDOWED, "Revert should restore prior window mode")
 
 func test_cancel_discards_changes_and_clears_preview() -> void:
 	_store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(1.1))

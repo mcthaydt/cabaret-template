@@ -431,3 +431,13 @@ text = "Reset to Defaults"
 unique_name_in_owner = true
 layout_mode = 2
 text = "Apply"
+
+[node name="WindowConfirmDialog" type="ConfirmationDialog" parent="." unique_id=1974579884]
+unique_name_in_owner = true
+title = "Confirm Display Changes"
+dialog_text = "Keep these display changes? Reverting in 10s."
+
+[node name="WindowConfirmTimer" type="Timer" parent="WindowConfirmDialog" unique_id=308992063]
+unique_name_in_owner = true
+one_shot = false
+wait_time = 1.0
