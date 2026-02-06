@@ -34,9 +34,6 @@ var _toast_active: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	# Defer reparent to avoid modifying the tree while the scene is still entering.
-	call_deferred("_reparent_to_root_hud_layer")
-	_register_with_scene_manager()
 	_store = U_StateUtils.get_store(self)
 
 	if _store == null:
@@ -46,7 +43,16 @@ func _ready() -> void:
 	_player_entity_id = String(_store.get_slice(StringName("gameplay")).get("player_entity_id", "player"))
 	_store.slice_updated.connect(_on_slice_updated)
 
-	# Subscribe to checkpoint events for player feedback
+	# Defer reparent AND event subscriptions to avoid tree modifications during _ready
+	# and to ensure subscriptions happen AFTER reparenting (which triggers _exit_tree)
+	call_deferred("_complete_initialization")
+
+func _complete_initialization() -> void:
+	# Reparent first
+	_reparent_to_root_hud_layer()
+	_register_with_scene_manager()
+
+	# Then subscribe to events (after reparenting to avoid unsubscribe in _exit_tree)
 	_unsubscribe_checkpoint = U_ECSEventBus.subscribe(StringName("checkpoint_activated"), _on_checkpoint_event)
 	_unsubscribe_interact_prompt_show = U_ECSEventBus.subscribe(StringName("interact_prompt_show"), _on_interact_prompt_show)
 	_unsubscribe_interact_prompt_hide = U_ECSEventBus.subscribe(StringName("interact_prompt_hide"), _on_interact_prompt_hide)
