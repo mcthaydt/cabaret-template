@@ -23,7 +23,6 @@ const PALETTE_NORMAL_PATH := "res://resources/ui_themes/cfg_palette_normal.tres"
 const PALETTE_DEUTER_PATH := "res://resources/ui_themes/cfg_palette_deuteranopia.tres"
 const PALETTE_PROTAN_PATH := "res://resources/ui_themes/cfg_palette_protanopia.tres"
 const PALETTE_TRITAN_PATH := "res://resources/ui_themes/cfg_palette_tritanopia.tres"
-const PALETTE_HIGH_CONTRAST_PATH := "res://resources/ui_themes/cfg_palette_high_contrast.tres"
 
 var _store: M_StateStore
 var _display_manager: M_DisplayManager
@@ -89,7 +88,7 @@ func test_tritanopia_palette_loads() -> void:
 	var palette := _display_manager.get_active_palette()
 	_assert_palette_path(palette, PALETTE_TRITAN_PATH, "Tritanopia palette should load")
 
-func test_high_contrast_palette_loads_and_emits_signal() -> void:
+func test_normal_high_contrast_palette_loads_and_emits_signal() -> void:
 	_display_manager.get_active_palette()
 	var palette_manager: RefCounted = _display_manager.get("_palette_manager")
 	assert_not_null(palette_manager, "Palette manager should be created")
@@ -103,5 +102,29 @@ func test_high_contrast_palette_loads_and_emits_signal() -> void:
 	await get_tree().process_frame
 
 	var palette := _display_manager.get_active_palette()
-	_assert_palette_path(palette, PALETTE_HIGH_CONTRAST_PATH, "High contrast palette should load")
+	_assert_palette_path(palette, "res://resources/ui_themes/cfg_palette_normal_high_contrast.tres", "Normal high contrast palette should load")
 	assert_eq(emitted[0], 1, "Palette manager should emit active_palette_changed on high contrast switch")
+
+func test_deuteranopia_high_contrast_palette_loads() -> void:
+	_store.dispatch(U_DISPLAY_ACTIONS.set_color_blind_mode("deuteranopia"))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_high_contrast_enabled(true))
+	await get_tree().process_frame
+
+	var palette := _display_manager.get_active_palette()
+	_assert_palette_path(palette, "res://resources/ui_themes/cfg_palette_deuteranopia_high_contrast.tres", "Deuteranopia high contrast palette should load")
+
+func test_protanopia_high_contrast_palette_loads() -> void:
+	_store.dispatch(U_DISPLAY_ACTIONS.set_color_blind_mode("protanopia"))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_high_contrast_enabled(true))
+	await get_tree().process_frame
+
+	var palette := _display_manager.get_active_palette()
+	_assert_palette_path(palette, "res://resources/ui_themes/cfg_palette_protanopia_high_contrast.tres", "Protanopia high contrast palette should load")
+
+func test_tritanopia_high_contrast_palette_loads() -> void:
+	_store.dispatch(U_DISPLAY_ACTIONS.set_color_blind_mode("tritanopia"))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_high_contrast_enabled(true))
+	await get_tree().process_frame
+
+	var palette := _display_manager.get_active_palette()
+	_assert_palette_path(palette, "res://resources/ui_themes/cfg_palette_tritanopia_high_contrast.tres", "Tritanopia high contrast palette should load")

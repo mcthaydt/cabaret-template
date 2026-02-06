@@ -45,12 +45,33 @@ func test_palettes_return_same_preloaded_resource() -> void:
 	var second := manager2.get_active_palette()
 	assert_eq(first, second, "Preloaded palette should be same resource")
 
-func test_high_contrast_overrides_mode() -> void:
+func test_high_contrast_combines_with_color_blind_mode() -> void:
 	var manager := U_PaletteManager.new()
 	manager.set_color_blind_mode("deuteranopia", true)
 	var palette := manager.get_active_palette()
 	assert_not_null(palette, "High contrast palette should load")
-	assert_eq(palette.palette_id, StringName("high_contrast"), "High contrast should override mode")
+	assert_eq(palette.palette_id, StringName("deuteranopia_high_contrast"), "High contrast should combine with color blind mode")
+
+func test_normal_high_contrast_loads() -> void:
+	var manager := U_PaletteManager.new()
+	manager.set_color_blind_mode("normal", true)
+	var palette := manager.get_active_palette()
+	assert_not_null(palette, "Normal high contrast palette should load")
+	assert_eq(palette.palette_id, StringName("normal_high_contrast"), "Should load normal_high_contrast")
+
+func test_protanopia_high_contrast_loads() -> void:
+	var manager := U_PaletteManager.new()
+	manager.set_color_blind_mode("protanopia", true)
+	var palette := manager.get_active_palette()
+	assert_not_null(palette, "Protanopia high contrast palette should load")
+	assert_eq(palette.palette_id, StringName("protanopia_high_contrast"), "Should load protanopia_high_contrast")
+
+func test_tritanopia_high_contrast_loads() -> void:
+	var manager := U_PaletteManager.new()
+	manager.set_color_blind_mode("tritanopia", true)
+	var palette := manager.get_active_palette()
+	assert_not_null(palette, "Tritanopia high contrast palette should load")
+	assert_eq(palette.palette_id, StringName("tritanopia_high_contrast"), "Should load tritanopia_high_contrast")
 
 func test_palette_updates_on_mode_change() -> void:
 	var manager := U_PaletteManager.new()

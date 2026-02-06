@@ -7,10 +7,13 @@ signal active_palette_changed(palette)
 
 const PALETTES := {
 	"normal": preload("res://resources/ui_themes/cfg_palette_normal.tres"),
+	"normal_high_contrast": preload("res://resources/ui_themes/cfg_palette_normal_high_contrast.tres"),
 	"deuteranopia": preload("res://resources/ui_themes/cfg_palette_deuteranopia.tres"),
+	"deuteranopia_high_contrast": preload("res://resources/ui_themes/cfg_palette_deuteranopia_high_contrast.tres"),
 	"protanopia": preload("res://resources/ui_themes/cfg_palette_protanopia.tres"),
+	"protanopia_high_contrast": preload("res://resources/ui_themes/cfg_palette_protanopia_high_contrast.tres"),
 	"tritanopia": preload("res://resources/ui_themes/cfg_palette_tritanopia.tres"),
-	"high_contrast": preload("res://resources/ui_themes/cfg_palette_high_contrast.tres"),
+	"tritanopia_high_contrast": preload("res://resources/ui_themes/cfg_palette_tritanopia_high_contrast.tres"),
 }
 
 var _active_palette: Resource = null
@@ -34,8 +37,9 @@ func get_active_palette() -> Resource:
 	return _active_palette
 
 func _resolve_palette_key(mode: String, high_contrast_enabled: bool) -> String:
+	var base_mode := mode if PALETTES.has(mode) else "normal"
 	if high_contrast_enabled:
-		return "high_contrast"
-	if PALETTES.has(mode):
-		return mode
-	return "normal"
+		var hc_key := base_mode + "_high_contrast"
+		if PALETTES.has(hc_key):
+			return hc_key
+	return base_mode
