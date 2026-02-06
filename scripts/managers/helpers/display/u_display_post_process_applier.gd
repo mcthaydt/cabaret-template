@@ -101,12 +101,11 @@ func _apply_dither_settings(state: Dictionary) -> void:
 	)
 
 func _apply_color_blind_shader_settings(state: Dictionary) -> void:
-	var enabled := U_DISPLAY_SELECTORS.is_color_blind_shader_enabled(state)
-	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_COLOR_BLIND, enabled)
 	var mode := U_DISPLAY_SELECTORS.get_color_blind_mode(state)
 	var mode_value := _get_color_blind_mode_value(mode)
-	if not enabled:
-		mode_value = 0
+	var enabled := mode_value != 0  # Enabled if mode is not "normal"
+
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_COLOR_BLIND, enabled)
 	_post_process_layer.set_effect_parameter(
 		U_POST_PROCESS_LAYER.EFFECT_COLOR_BLIND,
 		StringName("mode"),

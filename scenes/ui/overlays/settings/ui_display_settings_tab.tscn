@@ -93,6 +93,20 @@ text = "Post-Processing"
 [node name="PostProcessSeparator" type="HSeparator" parent="Scroll/Content" unique_id=1885367714]
 layout_mode = 2
 
+[node name="PostProcessingToggleRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1999888777]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PostProcessingLabel" type="Label" parent="Scroll/Content/PostProcessingToggleRow" unique_id=1999888778]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+text = "Post-Processing"
+
+[node name="PostProcessingToggle" type="CheckBox" parent="Scroll/Content/PostProcessingToggleRow" unique_id=1999888779]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Enabled"
+
 [node name="PostProcessPresetRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1234567890]
 layout_mode = 2
 theme_override_constants/separation = 12
@@ -100,190 +114,9 @@ theme_override_constants/separation = 12
 [node name="PostProcessPresetLabel" type="Label" parent="Scroll/Content/PostProcessPresetRow" unique_id=1234567891]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-text = "Post-Processing Preset"
+text = "Intensity Preset"
 
 [node name="PostProcessPresetOption" type="OptionButton" parent="Scroll/Content/PostProcessPresetRow" unique_id=1234567892]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="FilmGrainToggleRow" type="HBoxContainer" parent="Scroll/Content" unique_id=2035760504]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="FilmGrainLabel" type="Label" parent="Scroll/Content/FilmGrainToggleRow" unique_id=1282325968]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "Film Grain"
-
-[node name="FilmGrainToggle" type="CheckBox" parent="Scroll/Content/FilmGrainToggleRow" unique_id=1057063816]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Enabled"
-
-[node name="FilmGrainIntensityRow" type="HBoxContainer" parent="Scroll/Content" unique_id=2135816396]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="FilmGrainIntensityLabel" type="Label" parent="Scroll/Content/FilmGrainIntensityRow" unique_id=748445178]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "Film Grain Intensity"
-
-[node name="FilmGrainIntensitySlider" type="HSlider" parent="Scroll/Content/FilmGrainIntensityRow" unique_id=1726548931]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-max_value = 1.0
-step = 0.05
-value = 0.1
-
-[node name="FilmGrainIntensityValue" type="Label" parent="Scroll/Content/FilmGrainIntensityRow" unique_id=283070260]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-text = "10%"
-horizontal_alignment = 2
-
-[node name="CRTToggleRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1415833584]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="CRTLabel" type="Label" parent="Scroll/Content/CRTToggleRow" unique_id=717014369]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "CRT Filter"
-
-[node name="CRTToggle" type="CheckBox" parent="Scroll/Content/CRTToggleRow" unique_id=60950158]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Enabled"
-
-[node name="CRTScanlineRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1634562765]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="CRTScanlineLabel" type="Label" parent="Scroll/Content/CRTScanlineRow" unique_id=511703439]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "Scanline Intensity"
-
-[node name="CRTScanlineSlider" type="HSlider" parent="Scroll/Content/CRTScanlineRow" unique_id=1665001192]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-max_value = 1.0
-step = 0.05
-value = 0.3
-
-[node name="CRTScanlineValue" type="Label" parent="Scroll/Content/CRTScanlineRow" unique_id=93240871]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-text = "30%"
-horizontal_alignment = 2
-
-[node name="CRTCurvatureRow" type="HBoxContainer" parent="Scroll/Content" unique_id=353302997]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="CRTCurvatureLabel" type="Label" parent="Scroll/Content/CRTCurvatureRow" unique_id=327571493]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "CRT Curvature"
-
-[node name="CRTCurvatureSlider" type="HSlider" parent="Scroll/Content/CRTCurvatureRow" unique_id=7427491]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-max_value = 10.0
-step = 0.5
-value = 2.0
-
-[node name="CRTCurvatureValue" type="Label" parent="Scroll/Content/CRTCurvatureRow" unique_id=1909384396]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-text = "2.0"
-horizontal_alignment = 2
-
-[node name="CRTAberrationRow" type="HBoxContainer" parent="Scroll/Content" unique_id=2017793714]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="CRTAberrationLabel" type="Label" parent="Scroll/Content/CRTAberrationRow" unique_id=1781892675]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "Chromatic Aberration"
-
-[node name="CRTAberrationSlider" type="HSlider" parent="Scroll/Content/CRTAberrationRow" unique_id=1098124664]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-max_value = 0.01
-step = 0.0001
-value = 0.002
-
-[node name="CRTAberrationValue" type="Label" parent="Scroll/Content/CRTAberrationRow" unique_id=1816175688]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-text = "0.0020"
-horizontal_alignment = 2
-
-[node name="DitherToggleRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1022226584]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="DitherLabel" type="Label" parent="Scroll/Content/DitherToggleRow" unique_id=1677296145]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "Dither"
-
-[node name="DitherToggle" type="CheckBox" parent="Scroll/Content/DitherToggleRow" unique_id=1974081778]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Enabled"
-
-[node name="DitherIntensityRow" type="HBoxContainer" parent="Scroll/Content" unique_id=428023682]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="DitherIntensityLabel" type="Label" parent="Scroll/Content/DitherIntensityRow" unique_id=722881927]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "Dither Intensity"
-
-[node name="DitherIntensitySlider" type="HSlider" parent="Scroll/Content/DitherIntensityRow" unique_id=1837866962]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-max_value = 1.0
-step = 0.05
-value = 0.5
-
-[node name="DitherIntensityValue" type="Label" parent="Scroll/Content/DitherIntensityRow" unique_id=837171890]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-text = "50%"
-horizontal_alignment = 2
-
-[node name="DitherPatternRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1260222103]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="DitherPatternLabel" type="Label" parent="Scroll/Content/DitherPatternRow" unique_id=1416618449]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "Dither Pattern"
-
-[node name="DitherPatternOption" type="OptionButton" parent="Scroll/Content/DitherPatternRow" unique_id=1778153742]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -352,20 +185,6 @@ layout_mode = 2
 text = "High Contrast"
 
 [node name="HighContrastToggle" type="CheckBox" parent="Scroll/Content/HighContrastRow" unique_id=2019903621]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Enabled"
-
-[node name="ColorBlindShaderRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1172638024]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="ColorBlindShaderLabel" type="Label" parent="Scroll/Content/ColorBlindShaderRow" unique_id=354472923]
-custom_minimum_size = Vector2(180, 0)
-layout_mode = 2
-text = "Color Blind Shader"
-
-[node name="ColorBlindShaderToggle" type="CheckBox" parent="Scroll/Content/ColorBlindShaderRow" unique_id=780018259]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Enabled"

@@ -24,7 +24,6 @@ class_name RS_DisplayInitialState
 @export_group("Accessibility")
 @export_enum("normal", "deuteranopia", "protanopia", "tritanopia") var color_blind_mode: String = "normal"
 @export var high_contrast_enabled: bool = false
-@export var color_blind_shader_enabled: bool = false
 
 ## Convert resource to Dictionary for state store
 func to_dictionary() -> Dictionary:
@@ -47,5 +46,4 @@ func to_dictionary() -> Dictionary:
 		"ui_scale": ui_scale,
 		"color_blind_mode": color_blind_mode,
 		"high_contrast_enabled": high_contrast_enabled,
-		"color_blind_shader_enabled": color_blind_shader_enabled,
 	}

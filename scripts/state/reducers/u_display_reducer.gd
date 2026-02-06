@@ -21,7 +21,6 @@ const DEFAULT_DISPLAY_STATE := {
 	"ui_scale": 1.0,
 	"color_blind_mode": "normal",
 	"high_contrast_enabled": false,
-	"color_blind_shader_enabled": false,
 	# Note: Intensity values are loaded from post_processing_preset in get_default_display_state()
 }
 

@@ -46,7 +46,6 @@ var _color_blind_mode_values: Array[String] = []
 
 @onready var _color_blind_mode_option: OptionButton = %ColorBlindModeOption
 @onready var _high_contrast_toggle: CheckBox = %HighContrastToggle
-@onready var _color_blind_shader_toggle: CheckBox = %ColorBlindShaderToggle
 
 @onready var _cancel_button: Button = %CancelButton
 @onready var _reset_button: Button = %ResetButton
@@ -101,8 +100,6 @@ func _connect_signals() -> void:
 		_color_blind_mode_option.item_selected.connect(_on_color_blind_mode_selected)
 	if _high_contrast_toggle != null and not _high_contrast_toggle.toggled.is_connected(_on_high_contrast_toggled):
 		_high_contrast_toggle.toggled.connect(_on_high_contrast_toggled)
-	if _color_blind_shader_toggle != null and not _color_blind_shader_toggle.toggled.is_connected(_on_color_blind_shader_toggled):
-		_color_blind_shader_toggle.toggled.connect(_on_color_blind_shader_toggled)
 
 	if _cancel_button != null and not _cancel_button.pressed.is_connected(_on_cancel_pressed):
 		_cancel_button.pressed.connect(_on_cancel_pressed)
@@ -187,8 +184,6 @@ func _configure_focus_neighbors() -> void:
 		focusables.append(_color_blind_mode_option)
 	if _high_contrast_toggle != null:
 		focusables.append(_high_contrast_toggle)
-	if _color_blind_shader_toggle != null:
-		focusables.append(_color_blind_shader_toggle)
 
 	var buttons: Array[Control] = []
 	if _cancel_button != null:
@@ -280,7 +275,6 @@ func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 
 	_select_option_value(_color_blind_mode_option, _color_blind_mode_values, U_DisplaySelectors.get_color_blind_mode(state))
 	_set_toggle_value_silently(_high_contrast_toggle, U_DisplaySelectors.is_high_contrast_enabled(state))
-	_set_toggle_value_silently(_color_blind_shader_toggle, U_DisplaySelectors.is_color_blind_shader_enabled(state))
 
 	_updating_from_state = false
 	_update_dependent_controls()
@@ -360,13 +354,6 @@ func _on_high_contrast_toggled(pressed: bool) -> void:
 	_has_local_edits = true
 	_update_display_settings_preview_from_ui()
 
-func _on_color_blind_shader_toggled(pressed: bool) -> void:
-	if _updating_from_state:
-		return
-	U_UISoundPlayer.play_confirm()
-	_has_local_edits = true
-	_update_display_settings_preview_from_ui()
-
 func _on_reset_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	var defaults := _get_default_display_state()
@@ -385,7 +372,6 @@ func _on_reset_pressed() -> void:
 
 	_select_option_value(_color_blind_mode_option, _color_blind_mode_values, defaults.color_blind_mode)
 	_set_toggle_value_silently(_high_contrast_toggle, defaults.high_contrast_enabled)
-	_set_toggle_value_silently(_color_blind_shader_toggle, defaults.color_blind_shader_enabled)
 
 	_updating_from_state = false
 	_update_dependent_controls()
@@ -462,7 +448,6 @@ func _dispatch_display_settings(settings: Variant, skip_window_actions: bool = f
 	_state_store.dispatch(U_DisplayActions.set_ui_scale(float(values.get("ui_scale", 1.0))))
 	_state_store.dispatch(U_DisplayActions.set_color_blind_mode(String(values.get("color_blind_mode", ""))))
 	_state_store.dispatch(U_DisplayActions.set_high_contrast_enabled(bool(values.get("high_contrast_enabled", false))))
-	_state_store.dispatch(U_DisplayActions.set_color_blind_shader_enabled(bool(values.get("color_blind_shader_enabled", false))))
 
 func _dispatch_window_settings(values: Dictionary) -> void:
 	if _state_store == null:
@@ -586,7 +571,6 @@ func _get_display_settings_from_ui() -> Dictionary:
 		"ui_scale": _get_slider_value(_ui_scale_slider, defaults.get("ui_scale", 1.0)),
 		"color_blind_mode": _get_selected_value(_color_blind_mode_option, _color_blind_mode_values, defaults.get("color_blind_mode", "normal")),
 		"high_contrast_enabled": _get_toggle_value(_high_contrast_toggle, defaults.get("high_contrast_enabled", false)),
-		"color_blind_shader_enabled": _get_toggle_value(_color_blind_shader_toggle, defaults.get("color_blind_shader_enabled", false)),
 	}
 
 func _get_selected_value(button: OptionButton, values: Array[String], fallback: String) -> String:
