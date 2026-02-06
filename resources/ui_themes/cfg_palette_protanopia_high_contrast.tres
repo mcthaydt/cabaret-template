@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RS_UIColorPalette" format=3 uid="uid://c2g9x3w4o5l6n"]
+[gd_resource type="Resource" script_class="RS_UIColorPalette" format=3 uid="uid://c2hax3w4o5l6n"]
 
 [ext_resource type="Script" uid="uid://iix7qrhtq3i5" path="res://scripts/resources/ui/rs_ui_color_palette.gd" id="1_palette"]
 
