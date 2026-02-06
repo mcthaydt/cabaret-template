@@ -147,19 +147,8 @@ func clear_display_settings_preview() -> void:
 ## Override: I_DisplayManager.get_active_palette
 func get_active_palette() -> Resource:
 	if _palette_manager == null:
-		_palette_manager = U_PALETTE_MANAGER.new()
-	if not _last_applied_settings.is_empty():
-		_apply_accessibility_settings(_last_applied_settings)
-	else:
-		if _palette_manager.get_active_palette() == null:
-			_palette_manager.set_color_blind_mode("normal", false)
-	var palette: Resource = _palette_manager.get_active_palette()
-	_ensure_appliers()
-	if _ui_theme_applier != null:
-		_ui_theme_applier.apply_theme_from_palette(palette)
-		if _ui_scale_applier != null:
-			_ui_theme_applier.apply_theme_to_roots(_ui_scale_applier.get_roots())
-	return palette
+		return null
+	return _palette_manager.get_active_palette()
 
 func _apply_display_settings(state: Dictionary) -> void:
 	var effective_settings := _build_effective_settings(state)

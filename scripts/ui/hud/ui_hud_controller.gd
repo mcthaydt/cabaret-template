@@ -10,8 +10,7 @@ const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigati
 const U_InteractBlocker := preload("res://scripts/utils/u_interact_blocker.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
-const U_PaletteManager := preload("res://scripts/managers/helpers/u_palette_manager.gd")
-const U_DisplaySelectors := preload("res://scripts/state/selectors/u_display_selectors.gd")
+const I_DisplayManager := preload("res://scripts/interfaces/i_display_manager.gd")
 
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
@@ -33,7 +32,6 @@ var _active_prompt_id: int = 0
 var _last_prompt_action: StringName = StringName("interact")
 var _last_prompt_text: String = ""
 var _toast_active: bool = false
-var _palette_manager: U_PaletteManager = null
 var _health_bar_bg_style: StyleBoxFlat = null
 var _health_bar_fill_style: StyleBoxFlat = null
 
@@ -47,9 +45,6 @@ func _ready() -> void:
 
 	_player_entity_id = String(_store.get_slice(StringName("gameplay")).get("player_entity_id", "player"))
 	_store.slice_updated.connect(_on_slice_updated)
-
-	# Initialize palette manager
-	_palette_manager = U_PaletteManager.new()
 
 	# Grab direct references to the scene's StyleBoxFlat resources
 	if health_bar != null:
@@ -384,17 +379,14 @@ func _get_primary_input_label(action: StringName) -> String:
 			return "Mouse %d" % mouse_event.button_index
 	return ""
 
-func _update_health_bar_colors(state: Dictionary, health: float, max_health: float) -> void:
-	if _health_bar_fill_style == null or _palette_manager == null:
+func _update_health_bar_colors(_state: Dictionary, health: float, max_health: float) -> void:
+	if _health_bar_fill_style == null:
 		return
 
-	# Get current color blind mode and high contrast setting (pass full state to selectors)
-	var color_blind_mode: String = U_DisplaySelectors.get_color_blind_mode(state)
-	var high_contrast_enabled: bool = U_DisplaySelectors.is_high_contrast_enabled(state)
-
-	# Update palette manager with current settings
-	_palette_manager.set_color_blind_mode(color_blind_mode, high_contrast_enabled)
-	var active_palette: Resource = _palette_manager.get_active_palette()
+	var display_mgr := U_ServiceLocator.try_get_service(StringName("display_manager")) as I_DisplayManager
+	if display_mgr == null:
+		return
+	var active_palette: Resource = display_mgr.get_active_palette()
 	if active_palette == null:
 		return
 

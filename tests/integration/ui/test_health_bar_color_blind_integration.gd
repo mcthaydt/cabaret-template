@@ -4,30 +4,41 @@ extends GutTest
 
 const UI_HudController := preload("res://scripts/ui/hud/ui_hud_controller.gd")
 const M_StateStore := preload("res://scripts/state/m_state_store.gd")
+const M_DisplayManager := preload("res://scripts/managers/m_display_manager.gd")
 const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_PaletteManager := preload("res://scripts/managers/helpers/u_palette_manager.gd")
+const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
+const RS_DisplayInitialState := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 
 var _store: M_StateStore = null
 var _hud: UI_HudController = null
-var _palette_manager: U_PaletteManager = null
+var _display_manager: M_DisplayManager = null
 
 func before_each() -> void:
 	const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-	const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-	const RS_DisplayInitialState := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 
-	# Create state store with initial state resources (load from files to get correct defaults)
+	U_ServiceLocator.clear()
+
+	# Create state store with initial state resources
 	_store = M_StateStore.new()
 	_store.name = "StateStore"
+	_store.settings = RS_StateStoreSettings.new()
+	_store.settings.enable_persistence = false
+	_store.settings.enable_debug_logging = false
+	_store.settings.enable_debug_overlay = false
 	_store.gameplay_initial_state = load("res://resources/state/cfg_default_gameplay_initial_state.tres")
-	_store.display_initial_state = load("res://resources/base_settings/state/cfg_display_initial_state.tres")
+	_store.display_initial_state = RS_DisplayInitialState.new()
 	add_child_autofree(_store)
 	await get_tree().process_frame
 
 	# Register with ServiceLocator
 	U_ServiceLocator.register(StringName("state_store"), _store)
+
+	# Create and register DisplayManager so HUD can query it for palettes
+	_display_manager = M_DisplayManager.new()
+	add_child_autofree(_display_manager)
+	await get_tree().process_frame
 
 	# Set navigation shell to "gameplay" so health bar is visible
 	_store.dispatch(U_NavigationActions.set_shell(StringName("gameplay"), StringName("gameplay_base")))
@@ -49,9 +60,6 @@ func before_each() -> void:
 
 	# Wait an additional frame for the HUD to complete initialization
 	await get_tree().process_frame
-
-	# Create palette manager
-	_palette_manager = U_PaletteManager.new()
 
 func after_each() -> void:
 	U_ServiceLocator.clear()

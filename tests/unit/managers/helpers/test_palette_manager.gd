@@ -36,13 +36,14 @@ func test_get_active_palette_returns_current_palette() -> void:
 	assert_not_null(palette, "Palette should load")
 	assert_eq(palette.palette_id, StringName("tritanopia"), "Active palette should match current mode")
 
-func test_palettes_cached_after_first_load() -> void:
+func test_palettes_return_same_preloaded_resource() -> void:
 	var manager := U_PaletteManager.new()
 	manager.set_color_blind_mode("protanopia")
 	var first := manager.get_active_palette()
-	manager.set_color_blind_mode("protanopia")
-	var second := manager.get_active_palette()
-	assert_eq(first, second, "Palette should be reused from cache")
+	var manager2 := U_PaletteManager.new()
+	manager2.set_color_blind_mode("protanopia")
+	var second := manager2.get_active_palette()
+	assert_eq(first, second, "Preloaded palette should be same resource")
 
 func test_high_contrast_overrides_mode() -> void:
 	var manager := U_PaletteManager.new()
