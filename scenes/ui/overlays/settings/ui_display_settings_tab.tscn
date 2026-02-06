@@ -2,6 +2,45 @@
 
 [ext_resource type="Script" uid="uid://mngqeu4fscde" path="res://scripts/ui/settings/ui_display_settings_tab.gd" id="1"]
 
+[sub_resource type="StyleBoxFlat" id="section_panel"]
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+bg_color = Color(0.12, 0.14, 0.17, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.25, 0.3, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="slider_bg"]
+content_margin_top = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.25, 0.3, 0.4, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="slider_fill"]
+content_margin_top = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.15, 0.75, 0.3, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="header_separator"]
+content_margin_top = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.3, 0.35, 0.4, 0.5)
+
 [node name="DisplaySettingsTab" type="VBoxContainer" unique_id=1430844904]
 theme_override_constants/separation = 12
 script = ExtResource("1")
@@ -17,174 +56,246 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 follow_focus = true
 
-[node name="Content" type="VBoxContainer" parent="Scroll" unique_id=70840007]
+[node name="ContentMargin" type="MarginContainer" parent="Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 10
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
 
-[node name="GraphicsLabel" type="Label" parent="Scroll/Content" unique_id=1981928633]
+[node name="Content" type="VBoxContainer" parent="Scroll/ContentMargin" unique_id=70840007]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="GraphicsSection" type="PanelContainer" parent="Scroll/ContentMargin/Content"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("section_panel")
+
+[node name="GraphicsVBox" type="VBoxContainer" parent="Scroll/ContentMargin/Content/GraphicsSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GraphicsHeader" type="Label" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
 text = "Graphics"
 
-[node name="GraphicsSeparator" type="HSeparator" parent="Scroll/Content" unique_id=694695344]
+[node name="GraphicsSep" type="HSeparator" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox"]
 layout_mode = 2
+theme_override_styles/separator = SubResource("header_separator")
 
-[node name="WindowSizeRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1659315599]
+[node name="GraphicsInner" type="VBoxContainer" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="WindowSizeRow" type="HBoxContainer" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner" unique_id=1659315599]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="WindowSizeLabel" type="Label" parent="Scroll/Content/WindowSizeRow" unique_id=838017465]
+[node name="WindowSizeLabel" type="Label" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/WindowSizeRow" unique_id=838017465]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 text = "Window Size"
 
-[node name="WindowSizeOption" type="OptionButton" parent="Scroll/Content/WindowSizeRow" unique_id=170062200]
+[node name="WindowSizeOption" type="OptionButton" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/WindowSizeRow" unique_id=170062200]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="WindowModeRow" type="HBoxContainer" parent="Scroll/Content" unique_id=2078993102]
+[node name="WindowModeRow" type="HBoxContainer" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner" unique_id=2078993102]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="WindowModeLabel" type="Label" parent="Scroll/Content/WindowModeRow" unique_id=1713915707]
+[node name="WindowModeLabel" type="Label" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/WindowModeRow" unique_id=1713915707]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 text = "Window Mode"
 
-[node name="WindowModeOption" type="OptionButton" parent="Scroll/Content/WindowModeRow" unique_id=56824920]
+[node name="WindowModeOption" type="OptionButton" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/WindowModeRow" unique_id=56824920]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="VSyncRow" type="HBoxContainer" parent="Scroll/Content" unique_id=590294122]
+[node name="VSyncRow" type="HBoxContainer" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner" unique_id=590294122]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="VSyncLabel" type="Label" parent="Scroll/Content/VSyncRow" unique_id=119608634]
+[node name="VSyncLabel" type="Label" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/VSyncRow" unique_id=119608634]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 text = "VSync"
 
-[node name="VSyncToggle" type="CheckBox" parent="Scroll/Content/VSyncRow" unique_id=292214891]
+[node name="VSyncToggle" type="CheckBox" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/VSyncRow" unique_id=292214891]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Enabled"
 
-[node name="QualityRow" type="HBoxContainer" parent="Scroll/Content" unique_id=191450495]
+[node name="QualityRow" type="HBoxContainer" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner" unique_id=191450495]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="QualityLabel" type="Label" parent="Scroll/Content/QualityRow" unique_id=118234327]
+[node name="QualityLabel" type="Label" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/QualityRow" unique_id=118234327]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 text = "Quality Preset"
 
-[node name="QualityPresetOption" type="OptionButton" parent="Scroll/Content/QualityRow" unique_id=311413577]
+[node name="QualityPresetOption" type="OptionButton" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/QualityRow" unique_id=311413577]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="PostProcessLabel" type="Label" parent="Scroll/Content" unique_id=1842585046]
+[node name="PostProcessSection" type="PanelContainer" parent="Scroll/ContentMargin/Content"]
 layout_mode = 2
+theme_override_styles/panel = SubResource("section_panel")
+
+[node name="PostProcessVBox" type="VBoxContainer" parent="Scroll/ContentMargin/Content/PostProcessSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PostProcessHeader" type="Label" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
 text = "Post-Processing"
 
-[node name="PostProcessSeparator" type="HSeparator" parent="Scroll/Content" unique_id=1885367714]
+[node name="PostProcessSep" type="HSeparator" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox"]
 layout_mode = 2
+theme_override_styles/separator = SubResource("header_separator")
 
-[node name="PostProcessingToggleRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1999888777]
+[node name="PostProcessInner" type="VBoxContainer" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PostProcessingToggleRow" type="HBoxContainer" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner" unique_id=1999888777]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="PostProcessingLabel" type="Label" parent="Scroll/Content/PostProcessingToggleRow" unique_id=1999888778]
+[node name="PostProcessingLabel" type="Label" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner/PostProcessingToggleRow" unique_id=1999888778]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 text = "Post-Processing"
 
-[node name="PostProcessingToggle" type="CheckBox" parent="Scroll/Content/PostProcessingToggleRow" unique_id=1999888779]
+[node name="PostProcessingToggle" type="CheckBox" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner/PostProcessingToggleRow" unique_id=1999888779]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Enabled"
 
-[node name="PostProcessPresetRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1234567890]
+[node name="PostProcessPresetRow" type="HBoxContainer" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner" unique_id=1234567890]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="PostProcessPresetLabel" type="Label" parent="Scroll/Content/PostProcessPresetRow" unique_id=1234567891]
+[node name="PostProcessPresetLabel" type="Label" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner/PostProcessPresetRow" unique_id=1234567891]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 text = "Intensity Preset"
 
-[node name="PostProcessPresetOption" type="OptionButton" parent="Scroll/Content/PostProcessPresetRow" unique_id=1234567892]
+[node name="PostProcessPresetOption" type="OptionButton" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner/PostProcessPresetRow" unique_id=1234567892]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="UILabel" type="Label" parent="Scroll/Content" unique_id=645734907]
+[node name="UISection" type="PanelContainer" parent="Scroll/ContentMargin/Content"]
 layout_mode = 2
+theme_override_styles/panel = SubResource("section_panel")
+
+[node name="UIVBox" type="VBoxContainer" parent="Scroll/ContentMargin/Content/UISection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="UIHeader" type="Label" parent="Scroll/ContentMargin/Content/UISection/UIVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
 text = "UI"
 
-[node name="UISeparator" type="HSeparator" parent="Scroll/Content" unique_id=1925498500]
+[node name="UISep" type="HSeparator" parent="Scroll/ContentMargin/Content/UISection/UIVBox"]
 layout_mode = 2
+theme_override_styles/separator = SubResource("header_separator")
 
-[node name="UIScaleRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1426821952]
+[node name="UIInner" type="VBoxContainer" parent="Scroll/ContentMargin/Content/UISection/UIVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="UIScaleRow" type="HBoxContainer" parent="Scroll/ContentMargin/Content/UISection/UIVBox/UIInner" unique_id=1426821952]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="UIScaleLabel" type="Label" parent="Scroll/Content/UIScaleRow" unique_id=1809474116]
+[node name="UIScaleLabel" type="Label" parent="Scroll/ContentMargin/Content/UISection/UIVBox/UIInner/UIScaleRow" unique_id=1809474116]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 text = "UI Scale"
 
-[node name="UIScaleSlider" type="HSlider" parent="Scroll/Content/UIScaleRow" unique_id=894070753]
+[node name="UIScaleSlider" type="HSlider" parent="Scroll/ContentMargin/Content/UISection/UIVBox/UIInner/UIScaleRow" unique_id=894070753]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/slider = SubResource("slider_bg")
+theme_override_styles/grabber_area = SubResource("slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("slider_fill")
 min_value = 0.8
 max_value = 1.3
 step = 0.1
 value = 1.0
 
-[node name="UIScaleValue" type="Label" parent="Scroll/Content/UIScaleRow" unique_id=23857366]
+[node name="UIScaleValue" type="Label" parent="Scroll/ContentMargin/Content/UISection/UIVBox/UIInner/UIScaleRow" unique_id=23857366]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 text = "100%"
 horizontal_alignment = 2
 
-[node name="AccessibilityLabel" type="Label" parent="Scroll/Content" unique_id=1402092905]
+[node name="AccessibilitySection" type="PanelContainer" parent="Scroll/ContentMargin/Content"]
 layout_mode = 2
+theme_override_styles/panel = SubResource("section_panel")
+
+[node name="AccessibilityVBox" type="VBoxContainer" parent="Scroll/ContentMargin/Content/AccessibilitySection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AccessibilityHeader" type="Label" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
 text = "Accessibility"
 
-[node name="AccessibilitySeparator" type="HSeparator" parent="Scroll/Content" unique_id=2050586582]
+[node name="AccessibilitySep" type="HSeparator" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox"]
 layout_mode = 2
+theme_override_styles/separator = SubResource("header_separator")
 
-[node name="ColorBlindModeRow" type="HBoxContainer" parent="Scroll/Content" unique_id=1525602580]
+[node name="AccessibilityInner" type="VBoxContainer" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ColorBlindModeRow" type="HBoxContainer" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner" unique_id=1525602580]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ColorBlindModeLabel" type="Label" parent="Scroll/Content/ColorBlindModeRow" unique_id=327611118]
+[node name="ColorBlindModeLabel" type="Label" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/ColorBlindModeRow" unique_id=327611118]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 text = "Color Blind Mode"
 
-[node name="ColorBlindModeOption" type="OptionButton" parent="Scroll/Content/ColorBlindModeRow" unique_id=216077999]
+[node name="ColorBlindModeOption" type="OptionButton" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/ColorBlindModeRow" unique_id=216077999]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HighContrastRow" type="HBoxContainer" parent="Scroll/Content" unique_id=26228037]
+[node name="HighContrastRow" type="HBoxContainer" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner" unique_id=26228037]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="HighContrastLabel" type="Label" parent="Scroll/Content/HighContrastRow" unique_id=1045680518]
+[node name="HighContrastLabel" type="Label" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/HighContrastRow" unique_id=1045680518]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 text = "High Contrast"
 
-[node name="HighContrastToggle" type="CheckBox" parent="Scroll/Content/HighContrastRow" unique_id=2019903621]
+[node name="HighContrastToggle" type="CheckBox" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/HighContrastRow" unique_id=2019903621]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Enabled"
