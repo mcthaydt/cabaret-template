@@ -71,7 +71,7 @@ script = ExtResource("1_f2o31")
 script = ExtResource("2_ph0bl")
 
 [node name="NewInterior" parent="SceneObjects" unique_id=1438821753 instance=ExtResource("3_oot58")]
-transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.8506856, 0, 0.6794058)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.2181439, 0, 0.6794058)
 
 [node name="Environment" type="Node" parent="." unique_id=124727212]
 script = ExtResource("2_8soux")
@@ -242,16 +242,17 @@ entity_id = &"goalzone_bar"
 tags = Array[StringName]([&"objective", &"goal"])
 
 [node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_GoalZone" unique_id=1272881135]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.63254166)
 radius = 1.5
 material = ExtResource("53_fade_goal")
 
 [node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_GoalZone" unique_id=1169942121]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.63254166)
 light_color = Color(1, 0.87451, 0.364706, 1)
 light_energy = 2.0
 
 [node name="E_Player" parent="Entities" unique_id=1535353491 instance=ExtResource("7_4wxy1")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8506856, 1, 0.6794058)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2181439, 1, 0.6794058)
 
 [node name="E_CameraRoot" parent="Entities" unique_id=153420920 instance=ExtResource("19_ph0bl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 7.147382)
@@ -272,7 +273,7 @@ entity_id = &"door_to_exterior"
 tags = Array[StringName]([&"trigger", &"door"])
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger" unique_id=863395501]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.57354736, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.57354736, -0.63254166)
 radius = 0.7910156
 height = 2.0715332
 material = ExtResource("54_fade_door")

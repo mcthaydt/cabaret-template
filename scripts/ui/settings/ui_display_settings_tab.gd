@@ -760,26 +760,26 @@ func _finalize_window_confirm(keep_changes: bool) -> void:
 		_on_state_changed({}, _state_store.get_state())
 
 func _get_display_settings_from_ui() -> Dictionary:
-	var defaults := _get_default_display_state()
+	var defaults: Dictionary = _get_default_display_state()
 	return {
-		"window_size_preset": _get_selected_value(_window_size_option, _window_size_values, defaults.window_size_preset),
-		"window_mode": _get_selected_value(_window_mode_option, _window_mode_values, defaults.window_mode),
-		"vsync_enabled": _get_toggle_value(_vsync_toggle, defaults.vsync_enabled),
-		"quality_preset": _get_selected_value(_quality_preset_option, _quality_preset_values, defaults.quality_preset),
-		"post_processing_preset": _get_selected_value(_post_processing_preset_option, _post_processing_preset_values, defaults.post_processing_preset),
-		"film_grain_enabled": _get_toggle_value(_film_grain_toggle, defaults.film_grain_enabled),
-		"film_grain_intensity": _get_slider_value(_film_grain_intensity_slider, defaults.film_grain_intensity),
-		"crt_enabled": _get_toggle_value(_crt_toggle, defaults.crt_enabled),
-		"crt_scanline_intensity": _get_slider_value(_crt_scanline_slider, defaults.crt_scanline_intensity),
-		"crt_curvature": _get_slider_value(_crt_curvature_slider, defaults.crt_curvature),
-		"crt_chromatic_aberration": _get_slider_value(_crt_aberration_slider, defaults.crt_chromatic_aberration),
-		"dither_enabled": _get_toggle_value(_dither_toggle, defaults.dither_enabled),
-		"dither_intensity": _get_slider_value(_dither_intensity_slider, defaults.dither_intensity),
-		"dither_pattern": _get_selected_value(_dither_pattern_option, _dither_pattern_values, defaults.dither_pattern),
-		"ui_scale": _get_slider_value(_ui_scale_slider, defaults.ui_scale),
-		"color_blind_mode": _get_selected_value(_color_blind_mode_option, _color_blind_mode_values, defaults.color_blind_mode),
-		"high_contrast_enabled": _get_toggle_value(_high_contrast_toggle, defaults.high_contrast_enabled),
-		"color_blind_shader_enabled": _get_toggle_value(_color_blind_shader_toggle, defaults.color_blind_shader_enabled),
+		"window_size_preset": _get_selected_value(_window_size_option, _window_size_values, defaults.get("window_size_preset", "1920x1080")),
+		"window_mode": _get_selected_value(_window_mode_option, _window_mode_values, defaults.get("window_mode", "windowed")),
+		"vsync_enabled": _get_toggle_value(_vsync_toggle, defaults.get("vsync_enabled", true)),
+		"quality_preset": _get_selected_value(_quality_preset_option, _quality_preset_values, defaults.get("quality_preset", "high")),
+		"post_processing_preset": _get_selected_value(_post_processing_preset_option, _post_processing_preset_values, defaults.get("post_processing_preset", "medium")),
+		"film_grain_enabled": _get_toggle_value(_film_grain_toggle, defaults.get("film_grain_enabled", false)),
+		"film_grain_intensity": _get_slider_value(_film_grain_intensity_slider, defaults.get("film_grain_intensity", 0.2)),
+		"crt_enabled": _get_toggle_value(_crt_toggle, defaults.get("crt_enabled", false)),
+		"crt_scanline_intensity": _get_slider_value(_crt_scanline_slider, defaults.get("crt_scanline_intensity", 0.25)),
+		"crt_curvature": _get_slider_value(_crt_curvature_slider, defaults.get("crt_curvature", 0.0)),
+		"crt_chromatic_aberration": _get_slider_value(_crt_aberration_slider, defaults.get("crt_chromatic_aberration", 0.001)),
+		"dither_enabled": _get_toggle_value(_dither_toggle, defaults.get("dither_enabled", false)),
+		"dither_intensity": _get_slider_value(_dither_intensity_slider, defaults.get("dither_intensity", 1.0)),
+		"dither_pattern": _get_selected_value(_dither_pattern_option, _dither_pattern_values, defaults.get("dither_pattern", "bayer")),
+		"ui_scale": _get_slider_value(_ui_scale_slider, defaults.get("ui_scale", 1.0)),
+		"color_blind_mode": _get_selected_value(_color_blind_mode_option, _color_blind_mode_values, defaults.get("color_blind_mode", "normal")),
+		"high_contrast_enabled": _get_toggle_value(_high_contrast_toggle, defaults.get("high_contrast_enabled", false)),
+		"color_blind_shader_enabled": _get_toggle_value(_color_blind_shader_toggle, defaults.get("color_blind_shader_enabled", false)),
 	}
 
 func _get_selected_value(button: OptionButton, values: Array[String], fallback: String) -> String:
@@ -851,9 +851,9 @@ func _update_float_label(label: Label, value: float, decimals: int) -> void:
 		return
 	label.text = "%.*f" % [decimals, value]
 
-func _get_default_display_state() -> RS_DisplayInitialState:
+func _get_default_display_state() -> Dictionary:
 	if DEFAULT_DISPLAY_INITIAL_STATE != null:
 		var instance := DEFAULT_DISPLAY_INITIAL_STATE.duplicate(true)
 		if instance is RS_DisplayInitialState:
-			return instance as RS_DisplayInitialState
-	return RS_DisplayInitialState.new()
+			return (instance as RS_DisplayInitialState).to_dictionary()
+	return RS_DisplayInitialState.new().to_dictionary()

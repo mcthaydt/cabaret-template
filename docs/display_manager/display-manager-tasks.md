@@ -598,8 +598,8 @@ Before starting Phase 0, verify:
 
 **Exit Criteria:** All documentation updated to reflect implementation
 
-- [ ] **Task 9.1**: Create continuation prompt
-  - Create `docs/display_manager/display-manager-continuation-prompt.md`
+- [ ] **Task 9.1**: Update continuation prompt
+  - Update `docs/display_manager/display-manager-continuation-prompt.md`
   - Document current phase, completed tasks, next steps
   - Update after each phase completion
 

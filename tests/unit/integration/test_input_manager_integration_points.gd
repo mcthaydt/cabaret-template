@@ -1,6 +1,6 @@
 extends BaseTest
 
-const DEFAULT_STATE_SETTINGS := preload("res://resources/state/cfg_default_state_store_settings.tres")
+const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const DEFAULT_BOOT_STATE := preload("res://resources/state/cfg_default_boot_initial_state.tres")
 const DEFAULT_MENU_STATE := preload("res://resources/state/cfg_default_menu_initial_state.tres")
 const DEFAULT_GAMEPLAY_STATE := preload("res://resources/state/cfg_default_gameplay_initial_state.tres")
@@ -165,7 +165,12 @@ func test_input_system_end_to_end_updates_store_and_component() -> void:
 
 func _spawn_state_store() -> M_StateStore:
 	var store: M_StateStore = M_StateStore.new()
-	store.settings = DEFAULT_STATE_SETTINGS
+	var test_settings := RS_StateStoreSettings.new()
+	test_settings.enable_persistence = false
+	test_settings.enable_global_settings_persistence = false
+	test_settings.enable_debug_logging = false
+	test_settings.enable_debug_overlay = false
+	store.settings = test_settings
 	store.boot_initial_state = DEFAULT_BOOT_STATE
 	store.menu_initial_state = DEFAULT_MENU_STATE
 	store.gameplay_initial_state = DEFAULT_GAMEPLAY_STATE

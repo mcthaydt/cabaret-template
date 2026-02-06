@@ -182,11 +182,12 @@ func test_set_window_mode_fullscreen_calls_display_server() -> void:
 	ops.window_mode = DisplayServer.WINDOW_MODE_WINDOWED
 	ops.borderless = true
 	manager.window_ops = ops
+	add_child_autofree(manager)
 
 	manager.set_window_mode("fullscreen")
+	await get_tree().process_frame
 	assert_eq(ops.window_mode, DisplayServer.WINDOW_MODE_FULLSCREEN, "Fullscreen mode should update window ops mode")
 	assert_eq(ops.get_call_count("window_set_flag"), 0, "Fullscreen should not toggle window style flags")
-	manager.free()
 
 func test_set_window_mode_windowed_calls_display_server() -> void:
 	var manager := M_DISPLAY_MANAGER.new()
@@ -194,11 +195,12 @@ func test_set_window_mode_windowed_calls_display_server() -> void:
 	ops.window_mode = DisplayServer.WINDOW_MODE_WINDOWED
 	ops.borderless = true
 	manager.window_ops = ops
+	add_child_autofree(manager)
 
 	manager.set_window_mode("windowed")
+	await get_tree().process_frame
 	assert_eq(ops.window_mode, DisplayServer.WINDOW_MODE_WINDOWED, "Windowed mode should update window ops mode")
 	assert_false(ops.borderless, "Windowed mode should clear borderless flag")
-	manager.free()
 
 func test_set_window_mode_borderless_calls_display_server() -> void:
 	var manager := M_DISPLAY_MANAGER.new()
@@ -222,6 +224,7 @@ func test_set_window_mode_borderless_defers_style_mask_after_fullscreen_on_macos
 	ops.window_mode = DisplayServer.WINDOW_MODE_FULLSCREEN
 	ops.borderless = false
 	manager.window_ops = ops
+	add_child_autofree(manager)
 
 	manager.set_window_mode("borderless")
 	assert_eq(ops.get_call_count("window_set_flag"), 0, "Borderless flag should not change while exiting fullscreen")
@@ -231,20 +234,21 @@ func test_set_window_mode_borderless_defers_style_mask_after_fullscreen_on_macos
 
 	await get_tree().process_frame
 	assert_true(ops.borderless, "Borderless flag should settle after retries")
-	manager.free()
 
 func test_set_vsync_enabled_calls_display_server() -> void:
 	var manager := M_DISPLAY_MANAGER.new()
 	var ops = MOCK_WINDOW_OPS.new()
 	ops.vsync_mode = DisplayServer.VSYNC_DISABLED
 	manager.window_ops = ops
+	add_child_autofree(manager)
 
 	manager.set_vsync_enabled(true)
+	await get_tree().process_frame
 	assert_eq(ops.vsync_mode, DisplayServer.VSYNC_ENABLED, "VSync enabled should update window ops")
 
 	manager.set_vsync_enabled(false)
+	await get_tree().process_frame
 	assert_eq(ops.vsync_mode, DisplayServer.VSYNC_DISABLED, "VSync disabled should update window ops")
-	manager.free()
 
 func test_palette_theme_binding_applies_to_registered_controls() -> void:
 	var manager := M_DISPLAY_MANAGER.new()

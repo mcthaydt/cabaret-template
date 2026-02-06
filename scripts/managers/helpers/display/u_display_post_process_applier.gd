@@ -16,7 +16,8 @@ var _ui_color_blind_rect: ColorRect = null
 
 func initialize(owner: Node) -> void:
 	_owner = owner
-	_setup_ui_color_blind_layer()
+	if owner != null and owner.is_inside_tree():
+		_setup_ui_color_blind_layer()
 
 func apply_settings(display_settings: Dictionary) -> void:
 	if not _ensure_post_process_layer():

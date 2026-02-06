@@ -205,7 +205,7 @@ func test_apply_dispatches_actions_and_updates_state() -> void:
 		await get_tree().process_frame
 
 	var display_actions := _collect_display_action_types(dispatched)
-	assert_eq(display_actions.size(), 20, "Apply should dispatch all display actions")
+	assert_eq(display_actions.size(), 18, "Apply should dispatch all display actions")
 
 	var state: Dictionary = _store.get_state()
 	assert_eq(U_DISPLAY_SELECTORS.get_window_mode(state), "fullscreen", "Apply should persist window mode")
@@ -313,7 +313,7 @@ func test_reset_restores_defaults_and_persists_immediately() -> void:
 	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(1.2))
 
-	var defaults := DEFAULT_DISPLAY_INITIAL_STATE.duplicate(true)
+	var defaults_dict: Dictionary = DEFAULT_DISPLAY_INITIAL_STATE.to_dictionary()
 	var overlay := await _instantiate_overlay()
 	var tab := _get_tab(overlay)
 
@@ -325,15 +325,15 @@ func test_reset_restores_defaults_and_persists_immediately() -> void:
 	tab._reset_button.emit_signal("pressed")
 	await get_tree().process_frame
 
-	assert_eq(_collect_display_action_types(dispatched).size(), 20, "Reset should dispatch all display actions")
+	assert_eq(_collect_display_action_types(dispatched).size(), 18, "Reset should dispatch all display actions")
 
 	var state: Dictionary = _store.get_state()
-	assert_eq(U_DISPLAY_SELECTORS.get_window_mode(state), defaults.window_mode, "Reset should restore window mode")
-	assert_eq(U_DISPLAY_SELECTORS.get_quality_preset(state), defaults.quality_preset, "Reset should restore quality preset")
-	assert_almost_eq(U_DISPLAY_SELECTORS.get_ui_scale(state), defaults.ui_scale, 0.001, "Reset should restore UI scale")
+	assert_eq(U_DISPLAY_SELECTORS.get_window_mode(state), defaults_dict.get("window_mode"), "Reset should restore window mode")
+	assert_eq(U_DISPLAY_SELECTORS.get_quality_preset(state), defaults_dict.get("quality_preset"), "Reset should restore quality preset")
+	assert_almost_eq(U_DISPLAY_SELECTORS.get_ui_scale(state), defaults_dict.get("ui_scale"), 0.001, "Reset should restore UI scale")
 	assert_eq(
 		U_DISPLAY_SELECTORS.is_film_grain_enabled(state),
-		defaults.film_grain_enabled,
+		defaults_dict.get("film_grain_enabled"),
 		"Reset should restore film grain enabled"
 	)
 
@@ -351,13 +351,14 @@ func test_state_changes_do_not_override_local_edits() -> void:
 	var overlay := await _instantiate_overlay()
 	var tab := _get_tab(overlay)
 
-	tab._film_grain_intensity_slider.value = 0.2
+	tab._film_grain_intensity_slider.value = 0.35
 	await get_tree().process_frame
 
 	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_intensity(0.8))
+	await get_tree().physics_frame
 	await get_tree().process_frame
 
-	assert_almost_eq(tab._film_grain_intensity_slider.value, 0.2, 0.001, "Local edits should not be overridden")
+	assert_almost_eq(tab._film_grain_intensity_slider.value, 0.35, 0.001, "Local edits should not be overridden")
 
 func test_window_mode_change_applies_to_display_server() -> void:
 	_store.dispatch(U_DISPLAY_ACTIONS.set_window_mode("fullscreen"))

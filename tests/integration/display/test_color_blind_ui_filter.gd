@@ -6,14 +6,28 @@ const M_StateStore := preload("res://scripts/state/m_state_store.gd")
 const M_DisplayManager := preload("res://scripts/managers/m_display_manager.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
+const RS_DisplayInitialState := preload("res://scripts/resources/state/rs_display_initial_state.gd")
+const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
+const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
 
 var _store: M_StateStore
 var _display_manager: M_DisplayManager
+var _post_process_overlay: Node
 
 func before_each() -> void:
+	U_ServiceLocator.clear()
 	_store = M_StateStore.new()
+	_store.settings = RS_StateStoreSettings.new()
+	_store.settings.enable_persistence = false
+	_store.settings.enable_debug_logging = false
+	_store.settings.enable_debug_overlay = false
+	_store.display_initial_state = RS_DisplayInitialState.new()
 	add_child_autofree(_store)
 	U_ServiceLocator.register(StringName("state_store"), _store)
+
+	_post_process_overlay = POST_PROCESS_OVERLAY_SCENE.instantiate()
+	_post_process_overlay.name = "PostProcessOverlay"
+	add_child_autofree(_post_process_overlay)
 
 	_display_manager = M_DisplayManager.new()
 	_display_manager.name = "DisplayManager"
@@ -43,9 +57,14 @@ func test_ui_color_blind_layer_has_higher_layer_than_ui_overlay() -> void:
 	var ui_color_blind_layer := root.find_child("UIColorBlindLayer", true, false) as CanvasLayer
 	var ui_overlay_stack := root.find_child("UIOverlayStack", true, false) as CanvasLayer
 
-	if ui_color_blind_layer != null and ui_overlay_stack != null:
-		assert_true(ui_color_blind_layer.layer > ui_overlay_stack.layer,
-			"UIColorBlindLayer should have higher layer number than UIOverlayStack to render on top")
+	if ui_color_blind_layer == null:
+		pending("UIColorBlindLayer not found in test environment")
+		return
+	if ui_overlay_stack == null:
+		pending("UIOverlayStack not available in test environment (part of root scene)")
+		return
+	assert_true(ui_color_blind_layer.layer > ui_overlay_stack.layer,
+		"UIColorBlindLayer should have higher layer number than UIOverlayStack to render on top")
 
 func test_enabling_color_blind_shader_shows_ui_layer() -> void:
 	# GIVEN: Color blind shader is disabled
