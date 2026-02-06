@@ -9,6 +9,23 @@ const RS_WINDOW_SIZE_PRESET := preload("res://scripts/resources/display/rs_windo
 const QUALITY_PRESET_DIR := "res://resources/display/cfg_quality_presets"
 const WINDOW_SIZE_PRESET_DIR := "res://resources/display/cfg_window_size_presets"
 
+# Preloaded quality presets (mobile-compatible - avoids runtime DirAccess on Android)
+const QUALITY_PRESETS := [
+	preload("res://resources/display/cfg_quality_presets/cfg_quality_low.tres"),
+	preload("res://resources/display/cfg_quality_presets/cfg_quality_medium.tres"),
+	preload("res://resources/display/cfg_quality_presets/cfg_quality_high.tres"),
+	preload("res://resources/display/cfg_quality_presets/cfg_quality_ultra.tres"),
+]
+
+# Preloaded window size presets (mobile-compatible - avoids runtime DirAccess on Android)
+const WINDOW_SIZE_PRESETS := [
+	preload("res://resources/display/cfg_window_size_presets/cfg_window_size_1280x720.tres"),
+	preload("res://resources/display/cfg_window_size_presets/cfg_window_size_1600x900.tres"),
+	preload("res://resources/display/cfg_window_size_presets/cfg_window_size_1920x1080.tres"),
+	preload("res://resources/display/cfg_window_size_presets/cfg_window_size_2560x1440.tres"),
+	preload("res://resources/display/cfg_window_size_presets/cfg_window_size_3840x2160.tres"),
+]
+
 const WINDOW_MODE_OPTIONS := [
 	{"id": "windowed", "label": "Windowed"},
 	{"id": "fullscreen", "label": "Fullscreen"},
@@ -141,8 +158,8 @@ static func _ensure_quality_presets() -> void:
 	_quality_presets.clear()
 	_quality_presets_by_id.clear()
 
-	var resources := _load_preset_resources(QUALITY_PRESET_DIR)
-	for preset in resources:
+	# Use preloaded resources for mobile compatibility
+	for preset in QUALITY_PRESETS:
 		if _is_quality_preset(preset):
 			var preset_name: String = String(preset.get("preset_name"))
 			if preset_name.is_empty():
@@ -161,8 +178,8 @@ static func _ensure_window_size_presets() -> void:
 	_window_size_presets.clear()
 	_window_size_presets_by_id.clear()
 
-	var resources := _load_preset_resources(WINDOW_SIZE_PRESET_DIR)
-	for preset in resources:
+	# Use preloaded resources for mobile compatibility
+	for preset in WINDOW_SIZE_PRESETS:
 		if _is_window_size_preset(preset):
 			var preset_id: String = String(preset.get("preset_id"))
 			if preset_id.is_empty():

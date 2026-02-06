@@ -10,6 +10,9 @@ const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigati
 const U_InteractBlocker := preload("res://scripts/utils/u_interact_blocker.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
+const U_PaletteManager := preload("res://scripts/managers/helpers/u_palette_manager.gd")
+const U_DisplaySelectors := preload("res://scripts/state/selectors/u_display_selectors.gd")
+const RS_UIColorPalette := preload("res://scripts/resources/ui/rs_ui_color_palette.gd")
 
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
@@ -31,6 +34,9 @@ var _active_prompt_id: int = 0
 var _last_prompt_action: StringName = StringName("interact")
 var _last_prompt_text: String = ""
 var _toast_active: bool = false
+var _palette_manager: U_PaletteManager = null
+var _health_bar_bg_style: StyleBoxFlat = null
+var _health_bar_fill_style: StyleBoxFlat = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -42,6 +48,20 @@ func _ready() -> void:
 
 	_player_entity_id = String(_store.get_slice(StringName("gameplay")).get("player_entity_id", "player"))
 	_store.slice_updated.connect(_on_slice_updated)
+
+	# Initialize palette manager
+	_palette_manager = U_PaletteManager.new()
+
+	# Duplicate health bar styles so we can modify them without affecting the theme
+	if health_bar != null:
+		var bg_style := health_bar.get_theme_stylebox("background")
+		if bg_style is StyleBoxFlat:
+			_health_bar_bg_style = (bg_style as StyleBoxFlat).duplicate() as StyleBoxFlat
+			health_bar.add_theme_stylebox_override("background", _health_bar_bg_style)
+		var fill_style := health_bar.get_theme_stylebox("fill")
+		if fill_style is StyleBoxFlat:
+			_health_bar_fill_style = (fill_style as StyleBoxFlat).duplicate() as StyleBoxFlat
+			health_bar.add_theme_stylebox_override("fill", _health_bar_fill_style)
 
 	# Defer reparent AND event subscriptions to avoid tree modifications during _ready
 	# and to ensure subscriptions happen AFTER reparenting (which triggers _exit_tree)
@@ -105,7 +125,8 @@ func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void
 		return
 	if slice_name != StringName("gameplay") \
 			and slice_name != StringName("scene") \
-			and slice_name != StringName("navigation"):
+			and slice_name != StringName("navigation") \
+			and slice_name != StringName("display"):
 		return
 
 	var state := _store.get_state()
@@ -160,6 +181,9 @@ func _update_health(state: Dictionary) -> void:
 	if health_label != null:
 		health_label.text = display_text
 	health_bar.tooltip_text = display_text
+
+	# Update health bar colors based on color blind palette and health percentage
+	_update_health_bar_colors(state, health, max_health)
 
 ## ECS: Show a brief toast when a checkpoint is activated
 func _on_checkpoint_event(payload: Variant) -> void:
@@ -362,3 +386,34 @@ func _get_primary_input_label(action: StringName) -> String:
 			var mouse_event := event as InputEventMouseButton
 			return "Mouse %d" % mouse_event.button_index
 	return ""
+
+func _update_health_bar_colors(state: Dictionary, health: float, max_health: float) -> void:
+	if _health_bar_fill_style == null or _palette_manager == null:
+		return
+
+	# Get current color blind mode and high contrast setting (pass full state to selectors)
+	var color_blind_mode: String = U_DisplaySelectors.get_color_blind_mode(state)
+	var high_contrast_enabled: bool = U_DisplaySelectors.is_high_contrast_enabled(state)
+
+	# Update palette manager with current settings
+	_palette_manager.set_color_blind_mode(color_blind_mode, high_contrast_enabled)
+	var active_palette := _palette_manager.get_active_palette() as RS_UIColorPalette
+	if active_palette == null:
+		return
+
+	# Determine which color to use based on health percentage
+	var health_percent: float = health / max_health if max_health > 0.0 else 0.0
+	var target_color: Color
+
+	if health_percent >= 0.6:
+		# High health: use success color (green)
+		target_color = active_palette.success
+	elif health_percent >= 0.3:
+		# Medium health: use warning color (yellow/orange)
+		target_color = active_palette.warning
+	else:
+		# Low health: use danger color (red)
+		target_color = active_palette.danger
+
+	# Apply the color to the health bar fill
+	_health_bar_fill_style.bg_color = target_color
