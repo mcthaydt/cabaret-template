@@ -63,6 +63,14 @@ func _ready() -> void:
 			_health_bar_fill_style = (fill_style as StyleBoxFlat).duplicate() as StyleBoxFlat
 			health_bar.add_theme_stylebox_override("fill", _health_bar_fill_style)
 
+			# Force initial color update to override hardcoded scene color
+			var initial_state := _store.get_state()
+			var initial_health: float = U_EntitySelectors.get_entity_health(initial_state, _player_entity_id)
+			var initial_max_health: float = U_EntitySelectors.get_entity_max_health(initial_state, _player_entity_id)
+			initial_max_health = max(initial_max_health, 1.0)
+			initial_health = clampf(initial_health, 0.0, initial_max_health)
+			_update_health_bar_colors(initial_state, initial_health, initial_max_health)
+
 	# Defer reparent AND event subscriptions to avoid tree modifications during _ready
 	# and to ensure subscriptions happen AFTER reparenting (which triggers _exit_tree)
 	call_deferred("_complete_initialization")
