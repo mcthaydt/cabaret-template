@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="RS_WindowSizePreset" format=3]
+[gd_resource type="Resource" script_class="RS_WindowSizePreset" format=3 uid="uid://b6f14xoa1kycv"]
 
-[ext_resource type="Script" path="res://scripts/resources/display/rs_window_size_preset.gd" id="1_window_size_preset"]
+[ext_resource type="Script" uid="uid://dodpaq88ln0e" path="res://scripts/resources/display/rs_window_size_preset.gd" id="1_window_size_preset"]
 
 [resource]
 script = ExtResource("1_window_size_preset")

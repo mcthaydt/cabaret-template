@@ -219,5 +219,3 @@ dialog_text = "Keep these display changes? Reverting in 10s."
 
 [node name="WindowConfirmTimer" type="Timer" parent="WindowConfirmDialog" unique_id=308992063]
 unique_name_in_owner = true
-one_shot = false
-wait_time = 1.0
