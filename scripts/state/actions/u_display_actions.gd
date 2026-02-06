@@ -15,6 +15,7 @@ const ACTION_SET_VSYNC_ENABLED := StringName("display/set_vsync_enabled")
 const ACTION_SET_QUALITY_PRESET := StringName("display/set_quality_preset")
 
 # Post-Processing
+const ACTION_SET_POST_PROCESSING_ENABLED := StringName("display/set_post_processing_enabled")
 const ACTION_SET_POST_PROCESSING_PRESET := StringName("display/set_post_processing_preset")
 const ACTION_SET_FILM_GRAIN_ENABLED := StringName("display/set_film_grain_enabled")
 const ACTION_SET_FILM_GRAIN_INTENSITY := StringName("display/set_film_grain_intensity")
@@ -39,6 +40,7 @@ static func _static_init() -> void:
 	U_ActionRegistry.register_action(ACTION_SET_WINDOW_MODE)
 	U_ActionRegistry.register_action(ACTION_SET_VSYNC_ENABLED)
 	U_ActionRegistry.register_action(ACTION_SET_QUALITY_PRESET)
+	U_ActionRegistry.register_action(ACTION_SET_POST_PROCESSING_ENABLED)
 	U_ActionRegistry.register_action(ACTION_SET_POST_PROCESSING_PRESET)
 	U_ActionRegistry.register_action(ACTION_SET_FILM_GRAIN_ENABLED)
 	U_ActionRegistry.register_action(ACTION_SET_FILM_GRAIN_INTENSITY)
@@ -80,6 +82,13 @@ static func set_quality_preset(preset: String) -> Dictionary:
 	return {
 		"type": ACTION_SET_QUALITY_PRESET,
 		"payload": {"preset": preset},
+		"immediate": true,
+	}
+
+static func set_post_processing_enabled(enabled: bool) -> Dictionary:
+	return {
+		"type": ACTION_SET_POST_PROCESSING_ENABLED,
+		"payload": {"enabled": enabled},
 		"immediate": true,
 	}
 

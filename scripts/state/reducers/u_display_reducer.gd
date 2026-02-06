@@ -16,11 +16,8 @@ const DEFAULT_DISPLAY_STATE := {
 	"window_mode": "windowed",
 	"vsync_enabled": true,
 	"quality_preset": "high",
+	"post_processing_enabled": false,
 	"post_processing_preset": "medium",
-	"film_grain_enabled": false,
-	"crt_enabled": false,
-	"dither_enabled": false,
-	"dither_pattern": "bayer",
 	"ui_scale": 1.0,
 	"color_blind_mode": "normal",
 	"high_contrast_enabled": false,
@@ -79,6 +76,11 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			if not _is_valid_quality_preset(preset):
 				return null
 			return _with_values(current, {"quality_preset": preset})
+
+		U_DisplayActions.ACTION_SET_POST_PROCESSING_ENABLED:
+			var payload: Dictionary = action.get("payload", {})
+			var enabled := bool(payload.get("enabled", false))
+			return _with_values(current, {"post_processing_enabled": enabled})
 
 		U_DisplayActions.ACTION_SET_POST_PROCESSING_PRESET:
 			var payload: Dictionary = action.get("payload", {})

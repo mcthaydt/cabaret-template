@@ -4,6 +4,4 @@
 
 [resource]
 script = ExtResource("1_display_initial_state")
-film_grain_enabled = true
-crt_enabled = true
-dither_enabled = true
+post_processing_enabled = true

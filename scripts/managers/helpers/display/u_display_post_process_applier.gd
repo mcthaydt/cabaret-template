@@ -23,8 +23,8 @@ func apply_settings(display_settings: Dictionary) -> void:
 	if not _ensure_post_process_layer():
 		return
 	var state := {"display": display_settings}
-	var quality_preset := U_DISPLAY_SELECTORS.get_quality_preset(state)
-	if not _is_post_processing_enabled(quality_preset):
+	var post_processing_enabled := U_DISPLAY_SELECTORS.is_post_processing_enabled(state)
+	if not post_processing_enabled:
 		_disable_post_process_effects()
 		_apply_color_blind_shader_settings(state)
 		return
@@ -55,9 +55,8 @@ func update_overlay_visibility(should_show: bool) -> void:
 			child.visible = should_show
 
 func _apply_film_grain_settings(state: Dictionary) -> void:
-	var enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state)
-	_film_grain_active = enabled
-	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN, enabled)
+	_film_grain_active = true
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN, true)
 	var intensity := U_DISPLAY_SELECTORS.get_film_grain_intensity(state)
 	_post_process_layer.set_effect_parameter(
 		U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN,
@@ -66,8 +65,7 @@ func _apply_film_grain_settings(state: Dictionary) -> void:
 	)
 
 func _apply_crt_settings(state: Dictionary) -> void:
-	var enabled := U_DISPLAY_SELECTORS.is_crt_enabled(state)
-	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_CRT, enabled)
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_CRT, true)
 	var scanline_intensity := U_DISPLAY_SELECTORS.get_crt_scanline_intensity(state)
 	var curvature := U_DISPLAY_SELECTORS.get_crt_curvature(state)
 	var chromatic_aberration := U_DISPLAY_SELECTORS.get_crt_chromatic_aberration(state)
@@ -88,27 +86,18 @@ func _apply_crt_settings(state: Dictionary) -> void:
 	)
 
 func _apply_dither_settings(state: Dictionary) -> void:
-	var enabled := U_DISPLAY_SELECTORS.is_dither_enabled(state)
-	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_DITHER, enabled)
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_DITHER, true)
 	var intensity := U_DISPLAY_SELECTORS.get_dither_intensity(state)
-	var pattern := U_DISPLAY_SELECTORS.get_dither_pattern(state)
-	var pattern_mode := 0
-	match pattern:
-		"bayer":
-			pattern_mode = 0
-		"noise":
-			pattern_mode = 1
-		_:
-			pattern_mode = 0
 	_post_process_layer.set_effect_parameter(
 		U_POST_PROCESS_LAYER.EFFECT_DITHER,
 		StringName("intensity"),
 		intensity
 	)
+	# Always use bayer pattern (simplified - no user customization)
 	_post_process_layer.set_effect_parameter(
 		U_POST_PROCESS_LAYER.EFFECT_DITHER,
 		StringName("pattern_mode"),
-		pattern_mode
+		0
 	)
 
 func _apply_color_blind_shader_settings(state: Dictionary) -> void:

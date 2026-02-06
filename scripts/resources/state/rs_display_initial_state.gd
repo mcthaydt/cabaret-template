@@ -13,13 +13,10 @@ class_name RS_DisplayInitialState
 @export_enum("low", "medium", "high", "ultra") var quality_preset: String = "high"
 
 @export_group("Post-Processing")
+@export var post_processing_enabled: bool = false
 @export_enum("light", "medium", "heavy") var post_processing_preset: String = "medium"
 # Note: Effect order is fixed internally (Film Grain -> Dither -> CRT), not user-configurable.
 # Note: Intensity values are loaded from post_processing_preset resource.
-@export var film_grain_enabled: bool = false
-@export var crt_enabled: bool = false
-@export var dither_enabled: bool = false
-@export_enum("bayer", "noise") var dither_pattern: String = "bayer"
 
 @export_group("UI")
 @export_range(0.8, 1.3, 0.1) var ui_scale: float = 1.0
@@ -40,16 +37,13 @@ func to_dictionary() -> Dictionary:
 		"window_mode": window_mode,
 		"vsync_enabled": vsync_enabled,
 		"quality_preset": quality_preset,
+		"post_processing_enabled": post_processing_enabled,
 		"post_processing_preset": post_processing_preset,
-		"film_grain_enabled": film_grain_enabled,
 		"film_grain_intensity": preset_values.get("film_grain_intensity", 0.2),
-		"crt_enabled": crt_enabled,
 		"crt_scanline_intensity": preset_values.get("crt_scanline_intensity", 0.25),
 		"crt_curvature": preset_values.get("crt_curvature", 0.0),
 		"crt_chromatic_aberration": preset_values.get("crt_chromatic_aberration", 0.001),
-		"dither_enabled": dither_enabled,
 		"dither_intensity": preset_values.get("dither_intensity", 1.0),
-		"dither_pattern": dither_pattern,
 		"ui_scale": ui_scale,
 		"color_blind_mode": color_blind_mode,
 		"high_contrast_enabled": high_contrast_enabled,
