@@ -12,7 +12,6 @@ const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
 const U_PaletteManager := preload("res://scripts/managers/helpers/u_palette_manager.gd")
 const U_DisplaySelectors := preload("res://scripts/state/selectors/u_display_selectors.gd")
-const RS_UIColorPalette := preload("res://scripts/resources/ui/rs_ui_color_palette.gd")
 
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
@@ -52,24 +51,14 @@ func _ready() -> void:
 	# Initialize palette manager
 	_palette_manager = U_PaletteManager.new()
 
-	# Duplicate health bar styles so we can modify them without affecting the theme
+	# Grab direct references to the scene's StyleBoxFlat resources
 	if health_bar != null:
 		var bg_style := health_bar.get_theme_stylebox("background")
 		if bg_style is StyleBoxFlat:
-			_health_bar_bg_style = (bg_style as StyleBoxFlat).duplicate() as StyleBoxFlat
-			health_bar.add_theme_stylebox_override("background", _health_bar_bg_style)
+			_health_bar_bg_style = bg_style as StyleBoxFlat
 		var fill_style := health_bar.get_theme_stylebox("fill")
 		if fill_style is StyleBoxFlat:
-			_health_bar_fill_style = (fill_style as StyleBoxFlat).duplicate() as StyleBoxFlat
-			health_bar.add_theme_stylebox_override("fill", _health_bar_fill_style)
-
-			# Force initial color update to override hardcoded scene color
-			var initial_state := _store.get_state()
-			var initial_health: float = U_EntitySelectors.get_entity_health(initial_state, _player_entity_id)
-			var initial_max_health: float = U_EntitySelectors.get_entity_max_health(initial_state, _player_entity_id)
-			initial_max_health = max(initial_max_health, 1.0)
-			initial_health = clampf(initial_health, 0.0, initial_max_health)
-			_update_health_bar_colors(initial_state, initial_health, initial_max_health)
+			_health_bar_fill_style = fill_style as StyleBoxFlat
 
 	# Defer reparent AND event subscriptions to avoid tree modifications during _ready
 	# and to ensure subscriptions happen AFTER reparenting (which triggers _exit_tree)
@@ -405,7 +394,7 @@ func _update_health_bar_colors(state: Dictionary, health: float, max_health: flo
 
 	# Update palette manager with current settings
 	_palette_manager.set_color_blind_mode(color_blind_mode, high_contrast_enabled)
-	var active_palette := _palette_manager.get_active_palette() as RS_UIColorPalette
+	var active_palette: Resource = _palette_manager.get_active_palette()
 	if active_palette == null:
 		return
 
@@ -413,15 +402,13 @@ func _update_health_bar_colors(state: Dictionary, health: float, max_health: flo
 	var health_percent: float = health / max_health if max_health > 0.0 else 0.0
 	var target_color: Color
 
+	# Access palette colors via .get() to avoid class_name resolution issues
 	if health_percent >= 0.6:
-		# High health: use success color (green)
-		target_color = active_palette.success
+		target_color = active_palette.get("success") as Color
 	elif health_percent >= 0.3:
-		# Medium health: use warning color (yellow/orange)
-		target_color = active_palette.warning
+		target_color = active_palette.get("warning") as Color
 	else:
-		# Low health: use danger color (red)
-		target_color = active_palette.danger
+		target_color = active_palette.get("danger") as Color
 
 	# Apply the color to the health bar fill
 	_health_bar_fill_style.bg_color = target_color
