@@ -7,4 +7,5 @@ script = ExtResource("1_resource")
 scene_id = &"interior_bar"
 scene_path = "res://scenes/gameplay/gameplay_interior_bar.tscn"
 scene_type = 1
+default_transition = "fade"
 preload_priority = 6

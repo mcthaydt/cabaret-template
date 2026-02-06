@@ -7,5 +7,5 @@ script = ExtResource("1_resource")
 scene_id = &"alleyway"
 scene_path = "res://scenes/gameplay/gameplay_alleyway.tscn"
 scene_type = 1
-default_transition = "loading"
+default_transition = "fade"
 preload_priority = 6
