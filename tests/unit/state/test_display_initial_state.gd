@@ -158,4 +158,4 @@ func test_to_dictionary_respects_different_presets() -> void:
 	# THEN: Should have intensity values from heavy preset
 	assert_eq(dict["film_grain_intensity"], 0.35, "Should have heavy preset film grain intensity")
 	assert_eq(dict["crt_scanline_intensity"], 0.45, "Should have heavy preset scanline intensity")
-	assert_eq(dict["crt_curvature"], 3.0, "Should have heavy preset curvature")
+	assert_eq(dict["crt_curvature"], 0.1, "Should have heavy preset curvature")

@@ -18,6 +18,7 @@ class_name RS_DisplayInitialState
 @export var film_grain_enabled: bool = false
 @export var crt_enabled: bool = false
 @export var dither_enabled: bool = false
+@export_enum("bayer", "blue_noise") var dither_pattern: String = "bayer"
 # Note: Effect order is fixed internally (Film Grain -> Dither -> CRT), not user-configurable.
 # Note: Intensity values are loaded from post_processing_preset resource.
 
@@ -27,6 +28,7 @@ class_name RS_DisplayInitialState
 @export_group("Accessibility")
 @export_enum("normal", "deuteranopia", "protanopia", "tritanopia") var color_blind_mode: String = "normal"
 @export var high_contrast_enabled: bool = false
+@export var color_blind_shader_enabled: bool = false
 
 ## Convert resource to Dictionary for state store
 func to_dictionary() -> Dictionary:
@@ -44,6 +46,7 @@ func to_dictionary() -> Dictionary:
 		"film_grain_enabled": film_grain_enabled,
 		"crt_enabled": crt_enabled,
 		"dither_enabled": dither_enabled,
+		"dither_pattern": dither_pattern,
 		"film_grain_intensity": preset_values.get("film_grain_intensity", 0.2),
 		"crt_scanline_intensity": preset_values.get("crt_scanline_intensity", 0.25),
 		"crt_curvature": preset_values.get("crt_curvature", 0.0),
@@ -52,4 +55,5 @@ func to_dictionary() -> Dictionary:
 		"ui_scale": ui_scale,
 		"color_blind_mode": color_blind_mode,
 		"high_contrast_enabled": high_contrast_enabled,
+		"color_blind_shader_enabled": color_blind_shader_enabled,
 	}

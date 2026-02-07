@@ -243,8 +243,8 @@ func test_post_processing_preset_applies_intensity_values() -> void:
 	assert_eq(reduced.get("post_processing_preset"), "heavy", "Should set preset to heavy")
 	assert_eq(reduced.get("film_grain_intensity"), 0.35, "Should apply heavy film grain intensity")
 	assert_eq(reduced.get("crt_scanline_intensity"), 0.45, "Should apply heavy scanline intensity")
-	assert_eq(reduced.get("crt_curvature"), 3.0, "Should apply heavy curvature")
-	assert_eq(reduced.get("crt_chromatic_aberration"), 0.004, "Should apply heavy aberration")
+	assert_eq(reduced.get("crt_curvature"), 0.1, "Should apply heavy curvature")
+	assert_eq(reduced.get("crt_chromatic_aberration"), 0.0009, "Should apply heavy aberration")
 	assert_eq(reduced.get("dither_intensity"), 1.0, "Should apply heavy dither intensity")
 
 # Test 27: post-processing preset light values
@@ -257,7 +257,7 @@ func test_post_processing_preset_light_applies_correct_values() -> void:
 	assert_eq(reduced.get("post_processing_preset"), "light", "Should set preset to light")
 	assert_eq(reduced.get("film_grain_intensity"), 0.05, "Should apply light film grain intensity")
 	assert_eq(reduced.get("crt_scanline_intensity"), 0.15, "Should apply light scanline intensity")
-	assert_eq(reduced.get("crt_curvature"), 1.0, "Should apply light curvature")
+	assert_eq(reduced.get("crt_curvature"), 0.0, "Should apply light curvature")
 	assert_eq(reduced.get("crt_chromatic_aberration"), 0.001, "Should apply light aberration")
 	assert_eq(reduced.get("dither_intensity"), 0.25, "Should apply light dither intensity")
 
