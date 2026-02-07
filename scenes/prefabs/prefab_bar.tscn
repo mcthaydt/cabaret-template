@@ -9,7 +9,10 @@ data = PackedVector3Array(-0.0173, -0.0537, -0.13419999, -0.0394, -0.0524, -0.13
 resource_name = "tripo_mat_75cc222e-366d-4edf-8996-5336194be85a"
 cull_mode = 2
 shading_mode = 0
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
 albedo_texture = ExtResource("1_ue0bj")
+albedo_texture_force_srgb = true
 texture_filter = 0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_3bit2"]

@@ -67,10 +67,15 @@
 [ext_resource type="Material" uid="uid://dtyyrgwkln3r4" path="res://assets/materials/mat_fade_hazard.tres" id="55_fade_hazard"]
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="56_fade_goal"]
 [ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="57_fade_door"]
+[ext_resource type="Script" uid="uid://dpeat44fqshck" path="res://scripts/utils/display/u_cinema_grade_preview.gd" id="58_cinema_preview"]
+[ext_resource type="Resource" uid="uid://dbu083ahcuvmu" path="res://resources/display/cinema_grades/cfg_cinema_grade_alleyway.tres" id="59_cinema_grade"]
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
 ambient_light_source = 3
+ssao_enabled = true
+ssil_enabled = true
+sdfgi_enabled = true
 
 [node name="GameplayRoot" type="Node3D" unique_id=118760861]
 script = ExtResource("1_f2o31")
@@ -78,7 +83,7 @@ script = ExtResource("1_f2o31")
 [node name="SceneObjects" type="Node3D" parent="." unique_id=1984456615]
 script = ExtResource("2_ph0bl")
 
-[node name="NewExterior" parent="SceneObjects" unique_id=1438821753 instance=ExtResource("3_oot58")]
+[node name="NewExterior" parent="SceneObjects" unique_id=1437797737 instance=ExtResource("3_oot58")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.8506856, 0, 0.6794058)
 
 [node name="Environment" type="Node" parent="." unique_id=124727212]
@@ -86,6 +91,9 @@ script = ExtResource("2_8soux")
 
 [node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=828583278]
 environment = SubResource("Environment_bar")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Environment" unique_id=772840014]
+transform = Transform3D(0.58378214, -0.55920076, 0.5886365, 0, 0.7250019, 0.6887469, -0.81191033, -0.40207815, 0.42324314, -1.583113, 2.6750169, 0)
 
 [node name="Systems" type="Node" parent="." unique_id=1629993424]
 script = ExtResource("3_ph0bl")
@@ -346,5 +354,9 @@ tags = Array[StringName]([&"checkpoint", &"objective"])
 texture = ExtResource("39_u0c34")
 
 [node name="HUD" parent="." unique_id=1864878923 instance=ExtResource("11_hud")]
+
+[node name="CinemaGradePreview" type="Node" parent="." unique_id=722256414]
+script = ExtResource("58_cinema_preview")
+cinema_grade = ExtResource("59_cinema_grade")
 
 [editable path="Entities/E_CameraRoot"]

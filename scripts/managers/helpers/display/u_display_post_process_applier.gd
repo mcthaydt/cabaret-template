@@ -50,8 +50,9 @@ func update_overlay_visibility(should_show: bool) -> void:
 		return
 
 	# The overlay root is a Node, so we need to hide/show its CanvasLayer children.
+	# Skip CinemaGradeLayer — its visibility is managed by U_DisplayCinemaGradeApplier.
 	for child in _post_process_overlay.get_children():
-		if child is CanvasLayer:
+		if child is CanvasLayer and child.name != &"CinemaGradeLayer":
 			child.visible = should_show
 
 func _apply_film_grain_settings(state: Dictionary) -> void:

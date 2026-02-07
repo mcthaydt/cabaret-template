@@ -59,10 +59,15 @@
 [ext_resource type="Resource" uid="uid://btpa3gv1g0gl7" path="res://resources/spawn_metadata/cfg_sp_interior_bar_entrance.tres" id="52_bar_entrance_spawn_meta"]
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="53_fade_goal"]
 [ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="54_fade_door"]
+[ext_resource type="Script" uid="uid://dpeat44fqshck" path="res://scripts/utils/display/u_cinema_grade_preview.gd" id="55_cinema_preview"]
+[ext_resource type="Resource" uid="uid://byi87fqns2dfa" path="res://resources/display/cinema_grades/cfg_cinema_grade_interior_bar.tres" id="56_cinema_grade"]
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
 ambient_light_source = 3
+ssao_enabled = true
+ssil_enabled = true
+sdfgi_enabled = true
 
 [node name="GameplayRoot" type="Node3D" unique_id=118760861]
 script = ExtResource("1_f2o31")
@@ -78,6 +83,10 @@ script = ExtResource("2_8soux")
 
 [node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=828583278]
 environment = SubResource("Environment_bar")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Environment" unique_id=1557775618]
+transform = Transform3D(0.27317026, -0.60349077, 0.74911743, 0, 0.7787361, 0.62735164, -0.9619657, -0.17137381, 0.21272755, 0, 1.5608213, 0)
+light_energy = 0.388
 
 [node name="Systems" type="Node" parent="." unique_id=1629993424]
 script = ExtResource("3_ph0bl")
@@ -279,5 +288,9 @@ height = 2.0715332
 material = ExtResource("54_fade_door")
 
 [node name="HUD" parent="." unique_id=1864878923 instance=ExtResource("11_hud")]
+
+[node name="CinemaGradePreview" type="Node" parent="." unique_id=1416173378]
+script = ExtResource("55_cinema_preview")
+cinema_grade = ExtResource("56_cinema_grade")
 
 [editable path="Entities/E_CameraRoot"]

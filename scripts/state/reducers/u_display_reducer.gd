@@ -189,6 +189,22 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var param_name: String = String(payload.get("param_name", ""))
 			if param_name.is_empty():
 				return null
+
+			# Special handling for filter_preset: convert string to numeric mode
+			if param_name == "filter_preset":
+				var filter_preset_str: String = String(payload.get("value", "none"))
+				var filter_mode := _get_filter_mode_from_preset(filter_preset_str)
+				return _with_values(current, {
+					"cinema_grade_filter_mode": filter_mode,
+					"cinema_grade_filter_preset": filter_preset_str
+				})
+
+			# Special handling for filter_intensity
+			if param_name == "filter_intensity":
+				return _with_values(current, {
+					"cinema_grade_filter_intensity": payload.get("value")
+				})
+
 			var key := "cinema_grade_" + param_name
 			return _with_values(current, {key: payload.get("value")})
 
@@ -244,3 +260,17 @@ static func _is_valid_color_blind_mode(mode: String) -> bool:
 
 static func _is_valid_post_processing_preset(preset: String) -> bool:
 	return U_DISPLAY_OPTION_CATALOG.get_post_processing_preset_ids().has(preset)
+
+static func _get_filter_mode_from_preset(preset_name: String) -> int:
+	const FILTER_PRESET_MAP := {
+		"none": 0,
+		"dramatic": 1,
+		"dramatic_warm": 2,
+		"dramatic_cold": 3,
+		"vivid": 4,
+		"vivid_warm": 5,
+		"vivid_cold": 6,
+		"black_and_white": 7,
+		"sepia": 8,
+	}
+	return FILTER_PRESET_MAP.get(preset_name, 0)

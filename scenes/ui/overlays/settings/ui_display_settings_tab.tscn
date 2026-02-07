@@ -18,6 +18,11 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
+[sub_resource type="StyleBoxFlat" id="header_separator"]
+content_margin_top = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.3, 0.35, 0.4, 0.5)
+
 [sub_resource type="StyleBoxFlat" id="slider_bg"]
 content_margin_top = 6.0
 content_margin_bottom = 6.0
@@ -36,11 +41,6 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
-[sub_resource type="StyleBoxFlat" id="header_separator"]
-content_margin_top = 0.0
-content_margin_bottom = 0.0
-bg_color = Color(0.3, 0.35, 0.4, 0.5)
-
 [node name="DisplaySettingsTab" type="VBoxContainer" unique_id=1430844904]
 theme_override_constants/separation = 12
 script = ExtResource("1")
@@ -56,7 +56,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 follow_focus = true
 
-[node name="ContentMargin" type="MarginContainer" parent="Scroll"]
+[node name="ContentMargin" type="MarginContainer" parent="Scroll" unique_id=682312705]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -71,25 +71,25 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="GraphicsSection" type="PanelContainer" parent="Scroll/ContentMargin/Content"]
+[node name="GraphicsSection" type="PanelContainer" parent="Scroll/ContentMargin/Content" unique_id=1607170630]
 layout_mode = 2
 theme_override_styles/panel = SubResource("section_panel")
 
-[node name="GraphicsVBox" type="VBoxContainer" parent="Scroll/ContentMargin/Content/GraphicsSection"]
+[node name="GraphicsVBox" type="VBoxContainer" parent="Scroll/ContentMargin/Content/GraphicsSection" unique_id=267048787]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="GraphicsHeader" type="Label" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox"]
+[node name="GraphicsHeader" type="Label" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox" unique_id=36471797]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 14
 text = "Graphics"
 
-[node name="GraphicsSep" type="HSeparator" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox"]
+[node name="GraphicsSep" type="HSeparator" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox" unique_id=1157957371]
 layout_mode = 2
 theme_override_styles/separator = SubResource("header_separator")
 
-[node name="GraphicsInner" type="VBoxContainer" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox"]
+[node name="GraphicsInner" type="VBoxContainer" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox" unique_id=1760959851]
 layout_mode = 2
 theme_override_constants/separation = 10
 
@@ -149,25 +149,25 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="PostProcessSection" type="PanelContainer" parent="Scroll/ContentMargin/Content"]
+[node name="PostProcessSection" type="PanelContainer" parent="Scroll/ContentMargin/Content" unique_id=1021189427]
 layout_mode = 2
 theme_override_styles/panel = SubResource("section_panel")
 
-[node name="PostProcessVBox" type="VBoxContainer" parent="Scroll/ContentMargin/Content/PostProcessSection"]
+[node name="PostProcessVBox" type="VBoxContainer" parent="Scroll/ContentMargin/Content/PostProcessSection" unique_id=1763733137]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="PostProcessHeader" type="Label" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox"]
+[node name="PostProcessHeader" type="Label" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox" unique_id=1893747030]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 14
 text = "Post-Processing"
 
-[node name="PostProcessSep" type="HSeparator" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox"]
+[node name="PostProcessSep" type="HSeparator" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox" unique_id=482992956]
 layout_mode = 2
 theme_override_styles/separator = SubResource("header_separator")
 
-[node name="PostProcessInner" type="VBoxContainer" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox"]
+[node name="PostProcessInner" type="VBoxContainer" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox" unique_id=1800235585]
 layout_mode = 2
 theme_override_constants/separation = 10
 
@@ -199,25 +199,25 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="UISection" type="PanelContainer" parent="Scroll/ContentMargin/Content"]
+[node name="UISection" type="PanelContainer" parent="Scroll/ContentMargin/Content" unique_id=1142105862]
 layout_mode = 2
 theme_override_styles/panel = SubResource("section_panel")
 
-[node name="UIVBox" type="VBoxContainer" parent="Scroll/ContentMargin/Content/UISection"]
+[node name="UIVBox" type="VBoxContainer" parent="Scroll/ContentMargin/Content/UISection" unique_id=311085854]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="UIHeader" type="Label" parent="Scroll/ContentMargin/Content/UISection/UIVBox"]
+[node name="UIHeader" type="Label" parent="Scroll/ContentMargin/Content/UISection/UIVBox" unique_id=1051900697]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 14
 text = "UI"
 
-[node name="UISep" type="HSeparator" parent="Scroll/ContentMargin/Content/UISection/UIVBox"]
+[node name="UISep" type="HSeparator" parent="Scroll/ContentMargin/Content/UISection/UIVBox" unique_id=1617088212]
 layout_mode = 2
 theme_override_styles/separator = SubResource("header_separator")
 
-[node name="UIInner" type="VBoxContainer" parent="Scroll/ContentMargin/Content/UISection/UIVBox"]
+[node name="UIInner" type="VBoxContainer" parent="Scroll/ContentMargin/Content/UISection/UIVBox" unique_id=1025574736]
 layout_mode = 2
 theme_override_constants/separation = 10
 
@@ -250,25 +250,25 @@ layout_mode = 2
 text = "100%"
 horizontal_alignment = 2
 
-[node name="AccessibilitySection" type="PanelContainer" parent="Scroll/ContentMargin/Content"]
+[node name="AccessibilitySection" type="PanelContainer" parent="Scroll/ContentMargin/Content" unique_id=619539452]
 layout_mode = 2
 theme_override_styles/panel = SubResource("section_panel")
 
-[node name="AccessibilityVBox" type="VBoxContainer" parent="Scroll/ContentMargin/Content/AccessibilitySection"]
+[node name="AccessibilityVBox" type="VBoxContainer" parent="Scroll/ContentMargin/Content/AccessibilitySection" unique_id=1073700339]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="AccessibilityHeader" type="Label" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox"]
+[node name="AccessibilityHeader" type="Label" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox" unique_id=1474096074]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
 theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
+theme_override_font_sizes/font_size = 14
 text = "Accessibility"
 
-[node name="AccessibilitySep" type="HSeparator" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox"]
+[node name="AccessibilitySep" type="HSeparator" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox" unique_id=1366235458]
 layout_mode = 2
 theme_override_styles/separator = SubResource("header_separator")
 
-[node name="AccessibilityInner" type="VBoxContainer" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox"]
+[node name="AccessibilityInner" type="VBoxContainer" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox" unique_id=689252601]
 layout_mode = 2
 theme_override_constants/separation = 10
 
