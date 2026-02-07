@@ -54,7 +54,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 
 	# Find M_StateStore
-	_store = U_StateUtils.try_get_store()
+	_store = U_StateUtils.get_store(self)
 	if not _store:
 		push_error("SC_CinemaDebugOverlay: Could not find M_StateStore")
 		return
