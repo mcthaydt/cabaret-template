@@ -1,4 +1,5 @@
 extends RefCounted
+class_name U_DisplayQualityApplier
 
 ## Applies rendering quality presets to the active viewport.
 

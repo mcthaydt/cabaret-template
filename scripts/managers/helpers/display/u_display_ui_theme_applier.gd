@@ -1,4 +1,5 @@
 extends RefCounted
+class_name U_DisplayUIThemeApplier
 
 ## Applies UI theme overrides based on palette resources.
 

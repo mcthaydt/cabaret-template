@@ -38,12 +38,12 @@ var _display_settings_preview_active: bool = false
 var _preview_settings: Dictionary = {}
 var _palette_manager: RefCounted = null
 
-var _window_applier: RefCounted = null
-var _quality_applier: RefCounted = null
-var _post_process_applier: RefCounted = null
-var _ui_scale_applier: RefCounted = null
-var _ui_theme_applier: RefCounted = null
-var _cinema_grade_applier: RefCounted = null
+var _window_applier: RefCounted = null  # U_DisplayWindowApplier
+var _quality_applier: RefCounted = null  # U_DisplayQualityApplier
+var _post_process_applier: RefCounted = null  # U_DisplayPostProcessApplier
+var _ui_scale_applier: RefCounted = null  # U_DisplayUIScaleApplier
+var _ui_theme_applier: RefCounted = null  # U_DisplayUIThemeApplier
+var _cinema_grade_applier: RefCounted = null  # U_DisplayCinemaGradeApplier
 
 # Cached values for inspection/tests (Phase 1B)
 var _last_applied_settings: Dictionary = {}

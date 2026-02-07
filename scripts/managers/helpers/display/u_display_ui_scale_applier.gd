@@ -1,4 +1,5 @@
 extends RefCounted
+class_name U_DisplayUIScaleApplier
 
 ## Applies UI scale to registered roots and their descendants.
 

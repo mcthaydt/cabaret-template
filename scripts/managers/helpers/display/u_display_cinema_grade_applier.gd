@@ -1,4 +1,5 @@
 extends RefCounted
+class_name U_DisplayCinemaGradeApplier
 
 ## Applies per-scene cinema grade settings via a shader overlay.
 ##
