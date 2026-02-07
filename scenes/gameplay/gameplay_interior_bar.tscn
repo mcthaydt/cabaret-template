@@ -64,7 +64,6 @@
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
-ambient_light_source = 3
 ssao_enabled = true
 ssil_enabled = true
 sdfgi_enabled = true
@@ -83,10 +82,6 @@ script = ExtResource("2_8soux")
 
 [node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=828583278]
 environment = SubResource("Environment_bar")
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Environment" unique_id=1557775618]
-transform = Transform3D(0.27317026, -0.60349077, 0.74911743, 0, 0.7787361, 0.62735164, -0.9619657, -0.17137381, 0.21272755, 0, 1.5608213, 0)
-light_energy = 0.388
 
 [node name="Systems" type="Node" parent="." unique_id=1629993424]
 script = ExtResource("3_ph0bl")

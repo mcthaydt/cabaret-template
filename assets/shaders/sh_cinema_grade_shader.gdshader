@@ -141,8 +141,9 @@ void fragment() {
 
 	// 9. Vibrance (selective saturation: less-saturated pixels get more boost)
 	float luma_vib = luminance(color);
-	float max_channel = max(color.r, max(color.g, color.b));
-	float min_channel = min(color.r, min(color.g, color.b));
+	vec3 sat_color = max(color, vec3(0.0));
+	float max_channel = max(sat_color.r, max(sat_color.g, sat_color.b));
+	float min_channel = min(sat_color.r, min(sat_color.g, sat_color.b));
 	float current_sat = (max_channel - min_channel) / (max_channel + 0.001);
 	float vibrance_amount = vibrance * (1.0 - current_sat);
 	color = mix(vec3(luma_vib), color, 1.0 + vibrance_amount);

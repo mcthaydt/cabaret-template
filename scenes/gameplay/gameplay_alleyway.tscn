@@ -92,9 +92,6 @@ script = ExtResource("2_8soux")
 [node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=828583278]
 environment = SubResource("Environment_bar")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Environment" unique_id=772840014]
-transform = Transform3D(0.58378214, -0.55920076, 0.5886365, 0, 0.7250019, 0.6887469, -0.81191033, -0.40207815, 0.42324314, -1.583113, 2.6750169, 0)
-
 [node name="Systems" type="Node" parent="." unique_id=1629993424]
 script = ExtResource("3_ph0bl")
 
