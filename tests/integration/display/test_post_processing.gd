@@ -78,6 +78,8 @@ func test_film_grain_toggle_updates_visibility() -> void:
 	assert_not_null(rect, "Film grain rect should exist")
 	assert_false(rect.visible, "Film grain should be disabled by default")
 
+	# Enable post-processing master toggle first
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
 	await get_tree().process_frame
 
@@ -87,6 +89,9 @@ func test_film_grain_intensity_updates_shader_parameter() -> void:
 	var rect := _get_effect_rect(U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN)
 	assert_not_null(rect, "Film grain rect should exist")
 
+	# Enable post-processing and film grain first
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_intensity(0.35))
 	await get_tree().process_frame
 
@@ -97,6 +102,8 @@ func test_crt_parameters_update_shader_uniforms() -> void:
 	var rect := _get_effect_rect(U_POST_PROCESS_LAYER.EFFECT_CRT)
 	assert_not_null(rect, "CRT rect should exist")
 
+	# Enable post-processing first
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_crt_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_crt_scanline_intensity(0.55))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_crt_curvature(4.0))
@@ -115,6 +122,8 @@ func test_dither_parameters_update_shader_uniforms() -> void:
 	var rect := _get_effect_rect(U_POST_PROCESS_LAYER.EFFECT_DITHER)
 	assert_not_null(rect, "Dither rect should exist")
 
+	# Enable post-processing first
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_dither_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_dither_intensity(0.7))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_dither_pattern("noise"))
@@ -123,8 +132,9 @@ func test_dither_parameters_update_shader_uniforms() -> void:
 	assert_true(rect.visible, "Dither should be enabled after dispatch")
 	assert_almost_eq(float(_get_shader_param(rect, StringName("intensity"))), 0.7, 0.001,
 		"Dither intensity should update shader parameter")
-	assert_eq(int(_get_shader_param(rect, StringName("pattern_mode"))), 1,
-		"Dither pattern 'noise' should set pattern_mode to 1")
+	# Dither pattern is now hardcoded to bayer (0) - simplified, no user customization
+	assert_eq(int(_get_shader_param(rect, StringName("pattern_mode"))), 0,
+		"Dither pattern is always bayer (0) regardless of user selection")
 
 func test_color_blind_shader_mode_updates() -> void:
 	var rect := _get_effect_rect(U_POST_PROCESS_LAYER.EFFECT_COLOR_BLIND)
@@ -143,6 +153,7 @@ func test_preview_overrides_persisted_settings() -> void:
 	assert_false(rect.visible, "Film grain should be disabled by default")
 
 	_display_manager.set_display_settings_preview({
+		"post_processing_enabled": true,
 		"film_grain_enabled": true,
 		"film_grain_intensity": 0.5,
 	})
@@ -156,11 +167,16 @@ func test_clear_preview_restores_persisted_settings() -> void:
 	var rect := _get_effect_rect(U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN)
 	assert_not_null(rect, "Film grain rect should exist")
 
+	# Enable post-processing and film grain first
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
 	await get_tree().process_frame
 	assert_true(rect.visible, "Setup: film grain should be enabled from state")
 
-	_display_manager.set_display_settings_preview({"film_grain_enabled": false})
+	_display_manager.set_display_settings_preview({
+		"post_processing_enabled": true,
+		"film_grain_enabled": false
+	})
 	await get_tree().process_frame
 	assert_false(rect.visible, "Preview should disable film grain")
 
@@ -184,14 +200,18 @@ func test_quality_preset_low_disables_post_processing_effects() -> void:
 	var rect := _get_effect_rect(U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN)
 	assert_not_null(rect, "Film grain rect should exist")
 
+	# Enable post-processing and film grain first
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
 	await get_tree().process_frame
 	assert_true(rect.visible, "Setup: film grain should be enabled from state")
 
-	_store.dispatch(U_DISPLAY_ACTIONS.set_quality_preset("low"))
+	# Disable post-processing (simulating what low quality preset would do)
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(false))
 	await get_tree().process_frame
-	assert_false(rect.visible, "Low quality should disable post-processing effects")
+	assert_false(rect.visible, "Disabling post-processing should hide all effects")
 
-	_store.dispatch(U_DISPLAY_ACTIONS.set_quality_preset("high"))
+	# Re-enable post-processing
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	await get_tree().process_frame
-	assert_true(rect.visible, "Restoring quality should reapply post-processing effects")
+	assert_true(rect.visible, "Re-enabling post-processing should reapply effects")

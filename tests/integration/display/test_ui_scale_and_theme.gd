@@ -82,7 +82,7 @@ func test_high_contrast_palette_updates_theme_text_color() -> void:
 	assert_not_null(palette, "Palette should be available after high contrast toggle")
 	assert_true(palette is RS_UI_COLOR_PALETTE, "Palette should be RS_UIColorPalette")
 	var typed_palette := palette as RS_UI_COLOR_PALETTE
-	assert_eq(typed_palette.palette_id, StringName("high_contrast"), "High contrast palette should be active")
+	assert_eq(typed_palette.palette_id, StringName("normal_high_contrast"), "Normal high contrast palette should be active when color blind mode is normal")
 
 	assert_true(
 		label.get_theme_color("font_color").is_equal_approx(typed_palette.text),

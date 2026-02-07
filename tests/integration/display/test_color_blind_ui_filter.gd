@@ -67,12 +67,12 @@ func test_ui_color_blind_layer_has_higher_layer_than_ui_overlay() -> void:
 		"UIColorBlindLayer should have higher layer number than UIOverlayStack to render on top")
 
 func test_enabling_color_blind_shader_shows_ui_layer() -> void:
-	# GIVEN: Color blind shader is disabled
-	_store.dispatch(U_DisplayActions.set_color_blind_shader_enabled(false))
+	# GIVEN: Color blind shader is disabled (mode is "normal")
+	_store.dispatch(U_DisplayActions.set_color_blind_mode("normal"))
 	await get_tree().process_frame
 
-	# WHEN: Enabling color blind shader
-	_store.dispatch(U_DisplayActions.set_color_blind_shader_enabled(true))
+	# WHEN: Enabling color blind shader (setting mode to non-normal)
+	_store.dispatch(U_DisplayActions.set_color_blind_mode("deuteranopia"))
 	await wait_seconds(0.2)
 
 	# THEN: UI color blind layer should be visible
@@ -81,15 +81,15 @@ func test_enabling_color_blind_shader_shows_ui_layer() -> void:
 	var color_rect := ui_color_blind_layer.find_child("ColorBlindRect", true, false) as ColorRect
 
 	assert_not_null(color_rect, "Should have ColorBlindRect in UIColorBlindLayer")
-	assert_true(color_rect.visible, "ColorBlindRect should be visible when shader is enabled")
+	assert_true(color_rect.visible, "ColorBlindRect should be visible when mode is not normal")
 
 func test_disabling_color_blind_shader_hides_ui_layer() -> void:
-	# GIVEN: Color blind shader is enabled
-	_store.dispatch(U_DisplayActions.set_color_blind_shader_enabled(true))
+	# GIVEN: Color blind shader is enabled (mode is non-normal)
+	_store.dispatch(U_DisplayActions.set_color_blind_mode("deuteranopia"))
 	await wait_seconds(0.2)
 
-	# WHEN: Disabling color blind shader
-	_store.dispatch(U_DisplayActions.set_color_blind_shader_enabled(false))
+	# WHEN: Disabling color blind shader (setting mode to "normal")
+	_store.dispatch(U_DisplayActions.set_color_blind_mode("normal"))
 	await wait_seconds(0.2)
 
 	# THEN: UI color blind layer should be hidden
@@ -98,11 +98,11 @@ func test_disabling_color_blind_shader_hides_ui_layer() -> void:
 	var color_rect := ui_color_blind_layer.find_child("ColorBlindRect", true, false) as ColorRect
 
 	assert_not_null(color_rect, "Should have ColorBlindRect in UIColorBlindLayer")
-	assert_false(color_rect.visible, "ColorBlindRect should be hidden when shader is disabled")
+	assert_false(color_rect.visible, "ColorBlindRect should be hidden when mode is normal")
 
 func test_color_blind_mode_updates_ui_layer_shader() -> void:
-	# GIVEN: Color blind shader is enabled
-	_store.dispatch(U_DisplayActions.set_color_blind_shader_enabled(true))
+	# GIVEN: Starting with normal mode
+	_store.dispatch(U_DisplayActions.set_color_blind_mode("normal"))
 	await get_tree().process_frame
 
 	# WHEN: Setting color blind mode to deuteranopia

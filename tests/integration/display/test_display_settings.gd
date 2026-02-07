@@ -111,13 +111,11 @@ func _skip_rendering_tests() -> bool:
 func test_controls_initialize_from_redux_state() -> void:
 	_store.dispatch(U_DISPLAY_ACTIONS.set_window_mode("borderless"))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_vsync_enabled(false))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_intensity(0.35))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_dither_pattern("noise"))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_preset("heavy"))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(1.2))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_color_blind_mode("tritanopia"))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_high_contrast_enabled(true))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_color_blind_shader_enabled(true))
 
 	var overlay := await _instantiate_overlay()
 	var tab := _get_tab(overlay)
@@ -129,12 +127,11 @@ func test_controls_initialize_from_redux_state() -> void:
 		"Window mode should init from state"
 	)
 	assert_false(tab._vsync_toggle.button_pressed, "VSync toggle should init from state")
-	assert_true(tab._film_grain_toggle.button_pressed, "Film grain toggle should init from state")
-	assert_almost_eq(tab._film_grain_intensity_slider.value, 0.35, 0.001, "Film grain intensity should init from state")
+	assert_true(tab._post_processing_toggle.button_pressed, "Post-processing toggle should init from state")
 	assert_eq(
-		tab._dither_pattern_option.selected,
-		tab._dither_pattern_values.find("noise"),
-		"Dither pattern should init from state"
+		tab._post_processing_preset_option.selected,
+		tab._post_processing_preset_values.find("heavy"),
+		"Post-processing preset should init from state"
 	)
 	assert_almost_eq(tab._ui_scale_slider.value, 1.2, 0.001, "UI scale should init from state")
 	assert_eq(
@@ -143,7 +140,6 @@ func test_controls_initialize_from_redux_state() -> void:
 		"Color blind mode should init from state"
 	)
 	assert_true(tab._high_contrast_toggle.button_pressed, "High contrast toggle should init from state")
-	assert_true(tab._color_blind_shader_toggle.button_pressed, "Color blind shader toggle should init from state")
 
 func test_changes_do_not_dispatch_until_apply() -> void:
 	var overlay := await _instantiate_overlay()
@@ -155,7 +151,7 @@ func test_changes_do_not_dispatch_until_apply() -> void:
 	)
 
 	tab._vsync_toggle.button_pressed = false
-	tab._film_grain_intensity_slider.value = 0.5
+	tab._post_processing_toggle.button_pressed = true
 	var mode_idx := tab._window_mode_values.find("fullscreen")
 	tab._window_mode_option.select(mode_idx)
 	await get_tree().process_frame
@@ -189,13 +185,13 @@ func test_apply_dispatches_actions_and_updates_state() -> void:
 	var mode_idx := tab._window_mode_values.find("fullscreen")
 	tab._window_mode_option.select(mode_idx)
 	tab._vsync_toggle.button_pressed = false
-	tab._film_grain_toggle.button_pressed = true
-	tab._film_grain_intensity_slider.value = 0.4
+	tab._post_processing_toggle.button_pressed = true
+	var pp_idx := tab._post_processing_preset_values.find("heavy")
+	tab._post_processing_preset_option.select(pp_idx)
 	tab._ui_scale_slider.value = 1.2
 	var cb_idx := tab._color_blind_mode_values.find("protanopia")
 	tab._color_blind_mode_option.select(cb_idx)
 	tab._high_contrast_toggle.button_pressed = true
-	tab._color_blind_shader_toggle.button_pressed = true
 	await get_tree().process_frame
 
 	tab._apply_button.emit_signal("pressed")
@@ -205,17 +201,16 @@ func test_apply_dispatches_actions_and_updates_state() -> void:
 		await get_tree().process_frame
 
 	var display_actions := _collect_display_action_types(dispatched)
-	assert_eq(display_actions.size(), 18, "Apply should dispatch all display actions")
+	assert_eq(display_actions.size(), 9, "Apply should dispatch all display actions")
 
 	var state: Dictionary = _store.get_state()
 	assert_eq(U_DISPLAY_SELECTORS.get_window_mode(state), "fullscreen", "Apply should persist window mode")
 	assert_false(U_DISPLAY_SELECTORS.is_vsync_enabled(state), "Apply should persist vsync")
-	assert_true(U_DISPLAY_SELECTORS.is_film_grain_enabled(state), "Apply should persist film grain enabled")
-	assert_almost_eq(U_DISPLAY_SELECTORS.get_film_grain_intensity(state), 0.4, 0.001, "Apply should persist film grain intensity")
+	assert_true(U_DISPLAY_SELECTORS.is_post_processing_enabled(state), "Apply should persist post-processing enabled")
+	assert_eq(U_DISPLAY_SELECTORS.get_post_processing_preset(state), "heavy", "Apply should persist post-processing preset")
 	assert_almost_eq(U_DISPLAY_SELECTORS.get_ui_scale(state), 1.2, 0.001, "Apply should persist UI scale")
 	assert_eq(U_DISPLAY_SELECTORS.get_color_blind_mode(state), "protanopia", "Apply should persist color blind mode")
 	assert_true(U_DISPLAY_SELECTORS.is_high_contrast_enabled(state), "Apply should persist high contrast")
-	assert_true(U_DISPLAY_SELECTORS.is_color_blind_shader_enabled(state), "Apply should persist color blind shader")
 	assert_false(bool(_display_manager.get("_display_settings_preview_active")), "Apply should clear preview mode")
 
 func test_apply_clears_preview_flag() -> void:
@@ -310,7 +305,7 @@ func test_cancel_discards_changes_and_clears_preview() -> void:
 
 func test_reset_restores_defaults_and_persists_immediately() -> void:
 	_store.dispatch(U_DISPLAY_ACTIONS.set_window_mode("fullscreen"))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(1.2))
 
 	var defaults_dict: Dictionary = DEFAULT_DISPLAY_INITIAL_STATE.to_dictionary()
@@ -325,40 +320,40 @@ func test_reset_restores_defaults_and_persists_immediately() -> void:
 	tab._reset_button.emit_signal("pressed")
 	await get_tree().process_frame
 
-	assert_eq(_collect_display_action_types(dispatched).size(), 18, "Reset should dispatch all display actions")
+	assert_eq(_collect_display_action_types(dispatched).size(), 9, "Reset should dispatch all display actions")
 
 	var state: Dictionary = _store.get_state()
 	assert_eq(U_DISPLAY_SELECTORS.get_window_mode(state), defaults_dict.get("window_mode"), "Reset should restore window mode")
 	assert_eq(U_DISPLAY_SELECTORS.get_quality_preset(state), defaults_dict.get("quality_preset"), "Reset should restore quality preset")
 	assert_almost_eq(U_DISPLAY_SELECTORS.get_ui_scale(state), defaults_dict.get("ui_scale"), 0.001, "Reset should restore UI scale")
 	assert_eq(
-		U_DISPLAY_SELECTORS.is_film_grain_enabled(state),
-		defaults_dict.get("film_grain_enabled"),
-		"Reset should restore film grain enabled"
+		U_DISPLAY_SELECTORS.is_post_processing_enabled(state),
+		defaults_dict.get("post_processing_enabled"),
+		"Reset should restore post-processing enabled"
 	)
 
 func test_state_changes_refresh_ui_when_not_editing() -> void:
 	var overlay := await _instantiate_overlay()
 	var tab := _get_tab(overlay)
 
-	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_intensity(0.55))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(1.1))
 	await get_tree().process_frame
 
-	assert_almost_eq(tab._film_grain_intensity_slider.value, 0.55, 0.001, "UI should update slider from state")
-	assert_eq(tab._film_grain_intensity_value.text, "55%", "UI should update percentage label from state")
+	assert_almost_eq(tab._ui_scale_slider.value, 1.1, 0.001, "UI should update slider from state")
+	assert_eq(tab._ui_scale_value.text, "110%", "UI should update percentage label from state")
 
 func test_state_changes_do_not_override_local_edits() -> void:
 	var overlay := await _instantiate_overlay()
 	var tab := _get_tab(overlay)
 
-	tab._film_grain_intensity_slider.value = 0.35
+	tab._ui_scale_slider.value = 1.1
 	await get_tree().process_frame
 
-	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_intensity(0.8))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(1.3))
 	await get_tree().physics_frame
 	await get_tree().process_frame
 
-	assert_almost_eq(tab._film_grain_intensity_slider.value, 0.35, 0.001, "Local edits should not be overridden")
+	assert_almost_eq(tab._ui_scale_slider.value, 1.1, 0.001, "Local edits should not be overridden")
 
 func test_window_mode_change_applies_to_display_server() -> void:
 	_store.dispatch(U_DISPLAY_ACTIONS.set_window_mode("fullscreen"))
@@ -425,7 +420,7 @@ func test_settings_persist_across_state_handoff() -> void:
 
 func test_settings_persist_in_save_file() -> void:
 	_store.dispatch(U_DISPLAY_ACTIONS.set_window_mode("fullscreen"))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(true))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(true))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(1.2))
 
 	var save_err := _store.save_state(TEST_SAVE_PATH)
@@ -433,7 +428,7 @@ func test_settings_persist_in_save_file() -> void:
 	assert_true(FileAccess.file_exists(TEST_SAVE_PATH), "Save file should exist")
 
 	_store.dispatch(U_DISPLAY_ACTIONS.set_window_mode("windowed"))
-	_store.dispatch(U_DISPLAY_ACTIONS.set_film_grain_enabled(false))
+	_store.dispatch(U_DISPLAY_ACTIONS.set_post_processing_enabled(false))
 	_store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(1.0))
 
 	var load_err := _store.load_state(TEST_SAVE_PATH)
@@ -441,5 +436,5 @@ func test_settings_persist_in_save_file() -> void:
 
 	var state: Dictionary = _store.get_state()
 	assert_eq(U_DISPLAY_SELECTORS.get_window_mode(state), "fullscreen", "Window mode should restore from save")
-	assert_true(U_DISPLAY_SELECTORS.is_film_grain_enabled(state), "Film grain enabled should restore from save")
+	assert_true(U_DISPLAY_SELECTORS.is_post_processing_enabled(state), "Post-processing enabled should restore from save")
 	assert_almost_eq(U_DISPLAY_SELECTORS.get_ui_scale(state), 1.2, 0.001, "UI scale should restore from save")
