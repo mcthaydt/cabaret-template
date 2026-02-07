@@ -16,6 +16,7 @@ const U_DISPLAY_QUALITY_APPLIER := preload("res://scripts/managers/helpers/displ
 const U_DISPLAY_POST_PROCESS_APPLIER := preload("res://scripts/managers/helpers/display/u_display_post_process_applier.gd")
 const U_DISPLAY_UI_SCALE_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_scale_applier.gd")
 const U_DISPLAY_UI_THEME_APPLIER := preload("res://scripts/managers/helpers/display/u_display_ui_theme_applier.gd")
+const U_DISPLAY_CINEMA_GRADE_APPLIER := preload("res://scripts/managers/helpers/display/u_display_cinema_grade_applier.gd")
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
@@ -42,6 +43,7 @@ var _quality_applier: RefCounted = null
 var _post_process_applier: RefCounted = null
 var _ui_scale_applier: RefCounted = null
 var _ui_theme_applier: RefCounted = null
+var _cinema_grade_applier: RefCounted = null
 
 # Cached values for inspection/tests (Phase 1B)
 var _last_applied_settings: Dictionary = {}
@@ -55,6 +57,8 @@ func _ready() -> void:
 	await _initialize_store_async()
 
 func _exit_tree() -> void:
+	if _cinema_grade_applier != null:
+		_cinema_grade_applier.cleanup()
 	if _state_store != null and _state_store.has_signal("slice_updated"):
 		if _state_store.slice_updated.is_connected(_on_slice_updated):
 			_state_store.slice_updated.disconnect(_on_slice_updated)
@@ -69,6 +73,10 @@ func _initialize_store_async() -> void:
 	_state_store = store
 	if _state_store.has_signal("slice_updated"):
 		_state_store.slice_updated.connect(_on_slice_updated)
+
+	_ensure_appliers()
+	if _cinema_grade_applier != null:
+		_cinema_grade_applier.initialize(self, _state_store)
 
 	var state := _state_store.get_state()
 	_apply_display_settings(state)
@@ -162,6 +170,7 @@ func _apply_display_settings(state: Dictionary) -> void:
 
 	_apply_quality_settings(effective_settings)
 	_apply_post_process_settings(effective_settings)
+	_apply_cinema_grade_settings(effective_settings)
 	_apply_ui_scale_settings(effective_settings)
 	_apply_accessibility_settings(effective_settings)
 
@@ -217,6 +226,12 @@ func _apply_post_process_settings(display_settings: Dictionary) -> void:
 		return
 	_post_process_applier.apply_settings(display_settings)
 	_update_overlay_visibility()
+
+func _apply_cinema_grade_settings(display_settings: Dictionary) -> void:
+	_ensure_appliers()
+	if _cinema_grade_applier == null:
+		return
+	_cinema_grade_applier.apply_settings(display_settings)
 
 func set_ui_scale(scale: float) -> void:
 	_ensure_appliers()
@@ -296,6 +311,8 @@ func _ensure_appliers() -> void:
 		_ui_scale_applier.initialize(MIN_UI_SCALE, MAX_UI_SCALE)
 	if _ui_theme_applier == null:
 		_ui_theme_applier = U_DISPLAY_UI_THEME_APPLIER.new()
+	if _cinema_grade_applier == null:
+		_cinema_grade_applier = U_DISPLAY_CINEMA_GRADE_APPLIER.new()
 
 func register_ui_scale_root(node: Node) -> void:
 	_ensure_appliers()
@@ -314,12 +331,13 @@ func _update_overlay_visibility() -> void:
 	if _state_store == null:
 		return
 	_ensure_appliers()
-	if _post_process_applier == null:
-		return
 
 	var state := _state_store.get_state()
 	var navigation_state: Dictionary = state.get("navigation", {})
 	var shell := U_NAVIGATION_SELECTORS.get_shell(navigation_state)
 	var should_show := shell == SHELL_GAMEPLAY
 
-	_post_process_applier.update_overlay_visibility(should_show)
+	if _post_process_applier != null:
+		_post_process_applier.update_overlay_visibility(should_show)
+	if _cinema_grade_applier != null:
+		_cinema_grade_applier.update_visibility(should_show)

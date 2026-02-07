@@ -8,6 +8,7 @@ class_name U_DisplayReducer
 ## validation and clamping.
 
 const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
+const U_CinemaGradeActions := preload("res://scripts/state/actions/u_cinema_grade_actions.gd")
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
 const U_PostProcessingPresetValues := preload("res://scripts/utils/display/u_post_processing_preset_values.gd")
 
@@ -171,6 +172,36 @@ static func reduce(state: Dictionary, action: Dictionary) -> Variant:
 			var payload: Dictionary = action.get("payload", {})
 			var enabled := bool(payload.get("enabled", false))
 			return _with_values(current, {"color_blind_shader_enabled": enabled})
+
+		U_CinemaGradeActions.ACTION_LOAD_SCENE_GRADE:
+			var payload: Dictionary = action.get("payload", {})
+			var updates := {}
+			for key in payload.keys():
+				var key_str: String = str(key)
+				if key_str.begins_with("cinema_grade_"):
+					updates[key] = payload[key]
+			if updates.is_empty():
+				return null
+			return _with_values(current, updates)
+
+		U_CinemaGradeActions.ACTION_SET_PARAMETER:
+			var payload: Dictionary = action.get("payload", {})
+			var param_name: String = String(payload.get("param_name", ""))
+			if param_name.is_empty():
+				return null
+			var key := "cinema_grade_" + param_name
+			return _with_values(current, {key: payload.get("value")})
+
+		U_CinemaGradeActions.ACTION_RESET_TO_SCENE_DEFAULTS:
+			var payload: Dictionary = action.get("payload", {})
+			var updates := {}
+			for key in payload.keys():
+				var key_str: String = str(key)
+				if key_str.begins_with("cinema_grade_"):
+					updates[key] = payload[key]
+			if updates.is_empty():
+				return null
+			return _with_values(current, updates)
 
 		_:
 			return null
