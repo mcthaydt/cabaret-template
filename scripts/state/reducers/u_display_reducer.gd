@@ -11,6 +11,7 @@ const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions
 const U_CinemaGradeActions := preload("res://scripts/state/actions/u_cinema_grade_actions.gd")
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
 const U_PostProcessingPresetValues := preload("res://scripts/utils/display/u_post_processing_preset_values.gd")
+const RS_SceneCinemaGrade := preload("res://scripts/resources/display/rs_scene_cinema_grade.gd")
 
 const DEFAULT_DISPLAY_STATE := {
 	"window_size_preset": "1920x1080",
@@ -19,6 +20,9 @@ const DEFAULT_DISPLAY_STATE := {
 	"quality_preset": "high",
 	"post_processing_enabled": false,
 	"post_processing_preset": "medium",
+	"film_grain_enabled": false,
+	"crt_enabled": false,
+	"dither_enabled": false,
 	"ui_scale": 1.0,
 	"color_blind_mode": "normal",
 	"high_contrast_enabled": false,
@@ -262,15 +266,5 @@ static func _is_valid_post_processing_preset(preset: String) -> bool:
 	return U_DISPLAY_OPTION_CATALOG.get_post_processing_preset_ids().has(preset)
 
 static func _get_filter_mode_from_preset(preset_name: String) -> int:
-	const FILTER_PRESET_MAP := {
-		"none": 0,
-		"dramatic": 1,
-		"dramatic_warm": 2,
-		"dramatic_cold": 3,
-		"vivid": 4,
-		"vivid_warm": 5,
-		"vivid_cold": 6,
-		"black_and_white": 7,
-		"sepia": 8,
-	}
-	return FILTER_PRESET_MAP.get(preset_name, 0)
+	# Delegate to RS_SceneCinemaGrade.FILTER_PRESET_MAP (single source of truth)
+	return RS_SceneCinemaGrade.FILTER_PRESET_MAP.get(preset_name, 0)

@@ -1,4 +1,5 @@
 extends RefCounted
+class_name U_DisplayPostProcessApplier
 
 ## Applies post-process settings to the display overlay.
 
@@ -56,50 +57,56 @@ func update_overlay_visibility(should_show: bool) -> void:
 			child.visible = should_show
 
 func _apply_film_grain_settings(state: Dictionary) -> void:
-	_film_grain_active = true
-	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN, true)
-	var intensity := U_DISPLAY_SELECTORS.get_film_grain_intensity(state)
-	_post_process_layer.set_effect_parameter(
-		U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN,
-		StringName("intensity"),
-		intensity
-	)
+	var enabled := U_DISPLAY_SELECTORS.is_film_grain_enabled(state)
+	_film_grain_active = enabled
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN, enabled)
+	if enabled:
+		var intensity := U_DISPLAY_SELECTORS.get_film_grain_intensity(state)
+		_post_process_layer.set_effect_parameter(
+			U_POST_PROCESS_LAYER.EFFECT_FILM_GRAIN,
+			StringName("intensity"),
+			intensity
+		)
 
 func _apply_crt_settings(state: Dictionary) -> void:
-	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_CRT, true)
-	var scanline_intensity := U_DISPLAY_SELECTORS.get_crt_scanline_intensity(state)
-	var curvature := U_DISPLAY_SELECTORS.get_crt_curvature(state)
-	var chromatic_aberration := U_DISPLAY_SELECTORS.get_crt_chromatic_aberration(state)
-	_post_process_layer.set_effect_parameter(
-		U_POST_PROCESS_LAYER.EFFECT_CRT,
-		StringName("scanline_intensity"),
-		scanline_intensity
-	)
-	_post_process_layer.set_effect_parameter(
-		U_POST_PROCESS_LAYER.EFFECT_CRT,
-		StringName("curvature"),
-		curvature
-	)
-	_post_process_layer.set_effect_parameter(
-		U_POST_PROCESS_LAYER.EFFECT_CRT,
-		StringName("chromatic_aberration"),
-		chromatic_aberration
-	)
+	var enabled := U_DISPLAY_SELECTORS.is_crt_enabled(state)
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_CRT, enabled)
+	if enabled:
+		var scanline_intensity := U_DISPLAY_SELECTORS.get_crt_scanline_intensity(state)
+		var curvature := U_DISPLAY_SELECTORS.get_crt_curvature(state)
+		var chromatic_aberration := U_DISPLAY_SELECTORS.get_crt_chromatic_aberration(state)
+		_post_process_layer.set_effect_parameter(
+			U_POST_PROCESS_LAYER.EFFECT_CRT,
+			StringName("scanline_intensity"),
+			scanline_intensity
+		)
+		_post_process_layer.set_effect_parameter(
+			U_POST_PROCESS_LAYER.EFFECT_CRT,
+			StringName("curvature"),
+			curvature
+		)
+		_post_process_layer.set_effect_parameter(
+			U_POST_PROCESS_LAYER.EFFECT_CRT,
+			StringName("chromatic_aberration"),
+			chromatic_aberration
+		)
 
 func _apply_dither_settings(state: Dictionary) -> void:
-	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_DITHER, true)
-	var intensity := U_DISPLAY_SELECTORS.get_dither_intensity(state)
-	_post_process_layer.set_effect_parameter(
-		U_POST_PROCESS_LAYER.EFFECT_DITHER,
-		StringName("intensity"),
-		intensity
-	)
-	# Always use bayer pattern (simplified - no user customization)
-	_post_process_layer.set_effect_parameter(
-		U_POST_PROCESS_LAYER.EFFECT_DITHER,
-		StringName("pattern_mode"),
-		0
-	)
+	var enabled := U_DISPLAY_SELECTORS.is_dither_enabled(state)
+	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_DITHER, enabled)
+	if enabled:
+		var intensity := U_DISPLAY_SELECTORS.get_dither_intensity(state)
+		_post_process_layer.set_effect_parameter(
+			U_POST_PROCESS_LAYER.EFFECT_DITHER,
+			StringName("intensity"),
+			intensity
+		)
+		# Always use bayer pattern (simplified - no user customization)
+		_post_process_layer.set_effect_parameter(
+			U_POST_PROCESS_LAYER.EFFECT_DITHER,
+			StringName("pattern_mode"),
+			0
+		)
 
 func _apply_color_blind_shader_settings(state: Dictionary) -> void:
 	var mode := U_DISPLAY_SELECTORS.get_color_blind_mode(state)

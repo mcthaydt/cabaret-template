@@ -15,6 +15,9 @@ class_name RS_DisplayInitialState
 @export_group("Post-Processing")
 @export var post_processing_enabled: bool = false
 @export_enum("light", "medium", "heavy") var post_processing_preset: String = "medium"
+@export var film_grain_enabled: bool = false
+@export var crt_enabled: bool = false
+@export var dither_enabled: bool = false
 # Note: Effect order is fixed internally (Film Grain -> Dither -> CRT), not user-configurable.
 # Note: Intensity values are loaded from post_processing_preset resource.
 
@@ -38,6 +41,9 @@ func to_dictionary() -> Dictionary:
 		"quality_preset": quality_preset,
 		"post_processing_enabled": post_processing_enabled,
 		"post_processing_preset": post_processing_preset,
+		"film_grain_enabled": film_grain_enabled,
+		"crt_enabled": crt_enabled,
+		"dither_enabled": dither_enabled,
 		"film_grain_intensity": preset_values.get("film_grain_intensity", 0.2),
 		"crt_scanline_intensity": preset_values.get("crt_scanline_intensity", 0.25),
 		"crt_curvature": preset_values.get("crt_curvature", 0.0),
