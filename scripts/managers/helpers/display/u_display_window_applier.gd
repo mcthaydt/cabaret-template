@@ -1,4 +1,5 @@
 extends RefCounted
+class_name U_DisplayWindowApplier
 
 ## Applies window mode/size/vsync settings with platform guards.
 
@@ -87,8 +88,11 @@ func _apply_window_size_preset_now(preset: String) -> void:
 	if ops == null:
 		return
 	ops.window_set_size(size)
-	var screen_size := ops.screen_get_size()
-	var window_pos := (screen_size - size) / 2
+
+	# Use usable rect instead of full screen to avoid positioning behind taskbar/dock
+	var current_screen := ops.window_get_current_screen()
+	var usable_rect := ops.screen_get_usable_rect(current_screen)
+	var window_pos := usable_rect.position + (usable_rect.size - size) / 2
 	ops.window_set_position(window_pos)
 
 func _set_window_mode_now(mode: String, attempt: int = 0) -> void:
