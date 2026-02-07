@@ -11,7 +11,8 @@ class_name RS_RebindSettings
 @export_range(1, 10) var max_events_per_action: int = 3
 @export var warn_on_reserved: bool = true
 @export var warning_actions: Array[StringName] = [
-	StringName("toggle_debug_overlay")
+	StringName("toggle_debug_overlay"),
+	StringName("toggle_cinema_debug")
 ]
 
 func is_reserved(action: StringName) -> bool:
