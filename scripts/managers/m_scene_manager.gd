@@ -394,9 +394,6 @@ func _process_transition_queue() -> void:
 	if _store != null:
 		_store.dispatch(U_SCENE_ACTIONS.transition_completed(request.scene_id))
 
-		# Sync navigation shell immediately after scene loads
-		_sync_navigation_shell_with_scene(request.scene_id)
-
 	# Emit signal that visual transition is complete (scene is fully visible)
 	# MobileControls waits for this signal before showing controls
 	transition_visual_complete.emit(request.scene_id)
@@ -577,6 +574,15 @@ func _perform_transition(request) -> void:
 				await handler.on_load(new_scene, request.scene_id, managers)
 
 		scene_swap_complete[0] = true
+
+		# Dispatch scene swapped action (mid-transition visual updates)
+		# Triggers Cinema Grade update while screen is obscured
+		if _store != null:
+			_store.dispatch(U_SCENE_ACTIONS.scene_swapped(request.scene_id))
+
+			# Sync navigation shell mid-transition (screen is obscured)
+			# Ensures post-process overlays (CRT, Dither) are visible before fade-in
+			_sync_navigation_shell_with_scene(request.scene_id)
 
 	# Phase 10B-2 (T136b): Delegate transition effect execution to TransitionOrchestrator
 	var overlays := {

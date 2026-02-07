@@ -11,7 +11,7 @@ const U_CinemaGradeActions := preload("res://scripts/state/actions/u_cinema_grad
 const U_CinemaGradeSelectors := preload("res://scripts/state/selectors/u_cinema_grade_selectors.gd")
 const CINEMA_GRADE_SHADER := preload("res://assets/shaders/sh_cinema_grade_shader.gdshader")
 
-const SCENE_TRANSITION_COMPLETED := StringName("scene/transition_completed")
+const SCENE_SWAPPED := StringName("scene/swapped")
 
 var _owner: Node = null
 var _state_store: I_StateStore = null
@@ -45,7 +45,7 @@ func cleanup() -> void:
 
 func _on_action_dispatched(action: Dictionary) -> void:
 	var action_type: Variant = action.get("type", "")
-	if action_type != SCENE_TRANSITION_COMPLETED:
+	if action_type != SCENE_SWAPPED:
 		return
 	var payload: Dictionary = action.get("payload", {})
 	var scene_id: Variant = payload.get("scene_id", "")

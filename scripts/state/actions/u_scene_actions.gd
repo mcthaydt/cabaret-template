@@ -15,6 +15,7 @@ class_name U_SceneActions
 # Action type constants
 const ACTION_TRANSITION_STARTED := StringName("scene/transition_started")
 const ACTION_TRANSITION_COMPLETED := StringName("scene/transition_completed")
+const ACTION_SCENE_SWAPPED := StringName("scene/swapped")
 const ACTION_PUSH_OVERLAY := StringName("scene/push_overlay")
 const ACTION_POP_OVERLAY := StringName("scene/pop_overlay")
 
@@ -24,6 +25,9 @@ static func _static_init() -> void:
 		"required_fields": ["target_scene_id", "transition_type"]
 	})
 	U_ActionRegistry.register_action(ACTION_TRANSITION_COMPLETED, {
+		"required_fields": ["scene_id"]
+	})
+	U_ActionRegistry.register_action(ACTION_SCENE_SWAPPED, {
 		"required_fields": ["scene_id"]
 	})
 	U_ActionRegistry.register_action(ACTION_PUSH_OVERLAY, {
@@ -42,6 +46,22 @@ static func transition_started(target_scene_id: StringName, transition_type: Str
 		"payload": {
 			"target_scene_id": target_scene_id,
 			"transition_type": transition_type
+		}
+	}
+
+## Mark scene content swap (mid-transition)
+##
+## Dispatched when the new scene has been instantiated and added to the tree,
+## but the visual transition (fade-in) has not yet completed.
+## Use this for updating visual effects (Cinema Grade) while the screen is obscured.
+##
+## Payload:
+## - scene_id: StringName - Scene that was loaded
+static func scene_swapped(scene_id: StringName) -> Dictionary:
+	return {
+		"type": ACTION_SCENE_SWAPPED,
+		"payload": {
+			"scene_id": scene_id
 		}
 	}
 
