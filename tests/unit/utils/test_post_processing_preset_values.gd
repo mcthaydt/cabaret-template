@@ -30,8 +30,8 @@ func test_medium_preset_has_default_values() -> void:
 	var medium := U_PostProcessingPresetValues.get_preset_values("medium")
 
 	# THEN: Should match current defaults from cfg_display_initial_state.tres
-	assert_eq(medium.get("film_grain_intensity"), 0.2, "Medium film grain should be 0.2")
-	assert_eq(medium.get("crt_scanline_intensity"), 0.25, "Medium scanlines should be 0.25")
+	assert_eq(medium.get("film_grain_intensity"), 0.1, "Medium film grain should be 0.1")
+	assert_eq(medium.get("crt_scanline_intensity"), 0.15, "Medium scanlines should be 0.15")
 	assert_eq(medium.get("crt_curvature"), 0.0, "Medium curvature should be 0.0")
 	assert_eq(medium.get("crt_chromatic_aberration"), 0.001, "Medium aberration should be 0.001")
 	assert_eq(medium.get("dither_intensity"), 1.0, "Medium dither should be 1.0")
@@ -48,7 +48,7 @@ func test_invalid_preset_returns_medium_defaults() -> void:
 	var values := U_PostProcessingPresetValues.get_preset_values("invalid")
 
 	# THEN: Should return medium values as default
-	assert_eq(values.get("film_grain_intensity"), 0.2, "Should default to medium")
+	assert_eq(values.get("film_grain_intensity"), 0.1, "Should default to medium")
 
 func test_is_valid_preset() -> void:
 	# THEN: Valid presets should return true

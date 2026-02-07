@@ -6,7 +6,6 @@
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pjt0s"]
 resource_name = "BaseCharacterMat"
 cull_mode = 2
-shading_mode = 1
 diffuse_mode = 2
 specular_mode = 2
 disable_specular_occlusion = true
@@ -51,6 +50,6 @@ shadow_mesh = SubResource("ArrayMesh_ng25s")
 
 [node name="Character" unique_id=269059755 instance=ExtResource("1_glpr6")]
 
-[node name="BaseCharacter" parent="." index="0" unique_id=378517765]
+[node name="BaseCharacter" parent="." index="0" unique_id=861213090]
 transform = Transform3D(-1.311341e-07, 0, 2.9999998, 0, 3, 0, -2.9999986, 0, -1.3113416e-07, 0, 0, 0)
 mesh = SubResource("ArrayMesh_wa5vi")

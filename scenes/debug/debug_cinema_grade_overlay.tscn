@@ -33,7 +33,7 @@ theme_override_constants/separation = 8
 
 [node name="TitleLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=329858599]
 layout_mode = 2
-text = "Cinema Grade Debug (F4 to toggle)"
+text = "Cinema Grade Debug (F5 to toggle)"
 horizontal_alignment = 1
 
 [node name="SceneLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=285417669]

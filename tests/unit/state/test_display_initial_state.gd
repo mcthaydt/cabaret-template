@@ -141,8 +141,8 @@ func test_to_dictionary_loads_intensity_values_from_preset() -> void:
 	assert_true(dict.has("dither_intensity"), "Should include dither_intensity")
 
 	# Values should match medium preset (current defaults)
-	assert_eq(dict["film_grain_intensity"], 0.2, "Should have medium preset film grain intensity")
-	assert_eq(dict["crt_scanline_intensity"], 0.25, "Should have medium preset scanline intensity")
+	assert_eq(dict["film_grain_intensity"], 0.1, "Should have medium preset film grain intensity")
+	assert_eq(dict["crt_scanline_intensity"], 0.15, "Should have medium preset scanline intensity")
 	assert_eq(dict["crt_curvature"], 0.0, "Should have medium preset curvature")
 	assert_eq(dict["crt_chromatic_aberration"], 0.001, "Should have medium preset aberration")
 	assert_eq(dict["dither_intensity"], 1.0, "Should have medium preset dither intensity")

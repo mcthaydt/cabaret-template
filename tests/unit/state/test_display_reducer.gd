@@ -35,9 +35,9 @@ func test_default_state_has_expected_defaults() -> void:
 	assert_eq(default_state.get("vsync_enabled"), true)
 	assert_eq(default_state.get("quality_preset"), "high")
 	assert_eq(default_state.get("film_grain_enabled"), false)
-	assert_almost_eq(float(default_state.get("film_grain_intensity", 0.0)), 0.2, 0.0001)
+	assert_almost_eq(float(default_state.get("film_grain_intensity", 0.0)), 0.1, 0.0001)
 	assert_eq(default_state.get("crt_enabled"), false)
-	assert_almost_eq(float(default_state.get("crt_scanline_intensity", 0.0)), 0.25, 0.0001)
+	assert_almost_eq(float(default_state.get("crt_scanline_intensity", 0.0)), 0.15, 0.0001)
 	assert_almost_eq(float(default_state.get("crt_curvature", 0.0)), 0.0, 0.0001)
 	assert_eq(default_state.get("dither_enabled"), false)
 	assert_almost_eq(float(default_state.get("dither_intensity", 0.0)), 1.0, 0.0001)
@@ -256,7 +256,7 @@ func test_post_processing_preset_light_applies_correct_values() -> void:
 	# THEN: State should update preset and apply light intensity values
 	assert_eq(reduced.get("post_processing_preset"), "light", "Should set preset to light")
 	assert_eq(reduced.get("film_grain_intensity"), 0.05, "Should apply light film grain intensity")
-	assert_eq(reduced.get("crt_scanline_intensity"), 0.15, "Should apply light scanline intensity")
+	assert_eq(reduced.get("crt_scanline_intensity"), 0.1, "Should apply light scanline intensity")
 	assert_eq(reduced.get("crt_curvature"), 0.0, "Should apply light curvature")
 	assert_eq(reduced.get("crt_chromatic_aberration"), 0.001, "Should apply light aberration")
 	assert_eq(reduced.get("dither_intensity"), 0.25, "Should apply light dither intensity")
@@ -269,8 +269,8 @@ func test_post_processing_preset_medium_applies_current_defaults() -> void:
 
 	# THEN: State should update preset and apply medium (current default) intensity values
 	assert_eq(reduced.get("post_processing_preset"), "medium", "Should set preset to medium")
-	assert_eq(reduced.get("film_grain_intensity"), 0.2, "Should apply medium film grain intensity")
-	assert_eq(reduced.get("crt_scanline_intensity"), 0.25, "Should apply medium scanline intensity")
+	assert_eq(reduced.get("film_grain_intensity"), 0.1, "Should apply medium film grain intensity")
+	assert_eq(reduced.get("crt_scanline_intensity"), 0.15, "Should apply medium scanline intensity")
 	assert_eq(reduced.get("crt_curvature"), 0.0, "Should apply medium curvature")
 	assert_eq(reduced.get("crt_chromatic_aberration"), 0.001, "Should apply medium aberration")
 	assert_eq(reduced.get("dither_intensity"), 1.0, "Should apply medium dither intensity")

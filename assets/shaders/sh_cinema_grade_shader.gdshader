@@ -98,7 +98,8 @@ vec3 apply_filter(vec3 color, int mode) {
 		color = vec3(l * 1.12 + 0.04, l * 0.95 + 0.02, l * 0.74);
 	}
 
-	return color;
+	// Clamp filter output to prevent negative values or values > 1.0
+	return clamp(color, 0.0, 1.0);
 }
 
 void fragment() {
@@ -135,6 +136,9 @@ void fragment() {
 	float shadow_mask = 1.0 - smoothstep(0.0, 0.5, luma_hs);
 	color += shadow_mask * shadows * 0.5;
 
+	// Intermediate clamp to prevent negative/extreme values from affecting saturation/vibrance
+	color = clamp(color, 0.0, 1.0);
+
 	// 8. Saturation
 	float luma_sat = luminance(color);
 	color = mix(vec3(luma_sat), color, saturation);
@@ -148,14 +152,26 @@ void fragment() {
 	float vibrance_amount = vibrance * (1.0 - current_sat);
 	color = mix(vec3(luma_vib), color, 1.0 + vibrance_amount);
 
+	// Clamp again after saturation/vibrance adjustments
+	color = clamp(color, 0.0, 1.0);
+
 	// 10. Named Filter (applied as blend)
 	if (filter_mode > 0) {
 		vec3 filtered = apply_filter(color, filter_mode);
 		color = mix(color, filtered, filter_intensity);
+		// Clamp after filter blend to prevent artifacts
+		color = clamp(color, 0.0, 1.0);
 	}
 
-	// 11. Clamp
+	// 11. Final Clamp
 	color = clamp(color, 0.0, 1.0);
+
+	// 12. Black crush - neutralize very dark pixels to prevent color casts
+	float final_luma = luminance(color);
+	if (final_luma < 0.02) {
+		// Force near-black pixels to be neutral gray to prevent green/purple casts
+		color = vec3(final_luma);
+	}
 
 	COLOR = vec4(color, 1.0);
 }

@@ -218,6 +218,10 @@ script = ExtResource("30_damage_flash_publisher")
 
 [node name="Lighting" type="Node" parent="." unique_id=888888801]
 
+[node name="CinemaGradePreview" type="Node" parent="Lighting" unique_id=722256414]
+script = ExtResource("58_cinema_preview")
+cinema_grade = ExtResource("59_cinema_grade")
+
 [node name="MoonLight" type="OmniLight3D" parent="Lighting" unique_id=888888802]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
 light_color = Color(0.4, 0.5, 0.8, 1)
@@ -369,9 +373,5 @@ tags = Array[StringName]([&"checkpoint", &"objective"])
 texture = ExtResource("39_u0c34")
 
 [node name="HUD" parent="." unique_id=1864878923 instance=ExtResource("11_hud")]
-
-[node name="CinemaGradePreview" type="Node" parent="." unique_id=722256414]
-script = ExtResource("58_cinema_preview")
-cinema_grade = ExtResource("59_cinema_grade")
 
 [editable path="Entities/E_CameraRoot"]

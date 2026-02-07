@@ -10,7 +10,7 @@ class_name SC_CinemaDebugOverlay
 ## - Reset to scene defaults button
 ## - Export to console button
 ##
-## Toggled with F4 key via M_StateStore._input()
+## Toggled with F5 key via M_StateStore._input()
 
 @onready var scene_label: Label = %SceneLabel
 @onready var filter_preset_option: OptionButton = %FilterPresetOption

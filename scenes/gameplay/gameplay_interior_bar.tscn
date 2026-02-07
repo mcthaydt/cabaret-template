@@ -205,6 +205,10 @@ script = ExtResource("30_damage_flash_publisher")
 
 [node name="Lighting" type="Node" parent="." unique_id=999999901]
 
+[node name="CinemaGradePreview" type="Node" parent="Lighting" unique_id=1416173378]
+script = ExtResource("55_cinema_preview")
+cinema_grade = ExtResource("56_cinema_grade")
+
 [node name="BarLight_Warm" type="OmniLight3D" parent="Lighting" unique_id=999999902]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 light_color = Color(1, 0.7, 0.4, 1)
@@ -213,8 +217,7 @@ omni_range = 10.0
 
 [node name="EntranceLight_Cool" type="OmniLight3D" parent="Lighting" unique_id=999999903]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, -1)
-light_color = Color(0.4, 0.6, 1.0, 1)
-light_energy = 1.0
+light_color = Color(0.4, 0.6, 1, 1)
 
 [node name="Managers" type="Node" parent="." unique_id=1732814566]
 script = ExtResource("12_klon2")
@@ -300,9 +303,5 @@ height = 2.0715332
 material = ExtResource("54_fade_door")
 
 [node name="HUD" parent="." unique_id=1864878923 instance=ExtResource("11_hud")]
-
-[node name="CinemaGradePreview" type="Node" parent="." unique_id=1416173378]
-script = ExtResource("55_cinema_preview")
-cinema_grade = ExtResource("56_cinema_grade")
 
 [editable path="Entities/E_CameraRoot"]
