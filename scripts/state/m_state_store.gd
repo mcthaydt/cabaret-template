@@ -280,10 +280,18 @@ func _input(event: InputEvent) -> void:
 					_cinema_debug_overlay = cinema_overlay_scene.instantiate()
 					add_child(_cinema_debug_overlay)
 					register_cinema_debug_overlay(_cinema_debug_overlay)
+					# Unlock cursor for overlay interaction
+					var cursor_manager := U_SERVICE_LOCATOR.get_service(StringName("cursor_manager"))
+					if cursor_manager and cursor_manager.has_method("set_cursor_state"):
+						cursor_manager.set_cursor_state(false, true)
 			else:
-				# Despawn cinema debug overlay
+				# Despawn cinema debug overlay and restore cursor state
 				_cinema_debug_overlay.queue_free()
 				register_cinema_debug_overlay(null)
+				# Re-lock cursor for gameplay
+				var cursor_manager := U_SERVICE_LOCATOR.get_service(StringName("cursor_manager"))
+				if cursor_manager and cursor_manager.has_method("set_cursor_state"):
+					cursor_manager.set_cursor_state(true, false)
 
 func register_debug_overlay(overlay: CanvasLayer) -> void:
 	if overlay != null and is_instance_valid(overlay):
