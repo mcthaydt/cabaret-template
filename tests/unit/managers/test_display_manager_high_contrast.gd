@@ -18,28 +18,28 @@ func after_each() -> void:
 	_store = null
 
 func test_high_contrast_mode_loads_high_contrast_palette() -> void:
-	# GIVEN: Display settings with high contrast enabled
+	# GIVEN: Display settings with high contrast enabled and normal color blind mode
 	await _setup_manager_with_store({"high_contrast_enabled": true, "color_blind_mode": "normal"})
 
 	# WHEN: Getting the active palette
 	var palette: Resource = _manager.get_active_palette()
 
-	# THEN: High contrast palette should be loaded
+	# THEN: Normal high contrast palette should be loaded (combines mode + high contrast)
 	assert_not_null(palette, "High contrast palette should be loaded")
 	if palette != null and "palette_id" in palette:
-		assert_eq(palette.palette_id, StringName("high_contrast"), "Palette ID should be 'high_contrast'")
+		assert_eq(palette.palette_id, StringName("normal_high_contrast"), "Palette ID should be 'normal_high_contrast'")
 
-func test_high_contrast_overrides_color_blind_mode() -> void:
+func test_high_contrast_combines_with_color_blind_mode() -> void:
 	# GIVEN: Display settings with deuteranopia mode AND high contrast enabled
 	await _setup_manager_with_store({"color_blind_mode": "deuteranopia", "high_contrast_enabled": true})
 
 	# WHEN: Getting the active palette
 	var palette: Resource = _manager.get_active_palette()
 
-	# THEN: High contrast palette should override deuteranopia
-	assert_not_null(palette, "High contrast palette should be loaded")
+	# THEN: Deuteranopia high contrast palette should be loaded (combines both features)
+	assert_not_null(palette, "Deuteranopia high contrast palette should be loaded")
 	if palette != null and "palette_id" in palette:
-		assert_eq(palette.palette_id, StringName("high_contrast"), "High contrast should override color blind mode")
+		assert_eq(palette.palette_id, StringName("deuteranopia_high_contrast"), "High contrast should combine with color blind mode")
 
 func test_disabling_high_contrast_restores_color_blind_mode() -> void:
 	# GIVEN: Display settings with deuteranopia mode initially
