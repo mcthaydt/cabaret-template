@@ -4,7 +4,14 @@ class_name U_PostProcessingPresetValues
 ## Loads and provides access to post-processing preset resources (light/medium/heavy).
 
 const RS_POST_PROCESSING_PRESET := preload("res://scripts/resources/display/rs_post_processing_preset.gd")
-const PRESET_DIR := "res://resources/display/cfg_post_processing_presets"
+
+# Mobile-safe: Use const preload arrays instead of runtime DirAccess.open()
+# (DirAccess fails on Android when resources are packed into PCK files)
+const _PRESET_RESOURCES := [
+	preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_light.tres"),
+	preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_medium.tres"),
+	preload("res://resources/display/cfg_post_processing_presets/cfg_post_processing_heavy.tres"),
+]
 
 static var _presets_loaded: bool = false
 static var _presets: Array = []
@@ -62,23 +69,12 @@ static func _ensure_presets() -> void:
 	_presets.clear()
 	_presets_by_name.clear()
 
-	var dir := DirAccess.open(PRESET_DIR)
-	if dir == null:
-		push_warning("U_PostProcessingPresetValues: Cannot open preset directory '%s'" % PRESET_DIR)
-		return
-
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		if not dir.current_is_dir() and file_name.ends_with(".tres"):
-			var preset_path := PRESET_DIR + "/" + file_name
-			var resource: Resource = load(preset_path)
-			if resource != null and resource.get_script() == RS_POST_PROCESSING_PRESET:
-				_presets.append(resource)
-				if resource.preset_name != null and not resource.preset_name.is_empty():
-					_presets_by_name[resource.preset_name] = resource
-		file_name = dir.get_next()
-	dir.list_dir_end()
+	# Load from const preload array (mobile-safe)
+	for resource in _PRESET_RESOURCES:
+		if resource != null and resource.get_script() == RS_POST_PROCESSING_PRESET:
+			_presets.append(resource)
+			if resource.preset_name != null and not resource.preset_name.is_empty():
+				_presets_by_name[resource.preset_name] = resource
 
 	# Sort by sort_order
 	_presets.sort_custom(func(a, b): return a.sort_order < b.sort_order)
