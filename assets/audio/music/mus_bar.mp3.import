@@ -12,7 +12,7 @@ dest_files=["res://.godot/imported/mus_bar.mp3-dcdfcba85c818425bef2ca1c66f5bc34.
 
 [params]
 
-loop=false
+loop=true
 loop_offset=0
 bpm=0
 beat_count=0
