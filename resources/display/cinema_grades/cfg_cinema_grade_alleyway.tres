@@ -5,15 +5,16 @@
 [resource]
 script = ExtResource("1_script")
 scene_id = &"alleyway"
-filter_preset = "dramatic"
+filter_preset = "vivid_cold"
 filter_intensity = 0.47
-exposure = -0.35
-brightness = -0.01
-contrast = 1.19
-brilliance = 0.11
-highlights = -0.12
-shadows = -0.04
-saturation = 1.23
+exposure = -0.18
+brightness = -0.06
+contrast = 1.23
+brilliance = 0.01
+highlights = 0.08
+shadows = 0.04
+saturation = 1.37
 vibrance = 0.02
-warmth = 0.04
-tint = 0.1100000000000001
+warmth = -0.04
+tint = 0.11
+sharpness = 0.56

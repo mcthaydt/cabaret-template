@@ -227,7 +227,6 @@ omni_range = 15.0
 [node name="StreetLight_Warm" type="OmniLight3D" parent="Lighting" unique_id=888888803]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 3, -3)
 light_color = Color(1, 0.8, 0.6, 1)
-light_energy = 1.0
 omni_range = 8.0
 
 [node name="Managers" type="Node" parent="." unique_id=1732814566]
