@@ -873,7 +873,7 @@ func _on_load_pressed():
 - ❌ Spawning >16 simultaneous SFX without voice stealing (pool will exhaust)
 - ❌ Bypassing throttle_ms for rapid UI sounds (causes audio spam)
 
-## Display Manager Patterns (Phase 4 Complete)
+## Display Manager Patterns (Phase 11 Complete)
 
 ### Overview
 
@@ -984,9 +984,63 @@ func set_ui_scale(scale: float) -> void:
         "color_blind_mode": "normal",       # Valid: normal, deuteranopia, protanopia, tritanopia
         "high_contrast_enabled": false,
         "color_blind_shader_enabled": false,
+
+        # Cinema Grade (transient — loaded per-scene, NOT persisted)
+        "cinema_grade_filter_mode": 0,       # 0=none, 1-8=named filters
+        "cinema_grade_filter_intensity": 1.0,
+        "cinema_grade_exposure": 0.0,
+        "cinema_grade_brightness": 0.0,
+        "cinema_grade_contrast": 1.0,
+        "cinema_grade_brilliance": 0.0,
+        "cinema_grade_highlights": 0.0,
+        "cinema_grade_shadows": 0.0,
+        "cinema_grade_saturation": 1.0,
+        "cinema_grade_vibrance": 0.0,
+        "cinema_grade_warmth": 0.0,
+        "cinema_grade_tint": 0.0,
+        "cinema_grade_sharpness": 0.0,
     }
 }
 ```
+
+### Cinema Grading System (Phase 11)
+
+Per-scene cinematic color grading applied as the bottom-most post-process layer. Artistic direction, not a user preference — always active regardless of `post_processing_enabled`.
+
+**Layer Stack (bottom to top):**
+- CinemaGradeLayer = CanvasLayer 1
+- FilmGrainRect = CanvasLayer 2
+- DitherRect = CanvasLayer 3
+- CRTRect = CanvasLayer 4
+- ColorBlindRect = CanvasLayer 5
+- UIColorBlindLayer = CanvasLayer 11
+
+**Scene Transition Flow:**
+1. `action_dispatched` fires with `scene/transition_completed`
+2. `U_DisplayCinemaGradeApplier` extracts `scene_id` from payload
+3. Looks up `U_CinemaGradeRegistry.get_cinema_grade_for_scene(scene_id)` (returns neutral fallback if unmapped)
+4. Dispatches `U_CinemaGradeActions.load_scene_grade(grade.to_dictionary())`
+5. Display slice updates → hash change → `_apply_cinema_grade_settings()` sets shader uniforms
+
+**Action Prefix (`cinema_grade/` NOT `display/`):**
+- `cinema_grade/` prefix deliberately does NOT match `begins_with("display/")` in `U_GlobalSettingsSerialization.is_global_settings_action()`
+- This ensures cinema grade state is NOT persisted to `user://global_settings.json`
+- Per-scene grades are transient — loaded from `.tres` resources on each scene enter
+
+**Registry (mobile-safe):**
+```gdscript
+# U_CinemaGradeRegistry uses const preload arrays (no runtime DirAccess)
+const _SCENE_GRADE_PRELOADS := [
+    preload("res://resources/display/cinema_grades/cfg_cinema_grade_gameplay_base.tres"),
+    # ...
+]
+```
+
+**Editor Preview (@tool node):**
+- Drop `U_CinemaGradePreview` into any gameplay scene root
+- Assign a `RS_SceneCinemaGrade` resource in the inspector
+- Creates local CanvasLayer 100 + ColorRect with cinema grade shader
+- `queue_free()` at runtime (M_DisplayManager handles everything in-game)
 
 ### Thread Safety
 
@@ -1015,6 +1069,9 @@ func _apply_window_mode(mode: String) -> void:
 - ❌ Adding UIScaleRoot to nested widgets (causes compounding scale)
 - ❌ Using instant/sync applies during preview mode (blocks preview hash)
 - ❌ Relying on display settings auto-save (unlike audio, display uses M_SaveManager)
+- ❌ Using `display/` prefix for cinema grade actions (would persist to global_settings.json)
+- ❌ Gating cinema grade behind `post_processing_enabled` (it's artistic direction, always active)
+- ❌ Using runtime `DirAccess` in cinema grade registry (breaks on Android PCK)
 
 ## Test Commands
 

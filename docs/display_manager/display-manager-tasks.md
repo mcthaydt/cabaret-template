@@ -1,6 +1,6 @@
 # Display Manager Implementation Tasks
 
-**Progress:** 40% (32 / 81 tasks complete)
+**Progress:** 43% (35 / 81 tasks complete)
 
 **Estimated Test Count:** ~120 tests (90 unit + 30 integration)
 
@@ -639,6 +639,102 @@ Before starting Phase 0, verify:
 
 ---
 
+## Phase 11: Cinema Grading Post-Process System
+
+**Exit Criteria:** Per-scene cinema grading applies automatically on scene transition, editor preview works, style tests pass
+
+### Phase 11A: Shader
+
+- [x] **Task 11A.1**: Create cinema grade GLSL shader
+  - Create `assets/shaders/sh_cinema_grade_shader.gdshader`
+  - 13 adjustment uniforms (exposure, brightness, contrast, highlights, shadows, saturation, vibrance, brilliance, warmth, tint, sharpness, filter_mode, filter_intensity)
+  - 8 named filters (dramatic, dramatic_warm, dramatic_cold, vivid, vivid_warm, vivid_cold, black_and_white, sepia)
+  - Processing order: sharpness → exposure → white balance → brilliance → brightness → contrast → highlights/shadows → saturation → vibrance → filter → clamp
+  - Notes: Completed 2026-02-06
+
+### Phase 11B: Resource Class + Registry
+
+- [x] **Task 11B.1**: Create RS_SceneCinemaGrade resource class
+  - Create `scripts/resources/display/rs_scene_cinema_grade.gd`
+  - @export groups: Filter, Exposure & Brightness, Tone, Color, Detail
+  - `to_dictionary()` returns all values with `cinema_grade_` prefix
+  - `FILTER_PRESET_MAP` const maps string → int
+  - Notes: Completed 2026-02-06
+
+- [x] **Task 11B.2**: Create U_CinemaGradeRegistry
+  - Create `scripts/managers/helpers/display/u_cinema_grade_registry.gd`
+  - Mobile-safe `const preload` pattern (follows U_AudioRegistryLoader)
+  - `get_cinema_grade_for_scene(scene_id)` with neutral fallback
+  - Notes: Completed 2026-02-06
+
+- [x] **Task 11B.3**: Create per-scene .tres configs
+  - `resources/display/cinema_grades/cfg_cinema_grade_gameplay_base.tres`
+  - `resources/display/cinema_grades/cfg_cinema_grade_alleyway.tres`
+  - `resources/display/cinema_grades/cfg_cinema_grade_exterior.tres`
+  - `resources/display/cinema_grades/cfg_cinema_grade_interior_bar.tres`
+  - `resources/display/cinema_grades/cfg_cinema_grade_interior_house.tres`
+  - All start with neutral values (ready for tuning)
+  - Notes: Completed 2026-02-06
+
+### Phase 11C: Redux Integration
+
+- [x] **Task 11C.1**: Create U_CinemaGradeActions
+  - Create `scripts/state/actions/u_cinema_grade_actions.gd`
+  - `cinema_grade/` prefix (NOT persisted to global_settings.json)
+  - Actions: load_scene_grade, set_parameter, reset_to_scene_defaults
+  - Notes: Completed 2026-02-06
+
+- [x] **Task 11C.2**: Create U_CinemaGradeSelectors
+  - Create `scripts/state/selectors/u_cinema_grade_selectors.gd`
+  - One getter per parameter reading from display slice with `cinema_grade_` key prefix
+  - Notes: Completed 2026-02-06
+
+- [x] **Task 11C.3**: Modify U_DisplayReducer
+  - Add `U_CinemaGradeActions` const preload
+  - Add 3 match cases: ACTION_LOAD_SCENE_GRADE, ACTION_SET_PARAMETER, ACTION_RESET_TO_SCENE_DEFAULTS
+  - Notes: Completed 2026-02-06
+
+### Phase 11D: Applier + Manager Integration
+
+- [x] **Task 11D.1**: Create U_DisplayCinemaGradeApplier
+  - Create `scripts/managers/helpers/display/u_display_cinema_grade_applier.gd`
+  - Creates CinemaGradeLayer (CanvasLayer 1) inside PostProcessOverlay
+  - Listens for `scene/transition_completed` via `action_dispatched` signal
+  - Looks up registry → dispatches load_scene_grade action
+  - Sets shader uniforms from selectors
+  - Notes: Completed 2026-02-06
+
+- [x] **Task 11D.2**: Integrate with M_DisplayManager
+  - Add preload const, var, ensure_appliers, initialize, apply, visibility, cleanup
+  - Cinema grading independent of `post_processing_enabled` (always active)
+  - Notes: Completed 2026-02-06
+
+### Phase 11E: @tool Editor Preview
+
+- [x] **Task 11E.1**: Create U_CinemaGradePreview
+  - Create `scripts/utils/display/u_cinema_grade_preview.gd`
+  - `@tool` script extending Node
+  - `@export var cinema_grade: Resource` with setter calling `_update_preview()`
+  - Editor: creates CanvasLayer 100 + ColorRect with shader
+  - Runtime: `queue_free()` (M_DisplayManager handles everything)
+  - `_get_configuration_warnings()` warns if no resource assigned
+  - Notes: Completed 2026-02-06
+
+### Phase 11F: Verification
+
+- [x] **Task 11F.1**: Run style enforcement tests
+  - All 11/11 style tests pass (no naming violations)
+  - Notes: Completed 2026-02-06
+
+- [ ] **Task 11F.2**: Manual visual verification
+  - Temp scene shader test (all uniforms)
+  - Scene transition grade swap
+  - Editor preview
+  - Overlay visibility (pause menu hide/show)
+  - Stacking with existing effects
+
+---
+
 ## Notes
 
 - Record decisions, follow-ups, or blockers here as implementation progresses
@@ -649,6 +745,9 @@ Before starting Phase 0, verify:
 - Settings UI uses **overlay pattern** in `scenes/ui/overlays/` (not separate settings directory)
 - Post-process overlay uses **layer 100** (above gameplay layer 0, below UI overlays)
 - Display settings auto-save via global settings persistence (M_StateStore → `user://global_settings.json`); M_SaveManager excludes display slice
+- Cinema grade uses `cinema_grade/` action prefix (NOT `display/`), so it is NOT persisted to global_settings.json — per-scene artistic direction, not a user setting
+- CinemaGradeLayer at CanvasLayer 1 (below FilmGrain=2, Dither=3, CRT=4, ColorBlind=5) — grading applied first, stylistic effects on top
+- Cinema grading is independent of `post_processing_enabled` toggle — always active as artistic direction
 
 **Prerequisite check:**
 - [ ] Audio Manager Phase 0 complete (audio_initial_state exists in u_state_slice_manager)
@@ -733,6 +832,23 @@ Before starting Phase 0, verify:
 | `tests/integration/display/test_post_processing.gd` | Test | Post-processing integration (10) |
 | `tests/integration/display/test_color_blind_palettes.gd` | Test | Color blind integration (5) |
 
+### Cinema Grade Files (Phase 11)
+
+| File | Type | Description |
+|------|------|-------------|
+| `assets/shaders/sh_cinema_grade_shader.gdshader` | Shader | GLSL cinema grade shader (13 uniforms + 8 filters) |
+| `scripts/resources/display/rs_scene_cinema_grade.gd` | Resource | Per-scene cinema grade config with @export groups |
+| `scripts/managers/helpers/display/u_cinema_grade_registry.gd` | Registry | Scene→grade mapping (mobile-safe const preload) |
+| `scripts/managers/helpers/display/u_display_cinema_grade_applier.gd` | Applier | Creates CinemaGradeLayer, listens for scene transitions |
+| `scripts/state/actions/u_cinema_grade_actions.gd` | Actions | cinema_grade/ prefix actions (not persisted) |
+| `scripts/state/selectors/u_cinema_grade_selectors.gd` | Selectors | Cinema grade parameter selectors |
+| `scripts/utils/display/u_cinema_grade_preview.gd` | @tool | Editor viewport preview node |
+| `resources/display/cinema_grades/cfg_cinema_grade_gameplay_base.tres` | Config | Gameplay base scene grade |
+| `resources/display/cinema_grades/cfg_cinema_grade_alleyway.tres` | Config | Alleyway scene grade |
+| `resources/display/cinema_grades/cfg_cinema_grade_exterior.tres` | Config | Exterior scene grade |
+| `resources/display/cinema_grades/cfg_cinema_grade_interior_bar.tres` | Config | Interior bar scene grade |
+| `resources/display/cinema_grades/cfg_cinema_grade_interior_house.tres` | Config | Interior house scene grade |
+
 ### Files to Modify
 
 | File | Changes |
@@ -748,3 +864,5 @@ Before starting Phase 0, verify:
 | `scenes/ui/hud/*.tscn` | Add UIScaleRoot helper node |
 | `AGENTS.md` | Add Display Manager Patterns section (after Audio Manager) |
 | `docs/general/DEV_PITFALLS.md` | Add Display-specific pitfalls if discovered |
+| `scripts/state/reducers/u_display_reducer.gd` | Add U_CinemaGradeActions const + 3 cinema_grade/ match cases (Phase 11) |
+| `scripts/managers/m_display_manager.gd` | Add cinema grade applier preload, var, ensure, init, apply, visibility, cleanup (Phase 11) |

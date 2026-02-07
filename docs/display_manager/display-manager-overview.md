@@ -2,9 +2,9 @@
 
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-01-02
-**Updated**: 2026-01-31
-**Status**: PLANNING
-**Scope**: Stacking Post-Processing, Display/Graphics Settings, UI Scaling, Color Blind Accessibility
+**Updated**: 2026-02-06
+**Status**: IMPLEMENTATION (Phase 11 Complete)
+**Scope**: Stacking Post-Processing, Display/Graphics Settings, UI Scaling, Color Blind Accessibility, Cinema Grading
 
 ## Summary
 
@@ -34,7 +34,6 @@ The Display Manager handles visual post-processing effects, graphics quality set
 - Weather effects.
 - Ray tracing / advanced GI.
 - Custom shader authoring UI.
-- Per-scene post-processing overrides (all scenes use global settings).
 - Screen shake or damage flash (owned by VFX Manager).
 
 ## Responsibilities & Boundaries
@@ -43,6 +42,7 @@ The Display Manager handles visual post-processing effects, graphics quality set
 
 - Post-processing effect overlay (CanvasLayer + ColorRect + shader).
 - Post-processing effect stack (Film Grain, Dither, CRT, optional color blind filter).
+- Per-scene cinema grading (CinemaGradeLayer at layer 1, below post-process effects).
 - Graphics settings application (window mode, VSync, quality presets).
 - UI scaling factor application to CanvasLayer roots.
 - Color blind palette loading and application.
@@ -135,11 +135,99 @@ U_DisplaySelectors.get_dither_pattern(state: Dictionary) -> String
         "color_blind_mode": "normal",  # normal, deuteranopia, protanopia, tritanopia
         "high_contrast_enabled": false,
         "color_blind_shader_enabled": false,
+
+        # Cinema Grade (transient — loaded per-scene via cinema_grade/ actions, NOT persisted)
+        "cinema_grade_filter_mode": 0,       # 0=none, 1-8=named filters
+        "cinema_grade_filter_intensity": 1.0,
+        "cinema_grade_exposure": 0.0,
+        "cinema_grade_brightness": 0.0,
+        "cinema_grade_contrast": 1.0,
+        "cinema_grade_brilliance": 0.0,
+        "cinema_grade_highlights": 0.0,
+        "cinema_grade_shadows": 0.0,
+        "cinema_grade_saturation": 1.0,
+        "cinema_grade_vibrance": 0.0,
+        "cinema_grade_warmth": 0.0,
+        "cinema_grade_tint": 0.0,
+        "cinema_grade_sharpness": 0.0,
     }
 }
 ```
 
-**Note**: Display settings persist to `user://global_settings.json` (not save slots).
+**Note**: Display settings (with `display/` prefix) persist to `user://global_settings.json` (not save slots). Cinema grade settings (with `cinema_grade/` prefix) are transient and NOT persisted.
+
+## Cinema Grading System (Phase 11)
+
+### Overview
+
+Per-scene artistic color grading as an additional post-process layer, separate from user-facing display settings. Each gameplay scene defines its look via a `RS_SceneCinemaGrade` resource, loaded automatically on scene transitions.
+
+### Architecture
+
+- **Shader**: `sh_cinema_grade_shader.gdshader` — single GLSL shader with 13 adjustment uniforms + 8 named filters
+- **Resource**: `RS_SceneCinemaGrade` — @export properties for each parameter + `to_dictionary()`
+- **Registry**: `U_CinemaGradeRegistry` — maps scene_id → resource using const preload arrays (mobile-safe)
+- **Applier**: `U_DisplayCinemaGradeApplier` — creates CinemaGradeLayer (CanvasLayer 1) inside PostProcessOverlay
+- **Redux**: `cinema_grade/` action prefix stored in display slice but NOT persisted (not a user setting)
+- **Preview**: `U_CinemaGradePreview` — @tool node for editor viewport preview, auto-removes at runtime
+
+### Layer Stack
+
+| Layer | Effect | Description |
+|-------|--------|-------------|
+| 1 | CinemaGradeLayer | Per-scene artistic grading (always active) |
+| 2 | FilmGrainLayer | User-toggled film grain |
+| 3 | DitherLayer | User-toggled dither |
+| 4 | CRTLayer | User-toggled CRT filter |
+| 5 | ColorBlindLayer | Color blind simulation |
+| 11 | UIColorBlindLayer | UI-only color blind filter |
+
+### Scene Transition Flow
+
+1. `action_dispatched` fires with `scene/transition_completed`
+2. Applier extracts `scene_id` from payload
+3. Looks up `U_CinemaGradeRegistry.get_cinema_grade_for_scene(scene_id)`
+4. Dispatches `U_CinemaGradeActions.load_scene_grade(grade.to_dictionary())`
+5. Display slice updates → `_on_slice_updated` → `_apply_display_settings` → `_apply_cinema_grade_settings`
+
+### Adjustments
+
+| Parameter | Range | Description |
+|-----------|-------|-------------|
+| exposure | -3.0 to 3.0 | EV stops |
+| brightness | -1.0 to 1.0 | Linear brightness shift |
+| contrast | 0.0 to 3.0 | Midpoint contrast |
+| highlights | -1.0 to 1.0 | Bright region adjustment |
+| shadows | -1.0 to 1.0 | Dark region adjustment |
+| saturation | 0.0 to 3.0 | Global saturation |
+| vibrance | -1.0 to 1.0 | Selective saturation |
+| brilliance | -1.0 to 1.0 | Inverse-luminance adaptive lift |
+| warmth | -1.0 to 1.0 | White balance warm/cool |
+| tint | -1.0 to 1.0 | Green/magenta tint |
+| sharpness | 0.0 to 2.0 | Unsharp mask |
+
+### Named Filters
+
+| Filter | filter_mode | Description |
+|--------|-------------|-------------|
+| None | 0 | No filter |
+| Dramatic | 1 | High contrast, pulled highlights, lifted shadows, slight desaturation |
+| Dramatic Warm | 2 | Dramatic + warm tones |
+| Dramatic Cold | 3 | Dramatic + cool tones |
+| Vivid | 4 | Boosted saturation + contrast |
+| Vivid Warm | 5 | Vivid + warm tones |
+| Vivid Cold | 6 | Vivid + cool tones |
+| Black & White | 7 | Full desaturation + contrast boost |
+| Sepia | 8 | Desaturated with sepia toning |
+
+### Key Design Decisions
+
+- Cinema grading is **independent of `post_processing_enabled`** — always active as artistic direction
+- `cinema_grade/` prefix does NOT match `begins_with("display/")` — **not persisted** to global_settings.json
+- Per-scene grades are transient (loaded from resource on each scene enter)
+- CinemaGradeLayer at layer 1 (below user post-process effects) — grading applied first, stylistic effects on top
+
+---
 
 ## Post-Processing System (CanvasLayer + Shader)
 
@@ -298,25 +386,33 @@ scripts/managers/helpers/
   u_post_process_layer.gd           # CanvasLayer effect manager
   u_palette_manager.gd              # Color blind palette loading
 
+scripts/managers/helpers/display/
+  u_cinema_grade_registry.gd        # Scene→grade mapping (mobile-safe)
+  u_display_cinema_grade_applier.gd # Cinema grade applier (CanvasLayer 1)
+
 scripts/resources/state/
   rs_display_initial_state.gd       # Initial state resource
 
 scripts/resources/display/
   rs_quality_preset.gd              # Quality preset resource class
+  rs_scene_cinema_grade.gd          # Per-scene cinema grade config (Phase 11)
 
 scripts/resources/ui/
   rs_ui_color_palette.gd            # Color palette resource class
 
 scripts/state/actions/
   u_display_actions.gd
+  u_cinema_grade_actions.gd         # cinema_grade/ prefix (not persisted) (Phase 11)
 
 scripts/state/reducers/
-  u_display_reducer.gd
+  u_display_reducer.gd              # Also handles cinema_grade/ actions (Phase 11)
 
 scripts/state/selectors/
   u_display_selectors.gd
+  u_cinema_grade_selectors.gd       # Cinema grade parameter selectors (Phase 11)
 
 assets/shaders/
+  sh_cinema_grade_shader.gdshader   # Per-scene cinema grading (Phase 11)
   sh_film_grain_shader.gdshader
   sh_crt_shader.gdshader
   sh_dither_shader.gdshader
@@ -339,8 +435,18 @@ resources/ui_themes/
   cfg_palette_tritanopia.tres
   cfg_palette_high_contrast.tres
 
+resources/display/cinema_grades/
+  cfg_cinema_grade_gameplay_base.tres  # Per-scene configs (Phase 11)
+  cfg_cinema_grade_alleyway.tres
+  cfg_cinema_grade_exterior.tres
+  cfg_cinema_grade_interior_bar.tres
+  cfg_cinema_grade_interior_house.tres
+
 resources/textures/
   tex_bayer_8x8.png
+
+scripts/utils/display/
+  u_cinema_grade_preview.gd         # @tool editor preview (Phase 11)
 
 scenes/ui/overlays/
   ui_post_process_overlay.tscn      # CanvasLayer with effect ColorRects
