@@ -61,14 +61,11 @@ func _update_preview() -> void:
 	_preview_rect.visible = true
 
 	var grade := cinema_grade as Resource
-	var filter_preset_map := {
-		"none": 0, "dramatic": 1, "dramatic_warm": 2, "dramatic_cold": 3,
-		"vivid": 4, "vivid_warm": 5, "vivid_cold": 6,
-		"black_and_white": 7, "sepia": 8,
-	}
 
+	# Use RS_SceneCinemaGrade.FILTER_PRESET_MAP (single source of truth)
+	const RS_SceneCinemaGrade := preload("res://scripts/resources/display/rs_scene_cinema_grade.gd")
 	var filter_preset: String = grade.get("filter_preset") if grade.get("filter_preset") != null else "none"
-	_shader_material.set_shader_parameter("filter_mode", filter_preset_map.get(filter_preset, 0))
+	_shader_material.set_shader_parameter("filter_mode", RS_SceneCinemaGrade.FILTER_PRESET_MAP.get(filter_preset, 0))
 	_shader_material.set_shader_parameter("filter_intensity", _get_prop(grade, "filter_intensity", 1.0))
 	_shader_material.set_shader_parameter("exposure", _get_prop(grade, "exposure", 0.0))
 	_shader_material.set_shader_parameter("brightness", _get_prop(grade, "brightness", 0.0))
