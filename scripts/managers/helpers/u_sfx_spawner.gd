@@ -22,6 +22,7 @@ static var _stats: Dictionary = {
 	"drops": 0,
 	"peak_usage": 0
 }
+static var _warned_uninitialized: bool = false
 
 static func set_spatial_audio_enabled(enabled: bool) -> void:
 	_spatial_audio_enabled = enabled
@@ -130,6 +131,9 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
 	if audio_stream == null:
 		return null
 
+	if _pool.is_empty():
+		_warn_uninitialized()
+
 	var player := _get_available_player()
 	if player == null:
 		# Voice stealing: steal oldest playing sound
@@ -170,6 +174,11 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
 	if follow_target_variant is Node3D:
 		follow_target = follow_target_variant as Node3D
 
+	var emitter_variant: Variant = config.get("debug_emitter", null)
+	var emitter: Node3D = null
+	if emitter_variant is Node3D:
+		emitter = emitter_variant as Node3D
+
 	if player.playing:
 		player.stop()
 
@@ -193,6 +202,12 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
 	_update_peak_usage()
 
 	return player
+
+static func _warn_uninitialized() -> void:
+	if _warned_uninitialized:
+		return
+	_warned_uninitialized = true
+	push_warning("U_SFXSpawner.spawn_3d: SFX pool not initialized. Ensure M_AudioManager is in the scene or call U_SFXSpawner.initialize(...) before playing SFX.")
 
 static func _configure_player_spatialization(
 	player: AudioStreamPlayer3D,
@@ -230,8 +245,12 @@ static func _steal_oldest_voice() -> AudioStreamPlayer3D:
 	var oldest_time: int = 2147483647  # Max int
 
 	for player_variant in _pool:
+		if player_variant == null:
+			continue
+		if not is_instance_valid(player_variant):
+			continue
 		var player := player_variant as AudioStreamPlayer3D
-		if player == null or not is_instance_valid(player):
+		if player == null:
 			continue
 		if not player.playing:
 			continue
@@ -270,10 +289,12 @@ static func _update_peak_usage() -> void:
 
 static func _get_available_player() -> AudioStreamPlayer3D:
 	for player_variant in _pool:
+		if player_variant == null:
+			continue
+		if not is_instance_valid(player_variant):
+			continue
 		var player := player_variant as AudioStreamPlayer3D
 		if player == null:
-			continue
-		if not is_instance_valid(player):
 			continue
 		var in_use := bool(_player_in_use.get(player, false))
 		if not in_use:

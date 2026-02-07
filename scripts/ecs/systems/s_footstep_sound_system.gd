@@ -23,6 +23,10 @@ const FLOATING_TYPE := StringName("C_FloatingComponent")
 ## Per-entity timers tracking time since last footstep
 ## Key: CharacterBody3D, Value: float (time in seconds)
 var _entity_timers: Dictionary = {}
+var _warned_missing_manager: bool = false
+var _warned_no_entities: bool = false
+var _warned_missing_body: bool = false
+const DEBUG_VERSION := "2026-02-03a"
 
 ## Injected state store (for testing and pause detection)
 @export var state_store: I_StateStore = null
@@ -30,6 +34,9 @@ var _entity_timers: Dictionary = {}
 func _exit_tree() -> void:
 	# Phase 6.10: Clean up entity timers to prevent memory leaks
 	_entity_timers.clear()
+
+func _ready() -> void:
+	super._ready()
 
 func process_tick(delta: float) -> void:
 	# Early exit if disabled or no settings
@@ -51,6 +58,9 @@ func process_tick(delta: float) -> void:
 	# Get manager
 	var manager := get_manager()
 	if manager == null:
+		if not _warned_missing_manager:
+			_warned_missing_manager = true
+			push_warning("S_FootstepSoundSystem: ECS manager not found; footsteps will not play. Ensure M_ECSManager is present or injected.")
 		return
 
 	# Query entities that have surface detector components (floating is optional)
@@ -58,6 +68,11 @@ func process_tick(delta: float) -> void:
 		[SURFACE_DETECTOR_TYPE],
 		[FLOATING_TYPE]
 	)
+	if entities.is_empty():
+		if not _warned_no_entities and Engine.get_physics_frames() > 5:
+			_warned_no_entities = true
+			push_warning("S_FootstepSoundSystem: No entities with C_SurfaceDetectorComponent registered. Check player prefab/component wiring.")
+		return
 	var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, FLOATING_TYPE)
 
 	for entity_query in entities:
@@ -68,6 +83,9 @@ func process_tick(delta: float) -> void:
 		# Get the entity's CharacterBody3D via the wired character_body_path
 		var body := surface_detector.get_character_body()
 		if body == null:
+			if not _warned_missing_body:
+				_warned_missing_body = true
+				push_warning("S_FootstepSoundSystem: Surface detector has no CharacterBody3D (invalid character_body_path).")
 			continue
 
 		# Get floating component if available (for hover-based characters)
@@ -152,4 +170,5 @@ func _play_footstep(body: CharacterBody3D, surface_detector: C_SurfaceDetectorCo
 		"volume_db": settings.volume_db,
 		"pitch_scale": pitch_scale,
 		"bus": "Footsteps",
+		"debug_emitter": body,
 	})

@@ -33,10 +33,10 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 			8
 		)
 
-	if not scenes.has(StringName("exterior")):
+	if not scenes.has(StringName("alleyway")):
 		register_scene_callable.call(
-			StringName("exterior"),
-			"res://scenes/gameplay/gameplay_exterior.tscn",
+			StringName("alleyway"),
+			"res://scenes/gameplay/gameplay_alleyway.tscn",
 			U_SceneRegistry.SceneType.GAMEPLAY,
 			"loading",
 			6
@@ -46,6 +46,15 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 		register_scene_callable.call(
 			StringName("interior_house"),
 			"res://scenes/gameplay/gameplay_interior_house.tscn",
+			U_SceneRegistry.SceneType.GAMEPLAY,
+			"loading",
+			6
+		)
+
+	if not scenes.has(StringName("interior_bar")):
+		register_scene_callable.call(
+			StringName("interior_bar"),
+			"res://scenes/gameplay/gameplay_interior_bar.tscn",
 			U_SceneRegistry.SceneType.GAMEPLAY,
 			"loading",
 			6
@@ -73,6 +82,15 @@ func backfill_default_gameplay_scenes(scenes: Dictionary, register_scene_callabl
 		register_scene_callable.call(
 			StringName("vfx_settings"),
 			"res://scenes/ui/overlays/settings/ui_vfx_settings_overlay.tscn",
+			U_SceneRegistry.SceneType.UI,
+			"instant",
+			5
+		)
+
+	if not scenes.has(StringName("display_settings")):
+		register_scene_callable.call(
+			StringName("display_settings"),
+			"res://scenes/ui/overlays/settings/ui_display_settings_overlay.tscn",
 			U_SceneRegistry.SceneType.UI,
 			"instant",
 			5

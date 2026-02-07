@@ -1,5 +1,13 @@
 extends GutTest
 
+const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
+
+func before_each() -> void:
+	_cleanup_global_settings_files()
+
+func after_each() -> void:
+	_cleanup_global_settings_files()
+
 func test_save_and_load_preserves_vector2_joystick_position() -> void:
 	var settings := {
 		"active_profile_id": "default",
@@ -9,13 +17,14 @@ func test_save_and_load_preserves_vector2_joystick_position() -> void:
 		}
 	}
 
-	var saved := U_InputSerialization.save_settings(settings)
+	var saved := U_GLOBAL_SETTINGS_SERIALIZATION.save_settings({"input_settings": settings})
 	assert_true(saved, "Save should succeed")
 
-	var loaded := U_InputSerialization.load_settings()
+	var loaded := U_GLOBAL_SETTINGS_SERIALIZATION.load_settings()
 	assert_not_null(loaded, "Load should succeed")
 
-	var touchscreen: Dictionary = loaded.get("touchscreen_settings", {})
+	var input_settings: Dictionary = loaded.get("input_settings", {})
+	var touchscreen: Dictionary = input_settings.get("touchscreen_settings", {})
 	var joystick_pos: Variant = touchscreen.get("custom_joystick_position")
 
 	assert_true(joystick_pos is Vector2, "Loaded joystick position should be Vector2, not dict")
@@ -33,11 +42,12 @@ func test_save_and_load_preserves_vector2_button_positions() -> void:
 		}
 	}
 
-	var saved := U_InputSerialization.save_settings(settings)
+	var saved := U_GLOBAL_SETTINGS_SERIALIZATION.save_settings({"input_settings": settings})
 	assert_true(saved, "Save should succeed")
 
-	var loaded := U_InputSerialization.load_settings()
-	var touchscreen: Dictionary = loaded.get("touchscreen_settings", {})
+	var loaded := U_GLOBAL_SETTINGS_SERIALIZATION.load_settings()
+	var input_settings: Dictionary = loaded.get("input_settings", {})
+	var touchscreen: Dictionary = input_settings.get("touchscreen_settings", {})
 	var button_positions: Dictionary = touchscreen.get("custom_button_positions", {})
 
 	var jump_pos: Variant = button_positions.get("jump")
@@ -58,11 +68,12 @@ func test_save_and_load_preserves_sentinel_value() -> void:
 		}
 	}
 
-	var saved := U_InputSerialization.save_settings(settings)
+	var saved := U_GLOBAL_SETTINGS_SERIALIZATION.save_settings({"input_settings": settings})
 	assert_true(saved, "Save should succeed")
 
-	var loaded := U_InputSerialization.load_settings()
-	var touchscreen: Dictionary = loaded.get("touchscreen_settings", {})
+	var loaded := U_GLOBAL_SETTINGS_SERIALIZATION.load_settings()
+	var input_settings: Dictionary = loaded.get("input_settings", {})
+	var touchscreen: Dictionary = input_settings.get("touchscreen_settings", {})
 	var joystick_pos: Variant = touchscreen.get("custom_joystick_position")
 
 	assert_true(joystick_pos is Vector2, "Sentinel value should remain Vector2")
@@ -79,10 +90,10 @@ func test_json_file_contains_dict_format_not_vector2() -> void:
 		}
 	}
 
-	U_InputSerialization.save_settings(settings)
+	U_GLOBAL_SETTINGS_SERIALIZATION.save_settings({"input_settings": settings})
 
 	# Read raw JSON file
-	var file := FileAccess.open("user://input_settings.json", FileAccess.READ)
+	var file := FileAccess.open("user://global_settings.json", FileAccess.READ)
 	assert_not_null(file, "JSON file should exist")
 
 	var json_text := file.get_as_text()
@@ -91,7 +102,8 @@ func test_json_file_contains_dict_format_not_vector2() -> void:
 	var parsed: Variant = JSON.parse_string(json_text)
 	assert_true(parsed is Dictionary, "JSON should parse to dictionary")
 
-	var touchscreen: Dictionary = (parsed as Dictionary).get("touchscreen_settings", {})
+	var input_settings: Dictionary = (parsed as Dictionary).get("input_settings", {})
+	var touchscreen: Dictionary = input_settings.get("touchscreen_settings", {})
 	var joystick_pos: Variant = touchscreen.get("custom_joystick_position")
 
 	# Verify it's stored as {x, y} dict, NOT Vector2
@@ -113,8 +125,18 @@ func test_load_handles_missing_touchscreen_fields_gracefully() -> void:
 		"touchscreen_settings": {}
 	}
 
-	U_InputSerialization.save_settings(settings)
-	var loaded := U_InputSerialization.load_settings()
+	U_GLOBAL_SETTINGS_SERIALIZATION.save_settings({"input_settings": settings})
+	var loaded := U_GLOBAL_SETTINGS_SERIALIZATION.load_settings()
 
-	var touchscreen: Dictionary = loaded.get("touchscreen_settings", {})
+	var input_settings: Dictionary = loaded.get("input_settings", {})
+	var touchscreen: Dictionary = input_settings.get("touchscreen_settings", {})
 	assert_not_null(touchscreen, "Empty touchscreen_settings should load without error")
+
+func _cleanup_global_settings_files() -> void:
+	var dir := DirAccess.open("user://")
+	if dir == null:
+		return
+	if dir.file_exists("global_settings.json"):
+		dir.remove("global_settings.json")
+	if dir.file_exists("global_settings.json.backup"):
+		dir.remove("global_settings.json.backup")

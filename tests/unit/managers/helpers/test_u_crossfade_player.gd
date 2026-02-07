@@ -74,7 +74,9 @@ func test_crossfade_to_fades_new_player_in() -> void:
 	var stream := AudioStreamGenerator.new()
 
 	_crossfader.crossfade_to(stream, &"test_track", 0.1, 0.0)
-	await get_tree().create_timer(0.15).timeout
+	await get_tree().process_frame
+	if _crossfader._tween != null and _crossfader._tween.is_valid():
+		await _crossfader._tween.finished
 
 	# After crossfade completes, new player should be at 0dB
 	assert_almost_eq(_crossfader._active_player.volume_db, 0.0, 1.0, "New player should fade to 0dB")

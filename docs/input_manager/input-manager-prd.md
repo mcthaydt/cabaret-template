@@ -475,7 +475,7 @@ See: docs/input_manager/input-manager-plan.md (Risks & Mitigations)
    - **Decision**: Resources (.tres) for built-in profiles, JSON for persistence/custom profiles
    - **Implementation**:
      - `RS_InputProfile` Resource class for built-in profiles
-     - JSON serialization for saved settings at `user://input_settings.json`
+     - JSON serialization for saved settings at `user://global_settings.json`
    - **Rationale**: Type-safe editor resources + human-readable persistence
 
 7. **Manager Location: PERSISTENT IN root.tscn (CONFIRMED)**
@@ -497,7 +497,7 @@ See: docs/input_manager/input-manager-plan.md (Risks & Mitigations)
    - **Rationale**: Consistency with existing ECS architecture
 
 10. **Persistence Format: JSON (CONFIRMED)**
-    - **Decision**: JSON at `user://input_settings.json`
+    - **Decision**: JSON at `user://global_settings.json`
     - **Implementation**: `JSON.stringify()` / `JSON.parse_string()` for structured data
     - **Rationale**: Easier schema validation and version migration than ConfigFile
 
@@ -527,72 +527,74 @@ See: docs/input_manager/input-manager-plan.md (Risks & Mitigations)
 
 ### Persistence Schema (JSON)
 
-Complete schema for `user://input_settings.json`:
+Complete schema for `input_settings` inside `user://global_settings.json`:
 
 ```json
 {
   "version": "1.0.0",
-  "active_profile_id": "default",
-  "custom_bindings": {
-    "move_forward": [
-      {"type": "key", "keycode": 87},
-      {"type": "joypad_button", "button_index": 12}
-    ],
-    "move_backward": [
-      {"type": "key", "keycode": 83},
-      {"type": "joypad_button", "button_index": 13}
-    ],
-    "move_left": [
-      {"type": "key", "keycode": 65},
-      {"type": "joypad_button", "button_index": 14}
-    ],
-    "move_right": [
-      {"type": "key", "keycode": 68},
-      {"type": "joypad_button", "button_index": 15}
-    ],
-    "jump": [
-      {"type": "key", "keycode": 32},
-      {"type": "joypad_button", "button_index": 0}
-    ],
-    "sprint": [
-      {"type": "key", "keycode": 4194325},
-      {"type": "joypad_button", "button_index": 1}
-    ],
-    "interact": [
-      {"type": "key", "keycode": 69},
-      {"type": "joypad_button", "button_index": 2}
-    ],
-    "toggle_debug_overlay": [
-      {"type": "key", "keycode": 16777244}
-    ]
-  },
-  "gamepad_settings": {
-    "left_stick_deadzone": 0.2,
-    "right_stick_deadzone": 0.2,
-    "vibration_enabled": true,
-    "vibration_intensity": 1.0,
-    "invert_y_axis": false
-  },
-  "mouse_settings": {
-    "sensitivity": 1.0,
-    "invert_y_axis": false
-  },
-  "touchscreen_settings": {
-    "joystick_size": 100.0,
-    "joystick_opacity": 0.7,
-    "joystick_position": {"x": 100.0, "y": 500.0},
-    "button_size": 80.0,
-    "button_opacity": 0.7,
-    "button_positions": {
-      "jump": {"x": 900.0, "y": 500.0},
-      "sprint": {"x": 820.0, "y": 450.0},
-      "interact": {"x": 980.0, "y": 450.0}
+  "input_settings": {
+    "active_profile_id": "default",
+    "custom_bindings": {
+      "move_forward": [
+        {"type": "key", "keycode": 87},
+        {"type": "joypad_button", "button_index": 12}
+      ],
+      "move_backward": [
+        {"type": "key", "keycode": 83},
+        {"type": "joypad_button", "button_index": 13}
+      ],
+      "move_left": [
+        {"type": "key", "keycode": 65},
+        {"type": "joypad_button", "button_index": 14}
+      ],
+      "move_right": [
+        {"type": "key", "keycode": 68},
+        {"type": "joypad_button", "button_index": 15}
+      ],
+      "jump": [
+        {"type": "key", "keycode": 32},
+        {"type": "joypad_button", "button_index": 0}
+      ],
+      "sprint": [
+        {"type": "key", "keycode": 4194325},
+        {"type": "joypad_button", "button_index": 1}
+      ],
+      "interact": [
+        {"type": "key", "keycode": 69},
+        {"type": "joypad_button", "button_index": 2}
+      ],
+      "toggle_debug_overlay": [
+        {"type": "key", "keycode": 16777244}
+      ]
+    },
+    "gamepad_settings": {
+      "left_stick_deadzone": 0.2,
+      "right_stick_deadzone": 0.2,
+      "vibration_enabled": true,
+      "vibration_intensity": 1.0,
+      "invert_y_axis": false
+    },
+    "mouse_settings": {
+      "sensitivity": 1.0,
+      "invert_y_axis": false
+    },
+    "touchscreen_settings": {
+      "joystick_size": 100.0,
+      "joystick_opacity": 0.7,
+      "joystick_position": {"x": 100.0, "y": 500.0},
+      "button_size": 80.0,
+      "button_opacity": 0.7,
+      "button_positions": {
+        "jump": {"x": 900.0, "y": 500.0},
+        "sprint": {"x": 820.0, "y": 450.0},
+        "interact": {"x": 980.0, "y": 450.0}
+      }
+    },
+    "accessibility": {
+      "buffer_window_multiplier": 3.0,
+      "toggle_sprint": false,
+      "hold_to_interact_duration": 0.5
     }
-  },
-  "accessibility": {
-    "buffer_window_multiplier": 3.0,
-    "toggle_sprint": false,
-    "hold_to_interact_duration": 0.5
   }
 }
 ```
@@ -621,7 +623,7 @@ Complete schema for `user://input_settings.json`:
 **Migration Strategy**:
 - Version 1.0.0 → 1.1.0: Add new fields with defaults, preserve existing fields
 - If schema version newer than known version, attempt load with graceful degradation
-- Backup corrupted files to `user://input_settings.json.backup`
+- Backup corrupted files to `user://global_settings.json.backup`
 - Always validate after parse, never trust loaded data
 
 ### Coverage Measurement Strategy
@@ -788,7 +790,7 @@ See: docs/input_manager/input-manager-plan.md (Edge Cases & Validation)
 
 ### What happens when save file contains invalid custom bindings?
 
-**Scenario**: user://input_settings.json corrupted or manually edited with invalid data.
+**Scenario**: user://global_settings.json corrupted or manually edited with invalid data.
 
 **System Behavior**:
 1. M_InputProfileManager.load_custom_bindings() reads JSON
@@ -802,7 +804,7 @@ See: docs/input_manager/input-manager-plan.md (Edge Cases & Validation)
 5. Invalid entries skipped, valid entries applied
 6. Falls back to default profile for skipped actions
 7. User sees notification: "Some custom bindings could not be loaded. Defaults restored for affected actions."
-8. Corrupted file backed up to user://input_settings.json.backup
+8. Corrupted file backed up to user://global_settings.json.backup
 9. New valid file saved on next successful rebind
 
 **Edge Case**: Entire file unreadable
@@ -1012,11 +1014,11 @@ See: docs/input_manager/input-manager-plan.md (Edge Cases & Validation)
 
 **Acceptance Scenarios**:
 
-1. **Given** game launches, **When** M_InputProfileManager initializes, **Then** loads active_profile_id from user://input_settings.json
+1. **Given** game launches, **When** M_InputProfileManager initializes, **Then** loads active_profile_id from user://global_settings.json
 2. **Given** no saved profile exists, **When** M_InputProfileManager initializes, **Then** defaults to "default" profile
 3. **Given** player opens Input Settings, **When** UI displays, **Then** shows list of available profiles (Default, Alternate, Accessibility)
 4. **Given** player selects "Alternate" profile, **When** profile switched, **Then** M_InputProfileManager applies new action mappings to InputMap within 200ms
-5. **Given** player selects "Alternate" profile, **When** profile switched, **Then** active_profile_id saved to user://input_settings.json
+5. **Given** player selects "Alternate" profile, **When** profile switched, **Then** active_profile_id saved to user://global_settings.json
 6. **Given** "Alternate" profile active, **When** game restarts, **Then** M_InputProfileManager loads "Alternate" profile automatically
 7. **Given** profile switch occurs, **When** device_changed signal emits, **Then** HUD updates button prompts to match new profile bindings
 8. **Given** player in gameplay, **When** attempts to switch profile, **Then** system shows error "Cannot switch profiles during gameplay. Pause first."
@@ -1069,7 +1071,7 @@ See: docs/input_manager/input-manager-plan.md (Edge Cases & Validation)
 5. **Given** player confirms replacement, **When** rebind applied, **Then** Sprint binding cleared and Jump gets RMB binding
 6. **Given** player cancels conflict dialog, **When** cancel pressed, **Then** original bindings preserved, rebind mode exits
 7. **Given** player attempts to rebind Pause action, **When** RS_RebindSettings marks Pause as reserved, **Then** validation fails with error "Cannot rebind reserved action"
-8. **Given** rebind succeeds, **When** U_InputRebindUtils.rebind_action() completes, **Then** M_InputProfileManager.save_custom_bindings() writes to user://input_settings.json within 100ms
+8. **Given** rebind succeeds, **When** U_InputRebindUtils.rebind_action() completes, **Then** M_InputProfileManager.save_custom_bindings() writes to user://global_settings.json within 100ms
 
 **Edge Cases**:
 - Player presses ESC during rebind (cancels rebind, returns to settings)
@@ -1188,7 +1190,7 @@ See: docs/input_manager/input-manager-plan.md (Edge Cases & Validation)
 - **FR-025**: System MUST allow player to confirm conflict and swap bindings
 - **FR-026**: System MUST allow player to cancel rebind operation
 - **FR-027**: System MUST validate rebind via U_InputRebindUtils.validate_rebind() before applying
-- **FR-028**: System MUST save custom bindings to user://input_settings.json within 100ms
+- **FR-028**: System MUST save custom bindings to user://global_settings.json within 100ms
 - **FR-029**: System MUST load custom bindings on initialization and apply to InputMap
 - **FR-030**: System MUST provide "Reset to Default" function to clear all custom bindings
 - **FR-031**: System MUST support multiple InputEvents per action (e.g., Jump = Space OR Gamepad A)
@@ -1306,8 +1308,8 @@ See: docs/input_manager/input-manager-plan.md (Edge Cases & Validation)
 
 ### Persistence & Save/Load
 
-- **FR-094**: System MUST save input settings to user://input_settings.json in JSON format
-- **FR-095**: System MUST load input settings from user://input_settings.json on game start
+- **FR-094**: System MUST save input settings to user://global_settings.json in JSON format
+- **FR-095**: System MUST load input settings from user://global_settings.json on game start
 - **FR-096**: Save file MUST include version number for migration compatibility
 - **FR-097**: Save file MUST include active_profile_id
 - **FR-098**: Save file MUST include custom_bindings dictionary (action → events)
@@ -1575,11 +1577,11 @@ func get_active_profile() -> RS_InputProfile
 ## Emits profile_switched signal on success
 func switch_profile(profile_id: String) -> void
 
-## Saves current custom bindings to user://input_settings.json
+## Saves current custom bindings to user://global_settings.json
 ## Returns true if save successful
 func save_custom_bindings() -> bool
 
-## Loads custom bindings from user://input_settings.json
+## Loads custom bindings from user://global_settings.json
 ## Applies bindings on top of active profile
 ## Returns true if load successful (false if file missing/corrupted)
 func load_custom_bindings() -> bool
@@ -2632,7 +2634,7 @@ func _load_available_profiles() -> void:
 
 **Outcome**:
 - Available profiles loaded into memory
-- Saved profile ID retrieved from `user://input_settings.json`
+- Saved profile ID retrieved from `user://global_settings.json`
 - Profile applied to InputMap
 - Custom bindings overlaid on profile defaults
 
@@ -2686,7 +2688,7 @@ func detect_gamepads() -> void:
   ```
 
 **Settings slice initialized**:
-- Loaded from `user://input_settings.json` (if exists)
+- Loaded from `user://global_settings.json` (if exists)
 - Or defaults created:
   ```gdscript
   settings.input_settings = {
@@ -2756,7 +2758,7 @@ Time →
   ↓
 [12ms] M_InputProfileManager._ready()
        - Loads profiles from resources/
-       - Loads user://input_settings.json
+       - Loads user://global_settings.json
        - Applies profile to InputMap
   ↓
 [15ms] M_InputDeviceManager._ready()

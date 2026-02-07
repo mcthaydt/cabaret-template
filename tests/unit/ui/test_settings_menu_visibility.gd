@@ -22,7 +22,7 @@ func test_gamepad_settings_button_visible_when_gamepad_connected() -> void:
 	await _create_state_store()
 	var settings_menu := await _create_settings_menu()
 
-	var gamepad_button: Button = settings_menu.get_node("CenterContainer/VBoxContainer/GamepadSettingsButton")
+	var gamepad_button: Button = settings_menu.get_node("ScrollContainer/VBoxContainer/GamepadSettingsButton")
 
 	var state_no_gamepad := {
 		"input": {
@@ -46,7 +46,7 @@ func test_rebind_controls_hidden_when_touchscreen_is_active() -> void:
 	await _create_state_store()
 	var settings_menu := await _create_settings_menu()
 
-	var rebind_button: Button = settings_menu.get_node("CenterContainer/VBoxContainer/RebindControlsButton")
+	var rebind_button: Button = settings_menu.get_node("ScrollContainer/VBoxContainer/RebindControlsButton")
 
 	var touch_only_state := {
 		"input": {

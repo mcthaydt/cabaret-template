@@ -16,6 +16,8 @@ const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configura
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const M_SaveManager := preload("res://scripts/managers/m_save_manager.gd")
+const PLACEHOLDER_TEXTURE_PATH := "res://resources/ui/tex_save_slot_placeholder.png"
+const PLACEHOLDER_TEXTURE := preload(PLACEHOLDER_TEXTURE_PATH)
 
 ## Current mode: "save" or "load"
 var _mode: StringName = StringName("")
@@ -25,6 +27,9 @@ var _save_manager: Node = null  # M_SaveManager
 
 ## Cached slot metadata
 var _cached_metadata: Array[Dictionary] = []
+
+## Thumbnail async loading
+var _pending_thumbnail_loads: Dictionary = {}  # TextureRect -> String (path)
 
 
 ## Confirmation dialog state
@@ -75,6 +80,9 @@ func _exit_tree() -> void:
 	var store := get_store()
 	if store != null and store.slice_updated.is_connected(_on_slice_updated):
 		store.slice_updated.disconnect(_on_slice_updated)
+
+	_pending_thumbnail_loads.clear()
+	set_process(false)
 
 func _on_store_ready(store_ref: I_StateStore) -> void:
 	if store_ref != null:
@@ -146,6 +154,9 @@ func _clear_slot_list() -> void:
 	if _slot_list_container == null:
 		return
 
+	_pending_thumbnail_loads.clear()
+	set_process(false)
+
 	for child in _slot_list_container.get_children():
 		child.queue_free()
 
@@ -153,10 +164,19 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 	var slot_id: StringName = slot_meta.get("slot_id", StringName(""))
 	var exists: bool = slot_meta.get("exists", false)
 	var is_autosave: bool = (slot_id == M_SaveManager.SLOT_AUTOSAVE)
+	var thumbnail_path: String = slot_meta.get("thumbnail_path", "")
 
 	# Create container for slot (main button + delete button)
 	var slot_container := HBoxContainer.new()
 	slot_container.name = "Slot_" + str(slot_id)
+
+	# Thumbnail preview
+	var thumbnail_rect := TextureRect.new()
+	thumbnail_rect.name = "Thumbnail"
+	thumbnail_rect.custom_minimum_size = Vector2(80, 45)
+	thumbnail_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	thumbnail_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	thumbnail_rect.texture = PLACEHOLDER_TEXTURE
 
 	# Create main save/load button (takes most of the space)
 	var main_button := Button.new()
@@ -208,11 +228,14 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 	if exists and not is_autosave:
 		delete_button.pressed.connect(_on_delete_button_pressed.bind(slot_id))
 
-	# Add buttons to container
+	# Add nodes to container
+	slot_container.add_child(thumbnail_rect)
 	slot_container.add_child(main_button)
 	slot_container.add_child(delete_button)
 
 	_slot_list_container.add_child(slot_container)
+
+	_load_thumbnail_async(thumbnail_rect, thumbnail_path)
 
 func _format_playtime(seconds: int) -> String:
 	var hours: int = seconds / 3600
@@ -272,6 +295,84 @@ func _format_timestamp(iso_timestamp: String) -> String:
 
 	return "%s %s, %s %d:%s %s" % [month_name, day, year, hour_12, minute, am_pm]
 
+func _load_thumbnail_async(texture_rect: TextureRect, path: String) -> void:
+	if texture_rect == null:
+		return
+
+	if path.is_empty() or not FileAccess.file_exists(path):
+		texture_rect.texture = PLACEHOLDER_TEXTURE
+		_pending_thumbnail_loads.erase(texture_rect)
+		return
+
+	if path.begins_with("user://"):
+		var fallback_texture := _load_texture_from_image(path)
+		if fallback_texture != null:
+			texture_rect.texture = fallback_texture
+		else:
+			texture_rect.texture = PLACEHOLDER_TEXTURE
+		_pending_thumbnail_loads.erase(texture_rect)
+		return
+
+	texture_rect.texture = PLACEHOLDER_TEXTURE
+	var request_error: Error = ResourceLoader.load_threaded_request(path)
+	if request_error != OK:
+		var fallback_texture := _load_texture_from_image(path)
+		if fallback_texture != null:
+			texture_rect.texture = fallback_texture
+		else:
+			texture_rect.texture = PLACEHOLDER_TEXTURE
+		return
+
+	_pending_thumbnail_loads[texture_rect] = path
+	set_process(true)
+
+func _process(_delta: float) -> void:
+	if _pending_thumbnail_loads.is_empty():
+		set_process(false)
+		return
+
+	var completed: Array[TextureRect] = []
+	var pending_keys: Array = _pending_thumbnail_loads.keys()
+	for key in pending_keys:
+		var texture_rect := key as TextureRect
+		if texture_rect == null or not is_instance_valid(texture_rect):
+			completed.append(texture_rect)
+			continue
+
+		var path: String = _pending_thumbnail_loads.get(texture_rect, "")
+		if path.is_empty():
+			completed.append(texture_rect)
+			continue
+
+		var status: int = ResourceLoader.load_threaded_get_status(path)
+		if status == ResourceLoader.THREAD_LOAD_LOADED:
+			var resource: Resource = ResourceLoader.load_threaded_get(path)
+			if resource is Texture2D:
+				texture_rect.texture = resource
+			else:
+				texture_rect.texture = PLACEHOLDER_TEXTURE
+			completed.append(texture_rect)
+		elif status == ResourceLoader.THREAD_LOAD_FAILED or status == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+			var fallback_texture := _load_texture_from_image(path)
+			if fallback_texture != null:
+				texture_rect.texture = fallback_texture
+			else:
+				texture_rect.texture = PLACEHOLDER_TEXTURE
+			completed.append(texture_rect)
+
+	for texture_rect in completed:
+		_pending_thumbnail_loads.erase(texture_rect)
+
+	if _pending_thumbnail_loads.is_empty():
+		set_process(false)
+
+func _load_texture_from_image(path: String) -> Texture2D:
+	var image := Image.new()
+	var load_error: Error = image.load(path)
+	if load_error != OK:
+		return null
+	return ImageTexture.create_from_image(image)
+
 func _configure_slot_focus() -> void:
 	if _slot_list_container == null or _back_button == null:
 		return
@@ -312,8 +413,15 @@ func _restore_focus_to_slot(slot_index: int) -> void:
 	# Restore focus to the slot at the given index, or first available slot
 	if _slot_list_container == null:
 		return
+	if not is_inside_tree():
+		return
 
-	await get_tree().process_frame  # Wait for UI to settle
+	var tree := get_tree()
+	if tree == null:
+		return
+	await tree.process_frame  # Wait for UI to settle
+	if not is_inside_tree() or _slot_list_container == null:
+		return
 
 	var target_index: int = slot_index
 	var slot_count: int = _slot_list_container.get_child_count()

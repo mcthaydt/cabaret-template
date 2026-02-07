@@ -58,6 +58,8 @@
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
 [ext_resource type="Resource" uid="uid://bqktd616pidot" path="res://resources/spawn_metadata/cfg_sp_interior_house.tres" id="51_interior_default_spawn_meta"]
 [ext_resource type="Resource" uid="uid://5a5jc4dpye3i" path="res://resources/spawn_metadata/cfg_sp_interior_house_entrance.tres" id="52_interior_entrance_spawn_meta"]
+[ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="53_fade_goal"]
+[ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="54_fade_door"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -75,21 +77,11 @@ background_mode = 1
 background_color = Color(0.3019608, 0.60784316, 0.9019608, 1)
 ambient_light_source = 3
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_goal"]
-albedo_color = Color(0.968627, 0.847059, 0.239216, 1)
-emission_enabled = true
-emission = Color(1, 0.843137, 0.223529, 1)
-emission_energy_multiplier = 1.5
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_goal_text"]
 
 [sub_resource type="TextMesh" id="TextMesh_goal"]
 material = SubResource("StandardMaterial3D_goal_text")
 text = ":)"
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ee6xw"]
-shading_mode = 0
-albedo_color = Color(0.9828339, 0, 0.010878513, 1)
 
 [node name="GameplayRoot" type="Node3D" unique_id=563532365]
 script = ExtResource("1_f2o31")
@@ -313,7 +305,7 @@ tags = Array[StringName]([&"objective", &"goal"])
 
 [node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_GoalZone" unique_id=2146372515]
 radius = 1.5
-material = SubResource("StandardMaterial3D_goal")
+material = ExtResource("53_fade_goal")
 
 [node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_GoalZone" unique_id=1311426068]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -339,7 +331,7 @@ fov = 65.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
 script = ExtResource("30_door_controller")
 door_id = &"door_to_exterior"
-target_scene_id = &"exterior"
+target_scene_id = &"alleyway"
 target_spawn_point = &"sp_exit_from_house"
 settings = ExtResource("30_auc1c")
 visual_paths = Array[NodePath]([NodePath("DoorVisual")])
@@ -348,9 +340,9 @@ tags = Array[StringName]([&"trigger", &"door"])
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger" unique_id=1631340724]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.57354736, 0)
-material_overlay = SubResource("StandardMaterial3D_ee6xw")
 radius = 0.7910156
 height = 2.0715332
+material = ExtResource("54_fade_door")
 
 [node name="E_TutorialSign_Interior" type="Node3D" parent="Entities" unique_id=141776314]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.14, 0, 2)

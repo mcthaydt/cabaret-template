@@ -11,7 +11,7 @@ class_name U_ServiceLocator
 ##   # Registration (typically in root.tscn _ready()):
 ##   U_ServiceLocator.register(StringName("state_store"), state_store_node)
 ##
-##   # Retrieval (instead of get_tree().get_nodes_in_group("state_store")):
+##   # Retrieval (instead of a scene-tree lookup):
 ##   var store := U_ServiceLocator.get_service(StringName("state_store")) as M_StateStore
 ##
 ## Benefits:

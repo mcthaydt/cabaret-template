@@ -2,7 +2,7 @@
 
 ## Start Here
 
-- Project type: Godot 4.5 (GDScript). Core area:
+- Project type: Godot 4.6 (GDScript). Core area:
   - `scripts/ecs`: Lightweight ECS built on Nodes (components + systems + manager).
 - Scenes and resources:
   - `scenes/templates/`: Base scene, character, and camera templates that wire components/systems together.
@@ -109,7 +109,7 @@
 - **Gameplay scenes**: Each has own `M_ECSManager` instance
   - Example: `scenes/gameplay/gameplay_base.tscn`
   - Contains: Systems, Entities, SceneObjects, Environment
-  - HUD uses `U_StateUtils.get_store(self)` to find M_StateStore via "state_store" group
+  - HUD uses `U_StateUtils.get_store(self)` to find M_StateStore via ServiceLocator (or injected store)
 - Node tree structure: See `docs/scene_organization/SCENE_ORGANIZATION_GUIDE.md`
 - Templates: `scenes/templates/tmpl_base_scene.tscn`, `scenes/templates/tmpl_character.tscn`, `scenes/templates/tmpl_camera.tscn`
 - Marker scripts: `scripts/scene_structure/*` (11 total) provide visual organization
@@ -180,6 +180,10 @@ Production asset files use type-specific prefixes:
 
 ## Conventions and Gotchas
 
+- **Groups are NOT used**
+  - This codebase does NOT use Godot's groups feature for manager discovery or node organization
+  - Use `U_ServiceLocator` for all manager lookups instead of `get_tree().get_first_node_in_group()`
+  - Groups add hidden coupling that's hard to track; ServiceLocator provides explicit registration with O(1) lookup
 - GDScript typing
   - Annotate locals receiving Variants (e.g., from `Callable.call()`, `JSON.parse_string`, `Time.get_ticks_msec()` calc). Prefer explicit `: float`, `: int`, `: Dictionary`, etc.
   - Use `StringName` for action/component identifiers; keep constants like `const MOVEMENT_TYPE := StringName("C_MovementComponent")`.
@@ -198,6 +202,7 @@ Production asset files use type-specific prefixes:
   - `M_StateStore` emits `slice_updated` once per physics frame; do not also flush on idle frames.
   - Actions that need same-frame visibility (e.g., input rebinds) must set `"immediate": true` on the dispatched payload; the store now flushes batched slice updates immediately for these actions.
   - Gameplay input fields are transient across scene transitions (StateHandoff) but are persisted to disk on save/load.
+  - Global settings persist via `user://global_settings.json` (display/audio/vfx/input + gameplay preferences). Controlled by `RS_StateStoreSettings.enable_global_settings_persistence`; legacy `audio_settings.json`/`input_settings.json` migrate on load.
 - State load normalization
   - `M_StateStore.load_state()` sanitizes unknown `current_scene_id`, `target_spawn_point`, and `last_checkpoint` values, falling back to `gameplay_base` / `sp_default` and deduping `completed_areas`.
 - Style enforcement
@@ -261,7 +266,7 @@ Production asset files use type-specific prefixes:
 
 ### Scene Transitions
 
-- **Get scene manager**: `get_tree().get_first_node_in_group("scene_manager") as M_SceneManager`
+- **Get scene manager**: `U_ServiceLocator.get_service(StringName("scene_manager")) as M_SceneManager`
 - **Basic transition**: `scene_manager.transition_to_scene(StringName("scene_id"))`
 - **Override transition type**: `scene_manager.transition_to_scene(StringName("scene_id"), "fade")`
 - **Priority transitions**: `scene_manager.transition_to_scene(StringName("game_over"), "fade", M_SceneManager.Priority.CRITICAL)`
@@ -340,7 +345,7 @@ Production asset files use type-specific prefixes:
 ### Camera Blending
 
 - **Automatic blending**: Gameplay → Gameplay transitions blend camera position, rotation, FOV
-- **Requirements**: Both scenes must have camera in "main_camera" group
+- **Requirements**: Both scenes must have a Camera3D discoverable by `M_CameraManager` (or registered via `register_main_camera()`)
 - **Transition type**: Only works with `"fade"` transitions (not instant/loading)
 - **Scene-specific setup**: Configure camera per-scene (e.g., exterior: FOV 80°, interior: FOV 65°)
 - **Implementation**: Uses transition camera + Tween (0.2s, TRANS_CUBIC, EASE_IN_OUT)
@@ -503,7 +508,7 @@ M_SaveManager orchestrates save/load operations with atomic writes, migrations, 
 ```gdscript
 const M_SAVE_MANAGER := preload("res://scripts/managers/m_save_manager.gd")
 
-# Get manager (discoverable via ServiceLocator or group)
+# Get manager (discoverable via ServiceLocator)
 var save_manager := U_ServiceLocator.get_service(StringName("save_manager")) as M_SaveManager
 
 # Manual save to slot
@@ -868,6 +873,206 @@ func _on_load_pressed():
 - ❌ Spawning >16 simultaneous SFX without voice stealing (pool will exhaust)
 - ❌ Bypassing throttle_ms for rapid UI sounds (causes audio spam)
 
+## Display Manager Patterns (Phase 11 Complete)
+
+### Overview
+
+M_DisplayManager handles window settings, post-processing effects, UI scaling, and accessibility features. It follows the same hash-based optimization and preview mode patterns as M_AudioManager.
+
+### Hash-Based Change Detection
+
+Same pattern as audio manager - only applies settings when display slice hash changes:
+
+```gdscript
+var _last_display_hash: int = 0
+var _display_settings_preview_active: bool = false
+
+func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
+    if slice_name != &"display" or _display_settings_preview_active:
+        return
+    var state := state_store.get_state()
+    var display_slice: Dictionary = state.get("display", {})
+    var display_hash := display_slice.hash()
+    if display_hash != _last_display_hash:
+        _apply_display_settings(state)
+        _last_display_hash = display_hash
+```
+
+### Preview Mode
+
+Temporary overrides for settings UI (real-time preview without persisting):
+
+```gdscript
+# Push preview
+display_manager.set_display_settings_preview({
+    "film_grain_enabled": true,
+    "film_grain_intensity": 0.3
+})
+
+# Clear preview (restores persisted state)
+display_manager.clear_display_settings_preview()
+```
+
+### ServiceLocator Registration
+
+Access display manager via ServiceLocator:
+
+```gdscript
+var display_manager := U_ServiceLocator.get_service(StringName("display_manager")) as I_DisplayManager
+# Or use helper
+var display_manager := U_DisplayUtils.get_display_manager()
+```
+
+### Post-Process Overlay (Layer 100)
+
+Post-processing effects render via `ui_post_process_overlay.tscn`:
+- **CanvasLayer**: Layer 100 (above gameplay at 0, below UI overlays)
+- **Effects**: FilmGrainRect, DitherRect, CRTRect, ColorBlindRect
+- **Shaders**: Each rect has a ShaderMaterial with configurable uniforms
+- **Time Updates**: Film grain shader receives `TIME` updates in `_process()`
+
+### UI Scaling
+
+UIScaleRoot registration for consistent UI size adjustment:
+
+```gdscript
+# UIScaleRoot helper registers parent UI roots
+func _ready() -> void:
+    U_DisplayUtils.register_ui_scale_root(get_parent())
+
+# M_DisplayManager applies scale to registered roots
+func set_ui_scale(scale: float) -> void:
+    scale = clampf(scale, 0.5, 2.0)
+    for node in _ui_scale_roots:
+        if node is CanvasLayer:
+            node.transform = Transform2D().scaled(Vector2(scale, scale))
+        elif node is Control:
+            node.scale = Vector2(scale, scale)
+```
+
+**Registration rules:**
+- ✅ Add UIScaleRoot helper node to menu/overlay/HUD root nodes
+- ❌ Do NOT add to post-process overlay (layer 100, not UI)
+- ❌ Do NOT add to nested widgets (inherit scaling from parents)
+
+### Display Slice State Shape
+
+```gdscript
+{
+    "display": {
+        # Graphics
+        "window_size_preset": "1920x1080",  # Valid: 1280x720, 1600x900, 1920x1080, 2560x1440, 3840x2160
+        "window_mode": "windowed",          # Valid: windowed, fullscreen, borderless
+        "vsync_enabled": true,
+        "quality_preset": "high",           # Valid: low, medium, high, ultra
+
+        # Post-Processing
+        "film_grain_enabled": false,
+        "film_grain_intensity": 0.1,        # Clamped: 0.0-1.0
+        "crt_enabled": false,
+        "crt_scanline_intensity": 0.3,      # Clamped: 0.0-1.0
+        "crt_curvature": 2.0,
+        "crt_chromatic_aberration": 0.002,
+        "dither_enabled": false,
+        "dither_intensity": 0.5,            # Clamped: 0.0-1.0
+        "dither_pattern": "bayer",          # Valid: bayer, noise
+
+        # UI
+        "ui_scale": 1.0,                    # Clamped: 0.8-1.3
+
+        # Accessibility
+        "color_blind_mode": "normal",       # Valid: normal, deuteranopia, protanopia, tritanopia
+        "high_contrast_enabled": false,
+        "color_blind_shader_enabled": false,
+
+        # Cinema Grade (transient — loaded per-scene, NOT persisted)
+        "cinema_grade_filter_mode": 0,       # 0=none, 1-8=named filters
+        "cinema_grade_filter_intensity": 1.0,
+        "cinema_grade_exposure": 0.0,
+        "cinema_grade_brightness": 0.0,
+        "cinema_grade_contrast": 1.0,
+        "cinema_grade_brilliance": 0.0,
+        "cinema_grade_highlights": 0.0,
+        "cinema_grade_shadows": 0.0,
+        "cinema_grade_saturation": 1.0,
+        "cinema_grade_vibrance": 0.0,
+        "cinema_grade_warmth": 0.0,
+        "cinema_grade_tint": 0.0,
+        "cinema_grade_sharpness": 0.0,
+    }
+}
+```
+
+### Cinema Grading System (Phase 11)
+
+Per-scene cinematic color grading applied as the bottom-most post-process layer. Artistic direction, not a user preference — always active regardless of `post_processing_enabled`.
+
+**Layer Stack (bottom to top):**
+- CinemaGradeLayer = CanvasLayer 1
+- FilmGrainRect = CanvasLayer 2
+- DitherRect = CanvasLayer 3
+- CRTRect = CanvasLayer 4
+- ColorBlindRect = CanvasLayer 5
+- UIColorBlindLayer = CanvasLayer 11
+
+**Scene Transition Flow:**
+1. `action_dispatched` fires with `scene/transition_completed`
+2. `U_DisplayCinemaGradeApplier` extracts `scene_id` from payload
+3. Looks up `U_CinemaGradeRegistry.get_cinema_grade_for_scene(scene_id)` (returns neutral fallback if unmapped)
+4. Dispatches `U_CinemaGradeActions.load_scene_grade(grade.to_dictionary())`
+5. Display slice updates → hash change → `_apply_cinema_grade_settings()` sets shader uniforms
+
+**Action Prefix (`cinema_grade/` NOT `display/`):**
+- `cinema_grade/` prefix deliberately does NOT match `begins_with("display/")` in `U_GlobalSettingsSerialization.is_global_settings_action()`
+- This ensures cinema grade state is NOT persisted to `user://global_settings.json`
+- Per-scene grades are transient — loaded from `.tres` resources on each scene enter
+
+**Registry (mobile-safe):**
+```gdscript
+# U_CinemaGradeRegistry uses const preload arrays (no runtime DirAccess)
+const _SCENE_GRADE_PRELOADS := [
+    preload("res://resources/display/cinema_grades/cfg_cinema_grade_gameplay_base.tres"),
+    # ...
+]
+```
+
+**Editor Preview (@tool node):**
+- Drop `U_CinemaGradePreview` into any gameplay scene root
+- Assign a `RS_SceneCinemaGrade` resource in the inspector
+- Creates local CanvasLayer 100 + ColorRect with cinema grade shader
+- `queue_free()` at runtime (M_DisplayManager handles everything in-game)
+
+### Thread Safety
+
+DisplayServer calls must be deferred for thread safety:
+
+```gdscript
+func set_window_mode(mode: String) -> void:
+    call_deferred("_apply_window_mode", mode)
+
+func _apply_window_mode(mode: String) -> void:
+    match mode:
+        "fullscreen":
+            DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+        "borderless":
+            DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+            DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
+        _:  # windowed
+            DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+```
+
+### Anti-Patterns
+
+- ❌ Mutating DisplayServer from non-main thread (use `call_deferred()`)
+- ❌ Applying settings without hash check (causes redundant DisplayServer calls)
+- ❌ Adding UIScaleRoot to the post-process overlay (it's not UI)
+- ❌ Adding UIScaleRoot to nested widgets (causes compounding scale)
+- ❌ Using instant/sync applies during preview mode (blocks preview hash)
+- ❌ Relying on display settings auto-save (unlike audio, display uses M_SaveManager)
+- ❌ Using `display/` prefix for cinema grade actions (would persist to global_settings.json)
+- ❌ Gating cinema grade behind `post_processing_enabled` (it's artistic direction, always active)
+- ❌ Using runtime `DirAccess` in cinema grade registry (breaks on Android PCK)
+
 ## Test Commands
 
 - Run ECS tests
@@ -884,15 +1089,14 @@ func _on_load_pressed():
 - Add a new ECS System
   - Create `scripts/ecs/systems/s_your_system.gd` extending `BaseECSSystem`; implement `process_tick(delta)`; query with your component's `StringName`; drop the node under a running scene—auto-configured.
 - Find M_StateStore from any node
-  - Use `U_StateUtils.get_store(self)` to find the store (internally uses U_ServiceLocator with fallback to group lookup).
+  - Use `U_StateUtils.get_store(self)` to find the store (internally uses U_ServiceLocator or injected store).
   - In `_ready()`: add `await get_tree().process_frame` BEFORE calling `get_store()` to avoid race conditions.
   - In `process_tick()`: no await needed (store already registered).
 - Access managers via ServiceLocator (Phase 10B-7: T141)
   - Use `U_ServiceLocator.get_service(StringName("service_name"))` for fast, centralized manager access.
-  - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`.
-  - ServiceLocator provides O(1) Dictionary lookup vs O(n) tree traversal of group lookups.
+  - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`, `"display_manager"`.
+  - ServiceLocator provides O(1) Dictionary lookup vs O(n) scene-tree traversal.
   - All services are registered at startup in `root.tscn` via `root.gd`.
-  - Fallback to group lookup is available for backward compatibility and test environments.
 - Create a new gameplay scene
   - Duplicate `scenes/gameplay/gameplay_base.tscn` as starting point.
   - Keep M_ECSManager + Systems + Entities + Environment structure.

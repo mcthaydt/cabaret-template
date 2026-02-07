@@ -1,0 +1,90 @@
+[gd_scene format=3 uid="uid://d8f3hr42dgv4"]
+
+[ext_resource type="Shader" uid="uid://dnr1bhr1xtam3" path="res://assets/shaders/sh_film_grain_shader.gdshader" id="1_film_grain"]
+[ext_resource type="Shader" uid="uid://bingg7gwd5ywn" path="res://assets/shaders/sh_crt_shader.gdshader" id="2_crt"]
+[ext_resource type="Shader" uid="uid://c7ja1gq2xahli" path="res://assets/shaders/sh_dither_shader.gdshader" id="3_dither"]
+[ext_resource type="Shader" uid="uid://cbb5bncshtrb" path="res://assets/shaders/sh_colorblind_daltonize.gdshader" id="7_color_blind"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_film_grain"]
+shader = ExtResource("1_film_grain")
+shader_parameter/intensity = 0.1
+shader_parameter/grain_size = 1.0
+shader_parameter/time = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dither"]
+shader = ExtResource("3_dither")
+shader_parameter/intensity = 0.5
+shader_parameter/levels = 8
+shader_parameter/pattern_mode = 0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
+shader = ExtResource("2_crt")
+shader_parameter/scanline_intensity = 0.3
+shader_parameter/scanline_count = 200.0
+shader_parameter/curvature = 2.0
+shader_parameter/vignette_intensity = 0.3
+shader_parameter/chromatic_aberration = 0.002
+shader_parameter/brightness = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_color_blind"]
+shader = ExtResource("7_color_blind")
+shader_parameter/mode = 0
+shader_parameter/intensity = 1.0
+
+[node name="PostProcessOverlay" type="Node" unique_id=59672493]
+
+[node name="FilmGrainLayer" type="CanvasLayer" parent="." unique_id=1768934360]
+layer = 2
+follow_viewport_enabled = true
+
+[node name="FilmGrainRect" type="ColorRect" parent="FilmGrainLayer" unique_id=1040366653]
+visible = false
+material = SubResource("ShaderMaterial_film_grain")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="DitherLayer" type="CanvasLayer" parent="." unique_id=1283421453]
+layer = 3
+follow_viewport_enabled = true
+
+[node name="DitherRect" type="ColorRect" parent="DitherLayer" unique_id=366136202]
+visible = false
+material = SubResource("ShaderMaterial_dither")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CRTLayer" type="CanvasLayer" parent="." unique_id=744498354]
+layer = 4
+follow_viewport_enabled = true
+
+[node name="CRTRect" type="ColorRect" parent="CRTLayer" unique_id=1741336407]
+visible = false
+material = SubResource("ShaderMaterial_crt")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ColorBlindLayer" type="CanvasLayer" parent="." unique_id=1289700024]
+layer = 5
+follow_viewport_enabled = true
+
+[node name="ColorBlindRect" type="ColorRect" parent="ColorBlindLayer" unique_id=1293833393]
+visible = false
+material = SubResource("ShaderMaterial_color_blind")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

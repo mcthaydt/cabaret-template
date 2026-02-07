@@ -12,6 +12,8 @@ const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_ini
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
+const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager
@@ -22,10 +24,16 @@ var _transition_overlay: CanvasLayer
 var _loading_overlay: CanvasLayer
 
 func before_each() -> void:
-	# Create root scene structure
-	_root_scene = Node.new()
-	_root_scene.name = "Root"
+	U_ServiceLocator.clear()
+
+	# Create root scene structure (includes HUDLayer + overlays)
+	var root_ctx := U_SceneTestHelpers.create_root_with_containers(true)
+	_root_scene = root_ctx["root"]
 	add_child_autofree(_root_scene)
+	_active_scene_container = root_ctx["active_scene_container"]
+	_ui_overlay_stack = root_ctx["ui_overlay_stack"]
+	_transition_overlay = root_ctx["transition_overlay"]
+	_loading_overlay = root_ctx["loading_overlay"]
 
 	# Create state store with all slices
 	_store = M_StateStore.new()
@@ -37,35 +45,7 @@ func before_each() -> void:
 	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
-	# Create scene containers
-	_active_scene_container = Node.new()
-	_active_scene_container.name = "ActiveSceneContainer"
-	_root_scene.add_child(_active_scene_container)
-
-	_ui_overlay_stack = CanvasLayer.new()
-	_ui_overlay_stack.name = "UIOverlayStack"
-	_ui_overlay_stack.process_mode = Node.PROCESS_MODE_ALWAYS
-	_root_scene.add_child(_ui_overlay_stack)
-
-	# Create transition overlay
-	_transition_overlay = CanvasLayer.new()
-	_transition_overlay.name = "TransitionOverlay"
-	var color_rect := ColorRect.new()
-	color_rect.name = "TransitionColorRect"
-	color_rect.modulate.a = 0.0
-	_transition_overlay.add_child(color_rect)
-	_root_scene.add_child(_transition_overlay)
-
-	# Create loading overlay
-	_loading_overlay = CanvasLayer.new()
-	_loading_overlay.name = "LoadingOverlay"
-	_loading_overlay.visible = false
-	_loading_overlay.process_mode = Node.PROCESS_MODE_ALWAYS
-	_root_scene.add_child(_loading_overlay)
-
-	# Register overlays via ServiceLocator for M_SceneManager discovery
-	U_ServiceLocator.register(StringName("transition_overlay"), _transition_overlay)
-	U_ServiceLocator.register(StringName("loading_overlay"), _loading_overlay)
+	U_SceneTestHelpers.register_scene_manager_dependencies(_root_scene)
 
 	# Create scene manager
 	_manager = M_SceneManager.new()
@@ -74,22 +54,16 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 func after_each() -> void:
-	# 1. Clear ServiceLocator first (prevents cross-test pollution)
+	# Remove root early to stop any active scene processing
+	if _manager != null and is_instance_valid(_manager):
+		await U_SceneTestHelpers.wait_for_transition_idle(_manager)
+	if _root_scene != null and is_instance_valid(_root_scene):
+		_root_scene.queue_free()
+		await get_tree().process_frame
+		await get_tree().physics_frame
+
+	# Clear ServiceLocator to prevent state leakage
 	U_ServiceLocator.clear()
-
-	# 2. Clear active scenes loaded by M_SceneManager
-	if _active_scene_container and is_instance_valid(_active_scene_container):
-		for child in _active_scene_container.get_children():
-			child.queue_free()
-
-	# 3. Clear UI overlay stack
-	if _ui_overlay_stack and is_instance_valid(_ui_overlay_stack):
-		for child in _ui_overlay_stack.get_children():
-			child.queue_free()
-
-	# 4. Wait for queue_free to process
-	await get_tree().process_frame
-	await get_tree().physics_frame
 
 	_manager = null
 	_store = null

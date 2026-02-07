@@ -13,11 +13,14 @@ const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd"
 
 func before_each() -> void:
 	# Initialize SFX spawner pool
+	U_SFX_SPAWNER.cleanup()
 	U_SFX_SPAWNER.initialize(self)
 	U_SFX_SPAWNER.reset_stats()
 
 func after_each() -> void:
 	U_SFX_SPAWNER.reset_stats()
+	U_SFX_SPAWNER.cleanup()
+	await get_tree().process_frame
 
 ## Helper: Create benchmark timer
 func _benchmark(label: String, callable: Callable) -> float:

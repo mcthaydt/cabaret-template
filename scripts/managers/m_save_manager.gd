@@ -23,6 +23,7 @@ const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_SAVE_FILE_IO := preload("res://scripts/managers/helpers/u_save_file_io.gd")
 const U_SAVE_MIGRATION_ENGINE := preload("res://scripts/managers/helpers/u_save_migration_engine.gd")
+const U_SCREENSHOT_CAPTURE := preload("res://scripts/managers/helpers/u_screenshot_capture.gd")
 const U_SAVE_VALIDATOR := preload("res://scripts/utils/u_save_validator.gd")
 
 ## Save file format version
@@ -44,6 +45,7 @@ var _save_dir: String = "user://saves/"
 var _state_store: I_StateStore = null
 var _scene_manager: Node = null  # M_SceneManager
 var _autosave_scheduler: Node = null  # U_AutosaveScheduler
+var _screenshot_capture: U_ScreenshotCapture = null
 
 ## Lock flags to prevent concurrent operations
 var _is_saving: bool = false
@@ -100,6 +102,9 @@ func _initialize_save_system() -> void:
 	# Clean up orphaned .tmp files from previous crashes
 	file_io.cleanup_tmp_files(_save_dir)
 
+	# Clean up orphaned thumbnail files (no matching .json save)
+	_cleanup_orphaned_thumbnails()
+
 	# Import legacy save file if it exists (one-time migration)
 	# NOTE: Legacy saves are always located at user://savegame.json, so only perform
 	# migration when using the production save directory (prevents tests/custom dirs
@@ -137,6 +142,29 @@ func _import_legacy_save_if_exists() -> void:
 		print("M_SaveManager: Successfully imported legacy save to autosave slot")
 	else:
 		push_error("M_SaveManager: Failed to write imported legacy save (error %d)" % result)
+
+## Clean up orphaned thumbnail files (no matching .json save)
+func _cleanup_orphaned_thumbnails() -> void:
+	var dir := DirAccess.open(_save_dir)
+	if dir == null:
+		push_error("M_SaveManager: Failed to open save directory for thumbnail cleanup")
+		return
+
+	dir.list_dir_begin()
+	var file_name: String = dir.get_next()
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.ends_with("_thumb.png"):
+			var base_name: String = file_name.get_basename()
+			var slot_base: String = base_name.trim_suffix("_thumb")
+			var save_path: String = _get_slot_file_path(StringName(slot_base))
+			if not FileAccess.file_exists(save_path):
+				var remove_error: Error = dir.remove(file_name)
+				if remove_error != OK:
+					push_error("M_SaveManager: Failed to remove orphaned thumbnail: %s (error %d)" % [file_name, remove_error])
+				else:
+					print_verbose("M_SaveManager: Removed orphaned thumbnail: %s" % file_name)
+		file_name = dir.get_next()
+	dir.list_dir_end()
 
 ## Initialize autosave scheduler as child node
 func _initialize_autosave_scheduler() -> void:
@@ -211,9 +239,14 @@ func save_to_slot(slot_id: StringName) -> Error:
 	var state: Dictionary = _state_store.get_persistable_state()
 	if state.has("audio"):
 		state.erase("audio")
+	if state.has("display"):
+		state.erase("display")
 
 	# Build header metadata
 	var header: Dictionary = _build_metadata(slot_id)
+	var thumbnail_path: String = _try_save_thumbnail(slot_id)
+	if not thumbnail_path.is_empty():
+		header["thumbnail_path"] = thumbnail_path
 
 	# Combine header + state
 	var save_data := {
@@ -284,6 +317,8 @@ func load_from_slot(slot_id: StringName) -> Error:
 	var target_scene_id: StringName = validation_result["scene_id"]
 	if loaded_state.has("audio"):
 		loaded_state.erase("audio")
+	if loaded_state.has("display"):
+		loaded_state.erase("display")
 
 	# BUG FIX: Clear scene_stack from loaded state to prevent pausing on load
 	# Legacy saves may have scene_stack persisted (before it was marked transient)
@@ -312,6 +347,8 @@ func load_from_slot(slot_id: StringName) -> Error:
 	var typed_store := _state_store as I_StateStore
 	if typed_store != null:
 		typed_store.apply_loaded_state(loaded_state)
+		if typed_store.has_method("apply_global_settings_from_disk"):
+			typed_store.call("apply_global_settings_from_disk")
 	else:
 		# Fallback: preserve to StateHandoff (legacy behavior)
 		for slice_name in loaded_state:
@@ -367,6 +404,7 @@ func delete_slot(slot_id: StringName) -> Error:
 	var file_path: String = _get_slot_file_path(slot_id)
 	var bak_path: String = file_path + ".bak"
 	var tmp_path: String = file_path + ".tmp"
+	var thumbnail_path: String = _get_thumbnail_file_path(slot_id)
 
 	var dir := DirAccess.open(_save_dir)
 	if not dir:
@@ -387,6 +425,12 @@ func delete_slot(slot_id: StringName) -> Error:
 	# Delete temp file if it exists (cleanup)
 	if FileAccess.file_exists(tmp_path):
 		dir.remove(tmp_path.get_file())
+
+	# Delete thumbnail file if it exists
+	if FileAccess.file_exists(thumbnail_path):
+		var thumb_error: Error = dir.remove(thumbnail_path.get_file())
+		if thumb_error != OK:
+			push_error("M_SaveManager: Failed to delete thumbnail file: %s (error %d)" % [thumbnail_path, thumb_error])
 
 	return OK
 
@@ -592,6 +636,64 @@ func _build_metadata(slot_id: StringName) -> Dictionary:
 ## Get file path for a slot
 func _get_slot_file_path(slot_id: StringName) -> String:
 	return _save_dir + String(slot_id) + ".json"
+
+## Get thumbnail file path for a slot
+func _get_thumbnail_file_path(slot_id: StringName) -> String:
+	return _save_dir + String(slot_id) + "_thumb.png"
+
+## Attempt to capture and save a thumbnail for the given slot.
+## Returns the thumbnail path if saved successfully, otherwise an empty string.
+func _try_save_thumbnail(slot_id: StringName) -> String:
+	var image: Image = _get_thumbnail_image_for_slot(slot_id)
+	if image == null:
+		return ""
+
+	var capture := _get_screenshot_capture()
+	var resized: Image = capture.resize_to_thumbnail(image)
+	if resized == null:
+		return ""
+
+	var thumbnail_path := _get_thumbnail_file_path(slot_id)
+	var error: Error = _write_thumbnail_image(resized, thumbnail_path)
+	if error != OK:
+		return ""
+
+	return thumbnail_path
+
+## Resolve which image to use for the slot.
+## Autosave captures live; manual saves use cached image from pause.
+func _get_thumbnail_image_for_slot(slot_id: StringName) -> Image:
+	if slot_id == SLOT_AUTOSAVE:
+		return _capture_autosave_image()
+	return _get_cached_manual_image()
+
+## Capture a live viewport image for autosaves.
+func _capture_autosave_image() -> Image:
+	var viewport := get_viewport()
+	var capture := _get_screenshot_capture()
+	return capture.capture_viewport(viewport)
+
+## Fetch cached screenshot for manual saves.
+func _get_cached_manual_image() -> Image:
+	var cache := _get_screenshot_cache()
+	if cache == null:
+		return null
+	if cache.has_method("get_cached_screenshot"):
+		return cache.call("get_cached_screenshot")
+	return null
+
+## Write a thumbnail image to disk.
+func _write_thumbnail_image(image: Image, path: String) -> Error:
+	var capture := _get_screenshot_capture()
+	return capture.save_to_file(image, path)
+
+func _get_screenshot_cache() -> Node:
+	return U_ServiceLocator.try_get_service(StringName("screenshot_cache"))
+
+func _get_screenshot_capture() -> U_ScreenshotCapture:
+	if _screenshot_capture == null:
+		_screenshot_capture = U_SCREENSHOT_CAPTURE.new()
+	return _screenshot_capture
 
 ## Get current timestamp in ISO 8601 format
 func _get_iso8601_timestamp() -> String:

@@ -80,7 +80,6 @@ func test_volume_and_pitch_variation_applied() -> void:
 
 	# When: Playing the sound
 	_manager.play_ui_sound(sound_id)
-	await get_tree().process_frame
 
 	# Then: Volume should be applied to the player
 	# (Pitch variation is randomized, so we just verify it doesn't crash)

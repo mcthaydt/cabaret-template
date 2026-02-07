@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="RS_SpawnMetadata" format=3 uid="uid://x5s2ppq71575"]
+
+[ext_resource type="Script" uid="uid://bqo0vfirodrc4" path="res://scripts/resources/scene_management/rs_spawn_metadata.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+spawn_id = &"sp_default"
+tags = Array[StringName]([&"default"])
+face_camera_on_spawn = true

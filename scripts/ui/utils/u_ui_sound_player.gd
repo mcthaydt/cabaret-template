@@ -10,9 +10,11 @@ class_name U_UISoundPlayer
 
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const I_AUDIO_MANAGER := preload("res://scripts/interfaces/i_audio_manager.gd")
-const U_AUDIO_REGISTRY_LOADER := preload("res://scripts/managers/helpers/u_audio_registry_loader.gd")
+const U_AUDIO_REGISTRY_LOADER_PATH := "res://scripts/managers/helpers/u_audio_registry_loader.gd"
 
 static var _last_play_times: Dictionary = {}  ## sound_id -> timestamp_ms
+static var _registry_initialized: bool = false
+static var _registry_loader: Script = null
 
 
 static func reset_throttles() -> void:
@@ -41,8 +43,13 @@ static func play_slider_tick() -> void:
 
 
 static func _play(sound_id: StringName) -> bool:
+	_ensure_registry_initialized()
+
 	# Load sound definition to check throttle settings
-	var sound_def := U_AUDIO_REGISTRY_LOADER.get_ui_sound(sound_id)
+	var loader := _get_registry_loader()
+	if loader == null:
+		return false
+	var sound_def: Variant = loader.call("get_ui_sound", sound_id)
 	if sound_def == null:
 		return false
 
@@ -59,6 +66,22 @@ static func _play(sound_id: StringName) -> bool:
 		return false
 	audio_mgr.play_ui_sound(sound_id)
 	return true
+
+
+static func _ensure_registry_initialized() -> void:
+	if _registry_initialized:
+		return
+	var loader := _get_registry_loader()
+	if loader == null:
+		return
+	loader.call("initialize")
+	_registry_initialized = true
+
+
+static func _get_registry_loader() -> Script:
+	if _registry_loader == null:
+		_registry_loader = load(U_AUDIO_REGISTRY_LOADER_PATH)
+	return _registry_loader
 
 
 static func _get_audio_manager() -> Node:

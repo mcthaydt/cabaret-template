@@ -47,6 +47,8 @@ static func _register_music_tracks() -> void:
 
 	# Load music track resources
 	var main_menu := preload("res://resources/audio/tracks/music_main_menu.tres") as RS_MusicTrackDefinition
+	var alleyway := preload("res://resources/audio/tracks/music_alleyway.tres") as RS_MusicTrackDefinition
+	var bar := preload("res://resources/audio/tracks/music_bar.tres") as RS_MusicTrackDefinition
 	var exterior := preload("res://resources/audio/tracks/music_exterior.tres") as RS_MusicTrackDefinition
 	var interior := preload("res://resources/audio/tracks/music_interior.tres") as RS_MusicTrackDefinition
 	var pause := preload("res://resources/audio/tracks/music_pause.tres") as RS_MusicTrackDefinition
@@ -54,6 +56,8 @@ static func _register_music_tracks() -> void:
 
 	# Register in dictionary
 	_music_tracks[StringName("main_menu")] = main_menu
+	_music_tracks[StringName("alleyway")] = alleyway
+	_music_tracks[StringName("bar")] = bar
 	_music_tracks[StringName("exterior")] = exterior
 	_music_tracks[StringName("interior")] = interior
 	_music_tracks[StringName("pause")] = pause
@@ -93,13 +97,15 @@ static func _register_scene_audio_mappings() -> void:
 
 	# Load scene mapping resources
 	var main_menu := preload("res://resources/audio/scene_mappings/scene_main_menu.tres") as RS_SceneAudioMapping
-	var exterior := preload("res://resources/audio/scene_mappings/scene_exterior.tres") as RS_SceneAudioMapping
+	var alleyway := preload("res://resources/audio/scene_mappings/scene_alleyway.tres") as RS_SceneAudioMapping
+	var interior_bar := preload("res://resources/audio/scene_mappings/scene_interior_bar.tres") as RS_SceneAudioMapping
 	var interior_house := preload("res://resources/audio/scene_mappings/scene_interior_house.tres") as RS_SceneAudioMapping
 	var credits := preload("res://resources/audio/scene_mappings/scene_credits.tres") as RS_SceneAudioMapping
 
 	# Register in dictionary
 	_scene_audio_map[StringName("main_menu")] = main_menu
-	_scene_audio_map[StringName("exterior")] = exterior
+	_scene_audio_map[StringName("alleyway")] = alleyway
+	_scene_audio_map[StringName("interior_bar")] = interior_bar
 	_scene_audio_map[StringName("interior_house")] = interior_house
 	_scene_audio_map[StringName("credits")] = credits
 

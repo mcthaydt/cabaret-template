@@ -60,7 +60,8 @@ func test_back_button_returns_to_main_panel() -> void:
 	var store := await _create_state_store()
 	var menu := await _create_main_menu()
 	var settings_button: Button = menu.get_node("CenterContainer/MainPanel/SettingsButton")
-	var back_button: Button = menu.get_node("SettingsPanel/SettingsContent/CenterContainer/VBoxContainer/BackButton")
+	var settings_content: Control = menu.get_node("SettingsPanel/SettingsContent")
+	var back_button: Button = settings_content.get_node("%BackButton")
 
 	settings_button.emit_signal("pressed")
 	await wait_process_frames(2)
@@ -82,8 +83,8 @@ func test_play_button_dispatches_start_game_action() -> void:
 	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
 	assert_eq(nav_slice.get("shell"), StringName("gameplay"),
 		"New Game button should move navigation shell to gameplay")
-	assert_eq(nav_slice.get("base_scene_id"), StringName("exterior"),
-		"New Game button should target the exterior scene by default")
+	assert_eq(nav_slice.get("base_scene_id"), StringName("alleyway"),
+		"New Game button should target the alleyway scene by default")
 
 func test_new_game_prompts_confirmation_when_saves_exist() -> void:
 	var store := await _create_state_store()
@@ -124,8 +125,8 @@ func test_new_game_confirmation_confirm_starts_game() -> void:
 	var nav_slice: Dictionary = store.get_slice(StringName("navigation"))
 	assert_eq(nav_slice.get("shell"), StringName("gameplay"),
 		"Confirming New Game should start gameplay shell")
-	assert_eq(nav_slice.get("base_scene_id"), StringName("exterior"),
-		"Confirming New Game should target the exterior scene by default")
+	assert_eq(nav_slice.get("base_scene_id"), StringName("alleyway"),
+		"Confirming New Game should target the alleyway scene by default")
 
 func test_new_game_confirmation_cancel_does_nothing() -> void:
 	var store := await _create_state_store()

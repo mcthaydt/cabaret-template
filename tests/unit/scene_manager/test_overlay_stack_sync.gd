@@ -43,30 +43,27 @@ func before_each() -> void:
 	loading_overlay.name = "LoadingOverlay"
 	add_child_autofree(loading_overlay)
 
-	# Provide required managers to avoid warnings/errors on _ready
-	_cursor_manager = M_CursorManager.new()
-	add_child_autofree(_cursor_manager)
-
-	_spawn_manager = M_SpawnManager.new()
-	add_child_autofree(_spawn_manager)
-	await get_tree().process_frame
-
-	_camera_manager = M_CameraManager.new()
-	add_child_autofree(_camera_manager)
-	await get_tree().process_frame
-
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
 	_store.scene_initial_state = RS_SceneInitialState.new()
 	add_child_autofree(_store)
 	await get_tree().process_frame
-
-	# Register all managers with ServiceLocator so they can find each other
 	U_ServiceLocator.register(StringName("state_store"), _store)
+
+	# Provide required managers to avoid warnings/errors on _ready
+	_cursor_manager = M_CursorManager.new()
+	add_child_autofree(_cursor_manager)
 	U_ServiceLocator.register(StringName("cursor_manager"), _cursor_manager)
+
+	_spawn_manager = M_SpawnManager.new()
+	add_child_autofree(_spawn_manager)
 	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
+
+	_camera_manager = M_CameraManager.new()
+	add_child_autofree(_camera_manager)
 	U_ServiceLocator.register(StringName("camera_manager"), _camera_manager)
 
+	# Register all managers with ServiceLocator so they can find each other
 	# Create M_PauseManager to apply pause based on scene state
 	_pause_system = M_PauseManager.new()
 	add_child_autofree(_pause_system)

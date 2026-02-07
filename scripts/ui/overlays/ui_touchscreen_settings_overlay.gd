@@ -72,10 +72,7 @@ func _resolve_input_profile_manager() -> Node:
 	if manager != null:
 		return manager
 
-	var tree := get_tree()
-	if tree == null:
-		return null
-	return tree.get_first_node_in_group("input_profile_manager")
+	return null
 
 func _exit_tree() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():

@@ -331,7 +331,7 @@ func _get_victory_target_scene(trigger: C_VictoryTriggerComponent) -> StringName
 		C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:
 			return StringName("victory")
 		_:
-			return StringName("exterior")
+			return StringName("alleyway")
 
 ## Load initial scene on startup
 func _load_initial_scene() -> void:
@@ -393,9 +393,6 @@ func _process_transition_queue() -> void:
 	# Dispatch transition completed action
 	if _store != null:
 		_store.dispatch(U_SCENE_ACTIONS.transition_completed(request.scene_id))
-
-		# Sync navigation shell immediately after scene loads
-		_sync_navigation_shell_with_scene(request.scene_id)
 
 	# Emit signal that visual transition is complete (scene is fully visible)
 	# MobileControls waits for this signal before showing controls
@@ -577,6 +574,15 @@ func _perform_transition(request) -> void:
 				await handler.on_load(new_scene, request.scene_id, managers)
 
 		scene_swap_complete[0] = true
+
+		# Dispatch scene swapped action (mid-transition visual updates)
+		# Triggers Cinema Grade update while screen is obscured
+		if _store != null:
+			_store.dispatch(U_SCENE_ACTIONS.scene_swapped(request.scene_id))
+
+			# Sync navigation shell mid-transition (screen is obscured)
+			# Ensures post-process overlays (CRT, Dither) are visible before fade-in
+			_sync_navigation_shell_with_scene(request.scene_id)
 
 	# Phase 10B-2 (T136b): Delegate transition effect execution to TransitionOrchestrator
 	var overlays := {
@@ -800,8 +806,7 @@ func _collect_particle_nodes(node: Node, out: Array) -> void:
 func _prune_particle_speed_cache() -> void:
 	var stale: Array = []
 	for particle_variant in _particle_original_speeds.keys():
-		var particle_node := particle_variant as Node
-		if particle_node == null or not is_instance_valid(particle_node):
+		if not is_instance_valid(particle_variant):
 			stale.append(particle_variant)
 	for key in stale:
 		_particle_original_speeds.erase(key)

@@ -1,0 +1,377 @@
+[gd_scene format=3 uid="uid://dnnjbf16wqhog"]
+
+[ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
+[ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
+[ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
+[ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
+[ext_resource type="Script" uid="uid://dmljrhrqv5ei4" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
+[ext_resource type="PackedScene" uid="uid://cu8fqmdlsv4e8" path="res://scenes/prefabs/prefab_alleyway.tscn" id="3_oot58"]
+[ext_resource type="Script" uid="uid://gaammkurp23b" path="res://scripts/scene_structure/marker_systems_group.gd" id="3_ph0bl"]
+[ext_resource type="Script" uid="uid://cg10jkb2k5551" path="res://scripts/scene_structure/marker_systems_core_group.gd" id="3_systems_core"]
+[ext_resource type="Script" uid="uid://dl32cj7p543rh" path="res://scripts/scene_structure/marker_systems_feedback_group.gd" id="3_systems_feedback"]
+[ext_resource type="Script" uid="uid://wp8ordbinat2" path="res://scripts/scene_structure/marker_systems_movement_group.gd" id="3_systems_movement"]
+[ext_resource type="Script" uid="uid://ceou3w83ojcku" path="res://scripts/scene_structure/marker_systems_physics_group.gd" id="3_systems_physics"]
+[ext_resource type="Script" uid="uid://b85bi31g464hs" path="res://scripts/ecs/systems/s_gravity_system.gd" id="3_xnqit"]
+[ext_resource type="Script" uid="uid://h5ym8nprt7dw" path="res://scripts/ecs/systems/s_movement_system.gd" id="4_vry44"]
+[ext_resource type="Script" uid="uid://dtyibtpldqj48" path="res://scripts/ecs/systems/s_rotate_to_input_system.gd" id="5_r0a6q"]
+[ext_resource type="Script" uid="uid://cxvneotjjmt2h" path="res://scripts/managers/m_ecs_manager.gd" id="6_0e7m3"]
+[ext_resource type="Script" uid="uid://bybk18c838a4x" path="res://scripts/ecs/systems/s_floating_system.gd" id="6_tnjgn"]
+[ext_resource type="PackedScene" uid="uid://d1cugdu6fb42l" path="res://scenes/prefabs/prefab_player.tscn" id="7_4wxy1"]
+[ext_resource type="Script" uid="uid://c5tv5b4g5a2ya" path="res://scripts/ecs/systems/s_align_with_surface_system.gd" id="7_awem0"]
+[ext_resource type="Script" uid="uid://ddf4k6uippbnm" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
+[ext_resource type="Script" uid="uid://dciojb5mih6gh" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
+[ext_resource type="Script" uid="uid://vbqdwstwybck" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
+[ext_resource type="Script" uid="uid://bxqd4f7hk7hte" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
+[ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/base_settings/gameplay/cfg_jump_particles_default.tres" id="9_jump_particles_settings"]
+[ext_resource type="Script" uid="uid://qeq48m3npch6" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
+[ext_resource type="Resource" uid="uid://cqh2bvx4r8jw6" path="res://resources/base_settings/audio/cfg_jump_sound_default.tres" id="9_jump_sound_settings"]
+[ext_resource type="Script" uid="uid://bneiabwmn5nl7" path="res://scripts/ecs/systems/s_playtime_system.gd" id="9_playtime"]
+[ext_resource type="Script" uid="uid://cfddnuq1oriyb" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
+[ext_resource type="Script" uid="uid://bry3i70sfhmiv" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
+[ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/base_settings/gameplay/cfg_landing_particles_default.tres" id="10_landing_particles_settings"]
+[ext_resource type="Script" uid="uid://dcninbk24e6ve" path="res://scripts/ecs/systems/s_landing_sound_system.gd" id="10_landing_sound"]
+[ext_resource type="Resource" uid="uid://dv5m8y3nx0uin" path="res://resources/base_settings/audio/cfg_landing_sound_default.tres" id="10_landing_sound_settings"]
+[ext_resource type="Script" uid="uid://bcy243ogwqv5f" path="res://scripts/ecs/systems/s_death_sound_system.gd" id="11_death_sound"]
+[ext_resource type="Resource" uid="uid://cbkw5y4pf5xbh" path="res://resources/base_settings/audio/cfg_death_sound_default.tres" id="11_death_sound_settings"]
+[ext_resource type="PackedScene" uid="uid://c8v4h1sdtyhps" path="res://scenes/ui/hud/ui_hud_overlay.tscn" id="11_hud"]
+[ext_resource type="Script" uid="uid://buguhw0x2x6og" path="res://scripts/ecs/systems/s_checkpoint_sound_system.gd" id="12_checkpoint_sound"]
+[ext_resource type="Resource" uid="uid://buw5xy8p0d3uc" path="res://resources/base_settings/audio/cfg_checkpoint_sound_default.tres" id="12_checkpoint_sound_settings"]
+[ext_resource type="Script" uid="uid://d0omtagbm74cs" path="res://scripts/scene_structure/marker_managers_group.gd" id="12_klon2"]
+[ext_resource type="Script" uid="uid://dfn1e3onqcmj4" path="res://scripts/ecs/systems/s_victory_sound_system.gd" id="13_victory_sound"]
+[ext_resource type="Resource" uid="uid://dv3s5a4nyjf05" path="res://resources/base_settings/audio/cfg_victory_sound_default.tres" id="13_victory_sound_settings"]
+[ext_resource type="Script" uid="uid://b3qbubetb1sko" path="res://scripts/ecs/systems/s_footstep_sound_system.gd" id="14_footstep_sound"]
+[ext_resource type="Resource" uid="uid://b3kx5fj7m8qwo" path="res://resources/base_settings/audio/cfg_footstep_sound_default.tres" id="14_footstep_sound_settings"]
+[ext_resource type="Script" uid="uid://bdp7886fufa8v" path="res://scripts/scene_structure/marker_entities_group.gd" id="16_8qi87"]
+[ext_resource type="PackedScene" uid="uid://4f8xryxbxit0" path="res://scenes/templates/tmpl_camera.tscn" id="19_ph0bl"]
+[ext_resource type="Script" uid="uid://csqsmkkv5ite7" path="res://scripts/ecs/systems/s_scene_trigger_system.gd" id="20_scene_trigger_system"]
+[ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
+[ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
+[ext_resource type="Script" uid="uid://be4ht4ijvdrjy" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="29_screen_shake_publisher"]
+[ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/cfg_cylinder_wide_door_trigger_settings.tres" id="30_auc1c"]
+[ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
+[ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="30_door_controller"]
+[ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://assets/textures/tex_icon.svg" id="39_u0c34"]
+[ext_resource type="Script" uid="uid://cly8oyjtrr3ev" path="res://scripts/gameplay/inter_endgame_goal_zone.gd" id="41_goal_script"]
+[ext_resource type="Script" uid="uid://djud6o4c7psxg" path="res://scripts/ecs/systems/s_checkpoint_system.gd" id="42_checkpoint_system"]
+[ext_resource type="Resource" uid="uid://na7m34dl6a4d" path="res://resources/triggers/cfg_checkpoint_box_2x3x2.tres" id="43_checkpoint_settings"]
+[ext_resource type="Script" uid="uid://cnqqo6qh71pqh" path="res://scripts/gameplay/inter_checkpoint_zone.gd" id="43_checkpoint_zone_script"]
+[ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/cfg_death_zone_volume.tres" id="44_death_settings"]
+[ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/cfg_goal_cylinder.tres" id="44_goal_settings"]
+[ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="44_hazard_controller"]
+[ext_resource type="Resource" uid="uid://c8u21l3ag26ky" path="res://resources/triggers/cfg_spike_trap_volume.tres" id="44_spike_settings"]
+[ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
+[ext_resource type="Resource" uid="uid://bi0ygx0nsog1s" path="res://resources/spawn_metadata/cfg_sp_exterior.tres" id="51_exterior_default_spawn_meta"]
+[ext_resource type="Resource" uid="uid://cvgjhiir8koeu" path="res://resources/spawn_metadata/cfg_sp_exterior_checkpoint.tres" id="52_exterior_checkpoint_spawn_meta"]
+[ext_resource type="Resource" uid="uid://t1jgkqtr1hke" path="res://resources/spawn_metadata/cfg_sp_exterior_exit_from_house.tres" id="53_exterior_exit_from_house_spawn_meta"]
+[ext_resource type="Resource" uid="uid://xfndjst2gnk5" path="res://resources/spawn_metadata/cfg_sp_exterior_exit_from_bar.tres" id="54_exterior_exit_from_bar_spawn_meta"]
+[ext_resource type="Material" uid="uid://dtyyrgwkln3r4" path="res://assets/materials/mat_fade_hazard.tres" id="55_fade_hazard"]
+[ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="56_fade_goal"]
+[ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="57_fade_door"]
+[ext_resource type="Script" uid="uid://dpeat44fqshck" path="res://scripts/utils/display/u_cinema_grade_preview.gd" id="58_cinema_preview"]
+[ext_resource type="Resource" uid="uid://dbu083ahcuvmu" path="res://resources/display/cinema_grades/cfg_cinema_grade_alleyway.tres" id="59_cinema_grade"]
+
+[sub_resource type="Environment" id="Environment_bar"]
+background_mode = 1
+ambient_light_source = 3
+ssao_enabled = true
+ssil_enabled = true
+sdfgi_enabled = true
+glow_enabled = true
+glow_bloom = 1.0
+fog_sky_affect = 0.0
+volumetric_fog_enabled = true
+volumetric_fog_sky_affect = 0.0
+
+[node name="GameplayRoot" type="Node3D" unique_id=118760861]
+script = ExtResource("1_f2o31")
+
+[node name="SceneObjects" type="Node3D" parent="." unique_id=1984456615]
+script = ExtResource("2_ph0bl")
+
+[node name="NewExterior" parent="SceneObjects" unique_id=1437797737 instance=ExtResource("3_oot58")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.8506856, 0, 0.6794058)
+
+[node name="Environment" type="Node" parent="." unique_id=124727212]
+script = ExtResource("2_8soux")
+
+[node name="Env_WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=828583278]
+environment = SubResource("Environment_bar")
+
+[node name="Systems" type="Node" parent="." unique_id=1629993424]
+script = ExtResource("3_ph0bl")
+
+[node name="Core" type="Node" parent="Systems" unique_id=2069599387]
+script = ExtResource("3_systems_core")
+
+[node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=35777903]
+script = ExtResource("1_pybrx")
+require_captured_cursor = true
+
+[node name="S_TouchscreenSystem" type="Node" parent="Systems/Core" unique_id=1064091042]
+script = ExtResource("24_touchscreen_system")
+
+[node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1713677020]
+script = ExtResource("9_health")
+execution_priority = 200
+
+[node name="S_DamageSystem" type="Node" parent="Systems/Core" unique_id=1570471402]
+script = ExtResource("9_damage")
+execution_priority = 250
+
+[node name="S_VictorySystem" type="Node" parent="Systems/Core" unique_id=873580954]
+script = ExtResource("9_victory")
+execution_priority = 300
+
+[node name="S_PlaytimeSystem" type="Node" parent="Systems/Core" unique_id=2060998520]
+script = ExtResource("9_playtime")
+execution_priority = 200
+
+[node name="S_SceneTriggerSystem" type="Node" parent="Systems/Core" unique_id=808878891]
+script = ExtResource("20_scene_trigger_system")
+
+[node name="S_CheckpointSystem" type="Node" parent="Systems/Core" unique_id=1998756645]
+script = ExtResource("42_checkpoint_system")
+
+[node name="Physics" type="Node" parent="Systems" unique_id=324850956]
+script = ExtResource("3_systems_physics")
+
+[node name="S_GravitySystem" type="Node" parent="Systems/Physics" unique_id=832594094]
+script = ExtResource("3_xnqit")
+execution_priority = 60
+
+[node name="S_JumpSystem" type="Node" parent="Systems/Physics" unique_id=1346400571]
+script = ExtResource("2_rfthe")
+execution_priority = 75
+
+[node name="Movement" type="Node" parent="Systems" unique_id=1818230892]
+script = ExtResource("3_systems_movement")
+
+[node name="S_MovementSystem" type="Node" parent="Systems/Movement" unique_id=636172549]
+script = ExtResource("4_vry44")
+execution_priority = 50
+
+[node name="S_FloatingSystem" type="Node" parent="Systems/Movement" unique_id=1238556242]
+script = ExtResource("6_tnjgn")
+execution_priority = 70
+
+[node name="S_RotateToInputSystem" type="Node" parent="Systems/Movement" unique_id=1161155006]
+script = ExtResource("5_r0a6q")
+debug_rotation_log_interval_frames = 3
+execution_priority = 80
+
+[node name="S_AlignWithSurfaceSystem" type="Node" parent="Systems/Movement" unique_id=1254633706]
+script = ExtResource("7_awem0")
+execution_priority = 90
+
+[node name="Feedback" type="Node" parent="Systems" unique_id=825942742]
+script = ExtResource("3_systems_feedback")
+
+[node name="S_LandingIndicatorSystem" type="Node" parent="Systems/Feedback" unique_id=537561770]
+script = ExtResource("8_ey5t3")
+execution_priority = 110
+
+[node name="S_JumpParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=108491135]
+script = ExtResource("9_jump_particles")
+settings = ExtResource("9_jump_particles_settings")
+execution_priority = 120
+
+[node name="S_JumpSoundSystem" type="Node" parent="Systems/Feedback" unique_id=2055924269]
+script = ExtResource("9_jump_sound")
+settings = ExtResource("9_jump_sound_settings")
+execution_priority = 121
+
+[node name="S_LandingSoundSystem" type="Node" parent="Systems/Feedback" unique_id=2112041019]
+script = ExtResource("10_landing_sound")
+settings = ExtResource("10_landing_sound_settings")
+execution_priority = 122
+
+[node name="S_DeathSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1979455779]
+script = ExtResource("11_death_sound")
+settings = ExtResource("11_death_sound_settings")
+execution_priority = 123
+
+[node name="S_CheckpointSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1907994055]
+script = ExtResource("12_checkpoint_sound")
+settings = ExtResource("12_checkpoint_sound_settings")
+execution_priority = 124
+
+[node name="S_VictorySoundSystem" type="Node" parent="Systems/Feedback" unique_id=47236834]
+script = ExtResource("13_victory_sound")
+settings = ExtResource("13_victory_sound_settings")
+execution_priority = 125
+
+[node name="S_FootstepSoundSystem" type="Node" parent="Systems/Feedback" unique_id=1682967547]
+script = ExtResource("14_footstep_sound")
+settings = ExtResource("14_footstep_sound_settings")
+execution_priority = 126
+
+[node name="S_LandingParticlesSystem" type="Node" parent="Systems/Feedback" unique_id=821071650]
+script = ExtResource("10_landing_particles")
+settings = ExtResource("10_landing_particles_settings")
+execution_priority = 122
+
+[node name="S_ScreenShakePublisherSystem" type="Node" parent="Systems/Feedback" unique_id=412904982]
+script = ExtResource("29_screen_shake_publisher")
+
+[node name="S_DamageFlashPublisherSystem" type="Node" parent="Systems/Feedback" unique_id=1774483696]
+script = ExtResource("30_damage_flash_publisher")
+
+[node name="Lighting" type="Node" parent="." unique_id=888888801]
+
+[node name="CinemaGradePreview" type="Node" parent="Lighting" unique_id=722256414]
+script = ExtResource("58_cinema_preview")
+cinema_grade = ExtResource("59_cinema_grade")
+
+[node name="MoonLight" type="OmniLight3D" parent="Lighting" unique_id=888888802]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+light_color = Color(0.4, 0.5, 0.8, 1)
+light_energy = 1.5
+omni_range = 15.0
+
+[node name="StreetLight_Warm" type="OmniLight3D" parent="Lighting" unique_id=888888803]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 3, -3)
+light_color = Color(1, 0.8, 0.6, 1)
+omni_range = 8.0
+
+[node name="Managers" type="Node" parent="." unique_id=1732814566]
+script = ExtResource("12_klon2")
+
+[node name="M_ECSManager" type="Node" parent="Managers" unique_id=1346681444]
+script = ExtResource("6_0e7m3")
+
+[node name="Entities" type="Node" parent="." unique_id=1869671019]
+script = ExtResource("16_8qi87")
+
+[node name="SpawnPoints" type="Node3D" parent="Entities" unique_id=921320548]
+script = ExtResource("21_spawnpoints")
+
+[node name="sp_default" type="Node3D" parent="Entities/SpawnPoints" unique_id=2016792290]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3674707, 0)
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("51_exterior_default_spawn_meta")
+
+[node name="sp_checkpoint_safe" type="Node3D" parent="Entities/SpawnPoints" unique_id=474428565]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8532863, -0.05000639, -0.5544181)
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("52_exterior_checkpoint_spawn_meta")
+
+[node name="sp_exit_from_house" type="Node3D" parent="Entities/SpawnPoints" unique_id=474428566]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.21133327, -0.31296825, -4.208724)
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("53_exterior_exit_from_house_spawn_meta")
+
+[node name="sp_exit_from_bar" type="Node3D" parent="Entities/SpawnPoints" unique_id=474428567]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.26211882, -0.31296825, -4.077717)
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("54_exterior_exit_from_bar_spawn_meta")
+
+[node name="Hazards" type="Node" parent="Entities" unique_id=1212714382]
+script = ExtResource("16_8qi87")
+
+[node name="E_DeathZone" type="Node3D" parent="Entities/Hazards" unique_id=2142744412]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
+script = ExtResource("44_hazard_controller")
+is_instant_death = true
+settings = ExtResource("44_death_settings")
+entity_id = &"deathzone_alleyway"
+tags = Array[StringName]([&"hazard", &"death"])
+
+[node name="E_SpikeTrapA" type="Node3D" parent="Entities/Hazards" unique_id=2072822935]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.8646226, 0, -2.5110316)
+script = ExtResource("44_hazard_controller")
+settings = ExtResource("44_spike_settings")
+visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
+entity_id = &"spiketrap_a"
+tags = Array[StringName]([&"hazard", &"trap"])
+
+[node name="MeshInstance3D" type="CSGBox3D" parent="Entities/Hazards/E_SpikeTrapA" unique_id=1048643914]
+size = Vector3(1.5, 0.5, 1.5)
+material = ExtResource("55_fade_hazard")
+
+[node name="SpikeTips" type="CSGCylinder3D" parent="Entities/Hazards/E_SpikeTrapA" unique_id=2069655188]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+height = 1.0
+material = ExtResource("55_fade_hazard")
+
+[node name="E_SpikeTrapB" type="Node3D" parent="Entities/Hazards" unique_id=353656775]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -3.834928)
+script = ExtResource("44_hazard_controller")
+settings = ExtResource("44_spike_settings")
+visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
+entity_id = &"spiketrap_b"
+tags = Array[StringName]([&"hazard", &"trap"])
+
+[node name="MeshInstance3D" type="CSGBox3D" parent="Entities/Hazards/E_SpikeTrapB" unique_id=2139788207]
+size = Vector3(1.5, 0.5, 1.5)
+material = ExtResource("55_fade_hazard")
+
+[node name="SpikeTips" type="CSGCylinder3D" parent="Entities/Hazards/E_SpikeTrapB" unique_id=1209266588]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+height = 1.0
+material = ExtResource("55_fade_hazard")
+
+[node name="Objectives" type="Node" parent="Entities" unique_id=1431982543]
+script = ExtResource("16_8qi87")
+
+[node name="E_FinalGoal" type="Node3D" parent="Entities/Objectives" unique_id=1434112409]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -4.12, 1.108, 0.833)
+script = ExtResource("41_goal_script")
+required_area = "interior_bar"
+objective_id = &"final_goal"
+area_id = "alleyway"
+settings = ExtResource("44_goal_settings")
+visual_paths = Array[NodePath]([NodePath("Visual"), NodePath(""), NodePath("GlowLight")])
+entity_id = &"finalgoal"
+tags = Array[StringName]([&"objective", &"endgame"])
+
+[node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1272881135]
+radius = 1.5
+material = ExtResource("56_fade_goal")
+
+[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1169942121]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+light_color = Color(1, 0.87451, 0.364706, 1)
+light_energy = 2.0
+
+[node name="E_Player" parent="Entities" unique_id=1535353491 instance=ExtResource("7_4wxy1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3674707, 0)
+
+[node name="E_CameraRoot" parent="Entities" unique_id=153420920 instance=ExtResource("19_ph0bl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 7.147382)
+
+[node name="E_PlayerCamera" parent="Entities/E_CameraRoot" index="0" unique_id=1000261679]
+transform = Transform3D(0.99999994, 0, 0, 0, 0.8660254, 0.49999997, 0, -0.5, 0.8660253, -1.2474375, 6.117, 1.6184931)
+fov = 28.8
+
+[node name="E_DoorTrigger" type="Node3D" parent="Entities" unique_id=616346955]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.386, 1.497, -5.739)
+script = ExtResource("30_door_controller")
+door_id = &"door_to_bar"
+target_scene_id = &"interior_bar"
+target_spawn_point = &"sp_entrance_from_exterior"
+settings = ExtResource("30_auc1c")
+visual_paths = Array[NodePath]([NodePath("DoorVisual")])
+entity_id = &"door_to_bar"
+tags = Array[StringName]([&"trigger", &"door"])
+
+[node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger" unique_id=863395501]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.57354736, 0)
+radius = 0.7910156
+height = 2.0715332
+material = ExtResource("57_fade_door")
+
+[node name="E_Checkpoint_SafeZone" type="Node3D" parent="Entities" unique_id=1409158797]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1599712, 1.0014925, 1.26685)
+script = ExtResource("43_checkpoint_zone_script")
+checkpoint_id = &"cp_alleyway"
+spawn_point_id = &"sp_checkpoint_safe"
+settings = ExtResource("43_checkpoint_settings")
+entity_id = &"checkpoint_alleyway"
+tags = Array[StringName]([&"checkpoint", &"objective"])
+
+[node name="CheckpointVisual" type="Sprite3D" parent="Entities/E_Checkpoint_SafeZone" unique_id=2041254471]
+texture = ExtResource("39_u0c34")
+
+[node name="HUD" parent="." unique_id=1864878923 instance=ExtResource("11_hud")]
+
+[editable path="Entities/E_CameraRoot"]

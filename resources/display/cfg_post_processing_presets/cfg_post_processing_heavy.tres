@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RS_PostProcessingPreset" format=3 uid="uid://bnejf3mmha2ou"]
+
+[ext_resource type="Script" uid="uid://ckgv1tdkks1fy" path="res://scripts/resources/display/rs_post_processing_preset.gd" id="1_heavy"]
+
+[resource]
+script = ExtResource("1_heavy")
+preset_name = "heavy"
+display_name = "Heavy"
+sort_order = 2
+film_grain_intensity = 0.35
+crt_scanline_intensity = 0.45
+crt_curvature = 0.1
+crt_chromatic_aberration = 0.0009
+dither_intensity = 1.0

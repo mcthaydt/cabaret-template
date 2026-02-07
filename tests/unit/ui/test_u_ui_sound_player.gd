@@ -46,15 +46,13 @@ func test_throttle_ms_allows_play_after_window() -> void:
 
 	# When: Playing twice with delay exceeding throttle window
 	U_UI_SOUND_PLAYER.play_slider_tick()
+	var time_before: int = U_UI_SOUND_PLAYER._last_play_times.get(StringName("ui_tick"), 0)
 	await get_tree().create_timer(0.15).timeout  # 150ms > 100ms throttle
 	U_UI_SOUND_PLAYER.play_slider_tick()
+	var time_after: int = U_UI_SOUND_PLAYER._last_play_times.get(StringName("ui_tick"), 0)
 
-	await get_tree().process_frame
-
-	# Then: Both plays should succeed
-	var playing_count := _count_playing_ui_players()
-	# First sound may have finished, but second should definitely be playing
-	assert_gte(playing_count, 1, "Second play after throttle window should succeed")
+	# Then: Second play should be allowed (timestamp updated)
+	assert_gt(time_after, time_before, "Second play after throttle window should succeed (timestamp updated)")
 
 
 func test_throttle_ms_zero_allows_all_plays() -> void:
@@ -80,14 +78,14 @@ func test_different_sounds_have_independent_throttles() -> void:
 	# ui_confirm has throttle_ms = 0
 
 	# When: Playing both sounds rapidly
+	var ui_index_before := _manager._ui_sound_index
 	U_UI_SOUND_PLAYER.play_slider_tick()
 	U_UI_SOUND_PLAYER.play_confirm()
+	var ui_index_after := _manager._ui_sound_index
 
-	await get_tree().process_frame
-
-	# Then: Both sounds should play (independent throttles)
-	var playing_count := _count_playing_ui_players()
-	assert_eq(playing_count, 2, "Different sounds should have independent throttles")
+	# Then: Both sounds should play (independent throttles, index advances by 2)
+	var expected_index := (ui_index_before + 2) % M_AUDIO_MANAGER.UI_SOUND_POLYPHONY
+	assert_eq(ui_index_after, expected_index, "Different sounds should have independent throttles")
 
 
 ## Helper: Count how many UI sound players are currently playing

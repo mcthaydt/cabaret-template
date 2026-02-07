@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="RS_SceneCinemaGrade" format=3 uid="uid://cauncaxlhf7oq"]
+
+[ext_resource type="Script" uid="uid://bav03g4a1nlfc" path="res://scripts/resources/display/rs_scene_cinema_grade.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+scene_id = &"exterior"

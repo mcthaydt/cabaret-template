@@ -47,10 +47,7 @@ func _resolve_input_profile_manager() -> Node:
 	if manager != null:
 		return manager
 
-	var tree := get_tree()
-	if tree == null:
-		return null
-	return tree.get_first_node_in_group("input_profile_manager")
+	return null
 
 func _resolve_mobile_controls() -> UI_MobileControls:
 	var input_manager := U_ServiceLocator.try_get_service(StringName("input_device_manager")) as I_INPUT_DEVICE_MANAGER
@@ -66,10 +63,6 @@ func _resolve_mobile_controls() -> UI_MobileControls:
 			var first_match := matches[0] as UI_MobileControls
 			if first_match != null and is_instance_valid(first_match):
 				return first_match
-
-		var fallback := tree.get_first_node_in_group("mobile_controls") as UI_MobileControls
-		if fallback != null and is_instance_valid(fallback):
-			return fallback
 	return null
 
 func _configure_focus_neighbors() -> void:

@@ -184,7 +184,7 @@ func test_custom_bindings_persist_via_save_and_reload() -> void:
 
 	var save_success := _manager.save_custom_bindings()
 	assert_true(save_success, "Manager should report successful save")
-	assert_true(FileAccess.file_exists("user://input_settings.json"), "Save file should be written to disk")
+	assert_true(FileAccess.file_exists("user://global_settings.json"), "Save file should be written to disk")
 	# Log the raw JSON saved to disk for verification
 	var saved_json := _read_user_input_settings_json()
 
@@ -274,10 +274,10 @@ func _cleanup_input_settings_files() -> void:
 	var dir := DirAccess.open("user://")
 	if dir == null:
 		return
-	if dir.file_exists("input_settings.json"):
-		dir.remove("input_settings.json")
-	if dir.file_exists("input_settings.json.backup"):
-		dir.remove("input_settings.json.backup")
+	if dir.file_exists("global_settings.json"):
+		dir.remove("global_settings.json")
+	if dir.file_exists("global_settings.json.backup"):
+		dir.remove("global_settings.json.backup")
 	if dir.file_exists(TEST_SAVEGAME_PATH.get_file()):
 		dir.remove(TEST_SAVEGAME_PATH.get_file())
 
@@ -316,7 +316,7 @@ func _describe_events(action: StringName) -> Array:
 	return summaries
 
 func _read_user_input_settings_json() -> String:
-	var path := "user://input_settings.json"
+	var path := "user://global_settings.json"
 	if not FileAccess.file_exists(path):
 		return "<missing>"
 	var f := FileAccess.open(path, FileAccess.READ)

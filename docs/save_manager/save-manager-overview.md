@@ -125,7 +125,7 @@ user://saves/
 | `last_checkpoint` | String | Checkpoint marker name (if present) |
 | `target_spawn_point` | String | Spawn point marker name (if present) |
 | `area_name` | String | Human-readable location for UI display (from scene registry) |
-| `thumbnail_path` | String | Path to screenshot (nullable, deferred implementation) |
+| `thumbnail_path` | String | Path to screenshot (Phase 16 implementation) |
 
 **area_name derivation**: Obtained from `U_SceneRegistry` using the `current_scene_id`. If the scene has a `display_name` metadata field, use that; otherwise fall back to a formatted version of the scene_id (e.g., "gameplay_base" -> "Gameplay Base").
 
@@ -281,7 +281,7 @@ Use `user://test/` for integration tests with real filesystem:
 | Slot cap/retention policy | 3 manual slots max; block when full (user must delete) |
 | UI metadata requirements | Timestamp, area name, playtime (formatted HH:MM:SS) |
 | Autosave after manual load | No; wait for next milestone |
-| Thumbnail capture | Schema ready (`thumbnail_path`); capture deferred to future |
+| Thumbnail capture | Phase 16 implementation (cache on pause, capture on save) |
 | Threading model | Synchronous only (blocking writes acceptable for save file size) |
 | Load sequence | Use existing StateHandoff pattern (state stored before transition, applied after scene loads) |
 | Death autosave prevention | Explicit `death_in_progress` flag in gameplay slice blocks autosave |

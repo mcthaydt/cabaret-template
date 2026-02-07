@@ -10,6 +10,7 @@ const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigati
 const U_InteractBlocker := preload("res://scripts/utils/u_interact_blocker.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
+const I_DisplayManager := preload("res://scripts/interfaces/i_display_manager.gd")
 
 @onready var pause_label: Label = $MarginContainer/VBoxContainer/PauseLabel
 @onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthBar
@@ -31,10 +32,11 @@ var _active_prompt_id: int = 0
 var _last_prompt_action: StringName = StringName("interact")
 var _last_prompt_text: String = ""
 var _toast_active: bool = false
+var _health_bar_bg_style: StyleBoxFlat = null
+var _health_bar_fill_style: StyleBoxFlat = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_register_with_scene_manager()
 	_store = U_StateUtils.get_store(self)
 
 	if _store == null:
@@ -44,7 +46,25 @@ func _ready() -> void:
 	_player_entity_id = String(_store.get_slice(StringName("gameplay")).get("player_entity_id", "player"))
 	_store.slice_updated.connect(_on_slice_updated)
 
-	# Subscribe to checkpoint events for player feedback
+	# Grab direct references to the scene's StyleBoxFlat resources
+	if health_bar != null:
+		var bg_style := health_bar.get_theme_stylebox("background")
+		if bg_style is StyleBoxFlat:
+			_health_bar_bg_style = bg_style as StyleBoxFlat
+		var fill_style := health_bar.get_theme_stylebox("fill")
+		if fill_style is StyleBoxFlat:
+			_health_bar_fill_style = fill_style as StyleBoxFlat
+
+	# Defer reparent AND event subscriptions to avoid tree modifications during _ready
+	# and to ensure subscriptions happen AFTER reparenting (which triggers _exit_tree)
+	call_deferred("_complete_initialization")
+
+func _complete_initialization() -> void:
+	# Reparent first
+	_reparent_to_root_hud_layer()
+	_register_with_scene_manager()
+
+	# Then subscribe to events (after reparenting to avoid unsubscribe in _exit_tree)
 	_unsubscribe_checkpoint = U_ECSEventBus.subscribe(StringName("checkpoint_activated"), _on_checkpoint_event)
 	_unsubscribe_interact_prompt_show = U_ECSEventBus.subscribe(StringName("interact_prompt_show"), _on_interact_prompt_show)
 	_unsubscribe_interact_prompt_hide = U_ECSEventBus.subscribe(StringName("interact_prompt_hide"), _on_interact_prompt_hide)
@@ -97,7 +117,8 @@ func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void
 		return
 	if slice_name != StringName("gameplay") \
 			and slice_name != StringName("scene") \
-			and slice_name != StringName("navigation"):
+			and slice_name != StringName("navigation") \
+			and slice_name != StringName("display"):
 		return
 
 	var state := _store.get_state()
@@ -152,6 +173,9 @@ func _update_health(state: Dictionary) -> void:
 	if health_label != null:
 		health_label.text = display_text
 	health_bar.tooltip_text = display_text
+
+	# Update health bar colors based on color blind palette and health percentage
+	_update_health_bar_colors(state, health, max_health)
 
 ## ECS: Show a brief toast when a checkpoint is activated
 func _on_checkpoint_event(payload: Variant) -> void:
@@ -237,6 +261,29 @@ func _on_interact_prompt_hide(payload: Variant) -> void:
 		return
 	_active_prompt_id = 0
 	interact_prompt.hide_prompt()
+
+func _reparent_to_root_hud_layer() -> void:
+	# Reparent HUD to root HUDLayer to escape SubViewport rendering
+	var tree := get_tree()
+	if tree == null:
+		return
+
+	var root_hud_layer := tree.root.find_child("HUDLayer", true, false)
+	if root_hud_layer == null:
+		push_warning("HUD: Could not find HUDLayer in root - HUD will render inside viewport")
+		return
+
+	var current_parent := get_parent()
+	if current_parent == null or current_parent == root_hud_layer:
+		return
+
+	# Reparent to root HUD layer
+	current_parent.remove_child(self)
+	root_hud_layer.add_child(self)
+
+	# Set layer to 6 to render AFTER post-processing (layers 1-5) but BEFORE UI overlays (layer 10)
+	# When CanvasLayers are nested, child layer number determines render order, not parent
+	layer = 6
 
 func _on_signpost_message(payload: Variant) -> void:
 	var text: String = ""
@@ -331,3 +378,29 @@ func _get_primary_input_label(action: StringName) -> String:
 			var mouse_event := event as InputEventMouseButton
 			return "Mouse %d" % mouse_event.button_index
 	return ""
+
+func _update_health_bar_colors(_state: Dictionary, health: float, max_health: float) -> void:
+	if _health_bar_fill_style == null:
+		return
+
+	var display_mgr := U_ServiceLocator.try_get_service(StringName("display_manager")) as I_DisplayManager
+	if display_mgr == null:
+		return
+	var active_palette: Resource = display_mgr.get_active_palette()
+	if active_palette == null:
+		return
+
+	# Determine which color to use based on health percentage
+	var health_percent: float = health / max_health if max_health > 0.0 else 0.0
+	var target_color: Color
+
+	# Access palette colors via .get() to avoid class_name resolution issues
+	if health_percent >= 0.6:
+		target_color = active_palette.get("success") as Color
+	elif health_percent >= 0.3:
+		target_color = active_palette.get("warning") as Color
+	else:
+		target_color = active_palette.get("danger") as Color
+
+	# Apply the color to the health bar fill
+	_health_bar_fill_style.bg_color = target_color

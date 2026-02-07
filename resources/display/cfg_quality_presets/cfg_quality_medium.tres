@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_QualityPreset" format=3 uid="uid://djj6l10sutjce"]
+
+[ext_resource type="Script" uid="uid://c8set0jfhy4pg" path="res://scripts/resources/display/rs_quality_preset.gd" id="1_quality_preset"]
+
+[resource]
+script = ExtResource("1_quality_preset")
+preset_name = "medium"
+display_name = "Medium"
+sort_order = 20
+shadow_quality = "low"

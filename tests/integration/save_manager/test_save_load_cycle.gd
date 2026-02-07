@@ -611,7 +611,7 @@ func test_autosave_triggers_on_area_completion() -> void:
 	_save_manager.get("_autosave_scheduler").set("_last_autosave_time", -1000.0)
 
 	# Now transition to a new gameplay scene (this SHOULD trigger autosave)
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 	await get_tree().physics_frame
 
@@ -767,13 +767,13 @@ func test_load_restores_scene_id_from_header() -> void:
 	assert_eq(header.get("current_scene_id"), StringName("interior_house"), "Header should contain correct scene_id")
 
 	# Modify current scene to something different
-	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_state_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().physics_frame
 
 	# Verify scene was changed
 	var state_before_load: Dictionary = _state_store.get_state()
 	var scene_before: Dictionary = state_before_load.get("scene", {})
-	assert_eq(scene_before.get("current_scene_id"), StringName("exterior"), "Scene should be changed before load")
+	assert_eq(scene_before.get("current_scene_id"), StringName("alleyway"), "Scene should be changed before load")
 
 	# Load the save
 	var load_result: Error = _save_manager.load_from_slot(StringName("slot_01"))

@@ -64,7 +64,11 @@
 [ext_resource type="Resource" uid="uid://bi0ygx0nsog1s" path="res://resources/spawn_metadata/cfg_sp_exterior.tres" id="51_exterior_default_spawn_meta"]
 [ext_resource type="Resource" uid="uid://cvgjhiir8koeu" path="res://resources/spawn_metadata/cfg_sp_exterior_checkpoint.tres" id="52_exterior_checkpoint_spawn_meta"]
 [ext_resource type="Resource" uid="uid://t1jgkqtr1hke" path="res://resources/spawn_metadata/cfg_sp_exterior_exit_from_house.tres" id="53_exterior_exit_from_house_spawn_meta"]
-[ext_resource type="Script" uid="uid://dtku7dfc3a83y" path="res://scripts/ecs/components/c_surface_type_component.gd" id="54_surface_marker"]
+[ext_resource type="Resource" uid="uid://xfndjst2gnk5" path="res://resources/spawn_metadata/cfg_sp_exterior_exit_from_bar.tres" id="54_exterior_exit_from_bar_spawn_meta"]
+[ext_resource type="Material" uid="uid://dtyyrgwkln3r4" path="res://assets/materials/mat_fade_hazard.tres" id="55_fade_hazard"]
+[ext_resource type="Script" uid="uid://dtku7dfc3a83y" path="res://scripts/ecs/components/c_surface_type_component.gd" id="55_surface_marker"]
+[ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="56_fade_goal"]
+[ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="57_fade_door"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -81,26 +85,14 @@ specular_mode = 1
 background_mode = 1
 background_color = Color(0.3019608, 0.60784316, 0.9019608, 1)
 ambient_light_source = 3
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spike"]
-albedo_color = Color(0.643137, 0.160784, 0.160784, 1)
-roughness = 0.25
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_goal"]
-albedo_color = Color(0.968627, 0.847059, 0.239216, 1)
-emission_enabled = true
-emission = Color(1, 0.843137, 0.223529, 1)
-emission_energy_multiplier = 1.5
+tonemap_mode = 1
+adjustment_enabled = true
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_goal_text"]
 
 [sub_resource type="TextMesh" id="TextMesh_goal"]
 material = SubResource("StandardMaterial3D_goal_text")
 text = ":)"
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_door"]
-shading_mode = 0
-albedo_color = Color(0.9828339, 0, 0.010878513, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_12vux"]
 shading_mode = 0
@@ -120,7 +112,7 @@ size = Vector3(25, 1, 25)
 material = SubResource("StandardMaterial3D_748a2")
 
 [node name="C_SurfaceTypeComponent" type="Node" parent="SceneObjects/SO_Floor_Grass" unique_id=1396290437]
-script = ExtResource("54_surface_marker")
+script = ExtResource("55_surface_marker")
 surface_type = 4
 
 [node name="SO_Block2_Stone" type="CSGBox3D" parent="SceneObjects" unique_id=952943046]
@@ -130,7 +122,7 @@ size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
 
 [node name="C_SurfaceTypeComponent" type="Node" parent="SceneObjects/SO_Block2_Stone" unique_id=938611261]
-script = ExtResource("54_surface_marker")
+script = ExtResource("55_surface_marker")
 surface_type = 1
 
 [node name="SO_Block3_Stone" type="CSGBox3D" parent="SceneObjects" unique_id=105740316]
@@ -140,7 +132,7 @@ size = Vector3(6.261841, 1, 3.1923828)
 material = SubResource("StandardMaterial3D_748a2")
 
 [node name="C_SurfaceTypeComponent" type="Node" parent="SceneObjects/SO_Block3_Stone" unique_id=972343641]
-script = ExtResource("54_surface_marker")
+script = ExtResource("55_surface_marker")
 surface_type = 1
 
 [node name="Environment" type="Node" parent="." unique_id=1363665914]
@@ -307,6 +299,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.7472486, -0.31296825, 1.402
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("53_exterior_exit_from_house_spawn_meta")
 
+[node name="sp_exit_from_bar" type="Node3D" parent="Entities/SpawnPoints" unique_id=1857295813]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.73032093, -0.31296825, 1.4028394)
+script = ExtResource("50_spawn_point")
+spawn_metadata = ExtResource("54_exterior_exit_from_bar_spawn_meta")
+
 [node name="Hazards" type="Node" parent="Entities" unique_id=883428971]
 script = ExtResource("16_8qi87")
 
@@ -328,12 +325,12 @@ tags = Array[StringName]([&"hazard", &"trap"])
 
 [node name="MeshInstance3D" type="CSGBox3D" parent="Entities/Hazards/E_SpikeTrapA" unique_id=1048643914]
 size = Vector3(1.5, 0.5, 1.5)
-material = SubResource("StandardMaterial3D_spike")
+material = ExtResource("55_fade_hazard")
 
 [node name="SpikeTips" type="CSGCylinder3D" parent="Entities/Hazards/E_SpikeTrapA" unique_id=2069655188]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 height = 1.0
-material = SubResource("StandardMaterial3D_spike")
+material = ExtResource("55_fade_hazard")
 
 [node name="E_SpikeTrapB" type="Node3D" parent="Entities/Hazards" unique_id=353656775]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 3)
@@ -345,12 +342,12 @@ tags = Array[StringName]([&"hazard", &"trap"])
 
 [node name="MeshInstance3D" type="CSGBox3D" parent="Entities/Hazards/E_SpikeTrapB" unique_id=2139788207]
 size = Vector3(1.5, 0.5, 1.5)
-material = SubResource("StandardMaterial3D_spike")
+material = ExtResource("55_fade_hazard")
 
 [node name="SpikeTips" type="CSGCylinder3D" parent="Entities/Hazards/E_SpikeTrapB" unique_id=1209266588]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
 height = 1.0
-material = SubResource("StandardMaterial3D_spike")
+material = ExtResource("55_fade_hazard")
 
 [node name="Objectives" type="Node" parent="Entities" unique_id=232368966]
 script = ExtResource("16_8qi87")
@@ -363,7 +360,7 @@ tags = Array[StringName]([&"objective", &"endgame"])
 
 [node name="Visual" type="CSGCylinder3D" parent="Entities/Objectives/E_FinalGoal" unique_id=349723653]
 radius = 1.5
-material = SubResource("StandardMaterial3D_goal")
+material = ExtResource("56_fade_goal")
 
 [node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1268342821]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
@@ -388,16 +385,31 @@ fov = 80.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
 script = ExtResource("30_door_controller")
 door_id = &"door_to_house"
-target_scene_id = &"interior_house"
+target_scene_id = &"interior_bar"
 target_spawn_point = &"sp_entrance_from_exterior"
 entity_id = &"door_to_house"
 tags = Array[StringName]([&"trigger", &"door"])
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger" unique_id=1461636394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.40026855, 0)
-material_overlay = SubResource("StandardMaterial3D_door")
 radius = 0.7910156
 height = 2.0715332
+material = ExtResource("57_fade_door")
+
+[node name="E_DoorTrigger_Bar" type="Node3D" parent="Entities" unique_id=1385724918]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 0)
+script = ExtResource("30_door_controller")
+door_id = &"door_to_bar"
+target_scene_id = &"interior_bar"
+target_spawn_point = &"sp_entrance_from_exterior"
+entity_id = &"door_to_bar"
+tags = Array[StringName]([&"trigger", &"door"])
+
+[node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger_Bar" unique_id=1829405172]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.40026855, 0)
+radius = 0.7910156
+height = 2.0715332
+material = ExtResource("57_fade_door")
 
 [node name="E_Checkpoint_SafeZone" type="Node3D" parent="Entities" unique_id=1409158797]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.9000635, 0, -5.877161)

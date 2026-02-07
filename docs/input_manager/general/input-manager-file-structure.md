@@ -65,7 +65,8 @@ tests/
 - `reducers/u_input_settings_reducer.gd` – New persistent slice for profile metadata + user preferences.
 - `selectors/u_input_selectors.gd` – Existing file (extend as needed).
 - `selectors/u_input_settings_selectors.gd` – Accessors for settings slice.
-- `utils/u_input_serialization.gd` – Handles read/write of `user://input_settings.json`.
+- `utils/u_global_settings_serialization.gd` – Handles read/write of `user://global_settings.json`.
+- `utils/u_input_serialization.gd` – Serializes/deserializes the `input_settings` section.
 
 ### UI + Utilities
 - `scripts/ui/input_prompts/u_button_prompt_registry.gd` – Maps logical actions to prompt textures.
@@ -112,14 +113,14 @@ tests/
 
 ## Persistence & Data
 
-- Input settings JSON path: `user://input_settings.json` (managed by `u_input_serialization.gd`).
+- Input settings JSON path: `user://global_settings.json` (managed by `u_global_settings_serialization.gd`).
 - State slices:
   - `gameplay.input` – transient actions (move/look/jump) already covered.
   - `settings.input_settings` – persistent overrides (active profile id, custom bindings, sensitivity).
 - When adding new fields, update:
   1. `resources/state/cfg_default_settings_initial_state.tres`
   2. `u_input_settings_reducer.gd` defaults
-  3. Serialization schema version in `u_input_serialization.gd`
+  3. Serialization schema version in `u_global_settings_serialization.gd`
 
 ## Notes
 

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_SceneRegistryEntry" format=3 uid="uid://1l8wv3f77rl4"]
+
+[ext_resource type="Script" uid="uid://dta28o8djbx2f" path="res://scripts/resources/scene_management/rs_scene_registry_entry.gd" id="1_resource"]
+
+[resource]
+script = ExtResource("1_resource")
+scene_id = &"interior_bar"
+scene_path = "res://scenes/gameplay/gameplay_interior_bar.tscn"
+scene_type = 1
+preload_priority = 6

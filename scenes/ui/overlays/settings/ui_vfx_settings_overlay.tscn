@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://1q1kn3435l12"]
 
 [ext_resource type="Script" uid="uid://clcpgk47326m8" path="res://scripts/ui/settings/ui_vfx_settings_overlay.gd" id="1"]
+[ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="VFXSettingsOverlay" type="Control" unique_id=1933874596]
 layout_mode = 3
@@ -10,6 +11,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+
+[node name="UIScaleRoot" type="Node" parent="." unique_id=731155615]
+script = ExtResource("ui_scale_root")
 
 [node name="Background" type="ColorRect" parent="." unique_id=382435274]
 layout_mode = 1

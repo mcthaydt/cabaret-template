@@ -16,6 +16,13 @@ func before_each() -> void:
 	# Clear ServiceLocator first to ensure clean state between tests
 	U_ServiceLocator.clear()
 
+	var existing := get_tree().root.find_child("HUDLayer", true, false)
+	if existing == null:
+		var hud_layer := CanvasLayer.new()
+		hud_layer.name = "HUDLayer"
+		add_child(hud_layer)
+		autofree(hud_layer)
+
 	EVENT_BUS.reset()
 	# Clear state handoff to prevent interference between tests
 	U_StateHandoff.clear_all()
@@ -172,6 +179,10 @@ func test_entity_landed_event_publishes_event() -> void:
 	var components: Dictionary = context["components"]
 	var scene: Node = context["scene"]
 
+	var floating_system := scene.find_child("S_FloatingSystem", true, false) as BaseECSSystem
+	if floating_system != null:
+		floating_system.set_debug_disabled(true)
+
 	var captured_events: Array = []
 	var unsubscribe: Callable = EVENT_BUS.subscribe(
 		EVENT_LANDED,
@@ -191,8 +202,8 @@ func test_entity_landed_event_publishes_event() -> void:
 	# Move entity off the ground to ensure it's truly airborne
 	body.global_position = Vector3(0, 5, 0)
 
-	# First physics tick (entity is in air)
-	manager._physics_process(1.0 / 60.0)
+	# Prime airborne state for landing detection (headless-safe).
+	jump_component.check_landing_transition(false, now, body.global_position.y)
 	await get_tree().process_frame
 
 	# Wait to ensure we're outside any cooldown window

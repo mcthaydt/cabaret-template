@@ -52,7 +52,31 @@
   
   **Real example**: `scenes/ui/hud_overlay.tscn` uses a full-screen MarginContainer to provide consistent margins for HUD elements. Without `mouse_filter = 2`, it blocked all clicks to test scene buttons below it, even though the HUD labels only occupied the top-left corner.
 
+## Godot Audio Pitfalls
+
+- **3D audio is disabled by default in SubViewports**: If gameplay is rendered in a `SubViewport` (e.g. `scenes/root.tscn` → `GameViewport`), `AudioStreamPlayer3D` can appear to “play” (logs show `playing=true`) but produce **no audible sound** because the SubViewport is not mixing 3D audio.
+
+  **Symptom**:
+  - 3D SFX never audible in gameplay scenes
+  - Debug/logs show the sound is spawned and `playing=true`
+  - Viewport reports `audio_listener_enable_3d=false`
+
+  **Fix**: enable 3D audio on the gameplay viewport:
+  ```gdscript
+  # In scenes/root.tscn:
+  [node name="GameViewport" type="SubViewport" parent="GameViewportContainer"]
+  audio_listener_enable_3d = true
+  ```
+
+- **3D audio is viewport/world scoped**: `AudioStreamPlayer3D` must exist in the same `Viewport`/`World3D` as the active listener (the viewport’s current `Camera3D`). If you parent your SFX pool under `/root` while gameplay runs in `GameViewport`, 3D SFX can be silent even though they are “playing”.
+
 ## GDScript Typing Pitfalls
+
+- **Headless import treats some warnings as errors**: In headless `--import` runs, warnings like “variable type inferred from Variant” can be treated as errors and prevent scripts from loading. Prefer explicit types when a value is `Variant`-typed at the source (e.g., `var script_obj: Script = get_script()` instead of `var script_obj := get_script()`).
+
+- **String(enum_value) parse error**: GDScript does not accept `String(enum_value)` for enum values (e.g., `C_SurfaceDetectorComponent.SurfaceType`). Use `str(enum_value)` or cast to `int` first (`String(int(enum_value))`).
+
+- **Avoid `String(...)` as a generic cast in debug logs**: `String(some_variant)` can throw at runtime for some types (e.g., `NodePath`). Prefer `str(...)` for debug prints unless you know the Variant type is safe for `String()`.
 
 - **New `class_name` types can break type hints in headless tests**: When adding a brand-new helper script with `class_name Foo`, using `Foo` as a member variable annotation in an existing script can fail to parse under headless GUT runs (`Parse Error: Could not find type "Foo" in the current scope`). Prefer untyped members (or a base type like `RefCounted`) and instantiate via `preload("...").new()` until the class is reliably discovered/loaded.
 
@@ -67,6 +91,7 @@
 ## Test Execution Pitfalls
 
 - **GUT needs recursive dirs**: `-gdir` is not recursive by default; suites in nested folders are silently skipped if you point at a parent. Always pass each test root explicitly (e.g., `-gdir=res://tests/unit -gdir=res://tests/integration`) or list the concrete leaf directories you added to ensure new suites actually run.
+- **Viewport capture fails in headless**: `Viewport.get_texture().get_image()` can error under the headless/dummy renderer (`Parameter "t" is null`). Tests that validate viewport screenshot capture should be marked `pending` when `OS.has_feature("headless")` or `DisplayServer.get_name() == "headless"` to avoid false failures.
 
 ## UI Navigation Pitfalls (Gamepad/Joystick)
 
@@ -303,7 +328,9 @@
 - **Standard chain (preferred)**:
   1. `@export` injection (tests)
   2. `U_ServiceLocator.try_get_service(StringName("..."))` (production)
-  3. Group lookup / tree traversal only as a compatibility fallback
+  3. **DO NOT use groups** - The codebase does not use Godot's groups feature for manager discovery
+
+- **Why no groups**: Groups add hidden coupling that's hard to track in code. ServiceLocator provides explicit, type-safe manager registration with O(1) lookup. Use `U_ServiceLocator` for all manager discovery instead of `get_tree().get_first_node_in_group()`
 
 - **State store**:
   - Required callers: `U_StateUtils.get_store(node)` / `U_StateUtils.await_store_ready(node)`
@@ -316,7 +343,7 @@
 - Door trigger re-entry can cause ping-pong transitions:
   - Ensure `C_SceneTriggerComponent` guards are active (cooldown + `is_transitioning` checks).
   - Keep spawn markers positioned outside trigger volumes to avoid immediate re-trigger on load.
-  - Avoid leaving `initial_scene_id = exterior` outside of manual tests; prefer `main_menu` to follow the flow and reduce confusion.
+- Avoid leaving `initial_scene_id = alleyway` outside of manual tests; prefer `main_menu` to follow the flow and reduce confusion.
 
 - Trigger geometry pitfalls (Cylinder default):
   - `CylinderShape3D` is Y-up; do not rotate unless your door axis demands it.
@@ -1288,6 +1315,74 @@ ui_focus_next={
   ]
 }
 ```
+
+## Display Manager Pitfalls
+
+### DisplayServer Thread Safety
+
+**Problem**: Calling DisplayServer methods from non-main threads causes crashes or undefined behavior
+
+**Solution**: Always use `call_deferred()` for DisplayServer operations:
+```gdscript
+# ❌ WRONG - direct call may be from wrong thread
+func set_window_mode(mode: String) -> void:
+    DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+
+# ✅ CORRECT - deferred to main thread
+func set_window_mode(mode: String) -> void:
+    call_deferred("_apply_window_mode", mode)
+
+func _apply_window_mode(mode: String) -> void:
+    DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+```
+
+### UI Scale Transform Origin
+
+**Problem**: Layout scaling via `Control.scale` or `CanvasLayer.transform` can push UI off-screen because scaling happens around the node's origin (top-left by default).
+
+**Current behavior (2026-02-01)**: UI scale is **font-only** (no layout scaling). This avoids transform-origin issues entirely.
+
+**If you reintroduce layout scaling**: Center the pivot or compensate position to avoid drift:
+```gdscript
+# For CanvasLayer - no pivot issue, transform is applied uniformly
+canvas_layer.transform = Transform2D().scaled(Vector2(scale, scale))
+
+# For Control - may need pivot adjustment
+control.pivot_offset = control.size / 2  # Center pivot
+control.scale = Vector2(scale, scale)
+```
+
+**Why this matters**: At high scales, a Control anchored to top-left will expand rightward/downward and can clip. Use pivoting or a centered container if layout scaling returns.
+
+### Post-Process Layer Ordering
+
+**Problem**: Post-process effects rendering on wrong layer obscure UI or fail to affect gameplay
+
+**Solution**: Post-process overlay uses CanvasLayer at layer 100:
+- Gameplay renders at layer 0 (default)
+- Post-process effects render at layer 100 (above gameplay, below UI overlays)
+- UI overlays render at layer 128+ (settings, pause, etc.)
+
+**Do NOT add UIScaleRoot to the post-process overlay** - it's not UI and should not scale with UI settings.
+
+### Headless DisplayServer Limitations
+
+**Problem**: DisplayServer operations fail or behave unexpectedly in headless mode (CI, tests)
+
+**Solution**: Tests that verify DisplayServer calls should be marked pending in headless mode:
+```gdscript
+func test_window_mode_fullscreen() -> void:
+    if DisplayServer.get_name() == "headless":
+        pending("Skipped: DisplayServer unavailable in headless mode")
+        return
+    # ... test logic
+```
+
+**Affected operations**:
+- `DisplayServer.window_set_mode()` - window mode changes
+- `DisplayServer.window_set_size()` - window resizing
+- `DisplayServer.window_set_vsync_mode()` - vsync toggle
+- Viewport texture capture
 
 ## Style & Resource Hygiene
 

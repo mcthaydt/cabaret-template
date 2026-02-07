@@ -24,4 +24,4 @@ class_name RS_JumpParticlesSettings
 ## Initial velocity of particles
 @export var initial_velocity: float = 3.0
 ## Offset from jump position where particles spawn (e.g., Vector3.DOWN to spawn below player)
-@export var spawn_offset: Vector3 = Vector3.DOWN
+@export var spawn_offset: Vector3 = Vector3(0, -0.5, 0)

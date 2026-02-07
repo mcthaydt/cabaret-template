@@ -320,10 +320,10 @@ func _cleanup_input_settings_files() -> void:
 	var dir := DirAccess.open("user://")
 	if dir == null:
 		return
-	if dir.file_exists("input_settings.json"):
-		dir.remove("input_settings.json")
-	if dir.file_exists("input_settings.json.backup"):
-		dir.remove("input_settings.json.backup")
+	if dir.file_exists("global_settings.json"):
+		dir.remove("global_settings.json")
+	if dir.file_exists("global_settings.json.backup"):
+		dir.remove("global_settings.json.backup")
 
 func test_rebind_keyboard_preserves_gamepad_bindings() -> void:
 	_ensure_action(StringName("jump"))

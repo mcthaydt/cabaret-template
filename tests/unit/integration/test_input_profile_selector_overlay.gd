@@ -83,6 +83,13 @@ func before_each() -> void:
 	loading_overlay.name = "LoadingOverlay"
 	add_child_autofree(loading_overlay)
 
+	_store = M_StateStore.new()
+	_store.settings = RS_StateStoreSettings.new()
+	_store.scene_initial_state = RS_SceneInitialState.new()
+	add_child_autofree(_store)
+	U_ServiceLocator.register(StringName("state_store"), _store)
+	await get_tree().process_frame
+
 	_cursor_manager = M_CursorManager.new()
 	add_child_autofree(_cursor_manager)
 	U_ServiceLocator.register(StringName("cursor_manager"), _cursor_manager)
@@ -90,19 +97,10 @@ func before_each() -> void:
 	_spawn_manager = M_SpawnManager.new()
 	add_child_autofree(_spawn_manager)
 	U_ServiceLocator.register(StringName("spawn_manager"), _spawn_manager)
-	await get_tree().process_frame
 
 	_camera_manager = M_CameraManager.new()
 	add_child_autofree(_camera_manager)
 	U_ServiceLocator.register(StringName("camera_manager"), _camera_manager)
-	await get_tree().process_frame
-
-	_store = M_StateStore.new()
-	_store.settings = RS_StateStoreSettings.new()
-	_store.scene_initial_state = RS_SceneInitialState.new()
-	add_child_autofree(_store)
-	U_ServiceLocator.register(StringName("state_store"), _store)
-	await get_tree().process_frame
 
 	_profile_manager = M_InputProfileManager.new()
 	add_child_autofree(_profile_manager)
@@ -149,7 +147,7 @@ func test_pause_menu_opens_profile_selector_overlay() -> void:
 
 	var settings_overlay := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
 	assert_not_null(settings_overlay, "Settings overlay should exist after pressing Settings")
-	var profiles_button := settings_overlay.get_node("CenterContainer/VBoxContainer/InputProfilesButton") as Button
+	var profiles_button := settings_overlay.get_node("%InputProfilesButton") as Button
 	assert_not_null(profiles_button, "InputProfilesButton should exist on settings overlay")
 	profiles_button.emit_signal("pressed")
 	# Allow selector overlay to finish loading and register to the stack.
@@ -180,7 +178,7 @@ func test_apply_closes_overlays_and_resumes() -> void:
 	_debug_overlay_snapshot("after SettingsButton pressed + wait(4)")
 
 	var settings_overlay := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var profiles_button := settings_overlay.get_node("CenterContainer/VBoxContainer/InputProfilesButton") as Button
+	var profiles_button := settings_overlay.get_node("%InputProfilesButton") as Button
 	profiles_button.emit_signal("pressed")
 	await wait_physics_frames(4)
 	_debug_overlay_snapshot("after InputProfilesButton pressed + wait(4)")
@@ -252,7 +250,7 @@ func test_profile_selector_shows_binding_preview() -> void:
 	await wait_physics_frames(4)
 
 	var settings_overlay := _ui_overlay_stack.get_child(_ui_overlay_stack.get_child_count() - 1) as Control
-	var profiles_button := settings_overlay.get_node("CenterContainer/VBoxContainer/InputProfilesButton") as Button
+	var profiles_button := settings_overlay.get_node("%InputProfilesButton") as Button
 	assert_not_null(profiles_button, "InputProfilesButton should exist on settings overlay")
 	profiles_button.emit_signal("pressed")
 	await wait_physics_frames(4)

@@ -228,7 +228,7 @@ user://saves/slot_01.json.bak
 | last_checkpoint | String | No | Checkpoint marker |
 | target_spawn_point | String | No | Spawn point marker |
 | area_name | String | Yes | Human-readable location |
-| thumbnail_path | String | No | Screenshot path (deferred) |
+| thumbnail_path | String | No | Screenshot path (Phase 16) |
 
 ### Atomic Writes & Backup Strategy
 

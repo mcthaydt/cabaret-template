@@ -33,9 +33,14 @@ func _ready() -> void:
 	set_process_input(true)
 	set_process_unhandled_input(true)
 	set_process_unhandled_key_input(true)
-	await _ensure_store_ready()
+	call_deferred("_deferred_panel_ready")
+
+func _deferred_panel_ready() -> void:
+	if not is_inside_tree():
+		return
+	_ensure_store_ready()
 	_on_panel_ready()
-	await _apply_initial_focus()
+	_apply_initial_focus()
 
 func _connect_ui_sound_signals() -> void:
 	var viewport := get_viewport()
@@ -142,12 +147,6 @@ func _ensure_store_ready() -> void:
 		return
 	if not is_inside_tree():
 		return
-	var tree := get_tree()
-	if tree == null:
-		return
-	await tree.process_frame
-	if not is_inside_tree():
-		return
 	_store = U_StateUtils.try_get_store(self)
 	if _store != null:
 		_on_store_ready(_store)
@@ -155,10 +154,9 @@ func _ensure_store_ready() -> void:
 func _apply_initial_focus() -> void:
 	if not is_inside_tree():
 		return
-	var tree := get_tree()
-	if tree == null:
-		return
-	await tree.process_frame
+	call_deferred("_apply_initial_focus_deferred")
+
+func _apply_initial_focus_deferred() -> void:
 	if not is_inside_tree():
 		return
 	var default_focus: Control = _get_first_focusable()

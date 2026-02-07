@@ -318,7 +318,7 @@ The reducer already includes a `touchscreen_settings` structure:
 - **Redux touchscreen_settings** = CUSTOM positions (player overrides)
   - `custom_joystick_position: Vector2(-1, -1)` - Player-dragged position override
   - `custom_button_positions: {}` - Player-dragged button position overrides
-  - Saved to `user://input_settings.json`, persists across sessions
+  - Saved to `user://global_settings.json`, persists across sessions
 - **Selector priority (get_virtual_control_position):**
   1. Check Redux custom position (if not Vector2(-1, -1))
   2. Fall back to profile default position
@@ -1423,7 +1423,7 @@ static func set_disable_touchscreen(enabled: bool) -> Dictionary:
    ```
 
 2. **Via Settings File** (emergency hotfix):
-   - User edits `user://input_settings.json`
+   - User edits `user://global_settings.json`
    - Add: `"debug": {"disable_touchscreen": true}`
    - Game loads setting on next launch
 
@@ -1450,7 +1450,7 @@ static func set_disable_touchscreen(enabled: bool) -> Dictionary:
 - Extend `settings.input_settings.touchscreen_settings` with position data
 - Add actions: `update_touchscreen_settings()`, `save_virtual_control_position()`
 - Add selectors: `get_touchscreen_settings()`, `get_virtual_control_position()`
-- Persistence: Settings saved to `user://input_settings.json` (existing mechanism)
+- Persistence: Settings saved to `user://global_settings.json` (existing mechanism)
 
 **Transient State:**
 - NO touchscreen-specific transient state needed

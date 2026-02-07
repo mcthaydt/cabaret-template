@@ -80,7 +80,7 @@ func test_applies_custom_positions_from_state() -> void:
 
 func test_visibility_follows_device_pause_and_transition_state() -> void:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("exterior")))
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
 	var controls := await _create_controls(func(instance):
 		instance.force_enable = true
 	)
@@ -91,9 +91,9 @@ func test_visibility_follows_device_pause_and_transition_state() -> void:
 	await wait_process_frames(2)
 	assert_false(controls.visible, "Controls hide on non-gameplay scenes (main_menu)")
 
-	store.dispatch(U_NavigationActions.start_game(StringName("exterior")))
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
 	await wait_process_frames(2)
-	assert_true(controls.visible, "Controls show when active scene is gameplay (exterior)")
+	assert_true(controls.visible, "Controls show when active scene is gameplay (alleyway)")
 
 	store.dispatch(U_InputActions.device_changed(M_InputDeviceManager.DeviceType.GAMEPAD, -1, 0.0))
 	await wait_process_frames(2)
@@ -155,7 +155,7 @@ func test_controls_clamped_within_viewport_bounds() -> void:
 
 func test_input_activity_ignored_when_overlay_active() -> void:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("exterior")))
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
 	var controls := await _create_controls(func(instance):
 		instance.force_enable = true
 	)
@@ -174,7 +174,7 @@ func test_input_activity_ignored_when_overlay_active() -> void:
 
 func test_gamepad_used_in_menu_keeps_controls_hidden_after_close() -> void:
 	var store := await _create_state_store()
-	store.dispatch(U_NavigationActions.start_game(StringName("exterior")))
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
 	var controls := await _create_controls(func(instance):
 		instance.force_enable = true
 	)

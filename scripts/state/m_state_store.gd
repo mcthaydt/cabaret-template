@@ -20,6 +20,8 @@ const U_STATE_REPOSITORY := preload("res://scripts/state/utils/u_state_repositor
 const U_STATE_VALIDATOR := preload("res://scripts/state/utils/u_state_validator.gd")
 const U_ACTION_HISTORY_BUFFER := preload("res://scripts/state/utils/u_action_history_buffer.gd")
 const U_STORE_PERFORMANCE_METRICS := preload("res://scripts/state/utils/u_store_performance_metrics.gd")
+const U_GLOBAL_SETTINGS_APPLIER := preload("res://scripts/state/utils/u_global_settings_applier.gd")
+const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_BOOT_REDUCER := preload("res://scripts/state/reducers/u_boot_reducer.gd")
 const U_MENU_REDUCER := preload("res://scripts/state/reducers/u_menu_reducer.gd")
@@ -39,6 +41,7 @@ const RS_SETTINGS_INITIAL_STATE := preload("res://scripts/resources/state/rs_set
 const RS_DEBUG_INITIAL_STATE := preload("res://scripts/resources/state/rs_debug_initial_state.gd")
 const RS_VFX_INITIAL_STATE := preload("res://scripts/resources/state/rs_vfx_initial_state.gd")
 const RS_AUDIO_INITIAL_STATE := preload("res://scripts/resources/state/rs_audio_initial_state.gd")
+const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 
 signal state_changed(action: Dictionary, new_state: Dictionary)
 signal slice_updated(slice_name: StringName, slice_state: Dictionary)
@@ -63,6 +66,7 @@ const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 @export var debug_initial_state: RS_DebugInitialState
 @export var vfx_initial_state: RS_VFXInitialState
 @export var audio_initial_state: RS_AudioInitialState
+@export var display_initial_state: Resource
 
 var _state: Dictionary = {}
 var _subscribers: Array[Callable] = []
@@ -73,6 +77,10 @@ var _action_history_buffer := U_ACTION_HISTORY_BUFFER.new()
 var _debug_overlay: CanvasLayer = null
 var _is_ready: bool = false
 var _performance_metrics := U_STORE_PERFORMANCE_METRICS.new()
+var _global_settings_loading: bool = false
+var _global_settings_save_debounce: bool = false
+var _global_settings_last_hash: int = 0
+var _cinema_debug_overlay: CanvasLayer = null
 
 func _ready() -> void:
 	# Store must continue flushing batched slice_updated signals while paused so
@@ -93,6 +101,9 @@ func _ready() -> void:
 
 	# Auto-load persisted state if enabled and file exists
 	_try_autoload_state()
+
+	# Apply global settings after load/restore so preferences override saved state.
+	apply_global_settings_from_disk()
 	
 	_signal_batcher = U_SIGNAL_BATCHER.new()
 	set_physics_process(true)  # Enable physics processing for signal batching
@@ -105,6 +116,9 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	# Preserve state for scene transitions via StateHandoff
 	_preserve_to_handoff()
+
+	if _global_settings_save_debounce:
+		_flush_global_settings_save()
 
 	# Save state to disk on shutdown if persistence enabled
 	_save_state_if_enabled()
@@ -119,6 +133,67 @@ func _save_state_if_enabled() -> void:
 func _try_autoload_state() -> void:
 	var enable_logging := settings != null and settings.enable_debug_logging
 	U_STATE_REPOSITORY.try_autoload_state(settings, _state, _slice_configs, enable_logging)
+
+func apply_global_settings_from_disk() -> void:
+	if not _is_global_settings_persistence_enabled():
+		return
+
+	var result := U_GLOBAL_SETTINGS_SERIALIZATION.load_settings_with_meta()
+	var settings_variant: Variant = result.get("settings", {})
+	if not (settings_variant is Dictionary):
+		return
+
+	var loaded_settings := settings_variant as Dictionary
+	if loaded_settings.is_empty():
+		_global_settings_last_hash = U_GLOBAL_SETTINGS_SERIALIZATION.build_settings_from_state(_state).hash()
+		return
+
+	_global_settings_loading = true
+	U_GLOBAL_SETTINGS_APPLIER.apply(self, loaded_settings)
+	_global_settings_loading = false
+	_global_settings_last_hash = U_GLOBAL_SETTINGS_SERIALIZATION.build_settings_from_state(_state).hash()
+
+	if bool(result.get("migrated", false)):
+		U_GLOBAL_SETTINGS_SERIALIZATION.save_settings(loaded_settings)
+
+func _is_global_settings_persistence_enabled() -> bool:
+	return settings != null and settings.enable_global_settings_persistence
+
+func _maybe_schedule_global_settings_save(action: Dictionary) -> void:
+	if not _is_global_settings_persistence_enabled():
+		return
+	if _global_settings_loading:
+		return
+	if action == null or action.is_empty():
+		return
+
+	var action_type: Variant = action.get("type", StringName(""))
+	if U_GLOBAL_SETTINGS_SERIALIZATION.is_global_settings_action(action_type):
+		_schedule_global_settings_save()
+
+func _schedule_global_settings_save() -> void:
+	if _global_settings_save_debounce:
+		return
+	_global_settings_save_debounce = true
+	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
+		_flush_global_settings_save()
+	else:
+		call_deferred("_flush_global_settings_save")
+
+func _flush_global_settings_save() -> void:
+	_global_settings_save_debounce = false
+	if not _is_global_settings_persistence_enabled():
+		return
+
+	var snapshot := U_GLOBAL_SETTINGS_SERIALIZATION.build_settings_from_state(_state)
+	if snapshot.is_empty():
+		return
+	var snapshot_hash := snapshot.hash()
+	if snapshot_hash == _global_settings_last_hash:
+		return
+	var saved := U_GLOBAL_SETTINGS_SERIALIZATION.save_settings(snapshot)
+	if saved:
+		_global_settings_last_hash = snapshot_hash
 
 func _physics_process(_delta: float) -> void:
 	# Flush batched signals once per physics frame
@@ -181,6 +256,43 @@ func _input(event: InputEvent) -> void:
 			_debug_overlay.queue_free()
 			register_debug_overlay(null)
 
+	# Check if cinema debug overlay is enabled via project settings
+	const PROJECT_SETTING_ENABLE_CINEMA_DEBUG_OVERLAY := "state/debug/enable_cinema_debug_overlay"
+	var cinema_debug_enabled := true
+	if ProjectSettings.has_setting(PROJECT_SETTING_ENABLE_CINEMA_DEBUG_OVERLAY):
+		cinema_debug_enabled = ProjectSettings.get_setting(PROJECT_SETTING_ENABLE_CINEMA_DEBUG_OVERLAY, true)
+
+	if cinema_debug_enabled and not U_INPUT_CAPTURE_GUARD.is_capture_active():
+		# Toggle cinema debug overlay with action
+		var cinema_toggle_pressed: bool = false
+		if event is InputEventAction:
+			var aev := event as InputEventAction
+			cinema_toggle_pressed = aev.action == "toggle_cinema_debug" and aev.pressed
+		else:
+			# Fallback to Input singleton
+			cinema_toggle_pressed = Input.is_action_just_pressed("toggle_cinema_debug")
+
+		if cinema_toggle_pressed:
+			if _cinema_debug_overlay == null or not is_instance_valid(_cinema_debug_overlay):
+				# Spawn cinema debug overlay
+				var cinema_overlay_scene := load("res://scenes/debug/debug_cinema_grade_overlay.tscn")
+				if cinema_overlay_scene:
+					_cinema_debug_overlay = cinema_overlay_scene.instantiate()
+					add_child(_cinema_debug_overlay)
+					register_cinema_debug_overlay(_cinema_debug_overlay)
+					# Unlock cursor for overlay interaction
+					var cursor_manager := U_SERVICE_LOCATOR.get_service(StringName("cursor_manager"))
+					if cursor_manager and cursor_manager.has_method("set_cursor_state"):
+						cursor_manager.set_cursor_state(false, true)
+			else:
+				# Despawn cinema debug overlay and restore cursor state
+				_cinema_debug_overlay.queue_free()
+				register_cinema_debug_overlay(null)
+				# Re-lock cursor for gameplay
+				var cursor_manager := U_SERVICE_LOCATOR.get_service(StringName("cursor_manager"))
+				if cursor_manager and cursor_manager.has_method("set_cursor_state"):
+					cursor_manager.set_cursor_state(true, false)
+
 func register_debug_overlay(overlay: CanvasLayer) -> void:
 	if overlay != null and is_instance_valid(overlay):
 		_debug_overlay = overlay
@@ -192,6 +304,22 @@ func register_debug_overlay(overlay: CanvasLayer) -> void:
 func get_debug_overlay() -> CanvasLayer:
 	if _debug_overlay != null and is_instance_valid(_debug_overlay):
 		return _debug_overlay
+	return null
+
+func _on_cinema_debug_overlay_tree_exiting() -> void:
+	_cinema_debug_overlay = null
+
+func register_cinema_debug_overlay(overlay: CanvasLayer) -> void:
+	if overlay != null and is_instance_valid(overlay):
+		_cinema_debug_overlay = overlay
+		if not overlay.tree_exiting.is_connected(_on_cinema_debug_overlay_tree_exiting):
+			overlay.tree_exiting.connect(_on_cinema_debug_overlay_tree_exiting, CONNECT_ONE_SHOT)
+		return
+	_cinema_debug_overlay = null
+
+func get_cinema_debug_overlay() -> CanvasLayer:
+	if _cinema_debug_overlay != null and is_instance_valid(_cinema_debug_overlay):
+		return _cinema_debug_overlay
 	return null
 
 func _initialize_settings() -> void:
@@ -225,7 +353,8 @@ func _initialize_slices() -> void:
 		scene_initial_state,
 		debug_initial_state,
 		vfx_initial_state,
-		audio_initial_state
+		audio_initial_state,
+		display_initial_state
 	)
 
 ## Normalize a deserialized state dictionary for tests.
@@ -305,6 +434,7 @@ func dispatch(action: Dictionary) -> void:
 	
 	# Performance tracking end
 	_performance_metrics.finish_dispatch(perf_start)
+	_maybe_schedule_global_settings_save(action_copy)
 
 ## Apply reducers to update state based on action
 ## Kept for backward compatibility; now delegates to U_StateSliceManager.

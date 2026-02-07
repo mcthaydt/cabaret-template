@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cud3ix81sip6p"]
 
 [ext_resource type="Script" uid="uid://d0y5pdih30xo0" path="res://scripts/ui/overlays/ui_input_rebinding_overlay.gd" id="1"]
+[ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="InputRebindingOverlay" type="Control" unique_id=142623892]
 layout_mode = 3
@@ -10,6 +11,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+
+[node name="UIScaleRoot" type="Node" parent="." unique_id=1469292173]
+script = ExtResource("ui_scale_root")
 
 [node name="Background" type="ColorRect" parent="." unique_id=1838712796]
 layout_mode = 1

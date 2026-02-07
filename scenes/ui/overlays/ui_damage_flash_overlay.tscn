@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cb7vlgdu0cxst"]
 
 [node name="DamageFlashOverlay" type="CanvasLayer" unique_id=639647066]
-layer = 50
+layer = 110
 
 [node name="FlashRect" type="ColorRect" parent="." unique_id=1539234429]
 modulate = Color(1, 1, 1, 0)

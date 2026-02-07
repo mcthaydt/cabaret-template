@@ -124,19 +124,29 @@ func _is_audio_blocked() -> bool:
 	var navigation_slice: Dictionary = state.get("navigation", {})
 
 	# Block if paused
-	if U_GAMEPLAY_SELECTORS.get_is_paused(gameplay_slice):
+	var is_paused := U_GAMEPLAY_SELECTORS.get_is_paused(gameplay_slice)
+	if is_paused:
+		_log_blocked(is_paused, false, U_NAVIGATION_SELECTORS.get_shell(navigation_slice))
 		return true
 
 	# Block if transitioning
-	if U_SCENE_SELECTORS.is_transitioning(scene_slice):
+	var is_transitioning := U_SCENE_SELECTORS.is_transitioning(scene_slice)
+	if is_transitioning:
+		_log_blocked(is_paused, is_transitioning, U_NAVIGATION_SELECTORS.get_shell(navigation_slice))
 		return true
 
 	# Block if not in gameplay shell
 	var current_shell: StringName = U_NAVIGATION_SELECTORS.get_shell(navigation_slice)
 	if current_shell != StringName("gameplay"):
+		_log_blocked(is_paused, is_transitioning, current_shell)
 		return true
 
 	return false
+
+func _log_blocked(is_paused: bool, is_transitioning: bool, shell: StringName) -> void:
+	if requests.is_empty():
+		return
+
 
 ## Check if sound should be throttled based on min_interval.
 ## Uses _last_play_time field (must be defined in subclass).

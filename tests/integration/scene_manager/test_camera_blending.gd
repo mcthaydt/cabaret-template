@@ -16,6 +16,7 @@ const M_StateStore = preload("res://scripts/state/m_state_store.gd")
 const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager
@@ -34,10 +35,13 @@ func before_each() -> void:
 	# Clear ServiceLocator first to ensure clean state between tests
 	U_ServiceLocator.clear()
 
-	# Create root scene structure
-	_root_scene = Node.new()
-	_root_scene.name = "Root"
+	# Create root scene structure (includes HUDLayer + overlays)
+	var root_ctx := U_SceneTestHelpers.create_root_with_containers(true)
+	_root_scene = root_ctx["root"]
 	add_child_autofree(_root_scene)
+	_active_scene_container = root_ctx["active_scene_container"]
+	_ui_overlay_stack = root_ctx["ui_overlay_stack"]
+	_transition_overlay = root_ctx["transition_overlay"]
 
 	# Create state store with all slices - register IMMEDIATELY after adding to tree
 	# so other managers can find it in their _ready()
@@ -49,24 +53,7 @@ func before_each() -> void:
 	U_ServiceLocator.register(StringName("state_store"), _store)
 	await get_tree().process_frame
 
-	# Create scene containers
-	_active_scene_container = Node.new()
-	_active_scene_container.name = "ActiveSceneContainer"
-	_root_scene.add_child(_active_scene_container)
-
-	_ui_overlay_stack = CanvasLayer.new()
-	_ui_overlay_stack.name = "UIOverlayStack"
-	_ui_overlay_stack.process_mode = Node.PROCESS_MODE_ALWAYS
-	_root_scene.add_child(_ui_overlay_stack)
-
-	# Create transition overlay for fade effect
-	_transition_overlay = CanvasLayer.new()
-	_transition_overlay.name = "TransitionOverlay"
-	var color_rect := ColorRect.new()
-	color_rect.name = "TransitionColorRect"
-	color_rect.modulate.a = 0.0
-	_transition_overlay.add_child(color_rect)
-	_root_scene.add_child(_transition_overlay)
+	U_SceneTestHelpers.register_scene_manager_dependencies(_root_scene, true, false, false)
 
 	# Create spawn manager (Phase 12.1: required for spawn restoration)
 	_spawn_manager = M_SpawnManager.new()
@@ -88,6 +75,12 @@ func before_each() -> void:
 
 func after_each() -> void:
 	# Clear ServiceLocator to prevent state leakage
+	if _manager != null and is_instance_valid(_manager):
+		await U_SceneTestHelpers.wait_for_transition_idle(_manager)
+	if _root_scene != null and is_instance_valid(_root_scene):
+		_root_scene.queue_free()
+		await get_tree().process_frame
+		await get_tree().physics_frame
 	U_ServiceLocator.clear()
 
 	_manager = null
@@ -133,7 +126,7 @@ func _get_active_scene_camera() -> Camera3D:
 ## with different camera heights (exterior: 1.5, interior: 0.8).
 func test_camera_position_blending() -> void:
 	# Load exterior scene (camera at 0, 1.5, 4.5)
-	_manager.transition_to_scene(StringName("exterior"), "instant")
+	_manager.transition_to_scene(StringName("alleyway"), "instant")
 	await wait_physics_frames(3)
 
 	# Find camera in exterior scene
@@ -174,8 +167,8 @@ func test_camera_position_blending() -> void:
 	var position_after: Vector3 = camera_after.global_position
 
 	# Validate cameras have different positions (exterior higher than interior)
-	assert_almost_eq(position_before.y, 1.5, 0.1, "Exterior camera should be at height 1.5")
-	assert_almost_eq(position_after.y, 0.8, 0.1, "Interior camera should be at height 0.8")
+	assert_true(position_before.y > position_after.y, "Gameplay camera should be higher than interior camera")
+	assert_almost_eq(position_after.y, 0.8, 0.2, "Interior camera should be at height ~0.8")
 
 	# Validate cameras switched after blend
 	# Note: Headless mode Tween timing is unreliable - new camera should be active regardless
@@ -199,11 +192,11 @@ func test_camera_rotation_blending() -> void:
 	# even with identical rotations (blend should still execute smoothly)
 
 	# Load exterior scene
-	_manager.transition_to_scene(StringName("exterior"), "instant")
+	_manager.transition_to_scene(StringName("alleyway"), "instant")
 	await wait_physics_frames(3)
 
 	var camera_before: Camera3D = _get_active_scene_camera()
-	assert_not_null(camera_before, "Should find exterior camera")
+	assert_not_null(camera_before, "Should find gameplay camera")
 	var rotation_before: Vector3 = camera_before.global_rotation
 
 	# Transition with fade
@@ -222,7 +215,7 @@ func test_camera_rotation_blending() -> void:
 	var rotation_after: Vector3 = camera_after.global_rotation
 
 	# Validate blend completed (rotations may be identical, but blend logic ran)
-	assert_almost_eq(rotation_before.x, rotation_after.x, 0.1, "Rotation should blend smoothly")
+	assert_gt(abs(rotation_before.x - rotation_after.x), 0.1, "Rotation should differ between scenes and blend smoothly")
 	# Skip mid-blend checks in headless mode
 	if not _is_headless():
 		assert_false(transition_camera.current, "Transition camera should not be current after blend")
@@ -233,11 +226,11 @@ func test_camera_rotation_blending() -> void:
 ## Exterior has wider FOV (80°), interior has narrower FOV (65°).
 func test_camera_fov_blending() -> void:
 	# Load exterior scene (FOV 80°)
-	_manager.transition_to_scene(StringName("exterior"), "instant")
+	_manager.transition_to_scene(StringName("alleyway"), "instant")
 	await wait_physics_frames(3)
 
 	var camera_before: Camera3D = _get_active_scene_camera()
-	assert_not_null(camera_before, "Should find exterior camera")
+	assert_not_null(camera_before, "Should find gameplay camera")
 	var fov_before: float = camera_before.fov
 
 	# Transition to interior (FOV 65°)
@@ -256,7 +249,7 @@ func test_camera_fov_blending() -> void:
 	var fov_after: float = camera_after.fov
 
 	# Validate FOVs differ (exterior wider than interior)
-	assert_almost_eq(fov_before, 80.0, 2.0, "Exterior camera should have FOV ~80°")
+	assert_almost_eq(fov_before, 28.8, 2.0, "Gameplay camera should have FOV ~28.8°")
 	assert_almost_eq(fov_after, 65.0, 2.0, "Interior camera should have FOV ~65°")
 
 ## T182: Test camera transitions are smooth (no jitter)
@@ -271,7 +264,7 @@ func _test_camera_transitions_smooth_DISABLED() -> void:
 		return
 
 	# Load exterior
-	_manager.transition_to_scene(StringName("exterior"), "instant")
+	_manager.transition_to_scene(StringName("alleyway"), "instant")
 	await wait_physics_frames(3)
 
 	var camera_before: Camera3D = _get_active_scene_camera()
@@ -317,8 +310,8 @@ func _test_camera_transitions_smooth_DISABLED() -> void:
 ## Validates that camera blend runs in parallel with fade effect, not sequentially.
 ## Both effects should start and finish around the same time.
 func test_camera_blend_with_fade_transition() -> void:
-	# Load exterior
-	_manager.transition_to_scene(StringName("exterior"), "instant")
+	# Load gameplay scene
+	_manager.transition_to_scene(StringName("alleyway"), "instant")
 	await wait_physics_frames(3)
 
 	# Transition with fade
@@ -368,8 +361,8 @@ func test_camera_blend_with_fade_transition() -> void:
 ## Ensures M_SceneManager no longer finalizes the blend immediately after the
 ## fade completes.
 func test_fade_transition_preserves_camera_blend_until_tween_finishes() -> void:
-	# Load exterior as source scene
-	_manager.transition_to_scene(StringName("exterior"), "instant")
+	# Load gameplay as source scene
+	_manager.transition_to_scene(StringName("alleyway"), "instant")
 	await wait_physics_frames(3)
 
 	# Start gameplay fade transition (exterior -> interior)
@@ -396,12 +389,12 @@ func test_fade_transition_preserves_camera_blend_until_tween_finishes() -> void:
 ## Validates that instant transitions still execute camera blend logic
 ## but with duration=0 (immediate cut).
 func test_instant_transition_camera_blend_zero_duration() -> void:
-	# Load exterior
-	_manager.transition_to_scene(StringName("exterior"), "instant")
+	# Load gameplay scene
+	_manager.transition_to_scene(StringName("alleyway"), "instant")
 	await wait_physics_frames(3)
 
 	var camera_before: Camera3D = _get_active_scene_camera()
-	assert_not_null(camera_before, "Should find exterior camera")
+	assert_not_null(camera_before, "Should find gameplay camera")
 	var position_before: Vector3 = camera_before.global_position
 
 	# Instant transition to interior

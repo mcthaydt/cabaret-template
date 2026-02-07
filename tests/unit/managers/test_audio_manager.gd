@@ -18,7 +18,7 @@ const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd"
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
 const STREAM_MAIN_MENU := preload("res://assets/audio/music/mus_main_menu.mp3")
-const STREAM_EXTERIOR := preload("res://assets/audio/music/mus_exterior.mp3")
+const STREAM_ALLEYWAY := preload("res://assets/audio/music/mus_alleyway.mp3")
 const STREAM_INTERIOR := preload("res://assets/audio/music/mus_interior.mp3")
 const STREAM_PAUSE := preload("res://assets/audio/music/mus_pause.mp3")
 const STREAM_CREDITS := preload("res://assets/audio/music/mus_credits.mp3")
@@ -223,11 +223,11 @@ func test_pause_actions_switch_to_pause_track_and_restore() -> void:
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	_store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("exterior")))
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_NAVIGATION_ACTIONS.start_game(StringName("alleyway")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 
-	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "Should be playing exterior track before pausing")
+	assert_true(_is_stream_playing(_manager, STREAM_ALLEYWAY), "Should be playing exterior track before pausing")
 
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
 	await get_tree().process_frame
@@ -237,7 +237,7 @@ func test_pause_actions_switch_to_pause_track_and_restore() -> void:
 	_store.dispatch(U_NAVIGATION_ACTIONS.close_pause())
 	await get_tree().process_frame
 
-	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "close_pause should restore previous track")
+	assert_true(_is_stream_playing(_manager, STREAM_ALLEYWAY), "close_pause should restore previous track")
 
 func _is_stream_playing(manager: Node, stream: AudioStream) -> bool:
 	var player_a := manager.get_node_or_null("MusicPlayerA") as AudioStreamPlayer
@@ -262,10 +262,10 @@ func test_scene_transition_to_exterior_plays_exterior_music() -> void:
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 
-	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "exterior scene should play exterior music")
+	assert_true(_is_stream_playing(_manager, STREAM_ALLEYWAY), "exterior scene should play exterior music")
 
 func test_scene_transition_to_interior_house_plays_interior_music() -> void:
 	_store = _make_store_with_audio_slice()
@@ -305,9 +305,9 @@ func test_transition_between_exterior_and_interior() -> void:
 	await get_tree().process_frame
 
 	# Start in exterior
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
-	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "Should play exterior music")
+	assert_true(_is_stream_playing(_manager, STREAM_ALLEYWAY), "Should play exterior music")
 
 	# Go to interior
 	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("interior_house")))
@@ -315,9 +315,9 @@ func test_transition_between_exterior_and_interior() -> void:
 	assert_true(_is_stream_playing(_manager, STREAM_INTERIOR), "Should crossfade to interior music")
 
 	# Return to exterior
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
-	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "Should crossfade back to exterior music")
+	assert_true(_is_stream_playing(_manager, STREAM_ALLEYWAY), "Should crossfade back to exterior music")
 
 func test_return_to_main_menu_from_pause_clears_pause_state() -> void:
 	# Regression test for bug: pausing in gameplay, then returning to main menu
@@ -331,9 +331,9 @@ func test_return_to_main_menu_from_pause_clears_pause_state() -> void:
 	await get_tree().process_frame
 
 	# Start in exterior
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
-	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "Should start with exterior music")
+	assert_true(_is_stream_playing(_manager, STREAM_ALLEYWAY), "Should start with exterior music")
 
 	# Pause
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
@@ -346,9 +346,9 @@ func test_return_to_main_menu_from_pause_clears_pause_state() -> void:
 	assert_true(_is_stream_playing(_manager, STREAM_MAIN_MENU), "Should play main menu music, not pause music")
 
 	# Continue to exterior again
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
-	assert_true(_is_stream_playing(_manager, STREAM_EXTERIOR), "Should play exterior music")
+	assert_true(_is_stream_playing(_manager, STREAM_ALLEYWAY), "Should play exterior music")
 
 	# Pause again
 	_store.dispatch(U_NAVIGATION_ACTIONS.open_pause())
@@ -421,7 +421,7 @@ func test_pause_while_paused_updates_return_track() -> void:
 	await get_tree().process_frame
 
 	# Start in exterior
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 
 	# Pause
@@ -455,7 +455,7 @@ func test_hash_based_change_detection_skips_redundant_updates() -> void:
 	var initial_master_volume := AudioServer.get_bus_volume_db(0)
 
 	# When: Dispatching non-audio action (doesn't change audio slice)
-	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 	await get_tree().process_frame
 
 	# Then: Audio settings should not be re-applied (hash unchanged)
@@ -501,7 +501,7 @@ func test_multiple_redundant_updates_only_apply_once() -> void:
 
 	# When: Dispatching multiple non-audio actions
 	for i in range(5):
-		_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+		_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 		await get_tree().process_frame
 
 	# Then: Volume should remain the same (no redundant updates)

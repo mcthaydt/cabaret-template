@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RS_PostProcessingPreset" format=3 uid="uid://xv4ikc5kvy1"]
+
+[ext_resource type="Script" uid="uid://ckgv1tdkks1fy" path="res://scripts/resources/display/rs_post_processing_preset.gd" id="1_medium"]
+
+[resource]
+script = ExtResource("1_medium")
+preset_name = "medium"
+display_name = "Medium"
+sort_order = 1
+crt_scanline_intensity = 0.15
+crt_curvature = 0.0
+crt_chromatic_aberration = 0.001
+dither_intensity = 1.0

@@ -30,6 +30,12 @@ func before_each():
 	# Clear ServiceLocator first to ensure clean state between tests
 	U_ServiceLocator.clear()
 
+	var existing := get_tree().root.find_child("HUDLayer", true, false)
+	if existing == null:
+		var hud_layer := CanvasLayer.new()
+		hud_layer.name = "HUDLayer"
+		add_child_autofree(hud_layer)
+
 	# Reset event tracking
 	events_received.clear()
 	U_ECSEventBus.clear_history()

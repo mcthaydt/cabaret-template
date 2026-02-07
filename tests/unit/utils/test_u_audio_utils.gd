@@ -30,13 +30,11 @@ func test_get_audio_manager_returns_null_when_not_registered() -> void:
 
 	assert_null(result, "Should return null when service not registered")
 
-func test_get_audio_manager_uses_service_locator_not_groups() -> void:
-	# Test that it uses ServiceLocator by verifying it doesn't use groups
-	# If a manager exists in a group but not in ServiceLocator, should return null
+func test_get_audio_manager_uses_service_locator_only() -> void:
+	# If a manager exists in the tree but is not registered, should return null
 	var mock_manager := MockAudioManager.new()
-	mock_manager.add_to_group("audio_manager")  # Only in group, not in ServiceLocator
 	add_child_autofree(mock_manager)
 
 	var result := U_AudioUtils.get_audio_manager()
 
-	assert_null(result, "Should return null when only in group (not in ServiceLocator)")
+	assert_null(result, "Should return null when not registered in ServiceLocator")

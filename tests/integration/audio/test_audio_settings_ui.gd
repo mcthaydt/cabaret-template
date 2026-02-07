@@ -6,24 +6,24 @@ extends BaseTest
 ## - UI initializes from Redux state
 ## - UI edits do not dispatch until Apply (Apply/Cancel pattern)
 ## - Reset applies defaults immediately
-## - Settings persist to audio settings file and restore across sessions
+## - Settings persist to global settings file and restore across sessions
 
 const M_AUDIO_MANAGER := preload("res://scripts/managers/m_audio_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_AUDIO_INITIAL_STATE := preload("res://scripts/resources/state/rs_audio_initial_state.gd")
+const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 
 const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd")
 const U_AUDIO_SELECTORS := preload("res://scripts/state/selectors/u_audio_selectors.gd")
-const U_AUDIO_SERIALIZATION := preload("res://scripts/utils/u_audio_serialization.gd")
+const U_GLOBAL_SETTINGS_SERIALIZATION := preload("res://scripts/utils/u_global_settings_serialization.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const U_AUDIO_TEST_HELPERS := preload("res://tests/helpers/u_audio_test_helpers.gd")
 
 const AUDIO_SETTINGS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/settings/ui_audio_settings_overlay.tscn")
 
-const AUDIO_SETTINGS_PATH := U_AUDIO_SERIALIZATION.SAVE_PATH
-const AUDIO_SETTINGS_BACKUP_PATH := U_AUDIO_SERIALIZATION.BACKUP_PATH
+const GLOBAL_SETTINGS_PATH := "user://global_settings.json"
 
 var _store: M_StateStore
 var _audio_manager: M_AudioManager
@@ -59,7 +59,9 @@ func _create_state_store() -> M_StateStore:
 	store.settings.enable_persistence = false
 	store.settings.enable_debug_logging = false
 	store.settings.enable_debug_overlay = false
+	store.settings.enable_global_settings_persistence = true
 	store.audio_initial_state = RS_AUDIO_INITIAL_STATE.new()
+	store.display_initial_state = RS_DISPLAY_INITIAL_STATE.new()
 	return store
 
 
@@ -82,8 +84,8 @@ func _get_tab(overlay: Node) -> UI_AudioSettingsTab:
 
 
 func _remove_test_settings_files() -> void:
-	U_AUDIO_TEST_HELPERS.remove_test_file(AUDIO_SETTINGS_PATH)
-	U_AUDIO_TEST_HELPERS.remove_test_file(AUDIO_SETTINGS_BACKUP_PATH)
+	if FileAccess.file_exists(GLOBAL_SETTINGS_PATH):
+		DirAccess.remove_absolute(GLOBAL_SETTINGS_PATH)
 
 func _collect_audio_action_types(actions: Array[Dictionary]) -> Array[StringName]:
 	var types: Array[StringName] = []
@@ -308,7 +310,7 @@ func test_settings_persist_and_restore_from_settings_file() -> void:
 	assert_true(U_AUDIO_SELECTORS.is_ambient_muted(state_before_save), "State should update ambient muted")
 	assert_almost_eq(U_AUDIO_SELECTORS.get_music_volume(state_before_save), 0.2, 0.001, "State should update music volume")
 
-	assert_true(FileAccess.file_exists(AUDIO_SETTINGS_PATH), "audio settings file should be created")
+	assert_true(FileAccess.file_exists(GLOBAL_SETTINGS_PATH), "global settings file should be created")
 
 	# Load into a new store instance and ensure UI initializes from loaded state.
 	var store_2 := _create_state_store()

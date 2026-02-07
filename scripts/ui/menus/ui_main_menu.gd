@@ -15,7 +15,7 @@ const I_SaveManager := preload("res://scripts/interfaces/i_save_manager.gd")
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
-const DEFAULT_GAMEPLAY_SCENE := StringName("exterior")
+const DEFAULT_GAMEPLAY_SCENE := StringName("alleyway")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
 @onready var _main_panel: Control = %MainPanel

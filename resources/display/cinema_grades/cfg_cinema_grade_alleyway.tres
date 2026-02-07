@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="RS_SceneCinemaGrade" format=3 uid="uid://dbu083ahcuvmu"]
+
+[ext_resource type="Script" uid="uid://bav03g4a1nlfc" path="res://scripts/resources/display/rs_scene_cinema_grade.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+scene_id = &"alleyway"
+filter_preset = "vivid_cold"
+filter_intensity = 0.47
+exposure = -0.18
+brightness = -0.06
+contrast = 1.23
+brilliance = 0.01
+highlights = 0.08
+shadows = 0.04
+saturation = 1.37
+vibrance = 0.02
+warmth = -0.04
+tint = 0.11
+sharpness = 0.56

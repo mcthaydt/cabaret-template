@@ -1,0 +1,370 @@
+[gd_scene format=3 uid="uid://bvq7y8xtm5pfw"]
+
+[ext_resource type="Script" uid="uid://8xtj3p2gb0pc" path="res://scripts/debug/debug_cinema_grade_overlay.gd" id="1_cinema"]
+
+[node name="SC_CinemaDebugOverlay" type="CanvasLayer" unique_id=542098800]
+layer = 128
+script = ExtResource("1_cinema")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1003813662]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer" unique_id=1635444399]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/PanelContainer" unique_id=804587175]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer" unique_id=516149902]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=329858599]
+layout_mode = 2
+text = "Cinema Grade Debug (F5 to toggle)"
+horizontal_alignment = 1
+
+[node name="SceneLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=285417669]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Scene: (loading...)"
+
+[node name="HSeparator1" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=2052553988]
+layout_mode = 2
+
+[node name="FilterGroup" type="VBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=255361801]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="FilterLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/FilterGroup" unique_id=1846418520]
+layout_mode = 2
+text = "Filter Preset"
+
+[node name="FilterPresetOption" type="OptionButton" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/FilterGroup" unique_id=2120304706]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="FilterIntensityGroup" type="HBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=798102073]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/FilterIntensityGroup" unique_id=164671694]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Filter Intensity"
+
+[node name="FilterIntensitySlider" type="HSlider" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/FilterIntensityGroup" unique_id=1185017028]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="FilterIntensitySpinBox" type="SpinBox" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/FilterIntensityGroup" unique_id=852818689]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=484750107]
+layout_mode = 2
+
+[node name="ExposureGroup" type="HBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1874993019]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/ExposureGroup" unique_id=906702541]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Exposure"
+
+[node name="ExposureSlider" type="HSlider" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/ExposureGroup" unique_id=1033569611]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -3.0
+max_value = 3.0
+step = 0.01
+
+[node name="ExposureSpinBox" type="SpinBox" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/ExposureGroup" unique_id=1409852754]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+min_value = -3.0
+max_value = 3.0
+step = 0.01
+
+[node name="BrightnessGroup" type="HBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=950180607]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/BrightnessGroup" unique_id=1044245737]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Brightness"
+
+[node name="BrightnessSlider" type="HSlider" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/BrightnessGroup" unique_id=35690224]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="BrightnessSpinBox" type="SpinBox" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/BrightnessGroup" unique_id=296848074]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="ContrastGroup" type="HBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1464221691]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/ContrastGroup" unique_id=275416882]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Contrast"
+
+[node name="ContrastSlider" type="HSlider" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/ContrastGroup" unique_id=1270247973]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 3.0
+step = 0.01
+value = 1.0
+
+[node name="ContrastSpinBox" type="SpinBox" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/ContrastGroup" unique_id=902186476]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+max_value = 3.0
+step = 0.01
+value = 1.0
+
+[node name="BrillianceGroup" type="HBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=514393322]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/BrillianceGroup" unique_id=1154361842]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Brilliance"
+
+[node name="BrillianceSlider" type="HSlider" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/BrillianceGroup" unique_id=1232669727]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="BrillianceSpinBox" type="SpinBox" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/BrillianceGroup" unique_id=1459727764]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="HighlightsGroup" type="HBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1265806543]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/HighlightsGroup" unique_id=49504059]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Highlights"
+
+[node name="HighlightsSlider" type="HSlider" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/HighlightsGroup" unique_id=822668528]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="HighlightsSpinBox" type="SpinBox" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/HighlightsGroup" unique_id=1337629715]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="ShadowsGroup" type="HBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=352621482]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/ShadowsGroup" unique_id=1138089395]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Shadows"
+
+[node name="ShadowsSlider" type="HSlider" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/ShadowsGroup" unique_id=1325874598]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="ShadowsSpinBox" type="SpinBox" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/ShadowsGroup" unique_id=350879541]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="SaturationGroup" type="HBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=2187206]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/SaturationGroup" unique_id=1901278363]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Saturation"
+
+[node name="SaturationSlider" type="HSlider" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/SaturationGroup" unique_id=1149532589]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 3.0
+step = 0.01
+value = 1.0
+
+[node name="SaturationSpinBox" type="SpinBox" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/SaturationGroup" unique_id=342382018]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+max_value = 3.0
+step = 0.01
+value = 1.0
+
+[node name="VibranceGroup" type="HBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1682615906]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/VibranceGroup" unique_id=86135305]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Vibrance"
+
+[node name="VibranceSlider" type="HSlider" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/VibranceGroup" unique_id=1049237643]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="VibranceSpinBox" type="SpinBox" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/VibranceGroup" unique_id=212073212]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="WarmthGroup" type="HBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1616776582]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/WarmthGroup" unique_id=761186053]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Warmth"
+
+[node name="WarmthSlider" type="HSlider" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/WarmthGroup" unique_id=1473646652]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="WarmthSpinBox" type="SpinBox" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/WarmthGroup" unique_id=1342544762]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="TintGroup" type="HBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1935812880]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/TintGroup" unique_id=846217664]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Tint"
+
+[node name="TintSlider" type="HSlider" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/TintGroup" unique_id=1124133471]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="TintSpinBox" type="SpinBox" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/TintGroup" unique_id=1927641603]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+min_value = -1.0
+max_value = 1.0
+step = 0.01
+
+[node name="SharpnessGroup" type="HBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1801670000]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/SharpnessGroup" unique_id=1710822686]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Sharpness"
+
+[node name="SharpnessSlider" type="HSlider" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/SharpnessGroup" unique_id=1285275448]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 2.0
+step = 0.01
+
+[node name="SharpnessSpinBox" type="SpinBox" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/SharpnessGroup" unique_id=425650980]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+max_value = 2.0
+step = 0.01
+
+[node name="HSeparator3" type="HSeparator" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1433073628]
+layout_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1933492908]
+layout_mode = 2
+
+[node name="ResetButton" type="Button" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/ButtonRow" unique_id=2040927614]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Reset to Scene Defaults"
+
+[node name="ExportButton" type="Button" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer/ButtonRow" unique_id=1026710640]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Export to Console"
+
+[node name="HelpLabel" type="Label" parent="MarginContainer/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1871417994]
+layout_mode = 2
+text = "Adjust values, then click Export to print .tres format"
+horizontal_alignment = 1
+autowrap_mode = 3

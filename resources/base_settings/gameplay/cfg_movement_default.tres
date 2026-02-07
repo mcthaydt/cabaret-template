@@ -5,3 +5,4 @@
 [resource]
 script = ExtResource("1_0")
 air_control_scale = 0.6
+slope_limit_degrees = 35.0

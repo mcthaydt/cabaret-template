@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RS_UIColorPalette" format=3 uid="uid://c71mqyorh2h5l"]
+
+[ext_resource type="Script" uid="uid://iix7qrhtq3i5" path="res://scripts/resources/ui/rs_ui_color_palette.gd" id="1_palette"]
+
+[resource]
+script = ExtResource("1_palette")
+palette_id = &"tritanopia"
+primary = Color(0, 0.5, 0.7, 1)
+secondary = Color(0.9, 0.5, 0, 1)
+success = Color(0, 0.55, 0.8, 1)
+warning = Color(0.9, 0.5, 0, 1)
+danger = Color(0.8, 0, 0.3, 1)
+info = Color(0.2, 0.6, 0.9, 1)

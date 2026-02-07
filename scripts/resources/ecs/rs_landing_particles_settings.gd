@@ -24,4 +24,4 @@ class_name RS_LandingParticlesSettings
 ## Initial velocity of particles
 @export var initial_velocity: float = 2.5
 ## Offset from landing position where particles spawn (Vector3.DOWN spawns at feet)
-@export var spawn_offset: Vector3 = Vector3.DOWN
+@export var spawn_offset: Vector3 = Vector3(0, -0.5, 0)

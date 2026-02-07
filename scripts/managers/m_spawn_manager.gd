@@ -31,6 +31,7 @@ const C_FLOATING_COMPONENT := preload("res://scripts/ecs/components/c_floating_c
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const U_ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
+const SP_SPAWN_POINT := preload("res://scripts/scene_management/sp_spawn_point.gd")
 
 const SPAWN_CONDITION_ALWAYS := 0
 const SPAWN_CONDITION_CHECKPOINT_ONLY := 1
@@ -134,6 +135,7 @@ func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool:
 	# Position player at spawn point
 	player.global_position = spawn_point.global_position
 	player.global_rotation = spawn_point.global_rotation
+	_maybe_face_camera_on_spawn(player, ecs_body, spawn_point)
 
 	# Zero velocity and freeze physics to prevent bobble on spawn
 	if ecs_body != null:
@@ -457,6 +459,46 @@ func _find_character_body(node: Node) -> CharacterBody3D:
 			return found
 
 	return null
+
+func _maybe_face_camera_on_spawn(player: Node3D, ecs_body: CharacterBody3D, spawn_point: Node3D) -> void:
+	if player == null or spawn_point == null:
+		return
+
+	if not (spawn_point is SP_SPAWN_POINT):
+		return
+
+	var metadata := (spawn_point as SP_SPAWN_POINT).get_spawn_metadata()
+	if metadata == null or not metadata.face_camera_on_spawn:
+		return
+
+	var camera: Camera3D = U_ECS_UTILS.get_active_camera(self)
+	if camera == null:
+		return
+
+	var up_dir := Vector3.UP
+	if ecs_body != null:
+		up_dir = ecs_body.up_direction
+		if up_dir.length() == 0.0:
+			up_dir = Vector3.UP
+
+	var cam_forward := -camera.global_transform.basis.z
+	cam_forward = _project_onto_plane(cam_forward, up_dir)
+	if cam_forward.length() == 0.0:
+		cam_forward = _project_onto_plane(Vector3.FORWARD, up_dir)
+	if cam_forward.length() == 0.0:
+		return
+	cam_forward = cam_forward.normalized()
+
+	var desired_yaw := atan2(-cam_forward.x, -cam_forward.z)
+	var new_rotation := player.global_rotation
+	new_rotation.y = desired_yaw
+	player.global_rotation = new_rotation
+
+func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
+	var normal := plane_normal.normalized()
+	if normal.length() == 0.0:
+		return Vector3.ZERO
+	return vector - normal * vector.dot(normal)
 
 class SpawnSupportInfo:
 	var has_hit: bool = false

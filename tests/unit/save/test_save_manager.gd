@@ -756,7 +756,7 @@ func test_load_from_slot_lock_stays_set_during_transition() -> void:
 
 	# Create a valid save
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "exterior"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "alleyway"})
 	_save_manager.save_to_slot(StringName("slot_01"))
 
 	# Setup mock scene manager
@@ -781,9 +781,9 @@ func test_load_from_slot_lock_clears_only_for_matching_scene() -> void:
 
 	await get_tree().process_frame
 
-	# Create a save for "exterior" scene
+	# Create a save for "alleyway" scene
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "exterior"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "alleyway"})
 	_save_manager.save_to_slot(StringName("slot_01"))
 
 	# Setup mock scene manager
@@ -804,7 +804,7 @@ func test_load_from_slot_lock_clears_only_for_matching_scene() -> void:
 	assert_true(_save_manager.call("_is_loading_locked"), "Lock should stay set when wrong scene completes")
 
 	# Dispatch transition_completed for CORRECT scene
-	_mock_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("exterior")))
+	_mock_store.dispatch(U_SCENE_ACTIONS.transition_completed(StringName("alleyway")))
 
 	# Now lock should be cleared
 	assert_false(_save_manager.call("_is_loading_locked"), "Lock should clear when correct scene completes")
@@ -853,7 +853,7 @@ func test_load_from_slot_triggers_scene_transition() -> void:
 
 	# Create a save with a specific scene
 	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
-	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "exterior"})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "alleyway"})
 	_save_manager.save_to_slot(StringName("slot_01"))
 
 	# Add transition method to mock scene manager and track calls
@@ -868,7 +868,7 @@ func test_load_from_slot_triggers_scene_transition() -> void:
 
 	# Verify scene transition was requested
 	assert_true(_mock_scene_manager.get("_transition_called"), "Scene transition should be called")
-	assert_eq(_mock_scene_manager.get("_transition_target"), StringName("exterior"), "Should transition to saved scene_id")
+	assert_eq(_mock_scene_manager.get("_transition_target"), StringName("alleyway"), "Should transition to saved scene_id")
 
 ## Phase 8: Error Handling and Corruption Recovery Tests
 

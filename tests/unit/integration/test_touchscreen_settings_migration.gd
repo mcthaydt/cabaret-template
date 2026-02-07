@@ -1,6 +1,6 @@
 extends GutTest
 
-const U_InputSerialization := preload("res://scripts/utils/input/u_input_serialization.gd")
+const U_GlobalSettingsSerialization := preload("res://scripts/utils/u_global_settings_serialization.gd")
 const U_InputReducer := preload("res://scripts/state/reducers/u_input_reducer.gd")
 const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
 
@@ -20,7 +20,8 @@ func test_phase5_save_merges_touchscreen_defaults() -> void:
 	}
 	_write_save_file(phase5_save)
 
-	var loaded := U_InputSerialization.load_settings()
+	var loaded_settings := U_GlobalSettingsSerialization.load_settings()
+	var loaded: Dictionary = loaded_settings.get("input_settings", {})
 	var defaults := _get_touchscreen_defaults()
 	var touchscreen: Dictionary = loaded.get("touchscreen_settings", {})
 
@@ -42,7 +43,8 @@ func test_partial_touchscreen_settings_fill_defaults() -> void:
 	}
 	_write_save_file(partial_save)
 
-	var loaded := U_InputSerialization.load_settings()
+	var loaded_settings := U_GlobalSettingsSerialization.load_settings()
+	var loaded: Dictionary = loaded_settings.get("input_settings", {})
 	var defaults := _get_touchscreen_defaults()
 	var touchscreen: Dictionary = loaded.get("touchscreen_settings", {})
 
@@ -72,7 +74,8 @@ func test_vector2_fields_deserialize_from_dicts() -> void:
 	}
 	_write_save_file(save_data)
 
-	var loaded := U_InputSerialization.load_settings()
+	var loaded_settings := U_GlobalSettingsSerialization.load_settings()
+	var loaded: Dictionary = loaded_settings.get("input_settings", {})
 	var touchscreen: Dictionary = loaded.get("touchscreen_settings", {})
 	var joystick_pos: Variant = touchscreen.get("custom_joystick_position")
 	assert_true(joystick_pos is Vector2, "Joystick position should load as Vector2 from dict")
@@ -89,7 +92,8 @@ func test_roundtrip_normalizes_custom_button_keys() -> void:
 	}
 	_write_save_file(phase5_save)
 
-	var loaded := U_InputSerialization.load_settings()
+	var loaded_settings := U_GlobalSettingsSerialization.load_settings()
+	var loaded: Dictionary = loaded_settings.get("input_settings", {})
 	var touchscreen: Dictionary = loaded.get("touchscreen_settings", {})
 	touchscreen["custom_joystick_position"] = Vector2(300, 200)
 	touchscreen["custom_button_positions"] = {
@@ -98,10 +102,11 @@ func test_roundtrip_normalizes_custom_button_keys() -> void:
 	}
 	loaded["touchscreen_settings"] = touchscreen
 
-	var save_success := U_InputSerialization.save_settings(loaded)
+	var save_success := U_GlobalSettingsSerialization.save_settings({"input_settings": loaded})
 	assert_true(save_success, "Save should succeed after customizing positions")
 
-	var roundtrip := U_InputSerialization.load_settings()
+	var roundtrip_settings := U_GlobalSettingsSerialization.load_settings()
+	var roundtrip: Dictionary = roundtrip_settings.get("input_settings", {})
 	var roundtrip_touchscreen: Dictionary = roundtrip.get("touchscreen_settings", {})
 	var custom_positions: Dictionary = roundtrip_touchscreen.get("custom_button_positions", {})
 
@@ -126,9 +131,9 @@ func _get_touchscreen_defaults() -> Dictionary:
 	return defaults.get("touchscreen_settings", {}).duplicate(true)
 
 func _write_save_file(data: Dictionary) -> void:
-	var json := JSON.stringify(data, "\t")
-	var file := FileAccess.open("user://input_settings.json", FileAccess.WRITE)
-	assert_not_null(file, "Should open input_settings.json for writing")
+	var json := JSON.stringify({"input_settings": data}, "\t")
+	var file := FileAccess.open("user://global_settings.json", FileAccess.WRITE)
+	assert_not_null(file, "Should open global_settings.json for writing")
 	file.store_string(json)
 	file.flush()
 	file = null
@@ -137,10 +142,10 @@ func _cleanup_input_settings_files() -> void:
 	var dir := DirAccess.open("user://")
 	if dir == null:
 		return
-	if dir.file_exists("input_settings.json"):
-		dir.remove("input_settings.json")
-	if dir.file_exists("input_settings.json.backup"):
-		dir.remove("input_settings.json.backup")
+	if dir.file_exists("global_settings.json"):
+		dir.remove("global_settings.json")
+	if dir.file_exists("global_settings.json.backup"):
+		dir.remove("global_settings.json.backup")
 
 func assert_vector_almost_eq(a: Vector2, b: Vector2, tolerance: float, message: String = "") -> void:
 	assert_almost_eq(a.x, b.x, tolerance, message + " (x)")
