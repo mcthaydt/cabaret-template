@@ -119,6 +119,12 @@ func _connect_signals() -> void:
 	if _window_confirm_timer != null and not _window_confirm_timer.timeout.is_connected(_on_window_confirm_timer_timeout):
 		_window_confirm_timer.timeout.connect(_on_window_confirm_timer_timeout)
 
+	_setup_option_button_popup_focus(_window_size_option)
+	_setup_option_button_popup_focus(_window_mode_option)
+	_setup_option_button_popup_focus(_quality_preset_option)
+	_setup_option_button_popup_focus(_post_processing_preset_option)
+	_setup_option_button_popup_focus(_color_blind_mode_option)
+
 func _populate_option_buttons() -> void:
 	_populate_option_button(
 		_window_size_option,
@@ -638,3 +644,18 @@ func _get_default_display_state() -> Dictionary:
 		if instance is RS_DisplayInitialState:
 			return (instance as RS_DisplayInitialState).to_dictionary()
 	return RS_DisplayInitialState.new().to_dictionary()
+
+func _setup_option_button_popup_focus(option_button: OptionButton) -> void:
+	if option_button == null:
+		return
+	var popup := option_button.get_popup()
+	if popup == null:
+		return
+	if not popup.about_to_popup.is_connected(_on_option_button_popup_about_to_show.bind(popup)):
+		popup.about_to_popup.connect(_on_option_button_popup_about_to_show.bind(popup))
+
+func _on_option_button_popup_about_to_show(popup: PopupMenu) -> void:
+	if popup == null:
+		return
+	await get_tree().process_frame
+	popup.grab_focus()
