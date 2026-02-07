@@ -12,13 +12,6 @@ class_name SC_CinemaDebugOverlay
 ##
 ## Toggled with F4 key via M_StateStore._input()
 
-const U_StateUtils := preload("res://scripts/utils/u_state_utils.gd")
-const U_CinemaGradeActions := preload("res://scripts/state/actions/u_cinema_grade_actions.gd")
-const U_CinemaGradeSelectors := preload("res://scripts/state/selectors/u_cinema_grade_selectors.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_CinemaGradeRegistry := preload("res://scripts/managers/helpers/display/u_cinema_grade_registry.gd")
-const RS_SceneCinemaGrade := preload("res://scripts/resources/display/rs_scene_cinema_grade.gd")
-
 @onready var scene_label: Label = %SceneLabel
 @onready var filter_preset_option: OptionButton = %FilterPresetOption
 @onready var filter_intensity_slider: HSlider = %FilterIntensitySlider
@@ -157,8 +150,8 @@ func _load_state_into_ui() -> void:
 
 	_updating_ui = true
 
-	var state := _store.get_state()
-	var scene_slice := state.get("scene", {})
+	var state: Dictionary = _store.get_state()
+	var scene_slice: Dictionary = state.get("scene", {})
 	_current_scene_id = scene_slice.get("current_scene_id", StringName(""))
 
 	# Update scene label
@@ -192,9 +185,9 @@ func _update_visibility() -> void:
 	if not _store:
 		return
 
-	var state := _store.get_state()
-	var nav_slice := state.get("navigation", {})
-	var shell := nav_slice.get("shell", StringName(""))
+	var state: Dictionary = _store.get_state()
+	var nav_slice: Dictionary = state.get("navigation", {})
+	var shell: StringName = nav_slice.get("shell", StringName(""))
 
 	# Show only during gameplay shell
 	visible = (shell == StringName("gameplay"))
@@ -278,11 +271,11 @@ func _on_export_pressed() -> void:
 	if not _store:
 		return
 
-	var state := _store.get_state()
-	var filter_mode := U_CinemaGradeSelectors.get_filter_mode(state)
+	var state: Dictionary = _store.get_state()
+	var filter_mode: int = U_CinemaGradeSelectors.get_filter_mode(state)
 
 	# Reverse-lookup filter preset name
-	var filter_preset_name := "none"
+	var filter_preset_name: String = "none"
 	for key in RS_SceneCinemaGrade.FILTER_PRESET_MAP.keys():
 		if RS_SceneCinemaGrade.FILTER_PRESET_MAP[key] == filter_mode:
 			filter_preset_name = key
