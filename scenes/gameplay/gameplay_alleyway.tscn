@@ -216,6 +216,20 @@ script = ExtResource("29_screen_shake_publisher")
 [node name="S_DamageFlashPublisherSystem" type="Node" parent="Systems/Feedback" unique_id=1774483696]
 script = ExtResource("30_damage_flash_publisher")
 
+[node name="Lighting" type="Node" parent="." unique_id=888888801]
+
+[node name="MoonLight" type="OmniLight3D" parent="Lighting" unique_id=888888802]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+light_color = Color(0.4, 0.5, 0.8, 1)
+light_energy = 1.5
+omni_range = 15.0
+
+[node name="StreetLight_Warm" type="OmniLight3D" parent="Lighting" unique_id=888888803]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 3, -3)
+light_color = Color(1, 0.8, 0.6, 1)
+light_energy = 1.0
+omni_range = 8.0
+
 [node name="Managers" type="Node" parent="." unique_id=1732814566]
 script = ExtResource("12_klon2")
 

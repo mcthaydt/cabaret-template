@@ -203,6 +203,19 @@ script = ExtResource("29_screen_shake_publisher")
 [node name="S_DamageFlashPublisherSystem" type="Node" parent="Systems/Feedback" unique_id=1774483696]
 script = ExtResource("30_damage_flash_publisher")
 
+[node name="Lighting" type="Node" parent="." unique_id=999999901]
+
+[node name="BarLight_Warm" type="OmniLight3D" parent="Lighting" unique_id=999999902]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+light_color = Color(1, 0.7, 0.4, 1)
+light_energy = 2.0
+omni_range = 10.0
+
+[node name="EntranceLight_Cool" type="OmniLight3D" parent="Lighting" unique_id=999999903]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, -1)
+light_color = Color(0.4, 0.6, 1.0, 1)
+light_energy = 1.0
+
 [node name="Managers" type="Node" parent="." unique_id=1732814566]
 script = ExtResource("12_klon2")
 

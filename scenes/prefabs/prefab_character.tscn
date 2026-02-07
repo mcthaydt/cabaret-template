@@ -6,11 +6,14 @@
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pjt0s"]
 resource_name = "BaseCharacterMat"
 cull_mode = 2
-shading_mode = 0
+shading_mode = 1
 diffuse_mode = 2
+specular_mode = 2
+disable_specular_occlusion = true
 vertex_color_use_as_albedo = true
 albedo_texture = ExtResource("2_texture")
 texture_filter = 0
+texture_repeat = false
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_ng25s"]
 _surfaces = [{
