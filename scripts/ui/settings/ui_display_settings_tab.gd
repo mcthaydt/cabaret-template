@@ -294,7 +294,7 @@ func _on_window_mode_selected(index: int) -> void:
 	_has_local_edits = true
 	_update_display_settings_preview_from_ui()
 
-func _on_vsync_toggled(pressed: bool) -> void:
+func _on_vsync_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_confirm()
@@ -310,7 +310,7 @@ func _on_quality_preset_selected(index: int) -> void:
 	_has_local_edits = true
 	_update_display_settings_preview_from_ui()
 
-func _on_post_processing_toggled(pressed: bool) -> void:
+func _on_post_processing_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_confirm()

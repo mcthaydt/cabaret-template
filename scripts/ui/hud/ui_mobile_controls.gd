@@ -311,13 +311,13 @@ func _update_visibility() -> void:
 
 	visible = should_show
 
-func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
+func _on_state_changed(__action: Dictionary, state: Dictionary) -> void:
 	if state == null:
 		return
 	_apply_state(state)
 
 ## Called when SceneManager's visual transition completes (fade-in finishes)
-func _on_transition_visual_complete(_scene_id: StringName) -> void:
+func _on_transition_visual_complete(__scene_id: StringName) -> void:
 	if _awaiting_transition_signal:
 		_awaiting_transition_signal = false
 		_update_visibility()
@@ -345,7 +345,7 @@ func _connect_input_signals(control: Node) -> void:
 
 ## Called when the player interacts with any virtual control.
 ## Resets opacity to the active value and schedules a tween back to idle opacity.
-func _on_input_activity(_data: Variant = null) -> void:
+func _on_input_activity(__data: Variant = null) -> void:
 	if _controls_root == null:
 		return
 	if _has_overlay_active:

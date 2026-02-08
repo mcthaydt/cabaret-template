@@ -62,7 +62,7 @@ func _on_panel_ready() -> void:
 	if store != null:
 		_update_button_visibility(store.get_state())
 
-func _on_slice_updated(_slice_name: StringName, _slice_state: Dictionary) -> void:
+func _on_slice_updated(__slice_name: StringName, _slice_state: Dictionary) -> void:
 	var store := get_store()
 	if store == null:
 		return

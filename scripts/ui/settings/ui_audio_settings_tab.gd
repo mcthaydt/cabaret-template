@@ -239,7 +239,7 @@ func _on_master_volume_changed(value: float) -> void:
 	_has_local_edits = true
 	_update_audio_settings_preview_from_ui()
 
-func _on_master_mute_toggled(pressed: bool) -> void:
+func _on_master_mute_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
@@ -255,7 +255,7 @@ func _on_music_volume_changed(value: float) -> void:
 	_has_local_edits = true
 	_update_audio_settings_preview_from_ui()
 
-func _on_music_mute_toggled(pressed: bool) -> void:
+func _on_music_mute_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
@@ -271,7 +271,7 @@ func _on_sfx_volume_changed(value: float) -> void:
 	_has_local_edits = true
 	_update_audio_settings_preview_from_ui()
 
-func _on_sfx_mute_toggled(pressed: bool) -> void:
+func _on_sfx_mute_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
@@ -287,7 +287,7 @@ func _on_ambient_volume_changed(value: float) -> void:
 	_has_local_edits = true
 	_update_audio_settings_preview_from_ui()
 
-func _on_ambient_mute_toggled(pressed: bool) -> void:
+func _on_ambient_mute_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true

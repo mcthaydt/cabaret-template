@@ -36,7 +36,7 @@ func _subscribe_events() -> void:
 	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_ENTITY_DEATH, _on_entity_death, 0))
 	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_VIBRATION_REQUEST, _on_vibration_request))
 
-func process_tick(_delta: float) -> void:
+func process_tick(__delta: float) -> void:
 	# No-op; system reacts to events/state changes.
 	pass
 
@@ -61,7 +61,7 @@ func _on_vibration_request(event: Dictionary) -> void:
 	var duration := float(payload.get("duration", 0.0))
 	_trigger_vibration(weak, strong, duration)
 
-func _trigger_damage_vibration(_amount: float) -> void:
+func _trigger_damage_vibration(__amount: float) -> void:
 	_trigger_vibration(0.5, 0.3, 0.2)
 
 func _trigger_death_vibration() -> void:

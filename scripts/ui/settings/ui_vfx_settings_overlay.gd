@@ -129,7 +129,7 @@ func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 
 	_updating_from_state = false
 
-func _on_shake_enabled_toggled(_pressed: bool) -> void:
+func _on_shake_enabled_toggled(__pressed: bool) -> void:
 	# Changes only apply when user clicks Apply button
 	if _updating_from_state:
 		return
@@ -147,7 +147,7 @@ func _on_intensity_changed(value: float) -> void:
 	if _vfx_manager != null:
 		_vfx_manager.trigger_test_shake(value)
 
-func _on_flash_enabled_toggled(_pressed: bool) -> void:
+func _on_flash_enabled_toggled(__pressed: bool) -> void:
 	# Changes only apply when user clicks Apply button
 	if _updating_from_state:
 		return

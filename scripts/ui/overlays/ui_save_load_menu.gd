@@ -83,7 +83,7 @@ func _on_store_ready(store_ref: I_StateStore) -> void:
 		store_ref.slice_updated.connect(_on_slice_updated)
 		_read_mode_from_state()
 
-func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void:
+func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> void:
 	if slice_name == StringName("navigation"):
 		_read_mode_from_state()
 
@@ -320,7 +320,7 @@ func _load_thumbnail_async(texture_rect: TextureRect, path: String) -> void:
 	_pending_thumbnail_loads[texture_rect] = path
 	set_process(true)
 
-func _process(_delta: float) -> void:
+func _process(__delta: float) -> void:
 	if _pending_thumbnail_loads.is_empty():
 		set_process(false)
 		return
@@ -544,12 +544,12 @@ func _perform_delete(slot_id: StringName) -> void:
 
 ## Event handlers for save events
 
-func _on_save_started(_event: Dictionary) -> void:
+func _on_save_started(__event: Dictionary) -> void:
 	# Save started - could show a brief "Saving..." indicator
 	_clear_error_message()
 	pass
 
-func _on_save_completed(_event: Dictionary) -> void:
+func _on_save_completed(__event: Dictionary) -> void:
 	# Save completed - refresh slot list to show updated metadata
 	call_deferred("_refresh_slot_list")
 
@@ -561,13 +561,13 @@ func _on_save_failed(_event: Dictionary) -> void:
 
 ## Event handlers for load events
 
-func _on_load_started(_event: Dictionary) -> void:
+func _on_load_started(__event: Dictionary) -> void:
 	# Load started - show spinner and disable all buttons
 	_clear_error_message()
 	_show_loading_spinner()
 	_set_buttons_enabled(false)
 
-func _on_load_completed(_event: Dictionary) -> void:
+func _on_load_completed(__event: Dictionary) -> void:
 	# Load completed - hide spinner and re-enable buttons
 	_hide_loading_spinner()
 	_set_buttons_enabled(true)

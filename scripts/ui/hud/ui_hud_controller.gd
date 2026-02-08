@@ -68,7 +68,7 @@ func _complete_initialization() -> void:
 
 	_update_display(_store.get_state())
 
-func _process(_delta: float) -> void:
+func _process(__delta: float) -> void:
 	if _store == null or not is_instance_valid(_store):
 		return
 	# Keep HUD visibility in sync even if a slice update arrives between frames.
@@ -103,7 +103,7 @@ func _unregister_from_scene_manager() -> void:
 	if scene_manager != null:
 		scene_manager.unregister_hud_controller(self)
 
-func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void:
+func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> void:
 	if _store == null:
 		return
 	if slice_name != StringName("gameplay") \
@@ -370,7 +370,7 @@ func _get_primary_input_label(action: StringName) -> String:
 			return "Mouse %d" % mouse_event.button_index
 	return ""
 
-func _update_health_bar_colors(_state: Dictionary, health: float, max_health: float) -> void:
+func _update_health_bar_colors(__state: Dictionary, health: float, max_health: float) -> void:
 	if _health_bar_fill_style == null:
 		return
 

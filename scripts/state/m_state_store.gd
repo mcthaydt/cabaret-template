@@ -195,11 +195,11 @@ func _flush_global_settings_save() -> void:
 	if saved:
 		_global_settings_last_hash = snapshot_hash
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(__delta: float) -> void:
 	# Flush batched signals once per physics frame
 	_flush_signal_batcher()
 
-func _process(_delta: float) -> void:
+func _process(__delta: float) -> void:
 	# Do not flush on idle; tests expect a single batched emission per frame.
 	# Physics flush handles batching even when tree is paused (PROCESS_MODE_ALWAYS).
 	pass

@@ -291,7 +291,7 @@ func _ensure_store_reference() -> void:
 	_store = U_SCENE_MANAGER_NODE_FINDER.ensure_store_reference(_store, self)
 
 ## State change callback
-func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
+func _on_state_changed(__action: Dictionary, state: Dictionary) -> void:
 	# Detect scene changes and update cursor reactively
 	var scene_state: Dictionary = state.get("scene", {})
 	var new_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
@@ -1026,7 +1026,7 @@ func _sync_navigation_shell_with_scene(scene_id: StringName) -> void:
 ## Parameters:
 ##   transition: The transition effect instance to configure
 ##   transition_type: The transition type name (for type-checking)
-func _configure_transition(transition: BaseTransitionEffect, transition_type: String) -> void:
+func _configure_transition(transition: BaseTransitionEffect, _transition_type: String) -> void:
 	if transition == null:
 		return
 

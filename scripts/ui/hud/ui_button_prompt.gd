@@ -205,7 +205,7 @@ func _find_device_manager_in_tree(tree: SceneTree) -> M_InputDeviceManager:
 			stack.append(child)
 	return null
 
-func _on_device_changed_signal(device_type: int, _device_id: int, _timestamp: float) -> void:
+func _on_device_changed_signal(device_type: int, __device_id: int, _timestamp: float) -> void:
 	_device_type = device_type
 	if _is_shown:
 		_refresh_prompt()
