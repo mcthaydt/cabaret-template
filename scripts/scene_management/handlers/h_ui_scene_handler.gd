@@ -22,12 +22,12 @@ func get_scene_type() -> int:
 
 
 ## No special load behavior for UI scenes.
-func on_load(scene: Node, scene_id: StringName, managers: Dictionary) -> void:
+func on_load(scene: Node, _scene_id: StringName, managers: Dictionary) -> void:
 	pass
 
 
 ## No special unload behavior for UI scenes.
-func on_unload(scene: Node, scene_id: StringName) -> void:
+func on_unload(scene: Node, _scene_id: StringName) -> void:
 	pass
 
 

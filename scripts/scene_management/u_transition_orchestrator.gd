@@ -178,7 +178,7 @@ func _create_progress_callback(transition_effect, use_cached: bool) -> Callable:
 			current_progress[0] = clamp(progress, 0.0, 1.0)
 
 ## Configure transition effect based on type
-func _configure_transition(effect, transition_type: String) -> void:
+func _configure_transition(effect, _transition_type: String) -> void:
 	# Transition-specific configuration can be added here
 	# Currently handled by factory, but kept for future extensibility
 	pass

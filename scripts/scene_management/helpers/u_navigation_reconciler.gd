@@ -156,7 +156,7 @@ func reconcile_base_scene(
 ## Parameters:
 ##   manager: Scene manager instance
 ##   overlay_helper: Overlay stack manager helper
-func reconcile_pending_overlays(manager: Node, overlay_helper: U_OVERLAY_STACK_MANAGER, load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable, viewport: Viewport, get_transition_queue_state: Callable, set_overlay_reconciliation_pending: Callable) -> void:
+func reconcile_pending_overlays(_manager: Node, overlay_helper: U_OVERLAY_STACK_MANAGER, load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable, viewport: Viewport, get_transition_queue_state: Callable, set_overlay_reconciliation_pending: Callable) -> void:
 	if not _pending_overlay_reconciliation:
 		return
 

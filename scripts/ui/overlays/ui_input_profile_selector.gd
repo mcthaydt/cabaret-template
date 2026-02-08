@@ -452,7 +452,7 @@ func _add_action_row(action_label: String, action_name: StringName, profile: RS_
 
 	_bindings_container.add_child(row)
 
-func _add_binding_icons_for_action(container: HBoxContainer, action: StringName, profile: RS_InputProfile, device_type: int) -> void:
+func _add_binding_icons_for_action(container: HBoxContainer, action: StringName, profile: RS_InputProfile, _device_type: int) -> void:
 	if container == null or profile == null:
 		return
 
