@@ -22,7 +22,6 @@ const HEALTH_SETTINGS_PATH := "res://scripts/resources/ecs/rs_health_settings.gd
 const HEALTH_SETTINGS_RESOURCE := "res://resources/base_settings/gameplay/cfg_health_settings.tres"
 const DAMAGE_COMPONENT_PATH := "res://scripts/ecs/components/c_damage_zone_component.gd"
 const DAMAGE_SYSTEM_PATH := "res://scripts/ecs/systems/s_damage_system.gd"
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _root: Node
 var _state_store: M_StateStore

@@ -9,7 +9,6 @@ extends I_InputSource
 ## Note: Actual input capture is handled by MobileControls virtual joystick/buttons.
 ## This source acts as an activation detector for device switching.
 
-const U_ECSUtils := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 var _last_touch_time: float = 0.0
 var _is_mobile: bool = false

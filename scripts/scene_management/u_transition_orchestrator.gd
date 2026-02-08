@@ -17,8 +17,6 @@ extends RefCounted
 ##   orchestrator.execute_transition(request, scene_node, callbacks)
 
 const U_TRANSITION_FACTORY := preload("res://scripts/scene_management/u_transition_factory.gd")
-const Trans_Fade := preload("res://scripts/scene_management/transitions/trans_fade.gd")
-const Trans_LoadingScreen := preload("res://scripts/scene_management/transitions/trans_loading_screen.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 
 ## Transition state

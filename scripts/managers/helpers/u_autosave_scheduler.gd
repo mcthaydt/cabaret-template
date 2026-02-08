@@ -23,7 +23,6 @@ class_name U_AutosaveScheduler
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
-const I_SaveManager := preload("res://scripts/interfaces/i_save_manager.gd")
 
 enum Priority {
 	NORMAL = 0,

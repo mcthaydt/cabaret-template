@@ -6,7 +6,6 @@ class_name U_CinemaGradeActions
 ## Action creators for cinema grade state. Uses "cinema_grade/" prefix which
 ## is NOT persisted to global_settings.json (not a user setting).
 
-const U_ActionRegistry := preload("res://scripts/state/utils/u_action_registry.gd")
 
 const ACTION_LOAD_SCENE_GRADE := StringName("cinema_grade/load_scene_grade")
 const ACTION_SET_PARAMETER := StringName("cinema_grade/set_parameter")

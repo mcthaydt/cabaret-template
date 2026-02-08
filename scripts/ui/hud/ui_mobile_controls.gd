@@ -3,16 +3,6 @@ class_name UI_MobileControls
 
 const VIRTUAL_JOYSTICK_SCENE := preload("res://scenes/ui/widgets/ui_virtual_joystick.tscn")
 const VIRTUAL_BUTTON_SCENE := preload("res://scenes/ui/widgets/ui_virtual_button.tscn")
-const UI_VirtualJoystick := preload("res://scripts/ui/hud/ui_virtual_joystick.gd")
-const UI_VirtualButton := preload("res://scripts/ui/hud/ui_virtual_button.gd")
-const RS_InputProfile := preload("res://scripts/resources/input/rs_input_profile.gd")
-const RS_TouchscreenSettings := preload("res://scripts/resources/input/rs_touchscreen_settings.gd")
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 
 @export var force_enable: bool = false
 @export var emulate_mobile_override: bool = false

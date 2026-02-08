@@ -1,6 +1,5 @@
 extends GutTest
 
-const U_CrossfadePlayer := preload("res://scripts/managers/helpers/u_crossfade_player.gd")
 
 var _crossfader: U_CrossfadePlayer
 var _owner_node: Node

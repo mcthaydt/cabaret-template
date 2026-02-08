@@ -7,16 +7,8 @@ class_name S_InputSystem
 
 const INPUT_TYPE := StringName("C_InputComponent")
 const GAMEPAD_TYPE := StringName("C_GamepadComponent")
-const U_DeviceTypeConstants := preload("res://scripts/input/u_device_type_constants.gd")
-const GamepadSource := preload("res://scripts/input/sources/gamepad_source.gd")
-const KeyboardMouseSource := preload("res://scripts/input/sources/keyboard_mouse_source.gd")
-const U_GameplaySelectors := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const C_GamepadComponent := preload("res://scripts/ecs/components/c_gamepad_component.gd")
 const ACTION_MOVE_STRENGTH := StringName("move")
 const ACTION_LOOK_STRENGTH := StringName("look")
-const U_InputMapBootstrapper := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 
 # Use centralized DeviceType enum
 const DeviceType := U_DeviceTypeConstants.DeviceType

@@ -146,11 +146,11 @@ func _check_shadowed_const_preload(file_path: String, line_number: int, line: St
 		_errors.append(error)
 		_shadowed_const_count += 1
 
-func _is_custom_global_class(class_name: String) -> bool:
+func _is_custom_global_class(class_name_str: String) -> bool:
 	# Check if this is a custom class registered via class_name
 	var global_classes := ProjectSettings.get_global_class_list()
 	for entry in global_classes:
-		if entry.get("class", "") == class_name:
+		if entry.get("class", "") == class_name_str:
 			return true
 	return false
 
@@ -184,7 +184,7 @@ func _write_results_to_file() -> void:
 		for error_type in errors_by_type.keys():
 			var type_errors: Array = errors_by_type[error_type]
 			file.store_line("[%s] (%d errors)" % [error_type, type_errors.size()])
-			file.store_line("─" * 60)
+			file.store_line("=" * 60)
 
 			for error in type_errors:
 				file.store_line("  %s" % error.to_string())

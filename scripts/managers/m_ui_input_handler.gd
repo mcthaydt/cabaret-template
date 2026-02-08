@@ -8,10 +8,6 @@ class_name M_UIInputHandler
 ## shell, overlay stack, and panel state. Does NOT hardcode physical keys or
 ## maintain separate navigation state.
 
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationReducer := preload("res://scripts/state/reducers/u_navigation_reducer.gd")
 
 var _store: I_StateStore = null
 

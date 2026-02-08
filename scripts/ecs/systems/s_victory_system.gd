@@ -3,9 +3,6 @@ extends BaseECSSystem
 class_name S_VictorySystem
 
 const COMPONENT_TYPE := StringName("C_VictoryTriggerComponent")
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const EVENT_VICTORY_TRIGGERED := StringName("victory_triggered")
 const REQUIRED_FINAL_AREA := "interior_bar"
 

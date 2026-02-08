@@ -10,12 +10,6 @@ class_name UI_SaveLoadMenu
 ##
 ## Mode is determined by navigation.save_load_mode in Redux state.
 
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const M_SaveManager := preload("res://scripts/managers/m_save_manager.gd")
 const PLACEHOLDER_TEXTURE_PATH := "res://resources/ui/tex_save_slot_placeholder.png"
 const PLACEHOLDER_TEXTURE := preload(PLACEHOLDER_TEXTURE_PATH)
 

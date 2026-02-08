@@ -1,18 +1,6 @@
 extends GutTest
 
 const MainMenuScene := preload("res://scenes/ui/menus/ui_main_menu.tscn")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")
-const RS_MenuInitialState := preload("res://scripts/resources/state/rs_menu_initial_state.gd")
-const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_SettingsInitialState := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
-const RS_NavigationInitialState := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const MockSaveManager := preload("res://tests/mocks/mock_save_manager.gd")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()

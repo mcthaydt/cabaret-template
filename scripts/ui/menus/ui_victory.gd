@@ -9,9 +9,6 @@ class_name UI_Victory
 ## - Credits: Skip to credits (visible after completion).
 ## - Menu: Return to main menu.
 
-const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 
 @onready var _completed_label: Label = $MarginContainer/VBoxContainer/CompletedLabel
 @onready var _continue_button: Button = $MarginContainer/VBoxContainer/ButtonRow/ContinueButton

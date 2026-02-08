@@ -2,9 +2,6 @@ extends GutTest
 
 ## Tests for high contrast mode in display manager
 
-const M_DisplayManager := preload("res://scripts/managers/m_display_manager.gd")
-const MockStateStore := preload("res://tests/mocks/mock_state_store.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _manager: Node
 var _store: Node

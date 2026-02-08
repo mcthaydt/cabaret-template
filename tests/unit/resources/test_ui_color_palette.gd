@@ -1,6 +1,5 @@
 extends GutTest
 
-const RS_UIColorPalette := preload("res://scripts/resources/ui/rs_ui_color_palette.gd")
 
 func test_palette_id_is_string_name() -> void:
 	var palette := RS_UIColorPalette.new()

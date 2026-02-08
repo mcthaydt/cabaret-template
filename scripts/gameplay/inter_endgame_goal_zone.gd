@@ -7,7 +7,6 @@ class_name Inter_EndgameGoalZone
 ## required area has been completed. Subscribes to the gameplay state
 ## and toggles visuals + Area3D monitoring accordingly.
 
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 
 @export var required_area: String = "interior_house"
 

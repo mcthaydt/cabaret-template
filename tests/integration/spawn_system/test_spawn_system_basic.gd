@@ -4,9 +4,6 @@ extends GutTest
 ##
 ## Tests that M_SpawnManager correctly spawns player at designated spawn points.
 
-const M_SpawnManager := preload("res://scripts/managers/m_spawn_manager.gd")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _spawn_manager: M_SpawnManager
 var _store: M_StateStore

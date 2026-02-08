@@ -3,8 +3,6 @@ class_name Trans_LoadingScreen
 
 const LOADING_SCREEN_SCENE := preload("res://scenes/ui/hud/ui_loading_screen.tscn")
 const U_TweenManager = preload("res://scripts/scene_management/u_tween_manager.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
 
 ## Loading screen transition effect
 ##

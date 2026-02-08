@@ -1,7 +1,5 @@
 extends BaseTest
 
-const Inter_CheckpointZone := preload("res://scripts/gameplay/inter_checkpoint_zone.gd")
-const C_CheckpointComponent := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
 
 class TestCheckpointComponent:
 	extends C_CheckpointComponent

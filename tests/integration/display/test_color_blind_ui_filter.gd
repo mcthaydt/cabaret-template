@@ -2,12 +2,6 @@ extends GutTest
 
 ## Integration test for color blind filter affecting UI elements
 
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const M_DisplayManager := preload("res://scripts/managers/m_display_manager.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
-const RS_DisplayInitialState := preload("res://scripts/resources/state/rs_display_initial_state.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const POST_PROCESS_OVERLAY_SCENE := preload("res://scenes/ui/overlays/ui_post_process_overlay.tscn")
 
 var _store: M_StateStore

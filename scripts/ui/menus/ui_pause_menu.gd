@@ -6,10 +6,6 @@ class_name UI_PauseMenu
 ##
 ## Buttons dispatch navigation actions instead of calling Scene Manager directly.
 
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 
 const OVERLAY_SETTINGS := StringName("settings_menu_overlay")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")

@@ -6,8 +6,6 @@ const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 func _create_store() -> M_StateStore:
 	var store := M_STATE_STORE.new()

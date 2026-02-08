@@ -1,6 +1,5 @@
 extends BaseTest
 
-const U_InteractBlocker := preload("res://scripts/utils/u_interact_blocker.gd")
 
 ## Regression test for interact blocking during toast display
 ## Tests the U_InteractBlocker utility that prevents interaction spam during UI feedback

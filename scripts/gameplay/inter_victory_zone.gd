@@ -1,7 +1,6 @@
 extends "res://scripts/gameplay/base_volume_controller.gd"
 class_name Inter_VictoryZone
 
-const C_VictoryTriggerComponent := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 
 @export var component_name: StringName = StringName("C_VictoryTriggerComponent")
 

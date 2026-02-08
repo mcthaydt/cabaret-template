@@ -12,7 +12,6 @@ const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_regist
 const U_UI_REGISTRY := preload("res://scripts/ui/utils/u_ui_registry.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_OVERLAY_STACK_MANAGER := preload("res://scripts/scene_management/helpers/u_overlay_stack_manager.gd")
-const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
 
 ## Internal state for reconciliation
 var _navigation_pending_scene_id: StringName = StringName("")

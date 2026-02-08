@@ -1,7 +1,5 @@
 extends BaseTest
 
-const Inter_Signpost := preload("res://scripts/gameplay/inter_signpost.gd")
-const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 func _pump_frames(count: int = 1) -> void:
 	for _i in count:

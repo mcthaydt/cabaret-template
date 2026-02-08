@@ -2,13 +2,6 @@ extends GutTest
 
 ## Tests for display settings tab post-processing preset dropdown
 
-const UI_DisplaySettingsTab := preload("res://scripts/ui/settings/ui_display_settings_tab.gd")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
-const RS_DisplayInitialState := preload("res://scripts/resources/state/rs_display_initial_state.gd")
-const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 var _store: M_StateStore
 var _tab: Control

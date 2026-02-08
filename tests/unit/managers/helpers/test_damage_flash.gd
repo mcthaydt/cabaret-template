@@ -1,6 +1,5 @@
 extends GutTest
 
-const U_DamageFlash := preload("res://scripts/managers/helpers/u_damage_flash.gd")
 const DAMAGE_FLASH_SCENE := preload("res://scenes/ui/overlays/ui_damage_flash_overlay.tscn")
 
 var _flash_rect: ColorRect

@@ -6,9 +6,6 @@ class_name U_DisplayCinemaGradeApplier
 ## Creates a CinemaGradeLayer (CanvasLayer 1) inside PostProcessOverlay and
 ## listens for scene/transition_completed to swap cinema grades automatically.
 
-const U_CinemaGradeRegistry := preload("res://scripts/managers/helpers/display/u_cinema_grade_registry.gd")
-const U_CinemaGradeActions := preload("res://scripts/state/actions/u_cinema_grade_actions.gd")
-const U_CinemaGradeSelectors := preload("res://scripts/state/selectors/u_cinema_grade_selectors.gd")
 const CINEMA_GRADE_SHADER := preload("res://assets/shaders/sh_cinema_grade_shader.gdshader")
 
 const SCENE_SWAPPED := StringName("scene/swapped")

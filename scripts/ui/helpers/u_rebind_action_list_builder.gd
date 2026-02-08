@@ -1,9 +1,6 @@
 extends RefCounted
 class_name U_RebindActionListBuilder
 
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_UISoundPlayer := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
 const I_REBIND_OVERLAY := preload("res://scripts/interfaces/i_rebind_overlay.gd")
 
 const REPLACE_BUTTON_TEXT := "Replace"

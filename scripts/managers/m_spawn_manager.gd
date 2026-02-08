@@ -23,7 +23,6 @@ extends Node
 
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_SPAWN_REGISTRY := preload("res://scripts/scene_management/u_spawn_registry.gd")

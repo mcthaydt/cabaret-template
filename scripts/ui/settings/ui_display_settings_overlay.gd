@@ -2,8 +2,6 @@
 extends "res://scripts/ui/base/base_overlay.gd"
 class_name UI_DisplaySettingsOverlay
 
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 
 func _on_back_pressed() -> void:
 	U_UISoundPlayer.play_cancel()

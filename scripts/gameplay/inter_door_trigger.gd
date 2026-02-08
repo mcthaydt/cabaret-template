@@ -5,7 +5,6 @@ class_name Inter_DoorTrigger
 ## Relies on TriggeredInteractableController for player detection
 ## and delegates transition logic to C_SceneTriggerComponent.
 
-const C_SceneTriggerComponent := preload("res://scripts/ecs/components/c_scene_trigger_component.gd")
 
 @export var component_name: StringName = StringName("C_SceneTriggerComponent")
 

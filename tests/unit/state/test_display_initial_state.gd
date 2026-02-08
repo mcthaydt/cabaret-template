@@ -2,7 +2,6 @@ extends GutTest
 
 # Tests for RS_DisplayInitialState resource (Phase 0 - Task 0A.1)
 
-const RS_DisplayInitialState := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 
 var initial_state: RS_DisplayInitialState
 

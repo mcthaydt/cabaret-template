@@ -1,6 +1,5 @@
 extends BaseTest
 
-const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 func before_each() -> void:
 	U_ECSEventBus.reset()

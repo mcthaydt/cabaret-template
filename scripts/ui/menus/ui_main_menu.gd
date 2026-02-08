@@ -7,11 +7,6 @@ class_name UI_MainMenu
 ## Responds to navigation slice updates to show the correct panel
 ## and dispatches navigation actions for play/settings flows.
 
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const I_SaveManager := preload("res://scripts/interfaces/i_save_manager.gd")
 
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")

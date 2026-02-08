@@ -10,7 +10,6 @@ class_name S_SceneTriggerSystem
 
 const COMPONENT_TYPE := StringName("C_SceneTriggerComponent")
 const SYSTEM_TYPE := StringName("S_SceneTriggerSystem")
-const U_InputMapBootstrapper := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 
 ## Interact action (default: "ui_accept" or "E" key)
 @export var interact_action: StringName = StringName("interact")

@@ -13,7 +13,6 @@ class_name RS_UIScreenDefinition
 ## - close_mode: CloseMode enum driving overlay close behavior
 ## - hides_previous_overlays: If true, hide all overlays underneath this one (for transparent overlays that need clear view)
 
-const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
 
 enum UIScreenKind {
 	BASE_SCENE = 0,

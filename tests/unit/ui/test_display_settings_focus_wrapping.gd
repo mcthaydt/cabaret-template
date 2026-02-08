@@ -2,9 +2,6 @@ extends GutTest
 
 ## Tests for display settings tab focus navigation wrapping
 
-const UI_DisplaySettingsTab := preload("res://scripts/ui/settings/ui_display_settings_tab.gd")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _store: M_StateStore
 var _tab: Control

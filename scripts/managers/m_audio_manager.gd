@@ -15,7 +15,6 @@ const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_
 const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 const U_AUDIO_REGISTRY_LOADER := preload("res://scripts/managers/helpers/u_audio_registry_loader.gd")
 const U_AUDIO_BUS_CONSTANTS := preload("res://scripts/managers/helpers/u_audio_bus_constants.gd")
-const U_CrossfadePlayer := preload("res://scripts/managers/helpers/u_crossfade_player.gd")
 
 const UI_SOUND_POLYPHONY := 4
 

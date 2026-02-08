@@ -11,7 +11,6 @@ class_name U_SceneLoader
 ## - Player lookup and physics unfreeze after transitions
 
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
-const I_SCENE_CONTRACT := preload("res://scripts/interfaces/i_scene_contract.gd")
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 
 ## Load scene via ResourceLoader (sync)

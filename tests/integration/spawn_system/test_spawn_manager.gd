@@ -11,7 +11,6 @@ const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gam
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const SP_SPAWN_POINT := preload("res://scripts/scene_management/sp_spawn_point.gd")
 const RS_SPAWN_METADATA := preload("res://scripts/resources/scene_management/rs_spawn_metadata.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var spawn_manager: M_SpawnManager
 var state_store: M_StateStore

@@ -2,9 +2,6 @@ extends GutTest
 
 ## Tests for post-processing preset actions and reducer
 
-const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
-const U_DisplayReducer := preload("res://scripts/state/reducers/u_display_reducer.gd")
-const U_DisplaySelectors := preload("res://scripts/state/selectors/u_display_selectors.gd")
 
 func test_set_post_processing_preset_action_structure() -> void:
 	# WHEN: Creating a set post-processing preset action

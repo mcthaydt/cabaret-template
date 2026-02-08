@@ -2,7 +2,6 @@ extends GutTest
 
 # Tests for U_DisplayActions action creators (Phase 0 - Task 0B.1)
 
-const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
 
 # Test 1: set_window_size_preset action
 func test_set_window_size_preset_action() -> void:

@@ -1,7 +1,6 @@
 extends RefCounted
 class_name U_RebindFocusNavigation
 
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 
 static func configure_focus_neighbors(overlay: Node) -> void:
 	# Horizontal neighbors for per-row buttons

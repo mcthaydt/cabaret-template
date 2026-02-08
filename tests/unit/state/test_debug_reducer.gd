@@ -1,8 +1,5 @@
 extends GutTest
 
-const U_DebugReducer := preload("res://scripts/state/reducers/u_debug_reducer.gd")
-const U_DebugActions := preload("res://scripts/state/actions/u_debug_actions.gd")
-const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
 
 func test_set_disable_touchscreen_updates_state() -> void:
 	var state: Dictionary = U_DebugReducer.get_default_debug_state()

@@ -4,8 +4,6 @@ class_name MockSaveManager
 ## Mock Save Manager for autosave scheduler tests
 ## Tracks autosave requests without actually performing saves
 
-const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 const SLOT_AUTOSAVE := StringName("autosave")
 

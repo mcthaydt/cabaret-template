@@ -1,6 +1,5 @@
 extends BaseTest
 
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const DEFAULT_BOOT_STATE := preload("res://resources/state/cfg_default_boot_initial_state.tres")
 const DEFAULT_MENU_STATE := preload("res://resources/state/cfg_default_menu_initial_state.tres")
 const DEFAULT_GAMEPLAY_STATE := preload("res://resources/state/cfg_default_gameplay_initial_state.tres")

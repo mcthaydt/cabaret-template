@@ -6,7 +6,6 @@ class_name U_StateUtils
 ## Provides helpers for finding M_StateStore in scene tree and
 ## performance benchmarking for state operations.
 
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const STORE_GROUP := StringName("state_store")
 
 ## Get the I_StateStore from injection or ServiceLocator.

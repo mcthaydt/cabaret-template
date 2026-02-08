@@ -2,8 +2,6 @@ extends GutTest
 
 # Tests for U_VFXReducer (Phase 0 - Task 0.3)
 
-const U_VFXReducer := preload("res://scripts/state/reducers/u_vfx_reducer.gd")
-const U_VFXActions := preload("res://scripts/state/actions/u_vfx_actions.gd")
 
 # Test 1: Default state structure
 func test_default_state_has_all_fields() -> void:

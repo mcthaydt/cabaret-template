@@ -2,13 +2,6 @@ extends GutTest
 
 ## Integration test: M_SceneManager invokes scene contract validation path
 
-const M_SceneManager := preload("res://scripts/managers/m_scene_manager.gd")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 
 var _root: Node
 var _store: M_StateStore

@@ -3,8 +3,6 @@ extends GutTest
 # Phase 2 Task 2.1 (Red): Tests for U_ScreenShake helper
 # Testing screen shake algorithm with quadratic falloff and noise-based offset/rotation
 
-const U_ScreenShake := preload("res://scripts/managers/helpers/u_screen_shake.gd")
-const U_ShakeResult := preload("res://scripts/managers/helpers/u_shake_result.gd")
 
 var _shake_helper: U_ScreenShake
 

@@ -25,7 +25,6 @@ class_name M_PauseManager
 
 signal pause_state_changed(is_paused: bool)
 
-const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
 
 var _store: I_StateStore = null
 var _cursor_manager: M_CursorManager = null

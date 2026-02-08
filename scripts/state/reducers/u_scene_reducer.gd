@@ -10,7 +10,6 @@ class_name U_SceneReducer
 ## - Scene transitions (TRANSITION_STARTED, TRANSITION_COMPLETED)
 ## - Overlay management (PUSH_OVERLAY, POP_OVERLAY)
 
-const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd")
 
 ## Reduce scene state based on dispatched action
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:

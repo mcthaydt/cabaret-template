@@ -2,7 +2,6 @@ extends GutTest
 
 # Tests for U_AudioSelectors (Phase 0 - Task 0.5)
 
-const U_AudioSelectors := preload("res://scripts/state/selectors/u_audio_selectors.gd")
 
 # Test 1: get_master_volume with valid state
 func test_get_master_volume_returns_value() -> void:

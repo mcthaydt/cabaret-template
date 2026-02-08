@@ -6,7 +6,6 @@ extends RefCounted
 ## Maps scene IDs to RS_SceneCinemaGrade resources using const preload arrays
 ## (mobile-safe). Call initialize() once at startup to populate the registry.
 
-const RS_SceneCinemaGrade := preload("res://scripts/resources/display/rs_scene_cinema_grade.gd")
 
 static var _scene_grades: Dictionary = {}
 static var _neutral_grade: RS_SceneCinemaGrade = null

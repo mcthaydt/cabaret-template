@@ -8,8 +8,6 @@ const M_CURSOR_MANAGER := preload("res://scripts/managers/m_cursor_manager.gd")
 const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_pause_manager.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 
 var _root: Node
 var _store: M_STATE_STORE

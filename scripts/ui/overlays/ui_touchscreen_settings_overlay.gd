@@ -2,16 +2,8 @@
 extends "res://scripts/ui/base/base_overlay.gd"
 class_name UI_TouchscreenSettingsOverlay
 
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const RS_TouchscreenSettings := preload("res://scripts/resources/input/rs_touchscreen_settings.gd")
 const VirtualJoystickScene := preload("res://scenes/ui/widgets/ui_virtual_joystick.tscn")
 const VirtualButtonScene := preload("res://scenes/ui/widgets/ui_virtual_button.tscn")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
-const U_TouchscreenPreviewBuilder := preload("res://scripts/ui/helpers/u_touchscreen_preview_builder.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 
 @onready var _joystick_size_slider: HSlider = %JoystickSizeSlider

@@ -2,14 +2,6 @@
 extends VBoxContainer
 class_name UI_AudioSettingsTab
 
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_AudioSelectors := preload("res://scripts/state/selectors/u_audio_selectors.gd")
-const U_AudioActions := preload("res://scripts/state/actions/u_audio_actions.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
-const U_UISoundPlayer := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
-const RS_AudioInitialState := preload("res://scripts/resources/state/rs_audio_initial_state.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const I_AUDIO_MANAGER := preload("res://scripts/interfaces/i_audio_manager.gd")
 
 var _state_store: I_StateStore = null

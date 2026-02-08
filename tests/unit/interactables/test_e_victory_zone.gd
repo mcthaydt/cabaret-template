@@ -1,7 +1,5 @@
 extends BaseTest
 
-const Inter_VictoryZone := preload("res://scripts/gameplay/inter_victory_zone.gd")
-const C_VictoryTriggerComponent := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 
 class TestVictoryComponent:
 	extends C_VictoryTriggerComponent

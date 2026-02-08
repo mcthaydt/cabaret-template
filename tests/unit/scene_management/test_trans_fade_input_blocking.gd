@@ -1,6 +1,5 @@
 extends BaseTest
 
-const Trans_Fade := preload("res://scripts/scene_management/transitions/trans_fade.gd")
 
 func test_fade_transition_restores_transition_overlay_mouse_filter() -> void:
 	# Regression test:

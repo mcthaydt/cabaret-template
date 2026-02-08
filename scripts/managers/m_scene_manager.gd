@@ -27,7 +27,6 @@ const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_UI_REGISTRY := preload("res://scripts/ui/utils/u_ui_registry.gd")
 const U_TRANSITION_FACTORY := preload("res://scripts/scene_management/u_transition_factory.gd")
-const I_SCENE_CONTRACT := preload("res://scripts/interfaces/i_scene_contract.gd")
 const I_CAMERA_MANAGER := preload("res://scripts/interfaces/i_camera_manager.gd")
 const U_SCENE_CACHE := preload("res://scripts/scene_management/helpers/u_scene_cache.gd")
 const U_SCENE_LOADER := preload("res://scripts/scene_management/helpers/u_scene_loader.gd")
@@ -45,7 +44,6 @@ const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/tra
 const LOADING_SCREEN_TRANSITION := preload("res://scripts/scene_management/transitions/trans_loading_screen.gd")
 
 # T137a: Phase 10B-3 - Scene type handler imports
-const I_SCENE_TYPE_HANDLER := preload("res://scripts/interfaces/i_scene_type_handler.gd")
 const H_GAMEPLAY_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_gameplay_scene_handler.gd")
 const H_MENU_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_menu_scene_handler.gd")
 const H_UI_SCENE_HANDLER := preload("res://scripts/scene_management/handlers/h_ui_scene_handler.gd")

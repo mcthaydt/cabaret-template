@@ -28,8 +28,6 @@ const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry
 const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_NavigationActions = preload("res://scripts/state/actions/u_navigation_actions.gd")
 const C_SceneTriggerComponent = preload("res://scripts/ecs/components/c_scene_trigger_component.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager

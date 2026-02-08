@@ -7,11 +7,6 @@ class_name UI_SettingsMenu
 ## Runs as either an overlay (pause → settings) or as embedded UI in the main
 ## menu. Uses navigation actions for all flows (overlay management and scene transitions).
 
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 
 @onready var _back_button: Button = %BackButton
 @onready var _input_profiles_button: Button = %InputProfilesButton

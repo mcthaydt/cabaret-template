@@ -1,11 +1,8 @@
 extends BaseTest
 
-const Inter_DoorTrigger := preload("res://scripts/gameplay/inter_door_trigger.gd")
-const C_SceneTriggerComponent := preload("res://scripts/ecs/components/c_scene_trigger_component.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 ## Minimal stub SceneManager for unit tests
 class TestSceneManager:

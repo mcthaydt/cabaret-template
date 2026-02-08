@@ -2,7 +2,6 @@ extends GutTest
 
 # Tests for U_DisplaySelectors (Phase 0 - Task 0D.1)
 
-const U_DisplaySelectors := preload("res://scripts/state/selectors/u_display_selectors.gd")
 
 const DEFAULTS := {
 	"window_size_preset": "1920x1080",

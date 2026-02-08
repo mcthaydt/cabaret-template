@@ -7,8 +7,6 @@ class_name BasePanel
 ## Provides common store lookup, focus management, and back-input handling
 ## so concrete panels only need to implement their domain logic.
 
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_UISoundPlayer := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
 
 const BACK_ACTION_CANCEL := StringName("ui_cancel")
 const BACK_ACTION_PAUSE := StringName("ui_pause")

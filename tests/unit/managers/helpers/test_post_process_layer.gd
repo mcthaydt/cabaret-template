@@ -1,6 +1,5 @@
 extends GutTest
 
-const U_PostProcessLayer := preload("res://scripts/managers/helpers/u_post_process_layer.gd")
 
 var _root_node: Node
 var _helper: U_PostProcessLayer

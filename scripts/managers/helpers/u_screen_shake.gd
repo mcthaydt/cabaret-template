@@ -3,7 +3,6 @@ extends RefCounted
 
 # Screen shake helper with quadratic falloff and noise-based offset/rotation
 # Used by M_VFXManager to apply camera shake based on trauma
-const U_ShakeResult := preload("res://scripts/managers/helpers/u_shake_result.gd")
 
 # Maximum screen offset in pixels (X, Y)
 var max_offset := Vector2(10.0, 8.0)

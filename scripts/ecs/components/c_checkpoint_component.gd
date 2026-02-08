@@ -45,7 +45,6 @@ const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 
 ## Settings used to create/configure the trigger Area3D when not provided.
 ## Reused from scene triggers to keep volume configuration consistent.
-const RS_SceneTriggerSettings := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
 @export var settings: RS_SceneTriggerSettings
 
 var _area: Area3D = null

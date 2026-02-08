@@ -1,6 +1,5 @@
 extends GutTest
 
-const RS_SceneAudioMapping := preload("res://scripts/ecs/resources/rs_scene_audio_mapping.gd")
 
 func test_scene_id_defaults_to_empty() -> void:
 	var mapping := RS_SceneAudioMapping.new()

@@ -5,9 +5,6 @@ class_name U_NavigationReducer
 ##
 ## Handles UI shells, overlay stack, and menu panel selection.
 
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
-const U_UIRegistry := preload("res://scripts/ui/utils/u_ui_registry.gd")
 
 enum CloseMode {
 	RETURN_TO_PREVIOUS_OVERLAY = 0,

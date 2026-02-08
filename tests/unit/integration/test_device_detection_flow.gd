@@ -1,14 +1,5 @@
 extends BaseTest
 
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SettingsInitialState := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
-const M_ECSManager := preload("res://scripts/managers/m_ecs_manager.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const S_InputSystem := preload("res://scripts/ecs/systems/s_input_system.gd")
-const C_InputComponent := preload("res://scripts/ecs/components/c_input_component.gd")
-const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()

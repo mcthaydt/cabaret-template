@@ -1,17 +1,12 @@
 extends GutTest
 
 const HUD_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 const RS_StateStoreSettings := preload("res://resources/state/cfg_default_state_store_settings.tres")
 const RS_BootInitialState := preload("res://resources/state/cfg_default_boot_initial_state.tres")
 const RS_MenuInitialState := preload("res://resources/state/cfg_default_menu_initial_state.tres")
 const RS_GameplayInitialState := preload("res://resources/state/cfg_default_gameplay_initial_state.tres")
 const RS_SceneInitialState := preload("res://resources/state/cfg_default_scene_initial_state.tres")
 const RS_SettingsInitialState := preload("res://resources/state/cfg_default_settings_initial_state.tres")
-const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const DeviceType := M_InputDeviceManager.DeviceType
 
 var _store: M_StateStore

@@ -3,7 +3,6 @@ extends BaseECSComponent
 class_name C_GamepadComponent
 
 const COMPONENT_TYPE := StringName("C_GamepadComponent")
-const RS_GamepadSettings := preload("res://scripts/resources/input/rs_gamepad_settings.gd")
 
 @export var settings: RS_GamepadSettings
 @export var device_id: int = -1

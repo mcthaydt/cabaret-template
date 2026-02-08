@@ -1,6 +1,5 @@
 extends GutTest
 
-const U_ShakeResult := preload("res://scripts/managers/helpers/u_shake_result.gd")
 
 
 func test_constructor_with_defaults() -> void:
