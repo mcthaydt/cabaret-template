@@ -209,7 +209,7 @@ func is_locked() -> bool:
 ##
 ## Always saves to the autosave slot. Priority parameter is reserved for future
 ## cooldown enforcement but currently unused.
-func request_autosave(priority: int = 0) -> void:
+func request_autosave(_priority: int = 0) -> void:
 	save_to_slot(SLOT_AUTOSAVE)
 
 ## Save current state to a specific slot

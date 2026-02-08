@@ -105,7 +105,7 @@ func _exit_tree() -> void:
 ## Poll UI overlay stack to detect changes not captured by state updates
 ## This handles cases where M_SceneManager modifies UI without dispatching state actions
 ## Using _process instead of _physics_process for more responsive updates
-func _process(_delta: float) -> void:
+func _process(__delta: float) -> void:
 	_check_and_resync_pause_state()
 
 ## Check if pause state is out of sync and resynchronize if needed

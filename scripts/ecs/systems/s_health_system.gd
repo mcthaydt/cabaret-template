@@ -188,7 +188,7 @@ func _dispatch_heal_state(entity_id: String, heal_amount: float) -> void:
 		return
 	_store.dispatch(U_GameplayActions.heal(entity_id, heal_amount))
 
-func _dispatch_death_state(entity_id: String, component: C_HealthComponent) -> void:
+func _dispatch_death_state(entity_id: String, _component: C_HealthComponent) -> void:
 	if _store == null:
 		return
 

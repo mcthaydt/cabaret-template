@@ -17,7 +17,7 @@ var _event_unsubscribes: Array[Callable] = []
 func _init() -> void:
 	execution_priority = 300
 
-func process_tick(_delta: float) -> void:
+func process_tick(__delta: float) -> void:
 	# Victory processing is event-driven via ECSEventBus.
 	pass
 

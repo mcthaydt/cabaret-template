@@ -193,7 +193,7 @@ func _on_area_body_entered(body: Node3D) -> void:
 		return
 	_publish_zone_entered(body)
 
-func _on_area_body_exited(_body: Node3D) -> void:
+func _on_area_body_exited(__body: Node3D) -> void:
 	pass
 
 func _is_player(body: Node3D) -> bool:

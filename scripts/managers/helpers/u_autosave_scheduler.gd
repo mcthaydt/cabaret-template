@@ -70,7 +70,7 @@ func _subscribe_to_triggers() -> void:
 	if _state_store != null and _state_store.has_signal("action_dispatched"):
 		_state_store.action_dispatched.connect(_on_action_dispatched)
 
-func _on_checkpoint_activated(_event: Dictionary) -> void:
+func _on_checkpoint_activated(__event: Dictionary) -> void:
 	_request_autosave_if_allowed(Priority.NORMAL)
 
 func _on_action_dispatched(action: Dictionary) -> void:

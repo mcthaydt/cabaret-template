@@ -42,7 +42,7 @@ func _ready() -> void:
 func on_configured() -> void:
 	_subscribe_events()
 
-func process_tick(_delta: float) -> void:
+func process_tick(__delta: float) -> void:
 	# No-op; event-driven
 	pass
 

@@ -83,7 +83,7 @@ func _initialize_store_async() -> void:
 	_last_display_hash = _get_display_hash(state)
 	_update_overlay_visibility()
 
-func _process(__delta: float) -> void:
+func _process(___delta: float) -> void:
 	if _post_process_applier == null:
 		return
 	_post_process_applier.process_film_grain_time()
@@ -118,7 +118,7 @@ func _is_gut_running() -> bool:
 		return false
 	return tree.root.find_child("GutRunner", true, false) != null
 
-func _on_slice_updated(slice_name: StringName, __slice_data: Dictionary) -> void:
+func _on_slice_updated(slice_name: StringName, ___slice_data: Dictionary) -> void:
 	if _state_store == null:
 		return
 

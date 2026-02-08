@@ -30,7 +30,7 @@ func _get_audio_stream() -> AudioStream:
 		return null
 	return settings.audio_stream
 
-func process_tick(_delta: float) -> void:
+func process_tick(__delta: float) -> void:
 	# Phase 6: Use shared helpers from base class
 	if _should_skip_processing():
 		return

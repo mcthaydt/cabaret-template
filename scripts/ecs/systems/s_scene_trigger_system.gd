@@ -28,7 +28,7 @@ func _validate_interact_action() -> void:
 
 	push_error("S_SceneTriggerSystem: Missing required InputMap action '%s' (fix project.godot / boot init; INTERACT triggers will not fire)" % [interact_action])
 
-func process_tick(_delta: float) -> void:
+func process_tick(__delta: float) -> void:
 	if _manager == null:
 		return
 	

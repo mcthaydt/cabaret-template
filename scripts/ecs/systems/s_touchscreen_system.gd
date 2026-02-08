@@ -22,7 +22,7 @@ var _last_jump_pressed: bool = false
 func on_configured() -> void:
 	_ensure_state_store_ready()
 
-func process_tick(_delta: float) -> void:
+func process_tick(__delta: float) -> void:
 	if not _should_process():
 		return
 

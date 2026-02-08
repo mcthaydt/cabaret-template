@@ -30,7 +30,7 @@ func get_device_type() -> int:
 func get_priority() -> int:
 	return 1
 
-func get_stick_deadzone(_stick: StringName) -> float:
+func get_stick_deadzone(__stick: StringName) -> float:
 	return _input_deadzone
 
 func is_active() -> bool:

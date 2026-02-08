@@ -157,7 +157,7 @@ func _handle_gamepad_input(device_id: int) -> void:
 		_last_gamepad_signal_time = U_ECSUtils.get_current_time()
 	_switch_device(DeviceType.GAMEPAD, device_id)
 
-func _handle_keyboard_mouse_input(event: InputEvent = null) -> void:
+func _handle_keyboard_mouse_input(_event: InputEvent = null) -> void:
 	_switch_device(DeviceType.KEYBOARD_MOUSE, -1)
 
 func _handle_touch_input() -> void:

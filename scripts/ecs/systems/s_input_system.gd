@@ -223,7 +223,7 @@ func _get_state_store() -> I_StateStore:
 	_teardown_store_subscription()
 	return null
 
-func _on_state_store_changed(_action: Dictionary, state: Dictionary) -> void:
+func _on_state_store_changed(__action: Dictionary, state: Dictionary) -> void:
 	_apply_settings_from_state(state)
 
 func _apply_settings_from_state(state: Dictionary) -> void:

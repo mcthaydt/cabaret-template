@@ -18,7 +18,7 @@ const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 @export var state_store: I_StateStore = null
 
 
-func process_tick(_delta: float) -> void:
+func process_tick(__delta: float) -> void:
 	# Skip processing if game is paused
 	# Use injected store if available (Phase 10B-8)
 	var store: I_StateStore = null

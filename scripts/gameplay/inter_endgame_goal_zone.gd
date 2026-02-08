@@ -30,7 +30,7 @@ func _exit_tree() -> void:
 		_store.slice_updated.disconnect(_on_slice_updated)
 	super._exit_tree()
 
-func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void:
+func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> void:
 	if slice_name != StringName("gameplay"):
 		return
 	_refresh_lock_state()

@@ -22,7 +22,7 @@ func create_request_from_payload(payload: Dictionary) -> Dictionary:
 		"jump_force": payload.get("jump_force", 0.0),
 	}
 
-func process_tick(_delta: float) -> void:
+func process_tick(__delta: float) -> void:
 	# Early exit if disabled or no settings
 	if settings == null or not settings.enabled:
 		requests.clear()
