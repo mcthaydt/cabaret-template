@@ -36,9 +36,9 @@ func save_to_file(file_path: String, data: Dictionary) -> Error:
 	# Step 1: Write to temporary file
 	var tmp_file := FileAccess.open(tmp_path, FileAccess.WRITE)
 	if not tmp_file:
-		var error: Error = FileAccess.get_open_error()
-		push_error("Failed to open temporary file for writing: %s (error %d)" % [tmp_path, error])
-		return error
+		var tmp_error: Error = FileAccess.get_open_error()
+		push_error("Failed to open temporary file for writing: %s (error %d)" % [tmp_path, tmp_error])
+		return tmp_error
 
 	var json_string: String = JSON.stringify(data, "\t")
 	tmp_file.store_string(json_string)
@@ -46,16 +46,16 @@ func save_to_file(file_path: String, data: Dictionary) -> Error:
 
 	# Step 2: If original exists, backup before overwriting
 	if FileAccess.file_exists(file_path):
-		var error: Error = DirAccess.copy_absolute(file_path, bak_path)
-		if error != OK:
-			push_warning("Failed to create backup: %s (error %d)" % [bak_path, error])
+		var backup_error: Error = DirAccess.copy_absolute(file_path, bak_path)
+		if backup_error != OK:
+			push_warning("Failed to create backup: %s (error %d)" % [bak_path, backup_error])
 			# Continue anyway - backup failure shouldn't block save
 
 	# Step 3: Atomic rename (tmp -> json)
-	var error: Error = DirAccess.rename_absolute(tmp_path, file_path)
-	if error != OK:
-		push_error("Failed to rename temporary file: %s -> %s (error %d)" % [tmp_path, file_path, error])
-		return error
+	var rename_error: Error = DirAccess.rename_absolute(tmp_path, file_path)
+	if rename_error != OK:
+		push_error("Failed to rename temporary file: %s -> %s (error %d)" % [tmp_path, file_path, rename_error])
+		return rename_error
 
 	return OK
 
@@ -69,17 +69,17 @@ func load_from_file(file_path: String) -> Dictionary:
 		if not result.is_empty():
 			return result
 		# Main file corrupted, check if backup exists before warning
-		var bak_path: String = file_path + ".bak"
-		if FileAccess.file_exists(bak_path):
+		var backup_path: String = file_path + ".bak"
+		if FileAccess.file_exists(backup_path):
 			if not silent_mode:
 				push_warning("Main save file corrupted, attempting backup: %s" % file_path)
-			var backup_result: Dictionary = _try_load_json(bak_path)
+			var backup_result: Dictionary = _try_load_json(backup_path)
 			if not backup_result.is_empty():
 				if not silent_mode:
-					push_warning("Successfully recovered from backup: %s" % bak_path)
+					push_warning("Successfully recovered from backup: %s" % backup_path)
 				return backup_result
 			else:
-				push_error("Backup file also corrupted: %s" % bak_path)
+				push_error("Backup file also corrupted: %s" % backup_path)
 		# No backup exists, return empty
 		return {}
 

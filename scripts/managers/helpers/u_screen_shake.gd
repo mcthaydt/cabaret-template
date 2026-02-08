@@ -66,10 +66,10 @@ func calculate_shake(trauma: float, settings_multiplier: float, delta: float):
 	return U_ShakeResult.new(offset, rotation)
 
 
-func set_noise_seed_for_testing(seed: int) -> void:
-	_test_seed = seed
-	if seed >= 0:
-		_noise.seed = seed
+func set_noise_seed_for_testing(noise_seed: int) -> void:
+	_test_seed = noise_seed
+	if noise_seed >= 0:
+		_noise.seed = noise_seed
 
 
 func set_sample_time_for_testing(time: float) -> void:

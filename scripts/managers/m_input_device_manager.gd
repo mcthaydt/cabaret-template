@@ -170,18 +170,18 @@ func _switch_device(device_type: int, device_id: int) -> void:
 			normalized_device_id = _last_gamepad_device_id
 		if normalized_device_id < 0:
 			return
-	var device_changed := true
+	var has_device_changed := true
 	if _active_device == device_type:
 		if not _has_dispatched_initial_state:
-			device_changed = true
+			has_device_changed = true
 		elif device_type == DeviceType.GAMEPAD and normalized_device_id != _active_gamepad_id and normalized_device_id >= 0:
-			device_changed = true
+			has_device_changed = true
 		else:
-			device_changed = false
+			has_device_changed = false
 	var switch_timestamp := U_ECSUtils.get_current_time()
 	_last_input_time = switch_timestamp
 
-	if not device_changed:
+	if not has_device_changed:
 		return
 
 	_active_device = device_type
@@ -318,10 +318,10 @@ func get_time_since_last_input() -> float:
 	var current_time := U_ECSUtils.get_current_time()
 	return max(current_time - _last_input_time, 0.0)
 
-func _dispatch_connection_state(is_connected: bool, device_id: int) -> void:
+func _dispatch_connection_state(connected: bool, device_id: int) -> void:
 	if _state_store == null or not is_instance_valid(_state_store):
 		return
-	if is_connected:
+	if connected:
 		_state_store.dispatch(U_InputActions.gamepad_connected(device_id))
 	else:
 		_state_store.dispatch(U_InputActions.gamepad_disconnected(device_id))
