@@ -8,7 +8,6 @@ const U_DISPLAY_SERVER_WINDOW_OPS := preload("res://scripts/utils/display/u_disp
 # Test the centering calculation logic directly
 func test_centering_calculation_uses_usable_rect() -> void:
 	# GIVEN: Screen with usable rect smaller than full size (25px menu bar, 50px dock)
-	var screen_size := Vector2i(2560, 1440)
 	var usable_rect := Rect2i(0, 25, 2560, 1365)  # macOS with menu bar and dock
 	var window_size := Vector2i(1920, 1080)
 

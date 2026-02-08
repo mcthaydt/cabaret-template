@@ -59,7 +59,7 @@ enum Priority {
 ## Internal references
 var _store: I_StateStore = null
 var _cursor_manager: M_CursorManager = null
-var _spawn_manager: Node = null  # M_SpawnManager (Phase 12.1)
+var _spawn_manager: Node = null # M_SpawnManager (Phase 12.1)
 var _camera_manager: I_CAMERA_MANAGER = null
 var _active_scene_container: Node = null
 var _ui_overlay_stack: CanvasLayer = null
@@ -131,12 +131,12 @@ var _is_background_polling_active:
 var _scene_loader := U_SCENE_LOADER.new()
 var _overlay_helper := U_OVERLAY_STACK_MANAGER.new()
 var _transition_orchestrator := U_TRANSITION_ORCHESTRATOR.new()
-var _spawned_scene_roots: Dictionary = {}  # instance_id -> WeakRef
+var _spawned_scene_roots: Dictionary = {} # instance_id -> WeakRef
 var _particle_original_speeds: Dictionary = {}
 
 ## Scene type handlers (T137a: Phase 10B-3)
 ## Maps SceneType enum values to handler instances
-var _scene_type_handlers: Dictionary = {}  # int (SceneType) -> I_SCENE_TYPE_HANDLER
+var _scene_type_handlers: Dictionary = {} # int (SceneType) -> I_SCENE_TYPE_HANDLER
 
 ## Store subscription
 var _unsubscribe: Callable
@@ -153,7 +153,7 @@ var skip_initial_scene_load: bool = false
 
 func _ready() -> void:
 	# Find managers via ServiceLocator (Phase 10B-7: T141c)
-	await get_tree().process_frame  # Wait for ServiceLocator to initialize
+	await get_tree().process_frame # Wait for ServiceLocator to initialize
 
 	# Phase 3 (InputMap determinism): ensure required actions exist in dev/test.
 	# This avoids brittle test ordering where other suites erase actions.
@@ -183,7 +183,7 @@ func _ready() -> void:
 		push_warning("M_SceneManager: No M_CameraManager registered with ServiceLocator")
 
 	# Find container nodes (delegates to helper)
-	var containers := U_SCENE_MANAGER_NODE_FINDER.find_containers(self)
+	var containers := U_SCENE_MANAGER_NODE_FINDER.find_containers(self )
 	_active_scene_container = containers.active_scene_container
 	_ui_overlay_stack = containers.ui_overlay_stack
 	_transition_overlay = containers.transition_overlay
@@ -233,16 +233,16 @@ func _request_navigation_reconciliation() -> void:
 		return
 	_navigation_reconciler.reconcile_navigation_state(
 		nav_state,
-		self,
+		self ,
 		_current_scene_id,
 		_overlay_helper,
 		Callable(_scene_loader, "load_scene"),
 		_ui_overlay_stack,
 		_store,
-		Callable(self, "_update_particles_and_focus"),
+		Callable(self , "_update_particles_and_focus"),
 		get_tree().root,
-		Callable(self, "_get_transition_queue_state"),
-		Callable(self, "_set_overlay_reconciliation_pending")
+		Callable(self , "_get_transition_queue_state"),
+		Callable(self , "_set_overlay_reconciliation_pending")
 	)
 
 
@@ -288,7 +288,7 @@ func _exit_tree() -> void:
 		_victory_triggered_unsubscribe.call()
 
 func _ensure_store_reference() -> void:
-	_store = U_SCENE_MANAGER_NODE_FINDER.ensure_store_reference(_store, self)
+	_store = U_SCENE_MANAGER_NODE_FINDER.ensure_store_reference(_store, self )
 
 ## State change callback
 func _on_state_changed(___action: Dictionary, state: Dictionary) -> void:
@@ -307,7 +307,7 @@ func _on_state_changed(___action: Dictionary, state: Dictionary) -> void:
 
 ## ECS event handler: entity_death
 ## Phase 10B (T130): Subscribe to entity_death event instead of direct call from S_HealthSystem
-func _on_entity_death(event: Dictionary) -> void:
+func _on_entity_death(_event: Dictionary) -> void:
 	# Trigger game over transition when player dies
 	transition_to_scene(StringName("game_over"), "fade", Priority.CRITICAL)
 
@@ -569,7 +569,7 @@ func _perform_transition(request) -> void:
 					"spawn_manager": _spawn_manager,
 					"state_store": _store
 				}
-				await handler.on_load(new_scene, request.scene_id, managers)
+				handler.on_load(new_scene, request.scene_id, managers)
 
 		scene_swap_complete[0] = true
 
@@ -591,7 +591,7 @@ func _perform_transition(request) -> void:
 	await _transition_orchestrator.execute_transition_effect(
 		request.transition_type,
 		scene_swap_callback,
-		func() -> void: pass,  # Completion handled below
+		func() -> void: pass , # Completion handled below
 		overlays
 	)
 
@@ -639,7 +639,7 @@ func push_overlay(scene_id: StringName, force: bool = false) -> void:
 		Callable(_scene_loader, "load_scene"),
 		_ui_overlay_stack,
 		_store,
-		Callable(self, "_update_particles_and_focus")
+		Callable(self , "_update_particles_and_focus")
 	)
 
 ## Pop top overlay from UIOverlayStack
@@ -648,7 +648,7 @@ func pop_overlay() -> void:
 	_overlay_helper.pop_overlay(
 		_ui_overlay_stack,
 		_store,
-		Callable(self, "_update_particles_and_focus"),
+		Callable(self , "_update_particles_and_focus"),
 		viewport
 	)
 
@@ -689,7 +689,7 @@ func push_overlay_with_return(overlay_id: StringName) -> void:
 		Callable(_scene_loader, "load_scene"),
 		_ui_overlay_stack,
 		_store,
-		Callable(self, "_update_particles_and_focus"),
+		Callable(self , "_update_particles_and_focus"),
 		viewport
 	)
 
@@ -709,7 +709,7 @@ func pop_overlay_with_return() -> void:
 		Callable(_scene_loader, "load_scene"),
 		_ui_overlay_stack,
 		_store,
-		Callable(self, "_update_particles_and_focus"),
+		Callable(self , "_update_particles_and_focus"),
 		viewport,
 		deferred_push_overlay_for_return
 	)
@@ -816,16 +816,16 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 		return
 	_navigation_reconciler.reconcile_navigation_state(
 		slice_state,
-		self,
+		self ,
 		_current_scene_id,
 		_overlay_helper,
 		Callable(_scene_loader, "load_scene"),
 		_ui_overlay_stack,
 		_store,
-		Callable(self, "_update_particles_and_focus"),
+		Callable(self , "_update_particles_and_focus"),
 		get_tree().root,
-		Callable(self, "_get_transition_queue_state"),
-		Callable(self, "_set_overlay_reconciliation_pending")
+		Callable(self , "_get_transition_queue_state"),
+		Callable(self , "_set_overlay_reconciliation_pending")
 	)
 
 func _is_scene_in_queue(scene_id: StringName) -> bool:
@@ -861,23 +861,23 @@ func _reconcile_overlay_stack(desired_overlay_ids: Array[StringName], current_st
 		Callable(_scene_loader, "load_scene"),
 		_ui_overlay_stack,
 		_store,
-		Callable(self, "_update_particles_and_focus"),
+		Callable(self , "_update_particles_and_focus"),
 		viewport,
-		Callable(self, "_get_transition_queue_state"),
-		Callable(self, "_set_overlay_reconciliation_pending")
+		Callable(self , "_get_transition_queue_state"),
+		Callable(self , "_set_overlay_reconciliation_pending")
 	)
 
 func _reconcile_pending_navigation_overlays() -> void:
 	_navigation_reconciler.reconcile_pending_overlays(
-		self,
+		self ,
 		_overlay_helper,
 		Callable(_scene_loader, "load_scene"),
 		_ui_overlay_stack,
 		_store,
-		Callable(self, "_update_particles_and_focus"),
+		Callable(self , "_update_particles_and_focus"),
 		get_tree().root,
-		Callable(self, "_get_transition_queue_state"),
-		Callable(self, "_set_overlay_reconciliation_pending")
+		Callable(self , "_get_transition_queue_state"),
+		Callable(self , "_set_overlay_reconciliation_pending")
 	)
 
 ## Ensure scene_stack metadata matches actual overlay stack
@@ -1033,13 +1033,12 @@ func _configure_transition(transition: BaseTransitionEffect, __transition_type: 
 	# Configure fade transitions
 	if transition is FADE_TRANSITION:
 		var fade := transition as FADE_TRANSITION
-		fade.duration = 0.2  # Shorter duration for faster tests
+		fade.duration = 0.2 # Shorter duration for faster tests
 
 	# Configure loading screen transitions
 	if transition is LOADING_SCREEN_TRANSITION:
 		var loading := transition as LOADING_SCREEN_TRANSITION
-		loading.min_duration = 1.5  # Minimum display time
-
+		loading.min_duration = 1.5 # Minimum display time
 
 
 ## Get current scene type (helper for input handler)
@@ -1056,7 +1055,7 @@ func can_go_back() -> bool:
 ## Navigate back to previous UI scene (T110)
 func go_back() -> void:
 	if not can_go_back():
-		return  # No history to go back to
+		return # No history to go back to
 
 	# Pop the most recent scene from history
 	var previous_scene: StringName = _scene_history.pop_back()

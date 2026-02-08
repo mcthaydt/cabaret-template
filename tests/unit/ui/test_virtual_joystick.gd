@@ -67,7 +67,6 @@ func test_deadzone_filters_small_movements() -> void:
 	large_drag.position = press.position + Vector2(60, 0)
 	joystick._input(large_drag)
 
-	var expected := Vector2.RIGHT.normalized()
 	var result := joystick.get_vector()
 	assert_true(result.x > 0.0, "Vector should be positive after exceeding deadzone")
 	assert_true(result.x < 1.0, "Vector should be rescaled to 0-1 range after deadzone")

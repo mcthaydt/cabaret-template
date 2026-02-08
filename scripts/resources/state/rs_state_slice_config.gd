@@ -19,8 +19,9 @@ class_name RS_StateSliceConfig
 ## Example: ["cached_calculations", "ui_scroll_position", "temp_filter"]
 @export var transient_fields: Array[StringName] = []
 
-## Entire slice transient flag (skips persistence and StateHandoff)
+## Runtime-assigned reducer function (not exported, set programmatically)
 var reducer: Callable = Callable()
+## Runtime-assigned initial state dictionary (not exported, set programmatically)
 var initial_state: Dictionary = {}
 
 func _init(p_slice_name: StringName = StringName()) -> void:

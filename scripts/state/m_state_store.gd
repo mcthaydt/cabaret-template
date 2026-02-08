@@ -43,7 +43,6 @@ const RS_VFX_INITIAL_STATE := preload("res://scripts/resources/state/rs_vfx_init
 const RS_AUDIO_INITIAL_STATE := preload("res://scripts/resources/state/rs_audio_initial_state.gd")
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 
-signal state_changed(action: Dictionary, new_state: Dictionary)
 signal slice_updated(slice_name: StringName, slice_state: Dictionary)
 signal action_dispatched(action: Dictionary)
 signal validation_failed(action: Dictionary, error: String)
@@ -398,7 +397,7 @@ func dispatch(action: Dictionary) -> void:
 		return
 
 	# Process action through reducers to update state and detect changes
-	var any_changed: bool = U_STATE_SLICE_MANAGER.apply_reducers(
+	U_STATE_SLICE_MANAGER.apply_reducers(
 		_state,
 		_slice_configs,
 		action,
@@ -460,10 +459,10 @@ func subscribe(callback: Callable) -> Callable:
 	_subscribers.append(callback)
 
 	# Return unsubscribe function
-	var unsubscribe := func() -> void:
+	var unsubscribe_fn := func() -> void:
 		_subscribers.erase(callback)
 
-	return unsubscribe
+	return unsubscribe_fn
 
 ## Unsubscribe from state changes
 func unsubscribe(callback: Callable) -> void:

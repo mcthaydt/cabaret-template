@@ -20,7 +20,7 @@ var _last_device_type: int = M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE
 var _consume_next_nav: bool = false
 
 func _ready() -> void:
-	await super._ready()
+	super._ready()
 	_configure_focus_neighbors()
 
 func _configure_focus_neighbors() -> void:
@@ -89,9 +89,6 @@ func _navigate_focus(direction: StringName) -> void:
 		before = viewport.gui_get_focus_owner() as Control
 
 	super._navigate_focus(direction)
-
-	if viewport != null:
-		var after: Control = viewport.gui_get_focus_owner() as Control
 
 func _focus_resume() -> void:
 	if _resume_button == null or not _resume_button.is_inside_tree() or not _resume_button.visible:

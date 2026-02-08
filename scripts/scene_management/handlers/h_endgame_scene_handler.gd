@@ -21,12 +21,12 @@ func get_scene_type() -> int:
 
 
 ## No special load behavior for endgame scenes.
-func on_load(scene: Node, _scene_id: StringName, managers: Dictionary) -> void:
+func on_load(_scene: Node, _scene_id: StringName, _managers: Dictionary) -> void:
 	pass
 
 
 ## No special unload behavior for endgame scenes.
-func on_unload(scene: Node, _scene_id: StringName) -> void:
+func on_unload(_scene: Node, _scene_id: StringName) -> void:
 	pass
 
 

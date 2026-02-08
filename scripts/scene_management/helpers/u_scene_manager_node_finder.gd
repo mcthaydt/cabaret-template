@@ -77,7 +77,7 @@ static func find_containers(manager: Node) -> ContainerRefs:
 ##
 ## Returns:
 ##   Valid M_StateStore reference or null
-static func ensure_store_reference(current_store: Node, manager: Node) -> Node:
+static func ensure_store_reference(current_store: Node, _manager: Node) -> Node:
 	if current_store != null and is_instance_valid(current_store):
 		return current_store
 

@@ -182,7 +182,6 @@ func test_scene_loading_failure_fallback_to_main_menu() -> void:
 func _disabled_test_missing_scene_file_handled_gracefully() -> void:
 	# Try to load a scene that's registered but file doesn't exist
 	# This requires a scene in registry with invalid path
-	var original_path: String = ""
 	var test_scene_id := StringName("test_invalid_path")
 
 	# Manually add invalid scene to registry for testing
@@ -539,7 +538,6 @@ func test_transition_from_physics_frame_defers_safely() -> void:
 	var frame_count: Array = [0]  # Use Array wrapper to allow modification in closure
 
 	# Create a custom node class that triggers transition in _physics_process
-	var PhysicsTestNode := RefCounted.new()
 	var physics_node := Node.new()
 	physics_node.set_physics_process(true)
 	_root_scene.add_child(physics_node)
@@ -599,7 +597,6 @@ func test_deferred_transition_preserves_state() -> void:
 func test_unsaved_progress_triggers_auto_save_on_quit() -> void:
 	# Modify game state (make it "dirty")
 	# Dispatch action to modify state
-	const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 	_store.dispatch(U_GameplayActions.increment_death_count())
 	await wait_physics_frames(2)
 
@@ -632,7 +629,6 @@ func test_state_dirty_flag_tracks_unsaved_changes() -> void:
 	var initial_state: Dictionary = _store.get_state()
 
 	# Make a change to state
-	const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 	_store.dispatch(U_GameplayActions.increment_death_count())
 	await wait_physics_frames(2)
 
@@ -649,7 +645,6 @@ func test_auto_save_interval_prevents_excessive_saves() -> void:
 	# This test would verify that rapid state changes don't spam disk I/O
 
 	# Make multiple state changes rapidly
-	const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 	for i in range(10):
 		_store.dispatch(U_GameplayActions.increment_death_count())
 		await get_tree().physics_frame

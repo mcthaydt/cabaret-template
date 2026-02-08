@@ -29,7 +29,7 @@ extends RefCounted
 ##     - color: Color - Fade color (for fade transitions)
 ##     - etc.
 ##
-func initialize(config: Dictionary) -> void:
+func initialize(_config: Dictionary) -> void:
 	push_error("I_TransitionEffect.initialize() must be implemented by subclass")
 
 ## Execute the transition effect
@@ -38,7 +38,7 @@ func initialize(config: Dictionary) -> void:
 ##   layer: CanvasLayer - Canvas layer to render transition on
 ##   callback: Callable - Called when transition completes
 ##
-func execute(layer: CanvasLayer, callback: Callable) -> void:
+func execute(_layer: CanvasLayer, callback: Callable) -> void:
 	push_error("I_TransitionEffect.execute() must be implemented by subclass")
 	if callback != null and callback.is_valid():
 		callback.call()

@@ -213,12 +213,8 @@ func test_scene_transition_cleans_up_previous() -> void:
 	_manager.transition_to_scene(StringName("main_menu"), "instant")
 	await wait_physics_frames(2)
 
-	var children_after_first: int = _active_scene_container.get_child_count()
-
 	_manager.transition_to_scene(StringName("settings_menu"), "instant")
 	await wait_physics_frames(2)
-
-	var children_after_second: int = _active_scene_container.get_child_count()
 
 	# Should have roughly same number (old scene removed, new scene added)
 	# Exact behavior depends on implementation (might be 0, 1, or 2 during transition)

@@ -516,7 +516,7 @@ func test_query_entities_cache_invalidates_when_new_entity_registered() -> void:
 	add_child(manager)
 	autofree(manager)
 
-	var entity_a := _spawn_query_entity(manager, "E_CacheInvalidateA", true, true)
+	_spawn_query_entity(manager, "E_CacheInvalidateA", true, true)
 
 	var initial: Array = manager.query_entities([
 		QueryMovementComponent.TYPE,

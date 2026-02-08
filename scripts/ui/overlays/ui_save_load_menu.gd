@@ -17,17 +17,17 @@ const PLACEHOLDER_TEXTURE := preload(PLACEHOLDER_TEXTURE_PATH)
 var _mode: StringName = StringName("")
 
 ## Reference to M_SaveManager
-var _save_manager: Node = null  # M_SaveManager
+var _save_manager: Node = null # M_SaveManager
 
 ## Cached slot metadata
 var _cached_metadata: Array[Dictionary] = []
 
 ## Thumbnail async loading
-var _pending_thumbnail_loads: Dictionary = {}  # TextureRect -> String (path)
+var _pending_thumbnail_loads: Dictionary = {} # TextureRect -> String (path)
 
 
 ## Confirmation dialog state
-var _pending_action: Dictionary = {}  # {action: "save"|"delete", slot_id: StringName}
+var _pending_action: Dictionary = {} # {action: "save"|"delete", slot_id: StringName}
 
 ## UI References (set via @onready once scene is created)
 @onready var _mode_label: Label = %ModeLabel
@@ -38,7 +38,7 @@ var _pending_action: Dictionary = {}  # {action: "save"|"delete", slot_id: Strin
 @onready var _error_label: Label = %ErrorLabel
 
 func _ready() -> void:
-	await super._ready()
+	super._ready()
 	_discover_save_manager()
 	_subscribe_to_events()
 	_refresh_ui()
@@ -203,7 +203,7 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 			main_button.text = "%s\n[New Save]" % slot_display_name
 		else:
 			main_button.text = "%s\n[Empty]" % slot_display_name
-			main_button.disabled = true  # Can't load empty slots
+			main_button.disabled = true # Can't load empty slots
 
 	# Connect main button press (save/load action)
 	main_button.pressed.connect(_on_slot_item_pressed.bind(slot_id, exists))
@@ -232,8 +232,8 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 	_load_thumbnail_async(thumbnail_rect, thumbnail_path)
 
 func _format_playtime(seconds: int) -> String:
-	var hours: int = seconds / 3600
-	var minutes: int = (seconds % 3600) / 60
+	var hours: int = int(seconds / 3600.0)
+	var minutes: int = int((seconds % 3600) / 60.0)
 	var secs: int = seconds % 60
 	return "%02d:%02d:%02d" % [hours, minutes, secs]
 
@@ -241,14 +241,13 @@ func _format_timestamp(iso_timestamp: String) -> String:
 	# Convert ISO 8601 timestamp to human-readable format
 	# Input: "2025-12-26T14:30:00Z"
 	# Output: "Dec 26, 2025 2:30 PM"
-
 	if iso_timestamp.is_empty():
 		return "Unknown Date"
 
 	# Parse ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ
 	var parts: PackedStringArray = iso_timestamp.split("T")
 	if parts.size() < 2:
-		return iso_timestamp  # Fallback to raw string if parsing fails
+		return iso_timestamp # Fallback to raw string if parsing fails
 
 	var date_part: String = parts[0]
 	var time_part: String = parts[1].replace("Z", "")
@@ -413,7 +412,7 @@ func _restore_focus_to_slot(slot_index: int) -> void:
 	var tree := get_tree()
 	if tree == null:
 		return
-	await tree.process_frame  # Wait for UI to settle
+	await tree.process_frame # Wait for UI to settle
 	if not is_inside_tree() or _slot_list_container == null:
 		return
 

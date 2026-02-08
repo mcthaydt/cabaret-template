@@ -14,8 +14,8 @@ static var _spatial_audio_enabled: bool = true
 static var _pool: Array[AudioStreamPlayer3D] = []
 static var _container: Node3D = null
 static var _player_in_use: Dictionary = {}
-static var _play_times: Dictionary = {}  # player -> start_time (for voice stealing)
-static var _follow_targets: Dictionary = {}  # player -> Node3D (for follow-emitter mode)
+static var _play_times: Dictionary = {} # player -> start_time (for voice stealing)
+static var _follow_targets: Dictionary = {} # player -> Node3D (for follow-emitter mode)
 static var _stats: Dictionary = {
 	"spawns": 0,
 	"steals": 0,
@@ -242,7 +242,7 @@ static func _configure_player_spatialization(
 ## Steal the oldest playing voice when pool is exhausted
 static func _steal_oldest_voice() -> AudioStreamPlayer3D:
 	var oldest_player: AudioStreamPlayer3D = null
-	var oldest_time: int = 2147483647  # Max int
+	var oldest_time: int = 2147483647 # Max int
 
 	for player_variant in _pool:
 		if player_variant == null:

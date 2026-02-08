@@ -116,7 +116,6 @@ func _update_button_visibility(state: Dictionary) -> void:
 	var args: PackedStringArray = OS.get_cmdline_args()
 	var is_emulated_mobile: bool = args.has("--emulate-mobile")
 	var is_mobile_context: bool = is_mobile or is_emulated_mobile
-	var is_touch_only: bool = (device_type == M_InputDeviceManager.DeviceType.TOUCHSCREEN and not has_gamepad)
 	var is_gamepad_active: bool = (device_type == M_InputDeviceManager.DeviceType.GAMEPAD)
 
 	if device_type != _last_device_type:

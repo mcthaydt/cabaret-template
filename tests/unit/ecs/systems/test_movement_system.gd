@@ -192,7 +192,6 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
 	manager._physics_process(0.1)
 
 	var grounded_velocity: float = body.velocity.x
-	var grounded_dyn: Vector2 = movement.get_horizontal_dynamics_velocity()
 	var grounded_debug: Dictionary = movement.get_last_debug_snapshot()
 
 	input.set_move_vector(Vector2.ZERO)
@@ -210,9 +209,6 @@ func test_second_order_dynamics_dampens_more_when_grounded() -> void:
 	manager._physics_process(0.1)
 
 	var air_velocity: float = body.velocity.x
-	var air_dyn: Vector2 = movement.get_horizontal_dynamics_velocity()
-	var air_debug: Dictionary = movement.get_last_debug_snapshot()
-	var expected_air_desired: float = movement.settings.max_speed * max(movement.settings.air_control_scale, 0.0)
 
 	assert_true(abs(grounded_velocity) < abs(air_velocity))
 	assert_true(grounded_debug["supported"])
@@ -283,7 +279,6 @@ func test_movement_second_order_settles_quickly_after_input_release() -> void:
 func test_movement_system_processes_without_manual_wiring() -> void:
 	var context: Dictionary = await _setup_entity()
 	autofree_context(context)
-	var movement: C_MovementComponent = context["movement"]
 	var input: C_InputComponent = context["input"]
 	var body: FakeBody = context["body"]
 	var manager: M_ECSManager = context["manager"]

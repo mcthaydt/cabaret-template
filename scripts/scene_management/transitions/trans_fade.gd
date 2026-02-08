@@ -12,8 +12,6 @@ class_name Trans_Fade
 ## 3. Fade in: alpha 1.0 → 0.0 (duration/2)
 ## 4. Call completion callback
 
-const U_TweenManager = preload("res://scripts/scene_management/u_tween_manager.gd")
-
 ## Transition duration in seconds
 @export var duration: float = 1.0
 
@@ -118,7 +116,7 @@ func execute_fade_in(overlay: CanvasLayer, callback: Callable) -> Signal:
 	_tween.finished.connect(func() -> void:
 		var restore_mouse_filter: int = int(_mouse_filter_cache.get(color_rect, Control.MOUSE_FILTER_IGNORE))
 		_mouse_filter_cache.erase(color_rect)
-		color_rect.mouse_filter = restore_mouse_filter
+		color_rect.mouse_filter = restore_mouse_filter as Control.MouseFilter
 		overlay.process_mode = Node.PROCESS_MODE_INHERIT
 		color_rect.process_mode = Node.PROCESS_MODE_INHERIT
 		if callback.is_valid():

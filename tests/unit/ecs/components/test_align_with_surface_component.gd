@@ -43,7 +43,7 @@ func test_align_with_surface_component_defaults_and_registration() -> void:
 	assert_false(has_floating_property, "C_AlignWithSurfaceComponent should not expose floating_component_path.")
 
 func test_align_with_surface_component_fetches_assigned_nodes() -> void:
-	var manager := await _add_manager()
+	await _add_manager()
 
 	var entity := Node.new()
 	entity.name = "E_TestEntity"

@@ -218,7 +218,7 @@ func test_quit_button_hidden_on_mobile() -> void:
 
 ## Regression test: Quit button should not appear in focus chain when hidden
 func test_quit_button_excluded_from_focus_when_hidden() -> void:
-	var store := await _create_state_store()
+	await _create_state_store()
 	var menu := await _create_main_menu()
 	var quit_button: Button = menu.get_node("CenterContainer/MainPanel/QuitButton")
 	var settings_button: Button = menu.get_node("CenterContainer/MainPanel/SettingsButton")

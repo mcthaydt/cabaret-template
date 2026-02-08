@@ -2,7 +2,6 @@ extends "res://scripts/ecs/base_event_sfx_system.gd"
 
 var event_name: StringName = StringName()
 var request_builder: Callable = Callable()
-var settings: Variant = {}
 var mock_audio_stream: AudioStream = null
 var _last_play_time: float = -INF
 

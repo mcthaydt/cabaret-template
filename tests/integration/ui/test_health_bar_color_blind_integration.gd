@@ -8,8 +8,6 @@ var _hud: UI_HudController = null
 var _display_manager: M_DisplayManager = null
 
 func before_each() -> void:
-	const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-
 	# Clear ServiceLocator first to unregister any previous DisplayManager
 	U_ServiceLocator.clear()
 	await get_tree().process_frame

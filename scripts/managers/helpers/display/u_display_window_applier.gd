@@ -92,7 +92,7 @@ func _apply_window_size_preset_now(preset: String) -> void:
 	# Use usable rect instead of full screen to avoid positioning behind taskbar/dock
 	var current_screen := ops.window_get_current_screen()
 	var usable_rect := ops.screen_get_usable_rect(current_screen)
-	var window_pos := usable_rect.position + (usable_rect.size - size) / 2
+	var window_pos := usable_rect.position + Vector2i((usable_rect.size - size) / 2.0)
 	ops.window_set_position(window_pos)
 
 func _set_window_mode_now(mode: String, attempt: int = 0) -> void:

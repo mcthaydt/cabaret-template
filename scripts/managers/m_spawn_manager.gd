@@ -122,8 +122,6 @@ func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool:
 		return false
 
 	var ecs_body: CharacterBody3D = _find_character_body(player)
-	var old_pos: Vector3 = player.global_position
-	var old_rot: Vector3 = player.global_rotation
 	var old_vel: Vector3 = Vector3.ZERO
 	var old_is_on_floor: bool = false
 	if ecs_body != null:
@@ -319,12 +317,12 @@ func spawn_at_last_spawn(scene: Node) -> bool:
 			return false
 
 	# Try primary spawn
-	var ok: bool = await spawn_player_at_point(scene, spawn_id)
+	var ok: bool = spawn_player_at_point(scene, spawn_id)
 
 	# If checkpoint was chosen but is missing in this scene (e.g., carried over from another scene),
 	# fall back to scene default to keep respawn reliable.
 	if not ok and used_last_checkpoint:
-		ok = await spawn_player_at_point(scene, StringName("sp_default"))
+		ok = spawn_player_at_point(scene, StringName("sp_default"))
 
 	return ok
 
@@ -430,7 +428,7 @@ func _reset_floating_component_state(player: Node3D) -> void:
 
 	# Reset stable state so ground detection starts fresh
 	var current_time: float = U_ECS_UTILS.get_current_time()
-	var grace_time: float = 0.1  # Match typical coyote time
+	var grace_time: float = 0.1 # Match typical coyote time
 	floating.reset_recent_support(current_time, grace_time)
 
 ## Find C_FloatingComponent in entity's children recursively
@@ -470,7 +468,7 @@ func _maybe_face_camera_on_spawn(player: Node3D, ecs_body: CharacterBody3D, spaw
 	if metadata == null or not metadata.face_camera_on_spawn:
 		return
 
-	var camera: Camera3D = U_ECS_UTILS.get_active_camera(self)
+	var camera: Camera3D = U_ECS_UTILS.get_active_camera(self )
 	if camera == null:
 		return
 

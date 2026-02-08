@@ -24,7 +24,7 @@ func get_priority() -> int:
 
 ## Returns the deadzone threshold for the specified stick.
 ## stick can be StringName("left") or StringName("right")
-func get_stick_deadzone(stick: StringName) -> float:
+func get_stick_deadzone(_stick: StringName) -> float:
 	return 0.2
 
 ## Returns true if this source has received input recently.

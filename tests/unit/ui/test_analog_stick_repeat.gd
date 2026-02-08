@@ -124,7 +124,6 @@ func test_stops_when_released() -> void:
 	for i in range(32):
 		repeater.update("ui_down", true, delta)
 
-	var repeat_count := navigation_calls.size()
 	navigation_calls.clear()
 
 	# Release (below deadzone)

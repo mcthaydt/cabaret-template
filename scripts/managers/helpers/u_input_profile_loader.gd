@@ -1,8 +1,6 @@
 extends RefCounted
 class_name U_InputProfileLoader
 
-const RS_InputProfile = preload("res://scripts/resources/input/rs_input_profile.gd")
-
 func load_available_profiles() -> Dictionary:
 	var profiles: Dictionary = {}
 

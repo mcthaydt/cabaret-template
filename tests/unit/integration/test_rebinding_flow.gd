@@ -74,10 +74,6 @@ func test_rebinding_workflow_end_to_end() -> void:
 	for interact_event in interact_events:
 		if (interact_event as InputEvent).is_match(original_jump):
 			interact_has_original_jump = true
-	var debug_state: Dictionary = _store.get_state()
-	var debug_settings: Dictionary = debug_state.get("settings", {})
-	var debug_input_settings: Dictionary = debug_settings.get("input_settings", {})
-	var debug_custom_bindings: Dictionary = debug_input_settings.get("custom_bindings", {})
 	assert_true(interact_has_original_jump, "Conflict confirm should transfer previous Jump binding to Interact")
 	var state: Dictionary = _store.get_state()
 	var settings_slice_value: Variant = state.get("settings", {})
@@ -166,14 +162,6 @@ func test_custom_bindings_persist_via_save_and_reload() -> void:
 
 	var overlay_store_value: Variant = _overlay.get("_store") if _overlay != null else null
 	assert_not_null(overlay_store_value, "Overlay should maintain store reference during capture flow")
-
-	var pre_save_state: Dictionary = _store.get_state()
-	var pre_save_settings_value: Variant = pre_save_state.get("settings", {})
-	var pre_save_settings: Dictionary = pre_save_settings_value if pre_save_settings_value is Dictionary else {}
-	var pre_save_input_settings_value: Variant = pre_save_settings.get("input_settings", {})
-	var pre_save_input_settings: Dictionary = pre_save_input_settings_value if pre_save_input_settings_value is Dictionary else {}
-	var pre_save_bindings_value: Variant = pre_save_input_settings.get("custom_bindings", {})
-	var pre_save_bindings: Dictionary = pre_save_bindings_value if pre_save_bindings_value is Dictionary else {}
 
 	var save_success := _manager.save_custom_bindings()
 	assert_true(save_success, "Manager should report successful save")

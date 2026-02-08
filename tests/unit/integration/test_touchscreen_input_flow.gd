@@ -104,7 +104,7 @@ func test_virtual_control_positions_persist_via_state_handoff() -> void:
 	store.queue_free()
 	await _await_frames(2)
 
-	var restored_store: M_StateStore = await _create_state_store()
+	await _create_state_store()
 	var restored_controls: UI_MobileControls = await _create_controls()
 	var restored_joystick: UI_VirtualJoystick = restored_controls.get_node_or_null("Controls/VirtualJoystick") as UI_VirtualJoystick
 	var restored_jump: UI_VirtualButton = _find_button(restored_controls.get_buttons(), StringName("jump"))

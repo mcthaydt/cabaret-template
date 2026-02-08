@@ -135,7 +135,11 @@ func _resolve_or_create_area() -> void:
 
 	# 3) Create a new Area3D as a sibling under the entity root (preferred)
 	var parent_node := get_parent() as Node3D
-	var host: Node = parent_node if parent_node != null else self
+	var host: Node
+	if parent_node != null:
+		host = parent_node
+	else:
+		host = self
 	_area = Area3D.new()
 	_area.name = "CheckpointArea"
 	_area.collision_layer = 0

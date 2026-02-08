@@ -132,11 +132,6 @@ func test_camera_position_blending() -> void:
 	assert_not_null(camera_before, "Should find camera in exterior")
 	var position_before: Vector3 = camera_before.global_position
 
-	# Debug: verify scene/camera managers are wired and old camera capture works
-	var mgr_cam: Node = _manager.get("_camera_manager")
-	var ext_scene: Node = _active_scene_container.get_child(0) if _active_scene_container.get_child_count() > 0 else null
-	if ext_scene != null:
-		var pre_cap := _camera_manager.capture_camera_state(ext_scene)
 	# Transition to interior (camera at 0, 0.8, 4.5) with fade (allows time for blend)
 	_manager.transition_to_scene(StringName("interior_house"), "fade")
 
@@ -267,7 +262,6 @@ func _test_camera_transitions_smooth_DISABLED() -> void:
 
 	var camera_before: Camera3D = _get_active_scene_camera()
 	assert_not_null(camera_before, "Should find exterior camera")
-	var start_pos: Vector3 = camera_before.global_position
 
 	# Start transition with fade (0.2s duration)
 	_manager.transition_to_scene(StringName("interior_house"), "fade")

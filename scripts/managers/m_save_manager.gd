@@ -312,7 +312,7 @@ func load_from_slot(slot_id: StringName) -> Error:
 		_clear_loading_lock()
 		return validation_result["error"]
 
-	var header: Dictionary = validation_result["header"]
+	var _header: Dictionary = validation_result["header"]
 	var loaded_state: Dictionary = validation_result["state"]
 	var target_scene_id: StringName = validation_result["scene_id"]
 	if loaded_state.has("audio"):

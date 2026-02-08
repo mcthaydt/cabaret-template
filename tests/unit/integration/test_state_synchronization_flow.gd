@@ -490,7 +490,6 @@ func test_reset_bindings_clears_redux_custom_bindings() -> void:
 	# After reset, custom_bindings is empty
 	# The manager would normally reapply the active profile, but in this
 	# integration test context, the InputMap will be cleared
-	var reset_events: Array = InputMap.action_get_events("jump")
 
 	# Since we don't have a real profile manager with loaded profiles in this test,
 	# we can only verify that custom bindings were cleared from Redux state
