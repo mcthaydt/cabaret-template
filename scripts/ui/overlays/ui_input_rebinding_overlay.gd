@@ -3,7 +3,6 @@ extends "res://scripts/interfaces/i_rebind_overlay.gd"
 class_name UI_InputRebindingOverlay
 
 const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
 const U_InputCaptureGuard := preload("res://scripts/utils/input/u_input_capture_guard.gd")
 const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")

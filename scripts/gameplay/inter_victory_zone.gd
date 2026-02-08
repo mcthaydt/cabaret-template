@@ -110,9 +110,9 @@ func _apply_component_config() -> void:
 	_component.area_id = _area_id
 	_component.victory_type = _victory_type
 	_component.trigger_once = _trigger_once
-	var settings := _get_settings()
-	if settings != null:
-		settings.ignore_initial_overlap = false
+	var trigger_settings := _get_settings()
+	if trigger_settings != null:
+		trigger_settings.ignore_initial_overlap = false
 
 	_update_component_area_path()
 

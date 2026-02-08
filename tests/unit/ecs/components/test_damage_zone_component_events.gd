@@ -1,6 +1,5 @@
 extends BaseTest
 
-const C_DamageZoneComponent := preload("res://scripts/ecs/components/c_damage_zone_component.gd")
 const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 func before_each() -> void:

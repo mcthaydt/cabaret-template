@@ -1,11 +1,6 @@
 extends RefCounted
 class_name U_InputRebindUtils
 
-const RS_RebindSettings := preload("res://scripts/resources/input/rs_rebind_settings.gd")
-const RS_InputProfile := preload("res://scripts/resources/input/rs_input_profile.gd")
-const U_InputEventSerialization := preload("res://scripts/utils/input/u_input_event_serialization.gd")
-const U_InputEventDisplay := preload("res://scripts/utils/input/u_input_event_display.gd")
-
 class ValidationResult extends RefCounted:
 	var valid: bool = true
 	var error: String = ""

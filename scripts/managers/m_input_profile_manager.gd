@@ -3,7 +3,6 @@ extends "res://scripts/interfaces/i_input_profile_manager.gd"
 class_name M_InputProfileManager
 
 const U_GlobalSettingsSerialization := preload("res://scripts/utils/u_global_settings_serialization.gd")
-const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
 const U_InputProfileLoader := preload("res://scripts/managers/helpers/u_input_profile_loader.gd")
 const U_InputMapBootstrapper := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
