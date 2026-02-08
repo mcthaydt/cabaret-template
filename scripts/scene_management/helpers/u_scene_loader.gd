@@ -37,11 +37,11 @@ func load_scene_async(scene_path: String, progress_callback: Callable, backgroun
 
 	# Fallback to sync loading in headless mode (async may not work)
 	if OS.has_feature("headless") or DisplayServer.get_name() == "headless":
-		var packed_scene: PackedScene = load(scene_path) as PackedScene
+		var scene: PackedScene = load(scene_path) as PackedScene
 		if progress_callback.is_valid():
 			progress_callback.call(1.0)  # Fake instant completion
-		if packed_scene:
-			return packed_scene.instantiate()
+		if scene:
+			return scene.instantiate()
 		return null
 
 	# Attach to existing background load if present

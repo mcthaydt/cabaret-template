@@ -94,6 +94,7 @@ var _overlay_return_stack: Array[StringName] = []
 var _scene_cache_helper := U_SCENE_CACHE.new()
 
 ## Cache: path → PackedScene (exposed for tests via manager properties)
+@warning_ignore("unused_private_class_variable")
 var _scene_cache:
 	get:
 		return _scene_cache_helper._scene_cache
@@ -105,11 +106,13 @@ var _background_loads:
 		return _scene_cache_helper._background_loads
 
 ## Cache limits (Phase 8)
+@warning_ignore("unused_private_class_variable")
 var _max_cached_scenes:
 	get:
 		return _scene_cache_helper._max_cached_scenes
 	set(value):
 		_scene_cache_helper._max_cached_scenes = int(value)
+@warning_ignore("unused_private_class_variable")
 var _max_cache_memory:
 	get:
 		return _scene_cache_helper._max_cache_memory
@@ -118,11 +121,13 @@ var _max_cache_memory:
 
 ## LRU tracking (Phase 8)
 ## Key: path (String), Value: timestamp (float)
+@warning_ignore("unused_private_class_variable")
 var _cache_access_times:
 	get:
 		return _scene_cache_helper._cache_access_times
 
 ## Background polling active flag (Phase 8)
+@warning_ignore("unused_private_class_variable")
 var _is_background_polling_active:
 	get:
 		return _scene_cache_helper._is_background_polling_active

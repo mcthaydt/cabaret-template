@@ -83,7 +83,7 @@ func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool:
 		return false
 
 	# Get scene name for error messages
-	var scene_name: String = scene.name if scene != null else "unknown"
+	var scene_name: String = String(scene.name) if scene != null else "unknown"
 
 	# Find spawn point node in scene (returns Node, not Node3D)
 	var spawn_candidates: Array = []
@@ -122,11 +122,11 @@ func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool:
 		return false
 
 	var ecs_body: CharacterBody3D = _find_character_body(player)
-	var old_vel: Vector3 = Vector3.ZERO
-	var old_is_on_floor: bool = false
+	var _old_vel: Vector3 = Vector3.ZERO
+	var _old_is_on_floor: bool = false
 	if ecs_body != null:
-		old_vel = ecs_body.velocity
-		old_is_on_floor = ecs_body.is_on_floor()
+		_old_vel = ecs_body.velocity
+		_old_is_on_floor = ecs_body.is_on_floor()
 	var spawn_state: C_SpawnStateComponent = _ensure_spawn_state_component(player, ecs_body)
 
 	# Position player at spawn point
