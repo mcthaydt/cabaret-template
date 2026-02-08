@@ -7,7 +7,7 @@ class_name U_SFXSpawner
 const POOL_SIZE := 16
 
 const _DEFAULT_MAX_DISTANCE: float = 50.0
-const _DEFAULT_ATTENUATION_MODEL: int = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+const _DEFAULT_ATTENUATION_MODEL: AudioStreamPlayer3D.AttenuationModel = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
 const _DEFAULT_PANNING_STRENGTH: float = 1.0
 
 static var _spatial_audio_enabled: bool = true
@@ -175,9 +175,9 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
 		follow_target = follow_target_variant as Node3D
 
 	var emitter_variant: Variant = config.get("debug_emitter", null)
-	var emitter: Node3D = null
+	var _emitter: Node3D = null
 	if emitter_variant is Node3D:
-		emitter = emitter_variant as Node3D
+		_emitter = emitter_variant as Node3D
 
 	if player.playing:
 		player.stop()
@@ -226,7 +226,7 @@ static func _configure_player_spatialization(
 
 		# Apply per-sound attenuation_model if provided (>= 0), else use default
 		if attenuation_model >= 0:
-			player.attenuation_model = attenuation_model
+			player.attenuation_model = attenuation_model as AudioStreamPlayer3D.AttenuationModel
 		else:
 			player.attenuation_model = _DEFAULT_ATTENUATION_MODEL
 

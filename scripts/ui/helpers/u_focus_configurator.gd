@@ -18,8 +18,8 @@ class_name U_FocusConfigurator
 ## last control focuses the first.
 ##
 ## @param controls: Array of Control nodes in top-to-bottom order
-## @param wrap: Whether to wrap navigation (default: true)
-static func configure_vertical_focus(controls: Array[Control], wrap: bool = true) -> void:
+## @param wrap_navigation: Whether to wrap navigation (default: true)
+static func configure_vertical_focus(controls: Array[Control], wrap_navigation: bool = true) -> void:
 	if controls.is_empty():
 		push_warning("U_FocusConfigurator.configure_vertical_focus: controls array is empty")
 		return
@@ -35,7 +35,7 @@ static func configure_vertical_focus(controls: Array[Control], wrap: bool = true
 		# Previous control (up direction)
 		var prev_idx: int = i - 1
 		if prev_idx < 0:
-			prev_idx = count - 1 if wrap else -1
+			prev_idx = count - 1 if wrap_navigation else -1
 
 		if prev_idx >= 0:
 			control.focus_neighbor_top = control.get_path_to(controls[prev_idx])
@@ -43,7 +43,7 @@ static func configure_vertical_focus(controls: Array[Control], wrap: bool = true
 		# Next control (down direction)
 		var next_idx: int = i + 1
 		if next_idx >= count:
-			next_idx = 0 if wrap else -1
+			next_idx = 0 if wrap_navigation else -1
 
 		if next_idx >= 0:
 			control.focus_neighbor_bottom = control.get_path_to(controls[next_idx])
@@ -56,8 +56,8 @@ static func configure_vertical_focus(controls: Array[Control], wrap: bool = true
 ## last control focuses the first.
 ##
 ## @param controls: Array of Control nodes in left-to-right order
-## @param wrap: Whether to wrap navigation (default: true)
-static func configure_horizontal_focus(controls: Array[Control], wrap: bool = true) -> void:
+## @param wrap_navigation: Whether to wrap navigation (default: true)
+static func configure_horizontal_focus(controls: Array[Control], wrap_navigation: bool = true) -> void:
 	if controls.is_empty():
 		push_warning("U_FocusConfigurator.configure_horizontal_focus: controls array is empty")
 		return
@@ -73,7 +73,7 @@ static func configure_horizontal_focus(controls: Array[Control], wrap: bool = tr
 		# Previous control (left direction)
 		var prev_idx: int = i - 1
 		if prev_idx < 0:
-			prev_idx = count - 1 if wrap else -1
+			prev_idx = count - 1 if wrap_navigation else -1
 
 		if prev_idx >= 0:
 			control.focus_neighbor_left = control.get_path_to(controls[prev_idx])
@@ -81,7 +81,7 @@ static func configure_horizontal_focus(controls: Array[Control], wrap: bool = tr
 		# Next control (right direction)
 		var next_idx: int = i + 1
 		if next_idx >= count:
-			next_idx = 0 if wrap else -1
+			next_idx = 0 if wrap_navigation else -1
 
 		if next_idx >= 0:
 			control.focus_neighbor_right = control.get_path_to(controls[next_idx])

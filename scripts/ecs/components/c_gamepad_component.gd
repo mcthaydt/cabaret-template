@@ -6,7 +6,7 @@ const COMPONENT_TYPE := StringName("C_GamepadComponent")
 
 @export var settings: RS_GamepadSettings
 @export var device_id: int = -1
-@export var is_connected: bool = false
+@export var connected: bool = false
 @export var vibration_enabled: bool = true
 @export_range(0.0, 1.0, 0.01) var vibration_intensity: float = 1.0
 @export_range(0.0, 1.0, 0.01) var left_stick_deadzone: float = 0.2

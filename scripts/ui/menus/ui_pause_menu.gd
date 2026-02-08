@@ -84,9 +84,9 @@ func _navigate_focus(direction: StringName) -> void:
 		return
 
 	var viewport: Viewport = get_viewport()
-	var before: Control = null
+	var _before: Control = null
 	if viewport != null:
-		before = viewport.gui_get_focus_owner() as Control
+		_before = viewport.gui_get_focus_owner() as Control
 
 	super._navigate_focus(direction)
 

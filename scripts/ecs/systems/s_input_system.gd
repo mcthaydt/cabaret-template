@@ -136,7 +136,7 @@ func process_tick(_delta: float) -> void:
 				gamepad_component.left_stick = final_movement
 				gamepad_component.right_stick = look_delta
 				gamepad_component.button_states = gamepad_source.get_button_states()
-			gamepad_component.is_connected = is_gamepad_connected
+			gamepad_component.connected = is_gamepad_connected
 			gamepad_component.device_id = active_gamepad_id
 			gamepad_component.apply_settings_from_dictionary(_gamepad_settings_cache)
 
