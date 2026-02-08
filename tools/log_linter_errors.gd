@@ -34,7 +34,7 @@ class LintError:
 		error_type = type
 		message = msg
 
-	func to_string() -> String:
+	func _to_string() -> String:
 		return "%s:%d [%s] %s" % [file_path, line_number, error_type, message]
 
 var _errors: Array[LintError] = []
@@ -184,10 +184,10 @@ func _write_results_to_file() -> void:
 		for error_type in errors_by_type.keys():
 			var type_errors: Array = errors_by_type[error_type]
 			file.store_line("[%s] (%d errors)" % [error_type, type_errors.size()])
-			file.store_line("=" * 60)
+			file.store_line("=".repeat(60))
 
 			for error in type_errors:
-				file.store_line("  %s" % error.to_string())
+				file.store_line("  %s" % str(error))
 
 			file.store_line("")
 
