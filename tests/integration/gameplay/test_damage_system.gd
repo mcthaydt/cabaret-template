@@ -282,6 +282,12 @@ func test_damage_zone_ignores_non_player_bodies() -> void:
 class TestSceneManager:
 	extends Node
 
+	enum Priority {
+		NORMAL = 0,
+		HIGH = 1,
+		CRITICAL = 2
+	}
+
 	var transition_calls: Array = []
 	var _is_transitioning: bool = false
 

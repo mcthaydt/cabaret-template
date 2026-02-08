@@ -122,7 +122,7 @@ func _import_legacy_save_if_exists() -> void:
 	# This prevents repeatedly overwriting/“corrupting” the autosave if a stale legacy file
 	# (user://savegame.json) lingers on disk for any reason.
 	if slot_exists(SLOT_AUTOSAVE):
-		push_warning("M_SaveManager: Legacy save exists at user://savegame.json but autosave slot already exists; skipping import")
+		print_verbose("M_SaveManager: Legacy save exists at user://savegame.json but autosave slot already exists; skipping import")
 		return
 
 	# Import and migrate legacy save

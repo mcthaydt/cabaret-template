@@ -83,7 +83,7 @@ func blend_cameras(old_scene: Node, new_scene: Node, duration: float, old_state:
 	# Find new camera in new scene
 	var new_camera: Camera3D = _find_camera_in_scene(new_scene)
 	if new_camera == null:
-		push_warning("M_CameraManager: No camera in new scene for blending")
+		print_verbose("M_CameraManager: No camera in new scene for blending (skipping blend)")
 		return
 	register_main_camera(new_camera)
 

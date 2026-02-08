@@ -261,6 +261,12 @@ func test_death_triggers_delayed_game_over_transition() -> void:
 class TestSceneManager:
 	extends Node
 
+	enum Priority {
+		NORMAL = 0,
+		HIGH = 1,
+		CRITICAL = 2
+	}
+
 	var transition_calls: Array = []
 	var _is_transitioning: bool = false
 

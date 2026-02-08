@@ -1,29 +1,27 @@
 #!/usr/bin/env python3
 """
-Automatically fixes shadowed const preloads across the codebase.
+Automatically fixes shadowed const preloads (v2 - excludes .tres files).
 
 Usage:
-    python3 tools/fix_shadowed_consts.py --dry-run    # Preview changes
-    python3 tools/fix_shadowed_consts.py              # Apply changes
+    python3 tools/fix_shadowed_consts_v2.py --dry-run    # Preview changes
+    python3 tools/fix_shadowed_consts_v2.py              # Apply changes
 
-Safety:
-    - Only removes const preloads for classes with class_name declarations
-    - Preserves file structure and formatting
-    - Shows diff of changes before applying
-    - Recommend committing changes first or using --dry-run
+Improvements from v1:
+    - Only removes const preloads for .gd script files
+    - Preserves const preloads for .tres resource instances
+    - More accurate pattern matching
 """
 
 import os
 import re
 import argparse
 from pathlib import Path
-from collections import defaultdict
 
 # Directories to scan
 SCRIPT_DIRS = ["scripts/", "tests/"]
 
 # Regex patterns
-CONST_PRELOAD_PATTERN = re.compile(r'^const\s+(\w+)\s*:=\s*preload\(')
+CONST_PRELOAD_PATTERN = re.compile(r'^const\s+(\w+)\s*:=\s*preload\("([^"]+)"\)')
 CLASS_NAME_PATTERN = re.compile(r'^\s*class_name\s+(\w+)')
 
 
@@ -51,7 +49,7 @@ def find_all_class_names(project_root):
 
 
 def fix_file(file_path, global_classes, dry_run=True):
-    """Remove shadowed const preloads from a single file."""
+    """Remove shadowed const preloads from a single file (only .gd files)."""
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
@@ -67,8 +65,13 @@ def fix_file(file_path, global_classes, dry_run=True):
 
         if match:
             const_name = match.group(1)
-            if const_name in global_classes:
-                # This is a shadowed const - remove it
+            preload_path = match.group(2)
+
+            # IMPORTANT: Only remove if:
+            # 1. const_name matches a global class
+            # 2. preload_path is a .gd file (NOT .tres, .tscn, etc.)
+            if const_name in global_classes and preload_path.endswith('.gd'):
+                # This is a shadowed const for a script - remove it
                 removed_lines.append((line_num, line.rstrip()))
                 continue
 
@@ -93,19 +96,21 @@ def fix_file(file_path, global_classes, dry_run=True):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Fix shadowed const preloads')
+    parser = argparse.ArgumentParser(description='Fix shadowed const preloads (v2)')
     parser.add_argument('--dry-run', action='store_true',
                         help='Show what would be changed without applying')
     args = parser.parse_args()
 
     project_root = Path(__file__).parent.parent
 
-    print("=== Shadowed Const Preload Fixer ===")
+    print("=== Shadowed Const Preload Fixer v2 ===")
     print(f"Project root: {project_root}")
     if args.dry_run:
         print("🔍 DRY RUN MODE - No files will be modified")
     else:
         print("⚠️  LIVE MODE - Files will be modified")
+    print()
+    print("✨ v2 improvements: Only removes .gd preloads, preserves .tres resource instances")
     print()
 
     # Find all global classes
@@ -170,7 +175,7 @@ def main():
     if args.dry_run:
         print()
         print("💡 To apply these changes, run:")
-        print("   python3 tools/fix_shadowed_consts.py")
+        print("   python3 tools/fix_shadowed_consts_v2.py")
         print()
         print("⚠️  Recommendation: Commit your current changes first!")
     else:

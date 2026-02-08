@@ -8,6 +8,12 @@ const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gam
 class TestSceneManager:
 	extends Node
 
+	enum Priority {
+		NORMAL = 0,
+		HIGH = 1,
+		CRITICAL = 2
+	}
+
 	var transition_calls: Array = []
 
 	func transition_to_scene(scene_id: StringName, transition_type: String, priority: int = 0) -> void:
