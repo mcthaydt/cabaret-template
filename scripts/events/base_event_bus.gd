@@ -32,16 +32,17 @@ func subscribe(event_name: StringName, callback: Callable, priority: int = 0) ->
 
 	var subscriber_list: Array = _subscribers[normalized_event]
 
+	# Get callback source for logging
+	var source := _get_callback_source(callback)
+
 	# Check for duplicate subscriptions
 	for sub_meta in subscriber_list:
 		if sub_meta.callback == callback:
-			var source := _get_callback_source(callback)
 			push_warning("BaseEventBus: Duplicate subscription to '%s' from %s" % [event_name, source])
 			return func() -> void:
 				pass
 
 	# Add subscriber with metadata
-	var source := _get_callback_source(callback)
 	subscriber_list.append({
 		"callback": callback,
 		"priority": priority,

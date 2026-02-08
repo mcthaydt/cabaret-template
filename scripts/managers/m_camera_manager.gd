@@ -38,7 +38,6 @@ class CameraState:
 ## Camera blending (Phase 10: T178-T181)
 var _transition_camera: Camera3D = null
 var _camera_blend_tween: Tween = null
-var _camera_blend_duration: float = 0.2  # Match fade transition duration
 
 ## Screen shake parent node (VFX Phase 3: T3.1)
 ## Used to apply shake offset/rotation without affecting camera directly (prevents gimbal lock)

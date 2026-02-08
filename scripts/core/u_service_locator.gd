@@ -56,7 +56,7 @@ static func register(service_name: StringName, instance: Node) -> void:
 			return
 		print_verbose("U_ServiceLocator.register: Replacing existing service '%s' (%s -> %s)" % [
 			service_name,
-			existing.name if existing != null else "",
+			existing.name,
 			instance.name
 		])
 
