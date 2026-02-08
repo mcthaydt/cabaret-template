@@ -33,7 +33,6 @@ class_name RS_DisplayInitialState
 ## Convert resource to Dictionary for state store
 func to_dictionary() -> Dictionary:
 	# Load intensity values from preset
-	const U_PostProcessingPresetValues := preload("res://scripts/utils/display/u_post_processing_preset_values.gd")
 	var preset_values := U_PostProcessingPresetValues.get_preset_values(post_processing_preset)
 
 	return {
