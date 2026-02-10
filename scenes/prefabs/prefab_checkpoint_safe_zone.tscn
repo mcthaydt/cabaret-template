@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dcjm3807436f3"]
 
 [ext_resource type="Script" uid="uid://cnqqo6qh71pqh" path="res://scripts/gameplay/inter_checkpoint_zone.gd" id="1_controller"]
-[ext_resource type="Resource" path="res://resources/interactions/checkpoints/cfg_checkpoint_safe_zone.tres" id="3_checkpoint_config"]
+[ext_resource type="Resource" uid="uid://ubaurl3hekoo" path="res://resources/interactions/checkpoints/cfg_checkpoint_safe_zone.tres" id="3_checkpoint_config"]
 
 [node name="E_Checkpoint_SafeZone" type="Node3D" unique_id=910423304]
 script = ExtResource("1_controller")

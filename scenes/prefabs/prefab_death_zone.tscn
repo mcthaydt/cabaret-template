@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dyjqcg3o35ety"]
 
 [ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="1_controller"]
-[ext_resource type="Resource" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="3_hazard_config"]
+[ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="3_hazard_config"]
 
 [node name="E_DeathZone" type="Node3D" unique_id=71030271]
 script = ExtResource("1_controller")

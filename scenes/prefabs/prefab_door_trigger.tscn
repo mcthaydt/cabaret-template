@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="1_controller"]
 [ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="3_fade_material"]
-[ext_resource type="Resource" path="res://resources/interactions/doors/cfg_door_prefab_house.tres" id="4_door_config"]
+[ext_resource type="Resource" uid="uid://d31uoqdgkj4no" path="res://resources/interactions/doors/cfg_door_prefab_house.tres" id="4_door_config"]
 
 [node name="E_DoorTrigger" type="Node3D" unique_id=195825082]
 script = ExtResource("1_controller")

@@ -69,7 +69,7 @@
 [ext_resource type="Resource" uid="uid://bhpts5ki7j6uv" path="res://resources/interactions/hazards/cfg_hazard_spike_trap.tres" id="62_hazard_config"]
 [ext_resource type="Resource" uid="uid://jnsl17rpawoy" path="res://resources/interactions/endgame/cfg_endgame_goal_alleyway.tres" id="63_endgame_config"]
 [ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="64_hazard_death_config"]
-[ext_resource type="Script" path="res://scripts/scene_structure/marker_lighting_group.gd" id="65_lighting_group"]
+[ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/scene_structure/marker_lighting_group.gd" id="65_lighting_group"]
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
