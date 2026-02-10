@@ -6,5 +6,6 @@
 [resource]
 script = ExtResource("1")
 message = "This bar has one exit: head back to the alleyway."
+message_duration_sec = 3.0
 interaction_id = &"signpost_bar_tutorial"
 trigger_settings = ExtResource("2")

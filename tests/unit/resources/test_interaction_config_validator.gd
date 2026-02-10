@@ -166,6 +166,28 @@ func test_validator_rejects_empty_signpost_message() -> void:
 	assert_false(bool(result.get("is_valid", true)))
 	assert_true((result.get("errors", []) as Array).any(func(msg: Variant): return String(msg).contains("message")))
 
+func test_signpost_config_defaults_message_duration_to_three_seconds() -> void:
+	var signpost_config := _new_resource(SIGNPOST_CONFIG_PATH)
+	if signpost_config == null:
+		return
+
+	assert_eq(signpost_config.get("message_duration_sec"), 3.0,
+		"Signpost config should default message_duration_sec to 3.0 seconds")
+
+func test_validator_rejects_signpost_non_positive_message_duration() -> void:
+	var validator := _load_script(VALIDATOR_PATH)
+	var signpost_config := _new_resource(SIGNPOST_CONFIG_PATH)
+	if validator == null or signpost_config == null:
+		return
+
+	signpost_config.set("interaction_id", StringName("signpost_duration_check"))
+	signpost_config.set("message", "Valid message")
+	signpost_config.set("message_duration_sec", 0.0)
+
+	var result: Dictionary = validator.call("validate_config", signpost_config, "res://tests/unit/resources/signpost_duration")
+	assert_false(bool(result.get("is_valid", true)))
+	assert_true((result.get("errors", []) as Array).any(func(msg: Variant): return String(msg).contains("message_duration_sec")))
+
 func test_validator_rejects_endgame_goal_when_required_area_empty_or_wrong_type() -> void:
 	var validator := _load_script(VALIDATOR_PATH)
 	var endgame_config := _new_resource(ENDGAME_CONFIG_PATH)

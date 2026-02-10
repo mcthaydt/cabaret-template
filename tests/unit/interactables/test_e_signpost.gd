@@ -52,6 +52,8 @@ func test_emits_signal_on_activation() -> void:
 	var payload := event.get("payload", {}) as Dictionary
 	assert_eq(String(payload.get("message", "")), "Hello there")
 	assert_eq(bool(payload.get("repeatable", true)), true)
+	assert_eq(float(payload.get("message_duration_sec", 0.0)), 3.0,
+		"Signpost payload should include default message duration for HUD auto-hide")
 
 	if unsubscribe != null and unsubscribe.is_valid():
 		unsubscribe.call()
@@ -74,6 +76,7 @@ func test_config_resource_overrides_message_repeatable_and_prompt() -> void:
 	var config := RS_SIGNPOST_INTERACTION_CONFIG.new()
 	config.message = "Config message"
 	config.repeatable = false
+	config.message_duration_sec = 1.25
 	config.interact_prompt = "Inspect"
 	signpost.config = config
 	await _pump_frames(1)
@@ -101,6 +104,8 @@ func test_config_resource_overrides_message_repeatable_and_prompt() -> void:
 	var payload := event.get("payload", {}) as Dictionary
 	assert_eq(String(payload.get("message", "")), "Config message")
 	assert_eq(bool(payload.get("repeatable", true)), false)
+	assert_eq(float(payload.get("message_duration_sec", 0.0)), 1.25,
+		"Signpost payload should include configured message duration")
 	assert_true(signpost.is_locked(), "Config repeatable=false should lock signpost.")
 
 	if unsubscribe != null and unsubscribe.is_valid():

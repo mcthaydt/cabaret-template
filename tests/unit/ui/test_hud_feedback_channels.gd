@@ -68,22 +68,79 @@ func test_feedback_channels_have_independent_visibility_state() -> void:
 	assert_false(autosave_spinner_container.visible, "Autosave spinner should remain hidden when checkpoint toast shows")
 	assert_false(signpost_panel_container.visible, "Signpost panel should remain hidden when checkpoint toast shows")
 
-func test_phase2_routing_keeps_signpost_on_toast_but_moves_autosave_to_spinner() -> void:
+func test_phase4_routing_moves_signpost_to_dedicated_panel_and_keeps_autosave_spinner() -> void:
 	var checkpoint_toast_container: Control = _hud.get_node("MarginContainer/ToastContainer")
 	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
 	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
+	var signpost_message_label: Label = _hud.get_node("MarginContainer/SignpostPanelContainer/PanelContainer/MarginContainer/SignpostMessage")
 
-	U_ECSEventBus.publish(StringName("signpost_message"), {"message": "Signpost text"})
+	U_ECSEventBus.publish(StringName("signpost_message"), {"message": "Signpost text", "message_duration_sec": 0.2})
 	await _await_frames(1)
-	assert_true(checkpoint_toast_container.visible, "Phase 2 keeps signpost routed through checkpoint toast")
+	assert_false(checkpoint_toast_container.visible, "Signpost should no longer use checkpoint toast channel in Phase 4")
 	assert_false(autosave_spinner_container.visible, "Signpost should not show autosave spinner")
-	assert_false(signpost_panel_container.visible, "Phase 2 keeps dedicated signpost panel channel inactive")
+	assert_true(signpost_panel_container.visible, "Signpost should use dedicated signpost panel channel in Phase 4")
+	assert_eq(signpost_message_label.text, "Signpost text", "Signpost panel should render signpost message text")
 
 	U_ECSEventBus.publish(StringName("save_started"), {"slot_id": StringName("autosave"), "is_autosave": true})
 	await _await_frames(1)
 	assert_false(checkpoint_toast_container.visible, "Autosave should not use checkpoint toast channel in Phase 2")
 	assert_true(autosave_spinner_container.visible, "Autosave should show spinner channel in Phase 2")
 	assert_false(signpost_panel_container.visible, "Autosave should not show signpost panel channel in Phase 2")
+
+func test_signpost_panel_auto_hides_by_payload_duration_and_restores_prompt() -> void:
+	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
+	var prompt: Control = _hud.get_node("MarginContainer/InteractPrompt")
+
+	U_ECSEventBus.publish(StringName("interact_prompt_show"), {
+		"controller_id": 991,
+		"action": StringName("interact"),
+		"prompt": "Read"
+	})
+	await _await_frames(1)
+	assert_true(prompt.visible, "Prompt should be visible before signpost panel")
+
+	U_ECSEventBus.publish(StringName("signpost_message"), {
+		"message": "Read this placard",
+		"message_duration_sec": 0.2
+	})
+	await _await_frames(1)
+	assert_true(signpost_panel_container.visible, "Signpost panel should show when message arrives")
+	assert_false(prompt.visible, "Prompt should hide while signpost panel is visible")
+
+	await _await_seconds(0.7)
+	assert_false(signpost_panel_container.visible, "Signpost panel should auto-hide after configured duration")
+	assert_true(prompt.visible, "Prompt should restore after signpost panel auto-hide completes")
+
+func test_signpost_panel_uses_default_duration_when_payload_duration_missing() -> void:
+	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
+
+	U_ECSEventBus.publish(StringName("signpost_message"), {
+		"message": "Default duration signpost"
+	})
+	await _await_frames(1)
+	assert_true(signpost_panel_container.visible, "Signpost panel should show with legacy payloads")
+
+	await _await_seconds(1.0)
+	assert_true(signpost_panel_container.visible, "Signpost panel should remain visible before 3.0s default duration elapses")
+
+func test_signpost_panel_path_uses_interact_blocker_but_autosave_spinner_stays_non_blocking() -> void:
+	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
+	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
+
+	assert_false(U_InteractBlocker.is_blocked(), "Interact blocker should start unblocked")
+	U_ECSEventBus.publish(StringName("signpost_message"), {"message": "Blocked briefly", "message_duration_sec": 0.2})
+	await _await_frames(1)
+	assert_true(signpost_panel_container.visible, "Signpost panel should show")
+	assert_true(U_InteractBlocker.is_blocked(), "Signpost panel should block interaction while visible")
+
+	await _await_seconds(0.7)
+	assert_false(signpost_panel_container.visible, "Signpost panel should auto-hide")
+	assert_false(U_InteractBlocker.is_blocked(), "Signpost blocker should clear after hide + cooldown")
+
+	U_ECSEventBus.publish(StringName("save_started"), {"slot_id": StringName("autosave"), "is_autosave": true})
+	await _await_frames(1)
+	assert_true(autosave_spinner_container.visible, "Autosave spinner should show")
+	assert_false(U_InteractBlocker.is_blocked(), "Autosave spinner should not block interaction")
 
 func test_autosave_spinner_lifecycle_hides_on_completion_and_failure() -> void:
 	var checkpoint_toast_container: Control = _hud.get_node("MarginContainer/ToastContainer")

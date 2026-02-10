@@ -6,5 +6,6 @@
 [resource]
 script = ExtResource("1")
 message = "Welcome inside!"
+message_duration_sec = 3.0
 interaction_id = &"signpost_interior_tutorial"
 trigger_settings = ExtResource("2")

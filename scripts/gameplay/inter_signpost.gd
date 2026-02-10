@@ -35,11 +35,13 @@ func _on_activated(player: Node3D) -> void:
 
 	var effective_message := typed.message
 	var effective_repeatable := typed.repeatable
+	var effective_duration_sec := maxf(typed.message_duration_sec, 0.1)
 	signpost_activated.emit(effective_message, self)
 	U_ECSEventBus.publish(SIGNPOST_MESSAGE_EVENT, {
 		"message": effective_message,
 		"controller_id": get_instance_id(),
-		"repeatable": effective_repeatable
+		"repeatable": effective_repeatable,
+		"message_duration_sec": effective_duration_sec
 	})
 	if not effective_repeatable:
 		lock()

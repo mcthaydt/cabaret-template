@@ -166,6 +166,16 @@ static func _validate_signpost(config: Resource, context: String, errors: Array[
 	if message.is_empty():
 		_record_error(errors, context, "message", "must be non-empty", emit_messages)
 
+	var message_duration_sec := _as_float(config.get("message_duration_sec"), 0.0)
+	if message_duration_sec <= 0.0:
+		_record_error(
+			errors,
+			context,
+			"message_duration_sec",
+			"must be > 0; got %s" % str(message_duration_sec),
+			emit_messages
+		)
+
 static func _validate_endgame_goal(config: Resource, context: String, errors: Array[String], emit_messages: bool) -> void:
 	var required_area := _as_trimmed_string(config.get("required_area"))
 	if required_area.is_empty():
