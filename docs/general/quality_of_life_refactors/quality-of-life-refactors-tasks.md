@@ -729,19 +729,42 @@ Validation suites executed:
 
 ### QOL-T063 Final UX Polish Pass
 
-- No additional code or scene changes were required after regression validation.
-- Existing timing/layout behavior remained stable under current coverage:
-  - autosave spinner is non-blocking and independent
-  - checkpoint toast remains isolated
-  - signpost panel auto-hide and prompt restore remain deterministic
-  - world icon and HUD prompt coexist without race regressions
+- Initial closure pass identified no additional required changes.
+- Post-closure audit surfaced two UX gaps that were fixed in follow-up implementation:
+  - prompt rendering is now deferred while signpost panel is active (prevents signpost/prompt overlap race)
+  - autosave indicator now uses animated SVG spinner icon in dedicated spinner channel
 
 ### Phase 6 Completion Notes
 
 - Phase 6 exit criteria met on 2026-02-10.
-- Initiative closure is documentation-only for this phase; no runtime code changes were necessary.
+- Post-closure follow-up implementation completed on 2026-02-10 to address audited UX gaps.
 - `AGENTS.md` and `docs/general/DEV_PITFALLS.md` required no updates for this phase (no new durable patterns/pitfalls identified).
 - Initiative status: complete.
+
+### Post-Closure Follow-up Validation (2026-02-10)
+
+Follow-up implementation scope:
+- `scripts/ui/hud/ui_hud_controller.gd`
+  - defer prompt rendering while signpost panel is active
+  - animate autosave spinner icon rotation while active and reset on hide
+- `scenes/ui/hud/ui_hud_overlay.tscn`
+  - added `SpinnerIcon` texture node in autosave spinner channel
+- `scripts/gameplay/triggered_interactable_controller.gd`
+  - suppress prompt event publish while `U_InteractBlocker` is active
+- `assets/textures/tex_spinner_autosave.svg`
+  - added SVG spinner asset (+ generated `.import`)
+- `tests/unit/ui/test_hud_feedback_channels.gd`
+  - added regression tests for signpost/prompt deferral and spinner SVG animation
+
+Validation suites executed:
+
+| Suite | Result | Notes |
+|---|---|---|
+| `res://tests/unit/ui` | PASS | 183/185 passing, 2 expected pending mobile-only |
+| `res://tests/unit/interactables` | PASS | 44/44 passing |
+| `res://tests/unit/save` | PASS | 123/124 passing, 1 expected pending headless viewport capture |
+| `res://tests/integration/save_manager` | PASS | 19/19 passing on rerun (one transient first-run failure in `test_autosave_cooldown_prevents_spam`) |
+| `res://tests/unit/style` | PASS | 12/12 passing |
 
 ### Phase 6 Exit Criteria
 

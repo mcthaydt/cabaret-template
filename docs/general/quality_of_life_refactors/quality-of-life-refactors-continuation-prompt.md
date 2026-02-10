@@ -146,7 +146,7 @@
   - `QOL-T064` updated tasks file with final suite and closure notes
   - `QOL-T065` updated continuation prompt and verified no AGENTS/DEV_PITFALLS additions were needed
 - Required gate suite status after Phase 6:
-  - `res://tests/unit/ui`: PASS (181/183, 2 expected pending mobile-only tests)
+  - `res://tests/unit/ui`: PASS (183/185, 2 expected pending mobile-only tests)
   - `res://tests/unit/interactables`: PASS (44/44)
   - `res://tests/unit/save`: PASS (123/124, 1 expected pending headless viewport-capture test)
   - `res://tests/integration/save_manager`: PASS (19/19)
@@ -154,6 +154,24 @@
 - Closure outcome:
   - Initiative is complete and merge-ready from the QoL refactor scope perspective.
   - Event contracts remained additive-only with no event name changes.
+
+## Post-Closure Follow-up (2026-02-10)
+
+- Audit follow-up fixed two implementation gaps discovered after Phase 6 closure:
+  - prompt rendering overlap during active signpost panel
+  - autosave spinner channel lacked SVG spinner icon animation
+- Follow-up implementation:
+  - `scripts/ui/hud/ui_hud_controller.gd`: signpost-aware prompt deferral + spinner rotation animation
+  - `scenes/ui/hud/ui_hud_overlay.tscn`: spinner icon node wiring
+  - `scripts/gameplay/triggered_interactable_controller.gd`: blocker-aware prompt publish guard
+  - `assets/textures/tex_spinner_autosave.svg`: new spinner SVG asset
+  - `tests/unit/ui/test_hud_feedback_channels.gd`: added coverage for both gaps
+- Follow-up validation:
+  - `res://tests/unit/ui`: PASS (183/185, 2 expected pending mobile-only tests)
+  - `res://tests/unit/interactables`: PASS (44/44)
+  - `res://tests/unit/save`: PASS (123/124, 1 expected pending headless viewport-capture test)
+  - `res://tests/integration/save_manager`: PASS (19/19 on rerun after one transient first-run failure)
+  - `res://tests/unit/style`: PASS (12/12)
 
 ## Confirmed Product Decisions (Locked)
 
