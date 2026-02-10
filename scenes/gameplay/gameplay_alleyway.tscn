@@ -47,18 +47,13 @@
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
 [ext_resource type="Script" uid="uid://be4ht4ijvdrjy" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="29_screen_shake_publisher"]
-[ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/cfg_cylinder_wide_door_trigger_settings.tres" id="30_auc1c"]
 [ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
 [ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="30_door_controller"]
 [ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://assets/textures/tex_icon.svg" id="39_u0c34"]
 [ext_resource type="Script" uid="uid://cly8oyjtrr3ev" path="res://scripts/gameplay/inter_endgame_goal_zone.gd" id="41_goal_script"]
 [ext_resource type="Script" uid="uid://djud6o4c7psxg" path="res://scripts/ecs/systems/s_checkpoint_system.gd" id="42_checkpoint_system"]
-[ext_resource type="Resource" uid="uid://na7m34dl6a4d" path="res://resources/triggers/cfg_checkpoint_box_2x3x2.tres" id="43_checkpoint_settings"]
 [ext_resource type="Script" uid="uid://cnqqo6qh71pqh" path="res://scripts/gameplay/inter_checkpoint_zone.gd" id="43_checkpoint_zone_script"]
-[ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/cfg_death_zone_volume.tres" id="44_death_settings"]
-[ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/cfg_goal_cylinder.tres" id="44_goal_settings"]
 [ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="44_hazard_controller"]
-[ext_resource type="Resource" uid="uid://c8u21l3ag26ky" path="res://resources/triggers/cfg_spike_trap_volume.tres" id="44_spike_settings"]
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
 [ext_resource type="Resource" uid="uid://bi0ygx0nsog1s" path="res://resources/spawn_metadata/cfg_sp_exterior.tres" id="51_exterior_default_spawn_meta"]
 [ext_resource type="Resource" uid="uid://cvgjhiir8koeu" path="res://resources/spawn_metadata/cfg_sp_exterior_checkpoint.tres" id="52_exterior_checkpoint_spawn_meta"]
@@ -69,6 +64,11 @@
 [ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="57_fade_door"]
 [ext_resource type="Script" uid="uid://dpeat44fqshck" path="res://scripts/utils/display/u_cinema_grade_preview.gd" id="58_cinema_preview"]
 [ext_resource type="Resource" uid="uid://dbu083ahcuvmu" path="res://resources/display/cinema_grades/cfg_cinema_grade_alleyway.tres" id="59_cinema_grade"]
+[ext_resource type="Resource" path="res://resources/interactions/doors/cfg_door_alleyway_to_bar.tres" id="60_door_config"]
+[ext_resource type="Resource" path="res://resources/interactions/checkpoints/cfg_checkpoint_alleyway.tres" id="61_checkpoint_config"]
+[ext_resource type="Resource" path="res://resources/interactions/hazards/cfg_hazard_spike_trap.tres" id="62_hazard_config"]
+[ext_resource type="Resource" path="res://resources/interactions/endgame/cfg_endgame_goal_alleyway.tres" id="63_endgame_config"]
+[ext_resource type="Resource" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="64_hazard_death_config"]
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
@@ -271,15 +271,14 @@ script = ExtResource("16_8qi87")
 [node name="E_DeathZone" type="Node3D" parent="Entities/Hazards" unique_id=2142744412]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
 script = ExtResource("44_hazard_controller")
-is_instant_death = true
-settings = ExtResource("44_death_settings")
+config = ExtResource("64_hazard_death_config")
 entity_id = &"deathzone_alleyway"
 tags = Array[StringName]([&"hazard", &"death"])
 
 [node name="E_SpikeTrapA" type="Node3D" parent="Entities/Hazards" unique_id=2072822935]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.8646226, 0, -2.5110316)
 script = ExtResource("44_hazard_controller")
-settings = ExtResource("44_spike_settings")
+config = ExtResource("62_hazard_config")
 visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
 entity_id = &"spiketrap_a"
 tags = Array[StringName]([&"hazard", &"trap"])
@@ -296,7 +295,7 @@ material = ExtResource("55_fade_hazard")
 [node name="E_SpikeTrapB" type="Node3D" parent="Entities/Hazards" unique_id=353656775]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -3.834928)
 script = ExtResource("44_hazard_controller")
-settings = ExtResource("44_spike_settings")
+config = ExtResource("62_hazard_config")
 visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
 entity_id = &"spiketrap_b"
 tags = Array[StringName]([&"hazard", &"trap"])
@@ -316,10 +315,7 @@ script = ExtResource("16_8qi87")
 [node name="E_FinalGoal" type="Node3D" parent="Entities/Objectives" unique_id=1434112409]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -4.12, 1.108, 0.833)
 script = ExtResource("41_goal_script")
-required_area = "interior_bar"
-objective_id = &"final_goal"
-area_id = "alleyway"
-settings = ExtResource("44_goal_settings")
+config = ExtResource("63_endgame_config")
 visual_paths = Array[NodePath]([NodePath("Visual"), NodePath(""), NodePath("GlowLight")])
 entity_id = &"finalgoal"
 tags = Array[StringName]([&"objective", &"endgame"])
@@ -346,10 +342,7 @@ fov = 28.8
 [node name="E_DoorTrigger" type="Node3D" parent="Entities" unique_id=616346955]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0.386, 1.497, -5.739)
 script = ExtResource("30_door_controller")
-door_id = &"door_to_bar"
-target_scene_id = &"interior_bar"
-target_spawn_point = &"sp_entrance_from_exterior"
-settings = ExtResource("30_auc1c")
+config = ExtResource("60_door_config")
 visual_paths = Array[NodePath]([NodePath("DoorVisual")])
 entity_id = &"door_to_bar"
 tags = Array[StringName]([&"trigger", &"door"])
@@ -363,9 +356,7 @@ material = ExtResource("57_fade_door")
 [node name="E_Checkpoint_SafeZone" type="Node3D" parent="Entities" unique_id=1409158797]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1599712, 1.0014925, 1.26685)
 script = ExtResource("43_checkpoint_zone_script")
-checkpoint_id = &"cp_alleyway"
-spawn_point_id = &"sp_checkpoint_safe"
-settings = ExtResource("43_checkpoint_settings")
+config = ExtResource("61_checkpoint_config")
 entity_id = &"checkpoint_alleyway"
 tags = Array[StringName]([&"checkpoint", &"objective"])
 

@@ -1,15 +1,12 @@
 [gd_scene format=3 uid="uid://baymf4575tym0"]
 
 [ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="1_controller"]
-[ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/cfg_cylinder_wide_door_trigger_settings.tres" id="2_8x6vi"]
 [ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="3_fade_material"]
+[ext_resource type="Resource" path="res://resources/interactions/doors/cfg_door_prefab_house.tres" id="4_door_config"]
 
 [node name="E_DoorTrigger" type="Node3D" unique_id=195825082]
 script = ExtResource("1_controller")
-door_id = &"door_to_house"
-target_scene_id = &"interior_house"
-target_spawn_point = &"sp_entrance_from_exterior"
-settings = ExtResource("2_8x6vi")
+config = ExtResource("4_door_config")
 entity_id = &"doortrigger"
 tags = Array[StringName]([&"trigger", &"door"])
 

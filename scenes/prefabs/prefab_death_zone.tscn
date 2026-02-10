@@ -1,11 +1,10 @@
 [gd_scene format=3 uid="uid://dyjqcg3o35ety"]
 
 [ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="1_controller"]
-[ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/cfg_death_zone_volume.tres" id="2_death_settings"]
+[ext_resource type="Resource" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="3_hazard_config"]
 
 [node name="E_DeathZone" type="Node3D" unique_id=71030271]
 script = ExtResource("1_controller")
-is_instant_death = true
-settings = ExtResource("2_death_settings")
+config = ExtResource("3_hazard_config")
 entity_id = &"deathzone"
 tags = Array[StringName]([&"hazard", &"death"])
