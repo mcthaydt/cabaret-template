@@ -126,6 +126,8 @@
 - `inter_signpost.gd` emits `signpost_message` events; HUD reuses the checkpoint toast UI for signpost text.
 - Exterior/interior scenes are now fixtures built on controllers; core flow routes through `gameplay_base` instead of these fixtures.
 - Controller `settings` are auto-duplicated (`resource_local_to_scene = true`). Assign shared `.tres` files freely—each controller keeps a unique copy.
+- Interaction config schema resources live in `scripts/resources/interactions/` (`rs_*_interaction_config.gd`) with authored instances under `resources/interactions/**` (`cfg_*.tres`).
+- Validate config resources with `scripts/gameplay/helpers/u_interaction_config_validator.gd` before binding them to controllers.
 - Passive volumes (`E_CheckpointZone`, `E_HazardZone`, `E_VictoryZone`) keep `ignore_initial_overlap = false` so respawns inside the volume re-register automatically. Triggered interactables (doors, signposts) leave it `true` to avoid instant re-activation.
 - Use `visual_paths` to toggle meshes/lights/particles when controllers enable/disable; keep visuals as controller children instead of wiring extra logic nodes.
 - Controllers run with `process_mode = PROCESS_MODE_ALWAYS` and will not activate while `scene.is_transitioning` or `M_SceneManager.is_transitioning()` is true.

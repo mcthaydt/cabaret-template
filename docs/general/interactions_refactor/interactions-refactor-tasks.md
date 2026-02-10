@@ -9,7 +9,7 @@ This refactor covers all interaction controllers and keeps the existing hybrid r
 - Resources become the declarative source of interaction configuration.
 
 **Status**: In Progress  
-**Current Phase**: Phase 1  
+**Current Phase**: Phase 2  
 **Task ID Range**: T001-T053  
 **Primary Tasks File**: `docs/general/interactions_refactor/interactions-refactor-tasks.md`  
 **Continuation Prompt File**: `docs/general/interactions_refactor/interactions-refactor-continuation-prompt.md` (required per phase)
@@ -158,8 +158,8 @@ Validator responsibilities:
 | Phase | Name | Task IDs | Risk | Status |
 |---|---|---|---|---|
 | 0 | Baseline and Safety | T001-T003 | Low | Complete |
-| 1 | Resource Schema and Validation | T010-T014 | Medium | In Progress |
-| 2 | Controller Binding to Resources | T020-T023 | Medium | Not Started |
+| 1 | Resource Schema and Validation | T010-T014 | Medium | Complete |
+| 2 | Controller Binding to Resources | T020-T023 | Medium | In Progress |
 | 3 | Scene/Prefab Migration | T030-T033 | High | Not Started |
 | 4 | Validation and Enforcement | T040-T043 | Medium | Not Started |
 | 5 | Cleanup and Doc Closure | T050-T053 | Medium | Not Started |
@@ -266,26 +266,42 @@ For Phase 1 (resource schema/validation) and Phase 2 (controller binding), these
 
 ### RED
 
-- [ ] **T010 (RED)** Add tests for resource schema loading/validation:
+- [x] **T010 (RED)** Add tests for resource schema loading/validation:
   - Base config defaults and required fields.
   - Type-specific required field failures.
   - Invalid enum/empty field handling.
 
 ### GREEN
 
-- [ ] **T011 (GREEN)** Add `rs_interaction_config.gd` base type.
-- [ ] **T012 (GREEN)** Add typed config resources:
+- [x] **T011 (GREEN)** Add `rs_interaction_config.gd` base type.
+- [x] **T012 (GREEN)** Add typed config resources:
   - `rs_door_interaction_config.gd`
   - `rs_checkpoint_interaction_config.gd`
   - `rs_hazard_interaction_config.gd`
   - `rs_victory_interaction_config.gd`
   - `rs_signpost_interaction_config.gd`
   - `rs_endgame_goal_interaction_config.gd`
-- [ ] **T013 (GREEN)** Add `u_interaction_config_validator.gd` with strict required-field checks.
+- [x] **T013 (GREEN)** Add `u_interaction_config_validator.gd` with strict required-field checks.
 
 ### REFACTOR
 
-- [ ] **T014 (REFACTOR)** Normalize defaults, naming, and `cfg_` instance conventions.
+- [x] **T014 (REFACTOR)** Normalize defaults, naming, and `cfg_` instance conventions.
+
+### Phase 1 Completion Notes
+
+- RED established via `tests/unit/resources/test_interaction_config_validator.gd` before implementation.
+- Added interaction resource family under `scripts/resources/interactions/`.
+- Added validator utility at `scripts/gameplay/helpers/u_interaction_config_validator.gd`.
+- Added initial `cfg_` resource instances under:
+  - `resources/interactions/doors/`
+  - `resources/interactions/checkpoints/`
+  - `resources/interactions/hazards/`
+  - `resources/interactions/victory/`
+  - `resources/interactions/signposts/`
+  - `resources/interactions/endgame/`
+- Validation run for this phase:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources -ginclude_subdirs=true`
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true`
 
 **Phase 1 Exit Criteria**
 - All resource and validator tests green.
