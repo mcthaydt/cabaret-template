@@ -83,6 +83,9 @@ func _pump() -> void:
 func _setup_entity(max_distance: float = 10.0) -> Dictionary:
 	# Add state store for the landing indicator system (Phase 16)
 	var store: M_StateStore = M_StateStore.new()
+	store.settings = RS_StateStoreSettings.new()
+	store.settings.enable_persistence = false
+	store.gameplay_initial_state = RS_GameplayInitialState.new()
 	add_child(store)
 	await _pump()
 	

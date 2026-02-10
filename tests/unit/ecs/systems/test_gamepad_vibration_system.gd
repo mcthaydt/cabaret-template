@@ -110,6 +110,7 @@ func test_vibration_triggers_when_gamepad_active() -> void:
 func _setup_system() -> Dictionary:
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
+	_store.settings.enable_persistence = false
 	_store.gameplay_initial_state = RS_GameplayInitialState.new()
 	_store.settings_initial_state = RS_SettingsInitialState.new()
 	add_child_autofree(_store)
