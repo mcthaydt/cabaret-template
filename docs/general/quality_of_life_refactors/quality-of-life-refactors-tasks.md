@@ -16,7 +16,7 @@ This initiative focuses on three UX outcomes:
   - Signpost panel auto-hides after a configurable delay.
 
 **Status**: In Progress  
-**Current Phase**: Phase 4 (Ready)  
+**Current Phase**: Phase 5 (Ready)  
 **Task ID Range**: QOL-T001-QOL-T065  
 **Primary Tasks File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`  
 **Continuation Prompt File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-continuation-prompt.md` (required per phase)
@@ -175,8 +175,8 @@ No event contract break is planned.
 | 1 | HUD Channel Split Scaffolding | QOL-T010-QOL-T014 | Medium | Complete |
 | 2 | Autosave Spinner | QOL-T020-QOL-T025 | Medium | Complete |
 | 3 | Checkpoint Toast Redesign | QOL-T030-QOL-T034 | Medium | Complete |
-| 4 | Signpost Panel + Duration | QOL-T040-QOL-T046 | Medium | Ready |
-| 5 | 3D Interact Icon + HUD Hybrid | QOL-T050-QOL-T057 | High | Not Started |
+| 4 | Signpost Panel + Duration | QOL-T040-QOL-T046 | Medium | Complete |
+| 5 | 3D Interact Icon + HUD Hybrid | QOL-T050-QOL-T057 | High | Ready |
 | 6 | Regression + Polish + Closure | QOL-T060-QOL-T065 | Medium | Not Started |
 
 ---
@@ -408,6 +408,9 @@ Validation suites executed:
 | `res://tests/unit/style` | PASS | 12/12 passing |
 
 Implementation commit:
+- `d9ef6b3` - Route signpost feedback to timed panel and duration payload.
+
+Implementation commit:
 - `e35bc12` - Route autosave feedback to spinner and add payload flags.
 
 ### Phase 2 Completion Notes
@@ -501,17 +504,82 @@ Implementation commit:
 
 **Goal**: Add dedicated signpost panel with config-driven auto-hide timing.
 
-- [ ] **QOL-T040** Add RED tests for signpost panel lifecycle:
+- [x] **QOL-T040** Add RED tests for signpost panel lifecycle:
   - show
   - auto-hide by duration
   - pause suppression
   - prompt restoration
-- [ ] **QOL-T041** Add `message_duration_sec` to `RS_SignpostInteractionConfig` with default `3.0`.
-- [ ] **QOL-T042** Update signpost config validator coverage and defaults where needed.
-- [ ] **QOL-T043** Publish signpost duration additively on `signpost_message` payload (`message_duration_sec`) from config.
-- [ ] **QOL-T044** Route `signpost_message` handling to dedicated signpost panel channel and consume payload duration (fallback to default when absent).
-- [ ] **QOL-T045** Keep controlled blocker usage for signpost display (not autosave spinner).
-- [ ] **QOL-T046** GREEN tests for signpost duration, suppression, and restoration.
+- [x] **QOL-T041** Add `message_duration_sec` to `RS_SignpostInteractionConfig` with default `3.0`.
+- [x] **QOL-T042** Update signpost config validator coverage and defaults where needed.
+- [x] **QOL-T043** Publish signpost duration additively on `signpost_message` payload (`message_duration_sec`) from config.
+- [x] **QOL-T044** Route `signpost_message` handling to dedicated signpost panel channel and consume payload duration (fallback to default when absent).
+- [x] **QOL-T045** Keep controlled blocker usage for signpost display (not autosave spinner).
+- [x] **QOL-T046** GREEN tests for signpost duration, suppression, and restoration.
+
+### QOL-T040 RED Coverage Added (2026-02-10)
+
+- Added signpost panel lifecycle RED tests in:
+  - `tests/unit/ui/test_hud_feedback_channels.gd`
+  - `tests/unit/ui/test_hud_interactions_pause_and_signpost.gd`
+- Coverage now asserts:
+  - signpost events route to dedicated signpost panel (not checkpoint toast)
+  - panel auto-hides by payload duration
+  - payload fallback to default duration when `message_duration_sec` is absent
+  - pause suppression + prompt hide/restore lifecycle
+
+### QOL-T041-QOL-T043 Resource + Payload Updates
+
+- Added `@export_range(... ) var message_duration_sec: float = 3.0` to:
+  - `scripts/resources/interactions/rs_signpost_interaction_config.gd`
+- Added signpost event payload extension in:
+  - `scripts/gameplay/inter_signpost.gd`
+  - `signpost_message` now publishes `message_duration_sec` additively.
+- Updated authored signpost config resources with explicit defaults:
+  - `resources/interactions/signposts/cfg_signpost_default.tres`
+  - `resources/interactions/signposts/cfg_signpost_bar_tutorial.tres`
+  - `resources/interactions/signposts/cfg_signpost_exterior_tutorial.tres`
+  - `resources/interactions/signposts/cfg_signpost_interior_tutorial.tres`
+
+### QOL-T042 Validator Coverage Updates
+
+- Extended signpost validator checks in:
+  - `scripts/gameplay/helpers/u_interaction_config_validator.gd`
+  - `message_duration_sec` must be `> 0`.
+- Added tests in:
+  - `tests/unit/resources/test_interaction_config_validator.gd`
+  - default duration assertion (`3.0`)
+  - invalid non-positive duration rejection
+
+### QOL-T044-QOL-T046 HUD Signpost Channel Implementation
+
+- Updated `scripts/ui/hud/ui_hud_controller.gd` to:
+  - route `signpost_message` to `_show_signpost_panel(...)`
+  - consume additive payload duration (`message_duration_sec`) with default fallback (`3.0`)
+  - auto-hide signpost panel on a timer
+  - hide/restore `UI_ButtonPrompt` deterministically for signpost lifecycle
+  - use `U_InteractBlocker.block()` while signpost panel is visible, then unblock with cooldown on natural hide
+  - use immediate unblock on interruption (pause/channel replacement)
+- Existing autosave spinner path remains non-blocking.
+
+### QOL-T046 GREEN Validation Results (2026-02-10)
+
+Validation suites executed:
+
+| Suite | Result | Notes |
+|---|---|---|
+| `res://tests/unit/ui` | PASS | 181/183 passing, 2 expected pending mobile-only |
+| `res://tests/unit/interactables` | PASS | 36/36 passing |
+| `res://tests/unit/save` | PASS | 123/124 passing, 1 expected pending headless viewport capture |
+| `res://tests/integration/save_manager` | PASS | 19/19 passing |
+| `res://tests/unit/style` | PASS | 12/12 passing |
+
+### Phase 4 Completion Notes
+
+- Phase 4 exit criteria met on 2026-02-10.
+- Signpost feedback now uses dedicated panel channel with config/event-driven auto-hide duration.
+- Event contract remained additive-only (`signpost_message.message_duration_sec`).
+- Controlled blocker behavior preserved for signpost display while autosave spinner remains non-blocking.
+- Next phase target: Phase 5 (`QOL-T050-QOL-T057`) world-space icon + HUD hybrid cue implementation.
 
 ### Phase 4 Exit Criteria
 

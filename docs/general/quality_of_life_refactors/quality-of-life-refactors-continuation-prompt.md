@@ -3,9 +3,9 @@
 ## Current Status
 
 - Initiative: Quality of Life Refactors (HUD feedback separation + hybrid interaction cues)
-- Current phase: Phase 4 (Ready to Start)
+- Current phase: Phase 5 (Ready to Start)
 - Primary tasks file: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`
-- Task progress: 20/41 complete (`QOL-T001-QOL-T004`, `QOL-T010-QOL-T014`, `QOL-T020-QOL-T025`, `QOL-T030-QOL-T034` complete; `QOL-T040-QOL-T065` remaining)
+- Task progress: 27/41 complete (`QOL-T001-QOL-T004`, `QOL-T010-QOL-T014`, `QOL-T020-QOL-T025`, `QOL-T030-QOL-T034`, `QOL-T040-QOL-T046` complete; `QOL-T050-QOL-T065` remaining)
 - Last updated: 2026-02-10
 
 ## Phase 0 Completion Summary (2026-02-10)
@@ -86,6 +86,30 @@
 - Implementation commit:
   - `a0c7526` - Refine checkpoint toast copy and channel isolation.
 
+## Phase 4 Completion Summary (2026-02-10)
+
+- Completed signpost panel + duration tasks:
+  - `QOL-T040` RED tests for signpost panel lifecycle (show, auto-hide, pause suppression, prompt restoration)
+  - `QOL-T041` Added `message_duration_sec` to `RS_SignpostInteractionConfig` (default `3.0`)
+  - `QOL-T042` Added signpost duration validator rule + resource validator tests
+  - `QOL-T043` Added additive `message_duration_sec` payload publish from `Inter_Signpost`
+  - `QOL-T044` Routed `signpost_message` to dedicated signpost panel with payload/default duration handling
+  - `QOL-T045` Preserved controlled blocker behavior for signpost path while keeping autosave spinner non-blocking
+  - `QOL-T046` GREEN validation across required gate suites
+- Updated test coverage:
+  - `tests/unit/ui/test_hud_feedback_channels.gd`
+  - `tests/unit/ui/test_hud_interactions_pause_and_signpost.gd`
+  - `tests/unit/interactables/test_e_signpost.gd`
+  - `tests/unit/resources/test_interaction_config_validator.gd`
+- Required gate suite status after Phase 4:
+  - `res://tests/unit/ui`: PASS (181/183, 2 expected pending mobile-only tests)
+  - `res://tests/unit/interactables`: PASS (36/36)
+  - `res://tests/unit/save`: PASS (123/124, 1 expected pending headless viewport-capture test)
+  - `res://tests/integration/save_manager`: PASS (19/19)
+  - `res://tests/unit/style`: PASS (12/12)
+- Implementation commit:
+  - `d9ef6b3` - Route signpost feedback to timed panel and duration payload.
+
 ## Confirmed Product Decisions (Locked)
 
 1. Feedback UX uses **functional split**:
@@ -155,13 +179,13 @@
 - Phase 1 - HUD Channel Split Scaffolding (`QOL-T010-QOL-T014`): Complete
 - Phase 2 - Autosave Spinner (`QOL-T020-QOL-T025`): Complete
 - Phase 3 - Checkpoint Toast Redesign (`QOL-T030-QOL-T034`): Complete
-- Phase 4 - Signpost Panel + Duration (`QOL-T040-QOL-T046`): Ready to Start
-- Phase 5 - 3D Interact Icon + HUD Hybrid (`QOL-T050-QOL-T057`): Not Started
+- Phase 4 - Signpost Panel + Duration (`QOL-T040-QOL-T046`): Complete
+- Phase 5 - 3D Interact Icon + HUD Hybrid (`QOL-T050-QOL-T057`): Ready to Start
 - Phase 6 - Regression + Polish + Closure (`QOL-T060-QOL-T065`): Not Started
 
 ## Immediate Next Step
 
-Start Phase 4 with `QOL-T040` by adding RED tests for signpost panel lifecycle (show, auto-hide by duration, pause suppression, prompt restoration), then add config-driven duration wiring and signpost-panel routing (`QOL-T041-QOL-T046`).
+Start Phase 5 with `QOL-T050` by adding RED tests for hybrid world icon visibility conditions (in-range, out-of-range, transition/overlay blocked), then add config-driven interaction hint fields and controller wiring (`QOL-T051-QOL-T057`) without regressing the Phase 2/3/4 HUD channel contracts.
 
 ## Required Test Commands (Phase Advancement Gates)
 
@@ -188,7 +212,7 @@ Style suite is mandatory after any scene/resource structure change.
 - Keep world icon support config-driven to avoid controller-only one-offs.
 - When introducing new exported resource fields, update defaults and test coverage in the same phase.
 - Use Phase 0 invariants in `quality-of-life-refactors-tasks.md` as regression gates while splitting HUD channels.
-- Keep Phase 2 spinner routing and Phase 3 checkpoint copy behavior stable while moving signpost rendering to dedicated panel in Phase 4.
+- Keep Phase 2 spinner routing, Phase 3 checkpoint copy behavior, and Phase 4 signpost panel/duration behavior stable while adding world icon cues in Phase 5.
 - If new pitfalls or repeat mistakes are discovered, update:
   - `AGENTS.md`
   - `docs/general/DEV_PITFALLS.md`
