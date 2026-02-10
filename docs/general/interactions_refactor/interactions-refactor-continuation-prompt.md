@@ -3,9 +3,9 @@
 ## Current Status
 
 - Initiative: Interactions Refactor (resource-driven configuration, TDD-first)
-- Current phase: Phase 4 - Validation and Enforcement
+- Current phase: Phase 5 - Cleanup and Documentation Closure
 - Primary tasks file: `docs/general/interactions_refactor/interactions-refactor-tasks.md`
-- Task progress: 16/24 complete (`T001-T003`, `T010-T014`, `T020-T023`, `T030-T033` complete)
+- Task progress: 20/24 complete (`T001-T003`, `T010-T014`, `T020-T023`, `T030-T033`, `T040-T043` complete)
 - Phase 0 baseline status (2026-02-10): 8/8 suites green
   - `res://tests/unit/interactables`: PASS (22/22)
   - `res://tests/unit/ecs/components`: PASS (49/49)
@@ -40,11 +40,28 @@
   - `res://tests/integration/scene_manager`: PASS (90/90)
   - `res://tests/unit/resources`: PASS (32/32)
 
+## Phase 4 Completion Summary (2026-02-10)
+
+- Added style/contract enforcement for interaction config authoring:
+  - `scripts/resources/interactions` script-prefix checks (`rs_`)
+  - `resources/interactions/**` naming + category placement checks (`cfg_`)
+  - Script-attachment checks (`script = ExtResource(...)`) for interaction config `.tres`
+- Tightened validator rules and diagnostics:
+  - `trigger_settings` must be assigned and extend `RS_SceneTriggerSettings`
+  - Added explicit invalid-value diagnostics for door/hazard/victory/endgame fields
+  - Added semantic rule: `LEVEL_COMPLETE` requires non-empty `objective_id`
+- Added negative-path validator tests for missing IDs, illegal values, and invalid enum combinations.
+- Validation suites:
+  - `res://tests/unit/resources`: PASS (36/36)
+  - `res://tests/unit/style`: PASS (12/12)
+  - `res://tests/unit/interactables`: PASS (36/36)
+  - `res://tests/integration/spawn_system`: PASS (19/19; checkpoint tests stable)
+
 ## Next Actions
 
-1. Execute `T040 (RED)`: add style/contract tests for interaction config naming, placement, and required script attachment coverage.
-2. Implement `T041-T042 (GREEN)`: enforce required config attachment patterns and add negative-path validation tests (missing IDs/targets, invalid enums, illegal values).
-3. Perform `T043 (REFACTOR)`: tighten error messages and Phase 4 editor-facing guidance.
+1. Execute `T050`: remove deprecated controller export fallbacks now that scene/prefab migration is complete.
+2. Execute `T051`: run full targeted regression + style enforcement suites after fallback removal.
+3. Execute `T052-T053`: finalize docs updates and create Phase 5 docs-only completion commit.
 
 ## Constraints Reminder
 
@@ -66,7 +83,7 @@
 ## Notes for Next Engineer/Agent
 
 - Do not refactor tags/spawn architecture as part of this initiative.
-- Ensure new interaction config directories are covered by style/contract tests during Phase 4.
+- Do not reintroduce controller-export fallback precedence; resource config should remain the source of truth after Phase 5 cleanup.
 - Phase 0 invariants + no-behavior-change rules are now documented in the tasks file and are the source of truth for regression checks in Phases 1-2.
 - ECS systems test environment is now stabilized by disabling `M_StateStore` persistence in non-persistence tests.
 - Phase 1 artifacts now exist:
@@ -80,3 +97,7 @@
   - Scene migration guard test: `tests/unit/interactables/test_scene_interaction_config_binding.gd`
   - Scene-level config assignment in gameplay/prefab interaction nodes
   - Expanded authored config instances in `resources/interactions/**`
+- Phase 4 artifacts now exist:
+  - Expanded style enforcement coverage in `tests/unit/style/test_style_enforcement.gd`
+  - Expanded validator negative-path coverage in `tests/unit/resources/test_interaction_config_validator.gd`
+  - Tightened validator diagnostics in `scripts/gameplay/helpers/u_interaction_config_validator.gd`

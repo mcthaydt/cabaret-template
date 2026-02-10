@@ -9,7 +9,7 @@ This refactor covers all interaction controllers and keeps the existing hybrid r
 - Resources become the declarative source of interaction configuration.
 
 **Status**: In Progress  
-**Current Phase**: Phase 4  
+**Current Phase**: Phase 5  
 **Task ID Range**: T001-T053  
 **Primary Tasks File**: `docs/general/interactions_refactor/interactions-refactor-tasks.md`  
 **Continuation Prompt File**: `docs/general/interactions_refactor/interactions-refactor-continuation-prompt.md` (required per phase)
@@ -161,8 +161,8 @@ Validator responsibilities:
 | 1 | Resource Schema and Validation | T010-T014 | Medium | Complete |
 | 2 | Controller Binding to Resources | T020-T023 | Medium | Complete |
 | 3 | Scene/Prefab Migration | T030-T033 | High | Complete |
-| 4 | Validation and Enforcement | T040-T043 | Medium | In Progress |
-| 5 | Cleanup and Doc Closure | T050-T053 | Medium | Not Started |
+| 4 | Validation and Enforcement | T040-T043 | Medium | Complete |
+| 5 | Cleanup and Doc Closure | T050-T053 | Medium | In Progress |
 
 ---
 
@@ -407,15 +407,15 @@ For Phase 1 (resource schema/validation) and Phase 2 (controller binding), these
 
 ### RED
 
-- [ ] **T040 (RED)** Add style/contract checks for interaction config conventions.
-  - Add script prefix enforcement coverage for `res://scripts/resources/interactions` (`rs_`).
-  - Add resource naming/placement checks for `res://resources/interactions` (`cfg_` instance convention).
-  - Add explicit checks that interaction config resources declare `script = ExtResource(...)`.
+- [x] **T040 (RED)** Add style/contract checks for interaction config conventions.
+  - Added script prefix enforcement coverage for `res://scripts/resources/interactions` (`rs_`).
+  - Added resource naming/placement checks for `res://resources/interactions` (`cfg_` instance convention + category directories).
+  - Added explicit checks that interaction config resources declare `script = ExtResource(...)`.
 
 ### GREEN
 
-- [ ] **T041 (GREEN)** Enforce required script/resource attachment patterns.
-- [ ] **T042 (GREEN)** Add negative tests:
+- [x] **T041 (GREEN)** Enforce required script/resource attachment patterns.
+- [x] **T042 (GREEN)** Add negative tests:
   - Missing IDs.
   - Empty targets.
   - Invalid enum combinations.
@@ -423,7 +423,29 @@ For Phase 1 (resource schema/validation) and Phase 2 (controller binding), these
 
 ### REFACTOR
 
-- [ ] **T043 (REFACTOR)** Tighten error messages and editor-facing docs.
+- [x] **T043 (REFACTOR)** Tighten error messages and editor-facing docs.
+
+### Phase 4 Completion Notes (2026-02-10)
+
+- Added Phase 4 style/contract enforcement in `tests/unit/style/test_style_enforcement.gd`:
+  - Script prefix checks for `scripts/resources/interactions` (`rs_`).
+  - Naming + placement checks for `resources/interactions/**` (`cfg_` with category-subdirectory enforcement).
+  - Script-attachment checks for interaction config `.tres` resources.
+- Tightened validator enforcement in `scripts/gameplay/helpers/u_interaction_config_validator.gd`:
+  - Base `trigger_settings` must be assigned and extend `RS_SceneTriggerSettings`.
+  - Door mode/cooldown validation now reports explicit invalid values.
+  - Hazard/victory/endgame validation messages now report explicit invalid values.
+  - Added victory semantic guard: `LEVEL_COMPLETE` requires non-empty `objective_id`.
+- Expanded negative-path validator coverage in `tests/unit/resources/test_interaction_config_validator.gd`:
+  - Invalid door trigger mode + negative cooldown.
+  - Missing checkpoint IDs.
+  - Invalid victory combination (`LEVEL_COMPLETE` without objective).
+  - Missing trigger settings.
+- Validation runs for this phase:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources -ginclude_subdirs=true` (PASS, 36/36)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (PASS, 12/12)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -ginclude_subdirs=true` (PASS, 36/36)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/spawn_system -ginclude_subdirs=true` (PASS, 19/19; checkpoint integration coverage remains stable)
 
 **Phase 4 Exit Criteria**
 - Validation and enforcement tests prevent bad config authoring patterns.
