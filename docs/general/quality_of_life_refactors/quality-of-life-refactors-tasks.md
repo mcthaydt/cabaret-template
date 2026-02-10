@@ -16,7 +16,7 @@ This initiative focuses on three UX outcomes:
   - Signpost panel auto-hides after a configurable delay.
 
 **Status**: In Progress  
-**Current Phase**: Phase 5 (Ready)  
+**Current Phase**: Phase 6 (Ready)  
 **Task ID Range**: QOL-T001-QOL-T065  
 **Primary Tasks File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`  
 **Continuation Prompt File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-continuation-prompt.md` (required per phase)
@@ -176,8 +176,8 @@ No event contract break is planned.
 | 2 | Autosave Spinner | QOL-T020-QOL-T025 | Medium | Complete |
 | 3 | Checkpoint Toast Redesign | QOL-T030-QOL-T034 | Medium | Complete |
 | 4 | Signpost Panel + Duration | QOL-T040-QOL-T046 | Medium | Complete |
-| 5 | 3D Interact Icon + HUD Hybrid | QOL-T050-QOL-T057 | High | Ready |
-| 6 | Regression + Polish + Closure | QOL-T060-QOL-T065 | Medium | Not Started |
+| 5 | 3D Interact Icon + HUD Hybrid | QOL-T050-QOL-T057 | High | Complete |
+| 6 | Regression + Polish + Closure | QOL-T060-QOL-T065 | Medium | Ready |
 
 ---
 
@@ -593,17 +593,86 @@ Validation suites executed:
 
 **Goal**: Add world-space interact icon cues while preserving existing HUD prompt behavior.
 
-- [ ] **QOL-T050** Add RED tests for world icon visibility conditions:
+- [x] **QOL-T050** Add RED tests for world icon visibility conditions:
   - in-range + interactable + unblocked
   - out-of-range
   - transition/overlay blocked
-- [ ] **QOL-T051** Add interaction hint fields to `RS_InteractionConfig` (base, opt-in).
-- [ ] **QOL-T052** Implement world-space icon support in interact-mode controller flow.
-- [ ] **QOL-T053** Keep current `interact_prompt_show/hide` HUD prompt behavior unchanged.
-- [ ] **QOL-T054** Ensure icon and HUD prompt can coexist without conflicting hide/show races.
-- [ ] **QOL-T055** Add/author assets/resources for icon rendering if needed (prefix/style compliant).
-- [ ] **QOL-T056** Update scene/prefab wiring for at least one door + one signpost reference flow.
-- [ ] **QOL-T057** GREEN tests for hybrid cue behavior.
+- [x] **QOL-T051** Add interaction hint fields to `RS_InteractionConfig` (base, opt-in).
+- [x] **QOL-T052** Implement world-space icon support in interact-mode controller flow.
+- [x] **QOL-T053** Keep current `interact_prompt_show/hide` HUD prompt behavior unchanged.
+- [x] **QOL-T054** Ensure icon and HUD prompt can coexist without conflicting hide/show races.
+- [x] **QOL-T055** Add/author assets/resources for icon rendering if needed (prefix/style compliant).
+- [x] **QOL-T056** Update scene/prefab wiring for at least one door + one signpost reference flow.
+- [x] **QOL-T057** GREEN tests for hybrid cue behavior.
+
+### QOL-T050 RED Coverage Added (2026-02-10)
+
+- Added world hint RED coverage in:
+  - `tests/unit/interactables/test_triggered_interactable_controller.gd`
+  - `tests/unit/interactables/test_e_door_trigger_controller.gd`
+  - `tests/unit/interactables/test_e_signpost.gd`
+  - `tests/unit/interactables/test_scene_interaction_config_binding.gd`
+  - `tests/unit/resources/test_interaction_config_validator.gd`
+- New assertions cover:
+  - world icon visible in interact mode when in-range + unblocked
+  - world icon hidden when exiting range
+  - world icon suppressed during transition/overlay blocking
+  - world icon hidden while `U_InteractBlocker` is active
+
+### QOL-T051-QOL-T052 Interaction Hint Schema + Controller Runtime
+
+- Added base interaction hint fields to:
+  - `scripts/resources/interactions/rs_interaction_config.gd`
+  - `interaction_hint_enabled`, `interaction_hint_icon`, `interaction_hint_offset`, `interaction_hint_scale`
+- Extended validation in:
+  - `scripts/gameplay/helpers/u_interaction_config_validator.gd`
+  - validates `interaction_hint_scale > 0`
+  - validates `interaction_hint_icon` exists when hints are enabled
+- Implemented config-driven world icon lifecycle in:
+  - `scripts/gameplay/triggered_interactable_controller.gd`
+  - Adds `SO_InteractionHintIcon` `Sprite3D` management
+  - Visibility gates: interact mode, in-range, enabled, unblocked, not transition-blocked
+  - Keeps icon sync in `_physics_process`, enter/exit, enabled state, and trigger-mode changes
+
+### QOL-T053-QOL-T054 Hybrid Coexistence Guarantees
+
+- Existing prompt event contract remains unchanged:
+  - `interact_prompt_show` / `interact_prompt_hide` still published from `TriggeredInteractableController`
+- Added coexistence tests confirming HUD prompt events still publish while world icon is visible:
+  - `tests/unit/interactables/test_triggered_interactable_controller.gd`
+
+### QOL-T055-QOL-T056 Reference Wiring
+
+- Reused existing project icon asset (no new asset files required):
+  - `res://assets/textures/tex_icon.svg`
+- Enabled world-hint config in authored reference resources:
+  - `resources/interactions/doors/cfg_door_exterior_to_bar.tres`
+  - `resources/interactions/signposts/cfg_signpost_exterior_tutorial.tres`
+- Controllers apply base interaction hint fields from typed config resources:
+  - `scripts/gameplay/inter_door_trigger.gd`
+  - `scripts/gameplay/inter_signpost.gd`
+
+### QOL-T057 GREEN Validation Results (2026-02-10)
+
+Validation suites executed:
+
+| Suite | Result | Notes |
+|---|---|---|
+| `res://tests/unit/ui` | PASS | 181/183 passing, 2 expected pending mobile-only |
+| `res://tests/unit/interactables` | PASS | 44/44 passing |
+| `res://tests/unit/save` | PASS | 123/124 passing, 1 expected pending headless viewport capture |
+| `res://tests/integration/save_manager` | PASS | 19/19 passing |
+| `res://tests/unit/style` | PASS | 12/12 passing |
+
+Implementation commit:
+- `d57d6a7` - Add config-driven world interaction hints for interactables.
+
+### Phase 5 Completion Notes
+
+- Phase 5 exit criteria met on 2026-02-10.
+- World-space icon cues now coexist with HUD prompt guidance using additive, config-driven behavior.
+- Transition/overlay and blocker suppression rules are test-covered and deterministic.
+- Next phase target: Phase 6 (`QOL-T060-QOL-T065`) regression + polish + closure.
 
 ### Phase 5 Exit Criteria
 

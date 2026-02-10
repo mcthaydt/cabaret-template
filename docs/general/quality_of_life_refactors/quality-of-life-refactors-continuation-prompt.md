@@ -3,9 +3,9 @@
 ## Current Status
 
 - Initiative: Quality of Life Refactors (HUD feedback separation + hybrid interaction cues)
-- Current phase: Phase 5 (Ready to Start)
+- Current phase: Phase 6 (Ready to Start)
 - Primary tasks file: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`
-- Task progress: 27/41 complete (`QOL-T001-QOL-T004`, `QOL-T010-QOL-T014`, `QOL-T020-QOL-T025`, `QOL-T030-QOL-T034`, `QOL-T040-QOL-T046` complete; `QOL-T050-QOL-T065` remaining)
+- Task progress: 35/41 complete (`QOL-T001-QOL-T004`, `QOL-T010-QOL-T014`, `QOL-T020-QOL-T025`, `QOL-T030-QOL-T034`, `QOL-T040-QOL-T046`, `QOL-T050-QOL-T057` complete; `QOL-T060-QOL-T065` remaining)
 - Last updated: 2026-02-10
 
 ## Phase 0 Completion Summary (2026-02-10)
@@ -110,6 +110,32 @@
 - Implementation commit:
   - `d9ef6b3` - Route signpost feedback to timed panel and duration payload.
 
+## Phase 5 Completion Summary (2026-02-10)
+
+- Completed world-icon + hybrid cue tasks:
+  - `QOL-T050` RED tests for world icon visibility conditions (in-range, out-of-range, transition/overlay blocked, interact-blocked)
+  - `QOL-T051` Added interaction hint fields to `RS_InteractionConfig`
+  - `QOL-T052` Implemented world icon lifecycle in `TriggeredInteractableController`
+  - `QOL-T053` Preserved `interact_prompt_show/hide` contract and behavior
+  - `QOL-T054` Added coexistence coverage for world icon + HUD prompt event flow
+  - `QOL-T055` Reused existing icon asset (`tex_icon.svg`) for world hints
+  - `QOL-T056` Updated door + signpost reference interaction configs for world hints
+  - `QOL-T057` GREEN validation across required gate suites
+- Updated test coverage:
+  - `tests/unit/interactables/test_triggered_interactable_controller.gd`
+  - `tests/unit/interactables/test_e_door_trigger_controller.gd`
+  - `tests/unit/interactables/test_e_signpost.gd`
+  - `tests/unit/interactables/test_scene_interaction_config_binding.gd`
+  - `tests/unit/resources/test_interaction_config_validator.gd`
+- Required gate suite status after Phase 5:
+  - `res://tests/unit/ui`: PASS (181/183, 2 expected pending mobile-only tests)
+  - `res://tests/unit/interactables`: PASS (44/44)
+  - `res://tests/unit/save`: PASS (123/124, 1 expected pending headless viewport-capture test)
+  - `res://tests/integration/save_manager`: PASS (19/19)
+  - `res://tests/unit/style`: PASS (12/12)
+- Implementation commit:
+  - `d57d6a7` - Add config-driven world interaction hints for interactables.
+
 ## Confirmed Product Decisions (Locked)
 
 1. Feedback UX uses **functional split**:
@@ -180,12 +206,12 @@
 - Phase 2 - Autosave Spinner (`QOL-T020-QOL-T025`): Complete
 - Phase 3 - Checkpoint Toast Redesign (`QOL-T030-QOL-T034`): Complete
 - Phase 4 - Signpost Panel + Duration (`QOL-T040-QOL-T046`): Complete
-- Phase 5 - 3D Interact Icon + HUD Hybrid (`QOL-T050-QOL-T057`): Ready to Start
-- Phase 6 - Regression + Polish + Closure (`QOL-T060-QOL-T065`): Not Started
+- Phase 5 - 3D Interact Icon + HUD Hybrid (`QOL-T050-QOL-T057`): Complete
+- Phase 6 - Regression + Polish + Closure (`QOL-T060-QOL-T065`): Ready to Start
 
 ## Immediate Next Step
 
-Start Phase 5 with `QOL-T050` by adding RED tests for hybrid world icon visibility conditions (in-range, out-of-range, transition/overlay blocked), then add config-driven interaction hint fields and controller wiring (`QOL-T051-QOL-T057`) without regressing the Phase 2/3/4 HUD channel contracts.
+Start Phase 6 with `QOL-T060` by running final regression gates and capturing closure notes (`QOL-T060-QOL-T065`), including final event-contract audit and initiative completion docs updates.
 
 ## Required Test Commands (Phase Advancement Gates)
 
@@ -212,7 +238,7 @@ Style suite is mandatory after any scene/resource structure change.
 - Keep world icon support config-driven to avoid controller-only one-offs.
 - When introducing new exported resource fields, update defaults and test coverage in the same phase.
 - Use Phase 0 invariants in `quality-of-life-refactors-tasks.md` as regression gates while splitting HUD channels.
-- Keep Phase 2 spinner routing, Phase 3 checkpoint copy behavior, and Phase 4 signpost panel/duration behavior stable while adding world icon cues in Phase 5.
+- Keep Phase 2 spinner routing, Phase 3 checkpoint copy behavior, Phase 4 signpost panel/duration behavior, and Phase 5 world-hint coexistence behavior stable during closure/polish work.
 - If new pitfalls or repeat mistakes are discovered, update:
   - `AGENTS.md`
   - `docs/general/DEV_PITFALLS.md`
