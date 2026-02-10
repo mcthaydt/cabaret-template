@@ -2,8 +2,6 @@ extends GutTest
 
 # Tests for U_DisplayReducer (Phase 0 - Task 0C.1)
 
-const U_DisplayReducer := preload("res://scripts/state/reducers/u_display_reducer.gd")
-const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
 
 # Test 1: Default state has all fields
 func test_default_state_has_all_fields() -> void:

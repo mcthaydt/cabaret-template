@@ -1,6 +1,5 @@
 extends GutTest
 
-const RS_AmbientTrackDefinition := preload("res://scripts/ecs/resources/rs_ambient_track_definition.gd")
 
 func test_default_fade_duration_is_2_0() -> void:
 	var definition := RS_AmbientTrackDefinition.new()

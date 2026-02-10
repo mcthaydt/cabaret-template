@@ -6,7 +6,6 @@ class_name U_VFXActions
 ## Action creators for VFX slice mutations. All actions are registered with
 ## U_ActionRegistry for validation and dispatched via M_StateStore.
 
-const U_ActionRegistry := preload("res://scripts/state/utils/u_action_registry.gd")
 
 const ACTION_SET_SCREEN_SHAKE_ENABLED := StringName("vfx/set_screen_shake_enabled")
 const ACTION_SET_SCREEN_SHAKE_INTENSITY := StringName("vfx/set_screen_shake_intensity")

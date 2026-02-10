@@ -45,7 +45,6 @@ const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 
 ## Settings used to create/configure the trigger Area3D when not provided.
 ## Reused from scene triggers to keep volume configuration consistent.
-const RS_SceneTriggerSettings := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
 @export var settings: RS_SceneTriggerSettings
 
 var _area: Area3D = null
@@ -136,7 +135,11 @@ func _resolve_or_create_area() -> void:
 
 	# 3) Create a new Area3D as a sibling under the entity root (preferred)
 	var parent_node := get_parent() as Node3D
-	var host: Node = parent_node if parent_node != null else self
+	var host: Node
+	if parent_node != null:
+		host = parent_node
+	else:
+		host = self
 	_area = Area3D.new()
 	_area.name = "CheckpointArea"
 	_area.collision_layer = 0
@@ -194,7 +197,7 @@ func _on_area_body_entered(body: Node3D) -> void:
 		return
 	_publish_zone_entered(body)
 
-func _on_area_body_exited(_body: Node3D) -> void:
+func _on_area_body_exited(__body: Node3D) -> void:
 	pass
 
 func _is_player(body: Node3D) -> bool:

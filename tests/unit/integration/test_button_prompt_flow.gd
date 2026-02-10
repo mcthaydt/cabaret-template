@@ -1,17 +1,12 @@
 extends GutTest
 
 const HUD_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const RS_StateStoreSettings := preload("res://resources/state/cfg_default_state_store_settings.tres")
-const RS_BootInitialState := preload("res://resources/state/cfg_default_boot_initial_state.tres")
-const RS_MenuInitialState := preload("res://resources/state/cfg_default_menu_initial_state.tres")
-const RS_GameplayInitialState := preload("res://resources/state/cfg_default_gameplay_initial_state.tres")
-const RS_SceneInitialState := preload("res://resources/state/cfg_default_scene_initial_state.tres")
-const RS_SettingsInitialState := preload("res://resources/state/cfg_default_settings_initial_state.tres")
-const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const CFG_STATE_STORE_SETTINGS := preload("res://resources/state/cfg_default_state_store_settings.tres")
+const CFG_BOOT_INITIAL_STATE := preload("res://resources/state/cfg_default_boot_initial_state.tres")
+const CFG_MENU_INITIAL_STATE := preload("res://resources/state/cfg_default_menu_initial_state.tres")
+const CFG_GAMEPLAY_INITIAL_STATE := preload("res://resources/state/cfg_default_gameplay_initial_state.tres")
+const CFG_SCENE_INITIAL_STATE := preload("res://resources/state/cfg_default_scene_initial_state.tres")
+const CFG_SETTINGS_INITIAL_STATE := preload("res://resources/state/cfg_default_settings_initial_state.tres")
 const DeviceType := M_InputDeviceManager.DeviceType
 
 var _store: M_StateStore
@@ -23,12 +18,12 @@ func before_each() -> void:
 	U_ECSEventBus.reset()
 
 	_store = M_StateStore.new()
-	_store.settings = RS_StateStoreSettings
-	_store.boot_initial_state = RS_BootInitialState
-	_store.menu_initial_state = RS_MenuInitialState
-	_store.gameplay_initial_state = RS_GameplayInitialState
-	_store.scene_initial_state = RS_SceneInitialState
-	_store.settings_initial_state = RS_SettingsInitialState
+	_store.settings = CFG_STATE_STORE_SETTINGS
+	_store.boot_initial_state = CFG_BOOT_INITIAL_STATE
+	_store.menu_initial_state = CFG_MENU_INITIAL_STATE
+	_store.gameplay_initial_state = CFG_GAMEPLAY_INITIAL_STATE
+	_store.scene_initial_state = CFG_SCENE_INITIAL_STATE
+	_store.settings_initial_state = CFG_SETTINGS_INITIAL_STATE
 	add_child_autofree(_store)
 	U_ServiceLocator.register(StringName("state_store"), _store)
 

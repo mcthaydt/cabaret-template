@@ -30,7 +30,7 @@ func get_scene_type() -> int:
 ## - scene: The loaded gameplay scene node (already added to tree)
 ## - scene_id: The scene's registry ID
 ## - managers: Dictionary containing "spawn_manager" and "state_store" references
-func on_load(scene: Node, scene_id: StringName, managers: Dictionary) -> void:
+func on_load(scene: Node, _scene_id: StringName, managers: Dictionary) -> void:
 	# Spawn player at target spawn point via M_SpawnManager
 	# This happens AFTER scene is added to tree and _ready() has fired
 	var spawn_manager = managers.get("spawn_manager")
@@ -39,7 +39,7 @@ func on_load(scene: Node, scene_id: StringName, managers: Dictionary) -> void:
 
 
 ## No special cleanup needed for gameplay scenes.
-func on_unload(scene: Node, scene_id: StringName) -> void:
+func on_unload(_scene: Node, _scene_id: StringName) -> void:
 	pass
 
 

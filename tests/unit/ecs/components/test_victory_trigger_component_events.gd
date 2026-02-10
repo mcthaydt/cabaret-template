@@ -1,9 +1,5 @@
 extends BaseTest
 
-const M_ECSManager := preload("res://scripts/managers/m_ecs_manager.gd")
-const C_VictoryTriggerComponent := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
-const C_PlayerTagComponent := preload("res://scripts/ecs/components/c_player_tag_component.gd")
-const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 func before_each() -> void:
 	U_ECSEventBus.reset()

@@ -1,22 +1,7 @@
 extends GutTest
 
 const MobileControlsScene := preload("res://scenes/ui/hud/ui_mobile_controls.tscn")
-const UI_VirtualButton := preload("res://scripts/ui/hud/ui_virtual_button.gd")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")
-const RS_MenuInitialState := preload("res://scripts/resources/state/rs_menu_initial_state.gd")
-const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_SettingsInitialState := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
-const RS_NavigationInitialState := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const RS_InputProfile := preload("res://scripts/resources/input/rs_input_profile.gd")
 const DefaultTouchscreenProfile := preload("res://resources/input/profiles/cfg_default_touchscreen.tres")
-const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()

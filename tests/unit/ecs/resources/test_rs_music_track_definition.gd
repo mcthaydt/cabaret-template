@@ -1,6 +1,5 @@
 extends GutTest
 
-const RS_MusicTrackDefinition := preload("res://scripts/ecs/resources/rs_music_track_definition.gd")
 
 func test_default_fade_duration_is_1_5() -> void:
 	var definition := RS_MusicTrackDefinition.new()

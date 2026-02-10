@@ -1,8 +1,6 @@
 extends "res://scripts/gameplay/base_volume_controller.gd"
 class_name Inter_HazardZone
 
-const C_DamageZoneComponent := preload("res://scripts/ecs/components/c_damage_zone_component.gd")
-
 @export var component_name: StringName = StringName("C_DamageZoneComponent")
 
 var component_factory: Callable
@@ -103,10 +101,10 @@ func _apply_component_config() -> void:
 	_component.is_instant_death = _is_instant_death
 	_component.damage_cooldown = max(_damage_cooldown, 0.0)
 
-	var settings := _get_settings()
-	if settings != null:
-		settings.ignore_initial_overlap = false
-		var mask := int(settings.player_mask)
+	var trigger_settings := _get_settings()
+	if trigger_settings != null:
+		trigger_settings.ignore_initial_overlap = false
+		var mask := int(trigger_settings.player_mask)
 		if mask <= 0:
 			mask = 1
 		_component.collision_layer_mask = mask

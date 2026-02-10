@@ -1,13 +1,5 @@
 extends GutTest
 
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const M_InputProfileManager := preload("res://scripts/managers/m_input_profile_manager.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SettingsInitialState := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
-const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 class FaultyStateStore extends M_StateStore:
 	var intercepted_actions: Array = []
@@ -498,7 +490,6 @@ func test_reset_bindings_clears_redux_custom_bindings() -> void:
 	# After reset, custom_bindings is empty
 	# The manager would normally reapply the active profile, but in this
 	# integration test context, the InputMap will be cleared
-	var reset_events: Array = InputMap.action_get_events("jump")
 
 	# Since we don't have a real profile manager with loaded profiles in this test,
 	# we can only verify that custom bindings were cleared from Redux state

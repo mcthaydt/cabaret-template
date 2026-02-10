@@ -6,10 +6,6 @@ extends RefCounted
 ## Centralized registry for all audio resources with O(1) Dictionary lookups.
 ## Call initialize() once at startup to populate all registries.
 
-const RS_MusicTrackDefinition := preload("res://scripts/ecs/resources/rs_music_track_definition.gd")
-const RS_AmbientTrackDefinition := preload("res://scripts/ecs/resources/rs_ambient_track_definition.gd")
-const RS_UISoundDefinition := preload("res://scripts/ecs/resources/rs_ui_sound_definition.gd")
-const RS_SceneAudioMapping := preload("res://scripts/ecs/resources/rs_scene_audio_mapping.gd")
 
 # Static dictionaries for O(1) lookups
 static var _music_tracks: Dictionary = {}

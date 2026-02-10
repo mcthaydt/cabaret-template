@@ -10,12 +10,6 @@ class_name UI_SaveLoadMenu
 ##
 ## Mode is determined by navigation.save_load_mode in Redux state.
 
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const M_SaveManager := preload("res://scripts/managers/m_save_manager.gd")
 const PLACEHOLDER_TEXTURE_PATH := "res://resources/ui/tex_save_slot_placeholder.png"
 const PLACEHOLDER_TEXTURE := preload(PLACEHOLDER_TEXTURE_PATH)
 
@@ -23,17 +17,17 @@ const PLACEHOLDER_TEXTURE := preload(PLACEHOLDER_TEXTURE_PATH)
 var _mode: StringName = StringName("")
 
 ## Reference to M_SaveManager
-var _save_manager: Node = null  # M_SaveManager
+var _save_manager: Node = null # M_SaveManager
 
 ## Cached slot metadata
 var _cached_metadata: Array[Dictionary] = []
 
 ## Thumbnail async loading
-var _pending_thumbnail_loads: Dictionary = {}  # TextureRect -> String (path)
+var _pending_thumbnail_loads: Dictionary = {} # TextureRect -> String (path)
 
 
 ## Confirmation dialog state
-var _pending_action: Dictionary = {}  # {action: "save"|"delete", slot_id: StringName}
+var _pending_action: Dictionary = {} # {action: "save"|"delete", slot_id: StringName}
 
 ## UI References (set via @onready once scene is created)
 @onready var _mode_label: Label = %ModeLabel
@@ -44,7 +38,7 @@ var _pending_action: Dictionary = {}  # {action: "save"|"delete", slot_id: Strin
 @onready var _error_label: Label = %ErrorLabel
 
 func _ready() -> void:
-	await super._ready()
+	super._ready()
 	_discover_save_manager()
 	_subscribe_to_events()
 	_refresh_ui()
@@ -89,7 +83,7 @@ func _on_store_ready(store_ref: I_StateStore) -> void:
 		store_ref.slice_updated.connect(_on_slice_updated)
 		_read_mode_from_state()
 
-func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void:
+func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> void:
 	if slice_name == StringName("navigation"):
 		_read_mode_from_state()
 
@@ -209,7 +203,7 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 			main_button.text = "%s\n[New Save]" % slot_display_name
 		else:
 			main_button.text = "%s\n[Empty]" % slot_display_name
-			main_button.disabled = true  # Can't load empty slots
+			main_button.disabled = true # Can't load empty slots
 
 	# Connect main button press (save/load action)
 	main_button.pressed.connect(_on_slot_item_pressed.bind(slot_id, exists))
@@ -238,8 +232,8 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 	_load_thumbnail_async(thumbnail_rect, thumbnail_path)
 
 func _format_playtime(seconds: int) -> String:
-	var hours: int = seconds / 3600
-	var minutes: int = (seconds % 3600) / 60
+	var hours: int = int(seconds / 3600.0)
+	var minutes: int = int((seconds % 3600) / 60.0)
 	var secs: int = seconds % 60
 	return "%02d:%02d:%02d" % [hours, minutes, secs]
 
@@ -247,14 +241,13 @@ func _format_timestamp(iso_timestamp: String) -> String:
 	# Convert ISO 8601 timestamp to human-readable format
 	# Input: "2025-12-26T14:30:00Z"
 	# Output: "Dec 26, 2025 2:30 PM"
-
 	if iso_timestamp.is_empty():
 		return "Unknown Date"
 
 	# Parse ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ
 	var parts: PackedStringArray = iso_timestamp.split("T")
 	if parts.size() < 2:
-		return iso_timestamp  # Fallback to raw string if parsing fails
+		return iso_timestamp # Fallback to raw string if parsing fails
 
 	var date_part: String = parts[0]
 	var time_part: String = parts[1].replace("Z", "")
@@ -326,7 +319,7 @@ func _load_thumbnail_async(texture_rect: TextureRect, path: String) -> void:
 	_pending_thumbnail_loads[texture_rect] = path
 	set_process(true)
 
-func _process(_delta: float) -> void:
+func _process(__delta: float) -> void:
 	if _pending_thumbnail_loads.is_empty():
 		set_process(false)
 		return
@@ -381,6 +374,9 @@ func _configure_slot_focus() -> void:
 
 	# Collect all focusable buttons from slot containers
 	for container in _slot_list_container.get_children():
+		if container.is_queued_for_deletion():
+			continue
+
 		if container is HBoxContainer:
 			# Get main button from slot container
 			var main_button: Button = container.get_node_or_null("MainButton") as Button
@@ -419,12 +415,18 @@ func _restore_focus_to_slot(slot_index: int) -> void:
 	var tree := get_tree()
 	if tree == null:
 		return
-	await tree.process_frame  # Wait for UI to settle
+	await tree.process_frame # Wait for UI to settle
 	if not is_inside_tree() or _slot_list_container == null:
 		return
 
+	# Collect valid containers first (ignoring those queued for deletion)
+	var valid_containers: Array[Control] = []
+	for child in _slot_list_container.get_children():
+		if not child.is_queued_for_deletion() and child is HBoxContainer:
+			valid_containers.append(child as Control)
+
 	var target_index: int = slot_index
-	var slot_count: int = _slot_list_container.get_child_count()
+	var slot_count: int = valid_containers.size()
 
 	# Clamp to valid range
 	if target_index >= slot_count:
@@ -434,20 +436,18 @@ func _restore_focus_to_slot(slot_index: int) -> void:
 
 	# Find the main button in the target slot
 	if target_index < slot_count:
-		var slot_container := _slot_list_container.get_child(target_index)
-		if slot_container is HBoxContainer:
-			var main_button: Button = slot_container.get_node_or_null("MainButton") as Button
-			if main_button != null and not main_button.disabled and main_button.is_inside_tree():
-				main_button.grab_focus()
-				return
+		var slot_container := valid_containers[target_index]
+		var main_button: Button = slot_container.get_node_or_null("MainButton") as Button
+		if main_button != null and not main_button.disabled and main_button.is_inside_tree():
+			main_button.grab_focus()
+			return
 
-	# Fallback: focus first available button
-	for container in _slot_list_container.get_children():
-		if container is HBoxContainer:
-			var main_button: Button = container.get_node_or_null("MainButton") as Button
-			if main_button != null and not main_button.disabled and main_button.is_inside_tree():
-				main_button.grab_focus()
-				return
+	# Fallback: focus first available button in valid containers
+	for container in valid_containers:
+		var main_button: Button = container.get_node_or_null("MainButton") as Button
+		if main_button != null and not main_button.disabled and main_button.is_inside_tree():
+			main_button.grab_focus()
+			return
 
 func _on_slot_item_pressed(slot_id: StringName, exists: bool) -> void:
 	U_UISoundPlayer.play_confirm()
@@ -550,12 +550,12 @@ func _perform_delete(slot_id: StringName) -> void:
 
 ## Event handlers for save events
 
-func _on_save_started(_event: Dictionary) -> void:
+func _on_save_started(__event: Dictionary) -> void:
 	# Save started - could show a brief "Saving..." indicator
 	_clear_error_message()
 	pass
 
-func _on_save_completed(_event: Dictionary) -> void:
+func _on_save_completed(__event: Dictionary) -> void:
 	# Save completed - refresh slot list to show updated metadata
 	call_deferred("_refresh_slot_list")
 
@@ -567,13 +567,13 @@ func _on_save_failed(_event: Dictionary) -> void:
 
 ## Event handlers for load events
 
-func _on_load_started(_event: Dictionary) -> void:
+func _on_load_started(__event: Dictionary) -> void:
 	# Load started - show spinner and disable all buttons
 	_clear_error_message()
 	_show_loading_spinner()
 	_set_buttons_enabled(false)
 
-func _on_load_completed(_event: Dictionary) -> void:
+func _on_load_completed(__event: Dictionary) -> void:
 	# Load completed - hide spinner and re-enable buttons
 	_hide_loading_spinner()
 	_set_buttons_enabled(true)

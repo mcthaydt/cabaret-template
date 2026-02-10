@@ -1,15 +1,6 @@
 extends GutTest
 
 const ButtonPromptScene := preload("res://scenes/ui/hud/ui_button_prompt.tscn")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")
-const RS_MenuInitialState := preload("res://scripts/resources/state/rs_menu_initial_state.gd")
-const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_ButtonPromptRegistry := preload("res://scripts/ui/utils/u_button_prompt_registry.gd")
 const DeviceType := M_InputDeviceManager.DeviceType
 
 var _store: M_StateStore

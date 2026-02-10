@@ -2,7 +2,6 @@ extends GutTest
 
 ## Tests for GameplaySelectors derived state computation
 
-const U_StateEventBus := preload("res://scripts/events/state/u_state_event_bus.gd")
 
 func before_each() -> void:
 	U_StateEventBus.reset()

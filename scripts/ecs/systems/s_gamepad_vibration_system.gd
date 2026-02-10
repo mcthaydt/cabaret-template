@@ -9,11 +9,6 @@ const GAMEPAD_TYPE := StringName("C_GamepadComponent")
 const EVENT_ENTITY_LANDED := StringName("entity_landed")
 const EVENT_ENTITY_DEATH := StringName("entity_death")
 const EVENT_VIBRATION_REQUEST := StringName("gamepad_vibration_request")
-const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const C_GamepadComponent := preload("res://scripts/ecs/components/c_gamepad_component.gd")
 
 # Device type constants (match S_InputSystem.DeviceType)
 const DEVICE_TYPE_KEYBOARD_MOUSE := 0
@@ -41,7 +36,7 @@ func _subscribe_events() -> void:
 	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_ENTITY_DEATH, _on_entity_death, 0))
 	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_VIBRATION_REQUEST, _on_vibration_request))
 
-func process_tick(_delta: float) -> void:
+func process_tick(___delta: float) -> void:
 	# No-op; system reacts to events/state changes.
 	pass
 
@@ -66,7 +61,7 @@ func _on_vibration_request(event: Dictionary) -> void:
 	var duration := float(payload.get("duration", 0.0))
 	_trigger_vibration(weak, strong, duration)
 
-func _trigger_damage_vibration(_amount: float) -> void:
+func _trigger_damage_vibration(___amount: float) -> void:
 	_trigger_vibration(0.5, 0.3, 0.2)
 
 func _trigger_death_vibration() -> void:

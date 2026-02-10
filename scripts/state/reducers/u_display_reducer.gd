@@ -7,11 +7,7 @@ class_name U_DisplayReducer
 ## settings, post-processing options, UI scale, and accessibility settings with
 ## validation and clamping.
 
-const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
-const U_CinemaGradeActions := preload("res://scripts/state/actions/u_cinema_grade_actions.gd")
 const U_DISPLAY_OPTION_CATALOG := preload("res://scripts/utils/display/u_display_option_catalog.gd")
-const U_PostProcessingPresetValues := preload("res://scripts/utils/display/u_post_processing_preset_values.gd")
-const RS_SceneCinemaGrade := preload("res://scripts/resources/display/rs_scene_cinema_grade.gd")
 
 const DEFAULT_DISPLAY_STATE := {
 	"window_size_preset": "1920x1080",

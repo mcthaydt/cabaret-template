@@ -93,8 +93,8 @@ static func dict_to_event(data: Dictionary) -> InputEvent:
 			elif physical_keycode_val != 0 and keycode_val == 0:
 				keycode_val = physical_keycode_val
 
-			e_key.keycode = keycode_val
-			e_key.physical_keycode = physical_keycode_val
+			e_key.keycode = keycode_val as Key
+			e_key.physical_keycode = physical_keycode_val as Key
 			e_key.unicode = int(data.get("unicode", 0))
 			e_key.pressed = bool(data.get("pressed", false))
 			e_key.echo = bool(data.get("echo", false))
@@ -106,7 +106,7 @@ static func dict_to_event(data: Dictionary) -> InputEvent:
 
 		"mouse_button", "InputEventMouseButton":
 			var e_mouse := InputEventMouseButton.new()
-			e_mouse.button_index = int(data.get("button_index", 0))
+			e_mouse.button_index = int(data.get("button_index", 0)) as MouseButton
 			e_mouse.pressed = bool(data.get("pressed", false))
 			e_mouse.double_click = bool(data.get("double_click", false))
 
@@ -122,14 +122,14 @@ static func dict_to_event(data: Dictionary) -> InputEvent:
 
 		"joypad_button", "InputEventJoypadButton":
 			var e_button := InputEventJoypadButton.new()
-			e_button.button_index = int(data.get("button_index", 0))
+			e_button.button_index = int(data.get("button_index", 0)) as JoyButton
 			e_button.pressed = bool(data.get("pressed", false))
 			e_button.pressure = float(data.get("pressure", 0.0))
 			return e_button
 
 		"joypad_motion", "InputEventJoypadMotion":
 			var e_motion := InputEventJoypadMotion.new()
-			e_motion.axis = int(data.get("axis", 0))
+			e_motion.axis = int(data.get("axis", 0)) as JoyAxis
 			e_motion.axis_value = float(data.get("axis_value", 0.0))
 			return e_motion
 

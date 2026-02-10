@@ -2,8 +2,6 @@ extends GutTest
 
 ## Unit tests for U_SpawnRegistry and RS_SpawnMetadata (T083)
 
-const U_SpawnRegistry := preload("res://scripts/scene_management/u_spawn_registry.gd")
-const RS_SpawnMetadata := preload("res://scripts/resources/scene_management/rs_spawn_metadata.gd")
 
 func before_each() -> void:
 	# Ensure registry starts from a clean state for each test.

@@ -35,7 +35,7 @@ func get_event_name() -> StringName:
 
 ## Override in subclass to create a request dictionary from event payload
 ## Example: {"position": payload.get("position"), "velocity": payload.get("velocity")}
-func create_request_from_payload(payload: Dictionary) -> Dictionary:
+func create_request_from_payload(_payload: Dictionary) -> Dictionary:
 	push_error("EventVFXSystem.create_request_from_payload() must be overridden in subclass %s" % get_class())
 	return {}
 

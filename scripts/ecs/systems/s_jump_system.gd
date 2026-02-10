@@ -18,7 +18,7 @@ const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 @export var state_store: I_StateStore = null
 
 
-func process_tick(_delta: float) -> void:
+func process_tick(__delta: float) -> void:
 	# Skip processing if game is paused
 	# Use injected store if available (Phase 10B-8)
 	var store: I_StateStore = null
@@ -86,11 +86,11 @@ func process_tick(_delta: float) -> void:
 		if floating_component == null:
 			floating_component = floating_by_body.get(body, null) as C_FloatingComponent
 		var floating_supported_now: bool = false
-		var floating_stable_grounded: bool = false
+		var _floating_stable_grounded: bool = false
 		var has_floating_support: bool = false
 		if floating_component != null:
 			floating_supported_now = floating_component.is_supported
-			floating_stable_grounded = floating_component.grounded_stable
+			_floating_stable_grounded = floating_component.grounded_stable
 			has_floating_support = floating_component.has_recent_support(now, component.settings.coyote_time)
 
 		component.update_vertical_state(body.velocity.y, now)

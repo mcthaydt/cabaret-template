@@ -1,9 +1,7 @@
 extends GutTest
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
-const U_AudioUtils := preload("res://scripts/utils/u_audio_utils.gd")
 const I_AUDIO_MANAGER := preload("res://scripts/interfaces/i_audio_manager.gd")
-const MockAudioManager := preload("res://tests/mocks/mock_audio_manager.gd")
 
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()

@@ -1,17 +1,5 @@
 extends GutTest
 
-const M_ECSManager := preload("res://scripts/managers/m_ecs_manager.gd")
-const S_InputSystem := preload("res://scripts/ecs/systems/s_input_system.gd")
-const S_GamepadVibrationSystem := preload("res://scripts/ecs/systems/s_gamepad_vibration_system.gd")
-const C_InputComponent := preload("res://scripts/ecs/components/c_input_component.gd")
-const C_GamepadComponent := preload("res://scripts/ecs/components/c_gamepad_component.gd")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SettingsInitialState := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 func before_each() -> void:
 	U_ECSEventBus.reset()

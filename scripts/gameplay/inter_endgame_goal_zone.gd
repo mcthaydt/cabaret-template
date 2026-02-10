@@ -7,7 +7,6 @@ class_name Inter_EndgameGoalZone
 ## required area has been completed. Subscribes to the gameplay state
 ## and toggles visuals + Area3D monitoring accordingly.
 
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 
 @export var required_area: String = "interior_house"
 
@@ -31,7 +30,7 @@ func _exit_tree() -> void:
 		_store.slice_updated.disconnect(_on_slice_updated)
 	super._exit_tree()
 
-func _on_slice_updated(slice_name: StringName, _slice_state: Dictionary) -> void:
+func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> void:
 	if slice_name != StringName("gameplay"):
 		return
 	_refresh_lock_state()

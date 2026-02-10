@@ -6,7 +6,6 @@ const M_SPAWN_MANAGER := preload("res://scripts/managers/m_spawn_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _spawn_manager: M_SpawnManager
 var _store: M_StateStore

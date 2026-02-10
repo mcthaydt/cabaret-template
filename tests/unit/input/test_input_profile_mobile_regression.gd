@@ -3,16 +3,7 @@ extends GutTest
 ## Regression tests for mobile input profile fixes
 ## Ensures "default" (keyboard/mouse) profile is never used on mobile
 
-const M_InputProfileManager := preload("res://scripts/managers/m_input_profile_manager.gd")
-const U_InputProfileLoader := preload("res://scripts/managers/helpers/u_input_profile_loader.gd")
-const RS_InputProfile := preload("res://scripts/resources/input/rs_input_profile.gd")
-const UI_InputProfileSelector := preload("res://scenes/ui/overlays/ui_input_profile_selector.tscn")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")
-const RS_SettingsInitialState := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
-const RS_NavigationInitialState := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
+const SCENE_INPUT_PROFILE_SELECTOR := preload("res://scenes/ui/overlays/ui_input_profile_selector.tscn")
 
 func before_each() -> void:
 	U_ServiceLocator.clear()
@@ -70,7 +61,7 @@ func test_input_profile_selector_filters_default_on_mobile() -> void:
 	add_child_autofree(manager)
 	await wait_process_frames(2)
 
-	var selector := UI_InputProfileSelector.instantiate()
+	var selector := SCENE_INPUT_PROFILE_SELECTOR.instantiate()
 	add_child_autofree(selector)
 	await wait_process_frames(3)
 
@@ -95,7 +86,7 @@ func test_input_profile_selector_filters_default_on_mobile() -> void:
 
 ## Regression test: Input profile selector structure matches settings panel style
 func test_input_profile_selector_has_panel_structure() -> void:
-	var selector := UI_InputProfileSelector.instantiate()
+	var selector := SCENE_INPUT_PROFILE_SELECTOR.instantiate()
 	add_child_autofree(selector)
 	await wait_process_frames(2)
 
@@ -114,7 +105,7 @@ func test_input_profile_selector_has_panel_structure() -> void:
 
 ## Regression test: Input profile selector has Cancel, Reset, Apply buttons
 func test_input_profile_selector_has_all_action_buttons() -> void:
-	var selector := UI_InputProfileSelector.instantiate()
+	var selector := SCENE_INPUT_PROFILE_SELECTOR.instantiate()
 	add_child_autofree(selector)
 	await wait_process_frames(2)
 
@@ -143,7 +134,7 @@ func test_input_profile_selector_navigation_allows_up_down() -> void:
 	U_ServiceLocator.register(StringName("input_profile_manager"), manager)
 	await wait_process_frames(2)
 
-	var selector := UI_InputProfileSelector.instantiate()
+	var selector := SCENE_INPUT_PROFILE_SELECTOR.instantiate()
 	add_child_autofree(selector)
 	await wait_process_frames(3)
 

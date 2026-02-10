@@ -23,7 +23,6 @@ const HEALTH_COMPONENT_PATH := "res://scripts/ecs/components/c_health_component.
 const HEALTH_SYSTEM_PATH := "res://scripts/ecs/systems/s_health_system.gd"
 const HEALTH_SETTINGS_PATH := "res://scripts/resources/ecs/rs_health_settings.gd"
 const HEALTH_SETTINGS_RESOURCE := "res://resources/base_settings/gameplay/cfg_health_settings.tres"
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _root: Node
 var _state_store: M_StateStore
@@ -261,6 +260,12 @@ func test_death_triggers_delayed_game_over_transition() -> void:
 
 class TestSceneManager:
 	extends Node
+
+	enum Priority {
+		NORMAL = 0,
+		HIGH = 1,
+		CRITICAL = 2
+	}
 
 	var transition_calls: Array = []
 	var _is_transitioning: bool = false

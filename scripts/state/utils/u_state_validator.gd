@@ -16,7 +16,6 @@ class_name U_StateValidator
 ##   U_StateValidator.normalize_loaded_state(state)
 ##   var valid_spawn := U_StateValidator.normalize_spawn_reference(value)
 
-const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
 
 const DEFAULT_SCENE_ID := StringName("gameplay_base")
 const DEFAULT_SPAWN_POINT := StringName("sp_default")

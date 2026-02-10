@@ -7,7 +7,6 @@ class_name UI_Credits
 ## Auto-scrolls credits content and returns to main menu after a timeout.
 ## Skip button allows players to exit immediately.
 
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
 
 @onready var scroll_container: ScrollContainer = $MarginContainer/ScrollContainer
 @onready var skip_button: Button = $SkipButton

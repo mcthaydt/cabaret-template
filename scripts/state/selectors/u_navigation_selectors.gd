@@ -5,7 +5,6 @@ class_name U_NavigationSelectors
 ##
 ## Provide derived answers for UI shell, overlays, and panels.
 
-const U_NavigationReducer := preload("res://scripts/state/reducers/u_navigation_reducer.gd")
 
 static func get_shell(state: Dictionary) -> StringName:
 	return state.get("shell", StringName())

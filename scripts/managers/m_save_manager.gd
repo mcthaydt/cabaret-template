@@ -122,7 +122,7 @@ func _import_legacy_save_if_exists() -> void:
 	# This prevents repeatedly overwriting/“corrupting” the autosave if a stale legacy file
 	# (user://savegame.json) lingers on disk for any reason.
 	if slot_exists(SLOT_AUTOSAVE):
-		push_warning("M_SaveManager: Legacy save exists at user://savegame.json but autosave slot already exists; skipping import")
+		print_verbose("M_SaveManager: Legacy save exists at user://savegame.json but autosave slot already exists; skipping import")
 		return
 
 	# Import and migrate legacy save
@@ -209,7 +209,7 @@ func is_locked() -> bool:
 ##
 ## Always saves to the autosave slot. Priority parameter is reserved for future
 ## cooldown enforcement but currently unused.
-func request_autosave(priority: int = 0) -> void:
+func request_autosave(_priority: int = 0) -> void:
 	save_to_slot(SLOT_AUTOSAVE)
 
 ## Save current state to a specific slot
@@ -312,7 +312,7 @@ func load_from_slot(slot_id: StringName) -> Error:
 		_clear_loading_lock()
 		return validation_result["error"]
 
-	var header: Dictionary = validation_result["header"]
+	var _header: Dictionary = validation_result["header"]
 	var loaded_state: Dictionary = validation_result["state"]
 	var target_scene_id: StringName = validation_result["scene_id"]
 	if loaded_state.has("audio"):

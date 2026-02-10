@@ -1,6 +1,5 @@
 extends GutTest
 
-const U_PaletteManager := preload("res://scripts/managers/helpers/u_palette_manager.gd")
 
 func test_set_color_blind_mode_loads_correct_palette() -> void:
 	var manager := U_PaletteManager.new()

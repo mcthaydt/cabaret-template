@@ -13,13 +13,13 @@ class_name BaseMenuScreen
 
 const ANALOG_STICK_REPEATER_PATH := "res://scripts/ui/utils/u_analog_stick_repeater.gd"
 
-const STICK_DEADZONE: float = 0.25  # Must match project.godot ui_* action deadzone
+const STICK_DEADZONE: float = 0.25 # Must match project.godot ui_* action deadzone
 
 var _stick_repeater: RefCounted = null
 
 
 func _ready() -> void:
-	await super._ready()
+	super._ready()
 
 	# Initialize analog stick repeater
 	var repeater_script: Script = load(ANALOG_STICK_REPEATER_PATH)

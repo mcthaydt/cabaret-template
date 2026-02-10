@@ -15,9 +15,6 @@ var manager: M_ECSManager
 var scene_root: Node
 var player_entity: Node
 var input_comp: C_InputComponent
-var movement_comp: C_MovementComponent
-var jump_comp: C_JumpComponent
-var floating_comp: C_FloatingComponent
 var _unsubscribe_jump: Callable = Callable()
 var _state_store: M_StateStore = null
 

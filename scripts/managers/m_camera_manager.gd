@@ -38,7 +38,6 @@ class CameraState:
 ## Camera blending (Phase 10: T178-T181)
 var _transition_camera: Camera3D = null
 var _camera_blend_tween: Tween = null
-var _camera_blend_duration: float = 0.2  # Match fade transition duration
 
 ## Screen shake parent node (VFX Phase 3: T3.1)
 ## Used to apply shake offset/rotation without affecting camera directly (prevents gimbal lock)
@@ -84,7 +83,7 @@ func blend_cameras(old_scene: Node, new_scene: Node, duration: float, old_state:
 	# Find new camera in new scene
 	var new_camera: Camera3D = _find_camera_in_scene(new_scene)
 	if new_camera == null:
-		push_warning("M_CameraManager: No camera in new scene for blending")
+		print_verbose("M_CameraManager: No camera in new scene for blending (skipping blend)")
 		return
 	register_main_camera(new_camera)
 

@@ -7,15 +7,15 @@ class_name U_SFXSpawner
 const POOL_SIZE := 16
 
 const _DEFAULT_MAX_DISTANCE: float = 50.0
-const _DEFAULT_ATTENUATION_MODEL: int = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+const _DEFAULT_ATTENUATION_MODEL: AudioStreamPlayer3D.AttenuationModel = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
 const _DEFAULT_PANNING_STRENGTH: float = 1.0
 
 static var _spatial_audio_enabled: bool = true
 static var _pool: Array[AudioStreamPlayer3D] = []
 static var _container: Node3D = null
 static var _player_in_use: Dictionary = {}
-static var _play_times: Dictionary = {}  # player -> start_time (for voice stealing)
-static var _follow_targets: Dictionary = {}  # player -> Node3D (for follow-emitter mode)
+static var _play_times: Dictionary = {} # player -> start_time (for voice stealing)
+static var _follow_targets: Dictionary = {} # player -> Node3D (for follow-emitter mode)
 static var _stats: Dictionary = {
 	"spawns": 0,
 	"steals": 0,
@@ -175,9 +175,9 @@ static func spawn_3d(config: Dictionary) -> AudioStreamPlayer3D:
 		follow_target = follow_target_variant as Node3D
 
 	var emitter_variant: Variant = config.get("debug_emitter", null)
-	var emitter: Node3D = null
+	var _emitter: Node3D = null
 	if emitter_variant is Node3D:
-		emitter = emitter_variant as Node3D
+		_emitter = emitter_variant as Node3D
 
 	if player.playing:
 		player.stop()
@@ -226,7 +226,7 @@ static func _configure_player_spatialization(
 
 		# Apply per-sound attenuation_model if provided (>= 0), else use default
 		if attenuation_model >= 0:
-			player.attenuation_model = attenuation_model
+			player.attenuation_model = attenuation_model as AudioStreamPlayer3D.AttenuationModel
 		else:
 			player.attenuation_model = _DEFAULT_ATTENUATION_MODEL
 
@@ -242,7 +242,7 @@ static func _configure_player_spatialization(
 ## Steal the oldest playing voice when pool is exhausted
 static func _steal_oldest_voice() -> AudioStreamPlayer3D:
 	var oldest_player: AudioStreamPlayer3D = null
-	var oldest_time: int = 2147483647  # Max int
+	var oldest_time: int = 2147483647 # Max int
 
 	for player_variant in _pool:
 		if player_variant == null:

@@ -26,7 +26,7 @@ func create_request_from_payload(payload: Dictionary) -> Dictionary:
 		"spawn_point_id": payload.get("spawn_point_id", StringName("")),
 	}
 
-func process_tick(_delta: float) -> void:
+func process_tick(__delta: float) -> void:
 	# Early exit if disabled
 	if not enabled:
 		requests.clear()

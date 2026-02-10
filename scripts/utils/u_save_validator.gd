@@ -113,7 +113,7 @@ static func validate_header_contents(header: Dictionary) -> Dictionary:
 ##
 ## Currently just checks state structure.
 ## Future: Could validate slice presence, types, etc.
-static func validate_state_contents(state: Dictionary) -> Dictionary:
+static func validate_state_contents(_state: Dictionary) -> Dictionary:
 	# Basic validation - state should be a non-empty Dictionary
 	# Individual slices are optional (empty state is technically valid)
 	return {"valid": true}

@@ -7,11 +7,6 @@ class_name UI_SettingsMenu
 ## Runs as either an overlay (pause → settings) or as embedded UI in the main
 ## menu. Uses navigation actions for all flows (overlay management and scene transitions).
 
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 
 @onready var _back_button: Button = %BackButton
 @onready var _input_profiles_button: Button = %InputProfilesButton
@@ -67,7 +62,7 @@ func _on_panel_ready() -> void:
 	if store != null:
 		_update_button_visibility(store.get_state())
 
-func _on_slice_updated(_slice_name: StringName, _slice_state: Dictionary) -> void:
+func _on_slice_updated(__slice_name: StringName, _slice_state: Dictionary) -> void:
 	var store := get_store()
 	if store == null:
 		return
@@ -121,7 +116,6 @@ func _update_button_visibility(state: Dictionary) -> void:
 	var args: PackedStringArray = OS.get_cmdline_args()
 	var is_emulated_mobile: bool = args.has("--emulate-mobile")
 	var is_mobile_context: bool = is_mobile or is_emulated_mobile
-	var is_touch_only: bool = (device_type == M_InputDeviceManager.DeviceType.TOUCHSCREEN and not has_gamepad)
 	var is_gamepad_active: bool = (device_type == M_InputDeviceManager.DeviceType.GAMEPAD)
 
 	if device_type != _last_device_type:

@@ -1,7 +1,5 @@
 extends GutTest
 
-const RS_RebindSettings := preload("res://scripts/resources/input/rs_rebind_settings.gd")
-
 func test_defaults_match_spec() -> void:
 	var settings := RS_RebindSettings.new()
 	assert_eq(settings.reserved_actions.size(), 1)

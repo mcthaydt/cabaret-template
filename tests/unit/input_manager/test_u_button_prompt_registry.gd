@@ -1,7 +1,5 @@
 extends GutTest
 
-const U_ButtonPromptRegistry := preload("res://scripts/ui/utils/u_button_prompt_registry.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 
 const DEVICE_TYPE := M_InputDeviceManager.DeviceType
 

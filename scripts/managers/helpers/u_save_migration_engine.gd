@@ -25,6 +25,7 @@ const LEGACY_SAVE_PATH := "user://savegame.json"
 
 ## Migration registry: version -> migration Callable
 ## Each migration transforms version N to version N+1
+@warning_ignore("unused_private_class_variable")
 static var _migration_registry: Dictionary = {}
 
 ## Detect version from save file

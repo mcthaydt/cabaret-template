@@ -3,16 +3,6 @@ class_name UI_MobileControls
 
 const VIRTUAL_JOYSTICK_SCENE := preload("res://scenes/ui/widgets/ui_virtual_joystick.tscn")
 const VIRTUAL_BUTTON_SCENE := preload("res://scenes/ui/widgets/ui_virtual_button.tscn")
-const UI_VirtualJoystick := preload("res://scripts/ui/hud/ui_virtual_joystick.gd")
-const UI_VirtualButton := preload("res://scripts/ui/hud/ui_virtual_button.gd")
-const RS_InputProfile := preload("res://scripts/resources/input/rs_input_profile.gd")
-const RS_TouchscreenSettings := preload("res://scripts/resources/input/rs_touchscreen_settings.gd")
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 
 @export var force_enable: bool = false
 @export var emulate_mobile_override: bool = false
@@ -321,13 +311,13 @@ func _update_visibility() -> void:
 
 	visible = should_show
 
-func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
+func _on_state_changed(__action: Dictionary, state: Dictionary) -> void:
 	if state == null:
 		return
 	_apply_state(state)
 
 ## Called when SceneManager's visual transition completes (fade-in finishes)
-func _on_transition_visual_complete(_scene_id: StringName) -> void:
+func _on_transition_visual_complete(__scene_id: StringName) -> void:
 	if _awaiting_transition_signal:
 		_awaiting_transition_signal = false
 		_update_visibility()
@@ -355,7 +345,7 @@ func _connect_input_signals(control: Node) -> void:
 
 ## Called when the player interacts with any virtual control.
 ## Resets opacity to the active value and schedules a tween back to idle opacity.
-func _on_input_activity(_data: Variant = null) -> void:
+func _on_input_activity(__data: Variant = null) -> void:
 	if _controls_root == null:
 		return
 	if _has_overlay_active:

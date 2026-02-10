@@ -2,13 +2,6 @@
 extends "res://scripts/ui/base/base_overlay.gd"
 class_name UI_GamepadSettingsOverlay
 
-const RS_GamepadSettings := preload("res://scripts/resources/input/rs_gamepad_settings.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const UI_GamepadStickPreview := preload("res://scripts/ui/overlays/ui_gamepad_stick_preview.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 
 @onready var _left_slider: HSlider = %LeftDeadzoneSlider
 @onready var _right_slider: HSlider = %RightDeadzoneSlider

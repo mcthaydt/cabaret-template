@@ -6,7 +6,6 @@ class_name U_DisplayActions
 ## Action creators for Display slice mutations. All actions are registered with
 ## U_ActionRegistry for validation and dispatched via M_StateStore.
 
-const U_ActionRegistry := preload("res://scripts/state/utils/u_action_registry.gd")
 
 # Graphics
 const ACTION_SET_WINDOW_SIZE_PRESET := StringName("display/set_window_size_preset")

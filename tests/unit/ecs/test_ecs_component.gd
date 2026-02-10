@@ -4,7 +4,6 @@ const ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const ECS_COMPONENT := preload("res://scripts/ecs/base_ecs_component.gd")
 const JUMP_COMPONENT := preload("res://scripts/ecs/components/c_jump_component.gd")
 const JUMP_SETTINGS := preload("res://scripts/resources/ecs/rs_jump_settings.gd")
-const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 class TestInvalidComponent extends BaseECSComponent:
 	const TYPE := StringName("C_TestInvalidComponent")

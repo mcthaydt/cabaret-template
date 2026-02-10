@@ -1,14 +1,6 @@
 extends GutTest
 
 const VirtualJoystickScene := preload("res://scenes/ui/widgets/ui_virtual_joystick.tscn")
-const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")
-const RS_MenuInitialState := preload("res://scripts/resources/state/rs_menu_initial_state.gd")
-const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_SettingsInitialState := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
@@ -75,7 +67,6 @@ func test_deadzone_filters_small_movements() -> void:
 	large_drag.position = press.position + Vector2(60, 0)
 	joystick._input(large_drag)
 
-	var expected := Vector2.RIGHT.normalized()
 	var result := joystick.get_vector()
 	assert_true(result.x > 0.0, "Vector should be positive after exceeding deadzone")
 	assert_true(result.x < 1.0, "Vector should be rescaled to 0-1 range after deadzone")

@@ -48,7 +48,7 @@ func get_scene_type() -> int:
 ##            (e.g., {"spawn_manager": M_SpawnManager, "state_store": M_StateStore})
 ##
 ## Note: This method may be async (use await for manager calls)
-func on_load(scene: Node, scene_id: StringName, managers: Dictionary) -> void:
+func on_load(_scene: Node, _scene_id: StringName, _managers: Dictionary) -> void:
 	pass
 
 
@@ -60,7 +60,7 @@ func on_load(scene: Node, scene_id: StringName, managers: Dictionary) -> void:
 ## Parameters:
 ## - scene: The scene node being unloaded
 ## - scene_id: The scene's registry ID (StringName)
-func on_unload(scene: Node, scene_id: StringName) -> void:
+func on_unload(_scene: Node, _scene_id: StringName) -> void:
 	pass
 
 
@@ -128,5 +128,5 @@ func get_shell_id() -> StringName:
 ## func get_navigation_action(scene_id: StringName) -> Dictionary:
 ##     return U_NAVIGATION_ACTIONS.start_game(scene_id)
 ## [/codeblock]
-func get_navigation_action(scene_id: StringName) -> Dictionary:
+func get_navigation_action(_scene_id: StringName) -> Dictionary:
 	return {}

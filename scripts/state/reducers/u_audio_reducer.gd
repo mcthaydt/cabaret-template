@@ -6,7 +6,6 @@ class_name U_AudioReducer
 ## Pure reducer functions for audio slice state mutations. Handles volume
 ## clamping (0.0-1.0), mute toggles, and spatial audio flag.
 
-const U_AudioActions := preload("res://scripts/state/actions/u_audio_actions.gd")
 
 const DEFAULT_AUDIO_STATE := {
 	"master_volume": 1.0,

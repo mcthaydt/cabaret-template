@@ -12,8 +12,6 @@ const RS_SceneInitialState = preload("res://scripts/resources/state/rs_scene_ini
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_SceneActions = preload("res://scripts/state/actions/u_scene_actions.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager
@@ -215,12 +213,8 @@ func test_scene_transition_cleans_up_previous() -> void:
 	_manager.transition_to_scene(StringName("main_menu"), "instant")
 	await wait_physics_frames(2)
 
-	var children_after_first: int = _active_scene_container.get_child_count()
-
 	_manager.transition_to_scene(StringName("settings_menu"), "instant")
 	await wait_physics_frames(2)
-
-	var children_after_second: int = _active_scene_container.get_child_count()
 
 	# Should have roughly same number (old scene removed, new scene added)
 	# Exact behavior depends on implementation (might be 0, 1, or 2 during transition)

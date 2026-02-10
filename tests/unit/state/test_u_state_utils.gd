@@ -2,7 +2,6 @@ extends GutTest
 
 ## Tests for U_StateUtils helper functions
 
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var store: M_StateStore
 var benchmark_ran: bool = false

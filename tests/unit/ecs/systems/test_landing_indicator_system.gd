@@ -233,7 +233,6 @@ func test_minimum_clearance_without_alignment_matches_indicator_height_offset() 
 
 	var displacement: Vector3 = marker.global_position - hit_point
 	var marker_up: Vector3 = marker.global_transform.basis.y.normalized()
-	var clearance: float = absf(displacement.dot(marker_up))
 	var denom: float = clampf(absf(marker_up.dot(slope_normal)), 0.3, 1.0)
 	var expected_required: float = component.settings.indicator_height_offset / denom
 	var along_normal: float = absf(displacement.dot(slope_normal))
@@ -259,11 +258,6 @@ func test_landing_indicator_debug_logs_on_slope_raycast_and_plane_fallback() -> 
 	var visible1 := component.is_indicator_visible()
 	var point1 := component.get_landing_point()
 	var normal1 := component.get_landing_normal()
-	var angle_up_deg1: float = rad_to_deg(acos(clampf(normal1.dot(Vector3.UP), -1.0, 1.0)))
-	var up_mismatch_deg1: float = rad_to_deg(normal1.angle_to(body.up_direction))
-	var final_pos1 := marker.global_position
-	var marker_up1 := marker.global_transform.basis.y.normalized()
-	var angle_marker_mismatch1: float = rad_to_deg(marker_up1.angle_to(normal1))
 	if body._space_state != null:
 		pass
 
@@ -281,9 +275,6 @@ func test_landing_indicator_debug_logs_on_slope_raycast_and_plane_fallback() -> 
 	var visible2 := component.is_indicator_visible()
 	var point2 := component.get_landing_point()
 	var normal2 := component.get_landing_normal()
-	var final_pos2 := marker.global_position
-	var dist_to_plane: float = body.global_position.y - component.settings.ground_plane_height
-	pass
 
 	assert_true(visible2)
 	assert_true(point2.is_equal_approx(Vector3(0.0, component.settings.ground_plane_height, 0.0)))
@@ -350,9 +341,6 @@ func test_landing_indicator_logs_when_visual_up_differs_from_hit_normal() -> voi
 	var normal := component.get_landing_normal()
 	var marker_up := marker.global_transform.basis.y.normalized()
 	var angle_mismatch_deg: float = rad_to_deg(marker_up.angle_to(normal))
-	var height_offset: float = component.settings.indicator_height_offset
-	var separation_along_marker_up: float = height_offset * clampf(marker_up.dot(normal), -1.0, 1.0)
-	pass
 
 	# Sanity checks (do not constrain the exact numeric values beyond general expectations)
 	assert_true(visible)

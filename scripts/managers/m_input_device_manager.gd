@@ -2,14 +2,6 @@
 extends "res://scripts/interfaces/i_input_device_manager.gd"
 class_name M_InputDeviceManager
 
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_ECSUtils := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_DeviceTypeConstants := preload("res://scripts/input/u_device_type_constants.gd")
-const KeyboardMouseSource := preload("res://scripts/input/sources/keyboard_mouse_source.gd")
-const GamepadSource := preload("res://scripts/input/sources/gamepad_source.gd")
-const TouchscreenSource := preload("res://scripts/input/sources/touchscreen_source.gd")
 
 signal device_changed(device_type: int, device_id: int, timestamp: float)
 
@@ -165,7 +157,7 @@ func _handle_gamepad_input(device_id: int) -> void:
 		_last_gamepad_signal_time = U_ECSUtils.get_current_time()
 	_switch_device(DeviceType.GAMEPAD, device_id)
 
-func _handle_keyboard_mouse_input(event: InputEvent = null) -> void:
+func _handle_keyboard_mouse_input(_event: InputEvent = null) -> void:
 	_switch_device(DeviceType.KEYBOARD_MOUSE, -1)
 
 func _handle_touch_input() -> void:
@@ -178,18 +170,18 @@ func _switch_device(device_type: int, device_id: int) -> void:
 			normalized_device_id = _last_gamepad_device_id
 		if normalized_device_id < 0:
 			return
-	var device_changed := true
+	var has_device_changed := true
 	if _active_device == device_type:
 		if not _has_dispatched_initial_state:
-			device_changed = true
+			has_device_changed = true
 		elif device_type == DeviceType.GAMEPAD and normalized_device_id != _active_gamepad_id and normalized_device_id >= 0:
-			device_changed = true
+			has_device_changed = true
 		else:
-			device_changed = false
+			has_device_changed = false
 	var switch_timestamp := U_ECSUtils.get_current_time()
 	_last_input_time = switch_timestamp
 
-	if not device_changed:
+	if not has_device_changed:
 		return
 
 	_active_device = device_type
@@ -326,10 +318,10 @@ func get_time_since_last_input() -> float:
 	var current_time := U_ECSUtils.get_current_time()
 	return max(current_time - _last_input_time, 0.0)
 
-func _dispatch_connection_state(is_connected: bool, device_id: int) -> void:
+func _dispatch_connection_state(connected: bool, device_id: int) -> void:
 	if _state_store == null or not is_instance_valid(_state_store):
 		return
-	if is_connected:
+	if connected:
 		_state_store.dispatch(U_InputActions.gamepad_connected(device_id))
 	else:
 		_state_store.dispatch(U_InputActions.gamepad_disconnected(device_id))

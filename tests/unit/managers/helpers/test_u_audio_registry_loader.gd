@@ -1,6 +1,5 @@
 extends GutTest
 
-const U_AudioRegistryLoader := preload("res://scripts/managers/helpers/u_audio_registry_loader.gd")
 
 func before_each() -> void:
 	# Clear static dictionaries before each test

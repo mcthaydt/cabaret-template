@@ -133,7 +133,7 @@ func _initialize_filter_preset_dropdown() -> void:
 	filter_preset_option.add_item("black_and_white", 7)
 	filter_preset_option.add_item("sepia", 8)
 
-func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
+func _on_slice_updated(slice_name: StringName, __slice_data: Dictionary) -> void:
 	if slice_name == &"display" or slice_name == &"navigation":
 		_load_state_into_ui()
 		_update_visibility()

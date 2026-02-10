@@ -2,8 +2,6 @@ extends GutTest
 
 ## Unit tests for U_SceneRegistry resource-based scene entries loader (T212)
 
-const U_SceneRegistry := preload("res://scripts/scene_management/u_scene_registry.gd")
-const RS_SceneRegistryEntry := preload("res://scripts/resources/scene_management/rs_scene_registry_entry.gd")
 
 var _tmp_path := "res://resources/scene_registry/cfg_tmp_registry_test_entry.tres"
 var _tmp_scene_id := StringName("tmp_registry_test_scene")

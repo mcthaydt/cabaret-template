@@ -20,7 +20,6 @@ const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 const PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
@@ -29,7 +28,6 @@ const HEALTH_SETTINGS_RESOURCE := preload("res://resources/base_settings/gamepla
 
 const VICTORY_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 const VICTORY_SYSTEM := preload("res://scripts/ecs/systems/s_victory_system.gd")
-const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 const U_SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
 
 var _root: Node

@@ -1,18 +1,5 @@
 extends GutTest
 
-const M_UIInputHandler := preload("res://scripts/managers/m_ui_input_handler.gd")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")
-const RS_MenuInitialState := preload("res://scripts/resources/state/rs_menu_initial_state.gd")
-const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_SettingsInitialState := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
-const RS_NavigationInitialState := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationReducer := preload("res://scripts/state/reducers/u_navigation_reducer.gd")
-const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _store: M_StateStore = null
 var _input_handler: M_UIInputHandler = null

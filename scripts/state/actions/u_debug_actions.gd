@@ -1,7 +1,6 @@
 extends RefCounted
 class_name U_DebugActions
 
-const U_ActionRegistry := preload("res://scripts/state/utils/u_action_registry.gd")
 
 const ACTION_SET_DISABLE_TOUCHSCREEN := StringName("debug/set_disable_touchscreen")
 

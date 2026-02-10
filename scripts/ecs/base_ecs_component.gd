@@ -4,7 +4,6 @@ extends Node
 class_name BaseECSComponent
 
 const ECS_UTILS := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
-const U_ECSEventBus := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const EVENT_COMPONENT_REGISTERED := StringName("component_registered")
 
 var _manager: M_ECSManager

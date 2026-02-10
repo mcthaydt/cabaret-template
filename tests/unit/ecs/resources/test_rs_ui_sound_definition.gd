@@ -1,6 +1,5 @@
 extends GutTest
 
-const RS_UISoundDefinition := preload("res://scripts/ecs/resources/rs_ui_sound_definition.gd")
 
 func test_volume_db_defaults_to_0() -> void:
 	var definition := RS_UISoundDefinition.new()

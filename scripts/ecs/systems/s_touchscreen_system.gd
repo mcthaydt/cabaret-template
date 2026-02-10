@@ -8,16 +8,6 @@ class_name S_TouchscreenSystem
 const INPUT_TYPE := StringName("C_InputComponent")
 const ACTION_MOVE_STRENGTH := StringName("move")
 const ACTION_LOOK_STRENGTH := StringName("look")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
-const C_InputComponent := preload("res://scripts/ecs/components/c_input_component.gd")
-const UI_VirtualJoystick := preload("res://scripts/ui/hud/ui_virtual_joystick.gd")
-const UI_VirtualButton := preload("res://scripts/ui/hud/ui_virtual_button.gd")
-const UI_MobileControls := preload("res://scripts/ui/hud/ui_mobile_controls.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const I_INPUT_DEVICE_MANAGER := preload("res://scripts/interfaces/i_input_device_manager.gd")
 
 @export var force_enable: bool = false
@@ -32,7 +22,7 @@ var _last_jump_pressed: bool = false
 func on_configured() -> void:
 	_ensure_state_store_ready()
 
-func process_tick(_delta: float) -> void:
+func process_tick(__delta: float) -> void:
 	if not _should_process():
 		return
 

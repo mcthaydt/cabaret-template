@@ -1,18 +1,6 @@
 extends GutTest
 
 const OverlayScene := preload("res://scenes/ui/overlays/ui_input_rebinding_overlay.tscn")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_InputProfile := preload("res://scripts/resources/input/rs_input_profile.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SettingsInitialState := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
-const BaseOverlay := preload("res://scripts/ui/base/base_overlay.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const I_InputProfileManager := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 
 var _store: TestStateStore
 var _profile_manager: ProfileManagerStub

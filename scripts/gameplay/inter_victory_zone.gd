@@ -1,7 +1,6 @@
 extends "res://scripts/gameplay/base_volume_controller.gd"
 class_name Inter_VictoryZone
 
-const C_VictoryTriggerComponent := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 
 @export var component_name: StringName = StringName("C_VictoryTriggerComponent")
 
@@ -110,9 +109,9 @@ func _apply_component_config() -> void:
 	_component.area_id = _area_id
 	_component.victory_type = _victory_type
 	_component.trigger_once = _trigger_once
-	var settings := _get_settings()
-	if settings != null:
-		settings.ignore_initial_overlap = false
+	var trigger_settings := _get_settings()
+	if trigger_settings != null:
+		trigger_settings.ignore_initial_overlap = false
 
 	_update_component_area_path()
 

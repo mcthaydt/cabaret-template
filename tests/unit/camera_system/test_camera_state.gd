@@ -91,7 +91,6 @@ func test_capture_handles_multiple_cameras_uses_first() -> void:
 	assert_not_null(state)
 	# Position should be from one of the cameras
 	var dist_to_cam1: float = state.global_position.distance_to(camera1.global_position)
-	var dist_to_cam2: float = state.global_position.distance_to(camera2.global_position)
 	var uses_first: bool = dist_to_cam1 < 0.1
 	assert_true(uses_first, "Should use first camera when multiple found")
 

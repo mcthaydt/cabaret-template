@@ -1,25 +1,6 @@
 extends BaseTest
 
 const MobileControlsScene := preload("res://scenes/ui/hud/ui_mobile_controls.tscn")
-const M_ECSManager := preload("res://scripts/managers/m_ecs_manager.gd")
-const S_TouchscreenSystem := preload("res://scripts/ecs/systems/s_touchscreen_system.gd")
-const C_InputComponent := preload("res://scripts/ecs/components/c_input_component.gd")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")
-const RS_MenuInitialState := preload("res://scripts/resources/state/rs_menu_initial_state.gd")
-const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_SettingsInitialState := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
-const RS_DebugInitialState := preload("res://scripts/resources/state/rs_debug_initial_state.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_DebugActions := preload("res://scripts/state/actions/u_debug_actions.gd")
-const U_DebugSelectors := preload("res://scripts/state/selectors/u_debug_selectors.gd")
-const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
-const UI_VirtualButton := preload("res://scripts/ui/hud/ui_virtual_button.gd")
-const UI_VirtualJoystick := preload("res://scripts/ui/hud/ui_virtual_joystick.gd")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()

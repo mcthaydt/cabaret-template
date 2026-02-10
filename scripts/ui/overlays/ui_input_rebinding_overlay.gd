@@ -2,19 +2,6 @@
 extends "res://scripts/interfaces/i_rebind_overlay.gd"
 class_name UI_InputRebindingOverlay
 
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
-const U_InputCaptureGuard := preload("res://scripts/utils/input/u_input_capture_guard.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_ButtonPromptRegistry := preload("res://scripts/ui/utils/u_button_prompt_registry.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const U_RebindActionListBuilder := preload("res://scripts/ui/helpers/u_rebind_action_list_builder.gd")
-const U_RebindCaptureHandler := preload("res://scripts/ui/helpers/u_rebind_capture_handler.gd")
-const U_RebindFocusNavigation := preload("res://scripts/ui/helpers/u_rebind_focus_navigation.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/cfg_default_rebind_settings.tres")
 
@@ -39,13 +26,18 @@ var _pending_action: StringName = StringName()
 var _pending_event: InputEvent = null
 var _pending_conflict: StringName = StringName()
 var _action_rows: Dictionary = {}  # StringName -> {container: VBoxContainer, name_label: Label, binding_container: HBoxContainer, replace_button: Button, add_button: Button, reset_button: Button, category_header: Label}
+@warning_ignore("unused_private_class_variable")
 var _capture_mode: String = U_InputActions.REBIND_MODE_REPLACE
 var _search_filter: String = ""
+@warning_ignore("unused_private_class_variable")
 var _focused_action_index: int = -1
 var _focusable_actions: Array[StringName] = []
 var _capture_guard_active: bool = false
+@warning_ignore("unused_private_class_variable")
 var _is_on_bottom_row: bool = false
+@warning_ignore("unused_private_class_variable")
 var _bottom_button_index: int = 0
+@warning_ignore("unused_private_class_variable")
 var _row_button_index: int = 0
 
 func _on_panel_ready() -> void:

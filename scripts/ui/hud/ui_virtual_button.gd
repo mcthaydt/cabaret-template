@@ -1,10 +1,6 @@
 extends Control
 class_name UI_VirtualButton
 
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 
 signal button_pressed(action: StringName)
 signal button_released(action: StringName)

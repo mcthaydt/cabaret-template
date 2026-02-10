@@ -2,8 +2,6 @@ extends "res://scripts/gameplay/base_volume_controller.gd"
 class_name BaseInteractableController
 
 # U_ECS_UTILS inherited from BaseECSEntity (via base_volume_controller.gd)
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
 const SCENE_MANAGER_GROUP := StringName("scene_manager")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 
@@ -48,8 +46,8 @@ func _physics_process(delta: float) -> void:
 		_arming_frames_remaining -= 1
 		if _arming_frames_remaining <= 0:
 			_arm_trigger()
-	var settings := _get_settings()
-	if not settings.ignore_initial_overlap and is_enabled() and _tracked_players.is_empty():
+	var trigger_settings := _get_settings()
+	if not trigger_settings.ignore_initial_overlap and is_enabled() and _tracked_players.is_empty():
 		_register_existing_overlaps()
 
 func is_player_in_zone() -> bool:
@@ -111,16 +109,16 @@ func _on_trigger_area_ready(area: Area3D) -> void:
 
 func _schedule_arming() -> void:
 	_is_armed = false
-	var settings := _get_settings()
-	_arming_frames_remaining = max(0, settings.arm_delay_physics_frames)
+	var trigger_settings := _get_settings()
+	_arming_frames_remaining = max(0, trigger_settings.arm_delay_physics_frames)
 	if _arming_frames_remaining == 0:
 		_arm_trigger()
 
 func _arm_trigger() -> void:
 	_is_armed = true
 	_arming_frames_remaining = 0
-	var settings := _get_settings()
-	if settings.ignore_initial_overlap:
+	var trigger_settings := _get_settings()
+	if trigger_settings.ignore_initial_overlap:
 		return
 	_register_existing_overlaps()
 

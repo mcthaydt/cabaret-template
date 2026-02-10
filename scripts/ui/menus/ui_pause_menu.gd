@@ -6,10 +6,6 @@ class_name UI_PauseMenu
 ##
 ## Buttons dispatch navigation actions instead of calling Scene Manager directly.
 
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 
 const OVERLAY_SETTINGS := StringName("settings_menu_overlay")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
@@ -24,7 +20,7 @@ var _last_device_type: int = M_InputDeviceManager.DeviceType.KEYBOARD_MOUSE
 var _consume_next_nav: bool = false
 
 func _ready() -> void:
-	await super._ready()
+	super._ready()
 	_configure_focus_neighbors()
 
 func _configure_focus_neighbors() -> void:
@@ -88,14 +84,11 @@ func _navigate_focus(direction: StringName) -> void:
 		return
 
 	var viewport: Viewport = get_viewport()
-	var before: Control = null
+	var _before: Control = null
 	if viewport != null:
-		before = viewport.gui_get_focus_owner() as Control
+		_before = viewport.gui_get_focus_owner() as Control
 
 	super._navigate_focus(direction)
-
-	if viewport != null:
-		var after: Control = viewport.gui_get_focus_owner() as Control
 
 func _focus_resume() -> void:
 	if _resume_button == null or not _resume_button.is_inside_tree() or not _resume_button.visible:

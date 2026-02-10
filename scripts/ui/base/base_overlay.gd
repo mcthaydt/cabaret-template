@@ -41,7 +41,7 @@ func _ready() -> void:
 			# Create new background panel
 			_create_background_panel()
 
-	await super._ready()
+	super._ready()
 
 func set_overlay_scene_id(scene_id: StringName) -> void:
 	overlay_scene_id = scene_id

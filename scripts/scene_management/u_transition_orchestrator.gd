@@ -17,8 +17,6 @@ extends RefCounted
 ##   orchestrator.execute_transition(request, scene_node, callbacks)
 
 const U_TRANSITION_FACTORY := preload("res://scripts/scene_management/u_transition_factory.gd")
-const Trans_Fade := preload("res://scripts/scene_management/transitions/trans_fade.gd")
-const Trans_LoadingScreen := preload("res://scripts/scene_management/transitions/trans_loading_screen.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 
 ## Transition state
@@ -126,7 +124,7 @@ func _execute_fade_transition(effect: Trans_Fade, overlay: CanvasLayer, scene_sw
 		await fade_in_signal
 
 ## Execute loading screen transition
-func _execute_loading_transition(effect: Trans_LoadingScreen, overlay: CanvasLayer, scene_swap: Callable, complete: Callable, progress: Callable) -> void:
+func _execute_loading_transition(effect: Trans_LoadingScreen, overlay: CanvasLayer, scene_swap: Callable, complete: Callable, _progress: Callable) -> void:
 	effect.mid_transition_callback = scene_swap
 	# NOTE: Do NOT set progress_provider here. When progress_provider is set,
 	# Trans_LoadingScreen uses real progress mode which polls the provider until >= 1.0.
@@ -180,7 +178,7 @@ func _create_progress_callback(transition_effect, use_cached: bool) -> Callable:
 			current_progress[0] = clamp(progress, 0.0, 1.0)
 
 ## Configure transition effect based on type
-func _configure_transition(effect, transition_type: String) -> void:
+func _configure_transition(_effect, _transition_type: String) -> void:
 	# Transition-specific configuration can be added here
 	# Currently handled by factory, but kept for future extensibility
 	pass

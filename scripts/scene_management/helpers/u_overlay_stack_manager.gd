@@ -12,7 +12,6 @@ class_name U_OverlayStackManager
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_UI_REGISTRY := preload("res://scripts/ui/utils/u_ui_registry.gd")
-const I_StateStore := preload("res://scripts/interfaces/i_state_store.gd")
 
 var _overlay_scene_ids: Dictionary = {}
 static var _overlay_id_registry: Dictionary = {}
@@ -42,7 +41,7 @@ static func get_registered_overlay_scene_id(overlay: Node) -> StringName:
 		return StringName("")
 	return _normalize_scene_id(data.get("id", StringName("")))
 
-func push_overlay(scene_id: StringName, force: bool, load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable) -> void:
+func push_overlay(scene_id: StringName, _force: bool, load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable) -> void:
 	var scene_path: String = U_SCENE_REGISTRY.get_scene_path(scene_id)
 	if scene_path.is_empty():
 		push_warning("M_SceneManager: Scene '%s' not found for overlay" % scene_id)
@@ -103,7 +102,7 @@ func push_overlay_with_return(overlay_id: StringName, overlay_return_stack: Arra
 
 	push_overlay(overlay_id, true, load_scene, ui_overlay_stack, store, on_overlay_stack_updated)
 
-func pop_overlay_with_return(overlay_return_stack: Array[StringName], load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable, viewport: Viewport, deferred_push_overlay_for_return: Callable) -> void:
+func pop_overlay_with_return(overlay_return_stack: Array[StringName], _load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable, viewport: Viewport, deferred_push_overlay_for_return: Callable) -> void:
 	pop_overlay(ui_overlay_stack, store, on_overlay_stack_updated, viewport)
 
 	if not overlay_return_stack.is_empty():

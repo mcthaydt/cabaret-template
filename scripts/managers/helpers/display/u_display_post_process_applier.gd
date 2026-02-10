@@ -111,7 +111,7 @@ func _apply_dither_settings(state: Dictionary) -> void:
 func _apply_color_blind_shader_settings(state: Dictionary) -> void:
 	var mode := U_DISPLAY_SELECTORS.get_color_blind_mode(state)
 	var mode_value := _get_color_blind_mode_value(mode)
-	var enabled := mode_value != 0  # Enabled if mode is not "normal"
+	var enabled := mode_value != 0 # Enabled if mode is not "normal"
 
 	_post_process_layer.set_effect_enabled(U_POST_PROCESS_LAYER.EFFECT_COLOR_BLIND, enabled)
 	_post_process_layer.set_effect_parameter(
@@ -252,7 +252,7 @@ func _setup_ui_color_blind_layer() -> void:
 
 	# Add to scene tree
 	_ui_color_blind_layer.add_child(_ui_color_blind_rect)
-	tree.root.add_child(_ui_color_blind_layer)
+	tree.root.add_child.call_deferred(_ui_color_blind_layer)
 
 func _apply_ui_color_blind_shader(enabled: bool, mode_value: int) -> void:
 	if _ui_color_blind_rect == null or not is_instance_valid(_ui_color_blind_rect):

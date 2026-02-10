@@ -6,7 +6,6 @@ class_name U_VFXReducer
 ## Pure reducer functions for VFX slice state mutations. Handles screen shake
 ## and damage flash settings with intensity clamping (0.0-2.0 range).
 
-const U_VFXActions := preload("res://scripts/state/actions/u_vfx_actions.gd")
 
 const DEFAULT_VFX_STATE := {
 	"screen_shake_enabled": true,

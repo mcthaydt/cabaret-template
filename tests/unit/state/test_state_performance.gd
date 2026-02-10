@@ -47,9 +47,7 @@ func test_profile_dispatch_components() -> void:
 		store.dispatch(U_GameplayActions.pause_game())
 		var end: int = Time.get_ticks_usec()
 		dispatch_times.append((end - start) / 1000.0)
-	
-	var avg_dispatch_time: float = _calculate_average(dispatch_times)
-	
+
 	# 2. Measure reducer execution time
 	var reducer_times: Array[float] = []
 	for i in range(num_iterations):
@@ -58,9 +56,7 @@ func test_profile_dispatch_components() -> void:
 		var _new_state: Dictionary = U_GameplayReducer.reduce(current_state, U_GameplayActions.pause_game())
 		var end: int = Time.get_ticks_usec()
 		reducer_times.append((end - start) / 1000.0)
-	
-	var avg_reducer_time: float = _calculate_average(reducer_times)
-	
+
 	# 3. Measure signal batching overhead
 	# Dispatch multiple actions, then measure flush time
 	for i in range(10):
@@ -103,8 +99,7 @@ func test_duplicate_overhead() -> void:
 		for i in range(num_iterations):
 			var _copy: Dictionary = test_state.duplicate(true)
 	)
-	
-	var shallow_avg: float = shallow_time / num_iterations
+
 	var deep_avg: float = deep_time / num_iterations
 	# Assert that deep duplicate is reasonable (< 0.01ms for typical state)
 	assert_lt(deep_avg, 0.01, "Deep duplicate should be < 0.01ms for typical state")

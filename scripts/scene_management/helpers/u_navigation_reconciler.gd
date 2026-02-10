@@ -12,7 +12,6 @@ const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_regist
 const U_UI_REGISTRY := preload("res://scripts/ui/utils/u_ui_registry.gd")
 const U_SCENE_ACTIONS := preload("res://scripts/state/actions/u_scene_actions.gd")
 const U_OVERLAY_STACK_MANAGER := preload("res://scripts/scene_management/helpers/u_overlay_stack_manager.gd")
-const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
 
 ## Internal state for reconciliation
 var _navigation_pending_scene_id: StringName = StringName("")
@@ -60,7 +59,7 @@ func reconcile_navigation_state(
 	on_overlay_stack_updated: Callable,
 	viewport: Viewport,
 	get_transition_queue_state: Callable,
-	set_overlay_reconciliation_pending: Callable
+	set_pending_callback: Callable
 ) -> void:
 	if nav_state.is_empty():
 		return
@@ -88,7 +87,7 @@ func reconcile_navigation_state(
 		on_overlay_stack_updated,
 		viewport,
 		get_transition_queue_state,
-		set_overlay_reconciliation_pending
+		set_pending_callback
 	)
 
 ## Reconcile base scene if needed
@@ -157,7 +156,7 @@ func reconcile_base_scene(
 ## Parameters:
 ##   manager: Scene manager instance
 ##   overlay_helper: Overlay stack manager helper
-func reconcile_pending_overlays(manager: Node, overlay_helper: U_OVERLAY_STACK_MANAGER, load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable, viewport: Viewport, get_transition_queue_state: Callable, set_overlay_reconciliation_pending: Callable) -> void:
+func reconcile_pending_overlays(_manager: Node, overlay_helper: U_OVERLAY_STACK_MANAGER, load_scene: Callable, ui_overlay_stack: CanvasLayer, store: Object, on_overlay_stack_updated: Callable, viewport: Viewport, get_transition_queue_state: Callable, set_pending_callback: Callable) -> void:
 	if not _pending_overlay_reconciliation:
 		return
 
@@ -179,7 +178,7 @@ func reconcile_pending_overlays(manager: Node, overlay_helper: U_OVERLAY_STACK_M
 		on_overlay_stack_updated,
 		viewport,
 		get_transition_queue_state,
-		set_overlay_reconciliation_pending
+		set_pending_callback
 	)
 
 ## Map overlay IDs to scene IDs using UI registry

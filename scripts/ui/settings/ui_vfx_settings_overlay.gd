@@ -7,13 +7,6 @@ class_name UI_VFXSettingsOverlay
 ## Displays VFX settings (screen shake, damage flash) with Apply/Cancel pattern.
 ## Changes are applied only when user clicks Apply button.
 
-const RS_VFXInitialState := preload("res://scripts/resources/state/rs_vfx_initial_state.gd")
-const U_VFXSelectors := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
-const U_VFXActions := preload("res://scripts/state/actions/u_vfx_actions.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 @onready var _shake_enabled_toggle: CheckButton = %ShakeEnabledToggle
 @onready var _intensity_slider: HSlider = %IntensitySlider
@@ -30,7 +23,7 @@ var _has_local_edits: bool = false
 var _vfx_manager: M_VFXManager = null
 
 func _ready() -> void:
-	await super._ready()
+	super._ready()
 	_vfx_manager = U_ServiceLocator.try_get_service(StringName("vfx_manager")) as M_VFXManager
 
 func _on_store_ready(store: M_StateStore) -> void:
@@ -136,7 +129,7 @@ func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 
 	_updating_from_state = false
 
-func _on_shake_enabled_toggled(_pressed: bool) -> void:
+func _on_shake_enabled_toggled(__pressed: bool) -> void:
 	# Changes only apply when user clicks Apply button
 	if _updating_from_state:
 		return
@@ -154,7 +147,7 @@ func _on_intensity_changed(value: float) -> void:
 	if _vfx_manager != null:
 		_vfx_manager.trigger_test_shake(value)
 
-func _on_flash_enabled_toggled(_pressed: bool) -> void:
+func _on_flash_enabled_toggled(__pressed: bool) -> void:
 	# Changes only apply when user clicks Apply button
 	if _updating_from_state:
 		return

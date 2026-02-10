@@ -43,6 +43,43 @@ folder_colors={
 "res://tests/": "red"
 }
 
+[gdscript]
+
+warnings/assert_always_false=true
+warnings/assert_always_true=true
+warnings/confusable_identifier=true
+warnings/confusable_local_declaration=true
+warnings/confusable_local_usage=true
+warnings/deprecated_keyword=true
+warnings/get_node_default_without_onready=true
+warnings/incompatible_ternary=true
+warnings/inferred_declaration=false
+warnings/int_as_enum_without_cast=true
+warnings/int_as_enum_without_match=true
+warnings/narrowing_conversion=true
+warnings/native_method_override=false
+warnings/onready_with_export=true
+warnings/redundant_await=true
+warnings/return_value_discarded=false
+warnings/shadowed_global_identifier=true
+warnings/shadowed_variable=true
+warnings/shadowed_variable_base_class=true
+warnings/standalone_expression=true
+warnings/static_called_on_instance=true
+warnings/unassigned_variable=true
+warnings/unassigned_variable_op_assign=true
+warnings/unreachable_code=true
+warnings/unreachable_pattern=true
+warnings/unsafe_call_argument=false
+warnings/unsafe_cast=false
+warnings/unsafe_method_access=false
+warnings/unsafe_property_access=false
+warnings/untyped_declaration=false
+warnings/unused_local_constant=true
+warnings/unused_parameter=true
+warnings/unused_signal=true
+warnings/unused_variable=true
+
 [input]
 
 ui_accept={

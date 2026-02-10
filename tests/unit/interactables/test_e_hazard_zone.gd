@@ -1,7 +1,5 @@
 extends BaseTest
 
-const Inter_HazardZone := preload("res://scripts/gameplay/inter_hazard_zone.gd")
-const C_DamageZoneComponent := preload("res://scripts/ecs/components/c_damage_zone_component.gd")
 
 class TestDamageZoneComponent:
 	extends C_DamageZoneComponent

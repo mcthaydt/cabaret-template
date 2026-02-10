@@ -9,7 +9,6 @@ extends I_InputSource
 ## Note: Actual input capture is handled by MobileControls virtual joystick/buttons.
 ## This source acts as an activation detector for device switching.
 
-const U_ECSUtils := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 var _last_touch_time: float = 0.0
 var _is_mobile: bool = false
@@ -23,7 +22,7 @@ func get_device_type() -> int:
 func get_priority() -> int:
 	return 3
 
-func get_stick_deadzone(_stick: StringName) -> float:
+func get_stick_deadzone(__stick: StringName) -> float:
 	return 0.15
 
 func is_active() -> bool:
@@ -35,7 +34,7 @@ func is_active() -> bool:
 	var current_time := U_ECSUtils.get_current_time()
 	return (current_time - _last_touch_time) < 5.0
 
-func capture_input(_delta: float) -> Dictionary:
+func capture_input(__delta: float) -> Dictionary:
 	# Touchscreen input is handled by MobileControls (virtual joystick/buttons)
 	# This source is primarily used for device type detection
 	# MobileControls publishes input to Redux state, which is read by gameplay systems

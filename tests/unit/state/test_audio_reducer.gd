@@ -2,8 +2,6 @@ extends GutTest
 
 # Tests for U_AudioReducer (Phase 0 - Task 0.3)
 
-const U_AudioReducer := preload("res://scripts/state/reducers/u_audio_reducer.gd")
-const U_AudioActions := preload("res://scripts/state/actions/u_audio_actions.gd")
 
 # Test 1: Default state structure
 func test_default_state_has_all_fields() -> void:

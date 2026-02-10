@@ -1,26 +1,6 @@
 extends GutTest
 
 const MobileControlsScene := preload("res://scenes/ui/hud/ui_mobile_controls.tscn")
-const UI_VirtualJoystick := preload("res://scripts/ui/hud/ui_virtual_joystick.gd")
-const UI_VirtualButton := preload("res://scripts/ui/hud/ui_virtual_button.gd")
-const S_TouchscreenSystem := preload("res://scripts/ecs/systems/s_touchscreen_system.gd")
-const M_ECSManager := preload("res://scripts/managers/m_ecs_manager.gd")
-const C_InputComponent := preload("res://scripts/ecs/components/c_input_component.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_BootInitialState := preload("res://scripts/resources/state/rs_boot_initial_state.gd")
-const RS_MenuInitialState := preload("res://scripts/resources/state/rs_menu_initial_state.gd")
-const RS_GameplayInitialState := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const RS_SceneInitialState := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
-const RS_SettingsInitialState := preload("res://scripts/resources/state/rs_settings_initial_state.gd")
-const RS_DebugInitialState := preload("res://scripts/resources/state/rs_debug_initial_state.gd")
-const RS_NavigationInitialState := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_SceneActions := preload("res://scripts/state/actions/u_scene_actions.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_StateHandoff := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 func before_each() -> void:
 	U_StateHandoff.clear_all()
@@ -124,7 +104,7 @@ func test_virtual_control_positions_persist_via_state_handoff() -> void:
 	store.queue_free()
 	await _await_frames(2)
 
-	var restored_store: M_StateStore = await _create_state_store()
+	await _create_state_store()
 	var restored_controls: UI_MobileControls = await _create_controls()
 	var restored_joystick: UI_VirtualJoystick = restored_controls.get_node_or_null("Controls/VirtualJoystick") as UI_VirtualJoystick
 	var restored_jump: UI_VirtualButton = _find_button(restored_controls.get_buttons(), StringName("jump"))

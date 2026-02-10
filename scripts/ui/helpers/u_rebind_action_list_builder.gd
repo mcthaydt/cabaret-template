@@ -1,10 +1,6 @@
 extends RefCounted
 class_name U_RebindActionListBuilder
 
-const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_UISoundPlayer := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
 const I_REBIND_OVERLAY := preload("res://scripts/interfaces/i_rebind_overlay.gd")
 
 const REPLACE_BUTTON_TEXT := "Replace"
@@ -97,7 +93,7 @@ static func build_action_rows(
 		category_header.modulate = Color(0.8, 0.8, 1.0, 1.0)
 		action_list.add_child(category_header)
 
-		_add_spacer(action_list, CATEGORY_SPACING / 2)
+		_add_spacer(action_list, int(CATEGORY_SPACING / 2.0))
 
 		for action in category_actions:
 			if not _matches_search_filter(action, search_filter):
@@ -399,9 +395,9 @@ static func _add_spacer(action_list: VBoxContainer, height: int) -> void:
 
 static func _populate_binding_visuals(
 	container: HBoxContainer,
-	action: StringName,
+	_action: StringName,
 	events: Array,
-	device_type: int
+	_device_type: int
 ) -> void:
 	if container == null:
 		return

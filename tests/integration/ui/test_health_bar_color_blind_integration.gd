@@ -2,22 +2,12 @@ extends GutTest
 
 ## Integration test: Health bar color adapts to color blind palette.
 
-const UI_HudController := preload("res://scripts/ui/hud/ui_hud_controller.gd")
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const M_DisplayManager := preload("res://scripts/managers/m_display_manager.gd")
-const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
-const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const RS_StateStoreSettings := preload("res://scripts/resources/state/rs_state_store_settings.gd")
-const RS_DisplayInitialState := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 
 var _store: M_StateStore = null
 var _hud: UI_HudController = null
 var _display_manager: M_DisplayManager = null
 
 func before_each() -> void:
-	const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-
 	# Clear ServiceLocator first to unregister any previous DisplayManager
 	U_ServiceLocator.clear()
 	await get_tree().process_frame

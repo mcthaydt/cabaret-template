@@ -43,7 +43,7 @@ func _exit_tree() -> void:
 		if _store.has_method("register_debug_overlay"):
 			_store.register_debug_overlay(null)
 
-func _process(_delta: float) -> void:
+func _process(__delta: float) -> void:
 	# Update state display every frame
 	_update_state_display()
 	

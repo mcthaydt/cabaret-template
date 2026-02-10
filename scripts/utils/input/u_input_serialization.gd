@@ -1,8 +1,6 @@
 extends RefCounted
 class_name U_InputSerialization
 
-const U_InputReducer := preload("res://scripts/state/reducers/u_input_reducer.gd")
-const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
 
 const SAVE_PATH := "user://input_settings.json"
 const BACKUP_PATH := "user://input_settings.json.backup"
@@ -206,10 +204,10 @@ static func _sanitize_float_fields(source: Dictionary, ranges: Dictionary) -> Di
 	for key in source.keys():
 		var value: Variant = source[key]
 		if value is float or value is int:
-			var range: Vector2 = ranges.get(key, Vector2.ZERO)
-			if range != Vector2.ZERO:
-				var min_value := range.x
-				var max_value := range.y
+			var value_range: Vector2 = ranges.get(key, Vector2.ZERO)
+			if value_range != Vector2.ZERO:
+				var min_value := value_range.x
+				var max_value := value_range.y
 				result[key] = clampf(float(value), min_value, max_value)
 			else:
 				result[key] = float(value)

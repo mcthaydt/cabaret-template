@@ -2,15 +2,6 @@
 extends "res://scripts/interfaces/i_input_profile_manager.gd"
 class_name M_InputProfileManager
 
-const U_GlobalSettingsSerialization := preload("res://scripts/utils/u_global_settings_serialization.gd")
-const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
-const U_InputProfileLoader := preload("res://scripts/managers/helpers/u_input_profile_loader.gd")
-const U_InputMapBootstrapper := preload("res://scripts/input/u_input_map_bootstrapper.gd")
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 
 signal profile_switched(profile_id: String)
 signal bindings_reset()

@@ -25,7 +25,7 @@ func record_signal_emitted(count: int = 1) -> void:
 func get_performance_metrics() -> Dictionary:
 	var avg_time_ms: float = 0.0
 	if _dispatch_count > 0:
-		avg_time_ms = (_total_dispatch_time_us / _dispatch_count) / 1000.0
+		avg_time_ms = (float(_total_dispatch_time_us) / _dispatch_count) / 1000.0
 
 	var last_time_ms: float = _last_dispatch_time_us / 1000.0
 

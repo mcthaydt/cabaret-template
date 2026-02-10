@@ -1,7 +1,6 @@
 extends RefCounted
 class_name U_DebugReducer
 
-const U_DebugActions := preload("res://scripts/state/actions/u_debug_actions.gd")
 
 const DEFAULT_DEBUG_STATE := {
 	"disable_touchscreen": false,

@@ -48,7 +48,7 @@ func test_steal_oldest_voice_selects_oldest_playing_sound() -> void:
 	})
 	await wait_frames(2)
 
-	var second_player := U_SFXSpawner.spawn_3d({
+	U_SFXSpawner.spawn_3d({
 		"audio_stream": _test_stream,
 		"position": Vector3(1, 0, 0),
 		"bus": "SFX"

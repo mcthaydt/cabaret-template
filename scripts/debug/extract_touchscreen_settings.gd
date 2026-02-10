@@ -8,7 +8,6 @@ extends Node
 ## 2. Call print_current_touchscreen_settings() from _ready() or console
 ## 3. Copy the output and use it to update default resources
 
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
 
 func _ready() -> void:
 	await get_tree().process_frame

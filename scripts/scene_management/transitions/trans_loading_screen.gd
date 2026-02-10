@@ -2,9 +2,6 @@ extends "res://scripts/scene_management/transitions/base_transition_effect.gd"
 class_name Trans_LoadingScreen
 
 const LOADING_SCREEN_SCENE := preload("res://scenes/ui/hud/ui_loading_screen.tscn")
-const U_TweenManager = preload("res://scripts/scene_management/u_tween_manager.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const I_SceneManager := preload("res://scripts/interfaces/i_scene_manager.gd")
 
 ## Loading screen transition effect
 ##
@@ -118,9 +115,7 @@ func execute(overlay: CanvasLayer, callback: Callable) -> void:
 ## Execute with real async loading progress (Phase 8)
 func _execute_with_real_progress(overlay: CanvasLayer, callback: Callable, original_overlay_mode: int, original_screen_mode: int) -> void:
 	# Poll progress_provider until complete
-	var prev_progress: float = 0.0
 	var mid_transition_fired: bool = false
-	var iterations: int = 0
 
 	# Update status label
 	if _status_label:
@@ -157,10 +152,6 @@ func _execute_with_real_progress(overlay: CanvasLayer, callback: Callable, origi
 		if current_progress >= 1.0:
 			break
 
-		# Update previous progress and iteration count
-		prev_progress = current_progress
-		iterations += 1
-
 		# Wait one frame before next poll
 		# Guard against overlay being freed during polling
 		if not is_instance_valid(overlay) or not overlay.get_tree():
@@ -191,7 +182,7 @@ func _execute_with_fake_progress(overlay: CanvasLayer, callback: Callable, origi
 	_tween = U_TweenManager.create_transition_tween(overlay)
 
 	# Phase 1: Animate 0→50% (fast preparation phase)
-	var first_half_duration: float = min_duration * 0.3  # 30% of time for first half
+	var first_half_duration: float = min_duration * 0.3 # 30% of time for first half
 	_tween.tween_property(_progress_bar, "value", 50.0, first_half_duration).from(0.0)
 
 	# Phase 2: Mid-transition callback (scene swap at 50%)
@@ -202,7 +193,7 @@ func _execute_with_fake_progress(overlay: CanvasLayer, callback: Callable, origi
 	)
 
 	# Phase 3: Animate 50→100% (slower actual load phase)
-	var second_half_duration: float = min_duration * 0.5  # 50% of time for second half
+	var second_half_duration: float = min_duration * 0.5 # 50% of time for second half
 	_tween.tween_property(_progress_bar, "value", 100.0, second_half_duration).from(50.0)
 
 	# Wait for tween to complete before calling completion
@@ -258,9 +249,9 @@ func _complete_transition(overlay: CanvasLayer, callback: Callable, original_ove
 
 	# Restore process modes
 	if is_instance_valid(overlay):
-		overlay.process_mode = original_overlay_mode
+		overlay.process_mode = original_overlay_mode as Node.ProcessMode
 	if _loading_screen and is_instance_valid(_loading_screen):
-		_loading_screen.process_mode = original_screen_mode
+		_loading_screen.process_mode = original_screen_mode as Node.ProcessMode
 
 	# Call completion callback
 	if callback.is_valid():

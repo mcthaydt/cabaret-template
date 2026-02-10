@@ -7,16 +7,8 @@ class_name S_InputSystem
 
 const INPUT_TYPE := StringName("C_InputComponent")
 const GAMEPAD_TYPE := StringName("C_GamepadComponent")
-const U_DeviceTypeConstants := preload("res://scripts/input/u_device_type_constants.gd")
-const GamepadSource := preload("res://scripts/input/sources/gamepad_source.gd")
-const KeyboardMouseSource := preload("res://scripts/input/sources/keyboard_mouse_source.gd")
-const U_GameplaySelectors := preload("res://scripts/state/selectors/u_gameplay_selectors.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const C_GamepadComponent := preload("res://scripts/ecs/components/c_gamepad_component.gd")
 const ACTION_MOVE_STRENGTH := StringName("move")
 const ACTION_LOOK_STRENGTH := StringName("look")
-const U_InputMapBootstrapper := preload("res://scripts/input/u_input_map_bootstrapper.gd")
 
 # Use centralized DeviceType enum
 const DeviceType := U_DeviceTypeConstants.DeviceType
@@ -144,7 +136,7 @@ func process_tick(_delta: float) -> void:
 				gamepad_component.left_stick = final_movement
 				gamepad_component.right_stick = look_delta
 				gamepad_component.button_states = gamepad_source.get_button_states()
-			gamepad_component.is_connected = is_gamepad_connected
+			gamepad_component.connected = is_gamepad_connected
 			gamepad_component.device_id = active_gamepad_id
 			gamepad_component.apply_settings_from_dictionary(_gamepad_settings_cache)
 
@@ -231,7 +223,7 @@ func _get_state_store() -> I_StateStore:
 	_teardown_store_subscription()
 	return null
 
-func _on_state_store_changed(_action: Dictionary, state: Dictionary) -> void:
+func _on_state_store_changed(__action: Dictionary, state: Dictionary) -> void:
 	_apply_settings_from_state(state)
 
 func _apply_settings_from_state(state: Dictionary) -> void:

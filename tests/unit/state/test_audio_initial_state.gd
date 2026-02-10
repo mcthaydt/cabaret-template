@@ -2,8 +2,6 @@ extends GutTest
 
 # Tests for RS_AudioInitialState resource (Phase 0 - Task 0.1)
 
-const RS_AudioInitialState := preload("res://scripts/resources/state/rs_audio_initial_state.gd")
-const U_AudioReducer := preload("res://scripts/state/reducers/u_audio_reducer.gd")
 
 var initial_state: RS_AudioInitialState
 

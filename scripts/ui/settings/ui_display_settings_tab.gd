@@ -2,16 +2,6 @@
 extends VBoxContainer
 class_name UI_DisplaySettingsTab
 
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_DisplayUtils := preload("res://scripts/utils/display/u_display_utils.gd")
-const U_DisplayOptionCatalog := preload("res://scripts/utils/display/u_display_option_catalog.gd")
-const U_DisplaySelectors := preload("res://scripts/state/selectors/u_display_selectors.gd")
-const U_DisplayActions := preload("res://scripts/state/actions/u_display_actions.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
-const U_UISoundPlayer := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const RS_DisplayInitialState := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/base_settings/state/cfg_display_initial_state.tres")
 const WINDOW_CONFIRM_SECONDS := 10
 const WINDOW_CONFIRM_TEXT := "Keep these display changes? Reverting in %ds."
@@ -304,7 +294,7 @@ func _on_window_mode_selected(index: int) -> void:
 	_has_local_edits = true
 	_update_display_settings_preview_from_ui()
 
-func _on_vsync_toggled(pressed: bool) -> void:
+func _on_vsync_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_confirm()
@@ -320,7 +310,7 @@ func _on_quality_preset_selected(index: int) -> void:
 	_has_local_edits = true
 	_update_display_settings_preview_from_ui()
 
-func _on_post_processing_toggled(pressed: bool) -> void:
+func _on_post_processing_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_confirm()
@@ -353,7 +343,7 @@ func _on_color_blind_mode_selected(index: int) -> void:
 	_has_local_edits = true
 	_update_display_settings_preview_from_ui()
 
-func _on_high_contrast_toggled(pressed: bool) -> void:
+func _on_high_contrast_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	U_UISoundPlayer.play_confirm()

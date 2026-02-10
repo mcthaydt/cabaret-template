@@ -18,8 +18,6 @@ const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_regist
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 
 var _root_node: Node
 var _state_store: M_STATE_STORE

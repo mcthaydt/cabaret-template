@@ -5,9 +5,6 @@ extends GutTest
 ## These tests verify that the pause menu properly updates navigation state
 ## and allows child overlays to open when pause is the parent overlay.
 
-const M_StateStore := preload("res://scripts/state/m_state_store.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 var _store: M_StateStore
 

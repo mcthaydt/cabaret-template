@@ -143,7 +143,7 @@ func _is_audio_blocked() -> bool:
 
 	return false
 
-func _log_blocked(is_paused: bool, is_transitioning: bool, shell: StringName) -> void:
+func _log_blocked(_is_paused: bool, _is_transitioning: bool, _shell: StringName) -> void:
 	if requests.is_empty():
 		return
 

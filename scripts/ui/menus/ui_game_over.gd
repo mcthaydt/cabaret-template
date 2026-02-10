@@ -8,9 +8,6 @@ class_name UI_GameOver
 ## - Retry: Soft reset player state and return to last gameplay scene.
 ## - Menu: Soft reset and return to main menu.
 
-const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
 
 @onready var _death_count_label: Label = $MarginContainer/VBoxContainer/DeathCountLabel
 @onready var _retry_button: Button = $MarginContainer/VBoxContainer/ButtonRow/RetryButton

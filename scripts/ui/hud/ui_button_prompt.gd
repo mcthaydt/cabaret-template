@@ -2,11 +2,6 @@
 extends HBoxContainer
 class_name UI_ButtonPrompt
 
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_ButtonPromptRegistry := preload("res://scripts/ui/utils/u_button_prompt_registry.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
 
 @export var label_path: NodePath = NodePath("Text")
 @export var text_icon_panel_path: NodePath = NodePath("TextIcon")
@@ -210,7 +205,7 @@ func _find_device_manager_in_tree(tree: SceneTree) -> M_InputDeviceManager:
 			stack.append(child)
 	return null
 
-func _on_device_changed_signal(device_type: int, _device_id: int, _timestamp: float) -> void:
+func _on_device_changed_signal(device_type: int, __device_id: int, _timestamp: float) -> void:
 	_device_type = device_type
 	if _is_shown:
 		_refresh_prompt()

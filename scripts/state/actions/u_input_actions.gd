@@ -5,8 +5,6 @@ class_name U_InputActions
 ##
 ## Provides explicit action types for Input Manager features.
 
-const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
-
 const ACTION_UPDATE_MOVE_INPUT := StringName("input/update_move_input")
 const ACTION_UPDATE_LOOK_INPUT := StringName("input/update_look_input")
 const ACTION_UPDATE_JUMP_STATE := StringName("input/update_jump_state")

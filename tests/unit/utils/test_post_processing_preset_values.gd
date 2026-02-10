@@ -2,7 +2,6 @@ extends GutTest
 
 ## Tests for post-processing preset intensity values
 
-const U_PostProcessingPresetValues := preload("res://scripts/utils/display/u_post_processing_preset_values.gd")
 
 func test_light_preset_has_lower_intensities() -> void:
 	# GIVEN: Light preset values

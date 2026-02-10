@@ -6,7 +6,6 @@ extends I_InputSource
 ## Captures input from keyboard (WASD, arrows) and mouse (motion, buttons).
 ## Priority: 1 (default, overridden by gamepad when gamepad is active)
 
-const U_ECSUtils := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 
 var _mouse_delta: Vector2 = Vector2.ZERO
 var _last_input_time: float = 0.0
@@ -31,7 +30,7 @@ func get_device_type() -> int:
 func get_priority() -> int:
 	return 1
 
-func get_stick_deadzone(_stick: StringName) -> float:
+func get_stick_deadzone(__stick: StringName) -> float:
 	return _input_deadzone
 
 func is_active() -> bool:

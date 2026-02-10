@@ -23,7 +23,6 @@ class_name U_AutosaveScheduler
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_SCENE_REGISTRY := preload("res://scripts/scene_management/u_scene_registry.gd")
-const I_SaveManager := preload("res://scripts/interfaces/i_save_manager.gd")
 
 enum Priority {
 	NORMAL = 0,
@@ -71,7 +70,7 @@ func _subscribe_to_triggers() -> void:
 	if _state_store != null and _state_store.has_signal("action_dispatched"):
 		_state_store.action_dispatched.connect(_on_action_dispatched)
 
-func _on_checkpoint_activated(_event: Dictionary) -> void:
+func _on_checkpoint_activated(__event: Dictionary) -> void:
 	_request_autosave_if_allowed(Priority.NORMAL)
 
 func _on_action_dispatched(action: Dictionary) -> void:

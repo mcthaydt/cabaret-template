@@ -6,7 +6,6 @@ class_name U_StateUtils
 ## Provides helpers for finding M_StateStore in scene tree and
 ## performance benchmarking for state operations.
 
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const STORE_GROUP := StringName("state_store")
 
 ## Get the I_StateStore from injection or ServiceLocator.
@@ -97,7 +96,7 @@ static func await_store_ready(node: Node, max_frames: int = 120) -> I_StateStore
 
 ## Benchmark a callable and return elapsed time in milliseconds
 ## Useful for profiling state operations
-static func benchmark(name: String, callable: Callable) -> float:
+static func benchmark(_name: String, callable: Callable) -> float:
 	if not callable.is_valid():
 		push_warning("U_StateUtils.benchmark: Invalid callable")
 		return 0.0

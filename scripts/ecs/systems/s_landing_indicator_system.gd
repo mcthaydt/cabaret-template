@@ -7,7 +7,7 @@ class_name S_LandingIndicatorSystem
 const COMPONENT_TYPE := StringName("C_LandingIndicatorComponent")
 const UP_VECTOR: Vector3 = Vector3.UP
 
-func process_tick(_delta: float) -> void:
+func process_tick(__delta: float) -> void:
 	# Phase 16: Check if landing indicator is enabled in state
 	var store: I_StateStore = U_StateUtils.get_store(self)
 	var should_show: bool = true

@@ -1,22 +1,19 @@
 extends BaseTest
 
-const Inter_DoorTrigger := preload("res://scripts/gameplay/inter_door_trigger.gd")
-const C_SceneTriggerComponent := preload("res://scripts/ecs/components/c_scene_trigger_component.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 
 ## Minimal stub SceneManager for unit tests
 class TestSceneManager:
 	extends Node
 
-	class PriorityWrapper:
-		var NORMAL: int = 0
-		var HIGH: int = 1
-		var CRITICAL: int = 2
+	enum Priority {
+		NORMAL = 0,
+		HIGH = 1,
+		CRITICAL = 2
+	}
 
-	var Priority := PriorityWrapper.new()
 	var transition_calls: Array = []
 
 	func transition_to_scene(scene_id: StringName, transition_type: String, priority: int = 0) -> void:

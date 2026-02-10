@@ -2,14 +2,6 @@
 extends VBoxContainer
 class_name UI_AudioSettingsTab
 
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_AudioSelectors := preload("res://scripts/state/selectors/u_audio_selectors.gd")
-const U_AudioActions := preload("res://scripts/state/actions/u_audio_actions.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
-const U_UISoundPlayer := preload("res://scripts/ui/utils/u_ui_sound_player.gd")
-const RS_AudioInitialState := preload("res://scripts/resources/state/rs_audio_initial_state.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const I_AUDIO_MANAGER := preload("res://scripts/interfaces/i_audio_manager.gd")
 
 var _state_store: I_StateStore = null
@@ -247,7 +239,7 @@ func _on_master_volume_changed(value: float) -> void:
 	_has_local_edits = true
 	_update_audio_settings_preview_from_ui()
 
-func _on_master_mute_toggled(pressed: bool) -> void:
+func _on_master_mute_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
@@ -263,7 +255,7 @@ func _on_music_volume_changed(value: float) -> void:
 	_has_local_edits = true
 	_update_audio_settings_preview_from_ui()
 
-func _on_music_mute_toggled(pressed: bool) -> void:
+func _on_music_mute_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
@@ -279,7 +271,7 @@ func _on_sfx_volume_changed(value: float) -> void:
 	_has_local_edits = true
 	_update_audio_settings_preview_from_ui()
 
-func _on_sfx_mute_toggled(pressed: bool) -> void:
+func _on_sfx_mute_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
@@ -295,7 +287,7 @@ func _on_ambient_volume_changed(value: float) -> void:
 	_has_local_edits = true
 	_update_audio_settings_preview_from_ui()
 
-func _on_ambient_mute_toggled(pressed: bool) -> void:
+func _on_ambient_mute_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true
@@ -303,7 +295,7 @@ func _on_ambient_mute_toggled(pressed: bool) -> void:
 	_update_audio_settings_preview_from_ui()
 
 # Spatial handler
-func _on_spatial_audio_toggled(pressed: bool) -> void:
+func _on_spatial_audio_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true

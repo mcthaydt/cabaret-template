@@ -5,7 +5,6 @@ extends GutTest
 ## Verifies VFX selectors compute derived state correctly and handle edge cases
 ## (missing vfx slice, null state, missing fields).
 
-const U_VFXSelectors := preload("res://scripts/state/selectors/u_vfx_selectors.gd")
 
 # Test 1: is_screen_shake_enabled with valid state (enabled)
 func test_is_screen_shake_enabled_returns_true() -> void:

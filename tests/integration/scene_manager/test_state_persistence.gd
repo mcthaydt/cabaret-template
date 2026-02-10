@@ -15,8 +15,6 @@ const RS_GameplayInitialState = preload("res://scripts/resources/state/rs_gamepl
 const RS_StateStoreSettings = preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const U_SceneRegistry = preload("res://scripts/scene_management/u_scene_registry.gd")
 const U_GameplayActions = preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
-const U_SceneTestHelpers := preload("res://tests/helpers/u_scene_test_helpers.gd")
 
 var _root_scene: Node
 var _manager: M_SceneManager

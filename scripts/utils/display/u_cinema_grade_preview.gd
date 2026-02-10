@@ -64,7 +64,6 @@ func _update_preview() -> void:
 	var grade := cinema_grade as Resource
 
 	# Use RS_SceneCinemaGrade.FILTER_PRESET_MAP (single source of truth)
-	const RS_SceneCinemaGrade := preload("res://scripts/resources/display/rs_scene_cinema_grade.gd")
 	var filter_preset: String = grade.get("filter_preset") if grade.get("filter_preset") != null else "none"
 	_shader_material.set_shader_parameter("filter_mode", RS_SceneCinemaGrade.FILTER_PRESET_MAP.get(filter_preset, 0))
 	_shader_material.set_shader_parameter("filter_intensity", _get_prop(grade, "filter_intensity", 1.0))

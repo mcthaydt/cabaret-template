@@ -2,7 +2,6 @@
 extends Resource
 class_name RS_DebugInitialState
 
-const U_DebugReducer := preload("res://scripts/state/reducers/u_debug_reducer.gd")
 
 @export var debug_settings: Dictionary = {}
 

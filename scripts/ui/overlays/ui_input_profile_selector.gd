@@ -2,15 +2,6 @@
 extends "res://scripts/ui/base/base_overlay.gd"
 class_name UI_InputProfileSelector
 
-const U_InputSelectors := preload("res://scripts/state/selectors/u_input_selectors.gd")
-const U_NavigationActions := preload("res://scripts/state/actions/u_navigation_actions.gd")
-const U_NavigationSelectors := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
-const U_FocusConfigurator := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
-const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
-const RS_InputProfile := preload("res://scripts/resources/input/rs_input_profile.gd")
-const U_ButtonPromptRegistry := preload("res://scripts/ui/utils/u_button_prompt_registry.gd")
-const M_InputDeviceManager := preload("res://scripts/managers/m_input_device_manager.gd")
-const U_ServiceLocator := preload("res://scripts/core/u_service_locator.gd")
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 
 @onready var _profile_button: Button = $CenterContainer/Panel/MainContainer/ProfileRow/ProfileButton
@@ -461,7 +452,7 @@ func _add_action_row(action_label: String, action_name: StringName, profile: RS_
 
 	_bindings_container.add_child(row)
 
-func _add_binding_icons_for_action(container: HBoxContainer, action: StringName, profile: RS_InputProfile, device_type: int) -> void:
+func _add_binding_icons_for_action(container: HBoxContainer, action: StringName, profile: RS_InputProfile, _device_type: int) -> void:
 	if container == null or profile == null:
 		return
 

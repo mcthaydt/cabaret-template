@@ -1,7 +1,6 @@
 extends "res://scripts/gameplay/base_volume_controller.gd"
 class_name Inter_CheckpointZone
 
-const C_CheckpointComponent := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
 
 @export var component_name: StringName = StringName("C_CheckpointComponent")
 

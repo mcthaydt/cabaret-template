@@ -9,10 +9,6 @@ class_name S_HealthSystem
 ## U_ECSEventBus events emitted by components instead of direct signals.
 
 const COMPONENT_TYPE := StringName("C_HealthComponent")
-const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
-const U_EntityActions := preload("res://scripts/state/actions/u_entity_actions.gd")
-const U_StateUtils := preload("res://scripts/state/utils/u_state_utils.gd")
-const U_ECSUtils := preload("res://scripts/utils/ecs/u_ecs_utils.gd")
 const PLAYER_RAGDOLL := preload("res://scenes/prefabs/prefab_player_ragdoll.tscn")
 
 ## Injected state store (for testing)
@@ -192,7 +188,7 @@ func _dispatch_heal_state(entity_id: String, heal_amount: float) -> void:
 		return
 	_store.dispatch(U_GameplayActions.heal(entity_id, heal_amount))
 
-func _dispatch_death_state(entity_id: String, component: C_HealthComponent) -> void:
+func _dispatch_death_state(entity_id: String, _component: C_HealthComponent) -> void:
 	if _store == null:
 		return
 

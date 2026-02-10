@@ -1,10 +1,6 @@
 extends RefCounted
 class_name U_RebindCaptureHandler
 
-const U_InputRebindUtils := preload("res://scripts/utils/input/u_input_rebind_utils.gd")
-const U_InputCaptureGuard := preload("res://scripts/utils/input/u_input_capture_guard.gd")
-const U_InputActions := preload("res://scripts/state/actions/u_input_actions.gd")
-const U_RebindActionListBuilder := preload("res://scripts/ui/helpers/u_rebind_action_list_builder.gd")
 
 static func begin_capture(overlay: Node, action: StringName, mode: String) -> void:
 	if overlay._is_capturing:
@@ -170,7 +166,7 @@ static func apply_binding(overlay: Node, event: InputEvent, conflict_action: Str
 		"binding": overlay._format_binding_label(binding_text)
 	}))
 
-static func get_action_events(overlay: Node, action: StringName) -> Array[InputEvent]:
+static func get_action_events(_overlay: Node, action: StringName) -> Array[InputEvent]:
 	var results: Array[InputEvent] = []
 	if action == StringName():
 		return results
