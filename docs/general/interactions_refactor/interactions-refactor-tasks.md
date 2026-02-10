@@ -9,7 +9,7 @@ This refactor covers all interaction controllers and keeps the existing hybrid r
 - Resources become the declarative source of interaction configuration.
 
 **Status**: In Progress  
-**Current Phase**: Phase 3  
+**Current Phase**: Phase 4  
 **Task ID Range**: T001-T053  
 **Primary Tasks File**: `docs/general/interactions_refactor/interactions-refactor-tasks.md`  
 **Continuation Prompt File**: `docs/general/interactions_refactor/interactions-refactor-continuation-prompt.md` (required per phase)
@@ -160,8 +160,8 @@ Validator responsibilities:
 | 0 | Baseline and Safety | T001-T003 | Low | Complete |
 | 1 | Resource Schema and Validation | T010-T014 | Medium | Complete |
 | 2 | Controller Binding to Resources | T020-T023 | Medium | Complete |
-| 3 | Scene/Prefab Migration | T030-T033 | High | In Progress |
-| 4 | Validation and Enforcement | T040-T043 | Medium | Not Started |
+| 3 | Scene/Prefab Migration | T030-T033 | High | Complete |
+| 4 | Validation and Enforcement | T040-T043 | Medium | In Progress |
 | 5 | Cleanup and Doc Closure | T050-T053 | Medium | Not Started |
 
 ---
@@ -361,16 +361,39 @@ For Phase 1 (resource schema/validation) and Phase 2 (controller binding), these
 
 ### RED
 
-- [ ] **T030 (RED)** Add scene-level tests for required config presence and invalid config failure.
+- [x] **T030 (RED)** Add scene-level tests for required config presence and invalid config failure.
 
 ### GREEN
 
-- [ ] **T031 (GREEN)** Migrate prefab and gameplay scenes to config resources.
-- [ ] **T032 (GREEN)** Add/refresh config instances under `resources/interactions/`.
+- [x] **T031 (GREEN)** Migrate prefab and gameplay scenes to config resources.
+- [x] **T032 (GREEN)** Add/refresh config instances under `resources/interactions/`.
 
 ### REFACTOR
 
-- [ ] **T033 (REFACTOR)** Remove duplicated per-scene literal values where config owns truth.
+- [x] **T033 (REFACTOR)** Remove duplicated per-scene literal values where config owns truth.
+
+### Phase 3 Completion Notes (2026-02-10)
+
+- Added scene-level migration guard tests:
+  - `tests/unit/interactables/test_scene_interaction_config_binding.gd`
+- Migrated gameplay/prefab interaction nodes from inline literals to resource-driven `config` assignments:
+  - Gameplay: `scenes/gameplay/gameplay_exterior.tscn`, `scenes/gameplay/gameplay_alleyway.tscn`, `scenes/gameplay/gameplay_interior_bar.tscn`, `scenes/gameplay/gameplay_interior_house.tscn`
+  - Prefabs: `scenes/prefabs/prefab_door_trigger.tscn`, `scenes/prefabs/prefab_checkpoint_safe_zone.tscn`, `scenes/prefabs/prefab_spike_trap.tscn`, `scenes/prefabs/prefab_death_zone.tscn`, `scenes/prefabs/prefab_goal_zone.tscn`
+- Added/expanded config instances under:
+  - `resources/interactions/doors/`
+  - `resources/interactions/checkpoints/`
+  - `resources/interactions/hazards/`
+  - `resources/interactions/victory/`
+  - `resources/interactions/signposts/`
+  - `resources/interactions/endgame/`
+- Removed duplicated scene-authored interaction fields (`door_id`, checkpoint IDs, damage/victory/signpost fields, trigger settings) where configs now own truth.
+- Validation runs for this phase:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -ginclude_subdirs=true` (PASS, 36/36)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (PASS, 11/11)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/gameplay -ginclude_subdirs=true` (PASS, 10/10)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/spawn_system -ginclude_subdirs=true` (PASS, 19/19)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -ginclude_subdirs=true` (PASS, 90/90)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources -ginclude_subdirs=true` (PASS, 32/32)
 
 **Phase 3 Exit Criteria**
 - Prefab/gameplay scenes use config resources for interaction data.
