@@ -9,7 +9,7 @@ This refactor covers all interaction controllers and keeps the existing hybrid r
 - Resources become the declarative source of interaction configuration.
 
 **Status**: In Progress  
-**Current Phase**: Phase 2  
+**Current Phase**: Phase 3  
 **Task ID Range**: T001-T053  
 **Primary Tasks File**: `docs/general/interactions_refactor/interactions-refactor-tasks.md`  
 **Continuation Prompt File**: `docs/general/interactions_refactor/interactions-refactor-continuation-prompt.md` (required per phase)
@@ -140,7 +140,7 @@ Validator responsibilities:
 
 ## Public API / Interface Changes (Planned)
 
-- Add typed `@export var config: RS_*InteractionConfig` to each relevant controller.
+- Add `@export var config: Resource` to each relevant controller, with typed `RS_*InteractionConfig` resolution/validation at runtime.
 - Preserve existing exported fields during migration window:
   - Door: `door_id`, `target_scene_id`, `target_spawn_point`, mode, cooldown.
   - Checkpoint: `checkpoint_id`, `spawn_point_id`.
@@ -159,8 +159,8 @@ Validator responsibilities:
 |---|---|---|---|---|
 | 0 | Baseline and Safety | T001-T003 | Low | Complete |
 | 1 | Resource Schema and Validation | T010-T014 | Medium | Complete |
-| 2 | Controller Binding to Resources | T020-T023 | Medium | In Progress |
-| 3 | Scene/Prefab Migration | T030-T033 | High | Not Started |
+| 2 | Controller Binding to Resources | T020-T023 | Medium | Complete |
+| 3 | Scene/Prefab Migration | T030-T033 | High | In Progress |
 | 4 | Validation and Enforcement | T040-T043 | Medium | Not Started |
 | 5 | Cleanup and Doc Closure | T050-T053 | Medium | Not Started |
 
@@ -315,16 +315,39 @@ For Phase 1 (resource schema/validation) and Phase 2 (controller binding), these
 
 ### RED
 
-- [ ] **T020 (RED)** Add controller tests proving config parity for each interaction controller.
+- [x] **T020 (RED)** Add controller tests proving config parity for each interaction controller.
 
 ### GREEN
 
-- [ ] **T021 (GREEN)** Wire controllers to read typed config resources.
-- [ ] **T022 (GREEN)** Keep existing exports as backward-compatible fallback during migration.
+- [x] **T021 (GREEN)** Wire controllers to read typed config resources.
+- [x] **T022 (GREEN)** Keep existing exports as backward-compatible fallback during migration.
 
 ### REFACTOR
 
-- [ ] **T023 (REFACTOR)** Centralize config-apply paths to remove duplication across controllers.
+- [x] **T023 (REFACTOR)** Centralize config-apply paths to remove duplication across controllers.
+
+### Phase 2 Completion Notes (2026-02-10)
+
+- RED coverage added across all in-scope controllers with config-precedence + export-fallback checks:
+  - `tests/unit/interactables/test_e_door_trigger_controller.gd`
+  - `tests/unit/interactables/test_e_checkpoint_zone.gd`
+  - `tests/unit/interactables/test_e_hazard_zone.gd`
+  - `tests/unit/interactables/test_e_victory_zone.gd`
+  - `tests/unit/interactables/test_e_signpost.gd`
+  - `tests/unit/interactables/test_e_endgame_goal_zone.gd` (new)
+- Controllers now support config binding via `@export var config: Resource` with typed script resolution and deterministic fallback:
+  - `scripts/gameplay/inter_door_trigger.gd`
+  - `scripts/gameplay/inter_checkpoint_zone.gd`
+  - `scripts/gameplay/inter_hazard_zone.gd`
+  - `scripts/gameplay/inter_victory_zone.gd`
+  - `scripts/gameplay/inter_signpost.gd`
+  - `scripts/gameplay/inter_endgame_goal_zone.gd`
+- Shared conversion/type-match helper added:
+  - `scripts/gameplay/helpers/u_interaction_config_resolver.gd`
+- Validation runs for this phase:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -ginclude_subdirs=true` (PASS, 34/34)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (PASS, 11/11)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources -ginclude_subdirs=true` (PASS, 32/32)
 
 **Phase 2 Exit Criteria**
 - Controller tests prove no behavior regressions under config-driven mode.
