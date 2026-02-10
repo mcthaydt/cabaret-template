@@ -8,8 +8,8 @@ This refactor covers all interaction controllers and keeps the existing hybrid r
 - Controllers remain runtime orchestrators.
 - Resources become the declarative source of interaction configuration.
 
-**Status**: Not Started  
-**Current Phase**: Phase 0  
+**Status**: In Progress  
+**Current Phase**: Phase 1  
 **Task ID Range**: T001-T053  
 **Primary Tasks File**: `docs/general/interactions_refactor/interactions-refactor-tasks.md`  
 **Continuation Prompt File**: `docs/general/interactions_refactor/interactions-refactor-continuation-prompt.md` (required per phase)
@@ -157,8 +157,8 @@ Validator responsibilities:
 
 | Phase | Name | Task IDs | Risk | Status |
 |---|---|---|---|---|
-| 0 | Baseline and Safety | T001-T003 | Low | Not Started |
-| 1 | Resource Schema and Validation | T010-T014 | Medium | Not Started |
+| 0 | Baseline and Safety | T001-T003 | Low | Complete |
+| 1 | Resource Schema and Validation | T010-T014 | Medium | In Progress |
 | 2 | Controller Binding to Resources | T020-T023 | Medium | Not Started |
 | 3 | Scene/Prefab Migration | T030-T033 | High | Not Started |
 | 4 | Validation and Enforcement | T040-T043 | Medium | Not Started |
@@ -172,15 +172,87 @@ Validator responsibilities:
 
 **Goal**: Lock current behavior and test baseline before introducing new abstractions.
 
-- [ ] **T001** Run baseline interaction/unit/integration/style suites.
-- [ ] **T002** Record current behavior invariants:
+- [x] **T001** Run baseline interaction/unit/integration/style suites.
+- [x] **T002** Record current behavior invariants:
   - Door transitions and spawn targeting.
   - Checkpoint activation and respawn behavior.
   - Hazard damage cadence and instant death behavior.
   - Victory trigger dispatch behavior.
   - Signpost prompt/message/repeatable lock behavior.
   - Endgame goal unlock behavior by completed area.
-- [ ] **T003** Add explicit no-behavior-change rule for infrastructure phases (Phases 1-2).
+- [x] **T003** Add explicit no-behavior-change rule for infrastructure phases (Phases 1-2).
+
+### T001 Baseline Run Results (2026-02-10, final rerun)
+
+Executed baseline suites using the commands in "Test Plan and Run Commands" (`tools/run_gut_suite.sh ... -ginclude_subdirs=true`).
+
+| Suite | Result | Notes |
+|---|---|---|
+| `res://tests/unit/interactables` | PASS | 22/22 passing |
+| `res://tests/unit/ecs/components` | PASS | 49/49 passing |
+| `res://tests/unit/ecs/systems` | PASS | 200/200 passing |
+| `res://tests/unit/ui` | PASS | 170/172 passing, 2 pending (existing) |
+| `res://tests/integration/gameplay` | PASS | 10/10 passing |
+| `res://tests/integration/spawn_system` | PASS | 19/19 passing |
+| `res://tests/integration/scene_manager` | PASS | 90/90 passing |
+| `res://tests/unit/style` | PASS | 11/11 passing |
+
+Stabilization work completed for deterministic baseline:
+- Disabled `M_StateStore` autoload persistence in ECS systems tests that do not test persistence behavior.
+- Root cause addressed: ambient `user://savegame.json` autoload emitted state-normalization warnings (for example `spawn_test`) that surfaced as unexpected test errors.
+
+Artifacts:
+- Per-suite logs: `.tmp/interactions_refactor_baseline_phase0_final2/*.log`
+- Exit code summary: `.tmp/interactions_refactor_baseline_phase0_final2/status.tsv`
+
+### T002 Behavior Invariants (Current Runtime Contract)
+
+Door transitions and spawn targeting:
+- `Inter_DoorTrigger` configures and delegates to `C_SceneTriggerComponent` using current exports (`door_id`, `target_scene_id`, `target_spawn_point`, trigger mode, cooldown clamp).
+- Door activation path is component-driven (`trigger_interact()`), with transition blocking on transition state and cooldown/pending guards.
+- On transition trigger, gameplay `target_spawn_point` is dispatched before scene transition, and transition routing uses door registry transition type with scene-manager high priority.
+
+Checkpoint activation and respawn behavior:
+- `Inter_CheckpointZone` maps `checkpoint_id` and `spawn_point_id` to `C_CheckpointComponent` and keeps passive overlap behavior (`ignore_initial_overlap = false`).
+- Checkpoint activation updates gameplay `last_checkpoint` and publishes `checkpoint_activated`.
+- Spawn fallback behavior remains: missing checkpoint metadata/node falls back to `sp_default` and clears `target_spawn_point`.
+
+Hazard damage cadence and instant death behavior:
+- `Inter_HazardZone` maps `damage_amount`, `is_instant_death`, and non-negative `damage_cooldown` to `C_DamageZoneComponent`.
+- Hazard zones enforce player collision mask minimum layer 1 and passive overlap behavior (`ignore_initial_overlap = false`).
+- Damage applies on enter, exits stop additional cadence damage, cooldown blocks rapid repeated hits, and instant-death zones route through death/game-over flow.
+
+Victory trigger dispatch behavior:
+- `Inter_VictoryZone` maps `objective_id`, `area_id`, `victory_type`, and `trigger_once` directly to `C_VictoryTriggerComponent`.
+- Victory event handling marks trigger state and dispatches gameplay victory + area-complete actions.
+- `GAME_COMPLETE` victory stays gated until required progression prerequisites are satisfied.
+
+Signpost prompt/message/repeatable lock behavior:
+- `Inter_Signpost` is interact-only, zero-cooldown, prompt label `"Read"`.
+- Activation emits local signal + `signpost_message` event payload containing `message`, `controller_id`, and `repeatable`.
+- Non-repeatable signposts lock after first activation and hide interact prompts.
+- HUD behavior contract remains: signpost toast suppressed while paused, and interact prompt hidden while toast is visible.
+
+Endgame goal unlock behavior by completed area:
+- `Inter_EndgameGoalZone` inherits victory behavior and forces `victory_type = GAME_COMPLETE`.
+- Unlock gate is state-driven by `required_area` (default `"interior_house"`): locked state keeps controller disabled/hidden; unlock enables and shows goal volume.
+- Gameplay completion gate remains enforced until required area completion is present in gameplay `completed_areas`.
+
+### T003 No-Behavior-Change Rules (Phases 1-2)
+
+For Phase 1 (resource schema/validation) and Phase 2 (controller binding), these runtime contracts are frozen:
+- Event names and payload shapes stay identical (`interact_prompt_show`, `interact_prompt_hide`, `signpost_message`, checkpoint/victory event flows).
+- Door/checkpoint/hazard/victory/signpost/endgame trigger semantics, gating, cooldown behavior, and transition blocking remain unchanged.
+- Scene transition routing behavior (target scene, spawn targeting, transition type resolution, priority usage) remains unchanged.
+- Gameplay state effects remain unchanged (`target_spawn_point`, `last_checkpoint`, `completed_areas`, victory/game-complete dispatch timing).
+- Existing controller export fields remain supported as fallback during migration; resource configs may layer in without changing runtime outputs.
+- Any behavior change found during Phases 1-2 is treated as regression unless explicitly added as a post-Phase-2 scoped task.
+
+### Phase 0 Completion Notes
+
+- Exit criteria met on 2026-02-10 with 8/8 baseline suites green.
+- Baseline blocker resolved by test-environment hardening in ECS systems suite.
+- Continuation prompt updated for Phase 1 handoff.
 
 **Phase 0 Exit Criteria**
 - Baseline tests passing and documented.
