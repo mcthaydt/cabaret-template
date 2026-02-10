@@ -184,6 +184,30 @@ func test_autosave_spinner_path_does_not_use_interact_blocker() -> void:
 	await _await_frames(1)
 	assert_false(U_InteractBlocker.is_blocked(), "Autosave completion should not alter interact blocker state")
 
+func test_autosave_spinner_uses_svg_icon_and_animates_while_visible() -> void:
+	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
+	var spinner_icon: TextureRect = _hud.get_node("MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer/SpinnerIcon")
+
+	assert_not_null(spinner_icon.texture, "Spinner icon texture should be assigned")
+	var texture_path: String = spinner_icon.texture.resource_path
+	assert_true(texture_path.ends_with(".svg"), "Spinner icon should use an SVG texture resource")
+	assert_false(autosave_spinner_container.visible, "Autosave spinner should start hidden")
+	assert_eq(spinner_icon.rotation_degrees, 0.0, "Spinner icon should start unrotated")
+
+	U_ECSEventBus.publish(StringName("save_started"), {"slot_id": StringName("autosave"), "is_autosave": true})
+	await _await_frames(1)
+	assert_true(autosave_spinner_container.visible, "Autosave spinner should show when autosave starts")
+	var initial_rotation: float = spinner_icon.rotation_degrees
+
+	await _await_frames(6)
+	assert_true(absf(spinner_icon.rotation_degrees - initial_rotation) > 0.01,
+		"Spinner icon rotation should animate while autosave spinner is active")
+
+	U_ECSEventBus.publish(StringName("save_completed"), {"slot_id": StringName("autosave"), "is_autosave": true})
+	await _await_frames(1)
+	assert_false(autosave_spinner_container.visible, "Autosave spinner should hide after autosave completion")
+	assert_eq(spinner_icon.rotation_degrees, 0.0, "Spinner icon should reset rotation when hidden")
+
 func test_manual_save_events_do_not_toggle_autosave_spinner() -> void:
 	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
 	assert_false(autosave_spinner_container.visible, "Autosave spinner should start hidden")
@@ -254,3 +278,27 @@ func test_checkpoint_toast_preserves_prompt_hide_and_restore_timing() -> void:
 	# Checkpoint toast duration baseline: 0.2 fade-in + 1.0 hold + 0.3 fade-out.
 	await _await_seconds(2.0)
 	assert_true(prompt.visible, "Prompt should restore after checkpoint toast lifecycle completes")
+
+func test_signpost_panel_defers_prompt_show_until_panel_hides() -> void:
+	var prompt: Control = _hud.get_node("MarginContainer/InteractPrompt")
+	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
+
+	U_ECSEventBus.publish(StringName("signpost_message"), {
+		"message": "Read this",
+		"message_duration_sec": 0.2
+	})
+	await _await_frames(1)
+	assert_true(signpost_panel_container.visible, "Signpost panel should be visible")
+	assert_false(prompt.visible, "Prompt should hide while signpost panel is visible")
+
+	U_ECSEventBus.publish(StringName("interact_prompt_show"), {
+		"controller_id": 1201,
+		"action": StringName("interact"),
+		"prompt": "Read"
+	})
+	await _await_frames(1)
+	assert_false(prompt.visible, "Prompt show events should be deferred while signpost panel is active")
+
+	await _await_seconds(0.7)
+	assert_false(signpost_panel_container.visible, "Signpost panel should auto-hide after configured duration")
+	assert_true(prompt.visible, "Deferred prompt should restore after signpost panel hides")

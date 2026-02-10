@@ -9,12 +9,14 @@ class_name UI_HudController
 @onready var toast_container: Control = $MarginContainer/ToastContainer
 @onready var checkpoint_toast: Label = $MarginContainer/ToastContainer/PanelContainer/MarginContainer/CheckpointToast
 @onready var autosave_spinner_container: Control = $MarginContainer/AutosaveSpinnerContainer
+@onready var autosave_spinner_icon: TextureRect = $MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer/SpinnerIcon
 @onready var signpost_panel_container: Control = $MarginContainer/SignpostPanelContainer
 @onready var signpost_message_label: Label = $MarginContainer/SignpostPanelContainer/PanelContainer/MarginContainer/SignpostMessage
 @onready var interact_prompt: UI_ButtonPrompt = $MarginContainer/InteractPrompt
 
 const SIGNPOST_DEFAULT_DURATION_SEC: float = 3.0
 const SIGNPOST_MIN_DURATION_SEC: float = 0.05
+const AUTOSAVE_SPINNER_ROTATION_SPEED_DEG: float = 240.0
 
 var _store: I_StateStore = null
 var _player_entity_id: String = "player"
@@ -78,11 +80,12 @@ func _complete_initialization() -> void:
 
 	_update_display(_store.get_state())
 
-func _process(__delta: float) -> void:
+func _process(delta: float) -> void:
 	if _store == null or not is_instance_valid(_store):
 		return
 	# Keep HUD visibility in sync even if a slice update arrives between frames.
 	_update_display(_store.get_state())
+	_update_autosave_spinner_animation(delta)
 
 func _exit_tree() -> void:
 	_unregister_from_scene_manager()
@@ -288,13 +291,28 @@ func _show_autosave_spinner() -> void:
 	_hide_checkpoint_toast_immediate()
 	_hide_signpost_panel(true)
 	autosave_spinner_container.visible = true
+	if autosave_spinner_icon != null:
+		autosave_spinner_icon.rotation_degrees = 0.0
 	_autosave_spinner_active = true
 
 func _hide_autosave_spinner() -> void:
 	if autosave_spinner_container == null:
 		return
 	autosave_spinner_container.visible = false
+	if autosave_spinner_icon != null:
+		autosave_spinner_icon.rotation_degrees = 0.0
 	_autosave_spinner_active = false
+
+func _update_autosave_spinner_animation(delta: float) -> void:
+	if not _autosave_spinner_active:
+		return
+	if autosave_spinner_icon == null:
+		return
+	autosave_spinner_icon.rotation_degrees = wrapf(
+		autosave_spinner_icon.rotation_degrees + AUTOSAVE_SPINNER_ROTATION_SPEED_DEG * delta,
+		0.0,
+		360.0
+	)
 
 func _show_signpost_panel(text: String, duration_sec: float = SIGNPOST_DEFAULT_DURATION_SEC) -> void:
 	if signpost_panel_container == null:
@@ -368,8 +386,8 @@ func _on_interact_prompt_show(payload: Variant) -> void:
 	_active_prompt_id = controller_id
 	_last_prompt_action = action_name
 	_last_prompt_text = prompt_text
-	# If a toast is currently visible, defer showing the prompt to avoid overlap
-	if _toast_active:
+	# If another feedback surface is currently visible, defer prompt rendering to avoid overlap.
+	if _toast_active or _signpost_panel_active:
 		return
 	interact_prompt.show_prompt(action_name, prompt_text)
 

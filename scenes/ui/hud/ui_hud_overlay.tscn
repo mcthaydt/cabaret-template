@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://db0jsbtv3khyu" path="res://scripts/ui/hud/ui_hud_controller.gd" id="1_hud"]
 [ext_resource type="PackedScene" uid="uid://bq8y7b2npl2g0" path="res://scenes/ui/hud/ui_button_prompt.tscn" id="2_button_prompt"]
+[ext_resource type="Texture2D" path="res://assets/textures/tex_spinner_autosave.svg" id="3_spinner_icon"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hbg"]
@@ -123,7 +124,20 @@ theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 6
 
-[node name="SpinnerLabel" type="Label" parent="MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="SpinnerIcon" type="TextureRect" parent="MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("3_spinner_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SpinnerLabel" type="Label" parent="MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Saving..."

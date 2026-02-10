@@ -131,6 +131,9 @@ func _show_interact_prompt() -> void:
 	# Do not show prompts while transitions/overlays are active (pause/menus)
 	if _is_transition_blocked():
 		return
+	# Suppress prompt publication while interactions are actively blocked by HUD feedback.
+	if U_InteractBlocker.is_blocked():
+		return
 
 	var payload := {
 		"controller_id": get_instance_id(),
