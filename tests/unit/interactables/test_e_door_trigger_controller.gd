@@ -7,6 +7,7 @@ const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gam
 const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_door_interaction_config.gd")
 const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_hazard_interaction_config.gd")
 const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
+const INTERACTION_HINT_TEXTURE := preload("res://assets/textures/tex_icon.svg")
 
 ## Minimal stub SceneManager for unit tests
 class TestSceneManager:
@@ -158,6 +159,25 @@ func test_non_matching_config_does_not_override_valid_config() -> void:
 	assert_eq(component.target_spawn_point, StringName("spawn_test"))
 	assert_eq(component.cooldown_duration, 2.25)
 	assert_eq(component.trigger_mode, C_SceneTriggerComponent.TriggerMode.INTERACT)
+
+func test_config_resource_applies_world_hint_settings() -> void:
+	var controller := await _create_controller()
+	var config := RS_DOOR_INTERACTION_CONFIG.new()
+	config.door_id = StringName("door_hint")
+	config.target_scene_id = StringName("scene_hint")
+	config.target_spawn_point = StringName("spawn_hint")
+	config.interaction_hint_enabled = true
+	config.interaction_hint_icon = INTERACTION_HINT_TEXTURE
+	config.interaction_hint_offset = Vector3(0.0, 2.0, 0.0)
+	config.interaction_hint_scale = 1.2
+
+	controller.config = config
+	await _pump_frames(1)
+
+	assert_true(controller.interaction_hint_enabled, "Door controller should apply world hint enabled flag from config.")
+	assert_eq(controller.interaction_hint_icon, INTERACTION_HINT_TEXTURE, "Door controller should apply world hint texture from config.")
+	assert_eq(controller.interaction_hint_offset, Vector3(0.0, 2.0, 0.0), "Door controller should apply world hint offset from config.")
+	assert_eq(controller.interaction_hint_scale, 1.2, "Door controller should apply world hint scale from config.")
 
 func _find_component(controller: Node) -> C_SceneTriggerComponent:
 	for child in controller.get_children():

@@ -2,6 +2,7 @@ extends BaseTest
 
 const RS_SIGNPOST_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_signpost_interaction_config.gd")
 const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_door_interaction_config.gd")
+const INTERACTION_HINT_TEXTURE := preload("res://assets/textures/tex_icon.svg")
 
 func _pump_frames(count: int = 1) -> void:
 	for _i in count:
@@ -129,6 +130,24 @@ func test_non_matching_config_does_not_override_valid_config() -> void:
 	var dummy := _make_dummy_player()
 	signpost._on_activated(dummy)
 	assert_eq(received.message, "Hello there", "Invalid config types should not replace valid signpost config values.")
+
+func test_config_resource_applies_world_hint_settings() -> void:
+	var signpost := await _create_signpost()
+	var config := RS_SIGNPOST_INTERACTION_CONFIG.new()
+	config.message = "Hinted message"
+	config.interact_prompt = "Inspect"
+	config.interaction_hint_enabled = true
+	config.interaction_hint_icon = INTERACTION_HINT_TEXTURE
+	config.interaction_hint_offset = Vector3(0.0, 1.9, 0.0)
+	config.interaction_hint_scale = 0.95
+
+	signpost.config = config
+	await _pump_frames(1)
+
+	assert_true(signpost.interaction_hint_enabled, "Signpost should apply world hint enabled flag from config.")
+	assert_eq(signpost.interaction_hint_icon, INTERACTION_HINT_TEXTURE, "Signpost should apply world hint texture from config.")
+	assert_eq(signpost.interaction_hint_offset, Vector3(0.0, 1.9, 0.0), "Signpost should apply world hint offset from config.")
+	assert_eq(signpost.interaction_hint_scale, 0.95, "Signpost should apply world hint scale from config.")
 
 func _make_dummy_player() -> Node3D:
 	var node := Node3D.new()

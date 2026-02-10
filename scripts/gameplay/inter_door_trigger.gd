@@ -132,6 +132,7 @@ func _apply_config_resource() -> void:
 	if typed == null:
 		return
 
+	_apply_interaction_hint_config(typed)
 	var trigger_settings: RS_SceneTriggerSettings = typed.get("trigger_settings") as RS_SceneTriggerSettings
 	if trigger_settings != null:
 		settings = trigger_settings

@@ -80,6 +80,27 @@ static func _validate_base(config: Resource, context: String, errors: Array[Stri
 			emit_messages
 		)
 
+	var hint_scale := _as_float(config.get("interaction_hint_scale"), 1.0)
+	if hint_scale <= 0.0:
+		_record_error(
+			errors,
+			context,
+			"interaction_hint_scale",
+			"must be > 0; got %s" % str(hint_scale),
+			emit_messages
+		)
+
+	var hint_enabled := _as_bool(config.get("interaction_hint_enabled"), false)
+	var hint_icon_variant: Variant = config.get("interaction_hint_icon")
+	if hint_enabled and not (hint_icon_variant is Texture2D):
+		_record_error(
+			errors,
+			context,
+			"interaction_hint_icon",
+			"must be assigned when interaction_hint_enabled is true",
+			emit_messages
+		)
+
 static func _validate_door(config: Resource, context: String, errors: Array[String], emit_messages: bool) -> void:
 	if _as_string_name(config.get("door_id")).is_empty():
 		_record_error(errors, context, "door_id", "must be non-empty", emit_messages)
@@ -217,6 +238,11 @@ static func _as_float(value: Variant, fallback: float) -> float:
 		return value
 	if value is int:
 		return float(value)
+	return fallback
+
+static func _as_bool(value: Variant, fallback: bool) -> bool:
+	if value is bool:
+		return value
 	return fallback
 
 static func _build_result(errors: Array[String], warnings: Array[String]) -> Dictionary:

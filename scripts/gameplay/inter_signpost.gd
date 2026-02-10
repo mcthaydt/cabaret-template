@@ -53,6 +53,7 @@ func _apply_config_resource() -> void:
 	if typed == null:
 		return
 
+	_apply_interaction_hint_config(typed)
 	interact_prompt = typed.interact_prompt
 
 func _resolve_config() -> RS_SignpostInteractionConfig:

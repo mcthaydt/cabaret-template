@@ -40,6 +40,8 @@ func test_base_config_defaults_and_required_trigger_settings() -> void:
 	assert_eq(base_config.get("interaction_id"), StringName(""))
 	assert_eq(base_config.get("enabled_by_default"), true)
 	assert_not_null(base_config.get("trigger_settings"), "Base config should create default trigger settings")
+	assert_false(base_config.get("interaction_hint_enabled"), "World hint should default to opt-in disabled")
+	assert_eq(base_config.get("interaction_hint_scale"), 1.0, "World hint scale should have stable default")
 
 func test_validator_rejects_empty_base_interaction_id() -> void:
 	var validator := _load_script(VALIDATOR_PATH)
@@ -217,3 +219,18 @@ func test_validator_rejects_missing_trigger_settings() -> void:
 	assert_false(bool(result.get("is_valid", true)))
 	var errors := result.get("errors", []) as Array
 	assert_true(errors.any(func(msg: Variant): return String(msg).contains("trigger_settings")))
+
+func test_validator_rejects_enabled_world_hint_without_texture() -> void:
+	var validator := _load_script(VALIDATOR_PATH)
+	var base_config := _new_resource(BASE_CONFIG_PATH)
+	if validator == null or base_config == null:
+		return
+
+	base_config.set("interaction_id", StringName("hint_enabled_without_texture"))
+	base_config.set("interaction_hint_enabled", true)
+	base_config.set("interaction_hint_icon", null)
+
+	var result: Dictionary = validator.call("validate_config", base_config, "res://tests/unit/resources/base_hint")
+	assert_false(bool(result.get("is_valid", true)))
+	var errors := result.get("errors", []) as Array
+	assert_true(errors.any(func(msg: Variant): return String(msg).contains("interaction_hint_icon")))

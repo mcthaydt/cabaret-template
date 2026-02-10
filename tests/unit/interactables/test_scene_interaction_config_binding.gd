@@ -7,6 +7,8 @@ const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/resources/interacti
 const RS_VICTORY_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_victory_interaction_config.gd")
 const RS_SIGNPOST_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_signpost_interaction_config.gd")
 const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_endgame_goal_interaction_config.gd")
+const DOOR_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_exterior_to_bar.tres"
+const SIGNPOST_HINT_CONFIG_PATH := "res://resources/interactions/signposts/cfg_signpost_exterior_tutorial.tres"
 
 const SCENE_PATHS := [
 	"res://scenes/gameplay/gameplay_exterior.tscn",
@@ -73,6 +75,23 @@ func test_scene_config_validation_fails_when_config_missing_or_wrong_type() -> v
 	controller.set("config", RS_HAZARD_INTERACTION_CONFIG.new())
 	assert_false(_is_config_assignment_valid(controller), "Validation should fail for wrong config resource subtype.")
 	instance.free()
+
+func test_reference_door_and_signpost_configs_enable_world_hint_icon() -> void:
+	var door_config := load(DOOR_HINT_CONFIG_PATH) as Resource
+	assert_not_null(door_config, "Door hint config should load: %s" % DOOR_HINT_CONFIG_PATH)
+	if door_config != null:
+		assert_true(door_config.get("interaction_hint_enabled"),
+			"Reference door config should opt in to world hint.")
+		assert_not_null(door_config.get("interaction_hint_icon"),
+			"Reference door config should provide a world hint icon texture.")
+
+	var signpost_config := load(SIGNPOST_HINT_CONFIG_PATH) as Resource
+	assert_not_null(signpost_config, "Signpost hint config should load: %s" % SIGNPOST_HINT_CONFIG_PATH)
+	if signpost_config != null:
+		assert_true(signpost_config.get("interaction_hint_enabled"),
+			"Reference signpost config should opt in to world hint.")
+		assert_not_null(signpost_config.get("interaction_hint_icon"),
+			"Reference signpost config should provide a world hint icon texture.")
 
 func _collect_interaction_controllers(node: Node, controllers: Array[Node]) -> void:
 	if node == null:

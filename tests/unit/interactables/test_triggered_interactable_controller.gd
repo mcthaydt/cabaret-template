@@ -5,6 +5,7 @@ const BASE_INTERACTABLE_CONTROLLER := preload("res://scripts/gameplay/base_inter
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
 const C_PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const I_SCENE_MANAGER := preload("res://scripts/interfaces/i_scene_manager.gd")
+const INTERACTION_HINT_TEXTURE := preload("res://assets/textures/tex_icon.svg")
 
 class TransitioningSceneManager:
 	extends I_SCENE_MANAGER
@@ -219,5 +220,119 @@ func test_activation_blocked_during_scene_transition() -> void:
 	assert_true(controller.activate(player_entity),
 		"Activation should succeed once the scene manager finishes transitioning.")
 
+func test_world_hint_shows_in_interact_mode_when_player_enters_unblocked_zone() -> void:
+	var context := await _initialize_context()
+	var controller = context["controller"]
+	controller.trigger_mode = controller.TriggerMode.INTERACT
+	controller.interaction_hint_enabled = true
+	controller.interaction_hint_icon = INTERACTION_HINT_TEXTURE
+
+	var area: Area3D = controller.get_trigger_area()
+	var body: CharacterBody3D = context["player_body"]
+	await _arm(controller)
+
+	area.emit_signal("body_entered", body)
+	await _pump_physics_frames(1)
+
+	var icon := controller.get_node_or_null("SO_InteractionHintIcon") as Sprite3D
+	assert_not_null(icon, "Interact-mode controller should create world hint icon when configured.")
+	assert_true(icon.visible, "World hint icon should be visible when player is in range and interaction is available.")
+
+func test_world_hint_hides_when_player_exits_zone() -> void:
+	var context := await _initialize_context()
+	var controller = context["controller"]
+	controller.trigger_mode = controller.TriggerMode.INTERACT
+	controller.interaction_hint_enabled = true
+	controller.interaction_hint_icon = INTERACTION_HINT_TEXTURE
+
+	var area: Area3D = controller.get_trigger_area()
+	var body: CharacterBody3D = context["player_body"]
+	await _arm(controller)
+
+	area.emit_signal("body_entered", body)
+	await _pump_physics_frames(1)
+	var icon := controller.get_node_or_null("SO_InteractionHintIcon") as Sprite3D
+	assert_not_null(icon)
+	assert_true(icon.visible, "World hint should show when entering range.")
+
+	area.emit_signal("body_exited", body)
+	await _pump_physics_frames(1)
+	assert_false(icon.visible, "World hint should hide when player leaves range.")
+
+func test_world_hint_suppressed_while_scene_transition_blocked() -> void:
+	var context := await _initialize_context()
+	var controller = context["controller"]
+	controller.trigger_mode = controller.TriggerMode.INTERACT
+	controller.interaction_hint_enabled = true
+	controller.interaction_hint_icon = INTERACTION_HINT_TEXTURE
+
+	var scene_manager := TransitioningSceneManager.new()
+	scene_manager.name = "SceneManagerStub"
+	scene_manager.transitioning = true
+	add_child(scene_manager)
+	autofree(scene_manager)
+	U_ServiceLocator.register(StringName("scene_manager"), scene_manager)
+
+	var area: Area3D = controller.get_trigger_area()
+	var body: CharacterBody3D = context["player_body"]
+	await _arm(controller)
+
+	area.emit_signal("body_entered", body)
+	await _pump_physics_frames(1)
+
+	var icon := controller.get_node_or_null("SO_InteractionHintIcon") as Sprite3D
+	assert_not_null(icon, "World hint icon node should still be created when configured.")
+	assert_false(icon.visible, "World hint should remain hidden while transitions are blocking interaction.")
+
+func test_world_hint_coexists_with_hud_prompt_show_event() -> void:
+	U_ECSEventBus.reset()
+	var context := await _initialize_context()
+	var controller = context["controller"]
+	controller.trigger_mode = controller.TriggerMode.INTERACT
+	controller.interaction_hint_enabled = true
+	controller.interaction_hint_icon = INTERACTION_HINT_TEXTURE
+
+	var shows: Array = []
+	var unsubscribe_show := U_ECSEventBus.subscribe(StringName("interact_prompt_show"), func(payload: Variant) -> void:
+		shows.append(payload)
+	)
+
+	var area: Area3D = controller.get_trigger_area()
+	var body: CharacterBody3D = context["player_body"]
+	await _arm(controller)
+	area.emit_signal("body_entered", body)
+	await _pump_physics_frames(1)
+
+	var icon := controller.get_node_or_null("SO_InteractionHintIcon") as Sprite3D
+	assert_not_null(icon, "World hint icon should be created when configured.")
+	assert_true(icon.visible, "World hint icon should be visible in-range when unblocked.")
+	assert_eq(shows.size(), 1, "HUD prompt show event should still publish while world hint is visible.")
+
+	if unsubscribe_show != null and unsubscribe_show.is_valid():
+		unsubscribe_show.call()
+
+func test_world_hint_hidden_while_interact_blocker_active() -> void:
+	var context := await _initialize_context()
+	var controller = context["controller"]
+	controller.trigger_mode = controller.TriggerMode.INTERACT
+	controller.interaction_hint_enabled = true
+	controller.interaction_hint_icon = INTERACTION_HINT_TEXTURE
+
+	var area: Area3D = controller.get_trigger_area()
+	var body: CharacterBody3D = context["player_body"]
+	await _arm(controller)
+	area.emit_signal("body_entered", body)
+	await _pump_physics_frames(1)
+
+	var icon := controller.get_node_or_null("SO_InteractionHintIcon") as Sprite3D
+	assert_not_null(icon)
+	assert_true(icon.visible, "World hint should show before blocker is active.")
+
+	U_InteractBlocker.block()
+	controller._physics_process(0.016)
+	assert_false(icon.visible, "World hint should hide while interact blocker is active.")
+	U_InteractBlocker.cleanup()
+
 func after_each() -> void:
+	U_InteractBlocker.cleanup()
 	U_ServiceLocator.clear()
