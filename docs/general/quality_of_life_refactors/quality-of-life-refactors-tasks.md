@@ -16,7 +16,7 @@ This initiative focuses on three UX outcomes:
   - Signpost panel auto-hides after a configurable delay.
 
 **Status**: In Progress  
-**Current Phase**: Phase 2 (Ready)  
+**Current Phase**: Phase 3 (Ready)  
 **Task ID Range**: QOL-T001-QOL-T065  
 **Primary Tasks File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`  
 **Continuation Prompt File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-continuation-prompt.md` (required per phase)
@@ -173,8 +173,8 @@ No event contract break is planned.
 |---|---|---|---|---|
 | 0 | Baseline and Invariants | QOL-T001-QOL-T004 | Low | Complete |
 | 1 | HUD Channel Split Scaffolding | QOL-T010-QOL-T014 | Medium | Complete |
-| 2 | Autosave Spinner | QOL-T020-QOL-T025 | Medium | Ready |
-| 3 | Checkpoint Toast Redesign | QOL-T030-QOL-T034 | Medium | Not Started |
+| 2 | Autosave Spinner | QOL-T020-QOL-T025 | Medium | Complete |
+| 3 | Checkpoint Toast Redesign | QOL-T030-QOL-T034 | Medium | Ready |
 | 4 | Signpost Panel + Duration | QOL-T040-QOL-T046 | Medium | Not Started |
 | 5 | 3D Interact Icon + HUD Hybrid | QOL-T050-QOL-T057 | High | Not Started |
 | 6 | Regression + Polish + Closure | QOL-T060-QOL-T065 | Medium | Not Started |
@@ -346,18 +346,76 @@ Implementation commit:
 
 **Goal**: Move autosave feedback to spinner-only behavior.
 
-- [ ] **QOL-T020** Add RED tests:
+- [x] **QOL-T020** Add RED tests:
   - Autosave `save_started` shows spinner.
   - Autosave `save_completed` / `save_failed` hides spinner.
   - Autosave does not invoke checkpoint/signpost channels.
-- [ ] **QOL-T021** Route autosave events to spinner channel only.
-- [ ] **QOL-T022** Extend save completion/failure payloads additively:
+- [x] **QOL-T021** Route autosave events to spinner channel only.
+- [x] **QOL-T022** Extend save completion/failure payloads additively:
   - `save_completed` includes `is_autosave`.
   - `save_failed` includes `is_autosave`.
   - Keep existing payload keys unchanged.
-- [ ] **QOL-T023** Ensure autosave spinner does not call interaction blocker APIs.
-- [ ] **QOL-T024** Ensure manual save/load overlay behavior remains unchanged.
-- [ ] **QOL-T025** GREEN tests for autosave spinner lifecycle and non-blocking behavior.
+- [x] **QOL-T023** Ensure autosave spinner does not call interaction blocker APIs.
+- [x] **QOL-T024** Ensure manual save/load overlay behavior remains unchanged.
+- [x] **QOL-T025** GREEN tests for autosave spinner lifecycle and non-blocking behavior.
+
+### QOL-T020 RED Test Coverage Added (2026-02-10)
+
+- Expanded `tests/unit/ui/test_hud_feedback_channels.gd` to require Phase 2 behavior:
+  - Autosave routes to spinner channel (not checkpoint/signpost channels).
+  - Spinner lifecycle hides on autosave completion/failure.
+  - Spinner path remains non-blocking (`U_InteractBlocker` unaffected).
+  - Manual save events do not toggle autosave spinner channel.
+- Expanded `tests/unit/save/test_save_manager.gd` payload checks:
+  - `save_completed` includes `is_autosave` for manual and autosave flows.
+  - `save_failed` includes `is_autosave` on failure path.
+- RED runs failed as expected before implementation:
+  - HUD still routed autosave through checkpoint toast.
+  - Save manager completion/failure payloads missing additive `is_autosave`.
+
+### QOL-T021/QOL-T022 Implementation Summary
+
+- `scripts/ui/hud/ui_hud_controller.gd` autosave routing updated:
+  - `save_started` (`is_autosave=true`) now calls `_show_autosave_spinner()`.
+  - `save_completed` / `save_failed` (`is_autosave=true`) now call `_hide_autosave_spinner()`.
+  - Autosave path no longer uses `_show_checkpoint_toast(...)`.
+- `scripts/managers/m_save_manager.gd` event payloads extended additively:
+  - `save_completed` now publishes `slot_id` + `is_autosave`.
+  - `save_failed` now publishes `slot_id` + `is_autosave` + `error_code`.
+
+### QOL-T023 Non-Blocking Spinner Confirmation
+
+- Autosave spinner path does not call toast blocker methods.
+- HUD now clears stale blocker state if a checkpoint toast is interrupted during channel switching to avoid stuck interaction lock.
+- Spinner lifecycle test confirms `U_InteractBlocker.is_blocked()` remains false across autosave start/completion.
+
+### QOL-T024 Manual Save/Load Behavior Confirmation
+
+- Manual save events (`is_autosave=false`) do not show/hide autosave spinner.
+- Save/load menu behavior remains unchanged (existing `tests/unit/ui/test_save_load_menu.gd` suite remains green).
+- No scene or overlay flow regressions observed in save integration gate.
+
+### QOL-T025 GREEN Validation Results (2026-02-10)
+
+Validation suites executed:
+
+| Suite | Result | Notes |
+|---|---|---|
+| `res://tests/unit/ui` | PASS | 175/177 passing, 2 expected pending mobile-only |
+| `res://tests/unit/interactables` | PASS | 36/36 passing |
+| `res://tests/unit/save` | PASS | 123/124 passing, 1 expected pending headless viewport capture |
+| `res://tests/integration/save_manager` | PASS | 19/19 passing |
+| `res://tests/unit/style` | PASS | 12/12 passing |
+
+Implementation commit:
+- `e35bc12` - Route autosave feedback to spinner and add payload flags.
+
+### Phase 2 Completion Notes
+
+- Phase 2 exit criteria met on 2026-02-10.
+- Autosave feedback is now spinner-only and non-blocking.
+- Save completion/failure payload compatibility preserved via additive `is_autosave`.
+- Next phase target: Phase 3 (`QOL-T030-QOL-T034`) checkpoint toast copy and isolation refinement.
 
 ### Phase 2 Exit Criteria
 
