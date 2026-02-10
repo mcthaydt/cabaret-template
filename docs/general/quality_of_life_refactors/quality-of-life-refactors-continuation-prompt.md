@@ -3,9 +3,9 @@
 ## Current Status
 
 - Initiative: Quality of Life Refactors (HUD feedback separation + hybrid interaction cues)
-- Current phase: Phase 6 (Ready to Start)
+- Current phase: Phase 6 (Complete)
 - Primary tasks file: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`
-- Task progress: 35/41 complete (`QOL-T001-QOL-T004`, `QOL-T010-QOL-T014`, `QOL-T020-QOL-T025`, `QOL-T030-QOL-T034`, `QOL-T040-QOL-T046`, `QOL-T050-QOL-T057` complete; `QOL-T060-QOL-T065` remaining)
+- Task progress: 41/41 complete (`QOL-T001-QOL-T004`, `QOL-T010-QOL-T014`, `QOL-T020-QOL-T025`, `QOL-T030-QOL-T034`, `QOL-T040-QOL-T046`, `QOL-T050-QOL-T057`, `QOL-T060-QOL-T065`)
 - Last updated: 2026-02-10
 
 ## Phase 0 Completion Summary (2026-02-10)
@@ -136,6 +136,25 @@
 - Implementation commit:
   - `d57d6a7` - Add config-driven world interaction hints for interactables.
 
+## Phase 6 Completion Summary (2026-02-10)
+
+- Completed closure tasks:
+  - `QOL-T060` reran required regression gates
+  - `QOL-T061` verified no additional impacted suites were required
+  - `QOL-T062` completed event-contract compatibility audit
+  - `QOL-T063` completed final UX polish verification (no further runtime changes required)
+  - `QOL-T064` updated tasks file with final suite and closure notes
+  - `QOL-T065` updated continuation prompt and verified no AGENTS/DEV_PITFALLS additions were needed
+- Required gate suite status after Phase 6:
+  - `res://tests/unit/ui`: PASS (181/183, 2 expected pending mobile-only tests)
+  - `res://tests/unit/interactables`: PASS (44/44)
+  - `res://tests/unit/save`: PASS (123/124, 1 expected pending headless viewport-capture test)
+  - `res://tests/integration/save_manager`: PASS (19/19)
+  - `res://tests/unit/style`: PASS (12/12)
+- Closure outcome:
+  - Initiative is complete and merge-ready from the QoL refactor scope perspective.
+  - Event contracts remained additive-only with no event name changes.
+
 ## Confirmed Product Decisions (Locked)
 
 1. Feedback UX uses **functional split**:
@@ -207,11 +226,11 @@
 - Phase 3 - Checkpoint Toast Redesign (`QOL-T030-QOL-T034`): Complete
 - Phase 4 - Signpost Panel + Duration (`QOL-T040-QOL-T046`): Complete
 - Phase 5 - 3D Interact Icon + HUD Hybrid (`QOL-T050-QOL-T057`): Complete
-- Phase 6 - Regression + Polish + Closure (`QOL-T060-QOL-T065`): Ready to Start
+- Phase 6 - Regression + Polish + Closure (`QOL-T060-QOL-T065`): Complete
 
 ## Immediate Next Step
 
-Start Phase 6 with `QOL-T060` by running final regression gates and capturing closure notes (`QOL-T060-QOL-T065`), including final event-contract audit and initiative completion docs updates.
+Initiative is complete. If additional QoL work is requested, start a new continuation cycle with a new task range and this initiative as baseline history.
 
 ## Required Test Commands (Phase Advancement Gates)
 

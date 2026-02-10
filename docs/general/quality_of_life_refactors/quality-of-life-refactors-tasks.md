@@ -15,8 +15,8 @@ This initiative focuses on three UX outcomes:
 - Signpost readability:
   - Signpost panel auto-hides after a configurable delay.
 
-**Status**: In Progress  
-**Current Phase**: Phase 6 (Ready)  
+**Status**: Complete  
+**Current Phase**: Phase 6 (Complete)  
 **Task ID Range**: QOL-T001-QOL-T065  
 **Primary Tasks File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`  
 **Continuation Prompt File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-continuation-prompt.md` (required per phase)
@@ -177,7 +177,7 @@ No event contract break is planned.
 | 3 | Checkpoint Toast Redesign | QOL-T030-QOL-T034 | Medium | Complete |
 | 4 | Signpost Panel + Duration | QOL-T040-QOL-T046 | Medium | Complete |
 | 5 | 3D Interact Icon + HUD Hybrid | QOL-T050-QOL-T057 | High | Complete |
-| 6 | Regression + Polish + Closure | QOL-T060-QOL-T065 | Medium | Ready |
+| 6 | Regression + Polish + Closure | QOL-T060-QOL-T065 | Medium | Complete |
 
 ---
 
@@ -406,9 +406,6 @@ Validation suites executed:
 | `res://tests/unit/save` | PASS | 123/124 passing, 1 expected pending headless viewport capture |
 | `res://tests/integration/save_manager` | PASS | 19/19 passing |
 | `res://tests/unit/style` | PASS | 12/12 passing |
-
-Implementation commit:
-- `d9ef6b3` - Route signpost feedback to timed panel and duration payload.
 
 Implementation commit:
 - `e35bc12` - Route autosave feedback to spinner and add payload flags.
@@ -686,17 +683,65 @@ Implementation commit:
 
 **Goal**: Verify stability, close documentation, and prepare merge-ready state.
 
-- [ ] **QOL-T060** Run targeted regression gates:
+- [x] **QOL-T060** Run targeted regression gates:
   - `res://tests/unit/ui`
   - `res://tests/unit/interactables`
   - `res://tests/unit/save`
   - `res://tests/integration/save_manager`
   - `res://tests/unit/style`
-- [ ] **QOL-T061** Run additional impacted suites if failures or cross-domain regressions appear.
-- [ ] **QOL-T062** Confirm no event contract regressions in call sites and tests.
-- [ ] **QOL-T063** Final UX polish pass for channel timings/layout overlap edge cases.
-- [ ] **QOL-T064** Update this tasks file with completion notes and final suite results.
-- [ ] **QOL-T065** Update continuation prompt, and update `AGENTS.md` / `DEV_PITFALLS.md` if new patterns/pitfalls were discovered.
+- [x] **QOL-T061** Run additional impacted suites if failures or cross-domain regressions appear.
+- [x] **QOL-T062** Confirm no event contract regressions in call sites and tests.
+- [x] **QOL-T063** Final UX polish pass for channel timings/layout overlap edge cases.
+- [x] **QOL-T064** Update this tasks file with completion notes and final suite results.
+- [x] **QOL-T065** Update continuation prompt, and update `AGENTS.md` / `DEV_PITFALLS.md` if new patterns/pitfalls were discovered.
+
+### QOL-T060 Final Regression Gates (2026-02-10)
+
+Validation suites executed:
+
+| Suite | Result | Notes |
+|---|---|---|
+| `res://tests/unit/ui` | PASS | 181/183 passing, 2 expected pending mobile-only |
+| `res://tests/unit/interactables` | PASS | 44/44 passing |
+| `res://tests/unit/save` | PASS | 123/124 passing, 1 expected pending headless viewport capture |
+| `res://tests/integration/save_manager` | PASS | 19/19 passing |
+| `res://tests/unit/style` | PASS | 12/12 passing |
+
+### QOL-T061 Additional Impacted Suite Decision
+
+- No additional suite expansion was required in this phase.
+- Condition in task definition was not triggered: no failures or cross-domain regressions were observed in required gates.
+
+### QOL-T062 Event Contract Audit Notes
+
+- Event names remained unchanged at publisher/subscriber boundaries:
+  - `interact_prompt_show`, `interact_prompt_hide` published from `scripts/gameplay/triggered_interactable_controller.gd`.
+  - `signpost_message` published from `scripts/gameplay/inter_signpost.gd`.
+  - `save_started`, `save_completed`, `save_failed` published from `scripts/managers/m_save_manager.gd`.
+  - `checkpoint_activated` subscription remained stable in `scripts/ui/hud/ui_hud_controller.gd` and typed publish remained stable via `Evn_CheckpointActivated`.
+- Additive payload keys remained backward-compatible:
+  - `save_completed` / `save_failed`: `is_autosave` retained.
+  - `signpost_message`: optional `message_duration_sec` retained with HUD fallback.
+- Regression coverage still validates these contracts:
+  - `tests/unit/ui/test_hud_feedback_channels.gd`
+  - `tests/unit/interactables/test_e_signpost.gd`
+  - `tests/unit/save/test_save_manager.gd`
+
+### QOL-T063 Final UX Polish Pass
+
+- No additional code or scene changes were required after regression validation.
+- Existing timing/layout behavior remained stable under current coverage:
+  - autosave spinner is non-blocking and independent
+  - checkpoint toast remains isolated
+  - signpost panel auto-hide and prompt restore remain deterministic
+  - world icon and HUD prompt coexist without race regressions
+
+### Phase 6 Completion Notes
+
+- Phase 6 exit criteria met on 2026-02-10.
+- Initiative closure is documentation-only for this phase; no runtime code changes were necessary.
+- `AGENTS.md` and `docs/general/DEV_PITFALLS.md` required no updates for this phase (no new durable patterns/pitfalls identified).
+- Initiative status: complete.
 
 ### Phase 6 Exit Criteria
 
