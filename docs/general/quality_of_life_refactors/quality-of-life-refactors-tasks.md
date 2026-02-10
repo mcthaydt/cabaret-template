@@ -15,8 +15,8 @@ This initiative focuses on three UX outcomes:
 - Signpost readability:
   - Signpost panel auto-hides after a configurable delay.
 
-**Status**: Not Started  
-**Current Phase**: Phase 0 (Ready)  
+**Status**: In Progress  
+**Current Phase**: Phase 1 (Ready)  
 **Task ID Range**: QOL-T001-QOL-T065  
 **Primary Tasks File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`  
 **Continuation Prompt File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-continuation-prompt.md` (required per phase)
@@ -171,8 +171,8 @@ No event contract break is planned.
 
 | Phase | Name | Task IDs | Risk | Status |
 |---|---|---|---|---|
-| 0 | Baseline and Invariants | QOL-T001-QOL-T004 | Low | Not Started |
-| 1 | HUD Channel Split Scaffolding | QOL-T010-QOL-T014 | Medium | Not Started |
+| 0 | Baseline and Invariants | QOL-T001-QOL-T004 | Low | Complete |
+| 1 | HUD Channel Split Scaffolding | QOL-T010-QOL-T014 | Medium | Ready |
 | 2 | Autosave Spinner | QOL-T020-QOL-T025 | Medium | Not Started |
 | 3 | Checkpoint Toast Redesign | QOL-T030-QOL-T034 | Medium | Not Started |
 | 4 | Signpost Panel + Duration | QOL-T040-QOL-T046 | Medium | Not Started |
@@ -187,18 +187,83 @@ No event contract break is planned.
 
 **Goal**: Lock current behavior and capture baseline invariants before functional split work.
 
-- [ ] **QOL-T001** Run baseline suites:
+- [x] **QOL-T001** Run baseline suites:
   - `res://tests/unit/ui`
   - `res://tests/unit/interactables`
   - `res://tests/unit/save`
   - `res://tests/integration/save_manager`
   - `res://tests/unit/style`
-- [ ] **QOL-T002** Record current coupling invariants:
+- [x] **QOL-T002** Record current coupling invariants:
   - Checkpoint, signpost, and autosave currently route through shared toast behavior.
   - Interact prompt suppression/restoration behavior during toasts.
   - `U_InteractBlocker` usage during toast lifecycle.
-- [ ] **QOL-T003** Record no-event-contract-break rule and payload compatibility constraints.
-- [ ] **QOL-T004** Record pause/overlay/transition suppression invariants for current HUD feedback.
+- [x] **QOL-T003** Record no-event-contract-break rule and payload compatibility constraints.
+- [x] **QOL-T004** Record pause/overlay/transition suppression invariants for current HUD feedback.
+
+### QOL-T001 Baseline Run Results (2026-02-10)
+
+Executed baseline suites using the commands in "Test Plan and Run Commands" (`tools/run_gut_suite.sh ... -ginclude_subdirs=true`).
+
+| Suite | Result | Notes |
+|---|---|---|
+| `res://tests/unit/ui` | PASS | 170/172 passing, 2 pending (mobile-only expected pending) |
+| `res://tests/unit/interactables` | PASS | 36/36 passing |
+| `res://tests/unit/save` | PASS | 121/122 passing, 1 pending (headless viewport capture expected pending) |
+| `res://tests/integration/save_manager` | PASS | 19/19 passing |
+| `res://tests/unit/style` | PASS | 12/12 passing |
+
+Execution notes:
+- All five required Phase 0 gate suites completed successfully.
+- Existing non-blocking warnings remained unchanged (inner-class warnings, expected warning assertions, and known macOS headless certificate log line).
+- No regressions were introduced during baseline capture (docs-only phase).
+
+### QOL-T002 Coupling Invariants (Current Runtime Contract)
+
+- HUD currently uses one shared toast path for checkpoint, signpost, and autosave feedback:
+  - Scene path: `MarginContainer/ToastContainer/PanelContainer/MarginContainer/CheckpointToast`.
+  - Controller path: `scripts/ui/hud/ui_hud_controller.gd` routes `_on_checkpoint_event`, `_on_signpost_message`, `_on_save_started`, `_on_save_completed`, and `_on_save_failed` through `_show_checkpoint_toast(...)`.
+- Interact prompt suppression and restoration are tied to toast lifecycle:
+  - `_show_checkpoint_toast(...)` hides `interact_prompt`, sets `_toast_active = true`, and defers any new `interact_prompt_show` rendering while toast is active.
+  - On toast tween completion, HUD clears `_toast_active` and restores prompt only if controller context is still active (`_active_prompt_id != 0`) and not paused.
+- `U_InteractBlocker` is currently coupled to toast display:
+  - Toast show calls `U_InteractBlocker.block()`.
+  - Toast hide calls `U_InteractBlocker.unblock_with_cooldown(0.3)`.
+  - `TriggeredInteractableController` gates interaction input on `U_InteractBlocker.is_blocked()`.
+
+### QOL-T003 Event Contract Invariants (Additive-Only Policy)
+
+- Event names are contract-frozen for this initiative:
+  - `interact_prompt_show`, `interact_prompt_hide`, `signpost_message`, `save_started`, `save_completed`, `save_failed`, `checkpoint_activated`.
+- Baseline payload keys that existing subscribers currently consume:
+  - `interact_prompt_show`: `controller_id`, `action`, `prompt`.
+  - `interact_prompt_hide`: `controller_id`.
+  - `signpost_message`: `message`, `controller_id`, `repeatable`.
+  - `save_started`: `slot_id`, `is_autosave`.
+  - `save_completed`: `slot_id`.
+  - `save_failed`: `slot_id`, `error_code`.
+  - `checkpoint_activated`: `checkpoint_id` (HUD fallback copy applies when absent).
+- Compatibility rule for future work:
+  - Only additive payload extensions are allowed.
+  - Existing keys and semantics must remain valid.
+  - Subscribers must tolerate absent new keys by using defaults/fallbacks.
+
+### QOL-T004 Pause/Overlay/Transition Suppression Invariants
+
+- Pause/overlay suppression in HUD is active and must remain deterministic:
+  - When navigation is paused, HUD hides interact prompt and toast, clears `_toast_active`, and calls `U_InteractBlocker.force_unblock()`.
+  - `_show_checkpoint_toast(...)` and `_on_signpost_message(...)` both short-circuit while paused.
+- Prompt and activation suppression during transitions/overlays is enforced at interactable controllers:
+  - `TriggeredInteractableController._show_interact_prompt()` skips prompt publish when `_is_transition_blocked()` is true.
+  - `BaseInteractableController.can_activate()` returns false while transition/overlay blocking is active.
+  - `_is_transition_blocked()` currently checks scene slice `is_transitioning`, non-empty `scene_stack`, and `scene_manager.is_transitioning()`.
+- HUD gameplay visibility suppression baseline:
+  - Health bar hides when paused or when navigation shell is not `gameplay` (including transitions away from gameplay).
+
+### Phase 0 Completion Notes
+
+- Phase 0 exit criteria met on 2026-02-10.
+- Baseline suite results recorded and invariants documented in this file.
+- Next phase target: Phase 1 (`QOL-T010-QOL-T014`) RED tests for channel split scaffolding.
 
 ### Phase 0 Exit Criteria
 

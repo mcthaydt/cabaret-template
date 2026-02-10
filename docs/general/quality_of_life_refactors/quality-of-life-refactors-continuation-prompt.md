@@ -3,10 +3,29 @@
 ## Current Status
 
 - Initiative: Quality of Life Refactors (HUD feedback separation + hybrid interaction cues)
-- Current phase: Phase 0 (Ready to Start)
+- Current phase: Phase 1 (Ready to Start)
 - Primary tasks file: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`
-- Task progress: 0/41 complete (`QOL-T001-QOL-T065` with phase ranges defined; no tasks checked yet)
+- Task progress: 4/41 complete (`QOL-T001-QOL-T004` complete; `QOL-T010-QOL-T065` remaining)
 - Last updated: 2026-02-10
+
+## Phase 0 Completion Summary (2026-02-10)
+
+- Completed baseline and invariant tasks:
+  - `QOL-T001` baseline suite execution
+  - `QOL-T002` coupling invariants capture
+  - `QOL-T003` event contract compatibility constraints capture
+  - `QOL-T004` pause/overlay/transition suppression invariants capture
+- Required baseline suite status:
+  - `res://tests/unit/ui`: PASS (170/172, 2 expected pending mobile-only tests)
+  - `res://tests/unit/interactables`: PASS (36/36)
+  - `res://tests/unit/save`: PASS (121/122, 1 expected pending headless viewport-capture test)
+  - `res://tests/integration/save_manager`: PASS (19/19)
+  - `res://tests/unit/style`: PASS (12/12)
+- Baseline architecture findings recorded in tasks file:
+  - Checkpoint/signpost/autosave currently share one toast rendering path in HUD.
+  - Prompt suppression/restoration and `U_InteractBlocker` are coupled to toast lifecycle.
+  - Event names are frozen; payload evolution remains additive-only.
+  - Pause/overlay/transition suppression behavior is documented as regression guardrails for Phase 1+.
 
 ## Confirmed Product Decisions (Locked)
 
@@ -73,8 +92,8 @@
 
 ## Phase Progress Snapshot
 
-- Phase 0 - Baseline and Invariants (`QOL-T001-QOL-T004`): Not Started
-- Phase 1 - HUD Channel Split Scaffolding (`QOL-T010-QOL-T014`): Not Started
+- Phase 0 - Baseline and Invariants (`QOL-T001-QOL-T004`): Complete
+- Phase 1 - HUD Channel Split Scaffolding (`QOL-T010-QOL-T014`): Ready to Start
 - Phase 2 - Autosave Spinner (`QOL-T020-QOL-T025`): Not Started
 - Phase 3 - Checkpoint Toast Redesign (`QOL-T030-QOL-T034`): Not Started
 - Phase 4 - Signpost Panel + Duration (`QOL-T040-QOL-T046`): Not Started
@@ -83,7 +102,7 @@
 
 ## Immediate Next Step
 
-Start Phase 0 from `QOL-T001` and run baseline suites listed in the tasks file before editing behavior.
+Start Phase 1 with `QOL-T010` by adding RED tests for independent HUD channel visibility state, then proceed with scaffold-only channel separation (`QOL-T011-QOL-T014`) without changing functional routing yet.
 
 ## Required Test Commands (Phase Advancement Gates)
 
@@ -109,6 +128,7 @@ Style suite is mandatory after any scene/resource structure change.
 - Preserve current event payload compatibility; extend behavior in subscribers rather than renaming events.
 - Keep world icon support config-driven to avoid controller-only one-offs.
 - When introducing new exported resource fields, update defaults and test coverage in the same phase.
+- Use Phase 0 invariants in `quality-of-life-refactors-tasks.md` as regression gates while splitting HUD channels.
 - If new pitfalls or repeat mistakes are discovered, update:
   - `AGENTS.md`
   - `docs/general/DEV_PITFALLS.md`
