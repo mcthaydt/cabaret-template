@@ -373,7 +373,7 @@ For Phase 1 (resource schema/validation) and Phase 2 (controller binding), these
 - Added scene-level migration guard tests:
   - `tests/unit/interactables/test_scene_interaction_config_binding.gd`
 - Migrated gameplay/prefab interaction nodes from inline literals to resource-driven `config` assignments:
-  - Gameplay: `scenes/gameplay/gameplay_exterior.tscn`, `scenes/gameplay/gameplay_alleyway.tscn`, `scenes/gameplay/gameplay_interior_bar.tscn`, `scenes/gameplay/gameplay_interior_house.tscn`
+  - Gameplay: `scenes/gameplay/gameplay_exterior.tscn`, `scenes/gameplay/gameplay_alleyway.tscn`, `scenes/gameplay/gameplay_bar.tscn`, `scenes/gameplay/gameplay_interior_house.tscn`
   - Prefabs: `scenes/prefabs/prefab_door_trigger.tscn`, `scenes/prefabs/prefab_checkpoint_safe_zone.tscn`, `scenes/prefabs/prefab_spike_trap.tscn`, `scenes/prefabs/prefab_death_zone.tscn`, `scenes/prefabs/prefab_goal_zone.tscn`
 - Added/expanded config instances under:
   - `resources/interactions/doors/`

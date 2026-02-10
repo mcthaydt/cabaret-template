@@ -11,7 +11,7 @@ const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/resources/int
 const SCENE_PATHS := [
 	"res://scenes/gameplay/gameplay_exterior.tscn",
 	"res://scenes/gameplay/gameplay_alleyway.tscn",
-	"res://scenes/gameplay/gameplay_interior_bar.tscn",
+	"res://scenes/gameplay/gameplay_bar.tscn",
 	"res://scenes/gameplay/gameplay_interior_house.tscn",
 	"res://scenes/prefabs/prefab_door_trigger.tscn",
 	"res://scenes/prefabs/prefab_checkpoint_safe_zone.tscn",

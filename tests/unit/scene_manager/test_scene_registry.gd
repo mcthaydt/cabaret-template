@@ -76,23 +76,23 @@ func test_get_door_exit_returns_metadata() -> void:
 	assert_true(exit_data is Dictionary, "get_door_exit should return a Dictionary")
 
 ## Test door pairing - entering interior
-func test_door_pairing_alleyway_to_interior_bar() -> void:
+func test_door_pairing_alleyway_to_bar() -> void:
 	var exit_data: Dictionary = U_SceneRegistry.get_door_exit(
 		StringName("alleyway"),
 		StringName("door_to_bar")
 	)
-	assert_false(exit_data.is_empty(), "Door exit metadata should exist for alleyway → interior_bar")
-	assert_eq(exit_data.get("target_scene_id", StringName()), StringName("interior_bar"))
-	assert_eq(exit_data.get("target_spawn_point", StringName()), StringName("sp_entrance_from_exterior"))
+	assert_false(exit_data.is_empty(), "Door exit metadata should exist for alleyway → bar")
+	assert_eq(exit_data.get("target_scene_id", StringName()), StringName("bar"))
+	assert_eq(exit_data.get("target_spawn_point", StringName()), StringName("sp_entrance_from_alleyway"))
 	assert_eq(exit_data.get("transition_type", ""), "fade")
 
 ## Test door pairing - exiting interior
-func test_door_pairing_interior_bar_to_alleyway() -> void:
+func test_door_pairing_bar_to_alleyway() -> void:
 	var exit_data: Dictionary = U_SceneRegistry.get_door_exit(
-		StringName("interior_bar"),
+		StringName("bar"),
 		StringName("door_to_exterior")
 	)
-	assert_false(exit_data.is_empty(), "Door exit metadata should exist for interior_bar → alleyway")
+	assert_false(exit_data.is_empty(), "Door exit metadata should exist for bar → alleyway")
 	assert_eq(exit_data.get("target_scene_id", StringName()), StringName("alleyway"))
 	assert_eq(exit_data.get("target_spawn_point", StringName()), StringName("sp_exit_from_bar"))
 	assert_eq(exit_data.get("transition_type", ""), "fade")
@@ -210,7 +210,7 @@ func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
 	U_SceneRegistry._scenes.erase(StringName("gameplay_base"))
 	U_SceneRegistry._scenes.erase(StringName("alleyway"))
 	U_SceneRegistry._scenes.erase(StringName("interior_house"))
-	U_SceneRegistry._scenes.erase(StringName("interior_bar"))
+	U_SceneRegistry._scenes.erase(StringName("bar"))
 
 	U_SceneRegistry._backfill_default_gameplay_scenes()
 
@@ -226,8 +226,8 @@ func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
 	assert_false(interior.is_empty(), "interior_house should be registered by backfill")
 	assert_eq(String(interior.get("default_transition", "")), "loading", "interior_house backfill should prefer loading transition")
 
-	var interior_bar: Dictionary = U_SceneRegistry.get_scene(StringName("interior_bar"))
-	assert_false(interior_bar.is_empty(), "interior_bar should be registered by backfill")
-	assert_eq(String(interior_bar.get("default_transition", "")), "loading", "interior_bar backfill should prefer loading transition")
+	var bar: Dictionary = U_SceneRegistry.get_scene(StringName("bar"))
+	assert_false(bar.is_empty(), "bar should be registered by backfill")
+	assert_eq(String(bar.get("default_transition", "")), "loading", "bar backfill should prefer loading transition")
 
 	U_SceneRegistry._scenes = scenes_backup

@@ -64,11 +64,12 @@
 [ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="57_fade_door"]
 [ext_resource type="Script" uid="uid://dpeat44fqshck" path="res://scripts/utils/display/u_cinema_grade_preview.gd" id="58_cinema_preview"]
 [ext_resource type="Resource" uid="uid://dbu083ahcuvmu" path="res://resources/display/cinema_grades/cfg_cinema_grade_alleyway.tres" id="59_cinema_grade"]
-[ext_resource type="Resource" path="res://resources/interactions/doors/cfg_door_alleyway_to_bar.tres" id="60_door_config"]
-[ext_resource type="Resource" path="res://resources/interactions/checkpoints/cfg_checkpoint_alleyway.tres" id="61_checkpoint_config"]
-[ext_resource type="Resource" path="res://resources/interactions/hazards/cfg_hazard_spike_trap.tres" id="62_hazard_config"]
-[ext_resource type="Resource" path="res://resources/interactions/endgame/cfg_endgame_goal_alleyway.tres" id="63_endgame_config"]
-[ext_resource type="Resource" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="64_hazard_death_config"]
+[ext_resource type="Resource" uid="uid://gfpbj6b08vmj" path="res://resources/interactions/doors/cfg_door_alleyway_to_bar.tres" id="60_door_config"]
+[ext_resource type="Resource" uid="uid://di0webt8oc8bj" path="res://resources/interactions/checkpoints/cfg_checkpoint_alleyway.tres" id="61_checkpoint_config"]
+[ext_resource type="Resource" uid="uid://bhpts5ki7j6uv" path="res://resources/interactions/hazards/cfg_hazard_spike_trap.tres" id="62_hazard_config"]
+[ext_resource type="Resource" uid="uid://jnsl17rpawoy" path="res://resources/interactions/endgame/cfg_endgame_goal_alleyway.tres" id="63_endgame_config"]
+[ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="64_hazard_death_config"]
+[ext_resource type="Script" path="res://scripts/scene_structure/marker_lighting_group.gd" id="65_lighting_group"]
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
@@ -88,7 +89,7 @@ script = ExtResource("1_f2o31")
 [node name="SceneObjects" type="Node3D" parent="." unique_id=1984456615]
 script = ExtResource("2_ph0bl")
 
-[node name="NewExterior" parent="SceneObjects" unique_id=1437797737 instance=ExtResource("3_oot58")]
+[node name="AlleywayScene" parent="SceneObjects" unique_id=1437797737 instance=ExtResource("3_oot58")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.8506856, 0, 0.6794058)
 
 [node name="Environment" type="Node" parent="." unique_id=124727212]
@@ -217,6 +218,7 @@ script = ExtResource("29_screen_shake_publisher")
 script = ExtResource("30_damage_flash_publisher")
 
 [node name="Lighting" type="Node" parent="." unique_id=888888801]
+script = ExtResource("65_lighting_group")
 
 [node name="CinemaGradePreview" type="Node" parent="Lighting" unique_id=722256414]
 script = ExtResource("58_cinema_preview")

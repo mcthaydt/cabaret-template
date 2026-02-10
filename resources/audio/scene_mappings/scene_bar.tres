@@ -4,6 +4,6 @@
 
 [resource]
 script = ExtResource("1")
-scene_id = &"interior_bar"
+scene_id = &"bar"
 music_track_id = &"bar"
 ambient_track_id = &"interior"

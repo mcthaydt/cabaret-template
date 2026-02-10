@@ -1,12 +1,11 @@
-[gd_resource type="Resource" script_class="RS_CheckpointInteractionConfig" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="RS_CheckpointInteractionConfig" format=3 uid="uid://di0webt8oc8bj"]
 
-[ext_resource type="Script" path="res://scripts/resources/interactions/rs_checkpoint_interaction_config.gd" id="1"]
-[ext_resource type="Resource" path="res://resources/triggers/cfg_checkpoint_box_2x3x2.tres" id="2"]
+[ext_resource type="Script" uid="uid://ccllayu32swfi" path="res://scripts/resources/interactions/rs_checkpoint_interaction_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://na7m34dl6a4d" path="res://resources/triggers/cfg_checkpoint_box_2x3x2.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
-interaction_id = &"checkpoint_alleyway"
-enabled_by_default = true
-trigger_settings = ExtResource("2")
 checkpoint_id = &"cp_alleyway"
 spawn_point_id = &"sp_checkpoint_safe"
+interaction_id = &"checkpoint_alleyway"
+trigger_settings = ExtResource("2")

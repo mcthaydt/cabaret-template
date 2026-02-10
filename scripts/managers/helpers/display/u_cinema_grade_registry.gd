@@ -31,11 +31,11 @@ static func _register_scene_grades() -> void:
 	var gameplay_base := preload("res://resources/display/cinema_grades/cfg_cinema_grade_gameplay_base.tres") as RS_SceneCinemaGrade
 	var alleyway := preload("res://resources/display/cinema_grades/cfg_cinema_grade_alleyway.tres") as RS_SceneCinemaGrade
 	var exterior := preload("res://resources/display/cinema_grades/cfg_cinema_grade_exterior.tres") as RS_SceneCinemaGrade
-	var interior_bar := preload("res://resources/display/cinema_grades/cfg_cinema_grade_interior_bar.tres") as RS_SceneCinemaGrade
+	var bar := preload("res://resources/display/cinema_grades/cfg_cinema_grade_bar.tres") as RS_SceneCinemaGrade
 	var interior_house := preload("res://resources/display/cinema_grades/cfg_cinema_grade_interior_house.tres") as RS_SceneCinemaGrade
 
 	_scene_grades[StringName("gameplay_base")] = gameplay_base
 	_scene_grades[StringName("alleyway")] = alleyway
 	_scene_grades[StringName("exterior")] = exterior
-	_scene_grades[StringName("interior_bar")] = interior_bar
+	_scene_grades[StringName("bar")] = bar
 	_scene_grades[StringName("interior_house")] = interior_house

@@ -1,13 +1,9 @@
-[gd_resource type="Resource" script_class="RS_HazardInteractionConfig" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="RS_HazardInteractionConfig" format=3 uid="uid://bhpts5ki7j6uv"]
 
-[ext_resource type="Script" path="res://scripts/resources/interactions/rs_hazard_interaction_config.gd" id="1"]
-[ext_resource type="Resource" path="res://resources/triggers/cfg_spike_trap_volume.tres" id="2"]
+[ext_resource type="Script" uid="uid://bdcuyaq2acviq" path="res://scripts/resources/interactions/rs_hazard_interaction_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://c8u21l3ag26ky" path="res://resources/triggers/cfg_spike_trap_volume.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
 interaction_id = &"hazard_spike_trap"
-enabled_by_default = true
 trigger_settings = ExtResource("2")
-damage_amount = 25.0
-is_instant_death = false
-damage_cooldown = 1.0

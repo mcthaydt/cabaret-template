@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-spawn_id = &"sp_entrance_from_exterior"
+spawn_id = &"sp_entrance_from_alleyway"
 tags = Array[StringName]([&"door_return"])
 priority = 5
 face_camera_on_spawn = true

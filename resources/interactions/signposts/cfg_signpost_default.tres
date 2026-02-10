@@ -1,13 +1,10 @@
-[gd_resource type="Resource" script_class="RS_SignpostInteractionConfig" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="RS_SignpostInteractionConfig" format=3 uid="uid://cy4fkoo3b4mja"]
 
-[ext_resource type="Script" path="res://scripts/resources/interactions/rs_signpost_interaction_config.gd" id="1"]
-[ext_resource type="Resource" path="res://resources/triggers/cfg_signpost_cylinder.tres" id="2"]
+[ext_resource type="Script" uid="uid://caa62alavkesl" path="res://scripts/resources/interactions/rs_signpost_interaction_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://b2ehbrq1l8yro" path="res://resources/triggers/cfg_signpost_cylinder.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
-interaction_id = &"signpost_default"
-enabled_by_default = true
-trigger_settings = ExtResource("2")
 message = "Placeholder signpost message"
-repeatable = true
-interact_prompt = "Read"
+interaction_id = &"signpost_default"
+trigger_settings = ExtResource("2")
