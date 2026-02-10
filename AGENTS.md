@@ -128,7 +128,7 @@
 - Controller `settings` are auto-duplicated (`resource_local_to_scene = true`). Assign shared `.tres` files freely—each controller keeps a unique copy.
 - Interaction config schema resources live in `scripts/resources/interactions/` (`rs_*_interaction_config.gd`) with authored instances under `resources/interactions/**` (`cfg_*.tres`).
 - Validate config resources with `scripts/gameplay/helpers/u_interaction_config_validator.gd` before binding them to controllers.
-- Phase 2 config-binding pattern: use `@export var config: Resource` on controllers and resolve typed configs via `scripts/gameplay/helpers/u_interaction_config_resolver.gd`; if type mismatch or unset, preserve legacy export-field behavior as fallback.
+- Phase 5 config-binding pattern: interaction controllers are config-driven only. Legacy interaction export fallbacks (`door_id`, `checkpoint_id`, damage/victory/signpost literals, `required_area`) were removed; provide typed `config` resources in scenes/prefabs and treat those resources as the single source of truth.
 - Phase 3 scene-authoring pattern: gameplay/prefab `Inter_*` nodes should bind `config = ExtResource("res://resources/interactions/.../cfg_*.tres")` and avoid duplicating door/checkpoint/hazard/victory/signpost literals directly in `.tscn` nodes.
 - Passive volumes (`E_CheckpointZone`, `E_HazardZone`, `E_VictoryZone`) keep `ignore_initial_overlap = false` so respawns inside the volume re-register automatically. Triggered interactables (doors, signposts) leave it `true` to avoid instant re-activation.
 - Use `visual_paths` to toggle meshes/lights/particles when controllers enable/disable; keep visuals as controller children instead of wiring extra logic nodes.

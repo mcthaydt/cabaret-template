@@ -8,8 +8,8 @@ This refactor covers all interaction controllers and keeps the existing hybrid r
 - Controllers remain runtime orchestrators.
 - Resources become the declarative source of interaction configuration.
 
-**Status**: In Progress  
-**Current Phase**: Phase 5  
+**Status**: Complete  
+**Current Phase**: Complete (Phase 5)  
 **Task ID Range**: T001-T053  
 **Primary Tasks File**: `docs/general/interactions_refactor/interactions-refactor-tasks.md`  
 **Continuation Prompt File**: `docs/general/interactions_refactor/interactions-refactor-continuation-prompt.md` (required per phase)
@@ -140,14 +140,10 @@ Validator responsibilities:
 
 ## Public API / Interface Changes (Planned)
 
-- Add `@export var config: Resource` to each relevant controller, with typed `RS_*InteractionConfig` resolution/validation at runtime.
-- Preserve existing exported fields during migration window:
-  - Door: `door_id`, `target_scene_id`, `target_spawn_point`, mode, cooldown.
-  - Checkpoint: `checkpoint_id`, `spawn_point_id`.
-  - Hazard: `damage_amount`, `is_instant_death`, `damage_cooldown`.
-  - Victory: `objective_id`, `area_id`, `victory_type`, `trigger_once`.
-  - Signpost: `message`, `repeatable`, prompt behavior.
-  - Endgame Goal: `required_area` + inherited victory config.
+- Controllers expose `@export var config: Resource` and resolve typed `RS_*InteractionConfig` resources at runtime.
+- Phase 5 cleanup removed legacy interaction export fallbacks from controllers:
+  - Door/checkpoint/hazard/victory/signpost/endgame gameplay fields now come from config resources only.
+  - Incompatible config assignments are ignored so authored typed config remains the source of truth.
 - No event name changes planned:
   - Preserve existing event contracts such as `interact_prompt_show`, `interact_prompt_hide`, `signpost_message`, and transition/victory flows.
 
@@ -162,7 +158,7 @@ Validator responsibilities:
 | 2 | Controller Binding to Resources | T020-T023 | Medium | Complete |
 | 3 | Scene/Prefab Migration | T030-T033 | High | Complete |
 | 4 | Validation and Enforcement | T040-T043 | Medium | Complete |
-| 5 | Cleanup and Doc Closure | T050-T053 | Medium | In Progress |
+| 5 | Cleanup and Doc Closure | T050-T053 | Medium | Complete |
 
 ---
 
@@ -457,10 +453,32 @@ For Phase 1 (resource schema/validation) and Phase 2 (controller binding), these
 
 **Goal**: Remove migration scaffolding and close the refactor with clean docs.
 
-- [ ] **T050** Remove deprecated fallback exports after migration is complete.
-- [ ] **T051** Run full targeted suites and style enforcement.
-- [ ] **T052** Update continuation prompt + task status + `AGENTS.md` / `DEV_PITFALLS.md` as applicable.
-- [ ] **T053** Create docs-only commit for phase completion artifacts.
+- [x] **T050** Remove deprecated fallback exports after migration is complete.
+- [x] **T051** Run full targeted suites and style enforcement.
+- [x] **T052** Update continuation prompt + task status + `AGENTS.md` / `DEV_PITFALLS.md` as applicable.
+- [x] **T053** Create docs-only commit for phase completion artifacts.
+
+### Phase 5 Completion Notes (2026-02-10)
+
+- Removed deprecated interaction fallback exports from all in-scope controllers:
+  - `scripts/gameplay/inter_door_trigger.gd`
+  - `scripts/gameplay/inter_checkpoint_zone.gd`
+  - `scripts/gameplay/inter_hazard_zone.gd`
+  - `scripts/gameplay/inter_victory_zone.gd`
+  - `scripts/gameplay/inter_signpost.gd`
+  - `scripts/gameplay/inter_endgame_goal_zone.gd`
+- Updated controller tests to construct valid typed config resources directly and assert incompatible config assignments do not override valid config state.
+- Implementation commit:
+  - `77b9858` (`Remove interaction controller fallback exports`)
+- Validation runs for Phase 5:
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -ginclude_subdirs=true` (PASS, 36/36)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/resources -ginclude_subdirs=true` (PASS, 36/36)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style -ginclude_subdirs=true` (PASS, 12/12)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/gameplay -ginclude_subdirs=true` (PASS, 10/10)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/spawn_system -ginclude_subdirs=true` (PASS, 19/19)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -ginclude_subdirs=true` (PASS, 90/90)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit -ginclude_subdirs=true` (PASS, 1807/1815 with 8 expected pending/risky in headless/mobile-only scenarios)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration -ginclude_subdirs=true` (PASS, 361/362 with 1 expected pending)
 
 **Phase 5 Exit Criteria**
 - Migration fallback removed.
@@ -476,7 +494,7 @@ For Phase 1 (resource schema/validation) and Phase 2 (controller binding), these
 Required:
 - `interaction_id: StringName` (non-empty)
 - `enabled_by_default: bool`
-- `trigger_settings: RS_SceneTriggerSettings` (non-null, or controller-level fallback allowed only in migration phases)
+- `trigger_settings: RS_SceneTriggerSettings` (non-null)
 
 ### Door (`RS_DoorInteractionConfig`)
 
@@ -566,14 +584,11 @@ Run these suites at the specified points in the phase checklist.
 
 ## Rollback and Migration Notes
 
-- Keep migration reversible until Phase 5:
-  - Preserve fallback exports in controllers.
-  - Keep old scene-authored values intact until config resources are verified.
+- Phase 5 is complete; legacy fallback exports are removed from interaction controllers.
 - If regressions appear:
-  1. Re-enable fallback path in affected controller.
-  2. Revert scene config assignment for failing interaction type.
-  3. Keep validator warnings enabled to surface broken configs.
-- Do not remove fallback exports before Phase 5 exit criteria are met.
+  1. Revert to the last known-good commit for the affected controller/test pair.
+  2. Fix or replace the typed config resource (`cfg_*.tres`) rather than reintroducing inline literals.
+  3. Use validator/style suites to catch malformed config resources before scene/runtime testing.
 
 ---
 
