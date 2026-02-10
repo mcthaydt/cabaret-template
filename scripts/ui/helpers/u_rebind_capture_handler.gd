@@ -166,7 +166,7 @@ static func apply_binding(overlay: Node, event: InputEvent, conflict_action: Str
 		"binding": overlay._format_binding_label(binding_text)
 	}))
 
-static func get_action_events(overlay: Node, action: StringName) -> Array[InputEvent]:
+static func get_action_events(_overlay: Node, action: StringName) -> Array[InputEvent]:
 	var results: Array[InputEvent] = []
 	if action == StringName():
 		return results

@@ -26,13 +26,18 @@ var _pending_action: StringName = StringName()
 var _pending_event: InputEvent = null
 var _pending_conflict: StringName = StringName()
 var _action_rows: Dictionary = {}  # StringName -> {container: VBoxContainer, name_label: Label, binding_container: HBoxContainer, replace_button: Button, add_button: Button, reset_button: Button, category_header: Label}
+@warning_ignore("unused_private_class_variable")
 var _capture_mode: String = U_InputActions.REBIND_MODE_REPLACE
 var _search_filter: String = ""
+@warning_ignore("unused_private_class_variable")
 var _focused_action_index: int = -1
 var _focusable_actions: Array[StringName] = []
 var _capture_guard_active: bool = false
+@warning_ignore("unused_private_class_variable")
 var _is_on_bottom_row: bool = false
+@warning_ignore("unused_private_class_variable")
 var _bottom_button_index: int = 0
+@warning_ignore("unused_private_class_variable")
 var _row_button_index: int = 0
 
 func _on_panel_ready() -> void:

@@ -295,7 +295,7 @@ func _on_ambient_mute_toggled(_pressed: bool) -> void:
 	_update_audio_settings_preview_from_ui()
 
 # Spatial handler
-func _on_spatial_audio_toggled(pressed: bool) -> void:
+func _on_spatial_audio_toggled(_pressed: bool) -> void:
 	if _updating_from_state:
 		return
 	_has_local_edits = true

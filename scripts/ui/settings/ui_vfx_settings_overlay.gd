@@ -23,7 +23,7 @@ var _has_local_edits: bool = false
 var _vfx_manager: M_VFXManager = null
 
 func _ready() -> void:
-	await super._ready()
+	super._ready()
 	_vfx_manager = U_ServiceLocator.try_get_service(StringName("vfx_manager")) as M_VFXManager
 
 func _on_store_ready(store: M_StateStore) -> void:

@@ -93,7 +93,7 @@ static func build_action_rows(
 		category_header.modulate = Color(0.8, 0.8, 1.0, 1.0)
 		action_list.add_child(category_header)
 
-		_add_spacer(action_list, CATEGORY_SPACING / 2)
+		_add_spacer(action_list, int(CATEGORY_SPACING / 2.0))
 
 		for action in category_actions:
 			if not _matches_search_filter(action, search_filter):
@@ -395,9 +395,9 @@ static func _add_spacer(action_list: VBoxContainer, height: int) -> void:
 
 static func _populate_binding_visuals(
 	container: HBoxContainer,
-	action: StringName,
+	_action: StringName,
 	events: Array,
-	device_type: int
+	_device_type: int
 ) -> void:
 	if container == null:
 		return
