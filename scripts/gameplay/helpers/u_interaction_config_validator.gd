@@ -3,6 +3,7 @@ class_name U_InteractionConfigValidator
 
 const C_SCENE_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_scene_trigger_component.gd")
 const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
+const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
 const RS_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_interaction_config.gd")
 const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_door_interaction_config.gd")
 const RS_CHECKPOINT_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_checkpoint_interaction_config.gd")
@@ -61,8 +62,23 @@ static func _validate_base(config: Resource, context: String, errors: Array[Stri
 	if interaction_id.is_empty():
 		_record_error(errors, context, "interaction_id", "must be non-empty", emit_messages)
 
-	if config.get("trigger_settings") == null:
+	var trigger_settings_variant: Variant = config.get("trigger_settings")
+	if trigger_settings_variant == null:
 		_record_error(errors, context, "trigger_settings", "must be assigned", emit_messages)
+		return
+	if not (trigger_settings_variant is Resource):
+		_record_error(errors, context, "trigger_settings", "must be a Resource", emit_messages)
+		return
+
+	var trigger_settings := trigger_settings_variant as Resource
+	if not _script_matches(trigger_settings, RS_SCENE_TRIGGER_SETTINGS):
+		_record_error(
+			errors,
+			context,
+			"trigger_settings",
+			"must extend RS_SceneTriggerSettings",
+			emit_messages
+		)
 
 static func _validate_door(config: Resource, context: String, errors: Array[String], emit_messages: bool) -> void:
 	if _as_string_name(config.get("door_id")).is_empty():
@@ -74,11 +90,23 @@ static func _validate_door(config: Resource, context: String, errors: Array[Stri
 
 	var trigger_mode := _as_int(config.get("trigger_mode"), -1)
 	if trigger_mode != C_SCENE_TRIGGER_COMPONENT.TriggerMode.AUTO and trigger_mode != C_SCENE_TRIGGER_COMPONENT.TriggerMode.INTERACT:
-		_record_error(errors, context, "trigger_mode", "must be AUTO or INTERACT", emit_messages)
+		_record_error(
+			errors,
+			context,
+			"trigger_mode",
+			"must be AUTO(0) or INTERACT(1); got %s" % str(trigger_mode),
+			emit_messages
+		)
 
 	var cooldown_duration := _as_float(config.get("cooldown_duration"), 0.0)
 	if cooldown_duration < 0.0:
-		_record_error(errors, context, "cooldown_duration", "must be >= 0", emit_messages)
+		_record_error(
+			errors,
+			context,
+			"cooldown_duration",
+			"must be >= 0; got %s" % str(cooldown_duration),
+			emit_messages
+		)
 
 static func _validate_checkpoint(config: Resource, context: String, errors: Array[String], emit_messages: bool) -> void:
 	if _as_string_name(config.get("checkpoint_id")).is_empty():
@@ -89,23 +117,49 @@ static func _validate_checkpoint(config: Resource, context: String, errors: Arra
 static func _validate_hazard(config: Resource, context: String, errors: Array[String], emit_messages: bool) -> void:
 	var damage_amount := _as_float(config.get("damage_amount"), 0.0)
 	if damage_amount < 0.0:
-		_record_error(errors, context, "damage_amount", "must be >= 0", emit_messages)
+		_record_error(
+			errors,
+			context,
+			"damage_amount",
+			"must be >= 0; got %s" % str(damage_amount),
+			emit_messages
+		)
 
 	var damage_cooldown := _as_float(config.get("damage_cooldown"), 0.0)
 	if damage_cooldown < 0.0:
-		_record_error(errors, context, "damage_cooldown", "must be >= 0", emit_messages)
+		_record_error(
+			errors,
+			context,
+			"damage_cooldown",
+			"must be >= 0; got %s" % str(damage_cooldown),
+			emit_messages
+		)
 
 static func _validate_victory(config: Resource, context: String, errors: Array[String], emit_messages: bool) -> void:
 	var victory_type := _as_int(config.get("victory_type"), -1)
 	var level_complete := C_VICTORY_TRIGGER_COMPONENT.VictoryType.LEVEL_COMPLETE
 	var game_complete := C_VICTORY_TRIGGER_COMPONENT.VictoryType.GAME_COMPLETE
 	if victory_type != level_complete and victory_type != game_complete:
-		_record_error(errors, context, "victory_type", "must be a valid C_VictoryTriggerComponent.VictoryType", emit_messages)
+		_record_error(
+			errors,
+			context,
+			"victory_type",
+			"must be LEVEL_COMPLETE(0) or GAME_COMPLETE(1); got %s" % str(victory_type),
+			emit_messages
+		)
 
 	var objective_id := _as_string_name(config.get("objective_id"))
 	var area_id := _as_trimmed_string(config.get("area_id"))
 	if objective_id.is_empty() and area_id.is_empty():
 		_record_error(errors, context, "objective_id", "objective_id or area_id must be set", emit_messages)
+	if victory_type == level_complete and objective_id.is_empty():
+		_record_error(
+			errors,
+			context,
+			"objective_id",
+			"LEVEL_COMPLETE requires non-empty objective_id",
+			emit_messages
+		)
 
 static func _validate_signpost(config: Resource, context: String, errors: Array[String], emit_messages: bool) -> void:
 	var message := _as_trimmed_string(config.get("message"))
@@ -119,7 +173,13 @@ static func _validate_endgame_goal(config: Resource, context: String, errors: Ar
 
 	var victory_type := _as_int(config.get("victory_type"), -1)
 	if victory_type != C_VICTORY_TRIGGER_COMPONENT.VictoryType.GAME_COMPLETE:
-		_record_error(errors, context, "victory_type", "must be GAME_COMPLETE for endgame goals", emit_messages)
+		_record_error(
+			errors,
+			context,
+			"victory_type",
+			"must be GAME_COMPLETE(1) for endgame goals; got %s" % str(victory_type),
+			emit_messages
+		)
 
 static func _as_string_name(value: Variant) -> StringName:
 	if value is StringName:

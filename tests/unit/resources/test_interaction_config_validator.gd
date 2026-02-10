@@ -69,6 +69,41 @@ func test_validator_rejects_door_missing_target_fields() -> void:
 	assert_true(errors.any(func(msg: Variant): return String(msg).contains("target_scene_id")))
 	assert_true(errors.any(func(msg: Variant): return String(msg).contains("target_spawn_point")))
 
+func test_validator_rejects_door_invalid_trigger_mode_and_negative_cooldown() -> void:
+	var validator := _load_script(VALIDATOR_PATH)
+	var door_config := _new_resource(DOOR_CONFIG_PATH)
+	if validator == null or door_config == null:
+		return
+
+	door_config.set("interaction_id", StringName("door_mode_check"))
+	door_config.set("door_id", StringName("door_a"))
+	door_config.set("target_scene_id", StringName("scene_a"))
+	door_config.set("target_spawn_point", StringName("sp_a"))
+	door_config.set("trigger_mode", 77)
+	door_config.set("cooldown_duration", -2.0)
+
+	var result: Dictionary = validator.call("validate_config", door_config, "res://tests/unit/resources/door_invalid")
+	assert_false(bool(result.get("is_valid", true)))
+	var errors := result.get("errors", []) as Array
+	assert_true(errors.any(func(msg: Variant): return String(msg).contains("trigger_mode")))
+	assert_true(errors.any(func(msg: Variant): return String(msg).contains("cooldown_duration")))
+
+func test_validator_rejects_checkpoint_missing_required_ids() -> void:
+	var validator := _load_script(VALIDATOR_PATH)
+	var checkpoint_config := _new_resource(CHECKPOINT_CONFIG_PATH)
+	if validator == null or checkpoint_config == null:
+		return
+
+	checkpoint_config.set("interaction_id", StringName("checkpoint_main"))
+	checkpoint_config.set("checkpoint_id", StringName(""))
+	checkpoint_config.set("spawn_point_id", StringName(""))
+
+	var result: Dictionary = validator.call("validate_config", checkpoint_config, "res://tests/unit/resources/checkpoint")
+	assert_false(bool(result.get("is_valid", true)))
+	var errors := result.get("errors", []) as Array
+	assert_true(errors.any(func(msg: Variant): return String(msg).contains("checkpoint_id")))
+	assert_true(errors.any(func(msg: Variant): return String(msg).contains("spawn_point_id")))
+
 func test_validator_rejects_hazard_negative_values() -> void:
 	var validator := _load_script(VALIDATOR_PATH)
 	var hazard_config := _new_resource(HAZARD_CONFIG_PATH)
@@ -102,6 +137,22 @@ func test_validator_rejects_invalid_victory_enum_and_missing_fields() -> void:
 	assert_true(errors.any(func(msg: Variant): return String(msg).contains("victory_type")))
 	assert_true(errors.any(func(msg: Variant): return String(msg).contains("objective_id") or String(msg).contains("area_id")))
 
+func test_validator_rejects_level_complete_without_objective_id() -> void:
+	var validator := _load_script(VALIDATOR_PATH)
+	var victory_config := _new_resource(VICTORY_CONFIG_PATH)
+	if validator == null or victory_config == null:
+		return
+
+	victory_config.set("interaction_id", StringName("victory_combo"))
+	victory_config.set("victory_type", 0) # LEVEL_COMPLETE
+	victory_config.set("objective_id", StringName(""))
+	victory_config.set("area_id", "interior_house")
+
+	var result: Dictionary = validator.call("validate_config", victory_config, "res://tests/unit/resources/victory_combo")
+	assert_false(bool(result.get("is_valid", true)))
+	var errors := result.get("errors", []) as Array
+	assert_true(errors.any(func(msg: Variant): return String(msg).contains("LEVEL_COMPLETE")))
+
 func test_validator_rejects_empty_signpost_message() -> void:
 	var validator := _load_script(VALIDATOR_PATH)
 	var signpost_config := _new_resource(SIGNPOST_CONFIG_PATH)
@@ -130,3 +181,17 @@ func test_validator_rejects_endgame_goal_when_required_area_empty_or_wrong_type(
 	var errors := result.get("errors", []) as Array
 	assert_true(errors.any(func(msg: Variant): return String(msg).contains("required_area")))
 	assert_true(errors.any(func(msg: Variant): return String(msg).contains("GAME_COMPLETE")))
+
+func test_validator_rejects_missing_trigger_settings() -> void:
+	var validator := _load_script(VALIDATOR_PATH)
+	var base_config := _new_resource(BASE_CONFIG_PATH)
+	if validator == null or base_config == null:
+		return
+
+	base_config.set("interaction_id", StringName("base_trigger_type"))
+	base_config.set("trigger_settings", null)
+
+	var result: Dictionary = validator.call("validate_config", base_config, "res://tests/unit/resources/base_trigger")
+	assert_false(bool(result.get("is_valid", true)))
+	var errors := result.get("errors", []) as Array
+	assert_true(errors.any(func(msg: Variant): return String(msg).contains("trigger_settings")))
