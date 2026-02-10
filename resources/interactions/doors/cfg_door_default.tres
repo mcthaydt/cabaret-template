@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RS_DoorInteractionConfig" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/interactions/rs_door_interaction_config.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/triggers/cfg_scene_trigger_settings.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+interaction_id = &"door_default"
+enabled_by_default = true
+trigger_settings = ExtResource("2")
+door_id = &"door_default"
+target_scene_id = &"gameplay_base"
+target_spawn_point = &"sp_default"
+trigger_mode = 1
+cooldown_duration = 1.0

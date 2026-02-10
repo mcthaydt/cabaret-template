@@ -64,6 +64,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/ui/base": ["base_"], # base_*.gd UI base classes
 	"res://scripts/ui/utils": ["u_"], # UI utilities
 	"res://scripts/ui": ["ui_", "u_"], # ui_ for controllers, u_ for utilities
+	"res://scripts/gameplay/helpers": ["u_"], # gameplay helper utilities
 	"res://scripts/gameplay": ["e_", "inter_", "base_", "triggered_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers
 	"res://scripts/scene_structure": ["marker_"], # marker_*.gd organizational scripts
 	"res://scripts/scene_management/transitions": ["trans_", "base_"], # transition effects
