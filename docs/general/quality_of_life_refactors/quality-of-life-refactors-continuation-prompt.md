@@ -3,9 +3,9 @@
 ## Current Status
 
 - Initiative: Quality of Life Refactors (HUD feedback separation + hybrid interaction cues)
-- Current phase: Phase 3 (Ready to Start)
+- Current phase: Phase 4 (Ready to Start)
 - Primary tasks file: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`
-- Task progress: 15/41 complete (`QOL-T001-QOL-T004`, `QOL-T010-QOL-T014`, `QOL-T020-QOL-T025` complete; `QOL-T030-QOL-T065` remaining)
+- Task progress: 20/41 complete (`QOL-T001-QOL-T004`, `QOL-T010-QOL-T014`, `QOL-T020-QOL-T025`, `QOL-T030-QOL-T034` complete; `QOL-T040-QOL-T065` remaining)
 - Last updated: 2026-02-10
 
 ## Phase 0 Completion Summary (2026-02-10)
@@ -66,6 +66,25 @@
   - `res://tests/unit/style`: PASS (12/12)
 - Implementation commit:
   - `e35bc12` - Route autosave feedback to spinner and add payload flags.
+
+## Phase 3 Completion Summary (2026-02-10)
+
+- Completed checkpoint toast redesign tasks:
+  - `QOL-T030` RED tests for checkpoint channel-only behavior, copy fallback, and prompt lifecycle
+  - `QOL-T031` checkpoint rendering isolation from signpost/autosave call paths
+  - `QOL-T032` player-facing checkpoint text fallback (humanized IDs + explicit label preference)
+  - `QOL-T033` checkpoint timing/prompt restoration parity preserved with dedicated assertions
+  - `QOL-T034` GREEN validation across required gate suites
+- Updated test coverage:
+  - `tests/unit/ui/test_hud_feedback_channels.gd`
+- Required gate suite status after Phase 3:
+  - `res://tests/unit/ui`: PASS (178/180, 2 expected pending mobile-only tests)
+  - `res://tests/unit/interactables`: PASS (36/36)
+  - `res://tests/unit/save`: PASS (123/124, 1 expected pending headless viewport-capture test)
+  - `res://tests/integration/save_manager`: PASS (19/19; passed on rerun after one transient failure)
+  - `res://tests/unit/style`: PASS (12/12)
+- Implementation commit:
+  - `a0c7526` - Refine checkpoint toast copy and channel isolation.
 
 ## Confirmed Product Decisions (Locked)
 
@@ -135,14 +154,14 @@
 - Phase 0 - Baseline and Invariants (`QOL-T001-QOL-T004`): Complete
 - Phase 1 - HUD Channel Split Scaffolding (`QOL-T010-QOL-T014`): Complete
 - Phase 2 - Autosave Spinner (`QOL-T020-QOL-T025`): Complete
-- Phase 3 - Checkpoint Toast Redesign (`QOL-T030-QOL-T034`): Ready to Start
-- Phase 4 - Signpost Panel + Duration (`QOL-T040-QOL-T046`): Not Started
+- Phase 3 - Checkpoint Toast Redesign (`QOL-T030-QOL-T034`): Complete
+- Phase 4 - Signpost Panel + Duration (`QOL-T040-QOL-T046`): Ready to Start
 - Phase 5 - 3D Interact Icon + HUD Hybrid (`QOL-T050-QOL-T057`): Not Started
 - Phase 6 - Regression + Polish + Closure (`QOL-T060-QOL-T065`): Not Started
 
 ## Immediate Next Step
 
-Start Phase 3 with `QOL-T030` by adding RED tests for checkpoint-only toast behavior and player-facing fallback copy, then isolate checkpoint rendering from signpost/autosave paths (`QOL-T031-QOL-T034`).
+Start Phase 4 with `QOL-T040` by adding RED tests for signpost panel lifecycle (show, auto-hide by duration, pause suppression, prompt restoration), then add config-driven duration wiring and signpost-panel routing (`QOL-T041-QOL-T046`).
 
 ## Required Test Commands (Phase Advancement Gates)
 
@@ -169,7 +188,7 @@ Style suite is mandatory after any scene/resource structure change.
 - Keep world icon support config-driven to avoid controller-only one-offs.
 - When introducing new exported resource fields, update defaults and test coverage in the same phase.
 - Use Phase 0 invariants in `quality-of-life-refactors-tasks.md` as regression gates while splitting HUD channels.
-- Keep Phase 2 spinner routing and additive payload behavior stable while refactoring checkpoint copy/channel isolation in Phase 3.
+- Keep Phase 2 spinner routing and Phase 3 checkpoint copy behavior stable while moving signpost rendering to dedicated panel in Phase 4.
 - If new pitfalls or repeat mistakes are discovered, update:
   - `AGENTS.md`
   - `docs/general/DEV_PITFALLS.md`

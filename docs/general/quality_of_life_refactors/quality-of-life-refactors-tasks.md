@@ -16,7 +16,7 @@ This initiative focuses on three UX outcomes:
   - Signpost panel auto-hides after a configurable delay.
 
 **Status**: In Progress  
-**Current Phase**: Phase 3 (Ready)  
+**Current Phase**: Phase 4 (Ready)  
 **Task ID Range**: QOL-T001-QOL-T065  
 **Primary Tasks File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`  
 **Continuation Prompt File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-continuation-prompt.md` (required per phase)
@@ -174,8 +174,8 @@ No event contract break is planned.
 | 0 | Baseline and Invariants | QOL-T001-QOL-T004 | Low | Complete |
 | 1 | HUD Channel Split Scaffolding | QOL-T010-QOL-T014 | Medium | Complete |
 | 2 | Autosave Spinner | QOL-T020-QOL-T025 | Medium | Complete |
-| 3 | Checkpoint Toast Redesign | QOL-T030-QOL-T034 | Medium | Ready |
-| 4 | Signpost Panel + Duration | QOL-T040-QOL-T046 | Medium | Not Started |
+| 3 | Checkpoint Toast Redesign | QOL-T030-QOL-T034 | Medium | Complete |
+| 4 | Signpost Panel + Duration | QOL-T040-QOL-T046 | Medium | Ready |
 | 5 | 3D Interact Icon + HUD Hybrid | QOL-T050-QOL-T057 | High | Not Started |
 | 6 | Regression + Polish + Closure | QOL-T060-QOL-T065 | Medium | Not Started |
 
@@ -429,11 +429,66 @@ Implementation commit:
 
 **Goal**: Keep checkpoint feedback separate and improve default player-facing text.
 
-- [ ] **QOL-T030** Add RED tests for checkpoint-only toast behavior and text fallback.
-- [ ] **QOL-T031** Isolate checkpoint toast rendering from signpost/autosave paths.
-- [ ] **QOL-T032** Replace default raw checkpoint ID output with player-facing fallback copy.
-- [ ] **QOL-T033** Preserve checkpoint toast timing and prompt restoration behavior unless explicitly changed.
-- [ ] **QOL-T034** GREEN tests for checkpoint-only channel and copy behavior.
+- [x] **QOL-T030** Add RED tests for checkpoint-only toast behavior and text fallback.
+- [x] **QOL-T031** Isolate checkpoint toast rendering from signpost/autosave paths.
+- [x] **QOL-T032** Replace default raw checkpoint ID output with player-facing fallback copy.
+- [x] **QOL-T033** Preserve checkpoint toast timing and prompt restoration behavior unless explicitly changed.
+- [x] **QOL-T034** GREEN tests for checkpoint-only channel and copy behavior.
+
+### QOL-T030 RED Test Coverage Added (2026-02-10)
+
+- Expanded `tests/unit/ui/test_hud_feedback_channels.gd` with Phase 3 checkpoint assertions:
+  - Checkpoint events use checkpoint channel only (not spinner/signpost channels).
+  - Checkpoint text uses player-facing copy instead of raw IDs.
+  - Explicit checkpoint labels are preferred when provided.
+  - Prompt hide/restore lifecycle is preserved across checkpoint toast timing.
+- RED run failed as expected before implementation:
+  - Checkpoint copy remained generic/raw-path behavior.
+  - Prompt restoration timing test did not pass under new assertions.
+
+### QOL-T031/QOL-T032 Implementation Summary
+
+- `scripts/ui/hud/ui_hud_controller.gd` checkpoint handling refactored:
+  - Added `_build_checkpoint_toast_text(...)` to normalize event payloads and build player-facing checkpoint copy.
+  - Added `_humanize_checkpoint_id(...)` fallback (`cp_bar_tutorial` -> `Bar Tutorial`).
+  - Added `_extract_event_payload(...)` helper for wrapped/unwrapped event compatibility.
+- Checkpoint rendering isolation:
+  - `checkpoint_activated` now resolves through checkpoint-specific text pipeline.
+  - Signpost path no longer calls `_show_checkpoint_toast(...)` directly; it now uses `_show_signpost_toast(...)` with shared toast behavior.
+- Copy behavior:
+  - Prefer additive payload fields like `checkpoint_label`/`display_name` when present.
+  - Fall back to humanized checkpoint IDs, then `Checkpoint reached`.
+
+### QOL-T033 Timing/Prompt Restoration Confirmation
+
+- Existing checkpoint toast animation timings remain unchanged:
+  - Fade-in `0.2s`, hold `1.0s`, fade-out `0.3s`.
+- Prompt lifecycle remains deterministic:
+  - Prompt hides when checkpoint toast starts.
+  - Prompt restores after toast completes when controller context remains active.
+- Added explicit test coverage in `test_checkpoint_toast_preserves_prompt_hide_and_restore_timing`.
+
+### QOL-T034 GREEN Validation Results (2026-02-10)
+
+Validation suites executed:
+
+| Suite | Result | Notes |
+|---|---|---|
+| `res://tests/unit/ui` | PASS | 178/180 passing, 2 expected pending mobile-only |
+| `res://tests/unit/interactables` | PASS | 36/36 passing |
+| `res://tests/unit/save` | PASS | 123/124 passing, 1 expected pending headless viewport capture |
+| `res://tests/integration/save_manager` | PASS | 19/19 passing (passed on rerun after one transient failure) |
+| `res://tests/unit/style` | PASS | 12/12 passing |
+
+Implementation commit:
+- `a0c7526` - Refine checkpoint toast copy and channel isolation.
+
+### Phase 3 Completion Notes
+
+- Phase 3 exit criteria met on 2026-02-10.
+- Checkpoint toast behavior is now readable and independently handled from autosave/signpost call paths.
+- Checkpoint toast timing and prompt restoration behavior preserved with dedicated regression coverage.
+- Next phase target: Phase 4 (`QOL-T040-QOL-T046`) signpost panel routing + duration config.
 
 ### Phase 3 Exit Criteria
 
