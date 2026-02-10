@@ -16,7 +16,7 @@ This initiative focuses on three UX outcomes:
   - Signpost panel auto-hides after a configurable delay.
 
 **Status**: In Progress  
-**Current Phase**: Phase 1 (Ready)  
+**Current Phase**: Phase 2 (Ready)  
 **Task ID Range**: QOL-T001-QOL-T065  
 **Primary Tasks File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-tasks.md`  
 **Continuation Prompt File**: `docs/general/quality_of_life_refactors/quality-of-life-refactors-continuation-prompt.md` (required per phase)
@@ -172,8 +172,8 @@ No event contract break is planned.
 | Phase | Name | Task IDs | Risk | Status |
 |---|---|---|---|---|
 | 0 | Baseline and Invariants | QOL-T001-QOL-T004 | Low | Complete |
-| 1 | HUD Channel Split Scaffolding | QOL-T010-QOL-T014 | Medium | Ready |
-| 2 | Autosave Spinner | QOL-T020-QOL-T025 | Medium | Not Started |
+| 1 | HUD Channel Split Scaffolding | QOL-T010-QOL-T014 | Medium | Complete |
+| 2 | Autosave Spinner | QOL-T020-QOL-T025 | Medium | Ready |
 | 3 | Checkpoint Toast Redesign | QOL-T030-QOL-T034 | Medium | Not Started |
 | 4 | Signpost Panel + Duration | QOL-T040-QOL-T046 | Medium | Not Started |
 | 5 | 3D Interact Icon + HUD Hybrid | QOL-T050-QOL-T057 | High | Not Started |
@@ -276,14 +276,64 @@ Execution notes:
 
 **Goal**: Separate presentation channels in HUD scene/controller while preserving behavior.
 
-- [ ] **QOL-T010** Add RED tests covering independent node/channel visibility state.
-- [ ] **QOL-T011** Add separate HUD nodes for:
+- [x] **QOL-T010** Add RED tests covering independent node/channel visibility state.
+- [x] **QOL-T011** Add separate HUD nodes for:
   - Autosave spinner (top-center)
   - Checkpoint toast
   - Signpost message panel
-- [ ] **QOL-T012** Refactor HUD controller internals into channel-specific show/hide helpers.
-- [ ] **QOL-T013** Maintain baseline-visible behavior until Phase 2+ switches routing logic.
-- [ ] **QOL-T014** GREEN tests for channel separation scaffolding.
+- [x] **QOL-T012** Refactor HUD controller internals into channel-specific show/hide helpers.
+- [x] **QOL-T013** Maintain baseline-visible behavior until Phase 2+ switches routing logic.
+- [x] **QOL-T014** GREEN tests for channel separation scaffolding.
+
+### QOL-T010 RED Test Coverage Added (2026-02-10)
+
+- Added `tests/unit/ui/test_hud_feedback_channels.gd` with RED-first expectations for:
+  - Independent visibility state for `ToastContainer`, `AutosaveSpinnerContainer`, and `SignpostPanelContainer`.
+  - Phase 1 routing parity rule (signpost/autosave still visible via checkpoint toast path while new channels remain inactive).
+- Initial RED run failed as expected before implementation:
+  - Missing HUD nodes (`AutosaveSpinnerContainer`, `SignpostPanelContainer`).
+  - Missing channel helper method surface.
+
+### QOL-T011/QOL-T012 Implementation Summary
+
+- HUD scene scaffolding added in `scenes/ui/hud/ui_hud_overlay.tscn`:
+  - `MarginContainer/AutosaveSpinnerContainer` (new top-center spinner channel container).
+  - `MarginContainer/SignpostPanelContainer` (new dedicated signpost panel container).
+  - Existing `MarginContainer/ToastContainer` preserved as checkpoint toast channel.
+- HUD controller channel helpers added in `scripts/ui/hud/ui_hud_controller.gd`:
+  - `_show_autosave_spinner()` / `_hide_autosave_spinner()`
+  - `_show_signpost_panel(text)` / `_hide_signpost_panel()`
+  - `_hide_checkpoint_toast_immediate()` and checkpoint tween cancellation helper for deterministic channel switching.
+- Pause handling now explicitly hides all three channels before forcing unblock.
+
+### QOL-T013 Baseline-Visible Parity Confirmation
+
+- Event routing intentionally unchanged for Phase 1:
+  - `signpost_message` still routes to `_show_checkpoint_toast(...)`.
+  - Autosave `save_started`/`save_completed`/`save_failed` still route through checkpoint toast path.
+- Dedicated spinner/signpost panel channels are scaffolded but not yet used for runtime routing (deferred to Phase 2+).
+
+### QOL-T014 GREEN Validation Results (2026-02-10)
+
+Validation suites executed:
+
+| Suite | Result | Notes |
+|---|---|---|
+| `res://tests/unit/ui` | PASS | 172/174 passing, 2 expected pending mobile-only |
+| `res://tests/unit/interactables` | PASS | 36/36 passing |
+| `res://tests/unit/save` | PASS | 121/122 passing, 1 expected pending headless viewport capture |
+| `res://tests/integration/save_manager` | PASS | 19/19 passing |
+| `res://tests/unit/style` | PASS | 12/12 passing |
+
+Implementation commit:
+- `c231a2d` - Add HUD feedback channel scaffolding and tests.
+
+### Phase 1 Completion Notes
+
+- Phase 1 exit criteria met on 2026-02-10.
+- Independent HUD channels now exist and are test-covered.
+- Runtime behavior parity preserved as required; routing switch is deferred to Phase 2.
+- Next phase target: Phase 2 (`QOL-T020-QOL-T025`) autosave spinner routing + non-blocking behavior.
 
 ### Phase 1 Exit Criteria
 
