@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://duro3xf1h5saj"]
+[gd_scene format=3 uid="uid://q1djjqq4f3ts"]
 
 [ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -51,17 +51,19 @@
 [ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="30_door_controller"]
 [ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="44_hazard_controller"]
 [ext_resource type="Script" uid="uid://bcgud5qw85qv0" path="res://scripts/gameplay/inter_victory_zone.gd" id="44_victory_controller"]
+[ext_resource type="Script" uid="uid://bck3euqueu4y7" path="res://scripts/gameplay/inter_signpost.gd" id="45_signpost_controller"]
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
-[ext_resource type="Resource" path="res://resources/spawn_metadata/cfg_sp_bar.tres" id="51_bar_default_spawn_meta"]
-[ext_resource type="Resource" path="res://resources/spawn_metadata/cfg_sp_bar_entrance.tres" id="52_bar_entrance_spawn_meta"]
+[ext_resource type="Resource" uid="uid://x5s2ppq71575" path="res://resources/spawn_metadata/cfg_sp_bar.tres" id="51_bar_default_spawn_meta"]
+[ext_resource type="Resource" uid="uid://btpa3gv1g0gl7" path="res://resources/spawn_metadata/cfg_sp_bar_entrance.tres" id="52_bar_entrance_spawn_meta"]
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="53_fade_goal"]
 [ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="54_fade_door"]
 [ext_resource type="Script" uid="uid://dpeat44fqshck" path="res://scripts/utils/display/u_cinema_grade_preview.gd" id="55_cinema_preview"]
-[ext_resource type="Resource" path="res://resources/display/cinema_grades/cfg_cinema_grade_bar.tres" id="56_cinema_grade"]
+[ext_resource type="Resource" uid="uid://byi87fqns2dfa" path="res://resources/display/cinema_grades/cfg_cinema_grade_bar.tres" id="56_cinema_grade"]
 [ext_resource type="Resource" uid="uid://c6jd4e07tblkc" path="res://resources/interactions/doors/cfg_door_bar_to_alleyway.tres" id="60_door_config"]
 [ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="61_hazard_config"]
-[ext_resource type="Resource" path="res://resources/interactions/victory/cfg_victory_goal_bar.tres" id="62_victory_config"]
-[ext_resource type="Script" path="res://scripts/scene_structure/marker_lighting_group.gd" id="63_lighting_group"]
+[ext_resource type="Resource" uid="uid://cu3ruo6k60o8k" path="res://resources/interactions/victory/cfg_victory_goal_bar.tres" id="62_victory_config"]
+[ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/scene_structure/marker_lighting_group.gd" id="63_lighting_group"]
+[ext_resource type="Resource" uid="uid://cnyf404ygf6u1" path="res://resources/interactions/signposts/cfg_signpost_bar_tutorial.tres" id="64_signpost_config"]
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
@@ -297,6 +299,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.57354736, -0.63254166)
 radius = 0.7910156
 height = 2.0715332
 material = ExtResource("54_fade_door")
+
+[node name="E_TutorialSign_Bar" type="Node3D" parent="Entities" unique_id=2050868452]
+transform = Transform3D(0.6972604, 0, 0.716818, 0, 1, 0, -0.716818, 0, 0.6972604, -7.06017, 1.1548032, -3.1021347)
+script = ExtResource("45_signpost_controller")
+config = ExtResource("64_signpost_config")
+visual_paths = Array[NodePath]([NodePath(""), NodePath("")])
+entity_id = &"tutorial_bar"
+tags = Array[StringName]([&"interactable", &"tutorial"])
 
 [node name="HUD" parent="." unique_id=1864878923 instance=ExtResource("11_hud")]
 
