@@ -176,13 +176,7 @@ func _update_health(state: Dictionary) -> void:
 
 ## ECS: Show a brief toast when a checkpoint is activated
 func _on_checkpoint_event(payload: Variant) -> void:
-	var text: String = "Checkpoint reached"
-	if typeof(payload) == TYPE_DICTIONARY:
-		var p: Dictionary = payload
-		var cp_id: Variant = p.get("checkpoint_id")
-		if cp_id is StringName and String(cp_id) != "":
-			text = "Checkpoint: %s" % String(cp_id)
-
+	var text: String = _build_checkpoint_toast_text(payload)
 	_show_checkpoint_toast(text)
 
 func _show_checkpoint_toast(text: String) -> void:
@@ -223,6 +217,82 @@ func _show_checkpoint_toast(text: String) -> void:
 		if not _is_paused(_store.get_state()) and _active_prompt_id != 0 and interact_prompt != null:
 			interact_prompt.show_prompt(_last_prompt_action, _last_prompt_text)
 		)
+
+func _show_signpost_toast(text: String) -> void:
+	# Phase 3: keep signpost presentation behavior, but use its own path (no checkpoint helper coupling).
+	_show_toast_with_prompt_block(text)
+
+func _show_toast_with_prompt_block(text: String) -> void:
+	if checkpoint_toast == null or toast_container == null:
+		return
+	# Do not show toasts while paused
+	if _store != null and _is_paused(_store.get_state()):
+		return
+	_hide_autosave_spinner()
+	_hide_signpost_panel()
+	_cancel_checkpoint_toast_tween()
+	checkpoint_toast.text = text
+	toast_container.modulate.a = 0.0
+	toast_container.visible = true
+	_toast_active = true
+	U_InteractBlocker.block()
+	if interact_prompt != null:
+		interact_prompt.hide_prompt()
+
+	_checkpoint_toast_tween = create_tween()
+	_checkpoint_toast_tween.set_trans(Tween.TRANS_CUBIC)
+	_checkpoint_toast_tween.set_ease(Tween.EASE_IN_OUT)
+	_checkpoint_toast_tween.tween_property(toast_container, "modulate:a", 1.0, 0.2).from(0.0)
+	_checkpoint_toast_tween.tween_interval(1.0)
+	_checkpoint_toast_tween.tween_property(toast_container, "modulate:a", 0.0, 0.3)
+	_checkpoint_toast_tween.finished.connect(func() -> void:
+		_checkpoint_toast_tween = null
+		toast_container.visible = false
+		_toast_active = false
+		U_InteractBlocker.unblock_with_cooldown(0.3)
+		if not _is_paused(_store.get_state()) and _active_prompt_id != 0 and interact_prompt != null:
+			interact_prompt.show_prompt(_last_prompt_action, _last_prompt_text)
+		)
+
+func _build_checkpoint_toast_text(event_payload: Variant) -> String:
+	const DEFAULT_TEXT := "Checkpoint reached"
+	var payload := _extract_event_payload(event_payload)
+	if payload.is_empty():
+		return DEFAULT_TEXT
+
+	var explicit_label: String = String(payload.get("checkpoint_label", payload.get("display_name", ""))).strip_edges()
+	if not explicit_label.is_empty():
+		return "Checkpoint: %s" % explicit_label
+
+	var checkpoint_id_value: Variant = payload.get("checkpoint_id", StringName(""))
+	var checkpoint_id: String = String(checkpoint_id_value).strip_edges()
+	var readable_name: String = _humanize_checkpoint_id(checkpoint_id)
+	if readable_name.is_empty():
+		return DEFAULT_TEXT
+	return "Checkpoint: %s" % readable_name
+
+func _humanize_checkpoint_id(raw_id: String) -> String:
+	var cleaned := raw_id.strip_edges()
+	if cleaned.is_empty():
+		return ""
+	if cleaned.begins_with("cp_"):
+		cleaned = cleaned.substr(3)
+	cleaned = cleaned.replace("_", " ").replace("-", " ").strip_edges()
+	if cleaned.is_empty():
+		return ""
+	var words: PackedStringArray = cleaned.split(" ", false)
+	for i in words.size():
+		words[i] = words[i].capitalize()
+	return String(" ").join(words)
+
+func _extract_event_payload(event_payload: Variant) -> Dictionary:
+	if typeof(event_payload) != TYPE_DICTIONARY:
+		return {}
+	var event: Dictionary = event_payload
+	var nested: Variant = event.get("payload", null)
+	if typeof(nested) == TYPE_DICTIONARY:
+		return nested as Dictionary
+	return event
 
 func _hide_checkpoint_toast_immediate() -> void:
 	var was_active: bool = _toast_active
@@ -352,7 +422,7 @@ func _on_signpost_message(payload: Variant) -> void:
 	# Suppress signpost messages while paused
 	if _store != null and _is_paused(_store.get_state()):
 		return
-	_show_checkpoint_toast(text)
+	_show_signpost_toast(text)
 
 ## Phase 11: Save event handlers for autosave feedback
 

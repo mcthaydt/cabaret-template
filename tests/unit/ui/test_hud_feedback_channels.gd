@@ -36,6 +36,9 @@ func _await_frames(count: int) -> void:
 	for _i in count:
 		await get_tree().process_frame
 
+func _await_seconds(seconds: float) -> void:
+	await get_tree().create_timer(seconds).timeout
+
 func test_feedback_channels_have_independent_visibility_state() -> void:
 	var checkpoint_toast_container: Control = _hud.get_node("MarginContainer/ToastContainer")
 	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
@@ -143,3 +146,54 @@ func test_manual_save_events_do_not_toggle_autosave_spinner() -> void:
 	})
 	await _await_frames(1)
 	assert_false(autosave_spinner_container.visible, "Manual save failure should not affect autosave spinner")
+
+func test_checkpoint_event_uses_checkpoint_channel_only() -> void:
+	var checkpoint_toast_container: Control = _hud.get_node("MarginContainer/ToastContainer")
+	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
+	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
+	var checkpoint_toast_label: Label = _hud.get_node("MarginContainer/ToastContainer/PanelContainer/MarginContainer/CheckpointToast")
+
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {
+		"checkpoint_id": StringName("cp_bar_tutorial")
+	})
+	await _await_frames(1)
+
+	assert_true(checkpoint_toast_container.visible, "Checkpoint event should show checkpoint toast channel")
+	assert_false(autosave_spinner_container.visible, "Checkpoint event should not show autosave spinner")
+	assert_false(signpost_panel_container.visible, "Checkpoint event should not show signpost panel")
+	assert_eq(checkpoint_toast_label.text, "Checkpoint: Bar Tutorial",
+		"Checkpoint message should use player-facing copy instead of raw ID")
+
+func test_checkpoint_event_prefers_explicit_player_facing_label() -> void:
+	var checkpoint_toast_label: Label = _hud.get_node("MarginContainer/ToastContainer/PanelContainer/MarginContainer/CheckpointToast")
+
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {
+		"checkpoint_id": StringName("cp_internal_name"),
+		"checkpoint_label": "Backstage Entry"
+	})
+	await _await_frames(1)
+
+	assert_eq(checkpoint_toast_label.text, "Checkpoint: Backstage Entry",
+		"Checkpoint should prefer explicit player-facing label when provided")
+
+func test_checkpoint_toast_preserves_prompt_hide_and_restore_timing() -> void:
+	var prompt: Control = _hud.get_node("MarginContainer/InteractPrompt")
+
+	U_ECSEventBus.publish(StringName("interact_prompt_show"), {
+		"controller_id": 777,
+		"action": StringName("interact"),
+		"prompt": "Read"
+	})
+	await _await_frames(1)
+	assert_true(prompt.visible, "Prompt should be visible before checkpoint toast")
+	assert_eq(int(_hud.get("_active_prompt_id")), 777, "Prompt event should track active controller for restoration")
+
+	U_ECSEventBus.publish(StringName("checkpoint_activated"), {
+		"checkpoint_id": StringName("cp_stage_left")
+	})
+	await _await_frames(1)
+	assert_false(prompt.visible, "Prompt should hide while checkpoint toast is visible")
+
+	# Checkpoint toast duration baseline: 0.2 fade-in + 1.0 hold + 0.3 fade-out.
+	await _await_seconds(2.0)
+	assert_true(prompt.visible, "Prompt should restore after checkpoint toast lifecycle completes")
