@@ -225,11 +225,15 @@ func _show_checkpoint_toast(text: String) -> void:
 		)
 
 func _hide_checkpoint_toast_immediate() -> void:
+	var was_active: bool = _toast_active
 	_cancel_checkpoint_toast_tween()
 	if toast_container == null:
 		return
 	toast_container.visible = false
 	_toast_active = false
+	if was_active:
+		# If toast was interrupted, clear blocker immediately to avoid stale input lock.
+		U_InteractBlocker.force_unblock()
 
 func _cancel_checkpoint_toast_tween() -> void:
 	if _checkpoint_toast_tween == null:
@@ -353,7 +357,7 @@ func _on_signpost_message(payload: Variant) -> void:
 ## Phase 11: Save event handlers for autosave feedback
 
 func _on_save_started(payload: Variant) -> void:
-	# Show "Saving..." toast only for autosaves (not manual saves from menu)
+	# Show autosave spinner only for autosaves (not manual saves from menu)
 	if typeof(payload) != TYPE_DICTIONARY:
 		return
 	var event: Dictionary = payload
@@ -364,10 +368,10 @@ func _on_save_started(payload: Variant) -> void:
 	var is_autosave: bool = data.get("is_autosave", false)
 
 	if is_autosave:
-		_show_checkpoint_toast("⏳ Saving...")
+		_show_autosave_spinner()
 
 func _on_save_completed(payload: Variant) -> void:
-	# Show "Game Saved" toast only for autosaves
+	# Hide autosave spinner only for autosaves
 	if typeof(payload) != TYPE_DICTIONARY:
 		return
 	var event: Dictionary = payload
@@ -378,10 +382,10 @@ func _on_save_completed(payload: Variant) -> void:
 	var is_autosave: bool = data.get("is_autosave", false)
 
 	if is_autosave:
-		_show_checkpoint_toast("Game Saved")
+		_hide_autosave_spinner()
 
 func _on_save_failed(payload: Variant) -> void:
-	# Show "Save Failed" toast for all failed saves (autosave or manual)
+	# Hide autosave spinner on autosave failures.
 	if typeof(payload) != TYPE_DICTIONARY:
 		return
 	var event: Dictionary = payload
@@ -392,7 +396,7 @@ func _on_save_failed(payload: Variant) -> void:
 	var is_autosave: bool = data.get("is_autosave", false)
 
 	if is_autosave:
-		_show_checkpoint_toast("Save Failed")
+		_hide_autosave_spinner()
 
 func _format_interact_prompt(action: StringName, prompt_text: String) -> String:
 	var action_label := _get_primary_input_label(action)
