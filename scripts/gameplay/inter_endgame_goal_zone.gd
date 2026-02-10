@@ -1,6 +1,8 @@
 extends "res://scripts/gameplay/inter_victory_zone.gd"
 class_name Inter_EndgameGoalZone
 
+const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_endgame_goal_interaction_config.gd")
+
 ## Exterior final goal controller built on the victory interactable base.
 ##
 ## Keeps the GAME_COMPLETE goal zone hidden/disabled until the
@@ -43,7 +45,7 @@ func _refresh_lock_state() -> void:
 		var completed_raw: Variant = gameplay.get("completed_areas", [])
 		if completed_raw is Array:
 			var completed: Array = completed_raw
-			unlocked = completed.has(required_area)
+			unlocked = completed.has(_get_effective_required_area())
 
 	_apply_lock_state(unlocked)
 
@@ -56,3 +58,16 @@ func _apply_lock_state(unlocked: bool) -> void:
 
 	set_enabled(unlocked)
 	visible = unlocked
+
+func _get_effective_required_area() -> String:
+	var typed := _resolve_endgame_config()
+	if typed != null:
+		return U_INTERACTION_CONFIG_RESOLVER.as_string(typed.get("required_area"), required_area)
+	return required_area
+
+func _resolve_endgame_config() -> Resource:
+	if config == null:
+		return null
+	if U_INTERACTION_CONFIG_RESOLVER.script_matches(config, RS_ENDGAME_GOAL_INTERACTION_CONFIG):
+		return config
+	return null

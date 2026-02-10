@@ -1,10 +1,21 @@
 extends "res://scripts/gameplay/base_volume_controller.gd"
 class_name Inter_VictoryZone
 
+const RS_VICTORY_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_victory_interaction_config.gd")
+const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
 
 @export var component_name: StringName = StringName("C_VictoryTriggerComponent")
 
 var component_factory: Callable
+
+var _config: Resource = null
+@export var config: Resource:
+	get:
+		return _config
+	set(value):
+		_config = value
+		_apply_config_resource()
+		_apply_component_config()
 
 var _objective_id: StringName = StringName("")
 @export var objective_id: StringName:
@@ -41,6 +52,7 @@ var _trigger_once: bool = true
 var _component: C_VictoryTriggerComponent = null
 
 func _ready() -> void:
+	_apply_config_resource()
 	super._ready()
 	trigger_area_ready.connect(_on_controller_area_ready)
 	var area := get_trigger_area()
@@ -105,11 +117,11 @@ func _apply_component_config() -> void:
 	if _component == null or not is_instance_valid(_component):
 		return
 
-	_component.objective_id = _objective_id
-	_component.area_id = _area_id
-	_component.victory_type = _victory_type
-	_component.trigger_once = _trigger_once
-	var trigger_settings := _get_settings()
+	_component.objective_id = _get_effective_objective_id()
+	_component.area_id = _get_effective_area_id()
+	_component.victory_type = _get_effective_victory_type()
+	_component.trigger_once = _get_effective_trigger_once()
+	var trigger_settings := _get_effective_trigger_settings()
 	if trigger_settings != null:
 		trigger_settings.ignore_initial_overlap = false
 
@@ -118,3 +130,51 @@ func _apply_component_config() -> void:
 func refresh_volume_from_settings() -> void:
 	super.refresh_volume_from_settings()
 	_apply_component_config()
+
+func _apply_config_resource() -> void:
+	var typed := _resolve_config()
+	if typed == null:
+		return
+
+	var trigger_settings: RS_SceneTriggerSettings = typed.get("trigger_settings") as RS_SceneTriggerSettings
+	if trigger_settings != null:
+		settings = trigger_settings
+
+func _resolve_config() -> Resource:
+	if _config == null:
+		return null
+	if U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_VICTORY_INTERACTION_CONFIG):
+		return _config
+	return null
+
+func _get_effective_objective_id() -> StringName:
+	var typed := _resolve_config()
+	if typed != null:
+		return U_INTERACTION_CONFIG_RESOLVER.as_string_name(typed.get("objective_id"), _objective_id)
+	return _objective_id
+
+func _get_effective_area_id() -> String:
+	var typed := _resolve_config()
+	if typed != null:
+		return U_INTERACTION_CONFIG_RESOLVER.as_string(typed.get("area_id"), _area_id)
+	return _area_id
+
+func _get_effective_victory_type() -> int:
+	var typed := _resolve_config()
+	if typed != null:
+		return U_INTERACTION_CONFIG_RESOLVER.as_int(typed.get("victory_type"), _victory_type)
+	return _victory_type
+
+func _get_effective_trigger_once() -> bool:
+	var typed := _resolve_config()
+	if typed != null:
+		return U_INTERACTION_CONFIG_RESOLVER.as_bool(typed.get("trigger_once"), _trigger_once)
+	return _trigger_once
+
+func _get_effective_trigger_settings() -> RS_SceneTriggerSettings:
+	var typed := _resolve_config()
+	if typed != null:
+		var trigger_settings := typed.get("trigger_settings") as RS_SceneTriggerSettings
+		if trigger_settings != null:
+			return trigger_settings
+	return _get_settings()

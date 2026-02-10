@@ -1,5 +1,7 @@
 extends BaseTest
 
+const RS_SIGNPOST_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_signpost_interaction_config.gd")
+const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_door_interaction_config.gd")
 
 func _pump_frames(count: int = 1) -> void:
 	for _i in count:
@@ -56,6 +58,63 @@ func test_non_repeatable_locks_after_activation() -> void:
 	var dummy := _make_dummy_player()
 	signpost._on_activated(dummy)
 	assert_true(signpost.is_locked(), "Non-repeatable signpost should lock after first activation.")
+
+func test_config_resource_overrides_message_repeatable_and_prompt() -> void:
+	U_ECSEventBus.reset()
+	var signpost := await _create_signpost()
+	var config := RS_SIGNPOST_INTERACTION_CONFIG.new()
+	config.message = "Config message"
+	config.repeatable = false
+	config.interact_prompt = "Inspect"
+	signpost.config = config
+	await _pump_frames(1)
+
+	assert_eq(signpost.interact_prompt, "Inspect", "Config should override prompt label.")
+
+	var received := {
+		"message": ""
+	}
+	signpost.signpost_activated.connect(func(message: String, _node: Inter_Signpost) -> void:
+		received.message = message
+	)
+
+	var messages: Array = []
+	var unsubscribe := U_ECSEventBus.subscribe(StringName("signpost_message"), func(payload: Variant) -> void:
+		messages.append(payload)
+	)
+
+	var dummy := _make_dummy_player()
+	signpost._on_activated(dummy)
+
+	assert_eq(received.message, "Config message")
+	assert_eq(messages.size(), 1)
+	var event := messages[0] as Dictionary
+	var payload := event.get("payload", {}) as Dictionary
+	assert_eq(String(payload.get("message", "")), "Config message")
+	assert_eq(bool(payload.get("repeatable", true)), false)
+	assert_true(signpost.is_locked(), "Config repeatable=false should lock signpost.")
+
+	if unsubscribe != null and unsubscribe.is_valid():
+		unsubscribe.call()
+
+func test_non_matching_config_uses_export_fallback() -> void:
+	var signpost := await _create_signpost()
+	var wrong_config := RS_DOOR_INTERACTION_CONFIG.new()
+	signpost.config = wrong_config
+	await _pump_frames(1)
+
+	assert_eq(signpost.interact_prompt, "Read", "Prompt should remain at export/default when config type is incompatible.")
+
+	var received := {
+		"message": ""
+	}
+	signpost.signpost_activated.connect(func(message: String, _node: Inter_Signpost) -> void:
+		received.message = message
+	)
+
+	var dummy := _make_dummy_player()
+	signpost._on_activated(dummy)
+	assert_eq(received.message, "Hello there", "Fallback path should keep export-authored message.")
 
 func _make_dummy_player() -> Node3D:
 	var node := Node3D.new()
