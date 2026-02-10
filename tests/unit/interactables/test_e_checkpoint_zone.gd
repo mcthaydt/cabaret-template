@@ -20,8 +20,10 @@ func _pump_frames(count: int = 1) -> void:
 func _create_controller() -> Inter_CheckpointZone:
 	var controller := Inter_CheckpointZone.new()
 	controller.component_factory = Callable(self, "_create_checkpoint_stub")
-	controller.checkpoint_id = StringName("cp_test")
-	controller.spawn_point_id = StringName("sp_test")
+	var config := RS_CHECKPOINT_INTERACTION_CONFIG.new()
+	config.checkpoint_id = StringName("cp_test")
+	config.spawn_point_id = StringName("sp_test")
+	controller.config = config
 	add_child(controller)
 	autofree(controller)
 	await _pump_frames(3)
@@ -64,10 +66,10 @@ func test_config_resource_overrides_export_values() -> void:
 	assert_true(component.settings == trigger_settings, "Checkpoint should use config trigger settings when provided.")
 	assert_false(component.settings.ignore_initial_overlap, "Checkpoint should force passive overlap semantics.")
 
-func test_non_matching_config_uses_export_fallback() -> void:
+func test_non_matching_config_does_not_override_valid_config() -> void:
 	var controller := await _create_controller()
 	var component := _find_component(controller)
-	assert_not_null(component, "Checkpoint component should exist before fallback check.")
+	assert_not_null(component, "Checkpoint component should exist before config type mismatch check.")
 
 	var wrong_config := RS_DOOR_INTERACTION_CONFIG.new()
 	controller.config = wrong_config

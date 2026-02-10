@@ -71,9 +71,13 @@ func after_each() -> void:
 func _create_controller() -> Inter_DoorTrigger:
 	var controller := Inter_DoorTrigger.new()
 	controller.component_factory = Callable(self, "_create_scene_trigger_stub")
-	controller.door_id = StringName("door_test")
-	controller.target_scene_id = StringName("scene_test")
-	controller.target_spawn_point = StringName("spawn_test")
+	var config := RS_DOOR_INTERACTION_CONFIG.new()
+	config.door_id = StringName("door_test")
+	config.target_scene_id = StringName("scene_test")
+	config.target_spawn_point = StringName("spawn_test")
+	config.cooldown_duration = 2.25
+	config.trigger_mode = C_SceneTriggerComponent.TriggerMode.INTERACT
+	controller.config = config
 	add_child(controller)
 	autofree(controller)
 	await _pump_frames(3)
@@ -140,12 +144,10 @@ func test_config_resource_overrides_export_values() -> void:
 	assert_eq(controller.trigger_mode, Inter_DoorTrigger.TriggerMode.AUTO)
 	assert_true(component.settings == trigger_settings, "Door should use config trigger settings when provided.")
 
-func test_non_matching_config_uses_export_fallback() -> void:
+func test_non_matching_config_does_not_override_valid_config() -> void:
 	var controller := await _create_controller()
-	controller.cooldown_duration = 2.25
-	await _pump_frames(1)
 	var component := _find_component(controller)
-	assert_not_null(component, "Component must exist before fallback check.")
+	assert_not_null(component, "Component must exist before config type mismatch check.")
 
 	var wrong_config := RS_HAZARD_INTERACTION_CONFIG.new()
 	controller.config = wrong_config

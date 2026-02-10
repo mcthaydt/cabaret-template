@@ -11,9 +11,6 @@ const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u
 
 @export var component_name: StringName = StringName("C_SceneTriggerComponent")
 
-## Trigger mode for this door (AUTO triggers on enter; INTERACT requires input inside volume)
-@export var door_trigger_mode: C_SceneTriggerComponent.TriggerMode = C_SceneTriggerComponent.TriggerMode.INTERACT
-
 var component_factory: Callable
 
 var _config: Resource = null
@@ -21,32 +18,10 @@ var _config: Resource = null
 	get:
 		return _config
 	set(value):
+		if value != null and not U_INTERACTION_CONFIG_RESOLVER.script_matches(value, RS_DOOR_INTERACTION_CONFIG):
+			return
 		_config = value
 		_apply_config_resource()
-		_apply_component_config()
-
-var _door_id: StringName = StringName("")
-@export var door_id: StringName:
-	get:
-		return _door_id
-	set(value):
-		_door_id = value
-		_apply_component_config()
-
-var _target_scene_id: StringName = StringName("")
-@export var target_scene_id: StringName:
-	get:
-		return _target_scene_id
-	set(value):
-		_target_scene_id = value
-		_apply_component_config()
-
-var _target_spawn_point: StringName = StringName("")
-@export var target_spawn_point: StringName:
-	get:
-		return _target_spawn_point
-	set(value):
-		_target_spawn_point = value
 		_apply_component_config()
 
 var _component: C_SceneTriggerComponent = null
@@ -118,12 +93,15 @@ func _update_component_area_path() -> void:
 func _apply_component_config() -> void:
 	if _component == null or not is_instance_valid(_component):
 		return
+	var typed := _resolve_config()
+	if typed == null:
+		return
 
-	_component.door_id = _get_effective_door_id()
-	_component.target_scene_id = _get_effective_target_scene_id()
-	_component.target_spawn_point = _get_effective_target_spawn_point()
-	_component.cooldown_duration = _get_effective_cooldown_duration()
-	_component.trigger_mode = _get_effective_trigger_mode()
+	_component.door_id = typed.door_id
+	_component.target_scene_id = typed.target_scene_id
+	_component.target_spawn_point = typed.target_spawn_point
+	_component.cooldown_duration = max(typed.cooldown_duration, 0.0)
+	_component.trigger_mode = typed.trigger_mode
 
 	# Keep controller prompt/activation mode aligned with component configuration
 	match _component.trigger_mode:
@@ -136,10 +114,9 @@ func _apply_component_config() -> void:
 	if _component != null:
 		_component._resolve_or_create_trigger_area()
 
-	var trigger_settings := _get_effective_trigger_settings()
-	if trigger_settings != null:
-		trigger_settings.ignore_initial_overlap = true
-		_component.settings = trigger_settings
+	if typed.trigger_settings != null:
+		typed.trigger_settings.ignore_initial_overlap = true
+		_component.settings = typed.trigger_settings
 
 func refresh_volume_from_settings() -> void:
 	super.refresh_volume_from_settings()
@@ -159,47 +136,7 @@ func _apply_config_resource() -> void:
 	if trigger_settings != null:
 		settings = trigger_settings
 
-func _resolve_config() -> Resource:
-	if _config == null:
-		return null
-	if U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_DOOR_INTERACTION_CONFIG):
-		return _config
+func _resolve_config() -> RS_DoorInteractionConfig:
+	if _config != null and U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_DOOR_INTERACTION_CONFIG):
+		return _config as RS_DoorInteractionConfig
 	return null
-
-func _get_effective_door_id() -> StringName:
-	var typed := _resolve_config()
-	if typed != null:
-		return U_INTERACTION_CONFIG_RESOLVER.as_string_name(typed.get("door_id"), _door_id)
-	return _door_id
-
-func _get_effective_target_scene_id() -> StringName:
-	var typed := _resolve_config()
-	if typed != null:
-		return U_INTERACTION_CONFIG_RESOLVER.as_string_name(typed.get("target_scene_id"), _target_scene_id)
-	return _target_scene_id
-
-func _get_effective_target_spawn_point() -> StringName:
-	var typed := _resolve_config()
-	if typed != null:
-		return U_INTERACTION_CONFIG_RESOLVER.as_string_name(typed.get("target_spawn_point"), _target_spawn_point)
-	return _target_spawn_point
-
-func _get_effective_cooldown_duration() -> float:
-	var typed := _resolve_config()
-	if typed != null:
-		return max(U_INTERACTION_CONFIG_RESOLVER.as_float(typed.get("cooldown_duration"), cooldown_duration), 0.0)
-	return max(cooldown_duration, 0.0)
-
-func _get_effective_trigger_mode() -> int:
-	var typed := _resolve_config()
-	if typed != null:
-		return U_INTERACTION_CONFIG_RESOLVER.as_int(typed.get("trigger_mode"), door_trigger_mode)
-	return door_trigger_mode
-
-func _get_effective_trigger_settings() -> RS_SceneTriggerSettings:
-	var typed := _resolve_config()
-	if typed != null:
-		var trigger_settings := typed.get("trigger_settings") as RS_SceneTriggerSettings
-		if trigger_settings != null:
-			return trigger_settings
-	return settings

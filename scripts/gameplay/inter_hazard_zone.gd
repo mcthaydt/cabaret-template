@@ -13,32 +13,10 @@ var _config: Resource = null
 	get:
 		return _config
 	set(value):
+		if value != null and not U_INTERACTION_CONFIG_RESOLVER.script_matches(value, RS_HAZARD_INTERACTION_CONFIG):
+			return
 		_config = value
 		_apply_config_resource()
-		_apply_component_config()
-
-var _damage_amount: float = 25.0
-@export var damage_amount: float:
-	get:
-		return _damage_amount
-	set(value):
-		_damage_amount = value
-		_apply_component_config()
-
-var _is_instant_death: bool = false
-@export var is_instant_death: bool:
-	get:
-		return _is_instant_death
-	set(value):
-		_is_instant_death = value
-		_apply_component_config()
-
-var _damage_cooldown: float = 1.0
-@export var damage_cooldown: float:
-	get:
-		return _damage_cooldown
-	set(value):
-		_damage_cooldown = value
 		_apply_component_config()
 
 var _component: C_DamageZoneComponent = null
@@ -109,15 +87,17 @@ func _update_component_area_path() -> void:
 func _apply_component_config() -> void:
 	if _component == null or not is_instance_valid(_component):
 		return
+	var typed := _resolve_config()
+	if typed == null:
+		return
 
-	_component.damage_amount = _get_effective_damage_amount()
-	_component.is_instant_death = _get_effective_instant_death()
-	_component.damage_cooldown = _get_effective_damage_cooldown()
+	_component.damage_amount = typed.damage_amount
+	_component.is_instant_death = typed.is_instant_death
+	_component.damage_cooldown = max(typed.damage_cooldown, 0.0)
 
-	var trigger_settings := _get_effective_trigger_settings()
-	if trigger_settings != null:
-		trigger_settings.ignore_initial_overlap = false
-		var mask := int(trigger_settings.player_mask)
+	if typed.trigger_settings != null:
+		typed.trigger_settings.ignore_initial_overlap = false
+		var mask := int(typed.trigger_settings.player_mask)
 		if mask <= 0:
 			mask = 1
 		_component.collision_layer_mask = mask
@@ -137,35 +117,7 @@ func _apply_config_resource() -> void:
 	if trigger_settings != null:
 		settings = trigger_settings
 
-func _resolve_config() -> Resource:
-	if _config == null:
-		return null
-	if U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_HAZARD_INTERACTION_CONFIG):
-		return _config
+func _resolve_config() -> RS_HazardInteractionConfig:
+	if _config != null and U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_HAZARD_INTERACTION_CONFIG):
+		return _config as RS_HazardInteractionConfig
 	return null
-
-func _get_effective_damage_amount() -> float:
-	var typed := _resolve_config()
-	if typed != null:
-		return U_INTERACTION_CONFIG_RESOLVER.as_float(typed.get("damage_amount"), _damage_amount)
-	return _damage_amount
-
-func _get_effective_instant_death() -> bool:
-	var typed := _resolve_config()
-	if typed != null:
-		return U_INTERACTION_CONFIG_RESOLVER.as_bool(typed.get("is_instant_death"), _is_instant_death)
-	return _is_instant_death
-
-func _get_effective_damage_cooldown() -> float:
-	var typed := _resolve_config()
-	if typed != null:
-		return max(U_INTERACTION_CONFIG_RESOLVER.as_float(typed.get("damage_cooldown"), _damage_cooldown), 0.0)
-	return max(_damage_cooldown, 0.0)
-
-func _get_effective_trigger_settings() -> RS_SceneTriggerSettings:
-	var typed := _resolve_config()
-	if typed != null:
-		var trigger_settings := typed.get("trigger_settings") as RS_SceneTriggerSettings
-		if trigger_settings != null:
-			return trigger_settings
-	return _get_settings()

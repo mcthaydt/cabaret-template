@@ -9,12 +9,10 @@ const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/resources/int
 ## required area has been completed. Subscribes to the gameplay state
 ## and toggles visuals + Area3D monitoring accordingly.
 
-
-@export var required_area: String = "interior_house"
-
 var _store: I_StateStore = null
 var _has_applied_state: bool = false
 var _is_unlocked: bool = false
+var _cached_endgame_config: RS_EndgameGoalInteractionConfig = null
 
 func _ready() -> void:
 	super._ready()
@@ -23,8 +21,6 @@ func _ready() -> void:
 	_store = U_StateUtils.get_store(self)
 	if _store != null:
 		_store.slice_updated.connect(_on_slice_updated)
-
-	victory_type = C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE
 	_refresh_lock_state()
 
 func _exit_tree() -> void:
@@ -62,12 +58,13 @@ func _apply_lock_state(unlocked: bool) -> void:
 func _get_effective_required_area() -> String:
 	var typed := _resolve_endgame_config()
 	if typed != null:
-		return U_INTERACTION_CONFIG_RESOLVER.as_string(typed.get("required_area"), required_area)
-	return required_area
+		return typed.required_area
+	return ""
 
-func _resolve_endgame_config() -> Resource:
+func _resolve_endgame_config() -> RS_EndgameGoalInteractionConfig:
 	if config == null:
+		_cached_endgame_config = null
 		return null
-	if U_INTERACTION_CONFIG_RESOLVER.script_matches(config, RS_ENDGAME_GOAL_INTERACTION_CONFIG):
-		return config
-	return null
+	if config != null and U_INTERACTION_CONFIG_RESOLVER.script_matches(config, RS_ENDGAME_GOAL_INTERACTION_CONFIG):
+		_cached_endgame_config = config as RS_EndgameGoalInteractionConfig
+	return _cached_endgame_config

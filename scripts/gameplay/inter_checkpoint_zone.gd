@@ -13,24 +13,10 @@ var _config: Resource = null
 	get:
 		return _config
 	set(value):
+		if value != null and not U_INTERACTION_CONFIG_RESOLVER.script_matches(value, RS_CHECKPOINT_INTERACTION_CONFIG):
+			return
 		_config = value
 		_apply_config_resource()
-		_apply_component_config()
-
-var _checkpoint_id: StringName = StringName("")
-@export var checkpoint_id: StringName:
-	get:
-		return _checkpoint_id
-	set(value):
-		_checkpoint_id = value
-		_apply_component_config()
-
-var _spawn_point_id: StringName = StringName("")
-@export var spawn_point_id: StringName:
-	get:
-		return _spawn_point_id
-	set(value):
-		_spawn_point_id = value
 		_apply_component_config()
 
 var _component: C_CheckpointComponent = null
@@ -62,12 +48,13 @@ func _ensure_component(area: Area3D) -> void:
 	var provisional_path := _build_provisional_area_path(area)
 	if not provisional_path.is_empty():
 		instance.area_path = provisional_path
-	instance.checkpoint_id = _get_effective_checkpoint_id()
-	instance.spawn_point_id = _get_effective_spawn_point_id()
-	var trigger_settings := _get_effective_trigger_settings()
-	if trigger_settings != null:
-		trigger_settings.ignore_initial_overlap = false
-		instance.settings = trigger_settings
+	var typed := _resolve_config()
+	if typed != null:
+		instance.checkpoint_id = typed.checkpoint_id
+		instance.spawn_point_id = typed.spawn_point_id
+		if typed.trigger_settings != null:
+			typed.trigger_settings.ignore_initial_overlap = false
+			instance.settings = typed.trigger_settings
 
 	add_child(instance)
 	_component = instance
@@ -106,13 +93,15 @@ func _update_component_area_path() -> void:
 func _apply_component_config() -> void:
 	if _component == null or not is_instance_valid(_component):
 		return
+	var typed := _resolve_config()
+	if typed == null:
+		return
 
-	_component.checkpoint_id = _get_effective_checkpoint_id()
-	_component.spawn_point_id = _get_effective_spawn_point_id()
-	var trigger_settings := _get_effective_trigger_settings()
-	if trigger_settings != null:
-		trigger_settings.ignore_initial_overlap = false
-		_component.settings = trigger_settings
+	_component.checkpoint_id = typed.checkpoint_id
+	_component.spawn_point_id = typed.spawn_point_id
+	if typed.trigger_settings != null:
+		typed.trigger_settings.ignore_initial_overlap = false
+		_component.settings = typed.trigger_settings
 
 	_update_component_area_path()
 	_component.set_enabled(is_enabled())
@@ -135,29 +124,7 @@ func _apply_config_resource() -> void:
 	if trigger_settings != null:
 		settings = trigger_settings
 
-func _resolve_config() -> Resource:
-	if _config == null:
-		return null
-	if U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_CHECKPOINT_INTERACTION_CONFIG):
-		return _config
+func _resolve_config() -> RS_CheckpointInteractionConfig:
+	if _config != null and U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_CHECKPOINT_INTERACTION_CONFIG):
+		return _config as RS_CheckpointInteractionConfig
 	return null
-
-func _get_effective_checkpoint_id() -> StringName:
-	var typed := _resolve_config()
-	if typed != null:
-		return U_INTERACTION_CONFIG_RESOLVER.as_string_name(typed.get("checkpoint_id"), _checkpoint_id)
-	return _checkpoint_id
-
-func _get_effective_spawn_point_id() -> StringName:
-	var typed := _resolve_config()
-	if typed != null:
-		return U_INTERACTION_CONFIG_RESOLVER.as_string_name(typed.get("spawn_point_id"), _spawn_point_id)
-	return _spawn_point_id
-
-func _get_effective_trigger_settings() -> RS_SceneTriggerSettings:
-	var typed := _resolve_config()
-	if typed != null:
-		var trigger_settings := typed.get("trigger_settings") as RS_SceneTriggerSettings
-		if trigger_settings != null:
-			return trigger_settings
-	return settings

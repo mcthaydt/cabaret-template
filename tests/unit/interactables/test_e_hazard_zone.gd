@@ -20,9 +20,11 @@ func _pump_frames(count: int = 1) -> void:
 func _create_controller() -> Inter_HazardZone:
 	var controller := Inter_HazardZone.new()
 	controller.component_factory = Callable(self, "_create_damage_zone_stub")
-	controller.damage_amount = 42.0
-	controller.is_instant_death = true
-	controller.damage_cooldown = 2.5
+	var config := RS_HAZARD_INTERACTION_CONFIG.new()
+	config.damage_amount = 42.0
+	config.is_instant_death = true
+	config.damage_cooldown = 2.5
+	controller.config = config
 	add_child(controller)
 	autofree(controller)
 	await _pump_frames(3)
@@ -66,10 +68,10 @@ func test_config_resource_overrides_export_values() -> void:
 	assert_eq(component.damage_cooldown, 0.4)
 	assert_eq(component.collision_layer_mask, 4, "Hazard collision mask should follow config trigger settings.")
 
-func test_non_matching_config_uses_export_fallback() -> void:
+func test_non_matching_config_does_not_override_valid_config() -> void:
 	var controller := await _create_controller()
 	var component := _find_component(controller)
-	assert_not_null(component, "Hazard component should exist before fallback check.")
+	assert_not_null(component, "Hazard component should exist before config type mismatch check.")
 
 	var wrong_config := RS_CHECKPOINT_INTERACTION_CONFIG.new()
 	controller.config = wrong_config

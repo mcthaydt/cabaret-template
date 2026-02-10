@@ -12,11 +12,10 @@ var _config: Resource = null
 	get:
 		return _config
 	set(value):
+		if value != null and not U_INTERACTION_CONFIG_RESOLVER.script_matches(value, RS_SIGNPOST_INTERACTION_CONFIG):
+			return
 		_config = value
 		_apply_config_resource()
-
-@export var message: String = ""
-@export var repeatable: bool = true
 
 func _init() -> void:
 	trigger_mode = TriggerMode.INTERACT
@@ -30,8 +29,12 @@ func _ready() -> void:
 	trigger_mode = TriggerMode.INTERACT
 
 func _on_activated(player: Node3D) -> void:
-	var effective_message := _get_effective_message()
-	var effective_repeatable := _get_effective_repeatable()
+	var typed := _resolve_config()
+	if typed == null:
+		return
+
+	var effective_message := typed.message
+	var effective_repeatable := typed.repeatable
 	signpost_activated.emit(effective_message, self)
 	U_ECSEventBus.publish(SIGNPOST_MESSAGE_EVENT, {
 		"message": effective_message,
@@ -48,26 +51,9 @@ func _apply_config_resource() -> void:
 	if typed == null:
 		return
 
-	interact_prompt = U_INTERACTION_CONFIG_RESOLVER.as_string(
-		typed.get("interact_prompt"),
-		interact_prompt
-	)
+	interact_prompt = typed.interact_prompt
 
-func _resolve_config() -> Resource:
-	if _config == null:
-		return null
-	if U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_SIGNPOST_INTERACTION_CONFIG):
-		return _config
+func _resolve_config() -> RS_SignpostInteractionConfig:
+	if _config != null and U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_SIGNPOST_INTERACTION_CONFIG):
+		return _config as RS_SignpostInteractionConfig
 	return null
-
-func _get_effective_message() -> String:
-	var typed := _resolve_config()
-	if typed != null:
-		return U_INTERACTION_CONFIG_RESOLVER.as_string(typed.get("message"), message)
-	return message
-
-func _get_effective_repeatable() -> bool:
-	var typed := _resolve_config()
-	if typed != null:
-		return U_INTERACTION_CONFIG_RESOLVER.as_bool(typed.get("repeatable"), repeatable)
-	return repeatable

@@ -31,11 +31,9 @@ func after_each() -> void:
 	U_ServiceLocator.clear()
 	_store = null
 
-func _create_controller(required_area: String, config: Resource = null) -> Inter_EndgameGoalZone:
+func _create_controller(config: Resource) -> Inter_EndgameGoalZone:
 	var controller := Inter_EndgameGoalZone.new()
-	controller.required_area = required_area
-	if config != null:
-		controller.config = config
+	controller.config = config
 	add_child(controller)
 	autofree(controller)
 	await _pump_frames(4)
@@ -49,14 +47,14 @@ func _dispatch_mark_area_complete(area_id: String) -> void:
 func test_endgame_goal_prefers_required_area_from_endgame_config() -> void:
 	var config := RS_ENDGAME_GOAL_INTERACTION_CONFIG.new()
 	config.required_area = "area_cfg"
-	var controller := await _create_controller("area_export", config)
+	var controller := await _create_controller(config)
 
 	assert_false(controller.is_enabled(), "Goal should start locked when required area is incomplete.")
 	assert_false(controller.visible, "Locked goal should start hidden.")
 
 	_dispatch_mark_area_complete("area_export")
 	await _pump_frames(2)
-	assert_false(controller.is_enabled(), "Export area should not unlock when config area overrides it.")
+	assert_false(controller.is_enabled(), "Non-config areas should not unlock the goal.")
 	assert_false(controller.visible)
 
 	_dispatch_mark_area_complete("area_cfg")
@@ -64,11 +62,19 @@ func test_endgame_goal_prefers_required_area_from_endgame_config() -> void:
 	assert_true(controller.is_enabled(), "Config required area should unlock goal once completed.")
 	assert_true(controller.visible)
 
-func test_non_matching_config_uses_export_required_area_fallback() -> void:
-	var wrong_config := RS_VICTORY_INTERACTION_CONFIG.new()
-	var controller := await _create_controller("area_export", wrong_config)
+func test_non_matching_config_does_not_override_valid_endgame_config() -> void:
+	var config := RS_ENDGAME_GOAL_INTERACTION_CONFIG.new()
+	config.required_area = "area_cfg"
+	var controller := await _create_controller(config)
 
-	_dispatch_mark_area_complete("area_export")
+	var wrong_config := RS_VICTORY_INTERACTION_CONFIG.new()
+	controller.config = wrong_config
+	await _pump_frames(1)
+
+	var required_area := String(controller.call("_get_effective_required_area"))
+	assert_eq(required_area, "area_cfg", "Incompatible config assignment should not replace endgame required_area.")
+
+	_dispatch_mark_area_complete("area_cfg")
 	await _pump_frames(2)
-	assert_true(controller.is_enabled(), "Controller should use export required_area when config type is incompatible.")
+	assert_true(controller.is_enabled(), "Original endgame config should continue to control unlock gating.")
 	assert_true(controller.visible)

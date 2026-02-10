@@ -9,7 +9,11 @@ func _pump_frames(count: int = 1) -> void:
 
 func _create_signpost() -> Inter_Signpost:
 	var signpost := Inter_Signpost.new()
-	signpost.message = "Hello there"
+	var config := RS_SIGNPOST_INTERACTION_CONFIG.new()
+	config.message = "Hello there"
+	config.repeatable = true
+	config.interact_prompt = "Read"
+	signpost.config = config
 	add_child(signpost)
 	autofree(signpost)
 	await _pump_frames(2)
@@ -54,7 +58,12 @@ func test_emits_signal_on_activation() -> void:
 
 func test_non_repeatable_locks_after_activation() -> void:
 	var signpost := await _create_signpost()
-	signpost.repeatable = false
+	var config := RS_SIGNPOST_INTERACTION_CONFIG.new()
+	config.message = "Hello there"
+	config.repeatable = false
+	config.interact_prompt = "Read"
+	signpost.config = config
+	await _pump_frames(1)
 	var dummy := _make_dummy_player()
 	signpost._on_activated(dummy)
 	assert_true(signpost.is_locked(), "Non-repeatable signpost should lock after first activation.")
@@ -97,13 +106,13 @@ func test_config_resource_overrides_message_repeatable_and_prompt() -> void:
 	if unsubscribe != null and unsubscribe.is_valid():
 		unsubscribe.call()
 
-func test_non_matching_config_uses_export_fallback() -> void:
+func test_non_matching_config_does_not_override_valid_config() -> void:
 	var signpost := await _create_signpost()
 	var wrong_config := RS_DOOR_INTERACTION_CONFIG.new()
 	signpost.config = wrong_config
 	await _pump_frames(1)
 
-	assert_eq(signpost.interact_prompt, "Read", "Prompt should remain at export/default when config type is incompatible.")
+	assert_eq(signpost.interact_prompt, "Read", "Prompt should remain from the last valid signpost config.")
 
 	var received := {
 		"message": ""
@@ -114,7 +123,7 @@ func test_non_matching_config_uses_export_fallback() -> void:
 
 	var dummy := _make_dummy_player()
 	signpost._on_activated(dummy)
-	assert_eq(received.message, "Hello there", "Fallback path should keep export-authored message.")
+	assert_eq(received.message, "Hello there", "Invalid config types should not replace valid signpost config values.")
 
 func _make_dummy_player() -> Node3D:
 	var node := Node3D.new()
