@@ -42,7 +42,7 @@ func _await_seconds(seconds: float) -> void:
 func test_feedback_channels_have_independent_visibility_state() -> void:
 	var checkpoint_toast_container: Control = _hud.get_node("MarginContainer/ToastContainer")
 	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
-	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
+	var signpost_panel_container: Control = _hud.get_node("SignpostPanelContainer")
 
 	assert_false(checkpoint_toast_container.visible, "Checkpoint toast channel should start hidden")
 	assert_false(autosave_spinner_container.visible, "Autosave spinner channel should start hidden")
@@ -71,8 +71,8 @@ func test_feedback_channels_have_independent_visibility_state() -> void:
 func test_phase4_routing_moves_signpost_to_dedicated_panel_and_keeps_autosave_spinner() -> void:
 	var checkpoint_toast_container: Control = _hud.get_node("MarginContainer/ToastContainer")
 	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
-	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
-	var signpost_message_label: Label = _hud.get_node("MarginContainer/SignpostPanelContainer/PanelContainer/MarginContainer/SignpostMessage")
+	var signpost_panel_container: Control = _hud.get_node("SignpostPanelContainer")
+	var signpost_message_label: Label = _hud.get_node("SignpostPanelContainer/PanelContainer/MarginContainer/SignpostMessage")
 
 	U_ECSEventBus.publish(StringName("signpost_message"), {"message": "Signpost text", "message_duration_sec": 0.2})
 	await _await_frames(1)
@@ -88,7 +88,7 @@ func test_phase4_routing_moves_signpost_to_dedicated_panel_and_keeps_autosave_sp
 	assert_false(signpost_panel_container.visible, "Autosave should not show signpost panel channel in Phase 2")
 
 func test_signpost_panel_auto_hides_by_payload_duration_and_restores_prompt() -> void:
-	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
+	var signpost_panel_container: Control = _hud.get_node("SignpostPanelContainer")
 	var prompt: Control = _hud.get_node("MarginContainer/InteractPrompt")
 
 	U_ECSEventBus.publish(StringName("interact_prompt_show"), {
@@ -112,7 +112,7 @@ func test_signpost_panel_auto_hides_by_payload_duration_and_restores_prompt() ->
 	assert_true(prompt.visible, "Prompt should restore after signpost panel auto-hide completes")
 
 func test_signpost_panel_uses_default_duration_when_payload_duration_missing() -> void:
-	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
+	var signpost_panel_container: Control = _hud.get_node("SignpostPanelContainer")
 
 	U_ECSEventBus.publish(StringName("signpost_message"), {
 		"message": "Default duration signpost"
@@ -124,7 +124,7 @@ func test_signpost_panel_uses_default_duration_when_payload_duration_missing() -
 	assert_true(signpost_panel_container.visible, "Signpost panel should remain visible before 3.0s default duration elapses")
 
 func test_signpost_panel_path_uses_interact_blocker_but_autosave_spinner_stays_non_blocking() -> void:
-	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
+	var signpost_panel_container: Control = _hud.get_node("SignpostPanelContainer")
 	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
 
 	assert_false(U_InteractBlocker.is_blocked(), "Interact blocker should start unblocked")
@@ -142,10 +142,39 @@ func test_signpost_panel_path_uses_interact_blocker_but_autosave_spinner_stays_n
 	assert_true(autosave_spinner_container.visible, "Autosave spinner should show")
 	assert_false(U_InteractBlocker.is_blocked(), "Autosave spinner should not block interaction")
 
+func test_signpost_panel_layout_uses_bottom_dialog_footprint() -> void:
+	var signpost_panel_container: Control = _hud.get_node("SignpostPanelContainer")
+	U_ECSEventBus.publish(StringName("signpost_message"), {
+		"message": "Dialogue-style panel layout check",
+		"message_duration_sec": 0.2
+	})
+	await _await_frames(1)
+	assert_true(signpost_panel_container.visible, "Signpost panel should be visible for layout validation")
+
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var panel_bottom_y: float = signpost_panel_container.global_position.y + signpost_panel_container.size.y
+
+	assert_true(
+		signpost_panel_container.size.x <= viewport_size.x * 0.9,
+		"Signpost panel should not consume nearly full-screen width"
+	)
+	assert_true(
+		signpost_panel_container.size.y <= viewport_size.y * 0.35,
+		"Signpost panel should keep dialogue-box height, not full-screen height"
+	)
+	assert_true(
+		panel_bottom_y <= viewport_size.y - 8.0,
+		"Signpost panel should stay within the viewport bottom bounds"
+	)
+	assert_true(
+		signpost_panel_container.global_position.y >= viewport_size.y * 0.45,
+		"Signpost panel should render in lower screen region like a dialogue box"
+	)
+
 func test_autosave_spinner_lifecycle_hides_on_completion_and_failure() -> void:
 	var checkpoint_toast_container: Control = _hud.get_node("MarginContainer/ToastContainer")
 	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
-	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
+	var signpost_panel_container: Control = _hud.get_node("SignpostPanelContainer")
 
 	U_ECSEventBus.publish(StringName("save_started"), {"slot_id": StringName("autosave"), "is_autosave": true})
 	await _await_frames(1)
@@ -231,7 +260,7 @@ func test_manual_save_events_do_not_toggle_autosave_spinner() -> void:
 func test_checkpoint_event_uses_checkpoint_channel_only() -> void:
 	var checkpoint_toast_container: Control = _hud.get_node("MarginContainer/ToastContainer")
 	var autosave_spinner_container: Control = _hud.get_node("MarginContainer/AutosaveSpinnerContainer")
-	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
+	var signpost_panel_container: Control = _hud.get_node("SignpostPanelContainer")
 	var checkpoint_toast_label: Label = _hud.get_node("MarginContainer/ToastContainer/PanelContainer/MarginContainer/CheckpointToast")
 
 	U_ECSEventBus.publish(StringName("checkpoint_activated"), {
@@ -281,7 +310,7 @@ func test_checkpoint_toast_preserves_prompt_hide_and_restore_timing() -> void:
 
 func test_signpost_panel_defers_prompt_show_until_panel_hides() -> void:
 	var prompt: Control = _hud.get_node("MarginContainer/InteractPrompt")
-	var signpost_panel_container: Control = _hud.get_node("MarginContainer/SignpostPanelContainer")
+	var signpost_panel_container: Control = _hud.get_node("SignpostPanelContainer")
 
 	U_ECSEventBus.publish(StringName("signpost_message"), {
 		"message": "Read this",

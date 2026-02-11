@@ -63,7 +63,7 @@ func test_hud_prompt_and_signpost_pause_behavior() -> void:
 	# Signpost messages should be suppressed while paused
 	U_ECSEventBus.publish(StringName("signpost_message"), {"message": "Hello", "message_duration_sec": 0.2})
 	await _await_frames(1)
-	assert_false(hud.get_node("MarginContainer/SignpostPanelContainer").visible, "Signpost panel should not show while paused")
+	assert_false(hud.get_node("SignpostPanelContainer").visible, "Signpost panel should not show while paused")
 
 	# Unpause: pop overlay
 	_store.dispatch(U_NavigationActions.close_pause())
@@ -73,5 +73,5 @@ func test_hud_prompt_and_signpost_pause_behavior() -> void:
 	# Publish signpost message now; panel should show and prompt should hide to avoid overlap
 	U_ECSEventBus.publish(StringName("signpost_message"), {"message": "Hello after pause", "message_duration_sec": 0.2})
 	await _await_frames(1)
-	assert_true(hud.get_node("MarginContainer/SignpostPanelContainer").visible, "Signpost panel should show when not paused")
+	assert_true(hud.get_node("SignpostPanelContainer").visible, "Signpost panel should show when not paused")
 	assert_false(hud.get_node("MarginContainer/InteractPrompt").visible, "Prompt should hide while signpost panel is visible")
