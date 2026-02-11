@@ -6,6 +6,5 @@
 [resource]
 script = ExtResource("1")
 message = "Placeholder signpost message"
-message_duration_sec = 3.0
 interaction_id = &"signpost_default"
 trigger_settings = ExtResource("2")

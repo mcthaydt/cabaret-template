@@ -7,6 +7,7 @@ const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/resources/interacti
 const RS_VICTORY_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_victory_interaction_config.gd")
 const RS_SIGNPOST_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_signpost_interaction_config.gd")
 const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_endgame_goal_interaction_config.gd")
+const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
 const DOOR_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_exterior_to_bar.tres"
 const DOOR_ALLEYWAY_TO_BAR_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_alleyway_to_bar.tres"
 const DOOR_BAR_TO_ALLEYWAY_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_bar_to_alleyway.tres"
@@ -119,6 +120,29 @@ func test_reference_door_and_signpost_configs_enable_world_hint_icon() -> void:
 			"Bar tutorial signpost config should opt in to world hint.")
 		assert_not_null(signpost_bar_config.get("interaction_hint_icon"),
 			"Bar tutorial signpost config should provide a world hint icon texture.")
+
+func test_bar_alleyway_door_configs_use_wide_trigger_radius() -> void:
+	var door_config_paths := [
+		DOOR_ALLEYWAY_TO_BAR_HINT_CONFIG_PATH,
+		DOOR_BAR_TO_ALLEYWAY_HINT_CONFIG_PATH,
+	]
+
+	for path_variant in door_config_paths:
+		var path := String(path_variant)
+		var config := load(path) as Resource
+		assert_not_null(config, "Door config should load: %s" % path)
+		if config == null:
+			continue
+
+		var trigger_settings := config.get("trigger_settings") as RS_SceneTriggerSettings
+		assert_not_null(trigger_settings, "Door config should define trigger settings: %s" % path)
+		if trigger_settings == null:
+			continue
+
+		assert_eq(trigger_settings.shape_type, RS_SCENE_TRIGGER_SETTINGS.ShapeType.CYLINDER,
+			"Door trigger settings should remain cylinder-based for cross-scene alignment: %s" % path)
+		assert_true(trigger_settings.cyl_radius >= 1.5,
+			"Door trigger radius should be wide enough for reliable in-range interact cues: %s" % path)
 
 func _collect_interaction_controllers(node: Node, controllers: Array[Node]) -> void:
 	if node == null:

@@ -10,8 +10,9 @@ enum TriggerMode {
 const PROMPT_SHOW_EVENT := StringName("interact_prompt_show")
 const PROMPT_HIDE_EVENT := StringName("interact_prompt_hide")
 const INTERACTION_HINT_NODE_NAME := "SO_InteractionHintIcon"
-const INTERACTION_HINT_DEFAULT_OFFSET := Vector3(0.0, 1.8, 0.0)
+const INTERACTION_HINT_DEFAULT_OFFSET := Vector3.ZERO
 const INTERACTION_HINT_MIN_SCALE := 0.1
+const INTERACTION_HINT_BILLBOARD_MODE := BaseMaterial3D.BILLBOARD_ENABLED
 
 var _trigger_mode: TriggerMode = TriggerMode.AUTO
 @export var trigger_mode: TriggerMode:
@@ -165,8 +166,6 @@ func _should_show_interaction_hint() -> bool:
 		return false
 	if not is_enabled():
 		return false
-	if not is_player_in_zone():
-		return false
 	if _is_transition_blocked():
 		return false
 	if U_InteractBlocker.is_blocked():
@@ -192,9 +191,11 @@ func _hide_interaction_hint() -> void:
 
 func _ensure_interaction_hint_sprite_reference() -> Sprite3D:
 	if _interaction_hint_icon_sprite != null and is_instance_valid(_interaction_hint_icon_sprite):
+		_apply_interaction_hint_render_defaults(_interaction_hint_icon_sprite)
 		return _interaction_hint_icon_sprite
 	var existing := get_node_or_null(INTERACTION_HINT_NODE_NAME) as Sprite3D
 	if existing != null:
+		_apply_interaction_hint_render_defaults(existing)
 		_interaction_hint_icon_sprite = existing
 	return _interaction_hint_icon_sprite
 
@@ -207,6 +208,7 @@ func _ensure_interaction_hint_sprite() -> Sprite3D:
 	sprite.name = INTERACTION_HINT_NODE_NAME
 	sprite.visible = false
 	add_child(sprite)
+	_apply_interaction_hint_render_defaults(sprite)
 	_interaction_hint_icon_sprite = sprite
 	return sprite
 
@@ -218,6 +220,13 @@ func _apply_interaction_hint_transform() -> void:
 	sprite.position = interaction_hint_offset
 	var uniform_scale := maxf(interaction_hint_scale, INTERACTION_HINT_MIN_SCALE)
 	sprite.scale = Vector3(uniform_scale, uniform_scale, uniform_scale)
+
+func _apply_interaction_hint_render_defaults(sprite: Sprite3D) -> void:
+	if sprite == null:
+		return
+	sprite.billboard = INTERACTION_HINT_BILLBOARD_MODE
+	sprite.double_sided = true
+	sprite.shaded = false
 
 func _apply_interaction_hint_config(config: Resource) -> void:
 	if config == null:

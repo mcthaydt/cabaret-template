@@ -49,7 +49,7 @@ data = PackedVector3Array(-0.39499998, -0.1434, -0.1962, -0.3351, -0.1004, -0.19
 
 [node name="NewExterior" unique_id=1437797737 instance=ExtResource("1_k2sk4")]
 
-[node name="ExteriorScene" parent="." index="0" unique_id=173551650]
+[node name="ExteriorScene" parent="." index="0" unique_id=1087731456]
 mesh = SubResource("ArrayMesh_3lqhf")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." index="1" unique_id=626446286]

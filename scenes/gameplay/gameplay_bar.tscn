@@ -287,7 +287,7 @@ transform = Transform3D(0.99999994, 0, 0, 0, 0.8660254, 0.49999997, 0, -0.5, 0.8
 fov = 28.8
 
 [node name="E_DoorTrigger" type="Node3D" parent="Entities" unique_id=616346955]
-transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -7.4135427, 1.4971395, -5.7386756)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -6.396285, 1.4971395, -5.0640097)
 script = ExtResource("30_door_controller")
 config = ExtResource("60_door_config")
 visual_paths = Array[NodePath]([NodePath("DoorVisual")])
@@ -295,13 +295,13 @@ entity_id = &"door_to_exterior"
 tags = Array[StringName]([&"trigger", &"door"])
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger" unique_id=863395501]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.57354736, -0.63254166)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75172377, -0.57354736, 0.006447315)
 radius = 0.7910156
 height = 2.0715332
 material = ExtResource("54_fade_door")
 
 [node name="E_TutorialSign_Bar" type="Node3D" parent="Entities" unique_id=2050868452]
-transform = Transform3D(0.6972604, 0, 0.716818, 0, 1, 0, -0.716818, 0, 0.6972604, -7.06017, 1.1548032, -3.1021347)
+transform = Transform3D(0.6972604, 0, 0.716818, 0, 1, 0, -0.716818, 0, 0.6972604, -1.4047534, 2.4465442, -4.7643566)
 script = ExtResource("45_signpost_controller")
 config = ExtResource("64_signpost_config")
 visual_paths = Array[NodePath]([NodePath(""), NodePath("")])

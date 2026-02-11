@@ -2,15 +2,14 @@
 
 [ext_resource type="Script" uid="uid://caa62alavkesl" path="res://scripts/resources/interactions/rs_signpost_interaction_config.gd" id="1"]
 [ext_resource type="Resource" uid="uid://b2ehbrq1l8yro" path="res://resources/triggers/cfg_signpost_cylinder.tres" id="2"]
-[ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://assets/textures/tex_icon.svg" id="3"]
+[ext_resource type="Texture2D" path="res://assets/textures/tex_interaction_v.svg" id="3"]
 
 [resource]
 script = ExtResource("1")
 message = "Welcome to Cabaret Template!"
-message_duration_sec = 3.0
 interaction_id = &"signpost_exterior_tutorial"
 trigger_settings = ExtResource("2")
 interaction_hint_enabled = true
 interaction_hint_icon = ExtResource("3")
-interaction_hint_offset = Vector3(0, 1.7, 0)
+interaction_hint_offset = Vector3(0, 0, 0)
 interaction_hint_scale = 0.8
