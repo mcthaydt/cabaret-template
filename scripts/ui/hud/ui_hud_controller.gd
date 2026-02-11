@@ -18,8 +18,9 @@ const SIGNPOST_DEFAULT_DURATION_SEC: float = 3.0
 const SIGNPOST_MIN_DURATION_SEC: float = 0.05
 const SIGNPOST_PANEL_FADE_IN_SEC: float = 0.14
 const SIGNPOST_PANEL_FADE_OUT_SEC: float = 0.18
+const SIGNPOST_BLOCKER_COOLDOWN_SEC: float = 0.15
 const AUTOSAVE_SPINNER_ROTATION_SPEED_DEG: float = 240.0
-const AUTOSAVE_SPINNER_MIN_VISIBLE_SEC: float = 0.35
+const AUTOSAVE_SPINNER_MIN_VISIBLE_SEC: float = 0.0
 
 var _store: I_StateStore = null
 var _player_entity_id: String = "player"
@@ -294,6 +295,8 @@ func _show_autosave_spinner() -> void:
 		return
 	_hide_checkpoint_toast_immediate()
 	_hide_signpost_panel(true)
+	# Autosave feedback should never block interact input.
+	U_InteractBlocker.force_unblock()
 	autosave_spinner_container.visible = true
 	if autosave_spinner_icon != null:
 		autosave_spinner_icon.rotation_degrees = 0.0
@@ -406,7 +409,7 @@ func _on_signpost_panel_finished() -> void:
 	_signpost_panel_active = false
 	if not was_active:
 		return
-	U_InteractBlocker.unblock_with_cooldown(0.3)
+	U_InteractBlocker.unblock_with_cooldown(SIGNPOST_BLOCKER_COOLDOWN_SEC)
 	if _store != null and not _is_paused(_store.get_state()) and _active_prompt_id != 0 and interact_prompt != null:
 		interact_prompt.show_prompt(_last_prompt_action, _last_prompt_text)
 
