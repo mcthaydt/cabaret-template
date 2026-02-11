@@ -16,7 +16,11 @@ class_name UI_HudController
 
 const SIGNPOST_DEFAULT_DURATION_SEC: float = 3.0
 const SIGNPOST_MIN_DURATION_SEC: float = 0.05
+const SIGNPOST_PANEL_FADE_IN_SEC: float = 0.14
+const SIGNPOST_PANEL_FADE_OUT_SEC: float = 0.18
+const SIGNPOST_PANEL_SLIDE_DISTANCE_PX: float = 18.0
 const AUTOSAVE_SPINNER_ROTATION_SPEED_DEG: float = 240.0
+const AUTOSAVE_SPINNER_MIN_VISIBLE_SEC: float = 0.35
 
 var _store: I_StateStore = null
 var _player_entity_id: String = "player"
@@ -32,7 +36,11 @@ var _last_prompt_action: StringName = StringName("interact")
 var _last_prompt_text: String = ""
 var _toast_active: bool = false
 var _autosave_spinner_active: bool = false
+var _autosave_spinner_visible_since_sec: float = -1.0
+var _autosave_spinner_hide_request_id: int = 0
 var _signpost_panel_active: bool = false
+var _signpost_panel_base_position: Vector2 = Vector2.ZERO
+var _has_signpost_panel_base_position: bool = false
 var _checkpoint_toast_tween: Tween = null
 var _signpost_panel_tween: Tween = null
 var _health_bar_bg_style: StyleBoxFlat = null
@@ -78,6 +86,7 @@ func _complete_initialization() -> void:
 	_unsubscribe_save_completed = U_ECSEventBus.subscribe(StringName("save_completed"), _on_save_completed)
 	_unsubscribe_save_failed = U_ECSEventBus.subscribe(StringName("save_failed"), _on_save_failed)
 
+	_cache_signpost_panel_base_position()
 	_update_display(_store.get_state())
 
 func _process(delta: float) -> void:
@@ -294,14 +303,46 @@ func _show_autosave_spinner() -> void:
 	if autosave_spinner_icon != null:
 		autosave_spinner_icon.rotation_degrees = 0.0
 	_autosave_spinner_active = true
+	_autosave_spinner_visible_since_sec = Time.get_ticks_msec() / 1000.0
+	_autosave_spinner_hide_request_id += 1
 
 func _hide_autosave_spinner() -> void:
+	_autosave_spinner_hide_request_id += 1
 	if autosave_spinner_container == null:
 		return
 	autosave_spinner_container.visible = false
 	if autosave_spinner_icon != null:
 		autosave_spinner_icon.rotation_degrees = 0.0
 	_autosave_spinner_active = false
+	_autosave_spinner_visible_since_sec = -1.0
+
+func _request_hide_autosave_spinner() -> void:
+	if not _autosave_spinner_active:
+		return
+
+	var now_sec: float = Time.get_ticks_msec() / 1000.0
+	var elapsed_sec: float = 0.0
+	if _autosave_spinner_visible_since_sec >= 0.0:
+		elapsed_sec = maxf(now_sec - _autosave_spinner_visible_since_sec, 0.0)
+
+	if elapsed_sec >= AUTOSAVE_SPINNER_MIN_VISIBLE_SEC:
+		_hide_autosave_spinner()
+		return
+
+	var tree := get_tree()
+	if tree == null:
+		_hide_autosave_spinner()
+		return
+
+	var remaining_sec: float = maxf(AUTOSAVE_SPINNER_MIN_VISIBLE_SEC - elapsed_sec, 0.0)
+	_autosave_spinner_hide_request_id += 1
+	var request_id: int = _autosave_spinner_hide_request_id
+	var timer := tree.create_timer(remaining_sec, true, false, true)
+	timer.timeout.connect(func() -> void:
+		if request_id != _autosave_spinner_hide_request_id:
+			return
+		_hide_autosave_spinner()
+	)
 
 func _update_autosave_spinner_animation(delta: float) -> void:
 	if not _autosave_spinner_active:
@@ -322,8 +363,12 @@ func _show_signpost_panel(text: String, duration_sec: float = SIGNPOST_DEFAULT_D
 	_hide_checkpoint_toast_immediate()
 	_hide_autosave_spinner()
 	_hide_signpost_panel(false)
+	_cache_signpost_panel_base_position()
 	if signpost_message_label != null:
 		signpost_message_label.text = text
+	if _has_signpost_panel_base_position:
+		signpost_panel_container.position = _signpost_panel_base_position + Vector2(0.0, SIGNPOST_PANEL_SLIDE_DISTANCE_PX)
+	signpost_panel_container.modulate.a = 0.0
 	signpost_panel_container.visible = true
 	_signpost_panel_active = true
 	U_InteractBlocker.block()
@@ -332,7 +377,26 @@ func _show_signpost_panel(text: String, duration_sec: float = SIGNPOST_DEFAULT_D
 
 	var effective_duration := maxf(duration_sec, SIGNPOST_MIN_DURATION_SEC)
 	_signpost_panel_tween = create_tween()
+	_signpost_panel_tween.set_trans(Tween.TRANS_CUBIC)
+	_signpost_panel_tween.set_ease(Tween.EASE_OUT)
+	_signpost_panel_tween.tween_property(signpost_panel_container, "modulate:a", 1.0, SIGNPOST_PANEL_FADE_IN_SEC).from(0.0)
+	if _has_signpost_panel_base_position:
+		_signpost_panel_tween.parallel().tween_property(
+			signpost_panel_container,
+			"position:y",
+			_signpost_panel_base_position.y,
+			SIGNPOST_PANEL_FADE_IN_SEC
+		)
 	_signpost_panel_tween.tween_interval(effective_duration)
+	_signpost_panel_tween.set_ease(Tween.EASE_IN)
+	_signpost_panel_tween.tween_property(signpost_panel_container, "modulate:a", 0.0, SIGNPOST_PANEL_FADE_OUT_SEC)
+	if _has_signpost_panel_base_position:
+		_signpost_panel_tween.parallel().tween_property(
+			signpost_panel_container,
+			"position:y",
+			_signpost_panel_base_position.y + SIGNPOST_PANEL_SLIDE_DISTANCE_PX,
+			SIGNPOST_PANEL_FADE_OUT_SEC
+		)
 	_signpost_panel_tween.finished.connect(_on_signpost_panel_finished)
 
 func _hide_signpost_panel(restore_prompt: bool = false) -> void:
@@ -341,6 +405,9 @@ func _hide_signpost_panel(restore_prompt: bool = false) -> void:
 	if signpost_panel_container == null:
 		return
 	signpost_panel_container.visible = false
+	signpost_panel_container.modulate.a = 1.0
+	if _has_signpost_panel_base_position:
+		signpost_panel_container.position = _signpost_panel_base_position
 	_signpost_panel_active = false
 	if was_active:
 		U_InteractBlocker.force_unblock()
@@ -358,6 +425,9 @@ func _on_signpost_panel_finished() -> void:
 	_signpost_panel_tween = null
 	if signpost_panel_container != null:
 		signpost_panel_container.visible = false
+		signpost_panel_container.modulate.a = 1.0
+		if _has_signpost_panel_base_position:
+			signpost_panel_container.position = _signpost_panel_base_position
 	var was_active: bool = _signpost_panel_active
 	_signpost_panel_active = false
 	if not was_active:
@@ -450,6 +520,14 @@ func _resolve_signpost_duration(payload: Dictionary) -> float:
 		return SIGNPOST_DEFAULT_DURATION_SEC
 	return duration_sec
 
+func _cache_signpost_panel_base_position() -> void:
+	if _has_signpost_panel_base_position:
+		return
+	if signpost_panel_container == null:
+		return
+	_signpost_panel_base_position = signpost_panel_container.position
+	_has_signpost_panel_base_position = true
+
 ## Phase 11: Save event handlers for autosave feedback
 
 func _on_save_started(payload: Variant) -> void:
@@ -478,7 +556,7 @@ func _on_save_completed(payload: Variant) -> void:
 	var is_autosave: bool = data.get("is_autosave", false)
 
 	if is_autosave:
-		_hide_autosave_spinner()
+		_request_hide_autosave_spinner()
 
 func _on_save_failed(payload: Variant) -> void:
 	# Hide autosave spinner on autosave failures.
@@ -492,7 +570,7 @@ func _on_save_failed(payload: Variant) -> void:
 	var is_autosave: bool = data.get("is_autosave", false)
 
 	if is_autosave:
-		_hide_autosave_spinner()
+		_request_hide_autosave_spinner()
 
 func _format_interact_prompt(action: StringName, prompt_text: String) -> String:
 	var action_label := _get_primary_input_label(action)

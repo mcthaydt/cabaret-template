@@ -24,6 +24,20 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_signpost_panel"]
+bg_color = Color(0.0431373, 0.0431373, 0.054902, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.894118, 0.737255, 0.352941, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_autosave_panel"]
+
 [node name="HUD" type="CanvasLayer" unique_id=510794979]
 layer = 100
 script = ExtResource("1_hud")
@@ -102,31 +116,42 @@ vertical_alignment = 1
 [node name="AutosaveSpinnerContainer" type="Control" parent="MarginContainer"]
 visible = false
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 5
 anchor_left = 0.5
+anchor_top = 0.0
 anchor_right = 0.5
-offset_left = -90.0
-offset_top = 8.0
-offset_right = 90.0
-offset_bottom = 44.0
+anchor_bottom = 0.0
+offset_left = -24.0
+offset_top = 12.0
+offset_right = 24.0
+offset_bottom = 60.0
 grow_horizontal = 2
 mouse_filter = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="MarginContainer/AutosaveSpinnerContainer"]
-layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 1.0
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+anchor_bottom = 0.0
+offset_left = -9.0
+offset_top = 8.0
+offset_right = 9.0
+offset_bottom = 26.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_autosave_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/AutosaveSpinnerContainer/PanelContainer"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 6
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 6
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 0
 alignment = 1
 
 [node name="SpinnerIcon" type="TextureRect" parent="MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer"]
@@ -138,6 +163,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="SpinnerLabel" type="Label" parent="MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer"]
+visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Saving..."
@@ -152,10 +178,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -240.0
-offset_top = -120.0
-offset_right = 240.0
-offset_bottom = -40.0
+offset_left = -360.0
+offset_top = -178.0
+offset_right = 360.0
+offset_bottom = -32.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
@@ -164,19 +190,20 @@ mouse_filter = 2
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_signpost_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/SignpostPanelContainer/PanelContainer"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
 
 [node name="SignpostMessage" type="Label" parent="MarginContainer/SignpostPanelContainer/PanelContainer/MarginContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 text = "Signpost Message"
-horizontal_alignment = 1
+horizontal_alignment = 0
 vertical_alignment = 1
 autowrap_mode = 3
 

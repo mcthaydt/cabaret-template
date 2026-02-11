@@ -8,7 +8,10 @@ const RS_VICTORY_INTERACTION_CONFIG := preload("res://scripts/resources/interact
 const RS_SIGNPOST_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_signpost_interaction_config.gd")
 const RS_ENDGAME_GOAL_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_endgame_goal_interaction_config.gd")
 const DOOR_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_exterior_to_bar.tres"
+const DOOR_ALLEYWAY_TO_BAR_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_alleyway_to_bar.tres"
+const DOOR_BAR_TO_ALLEYWAY_HINT_CONFIG_PATH := "res://resources/interactions/doors/cfg_door_bar_to_alleyway.tres"
 const SIGNPOST_HINT_CONFIG_PATH := "res://resources/interactions/signposts/cfg_signpost_exterior_tutorial.tres"
+const SIGNPOST_BAR_HINT_CONFIG_PATH := "res://resources/interactions/signposts/cfg_signpost_bar_tutorial.tres"
 
 const SCENE_PATHS := [
 	"res://scenes/gameplay/gameplay_exterior.tscn",
@@ -92,6 +95,30 @@ func test_reference_door_and_signpost_configs_enable_world_hint_icon() -> void:
 			"Reference signpost config should opt in to world hint.")
 		assert_not_null(signpost_config.get("interaction_hint_icon"),
 			"Reference signpost config should provide a world hint icon texture.")
+
+	var alleyway_to_bar_config := load(DOOR_ALLEYWAY_TO_BAR_HINT_CONFIG_PATH) as Resource
+	assert_not_null(alleyway_to_bar_config, "Door hint config should load: %s" % DOOR_ALLEYWAY_TO_BAR_HINT_CONFIG_PATH)
+	if alleyway_to_bar_config != null:
+		assert_true(alleyway_to_bar_config.get("interaction_hint_enabled"),
+			"Alleyway->bar door config should opt in to world hint.")
+		assert_not_null(alleyway_to_bar_config.get("interaction_hint_icon"),
+			"Alleyway->bar door config should provide a world hint icon texture.")
+
+	var bar_to_alleyway_config := load(DOOR_BAR_TO_ALLEYWAY_HINT_CONFIG_PATH) as Resource
+	assert_not_null(bar_to_alleyway_config, "Door hint config should load: %s" % DOOR_BAR_TO_ALLEYWAY_HINT_CONFIG_PATH)
+	if bar_to_alleyway_config != null:
+		assert_true(bar_to_alleyway_config.get("interaction_hint_enabled"),
+			"Bar->alleyway door config should opt in to world hint.")
+		assert_not_null(bar_to_alleyway_config.get("interaction_hint_icon"),
+			"Bar->alleyway door config should provide a world hint icon texture.")
+
+	var signpost_bar_config := load(SIGNPOST_BAR_HINT_CONFIG_PATH) as Resource
+	assert_not_null(signpost_bar_config, "Signpost hint config should load: %s" % SIGNPOST_BAR_HINT_CONFIG_PATH)
+	if signpost_bar_config != null:
+		assert_true(signpost_bar_config.get("interaction_hint_enabled"),
+			"Bar tutorial signpost config should opt in to world hint.")
+		assert_not_null(signpost_bar_config.get("interaction_hint_icon"),
+			"Bar tutorial signpost config should provide a world hint icon texture.")
 
 func _collect_interaction_controllers(node: Node, controllers: Array[Node]) -> void:
 	if node == null:
