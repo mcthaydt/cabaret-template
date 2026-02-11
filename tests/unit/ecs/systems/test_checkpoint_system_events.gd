@@ -11,6 +11,7 @@ func test_checkpoint_event_updates_last_checkpoint_and_dispatches_activation() -
 
 	var store := M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()
+	store.settings.enable_persistence = false
 	store.gameplay_initial_state = RS_GameplayInitialState.new()
 	add_child_autofree(store)
 	await get_tree().process_frame

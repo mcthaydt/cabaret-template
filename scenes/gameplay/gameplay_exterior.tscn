@@ -53,13 +53,9 @@
 [ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://assets/textures/tex_icon.svg" id="39_u0c34"]
 [ext_resource type="Script" uid="uid://cly8oyjtrr3ev" path="res://scripts/gameplay/inter_endgame_goal_zone.gd" id="41_goal_script"]
 [ext_resource type="Script" uid="uid://djud6o4c7psxg" path="res://scripts/ecs/systems/s_checkpoint_system.gd" id="42_checkpoint_system"]
-[ext_resource type="Resource" uid="uid://na7m34dl6a4d" path="res://resources/triggers/cfg_checkpoint_box_2x3x2.tres" id="43_checkpoint_settings"]
 [ext_resource type="Script" uid="uid://cnqqo6qh71pqh" path="res://scripts/gameplay/inter_checkpoint_zone.gd" id="43_checkpoint_zone_script"]
-[ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/cfg_death_zone_volume.tres" id="44_death_settings"]
 [ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="44_hazard_controller"]
-[ext_resource type="Resource" uid="uid://c8u21l3ag26ky" path="res://resources/triggers/cfg_spike_trap_volume.tres" id="44_spike_settings"]
 [ext_resource type="Script" uid="uid://bck3euqueu4y7" path="res://scripts/gameplay/inter_signpost.gd" id="45_signpost_controller"]
-[ext_resource type="Resource" uid="uid://b2ehbrq1l8yro" path="res://resources/triggers/cfg_signpost_cylinder.tres" id="45_signpost_settings"]
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
 [ext_resource type="Resource" uid="uid://bi0ygx0nsog1s" path="res://resources/spawn_metadata/cfg_sp_exterior.tres" id="51_exterior_default_spawn_meta"]
 [ext_resource type="Resource" uid="uid://cvgjhiir8koeu" path="res://resources/spawn_metadata/cfg_sp_exterior_checkpoint.tres" id="52_exterior_checkpoint_spawn_meta"]
@@ -69,6 +65,13 @@
 [ext_resource type="Script" uid="uid://dtku7dfc3a83y" path="res://scripts/ecs/components/c_surface_type_component.gd" id="55_surface_marker"]
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="56_fade_goal"]
 [ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="57_fade_door"]
+[ext_resource type="Resource" uid="uid://c1vorfsd4wy66" path="res://resources/interactions/doors/cfg_door_exterior_to_bar.tres" id="60_door_house_config"]
+[ext_resource type="Resource" uid="uid://h7toa63r5xmm" path="res://resources/interactions/doors/cfg_door_exterior_bar_entrance.tres" id="61_door_bar_config"]
+[ext_resource type="Resource" uid="uid://ubaurl3hekoo" path="res://resources/interactions/checkpoints/cfg_checkpoint_safe_zone.tres" id="62_checkpoint_config"]
+[ext_resource type="Resource" uid="uid://dkmf7013rq1wf" path="res://resources/interactions/signposts/cfg_signpost_exterior_tutorial.tres" id="63_signpost_config"]
+[ext_resource type="Resource" uid="uid://bhpts5ki7j6uv" path="res://resources/interactions/hazards/cfg_hazard_spike_trap.tres" id="64_hazard_spike_config"]
+[ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="65_hazard_death_config"]
+[ext_resource type="Resource" uid="uid://bwspqddgu5kbw" path="res://resources/interactions/endgame/cfg_endgame_goal_exterior.tres" id="66_endgame_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -310,15 +313,14 @@ script = ExtResource("16_8qi87")
 [node name="E_DeathZone" type="Node3D" parent="Entities/Hazards" unique_id=741940347]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
 script = ExtResource("44_hazard_controller")
-is_instant_death = true
-settings = ExtResource("44_death_settings")
+config = ExtResource("65_hazard_death_config")
 entity_id = &"deathzone_exterior"
 tags = Array[StringName]([&"hazard", &"death"])
 
 [node name="E_SpikeTrapA" type="Node3D" parent="Entities/Hazards" unique_id=2072822935]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 3)
 script = ExtResource("44_hazard_controller")
-settings = ExtResource("44_spike_settings")
+config = ExtResource("64_hazard_spike_config")
 visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
 entity_id = &"spiketrap_a"
 tags = Array[StringName]([&"hazard", &"trap"])
@@ -335,7 +337,7 @@ material = ExtResource("55_fade_hazard")
 [node name="E_SpikeTrapB" type="Node3D" parent="Entities/Hazards" unique_id=353656775]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 3)
 script = ExtResource("44_hazard_controller")
-settings = ExtResource("44_spike_settings")
+config = ExtResource("64_hazard_spike_config")
 visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
 entity_id = &"spiketrap_b"
 tags = Array[StringName]([&"hazard", &"trap"])
@@ -355,6 +357,7 @@ script = ExtResource("16_8qi87")
 [node name="E_FinalGoal" type="Node3D" parent="Entities/Objectives" unique_id=1110989240]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -5)
 script = ExtResource("41_goal_script")
+config = ExtResource("66_endgame_config")
 entity_id = &"finalgoal"
 tags = Array[StringName]([&"objective", &"endgame"])
 
@@ -384,9 +387,7 @@ fov = 80.0
 [node name="E_DoorTrigger" type="Node3D" parent="Entities" unique_id=2046371661]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
 script = ExtResource("30_door_controller")
-door_id = &"door_to_house"
-target_scene_id = &"interior_bar"
-target_spawn_point = &"sp_entrance_from_exterior"
+config = ExtResource("60_door_house_config")
 entity_id = &"door_to_house"
 tags = Array[StringName]([&"trigger", &"door"])
 
@@ -399,9 +400,7 @@ material = ExtResource("57_fade_door")
 [node name="E_DoorTrigger_Bar" type="Node3D" parent="Entities" unique_id=1385724918]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 0)
 script = ExtResource("30_door_controller")
-door_id = &"door_to_bar"
-target_scene_id = &"interior_bar"
-target_spawn_point = &"sp_entrance_from_exterior"
+config = ExtResource("61_door_bar_config")
 entity_id = &"door_to_bar"
 tags = Array[StringName]([&"trigger", &"door"])
 
@@ -414,9 +413,7 @@ material = ExtResource("57_fade_door")
 [node name="E_Checkpoint_SafeZone" type="Node3D" parent="Entities" unique_id=1409158797]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.9000635, 0, -5.877161)
 script = ExtResource("43_checkpoint_zone_script")
-checkpoint_id = &"cp_safe_zone"
-spawn_point_id = &"sp_checkpoint_safe"
-settings = ExtResource("43_checkpoint_settings")
+config = ExtResource("62_checkpoint_config")
 entity_id = &"checkpoint_exterior"
 tags = Array[StringName]([&"checkpoint", &"objective"])
 
@@ -426,8 +423,7 @@ texture = ExtResource("39_u0c34")
 [node name="E_TutorialSign" type="Node3D" parent="Entities" unique_id=170864827]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.787005, 1.1897154, -2.5)
 script = ExtResource("45_signpost_controller")
-message = "Welcome to Cabaret Template!"
-settings = ExtResource("45_signpost_settings")
+config = ExtResource("63_signpost_config")
 entity_id = &"tutorial_exterior"
 tags = Array[StringName]([&"interactable", &"tutorial"])
 

@@ -1,6 +1,9 @@
 extends "res://scripts/gameplay/triggered_interactable_controller.gd"
 class_name Inter_DoorTrigger
 
+const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_door_interaction_config.gd")
+const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
+
 ## Door trigger authored as a single E_* entity.
 ## Relies on TriggeredInteractableController for player detection
 ## and delegates transition logic to C_SceneTriggerComponent.
@@ -8,33 +11,17 @@ class_name Inter_DoorTrigger
 
 @export var component_name: StringName = StringName("C_SceneTriggerComponent")
 
-## Trigger mode for this door (AUTO triggers on enter; INTERACT requires input inside volume)
-@export var door_trigger_mode: C_SceneTriggerComponent.TriggerMode = C_SceneTriggerComponent.TriggerMode.INTERACT
-
 var component_factory: Callable
 
-var _door_id: StringName = StringName("")
-@export var door_id: StringName:
+var _config: Resource = null
+@export var config: Resource:
 	get:
-		return _door_id
+		return _config
 	set(value):
-		_door_id = value
-		_apply_component_config()
-
-var _target_scene_id: StringName = StringName("")
-@export var target_scene_id: StringName:
-	get:
-		return _target_scene_id
-	set(value):
-		_target_scene_id = value
-		_apply_component_config()
-
-var _target_spawn_point: StringName = StringName("")
-@export var target_spawn_point: StringName:
-	get:
-		return _target_spawn_point
-	set(value):
-		_target_spawn_point = value
+		if value != null and not U_INTERACTION_CONFIG_RESOLVER.script_matches(value, RS_DOOR_INTERACTION_CONFIG):
+			return
+		_config = value
+		_apply_config_resource()
 		_apply_component_config()
 
 var _component: C_SceneTriggerComponent = null
@@ -44,6 +31,7 @@ func _init() -> void:
 	interact_prompt = "Enter"
 
 func _ready() -> void:
+	_apply_config_resource()
 	super._ready()
 	trigger_area_ready.connect(_on_controller_area_ready)
 	var existing_area := get_trigger_area()
@@ -105,15 +93,18 @@ func _update_component_area_path() -> void:
 func _apply_component_config() -> void:
 	if _component == null or not is_instance_valid(_component):
 		return
+	var typed := _resolve_config()
+	if typed == null:
+		return
 
-	_component.door_id = _door_id
-	_component.target_scene_id = _target_scene_id
-	_component.target_spawn_point = _target_spawn_point
-	_component.cooldown_duration = max(cooldown_duration, 0.0)
-	_component.trigger_mode = door_trigger_mode
+	_component.door_id = typed.door_id
+	_component.target_scene_id = typed.target_scene_id
+	_component.target_spawn_point = typed.target_spawn_point
+	_component.cooldown_duration = max(typed.cooldown_duration, 0.0)
+	_component.trigger_mode = typed.trigger_mode
 
 	# Keep controller prompt/activation mode aligned with component configuration
-	match door_trigger_mode:
+	match _component.trigger_mode:
 		C_SceneTriggerComponent.TriggerMode.AUTO:
 			trigger_mode = TriggeredInteractableController.TriggerMode.AUTO
 		C_SceneTriggerComponent.TriggerMode.INTERACT:
@@ -123,9 +114,9 @@ func _apply_component_config() -> void:
 	if _component != null:
 		_component._resolve_or_create_trigger_area()
 
-	if settings != null:
-		settings.ignore_initial_overlap = true
-		_component.settings = settings
+	if typed.trigger_settings != null:
+		typed.trigger_settings.ignore_initial_overlap = true
+		_component.settings = typed.trigger_settings
 
 func refresh_volume_from_settings() -> void:
 	super.refresh_volume_from_settings()
@@ -135,3 +126,18 @@ func _on_activated(player: Node3D) -> void:
 	if _component != null and is_instance_valid(_component):
 		_component.trigger_interact()
 	super._on_activated(player)
+
+func _apply_config_resource() -> void:
+	var typed := _resolve_config()
+	if typed == null:
+		return
+
+	_apply_interaction_hint_config(typed)
+	var trigger_settings: RS_SceneTriggerSettings = typed.get("trigger_settings") as RS_SceneTriggerSettings
+	if trigger_settings != null:
+		settings = trigger_settings
+
+func _resolve_config() -> RS_DoorInteractionConfig:
+	if _config != null and U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_DOOR_INTERACTION_CONFIG):
+		return _config as RS_DoorInteractionConfig
+	return null

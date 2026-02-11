@@ -439,7 +439,7 @@ resources/display/cinema_grades/
   cfg_cinema_grade_gameplay_base.tres  # Per-scene configs (Phase 11)
   cfg_cinema_grade_alleyway.tres
   cfg_cinema_grade_exterior.tres
-  cfg_cinema_grade_interior_bar.tres
+  cfg_cinema_grade_bar.tres
   cfg_cinema_grade_interior_house.tres
 
 resources/textures/

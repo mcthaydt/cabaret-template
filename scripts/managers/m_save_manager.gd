@@ -265,11 +265,13 @@ func save_to_slot(slot_id: StringName) -> Error:
 	# Emit completion event
 	if result == OK:
 		U_ECSEventBus.publish(StringName("save_completed"), {
-			"slot_id": slot_id
+			"slot_id": slot_id,
+			"is_autosave": is_autosave
 		})
 	else:
 		U_ECSEventBus.publish(StringName("save_failed"), {
 			"slot_id": slot_id,
+			"is_autosave": is_autosave,
 			"error_code": result
 		})
 

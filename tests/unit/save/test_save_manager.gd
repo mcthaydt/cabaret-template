@@ -428,6 +428,69 @@ func test_save_to_slot_emits_save_completed_event() -> void:
 	var payload: Dictionary = event.get("payload", {}) as Dictionary
 
 	assert_eq(payload.get("slot_id"), StringName("slot_01"), "Event payload should include slot_id")
+	assert_false(payload.get("is_autosave", true), "Manual save should have is_autosave=false")
+
+func test_autosave_emits_save_completed_event_with_is_autosave_true() -> void:
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup mock state
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+
+	var event_data: Array = [false, null]  # [received, event]
+	U_ECSEventBus.subscribe(StringName("save_completed"), func(event: Variant) -> void:
+		event_data[0] = true
+		event_data[1] = event
+	)
+
+	_save_manager.request_autosave()
+
+	assert_true(event_data[0], "save_completed event should be published for autosave")
+	assert_true(event_data[1] is Dictionary, "Event should be a Dictionary")
+
+	var event: Dictionary = event_data[1] as Dictionary
+	var payload: Dictionary = event.get("payload", {}) as Dictionary
+
+	assert_eq(payload.get("slot_id"), StringName("autosave"), "Autosave completion should report autosave slot")
+	assert_true(payload.get("is_autosave", false), "Autosave completion should include is_autosave=true")
+
+func test_save_to_slot_emits_save_failed_event_with_is_autosave_flag() -> void:
+	_save_manager = _create_save_manager()
+	add_child(_save_manager)
+	autofree(_save_manager)
+
+	await get_tree().process_frame
+
+	# Setup mock state
+	_mock_store.set_slice(StringName("gameplay"), {"playtime_seconds": 100})
+	_mock_store.set_slice(StringName("scene"), {"current_scene_id": "gameplay_base"})
+
+	# Force write failure by pointing to a non-existent nested directory.
+	var missing_dir: String = "user://phase2_missing_%d/nested/" % Time.get_ticks_msec()
+	_save_manager.set("_save_dir", missing_dir)
+
+	var event_data: Array = [false, null]  # [received, event]
+	U_ECSEventBus.subscribe(StringName("save_failed"), func(event: Variant) -> void:
+		event_data[0] = true
+		event_data[1] = event
+	)
+
+	var result: Error = _save_manager.save_to_slot(StringName("slot_01"))
+
+	assert_ne(result, OK, "Save should fail when writing to read-only path")
+	assert_true(event_data[0], "save_failed event should be published")
+	assert_true(event_data[1] is Dictionary, "Event should be a Dictionary")
+	assert_push_error("Failed to open temporary file for writing")
+
+	var event: Dictionary = event_data[1] as Dictionary
+	var payload: Dictionary = event.get("payload", {}) as Dictionary
+
+	assert_eq(payload.get("slot_id"), StringName("slot_01"), "save_failed payload should include slot_id")
+	assert_false(payload.get("is_autosave", true), "Manual save failure should include is_autosave=false")
 
 func test_save_to_slot_sets_and_clears_is_saving_lock() -> void:
 	_save_manager = _create_save_manager()

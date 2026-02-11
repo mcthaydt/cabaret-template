@@ -46,20 +46,20 @@
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
 [ext_resource type="Script" uid="uid://be4ht4ijvdrjy" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="29_screen_shake_publisher"]
-[ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/cfg_cylinder_wide_door_trigger_settings.tres" id="30_auc1c"]
 [ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
 [ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="30_door_controller"]
-[ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/cfg_death_zone_volume.tres" id="44_death_settings"]
-[ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/cfg_goal_cylinder.tres" id="44_goal_settings"]
 [ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="44_hazard_controller"]
 [ext_resource type="Script" uid="uid://bcgud5qw85qv0" path="res://scripts/gameplay/inter_victory_zone.gd" id="44_victory_controller"]
 [ext_resource type="Script" uid="uid://bck3euqueu4y7" path="res://scripts/gameplay/inter_signpost.gd" id="45_signpost_controller"]
-[ext_resource type="Resource" uid="uid://b2ehbrq1l8yro" path="res://resources/triggers/cfg_signpost_cylinder.tres" id="45_signpost_settings"]
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
 [ext_resource type="Resource" uid="uid://bqktd616pidot" path="res://resources/spawn_metadata/cfg_sp_interior_house.tres" id="51_interior_default_spawn_meta"]
 [ext_resource type="Resource" uid="uid://5a5jc4dpye3i" path="res://resources/spawn_metadata/cfg_sp_interior_house_entrance.tres" id="52_interior_entrance_spawn_meta"]
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="53_fade_goal"]
 [ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="54_fade_door"]
+[ext_resource type="Resource" uid="uid://ddacar33fbfey" path="res://resources/interactions/doors/cfg_door_house_to_alleyway.tres" id="60_door_config"]
+[ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="61_hazard_config"]
+[ext_resource type="Resource" uid="uid://p2w4g7pjp81c" path="res://resources/interactions/victory/cfg_victory_goal_interior_house.tres" id="62_victory_config"]
+[ext_resource type="Resource" uid="uid://bv4nto776uc8h" path="res://resources/interactions/signposts/cfg_signpost_interior_tutorial.tres" id="63_signpost_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -285,8 +285,7 @@ script = ExtResource("16_8qi87")
 [node name="E_DeathZone" type="Node3D" parent="Entities/Hazards" unique_id=889128116]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
 script = ExtResource("44_hazard_controller")
-is_instant_death = true
-settings = ExtResource("44_death_settings")
+config = ExtResource("61_hazard_config")
 entity_id = &"deathzone_interior"
 tags = Array[StringName]([&"hazard", &"death"])
 
@@ -296,9 +295,7 @@ script = ExtResource("16_8qi87")
 [node name="E_GoalZone" type="Node3D" parent="Entities/Objectives" unique_id=1508077668]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -0.41013765, -10.004155)
 script = ExtResource("44_victory_controller")
-objective_id = &"goal_interior"
-area_id = "interior_house"
-settings = ExtResource("44_goal_settings")
+config = ExtResource("62_victory_config")
 visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePath("GlowLight")])
 entity_id = &"goalzone_interior"
 tags = Array[StringName]([&"objective", &"goal"])
@@ -330,10 +327,7 @@ fov = 65.0
 [node name="E_DoorTrigger" type="Node3D" parent="Entities" unique_id=2115856790]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
 script = ExtResource("30_door_controller")
-door_id = &"door_to_exterior"
-target_scene_id = &"alleyway"
-target_spawn_point = &"sp_exit_from_house"
-settings = ExtResource("30_auc1c")
+config = ExtResource("60_door_config")
 visual_paths = Array[NodePath]([NodePath("DoorVisual")])
 entity_id = &"door_to_exterior"
 tags = Array[StringName]([&"trigger", &"door"])
@@ -347,8 +341,7 @@ material = ExtResource("54_fade_door")
 [node name="E_TutorialSign_Interior" type="Node3D" parent="Entities" unique_id=141776314]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.14, 0, 2)
 script = ExtResource("45_signpost_controller")
-message = "Welcome inside!"
-settings = ExtResource("45_signpost_settings")
+config = ExtResource("63_signpost_config")
 visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("GlowLight")])
 entity_id = &"tutorial_interior"
 tags = Array[StringName]([&"interactable", &"tutorial"])

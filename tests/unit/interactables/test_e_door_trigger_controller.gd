@@ -1,8 +1,13 @@
 extends BaseTest
 
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_GAMEPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
+const RS_DOOR_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_door_interaction_config.gd")
+const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_hazard_interaction_config.gd")
+const RS_SCENE_TRIGGER_SETTINGS := preload("res://scripts/resources/ecs/rs_scene_trigger_settings.gd")
+const INTERACTION_HINT_TEXTURE := preload("res://assets/textures/tex_icon.svg")
 
 ## Minimal stub SceneManager for unit tests
 class TestSceneManager:
@@ -42,6 +47,9 @@ func _pump_frames(count: int = 1) -> void:
 func before_each() -> void:
 	# Provide a minimal state store so C_SceneTriggerComponent can dispatch actions
 	var store := M_STATE_STORE.new()
+	store.settings = RS_STATE_STORE_SETTINGS.new()
+	store.settings.enable_persistence = false
+	store.settings.enable_global_settings_persistence = false
 	store.scene_initial_state = RS_SCENE_INITIAL_STATE.new()
 	store.gameplay_initial_state = RS_GAMEPLAY_INITIAL_STATE.new()
 	add_child(store)
@@ -64,9 +72,13 @@ func after_each() -> void:
 func _create_controller() -> Inter_DoorTrigger:
 	var controller := Inter_DoorTrigger.new()
 	controller.component_factory = Callable(self, "_create_scene_trigger_stub")
-	controller.door_id = StringName("door_test")
-	controller.target_scene_id = StringName("scene_test")
-	controller.target_spawn_point = StringName("spawn_test")
+	var config := RS_DOOR_INTERACTION_CONFIG.new()
+	config.door_id = StringName("door_test")
+	config.target_scene_id = StringName("scene_test")
+	config.target_spawn_point = StringName("spawn_test")
+	config.cooldown_duration = 2.25
+	config.trigger_mode = C_SceneTriggerComponent.TriggerMode.INTERACT
+	controller.config = config
 	add_child(controller)
 	autofree(controller)
 	await _pump_frames(3)
@@ -106,6 +118,66 @@ func test_activation_calls_component_trigger() -> void:
 	var dummy_player := _make_dummy_player()
 	controller._on_activated(dummy_player)
 	assert_true(component.trigger_called, "Activated door should delegate to component.trigger_interact().")
+
+func test_config_resource_overrides_export_values() -> void:
+	var controller := await _create_controller()
+	var component := _find_component(controller)
+	assert_not_null(component, "Component must exist before applying config.")
+
+	var config := RS_DOOR_INTERACTION_CONFIG.new()
+	config.door_id = StringName("door_cfg")
+	config.target_scene_id = StringName("scene_cfg")
+	config.target_spawn_point = StringName("spawn_cfg")
+	config.cooldown_duration = 3.5
+	config.trigger_mode = C_SceneTriggerComponent.TriggerMode.AUTO
+	var trigger_settings := RS_SCENE_TRIGGER_SETTINGS.new()
+	trigger_settings.player_mask = 8
+	config.trigger_settings = trigger_settings
+
+	controller.config = config
+	await _pump_frames(1)
+
+	assert_eq(component.door_id, StringName("door_cfg"))
+	assert_eq(component.target_scene_id, StringName("scene_cfg"))
+	assert_eq(component.target_spawn_point, StringName("spawn_cfg"))
+	assert_eq(component.cooldown_duration, 3.5)
+	assert_eq(component.trigger_mode, C_SceneTriggerComponent.TriggerMode.AUTO)
+	assert_eq(controller.trigger_mode, Inter_DoorTrigger.TriggerMode.AUTO)
+	assert_true(component.settings == trigger_settings, "Door should use config trigger settings when provided.")
+
+func test_non_matching_config_does_not_override_valid_config() -> void:
+	var controller := await _create_controller()
+	var component := _find_component(controller)
+	assert_not_null(component, "Component must exist before config type mismatch check.")
+
+	var wrong_config := RS_HAZARD_INTERACTION_CONFIG.new()
+	controller.config = wrong_config
+	await _pump_frames(1)
+
+	assert_eq(component.door_id, StringName("door_test"))
+	assert_eq(component.target_scene_id, StringName("scene_test"))
+	assert_eq(component.target_spawn_point, StringName("spawn_test"))
+	assert_eq(component.cooldown_duration, 2.25)
+	assert_eq(component.trigger_mode, C_SceneTriggerComponent.TriggerMode.INTERACT)
+
+func test_config_resource_applies_world_hint_settings() -> void:
+	var controller := await _create_controller()
+	var config := RS_DOOR_INTERACTION_CONFIG.new()
+	config.door_id = StringName("door_hint")
+	config.target_scene_id = StringName("scene_hint")
+	config.target_spawn_point = StringName("spawn_hint")
+	config.interaction_hint_enabled = true
+	config.interaction_hint_icon = INTERACTION_HINT_TEXTURE
+	config.interaction_hint_offset = Vector3(0.0, 2.0, 0.0)
+	config.interaction_hint_scale = 1.2
+
+	controller.config = config
+	await _pump_frames(1)
+
+	assert_true(controller.interaction_hint_enabled, "Door controller should apply world hint enabled flag from config.")
+	assert_eq(controller.interaction_hint_icon, INTERACTION_HINT_TEXTURE, "Door controller should apply world hint texture from config.")
+	assert_eq(controller.interaction_hint_offset, Vector3(0.0, 2.0, 0.0), "Door controller should apply world hint offset from config.")
+	assert_eq(controller.interaction_hint_scale, 1.2, "Door controller should apply world hint scale from config.")
 
 func _find_component(controller: Node) -> C_SceneTriggerComponent:
 	for child in controller.get_children():

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_EndgameGoalInteractionConfig" format=3 uid="uid://bwspqddgu5kbw"]
+
+[ext_resource type="Script" uid="uid://bvsielan6ce7s" path="res://scripts/resources/interactions/rs_endgame_goal_interaction_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://b4iokk546qp3w" path="res://resources/triggers/cfg_scene_trigger_settings.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+victory_type = 1
+interaction_id = &"endgame_goal_exterior"
+trigger_settings = ExtResource("2")

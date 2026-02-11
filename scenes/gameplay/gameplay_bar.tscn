@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://duro3xf1h5saj"]
+[gd_scene format=3 uid="uid://q1djjqq4f3ts"]
 
 [ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
@@ -47,20 +47,23 @@
 [ext_resource type="Script" uid="uid://bxuh4wr37jbss" path="res://scripts/scene_structure/marker_spawn_points_group.gd" id="21_spawnpoints"]
 [ext_resource type="Script" uid="uid://dkqoxkfj5kw4o" path="res://scripts/ecs/systems/s_touchscreen_system.gd" id="24_touchscreen_system"]
 [ext_resource type="Script" uid="uid://be4ht4ijvdrjy" path="res://scripts/ecs/systems/s_screen_shake_publisher_system.gd" id="29_screen_shake_publisher"]
-[ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/cfg_cylinder_wide_door_trigger_settings.tres" id="30_auc1c"]
 [ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
 [ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="30_door_controller"]
-[ext_resource type="Resource" uid="uid://death0onevol1" path="res://resources/triggers/cfg_death_zone_volume.tres" id="44_death_settings"]
-[ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/cfg_goal_cylinder.tres" id="44_goal_settings"]
 [ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="44_hazard_controller"]
 [ext_resource type="Script" uid="uid://bcgud5qw85qv0" path="res://scripts/gameplay/inter_victory_zone.gd" id="44_victory_controller"]
+[ext_resource type="Script" uid="uid://bck3euqueu4y7" path="res://scripts/gameplay/inter_signpost.gd" id="45_signpost_controller"]
 [ext_resource type="Script" uid="uid://c1vg0nn41f77u" path="res://scripts/scene_management/sp_spawn_point.gd" id="50_spawn_point"]
-[ext_resource type="Resource" uid="uid://x5s2ppq71575" path="res://resources/spawn_metadata/cfg_sp_interior_bar.tres" id="51_bar_default_spawn_meta"]
-[ext_resource type="Resource" uid="uid://btpa3gv1g0gl7" path="res://resources/spawn_metadata/cfg_sp_interior_bar_entrance.tres" id="52_bar_entrance_spawn_meta"]
+[ext_resource type="Resource" uid="uid://x5s2ppq71575" path="res://resources/spawn_metadata/cfg_sp_bar.tres" id="51_bar_default_spawn_meta"]
+[ext_resource type="Resource" uid="uid://btpa3gv1g0gl7" path="res://resources/spawn_metadata/cfg_sp_bar_entrance.tres" id="52_bar_entrance_spawn_meta"]
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="53_fade_goal"]
 [ext_resource type="Material" uid="uid://wi1mbdu28csn" path="res://assets/materials/mat_fade_door.tres" id="54_fade_door"]
 [ext_resource type="Script" uid="uid://dpeat44fqshck" path="res://scripts/utils/display/u_cinema_grade_preview.gd" id="55_cinema_preview"]
-[ext_resource type="Resource" uid="uid://byi87fqns2dfa" path="res://resources/display/cinema_grades/cfg_cinema_grade_interior_bar.tres" id="56_cinema_grade"]
+[ext_resource type="Resource" uid="uid://byi87fqns2dfa" path="res://resources/display/cinema_grades/cfg_cinema_grade_bar.tres" id="56_cinema_grade"]
+[ext_resource type="Resource" uid="uid://c6jd4e07tblkc" path="res://resources/interactions/doors/cfg_door_bar_to_alleyway.tres" id="60_door_config"]
+[ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="61_hazard_config"]
+[ext_resource type="Resource" uid="uid://cu3ruo6k60o8k" path="res://resources/interactions/victory/cfg_victory_goal_bar.tres" id="62_victory_config"]
+[ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/scene_structure/marker_lighting_group.gd" id="63_lighting_group"]
+[ext_resource type="Resource" uid="uid://cnyf404ygf6u1" path="res://resources/interactions/signposts/cfg_signpost_bar_tutorial.tres" id="64_signpost_config"]
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
@@ -78,7 +81,7 @@ script = ExtResource("1_f2o31")
 [node name="SceneObjects" type="Node3D" parent="." unique_id=1984456615]
 script = ExtResource("2_ph0bl")
 
-[node name="NewInterior" parent="SceneObjects" unique_id=1438821753 instance=ExtResource("3_oot58")]
+[node name="BarScene" parent="SceneObjects" unique_id=1438821753 instance=ExtResource("3_oot58")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.2181439, 0, 0.6794058)
 
 [node name="Environment" type="Node" parent="." unique_id=124727212]
@@ -204,6 +207,7 @@ script = ExtResource("29_screen_shake_publisher")
 script = ExtResource("30_damage_flash_publisher")
 
 [node name="Lighting" type="Node" parent="." unique_id=999999901]
+script = ExtResource("63_lighting_group")
 
 [node name="CinemaGradePreview" type="Node" parent="Lighting" unique_id=1416173378]
 script = ExtResource("55_cinema_preview")
@@ -236,7 +240,7 @@ transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.8
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("51_bar_default_spawn_meta")
 
-[node name="sp_entrance_from_exterior" type="Node3D" parent="Entities/SpawnPoints" unique_id=474428565]
+[node name="sp_entrance_from_alleyway" type="Node3D" parent="Entities/SpawnPoints" unique_id=474428565]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -5.7408953, 1.5384963, -1.1389236)
 script = ExtResource("50_spawn_point")
 spawn_metadata = ExtResource("52_bar_entrance_spawn_meta")
@@ -247,8 +251,7 @@ script = ExtResource("16_8qi87")
 [node name="E_DeathZone" type="Node3D" parent="Entities/Hazards" unique_id=2142744412]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -1.8506856, -10, 0.6794058)
 script = ExtResource("44_hazard_controller")
-is_instant_death = true
-settings = ExtResource("44_death_settings")
+config = ExtResource("61_hazard_config")
 entity_id = &"deathzone_bar"
 tags = Array[StringName]([&"hazard", &"death"])
 
@@ -258,9 +261,7 @@ script = ExtResource("16_8qi87")
 [node name="E_GoalZone" type="Node3D" parent="Entities/Objectives" unique_id=1434112409]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.019804, 0.9881649, -4.0965447)
 script = ExtResource("44_victory_controller")
-objective_id = &"goal_bar"
-area_id = "interior_bar"
-settings = ExtResource("44_goal_settings")
+config = ExtResource("62_victory_config")
 visual_paths = Array[NodePath]([NodePath("Visual"), NodePath(""), NodePath("GlowLight")])
 entity_id = &"goalzone_bar"
 tags = Array[StringName]([&"objective", &"goal"])
@@ -286,21 +287,26 @@ transform = Transform3D(0.99999994, 0, 0, 0, 0.8660254, 0.49999997, 0, -0.5, 0.8
 fov = 28.8
 
 [node name="E_DoorTrigger" type="Node3D" parent="Entities" unique_id=616346955]
-transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -7.4135427, 1.4971395, -5.7386756)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -6.396285, 1.4971395, -5.0640097)
 script = ExtResource("30_door_controller")
-door_id = &"door_to_exterior"
-target_scene_id = &"alleyway"
-target_spawn_point = &"sp_exit_from_bar"
-settings = ExtResource("30_auc1c")
+config = ExtResource("60_door_config")
 visual_paths = Array[NodePath]([NodePath("DoorVisual")])
 entity_id = &"door_to_exterior"
 tags = Array[StringName]([&"trigger", &"door"])
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger" unique_id=863395501]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.57354736, -0.63254166)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75172377, -0.57354736, 0.006447315)
 radius = 0.7910156
 height = 2.0715332
 material = ExtResource("54_fade_door")
+
+[node name="E_TutorialSign_Bar" type="Node3D" parent="Entities" unique_id=2050868452]
+transform = Transform3D(0.6972604, 0, 0.716818, 0, 1, 0, -0.716818, 0, 0.6972604, -1.4047534, 2.4465442, -4.7643566)
+script = ExtResource("45_signpost_controller")
+config = ExtResource("64_signpost_config")
+visual_paths = Array[NodePath]([NodePath(""), NodePath("")])
+entity_id = &"tutorial_bar"
+tags = Array[StringName]([&"interactable", &"tutorial"])
 
 [node name="HUD" parent="." unique_id=1864878923 instance=ExtResource("11_hud")]
 

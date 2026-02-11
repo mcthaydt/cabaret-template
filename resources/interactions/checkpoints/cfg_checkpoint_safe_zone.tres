@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RS_CheckpointInteractionConfig" format=3 uid="uid://ubaurl3hekoo"]
+
+[ext_resource type="Script" uid="uid://ccllayu32swfi" path="res://scripts/resources/interactions/rs_checkpoint_interaction_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://na7m34dl6a4d" path="res://resources/triggers/cfg_checkpoint_box_2x3x2.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+checkpoint_id = &"cp_safe_zone"
+spawn_point_id = &"sp_checkpoint_safe"
+interaction_id = &"checkpoint_safe_zone"
+trigger_settings = ExtResource("2")

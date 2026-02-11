@@ -23,8 +23,21 @@ const TRIGGER_RESOURCE_DIRECTORIES := [
 	"res://resources/triggers"
 ]
 
+const INTERACTION_RESOURCE_DIRECTORIES := [
+	"res://resources/interactions"
+]
+
 const TRIGGER_RESOURCE_FILES := [
 	"res://resources/triggers/cfg_scene_trigger_settings.tres"
+]
+
+const INTERACTION_RESOURCE_ALLOWED_SUBDIRS := [
+	"doors",
+	"checkpoints",
+	"hazards",
+	"victory",
+	"signposts",
+	"endgame"
 ]
 
 const PRODUCTION_PATH_DIRECTORIES := [
@@ -46,6 +59,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/input": ["u_", "i_"],
 	"res://scripts/input/sources": [""], # Wildcard: validated by suffix rule (see test_input_source_scripts_follow_suffix_rule)
 	"res://scripts/resources/input": ["rs_"],
+	"res://scripts/resources/interactions": ["rs_"],
 	"res://scripts/managers": ["m_"],
 	"res://scripts/managers/helpers": ["u_"],
 	"res://scripts/ecs/systems": ["s_", "m_"], # m_ for M_PauseManager
@@ -64,6 +78,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/ui/base": ["base_"], # base_*.gd UI base classes
 	"res://scripts/ui/utils": ["u_"], # UI utilities
 	"res://scripts/ui": ["ui_", "u_"], # ui_ for controllers, u_ for utilities
+	"res://scripts/gameplay/helpers": ["u_"], # gameplay helper utilities
 	"res://scripts/gameplay": ["e_", "inter_", "base_", "triggered_"], # e_ for entities, inter_ for interactable controllers, base_ for base controllers, triggered_ for special controllers
 	"res://scripts/scene_structure": ["marker_"], # marker_*.gd organizational scripts
 	"res://scripts/scene_management/transitions": ["trans_", "base_"], # transition effects
@@ -89,6 +104,13 @@ func test_trigger_resources_define_script_reference() -> void:
 			missing.append(file_path)
 	assert_eq(missing.size(), 0,
 		"Trigger settings resources must include script = ExtResource(). Missing:\n%s" % "\n".join(missing))
+
+func test_interaction_resources_define_script_reference() -> void:
+	var missing: Array[String] = []
+	for dir_path in INTERACTION_RESOURCE_DIRECTORIES:
+		_collect_tres_without_script(dir_path, missing)
+	assert_eq(missing.size(), 0,
+		"Interaction config resources must include script = ExtResource(). Missing:\n%s" % "\n".join(missing))
 
 func _collect_gd_spacing_offenses(dir_path: String, offenses: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
@@ -227,6 +249,12 @@ func test_resources_follow_naming_conventions() -> void:
 	# Check UI screen definitions
 	_check_resource_directory("res://resources/ui_screens",
 		["_screen.tres", "_overlay.tres"], violations)
+
+	# Interaction config instances
+	_check_resource_directory("res://resources/interactions", ["cfg_"], violations)
+
+	# Interaction config placement (must be in typed subdirectories)
+	_collect_interaction_resource_placement_violations("res://resources/interactions", violations)
 
 	# Scene registry entries don't need strict naming - just verify they exist and have scripts
 	# (handled by test_trigger_resources_define_script_reference)
@@ -453,5 +481,25 @@ func _check_resource_directory(dir_path: String, required_patterns: Array,
 				violations.append("%s/%s - must match patterns: %s" % [
 					dir_path, entry, str(required_patterns)
 				])
+		entry = dir.get_next()
+	dir.list_dir_end()
+
+func _collect_interaction_resource_placement_violations(dir_path: String, violations: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+
+	dir.list_dir_begin()
+	var entry := dir.get_next()
+	while entry != "":
+		var path := "%s/%s" % [dir_path, entry]
+		if dir.current_is_dir():
+			if not entry.begins_with("."):
+				if dir_path == "res://resources/interactions" and not INTERACTION_RESOURCE_ALLOWED_SUBDIRS.has(entry):
+					violations.append("%s - invalid interaction config category directory" % path)
+				_collect_interaction_resource_placement_violations(path, violations)
+		elif entry.ends_with(".tres"):
+			if dir_path == "res://resources/interactions":
+				violations.append("%s - interaction config instances must live in a category subdirectory" % path)
 		entry = dir.get_next()
 	dir.list_dir_end()

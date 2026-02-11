@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://jd1xkl5ignjh"]
 
 [ext_resource type="Script" uid="uid://cu7f4m6aojkdm" path="res://scripts/gameplay/inter_hazard_zone.gd" id="1_controller"]
-[ext_resource type="Resource" uid="uid://c8u21l3ag26ky" path="res://resources/triggers/cfg_spike_trap_volume.tres" id="2_spike_settings"]
 [ext_resource type="Material" uid="uid://dtyyrgwkln3r4" path="res://assets/materials/mat_fade_hazard.tres" id="3_fade_material"]
+[ext_resource type="Resource" uid="uid://bhpts5ki7j6uv" path="res://resources/interactions/hazards/cfg_hazard_spike_trap.tres" id="4_hazard_config"]
 
 [node name="E_SpikeTrap" type="Node3D" unique_id=1483592070]
 script = ExtResource("1_controller")
-settings = ExtResource("2_spike_settings")
+config = ExtResource("4_hazard_config")
 visual_paths = Array[NodePath]([NodePath("MeshInstance3D"), NodePath("SpikeTips")])
 entity_id = &"spiketrap"
 tags = Array[StringName]([&"hazard", &"trap"])

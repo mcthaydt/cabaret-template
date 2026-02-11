@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://behhuoexdtawd"]
 
 [ext_resource type="Script" uid="uid://bcgud5qw85qv0" path="res://scripts/gameplay/inter_victory_zone.gd" id="1_controller"]
-[ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/cfg_goal_cylinder.tres" id="2_goal_settings"]
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="3_fade_material"]
+[ext_resource type="Resource" uid="uid://cc6jf6higq2bl" path="res://resources/interactions/victory/cfg_victory_goal_prefab.tres" id="4_victory_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b3ofg"]
 
@@ -12,9 +12,7 @@ text = ":)"
 
 [node name="E_GoalZone" type="Node3D" unique_id=1687566861]
 script = ExtResource("1_controller")
-objective_id = &"goal_01"
-area_id = "interior_house"
-settings = ExtResource("2_goal_settings")
+config = ExtResource("4_victory_config")
 visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePath("GlowLight")])
 entity_id = &"goalzone"
 tags = Array[StringName]([&"objective", &"goal"])

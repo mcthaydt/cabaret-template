@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_script")
-scene_id = &"interior_bar"
+scene_id = &"bar"
 filter_preset = "dramatic_cold"
 filter_intensity = 0.7
 exposure = -0.35

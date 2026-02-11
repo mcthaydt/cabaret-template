@@ -1,37 +1,28 @@
 extends "res://scripts/gameplay/base_volume_controller.gd"
 class_name Inter_HazardZone
 
+const RS_HAZARD_INTERACTION_CONFIG := preload("res://scripts/resources/interactions/rs_hazard_interaction_config.gd")
+const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
+
 @export var component_name: StringName = StringName("C_DamageZoneComponent")
 
 var component_factory: Callable
 
-var _damage_amount: float = 25.0
-@export var damage_amount: float:
+var _config: Resource = null
+@export var config: Resource:
 	get:
-		return _damage_amount
+		return _config
 	set(value):
-		_damage_amount = value
-		_apply_component_config()
-
-var _is_instant_death: bool = false
-@export var is_instant_death: bool:
-	get:
-		return _is_instant_death
-	set(value):
-		_is_instant_death = value
-		_apply_component_config()
-
-var _damage_cooldown: float = 1.0
-@export var damage_cooldown: float:
-	get:
-		return _damage_cooldown
-	set(value):
-		_damage_cooldown = value
+		if value != null and not U_INTERACTION_CONFIG_RESOLVER.script_matches(value, RS_HAZARD_INTERACTION_CONFIG):
+			return
+		_config = value
+		_apply_config_resource()
 		_apply_component_config()
 
 var _component: C_DamageZoneComponent = null
 
 func _ready() -> void:
+	_apply_config_resource()
 	super._ready()
 	trigger_area_ready.connect(_on_controller_area_ready)
 	var area := get_trigger_area()
@@ -96,15 +87,17 @@ func _update_component_area_path() -> void:
 func _apply_component_config() -> void:
 	if _component == null or not is_instance_valid(_component):
 		return
+	var typed := _resolve_config()
+	if typed == null:
+		return
 
-	_component.damage_amount = _damage_amount
-	_component.is_instant_death = _is_instant_death
-	_component.damage_cooldown = max(_damage_cooldown, 0.0)
+	_component.damage_amount = typed.damage_amount
+	_component.is_instant_death = typed.is_instant_death
+	_component.damage_cooldown = max(typed.damage_cooldown, 0.0)
 
-	var trigger_settings := _get_settings()
-	if trigger_settings != null:
-		trigger_settings.ignore_initial_overlap = false
-		var mask := int(trigger_settings.player_mask)
+	if typed.trigger_settings != null:
+		typed.trigger_settings.ignore_initial_overlap = false
+		var mask := int(typed.trigger_settings.player_mask)
 		if mask <= 0:
 			mask = 1
 		_component.collision_layer_mask = mask
@@ -114,3 +107,17 @@ func _apply_component_config() -> void:
 func refresh_volume_from_settings() -> void:
 	super.refresh_volume_from_settings()
 	_apply_component_config()
+
+func _apply_config_resource() -> void:
+	var typed := _resolve_config()
+	if typed == null:
+		return
+
+	var trigger_settings: RS_SceneTriggerSettings = typed.get("trigger_settings") as RS_SceneTriggerSettings
+	if trigger_settings != null:
+		settings = trigger_settings
+
+func _resolve_config() -> RS_HazardInteractionConfig:
+	if _config != null and U_INTERACTION_CONFIG_RESOLVER.script_matches(_config, RS_HAZARD_INTERACTION_CONFIG):
+		return _config as RS_HazardInteractionConfig
+	return null

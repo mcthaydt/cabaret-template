@@ -671,7 +671,7 @@ Before starting Phase 0, verify:
   - `resources/display/cinema_grades/cfg_cinema_grade_gameplay_base.tres`
   - `resources/display/cinema_grades/cfg_cinema_grade_alleyway.tres`
   - `resources/display/cinema_grades/cfg_cinema_grade_exterior.tres`
-  - `resources/display/cinema_grades/cfg_cinema_grade_interior_bar.tres`
+  - `resources/display/cinema_grades/cfg_cinema_grade_bar.tres`
   - `resources/display/cinema_grades/cfg_cinema_grade_interior_house.tres`
   - All start with neutral values (ready for tuning)
   - Notes: Completed 2026-02-06
@@ -846,7 +846,7 @@ Before starting Phase 0, verify:
 | `resources/display/cinema_grades/cfg_cinema_grade_gameplay_base.tres` | Config | Gameplay base scene grade |
 | `resources/display/cinema_grades/cfg_cinema_grade_alleyway.tres` | Config | Alleyway scene grade |
 | `resources/display/cinema_grades/cfg_cinema_grade_exterior.tres` | Config | Exterior scene grade |
-| `resources/display/cinema_grades/cfg_cinema_grade_interior_bar.tres` | Config | Interior bar scene grade |
+| `resources/display/cinema_grades/cfg_cinema_grade_bar.tres` | Config | Interior bar scene grade |
 | `resources/display/cinema_grades/cfg_cinema_grade_interior_house.tres` | Config | Interior house scene grade |
 
 ### Files to Modify

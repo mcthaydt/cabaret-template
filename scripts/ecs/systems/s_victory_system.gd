@@ -4,7 +4,7 @@ class_name S_VictorySystem
 
 const COMPONENT_TYPE := StringName("C_VictoryTriggerComponent")
 const EVENT_VICTORY_TRIGGERED := StringName("victory_triggered")
-const REQUIRED_FINAL_AREA := "interior_bar"
+const REQUIRED_FINAL_AREA := "bar"
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()

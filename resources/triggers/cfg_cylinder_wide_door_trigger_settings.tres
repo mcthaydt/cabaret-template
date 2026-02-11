@@ -4,5 +4,6 @@
 
 [resource]
 script = ExtResource("1_settings_script")
+cyl_radius = 1.75
 box_size = Vector3(3, 3, 0.5)
 arm_delay_physics_frames = 1

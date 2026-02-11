@@ -173,14 +173,14 @@ static func _register_door_pairings() -> void:
 	_register_door_exit(
 		StringName("alleyway"),
 		StringName("door_to_bar"),
-		StringName("interior_bar"),
-		StringName("sp_entrance_from_exterior"),
+		StringName("bar"),
+		StringName("sp_entrance_from_alleyway"),
 		"fade"
 	)
 
 	# Interior Bar → Alleyway
 	_register_door_exit(
-		StringName("interior_bar"),
+		StringName("bar"),
 		StringName("door_to_exterior"),
 		StringName("alleyway"),
 		StringName("sp_exit_from_bar"),

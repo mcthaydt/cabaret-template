@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RS_SignpostInteractionConfig" format=3 uid="uid://cnyf404ygf6u1"]
+
+[ext_resource type="Script" uid="uid://caa62alavkesl" path="res://scripts/resources/interactions/rs_signpost_interaction_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://b2ehbrq1l8yro" path="res://resources/triggers/cfg_signpost_cylinder.tres" id="2"]
+[ext_resource type="Texture2D" uid="uid://rb3wysvedbe2" path="res://assets/textures/tex_interaction_v.svg" id="3"]
+
+[resource]
+script = ExtResource("1")
+message = "This bar has one exit: head back to the alleyway."
+interaction_id = &"signpost_bar_tutorial"
+trigger_settings = ExtResource("2")
+interaction_hint_enabled = true
+interaction_hint_icon = ExtResource("3")
+interaction_hint_scale = 0.8

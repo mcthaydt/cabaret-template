@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RS_EndgameGoalInteractionConfig" format=3 uid="uid://c6v85b7rhav0h"]
+
+[ext_resource type="Script" uid="uid://bvsielan6ce7s" path="res://scripts/resources/interactions/rs_endgame_goal_interaction_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/cfg_goal_cylinder.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+required_area = "bar"
+objective_id = &"final_goal"
+victory_type = 1
+interaction_id = &"endgame_goal_default"
+trigger_settings = ExtResource("2")

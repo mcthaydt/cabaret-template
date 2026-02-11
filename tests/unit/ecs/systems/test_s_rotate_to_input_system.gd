@@ -18,6 +18,7 @@ func _setup_context() -> Dictionary:
 	# Create M_StateStore first (required by systems)
 	var store := M_StateStore.new()
 	store.settings = RS_StateStoreSettings.new()
+	store.settings.enable_persistence = false
 	store.gameplay_initial_state = RS_GameplayInitialState.new()
 	add_child(store)
 	autofree(store)

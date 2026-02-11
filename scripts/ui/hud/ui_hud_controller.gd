@@ -8,7 +8,19 @@ class_name UI_HudController
 @onready var health_label: Label = $MarginContainer/VBoxContainer/HealthBar/HealthLabel
 @onready var toast_container: Control = $MarginContainer/ToastContainer
 @onready var checkpoint_toast: Label = $MarginContainer/ToastContainer/PanelContainer/MarginContainer/CheckpointToast
+@onready var autosave_spinner_container: Control = $MarginContainer/AutosaveSpinnerContainer
+@onready var autosave_spinner_icon: TextureRect = $MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer/SpinnerIcon
+@onready var signpost_panel_container: Control = $SignpostPanelContainer
+@onready var signpost_message_label: Label = $SignpostPanelContainer/PanelContainer/MarginContainer/SignpostMessage
 @onready var interact_prompt: UI_ButtonPrompt = $MarginContainer/InteractPrompt
+
+const SIGNPOST_DEFAULT_DURATION_SEC: float = 3.0
+const SIGNPOST_MIN_DURATION_SEC: float = 0.05
+const SIGNPOST_PANEL_FADE_IN_SEC: float = 0.14
+const SIGNPOST_PANEL_FADE_OUT_SEC: float = 0.18
+const SIGNPOST_BLOCKER_COOLDOWN_SEC: float = 0.15
+const AUTOSAVE_SPINNER_ROTATION_SPEED_DEG: float = 240.0
+const AUTOSAVE_SPINNER_MIN_VISIBLE_SEC: float = 0.0
 
 var _store: I_StateStore = null
 var _player_entity_id: String = "player"
@@ -23,6 +35,12 @@ var _active_prompt_id: int = 0
 var _last_prompt_action: StringName = StringName("interact")
 var _last_prompt_text: String = ""
 var _toast_active: bool = false
+var _autosave_spinner_active: bool = false
+var _autosave_spinner_visible_since_sec: float = -1.0
+var _autosave_spinner_hide_request_id: int = 0
+var _signpost_panel_active: bool = false
+var _checkpoint_toast_tween: Tween = null
+var _signpost_panel_tween: Tween = null
 var _health_bar_bg_style: StyleBoxFlat = null
 var _health_bar_fill_style: StyleBoxFlat = null
 
@@ -65,14 +83,14 @@ func _complete_initialization() -> void:
 	_unsubscribe_save_started = U_ECSEventBus.subscribe(StringName("save_started"), _on_save_started)
 	_unsubscribe_save_completed = U_ECSEventBus.subscribe(StringName("save_completed"), _on_save_completed)
 	_unsubscribe_save_failed = U_ECSEventBus.subscribe(StringName("save_failed"), _on_save_failed)
-
 	_update_display(_store.get_state())
 
-func _process(__delta: float) -> void:
+func _process(delta: float) -> void:
 	if _store == null or not is_instance_valid(_store):
 		return
 	# Keep HUD visibility in sync even if a slice update arrives between frames.
 	_update_display(_store.get_state())
+	_update_autosave_spinner_animation(delta)
 
 func _exit_tree() -> void:
 	_unregister_from_scene_manager()
@@ -117,9 +135,9 @@ func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> voi
 	if _is_paused(state):
 		if interact_prompt != null:
 			interact_prompt.hide_prompt()
-		if toast_container != null:
-			toast_container.visible = false
-			_toast_active = false
+		_hide_checkpoint_toast_immediate()
+		_hide_autosave_spinner()
+		_hide_signpost_panel()
 		# Force unblock interact when paused (no interactions possible anyway)
 		U_InteractBlocker.force_unblock()
 
@@ -170,13 +188,7 @@ func _update_health(state: Dictionary) -> void:
 
 ## ECS: Show a brief toast when a checkpoint is activated
 func _on_checkpoint_event(payload: Variant) -> void:
-	var text: String = "Checkpoint reached"
-	if typeof(payload) == TYPE_DICTIONARY:
-		var p: Dictionary = payload
-		var cp_id: Variant = p.get("checkpoint_id")
-		if cp_id is StringName and String(cp_id) != "":
-			text = "Checkpoint: %s" % String(cp_id)
-
+	var text: String = _build_checkpoint_toast_text(payload)
 	_show_checkpoint_toast(text)
 
 func _show_checkpoint_toast(text: String) -> void:
@@ -185,6 +197,9 @@ func _show_checkpoint_toast(text: String) -> void:
 	# Do not show toasts while paused
 	if _store != null and _is_paused(_store.get_state()):
 		return
+	_hide_autosave_spinner()
+	_hide_signpost_panel(false)
+	_cancel_checkpoint_toast_tween()
 	checkpoint_toast.text = text
 	toast_container.modulate.a = 0.0
 	toast_container.visible = true
@@ -195,16 +210,17 @@ func _show_checkpoint_toast(text: String) -> void:
 	if interact_prompt != null:
 		interact_prompt.hide_prompt()
 
-	var tween := create_tween()
-	tween.set_trans(Tween.TRANS_CUBIC)
-	tween.set_ease(Tween.EASE_IN_OUT)
+	_checkpoint_toast_tween = create_tween()
+	_checkpoint_toast_tween.set_trans(Tween.TRANS_CUBIC)
+	_checkpoint_toast_tween.set_ease(Tween.EASE_IN_OUT)
 	# Fade in
-	tween.tween_property(toast_container, "modulate:a", 1.0, 0.2).from(0.0)
+	_checkpoint_toast_tween.tween_property(toast_container, "modulate:a", 1.0, 0.2).from(0.0)
 	# Hold
-	tween.tween_interval(1.0)
+	_checkpoint_toast_tween.tween_interval(1.0)
 	# Fade out
-	tween.tween_property(toast_container, "modulate:a", 0.0, 0.3)
-	tween.finished.connect(func() -> void:
+	_checkpoint_toast_tween.tween_property(toast_container, "modulate:a", 0.0, 0.3)
+	_checkpoint_toast_tween.finished.connect(func() -> void:
+		_checkpoint_toast_tween = null
 		toast_container.visible = false
 		_toast_active = false
 		# Unblock interact with cooldown (0.3s default)
@@ -212,7 +228,190 @@ func _show_checkpoint_toast(text: String) -> void:
 		# Restore prompt if still relevant and not paused
 		if not _is_paused(_store.get_state()) and _active_prompt_id != 0 and interact_prompt != null:
 			interact_prompt.show_prompt(_last_prompt_action, _last_prompt_text)
+		)
+
+func _build_checkpoint_toast_text(event_payload: Variant) -> String:
+	const DEFAULT_TEXT := "Checkpoint reached"
+	var payload := _extract_event_payload(event_payload)
+	if payload.is_empty():
+		return DEFAULT_TEXT
+
+	var explicit_label: String = String(payload.get("checkpoint_label", payload.get("display_name", ""))).strip_edges()
+	if not explicit_label.is_empty():
+		return "Checkpoint: %s" % explicit_label
+
+	var checkpoint_id_value: Variant = payload.get("checkpoint_id", StringName(""))
+	var checkpoint_id: String = String(checkpoint_id_value).strip_edges()
+	var readable_name: String = _humanize_checkpoint_id(checkpoint_id)
+	if readable_name.is_empty():
+		return DEFAULT_TEXT
+	return "Checkpoint: %s" % readable_name
+
+func _humanize_checkpoint_id(raw_id: String) -> String:
+	var cleaned := raw_id.strip_edges()
+	if cleaned.is_empty():
+		return ""
+	if cleaned.begins_with("cp_"):
+		cleaned = cleaned.substr(3)
+	cleaned = cleaned.replace("_", " ").replace("-", " ").strip_edges()
+	if cleaned.is_empty():
+		return ""
+	var words: PackedStringArray = cleaned.split(" ", false)
+	for i in words.size():
+		words[i] = words[i].capitalize()
+	return String(" ").join(words)
+
+func _extract_event_payload(event_payload: Variant) -> Dictionary:
+	if typeof(event_payload) != TYPE_DICTIONARY:
+		return {}
+	var event: Dictionary = event_payload
+	var nested: Variant = event.get("payload", null)
+	if typeof(nested) == TYPE_DICTIONARY:
+		return nested as Dictionary
+	return event
+
+func _hide_checkpoint_toast_immediate() -> void:
+	var was_active: bool = _toast_active
+	_cancel_checkpoint_toast_tween()
+	if toast_container == null:
+		return
+	toast_container.visible = false
+	_toast_active = false
+	if was_active:
+		# If toast was interrupted, clear blocker immediately to avoid stale input lock.
+		U_InteractBlocker.force_unblock()
+
+func _cancel_checkpoint_toast_tween() -> void:
+	if _checkpoint_toast_tween == null:
+		return
+	if is_instance_valid(_checkpoint_toast_tween):
+		_checkpoint_toast_tween.kill()
+	_checkpoint_toast_tween = null
+
+func _show_autosave_spinner() -> void:
+	if autosave_spinner_container == null:
+		return
+	if _store != null and _is_paused(_store.get_state()):
+		return
+	_hide_checkpoint_toast_immediate()
+	_hide_signpost_panel(true)
+	# Autosave feedback should never block interact input.
+	U_InteractBlocker.force_unblock()
+	autosave_spinner_container.visible = true
+	if autosave_spinner_icon != null:
+		autosave_spinner_icon.rotation_degrees = 0.0
+	_autosave_spinner_active = true
+	_autosave_spinner_visible_since_sec = Time.get_ticks_msec() / 1000.0
+	_autosave_spinner_hide_request_id += 1
+
+func _hide_autosave_spinner() -> void:
+	_autosave_spinner_hide_request_id += 1
+	if autosave_spinner_container == null:
+		return
+	autosave_spinner_container.visible = false
+	if autosave_spinner_icon != null:
+		autosave_spinner_icon.rotation_degrees = 0.0
+	_autosave_spinner_active = false
+	_autosave_spinner_visible_since_sec = -1.0
+
+func _request_hide_autosave_spinner() -> void:
+	if not _autosave_spinner_active:
+		return
+
+	var now_sec: float = Time.get_ticks_msec() / 1000.0
+	var elapsed_sec: float = 0.0
+	if _autosave_spinner_visible_since_sec >= 0.0:
+		elapsed_sec = maxf(now_sec - _autosave_spinner_visible_since_sec, 0.0)
+
+	if elapsed_sec >= AUTOSAVE_SPINNER_MIN_VISIBLE_SEC:
+		_hide_autosave_spinner()
+		return
+
+	var tree := get_tree()
+	if tree == null:
+		_hide_autosave_spinner()
+		return
+
+	var remaining_sec: float = maxf(AUTOSAVE_SPINNER_MIN_VISIBLE_SEC - elapsed_sec, 0.0)
+	_autosave_spinner_hide_request_id += 1
+	var request_id: int = _autosave_spinner_hide_request_id
+	var timer := tree.create_timer(remaining_sec, true, false, true)
+	timer.timeout.connect(func() -> void:
+		if request_id != _autosave_spinner_hide_request_id:
+			return
+		_hide_autosave_spinner()
 	)
+
+func _update_autosave_spinner_animation(delta: float) -> void:
+	if not _autosave_spinner_active:
+		return
+	if autosave_spinner_icon == null:
+		return
+	autosave_spinner_icon.rotation_degrees = wrapf(
+		autosave_spinner_icon.rotation_degrees + AUTOSAVE_SPINNER_ROTATION_SPEED_DEG * delta,
+		0.0,
+		360.0
+	)
+
+func _show_signpost_panel(text: String, duration_sec: float = SIGNPOST_DEFAULT_DURATION_SEC) -> void:
+	if signpost_panel_container == null:
+		return
+	if _store != null and _is_paused(_store.get_state()):
+		return
+	_hide_checkpoint_toast_immediate()
+	_hide_autosave_spinner()
+	_hide_signpost_panel(false)
+	if signpost_message_label != null:
+		signpost_message_label.text = text
+	signpost_panel_container.modulate.a = 0.0
+	signpost_panel_container.visible = true
+	_signpost_panel_active = true
+	U_InteractBlocker.block()
+	if interact_prompt != null:
+		interact_prompt.hide_prompt()
+
+	var effective_duration := maxf(duration_sec, SIGNPOST_MIN_DURATION_SEC)
+	_signpost_panel_tween = create_tween()
+	_signpost_panel_tween.set_trans(Tween.TRANS_CUBIC)
+	_signpost_panel_tween.set_ease(Tween.EASE_OUT)
+	_signpost_panel_tween.tween_property(signpost_panel_container, "modulate:a", 1.0, SIGNPOST_PANEL_FADE_IN_SEC).from(0.0)
+	_signpost_panel_tween.tween_interval(effective_duration)
+	_signpost_panel_tween.set_ease(Tween.EASE_IN)
+	_signpost_panel_tween.tween_property(signpost_panel_container, "modulate:a", 0.0, SIGNPOST_PANEL_FADE_OUT_SEC)
+	_signpost_panel_tween.finished.connect(_on_signpost_panel_finished)
+
+func _hide_signpost_panel(restore_prompt: bool = false) -> void:
+	var was_active: bool = _signpost_panel_active
+	_cancel_signpost_panel_tween()
+	if signpost_panel_container == null:
+		return
+	signpost_panel_container.visible = false
+	signpost_panel_container.modulate.a = 1.0
+	_signpost_panel_active = false
+	if was_active:
+		U_InteractBlocker.force_unblock()
+		if restore_prompt and _store != null and not _is_paused(_store.get_state()) and _active_prompt_id != 0 and interact_prompt != null:
+			interact_prompt.show_prompt(_last_prompt_action, _last_prompt_text)
+
+func _cancel_signpost_panel_tween() -> void:
+	if _signpost_panel_tween == null:
+		return
+	if is_instance_valid(_signpost_panel_tween):
+		_signpost_panel_tween.kill()
+	_signpost_panel_tween = null
+
+func _on_signpost_panel_finished() -> void:
+	_signpost_panel_tween = null
+	if signpost_panel_container != null:
+		signpost_panel_container.visible = false
+		signpost_panel_container.modulate.a = 1.0
+	var was_active: bool = _signpost_panel_active
+	_signpost_panel_active = false
+	if not was_active:
+		return
+	U_InteractBlocker.unblock_with_cooldown(SIGNPOST_BLOCKER_COOLDOWN_SEC)
+	if _store != null and not _is_paused(_store.get_state()) and _active_prompt_id != 0 and interact_prompt != null:
+		interact_prompt.show_prompt(_last_prompt_action, _last_prompt_text)
 
 func _on_interact_prompt_show(payload: Variant) -> void:
 	if interact_prompt == null:
@@ -234,8 +433,8 @@ func _on_interact_prompt_show(payload: Variant) -> void:
 	_active_prompt_id = controller_id
 	_last_prompt_action = action_name
 	_last_prompt_text = prompt_text
-	# If a toast is currently visible, defer showing the prompt to avoid overlap
-	if _toast_active:
+	# If another feedback surface is currently visible, defer prompt rendering to avoid overlap.
+	if _toast_active or _signpost_panel_active:
 		return
 	interact_prompt.show_prompt(action_name, prompt_text)
 
@@ -277,25 +476,31 @@ func _reparent_to_root_hud_layer() -> void:
 	layer = 6
 
 func _on_signpost_message(payload: Variant) -> void:
-	var text: String = ""
-	if typeof(payload) == TYPE_DICTIONARY:
-		var event: Dictionary = payload
-		var inner_payload: Variant = event.get("payload", {})
-		if typeof(inner_payload) == TYPE_DICTIONARY:
-			text = String((inner_payload as Dictionary).get("message", ""))
-	else:
-		text = String(payload)
+	var data := _extract_event_payload(payload)
+	var text: String = String(data.get("message", ""))
+	var duration_sec: float = _resolve_signpost_duration(data)
 	if text.is_empty():
 		return
 	# Suppress signpost messages while paused
 	if _store != null and _is_paused(_store.get_state()):
 		return
-	_show_checkpoint_toast(text)
+	_show_signpost_panel(text, duration_sec)
+
+func _resolve_signpost_duration(payload: Dictionary) -> float:
+	var duration_variant: Variant = payload.get("message_duration_sec", SIGNPOST_DEFAULT_DURATION_SEC)
+	var duration_sec: float = SIGNPOST_DEFAULT_DURATION_SEC
+	if duration_variant is float:
+		duration_sec = duration_variant
+	elif duration_variant is int:
+		duration_sec = float(duration_variant)
+	if duration_sec <= 0.0:
+		return SIGNPOST_DEFAULT_DURATION_SEC
+	return duration_sec
 
 ## Phase 11: Save event handlers for autosave feedback
 
 func _on_save_started(payload: Variant) -> void:
-	# Show "Saving..." toast only for autosaves (not manual saves from menu)
+	# Show autosave spinner only for autosaves (not manual saves from menu)
 	if typeof(payload) != TYPE_DICTIONARY:
 		return
 	var event: Dictionary = payload
@@ -306,10 +511,10 @@ func _on_save_started(payload: Variant) -> void:
 	var is_autosave: bool = data.get("is_autosave", false)
 
 	if is_autosave:
-		_show_checkpoint_toast("⏳ Saving...")
+		_show_autosave_spinner()
 
 func _on_save_completed(payload: Variant) -> void:
-	# Show "Game Saved" toast only for autosaves
+	# Hide autosave spinner only for autosaves
 	if typeof(payload) != TYPE_DICTIONARY:
 		return
 	var event: Dictionary = payload
@@ -320,10 +525,10 @@ func _on_save_completed(payload: Variant) -> void:
 	var is_autosave: bool = data.get("is_autosave", false)
 
 	if is_autosave:
-		_show_checkpoint_toast("Game Saved")
+		_request_hide_autosave_spinner()
 
 func _on_save_failed(payload: Variant) -> void:
-	# Show "Save Failed" toast for all failed saves (autosave or manual)
+	# Hide autosave spinner on autosave failures.
 	if typeof(payload) != TYPE_DICTIONARY:
 		return
 	var event: Dictionary = payload
@@ -334,7 +539,7 @@ func _on_save_failed(payload: Variant) -> void:
 	var is_autosave: bool = data.get("is_autosave", false)
 
 	if is_autosave:
-		_show_checkpoint_toast("Save Failed")
+		_request_hide_autosave_spinner()
 
 func _format_interact_prompt(action: StringName, prompt_text: String) -> String:
 	var action_label := _get_primary_input_label(action)

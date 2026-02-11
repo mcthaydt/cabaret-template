@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_VictoryInteractionConfig" format=3 uid="uid://bj5s8vx63yumt"]
+
+[ext_resource type="Script" uid="uid://c51wp3mqekvpj" path="res://scripts/resources/interactions/rs_victory_interaction_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://m0goalcyl001" path="res://resources/triggers/cfg_goal_cylinder.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+objective_id = &"main_objective"
+interaction_id = &"victory_default"
+trigger_settings = ExtResource("2")

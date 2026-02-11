@@ -126,6 +126,10 @@
 - `inter_signpost.gd` emits `signpost_message` events; HUD reuses the checkpoint toast UI for signpost text.
 - Exterior/interior scenes are now fixtures built on controllers; core flow routes through `gameplay_base` instead of these fixtures.
 - Controller `settings` are auto-duplicated (`resource_local_to_scene = true`). Assign shared `.tres` files freely—each controller keeps a unique copy.
+- Interaction config schema resources live in `scripts/resources/interactions/` (`rs_*_interaction_config.gd`) with authored instances under `resources/interactions/**` (`cfg_*.tres`).
+- Validate config resources with `scripts/gameplay/helpers/u_interaction_config_validator.gd` before binding them to controllers.
+- Phase 5 config-binding pattern: interaction controllers are config-driven only. Legacy interaction export fallbacks (`door_id`, `checkpoint_id`, damage/victory/signpost literals, `required_area`) were removed; provide typed `config` resources in scenes/prefabs and treat those resources as the single source of truth.
+- Phase 3 scene-authoring pattern: gameplay/prefab `Inter_*` nodes should bind `config = ExtResource("res://resources/interactions/.../cfg_*.tres")` and avoid duplicating door/checkpoint/hazard/victory/signpost literals directly in `.tscn` nodes.
 - Passive volumes (`E_CheckpointZone`, `E_HazardZone`, `E_VictoryZone`) keep `ignore_initial_overlap = false` so respawns inside the volume re-register automatically. Triggered interactables (doors, signposts) leave it `true` to avoid instant re-activation.
 - Use `visual_paths` to toggle meshes/lights/particles when controllers enable/disable; keep visuals as controller children instead of wiring extra logic nodes.
 - Controllers run with `process_mode = PROCESS_MODE_ALWAYS` and will not activate while `scene.is_transitioning` or `M_SceneManager.is_transitioning()` is true.
@@ -203,6 +207,7 @@ Production asset files use type-specific prefixes:
   - Actions that need same-frame visibility (e.g., input rebinds) must set `"immediate": true` on the dispatched payload; the store now flushes batched slice updates immediately for these actions.
   - Gameplay input fields are transient across scene transitions (StateHandoff) but are persisted to disk on save/load.
   - Global settings persist via `user://global_settings.json` (display/audio/vfx/input + gameplay preferences). Controlled by `RS_StateStoreSettings.enable_global_settings_persistence`; legacy `audio_settings.json`/`input_settings.json` migrate on load.
+  - In non-persistence tests, set `store.settings.enable_persistence = false` before adding `M_StateStore` to the tree to avoid ambient `user://savegame.json` autoload side effects.
 - State load normalization
   - `M_StateStore.load_state()` sanitizes unknown `current_scene_id`, `target_spawn_point`, and `last_checkpoint` values, falling back to `gameplay_base` / `sp_default` and deduping `completed_areas`.
 - Style enforcement

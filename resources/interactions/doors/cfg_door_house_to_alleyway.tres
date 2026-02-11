@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RS_DoorInteractionConfig" format=3 uid="uid://ddacar33fbfey"]
+
+[ext_resource type="Script" uid="uid://dg280xmlvc2yd" path="res://scripts/resources/interactions/rs_door_interaction_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://b2rj71hlyc628" path="res://resources/triggers/cfg_cylinder_wide_door_trigger_settings.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+door_id = &"door_to_exterior"
+target_scene_id = &"alleyway"
+target_spawn_point = &"sp_exit_from_house"
+interaction_id = &"door_house_to_alleyway"
+trigger_settings = ExtResource("2")

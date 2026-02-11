@@ -229,9 +229,6 @@ fov = 80.0
 [node name="E_DoorTrigger" type="Node3D" parent="Entities" unique_id=1451826755]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
 script = ExtResource("30_door_controller")
-door_id = &"door_to_house"
-target_scene_id = &"interior_house"
-target_spawn_point = &"sp_entrance_from_exterior"
 
 [node name="DoorVisual" type="CSGCylinder3D" parent="Entities/E_DoorTrigger" unique_id=1122450332]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.40026855, 0)
@@ -245,7 +242,6 @@ script = ExtResource("16_8qi87")
 [node name="E_DeathZone" type="Node3D" parent="Entities/E_Hazards" unique_id=2132813994]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0)
 script = ExtResource("44_hazard_controller")
-is_instant_death = true
 settings = ExtResource("44_death_settings")
 
 [node name="E_SpikeTrapA" type="Node3D" parent="Entities/E_Hazards" unique_id=1316696733]
@@ -281,8 +277,6 @@ material = SubResource("StandardMaterial3D_spike")
 [node name="E_Checkpoint_SafeZone" type="Node3D" parent="Entities" unique_id=772050747]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.9000635, 0, -5.877161)
 script = ExtResource("43_checkpoint_zone_script")
-checkpoint_id = &"cp_safe_zone"
-spawn_point_id = &"sp_checkpoint_safe"
 settings = ExtResource("43_checkpoint_settings")
 
 [node name="CheckpointVisual" type="Sprite3D" parent="Entities/E_Checkpoint_SafeZone" unique_id=1886641495]
@@ -291,7 +285,6 @@ texture = ExtResource("39_u0c34")
 [node name="E_TutorialSign" type="Node3D" parent="Entities" unique_id=1876118164]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, -2.5)
 script = ExtResource("45_signpost_controller")
-message = "Welcome to Crispy Template! Press [E] to interact."
 settings = ExtResource("45_signpost_settings")
 
 [node name="E_FinalGoal" type="Node3D" parent="Entities" unique_id=2000648791]
