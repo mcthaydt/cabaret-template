@@ -12,6 +12,7 @@ const PROMPT_HIDE_EVENT := StringName("interact_prompt_hide")
 const INTERACTION_HINT_NODE_NAME := "SO_InteractionHintIcon"
 const INTERACTION_HINT_DEFAULT_OFFSET := Vector3.ZERO
 const INTERACTION_HINT_MIN_SCALE := 0.1
+const INTERACTION_HINT_VISUAL_SCALE_MULTIPLIER := 0.35
 const INTERACTION_HINT_BILLBOARD_MODE := BaseMaterial3D.BILLBOARD_ENABLED
 
 var _trigger_mode: TriggerMode = TriggerMode.AUTO
@@ -218,7 +219,7 @@ func _apply_interaction_hint_transform() -> void:
 		return
 	sprite.texture = interaction_hint_icon
 	sprite.position = interaction_hint_offset
-	var uniform_scale := maxf(interaction_hint_scale, INTERACTION_HINT_MIN_SCALE)
+	var uniform_scale := maxf(interaction_hint_scale, INTERACTION_HINT_MIN_SCALE) * INTERACTION_HINT_VISUAL_SCALE_MULTIPLIER
 	sprite.scale = Vector3(uniform_scale, uniform_scale, uniform_scale)
 
 func _apply_interaction_hint_render_defaults(sprite: Sprite3D) -> void:
