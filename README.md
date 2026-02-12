@@ -1,4 +1,4 @@
-# Cabaret Template (Godot 4.5)
+# Cabaret Template (Godot 4.6)
 
 ![MOV to GIF (1)](https://github.com/user-attachments/assets/419c5753-2701-4444-aa7b-26b0d59edbd1)
 
@@ -11,7 +11,7 @@ Cabaret Template is an opinionated Godot 4.5 starter project for building a smal
 
 ## Quick Start
 
-1. Install **Godot 4.5**.
+1. Install **Godot 4.6**.
 2. Open `project.godot` in Godot.
 3. Press Play: `scenes/root.tscn` boots persistent managers and loads the initial scene (`main_menu` by default).
 
