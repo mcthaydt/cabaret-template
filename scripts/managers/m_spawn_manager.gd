@@ -486,7 +486,18 @@ func _maybe_face_camera_on_spawn(player: Node3D, ecs_body: CharacterBody3D, spaw
 		return
 	cam_forward = cam_forward.normalized()
 
-	var desired_yaw := atan2(-cam_forward.x, -cam_forward.z)
+	var to_camera := camera.global_position - player.global_position
+	to_camera = _project_onto_plane(to_camera, up_dir)
+	var has_to_camera: bool = to_camera.length() > 0.0
+	if has_to_camera:
+		to_camera = to_camera.normalized()
+
+	# Face the camera position (player -> camera), not camera forward.
+	var desired_direction: Vector3 = -cam_forward
+	if has_to_camera:
+		desired_direction = to_camera
+
+	var desired_yaw := atan2(-desired_direction.x, -desired_direction.z)
 	var new_rotation := player.global_rotation
 	new_rotation.y = desired_yaw
 	player.global_rotation = new_rotation
