@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_CharacterLightingProfile" format=3 uid="uid://dxetswoxlmw1y"]
+
+[ext_resource type="Script" uid="uid://4r0gfjs52qar" path="res://scripts/resources/lighting/rs_character_lighting_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+profile_id = &"bar_default"
+tint = Color(0.83, 0.58, 0.42, 1)
+intensity = 0.82
+blend_smoothing = 0.2

@@ -92,7 +92,7 @@ func _apply_component_config() -> void:
 
 	_component.objective_id = typed.objective_id
 	_component.area_id = typed.area_id
-	_component.victory_type = typed.victory_type
+	_component.victory_type = typed.victory_type as C_VictoryTriggerComponent.VictoryType
 	_component.trigger_once = typed.trigger_once
 	if typed.trigger_settings != null:
 		typed.trigger_settings.ignore_initial_overlap = false

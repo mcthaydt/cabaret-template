@@ -53,3 +53,6 @@ func test_duplicate_spawn_ids_keep_higher_priority_entry() -> void:
 	var result: Dictionary = U_SpawnRegistry.get_spawn(StringName("sp_dup"))
 	assert_eq(result.get("priority", -1), 10, "Higher priority entry should win for duplicate ids")
 
+func test_spawn_metadata_defaults_ground_snap_enabled() -> void:
+	var metadata := RS_SpawnMetadata.new()
+	assert_true(metadata.snap_to_ground_on_spawn, "Spawn metadata should default ground snap to enabled")

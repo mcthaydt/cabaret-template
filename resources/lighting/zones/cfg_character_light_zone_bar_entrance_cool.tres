@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RS_CharacterLightZoneConfig" format=3 uid="uid://c230upatsnrwh"]
+
+[ext_resource type="Script" uid="uid://d0p2bmeh23cpe" path="res://scripts/resources/lighting/rs_character_light_zone_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://0fifv6jgysgt" path="res://resources/lighting/profiles/cfg_character_lighting_profile_bar_entrance_cool.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+shape_type = 1
+zone_id = &"bar_entrance_cool"
+cylinder_radius = 3.0
+cylinder_height = 5.0
+falloff = 0.72
+blend_weight = 0.85
+priority = 14
+profile = ExtResource("2")

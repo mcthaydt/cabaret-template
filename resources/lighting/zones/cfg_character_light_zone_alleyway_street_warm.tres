@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RS_CharacterLightZoneConfig" format=3 uid="uid://b0alttd2vv4ah"]
+
+[ext_resource type="Script" uid="uid://d0p2bmeh23cpe" path="res://scripts/resources/lighting/rs_character_light_zone_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://dwmpxmdamf21n" path="res://resources/lighting/profiles/cfg_character_lighting_profile_alleyway_street_warm.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+shape_type = 1
+zone_id = &"alleyway_street_warm"
+cylinder_radius = 4.2
+cylinder_height = 6.5
+falloff = 0.68
+blend_weight = 1.0
+priority = 13
+profile = ExtResource("2")

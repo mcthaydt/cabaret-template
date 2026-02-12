@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_CharacterLightingProfile" format=3 uid="uid://dwmpxmdamf21n"]
+
+[ext_resource type="Script" uid="uid://4r0gfjs52qar" path="res://scripts/resources/lighting/rs_character_lighting_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+profile_id = &"alleyway_street_warm"
+tint = Color(1, 0.73, 0.46, 1)
+intensity = 1.18
+blend_smoothing = 0.18

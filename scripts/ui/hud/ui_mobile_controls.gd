@@ -14,9 +14,14 @@ const VIRTUAL_BUTTON_SCENE := preload("res://scenes/ui/widgets/ui_virtual_button
 const DEFAULT_TOUCHSCREEN_PROFILE_PATH := "res://resources/input/profiles/cfg_default_touchscreen.tres"
 const SHELL_GAMEPLAY := StringName("gameplay")
 const EDIT_OVERLAY_ID := StringName("edit_touch_controls")
+const SIGNPOST_MESSAGE_EVENT := StringName("signpost_message")
+const SIGNPOST_DEFAULT_DURATION_SEC: float = 3.0
+const SIGNPOST_MIN_DURATION_SEC: float = 0.05
+const SIGNPOST_VISIBILITY_BUFFER_SEC: float = 0.35
 
 var _state_store: I_StateStore = null
 var _unsubscribe: Callable = Callable()
+var _unsubscribe_signpost: Callable = Callable()
 var _controls_root: Control = null
 var _default_touchscreen_settings: RS_TouchscreenSettings = RS_TouchscreenSettings.new()
 var _joystick: UI_VirtualJoystick = null
@@ -36,6 +41,8 @@ var _fade_elapsed: float = 0.0
 var _is_fading: bool = false
 var _overlay_input_logged: bool = false
 var _awaiting_transition_signal: bool = false  # True when waiting for transition_visual_complete
+var _signpost_hide_until_sec: float = -1.0
+var _is_signpost_visibility_blocked: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -71,6 +78,7 @@ func _ready() -> void:
 	_build_controls(initial_state)
 	_apply_state(initial_state)
 	_update_visibility()
+	_subscribe_signpost_messages()
 
 	# Connect to SceneManager's transition_visual_complete signal
 	# This tells us when fade-in animation completes and scene is fully visible
@@ -82,9 +90,14 @@ func _exit_tree() -> void:
 	if _unsubscribe != Callable() and _unsubscribe.is_valid():
 		_unsubscribe.call()
 		_unsubscribe = Callable()
+	if _unsubscribe_signpost != Callable() and _unsubscribe_signpost.is_valid():
+		_unsubscribe_signpost.call()
+		_unsubscribe_signpost = Callable()
 	_state_store = null
 	_is_fading = false
 	_fade_elapsed = 0.0
+	_signpost_hide_until_sec = -1.0
+	_is_signpost_visibility_blocked = false
 	_unregister_from_input_device_manager()
 
 func _should_enable() -> bool:
@@ -306,8 +319,9 @@ func _update_visibility() -> void:
 	var scene_allows: bool = true
 	if not force_enable:
 		scene_allows = U_SceneRegistry.get_scene_type(_current_scene_id) == U_SceneRegistry.SceneType.GAMEPLAY
+	var signpost_allows: bool = not _is_signpost_visibility_blocked
 
-	var should_show: bool = device_allows and shell_allows and scene_allows and not _is_transitioning and overlay_allows
+	var should_show: bool = device_allows and shell_allows and scene_allows and signpost_allows and not _is_transitioning and overlay_allows
 
 	visible = should_show
 
@@ -359,6 +373,7 @@ func _on_input_activity(__data: Variant = null) -> void:
 	_is_fading = true
 
 func _process(_delta: float) -> void:
+	_update_signpost_visibility_gate()
 	if _controls_root == null or not _is_fading:
 		return
 	var step: float = max(_delta, 1.0 / 60.0)
@@ -376,3 +391,47 @@ func _process(_delta: float) -> void:
 
 func get_buttons() -> Array:
 	return _buttons.duplicate()
+
+func _subscribe_signpost_messages() -> void:
+	if _unsubscribe_signpost != Callable() and _unsubscribe_signpost.is_valid():
+		return
+	_unsubscribe_signpost = U_ECSEventBus.subscribe(SIGNPOST_MESSAGE_EVENT, _on_signpost_message)
+
+func _on_signpost_message(payload: Variant) -> void:
+	var data := _extract_event_payload(payload)
+	var message_text: String = String(data.get("message", "")).strip_edges()
+	if message_text.is_empty():
+		return
+	var duration_sec: float = _resolve_signpost_duration(data)
+	var hide_until: float = U_ECSUtils.get_current_time() + duration_sec + SIGNPOST_VISIBILITY_BUFFER_SEC
+	_signpost_hide_until_sec = maxf(_signpost_hide_until_sec, hide_until)
+	_update_signpost_visibility_gate()
+
+func _extract_event_payload(event_payload: Variant) -> Dictionary:
+	if typeof(event_payload) != TYPE_DICTIONARY:
+		return {}
+	var event: Dictionary = event_payload
+	var nested_payload: Variant = event.get("payload", null)
+	if typeof(nested_payload) == TYPE_DICTIONARY:
+		return nested_payload as Dictionary
+	return event
+
+func _resolve_signpost_duration(payload: Dictionary) -> float:
+	var duration_variant: Variant = payload.get("message_duration_sec", SIGNPOST_DEFAULT_DURATION_SEC)
+	var duration_sec: float = SIGNPOST_DEFAULT_DURATION_SEC
+	if duration_variant is float:
+		duration_sec = duration_variant
+	elif duration_variant is int:
+		duration_sec = float(duration_variant)
+	return maxf(duration_sec, SIGNPOST_MIN_DURATION_SEC)
+
+func _update_signpost_visibility_gate() -> void:
+	var blocked: bool = false
+	if _signpost_hide_until_sec >= 0.0:
+		blocked = U_ECSUtils.get_current_time() < _signpost_hide_until_sec
+		if not blocked:
+			_signpost_hide_until_sec = -1.0
+	if blocked == _is_signpost_visibility_blocked:
+		return
+	_is_signpost_visibility_blocked = blocked
+	_update_visibility()

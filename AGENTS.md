@@ -134,6 +134,47 @@
 - Use `visual_paths` to toggle meshes/lights/particles when controllers enable/disable; keep visuals as controller children instead of wiring extra logic nodes.
 - Controllers run with `process_mode = PROCESS_MODE_ALWAYS` and will not activate while `scene.is_transitioning` or `M_SceneManager.is_transitioning()` is true.
 
+### Character Lighting (Phase 1-5)
+
+- Lighting resource scripts live under `scripts/resources/lighting/` with `rs_` prefixes.
+- `RS_CharacterLightingProfile` is the base data contract; use `get_resolved_values()` for clamped runtime values (`tint`, `intensity`, `blend_smoothing`) instead of reading raw exports directly in blend code.
+- `RS_CharacterLightZoneConfig` is the zone-side contract; use `get_resolved_values()` for clamped dimensions/weights and deep-copied `profile` snapshots.
+- Blend calculations live in `scripts/utils/lighting/u_character_lighting_blend_math.gd` (`U_CharacterLightingBlendMath`):
+  - Deterministic ordering: priority desc, weight desc, zone_id asc.
+  - Weighted blending normalizes source weights.
+  - Empty/invalid zone inputs fall back to a sanitized default profile.
+- `Inter_CharacterLightZone` extends `BaseVolumeController` and remains config-driven:
+  - Build runtime `RS_SceneTriggerSettings` from `RS_CharacterLightZoneConfig` in `_apply_config_to_volume_settings()`.
+  - Use `resource_local_to_scene = true` for generated trigger settings.
+  - Keep passive overlap behavior (`ignore_initial_overlap = false`) so spawn-inside zones still apply.
+  - Auto-register/unregister with `character_lighting_manager` in `_ready()`/`_exit_tree()` so zones authored outside `Lighting` (goal/signpost/prefab hierarchies) are still consumed by the manager.
+- Influence sampling contract for manager consumption:
+  - `get_influence_weight(world_position)` returns shape-aware weight (box/cylinder) with falloff and transition gating.
+  - `get_zone_metadata()` returns deterministic cache inputs (`zone_id`, `stable_key`, `priority`, `blend_weight`, deep-copied `profile` snapshot).
+- Material application helper lives in `scripts/utils/lighting/u_character_lighting_material_applier.gd` (`U_CharacterLightingMaterialApplier`):
+  - `collect_mesh_targets(entity)` recursively gathers `MeshInstance3D` nodes with valid mesh resources.
+  - `apply_character_lighting(...)` swaps each target to `ShaderMaterial` using `assets/shaders/sh_character_zone_lighting.gdshader`, carries forward `albedo_texture`, and sets `base_tint`, `effective_tint`, `effective_intensity`.
+  - Missing mesh/material/albedo texture is a deliberate no-op (skip target, do not cache).
+  - Teardown contract: call `restore_character_materials(entity)` on entity cleanup and `restore_all_materials()` on broader scene teardown.
+- `M_CharacterLightingManager` runtime pattern (Phase 4):
+  - Discovers dependencies via injection-first + ServiceLocator fallback (`state_store`, `scene_manager`, `ecs_manager`).
+  - Discovers active scene lighting data from `ActiveSceneContainer/<GameplayScene>/Lighting`.
+  - Resolves scene defaults from `Lighting/CharacterLightingSettings.default_profile` when available, otherwise sanitized white/default fallback profile.
+  - Listens for `scene/swapped` via `state_store.action_dispatched` and marks lighting caches dirty for next physics tick.
+  - Discovers character targets from ECS tag query (`get_entities_by_tag("character")`) and restores materials for removed/non-3D entities.
+  - Applies transition gating via Redux scene/navigation slices and `scene_manager.is_transitioning()`; blocked frames restore all character lighting overrides.
+- Phase 8 stabilization pattern:
+  - Boundary hysteresis is per character/per zone key with a deadband (`enter >= 0.02`, `exit < 0.01`) to reduce edge flicker.
+  - Temporal smoothing uses blended `blend_smoothing` per character (`alpha = 1.0 - blend_smoothing`) for tint/intensity transitions.
+  - Clear smoothing/hysteresis runtime state whenever lighting is blocked/disabled or scene bindings are refreshed so stale history does not bleed across transitions.
+- Phase 5 scene-authoring pattern:
+  - Every migrated gameplay scene should provide `Lighting/CharacterLightingSettings` with a `default_profile` (`RS_CharacterLightingProfile`) resource.
+  - Author light zones as explicit `Inter_CharacterLightZone` nodes with scene/prefab `config = ExtResource("res://resources/lighting/zones/cfg_*.tres")`.
+  - Keep authoring data split into reusable resources:
+    - `resources/lighting/profiles/cfg_character_lighting_profile_*.tres`
+    - `resources/lighting/zones/cfg_character_light_zone_*.tres`
+  - Replace character-driving `OmniLight3D` nodes (mood/objective/signpost) only after equivalent zone config is present; preserve non-light visuals (`Visual`, `Sparkles`, meshes) for readability.
+
 ## Naming Conventions Quick Reference
 
 **IMPORTANT**: All production scripts, scenes, and resources must follow documented prefix patterns. As of Phase 5 Complete (2025-12-08), 100% prefix compliance achieved - all files follow their respective prefix patterns. See `docs/general/STYLE_GUIDE.md` for the complete prefix matrix.

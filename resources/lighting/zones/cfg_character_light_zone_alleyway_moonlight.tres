@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RS_CharacterLightZoneConfig" format=3 uid="uid://b2on1westv2qd"]
+
+[ext_resource type="Script" uid="uid://d0p2bmeh23cpe" path="res://scripts/resources/lighting/rs_character_light_zone_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://b0ajmkvkdhef7" path="res://resources/lighting/profiles/cfg_character_lighting_profile_alleyway_moonlight.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+shape_type = 1
+zone_id = &"alleyway_moonlight"
+cylinder_radius = 8.5
+cylinder_height = 10.0
+falloff = 0.9
+blend_weight = 0.72
+priority = 10
+profile = ExtResource("2")

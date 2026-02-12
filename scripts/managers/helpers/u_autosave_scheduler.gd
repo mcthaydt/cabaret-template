@@ -104,7 +104,8 @@ func _request_autosave_if_allowed(priority: int) -> void:
 	# CRITICAL priority ignores cooldown
 
 	# Check blocking conditions
-	if not _is_autosave_allowed():
+	var block_reason: String = _get_autosave_block_reason(false)
+	if not block_reason.is_empty():
 		return
 
 	# Mark dirty and track highest priority
@@ -119,32 +120,38 @@ func _request_autosave_if_allowed(priority: int) -> void:
 	call_deferred("_perform_autosave")
 
 func _is_autosave_allowed() -> bool:
+	return _get_autosave_block_reason(false).is_empty()
+
+func _get_autosave_block_reason(skip_shell_check: bool) -> String:
 	if _state_store == null or _save_manager == null:
-		return false
+		if _state_store == null:
+			return "state_store unavailable"
+		return "save_manager unavailable"
 
 	var state: Dictionary = _state_store.get_state()
 
 	# Only autosave during gameplay (not in menus)
-	var navigation: Dictionary = state.get("navigation", {})
-	if navigation.get("shell", "") != "gameplay":
-		return false
+	if not skip_shell_check:
+		var navigation: Dictionary = state.get("navigation", {})
+		if navigation.get("shell", "") != "gameplay":
+			return "navigation.shell=%s" % str(navigation.get("shell", ""))
 
 	# Check death_in_progress flag
 	var gameplay: Dictionary = state.get("gameplay", {})
 	if gameplay.get("death_in_progress", false):
-		return false
+		return "gameplay.death_in_progress=true"
 
 	# Check scene transitioning flag
 	var scene: Dictionary = state.get("scene", {})
 	if scene.get("is_transitioning", false):
-		return false
+		return "scene.is_transitioning=true"
 
 	# Check if save manager is locked
 	var typed_save_manager := _save_manager as I_SaveManager
 	if typed_save_manager != null and typed_save_manager.is_locked():
-		return false
+		return "save_manager.is_locked=true"
 
-	return true
+	return ""
 
 func _is_gameplay_scene(scene_id: StringName) -> bool:
 	if scene_id == StringName(""):
@@ -178,20 +185,8 @@ func _request_autosave_for_gameplay_transition(priority: int) -> void:
 		return
 
 	# Check other blocking conditions (except shell)
-	if _state_store == null or _save_manager == null:
-		return
-
-	var state: Dictionary = _state_store.get_state()
-	var gameplay: Dictionary = state.get("gameplay", {})
-	if gameplay.get("death_in_progress", false):
-		return
-
-	var scene: Dictionary = state.get("scene", {})
-	if scene.get("is_transitioning", false):
-		return
-
-	var typed_save_manager := _save_manager as I_SaveManager
-	if typed_save_manager != null and typed_save_manager.is_locked():
+	var block_reason: String = _get_autosave_block_reason(true)
+	if not block_reason.is_empty():
 		return
 
 	# Trigger autosave

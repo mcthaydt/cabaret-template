@@ -22,6 +22,10 @@
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import
   ```
 
+- **Do not copy `ext_resource` UID strings blindly between scenes**: If an `ext_resource` line references a UID that does not match the target script/resource (`invalid UID ... using text path instead`), headless tests can fail with unexpected warnings. When hand-editing `.tscn` files, either:
+  - omit the `uid="uid://..."` field on new `ext_resource` entries, or
+  - verify the exact UID from the source `.uid` file before pasting it.
+
 ## Godot Script Class Cache
 
 - **Refresh global class cache after moving `class_name` scripts**: Moving scripts that declare `class_name` can leave the global class cache pointing at old paths, causing scenes to instantiate with base `Control` nodes and missing methods in headless tests. **Fix**: run a headless import pass to rebuild the class cache:
@@ -74,6 +78,8 @@
 
 - **Headless import treats some warnings as errors**: In headless `--import` runs, warnings like “variable type inferred from Variant” can be treated as errors and prevent scripts from loading. Prefer explicit types when a value is `Variant`-typed at the source (e.g., `var script_obj: Script = get_script()` instead of `var script_obj := get_script()`).
 
+- **`Script.new()` return values need explicit annotation in tests**: When loading helper scripts dynamically in GUT (`var script_obj := load(path) as Script`), `var helper := script_obj.new()` can fail parse/type inference in headless runs. Use an explicit annotation for the new instance (`var helper: Variant = script_obj.new()`) unless you can safely type it to a known loaded class.
+
 - **String(enum_value) parse error**: GDScript does not accept `String(enum_value)` for enum values (e.g., `C_SurfaceDetectorComponent.SurfaceType`). Use `str(enum_value)` or cast to `int` first (`String(int(enum_value))`).
 
 - **Avoid `String(...)` as a generic cast in debug logs**: `String(some_variant)` can throw at runtime for some types (e.g., `NodePath`). Prefer `str(...)` for debug prints unless you know the Variant type is safe for `String()`.
@@ -93,6 +99,12 @@
 - **GUT needs recursive dirs**: `-gdir` is not recursive by default; suites in nested folders are silently skipped if you point at a parent. Always pass each test root explicitly (e.g., `-gdir=res://tests/unit -gdir=res://tests/integration`) or list the concrete leaf directories you added to ensure new suites actually run.
 - **Viewport capture fails in headless**: `Viewport.get_texture().get_image()` can error under the headless/dummy renderer (`Parameter "t" is null`). Tests that validate viewport screenshot capture should be marked `pending` when `OS.has_feature("headless")` or `DisplayServer.get_name() == "headless"` to avoid false failures.
 - **`M_StateStore` autoload can leak ambient state into unit tests**: `RS_StateStoreSettings.enable_persistence` defaults to `true`, so tests that create `M_StateStore` can auto-load `user://savegame.json` and emit normalization warnings (for example unknown spawn point warnings) as unexpected test errors. For tests not explicitly validating persistence, set `store.settings.enable_persistence = false` before adding the store node.
+
+## Character Lighting Pitfalls
+
+- **Cache invalidation is required on `scene/swapped` for lighting managers**: Character lighting caches that are built from `ActiveSceneContainer/<GameplayScene>/Lighting` can go stale after a scene transition unless the manager listens to `state_store.action_dispatched` and marks cache state dirty when action type is `scene/swapped`. Without this, zone lists/default profile data can continue referencing the previous scene.
+- **Zones authored outside `Lighting` need explicit registration**: Manager discovery only crawls `Lighting` by default, so objective/signpost/prefab zones under `Entities/...` must register with `character_lighting_manager` on `_ready()` and unregister on `_exit_tree()`. Otherwise those zones never contribute to blends even though their configs and influence math are valid.
+- **Boundary smoothing needs explicit runtime-state resets**: If per-character lighting smoothing/hysteresis history is preserved across scene refreshes or transition-blocked frames, newly loaded scenes can briefly inherit stale tint/intensity targets from the previous scene. Clear character-lighting runtime state when lighting is disabled/blocked and whenever scene bindings are refreshed.
 
 ## UI Navigation Pitfalls (Gamepad/Joystick)
 

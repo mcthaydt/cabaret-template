@@ -49,6 +49,19 @@ func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
 		return Vector3.ZERO
 	return vector - normal * vector.dot(normal)
 
+func _add_ground_surface(top_y: float = 0.0) -> void:
+	var ground := StaticBody3D.new()
+	ground.name = "Ground"
+	ground.position = Vector3(0.0, top_y - 0.5, 0.0)
+
+	var collider := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(30.0, 1.0, 30.0)
+	collider.shape = shape
+	ground.add_child(collider)
+
+	test_scene.add_child(ground)
+
 ## ============================================================================
 ## Spawn Point Discovery Tests
 ## ============================================================================
@@ -265,3 +278,67 @@ func test_spawn_prefers_first_match_when_duplicate_spawn_names() -> void:
 	# Assert: Should use first spawn point found
 	var distance_to_spawn1 := player.global_position.distance_to(spawn1.global_position)
 	assert_lt(distance_to_spawn1, 0.1, "Should spawn at first matching spawn point")
+
+## ============================================================================
+## Ground Snap Tests
+## ============================================================================
+
+func test_spawn_snaps_player_to_ground_when_metadata_flag_enabled() -> void:
+	# Arrange: Spawn high above a collidable floor.
+	_add_ground_surface(0.0)
+
+	var spawn_point := SP_SPAWN_POINT.new()
+	spawn_point.name = "sp_ground_snap"
+	spawn_point.position = Vector3(0.0, 4.0, 0.0)
+	var metadata := RS_SPAWN_METADATA.new()
+	metadata.spawn_id = StringName("sp_ground_snap")
+	metadata.snap_to_ground_on_spawn = true
+	spawn_point.spawn_metadata = metadata
+	test_scene.add_child(spawn_point)
+
+	var player := CharacterBody3D.new()
+	player.name = "E_Player"
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(1.0, 2.0, 1.0)
+	collision.shape = shape
+	player.add_child(collision)
+	test_scene.add_child(player)
+	await get_tree().physics_frame
+
+	# Act
+	var result: bool = spawn_manager.spawn_player_at_point(test_scene, StringName("sp_ground_snap"))
+
+	# Assert
+	assert_true(result, "Spawn should succeed with ground snapping enabled")
+	assert_almost_eq(player.global_position.y, 1.0, 0.15, "Player should be snapped to floor contact instead of remaining at spawn height")
+
+func test_spawn_does_not_snap_to_ground_when_metadata_flag_disabled() -> void:
+	# Arrange: Same layout, but snap flag is disabled.
+	_add_ground_surface(0.0)
+
+	var spawn_point := SP_SPAWN_POINT.new()
+	spawn_point.name = "sp_no_ground_snap"
+	spawn_point.position = Vector3(0.0, 4.0, 0.0)
+	var metadata := RS_SPAWN_METADATA.new()
+	metadata.spawn_id = StringName("sp_no_ground_snap")
+	metadata.snap_to_ground_on_spawn = false
+	spawn_point.spawn_metadata = metadata
+	test_scene.add_child(spawn_point)
+
+	var player := CharacterBody3D.new()
+	player.name = "E_Player"
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(1.0, 2.0, 1.0)
+	collision.shape = shape
+	player.add_child(collision)
+	test_scene.add_child(player)
+	await get_tree().physics_frame
+
+	# Act
+	var result: bool = spawn_manager.spawn_player_at_point(test_scene, StringName("sp_no_ground_snap"))
+
+	# Assert
+	assert_true(result, "Spawn should succeed when ground snapping is disabled")
+	assert_almost_eq(player.global_position.y, 4.0, 0.01, "Player should remain at explicit spawn marker height")

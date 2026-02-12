@@ -50,7 +50,7 @@
 [ext_resource type="Script" uid="uid://b28t1ugsf28h1" path="res://scripts/ecs/systems/s_damage_flash_publisher_system.gd" id="30_damage_flash_publisher"]
 [ext_resource type="Script" uid="uid://fbb6wprew51v" path="res://scripts/gameplay/inter_door_trigger.gd" id="30_door_controller"]
 [ext_resource type="Script" uid="uid://cgbemg2ib5u7c" path="res://scripts/managers/m_gameplay_initializer.gd" id="31_j1c0c"]
-[ext_resource type="Texture2D" uid="uid://ckfvpp3w58ad" path="res://assets/textures/tex_icon.svg" id="39_u0c34"]
+[ext_resource type="Texture2D" uid="uid://c00y3lb5vcsux" path="res://assets/textures/tex_checkpoint_icon.svg" id="39_u0c34"]
 [ext_resource type="Script" uid="uid://cly8oyjtrr3ev" path="res://scripts/gameplay/inter_endgame_goal_zone.gd" id="41_goal_script"]
 [ext_resource type="Script" uid="uid://djud6o4c7psxg" path="res://scripts/ecs/systems/s_checkpoint_system.gd" id="42_checkpoint_system"]
 [ext_resource type="Script" uid="uid://cnqqo6qh71pqh" path="res://scripts/gameplay/inter_checkpoint_zone.gd" id="43_checkpoint_zone_script"]
@@ -72,6 +72,11 @@
 [ext_resource type="Resource" uid="uid://bhpts5ki7j6uv" path="res://resources/interactions/hazards/cfg_hazard_spike_trap.tres" id="64_hazard_spike_config"]
 [ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="65_hazard_death_config"]
 [ext_resource type="Resource" uid="uid://bwspqddgu5kbw" path="res://resources/interactions/endgame/cfg_endgame_goal_exterior.tres" id="66_endgame_config"]
+[ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/scene_structure/marker_lighting_group.gd" id="67_lighting_group"]
+[ext_resource type="Script" uid="uid://v1205hibt78y" path="res://scripts/scene_structure/marker_character_lighting_settings.gd" id="68_character_lighting_settings_script"]
+[ext_resource type="Resource" uid="uid://cu1ht8hp7ldi3" path="res://resources/lighting/cfg_character_lighting_profile_exterior.tres" id="69_character_lighting_profile"]
+[ext_resource type="Script" uid="uid://ditrnsmje8qar" path="res://scripts/gameplay/inter_character_light_zone.gd" id="70_character_light_zone_script"]
+[ext_resource type="Resource" uid="uid://6u8rguj7enh" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_exterior.tres" id="71_character_light_zone_goal_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -149,6 +154,13 @@ transform = Transform3D(1, 0, 0, 0, 0.9385653, 0.34510165, 0, -0.34510165, 0.938
 light_color = Color(0.56078434, 0.827451, 1, 1)
 light_energy = 12.026
 light_indirect_energy = 4.482
+
+[node name="Lighting" type="Node" parent="." unique_id=850112791]
+script = ExtResource("67_lighting_group")
+
+[node name="CharacterLightingSettings" type="Node" parent="Lighting" unique_id=551446591]
+script = ExtResource("68_character_lighting_settings_script")
+default_profile = ExtResource("69_character_lighting_profile")
 
 [node name="Systems" type="Node" parent="." unique_id=819254243]
 script = ExtResource("3_ph0bl")
@@ -365,10 +377,10 @@ tags = Array[StringName]([&"objective", &"endgame"])
 radius = 1.5
 material = ExtResource("56_fade_goal")
 
-[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1268342821]
+[node name="Inter_CharacterLightZone_GoalGlow" type="Node3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1117259621]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-light_color = Color(1, 0.87451, 0.364706, 1)
-light_energy = 2.5
+script = ExtResource("70_character_light_zone_script")
+config = ExtResource("71_character_light_zone_goal_config")
 
 [node name="Sparkles" type="CPUParticles3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1724100335]
 amount = 80

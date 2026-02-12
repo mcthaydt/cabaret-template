@@ -71,7 +71,7 @@ func process_tick(delta: float) -> void:
 			if can_log:
 				print("S_RotateToInputSystem: move_vector zero. entity=%s yaw=%.2f" % [
 					"%s" % [entity_id],
-					rad_to_deg(target.rotation.y),
+					rad_to_deg(target.global_rotation.y),
 				])
 			component.reset_rotation_state()
 			continue
@@ -81,7 +81,7 @@ func process_tick(delta: float) -> void:
 			continue
 
 		var desired_yaw := atan2(-desired_direction.x, -desired_direction.z)
-		var current_rotation := target.rotation
+		var current_rotation := target.global_rotation
 		if can_log:
 			var velocity_yaw: float = 0.0
 			var has_velocity: bool = false
@@ -127,7 +127,7 @@ func process_tick(delta: float) -> void:
 			_apply_second_order_rotation(component, target, desired_yaw, delta, max_delta)
 		else:
 			current_rotation.y = _move_toward_angle(current_rotation.y, desired_yaw, max_delta)
-			target.rotation = current_rotation
+			target.global_rotation = current_rotation
 			component.reset_rotation_state()
 		
 		# Phase 16: Update entity snapshot with rotation (Entity Coordination Pattern)
@@ -145,7 +145,7 @@ func _move_toward_angle(current: float, target: float, max_delta: float) -> floa
 	return current + clamp(difference, -max_delta, max_delta)
 
 func _apply_second_order_rotation(component: C_RotateToInputComponent, target: Node3D, desired_yaw: float, delta: float, max_delta: float) -> void:
-	var current_rotation := target.rotation
+	var current_rotation := target.global_rotation
 	var current_yaw := current_rotation.y
 	var error := wrapf(desired_yaw - current_yaw, -PI, PI)
 	var omega: float = TAU * component.settings.rotation_frequency
@@ -169,7 +169,7 @@ func _apply_second_order_rotation(component: C_RotateToInputComponent, target: N
 	current_yaw += delta_yaw
 	component.set_rotation_velocity(velocity)
 	current_rotation.y = wrapf(current_yaw, -PI, PI)
-	target.rotation = current_rotation
+	target.global_rotation = current_rotation
 
 func _get_desired_direction(move_vector: Vector2, target: Node3D) -> Vector3:
 	if move_vector.length() == 0.0:
