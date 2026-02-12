@@ -1,10 +1,10 @@
-[gd_resource type="Resource" script_class="RS_CharacterLightingProfile" format=3]
+[gd_resource type="Resource" script_class="RS_CharacterLightingProfile" format=3 uid="uid://ywrvvja85gkp"]
 
-[ext_resource type="Script" path="res://scripts/resources/lighting/rs_character_lighting_profile.gd" id="1"]
+[ext_resource type="Script" uid="uid://4r0gfjs52qar" path="res://scripts/resources/lighting/rs_character_lighting_profile.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
 profile_id = &"bar_warm"
-tint = Color(1, 0.7, 0.4, 1)
-intensity = 2.0
+tint = Color(0.95, 0.74, 0.56, 1)
+intensity = 1.7
 blend_smoothing = 0.2

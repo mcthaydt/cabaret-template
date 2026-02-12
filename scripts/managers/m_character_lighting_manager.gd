@@ -326,7 +326,9 @@ func _apply_lighting_to_characters() -> void:
 			_material_applier.restore_character_materials(character_node)
 			continue
 
-		var world_position: Vector3 = (character_node as Node3D).global_position
+		var character_node_3d := character_node as Node3D
+		var body_node := _find_character_body_node(character_node_3d)
+		var world_position: Vector3 = _resolve_sampling_position(character_node_3d, body_node)
 		var zone_inputs: Array = []
 		for zone in _zones:
 			if zone == null or not is_instance_valid(zone):
@@ -384,3 +386,38 @@ func _to_float(value: Variant, fallback: float) -> float:
 	if value is int:
 		return float(value)
 	return fallback
+
+func _resolve_sampling_position(character_node: Node3D, body_node: CharacterBody3D) -> Vector3:
+	if body_node != null and is_instance_valid(body_node):
+		return body_node.global_position
+	return character_node.global_position
+
+func _find_character_body_node(character_node: Node3D) -> CharacterBody3D:
+	if character_node is CharacterBody3D:
+		return character_node as CharacterBody3D
+
+	var direct_body := character_node.get_node_or_null("Player_Body")
+	if direct_body is CharacterBody3D:
+		return direct_body as CharacterBody3D
+
+	var recursive_body := character_node.find_child("Player_Body", true, false)
+	if recursive_body is CharacterBody3D:
+		return recursive_body as CharacterBody3D
+
+	var components := character_node.get_node_or_null("Components")
+	if components == null:
+		return null
+
+	for component_variant in components.get_children():
+		if not (component_variant is Node):
+			continue
+		var component := component_variant as Node
+		if not component.has_method("get_character_body"):
+			continue
+		var body_variant: Variant = component.call("get_character_body")
+		if body_variant is CharacterBody3D:
+			var body_node := body_variant as CharacterBody3D
+			if body_node != null and is_instance_valid(body_node):
+				return body_node
+
+	return null
