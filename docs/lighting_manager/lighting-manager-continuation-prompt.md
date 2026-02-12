@@ -2,17 +2,17 @@
 
 ## Current Status (2026-02-12)
 
-- **Status:** Phase 7 complete (documentation/handoff closed; final style rerun passed).
+- **Status:** Phase 8 complete (coverage/determinism gap closure implemented and validated).
 - **Task Checklist:** `docs/lighting_manager/lighting-manager-tasks.md`
-- **Next Phase:** Phase 8 coverage/determinism gap closure (`LM066`-`LM070`).
+- **Next Phase:** Lighting Manager story complete. No remaining unchecked LM tasks.
 - **Tests Run This Phase:**
-  - `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting -gselect=test_character_zone_lighting_flow` (PASS, 4 tests)
-  - `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting` (PASS, 4 tests)
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (PASS, 8 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting -gselect=test_character_lighting_blend_math` (PASS, 6 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (PASS, 9 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting -gselect=test_character_zone_lighting_flow` (PASS, 7 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -gselect=test_inter_character_light_zone` (PASS, 5 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (PASS, 12 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -gselect=test_basic_transitions` (PASS, 13 tests)
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (PASS, 12 tests; final handoff rerun)
+  - `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs=true -gexit` (PASS, 2238/2247 with 9 expected pending tests in headless/mobile-only cases)
 - **Manual QA:** Complete (`LM056` passed on 2026-02-12)
 
 ## Locked Implementation Decisions

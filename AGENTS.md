@@ -163,6 +163,10 @@
   - Listens for `scene/swapped` via `state_store.action_dispatched` and marks lighting caches dirty for next physics tick.
   - Discovers character targets from ECS tag query (`get_entities_by_tag("character")`) and restores materials for removed/non-3D entities.
   - Applies transition gating via Redux scene/navigation slices and `scene_manager.is_transitioning()`; blocked frames restore all character lighting overrides.
+- Phase 8 stabilization pattern:
+  - Boundary hysteresis is per character/per zone key with a deadband (`enter >= 0.02`, `exit < 0.01`) to reduce edge flicker.
+  - Temporal smoothing uses blended `blend_smoothing` per character (`alpha = 1.0 - blend_smoothing`) for tint/intensity transitions.
+  - Clear smoothing/hysteresis runtime state whenever lighting is blocked/disabled or scene bindings are refreshed so stale history does not bleed across transitions.
 - Phase 5 scene-authoring pattern:
   - Every migrated gameplay scene should provide `Lighting/CharacterLightingSettings` with a `default_profile` (`RS_CharacterLightingProfile`) resource.
   - Author light zones as explicit `Inter_CharacterLightZone` nodes with scene/prefab `config = ExtResource("res://resources/lighting/zones/cfg_*.tres")`.

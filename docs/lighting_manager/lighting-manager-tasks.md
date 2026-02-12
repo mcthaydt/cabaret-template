@@ -1,8 +1,8 @@
 # Lighting Manager - Task Checklist
 
-**Progress:** 63 / 70 tasks complete
+**Progress:** 70 / 70 tasks complete
 **Unit Tests:** 26 / 26 passing
-**Integration Tests:** 1 / 1 passing
+**Integration Tests:** 2 / 2 passing
 **Manual QA:** 1 / 1 complete
 
 ---
@@ -186,18 +186,20 @@
 - [x] LM051 (Red) Create `tests/integration/lighting/test_character_zone_lighting_flow.gd`
   - 2026-02-12: RED baseline confirmed (`tools/run_gut_suite.sh -gdir=res://tests/integration/lighting -gselect=test_character_zone_lighting_flow`) before suite creation (`path does not exist` / script not found).
 - [x] LM052 (Green) Validate overlap blending, scene default fallback, transition behavior, and respawn behavior
-  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting -gselect=test_character_zone_lighting_flow` (4 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting -gselect=test_character_zone_lighting_flow` (5 tests)
   - Coverage assertions:
     - overlap blend across discovered + externally registered zones
     - scene-default fallback outside zone influence
     - transition blocking restores materials and resumes correctly
     - respawned replacement character receives zone lighting
-- [ ] LM053 [REMOVED] Debug API scope removed by product decision
-- [ ] LM054 [REMOVED] Debug logging scope removed by product decision
+- [x] LM053 [REMOVED] Debug API scope removed by product decision
+  - 2026-02-12: Closed as removed by product scope change (no implementation required).
+- [x] LM054 [REMOVED] Debug logging scope removed by product decision
+  - 2026-02-12: Closed as removed by product scope change (no implementation required).
 - [x] LM055 Run full relevant suites (unit/integration/style)
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (8 tests)
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -gselect=test_inter_character_light_zone` (5 tests)
-  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting` (4 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting` (5 tests)
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -gselect=test_basic_transitions` (13 tests)
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)
 - [x] LM056 Manual QA pass across alleyway, bar, exterior, interior transitions
@@ -229,11 +231,24 @@
 
 **Exit Criteria:** inclusion scope, deterministic behavior, and runtime scalability are explicitly validated.
 
-- [ ] LM066 Define lighting math contract doc (tint/intensity ranges, clamp rules, blend order, tie-break behavior)
-- [ ] LM067 (Red) Add unit tests for deterministic overlap ordering and boundary jitter resistance
-- [ ] LM068 (Green) Implement boundary hysteresis/smoothing safeguards to prevent zone-edge flicker
-- [ ] LM069 Add integration coverage that validates player and NPC parity through identical zone paths
-- [ ] LM070 Add performance smoke test + baseline notes for multi-character multi-zone scenes
+- [x] LM066 Define lighting math contract doc (tint/intensity ranges, clamp rules, blend order, tie-break behavior)
+  - 2026-02-12: Added `docs/lighting_manager/lighting-math-contract.md` covering clamp ranges, deterministic sort/tie-break rules, hysteresis thresholds, smoothing equations, and fallback invariants.
+- [x] LM067 (Red) Add unit tests for deterministic overlap ordering and boundary jitter resistance
+  - 2026-02-12: Added red tests:
+    - `tests/unit/lighting/test_character_lighting_blend_math.gd::test_blend_is_permutation_invariant_for_equal_priority_weights`
+    - `tests/unit/managers/test_character_lighting_manager.gd::test_boundary_jitter_uses_temporal_smoothing_to_reduce_flicker`
+  - RED evidence: `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` failed with boundary jitter assertions before smoothing implementation.
+- [x] LM068 (Green) Implement boundary hysteresis/smoothing safeguards to prevent zone-edge flicker
+  - 2026-02-12: Implemented per-zone hysteresis and per-character temporal smoothing in `scripts/managers/m_character_lighting_manager.gd` (plus runtime-state resets on refresh/transition block).
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (9 tests)
+- [x] LM069 Add integration coverage that validates player and NPC parity through identical zone paths
+  - 2026-02-12: Added `test_player_and_npc_receive_matching_lighting_along_same_path` to `tests/integration/lighting/test_character_zone_lighting_flow.gd`.
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting -gselect=test_character_zone_lighting_flow` (7 tests)
+- [x] LM070 Add performance smoke test + baseline notes for multi-character multi-zone scenes
+  - 2026-02-12: Added `test_multi_character_multi_zone_performance_smoke` to `tests/integration/lighting/test_character_zone_lighting_flow.gd`.
+  - Baseline gate: 16 characters, 12 zones, 120 simulated frames, average lighting update time must remain `< 6ms/frame`.
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting -gselect=test_character_zone_lighting_flow` (includes smoke test).
+  - 2026-02-12: PASS `/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs=true -gexit` (2238/2247 with 9 expected pending tests in headless/mobile-only cases).
 
 ---
 
@@ -243,7 +258,7 @@
 - [x] Unit: zone controller behavior
 - [x] Unit: manager lifecycle/discovery/cache invalidation
 - [x] Integration: scene transition + respawn + overlap blending
-- [ ] Integration: player + NPC parity in shared lighting zones
+- [x] Integration: player + NPC parity in shared lighting zones
 - [x] Style: `tests/unit/style/test_style_enforcement.gd`
-- [ ] Performance smoke: multi-character/multi-zone update remains stable
+- [x] Performance smoke: multi-character/multi-zone update remains stable
 - [x] Manual QA: 4 gameplay scenes and cross-scene transitions

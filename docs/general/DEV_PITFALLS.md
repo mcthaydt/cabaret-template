@@ -104,6 +104,7 @@
 
 - **Cache invalidation is required on `scene/swapped` for lighting managers**: Character lighting caches that are built from `ActiveSceneContainer/<GameplayScene>/Lighting` can go stale after a scene transition unless the manager listens to `state_store.action_dispatched` and marks cache state dirty when action type is `scene/swapped`. Without this, zone lists/default profile data can continue referencing the previous scene.
 - **Zones authored outside `Lighting` need explicit registration**: Manager discovery only crawls `Lighting` by default, so objective/signpost/prefab zones under `Entities/...` must register with `character_lighting_manager` on `_ready()` and unregister on `_exit_tree()`. Otherwise those zones never contribute to blends even though their configs and influence math are valid.
+- **Boundary smoothing needs explicit runtime-state resets**: If per-character lighting smoothing/hysteresis history is preserved across scene refreshes or transition-blocked frames, newly loaded scenes can briefly inherit stale tint/intensity targets from the previous scene. Clear character-lighting runtime state when lighting is disabled/blocked and whenever scene bindings are refreshed.
 
 ## UI Navigation Pitfalls (Gamepad/Joystick)
 
