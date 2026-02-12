@@ -83,6 +83,12 @@ class FakeLightZone extends Node3D:
 			"stable_key": String(zone_id),
 		}
 
+func before_each() -> void:
+	U_SERVICE_LOCATOR.clear()
+
+func after_each() -> void:
+	U_SERVICE_LOCATOR.clear()
+
 func test_manager_lifecycle_discovers_dependencies_and_initializes_cache() -> void:
 	var context := await _create_manager_context()
 	var manager: M_CharacterLightingManager = context.manager
@@ -144,6 +150,7 @@ func test_applies_deterministic_weighted_blend_to_character_meshes() -> void:
 	}
 	context.lighting.add_child(zone_b)
 	autofree(zone_b)
+	manager.refresh_scene_bindings()
 
 	manager._physics_process(0.016)
 
@@ -192,6 +199,7 @@ func test_prefers_local_active_scene_container_when_multiple_exist() -> void:
 	}
 	context.lighting.add_child(local_zone)
 	autofree(local_zone)
+	manager.refresh_scene_bindings()
 
 	manager._physics_process(0.016)
 
@@ -224,6 +232,7 @@ func test_transition_gating_blocks_lighting_application() -> void:
 	}
 	context.lighting.add_child(zone)
 	autofree(zone)
+	manager.refresh_scene_bindings()
 
 	manager._physics_process(0.016)
 	assert_null(context.character_mesh.material_override)
@@ -273,6 +282,37 @@ func test_scene_swapped_action_invalidates_caches_and_rebinds_to_new_scene() -> 
 	var new_zones: Array = manager.get("_zones")
 	assert_eq(new_zones.size(), 1)
 	assert_eq(new_zones[0], zone_b)
+
+func test_registered_zone_outside_lighting_subtree_participates_in_blend() -> void:
+	var context := await _create_manager_context()
+	var manager: M_CharacterLightingManager = context.manager
+
+	var external_zone := FakeLightZone.new()
+	external_zone.zone_id = StringName("external_objective_zone")
+	external_zone.zone_priority = 1
+	external_zone.zone_weight = 1.0
+	external_zone.profile = {
+		"tint": Color(0.1, 0.9, 0.3, 1.0),
+		"intensity": 1.7,
+		"blend_smoothing": 0.0
+	}
+	context.entities_root.add_child(external_zone)
+	autofree(external_zone)
+	manager.register_zone(external_zone)
+
+	manager._physics_process(0.016)
+
+	var zones: Array = manager.get("_zones")
+	assert_true(zones.has(external_zone),
+		"Explicitly registered zones should be merged with discovered scene zones.")
+
+	var override_material := context.character_mesh.material_override as ShaderMaterial
+	assert_not_null(override_material)
+	var tint: Color = override_material.get_shader_parameter(PARAM_EFFECTIVE_TINT)
+	assert_almost_eq(tint.r, 0.1, 0.0001)
+	assert_almost_eq(tint.g, 0.9, 0.0001)
+	assert_almost_eq(tint.b, 0.3, 0.0001)
+	assert_almost_eq(float(override_material.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)), 1.7, 0.0001)
 
 func test_dynamic_character_changes_apply_to_new_and_restore_removed_entities() -> void:
 	var context := await _create_manager_context()

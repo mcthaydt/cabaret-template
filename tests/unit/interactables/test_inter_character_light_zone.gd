@@ -4,11 +4,34 @@ const INTER_CHARACTER_LIGHT_ZONE := preload("res://scripts/gameplay/inter_charac
 const RS_CHARACTER_LIGHT_ZONE_CONFIG := preload("res://scripts/resources/lighting/rs_character_light_zone_config.gd")
 const RS_CHARACTER_LIGHTING_PROFILE := preload("res://scripts/resources/lighting/rs_character_lighting_profile.gd")
 
+class FakeCharacterLightingManager extends "res://scripts/interfaces/i_character_lighting_manager.gd":
+	var register_calls: int = 0
+	var unregister_calls: int = 0
+	var registered_zones: Array[Node] = []
+
+	func register_zone(zone: Node) -> void:
+		register_calls += 1
+		if zone == null:
+			return
+		if registered_zones.has(zone):
+			return
+		registered_zones.append(zone)
+
+	func unregister_zone(zone: Node) -> void:
+		unregister_calls += 1
+		registered_zones.erase(zone)
+
 class FakeSceneManager extends "res://scripts/interfaces/i_scene_manager.gd":
 	var transitioning: bool = false
 
 	func is_transitioning() -> bool:
 		return transitioning
+
+func before_each() -> void:
+	U_ServiceLocator.clear()
+
+func after_each() -> void:
+	U_ServiceLocator.clear()
 
 func _pump_frames(count: int = 1) -> void:
 	for _i in count:
@@ -129,3 +152,25 @@ func test_zone_metadata_returns_stable_deep_copied_profile_snapshot() -> void:
 		"Metadata profile snapshot should be deep-copied per call.")
 	assert_eq(String(metadata_first.get("stable_key", "")), String(metadata_second.get("stable_key", "")),
 		"Stable metadata key should remain deterministic across calls.")
+
+func test_registers_and_unregisters_with_character_lighting_manager_service() -> void:
+	var lighting_manager := FakeCharacterLightingManager.new()
+	lighting_manager.name = "M_TestCharacterLightingManager"
+	add_child(lighting_manager)
+	autofree(lighting_manager)
+	U_ServiceLocator.register(StringName("character_lighting_manager"), lighting_manager)
+
+	var config := RS_CHARACTER_LIGHT_ZONE_CONFIG.new()
+	config.shape_type = RS_CharacterLightZoneConfig.ShapeType.BOX
+	config.box_size = Vector3(4.0, 4.0, 4.0)
+
+	var controller := await _create_controller(config)
+	assert_eq(lighting_manager.register_calls, 1,
+		"Zone controller should register itself with the lighting manager on ready.")
+	assert_true(lighting_manager.registered_zones.has(controller),
+		"Lighting manager should track the registered zone instance.")
+
+	controller.queue_free()
+	await _pump_frames(2)
+	assert_eq(lighting_manager.unregister_calls, 1,
+		"Zone controller should unregister itself when leaving the scene tree.")

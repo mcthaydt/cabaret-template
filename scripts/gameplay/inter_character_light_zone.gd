@@ -6,7 +6,9 @@ const RS_TRIGGER_SETTINGS := preload("res://scripts/resources/ecs/rs_scene_trigg
 const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
+const I_CHARACTER_LIGHTING_MANAGER := preload("res://scripts/interfaces/i_character_lighting_manager.gd")
 
+const LIGHTING_SERVICE := StringName("character_lighting_manager")
 const SCENE_SERVICE := StringName("scene_manager")
 const SCENE_SLICE := StringName("scene")
 const MIN_DIMENSION := 0.01
@@ -14,6 +16,7 @@ const MIN_DIMENSION := 0.01
 var _config: Resource = null
 var _cached_store: I_StateStore = null
 var _cached_scene_manager: I_SceneManager = null
+var _cached_lighting_manager: I_CHARACTER_LIGHTING_MANAGER = null
 
 @export var config: Resource:
 	get:
@@ -28,10 +31,13 @@ func _ready() -> void:
 	_apply_config_to_volume_settings()
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	super._ready()
+	call_deferred("_register_with_lighting_manager")
 
 func _exit_tree() -> void:
+	_unregister_from_lighting_manager()
 	_cached_store = null
 	_cached_scene_manager = null
+	_cached_lighting_manager = null
 	super._exit_tree()
 
 func get_zone_id() -> StringName:
@@ -203,3 +209,21 @@ func _get_scene_manager() -> I_SceneManager:
 		return _cached_scene_manager
 	_cached_scene_manager = U_SERVICE_LOCATOR.try_get_service(SCENE_SERVICE) as I_SceneManager
 	return _cached_scene_manager
+
+func _register_with_lighting_manager() -> void:
+	var manager := _get_lighting_manager()
+	if manager == null:
+		return
+	manager.register_zone(self)
+
+func _unregister_from_lighting_manager() -> void:
+	var manager := _get_lighting_manager()
+	if manager == null:
+		return
+	manager.unregister_zone(self)
+
+func _get_lighting_manager() -> I_CHARACTER_LIGHTING_MANAGER:
+	if _cached_lighting_manager != null and is_instance_valid(_cached_lighting_manager):
+		return _cached_lighting_manager
+	_cached_lighting_manager = U_SERVICE_LOCATOR.try_get_service(LIGHTING_SERVICE) as I_CHARACTER_LIGHTING_MANAGER
+	return _cached_lighting_manager
