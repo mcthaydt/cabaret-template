@@ -2,9 +2,9 @@
 
 ## Current Status (2026-02-12)
 
-- **Status:** Phase 6 in progress (integration flow suite added and validated; manual QA still pending).
+- **Status:** Phase 7 complete (documentation/handoff closed; final style rerun passed).
 - **Task Checklist:** `docs/lighting_manager/lighting-manager-tasks.md`
-- **Next Phase:** Phase 6 completion (`LM056` manual QA) then Phase 7 documentation/handoff.
+- **Next Phase:** Phase 8 coverage/determinism gap closure (`LM066`-`LM070`).
 - **Tests Run This Phase:**
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting -gselect=test_character_zone_lighting_flow` (PASS, 4 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting` (PASS, 4 tests)
@@ -12,7 +12,8 @@
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -gselect=test_inter_character_light_zone` (PASS, 5 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (PASS, 12 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -gselect=test_basic_transitions` (PASS, 13 tests)
-- **Manual QA:** Pending (`LM056`)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (PASS, 12 tests; final handoff rerun)
+- **Manual QA:** Complete (`LM056` passed on 2026-02-12)
 
 ## Locked Implementation Decisions
 

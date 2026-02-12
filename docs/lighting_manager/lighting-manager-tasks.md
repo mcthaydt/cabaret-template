@@ -1,9 +1,9 @@
 # Lighting Manager - Task Checklist
 
-**Progress:** 54 / 70 tasks complete
+**Progress:** 63 / 70 tasks complete
 **Unit Tests:** 26 / 26 passing
 **Integration Tests:** 1 / 1 passing
-**Manual QA:** 0 / 1 complete
+**Manual QA:** 1 / 1 complete
 
 ---
 
@@ -208,13 +208,20 @@
 
 **Exit Criteria:** docs are current and phase-complete with continuation context.
 
-- [ ] LM057 Update `docs/lighting_manager/lighting-manager-tasks.md` progress counts + completion notes
-- [ ] LM058 Update `docs/lighting_manager/lighting-manager-continuation-prompt.md` next-step + test status
-- [ ] LM059 Update `AGENTS.md` with finalized character-zone-lighting architecture patterns (if new stable patterns emerged)
-- [ ] LM060 Update `docs/general/DEV_PITFALLS.md` with new pitfalls discovered during implementation
-- [ ] LM061 Run style enforcement one final time
-- [ ] LM062 Commit implementation changes
-- [ ] LM063 Commit documentation updates separately
+- [x] LM057 Update `docs/lighting_manager/lighting-manager-tasks.md` progress counts + completion notes
+  - 2026-02-12: Updated progress counters, manual QA totals, and validation matrix after LM056 pass.
+- [x] LM058 Update `docs/lighting_manager/lighting-manager-continuation-prompt.md` next-step + test status
+  - 2026-02-12: Advanced continuation state to Phase 7 with manual QA completion recorded.
+- [x] LM059 Update `AGENTS.md` with finalized character-zone-lighting architecture patterns (if new stable patterns emerged)
+  - 2026-02-12: Reviewed `AGENTS.md`; existing Character Lighting section already captures finalized architecture patterns from Phases 1-6, so no additional stable-pattern edits were required.
+- [x] LM060 Update `docs/general/DEV_PITFALLS.md` with new pitfalls discovered during implementation
+  - 2026-02-12: Reviewed Phase 6/7 outcomes; no new stable pitfalls were identified beyond existing Character Lighting entries.
+- [x] LM061 Run style enforcement one final time
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)
+- [x] LM062 Commit implementation changes
+  - 2026-02-12: Confirmed implementation landed in prior commits (`0398e34`, `761f4e4`) before docs-only handoff.
+- [x] LM063 Commit documentation updates separately
+  - 2026-02-12: Docs-only Phase 7 handoff update committed separately.
 
 ---
 
@@ -239,4 +246,4 @@
 - [ ] Integration: player + NPC parity in shared lighting zones
 - [x] Style: `tests/unit/style/test_style_enforcement.gd`
 - [ ] Performance smoke: multi-character/multi-zone update remains stable
-- [ ] Manual QA: 4 gameplay scenes and cross-scene transitions
+- [x] Manual QA: 4 gameplay scenes and cross-scene transitions
