@@ -1,0 +1,184 @@
+# Lighting Manager - Task Checklist
+
+**Progress:** 0 / 70 tasks complete
+**Unit Tests:** 0 / 0 passing
+**Integration Tests:** 0 / 0 passing
+**Manual QA:** 0 / 0 complete
+
+---
+
+## Locked Decisions (from planning)
+
+- Character shading is **full unlit** (ignores `Light3D` for character look).
+- Zone authoring uses **dedicated controllers** (`Inter_CharacterLightZone`).
+- Runtime source of truth is **scene/resources only** for phase 1 (no Redux slice yet).
+- Target entities are **all gameplay actors tagged `character`** (player + NPCs + enemies/companions).
+- Non-character proxies/dummies should not use the `character` tag.
+- Overlap resolution is **weighted blend** with priority.
+- Overlap blend must be **deterministic** (stable ordering/tie-break rules).
+- Outside zones uses **scene default profile**.
+- Existing physical mood/objective/signpost lights are **replaced with zones**, using current light values as migration references.
+
+---
+
+## Planned Public API / Types
+
+- `scripts/interfaces/i_character_lighting_manager.gd` (runtime lighting behavior only; no debug methods)
+- `scripts/managers/m_character_lighting_manager.gd`
+- `scripts/gameplay/inter_character_light_zone.gd`
+- `scripts/resources/lighting/rs_character_lighting_profile.gd`
+- `scripts/resources/lighting/rs_character_light_zone_config.gd`
+- `assets/shaders/sh_character_zone_lighting.gdshader`
+
+---
+
+## Phase 0: Documentation + Scaffolding
+
+**Exit Criteria:** task list, continuation prompt, and implementation skeleton are in place with naming/style compliance.
+
+- [ ] LM001 Create interface stub `scripts/interfaces/i_character_lighting_manager.gd`
+- [ ] LM002 Create manager stub `scripts/managers/m_character_lighting_manager.gd`
+- [ ] LM003 Create zone controller stub `scripts/gameplay/inter_character_light_zone.gd`
+- [ ] LM004 Create resource stubs:
+  - `scripts/resources/lighting/rs_character_lighting_profile.gd`
+  - `scripts/resources/lighting/rs_character_light_zone_config.gd`
+- [ ] LM005 Create shader stub `assets/shaders/sh_character_zone_lighting.gdshader`
+- [ ] LM006 Add manager node `M_CharacterLightingManager` under root `Managers` in `scenes/root.tscn`
+- [ ] LM007 Register ServiceLocator key in `scripts/root.gd` (`character_lighting_manager`)
+- [ ] LM064 Update `docs/general/STYLE_GUIDE.md` with lighting category naming conventions and locked shader filename guidance
+- [ ] LM065 Update `tests/unit/style/test_style_enforcement.gd` prefix rules to include `scripts/resources/lighting` and enforce `rs_` pattern
+- [ ] LM008 Run style enforcement: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
+
+---
+
+## Phase 1: Resource + Blend Math (TDD)
+
+**Exit Criteria:** profile/config resources and blend math utility are implemented with unit coverage.
+
+- [ ] LM009 (Red) Create `tests/unit/lighting/test_character_lighting_profile.gd`
+- [ ] LM010 (Green) Implement `RS_CharacterLightingProfile` (tint, intensity, smoothing, validation/clamp)
+- [ ] LM011 (Red) Create `tests/unit/lighting/test_character_light_zone_config.gd`
+- [ ] LM012 (Green) Implement `RS_CharacterLightZoneConfig` (shape, dimensions, offset, falloff, priority, profile ref)
+- [ ] LM013 (Red) Create `tests/unit/lighting/test_character_lighting_blend_math.gd`
+- [ ] LM014 (Green) Implement blend helper utility (weights + normalization + default blend path)
+- [ ] LM015 Verify deep-copy semantics where mutable dictionaries/arrays are exposed
+- [ ] LM016 Re-run phase test suites + style test
+
+---
+
+## Phase 2: Zone Controller Authoring Pattern (TDD)
+
+**Exit Criteria:** zones are authorable like interactable controllers and produce stable influence weights.
+
+- [ ] LM017 (Red) Create `tests/unit/interactables/test_inter_character_light_zone.gd`
+- [ ] LM018 (Green) Implement `Inter_CharacterLightZone` using volume-controller pattern
+- [ ] LM019 Implement area auto-create/adopt behavior and settings duplication (`resource_local_to_scene = true`)
+- [ ] LM020 Implement influence query API from controller (position -> weight)
+- [ ] LM021 Implement priority output and profile reference output for manager consumption
+- [ ] LM022 Add transition gating behavior parity with other interactable controllers where applicable
+- [ ] LM023 Add zone metadata needed by manager cache (stable id/name/profile snapshot)
+- [ ] LM024 Re-run unit + style tests
+
+---
+
+## Phase 3: Shader + Material Application Pipeline (TDD)
+
+**Exit Criteria:** tagged character meshes use unlit zone shader and can receive tint/intensity parameters.
+
+- [ ] LM025 (Red) Create `tests/unit/lighting/test_character_lighting_material_applier.gd`
+- [ ] LM026 (Green) Implement helper to collect relevant `MeshInstance3D` targets per character entity
+- [ ] LM027 (Green) Implement material swap to `ShaderMaterial` with restore-cache of original material
+- [ ] LM028 (Green) Implement shader params (base tint, effective tint, effective intensity)
+- [ ] LM029 Ensure shader ignores physical lights and still preserves texture/albedo read path
+- [ ] LM030 Add no-op fallback when target mesh/material is missing
+- [ ] LM031 Add teardown/restore logic for scene unloads
+- [ ] LM032 Re-run unit + style tests
+
+---
+
+## Phase 4: Character Lighting Manager Core (TDD)
+
+**Exit Criteria:** manager discovers tagged characters + zones, computes weighted blend, and applies results every physics tick.
+
+- [ ] LM033 (Red) Create `tests/unit/managers/test_character_lighting_manager.gd`
+- [ ] LM034 (Green) Implement manager lifecycle (`PROCESS_MODE_ALWAYS`, dependency discovery, cache init)
+- [ ] LM035 Implement entity discovery via ECS manager (`get_entities_by_tag("character")`) for player + NPC parity
+- [ ] LM036 Implement zone discovery from active gameplay scene `Lighting` subtree
+- [ ] LM037 Implement scene default profile lookup (`Lighting/CharacterLightingSettings`)
+- [ ] LM038 Implement weighted blend algorithm with priority, falloff, and deterministic tie-break rules
+- [ ] LM039 Implement transition gating using scene manager/state checks
+- [ ] LM040 Implement scene swap cache invalidation on `scene/swapped`
+- [ ] LM041 Implement support for dynamically added/removed tagged entities
+- [ ] LM042 Re-run unit + style tests
+
+---
+
+## Phase 5: Gameplay Scene Migration (Reference Existing Lights)
+
+**Exit Criteria:** gameplay scenes/prefabs use zone-based character lighting data; physical mood/objective/signpost light nodes removed.
+
+- [ ] LM043 Audit existing light nodes in:
+  - `scenes/gameplay/gameplay_alleyway.tscn`
+  - `scenes/gameplay/gameplay_bar.tscn`
+  - `scenes/gameplay/gameplay_exterior.tscn`
+  - `scenes/gameplay/gameplay_interior_house.tscn`
+  - related prefabs with objective/signpost lights
+- [ ] LM044 Author scene default profiles from current scene lighting intent
+- [ ] LM045 Add `Inter_CharacterLightZone` nodes to mirror current light placement/range/color/energy
+- [ ] LM046 Remove migrated `OmniLight3D` nodes used for character lighting mood
+- [ ] LM047 Remove objective/signpost glow lights and replace with equivalent zones
+- [ ] LM048 Preserve non-light visual readability cues (materials/particles/meshes) as needed
+- [ ] LM049 Validate each migrated scene loads without warnings
+- [ ] LM050 Run style enforcement + targeted scene manager and interactable tests
+
+---
+
+## Phase 6: Integration + Hardening
+
+**Exit Criteria:** integration tests pass and system is stable across transitions and respawns.
+
+- [ ] LM051 (Red) Create `tests/integration/lighting/test_character_zone_lighting_flow.gd`
+- [ ] LM052 (Green) Validate overlap blending, scene default fallback, transition behavior, and respawn behavior
+- [ ] LM053 [REMOVED] Debug API scope removed by product decision
+- [ ] LM054 [REMOVED] Debug logging scope removed by product decision
+- [ ] LM055 Run full relevant suites (unit/integration/style)
+- [ ] LM056 Manual QA pass across alleyway, bar, exterior, interior transitions
+
+---
+
+## Phase 7: Documentation and Handoff
+
+**Exit Criteria:** docs are current and phase-complete with continuation context.
+
+- [ ] LM057 Update `docs/lighting_manager/lighting-manager-tasks.md` progress counts + completion notes
+- [ ] LM058 Update `docs/lighting_manager/lighting-manager-continuation-prompt.md` next-step + test status
+- [ ] LM059 Update `AGENTS.md` with finalized character-zone-lighting architecture patterns (if new stable patterns emerged)
+- [ ] LM060 Update `docs/general/DEV_PITFALLS.md` with new pitfalls discovered during implementation
+- [ ] LM061 Run style enforcement one final time
+- [ ] LM062 Commit implementation changes
+- [ ] LM063 Commit documentation updates separately
+
+---
+
+## Phase 8: Coverage + Determinism Gap Closure
+
+**Exit Criteria:** inclusion scope, deterministic behavior, and runtime scalability are explicitly validated.
+
+- [ ] LM066 Define lighting math contract doc (tint/intensity ranges, clamp rules, blend order, tie-break behavior)
+- [ ] LM067 (Red) Add unit tests for deterministic overlap ordering and boundary jitter resistance
+- [ ] LM068 (Green) Implement boundary hysteresis/smoothing safeguards to prevent zone-edge flicker
+- [ ] LM069 Add integration coverage that validates player and NPC parity through identical zone paths
+- [ ] LM070 Add performance smoke test + baseline notes for multi-character multi-zone scenes
+
+---
+
+## Required Validation Matrix
+
+- [ ] Unit: resources/config/blend math
+- [ ] Unit: zone controller behavior
+- [ ] Unit: manager lifecycle/discovery/cache invalidation
+- [ ] Integration: scene transition + respawn + overlap blending
+- [ ] Integration: player + NPC parity in shared lighting zones
+- [ ] Style: `tests/unit/style/test_style_enforcement.gd`
+- [ ] Performance smoke: multi-character/multi-zone update remains stable
+- [ ] Manual QA: 4 gameplay scenes and cross-scene transitions
