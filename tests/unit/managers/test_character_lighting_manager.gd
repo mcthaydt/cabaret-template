@@ -106,6 +106,12 @@ class OscillatingLightZone extends Node3D:
 			"stable_key": String(zone_id),
 		}
 
+class TaggedCharacterEntity extends Node3D:
+	var tags: Array[StringName] = [StringName("character")]
+
+	func has_tag(tag: StringName) -> bool:
+		return tags.has(tag)
+
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()
 
@@ -368,6 +374,55 @@ func test_dynamic_character_changes_apply_to_new_and_restore_removed_entities() 
 	assert_null(context.character_mesh.material_override, "Removed character should restore original materials.")
 	assert_true(added_character.mesh.material_override is ShaderMaterial)
 
+func test_falls_back_to_scene_tag_discovery_when_ecs_manager_unavailable() -> void:
+	var context := await _create_manager_context()
+	var manager: M_CharacterLightingManager = context.manager
+
+	manager.ecs_manager = null
+	manager.set("_ecs_manager", null)
+
+	# Force dependency fallback path to run without ECS service registration.
+	U_SERVICE_LOCATOR.clear()
+	manager.set("_state_store", context.store)
+	manager.set("_scene_manager", context.scene_manager)
+
+	manager.refresh_scene_bindings()
+	manager._physics_process(0.016)
+
+	var override_material := context.character_mesh.material_override as ShaderMaterial
+	assert_not_null(override_material,
+		"Manager should discover tagged scene entities when ECS manager is temporarily unavailable.")
+
+func test_applies_lighting_while_scene_manager_transition_active_after_gameplay_load() -> void:
+	var context := await _create_manager_context()
+	var manager: M_CharacterLightingManager = context.manager
+
+	var zone := FakeLightZone.new()
+	zone.zone_weight = 1.0
+	zone.profile = {
+		"tint": Color(0.6, 0.5, 0.4, 1.0),
+		"intensity": 1.3,
+		"blend_smoothing": 0.0
+	}
+	context.lighting.add_child(zone)
+	autofree(zone)
+	manager.refresh_scene_bindings()
+
+	context.scene_manager.transitioning = true
+	context.store.set_slice(StringName("scene"), {
+		"is_transitioning": true,
+		"scene_stack": []
+	})
+	context.store.set_slice(StringName("navigation"), {
+		"shell": StringName("gameplay")
+	})
+
+	manager._physics_process(0.016)
+
+	var override_material := context.character_mesh.material_override as ShaderMaterial
+	assert_not_null(override_material,
+		"Manager should apply lighting once gameplay scene is ready, even before transition flags clear.")
+
 func test_boundary_jitter_uses_temporal_smoothing_to_reduce_flicker() -> void:
 	var context := await _create_manager_context()
 	var manager: M_CharacterLightingManager = context.manager
@@ -495,7 +550,7 @@ func _create_gameplay_scene_with_lighting() -> Dictionary:
 	}
 
 func _create_character_entity(node_name: String) -> Dictionary:
-	var entity := Node3D.new()
+	var entity := TaggedCharacterEntity.new()
 	entity.name = node_name
 
 	var mesh_instance := MeshInstance3D.new()

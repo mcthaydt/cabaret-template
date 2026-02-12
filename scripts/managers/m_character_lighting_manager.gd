@@ -112,7 +112,11 @@ func _physics_process(_delta: float) -> void:
 	_prune_invalid_zones()
 	_update_character_entities()
 
-	if _is_transition_blocked():
+	var block_reason := _get_transition_block_reason()
+	if not block_reason.is_empty():
+		if _should_apply_during_transition_block(block_reason):
+			_apply_lighting_to_characters()
+			return
 		_material_applier.restore_all_materials()
 		_clear_all_runtime_state()
 		return
@@ -306,6 +310,21 @@ func _update_character_entities() -> void:
 
 func _discover_character_entities() -> Array[Node]:
 	var resolved: Array[Node] = []
+	var ecs_entities := _discover_character_entities_from_ecs_manager()
+	for entity in ecs_entities:
+		if not resolved.has(entity):
+			resolved.append(entity)
+
+	if resolved.is_empty():
+		var fallback_entities := _discover_character_entities_from_scene_tags()
+		for entity in fallback_entities:
+			if not resolved.has(entity):
+				resolved.append(entity)
+
+	return resolved
+
+func _discover_character_entities_from_ecs_manager() -> Array[Node]:
+	var resolved: Array[Node] = []
 	if _ecs_manager == null:
 		return resolved
 	if not _ecs_manager.has_method("get_entities_by_tag"):
@@ -324,6 +343,42 @@ func _discover_character_entities() -> Array[Node]:
 			continue
 		resolved.append(entity)
 	return resolved
+
+func _discover_character_entities_from_scene_tags() -> Array[Node]:
+	var active_scene := _get_active_scene_root()
+	if active_scene == null:
+		return []
+
+	var discovered: Array[Node] = []
+	_collect_character_entities_recursive(active_scene, discovered)
+	return discovered
+
+func _collect_character_entities_recursive(node: Node, discovered: Array[Node]) -> void:
+	if node is Node3D and _is_character_tagged_node(node):
+		var candidate := node as Node
+		if candidate != null and is_instance_valid(candidate) and not discovered.has(candidate):
+			discovered.append(candidate)
+
+	for child_variant in node.get_children():
+		if child_variant is Node:
+			_collect_character_entities_recursive(child_variant as Node, discovered)
+
+func _is_character_tagged_node(node: Node) -> bool:
+	if node.has_method("has_tag"):
+		var has_tag_variant: Variant = node.call("has_tag", TAG_CHARACTER)
+		if has_tag_variant is bool and has_tag_variant:
+			return true
+
+	if "tags" in node:
+		var tags_variant: Variant = node.get("tags")
+		if tags_variant is Array:
+			var tags := tags_variant as Array
+			for tag_variant in tags:
+				if tag_variant is StringName and tag_variant == TAG_CHARACTER:
+					return true
+				if tag_variant is String and StringName(tag_variant as String) == TAG_CHARACTER:
+					return true
+	return false
 
 func _apply_lighting_to_characters() -> void:
 	for character in _character_entities:
@@ -382,23 +437,55 @@ func _apply_lighting_to_characters() -> void:
 		)
 
 func _is_transition_blocked() -> bool:
+	return not _get_transition_block_reason().is_empty()
+
+func _get_transition_block_reason() -> String:
 	if _state_store != null:
 		var scene_slice: Dictionary = _state_store.get_slice(SCENE_SLICE)
 		if U_SCENE_SELECTORS.is_transitioning(scene_slice):
-			return true
+			return "scene.is_transitioning=true"
 		var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(scene_slice)
 		if not scene_stack.is_empty():
-			return true
+			return "scene.scene_stack size=%d" % scene_stack.size()
 
 		var navigation_slice: Dictionary = _state_store.get_slice(NAVIGATION_SLICE)
 		var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(navigation_slice)
 		if shell != GAMEPLAY_SHELL:
-			return true
+			return "navigation.shell=%s" % String(shell)
 
 	if _scene_manager != null and _scene_manager.is_transitioning():
-		return true
+		return "scene_manager.is_transitioning=true"
 
-	return false
+	return ""
+
+func _should_apply_during_transition_block(block_reason: String) -> bool:
+	# Allow lighting once gameplay content is loaded, even while transition flags
+	# are still true. This prevents a visible black frame window before the scene
+	# manager clears transition state.
+	if block_reason != "scene.is_transitioning=true" and block_reason != "scene_manager.is_transitioning=true":
+		return false
+	if _scene_manager == null or not _scene_manager.is_transitioning():
+		return false
+	if _character_entities.is_empty():
+		return false
+
+	var active_scene := _get_active_scene_root()
+	if active_scene == null:
+		return false
+	if active_scene.get_node_or_null(LIGHTING_NODE_NAME) == null:
+		return false
+
+	if _state_store != null:
+		var scene_slice: Dictionary = _state_store.get_slice(SCENE_SLICE)
+		var scene_stack: Array = U_SCENE_SELECTORS.get_scene_stack(scene_slice)
+		if not scene_stack.is_empty():
+			return false
+		var navigation_slice: Dictionary = _state_store.get_slice(NAVIGATION_SLICE)
+		var shell: StringName = U_NAVIGATION_SELECTORS.get_shell(navigation_slice)
+		if shell != GAMEPLAY_SHELL:
+			return false
+
+	return true
 
 func _to_float(value: Variant, fallback: float) -> float:
 	if value is float:
