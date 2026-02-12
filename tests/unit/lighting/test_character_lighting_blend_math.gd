@@ -150,3 +150,60 @@ func test_blend_partially_mixes_default_profile_when_zone_weight_is_below_one() 
 	assert_almost_eq(tint.b, 0.45, 0.0001)
 	assert_almost_eq(float(result.get("intensity", -1.0)), 1.25, 0.0001)
 	assert_almost_eq(float(result.get("blend_smoothing", -1.0)), 0.25, 0.0001)
+
+func test_blend_is_permutation_invariant_for_equal_priority_weights() -> void:
+	var script_obj := _blend_script()
+	if script_obj == null:
+		return
+
+	var zones_a := [
+		{
+			"zone_id": StringName("zone_a"),
+			"priority": 2,
+			"weight": 0.333333,
+			"profile": {"tint": Color(1.0, 0.0, 0.0, 1.0), "intensity": 1.0, "blend_smoothing": 0.1}
+		},
+		{
+			"zone_id": StringName("zone_b"),
+			"priority": 2,
+			"weight": 0.333333,
+			"profile": {"tint": Color(0.0, 1.0, 0.0, 1.0), "intensity": 2.0, "blend_smoothing": 0.3}
+		},
+		{
+			"zone_id": StringName("zone_c"),
+			"priority": 2,
+			"weight": 0.333333,
+			"profile": {"tint": Color(0.0, 0.0, 1.0, 1.0), "intensity": 3.0, "blend_smoothing": 0.5}
+		},
+	]
+	var zones_b := [
+		zones_a[2],
+		zones_a[0],
+		zones_a[1],
+	]
+
+	var result_a: Dictionary = script_obj.call("blend_zone_profiles", zones_a, {})
+	var result_b: Dictionary = script_obj.call("blend_zone_profiles", zones_b, {})
+
+	var tint_a: Color = result_a.get("tint", Color.WHITE)
+	var tint_b: Color = result_b.get("tint", Color.WHITE)
+	assert_almost_eq(tint_a.r, tint_b.r, 0.0001)
+	assert_almost_eq(tint_a.g, tint_b.g, 0.0001)
+	assert_almost_eq(tint_a.b, tint_b.b, 0.0001)
+	assert_almost_eq(float(result_a.get("intensity", -1.0)), float(result_b.get("intensity", -1.0)), 0.0001)
+	assert_almost_eq(
+		float(result_a.get("blend_smoothing", -1.0)),
+		float(result_b.get("blend_smoothing", -1.0)),
+		0.0001
+	)
+
+	var sources_a: Array = result_a.get("sources", [])
+	var sources_b: Array = result_b.get("sources", [])
+	assert_eq(sources_a.size(), 3)
+	assert_eq(sources_b.size(), 3)
+	assert_eq((sources_a[0] as Dictionary).get("zone_id", StringName("")), StringName("zone_a"))
+	assert_eq((sources_a[1] as Dictionary).get("zone_id", StringName("")), StringName("zone_b"))
+	assert_eq((sources_a[2] as Dictionary).get("zone_id", StringName("")), StringName("zone_c"))
+	assert_eq((sources_b[0] as Dictionary).get("zone_id", StringName("")), StringName("zone_a"))
+	assert_eq((sources_b[1] as Dictionary).get("zone_id", StringName("")), StringName("zone_b"))
+	assert_eq((sources_b[2] as Dictionary).get("zone_id", StringName("")), StringName("zone_c"))

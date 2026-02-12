@@ -83,6 +83,29 @@ class FakeLightZone extends Node3D:
 			"stable_key": String(zone_id),
 		}
 
+class OscillatingLightZone extends Node3D:
+	var weights: Array[float] = []
+	var zone_id: StringName = StringName("zone")
+	var zone_priority: int = 0
+	var profile: Dictionary = {}
+	var _index: int = 0
+
+	func get_influence_weight(_world_position: Vector3) -> float:
+		if weights.is_empty():
+			return 0.0
+		var sample_index := mini(_index, weights.size() - 1)
+		_index += 1
+		return weights[sample_index]
+
+	func get_zone_metadata() -> Dictionary:
+		return {
+			"zone_id": zone_id,
+			"priority": zone_priority,
+			"blend_weight": 1.0,
+			"profile": profile.duplicate(true),
+			"stable_key": String(zone_id),
+		}
+
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()
 
@@ -344,6 +367,43 @@ func test_dynamic_character_changes_apply_to_new_and_restore_removed_entities() 
 
 	assert_null(context.character_mesh.material_override, "Removed character should restore original materials.")
 	assert_true(added_character.mesh.material_override is ShaderMaterial)
+
+func test_boundary_jitter_uses_temporal_smoothing_to_reduce_flicker() -> void:
+	var context := await _create_manager_context()
+	var manager: M_CharacterLightingManager = context.manager
+
+	var zone := OscillatingLightZone.new()
+	zone.zone_id = StringName("jitter_zone")
+	zone.zone_priority = 1
+	zone.weights = [1.0, 0.0, 1.0]
+	zone.profile = {
+		"tint": Color(1.0, 1.0, 1.0, 1.0),
+		"intensity": 2.0,
+		"blend_smoothing": 0.8,
+	}
+	context.lighting.add_child(zone)
+	autofree(zone)
+	manager.refresh_scene_bindings()
+
+	manager._physics_process(0.016)
+	var material_first := context.character_mesh.material_override as ShaderMaterial
+	assert_not_null(material_first)
+	var first_intensity: float = material_first.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)
+	assert_almost_eq(first_intensity, 2.0, 0.0001)
+
+	manager._physics_process(0.016)
+	var material_second := context.character_mesh.material_override as ShaderMaterial
+	assert_not_null(material_second)
+	var second_intensity: float = material_second.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)
+	assert_true(second_intensity > 1.0 and second_intensity < 2.0,
+		"Second frame should smooth toward default instead of snapping.")
+
+	manager._physics_process(0.016)
+	var material_third := context.character_mesh.material_override as ShaderMaterial
+	assert_not_null(material_third)
+	var third_intensity: float = material_third.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)
+	assert_true(third_intensity > second_intensity and third_intensity < 2.0,
+		"Third frame should smooth back toward zone intensity without hard jump.")
 
 func _create_manager_context() -> Dictionary:
 	var store := MOCK_STATE_STORE.new()

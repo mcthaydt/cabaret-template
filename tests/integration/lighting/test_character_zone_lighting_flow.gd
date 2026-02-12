@@ -176,6 +176,118 @@ func test_partial_zone_influence_blends_toward_scene_default() -> void:
 	assert_almost_eq(tint.b, 0.4375, 0.0001)
 	assert_almost_eq(float(material.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)), 1.55, 0.0001)
 
+func test_player_and_npc_receive_matching_lighting_along_same_path() -> void:
+	var context := await _create_lighting_context()
+	var profile := _create_profile(Color(0.7, 0.4, 0.9, 1.0), 1.9)
+	await _create_zone(
+		context.lighting,
+		profile,
+		StringName("shared_path_zone"),
+		1.0,
+		2,
+		Vector3.ZERO,
+		Vector3(10.0, 4.0, 10.0),
+		0.6
+	)
+	context.manager.refresh_scene_bindings()
+
+	var npc := _create_character_entity("E_TestNpcCharacter")
+	context.entities_root.add_child(npc.entity)
+	autofree(npc.entity)
+
+	var ecs_manager := context.ecs_manager as FakeECSManager
+	assert_not_null(ecs_manager)
+	ecs_manager.character_entities = [context.character_entity, npc.entity]
+
+	var sample_positions: Array[Vector3] = [
+		Vector3(0.0, 0.0, 0.0),
+		Vector3(1.0, 0.0, 1.0),
+		Vector3(2.5, 0.0, 0.5),
+		Vector3(3.2, 0.0, 1.5),
+	]
+
+	for sample in sample_positions:
+		context.character_entity.global_position = sample
+		npc.entity.global_position = sample
+		_process_lighting(context.manager)
+
+		var player_material := context.character_mesh.material_override as ShaderMaterial
+		var npc_material := npc.mesh.material_override as ShaderMaterial
+		assert_not_null(player_material, "Player should have lighting material at sample %s" % [sample])
+		assert_not_null(npc_material, "NPC should have lighting material at sample %s" % [sample])
+
+		var player_tint: Color = player_material.get_shader_parameter(PARAM_EFFECTIVE_TINT)
+		var npc_tint: Color = npc_material.get_shader_parameter(PARAM_EFFECTIVE_TINT)
+		assert_almost_eq(player_tint.r, npc_tint.r, 0.0001)
+		assert_almost_eq(player_tint.g, npc_tint.g, 0.0001)
+		assert_almost_eq(player_tint.b, npc_tint.b, 0.0001)
+		assert_almost_eq(
+			float(player_material.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)),
+			float(npc_material.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)),
+			0.0001
+		)
+
+func test_multi_character_multi_zone_performance_smoke() -> void:
+	var context := await _create_lighting_context()
+
+	var zone_count := 12
+	for zone_idx in zone_count:
+		var tint := Color(
+			clampf(0.2 + (0.05 * float(zone_idx)), 0.0, 1.0),
+			clampf(0.3 + (0.03 * float(zone_idx)), 0.0, 1.0),
+			clampf(0.4 + (0.02 * float(zone_idx)), 0.0, 1.0),
+			1.0
+		)
+		var intensity := 1.0 + (0.05 * float(zone_idx))
+		var profile := _create_profile(tint, intensity)
+		await _create_zone(
+			context.lighting,
+			profile,
+			StringName("perf_zone_%d" % zone_idx),
+			1.0,
+			int(zone_idx % 3),
+			Vector3(float(zone_idx) * 1.25, 0.0, 0.0),
+			Vector3(12.0, 4.0, 12.0),
+			0.4
+		)
+
+	var characters: Array = [
+		{"entity": context.character_entity, "mesh": context.character_mesh}
+	]
+	for char_idx in 15:
+		var character := _create_character_entity("E_PerfCharacter_%d" % char_idx)
+		context.entities_root.add_child(character.entity)
+		autofree(character.entity)
+		characters.append(character)
+
+	var ecs_manager := context.ecs_manager as FakeECSManager
+	assert_not_null(ecs_manager)
+	ecs_manager.character_entities.clear()
+	for character in characters:
+		ecs_manager.character_entities.append(character["entity"])
+
+	context.manager.refresh_scene_bindings()
+	var frame_count := 120
+	var start_ms: int = Time.get_ticks_msec()
+	for frame_idx in frame_count:
+		for char_idx in range(characters.size()):
+			var entity := characters[char_idx]["entity"] as Node3D
+			entity.global_position = Vector3(
+				float(char_idx) * 0.8,
+				0.0,
+				sin(float(frame_idx) * 0.1 + float(char_idx) * 0.2) * 3.0
+			)
+		_process_lighting(context.manager)
+	var elapsed_ms: int = Time.get_ticks_msec() - start_ms
+	var average_ms: float = float(elapsed_ms) / float(frame_count)
+
+	assert_lt(average_ms, 6.0,
+		"Performance smoke regression: expected avg < 6ms, got %.3fms across %d frames." % [average_ms, frame_count])
+
+	for character in characters:
+		var mesh := character["mesh"] as MeshInstance3D
+		assert_true(mesh.material_override is ShaderMaterial)
+
 func _process_lighting(manager: M_CharacterLightingManager) -> void:
 	manager._physics_process(0.016)
 

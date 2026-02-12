@@ -21,6 +21,8 @@ const GAMEPLAY_SHELL := StringName("gameplay")
 const ACTIVE_SCENE_CONTAINER_NAME := "ActiveSceneContainer"
 const LIGHTING_NODE_NAME := "Lighting"
 const SETTINGS_NODE_NAME := "CharacterLightingSettings"
+const INFLUENCE_ENTER_THRESHOLD := 0.02
+const INFLUENCE_EXIT_THRESHOLD := 0.01
 const DEFAULT_PROFILE := {
 	"tint": Color(1.0, 1.0, 1.0, 1.0),
 	"intensity": 1.0,
@@ -44,6 +46,8 @@ var _material_applier := U_CHARACTER_LIGHTING_MATERIAL_APPLIER.new()
 var _scene_cache_dirty: bool = true
 var _store_action_connected: bool = false
 var _manual_scene_default_profile: bool = false
+var _character_lighting_history: Dictionary = {} # character instance_id -> {tint, intensity}
+var _character_zone_hysteresis: Dictionary = {} # character instance_id -> {zone_key: is_active}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -57,6 +61,7 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	_disconnect_store_action_signal()
 	_material_applier.restore_all_materials()
+	_clear_all_runtime_state()
 	_registered_zones.clear()
 	_zones.clear()
 	_character_entities.clear()
@@ -86,6 +91,7 @@ func unregister_zone(zone: Node) -> void:
 
 func refresh_scene_bindings() -> void:
 	_scene_cache_dirty = true
+	_clear_all_runtime_state()
 	_refresh_scene_cache()
 
 func set_character_lighting_enabled(enabled: bool) -> void:
@@ -97,6 +103,7 @@ func _physics_process(_delta: float) -> void:
 
 	if not _is_enabled:
 		_material_applier.restore_all_materials()
+		_clear_all_runtime_state()
 		return
 
 	if _scene_cache_dirty:
@@ -107,6 +114,7 @@ func _physics_process(_delta: float) -> void:
 
 	if _is_transition_blocked():
 		_material_applier.restore_all_materials()
+		_clear_all_runtime_state()
 		return
 
 	_apply_lighting_to_characters()
@@ -291,8 +299,10 @@ func _update_character_entities() -> void:
 		if discovered.has(previous):
 			continue
 		_material_applier.restore_character_materials(previous)
+		_clear_character_runtime_state(previous)
 
 	_character_entities = discovered
+	_prune_character_runtime_state(_collect_live_character_ids(discovered))
 
 func _discover_character_entities() -> Array[Node]:
 	var resolved: Array[Node] = []
@@ -324,36 +334,46 @@ func _apply_lighting_to_characters() -> void:
 			continue
 		if not (character_node is Node3D):
 			_material_applier.restore_character_materials(character_node)
+			_clear_character_runtime_state(character_node)
 			continue
 
 		var character_node_3d := character_node as Node3D
+		var character_id: int = character_node.get_instance_id()
 		var body_node := _find_character_body_node(character_node_3d)
 		var world_position: Vector3 = _resolve_sampling_position(character_node_3d, body_node)
 		var zone_inputs: Array = []
+		var observed_zone_keys: Array[String] = []
 		for zone in _zones:
 			if zone == null or not is_instance_valid(zone):
-				continue
-			var influence_variant: Variant = zone.call("get_influence_weight", world_position)
-			var influence: float = _to_float(influence_variant, 0.0)
-			if influence <= 0.0:
 				continue
 			var metadata_variant: Variant = zone.call("get_zone_metadata")
 			if not (metadata_variant is Dictionary):
 				continue
 			var metadata := metadata_variant as Dictionary
+			var stable_key := _resolve_zone_stable_key(metadata)
+			if not stable_key.is_empty():
+				observed_zone_keys.append(stable_key)
+
+			var influence_variant: Variant = zone.call("get_influence_weight", world_position)
+			var influence_raw: float = _to_float(influence_variant, 0.0)
+			var influence: float = _apply_influence_hysteresis(character_id, stable_key, influence_raw)
+			if influence <= 0.0:
+				continue
 			zone_inputs.append({
 				"zone_id": metadata.get("zone_id", StringName("")),
 				"priority": int(metadata.get("priority", 0)),
 				"weight": influence,
 				"profile": metadata.get("profile", {}),
 			})
+		_prune_character_zone_hysteresis(character_id, observed_zone_keys)
 
 		var blended := U_CHARACTER_LIGHTING_BLEND_MATH.blend_zone_profiles(
 			zone_inputs,
 			_scene_default_profile_resolved
 		)
-		var effective_tint: Color = blended.get("tint", Color(1.0, 1.0, 1.0, 1.0))
-		var effective_intensity: float = _to_float(blended.get("intensity", 1.0), 1.0)
+		var stabilized := _apply_temporal_smoothing(character_id, blended)
+		var effective_tint: Color = stabilized.get("tint", Color(1.0, 1.0, 1.0, 1.0))
+		var effective_intensity: float = _to_float(stabilized.get("intensity", 1.0), 1.0)
 		_material_applier.apply_character_lighting(
 			character_node,
 			Color(1.0, 1.0, 1.0, 1.0),
@@ -386,6 +406,130 @@ func _to_float(value: Variant, fallback: float) -> float:
 	if value is int:
 		return float(value)
 	return fallback
+
+func _resolve_zone_stable_key(metadata: Dictionary) -> String:
+	var stable_key_variant: Variant = metadata.get("stable_key", "")
+	if stable_key_variant is String:
+		var stable_key := stable_key_variant as String
+		if not stable_key.is_empty():
+			return stable_key
+	elif stable_key_variant is StringName:
+		var stable_name := stable_key_variant as StringName
+		if not stable_name.is_empty():
+			return String(stable_name)
+
+	var zone_id_variant: Variant = metadata.get("zone_id", StringName(""))
+	if zone_id_variant is StringName:
+		var zone_id_name := zone_id_variant as StringName
+		if not zone_id_name.is_empty():
+			return String(zone_id_name)
+	elif zone_id_variant is String:
+		var zone_id := zone_id_variant as String
+		if not zone_id.is_empty():
+			return zone_id
+
+	return ""
+
+func _apply_influence_hysteresis(character_id: int, zone_key: String, raw_influence: float) -> float:
+	var clamped_influence := clampf(raw_influence, 0.0, 1.0)
+	if zone_key.is_empty():
+		return clamped_influence
+
+	var state_variant: Variant = _character_zone_hysteresis.get(character_id, {})
+	var state: Dictionary = {}
+	if state_variant is Dictionary:
+		state = state_variant as Dictionary
+
+	var was_active := bool(state.get(zone_key, false))
+	var is_active: bool = was_active
+	if was_active:
+		is_active = clamped_influence >= INFLUENCE_EXIT_THRESHOLD
+	else:
+		is_active = clamped_influence >= INFLUENCE_ENTER_THRESHOLD
+
+	state[zone_key] = is_active
+	_character_zone_hysteresis[character_id] = state
+
+	if is_active:
+		return clamped_influence
+	return 0.0
+
+func _prune_character_zone_hysteresis(character_id: int, observed_zone_keys: Array[String]) -> void:
+	var state_variant: Variant = _character_zone_hysteresis.get(character_id, {})
+	if not (state_variant is Dictionary):
+		return
+	var state := state_variant as Dictionary
+	var pruned: Dictionary = {}
+	for key in observed_zone_keys:
+		if state.has(key):
+			pruned[key] = state[key]
+	_character_zone_hysteresis[character_id] = pruned
+
+func _apply_temporal_smoothing(character_id: int, blended: Dictionary) -> Dictionary:
+	var target_tint: Color = blended.get("tint", Color(1.0, 1.0, 1.0, 1.0))
+	var target_intensity: float = _to_float(blended.get("intensity", 1.0), 1.0)
+	var smoothing: float = clampf(_to_float(blended.get("blend_smoothing", 0.0), 0.0), 0.0, 1.0)
+
+	var previous_variant: Variant = _character_lighting_history.get(character_id, null)
+	if previous_variant is Dictionary:
+		var previous := previous_variant as Dictionary
+		var previous_tint: Color = target_tint
+		var previous_tint_variant: Variant = previous.get("tint", target_tint)
+		if previous_tint_variant is Color:
+			previous_tint = previous_tint_variant as Color
+		var previous_intensity: float = _to_float(previous.get("intensity", target_intensity), target_intensity)
+		var blend_alpha := clampf(1.0 - smoothing, 0.0, 1.0)
+		target_tint = previous_tint.lerp(target_tint, blend_alpha)
+		target_intensity = lerpf(previous_intensity, target_intensity, blend_alpha)
+
+	_character_lighting_history[character_id] = {
+		"tint": target_tint,
+		"intensity": target_intensity,
+	}
+	return {
+		"tint": target_tint,
+		"intensity": target_intensity,
+	}
+
+func _collect_live_character_ids(characters: Array[Node]) -> Dictionary:
+	var ids: Dictionary = {}
+	for character in characters:
+		if character == null:
+			continue
+		if not is_instance_valid(character):
+			continue
+		ids[character.get_instance_id()] = true
+	return ids
+
+func _prune_character_runtime_state(live_character_ids: Dictionary) -> void:
+	var stale_history: Array[int] = []
+	for key in _character_lighting_history.keys():
+		var character_id := int(key)
+		if live_character_ids.has(character_id):
+			continue
+		stale_history.append(character_id)
+	for character_id in stale_history:
+		_character_lighting_history.erase(character_id)
+
+	var stale_hysteresis: Array[int] = []
+	for key in _character_zone_hysteresis.keys():
+		var character_id := int(key)
+		if live_character_ids.has(character_id):
+			continue
+		stale_hysteresis.append(character_id)
+	for character_id in stale_hysteresis:
+		_character_zone_hysteresis.erase(character_id)
+
+func _clear_character_runtime_state(character_node: Node) -> void:
+	if character_node == null:
+		return
+	var character_id := character_node.get_instance_id()
+	_character_lighting_history.erase(character_id)
+	_character_zone_hysteresis.erase(character_id)
+
+func _clear_all_runtime_state() -> void:
+	_character_lighting_history.clear()
+	_character_zone_hysteresis.clear()
 
 func _resolve_sampling_position(character_node: Node3D, body_node: CharacterBody3D) -> Vector3:
 	if body_node != null and is_instance_valid(body_node):
