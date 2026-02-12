@@ -6,7 +6,6 @@ const RS_TRIGGER_SETTINGS := preload("res://scripts/resources/ecs/rs_scene_trigg
 const U_INTERACTION_CONFIG_RESOLVER := preload("res://scripts/gameplay/helpers/u_interaction_config_resolver.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
-const I_CHARACTER_LIGHTING_MANAGER := preload("res://scripts/interfaces/i_character_lighting_manager.gd")
 
 const LIGHTING_SERVICE := StringName("character_lighting_manager")
 const SCENE_SERVICE := StringName("scene_manager")
@@ -111,7 +110,7 @@ func _apply_config_to_volume_settings() -> void:
 
 	var runtime_settings := RS_TRIGGER_SETTINGS.new()
 	runtime_settings.resource_local_to_scene = true
-	runtime_settings.shape_type = int(typed.shape_type)
+	runtime_settings.shape_type = int(typed.shape_type) as RS_SceneTriggerSettings.ShapeType
 	runtime_settings.box_size = _clamp_box_size(typed.box_size)
 	runtime_settings.cyl_radius = maxf(typed.cylinder_radius, MIN_DIMENSION)
 	runtime_settings.cyl_height = maxf(typed.cylinder_height, MIN_DIMENSION)

@@ -248,14 +248,14 @@ func _apply_interaction_hint_config(config: Resource) -> void:
 	if offset_variant is Vector3:
 		offset = offset_variant as Vector3
 
-	var scale: float = 1.0
+	var hint_scale: float = 1.0
 	var scale_variant: Variant = config.get("interaction_hint_scale")
 	if scale_variant is float:
-		scale = scale_variant
+		hint_scale = scale_variant
 	elif scale_variant is int:
-		scale = float(scale_variant)
+		hint_scale = float(scale_variant)
 
 	interaction_hint_enabled = enabled
 	interaction_hint_icon = icon
 	interaction_hint_offset = offset
-	interaction_hint_scale = maxf(scale, INTERACTION_HINT_MIN_SCALE)
+	interaction_hint_scale = maxf(hint_scale, INTERACTION_HINT_MIN_SCALE)

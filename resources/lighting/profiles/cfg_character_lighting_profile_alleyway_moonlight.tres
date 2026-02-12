@@ -6,5 +6,5 @@
 script = ExtResource("1")
 profile_id = &"alleyway_moonlight"
 tint = Color(0.4, 0.5, 0.8, 1)
-intensity = 1.5
+intensity = 0.8
 blend_smoothing = 0.2

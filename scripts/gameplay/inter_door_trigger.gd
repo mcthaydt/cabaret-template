@@ -101,7 +101,7 @@ func _apply_component_config() -> void:
 	_component.target_scene_id = typed.target_scene_id
 	_component.target_spawn_point = typed.target_spawn_point
 	_component.cooldown_duration = max(typed.cooldown_duration, 0.0)
-	_component.trigger_mode = typed.trigger_mode
+	_component.trigger_mode = typed.trigger_mode as C_SceneTriggerComponent.TriggerMode
 
 	# Keep controller prompt/activation mode aligned with component configuration
 	match _component.trigger_mode:

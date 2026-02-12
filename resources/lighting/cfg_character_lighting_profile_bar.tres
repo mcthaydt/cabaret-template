@@ -5,6 +5,6 @@
 [resource]
 script = ExtResource("1")
 profile_id = &"bar_default"
-tint = Color(0.8, 0.67, 0.6, 1)
-intensity = 1.4
+tint = Color(0.80406725, 0.3753896, 0.4110435, 1)
+intensity = 0.5
 blend_smoothing = 0.2
