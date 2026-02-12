@@ -1,7 +1,7 @@
 # Lighting Manager - Task Checklist
 
-**Progress:** 9 / 70 tasks complete
-**Unit Tests:** 0 / 0 passing
+**Progress:** 18 / 70 tasks complete
+**Unit Tests:** 10 / 10 passing
 **Integration Tests:** 0 / 0 passing
 **Manual QA:** 0 / 0 complete
 
@@ -47,8 +47,8 @@
 - [x] LM007 Register ServiceLocator key in `scripts/root.gd` (`character_lighting_manager`)
 - [x] LM064 Update `docs/general/STYLE_GUIDE.md` with lighting category naming conventions and locked shader filename guidance
 - [x] LM065 Update `tests/unit/style/test_style_enforcement.gd` prefix rules to include `scripts/resources/lighting` and enforce `rs_` pattern
-- [ ] LM008 Run style enforcement: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
-  - 2026-02-12: Command executed; currently blocked by pre-existing untracked directories with spaces under `resources/interactions/* 2`.
+- [x] LM008 Run style enforcement: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
+  - 2026-02-12: PASS after removing duplicate workspace directories (`resources/interactions/* 2`).
 
 ---
 
@@ -56,14 +56,16 @@
 
 **Exit Criteria:** profile/config resources and blend math utility are implemented with unit coverage.
 
-- [ ] LM009 (Red) Create `tests/unit/lighting/test_character_lighting_profile.gd`
-- [ ] LM010 (Green) Implement `RS_CharacterLightingProfile` (tint, intensity, smoothing, validation/clamp)
-- [ ] LM011 (Red) Create `tests/unit/lighting/test_character_light_zone_config.gd`
-- [ ] LM012 (Green) Implement `RS_CharacterLightZoneConfig` (shape, dimensions, offset, falloff, priority, profile ref)
-- [ ] LM013 (Red) Create `tests/unit/lighting/test_character_lighting_blend_math.gd`
-- [ ] LM014 (Green) Implement blend helper utility (weights + normalization + default blend path)
-- [ ] LM015 Verify deep-copy semantics where mutable dictionaries/arrays are exposed
-- [ ] LM016 Re-run phase test suites + style test
+- [x] LM009 (Red) Create `tests/unit/lighting/test_character_lighting_profile.gd`
+- [x] LM010 (Green) Implement `RS_CharacterLightingProfile` (tint, intensity, smoothing, validation/clamp)
+- [x] LM011 (Red) Create `tests/unit/lighting/test_character_light_zone_config.gd`
+- [x] LM012 (Green) Implement `RS_CharacterLightZoneConfig` (shape, dimensions, offset, falloff, priority, profile ref)
+- [x] LM013 (Red) Create `tests/unit/lighting/test_character_lighting_blend_math.gd`
+- [x] LM014 (Green) Implement blend helper utility (weights + normalization + default blend path)
+- [x] LM015 Verify deep-copy semantics where mutable dictionaries/arrays are exposed
+- [x] LM016 Re-run phase test suites + style test
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting` (10 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)
 
 ---
 
@@ -175,11 +177,11 @@
 
 ## Required Validation Matrix
 
-- [ ] Unit: resources/config/blend math
+- [x] Unit: resources/config/blend math
 - [ ] Unit: zone controller behavior
 - [ ] Unit: manager lifecycle/discovery/cache invalidation
 - [ ] Integration: scene transition + respawn + overlap blending
 - [ ] Integration: player + NPC parity in shared lighting zones
-- [ ] Style: `tests/unit/style/test_style_enforcement.gd`
+- [x] Style: `tests/unit/style/test_style_enforcement.gd`
 - [ ] Performance smoke: multi-character/multi-zone update remains stable
 - [ ] Manual QA: 4 gameplay scenes and cross-scene transitions

@@ -2,10 +2,12 @@
 
 ## Current Status (2026-02-12)
 
-- **Status:** Phase 0 in progress (scaffolding and style/docs alignment implemented; style suite blocked by pre-existing workspace artifacts).
+- **Status:** Phase 1 complete (resource + blend math foundations implemented and tested).
 - **Task Checklist:** `docs/lighting_manager/lighting-manager-tasks.md`
-- **Next Phase:** Phase 0 (Documentation + Scaffolding) - complete LM008 once workspace style blockers are resolved
-- **Tests Run This Phase:** `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (fails due pre-existing `resources/interactions/* 2` directories with spaces)
+- **Next Phase:** Phase 2 (Zone Controller Authoring Pattern)
+- **Tests Run This Phase:**
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting` (PASS, 10 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (PASS, 12 tests)
 - **Manual QA:** Not started
 
 ## Locked Implementation Decisions

@@ -134,6 +134,16 @@
 - Use `visual_paths` to toggle meshes/lights/particles when controllers enable/disable; keep visuals as controller children instead of wiring extra logic nodes.
 - Controllers run with `process_mode = PROCESS_MODE_ALWAYS` and will not activate while `scene.is_transitioning` or `M_SceneManager.is_transitioning()` is true.
 
+### Character Lighting (Phase 1)
+
+- Lighting resource scripts live under `scripts/resources/lighting/` with `rs_` prefixes.
+- `RS_CharacterLightingProfile` is the base data contract; use `get_resolved_values()` for clamped runtime values (`tint`, `intensity`, `blend_smoothing`) instead of reading raw exports directly in blend code.
+- `RS_CharacterLightZoneConfig` is the zone-side contract; use `get_resolved_values()` for clamped dimensions/weights and deep-copied `profile` snapshots.
+- Blend calculations live in `scripts/utils/lighting/u_character_lighting_blend_math.gd` (`U_CharacterLightingBlendMath`):
+  - Deterministic ordering: priority desc, weight desc, zone_id asc.
+  - Weighted blending normalizes source weights.
+  - Empty/invalid zone inputs fall back to a sanitized default profile.
+
 ## Naming Conventions Quick Reference
 
 **IMPORTANT**: All production scripts, scenes, and resources must follow documented prefix patterns. As of Phase 5 Complete (2025-12-08), 100% prefix compliance achieved - all files follow their respective prefix patterns. See `docs/general/STYLE_GUIDE.md` for the complete prefix matrix.
