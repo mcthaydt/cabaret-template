@@ -154,6 +154,55 @@ func test_applies_deterministic_weighted_blend_to_character_meshes() -> void:
 	assert_almost_eq(tint.b, 0.75, 0.0001)
 	assert_almost_eq(float(override_material.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)), 0.5, 0.0001)
 
+func test_prefers_local_active_scene_container_when_multiple_exist() -> void:
+	var foreign_root := Node.new()
+	foreign_root.name = "ForeignRoot"
+	add_child(foreign_root)
+	autofree(foreign_root)
+
+	var foreign_viewport_container := Node.new()
+	foreign_viewport_container.name = "GameViewportContainer"
+	foreign_root.add_child(foreign_viewport_container)
+	var foreign_viewport := Node.new()
+	foreign_viewport.name = "GameViewport"
+	foreign_viewport_container.add_child(foreign_viewport)
+	var foreign_active_scene_container := Node.new()
+	foreign_active_scene_container.name = "ActiveSceneContainer"
+	foreign_viewport.add_child(foreign_active_scene_container)
+
+	var foreign_scene := Node3D.new()
+	foreign_scene.name = "ForeignGameplayScene"
+	var foreign_lighting := Node.new()
+	foreign_lighting.name = "Lighting"
+	foreign_scene.add_child(foreign_lighting)
+	foreign_active_scene_container.add_child(foreign_scene)
+	autofree(foreign_scene)
+
+	var context := await _create_manager_context()
+	var manager: M_CharacterLightingManager = context.manager
+
+	var local_zone := FakeLightZone.new()
+	local_zone.zone_id = StringName("local_zone")
+	local_zone.zone_priority = 1
+	local_zone.zone_weight = 1.0
+	local_zone.profile = {
+		"tint": Color(0.2, 0.6, 0.9, 1.0),
+		"intensity": 1.5,
+		"blend_smoothing": 0.0
+	}
+	context.lighting.add_child(local_zone)
+	autofree(local_zone)
+
+	manager._physics_process(0.016)
+
+	var override_material := context.character_mesh.material_override as ShaderMaterial
+	assert_not_null(override_material, "Character mesh should receive local scene zone lighting.")
+	var tint: Color = override_material.get_shader_parameter(PARAM_EFFECTIVE_TINT)
+	assert_almost_eq(tint.r, 0.2, 0.0001)
+	assert_almost_eq(tint.g, 0.6, 0.0001)
+	assert_almost_eq(tint.b, 0.9, 0.0001)
+	assert_almost_eq(float(override_material.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)), 1.5, 0.0001)
+
 func test_transition_gating_blocks_lighting_application() -> void:
 	var context := await _create_manager_context()
 	var manager: M_CharacterLightingManager = context.manager

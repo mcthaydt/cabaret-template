@@ -60,6 +60,12 @@
 [ext_resource type="Resource" uid="uid://clhnj5hf0m0pa" path="res://resources/interactions/hazards/cfg_hazard_death_zone.tres" id="61_hazard_config"]
 [ext_resource type="Resource" uid="uid://p2w4g7pjp81c" path="res://resources/interactions/victory/cfg_victory_goal_interior_house.tres" id="62_victory_config"]
 [ext_resource type="Resource" uid="uid://bv4nto776uc8h" path="res://resources/interactions/signposts/cfg_signpost_interior_tutorial.tres" id="63_signpost_config"]
+[ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/scene_structure/marker_lighting_group.gd" id="64_lighting_group"]
+[ext_resource type="Script" path="res://scripts/scene_structure/marker_character_lighting_settings.gd" id="65_character_lighting_settings_script"]
+[ext_resource type="Resource" path="res://resources/lighting/cfg_character_lighting_profile_interior_house.tres" id="66_character_lighting_profile"]
+[ext_resource type="Script" path="res://scripts/gameplay/inter_character_light_zone.gd" id="67_character_light_zone_script"]
+[ext_resource type="Resource" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_interior.tres" id="68_character_light_zone_goal_config"]
+[ext_resource type="Resource" path="res://resources/lighting/zones/cfg_character_light_zone_signpost_glow_interior.tres" id="69_character_light_zone_signpost_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0
@@ -141,6 +147,13 @@ transform = Transform3D(1, 0, 0, 0, 0.9385653, 0.34510165, 0, -0.34510165, 0.938
 light_color = Color(0.56078434, 0.827451, 1, 1)
 light_energy = 12.026
 light_indirect_energy = 4.482
+
+[node name="Lighting" type="Node" parent="." unique_id=1271784605]
+script = ExtResource("64_lighting_group")
+
+[node name="CharacterLightingSettings" type="Node" parent="Lighting"]
+script = ExtResource("65_character_lighting_settings_script")
+default_profile = ExtResource("66_character_lighting_profile")
 
 [node name="Systems" type="Node" parent="." unique_id=518888024]
 script = ExtResource("3_ph0bl")
@@ -296,7 +309,7 @@ script = ExtResource("16_8qi87")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -0.41013765, -10.004155)
 script = ExtResource("44_victory_controller")
 config = ExtResource("62_victory_config")
-visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePath("GlowLight")])
+visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles")])
 entity_id = &"goalzone_interior"
 tags = Array[StringName]([&"objective", &"goal"])
 
@@ -304,10 +317,10 @@ tags = Array[StringName]([&"objective", &"goal"])
 radius = 1.5
 material = ExtResource("53_fade_goal")
 
-[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_GoalZone" unique_id=1311426068]
+[node name="Inter_CharacterLightZone_GoalGlow" type="Node3D" parent="Entities/Objectives/E_GoalZone"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-light_color = Color(1, 0.87451, 0.364706, 1)
-light_energy = 2.0
+script = ExtResource("67_character_light_zone_script")
+config = ExtResource("68_character_light_zone_goal_config")
 
 [node name="Sparkles" type="CPUParticles3D" parent="Entities/Objectives/E_GoalZone" unique_id=743593555]
 amount = 80
@@ -342,7 +355,7 @@ material = ExtResource("54_fade_door")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.14, 0, 2)
 script = ExtResource("45_signpost_controller")
 config = ExtResource("63_signpost_config")
-visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("GlowLight")])
+visual_paths = Array[NodePath]([NodePath("Visual")])
 entity_id = &"tutorial_interior"
 tags = Array[StringName]([&"interactable", &"tutorial"])
 
@@ -350,11 +363,10 @@ tags = Array[StringName]([&"interactable", &"tutorial"])
 radius = 0.25
 height = 1.0
 
-[node name="GlowLight" type="OmniLight3D" parent="Entities/E_TutorialSign_Interior" unique_id=2005743107]
+[node name="Inter_CharacterLightZone_SignpostGlow" type="Node3D" parent="Entities/E_TutorialSign_Interior"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
-light_color = Color(0.8, 0.9, 1, 1)
-light_energy = 1.5
-omni_range = 1.863689
+script = ExtResource("67_character_light_zone_script")
+config = ExtResource("69_character_light_zone_signpost_config")
 
 [node name="HUD" parent="." unique_id=1421882679 instance=ExtResource("11_hud")]
 

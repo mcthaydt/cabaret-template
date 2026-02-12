@@ -234,10 +234,7 @@ func _discover_scene_default_profile() -> Resource:
 	return null
 
 func _get_active_scene_root() -> Node:
-	var tree := get_tree()
-	if tree == null or tree.root == null:
-		return null
-	var container := tree.root.find_child(ACTIVE_SCENE_CONTAINER_NAME, true, false)
+	var container := _find_active_scene_container()
 	if container == null:
 		return null
 	var children := container.get_children()
@@ -246,6 +243,29 @@ func _get_active_scene_root() -> Node:
 			var child := child_variant as Node
 			if is_instance_valid(child):
 				return child
+	return null
+
+func _find_active_scene_container() -> Node:
+	var tree := get_tree()
+	if tree == null or tree.root == null:
+		return null
+
+	var scoped_container := _find_scoped_active_scene_container()
+	if scoped_container != null:
+		return scoped_container
+
+	return tree.root.find_child(ACTIVE_SCENE_CONTAINER_NAME, true, false)
+
+func _find_scoped_active_scene_container() -> Node:
+	var current: Node = self
+	while current != null:
+		var by_path := current.get_node_or_null("GameViewportContainer/GameViewport/ActiveSceneContainer")
+		if by_path != null:
+			return by_path
+		var by_name := current.get_node_or_null(ACTIVE_SCENE_CONTAINER_NAME)
+		if by_name != null:
+			return by_name
+		current = current.get_parent()
 	return null
 
 func _resolve_profile_values(profile: Resource) -> Dictionary:

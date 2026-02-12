@@ -64,6 +64,12 @@
 [ext_resource type="Resource" uid="uid://cu3ruo6k60o8k" path="res://resources/interactions/victory/cfg_victory_goal_bar.tres" id="62_victory_config"]
 [ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/scene_structure/marker_lighting_group.gd" id="63_lighting_group"]
 [ext_resource type="Resource" uid="uid://cnyf404ygf6u1" path="res://resources/interactions/signposts/cfg_signpost_bar_tutorial.tres" id="64_signpost_config"]
+[ext_resource type="Script" path="res://scripts/scene_structure/marker_character_lighting_settings.gd" id="65_character_lighting_settings_script"]
+[ext_resource type="Resource" path="res://resources/lighting/cfg_character_lighting_profile_bar.tres" id="66_character_lighting_profile"]
+[ext_resource type="Script" path="res://scripts/gameplay/inter_character_light_zone.gd" id="67_character_light_zone_script"]
+[ext_resource type="Resource" path="res://resources/lighting/zones/cfg_character_light_zone_bar_warm.tres" id="68_character_light_zone_warm_config"]
+[ext_resource type="Resource" path="res://resources/lighting/zones/cfg_character_light_zone_bar_entrance_cool.tres" id="69_character_light_zone_entrance_config"]
+[ext_resource type="Resource" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_bar.tres" id="70_character_light_zone_goal_config"]
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
@@ -209,19 +215,23 @@ script = ExtResource("30_damage_flash_publisher")
 [node name="Lighting" type="Node" parent="." unique_id=999999901]
 script = ExtResource("63_lighting_group")
 
+[node name="CharacterLightingSettings" type="Node" parent="Lighting"]
+script = ExtResource("65_character_lighting_settings_script")
+default_profile = ExtResource("66_character_lighting_profile")
+
+[node name="Inter_CharacterLightZone_BarWarm" type="Node3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+script = ExtResource("67_character_light_zone_script")
+config = ExtResource("68_character_light_zone_warm_config")
+
+[node name="Inter_CharacterLightZone_EntranceCool" type="Node3D" parent="Lighting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, -1)
+script = ExtResource("67_character_light_zone_script")
+config = ExtResource("69_character_light_zone_entrance_config")
+
 [node name="CinemaGradePreview" type="Node" parent="Lighting" unique_id=1416173378]
 script = ExtResource("55_cinema_preview")
 cinema_grade = ExtResource("56_cinema_grade")
-
-[node name="BarLight_Warm" type="OmniLight3D" parent="Lighting" unique_id=999999902]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
-light_color = Color(1, 0.7, 0.4, 1)
-light_energy = 2.0
-omni_range = 10.0
-
-[node name="EntranceLight_Cool" type="OmniLight3D" parent="Lighting" unique_id=999999903]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, -1)
-light_color = Color(0.4, 0.6, 1, 1)
 
 [node name="Managers" type="Node" parent="." unique_id=1732814566]
 script = ExtResource("12_klon2")
@@ -262,7 +272,7 @@ script = ExtResource("16_8qi87")
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.019804, 0.9881649, -4.0965447)
 script = ExtResource("44_victory_controller")
 config = ExtResource("62_victory_config")
-visual_paths = Array[NodePath]([NodePath("Visual"), NodePath(""), NodePath("GlowLight")])
+visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("")])
 entity_id = &"goalzone_bar"
 tags = Array[StringName]([&"objective", &"goal"])
 
@@ -271,10 +281,10 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.63254166)
 radius = 1.5
 material = ExtResource("53_fade_goal")
 
-[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_GoalZone" unique_id=1169942121]
+[node name="Inter_CharacterLightZone_GoalGlow" type="Node3D" parent="Entities/Objectives/E_GoalZone"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.63254166)
-light_color = Color(1, 0.87451, 0.364706, 1)
-light_energy = 2.0
+script = ExtResource("67_character_light_zone_script")
+config = ExtResource("70_character_light_zone_goal_config")
 
 [node name="E_Player" parent="Entities" unique_id=1535353491 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2181439, 1, 0.6794058)

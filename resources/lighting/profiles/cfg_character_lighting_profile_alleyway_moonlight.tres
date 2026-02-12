@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RS_CharacterLightingProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/lighting/rs_character_lighting_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+profile_id = &"alleyway_moonlight"
+tint = Color(0.4, 0.5, 0.8, 1)
+intensity = 1.5
+blend_smoothing = 0.2
