@@ -6,8 +6,8 @@
 - **Task Checklist:** `docs/lighting_manager/lighting-manager-tasks.md`
 - **Next Phase:** Phase 6 (Integration + Hardening)
 - **Tests Run This Phase:**
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (PASS, 7 tests)
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables` (PASS, 51 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (PASS, 8 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables` (PASS, 52 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (PASS, 12 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -gselect=test_basic_transitions` (PASS, 13 tests)
 - **Manual QA:** Not started

@@ -82,7 +82,7 @@
 - [x] LM023 Add zone metadata needed by manager cache (stable id/name/profile snapshot)
 - [x] LM024 Re-run unit + style tests
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -gselect=test_inter_character_light_zone` (4 tests)
-  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables` (51 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables` (52 tests)
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)
 
 ---
@@ -121,8 +121,8 @@
 - [x] LM040 Implement scene swap cache invalidation on `scene/swapped`
 - [x] LM041 Implement support for dynamically added/removed tagged entities
 - [x] LM042 Re-run unit + style tests
-  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (6 tests)
-  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/managers` (147 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (8 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/managers` (149 tests)
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting` (16 tests)
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)
 
@@ -174,7 +174,7 @@
   - 2026-02-12 PASS via `tests/unit/interactables/test_scene_interaction_config_binding.gd` (loads migrated scenes/prefab without unexpected warnings/errors).
 - [x] LM050 Run style enforcement + targeted scene manager and interactable tests
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)
-  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables` (51 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables` (52 tests)
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -gselect=test_basic_transitions` (13 tests)
 
 ---

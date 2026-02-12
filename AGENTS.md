@@ -147,6 +147,7 @@
   - Build runtime `RS_SceneTriggerSettings` from `RS_CharacterLightZoneConfig` in `_apply_config_to_volume_settings()`.
   - Use `resource_local_to_scene = true` for generated trigger settings.
   - Keep passive overlap behavior (`ignore_initial_overlap = false`) so spawn-inside zones still apply.
+  - Auto-register/unregister with `character_lighting_manager` in `_ready()`/`_exit_tree()` so zones authored outside `Lighting` (goal/signpost/prefab hierarchies) are still consumed by the manager.
 - Influence sampling contract for manager consumption:
   - `get_influence_weight(world_position)` returns shape-aware weight (box/cylinder) with falloff and transition gating.
   - `get_zone_metadata()` returns deterministic cache inputs (`zone_id`, `stable_key`, `priority`, `blend_weight`, deep-copied `profile` snapshot).
