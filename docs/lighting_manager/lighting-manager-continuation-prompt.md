@@ -6,7 +6,7 @@
 - **Task Checklist:** `docs/lighting_manager/lighting-manager-tasks.md`
 - **Next Phase:** Phase 2 (Zone Controller Authoring Pattern)
 - **Tests Run This Phase:**
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting` (PASS, 10 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting` (PASS, 11 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (PASS, 12 tests)
 - **Manual QA:** Not started
 

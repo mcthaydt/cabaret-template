@@ -1,7 +1,7 @@
 # Lighting Manager - Task Checklist
 
 **Progress:** 18 / 70 tasks complete
-**Unit Tests:** 10 / 10 passing
+**Unit Tests:** 11 / 11 passing
 **Integration Tests:** 0 / 0 passing
 **Manual QA:** 0 / 0 complete
 
@@ -64,7 +64,7 @@
 - [x] LM014 (Green) Implement blend helper utility (weights + normalization + default blend path)
 - [x] LM015 Verify deep-copy semantics where mutable dictionaries/arrays are exposed
 - [x] LM016 Re-run phase test suites + style test
-  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting` (10 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting` (11 tests)
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)
 
 ---
