@@ -104,6 +104,25 @@ func test_visibility_follows_device_pause_and_transition_state() -> void:
 	await wait_process_frames(1)
 	assert_true(controls.visible, "Controls show after transition completes")
 
+func test_signpost_dialog_temporarily_hides_controls_until_message_expires() -> void:
+	var store := await _create_state_store()
+	store.dispatch(U_NavigationActions.start_game(StringName("alleyway")))
+	var controls := await _create_controls(func(instance):
+		instance.force_enable = true
+	)
+	await wait_process_frames(2)
+	assert_true(controls.visible, "Controls should start visible in gameplay with touchscreen")
+
+	U_ECSEventBus.publish(StringName("signpost_message"), {
+		"message": "Dialog readability takes priority",
+		"message_duration_sec": 0.2
+	})
+	await wait_process_frames(1)
+	assert_false(controls.visible, "Controls should hide while a signpost dialog message is active")
+
+	await wait_seconds(0.8)
+	assert_true(controls.visible, "Controls should restore after signpost dialog visibility window ends")
+
 func test_opacity_tween_fades_after_idle_delay() -> void:
 	await _create_state_store()
 	var controls := await _create_controls(func(instance):
