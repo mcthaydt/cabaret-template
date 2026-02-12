@@ -5,6 +5,6 @@
 [resource]
 script = ExtResource("1")
 profile_id = &"alleyway_street_warm"
-tint = Color(1, 0.8, 0.6, 1)
-intensity = 0.8
-blend_smoothing = 0.2
+tint = Color(1, 0.73, 0.46, 1)
+intensity = 1.18
+blend_smoothing = 0.18

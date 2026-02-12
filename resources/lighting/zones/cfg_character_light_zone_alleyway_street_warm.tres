@@ -7,8 +7,9 @@
 script = ExtResource("1")
 shape_type = 1
 zone_id = &"alleyway_street_warm"
-cylinder_radius = 4.5
-cylinder_height = 5.0
-falloff = 0.8
-priority = 12
+cylinder_radius = 4.2
+cylinder_height = 6.5
+falloff = 0.68
+blend_weight = 1.0
+priority = 13
 profile = ExtResource("2")

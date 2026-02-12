@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="RS_CharacterLightingProfile" format=3 uid="uid://cdlr6m47x8801"]
-
-[ext_resource type="Script" uid="uid://4r0gfjs52qar" path="res://scripts/resources/lighting/rs_character_lighting_profile.gd" id="1"]
-
-[resource]
-script = ExtResource("1")
-profile_id = &"goal_glow_hot"
-tint = Color(1, 0.87451, 0.364706, 1)
-intensity = 2.5

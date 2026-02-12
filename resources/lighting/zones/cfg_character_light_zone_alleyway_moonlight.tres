@@ -7,9 +7,9 @@
 script = ExtResource("1")
 shape_type = 1
 zone_id = &"alleyway_moonlight"
-cylinder_radius = 9.0
-cylinder_height = 8.0
-falloff = 0.8
-blend_weight = 0.85
+cylinder_radius = 8.5
+cylinder_height = 10.0
+falloff = 0.9
+blend_weight = 0.72
 priority = 10
 profile = ExtResource("2")

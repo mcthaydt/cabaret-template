@@ -7,9 +7,9 @@
 script = ExtResource("1")
 shape_type = 1
 zone_id = &"bar_warm"
-cylinder_radius = 5.5
-cylinder_height = 5.0
-falloff = 0.85
-blend_weight = 0.95
-priority = 10
+cylinder_radius = 6.6
+cylinder_height = 7.0
+falloff = 0.78
+blend_weight = 1.0
+priority = 11
 profile = ExtResource("2")
