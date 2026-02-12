@@ -15,6 +15,7 @@ const GD_DIRECTORIES := [
 	"res://scripts/scene_structure",
 	"res://tests/unit/interactables",
 	"res://tests/unit/input",
+	"res://tests/unit/lighting",
 	"res://tests/unit/style",
 	"res://tests/unit/ui"
 ]

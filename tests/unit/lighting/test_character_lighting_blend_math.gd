@@ -100,3 +100,22 @@ func test_blend_sources_are_sorted_deterministically() -> void:
 	assert_eq(first.get("zone_id", StringName("")), StringName("zone_top"))
 	assert_eq(second.get("zone_id", StringName("")), StringName("zone_a"))
 	assert_eq(third.get("zone_id", StringName("")), StringName("zone_b"))
+
+func test_blend_accepts_blend_weight_key_from_zone_config_snapshots() -> void:
+	var script_obj := _blend_script()
+	if script_obj == null:
+		return
+
+	var zones := [
+		{
+			"zone_id": StringName("zone_a"),
+			"priority": 0,
+			"blend_weight": 1.0,
+			"profile": {"tint": Color(0.2, 0.4, 0.6, 1.0), "intensity": 2.0, "blend_smoothing": 0.25}
+		}
+	]
+
+	var result: Dictionary = script_obj.call("blend_zone_profiles", zones, {})
+	assert_eq(result.get("tint"), Color(0.2, 0.4, 0.6, 1.0))
+	assert_almost_eq(float(result.get("intensity", -1.0)), 2.0, 0.0001)
+	assert_almost_eq(float(result.get("blend_smoothing", -1.0)), 0.25, 0.0001)

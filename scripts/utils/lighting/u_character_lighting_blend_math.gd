@@ -61,7 +61,8 @@ static func _collect_valid_sources(zone_inputs: Array) -> Array[Dictionary]:
 			continue
 		var source := source_variant as Dictionary
 
-		var weight: float = clampf(_to_float(source.get("weight", 0.0), 0.0), 0.0, 1.0)
+		var weight_value: Variant = source.get("weight", source.get("blend_weight", 0.0))
+		var weight: float = clampf(_to_float(weight_value, 0.0), 0.0, 1.0)
 		if weight <= 0.0:
 			continue
 
