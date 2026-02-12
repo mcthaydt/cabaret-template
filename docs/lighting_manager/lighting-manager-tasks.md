@@ -1,6 +1,6 @@
 # Lighting Manager - Task Checklist
 
-**Progress:** 0 / 70 tasks complete
+**Progress:** 9 / 70 tasks complete
 **Unit Tests:** 0 / 0 passing
 **Integration Tests:** 0 / 0 passing
 **Manual QA:** 0 / 0 complete
@@ -36,18 +36,19 @@
 
 **Exit Criteria:** task list, continuation prompt, and implementation skeleton are in place with naming/style compliance.
 
-- [ ] LM001 Create interface stub `scripts/interfaces/i_character_lighting_manager.gd`
-- [ ] LM002 Create manager stub `scripts/managers/m_character_lighting_manager.gd`
-- [ ] LM003 Create zone controller stub `scripts/gameplay/inter_character_light_zone.gd`
-- [ ] LM004 Create resource stubs:
+- [x] LM001 Create interface stub `scripts/interfaces/i_character_lighting_manager.gd`
+- [x] LM002 Create manager stub `scripts/managers/m_character_lighting_manager.gd`
+- [x] LM003 Create zone controller stub `scripts/gameplay/inter_character_light_zone.gd`
+- [x] LM004 Create resource stubs:
   - `scripts/resources/lighting/rs_character_lighting_profile.gd`
   - `scripts/resources/lighting/rs_character_light_zone_config.gd`
-- [ ] LM005 Create shader stub `assets/shaders/sh_character_zone_lighting.gdshader`
-- [ ] LM006 Add manager node `M_CharacterLightingManager` under root `Managers` in `scenes/root.tscn`
-- [ ] LM007 Register ServiceLocator key in `scripts/root.gd` (`character_lighting_manager`)
-- [ ] LM064 Update `docs/general/STYLE_GUIDE.md` with lighting category naming conventions and locked shader filename guidance
-- [ ] LM065 Update `tests/unit/style/test_style_enforcement.gd` prefix rules to include `scripts/resources/lighting` and enforce `rs_` pattern
+- [x] LM005 Create shader stub `assets/shaders/sh_character_zone_lighting.gdshader`
+- [x] LM006 Add manager node `M_CharacterLightingManager` under root `Managers` in `scenes/root.tscn`
+- [x] LM007 Register ServiceLocator key in `scripts/root.gd` (`character_lighting_manager`)
+- [x] LM064 Update `docs/general/STYLE_GUIDE.md` with lighting category naming conventions and locked shader filename guidance
+- [x] LM065 Update `tests/unit/style/test_style_enforcement.gd` prefix rules to include `scripts/resources/lighting` and enforce `rs_` pattern
 - [ ] LM008 Run style enforcement: `tools/run_gut_suite.sh -gdir=res://tests/unit/style`
+  - 2026-02-12: Command executed; currently blocked by pre-existing untracked directories with spaces under `resources/interactions/* 2`.
 
 ---
 

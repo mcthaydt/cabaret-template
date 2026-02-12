@@ -48,6 +48,7 @@ The following patterns apply to **production** scripts under `res://scripts/**`.
 | **Resources (settings)** | `rs_*_settings.gd` | `rs_movement_settings.gd` |
 | **Resources (initial state)** | `rs_*_initial_state.gd` | `rs_gameplay_initial_state.gd` |
 | **Resources (registry/definition)** | `rs_*_entry.gd` / `rs_*_definition.gd` | `rs_scene_registry_entry.gd`, `rs_ui_screen_definition.gd` |
+| **Resources (lighting)** | `rs_character_lighting_*.gd` / `rs_character_light_*_config.gd` | `rs_character_lighting_profile.gd`, `rs_character_light_zone_config.gd` |
 | **State Actions** | `u_*_actions.gd` | `u_gameplay_actions.gd` |
 | **State Reducers** | `u_*_reducer.gd` | `u_gameplay_reducer.gd` |
 | **State Selectors** | `u_*_selectors.gd` | `u_gameplay_selectors.gd` |
@@ -66,6 +67,9 @@ The following patterns apply to **production** scripts under `res://scripts/**`.
 | **Tools** | `t_*_tool.gd` | `t_level_editor_tool.gd` |
 | **Plugins** | `p_*_plugin.gd` | `p_custom_plugin.gd` |
 | **Helpers** | `*helpers/*` + `u_*_helper.gd` / `u_*_builder.gd` / `u_*_loader.gd` | `u_scene_registry_loader.gd`, `u_touchscreen_preview_builder.gd`, `u_input_profile_loader.gd` |
+
+**Shader filename exception (locked):**
+- `assets/shaders/sh_character_zone_lighting.gdshader` is an intentional locked production filename for the character lighting pipeline and is allowed even though it does not use the `_shader` suffix.
 
 ### Scenes & Resources: Filenames
 
@@ -222,6 +226,7 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 | **Input Systems** | `s_*_system.gd` | `S_*System` | `s_input_system.gd` → `S_InputSystem`, `s_touchscreen_system.gd` → `S_TouchscreenSystem` |
 | **Input Sources** | `*_source.gd` (in `scripts/input/sources/`) | `*Source` | `keyboard_mouse_source.gd` → `KeyboardMouseSource` |
 | **Input Resources** | `rs_*.gd` (in `scripts/resources/input/`) | `RS_*` | `rs_input_profile.gd` → `RS_InputProfile`, `rs_touchscreen_settings.gd` → `RS_TouchscreenSettings` |
+| **Lighting Resources** | `rs_*.gd` (in `scripts/resources/lighting/`) | `RS_*` | `rs_character_lighting_profile.gd` → `RS_CharacterLightingProfile`, `rs_character_light_zone_config.gd` → `RS_CharacterLightZoneConfig` |
 
 ##### Input Sources
 
@@ -276,6 +281,7 @@ scripts/
 ├── resources/
 │   ├── ecs/
 │   ├── input/
+│   ├── lighting/
 │   ├── scene_management/
 │   ├── state/
 │   └── ui/

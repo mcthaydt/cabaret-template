@@ -2,10 +2,10 @@
 
 ## Current Status (2026-02-12)
 
-- **Status:** Planning complete; implementation not started.
+- **Status:** Phase 0 in progress (scaffolding and style/docs alignment implemented; style suite blocked by pre-existing workspace artifacts).
 - **Task Checklist:** `docs/lighting_manager/lighting-manager-tasks.md`
-- **Next Phase:** Phase 0 (Documentation + Scaffolding)
-- **Tests Run This Phase:** None (planning only)
+- **Next Phase:** Phase 0 (Documentation + Scaffolding) - complete LM008 once workspace style blockers are resolved
+- **Tests Run This Phase:** `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (fails due pre-existing `resources/interactions/* 2` directories with spaces)
 - **Manual QA:** Not started
 
 ## Locked Implementation Decisions
