@@ -2,7 +2,7 @@
 
 ![MOV to GIF (1)](https://github.com/user-attachments/assets/419c5753-2701-4444-aa7b-26b0d59edbd1)
 
-Cabaret Template is an opinionated Godot 4.5 starter project for building a small-to-medium game with:
+Cabaret Template is an opinionated Godot 4.6 starter project for building a small-to-medium game with:
 - A lightweight **Node-based ECS** (entities + components + systems) for gameplay logic
 - A **Redux-style state store** (actions/reducers/selectors) for deterministic state + UI/navigation
 - A **scene manager** with transitions, overlays, preloading, and caching
