@@ -62,10 +62,10 @@
 [ext_resource type="Resource" uid="uid://bv4nto776uc8h" path="res://resources/interactions/signposts/cfg_signpost_interior_tutorial.tres" id="63_signpost_config"]
 [ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/scene_structure/marker_lighting_group.gd" id="64_lighting_group"]
 [ext_resource type="Script" uid="uid://v1205hibt78y" path="res://scripts/scene_structure/marker_character_lighting_settings.gd" id="65_character_lighting_settings_script"]
-[ext_resource type="Resource" path="res://resources/lighting/cfg_character_lighting_profile_interior_house.tres" id="66_character_lighting_profile"]
+[ext_resource type="Resource" uid="uid://cbobev4ikiqb7" path="res://resources/lighting/cfg_character_lighting_profile_interior_house.tres" id="66_character_lighting_profile"]
 [ext_resource type="Script" uid="uid://ditrnsmje8qar" path="res://scripts/gameplay/inter_character_light_zone.gd" id="67_character_light_zone_script"]
-[ext_resource type="Resource" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_interior.tres" id="68_character_light_zone_goal_config"]
-[ext_resource type="Resource" path="res://resources/lighting/zones/cfg_character_light_zone_signpost_glow_interior.tres" id="69_character_light_zone_signpost_config"]
+[ext_resource type="Resource" uid="uid://2mbi7nltqqdy" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_interior.tres" id="68_character_light_zone_goal_config"]
+[ext_resource type="Resource" uid="uid://cfrrg0a7vn7p1" path="res://resources/lighting/zones/cfg_character_light_zone_signpost_glow_interior.tres" id="69_character_light_zone_signpost_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
 shading_mode = 0

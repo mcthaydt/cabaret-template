@@ -4,7 +4,7 @@
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="3_fade_material"]
 [ext_resource type="Resource" uid="uid://cc6jf6higq2bl" path="res://resources/interactions/victory/cfg_victory_goal_prefab.tres" id="4_victory_config"]
 [ext_resource type="Script" uid="uid://ditrnsmje8qar" path="res://scripts/gameplay/inter_character_light_zone.gd" id="5_character_light_zone_script"]
-[ext_resource type="Resource" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_prefab.tres" id="6_character_light_zone_goal_config"]
+[ext_resource type="Resource" uid="uid://bmj2g7cup5e21" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_prefab.tres" id="6_character_light_zone_goal_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b3ofg"]
 

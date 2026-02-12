@@ -65,11 +65,11 @@
 [ext_resource type="Script" uid="uid://buvmb10qfbvm5" path="res://scripts/scene_structure/marker_lighting_group.gd" id="63_lighting_group"]
 [ext_resource type="Resource" uid="uid://cnyf404ygf6u1" path="res://resources/interactions/signposts/cfg_signpost_bar_tutorial.tres" id="64_signpost_config"]
 [ext_resource type="Script" uid="uid://v1205hibt78y" path="res://scripts/scene_structure/marker_character_lighting_settings.gd" id="65_character_lighting_settings_script"]
-[ext_resource type="Resource" path="res://resources/lighting/cfg_character_lighting_profile_bar.tres" id="66_character_lighting_profile"]
+[ext_resource type="Resource" uid="uid://dxetswoxlmw1y" path="res://resources/lighting/cfg_character_lighting_profile_bar.tres" id="66_character_lighting_profile"]
 [ext_resource type="Script" uid="uid://ditrnsmje8qar" path="res://scripts/gameplay/inter_character_light_zone.gd" id="67_character_light_zone_script"]
-[ext_resource type="Resource" path="res://resources/lighting/zones/cfg_character_light_zone_bar_warm.tres" id="68_character_light_zone_warm_config"]
-[ext_resource type="Resource" path="res://resources/lighting/zones/cfg_character_light_zone_bar_entrance_cool.tres" id="69_character_light_zone_entrance_config"]
-[ext_resource type="Resource" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_bar.tres" id="70_character_light_zone_goal_config"]
+[ext_resource type="Resource" uid="uid://5wk0u8qgkwo1" path="res://resources/lighting/zones/cfg_character_light_zone_bar_warm.tres" id="68_character_light_zone_warm_config"]
+[ext_resource type="Resource" uid="uid://c230upatsnrwh" path="res://resources/lighting/zones/cfg_character_light_zone_bar_entrance_cool.tres" id="69_character_light_zone_entrance_config"]
+[ext_resource type="Resource" uid="uid://d81vvi18th06" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_bar.tres" id="70_character_light_zone_goal_config"]
 
 [sub_resource type="Environment" id="Environment_bar"]
 background_mode = 1
