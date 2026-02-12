@@ -2,12 +2,13 @@
 
 ## Current Status (2026-02-12)
 
-- **Status:** Phase 2 complete (zone controller authoring behavior implemented and validated).
+- **Status:** Phase 3 complete (shader/material application helper implemented and validated).
 - **Task Checklist:** `docs/lighting_manager/lighting-manager-tasks.md`
-- **Next Phase:** Phase 3 (Shader + Material Application Pipeline)
+- **Next Phase:** Phase 4 (Character Lighting Manager Core)
 - **Tests Run This Phase:**
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -gselect=test_inter_character_light_zone` (PASS, 4 tests)
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables` (PASS, 51 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting -gselect=test_character_lighting_material_applier` (RED: expected fail, 5 failing tests before helper implementation)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting -gselect=test_character_lighting_material_applier` (PASS, 5 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting` (PASS, 16 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (PASS, 12 tests)
 - **Manual QA:** Not started
 
@@ -30,6 +31,7 @@
 - `scripts/gameplay/inter_character_light_zone.gd`
 - `scripts/resources/lighting/rs_character_lighting_profile.gd`
 - `scripts/resources/lighting/rs_character_light_zone_config.gd`
+- `scripts/utils/lighting/u_character_lighting_material_applier.gd`
 - `assets/shaders/sh_character_zone_lighting.gdshader`
 
 ## Required Readings Before Coding

@@ -74,6 +74,8 @@
 
 - **Headless import treats some warnings as errors**: In headless `--import` runs, warnings like “variable type inferred from Variant” can be treated as errors and prevent scripts from loading. Prefer explicit types when a value is `Variant`-typed at the source (e.g., `var script_obj: Script = get_script()` instead of `var script_obj := get_script()`).
 
+- **`Script.new()` return values need explicit annotation in tests**: When loading helper scripts dynamically in GUT (`var script_obj := load(path) as Script`), `var helper := script_obj.new()` can fail parse/type inference in headless runs. Use an explicit annotation for the new instance (`var helper: Variant = script_obj.new()`) unless you can safely type it to a known loaded class.
+
 - **String(enum_value) parse error**: GDScript does not accept `String(enum_value)` for enum values (e.g., `C_SurfaceDetectorComponent.SurfaceType`). Use `str(enum_value)` or cast to `int` first (`String(int(enum_value))`).
 
 - **Avoid `String(...)` as a generic cast in debug logs**: `String(some_variant)` can throw at runtime for some types (e.g., `NodePath`). Prefer `str(...)` for debug prints unless you know the Variant type is safe for `String()`.

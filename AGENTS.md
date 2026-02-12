@@ -134,7 +134,7 @@
 - Use `visual_paths` to toggle meshes/lights/particles when controllers enable/disable; keep visuals as controller children instead of wiring extra logic nodes.
 - Controllers run with `process_mode = PROCESS_MODE_ALWAYS` and will not activate while `scene.is_transitioning` or `M_SceneManager.is_transitioning()` is true.
 
-### Character Lighting (Phase 1-2)
+### Character Lighting (Phase 1-3)
 
 - Lighting resource scripts live under `scripts/resources/lighting/` with `rs_` prefixes.
 - `RS_CharacterLightingProfile` is the base data contract; use `get_resolved_values()` for clamped runtime values (`tint`, `intensity`, `blend_smoothing`) instead of reading raw exports directly in blend code.
@@ -150,6 +150,11 @@
 - Influence sampling contract for manager consumption:
   - `get_influence_weight(world_position)` returns shape-aware weight (box/cylinder) with falloff and transition gating.
   - `get_zone_metadata()` returns deterministic cache inputs (`zone_id`, `stable_key`, `priority`, `blend_weight`, deep-copied `profile` snapshot).
+- Material application helper lives in `scripts/utils/lighting/u_character_lighting_material_applier.gd` (`U_CharacterLightingMaterialApplier`):
+  - `collect_mesh_targets(entity)` recursively gathers `MeshInstance3D` nodes with valid mesh resources.
+  - `apply_character_lighting(...)` swaps each target to `ShaderMaterial` using `assets/shaders/sh_character_zone_lighting.gdshader`, carries forward `albedo_texture`, and sets `base_tint`, `effective_tint`, `effective_intensity`.
+  - Missing mesh/material/albedo texture is a deliberate no-op (skip target, do not cache).
+  - Teardown contract: call `restore_character_materials(entity)` on entity cleanup and `restore_all_materials()` on broader scene teardown.
 
 ## Naming Conventions Quick Reference
 

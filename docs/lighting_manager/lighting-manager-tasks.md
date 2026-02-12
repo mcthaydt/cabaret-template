@@ -1,7 +1,7 @@
 # Lighting Manager - Task Checklist
 
-**Progress:** 26 / 70 tasks complete
-**Unit Tests:** 15 / 15 passing
+**Progress:** 33 / 70 tasks complete
+**Unit Tests:** 20 / 20 passing
 **Integration Tests:** 0 / 0 passing
 **Manual QA:** 0 / 0 complete
 
@@ -91,14 +91,18 @@
 
 **Exit Criteria:** tagged character meshes use unlit zone shader and can receive tint/intensity parameters.
 
-- [ ] LM025 (Red) Create `tests/unit/lighting/test_character_lighting_material_applier.gd`
-- [ ] LM026 (Green) Implement helper to collect relevant `MeshInstance3D` targets per character entity
-- [ ] LM027 (Green) Implement material swap to `ShaderMaterial` with restore-cache of original material
-- [ ] LM028 (Green) Implement shader params (base tint, effective tint, effective intensity)
-- [ ] LM029 Ensure shader ignores physical lights and still preserves texture/albedo read path
-- [ ] LM030 Add no-op fallback when target mesh/material is missing
-- [ ] LM031 Add teardown/restore logic for scene unloads
-- [ ] LM032 Re-run unit + style tests
+- [x] LM025 (Red) Create `tests/unit/lighting/test_character_lighting_material_applier.gd`
+  - 2026-02-12: RED confirmed (`tools/run_gut_suite.sh -gdir=res://tests/unit/lighting -gselect=test_character_lighting_material_applier`) with 5 expected failures while helper was missing.
+- [x] LM026 (Green) Implement helper to collect relevant `MeshInstance3D` targets per character entity
+- [x] LM027 (Green) Implement material swap to `ShaderMaterial` with restore-cache of original material
+- [x] LM028 (Green) Implement shader params (base tint, effective tint, effective intensity)
+- [x] LM029 Ensure shader ignores physical lights and still preserves texture/albedo read path
+- [x] LM030 Add no-op fallback when target mesh/material is missing
+- [x] LM031 Add teardown/restore logic for scene unloads
+- [x] LM032 Re-run unit + style tests
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting -gselect=test_character_lighting_material_applier` (5 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting` (16 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)
 
 ---
 
