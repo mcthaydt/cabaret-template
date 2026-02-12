@@ -39,6 +39,7 @@ const SPAWN_CONDITION_DISABLED := 2
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
 const SPAWN_HOVER_SNAP_MAX_DISTANCE := 0.75
+const SPAWN_GROUND_SNAP_MAX_DISTANCE := 8.0
 
 ## Internal references
 var _state_store: M_STATE_STORE = null
@@ -133,6 +134,7 @@ func spawn_player_at_point(scene: Node, spawn_point_id: StringName) -> bool:
 	player.global_position = spawn_point.global_position
 	player.global_rotation = spawn_point.global_rotation
 	_maybe_face_camera_on_spawn(player, ecs_body, spawn_point)
+	_maybe_snap_player_to_ground(player, ecs_body, spawn_point)
 
 	# Zero velocity and freeze physics to prevent bobble on spawn
 	if ecs_body != null:
@@ -501,6 +503,88 @@ func _maybe_face_camera_on_spawn(player: Node3D, ecs_body: CharacterBody3D, spaw
 	var new_rotation := player.global_rotation
 	new_rotation.y = desired_yaw
 	player.global_rotation = new_rotation
+
+func _maybe_snap_player_to_ground(player: Node3D, ecs_body: CharacterBody3D, spawn_point: Node3D) -> void:
+	if player == null or not _is_ground_snap_enabled(spawn_point):
+		return
+
+	var up_dir := Vector3.UP
+	if ecs_body != null and ecs_body.up_direction.length() > 0.0:
+		up_dir = ecs_body.up_direction.normalized()
+
+	var travel: Vector3 = Vector3.ZERO
+	if ecs_body != null:
+		travel = _get_ground_snap_travel_for_body(ecs_body, up_dir)
+	if travel.length() == 0.0:
+		travel = _get_ground_snap_travel_for_node(player, up_dir)
+	if travel.length() == 0.0:
+		return
+
+	player.global_position += travel
+	if ecs_body != null:
+		ecs_body.velocity = Vector3.ZERO
+
+func _is_ground_snap_enabled(spawn_point: Node3D) -> bool:
+	if spawn_point == null or not (spawn_point is SP_SPAWN_POINT):
+		return false
+
+	var metadata := (spawn_point as SP_SPAWN_POINT).get_spawn_metadata()
+	return metadata != null and metadata.snap_to_ground_on_spawn
+
+func _get_ground_snap_travel_for_body(ecs_body: CharacterBody3D, up_dir: Vector3) -> Vector3:
+	if ecs_body == null:
+		return Vector3.ZERO
+
+	var motion := -up_dir * SPAWN_GROUND_SNAP_MAX_DISTANCE
+	var collision := ecs_body.move_and_collide(motion, true)
+	if collision == null:
+		return Vector3.ZERO
+
+	return collision.get_travel()
+
+func _get_ground_snap_travel_for_node(player: Node3D, up_dir: Vector3) -> Vector3:
+	if player == null:
+		return Vector3.ZERO
+
+	var world: World3D = player.get_world_3d()
+	if world == null:
+		return Vector3.ZERO
+
+	var query_from: Vector3 = player.global_position + up_dir * 0.1
+	var query_to: Vector3 = query_from - up_dir * SPAWN_GROUND_SNAP_MAX_DISTANCE
+	var query := PhysicsRayQueryParameters3D.create(query_from, query_to)
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	query.exclude = _collect_raycast_excludes(player)
+
+	var hit: Dictionary = world.direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return Vector3.ZERO
+
+	var hit_point: Vector3 = hit.get("position", query_from)
+	var along_up: float = (query_from - hit_point).dot(up_dir)
+	if along_up <= 0.0:
+		return Vector3.ZERO
+
+	return -up_dir * along_up
+
+func _collect_raycast_excludes(root: Node) -> Array[RID]:
+	var excludes: Array[RID] = []
+	_append_collision_rids(root, excludes)
+	return excludes
+
+func _append_collision_rids(node: Node, excludes: Array[RID]) -> void:
+	if node == null:
+		return
+
+	if node is CollisionObject3D:
+		excludes.append((node as CollisionObject3D).get_rid())
+
+	for child in node.get_children():
+		var child_node := child as Node
+		if child_node == null:
+			continue
+		_append_collision_rids(child_node, excludes)
 
 func _project_onto_plane(vector: Vector3, plane_normal: Vector3) -> Vector3:
 	var normal := plane_normal.normalized()
