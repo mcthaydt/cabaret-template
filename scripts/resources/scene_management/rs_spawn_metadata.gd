@@ -25,7 +25,7 @@ enum SpawnCondition {
 @export_range(0, 100) var priority: int = 0
 @export_enum("ALWAYS:0", "CHECKPOINT_ONLY:1", "DISABLED:2") var condition: int = SpawnCondition.ALWAYS
 @export var face_camera_on_spawn: bool = false
-@export var snap_to_ground_on_spawn: bool = false
+@export var snap_to_ground_on_spawn: bool = true
 
 ## Returns true if this metadata has a non-empty spawn_id.
 func is_valid() -> bool:
