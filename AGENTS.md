@@ -134,7 +134,7 @@
 - Use `visual_paths` to toggle meshes/lights/particles when controllers enable/disable; keep visuals as controller children instead of wiring extra logic nodes.
 - Controllers run with `process_mode = PROCESS_MODE_ALWAYS` and will not activate while `scene.is_transitioning` or `M_SceneManager.is_transitioning()` is true.
 
-### Character Lighting (Phase 1-4)
+### Character Lighting (Phase 1-5)
 
 - Lighting resource scripts live under `scripts/resources/lighting/` with `rs_` prefixes.
 - `RS_CharacterLightingProfile` is the base data contract; use `get_resolved_values()` for clamped runtime values (`tint`, `intensity`, `blend_smoothing`) instead of reading raw exports directly in blend code.
@@ -162,6 +162,13 @@
   - Listens for `scene/swapped` via `state_store.action_dispatched` and marks lighting caches dirty for next physics tick.
   - Discovers character targets from ECS tag query (`get_entities_by_tag("character")`) and restores materials for removed/non-3D entities.
   - Applies transition gating via Redux scene/navigation slices and `scene_manager.is_transitioning()`; blocked frames restore all character lighting overrides.
+- Phase 5 scene-authoring pattern:
+  - Every migrated gameplay scene should provide `Lighting/CharacterLightingSettings` with a `default_profile` (`RS_CharacterLightingProfile`) resource.
+  - Author light zones as explicit `Inter_CharacterLightZone` nodes with scene/prefab `config = ExtResource("res://resources/lighting/zones/cfg_*.tres")`.
+  - Keep authoring data split into reusable resources:
+    - `resources/lighting/profiles/cfg_character_lighting_profile_*.tres`
+    - `resources/lighting/zones/cfg_character_light_zone_*.tres`
+  - Replace character-driving `OmniLight3D` nodes (mood/objective/signpost) only after equivalent zone config is present; preserve non-light visuals (`Visual`, `Sparkles`, meshes) for readability.
 
 ## Naming Conventions Quick Reference
 

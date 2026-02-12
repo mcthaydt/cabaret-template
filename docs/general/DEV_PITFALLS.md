@@ -22,6 +22,10 @@
   /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --import
   ```
 
+- **Do not copy `ext_resource` UID strings blindly between scenes**: If an `ext_resource` line references a UID that does not match the target script/resource (`invalid UID ... using text path instead`), headless tests can fail with unexpected warnings. When hand-editing `.tscn` files, either:
+  - omit the `uid="uid://..."` field on new `ext_resource` entries, or
+  - verify the exact UID from the source `.uid` file before pasting it.
+
 ## Godot Script Class Cache
 
 - **Refresh global class cache after moving `class_name` scripts**: Moving scripts that declare `class_name` can leave the global class cache pointing at old paths, causing scenes to instantiate with base `Control` nodes and missing methods in headless tests. **Fix**: run a headless import pass to rebuild the class cache:

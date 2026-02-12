@@ -2,15 +2,14 @@
 
 ## Current Status (2026-02-12)
 
-- **Status:** Phase 4 complete (manager discovery/blending/gating/cache invalidation implemented and validated).
+- **Status:** Phase 5 complete (scene migration to zone-driven character lighting data implemented and validated).
 - **Task Checklist:** `docs/lighting_manager/lighting-manager-tasks.md`
-- **Next Phase:** Phase 5 (Gameplay Scene Migration - Reference Existing Lights)
+- **Next Phase:** Phase 6 (Integration + Hardening)
 - **Tests Run This Phase:**
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (RED: expected fail, 5 failing tests against stub manager)
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (PASS, 6 tests)
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers` (PASS, 147 tests)
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting` (PASS, 16 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (PASS, 7 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables` (PASS, 51 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (PASS, 12 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -gselect=test_basic_transitions` (PASS, 13 tests)
 - **Manual QA:** Not started
 
 ## Locked Implementation Decisions

@@ -1,6 +1,6 @@
 # Lighting Manager - Task Checklist
 
-**Progress:** 43 / 70 tasks complete
+**Progress:** 51 / 70 tasks complete
 **Unit Tests:** 26 / 26 passing
 **Integration Tests:** 0 / 0 passing
 **Manual QA:** 0 / 0 complete
@@ -132,19 +132,50 @@
 
 **Exit Criteria:** gameplay scenes/prefabs use zone-based character lighting data; physical mood/objective/signpost light nodes removed.
 
-- [ ] LM043 Audit existing light nodes in:
+- [x] LM043 Audit existing light nodes in:
   - `scenes/gameplay/gameplay_alleyway.tscn`
   - `scenes/gameplay/gameplay_bar.tscn`
   - `scenes/gameplay/gameplay_exterior.tscn`
   - `scenes/gameplay/gameplay_interior_house.tscn`
   - related prefabs with objective/signpost lights
-- [ ] LM044 Author scene default profiles from current scene lighting intent
-- [ ] LM045 Add `Inter_CharacterLightZone` nodes to mirror current light placement/range/color/energy
-- [ ] LM046 Remove migrated `OmniLight3D` nodes used for character lighting mood
-- [ ] LM047 Remove objective/signpost glow lights and replace with equivalent zones
-- [ ] LM048 Preserve non-light visual readability cues (materials/particles/meshes) as needed
-- [ ] LM049 Validate each migrated scene loads without warnings
-- [ ] LM050 Run style enforcement + targeted scene manager and interactable tests
+  - 2026-02-12 inventory:
+    - Character mood lights under `Lighting`: `MoonLight` + `StreetLight_Warm` (`gameplay_alleyway`), `BarLight_Warm` + `EntranceLight_Cool` (`gameplay_bar`).
+    - Objective/signpost glow lights: `GlowLight` under objective goals in all four scenes, plus tutorial sign `GlowLight` in `gameplay_interior_house`.
+    - Prefab reference: `scenes/prefabs/prefab_goal_zone.tscn` includes `GlowLight` (objective visual cue baseline).
+    - `Lighting` root exists in alleyway/bar but not exterior/interior; no `Inter_CharacterLightZone` or `CharacterLightingSettings` nodes are authored yet in audited scenes.
+    - `Env_DirectionalLight3D` nodes in exterior/interior are environment/global lighting and tracked separately from zone migration targets.
+- [x] LM044 Author scene default profiles from current scene lighting intent
+  - 2026-02-12 authored defaults:
+    - `resources/lighting/cfg_character_lighting_profile_alleyway.tres`
+    - `resources/lighting/cfg_character_lighting_profile_bar.tres`
+    - `resources/lighting/cfg_character_lighting_profile_exterior.tres`
+    - `resources/lighting/cfg_character_lighting_profile_interior_house.tres`
+  - Added `Lighting/CharacterLightingSettings` scene node bindings in:
+    - `scenes/gameplay/gameplay_alleyway.tscn`
+    - `scenes/gameplay/gameplay_bar.tscn`
+    - `scenes/gameplay/gameplay_exterior.tscn`
+    - `scenes/gameplay/gameplay_interior_house.tscn`
+- [x] LM045 Add `Inter_CharacterLightZone` nodes to mirror current light placement/range/color/energy
+  - 2026-02-12 added zone controllers + configs for mood lights in alleyway/bar and glow-light replacements in goal/signpost targets:
+    - `scenes/gameplay/gameplay_alleyway.tscn`
+    - `scenes/gameplay/gameplay_bar.tscn`
+    - `scenes/gameplay/gameplay_exterior.tscn`
+    - `scenes/gameplay/gameplay_interior_house.tscn`
+    - `scenes/prefabs/prefab_goal_zone.tscn`
+    - `resources/lighting/zones/cfg_character_light_zone_*.tres`
+    - `resources/lighting/profiles/cfg_character_lighting_profile_*.tres`
+- [x] LM046 Remove migrated `OmniLight3D` nodes used for character lighting mood
+  - 2026-02-12 removed `MoonLight` + `StreetLight_Warm` (alleyway) and `BarLight_Warm` + `EntranceLight_Cool` (bar) after equivalent zone authoring.
+- [x] LM047 Remove objective/signpost glow lights and replace with equivalent zones
+  - 2026-02-12 replaced `GlowLight` objective/signpost nodes with `Inter_CharacterLightZone_*` nodes in all migrated gameplay scenes and `prefab_goal_zone`.
+- [x] LM048 Preserve non-light visual readability cues (materials/particles/meshes) as needed
+  - 2026-02-12 preserved objective visuals/particles (`Visual`, `Sparkles`) and signpost geometry while removing physical light nodes.
+- [x] LM049 Validate each migrated scene loads without warnings
+  - 2026-02-12 PASS via `tests/unit/interactables/test_scene_interaction_config_binding.gd` (loads migrated scenes/prefab without unexpected warnings/errors).
+- [x] LM050 Run style enforcement + targeted scene manager and interactable tests
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables` (51 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -gselect=test_basic_transitions` (13 tests)
 
 ---
 
@@ -191,7 +222,7 @@
 
 - [x] Unit: resources/config/blend math
 - [x] Unit: zone controller behavior
-- [ ] Unit: manager lifecycle/discovery/cache invalidation
+- [x] Unit: manager lifecycle/discovery/cache invalidation
 - [ ] Integration: scene transition + respawn + overlap blending
 - [ ] Integration: player + NPC parity in shared lighting zones
 - [x] Style: `tests/unit/style/test_style_enforcement.gd`
