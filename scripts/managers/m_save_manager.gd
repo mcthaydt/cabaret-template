@@ -57,11 +57,6 @@ var _loading_target_scene: StringName = StringName("")
 ## Store subscription unsubscribe callback (for transition completion)
 var _transition_complete_unsubscribe: Callable
 
-func _log_autosave_diag(message: String) -> void:
-	if not OS.is_debug_build():
-		return
-	print("[SaveManager Autosave] %s" % message)
-
 func _ready() -> void:
 	# Register with ServiceLocator
 	U_ServiceLocator.register(StringName("save_manager"), self)
@@ -215,7 +210,6 @@ func is_locked() -> bool:
 ## Always saves to the autosave slot. Priority parameter is reserved for future
 ## cooldown enforcement but currently unused.
 func request_autosave(_priority: int = 0) -> void:
-	_log_autosave_diag("request_autosave called (priority=%d)" % _priority)
 	save_to_slot(SLOT_AUTOSAVE)
 
 ## Save current state to a specific slot
@@ -224,8 +218,6 @@ func request_autosave(_priority: int = 0) -> void:
 func save_to_slot(slot_id: StringName) -> Error:
 	# Check lock - reject if already saving
 	if _is_saving:
-		if slot_id == SLOT_AUTOSAVE:
-			_log_autosave_diag("save_to_slot rejected: manager already saving")
 		return ERR_BUSY
 
 	# Validate slot_id
@@ -238,9 +230,6 @@ func save_to_slot(slot_id: StringName) -> Error:
 
 	# Emit save_started event
 	var is_autosave: bool = (slot_id == SLOT_AUTOSAVE)
-	var save_start_usec: int = Time.get_ticks_usec()
-	if is_autosave:
-		_log_autosave_diag("Publishing save_started for autosave slot")
 	U_ECSEventBus.publish(StringName("save_started"), {
 		"slot_id": slot_id,
 		"is_autosave": is_autosave
@@ -279,21 +268,12 @@ func save_to_slot(slot_id: StringName) -> Error:
 			"slot_id": slot_id,
 			"is_autosave": is_autosave
 		})
-		if is_autosave:
-			var elapsed_ms: float = float(Time.get_ticks_usec() - save_start_usec) / 1000.0
-			_log_autosave_diag("Publishing save_completed for autosave slot (duration_ms=%.2f)" % elapsed_ms)
 	else:
 		U_ECSEventBus.publish(StringName("save_failed"), {
 			"slot_id": slot_id,
 			"is_autosave": is_autosave,
 			"error_code": result
 		})
-		if is_autosave:
-			var failed_elapsed_ms: float = float(Time.get_ticks_usec() - save_start_usec) / 1000.0
-			_log_autosave_diag(
-				"Publishing save_failed for autosave slot (error=%d duration_ms=%.2f)"
-				% [result, failed_elapsed_ms]
-			)
 
 	return result
 
