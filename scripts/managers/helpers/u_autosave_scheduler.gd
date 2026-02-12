@@ -46,6 +46,11 @@ var _is_dirty: bool = false
 var _pending_priority: int = Priority.NORMAL
 var _last_autosave_time: float = -1000.0  # Initialize to distant past to allow first autosave
 
+func _log_autosave_diag(message: String) -> void:
+	if not OS.is_debug_build():
+		return
+	print("[AutosaveScheduler] %s" % message)
+
 func _ready() -> void:
 	_discover_dependencies()
 	_subscribe_to_triggers()
@@ -71,6 +76,7 @@ func _subscribe_to_triggers() -> void:
 		_state_store.action_dispatched.connect(_on_action_dispatched)
 
 func _on_checkpoint_activated(__event: Dictionary) -> void:
+	_log_autosave_diag("Trigger received: checkpoint_activated")
 	_request_autosave_if_allowed(Priority.NORMAL)
 
 func _on_action_dispatched(action: Dictionary) -> void:
@@ -83,6 +89,7 @@ func _on_action_dispatched(action: Dictionary) -> void:
 	elif action_type == ACTION_TRANSITION_COMPLETED:
 		var payload: Dictionary = action.get("payload", {})
 		var scene_id: StringName = payload.get("scene_id", StringName(""))
+		_log_autosave_diag("Action received: scene/transition_completed scene_id=%s" % str(scene_id))
 
 	# Check if transitioning to a gameplay scene (alleyway, interior, etc.)
 		if _is_gameplay_scene(scene_id):
@@ -93,18 +100,30 @@ func _on_action_dispatched(action: Dictionary) -> void:
 		# the latest gameplay autosave with an unusable target scene (e.g., game_over).
 
 func _request_autosave_if_allowed(priority: int) -> void:
+	_log_autosave_diag("Autosave request queued: priority=%d" % priority)
+
 	# Enforce cooldown based on priority
 	var now := Time.get_ticks_msec() / 1000.0
 	var time_since_last_save := now - _last_autosave_time
 
 	if priority == Priority.NORMAL and time_since_last_save < COOLDOWN_NORMAL:
+		_log_autosave_diag(
+			"Autosave skipped: cooldown NORMAL remaining=%.3fs"
+			% (COOLDOWN_NORMAL - time_since_last_save)
+		)
 		return  # Skip - too soon for normal priority
 	elif priority == Priority.HIGH and time_since_last_save < COOLDOWN_HIGH:
+		_log_autosave_diag(
+			"Autosave skipped: cooldown HIGH remaining=%.3fs"
+			% (COOLDOWN_HIGH - time_since_last_save)
+		)
 		return  # Skip - too soon for high priority
 	# CRITICAL priority ignores cooldown
 
 	# Check blocking conditions
-	if not _is_autosave_allowed():
+	var block_reason: String = _get_autosave_block_reason(false)
+	if not block_reason.is_empty():
+		_log_autosave_diag("Autosave blocked: %s" % block_reason)
 		return
 
 	# Mark dirty and track highest priority
@@ -116,35 +135,42 @@ func _request_autosave_if_allowed(priority: int) -> void:
 		return
 
 	# Perform autosave immediately (coalescing within same frame)
+	_log_autosave_diag("Autosave deferred for next frame")
 	call_deferred("_perform_autosave")
 
 func _is_autosave_allowed() -> bool:
+	return _get_autosave_block_reason(false).is_empty()
+
+func _get_autosave_block_reason(skip_shell_check: bool) -> String:
 	if _state_store == null or _save_manager == null:
-		return false
+		if _state_store == null:
+			return "state_store unavailable"
+		return "save_manager unavailable"
 
 	var state: Dictionary = _state_store.get_state()
 
 	# Only autosave during gameplay (not in menus)
-	var navigation: Dictionary = state.get("navigation", {})
-	if navigation.get("shell", "") != "gameplay":
-		return false
+	if not skip_shell_check:
+		var navigation: Dictionary = state.get("navigation", {})
+		if navigation.get("shell", "") != "gameplay":
+			return "navigation.shell=%s" % str(navigation.get("shell", ""))
 
 	# Check death_in_progress flag
 	var gameplay: Dictionary = state.get("gameplay", {})
 	if gameplay.get("death_in_progress", false):
-		return false
+		return "gameplay.death_in_progress=true"
 
 	# Check scene transitioning flag
 	var scene: Dictionary = state.get("scene", {})
 	if scene.get("is_transitioning", false):
-		return false
+		return "scene.is_transitioning=true"
 
 	# Check if save manager is locked
 	var typed_save_manager := _save_manager as I_SaveManager
 	if typed_save_manager != null and typed_save_manager.is_locked():
-		return false
+		return "save_manager.is_locked=true"
 
-	return true
+	return ""
 
 func _is_gameplay_scene(scene_id: StringName) -> bool:
 	if scene_id == StringName(""):
@@ -168,35 +194,34 @@ func _is_gameplay_scene(scene_id: StringName) -> bool:
 func _request_autosave_for_gameplay_transition(priority: int) -> void:
 	# Special autosave for gameplay scene transitions
 	# Skips the shell check since shell might be transitioning
+	_log_autosave_diag("Gameplay transition autosave requested: priority=%d" % priority)
 	var now := Time.get_ticks_msec() / 1000.0
 	var time_since_last_save := now - _last_autosave_time
 
 	# Enforce cooldown
 	if priority == Priority.NORMAL and time_since_last_save < COOLDOWN_NORMAL:
+		_log_autosave_diag(
+			"Gameplay transition autosave skipped: cooldown NORMAL remaining=%.3fs"
+			% (COOLDOWN_NORMAL - time_since_last_save)
+		)
 		return
 	elif priority == Priority.HIGH and time_since_last_save < COOLDOWN_HIGH:
+		_log_autosave_diag(
+			"Gameplay transition autosave skipped: cooldown HIGH remaining=%.3fs"
+			% (COOLDOWN_HIGH - time_since_last_save)
+		)
 		return
 
 	# Check other blocking conditions (except shell)
-	if _state_store == null or _save_manager == null:
-		return
-
-	var state: Dictionary = _state_store.get_state()
-	var gameplay: Dictionary = state.get("gameplay", {})
-	if gameplay.get("death_in_progress", false):
-		return
-
-	var scene: Dictionary = state.get("scene", {})
-	if scene.get("is_transitioning", false):
-		return
-
-	var typed_save_manager := _save_manager as I_SaveManager
-	if typed_save_manager != null and typed_save_manager.is_locked():
+	var block_reason: String = _get_autosave_block_reason(true)
+	if not block_reason.is_empty():
+		_log_autosave_diag("Gameplay transition autosave blocked: %s" % block_reason)
 		return
 
 	# Trigger autosave
 	_is_dirty = true
 	_pending_priority = maxi(_pending_priority, priority)
+	_log_autosave_diag("Gameplay transition autosave deferred for next frame")
 	call_deferred("_perform_autosave")
 
 func _perform_autosave() -> void:
@@ -211,6 +236,7 @@ func _perform_autosave() -> void:
 	# Request autosave from save manager
 	var typed_save_manager := _save_manager as I_SaveManager
 	if typed_save_manager != null:
+		_log_autosave_diag("Dispatching autosave request to save manager (priority=%d)" % priority)
 		typed_save_manager.request_autosave(priority)
 		_last_autosave_time = Time.get_ticks_msec() / 1000.0
 

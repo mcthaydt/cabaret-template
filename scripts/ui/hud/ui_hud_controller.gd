@@ -20,7 +20,7 @@ const SIGNPOST_PANEL_FADE_IN_SEC: float = 0.14
 const SIGNPOST_PANEL_FADE_OUT_SEC: float = 0.18
 const SIGNPOST_BLOCKER_COOLDOWN_SEC: float = 0.15
 const AUTOSAVE_SPINNER_ROTATION_SPEED_DEG: float = 240.0
-const AUTOSAVE_SPINNER_MIN_VISIBLE_SEC: float = 0.0
+const AUTOSAVE_SPINNER_MIN_VISIBLE_SEC: float = 0.35
 
 var _store: I_StateStore = null
 var _player_entity_id: String = "player"
@@ -43,6 +43,11 @@ var _checkpoint_toast_tween: Tween = null
 var _signpost_panel_tween: Tween = null
 var _health_bar_bg_style: StyleBoxFlat = null
 var _health_bar_fill_style: StyleBoxFlat = null
+
+func _log_autosave_diag(message: String) -> void:
+	if not OS.is_debug_build():
+		return
+	print("[HUD Autosave] %s" % message)
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -83,6 +88,7 @@ func _complete_initialization() -> void:
 	_unsubscribe_save_started = U_ECSEventBus.subscribe(StringName("save_started"), _on_save_started)
 	_unsubscribe_save_completed = U_ECSEventBus.subscribe(StringName("save_completed"), _on_save_completed)
 	_unsubscribe_save_failed = U_ECSEventBus.subscribe(StringName("save_failed"), _on_save_failed)
+	_log_autosave_diag("Subscribed to save_started/save_completed/save_failed")
 	_update_display(_store.get_state())
 
 func _process(delta: float) -> void:
@@ -133,6 +139,8 @@ func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> voi
 	var state := _store.get_state()
 	_update_display(state)
 	if _is_paused(state):
+		if _autosave_spinner_active:
+			_log_autosave_diag("Navigation paused while spinner active; forcing immediate hide")
 		if interact_prompt != null:
 			interact_prompt.hide_prompt()
 		_hide_checkpoint_toast_immediate()
@@ -290,8 +298,10 @@ func _cancel_checkpoint_toast_tween() -> void:
 
 func _show_autosave_spinner() -> void:
 	if autosave_spinner_container == null:
+		_log_autosave_diag("Spinner show aborted: autosave_spinner_container is null")
 		return
 	if _store != null and _is_paused(_store.get_state()):
+		_log_autosave_diag("Spinner show blocked: navigation is paused")
 		return
 	_hide_checkpoint_toast_immediate()
 	_hide_signpost_panel(true)
@@ -303,6 +313,7 @@ func _show_autosave_spinner() -> void:
 	_autosave_spinner_active = true
 	_autosave_spinner_visible_since_sec = Time.get_ticks_msec() / 1000.0
 	_autosave_spinner_hide_request_id += 1
+	_log_autosave_diag("Spinner shown (min_visible_sec=%.3f)" % AUTOSAVE_SPINNER_MIN_VISIBLE_SEC)
 
 func _hide_autosave_spinner() -> void:
 	_autosave_spinner_hide_request_id += 1
@@ -316,6 +327,7 @@ func _hide_autosave_spinner() -> void:
 
 func _request_hide_autosave_spinner() -> void:
 	if not _autosave_spinner_active:
+		_log_autosave_diag("Hide request ignored: spinner already inactive")
 		return
 
 	var now_sec: float = Time.get_ticks_msec() / 1000.0
@@ -324,6 +336,10 @@ func _request_hide_autosave_spinner() -> void:
 		elapsed_sec = maxf(now_sec - _autosave_spinner_visible_since_sec, 0.0)
 
 	if elapsed_sec >= AUTOSAVE_SPINNER_MIN_VISIBLE_SEC:
+		_log_autosave_diag(
+			"Spinner hide requested: elapsed=%.3f sec (hiding immediately)"
+			% elapsed_sec
+		)
 		_hide_autosave_spinner()
 		return
 
@@ -333,6 +349,10 @@ func _request_hide_autosave_spinner() -> void:
 		return
 
 	var remaining_sec: float = maxf(AUTOSAVE_SPINNER_MIN_VISIBLE_SEC - elapsed_sec, 0.0)
+	_log_autosave_diag(
+		"Spinner hide deferred: elapsed=%.3f sec remaining=%.3f sec"
+		% [elapsed_sec, remaining_sec]
+	)
 	_autosave_spinner_hide_request_id += 1
 	var request_id: int = _autosave_spinner_hide_request_id
 	var timer := tree.create_timer(remaining_sec, true, false, true)
@@ -502,13 +522,16 @@ func _resolve_signpost_duration(payload: Dictionary) -> float:
 func _on_save_started(payload: Variant) -> void:
 	# Show autosave spinner only for autosaves (not manual saves from menu)
 	if typeof(payload) != TYPE_DICTIONARY:
+		_log_autosave_diag("save_started payload ignored: not a Dictionary")
 		return
 	var event: Dictionary = payload
 	var inner_payload: Variant = event.get("payload", {})
 	if typeof(inner_payload) != TYPE_DICTIONARY:
+		_log_autosave_diag("save_started payload ignored: missing inner payload")
 		return
 	var data: Dictionary = inner_payload
 	var is_autosave: bool = data.get("is_autosave", false)
+	_log_autosave_diag("save_started received (is_autosave=%s)" % str(is_autosave))
 
 	if is_autosave:
 		_show_autosave_spinner()
@@ -516,13 +539,16 @@ func _on_save_started(payload: Variant) -> void:
 func _on_save_completed(payload: Variant) -> void:
 	# Hide autosave spinner only for autosaves
 	if typeof(payload) != TYPE_DICTIONARY:
+		_log_autosave_diag("save_completed payload ignored: not a Dictionary")
 		return
 	var event: Dictionary = payload
 	var inner_payload: Variant = event.get("payload", {})
 	if typeof(inner_payload) != TYPE_DICTIONARY:
+		_log_autosave_diag("save_completed payload ignored: missing inner payload")
 		return
 	var data: Dictionary = inner_payload
 	var is_autosave: bool = data.get("is_autosave", false)
+	_log_autosave_diag("save_completed received (is_autosave=%s)" % str(is_autosave))
 
 	if is_autosave:
 		_request_hide_autosave_spinner()
@@ -530,13 +556,16 @@ func _on_save_completed(payload: Variant) -> void:
 func _on_save_failed(payload: Variant) -> void:
 	# Hide autosave spinner on autosave failures.
 	if typeof(payload) != TYPE_DICTIONARY:
+		_log_autosave_diag("save_failed payload ignored: not a Dictionary")
 		return
 	var event: Dictionary = payload
 	var inner_payload: Variant = event.get("payload", {})
 	if typeof(inner_payload) != TYPE_DICTIONARY:
+		_log_autosave_diag("save_failed payload ignored: missing inner payload")
 		return
 	var data: Dictionary = inner_payload
 	var is_autosave: bool = data.get("is_autosave", false)
+	_log_autosave_diag("save_failed received (is_autosave=%s)" % str(is_autosave))
 
 	if is_autosave:
 		_request_hide_autosave_spinner()

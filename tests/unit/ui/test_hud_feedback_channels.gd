@@ -183,7 +183,7 @@ func test_autosave_spinner_lifecycle_hides_on_completion_and_failure() -> void:
 	assert_false(signpost_panel_container.visible, "Signpost panel should remain hidden for autosave start")
 
 	U_ECSEventBus.publish(StringName("save_completed"), {"slot_id": StringName("autosave"), "is_autosave": true})
-	await _await_frames(1)
+	await _await_seconds(0.4)
 	assert_false(autosave_spinner_container.visible, "Autosave spinner should hide on autosave completion")
 
 	U_ECSEventBus.publish(StringName("save_started"), {"slot_id": StringName("autosave"), "is_autosave": true})
@@ -195,7 +195,7 @@ func test_autosave_spinner_lifecycle_hides_on_completion_and_failure() -> void:
 		"is_autosave": true,
 		"error_code": ERR_CANT_CREATE
 	})
-	await _await_frames(1)
+	await _await_seconds(0.4)
 	assert_false(autosave_spinner_container.visible, "Autosave spinner should hide on autosave failure")
 	assert_false(checkpoint_toast_container.visible, "Checkpoint toast should remain hidden on autosave failure")
 	assert_false(signpost_panel_container.visible, "Signpost panel should remain hidden on autosave failure")
@@ -233,7 +233,7 @@ func test_autosave_spinner_uses_svg_icon_and_animates_while_visible() -> void:
 		"Spinner icon rotation should animate while autosave spinner is active")
 
 	U_ECSEventBus.publish(StringName("save_completed"), {"slot_id": StringName("autosave"), "is_autosave": true})
-	await _await_frames(1)
+	await _await_seconds(0.4)
 	assert_false(autosave_spinner_container.visible, "Autosave spinner should hide after autosave completion")
 	assert_eq(spinner_icon.rotation_degrees, 0.0, "Spinner icon should reset rotation when hidden")
 
