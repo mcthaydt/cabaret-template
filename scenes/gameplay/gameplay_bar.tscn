@@ -233,6 +233,16 @@ config = ExtResource("69_character_light_zone_entrance_config")
 script = ExtResource("55_cinema_preview")
 cinema_grade = ExtResource("56_cinema_grade")
 
+[node name="BarLight_Warm" type="OmniLight3D" parent="Lighting" unique_id=999999902]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+light_color = Color(1, 0.7, 0.4, 1)
+light_energy = 2.0
+omni_range = 10.0
+
+[node name="EntranceLight_Cool" type="OmniLight3D" parent="Lighting" unique_id=999999903]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2, -1)
+light_color = Color(0.4, 0.6, 1, 1)
+
 [node name="BlueFogLighting" type="OmniLight3D" parent="Lighting" unique_id=270658443]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4952745, 2.4105158, 3.4482005)
 light_color = Color(0.64371455, 0.95112485, 0.85983676, 1)
@@ -284,7 +294,7 @@ script = ExtResource("16_8qi87")
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 3.019804, 0.9881649, -4.0965447)
 script = ExtResource("44_victory_controller")
 config = ExtResource("62_victory_config")
-visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("")])
+visual_paths = Array[NodePath]([NodePath("Visual"), NodePath(""), NodePath("GlowLight")])
 entity_id = &"goalzone_bar"
 tags = Array[StringName]([&"objective", &"goal"])
 
@@ -297,6 +307,11 @@ material = ExtResource("53_fade_goal")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.63254166)
 script = ExtResource("67_character_light_zone_script")
 config = ExtResource("70_character_light_zone_goal_config")
+
+[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_GoalZone" unique_id=1169942121]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -0.63254166)
+light_color = Color(1, 0.87451, 0.364706, 1)
+light_energy = 2.0
 
 [node name="E_Player" parent="Entities" unique_id=1535353491 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2181439, 1, 0.6794058)

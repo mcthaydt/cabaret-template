@@ -244,6 +244,17 @@ config = ExtResource("70_character_light_zone_street_config")
 script = ExtResource("58_cinema_preview")
 cinema_grade = ExtResource("59_cinema_grade")
 
+[node name="MoonLight" type="OmniLight3D" parent="Lighting" unique_id=888888802]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+light_color = Color(0.4, 0.5, 0.8, 1)
+light_energy = 1.5
+omni_range = 15.0
+
+[node name="StreetLight_Warm" type="OmniLight3D" parent="Lighting" unique_id=888888803]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 3, -3)
+light_color = Color(1, 0.8, 0.6, 1)
+omni_range = 8.0
+
 [node name="Managers" type="Node" parent="." unique_id=1732814566]
 script = ExtResource("12_klon2")
 
@@ -327,7 +338,7 @@ script = ExtResource("16_8qi87")
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -4.12, 1.108, 0.833)
 script = ExtResource("41_goal_script")
 config = ExtResource("63_endgame_config")
-visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("")])
+visual_paths = Array[NodePath]([NodePath("Visual"), NodePath(""), NodePath("GlowLight")])
 entity_id = &"finalgoal"
 tags = Array[StringName]([&"objective", &"endgame"])
 
@@ -339,6 +350,11 @@ material = ExtResource("56_fade_goal")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 script = ExtResource("68_character_light_zone_script")
 config = ExtResource("71_character_light_zone_goal_config")
+
+[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1169942121]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+light_color = Color(1, 0.87451, 0.364706, 1)
+light_energy = 2.0
 
 [node name="E_Player" parent="Entities" unique_id=1535353491 instance=ExtResource("7_4wxy1")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.3674707, 0)

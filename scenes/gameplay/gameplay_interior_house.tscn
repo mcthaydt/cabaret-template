@@ -309,7 +309,7 @@ script = ExtResource("16_8qi87")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -0.41013765, -10.004155)
 script = ExtResource("44_victory_controller")
 config = ExtResource("62_victory_config")
-visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles")])
+visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("Sparkles"), NodePath("GlowLight")])
 entity_id = &"goalzone_interior"
 tags = Array[StringName]([&"objective", &"goal"])
 
@@ -321,6 +321,11 @@ material = ExtResource("53_fade_goal")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 script = ExtResource("67_character_light_zone_script")
 config = ExtResource("68_character_light_zone_goal_config")
+
+[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_GoalZone" unique_id=1311426068]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+light_color = Color(1, 0.87451, 0.364706, 1)
+light_energy = 2.0
 
 [node name="Sparkles" type="CPUParticles3D" parent="Entities/Objectives/E_GoalZone" unique_id=743593555]
 amount = 80
@@ -355,7 +360,7 @@ material = ExtResource("54_fade_door")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.14, 0, 2)
 script = ExtResource("45_signpost_controller")
 config = ExtResource("63_signpost_config")
-visual_paths = Array[NodePath]([NodePath("Visual")])
+visual_paths = Array[NodePath]([NodePath("Visual"), NodePath("GlowLight")])
 entity_id = &"tutorial_interior"
 tags = Array[StringName]([&"interactable", &"tutorial"])
 
@@ -367,6 +372,12 @@ height = 1.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 script = ExtResource("67_character_light_zone_script")
 config = ExtResource("69_character_light_zone_signpost_config")
+
+[node name="GlowLight" type="OmniLight3D" parent="Entities/E_TutorialSign_Interior" unique_id=2005743107]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+light_color = Color(0.8, 0.9, 1, 1)
+light_energy = 1.5
+omni_range = 1.863689
 
 [node name="HUD" parent="." unique_id=1421882679 instance=ExtResource("11_hud")]
 
