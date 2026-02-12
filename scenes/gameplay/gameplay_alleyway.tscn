@@ -89,7 +89,7 @@ fog_sky_affect = 0.0
 volumetric_fog_enabled = true
 volumetric_fog_sky_affect = 0.0
 
-[node name="GameplayRoot" type="Node3D" unique_id=118760861]
+[node name="GameplayRoot2" type="Node3D" unique_id=118760861]
 script = ExtResource("1_f2o31")
 
 [node name="SceneObjects" type="Node3D" parent="." unique_id=1984456615]

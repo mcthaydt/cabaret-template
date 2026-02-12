@@ -233,6 +233,18 @@ config = ExtResource("69_character_light_zone_entrance_config")
 script = ExtResource("55_cinema_preview")
 cinema_grade = ExtResource("56_cinema_grade")
 
+[node name="BlueFogLighting" type="OmniLight3D" parent="Lighting" unique_id=270658443]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4952745, 2.4105158, 3.4482005)
+light_color = Color(0.64371455, 0.95112485, 0.85983676, 1)
+light_volumetric_fog_energy = 1.951
+omni_range = 8.403563
+
+[node name="RedFogLighting" type="OmniLight3D" parent="Lighting" unique_id=1398505467]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.364725, 0.92740965, -1.768158)
+light_color = Color(0.56689084, 0.20540753, 0.27428332, 1)
+light_volumetric_fog_energy = 3.0
+omni_range = 8.403563
+
 [node name="Managers" type="Node" parent="." unique_id=1732814566]
 script = ExtResource("12_klon2")
 
