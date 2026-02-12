@@ -2,11 +2,12 @@
 
 ## Current Status (2026-02-12)
 
-- **Status:** Phase 1 complete (resource + blend math foundations implemented and tested).
+- **Status:** Phase 2 complete (zone controller authoring behavior implemented and validated).
 - **Task Checklist:** `docs/lighting_manager/lighting-manager-tasks.md`
-- **Next Phase:** Phase 2 (Zone Controller Authoring Pattern)
+- **Next Phase:** Phase 3 (Shader + Material Application Pipeline)
 - **Tests Run This Phase:**
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting` (PASS, 11 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -gselect=test_inter_character_light_zone` (PASS, 4 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables` (PASS, 51 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (PASS, 12 tests)
 - **Manual QA:** Not started
 

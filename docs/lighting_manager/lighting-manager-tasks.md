@@ -1,7 +1,7 @@
 # Lighting Manager - Task Checklist
 
-**Progress:** 18 / 70 tasks complete
-**Unit Tests:** 11 / 11 passing
+**Progress:** 26 / 70 tasks complete
+**Unit Tests:** 15 / 15 passing
 **Integration Tests:** 0 / 0 passing
 **Manual QA:** 0 / 0 complete
 
@@ -73,14 +73,17 @@
 
 **Exit Criteria:** zones are authorable like interactable controllers and produce stable influence weights.
 
-- [ ] LM017 (Red) Create `tests/unit/interactables/test_inter_character_light_zone.gd`
-- [ ] LM018 (Green) Implement `Inter_CharacterLightZone` using volume-controller pattern
-- [ ] LM019 Implement area auto-create/adopt behavior and settings duplication (`resource_local_to_scene = true`)
-- [ ] LM020 Implement influence query API from controller (position -> weight)
-- [ ] LM021 Implement priority output and profile reference output for manager consumption
-- [ ] LM022 Add transition gating behavior parity with other interactable controllers where applicable
-- [ ] LM023 Add zone metadata needed by manager cache (stable id/name/profile snapshot)
-- [ ] LM024 Re-run unit + style tests
+- [x] LM017 (Red) Create `tests/unit/interactables/test_inter_character_light_zone.gd`
+- [x] LM018 (Green) Implement `Inter_CharacterLightZone` using volume-controller pattern
+- [x] LM019 Implement area auto-create/adopt behavior and settings duplication (`resource_local_to_scene = true`)
+- [x] LM020 Implement influence query API from controller (position -> weight)
+- [x] LM021 Implement priority output and profile reference output for manager consumption
+- [x] LM022 Add transition gating behavior parity with other interactable controllers where applicable
+- [x] LM023 Add zone metadata needed by manager cache (stable id/name/profile snapshot)
+- [x] LM024 Re-run unit + style tests
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -gselect=test_inter_character_light_zone` (4 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables` (51 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)
 
 ---
 
@@ -178,7 +181,7 @@
 ## Required Validation Matrix
 
 - [x] Unit: resources/config/blend math
-- [ ] Unit: zone controller behavior
+- [x] Unit: zone controller behavior
 - [ ] Unit: manager lifecycle/discovery/cache invalidation
 - [ ] Integration: scene transition + respawn + overlap blending
 - [ ] Integration: player + NPC parity in shared lighting zones

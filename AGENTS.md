@@ -134,7 +134,7 @@
 - Use `visual_paths` to toggle meshes/lights/particles when controllers enable/disable; keep visuals as controller children instead of wiring extra logic nodes.
 - Controllers run with `process_mode = PROCESS_MODE_ALWAYS` and will not activate while `scene.is_transitioning` or `M_SceneManager.is_transitioning()` is true.
 
-### Character Lighting (Phase 1)
+### Character Lighting (Phase 1-2)
 
 - Lighting resource scripts live under `scripts/resources/lighting/` with `rs_` prefixes.
 - `RS_CharacterLightingProfile` is the base data contract; use `get_resolved_values()` for clamped runtime values (`tint`, `intensity`, `blend_smoothing`) instead of reading raw exports directly in blend code.
@@ -143,6 +143,13 @@
   - Deterministic ordering: priority desc, weight desc, zone_id asc.
   - Weighted blending normalizes source weights.
   - Empty/invalid zone inputs fall back to a sanitized default profile.
+- `Inter_CharacterLightZone` extends `BaseVolumeController` and remains config-driven:
+  - Build runtime `RS_SceneTriggerSettings` from `RS_CharacterLightZoneConfig` in `_apply_config_to_volume_settings()`.
+  - Use `resource_local_to_scene = true` for generated trigger settings.
+  - Keep passive overlap behavior (`ignore_initial_overlap = false`) so spawn-inside zones still apply.
+- Influence sampling contract for manager consumption:
+  - `get_influence_weight(world_position)` returns shape-aware weight (box/cylinder) with falloff and transition gating.
+  - `get_zone_metadata()` returns deterministic cache inputs (`zone_id`, `stable_key`, `priority`, `blend_weight`, deep-copied `profile` snapshot).
 
 ## Naming Conventions Quick Reference
 
