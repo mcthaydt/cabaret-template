@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="RS_CharacterLightZoneConfig" format=3]
+[gd_resource type="Resource" script_class="RS_CharacterLightZoneConfig" format=3 uid="uid://6u8rguj7enh"]
 
-[ext_resource type="Script" path="res://scripts/resources/lighting/rs_character_light_zone_config.gd" id="1"]
-[ext_resource type="Resource" path="res://resources/lighting/profiles/cfg_character_lighting_profile_goal_glow_hot.tres" id="2"]
+[ext_resource type="Script" uid="uid://d0p2bmeh23cpe" path="res://scripts/resources/lighting/rs_character_light_zone_config.gd" id="1"]
+[ext_resource type="Resource" uid="uid://cdlr6m47x8801" path="res://resources/lighting/profiles/cfg_character_lighting_profile_goal_glow_hot.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -9,7 +9,5 @@ shape_type = 1
 zone_id = &"goal_glow_exterior"
 cylinder_radius = 5.0
 cylinder_height = 4.0
-falloff = 0.5
-blend_weight = 1.0
 priority = 20
 profile = ExtResource("2")

@@ -200,7 +200,7 @@
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting` (4 tests)
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -gselect=test_basic_transitions` (13 tests)
   - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)
-- [ ] LM056 Manual QA pass across alleyway, bar, exterior, interior transitions
+- [x] LM056 Manual QA pass across alleyway, bar, exterior, interior transitions
 
 ---
 

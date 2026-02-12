@@ -150,6 +150,32 @@ func test_respawned_character_inside_zone_receives_lighting() -> void:
 	assert_not_null(respawn.mesh.material_override as ShaderMaterial,
 		"Respawned character inside zone should receive lighting on next update.")
 
+func test_partial_zone_influence_blends_toward_scene_default() -> void:
+	var context := await _create_lighting_context()
+	var profile := _create_profile(Color(0.9, 0.2, 0.1, 1.0), 2.0)
+	await _create_zone(
+		context.lighting,
+		profile,
+		StringName("edge_zone"),
+		1.0,
+		1,
+		Vector3.ZERO,
+		Vector3(8.0, 4.0, 8.0),
+		1.0
+	)
+	context.character_entity.global_position = Vector3(3.0, 0.0, 0.0)
+	context.manager.refresh_scene_bindings()
+
+	_process_lighting(context.manager)
+	var material := context.character_mesh.material_override as ShaderMaterial
+	assert_not_null(material)
+
+	var tint: Color = material.get_shader_parameter(PARAM_EFFECTIVE_TINT)
+	assert_almost_eq(tint.r, 0.4125, 0.0001)
+	assert_almost_eq(tint.g, 0.3125, 0.0001)
+	assert_almost_eq(tint.b, 0.4375, 0.0001)
+	assert_almost_eq(float(material.get_shader_parameter(PARAM_EFFECTIVE_INTENSITY)), 1.55, 0.0001)
+
 func _process_lighting(manager: M_CharacterLightingManager) -> void:
 	manager._physics_process(0.016)
 
@@ -252,13 +278,14 @@ func _create_zone(
 	blend_weight: float = 1.0,
 	priority: int = 0,
 	position: Vector3 = Vector3.ZERO,
-	box_size: Vector3 = Vector3(8.0, 4.0, 8.0)
+	box_size: Vector3 = Vector3(8.0, 4.0, 8.0),
+	falloff: float = 0.0
 ) -> Inter_CharacterLightZone:
 	var config := RS_CHARACTER_LIGHT_ZONE_CONFIG.new()
 	config.zone_id = zone_id
 	config.shape_type = RS_CharacterLightZoneConfig.ShapeType.BOX
 	config.box_size = box_size
-	config.falloff = 0.0
+	config.falloff = clampf(falloff, 0.0, 1.0)
 	config.blend_weight = blend_weight
 	config.priority = priority
 	config.profile = profile

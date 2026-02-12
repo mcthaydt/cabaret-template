@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bcgud5qw85qv0" path="res://scripts/gameplay/inter_victory_zone.gd" id="1_controller"]
 [ext_resource type="Material" uid="uid://bhnn3psvefgpq" path="res://assets/materials/mat_fade_goal.tres" id="3_fade_material"]
 [ext_resource type="Resource" uid="uid://cc6jf6higq2bl" path="res://resources/interactions/victory/cfg_victory_goal_prefab.tres" id="4_victory_config"]
-[ext_resource type="Script" path="res://scripts/gameplay/inter_character_light_zone.gd" id="5_character_light_zone_script"]
+[ext_resource type="Script" uid="uid://ditrnsmje8qar" path="res://scripts/gameplay/inter_character_light_zone.gd" id="5_character_light_zone_script"]
 [ext_resource type="Resource" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_prefab.tres" id="6_character_light_zone_goal_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b3ofg"]
@@ -23,7 +23,7 @@ tags = Array[StringName]([&"objective", &"goal"])
 radius = 1.5
 material = ExtResource("3_fade_material")
 
-[node name="Inter_CharacterLightZone_GoalGlow" type="Node3D" parent="."]
+[node name="Inter_CharacterLightZone_GoalGlow" type="Node3D" parent="." unique_id=1531355111]
 script = ExtResource("5_character_light_zone_script")
 config = ExtResource("6_character_light_zone_goal_config")
 

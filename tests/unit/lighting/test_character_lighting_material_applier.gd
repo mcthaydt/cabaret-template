@@ -87,6 +87,10 @@ func test_apply_character_lighting_swaps_material_and_sets_shader_params() -> vo
 	var shader_code: String = shader.code
 	assert_true(shader_code.find("unshaded") >= 0, "Character shader must remain unshaded.")
 	assert_true(shader_code.find("texture(albedo_texture") >= 0, "Character shader must sample albedo texture.")
+	assert_true(shader_code.find("blend_mix") == -1,
+		"Character shader should render as opaque (no alpha blend mode).")
+	assert_true(shader_code.find("albedo_sample.a") == -1,
+		"Character shader should not apply texture alpha to character opacity.")
 	assert_eq(override_material.get_shader_parameter(PARAM_ALBEDO_TEXTURE), texture)
 	assert_eq(override_material.get_shader_parameter(PARAM_BASE_TINT), Color(1.0, 1.0, 1.0, 1.0))
 	assert_eq(override_material.get_shader_parameter(PARAM_EFFECTIVE_TINT), Color(0.5, 0.6, 0.7, 1.0))

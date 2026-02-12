@@ -119,3 +119,34 @@ func test_blend_accepts_blend_weight_key_from_zone_config_snapshots() -> void:
 	assert_eq(result.get("tint"), Color(0.2, 0.4, 0.6, 1.0))
 	assert_almost_eq(float(result.get("intensity", -1.0)), 2.0, 0.0001)
 	assert_almost_eq(float(result.get("blend_smoothing", -1.0)), 0.25, 0.0001)
+
+func test_blend_partially_mixes_default_profile_when_zone_weight_is_below_one() -> void:
+	var script_obj := _blend_script()
+	if script_obj == null:
+		return
+
+	var zones := [
+		{
+			"zone_id": StringName("zone_partial"),
+			"priority": 0,
+			"weight": 0.25,
+			"profile": {
+				"tint": Color(1.0, 0.0, 0.0, 1.0),
+				"intensity": 2.0,
+				"blend_smoothing": 0.4,
+			}
+		}
+	]
+	var default_profile := {
+		"tint": Color(0.2, 0.4, 0.6, 1.0),
+		"intensity": 1.0,
+		"blend_smoothing": 0.2,
+	}
+
+	var result: Dictionary = script_obj.call("blend_zone_profiles", zones, default_profile)
+	var tint: Color = result.get("tint", Color.WHITE)
+	assert_almost_eq(tint.r, 0.4, 0.0001)
+	assert_almost_eq(tint.g, 0.3, 0.0001)
+	assert_almost_eq(tint.b, 0.45, 0.0001)
+	assert_almost_eq(float(result.get("intensity", -1.0)), 1.25, 0.0001)
+	assert_almost_eq(float(result.get("blend_smoothing", -1.0)), 0.25, 0.0001)

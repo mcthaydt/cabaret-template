@@ -17,19 +17,36 @@ static func blend_zone_profiles(zone_inputs: Array, default_profile: Dictionary)
 
 	valid_sources.sort_custom(_compare_sources)
 
-	var total_weight: float = 0.0
+	var zone_weight_total: float = 0.0
 	for source in valid_sources:
-		total_weight += float(source.get("weight", 0.0))
+		zone_weight_total += float(source.get("weight", 0.0))
 
-	if total_weight <= 0.0:
+	if zone_weight_total <= 0.0:
 		var zero_result := fallback_profile.duplicate(true)
 		zero_result["sources"] = []
 		return zero_result
+
+	var default_weight: float = clampf(1.0 - zone_weight_total, 0.0, 1.0)
+	var total_weight: float = zone_weight_total + default_weight
+	if total_weight <= 0.0:
+		var fallback_result := fallback_profile.duplicate(true)
+		fallback_result["sources"] = []
+		return fallback_result
 
 	var tint_accumulator := Color(0.0, 0.0, 0.0, 0.0)
 	var intensity_accumulator: float = 0.0
 	var smoothing_accumulator: float = 0.0
 	var sources_snapshot: Array[Dictionary] = []
+
+	if default_weight > 0.0:
+		var normalized_default_weight: float = default_weight / total_weight
+		var fallback_tint: Color = fallback_profile.get("tint", Color(1.0, 1.0, 1.0, 1.0))
+		var fallback_intensity: float = float(fallback_profile.get("intensity", 1.0))
+		var fallback_smoothing: float = float(fallback_profile.get("blend_smoothing", 0.15))
+
+		tint_accumulator += fallback_tint * normalized_default_weight
+		intensity_accumulator += fallback_intensity * normalized_default_weight
+		smoothing_accumulator += fallback_smoothing * normalized_default_weight
 
 	for source in valid_sources:
 		var normalized_weight: float = float(source.get("weight", 0.0)) / total_weight

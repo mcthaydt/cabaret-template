@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="RS_CharacterLightingProfile" format=3]
+[gd_resource type="Resource" script_class="RS_CharacterLightingProfile" format=3 uid="uid://dwmpxmdamf21n"]
 
-[ext_resource type="Script" path="res://scripts/resources/lighting/rs_character_lighting_profile.gd" id="1"]
+[ext_resource type="Script" uid="uid://4r0gfjs52qar" path="res://scripts/resources/lighting/rs_character_lighting_profile.gd" id="1"]
 
 [resource]
 script = ExtResource("1")
