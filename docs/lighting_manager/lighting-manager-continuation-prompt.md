@@ -2,15 +2,17 @@
 
 ## Current Status (2026-02-12)
 
-- **Status:** Phase 5 complete (scene migration to zone-driven character lighting data implemented and validated).
+- **Status:** Phase 6 in progress (integration flow suite added and validated; manual QA still pending).
 - **Task Checklist:** `docs/lighting_manager/lighting-manager-tasks.md`
-- **Next Phase:** Phase 6 (Integration + Hardening)
+- **Next Phase:** Phase 6 completion (`LM056` manual QA) then Phase 7 documentation/handoff.
 - **Tests Run This Phase:**
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting -gselect=test_character_zone_lighting_flow` (PASS, 4 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting` (PASS, 4 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (PASS, 8 tests)
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables` (PASS, 52 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -gselect=test_inter_character_light_zone` (PASS, 5 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (PASS, 12 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -gselect=test_basic_transitions` (PASS, 13 tests)
-- **Manual QA:** Not started
+- **Manual QA:** Pending (`LM056`)
 
 ## Locked Implementation Decisions
 

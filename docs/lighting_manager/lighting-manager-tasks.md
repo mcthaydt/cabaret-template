@@ -1,9 +1,9 @@
 # Lighting Manager - Task Checklist
 
-**Progress:** 51 / 70 tasks complete
+**Progress:** 54 / 70 tasks complete
 **Unit Tests:** 26 / 26 passing
-**Integration Tests:** 0 / 0 passing
-**Manual QA:** 0 / 0 complete
+**Integration Tests:** 1 / 1 passing
+**Manual QA:** 0 / 1 complete
 
 ---
 
@@ -183,11 +183,23 @@
 
 **Exit Criteria:** integration tests pass and system is stable across transitions and respawns.
 
-- [ ] LM051 (Red) Create `tests/integration/lighting/test_character_zone_lighting_flow.gd`
-- [ ] LM052 (Green) Validate overlap blending, scene default fallback, transition behavior, and respawn behavior
+- [x] LM051 (Red) Create `tests/integration/lighting/test_character_zone_lighting_flow.gd`
+  - 2026-02-12: RED baseline confirmed (`tools/run_gut_suite.sh -gdir=res://tests/integration/lighting -gselect=test_character_zone_lighting_flow`) before suite creation (`path does not exist` / script not found).
+- [x] LM052 (Green) Validate overlap blending, scene default fallback, transition behavior, and respawn behavior
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting -gselect=test_character_zone_lighting_flow` (4 tests)
+  - Coverage assertions:
+    - overlap blend across discovered + externally registered zones
+    - scene-default fallback outside zone influence
+    - transition blocking restores materials and resumes correctly
+    - respawned replacement character receives zone lighting
 - [ ] LM053 [REMOVED] Debug API scope removed by product decision
 - [ ] LM054 [REMOVED] Debug logging scope removed by product decision
-- [ ] LM055 Run full relevant suites (unit/integration/style)
+- [x] LM055 Run full relevant suites (unit/integration/style)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (8 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/interactables -gselect=test_inter_character_light_zone` (5 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/lighting` (4 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/integration/scene_manager -gselect=test_basic_transitions` (13 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)
 - [ ] LM056 Manual QA pass across alleyway, bar, exterior, interior transitions
 
 ---
@@ -223,7 +235,7 @@
 - [x] Unit: resources/config/blend math
 - [x] Unit: zone controller behavior
 - [x] Unit: manager lifecycle/discovery/cache invalidation
-- [ ] Integration: scene transition + respawn + overlap blending
+- [x] Integration: scene transition + respawn + overlap blending
 - [ ] Integration: player + NPC parity in shared lighting zones
 - [x] Style: `tests/unit/style/test_style_enforcement.gd`
 - [ ] Performance smoke: multi-character/multi-zone update remains stable
