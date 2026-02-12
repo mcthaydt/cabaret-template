@@ -494,8 +494,9 @@ func _maybe_face_camera_on_spawn(player: Node3D, ecs_body: CharacterBody3D, spaw
 	if has_to_camera:
 		to_camera = to_camera.normalized()
 
-	# Face the camera position (player -> camera), not camera forward.
-	var desired_direction: Vector3 = -cam_forward
+	# Prefer facing camera position (player -> camera). When unavailable,
+	# align with camera forward so spawn yaw matches gameplay camera yaw convention.
+	var desired_direction: Vector3 = cam_forward
 	if has_to_camera:
 		desired_direction = to_camera
 
