@@ -39,7 +39,7 @@ func get_influence_weight(_world_position: Vector3) -> float:
 	var typed := _get_typed_config()
 	if typed == null:
 		return 0.0
-	return typed.weight
+	return typed.blend_weight
 
 func _get_typed_config() -> RS_CharacterLightZoneConfig:
 	if _config == null:
