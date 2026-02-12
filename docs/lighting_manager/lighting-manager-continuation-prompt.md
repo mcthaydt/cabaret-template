@@ -2,12 +2,13 @@
 
 ## Current Status (2026-02-12)
 
-- **Status:** Phase 3 complete (shader/material application helper implemented and validated).
+- **Status:** Phase 4 complete (manager discovery/blending/gating/cache invalidation implemented and validated).
 - **Task Checklist:** `docs/lighting_manager/lighting-manager-tasks.md`
-- **Next Phase:** Phase 4 (Character Lighting Manager Core)
+- **Next Phase:** Phase 5 (Gameplay Scene Migration - Reference Existing Lights)
 - **Tests Run This Phase:**
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting -gselect=test_character_lighting_material_applier` (RED: expected fail, 5 failing tests before helper implementation)
-  - `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting -gselect=test_character_lighting_material_applier` (PASS, 5 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (RED: expected fail, 5 failing tests against stub manager)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (PASS, 6 tests)
+  - `tools/run_gut_suite.sh -gdir=res://tests/unit/managers` (PASS, 147 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting` (PASS, 16 tests)
   - `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (PASS, 12 tests)
 - **Manual QA:** Not started

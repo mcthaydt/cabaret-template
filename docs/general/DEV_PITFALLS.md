@@ -96,6 +96,10 @@
 - **Viewport capture fails in headless**: `Viewport.get_texture().get_image()` can error under the headless/dummy renderer (`Parameter "t" is null`). Tests that validate viewport screenshot capture should be marked `pending` when `OS.has_feature("headless")` or `DisplayServer.get_name() == "headless"` to avoid false failures.
 - **`M_StateStore` autoload can leak ambient state into unit tests**: `RS_StateStoreSettings.enable_persistence` defaults to `true`, so tests that create `M_StateStore` can auto-load `user://savegame.json` and emit normalization warnings (for example unknown spawn point warnings) as unexpected test errors. For tests not explicitly validating persistence, set `store.settings.enable_persistence = false` before adding the store node.
 
+## Character Lighting Pitfalls
+
+- **Cache invalidation is required on `scene/swapped` for lighting managers**: Character lighting caches that are built from `ActiveSceneContainer/<GameplayScene>/Lighting` can go stale after a scene transition unless the manager listens to `state_store.action_dispatched` and marks cache state dirty when action type is `scene/swapped`. Without this, zone lists/default profile data can continue referencing the previous scene.
+
 ## UI Navigation Pitfalls (Gamepad/Joystick)
 
 ### Focus Sound Arming (Phase 7 - UI Audio)

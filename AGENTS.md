@@ -134,7 +134,7 @@
 - Use `visual_paths` to toggle meshes/lights/particles when controllers enable/disable; keep visuals as controller children instead of wiring extra logic nodes.
 - Controllers run with `process_mode = PROCESS_MODE_ALWAYS` and will not activate while `scene.is_transitioning` or `M_SceneManager.is_transitioning()` is true.
 
-### Character Lighting (Phase 1-3)
+### Character Lighting (Phase 1-4)
 
 - Lighting resource scripts live under `scripts/resources/lighting/` with `rs_` prefixes.
 - `RS_CharacterLightingProfile` is the base data contract; use `get_resolved_values()` for clamped runtime values (`tint`, `intensity`, `blend_smoothing`) instead of reading raw exports directly in blend code.
@@ -155,6 +155,13 @@
   - `apply_character_lighting(...)` swaps each target to `ShaderMaterial` using `assets/shaders/sh_character_zone_lighting.gdshader`, carries forward `albedo_texture`, and sets `base_tint`, `effective_tint`, `effective_intensity`.
   - Missing mesh/material/albedo texture is a deliberate no-op (skip target, do not cache).
   - Teardown contract: call `restore_character_materials(entity)` on entity cleanup and `restore_all_materials()` on broader scene teardown.
+- `M_CharacterLightingManager` runtime pattern (Phase 4):
+  - Discovers dependencies via injection-first + ServiceLocator fallback (`state_store`, `scene_manager`, `ecs_manager`).
+  - Discovers active scene lighting data from `ActiveSceneContainer/<GameplayScene>/Lighting`.
+  - Resolves scene defaults from `Lighting/CharacterLightingSettings.default_profile` when available, otherwise sanitized white/default fallback profile.
+  - Listens for `scene/swapped` via `state_store.action_dispatched` and marks lighting caches dirty for next physics tick.
+  - Discovers character targets from ECS tag query (`get_entities_by_tag("character")`) and restores materials for removed/non-3D entities.
+  - Applies transition gating via Redux scene/navigation slices and `scene_manager.is_transitioning()`; blocked frames restore all character lighting overrides.
 
 ## Naming Conventions Quick Reference
 

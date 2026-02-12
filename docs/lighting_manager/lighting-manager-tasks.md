@@ -1,7 +1,7 @@
 # Lighting Manager - Task Checklist
 
-**Progress:** 33 / 70 tasks complete
-**Unit Tests:** 20 / 20 passing
+**Progress:** 43 / 70 tasks complete
+**Unit Tests:** 26 / 26 passing
 **Integration Tests:** 0 / 0 passing
 **Manual QA:** 0 / 0 complete
 
@@ -110,16 +110,21 @@
 
 **Exit Criteria:** manager discovers tagged characters + zones, computes weighted blend, and applies results every physics tick.
 
-- [ ] LM033 (Red) Create `tests/unit/managers/test_character_lighting_manager.gd`
-- [ ] LM034 (Green) Implement manager lifecycle (`PROCESS_MODE_ALWAYS`, dependency discovery, cache init)
-- [ ] LM035 Implement entity discovery via ECS manager (`get_entities_by_tag("character")`) for player + NPC parity
-- [ ] LM036 Implement zone discovery from active gameplay scene `Lighting` subtree
-- [ ] LM037 Implement scene default profile lookup (`Lighting/CharacterLightingSettings`)
-- [ ] LM038 Implement weighted blend algorithm with priority, falloff, and deterministic tie-break rules
-- [ ] LM039 Implement transition gating using scene manager/state checks
-- [ ] LM040 Implement scene swap cache invalidation on `scene/swapped`
-- [ ] LM041 Implement support for dynamically added/removed tagged entities
-- [ ] LM042 Re-run unit + style tests
+- [x] LM033 (Red) Create `tests/unit/managers/test_character_lighting_manager.gd`
+  - 2026-02-12: RED confirmed (`tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager`) with 5 expected failures against stub manager behavior.
+- [x] LM034 (Green) Implement manager lifecycle (`PROCESS_MODE_ALWAYS`, dependency discovery, cache init)
+- [x] LM035 Implement entity discovery via ECS manager (`get_entities_by_tag("character")`) for player + NPC parity
+- [x] LM036 Implement zone discovery from active gameplay scene `Lighting` subtree
+- [x] LM037 Implement scene default profile lookup (`Lighting/CharacterLightingSettings`)
+- [x] LM038 Implement weighted blend algorithm with priority, falloff, and deterministic tie-break rules
+- [x] LM039 Implement transition gating using scene manager/state checks
+- [x] LM040 Implement scene swap cache invalidation on `scene/swapped`
+- [x] LM041 Implement support for dynamically added/removed tagged entities
+- [x] LM042 Re-run unit + style tests
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/managers -gselect=test_character_lighting_manager` (6 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/managers` (147 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/lighting` (16 tests)
+  - 2026-02-12: PASS `tools/run_gut_suite.sh -gdir=res://tests/unit/style` (12 tests)
 
 ---
 
