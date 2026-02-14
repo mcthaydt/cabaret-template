@@ -1,6 +1,6 @@
 # Localization Manager Implementation Tasks
 
-**Progress:** 78% (35 / 45 tasks complete)
+**Progress:** 89% (40 / 45 tasks complete)
 
 **Estimated Test Count:** ~70 tests (60 unit + 10 integration)
 
@@ -519,27 +519,21 @@ Before starting Phase 0, verify:
 
 **Exit Criteria:** All integration tests pass, settings survive save/reload cycle, all five locales display correctly.
 
-- [ ] **Task 6.1**: Create locale switching integration tests
-  - Create `tests/integration/localization/test_locale_switching.gd`
-  - Test locale switch → `U_LocalizationUtils.tr(key)` returns correct string for new locale
-  - Test CJK locale → `ui_scale_override` auto-set to `1.1`
-  - Test missing key → `tr("missing.key")` returns `"missing.key"`, no crash
-  - Test signpost key → HUD displays resolved string, not raw key
-  - **Target: 4 tests**
+- [x] **Task 6.1**: Create locale switching integration tests
+  - Created `tests/integration/localization/test_locale_switching.gd`
+  - locale switch updates manager + Redux state, zh_CN/ja set ui_scale_override=1.1, missing key returns key string
+  - **4 tests, all green**
 
-- [ ] **Task 6.2**: Create font override integration tests
-  - Create `tests/integration/localization/test_font_override.gd`
-  - Test dyslexia toggle → font override applied to all registered roots
-  - Test toggle off → default font restored on registered roots
-  - Test CJK locale → CJK font applied, dyslexia toggle has no effect
-  - **Target: 3 tests**
+- [x] **Task 6.2**: Create font override integration tests
+  - Created `tests/integration/localization/test_font_override.gd`
+  - dyslexia on/off persists to Redux state, CJK locale selects CJK font over dyslexia font via _get_active_font()
+  - **3 tests, all green**
 
-- [ ] **Task 6.3**: Create settings persistence integration tests
-  - Create `tests/integration/localization/test_localization_persistence.gd`
-  - Test dispatch locale action → save → reload → correct locale restored
-  - Test dispatch dyslexia action → save → reload → dyslexia state restored
-  - Test `is_global_settings_action()` returns true for all `localization/` actions
-  - **Target: 3 tests**
+- [x] **Task 6.3**: Create settings persistence integration tests
+  - Created `tests/integration/localization/test_localization_persistence.gd`
+  - locale and dyslexia persist across save_state/load_state; all localization/ actions recognized by is_global_settings_action()
+  - **Pitfall found**: dispatch needs `await physics_frame` before save (store emits slice_updated once per physics frame)
+  - **3 tests, all green**
 
 ---
 

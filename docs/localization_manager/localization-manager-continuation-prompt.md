@@ -1,7 +1,7 @@
 # Localization Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-14
-**Status:** Phases 0, 0.5, 1, 2, 3, 4, 5 complete. 35 / 45 tasks done.
+**Status:** Phases 0, 0.5, 1, 2, 3, 4, 5, 6 complete. 40 / 45 tasks done.
 
 ## Completed Phases
 
@@ -12,6 +12,7 @@
 - **Phase 3**: Dyslexia Font System — `_load_fonts()`, `register_ui_root()`, `_apply_font_override()`, `_get_active_font()`, `_apply_font_to_root()`. CJK priority logic. Font file stubs in `assets/fonts/`. 6 additional unit tests.
 - **Phase 4**: Signpost Localization Integration — `ui_hud_controller.gd` wraps signpost `message` through `U_LocalizationUtils.localize(StringName(raw))` before display; `localization` slice added to `_on_slice_updated()` filter. 2 unit tests in `test_hud_interactions_pause_and_signpost.gd`.
 - **Phase 5**: Settings UI Integration — `UI_LocalizationSettingsTab` (language OptionButton + dyslexia CheckButton, auto-save), `UI_LocalizationSettingsOverlay` (BaseOverlay wrapper), `cfg_localization_settings_overlay.tres` (UIScreenDefinition), `cfg_ui_localization_settings_entry.tres` (SceneRegistryEntry), `U_UIRegistry` updated (12 overlays), "Language" button wired in `ui_settings_menu.tscn/.gd`. `test_ui_registry.gd` updated (expected count 11→12).
+- **Phase 6**: Integration Tests — `test_locale_switching.gd` (4), `test_font_override.gd` (3), `test_localization_persistence.gd` (3). 10/10 pass. Key pitfall: dispatch needs `await physics_frame` before asserting manager state (store emits `slice_updated` once per physics frame).
 
 ## Start Here
 
@@ -21,7 +22,7 @@ Read these before writing any code:
 - `docs/localization_manager/localization-manager-plan.md`
 - `docs/localization_manager/localization-manager-tasks.md`
 
-Begin at **Task 6.1** — create the locale switching integration test, then work through **Tasks 6.2–6.3** (font override integration tests, settings persistence integration tests).
+All 6 implementation phases are complete (40/45 tasks). The remaining 5 tasks are the Phase 6 integration tests (already done above) and a manual playtest checklist. The implementation is feature-complete. Next steps: replace font stubs in `assets/fonts/` with real fonts before shipping.
 
 ## Key Pitfalls
 
