@@ -95,6 +95,10 @@ static func build_settings_from_state(state: Dictionary) -> Dictionary:
 	if not vfx_slice.is_empty():
 		settings["vfx"] = vfx_slice.duplicate(true)
 
+	var localization_slice := _get_slice_dict(state, StringName("localization"))
+	if not localization_slice.is_empty():
+		settings["localization"] = localization_slice.duplicate(true)
+
 	var settings_slice := _get_slice_dict(state, StringName("settings"))
 	if not settings_slice.is_empty():
 		var input_variant: Variant = settings_slice.get("input_settings", {})
@@ -128,6 +132,8 @@ static func is_global_settings_action(action_type: Variant) -> bool:
 	if action_name.begins_with("audio/"):
 		return true
 	if action_name.begins_with("vfx/"):
+		return true
+	if action_name.begins_with("localization/"):
 		return true
 	if INPUT_SETTINGS_ACTIONS.has(action_name):
 		return true
@@ -179,6 +185,9 @@ static func _prepare_save_payload(settings: Dictionary) -> Dictionary:
 	if settings.has("vfx") and settings["vfx"] is Dictionary:
 		payload["vfx"] = _deep_copy(settings["vfx"])
 
+	if settings.has("localization") and settings["localization"] is Dictionary:
+		payload["localization"] = _deep_copy(settings["localization"])
+
 	if settings.has("input_settings") and settings["input_settings"] is Dictionary:
 		payload["input_settings"] = U_INPUT_SERIALIZATION.serialize_settings(settings["input_settings"])
 
@@ -195,6 +204,8 @@ static func _sanitize_loaded_settings(data: Dictionary) -> Dictionary:
 		sanitized["audio"] = U_AUDIO_SERIALIZATION.deserialize_settings(data["audio"])
 	if data.has("vfx") and data["vfx"] is Dictionary:
 		sanitized["vfx"] = _deep_copy(data["vfx"])
+	if data.has("localization") and data["localization"] is Dictionary:
+		sanitized["localization"] = _deep_copy(data["localization"])
 	if data.has("input_settings") and data["input_settings"] is Dictionary:
 		sanitized["input_settings"] = U_INPUT_SERIALIZATION.deserialize_settings(data["input_settings"])
 	if data.has("gameplay_preferences") and data["gameplay_preferences"] is Dictionary:
