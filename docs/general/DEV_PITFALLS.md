@@ -88,6 +88,10 @@
 
 - **Child scripts cannot redeclare parent members (incl. `const`)**: If a base class defines a member like `const U_Foo := preload("...")`, declaring another `const U_Foo := ...` in a derived script causes a parse error (`The member "U_Foo" already exists in parent class ...`). Prefer inheriting the constant, or use a different name in the child.
 
+- **`tr` cannot be used as a static method name on external classes (Godot 4.6)**: Calling `.tr()` on a preloaded Script variable or class reference triggers a parse-time error `"Could not resolve external class member 'tr'"` because `tr()` is a built-in `Object` method. This means `U_SomeClass.tr(key)` will **not compile**. Name translation helper methods `localize()` or any non-colliding name instead. Never call bare `tr(key)` either (invokes Godot's built-in `Object.tr()`).
+
+- **Inner class names must start with a capital letter**: Defining an inner class with an underscore-prefixed name (e.g. `class _MockFoo extends Node:`) causes a GDScript 4 parse error. Use `class MockFoo extends Node:` instead.
+
 ## Asset Import Pitfalls (Headless Tests)
 
 - **New assets used with `preload()` can fail until `.import` files exist**: If you add a new `*.ogg`, `*.png`, etc and immediately reference it via `preload("res://...")`, headless GUT runs can fail because Godot hasn’t generated the sidecar `*.import` file yet.

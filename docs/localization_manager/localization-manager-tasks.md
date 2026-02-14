@@ -1,6 +1,6 @@
 # Localization Manager Implementation Tasks
 
-**Progress:** 40% (18 / 45 tasks complete)
+**Progress:** 62% (28 / 45 tasks complete)
 
 **Estimated Test Count:** ~70 tests (60 unit + 10 integration)
 
@@ -273,7 +273,7 @@ Before starting Phase 0, verify:
 
 ### Phase 1A: Interface Definition
 
-- [ ] **Task 1A.1**: Create I_LocalizationManager interface
+- [x] **Task 1A.1**: Create I_LocalizationManager interface
   - Create `scripts/interfaces/i_localization_manager.gd`
   - Methods (all `push_error` stubs):
     - `set_locale(_locale: StringName) -> void`
@@ -286,7 +286,7 @@ Before starting Phase 0, verify:
 
 ### Phase 1B: Manager Scaffolding & Lifecycle
 
-- [ ] **Task 1B.1 (Red)**: Write tests for M_LocalizationManager lifecycle
+- [x] **Task 1B.1 (Red)**: Write tests for M_LocalizationManager lifecycle
   - Create `tests/unit/managers/test_localization_manager.gd`
   - Test extends `I_LocalizationManager`
   - Test registers with ServiceLocator as `"localization_manager"`
@@ -296,7 +296,7 @@ Before starting Phase 0, verify:
   - Test `_last_localization_hash` prevents redundant applies
   - **Target: 6 tests**
 
-- [ ] **Task 1B.2 (Green)**: Implement M_LocalizationManager scaffold
+- [x] **Task 1B.2 (Green)**: Implement M_LocalizationManager scaffold
   - Create `scripts/managers/m_localization_manager.gd` extending `I_LocalizationManager`
   - `@export var state_store: I_StateStore = null`
   - `var _active_locale: StringName = &"en"`
@@ -309,7 +309,7 @@ Before starting Phase 0, verify:
   - `_on_slice_updated()` filters for `&"localization"` slice, hash-guards apply
   - All tests should pass
 
-- [ ] **Task 1B.3**: Add manager to root scene
+- [x] **Task 1B.3**: Add manager to root scene
   - Add `M_LocalizationManager` node to `scenes/root.tscn` under `Managers/` after `M_DisplayManager`
   - Update `scripts/root.gd`: add `_register_if_exists(managers_node, "M_LocalizationManager", StringName("localization_manager"))`
 
@@ -317,11 +317,11 @@ Before starting Phase 0, verify:
 
 ## Phase 2: JSON File Loading & Locale Switching
 
-**Exit Criteria:** `U_LocalizationUtils.tr()` returns correct translated strings for all supported locales.
+**Exit Criteria:** `U_LocalizationUtils.localize()` returns correct translated strings for all supported locales.
 
 ### Phase 2A: U_LocaleFileLoader Helper
 
-- [ ] **Task 2A.1 (Red)**: Write tests for U_LocaleFileLoader
+- [x] **Task 2A.1 (Red)**: Write tests for U_LocaleFileLoader
   - Create `tests/unit/managers/helpers/test_locale_file_loader.gd`
   - Test `load_locale(&"en")` returns a Dictionary
   - Test loading merges multiple JSON files (ui.json + hud.json)
@@ -330,7 +330,7 @@ Before starting Phase 0, verify:
   - Test missing file is skipped gracefully (no crash, returns partial result)
   - **Target: 5 tests**
 
-- [ ] **Task 2A.2 (Green)**: Implement U_LocaleFileLoader
+- [x] **Task 2A.2 (Green)**: Implement U_LocaleFileLoader
   - Create `scripts/managers/helpers/u_locale_file_loader.gd`
   - `const _LOCALE_FILE_PATHS: Dictionary` maps each locale to `[ui.json, hud.json]` paths
   - `static func load_locale(locale: StringName) -> Dictionary` using `FileAccess.open()` (NOT preload — preload on .json is a compile error)
@@ -338,7 +338,7 @@ Before starting Phase 0, verify:
   - `push_error()` on null file or invalid JSON, but continue gracefully
   - All tests should pass
 
-- [ ] **Task 2A.3**: Create locale JSON stub files
+- [x] **Task 2A.3**: Create locale JSON stub files
   - Create `resources/localization/en/ui.json` and `hud.json`
   - Create `resources/localization/es/ui.json` and `hud.json`
   - Create `resources/localization/pt/ui.json` and `hud.json`
@@ -350,7 +350,7 @@ Before starting Phase 0, verify:
 
 ### Phase 2B: U_LocalizationUtils Static Helper
 
-- [ ] **Task 2B.1 (Red)**: Write tests for U_LocalizationUtils
+- [x] **Task 2B.1 (Red)**: Write tests for U_LocalizationUtils
   - Create `tests/unit/utils/test_localization_utils.gd`
   - Test `tr(key)` returns translated string when manager available
   - Test `tr(key)` returns key string when key missing from translations
@@ -359,20 +359,21 @@ Before starting Phase 0, verify:
   - Test `tr_fmt(key, args)` handles missing args gracefully (no crash)
   - **Target: 5 tests**
 
-- [ ] **Task 2B.2 (Green)**: Implement U_LocalizationUtils
+- [x] **Task 2B.2 (Green)**: Implement U_LocalizationUtils
   - Create `scripts/utils/localization/u_localization_utils.gd`
-  - `static func tr(key: StringName) -> String` — calls `manager.translate(key)`, falls back to `String(key)`
-  - `static func tr_fmt(key: StringName, args: Array) -> String` — calls `tr()` then replaces `{0}`, `{1}`, etc.
+  - `static func localize(key: StringName) -> String` — calls `manager.translate(key)`, falls back to `str(key)`
+  - `static func localize_fmt(key: StringName, args: Array) -> String` — calls `localize()` then replaces `{0}`, `{1}`, etc. using `str(args[i])`
   - `static func register_ui_root(root: Node) -> void` — delegates to manager
-  - `static func _get_manager() -> M_LocalizationManager` — ServiceLocator lookup
-  - **CRITICAL**: Never call bare `tr(key)` — that invokes Godot's built-in `Object.tr()` instead
+  - `static func _get_manager() -> Object` — ServiceLocator lookup
+  - **CRITICAL**: Method named `localize()` NOT `tr()` — Godot 4.6 refuses to resolve `.tr()` as an external class member (parse error). Never call bare `tr(key)`.
+  - Use `str(value)` not `String(value)` for Variant→String conversion in args substitution
   - All tests should pass
 
 ---
 
 ### Phase 2C: Locale Loading in Manager
 
-- [ ] **Task 2C.1**: Add locale loading methods to M_LocalizationManager
+- [x] **Task 2C.1**: Add locale loading methods to M_LocalizationManager
   - Add `const U_LOCALE_FILE_LOADER := preload("res://scripts/managers/helpers/u_locale_file_loader.gd")`
   - `func _load_locale(locale: StringName) -> void` — calls `U_LOCALE_FILE_LOADER.load_locale()`, updates `_translations`, calls `_notify_ui_roots()`
   - `func translate(key: StringName) -> String` — returns `_translations.get(String(key), String(key))`
@@ -388,7 +389,7 @@ Before starting Phase 0, verify:
 
 ### Phase 3A: Font Loading & UI Root Registration
 
-- [ ] **Task 3A.1 (Red)**: Write font + root registration tests
+- [x] **Task 3A.1 (Red)**: Write font + root registration tests
   - Add to `tests/unit/managers/test_localization_manager.gd`
   - Test `register_ui_root()` adds root to internal list
   - Test `unregister_ui_root()` removes root from internal list
@@ -398,7 +399,7 @@ Before starting Phase 0, verify:
   - Test switching from CJK to Latin locale restores default font
   - **Target: 6 tests**
 
-- [ ] **Task 3A.2 (Green)**: Implement font system in M_LocalizationManager
+- [x] **Task 3A.2 (Green)**: Implement font system in M_LocalizationManager
   - Add font vars: `_default_font`, `_dyslexia_font`, `_cjk_font` (all `Font`)
   - `const CJK_LOCALES: Array[StringName] = [&"zh_CN", &"ja"]`
   - `func _load_fonts()` — `load("res://assets/fonts/fnt_*.ttf")` (NOT preload on .ttf)
@@ -411,7 +412,7 @@ Before starting Phase 0, verify:
   - `func _notify_ui_roots()` — call `_on_locale_changed(_active_locale)` on roots that have the method
   - All tests should pass
 
-- [ ] **Task 3A.3**: Create font file stubs
+- [x] **Task 3A.3**: Create font file stubs
   - Create `assets/fonts/` directory
   - Place placeholder `fnt_ui_default.ttf`, `fnt_dyslexia.ttf`, `fnt_cjk.ttf` (copy any existing .ttf as placeholder)
   - **Note**: Without font files, `_load_fonts()` returns null; guard with `if font == null: return` in `_apply_font_to_root()`
@@ -420,7 +421,7 @@ Before starting Phase 0, verify:
 
 ## Phase 4: Signpost Localization Integration
 
-**Exit Criteria:** HUD resolves signpost `message` values via `U_LocalizationUtils.tr()`. Literal strings degrade gracefully.
+**Exit Criteria:** HUD resolves signpost `message` values via `U_LocalizationUtils.localize()`. Literal strings degrade gracefully.
 
 ### Phase 4A: HUD Controller Update
 
@@ -536,7 +537,10 @@ Before starting Phase 0, verify:
 **Key Decisions:**
 - Localization slice has **no transient fields** — all settings persist to `user://global_settings.json`
 - Locale JSON uses `FileAccess.open()` (NOT `preload()` — preloading `.json` is a compile error)
-- Never call bare `tr(key)` — always use `U_LocalizationUtils.tr(key)` to avoid invoking Godot's built-in `Object.tr()`
+- **`tr()` CANNOT be a static method name in Godot 4.6**: Godot's parser refuses to resolve `.tr()` as an external class member (collides with `Object.tr()` built-in). Method renamed to `localize()` / `localize_fmt()` in `U_LocalizationUtils`. Never call bare `tr(key)`.
+- **`String(value)` does not work for Variant→String in GDScript 4**: use `str(value)` instead. `String(...)` constructor only accepts numeric/bool, not arbitrary Variants.
+- **Inner class names must start with a capital letter** in GDScript 4 test files. Using `_MockFoo` with underscore prefix causes parse errors.
+- Font stubs in `assets/fonts/` are copies of GUT addon fonts — replace with real fonts before shipping.
 - `localization_initial_state` is the **13th parameter** to `initialize_slices()` — misaligning it silently breaks all existing slices
 - `u_global_settings_serialization.gd` has **4 methods** that must all be updated — missing any breaks the save/load round-trip
 - **`u_global_settings_applier.gd` must ALSO be updated** — serialization writes to disk, but the applier reads from disk and dispatches actions to restore state. Missing it means settings save but never reload. This is a **separate file** from serialization.
