@@ -1,6 +1,6 @@
 # Localization Manager Implementation Tasks
 
-**Progress:** 18% (8 / 45 tasks complete)
+**Progress:** 40% (18 / 45 tasks complete)
 
 **Estimated Test Count:** ~70 tests (60 unit + 10 integration)
 
@@ -168,12 +168,12 @@ Before starting Phase 0, verify:
 
 ### Phase 0.5A: Redux Additions
 
-- [ ] **Task 0.5A.1**: Add `has_selected_language` to RS_LocalizationInitialState
+- [x] **Task 0.5A.1**: Add `has_selected_language` to RS_LocalizationInitialState
   - Open `scripts/resources/state/rs_localization_initial_state.gd`
   - Add `@export var has_selected_language: bool = false`
   - Add `"has_selected_language": has_selected_language` to `to_dictionary()` return
 
-- [ ] **Task 0.5A.2**: Add `ACTION_MARK_LANGUAGE_SELECTED` to U_LocalizationActions
+- [x] **Task 0.5A.2**: Add `ACTION_MARK_LANGUAGE_SELECTED` to U_LocalizationActions
   - Open `scripts/state/actions/u_localization_actions.gd`
   - Add `const ACTION_MARK_LANGUAGE_SELECTED := StringName("localization/mark_language_selected")`
   - Register it in `_static_init()` via `U_ActionRegistry.register_action(ACTION_MARK_LANGUAGE_SELECTED)`
@@ -182,7 +182,7 @@ Before starting Phase 0, verify:
     return {"type": ACTION_MARK_LANGUAGE_SELECTED, "payload": {}, "immediate": true}
     ```
 
-- [ ] **Task 0.5A.3**: Handle new action in U_LocalizationReducer
+- [x] **Task 0.5A.3**: Handle new action in U_LocalizationReducer
   - Open `scripts/state/reducers/u_localization_reducer.gd`
   - Add match case:
     ```gdscript
@@ -190,7 +190,7 @@ Before starting Phase 0, verify:
         return _with_values(state, {"has_selected_language": true})
     ```
 
-- [ ] **Task 0.5A.4**: Add `has_selected_language()` selector to U_LocalizationSelectors
+- [x] **Task 0.5A.4**: Add `has_selected_language()` selector to U_LocalizationSelectors
   - Open `scripts/state/selectors/u_localization_selectors.gd`
   - Add:
     ```gdscript
@@ -198,7 +198,7 @@ Before starting Phase 0, verify:
         return bool(_get_localization_slice(state).get("has_selected_language", false))
     ```
 
-- [ ] **Task 0.5A.5 (Red → Green)**: Add unit tests for new Redux additions
+- [x] **Task 0.5A.5 (Red → Green)**: Add unit tests for new Redux additions
   - In `tests/unit/state/test_localization_initial_state.gd`:
     - `test_has_selected_language_default` — field exists with default `false`
     - Update existing `to_dictionary` test to verify **4** fields (was 3)
@@ -215,7 +215,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0.5B: Language Selector Scene & Controller
 
-- [ ] **Task 0.5B.1**: Create `scripts/ui/menus/ui_language_selector.gd`
+- [x] **Task 0.5B.1**: Create `scripts/ui/menus/ui_language_selector.gd`
   - `class_name UI_LanguageSelector extends BaseMenuScreen`
   - `const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]`
   - `@onready` vars for all five buttons (unique names: `%EnButton`, `%EsButton`, etc.)
@@ -226,7 +226,7 @@ Before starting Phase 0, verify:
   - `_skip_to_main_menu()` / `_transition_to_main_menu()`: via `U_ServiceLocator.get_service("scene_manager")`
   - `_on_back_pressed()`: `pass` (no back on first-run screen)
 
-- [ ] **Task 0.5B.2**: Create `scenes/ui/menus/ui_language_selector.tscn`
+- [x] **Task 0.5B.2**: Create `scenes/ui/menus/ui_language_selector.tscn`
   - Root: `Control` with script `ui_language_selector.gd`
   - Children: `UIScaleRoot`, `CenterContainer → PanelContainer → VBoxContainer`
   - VBox contains: `Label` ("Select Your Language"), `HSeparator`, `GridContainer` (columns=3)
@@ -238,7 +238,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0.5C: Registry & Initial Scene
 
-- [ ] **Task 0.5C.1**: Register `language_selector` scene in `scripts/scene_management/u_scene_registry.gd`
+- [x] **Task 0.5C.1**: Register `language_selector` scene in `scripts/scene_management/u_scene_registry.gd`
   - Add in `_register_scenes()` before or alongside `main_menu`:
     ```gdscript
     _register_scene(
@@ -250,7 +250,7 @@ Before starting Phase 0, verify:
     )
     ```
 
-- [ ] **Task 0.5C.2**: Change initial scene in `scenes/root.tscn`
+- [x] **Task 0.5C.2**: Change initial scene in `scenes/root.tscn`
   - On the `M_SceneManager` node, change inspector export:
     - `initial_scene_id`: `"main_menu"` → `"language_selector"`
 
