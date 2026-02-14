@@ -1,6 +1,6 @@
 # Localization Manager Implementation Tasks
 
-**Progress:** 0% (0 / 45 tasks complete)
+**Progress:** 18% (8 / 45 tasks complete)
 
 **Estimated Test Count:** ~70 tests (60 unit + 10 integration)
 
@@ -32,7 +32,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0A: Localization Initial State Resource
 
-- [ ] **Task 0A.1 (Red)**: Write tests for RS_LocalizationInitialState resource
+- [x] **Task 0A.1 (Red)**: Write tests for RS_LocalizationInitialState resource
   - Create `tests/unit/state/test_localization_initial_state.gd`
   - Test `current_locale` field exists with default `"en"`
   - Test `dyslexia_font_enabled` field exists with default `false`
@@ -41,7 +41,7 @@ Before starting Phase 0, verify:
   - Test defaults match reducer defaults (once reducer exists)
   - **Target: 5 tests** (becomes 6 after Phase 0.5A)
 
-- [ ] **Task 0A.2 (Green)**: Implement RS_LocalizationInitialState resource
+- [x] **Task 0A.2 (Green)**: Implement RS_LocalizationInitialState resource
   - Create `scripts/resources/state/rs_localization_initial_state.gd`
   - `@export_enum("en", "es", "pt", "zh_CN", "ja") var current_locale: String = "en"`
   - `@export var dyslexia_font_enabled: bool = false`
@@ -50,7 +50,7 @@ Before starting Phase 0, verify:
   - (**Note:** Phase 0.5A adds `@export var has_selected_language: bool = false`)
   - All tests should pass
 
-- [ ] **Task 0A.3**: Create default resource instance
+- [x] **Task 0A.3**: Create default resource instance
   - Create `resources/base_settings/state/cfg_localization_initial_state.tres`
   - Leave all fields at defaults (en, false, 1.0, false)
 
@@ -58,7 +58,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0B: Localization Actions
 
-- [ ] **Task 0B.1 (Red)**: Write tests for U_LocalizationActions
+- [x] **Task 0B.1 (Red)**: Write tests for U_LocalizationActions
   - Create `tests/unit/state/test_localization_actions.gd`
   - Test `set_locale(locale)` action structure `{type, payload.locale}`
   - Test `set_dyslexia_font_enabled(enabled)` action structure `{type, payload.enabled}`
@@ -66,7 +66,7 @@ Before starting Phase 0, verify:
   - Test all action type constants begin with `"localization/"` prefix
   - **Target: 4 tests**
 
-- [ ] **Task 0B.2 (Green)**: Implement U_LocalizationActions
+- [x] **Task 0B.2 (Green)**: Implement U_LocalizationActions
   - Create `scripts/state/actions/u_localization_actions.gd`
   - `const ACTION_SET_LOCALE := StringName("localization/set_locale")`
   - `const ACTION_SET_DYSLEXIA_FONT_ENABLED := StringName("localization/set_dyslexia_font_enabled")`
@@ -78,7 +78,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0C: Localization Reducer
 
-- [ ] **Task 0C.1 (Red)**: Write tests for U_LocalizationReducer
+- [x] **Task 0C.1 (Red)**: Write tests for U_LocalizationReducer
   - Create `tests/unit/state/test_localization_reducer.gd`
   - Test `set_locale` to each supported locale (en, es, pt, zh_CN, ja) — 5 tests
   - Test unknown locale is ignored (returns same state)
@@ -93,7 +93,7 @@ Before starting Phase 0, verify:
   - Test unknown action returns same state reference
   - **Target: 15 tests**
 
-- [ ] **Task 0C.2 (Green)**: Implement U_LocalizationReducer
+- [x] **Task 0C.2 (Green)**: Implement U_LocalizationReducer
   - Create `scripts/state/reducers/u_localization_reducer.gd`
   - `SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]`
   - `CJK_LOCALES: Array[StringName] = [&"zh_CN", &"ja"]`
@@ -106,7 +106,7 @@ Before starting Phase 0, verify:
 
 ### Phase 0D: Localization Selectors & Store Integration
 
-- [ ] **Task 0D.1 (Red)**: Write tests for U_LocalizationSelectors
+- [x] **Task 0D.1 (Red)**: Write tests for U_LocalizationSelectors
   - Create `tests/unit/state/test_localization_selectors.gd`
   - Test `get_locale()` returns `&"en"` when slice missing
   - Test `get_locale()` returns correct value from state
@@ -117,7 +117,7 @@ Before starting Phase 0, verify:
   - Test all selectors handle missing localization slice gracefully
   - **Target: 7 tests**
 
-- [ ] **Task 0D.2 (Green)**: Implement U_LocalizationSelectors
+- [x] **Task 0D.2 (Green)**: Implement U_LocalizationSelectors
   - Create `scripts/state/selectors/u_localization_selectors.gd`
   - Add private helper `static func _get_localization_slice(state: Dictionary) -> Dictionary` (follows `_get_audio_slice` pattern: null guard, `.get("localization", {})`, type check)
   - `static func get_locale(state)` → `StringName` default `&"en"`
@@ -126,7 +126,7 @@ Before starting Phase 0, verify:
   - (**Note:** Phase 0.5A adds `static func has_selected_language(state)` → `bool` default `false`)
   - All tests should pass
 
-- [ ] **Task 0D.3**: Integrate localization slice with M_StateStore
+- [x] **Task 0D.3**: Integrate localization slice with M_StateStore
   - Modify `scripts/state/m_state_store.gd`:
     - Add `const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_localization_initial_state.gd")`
     - Add `@export var localization_initial_state: Resource`
@@ -151,7 +151,7 @@ Before starting Phase 0, verify:
     - **Without this, `has_selected_language` saves to disk but never restores — breaking the first-run skip entirely**
   - Assign `resources/base_settings/state/cfg_localization_initial_state.tres` to `M_StateStore.localization_initial_state` in `scenes/root.tscn` inspector
 
-- [ ] **Task 0D.4**: Verify integration
+- [x] **Task 0D.4**: Verify integration
   - Run existing state tests (no regressions)
   - Verify localization slice appears in `get_state()` output
   - Verify `localization/` actions dispatch and persist correctly
