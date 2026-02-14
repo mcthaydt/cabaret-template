@@ -40,14 +40,23 @@ func test_has_ui_scale_override_field() -> void:
 	assert_eq(initial_state.ui_scale_override, 1.0)
 
 
-# Test 4: to_dictionary returns all fields
-# Note: Updated in Phase 0.5A to verify 4 fields (adds has_selected_language)
+# Test 4: to_dictionary returns all 4 fields (updated in Phase 0.5A)
 func test_to_dictionary_returns_all_fields() -> void:
 	var dict: Dictionary = initial_state.to_dictionary()
 
 	assert_true(dict.has("current_locale"), "to_dictionary should include current_locale")
 	assert_true(dict.has("dyslexia_font_enabled"), "to_dictionary should include dyslexia_font_enabled")
 	assert_true(dict.has("ui_scale_override"), "to_dictionary should include ui_scale_override")
+	assert_true(dict.has("has_selected_language"), "to_dictionary should include has_selected_language")
+
+
+# Test 6 (Phase 0.5A): has_selected_language field exists with default false
+func test_has_selected_language_default() -> void:
+	assert_true(
+		"has_selected_language" in initial_state,
+		"RS_LocalizationInitialState should have has_selected_language field"
+	)
+	assert_eq(initial_state.has_selected_language, false)
 
 
 # Test 5: Defaults match reducer defaults (current_locale as StringName)

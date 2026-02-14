@@ -61,6 +61,7 @@ script = ExtResource("7_cursor")
 
 [node name="M_SceneManager" type="Node" parent="Managers" unique_id=2089301573]
 script = ExtResource("8_scene_manager")
+initial_scene_id = &"language_selector"
 
 [node name="M_PauseManager" type="Node" parent="Managers" unique_id=805561333]
 script = ExtResource("22_pause_manager")

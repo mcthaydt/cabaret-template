@@ -50,7 +50,19 @@ func test_get_ui_scale_override_returns_value() -> void:
 	assert_almost_eq(U_LocalizationSelectors.get_ui_scale_override(state), 1.1, 0.0001)
 
 
-# Test 7: All selectors handle missing localization slice gracefully (no crash)
+# Test 7 (Phase 0.5A): has_selected_language returns false when field absent
+func test_has_selected_language_returns_default() -> void:
+	var state: Dictionary = {}
+	assert_eq(U_LocalizationSelectors.has_selected_language(state), false)
+
+
+# Test 8 (Phase 0.5A): has_selected_language returns true when field is true
+func test_has_selected_language_returns_true() -> void:
+	var state: Dictionary = {"localization": {"has_selected_language": true}}
+	assert_eq(U_LocalizationSelectors.has_selected_language(state), true)
+
+
+# Test 9: All selectors handle missing localization slice gracefully (no crash)
 func test_selectors_handle_missing_localization_slice() -> void:
 	var state: Dictionary = {"other_slice": {}}
 	# None of these should crash

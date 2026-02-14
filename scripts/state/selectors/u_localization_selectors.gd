@@ -19,6 +19,10 @@ static func get_ui_scale_override(state: Dictionary) -> float:
 	return float(_get_localization_slice(state).get("ui_scale_override", 1.0))
 
 
+static func has_selected_language(state: Dictionary) -> bool:
+	return bool(_get_localization_slice(state).get("has_selected_language", false))
+
+
 static func _get_localization_slice(state: Dictionary) -> Dictionary:
 	if state == null:
 		return {}

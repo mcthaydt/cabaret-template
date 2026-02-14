@@ -1,0 +1,87 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/menus/ui_language_selector.gd" id="1_lang_selector_script"]
+[ext_resource type="Script" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="2_ui_scale_root"]
+
+[node name="LanguageSelector" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lang_selector_script")
+
+[node name="UIScaleRoot" type="Node" parent="."]
+script = ExtResource("2_ui_scale_root")
+
+[node name="ButtonContainer" type="CenterContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+
+[node name="PanelContainer" type="PanelContainer" parent="ButtonContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ButtonContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="ButtonContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+text = "Select Your Language"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="ButtonContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="ButtonContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+columns = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="EnButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 80)
+layout_mode = 2
+focus_mode = 2
+text = "English
+EN"
+
+[node name="EsButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 80)
+layout_mode = 2
+focus_mode = 2
+text = "Español
+ES"
+
+[node name="PtButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 80)
+layout_mode = 2
+focus_mode = 2
+text = "Português
+PT"
+
+[node name="ZhCnButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 80)
+layout_mode = 2
+focus_mode = 2
+text = "中文 (简体)
+ZH_CN"
+
+[node name="JaButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 80)
+layout_mode = 2
+focus_mode = 2
+text = "日本語
+JA"

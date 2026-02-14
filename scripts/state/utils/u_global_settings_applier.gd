@@ -109,6 +109,8 @@ static func _apply_localization(store: I_StateStore, settings: Dictionary) -> vo
 		store.dispatch(U_LOCALIZATION_ACTIONS.set_dyslexia_font_enabled(bool(settings.get("dyslexia_font_enabled", false))))
 	if settings.has("ui_scale_override"):
 		store.dispatch(U_LOCALIZATION_ACTIONS.set_ui_scale_override(float(settings.get("ui_scale_override", 1.0))))
+	if bool(settings.get("has_selected_language", false)):
+		store.dispatch(U_LOCALIZATION_ACTIONS.mark_language_selected())
 
 static func _apply_gameplay_preferences(store: I_StateStore, gameplay: Dictionary) -> void:
 	if gameplay.has("show_landing_indicator"):

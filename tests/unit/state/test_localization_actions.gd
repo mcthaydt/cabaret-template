@@ -31,7 +31,7 @@ func test_set_ui_scale_override_action() -> void:
 	assert_eq(payload.get("scale"), 1.5)
 
 
-# Test 4: All action type constants begin with "localization/" prefix
+# Test 4: All action type constants begin with "localization/" prefix (updated in Phase 0.5A)
 func test_action_types_use_localization_prefix() -> void:
 	assert_true(
 		String(U_LocalizationActions.ACTION_SET_LOCALE).begins_with("localization/"),
@@ -45,3 +45,16 @@ func test_action_types_use_localization_prefix() -> void:
 		String(U_LocalizationActions.ACTION_SET_UI_SCALE_OVERRIDE).begins_with("localization/"),
 		"ACTION_SET_UI_SCALE_OVERRIDE should begin with 'localization/'"
 	)
+	assert_true(
+		String(U_LocalizationActions.ACTION_MARK_LANGUAGE_SELECTED).begins_with("localization/"),
+		"ACTION_MARK_LANGUAGE_SELECTED should begin with 'localization/'"
+	)
+
+
+# Test 5 (Phase 0.5A): mark_language_selected action structure
+func test_mark_language_selected_action_structure() -> void:
+	var action: Dictionary = U_LocalizationActions.mark_language_selected()
+
+	assert_eq(action.get("type"), U_LocalizationActions.ACTION_MARK_LANGUAGE_SELECTED)
+	assert_true(action.has("payload"), "Action should have payload key")
+	assert_eq(action.get("immediate"), true, "mark_language_selected should be immediate")

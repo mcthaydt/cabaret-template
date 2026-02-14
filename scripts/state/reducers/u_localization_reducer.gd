@@ -32,6 +32,9 @@ static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 			var scale: float = clampf(payload.get("scale", 1.0), 0.5, 2.0)
 			return _with_values(state, {"ui_scale_override": scale})
 
+		U_LocalizationActions.ACTION_MARK_LANGUAGE_SELECTED:
+			return _with_values(state, {"has_selected_language": true})
+
 	return state
 
 

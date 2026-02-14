@@ -9,6 +9,9 @@ class_name RS_LocalizationInitialState
 @export_group("Language")
 @export_enum("en", "es", "pt", "zh_CN", "ja") var current_locale: String = "en"
 
+@export_group("First-Run")
+@export var has_selected_language: bool = false
+
 @export_group("Accessibility")
 @export var dyslexia_font_enabled: bool = false
 
@@ -22,4 +25,5 @@ func to_dictionary() -> Dictionary:
 		"current_locale": StringName(current_locale),
 		"dyslexia_font_enabled": dyslexia_font_enabled,
 		"ui_scale_override": ui_scale_override,
+		"has_selected_language": has_selected_language,
 	}

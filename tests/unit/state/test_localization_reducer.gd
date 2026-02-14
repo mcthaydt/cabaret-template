@@ -9,6 +9,7 @@ func _make_state() -> Dictionary:
 		"current_locale": &"en",
 		"dyslexia_font_enabled": false,
 		"ui_scale_override": 1.0,
+		"has_selected_language": false,
 	}
 
 
@@ -127,7 +128,15 @@ func test_reducer_immutability() -> void:
 	assert_eq(state["current_locale"], original_locale, "Original state should not be mutated")
 
 
-# Test 15: Unknown action returns same state
+# Test 15 (Phase 0.5A): mark_language_selected sets has_selected_language to true
+func test_mark_language_selected_sets_flag() -> void:
+	var state := _make_state()
+	var action: Dictionary = U_LocalizationActions.mark_language_selected()
+	var new_state: Dictionary = U_LocalizationReducer.reduce(state, action)
+	assert_eq(new_state["has_selected_language"], true)
+
+
+# Test 16: Unknown action returns same state
 func test_unknown_action_returns_same_state() -> void:
 	var state := _make_state()
 	var action: Dictionary = {"type": StringName("unknown/action"), "payload": {}}
