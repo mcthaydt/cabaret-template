@@ -1,6 +1,6 @@
 # Localization Manager Implementation Tasks
 
-**Progress:** 62% (28 / 45 tasks complete)
+**Progress:** 67% (30 / 45 tasks complete)
 
 **Estimated Test Count:** ~70 tests (60 unit + 10 integration)
 
@@ -425,17 +425,17 @@ Before starting Phase 0, verify:
 
 ### Phase 4A: HUD Controller Update
 
-- [ ] **Task 4A.1 (Red)**: Write signpost localization tests
-  - Add to existing HUD test file or create new integration test
-  - Test signpost message key is resolved to translated text via `U_LocalizationUtils.tr()`
-  - Test literal string (non-key) passes through unchanged (graceful degradation)
-  - **Target: 2 tests**
+- [x] **Task 4A.1 (Red)**: Write signpost localization tests
+  - Added to `tests/unit/ui/test_hud_interactions_pause_and_signpost.gd`
+  - `test_signpost_message_resolved_via_localization` — key resolves to translated text via mock loc manager
+  - `test_signpost_literal_string_degrades_gracefully` — literal string passes through unchanged
+  - **Completed: 2 tests** (both green after 4A.2)
 
-- [ ] **Task 4A.2 (Green)**: Update HUD controller
-  - Modify `scripts/ui/hud/ui_hud_controller.gd`
-  - In `_on_signpost_message()` (line ~480): wrap message through `U_LocalizationUtils.tr(StringName(raw))`
-  - In `_on_slice_updated()` (line ~127): add `and slice_name != StringName("localization")` to filter so locale changes refresh HUD labels
-  - All tests should pass
+- [x] **Task 4A.2 (Green)**: Update HUD controller
+  - Modified `scripts/ui/hud/ui_hud_controller.gd`
+  - `_on_signpost_message()`: raw string now wrapped through `U_LocalizationUtils.localize(StringName(raw))`
+  - `_on_slice_updated()`: added `localization` to the slice name filter so locale changes refresh HUD labels
+  - All 3 signpost tests pass; full UI suite 187/187 green
 
 ---
 

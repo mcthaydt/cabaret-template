@@ -1,7 +1,7 @@
 # Localization Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-14
-**Status:** Phases 0, 0.5, 1, 2, 3 complete. 28 / 45 tasks done.
+**Status:** Phases 0, 0.5, 1, 2, 3, 4 complete. 30 / 45 tasks done.
 
 ## Completed Phases
 
@@ -10,6 +10,7 @@
 - **Phase 1**: Interface & Core Manager — `I_LocalizationManager` interface created, `M_LocalizationManager` scaffold with hash-based dedup, store subscription, `_initialize_store_async()` pattern, node added to `root.tscn` + registered in `root.gd`. 12 unit tests.
 - **Phase 2**: JSON File Loading & Locale Switching — `U_LocaleFileLoader` (FileAccess-based JSON merger), locale JSON stubs (en/es/pt/zh_CN/ja, ui.json + hud.json), `U_LocalizationUtils` with `localize()` / `localize_fmt()` helpers. 10 unit tests.
 - **Phase 3**: Dyslexia Font System — `_load_fonts()`, `register_ui_root()`, `_apply_font_override()`, `_get_active_font()`, `_apply_font_to_root()`. CJK priority logic. Font file stubs in `assets/fonts/`. 6 additional unit tests.
+- **Phase 4**: Signpost Localization Integration — `ui_hud_controller.gd` wraps signpost `message` through `U_LocalizationUtils.localize(StringName(raw))` before display; `localization` slice added to `_on_slice_updated()` filter. 2 unit tests in `test_hud_interactions_pause_and_signpost.gd`.
 
 ## Start Here
 
@@ -19,7 +20,7 @@ Read these before writing any code:
 - `docs/localization_manager/localization-manager-plan.md`
 - `docs/localization_manager/localization-manager-tasks.md`
 
-Begin at **Task 4A.1** — write signpost localization tests, then **Task 4A.2** — update `scripts/ui/hud/ui_hud_controller.gd`.
+Begin at **Task 5A.1** — create the localization settings tab scene and controller, then work through **Tasks 5A.2–5B.1** (overlay wrapper, UIScreenDefinition, SceneRegistryEntry, UIRegistry registration, and settings menu button).
 
 ## Key Pitfalls
 

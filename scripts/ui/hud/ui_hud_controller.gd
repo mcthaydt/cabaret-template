@@ -127,7 +127,8 @@ func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> voi
 	if slice_name != StringName("gameplay") \
 			and slice_name != StringName("scene") \
 			and slice_name != StringName("navigation") \
-			and slice_name != StringName("display"):
+			and slice_name != StringName("display") \
+			and slice_name != StringName("localization"):
 		return
 
 	var state := _store.get_state()
@@ -477,7 +478,8 @@ func _reparent_to_root_hud_layer() -> void:
 
 func _on_signpost_message(payload: Variant) -> void:
 	var data := _extract_event_payload(payload)
-	var text: String = String(data.get("message", ""))
+	var raw: String = String(data.get("message", ""))
+	var text: String = U_LocalizationUtils.localize(StringName(raw))
 	var duration_sec: float = _resolve_signpost_duration(data)
 	if text.is_empty():
 		return
