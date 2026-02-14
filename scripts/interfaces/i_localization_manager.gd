@@ -21,3 +21,7 @@ func register_ui_root(_root: Node) -> void:
 
 func unregister_ui_root(_root: Node) -> void:
 	push_error("I_LocalizationManager.unregister_ui_root not implemented")
+
+func translate(_key: StringName) -> String:
+	push_error("I_LocalizationManager.translate not implemented")
+	return ""

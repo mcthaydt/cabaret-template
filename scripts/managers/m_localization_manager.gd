@@ -24,6 +24,8 @@ var _translations: Dictionary = {}
 var _ui_roots: Array[Node] = []
 var _last_localization_hash: int = 0
 
+var _dyslexia_enabled: bool = false
+
 var _default_font: Font = null
 var _dyslexia_font: Font = null
 var _cjk_font: Font = null
@@ -76,6 +78,7 @@ func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
 func _apply_localization_settings(state: Dictionary) -> void:
 	var locale: StringName = U_LOCALIZATION_SELECTORS.get_locale(state)
 	var dyslexia: bool = U_LOCALIZATION_SELECTORS.is_dyslexia_font_enabled(state)
+	_dyslexia_enabled = dyslexia
 	if locale != _active_locale:
 		_load_locale(locale)
 	_apply_font_override(dyslexia)
@@ -109,7 +112,7 @@ func set_dyslexia_font_enabled(enabled: bool) -> void:
 func register_ui_root(root: Node) -> void:
 	if root not in _ui_roots:
 		_ui_roots.append(root)
-		_apply_font_to_root(root, _get_active_font())
+		_apply_font_to_root(root, _get_active_font(_dyslexia_enabled))
 
 func unregister_ui_root(root: Node) -> void:
 	_ui_roots.erase(root)

@@ -135,6 +135,30 @@ func test_cjk_locale_overrides_dyslexia_toggle() -> void:
 	else:
 		pass_test("Font not loaded in test environment — skipping CJK font check")
 
+func test_register_root_while_dyslexia_active_applies_dyslexia_font() -> void:
+	# Dyslexia is ALREADY enabled before the root registers.
+	# The newly-registered root must receive the dyslexia font immediately,
+	# not the default font.
+	await _setup_manager_with_store({"current_locale": &"en", "dyslexia_font_enabled": true, "ui_scale_override": 1.0, "has_selected_language": false})
+
+	var root := Control.new()
+	add_child_autofree(root)
+	_manager.register_ui_root(root)
+
+	var dyslexia_font: Font = _manager.get("_dyslexia_font")
+	if dyslexia_font != null:
+		var applied_font: Font = root.get_theme_font(&"font")
+		assert_eq(applied_font, dyslexia_font, "register_ui_root should apply dyslexia font when dyslexia is already active")
+	else:
+		pass_test("Font not loaded in test environment — skipping dyslexia font check")
+
+func test_interface_declares_translate_method() -> void:
+	# I_LocalizationManager must declare translate() so typed interface
+	# variables can call it without casting to the concrete class.
+	var iface: I_LocalizationManager = I_LOCALIZATION_MANAGER.new()
+	add_child_autofree(iface)
+	assert_true(iface.has_method("translate"), "I_LocalizationManager interface must declare translate()")
+
 func test_switching_from_cjk_to_latin_restores_default_font() -> void:
 	await _setup_manager_with_store({"current_locale": &"ja", "dyslexia_font_enabled": false, "ui_scale_override": 1.1, "has_selected_language": false})
 
