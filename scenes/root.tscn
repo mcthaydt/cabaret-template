@@ -34,6 +34,7 @@
 [ext_resource type="PackedScene" uid="uid://d8f3hr42dgv4" path="res://scenes/ui/overlays/ui_post_process_overlay.tscn" id="31_post_process"]
 [ext_resource type="Script" uid="uid://ewl0jyknbbfg" path="res://scripts/ui/utils/u_viewport_resizer.gd" id="32_viewport_resizer"]
 [ext_resource type="Script" uid="uid://cugn4owfqljpw" path="res://scripts/managers/m_character_lighting_manager.gd" id="33_character_lighting_manager"]
+[ext_resource type="Script" path="res://scripts/managers/m_localization_manager.gd" id="35_localization_manager"]
 
 [node name="Root" type="Node" unique_id=409084781]
 script = ExtResource("10_main_root")
@@ -83,6 +84,9 @@ script = ExtResource("27_audio_manager")
 
 [node name="M_DisplayManager" type="Node" parent="Managers" unique_id=1925775292]
 script = ExtResource("30_display_manager")
+
+[node name="M_LocalizationManager" type="Node" parent="Managers" unique_id=1234567890]
+script = ExtResource("35_localization_manager")
 
 [node name="M_ScreenshotCache" type="Node" parent="Managers" unique_id=593113830]
 script = ExtResource("28_screenshot_cache")
