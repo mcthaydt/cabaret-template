@@ -76,6 +76,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Audio Settings"
 
+[node name="LanguageSettingsButton" type="Button" parent="ScrollContainer/VBoxContainer" unique_id=1847302915]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Language"
+
 [node name="RebindControlsButton" type="Button" parent="ScrollContainer/VBoxContainer" unique_id=470415140]
 unique_name_in_owner = true
 layout_mode = 2
