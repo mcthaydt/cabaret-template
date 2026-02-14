@@ -1,6 +1,6 @@
 # Localization Manager Implementation Tasks
 
-**Progress:** 67% (30 / 45 tasks complete)
+**Progress:** 78% (35 / 45 tasks complete)
 
 **Estimated Test Count:** ~70 tests (60 unit + 10 integration)
 
@@ -445,7 +445,10 @@ Before starting Phase 0, verify:
 
 ### Phase 5A: Localization Settings Overlay & Tab
 
-- [ ] **Task 5A.1**: Create localization settings tab scene and controller
+- [x] **Task 5A.1**: Create localization settings tab scene and controller
+  - Created `scenes/ui/overlays/settings/ui_localization_settings_tab.tscn`
+  - Created `scripts/ui/settings/ui_localization_settings_tab.gd`
+  - Auto-save pattern; populates OptionButton + CheckButton from store state on `_ready()`
   - Create `scenes/ui/overlays/settings/ui_localization_settings_tab.tscn`
   - Create `scripts/ui/settings/ui_localization_settings_tab.gd`
   - `class_name UI_LocalizationSettingsTab extends VBoxContainer` (matches audio/display tab pattern)
@@ -468,14 +471,20 @@ Before starting Phase 0, verify:
         ├── CheckButton ("Dyslexia-Friendly Font")
     ```
 
-- [ ] **Task 5A.2**: Create localization settings overlay wrapper
+- [x] **Task 5A.2**: Create localization settings overlay wrapper
+  - Created `scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn`
+  - Created `scripts/ui/settings/ui_localization_settings_overlay.gd`
+  - Follows `ui_audio_settings_overlay.gd` pattern exactly
   - Create `scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn`
   - Create `scripts/ui/settings/ui_localization_settings_overlay.gd`
   - `class_name UI_LocalizationSettingsOverlay extends BaseOverlay`
   - `_on_back_pressed()` → play cancel sound, close overlay (follows `ui_audio_settings_overlay.gd` pattern exactly)
   - Overlay scene embeds the tab scene as a child
 
-- [ ] **Task 5A.3**: Create UI screen definition and scene registry entry
+- [x] **Task 5A.3**: Create UI screen definition and scene registry entry
+  - Created `resources/ui_screens/cfg_localization_settings_overlay.tres`
+  - Created `resources/scene_registry/cfg_ui_localization_settings_entry.tres`
+  - SceneRegistryEntry auto-loaded via `_load_resource_entries()` directory scan (no code change needed)
   - Create `resources/ui_screens/cfg_localization_settings_overlay.tres`
     - `screen_id = &"localization_settings"`, `kind = 1` (OVERLAY), `scene_id = &"localization_settings"`
     - `allowed_shells = [&"gameplay"]`, `allowed_parents = [&"pause_menu", &"settings_menu_overlay"]`, `close_mode = 0`
@@ -483,14 +492,18 @@ Before starting Phase 0, verify:
     - `scene_id = "localization_settings"`, `scene_path = "res://scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn"`
     - `scene_type = 2` (UI), `default_transition = "instant"`, `preload_priority = 5`
 
-- [ ] **Task 5A.4**: Register overlay in U_UIRegistry
+- [x] **Task 5A.4**: Register overlay in U_UIRegistry
+  - Added `LOCALIZATION_SETTINGS_OVERLAY` preload and `_register_definition()` call
+  - Updated `test_ui_registry.gd` expected overlay count from 11 → 12
   - Modify `scripts/ui/utils/u_ui_registry.gd`:
     - Add `const LOCALIZATION_SETTINGS_OVERLAY := preload("res://resources/ui_screens/cfg_localization_settings_overlay.tres")` after `AUDIO_SETTINGS_OVERLAY`
     - Add `_register_definition(LOCALIZATION_SETTINGS_OVERLAY as RS_UIScreenDefinition)` in `_register_all_screens()`
 
 ### Phase 5B: Settings Menu Button Wiring
 
-- [ ] **Task 5B.1**: Add "Language" button to settings menu
+- [x] **Task 5B.1**: Add "Language" button to settings menu
+  - Added `LanguageSettingsButton` to `ui_settings_menu.tscn` after `AudioSettingsButton`
+  - Added `OVERLAY_LOCALIZATION_SETTINGS` constant, `@onready` var, handler, and focus-neighbor entry to `ui_settings_menu.gd`
   - Modify `scenes/ui/menus/ui_settings_menu.tscn`:
     - Add `LanguageSettingsButton` (Button, `unique_name_in_owner = true`, text = "Language") after `AudioSettingsButton`, before `RebindControlsButton`
   - Modify `scripts/ui/menus/ui_settings_menu.gd`:
