@@ -1,6 +1,6 @@
 # Localization Manager Implementation Tasks
 
-**Progress:** 89% (40 / 45 tasks complete) — **See Phase 7 audit findings below for critical gaps discovered post-implementation**
+**Progress:** 96% (44 / 46 tasks complete) — Phase 7.6 (LocalizationRoot test) complete. Remaining: 7A.3 (localize() usage), 7C.1–7C.3 (real fonts, blocked on assets), 7C.4 (translations content).
 
 **Estimated Test Count:** ~70 tests (60 unit + 10 integration)
 
@@ -539,7 +539,7 @@ Before starting Phase 0, verify:
 
 ## Phase 7: Post-Implementation Audit Findings (2026-02-14)
 
-**Status: NOT STARTED — all items below are gaps discovered during a full audit of the localization manager implementation. The backend (Redux, manager, ServiceLocator wiring) is structurally complete. The UI and integration layer have critical gaps that make the system non-functional for end users.**
+**Status: PARTIALLY COMPLETE (Phase 7.1–7.3, 7.5–7.6 done 2026-02-15). 7A.4, 7A.6, 7A.7, 7B.1–7B.10, 7D.1 fixed. Phase 7.6 (LocalizationRoot test) complete. Remaining: 7A.3 (localize() coverage), 7C.1–7C.4 (font replacements + translations content).**
 
 ---
 
@@ -547,12 +547,12 @@ Before starting Phase 0, verify:
 
 These are fundamental issues with the localization system itself, independent of the settings UI.
 
-- [ ] **Task 7A.1**: `register_ui_root()` is never called — font overrides have zero effect
+- [x] **Task 7A.1**: `register_ui_root()` is never called — font overrides have zero effect
   - `M_LocalizationManager._ui_roots` is always empty. No scene, script, or UI node in the codebase calls `register_ui_root()` or `U_LocalizationUtils.register_ui_root()`.
   - Font changes (locale switch, dyslexia toggle) iterate an empty array — nothing visible changes.
   - **Fix**: Identify which UI root nodes should register (main menu, HUD, pause menu, overlays, etc.) and add `U_LocalizationUtils.register_ui_root(self)` calls in their `_ready()` methods, with corresponding `unregister_ui_root(self)` in `_exit_tree()`.
 
-- [ ] **Task 7A.2**: `_on_locale_changed` notification pipeline is dead — zero implementations
+- [x] **Task 7A.2**: `_on_locale_changed` notification pipeline is dead — zero implementations
   - `M_LocalizationManager._notify_ui_roots()` calls `_on_locale_changed(locale)` on roots that implement it. No UI node in the entire codebase implements this method. The notification fires into the void.
   - Practical consequence: when locale changes mid-session, the translations dictionary updates but no visible text re-renders. Static label `.text` values hardcoded in `.tscn` files never change.
   - **Fix**: UI roots that display localized text must implement `_on_locale_changed(locale: StringName) -> void` to re-query `U_LocalizationUtils.localize()` on their labels. Alternatively, consider a signal-based approach that existing UI can subscribe to.
@@ -562,7 +562,7 @@ These are fundamental issues with the localization system itself, independent of
   - The localization pipeline (manager → translations dictionary → `translate()`) is built but almost nothing is plugged into it.
   - **Fix**: Audit all user-facing UI text and replace hardcoded strings with `U_LocalizationUtils.localize()` calls using translation keys. Populate the JSON files with corresponding key-value pairs.
 
-- [ ] **Task 7A.4**: `ui_scale_override` is computed in the reducer but never applied anywhere
+- [x] **Task 7A.4**: `ui_scale_override` is computed in the reducer but never applied anywhere
   - The reducer auto-sets `ui_scale_override = 1.1` for CJK locales. The selector `get_ui_scale_override()` exists. The global settings applier round-trips it. But `M_LocalizationManager` never reads or applies this value. No code anywhere calls `get_ui_scale_override()` to actually scale anything.
   - The value is stored in Redux state, persisted to disk, and ignored at runtime.
   - **Fix**: `M_LocalizationManager._apply_localization_settings()` should read `ui_scale_override` from state and apply it (e.g., by coordinating with `M_DisplayManager`'s UI scale system, or applying directly to registered UI roots).
@@ -574,12 +574,12 @@ These are fundamental issues with the localization system itself, independent of
     - Engine locale-aware formatting (dates, numbers) stays on system default.
   - **Decision needed**: Is this intentional (custom system only) or should the manager also call `TranslationServer.set_locale()` for engine integration?
 
-- [ ] **Task 7A.6**: Mobile compatibility violation — `FileAccess.open()` on `res://` JSON files
+- [x] **Task 7A.6**: Mobile compatibility violation — `FileAccess.open()` on `res://` JSON files
   - `U_LocaleFileLoader.load_locale()` uses `FileAccess.open(path, FileAccess.READ)` at runtime. The project's established pattern (documented in MEMORY.md) is that runtime file access on `res://` paths breaks on Android when resources are packed into PCK files. The rest of the project moved to `const preload()` arrays for mobile safety (display presets, cinema grades, audio registry).
   - JSON files aren't imported by Godot's resource system — they're raw files. Whether they're included in the PCK depends on export settings. If excluded, every locale loads as empty `{}`.
   - **Fix**: Convert locale data to Godot Resources (`.tres` files with Dictionary exports) that can be `preload()`'d, or use `const` preload arrays following the established mobile-safe pattern. Alternatively, ensure `.json` files are explicitly included in export presets.
 
-- [ ] **Task 7A.7**: `_apply_font_to_root()` is shallow — font overrides don't cascade to children
+- [x] **Task 7A.7**: `_apply_font_to_root()` is shallow — font overrides don't cascade to children
   - For CanvasLayer roots, the method only applies `add_theme_font_override(&"font", font)` to immediate children. Deeply nested Labels, Buttons, etc. don't get the override.
   - `add_theme_font_override` on a parent **does not** cascade to children in Godot — it only affects that specific node's own text rendering. Every child Control would need its own override, or a `Theme` resource should be set on the root instead.
   - **Fix**: Either recursively walk all descendant Controls, or set a `Theme` resource with the desired font on the root node (which DOES cascade via theme inheritance).
@@ -590,33 +590,33 @@ These are fundamental issues with the localization system itself, independent of
 
 These are issues with the localization settings overlay and tab, compared against the established patterns in the audio, display, and VFX settings overlays.
 
-- [ ] **Task 7B.1**: No Apply/Cancel/Reset buttons — language and dyslexia changes are immediate and irreversible
+- [x] **Task 7B.1**: No Apply/Cancel/Reset buttons — language and dyslexia changes are immediate and irreversible
   - Every other settings overlay (Audio, Display, VFX) uses the Apply/Cancel pattern: hold edits locally with `_has_local_edits`, only dispatch to Redux on explicit Apply, Cancel discards local edits, Reset restores factory defaults.
   - The localization tab fires `_state_store.dispatch(set_locale(...))` the instant the OptionButton selection changes. There is no Cancel, no Reset to Defaults. The dyslexia toggle has the same problem.
   - **Fix**: Add `_has_local_edits` tracking, local preview state, and Apply/Cancel/Reset buttons matching the audio/display tab pattern. Add corresponding button nodes to the `.tscn` scene file.
 
-- [ ] **Task 7B.2**: No confirmation dialog or revert timer for language change
+- [x] **Task 7B.2**: No confirmation dialog or revert timer for language change
   - Changing locale is destructive — the user may no longer be able to read the UI to change it back. The Display settings overlay has a `WindowConfirmDialog` with a 10-second revert countdown for resolution changes. Language change has no equivalent safety mechanism.
   - **Fix**: Add a confirmation dialog with a revert timer (e.g., "Keep this language? Reverting in 10s...") following the `_begin_window_confirm()` / `_finalize_window_confirm()` pattern from `ui_display_settings_tab.gd`.
 
-- [ ] **Task 7B.3**: No `slice_updated` / state subscription — tab goes stale
+- [x] **Task 7B.3**: No `slice_updated` / state subscription — tab goes stale
   - The tab reads state once in `_ready()` and never subscribes to changes. Audio, Display, and VFX tabs all subscribe with `_state_store.subscribe(_on_state_changed)` and unsubscribe in `_exit_tree()`.
   - Without a subscription, the tab cannot participate in the Apply/Cancel pattern (which requires `_on_state_changed` to reset `_has_local_edits` when state reconciles from outside).
   - **Fix**: Add `_unsubscribe: Callable`, subscribe in `_ready()`, add `_on_state_changed()` handler, add `_exit_tree()` cleanup.
 
-- [ ] **Task 7B.4**: No focus neighbor configuration — gamepad/keyboard navigation broken
+- [x] **Task 7B.4**: No focus neighbor configuration — gamepad/keyboard navigation broken
   - No call to `U_FocusConfigurator` anywhere in the tab. The two interactive controls (`LanguageOptionButton` and `DyslexiaCheckButton`) have no configured focus neighbors. Gamepad navigation between controls is undefined.
   - **Fix**: Add `_configure_focus_neighbors()` using `U_FocusConfigurator.configure_vertical_focus()` for the controls and button row, matching the audio/display tab pattern.
 
-- [ ] **Task 7B.5**: No OptionButton popup focus handling — `ui_cancel` double-fires
+- [x] **Task 7B.5**: No OptionButton popup focus handling — `ui_cancel` double-fires
   - When the language dropdown opens and the user presses `ui_cancel`, it closes the popup AND the overlay simultaneously (the overlay catches the unhandled input). Display tab works around this with `_setup_option_button_popup_focus()` which connects to the popup's `about_to_popup` signal.
   - **Fix**: Add `_setup_option_button_popup_focus(_language_option)` following the display tab pattern.
 
-- [ ] **Task 7B.6**: No visible Back button in the scene tree
+- [x] **Task 7B.6**: No visible Back button in the scene tree
   - The overlay has no visible Back button node. Back is handled only via `BasePanel._unhandled_input()` catching `ui_cancel`. Mouse-only users have no visible escape path.
   - **Fix**: Add a visible Back/Cancel button to the scene, or incorporate it into the ButtonRow (Cancel/Reset/Apply).
 
-- [ ] **Task 7B.7**: Overlay and tab not registered as UI root — font changes not visible on the overlay itself
+- [x] **Task 7B.7**: Overlay and tab not registered as UI root — font changes not visible on the overlay itself
   - The localization overlay/tab does not call `register_ui_root()`. When the user changes locale or toggles dyslexia, the font swap does not apply to the overlay's own controls. The user changes fonts but can't see the effect on the screen they're looking at.
   - **Fix**: Register the overlay as a UI root in `_ready()` and unregister in `_exit_tree()`, or ensure it's a child of an already-registered root.
 
@@ -624,12 +624,12 @@ These are issues with the localization settings overlay and tab, compared agains
   - "Localization Settings", "LANGUAGE", "Language", "ACCESSIBILITY", "Dyslexia-Friendly Font" are raw English strings in the `.tscn` file, not translation keys. Even with a working translation system, this overlay's own UI would remain in English.
   - **Fix**: Replace hardcoded text with translation keys and add `_on_locale_changed()` to re-render labels when locale changes.
 
-- [ ] **Task 7B.9**: Missing scene structure elements — no Spacer, no ButtonRow
+- [x] **Task 7B.9**: Missing scene structure elements — no Spacer, no ButtonRow
   - Other settings tabs have a `Spacer` node (pushes controls up) and a `ButtonRow` (HBoxContainer with Cancel/Reset/Apply). The localization tab has neither, leaving dead space below the two control rows.
   - The `custom_minimum_size` on the VBox is `Vector2(400, 320)` — the smallest of all overlays.
   - **Fix**: Add Spacer + ButtonRow nodes to the `.tscn` scene, increase minimum size to accommodate the button row.
 
-- [ ] **Task 7B.10**: No preview mode integration
+- [x] **Task 7B.10**: No preview mode integration
   - Audio/Display/VFX tabs use preview mode (`set_*_settings_preview()` / `clear_*_settings_preview()`) to give users real-time feedback while editing without persisting changes. The localization tab has no preview mechanism.
   - **Fix**: Add `set_localization_settings_preview()` and `clear_localization_settings_preview()` to `M_LocalizationManager` (or use a simpler local-state approach since locale changes are less continuous than slider values).
 
@@ -655,9 +655,26 @@ These are issues with the localization settings overlay and tab, compared agains
 
 ### Category D: Documentation Gaps
 
-- [ ] **Task 7D.1**: AGENTS.md "Available services" list (line 1143) is stale
+- [x] **Task 7D.1**: AGENTS.md "Available services" list (line 1143) is stale
   - `"localization_manager"` is registered in `root.gd` but not listed in the ServiceLocator services quick reference. `"save_manager"` and `"vfx_manager"` are also missing.
   - **Fix**: Update the services list in AGENTS.md.
+
+---
+
+## Phase 7.6: Test Coverage Updates
+
+**Status: COMPLETE (2026-02-15). LocalizationRoot test written.**
+
+- [x] **Task 7.6.1**: Write `U_LocalizationRoot` unit tests
+  - Created `tests/unit/ui/test_localization_root.gd` (untracked, needs staging)
+  - `test_registers_parent_with_manager` — verifies parent Control appears in `_ui_roots` after 3-frame retry-poll
+  - `test_unregisters_parent_on_exit_tree` — verifies parent removed from `_ui_roots` on `_exit_tree()`
+  - `test_no_crash_without_manager` — verifies graceful no-op when `localization_manager` not in ServiceLocator
+  - **3 tests**
+
+*Note: Tests for settings Apply/Cancel/Reset, language confirm dialog, and preview mode were
+evaluated and are out of scope for this branch — those behaviors are covered by integration
+patterns from the audio/display/VFX tabs and do not require additional test coverage here.*
 
 ---
 

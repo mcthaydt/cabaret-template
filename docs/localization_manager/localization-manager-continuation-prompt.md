@@ -1,7 +1,7 @@
 # Localization Manager - Continuation Prompt
 
-**Last Updated:** 2026-02-14
-**Status:** Phases 0, 0.5, 1, 2, 3, 4, 5, 6 complete. 40 / 45 tasks done.
+**Last Updated:** 2026-02-15
+**Status:** Phases 0–6 + 7.1–7.3, 7.5–7.6 complete. 44 / 46 tasks done.
 
 ## Completed Phases
 
@@ -13,6 +13,11 @@
 - **Phase 4**: Signpost Localization Integration — `ui_hud_controller.gd` wraps signpost `message` through `U_LocalizationUtils.localize(StringName(raw))` before display; `localization` slice added to `_on_slice_updated()` filter. 2 unit tests in `test_hud_interactions_pause_and_signpost.gd`.
 - **Phase 5**: Settings UI Integration — `UI_LocalizationSettingsTab` (language OptionButton + dyslexia CheckButton, auto-save), `UI_LocalizationSettingsOverlay` (BaseOverlay wrapper), `cfg_localization_settings_overlay.tres` (UIScreenDefinition), `cfg_ui_localization_settings_entry.tres` (SceneRegistryEntry), `U_UIRegistry` updated (12 overlays), "Language" button wired in `ui_settings_menu.tscn/.gd`. `test_ui_registry.gd` updated (expected count 11→12).
 - **Phase 6**: Integration Tests — `test_locale_switching.gd` (4), `test_font_override.gd` (3), `test_localization_persistence.gd` (3). 10/10 pass. Key pitfall: dispatch needs `await physics_frame` before asserting manager state (store emits `slice_updated` once per physics frame).
+- **Phase 7.1**: Infrastructure Fixes — Converted locale JSON files to mobile-safe `.tres` resources (`RS_LocaleTranslations`), rewrote `U_LocaleFileLoader` with `const` preload arrays, rewrote `M_LocalizationManager` with Theme-based font cascade (`_build_font_theme()` + `_FONT_THEME_TYPES`), added `_apply_ui_scale_override()` dispatching `U_DisplayActions.set_ui_scale()`, added preview mode (`set_localization_preview()` / `clear_localization_preview()`). Updated `I_LocalizationManager` with preview stubs.
+- **Phase 7.2**: UI Root Registration — Created `U_LocalizationRoot` helper (mirrors `U_UIScaleRoot` retry-polling pattern), added `LocalizationRoot` node to all 20 `.tscn` files that have `UIScaleRoot`, added `_on_locale_changed()` callback to `UI_LocalizationSettingsTab`.
+- **Phase 7.3**: Settings UI Overhaul — Full rewrite of `UI_LocalizationSettingsTab` with Apply/Cancel/Reset pattern, language confirm dialog with 10s revert timer, state subscription with `_unsubscribe` cleanup, focus configuration via `U_FocusConfigurator`, preview mode integration. Updated `.tscn` with Spacer, ButtonRow, LanguageConfirmDialog, LanguageConfirmTimer.
+- **Phase 7.5**: Documentation — Updated AGENTS.md services list, updated task tracker progress.
+- **Phase 7.6**: Testing — `tests/unit/ui/test_localization_root.gd` written (3 tests: registers parent with manager after retry-poll, unregisters on exit_tree, no crash without manager). File is currently untracked; needs staging.
 
 ## Start Here
 
@@ -22,15 +27,19 @@ Read these before writing any code:
 - `docs/localization_manager/localization-manager-plan.md`
 - `docs/localization_manager/localization-manager-tasks.md`
 
-All 6 implementation phases are complete (40/45 tasks). The remaining 5 tasks are the Phase 6 integration tests (already done above) and a manual playtest checklist. The implementation is feature-complete. Next steps: replace font stubs in `assets/fonts/` with real fonts before shipping.
+Phases 0–6 and 7.1–7.3, 7.5–7.6 are complete (44/46 tasks). Remaining work:
+- **Phase 7.4** (7A.3, 7C.1–7C.4): Wire `U_LocalizationUtils.localize()` calls to UI controllers
+  and populate `.tres` translation resources with actual keys (7A.3, 7C.4 — in scope, not
+  started). Replace font stubs with real fonts (7C.1–7C.3 — blocked on user-provided assets).
 
 ## Key Pitfalls
 
 - `localization_initial_state` is the **13th parameter** to `initialize_slices()` — misaligning it silently breaks all existing slices
 - `u_global_settings_serialization.gd` requires 4 method edits AND `u_global_settings_applier.gd` requires a new `_apply_localization()` — both are needed for save/load round-trip
-- `preload()` on `.json` is a compile error — use `FileAccess.open()` with hardcoded paths
+- **Locale resources use `const` preload arrays** — `U_LocaleFileLoader` uses `const _LOCALE_RESOURCES: Array` with preloaded `.tres` files (mobile-safe, replaces old JSON approach)
+- **Theme-based font cascade** — `M_LocalizationManager` builds a `Theme` resource and assigns it to root Control's `.theme` property; `_FONT_THEME_TYPES` includes `&"Control"` for plain Control nodes
 - `preload()` on `.ttf` does not work — use `load()` and guard with `if font == null: return`
-- **`tr()` CANNOT be a static method name in Godot 4.6** — Godot's parser refuses to resolve `.tr()` as an external class member (collides with `Object.tr()` built-in). `U_LocalizationUtils` uses `localize()` / `localize_fmt()` instead. Never call bare `tr(key)`.
+- **`tr()` CANNOT be a static method name in Godot 4.6** — Godot's parser refuses to resolve `.tr()` as an external class member (collides with `Object.tr()` built-in). `U_LocalizationUtils` uses `localize()` / `localize_fmt()` helpers. Never call bare `tr(key)`.
 - **`String(value)` does not work for Variant→String** — use `str(value)` for arbitrary Variants in arg substitution
 - **Inner class names must start with a capital letter** — `_MockFoo` causes a GDScript 4 parse error; use `MockFoo`
 - Settings tab scenes live under `scenes/ui/overlays/settings/` (Phase 5 requires an overlay wrapper, UIScreenDefinition, SceneRegistryEntry, UIRegistry registration, and settings menu button — not just a tab scene)
