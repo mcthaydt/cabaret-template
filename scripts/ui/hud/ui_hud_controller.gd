@@ -431,7 +431,8 @@ func _on_interact_prompt_show(payload: Variant) -> void:
 	var data: Dictionary = inner_payload
 	var controller_id: int = int(data.get("controller_id", 0))
 	var action_name: StringName = data.get("action", StringName("interact"))
-	var prompt_text: String = String(data.get("prompt", "Interact"))
+	var prompt_key: String = String(data.get("prompt", "hud.interact_default"))
+	var prompt_text: String = U_LocalizationUtils.localize(StringName(prompt_key))
 
 	_active_prompt_id = controller_id
 	_last_prompt_action = action_name

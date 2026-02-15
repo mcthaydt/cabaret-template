@@ -6,7 +6,7 @@
 
 [resource]
 script = ExtResource("1")
-message = "This bar has one exit: head back to the alleyway."
+message = "gameplay.signpost.bar_tutorial"
 interaction_id = &"signpost_bar_tutorial"
 trigger_settings = ExtResource("2")
 interaction_hint_enabled = true

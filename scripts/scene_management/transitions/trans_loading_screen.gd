@@ -2,6 +2,7 @@ extends "res://scripts/scene_management/transitions/base_transition_effect.gd"
 class_name Trans_LoadingScreen
 
 const LOADING_SCREEN_SCENE := preload("res://scenes/ui/hud/ui_loading_screen.tscn")
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 
 ## Loading screen transition effect
 ##
@@ -23,13 +24,13 @@ const LOADING_SCREEN_SCENE := preload("res://scenes/ui/hud/ui_loading_screen.tsc
 ## Minimum display duration in seconds (prevents jarring flashes)
 @export var min_duration: float = 1.5
 
-## Loading tips pool (random tip shown each load)
-var loading_tips: Array[String] = [
-	"Tip: Press ESC to pause the game",
-	"Tip: Use WASD to move and Space to jump",
-	"Tip: Explore thoroughly to find hidden areas",
-	"Tip: Your progress is automatically saved",
-	"Tip: Adjust settings anytime from the pause menu"
+## Loading tip localization keys (random tip shown each load)
+var _loading_tip_keys: Array[StringName] = [
+	&"hud.loading_tip_pause",
+	&"hud.loading_tip_movement",
+	&"hud.loading_tip_explore",
+	&"hud.loading_tip_autosave",
+	&"hud.loading_tip_settings",
 ]
 
 ## Progress provider callback (for real async loading)
@@ -119,7 +120,7 @@ func _execute_with_real_progress(overlay: CanvasLayer, callback: Callable, origi
 
 	# Update status label
 	if _status_label:
-		_status_label.text = "Loading..."
+		_status_label.text = U_LOCALIZATION_UTILS.localize(&"hud.loading")
 
 	# Kick off scene swap immediately so async loading can report real progress
 	if not mid_transition_fired and mid_transition_callback.is_valid():
@@ -297,11 +298,11 @@ func _restore_hidden_hud_layers() -> void:
 ##
 ## @return String - Random tip from pool
 func _get_random_tip() -> String:
-	if loading_tips.is_empty():
-		return "Loading..."
+	if _loading_tip_keys.is_empty():
+		return U_LOCALIZATION_UTILS.localize(&"hud.loading")
 
-	var index: int = randi() % loading_tips.size()
-	return loading_tips[index]
+	var index: int = randi() % _loading_tip_keys.size()
+	return U_LOCALIZATION_UTILS.localize(_loading_tip_keys[index])
 
 func _resolve_hud_controller() -> CanvasLayer:
 	var scene_manager := U_ServiceLocator.try_get_service(StringName("scene_manager")) as I_SceneManager

@@ -6,7 +6,7 @@
 
 [resource]
 script = ExtResource("1")
-message = "Welcome to Cabaret Template!"
+message = "gameplay.signpost.exterior_tutorial"
 interaction_id = &"signpost_exterior_tutorial"
 trigger_settings = ExtResource("2")
 interaction_hint_enabled = true

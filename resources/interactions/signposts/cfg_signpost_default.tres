@@ -5,6 +5,6 @@
 
 [resource]
 script = ExtResource("1")
-message = "Placeholder signpost message"
+message = "gameplay.signpost.default_message"
 interaction_id = &"signpost_default"
 trigger_settings = ExtResource("2")
