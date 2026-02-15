@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="RS_LocaleTranslations" format=3 uid="uid://ba6xnqlqbr3ds"]
+
+[ext_resource type="Script" uid="uid://bo0lih4sx1mon" path="res://scripts/resources/localization/rs_locale_translations.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+locale = &"ja"
+domain = &"hud"

@@ -1,36 +1,27 @@
 class_name U_LocaleFileLoader
 extends RefCounted
 
-## Helper for loading locale translation JSON files.
-## Uses FileAccess.open() — NOT preload() (preload on .json is a compile error).
+## Helper for loading locale translations from preloaded .tres resources.
+## Mobile-safe: uses const preload arrays instead of runtime FileAccess.
 
-const _LOCALE_FILE_PATHS: Dictionary = {
-	&"en":    ["res://resources/localization/en/ui.json",
-			   "res://resources/localization/en/hud.json"],
-	&"es":    ["res://resources/localization/es/ui.json",
-			   "res://resources/localization/es/hud.json"],
-	&"pt":    ["res://resources/localization/pt/ui.json",
-			   "res://resources/localization/pt/hud.json"],
-	&"zh_CN": ["res://resources/localization/zh_CN/ui.json",
-			   "res://resources/localization/zh_CN/hud.json"],
-	&"ja":    ["res://resources/localization/ja/ui.json",
-			   "res://resources/localization/ja/hud.json"],
-}
+const _LOCALE_RESOURCES: Array = [
+	preload("res://resources/localization/cfg_locale_en_ui.tres"),
+	preload("res://resources/localization/cfg_locale_en_hud.tres"),
+	preload("res://resources/localization/cfg_locale_es_ui.tres"),
+	preload("res://resources/localization/cfg_locale_es_hud.tres"),
+	preload("res://resources/localization/cfg_locale_pt_ui.tres"),
+	preload("res://resources/localization/cfg_locale_pt_hud.tres"),
+	preload("res://resources/localization/cfg_locale_zh_CN_ui.tres"),
+	preload("res://resources/localization/cfg_locale_zh_CN_hud.tres"),
+	preload("res://resources/localization/cfg_locale_ja_ui.tres"),
+	preload("res://resources/localization/cfg_locale_ja_hud.tres"),
+]
 
-## Load all translation files for the given locale and merge them.
-## Returns an empty Dictionary if locale is unsupported or files are missing.
+## Load all translation resources for the given locale and merge them.
+## Returns an empty Dictionary if locale is unsupported.
 static func load_locale(locale: StringName) -> Dictionary:
 	var merged: Dictionary = {}
-	var paths: Array = _LOCALE_FILE_PATHS.get(locale, [])
-	for path: String in paths:
-		var file := FileAccess.open(path, FileAccess.READ)
-		if file == null:
-			push_error("U_LocaleFileLoader: could not open %s" % path)
-			continue
-		var text: String = file.get_as_text()
-		var parsed: Variant = JSON.parse_string(text)
-		if parsed is Dictionary:
-			merged.merge(parsed, true)
-		else:
-			push_error("U_LocaleFileLoader: invalid JSON in %s" % path)
+	for res: RS_LocaleTranslations in _LOCALE_RESOURCES:
+		if res.locale == locale:
+			merged.merge(res.translations, true)
 	return merged

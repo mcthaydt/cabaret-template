@@ -33,8 +33,8 @@
 [ext_resource type="PackedScene" uid="uid://d8f3hr42dgv4" path="res://scenes/ui/overlays/ui_post_process_overlay.tscn" id="31_post_process"]
 [ext_resource type="Script" uid="uid://ewl0jyknbbfg" path="res://scripts/ui/utils/u_viewport_resizer.gd" id="32_viewport_resizer"]
 [ext_resource type="Script" uid="uid://cugn4owfqljpw" path="res://scripts/managers/m_character_lighting_manager.gd" id="33_character_lighting_manager"]
-[ext_resource type="Resource" path="res://resources/base_settings/state/cfg_localization_initial_state.tres" id="34_localization_state"]
-[ext_resource type="Script" uid="uid://ckh7wbjo2mlsi" path="res://scripts/managers/m_localization_manager.gd" id="35_localization_manager"]
+[ext_resource type="Resource" uid="uid://ccmwelkabh11g" path="res://resources/base_settings/state/cfg_localization_initial_state.tres" id="34_localization_state"]
+[ext_resource type="Script" uid="uid://c32bn4etywtji" path="res://scripts/managers/m_localization_manager.gd" id="35_localization_manager"]
 
 [node name="Root" type="Node" unique_id=409084781]
 script = ExtResource("10_main_root")

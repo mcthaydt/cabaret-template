@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://b0su45reek22e"]
 
 [ext_resource type="Script" uid="uid://opfqmh58idor" path="res://scripts/ui/settings/ui_localization_settings_overlay.gd" id="1_ui_localization_settings_overlay_script"]
-[ext_resource type="PackedScene" path="res://scenes/ui/overlays/settings/ui_localization_settings_tab.tscn" id="2_ui_localization_settings_tab_scene"]
+[ext_resource type="PackedScene" uid="uid://c3j1lsetv0tnv" path="res://scenes/ui/overlays/settings/ui_localization_settings_tab.tscn" id="2_ui_localization_settings_tab_scene"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="LocalizationSettingsOverlay" type="Control" unique_id=1]
