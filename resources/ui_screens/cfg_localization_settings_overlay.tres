@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RS_UIScreenDefinition" format=3 uid="uid://localization_settings_overlay_screen"]
+[gd_resource type="Resource" script_class="RS_UIScreenDefinition" format=3 uid="uid://dvl28i7ps0wls"]
 
 [ext_resource type="Script" uid="uid://deyqeb28ec6aq" path="res://scripts/resources/ui/rs_ui_screen_definition.gd" id="1"]
 

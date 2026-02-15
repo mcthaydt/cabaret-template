@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://localization_settings_tab"]
+[gd_scene format=3 uid="uid://c3j1lsetv0tnv"]
 
-[ext_resource type="Script" uid="uid://localization_settings_tab_script" path="res://scripts/ui/settings/ui_localization_settings_tab.gd" id="1_ui_localization_settings_tab_script"]
+[ext_resource type="Script" uid="uid://bel18b58qeyvq" path="res://scripts/ui/settings/ui_localization_settings_tab.gd" id="1_ui_localization_settings_tab_script"]
 
 [node name="LocalizationSettingsTab" type="VBoxContainer" unique_id=1]
 theme_override_constants/separation = 12
