@@ -21,6 +21,7 @@ translations = {
 "hud.checkpoint_reached": "Checkpoint reached",
 "hud.checkpoint_with_label": "Checkpoint: %s",
 "hud.interact_default": "Interact",
+"hud.interact_enter": "Enter",
 "hud.interact_read": "Read",
 "hud.loading": "Loading...",
 "hud.loading_tip_autosave": "Tip: Your progress is automatically saved",

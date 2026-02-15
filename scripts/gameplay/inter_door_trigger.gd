@@ -28,7 +28,7 @@ var _component: C_SceneTriggerComponent = null
 
 func _init() -> void:
 	cooldown_duration = 1.0
-	interact_prompt = "Enter"
+	interact_prompt = "hud.interact_enter"
 
 func _ready() -> void:
 	_apply_config_resource()

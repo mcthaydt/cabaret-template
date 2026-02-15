@@ -22,6 +22,7 @@ translations = {
 "hud.checkpoint_reached": "已到达检查点",
 "hud.checkpoint_with_label": "检查点：%s",
 "hud.interact_default": "交互",
+"hud.interact_enter": "进入",
 "hud.interact_read": "阅读",
 "hud.loading": "加载中...",
 "hud.loading_tip_autosave": "提示：您的进度会自动保存",

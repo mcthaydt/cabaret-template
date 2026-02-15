@@ -22,6 +22,7 @@ translations = {
 "hud.checkpoint_reached": "Ponto de controle alcançado",
 "hud.checkpoint_with_label": "Ponto de controle: %s",
 "hud.interact_default": "Interagir",
+"hud.interact_enter": "Entrar",
 "hud.interact_read": "Ler",
 "hud.loading": "Carregando...",
 "hud.loading_tip_autosave": "Dica: Seu progresso é salvo automaticamente",

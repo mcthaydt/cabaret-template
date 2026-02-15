@@ -22,6 +22,7 @@ translations = {
 "hud.checkpoint_reached": "チェックポイント到達",
 "hud.checkpoint_with_label": "チェックポイント：%s",
 "hud.interact_default": "操作",
+"hud.interact_enter": "入る",
 "hud.interact_read": "読む",
 "hud.loading": "読み込み中...",
 "hud.loading_tip_autosave": "ヒント：進行状況は自動的に保存されます",
