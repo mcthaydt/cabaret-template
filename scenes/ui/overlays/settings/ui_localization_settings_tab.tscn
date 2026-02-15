@@ -7,11 +7,13 @@ theme_override_constants/separation = 12
 script = ExtResource("1_ui_localization_settings_tab_script")
 
 [node name="HeadingLabel" type="Label" parent="." unique_id=2]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Localization Settings"
 horizontal_alignment = 1
 
 [node name="LanguageSection" type="Label" parent="." unique_id=3]
+unique_name_in_owner = true
 layout_mode = 2
 text = "LANGUAGE"
 uppercase = true
@@ -20,6 +22,7 @@ uppercase = true
 layout_mode = 2
 
 [node name="LanguageLabel" type="Label" parent="LanguageRow" unique_id=5]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Language"
@@ -32,6 +35,7 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="AccessibilitySection" type="Label" parent="." unique_id=8]
+unique_name_in_owner = true
 layout_mode = 2
 text = "ACCESSIBILITY"
 uppercase = true
@@ -40,6 +44,7 @@ uppercase = true
 layout_mode = 2
 
 [node name="DyslexiaLabel" type="Label" parent="DyslexiaRow" unique_id=10]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Dyslexia-Friendly Font"
@@ -48,34 +53,32 @@ text = "Dyslexia-Friendly Font"
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="Spacer" type="Control" parent="."]
+[node name="Spacer" type="Control" parent="." unique_id=2120596437]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ButtonRow" type="HBoxContainer" parent="."]
+[node name="ButtonRow" type="HBoxContainer" parent="." unique_id=1932929985]
 layout_mode = 2
 alignment = 2
 
-[node name="CancelButton" type="Button" parent="ButtonRow"]
+[node name="CancelButton" type="Button" parent="ButtonRow" unique_id=1711908654]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Cancel"
 
-[node name="ResetButton" type="Button" parent="ButtonRow"]
+[node name="ResetButton" type="Button" parent="ButtonRow" unique_id=1829839823]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Reset"
 
-[node name="ApplyButton" type="Button" parent="ButtonRow"]
+[node name="ApplyButton" type="Button" parent="ButtonRow" unique_id=1815400014]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Apply"
 
-[node name="LanguageConfirmDialog" type="ConfirmationDialog" parent="."]
+[node name="LanguageConfirmDialog" type="ConfirmationDialog" parent="." unique_id=1945241128]
 unique_name_in_owner = true
 title = "Confirm Language Change"
 
-[node name="LanguageConfirmTimer" type="Timer" parent="."]
+[node name="LanguageConfirmTimer" type="Timer" parent="." unique_id=1211071375]
 unique_name_in_owner = true
-wait_time = 1.0
-one_shot = false

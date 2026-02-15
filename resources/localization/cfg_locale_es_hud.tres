@@ -6,3 +6,6 @@
 script = ExtResource("1_script")
 locale = &"es"
 domain = &"hud"
+translations = {
+"hud.signpost.default": "Pulsa para interactuar"
+}

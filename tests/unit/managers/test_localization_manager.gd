@@ -177,6 +177,59 @@ func test_switching_from_cjk_to_latin_restores_default_font() -> void:
 	else:
 		pass_test("Font not loaded in test environment — skipping restore font check")
 
+# --- Phase 7: Theme cascade + preview mode tests ---
+
+func test_theme_cascade_to_nested_label() -> void:
+	await _setup_manager_with_store({"current_locale": &"en", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false})
+
+	var root := Control.new()
+	add_child_autofree(root)
+
+	var nested_label := Label.new()
+	root.add_child(nested_label)
+
+	_manager.register_ui_root(root)
+
+	var default_font: Font = _manager.get("_default_font")
+	if default_font != null:
+		# Nested Label should inherit font from parent's Theme
+		var label_font: Font = nested_label.get_theme_font(&"font", &"Label")
+		assert_eq(label_font, default_font, "Nested Label should inherit font from parent Theme")
+	else:
+		pass_test("Font not loaded in test environment — skipping cascade check")
+
+func test_preview_mode_applies_without_dispatch() -> void:
+	await _setup_manager_with_store({"current_locale": &"en", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false})
+
+	_manager.set_localization_preview({"locale": &"es", "dyslexia_font_enabled": false})
+
+	# Preview should change the active locale on the manager without dispatching to store
+	assert_eq(_manager.get_locale(), &"es", "Preview should change manager locale")
+	# Store should still have original locale
+	var state: Dictionary = _store.get_state()
+	var store_locale: StringName = state.get("localization", {}).get("current_locale", &"")
+	assert_eq(store_locale, &"en", "Store locale should remain unchanged during preview")
+
+func test_clear_preview_reverts_to_store_state() -> void:
+	await _setup_manager_with_store({"current_locale": &"en", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false})
+
+	_manager.set_localization_preview({"locale": &"es", "dyslexia_font_enabled": false})
+	_manager.clear_localization_preview()
+
+	assert_eq(_manager.get_locale(), &"en", "Clearing preview should revert to store locale")
+
+func test_translate_returns_populated_translation() -> void:
+	await _setup_manager_with_store({"current_locale": &"en", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false})
+
+	var result: String = _manager.translate(&"menu.main.title")
+	assert_eq(result, "Main Menu", "translate() should return populated English translation")
+
+func test_translate_spanish_locale() -> void:
+	await _setup_manager_with_store({"current_locale": &"es", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false})
+
+	var result: String = _manager.translate(&"menu.main.title")
+	assert_eq(result, "Menú Principal", "translate() should return Spanish translation for es locale")
+
 # --- Helpers ---
 
 func _setup_manager_with_store(localization_state: Dictionary) -> void:

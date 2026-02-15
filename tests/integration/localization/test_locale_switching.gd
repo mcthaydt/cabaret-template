@@ -52,7 +52,6 @@ func _make_store() -> M_StateStore:
 
 ## Dispatching set_locale updates the manager and localize() returns correct translation.
 func test_locale_switch_updates_localize_result() -> void:
-	# Locale JSON stubs are empty ({}) — we test the manager state and Redux state.
 	_store.dispatch(U_LOCALIZATION_ACTIONS.set_locale(&"es"))
 	await get_tree().physics_frame
 	await get_tree().process_frame
@@ -60,6 +59,10 @@ func test_locale_switch_updates_localize_result() -> void:
 	assert_eq(_loc_manager.get_locale(), &"es", "Manager active locale should switch to es")
 	var state: Dictionary = _store.get_state()
 	assert_eq(U_LOCALIZATION_SELECTORS.get_locale(state), &"es", "Redux state locale should be es")
+
+	# Verify localize() returns actual Spanish translation
+	var result: String = U_LOCALIZATION_UTILS.localize(&"menu.main.title")
+	assert_eq(result, "Menú Principal", "localize() should return Spanish translation after locale switch")
 
 ## CJK locale dispatches auto-sets ui_scale_override to 1.1 via reducer.
 func test_cjk_locale_sets_ui_scale_override() -> void:

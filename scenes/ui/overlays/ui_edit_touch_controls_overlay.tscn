@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://c5xb3dasm6kyj"]
 
 [ext_resource type="Script" uid="uid://cw60fmfvog2hu" path="res://scripts/ui/overlays/ui_edit_touch_controls_overlay.gd" id="1"]
+[ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
-[ext_resource type="Script" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 
 [node name="EditTouchControlsOverlay" type="Control" unique_id=889243733]
 layout_mode = 3
@@ -16,7 +16,7 @@ script = ExtResource("1")
 [node name="UIScaleRoot" type="Node" parent="." unique_id=465406458]
 script = ExtResource("ui_scale_root")
 
-[node name="LocalizationRoot" type="Node" parent="."]
+[node name="LocalizationRoot" type="Node" parent="." unique_id=1281350550]
 script = ExtResource("localization_root")
 
 [node name="Background" type="ColorRect" parent="." unique_id=1220288775]

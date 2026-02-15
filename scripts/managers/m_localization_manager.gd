@@ -28,7 +28,7 @@ const _FONT_THEME_TYPES: Array[StringName] = [
 @export var state_store: I_StateStore = null
 
 var _resolved_store: I_StateStore = null
-var _active_locale: StringName = &"en"
+var _active_locale: StringName = &""
 var _translations: Dictionary = {}
 var _ui_roots: Array[Node] = []
 var _last_localization_hash: int = 0

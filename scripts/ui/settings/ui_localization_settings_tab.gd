@@ -4,6 +4,7 @@ class_name UI_LocalizationSettingsTab
 
 const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 const U_NAVIGATION_ACTIONS := preload("res://scripts/state/actions/u_navigation_actions.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_FOCUS_CONFIGURATOR := preload("res://scripts/ui/helpers/u_focus_configurator.gd")
@@ -26,6 +27,11 @@ var _pending_locale: StringName = &""
 var _pre_change_locale: StringName = &""
 var _pre_change_dyslexia: bool = false
 
+@onready var _heading_label: Label = %HeadingLabel
+@onready var _language_section_label: Label = %LanguageSection
+@onready var _language_label: Label = %LanguageLabel
+@onready var _accessibility_section_label: Label = %AccessibilitySection
+@onready var _dyslexia_label: Label = %DyslexiaLabel
 @onready var _language_option: OptionButton = %LanguageOptionButton
 @onready var _dyslexia_toggle: CheckButton = %DyslexiaCheckButton
 @onready var _apply_button: Button = %ApplyButton
@@ -38,6 +44,7 @@ func _ready() -> void:
 	_populate_language_option()
 	_connect_signals()
 	_configure_focus_neighbors()
+	_localize_labels()
 
 	_state_store = U_ServiceLocator.get_service(StringName("state_store")) as I_StateStore
 	if _state_store == null:
@@ -241,17 +248,18 @@ func _stop_language_confirm_timer() -> void:
 func _update_language_confirm_text() -> void:
 	if _language_confirm_dialog == null:
 		return
-	_language_confirm_dialog.dialog_text = LANGUAGE_CONFIRM_TEXT % _language_confirm_seconds_left
+	var text_template: String = U_LOCALIZATION_UTILS.localize(&"settings.localization.confirm_text")
+	_language_confirm_dialog.dialog_text = text_template % _language_confirm_seconds_left
 
 func _configure_language_confirm_dialog() -> void:
 	if _language_confirm_dialog == null:
 		return
 	var ok_button := _get_language_confirm_ok_button()
 	if ok_button != null:
-		ok_button.text = "Keep"
+		ok_button.text = U_LOCALIZATION_UTILS.localize(&"common.keep")
 	var cancel_button := _get_language_confirm_cancel_button()
 	if cancel_button != null:
-		cancel_button.text = "Revert"
+		cancel_button.text = U_LOCALIZATION_UTILS.localize(&"common.revert")
 
 func _get_language_confirm_ok_button() -> Button:
 	if _language_confirm_dialog == null:
@@ -386,5 +394,26 @@ func _on_option_button_popup_about_to_show(popup: PopupMenu) -> void:
 	popup.grab_focus()
 
 func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()
 	if _state_store != null and not _has_local_edits and not _language_confirm_active:
 		_on_state_changed({}, _state_store.get_state())
+
+func _localize_labels() -> void:
+	if _heading_label != null:
+		_heading_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.title")
+	if _language_section_label != null:
+		_language_section_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.language_section")
+	if _language_label != null:
+		_language_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.language_label")
+	if _accessibility_section_label != null:
+		_accessibility_section_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.accessibility_section")
+	if _dyslexia_label != null:
+		_dyslexia_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.dyslexia_label")
+	if _apply_button != null:
+		_apply_button.text = U_LOCALIZATION_UTILS.localize(&"common.apply")
+	if _cancel_button != null:
+		_cancel_button.text = U_LOCALIZATION_UTILS.localize(&"common.cancel")
+	if _reset_button != null:
+		_reset_button.text = U_LOCALIZATION_UTILS.localize(&"common.reset")
+	if _language_confirm_dialog != null:
+		_language_confirm_dialog.title = U_LOCALIZATION_UTILS.localize(&"settings.localization.confirm_title")

@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://ddn5pq0hy1ou6"]
 
 [ext_resource type="Script" uid="uid://dnt7vw1x370bc" path="res://scripts/ui/menus/ui_settings_menu.gd" id="1_settings_menu_script"]
+[ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
-[ext_resource type="Script" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 
 [node name="SettingsMenu" type="Control" unique_id=327220458]
 layout_mode = 3
@@ -16,7 +16,7 @@ script = ExtResource("1_settings_menu_script")
 [node name="UIScaleRoot" type="Node" parent="." unique_id=163935902]
 script = ExtResource("ui_scale_root")
 
-[node name="LocalizationRoot" type="Node" parent="."]
+[node name="LocalizationRoot" type="Node" parent="." unique_id=31562931]
 script = ExtResource("localization_root")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1053603333]
@@ -46,6 +46,7 @@ size_flags_vertical = 3
 alignment = 1
 
 [node name="TitleLabel" type="Label" parent="ScrollContainer/VBoxContainer" unique_id=858077501]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Settings"
 horizontal_alignment = 1

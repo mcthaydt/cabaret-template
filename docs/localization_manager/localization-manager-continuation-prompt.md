@@ -1,7 +1,7 @@
 # Localization Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-15
-**Status:** Phases 0–6 + 7.1–7.3, 7.5–7.6 complete. 44 / 46 tasks done.
+**Status:** Phases 0–7 complete. 46 / 46 tasks done. Blocked: 7C.1–7C.3 (font replacements, awaiting user-provided assets).
 
 ## Completed Phases
 
@@ -17,7 +17,8 @@
 - **Phase 7.2**: UI Root Registration — Created `U_LocalizationRoot` helper (mirrors `U_UIScaleRoot` retry-polling pattern), added `LocalizationRoot` node to all 20 `.tscn` files that have `UIScaleRoot`, added `_on_locale_changed()` callback to `UI_LocalizationSettingsTab`.
 - **Phase 7.3**: Settings UI Overhaul — Full rewrite of `UI_LocalizationSettingsTab` with Apply/Cancel/Reset pattern, language confirm dialog with 10s revert timer, state subscription with `_unsubscribe` cleanup, focus configuration via `U_FocusConfigurator`, preview mode integration. Updated `.tscn` with Spacer, ButtonRow, LanguageConfirmDialog, LanguageConfirmTimer.
 - **Phase 7.5**: Documentation — Updated AGENTS.md services list, updated task tracker progress.
-- **Phase 7.6**: Testing — `tests/unit/ui/test_localization_root.gd` written (3 tests: registers parent with manager after retry-poll, unregisters on exit_tree, no crash without manager). File is currently untracked; needs staging.
+- **Phase 7.6**: Testing — `tests/unit/ui/test_localization_root.gd` written (3 tests: registers parent with manager after retry-poll, unregisters on exit_tree, no crash without manager).
+- **Phase 7.4**: `localize()` wiring + translation content — `_localize_labels()` and `_on_locale_changed()` added to `ui_main_menu.gd`, `ui_pause_menu.gd`, `ui_settings_menu.gd`, and `ui_localization_settings_tab.gd`. All 10 locale `.tres` files populated (common, menu, settings, hud namespaces). 5 languages: en, es, pt, ja, zh_CN.
 
 ## Start Here
 
@@ -27,10 +28,8 @@ Read these before writing any code:
 - `docs/localization_manager/localization-manager-plan.md`
 - `docs/localization_manager/localization-manager-tasks.md`
 
-Phases 0–6 and 7.1–7.3, 7.5–7.6 are complete (44/46 tasks). Remaining work:
-- **Phase 7.4** (7A.3, 7C.1–7C.4): Wire `U_LocalizationUtils.localize()` calls to UI controllers
-  and populate `.tres` translation resources with actual keys (7A.3, 7C.4 — in scope, not
-  started). Replace font stubs with real fonts (7C.1–7C.3 — blocked on user-provided assets).
+All 46 counted tasks are complete. Remaining blocked work (awaiting user-provided assets):
+- **7C.1–7C.3**: Replace font stubs with real fonts (`fnt_cjk.ttf`, `fnt_ui_default.ttf`, `fnt_dyslexia.ttf` are placeholders — see Category C tasks for details).
 
 ## Key Pitfalls
 

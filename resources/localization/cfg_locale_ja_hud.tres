@@ -6,3 +6,6 @@
 script = ExtResource("1_script")
 locale = &"ja"
 domain = &"hud"
+translations = {
+"hud.signpost.default": "押して操作"
+}

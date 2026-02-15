@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" uid="uid://bogqi0pteyfev" path="res://scripts/ui/menus/ui_main_menu.gd" id="1_main_menu_script"]
 [ext_resource type="PackedScene" uid="uid://ddn5pq0hy1ou6" path="res://scenes/ui/menus/ui_settings_menu.tscn" id="2_settings_menu_scene"]
+[ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
-[ext_resource type="Script" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 
 [node name="MainMenu" type="Control" unique_id=982096630]
 layout_mode = 3
@@ -17,7 +17,7 @@ script = ExtResource("1_main_menu_script")
 [node name="UIScaleRoot" type="Node" parent="." unique_id=1019629989]
 script = ExtResource("ui_scale_root")
 
-[node name="LocalizationRoot" type="Node" parent="."]
+[node name="LocalizationRoot" type="Node" parent="." unique_id=1386882774]
 script = ExtResource("localization_root")
 
 [node name="CenterContainer" type="CenterContainer" parent="." unique_id=28075082]
@@ -35,6 +35,7 @@ layout_mode = 2
 alignment = 1
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/MainPanel" unique_id=942197245]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Main Menu"
 horizontal_alignment = 1
