@@ -8,6 +8,10 @@ class MockLocManager extends I_LocalizationManager:
 	var _translations: Dictionary = {}
 	func translate(key: StringName) -> String:
 		return _translations.get(String(key), String(key))
+	func register_ui_root(_root: Node) -> void:
+		pass
+	func unregister_ui_root(_root: Node) -> void:
+		pass
 
 var _store: M_StateStore
 var _hud: CanvasLayer

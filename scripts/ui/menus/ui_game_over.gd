@@ -9,6 +9,9 @@ class_name UI_GameOver
 ## - Menu: Soft reset and return to main menu.
 
 
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+
+@onready var _title_label: Label = $MarginContainer/VBoxContainer/TitleLabel
 @onready var _death_count_label: Label = $MarginContainer/VBoxContainer/DeathCountLabel
 @onready var _retry_button: Button = $MarginContainer/VBoxContainer/ButtonRow/RetryButton
 @onready var _menu_button: Button = $MarginContainer/VBoxContainer/ButtonRow/MenuButton
@@ -26,7 +29,7 @@ func _on_store_ready(store: M_StateStore) -> void:
 func _on_panel_ready() -> void:
 	_connect_buttons()
 	_configure_focus_neighbors()
-	_update_death_count()
+	_localize_labels()
 
 func _configure_focus_neighbors() -> void:
 	# Configure horizontal focus navigation for game over buttons with wrapping
@@ -65,7 +68,20 @@ func _update_death_count(state: Dictionary = {}) -> void:
 
 	var gameplay: Dictionary = target_state.get("gameplay", {})
 	var deaths: int = int(gameplay.get("death_count", 0))
-	_death_count_label.text = "Deaths: %d" % deaths
+	var template: String = U_LOCALIZATION_UTILS.localize(&"menu.game_over.deaths")
+	_death_count_label.text = template % deaths if template.contains("%") else "Deaths: %d" % deaths
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()
+
+func _localize_labels() -> void:
+	if _title_label != null:
+		_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.game_over.title")
+	if _retry_button != null:
+		_retry_button.text = U_LOCALIZATION_UTILS.localize(&"menu.game_over.retry")
+	if _menu_button != null:
+		_menu_button.text = U_LOCALIZATION_UTILS.localize(&"menu.game_over.menu")
+	_update_death_count()
 
 func _on_retry_pressed() -> void:
 	U_UISoundPlayer.play_confirm()

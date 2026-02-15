@@ -43,6 +43,7 @@ var _font_theme: Theme = null
 
 ## Preview mode: applies locale+font without dispatching to store.
 var _localization_preview_active: bool = false
+var _applying_settings: bool = false
 
 # For test inspection
 var _apply_count: int = 0
@@ -83,6 +84,8 @@ func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
 		return
 	if _localization_preview_active:
 		return
+	if _applying_settings:
+		return
 	if slice_name != LOCALIZATION_SLICE_NAME:
 		return
 	var state: Dictionary = _resolved_store.get_state()
@@ -93,6 +96,7 @@ func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
 		_last_localization_hash = loc_hash
 
 func _apply_localization_settings(state: Dictionary) -> void:
+	_applying_settings = true
 	var locale: StringName = U_LOCALIZATION_SELECTORS.get_locale(state)
 	var dyslexia: bool = U_LOCALIZATION_SELECTORS.is_dyslexia_font_enabled(state)
 	_dyslexia_enabled = dyslexia
@@ -103,6 +107,7 @@ func _apply_localization_settings(state: Dictionary) -> void:
 	_apply_count += 1
 	var loc_slice: Dictionary = state.get("localization", {})
 	_last_localization_hash = loc_slice.hash()
+	_applying_settings = false
 
 func _load_locale(locale: StringName) -> void:
 	_translations = U_LOCALE_FILE_LOADER.load_locale(locale)

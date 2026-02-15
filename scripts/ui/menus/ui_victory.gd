@@ -10,6 +10,9 @@ class_name UI_Victory
 ## - Menu: Return to main menu.
 
 
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+
+@onready var _title_label: Label = $MarginContainer/VBoxContainer/TitleLabel
 @onready var _completed_label: Label = $MarginContainer/VBoxContainer/CompletedLabel
 @onready var _continue_button: Button = $MarginContainer/VBoxContainer/ButtonRow/ContinueButton
 @onready var _credits_button: Button = $MarginContainer/VBoxContainer/ButtonRow/CreditsButton
@@ -30,7 +33,7 @@ func _on_store_ready(store: M_StateStore) -> void:
 func _on_panel_ready() -> void:
 	_connect_buttons()
 	_configure_focus_neighbors()
-	_update_display()
+	_localize_labels()
 
 func _configure_focus_neighbors() -> void:
 	# Configure horizontal focus navigation for victory buttons with wrapping
@@ -78,11 +81,26 @@ func _update_display(state: Dictionary = {}) -> void:
 		completed_count = (completed_areas as Array).size()
 	var game_completed: bool = bool(gameplay.get("game_completed", false))
 
-	_completed_label.text = "Completed Areas: %d" % completed_count
+	var template: String = U_LOCALIZATION_UTILS.localize(&"menu.victory.completed_areas")
+	_completed_label.text = template % completed_count if template.contains("%") else "Completed Areas: %d" % completed_count
 
 	if _credits_button != null:
 		_credits_button.visible = game_completed
 		_credits_button.disabled = not game_completed
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()
+
+func _localize_labels() -> void:
+	if _title_label != null:
+		_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.victory.title")
+	if _continue_button != null:
+		_continue_button.text = U_LOCALIZATION_UTILS.localize(&"menu.victory.continue")
+	if _credits_button != null:
+		_credits_button.text = U_LOCALIZATION_UTILS.localize(&"menu.victory.credits")
+	if _menu_button != null:
+		_menu_button.text = U_LOCALIZATION_UTILS.localize(&"menu.victory.menu")
+	_update_display()
 
 func _on_continue_pressed() -> void:
 	U_UISoundPlayer.play_confirm()

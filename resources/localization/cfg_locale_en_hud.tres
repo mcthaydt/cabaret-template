@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 domain = &"hud"
+domain = &"hud"
 translations = {
 "hud.signpost.default": "Press to interact"
 }

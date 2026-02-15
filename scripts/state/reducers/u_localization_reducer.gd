@@ -15,7 +15,8 @@ const DEFAULT_SCALE_OVERRIDE: float = 1.0
 
 static func reduce(state: Dictionary, action: Dictionary) -> Dictionary:
 	var action_type: StringName = action.get("type", StringName(""))
-	var payload: Dictionary = action.get("payload", {})
+	var raw_payload: Variant = action.get("payload", {})
+	var payload: Dictionary = raw_payload if raw_payload is Dictionary else {}
 
 	match action_type:
 		U_LocalizationActions.ACTION_SET_LOCALE:

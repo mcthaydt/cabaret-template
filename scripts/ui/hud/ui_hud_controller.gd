@@ -232,21 +232,23 @@ func _show_checkpoint_toast(text: String) -> void:
 		)
 
 func _build_checkpoint_toast_text(event_payload: Variant) -> String:
-	const DEFAULT_TEXT := "Checkpoint reached"
+	var default_text: String = U_LocalizationUtils.localize(&"hud.checkpoint_reached")
 	var payload := _extract_event_payload(event_payload)
 	if payload.is_empty():
-		return DEFAULT_TEXT
+		return default_text
 
 	var explicit_label: String = String(payload.get("checkpoint_label", payload.get("display_name", ""))).strip_edges()
 	if not explicit_label.is_empty():
-		return "Checkpoint: %s" % explicit_label
+		var template: String = U_LocalizationUtils.localize(&"hud.checkpoint_with_label")
+		return template % explicit_label if template.contains("%") else "Checkpoint: %s" % explicit_label
 
 	var checkpoint_id_value: Variant = payload.get("checkpoint_id", StringName(""))
 	var checkpoint_id: String = String(checkpoint_id_value).strip_edges()
 	var readable_name: String = _humanize_checkpoint_id(checkpoint_id)
 	if readable_name.is_empty():
-		return DEFAULT_TEXT
-	return "Checkpoint: %s" % readable_name
+		return default_text
+	var template: String = U_LocalizationUtils.localize(&"hud.checkpoint_with_label")
+	return template % readable_name if template.contains("%") else "Checkpoint: %s" % readable_name
 
 func _humanize_checkpoint_id(raw_id: String) -> String:
 	var cleaned := raw_id.strip_edges()
@@ -549,7 +551,7 @@ func _format_interact_prompt(action: StringName, prompt_text: String) -> String:
 		action_label = String(action).capitalize()
 	var cleaned_prompt := prompt_text
 	if cleaned_prompt.is_empty():
-		cleaned_prompt = "Interact"
+		cleaned_prompt = U_LocalizationUtils.localize(&"hud.interact_default")
 	return "Press [%s] to %s" % [action_label, cleaned_prompt]
 
 func _is_paused(state: Dictionary) -> bool:

@@ -12,6 +12,7 @@ class_name UI_SaveLoadMenu
 
 const PLACEHOLDER_TEXTURE_PATH := "res://resources/ui/tex_save_slot_placeholder.png"
 const PLACEHOLDER_TEXTURE := preload(PLACEHOLDER_TEXTURE_PATH)
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 
 ## Current mode: "save" or "load"
 var _mode: StringName = StringName("")
@@ -115,11 +116,11 @@ func _update_mode_label() -> void:
 		return
 
 	if _mode == StringName("save"):
-		_mode_label.text = "Save Game"
+		_mode_label.text = U_LOCALIZATION_UTILS.localize(&"overlay.save_load.title_save")
 	elif _mode == StringName("load"):
-		_mode_label.text = "Load Game"
+		_mode_label.text = U_LOCALIZATION_UTILS.localize(&"overlay.save_load.title_load")
 	else:
-		_mode_label.text = "Save / Load"
+		_mode_label.text = U_LOCALIZATION_UTILS.localize(&"overlay.save_load.title_default")
 
 func _refresh_slot_list() -> void:
 	if _save_manager == null or _slot_list_container == null:
@@ -200,9 +201,9 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 		# Empty slot
 		var slot_display_name: String = "AUTOSAVE" if is_autosave else slot_id.to_upper()
 		if _mode == StringName("save"):
-			main_button.text = "%s\n[New Save]" % slot_display_name
+			main_button.text = "%s\n%s" % [slot_display_name, U_LOCALIZATION_UTILS.localize(&"overlay.save_load.new_save")]
 		else:
-			main_button.text = "%s\n[Empty]" % slot_display_name
+			main_button.text = "%s\n%s" % [slot_display_name, U_LOCALIZATION_UTILS.localize(&"overlay.save_load.empty_slot")]
 			main_button.disabled = true # Can't load empty slots
 
 	# Connect main button press (save/load action)
@@ -211,7 +212,7 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 	# Create delete button (only for populated slots, hidden for autosave)
 	var delete_button := Button.new()
 	delete_button.name = "DeleteButton"
-	delete_button.text = "Delete"
+	delete_button.text = U_LOCALIZATION_UTILS.localize(&"common.delete")
 	delete_button.custom_minimum_size = Vector2(80, 0)
 
 	# Show delete button only if slot is populated AND not autosave
@@ -242,7 +243,7 @@ func _format_timestamp(iso_timestamp: String) -> String:
 	# Input: "2025-12-26T14:30:00Z"
 	# Output: "Dec 26, 2025 2:30 PM"
 	if iso_timestamp.is_empty():
-		return "Unknown Date"
+		return U_LOCALIZATION_UTILS.localize(&"overlay.save_load.unknown_date")
 
 	# Parse ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ
 	var parts: PackedStringArray = iso_timestamp.split("T")
@@ -455,7 +456,7 @@ func _on_slot_item_pressed(slot_id: StringName, exists: bool) -> void:
 		if exists:
 			# Show overwrite confirmation
 			_show_confirmation(
-				"Overwrite existing save?",
+				U_LOCALIZATION_UTILS.localize(&"overlay.save_load.confirm_overwrite"),
 				{"action": "save", "slot_id": slot_id}
 			)
 		else:
@@ -471,7 +472,7 @@ func _on_delete_button_pressed(slot_id: StringName) -> void:
 	U_UISoundPlayer.play_confirm()
 	# Show delete confirmation
 	_show_confirmation(
-		"Delete this save file?",
+		U_LOCALIZATION_UTILS.localize(&"overlay.save_load.confirm_delete"),
 		{"action": "delete", "slot_id": slot_id}
 	)
 
@@ -636,6 +637,8 @@ func _set_buttons_enabled(enabled: bool) -> void:
 
 func _on_panel_ready() -> void:
 	_connect_buttons()
+	if _back_button != null:
+		_back_button.text = U_LOCALIZATION_UTILS.localize(&"common.back")
 	_read_mode_from_state()
 
 func _connect_buttons() -> void:
@@ -650,6 +653,11 @@ func _connect_buttons() -> void:
 
 func _on_back_pressed_button() -> void:
 	_on_back_pressed()
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_refresh_ui()
+	if _back_button != null:
+		_back_button.text = U_LOCALIZATION_UTILS.localize(&"common.back")
 
 func _on_back_pressed() -> void:
 	U_UISoundPlayer.play_cancel()
