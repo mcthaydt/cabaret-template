@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://db8augq3w5iis" path="res://scripts/ui/menus/ui_pause_menu.gd" id="1_pause_menu_script"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
+[ext_resource type="Script" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 
 [node name="PauseMenu" type="Control" unique_id=1662645066]
 process_mode = 3
@@ -15,6 +16,9 @@ script = ExtResource("1_pause_menu_script")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=1884090479]
 script = ExtResource("ui_scale_root")
+
+[node name="LocalizationRoot" type="Node" parent="."]
+script = ExtResource("localization_root")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=713624997]
 layout_mode = 1

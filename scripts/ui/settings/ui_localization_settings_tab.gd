@@ -77,3 +77,7 @@ func _on_dyslexia_toggled(enabled: bool) -> void:
 		return
 	U_UISoundPlayer.play_confirm()
 	_state_store.dispatch(U_LOCALIZATION_ACTIONS.set_dyslexia_font_enabled(enabled))
+
+func _on_locale_changed(_locale: StringName) -> void:
+	if _state_store != null:
+		_update_from_state(_state_store.get_state())

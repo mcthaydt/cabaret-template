@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://clwc6tou4bgkr"]
 
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
+[ext_resource type="Script" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 
 [node name="LoadingScreen" type="Control" unique_id=1622492159]
 process_mode = 3
@@ -13,6 +14,9 @@ grow_vertical = 2
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=1744146643]
 script = ExtResource("ui_scale_root")
+
+[node name="LocalizationRoot" type="Node" parent="."]
+script = ExtResource("localization_root")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1985474406]
 layout_mode = 1
