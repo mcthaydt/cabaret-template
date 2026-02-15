@@ -1,6 +1,6 @@
 # Localization Manager Implementation Tasks
 
-**Progress:** 100% (46 / 46 tasks complete) — Phase 7.4 (localize() wiring + translations) complete. Blocked: 7C.1–7C.3 (real fonts, awaiting user-provided assets).
+**Progress:** 100% (49 / 49 tasks complete) — All tasks done including font replacements (7C.1–7C.3). 7A.5 (TranslationServer decision) deferred as a non-task decision item.
 
 **Estimated Test Count:** ~70 tests (60 unit + 10 integration)
 
@@ -539,7 +539,7 @@ Before starting Phase 0, verify:
 
 ## Phase 7: Post-Implementation Audit Findings (2026-02-14)
 
-**Status: COMPLETE (2026-02-15). All 46 counted tasks done. Blocked: 7C.1–7C.3 (font replacements, awaiting user-provided assets). 7A.5 (TranslationServer decision) deferred.**
+**Status: COMPLETE (2026-02-15). All 49 tasks done. 7A.5 (TranslationServer decision) deferred as a non-task decision item.**
 
 ---
 
@@ -637,15 +637,15 @@ These are issues with the localization settings overlay and tab, compared agains
 
 ### Category C: Content / Asset Gaps
 
-- [ ] **Task 7C.1**: `fnt_cjk.ttf` is Lobster Two — a Latin decorative font that cannot render CJK characters
+- [x] **Task 7C.1**: `fnt_cjk.ttf` is Lobster Two — a Latin decorative font that cannot render CJK characters
   - Selecting `zh_CN` or `ja` locale applies a font that produces tofu boxes (`□□□□`) for all Chinese/Japanese text. This is worse than not overriding the font at all.
-  - **Fix**: Replace with a real CJK font (e.g., Noto Sans CJK SC, Source Han Sans).
+  - **Fix**: Replaced with `fnt_cjk.otf` — Noto Sans CJK SC Regular (Google Fonts / Noto project, OFL license, 16 MB). Covers Simplified Chinese and Japanese kanji. Manager path updated to `res://assets/fonts/fnt_cjk.otf`.
 
-- [ ] **Task 7C.2**: `fnt_ui_default.ttf` is Anonymous Pro — a monospace coding font inappropriate for game UI
-  - **Fix**: Replace with an appropriate UI font (e.g., Inter, Lato, Noto Sans).
+- [x] **Task 7C.2**: `fnt_ui_default.ttf` is Anonymous Pro — a monospace coding font inappropriate for game UI
+  - **Fix**: Replaced with Noto Sans Regular (Google Fonts / Noto project, OFL license, 556 KB). Clean, readable sans-serif suitable for game UI across Latin scripts.
 
-- [ ] **Task 7C.3**: `fnt_dyslexia.ttf` is Courier Prime — not a dyslexia-friendly font
-  - **Fix**: Replace with a proper dyslexia-friendly font (e.g., OpenDyslexic).
+- [x] **Task 7C.3**: `fnt_dyslexia.ttf` is Courier Prime — not a dyslexia-friendly font
+  - **Fix**: Replaced with Lexend Regular (Google Fonts, OFL license, 98 KB). Designed specifically to reduce visual stress and improve reading fluency.
 
 - [x] **Task 7C.4**: All 10 locale JSON files are empty `{}`
   - Every call to `U_LocalizationUtils.localize(key)` returns the key itself. The system is structurally complete but functionally inert.

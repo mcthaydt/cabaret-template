@@ -158,7 +158,7 @@ func clear_localization_preview() -> void:
 func _load_fonts() -> void:
 	_default_font = load("res://assets/fonts/fnt_ui_default.ttf") as Font
 	_dyslexia_font = load("res://assets/fonts/fnt_dyslexia.ttf") as Font
-	_cjk_font = load("res://assets/fonts/fnt_cjk.ttf") as Font
+	_cjk_font = load("res://assets/fonts/fnt_cjk.otf") as Font
 
 func _apply_font_override(dyslexia_enabled: bool) -> void:
 	var font: Font = _get_active_font(dyslexia_enabled)

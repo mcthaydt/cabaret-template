@@ -1,7 +1,7 @@
 # Localization Manager - Continuation Prompt
 
 **Last Updated:** 2026-02-15
-**Status:** Phases 0–7 complete. 46 / 46 tasks done. Blocked: 7C.1–7C.3 (font replacements, awaiting user-provided assets).
+**Status:** Phases 0–7 complete. 49 / 49 tasks done.
 
 ## Completed Phases
 
@@ -19,6 +19,7 @@
 - **Phase 7.5**: Documentation — Updated AGENTS.md services list, updated task tracker progress.
 - **Phase 7.6**: Testing — `tests/unit/ui/test_localization_root.gd` written (3 tests: registers parent with manager after retry-poll, unregisters on exit_tree, no crash without manager).
 - **Phase 7.4**: `localize()` wiring + translation content — `_localize_labels()` and `_on_locale_changed()` added to `ui_main_menu.gd`, `ui_pause_menu.gd`, `ui_settings_menu.gd`, and `ui_localization_settings_tab.gd`. All 10 locale `.tres` files populated (common, menu, settings, hud namespaces). 5 languages: en, es, pt, ja, zh_CN.
+- **Phase 7C**: Font replacements — `fnt_ui_default.ttf` → Noto Sans Regular (556 KB), `fnt_dyslexia.ttf` → Lexend Regular (98 KB), `fnt_cjk.otf` → Noto Sans CJK SC Regular (16 MB). All sourced from Google Fonts / Noto project (OFL license). Manager path updated to `fnt_cjk.otf`.
 
 ## Start Here
 
@@ -28,8 +29,7 @@ Read these before writing any code:
 - `docs/localization_manager/localization-manager-plan.md`
 - `docs/localization_manager/localization-manager-tasks.md`
 
-All 46 counted tasks are complete. Remaining blocked work (awaiting user-provided assets):
-- **7C.1–7C.3**: Replace font stubs with real fonts (`fnt_cjk.ttf`, `fnt_ui_default.ttf`, `fnt_dyslexia.ttf` are placeholders — see Category C tasks for details).
+All 49 tasks are complete. No remaining work on this branch.
 
 ## Key Pitfalls
 
