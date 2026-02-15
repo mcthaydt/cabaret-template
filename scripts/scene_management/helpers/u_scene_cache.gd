@@ -21,7 +21,7 @@ var _background_loads: Dictionary = {}
 var _cache_access_times: Dictionary = {}
 
 ## Cache limits
-var _max_cached_scenes: int = 5
+var _max_cached_scenes: int = 10
 var _max_cache_memory: int = 100 * 1024 * 1024  # 100MB
 
 ## Background polling active flag
