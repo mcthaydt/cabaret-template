@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-15  
 **Status:** Planned  
-**Progress:** 14% (8 / 59 tasks complete)
+**Progress:** 20% (12 / 59 tasks complete)
 
 ## Goal
 
@@ -29,8 +29,8 @@ Refactor localization to match manager quality standards used by display/audio: 
 
 ## Pre-Flight Checklist
 
-- [ ] Re-read `docs/general/DEV_PITFALLS.md`.
-- [ ] Re-read `docs/general/STYLE_GUIDE.md`.
+- [x] Re-read `docs/general/DEV_PITFALLS.md`. (2026-02-16)
+- [x] Re-read `docs/general/STYLE_GUIDE.md`. (2026-02-16)
 - [ ] Capture baseline status:
   - [ ] `tests/unit/managers/test_localization_manager.gd`
   - [ ] `tests/unit/managers/helpers/test_locale_file_loader.gd`
@@ -46,14 +46,14 @@ Refactor localization to match manager quality standards used by display/audio: 
 
 **Exit Criteria:** Refactor target contract is explicit before moving code.
 
-- [ ] **Task 0.1**: Add an architecture decision section to `docs/localization_manager/localization-manager-overview.md`:
-  - [ ] Manager responsibilities vs helper responsibilities.
-  - [ ] Translation fallback policy.
-  - [ ] Locale preview behavior contract.
-  - [ ] UI scale ownership contract (Localization vs Display).
-- [ ] **Task 0.2**: Define final public API for `I_LocalizationManager`.
-- [ ] **Task 0.3**: Add a migration note listing current call sites that depend on existing behavior.
-- [ ] **Task 0.4**: Add phase plan summary to `docs/localization_manager/localization-manager-continuation-prompt.md`.
+- [x] **Task 0.1**: Add an architecture decision section to `docs/localization_manager/localization-manager-overview.md`. (done 2026-02-16)
+  - [x] Manager responsibilities vs helper responsibilities.
+  - [x] Translation fallback policy.
+  - [x] Locale preview behavior contract.
+  - [x] UI scale ownership contract (Localization vs Display).
+- [x] **Task 0.2**: Define final public API for `I_LocalizationManager`. (documented in overview; done 2026-02-16)
+- [x] **Task 0.3**: Add a migration note listing current call sites that depend on existing behavior. (done 2026-02-16)
+- [x] **Task 0.4**: Add phase plan summary to `docs/localization_manager/localization-manager-continuation-prompt.md`. (done 2026-02-16)
 
 ---
 

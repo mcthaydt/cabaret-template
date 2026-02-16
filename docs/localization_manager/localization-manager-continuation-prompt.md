@@ -1,7 +1,7 @@
 # Localization Manager Refactor - Continuation Prompt
 
 **Last Updated:** 2026-02-16
-**Status:** Refactor planned. Progress 14% (8 / 59 tasks complete). Translation audit captured and partially resolved.
+**Status:** Refactor planned. Progress 20% (12 / 59 tasks complete). Translation audit captured and partially resolved.
 
 ## Start Here
 
@@ -34,6 +34,20 @@
   - Localized save/load timestamp tokens (month names + AM/PM) and added `date.*` keys.
   - Added `LocalizationRoot` to settings tab scenes (display/audio/localization).
   - Updated `test_locale_file_loader.gd` to validate `.tres` merge behavior.
+- 2026-02-16: Completed Phase 0 contract freeze (architecture decisions, public API contract, migration notes, plan summary).
+
+## Phase Plan Summary
+
+- **Phase 0**: Lock architecture contract (responsibilities, fallback, preview, UI scale ownership).
+- **Phase 1**: Interface tests + update `I_LocalizationManager` contract.
+- **Phase 2**: Extract catalog loader with unit tests.
+- **Phase 3**: Extract font/theme applier with unit tests.
+- **Phase 4**: Extract root registry with unit tests.
+- **Phase 5**: Extract preview controller; slim manager.
+- **Phase 6**: Move UI scale ownership to display manager; update tests.
+- **Phase 7**: UI integration cleanup + translation coverage audit.
+- **Phase 8**: Test hardening and helper-focused coverage.
+- **Phase 9**: Final documentation sync and completion.
 
 ## Audit Findings Summary (See Task 7.2a for Full List)
 
@@ -44,9 +58,9 @@
 
 ## Immediate Next Steps
 
-1. Phase 0 in `docs/localization_manager/localization-manager-refactor-tasks.md` (architecture contract freeze) to lock the target refactor surface.
-2. Execute Task 7.2a to close translation coverage gaps before refactor churn.
-3. Proceed with Phase 1 interface tests, then helper extraction phases.
+1. Execute remaining Task 7.2a coverage gaps (display/audio/vfx/gamepad/touchscreen/rebind/save-load/UI strings).
+2. Phase 1 interface tests + update `I_LocalizationManager` contract.
+3. Proceed with Phase 2 catalog extraction, then Phase 3+ helper work.
 
 ## Key Pitfalls
 

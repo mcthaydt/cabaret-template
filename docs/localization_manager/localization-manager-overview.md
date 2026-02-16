@@ -2,30 +2,28 @@
 
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-02-13
-**Last Updated**: 2026-02-13
-**Status**: PLANNED (no implementation yet)
-**Scope**: UI and HUD text localization, JSON-based translation files, dyslexia-friendly font toggle, five supported languages
+**Last Updated**: 2026-02-16
+**Status**: IMPLEMENTED (baseline). Refactor planned.
+**Scope**: UI and HUD text localization, resource-based translation catalogs, dyslexia-friendly font toggle, five supported languages
 
 ## Summary
 
-The localization stack uses `M_LocalizationManager` (persistent manager) for loading JSON translation files, switching locale at runtime, and toggling a dyslexia-friendly font across all registered UI roots. Translation keys are resolved through `U_LocalizationUtils.tr(key)`. Settings live in the Redux `localization` slice and are applied in real time. This system deliberately avoids Godot's built-in `.po`/`Translation` infrastructure to remain mobile-safe and to keep translation files human-editable JSON.
+The localization stack uses `M_LocalizationManager` (persistent manager) for loading translation catalogs from `.tres` resources, switching locale at runtime, and toggling a dyslexia-friendly font across all registered UI roots. Translation keys are resolved through `U_LocalizationUtils.localize(key)` / `localize_fmt()`. Settings live in the Redux `localization` slice and are applied in real time. This system deliberately avoids Godot's built-in `.po`/`Translation` infrastructure to remain mobile-safe and to keep translations as editable Resource data.
 
 ## Repo Reality Checks
 
-This system has **zero existing infrastructure**. Everything listed in this document must be created from scratch.
+Baseline infrastructure exists and is active:
 
-- No `assets/fonts/` directory exists — must be created along with the three font files
-- No `resources/localization/` directory exists — must be created with all locale subdirectories
-- No localization-related scripts, reducers, actions, or selectors exist anywhere in the codebase
-- Interface file will be added to `scripts/interfaces/` (18 files already exist there; `i_localization_manager.gd` will be the 19th)
-- `u_global_settings_serialization.gd` requires code modification for persistence (see Global Settings Persistence below)
-- `m_state_store.gd`, `u_state_slice_manager.gd`, and `root.tscn` each require modification to register the new Redux slice (see Redux Slice Integration Steps below)
-- `M_LocalizationManager` must be added as a persistent node in `root.tscn` and registered via `U_ServiceLocator.register()` in `root.gd` (lines 28–41)
+- `assets/fonts/` contains `fnt_ui_default.ttf`, `fnt_dyslexia.ttf`, `fnt_cjk.otf`.
+- `resources/localization/` contains `cfg_locale_*_ui.tres` and `cfg_locale_*_hud.tres` resources (`RS_LocaleTranslations`).
+- Localization slice (actions/reducer/selectors) is integrated in `M_StateStore` and global settings persistence.
+- `M_LocalizationManager` is a persistent manager in `root.tscn` and registered via `U_ServiceLocator`.
+- `U_LocalizationRoot` is used by UI scenes to register roots for locale changes and font overrides.
 
 ## Goals
 
 - Provide centralized locale switching with immediate UI refresh.
-- Resolve translation keys at runtime from JSON files without runtime directory scanning.
+- Resolve translation keys at runtime from `.tres` resources without runtime directory scanning.
 - Support English, Spanish, Portuguese, Chinese (Simplified), and Japanese.
 - Expose a dyslexia-friendly font toggle that applies a project-level theme override to all registered UI roots.
 - Integrate locale and font settings with the existing Redux settings persistence pipeline.
@@ -40,11 +38,23 @@ This system has **zero existing infrastructure**. Everything listed in this docu
 - No Godot `.po` / `Translation` resource integration.
 - No per-scene translation domains — all UI and HUD text shares a single merged dictionary per locale.
 
+## Architecture Decisions (Phase 0 Contract)
+
+- **Manager vs helpers**: `M_LocalizationManager` orchestrates only. Extract and own logic in helpers:
+  - Catalog loader/merger + fallback policy
+  - Font/theme builder + applier
+  - UI root registry + dead-root pruning
+  - Preview controller (store vs preview arbitration)
+- **Translation fallback policy**: `requested locale → fallback locale (en) → key string`. Unsupported locale requests do **not** change the active locale.
+- **Locale preview contract**: Preview applies locale + dyslexia setting visually without dispatching to Redux; store updates are ignored while preview is active; clearing preview re-applies store-driven state.
+- **Locale change notification**: Manager emits `locale_changed(locale)` and calls `_on_locale_changed(locale)` on registered UI roots that implement the method.
+- **UI scale ownership**: `M_DisplayManager` computes effective UI scale using display + localization slices. Localization manager must not dispatch display actions once refactor completes.
+
 ## Responsibilities & Boundaries
 
 ### Localization Manager owns
 
-- Loading and merging JSON translation files at startup and on locale change.
+- Loading and merging translation catalog resources at startup and on locale change.
 - Notifying registered UI roots when the locale changes so labels re-query keys.
 - Applying the dyslexia font override to all registered UI roots via a project-level `Theme` override.
 - Redux `localization` slice subscription for settings changes.
@@ -57,11 +67,11 @@ This system has **zero existing infrastructure**. Everything listed in this docu
 
 ### Localization Manager does NOT own
 
-- Authoring or validation of translation JSON files.
+- Authoring or validation of translation data content.
 - Font assets (stored under `assets/fonts/`).
 - UI layout adjustments for CJK text overflow (handled per-scene by UI authors).
 
-## Public API
+## Public API (Refactor Contract)
 
 ```gdscript
 # Manager (persistent)
@@ -70,24 +80,45 @@ M_LocalizationManager.get_locale() -> StringName
 M_LocalizationManager.set_dyslexia_font_enabled(enabled: bool) -> void
 M_LocalizationManager.register_ui_root(root: Node) -> void
 M_LocalizationManager.unregister_ui_root(root: Node) -> void
+M_LocalizationManager.translate(key: StringName) -> String
+M_LocalizationManager.set_localization_preview(preview: Dictionary) -> void
+M_LocalizationManager.clear_localization_preview() -> void
+M_LocalizationManager.get_supported_locales() -> Array[StringName]
+M_LocalizationManager.get_effective_settings() -> Dictionary
+M_LocalizationManager.is_preview_active() -> bool
+
+signal locale_changed(locale: StringName)
 
 # Static translation helper (used by UI scripts and HUD controllers)
-# NOTE: Always call as U_LocalizationUtils.tr(key) — never as bare tr(key),
+# NOTE: Always call as U_LocalizationUtils.localize(key) — never as bare tr(key),
 # which invokes Godot's built-in Object.tr() localization system instead.
-U_LocalizationUtils.tr(key: StringName) -> String
-U_LocalizationUtils.tr_fmt(key: StringName, args: Array) -> String  # Simple {0}/{1} substitution
+U_LocalizationUtils.localize(key: StringName) -> String
+U_LocalizationUtils.localize_fmt(key: StringName, args: Array) -> String  # Simple {0}/{1} substitution
 
 # Localization selectors (query from Redux state)
 U_LocalizationSelectors.get_locale(state: Dictionary) -> StringName
 U_LocalizationSelectors.is_dyslexia_font_enabled(state: Dictionary) -> bool
 U_LocalizationSelectors.get_ui_scale_override(state: Dictionary) -> float
+U_LocalizationSelectors.has_selected_language(state: Dictionary) -> bool
 
 # Redux actions — U_LocalizationActions uses _static_init() to register with U_ActionRegistry,
 # matching the pattern used by all other action files in the codebase.
 U_LocalizationActions.set_locale(locale: StringName) -> Dictionary
 U_LocalizationActions.set_dyslexia_font_enabled(enabled: bool) -> Dictionary
 U_LocalizationActions.set_ui_scale_override(scale: float) -> Dictionary
+U_LocalizationActions.mark_language_selected() -> Dictionary
 ```
+
+## Migration Notes (Call Sites to Audit)
+
+- `scripts/ui/settings/ui_localization_settings_tab.gd`: depends on preview APIs (`set_localization_preview` / `clear_localization_preview`) and confirm timer flow.
+- `scripts/ui/helpers/u_localization_root.gd` + `LocalizationRoot` nodes in UI scenes: depend on `register_ui_root` / `unregister_ui_root` and `_on_locale_changed` callbacks.
+- UI screens implementing `_on_locale_changed`: `ui_main_menu.gd`, `ui_settings_menu.gd`, `ui_pause_menu.gd`, `ui_game_over.gd`, `ui_victory.gd`, `ui_credits.gd`, `ui_save_load_menu.gd`, `ui_input_profile_selector.gd`, `ui_localization_settings_tab.gd`.
+- HUD/localized prompts: `ui_hud_controller.gd`, `ui_button_prompt.gd`, `ui_virtual_button.gd`.
+- Loading screen/tips: `trans_loading_screen.gd` uses localization keys for status/tips.
+- Input profiles: `resources/input/profiles/cfg_*.tres` now store localization keys; `ui_input_profile_selector.gd` localizes profile name/description and action labels.
+- Persistence/restore: `u_global_settings_serialization.gd` + `u_global_settings_applier.gd` depend on localization slice shape (including `has_selected_language`).
+- UI scale coupling: `M_LocalizationManager` currently dispatches display UI scale; Phase 6 removes this in favor of `M_DisplayManager` owning effective scale.
 
 ## Localization State Model
 
@@ -98,38 +129,38 @@ U_LocalizationActions.set_ui_scale_override(scale: float) -> Dictionary
 | `current_locale` | StringName | `&"en"` | Active locale code |
 | `dyslexia_font_enabled` | bool | `false` | Replaces default font with `fnt_dyslexia.ttf` on all registered UI roots |
 | `ui_scale_override` | float | `1.0` | Per-locale scale multiplier; CJK locales default to `1.1` to improve readability |
+| `has_selected_language` | bool | `false` | First-run language selection gate (true after language selector completes) |
 
-**Note**: Localization settings persist to `user://global_settings.json` alongside display and audio settings. However, this does **not** happen automatically. Two explicit code changes are required in `u_global_settings_serialization.gd` — see Global Settings Persistence below.
+**Note**: Localization settings persist to `user://global_settings.json` alongside display and audio settings via `u_global_settings_serialization.gd` and `u_global_settings_applier.gd`.
 
-## JSON Translation File Format
+## Locale Catalog Resources
 
 ### File Layout per Locale
 
 ```text
 resources/localization/
-  en/
-    ui.json
-    hud.json
-  es/
-    ui.json
-    hud.json
-  pt/
-    ui.json
-    hud.json
-  zh_CN/
-    ui.json
-    hud.json
-  ja/
-    ui.json
-    hud.json
+  cfg_locale_en_ui.tres
+  cfg_locale_en_hud.tres
+  cfg_locale_es_ui.tres
+  cfg_locale_es_hud.tres
+  cfg_locale_pt_ui.tres
+  cfg_locale_pt_hud.tres
+  cfg_locale_zh_CN_ui.tres
+  cfg_locale_zh_CN_hud.tres
+  cfg_locale_ja_ui.tres
+  cfg_locale_ja_hud.tres
 ```
 
 ### Schema
 
-Each JSON file is a flat key-value dictionary. Keys are `StringName`-compatible identifiers; values are translated strings. No nesting.
+Each locale catalog is a `RS_LocaleTranslations` Resource with a flat `translations: Dictionary` (no nesting). Keys are `StringName`-compatible identifiers; values are translated strings.
 
-```json
-{
+```gdscript
+[resource]
+script = ExtResource("res://scripts/resources/localization/rs_locale_translations.gd")
+locale = &"en"
+domain = &"ui"
+translations = {
   "menu.start": "Start Game",
   "menu.settings": "Settings",
   "menu.quit": "Quit",
@@ -150,40 +181,7 @@ Each JSON file is a flat key-value dictionary. Keys are `StringName`-compatible 
 
 ### Mobile-Safe Loading
 
-`preload()` only works with `.gd`, `.tres`, `.tscn`, and imported binary assets — **not `.json` files**. Using `preload()` on a `.json` file is a compile error in GDScript.
-
-The correct mobile-safe approach is `FileAccess.open()` with a hardcoded `res://` path. `FileAccess` with a known path works on Android because JSON files are embedded in the PCK; only `DirAccess.open()` (runtime directory scanning) fails on packed Android builds.
-
-At startup, `M_LocalizationManager` opens each file for the active locale by hardcoded path, parses with `JSON.parse_string()`, and merges into a single dictionary:
-
-```gdscript
-const _LOCALE_FILE_PATHS: Dictionary = {
-    &"en":    ["res://resources/localization/en/ui.json",
-               "res://resources/localization/en/hud.json"],
-    &"es":    ["res://resources/localization/es/ui.json",
-               "res://resources/localization/es/hud.json"],
-    &"pt":    ["res://resources/localization/pt/ui.json",
-               "res://resources/localization/pt/hud.json"],
-    &"zh_CN": ["res://resources/localization/zh_CN/ui.json",
-               "res://resources/localization/zh_CN/hud.json"],
-    &"ja":    ["res://resources/localization/ja/ui.json",
-               "res://resources/localization/ja/hud.json"],
-}
-
-func _load_locale_files(locale: StringName) -> Dictionary:
-    var merged: Dictionary = {}
-    for path: String in _LOCALE_FILE_PATHS.get(locale, []):
-        var file := FileAccess.open(path, FileAccess.READ)
-        if file == null:
-            push_error("LocalizationManager: could not open %s" % path)
-            continue
-        var parsed: Variant = JSON.parse_string(file.get_as_text())
-        if parsed is Dictionary:
-            merged.merge(parsed, true)  # true = overwrite duplicates (last file wins)
-    return merged
-```
-
-At locale change, `M_LocalizationManager` calls `_load_locale_files()` for the new locale and signals registered UI roots to refresh.
+`U_LocaleFileLoader` preloads the `.tres` catalogs via const arrays (mobile-safe, no runtime directory scanning). `M_LocalizationManager` requests `U_LocaleFileLoader.load_locale(locale)` and merges all matching `RS_LocaleTranslations` for the locale with last-wins behavior on duplicate keys.
 
 ## Signpost Localization
 
@@ -193,12 +191,12 @@ At locale change, `M_LocalizationManager` calls `_load_locale_files()` for the n
 
 The existing `RS_SignpostInteractionConfig` has a `@export_multiline var message: String` field. To localize, authors put a **localization key** (e.g., `signpost.cave_warning`) in this `message` field instead of a literal string. No new fields or config resource changes are needed.
 
-The HUD controller (`ui_hud_controller.gd`) passes the `message` value through `U_LocalizationUtils.tr()` before display:
+The HUD controller (`ui_hud_controller.gd`) passes the `message` value through `U_LocalizationUtils.localize()` before display:
 
 ```gdscript
 # In _on_signpost_message() — the only code change needed:
 var raw: String = String(data.get("message", ""))
-var text: String = U_LocalizationUtils.tr(StringName(raw))
+var text: String = U_LocalizationUtils.localize(StringName(raw))
 ```
 
 Signpost configs in `resources/interactions/` use the `signpost.*` key namespace:
@@ -209,10 +207,10 @@ resources/interactions/
   cfg_signpost_cave_warning.tres   # message = "signpost.cave_warning"
 ```
 
-Corresponding entries in `resources/localization/en/hud.json`:
+Corresponding entries in `resources/localization/cfg_locale_en_hud.tres`:
 
-```json
-{
+```gdscript
+translations = {
   "signpost.ancient_door": "An ancient door. It hasn't opened in centuries.",
   "signpost.cave_warning": "Danger ahead. Proceed with caution."
 }
@@ -220,7 +218,7 @@ Corresponding entries in `resources/localization/en/hud.json`:
 
 ### Fallback
 
-If a signpost config stores a literal string instead of a key (e.g., during prototyping), `U_LocalizationUtils.tr()` will return the string unchanged (missing-key fallback returns the input as-is). This means unlocalized signposts degrade gracefully rather than crashing.
+If a signpost config stores a literal string instead of a key (e.g., during prototyping), `U_LocalizationUtils.localize()` will return the string unchanged (missing-key fallback returns the input as-is). This means unlocalized signposts degrade gracefully rather than crashing.
 
 ### What does NOT change
 
@@ -312,8 +310,8 @@ Steps 3 and 4 are required for the save/load round-trip to work. Without them, l
 | English | `en` | Default font (`fnt_ui_default.ttf`) | 1.0 |
 | Spanish | `es` | Default font | 1.0 |
 | Portuguese | `pt` | Default font | 1.0 |
-| Chinese (Simplified) | `zh_CN` | Requires CJK font (`fnt_cjk.ttf`) | 1.1 |
-| Japanese | `ja` | Requires CJK font (`fnt_cjk.ttf`) | 1.1 |
+| Chinese (Simplified) | `zh_CN` | Requires CJK font (`fnt_cjk.otf`) | 1.1 |
+| Japanese | `ja` | Requires CJK font (`fnt_cjk.otf`) | 1.1 |
 
 CJK locales automatically set `ui_scale_override` to `1.1` in the reducer when the locale changes to `zh_CN` or `ja`, and reset it to `1.0` for Latin locales.
 
@@ -325,7 +323,7 @@ CJK locales automatically set `ui_scale_override` to `1.1` in the reducer when t
 
 - Default font: `assets/fonts/fnt_ui_default.ttf`
 - Dyslexia font: `assets/fonts/fnt_dyslexia.ttf` (OpenDyslexic or equivalent)
-- CJK font: `assets/fonts/fnt_cjk.ttf` (covers CJK Unified Ideographs for `zh_CN` and `ja`)
+- CJK font: `assets/fonts/fnt_cjk.otf` (covers CJK Unified Ideographs for `zh_CN` and `ja`)
 
 ### Application Pattern
 
@@ -362,17 +360,17 @@ func _apply_font_to_root(root: Node, font: Font) -> void:
 
 ### CJK Font Override
 
-When locale is `zh_CN` or `ja`, the default and dyslexia fonts are replaced with `fnt_cjk.ttf` regardless of the dyslexia toggle (CJK font takes priority for correct glyph coverage).
+When locale is `zh_CN` or `ja`, the default and dyslexia fonts are replaced with `fnt_cjk.otf` regardless of the dyslexia toggle (CJK font takes priority for correct glyph coverage).
 
 ### Locale Change Notification Contract
 
-When the active locale changes, `M_LocalizationManager` calls `_on_locale_changed(locale: StringName)` on every registered UI root that implements the method. UI panels that display translated text should implement this method to re-query `U_LocalizationUtils.tr()` on all their labels:
+When the active locale changes, `M_LocalizationManager` calls `_on_locale_changed(locale: StringName)` on every registered UI root that implements the method. UI panels that display translated text should implement this method to re-query `U_LocalizationUtils.localize()` on all their labels:
 
 ```gdscript
 # In any UI panel that displays localized text:
 func _on_locale_changed(_locale: StringName) -> void:
-    _title_label.text = U_LocalizationUtils.tr(&"settings.audio.title")
-    _back_button.text = U_LocalizationUtils.tr(&"common.back")
+    _title_label.text = U_LocalizationUtils.localize(&"settings.audio.title")
+    _back_button.text = U_LocalizationUtils.localize(&"common.back")
 ```
 
 Panels that do NOT display localized text (e.g., purely visual widgets) do not need this method. The HUD controller uses a separate `_on_slice_updated` path (listening for the `localization` slice) instead of `_on_locale_changed`.
@@ -387,10 +385,10 @@ scripts/interfaces/
   i_localization_manager.gd
 
 scripts/managers/helpers/
-  u_locale_file_loader.gd        # Merges JSON files into active dictionary
+  u_locale_file_loader.gd        # Merges locale Resource catalogs into active dictionary
 
 scripts/utils/localization/
-  u_localization_utils.gd        # Static tr() and tr_fmt() helpers; register_ui_root()
+  u_localization_utils.gd        # Static localize() and localize_fmt() helpers; register_ui_root()
 
 scripts/state/
   actions/u_localization_actions.gd
@@ -401,26 +399,21 @@ scripts/resources/state/
   rs_localization_initial_state.gd
 
 assets/fonts/
-  fnt_ui_default.ttf             # Must be created (directory does not exist yet)
+  fnt_ui_default.ttf
   fnt_dyslexia.ttf
-  fnt_cjk.ttf
+  fnt_cjk.otf
 
 resources/localization/
-  en/
-    ui.json
-    hud.json
-  es/
-    ui.json
-    hud.json
-  pt/
-    ui.json
-    hud.json
-  zh_CN/
-    ui.json
-    hud.json
-  ja/
-    ui.json
-    hud.json
+  cfg_locale_en_ui.tres
+  cfg_locale_en_hud.tres
+  cfg_locale_es_ui.tres
+  cfg_locale_es_hud.tres
+  cfg_locale_pt_ui.tres
+  cfg_locale_pt_hud.tres
+  cfg_locale_zh_CN_ui.tres
+  cfg_locale_zh_CN_hud.tres
+  cfg_locale_ja_ui.tres
+  cfg_locale_ja_hud.tres
 
 scenes/ui/overlays/settings/
   ui_localization_settings_overlay.tscn
@@ -484,15 +477,15 @@ store.dispatch(U_LocalizationActions.set_ui_scale_override(1.1))
 
 - `U_LocalizationReducer`: Action handling, locale switching, dyslexia flag, CJK scale auto-set.
 - `U_LocalizationSelectors`: Selector return values for all fields.
-- `U_LocaleFileLoader`: Merge logic, missing key fallback (returns key string), duplicate key resolution (last file wins).
+- `U_LocaleFileLoader`: Merge logic for `.tres` catalogs, duplicate key resolution (last resource wins).
 
 ### Integration Tests
 
-- Locale switch → verify `U_LocalizationUtils.tr()` returns correct string for new locale.
+- Locale switch → verify `U_LocalizationUtils.localize()` returns correct string for new locale.
 - Dyslexia toggle → verify font override applied to all registered UI roots.
-- CJK locale → verify `fnt_cjk.ttf` override and `ui_scale_override = 1.1`.
+- CJK locale → verify `fnt_cjk.otf` override and `ui_scale_override = 1.1`.
 - Settings persistence → dispatch locale action → reload global settings → verify locale restored.
-- Missing key → verify `U_LocalizationUtils.tr("missing.key")` returns `"missing.key"` (key as fallback, no crash).
+- Missing key → verify `U_LocalizationUtils.localize("missing.key")` returns `"missing.key"` (key as fallback, no crash).
 
 ### Manual Testing
 
@@ -505,11 +498,11 @@ store.dispatch(U_LocalizationActions.set_ui_scale_override(1.1))
 
 | Question | Decision |
 | -------- | -------- |
-| Godot built-in Translation vs JSON | JSON via `FileAccess`; human-editable, mobile-safe with hardcoded `res://` paths |
-| Single file vs domain files | Two files per locale (`ui.json`, `hud.json`); merged into one dictionary at runtime |
+| Godot built-in Translation vs Resource catalogs | `.tres` catalogs via `U_LocaleFileLoader` (preloaded resources); no TranslationServer |
+| Single file vs domain files | Two resources per locale (`cfg_locale_*_ui.tres`, `cfg_locale_*_hud.tres`); merged into one dictionary at runtime |
 | Missing key behavior | Return the key string as-is (no crash, visible in UI for easy debugging) |
-| CJK font strategy | Single shared `fnt_cjk.ttf`; overrides dyslexia toggle for CJK locales |
+| CJK font strategy | Single shared `fnt_cjk.otf`; overrides dyslexia toggle for CJK locales |
 | Dyslexia font scope | Project-level theme override on all registered UI roots (same pattern as UIScaleRoot) |
-| Persistence | `localization` slice persists to `user://global_settings.json`; requires explicit changes to `u_global_settings_serialization.gd` |
+| Persistence | `localization` slice persists to `user://global_settings.json` via global settings serialization/applier |
 | RTL support | Out of scope; not planned |
 | Pluralization | Out of scope; simple key→string only |
