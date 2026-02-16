@@ -38,6 +38,7 @@ const U_SCENE_TRANSITION_QUEUE := preload("res://scripts/scene_management/helper
 const U_SCENE_MANAGER_NODE_FINDER := preload("res://scripts/scene_management/helpers/u_scene_manager_node_finder.gd")
 const U_NAVIGATION_RECONCILER := preload("res://scripts/scene_management/helpers/u_navigation_reconciler.gd")
 const U_INPUT_MAP_BOOTSTRAPPER := preload("res://scripts/input/u_input_map_bootstrapper.gd")
+const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
 # T209: Transition class imports removed - now handled by U_TransitionFactory
 # Kept for type checking only:
 const FADE_TRANSITION := preload("res://scripts/scene_management/transitions/trans_fade.gd")
@@ -339,7 +340,12 @@ func _get_victory_target_scene(trigger: C_VictoryTriggerComponent) -> StringName
 ## Load initial scene on startup
 func _load_initial_scene() -> void:
 	# Load initial scene (configurable via export var)
-	transition_to_scene(initial_scene_id, "instant", Priority.CRITICAL)
+	var scene_id := initial_scene_id
+	if scene_id == StringName("language_selector") and _store != null:
+		var state: Dictionary = _store.get_state()
+		if U_LOCALIZATION_SELECTORS.has_selected_language(state):
+			scene_id = StringName("main_menu")
+	transition_to_scene(scene_id, "instant", Priority.CRITICAL)
 
 ## Transition to a new scene
 func transition_to_scene(scene_id: StringName, transition_type: String = "fade", priority: int = Priority.NORMAL) -> void:
