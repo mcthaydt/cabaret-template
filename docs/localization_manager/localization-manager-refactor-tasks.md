@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-15  
 **Status:** Planned  
-**Progress:** 20% (12 / 59 tasks complete)
+**Progress:** 27% (16 / 59 tasks complete)
 
 ## Goal
 
@@ -61,18 +61,18 @@ Refactor localization to match manager quality standards used by display/audio: 
 
 **Exit Criteria:** Interface and core contracts are test-covered before implementation extraction.
 
-- [ ] **Task 1.1 (Red)**: Extend interface tests in `tests/unit/managers/test_localization_manager.gd`:
-  - [ ] supported locales contract
-  - [ ] effective settings contract
-  - [ ] preview state contract
-  - [ ] locale change notification contract
-- [ ] **Task 1.2 (Green)**: Update `scripts/interfaces/i_localization_manager.gd`:
-  - [ ] add `get_supported_locales() -> Array[StringName]`
-  - [ ] add `get_effective_settings() -> Dictionary`
-  - [ ] add `is_preview_active() -> bool`
-  - [ ] add signal stub docs for locale changes
-- [ ] **Task 1.3**: Update mock localization managers in tests to conform to interface changes.
-- [ ] **Task 1.4**: Confirm all existing localization tests still pass after interface evolution.
+- [x] **Task 1.1 (Red)**: Extend interface tests in `tests/unit/managers/test_localization_manager.gd`. (done 2026-02-16)
+  - [x] supported locales contract
+  - [x] effective settings contract
+  - [x] preview state contract
+  - [x] locale change notification contract
+- [x] **Task 1.2 (Green)**: Update `scripts/interfaces/i_localization_manager.gd`. (done 2026-02-16)
+  - [x] add `get_supported_locales() -> Array[StringName]`
+  - [x] add `get_effective_settings() -> Dictionary`
+  - [x] add `is_preview_active() -> bool`
+  - [x] add signal stub docs for locale changes
+- [x] **Task 1.3**: Update mock localization managers in tests to conform to interface changes. (done 2026-02-16)
+- [x] **Task 1.4**: Confirm all existing localization tests still pass after interface evolution. (done 2026-02-16)
 
 ---
 

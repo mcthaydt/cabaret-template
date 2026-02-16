@@ -1,7 +1,7 @@
 # Localization Manager Refactor - Continuation Prompt
 
 **Last Updated:** 2026-02-16
-**Status:** Refactor planned. Progress 20% (12 / 59 tasks complete). Translation audit captured and partially resolved.
+**Status:** Refactor planned. Progress 27% (16 / 59 tasks complete). Translation audit captured and partially resolved.
 
 ## Start Here
 
@@ -35,6 +35,10 @@
   - Added `LocalizationRoot` to settings tab scenes (display/audio/localization).
   - Updated `test_locale_file_loader.gd` to validate `.tres` merge behavior.
 - 2026-02-16: Completed Phase 0 contract freeze (architecture decisions, public API contract, migration notes, plan summary).
+- 2026-02-16: Completed Phase 1 (interface/tests):
+  - Added interface contract tests for supported locales, effective settings, preview state, locale change signal.
+  - Updated `I_LocalizationManager` with new API + signal and implemented in `M_LocalizationManager`.
+  - Updated localization mock in tests to conform.
 
 ## Phase Plan Summary
 
@@ -58,9 +62,9 @@
 
 ## Immediate Next Steps
 
-1. Execute remaining Task 7.2a coverage gaps (display/audio/vfx/gamepad/touchscreen/rebind/save-load/UI strings).
-2. Phase 1 interface tests + update `I_LocalizationManager` contract.
-3. Proceed with Phase 2 catalog extraction, then Phase 3+ helper work.
+1. Phase 2 catalog extraction: add helper tests + `u_localization_catalog.gd`, update manager to use it.
+2. Phase 3 font/theme applier extraction.
+3. Continue Task 7.2a remaining UI localization gaps (display/audio/vfx/gamepad/touchscreen/rebind/save-load/UI strings).
 
 ## Key Pitfalls
 
