@@ -164,6 +164,18 @@ func _load_fonts() -> void:
 	_default_font = load("res://assets/fonts/fnt_ui_default.ttf") as Font
 	_dyslexia_font = load("res://assets/fonts/fnt_dyslexia.ttf") as Font
 	_cjk_font = load("res://assets/fonts/fnt_cjk.otf") as Font
+	_apply_cjk_fallback(_default_font)
+	_apply_cjk_fallback(_dyslexia_font)
+
+func _apply_cjk_fallback(font: Font) -> void:
+	if font == null or _cjk_font == null:
+		return
+	if font is FontFile:
+		var font_file := font as FontFile
+		var fallbacks: Array = font_file.fallbacks.duplicate()
+		if _cjk_font not in fallbacks:
+			fallbacks.append(_cjk_font)
+			font_file.fallbacks = fallbacks
 
 func _apply_font_override(dyslexia_enabled: bool) -> void:
 	var font: Font = _get_active_font(dyslexia_enabled)
