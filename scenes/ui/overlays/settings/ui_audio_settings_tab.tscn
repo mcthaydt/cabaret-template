@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://d14323kd04ar0"]
 
 [ext_resource type="Script" uid="uid://bd68hrkwcgknt" path="res://scripts/ui/settings/ui_audio_settings_tab.gd" id="1_ui_audio_settings_tab_script"]
+[ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 
 [sub_resource type="StyleBoxFlat" id="slider_bg"]
 content_margin_top = 6.0
@@ -23,6 +24,9 @@ corner_radius_bottom_left = 4
 [node name="AudioSettingsTab" type="VBoxContainer" unique_id=691694341]
 theme_override_constants/separation = 12
 script = ExtResource("1_ui_audio_settings_tab_script")
+
+[node name="LocalizationRoot" type="Node" parent="." unique_id=1009346827]
+script = ExtResource("localization_root")
 
 [node name="HeadingLabel" type="Label" parent="." unique_id=560357912]
 layout_mode = 2

@@ -3,6 +3,15 @@ extends "res://scripts/ui/base/base_overlay.gd"
 class_name UI_InputProfileSelector
 
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+
+const ACTION_LABEL_KEYS := {
+	StringName("move"): &"input.action.move",
+	StringName("jump"): &"input.action.jump",
+	StringName("sprint"): &"input.action.sprint",
+	StringName("interact"): &"input.action.interact",
+	StringName("pause"): &"input.action.pause",
+}
 
 @onready var _profile_button: Button = $CenterContainer/Panel/MainContainer/ProfileRow/ProfileButton
 @onready var _apply_button: Button = %ApplyButton
@@ -218,7 +227,11 @@ func _populate_profiles() -> void:
 func _update_button_text() -> void:
 	if _profile_button == null or _available_profiles.is_empty():
 		return
-	_profile_button.text = _available_profiles[_current_index]
+	var profile := _get_selected_profile()
+	if profile != null:
+		_profile_button.text = _localize_profile_text(profile.profile_name)
+	else:
+		_profile_button.text = _available_profiles[_current_index]
 	_update_preview()
 
 func _cycle_profile(direction: int) -> void:
@@ -309,6 +322,9 @@ func _on_back_pressed() -> void:
 	# Back button behavior matches Cancel button
 	_on_cancel_pressed()
 
+func _on_locale_changed(_locale: StringName) -> void:
+	_update_button_text()
+
 func _transition_back_to_settings_scene() -> void:
 	var store := get_store()
 	if store == null:
@@ -331,11 +347,11 @@ func _update_preview() -> void:
 		_clear_bindings_container()
 		return
 
-	_header_label.text = profile.profile_name
+	_header_label.text = _localize_profile_text(profile.profile_name)
 	# Only show description for touchscreen profiles (device_type 2)
 	# For keyboard/gamepad, the visual bindings are self-explanatory
 	if profile.device_type == 2:  # TOUCHSCREEN
-		_description_label.text = profile.description
+		_description_label.text = _localize_profile_text(profile.description)
 	else:
 		_description_label.text = ""
 	_build_bindings_preview(profile)
@@ -382,14 +398,14 @@ func _build_bindings_preview(profile: RS_InputProfile) -> void:
 		StringName("move_left"),
 		StringName("move_right")
 	]
-	_add_action_group_row("Move", move_actions, profile, device_type_for_registry)
+	_add_action_group_row(_get_localized_action_label(&"move"), move_actions, profile, device_type_for_registry)
 
 	# Individual actions
 	var single_actions := [
-		{ "action": StringName("jump"), "label": "Jump" },
-		{ "action": StringName("sprint"), "label": "Sprint" },
-		{ "action": StringName("interact"), "label": "Interact" },
-		{ "action": StringName("pause"), "label": "Pause" }
+		{ "action": StringName("jump"), "label": _get_localized_action_label(&"jump") },
+		{ "action": StringName("sprint"), "label": _get_localized_action_label(&"sprint") },
+		{ "action": StringName("interact"), "label": _get_localized_action_label(&"interact") },
+		{ "action": StringName("pause"), "label": _get_localized_action_label(&"pause") }
 	]
 
 	for entry in single_actions:
@@ -493,3 +509,20 @@ func _format_binding_label(binding_text: String) -> String:
 	if trimmed.begins_with("Key "):
 		trimmed = trimmed.substr(4, trimmed.length() - 4)
 	return trimmed
+
+func _localize_profile_text(raw_text: String) -> String:
+	if raw_text.is_empty():
+		return ""
+	var localized := U_LOCALIZATION_UTILS.localize(StringName(raw_text))
+	if localized == raw_text:
+		return raw_text
+	return localized
+
+func _get_localized_action_label(action_name: StringName) -> String:
+	var key: StringName = ACTION_LABEL_KEYS.get(action_name, StringName())
+	if key == StringName():
+		return String(action_name).capitalize()
+	var localized := U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return String(action_name).capitalize()
+	return localized

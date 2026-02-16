@@ -13,6 +13,8 @@ class_name UI_ButtonPrompt
 @export var input_device_manager: M_InputDeviceManager = null
 
 const INTERACT_COLOR := Color(1.0, 0.85, 0.6)
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const DEFAULT_INTERACT_FALLBACK := "Interact"
 
 var _label: Label
 var _text_icon_panel: Control
@@ -97,7 +99,7 @@ func _refresh_prompt() -> void:
 		if _mobile_button != null:
 			_mobile_button.visible = true
 			if _mobile_button_label != null:
-				_mobile_button_label.text = binding_label if not binding_label.is_empty() else "Interact"
+				_mobile_button_label.text = binding_label if not binding_label.is_empty() else _get_default_interact_label()
 				_mobile_button_label.modulate = INTERACT_COLOR
 	else:
 		if _mobile_button != null:
@@ -138,8 +140,14 @@ func _refresh_prompt() -> void:
 func _get_clean_prompt_text(prompt: String) -> String:
 	var cleaned := String(prompt).strip_edges()
 	if cleaned.is_empty():
-		return "Interact"
+		return _get_default_interact_label()
 	return cleaned
+
+func _get_default_interact_label() -> String:
+	var localized := U_LOCALIZATION_UTILS.localize(&"hud.interact_default")
+	if localized == "hud.interact_default":
+		return DEFAULT_INTERACT_FALLBACK
+	return localized
 
 func _reset_visuals() -> void:
 	if _label != null:

@@ -13,6 +13,22 @@ class_name UI_SaveLoadMenu
 const PLACEHOLDER_TEXTURE_PATH := "res://resources/ui/tex_save_slot_placeholder.png"
 const PLACEHOLDER_TEXTURE := preload(PLACEHOLDER_TEXTURE_PATH)
 const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const MONTH_KEYS: Array[StringName] = [
+	&"date.month.jan",
+	&"date.month.feb",
+	&"date.month.mar",
+	&"date.month.apr",
+	&"date.month.may",
+	&"date.month.jun",
+	&"date.month.jul",
+	&"date.month.aug",
+	&"date.month.sep",
+	&"date.month.oct",
+	&"date.month.nov",
+	&"date.month.dec"
+]
+const AM_KEY := &"date.am"
+const PM_KEY := &"date.pm"
 
 ## Current mode: "save" or "load"
 var _mode: StringName = StringName("")
@@ -271,23 +287,34 @@ func _format_timestamp(iso_timestamp: String) -> String:
 	var minute: String = time_components[1]
 
 	# Convert to 12-hour format
-	var am_pm: String = "AM"
+	var am_pm_key: StringName = AM_KEY
 	var hour_12: int = hour
 	if hour >= 12:
-		am_pm = "PM"
+		am_pm_key = PM_KEY
 		if hour > 12:
 			hour_12 = hour - 12
 	elif hour == 0:
 		hour_12 = 12
 
-	# Month names
-	var month_names: Array[String] = [
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-	]
-	var month_name: String = month_names[month_num - 1] if month_num >= 1 and month_num <= 12 else "???"
+	var month_name: String = _get_localized_month_name(month_num)
+	var am_pm: String = _get_localized_am_pm(am_pm_key)
 
 	return "%s %s, %s %d:%s %s" % [month_name, day, year, hour_12, minute, am_pm]
+
+func _get_localized_month_name(month_num: int) -> String:
+	if month_num < 1 or month_num > 12:
+		return "???"
+	var key: StringName = MONTH_KEYS[month_num - 1]
+	var localized := U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return "???"
+	return localized
+
+func _get_localized_am_pm(key: StringName) -> String:
+	var localized := U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return "AM" if key == AM_KEY else "PM"
+	return localized
 
 func _load_thumbnail_async(texture_rect: TextureRect, path: String) -> void:
 	if texture_rect == null:

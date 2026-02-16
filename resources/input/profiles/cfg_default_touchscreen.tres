@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1")
-profile_name = "Default (Touchscreen)"
+profile_name = "input.profile.default_touchscreen.name"
 device_type = 2
-description = "Touchscreen controls: Virtual joystick for movement, 4 buttons (Jump, Sprint, Interact, Pause)"
+description = "input.profile.default_touchscreen.description"
 virtual_buttons = Array[Dictionary]([{
 "action": "interact",
 "position": Vector2(240, 331)
