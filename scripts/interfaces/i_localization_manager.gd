@@ -6,12 +6,26 @@ class_name I_LocalizationManager
 ## Implementations:
 ## - M_LocalizationManager (production)
 
+signal locale_changed(locale: StringName)
+
 func set_locale(_locale: StringName) -> void:
 	push_error("I_LocalizationManager.set_locale not implemented")
 
 func get_locale() -> StringName:
 	push_error("I_LocalizationManager.get_locale not implemented")
 	return &""
+
+func get_supported_locales() -> Array[StringName]:
+	push_error("I_LocalizationManager.get_supported_locales not implemented")
+	return []
+
+func get_effective_settings() -> Dictionary:
+	push_error("I_LocalizationManager.get_effective_settings not implemented")
+	return {}
+
+func is_preview_active() -> bool:
+	push_error("I_LocalizationManager.is_preview_active not implemented")
+	return false
 
 func set_dyslexia_font_enabled(_enabled: bool) -> void:
 	push_error("I_LocalizationManager.set_dyslexia_font_enabled not implemented")

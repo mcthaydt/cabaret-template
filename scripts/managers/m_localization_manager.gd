@@ -16,6 +16,7 @@ const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_se
 const SERVICE_NAME := StringName("localization_manager")
 const LOCALIZATION_SLICE_NAME := StringName("localization")
 const CJK_LOCALES: Array[StringName] = [&"zh_CN", &"ja"]
+const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]
 
 ## Control types that support the "font" theme property.
 const _FONT_THEME_TYPES: Array[StringName] = [
@@ -43,6 +44,7 @@ var _font_theme: Theme = null
 
 ## Preview mode: applies locale+font without dispatching to store.
 var _localization_preview_active: bool = false
+var _preview_settings: Dictionary = {}
 var _applying_settings: bool = false
 
 # For test inspection
@@ -112,6 +114,7 @@ func _apply_localization_settings(state: Dictionary) -> void:
 func _load_locale(locale: StringName) -> void:
 	_translations = U_LOCALE_FILE_LOADER.load_locale(locale)
 	_active_locale = locale
+	locale_changed.emit(locale)
 	_notify_ui_roots()
 
 func translate(key: StringName) -> String:
@@ -119,6 +122,25 @@ func translate(key: StringName) -> String:
 
 func get_locale() -> StringName:
 	return _active_locale
+
+func get_supported_locales() -> Array[StringName]:
+	return SUPPORTED_LOCALES.duplicate()
+
+func get_effective_settings() -> Dictionary:
+	var ui_scale := 1.0
+	if _resolved_store != null:
+		var state: Dictionary = _resolved_store.get_state()
+		ui_scale = U_LOCALIZATION_SELECTORS.get_ui_scale_override(state)
+	if _preview_settings.has("ui_scale_override"):
+		ui_scale = float(_preview_settings.get("ui_scale_override", ui_scale))
+	return {
+		"current_locale": _active_locale,
+		"dyslexia_font_enabled": _dyslexia_enabled,
+		"ui_scale_override": ui_scale,
+	}
+
+func is_preview_active() -> bool:
+	return _localization_preview_active
 
 func set_locale(locale: StringName) -> void:
 	if _resolved_store != null:
@@ -144,6 +166,7 @@ func unregister_ui_root(root: Node) -> void:
 ## Used by settings UI for live preview while editing.
 func set_localization_preview(preview: Dictionary) -> void:
 	_localization_preview_active = true
+	_preview_settings = preview.duplicate(true)
 	var locale: StringName = StringName(str(preview.get("locale", _active_locale)))
 	var dyslexia: bool = bool(preview.get("dyslexia_font_enabled", _dyslexia_enabled))
 	_dyslexia_enabled = dyslexia
@@ -156,6 +179,7 @@ func clear_localization_preview() -> void:
 	if not _localization_preview_active:
 		return
 	_localization_preview_active = false
+	_preview_settings.clear()
 	if _resolved_store != null:
 		var state: Dictionary = _resolved_store.get_state()
 		_apply_localization_settings(state)

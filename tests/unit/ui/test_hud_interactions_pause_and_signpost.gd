@@ -8,6 +8,12 @@ class MockLocManager extends I_LocalizationManager:
 	var _translations: Dictionary = {}
 	func translate(key: StringName) -> String:
 		return _translations.get(String(key), String(key))
+	func get_supported_locales() -> Array[StringName]:
+		return [&"en"]
+	func get_effective_settings() -> Dictionary:
+		return {"current_locale": &"en", "dyslexia_font_enabled": false, "ui_scale_override": 1.0}
+	func is_preview_active() -> bool:
+		return false
 	func register_ui_root(_root: Node) -> void:
 		pass
 	func unregister_ui_root(_root: Node) -> void:

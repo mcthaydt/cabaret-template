@@ -26,6 +26,13 @@ func test_manager_extends_i_localization_manager() -> void:
 
 	assert_true(_manager is I_LOCALIZATION_MANAGER, "M_LocalizationManager should extend I_LocalizationManager")
 
+func test_manager_exposes_supported_locales() -> void:
+	_manager = M_LOCALIZATION_MANAGER.new()
+	add_child_autofree(_manager)
+
+	var locales: Array[StringName] = _manager.get_supported_locales()
+	assert_eq(locales, [&"en", &"es", &"pt", &"zh_CN", &"ja"], "Supported locales should match contract")
+
 func test_manager_registers_with_service_locator() -> void:
 	_manager = M_LOCALIZATION_MANAGER.new()
 	add_child_autofree(_manager)
@@ -61,6 +68,48 @@ func test_hash_prevents_redundant_applies() -> void:
 	_store.slice_updated.emit(StringName("localization"), loc_state)
 
 	assert_eq(int(_manager.get("_apply_count")), apply_count, "Hash should prevent redundant apply calls")
+
+func test_get_effective_settings_reflects_store_state() -> void:
+	await _setup_manager_with_store({"current_locale": &"es", "dyslexia_font_enabled": true, "ui_scale_override": 1.1, "has_selected_language": false})
+
+	var effective: Dictionary = _manager.get_effective_settings()
+	assert_eq(effective.get("current_locale", &""), &"es", "Effective locale should reflect store state")
+	assert_true(bool(effective.get("dyslexia_font_enabled", false)), "Effective dyslexia flag should reflect store state")
+	assert_eq(float(effective.get("ui_scale_override", 0.0)), 1.1, "Effective UI scale should reflect store state")
+
+func test_preview_state_flag_updates() -> void:
+	await _setup_manager_with_store({"current_locale": &"en", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false})
+
+	assert_false(_manager.is_preview_active(), "Preview should start inactive")
+	_manager.set_localization_preview({"locale": &"es", "dyslexia_font_enabled": false})
+	assert_true(_manager.is_preview_active(), "Preview should be active after set_localization_preview")
+	_manager.clear_localization_preview()
+	assert_false(_manager.is_preview_active(), "Preview should be inactive after clear")
+
+func test_preview_ignores_store_updates() -> void:
+	await _setup_manager_with_store({"current_locale": &"en", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false})
+
+	_manager.set_localization_preview({"locale": &"es", "dyslexia_font_enabled": false})
+	_store.set_slice(StringName("localization"), {"current_locale": &"ja", "dyslexia_font_enabled": false, "ui_scale_override": 1.1, "has_selected_language": false})
+	_store.slice_updated.emit(StringName("localization"), {"current_locale": &"ja", "dyslexia_font_enabled": false, "ui_scale_override": 1.1, "has_selected_language": false})
+
+	assert_eq(_manager.get_locale(), &"es", "Store updates should be ignored while preview is active")
+
+func test_locale_changed_signal_emits_on_locale_change() -> void:
+	await _setup_manager_with_store({"current_locale": &"en", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false})
+
+	var seen: Array[StringName] = []
+	if _manager.has_signal("locale_changed"):
+		_manager.locale_changed.connect(func(locale: StringName) -> void:
+			seen.append(locale)
+		)
+
+	_store.set_slice(StringName("localization"), {"current_locale": &"es", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false})
+	_store.slice_updated.emit(StringName("localization"), {"current_locale": &"es", "dyslexia_font_enabled": false, "ui_scale_override": 1.0, "has_selected_language": false})
+
+	assert_eq(seen.size(), 1, "locale_changed should emit once on locale change")
+	if not seen.is_empty():
+		assert_eq(seen[0], &"es", "locale_changed should emit the new locale")
 
 # --- Phase 3: Font + UI Root Registration Tests ---
 
@@ -158,6 +207,13 @@ func test_interface_declares_translate_method() -> void:
 	var iface: I_LocalizationManager = I_LOCALIZATION_MANAGER.new()
 	add_child_autofree(iface)
 	assert_true(iface.has_method("translate"), "I_LocalizationManager interface must declare translate()")
+
+func test_interface_declares_contract_methods() -> void:
+	var iface: I_LocalizationManager = I_LOCALIZATION_MANAGER.new()
+	add_child_autofree(iface)
+	assert_true(iface.has_method("get_supported_locales"), "Interface must declare get_supported_locales()")
+	assert_true(iface.has_method("get_effective_settings"), "Interface must declare get_effective_settings()")
+	assert_true(iface.has_method("is_preview_active"), "Interface must declare is_preview_active()")
 
 func test_switching_from_cjk_to_latin_restores_default_font() -> void:
 	await _setup_manager_with_store({"current_locale": &"ja", "dyslexia_font_enabled": false, "ui_scale_override": 1.1, "has_selected_language": false})
