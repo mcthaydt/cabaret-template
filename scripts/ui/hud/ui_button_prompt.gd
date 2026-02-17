@@ -99,7 +99,7 @@ func _refresh_prompt() -> void:
 		if _mobile_button != null:
 			_mobile_button.visible = true
 			if _mobile_button_label != null:
-				_mobile_button_label.text = binding_label if not binding_label.is_empty() else _get_default_interact_label()
+				_mobile_button_label.text = _get_touchscreen_button_label(binding_label)
 				_mobile_button_label.modulate = INTERACT_COLOR
 	else:
 		if _mobile_button != null:
@@ -148,6 +148,16 @@ func _get_default_interact_label() -> String:
 	if localized == "hud.interact_default":
 		return DEFAULT_INTERACT_FALLBACK
 	return localized
+
+func _get_touchscreen_button_label(binding_label: String) -> String:
+	if _action == StringName("interact"):
+		return _get_default_interact_label()
+	if not binding_label.is_empty():
+		return binding_label
+	var action_text := String(_action).replace("_", " ").strip_edges()
+	if action_text.is_empty():
+		return _get_default_interact_label()
+	return action_text.capitalize()
 
 func _reset_visuals() -> void:
 	if _label != null:

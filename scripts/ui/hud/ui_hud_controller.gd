@@ -33,6 +33,7 @@ var _unsubscribe_save_started: Callable
 var _unsubscribe_save_completed: Callable
 var _unsubscribe_save_failed: Callable
 var _active_prompt_id: int = 0
+var _last_prompt_key: StringName = &"hud.interact_default"
 var _last_prompt_action: StringName = StringName("interact")
 var _last_prompt_text: String = ""
 var _toast_active: bool = false
@@ -146,6 +147,15 @@ func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> voi
 
 func _on_locale_changed(_locale: StringName) -> void:
 	_localize_static_labels()
+	if interact_prompt == null or _active_prompt_id == 0:
+		return
+	_last_prompt_text = U_LocalizationUtils.localize(_last_prompt_key)
+	if _store != null and _is_paused(_store.get_state()):
+		interact_prompt.hide_prompt()
+		return
+	if _toast_active or _signpost_panel_active:
+		return
+	interact_prompt.show_prompt(_last_prompt_action, _last_prompt_text)
 
 func _localize_static_labels() -> void:
 	if autosave_spinner_label != null:
@@ -439,10 +449,11 @@ func _on_interact_prompt_show(payload: Variant) -> void:
 	var data: Dictionary = inner_payload
 	var controller_id: int = int(data.get("controller_id", 0))
 	var action_name: StringName = data.get("action", StringName("interact"))
-	var prompt_key: String = String(data.get("prompt", "hud.interact_default"))
-	var prompt_text: String = U_LocalizationUtils.localize(StringName(prompt_key))
+	var prompt_key: StringName = StringName(str(data.get("prompt", "hud.interact_default")))
+	var prompt_text: String = U_LocalizationUtils.localize(prompt_key)
 
 	_active_prompt_id = controller_id
+	_last_prompt_key = prompt_key
 	_last_prompt_action = action_name
 	_last_prompt_text = prompt_text
 	# If another feedback surface is currently visible, defer prompt rendering to avoid overlap.

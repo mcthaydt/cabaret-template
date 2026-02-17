@@ -241,13 +241,14 @@ func _begin_language_confirm(
 	_language_confirm_active = true
 	_language_confirm_seconds_left = LANGUAGE_CONFIRM_SECONDS
 	_has_local_edits = false
+	_update_localization_preview_from_ui()
 	_dispatch_localization_settings(locale, dyslexia)
 	_show_language_confirm_dialog()
 
 func _show_language_confirm_dialog() -> void:
 	if _language_confirm_dialog == null:
 		return
-	_update_language_confirm_text()
+	_refresh_language_confirm_dialog_localization(true)
 	_language_confirm_dialog.popup_centered()
 	_start_language_confirm_timer()
 	var ok_button := _get_language_confirm_ok_button()
@@ -280,6 +281,14 @@ func _configure_language_confirm_dialog() -> void:
 	var cancel_button := _get_language_confirm_cancel_button()
 	if cancel_button != null:
 		cancel_button.text = U_LOCALIZATION_UTILS.localize(&"common.revert")
+
+func _refresh_language_confirm_dialog_localization(update_countdown_text: bool) -> void:
+	if _language_confirm_dialog == null:
+		return
+	_language_confirm_dialog.title = U_LOCALIZATION_UTILS.localize(&"settings.localization.confirm_title")
+	_configure_language_confirm_dialog()
+	if update_countdown_text:
+		_update_language_confirm_text()
 
 func _get_language_confirm_ok_button() -> Button:
 	if _language_confirm_dialog == null:
@@ -436,7 +445,4 @@ func _localize_labels() -> void:
 		_cancel_button.text = U_LOCALIZATION_UTILS.localize(&"common.cancel")
 	if _reset_button != null:
 		_reset_button.text = U_LOCALIZATION_UTILS.localize(&"common.reset")
-	if _language_confirm_dialog != null:
-		_language_confirm_dialog.title = U_LOCALIZATION_UTILS.localize(&"settings.localization.confirm_title")
-	if _language_confirm_active:
-		_update_language_confirm_text()
+	_refresh_language_confirm_dialog_localization(_language_confirm_active)

@@ -191,6 +191,21 @@ func test_apply_locale_change_requires_confirm_and_keep_persists_selection() -> 
 	assert_true(tab._language_confirm_active, "Locale changes should activate confirm dialog flow")
 	assert_true(tab._language_confirm_dialog.visible, "Confirm dialog should be visible after locale change apply")
 	assert_eq(
+		tab._language_confirm_dialog.title,
+		"Confirmar Cambio de Idioma",
+		"Confirm dialog title should localize to pending locale"
+	)
+	var ok_button := tab._get_language_confirm_ok_button()
+	var cancel_button := tab._get_language_confirm_cancel_button()
+	assert_not_null(ok_button, "Confirm dialog should expose an OK button")
+	assert_not_null(cancel_button, "Confirm dialog should expose a Cancel button")
+	assert_eq(ok_button.text, "Mantener", "Confirm OK button should localize to pending locale")
+	assert_eq(cancel_button.text, "Revertir", "Confirm cancel button should localize to pending locale")
+	assert_true(
+		tab._language_confirm_dialog.dialog_text.find("Mantener este idioma") >= 0,
+		"Confirm dialog body text should localize to pending locale"
+	)
+	assert_eq(
 		U_LOCALIZATION_SELECTORS.get_locale(_store.get_state()),
 		&"es",
 		"Pending locale should be applied before confirmation countdown"
