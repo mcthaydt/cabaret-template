@@ -7,7 +7,25 @@ class_name UI_VFXSettingsOverlay
 ## Displays VFX settings (screen shake, damage flash) with Apply/Cancel pattern.
 ## Changes are applied only when user clicks Apply button.
 
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 
+const TITLE_KEY := &"settings.vfx.title"
+const LABEL_SCREEN_SHAKE_KEY := &"settings.vfx.label.screen_shake"
+const LABEL_SHAKE_INTENSITY_KEY := &"settings.vfx.label.shake_intensity"
+const LABEL_DAMAGE_FLASH_KEY := &"settings.vfx.label.damage_flash"
+const LABEL_PARTICLES_KEY := &"settings.vfx.label.particles"
+const BUTTON_RESET_DEFAULTS_KEY := &"settings.vfx.button.reset_defaults"
+
+const TOOLTIP_SCREEN_SHAKE_KEY := &"settings.vfx.tooltip.screen_shake"
+const TOOLTIP_SHAKE_INTENSITY_KEY := &"settings.vfx.tooltip.shake_intensity"
+const TOOLTIP_DAMAGE_FLASH_KEY := &"settings.vfx.tooltip.damage_flash"
+const TOOLTIP_PARTICLES_KEY := &"settings.vfx.tooltip.particles"
+
+@onready var _title_label: Label = $CenterContainer/Panel/VBox/Title
+@onready var _shake_enabled_label: Label = $CenterContainer/Panel/VBox/ShakeEnabledRow/ShakeEnabledLabel
+@onready var _intensity_label: Label = $CenterContainer/Panel/VBox/ShakeIntensityRow/IntensityLabel
+@onready var _flash_enabled_label: Label = $CenterContainer/Panel/VBox/FlashEnabledRow/FlashEnabledLabel
+@onready var _particles_enabled_label: Label = $CenterContainer/Panel/VBox/ParticlesEnabledRow/ParticlesEnabledLabel
 @onready var _shake_enabled_toggle: CheckButton = %ShakeEnabledToggle
 @onready var _intensity_slider: HSlider = %IntensitySlider
 @onready var _intensity_percentage: Label = %IntensityPercentage
@@ -37,6 +55,8 @@ func _on_store_ready(store: M_StateStore) -> void:
 func _on_panel_ready() -> void:
 	_configure_focus_neighbors()
 	_connect_control_signals()
+	_localize_labels()
+	_configure_tooltips()
 	# Initialize UI from state
 	var store := get_store()
 	if store != null:
@@ -96,6 +116,28 @@ func _connect_control_signals() -> void:
 		_cancel_button.pressed.connect(_on_cancel_pressed)
 	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
 		_reset_button.pressed.connect(_on_reset_pressed)
+
+func _configure_tooltips() -> void:
+	if _shake_enabled_toggle != null:
+		_shake_enabled_toggle.tooltip_text = _localize_with_fallback(
+			TOOLTIP_SCREEN_SHAKE_KEY,
+			"Enables camera shake feedback."
+		)
+	if _intensity_slider != null:
+		_intensity_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_SHAKE_INTENSITY_KEY,
+			"Adjusts camera shake strength."
+		)
+	if _flash_enabled_toggle != null:
+		_flash_enabled_toggle.tooltip_text = _localize_with_fallback(
+			TOOLTIP_DAMAGE_FLASH_KEY,
+			"Flashes the screen when taking damage."
+		)
+	if _particles_enabled_toggle != null:
+		_particles_enabled_toggle.tooltip_text = _localize_with_fallback(
+			TOOLTIP_PARTICLES_KEY,
+			"Shows particle effects."
+		)
 
 func _on_state_changed(action: Dictionary, state: Dictionary) -> void:
 	if state == null or state.is_empty():
@@ -245,6 +287,35 @@ func _clear_vfx_settings_preview() -> void:
 func _update_percentage_label(value: float) -> void:
 	if _intensity_percentage != null:
 		_intensity_percentage.text = "%d%%" % int(value * 100.0)
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()
+	_configure_tooltips()
+
+func _localize_labels() -> void:
+	if _title_label != null:
+		_title_label.text = _localize_with_fallback(TITLE_KEY, "Visual Effects Settings")
+	if _shake_enabled_label != null:
+		_shake_enabled_label.text = _localize_with_fallback(LABEL_SCREEN_SHAKE_KEY, "Screen Shake")
+	if _intensity_label != null:
+		_intensity_label.text = _localize_with_fallback(LABEL_SHAKE_INTENSITY_KEY, "Shake Intensity")
+	if _flash_enabled_label != null:
+		_flash_enabled_label.text = _localize_with_fallback(LABEL_DAMAGE_FLASH_KEY, "Damage Flash")
+	if _particles_enabled_label != null:
+		_particles_enabled_label.text = _localize_with_fallback(LABEL_PARTICLES_KEY, "Particles")
+
+	if _apply_button != null:
+		_apply_button.text = _localize_with_fallback(&"common.apply", "Apply")
+	if _cancel_button != null:
+		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
+	if _reset_button != null:
+		_reset_button.text = _localize_with_fallback(BUTTON_RESET_DEFAULTS_KEY, "Reset to Defaults")
+
+func _localize_with_fallback(key: StringName, fallback: String) -> String:
+	var localized: String = U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return fallback
+	return localized
 
 func _exit_tree() -> void:
 	_clear_vfx_settings_preview()
