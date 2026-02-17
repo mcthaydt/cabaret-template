@@ -310,6 +310,10 @@ Production asset files use type-specific prefixes:
 - UI scale ownership moved to `M_DisplayManager`:
   - compute effective UI scale from display + localization slices (`display.ui_scale * localization.ui_scale_override`)
   - `M_LocalizationManager` must not dispatch `display/*` actions for locale changes
+- Locale label localization pattern (Phase 7):
+  - use shared `locale.name.*` keys for language names in both `UI_LocalizationSettingsTab` and `UI_LanguageSelector`
+  - avoid hardcoded language labels in `.gd`/`.tscn`; populate labels at runtime with `U_LocalizationUtils.localize(...)`
+  - use `hud.autosave_saving` for autosave spinner text instead of scene-authored literals
 
 ## Scene Manager Patterns (Phase 10 Complete)
 

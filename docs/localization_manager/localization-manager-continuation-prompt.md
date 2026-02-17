@@ -1,7 +1,7 @@
 # Localization Manager Refactor - Continuation Prompt
 
 **Last Updated:** 2026-02-17
-**Status:** Refactor in progress. Progress 73% (43 / 59 tasks complete). Translation audit captured and partially resolved.
+**Status:** Refactor in progress. Progress 81% (48 / 59 tasks complete). Translation audit captured and partially resolved.
 
 ## Start Here
 
@@ -28,6 +28,13 @@
 
 ## Last Work
 
+- 2026-02-17: Closed additional Phase 7 localization gaps + added Task 7.4 regression coverage:
+  - Localized locale display labels in `UI_LocalizationSettingsTab` via shared `locale.name.*` keys across all locale catalogs.
+  - Localized `UI_LanguageSelector` title + locale button labels and added live relabeling on locale changes.
+  - Localized HUD autosave spinner text in `UI_HudController` (`hud.autosave_saving`) and removed dead hardcoded prompt-formatting helpers.
+  - Removed hardcoded loading/localization/language selector fallback label text from `.tscn` files where runtime localization already owns labels.
+  - Added `tests/integration/localization/test_localization_settings_tab.gd` covering preview-only edits, apply flow, confirm-keep flow, and timer-based locale revert.
+  - Verified style enforcement + localization integration suites (including new regression tests) pass.
 - 2026-02-17: Completed Phase 6 (UI scale ownership refactor):
   - Removed cross-manager display dispatch side effects from `M_LocalizationManager`.
   - Updated `M_DisplayManager` to compute effective `ui_scale` from display `ui_scale` and localization `ui_scale_override`.
@@ -104,8 +111,8 @@
 ## Immediate Next Steps
 
 1. Continue Task 7.2a remaining UI localization gaps (display/audio/vfx/gamepad/touchscreen/rebind/save-load/UI strings).
-2. Begin Phase 8 cleanup to reduce brittle manager-internal test coupling as helpers stabilize.
-3. Add focused regression coverage for `UI_LocalizationSettingsTab` preview/apply/cancel flow (Task 7.4).
+2. Complete Task 7.3 by validating localization settings overlay UX parity (preview/apply/cancel behavior) against existing flows.
+3. Begin Phase 8 cleanup to reduce brittle manager-internal test coupling as helpers stabilize.
 
 ## Key Pitfalls
 
@@ -115,6 +122,7 @@
 - Root lifecycle (register/unregister/prune/notify) now lives in `U_LocalizationRootRegistry`; manager should not mutate root arrays directly.
 - Preview state now lives in `U_LocalizationPreviewController`; while preview is active, manager must ignore `slice_updated` localization events.
 - Effective UI scale ownership is now in `M_DisplayManager`; localization manager must never dispatch `display/*` actions.
+- Locale labels shared across settings + selector UI now resolve through `locale.name.*` keys in `cfg_locale_*_ui.tres`; avoid hardcoded locale display strings in UI scripts/scenes.
 - `preload()` on `.ttf` does not work; use `load()` and guard for null.
 - Do not use `tr()` or `Object.tr()`; use `U_LocalizationUtils.localize()` / `localize_fmt()`.
 - Use `str(value)` for Variant-to-string conversion.

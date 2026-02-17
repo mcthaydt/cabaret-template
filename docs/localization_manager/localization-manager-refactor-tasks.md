@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-15  
 **Status:** In progress  
-**Progress:** 73% (43 / 59 tasks complete)
+**Progress:** 81% (48 / 59 tasks complete)
 
 ## Goal
 
@@ -162,7 +162,7 @@ Refactor localization to match manager quality standards used by display/audio: 
 
 **Exit Criteria:** Utility and UI callers consume the refactored contract without regressions.
 
-- [ ] **Task 7.1**: Update `scripts/utils/localization/u_localization_utils.gd` if manager API changes.
+- [x] **Task 7.1**: Update `scripts/utils/localization/u_localization_utils.gd` if manager API changes. (no API call-site changes required after helper extraction; verified 2026-02-17)
 - [ ] **Task 7.2**: Audit and update all direct localization manager usage in UI controllers.
 - [ ] **Task 7.2a**: Audit translation coverage across UI and helper labels:
   - [ ] ensure all user-facing strings route through localization keys (including tooltips, prompts, and dialogs)
@@ -197,15 +197,15 @@ Refactor localization to match manager quality standards used by display/audio: 
   - [ ] **Task 7.2a.9**: Localize HUD prompt labels:
     - [x] `scripts/ui/hud/ui_button_prompt.gd` fallback “Interact” label (done 2026-02-16)
     - [x] `scripts/ui/hud/ui_virtual_button.gd` action labels (done 2026-02-16)
-    - [ ] `scripts/ui/hud/ui_hud_controller.gd` autosave spinner label and transient HUD labels
+    - [x] `scripts/ui/hud/ui_hud_controller.gd` autosave spinner label and transient HUD labels (autosave spinner label now localized via `hud.autosave_saving`; done 2026-02-17)
   - [ ] **Task 7.2a.10**: Localize loading and language selector UI:
-    - [ ] `scripts/scene_management/transitions/trans_loading_screen.gd` loading title text
-    - [ ] `scripts/ui/menus/ui_language_selector.gd` header/title label
+    - [x] `scripts/scene_management/transitions/trans_loading_screen.gd` loading title text (runtime label localization verified; hardcoded loading fallback text removed from `ui_loading_screen.tscn`; done 2026-02-17)
+    - [x] `scripts/ui/menus/ui_language_selector.gd` header/title label (title + locale button labels localized with live locale refresh; done 2026-02-17)
   - [ ] **Task 7.2a.11**: Add/verify localization keys across all locales:
     - [x] update `resources/localization/cfg_locale_*_ui.tres` (en/es/pt/ja/zh_CN) for all added keys (input action/profile + date tokens added 2026-02-16)
     - [ ] confirm no hardcoded user-facing strings remain in audited files
 - [ ] **Task 7.3**: Ensure settings overlay preview/apply/cancel behavior remains unchanged in UX.
-- [ ] **Task 7.4**: Add targeted regression tests for `UI_LocalizationSettingsTab` around preview + confirm timer flow.
+- [x] **Task 7.4**: Add targeted regression tests for `UI_LocalizationSettingsTab` around preview + confirm timer flow. (added `tests/integration/localization/test_localization_settings_tab.gd`; done 2026-02-17)
 
 ### Audit Findings (2026-02-16)
 
@@ -226,9 +226,9 @@ The following translation coverage gaps were identified and should be addressed 
 - `scripts/ui/overlays/ui_save_load_menu.gd`: autosave label, slot labels, confirm dialog text, error messages, loading text, and date formatting should be localized (month names + AM/PM via keys).
 - `scripts/ui/hud/ui_button_prompt.gd`: fallback “Interact” label should be localized.
 - `scripts/ui/hud/ui_virtual_button.gd`: action labels should be localized.
-- `scripts/ui/hud/ui_hud_controller.gd`: autosave spinner label and other transient HUD labels should be localized.
-- `scripts/scene_management/transitions/trans_loading_screen.gd`: loading title text should be localized.
-- `scripts/ui/menus/ui_language_selector.gd`: header/title label should be localized.
+- `scripts/ui/hud/ui_hud_controller.gd`: autosave spinner label and other transient HUD labels should be localized. (autosave spinner label resolved 2026-02-17)
+- `scripts/scene_management/transitions/trans_loading_screen.gd`: loading title text should be localized. (resolved 2026-02-17)
+- `scripts/ui/menus/ui_language_selector.gd`: header/title label should be localized. (resolved 2026-02-17)
 - Scene roots: `scenes/ui/overlays/settings/ui_display_settings_tab.tscn`, `scenes/ui/overlays/settings/ui_audio_settings_tab.tscn`, and `scenes/ui/overlays/settings/ui_localization_settings_tab.tscn` appear to lack a `LocalizationRoot` node, preventing live locale updates.
 - Locale resources: add missing keys across `resources/localization/cfg_locale_*_ui.tres` (en/es/pt/ja/zh_CN) for all new/covered strings, including common labels, date tokens, and settings labels.
 
