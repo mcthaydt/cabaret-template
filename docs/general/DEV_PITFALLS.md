@@ -92,6 +92,8 @@
 
 - **Inner class names must start with a capital letter**: Defining an inner class with an underscore-prefixed name (e.g. `class _MockFoo extends Node:`) causes a GDScript 4 parse error. Use `class MockFoo extends Node:` instead.
 
+- **Test inner class names can collide with global `class_name` symbols**: Even when declared inside a test file, an inner class name that matches an existing global `class_name` (for example `MockSaveManager`) can trigger parser/load conflicts in headless runs. Use distinct stub names (for example `SaveManagerStub`) to avoid global class table collisions.
+
 ## Asset Import Pitfalls (Headless Tests)
 
 - **New assets used with `preload()` can fail until `.import` files exist**: If you add a new `*.ogg`, `*.png`, etc and immediately reference it via `preload("res://...")`, headless GUT runs can fail because Godot hasn’t generated the sidecar `*.import` file yet.

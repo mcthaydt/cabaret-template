@@ -317,6 +317,8 @@ Production asset files use type-specific prefixes:
 - Overlay static-label localization pattern (Phase 7):
   - define overlay copy keys under `overlay.<screen>.*` in `cfg_locale_*_ui.tres` (for example `overlay.input_profile_selector.*`)
   - implement `_localize_static_labels()` in overlay controllers and call it from both `_on_panel_ready()` and `_on_locale_changed()`
+  - clear scene-authored static text defaults in `.tscn` for labels/buttons owned by runtime localization, so locale swaps cannot leave stale scene literals
+  - keep non-localized overlay string literals limited to defensive fallback text and debug/developer logs
 - Settings tab option-catalog localization pattern (Phase 7):
   - keep option entry metadata in catalogs (`U_DisplayOptionCatalog`) and expose `label_key` alongside `id`/`label`
   - localize option labels inside the catalog with `U_LocalizationUtils.localize(...)` + fallback, then repopulate tab `OptionButton` entries on `_on_locale_changed` while preserving selected ids
