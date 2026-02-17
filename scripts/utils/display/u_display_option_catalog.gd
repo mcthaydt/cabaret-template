@@ -5,6 +5,7 @@ class_name U_DisplayOptionCatalog
 
 const RS_QUALITY_PRESET := preload("res://scripts/resources/display/rs_quality_preset.gd")
 const RS_WINDOW_SIZE_PRESET := preload("res://scripts/resources/display/rs_window_size_preset.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 
 const QUALITY_PRESET_DIR := "res://resources/display/cfg_quality_presets"
 const WINDOW_SIZE_PRESET_DIR := "res://resources/display/cfg_window_size_presets"
@@ -27,27 +28,27 @@ const WINDOW_SIZE_PRESETS := [
 ]
 
 const WINDOW_MODE_OPTIONS := [
-	{"id": "windowed", "label": "Windowed"},
-	{"id": "fullscreen", "label": "Fullscreen"},
-	{"id": "borderless", "label": "Borderless"},
+	{"id": "windowed", "label": "Windowed", "label_key": &"settings.display.option.window_mode.windowed"},
+	{"id": "fullscreen", "label": "Fullscreen", "label_key": &"settings.display.option.window_mode.fullscreen"},
+	{"id": "borderless", "label": "Borderless", "label_key": &"settings.display.option.window_mode.borderless"},
 ]
 
 const DITHER_PATTERN_OPTIONS := [
-	{"id": "bayer", "label": "Bayer"},
-	{"id": "noise", "label": "Noise"},
+	{"id": "bayer", "label": "Bayer", "label_key": &"settings.display.option.dither_pattern.bayer"},
+	{"id": "noise", "label": "Noise", "label_key": &"settings.display.option.dither_pattern.noise"},
 ]
 
 const COLOR_BLIND_MODE_OPTIONS := [
-	{"id": "normal", "label": "Normal"},
-	{"id": "deuteranopia", "label": "Deuteranopia"},
-	{"id": "protanopia", "label": "Protanopia"},
-	{"id": "tritanopia", "label": "Tritanopia"},
+	{"id": "normal", "label": "Normal", "label_key": &"settings.display.option.color_blind.normal"},
+	{"id": "deuteranopia", "label": "Deuteranopia", "label_key": &"settings.display.option.color_blind.deuteranopia"},
+	{"id": "protanopia", "label": "Protanopia", "label_key": &"settings.display.option.color_blind.protanopia"},
+	{"id": "tritanopia", "label": "Tritanopia", "label_key": &"settings.display.option.color_blind.tritanopia"},
 ]
 
 const POST_PROCESSING_PRESET_OPTIONS := [
-	{"id": "light", "label": "Light"},
-	{"id": "medium", "label": "Medium"},
-	{"id": "heavy", "label": "Heavy"},
+	{"id": "light", "label": "Light", "label_key": &"settings.display.option.post_processing.light"},
+	{"id": "medium", "label": "Medium", "label_key": &"settings.display.option.post_processing.medium"},
+	{"id": "heavy", "label": "Heavy", "label_key": &"settings.display.option.post_processing.heavy"},
 ]
 
 static var _quality_presets_loaded: bool = false
@@ -76,9 +77,12 @@ static func get_quality_option_entries() -> Array[Dictionary]:
 		var label: String = String(preset.get("display_name"))
 		if label.is_empty():
 			label = preset_name.capitalize()
+		var label_key: StringName = StringName("settings.display.option.quality.%s" % preset_name)
+		label = _localize_with_fallback(label_key, label)
 		entries.append({
 			"id": preset_name,
-			"label": label
+			"label": label,
+			"label_key": label_key,
 		})
 	return entries
 
@@ -222,7 +226,17 @@ static func _duplicate_option_entries(options: Array) -> Array[Dictionary]:
 	var entries: Array[Dictionary] = []
 	for option in options:
 		if option is Dictionary:
-			entries.append((option as Dictionary).duplicate(true))
+			var option_copy: Dictionary = (option as Dictionary).duplicate(true)
+			var fallback_label: String = String(option_copy.get("label", ""))
+			var key_value: Variant = option_copy.get("label_key", StringName())
+			var key: StringName = StringName("")
+			if key_value is StringName:
+				key = key_value
+			elif key_value is String and not String(key_value).is_empty():
+				key = StringName(String(key_value))
+			if not key.is_empty():
+				option_copy["label"] = _localize_with_fallback(key, fallback_label)
+			entries.append(option_copy)
 	return entries
 
 static func _extract_option_ids(options: Array) -> Array[String]:
@@ -231,3 +245,9 @@ static func _extract_option_ids(options: Array) -> Array[String]:
 		if option is Dictionary:
 			ids.append(String(option.get("id", "")))
 	return ids
+
+static func _localize_with_fallback(key: StringName, fallback: String) -> String:
+	var localized: String = U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return fallback
+	return localized

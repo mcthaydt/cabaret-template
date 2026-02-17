@@ -4,7 +4,33 @@ class_name UI_DisplaySettingsTab
 
 const DEFAULT_DISPLAY_INITIAL_STATE: Resource = preload("res://resources/base_settings/state/cfg_display_initial_state.tres")
 const WINDOW_CONFIRM_SECONDS := 10
-const WINDOW_CONFIRM_TEXT := "Keep these display changes? Reverting in %ds."
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+
+const TITLE_KEY := &"settings.display.title"
+const SECTION_GRAPHICS_KEY := &"settings.display.section.graphics"
+const SECTION_POST_PROCESSING_KEY := &"settings.display.section.post_processing"
+const SECTION_UI_KEY := &"settings.display.section.ui"
+const SECTION_ACCESSIBILITY_KEY := &"settings.display.section.accessibility"
+
+const LABEL_WINDOW_SIZE_KEY := &"settings.display.label.window_size"
+const LABEL_WINDOW_MODE_KEY := &"settings.display.label.window_mode"
+const LABEL_VSYNC_KEY := &"settings.display.label.vsync"
+const LABEL_QUALITY_PRESET_KEY := &"settings.display.label.quality_preset"
+const LABEL_POST_PROCESSING_KEY := &"settings.display.label.post_processing"
+const LABEL_POST_PROCESSING_PRESET_KEY := &"settings.display.label.post_processing_preset"
+const LABEL_UI_SCALE_KEY := &"settings.display.label.ui_scale"
+const LABEL_COLOR_BLIND_MODE_KEY := &"settings.display.label.color_blind_mode"
+const LABEL_HIGH_CONTRAST_KEY := &"settings.display.label.high_contrast"
+const LABEL_TOGGLE_ENABLED_KEY := &"settings.display.label.enabled"
+
+const TOOLTIP_WINDOW_SIZE_KEY := &"settings.display.tooltip.window_size"
+const TOOLTIP_WINDOW_MODE_KEY := &"settings.display.tooltip.window_mode"
+const TOOLTIP_POST_PROCESSING_PRESET_KEY := &"settings.display.tooltip.post_processing_preset"
+const TOOLTIP_UI_SCALE_KEY := &"settings.display.tooltip.ui_scale"
+
+const DIALOG_WINDOW_CONFIRM_TITLE_KEY := &"settings.display.dialog.confirm_title"
+const DIALOG_WINDOW_CONFIRM_TEXT_KEY := &"settings.display.dialog.confirm_text"
+
 const ENABLED_ROW_MODULATE := Color(1, 1, 1, 1)
 const DISABLED_ROW_MODULATE := Color(1, 1, 1, 0.45)
 
@@ -43,12 +69,27 @@ var _color_blind_mode_values: Array[String] = []
 @onready var _window_confirm_dialog: ConfirmationDialog = %WindowConfirmDialog
 @onready var _window_confirm_timer: Timer = %WindowConfirmTimer
 
+@onready var _heading_label: Label = $HeadingLabel
+@onready var _graphics_header_label: Label = $Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsHeader
+@onready var _post_process_header_label: Label = $Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessHeader
+@onready var _ui_header_label: Label = $Scroll/ContentMargin/Content/UISection/UIVBox/UIHeader
+@onready var _accessibility_header_label: Label = $Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityHeader
+
+@onready var _window_size_label: Label = $Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/WindowSizeRow/WindowSizeLabel
+@onready var _window_mode_label: Label = $Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/WindowModeRow/WindowModeLabel
+@onready var _vsync_label: Label = $Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/VSyncRow/VSyncLabel
+@onready var _quality_label: Label = $Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/QualityRow/QualityLabel
+@onready var _post_processing_label: Label = $Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner/PostProcessingToggleRow/PostProcessingLabel
+@onready var _post_process_preset_label: Label = $Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner/PostProcessPresetRow/PostProcessPresetLabel
+@onready var _ui_scale_label: Label = $Scroll/ContentMargin/Content/UISection/UIVBox/UIInner/UIScaleRow/UIScaleLabel
+@onready var _color_blind_mode_label: Label = $Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/ColorBlindModeRow/ColorBlindModeLabel
+@onready var _high_contrast_label: Label = $Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/HighContrastRow/HighContrastLabel
+
 func _ready() -> void:
 	_connect_signals()
-	_populate_option_buttons()
+	_localize_labels()
 	_hide_desktop_only_controls_on_mobile()
 	_configure_focus_neighbors()
-	_configure_tooltips()
 
 	_state_store = U_StateUtils.get_store(self)
 	if _state_store == null:
@@ -202,13 +243,25 @@ func _configure_focus_neighbors() -> void:
 
 func _configure_tooltips() -> void:
 	if _window_size_option != null:
-		_window_size_option.tooltip_text = "Available only in Windowed mode."
+		_window_size_option.tooltip_text = _localize_with_fallback(
+			TOOLTIP_WINDOW_SIZE_KEY,
+			"Available only in Windowed mode."
+		)
 	if _window_mode_option != null:
-		_window_mode_option.tooltip_text = "Borderless fills the screen without changing display mode."
+		_window_mode_option.tooltip_text = _localize_with_fallback(
+			TOOLTIP_WINDOW_MODE_KEY,
+			"Borderless fills the screen without changing display mode."
+		)
 	if _post_processing_preset_option != null:
-		_post_processing_preset_option.tooltip_text = "Intensity level for post-processing effects (Film Grain, CRT, Dither)."
+		_post_processing_preset_option.tooltip_text = _localize_with_fallback(
+			TOOLTIP_POST_PROCESSING_PRESET_KEY,
+			"Intensity level for post-processing effects (Film Grain, CRT, Dither)."
+		)
 	if _ui_scale_slider != null:
-		_ui_scale_slider.tooltip_text = "Scales the UI size."
+		_ui_scale_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_UI_SCALE_KEY,
+			"Scales the UI size."
+		)
 
 func _hide_desktop_only_controls_on_mobile() -> void:
 	# Hide desktop-only controls on mobile platforms
@@ -495,17 +548,21 @@ func _stop_window_confirm_timer() -> void:
 func _update_window_confirm_text() -> void:
 	if _window_confirm_dialog == null:
 		return
-	_window_confirm_dialog.dialog_text = WINDOW_CONFIRM_TEXT % _window_confirm_seconds_left
+	var confirm_template := _localize_with_fallback(
+		DIALOG_WINDOW_CONFIRM_TEXT_KEY,
+		"Keep these display changes? Reverting in %ds."
+	)
+	_window_confirm_dialog.dialog_text = confirm_template % _window_confirm_seconds_left
 
 func _configure_window_confirm_dialog() -> void:
 	if _window_confirm_dialog == null:
 		return
 	var ok_button := _get_window_confirm_ok_button()
 	if ok_button != null:
-		ok_button.text = "Keep"
+		ok_button.text = _localize_with_fallback(&"common.keep", "Keep")
 	var cancel_button := _get_window_confirm_cancel_button()
 	if cancel_button != null:
-		cancel_button.text = "Revert"
+		cancel_button.text = _localize_with_fallback(&"common.revert", "Revert")
 
 func _get_window_confirm_ok_button() -> Button:
 	if _window_confirm_dialog == null:
@@ -634,6 +691,107 @@ func _get_default_display_state() -> Dictionary:
 		if instance is RS_DisplayInitialState:
 			return (instance as RS_DisplayInitialState).to_dictionary()
 	return RS_DisplayInitialState.new().to_dictionary()
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()
+	if _state_store != null and not _has_local_edits and not _window_confirm_active:
+		_on_state_changed({}, _state_store.get_state())
+
+func _localize_labels() -> void:
+	_relocalize_option_buttons()
+	_configure_tooltips()
+
+	if _heading_label != null:
+		_heading_label.text = _localize_with_fallback(TITLE_KEY, "Display Settings")
+	if _graphics_header_label != null:
+		_graphics_header_label.text = _localize_with_fallback(SECTION_GRAPHICS_KEY, "Graphics")
+	if _post_process_header_label != null:
+		_post_process_header_label.text = _localize_with_fallback(SECTION_POST_PROCESSING_KEY, "Post-Processing")
+	if _ui_header_label != null:
+		_ui_header_label.text = _localize_with_fallback(SECTION_UI_KEY, "UI")
+	if _accessibility_header_label != null:
+		_accessibility_header_label.text = _localize_with_fallback(SECTION_ACCESSIBILITY_KEY, "Accessibility")
+
+	if _window_size_label != null:
+		_window_size_label.text = _localize_with_fallback(LABEL_WINDOW_SIZE_KEY, "Window Size")
+	if _window_mode_label != null:
+		_window_mode_label.text = _localize_with_fallback(LABEL_WINDOW_MODE_KEY, "Window Mode")
+	if _vsync_label != null:
+		_vsync_label.text = _localize_with_fallback(LABEL_VSYNC_KEY, "VSync")
+	if _quality_label != null:
+		_quality_label.text = _localize_with_fallback(LABEL_QUALITY_PRESET_KEY, "Quality Preset")
+	if _post_processing_label != null:
+		_post_processing_label.text = _localize_with_fallback(LABEL_POST_PROCESSING_KEY, "Post-Processing")
+	if _post_process_preset_label != null:
+		_post_process_preset_label.text = _localize_with_fallback(LABEL_POST_PROCESSING_PRESET_KEY, "Intensity Preset")
+	if _ui_scale_label != null:
+		_ui_scale_label.text = _localize_with_fallback(LABEL_UI_SCALE_KEY, "UI Scale")
+	if _color_blind_mode_label != null:
+		_color_blind_mode_label.text = _localize_with_fallback(LABEL_COLOR_BLIND_MODE_KEY, "Color Blind Mode")
+	if _high_contrast_label != null:
+		_high_contrast_label.text = _localize_with_fallback(LABEL_HIGH_CONTRAST_KEY, "High Contrast")
+
+	var enabled_text: String = _localize_with_fallback(LABEL_TOGGLE_ENABLED_KEY, "Enabled")
+	if _vsync_toggle != null:
+		_vsync_toggle.text = enabled_text
+	if _post_processing_toggle != null:
+		_post_processing_toggle.text = enabled_text
+	if _high_contrast_toggle != null:
+		_high_contrast_toggle.text = enabled_text
+
+	if _cancel_button != null:
+		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
+	if _reset_button != null:
+		_reset_button.text = _localize_with_fallback(&"common.reset", "Reset")
+	if _apply_button != null:
+		_apply_button.text = _localize_with_fallback(&"common.apply", "Apply")
+
+	if _window_confirm_dialog != null:
+		_window_confirm_dialog.title = _localize_with_fallback(DIALOG_WINDOW_CONFIRM_TITLE_KEY, "Confirm Display Changes")
+		_configure_window_confirm_dialog()
+		if _window_confirm_active:
+			_update_window_confirm_text()
+
+func _relocalize_option_buttons() -> void:
+	var defaults := _get_default_display_state()
+	var window_size_value: String = _get_selected_value(
+		_window_size_option,
+		_window_size_values,
+		str(defaults.get("window_size_preset", "1920x1080"))
+	)
+	var window_mode_value: String = _get_selected_value(
+		_window_mode_option,
+		_window_mode_values,
+		str(defaults.get("window_mode", "windowed"))
+	)
+	var quality_value: String = _get_selected_value(
+		_quality_preset_option,
+		_quality_preset_values,
+		str(defaults.get("quality_preset", "high"))
+	)
+	var post_processing_value: String = _get_selected_value(
+		_post_processing_preset_option,
+		_post_processing_preset_values,
+		str(defaults.get("post_processing_preset", "medium"))
+	)
+	var color_blind_value: String = _get_selected_value(
+		_color_blind_mode_option,
+		_color_blind_mode_values,
+		str(defaults.get("color_blind_mode", "normal"))
+	)
+
+	_populate_option_buttons()
+	_select_option_value(_window_size_option, _window_size_values, window_size_value)
+	_select_option_value(_window_mode_option, _window_mode_values, window_mode_value)
+	_select_option_value(_quality_preset_option, _quality_preset_values, quality_value)
+	_select_option_value(_post_processing_preset_option, _post_processing_preset_values, post_processing_value)
+	_select_option_value(_color_blind_mode_option, _color_blind_mode_values, color_blind_value)
+
+func _localize_with_fallback(key: StringName, fallback: String) -> String:
+	var localized: String = U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return fallback
+	return localized
 
 func _setup_option_button_popup_focus(option_button: OptionButton) -> void:
 	if option_button == null:
