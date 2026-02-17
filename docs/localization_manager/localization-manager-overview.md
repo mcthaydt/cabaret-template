@@ -368,6 +368,7 @@ scripts/managers/helpers/
   localization/u_localization_catalog.gd   # Catalog merge + cache + fallback helper
   localization/u_localization_font_applier.gd   # Font selection + theme application helper
   localization/u_localization_root_registry.gd  # Root lifecycle + locale notification helper
+  localization/u_localization_preview_controller.gd  # Preview lifecycle + store-update gating helper
 
 scripts/utils/localization/
   u_localization_utils.gd        # Static localize() and localize_fmt() helpers; register_ui_root()
@@ -462,6 +463,7 @@ store.dispatch(U_LocalizationActions.set_ui_scale_override(1.1))
 - `U_LocalizationCatalog`: Merge logic for `.tres` catalogs, duplicate key resolution (last resource wins), fallback chain, cache invalidation.
 - `U_LocalizationFontApplier`: Locale-aware font selection and root theme application behavior.
 - `U_LocalizationRootRegistry`: Root registration/unregistration, dead-node pruning, locale notification behavior.
+- `U_LocalizationPreviewController`: Preview lifecycle, store-update gating, and effective preview value resolution.
 
 ### Integration Tests
 

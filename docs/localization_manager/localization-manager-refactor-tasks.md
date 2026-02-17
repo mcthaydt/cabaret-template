@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-15  
 **Status:** In progress  
-**Progress:** 56% (33 / 59 tasks complete)
+**Progress:** 64% (38 / 59 tasks complete)
 
 ## Goal
 
@@ -131,17 +131,17 @@ Refactor localization to match manager quality standards used by display/audio: 
 
 **Exit Criteria:** Manager uses composition; preview flow is explicit and testable.
 
-- [ ] **Task 5.1 (Red)**: Add preview controller tests:
-  - [ ] start preview applies temporary effective settings
-  - [ ] clear preview restores store-driven state
-  - [ ] store updates ignored while preview active
-- [ ] **Task 5.2 (Green)**: Create `scripts/managers/helpers/localization/u_localization_preview_controller.gd`.
-- [ ] **Task 5.3**: Move preview flags/state from manager into controller helper.
-- [ ] **Task 5.4**: Refactor `M_LocalizationManager` to orchestration-only flow:
-  - [ ] load state
-  - [ ] build effective settings
-  - [ ] delegate translation, font, and root operations
-- [ ] **Task 5.5**: Keep `_await_store_ready_soft()` behavior unchanged unless tests are updated first.
+- [x] **Task 5.1 (Red)**: Add preview controller tests: (done 2026-02-17 in `tests/unit/managers/helpers/localization/test_localization_preview_controller.gd`)
+  - [x] start preview applies temporary effective settings
+  - [x] clear preview restores store-driven state
+  - [x] store updates ignored while preview active
+- [x] **Task 5.2 (Green)**: Create `scripts/managers/helpers/localization/u_localization_preview_controller.gd`. (done 2026-02-17)
+- [x] **Task 5.3**: Move preview flags/state from manager into controller helper. (done 2026-02-17)
+- [x] **Task 5.4**: Refactor `M_LocalizationManager` to orchestration-only flow: (done 2026-02-17)
+  - [x] load state
+  - [x] build effective settings
+  - [x] delegate translation, font, and root operations
+- [x] **Task 5.5**: Keep `_await_store_ready_soft()` behavior unchanged unless tests are updated first. (verified unchanged behavior on 2026-02-17)
 
 ---
 
@@ -243,7 +243,7 @@ The following translation coverage gaps were identified and should be addressed 
   - [ ] `tests/unit/managers/helpers/localization/test_localization_catalog.gd`
   - [ ] `tests/unit/managers/helpers/localization/test_localization_font_applier.gd`
   - [x] `tests/unit/managers/helpers/localization/test_localization_root_registry.gd` (added 2026-02-17)
-  - [ ] `tests/unit/managers/helpers/localization/test_localization_preview_controller.gd`
+  - [x] `tests/unit/managers/helpers/localization/test_localization_preview_controller.gd` (added 2026-02-17)
 - [ ] **Task 8.3**: Keep integration tests for end-to-end guarantees only.
 - [ ] **Task 8.4**: Run and record full localization suite status.
 
