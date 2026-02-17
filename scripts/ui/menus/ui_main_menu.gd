@@ -8,11 +8,14 @@ class_name UI_MainMenu
 ## and dispatches navigation actions for play/settings flows.
 
 
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+
 const PANEL_MAIN := StringName("menu/main")
 const PANEL_SETTINGS := StringName("menu/settings")
 const DEFAULT_GAMEPLAY_SCENE := StringName("alleyway")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
+@onready var _title_label: Label = %TitleLabel
 @onready var _main_panel: Control = %MainPanel
 @onready var _settings_panel: Control = %SettingsPanel
 @onready var _continue_button: Button = %ContinueButton
@@ -33,6 +36,7 @@ func _on_panel_ready() -> void:
 	_update_button_visibility()
 	_connect_buttons()
 	_configure_focus_neighbors()
+	_localize_labels()
 	var store := get_store()
 	if store == null:
 		return
@@ -259,3 +263,22 @@ func _on_back_pressed() -> void:
 		var store := get_store()
 		if store != null:
 			store.dispatch(U_NavigationActions.set_menu_panel(PANEL_MAIN))
+
+func _localize_labels() -> void:
+	if _title_label != null:
+		_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.main.title")
+	if _continue_button != null:
+		_continue_button.text = U_LOCALIZATION_UTILS.localize(&"menu.main.continue")
+	if _new_game_button != null:
+		_new_game_button.text = U_LOCALIZATION_UTILS.localize(&"menu.main.new_game")
+	if _load_game_button != null:
+		_load_game_button.text = U_LOCALIZATION_UTILS.localize(&"menu.main.load_game")
+	if _settings_button != null:
+		_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.main.settings")
+	if _quit_button != null:
+		_quit_button.text = U_LOCALIZATION_UTILS.localize(&"menu.main.quit")
+	if _new_game_confirm_dialog != null:
+		_new_game_confirm_dialog.dialog_text = U_LOCALIZATION_UTILS.localize(&"menu.main.new_game_confirm")
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()

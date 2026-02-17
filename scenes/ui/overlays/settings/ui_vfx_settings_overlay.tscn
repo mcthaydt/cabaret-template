@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://1q1kn3435l12"]
 
 [ext_resource type="Script" uid="uid://clcpgk47326m8" path="res://scripts/ui/settings/ui_vfx_settings_overlay.gd" id="1"]
+[ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="VFXSettingsOverlay" type="Control" unique_id=1933874596]
@@ -14,6 +15,9 @@ script = ExtResource("1")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=731155615]
 script = ExtResource("ui_scale_root")
+
+[node name="LocalizationRoot" type="Node" parent="." unique_id=847634339]
+script = ExtResource("localization_root")
 
 [node name="Background" type="ColorRect" parent="." unique_id=382435274]
 layout_mode = 1
@@ -51,7 +55,6 @@ size_flags_vertical = 3
 
 [node name="Title" type="Label" parent="CenterContainer/Panel/VBox" unique_id=479097257]
 layout_mode = 2
-text = "Visual Effects Settings"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -65,7 +68,6 @@ size_flags_horizontal = 3
 [node name="ShakeEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/ShakeEnabledRow" unique_id=621040662]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Screen Shake"
 
 [node name="ShakeEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/ShakeEnabledRow" unique_id=567053578]
 unique_name_in_owner = true
@@ -80,7 +82,6 @@ size_flags_horizontal = 3
 [node name="IntensityLabel" type="Label" parent="CenterContainer/Panel/VBox/ShakeIntensityRow" unique_id=613434608]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Shake Intensity"
 
 [node name="IntensitySlider" type="HSlider" parent="CenterContainer/Panel/VBox/ShakeIntensityRow" unique_id=1031488075]
 unique_name_in_owner = true
@@ -106,7 +107,6 @@ size_flags_horizontal = 3
 [node name="FlashEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/FlashEnabledRow" unique_id=1997847511]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Damage Flash"
 
 [node name="FlashEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/FlashEnabledRow" unique_id=630126435]
 unique_name_in_owner = true
@@ -121,7 +121,6 @@ size_flags_horizontal = 3
 [node name="ParticlesEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/ParticlesEnabledRow" unique_id=1557170091]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Particles"
 
 [node name="ParticlesEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/ParticlesEnabledRow" unique_id=1201343904]
 unique_name_in_owner = true
@@ -141,14 +140,11 @@ alignment = 2
 [node name="CancelButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=231636240]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Cancel"
 
 [node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1298362725]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Reset to Defaults"
 
 [node name="ApplyButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1039263468]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Apply"

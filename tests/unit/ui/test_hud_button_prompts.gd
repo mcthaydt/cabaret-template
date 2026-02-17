@@ -3,11 +3,25 @@ extends GutTest
 const HUD_SCENE := preload("res://scenes/ui/hud/ui_hud_overlay.tscn")
 const DeviceType := M_InputDeviceManager.DeviceType
 
+class LocalizationManagerStub extends Node:
+	var translations: Dictionary = {}
+
+	func translate(key: StringName) -> String:
+		return String(translations.get(String(key), String(key)))
+
+	func register_ui_root(_root: Node) -> void:
+		pass
+
+	func unregister_ui_root(_root: Node) -> void:
+		pass
+
 var _store: M_StateStore
 var _device_manager: M_InputDeviceManager
 var _hud: CanvasLayer
+var _localization_manager: LocalizationManagerStub
 
 func before_each() -> void:
+	U_ServiceLocator.clear()
 	U_StateHandoff.clear_all()
 	U_ECSEventBus.reset()
 
@@ -22,6 +36,13 @@ func before_each() -> void:
 	_device_manager = M_InputDeviceManager.new()
 	add_child_autofree(_device_manager)
 
+	_localization_manager = LocalizationManagerStub.new()
+	_localization_manager.translations = {
+		"hud.interact_read": "Read",
+	}
+	add_child_autofree(_localization_manager)
+	U_ServiceLocator.register(StringName("localization_manager"), _localization_manager)
+
 	_hud = HUD_SCENE.instantiate()
 	add_child_autofree(_hud)
 
@@ -33,10 +54,12 @@ func before_each() -> void:
 	await _await_frames(1)
 
 func after_each() -> void:
+	U_ServiceLocator.clear()
 	U_StateHandoff.clear_all()
 	_store = null
 	_device_manager = null
 	_hud = null
+	_localization_manager = null
 	U_ButtonPromptRegistry._clear_for_tests()
 
 func _await_frames(count: int) -> void:
@@ -102,3 +125,24 @@ func test_interact_prompt_falls_back_to_text_when_icon_missing() -> void:
 	assert_eq(text_icon_label.text, "Missing Button",
 		"Text icon should display derived label when icon asset unavailable")
 	assert_eq(text_label.text, "Activate", "Prompt text remains provided text when fallback icon shows")
+
+func test_visible_prompt_relocalizes_after_localization_slice_update() -> void:
+	var text_label: Label = _hud.get_node("MarginContainer/InteractPrompt/Text")
+
+	U_ECSEventBus.publish(StringName("interact_prompt_show"), {
+		"controller_id": 777,
+		"action": StringName("interact"),
+		"prompt": "hud.interact_read"
+	})
+	await _await_frames(1)
+	assert_eq(text_label.text, "Read", "Prompt should start with current locale text")
+
+	_localization_manager.translations["hud.interact_read"] = "Leer"
+	_hud._on_slice_updated(StringName("localization"), {})
+	await _await_frames(1)
+
+	assert_eq(
+		text_label.text,
+		"Leer",
+		"Visible prompt should refresh immediately after localization slice updates"
+	)

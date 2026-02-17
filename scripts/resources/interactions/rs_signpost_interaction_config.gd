@@ -5,4 +5,4 @@ class_name RS_SignpostInteractionConfig
 @export_multiline var message: String = ""
 @export var repeatable: bool = true
 @export_range(0.1, 30.0, 0.1, "or_greater") var message_duration_sec: float = 3.0
-@export var interact_prompt: String = "Read"
+@export var interact_prompt: String = "hud.interact_read"

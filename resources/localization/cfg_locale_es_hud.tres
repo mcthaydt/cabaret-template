@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RS_LocaleTranslations" format=3 uid="uid://cqi7wev7wch6a"]
+
+[ext_resource type="Script" uid="uid://bo0lih4sx1mon" path="res://scripts/resources/localization/rs_locale_translations.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+locale = &"es"
+domain = &"hud"
+translations = {
+"hud.signpost.default": "Pulsa para interactuar"
+}

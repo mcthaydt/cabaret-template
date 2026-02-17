@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cj4k2r8yam5tn"]
 
 [ext_resource type="Script" uid="uid://dakn6ewgpm168" path="res://scripts/ui/overlays/ui_save_load_menu.gd" id="1_save_load_menu_script"]
+[ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 [ext_resource type="Script" uid="uid://c83wafdxdso8p" path="res://scripts/ui/helpers/u_ui_scale_root.gd" id="ui_scale_root"]
 
 [node name="SaveLoadMenu" type="Control" unique_id=1330759390]
@@ -15,6 +16,9 @@ script = ExtResource("1_save_load_menu_script")
 
 [node name="UIScaleRoot" type="Node" parent="." unique_id=246660970]
 script = ExtResource("ui_scale_root")
+
+[node name="LocalizationRoot" type="Node" parent="." unique_id=506002898]
+script = ExtResource("localization_root")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1359681000]
 layout_mode = 1
@@ -41,7 +45,6 @@ alignment = 1
 [node name="ModeLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=338046529]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Save / Load"
 horizontal_alignment = 1
 
 [node name="ErrorLabel" type="Label" parent="CenterContainer/VBoxContainer" unique_id=1468956519]
@@ -67,7 +70,6 @@ horizontal_alignment = 1
 
 [node name="LoadingLabel" type="Label" parent="CenterContainer/VBoxContainer/LoadingSpinner" unique_id=1689970062]
 layout_mode = 2
-text = " Loading..."
 
 [node name="HSeparator" type="HSeparator" parent="CenterContainer/VBoxContainer" unique_id=110234731]
 layout_mode = 2
@@ -89,11 +91,9 @@ layout_mode = 2
 [node name="BackButton" type="Button" parent="CenterContainer/VBoxContainer" unique_id=1730398041]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Back"
 
 [node name="ConfirmationDialog" type="ConfirmationDialog" parent="." unique_id=947930633]
 unique_name_in_owner = true
-title = "Confirm"
+title = ""
 initial_position = 2
 size = Vector2i(300, 100)
-dialog_text = "Are you sure?"

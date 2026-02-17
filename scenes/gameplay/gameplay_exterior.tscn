@@ -382,6 +382,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 script = ExtResource("70_character_light_zone_script")
 config = ExtResource("71_character_light_zone_goal_config")
 
+[node name="GlowLight" type="OmniLight3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1268342821]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+light_color = Color(1, 0.87451, 0.364706, 1)
+light_energy = 2.5
+
 [node name="Sparkles" type="CPUParticles3D" parent="Entities/Objectives/E_FinalGoal" unique_id=1724100335]
 amount = 80
 lifetime = 1.5

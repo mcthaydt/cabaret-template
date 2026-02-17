@@ -7,9 +7,12 @@ class_name UI_PauseMenu
 ## Buttons dispatch navigation actions instead of calling Scene Manager directly.
 
 
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+
 const OVERLAY_SETTINGS := StringName("settings_menu_overlay")
 const OVERLAY_SAVE_LOAD := StringName("save_load_menu_overlay")
 
+@onready var _title_label: Label = %TitleLabel
 @onready var _resume_button: Button = %ResumeButton
 @onready var _settings_button: Button = %SettingsButton
 @onready var _save_button: Button = %SaveButton
@@ -102,6 +105,7 @@ func _deferred_focus_resume() -> void:
 
 func _on_panel_ready() -> void:
 	_connect_buttons()
+	_localize_labels()
 
 func _connect_buttons() -> void:
 	if _resume_button != null and not _resume_button.pressed.is_connected(_on_resume_pressed):
@@ -154,3 +158,20 @@ func _dispatch_navigation(action: Dictionary) -> void:
 	if store == null:
 		return
 	store.dispatch(action)
+
+func _localize_labels() -> void:
+	if _title_label != null:
+		_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.pause.title")
+	if _resume_button != null:
+		_resume_button.text = U_LOCALIZATION_UTILS.localize(&"menu.pause.resume")
+	if _settings_button != null:
+		_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.pause.settings")
+	if _save_button != null:
+		_save_button.text = U_LOCALIZATION_UTILS.localize(&"menu.pause.save")
+	if _load_button != null:
+		_load_button.text = U_LOCALIZATION_UTILS.localize(&"menu.pause.load")
+	if _quit_button != null:
+		_quit_button.text = U_LOCALIZATION_UTILS.localize(&"menu.pause.quit")
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()

@@ -8,8 +8,14 @@ class_name UI_Credits
 ## Skip button allows players to exit immediately.
 
 
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+
 @onready var scroll_container: ScrollContainer = $MarginContainer/ScrollContainer
 @onready var skip_button: Button = $SkipButton
+@onready var _team_label: Label = $MarginContainer/ScrollContainer/VBoxContainer/TeamLabel
+@onready var _names_label: Label = $MarginContainer/ScrollContainer/VBoxContainer/NamesLabel
+@onready var _thanks_label: Label = $MarginContainer/ScrollContainer/VBoxContainer/ThanksLabel
+@onready var _footer_label: Label = $MarginContainer/ScrollContainer/VBoxContainer/FooterLabel
 
 var _scroll_tween: Tween = null
 var _auto_return_timer: Timer = null
@@ -31,8 +37,24 @@ func set_test_durations(scroll_duration: float, auto_return_duration: float) -> 
 func _on_panel_ready() -> void:
 	if skip_button and not skip_button.pressed.is_connected(_on_skip_pressed):
 		skip_button.pressed.connect(_on_skip_pressed)
+	_localize_labels()
 	_start_auto_return_timer()
 	_start_scroll_tween()
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()
+
+func _localize_labels() -> void:
+	if _team_label != null:
+		_team_label.text = U_LOCALIZATION_UTILS.localize(&"menu.credits.team")
+	if _names_label != null:
+		_names_label.text = U_LOCALIZATION_UTILS.localize(&"menu.credits.roles")
+	if _thanks_label != null:
+		_thanks_label.text = U_LOCALIZATION_UTILS.localize(&"menu.credits.thanks")
+	if _footer_label != null:
+		_footer_label.text = U_LOCALIZATION_UTILS.localize(&"menu.credits.copyright")
+	if skip_button != null:
+		skip_button.text = U_LOCALIZATION_UTILS.localize(&"common.skip")
 
 func _exit_tree() -> void:
 	if _auto_return_timer != null:

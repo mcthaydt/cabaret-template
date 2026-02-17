@@ -1,0 +1,48 @@
+extends Node
+class_name I_LocalizationManager
+
+## Minimal interface for M_LocalizationManager
+##
+## Implementations:
+## - M_LocalizationManager (production)
+
+@warning_ignore("unused_signal")
+signal locale_changed(locale: StringName)
+
+func set_locale(_locale: StringName) -> void:
+	push_error("I_LocalizationManager.set_locale not implemented")
+
+func get_locale() -> StringName:
+	push_error("I_LocalizationManager.get_locale not implemented")
+	return &""
+
+func get_supported_locales() -> Array[StringName]:
+	push_error("I_LocalizationManager.get_supported_locales not implemented")
+	return []
+
+func get_effective_settings() -> Dictionary:
+	push_error("I_LocalizationManager.get_effective_settings not implemented")
+	return {}
+
+func is_preview_active() -> bool:
+	push_error("I_LocalizationManager.is_preview_active not implemented")
+	return false
+
+func set_dyslexia_font_enabled(_enabled: bool) -> void:
+	push_error("I_LocalizationManager.set_dyslexia_font_enabled not implemented")
+
+func register_ui_root(_root: Node) -> void:
+	push_error("I_LocalizationManager.register_ui_root not implemented")
+
+func unregister_ui_root(_root: Node) -> void:
+	push_error("I_LocalizationManager.unregister_ui_root not implemented")
+
+func translate(_key: StringName) -> String:
+	push_error("I_LocalizationManager.translate not implemented")
+	return ""
+
+func set_localization_preview(_preview: Dictionary) -> void:
+	push_error("I_LocalizationManager.set_localization_preview not implemented")
+
+func clear_localization_preview() -> void:
+	push_error("I_LocalizationManager.clear_localization_preview not implemented")

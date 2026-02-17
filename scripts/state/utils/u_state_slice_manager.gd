@@ -10,6 +10,7 @@ class_name U_StateSliceManager
 const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")
 const U_AUDIO_REDUCER := preload("res://scripts/state/reducers/u_audio_reducer.gd")
 const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")
+const U_LOCALIZATION_REDUCER := preload("res://scripts/state/reducers/u_localization_reducer.gd")
 
 ## Initialize core slices based on the provided initial state resources.
 ##
@@ -26,7 +27,8 @@ static func initialize_slices(
 	debug_initial_state: RS_DebugInitialState,
 	vfx_initial_state: RS_VFXInitialState,
 	audio_initial_state: RS_AudioInitialState,
-	display_initial_state: Resource
+	display_initial_state: Resource,
+	localization_initial_state: Resource = null
 ) -> void:
 	# Boot slice
 	if boot_initial_state != null:
@@ -129,6 +131,15 @@ static func initialize_slices(
 		display_config.dependencies = []
 		display_config.transient_fields = []
 		register_slice(slice_configs, state, display_config)
+
+	# Localization slice
+	if localization_initial_state != null:
+		var loc_config := RS_StateSliceConfig.new(StringName("localization"))
+		loc_config.reducer = Callable(U_LOCALIZATION_REDUCER, "reduce")
+		loc_config.initial_state = localization_initial_state.to_dictionary()
+		loc_config.dependencies = []
+		loc_config.transient_fields = []
+		register_slice(slice_configs, state, loc_config)
 
 ## Register a single slice config into the given dictionaries.
 static func register_slice(

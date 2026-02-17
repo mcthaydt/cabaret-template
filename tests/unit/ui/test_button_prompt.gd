@@ -3,11 +3,19 @@ extends GutTest
 const ButtonPromptScene := preload("res://scenes/ui/hud/ui_button_prompt.tscn")
 const DeviceType := M_InputDeviceManager.DeviceType
 
+class LocalizationManagerStub extends Node:
+	var translations: Dictionary = {}
+
+	func translate(key: StringName) -> String:
+		return String(translations.get(String(key), String(key)))
+
 var _store: M_StateStore
 var _device_manager: M_InputDeviceManager
 var _button_prompt: Control
+var _localization_manager: LocalizationManagerStub
 
 func before_each() -> void:
+	U_ServiceLocator.clear()
 	U_StateHandoff.clear_all()
 	_store = M_StateStore.new()
 	_store.settings = RS_StateStoreSettings.new()
@@ -19,6 +27,13 @@ func before_each() -> void:
 
 	_device_manager = M_InputDeviceManager.new()
 	add_child_autofree(_device_manager)
+
+	_localization_manager = LocalizationManagerStub.new()
+	_localization_manager.translations = {
+		"hud.interact_default": "Interagir"
+	}
+	add_child_autofree(_localization_manager)
+	U_ServiceLocator.register(StringName("localization_manager"), _localization_manager)
 
 	_button_prompt = ButtonPromptScene.instantiate()
 	add_child_autofree(_button_prompt)
@@ -34,9 +49,11 @@ func before_each() -> void:
 
 func after_each() -> void:
 	U_StateHandoff.clear_all()
+	U_ServiceLocator.clear()
 	_store = null
 	_device_manager = null
 	_button_prompt = null
+	_localization_manager = null
 	U_ButtonPromptRegistry._clear_for_tests()
 
 func _register_default_prompts() -> void:
@@ -231,6 +248,21 @@ func test_button_icon_respects_minimum_size() -> void:
 	var text_icon_texture: TextureRect = _button_prompt.get_node("TextIcon/ButtonIcon")
 	var min_size := text_icon_texture.custom_minimum_size
 	assert_eq(min_size, Vector2(32, 32), "Texture should have 32x32 minimum size")
+
+func test_touchscreen_interact_uses_localized_mobile_label() -> void:
+	_button_prompt.call("show_prompt", StringName("interact"), "Open Door")
+	await _await_frames(1)
+
+	_button_prompt.call("_on_device_changed_signal", DeviceType.TOUCHSCREEN, -1, 0.0)
+	await _await_frames(1)
+
+	var mobile_button: Control = _button_prompt.get_node("MobileButton")
+	var mobile_label: Label = _button_prompt.get_node("MobileButton/ActionLabel")
+	var text_icon: Control = _button_prompt.get_node("TextIcon")
+
+	assert_true(mobile_button.visible, "Mobile button should be visible for touchscreen prompts")
+	assert_false(text_icon.visible, "Text icon should hide for touchscreen prompts")
+	assert_eq(mobile_label.text, "Interagir", "Touchscreen interact label should use localized text")
 
 func _capture_action_events(action: StringName) -> Array[InputEvent]:
 	var results: Array[InputEvent] = []

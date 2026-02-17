@@ -288,6 +288,45 @@ Production asset files use type-specific prefixes:
     ```
   - **Note**: Textures are mapped to actions, not specific key bindings. When user rebinds an action, the texture remains the same (shows action's registered glyph, not the new key).
 
+## Localization Manager Patterns (Phase 6 Refactor)
+
+- Catalog ownership moved to `scripts/managers/helpers/localization/u_localization_catalog.gd` (`U_LocalizationCatalog`):
+  - uses const-preloaded `RS_LocaleTranslations` resources (mobile-safe, no runtime file IO)
+  - merges by locale with deterministic last-wins behavior on duplicate keys
+  - applies fallback chain `requested -> en` before key fallback
+  - caches merged catalogs and exposes `clear_cache()` / `force_refresh` for invalidation
+- `M_LocalizationManager` should consume `U_LocalizationCatalog` directly for locale loads.
+- `scripts/managers/helpers/u_locale_file_loader.gd` is now a compatibility shim; avoid adding new production call sites to it.
+- Font/theme ownership moved to `scripts/managers/helpers/localization/u_localization_font_applier.gd` (`U_LocalizationFontApplier`):
+  - `build_theme(locale, dyslexia_enabled)` resolves active font with CJK priority (`zh_CN`, `ja`) over dyslexia toggle
+  - `apply_theme_to_root(root, theme)` handles `Control` roots and `CanvasLayer` direct `Control` children
+  - use `load()` for `.ttf`/`.otf` assets and treat missing fonts as no-op (null theme)
+- Root lifecycle ownership moved to `scripts/managers/helpers/localization/u_localization_root_registry.gd` (`U_LocalizationRootRegistry`):
+  - use registry APIs for `register_root`, `unregister_root`, and `notify_locale_changed`
+  - registry prunes dead nodes before iteration; manager should not mutate root arrays directly
+- Preview ownership moved to `scripts/managers/helpers/localization/u_localization_preview_controller.gd` (`U_LocalizationPreviewController`):
+  - use helper APIs for `start_preview`, `clear_preview`, `is_preview_active`, and preview value resolution
+  - while preview is active, localization managers must ignore Redux `slice_updated` events for the localization slice
+- UI scale ownership moved to `M_DisplayManager`:
+  - compute effective UI scale from display + localization slices (`display.ui_scale * localization.ui_scale_override`)
+  - `M_LocalizationManager` must not dispatch `display/*` actions for locale changes
+- Locale label localization pattern (Phase 7):
+  - use shared `locale.name.*` keys for language names in both `UI_LocalizationSettingsTab` and `UI_LanguageSelector`
+  - avoid hardcoded language labels in `.gd`/`.tscn`; populate labels at runtime with `U_LocalizationUtils.localize(...)`
+  - use `hud.autosave_saving` for autosave spinner text instead of scene-authored literals
+- Overlay static-label localization pattern (Phase 7):
+  - define overlay copy keys under `overlay.<screen>.*` in `cfg_locale_*_ui.tres` (for example `overlay.input_profile_selector.*`)
+  - implement `_localize_static_labels()` in overlay controllers and call it from both `_on_panel_ready()` and `_on_locale_changed()`
+  - clear scene-authored static text defaults in `.tscn` for labels/buttons owned by runtime localization, so locale swaps cannot leave stale scene literals
+  - keep non-localized overlay string literals limited to defensive fallback text and debug/developer logs
+- Settings tab option-catalog localization pattern (Phase 7):
+  - keep option entry metadata in catalogs (`U_DisplayOptionCatalog`) and expose `label_key` alongside `id`/`label`
+  - localize option labels inside the catalog with `U_LocalizationUtils.localize(...)` + fallback, then repopulate tab `OptionButton` entries on `_on_locale_changed` while preserving selected ids
+  - keep settings-tab section/row/button/dialog/tooltip labels in `settings.<domain>.*` keys and relocalize in-place on locale changes
+- Localization test-hardening pattern (Phase 8):
+  - prefer behavior assertions over private manager internals (`get("_field")`, private helper calls)
+  - for localization manager font/root behavior, assert via registered root theme state and locale-change callbacks rather than internal arrays/counters/fonts
+
 ## Scene Manager Patterns (Phase 10 Complete)
 
 ### Scene Registration
@@ -1140,7 +1179,7 @@ func _apply_window_mode(mode: String) -> void:
   - In `process_tick()`: no await needed (store already registered).
 - Access managers via ServiceLocator (Phase 10B-7: T141)
   - Use `U_ServiceLocator.get_service(StringName("service_name"))` for fast, centralized manager access.
-  - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`, `"display_manager"`.
+  - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`, `"display_manager"`, `"localization_manager"`, `"save_manager"`, `"vfx_manager"`.
   - ServiceLocator provides O(1) Dictionary lookup vs O(n) scene-tree traversal.
   - All services are registered at startup in `root.tscn` via `root.gd`.
 - Create a new gameplay scene

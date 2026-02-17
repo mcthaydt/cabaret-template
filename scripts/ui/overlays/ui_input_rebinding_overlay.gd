@@ -4,7 +4,25 @@ class_name UI_InputRebindingOverlay
 
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
 const DEFAULT_REBIND_SETTINGS: Resource = preload("res://resources/input/rebind_settings/cfg_default_rebind_settings.tres")
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 
+const TITLE_KEY := &"menu.settings.rebind"
+const STATUS_DEFAULT_KEY := &"overlay.input_rebinding.status.default"
+const STATUS_PROFILE_SWITCHED_KEY := &"overlay.input_rebinding.status.profile_switched"
+const STATUS_BINDINGS_RESET_KEY := &"overlay.input_rebinding.status.bindings_reset"
+const STATUS_ACTION_RESET_KEY := &"overlay.input_rebinding.status.action_reset"
+const SEARCH_PLACEHOLDER_KEY := &"overlay.input_rebinding.search_placeholder"
+const CLOSE_BUTTON_KEY := &"overlay.input_rebinding.close_button"
+const RESET_BUTTON_KEY := &"overlay.input_rebinding.reset_button"
+const CONFLICT_TITLE_KEY := &"overlay.input_rebinding.dialog.conflict_title"
+const RESET_CONFIRM_TITLE_KEY := &"overlay.input_rebinding.dialog.reset_title"
+const RESET_CONFIRM_TEXT_KEY := &"overlay.input_rebinding.dialog.reset_text"
+const ERROR_TITLE_KEY := &"overlay.input_rebinding.dialog.error_title"
+const ERROR_RESET_UNAVAILABLE_KEY := &"overlay.input_rebinding.error.reset_unavailable"
+const ERROR_RESET_RESERVED_KEY := &"overlay.input_rebinding.error.reset_reserved"
+const ERROR_RESET_ACTION_UNAVAILABLE_KEY := &"overlay.input_rebinding.error.reset_action_unavailable"
+
+@onready var _title_label: Label = $CenterContainer/Panel/VBox/Title
 @onready var _action_list: VBoxContainer = %ActionList
 @onready var _status_label: Label = %StatusLabel
 @onready var _search_box: LineEdit = %SearchBox
@@ -69,8 +87,9 @@ func _on_panel_ready() -> void:
 		_search_box.text_changed.connect(_on_search_changed)
 
 	_connect_profile_signals()
+	_localize_static_labels()
 	_build_action_rows()
-	_update_status("Select an action to rebind.")
+	_update_status(_get_status_default_text())
 	_set_reset_button_enabled(_profile_manager != null)
 
 func _resolve_input_profile_manager() -> Node:
@@ -95,11 +114,11 @@ func _connect_profile_signals() -> void:
 
 func _on_profile_switched() -> void:
 	_build_action_rows()
-	_update_status("Profile switched. Select an action to rebind.")
+	_update_status(_localize_with_fallback(STATUS_PROFILE_SWITCHED_KEY, "Profile switched. Select an action to rebind."))
 
 func _on_bindings_reset() -> void:
 	_refresh_bindings()
-	_update_status("Bindings reset to defaults.")
+	_update_status(_localize_with_fallback(STATUS_BINDINGS_RESET_KEY, "Bindings reset to defaults."))
 
 func _build_action_rows() -> void:
 	U_RebindActionListBuilder.build_action_rows(
@@ -124,7 +143,11 @@ func _refresh_bindings() -> void:
 func _begin_capture(action: StringName, mode: String) -> void:
 	U_RebindCaptureHandler.begin_capture(self, action, mode)
 
-func _cancel_capture(message: String = "Select an action to rebind.") -> void:
+func _cancel_capture(message: String = "") -> void:
+	var status_message: String = message
+	if status_message.is_empty():
+		status_message = _get_status_default_text()
+	message = status_message
 	U_RebindCaptureHandler.cancel_capture(self, message)
 
 func _input(event: InputEvent) -> void:
@@ -198,7 +221,7 @@ func _show_error(message: String) -> void:
 func _on_conflict_confirmed() -> void:
 	U_UISoundPlayer.play_confirm()
 	if _pending_event == null or _pending_action == StringName():
-		_cancel_capture("Rebind cancelled.")
+		_cancel_capture(U_RebindCaptureHandler.get_rebind_cancelled_status())
 		return
 	var event := _pending_event.duplicate(true)
 	var conflict := _pending_conflict
@@ -210,7 +233,7 @@ func _on_conflict_canceled() -> void:
 	U_UISoundPlayer.play_cancel()
 	_pending_event = null
 	_pending_conflict = StringName()
-	_cancel_capture("Rebind cancelled.")
+	_cancel_capture(U_RebindCaptureHandler.get_rebind_cancelled_status())
 
 func _on_error_dismissed() -> void:
 	U_UISoundPlayer.play_confirm()
@@ -302,7 +325,7 @@ func _on_reset_confirmed() -> void:
 		typed_manager.reset_to_defaults()
 		# Note: bindings_reset signal will trigger _refresh_bindings() automatically
 	else:
-		_show_error("Reset to defaults unavailable.")
+		_show_error(_localize_with_fallback(ERROR_RESET_UNAVAILABLE_KEY, "Reset to defaults unavailable."))
 	_set_reset_button_enabled(_profile_manager != null and not _is_capturing)
 
 func _on_reset_canceled() -> void:
@@ -339,17 +362,64 @@ func _format_binding_label(binding_text: String) -> String:
 
 func _reset_single_action(action: StringName) -> void:
 	if _is_reserved(action):
-		_show_error("Cannot reset reserved action.")
+		_show_error(_localize_with_fallback(ERROR_RESET_RESERVED_KEY, "Cannot reset reserved action."))
 		return
 	var typed_manager := _profile_manager as I_INPUT_PROFILE_MANAGER
 	if typed_manager != null:
 		typed_manager.reset_action(action)
 		_refresh_bindings()
-		_update_status("Action '{action}' reset to default.".format({
-			"action": U_RebindActionListBuilder.format_action_name(action)
+		_update_status(_localize_with_fallback(STATUS_ACTION_RESET_KEY, "Action '{action}' reset to default.").format({
+			"action": U_RebindActionListBuilder.get_action_display_name(action)
 		}))
 	else:
-		_show_error("Reset action unavailable.")
+		_show_error(_localize_with_fallback(ERROR_RESET_ACTION_UNAVAILABLE_KEY, "Reset action unavailable."))
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_static_labels()
+	_build_action_rows()
+	if _is_capturing and _pending_action != StringName():
+		_update_status(U_RebindCaptureHandler.get_capture_prompt(_pending_action))
+
+func _localize_static_labels() -> void:
+	if _title_label != null:
+		_title_label.text = _localize_with_fallback(TITLE_KEY, "Rebind Controls")
+	if _search_box != null:
+		_search_box.placeholder_text = _localize_with_fallback(SEARCH_PLACEHOLDER_KEY, "Search actions...")
+	if _close_button != null:
+		_close_button.text = _localize_with_fallback(CLOSE_BUTTON_KEY, "Close")
+	if _reset_button != null:
+		_reset_button.text = _localize_with_fallback(RESET_BUTTON_KEY, "Reset to Defaults")
+	if _conflict_dialog != null:
+		_conflict_dialog.title = _localize_with_fallback(CONFLICT_TITLE_KEY, "Conflict Detected")
+		var conflict_ok := _conflict_dialog.get_ok_button()
+		if conflict_ok != null:
+			conflict_ok.text = U_RebindActionListBuilder.get_replace_button_text()
+		var conflict_cancel := _conflict_dialog.get_cancel_button()
+		if conflict_cancel != null:
+			conflict_cancel.text = _localize_with_fallback(&"common.cancel", "Cancel")
+	if _reset_confirm_dialog != null:
+		_reset_confirm_dialog.title = _localize_with_fallback(RESET_CONFIRM_TITLE_KEY, "Reset All Bindings")
+		_reset_confirm_dialog.dialog_text = _localize_with_fallback(
+			RESET_CONFIRM_TEXT_KEY,
+			"Reset all bindings to defaults? This cannot be undone."
+		)
+		var reset_ok := _reset_confirm_dialog.get_ok_button()
+		if reset_ok != null:
+			reset_ok.text = _localize_with_fallback(&"common.reset", "Reset")
+		var reset_cancel := _reset_confirm_dialog.get_cancel_button()
+		if reset_cancel != null:
+			reset_cancel.text = _localize_with_fallback(&"common.cancel", "Cancel")
+	if _error_dialog != null:
+		_error_dialog.title = _localize_with_fallback(ERROR_TITLE_KEY, "Rebind Error")
+
+func _get_status_default_text() -> String:
+	return _localize_with_fallback(STATUS_DEFAULT_KEY, "Select an action to rebind.")
+
+func _localize_with_fallback(key: StringName, fallback: String) -> String:
+	var localized: String = U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return fallback
+	return localized
 
 # Helper functions for UX improvements
 

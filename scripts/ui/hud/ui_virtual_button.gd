@@ -28,6 +28,14 @@ const ACTION_COLORS := {
 	StringName("interact"): Color(1.0, 0.85, 0.6),
 	StringName("pause"): Color(1.0, 0.6, 0.7)
 }
+const ACTION_LABEL_KEYS := {
+	StringName("jump"): &"input.action.jump",
+	StringName("sprint"): &"input.action.sprint",
+	StringName("interact"): &"input.action.interact",
+	StringName("pause"): &"input.action.pause",
+}
+
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 
 const BRIDGE_MODE_NONE := 0
 const BRIDGE_MODE_INPUT_ACTION := 1
@@ -142,12 +150,22 @@ func _apply_button_texture() -> void:
 func _refresh_label() -> void:
 	if _action_label == null:
 		return
-	var label_text := String(action)
+	var label_text := _get_localized_action_label(action)
 	if label_text.is_empty():
 		label_text = "?"
 	_action_label.text = label_text.capitalize()
 	var tint: Color = ACTION_COLORS.get(action, Color(1, 1, 1, 0.9))
 	_action_label.modulate = tint
+
+func _get_localized_action_label(action_name: StringName) -> String:
+	if action_name == StringName():
+		return ""
+	var key: StringName = ACTION_LABEL_KEYS.get(action_name, StringName())
+	if key != StringName():
+		var localized := U_LOCALIZATION_UTILS.localize(key)
+		if localized != String(key):
+			return localized
+	return String(action_name)
 
 func _apply_pressed_visuals() -> void:
 	modulate = PRESSED_MODULATE

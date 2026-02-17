@@ -8,6 +8,9 @@ class_name UI_SettingsMenu
 ## menu. Uses navigation actions for all flows (overlay management and scene transitions).
 
 
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+
+@onready var _title_label: Label = %TitleLabel
 @onready var _back_button: Button = %BackButton
 @onready var _input_profiles_button: Button = %InputProfilesButton
 @onready var _gamepad_settings_button: Button = %GamepadSettingsButton
@@ -15,6 +18,7 @@ class_name UI_SettingsMenu
 @onready var _vfx_settings_button: Button = %VFXSettingsButton
 @onready var _display_settings_button: Button = %DisplaySettingsButton
 @onready var _audio_settings_button: Button = %AudioSettingsButton
+@onready var _language_settings_button: Button = %LanguageSettingsButton
 @onready var _rebind_controls_button: Button = %RebindControlsButton
 
 const SETTINGS_OVERLAY_ID := StringName("settings_menu_overlay")
@@ -25,6 +29,7 @@ const OVERLAY_VFX_SETTINGS := StringName("vfx_settings")
 const OVERLAY_DISPLAY_SETTINGS := StringName("display_settings")
 const OVERLAY_AUDIO_SETTINGS := StringName("audio_settings")
 const OVERLAY_INPUT_REBINDING := StringName("input_rebinding")
+const OVERLAY_LOCALIZATION_SETTINGS := StringName("localization_settings")
 
 var _last_device_type: int = -1
 var _consume_next_nav: bool = false
@@ -54,10 +59,13 @@ func _on_panel_ready() -> void:
 		_display_settings_button.pressed.connect(_on_display_settings_pressed)
 	if _audio_settings_button != null and not _audio_settings_button.pressed.is_connected(_on_audio_settings_pressed):
 		_audio_settings_button.pressed.connect(_on_audio_settings_pressed)
+	if _language_settings_button != null and not _language_settings_button.pressed.is_connected(_on_language_settings_pressed):
+		_language_settings_button.pressed.connect(_on_language_settings_pressed)
 	if _rebind_controls_button != null and not _rebind_controls_button.pressed.is_connected(_on_rebind_controls_pressed):
 		_rebind_controls_button.pressed.connect(_on_rebind_controls_pressed)
 	_configure_focus_neighbors()
 	_update_back_button_label()
+	_localize_labels()
 	var store := get_store()
 	if store != null:
 		_update_button_visibility(store.get_state())
@@ -104,6 +112,10 @@ func _on_display_settings_pressed() -> void:
 func _on_audio_settings_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
 	_open_settings_target(OVERLAY_AUDIO_SETTINGS, StringName("audio_settings"))
+
+func _on_language_settings_pressed() -> void:
+	U_UISoundPlayer.play_confirm()
+	_open_settings_target(OVERLAY_LOCALIZATION_SETTINGS, StringName("localization_settings"))
 
 func _on_rebind_controls_pressed() -> void:
 	U_UISoundPlayer.play_confirm()
@@ -170,6 +182,8 @@ func _configure_focus_neighbors() -> void:
 		buttons.append(_display_settings_button)
 	if _audio_settings_button != null and _audio_settings_button.visible:
 		buttons.append(_audio_settings_button)
+	if _language_settings_button != null and _language_settings_button.visible:
+		buttons.append(_language_settings_button)
 	if _rebind_controls_button != null and _rebind_controls_button.visible:
 		buttons.append(_rebind_controls_button)
 	if _back_button != null and _back_button.visible:
@@ -212,4 +226,28 @@ func _update_back_button_label() -> void:
 	var nav_slice: Dictionary = store.get_state().get("navigation", {})
 	var top_overlay: StringName = U_NavigationSelectors.get_top_overlay_id(nav_slice)
 	var is_overlay: bool = top_overlay == SETTINGS_OVERLAY_ID
-	_back_button.text = "Back" if is_overlay else "Back to Main Menu"
+	_back_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.back") if is_overlay else U_LOCALIZATION_UTILS.localize(&"menu.settings.back_to_main")
+
+func _localize_labels() -> void:
+	if _title_label != null:
+		_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.title")
+	if _input_profiles_button != null:
+		_input_profiles_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.input_profiles")
+	if _gamepad_settings_button != null:
+		_gamepad_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.gamepad")
+	if _touchscreen_settings_button != null:
+		_touchscreen_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.touchscreen")
+	if _vfx_settings_button != null:
+		_vfx_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.vfx")
+	if _display_settings_button != null:
+		_display_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.display")
+	if _audio_settings_button != null:
+		_audio_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.audio")
+	if _language_settings_button != null:
+		_language_settings_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.language")
+	if _rebind_controls_button != null:
+		_rebind_controls_button.text = U_LOCALIZATION_UTILS.localize(&"menu.settings.rebind")
+	_update_back_button_label()
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()

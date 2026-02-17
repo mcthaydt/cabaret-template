@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-profile_name = "Accessibility (Keyboard/Mouse)"
+profile_name = "input.profile.accessibility_keyboard.name"
 action_mappings = {
 "interact": [{
 "physical_keycode": 69,
@@ -51,6 +51,6 @@ action_mappings = {
 "type": "key"
 }]
 }
-description = "Accessibility-focused: jump buffer enabled, sprint toggle mode"
+description = "input.profile.accessibility_keyboard.description"
 jump_buffer_time = 0.2
 sprint_toggle_mode = true

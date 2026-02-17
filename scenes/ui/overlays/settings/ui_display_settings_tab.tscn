@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cb23oi6sdwfwt"]
 
 [ext_resource type="Script" uid="uid://mngqeu4fscde" path="res://scripts/ui/settings/ui_display_settings_tab.gd" id="1"]
+[ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 
 [sub_resource type="StyleBoxFlat" id="section_panel"]
 content_margin_left = 12.0
@@ -45,9 +46,11 @@ corner_radius_bottom_left = 4
 theme_override_constants/separation = 12
 script = ExtResource("1")
 
+[node name="LocalizationRoot" type="Node" parent="." unique_id=922650441]
+script = ExtResource("localization_root")
+
 [node name="HeadingLabel" type="Label" parent="." unique_id=1568954157]
 layout_mode = 2
-text = "Display Settings"
 horizontal_alignment = 1
 
 [node name="Scroll" type="ScrollContainer" parent="." unique_id=1239616416]
@@ -83,7 +86,6 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
 theme_override_font_sizes/font_size = 14
-text = "Graphics"
 
 [node name="GraphicsSep" type="HSeparator" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox" unique_id=1157957371]
 layout_mode = 2
@@ -100,7 +102,6 @@ theme_override_constants/separation = 12
 [node name="WindowSizeLabel" type="Label" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/WindowSizeRow" unique_id=838017465]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-text = "Window Size"
 
 [node name="WindowSizeOption" type="OptionButton" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/WindowSizeRow" unique_id=170062200]
 unique_name_in_owner = true
@@ -114,7 +115,6 @@ theme_override_constants/separation = 12
 [node name="WindowModeLabel" type="Label" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/WindowModeRow" unique_id=1713915707]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-text = "Window Mode"
 
 [node name="WindowModeOption" type="OptionButton" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/WindowModeRow" unique_id=56824920]
 unique_name_in_owner = true
@@ -128,12 +128,10 @@ theme_override_constants/separation = 12
 [node name="VSyncLabel" type="Label" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/VSyncRow" unique_id=119608634]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-text = "VSync"
 
 [node name="VSyncToggle" type="CheckBox" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/VSyncRow" unique_id=292214891]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Enabled"
 
 [node name="QualityRow" type="HBoxContainer" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner" unique_id=191450495]
 layout_mode = 2
@@ -142,7 +140,6 @@ theme_override_constants/separation = 12
 [node name="QualityLabel" type="Label" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/QualityRow" unique_id=118234327]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-text = "Quality Preset"
 
 [node name="QualityPresetOption" type="OptionButton" parent="Scroll/ContentMargin/Content/GraphicsSection/GraphicsVBox/GraphicsInner/QualityRow" unique_id=311413577]
 unique_name_in_owner = true
@@ -161,7 +158,6 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
 theme_override_font_sizes/font_size = 14
-text = "Post-Processing"
 
 [node name="PostProcessSep" type="HSeparator" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox" unique_id=482992956]
 layout_mode = 2
@@ -178,12 +174,10 @@ theme_override_constants/separation = 12
 [node name="PostProcessingLabel" type="Label" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner/PostProcessingToggleRow" unique_id=1999888778]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-text = "Post-Processing"
 
 [node name="PostProcessingToggle" type="CheckBox" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner/PostProcessingToggleRow" unique_id=1999888779]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Enabled"
 
 [node name="PostProcessPresetRow" type="HBoxContainer" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner" unique_id=1234567890]
 layout_mode = 2
@@ -192,7 +186,6 @@ theme_override_constants/separation = 12
 [node name="PostProcessPresetLabel" type="Label" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner/PostProcessPresetRow" unique_id=1234567891]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-text = "Intensity Preset"
 
 [node name="PostProcessPresetOption" type="OptionButton" parent="Scroll/ContentMargin/Content/PostProcessSection/PostProcessVBox/PostProcessInner/PostProcessPresetRow" unique_id=1234567892]
 unique_name_in_owner = true
@@ -211,7 +204,6 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
 theme_override_font_sizes/font_size = 14
-text = "UI"
 
 [node name="UISep" type="HSeparator" parent="Scroll/ContentMargin/Content/UISection/UIVBox" unique_id=1617088212]
 layout_mode = 2
@@ -228,7 +220,6 @@ theme_override_constants/separation = 12
 [node name="UIScaleLabel" type="Label" parent="Scroll/ContentMargin/Content/UISection/UIVBox/UIInner/UIScaleRow" unique_id=1809474116]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-text = "UI Scale"
 
 [node name="UIScaleSlider" type="HSlider" parent="Scroll/ContentMargin/Content/UISection/UIVBox/UIInner/UIScaleRow" unique_id=894070753]
 unique_name_in_owner = true
@@ -262,7 +253,6 @@ theme_override_constants/separation = 8
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
 theme_override_font_sizes/font_size = 14
-text = "Accessibility"
 
 [node name="AccessibilitySep" type="HSeparator" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox" unique_id=1366235458]
 layout_mode = 2
@@ -279,7 +269,6 @@ theme_override_constants/separation = 12
 [node name="ColorBlindModeLabel" type="Label" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/ColorBlindModeRow" unique_id=327611118]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-text = "Color Blind Mode"
 
 [node name="ColorBlindModeOption" type="OptionButton" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/ColorBlindModeRow" unique_id=216077999]
 unique_name_in_owner = true
@@ -293,12 +282,10 @@ theme_override_constants/separation = 12
 [node name="HighContrastLabel" type="Label" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/HighContrastRow" unique_id=1045680518]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
-text = "High Contrast"
 
 [node name="HighContrastToggle" type="CheckBox" parent="Scroll/ContentMargin/Content/AccessibilitySection/AccessibilityVBox/AccessibilityInner/HighContrastRow" unique_id=2019903621]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Enabled"
 
 [node name="ButtonSeparator" type="HSeparator" parent="." unique_id=575784747]
 layout_mode = 2
@@ -311,22 +298,18 @@ alignment = 2
 [node name="CancelButton" type="Button" parent="ButtonRow" unique_id=10348877]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Cancel"
 
 [node name="ResetButton" type="Button" parent="ButtonRow" unique_id=2146537011]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Reset to Defaults"
 
 [node name="ApplyButton" type="Button" parent="ButtonRow" unique_id=1261720793]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Apply"
 
 [node name="WindowConfirmDialog" type="ConfirmationDialog" parent="." unique_id=1974579884]
 unique_name_in_owner = true
-title = "Confirm Display Changes"
-dialog_text = "Keep these display changes? Reverting in 10s."
+title = ""
 
 [node name="WindowConfirmTimer" type="Timer" parent="WindowConfirmDialog" unique_id=308992063]
 unique_name_in_owner = true

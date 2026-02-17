@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-profile_name = "Default (Gamepad)"
+profile_name = "input.profile.default_gamepad.name"
 device_type = 1
 action_mappings = {
 "interact": [{
@@ -56,4 +56,4 @@ action_mappings = {
 "type": "joypad_button"
 }]
 }
-description = "Standard gamepad layout: Left stick = Move, A = Jump, L3 = Sprint"
+description = "input.profile.default_gamepad.description"

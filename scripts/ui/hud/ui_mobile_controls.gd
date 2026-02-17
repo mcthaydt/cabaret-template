@@ -100,6 +100,11 @@ func _exit_tree() -> void:
 	_is_signpost_visibility_blocked = false
 	_unregister_from_input_device_manager()
 
+func _on_locale_changed(_locale: StringName) -> void:
+	for button in _buttons:
+		if button != null and button.has_method("_refresh_label"):
+			button._refresh_label()
+
 func _should_enable() -> bool:
 	if force_enable:
 		return true

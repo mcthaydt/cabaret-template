@@ -88,6 +88,12 @@
 
 - **Child scripts cannot redeclare parent members (incl. `const`)**: If a base class defines a member like `const U_Foo := preload("...")`, declaring another `const U_Foo := ...` in a derived script causes a parse error (`The member "U_Foo" already exists in parent class ...`). Prefer inheriting the constant, or use a different name in the child.
 
+- **`tr` cannot be used as a static method name on external classes (Godot 4.6)**: Calling `.tr()` on a preloaded Script variable or class reference triggers a parse-time error `"Could not resolve external class member 'tr'"` because `tr()` is a built-in `Object` method. This means `U_SomeClass.tr(key)` will **not compile**. Name translation helper methods `localize()` or any non-colliding name instead. Never call bare `tr(key)` either (invokes Godot's built-in `Object.tr()`).
+
+- **Inner class names must start with a capital letter**: Defining an inner class with an underscore-prefixed name (e.g. `class _MockFoo extends Node:`) causes a GDScript 4 parse error. Use `class MockFoo extends Node:` instead.
+
+- **Test inner class names can collide with global `class_name` symbols**: Even when declared inside a test file, an inner class name that matches an existing global `class_name` (for example `MockSaveManager`) can trigger parser/load conflicts in headless runs. Use distinct stub names (for example `SaveManagerStub`) to avoid global class table collisions.
+
 ## Asset Import Pitfalls (Headless Tests)
 
 - **New assets used with `preload()` can fail until `.import` files exist**: If you add a new `*.ogg`, `*.png`, etc and immediately reference it via `preload("res://...")`, headless GUT runs can fail because Godot hasn’t generated the sidecar `*.import` file yet.
@@ -460,6 +466,7 @@
   **Wrong**: `gut.p("Expect error...")` before the action - this doesn't work and will show "Unexpected Errors".
 - **Prefer `print()` for temporary diagnostics**: GUT buffers its own `gut.p()` output and the CLI harness discards it in failures, which makes debugging harder. Emit short, prefixed messages with `print()` instead so they appear in the raw Godot log and in failing test transcripts. Remember to remove or guard noisy prints before merging.
 - **State handoff persists across tests**: `M_StateStore` restores slices from `U_StateHandoff` on `_ready()`. If a previous test left the store mid-transition, the next store instance inherits that old state. Call `U_StateHandoff.clear_all()` in `before_each` / `after_each` whenever a test instantiates `M_StateStore` to guarantee a clean slate.
+- **Avoid private-manager assertions in refactor-prone tests**: Tests that assert internal fields/methods (`get("_apply_count")`, `get("_ui_roots")`, private helper calls) become brittle during helper extraction phases. Prefer public API and observable behavior checks (for localization: `get_locale()`, `get_effective_settings()`, root `_on_locale_changed` callbacks, and applied `Control.theme` state).
 
 - **Warnings treated as unexpected errors**: GUT treats `push_warning()` calls as unexpected errors in test output. If your code legitimately needs warnings (like deprecation notices), either:
   - Reconsider if it should be a warning (default settings creation is NOT warning-worthy)

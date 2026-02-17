@@ -8,6 +8,7 @@ class_name M_DisplayManager
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
+const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
 const U_NAVIGATION_SELECTORS := preload("res://scripts/state/selectors/u_navigation_selectors.gd")
 const U_PALETTE_MANAGER := preload("res://scripts/managers/helpers/u_palette_manager.gd")
 const U_DISPLAY_SERVER_WINDOW_OPS := preload("res://scripts/utils/display/u_display_server_window_ops.gd")
@@ -20,6 +21,7 @@ const U_DISPLAY_CINEMA_GRADE_APPLIER := preload("res://scripts/managers/helpers/
 
 const SERVICE_NAME := StringName("display_manager")
 const DISPLAY_SLICE_NAME := StringName("display")
+const LOCALIZATION_SLICE_NAME := StringName("localization")
 const NAVIGATION_SLICE_NAME := StringName("navigation")
 const SHELL_GAMEPLAY := StringName("gameplay")
 
@@ -33,6 +35,7 @@ var window_ops: I_WindowOps = null
 var _state_store: I_StateStore = null
 var _window_ops: I_WindowOps = null
 var _last_display_hash: int = 0
+var _last_localization_hash: int = 0
 var _last_window_hash: int = 0
 var _display_settings_preview_active: bool = false
 var _preview_settings: Dictionary = {}
@@ -81,6 +84,7 @@ func _initialize_store_async() -> void:
 	var state := _state_store.get_state()
 	_apply_display_settings(state)
 	_last_display_hash = _get_display_hash(state)
+	_last_localization_hash = _get_localization_hash(state)
 	_update_overlay_visibility()
 
 func _process(___delta: float) -> void:
@@ -122,12 +126,14 @@ func _on_slice_updated(slice_name: StringName, ___slice_data: Dictionary) -> voi
 	if _state_store == null:
 		return
 
-	if slice_name == DISPLAY_SLICE_NAME and not _display_settings_preview_active:
+	if (slice_name == DISPLAY_SLICE_NAME or slice_name == LOCALIZATION_SLICE_NAME) and not _display_settings_preview_active:
 		var state := _state_store.get_state()
 		var display_hash := _get_display_hash(state)
-		if display_hash != _last_display_hash:
+		var localization_hash := _get_localization_hash(state)
+		if display_hash != _last_display_hash or localization_hash != _last_localization_hash:
 			_apply_display_settings(state)
 			_last_display_hash = display_hash
+			_last_localization_hash = localization_hash
 
 	if slice_name == NAVIGATION_SLICE_NAME:
 		_update_overlay_visibility()
@@ -151,6 +157,7 @@ func clear_display_settings_preview() -> void:
 	var state := _state_store.get_state()
 	_apply_display_settings(state)
 	_last_display_hash = _get_display_hash(state)
+	_last_localization_hash = _get_localization_hash(state)
 
 ## Override: I_DisplayManager.get_active_palette
 func get_active_palette() -> Resource:
@@ -184,6 +191,13 @@ func _build_effective_settings(state: Dictionary) -> Dictionary:
 	if _display_settings_preview_active:
 		for key in _preview_settings.keys():
 			settings[key] = _preview_settings[key]
+
+	var display_state := {"display": settings}
+	var base_ui_scale := U_DISPLAY_SELECTORS.get_ui_scale(display_state)
+	var localization_scale := 1.0
+	if state != null:
+		localization_scale = U_LOCALIZATION_SELECTORS.get_ui_scale_override(state)
+	settings["ui_scale"] = base_ui_scale * localization_scale
 	return settings
 
 func _apply_window_settings(display_settings: Dictionary) -> void:
@@ -270,6 +284,14 @@ func _get_display_hash(state: Dictionary) -> int:
 	if state == null:
 		return 0
 	var slice: Variant = state.get(DISPLAY_SLICE_NAME, {})
+	if slice is Dictionary:
+		return (slice as Dictionary).hash()
+	return 0
+
+func _get_localization_hash(state: Dictionary) -> int:
+	if state == null:
+		return 0
+	var slice: Variant = state.get(LOCALIZATION_SLICE_NAME, {})
 	if slice is Dictionary:
 		return (slice as Dictionary).hash()
 	return 0

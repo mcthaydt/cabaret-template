@@ -20,7 +20,7 @@ var _config: Resource = null
 func _init() -> void:
 	trigger_mode = TriggerMode.INTERACT
 	cooldown_duration = 0.0
-	interact_prompt = "Read"
+	interact_prompt = "hud.interact_read"
 
 func _ready() -> void:
 	_apply_config_resource()

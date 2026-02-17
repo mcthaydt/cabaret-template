@@ -93,7 +93,11 @@ func _handle_main_menu_cancel(active_panel: StringName, base_scene_id: StringNam
 	# touchscreen_settings, input_rebinding, etc.) run in the main_menu shell
 	# but manage their own back behavior via BasePanel/_on_back_pressed, so
 	# M_UIInputHandler must not swallow ui_cancel in those cases.
-	if base_scene_id != U_NavigationReducer.SHELL_MAIN_MENU:
+	var is_root_menu_scene: bool = (
+		base_scene_id == U_NavigationReducer.SHELL_MAIN_MENU
+		or base_scene_id == StringName("language_selector")
+	)
+	if not is_root_menu_scene:
 		return
 
 	if active_panel != U_NavigationReducer.DEFAULT_MENU_PANEL:

@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://d14323kd04ar0"]
 
 [ext_resource type="Script" uid="uid://bd68hrkwcgknt" path="res://scripts/ui/settings/ui_audio_settings_tab.gd" id="1_ui_audio_settings_tab_script"]
+[ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
 
 [sub_resource type="StyleBoxFlat" id="slider_bg"]
 content_margin_top = 6.0
@@ -24,9 +25,11 @@ corner_radius_bottom_left = 4
 theme_override_constants/separation = 12
 script = ExtResource("1_ui_audio_settings_tab_script")
 
+[node name="LocalizationRoot" type="Node" parent="." unique_id=1009346827]
+script = ExtResource("localization_root")
+
 [node name="HeadingLabel" type="Label" parent="." unique_id=560357912]
 layout_mode = 2
-text = "Audio Settings"
 horizontal_alignment = 1
 
 [node name="MasterRow" type="HBoxContainer" parent="." unique_id=1189375807]
@@ -36,7 +39,6 @@ theme_override_constants/separation = 12
 [node name="MasterLabel" type="Label" parent="MasterRow" unique_id=1820099348]
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
-text = "Master Volume"
 
 [node name="MasterVolumeSlider" type="HSlider" parent="MasterRow" unique_id=775751790]
 unique_name_in_owner = true
@@ -60,7 +62,6 @@ horizontal_alignment = 2
 [node name="MasterMuteToggle" type="CheckBox" parent="MasterRow" unique_id=665307851]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Mute"
 
 [node name="MusicRow" type="HBoxContainer" parent="." unique_id=414703009]
 layout_mode = 2
@@ -69,7 +70,6 @@ theme_override_constants/separation = 12
 [node name="MusicLabel" type="Label" parent="MusicRow" unique_id=1652291463]
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
-text = "Music Volume"
 
 [node name="MusicVolumeSlider" type="HSlider" parent="MusicRow" unique_id=294841912]
 unique_name_in_owner = true
@@ -93,7 +93,6 @@ horizontal_alignment = 2
 [node name="MusicMuteToggle" type="CheckBox" parent="MusicRow" unique_id=1115137830]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Mute"
 
 [node name="SFXRow" type="HBoxContainer" parent="." unique_id=880663707]
 layout_mode = 2
@@ -102,7 +101,6 @@ theme_override_constants/separation = 12
 [node name="SFXLabel" type="Label" parent="SFXRow" unique_id=1229472761]
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
-text = "SFX Volume"
 
 [node name="SFXVolumeSlider" type="HSlider" parent="SFXRow" unique_id=1589877389]
 unique_name_in_owner = true
@@ -126,7 +124,6 @@ horizontal_alignment = 2
 [node name="SFXMuteToggle" type="CheckBox" parent="SFXRow" unique_id=611451084]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Mute"
 
 [node name="AmbientRow" type="HBoxContainer" parent="." unique_id=1044188688]
 layout_mode = 2
@@ -135,7 +132,6 @@ theme_override_constants/separation = 12
 [node name="AmbientLabel" type="Label" parent="AmbientRow" unique_id=613768853]
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
-text = "Ambient Volume"
 
 [node name="AmbientVolumeSlider" type="HSlider" parent="AmbientRow" unique_id=1632129876]
 unique_name_in_owner = true
@@ -159,7 +155,6 @@ horizontal_alignment = 2
 [node name="AmbientMuteToggle" type="CheckBox" parent="AmbientRow" unique_id=352107044]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Mute"
 
 [node name="Separator" type="HSeparator" parent="." unique_id=92808905]
 layout_mode = 2
@@ -173,7 +168,6 @@ layout_mode = 2
 
 [node name="SpatialAudioLabel" type="Label" parent="SpatialAudioRow" unique_id=1740693856]
 layout_mode = 2
-text = "Spatial Audio (3D positioning)"
 
 [node name="Spacer" type="Control" parent="." unique_id=1939131889]
 layout_mode = 2
@@ -187,14 +181,11 @@ alignment = 2
 [node name="CancelButton" type="Button" parent="ButtonRow" unique_id=236099694]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Cancel"
 
 [node name="ResetButton" type="Button" parent="ButtonRow" unique_id=1509556074]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Reset to Defaults"
 
 [node name="ApplyButton" type="Button" parent="ButtonRow" unique_id=1509867880]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Apply"

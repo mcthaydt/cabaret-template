@@ -66,6 +66,15 @@ static func _static_init() -> void:
 static func _register_scenes() -> void:
 	# CRITICAL SCENES - Keep hardcoded for safety
 
+	# Language Selector (initial scene — first-run language picker)
+	_register_scene(
+		StringName("language_selector"),
+		"res://scenes/ui/menus/ui_language_selector.tscn",
+		SceneType.MENU,
+		"instant",
+		10  # Critical path — loaded before anything else
+	)
+
 	# Main Menu (game entry point)
 	_register_scene(
 		StringName("main_menu"),

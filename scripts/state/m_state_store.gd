@@ -42,6 +42,7 @@ const RS_DEBUG_INITIAL_STATE := preload("res://scripts/resources/state/rs_debug_
 const RS_VFX_INITIAL_STATE := preload("res://scripts/resources/state/rs_vfx_initial_state.gd")
 const RS_AUDIO_INITIAL_STATE := preload("res://scripts/resources/state/rs_audio_initial_state.gd")
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
+const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_localization_initial_state.gd")
 
 signal slice_updated(slice_name: StringName, slice_state: Dictionary)
 signal action_dispatched(action: Dictionary)
@@ -66,6 +67,7 @@ const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 @export var vfx_initial_state: RS_VFXInitialState
 @export var audio_initial_state: RS_AudioInitialState
 @export var display_initial_state: Resource
+@export var localization_initial_state: Resource
 
 var _state: Dictionary = {}
 var _subscribers: Array[Callable] = []
@@ -103,6 +105,9 @@ func _ready() -> void:
 
 	# Apply global settings after load/restore so preferences override saved state.
 	apply_global_settings_from_disk()
+
+	# Align initial navigation base scene with localization state (first-run language picker).
+	_sync_navigation_initial_scene()
 	
 	_signal_batcher = U_SIGNAL_BATCHER.new()
 	set_physics_process(true)  # Enable physics processing for signal batching
@@ -111,6 +116,33 @@ func _ready() -> void:
 
 	_is_ready = true
 	store_ready.emit()
+
+func _sync_navigation_initial_scene() -> void:
+	var nav_slice: Dictionary = _state.get("navigation", {})
+	if nav_slice.is_empty():
+		return
+	var current_shell: StringName = nav_slice.get("shell", StringName(""))
+	# Respect explicitly configured non-main-menu shells (for gameplay/integration fixtures).
+	if current_shell != StringName("main_menu"):
+		return
+	var current_scene: StringName = nav_slice.get("base_scene_id", StringName(""))
+	# Preserve explicit main_menu shell scene overrides (for standalone settings flows/tests).
+	if current_scene != StringName("") and current_scene != StringName("main_menu") and current_scene != StringName("language_selector"):
+		return
+	var localization_slice: Dictionary = _state.get("localization", {})
+	var has_selected_language: bool = bool(localization_slice.get("has_selected_language", false))
+	var target_scene: StringName = StringName("main_menu") if has_selected_language else StringName("language_selector")
+	var target_shell: StringName = StringName("main_menu")
+	if current_scene == target_scene and current_shell == target_shell:
+		return
+
+	var new_nav: Dictionary = nav_slice.duplicate(true)
+	new_nav["shell"] = target_shell
+	new_nav["base_scene_id"] = target_scene
+	if not has_selected_language:
+		new_nav["overlay_stack"] = []
+		new_nav["overlay_return_stack"] = []
+	_state["navigation"] = new_nav
 
 func _exit_tree() -> void:
 	# Preserve state for scene transitions via StateHandoff
@@ -353,7 +385,8 @@ func _initialize_slices() -> void:
 		debug_initial_state,
 		vfx_initial_state,
 		audio_initial_state,
-		display_initial_state
+		display_initial_state,
+		localization_initial_state
 	)
 
 ## Normalize a deserialized state dictionary for tests.

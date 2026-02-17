@@ -1,0 +1,79 @@
+[gd_scene format=3 uid="uid://c3j1lsetv0tnv"]
+
+[ext_resource type="Script" uid="uid://bel18b58qeyvq" path="res://scripts/ui/settings/ui_localization_settings_tab.gd" id="1_ui_localization_settings_tab_script"]
+[ext_resource type="Script" uid="uid://cqmehd04ipxyj" path="res://scripts/ui/helpers/u_localization_root.gd" id="localization_root"]
+
+[node name="LocalizationSettingsTab" type="VBoxContainer" unique_id=1]
+theme_override_constants/separation = 12
+script = ExtResource("1_ui_localization_settings_tab_script")
+
+[node name="LocalizationRoot" type="Node" parent="." unique_id=1901183119]
+script = ExtResource("localization_root")
+
+[node name="HeadingLabel" type="Label" parent="." unique_id=2]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="LanguageSection" type="Label" parent="." unique_id=3]
+unique_name_in_owner = true
+layout_mode = 2
+uppercase = true
+
+[node name="LanguageRow" type="HBoxContainer" parent="." unique_id=4]
+layout_mode = 2
+
+[node name="LanguageLabel" type="Label" parent="LanguageRow" unique_id=5]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LanguageOptionButton" type="OptionButton" parent="LanguageRow" unique_id=6]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="." unique_id=7]
+layout_mode = 2
+
+[node name="AccessibilitySection" type="Label" parent="." unique_id=8]
+unique_name_in_owner = true
+layout_mode = 2
+uppercase = true
+
+[node name="DyslexiaRow" type="HBoxContainer" parent="." unique_id=9]
+layout_mode = 2
+
+[node name="DyslexiaLabel" type="Label" parent="DyslexiaRow" unique_id=10]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DyslexiaCheckButton" type="CheckButton" parent="DyslexiaRow" unique_id=11]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="." unique_id=2120596437]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="." unique_id=1932929985]
+layout_mode = 2
+alignment = 2
+
+[node name="CancelButton" type="Button" parent="ButtonRow" unique_id=1711908654]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ResetButton" type="Button" parent="ButtonRow" unique_id=1829839823]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ApplyButton" type="Button" parent="ButtonRow" unique_id=1815400014]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="LanguageConfirmDialog" type="ConfirmationDialog" parent="." unique_id=1945241128]
+unique_name_in_owner = true
+
+[node name="LanguageConfirmTimer" type="Timer" parent="." unique_id=1211071375]
+unique_name_in_owner = true

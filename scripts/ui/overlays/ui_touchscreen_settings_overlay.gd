@@ -5,6 +5,31 @@ class_name UI_TouchscreenSettingsOverlay
 const VirtualJoystickScene := preload("res://scenes/ui/widgets/ui_virtual_joystick.tscn")
 const VirtualButtonScene := preload("res://scenes/ui/widgets/ui_virtual_button.tscn")
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+
+const TITLE_KEY := &"settings.touchscreen.title"
+const LABEL_JOYSTICK_SIZE_KEY := &"settings.touchscreen.label.joystick_size"
+const LABEL_BUTTON_SIZE_KEY := &"settings.touchscreen.label.button_size"
+const LABEL_JOYSTICK_OPACITY_KEY := &"settings.touchscreen.label.joystick_opacity"
+const LABEL_BUTTON_OPACITY_KEY := &"settings.touchscreen.label.button_opacity"
+const LABEL_JOYSTICK_DEADZONE_KEY := &"settings.touchscreen.label.joystick_deadzone"
+const BUTTON_EDIT_LAYOUT_KEY := &"settings.touchscreen.button.edit_layout"
+const BUTTON_RESET_DEFAULTS_KEY := &"settings.touchscreen.button.reset_defaults"
+
+const TOOLTIP_JOYSTICK_SIZE_KEY := &"settings.touchscreen.tooltip.joystick_size"
+const TOOLTIP_BUTTON_SIZE_KEY := &"settings.touchscreen.tooltip.button_size"
+const TOOLTIP_JOYSTICK_OPACITY_KEY := &"settings.touchscreen.tooltip.joystick_opacity"
+const TOOLTIP_BUTTON_OPACITY_KEY := &"settings.touchscreen.tooltip.button_opacity"
+const TOOLTIP_JOYSTICK_DEADZONE_KEY := &"settings.touchscreen.tooltip.joystick_deadzone"
+const TOOLTIP_PREVIEW_KEY := &"settings.touchscreen.tooltip.preview"
+const TOOLTIP_EDIT_LAYOUT_KEY := &"settings.touchscreen.tooltip.edit_layout"
+
+@onready var _title_label: Label = $CenterContainer/Panel/VBox/Title
+@onready var _joystick_size_text_label: Label = $CenterContainer/Panel/VBox/JoystickSizeRow/JoystickSizeLabel
+@onready var _button_size_text_label: Label = $CenterContainer/Panel/VBox/ButtonSizeRow/ButtonSizeLabel
+@onready var _joystick_opacity_text_label: Label = $CenterContainer/Panel/VBox/JoystickOpacityRow/JoystickOpacityLabel
+@onready var _button_opacity_text_label: Label = $CenterContainer/Panel/VBox/ButtonOpacityRow/ButtonOpacityLabel
+@onready var _joystick_deadzone_text_label: Label = $CenterContainer/Panel/VBox/JoystickDeadzoneRow/JoystickDeadzoneLabel
 
 @onready var _joystick_size_slider: HSlider = %JoystickSizeSlider
 @onready var _button_size_slider: HSlider = %ButtonSizeSlider
@@ -53,6 +78,8 @@ func _on_panel_ready() -> void:
 	_configure_focus_neighbors()
 	_build_preview()
 	_connect_signals()
+	_localize_labels()
+	_configure_tooltips()
 	_update_preview_from_sliders()
 	_update_edit_layout_visibility()
 
@@ -179,6 +206,43 @@ func _connect_signals() -> void:
 	_cancel_button.pressed.connect(_on_cancel_pressed)
 	_reset_button.pressed.connect(_on_reset_pressed)
 	_edit_layout_button.pressed.connect(_on_edit_layout_pressed)
+
+func _configure_tooltips() -> void:
+	if _joystick_size_slider != null:
+		_joystick_size_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_JOYSTICK_SIZE_KEY,
+			"Adjust virtual joystick size."
+		)
+	if _button_size_slider != null:
+		_button_size_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_BUTTON_SIZE_KEY,
+			"Adjust touch button size."
+		)
+	if _joystick_opacity_slider != null:
+		_joystick_opacity_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_JOYSTICK_OPACITY_KEY,
+			"Adjust virtual joystick opacity."
+		)
+	if _button_opacity_slider != null:
+		_button_opacity_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_BUTTON_OPACITY_KEY,
+			"Adjust touch button opacity."
+		)
+	if _joystick_deadzone_slider != null:
+		_joystick_deadzone_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_JOYSTICK_DEADZONE_KEY,
+			"Adjust joystick deadzone before input registers."
+		)
+	if _preview_container != null:
+		_preview_container.tooltip_text = _localize_with_fallback(
+			TOOLTIP_PREVIEW_KEY,
+			"Preview current touchscreen control settings."
+		)
+	if _edit_layout_button != null:
+		_edit_layout_button.tooltip_text = _localize_with_fallback(
+			TOOLTIP_EDIT_LAYOUT_KEY,
+			"Open layout editor to reposition controls."
+		)
 
 func _update_edit_layout_visibility() -> void:
 	if _edit_layout_button == null:
@@ -367,6 +431,39 @@ func _update_slider_label(label: Label, value: float) -> void:
 	if label == null:
 		return
 	label.text = "%.2f" % value
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()
+	_configure_tooltips()
+
+func _localize_labels() -> void:
+	if _title_label != null:
+		_title_label.text = _localize_with_fallback(TITLE_KEY, "Touchscreen Settings")
+	if _joystick_size_text_label != null:
+		_joystick_size_text_label.text = _localize_with_fallback(LABEL_JOYSTICK_SIZE_KEY, "Joystick Size")
+	if _button_size_text_label != null:
+		_button_size_text_label.text = _localize_with_fallback(LABEL_BUTTON_SIZE_KEY, "Button Size")
+	if _joystick_opacity_text_label != null:
+		_joystick_opacity_text_label.text = _localize_with_fallback(LABEL_JOYSTICK_OPACITY_KEY, "Joystick Opacity")
+	if _button_opacity_text_label != null:
+		_button_opacity_text_label.text = _localize_with_fallback(LABEL_BUTTON_OPACITY_KEY, "Button Opacity")
+	if _joystick_deadzone_text_label != null:
+		_joystick_deadzone_text_label.text = _localize_with_fallback(LABEL_JOYSTICK_DEADZONE_KEY, "Joystick Deadzone")
+
+	if _cancel_button != null:
+		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
+	if _reset_button != null:
+		_reset_button.text = _localize_with_fallback(BUTTON_RESET_DEFAULTS_KEY, "Reset to Defaults")
+	if _edit_layout_button != null:
+		_edit_layout_button.text = _localize_with_fallback(BUTTON_EDIT_LAYOUT_KEY, "Edit Layout")
+	if _apply_button != null:
+		_apply_button.text = _localize_with_fallback(&"common.apply", "Apply")
+
+func _localize_with_fallback(key: StringName, fallback: String) -> String:
+	var localized: String = U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return fallback
+	return localized
 
 func _log_local_slider_edit(_field: String, _value: float) -> void:
 	# Intentionally left blank (was diagnostic logging).

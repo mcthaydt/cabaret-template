@@ -12,6 +12,35 @@ class_name UI_SaveLoadMenu
 
 const PLACEHOLDER_TEXTURE_PATH := "res://resources/ui/tex_save_slot_placeholder.png"
 const PLACEHOLDER_TEXTURE := preload(PLACEHOLDER_TEXTURE_PATH)
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+const MONTH_KEYS: Array[StringName] = [
+	&"date.month.jan",
+	&"date.month.feb",
+	&"date.month.mar",
+	&"date.month.apr",
+	&"date.month.may",
+	&"date.month.jun",
+	&"date.month.jul",
+	&"date.month.aug",
+	&"date.month.sep",
+	&"date.month.oct",
+	&"date.month.nov",
+	&"date.month.dec"
+]
+const AM_KEY := &"date.am"
+const PM_KEY := &"date.pm"
+const OPERATION_SAVE := &"save"
+const OPERATION_LOAD := &"load"
+const OPERATION_DELETE := &"delete"
+
+const LOADING_LABEL_KEY := &"overlay.save_load.loading"
+const AUTOSAVE_LABEL_KEY := &"overlay.save_load.autosave"
+const DIALOG_CONFIRM_TITLE_KEY := &"overlay.save_load.dialog.confirm_title"
+const ERROR_UNKNOWN_KEY := &"overlay.save_load.error.unknown"
+const ERROR_SAVE_FAILED_KEY := &"overlay.save_load.error.save_failed"
+const ERROR_LOAD_FAILED_KEY := &"overlay.save_load.error.load_failed"
+const ERROR_DELETE_FAILED_KEY := &"overlay.save_load.error.delete_failed"
+const UNKNOWN_AREA_KEY := &"overlay.save_load.unknown_area"
 
 ## Current mode: "save" or "load"
 var _mode: StringName = StringName("")
@@ -36,6 +65,7 @@ var _pending_action: Dictionary = {} # {action: "save"|"delete", slot_id: String
 @onready var _confirmation_dialog: ConfirmationDialog = %ConfirmationDialog
 @onready var _loading_spinner: Control = %LoadingSpinner
 @onready var _error_label: Label = %ErrorLabel
+@onready var _loading_label: Label = $CenterContainer/VBoxContainer/LoadingSpinner/LoadingLabel
 
 func _ready() -> void:
 	super._ready()
@@ -115,11 +145,11 @@ func _update_mode_label() -> void:
 		return
 
 	if _mode == StringName("save"):
-		_mode_label.text = "Save Game"
+		_mode_label.text = _localize_with_fallback(&"overlay.save_load.title_save", "Save Game")
 	elif _mode == StringName("load"):
-		_mode_label.text = "Load Game"
+		_mode_label.text = _localize_with_fallback(&"overlay.save_load.title_load", "Load Game")
 	else:
-		_mode_label.text = "Save / Load"
+		_mode_label.text = _localize_with_fallback(&"overlay.save_load.title_default", "Save / Load")
 
 func _refresh_slot_list() -> void:
 	if _save_manager == null or _slot_list_container == null:
@@ -181,7 +211,10 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 	if exists:
 		# Populated slot - show metadata
 		var timestamp: String = slot_meta.get("timestamp", "")
-		var area_name: String = slot_meta.get("area_name", "Unknown")
+		var area_name: String = slot_meta.get(
+			"area_name",
+			_localize_with_fallback(UNKNOWN_AREA_KEY, "Unknown")
+		)
 		var playtime: int = slot_meta.get("playtime_seconds", 0)
 
 		# Format display text with timestamp, area, and playtime
@@ -189,7 +222,7 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 		var formatted_playtime: String = _format_playtime(playtime)
 
 		# Multi-line text: Line 1 = slot name, Line 2 = metadata
-		var slot_display_name: String = "AUTOSAVE" if is_autosave else slot_id.to_upper()
+		var slot_display_name: String = _get_slot_display_name(slot_id, is_autosave)
 		main_button.text = "%s\n%s | %s | %s" % [
 			slot_display_name,
 			formatted_time,
@@ -198,11 +231,17 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 		]
 	else:
 		# Empty slot
-		var slot_display_name: String = "AUTOSAVE" if is_autosave else slot_id.to_upper()
+		var slot_display_name: String = _get_slot_display_name(slot_id, is_autosave)
 		if _mode == StringName("save"):
-			main_button.text = "%s\n[New Save]" % slot_display_name
+			main_button.text = "%s\n%s" % [
+				slot_display_name,
+				_localize_with_fallback(&"overlay.save_load.new_save", "[New Save]")
+			]
 		else:
-			main_button.text = "%s\n[Empty]" % slot_display_name
+			main_button.text = "%s\n%s" % [
+				slot_display_name,
+				_localize_with_fallback(&"overlay.save_load.empty_slot", "[Empty]")
+			]
 			main_button.disabled = true # Can't load empty slots
 
 	# Connect main button press (save/load action)
@@ -211,7 +250,7 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 	# Create delete button (only for populated slots, hidden for autosave)
 	var delete_button := Button.new()
 	delete_button.name = "DeleteButton"
-	delete_button.text = "Delete"
+	delete_button.text = _localize_with_fallback(&"common.delete", "Delete")
 	delete_button.custom_minimum_size = Vector2(80, 0)
 
 	# Show delete button only if slot is populated AND not autosave
@@ -231,6 +270,11 @@ func _create_slot_item(slot_meta: Dictionary) -> void:
 
 	_load_thumbnail_async(thumbnail_rect, thumbnail_path)
 
+func _get_slot_display_name(slot_id: StringName, is_autosave: bool) -> String:
+	if is_autosave:
+		return _localize_with_fallback(AUTOSAVE_LABEL_KEY, "AUTOSAVE")
+	return slot_id.to_upper()
+
 func _format_playtime(seconds: int) -> String:
 	var hours: int = int(seconds / 3600.0)
 	var minutes: int = int((seconds % 3600) / 60.0)
@@ -242,7 +286,7 @@ func _format_timestamp(iso_timestamp: String) -> String:
 	# Input: "2025-12-26T14:30:00Z"
 	# Output: "Dec 26, 2025 2:30 PM"
 	if iso_timestamp.is_empty():
-		return "Unknown Date"
+		return U_LOCALIZATION_UTILS.localize(&"overlay.save_load.unknown_date")
 
 	# Parse ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ
 	var parts: PackedStringArray = iso_timestamp.split("T")
@@ -270,23 +314,34 @@ func _format_timestamp(iso_timestamp: String) -> String:
 	var minute: String = time_components[1]
 
 	# Convert to 12-hour format
-	var am_pm: String = "AM"
+	var am_pm_key: StringName = AM_KEY
 	var hour_12: int = hour
 	if hour >= 12:
-		am_pm = "PM"
+		am_pm_key = PM_KEY
 		if hour > 12:
 			hour_12 = hour - 12
 	elif hour == 0:
 		hour_12 = 12
 
-	# Month names
-	var month_names: Array[String] = [
-		"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-	]
-	var month_name: String = month_names[month_num - 1] if month_num >= 1 and month_num <= 12 else "???"
+	var month_name: String = _get_localized_month_name(month_num)
+	var am_pm: String = _get_localized_am_pm(am_pm_key)
 
 	return "%s %s, %s %d:%s %s" % [month_name, day, year, hour_12, minute, am_pm]
+
+func _get_localized_month_name(month_num: int) -> String:
+	if month_num < 1 or month_num > 12:
+		return "???"
+	var key: StringName = MONTH_KEYS[month_num - 1]
+	var localized := U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return "???"
+	return localized
+
+func _get_localized_am_pm(key: StringName) -> String:
+	var localized := U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return "AM" if key == AM_KEY else "PM"
+	return localized
 
 func _load_thumbnail_async(texture_rect: TextureRect, path: String) -> void:
 	if texture_rect == null:
@@ -455,7 +510,7 @@ func _on_slot_item_pressed(slot_id: StringName, exists: bool) -> void:
 		if exists:
 			# Show overwrite confirmation
 			_show_confirmation(
-				"Overwrite existing save?",
+				_localize_with_fallback(&"overlay.save_load.confirm_overwrite", "Overwrite existing save?"),
 				{"action": "save", "slot_id": slot_id}
 			)
 		else:
@@ -471,7 +526,7 @@ func _on_delete_button_pressed(slot_id: StringName) -> void:
 	U_UISoundPlayer.play_confirm()
 	# Show delete confirmation
 	_show_confirmation(
-		"Delete this save file?",
+		_localize_with_fallback(&"overlay.save_load.confirm_delete", "Delete this save file?"),
 		{"action": "delete", "slot_id": slot_id}
 	)
 
@@ -509,7 +564,7 @@ func _perform_save(slot_id: StringName) -> void:
 	var result: Error = _save_manager.save_to_slot(slot_id)
 
 	if result != OK:
-		_show_error_message(_format_operation_error("Save", result))
+		_show_error_message(_format_operation_error(OPERATION_SAVE, result))
 		return
 
 	call_deferred("_refresh_slot_list")
@@ -524,7 +579,7 @@ func _perform_load(slot_id: StringName) -> void:
 	var result: Error = _save_manager.load_from_slot(slot_id)
 
 	if result != OK:
-		_show_error_message(_format_operation_error("Load", result))
+		_show_error_message(_format_operation_error(OPERATION_LOAD, result))
 		return
 
 	# Close the save/load menu only after load_from_slot() starts successfully.
@@ -542,7 +597,7 @@ func _perform_delete(slot_id: StringName) -> void:
 	var result: Error = _save_manager.delete_slot(slot_id)
 
 	if result != OK:
-		_show_error_message(_format_operation_error("Delete", result))
+		_show_error_message(_format_operation_error(OPERATION_DELETE, result))
 		return
 
 	# Refresh UI to remove deleted slot
@@ -563,7 +618,7 @@ func _on_save_failed(_event: Dictionary) -> void:
 	# Save failed - could show error message
 	var payload: Dictionary = _event.get("payload", {})
 	var error_code: int = payload.get("error_code", 0)
-	_show_error_message(_format_operation_error("Save", error_code))
+	_show_error_message(_format_operation_error(OPERATION_SAVE, error_code))
 
 ## Event handlers for load events
 
@@ -585,7 +640,7 @@ func _on_load_failed(_event: Dictionary) -> void:
 
 	var payload: Dictionary = _event.get("payload", {})
 	var error_code: int = payload.get("error_code", 0)
-	_show_error_message(_format_operation_error("Load", error_code))
+	_show_error_message(_format_operation_error(OPERATION_LOAD, error_code))
 
 func _clear_error_message() -> void:
 	if _error_label == null:
@@ -601,11 +656,23 @@ func _show_error_message(message: String) -> void:
 	_error_label.text = message
 	_error_label.visible = true
 
-func _format_operation_error(operation: String, error_code: int) -> String:
+func _format_operation_error(operation: StringName, error_code: int) -> String:
 	var readable: String = error_string(error_code)
 	if readable.is_empty():
-		readable = "Unknown error"
-	return "%s failed: %s" % [operation, readable]
+		readable = _localize_with_fallback(ERROR_UNKNOWN_KEY, "Unknown error")
+
+	var template_key: StringName = ERROR_LOAD_FAILED_KEY
+	var fallback: String = "Load failed: {error}"
+	match operation:
+		OPERATION_SAVE:
+			template_key = ERROR_SAVE_FAILED_KEY
+			fallback = "Save failed: {error}"
+		OPERATION_DELETE:
+			template_key = ERROR_DELETE_FAILED_KEY
+			fallback = "Delete failed: {error}"
+
+	var template: String = _localize_with_fallback(template_key, fallback)
+	return template.format({"error": readable})
 
 ## Helper methods for spinner and button state
 
@@ -636,6 +703,7 @@ func _set_buttons_enabled(enabled: bool) -> void:
 
 func _on_panel_ready() -> void:
 	_connect_buttons()
+	_localize_static_ui()
 	_read_mode_from_state()
 
 func _connect_buttons() -> void:
@@ -651,9 +719,33 @@ func _connect_buttons() -> void:
 func _on_back_pressed_button() -> void:
 	_on_back_pressed()
 
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_static_ui()
+	_refresh_ui()
+
 func _on_back_pressed() -> void:
 	U_UISoundPlayer.play_cancel()
 	# Close this overlay and return to pause menu
 	var store := get_store()
 	if store != null:
 		store.dispatch(U_NavigationActions.close_top_overlay())
+
+func _localize_static_ui() -> void:
+	if _back_button != null:
+		_back_button.text = _localize_with_fallback(&"common.back", "Back")
+	if _loading_label != null:
+		_loading_label.text = _localize_with_fallback(LOADING_LABEL_KEY, "Loading...")
+	if _confirmation_dialog != null:
+		_confirmation_dialog.title = _localize_with_fallback(DIALOG_CONFIRM_TITLE_KEY, "Confirm")
+		var ok_button := _confirmation_dialog.get_ok_button()
+		if ok_button != null:
+			ok_button.text = _localize_with_fallback(&"common.confirm", "Confirm")
+		var cancel_button := _confirmation_dialog.get_cancel_button()
+		if cancel_button != null:
+			cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
+
+func _localize_with_fallback(key: StringName, fallback: String) -> String:
+	var localized: String = U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return fallback
+	return localized

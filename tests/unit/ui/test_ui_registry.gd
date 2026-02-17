@@ -43,7 +43,8 @@ func test_get_overlays_for_shell_returns_all_gameplay_overlays() -> void:
 		StringName("touchscreen_settings"),
 		StringName("input_rebinding"),
 		StringName("edit_touch_controls"),
-		StringName("save_load_menu_overlay")
+		StringName("save_load_menu_overlay"),
+		StringName("localization_settings")
 	]
 
 	for expected_id in expected_ids:

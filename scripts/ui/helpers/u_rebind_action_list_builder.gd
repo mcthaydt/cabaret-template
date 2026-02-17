@@ -2,12 +2,32 @@ extends RefCounted
 class_name U_RebindActionListBuilder
 
 const I_REBIND_OVERLAY := preload("res://scripts/interfaces/i_rebind_overlay.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 
 const REPLACE_BUTTON_TEXT := "Replace"
 const ADD_BUTTON_TEXT := "Add Binding"
 const RESET_BUTTON_TEXT := "Reset"
 const ROW_SPACING := 8
 const CATEGORY_SPACING := 16
+
+# Rebind overlay localization keys
+const ADD_BUTTON_KEY := &"overlay.input_rebinding.button.add"
+const REPLACE_BUTTON_KEY := &"overlay.input_rebinding.button.replace"
+const RESET_BUTTON_KEY := &"overlay.input_rebinding.button.reset"
+const RESERVED_BUTTON_KEY := &"overlay.input_rebinding.button.reserved"
+const LISTENING_BUTTON_KEY := &"overlay.input_rebinding.button.listening"
+const UNBOUND_LABEL_KEY := &"overlay.input_rebinding.binding_unbound"
+const TOOLTIP_ADD_KEY := &"overlay.input_rebinding.tooltip.add"
+const TOOLTIP_REPLACE_KEY := &"overlay.input_rebinding.tooltip.replace"
+const TOOLTIP_RESET_KEY := &"overlay.input_rebinding.tooltip.reset"
+
+# Category label localization keys
+const CATEGORY_LABEL_KEYS := {
+	"movement": &"overlay.input_rebinding.category.movement",
+	"combat": &"overlay.input_rebinding.category.combat",
+	"ui": &"overlay.input_rebinding.category.ui",
+	"camera": &"overlay.input_rebinding.category.camera",
+}
 
 # Action categories for grouping
 const ACTION_CATEGORIES := {
@@ -88,7 +108,7 @@ static func build_action_rows(
 			continue
 
 		var category_header := Label.new()
-		category_header.text = category.capitalize()
+		category_header.text = _get_localized_category_label(category)
 		category_header.add_theme_font_size_override("font_size", 16)
 		category_header.modulate = Color(0.8, 0.8, 1.0, 1.0)
 		action_list.add_child(category_header)
@@ -110,7 +130,7 @@ static func build_action_rows(
 			label_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 			var name_label := Label.new()
-			name_label.text = format_action_name(action)
+			name_label.text = get_action_display_name(action)
 			name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			name_label.add_theme_font_size_override("font_size", 14)
 
@@ -126,9 +146,12 @@ static func build_action_rows(
 			button_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 			var add_button := Button.new()
-			add_button.text = ADD_BUTTON_TEXT
+			add_button.text = get_add_button_text()
 			add_button.custom_minimum_size = Vector2(100, 32)
-			add_button.tooltip_text = "Add an additional binding for this action"
+			add_button.tooltip_text = _localize_with_fallback(
+				TOOLTIP_ADD_KEY,
+				"Add an additional binding for this action"
+			)
 			add_button.pressed.connect(func() -> void:
 				U_UISoundPlayer.play_confirm()
 				typed_overlay.begin_capture(action, U_InputActions.REBIND_MODE_ADD)
@@ -136,9 +159,12 @@ static func build_action_rows(
 			button_row.add_child(add_button)
 
 			var replace_button := Button.new()
-			replace_button.text = REPLACE_BUTTON_TEXT
+			replace_button.text = get_replace_button_text()
 			replace_button.custom_minimum_size = Vector2(80, 32)
-			replace_button.tooltip_text = "Replace all bindings for this action"
+			replace_button.tooltip_text = _localize_with_fallback(
+				TOOLTIP_REPLACE_KEY,
+				"Replace all bindings for this action"
+			)
 			replace_button.pressed.connect(func() -> void:
 				U_UISoundPlayer.play_confirm()
 				typed_overlay.begin_capture(action, U_InputActions.REBIND_MODE_REPLACE)
@@ -146,9 +172,12 @@ static func build_action_rows(
 			button_row.add_child(replace_button)
 
 			var reset_button := Button.new()
-			reset_button.text = RESET_BUTTON_TEXT
+			reset_button.text = get_reset_button_text()
 			reset_button.custom_minimum_size = Vector2(60, 32)
-			reset_button.tooltip_text = "Reset this action to default binding"
+			reset_button.tooltip_text = _localize_with_fallback(
+				TOOLTIP_RESET_KEY,
+				"Reset this action to default binding"
+			)
 			reset_button.pressed.connect(func() -> void:
 				U_UISoundPlayer.play_confirm()
 				typed_overlay.reset_single_action(action)
@@ -180,9 +209,9 @@ static func build_action_rows(
 				add_button.disabled = true
 				replace_button.disabled = true
 				reset_button.disabled = true
-				add_button.text = "Reserved"
-				replace_button.text = "Reserved"
-				reset_button.text = "Reserved"
+				add_button.text = get_reserved_button_text()
+				replace_button.text = get_reserved_button_text()
+				reset_button.text = get_reserved_button_text()
 
 			_add_spacer(action_list, ROW_SPACING)
 
@@ -218,6 +247,8 @@ static func refresh_bindings(overlay: Node, action_rows: Dictionary) -> void:
 		var name_label: Label = data.get("name_label")
 		if binding_container == null:
 			continue
+		if name_label != null:
+			name_label.text = get_action_display_name(action)
 
 		for child in binding_container.get_children():
 			child.queue_free()
@@ -240,7 +271,7 @@ static func refresh_bindings(overlay: Node, action_rows: Dictionary) -> void:
 
 		if display_events.is_empty():
 			var unbound_label := Label.new()
-			unbound_label.text = "Unbound"
+			unbound_label.text = get_unbound_label_text()
 			unbound_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1.0))
 			binding_container.add_child(unbound_label)
 		else:
@@ -262,32 +293,32 @@ static func refresh_bindings(overlay: Node, action_rows: Dictionary) -> void:
 		if add_button != null:
 			if reserved:
 				add_button.disabled = true
-				add_button.text = "Reserved"
+				add_button.text = get_reserved_button_text()
 			else:
 				if overlay._is_capturing:
 					if action == overlay._pending_action and overlay._capture_mode == U_InputActions.REBIND_MODE_ADD:
-						add_button.text = "Listening..."
+						add_button.text = get_listening_button_text()
 					else:
-						add_button.text = ADD_BUTTON_TEXT
+						add_button.text = get_add_button_text()
 					add_button.disabled = true
 				else:
 					add_button.disabled = false
-					add_button.text = ADD_BUTTON_TEXT
+					add_button.text = get_add_button_text()
 
 		if replace_button != null:
 			if reserved:
 				replace_button.disabled = true
-				replace_button.text = "Reserved"
+				replace_button.text = get_reserved_button_text()
 			else:
 				if overlay._is_capturing:
 					if action == overlay._pending_action and overlay._capture_mode == U_InputActions.REBIND_MODE_REPLACE:
-						replace_button.text = "Listening..."
+						replace_button.text = get_listening_button_text()
 					else:
-						replace_button.text = REPLACE_BUTTON_TEXT
+						replace_button.text = get_replace_button_text()
 					replace_button.disabled = true
 				else:
 					replace_button.disabled = false
-					replace_button.text = REPLACE_BUTTON_TEXT
+					replace_button.text = get_replace_button_text()
 
 		if reset_button != null:
 			if reserved:
@@ -313,6 +344,13 @@ static func format_action_name(action: StringName) -> String:
 		else:
 			words[i] = word.left(1).to_upper() + word.substr(1).to_lower()
 	return " ".join(words)
+
+static func get_action_display_name(action: StringName) -> String:
+	var key: StringName = StringName("input.action.%s" % String(action))
+	var localized: String = U_LOCALIZATION_UTILS.localize(key)
+	if localized != String(key):
+		return localized
+	return format_action_name(action)
 
 static func get_event_device_type(event: InputEvent) -> String:
 	if event is InputEventKey:
@@ -383,7 +421,7 @@ static func _categorize_actions(actions: Array[StringName]) -> Dictionary:
 static func _matches_search_filter(action: StringName, search_filter: String) -> bool:
 	if search_filter.is_empty():
 		return true
-	var action_name := format_action_name(action).to_lower()
+	var action_name := get_action_display_name(action).to_lower()
 	return action_name.contains(search_filter.to_lower())
 
 static func _add_spacer(action_list: VBoxContainer, height: int) -> void:
@@ -427,3 +465,33 @@ static func _populate_binding_visuals(
 			separator.text = ", "
 			separator.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1.0))
 			container.add_child(separator)
+
+static func get_add_button_text() -> String:
+	return _localize_with_fallback(ADD_BUTTON_KEY, ADD_BUTTON_TEXT)
+
+static func get_replace_button_text() -> String:
+	return _localize_with_fallback(REPLACE_BUTTON_KEY, REPLACE_BUTTON_TEXT)
+
+static func get_reset_button_text() -> String:
+	return _localize_with_fallback(RESET_BUTTON_KEY, RESET_BUTTON_TEXT)
+
+static func get_reserved_button_text() -> String:
+	return _localize_with_fallback(RESERVED_BUTTON_KEY, "Reserved")
+
+static func get_listening_button_text() -> String:
+	return _localize_with_fallback(LISTENING_BUTTON_KEY, "Listening...")
+
+static func get_unbound_label_text() -> String:
+	return _localize_with_fallback(UNBOUND_LABEL_KEY, "Unbound")
+
+static func _get_localized_category_label(category: String) -> String:
+	var key: StringName = CATEGORY_LABEL_KEYS.get(category, StringName())
+	if key == StringName():
+		return category.capitalize()
+	return _localize_with_fallback(key, category.capitalize())
+
+static func _localize_with_fallback(key: StringName, fallback: String) -> String:
+	var localized: String = U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return fallback
+	return localized

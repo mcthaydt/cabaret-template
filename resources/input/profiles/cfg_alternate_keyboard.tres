@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-profile_name = "Alternate (Keyboard/Mouse)"
+profile_name = "input.profile.alternate_keyboard.name"
 action_mappings = {
 "interact": [{
 "physical_keycode": 69,
@@ -51,4 +51,4 @@ action_mappings = {
 "type": "key"
 }]
 }
-description = "Arrow keys movement, Space = Jump, Shift = Sprint"
+description = "input.profile.alternate_keyboard.description"

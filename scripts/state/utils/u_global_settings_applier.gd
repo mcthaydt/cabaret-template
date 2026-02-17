@@ -6,6 +6,7 @@ const U_AUDIO_ACTIONS := preload("res://scripts/state/actions/u_audio_actions.gd
 const U_VFX_ACTIONS := preload("res://scripts/state/actions/u_vfx_actions.gd")
 const U_INPUT_ACTIONS := preload("res://scripts/state/actions/u_input_actions.gd")
 const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")
 
 static func apply(store: I_StateStore, settings: Dictionary) -> void:
 	if store == null or settings == null:
@@ -30,6 +31,10 @@ static func apply(store: I_StateStore, settings: Dictionary) -> void:
 	var gameplay_variant: Variant = settings.get("gameplay_preferences", {})
 	if gameplay_variant is Dictionary:
 		_apply_gameplay_preferences(store, gameplay_variant as Dictionary)
+
+	var localization_variant: Variant = settings.get("localization", {})
+	if localization_variant is Dictionary:
+		_apply_localization(store, localization_variant as Dictionary)
 
 static func _apply_display(store: I_StateStore, display: Dictionary) -> void:
 	if display.has("window_size_preset"):
@@ -96,6 +101,16 @@ static func _apply_vfx(store: I_StateStore, vfx: Dictionary) -> void:
 		store.dispatch(U_VFX_ACTIONS.set_damage_flash_enabled(bool(vfx.get("damage_flash_enabled", true))))
 	if vfx.has("particles_enabled"):
 		store.dispatch(U_VFX_ACTIONS.set_particles_enabled(bool(vfx.get("particles_enabled", true))))
+
+static func _apply_localization(store: I_StateStore, settings: Dictionary) -> void:
+	if settings.has("current_locale"):
+		store.dispatch(U_LOCALIZATION_ACTIONS.set_locale(StringName(settings.get("current_locale", &"en"))))
+	if settings.has("dyslexia_font_enabled"):
+		store.dispatch(U_LOCALIZATION_ACTIONS.set_dyslexia_font_enabled(bool(settings.get("dyslexia_font_enabled", false))))
+	if settings.has("ui_scale_override"):
+		store.dispatch(U_LOCALIZATION_ACTIONS.set_ui_scale_override(float(settings.get("ui_scale_override", 1.0))))
+	if bool(settings.get("has_selected_language", false)):
+		store.dispatch(U_LOCALIZATION_ACTIONS.mark_language_selected())
 
 static func _apply_gameplay_preferences(store: I_StateStore, gameplay: Dictionary) -> void:
 	if gameplay.has("show_landing_indicator"):

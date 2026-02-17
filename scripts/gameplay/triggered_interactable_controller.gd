@@ -28,7 +28,7 @@ var _trigger_mode: TriggerMode = TriggerMode.AUTO
 		_refresh_interaction_hint_visibility()
 
 @export var interact_action: StringName = StringName("interact")
-@export var interact_prompt: String = "Interact"
+@export var interact_prompt: String = "hud.interact_default"
 
 var _interaction_hint_enabled: bool = false
 @export var interaction_hint_enabled: bool:

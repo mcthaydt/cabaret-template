@@ -10,6 +10,7 @@ class_name UI_HudController
 @onready var checkpoint_toast: Label = $MarginContainer/ToastContainer/PanelContainer/MarginContainer/CheckpointToast
 @onready var autosave_spinner_container: Control = $MarginContainer/AutosaveSpinnerContainer
 @onready var autosave_spinner_icon: TextureRect = $MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer/SpinnerIcon
+@onready var autosave_spinner_label: Label = $MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer/SpinnerLabel
 @onready var signpost_panel_container: Control = $SignpostPanelContainer
 @onready var signpost_message_label: Label = $SignpostPanelContainer/PanelContainer/MarginContainer/SignpostMessage
 @onready var interact_prompt: UI_ButtonPrompt = $MarginContainer/InteractPrompt
@@ -32,6 +33,7 @@ var _unsubscribe_save_started: Callable
 var _unsubscribe_save_completed: Callable
 var _unsubscribe_save_failed: Callable
 var _active_prompt_id: int = 0
+var _last_prompt_key: StringName = &"hud.interact_default"
 var _last_prompt_action: StringName = StringName("interact")
 var _last_prompt_text: String = ""
 var _toast_active: bool = false
@@ -43,9 +45,11 @@ var _checkpoint_toast_tween: Tween = null
 var _signpost_panel_tween: Tween = null
 var _health_bar_bg_style: StyleBoxFlat = null
 var _health_bar_fill_style: StyleBoxFlat = null
+var _pending_prompt_localization_refresh: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_localize_static_labels()
 	_store = U_StateUtils.get_store(self)
 
 	if _store == null:
@@ -127,7 +131,8 @@ func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> voi
 	if slice_name != StringName("gameplay") \
 			and slice_name != StringName("scene") \
 			and slice_name != StringName("navigation") \
-			and slice_name != StringName("display"):
+			and slice_name != StringName("display") \
+			and slice_name != StringName("localization"):
 		return
 
 	var state := _store.get_state()
@@ -140,6 +145,17 @@ func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> voi
 		_hide_signpost_panel()
 		# Force unblock interact when paused (no interactions possible anyway)
 		U_InteractBlocker.force_unblock()
+		return
+	if slice_name == StringName("localization"):
+		_queue_prompt_localization_refresh()
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_static_labels()
+	_refresh_active_prompt_localization()
+
+func _localize_static_labels() -> void:
+	if autosave_spinner_label != null:
+		autosave_spinner_label.text = U_LocalizationUtils.localize(&"hud.autosave_saving")
 
 func _update_display(state: Dictionary) -> void:
 	pause_label.text = ""
@@ -231,21 +247,22 @@ func _show_checkpoint_toast(text: String) -> void:
 		)
 
 func _build_checkpoint_toast_text(event_payload: Variant) -> String:
-	const DEFAULT_TEXT := "Checkpoint reached"
+	var default_text: String = U_LocalizationUtils.localize(&"hud.checkpoint_reached")
+	var with_label_template: String = U_LocalizationUtils.localize(&"hud.checkpoint_with_label")
 	var payload := _extract_event_payload(event_payload)
 	if payload.is_empty():
-		return DEFAULT_TEXT
+		return default_text
 
 	var explicit_label: String = String(payload.get("checkpoint_label", payload.get("display_name", ""))).strip_edges()
 	if not explicit_label.is_empty():
-		return "Checkpoint: %s" % explicit_label
+		return with_label_template % explicit_label if with_label_template.contains("%") else "Checkpoint: %s" % explicit_label
 
 	var checkpoint_id_value: Variant = payload.get("checkpoint_id", StringName(""))
 	var checkpoint_id: String = String(checkpoint_id_value).strip_edges()
 	var readable_name: String = _humanize_checkpoint_id(checkpoint_id)
 	if readable_name.is_empty():
-		return DEFAULT_TEXT
-	return "Checkpoint: %s" % readable_name
+		return default_text
+	return with_label_template % readable_name if with_label_template.contains("%") else "Checkpoint: %s" % readable_name
 
 func _humanize_checkpoint_id(raw_id: String) -> String:
 	var cleaned := raw_id.strip_edges()
@@ -428,15 +445,38 @@ func _on_interact_prompt_show(payload: Variant) -> void:
 	var data: Dictionary = inner_payload
 	var controller_id: int = int(data.get("controller_id", 0))
 	var action_name: StringName = data.get("action", StringName("interact"))
-	var prompt_text: String = String(data.get("prompt", "Interact"))
+	var prompt_key: StringName = StringName(str(data.get("prompt", "hud.interact_default")))
+	var prompt_text: String = U_LocalizationUtils.localize(prompt_key)
 
 	_active_prompt_id = controller_id
+	_last_prompt_key = prompt_key
 	_last_prompt_action = action_name
 	_last_prompt_text = prompt_text
 	# If another feedback surface is currently visible, defer prompt rendering to avoid overlap.
 	if _toast_active or _signpost_panel_active:
 		return
 	interact_prompt.show_prompt(action_name, prompt_text)
+
+func _queue_prompt_localization_refresh() -> void:
+	if _pending_prompt_localization_refresh:
+		return
+	_pending_prompt_localization_refresh = true
+	call_deferred("_apply_prompt_localization_refresh")
+
+func _apply_prompt_localization_refresh() -> void:
+	_pending_prompt_localization_refresh = false
+	_refresh_active_prompt_localization()
+
+func _refresh_active_prompt_localization() -> void:
+	if interact_prompt == null or _active_prompt_id == 0:
+		return
+	_last_prompt_text = U_LocalizationUtils.localize(_last_prompt_key)
+	if _store != null and _is_paused(_store.get_state()):
+		interact_prompt.hide_prompt()
+		return
+	if _toast_active or _signpost_panel_active:
+		return
+	interact_prompt.show_prompt(_last_prompt_action, _last_prompt_text)
 
 func _on_interact_prompt_hide(payload: Variant) -> void:
 	if interact_prompt == null:
@@ -477,7 +517,8 @@ func _reparent_to_root_hud_layer() -> void:
 
 func _on_signpost_message(payload: Variant) -> void:
 	var data := _extract_event_payload(payload)
-	var text: String = String(data.get("message", ""))
+	var raw: String = String(data.get("message", ""))
+	var text: String = U_LocalizationUtils.localize(StringName(raw))
 	var duration_sec: float = _resolve_signpost_duration(data)
 	if text.is_empty():
 		return
@@ -541,39 +582,9 @@ func _on_save_failed(payload: Variant) -> void:
 	if is_autosave:
 		_request_hide_autosave_spinner()
 
-func _format_interact_prompt(action: StringName, prompt_text: String) -> String:
-	var action_label := _get_primary_input_label(action)
-	if action_label.is_empty():
-		action_label = String(action).capitalize()
-	var cleaned_prompt := prompt_text
-	if cleaned_prompt.is_empty():
-		cleaned_prompt = "Interact"
-	return "Press [%s] to %s" % [action_label, cleaned_prompt]
-
 func _is_paused(state: Dictionary) -> bool:
 	var navigation_state: Dictionary = state.get("navigation", {})
 	return U_NavigationSelectors.is_paused(navigation_state)
-
-func _get_primary_input_label(action: StringName) -> String:
-	var action_string := String(action)
-	if not InputMap.has_action(action_string):
-		return ""
-	var events := InputMap.action_get_events(action_string)
-	for event in events:
-		if event is InputEventKey:
-			var key_event := event as InputEventKey
-			var keycode := key_event.physical_keycode
-			if keycode == 0:
-				keycode = key_event.keycode
-			if keycode != 0:
-				return OS.get_keycode_string(keycode)
-		elif event is InputEventJoypadButton:
-			var joy_event := event as InputEventJoypadButton
-			return "GP Btn %d" % joy_event.button_index
-		elif event is InputEventMouseButton:
-			var mouse_event := event as InputEventMouseButton
-			return "Mouse %d" % mouse_event.button_index
-	return ""
 
 func _update_health_bar_colors(__state: Dictionary, health: float, max_health: float) -> void:
 	if _health_bar_fill_style == null:

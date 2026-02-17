@@ -10,6 +10,5 @@ zone_id = &"bar_warm"
 cylinder_radius = 6.6
 cylinder_height = 7.0
 falloff = 0.78
-blend_weight = 1.0
 priority = 11
 profile = ExtResource("2")

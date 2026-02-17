@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="RS_SceneRegistryEntry" format=3 uid="uid://7450aotg6265"]
+
+[ext_resource type="Script" uid="uid://dta28o8djbx2f" path="res://scripts/resources/scene_management/rs_scene_registry_entry.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+scene_id = "localization_settings"
+scene_path = "res://scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn"
+scene_type = 2
+default_transition = "instant"
+preload_priority = 5
