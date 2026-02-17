@@ -319,43 +319,23 @@ CJK locales automatically set `ui_scale_override` to `1.1` in the reducer when t
 
 ### Font Asset
 
-**Note**: `assets/fonts/` does not currently exist and must be created. All three font files below need to be added before the system can function.
-
 - Default font: `assets/fonts/fnt_ui_default.ttf`
 - Dyslexia font: `assets/fonts/fnt_dyslexia.ttf` (OpenDyslexic or equivalent)
 - CJK font: `assets/fonts/fnt_cjk.otf` (covers CJK Unified Ideographs for `zh_CN` and `ja`)
 
 ### Application Pattern
 
-When `dyslexia_font_enabled` or the active locale changes, `M_LocalizationManager` sets a project-level `Theme` override on all registered UI roots. This mirrors the `UIScaleRoot` registration pattern used by `M_DisplayManager`:
+`U_LocalizationFontApplier` owns locale-to-font resolution and theme application. `M_LocalizationManager` delegates to helper APIs:
 
 ```gdscript
-# UI roots register on _ready()
-func _ready() -> void:
-    U_LocalizationUtils.register_ui_root(get_parent())
+# In manager startup
+_font_applier.load_fonts()
 
-# M_LocalizationManager applies font override (CJK-aware)
-func _apply_font_override(dyslexia_enabled: bool) -> void:
-    var font: Font = _get_active_font(dyslexia_enabled)
-    for root in _ui_roots:
-        if not is_instance_valid(root):
-            continue
-        _apply_font_to_root(root, font)
-
-func _get_active_font(dyslexia_enabled: bool = false) -> Font:
-    if _active_locale in CJK_LOCALES:
-        return _cjk_font  # CJK takes priority over dyslexia toggle
-    return _dyslexia_font if dyslexia_enabled else _default_font
-
-func _apply_font_to_root(root: Node, font: Font) -> void:
-    if font == null:
-        return
-    if root is Control:
-        root.add_theme_font_override(&"font", font)
-    elif root is CanvasLayer:
-        for child in root.get_children():
-            if child is Control:
-                child.add_theme_font_override(&"font", font)
+# On locale/font setting updates
+var theme := _font_applier.build_theme(_active_locale, _dyslexia_enabled)
+for root in _ui_roots:
+    if is_instance_valid(root):
+        _font_applier.apply_theme_to_root(root, theme)
 ```
 
 ### CJK Font Override
@@ -387,6 +367,7 @@ scripts/interfaces/
 scripts/managers/helpers/
   u_locale_file_loader.gd        # Compatibility shim
   localization/u_localization_catalog.gd   # Catalog merge + cache + fallback helper
+  localization/u_localization_font_applier.gd   # Font selection + theme application helper
 
 scripts/utils/localization/
   u_localization_utils.gd        # Static localize() and localize_fmt() helpers; register_ui_root()
@@ -479,6 +460,7 @@ store.dispatch(U_LocalizationActions.set_ui_scale_override(1.1))
 - `U_LocalizationReducer`: Action handling, locale switching, dyslexia flag, CJK scale auto-set.
 - `U_LocalizationSelectors`: Selector return values for all fields.
 - `U_LocalizationCatalog`: Merge logic for `.tres` catalogs, duplicate key resolution (last resource wins), fallback chain, cache invalidation.
+- `U_LocalizationFontApplier`: Locale-aware font selection and root theme application behavior.
 
 ### Integration Tests
 

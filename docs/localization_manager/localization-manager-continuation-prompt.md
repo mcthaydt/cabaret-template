@@ -1,7 +1,7 @@
 # Localization Manager Refactor - Continuation Prompt
 
 **Last Updated:** 2026-02-17
-**Status:** Refactor in progress. Progress 39% (23 / 59 tasks complete). Translation audit captured and partially resolved.
+**Status:** Refactor in progress. Progress 47% (28 / 59 tasks complete). Translation audit captured and partially resolved.
 
 ## Start Here
 
@@ -14,9 +14,9 @@
 ## Baseline (Pre-Refactor)
 
 - Localization slice exists in Redux and persists via global settings serialization.
-- `M_LocalizationManager` orchestrates locale selection, preview mode, font theme building, root registration, and UI scale dispatch.
+- `M_LocalizationManager` orchestrates locale selection, preview mode, font theme application (via helper), root registration, and UI scale dispatch.
 - `U_LocalizationUtils.localize()` and `localize_fmt()` are the public helpers (do not call `tr()`).
-- Locale catalogs are `.tres` resources (`RS_LocaleTranslations`) loaded via `U_LocaleFileLoader` constants for en/es/pt/ja/zh_CN.
+- Locale catalogs are `.tres` resources (`RS_LocaleTranslations`) loaded via `U_LocalizationCatalog` constants for en/es/pt/ja/zh_CN (`U_LocaleFileLoader` kept as compatibility shim).
 - `U_LocalizationRoot` registers UI roots; many scenes include `LocalizationRoot`.
 - `UI_LocalizationSettingsTab` provides apply/cancel/reset with confirm timer and preview integration.
 
@@ -28,6 +28,15 @@
 
 ## Last Work
 
+- 2026-02-17: Completed Phase 3 (font/theme applier extraction):
+  - Added `scripts/managers/helpers/localization/u_localization_font_applier.gd` with:
+    - locale-aware font resolution (CJK locale priority over dyslexia toggle)
+    - `build_theme(locale, dyslexia_enabled) -> Theme`
+    - `apply_theme_to_root(root, theme) -> void`
+    - CJK fallback chaining for default/dyslexia fonts
+  - Updated `M_LocalizationManager` to delegate font loading/theme application to the helper.
+  - Added helper tests: `tests/unit/managers/helpers/localization/test_localization_font_applier.gd`.
+  - Verified localization unit/integration + style suites all pass.
 - 2026-02-17: Completed Phase 2 (translation catalog extraction):
   - Added `scripts/managers/helpers/localization/u_localization_catalog.gd` with:
     - locale support checks
@@ -72,15 +81,15 @@
 
 ## Immediate Next Steps
 
-1. Phase 3 font/theme applier extraction (`u_localization_font_applier.gd` + focused helper tests).
-2. Phase 4 root registry extraction (`u_localization_root_registry.gd` + lifecycle tests).
+1. Phase 4 root registry extraction (`u_localization_root_registry.gd` + lifecycle tests).
+2. Phase 5 preview controller extraction + manager slim-down.
 3. Continue Task 7.2a remaining UI localization gaps (display/audio/vfx/gamepad/touchscreen/rebind/save-load/UI strings).
 
 ## Key Pitfalls
 
 - `localization_initial_state` is the 13th parameter to `initialize_slices()` in `M_StateStore`.
-- Locale resources use `const` preload arrays in `U_LocaleFileLoader` (mobile-safe); do not revert to JSON file IO.
-- Theme-based font cascade uses a constructed `Theme` assigned to root `Control.theme`; `_FONT_THEME_TYPES` includes `&"Control"`.
+- Locale resources use `const` preload arrays in `U_LocalizationCatalog` (mobile-safe); do not revert to JSON file IO.
+- Theme-based font cascade now lives in `U_LocalizationFontApplier`; keep `FONT_THEME_TYPES` aligned with supported `Theme` control types (includes `&"Control"`).
 - `preload()` on `.ttf` does not work; use `load()` and guard for null.
 - Do not use `tr()` or `Object.tr()`; use `U_LocalizationUtils.localize()` / `localize_fmt()`.
 - Use `str(value)` for Variant-to-string conversion.

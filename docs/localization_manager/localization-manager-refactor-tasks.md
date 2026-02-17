@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-15  
 **Status:** In progress  
-**Progress:** 39% (23 / 59 tasks complete)
+**Progress:** 47% (28 / 59 tasks complete)
 
 ## Goal
 
@@ -98,16 +98,16 @@ Refactor localization to match manager quality standards used by display/audio: 
 
 **Exit Criteria:** Font selection and theme application are isolated from manager orchestration.
 
-- [ ] **Task 3.1 (Red)**: Add helper unit tests for:
-  - [ ] locale-to-font resolution (`CJK` priority over dyslexia toggle)
-  - [ ] theme construction contains expected control types
-  - [ ] no-op behavior when fonts are missing
-- [ ] **Task 3.2 (Green)**: Create `scripts/managers/helpers/localization/u_localization_font_applier.gd`.
-- [ ] **Task 3.3**: Move `_get_active_font`, `_build_font_theme`, `_apply_font_to_root` logic into helper.
-- [ ] **Task 3.4**: Add clear runtime API:
-  - [ ] `build_theme(locale, dyslexia_enabled) -> Theme`
-  - [ ] `apply_theme_to_root(root, theme) -> void`
-- [ ] **Task 3.5**: Ensure manager only requests/apply theme; no font details inline.
+- [x] **Task 3.1 (Red)**: Add helper unit tests for: (done 2026-02-17 in `tests/unit/managers/helpers/localization/test_localization_font_applier.gd`)
+  - [x] locale-to-font resolution (`CJK` priority over dyslexia toggle)
+  - [x] theme construction contains expected control types
+  - [x] no-op behavior when fonts are missing
+- [x] **Task 3.2 (Green)**: Create `scripts/managers/helpers/localization/u_localization_font_applier.gd`. (done 2026-02-17)
+- [x] **Task 3.3**: Move `_get_active_font`, `_build_font_theme`, `_apply_font_to_root` logic into helper. (done 2026-02-17)
+- [x] **Task 3.4**: Add clear runtime API: (done 2026-02-17)
+  - [x] `build_theme(locale, dyslexia_enabled) -> Theme`
+  - [x] `apply_theme_to_root(root, theme) -> void`
+- [x] **Task 3.5**: Ensure manager only requests/apply theme; no font details inline. (done 2026-02-17)
 
 ---
 
