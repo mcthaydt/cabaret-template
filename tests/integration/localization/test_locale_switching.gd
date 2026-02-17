@@ -11,6 +11,7 @@ extends BaseTest
 
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const M_LOCALIZATION_MANAGER := preload("res://scripts/managers/m_localization_manager.gd")
+const M_DISPLAY_MANAGER := preload("res://scripts/managers/m_display_manager.gd")
 const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_localization_initial_state.gd")
 const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")
@@ -21,6 +22,7 @@ const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 
 var _store: M_StateStore
 var _loc_manager: M_LocalizationManager
+var _display_manager: M_DisplayManager
 
 func before_each() -> void:
 	U_SERVICE_LOCATOR.clear()
@@ -31,9 +33,16 @@ func before_each() -> void:
 	add_child_autofree(_store)
 	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)
 
+	var game_viewport := SubViewport.new()
+	game_viewport.name = "GameViewport"
+	add_child_autofree(game_viewport)
+
 	_loc_manager = M_LOCALIZATION_MANAGER.new()
 	_loc_manager.state_store = _store
 	add_child_autofree(_loc_manager)
+
+	_display_manager = M_DISPLAY_MANAGER.new()
+	add_child_autofree(_display_manager)
 
 	await get_tree().process_frame
 
@@ -91,6 +100,30 @@ func test_ja_locale_sets_ui_scale_override() -> void:
 		0.001,
 		"Japanese locale should auto-set ui_scale_override to 1.1"
 	)
+
+## Locale-driven CJK scaling is applied by DisplayManager without dispatching display actions.
+func test_cjk_locale_updates_display_scale_without_display_dispatch() -> void:
+	var display_dispatch_count: int = 0
+	if _store.has_signal("action_dispatched"):
+		_store.action_dispatched.connect(func(action: Dictionary) -> void:
+			var action_type := String(action.get("type", ""))
+			if action_type.begins_with("display/"):
+				display_dispatch_count += 1
+		)
+
+	var root := Control.new()
+	add_child_autofree(root)
+	var label := Label.new()
+	label.add_theme_font_size_override("font_size", 20)
+	root.add_child(label)
+	_display_manager.register_ui_scale_root(root)
+
+	_store.dispatch(U_LOCALIZATION_ACTIONS.set_locale(&"zh_CN"))
+	await get_tree().physics_frame
+	await get_tree().process_frame
+
+	assert_eq(label.get_theme_font_size("font_size"), 22, "CJK locale should apply effective 1.1 UI scale through DisplayManager")
+	assert_eq(display_dispatch_count, 0, "Locale switching should not dispatch display/* actions")
 
 ## Missing translation key returns the key string unchanged — no crash.
 func test_missing_key_returns_key_string() -> void:

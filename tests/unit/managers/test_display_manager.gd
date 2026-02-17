@@ -74,6 +74,31 @@ func test_manager_hash_prevents_redundant_applies() -> void:
 
 	assert_eq(int(_manager.get("_apply_count")), apply_count, "Hash should prevent redundant apply calls")
 
+func test_localization_override_updates_effective_ui_scale() -> void:
+	await _setup_manager_with_store(
+		{"window_mode": "windowed", "ui_scale": 1.0},
+		{"ui_scale_override": 1.1}
+	)
+
+	var applied: Dictionary = _manager.get("_last_applied_settings")
+	assert_almost_eq(float(applied.get("ui_scale", 0.0)), 1.1, 0.001, "Localization ui_scale_override should affect effective ui_scale")
+
+func test_localization_slice_update_reapplies_scale_without_dispatch_loop() -> void:
+	await _setup_manager_with_store(
+		{"window_mode": "windowed", "ui_scale": 1.0},
+		{"ui_scale_override": 1.0}
+	)
+	_store.clear_dispatched_actions()
+	var apply_count := int(_manager.get("_apply_count"))
+
+	_store.set_slice(StringName("localization"), {"ui_scale_override": 1.1})
+	_store.slice_updated.emit(StringName("localization"), {"ui_scale_override": 1.1})
+
+	assert_eq(int(_manager.get("_apply_count")), apply_count + 1, "Localization updates should trigger re-apply for effective scale")
+	var applied: Dictionary = _manager.get("_last_applied_settings")
+	assert_almost_eq(float(applied.get("ui_scale", 0.0)), 1.1, 0.001, "Effective ui_scale should include localization override")
+	assert_eq(_store.get_dispatched_actions().size(), 0, "Display manager should not dispatch actions when reacting to localization updates")
+
 func test_preview_sets_flag() -> void:
 	await _setup_manager_with_store({"ui_scale": 1.0})
 
@@ -300,9 +325,11 @@ func test_register_ui_scale_root_applies_current_palette_theme() -> void:
 		"Registering should apply the current palette theme"
 	)
 
-func _setup_manager_with_store(display_state: Dictionary) -> void:
+func _setup_manager_with_store(display_state: Dictionary, localization_state: Dictionary = {}) -> void:
 	_store = MOCK_STATE_STORE.new()
 	_store.set_slice(StringName("display"), display_state)
+	if not localization_state.is_empty():
+		_store.set_slice(StringName("localization"), localization_state)
 	add_child_autofree(_store)
 	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)
 

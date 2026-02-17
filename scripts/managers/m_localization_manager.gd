@@ -13,8 +13,6 @@ const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/managers/helpers/loc
 const U_LOCALIZATION_PREVIEW_CONTROLLER := preload("res://scripts/managers/helpers/localization/u_localization_preview_controller.gd")
 const U_LOCALIZATION_ROOT_REGISTRY := preload("res://scripts/managers/helpers/localization/u_localization_root_registry.gd")
 const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")
-const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
-const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
 
 const SERVICE_NAME := StringName("localization_manager")
 const LOCALIZATION_SLICE_NAME := StringName("localization")
@@ -103,7 +101,6 @@ func _apply_localization_settings(state: Dictionary) -> void:
 	if locale != _active_locale:
 		_load_locale(locale)
 	_apply_font_override(dyslexia)
-	_apply_ui_scale_override(state)
 	_apply_count += 1
 	var loc_slice: Dictionary = state.get("localization", {})
 	_last_localization_hash = loc_slice.hash()
@@ -196,17 +193,6 @@ func _apply_font_override(dyslexia_enabled: bool) -> void:
 
 func _get_active_font(dyslexia_enabled: bool = false) -> Font:
 	return _font_applier.get_active_font(_active_locale, dyslexia_enabled)
-
-func _apply_ui_scale_override(state: Dictionary) -> void:
-	if _resolved_store == null:
-		return
-	var scale_override: float = U_LOCALIZATION_SELECTORS.get_ui_scale_override(state)
-	if scale_override == 1.0:
-		return
-	var current_ui_scale: float = U_DISPLAY_SELECTORS.get_ui_scale(state)
-	if absf(current_ui_scale - scale_override) < 0.01:
-		return
-	_resolved_store.dispatch(U_DISPLAY_ACTIONS.set_ui_scale(scale_override))
 
 func _notify_ui_roots() -> void:
 	_root_registry.notify_locale_changed(_active_locale)
