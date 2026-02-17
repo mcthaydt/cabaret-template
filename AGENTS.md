@@ -288,7 +288,7 @@ Production asset files use type-specific prefixes:
     ```
   - **Note**: Textures are mapped to actions, not specific key bindings. When user rebinds an action, the texture remains the same (shows action's registered glyph, not the new key).
 
-## Localization Manager Patterns (Phase 5 Refactor)
+## Localization Manager Patterns (Phase 6 Refactor)
 
 - Catalog ownership moved to `scripts/managers/helpers/localization/u_localization_catalog.gd` (`U_LocalizationCatalog`):
   - uses const-preloaded `RS_LocaleTranslations` resources (mobile-safe, no runtime file IO)
@@ -307,6 +307,9 @@ Production asset files use type-specific prefixes:
 - Preview ownership moved to `scripts/managers/helpers/localization/u_localization_preview_controller.gd` (`U_LocalizationPreviewController`):
   - use helper APIs for `start_preview`, `clear_preview`, `is_preview_active`, and preview value resolution
   - while preview is active, localization managers must ignore Redux `slice_updated` events for the localization slice
+- UI scale ownership moved to `M_DisplayManager`:
+  - compute effective UI scale from display + localization slices (`display.ui_scale * localization.ui_scale_override`)
+  - `M_LocalizationManager` must not dispatch `display/*` actions for locale changes
 
 ## Scene Manager Patterns (Phase 10 Complete)
 

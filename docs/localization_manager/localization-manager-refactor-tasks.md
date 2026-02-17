@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-15  
 **Status:** In progress  
-**Progress:** 64% (38 / 59 tasks complete)
+**Progress:** 73% (43 / 59 tasks complete)
 
 ## Goal
 
@@ -149,12 +149,12 @@ Refactor localization to match manager quality standards used by display/audio: 
 
 **Exit Criteria:** UI scale behavior is explicit, deterministic, and owned by the correct manager.
 
-- [ ] **Task 6.1**: Decide ownership policy:
-  - [ ] Option A (I choose this): `M_DisplayManager` computes effective UI scale using display + localization slices.
-- [ ] **Task 6.2 (Red)**: Add tests proving selected policy, including no dispatch loops.
-- [ ] **Task 6.3 (Green)**: Remove hidden cross-manager dispatch from `M_LocalizationManager`.
-- [ ] **Task 6.4**: Implement selected policy in owner module.
-- [ ] **Task 6.5**: Update integration tests for locale-driven CJK scale behavior accordingly.
+- [x] **Task 6.1**: Decide ownership policy: (done 2026-02-17)
+  - [x] Option A (I choose this): `M_DisplayManager` computes effective UI scale using display + localization slices.
+- [x] **Task 6.2 (Red)**: Add tests proving selected policy, including no dispatch loops. (done 2026-02-17 in `tests/unit/managers/test_display_manager.gd`)
+- [x] **Task 6.3 (Green)**: Remove hidden cross-manager dispatch from `M_LocalizationManager`. (done 2026-02-17)
+- [x] **Task 6.4**: Implement selected policy in owner module. (`M_DisplayManager` now reacts to localization slice updates and computes effective ui_scale; done 2026-02-17)
+- [x] **Task 6.5**: Update integration tests for locale-driven CJK scale behavior accordingly. (`tests/integration/localization/test_locale_switching.gd`; done 2026-02-17)
 
 ---
 
@@ -240,8 +240,8 @@ The following translation coverage gaps were identified and should be addressed 
 
 - [ ] **Task 8.1**: Replace brittle tests that inspect private manager internals where possible.
 - [ ] **Task 8.2**: Add helper-focused test files:
-  - [ ] `tests/unit/managers/helpers/localization/test_localization_catalog.gd`
-  - [ ] `tests/unit/managers/helpers/localization/test_localization_font_applier.gd`
+  - [x] `tests/unit/managers/helpers/localization/test_localization_catalog.gd` (added 2026-02-17)
+  - [x] `tests/unit/managers/helpers/localization/test_localization_font_applier.gd` (added 2026-02-17)
   - [x] `tests/unit/managers/helpers/localization/test_localization_root_registry.gd` (added 2026-02-17)
   - [x] `tests/unit/managers/helpers/localization/test_localization_preview_controller.gd` (added 2026-02-17)
 - [ ] **Task 8.3**: Keep integration tests for end-to-end guarantees only.

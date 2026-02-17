@@ -1,7 +1,7 @@
 # Localization Manager Refactor - Continuation Prompt
 
 **Last Updated:** 2026-02-17
-**Status:** Refactor in progress. Progress 64% (38 / 59 tasks complete). Translation audit captured and partially resolved.
+**Status:** Refactor in progress. Progress 73% (43 / 59 tasks complete). Translation audit captured and partially resolved.
 
 ## Start Here
 
@@ -14,7 +14,7 @@
 ## Baseline (Pre-Refactor)
 
 - Localization slice exists in Redux and persists via global settings serialization.
-- `M_LocalizationManager` orchestrates locale selection, preview mode (via helper), font/theme application (via helper), root registration (via helper), and UI scale dispatch.
+- `M_LocalizationManager` orchestrates locale selection, preview mode (via helper), font/theme application (via helper), and root registration (via helper).
 - `U_LocalizationUtils.localize()` and `localize_fmt()` are the public helpers (do not call `tr()`).
 - Locale catalogs are `.tres` resources (`RS_LocaleTranslations`) loaded via `U_LocalizationCatalog` constants for en/es/pt/ja/zh_CN (`U_LocaleFileLoader` kept as compatibility shim).
 - `U_LocalizationRoot` registers UI roots; many scenes include `LocalizationRoot`.
@@ -28,6 +28,12 @@
 
 ## Last Work
 
+- 2026-02-17: Completed Phase 6 (UI scale ownership refactor):
+  - Removed cross-manager display dispatch side effects from `M_LocalizationManager`.
+  - Updated `M_DisplayManager` to compute effective `ui_scale` from display `ui_scale` and localization `ui_scale_override`.
+  - Added no-loop + ownership tests in `tests/unit/managers/test_display_manager.gd`.
+  - Updated integration coverage in `tests/integration/localization/test_locale_switching.gd` to verify CJK locale scaling applies through `M_DisplayManager` without `display/*` dispatches.
+  - Verified display/localization regression and style suites all pass.
 - 2026-02-17: Completed Phase 5 (preview controller extraction + manager slim-down):
   - Added `scripts/managers/helpers/localization/u_localization_preview_controller.gd` with:
     - preview lifecycle (`start_preview`, `clear_preview`, `is_preview_active`)
@@ -97,9 +103,9 @@
 
 ## Immediate Next Steps
 
-1. Phase 6 UI scale ownership refactor (`M_DisplayManager` ownership + no-loop tests).
-2. Continue Task 7.2a remaining UI localization gaps (display/audio/vfx/gamepad/touchscreen/rebind/save-load/UI strings).
-3. Begin Phase 8 cleanup to reduce brittle manager-internal test coupling as helpers stabilize.
+1. Continue Task 7.2a remaining UI localization gaps (display/audio/vfx/gamepad/touchscreen/rebind/save-load/UI strings).
+2. Begin Phase 8 cleanup to reduce brittle manager-internal test coupling as helpers stabilize.
+3. Add focused regression coverage for `UI_LocalizationSettingsTab` preview/apply/cancel flow (Task 7.4).
 
 ## Key Pitfalls
 
@@ -108,6 +114,7 @@
 - Theme-based font cascade now lives in `U_LocalizationFontApplier`; keep `FONT_THEME_TYPES` aligned with supported `Theme` control types (includes `&"Control"`).
 - Root lifecycle (register/unregister/prune/notify) now lives in `U_LocalizationRootRegistry`; manager should not mutate root arrays directly.
 - Preview state now lives in `U_LocalizationPreviewController`; while preview is active, manager must ignore `slice_updated` localization events.
+- Effective UI scale ownership is now in `M_DisplayManager`; localization manager must never dispatch `display/*` actions.
 - `preload()` on `.ttf` does not work; use `load()` and guard for null.
 - Do not use `tr()` or `Object.tr()`; use `U_LocalizationUtils.localize()` / `localize_fmt()`.
 - Use `str(value)` for Variant-to-string conversion.

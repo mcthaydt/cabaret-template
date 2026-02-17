@@ -48,7 +48,7 @@ Baseline infrastructure exists and is active:
 - **Translation fallback policy**: `requested locale → fallback locale (en) → key string`. Unsupported locale requests do **not** change the active locale.
 - **Locale preview contract**: Preview applies locale + dyslexia setting visually without dispatching to Redux; store updates are ignored while preview is active; clearing preview re-applies store-driven state.
 - **Locale change notification**: Manager emits `locale_changed(locale)` and calls `_on_locale_changed(locale)` on registered UI roots that implement the method.
-- **UI scale ownership**: `M_DisplayManager` computes effective UI scale using display + localization slices. Localization manager must not dispatch display actions once refactor completes.
+- **UI scale ownership**: `M_DisplayManager` computes effective UI scale using display + localization slices. `M_LocalizationManager` must not dispatch display actions.
 
 ## Responsibilities & Boundaries
 
@@ -118,7 +118,7 @@ U_LocalizationActions.mark_language_selected() -> Dictionary
 - Loading screen/tips: `trans_loading_screen.gd` uses localization keys for status/tips.
 - Input profiles: `resources/input/profiles/cfg_*.tres` now store localization keys; `ui_input_profile_selector.gd` localizes profile name/description and action labels.
 - Persistence/restore: `u_global_settings_serialization.gd` + `u_global_settings_applier.gd` depend on localization slice shape (including `has_selected_language`).
-- UI scale coupling: `M_LocalizationManager` currently dispatches display UI scale; Phase 6 removes this in favor of `M_DisplayManager` owning effective scale.
+- UI scale coupling: Phase 6 completed. `M_DisplayManager` now owns effective UI scale (`display.ui_scale * localization.ui_scale_override`) and reacts to localization slice updates directly.
 
 ## Localization State Model
 
@@ -469,7 +469,7 @@ store.dispatch(U_LocalizationActions.set_ui_scale_override(1.1))
 
 - Locale switch → verify `U_LocalizationUtils.localize()` returns correct string for new locale.
 - Dyslexia toggle → verify font override applied to all registered UI roots.
-- CJK locale → verify `fnt_cjk.otf` override and `ui_scale_override = 1.1`.
+- CJK locale → verify `fnt_cjk.otf` override and locale-driven effective UI scale via `M_DisplayManager` (`ui_scale_override = 1.1`).
 - Settings persistence → dispatch locale action → reload global settings → verify locale restored.
 - Missing key → verify `U_LocalizationUtils.localize("missing.key")` returns `"missing.key"` (key as fallback, no crash).
 
