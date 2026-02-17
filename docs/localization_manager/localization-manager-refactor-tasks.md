@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-15  
 **Status:** In progress  
-**Progress:** 86% (51 / 59 tasks complete)
+**Progress:** 88% (52 / 59 tasks complete)
 
 ## Goal
 
@@ -168,9 +168,9 @@ Refactor localization to match manager quality standards used by display/audio: 
   - [ ] ensure all user-facing strings route through localization keys (including tooltips, prompts, and dialogs)
   - [ ] update locale resources for corrected/added strings
   - [ ] document intentional non-localized strings (debug-only or developer-facing)
-  - [ ] **Task 7.2a.1**: Localize Display settings UI (`scripts/ui/settings/ui_display_settings_tab.gd`) and add live locale updates:
-    - [ ] add localization keys for section headers, labels, tooltips, dialog text, and option labels
-    - [ ] update `scripts/utils/display/u_display_option_catalog.gd` to provide localization keys for option entries and quality presets
+  - [x] **Task 7.2a.1**: Localize Display settings UI (`scripts/ui/settings/ui_display_settings_tab.gd`) and add live locale updates: (localized section headers/labels/tooltips/dialog/buttons + live locale relabeling in tab; catalog option entries now include localization keys and localized labels; expanded locale keys across en/es/pt/ja/zh_CN; added unit localization coverage in `tests/unit/ui/test_display_settings_tab_localization.gd` and catalog localization key coverage in `tests/unit/utils/test_display_option_catalog.gd`; done 2026-02-17)
+    - [x] add localization keys for section headers, labels, tooltips, dialog text, and option labels
+    - [x] update `scripts/utils/display/u_display_option_catalog.gd` to provide localization keys for option entries and quality presets
     - [x] add `LocalizationRoot` to `scenes/ui/overlays/settings/ui_display_settings_tab.tscn` (done 2026-02-16)
   - [ ] **Task 7.2a.2**: Localize Audio settings UI (`scripts/ui/settings/ui_audio_settings_tab.gd`) and add live locale updates:
     - [ ] add localization keys for headers, labels, tooltips, and buttons
@@ -211,8 +211,8 @@ Refactor localization to match manager quality standards used by display/audio: 
 
 The following translation coverage gaps were identified and should be addressed as part of Task 7.2a:
 
-- `scripts/ui/settings/ui_display_settings_tab.gd`: hardcoded section headers, labels, button text, confirm dialog title/body, tooltip strings, and option labels (resolution, window mode, UI scale, vsync, etc.) should be localized. Also ensure option labels come from catalog rather than display catalog literals.
-- `scripts/utils/display/u_display_option_catalog.gd`: display option entries and quality presets need localization keys (not hardcoded user-facing labels).
+- `scripts/ui/settings/ui_display_settings_tab.gd`: hardcoded section headers, labels, button text, confirm dialog title/body, tooltip strings, and option labels (resolution, window mode, UI scale, vsync, etc.) should be localized. Also ensure option labels come from catalog rather than display catalog literals. (resolved 2026-02-17)
+- `scripts/utils/display/u_display_option_catalog.gd`: display option entries and quality presets need localization keys (not hardcoded user-facing labels). (resolved 2026-02-17)
 - `scripts/ui/settings/ui_audio_settings_tab.gd`: all labels, section headers, slider labels, button text, tooltips are hardcoded.
 - `scripts/ui/settings/ui_vfx_settings_overlay.gd`: all headers, slider labels, toggle labels, and button text are hardcoded.
 - `scripts/ui/overlays/ui_gamepad_settings_overlay.gd`: overlay title/labels/tooltips and preview instructions are hardcoded.

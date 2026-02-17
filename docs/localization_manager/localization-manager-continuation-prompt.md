@@ -1,7 +1,7 @@
 # Localization Manager Refactor - Continuation Prompt
 
 **Last Updated:** 2026-02-17
-**Status:** Refactor in progress. Progress 86% (51 / 59 tasks complete). Translation audit captured and partially resolved.
+**Status:** Refactor in progress. Progress 88% (52 / 59 tasks complete). Translation audit captured and partially resolved.
 
 ## Start Here
 
@@ -28,6 +28,15 @@
 
 ## Last Work
 
+- 2026-02-17: Completed Task 7.2a.1 (Display settings tab localization + localized display option catalog):
+  - Localized `UI_DisplaySettingsTab` heading/section labels, row labels, toggle labels, action buttons, tooltips, and display-change confirm dialog text/buttons via `settings.display.*` keys.
+  - Added live locale relabeling (`_on_locale_changed`) for display settings UI, including option dropdown relabel while preserving selected values.
+  - Updated `U_DisplayOptionCatalog` option entries to expose/use localization keys (`label_key`) and localize option labels (window mode/color blind/post-processing/quality presets).
+  - Added/expanded `settings.display.*` locale keys in `cfg_locale_*_ui.tres` for en/es/pt/ja/zh_CN.
+  - Added/updated tests:
+    - `tests/unit/ui/test_display_settings_tab_localization.gd` (live relabeling coverage)
+    - `tests/unit/utils/test_display_option_catalog.gd` (localization key presence + localized label resolution)
+  - Verified `tests/unit/utils/test_display_option_catalog.gd`, `tests/unit/ui` display suites, `tests/integration/display/test_display_settings.gd`, localization integration suite, and style enforcement all pass.
 - 2026-02-17: Completed Task 7.2a.7 (Input rebinding overlay + helper localization):
   - Localized `UI_InputRebindingOverlay` title/search/buttons/dialog labels/status text via `overlay.input_rebinding.*` keys and added live locale relabel support for capture-state status updates.
   - Localized `U_RebindActionListBuilder` category/action/button/tooltip/unbound text through localization keys and `input.action.*` display key lookups.
