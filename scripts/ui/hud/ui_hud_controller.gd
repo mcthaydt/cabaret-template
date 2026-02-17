@@ -242,22 +242,21 @@ func _show_checkpoint_toast(text: String) -> void:
 
 func _build_checkpoint_toast_text(event_payload: Variant) -> String:
 	var default_text: String = U_LocalizationUtils.localize(&"hud.checkpoint_reached")
+	var with_label_template: String = U_LocalizationUtils.localize(&"hud.checkpoint_with_label")
 	var payload := _extract_event_payload(event_payload)
 	if payload.is_empty():
 		return default_text
 
 	var explicit_label: String = String(payload.get("checkpoint_label", payload.get("display_name", ""))).strip_edges()
 	if not explicit_label.is_empty():
-		var template: String = U_LocalizationUtils.localize(&"hud.checkpoint_with_label")
-		return template % explicit_label if template.contains("%") else "Checkpoint: %s" % explicit_label
+		return with_label_template % explicit_label if with_label_template.contains("%") else "Checkpoint: %s" % explicit_label
 
 	var checkpoint_id_value: Variant = payload.get("checkpoint_id", StringName(""))
 	var checkpoint_id: String = String(checkpoint_id_value).strip_edges()
 	var readable_name: String = _humanize_checkpoint_id(checkpoint_id)
 	if readable_name.is_empty():
 		return default_text
-	var template: String = U_LocalizationUtils.localize(&"hud.checkpoint_with_label")
-	return template % readable_name if template.contains("%") else "Checkpoint: %s" % readable_name
+	return with_label_template % readable_name if with_label_template.contains("%") else "Checkpoint: %s" % readable_name
 
 func _humanize_checkpoint_id(raw_id: String) -> String:
 	var cleaned := raw_id.strip_edges()

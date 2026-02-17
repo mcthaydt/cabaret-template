@@ -15,6 +15,11 @@ const ACTION_LABEL_KEYS := {
 const OVERLAY_TITLE_KEY := &"overlay.input_profile_selector.title"
 const OVERLAY_PROFILE_LABEL_KEY := &"overlay.input_profile_selector.profile_label"
 const OVERLAY_RESET_BUTTON_KEY := &"overlay.input_profile_selector.reset_button"
+const OVERLAY_TITLE_FALLBACK := "Input Profile"
+const OVERLAY_PROFILE_LABEL_FALLBACK := "Profile"
+const OVERLAY_RESET_BUTTON_FALLBACK := "Reset to Defaults"
+const COMMON_APPLY_FALLBACK := "Apply"
+const COMMON_CANCEL_FALLBACK := "Cancel"
 
 @onready var _heading_label: Label = $CenterContainer/Panel/MainContainer/HeadingLabel
 @onready var _profile_label: Label = $CenterContainer/Panel/MainContainer/ProfileRow/ProfileLabel
@@ -334,15 +339,21 @@ func _on_locale_changed(_locale: StringName) -> void:
 
 func _localize_static_labels() -> void:
 	if _heading_label != null:
-		_heading_label.text = U_LOCALIZATION_UTILS.localize(OVERLAY_TITLE_KEY)
+		_heading_label.text = _localize_with_fallback(OVERLAY_TITLE_KEY, OVERLAY_TITLE_FALLBACK)
 	if _profile_label != null:
-		_profile_label.text = U_LOCALIZATION_UTILS.localize(OVERLAY_PROFILE_LABEL_KEY)
+		_profile_label.text = _localize_with_fallback(OVERLAY_PROFILE_LABEL_KEY, OVERLAY_PROFILE_LABEL_FALLBACK)
 	if _apply_button != null:
-		_apply_button.text = U_LOCALIZATION_UTILS.localize(&"common.apply")
+		_apply_button.text = _localize_with_fallback(&"common.apply", COMMON_APPLY_FALLBACK)
 	if _cancel_button != null:
-		_cancel_button.text = U_LOCALIZATION_UTILS.localize(&"common.cancel")
+		_cancel_button.text = _localize_with_fallback(&"common.cancel", COMMON_CANCEL_FALLBACK)
 	if _reset_button != null:
-		_reset_button.text = U_LOCALIZATION_UTILS.localize(OVERLAY_RESET_BUTTON_KEY)
+		_reset_button.text = _localize_with_fallback(OVERLAY_RESET_BUTTON_KEY, OVERLAY_RESET_BUTTON_FALLBACK)
+
+func _localize_with_fallback(key: StringName, fallback: String) -> String:
+	var localized := U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return fallback
+	return localized
 
 func _transition_back_to_settings_scene() -> void:
 	var store := get_store()

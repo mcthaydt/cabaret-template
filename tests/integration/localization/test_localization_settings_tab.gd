@@ -207,10 +207,13 @@ func test_apply_locale_change_requires_confirm_and_keep_persists_selection() -> 
 		"Keep should preserve the newly selected locale"
 	)
 
-func test_language_confirm_cancel_reverts_to_previous_locale() -> void:
+func test_language_confirm_cancel_reverts_to_previous_locale_and_dyslexia() -> void:
 	var overlay := await _instantiate_overlay()
 	var tab := _get_tab(overlay)
 	assert_not_null(tab, "LocalizationSettingsTab should exist")
+
+	tab._dyslexia_toggle.button_pressed = true
+	await get_tree().process_frame
 
 	var es_index: int = tab.SUPPORTED_LOCALES.find(&"es")
 	assert_true(es_index >= 0, "Spanish locale option should exist")
@@ -234,11 +237,18 @@ func test_language_confirm_cancel_reverts_to_previous_locale() -> void:
 		&"en",
 		"Cancel should revert locale to pre-change value"
 	)
+	assert_false(
+		U_LOCALIZATION_SELECTORS.is_dyslexia_font_enabled(_store.get_state()),
+		"Cancel should revert dyslexia setting to pre-change value"
+	)
 
-func test_language_confirm_timer_reverts_to_previous_locale() -> void:
+func test_language_confirm_timer_reverts_to_previous_locale_and_dyslexia() -> void:
 	var overlay := await _instantiate_overlay()
 	var tab := _get_tab(overlay)
 	assert_not_null(tab, "LocalizationSettingsTab should exist")
+
+	tab._dyslexia_toggle.button_pressed = true
+	await get_tree().process_frame
 
 	var pt_index: int = tab.SUPPORTED_LOCALES.find(&"pt")
 	assert_true(pt_index >= 0, "Portuguese locale option should exist")
@@ -262,6 +272,10 @@ func test_language_confirm_timer_reverts_to_previous_locale() -> void:
 		U_LOCALIZATION_SELECTORS.get_locale(_store.get_state()),
 		&"en",
 		"Timer expiry should revert locale to pre-change value"
+	)
+	assert_false(
+		U_LOCALIZATION_SELECTORS.is_dyslexia_font_enabled(_store.get_state()),
+		"Timer expiry should revert dyslexia setting to pre-change value"
 	)
 
 func test_state_changes_refresh_ui_when_not_editing() -> void:

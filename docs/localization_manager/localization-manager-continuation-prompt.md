@@ -28,6 +28,10 @@
 
 ## Last Work
 
+- 2026-02-17: Applied post-refactor TDD regression fix for localization confirm rollback:
+  - Added integration assertions in `tests/integration/localization/test_localization_settings_tab.gd` to verify cancel/timer rollback restores both locale and dyslexia toggle.
+  - Fixed `UI_LocalizationSettingsTab` pre-change snapshot wiring so confirm rollback restores store-backed dyslexia state instead of edited preview value.
+  - Re-ran localization integration/unit manager/style suites; all pass.
 - 2026-02-17: Completed Phase 9 (documentation + completion handoff):
   - Updated `localization-manager-overview.md` to reflect final helper architecture and current localization settings UX behavior.
   - Updated `localization-manager-plan.md` status/overview to reflect completed refactor scope (Phases 2-9 complete).

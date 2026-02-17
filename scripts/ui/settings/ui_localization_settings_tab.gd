@@ -189,9 +189,10 @@ func _on_apply_pressed() -> void:
 	var dyslexia := _get_dyslexia_value()
 	var state := _state_store.get_state()
 	var current_locale: StringName = U_LOCALIZATION_SELECTORS.get_locale(state)
+	var current_dyslexia: bool = U_LOCALIZATION_SELECTORS.is_dyslexia_font_enabled(state)
 
 	if locale != current_locale:
-		_begin_language_confirm(locale, dyslexia, current_locale)
+		_begin_language_confirm(locale, dyslexia, current_locale, current_dyslexia)
 		return
 
 	_has_local_edits = false
@@ -228,10 +229,15 @@ func _on_reset_pressed() -> void:
 
 # --- Language confirm dialog ---
 
-func _begin_language_confirm(locale: StringName, dyslexia: bool, pre_locale: StringName) -> void:
+func _begin_language_confirm(
+	locale: StringName,
+	dyslexia: bool,
+	pre_locale: StringName,
+	pre_dyslexia: bool
+) -> void:
 	_pending_locale = locale
 	_pre_change_locale = pre_locale
-	_pre_change_dyslexia = dyslexia
+	_pre_change_dyslexia = pre_dyslexia
 	_language_confirm_active = true
 	_language_confirm_seconds_left = LANGUAGE_CONFIRM_SECONDS
 	_has_local_edits = false

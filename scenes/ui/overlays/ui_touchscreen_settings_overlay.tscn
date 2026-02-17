@@ -55,7 +55,6 @@ size_flags_vertical = 3
 
 [node name="Title" type="Label" parent="CenterContainer/Panel/VBox" unique_id=1310404473]
 layout_mode = 2
-text = ""
 horizontal_alignment = 1
 
 [node name="JoystickSizeRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=1619193681]
@@ -65,7 +64,6 @@ size_flags_horizontal = 3
 [node name="JoystickSizeLabel" type="Label" parent="CenterContainer/Panel/VBox/JoystickSizeRow" unique_id=2056439183]
 layout_mode = 2
 size_flags_horizontal = 3
-text = ""
 
 [node name="JoystickSizeSlider" type="HSlider" parent="CenterContainer/Panel/VBox/JoystickSizeRow" unique_id=1218420599]
 unique_name_in_owner = true
@@ -89,7 +87,6 @@ size_flags_horizontal = 3
 [node name="ButtonSizeLabel" type="Label" parent="CenterContainer/Panel/VBox/ButtonSizeRow" unique_id=1463253879]
 layout_mode = 2
 size_flags_horizontal = 3
-text = ""
 
 [node name="ButtonSizeSlider" type="HSlider" parent="CenterContainer/Panel/VBox/ButtonSizeRow" unique_id=1208991181]
 unique_name_in_owner = true
@@ -113,7 +110,6 @@ size_flags_horizontal = 3
 [node name="JoystickOpacityLabel" type="Label" parent="CenterContainer/Panel/VBox/JoystickOpacityRow" unique_id=1034153399]
 layout_mode = 2
 size_flags_horizontal = 3
-text = ""
 
 [node name="JoystickOpacitySlider" type="HSlider" parent="CenterContainer/Panel/VBox/JoystickOpacityRow" unique_id=23851418]
 unique_name_in_owner = true
@@ -137,7 +133,6 @@ size_flags_horizontal = 3
 [node name="ButtonOpacityLabel" type="Label" parent="CenterContainer/Panel/VBox/ButtonOpacityRow" unique_id=1676869864]
 layout_mode = 2
 size_flags_horizontal = 3
-text = ""
 
 [node name="ButtonOpacitySlider" type="HSlider" parent="CenterContainer/Panel/VBox/ButtonOpacityRow" unique_id=1883700590]
 unique_name_in_owner = true
@@ -161,7 +156,6 @@ size_flags_horizontal = 3
 [node name="JoystickDeadzoneLabel" type="Label" parent="CenterContainer/Panel/VBox/JoystickDeadzoneRow" unique_id=925009840]
 layout_mode = 2
 size_flags_horizontal = 3
-text = ""
 
 [node name="JoystickDeadzoneSlider" type="HSlider" parent="CenterContainer/Panel/VBox/JoystickDeadzoneRow" unique_id=2124048799]
 unique_name_in_owner = true
@@ -191,19 +185,15 @@ alignment = 2
 [node name="CancelButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=927025568]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 
 [node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=61448703]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 
 [node name="EditLayoutButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1079759614]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 
 [node name="ApplyButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1808149678]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""

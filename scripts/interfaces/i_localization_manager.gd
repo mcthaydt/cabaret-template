@@ -6,6 +6,7 @@ class_name I_LocalizationManager
 ## Implementations:
 ## - M_LocalizationManager (production)
 
+@warning_ignore("unused_signal")
 signal locale_changed(locale: StringName)
 
 func set_locale(_locale: StringName) -> void:

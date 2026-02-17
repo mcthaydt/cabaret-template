@@ -31,14 +31,14 @@ Refactor localization to match manager quality standards used by display/audio: 
 
 - [x] Re-read `docs/general/DEV_PITFALLS.md`. (2026-02-16)
 - [x] Re-read `docs/general/STYLE_GUIDE.md`. (2026-02-16)
-- [ ] Capture baseline status:
-  - [ ] `tests/unit/managers/test_localization_manager.gd`
-  - [ ] `tests/unit/managers/helpers/test_locale_file_loader.gd`
-  - [ ] `tests/unit/utils/test_localization_utils.gd`
-  - [ ] `tests/unit/ui/test_localization_root.gd`
-  - [ ] `tests/integration/localization/test_locale_switching.gd`
-  - [ ] `tests/integration/localization/test_font_override.gd`
-  - [ ] `tests/integration/localization/test_localization_persistence.gd`
+- [x] Capture baseline status: (re-verified 2026-02-17)
+  - [x] `tests/unit/managers/test_localization_manager.gd`
+  - [x] `tests/unit/managers/helpers/test_locale_file_loader.gd`
+  - [x] `tests/unit/utils/test_localization_utils.gd`
+  - [x] `tests/unit/ui/test_localization_root.gd`
+  - [x] `tests/integration/localization/test_locale_switching.gd`
+  - [x] `tests/integration/localization/test_font_override.gd`
+  - [x] `tests/integration/localization/test_localization_persistence.gd`
 
 ---
 

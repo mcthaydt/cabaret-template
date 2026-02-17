@@ -64,7 +64,6 @@ size_flags_vertical = 3
 
 [node name="Title" type="Label" parent="CenterContainer/Panel/VBox" unique_id=700404802]
 layout_mode = 2
-text = ""
 horizontal_alignment = 1
 
 [node name="ToggleRow" type="HBoxContainer" parent="CenterContainer/Panel/VBox" unique_id=1291019013]
@@ -74,11 +73,9 @@ size_flags_horizontal = 3
 [node name="DragModeCheck" type="CheckButton" parent="CenterContainer/Panel/VBox/ToggleRow" unique_id=1606151652]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 
 [node name="Instructions" type="Label" parent="CenterContainer/Panel/VBox" unique_id=1002408163]
 layout_mode = 2
-text = ""
 horizontal_alignment = 1
 autowrap_mode = 2
 
@@ -90,14 +87,11 @@ alignment = 2
 [node name="CancelButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1736597240]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 
 [node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1323491505]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 
 [node name="SaveButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1809533134]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""

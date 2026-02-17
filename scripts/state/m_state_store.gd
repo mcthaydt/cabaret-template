@@ -121,13 +121,18 @@ func _sync_navigation_initial_scene() -> void:
 	var nav_slice: Dictionary = _state.get("navigation", {})
 	if nav_slice.is_empty():
 		return
+	var current_shell: StringName = nav_slice.get("shell", StringName(""))
+	# Respect explicitly configured non-main-menu shells (for gameplay/integration fixtures).
+	if current_shell != StringName("main_menu"):
+		return
+	var current_scene: StringName = nav_slice.get("base_scene_id", StringName(""))
+	# Preserve explicit main_menu shell scene overrides (for standalone settings flows/tests).
+	if current_scene != StringName("") and current_scene != StringName("main_menu") and current_scene != StringName("language_selector"):
+		return
 	var localization_slice: Dictionary = _state.get("localization", {})
 	var has_selected_language: bool = bool(localization_slice.get("has_selected_language", false))
 	var target_scene: StringName = StringName("main_menu") if has_selected_language else StringName("language_selector")
 	var target_shell: StringName = StringName("main_menu")
-
-	var current_scene: StringName = nav_slice.get("base_scene_id", StringName(""))
-	var current_shell: StringName = nav_slice.get("shell", StringName(""))
 	if current_scene == target_scene and current_shell == target_shell:
 		return
 

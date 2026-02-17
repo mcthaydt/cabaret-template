@@ -55,20 +55,17 @@ size_flags_vertical = 3
 
 [node name="Title" type="Label" parent="CenterContainer/Panel/VBox" unique_id=1731382528]
 layout_mode = 2
-text = ""
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="StatusLabel" type="Label" parent="CenterContainer/Panel/VBox" unique_id=238594900]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 autowrap_mode = 2
 
 [node name="SearchBox" type="LineEdit" parent="CenterContainer/Panel/VBox" unique_id=1389934968]
 unique_name_in_owner = true
 layout_mode = 2
-placeholder_text = ""
 clear_button_enabled = true
 
 [node name="Scroll" type="ScrollContainer" parent="CenterContainer/Panel/VBox" unique_id=123124521]
@@ -88,12 +85,10 @@ alignment = 2
 [node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=2024587835]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 
 [node name="CloseButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=87717856]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 
 [node name="ConflictDialog" type="ConfirmationDialog" parent="." unique_id=1065537033]
 unique_name_in_owner = true
@@ -102,7 +97,6 @@ title = ""
 [node name="ResetConfirmDialog" type="ConfirmationDialog" parent="." unique_id=852541736]
 unique_name_in_owner = true
 title = ""
-dialog_text = ""
 
 [node name="ErrorDialog" type="AcceptDialog" parent="." unique_id=38881268]
 unique_name_in_owner = true

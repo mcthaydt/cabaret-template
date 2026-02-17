@@ -27,8 +27,6 @@ var _preview_controller := U_LOCALIZATION_PREVIEW_CONTROLLER.new()
 var _root_registry := U_LOCALIZATION_ROOT_REGISTRY.new()
 var _active_locale: StringName = &""
 var _translations: Dictionary = {}
-# Compatibility mirror for existing tests during refactor.
-var _ui_roots: Array[Node] = []
 var _last_localization_hash: int = 0
 
 var _dyslexia_enabled: bool = false
@@ -55,7 +53,6 @@ func _exit_tree() -> void:
 		if _resolved_store.slice_updated.is_connected(_on_slice_updated):
 			_resolved_store.slice_updated.disconnect(_on_slice_updated)
 	_root_registry.clear()
-	_sync_ui_roots_for_tests()
 	_resolved_store = null
 
 func _initialize_store_async() -> void:
@@ -153,12 +150,10 @@ func set_dyslexia_font_enabled(enabled: bool) -> void:
 
 func register_ui_root(root: Node) -> void:
 	if _root_registry.register_root(root):
-		_sync_ui_roots_for_tests()
 		_font_applier.apply_theme_to_root(root, _font_theme)
 
 func unregister_ui_root(root: Node) -> void:
 	_root_registry.unregister_root(root)
-	_sync_ui_roots_for_tests()
 
 ## Preview mode: applies locale + font visually without dispatching to store.
 ## Used by settings UI for live preview while editing.
@@ -189,17 +184,12 @@ func _apply_font_override(dyslexia_enabled: bool) -> void:
 	_font_theme = _font_applier.build_theme(_active_locale, dyslexia_enabled)
 	for root: Node in _root_registry.get_live_roots():
 		_font_applier.apply_theme_to_root(root, _font_theme)
-	_sync_ui_roots_for_tests()
 
 func _get_active_font(dyslexia_enabled: bool = false) -> Font:
 	return _font_applier.get_active_font(_active_locale, dyslexia_enabled)
 
 func _notify_ui_roots() -> void:
 	_root_registry.notify_locale_changed(_active_locale)
-	_sync_ui_roots_for_tests()
-
-func _sync_ui_roots_for_tests() -> void:
-	_ui_roots = _root_registry.get_live_roots()
 
 func _await_store_ready_soft(max_frames: int = 60) -> I_StateStore:
 	var tree := get_tree()

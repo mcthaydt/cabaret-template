@@ -55,7 +55,6 @@ size_flags_vertical = 3
 
 [node name="Title" type="Label" parent="CenterContainer/Panel/VBox" unique_id=479097257]
 layout_mode = 2
-text = ""
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -69,7 +68,6 @@ size_flags_horizontal = 3
 [node name="ShakeEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/ShakeEnabledRow" unique_id=621040662]
 layout_mode = 2
 size_flags_horizontal = 3
-text = ""
 
 [node name="ShakeEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/ShakeEnabledRow" unique_id=567053578]
 unique_name_in_owner = true
@@ -84,7 +82,6 @@ size_flags_horizontal = 3
 [node name="IntensityLabel" type="Label" parent="CenterContainer/Panel/VBox/ShakeIntensityRow" unique_id=613434608]
 layout_mode = 2
 size_flags_horizontal = 3
-text = ""
 
 [node name="IntensitySlider" type="HSlider" parent="CenterContainer/Panel/VBox/ShakeIntensityRow" unique_id=1031488075]
 unique_name_in_owner = true
@@ -110,7 +107,6 @@ size_flags_horizontal = 3
 [node name="FlashEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/FlashEnabledRow" unique_id=1997847511]
 layout_mode = 2
 size_flags_horizontal = 3
-text = ""
 
 [node name="FlashEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/FlashEnabledRow" unique_id=630126435]
 unique_name_in_owner = true
@@ -125,7 +121,6 @@ size_flags_horizontal = 3
 [node name="ParticlesEnabledLabel" type="Label" parent="CenterContainer/Panel/VBox/ParticlesEnabledRow" unique_id=1557170091]
 layout_mode = 2
 size_flags_horizontal = 3
-text = ""
 
 [node name="ParticlesEnabledToggle" type="CheckButton" parent="CenterContainer/Panel/VBox/ParticlesEnabledRow" unique_id=1201343904]
 unique_name_in_owner = true
@@ -145,14 +140,11 @@ alignment = 2
 [node name="CancelButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=231636240]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 
 [node name="ResetButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1298362725]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
 
 [node name="ApplyButton" type="Button" parent="CenterContainer/Panel/VBox/ButtonRow" unique_id=1039263468]
 unique_name_in_owner = true
 layout_mode = 2
-text = ""
