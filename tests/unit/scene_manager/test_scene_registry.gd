@@ -231,3 +231,21 @@ func test_gameplay_scenes_backfilled_with_loading_transition() -> void:
 	assert_eq(String(bar.get("default_transition", "")), "loading", "bar backfill should prefer loading transition")
 
 	U_SceneRegistry._scenes = scenes_backup
+
+## Test localization settings UI scene is backfilled when registry resources are missing
+func test_localization_settings_scene_backfilled_when_missing() -> void:
+	var scenes_backup: Dictionary = (U_SceneRegistry._scenes as Dictionary).duplicate(true)
+
+	U_SceneRegistry._scenes.erase(StringName("localization_settings"))
+	U_SceneRegistry._backfill_default_gameplay_scenes()
+
+	var localization_settings: Dictionary = U_SceneRegistry.get_scene(StringName("localization_settings"))
+	assert_false(localization_settings.is_empty(), "localization_settings should be registered by backfill")
+	assert_eq(localization_settings.get("scene_type", -1), U_SceneRegistry.SceneType.UI, "localization_settings should be UI type")
+	assert_eq(
+		String(localization_settings.get("path", "")),
+		"res://scenes/ui/overlays/settings/ui_localization_settings_overlay.tscn",
+		"localization_settings should point to the localization settings overlay scene"
+	)
+
+	U_SceneRegistry._scenes = scenes_backup
