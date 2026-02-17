@@ -288,7 +288,7 @@ Production asset files use type-specific prefixes:
     ```
   - **Note**: Textures are mapped to actions, not specific key bindings. When user rebinds an action, the texture remains the same (shows action's registered glyph, not the new key).
 
-## Localization Manager Patterns (Phase 3 Refactor)
+## Localization Manager Patterns (Phase 4 Refactor)
 
 - Catalog ownership moved to `scripts/managers/helpers/localization/u_localization_catalog.gd` (`U_LocalizationCatalog`):
   - uses const-preloaded `RS_LocaleTranslations` resources (mobile-safe, no runtime file IO)
@@ -301,6 +301,9 @@ Production asset files use type-specific prefixes:
   - `build_theme(locale, dyslexia_enabled)` resolves active font with CJK priority (`zh_CN`, `ja`) over dyslexia toggle
   - `apply_theme_to_root(root, theme)` handles `Control` roots and `CanvasLayer` direct `Control` children
   - use `load()` for `.ttf`/`.otf` assets and treat missing fonts as no-op (null theme)
+- Root lifecycle ownership moved to `scripts/managers/helpers/localization/u_localization_root_registry.gd` (`U_LocalizationRootRegistry`):
+  - use registry APIs for `register_root`, `unregister_root`, and `notify_locale_changed`
+  - registry prunes dead nodes before iteration; manager should not mutate root arrays directly
 
 ## Scene Manager Patterns (Phase 10 Complete)
 

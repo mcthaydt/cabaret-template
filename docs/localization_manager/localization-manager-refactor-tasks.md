@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-15  
 **Status:** In progress  
-**Progress:** 47% (28 / 59 tasks complete)
+**Progress:** 56% (33 / 59 tasks complete)
 
 ## Goal
 
@@ -115,15 +115,15 @@ Refactor localization to match manager quality standards used by display/audio: 
 
 **Exit Criteria:** Root lifecycle management is centralized and leak-resistant.
 
-- [ ] **Task 4.1 (Red)**: Add registry tests:
-  - [ ] register once / no duplicates
-  - [ ] unregister behavior
-  - [ ] dead-node pruning
-  - [ ] locale change notifications (`_on_locale_changed`)
-- [ ] **Task 4.2 (Green)**: Create `scripts/managers/helpers/localization/u_localization_root_registry.gd`.
-- [ ] **Task 4.3**: Move `_ui_roots` list operations from manager to registry helper.
-- [ ] **Task 4.4**: Route `register_ui_root` / `unregister_ui_root` through registry helper.
-- [ ] **Task 4.5**: Update `scripts/ui/helpers/u_localization_root.gd` tests if lifecycle behavior changes.
+- [x] **Task 4.1 (Red)**: Add registry tests: (done 2026-02-17 in `tests/unit/managers/helpers/localization/test_localization_root_registry.gd`)
+  - [x] register once / no duplicates
+  - [x] unregister behavior
+  - [x] dead-node pruning
+  - [x] locale change notifications (`_on_locale_changed`)
+- [x] **Task 4.2 (Green)**: Create `scripts/managers/helpers/localization/u_localization_root_registry.gd`. (done 2026-02-17)
+- [x] **Task 4.3**: Move `_ui_roots` list operations from manager to registry helper. (done 2026-02-17)
+- [x] **Task 4.4**: Route `register_ui_root` / `unregister_ui_root` through registry helper. (done 2026-02-17)
+- [x] **Task 4.5**: Update `scripts/ui/helpers/u_localization_root.gd` tests if lifecycle behavior changes. (existing tests pass without behavior changes; verified 2026-02-17)
 
 ---
 
@@ -242,7 +242,7 @@ The following translation coverage gaps were identified and should be addressed 
 - [ ] **Task 8.2**: Add helper-focused test files:
   - [ ] `tests/unit/managers/helpers/localization/test_localization_catalog.gd`
   - [ ] `tests/unit/managers/helpers/localization/test_localization_font_applier.gd`
-  - [ ] `tests/unit/managers/helpers/localization/test_localization_root_registry.gd`
+  - [x] `tests/unit/managers/helpers/localization/test_localization_root_registry.gd` (added 2026-02-17)
   - [ ] `tests/unit/managers/helpers/localization/test_localization_preview_controller.gd`
 - [ ] **Task 8.3**: Keep integration tests for end-to-end guarantees only.
 - [ ] **Task 8.4**: Run and record full localization suite status.

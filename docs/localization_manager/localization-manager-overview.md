@@ -333,9 +333,8 @@ _font_applier.load_fonts()
 
 # On locale/font setting updates
 var theme := _font_applier.build_theme(_active_locale, _dyslexia_enabled)
-for root in _ui_roots:
-    if is_instance_valid(root):
-        _font_applier.apply_theme_to_root(root, theme)
+for root in _root_registry.get_live_roots():
+    _font_applier.apply_theme_to_root(root, theme)
 ```
 
 ### CJK Font Override
@@ -368,6 +367,7 @@ scripts/managers/helpers/
   u_locale_file_loader.gd        # Compatibility shim
   localization/u_localization_catalog.gd   # Catalog merge + cache + fallback helper
   localization/u_localization_font_applier.gd   # Font selection + theme application helper
+  localization/u_localization_root_registry.gd  # Root lifecycle + locale notification helper
 
 scripts/utils/localization/
   u_localization_utils.gd        # Static localize() and localize_fmt() helpers; register_ui_root()
@@ -461,6 +461,7 @@ store.dispatch(U_LocalizationActions.set_ui_scale_override(1.1))
 - `U_LocalizationSelectors`: Selector return values for all fields.
 - `U_LocalizationCatalog`: Merge logic for `.tres` catalogs, duplicate key resolution (last resource wins), fallback chain, cache invalidation.
 - `U_LocalizationFontApplier`: Locale-aware font selection and root theme application behavior.
+- `U_LocalizationRootRegistry`: Root registration/unregistration, dead-node pruning, locale notification behavior.
 
 ### Integration Tests
 
