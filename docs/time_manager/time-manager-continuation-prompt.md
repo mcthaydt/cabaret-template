@@ -17,7 +17,7 @@ The implementation is split into 5 phases:
 
 - **Phase 1**: Core refactor — replace M_PauseManager (6 commits, includes 14 TDD tests)
 - **Phase 2**: Timescale support (3 commits, includes 7 TDD tests)
-- **Phase 3**: World clock (2 commits, includes 12 TDD tests)
+- **Phase 3**: World clock (2 commits, includes 13 TDD tests)
 - **Phase 4**: Redux state & persistence (6 commits)
 - **Phase 5**: Documentation (1 commit — AGENTS.md only)
 
@@ -48,7 +48,7 @@ We are on branch `TimeManager` implementing `M_TimeManager` to replace `M_PauseM
 4. Mark tasks complete in `time-manager-tasks.md` after each commit
 5. Update the "Current status" line in this file after each phase
 6. Commit at the end of each logical milestone (test-green state)
-7. Do NOT create documentation unless asked — the plan doc is already written
+7. Do not create new planning docs unless asked; always keep `time-manager-tasks.md` and this continuation prompt updated after each phase (plus AGENTS/DEV_PITFALLS updates when new patterns or pitfalls are discovered)
 
 **Phase 1 test commands** (run after Commit 6):
 ```bash
@@ -74,6 +74,6 @@ Start with Phase 1, Commit 1: create `u_pause_system.gd` with stubs + `test_time
 |-------|--------|-------|
 | Phase 1: Core Refactor | Not started | 14 TDD tests (10 unit + 4 integration) |
 | Phase 2: Timescale | Not started | Blocked by Phase 1; 7 TDD tests |
-| Phase 3: World Clock | Not started | Blocked by Phase 2; 12 TDD tests |
+| Phase 3: World Clock | Not started | Blocked by Phase 2; 13 TDD tests |
 | Phase 4: Redux State | Not started | Blocked by Phase 3 |
 | Phase 5: Documentation | Not started | Blocked by Phase 4; AGENTS.md only |

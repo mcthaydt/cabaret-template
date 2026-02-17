@@ -52,12 +52,12 @@ Before implementation, study these reference files:
 - `test_request_pause_single_channel` — request → `compute_is_paused()` returns `true`
 - `test_release_pause_single_channel` — request then release → `compute_is_paused()` returns `false`
 - `test_ref_counting` — 2 requests, 1 release → still paused; 2nd release → not paused
-- `test_multiple_channels` — request UI + cutscene, release UI → still paused (cutscene active)
+- `test_multiple_channels` — request cutscene + debug, release cutscene → still paused (debug active)
 - `test_is_channel_paused` — only requested channel returns `true`
 - `test_get_active_channels` — returns only channels with count > 0
 - `test_derive_from_overlay_state_pauses` — `derive_pause_from_overlay_state(1)` → `CHANNEL_UI` active
 - `test_derive_from_overlay_state_unpauses` — `derive_pause_from_overlay_state(0)` → `CHANNEL_UI` inactive
-- `test_release_below_zero_clamps` — release without request → count stays 0, no error
+- `test_release_below_zero_clamps_and_ui_manual_noop` — release without request clamps; manual request/release of `CHANNEL_UI` is ignored (derive-only channel)
 
 **Implementation**:
 
@@ -78,10 +78,14 @@ const CHANNEL_SYSTEM := &"system"
 var _channels: Dictionary = {}
 
 func request_pause(channel: StringName) -> void:
+    if channel == CHANNEL_UI:
+        return  # CHANNEL_UI is derive-only (overlay-driven)
     var count: int = _channels.get(channel, 0)
     _channels[channel] = count + 1
 
 func release_pause(channel: StringName) -> void:
+    if channel == CHANNEL_UI:
+        return  # CHANNEL_UI is derive-only (overlay-driven)
     var count: int = _channels.get(channel, 0)
     _channels[channel] = maxi(count - 1, 0)
     if _channels[channel] == 0:
@@ -105,6 +109,7 @@ func get_active_channels() -> Array[StringName]:
 
 ## Called by M_TimeManager when overlay count changes.
 ## Auto-drives CHANNEL_UI: count = 1 if overlays > 0, else erased.
+## Manual request/release of CHANNEL_UI is intentionally ignored.
 func derive_pause_from_overlay_state(overlay_count: int) -> void:
     if overlay_count > 0:
         _channels[CHANNEL_UI] = 1
@@ -511,18 +516,20 @@ func get_scaled_delta(raw_delta: float) -> float:
 
 ```gdscript
 # Add lazy-cached member:
-var _time_manager: Node = null  # Resolved once via ServiceLocator
-var _time_manager_resolved: bool = false
+var _time_manager: Node = null  # Resolved via ServiceLocator (retry when unavailable)
+
+func _resolve_time_manager() -> void:
+    if _time_manager != null and is_instance_valid(_time_manager):
+        return
+    _time_manager = U_ServiceLocator.try_get_service(StringName("time_manager"))
 
 func _physics_process(delta: float) -> void:
     _ensure_systems_sorted()
     if _sorted_systems.is_empty():
         return
 
-    # Lazy-lookup time_manager (once)
-    if not _time_manager_resolved:
-        _time_manager = U_ServiceLocator.try_get_service(StringName("time_manager"))
-        _time_manager_resolved = true
+    # Lazy-lookup time_manager (with retry)
+    _resolve_time_manager()
 
     # Apply timescale
     var scaled_delta: float = delta
@@ -567,6 +574,7 @@ func _physics_process(delta: float) -> void:
 - `test_advance_one_hour` — advance by `60.0` → hour becomes 9
 - `test_day_rollover` — advance past midnight → `day_count` increments
 - `test_set_time` — `set_time(14, 30)` → hour 14, minute 30
+- `test_set_state_hydrates_persisted_values` — `set_state(total, day_count, speed)` restores persisted runtime values
 - `test_set_speed` — `set_speed(2.0)` → advance `1.0` second → 2 minutes elapsed
 - `test_is_daytime_true` — hour 12 → `true`
 - `test_is_daytime_false` — hour 22 → `false`
@@ -630,6 +638,14 @@ func set_time(hour: int, minute: int) -> void:
     var current_day_base: float = float(day_count - 1) * MINUTES_PER_DAY
     total_minutes = current_day_base + float(clampi(hour, 0, 23) * 60 + clampi(minute, 0, 59))
 
+func set_state(next_total_minutes: float, next_day_count: int, next_speed: float) -> void:
+    total_minutes = maxf(next_total_minutes, 0.0)
+    day_count = maxi(next_day_count, 1)
+    var minimum_total_for_day: float = float(day_count - 1) * MINUTES_PER_DAY
+    if total_minutes < minimum_total_for_day:
+        day_count = int(total_minutes / MINUTES_PER_DAY) + 1
+    minutes_per_real_second = maxf(next_speed, 0.0)
+
 func set_speed(mps: float) -> void:
     minutes_per_real_second = maxf(mps, 0.0)
 
@@ -671,6 +687,7 @@ func _on_world_minute_changed(_minute: int) -> void:
 
 func _on_world_hour_changed(hour: int) -> void:
     world_hour_changed.emit(hour)
+    # NOTE: Store sync remains minute-driven to avoid duplicate dispatches.
 
 # Replace stubs:
 func get_world_time() -> Dictionary:
@@ -678,9 +695,11 @@ func get_world_time() -> Dictionary:
 
 func set_world_time(hour: int, minute: int) -> void:
     _world_clock.set_time(hour, minute)
+    _dispatch_world_time_snapshot()  # Phase 4 wires store dispatch
 
 func set_world_time_speed(mps: float) -> void:
     _world_clock.set_speed(mps)
+    _dispatch_world_time_snapshot()  # Phase 4 wires store dispatch
 
 func is_daytime() -> bool:
     return _world_clock.is_daytime()
@@ -930,7 +949,7 @@ static func is_daytime(state: Dictionary) -> bool:
 const RS_TIME_INITIAL_STATE := preload("res://scripts/resources/state/rs_time_initial_state.gd")
 
 # Add export (after line ~70):
-@export var time_initial_state: Resource
+@export var time_initial_state: RS_TimeInitialState
 
 # Update _initialize_slices() call to pass new param:
 U_STATE_SLICE_MANAGER.initialize_slices(
@@ -996,6 +1015,49 @@ static func initialize_slices(
 ```gdscript
 const U_TimeActions := preload("res://scripts/state/actions/u_time_actions.gd")
 const U_GameplayActions := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const TIME_SLICE_NAME := StringName("time")
+
+var _is_hydrating_time_slice: bool = false
+
+# In _initialize(), after store subscription:
+_hydrate_from_time_slice(_store.get_slice(TIME_SLICE_NAME))
+
+# In _on_slice_updated():
+if slice_name == TIME_SLICE_NAME:
+    _hydrate_from_time_slice(slice_state)
+    return
+
+func _hydrate_from_time_slice(slice_state: Dictionary) -> void:
+    if slice_state.is_empty():
+        return
+    if _is_hydrating_time_slice:
+        return
+    _is_hydrating_time_slice = true
+    _timescale_controller.set_timescale(float(slice_state.get("timescale", 1.0)))
+    _world_clock.set_state(
+        float(slice_state.get("world_total_minutes", 480.0)),
+        int(slice_state.get("world_day_count", 1)),
+        float(slice_state.get("world_time_speed", 1.0))
+    )
+    _is_hydrating_time_slice = false
+
+func _dispatch_world_time_snapshot() -> void:
+    if _store == null or _is_hydrating_time_slice:
+        return
+    var time_data: Dictionary = _world_clock.get_time()
+    _store.dispatch(U_TimeActions.update_world_time(
+        int(time_data.get("hour", 8)),
+        int(time_data.get("minute", 0)),
+        float(time_data.get("total_minutes", 480.0)),
+        int(time_data.get("day_count", 1)),
+    ))
+
+func set_timescale(scale: float) -> void:
+    _timescale_controller.set_timescale(scale)
+    var clamped: float = _timescale_controller.get_timescale()
+    timescale_changed.emit(clamped)
+    if _store != null and not _is_hydrating_time_slice:
+        _store.dispatch(U_TimeActions.update_timescale(clamped))
 
 # In _check_and_resync_pause_state, after pause_state_changed.emit:
 if pause_changed:
@@ -1014,14 +1076,7 @@ if pause_changed:
 
 # In _on_world_minute_changed:
 func _on_world_minute_changed(_minute: int) -> void:
-    if _store:
-        var time_data: Dictionary = _world_clock.get_time()
-        _store.dispatch(U_TimeActions.update_world_time(
-            time_data.get("hour", 8),
-            time_data.get("minute", 0),
-            time_data.get("total_minutes", 480.0),
-            time_data.get("day_count", 1),
-        ))
+    _dispatch_world_time_snapshot()
 
 # In _on_world_hour_changed:
 func _on_world_hour_changed(hour: int) -> void:
@@ -1067,7 +1122,7 @@ timescale control, and a world simulation clock.
 
 - `request_pause(channel)` / `release_pause(channel)` — reference-counted per channel
 - Predefined: `U_PauseSystem.CHANNEL_UI`, `CHANNEL_CUTSCENE`, `CHANNEL_DEBUG`, `CHANNEL_SYSTEM`
-- `CHANNEL_UI` auto-driven from overlay stack size (preserves M_PauseManager behavior)
+- `CHANNEL_UI` auto-driven from overlay stack size (preserves M_PauseManager behavior); reserve this channel for manager-derived state only
 - Gameplay runs only when ALL channels have count zero
 
 ### Timescale
@@ -1118,7 +1173,7 @@ timescale control, and a world simulation clock.
 
 ### Phase 3 Complete
 
-- [ ] U_WorldClock unit tests pass (11 tests — written first, TDD)
+- [ ] U_WorldClock unit tests pass (12 tests — written first, TDD)
 - [ ] M_TimeManager world clock integration test passes (1 test — written first, TDD)
 - [ ] World clock advances during gameplay
 - [ ] World clock stops when any pause channel active
@@ -1131,13 +1186,14 @@ timescale control, and a world simulation clock.
 
 - [ ] `time` slice registered in M_StateStore
 - [ ] Transient fields (`is_paused`, `active_channels`, `timescale`) reset on save/load
-- [ ] Persisted fields (`world_hour`, `world_minute`, etc.) survive save/load
+- [ ] Persisted fields (`world_hour`, `world_minute`, `world_total_minutes`, `world_day_count`, `world_time_speed`) survive save/load
+- [ ] M_TimeManager rehydrates runtime timescale/world-clock from `time` slice on startup and save/load apply flows
 - [ ] `gameplay.paused` mirror syncs on every pause transition
 - [ ] `is_daytime` recomputed by reducer from world_hour
 
 ### Phase 5 Complete
 
-- [ ] All 33 new tests pass (verified across Phases 1–4)
+- [ ] All 34 new tests pass (verified across Phases 1–4)
 - [ ] All existing integration tests pass
 - [ ] AGENTS.md updated with Time Manager Patterns section
 - [ ] ServiceLocator service list includes `"time_manager"`
@@ -1154,7 +1210,7 @@ timescale control, and a world simulation clock.
 
 4. **`test_style_enforcement.gd` has TWO locations to update**: The ECS systems prefix map (line 67) AND the root scene structure assertion (lines 303–337). Missing either causes test failures.
 
-5. **Transient fields must use `StringName`**: `RS_StateSliceConfig.transient_fields` expects `StringName` entries, not plain strings.
+5. **Use `StringName` entries for new time-slice transient fields**: keep `RS_StateSliceConfig.transient_fields` consistent with existing typed patterns (`StringName("is_paused")`, etc.).
 
 6. **`gameplay.paused` mirror must be dispatched, not set directly**: Use `U_GameplayActions.pause_game()` / `unpause_game()`. The gameplay reducer already handles these actions.
 
@@ -1162,7 +1218,11 @@ timescale control, and a world simulation clock.
 
 8. **`_on_world_hour_changed` must NOT call `_on_world_minute_changed`**: `U_WorldClock.advance()` fires the minute callback before the hour callback within the same tick. Calling the minute handler from inside the hour handler causes a double-dispatch of `update_world_time` on every hour transition. The minute callback alone is sufficient.
 
-9. **5 additional production files have stale `M_PauseManager` comments** (not functional code — do not block Phase 1 completion, but can be cleaned up opportunistically): `m_scene_manager.gd`, `m_save_manager.gd`, `m_cursor_manager.gd`, `u_service_locator.gd`, `tests/unit/test_cursor_manager.gd`.
+9. **Do not one-shot cache a missing time manager in ECS**: if `M_ECSManager` resolves `time_manager` once and it is null, timescale remains permanently disabled for that ECS manager. Retry lookup when null/invalid.
+
+10. **Rehydrate runtime from the `time` slice**: persisting `world_day_count`/`world_total_minutes` is insufficient unless `M_TimeManager` applies those values back into `U_WorldClock` after startup/load. Skipping this causes save/load drift and selector/runtime mismatch.
+
+11. **5 additional production files have stale `M_PauseManager` comments** (not functional code — do not block Phase 1 completion, but can be cleaned up opportunistically): `m_scene_manager.gd`, `m_save_manager.gd`, `m_cursor_manager.gd`, `u_service_locator.gd`, `tests/unit/test_cursor_manager.gd`.
 
 ---
 

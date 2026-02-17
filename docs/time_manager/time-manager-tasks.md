@@ -52,11 +52,11 @@
 
 **Goal**: In-game simulation clock; pauses with gameplay; configurable speed.
 
-- [ ] **Commit 1** — Create `u_world_clock.gd` + add U_WorldClock unit tests to test file (TDD; 11 tests)
+- [ ] **Commit 1** — Create `u_world_clock.gd` + add U_WorldClock unit tests to test file (TDD; 12 tests)
 - [ ] **Commit 2** — Wire world clock into `m_time_manager.gd` + add world clock integration test (TDD; 1 test; `_physics_process` advance, replace stubs, `world_hour_changed` signal)
 
 **Phase 3 verification**:
-- [ ] U_WorldClock unit tests pass (11 tests)
+- [ ] U_WorldClock unit tests pass (12 tests)
 - [ ] M_TimeManager world clock integration test passes (1 test)
 - [ ] World clock advances during gameplay
 - [ ] World clock stops when any pause channel active
@@ -76,12 +76,13 @@
 - [ ] **Commit 3** — Create `u_time_reducer.gd` (U_TimeReducer with `_with_values()` helper)
 - [ ] **Commit 4** — Create `u_time_selectors.gd` (U_TimeSelectors static getters)
 - [ ] **Commit 5** — Register `time` slice in `m_state_store.gd` + `u_state_slice_manager.gd` (14th param); wire `scenes/root.tscn`
-- [ ] **Commit 6** — Wire store dispatches into `m_time_manager.gd` (`update_pause_state`, `update_world_time`, `gameplay.paused` mirror)
+- [ ] **Commit 6** — Wire store dispatches/hydration into `m_time_manager.gd` (`update_pause_state`, `update_timescale`, `update_world_time`, `gameplay.paused` mirror, startup/load reconciliation from `time` slice)
 
 **Phase 4 verification**:
 - [ ] `time` slice registered in M_StateStore
 - [ ] Transient fields (`is_paused`, `active_channels`, `timescale`) reset on save/load
-- [ ] Persisted fields (`world_hour`, `world_minute`, etc.) survive save/load
+- [ ] Persisted fields (`world_hour`, `world_minute`, `world_total_minutes`, `world_day_count`, `world_time_speed`) survive save/load
+- [ ] M_TimeManager rehydrates runtime timescale/world clock from `time` slice on startup and save/load
 - [ ] `gameplay.paused` mirror syncs on every pause transition
 - [ ] `is_daytime` recomputed by reducer from world_hour
 
@@ -94,7 +95,7 @@
 - [ ] **Commit 1** — Update `AGENTS.md` (add Time Manager Patterns section; update ServiceLocator service list)
 
 **Phase 5 verification**:
-- [ ] All 33 new tests pass (verified across Phases 1–4)
+- [ ] All 34 new tests pass (verified across Phases 1–4)
 - [ ] All existing integration tests pass
 - [ ] AGENTS.md updated with Time Manager Patterns section
 - [ ] ServiceLocator service list includes `"time_manager"`

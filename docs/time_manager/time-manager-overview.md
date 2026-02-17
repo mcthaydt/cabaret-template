@@ -8,7 +8,7 @@
 
 ## Summary
 
-`M_TimeManager` replaces `M_PauseManager` as the central time authority. It absorbs pause logic into a `U_PauseSystem` helper with layered channels, adds timescale control via `U_TimescaleController`, and introduces an in-game world simulation clock via `U_WorldClock`. `S_PlaytimeSystem` (elapsed gameplay time) remains in ECS unchanged.
+`M_TimeManager` replaces `M_PauseManager` as the central time authority. It absorbs pause logic into a `U_PauseSystem` helper with layered channels, adds timescale control via `U_TimescaleController`, and introduces an in-game world simulation clock via `U_WorldClock`. `S_PlaytimeSystem` (elapsed gameplay time) remains in ECS unchanged. Runtime authority stays inside `M_TimeManager`; the Redux `time` slice is a synchronized mirror for persistence and selectors.
 
 ## Repo Reality Checks
 
@@ -66,14 +66,15 @@ M_TimeManager (scripts/managers/m_time_manager.gd)  [extends Node]
 - Timescale multiplier (delegates to `U_TimescaleController`).
 - World simulation clock (delegates to `U_WorldClock`).
 - Cursor coordination with `M_CursorManager` based on pause state AND scene type (ported from `M_PauseManager`).
-- Redux `time` slice dispatches for world clock state changes.
+- Redux `time` slice dispatches for pause/timescale/world-clock changes.
+- Time slice hydration/reconciliation after store boot and save-load restore.
 - Backward-compat sync of `gameplay.paused` mirror field.
 - `_process()` loop for overlay resync polling (preserves existing `M_PauseManager` behavior).
 - `_physics_process()` for world clock advance (aligns with ECS physics timing).
 
 ### M_TimeManager depends on
 
-- `M_StateStore`: Subscribes to `scene` slice for overlay/scene-type changes; dispatches `time` and `gameplay` actions.
+- `M_StateStore`: Subscribes to `scene` slice (pause derivation) and `time` slice (hydration/reconciliation); dispatches `time` and `gameplay` actions.
 - `M_CursorManager`: Optional cursor coordination (same pattern as current `M_PauseManager`).
 - `UIOverlayStack`: Direct polling for immediate pause detection (bridges state sync timing gap).
 - `U_ServiceLocator`: Registration as both `"time_manager"` and `"pause_manager"` (backward compat).
@@ -117,7 +118,7 @@ signal world_hour_changed(hour: int)
 
 | Channel Constant | StringName | Purpose |
 |------------------|------------|---------|
-| `CHANNEL_UI` | `&"ui"` | Overlays/menus open — auto-driven by overlay stack size |
+| `CHANNEL_UI` | `&"ui"` | Overlays/menus open — auto-driven by overlay stack size (reserved, not manual) |
 | `CHANNEL_CUTSCENE` | `&"cutscene"` | Cutscene playback |
 | `CHANNEL_DEBUG` | `&"debug"` | Debug/editor pause |
 | `CHANNEL_SYSTEM` | `&"system"` | System-level pause (loading, save operations) |
@@ -125,11 +126,11 @@ signal world_hour_changed(hour: int)
 ### Reference Counting
 
 - Internal storage: `Dictionary` mapping `StringName` channel → `int` count.
-- `request_pause(channel)` increments the channel's count. Count 0→1 = channel becomes active.
-- `release_pause(channel)` decrements (clamped to 0). Count 1→0 = channel becomes inactive.
+- `request_pause(channel)` increments the channel's count for non-UI channels. Count 0→1 = channel becomes active.
+- `release_pause(channel)` decrements (clamped to 0) for non-UI channels. Count 1→0 = channel becomes inactive.
 - `compute_is_paused()` returns `true` if ANY channel has count > 0.
 - Gameplay runs only when ALL channels have count zero.
-- **`CHANNEL_UI` is auto-driven**: `M_TimeManager` calls `derive_pause_from_overlay_state(overlay_count)` which sets or clears the UI channel count. This preserves current `M_PauseManager` behavior.
+- **`CHANNEL_UI` is manager-reserved and auto-driven**: `M_TimeManager` calls `derive_pause_from_overlay_state(overlay_count)` which sets or clears the UI channel count. Manual `request_pause(CHANNEL_UI)` / `release_pause(CHANNEL_UI)` should be treated as no-op to avoid ref-count corruption.
 
 ### Engine Pause Application
 
@@ -140,6 +141,7 @@ signal world_hour_changed(hour: int)
 ```gdscript
 ## Called by M_TimeManager when overlay count changes.
 ## Sets CHANNEL_UI count to 1 if overlays > 0, or 0 if none.
+## CHANNEL_UI is reserved and should not be manually requested/released.
 func derive_pause_from_overlay_state(overlay_count: int) -> void
 
 ## Returns true if any channel has count > 0.
@@ -161,7 +163,10 @@ func get_active_channels() -> Array[StringName]
 `M_ECSManager._physics_process(delta)` is the **only** ECS file that changes:
 
 ```gdscript
-# Lazy-lookup time_manager via ServiceLocator (cached after first call)
+# Lazy-lookup time_manager via ServiceLocator (retry when unavailable/invalid)
+if _time_manager == null or not is_instance_valid(_time_manager):
+    _time_manager = U_ServiceLocator.try_get_service(StringName("time_manager"))
+
 var scaled_delta: float = delta
 if _time_manager:
     scaled_delta = _time_manager.get_scaled_delta(delta)
@@ -204,6 +209,7 @@ var minute: int = minutes_today % 60
 func advance(scaled_delta: float) -> void   # Called by M_TimeManager._physics_process when not paused
 func get_time() -> Dictionary                # {hour, minute, total_minutes, day_count}
 func set_time(hour: int, minute: int) -> void
+func set_state(total_minutes: float, day_count: int, minutes_per_real_second: float) -> void
 func set_speed(minutes_per_real_second: float) -> void
 func is_daytime() -> bool                    # Configurable sunrise/sunset hours (default 6:00–18:00)
 ```
@@ -232,8 +238,8 @@ func advance(scaled_delta: float) -> void:
 
 | Callable field | Signature | Raised when |
 |----------------|-----------|-------------|
-| `on_minute_changed` | `(minute: int) -> void` | Integer minute changes |
-| `on_hour_changed` | `(hour: int) -> void` | Hour transitions — `M_TimeManager` re-emits as `world_hour_changed` |
+| `on_minute_changed` | `(minute: int) -> void` | Integer minute changes (coalesced to current frame state, not replayed minute-by-minute for large deltas) |
+| `on_hour_changed` | `(hour: int) -> void` | Hour transitions — `M_TimeManager` re-emits as `world_hour_changed` (no extra store dispatch) |
 
 ## Redux Time Slice
 
@@ -257,6 +263,16 @@ func advance(scaled_delta: float) -> void:
     }
 }
 ```
+
+### Runtime ↔ Store Sync Contract
+
+- Runtime authority lives in `M_TimeManager` (`U_PauseSystem`, `U_TimescaleController`, `U_WorldClock`).
+- `M_TimeManager` dispatches to `time` slice on:
+  - pause transitions (`time/update_pause_state`)
+  - timescale changes (`time/update_timescale`)
+  - world-minute transitions and explicit set-time/speed API calls (`time/update_world_time`)
+- `M_TimeManager` hydrates runtime values from `time` slice on initialization and on external restore flows (`load_state` / `apply_loaded_state`) by handling `slice_updated("time", ...)`.
+- Slice reconciliation must be no-op when incoming state already matches runtime values to avoid feedback loops.
 
 ### Transient vs Persisted
 
@@ -294,7 +310,7 @@ Controlled by `RS_StateSliceConfig.transient_fields` (an `Array[StringName]`). B
 |-----------------|---------|-------------|
 | `time/update_pause_state` | `{is_paused: bool, active_channels: Array}` | Sync pause state to store |
 | `time/update_timescale` | `float` | Sync timescale to store |
-| `time/update_world_time` | `{hour, minute, total_minutes, day_count}` | Dispatched on minute changes |
+| `time/update_world_time` | `{world_hour, world_minute, world_total_minutes, world_day_count}` | Dispatched on minute changes and explicit set-time/speed calls |
 | `time/set_world_time` | `{hour: int, minute: int}` | Manual time set |
 | `time/set_world_time_speed` | `float` | Change clock speed |
 
@@ -362,7 +378,7 @@ tests/unit/managers/
 6. Update `test_style_enforcement.gd`:
    - Line 67: remove `# m_ for M_PauseManager` exception from ECS systems prefix map (delete `"m_"` from that entry).
    - Lines 303/322–323/337: rename `has_pause_manager` → `has_time_manager`, update the node name check to `"M_TimeManager"`, update the assert message.
-7. Update all 9 test files that reference `M_PauseManager` class name or `m_pause_manager.gd` path (see list below).
+7. Update all compile-time test references to `M_PauseManager` class name or `m_pause_manager.gd` path (see list below; verify with repo-wide `rg` before deleting the old file).
 8. Delete `scripts/managers/m_pause_manager.gd`.
 
 **All test files to update** (complete list from codebase scan):
@@ -395,7 +411,7 @@ tests/unit/managers/
 
 1. Create `U_TimescaleController` (extends `RefCounted`) — `set_timescale(scale)` clamped `[0.01, 10.0]`, `get_scaled_delta(raw_delta)`.
 2. Wire into `M_TimeManager` — expose `set_timescale()`, `get_timescale()`, `get_scaled_delta()`, emit `timescale_changed`.
-3. Modify `m_ecs_manager.gd` `_physics_process(delta)` — lazy-lookup `time_manager` via ServiceLocator, call `time_manager.get_scaled_delta(delta)`, pass scaled delta to `system.process_tick()`. Fallback to raw delta if no time_manager.
+3. Modify `m_ecs_manager.gd` `_physics_process(delta)` — lazy-lookup `time_manager` via ServiceLocator with retry (do not one-shot cache failure), call `time_manager.get_scaled_delta(delta)`, pass scaled delta to `system.process_tick()`. Fallback to raw delta if no time_manager.
 
 ### Phase 3: World Clock
 
@@ -403,11 +419,11 @@ tests/unit/managers/
 
 **Steps**:
 
-1. Create `U_WorldClock` (extends `RefCounted`) — `Callable` fields `on_minute_changed` / `on_hour_changed`. Implement `advance(scaled_delta)`, `get_time()`, `set_time(hour, minute)`, `set_speed(mps)`, `is_daytime()` (configurable sunrise/sunset hours).
+1. Create `U_WorldClock` (extends `RefCounted`) — `Callable` fields `on_minute_changed` / `on_hour_changed`. Implement `advance(scaled_delta)`, `get_time()`, `set_time(hour, minute)`, `set_state(total_minutes, day_count, speed)`, `set_speed(mps)`, `is_daytime()` (configurable sunrise/sunset hours).
 2. Wire into `M_TimeManager._ready()` — create `_world_clock`, register callbacks `_on_world_minute_changed` / `_on_world_hour_changed`.
 3. Wire into `M_TimeManager._physics_process(delta)` — when not paused, call `_world_clock.advance(get_scaled_delta(delta))`.
 4. In `_on_world_minute_changed`: dispatch `U_TimeActions.update_world_time()` to store.
-5. In `_on_world_hour_changed`: dispatch store update and emit `world_hour_changed` signal.
+5. In `_on_world_hour_changed`: emit `world_hour_changed` signal only (minute callback already handles store sync for that tick).
 
 ### Phase 4: Redux State & Persistence
 
@@ -416,22 +432,23 @@ tests/unit/managers/
 **Files to modify** (3 files, not 1):
 
 1. `scripts/resources/state/rs_time_initial_state.gd` — new resource class with `to_dictionary()`.
-2. `scripts/state/m_state_store.gd` — add `@export var time_initial_state: RS_TimeInitialState` and `const U_TIME_REDUCER := preload(...)` and `const RS_TIME_INITIAL_STATE := preload(...)`.
+2. `scripts/state/m_state_store.gd` — add `@export var time_initial_state: RS_TimeInitialState` and pass it to `U_StateSliceManager.initialize_slices(...)`.
 3. `scripts/state/utils/u_state_slice_manager.gd` — extend `initialize_slices()` signature with `time_initial_state: Resource = null` parameter; add a `time` slice block with `transient_fields = [StringName("is_paused"), StringName("active_channels"), StringName("timescale")]`.
 
 **Steps**:
 
 1. Create `RS_TimeInitialState` — all world clock fields as `@export` vars, `to_dictionary()` returns full state shape.
 2. Create `U_TimeActions` — action constants (`time/update_pause_state`, `time/update_timescale`, `time/update_world_time`, `time/set_world_time`, `time/set_world_time_speed`), `_static_init()` registers all.
-3. Create `U_TimeReducer` — pure `reduce(state, action)` function; for `time/update_world_time`, recompute `is_daytime` from the incoming `hour` field.
+3. Create `U_TimeReducer` — pure `reduce(state, action)` function; for `time/update_world_time`, recompute `is_daytime` from the incoming `world_hour` field.
 4. Create `U_TimeSelectors` — one static function per readable field.
 5. Register the `time` slice in `U_StateSliceManager.initialize_slices()` with `transient_fields = [&"is_paused", &"active_channels", &"timescale"]`.
-6. `M_TimeManager` dispatches `U_GameplayActions.pause_game()` / `unpause_game()` on pause transitions (no gameplay reducer changes needed — those actions are already handled).
-7. Create `cfg_time_initial_state.tres` as instance of `RS_TimeInitialState`; wire it to `M_StateStore.time_initial_state` in `root.tscn`.
+6. `M_TimeManager` dispatches `U_GameplayActions.pause_game()` / `unpause_game()` on pause transitions, dispatches `time/update_timescale` on timescale changes, and dispatches `time/update_world_time` on world-minute and explicit set-time/speed updates.
+7. `M_TimeManager` hydrates `U_TimescaleController` + `U_WorldClock` from `time` slice on startup and external restore (`slice_updated("time", ...)`) using no-op reconciliation guards.
+8. Create `cfg_time_initial_state.tres` as instance of `RS_TimeInitialState`; wire it to `M_StateStore.time_initial_state` in `root.tscn`.
 
 ### Phase 5: Documentation
 
-**TDD note**: Tests are written within Phases 1–3 (not deferred to Phase 5). `test_time_manager.gd` is created in Phase 1 Commit 1 and extended in Phases 2–3. Total: 33 tests (10 + 6 + 11 unit + 4 + 1 + 1 integration).
+**TDD note**: Tests are written within Phases 1–3 (not deferred to Phase 5). `test_time_manager.gd` is created in Phase 1 Commit 1 and extended in Phases 2–3. Total: 34 tests (10 + 6 + 12 unit + 4 + 1 + 1 integration).
 
 **AGENTS.md updates**:
 
@@ -447,7 +464,7 @@ tests/unit/managers/
 4. Setting timescale to 0.5 halves ECS system speed.
 5. World clock advances during gameplay, stops when paused.
 6. `U_NavigationSelectors.is_paused()` and `U_GameplaySelectors.get_is_paused()` unchanged.
-7. Save/load preserves world clock state (hour, minute, day_count, speed).
+7. Save/load preserves and rehydrates world clock state (hour, minute, total_minutes, day_count, speed).
 8. `U_ServiceLocator.get_service("pause_manager")` still returns a node with `is_paused()`.
 9. `test_style_enforcement.gd` passes with no assertion failures.
 10. `on_minute_changed` callback fires exactly once per in-game minute.
@@ -468,7 +485,7 @@ tests/unit/managers/
 | Does S_PlaytimeSystem change? | No — tracks real elapsed time independently |
 | Where does timescale scaling happen? | `M_ECSManager._physics_process()` — single integration point |
 | Is timescale persisted? | No, transient — resets to 1.0 on load |
-| Is world clock persisted? | Yes, hour/minute/day_count/speed persist in time slice |
+| Is world clock persisted? | Yes, hour/minute/total_minutes/day_count/speed persist in time slice and are rehydrated by M_TimeManager |
 | How are transient fields excluded from saves? | Via `RS_StateSliceConfig.transient_fields` — stripped before both StateHandoff and disk saves |
 | How many test files reference M_PauseManager? | 10 (including test_poc_pause_system.gd and test_style_enforcement.gd) |
 | How many files does Phase 4 slice registration touch? | 3: `m_state_store.gd`, `u_state_slice_manager.gd`, new `rs_time_initial_state.gd` |
