@@ -45,6 +45,7 @@ var _checkpoint_toast_tween: Tween = null
 var _signpost_panel_tween: Tween = null
 var _health_bar_bg_style: StyleBoxFlat = null
 var _health_bar_fill_style: StyleBoxFlat = null
+var _pending_prompt_localization_refresh: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -144,18 +145,13 @@ func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> voi
 		_hide_signpost_panel()
 		# Force unblock interact when paused (no interactions possible anyway)
 		U_InteractBlocker.force_unblock()
+		return
+	if slice_name == StringName("localization"):
+		_queue_prompt_localization_refresh()
 
 func _on_locale_changed(_locale: StringName) -> void:
 	_localize_static_labels()
-	if interact_prompt == null or _active_prompt_id == 0:
-		return
-	_last_prompt_text = U_LocalizationUtils.localize(_last_prompt_key)
-	if _store != null and _is_paused(_store.get_state()):
-		interact_prompt.hide_prompt()
-		return
-	if _toast_active or _signpost_panel_active:
-		return
-	interact_prompt.show_prompt(_last_prompt_action, _last_prompt_text)
+	_refresh_active_prompt_localization()
 
 func _localize_static_labels() -> void:
 	if autosave_spinner_label != null:
@@ -460,6 +456,27 @@ func _on_interact_prompt_show(payload: Variant) -> void:
 	if _toast_active or _signpost_panel_active:
 		return
 	interact_prompt.show_prompt(action_name, prompt_text)
+
+func _queue_prompt_localization_refresh() -> void:
+	if _pending_prompt_localization_refresh:
+		return
+	_pending_prompt_localization_refresh = true
+	call_deferred("_apply_prompt_localization_refresh")
+
+func _apply_prompt_localization_refresh() -> void:
+	_pending_prompt_localization_refresh = false
+	_refresh_active_prompt_localization()
+
+func _refresh_active_prompt_localization() -> void:
+	if interact_prompt == null or _active_prompt_id == 0:
+		return
+	_last_prompt_text = U_LocalizationUtils.localize(_last_prompt_key)
+	if _store != null and _is_paused(_store.get_state()):
+		interact_prompt.hide_prompt()
+		return
+	if _toast_active or _signpost_panel_active:
+		return
+	interact_prompt.show_prompt(_last_prompt_action, _last_prompt_text)
 
 func _on_interact_prompt_hide(payload: Variant) -> void:
 	if interact_prompt == null:
