@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-15  
 **Status:** In progress  
-**Progress:** 85% (50 / 59 tasks complete)
+**Progress:** 86% (51 / 59 tasks complete)
 
 ## Goal
 
@@ -187,10 +187,10 @@ Refactor localization to match manager quality standards used by display/audio: 
     - [x] add localization keys for overlay text and action group labels (action group labels done 2026-02-16; overlay labels completed 2026-02-17)
     - [x] update `resources/input/profiles/cfg_*.tres` to use localization keys for `profile_name` and `description` (done 2026-02-16)
     - [x] ensure UI resolves profile name/description via localization keys (done 2026-02-16)
-  - [ ] **Task 7.2a.7**: Localize Input rebinding overlay and helpers:
-    - [ ] `scripts/ui/overlays/ui_input_rebinding_overlay.gd` dialog/status/tooltips
-    - [ ] `scripts/ui/helpers/u_rebind_action_list_builder.gd` action/category labels via localization keys
-    - [ ] `scripts/ui/helpers/u_rebind_capture_handler.gd` capture status strings
+  - [x] **Task 7.2a.7**: Localize Input rebinding overlay and helpers: (localized overlay/dialog/status strings, builder action/category/button/tooltip labels, and capture/conflict/status messaging with new `overlay.input_rebinding.*` keys across en/es/pt/ja/zh_CN; updated overlay scene to runtime-localized labels only; verified via `tests/unit/ui/test_input_rebinding_overlay.gd`, `tests/integration/localization`, and style suite; done 2026-02-17)
+    - [x] `scripts/ui/overlays/ui_input_rebinding_overlay.gd` dialog/status/tooltips
+    - [x] `scripts/ui/helpers/u_rebind_action_list_builder.gd` action/category labels via localization keys
+    - [x] `scripts/ui/helpers/u_rebind_capture_handler.gd` capture status strings
   - [ ] **Task 7.2a.8**: Localize Save/Load menu (`scripts/ui/overlays/ui_save_load_menu.gd`):
     - [ ] autosave label, slot labels, confirm dialog text, error messages, loading text
     - [x] localized date formatting (month names + AM/PM tokens) (done 2026-02-16)
@@ -202,7 +202,7 @@ Refactor localization to match manager quality standards used by display/audio: 
     - [x] `scripts/scene_management/transitions/trans_loading_screen.gd` loading title text (runtime label localization verified; hardcoded loading fallback text removed from `ui_loading_screen.tscn`; done 2026-02-17)
     - [x] `scripts/ui/menus/ui_language_selector.gd` header/title label (title + locale button labels localized with live locale refresh; done 2026-02-17)
   - [ ] **Task 7.2a.11**: Add/verify localization keys across all locales:
-    - [x] update `resources/localization/cfg_locale_*_ui.tres` (en/es/pt/ja/zh_CN) for all added keys (input action/profile + date tokens added 2026-02-16)
+    - [x] update `resources/localization/cfg_locale_*_ui.tres` (en/es/pt/ja/zh_CN) for all added keys (input action/profile + date tokens added 2026-02-16; input rebinding overlay/action/category/status/error keys expanded 2026-02-17)
     - [ ] confirm no hardcoded user-facing strings remain in audited files
 - [x] **Task 7.3**: Ensure settings overlay preview/apply/cancel behavior remains unchanged in UX. (expanded `tests/integration/localization/test_localization_settings_tab.gd` for cancel/reset/state-sync + confirm cancel/timer flows; done 2026-02-17)
 - [x] **Task 7.4**: Add targeted regression tests for `UI_LocalizationSettingsTab` around preview + confirm timer flow. (added `tests/integration/localization/test_localization_settings_tab.gd`; done 2026-02-17)
@@ -220,9 +220,9 @@ The following translation coverage gaps were identified and should be addressed 
 - `scripts/ui/overlays/ui_edit_touch_controls_overlay.gd`: buttons, labels, and preview text are hardcoded.
 - `scripts/ui/overlays/ui_input_profile_selector.gd`: overlay labels, “default profiles” header, profile name/description fields, and action group labels should be localized. Profiles should source localized name/description via keys. (resolved 2026-02-17)
 - `resources/input/profiles/cfg_*.tres`: `profile_name` and `description` should be localization keys, not display strings.
-- `scripts/ui/overlays/ui_input_rebinding_overlay.gd`: all dialog text, tooltips, and status messages (including “press any key”, “already bound”, “reserved”, etc.) should be localized.
-- `scripts/ui/helpers/u_rebind_action_list_builder.gd`: action and category labels should be fetched via localization keys.
-- `scripts/ui/helpers/u_rebind_capture_handler.gd`: capture status strings should be localized.
+- `scripts/ui/overlays/ui_input_rebinding_overlay.gd`: all dialog text, tooltips, and status messages (including “press any key”, “already bound”, “reserved”, etc.) should be localized. (resolved 2026-02-17)
+- `scripts/ui/helpers/u_rebind_action_list_builder.gd`: action and category labels should be fetched via localization keys. (resolved 2026-02-17)
+- `scripts/ui/helpers/u_rebind_capture_handler.gd`: capture status strings should be localized. (resolved 2026-02-17)
 - `scripts/ui/overlays/ui_save_load_menu.gd`: autosave label, slot labels, confirm dialog text, error messages, loading text, and date formatting should be localized (month names + AM/PM via keys).
 - `scripts/ui/hud/ui_button_prompt.gd`: fallback “Interact” label should be localized.
 - `scripts/ui/hud/ui_virtual_button.gd`: action labels should be localized.

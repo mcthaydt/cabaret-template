@@ -1,7 +1,7 @@
 # Localization Manager Refactor - Continuation Prompt
 
 **Last Updated:** 2026-02-17
-**Status:** Refactor in progress. Progress 85% (50 / 59 tasks complete). Translation audit captured and partially resolved.
+**Status:** Refactor in progress. Progress 86% (51 / 59 tasks complete). Translation audit captured and partially resolved.
 
 ## Start Here
 
@@ -28,6 +28,13 @@
 
 ## Last Work
 
+- 2026-02-17: Completed Task 7.2a.7 (Input rebinding overlay + helper localization):
+  - Localized `UI_InputRebindingOverlay` title/search/buttons/dialog labels/status text via `overlay.input_rebinding.*` keys and added live locale relabel support for capture-state status updates.
+  - Localized `U_RebindActionListBuilder` category/action/button/tooltip/unbound text through localization keys and `input.action.*` display key lookups.
+  - Localized `U_RebindCaptureHandler` capture prompt/cancel/success/conflict/error flows and added localized validation-error mapping for rebind guardrails.
+  - Added expanded key coverage to `resources/localization/cfg_locale_*_ui.tres` (en/es/pt/ja/zh_CN), including rebinding overlay/status/error keys and missing action-label keys used by rebinding categories.
+  - Removed hardcoded rebinding overlay scene text defaults from `scenes/ui/overlays/ui_input_rebinding_overlay.tscn` so runtime localization fully owns labels.
+  - Verified `tests/unit/ui/test_input_rebinding_overlay.gd`, `tests/integration/localization`, and `tests/unit/style/test_style_enforcement.gd` all pass.
 - 2026-02-17: Completed Task 7.2a.6 (Input profile selector localization):
   - Localized overlay heading/profile/reset/apply/cancel labels in `UI_InputProfileSelector` via `overlay.input_profile_selector.*` + `common.*` keys.
   - Added matching locale keys across `cfg_locale_*_ui.tres` (en/es/pt/ja/zh_CN).
