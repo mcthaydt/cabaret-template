@@ -323,6 +323,9 @@ Production asset files use type-specific prefixes:
   - keep option entry metadata in catalogs (`U_DisplayOptionCatalog`) and expose `label_key` alongside `id`/`label`
   - localize option labels inside the catalog with `U_LocalizationUtils.localize(...)` + fallback, then repopulate tab `OptionButton` entries on `_on_locale_changed` while preserving selected ids
   - keep settings-tab section/row/button/dialog/tooltip labels in `settings.<domain>.*` keys and relocalize in-place on locale changes
+- Localization test-hardening pattern (Phase 8):
+  - prefer behavior assertions over private manager internals (`get("_field")`, private helper calls)
+  - for localization manager font/root behavior, assert via registered root theme state and locale-change callbacks rather than internal arrays/counters/fonts
 
 ## Scene Manager Patterns (Phase 10 Complete)
 

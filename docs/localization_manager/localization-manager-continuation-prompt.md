@@ -1,7 +1,7 @@
 # Localization Manager Refactor - Continuation Prompt
 
 **Last Updated:** 2026-02-17
-**Status:** Refactor in progress. Phase 7 complete (100% of Phase 0-7 tasks: 59 / 59). Phase 8 test-hardening is next.
+**Status:** Refactor in progress. Phase 8 complete (100% of Phase 0-8 tasks: 63 / 63). Phase 9 documentation sync is next.
 
 ## Start Here
 
@@ -28,6 +28,19 @@
 
 ## Last Work
 
+- 2026-02-17: Completed Phase 8 (test hardening):
+  - Completed Task 8.1 by replacing brittle localization tests that asserted `M_LocalizationManager` internals with behavior-based checks:
+    - updated `tests/unit/managers/test_localization_manager.gd` to validate store-sync, root-notification lifecycle, theme propagation, and CJK/dyslexia behavior through public APIs + root-observable behavior.
+    - updated `tests/integration/localization/test_font_override.gd` to validate CJK font precedence via registered root theme behavior (no private method/property access).
+  - Completed Task 8.3 by keeping integration coverage end-to-end (removed direct calls to `_get_active_font` and `_cjk_font` assertions).
+  - Completed Task 8.4 with full localization suite verification:
+    - `tests/unit/managers/test_localization_manager.gd` (25/25)
+    - `tests/unit/managers/helpers/localization` (20/20)
+    - `tests/unit/managers/helpers/test_locale_file_loader.gd` (3/3)
+    - `tests/unit/utils/test_localization_utils.gd` (5/5)
+    - `tests/unit/ui` localization scripts via `-gselect=localization` (10/10)
+    - `tests/integration/localization` (20/20)
+    - `tests/unit/style` (12/12)
 - 2026-02-17: Completed Phase 7 (UI integration cleanup + translation coverage audit):
   - Completed Task 7.2 and 7.2a top-level audit closure for direct UI localization-manager usage and translation coverage.
   - Completed Task 7.2a.4 (`UI_GamepadSettingsOverlay`) with localized title/labels/tooltips/preview prompts + live locale relabeling.
@@ -167,9 +180,9 @@
 
 ## Immediate Next Steps
 
-1. Begin Phase 8 Task 8.1: reduce brittle manager-internal localization tests by shifting assertions to helper and interface contracts.
-2. Complete Phase 8 Task 8.3/8.4: verify integration tests remain strictly end-to-end and record full localization suite run status.
-3. Begin Phase 9 docs sync (`overview`, `plan`, completion summary) after Phase 8 test-hardening changes are green.
+1. Begin Phase 9 Task 9.1/9.2: synchronize `localization-manager-overview.md` and `localization-manager-plan.md` with finalized helper architecture and Phase 8 test-hardening outcomes.
+2. Complete Phase 9 Task 9.3/9.4: finalize continuation prompt + tasks summary for refactor completion handoff.
+3. Complete Phase 9 Task 9.5/9.6 updates (`AGENTS.md`, `DEV_PITFALLS.md`) if additional reusable patterns/pitfalls emerge during final doc pass.
 
 ## Key Pitfalls
 

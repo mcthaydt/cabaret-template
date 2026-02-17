@@ -1,8 +1,8 @@
 # Localization Manager Refactor Tasks
 
 **Created:** 2026-02-15  
-**Status:** In progress (Phase 7 complete; Phase 8 next)  
-**Progress:** 100% (59 / 59 Phase 0-7 tasks complete)
+**Status:** In progress (Phase 8 complete; Phase 9 next)  
+**Progress:** 100% (63 / 63 Phase 0-8 tasks complete)
 
 ## Goal
 
@@ -238,14 +238,21 @@ The following translation coverage gaps were identified and should be addressed 
 
 **Exit Criteria:** Tests validate behavior, not internals; helper coverage is strong.
 
-- [ ] **Task 8.1**: Replace brittle tests that inspect private manager internals where possible.
+- [x] **Task 8.1**: Replace brittle tests that inspect private manager internals where possible. (completed 2026-02-17 by migrating localization manager and font override assertions from private fields/methods to behavior checks in `tests/unit/managers/test_localization_manager.gd` and `tests/integration/localization/test_font_override.gd`)
 - [ ] **Task 8.2**: Add helper-focused test files:
   - [x] `tests/unit/managers/helpers/localization/test_localization_catalog.gd` (added 2026-02-17)
   - [x] `tests/unit/managers/helpers/localization/test_localization_font_applier.gd` (added 2026-02-17)
   - [x] `tests/unit/managers/helpers/localization/test_localization_root_registry.gd` (added 2026-02-17)
   - [x] `tests/unit/managers/helpers/localization/test_localization_preview_controller.gd` (added 2026-02-17)
-- [ ] **Task 8.3**: Keep integration tests for end-to-end guarantees only.
-- [ ] **Task 8.4**: Run and record full localization suite status.
+- [x] **Task 8.3**: Keep integration tests for end-to-end guarantees only. (completed 2026-02-17; removed `M_LocalizationManager` private method/property assertions from integration coverage and validated via root-theme behavior in `tests/integration/localization/test_font_override.gd`)
+- [x] **Task 8.4**: Run and record full localization suite status. (completed 2026-02-17)
+  - [x] `tests/unit/managers/test_localization_manager.gd` (25/25 pass)
+  - [x] `tests/unit/managers/helpers/localization` (20/20 pass)
+  - [x] `tests/unit/managers/helpers/test_locale_file_loader.gd` (3/3 pass)
+  - [x] `tests/unit/utils/test_localization_utils.gd` (5/5 pass)
+  - [x] `tests/unit/ui` localization suites via `-gselect=localization` (10/10 pass)
+  - [x] `tests/integration/localization` (20/20 pass)
+  - [x] `tests/unit/style` (12/12 pass)
 
 ---
 
