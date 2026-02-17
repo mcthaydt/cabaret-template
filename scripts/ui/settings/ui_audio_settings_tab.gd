@@ -3,6 +3,22 @@ extends VBoxContainer
 class_name UI_AudioSettingsTab
 
 const I_AUDIO_MANAGER := preload("res://scripts/interfaces/i_audio_manager.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+
+const TITLE_KEY := &"settings.audio.title"
+const LABEL_MASTER_VOLUME_KEY := &"settings.audio.label.master_volume"
+const LABEL_MUSIC_VOLUME_KEY := &"settings.audio.label.music_volume"
+const LABEL_SFX_VOLUME_KEY := &"settings.audio.label.sfx_volume"
+const LABEL_AMBIENT_VOLUME_KEY := &"settings.audio.label.ambient_volume"
+const LABEL_MUTE_KEY := &"settings.audio.label.mute"
+const LABEL_SPATIAL_AUDIO_KEY := &"settings.audio.label.spatial_audio"
+const BUTTON_RESET_DEFAULTS_KEY := &"settings.audio.button.reset_defaults"
+
+const TOOLTIP_MASTER_VOLUME_KEY := &"settings.audio.tooltip.master_volume"
+const TOOLTIP_MUSIC_VOLUME_KEY := &"settings.audio.tooltip.music_volume"
+const TOOLTIP_SFX_VOLUME_KEY := &"settings.audio.tooltip.sfx_volume"
+const TOOLTIP_AMBIENT_VOLUME_KEY := &"settings.audio.tooltip.ambient_volume"
+const TOOLTIP_SPATIAL_AUDIO_KEY := &"settings.audio.tooltip.spatial_audio"
 
 var _state_store: I_StateStore = null
 var _audio_manager: Node = null
@@ -15,6 +31,14 @@ var _has_local_edits: bool = false
 @onready var _music_row: HBoxContainer = $MusicRow
 @onready var _sfx_row: HBoxContainer = $SFXRow
 @onready var _ambient_row: HBoxContainer = $AmbientRow
+
+# Static labels
+@onready var _heading_label: Label = $HeadingLabel
+@onready var _master_label: Label = $MasterRow/MasterLabel
+@onready var _music_label: Label = $MusicRow/MusicLabel
+@onready var _sfx_label: Label = $SFXRow/SFXLabel
+@onready var _ambient_label: Label = $AmbientRow/AmbientLabel
+@onready var _spatial_audio_label: Label = $SpatialAudioRow/SpatialAudioLabel
 
 # Master
 @onready var _master_volume_slider: HSlider = %MasterVolumeSlider
@@ -47,6 +71,8 @@ var _has_local_edits: bool = false
 func _ready() -> void:
 	_connect_signals()
 	_configure_focus_neighbors()
+	_localize_labels()
+	_configure_tooltips()
 
 	_state_store = U_ServiceLocator.get_service(StringName("state_store")) as I_StateStore
 	if _state_store == null:
@@ -94,6 +120,33 @@ func _connect_signals() -> void:
 		_cancel_button.pressed.connect(_on_cancel_pressed)
 	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
 		_reset_button.pressed.connect(_on_reset_pressed)
+
+func _configure_tooltips() -> void:
+	if _master_volume_slider != null:
+		_master_volume_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_MASTER_VOLUME_KEY,
+			"Controls overall game audio volume."
+		)
+	if _music_volume_slider != null:
+		_music_volume_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_MUSIC_VOLUME_KEY,
+			"Controls music playback volume."
+		)
+	if _sfx_volume_slider != null:
+		_sfx_volume_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_SFX_VOLUME_KEY,
+			"Controls sound effects volume."
+		)
+	if _ambient_volume_slider != null:
+		_ambient_volume_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_AMBIENT_VOLUME_KEY,
+			"Controls ambient/environment audio volume."
+		)
+	if _spatial_audio_toggle != null:
+		_spatial_audio_toggle.tooltip_text = _localize_with_fallback(
+			TOOLTIP_SPATIAL_AUDIO_KEY,
+			"Enables 3D positional audio effects."
+		)
 
 func _input(event: InputEvent) -> void:
 	var focused := get_viewport().gui_get_focus_owner()
@@ -478,3 +531,44 @@ func _clear_audio_settings_preview() -> void:
 	if audio_mgr == null:
 		return
 	audio_mgr.clear_audio_settings_preview()
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()
+	_configure_tooltips()
+
+func _localize_labels() -> void:
+	if _heading_label != null:
+		_heading_label.text = _localize_with_fallback(TITLE_KEY, "Audio Settings")
+	if _master_label != null:
+		_master_label.text = _localize_with_fallback(LABEL_MASTER_VOLUME_KEY, "Master Volume")
+	if _music_label != null:
+		_music_label.text = _localize_with_fallback(LABEL_MUSIC_VOLUME_KEY, "Music Volume")
+	if _sfx_label != null:
+		_sfx_label.text = _localize_with_fallback(LABEL_SFX_VOLUME_KEY, "SFX Volume")
+	if _ambient_label != null:
+		_ambient_label.text = _localize_with_fallback(LABEL_AMBIENT_VOLUME_KEY, "Ambient Volume")
+	if _spatial_audio_label != null:
+		_spatial_audio_label.text = _localize_with_fallback(LABEL_SPATIAL_AUDIO_KEY, "Spatial Audio (3D positioning)")
+
+	var mute_text: String = _localize_with_fallback(LABEL_MUTE_KEY, "Mute")
+	if _master_mute_toggle != null:
+		_master_mute_toggle.text = mute_text
+	if _music_mute_toggle != null:
+		_music_mute_toggle.text = mute_text
+	if _sfx_mute_toggle != null:
+		_sfx_mute_toggle.text = mute_text
+	if _ambient_mute_toggle != null:
+		_ambient_mute_toggle.text = mute_text
+
+	if _apply_button != null:
+		_apply_button.text = _localize_with_fallback(&"common.apply", "Apply")
+	if _cancel_button != null:
+		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
+	if _reset_button != null:
+		_reset_button.text = _localize_with_fallback(BUTTON_RESET_DEFAULTS_KEY, "Reset to Defaults")
+
+func _localize_with_fallback(key: StringName, fallback: String) -> String:
+	var localized: String = U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return fallback
+	return localized
