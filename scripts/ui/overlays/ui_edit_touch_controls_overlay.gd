@@ -4,8 +4,21 @@ class_name UI_EditTouchControlsOverlay
 
 const I_INPUT_DEVICE_MANAGER := preload("res://scripts/interfaces/i_input_device_manager.gd")
 const I_INPUT_PROFILE_MANAGER := preload("res://scripts/interfaces/i_input_profile_manager.gd")
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 
+const TITLE_KEY := &"overlay.edit_touch_controls.title"
+const LABEL_DRAG_MODE_KEY := &"overlay.edit_touch_controls.label.drag_mode"
+const INSTRUCTIONS_KEY := &"overlay.edit_touch_controls.instructions"
+const BUTTON_SAVE_POSITIONS_KEY := &"overlay.edit_touch_controls.button.save_positions"
+const BUTTON_RESET_DEFAULTS_KEY := &"overlay.edit_touch_controls.button.reset_defaults"
+
+const TOOLTIP_DRAG_MODE_KEY := &"overlay.edit_touch_controls.tooltip.drag_mode"
+const TOOLTIP_RESET_KEY := &"overlay.edit_touch_controls.tooltip.reset"
+const TOOLTIP_SAVE_KEY := &"overlay.edit_touch_controls.tooltip.save"
+
+@onready var _title_label: Label = $CenterContainer/Panel/VBox/Title
 @onready var _drag_mode_check: CheckButton = %DragModeCheck
+@onready var _instructions_label: Label = $CenterContainer/Panel/VBox/Instructions
 @onready var _cancel_button: Button = %CancelButton
 @onready var _reset_button: Button = %ResetButton
 @onready var _save_button: Button = %SaveButton
@@ -27,6 +40,8 @@ func _on_panel_ready() -> void:
 	_configure_focus_neighbors()
 	_capture_original_positions()
 	_set_drag_mode(false)
+	_localize_labels()
+	_configure_tooltips()
 
 	_drag_mode_check.toggled.connect(_on_drag_mode_toggled)
 	_cancel_button.pressed.connect(_on_cancel_pressed)
@@ -84,6 +99,23 @@ func _configure_focus_neighbors() -> void:
 func _exit_tree() -> void:
 	if _drag_mode_enabled:
 		_set_drag_mode(false)
+
+func _configure_tooltips() -> void:
+	if _drag_mode_check != null:
+		_drag_mode_check.tooltip_text = _localize_with_fallback(
+			TOOLTIP_DRAG_MODE_KEY,
+			"Enable drag mode to reposition controls."
+		)
+	if _reset_button != null:
+		_reset_button.tooltip_text = _localize_with_fallback(
+			TOOLTIP_RESET_KEY,
+			"Restore default touchscreen control positions."
+		)
+	if _save_button != null:
+		_save_button.tooltip_text = _localize_with_fallback(
+			TOOLTIP_SAVE_KEY,
+			"Save the current touchscreen control positions."
+		)
 
 func _capture_original_positions() -> void:
 	_original_positions.clear()
@@ -247,3 +279,31 @@ func _close_overlay() -> void:
 
 func _on_back_pressed() -> void:
 	_on_cancel_pressed()
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()
+	_configure_tooltips()
+
+func _localize_labels() -> void:
+	if _title_label != null:
+		_title_label.text = _localize_with_fallback(TITLE_KEY, "Edit Touch Controls")
+	if _drag_mode_check != null:
+		_drag_mode_check.text = _localize_with_fallback(LABEL_DRAG_MODE_KEY, "Enable Drag Mode")
+	if _instructions_label != null:
+		_instructions_label.text = _localize_with_fallback(
+			INSTRUCTIONS_KEY,
+			"Drag controls to reposition. Tap 'Save' when done."
+		)
+
+	if _cancel_button != null:
+		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
+	if _reset_button != null:
+		_reset_button.text = _localize_with_fallback(BUTTON_RESET_DEFAULTS_KEY, "Reset to Defaults")
+	if _save_button != null:
+		_save_button.text = _localize_with_fallback(BUTTON_SAVE_POSITIONS_KEY, "Save Positions")
+
+func _localize_with_fallback(key: StringName, fallback: String) -> String:
+	var localized: String = U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return fallback
+	return localized

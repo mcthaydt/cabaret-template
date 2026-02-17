@@ -2,7 +2,28 @@
 extends "res://scripts/ui/base/base_overlay.gd"
 class_name UI_GamepadSettingsOverlay
 
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 
+const TITLE_KEY := &"settings.gamepad.title"
+const LABEL_LEFT_DEADZONE_KEY := &"settings.gamepad.label.left_deadzone"
+const LABEL_RIGHT_DEADZONE_KEY := &"settings.gamepad.label.right_deadzone"
+const LABEL_VIBRATION_ENABLED_KEY := &"settings.gamepad.label.vibration_enabled"
+const LABEL_VIBRATION_INTENSITY_KEY := &"settings.gamepad.label.vibration_intensity"
+const BUTTON_RESET_DEFAULTS_KEY := &"settings.gamepad.button.reset_defaults"
+const PREVIEW_ENTER_PROMPT_KEY := &"settings.gamepad.preview.enter"
+const PREVIEW_EXIT_PROMPT_KEY := &"settings.gamepad.preview.exit"
+
+const TOOLTIP_LEFT_DEADZONE_KEY := &"settings.gamepad.tooltip.left_deadzone"
+const TOOLTIP_RIGHT_DEADZONE_KEY := &"settings.gamepad.tooltip.right_deadzone"
+const TOOLTIP_VIBRATION_ENABLED_KEY := &"settings.gamepad.tooltip.vibration_enabled"
+const TOOLTIP_VIBRATION_INTENSITY_KEY := &"settings.gamepad.tooltip.vibration_intensity"
+const TOOLTIP_PREVIEW_KEY := &"settings.gamepad.tooltip.preview"
+
+@onready var _title_label: Label = $CenterContainer/Panel/VBox/Title
+@onready var _left_deadzone_label: Label = $CenterContainer/Panel/VBox/LeftRow/LeftLabel
+@onready var _right_deadzone_label: Label = $CenterContainer/Panel/VBox/RightRow/RightLabel
+@onready var _vibration_enabled_label: Label = $CenterContainer/Panel/VBox/VibrationEnableRow/VibrationEnableLabel
+@onready var _vibration_intensity_label: Label = $CenterContainer/Panel/VBox/VibrationRow/VibrationLabel
 @onready var _left_slider: HSlider = %LeftDeadzoneSlider
 @onready var _right_slider: HSlider = %RightDeadzoneSlider
 @onready var _left_label: Label = %LeftDeadzoneValue
@@ -37,14 +58,14 @@ func _on_store_ready(store: M_StateStore) -> void:
 func _on_panel_ready() -> void:
 	_configure_focus_neighbors()
 	_connect_control_signals()
+	_localize_labels()
+	_configure_tooltips()
 	_configure_preview_prompts()
 
 func _configure_preview_prompts() -> void:
-	if _preview_enter_prompt != null:
-		_preview_enter_prompt.show_prompt(StringName("ui_accept"), "Press to test sticks")
-	if _preview_exit_prompt != null:
-		_preview_exit_prompt.show_prompt(StringName("ui_cancel"), "Press to exit preview")
-		_preview_exit_prompt.visible = false
+	_preview_active = false
+	_localize_preview_prompts()
+	_update_preview_prompt_visibility()
 	if _preview != null:
 		_preview.set_active(false)
 
@@ -103,6 +124,51 @@ func _connect_control_signals() -> void:
 	_cancel_button.pressed.connect(_on_cancel_pressed)
 	if _reset_button != null and not _reset_button.pressed.is_connected(_on_reset_pressed):
 		_reset_button.pressed.connect(_on_reset_pressed)
+
+func _configure_tooltips() -> void:
+	if _left_slider != null:
+		_left_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_LEFT_DEADZONE_KEY,
+			"Adjust deadzone for left stick movement."
+		)
+	if _right_slider != null:
+		_right_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_RIGHT_DEADZONE_KEY,
+			"Adjust deadzone for right stick camera/look."
+		)
+	if _vibration_checkbox != null:
+		_vibration_checkbox.tooltip_text = _localize_with_fallback(
+			TOOLTIP_VIBRATION_ENABLED_KEY,
+			"Enable or disable gamepad vibration feedback."
+		)
+	if _vibration_slider != null:
+		_vibration_slider.tooltip_text = _localize_with_fallback(
+			TOOLTIP_VIBRATION_INTENSITY_KEY,
+			"Adjust vibration strength."
+		)
+	if _preview != null:
+		_preview.tooltip_text = _localize_with_fallback(
+			TOOLTIP_PREVIEW_KEY,
+			"Focus and press confirm to test stick input."
+		)
+
+func _localize_preview_prompts() -> void:
+	if _preview_enter_prompt != null:
+		_preview_enter_prompt.show_prompt(
+			StringName("ui_accept"),
+			_localize_with_fallback(PREVIEW_ENTER_PROMPT_KEY, "Press to test sticks")
+		)
+	if _preview_exit_prompt != null:
+		_preview_exit_prompt.show_prompt(
+			StringName("ui_cancel"),
+			_localize_with_fallback(PREVIEW_EXIT_PROMPT_KEY, "Press to exit preview")
+		)
+
+func _update_preview_prompt_visibility() -> void:
+	if _preview_enter_prompt != null:
+		_preview_enter_prompt.visible = not _preview_active
+	if _preview_exit_prompt != null:
+		_preview_exit_prompt.visible = _preview_active
 
 func _on_state_changed(_action: Dictionary, state: Dictionary) -> void:
 	if state == null:
@@ -222,10 +288,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_preview_active = true
 			if _preview != null:
 				_preview.set_active(true)
-			if _preview_enter_prompt != null:
-				_preview_enter_prompt.visible = false
-			if _preview_exit_prompt != null:
-				_preview_exit_prompt.visible = true
+			_update_preview_prompt_visibility()
 			var viewport := get_viewport()
 			if viewport != null:
 				viewport.set_input_as_handled()
@@ -235,10 +298,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_preview_active = false
 			if _preview != null:
 				_preview.set_active(false)
-			if _preview_enter_prompt != null:
-				_preview_enter_prompt.visible = true
-			if _preview_exit_prompt != null:
-				_preview_exit_prompt.visible = false
+			_update_preview_prompt_visibility()
 			var viewport_cancel := get_viewport()
 			if viewport_cancel != null:
 				viewport_cancel.set_input_as_handled()
@@ -299,6 +359,38 @@ func _on_vibration_toggled(enabled: bool) -> void:
 	if enabled and _current_device_id >= 0 and not _updating_from_state:
 		var intensity := _vibration_slider.value
 		Input.start_joy_vibration(_current_device_id, 0.5 * intensity, 0.3 * intensity, 0.3)
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()
+	_configure_tooltips()
+
+func _localize_labels() -> void:
+	if _title_label != null:
+		_title_label.text = _localize_with_fallback(TITLE_KEY, "Gamepad Settings")
+	if _left_deadzone_label != null:
+		_left_deadzone_label.text = _localize_with_fallback(LABEL_LEFT_DEADZONE_KEY, "Left Deadzone")
+	if _right_deadzone_label != null:
+		_right_deadzone_label.text = _localize_with_fallback(LABEL_RIGHT_DEADZONE_KEY, "Right Deadzone")
+	if _vibration_enabled_label != null:
+		_vibration_enabled_label.text = _localize_with_fallback(LABEL_VIBRATION_ENABLED_KEY, "Enable Vibration")
+	if _vibration_intensity_label != null:
+		_vibration_intensity_label.text = _localize_with_fallback(LABEL_VIBRATION_INTENSITY_KEY, "Vibration Intensity")
+
+	_localize_preview_prompts()
+	_update_preview_prompt_visibility()
+
+	if _cancel_button != null:
+		_cancel_button.text = _localize_with_fallback(&"common.cancel", "Cancel")
+	if _reset_button != null:
+		_reset_button.text = _localize_with_fallback(BUTTON_RESET_DEFAULTS_KEY, "Reset to Defaults")
+	if _apply_button != null:
+		_apply_button.text = _localize_with_fallback(&"common.apply", "Apply")
+
+func _localize_with_fallback(key: StringName, fallback: String) -> String:
+	var localized: String = U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return fallback
+	return localized
 
 func _exit_tree() -> void:
 	if _store_unsubscribe != Callable() and _store_unsubscribe.is_valid():
