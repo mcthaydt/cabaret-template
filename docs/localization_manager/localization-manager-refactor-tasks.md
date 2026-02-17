@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-15  
 **Status:** In progress  
-**Progress:** 81% (48 / 59 tasks complete)
+**Progress:** 83% (49 / 59 tasks complete)
 
 ## Goal
 
@@ -204,7 +204,7 @@ Refactor localization to match manager quality standards used by display/audio: 
   - [ ] **Task 7.2a.11**: Add/verify localization keys across all locales:
     - [x] update `resources/localization/cfg_locale_*_ui.tres` (en/es/pt/ja/zh_CN) for all added keys (input action/profile + date tokens added 2026-02-16)
     - [ ] confirm no hardcoded user-facing strings remain in audited files
-- [ ] **Task 7.3**: Ensure settings overlay preview/apply/cancel behavior remains unchanged in UX.
+- [x] **Task 7.3**: Ensure settings overlay preview/apply/cancel behavior remains unchanged in UX. (expanded `tests/integration/localization/test_localization_settings_tab.gd` for cancel/reset/state-sync + confirm cancel/timer flows; done 2026-02-17)
 - [x] **Task 7.4**: Add targeted regression tests for `UI_LocalizationSettingsTab` around preview + confirm timer flow. (added `tests/integration/localization/test_localization_settings_tab.gd`; done 2026-02-17)
 
 ### Audit Findings (2026-02-16)

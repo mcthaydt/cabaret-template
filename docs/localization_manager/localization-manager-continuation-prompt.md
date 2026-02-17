@@ -1,7 +1,7 @@
 # Localization Manager Refactor - Continuation Prompt
 
 **Last Updated:** 2026-02-17
-**Status:** Refactor in progress. Progress 81% (48 / 59 tasks complete). Translation audit captured and partially resolved.
+**Status:** Refactor in progress. Progress 83% (49 / 59 tasks complete). Translation audit captured and partially resolved.
 
 ## Start Here
 
@@ -28,6 +28,10 @@
 
 ## Last Work
 
+- 2026-02-17: Completed Task 7.3 UX parity validation for localization settings overlay:
+  - Expanded `tests/integration/localization/test_localization_settings_tab.gd` with cancel/reset/state-sync coverage.
+  - Added explicit locale confirm cancel-path regression and kept timer-revert coverage.
+  - Re-ran full localization integration suite; all tests pass.
 - 2026-02-17: Closed additional Phase 7 localization gaps + added Task 7.4 regression coverage:
   - Localized locale display labels in `UI_LocalizationSettingsTab` via shared `locale.name.*` keys across all locale catalogs.
   - Localized `UI_LanguageSelector` title + locale button labels and added live relabeling on locale changes.
@@ -111,8 +115,8 @@
 ## Immediate Next Steps
 
 1. Continue Task 7.2a remaining UI localization gaps (display/audio/vfx/gamepad/touchscreen/rebind/save-load/UI strings).
-2. Complete Task 7.3 by validating localization settings overlay UX parity (preview/apply/cancel behavior) against existing flows.
-3. Begin Phase 8 cleanup to reduce brittle manager-internal test coupling as helpers stabilize.
+2. Begin Phase 8 cleanup to reduce brittle manager-internal test coupling as helpers stabilize.
+3. Audit `U_LocalizationUtils`/UI callers for any remaining hardcoded strings and close Task 7.2 + 7.2a top-level checks.
 
 ## Key Pitfalls
 
