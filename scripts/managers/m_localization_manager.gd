@@ -8,7 +8,7 @@ class_name M_LocalizationManager
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
-const U_LOCALE_FILE_LOADER := preload("res://scripts/managers/helpers/u_locale_file_loader.gd")
+const U_LOCALIZATION_CATALOG := preload("res://scripts/managers/helpers/localization/u_localization_catalog.gd")
 const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")
 const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
@@ -16,7 +16,6 @@ const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_se
 const SERVICE_NAME := StringName("localization_manager")
 const LOCALIZATION_SLICE_NAME := StringName("localization")
 const CJK_LOCALES: Array[StringName] = [&"zh_CN", &"ja"]
-const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]
 
 ## Control types that support the "font" theme property.
 const _FONT_THEME_TYPES: Array[StringName] = [
@@ -29,6 +28,7 @@ const _FONT_THEME_TYPES: Array[StringName] = [
 @export var state_store: I_StateStore = null
 
 var _resolved_store: I_StateStore = null
+var _catalog := U_LOCALIZATION_CATALOG.new()
 var _active_locale: StringName = &""
 var _translations: Dictionary = {}
 var _ui_roots: Array[Node] = []
@@ -112,7 +112,10 @@ func _apply_localization_settings(state: Dictionary) -> void:
 	_applying_settings = false
 
 func _load_locale(locale: StringName) -> void:
-	_translations = U_LOCALE_FILE_LOADER.load_locale(locale)
+	if not _catalog.is_supported_locale(locale):
+		print_verbose("M_LocalizationManager: Unsupported locale request ignored: %s" % str(locale))
+		return
+	_translations = _catalog.load_catalog(locale)
 	_active_locale = locale
 	locale_changed.emit(locale)
 	_notify_ui_roots()
@@ -124,7 +127,7 @@ func get_locale() -> StringName:
 	return _active_locale
 
 func get_supported_locales() -> Array[StringName]:
-	return SUPPORTED_LOCALES.duplicate()
+	return _catalog.get_supported_locales()
 
 func get_effective_settings() -> Dictionary:
 	var ui_scale := 1.0
