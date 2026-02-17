@@ -10,8 +10,10 @@ class_name UI_LanguageSelector
 
 
 const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
 
 @onready var _button_container: Control = %ButtonContainer
+@onready var _title_label: Label = $ButtonContainer/PanelContainer/VBoxContainer/TitleLabel
 @onready var _en_button: Button = %EnButton
 @onready var _es_button: Button = %EsButton
 @onready var _pt_button: Button = %PtButton
@@ -44,6 +46,7 @@ func _setup_buttons() -> void:
 	_connect_locale_button(_pt_button, &"pt")
 	_connect_locale_button(_zh_cn_button, &"zh_CN")
 	_connect_locale_button(_ja_button, &"ja")
+	_localize_labels()
 
 	# Build 3-column grid for keyboard/gamepad navigation:
 	# Row 0: [en, es, pt]
@@ -57,6 +60,8 @@ func _setup_buttons() -> void:
 	if _en_button != null:
 		_en_button.grab_focus()
 
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_labels()
 
 func _connect_locale_button(button: Button, locale: StringName) -> void:
 	if button == null:
@@ -93,3 +98,17 @@ func _transition_to_main_menu() -> void:
 
 func _on_back_pressed() -> void:
 	pass  # No back action on first-run screen
+
+func _localize_labels() -> void:
+	if _title_label != null:
+		_title_label.text = U_LOCALIZATION_UTILS.localize(&"menu.language_selector.title")
+	if _en_button != null:
+		_en_button.text = "%s\nEN" % U_LOCALIZATION_UTILS.localize(&"locale.name.en")
+	if _es_button != null:
+		_es_button.text = "%s\nES" % U_LOCALIZATION_UTILS.localize(&"locale.name.es")
+	if _pt_button != null:
+		_pt_button.text = "%s\nPT" % U_LOCALIZATION_UTILS.localize(&"locale.name.pt")
+	if _zh_cn_button != null:
+		_zh_cn_button.text = "%s\nZH_CN" % U_LOCALIZATION_UTILS.localize(&"locale.name.zh_cn")
+	if _ja_button != null:
+		_ja_button.text = "%s\nJA" % U_LOCALIZATION_UTILS.localize(&"locale.name.ja")

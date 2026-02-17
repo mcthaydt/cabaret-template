@@ -38,7 +38,6 @@ theme_override_constants/separation = 16
 
 [node name="TitleLabel" type="Label" parent="ButtonContainer/PanelContainer/VBoxContainer" unique_id=498396947]
 layout_mode = 2
-text = "Select Your Language"
 horizontal_alignment = 1
 
 [node name="HSeparator" type="HSeparator" parent="ButtonContainer/PanelContainer/VBoxContainer" unique_id=926730139]
@@ -54,33 +53,23 @@ columns = 3
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 80)
 layout_mode = 2
-text = "English
-EN"
 
 [node name="EsButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer" unique_id=2000506282]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 80)
 layout_mode = 2
-text = "Español
-ES"
 
 [node name="PtButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer" unique_id=954468652]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 80)
 layout_mode = 2
-text = "Português
-PT"
 
 [node name="ZhCnButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer" unique_id=833155879]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 80)
 layout_mode = 2
-text = "中文 (简体)
-ZH_CN"
 
 [node name="JaButton" type="Button" parent="ButtonContainer/PanelContainer/VBoxContainer/GridContainer" unique_id=1373925847]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 80)
 layout_mode = 2
-text = "日本語
-JA"

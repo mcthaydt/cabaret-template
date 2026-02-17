@@ -11,9 +11,14 @@ const U_FOCUS_CONFIGURATOR := preload("res://scripts/ui/helpers/u_focus_configur
 const DEFAULT_LOCALIZATION_INITIAL_STATE: Resource = preload("res://resources/base_settings/state/cfg_localization_initial_state.tres")
 
 const SUPPORTED_LOCALES: Array[StringName] = [&"en", &"es", &"pt", &"zh_CN", &"ja"]
-const LOCALE_DISPLAY_NAMES: Array[String] = ["English", "Español", "Português", "中文 (简体)", "日本語"]
+const LOCALE_LABEL_KEYS: Array[StringName] = [
+	&"locale.name.en",
+	&"locale.name.es",
+	&"locale.name.pt",
+	&"locale.name.zh_cn",
+	&"locale.name.ja",
+]
 const LANGUAGE_CONFIRM_SECONDS := 10
-const LANGUAGE_CONFIRM_TEXT := "Keep this language? Reverting in %ds."
 
 var _state_store: I_StateStore = null
 var _localization_manager: Node = null
@@ -67,9 +72,18 @@ func _exit_tree() -> void:
 func _populate_language_option() -> void:
 	if _language_option == null:
 		return
+	var selected_index: int = _language_option.selected
+	_language_option.set_block_signals(true)
 	_language_option.clear()
-	for display_name: String in LOCALE_DISPLAY_NAMES:
+	for i: int in SUPPORTED_LOCALES.size():
+		var locale_label_key: StringName = LOCALE_LABEL_KEYS[i] if i < LOCALE_LABEL_KEYS.size() else StringName("")
+		var display_name: String = str(SUPPORTED_LOCALES[i])
+		if not locale_label_key.is_empty():
+			display_name = U_LOCALIZATION_UTILS.localize(locale_label_key)
 		_language_option.add_item(display_name)
+	if selected_index >= 0 and selected_index < _language_option.item_count:
+		_language_option.selected = selected_index
+	_language_option.set_block_signals(false)
 
 func _connect_signals() -> void:
 	if _language_option != null and not _language_option.item_selected.is_connected(_on_language_selected):
@@ -399,6 +413,7 @@ func _on_locale_changed(_locale: StringName) -> void:
 		_on_state_changed({}, _state_store.get_state())
 
 func _localize_labels() -> void:
+	_populate_language_option()
 	if _heading_label != null:
 		_heading_label.text = U_LOCALIZATION_UTILS.localize(&"settings.localization.title")
 	if _language_section_label != null:
@@ -417,3 +432,5 @@ func _localize_labels() -> void:
 		_reset_button.text = U_LOCALIZATION_UTILS.localize(&"common.reset")
 	if _language_confirm_dialog != null:
 		_language_confirm_dialog.title = U_LOCALIZATION_UTILS.localize(&"settings.localization.confirm_title")
+	if _language_confirm_active:
+		_update_language_confirm_text()

@@ -10,6 +10,7 @@ class_name UI_HudController
 @onready var checkpoint_toast: Label = $MarginContainer/ToastContainer/PanelContainer/MarginContainer/CheckpointToast
 @onready var autosave_spinner_container: Control = $MarginContainer/AutosaveSpinnerContainer
 @onready var autosave_spinner_icon: TextureRect = $MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer/SpinnerIcon
+@onready var autosave_spinner_label: Label = $MarginContainer/AutosaveSpinnerContainer/PanelContainer/MarginContainer/HBoxContainer/SpinnerLabel
 @onready var signpost_panel_container: Control = $SignpostPanelContainer
 @onready var signpost_message_label: Label = $SignpostPanelContainer/PanelContainer/MarginContainer/SignpostMessage
 @onready var interact_prompt: UI_ButtonPrompt = $MarginContainer/InteractPrompt
@@ -46,6 +47,7 @@ var _health_bar_fill_style: StyleBoxFlat = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_localize_static_labels()
 	_store = U_StateUtils.get_store(self)
 
 	if _store == null:
@@ -141,6 +143,13 @@ func _on_slice_updated(slice_name: StringName, __slice_state: Dictionary) -> voi
 		_hide_signpost_panel()
 		# Force unblock interact when paused (no interactions possible anyway)
 		U_InteractBlocker.force_unblock()
+
+func _on_locale_changed(_locale: StringName) -> void:
+	_localize_static_labels()
+
+func _localize_static_labels() -> void:
+	if autosave_spinner_label != null:
+		autosave_spinner_label.text = U_LocalizationUtils.localize(&"hud.autosave_saving")
 
 func _update_display(state: Dictionary) -> void:
 	pause_label.text = ""
@@ -546,39 +555,9 @@ func _on_save_failed(payload: Variant) -> void:
 	if is_autosave:
 		_request_hide_autosave_spinner()
 
-func _format_interact_prompt(action: StringName, prompt_text: String) -> String:
-	var action_label := _get_primary_input_label(action)
-	if action_label.is_empty():
-		action_label = String(action).capitalize()
-	var cleaned_prompt := prompt_text
-	if cleaned_prompt.is_empty():
-		cleaned_prompt = U_LocalizationUtils.localize(&"hud.interact_default")
-	return "Press [%s] to %s" % [action_label, cleaned_prompt]
-
 func _is_paused(state: Dictionary) -> bool:
 	var navigation_state: Dictionary = state.get("navigation", {})
 	return U_NavigationSelectors.is_paused(navigation_state)
-
-func _get_primary_input_label(action: StringName) -> String:
-	var action_string := String(action)
-	if not InputMap.has_action(action_string):
-		return ""
-	var events := InputMap.action_get_events(action_string)
-	for event in events:
-		if event is InputEventKey:
-			var key_event := event as InputEventKey
-			var keycode := key_event.physical_keycode
-			if keycode == 0:
-				keycode = key_event.keycode
-			if keycode != 0:
-				return OS.get_keycode_string(keycode)
-		elif event is InputEventJoypadButton:
-			var joy_event := event as InputEventJoypadButton
-			return "GP Btn %d" % joy_event.button_index
-		elif event is InputEventMouseButton:
-			var mouse_event := event as InputEventMouseButton
-			return "Mouse %d" % mouse_event.button_index
-	return ""
 
 func _update_health_bar_colors(__state: Dictionary, health: float, max_health: float) -> void:
 	if _health_bar_fill_style == null:
