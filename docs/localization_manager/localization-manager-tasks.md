@@ -1,6 +1,7 @@
 # Localization Manager Implementation Tasks
 
-**Progress:** 100% (49 / 49 tasks complete) — All tasks done including font replacements (7C.1–7C.3). 7A.5 (TranslationServer decision) deferred as a non-task decision item.
+**Progress:** 100% (49 / 49 tasks complete) — All baseline implementation tasks done including font replacements (7C.1–7C.3). 7A.5 (TranslationServer decision) deferred as a non-task decision item.
+**Refactor Follow-up:** `docs/localization_manager/localization-manager-refactor-tasks.md` is also complete (Phase 0-9 complete on 2026-02-17; helper extraction, UI audit cleanup, and test hardening finished).
 
 **Estimated Test Count:** ~70 tests (60 unit + 10 integration)
 

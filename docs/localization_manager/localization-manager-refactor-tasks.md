@@ -1,8 +1,8 @@
 # Localization Manager Refactor Tasks
 
 **Created:** 2026-02-15  
-**Status:** In progress (Phase 8 complete; Phase 9 next)  
-**Progress:** 100% (63 / 63 Phase 0-8 tasks complete)
+**Status:** Complete  
+**Progress:** 100% (69 / 69 tasks complete)
 
 ## Goal
 
@@ -239,7 +239,7 @@ The following translation coverage gaps were identified and should be addressed 
 **Exit Criteria:** Tests validate behavior, not internals; helper coverage is strong.
 
 - [x] **Task 8.1**: Replace brittle tests that inspect private manager internals where possible. (completed 2026-02-17 by migrating localization manager and font override assertions from private fields/methods to behavior checks in `tests/unit/managers/test_localization_manager.gd` and `tests/integration/localization/test_font_override.gd`)
-- [ ] **Task 8.2**: Add helper-focused test files:
+- [x] **Task 8.2**: Add helper-focused test files: (completed 2026-02-17)
   - [x] `tests/unit/managers/helpers/localization/test_localization_catalog.gd` (added 2026-02-17)
   - [x] `tests/unit/managers/helpers/localization/test_localization_font_applier.gd` (added 2026-02-17)
   - [x] `tests/unit/managers/helpers/localization/test_localization_root_registry.gd` (added 2026-02-17)
@@ -260,12 +260,12 @@ The following translation coverage gaps were identified and should be addressed 
 
 **Exit Criteria:** Docs match implementation and continuation context is ready.
 
-- [ ] **Task 9.1**: Update `docs/localization_manager/localization-manager-overview.md` to reflect final architecture.
-- [ ] **Task 9.2**: Update `docs/localization_manager/localization-manager-plan.md` with completed design changes.
-- [ ] **Task 9.3**: Update `docs/localization_manager/localization-manager-continuation-prompt.md` with final status and next risks.
-- [ ] **Task 9.4**: Update `docs/localization_manager/localization-manager-tasks.md` summary to reference refactor completion.
-- [ ] **Task 9.5**: Update `AGENTS.md` with any new reusable localization patterns.
-- [ ] **Task 9.6**: Update `docs/general/DEV_PITFALLS.md` with any refactor-discovered pitfalls.
+- [x] **Task 9.1**: Update `docs/localization_manager/localization-manager-overview.md` to reflect final architecture. (completed 2026-02-17)
+- [x] **Task 9.2**: Update `docs/localization_manager/localization-manager-plan.md` with completed design changes. (completed 2026-02-17)
+- [x] **Task 9.3**: Update `docs/localization_manager/localization-manager-continuation-prompt.md` with final status and next risks. (completed 2026-02-17)
+- [x] **Task 9.4**: Update `docs/localization_manager/localization-manager-tasks.md` summary to reference refactor completion. (completed 2026-02-17)
+- [x] **Task 9.5**: Update `AGENTS.md` with any new reusable localization patterns. (completed 2026-02-17; Phase 7/8 localization patterns and test-hardening guidance captured)
+- [x] **Task 9.6**: Update `docs/general/DEV_PITFALLS.md` with any refactor-discovered pitfalls. (completed 2026-02-17; inner-class naming collision + private-manager assertion pitfalls added)
 
 ---
 
@@ -273,25 +273,25 @@ The following translation coverage gaps were identified and should be addressed 
 
 Use project-standard Godot headless test commands for each phase boundary.
 
-- [ ] Localization unit tests
-- [ ] Localization integration tests
-- [ ] Manager regression tests (display/audio/localization touchpoints)
-- [ ] `tests/unit/style/test_style_enforcement.gd` when adding/renaming scripts/scenes/resources
+- [x] Localization unit tests (`tests/unit/managers/test_localization_manager.gd`, helper localization suites, localization utils/root/UI localization suites; all pass on 2026-02-17)
+- [x] Localization integration tests (`tests/integration/localization`; all pass on 2026-02-17)
+- [x] Manager regression tests (display/audio/localization touchpoints) (`tests/integration/display/test_display_settings.gd`, `tests/integration/audio/test_audio_settings_ui.gd`, `tests/unit/managers/test_display_manager.gd`; all pass on 2026-02-17)
+- [x] `tests/unit/style/test_style_enforcement.gd` when adding/renaming scripts/scenes/resources (style suite pass confirmed on 2026-02-17)
 
 ---
 
 ## Commit Plan
 
-- [ ] Commit each completed phase as a focused, test-green milestone.
-- [ ] Keep documentation-only updates in separate commits from implementation changes.
-- [ ] Do not batch multiple phases into one commit unless all included phases are green.
+- [x] Commit each completed phase as a focused, test-green milestone.
+- [x] Keep documentation-only updates in separate commits from implementation changes.
+- [x] Do not batch multiple phases into one commit unless all included phases are green.
 
 ---
 
 ## Final Sign-Off Checklist
 
-- [ ] `M_LocalizationManager` is orchestration-only and materially smaller.
-- [ ] Helper modules own catalog/font/registry/preview responsibilities.
-- [ ] UI scale ownership is explicit and tested.
-- [ ] Interface/API documentation matches code.
-- [ ] No localization regressions in first-run language selector, settings preview, persistence, or live locale switching.
+- [x] `M_LocalizationManager` is orchestration-only and materially smaller.
+- [x] Helper modules own catalog/font/registry/preview responsibilities.
+- [x] UI scale ownership is explicit and tested.
+- [x] Interface/API documentation matches code.
+- [x] No localization regressions in first-run language selector, settings preview, persistence, or live locale switching.

@@ -3,12 +3,14 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-02-13
 **Last Updated**: 2026-02-17
-**Status**: IMPLEMENTED (baseline). Refactor planned.
+**Status**: IMPLEMENTED. Refactor complete (Phases 0-9 complete on 2026-02-17).
 **Scope**: UI and HUD text localization, resource-based translation catalogs, dyslexia-friendly font toggle, five supported languages
 
 ## Summary
 
 The localization stack uses `M_LocalizationManager` (persistent manager) for loading translation catalogs from `.tres` resources, switching locale at runtime, and toggling a dyslexia-friendly font across all registered UI roots. Translation keys are resolved through `U_LocalizationUtils.localize(key)` / `localize_fmt()`. Settings live in the Redux `localization` slice and are applied in real time. This system deliberately avoids Godot's built-in `.po`/`Translation` infrastructure to remain mobile-safe and to keep translations as editable Resource data.
+
+Refactor outcome: catalog loading, font/theme application, root lifecycle, and preview lifecycle are now extracted into dedicated helpers, `M_DisplayManager` owns effective UI scale composition, and localization coverage/tests were hardened through Phase 8.
 
 ## Repo Reality Checks
 
@@ -422,8 +424,8 @@ Follows the same overlay + embedded tab pattern used by Audio, Display, and VFX 
 - **Overlay wrapper**: `UI_LocalizationSettingsOverlay` extends `BaseOverlay`, contains the tab scene as a child. Registered as a UI screen definition in `resources/ui_screens/cfg_localization_settings_overlay.tres` and as a scene entry in `resources/scene_registry/cfg_ui_localization_settings_entry.tres`.
 - **Tab content**: `UI_LocalizationSettingsTab` extends `VBoxContainer` (NOT `BaseMenuScreen` — see Unified Settings Panel anti-patterns in AGENTS.md). Exposes a language dropdown (`OptionButton` populated from `SUPPORTED_LOCALES`) and a dyslexia font toggle (`CheckButton`).
 - **Settings menu button**: A "Language" button is added to `ui_settings_menu.tscn` and wired in `ui_settings_menu.gd` following the same `_open_settings_target()` pattern as other settings buttons.
-- Auto-save pattern: dispatch Redux actions immediately on change (no Apply/Cancel).
-- Language change triggers immediate locale switch; all registered UI roots refresh on the same frame.
+- **Editing flow**: preview values apply live through `set_localization_preview(...)`; Redux is updated on explicit Apply/Reset, and Cancel discards pending edits.
+- **Locale confirmation flow**: locale changes use a confirm timer; cancel/timeout reverts to previous locale.
 
 ### Settings Integration Checklist
 

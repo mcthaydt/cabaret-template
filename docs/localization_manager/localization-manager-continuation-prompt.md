@@ -1,7 +1,7 @@
 # Localization Manager Refactor - Continuation Prompt
 
 **Last Updated:** 2026-02-17
-**Status:** Refactor in progress. Phase 8 complete (100% of Phase 0-8 tasks: 63 / 63). Phase 9 documentation sync is next.
+**Status:** Refactor complete. Phase 0-9 tasks complete (69 / 69). Final documentation sync and test-hardening handoff complete.
 
 ## Start Here
 
@@ -28,6 +28,12 @@
 
 ## Last Work
 
+- 2026-02-17: Completed Phase 9 (documentation + completion handoff):
+  - Updated `localization-manager-overview.md` to reflect final helper architecture and current localization settings UX behavior.
+  - Updated `localization-manager-plan.md` status/overview to reflect completed refactor scope (Phases 2-9 complete).
+  - Updated `localization-manager-tasks.md` summary to reference refactor completion.
+  - Closed Phase 9 checklist in `localization-manager-refactor-tasks.md`, including validation/commit/sign-off sections.
+  - Re-verified display/audio/localization touchpoint regressions and style checks; all pass.
 - 2026-02-17: Completed Phase 8 (test hardening):
   - Completed Task 8.1 by replacing brittle localization tests that asserted `M_LocalizationManager` internals with behavior-based checks:
     - updated `tests/unit/managers/test_localization_manager.gd` to validate store-sync, root-notification lifecycle, theme propagation, and CJK/dyslexia behavior through public APIs + root-observable behavior.
@@ -180,9 +186,9 @@
 
 ## Immediate Next Steps
 
-1. Begin Phase 9 Task 9.1/9.2: synchronize `localization-manager-overview.md` and `localization-manager-plan.md` with finalized helper architecture and Phase 8 test-hardening outcomes.
-2. Complete Phase 9 Task 9.3/9.4: finalize continuation prompt + tasks summary for refactor completion handoff.
-3. Complete Phase 9 Task 9.5/9.6 updates (`AGENTS.md`, `DEV_PITFALLS.md`) if additional reusable patterns/pitfalls emerge during final doc pass.
+1. Treat localization manager refactor as complete and maintain behavior contracts via existing helper/unit/integration suites.
+2. For future localization work, add locale keys + UI relabel coverage in the same change to avoid translation drift.
+3. If new manager responsibilities emerge, prefer helper extraction over adding orchestration logic back into `M_LocalizationManager`.
 
 ## Key Pitfalls
 

@@ -1,14 +1,24 @@
 # Localization Manager - Implementation Plan
 
 **Project**: Cabaret Template (Godot 4.6)
-**Status**: Historical implementation plan (baseline complete); refactor in progress (Phases 2-8 complete, see `localization-manager-refactor-tasks.md`)
+**Status**: Historical implementation plan (baseline complete); refactor complete (Phases 2-9 complete, see `localization-manager-refactor-tasks.md`)
 **Methodology**: Test-Driven Development (Red-Green-Refactor)
 
 ---
 
 ## Overview
 
-The Localization Manager handles runtime locale switching, `.tres` translation catalog loading, and a dyslexia-friendly font toggle applied to all registered UI roots. Current refactor work extracts manager responsibilities into focused helpers (catalog/font/root/preview) while preserving Redux integration and UI behavior.
+The Localization Manager handles runtime locale switching, `.tres` translation catalog loading, and a dyslexia-friendly font toggle applied to all registered UI roots. Refactor work is complete: manager responsibilities were extracted into focused helpers (catalog/font/root/preview), UI scale ownership moved to `M_DisplayManager`, and localization tests were hardened around behavior contracts.
+
+## Refactor Completion Snapshot (2026-02-17)
+
+- `U_LocalizationCatalog` owns locale support checks, merge/fallback behavior, and catalog caching.
+- `U_LocalizationFontApplier` owns locale-aware font selection and root theme application.
+- `U_LocalizationRootRegistry` owns UI root lifecycle, dead-node pruning, and locale-change callbacks.
+- `U_LocalizationPreviewController` owns preview lifecycle and store-update gating.
+- `M_DisplayManager` owns effective UI scale composition (`display.ui_scale * localization.ui_scale_override`).
+- UI translation coverage audit (Phase 7) is closed across display/audio/vfx/gamepad/touchscreen/rebind/save-load/hud/loading/language-selector surfaces.
+- Phase 8 localization tests assert behavior contracts rather than manager private internals.
 
 ## Key Patterns to Follow
 
