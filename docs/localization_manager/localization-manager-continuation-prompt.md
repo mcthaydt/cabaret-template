@@ -1,7 +1,7 @@
 # Localization Manager Refactor - Continuation Prompt
 
 **Last Updated:** 2026-02-17
-**Status:** Refactor in progress. Progress 88% (52 / 59 tasks complete). Translation audit captured and partially resolved.
+**Status:** Refactor in progress. Progress 90% (53 / 59 tasks complete). Translation audit captured and partially resolved.
 
 ## Start Here
 
@@ -28,6 +28,13 @@
 
 ## Last Work
 
+- 2026-02-17: Completed Task 7.2a.2 (Audio settings tab localization):
+  - Localized `UI_AudioSettingsTab` heading, row labels, mute labels, button labels, and slider/toggle tooltips via `settings.audio.*` + `common.*` keys.
+  - Added live locale relabeling in `UI_AudioSettingsTab` (`_on_locale_changed`) for labels and tooltips.
+  - Removed hardcoded user-facing text defaults from `scenes/ui/overlays/settings/ui_audio_settings_tab.tscn` so runtime localization owns display strings.
+  - Added/expanded `settings.audio.*` keys in `resources/localization/cfg_locale_*_ui.tres` for en/es/pt/ja/zh_CN.
+  - Added `tests/unit/ui/test_audio_settings_tab_localization.gd` for initial localization + live locale switch relabel assertions.
+  - Verified `tests/unit/ui/test_audio_settings_tab_localization.gd`, `tests/integration/audio/test_audio_settings_ui.gd`, `tests/integration/localization`, and `tests/unit/style/test_style_enforcement.gd` all pass.
 - 2026-02-17: Completed Task 7.2a.1 (Display settings tab localization + localized display option catalog):
   - Localized `UI_DisplaySettingsTab` heading/section labels, row labels, toggle labels, action buttons, tooltips, and display-change confirm dialog text/buttons via `settings.display.*` keys.
   - Added live locale relabeling (`_on_locale_changed`) for display settings UI, including option dropdown relabel while preserving selected values.
@@ -128,16 +135,16 @@
 
 ## Audit Findings Summary (See Task 7.2a for Full List)
 
-- Multiple UI settings overlays and helpers still contain hardcoded user-facing strings (display/audio/vfx/gamepad/touchscreen/input/rebind/save-load).
+- Multiple UI settings overlays and helpers still contain hardcoded user-facing strings (vfx/gamepad/touchscreen/save-load).
 - Input profile `.tres` resources store display strings instead of localization keys. (resolved 2026-02-16)
 - Save/load date formatting uses hardcoded month names and AM/PM tokens. (resolved 2026-02-16)
 - Some settings tab scenes appear to be missing `LocalizationRoot`, so live locale updates are not applied. (resolved 2026-02-16)
 
 ## Immediate Next Steps
 
-1. Continue Task 7.2a remaining UI localization gaps (display/audio/vfx/gamepad/touchscreen/rebind/save-load/UI strings).
+1. Continue Task 7.2a remaining UI localization gaps (vfx/gamepad/touchscreen/save-load/UI strings).
 2. Begin Phase 8 cleanup to reduce brittle manager-internal test coupling as helpers stabilize.
-3. Audit `U_LocalizationUtils`/UI callers for any remaining hardcoded strings and close Task 7.2 + 7.2a top-level checks (especially display/audio/vfx overlays).
+3. Audit `U_LocalizationUtils`/UI callers for any remaining hardcoded strings and close Task 7.2 + 7.2a top-level checks (especially vfx/gamepad/touchscreen overlays).
 
 ## Key Pitfalls
 
