@@ -1,7 +1,7 @@
 # Localization Manager Refactor - Continuation Prompt
 
-**Last Updated:** 2026-02-16
-**Status:** Refactor planned. Progress 27% (16 / 59 tasks complete). Translation audit captured and partially resolved.
+**Last Updated:** 2026-02-17
+**Status:** Refactor in progress. Progress 39% (23 / 59 tasks complete). Translation audit captured and partially resolved.
 
 ## Start Here
 
@@ -28,6 +28,16 @@
 
 ## Last Work
 
+- 2026-02-17: Completed Phase 2 (translation catalog extraction):
+  - Added `scripts/managers/helpers/localization/u_localization_catalog.gd` with:
+    - locale support checks
+    - fallback merge chain (`requested -> en`)
+    - cached raw/effective catalog loading
+    - cache invalidation (`clear_cache`, `force_refresh`)
+  - Updated `M_LocalizationManager` to consume `U_LocalizationCatalog` directly.
+  - Converted `U_LocaleFileLoader` into a compatibility shim backed by the new helper.
+  - Added focused helper tests: `tests/unit/managers/helpers/localization/test_localization_catalog.gd`.
+  - Verified localization unit/integration + style suites all pass.
 - 2026-02-16: Closed several Task 7.2a gaps:
   - Localized HUD prompt fallbacks (`ui_button_prompt.gd`, `ui_virtual_button.gd`).
   - Localized input profile action labels and profile name/description via keys (updated `cfg_*.tres` profiles + selector UI).
@@ -62,8 +72,8 @@
 
 ## Immediate Next Steps
 
-1. Phase 2 catalog extraction: add helper tests + `u_localization_catalog.gd`, update manager to use it.
-2. Phase 3 font/theme applier extraction.
+1. Phase 3 font/theme applier extraction (`u_localization_font_applier.gd` + focused helper tests).
+2. Phase 4 root registry extraction (`u_localization_root_registry.gd` + lifecycle tests).
 3. Continue Task 7.2a remaining UI localization gaps (display/audio/vfx/gamepad/touchscreen/rebind/save-load/UI strings).
 
 ## Key Pitfalls

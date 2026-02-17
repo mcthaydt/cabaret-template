@@ -1,14 +1,14 @@
 # Localization Manager - Implementation Plan
 
 **Project**: Cabaret Template (Godot 4.6)
-**Status**: Planning
+**Status**: Historical implementation plan (baseline complete); refactor in progress (see `localization-manager-refactor-tasks.md`)
 **Methodology**: Test-Driven Development (Red-Green-Refactor)
 
 ---
 
 ## Overview
 
-The Localization Manager handles runtime locale switching, JSON translation file loading, and a dyslexia-friendly font toggle applied to all registered UI roots. Implementation follows the same Redux slice, manager, and settings UI patterns established by M_AudioManager and M_DisplayManager.
+The Localization Manager handles runtime locale switching, `.tres` translation catalog loading, and a dyslexia-friendly font toggle applied to all registered UI roots. Current refactor work extracts manager responsibilities into focused helpers (catalog/font/root/preview) while preserving Redux integration and UI behavior.
 
 ## Key Patterns to Follow
 

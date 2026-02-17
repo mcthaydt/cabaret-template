@@ -1,8 +1,8 @@
 # Localization Manager Refactor Tasks
 
 **Created:** 2026-02-15  
-**Status:** Planned  
-**Progress:** 27% (16 / 59 tasks complete)
+**Status:** In progress  
+**Progress:** 39% (23 / 59 tasks complete)
 
 ## Goal
 
@@ -80,17 +80,17 @@ Refactor localization to match manager quality standards used by display/audio: 
 
 **Exit Criteria:** Catalog loading/caching/fallback is independent and unit-tested.
 
-- [ ] **Task 2.1 (Red)**: Create focused tests for catalog behavior:
-  - [ ] merges domain resources for locale
-  - [ ] deterministic overwrite behavior for duplicate keys
-  - [ ] fallback chain behavior (`requested -> fallback locale -> key`)
-  - [ ] unsupported locale behavior
-- [ ] **Task 2.2 (Green)**: Create `scripts/managers/helpers/localization/u_localization_catalog.gd`.
-- [ ] **Task 2.3**: Move/reshape logic from `u_locale_file_loader.gd` into catalog helper.
-- [ ] **Task 2.4**: Keep `u_locale_file_loader.gd` as compatibility shim or remove with call-site updates.
-- [ ] **Task 2.5**: Add cache invalidation strategy in helper (if resources are reloaded).
-- [ ] **Task 2.6**: Ensure helper API is typed and side-effect-free.
-- [ ] **Task 2.7**: Update manager to consume catalog helper only.
+- [x] **Task 2.1 (Red)**: Create focused tests for catalog behavior. (done 2026-02-17 in `tests/unit/managers/helpers/localization/test_localization_catalog.gd`)
+  - [x] merges domain resources for locale
+  - [x] deterministic overwrite behavior for duplicate keys
+  - [x] fallback chain behavior (`requested -> fallback locale -> key`)
+  - [x] unsupported locale behavior
+- [x] **Task 2.2 (Green)**: Create `scripts/managers/helpers/localization/u_localization_catalog.gd`. (done 2026-02-17)
+- [x] **Task 2.3**: Move/reshape logic from `u_locale_file_loader.gd` into catalog helper. (done 2026-02-17)
+- [x] **Task 2.4**: Keep `u_locale_file_loader.gd` as compatibility shim or remove with call-site updates. (shim retained; done 2026-02-17)
+- [x] **Task 2.5**: Add cache invalidation strategy in helper (if resources are reloaded). (`clear_cache()` + `force_refresh`; done 2026-02-17)
+- [x] **Task 2.6**: Ensure helper API is typed and side-effect-free. (done 2026-02-17)
+- [x] **Task 2.7**: Update manager to consume catalog helper only. (`M_LocalizationManager` now uses `U_LocalizationCatalog`; done 2026-02-17)
 
 ---
 

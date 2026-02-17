@@ -288,6 +288,16 @@ Production asset files use type-specific prefixes:
     ```
   - **Note**: Textures are mapped to actions, not specific key bindings. When user rebinds an action, the texture remains the same (shows action's registered glyph, not the new key).
 
+## Localization Manager Patterns (Phase 2 Refactor)
+
+- Catalog ownership moved to `scripts/managers/helpers/localization/u_localization_catalog.gd` (`U_LocalizationCatalog`):
+  - uses const-preloaded `RS_LocaleTranslations` resources (mobile-safe, no runtime file IO)
+  - merges by locale with deterministic last-wins behavior on duplicate keys
+  - applies fallback chain `requested -> en` before key fallback
+  - caches merged catalogs and exposes `clear_cache()` / `force_refresh` for invalidation
+- `M_LocalizationManager` should consume `U_LocalizationCatalog` directly for locale loads.
+- `scripts/managers/helpers/u_locale_file_loader.gd` is now a compatibility shim; avoid adding new production call sites to it.
+
 ## Scene Manager Patterns (Phase 10 Complete)
 
 ### Scene Registration

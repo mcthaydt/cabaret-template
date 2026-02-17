@@ -2,7 +2,7 @@
 
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-02-13
-**Last Updated**: 2026-02-16
+**Last Updated**: 2026-02-17
 **Status**: IMPLEMENTED (baseline). Refactor planned.
 **Scope**: UI and HUD text localization, resource-based translation catalogs, dyslexia-friendly font toggle, five supported languages
 
@@ -181,7 +181,7 @@ translations = {
 
 ### Mobile-Safe Loading
 
-`U_LocaleFileLoader` preloads the `.tres` catalogs via const arrays (mobile-safe, no runtime directory scanning). `M_LocalizationManager` requests `U_LocaleFileLoader.load_locale(locale)` and merges all matching `RS_LocaleTranslations` for the locale with last-wins behavior on duplicate keys.
+`U_LocalizationCatalog` preloads the `.tres` catalogs via const arrays (mobile-safe, no runtime directory scanning), caches merged catalogs, and applies fallback merge behavior (`requested -> en`) before key-level fallback. `M_LocalizationManager` now requests `U_LocalizationCatalog.load_catalog(locale)`. `U_LocaleFileLoader` remains as a temporary compatibility shim.
 
 ## Signpost Localization
 
@@ -385,7 +385,8 @@ scripts/interfaces/
   i_localization_manager.gd
 
 scripts/managers/helpers/
-  u_locale_file_loader.gd        # Merges locale Resource catalogs into active dictionary
+  u_locale_file_loader.gd        # Compatibility shim
+  localization/u_localization_catalog.gd   # Catalog merge + cache + fallback helper
 
 scripts/utils/localization/
   u_localization_utils.gd        # Static localize() and localize_fmt() helpers; register_ui_root()
@@ -477,7 +478,7 @@ store.dispatch(U_LocalizationActions.set_ui_scale_override(1.1))
 
 - `U_LocalizationReducer`: Action handling, locale switching, dyslexia flag, CJK scale auto-set.
 - `U_LocalizationSelectors`: Selector return values for all fields.
-- `U_LocaleFileLoader`: Merge logic for `.tres` catalogs, duplicate key resolution (last resource wins).
+- `U_LocalizationCatalog`: Merge logic for `.tres` catalogs, duplicate key resolution (last resource wins), fallback chain, cache invalidation.
 
 ### Integration Tests
 
@@ -498,7 +499,7 @@ store.dispatch(U_LocalizationActions.set_ui_scale_override(1.1))
 
 | Question | Decision |
 | -------- | -------- |
-| Godot built-in Translation vs Resource catalogs | `.tres` catalogs via `U_LocaleFileLoader` (preloaded resources); no TranslationServer |
+| Godot built-in Translation vs Resource catalogs | `.tres` catalogs via `U_LocalizationCatalog` (preloaded resources); no TranslationServer |
 | Single file vs domain files | Two resources per locale (`cfg_locale_*_ui.tres`, `cfg_locale_*_hud.tres`); merged into one dictionary at runtime |
 | Missing key behavior | Return the key string as-is (no crash, visible in UI for easy debugging) |
 | CJK font strategy | Single shared `fnt_cjk.otf`; overrides dyslexia toggle for CJK locales |
