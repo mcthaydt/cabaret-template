@@ -9,26 +9,20 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
 const U_LOCALIZATION_CATALOG := preload("res://scripts/managers/helpers/localization/u_localization_catalog.gd")
+const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/managers/helpers/localization/u_localization_font_applier.gd")
 const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")
 const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
 const U_DISPLAY_SELECTORS := preload("res://scripts/state/selectors/u_display_selectors.gd")
 
 const SERVICE_NAME := StringName("localization_manager")
 const LOCALIZATION_SLICE_NAME := StringName("localization")
-const CJK_LOCALES: Array[StringName] = [&"zh_CN", &"ja"]
-
-## Control types that support the "font" theme property.
-const _FONT_THEME_TYPES: Array[StringName] = [
-	&"Control", &"Label", &"Button", &"OptionButton", &"CheckBox", &"CheckButton",
-	&"LineEdit", &"TextEdit", &"RichTextLabel", &"ItemList",
-	&"PopupMenu", &"TabBar", &"Tree",
-]
 
 ## Injected dependency for tests
 @export var state_store: I_StateStore = null
 
 var _resolved_store: I_StateStore = null
 var _catalog := U_LOCALIZATION_CATALOG.new()
+var _font_applier := U_LOCALIZATION_FONT_APPLIER.new()
 var _active_locale: StringName = &""
 var _translations: Dictionary = {}
 var _ui_roots: Array[Node] = []
@@ -160,7 +154,7 @@ func set_dyslexia_font_enabled(enabled: bool) -> void:
 func register_ui_root(root: Node) -> void:
 	if root not in _ui_roots:
 		_ui_roots.append(root)
-		_apply_font_to_root(root)
+		_font_applier.apply_theme_to_root(root, _font_theme)
 
 func unregister_ui_root(root: Node) -> void:
 	_ui_roots.erase(root)
@@ -188,52 +182,20 @@ func clear_localization_preview() -> void:
 		_apply_localization_settings(state)
 
 func _load_fonts() -> void:
-	_default_font = load("res://assets/fonts/fnt_ui_default.ttf") as Font
-	_dyslexia_font = load("res://assets/fonts/fnt_dyslexia.ttf") as Font
-	_cjk_font = load("res://assets/fonts/fnt_cjk.otf") as Font
-	_apply_cjk_fallback(_default_font)
-	_apply_cjk_fallback(_dyslexia_font)
-
-func _apply_cjk_fallback(font: Font) -> void:
-	if font == null or _cjk_font == null:
-		return
-	if font is FontFile:
-		var font_file := font as FontFile
-		var fallbacks: Array = font_file.fallbacks.duplicate()
-		if _cjk_font not in fallbacks:
-			fallbacks.append(_cjk_font)
-			font_file.fallbacks = fallbacks
+	_font_applier.load_fonts()
+	_default_font = _font_applier.get_default_font()
+	_dyslexia_font = _font_applier.get_dyslexia_font()
+	_cjk_font = _font_applier.get_cjk_font()
 
 func _apply_font_override(dyslexia_enabled: bool) -> void:
-	var font: Font = _get_active_font(dyslexia_enabled)
-	_font_theme = _build_font_theme(font)
+	_font_theme = _font_applier.build_theme(_active_locale, dyslexia_enabled)
 	for root: Node in _ui_roots:
 		if not is_instance_valid(root):
 			continue
-		_apply_font_to_root(root)
+		_font_applier.apply_theme_to_root(root, _font_theme)
 
 func _get_active_font(dyslexia_enabled: bool = false) -> Font:
-	if _active_locale in CJK_LOCALES:
-		return _cjk_font
-	return _dyslexia_font if dyslexia_enabled else _default_font
-
-func _build_font_theme(font: Font) -> Theme:
-	if font == null:
-		return null
-	var theme := Theme.new()
-	for type_name: StringName in _FONT_THEME_TYPES:
-		theme.set_font(&"font", type_name, font)
-	return theme
-
-func _apply_font_to_root(root: Node) -> void:
-	if _font_theme == null:
-		return
-	if root is Control:
-		(root as Control).theme = _font_theme
-	elif root is CanvasLayer:
-		for child: Node in root.get_children():
-			if child is Control:
-				(child as Control).theme = _font_theme
+	return _font_applier.get_active_font(_active_locale, dyslexia_enabled)
 
 func _apply_ui_scale_override(state: Dictionary) -> void:
 	if _resolved_store == null:
