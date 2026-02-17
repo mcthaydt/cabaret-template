@@ -314,6 +314,9 @@ Production asset files use type-specific prefixes:
   - use shared `locale.name.*` keys for language names in both `UI_LocalizationSettingsTab` and `UI_LanguageSelector`
   - avoid hardcoded language labels in `.gd`/`.tscn`; populate labels at runtime with `U_LocalizationUtils.localize(...)`
   - use `hud.autosave_saving` for autosave spinner text instead of scene-authored literals
+- Overlay static-label localization pattern (Phase 7):
+  - define overlay copy keys under `overlay.<screen>.*` in `cfg_locale_*_ui.tres` (for example `overlay.input_profile_selector.*`)
+  - implement `_localize_static_labels()` in overlay controllers and call it from both `_on_panel_ready()` and `_on_locale_changed()`
 
 ## Scene Manager Patterns (Phase 10 Complete)
 

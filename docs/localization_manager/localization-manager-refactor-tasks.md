@@ -2,7 +2,7 @@
 
 **Created:** 2026-02-15  
 **Status:** In progress  
-**Progress:** 83% (49 / 59 tasks complete)
+**Progress:** 85% (50 / 59 tasks complete)
 
 ## Goal
 
@@ -183,8 +183,8 @@ Refactor localization to match manager quality standards used by display/audio: 
   - [ ] **Task 7.2a.5**: Localize Touchscreen settings overlays:
     - [ ] `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd` titles/labels/tooltips/preview instructions
     - [ ] `scripts/ui/overlays/ui_edit_touch_controls_overlay.gd` buttons/labels/preview text
-  - [ ] **Task 7.2a.6**: Localize Input profile selector (`scripts/ui/overlays/ui_input_profile_selector.gd`) and profile resources:
-    - [ ] add localization keys for overlay text and action group labels (action group labels done 2026-02-16; overlay text pending)
+  - [x] **Task 7.2a.6**: Localize Input profile selector (`scripts/ui/overlays/ui_input_profile_selector.gd`) and profile resources: (overlay labels + action labels localized and regression-covered in `tests/unit/integration/test_input_profile_selector_overlay.gd`; done 2026-02-17)
+    - [x] add localization keys for overlay text and action group labels (action group labels done 2026-02-16; overlay labels completed 2026-02-17)
     - [x] update `resources/input/profiles/cfg_*.tres` to use localization keys for `profile_name` and `description` (done 2026-02-16)
     - [x] ensure UI resolves profile name/description via localization keys (done 2026-02-16)
   - [ ] **Task 7.2a.7**: Localize Input rebinding overlay and helpers:
@@ -218,7 +218,7 @@ The following translation coverage gaps were identified and should be addressed 
 - `scripts/ui/overlays/ui_gamepad_settings_overlay.gd`: overlay title/labels/tooltips and preview instructions are hardcoded.
 - `scripts/ui/overlays/ui_touchscreen_settings_overlay.gd`: overlay title/labels/tooltips and preview instructions are hardcoded.
 - `scripts/ui/overlays/ui_edit_touch_controls_overlay.gd`: buttons, labels, and preview text are hardcoded.
-- `scripts/ui/overlays/ui_input_profile_selector.gd`: overlay labels, “default profiles” header, profile name/description fields, and action group labels should be localized. Profiles should source localized name/description via keys.
+- `scripts/ui/overlays/ui_input_profile_selector.gd`: overlay labels, “default profiles” header, profile name/description fields, and action group labels should be localized. Profiles should source localized name/description via keys. (resolved 2026-02-17)
 - `resources/input/profiles/cfg_*.tres`: `profile_name` and `description` should be localization keys, not display strings.
 - `scripts/ui/overlays/ui_input_rebinding_overlay.gd`: all dialog text, tooltips, and status messages (including “press any key”, “already bound”, “reserved”, etc.) should be localized.
 - `scripts/ui/helpers/u_rebind_action_list_builder.gd`: action and category labels should be fetched via localization keys.

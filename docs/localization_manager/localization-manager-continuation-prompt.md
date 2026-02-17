@@ -1,7 +1,7 @@
 # Localization Manager Refactor - Continuation Prompt
 
 **Last Updated:** 2026-02-17
-**Status:** Refactor in progress. Progress 83% (49 / 59 tasks complete). Translation audit captured and partially resolved.
+**Status:** Refactor in progress. Progress 85% (50 / 59 tasks complete). Translation audit captured and partially resolved.
 
 ## Start Here
 
@@ -28,6 +28,11 @@
 
 ## Last Work
 
+- 2026-02-17: Completed Task 7.2a.6 (Input profile selector localization):
+  - Localized overlay heading/profile/reset/apply/cancel labels in `UI_InputProfileSelector` via `overlay.input_profile_selector.*` + `common.*` keys.
+  - Added matching locale keys across `cfg_locale_*_ui.tres` (en/es/pt/ja/zh_CN).
+  - Added regression assertions in `tests/unit/integration/test_input_profile_selector_overlay.gd` for default localized labels and live relabeling on locale switch.
+  - Verified selector integration, localization integration, and style suites pass.
 - 2026-02-17: Completed Task 7.3 UX parity validation for localization settings overlay:
   - Expanded `tests/integration/localization/test_localization_settings_tab.gd` with cancel/reset/state-sync coverage.
   - Added explicit locale confirm cancel-path regression and kept timer-revert coverage.
@@ -116,7 +121,7 @@
 
 1. Continue Task 7.2a remaining UI localization gaps (display/audio/vfx/gamepad/touchscreen/rebind/save-load/UI strings).
 2. Begin Phase 8 cleanup to reduce brittle manager-internal test coupling as helpers stabilize.
-3. Audit `U_LocalizationUtils`/UI callers for any remaining hardcoded strings and close Task 7.2 + 7.2a top-level checks.
+3. Audit `U_LocalizationUtils`/UI callers for any remaining hardcoded strings and close Task 7.2 + 7.2a top-level checks (especially display/audio/vfx overlays).
 
 ## Key Pitfalls
 
