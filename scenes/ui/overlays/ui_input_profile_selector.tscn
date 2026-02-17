@@ -56,7 +56,6 @@ theme_override_constants/separation = 12
 
 [node name="HeadingLabel" type="Label" parent="CenterContainer/Panel/MainContainer" unique_id=529720151]
 layout_mode = 2
-text = "Input Profile Settings"
 horizontal_alignment = 1
 
 [node name="ProfileRow" type="HBoxContainer" parent="CenterContainer/Panel/MainContainer" unique_id=1979611833]
@@ -66,7 +65,6 @@ theme_override_constants/separation = 12
 [node name="ProfileLabel" type="Label" parent="CenterContainer/Panel/MainContainer/ProfileRow" unique_id=28240624]
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
-text = "Input Profile:"
 
 [node name="ProfileButton" type="Button" parent="CenterContainer/Panel/MainContainer/ProfileRow" unique_id=408754869]
 layout_mode = 2
@@ -99,14 +97,11 @@ alignment = 2
 [node name="CancelButton" type="Button" parent="CenterContainer/Panel/MainContainer/ButtonRow" unique_id=1645839423]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Cancel"
 
 [node name="ResetButton" type="Button" parent="CenterContainer/Panel/MainContainer/ButtonRow" unique_id=1372962006]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Reset to Defaults"
 
 [node name="ApplyButton" type="Button" parent="CenterContainer/Panel/MainContainer/ButtonRow" unique_id=54814959]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Apply"

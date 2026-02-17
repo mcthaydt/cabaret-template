@@ -12,7 +12,12 @@ const ACTION_LABEL_KEYS := {
 	StringName("interact"): &"input.action.interact",
 	StringName("pause"): &"input.action.pause",
 }
+const OVERLAY_TITLE_KEY := &"overlay.input_profile_selector.title"
+const OVERLAY_PROFILE_LABEL_KEY := &"overlay.input_profile_selector.profile_label"
+const OVERLAY_RESET_BUTTON_KEY := &"overlay.input_profile_selector.reset_button"
 
+@onready var _heading_label: Label = $CenterContainer/Panel/MainContainer/HeadingLabel
+@onready var _profile_label: Label = $CenterContainer/Panel/MainContainer/ProfileRow/ProfileLabel
 @onready var _profile_button: Button = $CenterContainer/Panel/MainContainer/ProfileRow/ProfileButton
 @onready var _apply_button: Button = %ApplyButton
 @onready var _cancel_button: Button = %CancelButton
@@ -52,6 +57,7 @@ func _on_panel_ready() -> void:
 		_reset_button.pressed.connect(_on_reset_pressed)
 
 	_manager = _resolve_input_profile_manager()
+	_localize_static_labels()
 	if _manager == null:
 		_nav_log("InputProfileSelector: M_InputProfileManager not found")
 		_update_preview()
@@ -323,7 +329,20 @@ func _on_back_pressed() -> void:
 	_on_cancel_pressed()
 
 func _on_locale_changed(_locale: StringName) -> void:
+	_localize_static_labels()
 	_update_button_text()
+
+func _localize_static_labels() -> void:
+	if _heading_label != null:
+		_heading_label.text = U_LOCALIZATION_UTILS.localize(OVERLAY_TITLE_KEY)
+	if _profile_label != null:
+		_profile_label.text = U_LOCALIZATION_UTILS.localize(OVERLAY_PROFILE_LABEL_KEY)
+	if _apply_button != null:
+		_apply_button.text = U_LOCALIZATION_UTILS.localize(&"common.apply")
+	if _cancel_button != null:
+		_cancel_button.text = U_LOCALIZATION_UTILS.localize(&"common.cancel")
+	if _reset_button != null:
+		_reset_button.text = U_LOCALIZATION_UTILS.localize(OVERLAY_RESET_BUTTON_KEY)
 
 func _transition_back_to_settings_scene() -> void:
 	var store := get_store()
