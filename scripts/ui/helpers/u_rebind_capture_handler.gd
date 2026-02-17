@@ -1,12 +1,28 @@
 extends RefCounted
 class_name U_RebindCaptureHandler
 
+const U_LOCALIZATION_UTILS := preload("res://scripts/utils/localization/u_localization_utils.gd")
+
+const STATUS_CAPTURE_PROMPT_KEY := &"overlay.input_rebinding.status.capture_prompt"
+const STATUS_REBIND_CANCELLED_KEY := &"overlay.input_rebinding.status.rebind_cancelled"
+const STATUS_REBIND_SUCCESS_KEY := &"overlay.input_rebinding.status.rebind_success"
+
+const DIALOG_CONFLICT_TEXT_KEY := &"overlay.input_rebinding.dialog.conflict_text"
+
+const ERROR_ACTION_REQUIRED_KEY := &"overlay.input_rebinding.error.action_required"
+const ERROR_INPUT_REQUIRED_KEY := &"overlay.input_rebinding.error.input_required"
+const ERROR_RESERVED_ACTION_KEY := &"overlay.input_rebinding.error.reserved_action"
+const ERROR_RESERVED_CONFLICT_KEY := &"overlay.input_rebinding.error.reserved_conflict_action"
+const ERROR_INPUT_ALREADY_BOUND_KEY := &"overlay.input_rebinding.error.input_already_bound"
+const ERROR_MAX_BINDINGS_KEY := &"overlay.input_rebinding.error.max_bindings"
+const ERROR_REBIND_FAILED_KEY := &"overlay.input_rebinding.error.rebind_failed"
+const ERROR_STATE_STORE_UNAVAILABLE_KEY := &"overlay.input_rebinding.error.state_store_unavailable"
 
 static func begin_capture(overlay: Node, action: StringName, mode: String) -> void:
 	if overlay._is_capturing:
 		return
 	if overlay._is_reserved(action):
-		overlay._show_error("Cannot rebind reserved action.")
+		overlay._show_error(_localize_with_fallback(ERROR_RESERVED_ACTION_KEY, "Cannot rebind reserved action."))
 		return
 
 	overlay._is_capturing = true
@@ -24,24 +40,18 @@ static func begin_capture(overlay: Node, action: StringName, mode: String) -> vo
 		var is_reserved: bool = overlay._is_reserved(key)
 		if add_button != null:
 			if is_reserved:
-				add_button.text = "Reserved"
-			elif key == action and mode == U_InputActions.REBIND_MODE_ADD:
-				add_button.text = U_RebindActionListBuilder.ADD_BUTTON_TEXT
+				add_button.text = U_RebindActionListBuilder.get_reserved_button_text()
 			else:
-				add_button.text = U_RebindActionListBuilder.ADD_BUTTON_TEXT
+				add_button.text = U_RebindActionListBuilder.get_add_button_text()
 			add_button.disabled = true
 		if replace_button != null:
 			if is_reserved:
-				replace_button.text = "Reserved"
-			elif key == action and mode == U_InputActions.REBIND_MODE_REPLACE:
-				replace_button.text = U_RebindActionListBuilder.REPLACE_BUTTON_TEXT
+				replace_button.text = U_RebindActionListBuilder.get_reserved_button_text()
 			else:
-				replace_button.text = U_RebindActionListBuilder.REPLACE_BUTTON_TEXT
+				replace_button.text = U_RebindActionListBuilder.get_replace_button_text()
 			replace_button.disabled = true
 
-	overlay._update_status("Press new input for {action} (Esc to cancel).".format({
-		"action": U_RebindActionListBuilder.format_action_name(action)
-	}))
+	overlay._update_status(get_capture_prompt(action))
 	overlay._set_reset_button_enabled(false)
 
 static func cancel_capture(overlay: Node, message: String) -> void:
@@ -69,7 +79,7 @@ static func handle_input(overlay: Node, event: InputEvent) -> void:
 			return
 		if key_event.keycode == Key.KEY_ESCAPE:
 			overlay.get_viewport().set_input_as_handled()
-			cancel_capture(overlay, "Rebind cancelled.")
+			cancel_capture(overlay, get_rebind_cancelled_status())
 			return
 		handle_captured_event(overlay, key_event)
 	elif event is InputEventMouseButton:
@@ -107,20 +117,20 @@ static func handle_captured_event(overlay: Node, event: InputEvent) -> void:
 		U_RebindActionListBuilder.EXCLUDED_ACTIONS
 	)
 	if not validation.valid:
-		var error_text: String = validation.error if not validation.error.is_empty() else "Rebind failed."
+		var error_text: String = _localize_validation_error(validation.error)
 		overlay._show_error(error_text)
-		cancel_capture(overlay, "Rebind failed.")
+		cancel_capture(overlay, get_rebind_failed_status())
 		return
 
 	if validation.conflict_action != StringName():
 		overlay._pending_event = event_copy
 		overlay._pending_conflict = validation.conflict_action
-		var conflict_name: String = U_RebindActionListBuilder.format_action_name(validation.conflict_action)
+		var conflict_name: String = U_RebindActionListBuilder.get_action_display_name(validation.conflict_action)
 		var binding_text: String = overlay._format_binding_text([event_copy])
-		overlay._conflict_dialog.dialog_text = "{binding} is already bound to {action}. Replace binding?".format({
-			"binding": overlay._format_binding_label(binding_text),
-			"action": conflict_name
-		})
+		overlay._conflict_dialog.dialog_text = get_conflict_dialog_text(
+			overlay._format_binding_label(binding_text),
+			conflict_name
+		)
 		overlay._conflict_dialog.popup_centered()
 	else:
 		apply_binding(overlay, event_copy, StringName())
@@ -140,8 +150,8 @@ static func apply_binding(overlay: Node, event: InputEvent, conflict_action: Str
 
 	overlay._ensure_store_reference()
 	if overlay._store == null:
-		overlay._show_error("State store not available.")
-		cancel_capture(overlay, "Rebind failed.")
+		overlay._show_error(_localize_with_fallback(ERROR_STATE_STORE_UNAVAILABLE_KEY, "State store not available."))
+		cancel_capture(overlay, get_rebind_failed_status())
 		return
 
 	var dispatch_event: InputEvent = event
@@ -161,10 +171,10 @@ static func apply_binding(overlay: Node, event: InputEvent, conflict_action: Str
 	await overlay.get_tree().process_frame
 
 	var binding_text: String = overlay._format_binding_text(final_target)
-	cancel_capture(overlay, "{action} bound to {binding}.".format({
-		"action": U_RebindActionListBuilder.format_action_name(action),
-		"binding": overlay._format_binding_label(binding_text)
-	}))
+	cancel_capture(overlay, get_rebind_success_status(
+		action,
+		overlay._format_binding_label(binding_text)
+	))
 
 static func get_action_events(_overlay: Node, action: StringName) -> Array[InputEvent]:
 	var results: Array[InputEvent] = []
@@ -236,3 +246,71 @@ static func events_match(a: InputEvent, b: InputEvent) -> bool:
 	if a == null or b == null:
 		return false
 	return a.is_match(b) and b.is_match(a)
+
+static func get_capture_prompt(action: StringName) -> String:
+	return _localize_with_fallback(
+		STATUS_CAPTURE_PROMPT_KEY,
+		"Press new input for {action} (Esc to cancel)."
+	).format({
+		"action": U_RebindActionListBuilder.get_action_display_name(action)
+	})
+
+static func get_rebind_cancelled_status() -> String:
+	return _localize_with_fallback(STATUS_REBIND_CANCELLED_KEY, "Rebind cancelled.")
+
+static func get_rebind_failed_status() -> String:
+	return _localize_with_fallback(ERROR_REBIND_FAILED_KEY, "Rebind failed.")
+
+static func get_rebind_success_status(action: StringName, binding: String) -> String:
+	return _localize_with_fallback(
+		STATUS_REBIND_SUCCESS_KEY,
+		"{action} bound to {binding}."
+	).format({
+		"action": U_RebindActionListBuilder.get_action_display_name(action),
+		"binding": binding
+	})
+
+static func get_conflict_dialog_text(binding: String, action_name: String) -> String:
+	return _localize_with_fallback(
+		DIALOG_CONFLICT_TEXT_KEY,
+		"{binding} is already bound to {action}. Replace binding?"
+	).format({
+		"binding": binding,
+		"action": action_name
+	})
+
+static func _localize_validation_error(validation_error: String) -> String:
+	if validation_error.is_empty():
+		return get_rebind_failed_status()
+
+	if validation_error == "Action name is required.":
+		return _localize_with_fallback(ERROR_ACTION_REQUIRED_KEY, "Action name is required.")
+	if validation_error == "Input event is required.":
+		return _localize_with_fallback(ERROR_INPUT_REQUIRED_KEY, "Input event is required.")
+	if validation_error == "Cannot rebind reserved action.":
+		return _localize_with_fallback(ERROR_RESERVED_ACTION_KEY, "Cannot rebind reserved action.")
+	if validation_error == "Cannot reassign input from reserved action.":
+		return _localize_with_fallback(ERROR_RESERVED_CONFLICT_KEY, "Cannot reassign input from reserved action.")
+	if validation_error == "Maximum bindings reached for action.":
+		return _localize_with_fallback(ERROR_MAX_BINDINGS_KEY, "Maximum bindings reached for action.")
+
+	var conflict_prefix := "Input already bound to "
+	if validation_error.begins_with(conflict_prefix):
+		var action_token: String = validation_error.substr(conflict_prefix.length())
+		if action_token.ends_with("."):
+			action_token = action_token.substr(0, action_token.length() - 1)
+		var action_name := U_RebindActionListBuilder.get_action_display_name(StringName(action_token))
+		return _localize_with_fallback(
+			ERROR_INPUT_ALREADY_BOUND_KEY,
+			"Input already bound to {action}."
+		).format({
+			"action": action_name
+		})
+
+	return validation_error
+
+static func _localize_with_fallback(key: StringName, fallback: String) -> String:
+	var localized: String = U_LOCALIZATION_UTILS.localize(key)
+	if localized == String(key):
+		return fallback
+	return localized
