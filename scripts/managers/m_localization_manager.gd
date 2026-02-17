@@ -10,6 +10,7 @@ const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 const U_LOCALIZATION_SELECTORS := preload("res://scripts/state/selectors/u_localization_selectors.gd")
 const U_LOCALIZATION_CATALOG := preload("res://scripts/managers/helpers/localization/u_localization_catalog.gd")
 const U_LOCALIZATION_FONT_APPLIER := preload("res://scripts/managers/helpers/localization/u_localization_font_applier.gd")
+const U_LOCALIZATION_PREVIEW_CONTROLLER := preload("res://scripts/managers/helpers/localization/u_localization_preview_controller.gd")
 const U_LOCALIZATION_ROOT_REGISTRY := preload("res://scripts/managers/helpers/localization/u_localization_root_registry.gd")
 const U_LOCALIZATION_ACTIONS := preload("res://scripts/state/actions/u_localization_actions.gd")
 const U_DISPLAY_ACTIONS := preload("res://scripts/state/actions/u_display_actions.gd")
@@ -24,6 +25,7 @@ const LOCALIZATION_SLICE_NAME := StringName("localization")
 var _resolved_store: I_StateStore = null
 var _catalog := U_LOCALIZATION_CATALOG.new()
 var _font_applier := U_LOCALIZATION_FONT_APPLIER.new()
+var _preview_controller := U_LOCALIZATION_PREVIEW_CONTROLLER.new()
 var _root_registry := U_LOCALIZATION_ROOT_REGISTRY.new()
 var _active_locale: StringName = &""
 var _translations: Dictionary = {}
@@ -39,9 +41,6 @@ var _cjk_font: Font = null
 
 var _font_theme: Theme = null
 
-## Preview mode: applies locale+font without dispatching to store.
-var _localization_preview_active: bool = false
-var _preview_settings: Dictionary = {}
 var _applying_settings: bool = false
 
 # For test inspection
@@ -83,7 +82,7 @@ func _on_store_ready(store: I_StateStore) -> void:
 func _on_slice_updated(slice_name: StringName, _slice_data: Dictionary) -> void:
 	if _resolved_store == null:
 		return
-	if _localization_preview_active:
+	if _preview_controller.should_ignore_store_updates():
 		return
 	if _applying_settings:
 		return
@@ -133,8 +132,7 @@ func get_effective_settings() -> Dictionary:
 	if _resolved_store != null:
 		var state: Dictionary = _resolved_store.get_state()
 		ui_scale = U_LOCALIZATION_SELECTORS.get_ui_scale_override(state)
-	if _preview_settings.has("ui_scale_override"):
-		ui_scale = float(_preview_settings.get("ui_scale_override", ui_scale))
+	ui_scale = _preview_controller.get_effective_ui_scale(ui_scale)
 	return {
 		"current_locale": _active_locale,
 		"dyslexia_font_enabled": _dyslexia_enabled,
@@ -142,7 +140,7 @@ func get_effective_settings() -> Dictionary:
 	}
 
 func is_preview_active() -> bool:
-	return _localization_preview_active
+	return _preview_controller.is_preview_active()
 
 func set_locale(locale: StringName) -> void:
 	if _resolved_store != null:
@@ -168,10 +166,9 @@ func unregister_ui_root(root: Node) -> void:
 ## Preview mode: applies locale + font visually without dispatching to store.
 ## Used by settings UI for live preview while editing.
 func set_localization_preview(preview: Dictionary) -> void:
-	_localization_preview_active = true
-	_preview_settings = preview.duplicate(true)
-	var locale: StringName = StringName(str(preview.get("locale", _active_locale)))
-	var dyslexia: bool = bool(preview.get("dyslexia_font_enabled", _dyslexia_enabled))
+	_preview_controller.start_preview(preview)
+	var locale: StringName = _preview_controller.resolve_locale(_active_locale)
+	var dyslexia: bool = _preview_controller.resolve_dyslexia_enabled(_dyslexia_enabled)
 	_dyslexia_enabled = dyslexia
 	if locale != _active_locale:
 		_load_locale(locale)
@@ -179,10 +176,8 @@ func set_localization_preview(preview: Dictionary) -> void:
 
 ## Clear preview mode: reverts to store state.
 func clear_localization_preview() -> void:
-	if not _localization_preview_active:
+	if not _preview_controller.clear_preview():
 		return
-	_localization_preview_active = false
-	_preview_settings.clear()
 	if _resolved_store != null:
 		var state: Dictionary = _resolved_store.get_state()
 		_apply_localization_settings(state)
