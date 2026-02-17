@@ -40,6 +40,9 @@ We are on branch `TimeManager` implementing `M_TimeManager` to replace `M_PauseM
 - `docs/time_manager/time-manager-plan.md` (full spec)
 - `scripts/managers/m_pause_manager.gd` (source to port in Phase 1)
 - `scripts/root.gd` (ServiceLocator wiring to update in Phase 1 Commit 4)
+- `AGENTS.md`
+- `docs/general/DEV_PITFALLS.md`
+- `docs/general/STYLE_GUIDE.md`
 
 **Implementation rules**:
 1. Follow TDD strictly — write tests BEFORE implementing method bodies in each commit
