@@ -609,9 +609,13 @@ func _compare_system_priority(a: BaseECSSystem, b: BaseECSSystem) -> bool:
 	return priority_a < priority_b
 
 func _resolve_time_manager() -> void:
-	if _time_manager != null and is_instance_valid(_time_manager):
+	var resolved_time_manager := U_SERVICE_LOCATOR.try_get_service(StringName("time_manager")) as Node
+	if resolved_time_manager == null or not is_instance_valid(resolved_time_manager):
+		_time_manager = null
 		return
-	_time_manager = U_SERVICE_LOCATOR.try_get_service(StringName("time_manager")) as Node
+	if _time_manager != null and is_instance_valid(_time_manager) and _time_manager == resolved_time_manager:
+		return
+	_time_manager = resolved_time_manager
 
 func _physics_process(delta: float) -> void:
 	_ensure_systems_sorted()

@@ -681,6 +681,38 @@ func test_physics_process_retries_time_manager_lookup_when_registered_late() -> 
 		"ECS manager should retry lookup and use newly registered time_manager")
 	assert_eq(time_manager.scaled_call_count, 1)
 
+func test_physics_process_switches_to_new_time_manager_when_service_rebound() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var system := DeltaCaptureSystem.new()
+	autofree(system)
+	manager.register_system(system)
+
+	var first_time_manager := TimeManagerStub.new()
+	first_time_manager.timescale = 0.5
+	add_child(first_time_manager)
+	autofree(first_time_manager)
+	U_ServiceLocator.register(StringName("time_manager"), first_time_manager)
+
+	manager._physics_process(1.0)
+
+	var second_time_manager := TimeManagerStub.new()
+	second_time_manager.timescale = 0.2
+	add_child(second_time_manager)
+	autofree(second_time_manager)
+	U_ServiceLocator.register(StringName("time_manager"), second_time_manager)
+
+	manager._physics_process(1.0)
+
+	assert_eq(system.seen_deltas.size(), 2)
+	assert_almost_eq(system.seen_deltas[0], 0.5, 0.0001)
+	assert_almost_eq(system.seen_deltas[1], 0.2, 0.0001,
+		"ECS manager should use the newly rebound time_manager")
+	assert_eq(first_time_manager.scaled_call_count, 1)
+	assert_eq(second_time_manager.scaled_call_count, 1)
+
 func _create_time_provider(sequence: Array) -> Callable:
 	var remaining: Array = sequence.duplicate()
 	var last_value := 0.0
