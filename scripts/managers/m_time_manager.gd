@@ -7,11 +7,13 @@ signal timescale_changed(new_scale: float)
 signal world_hour_changed(hour: int)
 
 const U_PAUSE_SYSTEM := preload("res://scripts/managers/helpers/time/u_pause_system.gd")
+const U_TIMESCALE_CONTROLLER := preload("res://scripts/managers/helpers/time/u_timescale_controller.gd")
 
 var _store: I_StateStore = null
 var _cursor_manager: M_CursorManager = null
 var _ui_overlay_stack: CanvasLayer = null
 var _pause_system = U_PAUSE_SYSTEM.new()
+var _timescale_controller = U_TIMESCALE_CONTROLLER.new()
 var _is_paused: bool = false
 var _current_scene_id: StringName = StringName("")
 var _current_scene_type: int = -1
@@ -153,14 +155,15 @@ func is_channel_paused(channel: StringName) -> bool:
 func get_active_pause_channels() -> Array[StringName]:
 	return _pause_system.get_active_channels()
 
-func set_timescale(_scale: float) -> void:
-	pass
+func set_timescale(scale: float) -> void:
+	_timescale_controller.set_timescale(scale)
+	timescale_changed.emit(_timescale_controller.get_timescale())
 
 func get_timescale() -> float:
-	return 1.0
+	return _timescale_controller.get_timescale()
 
 func get_scaled_delta(raw_delta: float) -> float:
-	return raw_delta
+	return _timescale_controller.get_scaled_delta(raw_delta)
 
 func get_world_time() -> Dictionary:
 	return {}

@@ -170,6 +170,26 @@ func test_scaled_delta_default() -> void:
 	assert_almost_eq(scaled_delta, 0.016, 0.0001,
 		"Scaled delta should match raw delta at default timescale")
 
+func test_get_scaled_delta_default() -> void:
+	await _setup_time_manager_with_store()
+	var raw_delta: float = 0.016
+
+	assert_almost_eq(_time_manager.get_scaled_delta(raw_delta), raw_delta, 0.0001,
+		"M_TimeManager should return raw delta at default timescale")
+
+func test_set_timescale_scales_delta_and_emits_signal() -> void:
+	await _setup_time_manager_with_store()
+	watch_signals(_time_manager)
+
+	_time_manager.set_timescale(0.5)
+
+	assert_almost_eq(_time_manager.get_timescale(), 0.5, 0.0001,
+		"M_TimeManager should expose clamped timescale")
+	assert_almost_eq(_time_manager.get_scaled_delta(1.0), 0.5, 0.0001,
+		"M_TimeManager should scale delta by timescale")
+	assert_signal_emit_count(_time_manager, "timescale_changed", 1,
+		"timescale_changed should emit when timescale is updated")
+
 func test_backward_compat_pause_manager_lookup() -> void:
 	await _setup_time_manager_with_store()
 	U_SERVICE_LOCATOR.register(StringName("pause_manager"), _time_manager)
