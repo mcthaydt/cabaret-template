@@ -3,14 +3,14 @@
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-02-17
 **Last Updated**: 2026-02-18
-**Status**: IN PROGRESS (Phases 1-2 complete; Phase 3 ready)
+**Status**: IN PROGRESS (Phases 1-4 complete; Phase 5 ready)
 **Scope**: Layered pause channels, timescale control, world simulation clock
 
 ## Summary
 
 `M_TimeManager` replaces `M_PauseManager` as the central time authority. It absorbs pause logic into a `U_PauseSystem` helper with layered channels, adds timescale control via `U_TimescaleController`, and introduces an in-game world simulation clock via `U_WorldClock`. `S_PlaytimeSystem` (elapsed gameplay time) remains in ECS unchanged. Runtime authority stays inside `M_TimeManager`; the Redux `time` slice is a synchronized mirror for persistence and selectors.
 
-Current implementation state (2026-02-18): Phase 1 (core refactor) and Phase 2 (timescale + ECS integration) are complete; Phase 3 (world clock) is next.
+Current implementation state (2026-02-18): Phases 1-4 are complete (core refactor, timescale, world clock, and Redux/persistence wiring). Phase 5 documentation updates are next.
 
 ## Repo Reality Checks
 
