@@ -303,7 +303,7 @@ func _on_state_changed(___action: Dictionary, state: Dictionary) -> void:
 	var new_scene_id: StringName = scene_state.get("current_scene_id", StringName(""))
 
 	# Only track scene_id when it actually changes and is not empty
-	# Phase 2 (T022): Cursor updates removed - M_PauseManager is now sole authority
+	# Phase 2 (T022): Cursor updates removed - M_TimeManager is now sole authority
 	if new_scene_id != _current_scene_id and not new_scene_id.is_empty():
 		_current_scene_id = new_scene_id
 		if _navigation_reconciler.get_pending_scene_id() == new_scene_id:
@@ -669,7 +669,7 @@ func pop_overlay() -> void:
 ## from opening pause menu on the same frame.
 ##
 ## Note: Stub implementation (Phase: Duck Typing Cleanup Phase 3)
-## Full implementation would coordinate with M_PauseManager
+## Full implementation would coordinate with M_TimeManager
 func suppress_pause_for_current_frame() -> void:
 	# TODO: Implement pause suppression logic
 	pass
@@ -742,7 +742,7 @@ func _configure_overlay_scene(overlay_scene: Node, scene_id: StringName) -> void
 ## Update particles and focus based on overlay stack
 ##
 ## Phase 2 (T022): Refactored to remove pause/cursor authority.
-## M_PauseManager is now the sole authority for get_tree().paused and cursor state.
+## M_TimeManager is now the sole authority for get_tree().paused and cursor state.
 ## This method only handles GPU particle workaround (particles ignore SceneTree pause).
 func _update_particles_and_focus() -> void:
 	if _ui_overlay_stack == null:
@@ -752,7 +752,7 @@ func _update_particles_and_focus() -> void:
 	var should_pause: bool = overlay_count > 0
 
 	# Ensure particles in gameplay respect pause (GPU particles ignore SceneTree pause)
-	# This is a workaround - M_PauseManager controls actual pause via get_tree().paused
+	# This is a workaround - M_TimeManager controls actual pause via get_tree().paused
 	_set_particles_paused(should_pause)
 
 func has_scene_been_spawned(scene_root: Node) -> bool:
@@ -962,7 +962,7 @@ func is_transitioning() -> bool:
 	return scene_state.get("is_transitioning", false)
 
 ## Keep navigation shell/base scene aligned with the actual scene (manual transitions/tests)
-## Phase 2 (T022): Removed _update_cursor_for_scene() - M_PauseManager now handles cursor state
+## Phase 2 (T022): Removed _update_cursor_for_scene() - M_TimeManager now handles cursor state
 func _sync_navigation_shell_with_scene(scene_id: StringName) -> void:
 	if not _initial_navigation_synced:
 		return

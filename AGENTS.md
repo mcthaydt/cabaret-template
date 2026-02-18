@@ -1179,7 +1179,7 @@ func _apply_window_mode(mode: String) -> void:
   - In `process_tick()`: no await needed (store already registered).
 - Access managers via ServiceLocator (Phase 10B-7: T141)
   - Use `U_ServiceLocator.get_service(StringName("service_name"))` for fast, centralized manager access.
-  - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`, `"display_manager"`, `"localization_manager"`, `"save_manager"`, `"vfx_manager"`.
+  - Available services: `"state_store"`, `"scene_manager"`, `"time_manager"`, `"pause_manager"` (backward-compat alias), `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`, `"display_manager"`, `"localization_manager"`, `"save_manager"`, `"vfx_manager"`.
   - ServiceLocator provides O(1) Dictionary lookup vs O(n) scene-tree traversal.
   - All services are registered at startup in `root.tscn` via `root.gd`.
 - Create a new gameplay scene
