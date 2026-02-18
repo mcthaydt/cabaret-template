@@ -1,7 +1,7 @@
 # Time Manager - Tasks Checklist
 
 **Branch**: `TimeManager`
-**Status**: Planning complete — ready for implementation
+**Status**: Phase 1 complete — ready for Phase 2
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each phase, not deferred
 **Reference**: `docs/time_manager/time-manager-plan.md`
 
@@ -16,16 +16,16 @@
 - [x] **Commit 3** — Create `m_time_manager.gd` + add M_TimeManager pause integration tests (TDD; 4 tests; port all logic from m_pause_manager.gd)
 - [x] **Commit 4** — Wire root.gd + scenes/root.tscn (rename node, dual ServiceLocator registration)
 - [x] **Commit 5** — Migrate 10 test files (mechanical M_PauseManager → M_TimeManager find-replace)
-- [ ] **Commit 6** — Delete `m_pause_manager.gd` + `.uid`; run full pause test suite
+- [x] **Commit 6** — Delete `m_pause_manager.gd` + `.uid`; run full pause test suite
 
 **Phase 1 verification**:
-- [ ] U_PauseSystem unit tests pass (10 tests)
-- [ ] M_TimeManager pause integration tests pass (4 tests)
-- [ ] All 10 existing pause integration tests pass
-- [ ] `is_paused()` / `pause_state_changed` / cursor coordination unchanged
-- [ ] `U_ServiceLocator.get_service("pause_manager")` returns M_TimeManager
-- [ ] `test_style_enforcement.gd` passes
-- [ ] `m_pause_manager.gd` deleted
+- [x] U_PauseSystem unit tests pass (10 tests)
+- [x] M_TimeManager pause integration tests pass (4 tests)
+- [x] All 10 existing pause integration tests pass
+- [x] `is_paused()` / `pause_state_changed` / cursor coordination unchanged
+- [x] `U_ServiceLocator.get_service("pause_manager")` returns M_TimeManager
+- [x] `test_style_enforcement.gd` passes
+- [x] `m_pause_manager.gd` deleted
 
 ---
 

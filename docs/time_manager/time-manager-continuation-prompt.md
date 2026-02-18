@@ -1,9 +1,9 @@
 # Time Manager - Continuation Prompt
 
 **Branch**: `TimeManager`
-**Current Status**: Planning complete — Phase 1 not yet started
-**Last Completed**: Documentation (overview + plan + TDD restructure)
-**Next Action**: Begin Phase 1, Commit 1
+**Current Status**: Phase 1 complete — ready for Phase 2
+**Last Completed**: Phase 1 (Core Refactor, Commits 1-6)
+**Next Action**: Begin Phase 2, Commit 1 (`u_timescale_controller.gd` + tests)
 
 ---
 
@@ -31,14 +31,14 @@ Use this to resume implementation in a new session:
 
 We are on branch `TimeManager` implementing `M_TimeManager` to replace `M_PauseManager`.
 
-**Current status**: [UPDATE THIS LINE — e.g. "Starting Phase 1 Commit 1" / "Phase 1 complete, starting Phase 2"]
+**Current status**: Phase 1 complete, starting Phase 2
 
 **Implementation plan**: `docs/time_manager/time-manager-plan.md` — contains full code for every file to create/modify.
 **Task checklist**: `docs/time_manager/time-manager-tasks.md` — tracks completion per commit.
 
 **Key files to read before starting**:
 - `docs/time_manager/time-manager-plan.md` (full spec)
-- `scripts/managers/m_pause_manager.gd` (source to port in Phase 1)
+- `scripts/managers/m_time_manager.gd` (Phase 1 baseline for Phase 2+)
 - `scripts/root.gd` (ServiceLocator wiring to update in Phase 1 Commit 4)
 - `AGENTS.md`
 - `docs/general/DEV_PITFALLS.md`
@@ -67,7 +67,7 @@ We are on branch `TimeManager` implementing `M_TimeManager` to replace `M_PauseM
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit
 ```
 
-Start with Phase 1, Commit 1: create `u_pause_system.gd` with stubs + `test_time_manager.gd` with U_PauseSystem tests (RED), then implement (GREEN).
+Start with Phase 2, Commit 1: create `u_timescale_controller.gd` with stubs + add U_TimescaleController tests to `test_time_manager.gd` (RED), then implement (GREEN).
 
 ---
 
@@ -75,8 +75,8 @@ Start with Phase 1, Commit 1: create `u_pause_system.gd` with stubs + `test_time
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| Phase 1: Core Refactor | Not started | 14 TDD tests (10 unit + 4 integration) |
-| Phase 2: Timescale | Not started | Blocked by Phase 1; 7 TDD tests |
+| Phase 1: Core Refactor | Complete | 6 commits complete; `M_PauseManager` removed; Phase 1 test suites passing |
+| Phase 2: Timescale | Ready to start | 7 TDD tests |
 | Phase 3: World Clock | Not started | Blocked by Phase 2; 13 TDD tests |
 | Phase 4: Redux State | Not started | Blocked by Phase 3 |
 | Phase 5: Documentation | Not started | Blocked by Phase 4; AGENTS.md only |
