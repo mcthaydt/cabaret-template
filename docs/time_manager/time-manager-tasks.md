@@ -1,7 +1,7 @@
 # Time Manager - Tasks Checklist
 
 **Branch**: `TimeManager`
-**Status**: Phase 2 complete — ready for Phase 3
+**Status**: Phase 3 in progress — Commit 1 complete
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each phase, not deferred
 **Reference**: `docs/time_manager/time-manager-plan.md`
 
@@ -52,11 +52,11 @@
 
 **Goal**: In-game simulation clock; pauses with gameplay; configurable speed.
 
-- [ ] **Commit 1** — Create `u_world_clock.gd` + add U_WorldClock unit tests to test file (TDD; 12 tests)
+- [x] **Commit 1** — Create `u_world_clock.gd` + add U_WorldClock unit tests to test file (TDD; 12 tests)
 - [ ] **Commit 2** — Wire world clock into `m_time_manager.gd` + add world clock integration test (TDD; 1 test; `_physics_process` advance, replace stubs, `world_hour_changed` signal)
 
 **Phase 3 verification**:
-- [ ] U_WorldClock unit tests pass (12 tests)
+- [x] U_WorldClock unit tests pass (12 tests)
 - [ ] M_TimeManager world clock integration test passes (1 test)
 - [ ] World clock advances during gameplay
 - [ ] World clock stops when any pause channel active

@@ -2,6 +2,7 @@ extends GutTest
 
 const U_PAUSE_SYSTEM := preload("res://scripts/managers/helpers/time/u_pause_system.gd")
 const U_TIMESCALE_CONTROLLER := preload("res://scripts/managers/helpers/time/u_timescale_controller.gd")
+const U_WORLD_CLOCK := preload("res://scripts/managers/helpers/time/u_world_clock.gd")
 const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
@@ -9,6 +10,10 @@ const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
 var _time_manager: Node = null
 var _store: Node = null
 var _overlay_stack: CanvasLayer = null
+var _minute_callback_count: int = 0
+var _captured_minute: int = -1
+var _hour_callback_count: int = 0
+var _captured_hour: int = -1
 
 
 func before_each() -> void:
@@ -16,6 +21,10 @@ func before_each() -> void:
 	_time_manager = null
 	_store = null
 	_overlay_stack = null
+	_minute_callback_count = 0
+	_captured_minute = -1
+	_hour_callback_count = 0
+	_captured_hour = -1
 	get_tree().paused = false
 
 func after_each() -> void:
@@ -26,6 +35,10 @@ func after_each() -> void:
 	_time_manager = null
 	_store = null
 	_overlay_stack = null
+	_minute_callback_count = 0
+	_captured_minute = -1
+	_hour_callback_count = 0
+	_captured_hour = -1
 
 
 func test_initial_state_not_paused() -> void:
@@ -170,6 +183,116 @@ func test_scaled_delta_default() -> void:
 	assert_almost_eq(scaled_delta, 0.016, 0.0001,
 		"Scaled delta should match raw delta at default timescale")
 
+func test_default_time() -> void:
+	var world_clock := U_WORLD_CLOCK.new()
+	var time_data: Dictionary = world_clock.get_time()
+
+	assert_eq(int(time_data.get("hour", -1)), 8, "Default hour should be 8")
+	assert_eq(int(time_data.get("minute", -1)), 0, "Default minute should be 0")
+	assert_almost_eq(float(time_data.get("total_minutes", -1.0)), 480.0, 0.0001,
+		"Default total_minutes should be 480")
+	assert_eq(int(time_data.get("day_count", -1)), 1, "Default day_count should be 1")
+
+func test_advance_one_minute() -> void:
+	var world_clock := U_WORLD_CLOCK.new()
+
+	world_clock.advance(1.0)
+
+	var time_data: Dictionary = world_clock.get_time()
+	assert_eq(int(time_data.get("hour", -1)), 8, "Hour should remain the same")
+	assert_eq(int(time_data.get("minute", -1)), 1, "One second at speed 1 should advance one minute")
+
+func test_advance_one_hour() -> void:
+	var world_clock := U_WORLD_CLOCK.new()
+
+	world_clock.advance(60.0)
+
+	var time_data: Dictionary = world_clock.get_time()
+	assert_eq(int(time_data.get("hour", -1)), 9, "Sixty minutes from 8:00 should be 9:00")
+	assert_eq(int(time_data.get("minute", -1)), 0, "Minute should wrap back to 0")
+
+func test_day_rollover() -> void:
+	var world_clock := U_WORLD_CLOCK.new()
+	world_clock.set_time(23, 59)
+
+	world_clock.advance(2.0)
+
+	var time_data: Dictionary = world_clock.get_time()
+	assert_eq(int(time_data.get("hour", -1)), 0, "Hour should roll over at midnight")
+	assert_eq(int(time_data.get("minute", -1)), 1, "Minute should continue after rollover")
+	assert_eq(int(time_data.get("day_count", -1)), 2, "Day count should increment on rollover")
+
+func test_set_time() -> void:
+	var world_clock := U_WORLD_CLOCK.new()
+
+	world_clock.set_time(14, 30)
+
+	var time_data: Dictionary = world_clock.get_time()
+	assert_eq(int(time_data.get("hour", -1)), 14, "set_time should set hour")
+	assert_eq(int(time_data.get("minute", -1)), 30, "set_time should set minute")
+	assert_almost_eq(float(time_data.get("total_minutes", -1.0)), 870.0, 0.0001,
+		"set_time should update total_minutes for current day")
+
+func test_set_state_hydrates_persisted_values() -> void:
+	var world_clock := U_WORLD_CLOCK.new()
+
+	world_clock.set_state(3000.0, 3, 2.5)
+
+	var time_data: Dictionary = world_clock.get_time()
+	assert_almost_eq(float(time_data.get("total_minutes", -1.0)), 3000.0, 0.0001,
+		"set_state should restore total_minutes")
+	assert_eq(int(time_data.get("day_count", -1)), 3, "set_state should restore day_count")
+	assert_almost_eq(world_clock.minutes_per_real_second, 2.5, 0.0001,
+		"set_state should restore speed")
+
+func test_set_speed() -> void:
+	var world_clock := U_WORLD_CLOCK.new()
+
+	world_clock.set_speed(2.0)
+	world_clock.advance(1.0)
+
+	var time_data: Dictionary = world_clock.get_time()
+	assert_eq(int(time_data.get("minute", -1)), 2, "Two minutes per second should advance two minutes")
+
+func test_is_daytime_true() -> void:
+	var world_clock := U_WORLD_CLOCK.new()
+	world_clock.set_time(12, 0)
+
+	assert_true(world_clock.is_daytime(), "Noon should be daytime")
+
+func test_is_daytime_false() -> void:
+	var world_clock := U_WORLD_CLOCK.new()
+	world_clock.set_time(22, 0)
+
+	assert_false(world_clock.is_daytime(), "22:00 should be nighttime")
+
+func test_minute_callback_fires() -> void:
+	var world_clock := U_WORLD_CLOCK.new()
+	world_clock.on_minute_changed = Callable(self, "_on_test_minute_changed")
+
+	world_clock.advance(1.0)
+
+	assert_eq(_minute_callback_count, 1, "Minute callback should fire on minute boundary")
+	assert_eq(_captured_minute, 1, "Minute callback should pass new minute value")
+
+func test_hour_callback_fires() -> void:
+	var world_clock := U_WORLD_CLOCK.new()
+	world_clock.set_time(8, 59)
+	world_clock.on_hour_changed = Callable(self, "_on_test_hour_changed")
+
+	world_clock.advance(1.0)
+
+	assert_eq(_hour_callback_count, 1, "Hour callback should fire when hour changes")
+	assert_eq(_captured_hour, 9, "Hour callback should pass new hour")
+
+func test_callback_not_called_when_unset() -> void:
+	var world_clock := U_WORLD_CLOCK.new()
+
+	world_clock.advance(1.0)
+
+	var time_data: Dictionary = world_clock.get_time()
+	assert_eq(int(time_data.get("minute", -1)), 1, "Advance should work with unset callbacks")
+
 func test_get_scaled_delta_default() -> void:
 	await _setup_time_manager_with_store()
 	var raw_delta: float = 0.016
@@ -234,3 +357,11 @@ func _setup_time_manager_with_store(scene_state: Dictionary = {}) -> void:
 	_time_manager = M_TIME_MANAGER.new()
 	add_child_autofree(_time_manager)
 	await get_tree().process_frame
+
+func _on_test_minute_changed(minute: int) -> void:
+	_minute_callback_count += 1
+	_captured_minute = minute
+
+func _on_test_hour_changed(hour: int) -> void:
+	_hour_callback_count += 1
+	_captured_hour = hour

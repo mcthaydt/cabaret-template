@@ -1,9 +1,9 @@
 # Time Manager - Continuation Prompt
 
 **Branch**: `TimeManager`
-**Current Status**: Phase 2 complete — ready for Phase 3
-**Last Completed**: Phase 2 (Timescale, Commits 1-3)
-**Next Action**: Begin Phase 3, Commit 1 (`u_world_clock.gd` + tests)
+**Current Status**: Phase 3 in progress — Commit 1 complete
+**Last Completed**: Phase 3, Commit 1 (`u_world_clock.gd` + tests)
+**Next Action**: Begin Phase 3, Commit 2 (wire world clock into `m_time_manager.gd` + integration test)
 
 ---
 
@@ -31,7 +31,7 @@ Use this to resume implementation in a new session:
 
 We are on branch `TimeManager` implementing `M_TimeManager` to replace `M_PauseManager`.
 
-**Current status**: Phase 2 complete, starting Phase 3
+**Current status**: Phase 3 in progress, Commit 1 complete
 
 **Implementation plan**: `docs/time_manager/time-manager-plan.md` — contains full code for every file to create/modify.
 **Task checklist**: `docs/time_manager/time-manager-tasks.md` — tracks completion per commit.
@@ -67,7 +67,7 @@ We are on branch `TimeManager` implementing `M_TimeManager` to replace `M_PauseM
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit
 ```
 
-Start with Phase 3, Commit 1: create `u_world_clock.gd` with stubs + add U_WorldClock tests to `test_time_manager.gd` (RED), then implement (GREEN).
+Continue with Phase 3, Commit 2: wire `U_WorldClock` into `m_time_manager.gd`, add the world-clock integration test, run RED then GREEN.
 
 ---
 
@@ -77,6 +77,6 @@ Start with Phase 3, Commit 1: create `u_world_clock.gd` with stubs + add U_World
 |-------|--------|-------|
 | Phase 1: Core Refactor | Complete | 6 commits complete; `M_PauseManager` removed; Phase 1 test suites passing |
 | Phase 2: Timescale | Complete | Commits 1-3 complete; timescale + ECS scaled delta tests green |
-| Phase 3: World Clock | Ready to start | 13 TDD tests |
+| Phase 3: World Clock | In progress | Commit 1 complete (U_WorldClock helper + 12 tests) |
 | Phase 4: Redux State | Not started | Blocked by Phase 3 |
 | Phase 5: Documentation | Not started | Blocked by Phase 4; AGENTS.md only |
