@@ -70,6 +70,8 @@ func _process(__delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	if _is_paused:
 		return
+	if _current_scene_type != U_SceneRegistry.SceneType.GAMEPLAY:
+		return
 	_world_clock.advance(get_scaled_delta(delta))
 
 func _check_and_resync_pause_state() -> void:

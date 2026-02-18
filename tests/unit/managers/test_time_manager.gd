@@ -314,7 +314,11 @@ func test_set_timescale_scales_delta_and_emits_signal() -> void:
 		"timescale_changed should emit when timescale is updated")
 
 func test_world_clock_stops_when_paused() -> void:
-	await _setup_time_manager_with_store()
+	var scene_state := {
+		"current_scene_id": StringName("gameplay_base"),
+		"scene_stack": [],
+	}
+	await _setup_time_manager_with_store(scene_state)
 
 	_time_manager.set_world_time(8, 0)
 	_time_manager._physics_process(1.0)
@@ -329,6 +333,20 @@ func test_world_clock_stops_when_paused() -> void:
 	var paused_time: Dictionary = _time_manager.get_world_time()
 	assert_eq(int(paused_time.get("minute", -1)), int(running_time.get("minute", -1)),
 		"World clock should not advance while paused")
+
+func test_world_clock_does_not_advance_outside_gameplay() -> void:
+	var scene_state := {
+		"current_scene_id": StringName("main_menu"),
+		"scene_stack": [],
+	}
+	await _setup_time_manager_with_store(scene_state)
+
+	_time_manager.set_world_time(8, 0)
+	_time_manager._physics_process(60.0)
+
+	var menu_time: Dictionary = _time_manager.get_world_time()
+	assert_eq(int(menu_time.get("minute", -1)), 0,
+		"World clock should not advance outside gameplay scenes")
 
 func test_backward_compat_pause_manager_lookup() -> void:
 	await _setup_time_manager_with_store()
