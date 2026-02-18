@@ -23,7 +23,7 @@
 [ext_resource type="Script" uid="uid://bxqd4f7hk7hte" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
 [ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/base_settings/gameplay/cfg_jump_particles_default.tres" id="9_jump_particles_settings"]
 [ext_resource type="Script" uid="uid://qeq48m3npch6" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
-[ext_resource type="Script" uid="uid://bu11j5ljfirtp" path="res://scripts/managers/m_pause_manager.gd" id="9_pause"]
+[ext_resource type="Script" path="res://scripts/managers/m_time_manager.gd" id="9_time_manager"]
 [ext_resource type="Script" uid="uid://cfddnuq1oriyb" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
 [ext_resource type="Script" uid="uid://bry3i70sfhmiv" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
 [ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/base_settings/gameplay/cfg_landing_particles_default.tres" id="10_landing_particles_settings"]
@@ -130,8 +130,8 @@ script = ExtResource("3_systems_core")
 script = ExtResource("1_pybrx")
 require_captured_cursor = true
 
-[node name="M_PauseManager" type="Node" parent="Systems/Core" unique_id=2076855233]
-script = ExtResource("9_pause")
+[node name="M_TimeManager" type="Node" parent="Systems/Core" unique_id=2076855233]
+script = ExtResource("9_time_manager")
 
 [node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1377430575]
 script = ExtResource("9_health")

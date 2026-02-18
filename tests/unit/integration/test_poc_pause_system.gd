@@ -5,9 +5,10 @@ extends BaseTest
 ## Phase 2: Updated to test scene-driven pause architecture
 ## Tests that validate state store integration with M_TimeManager via scene slice
 
+const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
 
 var store: M_StateStore
-var pause_system: Node  # Will be M_TimeManager once implemented
+var pause_system: Node  # Will be M_TIME_MANAGER once implemented
 var cursor_manager: M_CursorManager
 
 func before_each() -> void:
@@ -53,7 +54,7 @@ func after_each() -> void:
 func test_pause_system_reacts_to_navigation_state() -> void:
 	# Phase 2: M_TimeManager now watches scene slice, not navigation slice
 	# Create pause system
-	pause_system = M_TimeManager.new()
+	pause_system = M_TIME_MANAGER.new()
 	add_child(pause_system)
 	autofree(pause_system)
 	await get_tree().process_frame
@@ -73,7 +74,7 @@ func test_pause_system_reacts_to_navigation_state() -> void:
 func test_pause_system_applies_engine_pause() -> void:
 	# Phase 2: M_TimeManager now applies get_tree().paused based on scene state
 	# Create pause system
-	pause_system = M_TimeManager.new()
+	pause_system = M_TIME_MANAGER.new()
 	add_child(pause_system)
 	autofree(pause_system)
 	await get_tree().process_frame
@@ -97,7 +98,7 @@ func test_pause_system_applies_engine_pause() -> void:
 func test_movement_disabled_when_paused() -> void:
 	# Phase 2: Pause is derived from scene overlays, systems check get_tree().paused
 	# Create pause system
-	pause_system = M_TimeManager.new()
+	pause_system = M_TIME_MANAGER.new()
 	add_child(pause_system)
 	autofree(pause_system)
 	await get_tree().process_frame

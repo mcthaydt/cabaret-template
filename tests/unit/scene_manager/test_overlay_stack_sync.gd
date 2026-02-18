@@ -2,6 +2,7 @@ extends BaseTest
 
 ## Unit tests for overlay stack/state synchronization on M_SceneManager startup
 
+const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
 
 var _store: M_StateStore
 var _ui_overlay_stack: CanvasLayer
@@ -10,7 +11,7 @@ var _transition_overlay: CanvasLayer
 var _cursor_manager: M_CursorManager
 var _spawn_manager: M_SpawnManager
 var _camera_manager: M_CameraManager
-var _pause_system: M_TimeManager
+var _pause_system: Node
 
 func before_each() -> void:
 	# Minimal scene tree structure expected by M_SceneManager
@@ -56,7 +57,7 @@ func before_each() -> void:
 
 	# Register all managers with ServiceLocator so they can find each other
 	# Create M_TimeManager to apply pause based on scene state
-	_pause_system = M_TimeManager.new()
+	_pause_system = M_TIME_MANAGER.new()
 	add_child_autofree(_pause_system)
 	await get_tree().process_frame
 

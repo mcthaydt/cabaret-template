@@ -1,5 +1,6 @@
 extends GutTest
 
+const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
 
 var _store: M_StateStore
 var _ui_overlay_stack: CanvasLayer
@@ -10,7 +11,7 @@ var _spawn_manager: M_SpawnManager
 var _camera_manager: M_CameraManager
 var _profile_manager: M_InputProfileManager
 var _localization_manager: M_LocalizationManager
-var _pause_system: M_TimeManager
+var _pause_system: Node
 
 const _DEBUG_LOGS: bool = false
 
@@ -104,7 +105,7 @@ func before_each() -> void:
 	await get_tree().process_frame
 
 	# Create M_TimeManager to apply pause based on scene state
-	_pause_system = M_TimeManager.new()
+	_pause_system = M_TIME_MANAGER.new()
 	add_child_autofree(_pause_system)
 	U_ServiceLocator.register(StringName("pause_manager"), _pause_system)
 	await get_tree().process_frame

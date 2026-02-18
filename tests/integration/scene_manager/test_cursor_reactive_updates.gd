@@ -2,11 +2,12 @@ extends GutTest
 
 ## Integration test for reactive cursor updates on scene changes
 
+const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
 
 var _root: Node
 var _store: M_StateStore
 var _cursor: M_CursorManager
-var _pause_system: M_TimeManager
+var _pause_system: Node
 var _manager: M_SceneManager
 
 func before_each() -> void:
@@ -45,7 +46,7 @@ func before_each() -> void:
     U_ServiceLocator.register(StringName("scene_manager"), _manager)
 
     # Pause system (coordinates cursor state with scene type)
-    _pause_system = M_TimeManager.new()
+    _pause_system = M_TIME_MANAGER.new()
     _root.add_child(_pause_system)
     U_ServiceLocator.register(StringName("pause_manager"), _pause_system)
     await get_tree().process_frame
