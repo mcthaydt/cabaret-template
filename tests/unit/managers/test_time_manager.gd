@@ -1,6 +1,7 @@
 extends GutTest
 
 const U_PAUSE_SYSTEM := preload("res://scripts/managers/helpers/time/u_pause_system.gd")
+const U_TIMESCALE_CONTROLLER := preload("res://scripts/managers/helpers/time/u_timescale_controller.gd")
 const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
@@ -123,6 +124,51 @@ func test_release_below_zero_clamps_and_ui_manual_noop() -> void:
 
 	pause_system.derive_pause_from_overlay_state(0)
 	assert_false(pause_system.is_channel_paused(U_PAUSE_SYSTEM.CHANNEL_UI), "Derive should clear UI channel")
+
+func test_default_timescale() -> void:
+	var timescale_controller := U_TIMESCALE_CONTROLLER.new()
+
+	assert_eq(timescale_controller.get_timescale(), 1.0, "Default timescale should be 1.0")
+
+func test_set_timescale() -> void:
+	var timescale_controller := U_TIMESCALE_CONTROLLER.new()
+
+	timescale_controller.set_timescale(0.5)
+
+	assert_almost_eq(timescale_controller.get_timescale(), 0.5, 0.0001,
+		"Setting timescale should update value")
+
+func test_timescale_clamp_lower() -> void:
+	var timescale_controller := U_TIMESCALE_CONTROLLER.new()
+
+	timescale_controller.set_timescale(0.0)
+
+	assert_almost_eq(timescale_controller.get_timescale(), 0.01, 0.0001,
+		"Timescale should clamp to minimum")
+
+func test_timescale_clamp_upper() -> void:
+	var timescale_controller := U_TIMESCALE_CONTROLLER.new()
+
+	timescale_controller.set_timescale(100.0)
+
+	assert_almost_eq(timescale_controller.get_timescale(), 10.0, 0.0001,
+		"Timescale should clamp to maximum")
+
+func test_scaled_delta() -> void:
+	var timescale_controller := U_TIMESCALE_CONTROLLER.new()
+
+	timescale_controller.set_timescale(0.5)
+	var scaled_delta: float = timescale_controller.get_scaled_delta(1.0)
+
+	assert_almost_eq(scaled_delta, 0.5, 0.0001,
+		"Scaled delta should apply current timescale")
+
+func test_scaled_delta_default() -> void:
+	var timescale_controller := U_TIMESCALE_CONTROLLER.new()
+	var scaled_delta: float = timescale_controller.get_scaled_delta(0.016)
+
+	assert_almost_eq(scaled_delta, 0.016, 0.0001,
+		"Scaled delta should match raw delta at default timescale")
 
 func test_backward_compat_pause_manager_lookup() -> void:
 	await _setup_time_manager_with_store()

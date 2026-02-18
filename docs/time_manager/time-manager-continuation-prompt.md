@@ -1,9 +1,9 @@
 # Time Manager - Continuation Prompt
 
 **Branch**: `TimeManager`
-**Current Status**: Phase 1 complete — ready for Phase 2
-**Last Completed**: Phase 1 (Core Refactor, Commits 1-6)
-**Next Action**: Begin Phase 2, Commit 1 (`u_timescale_controller.gd` + tests)
+**Current Status**: Phase 2 in progress — Commit 1 complete
+**Last Completed**: Phase 2, Commit 1 (`u_timescale_controller.gd` + tests)
+**Next Action**: Begin Phase 2, Commit 2 (wire timescale into `m_time_manager.gd` + integration test)
 
 ---
 
@@ -31,7 +31,7 @@ Use this to resume implementation in a new session:
 
 We are on branch `TimeManager` implementing `M_TimeManager` to replace `M_PauseManager`.
 
-**Current status**: Phase 1 complete, starting Phase 2
+**Current status**: Phase 2 in progress, Commit 1 complete
 
 **Implementation plan**: `docs/time_manager/time-manager-plan.md` — contains full code for every file to create/modify.
 **Task checklist**: `docs/time_manager/time-manager-tasks.md` — tracks completion per commit.
@@ -67,7 +67,7 @@ We are on branch `TimeManager` implementing `M_TimeManager` to replace `M_PauseM
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit
 ```
 
-Start with Phase 2, Commit 1: create `u_timescale_controller.gd` with stubs + add U_TimescaleController tests to `test_time_manager.gd` (RED), then implement (GREEN).
+Continue with Phase 2, Commit 2: wire `U_TimescaleController` into `m_time_manager.gd`, replace timescale stubs, add the timescale integration test to `test_time_manager.gd` (RED), then implement (GREEN).
 
 ---
 
@@ -76,7 +76,7 @@ Start with Phase 2, Commit 1: create `u_timescale_controller.gd` with stubs + ad
 | Phase | Status | Notes |
 |-------|--------|-------|
 | Phase 1: Core Refactor | Complete | 6 commits complete; `M_PauseManager` removed; Phase 1 test suites passing |
-| Phase 2: Timescale | Ready to start | 7 TDD tests |
+| Phase 2: Timescale | In progress | Commit 1 complete (`u_timescale_controller.gd` + 6 unit tests green) |
 | Phase 3: World Clock | Not started | Blocked by Phase 2; 13 TDD tests |
 | Phase 4: Redux State | Not started | Blocked by Phase 3 |
 | Phase 5: Documentation | Not started | Blocked by Phase 4; AGENTS.md only |
