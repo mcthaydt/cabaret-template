@@ -2,29 +2,31 @@
 
 **Project**: Cabaret Template (Godot 4.6)
 **Created**: 2026-02-17
-**Last Updated**: 2026-02-17
-**Status**: PLANNING (Phase 0)
+**Last Updated**: 2026-02-18
+**Status**: IN PROGRESS (Phases 1-2 complete; Phase 3 ready)
 **Scope**: Layered pause channels, timescale control, world simulation clock
 
 ## Summary
 
 `M_TimeManager` replaces `M_PauseManager` as the central time authority. It absorbs pause logic into a `U_PauseSystem` helper with layered channels, adds timescale control via `U_TimescaleController`, and introduces an in-game world simulation clock via `U_WorldClock`. `S_PlaytimeSystem` (elapsed gameplay time) remains in ECS unchanged. Runtime authority stays inside `M_TimeManager`; the Redux `time` slice is a synchronized mirror for persistence and selectors.
 
+Current implementation state (2026-02-18): Phase 1 (core refactor) and Phase 2 (timescale + ECS integration) are complete; Phase 3 (world clock) is next.
+
 ## Repo Reality Checks
 
 - Main scene is `scenes/root.tscn`; service registration bootstrapped by `scripts/root.gd` via `U_ServiceLocator`.
-- `M_PauseManager` currently at `scripts/managers/m_pause_manager.gd`, registered as `"pause_manager"` in ServiceLocator.
+- `M_TimeManager` is live at `scripts/managers/m_time_manager.gd`, registered as both `"time_manager"` and backward-compatible `"pause_manager"` in ServiceLocator.
 - Pause state is derived from `scene.scene_stack` size AND `UIOverlayStack` child count (OR logic). Engine pause applied via `get_tree().paused`.
-- `M_PauseManager` coordinates cursor state with `M_CursorManager` based on pause state AND scene type.
-- `M_PauseManager` uses `process_mode = PROCESS_MODE_ALWAYS`. It polls overlay state every `_process()` frame (not `_physics_process`) for the resync loop. This distinction is important — the new `M_TimeManager` must keep `_process()` for the overlay resync loop and add `_physics_process()` only for world clock advance.
+- `M_TimeManager` coordinates cursor state with `M_CursorManager` based on pause state AND scene type.
+- `M_TimeManager` uses `process_mode = PROCESS_MODE_ALWAYS` and polls overlay state every `_process()` frame (not `_physics_process`) for pause resync.
 - `U_NavigationSelectors.is_paused(state)` returns `true` only when `shell == "gameplay"` AND `overlay_stack.size() > 0`. It does NOT return `true` when overlays are open on the main menu shell.
 - `U_GameplaySelectors.get_is_paused()` reads `gameplay.paused` from the state store.
 - `S_PlaytimeSystem` tracks `gameplay.playtime_seconds` in ECS, incrementing during gameplay.
-- `M_ECSManager._physics_process(delta)` passes raw `delta` to each system's `process_tick(delta)`.
+- `M_ECSManager._physics_process(delta)` resolves `time_manager` via ServiceLocator and passes scaled delta when available (`get_scaled_delta(delta)`), with raw-delta fallback.
 - All helper scripts in this codebase extend `RefCounted` (e.g. `U_LocalizationCatalog`, `U_InputProfileLoader`). `RefCounted` cannot declare GDScript signals. Helper callbacks must use `Callable` patterns, not signals.
 - Slice registration lives in **`U_StateSliceManager.initialize_slices()`** (not directly in `M_StateStore._ready()`). Adding a new slice requires extending the signature of `initialize_slices()` and adding an `@export` var to `M_StateStore`.
 - Transient fields are stripped from both StateHandoff preservation and disk saves via `RS_StateSliceConfig.transient_fields`. StateHandoff is for cross-scene persistence (in-memory), not disk. The two mechanisms — handoff and disk save — both strip the same `transient_fields` list. Setting `RS_StateSliceConfig.is_transient = true` marks the ENTIRE slice as skipped during handoff restoration (used by the `navigation` slice).
-- `test_style_enforcement.gd` line 337 unconditionally asserts `has_pause_manager` (which checks for an `M_PauseManager` node by name in `Managers`). Line 67 also carries `# m_ for M_PauseManager` in the ECS systems prefix table — that exception only exists because `m_pause_manager.gd` sits in the ECS systems folder. Both must be updated in Phase 1.
+- Phase 1 style/test migrations are complete: root now expects `M_TimeManager`, and stale `m_pause_manager` path assertions were removed from style enforcement.
 
 ## Goals
 
