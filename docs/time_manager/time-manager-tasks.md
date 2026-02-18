@@ -1,7 +1,7 @@
 # Time Manager - Tasks Checklist
 
 **Branch**: `TimeManager`
-**Status**: Phase 3 complete — ready for Phase 4
+**Status**: Phase 4 in progress — Commit 1 complete
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each phase, not deferred
 **Reference**: `docs/time_manager/time-manager-plan.md`
 
@@ -71,7 +71,7 @@
 
 **Goal**: `time` slice in Redux; world clock persists across saves; transient fields reset on load.
 
-- [ ] **Commit 1** — Create `rs_time_initial_state.gd` + `cfg_time_initial_state.tres`
+- [x] **Commit 1** — Create `rs_time_initial_state.gd` + `cfg_time_initial_state.tres`
 - [ ] **Commit 2** — Create `u_time_actions.gd` (U_TimeActions with `_static_init()` registration)
 - [ ] **Commit 3** — Create `u_time_reducer.gd` (U_TimeReducer with `_with_values()` helper)
 - [ ] **Commit 4** — Create `u_time_selectors.gd` (U_TimeSelectors static getters)

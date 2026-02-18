@@ -1,9 +1,9 @@
 # Time Manager - Continuation Prompt
 
 **Branch**: `TimeManager`
-**Current Status**: Phase 3 complete — ready for Phase 4
-**Last Completed**: Phase 3 (World Clock, Commits 1-2)
-**Next Action**: Begin Phase 4, Commit 1 (`rs_time_initial_state.gd` + `cfg_time_initial_state.tres`)
+**Current Status**: Phase 4 in progress — Commit 1 complete
+**Last Completed**: Phase 4, Commit 1 (`rs_time_initial_state.gd` + `cfg_time_initial_state.tres`)
+**Next Action**: Begin Phase 4, Commit 2 (`u_time_actions.gd`)
 
 ---
 
@@ -31,7 +31,7 @@ Use this to resume implementation in a new session:
 
 We are on branch `TimeManager` implementing `M_TimeManager` to replace `M_PauseManager`.
 
-**Current status**: Phase 3 complete, starting Phase 4
+**Current status**: Phase 4 in progress, Commit 1 complete
 
 **Implementation plan**: `docs/time_manager/time-manager-plan.md` — contains full code for every file to create/modify.
 **Task checklist**: `docs/time_manager/time-manager-tasks.md` — tracks completion per commit.
@@ -67,7 +67,7 @@ We are on branch `TimeManager` implementing `M_TimeManager` to replace `M_PauseM
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit
 ```
 
-Start with Phase 4, Commit 1: create `rs_time_initial_state.gd` and `cfg_time_initial_state.tres`.
+Start with Phase 4, Commit 2: create `u_time_actions.gd`.
 
 ---
 
@@ -78,5 +78,5 @@ Start with Phase 4, Commit 1: create `rs_time_initial_state.gd` and `cfg_time_in
 | Phase 1: Core Refactor | Complete | 6 commits complete; `M_PauseManager` removed; Phase 1 test suites passing |
 | Phase 2: Timescale | Complete | Commits 1-3 complete; timescale + ECS scaled delta tests green |
 | Phase 3: World Clock | Complete | Commits 1-2 complete; world clock + pause gating tests green |
-| Phase 4: Redux State | Ready to start | 6 commits |
+| Phase 4: Redux State | In progress | Commit 1 complete (`rs_time_initial_state.gd` + `cfg_time_initial_state.tres`) |
 | Phase 5: Documentation | Not started | Blocked by Phase 4; AGENTS.md only |
