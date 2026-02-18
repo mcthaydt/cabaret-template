@@ -1,7 +1,7 @@
 # Time Manager - Tasks Checklist
 
 **Branch**: `TimeManager`
-**Status**: Phase 2 in progress — Commit 1 complete
+**Status**: Phase 2 complete — ready for Phase 3
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each phase, not deferred
 **Reference**: `docs/time_manager/time-manager-plan.md`
 
@@ -34,17 +34,17 @@
 **Goal**: Add timescale multiplier; ECS systems receive scaled delta.
 
 - [x] **Commit 1** — Create `u_timescale_controller.gd` + add U_TimescaleController unit tests to test file (TDD; 6 tests)
-- [ ] **Commit 2** — Wire timescale into `m_time_manager.gd` + add timescale integration test (TDD; 1 test; replace stubs, emit `timescale_changed`)
-- [ ] **Commit 3** — Update `m_ecs_manager.gd` (_physics_process lazy-lookups time_manager, passes scaled delta)
+- [x] **Commit 2** — Wire timescale into `m_time_manager.gd` + add timescale integration test (TDD; 1 test; replace stubs, emit `timescale_changed`)
+- [x] **Commit 3** — Update `m_ecs_manager.gd` (_physics_process lazy-lookups time_manager, passes scaled delta)
 
 **Phase 2 verification**:
 - [x] U_TimescaleController unit tests pass (6 tests)
-- [ ] M_TimeManager timescale integration test passes (1 test)
-- [ ] `get_scaled_delta(1.0)` returns `0.5` when timescale is `0.5`
-- [ ] Timescale clamped to `[0.01, 10.0]`
-- [ ] `timescale_changed` signal emitted
-- [ ] M_ECSManager passes scaled delta to all systems
-- [ ] Fallback to raw delta when no time_manager available
+- [x] M_TimeManager timescale integration test passes (1 test)
+- [x] `get_scaled_delta(1.0)` returns `0.5` when timescale is `0.5`
+- [x] Timescale clamped to `[0.01, 10.0]`
+- [x] `timescale_changed` signal emitted
+- [x] M_ECSManager passes scaled delta to all systems
+- [x] Fallback to raw delta when no time_manager available
 
 ---
 
