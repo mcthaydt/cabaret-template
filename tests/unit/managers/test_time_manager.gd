@@ -313,6 +313,23 @@ func test_set_timescale_scales_delta_and_emits_signal() -> void:
 	assert_signal_emit_count(_time_manager, "timescale_changed", 1,
 		"timescale_changed should emit when timescale is updated")
 
+func test_world_clock_stops_when_paused() -> void:
+	await _setup_time_manager_with_store()
+
+	_time_manager.set_world_time(8, 0)
+	_time_manager._physics_process(1.0)
+
+	var running_time: Dictionary = _time_manager.get_world_time()
+	assert_eq(int(running_time.get("minute", -1)), 1,
+		"World clock should advance while unpaused")
+
+	_time_manager.request_pause(U_PAUSE_SYSTEM.CHANNEL_CUTSCENE)
+	_time_manager._physics_process(60.0)
+
+	var paused_time: Dictionary = _time_manager.get_world_time()
+	assert_eq(int(paused_time.get("minute", -1)), int(running_time.get("minute", -1)),
+		"World clock should not advance while paused")
+
 func test_backward_compat_pause_manager_lookup() -> void:
 	await _setup_time_manager_with_store()
 	U_SERVICE_LOCATOR.register(StringName("pause_manager"), _time_manager)

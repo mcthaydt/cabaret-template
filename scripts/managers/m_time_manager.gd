@@ -8,12 +8,14 @@ signal world_hour_changed(hour: int)
 
 const U_PAUSE_SYSTEM := preload("res://scripts/managers/helpers/time/u_pause_system.gd")
 const U_TIMESCALE_CONTROLLER := preload("res://scripts/managers/helpers/time/u_timescale_controller.gd")
+const U_WORLD_CLOCK := preload("res://scripts/managers/helpers/time/u_world_clock.gd")
 
 var _store: I_StateStore = null
 var _cursor_manager: M_CursorManager = null
 var _ui_overlay_stack: CanvasLayer = null
 var _pause_system = U_PAUSE_SYSTEM.new()
 var _timescale_controller = U_TIMESCALE_CONTROLLER.new()
+var _world_clock = U_WORLD_CLOCK.new()
 var _is_paused: bool = false
 var _current_scene_id: StringName = StringName("")
 var _current_scene_type: int = -1
@@ -38,6 +40,8 @@ func _deferred_init() -> void:
 func _initialize() -> void:
 	_cursor_manager = U_ServiceLocator.try_get_service(StringName("cursor_manager")) as M_CursorManager
 	_ui_overlay_stack = get_tree().root.find_child("UIOverlayStack", true, false) as CanvasLayer
+	_world_clock.on_minute_changed = Callable(self, "_on_world_minute_changed")
+	_world_clock.on_hour_changed = Callable(self, "_on_world_hour_changed")
 
 	_store.slice_updated.connect(_on_slice_updated)
 
@@ -62,6 +66,11 @@ func _exit_tree() -> void:
 
 func _process(__delta: float) -> void:
 	_check_and_resync_pause_state()
+
+func _physics_process(delta: float) -> void:
+	if _is_paused:
+		return
+	_world_clock.advance(get_scaled_delta(delta))
 
 func _check_and_resync_pause_state() -> void:
 	if not _store or not _ui_overlay_stack:
@@ -166,13 +175,24 @@ func get_scaled_delta(raw_delta: float) -> float:
 	return _timescale_controller.get_scaled_delta(raw_delta)
 
 func get_world_time() -> Dictionary:
-	return {}
+	return _world_clock.get_time()
 
-func set_world_time(_hour: int, _minute: int) -> void:
-	pass
+func set_world_time(hour: int, minute: int) -> void:
+	_world_clock.set_time(hour, minute)
+	_dispatch_world_time_snapshot()
 
-func set_world_time_speed(_minutes_per_real_second: float) -> void:
-	pass
+func set_world_time_speed(minutes_per_real_second: float) -> void:
+	_world_clock.set_speed(minutes_per_real_second)
+	_dispatch_world_time_snapshot()
 
 func is_daytime() -> bool:
-	return true
+	return _world_clock.is_daytime()
+
+func _on_world_minute_changed(_minute: int) -> void:
+	_dispatch_world_time_snapshot()
+
+func _on_world_hour_changed(hour: int) -> void:
+	world_hour_changed.emit(hour)
+
+func _dispatch_world_time_snapshot() -> void:
+	pass
