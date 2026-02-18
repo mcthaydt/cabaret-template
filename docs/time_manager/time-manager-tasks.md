@@ -12,7 +12,7 @@
 **Goal**: Drop-in replacement with identical external behavior. All 10 existing pause tests pass.
 
 - [x] **Commit 1** — Create `u_pause_system.gd` + `test_time_manager.gd` with U_PauseSystem unit tests (TDD: stubs → tests RED → implement GREEN; 10 tests)
-- [ ] **Commit 2** — Create `i_time_manager.gd` (I_TimeManager interface)
+- [x] **Commit 2** — Create `i_time_manager.gd` (I_TimeManager interface)
 - [ ] **Commit 3** — Create `m_time_manager.gd` + add M_TimeManager pause integration tests (TDD; 4 tests; port all logic from m_pause_manager.gd)
 - [ ] **Commit 4** — Wire root.gd + scenes/root.tscn (rename node, dual ServiceLocator registration)
 - [ ] **Commit 5** — Migrate 10 test files (mechanical M_PauseManager → M_TimeManager find-replace)
