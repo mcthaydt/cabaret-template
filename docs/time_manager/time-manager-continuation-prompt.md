@@ -1,15 +1,15 @@
 # Time Manager - Continuation Prompt
 
 **Branch**: `TimeManager`
-**Current Status**: Phase 4 complete — ready for Phase 5
-**Last Completed**: Phase 4 (Redux State & Persistence, Commits 1-6)
-**Next Action**: Begin Phase 5, Commit 1 (`AGENTS.md` Time Manager Patterns update)
+**Current Status**: Complete
+**Last Completed**: Phase 5 (Documentation, Commit 1)
+**Next Action**: Merge `TimeManager` branch and run post-merge validation
 
 ---
 
 ## Context
 
-We are implementing `M_TimeManager` to replace `M_PauseManager` as the central time authority for the Cabaret Template. The full implementation plan is documented in `docs/time_manager/time-manager-plan.md` and the task checklist is in `docs/time_manager/time-manager-tasks.md`.
+`M_TimeManager` replacement work is complete. The full implementation plan is documented in `docs/time_manager/time-manager-plan.md` and the task checklist is in `docs/time_manager/time-manager-tasks.md`.
 
 The implementation follows **TDD (Red-Green-Refactor)** — tests are written within each phase, not deferred. Each helper commit creates the class with stubs, writes tests (RED), then implements (GREEN).
 
@@ -29,9 +29,9 @@ Use this to resume implementation in a new session:
 
 ---
 
-We are on branch `TimeManager` implementing `M_TimeManager` to replace `M_PauseManager`.
+We are on branch `TimeManager` with `M_TimeManager` implementation complete.
 
-**Current status**: Phase 4 complete, starting Phase 5
+**Current status**: Complete
 
 **Implementation plan**: `docs/time_manager/time-manager-plan.md` — contains full code for every file to create/modify.
 **Task checklist**: `docs/time_manager/time-manager-tasks.md` — tracks completion per commit.
@@ -67,7 +67,7 @@ We are on branch `TimeManager` implementing `M_TimeManager` to replace `M_PauseM
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests -ginclude_subdirs -gexit
 ```
 
-Start with Phase 5, Commit 1: update `AGENTS.md` with Time Manager patterns and ServiceLocator notes.
+All planned phases are complete. Next operational step is merge + release validation.
 
 ---
 
@@ -79,4 +79,4 @@ Start with Phase 5, Commit 1: update `AGENTS.md` with Time Manager patterns and 
 | Phase 2: Timescale | Complete | Commits 1-3 complete; timescale + ECS scaled delta tests green |
 | Phase 3: World Clock | Complete | Commits 1-2 complete; world clock + pause gating tests green |
 | Phase 4: Redux State | Complete | Commits 1-6 complete; time slice + persistence + hydration + gameplay mirror tests green |
-| Phase 5: Documentation | Ready to start | AGENTS.md only |
+| Phase 5: Documentation | Complete | AGENTS.md updated with Time Manager patterns and ServiceLocator notes |

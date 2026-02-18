@@ -1,7 +1,7 @@
 # Time Manager - Tasks Checklist
 
 **Branch**: `TimeManager`
-**Status**: Phase 4 complete — ready for Phase 5
+**Status**: Complete — all phases finished
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each phase, not deferred
 **Reference**: `docs/time_manager/time-manager-plan.md`
 
@@ -92,18 +92,18 @@
 
 **Goal**: AGENTS.md updated with Time Manager patterns.
 
-- [ ] **Commit 1** — Update `AGENTS.md` (add Time Manager Patterns section; update ServiceLocator service list)
+- [x] **Commit 1** — Update `AGENTS.md` (add Time Manager Patterns section; update ServiceLocator service list)
 
 **Phase 5 verification**:
-- [ ] All 34 new tests pass (verified across Phases 1–4)
-- [ ] All existing integration tests pass
-- [ ] AGENTS.md updated with Time Manager Patterns section
-- [ ] ServiceLocator service list includes `"time_manager"`
+- [x] All 34 new tests pass (verified across Phases 1–4)
+- [x] All existing integration tests pass
+- [x] AGENTS.md updated with Time Manager Patterns section
+- [x] ServiceLocator service list includes `"time_manager"`
 
 ---
 
 ## Final Completion Check
 
-- [ ] All phases above marked complete
+- [x] All phases above marked complete
 - [ ] Branch merged to main
-- [ ] Continuation prompt updated to "Complete"
+- [x] Continuation prompt updated to "Complete"
