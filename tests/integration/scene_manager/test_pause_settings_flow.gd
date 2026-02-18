@@ -6,7 +6,7 @@ extends GutTest
 const M_SCENE_MANAGER := preload("res://scripts/managers/m_scene_manager.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const M_CURSOR_MANAGER := preload("res://scripts/managers/m_cursor_manager.gd")
-const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_pause_manager.gd")
+const S_PAUSE_SYSTEM := preload("res://scripts/managers/m_time_manager.gd")
 const RS_SCENE_INITIAL_STATE := preload("res://scripts/resources/state/rs_scene_initial_state.gd")
 const RS_NAVIGATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_navigation_initial_state.gd")
 
@@ -49,7 +49,7 @@ func before_each() -> void:
 	_root_node.add_child(_scene_manager)
 	U_ServiceLocator.register(StringName("scene_manager"), _scene_manager)
 
-	# Create M_PauseManager (Phase 2: T024b - sole authority for pause/cursor) - register immediately
+	# Create M_TimeManager (Phase 2: T024b - sole authority for pause/cursor) - register immediately
 	_pause_system = S_PAUSE_SYSTEM.new()
 	_root_node.add_child(_pause_system)
 	U_ServiceLocator.register(StringName("pause_manager"), _pause_system)

@@ -3,11 +3,12 @@ extends BaseTest
 ## Proof-of-Concept Integration Tests: Pause System
 ##
 ## Phase 2: Updated to test scene-driven pause architecture
-## Tests that validate state store integration with M_PauseManager via scene slice
+## Tests that validate state store integration with M_TimeManager via scene slice
 
+const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
 
 var store: M_StateStore
-var pause_system: Node  # Will be M_PauseManager once implemented
+var pause_system: Node  # Will be M_TIME_MANAGER once implemented
 var cursor_manager: M_CursorManager
 
 func before_each() -> void:
@@ -28,7 +29,7 @@ func before_each() -> void:
 	# Register state_store with ServiceLocator so managers can find it
 	U_ServiceLocator.register(StringName("state_store"), store)
 
-	# Create cursor manager (T071: required for M_PauseManager coordination)
+	# Create cursor manager (T071: required for M_TimeManager coordination)
 	cursor_manager = M_CursorManager.new()
 	autofree(cursor_manager)
 	add_child(cursor_manager)
@@ -51,9 +52,9 @@ func after_each() -> void:
 
 ## T299: Test pause system reacts to scene state changes (Phase 2 refactor)
 func test_pause_system_reacts_to_navigation_state() -> void:
-	# Phase 2: M_PauseManager now watches scene slice, not navigation slice
+	# Phase 2: M_TimeManager now watches scene slice, not navigation slice
 	# Create pause system
-	pause_system = M_PauseManager.new()
+	pause_system = M_TIME_MANAGER.new()
 	add_child(pause_system)
 	autofree(pause_system)
 	await get_tree().process_frame
@@ -71,9 +72,9 @@ func test_pause_system_reacts_to_navigation_state() -> void:
 
 ## T300: Test pause system applies engine-level pause (Phase 2 refactor)
 func test_pause_system_applies_engine_pause() -> void:
-	# Phase 2: M_PauseManager now applies get_tree().paused based on scene state
+	# Phase 2: M_TimeManager now applies get_tree().paused based on scene state
 	# Create pause system
-	pause_system = M_PauseManager.new()
+	pause_system = M_TIME_MANAGER.new()
 	add_child(pause_system)
 	autofree(pause_system)
 	await get_tree().process_frame
@@ -84,7 +85,7 @@ func test_pause_system_applies_engine_pause() -> void:
 
 	# Push overlay to scene stack (simulates M_SceneManager opening overlay)
 	store.dispatch(U_SceneActions.push_overlay(StringName("pause_menu")))
-	await wait_physics_frames(2)  # Scene slice updates flush on physics frames, M_PauseManager reacts
+	await wait_physics_frames(2)  # Scene slice updates flush on physics frames, M_TimeManager reacts
 
 	# Verify engine pause applied
 	assert_true(get_tree().paused, "Engine should be paused when scene stack has overlays")
@@ -97,7 +98,7 @@ func test_pause_system_applies_engine_pause() -> void:
 func test_movement_disabled_when_paused() -> void:
 	# Phase 2: Pause is derived from scene overlays, systems check get_tree().paused
 	# Create pause system
-	pause_system = M_PauseManager.new()
+	pause_system = M_TIME_MANAGER.new()
 	add_child(pause_system)
 	autofree(pause_system)
 	await get_tree().process_frame

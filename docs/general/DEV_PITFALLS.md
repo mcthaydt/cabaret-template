@@ -84,7 +84,7 @@
 
 - **Avoid `String(...)` as a generic cast in debug logs**: `String(some_variant)` can throw at runtime for some types (e.g., `NodePath`). Prefer `str(...)` for debug prints unless you know the Variant type is safe for `String()`.
 
-- **New `class_name` types can break type hints in headless tests**: When adding a brand-new helper script with `class_name Foo`, using `Foo` as a member variable annotation in an existing script can fail to parse under headless GUT runs (`Parse Error: Could not find type "Foo" in the current scope`). Prefer untyped members (or a base type like `RefCounted`) and instantiate via `preload("...").new()` until the class is reliably discovered/loaded.
+- **New `class_name` types can break type hints in headless tests**: When adding a brand-new helper script with `class_name Foo`, using `Foo` as a member variable annotation in an existing script can fail to parse under headless GUT runs (`Parse Error: Could not find type "Foo" in the current scope`). Prefer untyped members (or a base type like `RefCounted`) and instantiate via a script preload alias (for example `const FOO_SCRIPT := preload("res://path/foo.gd")`) until the class is reliably discovered/loaded.
 
 - **Child scripts cannot redeclare parent members (incl. `const`)**: If a base class defines a member like `const U_Foo := preload("...")`, declaring another `const U_Foo := ...` in a derived script causes a parse error (`The member "U_Foo" already exists in parent class ...`). Prefer inheriting the constant, or use a different name in the child.
 
@@ -376,11 +376,11 @@
 
 ## GDScript Language Pitfalls
 
-- **Don't preload script files as type constants when using class_name**: When a script defines `class_name MyClass`, don't create a constant that preloads the script file itself (`const MyClass := preload("res://path/to/my_class.gd")`). This creates a type conflict where Godot sees preloaded resources as generic `Resource` instead of the specific class type, causing "Invalid type in function" errors when passing them to typed parameters.
+- **Don't shadow `class_name` symbols with preload constants**: When a script defines `class_name MyClass`, avoid using the same identifier for a script preload (`const MyClass := preload("res://path/to/my_class.gd")`). This can create type conflicts where Godot resolves the symbol as a generic `Resource` script instead of the intended typed class.
 
   **Problem**: Type checking fails when passing preloaded `.tres` resources to functions expecting the class type:
   ```gdscript
-  # WRONG - creates type conflict:
+  # WRONG - shadows class_name symbol with preload constant:
   const RS_UIScreenDefinition := preload("res://scripts/ui/resources/rs_ui_screen_definition.gd")
   const MAIN_MENU := preload("res://resources/ui_screens/cfg_main_menu_screen.tres")
 
@@ -390,10 +390,10 @@
   register(MAIN_MENU)  # ERROR: Resource is not a subclass of expected argument class
   ```
 
-  **Solution**: Remove the script preload constant. The `class_name` directive makes the class globally available:
+  **Solution**: Do not shadow the class symbol. Either remove the preload constant entirely, or rename it to a non-type alias:
   ```gdscript
-  # CORRECT - use class_name directly:
-  # (RS_UIScreenDefinition is already available via class_name in the script)
+  # CORRECT - class_name stays available for typing:
+  const RS_UI_SCREEN_DEFINITION_SCRIPT := preload("res://scripts/ui/resources/rs_ui_screen_definition.gd")
   const MAIN_MENU := preload("res://resources/ui_screens/cfg_main_menu_screen.tres")
 
   static func register(definition: RS_UIScreenDefinition) -> void:
@@ -402,7 +402,7 @@
   register(MAIN_MENU)  # Works correctly
   ```
 
-  **Real example**: `U_UIRegistry.gd` had `const RS_UIScreenDefinition := preload(...)` which conflicted with the `class_name RS_UIScreenDefinition` in the resource script. Removing the preload constant fixed the type checking error.
+  **Real example**: `U_UIRegistry.gd` had `const RS_UIScreenDefinition := preload(...)` which conflicted with the `class_name RS_UIScreenDefinition` in the resource script. Removing/renaming the preload constant fixed the type checking error.
 
 - **Lambda closures cannot reassign primitive variables**: GDScript lambdas capture variables but **cannot reassign primitive types** (bool, int, float). Writing `var completed = false; var callback = func(): completed = true` will NOT modify the outer `completed` variable - the callback will set a local copy instead. **Solution**: Wrap primitives in mutable containers like Arrays. Example:
   ```gdscript
@@ -451,9 +451,9 @@
   ```
   Systems that get the store in `process_tick()` don't need this await since process_tick runs after all _ready() calls complete.
 
-- **Input processing order matters**: Godot processes input in a specific order: `_input()` → `_gui_input()` → `_unhandled_input()`. If one system calls `set_input_as_handled()` in `_unhandled_input()`, other systems using `_unhandled_input()` may never see the input. **Solution**: Systems that need priority access to input should use `_input()` instead of `_unhandled_input()`. Example: M_PauseManager uses `_input()` to process pause before M_CursorManager (which uses `_unhandled_input()`) can consume it. Both call `set_input_as_handled()` to prevent further propagation.
+- **Input processing order matters**: Godot processes input in a specific order: `_input()` → `_gui_input()` → `_unhandled_input()`. If one system calls `set_input_as_handled()`, later handlers may never see the event. **Solution**: Keep pause intent centralized in `_input()` (`M_UIInputHandler`), dispatch navigation actions there, and avoid duplicate pause handling in later stages.
 
-- **Single source of truth for ESC/pause**: To avoid double-toggles, route ESC/pause through `M_SceneManager` only when it is present. `M_PauseManager` now defers input handling if a Scene Manager exists and should only be used as a fallback (or via direct `toggle_pause()` in tests). Ensure the InputMap maps `pause` to ESC for consistency (project.godot already does).
+- **Single source of truth for ESC/pause**: To avoid double-toggles, route ESC/pause through `M_UIInputHandler` navigation actions, then let `M_SceneManager` reconcile overlays and `M_TimeManager` derive pause state from the scene/UI overlay stack. Keep InputMap `pause` mapped to ESC for consistency.
 
 ## GUT Testing Pitfalls
 
@@ -882,20 +882,20 @@ The Input Manager and UI Manager have clear, separated responsibilities. Violati
 **UI Manager does NOT**:
 - ❌ Read raw input events (`InputEventKey`, `InputEventJoypadButton`) to detect ESC/pause
 - ❌ Map hardware buttons to actions (that's Input Manager's job)
-- ❌ Directly control cursor lock/visibility (delegates to `M_CursorManager` via `M_PauseManager`)
+- ❌ Directly control cursor lock/visibility (delegates to `M_CursorManager` via `M_TimeManager`)
 
 ### System-Level Responsibilities (Phase 4b Refactor)
 
-**M_PauseManager** (T070):
-- Subscribes to `navigation` slice, NOT raw input
-- Derives pause state from `U_NavigationSelectors.is_paused(state)`
+**M_TimeManager** (Time Manager Phase 1):
+- Subscribes to `scene` slice, NOT raw input
+- Derives pause state from overlay state (`scene.scene_stack` + `UIOverlayStack`)
 - Applies engine-level pause (`get_tree().paused = is_paused`)
 - Coordinates cursor state with `M_CursorManager` (paused = visible, unpaused = hidden)
 - Emits `pause_state_changed` signal for other systems
 
 **M_CursorManager** (T071):
 - Exposes `set_cursor_state(locked, visible)`, `set_cursor_locked()`, `set_cursor_visible()`
-- Reacts ONLY to explicit calls from `M_PauseManager` or `M_SceneManager`
+- Reacts ONLY to explicit calls from `M_TimeManager` or `M_SceneManager`
 - Does NOT listen to pause/ESC input directly
 
 **M_SceneManager** (T072):
@@ -920,11 +920,11 @@ store.dispatch(U_NavigationActions.open_pause())
 # 2. Navigation reducer updates state:
 # navigation.overlay_stack = ["pause_menu"]
 
-# 3. M_PauseManager sees navigation change:
-# U_NavigationSelectors.is_paused(state) == true → sets get_tree().paused = true
+# 3. M_SceneManager reconciles overlays and scene stack:
+# scene.scene_stack = ["pause_menu"]
 
-# 4. M_SceneManager reconciles overlays:
-# Pushes "pause_menu" scene to UIOverlayStack to match navigation state
+# 4. M_TimeManager sees scene/overlay change:
+# sets get_tree().paused = true
 ```
 
 **Closing Pause**:
@@ -932,8 +932,8 @@ store.dispatch(U_NavigationActions.open_pause())
 # ✅ User presses back button in pause menu:
 store.dispatch(U_NavigationActions.close_pause())
 # → Navigation reducer clears overlay_stack
-# → M_PauseManager sets get_tree().paused = false
 # → M_SceneManager pops overlay to match empty stack
+# → M_TimeManager sets get_tree().paused = false
 ```
 
 ### Common Mistakes
@@ -946,7 +946,7 @@ store.dispatch(U_NavigationActions.close_pause())
 
 4. **Ignoring transition state**: Overlay reconciliation defers during base scene transitions. Don't assume pause overlays push immediately—reconciliation may be deferred.
 
-5. **Pause system initialization timing**: M_PauseManager must initialize synchronously (not async) to subscribe to state updates before M_SceneManager syncs overlay state in its `_ready()`. Async initialization causes the pause system to miss initial state changes. See "M_PauseManager Initialization Timing" section below.
+5. **Pause system initialization timing**: M_TimeManager must initialize synchronously (not async) to subscribe to state updates before M_SceneManager syncs overlay state in its `_ready()`. Async initialization causes the pause system to miss initial state changes. See "M_TimeManager Initialization Timing" section below.
 
 ### Testing Patterns (Phase 4b)
 
@@ -964,23 +964,23 @@ _scene_manager._input(event)  # Removed in T072
 _cursor_manager.toggle_cursor()  # Removed in T071
 ```
 
-### M_PauseManager Initialization Timing
+### M_TimeManager Initialization Timing
 
-**Problem**: M_PauseManager may miss state updates if initialization is async
+**Problem**: M_TimeManager may miss state updates if initialization is async
 
 The pause system subscribes to `scene.slice_updated` to detect overlay changes and apply engine pause. If initialization uses `await get_tree().process_frame`, the following race condition occurs:
 
-1. M_PauseManager added to tree → `_ready()` starts → awaits frame (paused in middle of `_ready()`)
+1. M_TimeManager added to tree → `_ready()` starts → awaits frame (paused in middle of `_ready()`)
 2. M_SceneManager added to tree → `_ready()` runs completely → syncs overlay state (clears stale overlays)
 3. Frame completes, test checks state
-4. M_PauseManager's await completes AFTER test checks → subscribes too late
+4. M_TimeManager's await completes AFTER test checks → subscribes too late
 
 **Symptoms**:
 - `get_tree().paused` doesn't match actual overlay state
 - Tests fail with "Tree should be unpaused without overlays" when state is correct but pause system hasn't synced yet
 - Pause system's `is_paused()` returns stale value
 
-**Solution** (implemented in m_pause_manager.gd:43-95):
+**Solution** (implemented in `scripts/managers/m_time_manager.gd`):
 ```gdscript
 func _ready() -> void:
     super._ready()

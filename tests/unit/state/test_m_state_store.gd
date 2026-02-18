@@ -13,6 +13,7 @@ var validation_error: String = ""
 var callback_count: int = 0
 var slice_updated_count: int = 0
 var last_slice_name: StringName = StringName()
+const RS_TIME_INITIAL_STATE := preload("res://scripts/resources/state/rs_time_initial_state.gd")
 
 func before_each() -> void:
 	# CRITICAL: Reset state bus between tests to prevent subscription leaks
@@ -35,6 +36,7 @@ func before_each() -> void:
 	var initial_state: RS_GameplayInitialState = RS_GameplayInitialState.new()
 	store.gameplay_initial_state = initial_state
 	store.settings_initial_state = RS_SettingsInitialState.new()
+	store.time_initial_state = RS_TIME_INITIAL_STATE.new()
 	add_child(store)
 	autofree(store)  # Use autofree for proper cleanup
 	await get_tree().process_frame  # Deferred registration
@@ -201,6 +203,17 @@ func test_settings_slice_registered_and_updates_via_actions() -> void:
 	var updated_slice: Dictionary = store.get_slice(StringName("settings"))
 	var mouse_settings: Dictionary = updated_slice.get("input_settings", {}).get("mouse_settings", {})
 	assert_almost_eq(mouse_settings.get("sensitivity", 0.0), 1.75, 0.0001)
+
+func test_time_slice_registered_with_expected_transient_fields() -> void:
+	var time_slice: Dictionary = store.get_slice(StringName("time"))
+	assert_eq(int(time_slice.get("world_hour", -1)), 8, "Time slice should initialize from RS_TimeInitialState defaults")
+
+	var configs: Dictionary = store.get_slice_configs()
+	var time_config: RS_StateSliceConfig = configs.get(StringName("time"))
+	assert_not_null(time_config, "Time slice config should be registered")
+	assert_true(time_config.transient_fields.has(StringName("is_paused")))
+	assert_true(time_config.transient_fields.has(StringName("active_channels")))
+	assert_true(time_config.transient_fields.has(StringName("timescale")))
 
 func test_register_slice_adds_to_state() -> void:
 	var config: RS_StateSliceConfig = RS_StateSliceConfig.new(StringName("gameplay"))

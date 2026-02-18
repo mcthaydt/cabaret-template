@@ -25,6 +25,7 @@ var _node_entity_cache: Dictionary = {}  # instance_id → entity root
 var _query_cache: Dictionary = {}
 var _time_provider: Callable = Callable(U_ECS_UTILS, "get_current_time")
 var _query_metrics_helper := U_ECS_QUERY_METRICS.new()
+var _time_manager: Node = null
 
 # Entity ID and tagging support
 var _entities_by_id: Dictionary = {}  # StringName → Node
@@ -607,12 +608,27 @@ func _compare_system_priority(a: BaseECSSystem, b: BaseECSSystem) -> bool:
 		return a.get_instance_id() < b.get_instance_id()
 	return priority_a < priority_b
 
+func _resolve_time_manager() -> void:
+	var resolved_time_manager := U_SERVICE_LOCATOR.try_get_service(StringName("time_manager")) as Node
+	if resolved_time_manager == null or not is_instance_valid(resolved_time_manager):
+		_time_manager = null
+		return
+	if _time_manager != null and is_instance_valid(_time_manager) and _time_manager == resolved_time_manager:
+		return
+	_time_manager = resolved_time_manager
+
 func _physics_process(delta: float) -> void:
 	_ensure_systems_sorted()
 	if _sorted_systems.is_empty():
 		return
 
-	var needs_cleanup := false
+	_resolve_time_manager()
+	var scaled_delta: float = delta
+	if _time_manager != null and is_instance_valid(_time_manager) and _time_manager.has_method("get_scaled_delta"):
+		var scaled_value: Variant = _time_manager.call("get_scaled_delta", delta)
+		scaled_delta = float(scaled_value)
+
+	var needs_cleanup: bool = false
 	for system in _sorted_systems:
 		if system == null:
 			needs_cleanup = true
@@ -622,7 +638,7 @@ func _physics_process(delta: float) -> void:
 			continue
 		if system.is_debug_disabled():
 			continue
-		system.process_tick(delta)
+		system.process_tick(scaled_delta)
 
 	if needs_cleanup:
 		mark_systems_dirty()

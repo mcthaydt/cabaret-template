@@ -28,7 +28,8 @@ func _initialize_service_locator() -> void:
 	_register_if_exists(managers_node, "M_StateStore", StringName("state_store"))
 	_register_if_exists(managers_node, "M_CursorManager", StringName("cursor_manager"))
 	_register_if_exists(managers_node, "M_SceneManager", StringName("scene_manager"))
-	_register_if_exists(managers_node, "M_PauseManager", StringName("pause_manager"))
+	_register_if_exists(managers_node, "M_TimeManager", StringName("time_manager"))
+	_register_if_exists(managers_node, "M_TimeManager", StringName("pause_manager"))
 	_register_if_exists(managers_node, "M_SpawnManager", StringName("spawn_manager"))
 	_register_if_exists(managers_node, "M_CameraManager", StringName("camera_manager"))
 	_register_if_exists(managers_node, "M_VFXManager", StringName("vfx_manager"))
@@ -42,8 +43,8 @@ func _initialize_service_locator() -> void:
 	_register_if_exists(managers_node, "M_SaveManager", StringName("save_manager"))
 
 	# Register dependencies for validation
-	U_ServiceLocator.register_dependency(StringName("pause_manager"), StringName("state_store"))
-	U_ServiceLocator.register_dependency(StringName("pause_manager"), StringName("cursor_manager"))
+	U_ServiceLocator.register_dependency(StringName("time_manager"), StringName("state_store"))
+	U_ServiceLocator.register_dependency(StringName("time_manager"), StringName("cursor_manager"))
 	U_ServiceLocator.register_dependency(StringName("spawn_manager"), StringName("state_store"))
 	U_ServiceLocator.register_dependency(StringName("scene_manager"), StringName("state_store"))
 	U_ServiceLocator.register_dependency(StringName("camera_manager"), StringName("state_store"))

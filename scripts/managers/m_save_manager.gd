@@ -324,7 +324,7 @@ func load_from_slot(slot_id: StringName) -> Error:
 
 	# BUG FIX: Clear scene_stack from loaded state to prevent pausing on load
 	# Legacy saves may have scene_stack persisted (before it was marked transient)
-	# Clearing it here prevents M_PauseManager from pausing the tree after load
+	# Clearing it here prevents M_TimeManager from pausing the tree after load
 	if loaded_state.has("scene"):
 		var scene_slice: Dictionary = loaded_state["scene"]
 		if scene_slice.has("scene_stack"):

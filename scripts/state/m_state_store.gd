@@ -43,6 +43,7 @@ const RS_VFX_INITIAL_STATE := preload("res://scripts/resources/state/rs_vfx_init
 const RS_AUDIO_INITIAL_STATE := preload("res://scripts/resources/state/rs_audio_initial_state.gd")
 const RS_DISPLAY_INITIAL_STATE := preload("res://scripts/resources/state/rs_display_initial_state.gd")
 const RS_LOCALIZATION_INITIAL_STATE := preload("res://scripts/resources/state/rs_localization_initial_state.gd")
+const RS_TIME_INITIAL_STATE := preload("res://scripts/resources/state/rs_time_initial_state.gd")
 
 signal slice_updated(slice_name: StringName, slice_state: Dictionary)
 signal action_dispatched(action: Dictionary)
@@ -68,6 +69,7 @@ const PROJECT_SETTING_ENABLE_PERSISTENCE := "state/runtime/enable_persistence"
 @export var audio_initial_state: RS_AudioInitialState
 @export var display_initial_state: Resource
 @export var localization_initial_state: Resource
+@export var time_initial_state: Resource
 
 var _state: Dictionary = {}
 var _subscribers: Array[Callable] = []
@@ -386,7 +388,8 @@ func _initialize_slices() -> void:
 		vfx_initial_state,
 		audio_initial_state,
 		display_initial_state,
-		localization_initial_state
+		localization_initial_state,
+		time_initial_state
 	)
 
 ## Normalize a deserialized state dictionary for tests.

@@ -175,7 +175,7 @@ Systems are organized into **four functional categories** for better visual orga
 - `S_SceneTriggerSystem` - Door and scene transition triggers
 - `S_VictorySystem` - Victory condition detection and endgame flows
 
-**Note:** `M_PauseManager` now lives in `root.tscn` (Phase 2 architecture) and is NOT included in gameplay scenes.
+**Note:** `M_TimeManager` now lives in `root.tscn` (Phase 2 architecture) and is NOT included in gameplay scenes.
 
 ### Physics Systems
 **Purpose:** Physics simulation and forces

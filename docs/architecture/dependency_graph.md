@@ -11,7 +11,7 @@ The root scene persists across the whole session. Manager ordering in the scene 
 1. `M_StateStore`
 2. `M_CursorManager`
 3. `M_SceneManager`
-4. `M_PauseManager`
+4. `M_TimeManager`
 5. `M_SpawnManager`
 6. `M_CameraManager`
 7. `M_InputProfileManager`
@@ -26,12 +26,14 @@ The root scene persists across the whole session. Manager ordering in the scene 
 
 `U_ServiceLocator` dependency declarations are registered by `root.gd` at startup:
 
-- `pause_manager` → `state_store`, `cursor_manager`
+- `time_manager` → `state_store`, `cursor_manager`
 - `spawn_manager` → `state_store`
 - `scene_manager` → `state_store`
 - `camera_manager` → `state_store`
 - `input_profile_manager` → `state_store`
 - `input_device_manager` → `state_store`
+
+`pause_manager` remains a backward-compat ServiceLocator alias that resolves to the same `M_TimeManager` instance.
 
 ---
 
@@ -58,7 +60,7 @@ flowchart TD
   subgraph RootScene[Root (scenes/root.tscn)]
     Store[M_StateStore]
     SceneManager[M_SceneManager]
-    PauseManager[M_PauseManager]
+    TimeManager[M_TimeManager]
     SpawnManager[M_SpawnManager]
     InputDeviceManager[M_InputDeviceManager]
     UIInputHandler[M_UIInputHandler]
@@ -97,7 +99,7 @@ flowchart TD
   SceneTriggerComponent -->|dispatches spawn target| Store
   SceneTriggerComponent -->|requests transition| SceneManager
 
-  PauseManager -->|reads navigation/gameplay state| Store
+  TimeManager -->|reads scene state| Store
   SpawnManager -->|reads gameplay/scene state| Store
   UIInputHandler -->|dispatches navigation actions| Store
   SceneManager -->|dispatches scene actions| Store

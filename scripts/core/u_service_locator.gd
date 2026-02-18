@@ -161,7 +161,7 @@ static func has(service_name: StringName) -> bool:
 ##   required_service: A service that must exist for this service to function
 ##
 ## Example:
-##   U_ServiceLocator.register_dependency(StringName("pause_manager"), StringName("state_store"))
+##   U_ServiceLocator.register_dependency(StringName("time_manager"), StringName("state_store"))
 static func register_dependency(service_name: StringName, required_service: StringName) -> void:
 	if not _dependencies.has(service_name):
 		_dependencies[service_name] = []
@@ -204,7 +204,8 @@ static func validate_all() -> bool:
 ##   U_ServiceLocator.initialize({
 ##       StringName("state_store"): $M_StateStore,
 ##       StringName("scene_manager"): $M_SceneManager,
-##       StringName("pause_manager"): $M_PauseManager,
+##       StringName("time_manager"): $M_TimeManager,
+##       StringName("pause_manager"): $M_TimeManager, # backward-compat alias
 ##   })
 static func initialize(services: Dictionary) -> void:
 	if _initialized:

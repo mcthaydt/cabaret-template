@@ -59,7 +59,7 @@ Root
 ├─ Managers
 │  ├─ M_StateStore
 │  ├─ M_SceneManager
-│  ├─ M_PauseManager
+│  ├─ M_TimeManager
 │  ├─ M_SpawnManager
 │  ├─ M_CameraManager
 │  ├─ M_CursorManager
@@ -152,4 +152,3 @@ GODOT_BIN="/path/to/Godot" tools/run_gut_suite.sh -gdir=res://tests/unit
 - Manager dependency graph: `docs/architecture/dependency_graph.md`
 - ECS ↔ state contract: `docs/architecture/ecs_state_contract.md`
 - Scene registry workflow: `docs/scene_manager/ADDING_SCENES_GUIDE.md`
-

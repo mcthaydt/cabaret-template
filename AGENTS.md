@@ -327,6 +327,37 @@ Production asset files use type-specific prefixes:
   - prefer behavior assertions over private manager internals (`get("_field")`, private helper calls)
   - for localization manager font/root behavior, assert via registered root theme state and locale-change callbacks rather than internal arrays/counters/fonts
 
+## Time Manager Patterns
+
+### Overview
+
+`M_TimeManager` replaces `M_PauseManager` as the central time authority. It owns layered pause channels, timescale, and world clock runtime state while synchronizing the Redux `time` slice for persistence and selectors.
+
+### ServiceLocator Access
+
+- Primary lookup: `U_ServiceLocator.get_service(StringName("time_manager"))`
+- Backward-compatible lookup: `U_ServiceLocator.get_service(StringName("pause_manager"))` (same manager instance)
+
+### Pause Channels
+
+- Use `request_pause(channel)` / `release_pause(channel)` for reference-counted pause control.
+- Standard channels live in `U_PauseSystem`: `CHANNEL_UI`, `CHANNEL_CUTSCENE`, `CHANNEL_DEBUG`, `CHANNEL_SYSTEM`.
+- `CHANNEL_UI` is manager-derived from overlay stack state; do not manually request/release it.
+- Gameplay time advances only when all channels are inactive.
+
+### Timescale
+
+- Use `set_timescale(scale)` (clamped to `[0.01, 10.0]`) and `get_scaled_delta(raw_delta)`.
+- ECS physics consumes scaled delta via `M_ECSManager`; system code should not re-scale delta.
+- `timescale` is transient in the `time` slice and resets on load.
+
+### World Clock
+
+- World clock advances in `M_TimeManager._physics_process` when unpaused and in gameplay scenes.
+- Read current values via `get_world_time()` (`hour`, `minute`, `total_minutes`, `day_count`) and `is_daytime()`.
+- Persisted fields: `world_hour`, `world_minute`, `world_total_minutes`, `world_day_count`, `world_time_speed`.
+- Transient fields: `is_paused`, `active_channels`, `timescale`.
+
 ## Scene Manager Patterns (Phase 10 Complete)
 
 ### Scene Registration
@@ -1179,7 +1210,7 @@ func _apply_window_mode(mode: String) -> void:
   - In `process_tick()`: no await needed (store already registered).
 - Access managers via ServiceLocator (Phase 10B-7: T141)
   - Use `U_ServiceLocator.get_service(StringName("service_name"))` for fast, centralized manager access.
-  - Available services: `"state_store"`, `"scene_manager"`, `"pause_manager"`, `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`, `"display_manager"`, `"localization_manager"`, `"save_manager"`, `"vfx_manager"`.
+  - Available services: `"state_store"`, `"scene_manager"`, `"time_manager"`, `"pause_manager"` (backward-compat alias), `"spawn_manager"`, `"camera_manager"`, `"cursor_manager"`, `"input_device_manager"`, `"input_profile_manager"`, `"ui_input_handler"`, `"audio_manager"`, `"display_manager"`, `"localization_manager"`, `"save_manager"`, `"vfx_manager"`.
   - ServiceLocator provides O(1) Dictionary lookup vs O(n) scene-tree traversal.
   - All services are registered at startup in `root.tscn` via `root.gd`.
 - Create a new gameplay scene

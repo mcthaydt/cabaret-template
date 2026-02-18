@@ -64,7 +64,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/resources/lighting": ["rs_"], # Character lighting resources
 	"res://scripts/managers": ["m_"],
 	"res://scripts/managers/helpers": ["u_"],
-	"res://scripts/ecs/systems": ["s_", "m_"], # m_ for M_PauseManager
+	"res://scripts/ecs/systems": ["s_"],
 	"res://scripts/ecs/components": ["c_"],
 	"res://scripts/ecs/resources": ["rs_"],
 	"res://scripts/events/ecs": ["evn_", "base_", "u_"], # evn_ for typed events, base_ for BaseECSEvent, u_ for ECS event bus/names
@@ -293,14 +293,14 @@ func test_scene_organization_root_structure() -> void:
 	assert_not_null(root_scene, "Root scene must exist")
 
 	# Use PackedScene.get_state() to check node structure without instantiation
-	# This avoids runtime initialization issues (M_PauseManager warnings, ServiceLocator conflicts)
+	# This avoids runtime initialization issues (M_TimeManager warnings, ServiceLocator conflicts)
 	var scene_state := root_scene.get_state()
 
 	var has_managers := false
 	var has_state_store := false
 	var has_scene_manager := false
 	var has_cursor_manager := false
-	var has_pause_manager := false
+	var has_time_manager := false
 	var has_screenshot_cache := false
 	var has_character_lighting_manager := false
 	var has_active_scene_container := false
@@ -319,8 +319,8 @@ func test_scene_organization_root_structure() -> void:
 			has_scene_manager = true
 		elif node_name == "M_CursorManager" and path_str.contains("Managers"):
 			has_cursor_manager = true
-		elif node_name == "M_PauseManager" and path_str.contains("Managers"):
-			has_pause_manager = true
+		elif node_name == "M_TimeManager" and path_str.contains("Managers"):
+			has_time_manager = true
 		elif node_name == "M_ScreenshotCache" and path_str.contains("Managers"):
 			has_screenshot_cache = true
 		elif node_name == "M_CharacterLightingManager" and path_str.contains("Managers"):
@@ -334,7 +334,7 @@ func test_scene_organization_root_structure() -> void:
 	assert_true(has_state_store, "Root scene must have M_StateStore in Managers")
 	assert_true(has_scene_manager, "Root scene must have M_SceneManager in Managers")
 	assert_true(has_cursor_manager, "Root scene must have M_CursorManager in Managers")
-	assert_true(has_pause_manager, "Root scene must have M_PauseManager in Managers")
+	assert_true(has_time_manager, "Root scene must have M_TimeManager in Managers")
 	assert_true(has_screenshot_cache, "Root scene must have M_ScreenshotCache in Managers")
 	assert_true(has_character_lighting_manager, "Root scene must have M_CharacterLightingManager in Managers")
 	assert_true(has_active_scene_container, "Root scene must have ActiveSceneContainer")

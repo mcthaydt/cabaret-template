@@ -41,6 +41,20 @@ class DebugToggleSystem extends BaseECSSystem:
 	func process_tick(_delta: float) -> void:
 		tick_count += 1
 
+class DeltaCaptureSystem extends BaseECSSystem:
+	var seen_deltas: Array[float] = []
+
+	func process_tick(delta: float) -> void:
+		seen_deltas.append(delta)
+
+class TimeManagerStub extends Node:
+	var timescale: float = 1.0
+	var scaled_call_count: int = 0
+
+	func get_scaled_delta(raw_delta: float) -> float:
+		scaled_call_count += 1
+		return raw_delta * timescale
+
 class QueryMovementComponent extends BaseECSComponent:
 	const TYPE := StringName("C_QueryMovementComponent")
 
@@ -604,6 +618,100 @@ func test_debug_disabling_system_skips_process_tick() -> void:
 	system.set_debug_disabled(false)
 	manager._physics_process(0.016)
 	assert_eq(system.tick_count, 2)
+
+func test_physics_process_uses_scaled_delta_from_time_manager() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var system := DeltaCaptureSystem.new()
+	autofree(system)
+	manager.register_system(system)
+
+	var time_manager := TimeManagerStub.new()
+	time_manager.timescale = 0.5
+	add_child(time_manager)
+	autofree(time_manager)
+	U_ServiceLocator.register(StringName("time_manager"), time_manager)
+
+	manager._physics_process(1.0)
+
+	assert_eq(system.seen_deltas.size(), 1)
+	assert_almost_eq(system.seen_deltas[0], 0.5, 0.0001,
+		"ECS systems should receive delta scaled by time_manager")
+	assert_eq(time_manager.scaled_call_count, 1)
+
+func test_physics_process_falls_back_to_raw_delta_without_time_manager() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var system := DeltaCaptureSystem.new()
+	autofree(system)
+	manager.register_system(system)
+
+	manager._physics_process(0.75)
+
+	assert_eq(system.seen_deltas.size(), 1)
+	assert_almost_eq(system.seen_deltas[0], 0.75, 0.0001,
+		"ECS systems should receive raw delta when no time_manager is available")
+
+func test_physics_process_retries_time_manager_lookup_when_registered_late() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var system := DeltaCaptureSystem.new()
+	autofree(system)
+	manager.register_system(system)
+
+	manager._physics_process(1.0)
+
+	var time_manager := TimeManagerStub.new()
+	time_manager.timescale = 0.25
+	add_child(time_manager)
+	autofree(time_manager)
+	U_ServiceLocator.register(StringName("time_manager"), time_manager)
+
+	manager._physics_process(1.0)
+
+	assert_eq(system.seen_deltas.size(), 2)
+	assert_almost_eq(system.seen_deltas[0], 1.0, 0.0001)
+	assert_almost_eq(system.seen_deltas[1], 0.25, 0.0001,
+		"ECS manager should retry lookup and use newly registered time_manager")
+	assert_eq(time_manager.scaled_call_count, 1)
+
+func test_physics_process_switches_to_new_time_manager_when_service_rebound() -> void:
+	var manager: M_ECSManager = ECS_MANAGER.new()
+	add_child(manager)
+	autofree(manager)
+
+	var system := DeltaCaptureSystem.new()
+	autofree(system)
+	manager.register_system(system)
+
+	var first_time_manager := TimeManagerStub.new()
+	first_time_manager.timescale = 0.5
+	add_child(first_time_manager)
+	autofree(first_time_manager)
+	U_ServiceLocator.register(StringName("time_manager"), first_time_manager)
+
+	manager._physics_process(1.0)
+
+	var second_time_manager := TimeManagerStub.new()
+	second_time_manager.timescale = 0.2
+	add_child(second_time_manager)
+	autofree(second_time_manager)
+	U_ServiceLocator.register(StringName("time_manager"), second_time_manager)
+
+	manager._physics_process(1.0)
+
+	assert_eq(system.seen_deltas.size(), 2)
+	assert_almost_eq(system.seen_deltas[0], 0.5, 0.0001)
+	assert_almost_eq(system.seen_deltas[1], 0.2, 0.0001,
+		"ECS manager should use the newly rebound time_manager")
+	assert_eq(first_time_manager.scaled_call_count, 1)
+	assert_eq(second_time_manager.scaled_call_count, 1)
 
 func _create_time_provider(sequence: Array) -> Callable:
 	var remaining: Array = sequence.duplicate()

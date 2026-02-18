@@ -1,5 +1,6 @@
 extends BaseTest
 
+const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
 
 var _store: M_StateStore
 var _active_scene_container: Node
@@ -9,7 +10,7 @@ var _loading_overlay: CanvasLayer
 var _cursor_manager: M_CursorManager
 var _spawn_manager: M_SpawnManager
 var _camera_manager: M_CameraManager
-var _pause_system: M_PauseManager
+var _pause_system: Node
 
 func before_each() -> void:
 	_active_scene_container = Node.new()
@@ -51,8 +52,8 @@ func before_each() -> void:
 	U_ServiceLocator.register(StringName("camera_manager"), _camera_manager)
 
 	# Register all managers with ServiceLocator so they can find each other
-	# Create M_PauseManager to apply pause based on scene state
-	_pause_system = M_PauseManager.new()
+	# Create M_TimeManager to apply pause based on scene state
+	_pause_system = M_TIME_MANAGER.new()
 	add_child_autofree(_pause_system)
 	await get_tree().process_frame
 
@@ -79,7 +80,7 @@ func test_navigation_open_and_close_pause_overlay() -> void:
 	await _await_scene(StringName("scene1"))
 
 	_store.dispatch(U_NavigationActions.open_pause())
-	await wait_physics_frames(5)  # Allow time for navigation→scene bridging + M_PauseManager reaction
+	await wait_physics_frames(5)  # Allow time for navigation→scene bridging + M_TimeManager reaction
 
 	assert_true(get_tree().paused, "Tree should pause when pause overlay opens")
 	assert_eq(_ui_overlay_stack.get_child_count(), 1, "Pause overlay added to stack")

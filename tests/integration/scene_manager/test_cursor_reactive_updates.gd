@@ -2,11 +2,12 @@ extends GutTest
 
 ## Integration test for reactive cursor updates on scene changes
 
+const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
 
 var _root: Node
 var _store: M_StateStore
 var _cursor: M_CursorManager
-var _pause_system: M_PauseManager
+var _pause_system: Node
 var _manager: M_SceneManager
 
 func before_each() -> void:
@@ -34,7 +35,7 @@ func before_each() -> void:
     # Cursor manager for reactive updates
     _cursor = M_CursorManager.new()
     _root.add_child(_cursor)
-    # Register cursor_manager for M_PauseManager discovery
+    # Register cursor_manager for M_TimeManager discovery
     U_ServiceLocator.register(StringName("cursor_manager"), _cursor)
     await get_tree().process_frame
 
@@ -45,7 +46,7 @@ func before_each() -> void:
     U_ServiceLocator.register(StringName("scene_manager"), _manager)
 
     # Pause system (coordinates cursor state with scene type)
-    _pause_system = M_PauseManager.new()
+    _pause_system = M_TIME_MANAGER.new()
     _root.add_child(_pause_system)
     U_ServiceLocator.register(StringName("pause_manager"), _pause_system)
     await get_tree().process_frame
@@ -71,7 +72,7 @@ func test_cursor_updates_on_scene_state_changes() -> void:
     # MENU: main_menu
     _store.dispatch(U_SceneActions.transition_completed(StringName("main_menu")))
     await wait_physics_frames(1)  # State store batches
-    await wait_physics_frames(1)  # M_PauseManager reacts
+    await wait_physics_frames(1)  # M_TimeManager reacts
 
     assert_false(_cursor.is_cursor_locked(), "Cursor should be unlocked in UI/menu scenes")
     assert_true(_cursor.is_cursor_visible(), "Cursor should be visible in UI/menu scenes")
@@ -79,7 +80,7 @@ func test_cursor_updates_on_scene_state_changes() -> void:
     # GAMEPLAY: use a test gameplay scene (scene1 is registered as gameplay)
     _store.dispatch(U_SceneActions.transition_completed(StringName("scene1")))
     await wait_physics_frames(1)  # State store batches
-    await wait_physics_frames(1)  # M_PauseManager reacts
+    await wait_physics_frames(1)  # M_TimeManager reacts
 
     assert_true(_cursor.is_cursor_locked(), "Cursor should be locked in gameplay scenes")
     assert_false(_cursor.is_cursor_visible(), "Cursor should be hidden in gameplay scenes")
