@@ -9,6 +9,9 @@ signal world_hour_changed(hour: int)
 const U_PAUSE_SYSTEM := preload("res://scripts/managers/helpers/time/u_pause_system.gd")
 const U_TIMESCALE_CONTROLLER := preload("res://scripts/managers/helpers/time/u_timescale_controller.gd")
 const U_WORLD_CLOCK := preload("res://scripts/managers/helpers/time/u_world_clock.gd")
+const U_TIME_ACTIONS := preload("res://scripts/state/actions/u_time_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
+const TIME_SLICE_NAME := StringName("time")
 
 var _store: I_StateStore = null
 var _cursor_manager: M_CursorManager = null
@@ -19,6 +22,7 @@ var _world_clock = U_WORLD_CLOCK.new()
 var _is_paused: bool = false
 var _current_scene_id: StringName = StringName("")
 var _current_scene_type: int = -1
+var _is_hydrating_time_slice: bool = false
 
 func _init() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -44,6 +48,7 @@ func _initialize() -> void:
 	_world_clock.on_hour_changed = Callable(self, "_on_world_hour_changed")
 
 	_store.slice_updated.connect(_on_slice_updated)
+	_hydrate_from_time_slice(_store.get_slice(TIME_SLICE_NAME))
 
 	var full_state: Dictionary = _store.get_state()
 	var scene_state: Dictionary = full_state.get("scene", {})
@@ -91,8 +96,18 @@ func _check_and_resync_pause_state() -> void:
 		_apply_pause_and_cursor_state()
 		if pause_changed:
 			pause_state_changed.emit(_is_paused)
+			if _store != null:
+				_store.dispatch(U_TIME_ACTIONS.update_pause_state(_is_paused, _pause_system.get_active_channels()))
+				if _is_paused:
+					_store.dispatch(U_GAMEPLAY_ACTIONS.pause_game())
+				else:
+					_store.dispatch(U_GAMEPLAY_ACTIONS.unpause_game())
 
 func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
+	if slice_name == TIME_SLICE_NAME:
+		_hydrate_from_time_slice(slice_state)
+		return
+
 	if slice_name != StringName("scene"):
 		return
 
@@ -125,6 +140,12 @@ func _on_slice_updated(slice_name: StringName, slice_state: Dictionary) -> void:
 		_apply_pause_and_cursor_state()
 		if pause_changed:
 			pause_state_changed.emit(_is_paused)
+			if _store != null:
+				_store.dispatch(U_TIME_ACTIONS.update_pause_state(_is_paused, _pause_system.get_active_channels()))
+				if _is_paused:
+					_store.dispatch(U_GAMEPLAY_ACTIONS.pause_game())
+				else:
+					_store.dispatch(U_GAMEPLAY_ACTIONS.unpause_game())
 
 func _apply_pause_and_cursor_state() -> void:
 	get_tree().paused = _is_paused
@@ -168,7 +189,10 @@ func get_active_pause_channels() -> Array[StringName]:
 
 func set_timescale(scale: float) -> void:
 	_timescale_controller.set_timescale(scale)
-	timescale_changed.emit(_timescale_controller.get_timescale())
+	var clamped_scale: float = _timescale_controller.get_timescale()
+	timescale_changed.emit(clamped_scale)
+	if _store != null and not _is_hydrating_time_slice:
+		_store.dispatch(U_TIME_ACTIONS.update_timescale(clamped_scale))
 
 func get_timescale() -> float:
 	return _timescale_controller.get_timescale()
@@ -197,4 +221,27 @@ func _on_world_hour_changed(hour: int) -> void:
 	world_hour_changed.emit(hour)
 
 func _dispatch_world_time_snapshot() -> void:
-	pass
+	if _store == null or _is_hydrating_time_slice:
+		return
+	var time_data: Dictionary = _world_clock.get_time()
+	_store.dispatch(U_TIME_ACTIONS.update_world_time(
+		int(time_data.get("hour", 8)),
+		int(time_data.get("minute", 0)),
+		float(time_data.get("total_minutes", 480.0)),
+		int(time_data.get("day_count", 1)),
+	))
+
+func _hydrate_from_time_slice(slice_state: Dictionary) -> void:
+	if slice_state.is_empty():
+		return
+	if _is_hydrating_time_slice:
+		return
+
+	_is_hydrating_time_slice = true
+	_timescale_controller.set_timescale(float(slice_state.get("timescale", 1.0)))
+	_world_clock.set_state(
+		float(slice_state.get("world_total_minutes", 480.0)),
+		int(slice_state.get("world_day_count", 1)),
+		float(slice_state.get("world_time_speed", 1.0))
+	)
+	_is_hydrating_time_slice = false

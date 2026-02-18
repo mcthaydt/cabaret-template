@@ -6,6 +6,8 @@ const U_WORLD_CLOCK := preload("res://scripts/managers/helpers/time/u_world_cloc
 const M_TIME_MANAGER := preload("res://scripts/managers/m_time_manager.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const U_TIME_ACTIONS := preload("res://scripts/state/actions/u_time_actions.gd")
+const U_GAMEPLAY_ACTIONS := preload("res://scripts/state/actions/u_gameplay_actions.gd")
 
 var _time_manager: Node = null
 var _store: Node = null
@@ -313,6 +315,17 @@ func test_set_timescale_scales_delta_and_emits_signal() -> void:
 	assert_signal_emit_count(_time_manager, "timescale_changed", 1,
 		"timescale_changed should emit when timescale is updated")
 
+func test_set_timescale_dispatches_time_update_to_store() -> void:
+	await _setup_time_manager_with_store()
+	_store.clear_dispatched_actions()
+
+	_time_manager.set_timescale(0.5)
+
+	var actions: Array[Dictionary] = _store.get_dispatched_actions()
+	assert_eq(actions.size(), 1, "Setting timescale should dispatch one store action")
+	assert_eq(actions[0].get("type"), U_TIME_ACTIONS.ACTION_UPDATE_TIMESCALE)
+	assert_almost_eq(float(actions[0].get("payload", 0.0)), 0.5, 0.0001)
+
 func test_world_clock_stops_when_paused() -> void:
 	var scene_state := {
 		"current_scene_id": StringName("gameplay_base"),
@@ -333,6 +346,69 @@ func test_world_clock_stops_when_paused() -> void:
 	var paused_time: Dictionary = _time_manager.get_world_time()
 	assert_eq(int(paused_time.get("minute", -1)), int(running_time.get("minute", -1)),
 		"World clock should not advance while paused")
+
+func test_pause_state_dispatches_time_and_gameplay_mirror_actions() -> void:
+	await _setup_time_manager_with_store()
+	_store.clear_dispatched_actions()
+
+	_time_manager.request_pause(U_PAUSE_SYSTEM.CHANNEL_CUTSCENE)
+	_time_manager.release_pause(U_PAUSE_SYSTEM.CHANNEL_CUTSCENE)
+
+	var actions: Array[Dictionary] = _store.get_dispatched_actions()
+	assert_eq(actions.size(), 4, "Pause + unpause should dispatch four actions")
+	assert_eq(actions[0].get("type"), U_TIME_ACTIONS.ACTION_UPDATE_PAUSE_STATE)
+	assert_eq(actions[1].get("type"), U_GAMEPLAY_ACTIONS.ACTION_PAUSE_GAME)
+	assert_eq(actions[2].get("type"), U_TIME_ACTIONS.ACTION_UPDATE_PAUSE_STATE)
+	assert_eq(actions[3].get("type"), U_GAMEPLAY_ACTIONS.ACTION_UNPAUSE_GAME)
+
+func test_world_clock_minute_tick_dispatches_world_time_snapshot() -> void:
+	var scene_state := {
+		"current_scene_id": StringName("gameplay_base"),
+		"scene_stack": [],
+	}
+	await _setup_time_manager_with_store(scene_state)
+	_time_manager.set_world_time(8, 0)
+	_store.clear_dispatched_actions()
+
+	_time_manager._physics_process(1.0)
+
+	var actions: Array[Dictionary] = _store.get_dispatched_actions()
+	assert_eq(actions.size(), 1, "Minute tick should dispatch one world time snapshot")
+	assert_eq(actions[0].get("type"), U_TIME_ACTIONS.ACTION_UPDATE_WORLD_TIME)
+
+func test_hydrates_timescale_and_world_clock_from_time_slice() -> void:
+	var time_state := {
+		"timescale": 0.25,
+		"world_total_minutes": 1500.0,
+		"world_day_count": 2,
+		"world_time_speed": 3.0,
+	}
+	await _setup_time_manager_with_store({}, time_state)
+
+	var world_time: Dictionary = _time_manager.get_world_time()
+	assert_almost_eq(_time_manager.get_timescale(), 0.25, 0.0001)
+	assert_almost_eq(float(world_time.get("total_minutes", 0.0)), 1500.0, 0.0001)
+	assert_eq(int(world_time.get("day_count", -1)), 2)
+
+func test_time_slice_updates_hydrate_runtime_without_dispatch_feedback() -> void:
+	await _setup_time_manager_with_store()
+	_store.clear_dispatched_actions()
+
+	var updated_time := {
+		"timescale": 0.4,
+		"world_total_minutes": 960.0,
+		"world_day_count": 1,
+		"world_time_speed": 2.0,
+	}
+	_store.set_slice(StringName("time"), updated_time)
+	_store.slice_updated.emit(StringName("time"), updated_time)
+
+	var world_time: Dictionary = _time_manager.get_world_time()
+	assert_almost_eq(_time_manager.get_timescale(), 0.4, 0.0001)
+	assert_almost_eq(float(world_time.get("total_minutes", 0.0)), 960.0, 0.0001)
+	assert_eq(int(world_time.get("day_count", -1)), 1)
+	assert_eq(_store.get_dispatched_actions().size(), 0,
+		"Hydration from time slice should not dispatch feedback actions")
 
 func test_world_clock_does_not_advance_outside_gameplay() -> void:
 	var scene_state := {
@@ -379,9 +455,10 @@ func test_pause_state_changed_signal() -> void:
 	assert_signal_emit_count(_time_manager, "pause_state_changed", 2,
 		"pause_state_changed should emit on pause and unpause transitions")
 
-func _setup_time_manager_with_store(scene_state: Dictionary = {}) -> void:
+func _setup_time_manager_with_store(scene_state: Dictionary = {}, time_state: Dictionary = {}) -> void:
 	_store = MOCK_STATE_STORE.new()
 	_store.set_slice(StringName("scene"), scene_state)
+	_store.set_slice(StringName("time"), time_state)
 	add_child_autofree(_store)
 	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)
 
