@@ -28,15 +28,15 @@ func advance(scaled_delta: float) -> void:
 		if on_minute_changed.is_valid():
 			on_minute_changed.call(new_minutes_today % 60)
 
-		var prev_hour: int = prev_minutes_today / 60
-		var new_hour: int = new_minutes_today / 60
+		var prev_hour: int = int(prev_minutes_today / 60.0)
+		var new_hour: int = int(new_minutes_today / 60.0)
 		if new_hour != prev_hour and on_hour_changed.is_valid():
 			on_hour_changed.call(new_hour)
 
 func get_time() -> Dictionary:
 	var minutes_today: int = int(fmod(total_minutes, MINUTES_PER_DAY))
 	return {
-		"hour": minutes_today / 60,
+		"hour": int(minutes_today / 60.0),
 		"minute": minutes_today % 60,
 		"total_minutes": total_minutes,
 		"day_count": day_count,
@@ -59,5 +59,5 @@ func set_speed(mps: float) -> void:
 
 func is_daytime() -> bool:
 	var minutes_today: int = int(fmod(total_minutes, MINUTES_PER_DAY))
-	var hour: int = minutes_today / 60
+	var hour: int = int(minutes_today / 60.0)
 	return hour >= sunrise_hour and hour < sunset_hour
