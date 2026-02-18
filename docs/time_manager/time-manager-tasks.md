@@ -1,7 +1,7 @@
 # Time Manager - Tasks Checklist
 
 **Branch**: `TimeManager`
-**Status**: Phase 3 in progress — Commit 1 complete
+**Status**: Phase 3 complete — ready for Phase 4
 **Methodology**: TDD (Red-Green-Refactor) — tests written within each phase, not deferred
 **Reference**: `docs/time_manager/time-manager-plan.md`
 
@@ -53,17 +53,17 @@
 **Goal**: In-game simulation clock; pauses with gameplay; configurable speed.
 
 - [x] **Commit 1** — Create `u_world_clock.gd` + add U_WorldClock unit tests to test file (TDD; 12 tests)
-- [ ] **Commit 2** — Wire world clock into `m_time_manager.gd` + add world clock integration test (TDD; 1 test; `_physics_process` advance, replace stubs, `world_hour_changed` signal)
+- [x] **Commit 2** — Wire world clock into `m_time_manager.gd` + add world clock integration test (TDD; 1 test; `_physics_process` advance, replace stubs, `world_hour_changed` signal)
 
 **Phase 3 verification**:
 - [x] U_WorldClock unit tests pass (12 tests)
-- [ ] M_TimeManager world clock integration test passes (1 test)
-- [ ] World clock advances during gameplay
-- [ ] World clock stops when any pause channel active
-- [ ] Hour/minute callbacks fire at correct transitions
-- [ ] `world_hour_changed` signal emitted on hour change
-- [ ] `is_daytime()` returns correct values
-- [ ] `set_time()` / `set_speed()` work correctly
+- [x] M_TimeManager world clock integration test passes (1 test)
+- [x] World clock advances during gameplay
+- [x] World clock stops when any pause channel active
+- [x] Hour/minute callbacks fire at correct transitions
+- [x] `world_hour_changed` signal emitted on hour change
+- [x] `is_daytime()` returns correct values
+- [x] `set_time()` / `set_speed()` work correctly
 
 ---
 
