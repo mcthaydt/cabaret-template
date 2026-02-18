@@ -10,7 +10,7 @@ var _spawn_manager: M_SpawnManager
 var _camera_manager: M_CameraManager
 var _profile_manager: M_InputProfileManager
 var _localization_manager: M_LocalizationManager
-var _pause_system: M_PauseManager
+var _pause_system: M_TimeManager
 
 const _DEBUG_LOGS: bool = false
 
@@ -103,8 +103,8 @@ func before_each() -> void:
 	add_child_autofree(_localization_manager)
 	await get_tree().process_frame
 
-	# Create M_PauseManager to apply pause based on scene state
-	_pause_system = M_PauseManager.new()
+	# Create M_TimeManager to apply pause based on scene state
+	_pause_system = M_TimeManager.new()
 	add_child_autofree(_pause_system)
 	U_ServiceLocator.register(StringName("pause_manager"), _pause_system)
 	await get_tree().process_frame

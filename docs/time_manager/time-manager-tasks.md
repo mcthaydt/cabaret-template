@@ -15,7 +15,7 @@
 - [x] **Commit 2** — Create `i_time_manager.gd` (I_TimeManager interface)
 - [x] **Commit 3** — Create `m_time_manager.gd` + add M_TimeManager pause integration tests (TDD; 4 tests; port all logic from m_pause_manager.gd)
 - [x] **Commit 4** — Wire root.gd + scenes/root.tscn (rename node, dual ServiceLocator registration)
-- [ ] **Commit 5** — Migrate 10 test files (mechanical M_PauseManager → M_TimeManager find-replace)
+- [x] **Commit 5** — Migrate 10 test files (mechanical M_PauseManager → M_TimeManager find-replace)
 - [ ] **Commit 6** — Delete `m_pause_manager.gd` + `.uid`; run full pause test suite
 
 **Phase 1 verification**:
