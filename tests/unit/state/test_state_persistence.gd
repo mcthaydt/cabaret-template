@@ -5,12 +5,14 @@ extends GutTest
 
 var store: M_StateStore
 var test_save_path: String = "user://test_state_save.json"
+const RS_TIME_INITIAL_STATE := preload("res://scripts/resources/state/rs_time_initial_state.gd")
 
 func before_each() -> void:
 	U_StateEventBus.reset()
 	
 	store = M_StateStore.new()
 	store.gameplay_initial_state = RS_GameplayInitialState.new()
+	store.time_initial_state = RS_TIME_INITIAL_STATE.new()
 	add_child(store)
 	autofree(store)  # Use autofree for proper cleanup
 	await get_tree().process_frame
@@ -214,6 +216,56 @@ func test_scene_slice_transient_fields_excluded_from_save() -> void:
 	# Verify non-transient fields ARE saved
 	assert_true(saved_scene_slice.has("current_scene_id"), "current_scene_id should be saved")
 	assert_true(saved_scene_slice.has("previous_scene_id"), "previous_scene_id should be saved")
+
+func test_time_slice_transient_fields_excluded_and_world_clock_fields_persist() -> void:
+	var config := RS_StateSliceConfig.new(StringName("time"))
+	config.initial_state = {
+		"is_paused": false,
+		"active_channels": [],
+		"timescale": 1.0,
+		"world_hour": 8,
+		"world_minute": 0,
+		"world_total_minutes": 480.0,
+		"world_day_count": 1,
+		"world_time_speed": 1.0,
+		"is_daytime": true,
+	}
+	config.transient_fields = [
+		StringName("is_paused"),
+		StringName("active_channels"),
+		StringName("timescale"),
+	]
+	config.reducer = Callable()
+	store.register_slice(config)
+
+	var time_slice: Dictionary = store.get_slice(StringName("time"))
+	time_slice["is_paused"] = true
+	time_slice["active_channels"] = [StringName("cutscene")]
+	time_slice["timescale"] = 0.25
+	time_slice["world_hour"] = 17
+	time_slice["world_minute"] = 45
+	time_slice["world_total_minutes"] = 1065.0
+	time_slice["world_day_count"] = 4
+	time_slice["world_time_speed"] = 2.0
+	time_slice["is_daytime"] = true
+	store.apply_loaded_state({"time": time_slice})
+
+	var save_result: Error = store.save_state(test_save_path)
+	assert_eq(save_result, OK, "Save should succeed")
+
+	var file: FileAccess = FileAccess.open(test_save_path, FileAccess.READ)
+	var parsed: Dictionary = JSON.parse_string(file.get_as_text()) as Dictionary
+	file.close()
+
+	var saved_time: Dictionary = parsed.get("time", {})
+	assert_false(saved_time.has("is_paused"), "is_paused should be transient")
+	assert_false(saved_time.has("active_channels"), "active_channels should be transient")
+	assert_false(saved_time.has("timescale"), "timescale should be transient")
+	assert_eq(int(saved_time.get("world_hour", -1)), 17)
+	assert_eq(int(saved_time.get("world_minute", -1)), 45)
+	assert_almost_eq(float(saved_time.get("world_total_minutes", -1.0)), 1065.0, 0.0001)
+	assert_eq(int(saved_time.get("world_day_count", -1)), 4)
+	assert_almost_eq(float(saved_time.get("world_time_speed", -1.0)), 2.0, 0.0001)
 
 func test_load_nonexistent_file_returns_error() -> void:
 	var result: Error = store.load_state("user://nonexistent_file.json")

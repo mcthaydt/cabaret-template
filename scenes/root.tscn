@@ -35,6 +35,7 @@
 [ext_resource type="Script" uid="uid://cugn4owfqljpw" path="res://scripts/managers/m_character_lighting_manager.gd" id="33_character_lighting_manager"]
 [ext_resource type="Resource" uid="uid://ccmwelkabh11g" path="res://resources/base_settings/state/cfg_localization_initial_state.tres" id="34_localization_state"]
 [ext_resource type="Script" uid="uid://c32bn4etywtji" path="res://scripts/managers/m_localization_manager.gd" id="35_localization_manager"]
+[ext_resource type="Resource" path="res://resources/base_settings/state/cfg_time_initial_state.tres" id="36_time_state"]
 
 [node name="Root" type="Node" unique_id=409084781]
 script = ExtResource("10_main_root")
@@ -56,6 +57,7 @@ vfx_initial_state = ExtResource("24_vfx_state")
 audio_initial_state = ExtResource("26_audio_state")
 display_initial_state = ExtResource("29_display_state")
 localization_initial_state = ExtResource("34_localization_state")
+time_initial_state = ExtResource("36_time_state")
 
 [node name="M_CursorManager" type="Node" parent="Managers" unique_id=396316100]
 script = ExtResource("7_cursor")

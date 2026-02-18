@@ -11,6 +11,7 @@ const U_VFX_REDUCER := preload("res://scripts/state/reducers/u_vfx_reducer.gd")
 const U_AUDIO_REDUCER := preload("res://scripts/state/reducers/u_audio_reducer.gd")
 const U_DISPLAY_REDUCER := preload("res://scripts/state/reducers/u_display_reducer.gd")
 const U_LOCALIZATION_REDUCER := preload("res://scripts/state/reducers/u_localization_reducer.gd")
+const U_TIME_REDUCER := preload("res://scripts/state/reducers/u_time_reducer.gd")
 
 ## Initialize core slices based on the provided initial state resources.
 ##
@@ -28,7 +29,8 @@ static func initialize_slices(
 	vfx_initial_state: RS_VFXInitialState,
 	audio_initial_state: RS_AudioInitialState,
 	display_initial_state: Resource,
-	localization_initial_state: Resource = null
+	localization_initial_state: Resource = null,
+	time_initial_state: Resource = null
 ) -> void:
 	# Boot slice
 	if boot_initial_state != null:
@@ -140,6 +142,19 @@ static func initialize_slices(
 		loc_config.dependencies = []
 		loc_config.transient_fields = []
 		register_slice(slice_configs, state, loc_config)
+
+	# Time slice
+	if time_initial_state != null:
+		var time_config := RS_StateSliceConfig.new(StringName("time"))
+		time_config.reducer = Callable(U_TIME_REDUCER, "reduce")
+		time_config.initial_state = time_initial_state.to_dictionary()
+		time_config.dependencies = []
+		time_config.transient_fields = [
+			StringName("is_paused"),
+			StringName("active_channels"),
+			StringName("timescale"),
+		]
+		register_slice(slice_configs, state, time_config)
 
 ## Register a single slice config into the given dictionaries.
 static func register_slice(
