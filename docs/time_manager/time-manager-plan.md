@@ -713,7 +713,7 @@ func is_daytime() -> bool:
 
 ## Phase 4: Redux State & Persistence
 
-**Goal**: Time slice in Redux store; world clock state persists across saves; transient fields reset on load.
+**Goal**: Time slice in Redux store; world clock state persists across saves; transient fields are excluded from persisted payloads.
 
 **Exit Criteria**: `time` slice registered with correct transient_fields; save/load preserves world clock; `gameplay.paused` mirror stays in sync.
 
@@ -1129,7 +1129,7 @@ timescale control, and a world simulation clock.
 
 - `set_timescale(scale)` — clamped [0.01, 10.0], default 1.0
 - `get_scaled_delta(raw_delta)` — called by M_ECSManager._physics_process
-- Transient — resets to 1.0 on save/load
+- Transient — excluded from persisted payloads; runtime value remains manager-owned until re-dispatched
 
 ### World Clock
 
@@ -1151,52 +1151,52 @@ timescale control, and a world simulation clock.
 
 ### Phase 1 Complete
 
-- [ ] U_PauseSystem unit tests pass (10 tests — written first, TDD)
-- [ ] M_TimeManager pause integration tests pass (4 tests — written first, TDD)
-- [ ] All 10 existing pause tests pass with M_TimeManager
-- [ ] `is_paused()` returns correct values through overlay push/pop
-- [ ] Cursor coordination unchanged (gameplay = locked, overlays = visible)
-- [ ] `pause_state_changed` signal fires correctly
-- [ ] `U_ServiceLocator.get_service("pause_manager")` returns M_TimeManager
-- [ ] `test_style_enforcement.gd` passes
-- [ ] `m_pause_manager.gd` deleted
+- [x] U_PauseSystem unit tests pass (10 tests — written first, TDD)
+- [x] M_TimeManager pause integration tests pass (4 tests — written first, TDD)
+- [x] All 10 existing pause tests pass with M_TimeManager
+- [x] `is_paused()` returns correct values through overlay push/pop
+- [x] Cursor coordination unchanged (gameplay = locked, overlays = visible)
+- [x] `pause_state_changed` signal fires correctly
+- [x] `U_ServiceLocator.get_service("pause_manager")` returns M_TimeManager
+- [x] `test_style_enforcement.gd` passes
+- [x] `m_pause_manager.gd` deleted
 
 ### Phase 2 Complete
 
-- [ ] U_TimescaleController unit tests pass (6 tests — written first, TDD)
-- [ ] M_TimeManager timescale integration test passes (1 test — written first, TDD)
-- [ ] `get_scaled_delta(1.0)` returns `0.5` when timescale is `0.5`
-- [ ] Timescale clamped to `[0.01, 10.0]`
-- [ ] `timescale_changed` signal emitted
-- [ ] `M_ECSManager` passes scaled delta to all systems
-- [ ] Fallback to raw delta when no time_manager available
+- [x] U_TimescaleController unit tests pass (6 tests — written first, TDD)
+- [x] M_TimeManager timescale integration test passes (1 test — written first, TDD)
+- [x] `get_scaled_delta(1.0)` returns `0.5` when timescale is `0.5`
+- [x] Timescale clamped to `[0.01, 10.0]`
+- [x] `timescale_changed` signal emitted
+- [x] `M_ECSManager` passes scaled delta to all systems
+- [x] Fallback to raw delta when no time_manager available
 
 ### Phase 3 Complete
 
-- [ ] U_WorldClock unit tests pass (12 tests — written first, TDD)
-- [ ] M_TimeManager world clock integration test passes (1 test — written first, TDD)
-- [ ] World clock advances during gameplay
-- [ ] World clock stops when any pause channel active
-- [ ] Hour/minute callbacks fire at correct transitions
-- [ ] `world_hour_changed` signal emitted on hour change
-- [ ] `is_daytime()` returns correct values
-- [ ] `set_time()` / `set_speed()` work correctly
+- [x] U_WorldClock unit tests pass (12 tests — written first, TDD)
+- [x] M_TimeManager world clock integration test passes (1 test — written first, TDD)
+- [x] World clock advances during gameplay
+- [x] World clock stops when any pause channel active
+- [x] Hour/minute callbacks fire at correct transitions
+- [x] `world_hour_changed` signal emitted on hour change
+- [x] `is_daytime()` returns correct values
+- [x] `set_time()` / `set_speed()` work correctly
 
 ### Phase 4 Complete
 
-- [ ] `time` slice registered in M_StateStore
-- [ ] Transient fields (`is_paused`, `active_channels`, `timescale`) reset on save/load
-- [ ] Persisted fields (`world_hour`, `world_minute`, `world_total_minutes`, `world_day_count`, `world_time_speed`) survive save/load
-- [ ] M_TimeManager rehydrates runtime timescale/world-clock from `time` slice on startup and save/load apply flows
-- [ ] `gameplay.paused` mirror syncs on every pause transition
-- [ ] `is_daytime` recomputed by reducer from world_hour
+- [x] `time` slice registered in M_StateStore
+- [x] Transient fields (`is_paused`, `active_channels`, `timescale`) are excluded from persisted save/load payloads
+- [x] Persisted fields (`world_hour`, `world_minute`, `world_total_minutes`, `world_day_count`, `world_time_speed`) survive save/load
+- [x] M_TimeManager rehydrates runtime timescale/world-clock from `time` slice on startup and save/load apply flows
+- [x] `gameplay.paused` mirror syncs on every pause transition
+- [x] `is_daytime` recomputed by reducer from world_hour
 
 ### Phase 5 Complete
 
-- [ ] All 34 new tests pass (verified across Phases 1–4)
-- [ ] All existing integration tests pass
-- [ ] AGENTS.md updated with Time Manager Patterns section
-- [ ] ServiceLocator service list includes `"time_manager"`
+- [x] All 34 new tests pass (verified across Phases 1–4)
+- [x] All existing integration tests pass
+- [x] AGENTS.md updated with Time Manager Patterns section
+- [x] ServiceLocator service list includes `"time_manager"`
 
 ---
 

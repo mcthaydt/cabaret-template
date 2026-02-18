@@ -158,7 +158,7 @@ func get_active_channels() -> Array[StringName]
 - `set_timescale(scale)` — clamped to `[0.01, 10.0]`.
 - `get_timescale()` — returns current multiplier (default `1.0`).
 - `get_scaled_delta(raw_delta)` — returns `raw_delta * timescale`.
-- No state persistence (timescale is transient, resets to `1.0` on load).
+- No disk persistence (timescale is transient and excluded from save payloads).
 
 ### ECS Integration
 
@@ -250,7 +250,7 @@ func advance(scaled_delta: float) -> void:
 ```gdscript
 {
     "time": {
-        # Transient — reset on load, excluded from disk saves and StateHandoff
+        # Transient — excluded from disk saves and StateHandoff; runtime-managed by M_TimeManager
         "is_paused": false,
         "active_channels": [],
         "timescale": 1.0,
@@ -272,13 +272,14 @@ func advance(scaled_delta: float) -> void:
 - `M_TimeManager` dispatches to `time` slice on:
   - pause transitions (`time/update_pause_state`)
   - timescale changes (`time/update_timescale`)
-  - world-minute transitions and explicit set-time/speed API calls (`time/update_world_time`)
+  - world-minute transitions and explicit set-time API calls (`time/update_world_time`)
+  - explicit speed updates (`time/set_world_time_speed`)
 - `M_TimeManager` hydrates runtime values from `time` slice on initialization and on external restore flows (`load_state` / `apply_loaded_state`) by handling `slice_updated("time", ...)`.
 - Slice reconciliation must be no-op when incoming state already matches runtime values to avoid feedback loops.
 
 ### Transient vs Persisted
 
-Controlled by `RS_StateSliceConfig.transient_fields` (an `Array[StringName]`). Both `_preserve_to_handoff()` and `apply_loaded_state()` strip these fields from the slice before storing/applying, so they revert to initial values after every scene change or save/load.
+Controlled by `RS_StateSliceConfig.transient_fields` (an `Array[StringName]`). `_preserve_to_handoff()` and disk-save filtering exclude these fields from persisted payloads, and `apply_loaded_state()` strips them from incoming loaded data. Active transient values remain runtime-managed until `M_TimeManager` dispatches replacements.
 
 | Field | Transient? |
 |-------|------------|
@@ -312,7 +313,7 @@ Controlled by `RS_StateSliceConfig.transient_fields` (an `Array[StringName]`). B
 |-----------------|---------|-------------|
 | `time/update_pause_state` | `{is_paused: bool, active_channels: Array}` | Sync pause state to store |
 | `time/update_timescale` | `float` | Sync timescale to store |
-| `time/update_world_time` | `{world_hour, world_minute, world_total_minutes, world_day_count}` | Dispatched on minute changes and explicit set-time/speed calls |
+| `time/update_world_time` | `{world_hour, world_minute, world_total_minutes, world_day_count}` | Dispatched on minute changes and explicit set-time calls |
 | `time/set_world_time` | `{hour: int, minute: int}` | Manual time set |
 | `time/set_world_time_speed` | `float` | Change clock speed |
 
@@ -444,7 +445,7 @@ tests/unit/managers/
 3. Create `U_TimeReducer` — pure `reduce(state, action)` function; for `time/update_world_time`, recompute `is_daytime` from the incoming `world_hour` field.
 4. Create `U_TimeSelectors` — one static function per readable field.
 5. Register the `time` slice in `U_StateSliceManager.initialize_slices()` with `transient_fields = [&"is_paused", &"active_channels", &"timescale"]`.
-6. `M_TimeManager` dispatches `U_GameplayActions.pause_game()` / `unpause_game()` on pause transitions, dispatches `time/update_timescale` on timescale changes, and dispatches `time/update_world_time` on world-minute and explicit set-time/speed updates.
+6. `M_TimeManager` dispatches `U_GameplayActions.pause_game()` / `unpause_game()` on pause transitions, dispatches `time/update_timescale` on timescale changes, dispatches `time/update_world_time` on world-minute and explicit set-time updates, and dispatches `time/set_world_time_speed` on speed updates.
 7. `M_TimeManager` hydrates `U_TimescaleController` + `U_WorldClock` from `time` slice on startup and external restore (`slice_updated("time", ...)`) using no-op reconciliation guards.
 8. Create `cfg_time_initial_state.tres` as instance of `RS_TimeInitialState`; wire it to `M_StateStore.time_initial_state` in `root.tscn`.
 
@@ -486,7 +487,7 @@ tests/unit/managers/
 | How is backward compat maintained? | `"pause_manager"` registered as alias; `gameplay.paused` mirror kept via existing gameplay actions |
 | Does S_PlaytimeSystem change? | No — tracks real elapsed time independently |
 | Where does timescale scaling happen? | `M_ECSManager._physics_process()` — single integration point |
-| Is timescale persisted? | No, transient — resets to 1.0 on load |
+| Is timescale persisted? | No, transient — excluded from persisted payloads; runtime value remains manager-owned until re-dispatched |
 | Is world clock persisted? | Yes, hour/minute/total_minutes/day_count/speed persist in time slice and are rehydrated by M_TimeManager |
 | How are transient fields excluded from saves? | Via `RS_StateSliceConfig.transient_fields` — stripped before both StateHandoff and disk saves |
 | How many test files reference M_PauseManager? | 10 (including test_poc_pause_system.gd and test_style_enforcement.gd) |

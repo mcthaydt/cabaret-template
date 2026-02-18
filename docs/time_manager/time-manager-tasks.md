@@ -69,18 +69,18 @@
 
 ## Phase 4: Redux State & Persistence
 
-**Goal**: `time` slice in Redux; world clock persists across saves; transient fields reset on load.
+**Goal**: `time` slice in Redux; world clock persists across saves; transient fields are excluded from persisted payloads.
 
 - [x] **Commit 1** — Create `rs_time_initial_state.gd` + `cfg_time_initial_state.tres`
 - [x] **Commit 2** — Create `u_time_actions.gd` (U_TimeActions with `_static_init()` registration)
 - [x] **Commit 3** — Create `u_time_reducer.gd` (U_TimeReducer with `_with_values()` helper)
 - [x] **Commit 4** — Create `u_time_selectors.gd` (U_TimeSelectors static getters)
 - [x] **Commit 5** — Register `time` slice in `m_state_store.gd` + `u_state_slice_manager.gd` (14th param); wire `scenes/root.tscn`
-- [x] **Commit 6** — Wire store dispatches/hydration into `m_time_manager.gd` (`update_pause_state`, `update_timescale`, `update_world_time`, `gameplay.paused` mirror, startup/load reconciliation from `time` slice)
+- [x] **Commit 6** — Wire store dispatches/hydration into `m_time_manager.gd` (`update_pause_state`, `update_timescale`, `update_world_time`, `set_world_time_speed`, `gameplay.paused` mirror, startup/load reconciliation from `time` slice)
 
 **Phase 4 verification**:
 - [x] `time` slice registered in M_StateStore
-- [x] Transient fields (`is_paused`, `active_channels`, `timescale`) reset on save/load
+- [x] Transient fields (`is_paused`, `active_channels`, `timescale`) are excluded from persisted save/load payloads
 - [x] Persisted fields (`world_hour`, `world_minute`, `world_total_minutes`, `world_day_count`, `world_time_speed`) survive save/load
 - [x] M_TimeManager rehydrates runtime timescale/world clock from `time` slice on startup and save/load
 - [x] `gameplay.paused` mirror syncs on every pause transition

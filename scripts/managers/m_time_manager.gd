@@ -80,13 +80,17 @@ func _physics_process(delta: float) -> void:
 	_world_clock.advance(get_scaled_delta(delta))
 
 func _check_and_resync_pause_state() -> void:
-	if not _store or not _ui_overlay_stack:
-		return
+	var current_ui_count: int = 0
+	if _ui_overlay_stack != null:
+		current_ui_count = _ui_overlay_stack.get_child_count()
 
-	var current_ui_count: int = _ui_overlay_stack.get_child_count()
-	var scene_state: Dictionary = _store.get_slice(StringName("scene"))
-	var scene_stack: Array = scene_state.get("scene_stack", [])
-	var total_overlay_count: int = maxi(current_ui_count, scene_stack.size())
+	var scene_overlay_count: int = 0
+	if _store != null:
+		var scene_state: Dictionary = _store.get_slice(StringName("scene"))
+		var scene_stack: Array = scene_state.get("scene_stack", [])
+		scene_overlay_count = scene_stack.size()
+
+	var total_overlay_count: int = maxi(current_ui_count, scene_overlay_count)
 	_pause_system.derive_pause_from_overlay_state(total_overlay_count)
 
 	var should_be_paused: bool = _pause_system.compute_is_paused()
@@ -209,7 +213,8 @@ func set_world_time(hour: int, minute: int) -> void:
 
 func set_world_time_speed(minutes_per_real_second: float) -> void:
 	_world_clock.set_speed(minutes_per_real_second)
-	_dispatch_world_time_snapshot()
+	if _store != null and not _is_hydrating_time_slice:
+		_store.dispatch(U_TIME_ACTIONS.set_world_time_speed(_world_clock.minutes_per_real_second))
 
 func is_daytime() -> bool:
 	return _world_clock.is_daytime()

@@ -1,8 +1,8 @@
 # Time Manager - Continuation Prompt
 
 **Branch**: `TimeManager`
-**Current Status**: Complete
-**Last Completed**: Phase 5 (Documentation, Commit 1)
+**Current Status**: Complete (pre-merge hardening complete)
+**Last Completed**: Post-Phase 5 gap closure (store speed dispatch + overlayless manual pause + template cleanup)
 **Next Action**: Merge `TimeManager` branch and run post-merge validation
 
 ---
@@ -10,6 +10,12 @@
 ## Context
 
 `M_TimeManager` replacement work is complete. The full implementation plan is documented in `docs/time_manager/time-manager-plan.md` and the task checklist is in `docs/time_manager/time-manager-tasks.md`.
+
+Pre-merge hardening closed the last identified integration/documentation gaps:
+- `set_world_time_speed()` now dispatches `time/set_world_time_speed` to keep Redux in sync.
+- Manual pause channels now remain functional when `UIOverlayStack` is temporarily unavailable.
+- Duplicate `M_TimeManager` nodes were removed from base gameplay template fixtures.
+- Time-manager docs now consistently describe transient-field persistence behavior.
 
 The implementation follows **TDD (Red-Green-Refactor)** — tests are written within each phase, not deferred. Each helper commit creates the class with stubs, writes tests (RED), then implements (GREEN).
 

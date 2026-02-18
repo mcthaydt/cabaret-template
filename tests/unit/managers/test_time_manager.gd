@@ -326,6 +326,17 @@ func test_set_timescale_dispatches_time_update_to_store() -> void:
 	assert_eq(actions[0].get("type"), U_TIME_ACTIONS.ACTION_UPDATE_TIMESCALE)
 	assert_almost_eq(float(actions[0].get("payload", 0.0)), 0.5, 0.0001)
 
+func test_set_world_time_speed_dispatches_speed_update_to_store() -> void:
+	await _setup_time_manager_with_store()
+	_store.clear_dispatched_actions()
+
+	_time_manager.set_world_time_speed(2.5)
+
+	var actions: Array[Dictionary] = _store.get_dispatched_actions()
+	assert_eq(actions.size(), 1, "Setting world clock speed should dispatch one store action")
+	assert_eq(actions[0].get("type"), U_TIME_ACTIONS.ACTION_SET_WORLD_TIME_SPEED)
+	assert_almost_eq(float(actions[0].get("payload", 0.0)), 2.5, 0.0001)
+
 func test_world_clock_stops_when_paused() -> void:
 	var scene_state := {
 		"current_scene_id": StringName("gameplay_base"),
@@ -445,6 +456,17 @@ func test_request_release_pause() -> void:
 	_time_manager.release_pause(U_PAUSE_SYSTEM.CHANNEL_CUTSCENE)
 	assert_false(_time_manager.is_paused(), "Releasing pause should clear paused state")
 
+func test_manual_pause_channels_work_without_overlay_stack() -> void:
+	await _setup_time_manager_with_store({}, {}, false)
+
+	_time_manager.request_pause(U_PAUSE_SYSTEM.CHANNEL_SYSTEM)
+	assert_true(_time_manager.is_paused(), "Manual pause channel should pause without UIOverlayStack")
+	assert_true(get_tree().paused, "SceneTree pause should still follow manual channels without UIOverlayStack")
+
+	_time_manager.release_pause(U_PAUSE_SYSTEM.CHANNEL_SYSTEM)
+	assert_false(_time_manager.is_paused(), "Releasing manual channel should unpause without UIOverlayStack")
+	assert_false(get_tree().paused, "SceneTree should unpause after manual channel release")
+
 func test_pause_state_changed_signal() -> void:
 	await _setup_time_manager_with_store()
 	watch_signals(_time_manager)
@@ -455,16 +477,23 @@ func test_pause_state_changed_signal() -> void:
 	assert_signal_emit_count(_time_manager, "pause_state_changed", 2,
 		"pause_state_changed should emit on pause and unpause transitions")
 
-func _setup_time_manager_with_store(scene_state: Dictionary = {}, time_state: Dictionary = {}) -> void:
+func _setup_time_manager_with_store(
+	scene_state: Dictionary = {},
+	time_state: Dictionary = {},
+	include_overlay_stack: bool = true
+) -> void:
 	_store = MOCK_STATE_STORE.new()
 	_store.set_slice(StringName("scene"), scene_state)
 	_store.set_slice(StringName("time"), time_state)
 	add_child_autofree(_store)
 	U_SERVICE_LOCATOR.register(StringName("state_store"), _store)
 
-	_overlay_stack = CanvasLayer.new()
-	_overlay_stack.name = "UIOverlayStack"
-	add_child_autofree(_overlay_stack)
+	if include_overlay_stack:
+		_overlay_stack = CanvasLayer.new()
+		_overlay_stack.name = "UIOverlayStack"
+		add_child_autofree(_overlay_stack)
+	else:
+		_overlay_stack = null
 
 	_time_manager = M_TIME_MANAGER.new()
 	add_child_autofree(_time_manager)
