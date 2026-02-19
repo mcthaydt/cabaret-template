@@ -2,11 +2,9 @@
 
 ## Phase 1: Core Framework + Tests
 
-**Goal**: Build the rule engine infrastructure with full test coverage. Zero changes to existing systems.
+**Goal**: Rule engine infrastructure with full test coverage. Zero changes to existing systems.
 
-### 1.1 Resource Definitions
-
-Create the three core resource classes:
+### 1A: Resource Definitions
 
 **RS_QBCondition** (`scripts/resources/qb/rs_qb_condition.gd`):
 - `source: Source` enum (COMPONENT, REDUX, EVENT_PAYLOAD, ENTITY_TAG, CUSTOM)
@@ -21,10 +19,9 @@ Create the three core resource classes:
 - `negate: bool` -- invert result
 
 **RS_QBEffect** (`scripts/resources/qb/rs_qb_effect.gd`):
-- `effect_type: EffectType` enum (DISPATCH_ACTION, PUBLISH_EVENT, SET_COMPONENT_FIELD, CALL_METHOD, SET_QUALITY)
-- `target: String` -- action type, event name, component.field path, or handler method name
+- `effect_type: EffectType` enum (DISPATCH_ACTION, PUBLISH_EVENT, SET_COMPONENT_FIELD, SET_QUALITY) -- 4 types, no CALL_METHOD
+- `target: String` -- action type, event name, or component.field path
 - `payload: Dictionary` -- effect parameters
-- No `delay` field in Phase 1 (deferred to post-Phase 6)
 
 **RS_QBRuleDefinition** (`scripts/resources/qb/rs_qb_rule_definition.gd`):
 - `rule_id: StringName`
@@ -37,8 +34,10 @@ Create the three core resource classes:
 - `requires_salience: bool` (default true; auto-disabled for EVENT trigger mode)
 - `trigger_mode: TriggerMode` enum (TICK, EVENT, BOTH)
 - `trigger_event: StringName`
+- `cooldown_key_fields: Array[String] = []` -- Empty = global cooldown. `["entity_id"]` = per-entity. `["zone_id", "entity_id"]` = per-zone-per-entity. Fields resolved from quality context, joined with ":"
+- `cooldown_from_context_field: String = ""` -- Empty = use rule.cooldown as duration. Non-empty = read duration from context field
 
-### 1.2 Utility Classes
+### 1B: Utility Classes (TDD -- stub -> red -> implement -> green)
 
 **U_QBRuleEvaluator** (`scripts/utils/qb/u_qb_rule_evaluator.gd`):
 - `static func evaluate_condition(condition: RS_QBCondition, quality_value: Variant) -> bool`
@@ -46,39 +45,51 @@ Create the three core resource classes:
 - Pure functions, no side effects, maximally testable
 - Uses `condition.value_type` to select which typed field to compare against
 
-**U_QBEffectExecutor** (`scripts/utils/qb/u_qb_effect_executor.gd`):
-- `static func execute_effect(effect: RS_QBEffect, context: Dictionary) -> void`
-- `static func execute_effects(effects: Array[RS_QBEffect], context: Dictionary) -> void`
-- Context dictionary carries store reference, event bus, component references
-- CALL_METHOD effects delegate to `rule_manager._handle_effect(effect, context)`
-
 **U_QBQualityProvider** (`scripts/utils/qb/u_qb_quality_provider.gd`):
 - `static func read_quality(condition: RS_QBCondition, context: Dictionary) -> Variant`
 - Reads from components, Redux state, event payloads, or entity tags based on condition.source
 - Component path format: "ComponentType.field_name" (e.g., "C_HealthComponent.current_health")
 - Redux path format: "slice.field" (e.g., "gameplay.is_dead")
 
+**U_QBEffectExecutor** (`scripts/utils/qb/u_qb_effect_executor.gd`):
+- `static func execute_effect(effect: RS_QBEffect, context: Dictionary) -> void`
+- `static func execute_effects(effects: Array[RS_QBEffect], context: Dictionary) -> void`
+- Executes 4 effect types. No CALL_METHOD.
+- PUBLISH_EVENT merges context (entity_id, event_payload) into published payload:
+
+```gdscript
+static func _execute_publish_event(effect: RS_QBEffect, context: Dictionary) -> void:
+    var event_payload: Dictionary = effect.payload.duplicate(true)
+    if context.has("entity_id") and not event_payload.has("entity_id"):
+        event_payload["entity_id"] = context["entity_id"]
+    if context.has("event_payload"):
+        var original: Dictionary = context["event_payload"]
+        for key in original:
+            if not event_payload.has(key):
+                event_payload[key] = original[key]
+    U_ECSEventBus.publish(StringName(effect.target), event_payload)
+```
+
 **U_QBRuleValidator** (`scripts/utils/qb/u_qb_rule_validator.gd`):
 - `static func validate_rule(rule: RS_QBRuleDefinition) -> Array[String]` -- returns list of error messages
 - Validates: rule_id not empty, conditions have valid paths, effects have valid targets, EVENT rules have trigger_event set
 
-### 1.3 Base Rule Manager
+### 1C: Base Rule Manager (TDD)
 
 **BaseQBRuleManager** (`scripts/ecs/systems/base_qb_rule_manager.gd`):
 - Extends `BaseECSSystem`, default `execution_priority = 1`
 - `@export var state_store: I_StateStore = null`
 - `@export var rule_definitions: Array[RS_QBRuleDefinition] = []`
-- Runtime state: `_rule_states: Dictionary` (rule_id -> {active, last_fired, was_true, cooldown_remaining})
-- `_event_unsubscribes: Array[Callable]` for cleanup
+- Runtime state: `_rule_states: Dictionary` (rule_id -> {active, last_fired, was_true, cooldown_remaining, context_cooldowns: Dictionary})
 - `on_configured()` -- register rules, subscribe to trigger events
-- `process_tick(delta)` -- tick cooldowns; subclass loops over target entities calling `_evaluate_rules_for_context(context)`
-- `_on_event_received(event_name, payload)` -- evaluate EVENT/BOTH rules; salience auto-disabled for EVENT mode
+- `process_tick(delta)` -- tick cooldowns; subclass loops over target entities
+- `_on_event_received(event_name, payload)` -- evaluate EVENT/BOTH rules (salience auto-disabled for EVENT)
 - `_build_quality_context(entity, delta) -> Dictionary` -- virtual, subclasses override
-- `_evaluate_rules_for_context(context) -> void` -- evaluate all matching rules against a quality context
-- `_handle_effect(effect, context) -> void` -- virtual, subclasses override for CALL_METHOD effects
-- `_register_rules(definitions)` -- initialize rule runtime state, sort by priority then rule_id
-- `_tick_cooldowns(delta)` -- decrement cooldown_remaining for all rules
-- `_exit_tree()` -- unsubscribe from events
+- `_evaluate_rules_for_context(context) -> void` -- evaluate all matching rules
+- `_register_rules(definitions)` -- init state, sort by priority then rule_id alphabetical
+- `_tick_cooldowns(delta)` -- decrement global + per-context cooldowns
+- `_resolve_cooldown_key(rule, context) -> String` -- composite key from cooldown_key_fields
+- No `_handle_effect()` virtual -- effects fully processed by U_QBEffectExecutor
 
 Entity iteration pattern (in subclass process_tick):
 ```gdscript
@@ -93,260 +104,270 @@ func process_tick(delta: float) -> void:
         _write_brain_data(char_state, context)
 ```
 
-### 1.4 Tests
+### 1D: Tests
 
-**test_qb_condition_evaluation.gd** (`tests/unit/qb/`):
-- Test every Operator variant against float, int, String, bool, StringName typed values
-- Test negate flag
-- Test null/missing quality value handling
-- Test type mismatches (comparing string to int gracefully)
+| Test File | Coverage |
+|-----------|----------|
+| `tests/unit/qb/test_qb_condition_evaluation.gd` | All operators x typed values, negate, null, type mismatches |
+| `tests/unit/qb/test_qb_quality_provider.gd` | All source types, missing paths, nested fields |
+| `tests/unit/qb/test_qb_effect_execution.gd` | All 4 effect types, context injection for PUBLISH_EVENT |
+| `tests/unit/qb/test_qb_rule_validator.gd` | Valid/invalid rules, EVENT without trigger_event |
+| `tests/unit/qb/test_qb_rule_lifecycle.gd` | Cooldown, salience (false->true), one-shot, priority ordering, event salience auto-disable, per-context cooldown, cooldown_from_context_field |
 
-**test_qb_effect_execution.gd** (`tests/unit/qb/`):
-- Test DISPATCH_ACTION with MockStateStore
-- Test PUBLISH_EVENT with U_ECSEventBus subscription
-- Test SET_COMPONENT_FIELD
-- Test SET_QUALITY
-- Test CALL_METHOD delegation to _handle_effect
-
-**test_qb_rule_lifecycle.gd** (`tests/unit/qb/`):
-- Test cooldown: rule fires, then blocked until cooldown expires
-- Test salience: rule only fires on false->true transition, not while continuously true
-- Test one-shot: rule fires once, then is_active becomes false
-- Test priority: higher priority rules evaluated first; ties broken by rule_id alphabetical
-- Test EVENT trigger mode: rule only evaluated when matching event arrives
-- Test BOTH trigger mode: rule evaluated on tick AND on matching event
-- Test event salience auto-disable: EVENT mode rules ignore requires_salience
-
-**test_qb_quality_provider.gd** (`tests/unit/qb/`):
-- Test COMPONENT source reading from component dictionary
-- Test REDUX source reading from state dictionary
-- Test EVENT_PAYLOAD source reading from event payload
-- Test ENTITY_TAG source with HAS/NOT_HAS operators
-- Test missing/null quality paths return null gracefully
-
-**test_qb_rule_validator.gd** (`tests/unit/qb/`):
-- Test valid rule passes validation
-- Test empty rule_id fails
-- Test EVENT mode without trigger_event fails
-- Test condition with empty quality_path fails
+### 1E: Regression check + commit
 
 ---
 
 ## Phase 2: Character State Component + Rule Manager
 
-**Goal**: Create the character brain data component and rule manager. Existing systems unchanged -- nobody reads from C_CharacterStateComponent yet.
+**Goal**: Create brain data component and rule manager. Existing systems unchanged -- nobody reads from C_CharacterStateComponent yet.
 
-### 2.1 C_CharacterStateComponent
+### 2A: C_CharacterStateComponent
 
-`scripts/ecs/components/c_character_state_component.gd`:
-- Extends `BaseECSComponent`
-- `const COMPONENT_TYPE := StringName("C_CharacterStateComponent")`
-- Computed qualities (written by S_CharacterRuleManager each tick):
-  - `is_gameplay_active: bool = true` -- not paused, not transitioning
-  - `is_grounded: bool = false` -- on floor or floating supported
-  - `is_moving: bool = false` -- horizontal velocity > threshold
-  - `is_sprinting: bool = false` -- sprint input active
-  - `is_spawn_frozen: bool = false` -- physics frozen during spawn
-  - `is_dead: bool = false` -- health <= 0
-  - `is_invincible: bool = false` -- invincibility window active
-  - `health_percent: float = 1.0` -- current/max health ratio
-  - `vertical_state: int = 0` -- -1 falling, 0 grounded, 1 rising
-  - `has_input: bool = false` -- movement input magnitude > 0
+`scripts/ecs/components/c_character_state_component.gd` -- extends `BaseECSComponent`
 
-### 2.2 S_CharacterRuleManager
+Brain data fields (written by S_CharacterRuleManager each tick):
+- `is_gameplay_active: bool` -- not paused, not transitioning, shell == "gameplay"
+- `is_grounded: bool` -- on floor or floating supported
+- `is_moving: bool` -- horizontal velocity > threshold
+- `is_spawn_frozen: bool` -- physics frozen during spawn
+- `is_dead: bool` -- health <= 0 (synced from C_HealthComponent)
+- `is_invincible: bool` -- invincibility window active
+- `health_percent: float` -- current/max ratio
+- `vertical_state: int` -- -1 falling, 0 grounded, 1 rising
+- `has_input: bool` -- movement input magnitude > 0
 
-`scripts/ecs/systems/s_character_rule_manager.gd`:
-- Extends `BaseQBRuleManager` (inherits execution_priority=1)
-- `_build_quality_context(entity, delta)` -- reads from C_HealthComponent, C_MovementComponent, C_InputComponent, C_SpawnStateComponent, C_FloatingComponent and builds quality dictionary
+### 2B: S_CharacterRuleManager (TDD)
+
+`scripts/ecs/systems/s_character_rule_manager.gd` -- extends `BaseQBRuleManager`
+
+- `_build_quality_context(entity, delta)` -- reads from C_HealthComponent, C_MovementComponent, C_InputComponent, C_SpawnStateComponent, C_FloatingComponent
 - After rule evaluation, writes computed qualities to C_CharacterStateComponent
-- Queries entities that have C_CharacterStateComponent
-- CALL_METHOD handlers: `_handle_spawn_ragdoll(context)`, `_handle_mark_dead(context)`
+- No CALL_METHOD handlers -- all complex effects are PUBLISH_EVENT
 
-### 2.3 Scene Integration
+### 2C: Rule .tres Files
 
-- Add C_CharacterStateComponent to `scenes/templates/tmpl_character.tscn` and `scenes/prefabs/prefab_player.tscn`
-- Add S_CharacterRuleManager to all 5 gameplay scenes (gameplay_base, interior_house, bar, exterior, alleyway)
-- Author pause gate rules (TWO .tres files for OR logic) and spawn freeze rule
+| File | Conditions | Effects |
+|------|-----------|---------|
+| `resources/qb/character/cfg_pause_gate_paused.tres` | REDUX `gameplay.paused == true` | SET_QUALITY `is_gameplay_active = false` |
+| `resources/qb/character/cfg_pause_gate_shell.tres` | REDUX `navigation.shell != "gameplay"` | SET_QUALITY `is_gameplay_active = false` |
+| `resources/qb/character/cfg_spawn_freeze_rule.tres` | COMPONENT `C_SpawnStateComponent.is_physics_frozen == true` | SET_QUALITY `is_spawn_frozen = true` |
 
-### 2.4 Tests
+### 2D: Scene Integration
 
-**test_character_rule_manager.gd** (`tests/unit/qb/`):
-- Test brain data population from mock components
-- Test pause gate rule sets is_gameplay_active = false when paused
-- Test pause gate rule sets is_gameplay_active = false when shell != "gameplay"
-- Test spawn freeze rule sets is_spawn_frozen = true when frozen
-- Use MockECSManager + MockStateStore for isolation
+- Add `C_CharacterStateComponent` to `scenes/templates/tmpl_character.tscn` and `scenes/prefabs/prefab_player.tscn`
+- Add `S_CharacterRuleManager` to all 5 gameplay scenes (gameplay_base, interior_house, bar, exterior, alleyway)
+
+### 2E: Tests + regression check + commit
 
 ---
 
-## Phase 3: Character System Gating Consolidation
+## Phase 3: System Gating Consolidation + Death Handler
 
-**Goal**: Existing systems read from C_CharacterStateComponent instead of duplicating gating logic.
+**Goal**: Existing systems read brain data instead of duplicating gating logic. Ragdoll logic extracts to handler.
 
-### 3.1 Systems to Modify for Pause Gating (6 systems -- verified)
+### 3A: Pause Gating (6 systems)
 
-Each system currently has its own independent pause check. Replace with read from C_CharacterStateComponent.is_gameplay_active:
+Replace independent pause checks with `C_CharacterStateComponent.is_gameplay_active`:
 
-1. **S_MovementSystem** (lines 22-34) -- remove independent pause check
-2. **S_JumpSystem** (lines 21-34) -- remove pause check
-3. **S_GravitySystem** (lines 17-29) -- remove pause check
-4. **S_RotateToInputSystem** (lines 21-33) -- remove pause check
-5. **S_InputSystem** (lines 80-84) -- remove pause check
-6. **S_FootstepSoundSystem** (lines 46-56) -- remove pause check (uses `try_get_store` variant but same gating logic; looks up character entity's C_CharacterStateComponent for the `is_gameplay_active` flag)
+| System | Current Pattern (remove) | New Pattern |
+|--------|------------------------|-------------|
+| `S_MovementSystem` (lines 22-34) | Store lookup -> `get_is_paused()` | Read `is_gameplay_active` from brain data |
+| `S_JumpSystem` (lines 21-34) | Same | Same |
+| `S_GravitySystem` (lines 17-29) | Same | Same |
+| `S_RotateToInputSystem` (lines 21-33) | Same | Same |
+| `S_InputSystem` (lines 80-84) | Same | Same |
+| `S_FootstepSoundSystem` (lines 46-56) | `try_get_store` variant | Look up character's brain data component |
 
-### 3.2 Systems to Modify for Spawn Freeze (3 systems -- each with DIFFERENT side effects)
+### 3B: Spawn Freeze (3 systems -- each keeps different side effects)
 
-Each system reads `is_spawn_frozen` from C_CharacterStateComponent but keeps its own freeze behavior:
+| System | Side Effect (keep) |
+|--------|-------------------|
+| `S_MovementSystem` | Reset velocity to zero, reset dynamics state |
+| `S_JumpSystem` | Flag debug snapshot with `spawn_frozen: true` |
+| `S_FloatingSystem` | Update support state even while frozen |
 
-1. **S_MovementSystem**: Resets velocity to zero, resets dynamics state
-2. **S_JumpSystem**: Flags debug snapshot with `spawn_frozen: true`
-3. **S_FloatingSystem**: Updates support state even while frozen
+### 3C: Death Handler System
 
-### 3.3 Systems NOT Modified
+Extract ragdoll logic from `S_HealthSystem` (lines 167-274) into `scripts/ecs/systems/s_death_handler_system.gd`:
 
-- **S_AlignWithSurfaceSystem**: No pause check, no freeze check currently -- do NOT add gating
-- **S_FloatingSystem**: No pause check currently -- do NOT add pause gating (only freeze check)
+**Moves to handler**: `_spawn_ragdoll()`, `_restore_entity_state()`, `get_ragdoll_for_entity()`, PLAYER_RAGDOLL preload, `_rng`, `_ragdoll_spawned`, `_ragdoll_instances`, `_entity_refs`, `_entity_original_visibility`
 
-### 3.4 Death Sequence Rules
+**Stays in S_HealthSystem**: All damage/heal/regen/death-timer/invincibility logic. `_handle_death_sequence()` changes from calling `_spawn_ragdoll()` to publishing `entity_death_requested` event. `_reset_death_flags()` publishes `entity_respawn_requested`.
 
-- Create `cfg_death_sequence_rule.tres` -- conditions: health <= 0, not already dead; effects: CALL_METHOD _handle_mark_dead, DISPATCH_ACTION trigger_death, CALL_METHOD _handle_spawn_ragdoll
-- Create `cfg_invincibility_rule.tres` -- conditions: damage received event, not invincible; effects: trigger invincibility
-- Migrate S_HealthSystem death-triggering to CALL_METHOD rule chain (timer ticking, regen math, damage queue processing STAY in S_HealthSystem)
+**New event names** in `U_ECSEventNames`:
+- `EVENT_ENTITY_DEATH_REQUESTED := StringName("entity_death_requested")`
+- `EVENT_ENTITY_RESPAWN_REQUESTED := StringName("entity_respawn_requested")`
 
-### 3.5 Verification
+**Handler pattern**:
+```gdscript
+class_name S_DeathHandlerSystem extends BaseECSSystem
+# Subscribes to entity_death_requested -> spawns ragdoll, hides entity
+# Subscribes to entity_respawn_requested -> frees ragdoll, restores visibility
+```
 
-- Run full existing ECS test suite -- all tests must pass (behavioral equivalence)
-- Run QB unit tests
-- Manual playtest: movement, jumping, death/respawn, pause/unpause, spawn freeze
+### 3D: Brain Data Death Sync Rule
+
+`resources/qb/character/cfg_death_sync_rule.tres`:
+- Trigger: TICK, requires_salience: false
+- Condition: COMPONENT `C_HealthComponent.is_dead == true`
+- Effect: SET_QUALITY `is_dead = true`
+
+(This syncs the flag to brain data -- actual death detection stays in S_HealthSystem)
+
+### 3E: Tests + full regression + manual playtest + commit
 
 ---
 
 ## Phase 4: Game State Rules (Checkpoint + Victory)
 
-**Goal**: Replace S_CheckpointSystem and S_VictorySystem with declarative rules.
+**Goal**: Replace S_CheckpointSystem and S_VictorySystem with rule + handler pairs. S_DamageSystem stays as-is.
 
-**S_DamageSystem is excluded**: It's a stateful per-tick system with zone enter/exit tracking, per-entity per-zone cooldowns, stale zone cleanup, and two damage paths (instant death vs cooldown). This doesn't fit the condition-effect rule pattern. See overview "What Does NOT Become a Rule" for full rationale.
+### 4A: Event Name Centralization
 
-### 4.0 Event Name Centralization (prerequisite)
+Add to `scripts/events/ecs/u_ecs_event_names.gd`:
+```
+EVENT_CHECKPOINT_ZONE_ENTERED, EVENT_CHECKPOINT_ACTIVATED,
+EVENT_CHECKPOINT_ACTIVATION_REQUESTED,
+EVENT_VICTORY_TRIGGERED, EVENT_VICTORY_EXECUTION_REQUESTED,
+EVENT_DAMAGE_ZONE_ENTERED, EVENT_DAMAGE_ZONE_EXITED
+```
 
-Before rules consume events, centralize event name constants:
-- Add to `scripts/events/ecs/u_ecs_event_names.gd`:
-  - `EVENT_CHECKPOINT_ZONE_ENTERED := StringName("checkpoint_zone_entered")`
-  - `EVENT_CHECKPOINT_ACTIVATED := StringName("checkpoint_activated")`
-  - `EVENT_VICTORY_TRIGGERED := StringName("victory_triggered")`
-  - `EVENT_VICTORY_ZONE_ENTERED := StringName("victory_zone_entered")`
-- Update S_CheckpointSystem, S_VictorySystem, and their components to use centralized constants
-- S_DamageSystem events (`damage_zone_entered`, `damage_zone_exited`) also centralized for consistency, even though S_DamageSystem stays as-is
+Update S_CheckpointSystem, S_VictorySystem, S_DamageSystem to use centralized constants.
 
-### 4.1 S_GameRuleManager
+### 4B: S_GameRuleManager
 
-`scripts/ecs/systems/s_game_rule_manager.gd`:
-- Extends `BaseQBRuleManager`
-- Subscribes to: `checkpoint_zone_entered`, `victory_triggered` events
-- Rule evaluation context includes Redux gameplay slice
-- No C_GameStateComponent needed -- game rules are purely event-driven
-- **Typed event handling**: S_CheckpointSystem currently publishes `Evn_CheckpointActivated` via `publish_typed()`. The typed event class_name becomes the string event name. CALL_METHOD handlers must handle typed event payloads (event object) alongside Dictionary payloads.
+`scripts/ecs/systems/s_game_rule_manager.gd` -- extends `BaseQBRuleManager`
 
-**Execution priority note**: S_CheckpointSystem runs at priority 100, S_VictorySystem at 300. S_GameRuleManager inherits priority 1. This is safe because checkpoint/victory rules are EVENT-triggered (processed in `_on_event_received`, not `process_tick`), so `execution_priority` only affects cooldown ticking, which is order-independent.
+Simple event-rule host (no custom `process_tick` iteration). Holds checkpoint and victory rules. EVENT-triggered rules fire via `_on_event_received()`.
 
-### 4.2 Rule Definitions
+### 4C: Handler Systems
 
-- `cfg_checkpoint_activation_rule.tres`:
-  - Trigger: EVENT (checkpoint_zone_entered)
-  - Conditions: event has checkpoint data, checkpoint not already activated
-  - Effects: CALL_METHOD activate checkpoint, DISPATCH_ACTION set_last_checkpoint, PUBLISH_EVENT checkpoint_activated
+**`scripts/ecs/systems/s_checkpoint_handler_system.gd`** (replaces S_CheckpointSystem):
+- Subscribes to `checkpoint_activation_requested`
+- `checkpoint.activate()`, dispatch `set_last_checkpoint`, resolve spawn position, publish typed `Evn_CheckpointActivated`
+- `execution_priority = 100`
 
-- `cfg_victory_area_rule.tres`:
-  - Trigger: EVENT (victory_triggered)
-  - Conditions: trigger_node valid, not already triggered, dependencies met
-  - Effects: DISPATCH_ACTION trigger_victory, DISPATCH_ACTION mark_area_complete
+**`scripts/ecs/systems/s_victory_handler_system.gd`** (replaces S_VictorySystem):
+- Subscribes to `victory_execution_requested`
+- Validate trigger, check prerequisites, dispatch actions, `trigger.set_triggered()`
+- `execution_priority = 300`
 
-- `cfg_victory_game_complete_rule.tres`:
-  - Trigger: EVENT (victory_triggered)
-  - Conditions: victory_type == GAME_COMPLETE, completed_areas HAS required_final_area
-  - Effects: DISPATCH_ACTION game_complete
+### 4D: Rule .tres Files
 
-### 4.3 Migration
+| File | Trigger | Effects |
+|------|---------|---------|
+| `resources/qb/game/cfg_checkpoint_rule.tres` | EVENT: `checkpoint_zone_entered` | PUBLISH_EVENT: `checkpoint_activation_requested` (forwards event payload) |
+| `resources/qb/game/cfg_victory_rule.tres` | EVENT: `victory_triggered` | PUBLISH_EVENT: `victory_execution_requested` (forwards event payload) |
 
-- Replace S_CheckpointSystem with checkpoint rules
-- Replace S_VictorySystem with victory rules
-- S_DamageSystem stays as-is (no changes)
-- Checkpoint CALL_METHOD handler replicates S_CheckpointSystem flow: activate checkpoint, resolve spawn point position, dispatch actions, publish typed event
+### 4E: Migration
 
-### 4.4 Tests
+- Remove S_CheckpointSystem and S_VictorySystem from gameplay scenes
+- Add S_GameRuleManager, S_CheckpointHandlerSystem, S_VictoryHandlerSystem
+- S_DamageSystem stays (just centralized event names)
 
-**test_game_rule_manager.gd**:
-- Test checkpoint activation via mock event (including typed event payload handling)
-- Test victory trigger with prereqs met / not met
-- Test game complete with all areas / missing areas
+### 4F: Tests + regression + commit
 
 ---
 
-## Phase 5: Camera State Rules
+## Phase 5: Camera State Rules (Additive)
 
-**Goal**: Add rule-driven camera behaviors. Purely additive -- M_CameraManager unchanged.
+**Goal**: Rule-driven camera shake and FOV zones. Purely additive -- M_CameraManager unchanged.
 
-### 5.1 C_CameraStateComponent
+### 5A: C_CameraStateComponent
 
 `scripts/ecs/components/c_camera_state_component.gd`:
-- `target_fov: float = 75.0`
-- `shake_trauma: float = 0.0`
-- `fov_blend_speed: float = 2.0`
+- `target_fov: float = 75.0`, `shake_trauma: float = 0.0`, `fov_blend_speed: float = 2.0`
 
-### 5.2 S_CameraRuleManager
+### 5B: S_CameraRuleManager + Rules
 
-`scripts/ecs/systems/s_camera_rule_manager.gd`:
-- Extends `BaseQBRuleManager`
-- Reads C_CameraStateComponent, evaluates camera rules
-- Applies shake trauma to M_CameraManager
-- Applies FOV changes to camera
+- `SET_COMPONENT_FIELD` for trauma addition on damage events
+- `SET_COMPONENT_FIELD` for FOV zone blending on tick
+- Wire to M_CameraManager for actual camera application
 
-### 5.3 Rule Definitions
-
-- `cfg_camera_shake_rule.tres`:
-  - Trigger: EVENT (entity_death, health_changed)
-  - Effects: SET_COMPONENT_FIELD shake_trauma += value
-
-- `cfg_camera_zone_fov_rule.tres`:
-  - Trigger: TICK
-  - Conditions: entity in FOV zone
-  - Effects: SET_COMPONENT_FIELD target_fov = zone_fov
-
-### 5.4 Tests
-
-**test_camera_rule_manager.gd**:
-- Test shake trauma applied on damage event
-- Test FOV blending when zone condition met
+### 5C: Tests + commit
 
 ---
 
-## Phase 6: Documentation + Validation + Anti-Patterns
+## Phase 6: Validation + Final Verification
 
-**Goal**: Finalize documentation, add editor validation, update project-level docs.
-
-### 6.1 Documentation
-
-- Finalize all docs in `docs/qb_rule_manager/`
-- Add anti-patterns section to overview
-- Update continuation prompt with final status
-
-### 6.2 Validation Tooling
-
-- U_QBRuleValidator validates all rules at load time (called in on_configured)
-- Push warnings for: empty rule_id, EVENT mode without trigger_event, invalid quality_path format
-- Rule validation at load time
-
-### 6.3 Project-Level Updates
-
-- Update `AGENTS.md` with QB Rule Manager patterns section
-- Update `docs/general/DEV_PITFALLS.md` if new pitfalls found
-
-### 6.4 Final Verification
-
+- Enhance U_QBRuleValidator with load-time validation in `on_configured()`
 - Run full test suite (ECS + QB + style)
-- Manual playtest: full gameplay loop (walk, jump, take damage, die, respawn, checkpoint, victory)
+- Manual playtest: full gameplay loop
+- Update AGENTS.md with QB Rule Manager patterns section
+- Commit
 
 ---
+
+## Files Summary
+
+### New Files (Core)
+```
+scripts/resources/qb/rs_qb_condition.gd
+scripts/resources/qb/rs_qb_effect.gd
+scripts/resources/qb/rs_qb_rule_definition.gd
+scripts/ecs/systems/base_qb_rule_manager.gd
+scripts/utils/qb/u_qb_rule_evaluator.gd
+scripts/utils/qb/u_qb_quality_provider.gd
+scripts/utils/qb/u_qb_effect_executor.gd
+scripts/utils/qb/u_qb_rule_validator.gd
+```
+
+### New Files (Domain)
+```
+scripts/ecs/components/c_character_state_component.gd
+scripts/ecs/systems/s_character_rule_manager.gd
+scripts/ecs/systems/s_death_handler_system.gd
+scripts/ecs/systems/s_game_rule_manager.gd
+scripts/ecs/systems/s_checkpoint_handler_system.gd
+scripts/ecs/systems/s_victory_handler_system.gd
+scripts/ecs/components/c_camera_state_component.gd
+scripts/ecs/systems/s_camera_rule_manager.gd
+```
+
+### New Files (Rules)
+```
+resources/qb/character/cfg_pause_gate_paused.tres
+resources/qb/character/cfg_pause_gate_shell.tres
+resources/qb/character/cfg_spawn_freeze_rule.tres
+resources/qb/character/cfg_death_sync_rule.tres
+resources/qb/game/cfg_checkpoint_rule.tres
+resources/qb/game/cfg_victory_rule.tres
+resources/qb/camera/cfg_camera_shake_rule.tres
+resources/qb/camera/cfg_camera_zone_fov_rule.tres
+```
+
+### Modified Files
+```
+scripts/ecs/systems/s_health_system.gd          -- Extract ragdoll logic, publish events
+scripts/ecs/systems/s_movement_system.gd        -- Read brain data instead of store
+scripts/ecs/systems/s_jump_system.gd             -- Read brain data instead of store
+scripts/ecs/systems/s_gravity_system.gd          -- Read brain data instead of store
+scripts/ecs/systems/s_rotate_to_input_system.gd  -- Read brain data instead of store
+scripts/ecs/systems/s_input_system.gd            -- Read brain data instead of store
+scripts/ecs/systems/s_footstep_sound_system.gd   -- Read brain data instead of store
+scripts/ecs/systems/s_floating_system.gd         -- Read brain data for freeze
+scripts/ecs/systems/s_damage_system.gd           -- Centralize event name constants only
+scripts/events/ecs/u_ecs_event_names.gd          -- Add new event constants
+scenes/templates/tmpl_character.tscn             -- Add C_CharacterStateComponent
+scenes/prefabs/prefab_player.tscn                -- Add C_CharacterStateComponent
+scenes/gameplay/*.tscn (5 scenes)                -- Add rule managers + handler systems
+```
+
+### Test Files
+```
+tests/unit/qb/test_qb_condition_evaluation.gd
+tests/unit/qb/test_qb_quality_provider.gd
+tests/unit/qb/test_qb_effect_execution.gd
+tests/unit/qb/test_qb_rule_validator.gd
+tests/unit/qb/test_qb_rule_lifecycle.gd
+tests/unit/qb/test_character_rule_manager.gd
+tests/unit/qb/test_death_handler_system.gd
+tests/unit/qb/test_game_rule_manager.gd
+tests/unit/qb/test_checkpoint_handler_system.gd
+tests/unit/qb/test_victory_handler_system.gd
+tests/unit/qb/test_camera_rule_manager.gd
+```
 
 ## Critical Files Reference
 
@@ -354,7 +375,7 @@ Before rules consume events, centralize event name constants:
 |---------------|-----------|
 | `scripts/ecs/base_ecs_system.gd` | Base class for BaseQBRuleManager |
 | `scripts/ecs/base_ecs_component.gd` | Base class for C_CharacterStateComponent |
-| `scripts/ecs/systems/s_health_system.gd` | Primary refactor target (death sequence) |
+| `scripts/ecs/systems/s_health_system.gd` | Extract ragdoll logic, publish death events |
 | `scripts/ecs/systems/s_movement_system.gd` | Pause/freeze gating consolidation (lines 22-34) |
 | `scripts/ecs/systems/s_jump_system.gd` | Pause/freeze gating consolidation (lines 21-34) |
 | `scripts/ecs/systems/s_gravity_system.gd` | Pause gating consolidation (lines 17-29) |
@@ -362,10 +383,10 @@ Before rules consume events, centralize event name constants:
 | `scripts/ecs/systems/s_input_system.gd` | Pause gating consolidation (lines 80-84) |
 | `scripts/ecs/systems/s_footstep_sound_system.gd` | Pause gating consolidation (lines 46-56) |
 | `scripts/ecs/systems/s_floating_system.gd` | Freeze check only (no pause check) |
-| `scripts/ecs/systems/s_checkpoint_system.gd` | Replaced by game rules |
-| `scripts/ecs/systems/s_victory_system.gd` | Replaced by game rules |
-| `scripts/ecs/systems/s_damage_system.gd` | Stays as-is (stateful tick-based; not rule-ified) |
-| `scripts/events/ecs/u_ecs_event_names.gd` | Centralize checkpoint/victory/damage event constants |
+| `scripts/ecs/systems/s_checkpoint_system.gd` | Replaced by checkpoint rule + handler |
+| `scripts/ecs/systems/s_victory_system.gd` | Replaced by victory rule + handler |
+| `scripts/ecs/systems/s_damage_system.gd` | Stays as-is, centralize event names only |
+| `scripts/events/ecs/u_ecs_event_names.gd` | Centralize event constants |
 | `scripts/events/ecs/u_ecs_event_bus.gd` | Event subscription for rule triggers |
 | `scripts/interfaces/i_state_store.gd` | DI interface for store access |
 | `scripts/managers/m_camera_manager.gd` | Camera rules integrate with (not replace) |
