@@ -32,11 +32,11 @@
 - [x] T1.17: Implement U_QBEffectExecutor -- pure static effect execution for 4 types; SET_QUALITY writes to context dictionary (not component directly); PUBLISH_EVENT merges context (entity_id, event_payload) into published payload
 - [x] T1.18: Run tests -- confirm they PASS (green)
 
-- [ ] T1.19: Create stub `scripts/utils/qb/u_qb_rule_validator.gd` (U_QBRuleValidator) - empty static methods
-- [ ] T1.20: Create `tests/unit/qb/test_qb_rule_validator.gd` - Valid/invalid rule validation
-- [ ] T1.21: Run tests -- confirm they FAIL (red)
-- [ ] T1.22: Implement U_QBRuleValidator -- authoring-time validation (empty rule_id, missing trigger_event for EVENT mode, invalid paths)
-- [ ] T1.23: Run tests -- confirm they PASS (green)
+- [x] T1.19: Create stub `scripts/utils/qb/u_qb_rule_validator.gd` (U_QBRuleValidator) - empty static methods
+- [x] T1.20: Create `tests/unit/qb/test_qb_rule_validator.gd` - Valid/invalid rule validation
+- [x] T1.21: Run tests -- confirm they FAIL (red)
+- [x] T1.22: Implement U_QBRuleValidator -- authoring-time validation (empty rule_id, missing trigger_event for EVENT mode, invalid paths)
+- [x] T1.23: Run tests -- confirm they PASS (green)
 
 ### 1C: Base Rule Manager (TDD)
 

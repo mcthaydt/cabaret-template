@@ -6,13 +6,13 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Phase 1 in progress (`T1.0`-`T1.18` complete)
+**Phase**: Phase 1 in progress (`T1.0`-`T1.23` complete)
 **Branch**: QB-Rule-Manager
-**Last Commit**: `68b8d46` - Add QB quality provider and unit tests
+**Last Commit**: `e4148db` - Add QB effect executor and unit tests
 
-**Next Task**: `T1.19` - Create stub `scripts/utils/qb/u_qb_rule_validator.gd`
+**Next Task**: `T1.24` - Create stub `scripts/ecs/systems/base_qb_rule_manager.gd`
 **Latest Verification**:
-- `tests/unit/qb` passing (27/27)
+- `tests/unit/qb` passing (32/32)
 - `tests/unit/style` suite passing (12/12)
 
 ---
