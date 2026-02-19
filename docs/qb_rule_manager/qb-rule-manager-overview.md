@@ -54,6 +54,28 @@ If ANY of these conditions is true, `is_gameplay_active` becomes false. When NON
 
 Complex effects (ragdoll spawning, checkpoint activation, victory execution) use `PUBLISH_EVENT` to dedicated handler systems. This eliminates the need for CALL_METHOD and makes the engine fully extensible without subclassing.
 
+### SET_COMPONENT_FIELD Payload Contract
+
+`SET_COMPONENT_FIELD` uses a fixed payload schema so additive operations (camera trauma, FOV adjustments) are deterministic:
+
+- `target`: `"ComponentType.field_name"` (for example `C_CameraStateComponent.shake_trauma`)
+- `payload.operation`: `"set"` or `"add"` (default `"set"`)
+- `payload.value_type`: `FLOAT | INT | STRING | BOOL | STRING_NAME`
+- Typed values:
+  - `payload.value_float`
+  - `payload.value_int`
+  - `payload.value_string`
+  - `payload.value_bool`
+  - `payload.value_string_name`
+- Optional numeric clamp:
+  - `payload.clamp_min`
+  - `payload.clamp_max`
+
+Rules:
+- `"add"` is valid only for numeric fields (`float`/`int`).
+- Clamp is applied after `set`/`add` for numeric fields.
+- Missing component, missing field, or type mismatch = warning + no-op (never hard crash).
+
 ### PUBLISH_EVENT Context Injection
 
 PUBLISH_EVENT auto-injects context so `.tres` files don't need dynamic values:
@@ -73,6 +95,8 @@ static func _execute_publish_event(effect: RS_QBEffect, context: Dictionary) -> 
     U_ECSEventBus.publish(StringName(effect.target), event_payload)
 ```
 
+`U_ECSEventBus` delivers an event envelope (`{name, payload, timestamp}`) to subscribers. `context["event_payload"]` is the inner payload dictionary from that envelope (not the full envelope).
+
 ### Handler Systems
 
 Handler systems subscribe to events published by rules for complex behavior:
@@ -80,6 +104,17 @@ Handler systems subscribe to events published by rules for complex behavior:
 - **S_DeathHandlerSystem**: Subscribes to `entity_death_requested` / `entity_respawn_requested` -- spawns/frees ragdoll, hides/restores entity
 - **S_CheckpointHandlerSystem**: Subscribes to `checkpoint_activation_requested` -- activates checkpoint, dispatches state, resolves spawn position (replicates `_resolve_spawn_point_position()` from S_CheckpointSystem)
 - **S_VictoryHandlerSystem**: Subscribes to `victory_execution_requested` -- validates trigger, checks prerequisites (including `REQUIRED_FINAL_AREA = "bar"` for GAME_COMPLETE victory type), dispatches actions
+
+Canonical payload contracts (inside `event["payload"]`):
+
+| Event | Required payload keys | Optional payload keys |
+|------|------------------------|-----------------------|
+| `entity_death_requested` | `entity_id: String` | `health_component: C_HealthComponent`, `entity_root: Node3D`, `body: CharacterBody3D` |
+| `entity_respawn_requested` | `entity_id: String` | `entity_root: Node3D` |
+| `checkpoint_activation_requested` | `checkpoint: C_CheckpointComponent`, `spawn_point_id: StringName` | `entity_id: StringName` |
+| `victory_execution_requested` | `trigger_node: C_VictoryTriggerComponent` | `entity_id: StringName` |
+
+Handlers must validate required fields and return early on invalid payloads (warning + no-op).
 
 ### Conditions (RS_QBCondition)
 
@@ -130,6 +165,32 @@ Rules have lifecycle properties:
 - **TICK**: Evaluated every physics frame (salience applies)
 - **EVENT**: Evaluated when a specific ECS event is published (salience auto-disabled)
 - **BOTH**: Evaluated on both tick and event (salience applies for tick evaluations)
+
+### Rule Loading Contract (No Runtime DirAccess)
+
+Rule resources must be loaded via const preload arrays in manager scripts, not runtime directory scanning.
+
+Base contract:
+
+```gdscript
+@export var rule_definitions: Array[RS_QBRuleDefinition] = []
+
+func get_default_rule_definitions() -> Array[RS_QBRuleDefinition]:
+    return []
+
+func on_configured() -> void:
+    var definitions: Array[RS_QBRuleDefinition] = rule_definitions
+    if definitions.is_empty():
+        definitions = get_default_rule_definitions()
+    _register_rules(definitions)
+```
+
+Domain managers implement defaults via const preloads:
+- `S_CharacterRuleManager` -> `resources/qb/character/*.tres`
+- `S_GameRuleManager` -> `resources/qb/game/*.tres`
+- `S_CameraRuleManager` -> `resources/qb/camera/*.tres`
+
+Scenes only set `rule_definitions` when overriding defaults for experiments/mods/tests.
 
 ---
 
@@ -249,7 +310,9 @@ M_CameraManager keeps all transition/blend code. Camera rules add new capabiliti
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Rule format | Resource `.tres` files | Consistent with RS_* pattern, editor-friendly, mobile-safe preload |
+| Rule loading | `get_default_rule_definitions()` + const preloads | Deterministic/mobile-safe rule discovery without runtime DirAccess scanning |
 | Effect types | 4 types, no CALL_METHOD | PUBLISH_EVENT to handler systems is fully extensible for modders/AI without subclassing |
+| SET_COMPONENT_FIELD semantics | Explicit payload contract (`set`/`add`, typed value, optional clamp) | Prevents ad-hoc field mutation behavior across domains |
 | Handler systems | Dedicated event subscribers | Complex effects (ragdoll, checkpoint, victory) live in focused handler systems |
 | Condition value type | Typed fields (value_float, value_int, value_string, value_bool, value_string_name) | Godot 4.x cannot export Variant; typed fields are inspector-friendly |
 | OR conditions | Multiple rules with same effect | Three rules: "paused==true", "shell!=gameplay", "is_transitioning==true" all set is_gameplay_active=false |
@@ -257,6 +320,7 @@ M_CameraManager keeps all transition/blend code. Camera rules add new capabiliti
 | S_DamageSystem | Stays as-is, centralize event names only | Stateful zone-body tracking + per-entity cooldown loop doesn't decompose cleanly into rules |
 | Death detection | Stays in S_HealthSystem | Tightly coupled to damage/invincibility flow; ragdoll extracts to S_DeathHandlerSystem |
 | PUBLISH_EVENT context | Auto-inject entity_id and event_payload | `.tres` files don't need dynamic values; handler systems get full context |
+| Requested event payloads | Canonical required keys per handler event | Publishers/handlers stay aligned and testable (`entity_id`, `checkpoint+spawn_point_id`, `trigger_node`) |
 | Delayed effects | Deferred to post-Phase 6 | Remove delay from Phase 1 RS_QBEffect to reduce speculative complexity |
 | Event salience | Auto-disabled for EVENT mode | Events are instantaneous; salience only applies to TICK/BOTH modes |
 | Execution priority | Negative priority (-1) | M_ECSManager sorts ascending (lower values first); rule managers at -1 run before default-0 systems. Requires widening BaseECSSystem priority clamp from `[0, 1000]` to `[-100, 1000]` (Phase 1 prerequisite) |
@@ -314,6 +378,7 @@ Rules can:
 - Trigger on ECS events via `RS_QBRuleDefinition.trigger_mode = EVENT`
 - Read event payloads via `RS_QBCondition.Source.EVENT_PAYLOAD`
 - Publish ECS events via `RS_QBEffect.EffectType.PUBLISH_EVENT` (auto-injects context)
+- Event handlers consume `event["payload"]` with the canonical payload contracts documented above
 
 ### With ECS Components
 
@@ -333,10 +398,10 @@ Handler systems subscribe to events published by rules:
 
 Existing systems read from `C_CharacterStateComponent` for gating decisions instead of independently querying the store. The rule manager runs at `execution_priority = -1` (before default-0 systems, since M_ECSManager sorts ascending) to ensure brain data is populated before systems read it. Systems that set explicit priorities (health=200, damage=250, etc.) already run later.
 
-**Post-migration store dependency**: After migration, some of the 6 pause-gated systems can drop their `@export var state_store` entirely (they only used the store for pause checks). Others retain it:
+**Post-migration store dependency**: After migration, only systems that used the store exclusively for pause checks can drop `@export var state_store`:
 - **S_MovementSystem**: Keeps store — dispatches entity snapshots to Redux (lines 213-259)
 - **S_JumpSystem**: Keeps store — reads accessibility settings from state (lines 35-46)
+- **S_GravitySystem**: Keeps store — reads `gravity_scale` from physics selectors (lines 69-73)
+- **S_RotateToInputSystem**: Keeps store — dispatches rotation snapshots to Redux (lines 133-139)
 - **S_InputSystem**: Keeps store — obtains store earlier for other checks (lines 62-73)
-- **S_GravitySystem**: Can drop store — only used for pause check
-- **S_RotateToInputSystem**: Can drop store — only used for pause check
 - **S_FootstepSoundSystem**: Can drop store — only used for pause check

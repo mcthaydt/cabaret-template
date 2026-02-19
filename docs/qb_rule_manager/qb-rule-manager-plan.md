@@ -26,6 +26,12 @@
 - `effect_type: EffectType` enum (DISPATCH_ACTION, PUBLISH_EVENT, SET_COMPONENT_FIELD, SET_QUALITY) -- 4 types, no CALL_METHOD
 - `target: String` -- action type, event name, or component.field path
 - `payload: Dictionary` -- effect parameters
+- `SET_COMPONENT_FIELD` payload contract:
+  - `operation: StringName` -- `set` (default) or `add`
+  - `value_type: RS_QBCondition.ValueType`
+  - typed value fields (`value_float`, `value_int`, `value_string`, `value_bool`, `value_string_name`)
+  - optional numeric clamps (`clamp_min`, `clamp_max`)
+  - `"add"` allowed only for numeric fields; invalid config is warning + no-op
 
 **RS_QBRuleDefinition** (`scripts/resources/qb/rs_qb_rule_definition.gd`):
 - `rule_id: StringName`
@@ -60,6 +66,7 @@
 - `static func execute_effects(effects: Array[RS_QBEffect], context: Dictionary) -> void`
 - Executes 4 effect types. No CALL_METHOD.
 - SET_QUALITY writes to the `context` dictionary (not directly to the component). The calling rule manager copies context → component via `_write_brain_data()` after all rules evaluate. This enables the defaults-each-tick pattern.
+- SET_COMPONENT_FIELD applies `set`/`add` operation contract, then optional clamp for numeric fields
 - PUBLISH_EVENT merges context (entity_id, event_payload) into published payload:
 
 ```gdscript
@@ -85,8 +92,9 @@ static func _execute_publish_event(effect: RS_QBEffect, context: Dictionary) -> 
 - Extends `BaseECSSystem`, default `execution_priority = -1` (runs before default-0 systems in ascending sort)
 - `@export var state_store: I_StateStore = null`
 - `@export var rule_definitions: Array[RS_QBRuleDefinition] = []`
+- `get_default_rule_definitions() -> Array[RS_QBRuleDefinition]` virtual
 - Runtime state: `_rule_states: Dictionary` (rule_id -> {active, last_fired, was_true, cooldown_remaining, context_cooldowns: Dictionary})
-- `on_configured()` -- register rules, subscribe to trigger events
+- `on_configured()` -- if exported `rule_definitions` is empty, load from `get_default_rule_definitions()`; then register rules and subscribe to trigger events
 - `process_tick(delta)` -- tick cooldowns; subclass loops over target entities
 - `_on_event_received(event_name, payload)` -- evaluate EVENT/BOTH rules (salience auto-disabled for EVENT)
 - `_build_quality_context(entity, delta) -> Dictionary` -- virtual, subclasses override
@@ -115,9 +123,9 @@ func process_tick(delta: float) -> void:
 |-----------|----------|
 | `tests/unit/qb/test_qb_condition_evaluation.gd` | All operators x typed values, negate, null, type mismatches |
 | `tests/unit/qb/test_qb_quality_provider.gd` | All source types, missing paths, nested fields |
-| `tests/unit/qb/test_qb_effect_execution.gd` | All 4 effect types, context injection for PUBLISH_EVENT |
+| `tests/unit/qb/test_qb_effect_execution.gd` | All 4 effect types, SET_COMPONENT_FIELD `set`/`add`/clamp behavior, context injection for PUBLISH_EVENT |
 | `tests/unit/qb/test_qb_rule_validator.gd` | Valid/invalid rules, EVENT without trigger_event |
-| `tests/unit/qb/test_qb_rule_lifecycle.gd` | Cooldown, salience (false->true), one-shot, priority ordering, event salience auto-disable, per-context cooldown, cooldown_from_context_field |
+| `tests/unit/qb/test_qb_rule_lifecycle.gd` | Cooldown, salience (false->true), one-shot, priority ordering, event salience auto-disable, per-context cooldown, cooldown_from_context_field, default-rule fallback when export array is empty |
 
 ### 1E: Regression check + commit
 
@@ -152,6 +160,7 @@ Brain data fields (written by S_CharacterRuleManager each tick):
   - **Reads** (from Redux via state_store): `gameplay` and `navigation` and `scene` slices for rule conditions
 - SET_QUALITY effects override defaults in the context dictionary (not the component directly)
 - `_write_brain_data(char_state, context)` -- copies final context values to C_CharacterStateComponent after all rules evaluate
+- `get_default_rule_definitions()` returns const-preloaded character rule resources (pause gate x3 + spawn freeze + death sync when Phase 3 lands)
 - No CALL_METHOD handlers -- all complex effects are PUBLISH_EVENT
 
 ### 2C: Rule .tres Files
@@ -169,6 +178,7 @@ All pause gate and spawn freeze rules use `requires_salience: false` (SET_QUALIT
 
 - Add `C_CharacterStateComponent` to `scenes/templates/tmpl_character.tscn` and `scenes/prefabs/prefab_player.tscn`
 - Add `S_CharacterRuleManager` to all 5 gameplay scenes (gameplay_base, interior_house, bar, exterior, alleyway)
+- Rule wiring pattern: leave `rule_definitions` export empty in scenes to use manager defaults; only set it explicitly for overrides/tests
 
 ### 2E: Tests + regression check + commit
 
@@ -210,6 +220,12 @@ Extract ragdoll logic from `S_HealthSystem` (lines 167-284) into `scripts/ecs/sy
 **New event names** in `U_ECSEventNames`:
 - `EVENT_ENTITY_DEATH_REQUESTED := StringName("entity_death_requested")`
 - `EVENT_ENTITY_RESPAWN_REQUESTED := StringName("entity_respawn_requested")`
+
+**Canonical payload contract**:
+- `entity_death_requested`: requires `entity_id: String`; optional `health_component`, `entity_root`, `body`
+- `entity_respawn_requested`: requires `entity_id: String`; optional `entity_root`
+
+Both publisher and handler must use the event bus payload envelope shape (`event["payload"]`).
 
 **Handler pattern**:
 ```gdscript
@@ -259,6 +275,7 @@ Update S_CheckpointSystem, S_VictorySystem, S_DamageSystem to use centralized co
 `scripts/ecs/systems/s_game_rule_manager.gd` -- extends `BaseQBRuleManager`
 
 Simple event-rule host (no custom `process_tick` iteration). Holds checkpoint and victory rules. EVENT-triggered rules fire via `_on_event_received()`.
+- `get_default_rule_definitions()` returns const-preloaded game rule resources (`cfg_checkpoint_rule`, `cfg_victory_rule`)
 
 ### 4C: Handler Systems
 
@@ -266,18 +283,20 @@ Simple event-rule host (no custom `process_tick` iteration). Holds checkpoint an
 - Subscribes to `checkpoint_activation_requested`
 - `checkpoint.activate()`, dispatch `set_last_checkpoint`, resolve spawn position via `_resolve_spawn_point_position()` (replicate from S_CheckpointSystem lines 90-109 — `find_child` traversal for perf optimization), publish typed `Evn_CheckpointActivated`
 - `execution_priority = 100`
+- Expects payload contract in `event["payload"]`: required `checkpoint`, `spawn_point_id`; optional `entity_id`
 
 **`scripts/ecs/systems/s_victory_handler_system.gd`** (replaces S_VictorySystem):
 - Subscribes to `victory_execution_requested` (with subscription priority 10, matching S_VictorySystem's current priority to process before scene manager at priority 5)
 - Validate trigger (`trigger_once` + `is_triggered` guard), check prerequisites (GAME_COMPLETE requires `completed_areas.has("bar")` — replicate `REQUIRED_FINAL_AREA` constant and `_can_trigger_victory()` logic from S_VictorySystem lines 56-73), dispatch actions (`trigger_victory`, `mark_area_complete`, `game_complete`), call `trigger.set_triggered()`
 - `execution_priority = 300`
+- Expects payload contract in `event["payload"]`: required `trigger_node`; optional `entity_id`
 
 ### 4D: Rule .tres Files
 
 | File | Trigger | Effects |
 |------|---------|---------|
-| `resources/qb/game/cfg_checkpoint_rule.tres` | EVENT: `checkpoint_zone_entered` | PUBLISH_EVENT: `checkpoint_activation_requested` (forwards event payload) |
-| `resources/qb/game/cfg_victory_rule.tres` | EVENT: `victory_triggered` | PUBLISH_EVENT: `victory_execution_requested` (forwards event payload) |
+| `resources/qb/game/cfg_checkpoint_rule.tres` | EVENT: `checkpoint_zone_entered` | PUBLISH_EVENT: `checkpoint_activation_requested` (forwards event payload, preserving required `checkpoint` + `spawn_point_id`) |
+| `resources/qb/game/cfg_victory_rule.tres` | EVENT: `victory_triggered` | PUBLISH_EVENT: `victory_execution_requested` (forwards event payload, preserving required `trigger_node`) |
 
 ### 4E: Migration
 
@@ -301,7 +320,15 @@ Simple event-rule host (no custom `process_tick` iteration). Holds checkpoint an
 ### 5B: S_CameraRuleManager + Rules
 
 - `SET_COMPONENT_FIELD` for trauma addition on damage events
+  - `target = "C_CameraStateComponent.shake_trauma"`
+  - `payload.operation = "add"`
+  - `payload.value_type = FLOAT`
+  - optional clamp to keep trauma in valid range
 - `SET_COMPONENT_FIELD` for FOV zone blending on tick
+  - `target = "C_CameraStateComponent.target_fov"`
+  - `payload.operation = "set"`
+  - `payload.value_type = FLOAT`
+- `get_default_rule_definitions()` returns const-preloaded camera rules
 - Wire to M_CameraManager for actual camera application
 
 ### 5C: Tests + commit
@@ -363,8 +390,8 @@ scripts/ecs/base_ecs_system.gd                   -- Widen priority clamp from [0
 scripts/ecs/systems/s_health_system.gd          -- Extract ragdoll logic (lines 167-284), publish events
 scripts/ecs/systems/s_movement_system.gd        -- Read brain data for pause/freeze (keep @export state_store for entity snapshots)
 scripts/ecs/systems/s_jump_system.gd             -- Read brain data for pause/freeze (keep @export state_store for accessibility reads)
-scripts/ecs/systems/s_gravity_system.gd          -- Read brain data for pause (can remove @export state_store entirely)
-scripts/ecs/systems/s_rotate_to_input_system.gd  -- Read brain data for pause (can remove @export state_store entirely)
+scripts/ecs/systems/s_gravity_system.gd          -- Read brain data for pause (keep @export state_store for gravity_scale reads)
+scripts/ecs/systems/s_rotate_to_input_system.gd  -- Read brain data for pause (keep @export state_store for rotation snapshot dispatch)
 scripts/ecs/systems/s_input_system.gd            -- Read brain data for pause (keep @export state_store for other checks)
 scripts/ecs/systems/s_footstep_sound_system.gd   -- Read brain data for pause (can remove @export state_store entirely)
 scripts/ecs/systems/s_floating_system.gd         -- Read brain data for freeze
