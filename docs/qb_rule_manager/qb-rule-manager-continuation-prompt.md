@@ -29,6 +29,9 @@ You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game 
 - Scope is decision logic only -- physics math stays in existing systems
 - C_CharacterStateComponent is an aggregated "brain data" component
 - S_GameRuleManager has no C_GameStateComponent -- purely event-driven
+- **S_DamageSystem stays as-is** -- stateful per-tick zone tracking with per-entity cooldowns doesn't fit condition-effect pattern
+- **Typed event compatibility** -- S_CheckpointSystem publishes `Evn_CheckpointActivated` via `publish_typed()`; CALL_METHOD handlers must handle typed event payloads
+- **Event name centralization** -- checkpoint/victory/damage events move to U_ECSEventNames before rules consume them
 - Migration is additive -- nothing breaks at any phase
 
 **Documentation location**: `docs/qb_rule_manager/`
@@ -54,15 +57,17 @@ You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game 
 - `scripts/ecs/base_ecs_component.gd` -- base class for C_CharacterStateComponent
 - `scripts/resources/ecs/rs_health_settings.gd` -- pattern for resource definitions
 - `scripts/ecs/systems/s_health_system.gd` -- primary refactor target (death sequence)
-- `scripts/ecs/systems/s_movement_system.gd` -- pause gating pattern (lines 23-34)
-- `scripts/ecs/systems/s_jump_system.gd` -- pause + freeze gating (lines 22-34)
-- `scripts/ecs/systems/s_gravity_system.gd` -- pause gating (lines 18-29)
-- `scripts/ecs/systems/s_rotate_to_input_system.gd` -- pause gating (lines 22-33)
+- `scripts/ecs/systems/s_movement_system.gd` -- pause gating pattern (lines 22-34)
+- `scripts/ecs/systems/s_jump_system.gd` -- pause + freeze gating (lines 21-34)
+- `scripts/ecs/systems/s_gravity_system.gd` -- pause gating (lines 17-29)
+- `scripts/ecs/systems/s_rotate_to_input_system.gd` -- pause gating (lines 21-33)
 - `scripts/ecs/systems/s_input_system.gd` -- pause gating (lines 80-84)
+- `scripts/ecs/systems/s_footstep_sound_system.gd` -- pause gating (lines 46-56, uses try_get_store variant)
 - `scripts/ecs/systems/s_floating_system.gd` -- freeze only (no pause check)
 - `scripts/ecs/systems/s_checkpoint_system.gd` -- replaced by game rules
 - `scripts/ecs/systems/s_victory_system.gd` -- replaced by game rules
-- `scripts/ecs/systems/s_damage_system.gd` -- zone-overlap logic migrated to game rules
+- `scripts/ecs/systems/s_damage_system.gd` -- stays as-is (stateful tick-based; not rule-ified)
+- `scripts/events/ecs/u_ecs_event_names.gd` -- centralize event constants before rules consume them
 - `scripts/events/ecs/u_ecs_event_bus.gd` -- event bus for rule triggers
 - `scripts/interfaces/i_state_store.gd` -- DI interface for store access
 - `tests/mocks/` -- MockStateStore, MockECSManager for testing
@@ -99,7 +104,6 @@ You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game 
 - `resources/qb/game/cfg_checkpoint_activation_rule.tres`
 - `resources/qb/game/cfg_victory_area_rule.tres`
 - `resources/qb/game/cfg_victory_game_complete_rule.tres`
-- `resources/qb/game/cfg_damage_zone_rule.tres`
 
 **Camera domain** (Phase 5):
 - `scripts/ecs/components/c_camera_state_component.gd`
@@ -129,10 +133,12 @@ These corrections were made during the design audit and must be followed:
 4. **Event salience auto-disabled** (events are instantaneous)
 5. **execution_priority = 1** (not 50 or other values)
 6. **Spawn freeze: flag only** -- each system keeps different side effects
-7. **5 systems with pause gating** (Movement, Jump, Gravity, RotateToInput, InputSystem) -- NOT AlignWithSurface or FloatingSystem
+7. **6 systems with pause gating** (Movement, Jump, Gravity, RotateToInput, InputSystem, FootstepSoundSystem) -- NOT AlignWithSurface or FloatingSystem
 8. **3 systems with freeze checks** (Movement, Jump, Floating) -- each with DIFFERENT side effects
-9. **S_DamageSystem** zone-overlap logic included in Phase 4 scope
+9. **S_DamageSystem stays as-is** -- stateful tick-based zone tracking doesn't fit condition-effect pattern; excluded from Phase 4
 10. **No C_GameStateComponent** -- game rules are purely event-driven
+11. **Event name centralization** -- checkpoint/victory/damage event names move from local constants to U_ECSEventNames before rules consume them
+12. **Typed event compatibility** -- S_CheckpointSystem publishes Evn_CheckpointActivated via publish_typed(); CALL_METHOD handlers must handle both typed event objects and Dictionary payloads
 
 ---
 

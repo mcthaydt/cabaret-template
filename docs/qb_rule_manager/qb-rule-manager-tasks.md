@@ -86,19 +86,20 @@
 
 ## Phase 3: Character System Gating Consolidation
 
-### 3A: Pause Gating Modifications (5 systems -- verified identical pattern)
+### 3A: Pause Gating Modifications (6 systems -- verified)
 
-- [ ] T3.1: Modify `S_MovementSystem` - Replace independent pause check (lines 23-34) with C_CharacterStateComponent.is_gameplay_active read
-- [ ] T3.2: Modify `S_JumpSystem` - Replace pause check (lines 22-34) with C_CharacterStateComponent.is_gameplay_active read
-- [ ] T3.3: Modify `S_GravitySystem` - Replace pause check (lines 18-29) with C_CharacterStateComponent.is_gameplay_active read
-- [ ] T3.4: Modify `S_RotateToInputSystem` - Replace pause check (lines 22-33) with C_CharacterStateComponent.is_gameplay_active read
+- [ ] T3.1: Modify `S_MovementSystem` - Replace independent pause check (lines 22-34) with C_CharacterStateComponent.is_gameplay_active read
+- [ ] T3.2: Modify `S_JumpSystem` - Replace pause check (lines 21-34) with C_CharacterStateComponent.is_gameplay_active read
+- [ ] T3.3: Modify `S_GravitySystem` - Replace pause check (lines 17-29) with C_CharacterStateComponent.is_gameplay_active read
+- [ ] T3.4: Modify `S_RotateToInputSystem` - Replace pause check (lines 21-33) with C_CharacterStateComponent.is_gameplay_active read
 - [ ] T3.5: Modify `S_InputSystem` - Replace pause check (lines 80-84) with C_CharacterStateComponent.is_gameplay_active read
+- [ ] T3.6: Modify `S_FootstepSoundSystem` - Replace pause check (lines 46-56, uses `try_get_store` variant) with C_CharacterStateComponent.is_gameplay_active read (look up character entity's C_CharacterStateComponent for each processed entity)
 
 ### 3B: Spawn Freeze Modifications (3 systems -- each keeps different side effects)
 
-- [ ] T3.6: Modify `S_MovementSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: reset velocity to zero, reset dynamics state)
-- [ ] T3.7: Modify `S_JumpSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: flag debug snapshot with spawn_frozen: true)
-- [ ] T3.8: Modify `S_FloatingSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: update support state even while frozen)
+- [ ] T3.7: Modify `S_MovementSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: reset velocity to zero, reset dynamics state)
+- [ ] T3.8: Modify `S_JumpSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: flag debug snapshot with spawn_frozen: true)
+- [ ] T3.9: Modify `S_FloatingSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: update support state even while frozen)
 
 ### NOT Modified
 
@@ -107,52 +108,60 @@
 
 ### 3C: Death Sequence Rules (TDD)
 
-- [ ] T3.9: Write tests in test_character_rule_manager.gd for death sequence -- health <= 0 triggers CALL_METHOD chain, invincibility on damage event
-- [ ] T3.10: Run tests -- confirm they FAIL (red)
-- [ ] T3.11: Create `resources/qb/character/cfg_death_sequence_rule.tres` - Conditions: health <= 0, not already dead; Effects: CALL_METHOD _handle_mark_dead, DISPATCH_ACTION trigger_death, CALL_METHOD _handle_spawn_ragdoll
-- [ ] T3.12: Create `resources/qb/character/cfg_invincibility_rule.tres` - Conditions: damage received event, not invincible; Effects: trigger invincibility
-- [ ] T3.13: Refactor S_HealthSystem death-triggering to delegate to rule definitions (timer ticking, regen math, damage queue processing STAY in S_HealthSystem)
-- [ ] T3.14: Run tests -- confirm they PASS (green)
+- [ ] T3.10: Write tests in test_character_rule_manager.gd for death sequence -- health <= 0 triggers CALL_METHOD chain, invincibility on damage event
+- [ ] T3.11: Run tests -- confirm they FAIL (red)
+- [ ] T3.12: Create `resources/qb/character/cfg_death_sequence_rule.tres` - Conditions: health <= 0, not already dead; Effects: CALL_METHOD _handle_mark_dead, DISPATCH_ACTION trigger_death, CALL_METHOD _handle_spawn_ragdoll
+- [ ] T3.13: Create `resources/qb/character/cfg_invincibility_rule.tres` - Conditions: damage received event, not invincible; Effects: trigger invincibility
+- [ ] T3.14: Refactor S_HealthSystem death-triggering to delegate to rule definitions (timer ticking, regen math, damage queue processing STAY in S_HealthSystem)
+- [ ] T3.15: Run tests -- confirm they PASS (green)
 
 ### 3D: Verification
 
-- [ ] T3.15: Run full existing ECS test suite -- all tests must pass (behavioral equivalence)
-- [ ] T3.16: Run QB unit tests
-- [ ] T3.17: Manual playtest: movement, jumping, death/respawn, pause/unpause, spawn freeze
+- [ ] T3.16: Run full existing ECS test suite -- all tests must pass (behavioral equivalence)
+- [ ] T3.17: Run QB unit tests
+- [ ] T3.18: Manual playtest: movement, jumping, death/respawn, pause/unpause, spawn freeze, footstep sounds during pause
 
 **Phase 3 Commit**: Character gating consolidated through rule manager
 
 ---
 
-## Phase 4: Game State Rules + Damage Zone (TDD)
+## Phase 4: Game State Rules -- Checkpoint + Victory (TDD)
 
-### 4A: Rule Manager (TDD)
+S_DamageSystem is excluded from rule-ification. It's a stateful per-tick system with zone enter/exit tracking (`_zone_bodies` dictionary), per-zone per-entity cooldown management, stale zone cleanup, and two damage paths (instant death vs cooldown). A single EVENT rule on `damage_zone_entered` cannot replicate continuous tick-based damage while an entity remains in a zone. S_DamageSystem stays as-is.
 
-- [ ] T4.1: Create stub `scripts/ecs/systems/s_game_rule_manager.gd` (S_GameRuleManager extends BaseQBRuleManager) - event subscriptions, empty handlers
-- [ ] T4.2: Create `tests/unit/qb/test_game_rule_manager.gd` - Checkpoint activation, victory with/without prereqs, game complete, damage zone with player tag/cooldown
-- [ ] T4.3: Run tests -- confirm they FAIL (red)
-- [ ] T4.4: Implement S_GameRuleManager -- subscribes to checkpoint_zone_entered, victory_triggered, damage_zone_entered events; CALL_METHOD handlers; no C_GameStateComponent (purely event-driven)
-- [ ] T4.5: Run tests -- confirm they PASS (green)
+### 4A: Event Name Centralization (prerequisite)
 
-### 4B: Rule Definitions
+- [ ] T4.1: Add checkpoint/victory/damage event name constants to `scripts/events/ecs/u_ecs_event_names.gd` (EVENT_CHECKPOINT_ZONE_ENTERED, EVENT_CHECKPOINT_ACTIVATED, EVENT_VICTORY_TRIGGERED, EVENT_VICTORY_ZONE_ENTERED, EVENT_DAMAGE_ZONE_ENTERED, EVENT_DAMAGE_ZONE_EXITED)
+- [ ] T4.2: Update S_CheckpointSystem and C_CheckpointComponent to use centralized constants from U_ECSEventNames
+- [ ] T4.3: Update S_VictorySystem and C_VictoryTriggerComponent to use centralized constants from U_ECSEventNames
+- [ ] T4.4: Update S_DamageSystem and C_DamageZoneComponent to use centralized constants from U_ECSEventNames
+- [ ] T4.5: Run full test suite to confirm zero regressions from constant centralization
 
-- [ ] T4.6: Create `resources/qb/game/cfg_checkpoint_activation_rule.tres` - EVENT trigger: checkpoint_zone_entered; Effects: CALL_METHOD activate checkpoint, DISPATCH_ACTION set_last_checkpoint, PUBLISH_EVENT checkpoint_activated
-- [ ] T4.7: Create `resources/qb/game/cfg_victory_area_rule.tres` - EVENT trigger: victory_triggered; Conditions: valid trigger, not already triggered; Effects: DISPATCH_ACTION trigger_victory, mark_area_complete
-- [ ] T4.8: Create `resources/qb/game/cfg_victory_game_complete_rule.tres` - EVENT trigger: victory_triggered; Conditions: GAME_COMPLETE type, required areas completed; Effects: DISPATCH_ACTION game_complete
-- [ ] T4.9: Create `resources/qb/game/cfg_damage_zone_rule.tres` - EVENT trigger: damage_zone_entered; Conditions: zone overlap + player tag + cooldown; Effects: CALL_METHOD queue damage
+### 4B: Rule Manager (TDD)
 
-### 4C: Migration
+- [ ] T4.6: Create stub `scripts/ecs/systems/s_game_rule_manager.gd` (S_GameRuleManager extends BaseQBRuleManager) - event subscriptions, empty handlers
+- [ ] T4.7: Create `tests/unit/qb/test_game_rule_manager.gd` - Checkpoint activation (including typed event payload handling), victory with/without prereqs, game complete
+- [ ] T4.8: Run tests -- confirm they FAIL (red)
+- [ ] T4.9: Implement S_GameRuleManager -- subscribes to checkpoint_zone_entered, victory_triggered events; CALL_METHOD handlers for checkpoint activation (replicates S_CheckpointSystem flow: activate, resolve spawn point, dispatch, publish typed event) and victory logic; no C_GameStateComponent (purely event-driven)
+- [ ] T4.10: Run tests -- confirm they PASS (green)
 
-- [ ] T4.10: Replace S_CheckpointSystem with checkpoint rules (remove or stub original)
-- [ ] T4.11: Replace S_VictorySystem with victory rules (remove or stub original)
-- [ ] T4.12: Migrate S_DamageSystem zone-overlap logic to damage zone rules
+### 4C: Rule Definitions
 
-### 4D: Scene Integration + Verification
+- [ ] T4.11: Create `resources/qb/game/cfg_checkpoint_activation_rule.tres` - EVENT trigger: checkpoint_zone_entered; Effects: CALL_METHOD activate checkpoint, DISPATCH_ACTION set_last_checkpoint, PUBLISH_EVENT checkpoint_activated
+- [ ] T4.12: Create `resources/qb/game/cfg_victory_area_rule.tres` - EVENT trigger: victory_triggered; Conditions: valid trigger, not already triggered; Effects: DISPATCH_ACTION trigger_victory, mark_area_complete
+- [ ] T4.13: Create `resources/qb/game/cfg_victory_game_complete_rule.tres` - EVENT trigger: victory_triggered; Conditions: GAME_COMPLETE type, required areas completed; Effects: DISPATCH_ACTION game_complete
 
-- [ ] T4.13: Add S_GameRuleManager to gameplay scenes (under Systems/Core)
-- [ ] T4.14: Run full existing test suite -- verify behavioral equivalence
+### 4D: Migration
 
-**Phase 4 Commit**: Game state rules replace checkpoint, victory, and damage zone systems
+- [ ] T4.14: Replace S_CheckpointSystem with checkpoint rules (remove or stub original)
+- [ ] T4.15: Replace S_VictorySystem with victory rules (remove or stub original)
+
+### 4E: Scene Integration + Verification
+
+- [ ] T4.16: Add S_GameRuleManager to gameplay scenes (under Systems/Core)
+- [ ] T4.17: Run full existing test suite -- verify behavioral equivalence
+
+**Phase 4 Commit**: Game state rules replace checkpoint and victory systems (S_DamageSystem unchanged)
 
 ---
 

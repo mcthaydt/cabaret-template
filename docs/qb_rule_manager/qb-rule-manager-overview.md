@@ -2,7 +2,9 @@
 
 ## Problem Statement
 
-5 ECS systems independently duplicate identical pause-gating code (S_MovementSystem, S_JumpSystem, S_GravitySystem, S_RotateToInputSystem, S_InputSystem). 3 systems independently check spawn freeze with different side effects. Death sequencing, checkpoint activation, victory prerequisites, and damage zone logic are hardcoded if/then chains scattered across systems.
+6 ECS systems independently duplicate identical pause-gating code (S_MovementSystem, S_JumpSystem, S_GravitySystem, S_RotateToInputSystem, S_InputSystem, S_FootstepSoundSystem). 3 systems independently check spawn freeze with different side effects. Death sequencing, checkpoint activation, and victory prerequisites are hardcoded if/then chains scattered across systems.
+
+**Note on S_FootstepSoundSystem**: Uses a slightly different pause check pattern (`U_StateUtils.try_get_store()` with `Engine.is_editor_hint()` guard instead of `U_StateUtils.get_store()`), but the gating logic is functionally identical.
 
 ## Solution
 
@@ -103,7 +105,7 @@ Resources (data):
 Engine (logic):
   BaseQBRuleManager            -- Abstract rule evaluation engine (extends BaseECSSystem, priority=1)
     S_CharacterRuleManager       -- Per-entity character rules
-    S_GameRuleManager            -- World-level game rules + damage zone rules
+    S_GameRuleManager            -- World-level game rules (checkpoint, victory)
     S_CameraRuleManager          -- Camera behavior rules
 
 Utilities:
@@ -165,17 +167,20 @@ Writes computed qualities to `C_CharacterStateComponent` (the "brain data") each
 
 **CALL_METHOD handlers**: `_handle_spawn_ragdoll(context)`, `_handle_mark_dead(context)` contain the complex logic currently in S_HealthSystem.
 
-### S_GameRuleManager (Game State + Damage Zones)
+### S_GameRuleManager (Game State)
 
 Handles world-level decision logic:
 - Checkpoint activation (zone entered + is player -> activate + dispatch + publish)
 - Victory trigger (event + prerequisites met -> dispatch actions)
 - Victory game-complete (all areas completed -> game complete)
-- Damage zone (zone overlap + player tag + cooldown -> queue damage)
 
-Replaces S_CheckpointSystem (~110 lines), S_VictorySystem (~89 lines), and migrates S_DamageSystem (~177 lines) zone-overlap logic.
+Replaces S_CheckpointSystem (~110 lines) and S_VictorySystem (~89 lines).
 
 **No C_GameStateComponent needed**: Game rules are purely event-driven. No brain data aggregation component. This asymmetry with character/camera domains is intentional.
+
+**S_DamageSystem stays as-is**: See "What Does NOT Become a Rule" for rationale.
+
+**Typed event compatibility**: S_CheckpointSystem publishes typed events (`Evn_CheckpointActivated` via `U_ECSEventBus.publish_typed()`). Rule event triggers work with string-based event names. The typed event class_name becomes the event name string, so this is compatible -- but be aware that typed event payloads are accessed differently (as the event object itself, not a Dictionary payload). CALL_METHOD handlers must handle both payload shapes.
 
 ### S_CameraRuleManager (Camera State)
 
@@ -202,6 +207,8 @@ M_CameraManager keeps all transition/blend code. Camera rules add new capabiliti
 | Rule ordering | rule_id alphabetical (StringName comparison) | Deterministic, predictable within same priority |
 | Physics math | Stays in existing systems | Too complex for condition-effect; rules handle gating only |
 | Migration | Additive wrapping | Never breaks existing behavior |
+| S_DamageSystem | Keep as-is (not rule-ified) | Stateful tick-based zone tracking with per-entity cooldowns doesn't fit condition-effect pattern; 177 lines, no duplicated logic |
+| Event names | Centralize in U_ECSEventNames before rule consumption | Checkpoint/victory/damage events are currently local constants in component/system files |
 
 ---
 
@@ -214,7 +221,8 @@ M_CameraManager keeps all transition/blend code. Camera rules add new capabiliti
 - `S_PlaytimeSystem` -- too simple (increment counter when unpaused)
 - `S_SceneTriggerSystem` -- single Input.is_action_just_pressed check
 - Interactable controllers -- they publish events, rules consume them
-- Sound/particle publisher systems -- already event-driven, clean pattern
+- Sound/particle publisher systems -- already event-driven, clean pattern (note: S_FootstepSoundSystem IS consolidated for pause gating since it duplicates the same check as the 5 physics/input systems)
+- `S_DamageSystem` -- stateful per-tick zone tracking with enter/exit event-driven zone membership (`_zone_bodies` dictionary), per-zone per-entity cooldown management, stale zone cleanup, and two damage paths (instant death vs cooldown damage). This is not duplicated logic -- it's a self-contained 177-line system. A single EVENT rule on `damage_zone_entered` cannot replicate continuous tick-based damage while an entity remains in a zone. Keeping S_DamageSystem as-is is correct.
 - Single-use logic that isn't duplicated across systems
 
 ---
@@ -226,6 +234,7 @@ M_CameraManager keeps all transition/blend code. Camera rules add new capabiliti
 - Do NOT use `@export var value: Variant` (Godot 4.x can't export Variant)
 - Do NOT assume spawn freeze checks are identical across systems (each has different side effects)
 - Do NOT add pause gating to systems that don't currently have it (S_AlignWithSurfaceSystem, S_FloatingSystem for pause)
+- Do NOT try to rule-ify S_DamageSystem (stateful zone tracking with per-tick cooldowns doesn't fit condition-effect pattern)
 - Do NOT use salience for EVENT-triggered rules (events are instantaneous, not persistent)
 - Do NOT use runtime DirAccess for rule loading (use const preload arrays for mobile compatibility)
 - Do NOT use `delay` on effects in Phase 1 (deferred to post-Phase 6)

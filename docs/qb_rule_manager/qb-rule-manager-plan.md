@@ -183,15 +183,16 @@ func process_tick(delta: float) -> void:
 
 **Goal**: Existing systems read from C_CharacterStateComponent instead of duplicating gating logic.
 
-### 3.1 Systems to Modify for Pause Gating (5 systems -- verified)
+### 3.1 Systems to Modify for Pause Gating (6 systems -- verified)
 
 Each system currently has its own independent pause check. Replace with read from C_CharacterStateComponent.is_gameplay_active:
 
-1. **S_MovementSystem** (lines 23-34) -- remove independent pause check
-2. **S_JumpSystem** (lines 22-34) -- remove pause check
-3. **S_GravitySystem** (lines 18-29) -- remove pause check
-4. **S_RotateToInputSystem** (lines 22-33) -- remove pause check
+1. **S_MovementSystem** (lines 22-34) -- remove independent pause check
+2. **S_JumpSystem** (lines 21-34) -- remove pause check
+3. **S_GravitySystem** (lines 17-29) -- remove pause check
+4. **S_RotateToInputSystem** (lines 21-33) -- remove pause check
 5. **S_InputSystem** (lines 80-84) -- remove pause check
+6. **S_FootstepSoundSystem** (lines 46-56) -- remove pause check (uses `try_get_store` variant but same gating logic; looks up character entity's C_CharacterStateComponent for the `is_gameplay_active` flag)
 
 ### 3.2 Systems to Modify for Spawn Freeze (3 systems -- each with DIFFERENT side effects)
 
@@ -220,17 +221,33 @@ Each system reads `is_spawn_frozen` from C_CharacterStateComponent but keeps its
 
 ---
 
-## Phase 4: Game State Rules + Damage Zone
+## Phase 4: Game State Rules (Checkpoint + Victory)
 
-**Goal**: Replace S_CheckpointSystem and S_VictorySystem with declarative rules. Migrate S_DamageSystem zone-overlap logic.
+**Goal**: Replace S_CheckpointSystem and S_VictorySystem with declarative rules.
+
+**S_DamageSystem is excluded**: It's a stateful per-tick system with zone enter/exit tracking, per-entity per-zone cooldowns, stale zone cleanup, and two damage paths (instant death vs cooldown). This doesn't fit the condition-effect rule pattern. See overview "What Does NOT Become a Rule" for full rationale.
+
+### 4.0 Event Name Centralization (prerequisite)
+
+Before rules consume events, centralize event name constants:
+- Add to `scripts/events/ecs/u_ecs_event_names.gd`:
+  - `EVENT_CHECKPOINT_ZONE_ENTERED := StringName("checkpoint_zone_entered")`
+  - `EVENT_CHECKPOINT_ACTIVATED := StringName("checkpoint_activated")`
+  - `EVENT_VICTORY_TRIGGERED := StringName("victory_triggered")`
+  - `EVENT_VICTORY_ZONE_ENTERED := StringName("victory_zone_entered")`
+- Update S_CheckpointSystem, S_VictorySystem, and their components to use centralized constants
+- S_DamageSystem events (`damage_zone_entered`, `damage_zone_exited`) also centralized for consistency, even though S_DamageSystem stays as-is
 
 ### 4.1 S_GameRuleManager
 
 `scripts/ecs/systems/s_game_rule_manager.gd`:
 - Extends `BaseQBRuleManager`
-- Subscribes to: `checkpoint_zone_entered`, `victory_triggered`, `damage_zone_entered` events
+- Subscribes to: `checkpoint_zone_entered`, `victory_triggered` events
 - Rule evaluation context includes Redux gameplay slice
 - No C_GameStateComponent needed -- game rules are purely event-driven
+- **Typed event handling**: S_CheckpointSystem currently publishes `Evn_CheckpointActivated` via `publish_typed()`. The typed event class_name becomes the string event name. CALL_METHOD handlers must handle typed event payloads (event object) alongside Dictionary payloads.
+
+**Execution priority note**: S_CheckpointSystem runs at priority 100, S_VictorySystem at 300. S_GameRuleManager inherits priority 1. This is safe because checkpoint/victory rules are EVENT-triggered (processed in `_on_event_received`, not `process_tick`), so `execution_priority` only affects cooldown ticking, which is order-independent.
 
 ### 4.2 Rule Definitions
 
@@ -249,25 +266,19 @@ Each system reads `is_spawn_frozen` from C_CharacterStateComponent but keeps its
   - Conditions: victory_type == GAME_COMPLETE, completed_areas HAS required_final_area
   - Effects: DISPATCH_ACTION game_complete
 
-- `cfg_damage_zone_rule.tres`:
-  - Trigger: EVENT (damage_zone_entered)
-  - Conditions: zone overlap + player tag check + cooldown
-  - Effects: CALL_METHOD queue damage to health component
-
 ### 4.3 Migration
 
 - Replace S_CheckpointSystem with checkpoint rules
 - Replace S_VictorySystem with victory rules
-- Migrate S_DamageSystem zone-overlap logic to damage zone rules
-- S_CheckpointSystem._resolve_spawn_point_position() resolves position and includes it in the event payload -- rules consume this
+- S_DamageSystem stays as-is (no changes)
+- Checkpoint CALL_METHOD handler replicates S_CheckpointSystem flow: activate checkpoint, resolve spawn point position, dispatch actions, publish typed event
 
 ### 4.4 Tests
 
 **test_game_rule_manager.gd**:
-- Test checkpoint activation via mock event
+- Test checkpoint activation via mock event (including typed event payload handling)
 - Test victory trigger with prereqs met / not met
 - Test game complete with all areas / missing areas
-- Test damage zone with player tag / cooldown
 
 ---
 
@@ -344,15 +355,17 @@ Each system reads `is_spawn_frozen` from C_CharacterStateComponent but keeps its
 | `scripts/ecs/base_ecs_system.gd` | Base class for BaseQBRuleManager |
 | `scripts/ecs/base_ecs_component.gd` | Base class for C_CharacterStateComponent |
 | `scripts/ecs/systems/s_health_system.gd` | Primary refactor target (death sequence) |
-| `scripts/ecs/systems/s_movement_system.gd` | Pause/freeze gating consolidation (lines 23-34) |
-| `scripts/ecs/systems/s_jump_system.gd` | Pause/freeze gating consolidation (lines 22-34) |
-| `scripts/ecs/systems/s_gravity_system.gd` | Pause gating consolidation (lines 18-29) |
-| `scripts/ecs/systems/s_rotate_to_input_system.gd` | Pause gating consolidation (lines 22-33) |
+| `scripts/ecs/systems/s_movement_system.gd` | Pause/freeze gating consolidation (lines 22-34) |
+| `scripts/ecs/systems/s_jump_system.gd` | Pause/freeze gating consolidation (lines 21-34) |
+| `scripts/ecs/systems/s_gravity_system.gd` | Pause gating consolidation (lines 17-29) |
+| `scripts/ecs/systems/s_rotate_to_input_system.gd` | Pause gating consolidation (lines 21-33) |
 | `scripts/ecs/systems/s_input_system.gd` | Pause gating consolidation (lines 80-84) |
+| `scripts/ecs/systems/s_footstep_sound_system.gd` | Pause gating consolidation (lines 46-56) |
 | `scripts/ecs/systems/s_floating_system.gd` | Freeze check only (no pause check) |
 | `scripts/ecs/systems/s_checkpoint_system.gd` | Replaced by game rules |
 | `scripts/ecs/systems/s_victory_system.gd` | Replaced by game rules |
-| `scripts/ecs/systems/s_damage_system.gd` | Zone-overlap logic migrated to game rules |
+| `scripts/ecs/systems/s_damage_system.gd` | Stays as-is (stateful tick-based; not rule-ified) |
+| `scripts/events/ecs/u_ecs_event_names.gd` | Centralize checkpoint/victory/damage event constants |
 | `scripts/events/ecs/u_ecs_event_bus.gd` | Event subscription for rule triggers |
 | `scripts/interfaces/i_state_store.gd` | DI interface for store access |
 | `scripts/managers/m_camera_manager.gd` | Camera rules integrate with (not replace) |
