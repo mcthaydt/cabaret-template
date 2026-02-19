@@ -64,7 +64,7 @@ const SCRIPT_PREFIX_RULES := {
 	"res://scripts/resources/lighting": ["rs_"], # Character lighting resources
 	"res://scripts/managers": ["m_"],
 	"res://scripts/managers/helpers": ["u_"],
-	"res://scripts/ecs/systems": ["s_"],
+	"res://scripts/ecs/systems": ["s_", "base_"], # s_*_system.gd plus base_qb_rule_manager.gd
 	"res://scripts/ecs/components": ["c_"],
 	"res://scripts/ecs/resources": ["rs_"],
 	"res://scripts/events/ecs": ["evn_", "base_", "u_"], # evn_ for typed events, base_ for BaseECSEvent, u_ for ECS event bus/names
