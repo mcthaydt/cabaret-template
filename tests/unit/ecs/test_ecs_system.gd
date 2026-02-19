@@ -77,3 +77,14 @@ func test_execution_priority_defaults_to_zero_and_is_exported() -> void:
 
 	var usage: int = property_info.get("usage", 0)
 	assert_true((usage & PROPERTY_USAGE_EDITOR) != 0, "execution_priority should be visible in the editor")
+
+func test_execution_priority_allows_negative_values_for_pre_system_ordering() -> void:
+	var system := ECS_SYSTEM.new()
+	add_child(system)
+	autofree(system)
+
+	system.execution_priority = -1
+	assert_eq(system.execution_priority, -1, "execution_priority should allow negative values")
+
+	system.execution_priority = -999
+	assert_eq(system.execution_priority, -100, "execution_priority should clamp to -100 minimum")

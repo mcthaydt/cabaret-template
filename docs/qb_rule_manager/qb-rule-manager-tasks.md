@@ -4,21 +4,21 @@
 
 ### 1-Pre: Prerequisite
 
-- [ ] T1.0: Widen `scripts/ecs/base_ecs_system.gd` priority clamp from `clampi(value, 0, 1000)` to `clampi(value, -100, 1000)` (line 22). M_ECSManager sorts ascending (lower priority first), so rule managers need negative priority (-1) to run before default-0 systems. Zero behavioral impact on existing systems.
+- [x] T1.0: Widen `scripts/ecs/base_ecs_system.gd` priority clamp from `clampi(value, 0, 1000)` to `clampi(value, -100, 1000)` (line 22). M_ECSManager sorts ascending (lower priority first), so rule managers need negative priority (-1) to run before default-0 systems. Zero behavioral impact on existing systems.
 
 ### 1A: Resource Definitions
 
-- [ ] T1.1: Create `scripts/resources/qb/rs_qb_condition.gd` (RS_QBCondition) - Source enum, Operator enum, ValueType enum, typed value fields (value_float/int/string/bool/string_name), quality_path, negate
-- [ ] T1.2: Create `scripts/resources/qb/rs_qb_effect.gd` (RS_QBEffect) - EffectType enum (4 types: DISPATCH_ACTION, PUBLISH_EVENT, SET_COMPONENT_FIELD, SET_QUALITY -- no CALL_METHOD), target, payload (`SET_COMPONENT_FIELD` contract: operation set/add, value_type + typed values, optional clamp_min/clamp_max)
-- [ ] T1.3: Create `scripts/resources/qb/rs_qb_rule_definition.gd` (RS_QBRuleDefinition) - rule_id, conditions, effects, priority, is_one_shot, cooldown, requires_salience (auto-disabled for EVENT mode), trigger_mode, trigger_event, cooldown_key_fields (Array[String], empty=global), cooldown_from_context_field (String, empty=use rule.cooldown)
+- [x] T1.1: Create `scripts/resources/qb/rs_qb_condition.gd` (RS_QBCondition) - Source enum, Operator enum, ValueType enum, typed value fields (value_float/int/string/bool/string_name), quality_path, negate
+- [x] T1.2: Create `scripts/resources/qb/rs_qb_effect.gd` (RS_QBEffect) - EffectType enum (4 types: DISPATCH_ACTION, PUBLISH_EVENT, SET_COMPONENT_FIELD, SET_QUALITY -- no CALL_METHOD), target, payload (`SET_COMPONENT_FIELD` contract: operation set/add, value_type + typed values, optional clamp_min/clamp_max)
+- [x] T1.3: Create `scripts/resources/qb/rs_qb_rule_definition.gd` (RS_QBRuleDefinition) - rule_id, conditions, effects, priority, is_one_shot, cooldown, requires_salience (auto-disabled for EVENT mode), trigger_mode, trigger_event, cooldown_key_fields (Array[String], empty=global), cooldown_from_context_field (String, empty=use rule.cooldown)
 
 ### 1B: Utility Stubs + Tests First
 
-- [ ] T1.4: Create stub `scripts/utils/qb/u_qb_rule_evaluator.gd` (U_QBRuleEvaluator) - empty static methods returning default values
-- [ ] T1.5: Create `tests/unit/qb/test_qb_condition_evaluation.gd` - All operators with typed values (float, int, string, bool, string_name), negate, null handling, type mismatches
-- [ ] T1.6: Run tests -- confirm they FAIL (red)
-- [ ] T1.7: Implement U_QBRuleEvaluator -- pure static condition evaluation for all operators using typed value fields
-- [ ] T1.8: Run tests -- confirm they PASS (green)
+- [x] T1.4: Create stub `scripts/utils/qb/u_qb_rule_evaluator.gd` (U_QBRuleEvaluator) - empty static methods returning default values
+- [x] T1.5: Create `tests/unit/qb/test_qb_condition_evaluation.gd` - All operators with typed values (float, int, string, bool, string_name), negate, null handling, type mismatches
+- [x] T1.6: Run tests -- confirm they FAIL (red)
+- [x] T1.7: Implement U_QBRuleEvaluator -- pure static condition evaluation for all operators using typed value fields
+- [x] T1.8: Run tests -- confirm they PASS (green)
 
 - [ ] T1.9: Create stub `scripts/utils/qb/u_qb_quality_provider.gd` (U_QBQualityProvider) - empty static methods
 - [ ] T1.10: Create `tests/unit/qb/test_qb_quality_provider.gd` - All source types, missing paths, edge cases
