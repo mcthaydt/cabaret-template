@@ -6,7 +6,7 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Not started (documentation updated with revised design -- no CALL_METHOD, handler systems pattern)
+**Phase**: Not started (documentation audit completed and all gaps patched)
 **Branch**: QB-Rule-Manager
 **Last Commit**: Documentation files only
 
@@ -21,15 +21,18 @@ You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game 
 - **Handler systems** subscribe to events published by rules for complex behavior (ragdoll, checkpoint, victory)
 - **PUBLISH_EVENT auto-injects context** -- entity_id and original event_payload merge into published payload so `.tres` files don't need dynamic values
 - **S_DamageSystem stays as-is** -- stateful zone-body tracking + per-entity cooldown loop doesn't decompose cleanly into rules. Just centralize event names
-- **Death detection stays in S_HealthSystem** -- tightly coupled to damage/invincibility flow. Ragdoll logic extracts to `S_DeathHandlerSystem`. Rule manager only syncs brain data (`is_dead` flag)
+- **Death detection stays in S_HealthSystem** -- tightly coupled to damage/invincibility flow. Ragdoll logic (lines 167-284) extracts to `S_DeathHandlerSystem`. Rule manager only syncs brain data (`is_dead` flag)
 - **Typed value fields** (value_float/int/string/bool/string_name) -- Godot 4.x cannot export Variant
-- **OR conditions** via multiple rules with same effect (two pause gate .tres files)
+- **OR conditions** via multiple rules with same effect (THREE pause gate .tres files: paused, wrong shell, transitioning)
 - **Event salience auto-disabled** -- events are instantaneous, salience only for TICK/BOTH
-- **execution_priority = 1** on BaseQBRuleManager (runs before default-0 systems)
+- **SET_QUALITY salience OFF** -- brain data resets to defaults each tick, so SET_QUALITY rules use `requires_salience: false` to fire every tick
+- **execution_priority = -1** on BaseQBRuleManager (M_ECSManager sorts ascending — lower values first; -1 runs before default-0 systems). Requires Phase 1 prerequisite: widen `base_ecs_system.gd` clamp from `[0, 1000]` to `[-100, 1000]`
 - **Rule ordering** within same priority: rule_id alphabetical (StringName comparison)
 - **Spawn freeze**: Rule sets flag only; each system keeps different side effects
 - **Per-context cooldowns** remain on RS_QBRuleDefinition for future use (damage zones, custom mod rules)
-- Migration is additive -- nothing breaks at any phase
+- **Brain data defaults-each-tick**: `_build_quality_context()` initializes defaults (is_gameplay_active=true, is_spawn_frozen=false, is_dead=false), SET_QUALITY overrides them in the context dict, `_write_brain_data()` copies context → component. When no rule fires, defaults persist.
+- **SET_QUALITY writes to context dictionary** (not directly to component) — the rule manager copies context → component via `_write_brain_data()` after all rules evaluate
+- Migration is additive with intentional hardening — shell and transitioning checks are NEW gating conditions the 6 systems didn't previously enforce
 
 **Documentation location**: `docs/qb_rule_manager/`
 - Overview: `qb-rule-manager-overview.md`
@@ -50,19 +53,19 @@ You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game 
 ## Key Files to Reference
 
 ### Existing patterns to follow:
-- `scripts/ecs/base_ecs_system.gd` -- base class for BaseQBRuleManager
+- `scripts/ecs/base_ecs_system.gd` -- base class for BaseQBRuleManager; Phase 1 prerequisite: line 22 clamp change
 - `scripts/ecs/base_ecs_component.gd` -- base class for C_CharacterStateComponent
 - `scripts/resources/ecs/rs_health_settings.gd` -- pattern for resource definitions
-- `scripts/ecs/systems/s_health_system.gd` -- extract ragdoll logic, publish death events
-- `scripts/ecs/systems/s_movement_system.gd` -- pause gating pattern (lines 22-34)
-- `scripts/ecs/systems/s_jump_system.gd` -- pause + freeze gating (lines 21-34)
-- `scripts/ecs/systems/s_gravity_system.gd` -- pause gating (lines 17-29)
-- `scripts/ecs/systems/s_rotate_to_input_system.gd` -- pause gating (lines 21-33)
-- `scripts/ecs/systems/s_input_system.gd` -- pause gating (lines 80-84)
-- `scripts/ecs/systems/s_footstep_sound_system.gd` -- pause gating (lines 46-56, uses try_get_store variant)
+- `scripts/ecs/systems/s_health_system.gd` -- extract ragdoll logic (lines 167-284), publish death events
+- `scripts/ecs/systems/s_movement_system.gd` -- pause gating pattern (lines 22-34); keep @export state_store for entity snapshots
+- `scripts/ecs/systems/s_jump_system.gd` -- pause + freeze gating (lines 21-34); keep @export state_store for accessibility reads
+- `scripts/ecs/systems/s_gravity_system.gd` -- pause gating (lines 17-29); can remove @export state_store
+- `scripts/ecs/systems/s_rotate_to_input_system.gd` -- pause gating (lines 21-33); can remove @export state_store
+- `scripts/ecs/systems/s_input_system.gd` -- pause gating (lines 80-84); keep @export state_store for other checks
+- `scripts/ecs/systems/s_footstep_sound_system.gd` -- pause gating (lines 46-56, uses try_get_store variant); can remove @export state_store
 - `scripts/ecs/systems/s_floating_system.gd` -- freeze only (no pause check)
-- `scripts/ecs/systems/s_checkpoint_system.gd` -- replaced by checkpoint rule + handler
-- `scripts/ecs/systems/s_victory_system.gd` -- replaced by victory rule + handler
+- `scripts/ecs/systems/s_checkpoint_system.gd` -- replaced by checkpoint rule + handler; note `_resolve_spawn_point_position()` at lines 90-109
+- `scripts/ecs/systems/s_victory_system.gd` -- replaced by victory rule + handler; note `REQUIRED_FINAL_AREA = "bar"` at line 7 and `_can_trigger_victory()` at lines 56-73; event subscription priority 10 at line 29
 - `scripts/ecs/systems/s_damage_system.gd` -- stays as-is, centralize event names only
 - `scripts/events/ecs/u_ecs_event_names.gd` -- centralize event constants
 - `scripts/events/ecs/u_ecs_event_bus.gd` -- event bus for rule triggers
@@ -93,6 +96,7 @@ You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game 
 - `scripts/ecs/systems/s_death_handler_system.gd`
 - `resources/qb/character/cfg_pause_gate_paused.tres` (OR rule 1)
 - `resources/qb/character/cfg_pause_gate_shell.tres` (OR rule 2)
+- `resources/qb/character/cfg_pause_gate_transitioning.tres` (OR rule 3)
 - `resources/qb/character/cfg_spawn_freeze_rule.tres`
 - `resources/qb/character/cfg_death_sync_rule.tres`
 
@@ -121,6 +125,7 @@ You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game 
 - `tests/unit/qb/test_checkpoint_handler_system.gd`
 - `tests/unit/qb/test_victory_handler_system.gd`
 - `tests/unit/qb/test_camera_rule_manager.gd`
+- `tests/integration/qb/test_qb_brain_data_pipeline.gd`
 
 ---
 
@@ -132,16 +137,22 @@ These are the current design decisions that must be followed:
 2. **Handler systems** subscribe to events published by rules for complex behavior
 3. **PUBLISH_EVENT auto-injects context** -- entity_id and event_payload merge into published payload
 4. **S_DamageSystem stays as-is** -- just centralize event names in U_ECSEventNames
-5. **Death detection stays in S_HealthSystem** -- ragdoll extracts to S_DeathHandlerSystem; rule manager only syncs `is_dead` flag to brain data
+5. **Death detection stays in S_HealthSystem** -- ragdoll extracts to S_DeathHandlerSystem (lines 167-284); rule manager only syncs `is_dead` flag to brain data
 6. **Typed value fields** (value_float/int/string/bool/string_name) -- Godot 4.x can't export Variant
-7. **Two pause gate .tres files** for OR logic (not a single rule with OR operator)
+7. **Three pause gate .tres files** for OR logic (paused, wrong shell, transitioning)
 8. **Event salience auto-disabled** -- events are instantaneous
-9. **execution_priority = 1** on BaseQBRuleManager (runs before default-0 systems)
+9. **execution_priority = -1** on BaseQBRuleManager (M_ECSManager sorts ascending; -1 runs before default-0 systems). Phase 1 prerequisite: widen clamp in `base_ecs_system.gd` line 22 from `clampi(value, 0, 1000)` to `clampi(value, -100, 1000)`
 10. **Spawn freeze: flag only** -- each system keeps different side effects
 11. **6 systems with pause gating** (Movement, Jump, Gravity, RotateToInput, InputSystem, FootstepSoundSystem) -- NOT AlignWithSurface or FloatingSystem
 12. **3 systems with freeze checks** (Movement, Jump, Floating) -- each with DIFFERENT side effects
 13. **Event name centralization** -- checkpoint/victory/damage event names move from local constants to U_ECSEventNames
 14. **Per-context cooldowns** on RS_QBRuleDefinition for future use; empty array = global cooldown
+15. **Brain data defaults-each-tick** -- `_build_quality_context()` sets defaults, SET_QUALITY overrides in context dict, `_write_brain_data()` copies to component. SET_QUALITY rules use `requires_salience: false`.
+16. **SET_QUALITY writes to context dict** (not component directly) -- rule manager copies context → component after all rules evaluate
+17. **Migration is additive with intentional hardening** -- shell and transitioning checks are NEW gating (current systems only check `gameplay.paused`)
+18. **Post-migration store cleanup** -- S_GravitySystem, S_RotateToInputSystem, S_FootstepSoundSystem can drop @export state_store; others keep it for non-pause uses
+19. **S_VictoryHandlerSystem** must replicate `REQUIRED_FINAL_AREA = "bar"` prerequisite check and use event subscription priority 10
+20. **S_CheckpointHandlerSystem** must replicate `_resolve_spawn_point_position()` for perf optimization
 
 ---
 
@@ -156,6 +167,9 @@ These are the current design decisions that must be followed:
 
 # Run style tests
 /Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/style -gexit
+
+# Run integration tests
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/qb -gexit
 ```
 
 ---
