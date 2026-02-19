@@ -3,23 +3,23 @@
 ## Phase 1: Core Framework + Tests
 
 ### Resources
-- [ ] T1.1: Create `scripts/resources/qb/rs_qb_condition.gd` (RS_QBCondition) - Source enum, Operator enum, quality_path, value, negate
-- [ ] T1.2: Create `scripts/resources/qb/rs_qb_effect.gd` (RS_QBEffect) - EffectType enum, target, payload, delay
-- [ ] T1.3: Create `scripts/resources/qb/rs_qb_rule_definition.gd` (RS_QBRuleDefinition) - rule_id, conditions, effects, lifecycle fields, trigger mode
+- [ ] T1.1: Create `scripts/resources/qb/rs_qb_condition.gd` (RS_QBCondition) - Source enum, Operator enum, ValueType enum, typed value fields (value_float/int/string/bool/string_name), quality_path, negate
+- [ ] T1.2: Create `scripts/resources/qb/rs_qb_effect.gd` (RS_QBEffect) - EffectType enum, target, payload (no delay field in Phase 1)
+- [ ] T1.3: Create `scripts/resources/qb/rs_qb_rule_definition.gd` (RS_QBRuleDefinition) - rule_id, conditions, effects, priority, is_one_shot, cooldown, requires_salience (auto-disabled for EVENT mode), trigger_mode, trigger_event
 
 ### Utilities
-- [ ] T1.4: Create `scripts/utils/qb/u_qb_rule_evaluator.gd` (U_QBRuleEvaluator) - Pure static condition evaluation functions for all operators
-- [ ] T1.5: Create `scripts/utils/qb/u_qb_effect_executor.gd` (U_QBEffectExecutor) - Pure static effect execution for all effect types
+- [ ] T1.4: Create `scripts/utils/qb/u_qb_rule_evaluator.gd` (U_QBRuleEvaluator) - Pure static condition evaluation for all operators using typed value fields
+- [ ] T1.5: Create `scripts/utils/qb/u_qb_effect_executor.gd` (U_QBEffectExecutor) - Pure static effect execution for all effect types; CALL_METHOD delegates to rule_manager._handle_effect()
 - [ ] T1.6: Create `scripts/utils/qb/u_qb_quality_provider.gd` (U_QBQualityProvider) - Quality reading from component dict, Redux state, event payload, entity tags
 - [ ] T1.7: Create `scripts/utils/qb/u_qb_rule_validator.gd` (U_QBRuleValidator) - Authoring-time validation (empty rule_id, missing trigger_event for EVENT mode, invalid paths)
 
 ### Base Rule Manager
-- [ ] T1.8: Create `scripts/ecs/systems/base_qb_rule_manager.gd` (BaseQBRuleManager extends BaseECSSystem) - Rule registration, tick evaluation, event handling, salience tracking, cooldown management, lifecycle management
+- [ ] T1.8: Create `scripts/ecs/systems/base_qb_rule_manager.gd` (BaseQBRuleManager extends BaseECSSystem) - execution_priority=1, rule registration, tick evaluation with entity iteration pattern, event handling with salience auto-disable for EVENT mode, cooldown management, _handle_effect virtual for CALL_METHOD, _evaluate_rules_for_context, _build_quality_context virtual
 
 ### Tests
-- [ ] T1.9: Create `tests/unit/qb/test_qb_condition_evaluation.gd` - All operators, negate, null handling, type mismatches
-- [ ] T1.10: Create `tests/unit/qb/test_qb_effect_execution.gd` - All effect types with mocks
-- [ ] T1.11: Create `tests/unit/qb/test_qb_rule_lifecycle.gd` - Cooldown, salience (false->true), one-shot, priority ordering
+- [ ] T1.9: Create `tests/unit/qb/test_qb_condition_evaluation.gd` - All operators with typed values (float, int, string, bool, string_name), negate, null handling, type mismatches
+- [ ] T1.10: Create `tests/unit/qb/test_qb_effect_execution.gd` - All effect types with mocks, CALL_METHOD delegation
+- [ ] T1.11: Create `tests/unit/qb/test_qb_rule_lifecycle.gd` - Cooldown, salience (false->true), one-shot, priority ordering (higher first, then rule_id alphabetical), event salience auto-disable
 - [ ] T1.12: Create `tests/unit/qb/test_qb_quality_provider.gd` - All source types, missing paths, edge cases
 - [ ] T1.13: Create `tests/unit/qb/test_qb_rule_validator.gd` - Valid/invalid rule validation
 - [ ] T1.14: Run full existing ECS test suite to confirm zero regressions
@@ -28,7 +28,7 @@
 
 ---
 
-## Phase 2: Character State Component + Rule Manager Shell
+## Phase 2: Character State Component + Rule Manager
 
 ### Component
 - [ ] T2.1: Create `scripts/ecs/components/c_character_state_component.gd` (C_CharacterStateComponent) - Brain data fields: is_gameplay_active, is_grounded, is_moving, is_sprinting, is_spawn_frozen, is_dead, is_invincible, health_percent, vertical_state, has_input
@@ -36,65 +36,76 @@
 - [ ] T2.3: Add C_CharacterStateComponent to `scenes/prefabs/prefab_player.tscn` and any character prefabs
 
 ### Rule Manager System
-- [ ] T2.4: Create `scripts/ecs/systems/s_character_rule_manager.gd` (S_CharacterRuleManager extends BaseQBRuleManager) - execution_priority=50, builds quality context from character components, writes to C_CharacterStateComponent
-- [ ] T2.5: Add S_CharacterRuleManager to gameplay scenes (under Systems/Core)
+- [ ] T2.4: Create `scripts/ecs/systems/s_character_rule_manager.gd` (S_CharacterRuleManager extends BaseQBRuleManager) - inherits execution_priority=1, builds quality context from character components, writes to C_CharacterStateComponent, CALL_METHOD handlers for death sequence
+- [ ] T2.5: Add S_CharacterRuleManager to all 5 gameplay scenes (gameplay_base, interior_house, bar, exterior, alleyway)
 
-### Initial Rules
-- [ ] T2.6: Create `resources/qb/character/cfg_pause_gate_rule.tres` - Conditions: paused or non-gameplay shell; Effects: set is_gameplay_active = false
-- [ ] T2.7: Create `resources/qb/character/cfg_spawn_freeze_rule.tres` - Conditions: C_SpawnStateComponent.is_physics_frozen; Effects: set is_spawn_frozen = true
+### Initial Rules (OR via multiple .tres files)
+- [ ] T2.6: Create `resources/qb/character/cfg_pause_gate_paused.tres` - Condition: gameplay.paused == true; Effect: SET_QUALITY is_gameplay_active = false
+- [ ] T2.7: Create `resources/qb/character/cfg_pause_gate_shell.tres` - Condition: navigation.shell != "gameplay"; Effect: SET_QUALITY is_gameplay_active = false
+- [ ] T2.8: Create `resources/qb/character/cfg_spawn_freeze_rule.tres` - Condition: C_SpawnStateComponent.is_physics_frozen == true; Effect: SET_QUALITY is_spawn_frozen = true
 
 ### Tests
-- [ ] T2.8: Create `tests/unit/qb/test_character_rule_manager.gd` - Brain data population, pause gate rule, spawn freeze rule
-- [ ] T2.9: Run full existing test suite -- zero regressions (rule manager writes to new component, nothing reads it yet)
+- [ ] T2.9: Create `tests/unit/qb/test_character_rule_manager.gd` - Brain data population, pause gate rules (both OR paths), spawn freeze rule
+- [ ] T2.10: Run full existing test suite -- zero regressions (rule manager writes to new component, nothing reads it yet)
 
-**Phase 2 Commit**: Character state component and rule manager shell (additive, no behavioral changes)
+**Phase 2 Commit**: Character state component and rule manager (additive, no behavioral changes)
 
 ---
 
 ## Phase 3: Character System Gating Consolidation
 
-### System Modifications
-- [ ] T3.1: Modify `S_MovementSystem` - Replace independent pause check (lines 25-34) with read from C_CharacterStateComponent.is_gameplay_active; replace spawn freeze gating with C_CharacterStateComponent.is_spawn_frozen
-- [ ] T3.2: Modify `S_JumpSystem` - Replace pause check and spawn freeze check with C_CharacterStateComponent reads
-- [ ] T3.3: Modify `S_GravitySystem` - Replace pause check and spawn freeze check with C_CharacterStateComponent reads
-- [ ] T3.4: Modify `S_FloatingSystem` - Read is_gameplay_active from C_CharacterStateComponent
-- [ ] T3.5: Modify `S_RotateToInputSystem` - Replace pause check with C_CharacterStateComponent read
-- [ ] T3.6: Modify `S_AlignWithSurfaceSystem` - Read is_gameplay_active from C_CharacterStateComponent
+### Pause Gating Modifications (5 systems -- verified identical pattern)
+- [ ] T3.1: Modify `S_MovementSystem` - Replace independent pause check (lines 23-34) with C_CharacterStateComponent.is_gameplay_active read; replace spawn freeze gating with C_CharacterStateComponent.is_spawn_frozen (keep velocity reset + dynamics reset side effects)
+- [ ] T3.2: Modify `S_JumpSystem` - Replace pause check (lines 22-34) and spawn freeze check with C_CharacterStateComponent reads (keep debug snapshot side effect)
+- [ ] T3.3: Modify `S_GravitySystem` - Replace pause check (lines 18-29) with C_CharacterStateComponent.is_gameplay_active read
+- [ ] T3.4: Modify `S_RotateToInputSystem` - Replace pause check (lines 22-33) with C_CharacterStateComponent.is_gameplay_active read
+- [ ] T3.5: Modify `S_InputSystem` - Replace pause check (lines 80-84) with C_CharacterStateComponent.is_gameplay_active read
+
+### Spawn Freeze Modifications (3 systems -- each keeps different side effects)
+- [ ] T3.6: Modify `S_MovementSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: reset velocity to zero, reset dynamics state)
+- [ ] T3.7: Modify `S_JumpSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: flag debug snapshot with spawn_frozen: true)
+- [ ] T3.8: Modify `S_FloatingSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: update support state even while frozen)
+
+### NOT Modified
+- S_AlignWithSurfaceSystem: No pause check, no freeze check currently -- do NOT add gating
+- S_FloatingSystem: No pause check currently -- do NOT add pause gating
 
 ### Death Sequence Rules
-- [ ] T3.7: Create `resources/qb/character/cfg_death_sequence_rule.tres` - Conditions: health <= 0, not already dead; Effects: mark dead, dispatch trigger_death, publish entity_death
-- [ ] T3.8: Create `resources/qb/character/cfg_invincibility_rule.tres` - Conditions: damage received event, not invincible; Effects: trigger invincibility
-- [ ] T3.9: Refactor S_HealthSystem death-triggering to delegate to rule definitions (timer ticking, regen math, damage queue stay)
+- [ ] T3.9: Create `resources/qb/character/cfg_death_sequence_rule.tres` - Conditions: health <= 0, not already dead; Effects: CALL_METHOD _handle_mark_dead, DISPATCH_ACTION trigger_death, CALL_METHOD _handle_spawn_ragdoll
+- [ ] T3.10: Create `resources/qb/character/cfg_invincibility_rule.tres` - Conditions: damage received event, not invincible; Effects: trigger invincibility
+- [ ] T3.11: Refactor S_HealthSystem death-triggering to delegate to rule definitions (timer ticking, regen math, damage queue processing STAY in S_HealthSystem)
 
 ### Verification
-- [ ] T3.10: Run full existing ECS test suite -- all tests must pass (behavioral equivalence)
-- [ ] T3.11: Run QB unit tests
-- [ ] T3.12: Manual playtest: movement, jumping, death/respawn, pause/unpause, spawn freeze
+- [ ] T3.12: Run full existing ECS test suite -- all tests must pass (behavioral equivalence)
+- [ ] T3.13: Run QB unit tests
+- [ ] T3.14: Manual playtest: movement, jumping, death/respawn, pause/unpause, spawn freeze
 
 **Phase 3 Commit**: Character gating consolidated through rule manager
 
 ---
 
-## Phase 4: Game State Rules
+## Phase 4: Game State Rules + Damage Zone
 
 ### Rule Manager
-- [ ] T4.1: Create `scripts/ecs/systems/s_game_rule_manager.gd` (S_GameRuleManager extends BaseQBRuleManager) - Subscribes to checkpoint_zone_entered, victory_triggered events
+- [ ] T4.1: Create `scripts/ecs/systems/s_game_rule_manager.gd` (S_GameRuleManager extends BaseQBRuleManager) - Subscribes to checkpoint_zone_entered, victory_triggered, damage_zone_entered events; no C_GameStateComponent needed (purely event-driven)
 - [ ] T4.2: Add S_GameRuleManager to gameplay scenes (under Systems/Core)
 
 ### Rule Definitions
-- [ ] T4.3: Create `resources/qb/game/cfg_checkpoint_activation_rule.tres` - EVENT trigger: checkpoint_zone_entered; Effects: activate checkpoint, dispatch set_last_checkpoint, publish checkpoint_activated
-- [ ] T4.4: Create `resources/qb/game/cfg_victory_area_rule.tres` - EVENT trigger: victory_triggered; Conditions: valid trigger, not already triggered; Effects: dispatch trigger_victory, mark_area_complete
-- [ ] T4.5: Create `resources/qb/game/cfg_victory_game_complete_rule.tres` - EVENT trigger: victory_triggered; Conditions: GAME_COMPLETE type, required areas completed; Effects: dispatch game_complete
+- [ ] T4.3: Create `resources/qb/game/cfg_checkpoint_activation_rule.tres` - EVENT trigger: checkpoint_zone_entered; Effects: CALL_METHOD activate checkpoint, DISPATCH_ACTION set_last_checkpoint, PUBLISH_EVENT checkpoint_activated
+- [ ] T4.4: Create `resources/qb/game/cfg_victory_area_rule.tres` - EVENT trigger: victory_triggered; Conditions: valid trigger, not already triggered; Effects: DISPATCH_ACTION trigger_victory, mark_area_complete
+- [ ] T4.5: Create `resources/qb/game/cfg_victory_game_complete_rule.tres` - EVENT trigger: victory_triggered; Conditions: GAME_COMPLETE type, required areas completed; Effects: DISPATCH_ACTION game_complete
+- [ ] T4.6: Create `resources/qb/game/cfg_damage_zone_rule.tres` - EVENT trigger: damage_zone_entered; Conditions: zone overlap + player tag + cooldown; Effects: CALL_METHOD queue damage
 
 ### Migration
-- [ ] T4.6: Migrate S_CheckpointSystem logic to checkpoint rules (remove or stub original)
-- [ ] T4.7: Migrate S_VictorySystem logic to victory rules (remove or stub original)
+- [ ] T4.7: Replace S_CheckpointSystem with checkpoint rules (remove or stub original)
+- [ ] T4.8: Replace S_VictorySystem with victory rules (remove or stub original)
+- [ ] T4.9: Migrate S_DamageSystem zone-overlap logic to damage zone rules
 
 ### Tests
-- [ ] T4.8: Create `tests/unit/qb/test_game_rule_manager.gd` - Checkpoint activation, victory with/without prereqs, game complete
-- [ ] T4.9: Run full existing test suite -- verify behavioral equivalence
+- [ ] T4.10: Create `tests/unit/qb/test_game_rule_manager.gd` - Checkpoint activation, victory with/without prereqs, game complete, damage zone with player tag/cooldown
+- [ ] T4.11: Run full existing test suite -- verify behavioral equivalence
 
-**Phase 4 Commit**: Game state rules replace checkpoint and victory systems
+**Phase 4 Commit**: Game state rules replace checkpoint, victory, and damage zone systems
 
 ---
 
@@ -124,7 +135,7 @@
 
 ---
 
-## Phase 6: Documentation + Validation + Cleanup
+## Phase 6: Documentation + Validation + Anti-Patterns
 
 ### Documentation
 - [ ] T6.1: Finalize `docs/qb_rule_manager/qb-rule-manager-overview.md`

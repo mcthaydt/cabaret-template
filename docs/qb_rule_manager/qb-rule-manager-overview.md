@@ -2,13 +2,13 @@
 
 ## Problem Statement
 
-The codebase has 27+ ECS systems with decision/gating logic (pause checks, spawn freeze, death sequencing, victory prerequisites) scattered and duplicated across them. Each system independently queries the Redux store for pause state, checks spawn freeze flags, and implements its own if/then branching. This creates maintenance burden and makes it hard to add new cause-effect behaviors without touching multiple files.
+5 ECS systems independently duplicate identical pause-gating code (S_MovementSystem, S_JumpSystem, S_GravitySystem, S_RotateToInputSystem, S_InputSystem). 3 systems independently check spawn freeze with different side effects. Death sequencing, checkpoint activation, victory prerequisites, and damage zone logic are hardcoded if/then chains scattered across systems.
 
 ## Solution
 
 The QB Rule Manager introduces a data-driven condition-effect rule engine that centralizes decision logic into declarative rules (Resource `.tres` files), while leaving the existing physics math (second-order dynamics, spring-damped hover, coyote time, slope limits) in the systems where it belongs.
 
-**Scope**: Decision/gating logic only. Physics math stays in existing systems. Migration is additive -- nothing breaks.
+**Scope**: Decision/gating logic only. Physics math stays in existing systems. Migration is additive.
 
 ---
 
@@ -16,7 +16,7 @@ The QB Rule Manager introduces a data-driven condition-effect rule engine that c
 
 ### Rules
 
-A rule is a condition-effect pair: "when X conditions are ALL met, execute Y effects."
+A rule is a condition-effect pair: "when ALL conditions are met, execute effects."
 
 ```
 Rule: "death_sequence"
@@ -26,22 +26,41 @@ Rule: "death_sequence"
   Effects:
     - SET_COMPONENT_FIELD: C_CharacterStateComponent.is_dead = true
     - DISPATCH_ACTION: gameplay/trigger_death
-    - PUBLISH_EVENT: entity_death
+    - CALL_METHOD: _handle_spawn_ragdoll
 ```
+
+### OR Logic
+
+OR conditions are expressed as multiple rules with the same effect. Two rules:
+- `cfg_pause_gate_paused.tres`: condition `gameplay.paused == true` -> SET_QUALITY is_gameplay_active = false
+- `cfg_pause_gate_shell.tres`: condition `navigation.shell != "gameplay"` -> SET_QUALITY is_gameplay_active = false
 
 ### Conditions (RS_QBCondition)
 
-A condition evaluates a single quality against a comparison value using an operator.
+A condition evaluates a single quality against a typed comparison value using an operator.
 
 **Sources**: Component fields, Redux state slices, event payloads, entity tags, custom qualities.
 
 **Operators**: EQUALS, NOT_EQUALS, GREATER_THAN, LESS_THAN, GTE, LTE, HAS, NOT_HAS, IS_TRUE, IS_FALSE.
+
+**Typed values**: Godot 4.x cannot export Variant. Conditions use typed fields:
+- `value_float: float`
+- `value_int: int`
+- `value_string: String`
+- `value_bool: bool`
+- `value_string_name: StringName`
+
+A `ValueType` enum selects which field the evaluator reads.
 
 ### Effects (RS_QBEffect)
 
 An effect is an action triggered when all conditions pass.
 
 **Types**: DISPATCH_ACTION (Redux), PUBLISH_EVENT (ECS event bus), SET_COMPONENT_FIELD, CALL_METHOD, SET_QUALITY.
+
+**CALL_METHOD**: Complex effects (ragdoll spawning, checkpoint activation) are subclass handler methods on the rule manager. The effect's `target` field names the method (e.g., `"_handle_spawn_ragdoll"`).
+
+**No delay in Phase 1**: The `delay` field is deferred to post-Phase 6 to reduce speculative complexity.
 
 ### Qualities
 
@@ -55,15 +74,21 @@ Observable properties of entities and the world. Read by the Quality Provider fr
 
 Rules are salient -- they only fire when their conditions transition from false to true, not continuously. This prevents a "health <= 0" rule from firing every tick while the entity is dead.
 
+**Event salience auto-disable**: Events are instantaneous, not persistent. Salience is automatically disabled for EVENT trigger mode rules (regardless of the `requires_salience` setting). Only TICK and BOTH modes use salience.
+
 ### Lifecycle
 
-Rules have lifecycle properties: priority (evaluation order), cooldown (minimum time between firings), one-shot (fire once then deactivate), and active/inactive state.
+Rules have lifecycle properties:
+- **Priority**: Evaluation order (higher = evaluated first; ties broken by rule_id alphabetical)
+- **Cooldown**: Minimum time between firings
+- **One-shot**: Fire once then deactivate
+- **Active/inactive**: Runtime enable/disable
 
 ### Trigger Modes
 
-- **TICK**: Evaluated every physics frame
-- **EVENT**: Evaluated when a specific ECS event is published
-- **BOTH**: Evaluated on both tick and event
+- **TICK**: Evaluated every physics frame (salience applies)
+- **EVENT**: Evaluated when a specific ECS event is published (salience auto-disabled)
+- **BOTH**: Evaluated on both tick and event (salience applies for tick evaluations)
 
 ---
 
@@ -71,14 +96,14 @@ Rules have lifecycle properties: priority (evaluation order), cooldown (minimum 
 
 ```
 Resources (data):
-  RS_QBCondition               -- Single condition predicate
-  RS_QBEffect                  -- Single effect action
-  RS_QBRuleDefinition          -- Complete rule (conditions + effects + lifecycle)
+  RS_QBCondition               -- Typed condition predicate (value_float/int/string/bool/string_name)
+  RS_QBEffect                  -- Effect action (no delay in Phase 1)
+  RS_QBRuleDefinition          -- Complete rule resource
 
 Engine (logic):
-  BaseQBRuleManager            -- Abstract rule evaluation engine (extends BaseECSSystem)
-    S_CharacterRuleManager       -- Character-domain rules (per-entity)
-    S_GameRuleManager            -- Game/world-level rules
+  BaseQBRuleManager            -- Abstract rule evaluation engine (extends BaseECSSystem, priority=1)
+    S_CharacterRuleManager       -- Per-entity character rules
+    S_GameRuleManager            -- World-level game rules + damage zone rules
     S_CameraRuleManager          -- Camera behavior rules
 
 Utilities:
@@ -89,7 +114,7 @@ Utilities:
 
 Components:
   C_CharacterStateComponent    -- Aggregated character qualities ("brain data")
-  C_CameraStateComponent       -- Camera qualities (fov, trauma, blend targets)
+  C_CameraStateComponent       -- Camera qualities (fov, trauma)
 ```
 
 ---
@@ -103,13 +128,20 @@ Components:
   U_QBQualityProvider.read_quality()    -- unified adapter
         |
         v
-  BaseQBRuleManager._evaluate_rules()
+  BaseQBRuleManager.process_tick(delta)
+        |
+        v  (subclass loops over target entities)
+  _build_quality_context(entity, delta) -> Dictionary
+        |
+        v
+  _evaluate_rules_for_context(context)
         |
         v
   U_QBRuleEvaluator.check_conditions(rule, qualities)
-        |  (true if ALL conditions pass AND salience transition detected)
+        |  (true if ALL conditions pass AND salience transition for TICK mode)
         v
   U_QBEffectExecutor.execute_effects(rule.effects, context)
+  + rule_manager._handle_effect(effect, context) for CALL_METHOD
         |
         v
   [Writes to Components] / [Dispatches Redux Actions] / [Publishes ECS Events]
@@ -122,21 +154,28 @@ Components:
 ### S_CharacterRuleManager (Character State)
 
 Handles per-entity character decision logic:
-- Pause gating (is gameplay active?)
+- Pause gating (is gameplay active?) -- TWO rules for OR logic
 - Spawn freeze gating (is entity physics frozen?)
 - Death sequence (health <= 0 -> mark dead -> ragdoll -> transition)
 - Invincibility window (damage received -> invincibility timer)
 
-Writes computed qualities to `C_CharacterStateComponent` (the "brain data") each tick. Existing physics systems (movement, jump, gravity, floating) read from this component instead of duplicating gating checks.
+Writes computed qualities to `C_CharacterStateComponent` (the "brain data") each tick. Existing physics systems (movement, jump, gravity, etc.) read from this component instead of duplicating gating checks.
 
-### S_GameRuleManager (Game State)
+**Spawn freeze approach**: Rule sets `C_CharacterStateComponent.is_spawn_frozen = true`. Each system keeps its own freeze side effects but reads the flag from the component instead of independently checking C_SpawnStateComponent.
+
+**CALL_METHOD handlers**: `_handle_spawn_ragdoll(context)`, `_handle_mark_dead(context)` contain the complex logic currently in S_HealthSystem.
+
+### S_GameRuleManager (Game State + Damage Zones)
 
 Handles world-level decision logic:
 - Checkpoint activation (zone entered + is player -> activate + dispatch + publish)
 - Victory trigger (event + prerequisites met -> dispatch actions)
 - Victory game-complete (all areas completed -> game complete)
+- Damage zone (zone overlap + player tag + cooldown -> queue damage)
 
-Replaces the small S_CheckpointSystem (~110 lines) and S_VictorySystem (~89 lines).
+Replaces S_CheckpointSystem (~110 lines), S_VictorySystem (~89 lines), and migrates S_DamageSystem (~177 lines) zone-overlap logic.
+
+**No C_GameStateComponent needed**: Game rules are purely event-driven. No brain data aggregation component. This asymmetry with character/camera domains is intentional.
 
 ### S_CameraRuleManager (Camera State)
 
@@ -153,12 +192,16 @@ M_CameraManager keeps all transition/blend code. Camera rules add new capabiliti
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Rule format | Resource `.tres` files | Consistent with RS_* pattern, editor-friendly, mobile-safe preload |
-| Rule manager type | BaseECSSystem | Gets process_tick, DI, auto-registration for free |
+| Condition value type | Typed fields (value_float, value_int, value_string, value_bool, value_string_name) | Godot 4.x cannot export Variant; typed fields are inspector-friendly |
+| OR conditions | Multiple rules with same effect | Two rules: "paused==true" and "shell!=gameplay" both set is_gameplay_active=false |
+| Spawn freeze | Flag only; systems keep side effects | Rule sets is_spawn_frozen; each system still runs its own freeze behavior |
+| CALL_METHOD | Subclass handler methods | Complex effects (ragdoll, checkpoint activate) are methods on the rule manager subclass |
+| Delayed effects | Deferred to post-Phase 6 | Remove delay from Phase 1 RS_QBEffect to reduce speculative complexity |
+| Event salience | Auto-disabled for EVENT mode | Events are instantaneous; salience only applies to TICK/BOTH modes |
+| Execution priority | Explicit low number (1) | Most systems default to 0; rule managers at 1 run in priority-sorted order before them |
+| Rule ordering | rule_id alphabetical (StringName comparison) | Deterministic, predictable within same priority |
 | Physics math | Stays in existing systems | Too complex for condition-effect; rules handle gating only |
-| Brain data | Aggregated C_CharacterStateComponent | Single source of truth, written once per tick |
 | Migration | Additive wrapping | Never breaks existing behavior |
-| Salience | Built into base manager | Only fires on false-true transition |
-| Camera rules | Additive to M_CameraManager | Manager keeps transitions, rules add behaviors |
 
 ---
 
@@ -172,6 +215,20 @@ M_CameraManager keeps all transition/blend code. Camera rules add new capabiliti
 - `S_SceneTriggerSystem` -- single Input.is_action_just_pressed check
 - Interactable controllers -- they publish events, rules consume them
 - Sound/particle publisher systems -- already event-driven, clean pattern
+- Single-use logic that isn't duplicated across systems
+
+---
+
+## Anti-Patterns
+
+- Do NOT rule-ify physics math (second-order dynamics, spring-damper, coyote time)
+- Do NOT create rules for single-use logic that isn't duplicated
+- Do NOT use `@export var value: Variant` (Godot 4.x can't export Variant)
+- Do NOT assume spawn freeze checks are identical across systems (each has different side effects)
+- Do NOT add pause gating to systems that don't currently have it (S_AlignWithSurfaceSystem, S_FloatingSystem for pause)
+- Do NOT use salience for EVENT-triggered rules (events are instantaneous, not persistent)
+- Do NOT use runtime DirAccess for rule loading (use const preload arrays for mobile compatibility)
+- Do NOT use `delay` on effects in Phase 1 (deferred to post-Phase 6)
 
 ---
 
@@ -200,4 +257,4 @@ Rules can:
 
 ### With Existing Systems
 
-Existing systems read from `C_CharacterStateComponent` for gating decisions instead of independently querying the store. The rule manager runs at a low execution_priority (before other systems) to ensure brain data is populated before systems read it.
+Existing systems read from `C_CharacterStateComponent` for gating decisions instead of independently querying the store. The rule manager runs at `execution_priority = 1` (before default-0 systems) to ensure brain data is populated before systems read it. Systems that set explicit priorities (health=200, damage=250, etc.) already run later.
