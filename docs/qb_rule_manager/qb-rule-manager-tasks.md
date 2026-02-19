@@ -26,11 +26,11 @@
 - [x] T1.12: Implement U_QBQualityProvider -- quality reading from component dict, Redux state, event payload, entity tags
 - [x] T1.13: Run tests -- confirm they PASS (green)
 
-- [ ] T1.14: Create stub `scripts/utils/qb/u_qb_effect_executor.gd` (U_QBEffectExecutor) - empty static methods
-- [ ] T1.15: Create `tests/unit/qb/test_qb_effect_execution.gd` - All 4 effect types with mocks, PUBLISH_EVENT context injection (entity_id + event_payload merge), SET_COMPONENT_FIELD set/add/clamp behavior
-- [ ] T1.16: Run tests -- confirm they FAIL (red)
-- [ ] T1.17: Implement U_QBEffectExecutor -- pure static effect execution for 4 types; SET_QUALITY writes to context dictionary (not component directly); PUBLISH_EVENT merges context (entity_id, event_payload) into published payload
-- [ ] T1.18: Run tests -- confirm they PASS (green)
+- [x] T1.14: Create stub `scripts/utils/qb/u_qb_effect_executor.gd` (U_QBEffectExecutor) - empty static methods
+- [x] T1.15: Create `tests/unit/qb/test_qb_effect_execution.gd` - All 4 effect types with mocks, PUBLISH_EVENT context injection (entity_id + event_payload merge), SET_COMPONENT_FIELD set/add/clamp behavior
+- [x] T1.16: Run tests -- confirm they FAIL (red)
+- [x] T1.17: Implement U_QBEffectExecutor -- pure static effect execution for 4 types; SET_QUALITY writes to context dictionary (not component directly); PUBLISH_EVENT merges context (entity_id, event_payload) into published payload
+- [x] T1.18: Run tests -- confirm they PASS (green)
 
 - [ ] T1.19: Create stub `scripts/utils/qb/u_qb_rule_validator.gd` (U_QBRuleValidator) - empty static methods
 - [ ] T1.20: Create `tests/unit/qb/test_qb_rule_validator.gd` - Valid/invalid rule validation
