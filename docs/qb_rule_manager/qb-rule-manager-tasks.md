@@ -20,11 +20,11 @@
 - [x] T1.7: Implement U_QBRuleEvaluator -- pure static condition evaluation for all operators using typed value fields
 - [x] T1.8: Run tests -- confirm they PASS (green)
 
-- [ ] T1.9: Create stub `scripts/utils/qb/u_qb_quality_provider.gd` (U_QBQualityProvider) - empty static methods
-- [ ] T1.10: Create `tests/unit/qb/test_qb_quality_provider.gd` - All source types, missing paths, edge cases
-- [ ] T1.11: Run tests -- confirm they FAIL (red)
-- [ ] T1.12: Implement U_QBQualityProvider -- quality reading from component dict, Redux state, event payload, entity tags
-- [ ] T1.13: Run tests -- confirm they PASS (green)
+- [x] T1.9: Create stub `scripts/utils/qb/u_qb_quality_provider.gd` (U_QBQualityProvider) - empty static methods
+- [x] T1.10: Create `tests/unit/qb/test_qb_quality_provider.gd` - All source types, missing paths, edge cases
+- [x] T1.11: Run tests -- confirm they FAIL (red)
+- [x] T1.12: Implement U_QBQualityProvider -- quality reading from component dict, Redux state, event payload, entity tags
+- [x] T1.13: Run tests -- confirm they PASS (green)
 
 - [ ] T1.14: Create stub `scripts/utils/qb/u_qb_effect_executor.gd` (U_QBEffectExecutor) - empty static methods
 - [ ] T1.15: Create `tests/unit/qb/test_qb_effect_execution.gd` - All 4 effect types with mocks, PUBLISH_EVENT context injection (entity_id + event_payload merge), SET_COMPONENT_FIELD set/add/clamp behavior
