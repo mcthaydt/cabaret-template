@@ -68,13 +68,13 @@
 [ext_resource type="Resource" uid="uid://cfrrg0a7vn7p1" path="res://resources/lighting/zones/cfg_character_light_zone_signpost_glow_interior.tres" id="69_character_light_zone_signpost_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
-shading_mode = 0
+shading_mode = 2
 diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.6, 0.4, 0.2, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_748a2"]
-shading_mode = 0
+shading_mode = 2
 diffuse_mode = 3
 specular_mode = 1
 
@@ -84,6 +84,7 @@ background_color = Color(0.3019608, 0.60784316, 0.9019608, 1)
 ambient_light_source = 3
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_goal_text"]
+shading_mode = 2
 
 [sub_resource type="TextMesh" id="TextMesh_goal"]
 material = SubResource("StandardMaterial3D_goal_text")

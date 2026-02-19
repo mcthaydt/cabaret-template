@@ -52,13 +52,13 @@
 [ext_resource type="Resource" uid="uid://d3fqw081d4sgl" path="res://resources/spawn_metadata/cfg_sp_base.tres" id="51_base_spawn_meta"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
-shading_mode = 0
+shading_mode = 2
 diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.43137255, 0.15294118, 0.15294118, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_748a2"]
-shading_mode = 0
+shading_mode = 2
 diffuse_mode = 3
 specular_mode = 1
 

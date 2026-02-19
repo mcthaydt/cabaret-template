@@ -7,6 +7,7 @@
 [ext_resource type="Resource" uid="uid://bmj2g7cup5e21" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_prefab.tres" id="6_character_light_zone_goal_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b3ofg"]
+shading_mode = 2
 
 [sub_resource type="TextMesh" id="TextMesh_eyiog"]
 material = SubResource("StandardMaterial3D_b3ofg")

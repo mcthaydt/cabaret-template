@@ -5,6 +5,7 @@
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pjt0s"]
 resource_name = "BaseCharacterMat"
+shading_mode = 2
 cull_mode = 2
 diffuse_mode = 2
 specular_mode = 2

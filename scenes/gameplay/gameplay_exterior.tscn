@@ -79,13 +79,13 @@
 [ext_resource type="Resource" uid="uid://6u8rguj7enh" path="res://resources/lighting/zones/cfg_character_light_zone_goal_glow_exterior.tres" id="71_character_light_zone_goal_config"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q3o1v"]
-shading_mode = 0
+shading_mode = 2
 diffuse_mode = 3
 specular_mode = 1
 albedo_color = Color(0.3, 0.6, 0.3, 1)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_748a2"]
-shading_mode = 0
+shading_mode = 2
 diffuse_mode = 3
 specular_mode = 1
 
@@ -97,13 +97,14 @@ tonemap_mode = 1
 adjustment_enabled = true
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_goal_text"]
+shading_mode = 2
 
 [sub_resource type="TextMesh" id="TextMesh_goal"]
 material = SubResource("StandardMaterial3D_goal_text")
 text = ":)"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_12vux"]
-shading_mode = 0
+shading_mode = 2
 albedo_color = Color(0.9936808, 0.43250233, 3.85046e-07, 1)
 
 [node name="GameplayRoot" type="Node3D" unique_id=1536264933]
