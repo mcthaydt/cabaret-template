@@ -42,7 +42,7 @@ The following patterns apply to **production** scripts under `res://scripts/**`.
 
 | Category | Pattern | Example |
 |----------|---------|---------|
-| **Systems** | `s_*_system.gd` | `s_movement_system.gd` |
+| **Systems** | `s_*_system.gd` (plus `base_qb_rule_manager.gd` exception) | `s_movement_system.gd` |
 | **Components** | `c_*_component.gd` | `c_movement_component.gd` |
 | **Managers** | `m_*_manager.gd` | `m_ecs_manager.gd` |
 | **Resources (settings)** | `rs_*_settings.gd` | `rs_movement_settings.gd` |
@@ -196,7 +196,7 @@ This matrix documents all allowed filename and class prefixes by category. **Eve
 | Category | File Pattern | Class Pattern | Examples |
 |----------|--------------|---------------|----------|
 | **Managers** | `m_*_manager.gd` | `M_*Manager` | `m_ecs_manager.gd` → `M_ECSManager`, `m_state_store.gd` → `M_StateStore` |
-| **Systems** | `s_*_system.gd` | `S_*System` | `s_movement_system.gd` → `S_MovementSystem`, `s_jump_system.gd` → `S_JumpSystem` |
+| **Systems** | `s_*_system.gd` (plus `base_qb_rule_manager.gd` exception) | `S_*System` | `s_movement_system.gd` → `S_MovementSystem`, `s_jump_system.gd` → `S_JumpSystem` |
 | **Components** | `c_*_component.gd` | `C_*Component` | `c_movement_component.gd` → `C_MovementComponent` |
 | **Resources** | `rs_*_settings.gd` / `rs_*_initial_state.gd` | `RS_*Settings` / `RS_*InitialState` | `rs_movement_settings.gd` → `RS_MovementSettings` |
 

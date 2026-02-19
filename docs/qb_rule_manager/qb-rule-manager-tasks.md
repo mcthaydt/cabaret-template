@@ -40,16 +40,16 @@
 
 ### 1C: Base Rule Manager (TDD)
 
-- [ ] T1.24: Create stub `scripts/ecs/systems/base_qb_rule_manager.gd` (BaseQBRuleManager extends BaseECSSystem) - execution_priority=-1 (runs before default-0 systems in ascending sort), add `get_default_rule_definitions()` virtual and empty `rule_definitions` export override
-- [ ] T1.25: Create `tests/unit/qb/test_qb_rule_lifecycle.gd` - Cooldown, salience (false->true transition fires, continuous true does NOT re-fire), one-shot, priority ordering (higher priority value = evaluated first within same manager; note this is RULE priority, not system execution_priority), event salience auto-disable, per-context cooldown (two contexts fire independently), cooldown_from_context_field (context overrides rule.cooldown), stale context cleanup, SET_QUALITY writes to context dict (verify no direct component mutation), default-rule fallback when export array is empty
-- [ ] T1.26: Run tests -- confirm they FAIL (red)
-- [ ] T1.27: Implement BaseQBRuleManager -- rule registration, tick evaluation, event handling with salience auto-disable for EVENT mode, cooldown management (global + per-context via cooldown_key_fields), fallback to `get_default_rule_definitions()` when exported list is empty, no _handle_effect virtual (effects fully processed by U_QBEffectExecutor)
-- [ ] T1.28: Run tests -- confirm they PASS (green)
+- [x] T1.24: Create stub `scripts/ecs/systems/base_qb_rule_manager.gd` (BaseQBRuleManager extends BaseECSSystem) - execution_priority=-1 (runs before default-0 systems in ascending sort), add `get_default_rule_definitions()` virtual and empty `rule_definitions` export override
+- [x] T1.25: Create `tests/unit/qb/test_qb_rule_lifecycle.gd` - Cooldown, salience (false->true transition fires, continuous true does NOT re-fire), one-shot, priority ordering (higher priority value = evaluated first within same manager; note this is RULE priority, not system execution_priority), event salience auto-disable, per-context cooldown (two contexts fire independently), cooldown_from_context_field (context overrides rule.cooldown), stale context cleanup, SET_QUALITY writes to context dict (verify no direct component mutation), default-rule fallback when export array is empty
+- [x] T1.26: Run tests -- confirm they FAIL (red)
+- [x] T1.27: Implement BaseQBRuleManager -- rule registration, tick evaluation, event handling with salience auto-disable for EVENT mode, cooldown management (global + per-context via cooldown_key_fields), fallback to `get_default_rule_definitions()` when exported list is empty, no _handle_effect virtual (effects fully processed by U_QBEffectExecutor)
+- [x] T1.28: Run tests -- confirm they PASS (green)
 
 ### 1D: Regression Check
 
-- [ ] T1.29: Run full existing ECS test suite to confirm zero regressions
-- [ ] T1.30: Update continuation prompt (`qb-rule-manager-continuation-prompt.md`) with Phase 1 status
+- [x] T1.29: Run full existing ECS test suite to confirm zero regressions
+- [x] T1.30: Update continuation prompt (`qb-rule-manager-continuation-prompt.md`) with Phase 1 status
 
 **Phase 1 Commit**: Core QB framework with full unit test coverage
 

@@ -183,7 +183,7 @@
 - **Utilities:** `u_*` prefix (e.g., `u_ecs_utils.gd` → `U_ECSUtils`, `u_entity_query.gd` → `U_EntityQuery`)
 - **Managers:** `m_*` prefix (e.g., `m_ecs_manager.gd` → `M_ECSManager`, `m_state_store.gd` → `M_StateStore`)
 - **Components:** `c_*` prefix (e.g., `c_movement_component.gd` → `C_MovementComponent`)
-- **Systems:** `s_*` prefix (e.g., `s_gravity_system.gd` → `S_GravitySystem`)
+- **Systems:** `s_*` prefix (e.g., `s_gravity_system.gd` → `S_GravitySystem`), with one documented exception: `base_qb_rule_manager.gd`
 - **Resources:** `rs_*` prefix (e.g., `rs_jump_settings.gd` → `RS_JumpSettings`)
 - **Entities:** `e_*` prefix (e.g., `e_player.gd` → `E_Player`)
 - **Interactable Controllers:** `inter_*` prefix (e.g., `inter_door_trigger.gd` → `Inter_DoorTrigger`)
