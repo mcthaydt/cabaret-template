@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="RS_QBRuleDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/qb/rs_qb_rule_definition.gd" id="1_rule"]
+[ext_resource type="Script" path="res://scripts/resources/qb/rs_qb_condition.gd" id="2_condition"]
+[ext_resource type="Script" path="res://scripts/resources/qb/rs_qb_effect.gd" id="3_effect"]
+
+[sub_resource type="Resource" id="QBCondition_pause_gate_transitioning"]
+script = ExtResource("2_condition")
+source = 1
+quality_path = "scene.is_transitioning"
+operator = 8
+
+[sub_resource type="Resource" id="QBEffect_pause_gate_transitioning"]
+script = ExtResource("3_effect")
+effect_type = 3
+target = "is_gameplay_active"
+payload = {
+"value_bool": false,
+"value_type": 3
+}
+
+[resource]
+script = ExtResource("1_rule")
+rule_id = &"pause_gate_transitioning"
+conditions = [SubResource("QBCondition_pause_gate_transitioning")]
+effects = [SubResource("QBEffect_pause_gate_transitioning")]
+requires_salience = false

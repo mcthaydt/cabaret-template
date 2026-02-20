@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_character_rule_manager.gd" id="1_character_rule_manager"]
 [ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
 [ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
 [ext_resource type="Script" uid="uid://dmljrhrqv5ei4" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
@@ -168,6 +169,9 @@ script = ExtResource("3_ph0bl")
 
 [node name="Core" type="Node" parent="Systems" unique_id=2013607496]
 script = ExtResource("3_systems_core")
+
+[node name="S_CharacterRuleManager" type="Node" parent="Systems/Core"]
+script = ExtResource("1_character_rule_manager")
 
 [node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=1046369553]
 script = ExtResource("1_pybrx")

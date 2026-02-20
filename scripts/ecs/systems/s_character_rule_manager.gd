@@ -16,8 +16,15 @@ const INPUT_TYPE := C_INPUT_COMPONENT.COMPONENT_TYPE
 const MOVEMENT_TYPE := C_MOVEMENT_COMPONENT.COMPONENT_TYPE
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
+const DEFAULT_RULE_DEFINITIONS := [
+	preload("res://resources/qb/character/cfg_pause_gate_paused.tres"),
+	preload("res://resources/qb/character/cfg_pause_gate_shell.tres"),
+	preload("res://resources/qb/character/cfg_pause_gate_transitioning.tres"),
+	preload("res://resources/qb/character/cfg_spawn_freeze_rule.tres"),
+]
+
 func get_default_rule_definitions() -> Array:
-	return []
+	return DEFAULT_RULE_DEFINITIONS.duplicate()
 
 func process_tick(delta: float) -> void:
 	_tick_cooldowns(delta)

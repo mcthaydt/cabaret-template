@@ -19,6 +19,7 @@
 [ext_resource type="Script" uid="uid://bjl6g0xu62e6d" path="res://scripts/ecs/components/c_health_component.gd" id="17_health"]
 [ext_resource type="Resource" uid="uid://bay3xmfxc8da0" path="res://resources/base_settings/gameplay/cfg_health_settings.tres" id="18_health_settings"]
 [ext_resource type="Script" uid="uid://dx3dwbjtpqx2k" path="res://scripts/ecs/components/c_spawn_state_component.gd" id="19_spawn_state"]
+[ext_resource type="Script" path="res://scripts/ecs/components/c_character_state_component.gd" id="20_character_state"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_yiwtw"]
 
@@ -98,6 +99,9 @@ script = ExtResource("3_8l4b7")
 [node name="C_SpawnStateComponent" type="Node" parent="Components" unique_id=1074141787]
 script = ExtResource("19_spawn_state")
 character_body_path = NodePath("../../Player_Body")
+
+[node name="C_CharacterStateComponent" type="Node" parent="Components"]
+script = ExtResource("20_character_state")
 
 [node name="C_MovementComponent" type="Node" parent="Components" unique_id=1558546231]
 script = ExtResource("1_6m9bm")
