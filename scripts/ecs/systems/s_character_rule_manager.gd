@@ -95,28 +95,8 @@ func _build_quality_context(
 	if store != null:
 		context["state_store"] = store
 
-	var components: Dictionary = {}
-	components[CHARACTER_STATE_TYPE] = character_state
-	components[String(CHARACTER_STATE_TYPE)] = character_state
-
-	if entity_query != null and entity_query is Object:
-		var query_object: Object = entity_query as Object
-		if query_object.has_method("get_entity_id"):
-			context["entity_id"] = query_object.call("get_entity_id")
-		if query_object.has_method("get_tags"):
-			context["entity_tags"] = query_object.call("get_tags")
-		var entity_variant: Variant = query_object.get("entity")
-		if entity_variant != null:
-			context["entity"] = entity_variant
-
-		_add_component_from_query(query_object, components, FLOATING_TYPE)
-		_add_component_from_query(query_object, components, HEALTH_TYPE)
-		_add_component_from_query(query_object, components, INPUT_TYPE)
-		_add_component_from_query(query_object, components, MOVEMENT_TYPE)
-		_add_component_from_query(query_object, components, SPAWN_STATE_TYPE)
-
-	context["components"] = components
-	context["component_data"] = components
+	_populate_entity_metadata(context, entity_query)
+	var components: Dictionary = _populate_component_map(context, entity_query)
 
 	var health_component: Variant = _get_component(components, HEALTH_TYPE)
 	var input_component: Variant = _get_component(components, INPUT_TYPE)
@@ -130,32 +110,67 @@ func _build_quality_context(
 		health_component
 	)
 
-	if input_component != null:
-		var move_vector_variant: Variant = input_component.get("move_vector")
-		if move_vector_variant is Vector2:
-			var move_vector: Vector2 = move_vector_variant
-			context["has_input"] = move_vector.length() > 0.0
+	_populate_health_state(context, health_component)
+	_populate_movement_state(context, body, floating_component)
+	_populate_input_state(context, input_component)
 
-	if health_component != null:
-		context["is_invincible"] = bool(health_component.get("is_invincible"))
+	return context
 
-		var max_health: float = 0.0
-		var current_health: float = 0.0
-		if health_component.has_method("get_max_health"):
-			max_health = maxf(float(health_component.call("get_max_health")), 0.0)
-		elif U_QB_VARIANT_UTILS.object_has_property(health_component, "max_health"):
-			max_health = maxf(float(health_component.get("max_health")), 0.0)
+func _populate_entity_metadata(context: Dictionary, entity_query: Variant) -> void:
+	if entity_query == null:
+		return
+	if not (entity_query is Object):
+		return
+	var query_object: Object = entity_query as Object
+	if query_object.has_method("get_entity_id"):
+		context["entity_id"] = query_object.call("get_entity_id")
+	if query_object.has_method("get_tags"):
+		context["entity_tags"] = query_object.call("get_tags")
+	var entity_variant: Variant = query_object.get("entity")
+	if entity_variant != null:
+		context["entity"] = entity_variant
 
-		if health_component.has_method("get_current_health"):
-			current_health = maxf(float(health_component.call("get_current_health")), 0.0)
-		elif U_QB_VARIANT_UTILS.object_has_property(health_component, "current_health"):
-			current_health = maxf(float(health_component.get("current_health")), 0.0)
+func _populate_component_map(context: Dictionary, entity_query: Variant) -> Dictionary:
+	var components: Dictionary = {}
+	var character_state: Variant = context.get("character_state_component", null)
+	components[CHARACTER_STATE_TYPE] = character_state
+	components[String(CHARACTER_STATE_TYPE)] = character_state
 
-		if max_health > 0.0:
-			context["health_percent"] = clampf(current_health / max_health, 0.0, 1.0)
-		else:
-			context["health_percent"] = 0.0
+	if entity_query != null and entity_query is Object:
+		var query_object: Object = entity_query as Object
+		_add_component_from_query(query_object, components, FLOATING_TYPE)
+		_add_component_from_query(query_object, components, HEALTH_TYPE)
+		_add_component_from_query(query_object, components, INPUT_TYPE)
+		_add_component_from_query(query_object, components, MOVEMENT_TYPE)
+		_add_component_from_query(query_object, components, SPAWN_STATE_TYPE)
 
+	context["components"] = components
+	context["component_data"] = components
+	return components
+
+func _populate_health_state(context: Dictionary, health_component: Variant) -> void:
+	if health_component == null:
+		return
+	context["is_invincible"] = bool(health_component.get("is_invincible"))
+
+	var max_health: float = 0.0
+	var current_health: float = 0.0
+	if health_component.has_method("get_max_health"):
+		max_health = maxf(float(health_component.call("get_max_health")), 0.0)
+	elif U_QB_VARIANT_UTILS.object_has_property(health_component, "max_health"):
+		max_health = maxf(float(health_component.get("max_health")), 0.0)
+
+	if health_component.has_method("get_current_health"):
+		current_health = maxf(float(health_component.call("get_current_health")), 0.0)
+	elif U_QB_VARIANT_UTILS.object_has_property(health_component, "current_health"):
+		current_health = maxf(float(health_component.get("current_health")), 0.0)
+
+	if max_health > 0.0:
+		context["health_percent"] = clampf(current_health / max_health, 0.0, 1.0)
+	else:
+		context["health_percent"] = 0.0
+
+func _populate_movement_state(context: Dictionary, body: CharacterBody3D, floating_component: Variant) -> void:
 	var floating_grounded: bool = false
 	if floating_component != null:
 		floating_grounded = bool(floating_component.get("grounded_stable")) or bool(floating_component.get("is_supported"))
@@ -177,7 +192,13 @@ func _build_quality_context(
 	context["is_moving"] = is_moving
 	context["vertical_state"] = vertical_state
 
-	return context
+func _populate_input_state(context: Dictionary, input_component: Variant) -> void:
+	if input_component == null:
+		return
+	var move_vector_variant: Variant = input_component.get("move_vector")
+	if move_vector_variant is Vector2:
+		var move_vector: Vector2 = move_vector_variant
+		context["has_input"] = move_vector.length() > 0.0
 
 func _write_brain_data(character_state: Variant, context: Dictionary) -> void:
 	if character_state == null:
