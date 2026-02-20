@@ -1,13 +1,11 @@
 @icon("res://assets/editor_icons/icn_system.svg")
 extends BaseECSSystem
-class_name S_VictorySystem
+class_name S_VictoryHandlerSystem
 
-const COMPONENT_TYPE := StringName("C_VictoryTriggerComponent")
 const REQUIRED_FINAL_AREA := "bar"
 
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
-## Phase 10B-8 (T142c): Enable dependency injection for isolated testing
 @export var state_store: I_StateStore = null
 
 var _store: I_StateStore = null
@@ -26,15 +24,16 @@ func on_configured() -> void:
 func _subscribe_events() -> void:
 	# Priority 10: Process state updates before scene manager transitions (priority 5)
 	_event_unsubscribes.append(U_ECSEventBus.subscribe(
-		U_ECSEventNames.EVENT_VICTORY_TRIGGERED,
-		_on_victory_triggered,
+		U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED,
+		_on_victory_execution_requested,
 		10
 	))
 
-func _on_victory_triggered(event: Dictionary) -> void:
+func _on_victory_execution_requested(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
 	var trigger := payload.get("trigger_node") as C_VictoryTriggerComponent
 	if trigger == null or not is_instance_valid(trigger):
+		push_warning("S_VictoryHandlerSystem: victory_execution_requested missing required payload.trigger_node")
 		return
 	if trigger.trigger_once and trigger.is_triggered:
 		return
@@ -53,7 +52,6 @@ func _handle_victory(trigger: C_VictoryTriggerComponent) -> void:
 		if trigger.victory_type == C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE:
 			_store.dispatch(U_GameplayActions.game_complete())
 
-	# Victory transition now handled by M_SceneManager via victory_triggered event
 	trigger.set_triggered()
 
 func _can_trigger_victory(trigger: C_VictoryTriggerComponent) -> bool:
@@ -77,7 +75,6 @@ func _can_trigger_victory(trigger: C_VictoryTriggerComponent) -> bool:
 
 func _ensure_dependencies_ready() -> bool:
 	if _store == null:
-		# Use injected store if available (Phase 10B-8)
 		if state_store != null:
 			_store = state_store
 		else:

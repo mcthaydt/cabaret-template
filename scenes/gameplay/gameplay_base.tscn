@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://b4cl746n4734p" path="res://scripts/root.gd" id="1_f2o31"]
 [ext_resource type="Script" uid="uid://dk0ir1w14hupq" path="res://scripts/ecs/systems/s_input_system.gd" id="1_pybrx"]
 [ext_resource type="Script" path="res://scripts/ecs/systems/s_character_rule_manager.gd" id="1_character_rule_manager"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_checkpoint_handler_system.gd" id="42_checkpoint_handler_system"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_game_rule_manager.gd" id="1_game_rule_manager"]
 [ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
 [ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
 [ext_resource type="Script" uid="uid://dmljrhrqv5ei4" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
@@ -27,7 +29,7 @@
 [ext_resource type="Script" uid="uid://qeq48m3npch6" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
 [ext_resource type="Resource" uid="uid://cqh2bvx4r8jw6" path="res://resources/base_settings/audio/cfg_jump_sound_default.tres" id="9_jump_sound_settings"]
 [ext_resource type="Script" uid="uid://bneiabwmn5nl7" path="res://scripts/ecs/systems/s_playtime_system.gd" id="9_playtime"]
-[ext_resource type="Script" uid="uid://cfddnuq1oriyb" path="res://scripts/ecs/systems/s_victory_system.gd" id="9_victory"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_victory_handler_system.gd" id="9_victory"]
 [ext_resource type="Script" uid="uid://bry3i70sfhmiv" path="res://scripts/ecs/systems/s_landing_particles_system.gd" id="10_landing_particles"]
 [ext_resource type="Resource" uid="uid://oxvahsme8310" path="res://resources/base_settings/gameplay/cfg_landing_particles_default.tres" id="10_landing_particles_settings"]
 [ext_resource type="Script" uid="uid://dcninbk24e6ve" path="res://scripts/ecs/systems/s_landing_sound_system.gd" id="10_landing_sound"]
@@ -120,6 +122,9 @@ script = ExtResource("3_systems_core")
 [node name="S_CharacterRuleManager" type="Node" parent="Systems/Core"]
 script = ExtResource("1_character_rule_manager")
 
+[node name="S_GameRuleManager" type="Node" parent="Systems/Core"]
+script = ExtResource("1_game_rule_manager")
+
 [node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=950736546]
 script = ExtResource("1_pybrx")
 require_captured_cursor = true
@@ -138,13 +143,16 @@ script = ExtResource("9_death_handler")
 script = ExtResource("9_damage")
 execution_priority = 250
 
-[node name="S_VictorySystem" type="Node" parent="Systems/Core" unique_id=572047574]
+[node name="S_VictoryHandlerSystem" type="Node" parent="Systems/Core" unique_id=572047574]
 script = ExtResource("9_victory")
 execution_priority = 300
 
 [node name="S_PlaytimeSystem" type="Node" parent="Systems/Core" unique_id=1159540622]
 script = ExtResource("9_playtime")
 execution_priority = 200
+
+[node name="S_CheckpointHandlerSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("42_checkpoint_handler_system")
 
 [node name="Physics" type="Node" parent="Systems" unique_id=566823520]
 script = ExtResource("3_systems_physics")

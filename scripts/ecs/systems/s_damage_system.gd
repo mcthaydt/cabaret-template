@@ -7,8 +7,6 @@ class_name S_DamageSystem
 const DAMAGE_COMPONENT_TYPE := StringName("C_DamageZoneComponent")
 const HEALTH_COMPONENT_TYPE := StringName("C_HealthComponent")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
-const EVENT_DAMAGE_ZONE_ENTERED := StringName("damage_zone_entered")
-const EVENT_DAMAGE_ZONE_EXITED := StringName("damage_zone_exited")
 
 var _cooldowns: Dictionary = {}  # zone_instance_id -> Dictionary(entity_id -> remaining_time)
 var _zone_bodies: Dictionary = {}  # zone_instance_id -> Array[Node3D]
@@ -136,8 +134,8 @@ func _cleanup_stale_zones(zones: Array) -> void:
 			_zone_bodies.erase(id_int)
 
 func _subscribe_events() -> void:
-	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_DAMAGE_ZONE_ENTERED, _on_zone_entered))
-	_event_unsubscribes.append(U_ECSEventBus.subscribe(EVENT_DAMAGE_ZONE_EXITED, _on_zone_exited))
+	_event_unsubscribes.append(U_ECSEventBus.subscribe(U_ECSEventNames.EVENT_DAMAGE_ZONE_ENTERED, _on_zone_entered))
+	_event_unsubscribes.append(U_ECSEventBus.subscribe(U_ECSEventNames.EVENT_DAMAGE_ZONE_EXITED, _on_zone_exited))
 
 func _on_zone_entered(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
