@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="RS_QBRuleDefinition" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="RS_QBRuleDefinition" format=3 uid="uid://b310gx1pcytdu"]
 
-[ext_resource type="Script" path="res://scripts/resources/qb/rs_qb_rule_definition.gd" id="1_rule"]
-[ext_resource type="Script" path="res://scripts/resources/qb/rs_qb_effect.gd" id="2_effect"]
+[ext_resource type="Script" uid="uid://twfq4kfbgrmk" path="res://scripts/resources/qb/rs_qb_rule_definition.gd" id="1_rule"]
+[ext_resource type="Script" uid="uid://bjkl7axy0epam" path="res://scripts/resources/qb/rs_qb_effect.gd" id="2_effect"]
 
 [sub_resource type="Resource" id="QBEffect_camera_shake"]
 script = ExtResource("2_effect")

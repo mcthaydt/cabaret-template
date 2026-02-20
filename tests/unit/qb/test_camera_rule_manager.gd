@@ -86,6 +86,34 @@ func test_camera_rule_manager_blends_camera_fov_toward_target() -> void:
 	assert_true(camera.fov < 90.0)
 	assert_true(camera.fov > 60.0)
 
+func test_camera_rule_manager_preserves_scene_baseline_fov_when_zone_inactive() -> void:
+	var fixture: Dictionary = _create_system([_make_camera_zone_rule(60.0)])
+	var system: Variant = fixture["system"]
+	var store: MockStateStore = fixture["store"]
+	var camera_manager: MockCameraManager = fixture["camera_manager"]
+	var ecs_manager: MockECSManager = fixture["ecs_manager"]
+	var components: Dictionary = _register_camera_components(ecs_manager)
+	var camera_state: Variant = components["camera_state"]
+
+	var camera := Camera3D.new()
+	autofree(camera)
+	camera.fov = 28.8
+	camera_manager.main_camera = camera
+
+	store.set_slice(StringName("camera"), {"in_fov_zone": false})
+	system.process_tick(0.1)
+	assert_almost_eq(camera.fov, 28.8, 0.001)
+	assert_almost_eq(camera_state.base_fov, 28.8, 0.001)
+
+	store.set_slice(StringName("camera"), {"in_fov_zone": true})
+	system.process_tick(0.1)
+	assert_true(camera.fov > 28.8)
+
+	store.set_slice(StringName("camera"), {"in_fov_zone": false})
+	for _i in range(20):
+		system.process_tick(0.1)
+	assert_almost_eq(camera.fov, 28.8, 0.1)
+
 func test_camera_rule_manager_applies_and_clears_shake_source() -> void:
 	var fixture: Dictionary = _create_system([])
 	var system: Variant = fixture["system"]

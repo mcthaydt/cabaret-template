@@ -183,7 +183,8 @@ func _is_primary_camera_context(context: Dictionary) -> bool:
 	return false
 
 func _apply_fov_to_camera(camera: Camera3D, camera_state: Variant, context: Dictionary, delta: float) -> void:
-	var target_fov: float = _resolve_target_fov(camera_state, context)
+	var baseline_fov: float = _ensure_baseline_fov(camera_state, camera.fov)
+	var target_fov: float = _resolve_target_fov(camera_state, context, baseline_fov)
 	_write_target_fov(camera_state, target_fov)
 
 	var blend_speed: float = maxf(
@@ -199,15 +200,28 @@ func _apply_fov_to_camera(camera: Camera3D, camera_state: Variant, context: Dict
 		return
 	camera.fov = lerpf(camera.fov, target_fov, alpha)
 
-func _resolve_target_fov(camera_state: Variant, context: Dictionary) -> float:
+func _resolve_target_fov(camera_state: Variant, context: Dictionary, baseline_fov: float) -> float:
 	if not _is_fov_zone_active(context):
-		return C_CAMERA_STATE_COMPONENT.DEFAULT_TARGET_FOV
+		return baseline_fov
 	var target_fov: float = _get_camera_state_float(
 		camera_state,
 		"target_fov",
 		C_CAMERA_STATE_COMPONENT.DEFAULT_TARGET_FOV
 	)
 	return clampf(target_fov, 1.0, 179.0)
+
+func _ensure_baseline_fov(camera_state: Variant, fallback_fov: float) -> float:
+	var existing_baseline: float = _get_camera_state_float(
+		camera_state,
+		"base_fov",
+		C_CAMERA_STATE_COMPONENT.UNSET_BASE_FOV
+	)
+	if existing_baseline > 1.0:
+		return clampf(existing_baseline, 1.0, 179.0)
+
+	var resolved_baseline: float = clampf(fallback_fov, 1.0, 179.0)
+	_write_baseline_fov(camera_state, resolved_baseline)
+	return resolved_baseline
 
 func _is_fov_zone_active(context: Dictionary) -> bool:
 	var state_variant: Variant = context.get("state", context.get("redux_state", {}))
@@ -225,6 +239,13 @@ func _write_target_fov(camera_state: Variant, value: float) -> void:
 		camera_state.call("set_target_fov", value)
 		return
 	camera_state.set("target_fov", clampf(value, 1.0, 179.0))
+
+func _write_baseline_fov(camera_state: Variant, value: float) -> void:
+	var clamped: float = clampf(value, 1.0, 179.0)
+	if camera_state.has_method("set_base_fov"):
+		camera_state.call("set_base_fov", clamped)
+		return
+	camera_state.set("base_fov", clamped)
 
 func _apply_trauma_shake(manager: I_CAMERA_MANAGER, camera_state: Variant, delta: float) -> void:
 	var trauma: float = clampf(_get_camera_state_float(camera_state, "shake_trauma", 0.0), 0.0, 1.0)

@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="RS_QBRuleDefinition" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="RS_QBRuleDefinition" format=3 uid="uid://dcntg51bqg3ns"]
 
-[ext_resource type="Script" path="res://scripts/resources/qb/rs_qb_rule_definition.gd" id="1_rule"]
-[ext_resource type="Script" path="res://scripts/resources/qb/rs_qb_condition.gd" id="2_condition"]
-[ext_resource type="Script" path="res://scripts/resources/qb/rs_qb_effect.gd" id="3_effect"]
+[ext_resource type="Script" uid="uid://twfq4kfbgrmk" path="res://scripts/resources/qb/rs_qb_rule_definition.gd" id="1_rule"]
+[ext_resource type="Script" uid="uid://bnqy287ut780h" path="res://scripts/resources/qb/rs_qb_condition.gd" id="2_condition"]
+[ext_resource type="Script" uid="uid://bjkl7axy0epam" path="res://scripts/resources/qb/rs_qb_effect.gd" id="3_effect"]
 
 [sub_resource type="Resource" id="QBCondition_spawn_freeze"]
 script = ExtResource("2_condition")
@@ -12,7 +12,6 @@ operator = 8
 
 [sub_resource type="Resource" id="QBEffect_spawn_freeze"]
 script = ExtResource("3_effect")
-effect_type = 3
 target = "is_spawn_frozen"
 payload = {
 "value_bool": true,
