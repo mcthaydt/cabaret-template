@@ -3,6 +3,7 @@ class_name U_QBEffectExecutor
 
 const QB_CONDITION := preload("res://scripts/resources/qb/rs_qb_condition.gd")
 const QB_EFFECT := preload("res://scripts/resources/qb/rs_qb_effect.gd")
+const U_QB_VARIANT_UTILS := preload("res://scripts/utils/qb/u_qb_variant_utils.gd")
 
 static func execute_effect(effect: Variant, context: Dictionary) -> void:
 	if effect == null:
@@ -10,7 +11,7 @@ static func execute_effect(effect: Variant, context: Dictionary) -> void:
 	if not (effect is Object):
 		return
 
-	var effect_type: int = _get_int_property(effect, "effect_type", QB_EFFECT.EffectType.SET_QUALITY)
+	var effect_type: int = U_QB_VARIANT_UTILS.get_int_property(effect, "effect_type", QB_EFFECT.EffectType.SET_QUALITY)
 	match effect_type:
 		QB_EFFECT.EffectType.DISPATCH_ACTION:
 			_execute_dispatch_action(effect, context)
@@ -33,7 +34,7 @@ static func _execute_dispatch_action(effect: Variant, context: Dictionary) -> vo
 		push_warning("U_QBEffectExecutor: DISPATCH_ACTION missing context.state_store")
 		return
 
-	var action_type: StringName = StringName(_get_string_property(effect, "target", ""))
+	var action_type: StringName = StringName(U_QB_VARIANT_UTILS.get_string_property(effect, "target", ""))
 	if action_type == &"":
 		push_warning("U_QBEffectExecutor: DISPATCH_ACTION missing target")
 		return
@@ -46,7 +47,7 @@ static func _execute_dispatch_action(effect: Variant, context: Dictionary) -> vo
 	store.dispatch(action)
 
 static func _execute_publish_event(effect: Variant, context: Dictionary) -> void:
-	var event_name: StringName = StringName(_get_string_property(effect, "target", ""))
+	var event_name: StringName = StringName(U_QB_VARIANT_UTILS.get_string_property(effect, "target", ""))
 	if event_name == &"":
 		push_warning("U_QBEffectExecutor: PUBLISH_EVENT missing target")
 		return
@@ -65,7 +66,7 @@ static func _execute_publish_event(effect: Variant, context: Dictionary) -> void
 	U_ECSEventBus.publish(event_name, event_payload)
 
 static func _execute_set_component_field(effect: Variant, context: Dictionary) -> void:
-	var target: String = _get_string_property(effect, "target", "")
+	var target: String = U_QB_VARIANT_UTILS.get_string_property(effect, "target", "")
 	if target.is_empty() or target.find(".") == -1:
 		push_warning("U_QBEffectExecutor: SET_COMPONENT_FIELD target must be Component.field")
 		return
@@ -77,14 +78,14 @@ static func _execute_set_component_field(effect: Variant, context: Dictionary) -
 		push_warning("U_QBEffectExecutor: SET_COMPONENT_FIELD target must be Component.field")
 		return
 
-	var components: Dictionary = _get_dict(context, "components")
+	var components: Dictionary = U_QB_VARIANT_UTILS.get_dict(context, "components")
 	if components.is_empty():
-		components = _get_dict(context, "component_data")
+		components = U_QB_VARIANT_UTILS.get_dict(context, "component_data")
 	if components.is_empty():
 		push_warning("U_QBEffectExecutor: SET_COMPONENT_FIELD missing context.components")
 		return
 
-	var component: Variant = _dict_get_string_or_name(components, component_key)
+	var component: Variant = U_QB_VARIANT_UTILS.dict_get_string_or_name(components, component_key)
 	if component == null:
 		push_warning("U_QBEffectExecutor: SET_COMPONENT_FIELD component '%s' missing" % component_key)
 		return
@@ -124,7 +125,7 @@ static func _execute_set_component_field(effect: Variant, context: Dictionary) -
 		push_warning("U_QBEffectExecutor: SET_COMPONENT_FIELD failed writing '%s'" % field_name)
 
 static func _execute_set_quality(effect: Variant, context: Dictionary) -> void:
-	var quality_key: String = _get_string_property(effect, "target", "")
+	var quality_key: String = U_QB_VARIANT_UTILS.get_string_property(effect, "target", "")
 	if quality_key.is_empty():
 		push_warning("U_QBEffectExecutor: SET_QUALITY missing target key")
 		return
@@ -182,7 +183,7 @@ static func _write_field_value(component: Variant, field_name: String, value: Va
 
 	if component is Object:
 		var object_value: Object = component as Object
-		if not _object_has_property(object_value, field_name):
+		if not U_QB_VARIANT_UTILS.object_has_property(object_value, field_name):
 			return false
 		object_value.set(field_name, value)
 		return true
@@ -214,17 +215,6 @@ static func _apply_numeric_clamp_if_needed(value: Variant, payload: Dictionary) 
 static func _is_numeric(value: Variant) -> bool:
 	return value is int or value is float
 
-static func _object_has_property(object_value: Object, property_name: String) -> bool:
-	var property_list: Array = object_value.get_property_list()
-	for property_info_variant in property_list:
-		if not (property_info_variant is Dictionary):
-			continue
-		var property_info: Dictionary = property_info_variant as Dictionary
-		var name_variant: Variant = property_info.get("name", "")
-		if String(name_variant) == property_name:
-			return true
-	return false
-
 static func _get_effect_payload(effect: Variant) -> Dictionary:
 	if effect == null or not (effect is Object):
 		return {}
@@ -232,41 +222,3 @@ static func _get_effect_payload(effect: Variant) -> Dictionary:
 	if payload is Dictionary:
 		return payload as Dictionary
 	return {}
-
-static func _get_int_property(object_value: Variant, property_name: String, fallback: int) -> int:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value == null:
-		return fallback
-	return int(value)
-
-static func _get_string_property(object_value: Variant, property_name: String, fallback: String) -> String:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value == null:
-		return fallback
-	if value is String:
-		return value
-	if value is StringName:
-		return String(value)
-	return fallback
-
-static func _get_dict(source: Dictionary, key: String) -> Dictionary:
-	var value: Variant = source.get(key, null)
-	if value is Dictionary:
-		return value as Dictionary
-	var key_name: StringName = StringName(key)
-	var key_name_value: Variant = source.get(key_name, null)
-	if key_name_value is Dictionary:
-		return key_name_value as Dictionary
-	return {}
-
-static func _dict_get_string_or_name(dictionary: Dictionary, key: String) -> Variant:
-	if dictionary.has(key):
-		return dictionary.get(key)
-	var key_name: StringName = StringName(key)
-	if dictionary.has(key_name):
-		return dictionary.get(key_name)
-	return null

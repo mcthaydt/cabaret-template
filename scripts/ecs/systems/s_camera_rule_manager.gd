@@ -94,8 +94,7 @@ func _attach_camera_context(
 	var components: Dictionary = {}
 	components[CAMERA_STATE_TYPE] = camera_state
 	var camera_state_type_key: String = String(CAMERA_STATE_TYPE)
-	if not components.has(camera_state_type_key):
-		components[camera_state_type_key] = camera_state
+	components[camera_state_type_key] = camera_state
 	context["components"] = components
 	context["component_data"] = components
 	context["redux_state"] = redux_state.duplicate(true)
@@ -280,21 +279,6 @@ func _write_shake_trauma(camera_state: Variant, value: float) -> void:
 func _get_camera_state_float(camera_state: Variant, property_name: String, fallback: float) -> float:
 	if camera_state == null or not (camera_state is Object):
 		return fallback
-	var object_value: Object = camera_state as Object
-	if not _object_has_property(object_value, property_name):
+	if not U_QB_VARIANT_UTILS.object_has_property(camera_state, property_name):
 		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value is float or value is int:
-		return float(value)
-	return fallback
-
-func _object_has_property(object_value: Object, property_name: String) -> bool:
-	var properties: Array = object_value.get_property_list()
-	for property_info_variant in properties:
-		if not (property_info_variant is Dictionary):
-			continue
-		var property_info: Dictionary = property_info_variant as Dictionary
-		var name_variant: Variant = property_info.get("name", "")
-		if String(name_variant) == property_name:
-			return true
-	return false
+	return U_QB_VARIANT_UTILS.get_float_property(camera_state, property_name, fallback)

@@ -148,12 +148,12 @@ func _build_quality_context(
 		var current_health: float = 0.0
 		if health_component.has_method("get_max_health"):
 			max_health = maxf(float(health_component.call("get_max_health")), 0.0)
-		elif _object_has_property(health_component, "max_health"):
+		elif U_QB_VARIANT_UTILS.object_has_property(health_component, "max_health"):
 			max_health = maxf(float(health_component.get("max_health")), 0.0)
 
 		if health_component.has_method("get_current_health"):
 			current_health = maxf(float(health_component.call("get_current_health")), 0.0)
-		elif _object_has_property(health_component, "current_health"):
+		elif U_QB_VARIANT_UTILS.object_has_property(health_component, "current_health"):
 			current_health = maxf(float(health_component.get("current_health")), 0.0)
 
 		if max_health > 0.0:
@@ -261,17 +261,3 @@ func _resolve_vertical_state(context: Dictionary) -> int:
 			return C_CHARACTER_STATE_COMPONENT.VERTICAL_STATE_RISING
 		_:
 			return C_CHARACTER_STATE_COMPONENT.VERTICAL_STATE_GROUNDED
-
-func _object_has_property(object_value: Variant, property_name: String) -> bool:
-	if object_value == null or not (object_value is Object):
-		return false
-	var object_data: Object = object_value as Object
-	var properties: Array = object_data.get_property_list()
-	for property_info_variant in properties:
-		if not (property_info_variant is Dictionary):
-			continue
-		var property_info: Dictionary = property_info_variant as Dictionary
-		var name_variant: Variant = property_info.get("name", "")
-		if String(name_variant) == property_name:
-			return true
-	return false

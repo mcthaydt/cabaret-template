@@ -4,6 +4,7 @@ class_name U_QBRuleValidator
 const QB_CONDITION := preload("res://scripts/resources/qb/rs_qb_condition.gd")
 const QB_EFFECT := preload("res://scripts/resources/qb/rs_qb_effect.gd")
 const QB_RULE := preload("res://scripts/resources/qb/rs_qb_rule_definition.gd")
+const U_QB_VARIANT_UTILS := preload("res://scripts/utils/qb/u_qb_variant_utils.gd")
 
 static func validate_rule(rule: Variant) -> Array[String]:
 	var errors: Array[String] = []
@@ -18,16 +19,16 @@ static func validate_rule(rule: Variant) -> Array[String]:
 	if rule_id.is_empty():
 		errors.append("rule_id must be non-empty")
 
-	var trigger_mode: int = _get_int_property(rule, "trigger_mode", QB_RULE.TriggerMode.TICK)
+	var trigger_mode: int = U_QB_VARIANT_UTILS.get_int_property(rule, "trigger_mode", QB_RULE.TriggerMode.TICK)
 	var trigger_event: String = _get_string_name_property(rule, "trigger_event")
 	if (trigger_mode == QB_RULE.TriggerMode.EVENT or trigger_mode == QB_RULE.TriggerMode.BOTH) and trigger_event.is_empty():
 		errors.append("trigger_event is required for EVENT/BOTH trigger modes")
 
-	var conditions: Array = _get_array_property(rule, "conditions")
+	var conditions: Array = U_QB_VARIANT_UTILS.get_array_property(rule, "conditions")
 	for index in range(conditions.size()):
 		_validate_condition(conditions[index], index, errors)
 
-	var effects: Array = _get_array_property(rule, "effects")
+	var effects: Array = U_QB_VARIANT_UTILS.get_array_property(rule, "effects")
 	for index in range(effects.size()):
 		_validate_effect(effects[index], index, errors)
 
@@ -61,8 +62,8 @@ static func _validate_condition(condition: Variant, index: int, errors: Array[St
 		errors.append("%s must be a valid condition resource" % prefix)
 		return
 
-	var source: int = _get_int_property(condition, "source", QB_CONDITION.Source.CUSTOM)
-	var quality_path: String = _get_string_property(condition, "quality_path", "")
+	var source: int = U_QB_VARIANT_UTILS.get_int_property(condition, "source", QB_CONDITION.Source.CUSTOM)
+	var quality_path: String = U_QB_VARIANT_UTILS.get_string_property(condition, "quality_path", "")
 	if quality_path.is_empty() and source != QB_CONDITION.Source.ENTITY_TAG and source != QB_CONDITION.Source.EVENT_PAYLOAD:
 		errors.append("%s.quality_path must be non-empty" % prefix)
 		return
@@ -78,8 +79,8 @@ static func _validate_effect(effect: Variant, index: int, errors: Array[String])
 		errors.append("%s must be a valid effect resource" % prefix)
 		return
 
-	var effect_type: int = _get_int_property(effect, "effect_type", QB_EFFECT.EffectType.SET_QUALITY)
-	var target: String = _get_string_property(effect, "target", "")
+	var effect_type: int = U_QB_VARIANT_UTILS.get_int_property(effect, "effect_type", QB_EFFECT.EffectType.SET_QUALITY)
+	var target: String = U_QB_VARIANT_UTILS.get_string_property(effect, "target", "")
 	if target.is_empty():
 		errors.append("%s.target must be non-empty" % prefix)
 		return
@@ -105,36 +106,8 @@ static func _is_component_path(path: String) -> bool:
 static func _is_redux_path(path: String) -> bool:
 	return _is_component_path(path)
 
-static func _get_array_property(object_value: Variant, property_name: String) -> Array:
-	if object_value == null or not (object_value is Object):
-		return []
-	var value: Variant = object_value.get(property_name)
-	if value is Array:
-		return value as Array
-	return []
-
-static func _get_int_property(object_value: Variant, property_name: String, fallback: int) -> int:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value == null:
-		return fallback
-	return int(value)
-
-static func _get_string_property(object_value: Variant, property_name: String, fallback: String) -> String:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value == null:
-		return fallback
-	if value is String:
-		return value
-	if value is StringName:
-		return String(value)
-	return fallback
-
 static func _get_string_name_property(object_value: Variant, property_name: String) -> String:
-	return _get_string_property(object_value, property_name, "")
+	return U_QB_VARIANT_UTILS.get_string_property(object_value, property_name, "")
 
 static func _get_dict_property(object_value: Variant, property_name: String) -> Dictionary:
 	if object_value == null or not (object_value is Object):

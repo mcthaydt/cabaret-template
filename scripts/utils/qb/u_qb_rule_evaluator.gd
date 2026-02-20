@@ -2,6 +2,7 @@ extends RefCounted
 class_name U_QBRuleEvaluator
 
 const QB_CONDITION := preload("res://scripts/resources/qb/rs_qb_condition.gd")
+const U_QB_VARIANT_UTILS := preload("res://scripts/utils/qb/u_qb_variant_utils.gd")
 
 static func evaluate_condition(condition: Variant, quality_value: Variant) -> bool:
 	if condition == null:
@@ -9,9 +10,9 @@ static func evaluate_condition(condition: Variant, quality_value: Variant) -> bo
 	if not (condition is Object):
 		return false
 
-	var value_type: int = _get_int_property(condition, "value_type", QB_CONDITION.ValueType.BOOL)
-	var operator: int = _get_int_property(condition, "operator", QB_CONDITION.Operator.EQUALS)
-	var negate: bool = _get_bool_property(condition, "negate", false)
+	var value_type: int = U_QB_VARIANT_UTILS.get_int_property(condition, "value_type", QB_CONDITION.ValueType.BOOL)
+	var operator: int = U_QB_VARIANT_UTILS.get_int_property(condition, "operator", QB_CONDITION.Operator.EQUALS)
+	var negate: bool = U_QB_VARIANT_UTILS.get_bool_property(condition, "negate", false)
 	var expected_value: Variant = _get_expected_value(condition)
 	var result: bool = false
 
@@ -52,7 +53,7 @@ static func evaluate_all_conditions(conditions: Array, context: Dictionary) -> b
 		if condition == null:
 			return false
 
-		var quality_path: String = _get_string_property(condition, "quality_path", "")
+		var quality_path: String = U_QB_VARIANT_UTILS.get_string_property(condition, "quality_path", "")
 		var quality_value: Variant = _resolve_quality_value(context, quality_path)
 		if not evaluate_condition(condition, quality_value):
 			return false
@@ -199,33 +200,3 @@ static func _get_expected_value(condition: Variant) -> Variant:
 	if condition is Object and condition.has_method("get_typed_value"):
 		return condition.call("get_typed_value")
 	return null
-
-static func _get_int_property(object_value: Variant, property_name: String, fallback: int) -> int:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value == null:
-		return fallback
-	return int(value)
-
-static func _get_bool_property(object_value: Variant, property_name: String, fallback: bool) -> bool:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value == null:
-		return fallback
-	if value is bool:
-		return value
-	return fallback
-
-static func _get_string_property(object_value: Variant, property_name: String, fallback: String) -> String:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value == null:
-		return fallback
-	if value is String:
-		return value
-	if value is StringName:
-		return String(value)
-	return fallback

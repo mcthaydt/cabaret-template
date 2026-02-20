@@ -2,6 +2,7 @@ extends RefCounted
 class_name U_QBQualityProvider
 
 const QB_CONDITION := preload("res://scripts/resources/qb/rs_qb_condition.gd")
+const U_QB_VARIANT_UTILS := preload("res://scripts/utils/qb/u_qb_variant_utils.gd")
 
 static func read_quality(condition: Variant, context: Dictionary) -> Variant:
 	if condition == null:
@@ -9,8 +10,8 @@ static func read_quality(condition: Variant, context: Dictionary) -> Variant:
 	if not (condition is Object):
 		return null
 
-	var source: int = _get_int_property(condition, "source", QB_CONDITION.Source.CUSTOM)
-	var quality_path: String = _get_string_property(condition, "quality_path", "")
+	var source: int = U_QB_VARIANT_UTILS.get_int_property(condition, "source", QB_CONDITION.Source.CUSTOM)
+	var quality_path: String = U_QB_VARIANT_UTILS.get_string_property(condition, "quality_path", "")
 
 	match source:
 		QB_CONDITION.Source.COMPONENT:
@@ -35,13 +36,13 @@ static func _read_component_quality(context: Dictionary, quality_path: String) -
 		return null
 
 	var component_key: String = segments[0]
-	var component_map: Dictionary = _get_dict(context, "components")
+	var component_map: Dictionary = U_QB_VARIANT_UTILS.get_dict(context, "components")
 	if component_map.is_empty():
-		component_map = _get_dict(context, "component_data")
+		component_map = U_QB_VARIANT_UTILS.get_dict(context, "component_data")
 	if component_map.is_empty():
 		return null
 
-	var component_value: Variant = _dict_get_string_or_name(component_map, component_key)
+	var component_value: Variant = U_QB_VARIANT_UTILS.dict_get_string_or_name(component_map, component_key)
 	if component_value == null:
 		return null
 	if segments.size() == 1:
@@ -51,9 +52,9 @@ static func _read_component_quality(context: Dictionary, quality_path: String) -
 	return _resolve_path_from_container(component_value, remaining_path)
 
 static func _read_redux_quality(context: Dictionary, quality_path: String) -> Variant:
-	var state: Dictionary = _get_dict(context, "redux_state")
+	var state: Dictionary = U_QB_VARIANT_UTILS.get_dict(context, "redux_state")
 	if state.is_empty():
-		state = _get_dict(context, "state")
+		state = U_QB_VARIANT_UTILS.get_dict(context, "state")
 	if state.is_empty():
 		return null
 
@@ -62,9 +63,9 @@ static func _read_redux_quality(context: Dictionary, quality_path: String) -> Va
 	return _resolve_path_from_container(state, quality_path)
 
 static func _read_event_payload_quality(context: Dictionary, quality_path: String) -> Variant:
-	var event_payload: Dictionary = _get_dict(context, "event_payload")
+	var event_payload: Dictionary = U_QB_VARIANT_UTILS.get_dict(context, "event_payload")
 	if event_payload.is_empty():
-		var event_envelope: Dictionary = _get_dict(context, "event")
+		var event_envelope: Dictionary = U_QB_VARIANT_UTILS.get_dict(context, "event")
 		var payload_variant: Variant = event_envelope.get("payload", null)
 		if payload_variant is Dictionary:
 			event_payload = payload_variant as Dictionary
@@ -137,59 +138,10 @@ static func _resolve_next(current: Variant, segment: String) -> Variant:
 
 	if current is Object:
 		var object_value: Object = current as Object
-		if _object_has_property(object_value, segment):
+		if U_QB_VARIANT_UTILS.object_has_property(object_value, segment):
 			return object_value.get(segment)
 		if object_value.has_method(segment):
 			return object_value.call(segment)
 		return null
 
 	return null
-
-static func _object_has_property(object_value: Object, property_name: String) -> bool:
-	var property_list: Array = object_value.get_property_list()
-	for property_info_variant in property_list:
-		if not (property_info_variant is Dictionary):
-			continue
-		var property_info: Dictionary = property_info_variant as Dictionary
-		var name_variant: Variant = property_info.get("name", "")
-		if String(name_variant) == property_name:
-			return true
-	return false
-
-static func _dict_get_string_or_name(dictionary: Dictionary, key: String) -> Variant:
-	if dictionary.has(key):
-		return dictionary.get(key)
-	var key_name: StringName = StringName(key)
-	if dictionary.has(key_name):
-		return dictionary.get(key_name)
-	return null
-
-static func _get_dict(source: Dictionary, key: String) -> Dictionary:
-	var value: Variant = source.get(key, null)
-	if value is Dictionary:
-		return value as Dictionary
-	var key_name: StringName = StringName(key)
-	var key_name_value: Variant = source.get(key_name, null)
-	if key_name_value is Dictionary:
-		return key_name_value as Dictionary
-	return {}
-
-static func _get_int_property(object_value: Variant, property_name: String, fallback: int) -> int:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value == null:
-		return fallback
-	return int(value)
-
-static func _get_string_property(object_value: Variant, property_name: String, fallback: String) -> String:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value == null:
-		return fallback
-	if value is String:
-		return value
-	if value is StringName:
-		return String(value)
-	return fallback

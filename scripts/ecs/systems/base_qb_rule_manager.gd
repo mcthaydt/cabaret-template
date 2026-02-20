@@ -8,6 +8,7 @@ const U_QB_RULE_EVALUATOR := preload("res://scripts/utils/qb/u_qb_rule_evaluator
 const U_QB_QUALITY_PROVIDER := preload("res://scripts/utils/qb/u_qb_quality_provider.gd")
 const U_QB_EFFECT_EXECUTOR := preload("res://scripts/utils/qb/u_qb_effect_executor.gd")
 const U_QB_RULE_VALIDATOR := preload("res://scripts/utils/qb/u_qb_rule_validator.gd")
+const U_QB_VARIANT_UTILS := preload("res://scripts/utils/qb/u_qb_variant_utils.gd")
 const QB_RULE := preload("res://scripts/resources/qb/rs_qb_rule_definition.gd")
 
 const GLOBAL_CONTEXT_KEY := "__global__"
@@ -480,49 +481,16 @@ func _get_rule_id(rule: Variant) -> StringName:
 	return &""
 
 func _get_array_property(object_value: Variant, property_name: String) -> Array:
-	if object_value == null or not (object_value is Object):
-		return []
-	var value: Variant = object_value.get(property_name)
-	if value is Array:
-		return value as Array
-	return []
+	return U_QB_VARIANT_UTILS.get_array_property(object_value, property_name)
 
 func _get_bool_property(object_value: Variant, property_name: String, fallback: bool) -> bool:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value == null:
-		return fallback
-	if value is bool:
-		return value
-	return fallback
+	return U_QB_VARIANT_UTILS.get_bool_property(object_value, property_name, fallback)
 
 func _get_int_property(object_value: Variant, property_name: String, fallback: int) -> int:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value == null:
-		return fallback
-	return int(value)
+	return U_QB_VARIANT_UTILS.get_int_property(object_value, property_name, fallback)
 
 func _get_float_property(object_value: Variant, property_name: String, fallback: float) -> float:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value == null:
-		return fallback
-	if value is float or value is int:
-		return float(value)
-	return fallback
+	return U_QB_VARIANT_UTILS.get_float_property(object_value, property_name, fallback)
 
 func _get_string_property(object_value: Variant, property_name: String, fallback: String) -> String:
-	if object_value == null or not (object_value is Object):
-		return fallback
-	var value: Variant = object_value.get(property_name)
-	if value == null:
-		return fallback
-	if value is String:
-		return value
-	if value is StringName:
-		return String(value)
-	return fallback
+	return U_QB_VARIANT_UTILS.get_string_property(object_value, property_name, fallback)
