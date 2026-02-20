@@ -59,7 +59,7 @@
 
 ### 2A: Component
 
-- [ ] T2.1: Create `scripts/ecs/components/c_character_state_component.gd` (C_CharacterStateComponent) - Brain data fields: is_gameplay_active, is_grounded, is_moving, is_spawn_frozen, is_dead, is_invincible, health_percent, vertical_state, has_input
+- [x] T2.1: Create `scripts/ecs/components/c_character_state_component.gd` (C_CharacterStateComponent) - Brain data fields: is_gameplay_active, is_grounded, is_moving, is_spawn_frozen, is_dead, is_invincible, health_percent, vertical_state, has_input
 
 ### 2B: Rule Manager (TDD)
 
