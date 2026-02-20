@@ -200,16 +200,16 @@ Completion notes: Added `S_GameRuleManager` + checkpoint/victory handler systems
 
 ### 5B: Rule Manager (TDD)
 
-- [ ] T5.2: Create stub `scripts/ecs/systems/s_camera_rule_manager.gd` (S_CameraRuleManager extends BaseQBRuleManager) with `get_default_rule_definitions()` returning const-preloaded camera rules
-- [ ] T5.3: Create `tests/unit/qb/test_camera_rule_manager.gd` - Shake on damage, FOV zone blending, SET_COMPONENT_FIELD operation contract (`add` trauma, `set` FOV)
-- [ ] T5.4: Run tests -- confirm they FAIL (red)
-- [ ] T5.5: Implement S_CameraRuleManager
-- [ ] T5.6: Run tests -- confirm they PASS (green)
+- [x] T5.2: Create stub `scripts/ecs/systems/s_camera_rule_manager.gd` (S_CameraRuleManager extends BaseQBRuleManager) with `get_default_rule_definitions()` returning const-preloaded camera rules
+- [x] T5.3: Create `tests/unit/qb/test_camera_rule_manager.gd` - Shake on damage, FOV zone blending, SET_COMPONENT_FIELD operation contract (`add` trauma, `set` FOV)
+- [x] T5.4: Run tests -- confirm they FAIL (red)
+- [x] T5.5: Implement S_CameraRuleManager
+- [x] T5.6: Run tests -- confirm they PASS (green)
 
 ### 5C: Rule Definitions + Integration
 
-- [ ] T5.7: Create `resources/qb/camera/cfg_camera_shake_rule.tres` - EVENT trigger: entity_death/health_changed; Effect: SET_COMPONENT_FIELD on `C_CameraStateComponent.shake_trauma` with `operation=add`, numeric value type, optional clamp
-- [ ] T5.8: Create `resources/qb/camera/cfg_camera_zone_fov_rule.tres` - TICK trigger; Conditions: entity in FOV zone; Effect: SET_COMPONENT_FIELD on `C_CameraStateComponent.target_fov` with `operation=set`, float value type
+- [x] T5.7: Create `resources/qb/camera/cfg_camera_shake_rule.tres` - EVENT trigger: entity_death/health_changed; Effect: SET_COMPONENT_FIELD on `C_CameraStateComponent.shake_trauma` with `operation=add`, numeric value type, optional clamp
+- [x] T5.8: Create `resources/qb/camera/cfg_camera_zone_fov_rule.tres` - TICK trigger; Conditions: entity in FOV zone; Effect: SET_COMPONENT_FIELD on `C_CameraStateComponent.target_fov` with `operation=set`, float value type
 - [ ] T5.9: Add C_CameraStateComponent to camera entity in character/scene templates
 - [ ] T5.10: Add S_CameraRuleManager to gameplay scenes
 - [ ] T5.11: Wire S_CameraRuleManager to apply shake_trauma via M_CameraManager
