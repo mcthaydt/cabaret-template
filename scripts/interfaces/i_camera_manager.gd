@@ -47,3 +47,20 @@ func finalize_blend_to_scene(_new_scene: Node) -> void:
 ## @param _rotation: Z-axis rotation in radians (camera roll)
 func apply_shake_offset(_offset: Vector2, _rotation: float) -> void:
 	push_error("I_CameraManager.apply_shake_offset not implemented")
+
+## Set a named shake source contribution.
+##
+## Multiple contributors can be blended by the camera manager.
+## Repeated calls with the same source update that source.
+##
+## @param _source: Stable source id (for example "vfx", "qb_camera_rule")
+## @param _offset: 2D screen-space offset contribution
+## @param _rotation: Z-axis rotation contribution in radians
+func set_shake_source(_source: StringName, _offset: Vector2, _rotation: float) -> void:
+	push_error("I_CameraManager.set_shake_source not implemented")
+
+## Remove a named shake source contribution.
+##
+## @param _source: Stable source id to remove
+func clear_shake_source(_source: StringName) -> void:
+	push_error("I_CameraManager.clear_shake_source not implemented")

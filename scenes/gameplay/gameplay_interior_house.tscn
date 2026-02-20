@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://scripts/ecs/systems/s_character_rule_manager.gd" id="1_character_rule_manager"]
 [ext_resource type="Script" path="res://scripts/ecs/systems/s_checkpoint_handler_system.gd" id="42_checkpoint_handler_system"]
 [ext_resource type="Script" path="res://scripts/ecs/systems/s_game_rule_manager.gd" id="1_game_rule_manager"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_camera_rule_manager.gd" id="1_camera_rule_manager"]
 [ext_resource type="Script" uid="uid://ct15mnvwlf0bc" path="res://scripts/scene_structure/marker_environment_group.gd" id="2_8soux"]
 [ext_resource type="Script" uid="uid://dlqtth6p5gchr" path="res://scripts/scene_structure/marker_scene_objects_group.gd" id="2_ph0bl"]
 [ext_resource type="Script" uid="uid://dmljrhrqv5ei4" path="res://scripts/ecs/systems/s_jump_system.gd" id="2_rfthe"]
@@ -171,6 +172,9 @@ script = ExtResource("1_character_rule_manager")
 
 [node name="S_GameRuleManager" type="Node" parent="Systems/Core"]
 script = ExtResource("1_game_rule_manager")
+
+[node name="S_CameraRuleManager" type="Node" parent="Systems/Core"]
+script = ExtResource("1_camera_rule_manager")
 
 [node name="S_InputSystem" type="Node" parent="Systems/Core" unique_id=1484671052]
 script = ExtResource("1_pybrx")

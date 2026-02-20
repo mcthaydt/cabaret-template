@@ -6,6 +6,7 @@ const QB_EFFECT := preload("res://scripts/resources/qb/rs_qb_effect.gd")
 const QB_RULE := preload("res://scripts/resources/qb/rs_qb_rule_definition.gd")
 const MOCK_STATE_STORE := preload("res://tests/mocks/mock_state_store.gd")
 const MOCK_ECS_MANAGER := preload("res://tests/mocks/mock_ecs_manager.gd")
+const MOCK_CAMERA_MANAGER := preload("res://tests/mocks/mock_camera_manager.gd")
 const C_CAMERA_STATE_COMPONENT := preload("res://scripts/ecs/components/c_camera_state_component.gd")
 
 func before_each() -> void:
@@ -66,6 +67,44 @@ func test_zone_rule_sets_target_fov_when_camera_zone_active() -> void:
 	system.process_tick(0.016)
 	assert_almost_eq(camera_state.target_fov, 60.0, 0.001)
 
+func test_camera_rule_manager_blends_camera_fov_toward_target() -> void:
+	var fixture: Dictionary = _create_system([_make_camera_zone_rule(60.0)])
+	var system: Variant = fixture["system"]
+	var store: MockStateStore = fixture["store"]
+	var camera_manager: MockCameraManager = fixture["camera_manager"]
+	var ecs_manager: MockECSManager = fixture["ecs_manager"]
+	_register_camera_components(ecs_manager)
+
+	var camera := Camera3D.new()
+	autofree(camera)
+	camera.fov = 90.0
+	camera_manager.main_camera = camera
+
+	store.set_slice(StringName("camera"), {"in_fov_zone": true})
+	system.process_tick(0.1)
+
+	assert_true(camera.fov < 90.0)
+	assert_true(camera.fov > 60.0)
+
+func test_camera_rule_manager_applies_and_clears_shake_source() -> void:
+	var fixture: Dictionary = _create_system([])
+	var system: Variant = fixture["system"]
+	var camera_manager: MockCameraManager = fixture["camera_manager"]
+	var ecs_manager: MockECSManager = fixture["ecs_manager"]
+	var components: Dictionary = _register_camera_components(ecs_manager)
+	var camera_state: Variant = components["camera_state"]
+
+	camera_state.shake_trauma = 1.0
+	system.process_tick(0.1)
+
+	assert_true(camera_manager.shake_sources.has(StringName("qb_camera_rule")))
+	assert_true(camera_manager.apply_calls > 0)
+	assert_true(float(camera_state.shake_trauma) < 1.0)
+
+	camera_state.shake_trauma = 0.0
+	system.process_tick(0.1)
+	assert_false(camera_manager.shake_sources.has(StringName("qb_camera_rule")))
+
 func _create_system(rules: Array = [], use_default_rules: bool = false) -> Dictionary:
 	var store := MOCK_STATE_STORE.new()
 	autofree(store)
@@ -73,6 +112,8 @@ func _create_system(rules: Array = [], use_default_rules: bool = false) -> Dicti
 
 	var ecs_manager := MOCK_ECS_MANAGER.new()
 	autofree(ecs_manager)
+	var camera_manager := MOCK_CAMERA_MANAGER.new()
+	autofree(camera_manager)
 
 	var system := CAMERA_RULE_MANAGER.new()
 	autofree(system)
@@ -80,12 +121,14 @@ func _create_system(rules: Array = [], use_default_rules: bool = false) -> Dicti
 		system.rule_definitions = rules
 	system.state_store = store
 	system.ecs_manager = ecs_manager
+	system.camera_manager = camera_manager
 	system.configure(ecs_manager)
 
 	return {
 		"system": system,
 		"store": store,
 		"ecs_manager": ecs_manager,
+		"camera_manager": camera_manager,
 	}
 
 func _register_camera_components(ecs_manager: MockECSManager) -> Dictionary:

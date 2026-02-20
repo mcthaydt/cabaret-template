@@ -3,6 +3,7 @@ class_name M_CameraManager
 extends "res://scripts/interfaces/i_camera_manager.gd"
 
 const U_SERVICE_LOCATOR := preload("res://scripts/core/u_service_locator.gd")
+const DEFAULT_SHAKE_SOURCE := StringName("vfx")
 
 ## M_CameraManager - Camera Blending Management (Phase 12.2)
 ##
@@ -47,6 +48,7 @@ var _shake_parents: Dictionary = {}
 var _active_scene_camera: Camera3D = null
 var _active_scene_shake_parent: Node3D = null
 var _main_camera: Camera3D = null
+var _shake_sources: Dictionary = {}
 
 func _ready() -> void:
 	# Register with ServiceLocator (VFX Phase 3: T3.2 dependency)
@@ -212,6 +214,49 @@ func _create_shake_parent() -> void:
 ## Example:
 ##   camera_manager.apply_shake_offset(Vector2(5.0, 3.0), 0.02)
 func apply_shake_offset(offset: Vector2, rotation: float) -> void:
+	set_shake_source(DEFAULT_SHAKE_SOURCE, offset, rotation)
+
+func set_shake_source(source: StringName, offset: Vector2, rotation: float) -> void:
+	if source == &"":
+		return
+	_shake_sources[source] = {
+		"offset": offset,
+		"rotation": rotation,
+	}
+	var combined: Dictionary = _get_combined_shake()
+	_apply_shake_internal(
+		combined.get("offset", Vector2.ZERO) as Vector2,
+		float(combined.get("rotation", 0.0))
+	)
+
+func clear_shake_source(source: StringName) -> void:
+	if source == &"":
+		return
+	if _shake_sources.has(source):
+		_shake_sources.erase(source)
+	var combined: Dictionary = _get_combined_shake()
+	_apply_shake_internal(
+		combined.get("offset", Vector2.ZERO) as Vector2,
+		float(combined.get("rotation", 0.0))
+	)
+
+func _get_combined_shake() -> Dictionary:
+	var total_offset: Vector2 = Vector2.ZERO
+	var total_rotation: float = 0.0
+	for source_variant in _shake_sources.values():
+		if not (source_variant is Dictionary):
+			continue
+		var source_entry: Dictionary = source_variant as Dictionary
+		var offset_variant: Variant = source_entry.get("offset", Vector2.ZERO)
+		if offset_variant is Vector2:
+			total_offset += offset_variant as Vector2
+		total_rotation += float(source_entry.get("rotation", 0.0))
+	return {
+		"offset": total_offset,
+		"rotation": total_rotation,
+	}
+
+func _apply_shake_internal(offset: Vector2, rotation: float) -> void:
 	if _shake_parent == null or _transition_camera == null:
 		return
 
