@@ -137,9 +137,24 @@ static func _resolve_next(current: Variant, segment: String) -> Variant:
 
 	if current is Object:
 		var object_value: Object = current as Object
-		return object_value.get(segment)
+		if _object_has_property(object_value, segment):
+			return object_value.get(segment)
+		if object_value.has_method(segment):
+			return object_value.call(segment)
+		return null
 
 	return null
+
+static func _object_has_property(object_value: Object, property_name: String) -> bool:
+	var property_list: Array = object_value.get_property_list()
+	for property_info_variant in property_list:
+		if not (property_info_variant is Dictionary):
+			continue
+		var property_info: Dictionary = property_info_variant as Dictionary
+		var name_variant: Variant = property_info.get("name", "")
+		if String(name_variant) == property_name:
+			return true
+	return false
 
 static func _dict_get_string_or_name(dictionary: Dictionary, key: String) -> Variant:
 	if dictionary.has(key):

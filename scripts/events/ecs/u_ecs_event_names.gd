@@ -11,6 +11,8 @@ const EVENT_DAMAGE_FLASH_REQUEST := StringName("damage_flash_request")
 const EVENT_HEALTH_CHANGED := StringName("health_changed")
 const EVENT_ENTITY_LANDED := StringName("entity_landed")
 const EVENT_ENTITY_DEATH := StringName("entity_death")
+const EVENT_ENTITY_DEATH_REQUESTED := StringName("entity_death_requested")
+const EVENT_ENTITY_RESPAWN_REQUESTED := StringName("entity_respawn_requested")
 
 # Service Names
 const SERVICE_VFX_MANAGER := StringName("vfx_manager")

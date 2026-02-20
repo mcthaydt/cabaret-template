@@ -13,20 +13,16 @@ class_name S_GravitySystem
 
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 
 func process_tick(delta: float) -> void:
-	# Skip processing if game is paused
 	# Use injected store if available (Phase 10B-8)
 	var store: I_StateStore = null
 	if state_store != null:
 		store = state_store
 	else:
 		store = U_StateUtils.get_store(self)
-
-	if store:
-		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-		if U_GameplaySelectors.get_is_paused(gameplay_state):
-			return
 	
 	var manager := get_manager()
 	if manager == null:
@@ -34,6 +30,7 @@ func process_tick(delta: float) -> void:
 
 	var processed := {}
 	var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, FLOATING_TYPE)
+	var character_state_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, CHARACTER_STATE_TYPE)
 
 	var entities := manager.query_entities(
 		[
@@ -41,6 +38,7 @@ func process_tick(delta: float) -> void:
 		],
 		[
 			FLOATING_TYPE,
+			CHARACTER_STATE_TYPE,
 		]
 	)
 
@@ -56,6 +54,12 @@ func process_tick(delta: float) -> void:
 		if processed.has(body):
 			continue
 		processed[body] = true
+
+		var character_state: C_CharacterStateComponent = entity_query.get_component(CHARACTER_STATE_TYPE)
+		if character_state == null:
+			character_state = character_state_by_body.get(body, null) as C_CharacterStateComponent
+		if character_state != null and not character_state.is_gameplay_active:
+			continue
 
 		var floating_component: C_FloatingComponent = entity_query.get_component(FLOATING_TYPE)
 		if floating_component == null and floating_by_body.has(body):

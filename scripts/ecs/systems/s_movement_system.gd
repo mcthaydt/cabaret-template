@@ -7,6 +7,8 @@ class_name S_MovementSystem
 const MOVEMENT_TYPE := StringName("C_MovementComponent")
 const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
@@ -20,18 +22,12 @@ const MIN_STABLE_FRAMES := 10  # Frames state must be stable before dispatching 
 var _floor_state_stable_frames: Dictionary = {}  # entity_id -> frames_stable
 
 func process_tick(delta: float) -> void:
-	# Skip processing if game is paused
 	# Use injected store if available (Phase 10B-8)
 	var store: I_StateStore = null
 	if state_store != null:
 		store = state_store
 	else:
 		store = U_StateUtils.get_store(self)
-
-	if store:
-		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-		if U_GameplaySelectors.get_is_paused(gameplay_state):
-			return
 	
 	var manager := get_manager()
 	if manager == null:
@@ -42,6 +38,7 @@ func process_tick(delta: float) -> void:
 	var current_time := ECS_UTILS.get_current_time()
 	var current_physics_frame: int = Engine.get_physics_frames()
 	var spawn_state_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, SPAWN_STATE_TYPE)
+	var character_state_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, CHARACTER_STATE_TYPE)
 
 	# Pull every entity that has movement + input; floating is optional for support checks.
 	var entities: Array = manager.query_entities(
@@ -51,6 +48,7 @@ func process_tick(delta: float) -> void:
 		],
 		[
 			FLOATING_TYPE,
+			CHARACTER_STATE_TYPE,
 		]
 	)
 
@@ -65,6 +63,12 @@ func process_tick(delta: float) -> void:
 			continue
 
 		var spawn_state: C_SpawnStateComponent = spawn_state_by_body.get(body, null) as C_SpawnStateComponent
+		var character_state: C_CharacterStateComponent = entity_query.get_component(CHARACTER_STATE_TYPE)
+		if character_state == null:
+			character_state = character_state_by_body.get(body, null) as C_CharacterStateComponent
+		if character_state != null and not character_state.is_gameplay_active:
+			continue
+
 		var state = body_state.get(body, null)
 		if state == null:
 			state = {
@@ -76,7 +80,13 @@ func process_tick(delta: float) -> void:
 
 		var velocity: Vector3 = state.velocity
 
-		if spawn_state != null and spawn_state.is_physics_frozen:
+		var is_spawn_frozen: bool = false
+		if character_state != null:
+			is_spawn_frozen = character_state.is_spawn_frozen
+		elif spawn_state != null:
+			is_spawn_frozen = spawn_state.is_physics_frozen
+
+		if is_spawn_frozen:
 			_maybe_schedule_spawn_unfreeze(body, spawn_state, current_physics_frame)
 			state.velocity = Vector3.ZERO
 			movement_component.reset_dynamics_state()

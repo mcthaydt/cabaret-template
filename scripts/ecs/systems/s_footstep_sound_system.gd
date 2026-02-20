@@ -15,6 +15,8 @@ class_name S_FootstepSoundSystem
 
 const SETTINGS_TYPE := preload("res://scripts/resources/ecs/rs_footstep_sound_settings.gd")
 const SFX_SPAWNER := preload("res://scripts/managers/helpers/u_sfx_spawner.gd")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const SURFACE_DETECTOR_TYPE := StringName("C_SurfaceDetectorComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 
@@ -28,9 +30,6 @@ var _warned_no_entities: bool = false
 var _warned_missing_body: bool = false
 const DEBUG_VERSION := "2026-02-03a"
 
-## Injected state store (for testing and pause detection)
-@export var state_store: I_StateStore = null
-
 func _exit_tree() -> void:
 	# Phase 6.10: Clean up entity timers to prevent memory leaks
 	_entity_timers.clear()
@@ -43,18 +42,6 @@ func process_tick(delta: float) -> void:
 	if settings == null or not settings.enabled:
 		return
 
-	# Check pause state (skip if no state store available, e.g., in tests)
-	var store: I_StateStore = state_store
-	if store == null:
-		# Try to find store in scene tree (only in production)
-		if not Engine.is_editor_hint():
-			store = U_StateUtils.try_get_store(self)
-
-	if store != null:
-		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-		if U_GameplaySelectors.get_is_paused(gameplay_state):
-			return
-
 	# Get manager
 	var manager := get_manager()
 	if manager == null:
@@ -66,7 +53,10 @@ func process_tick(delta: float) -> void:
 	# Query entities that have surface detector components (floating is optional)
 	var entities := manager.query_entities(
 		[SURFACE_DETECTOR_TYPE],
-		[FLOATING_TYPE]
+		[
+			FLOATING_TYPE,
+			CHARACTER_STATE_TYPE,
+		]
 	)
 	if entities.is_empty():
 		if not _warned_no_entities and Engine.get_physics_frames() > 5:
@@ -74,6 +64,7 @@ func process_tick(delta: float) -> void:
 			push_warning("S_FootstepSoundSystem: No entities with C_SurfaceDetectorComponent registered. Check player prefab/component wiring.")
 		return
 	var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, FLOATING_TYPE)
+	var character_state_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, CHARACTER_STATE_TYPE)
 
 	for entity_query in entities:
 		var surface_detector := entity_query.get_component(SURFACE_DETECTOR_TYPE) as C_SurfaceDetectorComponent
@@ -86,6 +77,12 @@ func process_tick(delta: float) -> void:
 			if not _warned_missing_body:
 				_warned_missing_body = true
 				push_warning("S_FootstepSoundSystem: Surface detector has no CharacterBody3D (invalid character_body_path).")
+			continue
+
+		var character_state: C_CharacterStateComponent = entity_query.get_component(CHARACTER_STATE_TYPE)
+		if character_state == null:
+			character_state = character_state_by_body.get(body, null) as C_CharacterStateComponent
+		if character_state != null and not character_state.is_gameplay_active:
 			continue
 
 		# Get floating component if available (for hover-based characters)

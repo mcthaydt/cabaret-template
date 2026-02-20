@@ -9,6 +9,8 @@ const INPUT_TYPE := StringName("C_InputComponent")
 const FLOATING_TYPE := StringName("C_FloatingComponent")
 const EVENT_ENTITY_JUMPED := StringName("entity_jumped")
 const EVENT_ENTITY_LANDED := StringName("entity_landed")
+const C_CHARACTER_STATE_COMPONENT := preload("res://scripts/ecs/components/c_character_state_component.gd")
+const CHARACTER_STATE_TYPE := C_CHARACTER_STATE_COMPONENT.COMPONENT_TYPE
 const C_SPAWN_STATE_COMPONENT := preload("res://scripts/ecs/components/c_spawn_state_component.gd")
 const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
@@ -19,7 +21,6 @@ const SPAWN_STATE_TYPE := C_SPAWN_STATE_COMPONENT.COMPONENT_TYPE
 
 
 func process_tick(__delta: float) -> void:
-	# Skip processing if game is paused
 	# Use injected store if available (Phase 10B-8)
 	var store: I_StateStore = null
 	if state_store != null:
@@ -29,9 +30,6 @@ func process_tick(__delta: float) -> void:
 
 	var accessibility_jump_buffer: float = -1.0
 	if store:
-		var gameplay_state: Dictionary = store.get_slice(StringName("gameplay"))
-		if U_GameplaySelectors.get_is_paused(gameplay_state):
-			return
 		var state: Dictionary = store.get_state()
 		var settings_variant: Variant = state.get("settings", {})
 		if settings_variant is Dictionary:
@@ -58,10 +56,12 @@ func process_tick(__delta: float) -> void:
 		],
 		[
 			FLOATING_TYPE,
+			CHARACTER_STATE_TYPE,
 		]
 	)
 	var floating_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, FLOATING_TYPE)
 	var spawn_state_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, SPAWN_STATE_TYPE)
+	var character_state_by_body: Dictionary = ECS_UTILS.map_components_by_body(manager, CHARACTER_STATE_TYPE)
 
 	for entity_query in entities:
 		var component: C_JumpComponent = entity_query.get_component(JUMP_TYPE)
@@ -73,8 +73,19 @@ func process_tick(__delta: float) -> void:
 		if body == null:
 			continue
 
+		var character_state: C_CharacterStateComponent = entity_query.get_component(CHARACTER_STATE_TYPE)
+		if character_state == null:
+			character_state = character_state_by_body.get(body, null) as C_CharacterStateComponent
+		if character_state != null and not character_state.is_gameplay_active:
+			continue
+
 		var spawn_state: C_SpawnStateComponent = spawn_state_by_body.get(body, null) as C_SpawnStateComponent
-		if spawn_state != null and spawn_state.is_physics_frozen:
+		var is_spawn_frozen: bool = false
+		if character_state != null:
+			is_spawn_frozen = character_state.is_spawn_frozen
+		elif spawn_state != null:
+			is_spawn_frozen = spawn_state.is_physics_frozen
+		if is_spawn_frozen:
 			component.update_debug_snapshot({
 				"spawn_frozen": true,
 			})

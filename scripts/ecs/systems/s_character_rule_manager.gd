@@ -21,6 +21,7 @@ const DEFAULT_RULE_DEFINITIONS := [
 	preload("res://resources/qb/character/cfg_pause_gate_shell.tres"),
 	preload("res://resources/qb/character/cfg_pause_gate_transitioning.tres"),
 	preload("res://resources/qb/character/cfg_spawn_freeze_rule.tres"),
+	preload("res://resources/qb/character/cfg_death_sync_rule.tres"),
 ]
 
 func get_default_rule_definitions() -> Array:

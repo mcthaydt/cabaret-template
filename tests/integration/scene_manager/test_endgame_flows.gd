@@ -24,6 +24,7 @@ const U_STATE_HANDOFF := preload("res://scripts/state/utils/u_state_handoff.gd")
 const PLAYER_TAG_COMPONENT := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const HEALTH_COMPONENT := preload("res://scripts/ecs/components/c_health_component.gd")
 const HEALTH_SYSTEM := preload("res://scripts/ecs/systems/s_health_system.gd")
+const DEATH_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_death_handler_system.gd")
 const HEALTH_SETTINGS_RESOURCE := preload("res://resources/base_settings/gameplay/cfg_health_settings.tres")
 
 const VICTORY_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
@@ -150,6 +151,10 @@ func _prepare_player_with_health() -> Dictionary:
 	var health_system := HEALTH_SYSTEM.new()
 	health_system.name = "S_HealthSystem"
 	_systems_core.add_child(health_system)
+
+	var death_handler_system := DEATH_HANDLER_SYSTEM.new()
+	death_handler_system.name = "S_DeathHandlerSystem"
+	_systems_core.add_child(death_handler_system)
 
 	await wait_physics_frames(2)
 

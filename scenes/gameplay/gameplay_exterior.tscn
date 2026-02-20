@@ -21,6 +21,7 @@
 [ext_resource type="Script" uid="uid://ddf4k6uippbnm" path="res://scripts/ecs/systems/s_landing_indicator_system.gd" id="8_ey5t3"]
 [ext_resource type="Script" uid="uid://dciojb5mih6gh" path="res://scripts/ecs/systems/s_damage_system.gd" id="9_damage"]
 [ext_resource type="Script" uid="uid://vbqdwstwybck" path="res://scripts/ecs/systems/s_health_system.gd" id="9_health"]
+[ext_resource type="Script" path="res://scripts/ecs/systems/s_death_handler_system.gd" id="9_death_handler"]
 [ext_resource type="Script" uid="uid://bxqd4f7hk7hte" path="res://scripts/ecs/systems/s_jump_particles_system.gd" id="9_jump_particles"]
 [ext_resource type="Resource" uid="uid://cd2l2cajwt23m" path="res://resources/base_settings/gameplay/cfg_jump_particles_default.tres" id="9_jump_particles_settings"]
 [ext_resource type="Script" uid="uid://qeq48m3npch6" path="res://scripts/ecs/systems/s_jump_sound_system.gd" id="9_jump_sound"]
@@ -183,6 +184,9 @@ script = ExtResource("24_touchscreen_system")
 [node name="S_HealthSystem" type="Node" parent="Systems/Core" unique_id=1912819351]
 script = ExtResource("9_health")
 execution_priority = 200
+
+[node name="S_DeathHandlerSystem" type="Node" parent="Systems/Core"]
+script = ExtResource("9_death_handler")
 
 [node name="S_DamageSystem" type="Node" parent="Systems/Core" unique_id=1555421829]
 script = ExtResource("9_damage")
