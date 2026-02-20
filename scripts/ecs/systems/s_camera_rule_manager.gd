@@ -30,12 +30,7 @@ func on_configured() -> void:
 func get_default_rule_definitions() -> Array:
 	return DEFAULT_RULE_DEFINITIONS.duplicate()
 
-func process_tick(delta: float) -> void:
-	_tick_cooldowns(delta)
-	_begin_tick_context_tracking()
-	var contexts: Array = _get_tick_contexts(delta)
-	_evaluate_contexts(contexts, QB_RULE.TriggerMode.TICK)
-	_cleanup_stale_context_state()
+func _post_tick_evaluation(contexts: Array, delta: float) -> void:
 	_apply_camera_state(contexts, delta)
 
 func _get_tick_contexts(_delta: float) -> Array:

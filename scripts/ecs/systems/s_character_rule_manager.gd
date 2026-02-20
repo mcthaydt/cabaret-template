@@ -27,18 +27,13 @@ const DEFAULT_RULE_DEFINITIONS := [
 func get_default_rule_definitions() -> Array:
 	return DEFAULT_RULE_DEFINITIONS.duplicate()
 
-func process_tick(delta: float) -> void:
-	_tick_cooldowns(delta)
-	_begin_tick_context_tracking()
-	var contexts: Array = _get_tick_contexts(delta)
-	_evaluate_contexts(contexts, QB_RULE.TriggerMode.TICK)
+func _post_tick_evaluation(contexts: Array, _delta: float) -> void:
 	for context_variant in contexts:
 		if not (context_variant is Dictionary):
 			continue
 		var context: Dictionary = context_variant
 		var character_state: Variant = context.get("character_state_component", null)
 		_write_brain_data(character_state, context)
-	_cleanup_stale_context_state()
 
 func _get_tick_contexts(delta: float) -> Array:
 	var contexts: Array = []

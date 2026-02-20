@@ -40,6 +40,7 @@ func process_tick(delta: float) -> void:
 	_begin_tick_context_tracking()
 	var contexts: Array = _get_tick_contexts(delta)
 	_evaluate_contexts(contexts, QB_RULE.TriggerMode.TICK)
+	_post_tick_evaluation(contexts, delta)
 	_cleanup_stale_context_state()
 
 func get_default_rule_definitions() -> Array:
@@ -47,6 +48,9 @@ func get_default_rule_definitions() -> Array:
 
 func _get_tick_contexts(_delta: float) -> Array:
 	return []
+
+func _post_tick_evaluation(_contexts: Array, _delta: float) -> void:
+	pass
 
 func get_registered_rule_ids() -> Array[StringName]:
 	var ids: Array[StringName] = []
