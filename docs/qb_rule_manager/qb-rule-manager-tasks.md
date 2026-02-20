@@ -234,12 +234,12 @@ Completion notes: Added `C_CameraStateComponent` to `tmpl_camera`, integrated `S
 
 ### Project-Level Updates
 
-- [ ] T6.3: Update `AGENTS.md` with QB Rule Manager patterns section
-- [ ] T6.4: Update `docs/general/DEV_PITFALLS.md` with any new pitfalls discovered
+- [x] T6.3: Update `AGENTS.md` with QB Rule Manager patterns section
+- [x] T6.4: Update `docs/general/DEV_PITFALLS.md` with any new pitfalls discovered
 
 ### Final Verification
 
-- [ ] T6.5: Run full test suite (ECS + QB + style)
+- [x] T6.5: Run full test suite (ECS + QB + style)
 - [ ] T6.6: Manual playtest: full gameplay loop (walk, jump, take damage, die, respawn, checkpoint, victory)
 
 **Phase 6 Commit**: Validation tooling and final verification
