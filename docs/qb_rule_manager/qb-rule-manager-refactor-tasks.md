@@ -1,6 +1,6 @@
 # QB Rule Manager Refactor - Tasks Checklist
 
-**Progress:** 49% (19 / 39 tasks complete)
+**Progress:** 67% (26 / 39 tasks complete)
 
 ## Verification (all phases)
 
@@ -103,13 +103,18 @@ Completion notes (2026-02-20):
 
 **Goal:** Break the 107-line monolith (lines 79-185) in `S_CharacterRuleManager` into focused private helpers. No file extraction -- same class.
 
-- [ ] TR4.1: Extract `_populate_entity_metadata(context: Dictionary, entity_query: Variant) -> void`
-- [ ] TR4.2: Extract `_populate_component_map(context: Dictionary, entity_query: Variant) -> Dictionary` (returns components dict)
-- [ ] TR4.3: Extract `_populate_health_state(context: Dictionary, health_component: Variant) -> void`
-- [ ] TR4.4: Extract `_populate_movement_state(context: Dictionary, body: CharacterBody3D, floating_component: Variant) -> void`
-- [ ] TR4.5: Extract `_populate_input_state(context: Dictionary, input_component: Variant) -> void`
-- [ ] TR4.6: Rewrite `_build_quality_context()` to: initialize context defaults (lines 86-101), call entity metadata + component map helpers, extract individual components + resolve body (lines 126-136 stay in orchestrator as wiring), then call health/movement/input helpers in sequence
-- [ ] TR4.7: Run full test suite -- zero regressions
+- [x] TR4.1: Extract `_populate_entity_metadata(context: Dictionary, entity_query: Variant) -> void`
+- [x] TR4.2: Extract `_populate_component_map(context: Dictionary, entity_query: Variant) -> Dictionary` (returns components dict)
+- [x] TR4.3: Extract `_populate_health_state(context: Dictionary, health_component: Variant) -> void`
+- [x] TR4.4: Extract `_populate_movement_state(context: Dictionary, body: CharacterBody3D, floating_component: Variant) -> void`
+- [x] TR4.5: Extract `_populate_input_state(context: Dictionary, input_component: Variant) -> void`
+- [x] TR4.6: Rewrite `_build_quality_context()` to: initialize context defaults (lines 86-101), call entity metadata + component map helpers, extract individual components + resolve body (lines 126-136 stay in orchestrator as wiring), then call health/movement/input helpers in sequence
+- [x] TR4.7: Run full test suite -- zero regressions
+
+Completion notes (2026-02-20):
+- Decomposed `S_CharacterRuleManager._build_quality_context()` into focused private helpers for entity metadata, component map setup, health state, movement state, and input state.
+- Kept the orchestrator responsible for context defaults + dependency wiring while preserving existing rule evaluation behavior.
+- Verification passed: `tests/unit/qb` (71/71), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), `tests/unit/style` (12/12).
 
 **Commit:** `Decompose _build_quality_context() into focused private helpers`
 
@@ -197,7 +202,7 @@ Note: The camera shake values (offset 10.0, rotation 0.03) are intentionally dif
 
 - Zero behavioral changes across all phases -- existing tests are the definitive spec
 - Each phase ends with a commit at test-green state
-- R1-R3 touch the most files and carry the most regression risk; R4-R6 are localized
+- R1-R4 touch the most files and carry the most regression risk; R5-R6 are localized
 
 ## Links
 
