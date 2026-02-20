@@ -2,11 +2,10 @@
 extends BaseECSSystem
 class_name S_VictoryHandlerSystem
 
-const REQUIRED_FINAL_AREA := "bar"
-
 ## Injected state store (for testing)
 ## If set, system uses this instead of U_StateUtils.get_store()
 @export var state_store: I_StateStore = null
+@export var required_final_area: String = "bar"
 
 var _store: I_StateStore = null
 var _event_unsubscribes: Array[Callable] = []
@@ -66,7 +65,7 @@ func _can_trigger_victory(trigger: C_VictoryTriggerComponent) -> bool:
 		var completed_variant: Variant = gameplay.get("completed_areas", [])
 		if completed_variant is Array:
 			var completed: Array = completed_variant
-			if not completed.has(REQUIRED_FINAL_AREA):
+			if not completed.has(required_final_area):
 				return false
 		else:
 			return false

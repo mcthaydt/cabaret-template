@@ -136,6 +136,8 @@ func _restore_entity_state(entity_id: String, payload: Dictionary = {}) -> void:
 
 func get_ragdoll_for_entity(entity_id: StringName) -> RigidBody3D:
 	var key: String = String(entity_id)
+	# BaseECSEntity strips the `E_` prefix when auto-generating entity_ids from node names.
+	# Accept either canonical ids (`player`) or scene node-style ids (`E_Player`) in callers.
 	if key.begins_with("E_"):
 		key = key.substr(2).to_lower()
 	var ragdoll_ref_candidate: Variant = _ragdoll_instances.get(key, null)

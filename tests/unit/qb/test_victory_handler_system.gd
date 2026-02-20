@@ -97,6 +97,39 @@ func test_game_complete_requires_bar_area_before_dispatch() -> void:
 		action_types_allowed.append(action.get("type", StringName()))
 	assert_true(action_types_allowed.has(U_GameplayActions.ACTION_GAME_COMPLETE))
 
+func test_required_final_area_export_is_configurable() -> void:
+	var fixture: Dictionary = await _setup_fixture()
+	var system: S_VictoryHandlerSystem = fixture["system"] as S_VictoryHandlerSystem
+	var store: MockStateStore = fixture["store"] as MockStateStore
+	var trigger := _create_trigger()
+	trigger.victory_type = C_VictoryTriggerComponent.VictoryType.GAME_COMPLETE
+	system.required_final_area = "theater"
+
+	store.set_slice(StringName("gameplay"), {"completed_areas": ["bar"]})
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED, {
+		"trigger_node": trigger,
+	})
+	await _pump()
+
+	assert_false(trigger.is_triggered, "Custom required_final_area should block when target area is missing")
+	var action_types_blocked: Array[StringName] = []
+	for action in store.get_dispatched_actions():
+		action_types_blocked.append(action.get("type", StringName()))
+	assert_false(action_types_blocked.has(U_GameplayActions.ACTION_GAME_COMPLETE))
+
+	store.clear_dispatched_actions()
+	store.set_slice(StringName("gameplay"), {"completed_areas": ["theater"]})
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED, {
+		"trigger_node": trigger,
+	})
+	await _pump()
+
+	assert_true(trigger.is_triggered, "Custom required_final_area should allow game complete once area is present")
+	var action_types_allowed: Array[StringName] = []
+	for action in store.get_dispatched_actions():
+		action_types_allowed.append(action.get("type", StringName()))
+	assert_true(action_types_allowed.has(U_GameplayActions.ACTION_GAME_COMPLETE))
+
 func test_trigger_once_guard_blocks_when_already_triggered() -> void:
 	var fixture: Dictionary = await _setup_fixture()
 	var store: MockStateStore = fixture["store"] as MockStateStore

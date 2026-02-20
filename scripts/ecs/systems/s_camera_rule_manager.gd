@@ -13,6 +13,12 @@ const PRIMARY_CAMERA_ENTITY_ID := StringName("camera")
 const SHAKE_TRAUMA_DECAY_RATE: float = 2.0
 const SHAKE_MAX_OFFSET_PX: float = 10.0
 const SHAKE_MAX_ROTATION_RAD: float = 0.03
+const SHAKE_FREQ_OFFSET_X: float = 17.0
+const SHAKE_FREQ_OFFSET_Y: float = 21.0
+const SHAKE_FREQ_ROTATION: float = 13.0
+const SHAKE_PHASE_OFFSET_X: float = 1.1
+const SHAKE_PHASE_OFFSET_Y: float = 2.3
+const SHAKE_PHASE_ROTATION: float = 0.7
 const DEFAULT_RULE_DEFINITIONS := [
 	preload("res://resources/qb/camera/cfg_camera_shake_rule.tres"),
 	preload("res://resources/qb/camera/cfg_camera_zone_fov_rule.tres"),
@@ -246,10 +252,10 @@ func _apply_trauma_shake(manager: I_CAMERA_MANAGER, camera_state: Variant, delta
 	_shake_time += maxf(delta, 0.0)
 	var shake_strength: float = trauma * trauma
 	var offset: Vector2 = Vector2(
-		sin(_shake_time * 17.0 + 1.1),
-		cos(_shake_time * 21.0 + 2.3)
+		sin(_shake_time * SHAKE_FREQ_OFFSET_X + SHAKE_PHASE_OFFSET_X),
+		cos(_shake_time * SHAKE_FREQ_OFFSET_Y + SHAKE_PHASE_OFFSET_Y)
 	) * SHAKE_MAX_OFFSET_PX * shake_strength
-	var rotation: float = sin(_shake_time * 13.0 + 0.7) * SHAKE_MAX_ROTATION_RAD * shake_strength
+	var rotation: float = sin(_shake_time * SHAKE_FREQ_ROTATION + SHAKE_PHASE_ROTATION) * SHAKE_MAX_ROTATION_RAD * shake_strength
 	manager.set_shake_source(CAMERA_SHAKE_SOURCE, offset, rotation)
 
 	if delta <= 0.0:

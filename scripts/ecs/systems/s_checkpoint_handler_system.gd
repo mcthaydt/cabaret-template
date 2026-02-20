@@ -12,9 +12,8 @@ const U_STATE_UTILS := preload("res://scripts/state/utils/u_state_utils.gd")
 var _store: I_StateStore = null
 var _event_unsubscribes: Array[Callable] = []
 
-func _ready() -> void:
+func _init() -> void:
 	execution_priority = 100
-	super._ready()
 
 func on_configured() -> void:
 	_subscribe_events()
