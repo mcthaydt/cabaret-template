@@ -1,6 +1,6 @@
 # QB Rule Manager Refactor - Tasks Checklist
 
-**Progress:** 26% (10 / 39 tasks complete)
+**Progress:** 38% (15 / 39 tasks complete)
 
 ## Verification (all phases)
 
@@ -57,11 +57,17 @@ Completion notes (2026-02-20):
 
 **Goal:** Eliminate identical `_resolve_store()` duplicated in both concrete managers. The base already has `@export var state_store` and `U_STATE_UTILS`.
 
-- [ ] TR2.1: Add `_resolve_store() -> I_StateStore` to `base_qb_rule_manager.gd` (body: return injected `state_store` if non-null, else `U_STATE_UTILS.try_get_store(self)`)
-- [ ] TR2.2: Update `_ensure_context_dependencies()` in base to call `_resolve_store()` instead of inlining the same pattern
-- [ ] TR2.3: Remove `_resolve_store()` from `s_character_rule_manager.gd` (lines 208-211)
-- [ ] TR2.4: Remove `_resolve_store()` from `s_camera_rule_manager.gd` (lines 123-126)
-- [ ] TR2.5: Run full test suite -- verify base is now under 500 lines
+- [x] TR2.1: Add `_resolve_store() -> I_StateStore` to `base_qb_rule_manager.gd` (body: return injected `state_store` if non-null, else `U_STATE_UTILS.try_get_store(self)`)
+- [x] TR2.2: Update `_ensure_context_dependencies()` in base to call `_resolve_store()` instead of inlining the same pattern
+- [x] TR2.3: Remove `_resolve_store()` from `s_character_rule_manager.gd` (lines 208-211)
+- [x] TR2.4: Remove `_resolve_store()` from `s_camera_rule_manager.gd` (lines 123-126)
+- [x] TR2.5: Run full test suite -- verify base is now under 500 lines
+
+Completion notes (2026-02-20):
+- Promoted `_resolve_store()` to `BaseQBRuleManager` and routed `_ensure_context_dependencies()` through the shared helper.
+- Removed duplicated `_resolve_store()` methods from `S_CharacterRuleManager` and `S_CameraRuleManager`.
+- Verified `scripts/ecs/systems/base_qb_rule_manager.gd` is now 499 lines.
+- Verification passed: `tests/unit/qb` (71/71), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), `tests/unit/style` (12/12).
 
 **Commit:** `Promote _resolve_store() to base, remove duplicates`
 

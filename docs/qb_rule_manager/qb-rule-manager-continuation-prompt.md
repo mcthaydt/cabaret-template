@@ -6,17 +6,17 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Refactor -- Phase R1 complete, Phase R2 pending (all 6 feature phases complete)
+**Phase**: Refactor -- Phase R2 complete, Phase R3 pending (all 6 feature phases complete)
 **Branch**: QB-Rule-Manager
-**Last Commit**: `82e05db` - docs(qb): mark refactor phase R1 complete
+**Last Commit**: `9751b43` - refactor(qb): promote store resolution to base manager
 
-**Next Task**: Phase R2 (Promote `_resolve_store()` to base) -- first unchecked item in `qb-rule-manager-refactor-tasks.md`
+**Next Task**: Phase R3 (Add `_post_tick_evaluation` hook to `process_tick`) -- first unchecked item in `qb-rule-manager-refactor-tasks.md`
 **Latest Verification**:
-- `tests/unit/qb` passing (71/71) on February 20, 2026 after Phase R1 variant helper extraction
-- `tests/unit/ecs` passing (126/126) on February 20, 2026 after Phase R1 variant helper extraction
-- `tests/unit/ecs/systems` passing (200/200) on February 20, 2026 after Phase R1 variant helper extraction
-- `tests/integration/qb` passing (1/1) on February 20, 2026 after Phase R1 variant helper extraction
-- `tests/unit/style` suite passing (12/12) on February 20, 2026 after Phase R1 variant helper extraction
+- `tests/unit/qb` passing (71/71) on February 20, 2026 after Phase R2 store resolver promotion
+- `tests/unit/ecs` passing (126/126) on February 20, 2026 after Phase R2 store resolver promotion
+- `tests/unit/ecs/systems` passing (200/200) on February 20, 2026 after Phase R2 store resolver promotion
+- `tests/integration/qb` passing (1/1) on February 20, 2026 after Phase R2 store resolver promotion
+- `tests/unit/style` suite passing (12/12) on February 20, 2026 after Phase R2 store resolver promotion
 - `tests/unit/camera_system` passing (11/11)
 - `tests/integration/vfx` passing (38/38)
 - Phase 4 migration checks passed on February 20, 2026 (game rules + handler systems + scene migration)
@@ -64,19 +64,19 @@ You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game 
 
 ## Current Work: Quality Refactor (6 phases, zero behavioral changes)
 
-Phase R1 is complete: shared variant helpers now live in `scripts/utils/qb/u_qb_variant_utils.gd`, and all R1 consumers were migrated with no behavior changes.
+Phases R1 and R2 are complete: shared variant helpers are centralized in `scripts/utils/qb/u_qb_variant_utils.gd`, and store resolution is now owned by `BaseQBRuleManager` with duplicate concrete-manager helpers removed.
 
 The QB Rule Manager (16 files, ~2,570 lines) is functionally complete but has quality gaps:
 - ~150-200 lines of copy-pasted helpers across 7 files
 - Fragile `process_tick()` overrides that bypass `super`
-- 528-line base class past the extraction threshold
+- 499-line base class still carrying too many responsibilities
 - 113-line monolithic `_build_quality_context()` function
 - Hardcoded game-design values (e.g., `REQUIRED_FINAL_AREA`)
 - Missing inspector hints for designers
 
 **Refactor phases** (R1-R6, all zero behavioral change):
 - **R1**: Extract shared variant helpers into `U_QBVariantUtils` (complete)
-- **R2**: Promote `_resolve_store()` to base class (remove duplicates)
+- **R2**: Promote `_resolve_store()` to base class (complete)
 - **R3**: Add `_post_tick_evaluation` hook to `process_tick()` so subclasses extend, not replace (camera's `_on_event_received` stays as-is — its multi-context evaluation is genuinely different)
 - **R4**: Decompose 113-line `_build_quality_context()` into focused helpers
 - **R5**: Name camera shake constants, make `required_final_area` an `@export`, small fixes
@@ -236,5 +236,5 @@ These are the current design decisions that must be followed:
 
 - Commit at the end of each completed phase
 - Run full test suite before each commit
-- Documentation updates in the same commit as the phase they document
+- Documentation updates in a separate commit paired with the phase they document
 - Update this continuation prompt after each phase with current status
