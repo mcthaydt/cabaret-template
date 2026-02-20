@@ -63,11 +63,11 @@
 
 ### 2B: Rule Manager (TDD)
 
-- [ ] T2.2: Create stub `scripts/ecs/systems/s_character_rule_manager.gd` (S_CharacterRuleManager extends BaseQBRuleManager) - inherits execution_priority=-1, empty overrides. `_build_quality_context()` initializes context with defaults (is_gameplay_active=true, is_spawn_frozen=false, is_dead=false) then reads component/state values. `_write_brain_data()` copies context → C_CharacterStateComponent after rules evaluate. `get_default_rule_definitions()` returns const-preloaded character rules.
-- [ ] T2.3: Create `tests/unit/qb/test_character_rule_manager.gd` - Brain data population, pause gate rules (all 3 OR paths: paused, wrong shell, transitioning), spawn freeze rule, verify defaults reset each tick (unpause → is_gameplay_active returns to true)
-- [ ] T2.4: Run tests -- confirm they FAIL (red)
-- [ ] T2.5: Implement S_CharacterRuleManager -- `_build_quality_context()` populates defaults then reads component/state data, SET_QUALITY rules override defaults in context, `_write_brain_data()` copies final context to C_CharacterStateComponent. No CALL_METHOD handlers (all complex effects are PUBLISH_EVENT)
-- [ ] T2.6: Run tests -- confirm they PASS (green)
+- [x] T2.2: Create stub `scripts/ecs/systems/s_character_rule_manager.gd` (S_CharacterRuleManager extends BaseQBRuleManager) - inherits execution_priority=-1, empty overrides. `_build_quality_context()` initializes context with defaults (is_gameplay_active=true, is_spawn_frozen=false, is_dead=false) then reads component/state values. `_write_brain_data()` copies context → C_CharacterStateComponent after rules evaluate. `get_default_rule_definitions()` returns const-preloaded character rules.
+- [x] T2.3: Create `tests/unit/qb/test_character_rule_manager.gd` - Brain data population, pause gate rules (all 3 OR paths: paused, wrong shell, transitioning), spawn freeze rule, verify defaults reset each tick (unpause → is_gameplay_active returns to true)
+- [x] T2.4: Run tests -- confirm they FAIL (red)
+- [x] T2.5: Implement S_CharacterRuleManager -- `_build_quality_context()` populates defaults then reads component/state data, SET_QUALITY rules override defaults in context, `_write_brain_data()` copies final context to C_CharacterStateComponent. No CALL_METHOD handlers (all complex effects are PUBLISH_EVENT)
+- [x] T2.6: Run tests -- confirm they PASS (green)
 
 ### 2C: Rule Definitions (OR via multiple .tres files)
 

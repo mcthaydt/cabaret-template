@@ -10,10 +10,9 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 **Branch**: QB-Rule-Manager
 **Last Commit**: `24ff4a3` - Add base QB rule manager lifecycle implementation
 
-**Next Task**: `T2.2` - Create stub `scripts/ecs/systems/s_character_rule_manager.gd`
+**Next Task**: `T2.7` - Create `resources/qb/character/cfg_pause_gate_paused.tres`
 **Latest Verification**:
-- `tests/unit/qb` passing (42/42)
-- `tests/unit/ecs` passing (421/421)
+- `tests/unit/qb` passing (46/46)
 - `tests/unit/style` suite passing (12/12)
 
 ---
