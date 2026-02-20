@@ -135,11 +135,11 @@ Completion notes: `C_CharacterStateComponent` is authored in `tmpl_character` an
 
 - [x] T3.17: Run full existing ECS test suite -- all tests must pass (behavioral equivalence)
 - [x] T3.18: Run QB unit tests
-- [ ] T3.19: Manual playtest: movement, jumping, death/respawn, pause/unpause, spawn freeze, footstep sounds during pause
+- [x] T3.19: Manual playtest: movement, jumping, death/respawn, pause/unpause, spawn freeze, footstep sounds during pause
 - [x] T3.20: Update continuation prompt (`qb-rule-manager-continuation-prompt.md`) with Phase 3 status
 
 **Phase 3 Commit**: System gating consolidated + death handler extracted
-Completion notes: Implemented pause/freeze gating migration to `C_CharacterStateComponent`, extracted ragdoll lifecycle into `S_DeathHandlerSystem`, added death-sync QB rule + integration test pipeline. Automated verification passed for `tests/unit/qb` (49/49), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), and `tests/unit/style` (12/12). Manual playtest remains pending (`T3.19`).
+Completion notes: Implemented pause/freeze gating migration to `C_CharacterStateComponent`, extracted ragdoll lifecycle into `S_DeathHandlerSystem`, added death-sync QB rule + integration test pipeline. Automated verification passed for `tests/unit/qb` (49/49), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), and `tests/unit/style` (12/12). Manual playtest passed on February 20, 2026.
 
 ---
 

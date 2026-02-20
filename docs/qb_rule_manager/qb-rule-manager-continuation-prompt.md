@@ -6,17 +6,18 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Phase 3 implementation complete (`T3.1`-`T3.18`, `T3.20` complete; `T3.19` manual playtest pending)
+**Phase**: Phase 3 complete (`T3.1`-`T3.20` complete)
 **Branch**: QB-Rule-Manager
-**Last Commit**: `b08721c` - Update QB docs for Phase 2 completion
+**Last Commit**: `1622595` - docs(qb): update Phase 3 continuation and tasks
 
-**Next Task**: `T3.19` - Manual playtest (movement, jumping, death/respawn, pause/unpause, spawn freeze, footstep sounds)
+**Next Task**: `T4.1` - Add checkpoint/victory/damage event name constants to `U_ECSEventNames`
 **Latest Verification**:
 - `tests/unit/qb` passing (49/49)
 - `tests/unit/ecs` passing (126/126)
 - `tests/unit/ecs/systems` passing (200/200)
 - `tests/integration/qb` passing (1/1)
 - `tests/unit/style` suite passing (12/12)
+- Manual playtest passed on February 20, 2026 (movement/jump/death/respawn/pause/spawn-freeze/footsteps)
 
 ---
 
