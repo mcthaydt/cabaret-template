@@ -115,8 +115,10 @@ func process_tick(__delta: float) -> void:
 		# Use immediate support with fall distance filter (no hysteresis delay)
 		var current_height: float = body.global_position.y
 		if component.check_landing_transition(supported_now, now, current_height):
+			var landing_entity_id: String = _get_entity_id(body)
 			if not suppress_landing_event:
 				var landing_payload: Dictionary = {
+					"entity_id": landing_entity_id,
 					"entity": body,
 					"jump_component": component,
 					"floating_component": floating_component,
@@ -129,9 +131,8 @@ func process_tick(__delta: float) -> void:
 
 			# Phase 16: Update entity snapshot with floor state (Entity Coordination Pattern)
 			if store:
-				var entity_id: String = _get_entity_id(body)
-				if not entity_id.is_empty():
-					store.dispatch(U_EntityActions.update_entity_snapshot(entity_id, {
+				if not landing_entity_id.is_empty():
+					store.dispatch(U_EntityActions.update_entity_snapshot(landing_entity_id, {
 						"is_on_floor": true
 					}))
 		
