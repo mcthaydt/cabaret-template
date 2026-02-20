@@ -1,0 +1,188 @@
+# QB Rule Manager Refactor - Tasks Checklist
+
+**Progress:** 0% (0 / 42 tasks complete)
+
+## Verification (all phases)
+
+```bash
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/qb -gexit
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs/systems -gexit
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/qb -gexit
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/style -gexit
+```
+
+---
+
+## Phase R1: Extract Variant Utils
+
+**Goal:** Eliminate ~150-200 lines of duplicated helpers across 7 files into one shared `U_QBVariantUtils`.
+
+### R1A: Create shared utility
+
+- [ ] TR1.1: Create `scripts/utils/qb/u_qb_variant_utils.gd` (`U_QBVariantUtils extends RefCounted`, all `static func`):
+  - `get_int_property(object_value: Variant, property_name: String, fallback: int) -> int`
+  - `get_bool_property(object_value: Variant, property_name: String, fallback: bool) -> bool`
+  - `get_float_property(object_value: Variant, property_name: String, fallback: float) -> float`
+  - `get_string_property(object_value: Variant, property_name: String, fallback: String) -> String`
+  - `get_array_property(object_value: Variant, property_name: String) -> Array`
+  - `object_has_property(object_value: Variant, property_name: String) -> bool`
+  - `get_dict(source: Dictionary, key: String) -> Dictionary`
+  - `dict_get_string_or_name(dictionary: Dictionary, key: String) -> Variant`
+
+### R1B-R1H: Migrate all consumers
+
+- [ ] TR1.2: `u_qb_rule_evaluator.gd` -- replace `_get_int_property`, `_get_bool_property`, `_get_string_property` with `U_QBVariantUtils` calls
+- [ ] TR1.3: `u_qb_quality_provider.gd` -- replace `_get_int_property`, `_get_string_property`, `_object_has_property`, `_get_dict`, `_dict_get_string_or_name` with `U_QBVariantUtils` calls
+- [ ] TR1.4: `u_qb_effect_executor.gd` -- replace `_get_int_property`, `_get_string_property`, `_object_has_property`, `_get_dict`, `_dict_get_string_or_name` with `U_QBVariantUtils` calls
+- [ ] TR1.5: `u_qb_rule_validator.gd` -- replace `_get_int_property`, `_get_string_property`, `_get_array_property` with `U_QBVariantUtils` calls
+- [ ] TR1.6: `base_qb_rule_manager.gd` -- replace all 5 `_get_*_property` helpers (lines 482-528) with `U_QBVariantUtils` calls
+- [ ] TR1.7: `s_character_rule_manager.gd` -- replace `_object_has_property` (lines 265-277) with `U_QBVariantUtils.object_has_property` call
+- [ ] TR1.8: `s_camera_rule_manager.gd` -- replace `_object_has_property` (lines 291-300) with `U_QBVariantUtils.object_has_property` call, update `_get_camera_state_float` call site
+
+### R1I: Verification
+
+- [ ] TR1.9: Run full test suite -- zero regressions
+
+**Commit:** `Extract shared variant helpers into U_QBVariantUtils`
+
+---
+
+## Phase R2: Promote `_resolve_store()` to Base Class
+
+**Goal:** Eliminate identical `_resolve_store()` duplicated in both concrete managers. The base already has `@export var state_store` and `U_STATE_UTILS`.
+
+- [ ] TR2.1: Add `_resolve_store() -> I_StateStore` to `base_qb_rule_manager.gd` (body: return injected `state_store` if non-null, else `U_STATE_UTILS.try_get_store(self)`)
+- [ ] TR2.2: Update `_ensure_context_dependencies()` in base to call `_resolve_store()` instead of inlining the same pattern
+- [ ] TR2.3: Remove `_resolve_store()` from `s_character_rule_manager.gd` (lines 208-211)
+- [ ] TR2.4: Remove `_resolve_store()` from `s_camera_rule_manager.gd` (lines 123-126)
+- [ ] TR2.5: Run full test suite -- verify base is now under 500 lines
+
+**Commit:** `Promote _resolve_store() to base, remove duplicates`
+
+---
+
+## Phase R3: Fix `process_tick()` Override Fragility
+
+**Goal:** Both concrete managers re-implement the base's 4-step tick sequence instead of calling `super`. Add virtual hooks so subclasses extend rather than replace.
+
+### R3A: Add hooks to BaseQBRuleManager
+
+- [ ] TR3.1: Add `_post_tick_evaluation(_contexts: Array, _delta: float) -> void` virtual (empty body) called inside `process_tick()` after `_evaluate_contexts` and before `_cleanup_stale_context_state`
+- [ ] TR3.2: Add `_enrich_event_context(_context: Dictionary) -> void` virtual (empty body) called inside `_on_event_received()` after `_build_event_context` and before `_ensure_context_dependencies`
+
+### R3B: Refactor concrete managers
+
+- [ ] TR3.3: `S_CharacterRuleManager` -- remove manual tick sequence from `process_tick()`, override `_post_tick_evaluation()` for `_write_brain_data()` loop
+- [ ] TR3.4: `S_CameraRuleManager` -- remove manual tick sequence from `process_tick()`, override `_post_tick_evaluation()` for `_apply_camera_state()`. Replace `_on_event_received()` override with `_enrich_event_context()` + `super` call, then post-event camera state apply (eliminates duplicated payload extraction)
+- [ ] TR3.5: Run full test suite -- zero regressions
+
+**Commit:** `Fix process_tick() override fragility with virtual hooks`
+
+---
+
+## Phase R4: Decompose `_build_quality_context()`
+
+**Goal:** Break the 113-line monolith in `S_CharacterRuleManager` into focused private helpers. No file extraction -- same class.
+
+- [ ] TR4.1: Extract `_populate_entity_metadata(context: Dictionary, entity_query: Variant) -> void`
+- [ ] TR4.2: Extract `_populate_component_map(context: Dictionary, entity_query: Variant) -> Dictionary` (returns components dict)
+- [ ] TR4.3: Extract `_populate_health_state(context: Dictionary, health_component: Variant) -> void`
+- [ ] TR4.4: Extract `_populate_movement_state(context: Dictionary, body: CharacterBody3D, floating_component: Variant) -> void`
+- [ ] TR4.5: Extract `_populate_input_state(context: Dictionary, input_component: Variant) -> void`
+- [ ] TR4.6: Rewrite `_build_quality_context()` to sequence the extracted helpers
+- [ ] TR4.7: Run full test suite -- zero regressions
+
+**Commit:** `Decompose _build_quality_context() into focused private helpers`
+
+---
+
+## Phase R5: Name Camera Shake Constants + Small Fixes
+
+**Goal:** Name the magic numbers in `_apply_trauma_shake()`, make `REQUIRED_FINAL_AREA` designer-configurable, fix `execution_priority` placement, remove dead guard code, document entity ID normalization.
+
+Note: The camera shake values (offset 10.0, rotation 0.03) are intentionally different from `RS_ScreenShakeConfig` (offset 18/14, rotation 0.12) -- the camera-source shake is gentler than the VFX overlay shake. Name the constants, don't reuse the VFX resource.
+
+### R5A: Camera shake constants
+
+- [ ] TR5.1: Name the sine/cosine frequency literals in `_apply_trauma_shake()`:
+  ```
+  const SHAKE_FREQ_OFFSET_X: float = 17.0
+  const SHAKE_FREQ_OFFSET_Y: float = 21.0
+  const SHAKE_FREQ_ROTATION: float = 13.0
+  const SHAKE_PHASE_OFFSET_X: float = 1.1
+  const SHAKE_PHASE_OFFSET_Y: float = 2.3
+  const SHAKE_PHASE_ROTATION: float = 0.7
+  ```
+
+### R5B: Victory handler configurability
+
+- [ ] TR5.2: Replace `const REQUIRED_FINAL_AREA := "bar"` with `@export var required_final_area: String = "bar"` in `s_victory_handler_system.gd`
+- [ ] TR5.3: Update `_can_trigger_victory()` call site to use `required_final_area` instead of `REQUIRED_FINAL_AREA`
+- [ ] TR5.4: Add test case verifying the export is configurable (set `required_final_area` to a different value, verify behavior changes)
+
+### R5C: Checkpoint handler consistency
+
+- [ ] TR5.5: Move `execution_priority = 100` from `_ready()` to `_init()` in `s_checkpoint_handler_system.gd` (matches convention used by all other systems)
+
+### R5D: Dead guard code
+
+- [ ] TR5.6: Remove always-false `if not components.has(...)` check on freshly created dict in `s_camera_rule_manager.gd` `_attach_camera_context()` (line 97: the dict was just created with `camera_state_type_key` as a String key, so the String-key check is always true)
+
+### R5E: Document entity ID normalization
+
+- [ ] TR5.7: Add comment to `s_death_handler_system.gd` `get_ragdoll_for_entity()` explaining `E_` prefix stripping (entity IDs auto-generated from node names strip this prefix; callers may pass either form)
+
+### R5F: Verification
+
+- [ ] TR5.8: Run full test suite -- zero regressions
+- [ ] TR5.9: Update `AGENTS.md` line referencing `REQUIRED_FINAL_AREA` to reflect `@export var required_final_area`
+
+**Commit:** `Name shake constants, designer-configurable victory area, small fixes`
+
+---
+
+## Phase R6: Inspector Hints + Doc Comments
+
+**Goal:** Add `@export_group` organization and doc comments to QB resources for designer clarity. Document `evaluate_all_conditions` as test-only.
+
+- [ ] TR6.1: Add `@export_group` separators to `rs_qb_condition.gd` (Source, Comparison, Value)
+- [ ] TR6.2: Add doc comments to `rs_qb_effect.gd` `target` and `payload` exports
+- [ ] TR6.3: Add `@export_group` separators to `rs_qb_rule_definition.gd` (Identity, Trigger, Evaluation, Cooldown) with doc hints on `cooldown_key_fields` and `cooldown_from_context_field`
+- [ ] TR6.4: Add doc comment to `u_qb_rule_evaluator.gd` `evaluate_all_conditions()` marking it as test-only convenience method
+- [ ] TR6.5: Run full test suite -- zero regressions
+
+**Commit:** `Add inspector groups and doc hints to QB resources`
+
+---
+
+## Critical Files
+
+| File | Phases |
+|---|---|
+| `scripts/utils/qb/u_qb_variant_utils.gd` | R1 (new) |
+| `scripts/ecs/systems/base_qb_rule_manager.gd` | R1, R2, R3 |
+| `scripts/utils/qb/u_qb_rule_evaluator.gd` | R1, R6 |
+| `scripts/utils/qb/u_qb_quality_provider.gd` | R1 |
+| `scripts/utils/qb/u_qb_effect_executor.gd` | R1 |
+| `scripts/utils/qb/u_qb_rule_validator.gd` | R1 |
+| `scripts/ecs/systems/s_character_rule_manager.gd` | R1, R2, R3, R4 |
+| `scripts/ecs/systems/s_camera_rule_manager.gd` | R1, R2, R3, R5 |
+| `scripts/ecs/systems/s_victory_handler_system.gd` | R5 |
+| `scripts/ecs/systems/s_checkpoint_handler_system.gd` | R5 |
+| `scripts/ecs/systems/s_death_handler_system.gd` | R5 |
+| `scripts/resources/qb/rs_qb_condition.gd` | R6 |
+| `scripts/resources/qb/rs_qb_effect.gd` | R6 |
+| `scripts/resources/qb/rs_qb_rule_definition.gd` | R6 |
+
+## Notes
+
+- Zero behavioral changes across all phases -- existing tests are the definitive spec
+- Each phase ends with a commit at test-green state
+- R1-R3 touch the most files and carry the most regression risk; R4-R6 are localized
+
+## Links
+
+- Plan: `docs/qb_rule_manager/qb-rule-manager-plan.md`
+- Continuation prompt: `docs/qb_rule_manager/qb-rule-manager-continuation-prompt.md`
+- Original tasks: `docs/qb_rule_manager/qb-rule-manager-tasks.md`

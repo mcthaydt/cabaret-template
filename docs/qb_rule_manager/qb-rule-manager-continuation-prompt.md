@@ -6,11 +6,11 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Phase 6 complete (`T6.1`-`T6.6` complete)
+**Phase**: Refactor -- Phase R1 pending (all 6 feature phases complete)
 **Branch**: QB-Rule-Manager
-**Last Commit**: `5f11ac0` - git ignored vscode
+**Last Commit**: `9cbc13b` - Update QB docs for audit fixes
 
-**Next Task**: Phase complete - begin next feature phase
+**Next Task**: Phase R1 (Extract Variant Utils) -- first unchecked item in `qb-rule-manager-refactor-tasks.md`
 **Latest Verification**:
 - `tests/unit/qb` passing (71/71) on February 20, 2026 after audit follow-up coverage
 - `tests/unit/ecs` passing (126/126) on February 20, 2026 after Phase 6 validation updates
@@ -57,7 +57,30 @@ You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game 
 **Documentation location**: `docs/qb_rule_manager/`
 - Overview: `qb-rule-manager-overview.md`
 - Plan: `qb-rule-manager-plan.md`
-- Tasks: `qb-rule-manager-tasks.md`
+- Feature tasks (complete): `qb-rule-manager-tasks.md`
+- Refactor tasks (active): `qb-rule-manager-refactor-tasks.md`
+
+---
+
+## Current Work: Quality Refactor (6 phases, zero behavioral changes)
+
+The QB Rule Manager (16 files, ~2,570 lines) is functionally complete but has quality gaps:
+- ~150-200 lines of copy-pasted helpers across 7 files
+- Fragile `process_tick()` overrides that bypass `super`
+- 528-line base class past the extraction threshold
+- 113-line monolithic `_build_quality_context()` function
+- Hardcoded game-design values (e.g., `REQUIRED_FINAL_AREA`)
+- Missing inspector hints for designers
+
+**Refactor phases** (R1-R6, all zero behavioral change):
+- **R1**: Extract shared variant helpers into `U_QBVariantUtils` (new file)
+- **R2**: Promote `_resolve_store()` to base class (remove duplicates)
+- **R3**: Add virtual hooks to `process_tick()` so subclasses extend, not replace
+- **R4**: Decompose 113-line `_build_quality_context()` into focused helpers
+- **R5**: Name camera shake constants, make `required_final_area` an `@export`, small fixes
+- **R6**: Add `@export_group` organization and doc comments to QB resources
+
+**Refactor tasks checklist**: `docs/qb_rule_manager/qb-rule-manager-refactor-tasks.md`
 
 ---
 
@@ -65,8 +88,9 @@ You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game 
 
 1. Read `AGENTS.md` for project conventions
 2. Read `docs/general/DEV_PITFALLS.md` for known pitfalls
-3. Read `docs/qb_rule_manager/qb-rule-manager-tasks.md` for the current task checklist
-4. Check the task checklist for the first unchecked item -- that's where to resume
+3. Read `docs/qb_rule_manager/qb-rule-manager-refactor-tasks.md` for the refactor task checklist
+4. Check the refactor task checklist for the first unchecked item -- that's where to resume
+5. Original feature tasks (all complete): `docs/qb_rule_manager/qb-rule-manager-tasks.md`
 
 ---
 
