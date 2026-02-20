@@ -196,7 +196,7 @@ Completion notes: Added `S_GameRuleManager` + checkpoint/victory handler systems
 
 ### 5A: Component
 
-- [ ] T5.1: Create `scripts/ecs/components/c_camera_state_component.gd` (C_CameraStateComponent) - target_fov, shake_trauma, fov_blend_speed
+- [x] T5.1: Create `scripts/ecs/components/c_camera_state_component.gd` (C_CameraStateComponent) - target_fov, shake_trauma, fov_blend_speed
 
 ### 5B: Rule Manager (TDD)
 

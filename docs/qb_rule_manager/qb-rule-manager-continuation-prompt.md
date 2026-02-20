@@ -6,17 +6,17 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Phase 4 complete (`T4.1`-`T4.23` complete)
+**Phase**: Phase 5 in progress (`T5.1` complete)
 **Branch**: QB-Rule-Manager
 **Last Commit**: `1622595` - docs(qb): update Phase 3 continuation and tasks
 
-**Next Task**: `T5.1` - Create `C_CameraStateComponent` (target_fov, shake_trauma, fov_blend_speed)
+**Next Task**: `T5.2` - Create stub `S_CameraRuleManager` (default camera rule preload wiring)
 **Latest Verification**:
 - `tests/unit/qb` passing (58/58)
 - `tests/unit/ecs` passing (126/126)
 - `tests/unit/ecs/systems` passing (200/200)
 - `tests/integration/qb` passing (1/1)
-- `tests/unit/style` suite passing (12/12)
+- `tests/unit/style` suite passing (12/12) on February 20, 2026 after adding `C_CameraStateComponent`
 - Phase 4 migration checks passed on February 20, 2026 (game rules + handler systems + scene migration)
 - Manual playtest passed on February 20, 2026 (movement/jump/death/respawn/pause/spawn-freeze/footsteps)
 
