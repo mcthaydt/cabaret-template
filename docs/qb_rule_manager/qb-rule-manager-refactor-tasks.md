@@ -1,6 +1,6 @@
 # QB Rule Manager Refactor - Tasks Checklist
 
-**Progress:** 0% (0 / 39 tasks complete)
+**Progress:** 23% (9 / 39 tasks complete)
 
 ## Verification (all phases)
 
@@ -20,7 +20,7 @@
 
 ### R1A: Create shared utility
 
-- [ ] TR1.1: Create `scripts/utils/qb/u_qb_variant_utils.gd` (`U_QBVariantUtils extends RefCounted`, all `static func`):
+- [x] TR1.1: Create `scripts/utils/qb/u_qb_variant_utils.gd` (`U_QBVariantUtils extends RefCounted`, all `static func`):
   - `get_int_property(object_value: Variant, property_name: String, fallback: int) -> int`
   - `get_bool_property(object_value: Variant, property_name: String, fallback: bool) -> bool`
   - `get_float_property(object_value: Variant, property_name: String, fallback: float) -> float`
@@ -32,17 +32,22 @@
 
 ### R1B-R1H: Migrate all consumers
 
-- [ ] TR1.2: `u_qb_rule_evaluator.gd` -- replace `_get_int_property`, `_get_bool_property`, `_get_string_property` with `U_QBVariantUtils` calls
-- [ ] TR1.3: `u_qb_quality_provider.gd` -- replace `_get_int_property`, `_get_string_property`, `_object_has_property`, `_get_dict`, `_dict_get_string_or_name` with `U_QBVariantUtils` calls
-- [ ] TR1.4: `u_qb_effect_executor.gd` -- replace `_get_int_property`, `_get_string_property`, `_object_has_property`, `_get_dict`, `_dict_get_string_or_name` with `U_QBVariantUtils` calls
-- [ ] TR1.5: `u_qb_rule_validator.gd` -- replace `_get_int_property`, `_get_string_property`, `_get_array_property` with `U_QBVariantUtils` calls
-- [ ] TR1.6: `base_qb_rule_manager.gd` -- replace all 5 `_get_*_property` helpers (lines 482-528) with `U_QBVariantUtils` calls
-- [ ] TR1.7: `s_character_rule_manager.gd` -- replace `_object_has_property` (lines 265-277) with `U_QBVariantUtils.object_has_property` call
-- [ ] TR1.8: `s_camera_rule_manager.gd` -- replace `_object_has_property` (lines 291-300) with `U_QBVariantUtils.object_has_property` call. Rewrite `_get_camera_state_float` (lines 280-289) to use `U_QBVariantUtils.object_has_property` + `U_QBVariantUtils.get_float_property` — preserve the property-list guard that distinguishes this method from the base's `_get_float_property`
+- [x] TR1.2: `u_qb_rule_evaluator.gd` -- replace `_get_int_property`, `_get_bool_property`, `_get_string_property` with `U_QBVariantUtils` calls
+- [x] TR1.3: `u_qb_quality_provider.gd` -- replace `_get_int_property`, `_get_string_property`, `_object_has_property`, `_get_dict`, `_dict_get_string_or_name` with `U_QBVariantUtils` calls
+- [x] TR1.4: `u_qb_effect_executor.gd` -- replace `_get_int_property`, `_get_string_property`, `_object_has_property`, `_get_dict`, `_dict_get_string_or_name` with `U_QBVariantUtils` calls
+- [x] TR1.5: `u_qb_rule_validator.gd` -- replace `_get_int_property`, `_get_string_property`, `_get_array_property` with `U_QBVariantUtils` calls
+- [x] TR1.6: `base_qb_rule_manager.gd` -- replace all 5 `_get_*_property` helpers (lines 482-528) with `U_QBVariantUtils` calls
+- [x] TR1.7: `s_character_rule_manager.gd` -- replace `_object_has_property` (lines 265-277) with `U_QBVariantUtils.object_has_property` call
+- [x] TR1.8: `s_camera_rule_manager.gd` -- replace `_object_has_property` (lines 291-300) with `U_QBVariantUtils.object_has_property` call. Rewrite `_get_camera_state_float` (lines 280-289) to use `U_QBVariantUtils.object_has_property` + `U_QBVariantUtils.get_float_property` — preserve the property-list guard that distinguishes this method from the base's `_get_float_property`
 
 ### R1I: Verification
 
-- [ ] TR1.9: Run full test suite -- zero regressions
+- [x] TR1.9: Run full test suite -- zero regressions
+
+Completion notes (2026-02-20):
+- Added `scripts/utils/qb/u_qb_variant_utils.gd` and migrated all R1 consumers.
+- Removed duplicated local helper implementations from evaluator/quality/effect/validator and object-property helpers from character/camera managers.
+- Verification passed: `tests/unit/qb` (71/71), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), `tests/unit/style` (12/12).
 
 **Commit:** `Extract shared variant helpers into U_QBVariantUtils`
 
