@@ -8,7 +8,7 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 **Phase**: Refactor -- Phase R2 complete, Phase R3 pending (all 6 feature phases complete)
 **Branch**: QB-Rule-Manager
-**Last Commit**: `83bfcf1` - docs(qb): mark refactor phase R2 complete
+**Phase Completion Commit**: `83bfcf1` - docs(qb): mark refactor phase R2 complete
 
 **Next Task**: Phase R3 (Add `_post_tick_evaluation` hook to `process_tick`) -- first unchecked item in `qb-rule-manager-refactor-tasks.md`
 **Latest Verification**:
