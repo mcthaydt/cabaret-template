@@ -242,6 +242,83 @@ func test_event_mode_salience_is_auto_disabled() -> void:
 
 	assert_eq(store.get_dispatched_actions().size(), 2)
 
+func test_event_mode_per_context_cooldown_persists_without_tick_contexts() -> void:
+	var rule: Variant = _make_rule(
+		StringName("event_context_cooldown_rule"),
+		[
+			_make_condition("triggered", QB_CONDITION.Source.EVENT_PAYLOAD, QB_CONDITION.Operator.IS_TRUE)
+		],
+		[_make_dispatch_effect(StringName("qb/event_context"), {})],
+		0,
+		false,
+		1.0,
+		QB_RULE.TriggerMode.EVENT,
+		StringName("qb_event_context"),
+		false,
+		["entity_id"]
+	)
+	var context := _configure_manager([rule])
+	var manager: RuleManagerStub = context["manager"]
+	var store: MockStateStore = context["store"]
+
+	U_ECSEventBus.publish(StringName("qb_event_context"), {
+		"entity_id": "A",
+		"triggered": true,
+	})
+	assert_eq(store.get_dispatched_actions().size(), 1)
+
+	manager.process_tick(0.1)
+	U_ECSEventBus.publish(StringName("qb_event_context"), {
+		"entity_id": "A",
+		"triggered": true,
+	})
+	assert_eq(store.get_dispatched_actions().size(), 1)
+
+	manager.process_tick(1.0)
+	U_ECSEventBus.publish(StringName("qb_event_context"), {
+		"entity_id": "A",
+		"triggered": true,
+	})
+	assert_eq(store.get_dispatched_actions().size(), 2)
+
+func test_both_mode_uses_event_without_salience_and_tick_with_salience() -> void:
+	var rule: Variant = _make_rule(
+		StringName("both_rule"),
+		[
+			_make_condition(
+				"event_payload.flag",
+				QB_CONDITION.Source.CUSTOM,
+				QB_CONDITION.Operator.IS_TRUE
+			)
+		],
+		[_make_dispatch_effect(StringName("qb/both"), {})],
+		0,
+		true,
+		0.0,
+		QB_RULE.TriggerMode.BOTH,
+		StringName("qb_both_event")
+	)
+	var context := _configure_manager([rule])
+	var manager: RuleManagerStub = context["manager"]
+	var store: MockStateStore = context["store"]
+
+	U_ECSEventBus.publish(StringName("qb_both_event"), {"flag": true})
+	U_ECSEventBus.publish(StringName("qb_both_event"), {"flag": true})
+	assert_eq(store.get_dispatched_actions().size(), 2)
+
+	manager.contexts = [{"event_payload": {"flag": true}}]
+	manager.process_tick(0.016)
+	assert_eq(store.get_dispatched_actions().size(), 3)
+
+	manager.process_tick(0.016)
+	assert_eq(store.get_dispatched_actions().size(), 3)
+
+	manager.contexts = [{"event_payload": {"flag": false}}]
+	manager.process_tick(0.016)
+	manager.contexts = [{"event_payload": {"flag": true}}]
+	manager.process_tick(0.016)
+	assert_eq(store.get_dispatched_actions().size(), 4)
+
 func test_per_context_cooldowns_are_independent() -> void:
 	var rule: Variant = _make_rule(
 		StringName("context_cooldown_rule"),
@@ -311,8 +388,8 @@ func test_stale_context_state_is_cleaned_up() -> void:
 		[_make_condition("flag")],
 		[_make_dispatch_effect(StringName("qb/stale_cleanup"), {})],
 		0,
-		false,
-		2.0,
+		true,
+		0.0,
 		QB_RULE.TriggerMode.TICK,
 		StringName(),
 		false,
@@ -333,9 +410,9 @@ func test_stale_context_state_is_cleaned_up() -> void:
 	manager.process_tick(0.016)
 
 	var state: Dictionary = manager.get_rule_runtime_state(StringName("stale_cleanup_rule"))
-	var context_cooldowns: Dictionary = state.get("context_cooldowns", {})
-	assert_true(context_cooldowns.has("A"))
-	assert_false(context_cooldowns.has("B"))
+	var salience_map: Dictionary = state.get("was_true_by_context", {})
+	assert_true(salience_map.has("A"))
+	assert_false(salience_map.has("B"))
 
 func test_set_quality_only_mutates_context_dictionary() -> void:
 	var rule: Variant = _make_rule(

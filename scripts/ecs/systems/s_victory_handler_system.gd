@@ -40,9 +40,9 @@ func _on_victory_execution_requested(event: Dictionary) -> void:
 		return
 	if not _can_trigger_victory(trigger):
 		return
-	_handle_victory(trigger)
+	_handle_victory(trigger, payload)
 
-func _handle_victory(trigger: C_VictoryTriggerComponent) -> void:
+func _handle_victory(trigger: C_VictoryTriggerComponent, payload: Dictionary) -> void:
 	if _store != null:
 		if trigger.objective_id != StringName(""):
 			_store.dispatch(U_GameplayActions.trigger_victory(trigger.objective_id))
@@ -52,6 +52,11 @@ func _handle_victory(trigger: C_VictoryTriggerComponent) -> void:
 			_store.dispatch(U_GameplayActions.game_complete())
 
 	trigger.set_triggered()
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_VICTORY_EXECUTED, {
+		"entity_id": payload.get("entity_id", null),
+		"trigger_node": trigger,
+		"body": payload.get("body", null),
+	})
 
 func _can_trigger_victory(trigger: C_VictoryTriggerComponent) -> bool:
 	if trigger == null:

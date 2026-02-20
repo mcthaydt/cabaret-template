@@ -18,6 +18,6 @@ payload = {
 [resource]
 script = ExtResource("1_rule")
 rule_id = &"camera_shake_rule"
-effects = [SubResource("QBEffect_camera_shake")]
 trigger_mode = 1
 trigger_event = &"entity_death"
+effects = [SubResource("QBEffect_camera_shake")]

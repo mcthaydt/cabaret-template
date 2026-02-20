@@ -240,27 +240,29 @@ func _evaluate_rules_for_context(context: Dictionary, evaluation_mode: int, even
 		var state_variant: Variant = _rule_states.get(rule_id, null)
 		if not (state_variant is Dictionary):
 			continue
+
 		var rule_state: Dictionary = state_variant as Dictionary
 		if not bool(rule_state.get("is_active", true)):
 			continue
 
 		var cooldown_key: String = _resolve_cooldown_key(rule_variant, context)
 		var salience_key: String = _resolve_salience_key(context)
-		if evaluation_mode == QB_RULE.TriggerMode.TICK:
-			_mark_active_context_keys(rule_state, cooldown_key, salience_key)
+		_mark_active_context_keys(rule_state, cooldown_key, salience_key)
 
+		var requires_salience: bool = _requires_salience(rule_variant, evaluation_mode)
 		var is_true_now: bool = _evaluate_rule_conditions(rule_variant, context)
-		var was_true_map_variant: Variant = rule_state.get("was_true_by_context", {})
-		var was_true_map: Dictionary = was_true_map_variant if was_true_map_variant is Dictionary else {}
-		var was_true_before: bool = bool(was_true_map.get(salience_key, false))
-		was_true_map[salience_key] = is_true_now
-		rule_state["was_true_by_context"] = was_true_map
-		_rule_states[rule_id] = rule_state
+		var was_true_before: bool = false
+		if requires_salience:
+			var was_true_map_variant: Variant = rule_state.get("was_true_by_context", {})
+			var was_true_map: Dictionary = was_true_map_variant if was_true_map_variant is Dictionary else {}
+			was_true_before = bool(was_true_map.get(salience_key, false))
+			was_true_map[salience_key] = is_true_now
+			rule_state["was_true_by_context"] = was_true_map
+			_rule_states[rule_id] = rule_state
 
 		if not is_true_now:
 			continue
 
-		var requires_salience: bool = _requires_salience(rule_variant, evaluation_mode)
 		if requires_salience and was_true_before:
 			continue
 
@@ -301,12 +303,10 @@ func _evaluate_rule_conditions(rule: Variant, context: Dictionary) -> bool:
 
 func _requires_salience(rule: Variant, evaluation_mode: int) -> bool:
 	if evaluation_mode == QB_RULE.TriggerMode.EVENT:
-		var trigger_mode: int = _get_int_property(rule, "trigger_mode", QB_RULE.TriggerMode.TICK)
-		if trigger_mode == QB_RULE.TriggerMode.EVENT:
-			return false
+		return false
 	return _get_bool_property(rule, "requires_salience", true)
 
-func _is_cooldown_ready(rule: Variant, rule_state: Dictionary, context: Dictionary, cooldown_key: String) -> bool:
+func _is_cooldown_ready(rule: Variant, rule_state: Dictionary, _context: Dictionary, cooldown_key: String) -> bool:
 	var cooldown_keys: Array = _get_array_property(rule, "cooldown_key_fields")
 	if cooldown_keys.is_empty():
 		return float(rule_state.get("cooldown_remaining", 0.0)) <= 0.0
@@ -399,7 +399,7 @@ func _cleanup_stale_context_state() -> void:
 
 		var cooldowns_variant: Variant = state.get("context_cooldowns", {})
 		var cooldowns: Dictionary = cooldowns_variant if cooldowns_variant is Dictionary else {}
-		_remove_stale_keys(cooldowns, active_cooldown)
+		_remove_stale_cooldown_keys(cooldowns, active_cooldown)
 		state["context_cooldowns"] = cooldowns
 
 		var salience_variant: Variant = state.get("was_true_by_context", {})
@@ -420,6 +420,20 @@ func _remove_stale_keys(values: Dictionary, active_keys: Dictionary) -> void:
 		if active_keys.has(key):
 			continue
 		values.erase(key)
+
+func _remove_stale_cooldown_keys(cooldowns: Dictionary, active_keys: Dictionary) -> void:
+	var keys: Array = cooldowns.keys()
+	for key_variant in keys:
+		var key: String = String(key_variant)
+		if key == GLOBAL_CONTEXT_KEY:
+			continue
+		if active_keys.has(key):
+			continue
+		var remaining_variant: Variant = cooldowns.get(key, 0.0)
+		if remaining_variant is int or remaining_variant is float:
+			if float(remaining_variant) > 0.0:
+				continue
+		cooldowns.erase(key)
 
 func _tick_cooldowns(delta: float) -> void:
 	if delta <= 0.0:

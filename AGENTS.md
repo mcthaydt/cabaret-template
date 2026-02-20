@@ -60,8 +60,8 @@
 - Game rule manager + handlers (Phase 4)
   - `S_GameRuleManager` hosts event-only QB rules from `resources/qb/game/*.tres` and forwards trigger payloads via `PUBLISH_EVENT`.
   - `S_CheckpointHandlerSystem` subscribes to `U_ECSEventNames.EVENT_CHECKPOINT_ACTIVATION_REQUESTED`, validates required payload (`checkpoint`, `spawn_point_id`), dispatches `set_last_checkpoint`, and publishes `Evn_CheckpointActivated`.
-  - `S_VictoryHandlerSystem` subscribes to `U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED` at subscription priority `10`, enforces `@export var required_final_area: String = "bar"` for game-complete triggers, dispatches gameplay victory actions, and calls `trigger.set_triggered()`.
-  - Gameplay scenes now use `S_GameRuleManager` + handler systems; legacy `S_CheckpointSystem` / `S_VictorySystem` are removed from scene wiring.
+  - `S_VictoryHandlerSystem` subscribes to `U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED` at subscription priority `10`, enforces `@export var required_final_area: String = "bar"` for game-complete triggers, dispatches gameplay victory actions, calls `trigger.set_triggered()`, then publishes `U_ECSEventNames.EVENT_VICTORY_EXECUTED` for post-validation scene transitions.
+  - Gameplay flows use `S_GameRuleManager` + handler systems end-to-end; legacy `S_CheckpointSystem` / `S_VictorySystem` are removed from the codebase, and active tests target QB-handler flow.
 - QB rule validation patterns (Phase 6)
   - `BaseQBRuleManager.on_configured()` runs `U_QBRuleValidator.validate_rule_definitions(...)` before rule registration.
   - Only `valid_rules` from the validation report are registered; invalid rules are excluded from runtime evaluation.

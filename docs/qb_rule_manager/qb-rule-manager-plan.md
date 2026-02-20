@@ -287,7 +287,7 @@ Simple event-rule host (no custom `process_tick` iteration). Holds checkpoint an
 
 **`scripts/ecs/systems/s_victory_handler_system.gd`** (replaces S_VictorySystem):
 - Subscribes to `victory_execution_requested` (with subscription priority 10, matching S_VictorySystem's current priority to process before scene manager at priority 5)
-- Validate trigger (`trigger_once` + `is_triggered` guard), check prerequisites (GAME_COMPLETE requires `completed_areas.has("bar")` — replicate `REQUIRED_FINAL_AREA` constant and `_can_trigger_victory()` logic from S_VictorySystem lines 56-73), dispatch actions (`trigger_victory`, `mark_area_complete`, `game_complete`), call `trigger.set_triggered()`
+- Validate trigger (`trigger_once` + `is_triggered` guard), check prerequisites (GAME_COMPLETE requires `completed_areas.has(required_final_area)`), dispatch actions (`trigger_victory`, `mark_area_complete`, `game_complete`), call `trigger.set_triggered()`, then publish `victory_executed`
 - `execution_priority = 300`
 - Expects payload contract in `event["payload"]`: required `trigger_node`; optional `entity_id`
 
@@ -432,8 +432,8 @@ tests/integration/qb/test_qb_brain_data_pipeline.gd
 | `scripts/ecs/systems/s_input_system.gd` | Pause gating consolidation (lines 80-84) |
 | `scripts/ecs/systems/s_footstep_sound_system.gd` | Pause gating consolidation (lines 46-56) |
 | `scripts/ecs/systems/s_floating_system.gd` | Freeze check only (no pause check) |
-| `scripts/ecs/systems/s_checkpoint_system.gd` | Replaced by checkpoint rule + handler |
-| `scripts/ecs/systems/s_victory_system.gd` | Replaced by victory rule + handler |
+| `scripts/ecs/systems/s_checkpoint_handler_system.gd` | Active checkpoint execution path (legacy checkpoint system removed) |
+| `scripts/ecs/systems/s_victory_handler_system.gd` | Active victory execution path (legacy victory system removed) |
 | `scripts/ecs/systems/s_damage_system.gd` | Stays as-is, centralize event names only |
 | `scripts/events/ecs/u_ecs_event_names.gd` | Centralize event constants |
 | `scripts/events/ecs/u_ecs_event_bus.gd` | Event subscription for rule triggers |

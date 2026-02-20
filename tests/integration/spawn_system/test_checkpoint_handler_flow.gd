@@ -1,13 +1,16 @@
 extends GutTest
 
-## Integration tests for S_CheckpointSystem (Phase 12.3b)
+## Integration tests for QB checkpoint flow:
+## C_CheckpointComponent -> S_GameRuleManager -> S_CheckpointHandlerSystem
 
 const M_ECS_MANAGER := preload("res://scripts/managers/m_ecs_manager.gd")
-const S_CHECKPOINT_SYSTEM := preload("res://scripts/ecs/systems/s_checkpoint_system.gd")
+const S_GAME_RULE_MANAGER := preload("res://scripts/ecs/systems/s_game_rule_manager.gd")
+const S_CHECKPOINT_HANDLER_SYSTEM := preload("res://scripts/ecs/systems/s_checkpoint_handler_system.gd")
 const C_CHECKPOINT_COMPONENT := preload("res://scripts/ecs/components/c_checkpoint_component.gd")
 const C_PLAYER_TAG := preload("res://scripts/ecs/components/c_player_tag_component.gd")
 const M_STATE_STORE := preload("res://scripts/state/m_state_store.gd")
 const RS_GAMEPLAY_INITIAL := preload("res://scripts/resources/state/rs_gameplay_initial_state.gd")
+const RS_STATE_STORE_SETTINGS := preload("res://scripts/resources/state/rs_state_store_settings.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 
 var _manager: M_ECSManager
@@ -17,6 +20,8 @@ func before_each() -> void:
 	U_ECS_EVENT_BUS.reset()
 
 	_store = M_STATE_STORE.new()
+	_store.settings = RS_STATE_STORE_SETTINGS.new()
+	_store.settings.enable_persistence = false
 	_store.gameplay_initial_state = RS_GAMEPLAY_INITIAL.new()
 	add_child_autofree(_store)
 	await get_tree().process_frame
@@ -25,9 +30,13 @@ func before_each() -> void:
 	add_child_autofree(_manager)
 	await get_tree().process_frame
 
-	var system := S_CHECKPOINT_SYSTEM.new()
-	_manager.add_child(system)
-	autofree(system)
+	var game_rule_manager := S_GAME_RULE_MANAGER.new()
+	_manager.add_child(game_rule_manager)
+	autofree(game_rule_manager)
+
+	var checkpoint_handler := S_CHECKPOINT_HANDLER_SYSTEM.new()
+	_manager.add_child(checkpoint_handler)
+	autofree(checkpoint_handler)
 	await get_tree().process_frame
 
 func after_each() -> void:

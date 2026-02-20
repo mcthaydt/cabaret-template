@@ -186,6 +186,7 @@ Completion notes: Centralized event names in `U_ECSEventNames` and migrated `S_C
 - [x] T4.21: Run full existing test suite -- verify behavioral equivalence
 - [x] T4.22: Run QB unit tests
 - [x] T4.23: Update continuation prompt (`qb-rule-manager-continuation-prompt.md`) with Phase 4 status
+- [x] T4.24: Post-migration cleanup (February 20, 2026) -- remove legacy `S_CheckpointSystem` / `S_VictorySystem` scripts and compatibility tests; migrate remaining checkpoint integration coverage to QB rule + handler flow
 
 **Phase 4 Commit**: Game state rules replace checkpoint and victory systems
 Completion notes: Added `S_GameRuleManager` + checkpoint/victory handler systems, authored game-domain QB event forwarding rules, migrated all gameplay scenes to handler-based flow, and centralized checkpoint/victory/damage ECS event constants. Verification passed on February 20, 2026 for `tests/unit/qb` (58/58), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), and `tests/unit/style` (12/12).

@@ -111,7 +111,7 @@ No scene or overlay transitions occur here; the flow is entirely panel‑based w
 
 **Step 0 – Death in Gameplay**
 
-- ECS system (`S_VictorySystem` / death system) currently calls `M_SceneManager.transition_to_scene("game_over", "fade", Priority.HIGH)`.
+- ECS handler flow (`S_VictoryHandlerSystem` / death handler path) publishes validated gameplay events consumed by `M_SceneManager`.
 - In the target architecture, there are two possible strategies:
   - **Strategy A (Incremental)**: Keep calling Scene Manager directly and have it dispatch navigation actions internally.
   - **Strategy B (Target)**: Systems dispatch `NAV/OPEN_ENDGAME("game_over")` and let navigation reducers + Scene Manager handle it.
@@ -345,4 +345,3 @@ func _on_slice_updated(slice_name: StringName) -> void:
 **Back to Main Panel:**
 - `ui_back` in settings panel → `store.dispatch(U_NavigationActions.set_menu_panel("menu/main"))`
 - `ui_back` at main panel → no-op
-

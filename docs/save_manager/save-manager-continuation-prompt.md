@@ -120,7 +120,7 @@ Phase 16 adds screenshot thumbnails (320x180 PNG) to save slots. Split into sub-
 4. **Follow existing patterns**:
    - Managers: ServiceLocator registration (see `m_scene_manager.gd`)
    - Helpers: Extracted logic in `scripts/managers/helpers/` (prefix `u_`)
-   - ECS Systems: Extend BaseECSSystem (see `s_checkpoint_system.gd`)
+   - ECS Systems: Extend BaseECSSystem (see `s_checkpoint_handler_system.gd`)
    - Overlays: Extend BaseOverlay (see `ui_pause_menu.gd`)
 
 ## Reference Documents

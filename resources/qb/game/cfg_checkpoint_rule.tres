@@ -11,6 +11,6 @@ target = "checkpoint_activation_requested"
 [resource]
 script = ExtResource("1_rule")
 rule_id = &"checkpoint_activation_request"
-effects = [SubResource("QBEffect_checkpoint_request")]
 trigger_mode = 1
 trigger_event = &"checkpoint_zone_entered"
+effects = [SubResource("QBEffect_checkpoint_request")]

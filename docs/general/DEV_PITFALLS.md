@@ -586,7 +586,7 @@
 
   **Problem**: Phase 8.5 implemented victory/death trigger systems that reference scenes that don't exist yet:
   - `s_health_system.gd:151` → transitions to `"game_over"` (scene doesn't exist, not registered)
-  - `s_victory_system.gd:47` → transitions to `"victory"` (scene doesn't exist, not registered)
+  - `s_victory_handler_system.gd` → publishes post-validation victory event consumed by scene transitions to `"victory"` (scene must exist and be registered)
   - When these triggers fire, the game crashes because Scene Manager can't load non-existent scenes
 
   **Solution**: Follow this order when implementing transition flows:

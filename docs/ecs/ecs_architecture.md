@@ -1472,8 +1472,10 @@ See [§8.4 System Execution Ordering](#84-system-execution-ordering) for status 
 |-------|-------------|-----------|-------------|----------|
 | `health_changed` | `Evn_HealthChanged` | `C_HealthComponent` | _(state-driven)_ | - |
 | `entity_death` | `Evn_EntityDeath` | `C_HealthComponent` | `M_SceneManager` (10), `S_GamepadVibrationSystem` (0) | 10: Quick game over |
-| `victory_triggered` | `Evn_VictoryTriggered` | `C_VictoryTriggerComponent` | `S_VictorySystem` (10), `M_SceneManager` (5) | 10: State before transition |
-| `checkpoint_activated` | `Evn_CheckpointActivated` | `S_CheckpointSystem` | `UI_HudController` (0) | - |
+| `victory_triggered` | `Evn_VictoryTriggered` | `C_VictoryTriggerComponent` | `S_GameRuleManager` (0), `S_VictorySoundSystem` (0) | Rule trigger fan-out |
+| `victory_execution_requested` | _(StringName)_ | `S_GameRuleManager` | `S_VictoryHandlerSystem` (10) | Validated gameplay writes |
+| `victory_executed` | _(StringName)_ | `S_VictoryHandlerSystem` | `M_SceneManager` (5) | Transition after validation |
+| `checkpoint_activated` | `Evn_CheckpointActivated` | `S_CheckpointHandlerSystem` | `UI_HudController` (0) | - |
 
 **Additional Events** (StringName):
 - `victory_zone_entered`, `checkpoint_zone_entered`, `damage_zone_entered/exited`
@@ -1501,7 +1503,7 @@ U_ECSEventBus.publish_typed(death_event)  # Auto-converts to "entity_death"
 ```
 
 **Priority Guidelines**:
-- **10**: Critical state updates before transitions (e.g., S_VictorySystem)
+- **10**: Critical state updates before transitions (e.g., S_VictoryHandlerSystem)
 - **5-9**: Important ordering (e.g., M_SceneManager transitions after state)
 - **0** (default): No special ordering needed (UI, VFX, haptics)
 

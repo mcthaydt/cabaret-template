@@ -11,6 +11,6 @@ target = "victory_execution_requested"
 [resource]
 script = ExtResource("1_rule")
 rule_id = &"victory_execution_request"
-effects = [SubResource("QBEffect_victory_request")]
 trigger_mode = 1
 trigger_event = &"victory_triggered"
+effects = [SubResource("QBEffect_victory_request")]

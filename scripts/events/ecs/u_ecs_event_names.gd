@@ -18,6 +18,7 @@ const EVENT_CHECKPOINT_ACTIVATED := StringName("checkpoint_activated")
 const EVENT_CHECKPOINT_ACTIVATION_REQUESTED := StringName("checkpoint_activation_requested")
 const EVENT_VICTORY_TRIGGERED := StringName("victory_triggered")
 const EVENT_VICTORY_EXECUTION_REQUESTED := StringName("victory_execution_requested")
+const EVENT_VICTORY_EXECUTED := StringName("victory_executed")
 const EVENT_DAMAGE_ZONE_ENTERED := StringName("damage_zone_entered")
 const EVENT_DAMAGE_ZONE_EXITED := StringName("damage_zone_exited")
 

@@ -12,10 +12,12 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 **Next Task**: Refactor complete -- no unchecked tasks remain in `qb-rule-manager-refactor-tasks.md`
 **Latest Verification**:
-- `tests/unit/qb` passing (72/72) on February 20, 2026 after Phase R6 inspector/doc updates
-- `tests/unit/ecs` passing (126/126) on February 20, 2026 after Phase R6 inspector/doc updates
-- `tests/unit/ecs/systems` passing (200/200) on February 20, 2026 after Phase R6 inspector/doc updates
+- `tests/unit/qb` passing (75/75) on February 20, 2026 after legacy checkpoint/victory system removal
+- `tests/unit/ecs` passing (126/126) on February 20, 2026 after legacy checkpoint/victory system removal
+- `tests/unit/ecs/systems` passing (197/197) on February 20, 2026 after legacy checkpoint/victory system removal
 - `tests/integration/qb` passing (1/1) on February 20, 2026 after Phase R6 inspector/doc updates
+- `tests/integration/spawn_system` passing (21/21) on February 20, 2026 after checkpoint QB-flow migration
+- `tests/integration/scene_manager` passing (90/90) on February 20, 2026 after victory post-validation transition migration
 - `tests/unit/style` suite passing (12/12) on February 20, 2026 after Phase R6 inspector/doc updates
 - `tests/unit/camera_system` passing (11/11)
 - `tests/integration/vfx` passing (38/38)
@@ -104,8 +106,8 @@ The QB Rule Manager (16 files, ~2,570 lines) is functionally and quality complet
 - `scripts/ecs/systems/s_input_system.gd` -- pause gating (lines 80-84); keep @export state_store for other checks
 - `scripts/ecs/systems/s_footstep_sound_system.gd` -- pause gating (lines 46-56, uses try_get_store variant); can remove @export state_store
 - `scripts/ecs/systems/s_floating_system.gd` -- freeze only (no pause check)
-- `scripts/ecs/systems/s_checkpoint_system.gd` -- replaced by checkpoint rule + handler; note `_resolve_spawn_point_position()` at lines 90-109
-- `scripts/ecs/systems/s_victory_system.gd` -- replaced by victory rule + handler; prerequisite now lives in `S_VictoryHandlerSystem` via `@export var required_final_area: String = "bar"` and subscription priority `10`
+- `scripts/ecs/systems/s_checkpoint_handler_system.gd` -- owns checkpoint activation, state dispatch, and `_resolve_spawn_point_position()`
+- `scripts/ecs/systems/s_victory_handler_system.gd` -- owns victory validation/execution; prerequisite lives in `@export var required_final_area: String = "bar"` with subscription priority `10`
 - `scripts/ecs/systems/s_damage_system.gd` -- stays as-is, centralize event names only
 - `scripts/events/ecs/u_ecs_event_names.gd` -- centralize event constants
 - `scripts/events/ecs/u_ecs_event_bus.gd` -- event bus for rule triggers

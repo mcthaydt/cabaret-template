@@ -102,8 +102,8 @@ static func _execute_publish_event(effect: RS_QBEffect, context: Dictionary) -> 
 Handler systems subscribe to events published by rules for complex behavior:
 
 - **S_DeathHandlerSystem**: Subscribes to `entity_death_requested` / `entity_respawn_requested` -- spawns/frees ragdoll, hides/restores entity
-- **S_CheckpointHandlerSystem**: Subscribes to `checkpoint_activation_requested` -- activates checkpoint, dispatches state, resolves spawn position (replicates `_resolve_spawn_point_position()` from S_CheckpointSystem)
-- **S_VictoryHandlerSystem**: Subscribes to `victory_execution_requested` -- validates trigger, checks prerequisites (including `REQUIRED_FINAL_AREA = "bar"` for GAME_COMPLETE victory type), dispatches actions
+- **S_CheckpointHandlerSystem**: Subscribes to `checkpoint_activation_requested` -- activates checkpoint, dispatches state, resolves spawn position via `_resolve_spawn_point_position()`
+- **S_VictoryHandlerSystem**: Subscribes to `victory_execution_requested` -- validates trigger, checks prerequisites (including `required_final_area` for GAME_COMPLETE victory type), dispatches actions, then publishes `victory_executed` for scene transitions
 
 Canonical payload contracts (inside `event["payload"]`):
 
@@ -113,6 +113,7 @@ Canonical payload contracts (inside `event["payload"]`):
 | `entity_respawn_requested` | `entity_id: String` | `entity_root: Node3D` |
 | `checkpoint_activation_requested` | `checkpoint: C_CheckpointComponent`, `spawn_point_id: StringName` | `entity_id: StringName` |
 | `victory_execution_requested` | `trigger_node: C_VictoryTriggerComponent` | `entity_id: StringName` |
+| `victory_executed` | `trigger_node: C_VictoryTriggerComponent` | `entity_id: StringName`, `body: Node3D` |
 
 Handlers must validate required fields and return early on invalid payloads (warning + no-op).
 

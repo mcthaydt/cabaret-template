@@ -171,9 +171,10 @@ Systems are organized into **four functional categories** for better visual orga
 **Systems:**
 - `S_InputSystem` (priority: 0) - Input capture and processing
 - `S_TouchscreenSystem` - Mobile virtual controls coordination
-- `S_CheckpointSystem` - Checkpoint activation and respawn point updates
+- `S_GameRuleManager` - Event-rule host for checkpoint/victory trigger routing
+- `S_CheckpointHandlerSystem` - Checkpoint activation and respawn point updates
 - `S_SceneTriggerSystem` - Door and scene transition triggers
-- `S_VictorySystem` - Victory condition detection and endgame flows
+- `S_VictoryHandlerSystem` - Victory validation and endgame action dispatch
 
 **Note:** `M_TimeManager` now lives in `root.tscn` (Phase 2 architecture) and is NOT included in gameplay scenes.
 
@@ -472,7 +473,7 @@ Target result: `E_Checkpoint_SafeZone` is a single node with a controller; no vi
 Notes & pitfalls
 - Tabs only in `.gd` files (see `DEV_PITFALLS.md`).
 - In `.tres`, reference the script explicitly (don’t rely on `class_name`) to avoid “Cannot get class” errors.
-- Systems (e.g., `S_CheckpointSystem`) continue to discover components normally; no system change required.
+- QB game rules and handler systems continue to consume the same checkpoint component events; no scene-authoring change required beyond controller/config wiring.
 
 ### Reusable Volume Settings
 

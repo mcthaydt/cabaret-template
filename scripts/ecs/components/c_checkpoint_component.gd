@@ -15,7 +15,7 @@ const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 ## 2. Set checkpoint_id (unique ID) and spawn_point_id (where to spawn)
 ## 3. Optional: Assign `area_path` to an existing Area3D, otherwise this
 ##    component will auto-create an Area3D + CollisionShape3D using `settings`.
-## 4. S_CheckpointSystem will detect player entry and update last_checkpoint
+## 4. QB game rules + S_CheckpointHandlerSystem will process checkpoint activation
 ##
 ## Example (no authored children required):
 ##   CheckpointNode (Node3D)
@@ -23,7 +23,9 @@ const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 ##      └─ (auto) Area3D + CollisionShape3D
 ##
 ## Integration:
-## - S_CheckpointSystem queries for C_CheckpointComponent
+## - C_CheckpointComponent publishes EVENT_CHECKPOINT_ZONE_ENTERED
+## - S_GameRuleManager forwards checkpoint_activation_requested
+## - S_CheckpointHandlerSystem updates gameplay.last_checkpoint
 ## - On player collision: updates gameplay.last_checkpoint
 ## - M_SpawnManager.spawn_at_last_spawn() uses last_checkpoint > target_spawn_point > sp_default
 
@@ -84,7 +86,7 @@ func _find_area3d_sibling() -> Area3D:
 			return sibling as Area3D
 	return null
 
-## Activate this checkpoint (called by S_CheckpointSystem)
+## Activate this checkpoint (called by S_CheckpointHandlerSystem)
 func activate() -> void:
 	is_activated = true
 	last_activated_time = Time.get_ticks_msec() / 1000.0

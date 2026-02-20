@@ -150,7 +150,7 @@ var _unsubscribe: Callable
 
 ## ECS event bus subscriptions
 var _entity_death_unsubscribe: Callable
-var _victory_triggered_unsubscribe: Callable
+var _victory_executed_unsubscribe: Callable
 
 ## Skip initial scene load (for tests)
 var skip_initial_scene_load: bool = false
@@ -208,8 +208,8 @@ func _ready() -> void:
 	# Subscribe to ECS events with priorities
 	# entity_death: Priority 10 (high - quick transition to game over)
 	_entity_death_unsubscribe = U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_ENTITY_DEATH, _on_entity_death, 10)
-	# victory_triggered: Priority 5 (medium - after S_VictorySystem processes state)
-	_victory_triggered_unsubscribe = U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_VICTORY_TRIGGERED, _on_victory_triggered, 5)
+	# victory_executed: Priority 5 (medium - after handler validates and updates state)
+	_victory_executed_unsubscribe = U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_VICTORY_EXECUTED, _on_victory_executed, 5)
 
 	# Register scene type handlers (T137c: Phase 10B-3)
 	_register_scene_type_handlers()
@@ -291,8 +291,8 @@ func _exit_tree() -> void:
 	# Unsubscribe from ECS events
 	if _entity_death_unsubscribe != null and _entity_death_unsubscribe.is_valid():
 		_entity_death_unsubscribe.call()
-	if _victory_triggered_unsubscribe != null and _victory_triggered_unsubscribe.is_valid():
-		_victory_triggered_unsubscribe.call()
+	if _victory_executed_unsubscribe != null and _victory_executed_unsubscribe.is_valid():
+		_victory_executed_unsubscribe.call()
 
 func _ensure_store_reference() -> void:
 	_store = U_SCENE_MANAGER_NODE_FINDER.ensure_store_reference(_store, self )
@@ -318,9 +318,9 @@ func _on_entity_death(_event: Dictionary) -> void:
 	# Trigger game over transition when player dies
 	transition_to_scene(StringName("game_over"), "fade", Priority.CRITICAL)
 
-## ECS event handler: victory_triggered
-## Phase 10B (T131): Subscribe to victory_triggered event instead of direct call from S_VictorySystem
-func _on_victory_triggered(event: Dictionary) -> void:
+## ECS event handler: victory_executed
+## Transition only after S_VictoryHandlerSystem validates prerequisites and dispatches state updates.
+func _on_victory_executed(event: Dictionary) -> void:
 	var payload: Dictionary = event.get("payload", {})
 	var trigger := payload.get("trigger_node") as C_VictoryTriggerComponent
 	if trigger == null or not is_instance_valid(trigger):

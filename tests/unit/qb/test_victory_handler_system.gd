@@ -143,3 +143,32 @@ func test_trigger_once_guard_blocks_when_already_triggered() -> void:
 	await _pump()
 
 	assert_eq(store.get_dispatched_actions().size(), 0, "Already-triggered trigger_once should not dispatch actions")
+
+func test_victory_execution_publishes_post_validation_event() -> void:
+	var fixture: Dictionary = await _setup_fixture()
+	var trigger := _create_trigger()
+
+	var captured: Array[Dictionary] = []
+	var unsubscribe: Callable = U_ECSEventBus.subscribe(
+		U_ECSEventNames.EVENT_VICTORY_EXECUTED,
+		func(event: Dictionary) -> void:
+			captured.append(event)
+	)
+
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_VICTORY_EXECUTION_REQUESTED, {
+		"entity_id": StringName("player"),
+		"trigger_node": trigger,
+	})
+	await _pump()
+	if unsubscribe.is_valid():
+		unsubscribe.call()
+
+	assert_eq(captured.size(), 1, "Victory handler should publish post-validation event exactly once")
+	if captured.is_empty():
+		return
+
+	var payload_variant: Variant = captured[0].get("payload", {})
+	assert_true(payload_variant is Dictionary)
+	var payload: Dictionary = payload_variant as Dictionary
+	assert_eq(payload.get("entity_id"), StringName("player"))
+	assert_eq(payload.get("trigger_node"), trigger)

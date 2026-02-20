@@ -260,7 +260,7 @@ func _find_nodes_by_prefix(node: Node, prefix: String, results: Array) -> void:
 ##
 ## Priority order for spawn point selection:
 ##   1. target_spawn_point (set by C_SceneTriggerComponent for door transitions - current scene entry)
-##   2. last_checkpoint (set by S_CheckpointSystem when player touches checkpoint - mid-scene)
+##   2. last_checkpoint (set by S_CheckpointHandlerSystem when player touches checkpoint - mid-scene)
 ##   3. sp_default (fallback if both above are empty)
 ##
 ## Used for death respawn: player respawns at the last meaningful location.

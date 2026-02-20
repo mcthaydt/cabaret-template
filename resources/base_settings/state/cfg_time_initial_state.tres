@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="RS_TimeInitialState" format=3]
+[gd_resource type="Resource" script_class="RS_TimeInitialState" format=3 uid="uid://b2kl002im8pb5"]
 
-[ext_resource type="Script" path="res://scripts/resources/state/rs_time_initial_state.gd" id="1_time_initial_state"]
+[ext_resource type="Script" uid="uid://b4eocq7t2fwi3" path="res://scripts/resources/state/rs_time_initial_state.gd" id="1_time_initial_state"]
 
 [resource]
 script = ExtResource("1_time_initial_state")

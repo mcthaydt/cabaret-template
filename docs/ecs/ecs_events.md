@@ -61,10 +61,12 @@ Event stored in rolling history buffer (1000 events)
 |------------|-------------|-----------|-------------|----------|
 | `health_changed` | `Evn_HealthChanged` | `C_HealthComponent` | _(none - state-driven)_ | - |
 | `entity_death` | `Evn_EntityDeath` | `C_HealthComponent` | `M_SceneManager` (10)<br>`S_GamepadVibrationSystem` (0) | High for scene manager |
-| `victory_triggered` | `Evn_VictoryTriggered` | `C_VictoryTriggerComponent` | `S_VictorySystem` (10)<br>`M_SceneManager` (5) | Process state before transition |
-| `checkpoint_activated` | `Evn_CheckpointActivated` | `S_CheckpointSystem` | `UI_HudController` (0) | - |
+| `victory_triggered` | `Evn_VictoryTriggered` | `C_VictoryTriggerComponent` | `S_GameRuleManager` (0)<br>`S_VictorySoundSystem` (0) | Rule trigger + audio |
+| `victory_execution_requested` | _(StringName)_ | `S_GameRuleManager` | `S_VictoryHandlerSystem` (10) | Validate + dispatch gameplay writes |
+| `victory_executed` | _(StringName)_ | `S_VictoryHandlerSystem` | `M_SceneManager` (5) | Transition after validation |
+| `checkpoint_activated` | `Evn_CheckpointActivated` | `S_CheckpointHandlerSystem` | `UI_HudController` (0) | - |
 | `victory_zone_entered` | _(StringName)_ | `C_VictoryTriggerComponent` | _(internal)_ | - |
-| `checkpoint_zone_entered` | _(StringName)_ | `C_CheckpointComponent` | `S_CheckpointSystem` (0) | - |
+| `checkpoint_zone_entered` | _(StringName)_ | `C_CheckpointComponent` | `S_GameRuleManager` (0) | Rule trigger |
 | `damage_zone_entered` | _(StringName)_ | `C_DamageZoneComponent` | `S_DamageSystem` (0) | - |
 | `damage_zone_exited` | _(StringName)_ | `C_DamageZoneComponent` | `S_DamageSystem` (0) | - |
 | `entity_jumped` | _(StringName)_ | `S_JumpSystem` | VFX/Audio systems | - |
@@ -153,13 +155,13 @@ var body: Node3D
 ```
 
 **Subscribers**:
-- `S_VictorySystem._on_victory_triggered()` - Priority 10 (updates state/objectives)
-- `M_SceneManager._on_victory_triggered()` - Priority 5 (scene transition after state update)
+- `S_GameRuleManager._on_event_received()` - Forwards to `victory_execution_requested`
+- `S_VictorySoundSystem._on_event_received()` - Queues victory audio feedback
 
 ### Evn_CheckpointActivated
 
 **File**: `scripts/events/ecs/evn_checkpoint_activated.gd`
-**Publisher**: `S_CheckpointSystem`
+**Publisher**: `S_CheckpointHandlerSystem`
 **Published When**: Player activates checkpoint
 
 **Properties**:
@@ -186,7 +188,7 @@ var spawn_point_id: StringName
 
 | Priority | Use Case | Example |
 |----------|----------|---------|
-| **10** | Critical state updates before transitions | `S_VictorySystem` processes objectives before scene change |
+| **10** | Critical state updates before transitions | `S_VictoryHandlerSystem` processes objectives before scene change |
 | **5-9** | Important processing order | `M_SceneManager` transitions after state systems |
 | **0** | Default, no special ordering | Haptic feedback, UI updates, VFX |
 
@@ -195,15 +197,15 @@ var spawn_point_id: StringName
 ```gdscript
 # High priority - process state BEFORE scene transition
 U_ECSEventBus.subscribe(
-    StringName("victory_triggered"),
-    _on_victory_triggered,
+    StringName("victory_execution_requested"),
+    _on_victory_execution_requested,
     10  # High priority
 )
 
 # Medium priority - transition AFTER state processed
 U_ECSEventBus.subscribe(
-    StringName("victory_triggered"),
-    _on_victory_triggered,
+    StringName("victory_executed"),
+    _on_victory_executed,
     5   # Medium priority
 )
 
