@@ -1,6 +1,6 @@
 # QB Rule Manager Refactor - Tasks Checklist
 
-**Progress:** 23% (9 / 39 tasks complete)
+**Progress:** 26% (10 / 39 tasks complete)
 
 ## Verification (all phases)
 
@@ -133,7 +133,7 @@ Note: The camera shake values (offset 10.0, rotation 0.03) are intentionally dif
 
 ### R5D: Redundant guard code
 
-- [ ] TR5.6: Remove redundant `if not components.has(...)` guard in `s_camera_rule_manager.gd` `_attach_camera_context()` (lines 96-98). A fresh dict has the StringName key added at line 95, then checks for the String key at line 97 — the guard is either always-true or always-false depending on Godot's StringName/String dict key equivalence, but either way it's dead logic. Replace with unconditional dual-key add matching the character manager's `_add_component_from_query` pattern
+- [x] TR5.6: Remove redundant `if not components.has(...)` guard in `s_camera_rule_manager.gd` `_attach_camera_context()` (lines 96-98). A fresh dict has the StringName key added at line 95, then checks for the String key at line 97 — the guard is either always-true or always-false depending on Godot's StringName/String dict key equivalence, but either way it's dead logic. Replace with unconditional dual-key add matching the character manager's `_add_component_from_query` pattern
 
 ### R5E: Document entity ID normalization
 

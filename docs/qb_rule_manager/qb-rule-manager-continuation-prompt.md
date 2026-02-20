@@ -8,7 +8,7 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 **Phase**: Refactor -- Phase R1 complete, Phase R2 pending (all 6 feature phases complete)
 **Branch**: QB-Rule-Manager
-**Last Commit**: `a7338bf` - Extract shared variant helpers into U_QBVariantUtils
+**Last Commit**: `82e05db` - docs(qb): mark refactor phase R1 complete
 
 **Next Task**: Phase R2 (Promote `_resolve_store()` to base) -- first unchecked item in `qb-rule-manager-refactor-tasks.md`
 **Latest Verification**:
