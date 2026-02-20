@@ -7,6 +7,7 @@ const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
 const U_QB_RULE_EVALUATOR := preload("res://scripts/utils/qb/u_qb_rule_evaluator.gd")
 const U_QB_QUALITY_PROVIDER := preload("res://scripts/utils/qb/u_qb_quality_provider.gd")
 const U_QB_EFFECT_EXECUTOR := preload("res://scripts/utils/qb/u_qb_effect_executor.gd")
+const U_QB_RULE_VALIDATOR := preload("res://scripts/utils/qb/u_qb_rule_validator.gd")
 const QB_RULE := preload("res://scripts/resources/qb/rs_qb_rule_definition.gd")
 
 const GLOBAL_CONTEXT_KEY := "__global__"
@@ -18,13 +19,15 @@ var _registered_rules: Array = []
 var _rule_states: Dictionary = {}
 var _event_rule_ids: Dictionary = {}
 var _event_unsubscribers: Dictionary = {}
+var _rule_validation_report: Dictionary = {}
 
 func _init() -> void:
 	execution_priority = -1
 
 func on_configured() -> void:
 	_unregister_event_subscriptions()
-	_register_rules(_resolve_rule_definitions())
+	_rule_validation_report = U_QB_RULE_VALIDATOR.validate_rule_definitions(_resolve_rule_definitions())
+	_register_rules(_get_valid_rule_definitions())
 	_register_event_subscriptions()
 
 func _exit_tree() -> void:
@@ -58,6 +61,9 @@ func get_rule_runtime_state(rule_id: StringName) -> Dictionary:
 		return {}
 	return (state_variant as Dictionary).duplicate(true)
 
+func get_rule_validation_report() -> Dictionary:
+	return _rule_validation_report.duplicate(true)
+
 func _build_event_context(event_name: StringName, event_payload: Dictionary) -> Dictionary:
 	var context: Dictionary = {
 		"event_name": event_name,
@@ -71,6 +77,12 @@ func _resolve_rule_definitions() -> Array:
 	if not rule_definitions.is_empty():
 		return rule_definitions
 	return get_default_rule_definitions()
+
+func _get_valid_rule_definitions() -> Array:
+	var valid_rules_variant: Variant = _rule_validation_report.get("valid_rules", [])
+	if valid_rules_variant is Array:
+		return (valid_rules_variant as Array).duplicate()
+	return []
 
 func _register_rules(definitions: Array) -> void:
 	_registered_rules.clear()

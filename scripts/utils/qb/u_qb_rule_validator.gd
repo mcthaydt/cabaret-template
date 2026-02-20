@@ -33,6 +33,28 @@ static func validate_rule(rule: Variant) -> Array[String]:
 
 	return errors
 
+static func validate_rule_definitions(definitions: Array) -> Dictionary:
+	var valid_rules: Array = []
+	var errors_by_index: Dictionary = {}
+	var errors_by_rule_id: Dictionary = {}
+
+	for index in range(definitions.size()):
+		var rule: Variant = definitions[index]
+		var errors: Array[String] = validate_rule(rule)
+		if errors.is_empty():
+			valid_rules.append(rule)
+			continue
+
+		errors_by_index[index] = errors.duplicate()
+		var rule_key: StringName = _resolve_rule_report_key(rule, index)
+		errors_by_rule_id[rule_key] = errors.duplicate()
+
+	return {
+		"valid_rules": valid_rules,
+		"errors_by_index": errors_by_index,
+		"errors_by_rule_id": errors_by_rule_id,
+	}
+
 static func _validate_condition(condition: Variant, index: int, errors: Array[String]) -> void:
 	var prefix: String = "conditions[%d]" % index
 	if condition == null or not (condition is Object):
@@ -121,3 +143,9 @@ static func _get_dict_property(object_value: Variant, property_name: String) -> 
 	if value is Dictionary:
 		return value as Dictionary
 	return {}
+
+static func _resolve_rule_report_key(rule: Variant, index: int) -> StringName:
+	var rule_id: String = _get_string_name_property(rule, "rule_id")
+	if not rule_id.is_empty():
+		return StringName(rule_id)
+	return StringName("rule_%d" % index)

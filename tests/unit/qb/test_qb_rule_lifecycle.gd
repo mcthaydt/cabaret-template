@@ -353,6 +353,40 @@ func test_set_quality_only_mutates_context_dictionary() -> void:
 	assert_eq(tick_context.get("is_dead"), true)
 	assert_eq(component.is_dead, false)
 
+func test_on_configured_filters_invalid_rules_via_validator() -> void:
+	var valid_rule: Variant = _make_rule(
+		StringName("valid_rule"),
+		[_make_condition("flag")],
+		[_make_dispatch_effect(StringName("qb/valid"), {})],
+		0,
+		false
+	)
+
+	var invalid_effect: Variant = QB_EFFECT.new()
+	invalid_effect.effect_type = QB_EFFECT.EffectType.SET_QUALITY
+	invalid_effect.target = "is_dead"
+	invalid_effect.payload = {
+		"value_type": "NOT_A_REAL_VALUE_TYPE",
+		"value_bool": true,
+	}
+	var invalid_rule: Variant = _make_rule(
+		StringName("invalid_rule"),
+		[_make_condition("flag")],
+		[invalid_effect],
+		0,
+		false
+	)
+
+	var context := _configure_manager([valid_rule, invalid_rule])
+	var manager: RuleManagerStub = context["manager"]
+
+	var registered_rule_ids: Array[StringName] = manager.get_registered_rule_ids()
+	assert_eq(registered_rule_ids, [StringName("valid_rule")])
+
+	var validation_report: Dictionary = manager.get_rule_validation_report()
+	var errors_by_rule_id: Dictionary = validation_report.get("errors_by_rule_id", {})
+	assert_true(errors_by_rule_id.has(StringName("invalid_rule")))
+
 func test_default_rule_definitions_used_when_export_array_empty() -> void:
 	var default_rule: Variant = _make_rule(
 		StringName("default_rule"),

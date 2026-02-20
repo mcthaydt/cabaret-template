@@ -113,3 +113,38 @@ func test_validate_rule_reports_invalid_effect_payload_value_type() -> void:
 
 	var errors: Array[String] = QB_RULE_VALIDATOR.validate_rule(rule)
 	assert_true(_errors_contain(errors, "effects[0].payload.value_type"))
+
+func test_validate_rule_definitions_filters_invalid_rules_and_reports_errors() -> void:
+	var valid_rule: Variant = _make_base_rule()
+	valid_rule.rule_id = StringName("valid_rule")
+
+	var invalid_rule: Variant = _make_base_rule()
+	invalid_rule.rule_id = StringName("invalid_rule")
+	invalid_rule.effects = [
+		_make_effect(
+			QB_EFFECT.EffectType.SET_QUALITY,
+			"is_dead",
+			{
+				"value_type": "INVALID_TYPE",
+				"value_bool": false
+			}
+		)
+	]
+
+	var report: Dictionary = QB_RULE_VALIDATOR.validate_rule_definitions([valid_rule, invalid_rule, null])
+	var valid_rules_variant: Variant = report.get("valid_rules", [])
+	assert_true(valid_rules_variant is Array)
+	var valid_rules: Array = valid_rules_variant as Array
+	assert_eq(valid_rules.size(), 1)
+	assert_eq(valid_rules[0], valid_rule)
+
+	var errors_by_index_variant: Variant = report.get("errors_by_index", {})
+	assert_true(errors_by_index_variant is Dictionary)
+	var errors_by_index: Dictionary = errors_by_index_variant as Dictionary
+	assert_true(errors_by_index.has(1))
+	assert_true(errors_by_index.has(2))
+
+	var errors_by_rule_id_variant: Variant = report.get("errors_by_rule_id", {})
+	assert_true(errors_by_rule_id_variant is Dictionary)
+	var errors_by_rule_id: Dictionary = errors_by_rule_id_variant as Dictionary
+	assert_true(errors_by_rule_id.has(StringName("invalid_rule")))
