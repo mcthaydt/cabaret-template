@@ -6,17 +6,17 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Refactor -- Phase R2 complete, Phase R3 pending (all 6 feature phases complete)
+**Phase**: Refactor -- Phase R3 complete, Phase R4 pending (all 6 feature phases complete)
 **Branch**: QB-Rule-Manager
-**Phase Completion Commit**: `83bfcf1` - docs(qb): mark refactor phase R2 complete
+**Phase Completion Commit**: `101aa02` - Fix process_tick() override fragility with virtual hooks
 
-**Next Task**: Phase R3 (Add `_post_tick_evaluation` hook to `process_tick`) -- first unchecked item in `qb-rule-manager-refactor-tasks.md`
+**Next Task**: Phase R4 (Decompose `_build_quality_context()` into focused helpers) -- first unchecked item in `qb-rule-manager-refactor-tasks.md`
 **Latest Verification**:
-- `tests/unit/qb` passing (71/71) on February 20, 2026 after Phase R2 store resolver promotion
-- `tests/unit/ecs` passing (126/126) on February 20, 2026 after Phase R2 store resolver promotion
-- `tests/unit/ecs/systems` passing (200/200) on February 20, 2026 after Phase R2 store resolver promotion
-- `tests/integration/qb` passing (1/1) on February 20, 2026 after Phase R2 store resolver promotion
-- `tests/unit/style` suite passing (12/12) on February 20, 2026 after Phase R2 store resolver promotion
+- `tests/unit/qb` passing (71/71) on February 20, 2026 after Phase R3 post-tick hook refactor
+- `tests/unit/ecs` passing (126/126) on February 20, 2026 after Phase R3 post-tick hook refactor
+- `tests/unit/ecs/systems` passing (200/200) on February 20, 2026 after Phase R3 post-tick hook refactor
+- `tests/integration/qb` passing (1/1) on February 20, 2026 after Phase R3 post-tick hook refactor
+- `tests/unit/style` suite passing (12/12) on February 20, 2026 after Phase R3 post-tick hook refactor
 - `tests/unit/camera_system` passing (11/11)
 - `tests/integration/vfx` passing (38/38)
 - Phase 4 migration checks passed on February 20, 2026 (game rules + handler systems + scene migration)
@@ -64,7 +64,7 @@ You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game 
 
 ## Current Work: Quality Refactor (6 phases, zero behavioral changes)
 
-Phases R1 and R2 are complete: shared variant helpers are centralized in `scripts/utils/qb/u_qb_variant_utils.gd`, and store resolution is now owned by `BaseQBRuleManager` with duplicate concrete-manager helpers removed.
+Phases R1-R3 are complete: shared variant helpers are centralized in `scripts/utils/qb/u_qb_variant_utils.gd`, store resolution is owned by `BaseQBRuleManager`, and concrete managers now extend tick flow via `_post_tick_evaluation(...)` instead of duplicating `process_tick()`.
 
 The QB Rule Manager (16 files, ~2,570 lines) is functionally complete but has quality gaps:
 - ~150-200 lines of copy-pasted helpers across 7 files

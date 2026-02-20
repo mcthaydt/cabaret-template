@@ -68,6 +68,7 @@
   - `get_rule_validation_report()` exposes `{valid_rules, errors_by_index, errors_by_rule_id}` for tests and debugging.
   - Misconfigured rules emit editor-only warnings in `_warn_invalid_rule_definitions()` (gated by `_should_emit_rule_validation_warnings()`, default `Engine.is_editor_hint()`).
   - Test pattern: override `_emit_rule_validation_warning(...)` in a test stub instead of asserting raw engine warning output.
+  - Tick extension pattern (Refactor Phase R3): keep `BaseQBRuleManager.process_tick()` as the canonical 5-step loop; subclasses should override `_post_tick_evaluation(contexts, delta)` for domain writes (brain data, camera state) instead of overriding `process_tick()`.
   - Camera FOV baseline pattern: `S_CameraRuleManager` captures per-scene baseline FOV into `C_CameraStateComponent.base_fov` from the active camera and restores that baseline when `camera.in_fov_zone` is false, instead of falling back to a hardcoded default FOV.
 - VFX Event Requests (Phase 1 refactor)
   - Publisher systems translate gameplay events into VFX request events.

@@ -1,6 +1,6 @@
 # QB Rule Manager Refactor - Tasks Checklist
 
-**Progress:** 38% (15 / 39 tasks complete)
+**Progress:** 49% (19 / 39 tasks complete)
 
 ## Verification (all phases)
 
@@ -81,13 +81,19 @@ Completion notes (2026-02-20):
 
 ### R3A: Add hook to BaseQBRuleManager
 
-- [ ] TR3.1: Add `_post_tick_evaluation(_contexts: Array, _delta: float) -> void` virtual (empty body) called inside `process_tick()` after `_evaluate_contexts` and before `_cleanup_stale_context_state`
+- [x] TR3.1: Add `_post_tick_evaluation(_contexts: Array, _delta: float) -> void` virtual (empty body) called inside `process_tick()` after `_evaluate_contexts` and before `_cleanup_stale_context_state`
 
 ### R3B: Refactor concrete managers
 
-- [ ] TR3.2: `S_CharacterRuleManager` -- delete `process_tick()` override entirely, override `_post_tick_evaluation()` for `_write_brain_data()` loop
-- [ ] TR3.3: `S_CameraRuleManager` -- delete `process_tick()` override entirely, override `_post_tick_evaluation()` for `_apply_camera_state()`. Keep `_on_event_received()` override as-is (multi-context evaluation is genuinely different, not duplicated)
-- [ ] TR3.4: Run full test suite -- zero regressions
+- [x] TR3.2: `S_CharacterRuleManager` -- delete `process_tick()` override entirely, override `_post_tick_evaluation()` for `_write_brain_data()` loop
+- [x] TR3.3: `S_CameraRuleManager` -- delete `process_tick()` override entirely, override `_post_tick_evaluation()` for `_apply_camera_state()`. Keep `_on_event_received()` override as-is (multi-context evaluation is genuinely different, not duplicated)
+- [x] TR3.4: Run full test suite -- zero regressions
+
+Completion notes (2026-02-20):
+- Added `_post_tick_evaluation(contexts, delta)` to `BaseQBRuleManager.process_tick()` between `_evaluate_contexts(...)` and `_cleanup_stale_context_state()`.
+- Removed `process_tick()` overrides from `S_CharacterRuleManager` and `S_CameraRuleManager`; each now extends via `_post_tick_evaluation(...)` only.
+- Kept `S_CameraRuleManager._on_event_received()` override unchanged for multi-context event evaluation.
+- Verification passed: `tests/unit/qb` (71/71), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), `tests/unit/style` (12/12).
 
 **Commit:** `Fix process_tick() override fragility with virtual hooks`
 
