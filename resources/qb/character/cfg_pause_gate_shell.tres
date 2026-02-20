@@ -18,7 +18,7 @@ effect_type = 3
 target = "is_gameplay_active"
 payload = {
 "value_bool": false,
-"value_type": 3
+"value_type": "BOOL"
 }
 
 [resource]

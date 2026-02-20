@@ -92,7 +92,7 @@ static func _execute_set_component_field(effect: Variant, context: Dictionary) -
 	var payload: Dictionary = _get_effect_payload(effect)
 	var operation_variant: Variant = payload.get("operation", StringName("set"))
 	var operation: StringName = StringName(operation_variant)
-	var value_type: int = int(payload.get("value_type", QB_CONDITION.ValueType.BOOL))
+	var value_type: int = QB_EFFECT.parse_payload_value_type(payload.get("value_type", QB_CONDITION.ValueType.BOOL))
 	var value: Variant = _get_payload_typed_value(effect, payload)
 
 	if operation != StringName("set") and operation != StringName("add"):
@@ -137,7 +137,7 @@ static func _get_payload_typed_value(effect: Variant, payload: Dictionary) -> Va
 	if effect is Object and effect.has_method("get_payload_typed_value"):
 		return effect.call("get_payload_typed_value")
 
-	var value_type: int = int(payload.get("value_type", QB_CONDITION.ValueType.BOOL))
+	var value_type: int = QB_EFFECT.parse_payload_value_type(payload.get("value_type", QB_CONDITION.ValueType.BOOL))
 	match value_type:
 		QB_CONDITION.ValueType.FLOAT:
 			return float(payload.get("value_float", 0.0))

@@ -16,7 +16,7 @@ effect_type = 3
 target = "is_spawn_frozen"
 payload = {
 "value_bool": true,
-"value_type": 3
+"value_type": "BOOL"
 }
 
 [resource]

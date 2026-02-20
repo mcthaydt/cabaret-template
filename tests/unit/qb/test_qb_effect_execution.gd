@@ -131,6 +131,20 @@ func test_set_quality_effect_writes_to_context_dictionary() -> void:
 	QB_EFFECT_EXECUTOR.execute_effect(effect, context)
 	assert_eq(context.get("is_dead"), true)
 
+func test_set_quality_effect_supports_string_value_type_name() -> void:
+	var effect: Variant = _make_effect(
+		QB_EFFECT.EffectType.SET_QUALITY,
+		"is_gameplay_active",
+		{
+			"value_type": "BOOL",
+			"value_bool": false
+		}
+	)
+	var context: Dictionary = {}
+
+	QB_EFFECT_EXECUTOR.execute_effect(effect, context)
+	assert_eq(context.get("is_gameplay_active"), false)
+
 func test_execute_effects_processes_multiple_effects() -> void:
 	var component := MockStatsComponent.new()
 	var context: Dictionary = {

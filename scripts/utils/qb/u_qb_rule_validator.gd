@@ -65,6 +65,13 @@ static func _validate_effect(effect: Variant, index: int, errors: Array[String])
 	if effect_type == QB_EFFECT.EffectType.SET_COMPONENT_FIELD and not _is_component_path(target):
 		errors.append("%s.target must be Component.field format for SET_COMPONENT_FIELD" % prefix)
 
+	if effect_type == QB_EFFECT.EffectType.SET_COMPONENT_FIELD or effect_type == QB_EFFECT.EffectType.SET_QUALITY:
+		var payload: Dictionary = _get_dict_property(effect, "payload")
+		var value_type: Variant = payload.get("value_type", QB_CONDITION.ValueType.BOOL)
+		var parsed_value_type: int = QB_EFFECT.try_parse_payload_value_type(value_type)
+		if parsed_value_type == QB_EFFECT.INVALID_VALUE_TYPE:
+			errors.append("%s.payload.value_type must be FLOAT/INT/STRING/BOOL/STRING_NAME or valid enum value" % prefix)
+
 static func _is_component_path(path: String) -> bool:
 	if path.is_empty():
 		return false
@@ -106,3 +113,11 @@ static func _get_string_property(object_value: Variant, property_name: String, f
 
 static func _get_string_name_property(object_value: Variant, property_name: String) -> String:
 	return _get_string_property(object_value, property_name, "")
+
+static func _get_dict_property(object_value: Variant, property_name: String) -> Dictionary:
+	if object_value == null or not (object_value is Object):
+		return {}
+	var value: Variant = object_value.get(property_name)
+	if value is Dictionary:
+		return value as Dictionary
+	return {}

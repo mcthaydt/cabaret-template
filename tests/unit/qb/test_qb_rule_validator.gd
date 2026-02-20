@@ -97,3 +97,19 @@ func test_validate_rule_reports_empty_effect_target_and_invalid_component_field_
 	]
 	var component_target_errors: Array[String] = QB_RULE_VALIDATOR.validate_rule(invalid_component_target_rule)
 	assert_true(_errors_contain(component_target_errors, "effects[0].target"))
+
+func test_validate_rule_reports_invalid_effect_payload_value_type() -> void:
+	var rule: Variant = _make_base_rule()
+	rule.effects = [
+		_make_effect(
+			QB_EFFECT.EffectType.SET_QUALITY,
+			"is_dead",
+			{
+				"value_type": "NOT_A_REAL_TYPE",
+				"value_bool": false
+			}
+		)
+	]
+
+	var errors: Array[String] = QB_RULE_VALIDATOR.validate_rule(rule)
+	assert_true(_errors_contain(errors, "effects[0].payload.value_type"))
