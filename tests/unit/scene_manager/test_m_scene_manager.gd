@@ -168,6 +168,22 @@ func test_is_transitioning() -> void:
 	# Note: Actual transitioning state depends on implementation
 	assert_true(true, "is_transitioning method exists")
 
+## Regression: queue_free during gameplay transition should not leave scene slice stuck transitioning
+func test_queue_free_during_gameplay_transition_clears_transition_state() -> void:
+	_manager.transition_to_scene(StringName("gameplay_base"), "instant")
+	await get_tree().process_frame
+
+	if _manager != null and is_instance_valid(_manager):
+		_manager.queue_free()
+
+	await wait_physics_frames(2)
+
+	var scene_state: Dictionary = _store.get_state().get("scene", {})
+	assert_false(
+		scene_state.get("is_transitioning", false),
+		"Transition state should clear even if manager is freed during transition teardown"
+	)
+
 ## Test push_overlay adds scene to UIOverlayStack
 func test_push_overlay() -> void:
 	var initial_child_count: int = _ui_overlay_stack.get_child_count()

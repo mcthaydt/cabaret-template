@@ -561,18 +561,8 @@ func _perform_transition(request) -> void:
 			if new_camera != null:
 				new_camera.current = true
 
-			# T137c (Phase 10B-3): Delegate scene-type-specific load behavior to handler
-			# Handlers encapsulate scene-type logic (metadata, spawning, etc.)
-			# Wait for scene tree to fully initialize before calling handler
-			# Use physics_frame-only waits so transitions still progress while paused
-			# and so headless tests (which often advance only physics frames) don't hang.
-			var init_wait_frames: int = 0
-			if scene_type == U_SCENE_REGISTRY.SceneType.GAMEPLAY:
-				init_wait_frames = 1
-			for _i in range(init_wait_frames):
-				await get_tree().physics_frame
-
-		# Check scene is still valid before handler call (can be freed during test cleanup)
+		# Keep scene swap callback await-free. Awaiting inside this closure can
+		# resume after manager teardown in tests and emit class-instance-gone errors.
 		if is_instance_valid(new_scene):
 			var handler := _scene_type_handlers.get(scene_type) as I_SCENE_TYPE_HANDLER
 			if handler != null:

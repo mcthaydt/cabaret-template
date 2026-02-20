@@ -349,7 +349,7 @@ Production asset files use type-specific prefixes:
 
 - Use `set_timescale(scale)` (clamped to `[0.01, 10.0]`) and `get_scaled_delta(raw_delta)`.
 - ECS physics consumes scaled delta via `M_ECSManager`; system code should not re-scale delta.
-- `timescale` is transient in the `time` slice and resets on load.
+- `timescale` is transient in the `time` slice; save/load strips it, and runtime timescale stays manager-owned until `M_TimeManager` dispatches a replacement value.
 
 ### World Clock
 
