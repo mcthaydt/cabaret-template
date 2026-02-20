@@ -1,0 +1,210 @@
+# Scene Director - Continuation Prompt
+
+Use this prompt to resume work on the Scene Director / Objectives Manager feature in a new session.
+
+---
+
+## Current Status
+
+**Phase**: Not started
+**Branch**: scene-director
+**Next Task**: T1.1 -- Create RS_ObjectiveDefinition resource
+
+**Latest Verification**: N/A (no implementation yet)
+
+---
+
+## Context
+
+You are implementing a Scene Director and Objectives Manager for a Godot 4.6 ECS game template. This builds on top of the completed QB Rule Manager (R1-R6). The feature adds three systems:
+
+1. **M_ObjectivesManager** -- Dependency graph, win/loss conditions, event logging
+2. **M_SceneDirector** -- Beat runner for intra-scene sequences
+3. **Scene Manager refactor** -- Strip victory logic from M_SceneManager
+
+**Key design decisions:**
+
+- **Manager, not ECS system**: M_ObjectivesManager and M_SceneDirector extend Node, not BaseQBRuleManager -- objectives are global game state, not per-entity tick behavior
+- **QB utility reuse, not extension**: Uses U_QBRuleEvaluator, U_QBEffectExecutor, U_QBQualityProvider for condition/effect evaluation without the per-tick rule loop overhead
+- **Objectives own dependency graph**: DAG at objectives layer (not QB rules) with cycle detection and topological sort
+- **Victory as objective type**: VICTORY objectives trigger scene transitions via events; no hardcoded scene selection in M_SceneManager
+- **S_VictoryHandlerSystem stays as-is**: Validates triggers, dispatches state updates, publishes `victory_executed`. M_ObjectivesManager listens to this event
+- **S_CheckpointHandlerSystem stays as-is**: No changes needed
+- **Two new Redux slices**: `objectives` (persistent) and `scene_director` (transient)
+- **Resource-defined everything**: RS_ObjectiveDefinition, RS_ObjectiveSet, RS_BeatDefinition, RS_SceneDirective use const preload arrays (mobile-safe, no runtime DirAccess)
+- **Beat runner as RefCounted helper**: Pure state machine logic; M_SceneDirector owns the Node lifecycle
+- **Both debug + runtime event log**: U_ObjectiveEventLog tracks all objective state transitions
+- **M_SceneManager becomes pure loader**: Victory handling moves to objectives; scene manager only handles transitions
+
+**What gets removed from M_SceneManager:**
+- `_on_victory_executed()` handler (lines 323-331)
+- `_get_victory_target_scene()` method (lines 334-339)
+- `_victory_executed_unsubscribe` variable, subscription, cleanup (lines 153, 212, 294-295)
+- `C_VICTORY_TRIGGER_COMPONENT` preload (line 36)
+
+**What stays unchanged:**
+- `S_VictoryHandlerSystem` -- validates triggers, dispatches state, publishes `victory_executed`
+- `S_CheckpointHandlerSystem` -- activates checkpoints, dispatches state
+- `_on_entity_death()` in M_SceneManager -- game over transition stays (not objective-driven)
+- All QB Rule Manager code (BaseQBRuleManager, S_CharacterRuleManager, S_GameRuleManager, S_CameraRuleManager)
+
+**Documentation location**: `docs/scene_director/`
+- Overview: `scene-director-overview.md`
+- Plan: `scene-director-plan.md`
+- Tasks: `scene-director-tasks.md`
+- Continuation prompt: `scene-director-continuation-prompt.md` (this file)
+
+---
+
+## Before Continuing
+
+1. Read `AGENTS.md` for project conventions
+2. Read `docs/general/DEV_PITFALLS.md` for known pitfalls
+3. Read `docs/scene_director/scene-director-tasks.md` for the task checklist
+4. Check task checklist for current progress (look for `[x]` vs `[ ]`)
+5. Read `docs/scene_director/scene-director-overview.md` for architecture context
+6. Read `docs/scene_director/scene-director-plan.md` for phased implementation details
+
+---
+
+## Key Files to Reference
+
+### Existing patterns to follow:
+- `scripts/utils/qb/u_qb_rule_evaluator.gd` -- reuse for condition evaluation
+- `scripts/utils/qb/u_qb_effect_executor.gd` -- reuse for effect execution
+- `scripts/utils/qb/u_qb_quality_provider.gd` -- reuse for quality reading
+- `scripts/resources/qb/rs_qb_condition.gd` -- condition resource (reused by objectives)
+- `scripts/resources/qb/rs_qb_effect.gd` -- effect resource (reused by objectives)
+- `scripts/state/actions/u_gameplay_actions.gd` -- pattern for action creators
+- `scripts/state/reducers/u_gameplay_reducer.gd` -- pattern for reducers
+- `scripts/state/selectors/u_gameplay_selectors.gd` -- pattern for selectors (if exists)
+- `scripts/resources/state/rs_gameplay_initial_state.gd` -- pattern for initial state resources
+- `scripts/state/utils/u_state_slice_manager.gd` -- add new slices here
+- `scripts/state/m_state_store.gd` -- add @export for new initial state resources
+
+### Files to modify:
+- `scripts/state/utils/u_state_slice_manager.gd` -- add objectives + scene_director slices
+- `scripts/state/m_state_store.gd` -- add @export for objectives + scene_director initial state
+- `scripts/root.gd` -- register M_ObjectivesManager + M_SceneDirector with ServiceLocator
+- `scripts/events/ecs/u_ecs_event_names.gd` -- add objective/directive event constants
+- `scripts/managers/m_scene_manager.gd` -- remove victory handling, add objective_victory subscription
+- `scenes/root.tscn` -- add M_ObjectivesManager + M_SceneDirector nodes
+
+### Files that stay unchanged:
+- `scripts/ecs/systems/s_victory_handler_system.gd` -- stays as-is (93 lines)
+- `scripts/ecs/systems/s_checkpoint_handler_system.gd` -- stays as-is
+- `scripts/ecs/systems/s_game_rule_manager.gd` -- stays as-is
+- `scripts/ecs/systems/base_qb_rule_manager.gd` -- stays as-is
+
+### New files created by this feature:
+
+**Resources** (Phase 1):
+- `scripts/resources/scene_director/rs_objective_definition.gd`
+- `scripts/resources/scene_director/rs_objective_set.gd`
+- `scripts/resources/scene_director/rs_beat_definition.gd`
+- `scripts/resources/scene_director/rs_scene_directive.gd`
+
+**State -- Objectives** (Phase 1):
+- `scripts/state/actions/u_objectives_actions.gd`
+- `scripts/state/reducers/u_objectives_reducer.gd`
+- `scripts/state/selectors/u_objectives_selectors.gd`
+- `scripts/resources/state/rs_objectives_initial_state.gd`
+
+**State -- Scene Director** (Phase 1):
+- `scripts/state/actions/u_scene_director_actions.gd`
+- `scripts/state/reducers/u_scene_director_reducer.gd`
+- `scripts/state/selectors/u_scene_director_selectors.gd`
+- `scripts/resources/state/rs_scene_director_initial_state.gd`
+
+**Helpers** (Phase 2-3):
+- `scripts/utils/scene_director/u_objective_graph.gd`
+- `scripts/utils/scene_director/u_objective_event_log.gd`
+- `scripts/utils/scene_director/u_beat_runner.gd`
+
+**Managers** (Phase 2-3):
+- `scripts/managers/m_objectives_manager.gd`
+- `scripts/managers/m_scene_director.gd`
+
+**Resource Instances** (Phase 4-5):
+- `resources/scene_director/objectives/cfg_obj_level_complete.tres`
+- `resources/scene_director/objectives/cfg_obj_game_complete.tres`
+- `resources/scene_director/sets/cfg_objset_default.tres`
+- `resources/scene_director/directives/cfg_directive_gameplay_base.tres`
+
+**Tests**:
+- `tests/unit/scene_director/test_objectives_reducer.gd`
+- `tests/unit/scene_director/test_scene_director_reducer.gd`
+- `tests/unit/scene_director/test_objective_graph.gd`
+- `tests/unit/scene_director/test_objective_event_log.gd`
+- `tests/unit/scene_director/test_objectives_manager.gd`
+- `tests/unit/scene_director/test_beat_runner.gd`
+- `tests/unit/scene_director/test_scene_director.gd`
+- `tests/unit/scene_director/test_victory_migration.gd`
+- `tests/integration/scene_director/test_objectives_integration.gd`
+- `tests/integration/scene_director/test_scene_director_integration.gd`
+
+---
+
+## Design Summary (Key Decisions)
+
+1. **Manager, not ECS system** -- M_ObjectivesManager and M_SceneDirector extend Node (global game state, not per-entity)
+2. **QB utility reuse, not extension** -- uses U_QBRuleEvaluator/EffectExecutor/QualityProvider without extending BaseQBRuleManager
+3. **Objectives own dependency graph** -- DAG at objectives layer with cycle detection and topological sort
+4. **Victory as objective type** -- VICTORY objectives publish events; M_SceneManager subscribes
+5. **Two new Redux slices** -- `objectives` (persistent) and `scene_director` (transient)
+6. **Resource-defined everything** -- const preload arrays for mobile compatibility
+7. **Beat runner as RefCounted** -- pure state machine; M_SceneDirector owns Node lifecycle
+8. **Event log for debugging** -- all objective state transitions logged
+9. **S_VictoryHandlerSystem stays as-is** -- validates triggers, dispatches state, publishes events
+10. **S_CheckpointHandlerSystem stays as-is** -- no changes needed
+11. **M_SceneManager becomes pure loader** -- victory handling removed, subscribes to objective events
+12. **`_on_entity_death()` stays in M_SceneManager** -- game over is not objective-driven (yet)
+13. **Objective status lifecycle** -- inactive -> active -> completed | failed
+14. **auto_activate flag** -- objectives with no dependencies can activate immediately when set loads
+15. **Directive selection by conditions** -- highest priority directive matching scene + conditions wins
+16. **Beat wait modes** -- INSTANT (immediate), TIMED (duration), SIGNAL (event-driven)
+
+---
+
+## Testing Commands
+
+```bash
+# Run scene director tests only
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/scene_director -gexit
+
+# Run scene director integration tests
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/scene_director -gexit
+
+# Run QB tests (regression check)
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/qb -gexit
+
+# Run all ECS tests (regression check)
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs -gexit
+
+# Run ECS system tests (regression check)
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/ecs/systems -gexit
+
+# Run style tests
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit/style -gexit
+
+# Run scene manager integration tests (regression check for victory migration)
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/integration/scene_manager -gexit
+```
+
+---
+
+## GDScript 4.6 Pitfalls to Remember
+
+- `tr` cannot be a static method name (collides with Object.tr)
+- `String(value)` fails for arbitrary Variants -- use `str(value)`
+- Inner class names must start with a capital letter (no `class _MockFoo`)
+- Resource preloading required for mobile (const preload arrays, not runtime DirAccess)
+
+---
+
+## Commit Strategy
+
+- Commit at the end of each completed phase
+- Run full test suite before each commit
+- Documentation updates paired with the phase they document
+- Update this continuation prompt after each phase with current status
