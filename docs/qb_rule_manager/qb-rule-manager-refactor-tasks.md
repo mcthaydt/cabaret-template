@@ -1,6 +1,6 @@
 # QB Rule Manager Refactor - Tasks Checklist
 
-**Progress:** 87% (34 / 39 tasks complete)
+**Progress:** 100% (39 / 39 tasks complete)
 
 ## Verification (all phases)
 
@@ -177,11 +177,17 @@ Completion notes (2026-02-20):
 
 **Goal:** Add `@export_group` organization and doc comments to QB resources for designer clarity. Document `evaluate_all_conditions` as test-only.
 
-- [ ] TR6.1: Add `@export_group` separators to `rs_qb_condition.gd` (Source, Comparison, Value)
-- [ ] TR6.2: Add doc comments to `rs_qb_effect.gd` `target` and `payload` exports
-- [ ] TR6.3: Add `@export_group` separators to `rs_qb_rule_definition.gd` (Identity, Trigger, Evaluation, Cooldown) with doc hints on `cooldown_key_fields` and `cooldown_from_context_field`
-- [ ] TR6.4: Add doc comment to `u_qb_rule_evaluator.gd` `evaluate_all_conditions()` marking it as test-only convenience method
-- [ ] TR6.5: Run full test suite -- zero regressions
+- [x] TR6.1: Add `@export_group` separators to `rs_qb_condition.gd` (Source, Comparison, Value)
+- [x] TR6.2: Add doc comments to `rs_qb_effect.gd` `target` and `payload` exports
+- [x] TR6.3: Add `@export_group` separators to `rs_qb_rule_definition.gd` (Identity, Trigger, Evaluation, Cooldown) with doc hints on `cooldown_key_fields` and `cooldown_from_context_field`
+- [x] TR6.4: Add doc comment to `u_qb_rule_evaluator.gd` `evaluate_all_conditions()` marking it as test-only convenience method
+- [x] TR6.5: Run full test suite -- zero regressions
+
+Completion notes (2026-02-20):
+- Added inspector grouping to `RS_QBCondition` (`Source`, `Comparison`, `Value`) and `RS_QBRuleDefinition` (`Identity`, `Trigger`, `Evaluation`, `Cooldown`) for clearer designer-facing resource editing.
+- Added export documentation hints in `RS_QBEffect` for `target` and `payload` effect contracts.
+- Documented `U_QBRuleEvaluator.evaluate_all_conditions(...)` as a test-only convenience helper.
+- Verification passed: `tests/unit/qb` (72/72), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), `tests/unit/style` (12/12).
 
 **Commit:** `Add inspector groups and doc hints to QB resources`
 
@@ -210,7 +216,7 @@ Completion notes (2026-02-20):
 
 - Zero behavioral changes across all phases -- existing tests are the definitive spec
 - Each phase ends with a commit at test-green state
-- R1-R5 touch the most files and carry the most regression risk; R6 is localized
+- All refactor phases are complete; R1-R5 carried the most regression risk, while R6 remained localized.
 
 ## Links
 

@@ -6,17 +6,17 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Refactor -- Phase R5 complete, Phase R6 pending (all 6 feature phases complete)
+**Phase**: Refactor -- Phase R6 complete (all 6 refactor phases complete)
 **Branch**: QB-Rule-Manager
-**Phase Completion Commit**: `b801e97` - Complete QB refactor phase R5 system updates
+**Phase Completion Commit**: `31ee8fe` - Add inspector groups and doc hints to QB resources
 
-**Next Task**: Phase R6 (Inspector hints + doc comments) -- first unchecked item in `qb-rule-manager-refactor-tasks.md`
+**Next Task**: Refactor complete -- no unchecked tasks remain in `qb-rule-manager-refactor-tasks.md`
 **Latest Verification**:
-- `tests/unit/qb` passing (72/72) on February 20, 2026 after Phase R5 constants/configurability updates
-- `tests/unit/ecs` passing (126/126) on February 20, 2026 after Phase R5 constants/configurability updates
-- `tests/unit/ecs/systems` passing (200/200) on February 20, 2026 after Phase R5 constants/configurability updates
-- `tests/integration/qb` passing (1/1) on February 20, 2026 after Phase R5 constants/configurability updates
-- `tests/unit/style` suite passing (12/12) on February 20, 2026 after Phase R5 constants/configurability updates
+- `tests/unit/qb` passing (72/72) on February 20, 2026 after Phase R6 inspector/doc updates
+- `tests/unit/ecs` passing (126/126) on February 20, 2026 after Phase R6 inspector/doc updates
+- `tests/unit/ecs/systems` passing (200/200) on February 20, 2026 after Phase R6 inspector/doc updates
+- `tests/integration/qb` passing (1/1) on February 20, 2026 after Phase R6 inspector/doc updates
+- `tests/unit/style` suite passing (12/12) on February 20, 2026 after Phase R6 inspector/doc updates
 - `tests/unit/camera_system` passing (11/11)
 - `tests/integration/vfx` passing (38/38)
 - Phase 4 migration checks passed on February 20, 2026 (game rules + handler systems + scene migration)
@@ -58,16 +58,15 @@ You are implementing a Quality-Based (QB) Rule Manager for a Godot 4.6 ECS game 
 - Overview: `qb-rule-manager-overview.md`
 - Plan: `qb-rule-manager-plan.md`
 - Feature tasks (complete): `qb-rule-manager-tasks.md`
-- Refactor tasks (active): `qb-rule-manager-refactor-tasks.md`
+- Refactor tasks (complete): `qb-rule-manager-refactor-tasks.md`
 
 ---
 
 ## Current Work: Quality Refactor (6 phases, zero behavioral changes)
 
-Phases R1-R5 are complete: shared variant helpers are centralized in `scripts/utils/qb/u_qb_variant_utils.gd`, store resolution is owned by `BaseQBRuleManager`, concrete managers now extend tick flow via `_post_tick_evaluation(...)`, character quality context assembly is decomposed into focused private helpers, and the R5 constants/configurability cleanup is complete.
+Phases R1-R6 are complete: shared variant helpers are centralized in `scripts/utils/qb/u_qb_variant_utils.gd`, store resolution is owned by `BaseQBRuleManager`, concrete managers now extend tick flow via `_post_tick_evaluation(...)`, character quality context assembly is decomposed into focused private helpers, R5 constants/configurability cleanup is complete, and R6 inspector/documentation hints are in place.
 
-The QB Rule Manager (16 files, ~2,570 lines) is functionally complete but has quality gaps:
-- Missing inspector hints for designers
+The QB Rule Manager (16 files, ~2,570 lines) is functionally and quality complete per the current refactor plan.
 
 **Refactor phases** (R1-R6, all zero behavioral change):
 - **R1**: Extract shared variant helpers into `U_QBVariantUtils` (complete)
@@ -75,7 +74,7 @@ The QB Rule Manager (16 files, ~2,570 lines) is functionally complete but has qu
 - **R3**: Add `_post_tick_evaluation` hook to `process_tick()` so subclasses extend, not replace (camera's `_on_event_received` stays as-is — its multi-context evaluation is genuinely different)
 - **R4**: Decompose 113-line `_build_quality_context()` into focused helpers (complete)
 - **R5**: Name camera shake constants, make `required_final_area` an `@export`, small fixes (complete)
-- **R6**: Add `@export_group` organization and doc comments to QB resources
+- **R6**: Add `@export_group` organization and doc comments to QB resources (complete)
 
 **Refactor tasks checklist**: `docs/qb_rule_manager/qb-rule-manager-refactor-tasks.md`
 
@@ -86,7 +85,7 @@ The QB Rule Manager (16 files, ~2,570 lines) is functionally complete but has qu
 1. Read `AGENTS.md` for project conventions
 2. Read `docs/general/DEV_PITFALLS.md` for known pitfalls
 3. Read `docs/qb_rule_manager/qb-rule-manager-refactor-tasks.md` for the refactor task checklist
-4. Check the refactor task checklist for the first unchecked item -- that's where to resume
+4. Refactor checklist is fully complete as of February 20, 2026; resume from new backlog work or follow-up polish tasks
 5. Original feature tasks (all complete): `docs/qb_rule_manager/qb-rule-manager-tasks.md`
 
 ---
@@ -106,7 +105,7 @@ The QB Rule Manager (16 files, ~2,570 lines) is functionally complete but has qu
 - `scripts/ecs/systems/s_footstep_sound_system.gd` -- pause gating (lines 46-56, uses try_get_store variant); can remove @export state_store
 - `scripts/ecs/systems/s_floating_system.gd` -- freeze only (no pause check)
 - `scripts/ecs/systems/s_checkpoint_system.gd` -- replaced by checkpoint rule + handler; note `_resolve_spawn_point_position()` at lines 90-109
-- `scripts/ecs/systems/s_victory_system.gd` -- replaced by victory rule + handler; note `REQUIRED_FINAL_AREA = "bar"` at line 7 and `_can_trigger_victory()` at lines 56-73; event subscription priority 10 at line 29
+- `scripts/ecs/systems/s_victory_system.gd` -- replaced by victory rule + handler; prerequisite now lives in `S_VictoryHandlerSystem` via `@export var required_final_area: String = "bar"` and subscription priority `10`
 - `scripts/ecs/systems/s_damage_system.gd` -- stays as-is, centralize event names only
 - `scripts/events/ecs/u_ecs_event_names.gd` -- centralize event constants
 - `scripts/events/ecs/u_ecs_event_bus.gd` -- event bus for rule triggers
@@ -195,7 +194,7 @@ These are the current design decisions that must be followed:
 19. **SET_QUALITY writes to context dict** (not component directly) -- rule manager copies context → component after all rules evaluate
 20. **Migration is additive with intentional hardening** -- shell and transitioning checks are NEW gating (current systems only check `gameplay.paused`)
 21. **Post-migration store retention** -- keep @export state_store in S_GravitySystem (gravity_scale reads) and S_RotateToInputSystem (rotation snapshot dispatch); S_FootstepSoundSystem can drop it
-22. **S_VictoryHandlerSystem** must replicate `REQUIRED_FINAL_AREA = "bar"` prerequisite check and use event subscription priority 10
+22. **S_VictoryHandlerSystem** must enforce `@export var required_final_area: String = "bar"` prerequisite check and use event subscription priority 10
 23. **S_CheckpointHandlerSystem** must replicate `_resolve_spawn_point_position()` for perf optimization
 
 ---
