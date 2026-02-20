@@ -240,6 +240,7 @@ Completion notes: Added `C_CameraStateComponent` to `tmpl_camera`, integrated `S
 ### Final Verification
 
 - [x] T6.5: Run full test suite (ECS + QB + style)
-- [ ] T6.6: Manual playtest: full gameplay loop (walk, jump, take damage, die, respawn, checkpoint, victory)
+- [x] T6.6: Manual playtest: full gameplay loop (walk, jump, take damage, die, respawn, checkpoint, victory)
 
 **Phase 6 Commit**: Validation tooling and final verification
+Completion notes: Added load-time QB validation and editor warning emission in `BaseQBRuleManager`, documented QB validation + camera FOV baseline patterns in `AGENTS.md`/`DEV_PITFALLS.md`, and completed full regression verification. Automated checks passed on February 20, 2026 for `tests/unit/qb` (68/68), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), and `tests/unit/style` (12/12). Manual playtest completed with a follow-up camera baseline FOV fix to preserve scene-authored FOV outside zone overrides.

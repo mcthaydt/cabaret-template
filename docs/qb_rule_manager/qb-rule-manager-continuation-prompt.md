@@ -6,13 +6,13 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Phase 6 in progress (`T6.1`-`T6.5` complete)
+**Phase**: Phase 6 complete (`T6.1`-`T6.6` complete)
 **Branch**: QB-Rule-Manager
-**Last Commit**: `ed92923` - docs(qb): mark T6.2 complete
+**Last Commit**: `e6303cb` - Fix camera FOV baseline fallback and sync QB assets
 
-**Next Task**: `T6.6` - Manual playtest: full gameplay loop
+**Next Task**: Phase complete - begin next feature phase
 **Latest Verification**:
-- `tests/unit/qb` passing (67/67) on February 20, 2026 after adding editor-warning coverage for invalid rules
+- `tests/unit/qb` passing (68/68) on February 20, 2026 after camera baseline FOV regression coverage
 - `tests/unit/ecs` passing (126/126) on February 20, 2026 after Phase 6 validation updates
 - `tests/unit/ecs/systems` passing (200/200) on February 20, 2026 after Phase 6 validation updates
 - `tests/integration/qb` passing (1/1)
