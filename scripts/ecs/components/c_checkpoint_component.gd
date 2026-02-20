@@ -3,7 +3,6 @@ extends BaseECSComponent
 class_name C_CheckpointComponent
 
 const COMPONENT_TYPE := StringName("C_CheckpointComponent")
-const EVENT_CHECKPOINT_ZONE_ENTERED := StringName("checkpoint_zone_entered")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
 
 ## Checkpoint Component (Phase 12.3b - T265)
@@ -214,7 +213,7 @@ func _is_player(body: Node3D) -> bool:
 
 func _publish_zone_entered(body: Node3D) -> void:
 	var entity_id := ECS_UTILS.get_entity_id(body)
-	U_ECSEventBus.publish(EVENT_CHECKPOINT_ZONE_ENTERED, {
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_CHECKPOINT_ZONE_ENTERED, {
 		"entity_id": entity_id,
 		"checkpoint": self,
 		"body": body,

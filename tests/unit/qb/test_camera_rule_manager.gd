@@ -35,6 +35,25 @@ func test_shake_rule_adds_trauma_on_health_changed_event() -> void:
 
 	assert_almost_eq(camera_state.shake_trauma, 0.35, 0.001)
 
+func test_default_shake_rule_adds_trauma_on_entity_death_event() -> void:
+	var fixture: Dictionary = _create_system([], true)
+	var ecs_manager: MockECSManager = fixture["ecs_manager"]
+	var components: Dictionary = _register_camera_components(ecs_manager)
+	var camera_state: Variant = components["camera_state"]
+
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_HEALTH_CHANGED, {
+		"entity_id": StringName("player"),
+		"previous_health": 100.0,
+		"new_health": 90.0,
+		"is_dead": false,
+	})
+	assert_almost_eq(camera_state.shake_trauma, 0.0, 0.001)
+
+	U_ECSEventBus.publish(U_ECSEventNames.EVENT_ENTITY_DEATH, {
+		"entity_id": StringName("player"),
+	})
+	assert_almost_eq(camera_state.shake_trauma, 0.5, 0.001)
+
 func test_shake_rule_add_clamps_to_max_trauma() -> void:
 	var fixture: Dictionary = _create_system([_make_camera_shake_rule()])
 	var ecs_manager: MockECSManager = fixture["ecs_manager"]

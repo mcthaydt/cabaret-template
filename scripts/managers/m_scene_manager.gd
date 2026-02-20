@@ -32,6 +32,7 @@ const U_SCENE_CACHE := preload("res://scripts/scene_management/helpers/u_scene_c
 const U_SCENE_LOADER := preload("res://scripts/scene_management/helpers/u_scene_loader.gd")
 const U_OVERLAY_STACK_MANAGER := preload("res://scripts/scene_management/helpers/u_overlay_stack_manager.gd")
 const U_ECS_EVENT_BUS := preload("res://scripts/events/ecs/u_ecs_event_bus.gd")
+const U_ECS_EVENT_NAMES := preload("res://scripts/events/ecs/u_ecs_event_names.gd")
 const C_VICTORY_TRIGGER_COMPONENT := preload("res://scripts/ecs/components/c_victory_trigger_component.gd")
 const U_TRANSITION_ORCHESTRATOR := preload("res://scripts/scene_management/u_transition_orchestrator.gd")
 const U_SCENE_TRANSITION_QUEUE := preload("res://scripts/scene_management/helpers/u_scene_transition_queue.gd")
@@ -206,9 +207,9 @@ func _ready() -> void:
 
 	# Subscribe to ECS events with priorities
 	# entity_death: Priority 10 (high - quick transition to game over)
-	_entity_death_unsubscribe = U_ECS_EVENT_BUS.subscribe(StringName("entity_death"), _on_entity_death, 10)
+	_entity_death_unsubscribe = U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_ENTITY_DEATH, _on_entity_death, 10)
 	# victory_triggered: Priority 5 (medium - after S_VictorySystem processes state)
-	_victory_triggered_unsubscribe = U_ECS_EVENT_BUS.subscribe(StringName("victory_triggered"), _on_victory_triggered, 5)
+	_victory_triggered_unsubscribe = U_ECS_EVENT_BUS.subscribe(U_ECS_EVENT_NAMES.EVENT_VICTORY_TRIGGERED, _on_victory_triggered, 5)
 
 	# Register scene type handlers (T137c: Phase 10B-3)
 	_register_scene_type_handlers()

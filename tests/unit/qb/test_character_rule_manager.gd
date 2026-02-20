@@ -95,6 +95,38 @@ func test_spawn_freeze_rule_sets_and_clears_brain_flag() -> void:
 	system.process_tick(0.016)
 	assert_false(character_state.is_spawn_frozen)
 
+func test_spawn_and_death_brain_flags_remain_default_without_rules() -> void:
+	var setup := _create_system([_make_pause_paused_rule()])
+	var system = setup["system"]
+	var ecs_manager: MockECSManager = setup["ecs_manager"]
+	var components := _register_character_components(ecs_manager)
+	var character_state = components["character_state"]
+	var spawn_state: C_SpawnStateComponent = components["spawn_component"]
+	var health_component: C_HealthComponent = components["health_component"]
+
+	spawn_state.is_physics_frozen = true
+	health_component.set("_is_dead", true)
+	system.process_tick(0.016)
+
+	assert_false(character_state.is_spawn_frozen)
+	assert_false(character_state.is_dead)
+
+func test_death_sync_rule_sets_and_clears_brain_flag() -> void:
+	var setup := _create_system([_make_death_sync_rule()])
+	var system = setup["system"]
+	var ecs_manager: MockECSManager = setup["ecs_manager"]
+	var components := _register_character_components(ecs_manager)
+	var character_state = components["character_state"]
+	var health_component: C_HealthComponent = components["health_component"]
+
+	health_component.set("_is_dead", true)
+	system.process_tick(0.016)
+	assert_true(character_state.is_dead)
+
+	health_component.set("_is_dead", false)
+	system.process_tick(0.016)
+	assert_false(character_state.is_dead)
+
 func test_defaults_reset_each_tick_after_pause_gate_clears() -> void:
 	var rules: Array = [
 		_make_pause_paused_rule(),
@@ -245,6 +277,19 @@ func _make_spawn_freeze_rule() -> Variant:
 		StringName("spawn_freeze"),
 		condition,
 		"is_spawn_frozen",
+		true
+	)
+
+func _make_death_sync_rule() -> Variant:
+	var condition := QB_CONDITION.new()
+	condition.source = QB_CONDITION.Source.COMPONENT
+	condition.quality_path = "C_HealthComponent.is_dead"
+	condition.operator = QB_CONDITION.Operator.IS_TRUE
+
+	return _make_set_quality_rule(
+		StringName("death_sync"),
+		condition,
+		"is_dead",
 		true
 	)
 

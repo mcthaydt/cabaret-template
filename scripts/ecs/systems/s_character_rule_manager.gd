@@ -141,15 +141,8 @@ func _build_quality_context(
 			var move_vector: Vector2 = move_vector_variant
 			context["has_input"] = move_vector.length() > 0.0
 
-	if spawn_component != null:
-		context["is_spawn_frozen"] = bool(spawn_component.get("is_physics_frozen"))
-
 	if health_component != null:
 		context["is_invincible"] = bool(health_component.get("is_invincible"))
-		if health_component.has_method("is_dead"):
-			context["is_dead"] = bool(health_component.call("is_dead"))
-		else:
-			context["is_dead"] = bool(health_component.get("is_dead"))
 
 		var max_health: float = 0.0
 		var current_health: float = 0.0

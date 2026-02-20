@@ -3,7 +3,6 @@ extends BaseECSComponent
 class_name C_VictoryTriggerComponent
 
 const EVENT_VICTORY_ZONE_ENTERED := StringName("victory_zone_entered")
-const EVENT_VICTORY_TRIGGERED := StringName("victory_triggered")
 
 const COMPONENT_TYPE := StringName("C_VictoryTriggerComponent")
 const PLAYER_TAG_COMPONENT := StringName("C_PlayerTagComponent")
