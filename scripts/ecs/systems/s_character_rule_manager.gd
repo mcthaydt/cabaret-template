@@ -205,11 +205,6 @@ func _write_brain_data(character_state: Variant, context: Dictionary) -> void:
 	else:
 		character_state.set("health_percent", health_percent)
 
-func _resolve_store() -> I_StateStore:
-	if state_store != null:
-		return state_store
-	return U_STATE_UTILS.try_get_store(self)
-
 func _add_component_from_query(query_object: Object, components: Dictionary, component_type: StringName) -> void:
 	var component: Variant = query_object.call("get_component", component_type)
 	if component == null:

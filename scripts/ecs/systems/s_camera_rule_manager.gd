@@ -119,11 +119,6 @@ func _attach_camera_context(
 		if not context.has("entity"):
 			context["entity"] = camera_entity
 
-func _resolve_store() -> I_StateStore:
-	if state_store != null:
-		return state_store
-	return U_STATE_UTILS.try_get_store(self)
-
 func _resolve_camera_manager() -> I_CAMERA_MANAGER:
 	if camera_manager != null:
 		return camera_manager

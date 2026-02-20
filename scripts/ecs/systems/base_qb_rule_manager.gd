@@ -444,11 +444,14 @@ func _tick_cooldowns(delta: float) -> void:
 
 func _ensure_context_dependencies(context: Dictionary) -> void:
 	if not context.has("state_store"):
-		var store: I_StateStore = state_store
-		if store == null:
-			store = U_STATE_UTILS.try_get_store(self)
+		var store: I_StateStore = _resolve_store()
 		if store != null:
 			context["state_store"] = store
+
+func _resolve_store() -> I_StateStore:
+	if state_store != null:
+		return state_store
+	return U_STATE_UTILS.try_get_store(self)
 
 func _resolve_context_path(context: Dictionary, path: String) -> Variant:
 	if path.is_empty():
