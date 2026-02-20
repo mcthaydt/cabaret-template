@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="RS_QBRuleDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/qb/rs_qb_rule_definition.gd" id="1_rule"]
+[ext_resource type="Script" path="res://scripts/resources/qb/rs_qb_effect.gd" id="2_effect"]
+
+[sub_resource type="Resource" id="QBEffect_camera_shake"]
+script = ExtResource("2_effect")
+effect_type = 2
+target = "C_CameraStateComponent.shake_trauma"
+payload = {
+"clamp_max": 1.0,
+"clamp_min": 0.0,
+"operation": &"add",
+"value_float": 0.5,
+"value_type": "FLOAT"
+}
+
+[resource]
+script = ExtResource("1_rule")
+rule_id = &"camera_shake_rule"
+effects = [SubResource("QBEffect_camera_shake")]
+trigger_mode = 1
+trigger_event = &"entity_death"
