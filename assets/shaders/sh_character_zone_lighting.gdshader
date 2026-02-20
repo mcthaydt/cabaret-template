@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode depth_draw_opaque, cull_back, vertex_lighting;
+render_mode unshaded, depth_draw_opaque, cull_back;
 
 uniform sampler2D albedo_texture : source_color;
 uniform vec4 base_tint : source_color = vec4(1.0, 1.0, 1.0, 1.0);
