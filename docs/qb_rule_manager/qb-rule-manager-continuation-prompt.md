@@ -8,11 +8,11 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 **Phase**: Phase 6 complete (`T6.1`-`T6.6` complete)
 **Branch**: QB-Rule-Manager
-**Last Commit**: `e6303cb` - Fix camera FOV baseline fallback and sync QB assets
+**Last Commit**: `5f11ac0` - git ignored vscode
 
 **Next Task**: Phase complete - begin next feature phase
 **Latest Verification**:
-- `tests/unit/qb` passing (68/68) on February 20, 2026 after camera baseline FOV regression coverage
+- `tests/unit/qb` passing (71/71) on February 20, 2026 after audit follow-up coverage
 - `tests/unit/ecs` passing (126/126) on February 20, 2026 after Phase 6 validation updates
 - `tests/unit/ecs/systems` passing (200/200) on February 20, 2026 after Phase 6 validation updates
 - `tests/integration/qb` passing (1/1)

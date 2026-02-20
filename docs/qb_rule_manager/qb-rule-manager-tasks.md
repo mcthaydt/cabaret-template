@@ -208,7 +208,7 @@ Completion notes: Added `S_GameRuleManager` + checkpoint/victory handler systems
 
 ### 5C: Rule Definitions + Integration
 
-- [x] T5.7: Create `resources/qb/camera/cfg_camera_shake_rule.tres` - EVENT trigger: entity_death/health_changed; Effect: SET_COMPONENT_FIELD on `C_CameraStateComponent.shake_trauma` with `operation=add`, numeric value type, optional clamp
+- [x] T5.7: Create `resources/qb/camera/cfg_camera_shake_rule.tres` - EVENT trigger: `entity_death` (default; custom overrides may target `health_changed`); Effect: SET_COMPONENT_FIELD on `C_CameraStateComponent.shake_trauma` with `operation=add`, numeric value type, optional clamp
 - [x] T5.8: Create `resources/qb/camera/cfg_camera_zone_fov_rule.tres` - TICK trigger; Conditions: entity in FOV zone; Effect: SET_COMPONENT_FIELD on `C_CameraStateComponent.target_fov` with `operation=set`, float value type
 - [x] T5.9: Add C_CameraStateComponent to camera entity in character/scene templates
 - [x] T5.10: Add S_CameraRuleManager to gameplay scenes

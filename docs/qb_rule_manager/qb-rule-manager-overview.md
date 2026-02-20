@@ -298,8 +298,10 @@ Simple event-rule host (no custom `process_tick` iteration). Holds checkpoint an
 ### S_CameraRuleManager (Camera State)
 
 Handles camera behavior rules (additive, does not replace M_CameraManager):
-- Shake-on-damage (damage event -> add trauma to C_CameraStateComponent)
+- Shake-on-death (default rule: `entity_death` -> add trauma to C_CameraStateComponent)
 - Zone-based FOV (in FOV zone -> blend to target fov)
+
+Custom camera shake rules can still target other events (for example `health_changed`) when desired.
 
 M_CameraManager keeps all transition/blend code. Camera rules add new capabilities.
 
@@ -328,7 +330,7 @@ M_CameraManager keeps all transition/blend code. Camera rules add new capabiliti
 | Physics math | Stays in existing systems | Too complex for condition-effect; rules handle gating only |
 | Migration | Additive with intentional hardening | Existing pause gating (`gameplay.paused`) preserved. Shell and transition checks are NEW conditions the 6 systems didn't previously enforce — intentional improvement |
 | Per-context cooldowns | `cooldown_key_fields` + `cooldown_from_context_field` on RS_QBRuleDefinition | Future use (damage zones, custom mod rules); empty array = global cooldown (backwards compatible) |
-| Event names | Centralize in U_ECSEventNames before rule consumption | Checkpoint/victory/damage events are currently local constants in component/system files |
+| Event names | Centralize in U_ECSEventNames before rule consumption | Checkpoint/victory/damage gameplay events use shared constants for publisher/subscriber alignment |
 
 ---
 
