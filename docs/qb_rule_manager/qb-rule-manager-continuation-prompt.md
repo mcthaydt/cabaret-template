@@ -75,7 +75,7 @@ The QB Rule Manager (16 files, ~2,570 lines) is functionally complete but has qu
 **Refactor phases** (R1-R6, all zero behavioral change):
 - **R1**: Extract shared variant helpers into `U_QBVariantUtils` (new file)
 - **R2**: Promote `_resolve_store()` to base class (remove duplicates)
-- **R3**: Add virtual hooks to `process_tick()` so subclasses extend, not replace
+- **R3**: Add `_post_tick_evaluation` hook to `process_tick()` so subclasses extend, not replace (camera's `_on_event_received` stays as-is — its multi-context evaluation is genuinely different)
 - **R4**: Decompose 113-line `_build_quality_context()` into focused helpers
 - **R5**: Name camera shake constants, make `required_final_area` an `@export`, small fixes
 - **R6**: Add `@export_group` organization and doc comments to QB resources

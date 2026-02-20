@@ -1,6 +1,6 @@
 # QB Rule Manager Refactor - Tasks Checklist
 
-**Progress:** 0% (0 / 42 tasks complete)
+**Progress:** 0% (0 / 39 tasks complete)
 
 ## Verification (all phases)
 
@@ -38,7 +38,7 @@
 - [ ] TR1.5: `u_qb_rule_validator.gd` -- replace `_get_int_property`, `_get_string_property`, `_get_array_property` with `U_QBVariantUtils` calls
 - [ ] TR1.6: `base_qb_rule_manager.gd` -- replace all 5 `_get_*_property` helpers (lines 482-528) with `U_QBVariantUtils` calls
 - [ ] TR1.7: `s_character_rule_manager.gd` -- replace `_object_has_property` (lines 265-277) with `U_QBVariantUtils.object_has_property` call
-- [ ] TR1.8: `s_camera_rule_manager.gd` -- replace `_object_has_property` (lines 291-300) with `U_QBVariantUtils.object_has_property` call, update `_get_camera_state_float` call site
+- [ ] TR1.8: `s_camera_rule_manager.gd` -- replace `_object_has_property` (lines 291-300) with `U_QBVariantUtils.object_has_property` call. Rewrite `_get_camera_state_float` (lines 280-289) to use `U_QBVariantUtils.object_has_property` + `U_QBVariantUtils.get_float_property` — preserve the property-list guard that distinguishes this method from the base's `_get_float_property`
 
 ### R1I: Verification
 
@@ -64,18 +64,19 @@
 
 ## Phase R3: Fix `process_tick()` Override Fragility
 
-**Goal:** Both concrete managers re-implement the base's 4-step tick sequence instead of calling `super`. Add virtual hooks so subclasses extend rather than replace.
+**Goal:** Both concrete managers re-implement the base's 5-step tick sequence instead of calling `super`. Add virtual hooks so subclasses extend rather than replace.
 
-### R3A: Add hooks to BaseQBRuleManager
+**Design note on `_on_event_received`:** The camera manager's `_on_event_received()` override fundamentally changes the evaluation flow from single-context to multi-context (one per camera entity), so it cannot be reduced to a simple hook + `super` call. R3 focuses on fixing `process_tick()` fragility only. The camera's `_on_event_received` override remains as-is — it shares 3 lines of payload extraction with the base, but its multi-context evaluation + camera state application is genuinely different behavior, not duplication.
+
+### R3A: Add hook to BaseQBRuleManager
 
 - [ ] TR3.1: Add `_post_tick_evaluation(_contexts: Array, _delta: float) -> void` virtual (empty body) called inside `process_tick()` after `_evaluate_contexts` and before `_cleanup_stale_context_state`
-- [ ] TR3.2: Add `_enrich_event_context(_context: Dictionary) -> void` virtual (empty body) called inside `_on_event_received()` after `_build_event_context` and before `_ensure_context_dependencies`
 
 ### R3B: Refactor concrete managers
 
-- [ ] TR3.3: `S_CharacterRuleManager` -- remove manual tick sequence from `process_tick()`, override `_post_tick_evaluation()` for `_write_brain_data()` loop
-- [ ] TR3.4: `S_CameraRuleManager` -- remove manual tick sequence from `process_tick()`, override `_post_tick_evaluation()` for `_apply_camera_state()`. Replace `_on_event_received()` override with `_enrich_event_context()` + `super` call, then post-event camera state apply (eliminates duplicated payload extraction)
-- [ ] TR3.5: Run full test suite -- zero regressions
+- [ ] TR3.2: `S_CharacterRuleManager` -- delete `process_tick()` override entirely, override `_post_tick_evaluation()` for `_write_brain_data()` loop
+- [ ] TR3.3: `S_CameraRuleManager` -- delete `process_tick()` override entirely, override `_post_tick_evaluation()` for `_apply_camera_state()`. Keep `_on_event_received()` override as-is (multi-context evaluation is genuinely different, not duplicated)
+- [ ] TR3.4: Run full test suite -- zero regressions
 
 **Commit:** `Fix process_tick() override fragility with virtual hooks`
 
@@ -83,14 +84,14 @@
 
 ## Phase R4: Decompose `_build_quality_context()`
 
-**Goal:** Break the 113-line monolith in `S_CharacterRuleManager` into focused private helpers. No file extraction -- same class.
+**Goal:** Break the 107-line monolith (lines 79-185) in `S_CharacterRuleManager` into focused private helpers. No file extraction -- same class.
 
 - [ ] TR4.1: Extract `_populate_entity_metadata(context: Dictionary, entity_query: Variant) -> void`
 - [ ] TR4.2: Extract `_populate_component_map(context: Dictionary, entity_query: Variant) -> Dictionary` (returns components dict)
 - [ ] TR4.3: Extract `_populate_health_state(context: Dictionary, health_component: Variant) -> void`
 - [ ] TR4.4: Extract `_populate_movement_state(context: Dictionary, body: CharacterBody3D, floating_component: Variant) -> void`
 - [ ] TR4.5: Extract `_populate_input_state(context: Dictionary, input_component: Variant) -> void`
-- [ ] TR4.6: Rewrite `_build_quality_context()` to sequence the extracted helpers
+- [ ] TR4.6: Rewrite `_build_quality_context()` to: initialize context defaults (lines 86-101), call entity metadata + component map helpers, extract individual components + resolve body (lines 126-136 stay in orchestrator as wiring), then call health/movement/input helpers in sequence
 - [ ] TR4.7: Run full test suite -- zero regressions
 
 **Commit:** `Decompose _build_quality_context() into focused private helpers`
@@ -106,7 +107,7 @@ Note: The camera shake values (offset 10.0, rotation 0.03) are intentionally dif
 ### R5A: Camera shake constants
 
 - [ ] TR5.1: Name the sine/cosine frequency literals in `_apply_trauma_shake()`:
-  ```
+  ```gdscript
   const SHAKE_FREQ_OFFSET_X: float = 17.0
   const SHAKE_FREQ_OFFSET_Y: float = 21.0
   const SHAKE_FREQ_ROTATION: float = 13.0
@@ -125,9 +126,9 @@ Note: The camera shake values (offset 10.0, rotation 0.03) are intentionally dif
 
 - [ ] TR5.5: Move `execution_priority = 100` from `_ready()` to `_init()` in `s_checkpoint_handler_system.gd` (matches convention used by all other systems)
 
-### R5D: Dead guard code
+### R5D: Redundant guard code
 
-- [ ] TR5.6: Remove always-false `if not components.has(...)` check on freshly created dict in `s_camera_rule_manager.gd` `_attach_camera_context()` (line 97: the dict was just created with `camera_state_type_key` as a String key, so the String-key check is always true)
+- [ ] TR5.6: Remove redundant `if not components.has(...)` guard in `s_camera_rule_manager.gd` `_attach_camera_context()` (lines 96-98). A fresh dict has the StringName key added at line 95, then checks for the String key at line 97 — the guard is either always-true or always-false depending on Godot's StringName/String dict key equivalence, but either way it's dead logic. Replace with unconditional dual-key add matching the character manager's `_add_component_from_query` pattern
 
 ### R5E: Document entity ID normalization
 
