@@ -44,6 +44,8 @@ static func evaluate_condition(condition: Variant, quality_value: Variant) -> bo
 		return not result
 	return result
 
+## Test-only convenience helper.
+## Production rule execution should flow through BaseQBRuleManager lifecycle APIs.
 static func evaluate_all_conditions(conditions: Array, context: Dictionary) -> bool:
 	if conditions.is_empty():
 		return true

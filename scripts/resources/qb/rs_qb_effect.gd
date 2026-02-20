@@ -30,7 +30,14 @@ const VALUE_TYPE_ID_BY_NAME := {
 }
 
 @export var effect_type: EffectType = EffectType.SET_QUALITY
+## Effect destination.
+## - DISPATCH_ACTION/PUBLISH_EVENT: target event/action identifier.
+## - SET_COMPONENT_FIELD: "Component.field" path.
+## - SET_QUALITY: quality key written into context.
 @export var target: String = ""
+## Effect payload contract depends on effect_type.
+## SET_COMPONENT_FIELD expects operation/value_type + typed value fields.
+## PUBLISH_EVENT payload is merged with context entity_id/event_payload by executor.
 @export var payload: Dictionary = {}
 
 func get_payload_operation() -> StringName:

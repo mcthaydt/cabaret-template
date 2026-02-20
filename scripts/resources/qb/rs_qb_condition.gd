@@ -31,16 +31,21 @@ enum ValueType {
 	STRING_NAME,
 }
 
+@export_group("Source")
 @export var source: Source = Source.CUSTOM
 @export var quality_path: String = ""
+
+@export_group("Comparison")
 @export var operator: Operator = Operator.EQUALS
+@export var negate: bool = false
+
+@export_group("Value")
 @export var value_type: ValueType = ValueType.BOOL
 @export var value_float: float = 0.0
 @export var value_int: int = 0
 @export var value_string: String = ""
 @export var value_bool: bool = false
 @export var value_string_name: StringName = &""
-@export var negate: bool = false
 
 func get_typed_value() -> Variant:
 	match value_type:
