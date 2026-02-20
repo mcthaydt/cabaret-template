@@ -6,13 +6,14 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Phase 1 complete (`T1.0`-`T1.30` complete)
+**Phase**: Phase 2 complete (`T2.1`-`T2.14` complete)
 **Branch**: QB-Rule-Manager
-**Last Commit**: `24ff4a3` - Add base QB rule manager lifecycle implementation
+**Last Commit**: `843ed75` - Add character QB rules and scene integration
 
-**Next Task**: `T2.7` - Create `resources/qb/character/cfg_pause_gate_paused.tres`
+**Next Task**: `T3.1` - Modify `S_MovementSystem` to read `C_CharacterStateComponent.is_gameplay_active` for pause gating
 **Latest Verification**:
 - `tests/unit/qb` passing (46/46)
+- `tests/unit/ecs` passing (126/126)
 - `tests/unit/style` suite passing (12/12)
 
 ---

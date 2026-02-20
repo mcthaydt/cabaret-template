@@ -71,24 +71,25 @@
 
 ### 2C: Rule Definitions (OR via multiple .tres files)
 
-- [ ] T2.7: Create `resources/qb/character/cfg_pause_gate_paused.tres` - Condition: REDUX gameplay.paused == true; Effect: SET_QUALITY is_gameplay_active = false; requires_salience: false
-- [ ] T2.8: Create `resources/qb/character/cfg_pause_gate_shell.tres` - Condition: REDUX navigation.shell != "gameplay"; Effect: SET_QUALITY is_gameplay_active = false; requires_salience: false
-- [ ] T2.8b: Create `resources/qb/character/cfg_pause_gate_transitioning.tres` - Condition: REDUX scene.is_transitioning == true; Effect: SET_QUALITY is_gameplay_active = false; requires_salience: false (NEW: current systems don't check transitioning, but this hardens gating for correctness)
-- [ ] T2.9: Create `resources/qb/character/cfg_spawn_freeze_rule.tres` - Condition: COMPONENT C_SpawnStateComponent.is_physics_frozen == true; Effect: SET_QUALITY is_spawn_frozen = true; requires_salience: false
+- [x] T2.7: Create `resources/qb/character/cfg_pause_gate_paused.tres` - Condition: REDUX gameplay.paused == true; Effect: SET_QUALITY is_gameplay_active = false; requires_salience: false
+- [x] T2.8: Create `resources/qb/character/cfg_pause_gate_shell.tres` - Condition: REDUX navigation.shell != "gameplay"; Effect: SET_QUALITY is_gameplay_active = false; requires_salience: false
+- [x] T2.8b: Create `resources/qb/character/cfg_pause_gate_transitioning.tres` - Condition: REDUX scene.is_transitioning == true; Effect: SET_QUALITY is_gameplay_active = false; requires_salience: false (NEW: current systems don't check transitioning, but this hardens gating for correctness)
+- [x] T2.9: Create `resources/qb/character/cfg_spawn_freeze_rule.tres` - Condition: COMPONENT C_SpawnStateComponent.is_physics_frozen == true; Effect: SET_QUALITY is_spawn_frozen = true; requires_salience: false
 
 ### 2D: Scene Integration
 
-- [ ] T2.10: Add C_CharacterStateComponent to `scenes/templates/tmpl_character.tscn`
-- [ ] T2.11: Add C_CharacterStateComponent to `scenes/prefabs/prefab_player.tscn` and any character prefabs
-- [ ] T2.12: Add S_CharacterRuleManager to all 5 gameplay scenes (gameplay_base, interior_house, bar, exterior, alleyway)
-- [ ] T2.12b: Use default rule loading pattern in scenes (leave `rule_definitions` empty unless intentionally overriding)
+- [x] T2.10: Add C_CharacterStateComponent to `scenes/templates/tmpl_character.tscn`
+- [x] T2.11: Add C_CharacterStateComponent to `scenes/prefabs/prefab_player.tscn` and any character prefabs
+- [x] T2.12: Add S_CharacterRuleManager to all 5 gameplay scenes (gameplay_base, interior_house, bar, exterior, alleyway)
+- [x] T2.12b: Use default rule loading pattern in scenes (leave `rule_definitions` empty unless intentionally overriding)
 
 ### 2E: Regression Check
 
-- [ ] T2.13: Run full existing test suite -- zero regressions (rule manager writes to new component, nothing reads it yet)
-- [ ] T2.14: Update continuation prompt (`qb-rule-manager-continuation-prompt.md`) with Phase 2 status
+- [x] T2.13: Run full existing test suite -- zero regressions (rule manager writes to new component, nothing reads it yet)
+- [x] T2.14: Update continuation prompt (`qb-rule-manager-continuation-prompt.md`) with Phase 2 status
 
 **Phase 2 Commit**: Character state component and rule manager (additive, no behavioral changes)
+Completion notes: `C_CharacterStateComponent` is authored in `tmpl_character` and inherited by `prefab_player`; all 5 gameplay scenes now include `S_CharacterRuleManager` with default rule loading (`rule_definitions` left empty).
 
 ---
 
