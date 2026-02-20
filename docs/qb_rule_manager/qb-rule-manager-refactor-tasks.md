@@ -1,6 +1,6 @@
 # QB Rule Manager Refactor - Tasks Checklist
 
-**Progress:** 67% (26 / 39 tasks complete)
+**Progress:** 87% (34 / 39 tasks complete)
 
 ## Verification (all phases)
 
@@ -128,7 +128,7 @@ Note: The camera shake values (offset 10.0, rotation 0.03) are intentionally dif
 
 ### R5A: Camera shake constants
 
-- [ ] TR5.1: Name the sine/cosine frequency literals in `_apply_trauma_shake()`:
+- [x] TR5.1: Name the sine/cosine frequency literals in `_apply_trauma_shake()`:
   ```gdscript
   const SHAKE_FREQ_OFFSET_X: float = 17.0
   const SHAKE_FREQ_OFFSET_Y: float = 21.0
@@ -140,13 +140,13 @@ Note: The camera shake values (offset 10.0, rotation 0.03) are intentionally dif
 
 ### R5B: Victory handler configurability
 
-- [ ] TR5.2: Replace `const REQUIRED_FINAL_AREA := "bar"` with `@export var required_final_area: String = "bar"` in `s_victory_handler_system.gd`
-- [ ] TR5.3: Update `_can_trigger_victory()` call site to use `required_final_area` instead of `REQUIRED_FINAL_AREA`
-- [ ] TR5.4: Add test case verifying the export is configurable (set `required_final_area` to a different value, verify behavior changes)
+- [x] TR5.2: Replace `const REQUIRED_FINAL_AREA := "bar"` with `@export var required_final_area: String = "bar"` in `s_victory_handler_system.gd`
+- [x] TR5.3: Update `_can_trigger_victory()` call site to use `required_final_area` instead of `REQUIRED_FINAL_AREA`
+- [x] TR5.4: Add test case verifying the export is configurable (set `required_final_area` to a different value, verify behavior changes)
 
 ### R5C: Checkpoint handler consistency
 
-- [ ] TR5.5: Move `execution_priority = 100` from `_ready()` to `_init()` in `s_checkpoint_handler_system.gd` (matches convention used by all other systems)
+- [x] TR5.5: Move `execution_priority = 100` from `_ready()` to `_init()` in `s_checkpoint_handler_system.gd` (matches convention used by all other systems)
 
 ### R5D: Redundant guard code
 
@@ -154,12 +154,20 @@ Note: The camera shake values (offset 10.0, rotation 0.03) are intentionally dif
 
 ### R5E: Document entity ID normalization
 
-- [ ] TR5.7: Add comment to `s_death_handler_system.gd` `get_ragdoll_for_entity()` explaining `E_` prefix stripping (entity IDs auto-generated from node names strip this prefix; callers may pass either form)
+- [x] TR5.7: Add comment to `s_death_handler_system.gd` `get_ragdoll_for_entity()` explaining `E_` prefix stripping (entity IDs auto-generated from node names strip this prefix; callers may pass either form)
 
 ### R5F: Verification
 
-- [ ] TR5.8: Run full test suite -- zero regressions
-- [ ] TR5.9: Update `AGENTS.md` line referencing `REQUIRED_FINAL_AREA` to reflect `@export var required_final_area`
+- [x] TR5.8: Run full test suite -- zero regressions
+- [x] TR5.9: Update `AGENTS.md` line referencing `REQUIRED_FINAL_AREA` to reflect `@export var required_final_area`
+
+Completion notes (2026-02-20):
+- Named camera shake frequency/phase literals in `S_CameraRuleManager` (`SHAKE_FREQ_*`, `SHAKE_PHASE_*`) while preserving existing shake behavior.
+- Made `S_VictoryHandlerSystem` game-complete area gating designer-configurable via `@export var required_final_area: String = "bar"` and updated `_can_trigger_victory(...)` to use it.
+- Added `test_required_final_area_export_is_configurable` to `tests/unit/qb/test_victory_handler_system.gd`.
+- Moved `S_CheckpointHandlerSystem` priority assignment from `_ready()` to `_init()` for consistency with other systems.
+- Added a normalization comment in `S_DeathHandlerSystem.get_ragdoll_for_entity()` documenting acceptance of both `player` and `E_Player` ids.
+- Verification passed: `tests/unit/qb` (72/72), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), `tests/unit/style` (12/12).
 
 **Commit:** `Name shake constants, designer-configurable victory area, small fixes`
 
@@ -202,7 +210,7 @@ Note: The camera shake values (offset 10.0, rotation 0.03) are intentionally dif
 
 - Zero behavioral changes across all phases -- existing tests are the definitive spec
 - Each phase ends with a commit at test-green state
-- R1-R4 touch the most files and carry the most regression risk; R5-R6 are localized
+- R1-R5 touch the most files and carry the most regression risk; R6 is localized
 
 ## Links
 
