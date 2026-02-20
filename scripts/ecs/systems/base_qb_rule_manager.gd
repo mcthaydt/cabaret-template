@@ -27,6 +27,7 @@ func _init() -> void:
 func on_configured() -> void:
 	_unregister_event_subscriptions()
 	_rule_validation_report = U_QB_RULE_VALIDATOR.validate_rule_definitions(_resolve_rule_definitions())
+	_warn_invalid_rule_definitions()
 	_register_rules(_get_valid_rule_definitions())
 	_register_event_subscriptions()
 
@@ -83,6 +84,48 @@ func _get_valid_rule_definitions() -> Array:
 	if valid_rules_variant is Array:
 		return (valid_rules_variant as Array).duplicate()
 	return []
+
+func _warn_invalid_rule_definitions() -> void:
+	if not _should_emit_rule_validation_warnings():
+		return
+
+	var errors_variant: Variant = _rule_validation_report.get("errors_by_rule_id", {})
+	if not (errors_variant is Dictionary):
+		return
+	var errors_by_rule_id: Dictionary = errors_variant as Dictionary
+	if errors_by_rule_id.is_empty():
+		return
+
+	var rule_keys: Array[String] = []
+	for key_variant in errors_by_rule_id.keys():
+		rule_keys.append(String(key_variant))
+	rule_keys.sort()
+
+	for rule_key in rule_keys:
+		var errors: Array[String] = _resolve_rule_errors(errors_by_rule_id, rule_key)
+		for error in errors:
+			_emit_rule_validation_warning(
+				"BaseQBRuleManager: Invalid rule '%s': %s" % [rule_key, error]
+			)
+
+func _resolve_rule_errors(errors_by_rule_id: Dictionary, rule_key: String) -> Array[String]:
+	var lookup_key: Variant = rule_key
+	if not errors_by_rule_id.has(lookup_key):
+		lookup_key = StringName(rule_key)
+	var errors_variant: Variant = errors_by_rule_id.get(lookup_key, [])
+	if not (errors_variant is Array):
+		return []
+
+	var typed_errors: Array[String] = []
+	for error_variant in errors_variant:
+		typed_errors.append(str(error_variant))
+	return typed_errors
+
+func _should_emit_rule_validation_warnings() -> bool:
+	return Engine.is_editor_hint()
+
+func _emit_rule_validation_warning(message: String) -> void:
+	push_warning(message)
 
 func _register_rules(definitions: Array) -> void:
 	_registered_rules.clear()

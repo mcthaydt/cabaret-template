@@ -12,12 +12,20 @@ class RuleManagerStub:
 
 	var contexts: Array = []
 	var default_rules: Array = []
+	var force_validation_warnings: bool = false
+	var validation_warnings: Array[String] = []
 
 	func _get_tick_contexts(_delta: float) -> Array:
 		return contexts
 
 	func get_default_rule_definitions() -> Array:
 		return default_rules
+
+	func _should_emit_rule_validation_warnings() -> bool:
+		return force_validation_warnings
+
+	func _emit_rule_validation_warning(message: String) -> void:
+		validation_warnings.append(message)
 
 class CharacterStateStub:
 	extends RefCounted
@@ -29,7 +37,8 @@ func before_each() -> void:
 
 func _configure_manager(
 	rules: Array = [],
-	default_rules: Array = []
+	default_rules: Array = [],
+	force_validation_warnings: bool = false
 ) -> Dictionary:
 	var store := MOCK_STATE_STORE.new()
 	autofree(store)
@@ -40,6 +49,7 @@ func _configure_manager(
 	var manager := RuleManagerStub.new()
 	manager.rule_definitions = rules
 	manager.default_rules = default_rules
+	manager.force_validation_warnings = force_validation_warnings
 	manager.state_store = store
 	manager.ecs_manager = ecs_manager
 	autofree(manager)
@@ -386,6 +396,29 @@ func test_on_configured_filters_invalid_rules_via_validator() -> void:
 	var validation_report: Dictionary = manager.get_rule_validation_report()
 	var errors_by_rule_id: Dictionary = validation_report.get("errors_by_rule_id", {})
 	assert_true(errors_by_rule_id.has(StringName("invalid_rule")))
+
+func test_on_configured_reports_validation_warnings_when_enabled() -> void:
+	var invalid_effect: Variant = QB_EFFECT.new()
+	invalid_effect.effect_type = QB_EFFECT.EffectType.SET_QUALITY
+	invalid_effect.target = "is_dead"
+	invalid_effect.payload = {
+		"value_type": "NOT_A_REAL_VALUE_TYPE",
+		"value_bool": true,
+	}
+	var invalid_rule: Variant = _make_rule(
+		StringName("invalid_rule"),
+		[_make_condition("flag")],
+		[invalid_effect],
+		0,
+		false
+	)
+
+	var context := _configure_manager([invalid_rule], [], true)
+	var manager: RuleManagerStub = context["manager"]
+	assert_false(manager.validation_warnings.is_empty())
+	assert_eq(manager.validation_warnings.size(), 1)
+	assert_true(String(manager.validation_warnings[0]).find("invalid_rule") != -1)
+	assert_true(String(manager.validation_warnings[0]).find("payload.value_type") != -1)
 
 func test_default_rule_definitions_used_when_export_array_empty() -> void:
 	var default_rule: Variant = _make_rule(
