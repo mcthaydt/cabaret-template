@@ -210,17 +210,18 @@ Completion notes: Added `S_GameRuleManager` + checkpoint/victory handler systems
 
 - [x] T5.7: Create `resources/qb/camera/cfg_camera_shake_rule.tres` - EVENT trigger: entity_death/health_changed; Effect: SET_COMPONENT_FIELD on `C_CameraStateComponent.shake_trauma` with `operation=add`, numeric value type, optional clamp
 - [x] T5.8: Create `resources/qb/camera/cfg_camera_zone_fov_rule.tres` - TICK trigger; Conditions: entity in FOV zone; Effect: SET_COMPONENT_FIELD on `C_CameraStateComponent.target_fov` with `operation=set`, float value type
-- [ ] T5.9: Add C_CameraStateComponent to camera entity in character/scene templates
-- [ ] T5.10: Add S_CameraRuleManager to gameplay scenes
-- [ ] T5.11: Wire S_CameraRuleManager to apply shake_trauma via M_CameraManager
-- [ ] T5.12: Wire FOV blending to Camera3D
+- [x] T5.9: Add C_CameraStateComponent to camera entity in character/scene templates
+- [x] T5.10: Add S_CameraRuleManager to gameplay scenes
+- [x] T5.11: Wire S_CameraRuleManager to apply shake_trauma via M_CameraManager
+- [x] T5.12: Wire FOV blending to Camera3D
 
 ### 5D: Verification
 
-- [ ] T5.13: Run full test suite
-- [ ] T5.14: Update continuation prompt (`qb-rule-manager-continuation-prompt.md`) with Phase 5 status
+- [x] T5.13: Run full test suite
+- [x] T5.14: Update continuation prompt (`qb-rule-manager-continuation-prompt.md`) with Phase 5 status
 
 **Phase 5 Commit**: Camera state rules (additive)
+Completion notes: Added `C_CameraStateComponent` to `tmpl_camera`, integrated `S_CameraRuleManager` into all five gameplay scenes, and wired camera-state outputs to `M_CameraManager` (additive shake source + FOV blending). Verification passed on February 20, 2026 for `tests/unit/qb` (64/64), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), and `tests/unit/style` (12/12). Additional camera regressions passed for `tests/unit/camera_system` (11/11) and `tests/integration/vfx` (38/38).
 
 ---
 
