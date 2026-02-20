@@ -6,13 +6,13 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Phase 6 in progress (`T6.1` complete)
+**Phase**: Phase 6 in progress (`T6.1`-`T6.2` complete)
 **Branch**: QB-Rule-Manager
-**Last Commit**: `e1fc9ce` - docs(qb): mark camera rule manager tasks through T5.8
+**Last Commit**: `b015818` - docs(qb): mark T6.1 complete
 
-**Next Task**: `T6.2` - Add push_warning for misconfigured rules in editor
+**Next Task**: `T6.3` - Update `AGENTS.md` with QB Rule Manager patterns section
 **Latest Verification**:
-- `tests/unit/qb` passing (66/66) on February 20, 2026 after adding load-time rule validation coverage
+- `tests/unit/qb` passing (67/67) on February 20, 2026 after adding editor-warning coverage for invalid rules
 - `tests/unit/ecs` passing (126/126)
 - `tests/unit/ecs/systems` passing (200/200)
 - `tests/integration/qb` passing (1/1)

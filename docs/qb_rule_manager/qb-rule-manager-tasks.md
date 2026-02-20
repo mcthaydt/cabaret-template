@@ -230,7 +230,7 @@ Completion notes: Added `C_CameraStateComponent` to `tmpl_camera`, integrated `S
 ### Validation Tooling
 
 - [x] T6.1: Enhance U_QBRuleValidator with load-time validation (called in on_configured)
-- [ ] T6.2: Add push_warning for misconfigured rules in editor
+- [x] T6.2: Add push_warning for misconfigured rules in editor
 
 ### Project-Level Updates
 
