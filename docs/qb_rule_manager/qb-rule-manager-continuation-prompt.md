@@ -6,14 +6,16 @@ Use this prompt to resume work on the QB Rule Manager feature in a new session.
 
 ## Current Status
 
-**Phase**: Phase 2 complete (`T2.1`-`T2.14` complete)
+**Phase**: Phase 3 implementation complete (`T3.1`-`T3.18`, `T3.20` complete; `T3.19` manual playtest pending)
 **Branch**: QB-Rule-Manager
-**Last Commit**: `843ed75` - Add character QB rules and scene integration
+**Last Commit**: `b08721c` - Update QB docs for Phase 2 completion
 
-**Next Task**: `T3.1` - Modify `S_MovementSystem` to read `C_CharacterStateComponent.is_gameplay_active` for pause gating
+**Next Task**: `T3.19` - Manual playtest (movement, jumping, death/respawn, pause/unpause, spawn freeze, footstep sounds)
 **Latest Verification**:
-- `tests/unit/qb` passing (46/46)
+- `tests/unit/qb` passing (49/49)
 - `tests/unit/ecs` passing (126/126)
+- `tests/unit/ecs/systems` passing (200/200)
+- `tests/integration/qb` passing (1/1)
 - `tests/unit/style` suite passing (12/12)
 
 ---

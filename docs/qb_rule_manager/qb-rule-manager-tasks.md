@@ -97,18 +97,18 @@ Completion notes: `C_CharacterStateComponent` is authored in `tmpl_character` an
 
 ### 3A: Pause Gating Modifications (6 systems)
 
-- [ ] T3.1: Modify `S_MovementSystem` - Replace independent pause check (lines 22-34) with C_CharacterStateComponent.is_gameplay_active read. KEEP @export state_store (still needed for entity snapshot dispatching at lines 213-259)
-- [ ] T3.2: Modify `S_JumpSystem` - Replace pause check (lines 21-34) with C_CharacterStateComponent.is_gameplay_active read. KEEP @export state_store (still needed for accessibility settings reads at lines 35-46)
-- [ ] T3.3: Modify `S_GravitySystem` - Replace pause check (lines 17-29) with C_CharacterStateComponent.is_gameplay_active read. KEEP @export state_store (still needed for gravity_scale reads at lines 69-73)
-- [ ] T3.4: Modify `S_RotateToInputSystem` - Replace pause check (lines 21-33) with C_CharacterStateComponent.is_gameplay_active read. KEEP @export state_store (still needed for rotation snapshot dispatch at lines 133-139)
-- [ ] T3.5: Modify `S_InputSystem` - Replace pause check (lines 80-84) with C_CharacterStateComponent.is_gameplay_active read. KEEP @export state_store (still used for other checks at lines 62-73)
-- [ ] T3.6: Modify `S_FootstepSoundSystem` - Replace pause check (lines 46-56, uses `try_get_store` variant) with C_CharacterStateComponent.is_gameplay_active read. CAN REMOVE @export state_store (only used for pause check)
+- [x] T3.1: Modify `S_MovementSystem` - Replace independent pause check (lines 22-34) with C_CharacterStateComponent.is_gameplay_active read. KEEP @export state_store (still needed for entity snapshot dispatching at lines 213-259)
+- [x] T3.2: Modify `S_JumpSystem` - Replace pause check (lines 21-34) with C_CharacterStateComponent.is_gameplay_active read. KEEP @export state_store (still needed for accessibility settings reads at lines 35-46)
+- [x] T3.3: Modify `S_GravitySystem` - Replace pause check (lines 17-29) with C_CharacterStateComponent.is_gameplay_active read. KEEP @export state_store (still needed for gravity_scale reads at lines 69-73)
+- [x] T3.4: Modify `S_RotateToInputSystem` - Replace pause check (lines 21-33) with C_CharacterStateComponent.is_gameplay_active read. KEEP @export state_store (still needed for rotation snapshot dispatch at lines 133-139)
+- [x] T3.5: Modify `S_InputSystem` - Replace pause check (lines 80-84) with C_CharacterStateComponent.is_gameplay_active read. KEEP @export state_store (still used for other checks at lines 62-73)
+- [x] T3.6: Modify `S_FootstepSoundSystem` - Replace pause check (lines 46-56, uses `try_get_store` variant) with C_CharacterStateComponent.is_gameplay_active read. CAN REMOVE @export state_store (only used for pause check)
 
 ### 3B: Spawn Freeze Modifications (3 systems -- each keeps different side effects)
 
-- [ ] T3.7: Modify `S_MovementSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: reset velocity to zero, reset dynamics state)
-- [ ] T3.8: Modify `S_JumpSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: flag debug snapshot with spawn_frozen: true)
-- [ ] T3.9: Modify `S_FloatingSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: update support state even while frozen)
+- [x] T3.7: Modify `S_MovementSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: reset velocity to zero, reset dynamics state)
+- [x] T3.8: Modify `S_JumpSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: flag debug snapshot with spawn_frozen: true)
+- [x] T3.9: Modify `S_FloatingSystem` - Read is_spawn_frozen from C_CharacterStateComponent (keep: update support state even while frozen)
 
 ### NOT Modified
 
@@ -117,28 +117,29 @@ Completion notes: `C_CharacterStateComponent` is authored in `tmpl_character` an
 
 ### 3C: Death Handler System
 
-- [ ] T3.10: Add new event names to `U_ECSEventNames`: EVENT_ENTITY_DEATH_REQUESTED, EVENT_ENTITY_RESPAWN_REQUESTED
-- [ ] T3.11: Create `scripts/ecs/systems/s_death_handler_system.gd` (S_DeathHandlerSystem extends BaseECSSystem) - subscribes to entity_death_requested (spawn ragdoll, hide entity) and entity_respawn_requested (free ragdoll, restore visibility); validate required payload key `entity_id`
-- [ ] T3.12: Extract ragdoll logic from S_HealthSystem (lines 167-284) into S_DeathHandlerSystem: _spawn_ragdoll() (lines 211-254), _restore_entity_state() (lines 256-274), get_ragdoll_for_entity() (lines 276-284), PLAYER_RAGDOLL preload (line 12), _rng (line 26), _ragdoll_spawned, _ragdoll_instances, _entity_refs, _entity_original_visibility (lines 22-25)
-- [ ] T3.13: Modify S_HealthSystem: _handle_death_sequence() publishes entity_death_requested instead of calling _spawn_ragdoll(); _reset_death_flags() publishes entity_respawn_requested. Payload contract: death requires `entity_id` (optional `health_component`, `entity_root`, `body`), respawn requires `entity_id` (optional `entity_root`)
-- [ ] T3.14: Create `tests/unit/qb/test_death_handler_system.gd` - ragdoll spawn on death event, ragdoll cleanup on respawn event
+- [x] T3.10: Add new event names to `U_ECSEventNames`: EVENT_ENTITY_DEATH_REQUESTED, EVENT_ENTITY_RESPAWN_REQUESTED
+- [x] T3.11: Create `scripts/ecs/systems/s_death_handler_system.gd` (S_DeathHandlerSystem extends BaseECSSystem) - subscribes to entity_death_requested (spawn ragdoll, hide entity) and entity_respawn_requested (free ragdoll, restore visibility); validate required payload key `entity_id`
+- [x] T3.12: Extract ragdoll logic from S_HealthSystem (lines 167-284) into S_DeathHandlerSystem: _spawn_ragdoll() (lines 211-254), _restore_entity_state() (lines 256-274), get_ragdoll_for_entity() (lines 276-284), PLAYER_RAGDOLL preload (line 12), _rng (line 26), _ragdoll_spawned, _ragdoll_instances, _entity_refs, _entity_original_visibility (lines 22-25)
+- [x] T3.13: Modify S_HealthSystem: _handle_death_sequence() publishes entity_death_requested instead of calling _spawn_ragdoll(); _reset_death_flags() publishes entity_respawn_requested. Payload contract: death requires `entity_id` (optional `health_component`, `entity_root`, `body`), respawn requires `entity_id` (optional `entity_root`)
+- [x] T3.14: Create `tests/unit/qb/test_death_handler_system.gd` - ragdoll spawn on death event, ragdoll cleanup on respawn event
 
 ### 3D: Brain Data Death Sync Rule
 
-- [ ] T3.15: Create `resources/qb/character/cfg_death_sync_rule.tres` - TICK trigger, requires_salience: false; Condition: COMPONENT C_HealthComponent.is_dead == true; Effect: SET_QUALITY is_dead = true
+- [x] T3.15: Create `resources/qb/character/cfg_death_sync_rule.tres` - TICK trigger, requires_salience: false; Condition: COMPONENT C_HealthComponent.is_dead == true; Effect: SET_QUALITY is_dead = true
 
 ### 3E: Integration Test
 
-- [ ] T3.16: Create `tests/integration/qb/test_qb_brain_data_pipeline.gd` - End-to-end: S_CharacterRuleManager populates brain data -> systems read is_gameplay_active and gate correctly. Test paused→brain data false→system returns early. Test unpaused+gameplay shell+not transitioning→brain data true→system processes normally.
+- [x] T3.16: Create `tests/integration/qb/test_qb_brain_data_pipeline.gd` - End-to-end: S_CharacterRuleManager populates brain data -> systems read is_gameplay_active and gate correctly. Test paused→brain data false→system returns early. Test unpaused+gameplay shell+not transitioning→brain data true→system processes normally.
 
 ### 3F: Verification
 
-- [ ] T3.17: Run full existing ECS test suite -- all tests must pass (behavioral equivalence)
-- [ ] T3.18: Run QB unit tests
+- [x] T3.17: Run full existing ECS test suite -- all tests must pass (behavioral equivalence)
+- [x] T3.18: Run QB unit tests
 - [ ] T3.19: Manual playtest: movement, jumping, death/respawn, pause/unpause, spawn freeze, footstep sounds during pause
-- [ ] T3.20: Update continuation prompt (`qb-rule-manager-continuation-prompt.md`) with Phase 3 status
+- [x] T3.20: Update continuation prompt (`qb-rule-manager-continuation-prompt.md`) with Phase 3 status
 
 **Phase 3 Commit**: System gating consolidated + death handler extracted
+Completion notes: Implemented pause/freeze gating migration to `C_CharacterStateComponent`, extracted ragdoll lifecycle into `S_DeathHandlerSystem`, added death-sync QB rule + integration test pipeline. Automated verification passed for `tests/unit/qb` (49/49), `tests/unit/ecs` (126/126), `tests/unit/ecs/systems` (200/200), `tests/integration/qb` (1/1), and `tests/unit/style` (12/12). Manual playtest remains pending (`T3.19`).
 
 ---
 
